@@ -6,6 +6,8 @@ version := "0.1"
 
 scalaVersion := "2.11.8"
 
+scalastyleFailOnError := true
+
 scalacOptions := Seq(
   "-unchecked", "-feature", "-Xlint", "-Ywarn-unused-import",
   "-deprecation", "-Xfatal-warnings", "-Yrangepos")
