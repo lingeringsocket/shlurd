@@ -32,12 +32,16 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateStatement(predDoorIsOpen)
       ShlurdParser.parse(input + "!") must be equalTo
         ShlurdPredicateStatement(predDoorIsOpen)
+      ShlurdParser.parse(input + "?") must be equalTo
+        ShlurdPredicateQuestion(predDoorIsOpen)
     }
 
     "parse a question" in
     {
-      val input = "is the door open?"
+      val input = "is the door open"
       ShlurdParser.parse(input) must be equalTo
+        ShlurdPredicateQuestion(predDoorIsOpen)
+      ShlurdParser.parse(input + "?") must be equalTo
         ShlurdPredicateQuestion(predDoorIsOpen)
     }
 
@@ -49,6 +53,8 @@ class ShlurdParserSpec extends Specification
       ShlurdParser.parse(input + ".") must be equalTo
         ShlurdStateChangeCommand(predDoorIsOpen)
       ShlurdParser.parse(input + "!") must be equalTo
+        ShlurdStateChangeCommand(predDoorIsOpen)
+      ShlurdParser.parse(input + "?") must be equalTo
         ShlurdStateChangeCommand(predDoorIsOpen)
     }
   }

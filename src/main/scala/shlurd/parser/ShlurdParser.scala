@@ -47,11 +47,11 @@ object ShlurdParser
       hasLabel(tree.firstChild, terminalLabel)
   }
 
-  private def expectRoot(tree : Tree) =
+  private def expectRoot(tree : Tree, implicitQuestion : Boolean) =
   {
     if (hasLabel(tree, "ROOT")) {
       assert(tree.numChildren == 1)
-      expectSentence(tree.firstChild)
+      expectSentence(tree.firstChild, implicitQuestion)
     } else {
       ShlurdUnknownSentence
     }
@@ -61,7 +61,7 @@ object ShlurdParser
     tree : Tree, punctuationMarks : Iterable[String]) : Array[Tree] =
   {
     val children = tree.children
-    if (punctuationMarks.exists(punctuation => 
+    if (punctuationMarks.exists(punctuation =>
       hasTerminalLabel(children.last, ".", punctuation)))
     {
       children.dropRight(1)
@@ -70,33 +70,35 @@ object ShlurdParser
     }
   }
 
-  private def expectSentence(tree : Tree) =
+  private def isImperative(children : Array[Tree]) =
+  {
+    (children.size == 1) && hasLabel(children.head, "VP")
+  }
+
+  private def expectSentence(tree : Tree, implicitQuestion : Boolean) =
   {
     if (hasLabel(tree, "S")) {
-      val children = truncatePunctuation(tree, Seq(".", "!"))
-      if (children.size == 1) {
-        val vp = children.head
-        if (hasLabel(vp, "VP")) {
-          expectCommand(vp)
-        } else {
-          ShlurdUnknownSentence
-        }
-      } else if (children.size != 2) {
-        ShlurdUnknownSentence
-      } else {
+      val isQuestion =
+        hasTerminalLabel(tree.children.last, ".", "?") && !implicitQuestion
+      val children = truncatePunctuation(tree, Seq(".", "!", "?"))
+      if (isImperative(children)) {
+        expectCommand(children.head)
+      } else if (children.size == 2) {
         val np = children.head
         val vp = children.last
         if ((hasLabel(np, "NP")) && (hasLabel(vp, "VP"))) {
-          expectStatement(np, vp)
+          expectStatement(np, vp, isQuestion)
         } else {
           ShlurdUnknownSentence
         }
+      } else {
+        ShlurdUnknownSentence
       }
     } else if (hasLabel(tree, "SQ")) {
       val children = truncatePunctuation(tree, Seq("?"))
-      if (children.size != 3) {
-        ShlurdUnknownSentence
-      } else {
+      if (isImperative(children)) {
+        expectCommand(children.head)
+      } else  if (children.size == 3) {
         val vp = children(0)
         val np = children(1)
         val ap = children(2)
@@ -106,17 +108,23 @@ object ShlurdParser
           ShlurdPredicateQuestion(
             expectPredicate(np, ap))
         }
+      } else {
+        ShlurdUnknownSentence
       }
     } else {
       ShlurdUnknownSentence
     }
   }
 
-  private def expectStatement(np : Tree, vp : Tree) =
+  private def expectStatement(np : Tree, vp : Tree, isQuestion : Boolean) =
   {
     if (hasTerminalLabel(vp.firstChild, "VBZ", "is")) {
-      ShlurdPredicateStatement(
-        expectPredicate(np, vp.lastChild))
+      val predicate = expectPredicate(np, vp.lastChild)
+      if (isQuestion) {
+        ShlurdPredicateQuestion(predicate)
+      } else {
+        ShlurdPredicateStatement(predicate)
+      }
     } else {
       ShlurdUnknownSentence
     }
@@ -197,13 +205,24 @@ object ShlurdParser
     }
   }
 
-  def parse(input : String) : ShlurdSentence =
+  private def parseIfPunctuated(input : String, implicitQuestion : Boolean)
+      : Option[ShlurdSentence] =
   {
     val doc = new Document(input)
     val sentences = doc.sentences.asScala
     assert(sentences.size == 1)
     val sentence = sentences.head
-    dump(sentence)
-    expectRoot(sentence.parse)
+    val tree = sentence.parse
+    if (tree.preTerminalYield.asScala.last.value ==  "."){
+      Some(expectRoot(tree, implicitQuestion))
+    } else {
+      None
+    }
+  }
+
+  def parse(input : String) : ShlurdSentence =
+  {
+    parseIfPunctuated(input, false).getOrElse(
+      parseIfPunctuated(input + "?", true).getOrElse(ShlurdUnknownSentence))
   }
 }
