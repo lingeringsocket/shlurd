@@ -19,10 +19,8 @@ import edu.stanford.nlp.trees._
 
 import scala.collection.JavaConverters._
 
-object ShlurdParser extends App
+object ShlurdParser
 {
-  run()
-
   private def dump(sentence : Sentence)
   {
     val tree = sentence.parse
@@ -168,11 +166,5 @@ object ShlurdParser extends App
     val sentence = sentences.head
     dump(sentence)
     expectRoot(sentence.parse)
-  }
-
-  def run()
-  {
-    val input = "the door is open"
-    parse(input)
   }
 }

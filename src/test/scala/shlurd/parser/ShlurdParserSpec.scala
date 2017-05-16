@@ -18,22 +18,25 @@ import org.specs2.mutable._
 
 class ShlurdParserSpec extends Specification
 {
+  private val predDoorIsOpen =
+    ShlurdStatePredicate(ShlurdFrontDoor,ShlurdDoorIsOpen)
+
   "ShlurdParser" should
   {
     "parse a statement" in
     {
-      val input = "the door is open."
+      val input = "the door is open"
       ShlurdParser.parse(input) must be equalTo
-        ShlurdPredicateStatement(
-          ShlurdStatePredicate(ShlurdFrontDoor,ShlurdDoorIsOpen))
+        ShlurdPredicateStatement(predDoorIsOpen)
+      ShlurdParser.parse(input + ".") must be equalTo
+        ShlurdPredicateStatement(predDoorIsOpen)
     }
 
     "parse a question" in
     {
       val input = "is the door open?"
       ShlurdParser.parse(input) must be equalTo
-        ShlurdPredicateQuestion(
-          ShlurdStatePredicate(ShlurdFrontDoor,ShlurdDoorIsOpen))
+        ShlurdPredicateQuestion(predDoorIsOpen)
     }
   }
 }
