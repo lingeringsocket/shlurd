@@ -30,9 +30,14 @@ object ShlurdParser
     })
   }
 
+  private def getLabel(tree : Tree) : String =
+  {
+    tree.label.value
+  }
+
   private def hasLabel(tree : Tree, label : String) : Boolean =
   {
-    tree.label.value == label
+    getLabel(tree) == label
   }
 
   private def hasTerminalLabel(
@@ -53,10 +58,12 @@ object ShlurdParser
   }
 
   private def truncatePunctuation(
-    tree : Tree, punctuation : String) : Array[Tree] =
+    tree : Tree, punctuationMarks : Iterable[String]) : Array[Tree] =
   {
     val children = tree.children
-    if (hasTerminalLabel(children.last, ".", punctuation)) {
+    if (punctuationMarks.exists(punctuation => 
+      hasTerminalLabel(children.last, ".", punctuation)))
+    {
       children.dropRight(1)
     } else {
       children
@@ -66,8 +73,15 @@ object ShlurdParser
   private def expectSentence(tree : Tree) =
   {
     if (hasLabel(tree, "S")) {
-      val children = truncatePunctuation(tree, ".")
-      if (children.size != 2) {
+      val children = truncatePunctuation(tree, Seq(".", "!"))
+      if (children.size == 1) {
+        val vp = children.head
+        if (hasLabel(vp, "VP")) {
+          expectCommand(vp)
+        } else {
+          ShlurdUnknownSentence
+        }
+      } else if (children.size != 2) {
         ShlurdUnknownSentence
       } else {
         val np = children.head
@@ -79,7 +93,7 @@ object ShlurdParser
         }
       }
     } else if (hasLabel(tree, "SQ")) {
-      val children = truncatePunctuation(tree, "?")
+      val children = truncatePunctuation(tree, Seq("?"))
       if (children.size != 3) {
         ShlurdUnknownSentence
       } else {
@@ -108,6 +122,18 @@ object ShlurdParser
     }
   }
 
+  private def expectCommand(vp : Tree) =
+  {
+    if (vp.numChildren == 2) {
+      val state = expectCommandState(vp.firstChild)
+      val subject = expectSubject(vp.lastChild)
+      ShlurdStateChangeCommand(
+        ShlurdStatePredicate(subject, state))
+    } else {
+      ShlurdUnknownSentence
+    }
+  }
+
   private def expectSubject(np : Tree) =
   {
     if (np.numChildren == 2) {
@@ -129,6 +155,19 @@ object ShlurdParser
       }
     } else {
       ShlurdUnknownSubject
+    }
+  }
+
+  private def expectCommandState(verb : Tree) =
+  {
+    if (verb.isPreTerminal && hasLabel(verb, "VB")) {
+      getLabel(verb.firstChild) match {
+        case "open" => ShlurdDoorIsOpen
+        case "close" => ShlurdDoorIsClosed
+        case _ => ShlurdUnknownState
+      }
+    } else {
+      ShlurdUnknownState
     }
   }
 
