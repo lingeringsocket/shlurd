@@ -37,6 +37,13 @@ object ShlurdParser extends App
     tree.label.value == label
   }
 
+  private def hasTerminalLabel(
+    tree : Tree, label : String, terminalLabel : String) : Boolean =
+  {
+    tree.isPreTerminal && hasLabel(tree, label) &&
+      hasLabel(tree.firstChild, terminalLabel)
+  }
+
   private def expectRoot(tree : Tree) =
   {
     if (hasLabel(tree, "ROOT")) {
@@ -47,18 +54,45 @@ object ShlurdParser extends App
     }
   }
 
+  private def truncatePunctuation(
+    tree : Tree, punctuation : String) : Array[Tree] =
+  {
+    val children = tree.children
+    if (hasTerminalLabel(children.last, ".", punctuation)) {
+      children.dropRight(1)
+    } else {
+      children
+    }
+  }
+
   private def expectSentence(tree : Tree) =
   {
     if (hasLabel(tree, "S")) {
-      if (tree.numChildren != 2) {
+      val children = truncatePunctuation(tree, ".")
+      if (children.size != 2) {
         ShlurdUnknownSentence
       } else {
-        val np = tree.firstChild
-        val vp = tree.lastChild
+        val np = children.head
+        val vp = children.last
         if ((hasLabel(np, "NP")) && (hasLabel(vp, "VP"))) {
           expectStatement(np, vp)
         } else {
           ShlurdUnknownSentence
+        }
+      }
+    } else if (hasLabel(tree, "SQ")) {
+      val children = truncatePunctuation(tree, "?")
+      if (children.size != 3) {
+        ShlurdUnknownSentence
+      } else {
+        val vp = children(0)
+        val np = children(1)
+        val ap = children(2)
+        if (!hasTerminalLabel(vp, "VBZ", "is")) {
+          ShlurdUnknownSentence
+        } else {
+          ShlurdPredicateQuestion(
+            expectPredicate(np, ap))
         }
       }
     } else {
@@ -68,8 +102,7 @@ object ShlurdParser extends App
 
   private def expectStatement(np : Tree, vp : Tree) =
   {
-    val verb = vp.firstChild
-    if (hasLabel(verb, "VBZ")) {
+    if (hasTerminalLabel(vp.firstChild, "VBZ", "is")) {
       ShlurdPredicateStatement(
         expectPredicate(np, vp.lastChild))
     } else {

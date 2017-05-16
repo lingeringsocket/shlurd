@@ -22,7 +22,7 @@ class ShlurdParserSpec extends Specification
   {
     "parse a statement" in
     {
-      val input = "the door is open"
+      val input = "the door is open."
       ShlurdParser.parse(input) must be equalTo
         ShlurdPredicateStatement(
           ShlurdStatePredicate(ShlurdFrontDoor,ShlurdDoorIsOpen))
@@ -30,7 +30,7 @@ class ShlurdParserSpec extends Specification
 
     "parse a question" in
     {
-      val input = "is the door open"
+      val input = "is the door open?"
       ShlurdParser.parse(input) must be equalTo
         ShlurdPredicateQuestion(
           ShlurdStatePredicate(ShlurdFrontDoor,ShlurdDoorIsOpen))
