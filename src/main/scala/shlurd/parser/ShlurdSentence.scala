@@ -14,6 +14,8 @@
 // limitations under the License.
 package shlurd.parser
 
+import ShlurdQuantifier._
+
 sealed trait ShlurdSentence
 {
 }
@@ -92,7 +94,9 @@ case class ShlurdPredicateStatement(
 {
 }
 
-case class ShlurdConcreteReference(entity : String) extends ShlurdReference
+case class ShlurdConcreteReference(
+  entity : String,
+  quantifier : ShlurdQuantifier) extends ShlurdReference
 {
 }
 

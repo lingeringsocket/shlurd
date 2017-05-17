@@ -21,6 +21,8 @@ import edu.stanford.nlp.simple.Document
 
 import scala.collection.JavaConverters._
 
+import ShlurdQuantifier._
+
 class ShlurdParser(
   tree : Tree, lemmas : Seq[String], implicitQuestion : Boolean)
 {
@@ -138,7 +140,7 @@ class ShlurdParser(
   private def expectCommand(vp : Tree) =
   {
     if (vp.numChildren == 2) {
-      val state = expectCommandState(vp.firstChild)
+      val state = expectVerbState(vp.firstChild)
       val subject = expectReference(vp.lastChild)
       ShlurdStateChangeCommand(
         ShlurdStatePredicate(subject, state))
@@ -149,19 +151,37 @@ class ShlurdParser(
 
   private def expectReference(np : Tree) =
   {
-    if (np.numChildren == 2) {
+    if (np.numChildren == 1) {
+      expectNounReference(np.firstChild, QUANT_ANY)
+    } else if (np.numChildren == 2) {
       val determiner = np.firstChild
-      val nounHead = np.lastChild
       if (hasLabel(determiner, "DT")) {
-        if (isNoun(nounHead)) {
-          val noun = nounHead.firstChild
-          ShlurdConcreteReference(getLemma(noun))
-        } else {
-          ShlurdUnknownReference
-        }
+        expectNounReference(
+          np.lastChild, expectQuantifier(determiner.firstChild))
       } else {
         ShlurdUnknownReference
       }
+    } else {
+      ShlurdUnknownReference
+    }
+  }
+
+  private def expectQuantifier(leaf : Tree) =
+  {
+    getLemma(leaf) match {
+      case "no" => QUANT_NONE
+      case "all" => QUANT_ALL
+      case "the" => QUANT_ONE
+      case _ => QUANT_ANY
+    }
+  }
+
+  private def expectNounReference(
+    nounHead : Tree, quantifier : ShlurdQuantifier) =
+  {
+    if (isNoun(nounHead)) {
+      val noun = nounHead.firstChild
+      ShlurdConcreteReference(getLemma(noun), quantifier)
     } else {
       ShlurdUnknownReference
     }
@@ -177,7 +197,7 @@ class ShlurdParser(
     lemmas(leaf.label.asInstanceOf[HasIndex].index)
   }
 
-  private def expectCommandState(verbHead : Tree) =
+  private def expectVerbState(verbHead : Tree) =
   {
     if (verbHead.isPreTerminal && isVerb(verbHead)) {
       ShlurdPhysicalState(getLemma(verbHead.firstChild))
@@ -186,7 +206,7 @@ class ShlurdParser(
     }
   }
 
-  private def expectState(ap : Tree) =
+  private def expectAdjectiveState(ap : Tree) =
   {
     if (hasLabel(ap, "JJ") && ap.isPreTerminal) {
       ShlurdPhysicalState(getLemma(ap.firstChild))
@@ -197,10 +217,19 @@ class ShlurdParser(
 
   private def expectPredicate(np : Tree, complement : Tree) =
   {
+    val subject = expectReference(np)
     if (hasLabel(complement, "ADJP")) {
-      val subject = expectReference(np)
-      val state = expectState(complement.firstChild)
-      ShlurdStatePredicate(subject,state)
+      val state = expectAdjectiveState(complement.firstChild)
+      ShlurdStatePredicate(subject, state)
+    } else if (hasLabel(complement, "VP")) {
+      // TODO:  ambiguity for action (passive construction) vs
+      // state (participial adjective)
+      if (complement.isPrePreTerminal) {
+        ShlurdStatePredicate(
+          subject, expectVerbState(complement.firstChild))
+      } else {
+        ShlurdUnknownPredicate
+      }
     } else {
       ShlurdUnknownPredicate
     }

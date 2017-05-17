@@ -16,12 +16,21 @@ package shlurd.parser
 
 import org.specs2.mutable._
 
+import ShlurdQuantifier._
+
 class ShlurdParserSpec extends Specification
 {
-  private val predDoorIsOpen =
+  private val STATE_OPEN = "open"
+
+  private val STATE_CLOSED = "close"
+
+  private def predDoor(
+    state : String = STATE_OPEN, quantifier : ShlurdQuantifier = QUANT_ONE) =
+  {
     ShlurdStatePredicate(
-      ShlurdConcreteReference("door"),
-      ShlurdPhysicalState("open"))
+      ShlurdConcreteReference("door", quantifier),
+      ShlurdPhysicalState(state))
+  }
 
   "ShlurdParser" should
   {
@@ -29,35 +38,64 @@ class ShlurdParserSpec extends Specification
     {
       val input = "the door is open"
       ShlurdParser(input).parse must be equalTo
-        ShlurdPredicateStatement(predDoorIsOpen)
+        ShlurdPredicateStatement(predDoor())
       ShlurdParser(input + ".").parse must be equalTo
-        ShlurdPredicateStatement(predDoorIsOpen)
+        ShlurdPredicateStatement(predDoor())
       ShlurdParser(input + "!").parse must be equalTo
-        ShlurdPredicateStatement(predDoorIsOpen)
+        ShlurdPredicateStatement(predDoor())
       ShlurdParser(input + "?").parse must be equalTo
-        ShlurdPredicateQuestion(predDoorIsOpen)
+        ShlurdPredicateQuestion(predDoor())
     }
 
     "parse a question" in
     {
       val input = "is the door open"
       ShlurdParser(input).parse must be equalTo
-        ShlurdPredicateQuestion(predDoorIsOpen)
+        ShlurdPredicateQuestion(predDoor())
       ShlurdParser(input + "?").parse must be equalTo
-        ShlurdPredicateQuestion(predDoorIsOpen)
+        ShlurdPredicateQuestion(predDoor())
     }
 
     "parse a command" in
     {
       val input = "open the door"
       ShlurdParser(input).parse must be equalTo
-        ShlurdStateChangeCommand(predDoorIsOpen)
+        ShlurdStateChangeCommand(predDoor())
       ShlurdParser(input + ".").parse must be equalTo
-        ShlurdStateChangeCommand(predDoorIsOpen)
+        ShlurdStateChangeCommand(predDoor())
       ShlurdParser(input + "!").parse must be equalTo
-        ShlurdStateChangeCommand(predDoorIsOpen)
+        ShlurdStateChangeCommand(predDoor())
       ShlurdParser(input + "?").parse must be equalTo
-        ShlurdStateChangeCommand(predDoorIsOpen)
+        ShlurdStateChangeCommand(predDoor())
+    }
+
+    "lemmatize correctly" in
+    {
+      val command = "close the door"
+      ShlurdParser(command).parse must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_CLOSED))
+      val question = "is the door closed"
+      ShlurdParser(question).parse must be equalTo
+        ShlurdPredicateQuestion(predDoor(STATE_CLOSED))
+    }
+
+    "parse quantifiers" in
+    {
+      val inputAny = "open any door"
+      ShlurdParser(inputAny).parse must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
+      val inputUnspecified = "open a door"
+      ShlurdParser(inputUnspecified).parse must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
+      val inputSome = "open some door"
+      ShlurdParser(inputSome).parse must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
+      val inputAll = "open all doors"
+      ShlurdParser(inputAll).parse must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ALL))
+      val inputNone = "open no door"
+      ShlurdParser(inputNone).parse must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_NONE))
     }
   }
 }
