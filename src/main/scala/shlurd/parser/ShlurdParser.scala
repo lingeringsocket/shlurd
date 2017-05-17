@@ -16,20 +16,14 @@ package shlurd.parser
 
 import edu.stanford.nlp.simple._
 import edu.stanford.nlp.trees._
+import edu.stanford.nlp.ling._
+import edu.stanford.nlp.simple.Document
 
 import scala.collection.JavaConverters._
 
-object ShlurdParser
+class ShlurdParser(
+  tree : Tree, lemmas : Seq[String], implicitQuestion : Boolean)
 {
-  private def dump(sentence : Sentence)
-  {
-    val tree = sentence.parse
-    println("TREE = " + tree)
-    Range(0, sentence.length).foreach(i => {
-      println("DEP = " + sentence.incomingDependencyLabel(i))
-    })
-  }
-
   private def getLabel(tree : Tree) : String =
   {
     tree.label.value
@@ -38,6 +32,16 @@ object ShlurdParser
   private def hasLabel(tree : Tree, label : String) : Boolean =
   {
     getLabel(tree) == label
+  }
+
+  private def isVerb(verbHead : Tree) : Boolean =
+  {
+    getLabel(verbHead).startsWith("VB")
+  }
+
+  private def isNoun(nounHead : Tree) : Boolean =
+  {
+    getLabel(nounHead).startsWith("NN")
   }
 
   private def hasTerminalLabel(
@@ -99,14 +103,14 @@ object ShlurdParser
       if (isImperative(children)) {
         expectCommand(children.head)
       } else  if (children.size == 3) {
-        val vp = children(0)
+        val verbHead = children(0)
         val np = children(1)
         val ap = children(2)
-        if (!hasTerminalLabel(vp, "VBZ", "is")) {
-          ShlurdUnknownSentence
-        } else {
+        if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
           ShlurdPredicateQuestion(
             expectPredicate(np, ap))
+        } else {
+          ShlurdUnknownSentence
         }
       } else {
         ShlurdUnknownSentence
@@ -118,7 +122,8 @@ object ShlurdParser
 
   private def expectStatement(np : Tree, vp : Tree, isQuestion : Boolean) =
   {
-    if (hasTerminalLabel(vp.firstChild, "VBZ", "is")) {
+    val verbHead = vp.firstChild
+    if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
       val predicate = expectPredicate(np, vp.lastChild)
       if (isQuestion) {
         ShlurdPredicateQuestion(predicate)
@@ -134,7 +139,7 @@ object ShlurdParser
   {
     if (vp.numChildren == 2) {
       val state = expectCommandState(vp.firstChild)
-      val subject = expectSubject(vp.lastChild)
+      val subject = expectReference(vp.lastChild)
       ShlurdStateChangeCommand(
         ShlurdStatePredicate(subject, state))
     } else {
@@ -142,38 +147,40 @@ object ShlurdParser
     }
   }
 
-  private def expectSubject(np : Tree) =
+  private def expectReference(np : Tree) =
   {
     if (np.numChildren == 2) {
       val determiner = np.firstChild
       val nounHead = np.lastChild
       if (hasLabel(determiner, "DT")) {
-        if (hasLabel(nounHead, "NN")) {
+        if (isNoun(nounHead)) {
           val noun = nounHead.firstChild
-          if (hasLabel(noun, "door")) {
-            ShlurdFrontDoor
-          } else {
-            ShlurdUnknownSubject
-          }
+          ShlurdConcreteReference(getLemma(noun))
         } else {
-          ShlurdUnknownSubject
+          ShlurdUnknownReference
         }
       } else {
-        ShlurdUnknownSubject
+        ShlurdUnknownReference
       }
     } else {
-      ShlurdUnknownSubject
+      ShlurdUnknownReference
     }
   }
 
-  private def expectCommandState(verb : Tree) =
+  private def hasTerminalLemma(tree : Tree, lemma : String) =
   {
-    if (verb.isPreTerminal && hasLabel(verb, "VB")) {
-      getLabel(verb.firstChild) match {
-        case "open" => ShlurdDoorIsOpen
-        case "close" => ShlurdDoorIsClosed
-        case _ => ShlurdUnknownState
-      }
+    tree.isPreTerminal && (getLemma(tree.firstChild) == lemma)
+  }
+
+  private def getLemma(leaf : Tree) : String =
+  {
+    lemmas(leaf.label.asInstanceOf[HasIndex].index)
+  }
+
+  private def expectCommandState(verbHead : Tree) =
+  {
+    if (verbHead.isPreTerminal && isVerb(verbHead)) {
+      ShlurdPhysicalState(getLemma(verbHead.firstChild))
     } else {
       ShlurdUnknownState
     }
@@ -182,13 +189,7 @@ object ShlurdParser
   private def expectState(ap : Tree) =
   {
     if (hasLabel(ap, "JJ") && ap.isPreTerminal) {
-      if (hasLabel(ap.firstChild, "open")) {
-        ShlurdDoorIsOpen
-      } else if (hasLabel(ap.firstChild, "closed")) {
-        ShlurdDoorIsClosed
-      } else {
-        ShlurdUnknownState
-      }
+      ShlurdPhysicalState(getLemma(ap.firstChild))
     } else {
       ShlurdUnknownState
     }
@@ -197,7 +198,7 @@ object ShlurdParser
   private def expectPredicate(np : Tree, complement : Tree) =
   {
     if (hasLabel(complement, "ADJP")) {
-      val subject = expectSubject(np)
+      val subject = expectReference(np)
       val state = expectState(complement.firstChild)
       ShlurdStatePredicate(subject,state)
     } else {
@@ -205,24 +206,49 @@ object ShlurdParser
     }
   }
 
-  private def parseIfPunctuated(input : String, implicitQuestion : Boolean)
-      : Option[ShlurdSentence] =
+  def parse() : ShlurdSentence =
+  {
+    expectRoot(tree, implicitQuestion)
+  }
+}
+
+object ShlurdParser
+{
+  private def dump(sentence : Sentence)
+  {
+    val tree = sentence.parse
+    println("TREE = " + tree)
+    Range(0, sentence.length).foreach(i => {
+      println("DEP = " + sentence.incomingDependencyLabel(i))
+    })
+  }
+
+  private def tokenize(input : String) : Sentence =
   {
     val doc = new Document(input)
     val sentences = doc.sentences.asScala
     assert(sentences.size == 1)
-    val sentence = sentences.head
-    val tree = sentence.parse
-    if (tree.preTerminalYield.asScala.last.value ==  "."){
-      Some(expectRoot(tree, implicitQuestion))
-    } else {
-      None
-    }
+    sentences.head
   }
 
-  def parse(input : String) : ShlurdSentence =
+  private def newParser(
+    sentence : Sentence, tree : Tree, implicitQuestion : Boolean)
+      : ShlurdParser =
   {
-    parseIfPunctuated(input, false).getOrElse(
-      parseIfPunctuated(input + "?", true).getOrElse(ShlurdUnknownSentence))
+    tree.indexLeaves(0, true)
+    val lemmas = sentence.lemmas.asScala
+    new ShlurdParser(tree, lemmas, implicitQuestion)
+  }
+
+  def apply(input : String) : ShlurdParser =
+  {
+    val sentence = tokenize(input)
+    val tree = sentence.parse
+    if (tree.preTerminalYield.asScala.last.value ==  ".") {
+      newParser(sentence, tree, false)
+    } else {
+      val question = tokenize(input + "?")
+      newParser(question, question.parse, true)
+    }
   }
 }

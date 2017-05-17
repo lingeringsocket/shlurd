@@ -19,42 +19,44 @@ import org.specs2.mutable._
 class ShlurdParserSpec extends Specification
 {
   private val predDoorIsOpen =
-    ShlurdStatePredicate(ShlurdFrontDoor,ShlurdDoorIsOpen)
+    ShlurdStatePredicate(
+      ShlurdConcreteReference("door"),
+      ShlurdPhysicalState("open"))
 
   "ShlurdParser" should
   {
     "parse a statement" in
     {
       val input = "the door is open"
-      ShlurdParser.parse(input) must be equalTo
+      ShlurdParser(input).parse must be equalTo
         ShlurdPredicateStatement(predDoorIsOpen)
-      ShlurdParser.parse(input + ".") must be equalTo
+      ShlurdParser(input + ".").parse must be equalTo
         ShlurdPredicateStatement(predDoorIsOpen)
-      ShlurdParser.parse(input + "!") must be equalTo
+      ShlurdParser(input + "!").parse must be equalTo
         ShlurdPredicateStatement(predDoorIsOpen)
-      ShlurdParser.parse(input + "?") must be equalTo
+      ShlurdParser(input + "?").parse must be equalTo
         ShlurdPredicateQuestion(predDoorIsOpen)
     }
 
     "parse a question" in
     {
       val input = "is the door open"
-      ShlurdParser.parse(input) must be equalTo
+      ShlurdParser(input).parse must be equalTo
         ShlurdPredicateQuestion(predDoorIsOpen)
-      ShlurdParser.parse(input + "?") must be equalTo
+      ShlurdParser(input + "?").parse must be equalTo
         ShlurdPredicateQuestion(predDoorIsOpen)
     }
 
     "parse a command" in
     {
       val input = "open the door"
-      ShlurdParser.parse(input) must be equalTo
+      ShlurdParser(input).parse must be equalTo
         ShlurdStateChangeCommand(predDoorIsOpen)
-      ShlurdParser.parse(input + ".") must be equalTo
+      ShlurdParser(input + ".").parse must be equalTo
         ShlurdStateChangeCommand(predDoorIsOpen)
-      ShlurdParser.parse(input + "!") must be equalTo
+      ShlurdParser(input + "!").parse must be equalTo
         ShlurdStateChangeCommand(predDoorIsOpen)
-      ShlurdParser.parse(input + "?") must be equalTo
+      ShlurdParser(input + "?").parse must be equalTo
         ShlurdStateChangeCommand(predDoorIsOpen)
     }
   }

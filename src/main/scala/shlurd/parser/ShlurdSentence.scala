@@ -38,11 +38,7 @@ sealed trait ShlurdEvent
 {
 }
 
-sealed trait ShlurdSubject
-{
-}
-
-sealed trait ShlurdObject
+sealed trait ShlurdReference
 {
 }
 
@@ -54,7 +50,7 @@ case object ShlurdUnknownSentence extends ShlurdSentence
 {
 }
 
-case object ShlurdUnknownSubject extends ShlurdSubject
+case object ShlurdUnknownReference extends ShlurdReference
 {
 }
 
@@ -67,7 +63,7 @@ case object ShlurdUnknownState extends ShlurdState
 }
 
 case class ShlurdStatePredicate(
-  subject : ShlurdSubject,
+  subject : ShlurdReference,
   state : ShlurdState) extends ShlurdPredicate
 {
 }
@@ -96,18 +92,10 @@ case class ShlurdPredicateStatement(
 {
 }
 
-case class ShlurdDoor() extends ShlurdSubject with ShlurdObject
+case class ShlurdConcreteReference(entity : String) extends ShlurdReference
 {
 }
 
-object ShlurdFrontDoor extends ShlurdDoor
-{
-}
-
-case object ShlurdDoorIsOpen extends ShlurdState
-{
-}
-
-case object ShlurdDoorIsClosed extends ShlurdState
+case class ShlurdPhysicalState(state : String) extends ShlurdState
 {
 }
