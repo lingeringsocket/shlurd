@@ -46,6 +46,11 @@ class ShlurdParser(
     getLabel(nounHead).startsWith("NN")
   }
 
+  private def isAdjective(adjHead : Tree) : Boolean =
+  {
+    getLabel(adjHead).startsWith("JJ")
+  }
+
   private def hasTerminalLabel(
     tree : Tree, label : String, terminalLabel : String) : Boolean =
   {
@@ -151,16 +156,18 @@ class ShlurdParser(
 
   private def expectReference(np : Tree) =
   {
-    if (np.numChildren == 1) {
-      expectNounReference(np.firstChild, QUANT_ANY)
-    } else if (np.numChildren == 2) {
-      val determiner = np.firstChild
-      if (hasLabel(determiner, "DT")) {
-        expectNounReference(
-          np.lastChild, expectQuantifier(determiner.firstChild))
+    val intro = np.firstChild
+    val (quantifier, components) = {
+      if (hasLabel(intro, "DT")) {
+        (expectQuantifier(intro.firstChild), np.children.drop(1))
       } else {
-        ShlurdUnknownReference
+        (QUANT_ANY, np.children)
       }
+    }
+    if (components.forall(c => isNoun(c) || isAdjective(c))) {
+      ShlurdConcreteReference(
+        components.map(c => getLemma(c.firstChild)).mkString(" "),
+        quantifier)
     } else {
       ShlurdUnknownReference
     }
@@ -208,7 +215,7 @@ class ShlurdParser(
 
   private def expectAdjectiveState(ap : Tree) =
   {
-    if (hasLabel(ap, "JJ") && ap.isPreTerminal) {
+    if (isAdjective(ap) && ap.isPreTerminal) {
       ShlurdPhysicalState(getLemma(ap.firstChild))
     } else {
       ShlurdUnknownState

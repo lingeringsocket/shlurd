@@ -24,12 +24,20 @@ class ShlurdParserSpec extends Specification
 
   private val STATE_CLOSED = "close"
 
+  private def pred(
+    subject : String,
+    state : String = STATE_OPEN,
+    quantifier : ShlurdQuantifier = QUANT_ONE) =
+  {
+    ShlurdStatePredicate(
+      ShlurdConcreteReference(subject, quantifier),
+      ShlurdPhysicalState(state))
+  }
+
   private def predDoor(
     state : String = STATE_OPEN, quantifier : ShlurdQuantifier = QUANT_ONE) =
   {
-    ShlurdStatePredicate(
-      ShlurdConcreteReference("door", quantifier),
-      ShlurdPhysicalState(state))
+    pred("door", state, quantifier)
   }
 
   "ShlurdParser" should
@@ -81,11 +89,14 @@ class ShlurdParserSpec extends Specification
 
     "parse quantifiers" in
     {
+      val inputThe = "open the door"
+      ShlurdParser(inputThe).parse must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ONE))
       val inputAny = "open any door"
       ShlurdParser(inputAny).parse must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
-      val inputUnspecified = "open a door"
-      ShlurdParser(inputUnspecified).parse must be equalTo
+      val inputA = "open a door"
+      ShlurdParser(inputA).parse must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
       val inputSome = "open some door"
       ShlurdParser(inputSome).parse must be equalTo
@@ -96,6 +107,24 @@ class ShlurdParserSpec extends Specification
       val inputNone = "open no door"
       ShlurdParser(inputNone).parse must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_NONE))
+
+      val inputAnyQ = "is any door open"
+      ShlurdParser(inputAnyQ).parse must be equalTo
+        ShlurdPredicateQuestion(predDoor(STATE_OPEN, QUANT_ANY))
+    }
+
+    "parse qualifiers" in
+    {
+      val inputFront = "open the front door"
+      ShlurdParser(inputFront).parse must be equalTo
+      ShlurdStateChangeCommand(pred("front door", STATE_OPEN, QUANT_ONE))
+    }
+
+    "give up" in
+    {
+      val inputUnspecified = "open door"
+      ShlurdParser(inputUnspecified).parse must be equalTo
+      ShlurdUnknownSentence
     }
   }
 }
