@@ -22,6 +22,7 @@ import edu.stanford.nlp.simple.Document
 import scala.collection.JavaConverters._
 
 import ShlurdQuantifier._
+import ShlurdLocative._
 
 class ShlurdParser(
   tree : Tree, lemmas : Seq[String], implicitQuestion : Boolean)
@@ -41,6 +42,16 @@ class ShlurdParser(
     getLabel(verbHead).startsWith("VB")
   }
 
+  private def isNounPhrase(np : Tree) : Boolean =
+  {
+    hasLabel(np, "NP")
+  }
+
+  private def isVerbPhrase(vp : Tree) : Boolean =
+  {
+    hasLabel(vp, "VP")
+  }
+
   private def isNoun(nounHead : Tree) : Boolean =
   {
     getLabel(nounHead).startsWith("NN")
@@ -54,6 +65,11 @@ class ShlurdParser(
   private def isAdverb(advHead : Tree) : Boolean =
   {
     getLabel(advHead).startsWith("RB")
+  }
+
+  private def isPreposition(prepHead : Tree) : Boolean =
+  {
+    getLabel(prepHead).startsWith("IN")
   }
 
   private def hasTerminalLabel(
@@ -102,7 +118,7 @@ class ShlurdParser(
       } else if (children.size == 2) {
         val np = children.head
         val vp = children.last
-        if ((hasLabel(np, "NP")) && (hasLabel(vp, "VP"))) {
+        if (isNounPhrase(np) && isVerbPhrase(vp)) {
           expectStatement(np, vp, isQuestion)
         } else {
           ShlurdUnknownSentence
@@ -161,18 +177,26 @@ class ShlurdParser(
 
   private def expectReference(np : Tree) =
   {
-    val intro = np.firstChild
-    val (quantifier, components) = {
-      if (hasLabel(intro, "DT")) {
-        (expectQuantifier(intro.firstChild), np.children.drop(1))
-      } else {
-        (QUANT_ANY, np.children)
+    if (isNounPhrase(np)) {
+      val intro = np.firstChild
+      val (quantifier, components) = {
+        if (hasLabel(intro, "DT")) {
+          (expectQuantifier(intro.firstChild), np.children.drop(1))
+        } else {
+          (QUANT_ANY, np.children)
+        }
       }
-    }
-    if (components.forall(c => isNoun(c) || isAdjective(c))) {
-      ShlurdConcreteReference(
-        components.map(c => getLemma(c.firstChild)).mkString(" "),
-        quantifier)
+      if (components.forall(c => isNoun(c) || isAdjective(c))) {
+        ShlurdEntityReference(
+          components.map(c => getLemma(c.firstChild)).mkString(" "),
+          quantifier)
+      } else {
+        ShlurdUnknownReference
+      }
+    } else if (isNoun(np)) {
+      ShlurdEntityReference(
+        getLemma(np.firstChild),
+        QUANT_ANY)
     } else {
       ShlurdUnknownReference
     }
@@ -193,7 +217,7 @@ class ShlurdParser(
   {
     if (isNoun(nounHead)) {
       val noun = nounHead.firstChild
-      ShlurdConcreteReference(getLemma(noun), quantifier)
+      ShlurdEntityReference(getLemma(noun), quantifier)
     } else {
       ShlurdUnknownReference
     }
@@ -212,7 +236,7 @@ class ShlurdParser(
   private def expectVerbState(verbHead : Tree) =
   {
     if (verbHead.isPreTerminal && isVerb(verbHead)) {
-      ShlurdPhysicalState(getLemma(verbHead.firstChild))
+      ShlurdPropertyState(getLemma(verbHead.firstChild))
     } else {
       ShlurdUnknownState
     }
@@ -221,7 +245,7 @@ class ShlurdParser(
   private def expectAdjectiveState(ap : Tree) =
   {
     if (isAdjective(ap) && ap.isPreTerminal) {
-      ShlurdPhysicalState(getLemma(ap.firstChild))
+      ShlurdPropertyState(getLemma(ap.firstChild))
     } else {
       ShlurdUnknownState
     }
@@ -230,7 +254,29 @@ class ShlurdParser(
   private def expectAdverbState(ap : Tree) =
   {
     if (isAdverb(ap) && ap.isPreTerminal) {
-      ShlurdPhysicalState(getLemma(ap.firstChild))
+      ShlurdPropertyState(getLemma(ap.firstChild))
+    } else {
+      ShlurdUnknownState
+    }
+  }
+
+  private def expectPrepositionalState(ap : Tree) : ShlurdState =
+  {
+    val prep = ap.firstChild
+    if ((ap.numChildren == 2) && isPreposition(prep)) {
+      val prepLemma = getLemma(prep.firstChild)
+      val locative = prepLemma match {
+        case "in" | "inside" | "within" => LOC_INSIDE
+        case "outside" => LOC_OUTSIDE
+        case "at" => LOC_AT
+        case "near" | "nearby" => LOC_NEAR
+        case "on" => LOC_ON
+        case "above" | "over" => LOC_ABOVE
+        case "below" | "under" | "beneath" | "underneath" => LOC_BELOW
+        case "behind" => LOC_BEHIND
+        case _ => return ShlurdUnknownState
+      }
+      ShlurdLocationState(locative, expectReference(ap.lastChild))
     } else {
       ShlurdUnknownState
     }
@@ -243,7 +289,13 @@ class ShlurdParser(
       val state = expectAdjectiveState(complement.firstChild)
       ShlurdStatePredicate(subject, state)
     } else if (hasLabel(complement, "ADVP")) {
-      val state = expectAdverbState(complement.firstChild)
+      val state = {
+        if (complement.numChildren == 1) {
+          expectAdverbState(complement.firstChild)
+        } else {
+          expectPrepositionalState(complement)
+        }
+      }
       ShlurdStatePredicate(subject, state)
     } else if (hasLabel(complement, "VP")) {
       // TODO:  ambiguity for action (passive construction) vs

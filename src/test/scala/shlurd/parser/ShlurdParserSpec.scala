@@ -17,9 +17,16 @@ package shlurd.parser
 import org.specs2.mutable._
 
 import ShlurdQuantifier._
+import ShlurdLocative._
 
 class ShlurdParserSpec extends Specification
 {
+  private val ENTITY_DOOR = "door"
+
+  private val ENTITY_FRANNY = "franny"
+
+  private val ENTITY_HOME = "home"
+
   private val STATE_OPEN = "open"
 
   private val STATE_CLOSED = "close"
@@ -30,14 +37,14 @@ class ShlurdParserSpec extends Specification
     quantifier : ShlurdQuantifier = QUANT_ONE) =
   {
     ShlurdStatePredicate(
-      ShlurdConcreteReference(subject, quantifier),
-      ShlurdPhysicalState(state))
+      ShlurdEntityReference(subject, quantifier),
+      ShlurdPropertyState(state))
   }
 
   private def predDoor(
     state : String = STATE_OPEN, quantifier : ShlurdQuantifier = QUANT_ONE) =
   {
-    pred("door", state, quantifier)
+    pred(ENTITY_DOOR, state, quantifier)
   }
 
   "ShlurdParser" should
@@ -125,6 +132,18 @@ class ShlurdParserSpec extends Specification
       val inputFront = "open the front door"
       ShlurdParser(inputFront).parse must be equalTo
         ShlurdStateChangeCommand(pred("front door", STATE_OPEN, QUANT_ONE))
+    }
+
+    "parse locatives" in
+    {
+      val input = "is franny at home"
+      ShlurdParser(input).parse must be equalTo
+        ShlurdPredicateQuestion(
+          ShlurdStatePredicate(
+            ShlurdEntityReference(ENTITY_FRANNY, QUANT_ANY),
+            ShlurdLocationState(
+              LOC_AT,
+              ShlurdEntityReference(ENTITY_HOME, QUANT_ANY))))
     }
 
     "give up" in

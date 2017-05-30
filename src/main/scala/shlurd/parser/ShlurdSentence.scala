@@ -15,6 +15,7 @@
 package shlurd.parser
 
 import ShlurdQuantifier._
+import ShlurdLocative._
 
 sealed trait ShlurdSentence
 {
@@ -94,12 +95,18 @@ case class ShlurdPredicateStatement(
 {
 }
 
-case class ShlurdConcreteReference(
+case class ShlurdEntityReference(
   entity : String,
   quantifier : ShlurdQuantifier) extends ShlurdReference
 {
 }
 
-case class ShlurdPhysicalState(state : String) extends ShlurdState
+case class ShlurdPropertyState(state : String) extends ShlurdState
+{
+}
+
+case class ShlurdLocationState(
+  locative : ShlurdLocative,
+  location : ShlurdReference) extends ShlurdState
 {
 }

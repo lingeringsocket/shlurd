@@ -20,3 +20,11 @@ object ShlurdQuantifier extends Enumeration
 
   val QUANT_NONE, QUANT_ONE, QUANT_ANY, QUANT_ALL = Value
 }
+
+object ShlurdLocative extends Enumeration
+{
+  type ShlurdLocative = Value
+
+  val LOC_INSIDE, LOC_OUTSIDE, LOC_AT, LOC_NEAR, LOC_ON, LOC_ABOVE, LOC_BELOW,
+    LOC_LEFT, LOC_RIGHT, LOC_FRONT, LOC_BEHIND = Value
+}
