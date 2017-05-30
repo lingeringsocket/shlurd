@@ -51,6 +51,11 @@ class ShlurdParser(
     getLabel(adjHead).startsWith("JJ")
   }
 
+  private def isAdverb(advHead : Tree) : Boolean =
+  {
+    getLabel(advHead).startsWith("RB")
+  }
+
   private def hasTerminalLabel(
     tree : Tree, label : String, terminalLabel : String) : Boolean =
   {
@@ -222,11 +227,23 @@ class ShlurdParser(
     }
   }
 
+  private def expectAdverbState(ap : Tree) =
+  {
+    if (isAdverb(ap) && ap.isPreTerminal) {
+      ShlurdPhysicalState(getLemma(ap.firstChild))
+    } else {
+      ShlurdUnknownState
+    }
+  }
+
   private def expectPredicate(np : Tree, complement : Tree) =
   {
     val subject = expectReference(np)
     if (hasLabel(complement, "ADJP")) {
       val state = expectAdjectiveState(complement.firstChild)
+      ShlurdStatePredicate(subject, state)
+    } else if (hasLabel(complement, "ADVP")) {
+      val state = expectAdverbState(complement.firstChild)
       ShlurdStatePredicate(subject, state)
     } else if (hasLabel(complement, "VP")) {
       // TODO:  ambiguity for action (passive construction) vs

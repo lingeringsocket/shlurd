@@ -87,6 +87,13 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateQuestion(predDoor(STATE_CLOSED))
     }
 
+    "parse adverbial state" in
+    {
+      val question = "is the door sideways"
+      ShlurdParser(question).parse must be equalTo
+        ShlurdPredicateQuestion(predDoor("sideways"))
+    }
+
     "parse quantifiers" in
     {
       val inputThe = "open the door"
@@ -117,7 +124,7 @@ class ShlurdParserSpec extends Specification
     {
       val inputFront = "open the front door"
       ShlurdParser(inputFront).parse must be equalTo
-      ShlurdStateChangeCommand(pred("front door", STATE_OPEN, QUANT_ONE))
+        ShlurdStateChangeCommand(pred("front door", STATE_OPEN, QUANT_ONE))
     }
 
     "give up" in
