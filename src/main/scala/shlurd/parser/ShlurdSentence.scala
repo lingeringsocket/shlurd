@@ -14,22 +14,19 @@
 // limitations under the License.
 package shlurd.parser
 
-import ShlurdQuantifier._
-import ShlurdLocative._
-
 sealed trait ShlurdSentence
 {
 }
 
-trait ShlurdCommand extends ShlurdSentence
+sealed trait ShlurdCommand extends ShlurdSentence
 {
 }
 
-trait ShlurdQuestion extends ShlurdSentence
+sealed trait ShlurdQuestion extends ShlurdSentence
 {
 }
 
-trait ShlurdStatement extends ShlurdSentence
+sealed trait ShlurdStatement extends ShlurdSentence
 {
 }
 
@@ -96,17 +93,24 @@ case class ShlurdPredicateStatement(
 }
 
 case class ShlurdEntityReference(
-  entity : String,
-  quantifier : ShlurdQuantifier) extends ShlurdReference
+  entity : ShlurdWord,
+  quantifier : ShlurdQuantifier = QUANT_ANY,
+  count : ShlurdCount = COUNT_SINGULAR) extends ShlurdReference
 {
 }
 
-case class ShlurdPropertyState(state : String) extends ShlurdState
+case class ShlurdPropertyState(state : ShlurdWord) extends ShlurdState
 {
 }
 
 case class ShlurdLocationState(
   locative : ShlurdLocative,
   location : ShlurdReference) extends ShlurdState
+{
+}
+
+case class ShlurdWord(
+  inflected : String,
+  lemma : String)
 {
 }

@@ -14,17 +14,25 @@
 // limitations under the License.
 package shlurd.parser
 
-object ShlurdQuantifier extends Enumeration
-{
-  type ShlurdQuantifier = Value
+sealed trait ShlurdQuantifier
+case object QUANT_NONE extends ShlurdQuantifier
+case object QUANT_SPECIFIC extends ShlurdQuantifier
+case object QUANT_ANY extends ShlurdQuantifier
+case object QUANT_ALL extends ShlurdQuantifier
 
-  val QUANT_NONE, QUANT_ONE, QUANT_ANY, QUANT_ALL = Value
-}
+sealed trait ShlurdLocative
+case object LOC_INSIDE extends ShlurdLocative
+case object LOC_OUTSIDE extends ShlurdLocative
+case object LOC_AT extends ShlurdLocative
+case object LOC_NEAR extends ShlurdLocative
+case object LOC_ON extends ShlurdLocative
+case object LOC_ABOVE extends ShlurdLocative
+case object LOC_BELOW extends ShlurdLocative
+case object LOC_LEFT extends ShlurdLocative
+case object LOC_RIGHT extends ShlurdLocative
+case object LOC_FRONT extends ShlurdLocative
+case object LOC_BEHIND extends ShlurdLocative
 
-object ShlurdLocative extends Enumeration
-{
-  type ShlurdLocative = Value
-
-  val LOC_INSIDE, LOC_OUTSIDE, LOC_AT, LOC_NEAR, LOC_ON, LOC_ABOVE, LOC_BELOW,
-    LOC_LEFT, LOC_RIGHT, LOC_FRONT, LOC_BEHIND = Value
-}
+sealed trait ShlurdCount
+case object COUNT_SINGULAR extends ShlurdCount
+case object COUNT_PLURAL extends ShlurdCount

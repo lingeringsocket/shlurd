@@ -21,9 +21,6 @@ import edu.stanford.nlp.simple.Document
 
 import scala.collection.JavaConverters._
 
-import ShlurdQuantifier._
-import ShlurdLocative._
-
 class ShlurdParser(
   tree : Tree, lemmas : Seq[String], implicitQuestion : Boolean)
 {
@@ -188,15 +185,19 @@ class ShlurdParser(
       }
       if (components.forall(c => isNoun(c) || isAdjective(c))) {
         ShlurdEntityReference(
-          components.map(c => getLemma(c.firstChild)).mkString(" "),
-          quantifier)
+          ShlurdWord(
+            components.map(c => getLabel(c.firstChild)).mkString(" "),
+            components.map(c => getLemma(c.firstChild)).mkString(" ")),
+          quantifier,
+          getCount(components.last))
       } else {
         ShlurdUnknownReference
       }
     } else if (isNoun(np)) {
       ShlurdEntityReference(
-        getLemma(np.firstChild),
-        QUANT_ANY)
+        getWord(np.firstChild),
+        QUANT_ANY,
+        getCount(np))
     } else {
       ShlurdUnknownReference
     }
@@ -207,7 +208,7 @@ class ShlurdParser(
     getLemma(leaf) match {
       case "no" => QUANT_NONE
       case "all" => QUANT_ALL
-      case "the" => QUANT_ONE
+      case "the" => QUANT_SPECIFIC
       case _ => QUANT_ANY
     }
   }
@@ -217,7 +218,10 @@ class ShlurdParser(
   {
     if (isNoun(nounHead)) {
       val noun = nounHead.firstChild
-      ShlurdEntityReference(getLemma(noun), quantifier)
+      ShlurdEntityReference(
+        getWord(noun),
+        quantifier,
+        getCount(nounHead))
     } else {
       ShlurdUnknownReference
     }
@@ -233,10 +237,24 @@ class ShlurdParser(
     lemmas(leaf.label.asInstanceOf[HasIndex].index)
   }
 
+  private def getCount(tree : Tree) : ShlurdCount =
+  {
+    if (getLabel(tree).endsWith("S")) {
+      COUNT_PLURAL
+    } else {
+      COUNT_SINGULAR
+    }
+  }
+
+  private def getWord(tree : Tree) =
+  {
+    ShlurdWord(getLabel(tree), getLemma(tree))
+  }
+
   private def expectVerbState(verbHead : Tree) =
   {
     if (verbHead.isPreTerminal && isVerb(verbHead)) {
-      ShlurdPropertyState(getLemma(verbHead.firstChild))
+      ShlurdPropertyState(getWord(verbHead.firstChild))
     } else {
       ShlurdUnknownState
     }
@@ -245,7 +263,7 @@ class ShlurdParser(
   private def expectAdjectiveState(ap : Tree) =
   {
     if (isAdjective(ap) && ap.isPreTerminal) {
-      ShlurdPropertyState(getLemma(ap.firstChild))
+      ShlurdPropertyState(getWord(ap.firstChild))
     } else {
       ShlurdUnknownState
     }
@@ -254,7 +272,7 @@ class ShlurdParser(
   private def expectAdverbState(ap : Tree) =
   {
     if (isAdverb(ap) && ap.isPreTerminal) {
-      ShlurdPropertyState(getLemma(ap.firstChild))
+      ShlurdPropertyState(getWord(ap.firstChild))
     } else {
       ShlurdUnknownState
     }

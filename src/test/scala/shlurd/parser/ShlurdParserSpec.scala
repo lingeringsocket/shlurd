@@ -16,35 +16,43 @@ package shlurd.parser
 
 import org.specs2.mutable._
 
-import ShlurdQuantifier._
-import ShlurdLocative._
-
 class ShlurdParserSpec extends Specification
 {
-  private val ENTITY_DOOR = "door"
+  private val ENTITY_DOOR = ShlurdWord("door", "door")
 
-  private val ENTITY_FRANNY = "franny"
+  private val ENTITY_DOORS = ShlurdWord("doors", "door")
 
-  private val ENTITY_HOME = "home"
+  private val ENTITY_FRONT_DOOR = ShlurdWord("front door", "front door")
 
-  private val STATE_OPEN = "open"
+  private val ENTITY_FRANNY = ShlurdWord("franny", "franny")
 
-  private val STATE_CLOSED = "close"
+  private val ENTITY_HOME = ShlurdWord("home", "home")
+
+  private val STATE_OPEN = ShlurdWord("open", "open")
+
+  private val STATE_CLOSE = ShlurdWord("close", "close")
+
+  private val STATE_CLOSED = ShlurdWord("closed", "close")
+
+  private val STATE_SIDEWAYS = ShlurdWord("sideways", "sideways")
 
   private def pred(
-    subject : String,
-    state : String = STATE_OPEN,
-    quantifier : ShlurdQuantifier = QUANT_ONE) =
+    subject : ShlurdWord,
+    state : ShlurdWord = STATE_OPEN,
+    quantifier : ShlurdQuantifier = QUANT_SPECIFIC,
+    count : ShlurdCount = COUNT_SINGULAR) =
   {
     ShlurdStatePredicate(
-      ShlurdEntityReference(subject, quantifier),
+      ShlurdEntityReference(subject, quantifier, count),
       ShlurdPropertyState(state))
   }
 
   private def predDoor(
-    state : String = STATE_OPEN, quantifier : ShlurdQuantifier = QUANT_ONE) =
+    state : ShlurdWord = STATE_OPEN,
+    quantifier : ShlurdQuantifier = QUANT_SPECIFIC,
+    count : ShlurdCount = COUNT_SINGULAR) =
   {
-    pred(ENTITY_DOOR, state, quantifier)
+    pred(ENTITY_DOOR, state, quantifier, count)
   }
 
   "ShlurdParser" should
@@ -88,7 +96,7 @@ class ShlurdParserSpec extends Specification
     {
       val command = "close the door"
       ShlurdParser(command).parse must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_CLOSED))
+        ShlurdStateChangeCommand(predDoor(STATE_CLOSE))
       val question = "is the door closed"
       ShlurdParser(question).parse must be equalTo
         ShlurdPredicateQuestion(predDoor(STATE_CLOSED))
@@ -98,14 +106,14 @@ class ShlurdParserSpec extends Specification
     {
       val question = "is the door sideways"
       ShlurdParser(question).parse must be equalTo
-        ShlurdPredicateQuestion(predDoor("sideways"))
+        ShlurdPredicateQuestion(predDoor(STATE_SIDEWAYS))
     }
 
     "parse quantifiers" in
     {
       val inputThe = "open the door"
       ShlurdParser(inputThe).parse must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ONE))
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_SPECIFIC))
       val inputAny = "open any door"
       ShlurdParser(inputAny).parse must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
@@ -117,7 +125,8 @@ class ShlurdParserSpec extends Specification
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
       val inputAll = "open all doors"
       ShlurdParser(inputAll).parse must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ALL))
+        ShlurdStateChangeCommand(
+          pred(ENTITY_DOORS, STATE_OPEN, QUANT_ALL, COUNT_PLURAL))
       val inputNone = "open no door"
       ShlurdParser(inputNone).parse must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_NONE))
@@ -131,7 +140,8 @@ class ShlurdParserSpec extends Specification
     {
       val inputFront = "open the front door"
       ShlurdParser(inputFront).parse must be equalTo
-        ShlurdStateChangeCommand(pred("front door", STATE_OPEN, QUANT_ONE))
+        ShlurdStateChangeCommand(
+          pred(ENTITY_FRONT_DOOR, STATE_OPEN, QUANT_SPECIFIC))
     }
 
     "parse locatives" in
@@ -140,10 +150,10 @@ class ShlurdParserSpec extends Specification
       ShlurdParser(input).parse must be equalTo
         ShlurdPredicateQuestion(
           ShlurdStatePredicate(
-            ShlurdEntityReference(ENTITY_FRANNY, QUANT_ANY),
+            ShlurdEntityReference(ENTITY_FRANNY),
             ShlurdLocationState(
               LOC_AT,
-              ShlurdEntityReference(ENTITY_HOME, QUANT_ANY))))
+              ShlurdEntityReference(ENTITY_HOME))))
     }
 
     "give up" in
