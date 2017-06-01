@@ -18,7 +18,7 @@ import shlurd.parser._
 
 class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
 {
-  val sb = SentenceParlanceBundle(parlance)
+  val sb = ShlurdSentenceBundle(parlance)
 
   def print(sentence : ShlurdSentence) : String =
   {
@@ -38,13 +38,13 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def print(reference : ShlurdReference) : String =
+  def print(reference : ShlurdReference, mark : ShlurdMark) : String =
   {
     reference match {
       case ShlurdEntityReference(entity, quantifier, count) => {
         sb.determinedNoun(
           sb.determiner(quantifier),
-          sb.delemmatizeNoun(entity, count))
+          sb.delemmatizeNoun(entity, count, mark))
       }
       case ShlurdQualifiedReference(sub, qualifiers) => {
         val qualifierString = sb.composeQualifiers(qualifiers)
@@ -53,10 +53,10 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             sb.determinedNoun(
               sb.determiner(quantifier),
               sb.qualifiedNoun(
-                qualifierString, sb.delemmatizeNoun(entity, count)))
+                qualifierString, sb.delemmatizeNoun(entity, count, mark)))
           }
           case _ => {
-            sb.qualifiedNoun(qualifierString, print(sub))
+            sb.qualifiedNoun(qualifierString, print(sub, mark))
           }
         }
       }
@@ -75,7 +75,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdLocationState(locative, location) => {
         sb.locatedNoun(
           sb.position(locative),
-          print(location))
+          print(location, MARK_NONE))
       }
       case ShlurdUnknownState => {
         sb.unknownState
@@ -98,7 +98,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateStatement(
-          print(subject), printCopula(subject, state), print(state))
+          print(subject, MARK_SUBJECT),
+          printCopula(subject, state),
+          print(state))
       }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateStatement
@@ -111,7 +113,8 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateCommand(
-          print(subject), printChangeStateVerb(state))
+          print(subject, MARK_DIRECT_OBJECT),
+          printChangeStateVerb(state))
       }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateCommand
@@ -124,7 +127,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateQuestion(
-          print(subject), printCopula(subject, state), print(state))
+          print(subject, MARK_SUBJECT),
+          printCopula(subject, state),
+          print(state))
       }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateQuestion
@@ -148,184 +153,6 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   }
 }
 
-object SentenceParlanceBundle
+case class ShlurdSentenceUnprintable() extends RuntimeException
 {
-  def apply(parlance : ShlurdParlance) = new SentenceParlanceBundle
-}
-
-class SentenceParlanceBundle extends ShlurdParlanceBundle
-{
-  private def concat(s : String*) =
-    s.mkString("")
-
-  private def compose(s : String*) =
-    s.mkString(" ")
-
-  def command(s : String) =
-    phrase(concat(s, "."))
-
-  def statement(s : String) =
-    phrase(concat(s, "."))
-
-  def question(s : String) =
-    phrase(concat(s, "?"))
-
-  def statePredicateStatement(
-    subject : String, copula : String, state : String) =
-  {
-    phrase(compose(subject, copula, state))
-  }
-
-  def statePredicateQuestion(
-    subject : String, copula : String, state : String) =
-  {
-    phrase(compose(copula, subject, state))
-  }
-
-  def statePredicateCommand(subject : String, state : String) =
-    phrase(compose(state, subject))
-
-  def copula(count : ShlurdCount) =
-  {
-    count match {
-      case COUNT_SINGULAR => {
-        phrase("is")
-      }
-      case COUNT_PLURAL => {
-        // FIXME
-        phrase("are")
-      }
-    }
-  }
-
-  def determiner(quantifier : ShlurdQuantifier) =
-  {
-    quantifier match {
-      case QUANT_NONE => phrase("no")
-      case QUANT_SPECIFIC => phrase("the")
-      case QUANT_ANY => phrase("a")
-      case QUANT_ALL => phrase("all")
-    }
-  }
-
-  def position(locative : ShlurdLocative) =
-  {
-    locative match {
-      case LOC_INSIDE => phrase("in")
-      case LOC_OUTSIDE => phrase("outside of")
-      case LOC_AT => phrase("at")
-      case LOC_NEAR => phrase("near")
-      case LOC_ON => phrase("on")
-      case LOC_ABOVE => phrase("above")
-      case LOC_BELOW => phrase("below")
-      case LOC_LEFT => phrase("to the left of")
-      case LOC_RIGHT => phrase("to the right of")
-      case LOC_FRONT => phrase("in front of")
-      case LOC_BEHIND => phrase("behind")
-    }
-  }
-
-  def changeStateVerb(state : ShlurdWord) =
-    phrase(state.lemma)
-
-  def delemmatizeNoun(entity : ShlurdWord, count : ShlurdCount) =
-  {
-    if (entity.inflected.isEmpty) {
-      val lemma = entity.lemma
-      count match {
-        case COUNT_SINGULAR => {
-          phrase(lemma)
-        }
-        case COUNT_PLURAL => {
-          if (lemma.endsWith("s")) {
-            phrase(concat(lemma, "es"))
-          } else {
-            phrase(concat(lemma, "s"))
-          }
-        }
-      }
-    } else {
-      phrase(entity.inflected)
-    }
-  }
-
-  def delemmatizeState(state : ShlurdWord) =
-  {
-    if (state.inflected.isEmpty) {
-      val lemma = state.lemma
-      if (lemma.endsWith("ed")) {
-        phrase(lemma)
-      } else if (lemma.endsWith("e")) {
-        phrase(concat(lemma, "d"))
-      } else {
-        phrase(concat(lemma, "ed"))
-      }
-    } else {
-      phrase(state.inflected)
-    }
-  }
-
-  def delemmatizeQualifier(qualifier : ShlurdWord) =
-  {
-    if (qualifier.inflected.isEmpty) {
-      phrase(qualifier.lemma)
-    } else {
-      phrase(qualifier.inflected)
-    }
-  }
-
-  def composeQualifiers(qualifiers : Seq[ShlurdWord]) =
-  {
-    phrase(compose(qualifiers.map(delemmatizeQualifier(_)) :_*))
-  }
-
-  def qualifiedNoun(qualifiers : String, noun : String) =
-  {
-    phrase(compose(qualifiers, noun))
-  }
-
-  def determinedNoun(determiner : String, noun : String) =
-  {
-    phrase(compose(determiner, noun))
-  }
-
-  def locatedNoun(position : String, noun : String) =
-  {
-    phrase(compose(position, noun))
-  }
-
-  def unknownSentence() =
-  {
-    phrase("blah blah blah")
-  }
-
-  def unknownReference() =
-  {
-    phrase("something or other")
-  }
-
-  def unknownState() =
-  {
-    phrase("discombobulated")
-  }
-
-  def unknownCopula() =
-  {
-    phrase("be")
-  }
-
-  def unknownPredicateStatement() =
-  {
-    phrase("foo is bar")
-  }
-
-  def unknownPredicateCommand() =
-  {
-    phrase("make it so")
-  }
-
-  def unknownPredicateQuestion() =
-  {
-    phrase("is it what now")
-  }
 }

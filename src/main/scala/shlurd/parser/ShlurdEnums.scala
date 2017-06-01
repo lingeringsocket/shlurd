@@ -36,3 +36,8 @@ case object LOC_BEHIND extends ShlurdLocative
 sealed trait ShlurdCount
 case object COUNT_SINGULAR extends ShlurdCount
 case object COUNT_PLURAL extends ShlurdCount
+
+sealed trait ShlurdMark
+case object MARK_NONE extends ShlurdMark
+case object MARK_SUBJECT extends ShlurdMark
+case object MARK_DIRECT_OBJECT extends ShlurdMark

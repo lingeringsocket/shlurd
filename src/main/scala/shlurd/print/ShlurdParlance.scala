@@ -14,15 +14,17 @@
 // limitations under the License.
 package shlurd.print
 
+trait ShlurdParlanceBundle
+{
+  def phrase(placeholder : String) : String = placeholder
+}
+
 trait ShlurdParlance
 {
+  def newSentenceBundle() : ShlurdSentenceBundle
 }
 
 object ShlurdDefaultParlance extends ShlurdParlance
 {
-}
-
-trait ShlurdParlanceBundle
-{
-  def phrase(placeholder : String) : String = placeholder
+  override def newSentenceBundle() = new EnglishSentenceBundle
 }
