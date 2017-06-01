@@ -172,26 +172,32 @@ class ShlurdParser(
     }
   }
 
-  private def expectReference(np : Tree) =
+  private def expectReference(np : Tree) : ShlurdReference =
   {
     if (isNounPhrase(np)) {
-      val intro = np.firstChild
-      val (quantifier, components) = {
-        if (hasLabel(intro, "DT")) {
-          (expectQuantifier(intro.firstChild), np.children.drop(1))
-        } else {
-          (QUANT_ANY, np.children)
-        }
-      }
-      if (components.forall(c => isNoun(c) || isAdjective(c))) {
-        ShlurdEntityReference(
-          ShlurdWord(
-            components.map(c => getLabel(c.firstChild)).mkString(" "),
-            components.map(c => getLemma(c.firstChild)).mkString(" ")),
-          quantifier,
-          getCount(components.last))
+      val first = np.firstChild
+      if (np.numChildren == 1) {
+        expectReference(first)
       } else {
-        ShlurdUnknownReference
+        val (quantifier, components) = {
+          if (hasLabel(first, "DT")) {
+            (expectQuantifier(first.firstChild), np.children.drop(1))
+          } else {
+            (QUANT_ANY, np.children)
+          }
+        }
+        if (components.forall(c => isNoun(c) || isAdjective(c))) {
+          val entityReference = expectNounReference(components.last, quantifier)
+          if (components.size > 1) {
+            ShlurdQualifiedReference(
+              entityReference,
+              components.dropRight(1).map(c => getWord(c.firstChild)))
+          } else {
+            entityReference
+          }
+        } else {
+          ShlurdUnknownReference
+        }
       }
     } else if (isNoun(np)) {
       ShlurdEntityReference(

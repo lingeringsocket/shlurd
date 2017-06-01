@@ -22,8 +22,6 @@ class ShlurdParserSpec extends Specification
 
   private val ENTITY_DOORS = ShlurdWord("doors", "door")
 
-  private val ENTITY_FRONT_DOOR = ShlurdWord("front door", "front door")
-
   private val ENTITY_FRANNY = ShlurdWord("franny", "franny")
 
   private val ENTITY_HOME = ShlurdWord("home", "home")
@@ -35,6 +33,8 @@ class ShlurdParserSpec extends Specification
   private val STATE_CLOSED = ShlurdWord("closed", "close")
 
   private val STATE_SIDEWAYS = ShlurdWord("sideways", "sideways")
+
+  private val QUALIFIER_FRONT = ShlurdWord("front", "front")
 
   private def pred(
     subject : ShlurdWord,
@@ -141,7 +141,11 @@ class ShlurdParserSpec extends Specification
       val inputFront = "open the front door"
       ShlurdParser(inputFront).parse must be equalTo
         ShlurdStateChangeCommand(
-          pred(ENTITY_FRONT_DOOR, STATE_OPEN, QUANT_SPECIFIC))
+          ShlurdStatePredicate(
+            ShlurdQualifiedReference(
+              ShlurdEntityReference(ENTITY_DOOR, QUANT_SPECIFIC),
+              Seq(QUALIFIER_FRONT)),
+            ShlurdPropertyState(STATE_OPEN)))
     }
 
     "parse locatives" in

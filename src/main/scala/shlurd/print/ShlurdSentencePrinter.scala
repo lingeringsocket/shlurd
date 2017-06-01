@@ -46,6 +46,20 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           sb.determiner(quantifier),
           sb.delemmatizeNoun(entity, count))
       }
+      case ShlurdQualifiedReference(sub, qualifiers) => {
+        val qualifierString = sb.composeQualifiers(qualifiers)
+        sub match {
+          case ShlurdEntityReference(entity, quantifier, count) => {
+            sb.determinedNoun(
+              sb.determiner(quantifier),
+              sb.qualifiedNoun(
+                qualifierString, sb.delemmatizeNoun(entity, count)))
+          }
+          case _ => {
+            sb.qualifiedNoun(qualifierString, print(sub))
+          }
+        }
+      }
       case ShlurdUnknownReference => {
         sb.unknownReference
       }
@@ -118,11 +132,14 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def printCopula(subject : ShlurdReference, state : ShlurdState) =
+  def printCopula(subject : ShlurdReference, state : ShlurdState) : String =
   {
     subject match {
       case ShlurdEntityReference(entity, quantifier, count) => {
         sb.copula(count)
+      }
+      case ShlurdQualifiedReference(reference, qualifiers) => {
+        printCopula(reference, state)
       }
       case ShlurdUnknownReference => {
         sb.unknownCopula
@@ -228,7 +245,7 @@ class SentenceParlanceBundle extends ShlurdParlanceBundle
         }
       }
     } else {
-      entity.inflected
+      phrase(entity.inflected)
     }
   }
 
@@ -244,8 +261,27 @@ class SentenceParlanceBundle extends ShlurdParlanceBundle
         phrase(concat(lemma, "ed"))
       }
     } else {
-      state.inflected
+      phrase(state.inflected)
     }
+  }
+
+  def delemmatizeQualifier(qualifier : ShlurdWord) =
+  {
+    if (qualifier.inflected.isEmpty) {
+      phrase(qualifier.lemma)
+    } else {
+      phrase(qualifier.inflected)
+    }
+  }
+
+  def composeQualifiers(qualifiers : Seq[ShlurdWord]) =
+  {
+    phrase(compose(qualifiers.map(delemmatizeQualifier(_)) :_*))
+  }
+
+  def qualifiedNoun(qualifiers : String, noun : String) =
+  {
+    phrase(compose(qualifiers, noun))
   }
 
   def determinedNoun(determiner : String, noun : String) =

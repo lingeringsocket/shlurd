@@ -92,6 +92,12 @@ case class ShlurdPredicateStatement(
 {
 }
 
+case class ShlurdQualifiedReference(
+  reference : ShlurdReference,
+  qualifiers : Seq[ShlurdWord]) extends ShlurdReference
+{
+}
+
 case class ShlurdEntityReference(
   entity : ShlurdWord,
   quantifier : ShlurdQuantifier = QUANT_ANY,
