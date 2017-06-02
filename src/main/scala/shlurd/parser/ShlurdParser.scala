@@ -34,9 +34,9 @@ class ShlurdParser(
     getLabel(tree) == label
   }
 
-  private def isVerb(verbHead : Tree) : Boolean =
+  private def isVerb(pt : Tree) : Boolean =
   {
-    getLabel(verbHead).startsWith("VB")
+    getLabel(pt).startsWith("VB")
   }
 
   private def isParticipleOrGerund(verbal : Tree) : Boolean =
@@ -61,24 +61,24 @@ class ShlurdParser(
     hasLabel(vp, "VP")
   }
 
-  private def isNoun(nounHead : Tree) : Boolean =
+  private def isNoun(pt : Tree) : Boolean =
   {
-    getLabel(nounHead).startsWith("NN")
+    getLabel(pt).startsWith("NN")
   }
 
-  private def isAdjective(adjHead : Tree) : Boolean =
+  private def isAdjective(pt : Tree) : Boolean =
   {
-    getLabel(adjHead).startsWith("JJ")
+    getLabel(pt).startsWith("JJ")
   }
 
-  private def isAdverb(advHead : Tree) : Boolean =
+  private def isAdverb(pt : Tree) : Boolean =
   {
-    getLabel(advHead).startsWith("RB")
+    getLabel(pt).startsWith("RB")
   }
 
-  private def isPreposition(prepHead : Tree) : Boolean =
+  private def isPreposition(pt : Tree) : Boolean =
   {
-    getLabel(prepHead).startsWith("IN")
+    getLabel(pt).startsWith("IN")
   }
 
   private def hasTerminalLabel(
@@ -232,16 +232,16 @@ class ShlurdParser(
   }
 
   private def expectNounReference(
-    nounHead : Tree, quantifier : ShlurdQuantifier) =
+    pt : Tree, quantifier : ShlurdQuantifier) =
   {
     // we allow mislabeled adjectives to handle
     // cases like "roll up the blind"
-    if (isNoun(nounHead) || isAdjective(nounHead)) {
-      val noun = nounHead.firstChild
+    if (isNoun(pt) || isAdjective(pt)) {
+      val noun = pt.firstChild
       ShlurdEntityReference(
         getWord(noun),
         quantifier,
-        getCount(nounHead))
+        getCount(pt))
     } else {
       ShlurdUnknownReference
     }
@@ -271,10 +271,10 @@ class ShlurdParser(
     ShlurdWord(getLabel(tree), getLemma(tree))
   }
 
-  private def expectVerbState(verbHead : Tree) =
+  private def expectVerbState(pt : Tree) =
   {
-    if (verbHead.isPreTerminal && isVerb(verbHead)) {
-      ShlurdPropertyState(getWord(verbHead.firstChild))
+    if (pt.isPreTerminal && isVerb(pt)) {
+      ShlurdPropertyState(getWord(pt.firstChild))
     } else {
       ShlurdUnknownState
     }
