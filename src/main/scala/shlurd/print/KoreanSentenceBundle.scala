@@ -16,8 +16,6 @@ package shlurd.print
 
 import shlurd.parser._
 
-// FIXME where to add subject/object markers?
-
 class KoreanSentenceBundle extends ShlurdSentenceBundle
 {
   override def command(s : String) =
@@ -115,7 +113,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     phrase(compose(determiner, noun))
   }
 
-  override def locatedNoun(position : String, noun : String) =
+  override def locationalNoun(position : String, noun : String) =
   {
     phrase(compose(noun, position))
   }

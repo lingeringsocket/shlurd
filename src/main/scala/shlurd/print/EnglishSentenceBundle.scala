@@ -147,7 +147,7 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
     phrase(compose(determiner, noun))
   }
 
-  override def locatedNoun(position : String, noun : String) =
+  override def locationalNoun(position : String, noun : String) =
   {
     phrase(compose(position, noun))
   }

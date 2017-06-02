@@ -64,7 +64,7 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
 
   def determinedNoun(determiner : String, noun : String) : String
 
-  def locatedNoun(position : String, noun : String) : String
+  def locationalNoun(position : String, noun : String) : String
 
   def unknownSentence() : String
 

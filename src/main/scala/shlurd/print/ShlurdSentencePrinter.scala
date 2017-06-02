@@ -73,7 +73,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.delemmatizeState(state)
       }
       case ShlurdLocationState(locative, location) => {
-        sb.locatedNoun(
+        sb.locationalNoun(
           sb.position(locative),
           print(location, MARK_NONE))
       }
