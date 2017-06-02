@@ -39,6 +39,18 @@ class ShlurdParser(
     getLabel(verbHead).startsWith("VB")
   }
 
+  private def isParticipleOrGerund(verbal : Tree) : Boolean =
+  {
+    getLabel(verbal) match {
+      case "VBG" | "VBN" => {
+        true
+      }
+      case _ => {
+        false
+      }
+    }
+  }
+
   private def isNounPhrase(np : Tree) : Boolean =
   {
     hasLabel(np, "NP")
@@ -222,7 +234,9 @@ class ShlurdParser(
   private def expectNounReference(
     nounHead : Tree, quantifier : ShlurdQuantifier) =
   {
-    if (isNoun(nounHead)) {
+    // we allow mislabeled adjectives to handle
+    // cases like "roll up the blind"
+    if (isNoun(nounHead) || isAdjective(nounHead)) {
       val noun = nounHead.firstChild
       ShlurdEntityReference(
         getWord(noun),
@@ -268,7 +282,7 @@ class ShlurdParser(
 
   private def expectAdjectiveState(ap : Tree) =
   {
-    if (isAdjective(ap) && ap.isPreTerminal) {
+    if ((isAdjective(ap) || isParticipleOrGerund(ap)) && ap.isPreTerminal) {
       ShlurdPropertyState(getWord(ap.firstChild))
     } else {
       ShlurdUnknownState

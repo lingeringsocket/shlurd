@@ -34,8 +34,12 @@ class ShlurdSentenceTranslatorSpec extends Specification
         "문이 닫았어요."
       translate("is the door closed") must be equalTo
         "문이 닫았어요?"
+      translate("are all doors closed") must be equalTo
+        "모든 문들이 닫았어요?"
       translate("close the door") must be equalTo
         "문을 닫으세요."
+      translate("close the blind") must be equalTo
+        "블라인드를 닫으세요."
     }
   }
 }
@@ -43,22 +47,12 @@ class ShlurdSentenceTranslatorSpec extends Specification
 object LimitedKoreanParlance extends ShlurdParlance
 {
   override def newSentenceBundle() = new KoreanSentenceBundle {
-    override def markNoun(lemma : String, mark : ShlurdMark) =
+    override def markNoun(
+      lemma : String, count : ShlurdCount, mark : ShlurdMark) =
     {
       lemma match {
-        case "door" => {
-          mark match {
-            case MARK_NONE => {
-              phrase("문")
-            }
-            case MARK_SUBJECT => {
-              phrase("문이")
-            }
-            case MARK_DIRECT_OBJECT => {
-              phrase("문을")
-            }
-          }
-        }
+        case "door" => super.markNoun("문", count, mark)
+        case "blind" => super.markNoun("블라인드", count, mark)
         case _ => unknownReference
       }
     }

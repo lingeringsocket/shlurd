@@ -87,8 +87,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   override def delemmatizeNoun(
     entity : ShlurdWord, count : ShlurdCount, mark : ShlurdMark) =
   {
-    // FIXME use count for 들
-    markNoun(entity.lemma, mark)
+    markNoun(entity.lemma, count, mark)
   }
 
   override def delemmatizeState(state : ShlurdWord) =
@@ -156,14 +155,54 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     phrase("모모모")
   }
 
-  def markNoun(lemma : String, mark : ShlurdMark) =
+  private def isHangul(c : Character) =
   {
-    val marker = mark match {
-      case MARK_NONE => ""
-      case MARK_SUBJECT => "(subject)"
-      case MARK_DIRECT_OBJECT => "(direct object)"
+    Character.UnicodeScript.of(c.toInt) == Character.UnicodeScript.HANGUL
+  }
+
+  private def hasFinalConsonant(s : String) =
+  {
+    val last = s.last.toInt
+    // http://gernot-katzers-spice-pages.com/var/korean_hangul_unicode.html
+    val finalConsonant = (last - 44032) % 28
+    (finalConsonant != 0)
+  }
+
+  def markNoun(lemma : String, count : ShlurdCount, mark : ShlurdMark) =
+  {
+    if (lemma.exists(c => isHangul(c))) {
+      val numbered = count match {
+        case COUNT_SINGULAR => lemma
+        case COUNT_PLURAL => concat(lemma, "들")
+      }
+      val marker = {
+        mark match {
+          case MARK_NONE => ""
+          case MARK_SUBJECT => {
+            if (hasFinalConsonant(numbered)) {
+              "이"
+            } else {
+              "가"
+            }
+          }
+          case MARK_DIRECT_OBJECT => {
+            if (hasFinalConsonant(numbered)) {
+              "을"
+            } else {
+              "를"
+            }
+          }
+        }
+      }
+      phrase(concat(numbered, marker))
+    } else {
+      val marker = mark match {
+        case MARK_NONE => ""
+        case MARK_SUBJECT => "(subject)"
+        case MARK_DIRECT_OBJECT => "(direct object)"
+      }
+      phrase(compose(lemma, marker))
     }
-    phrase(compose(lemma, marker))
   }
 
   def conjugateImperative(lemma : String) =
