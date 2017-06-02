@@ -64,7 +64,8 @@ case object ShlurdUnknownState extends ShlurdState
 
 case class ShlurdStatePredicate(
   subject : ShlurdReference,
-  state : ShlurdState) extends ShlurdPredicate
+  state : ShlurdState
+) extends ShlurdPredicate
 {
 }
 
@@ -94,24 +95,38 @@ case class ShlurdPredicateStatement(
 
 case class ShlurdQualifiedReference(
   reference : ShlurdReference,
-  qualifiers : Seq[ShlurdWord]) extends ShlurdReference
+  qualifiers : Seq[ShlurdWord]
+) extends ShlurdReference
+{
+}
+
+case class ShlurdPronounReference(
+  person : ShlurdPerson,
+  gender : ShlurdGender,
+  count : ShlurdCount,
+  reference : ShlurdReference = ShlurdUnknownReference
+) extends ShlurdReference
 {
 }
 
 case class ShlurdEntityReference(
   entity : ShlurdWord,
   quantifier : ShlurdQuantifier = QUANT_ANY,
-  count : ShlurdCount = COUNT_SINGULAR) extends ShlurdReference
+  count : ShlurdCount = COUNT_SINGULAR
+) extends ShlurdReference
 {
 }
 
-case class ShlurdPropertyState(state : ShlurdWord) extends ShlurdState
+case class ShlurdPropertyState(
+  state : ShlurdWord
+) extends ShlurdState
 {
 }
 
 case class ShlurdLocationState(
   locative : ShlurdLocative,
-  location : ShlurdReference) extends ShlurdState
+  location : ShlurdReference
+) extends ShlurdState
 {
 }
 

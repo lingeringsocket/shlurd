@@ -14,6 +14,16 @@
 // limitations under the License.
 package shlurd.parser
 
+sealed trait ShlurdPerson
+case object PERSON_FIRST extends ShlurdPerson
+case object PERSON_SECOND extends ShlurdPerson
+case object PERSON_THIRD extends ShlurdPerson
+
+sealed trait ShlurdGender
+case object GENDER_M extends ShlurdGender
+case object GENDER_F extends ShlurdGender
+case object GENDER_N extends ShlurdGender
+
 sealed trait ShlurdQuantifier
 case object QUANT_NONE extends ShlurdQuantifier
 case object QUANT_SPECIFIC extends ShlurdQuantifier

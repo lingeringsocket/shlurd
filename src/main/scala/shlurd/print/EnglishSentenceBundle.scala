@@ -42,17 +42,22 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
   override def statePredicateCommand(subject : String, state : String) =
     phrase(compose(state, subject))
 
-  override def copula(count : ShlurdCount) =
+  override def copula(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
   {
-    count match {
+    val s = count match {
       case COUNT_SINGULAR => {
-        // FIXME I am, you are
-        phrase("is")
+        person match {
+          case PERSON_FIRST => "am"
+          case PERSON_SECOND => "are"
+          case PERSON_THIRD => "is"
+        }
       }
       case COUNT_PLURAL => {
-        phrase("are")
+        "are"
       }
     }
+    phrase(s)
   }
 
   override def determiner(quantifier : ShlurdQuantifier) =
@@ -150,6 +155,43 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
   override def locationalNoun(position : String, noun : String) =
   {
     phrase(compose(position, noun))
+  }
+
+  override def pronoun(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
+    mark : ShlurdMark) =
+  {
+    val s = person match {
+      case PERSON_FIRST => count match {
+        case COUNT_SINGULAR => mark match {
+          case MARK_DIRECT_OBJECT => "me"
+          case _ => "I"
+        }
+        case COUNT_PLURAL => mark match {
+          case MARK_DIRECT_OBJECT => "us"
+          case _ => "we"
+        }
+      }
+      case PERSON_SECOND => "you"
+      case PERSON_THIRD => count match {
+        case COUNT_SINGULAR => gender match {
+          case GENDER_M => mark match {
+            case MARK_DIRECT_OBJECT => "him"
+            case _ => "he"
+          }
+          case GENDER_F => mark match {
+            case MARK_DIRECT_OBJECT => "her"
+            case _ => "she"
+          }
+          case GENDER_N => "it"
+        }
+        case COUNT_PLURAL => mark match {
+          case MARK_DIRECT_OBJECT => "them"
+          case _ => "they"
+        }
+      }
+    }
+    phrase(s)
   }
 
   override def unknownSentence() =

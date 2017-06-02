@@ -43,7 +43,8 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
 
   def statePredicateCommand(subject : String, state : String) : String
 
-  def copula(count : ShlurdCount) : String
+  def copula(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) : String
 
   def determiner(quantifier : ShlurdQuantifier) : String
 
@@ -65,6 +66,10 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
   def determinedNoun(determiner : String, noun : String) : String
 
   def locationalNoun(position : String, noun : String) : String
+
+  def pronoun(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
+    mark : ShlurdMark) : String
 
   def unknownSentence() : String
 

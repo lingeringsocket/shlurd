@@ -42,7 +42,8 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   override def statePredicateCommand(subject : String, state : String) =
     phrase(compose(subject, state))
 
-  override def copula(count : ShlurdCount) =
+  override def copula(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
   {
     phrase("이에요")
   }
@@ -116,6 +117,42 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   override def locationalNoun(position : String, noun : String) =
   {
     phrase(compose(noun, position))
+  }
+
+  private def markPronoun(pn : String, mark : ShlurdMark) =
+  {
+    markNoun(pn, COUNT_SINGULAR, mark)
+  }
+
+  override def pronoun(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
+    mark : ShlurdMark) =
+  {
+    val s = person match {
+      case PERSON_FIRST => count match {
+        case COUNT_SINGULAR => mark match {
+          case MARK_SUBJECT => markPronoun("내", mark)
+          case _ => markPronoun("나", mark)
+        }
+        case COUNT_PLURAL => markPronoun("우리", mark)
+      }
+      case PERSON_SECOND => count match {
+        case COUNT_SINGULAR => mark match {
+          case MARK_SUBJECT => markPronoun("니", mark)
+          case _ => markPronoun("너", mark)
+        }
+        case COUNT_PLURAL => markPronoun("여러분", mark)
+      }
+      case PERSON_THIRD => count match {
+        case COUNT_SINGULAR => gender match {
+          case GENDER_M => markPronoun("그", mark)
+          case GENDER_F => markPronoun("그녀", mark)
+          case GENDER_N => markPronoun("그것", mark)
+        }
+        case COUNT_PLURAL => markPronoun("그들", mark)
+      }
+    }
+    phrase(s)
   }
 
   override def unknownSentence() =

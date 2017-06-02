@@ -37,6 +37,18 @@ class ShlurdSentencePrinterSpec extends Specification
         "close the door."
       normalize("the chickens are fat") must be equalTo
         "the chickens are fat."
+      normalize("I am hungry") must be equalTo
+        "I am hungry."
+      normalize("we are hungry") must be equalTo
+        "we are hungry."
+      normalize("you are hungry") must be equalTo
+        "you are hungry."
+      normalize("he is hungry") must be equalTo
+        "he is hungry."
+      normalize("they are hungry") must be equalTo
+        "they are hungry."
+      normalize("erase them") must be equalTo
+        "erase them."
     }
   }
 }

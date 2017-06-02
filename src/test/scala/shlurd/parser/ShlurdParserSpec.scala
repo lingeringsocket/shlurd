@@ -18,23 +18,27 @@ import org.specs2.mutable._
 
 class ShlurdParserSpec extends Specification
 {
-  private val ENTITY_DOOR = ShlurdWord("door", "door")
+  private val ENTITY_DOOR = word("door")
 
   private val ENTITY_DOORS = ShlurdWord("doors", "door")
 
-  private val ENTITY_FRANNY = ShlurdWord("franny", "franny")
+  private val ENTITY_FRANNY = word("franny")
 
-  private val ENTITY_HOME = ShlurdWord("home", "home")
+  private val ENTITY_HOME = word("home")
 
-  private val STATE_OPEN = ShlurdWord("open", "open")
+  private val STATE_OPEN = word("open")
 
-  private val STATE_CLOSE = ShlurdWord("close", "close")
+  private val STATE_CLOSE = word("close")
 
   private val STATE_CLOSED = ShlurdWord("closed", "close")
 
-  private val STATE_SIDEWAYS = ShlurdWord("sideways", "sideways")
+  private val STATE_SIDEWAYS = word("sideways")
 
-  private val QUALIFIER_FRONT = ShlurdWord("front", "front")
+  private val STATE_HUNGRY = word("hungry")
+
+  private val QUALIFIER_FRONT = word("front")
+
+  private def word(s : String) = ShlurdWord(s, s)
 
   private def pred(
     subject : ShlurdWord,
@@ -158,6 +162,16 @@ class ShlurdParserSpec extends Specification
             ShlurdLocationState(
               LOC_AT,
               ShlurdEntityReference(ENTITY_HOME))))
+    }
+
+    "parse pronouns" in
+    {
+      val input = "I am hungry"
+      ShlurdParser(input).parse must be equalTo
+        ShlurdPredicateStatement(
+          ShlurdStatePredicate(
+            ShlurdPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+            ShlurdPropertyState(STATE_HUNGRY)))
     }
 
     "give up" in

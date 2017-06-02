@@ -66,6 +66,11 @@ class ShlurdParser(
     getLabel(pt).startsWith("NN")
   }
 
+  private def isPronoun(pt : Tree) : Boolean =
+  {
+    getLabel(pt).startsWith("PRP")
+  }
+
   private def isAdjective(pt : Tree) : Boolean =
   {
     getLabel(pt).startsWith("JJ")
@@ -216,6 +221,23 @@ class ShlurdParser(
         getWord(np.firstChild),
         QUANT_ANY,
         getCount(np))
+    } else if (isPronoun(np)) {
+      val lemma = getLemma(np.firstChild)
+      val person = lemma match {
+        case "i" | "we" => PERSON_FIRST
+        case "you" => PERSON_SECOND
+        case _ => PERSON_THIRD
+      }
+      val count = lemma match {
+        case "we" | "they" => COUNT_PLURAL
+        case _ => COUNT_SINGULAR
+      }
+      val gender = lemma match {
+        case "he" | "him" => GENDER_M
+        case "she" | "her" => GENDER_F
+        case _ => GENDER_N
+      }
+      ShlurdPronounReference(person, gender, count)
     } else {
       ShlurdUnknownReference
     }
@@ -254,7 +276,7 @@ class ShlurdParser(
 
   private def getLemma(leaf : Tree) : String =
   {
-    lemmas(leaf.label.asInstanceOf[HasIndex].index)
+    lemmas(leaf.label.asInstanceOf[HasIndex].index).toLowerCase
   }
 
   private def getCount(tree : Tree) : ShlurdCount =

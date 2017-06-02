@@ -40,6 +40,12 @@ class ShlurdSentenceTranslatorSpec extends Specification
         "문을 닫으세요."
       translate("close the blind") must be equalTo
         "블라인드를 닫으세요."
+      translate("I am hungry") must be equalTo
+        "내가 배고파요."
+      translate("is she hungry") must be equalTo
+        "그녀가 배고파요?"
+      translate("close it") must be equalTo
+        "그것을 닫으세요."
     }
   }
 }
@@ -53,7 +59,7 @@ object LimitedKoreanParlance extends ShlurdParlance
       lemma match {
         case "door" => super.markNoun("문", count, mark)
         case "blind" => super.markNoun("블라인드", count, mark)
-        case _ => unknownReference
+        case _ => super.markNoun(lemma, count, mark)
       }
     }
 
@@ -61,7 +67,7 @@ object LimitedKoreanParlance extends ShlurdParlance
     {
       lemma match {
         case "close" => phrase("닫으세요")
-        case _ => unknownPredicateCommand
+        case _ => super.conjugateImperative(lemma)
       }
     }
 
@@ -69,7 +75,8 @@ object LimitedKoreanParlance extends ShlurdParlance
     {
       lemma match {
         case "close" => phrase("닫았어요")
-        case _ => unknownState
+        case "hungry" => phrase("배고파요")
+        case _ => super.conjugateAdjective(lemma)
       }
     }
   }

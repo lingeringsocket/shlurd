@@ -46,6 +46,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           sb.determiner(quantifier),
           sb.delemmatizeNoun(entity, count, mark))
       }
+      case ShlurdPronounReference(person, gender, count, reference) => {
+        sb.pronoun(person, gender, count, mark)
+      }
       case ShlurdQualifiedReference(sub, qualifiers) => {
         val qualifierString = sb.composeQualifiers(qualifiers)
         sub match {
@@ -140,8 +143,11 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   def printCopula(subject : ShlurdReference, state : ShlurdState) : String =
   {
     subject match {
+      case ShlurdPronounReference(person, gender, count, reference) => {
+        sb.copula(person, gender, count)
+      }
       case ShlurdEntityReference(entity, quantifier, count) => {
-        sb.copula(count)
+        sb.copula(PERSON_THIRD, GENDER_N, count)
       }
       case ShlurdQualifiedReference(reference, qualifiers) => {
         printCopula(reference, state)
