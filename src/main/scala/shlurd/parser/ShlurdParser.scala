@@ -200,10 +200,15 @@ class ShlurdParser(
           if (hasLabel(first, "DT")) {
             (expectQuantifier(first.firstChild), np.children.drop(1))
           } else {
-            (QUANT_ANY, np.children)
+            (QUANT_UNSPECIFIED, np.children)
           }
         }
-        if (components.forall(c => isNoun(c) || isAdjective(c))) {
+        if ((components.size == 2) && isPronoun(components.head)) {
+          val pronounReference = pronounFor(
+            getLemma(components.head.firstChild))
+          val entityReference = expectNounReference(components.last, quantifier)
+          ShlurdGenitiveReference(pronounReference, entityReference)
+        } else if (components.forall(c => isNoun(c) || isAdjective(c))) {
           val entityReference = expectNounReference(components.last, quantifier)
           if (components.size > 1) {
             ShlurdQualifiedReference(
@@ -219,28 +224,32 @@ class ShlurdParser(
     } else if (isNoun(np)) {
       ShlurdEntityReference(
         getWord(np.firstChild),
-        QUANT_ANY,
+        QUANT_UNSPECIFIED,
         getCount(np))
     } else if (isPronoun(np)) {
-      val lemma = getLemma(np.firstChild)
-      val person = lemma match {
-        case "i" | "we" => PERSON_FIRST
-        case "you" => PERSON_SECOND
-        case _ => PERSON_THIRD
-      }
-      val count = lemma match {
-        case "we" | "they" => COUNT_PLURAL
-        case _ => COUNT_SINGULAR
-      }
-      val gender = lemma match {
-        case "he" | "him" => GENDER_M
-        case "she" | "her" => GENDER_F
-        case _ => GENDER_N
-      }
-      ShlurdPronounReference(person, gender, count)
+      pronounFor(getLemma(np.firstChild))
     } else {
       ShlurdUnknownReference
     }
+  }
+
+  private def pronounFor(lemma : String) =
+  {
+    val person = lemma match {
+      case "i" | "me" | "we" | "my" | "our" | "mine" | "ours" => PERSON_FIRST
+      case "you" | "your" | "yours" => PERSON_SECOND
+      case _ => PERSON_THIRD
+    }
+    val count = lemma match {
+      case "we" | "us" | "they" | "our" | "their" => COUNT_PLURAL
+      case _ => COUNT_SINGULAR
+    }
+    val gender = lemma match {
+      case "he" | "him" | "his" => GENDER_M
+      case "she" | "her" | "hers" => GENDER_F
+      case _ => GENDER_N
+    }
+    ShlurdPronounReference(person, gender, count)
   }
 
   private def expectQuantifier(leaf : Tree) =

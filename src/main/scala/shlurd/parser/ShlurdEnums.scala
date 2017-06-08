@@ -29,6 +29,7 @@ case object QUANT_NONE extends ShlurdQuantifier
 case object QUANT_SPECIFIC extends ShlurdQuantifier
 case object QUANT_ANY extends ShlurdQuantifier
 case object QUANT_ALL extends ShlurdQuantifier
+case object QUANT_UNSPECIFIED extends ShlurdQuantifier
 
 sealed trait ShlurdLocative
 case object LOC_INSIDE extends ShlurdLocative

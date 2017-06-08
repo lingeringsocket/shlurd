@@ -71,6 +71,13 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
     mark : ShlurdMark) : String
 
+  def genitivePronoun(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) : String
+
+  def genitiveNoun(genitive : String) : String
+
+  def genitive(genitive : String, head : String) : String
+
   def unknownSentence() : String
 
   def unknownReference() : String

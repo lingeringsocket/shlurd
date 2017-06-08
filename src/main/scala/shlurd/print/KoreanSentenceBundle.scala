@@ -119,9 +119,42 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     phrase(compose(noun, position))
   }
 
+  override def genitivePronoun(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
+  {
+    val s = person match {
+      case PERSON_FIRST => count match {
+        case COUNT_SINGULAR => "내"
+        case COUNT_PLURAL => markGenitive(person, gender, count)
+      }
+      case PERSON_SECOND => count match {
+        case COUNT_SINGULAR => "네"
+        case COUNT_PLURAL => markGenitive(person, gender, count)
+      }
+      case PERSON_THIRD => markGenitive(person, gender, count)
+    }
+    phrase(s)
+  }
+
+  override def genitiveNoun(genitive : String) =
+  {
+    phrase(concat(genitive, "의"))
+  }
+
+  override def genitive(genitive : String, head : String) =
+  {
+    phrase(compose(genitive, head))
+  }
+
   private def markPronoun(pn : String, mark : ShlurdMark) =
   {
     markNoun(pn, COUNT_SINGULAR, mark)
+  }
+
+  private def markGenitive(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
+  {
+    genitiveNoun(pronoun(person, gender, count, MARK_NONE))
   }
 
   override def pronoun(

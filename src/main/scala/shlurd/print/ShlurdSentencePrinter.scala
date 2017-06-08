@@ -46,7 +46,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           sb.determiner(quantifier),
           sb.delemmatizeNoun(entity, count, mark))
       }
-      case ShlurdPronounReference(person, gender, count, reference) => {
+      case ShlurdPronounReference(person, gender, count, _) => {
         sb.pronoun(person, gender, count, mark)
       }
       case ShlurdQualifiedReference(sub, qualifiers) => {
@@ -62,6 +62,17 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             sb.qualifiedNoun(qualifierString, print(sub, mark))
           }
         }
+      }
+      case ShlurdGenitiveReference(genitive, reference) => {
+        val qualifierString = genitive match {
+          case ShlurdPronounReference(person, gender, count, _) => {
+            sb.genitivePronoun(person, gender, count)
+          }
+          case _ => {
+            sb.genitiveNoun(print(genitive, MARK_NONE))
+          }
+        }
+        sb.genitive(qualifierString, print(reference, mark))
       }
       case ShlurdUnknownReference => {
         sb.unknownReference
@@ -150,6 +161,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.copula(PERSON_THIRD, GENDER_N, count)
       }
       case ShlurdQualifiedReference(reference, qualifiers) => {
+        printCopula(reference, state)
+      }
+      case ShlurdGenitiveReference(genitive, reference) => {
         printCopula(reference, state)
       }
       case ShlurdUnknownReference => {

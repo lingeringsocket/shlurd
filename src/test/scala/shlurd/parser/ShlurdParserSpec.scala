@@ -26,6 +26,8 @@ class ShlurdParserSpec extends Specification
 
   private val ENTITY_HOME = word("home")
 
+  private val ENTITY_GRANDDAUGHTER = word("granddaughter")
+
   private val STATE_OPEN = word("open")
 
   private val STATE_CLOSE = word("close")
@@ -172,6 +174,20 @@ class ShlurdParserSpec extends Specification
           ShlurdStatePredicate(
             ShlurdPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
             ShlurdPropertyState(STATE_HUNGRY)))
+    }
+
+    "parse possessive pronouns" in
+    {
+      val input = "is his granddaughter at home"
+      ShlurdParser(input).parse must be equalTo
+        ShlurdPredicateQuestion(
+          ShlurdStatePredicate(
+            ShlurdGenitiveReference(
+              ShlurdPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
+              ShlurdEntityReference(ENTITY_GRANDDAUGHTER)),
+            ShlurdLocationState(
+              LOC_AT,
+              ShlurdEntityReference(ENTITY_HOME))))
     }
 
     "give up" in

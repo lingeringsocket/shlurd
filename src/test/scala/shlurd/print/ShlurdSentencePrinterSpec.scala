@@ -49,6 +49,8 @@ class ShlurdSentencePrinterSpec extends Specification
         "they are hungry."
       normalize("erase them") must be equalTo
         "erase them."
+      normalize("is his granddaughter at home") must be equalTo
+        "is his granddaughter at home?"
     }
   }
 }

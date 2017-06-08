@@ -100,6 +100,13 @@ case class ShlurdQualifiedReference(
 {
 }
 
+case class ShlurdGenitiveReference(
+  genitive : ShlurdReference,
+  reference : ShlurdReference
+) extends ShlurdReference
+{
+}
+
 case class ShlurdPronounReference(
   person : ShlurdPerson,
   gender : ShlurdGender,
@@ -111,7 +118,7 @@ case class ShlurdPronounReference(
 
 case class ShlurdEntityReference(
   entity : ShlurdWord,
-  quantifier : ShlurdQuantifier = QUANT_ANY,
+  quantifier : ShlurdQuantifier = QUANT_UNSPECIFIED,
   count : ShlurdCount = COUNT_SINGULAR
 ) extends ShlurdReference
 {

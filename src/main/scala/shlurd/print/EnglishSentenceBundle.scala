@@ -63,6 +63,7 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
   override def determiner(quantifier : ShlurdQuantifier) =
   {
     quantifier match {
+      case QUANT_UNSPECIFIED => phrase("")
       case QUANT_NONE => phrase("no")
       case QUANT_SPECIFIC => phrase("the")
       case QUANT_ANY => phrase("a")
@@ -155,6 +156,38 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
   override def locationalNoun(position : String, noun : String) =
   {
     phrase(compose(position, noun))
+  }
+
+  override def genitivePronoun(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
+  {
+    val s = person match {
+      case PERSON_FIRST => count match {
+        case COUNT_SINGULAR => "my"
+        case COUNT_PLURAL => "our"
+      }
+      case PERSON_SECOND => "your"
+      case PERSON_THIRD => count match {
+        case COUNT_SINGULAR => gender match {
+          case GENDER_M => "his"
+          case GENDER_F => "her"
+          case GENDER_N => "its"
+        }
+        case COUNT_PLURAL => "their"
+      }
+    }
+    phrase(s)
+  }
+
+  override def genitiveNoun(genitive : String) =
+  {
+    // FIXME:  Charles', parent's vs parents', etc
+    phrase(concat(genitive, "'s"))
+  }
+
+  override def genitive(genitive : String, head : String) =
+  {
+    phrase(compose(genitive, head))
   }
 
   override def pronoun(
