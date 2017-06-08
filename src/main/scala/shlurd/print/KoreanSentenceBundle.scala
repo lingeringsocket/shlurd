@@ -19,63 +19,63 @@ import shlurd.parser._
 class KoreanSentenceBundle extends ShlurdSentenceBundle
 {
   override def command(s : String) =
-    phrase(concat(s, "."))
+    concat(s, ".")
 
   override def statement(s : String) =
-    phrase(concat(s, "."))
+    concat(s, ".")
 
   override def question(s : String) =
-    phrase(concat(s, "?"))
+    concat(s, "?")
 
   override def statePredicateStatement(
     subject : String, copula : String, state : String) =
   {
-    phrase(compose(subject, state))
+    compose(subject, state)
   }
 
   override def statePredicateQuestion(
     subject : String, copula : String, state : String) =
   {
-    phrase(compose(subject, state))
+    compose(subject, state)
   }
 
   override def statePredicateCommand(subject : String, state : String) =
-    phrase(compose(subject, state))
+    compose(subject, state)
 
   override def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
   {
-    phrase("이에요")
+    "이에요"
   }
 
   override def determine(determiner : ShlurdDeterminer) =
   {
     determiner match {
       case DETERMINER_NONE => throw ShlurdSentenceUnprintable()
-      case DETERMINER_ALL => phrase("모든")
-      case _ => phrase("")
+      case DETERMINER_ALL => "모든"
+      case _ => ""
     }
   }
 
   override def position(locative : ShlurdLocative) =
   {
     val pos = locative match {
-      case LOC_INSIDE => phrase("안")
-      case LOC_OUTSIDE => phrase("밖")
-      case LOC_AT => phrase("")
+      case LOC_INSIDE => "안"
+      case LOC_OUTSIDE => "밖"
+      case LOC_AT => ""
       // FIXME:  distinguish "near" from "next to"
-      case LOC_NEAR => phrase("근처")
-      case LOC_ON => phrase("위")
-      case LOC_ABOVE => phrase("위")
-      case LOC_BELOW => phrase("밑")
+      case LOC_NEAR => "근처"
+      case LOC_ON => "위"
+      case LOC_ABOVE => "위"
+      case LOC_BELOW => "밑"
       // FIXME:  need to attach 의 to previous word
-      case LOC_LEFT => phrase("왼쪽")
-      case LOC_RIGHT => phrase("오른쪽")
-      case LOC_FRONT => phrase("앞")
-      case LOC_BEHIND => phrase("뒤")
+      case LOC_LEFT => "왼쪽"
+      case LOC_RIGHT => "오른쪽"
+      case LOC_FRONT => "앞"
+      case LOC_BEHIND => "뒤"
     }
     // later need to distinguish 에 from 에서
-    phrase(compose(concat(pos, "에"), "있어요"))
+    compose(concat(pos, "에"), "있어요")
   }
 
   override def changeStateVerb(state : ShlurdWord) =
@@ -101,27 +101,27 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
 
   override def composeQualifiers(qualifiers : Seq[ShlurdWord]) =
   {
-    phrase(compose(qualifiers.map(delemmatizeQualifier(_)) :_*))
+    compose(qualifiers.map(delemmatizeQualifier(_)) :_*)
   }
 
   override def qualifiedNoun(qualifiers : String, noun : String) =
   {
-    phrase(compose(qualifiers, noun))
+    compose(qualifiers, noun)
   }
 
   override def determinedNoun(determiner : String, noun : String) =
   {
-    phrase(compose(determiner, noun))
+    compose(determiner, noun)
   }
 
   override def locationalNoun(position : String, noun : String) =
   {
-    phrase(compose(noun, position))
+    compose(noun, position)
   }
 
   override def genitivePhrase(genitive : String, head : String) =
   {
-    phrase(compose(genitive, head))
+    compose(genitive, head)
   }
 
   private def inflectPronoun(pn : String, inflection : ShlurdInflection) =
@@ -133,7 +133,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
     inflection : ShlurdInflection) =
   {
-    val s = person match {
+    person match {
       case PERSON_FIRST => count match {
         case COUNT_SINGULAR => inflection match {
           case INFLECT_NOMINATIVE => inflectPronoun("내", inflection)
@@ -159,42 +159,41 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
         case COUNT_PLURAL => inflectPronoun("그들", inflection)
       }
     }
-    phrase(s)
   }
 
   override def unknownSentence() =
   {
-    phrase("모모모")
+    "모모모"
   }
 
   override def unknownReference() =
   {
-    phrase("뭐뭐뭐")
+    "뭐뭐뭐"
   }
 
   override def unknownState() =
   {
-    phrase("뭐뭐뭐")
+    "뭐뭐뭐"
   }
 
   override def unknownCopula() =
   {
-    phrase("뭐뭐뭐요")
+    "뭐뭐뭐요"
   }
 
   override def unknownPredicateStatement() =
   {
-    phrase("모모모")
+    "모모모"
   }
 
   override def unknownPredicateCommand() =
   {
-    phrase("모모모")
+    "모모모"
   }
 
   override def unknownPredicateQuestion() =
   {
-    phrase("모모모")
+    "모모모"
   }
 
   private def isHangul(c : Character) =
@@ -238,7 +237,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
           case INFLECT_GENITIVE => "의"
         }
       }
-      phrase(concat(numbered, marker))
+      concat(numbered, marker)
     } else {
       val marker = inflection match {
         case INFLECT_NONE => ""
@@ -246,22 +245,22 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
         case INFLECT_ACCUSATIVE => "(accusative)"
         case INFLECT_GENITIVE => "(genitive)"
       }
-      phrase(compose(lemma, marker))
+      compose(lemma, marker)
     }
   }
 
   def conjugateImperative(lemma : String) =
   {
-    phrase(compose(lemma, "(imperative)"))
+    compose(lemma, "(imperative)")
   }
 
   def conjugateAdjective(lemma : String) =
   {
-    phrase(compose(lemma, "(subject complement)"))
+    compose(lemma, "(subject complement)")
   }
 
   def qualifyAdjective(lemma : String) =
   {
-    phrase(compose(lemma, "(qualifying adjective)"))
+    compose(lemma, "(qualifying adjective)")
   }
 }

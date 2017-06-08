@@ -68,7 +68,7 @@ object LimitedKoreanParlance extends ShlurdParlance
     override def conjugateImperative(lemma : String) =
     {
       lemma match {
-        case "close" => phrase("닫으세요")
+        case "close" => "닫으세요"
         case _ => super.conjugateImperative(lemma)
       }
     }
@@ -76,8 +76,8 @@ object LimitedKoreanParlance extends ShlurdParlance
     override def conjugateAdjective(lemma : String) =
     {
       lemma match {
-        case "close" => phrase("닫았어요")
-        case "hungry" => phrase("배고파요")
+        case "close" => "닫았어요"
+        case "hungry" => "배고파요"
         case _ => super.conjugateAdjective(lemma)
       }
     }

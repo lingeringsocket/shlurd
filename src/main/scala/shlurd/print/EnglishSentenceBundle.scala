@@ -19,33 +19,33 @@ import shlurd.parser._
 class EnglishSentenceBundle extends ShlurdSentenceBundle
 {
   override def command(s : String) =
-    phrase(concat(s, "."))
+    concat(s, ".")
 
   override def statement(s : String) =
-    phrase(concat(s, "."))
+    concat(s, ".")
 
   override def question(s : String) =
-    phrase(concat(s, "?"))
+    concat(s, "?")
 
   override def statePredicateStatement(
     subject : String, copula : String, state : String) =
   {
-    phrase(compose(subject, copula, state))
+    compose(subject, copula, state)
   }
 
   override def statePredicateQuestion(
     subject : String, copula : String, state : String) =
   {
-    phrase(compose(copula, subject, state))
+    compose(copula, subject, state)
   }
 
   override def statePredicateCommand(subject : String, state : String) =
-    phrase(compose(state, subject))
+    compose(state, subject)
 
   override def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
   {
-    val s = count match {
+    count match {
       case COUNT_SINGULAR => {
         person match {
           case PERSON_FIRST => "am"
@@ -57,40 +57,39 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
         "are"
       }
     }
-    phrase(s)
   }
 
   override def determine(determiner : ShlurdDeterminer) =
   {
     determiner match {
-      case DETERMINER_UNSPECIFIED => phrase("")
-      case DETERMINER_NONE => phrase("no")
-      case DETERMINER_UNIQUE => phrase("the")
-      case DETERMINER_NONSPECIFIC => phrase("a")
-      case DETERMINER_ANY => phrase("any")
-      case DETERMINER_ALL => phrase("all")
+      case DETERMINER_UNSPECIFIED => ""
+      case DETERMINER_NONE => "no"
+      case DETERMINER_UNIQUE => "the"
+      case DETERMINER_NONSPECIFIC => "a"
+      case DETERMINER_ANY => "any"
+      case DETERMINER_ALL => "all"
     }
   }
 
   override def position(locative : ShlurdLocative) =
   {
     locative match {
-      case LOC_INSIDE => phrase("in")
-      case LOC_OUTSIDE => phrase("outside of")
-      case LOC_AT => phrase("at")
-      case LOC_NEAR => phrase("near")
-      case LOC_ON => phrase("on")
-      case LOC_ABOVE => phrase("above")
-      case LOC_BELOW => phrase("below")
-      case LOC_LEFT => phrase("to the left of")
-      case LOC_RIGHT => phrase("to the right of")
-      case LOC_FRONT => phrase("in front of")
-      case LOC_BEHIND => phrase("behind")
+      case LOC_INSIDE => "in"
+      case LOC_OUTSIDE => "outside of"
+      case LOC_AT => "at"
+      case LOC_NEAR => "near"
+      case LOC_ON => "on"
+      case LOC_ABOVE => "above"
+      case LOC_BELOW => "below"
+      case LOC_LEFT => "to the left of"
+      case LOC_RIGHT => "to the right of"
+      case LOC_FRONT => "in front of"
+      case LOC_BEHIND => "behind"
     }
   }
 
   override def changeStateVerb(state : ShlurdWord) =
-    phrase(state.lemma)
+    state.lemma
 
   override def delemmatizeNoun(
     entity : ShlurdWord, count : ShlurdCount,
@@ -115,20 +114,20 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
           count match {
             case COUNT_SINGULAR => {
               if (base.endsWith("s")) {
-                phrase(concat(base, "'"))
+                concat(base, "'")
               } else {
-                phrase(concat(base, "'s"))
+                concat(base, "'s")
               }
             }
             case COUNT_PLURAL => {
-              phrase(concat(base, "'"))
+              concat(base, "'")
             }
           }
         }
-        case _ => phrase(base)
+        case _ => base
       }
     } else {
-      phrase(entity.inflected)
+      entity.inflected
     }
   }
 
@@ -137,56 +136,56 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
     if (state.inflected.isEmpty) {
       val lemma = state.lemma
       if (lemma.endsWith("ed")) {
-        phrase(lemma)
+        lemma
       } else if (lemma.endsWith("e")) {
-        phrase(concat(lemma, "d"))
+        concat(lemma, "d")
       } else {
-        phrase(concat(lemma, "ed"))
+        concat(lemma, "ed")
       }
     } else {
-      phrase(state.inflected)
+      state.inflected
     }
   }
 
   override def delemmatizeQualifier(qualifier : ShlurdWord) =
   {
     if (qualifier.inflected.isEmpty) {
-      phrase(qualifier.lemma)
+      qualifier.lemma
     } else {
-      phrase(qualifier.inflected)
+      qualifier.inflected
     }
   }
 
   override def composeQualifiers(qualifiers : Seq[ShlurdWord]) =
   {
-    phrase(compose(qualifiers.map(delemmatizeQualifier(_)) :_*))
+    compose(qualifiers.map(delemmatizeQualifier(_)) :_*)
   }
 
   override def qualifiedNoun(qualifiers : String, noun : String) =
   {
-    phrase(compose(qualifiers, noun))
+    compose(qualifiers, noun)
   }
 
   override def determinedNoun(determiner : String, noun : String) =
   {
-    phrase(compose(determiner, noun))
+    compose(determiner, noun)
   }
 
   override def locationalNoun(position : String, noun : String) =
   {
-    phrase(compose(position, noun))
+    compose(position, noun)
   }
 
   override def genitivePhrase(genitive : String, head : String) =
   {
-    phrase(compose(genitive, head))
+    compose(genitive, head)
   }
 
   override def pronoun(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
     inflection : ShlurdInflection) =
   {
-    val s = person match {
+    person match {
       case PERSON_FIRST => count match {
         case COUNT_SINGULAR => inflection match {
           case INFLECT_ACCUSATIVE => "me"
@@ -226,41 +225,40 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
         }
       }
     }
-    phrase(s)
   }
 
   override def unknownSentence() =
   {
-    phrase("blah blah blah")
+    "blah blah blah"
   }
 
   override def unknownReference() =
   {
-    phrase("something or other")
+    "something or other"
   }
 
   override def unknownState() =
   {
-    phrase("discombobulated")
+    "discombobulated"
   }
 
   override def unknownCopula() =
   {
-    phrase("be")
+    "be"
   }
 
   override def unknownPredicateStatement() =
   {
-    phrase("foo is bar")
+    "foo is bar"
   }
 
   override def unknownPredicateCommand() =
   {
-    phrase("make it so")
+    "make it so"
   }
 
   override def unknownPredicateQuestion() =
   {
-    phrase("is it what now")
+    "is it what now"
   }
 }

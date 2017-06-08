@@ -15,9 +15,6 @@
 package shlurd.print
 
 trait ShlurdParlanceBundle
-{
-  def phrase(placeholder : String) : String = placeholder
-}
 
 trait ShlurdParlance
 {
