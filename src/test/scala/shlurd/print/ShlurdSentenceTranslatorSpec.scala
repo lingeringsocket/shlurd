@@ -46,6 +46,8 @@ class ShlurdSentenceTranslatorSpec extends Specification
         "그녀가 배고파요?"
       translate("close it") must be equalTo
         "그것을 닫으세요."
+      translate("close my door") must be equalTo
+        "내 문을 닫으세요."
     }
   }
 }
