@@ -196,20 +196,20 @@ class ShlurdParser(
       if (np.numChildren == 1) {
         expectReference(first)
       } else {
-        val (quantifier, components) = {
+        val (determiner, components) = {
           if (hasLabel(first, "DT")) {
-            (expectQuantifier(first.firstChild), np.children.drop(1))
+            (expectDeterminer(first.firstChild), np.children.drop(1))
           } else {
-            (QUANT_UNSPECIFIED, np.children)
+            (DETERMINER_UNSPECIFIED, np.children)
           }
         }
         if ((components.size == 2) && isPronoun(components.head)) {
           val pronounReference = pronounFor(
             getLemma(components.head.firstChild))
-          val entityReference = expectNounReference(components.last, quantifier)
+          val entityReference = expectNounReference(components.last, determiner)
           ShlurdGenitiveReference(pronounReference, entityReference)
         } else if (components.forall(c => isNoun(c) || isAdjective(c))) {
-          val entityReference = expectNounReference(components.last, quantifier)
+          val entityReference = expectNounReference(components.last, determiner)
           if (components.size > 1) {
             ShlurdQualifiedReference(
               entityReference,
@@ -224,7 +224,7 @@ class ShlurdParser(
     } else if (isNoun(np)) {
       ShlurdEntityReference(
         getWord(np.firstChild),
-        QUANT_UNSPECIFIED,
+        DETERMINER_UNSPECIFIED,
         getCount(np))
     } else if (isPronoun(np)) {
       pronounFor(getLemma(np.firstChild))
@@ -252,18 +252,19 @@ class ShlurdParser(
     ShlurdPronounReference(person, gender, count)
   }
 
-  private def expectQuantifier(leaf : Tree) =
+  private def expectDeterminer(leaf : Tree) =
   {
     getLemma(leaf) match {
-      case "no" => QUANT_NONE
-      case "all" => QUANT_ALL
-      case "the" => QUANT_SPECIFIC
-      case _ => QUANT_ANY
+      case "no" => DETERMINER_NONE
+      case "all" => DETERMINER_ALL
+      case "a" => DETERMINER_NONSPECIFIC
+      case "the" => DETERMINER_UNIQUE
+      case _ => DETERMINER_ANY
     }
   }
 
   private def expectNounReference(
-    pt : Tree, quantifier : ShlurdQuantifier) =
+    pt : Tree, determiner : ShlurdDeterminer) =
   {
     // we allow mislabeled adjectives to handle
     // cases like "roll up the blind"
@@ -271,7 +272,7 @@ class ShlurdParser(
       val noun = pt.firstChild
       ShlurdEntityReference(
         getWord(noun),
-        quantifier,
+        determiner,
         getCount(pt))
     } else {
       ShlurdUnknownReference

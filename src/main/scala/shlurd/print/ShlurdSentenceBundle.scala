@@ -46,7 +46,7 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
   def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) : String
 
-  def determiner(quantifier : ShlurdQuantifier) : String
+  def determine(determiner : ShlurdDeterminer) : String
 
   def position(locative : ShlurdLocative) : String
 

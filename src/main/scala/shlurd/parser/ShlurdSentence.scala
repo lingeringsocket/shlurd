@@ -118,7 +118,7 @@ case class ShlurdPronounReference(
 
 case class ShlurdEntityReference(
   entity : ShlurdWord,
-  quantifier : ShlurdQuantifier = QUANT_UNSPECIFIED,
+  determiner : ShlurdDeterminer = DETERMINER_UNSPECIFIED,
   count : ShlurdCount = COUNT_SINGULAR
 ) extends ShlurdReference
 {

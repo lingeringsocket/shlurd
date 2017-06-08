@@ -24,12 +24,13 @@ case object GENDER_M extends ShlurdGender
 case object GENDER_F extends ShlurdGender
 case object GENDER_N extends ShlurdGender
 
-sealed trait ShlurdQuantifier
-case object QUANT_NONE extends ShlurdQuantifier
-case object QUANT_SPECIFIC extends ShlurdQuantifier
-case object QUANT_ANY extends ShlurdQuantifier
-case object QUANT_ALL extends ShlurdQuantifier
-case object QUANT_UNSPECIFIED extends ShlurdQuantifier
+sealed trait ShlurdDeterminer
+case object DETERMINER_NONE extends ShlurdDeterminer
+case object DETERMINER_UNIQUE extends ShlurdDeterminer
+case object DETERMINER_NONSPECIFIC extends ShlurdDeterminer
+case object DETERMINER_ANY extends ShlurdDeterminer
+case object DETERMINER_ALL extends ShlurdDeterminer
+case object DETERMINER_UNSPECIFIED extends ShlurdDeterminer
 
 sealed trait ShlurdLocative
 case object LOC_INSIDE extends ShlurdLocative

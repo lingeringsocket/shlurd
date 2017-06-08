@@ -45,20 +45,20 @@ class ShlurdParserSpec extends Specification
   private def pred(
     subject : ShlurdWord,
     state : ShlurdWord = STATE_OPEN,
-    quantifier : ShlurdQuantifier = QUANT_SPECIFIC,
+    determiner : ShlurdDeterminer = DETERMINER_UNIQUE,
     count : ShlurdCount = COUNT_SINGULAR) =
   {
     ShlurdStatePredicate(
-      ShlurdEntityReference(subject, quantifier, count),
+      ShlurdEntityReference(subject, determiner, count),
       ShlurdPropertyState(state))
   }
 
   private def predDoor(
     state : ShlurdWord = STATE_OPEN,
-    quantifier : ShlurdQuantifier = QUANT_SPECIFIC,
+    determiner : ShlurdDeterminer = DETERMINER_UNIQUE,
     count : ShlurdCount = COUNT_SINGULAR) =
   {
-    pred(ENTITY_DOOR, state, quantifier, count)
+    pred(ENTITY_DOOR, state, determiner, count)
   }
 
   "ShlurdParser" should
@@ -115,31 +115,31 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateQuestion(predDoor(STATE_SIDEWAYS))
     }
 
-    "parse quantifiers" in
+    "parse determiners" in
     {
       val inputThe = "open the door"
       ShlurdParser(inputThe).parse must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_SPECIFIC))
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_UNIQUE))
       val inputAny = "open any door"
       ShlurdParser(inputAny).parse must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_ANY))
       val inputA = "open a door"
       ShlurdParser(inputA).parse must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONSPECIFIC))
       val inputSome = "open some door"
       ShlurdParser(inputSome).parse must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_ANY))
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_ANY))
       val inputAll = "open all doors"
       ShlurdParser(inputAll).parse must be equalTo
         ShlurdStateChangeCommand(
-          pred(ENTITY_DOORS, STATE_OPEN, QUANT_ALL, COUNT_PLURAL))
+          pred(ENTITY_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL))
       val inputNone = "open no door"
       ShlurdParser(inputNone).parse must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, QUANT_NONE))
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONE))
 
       val inputAnyQ = "is any door open"
       ShlurdParser(inputAnyQ).parse must be equalTo
-        ShlurdPredicateQuestion(predDoor(STATE_OPEN, QUANT_ANY))
+        ShlurdPredicateQuestion(predDoor(STATE_OPEN, DETERMINER_ANY))
     }
 
     "parse qualifiers" in
@@ -149,7 +149,7 @@ class ShlurdParserSpec extends Specification
         ShlurdStateChangeCommand(
           ShlurdStatePredicate(
             ShlurdQualifiedReference(
-              ShlurdEntityReference(ENTITY_DOOR, QUANT_SPECIFIC),
+              ShlurdEntityReference(ENTITY_DOOR, DETERMINER_UNIQUE),
               Seq(QUALIFIER_FRONT)),
             ShlurdPropertyState(STATE_OPEN)))
     }

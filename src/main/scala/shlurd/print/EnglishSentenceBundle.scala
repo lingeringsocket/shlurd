@@ -60,14 +60,15 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
     phrase(s)
   }
 
-  override def determiner(quantifier : ShlurdQuantifier) =
+  override def determine(determiner : ShlurdDeterminer) =
   {
-    quantifier match {
-      case QUANT_UNSPECIFIED => phrase("")
-      case QUANT_NONE => phrase("no")
-      case QUANT_SPECIFIC => phrase("the")
-      case QUANT_ANY => phrase("a")
-      case QUANT_ALL => phrase("all")
+    determiner match {
+      case DETERMINER_UNSPECIFIED => phrase("")
+      case DETERMINER_NONE => phrase("no")
+      case DETERMINER_UNIQUE => phrase("the")
+      case DETERMINER_NONSPECIFIC => phrase("a")
+      case DETERMINER_ANY => phrase("any")
+      case DETERMINER_ALL => phrase("all")
     }
   }
 

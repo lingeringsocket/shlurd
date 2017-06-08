@@ -48,11 +48,11 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     phrase("이에요")
   }
 
-  override def determiner(quantifier : ShlurdQuantifier) =
+  override def determine(determiner : ShlurdDeterminer) =
   {
-    quantifier match {
-      case QUANT_NONE => throw ShlurdSentenceUnprintable()
-      case QUANT_ALL => phrase("모든")
+    determiner match {
+      case DETERMINER_NONE => throw ShlurdSentenceUnprintable()
+      case DETERMINER_ALL => phrase("모든")
       case _ => phrase("")
     }
   }
