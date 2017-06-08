@@ -93,21 +93,39 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
     phrase(state.lemma)
 
   override def delemmatizeNoun(
-    entity : ShlurdWord, count : ShlurdCount, mark : ShlurdMark) =
+    entity : ShlurdWord, count : ShlurdCount,
+    inflection : ShlurdInflection) =
   {
     if (entity.inflected.isEmpty) {
       val lemma = entity.lemma
-      count match {
+      val base = count match {
         case COUNT_SINGULAR => {
-          phrase(lemma)
+          lemma
         }
         case COUNT_PLURAL => {
           if (lemma.endsWith("s")) {
-            phrase(concat(lemma, "es"))
+            concat(lemma, "es")
           } else {
-            phrase(concat(lemma, "s"))
+            concat(lemma, "s")
           }
         }
+      }
+      inflection match {
+        case INFLECT_GENITIVE => {
+          count match {
+            case COUNT_SINGULAR => {
+              if (base.endsWith("s")) {
+                phrase(concat(base, "'"))
+              } else {
+                phrase(concat(base, "'s"))
+              }
+            }
+            case COUNT_PLURAL => {
+              phrase(concat(base, "'"))
+            }
+          }
+        }
+        case _ => phrase(base)
       }
     } else {
       phrase(entity.inflected)
@@ -159,68 +177,51 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
     phrase(compose(position, noun))
   }
 
-  override def genitivePronoun(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
-  {
-    val s = person match {
-      case PERSON_FIRST => count match {
-        case COUNT_SINGULAR => "my"
-        case COUNT_PLURAL => "our"
-      }
-      case PERSON_SECOND => "your"
-      case PERSON_THIRD => count match {
-        case COUNT_SINGULAR => gender match {
-          case GENDER_M => "his"
-          case GENDER_F => "her"
-          case GENDER_N => "its"
-        }
-        case COUNT_PLURAL => "their"
-      }
-    }
-    phrase(s)
-  }
-
-  override def genitiveNoun(genitive : String) =
-  {
-    // FIXME:  Charles', parent's vs parents', etc
-    phrase(concat(genitive, "'s"))
-  }
-
-  override def genitive(genitive : String, head : String) =
+  override def genitivePhrase(genitive : String, head : String) =
   {
     phrase(compose(genitive, head))
   }
 
   override def pronoun(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mark : ShlurdMark) =
+    inflection : ShlurdInflection) =
   {
     val s = person match {
       case PERSON_FIRST => count match {
-        case COUNT_SINGULAR => mark match {
-          case MARK_DIRECT_OBJECT => "me"
+        case COUNT_SINGULAR => inflection match {
+          case INFLECT_ACCUSATIVE => "me"
+          case INFLECT_GENITIVE => "my"
           case _ => "I"
         }
-        case COUNT_PLURAL => mark match {
-          case MARK_DIRECT_OBJECT => "us"
+        case COUNT_PLURAL => inflection match {
+          case INFLECT_ACCUSATIVE => "us"
+          case INFLECT_GENITIVE => "our"
           case _ => "we"
         }
       }
-      case PERSON_SECOND => "you"
+      case PERSON_SECOND => inflection match {
+        case INFLECT_GENITIVE => "your"
+        case _ => "you"
+      }
       case PERSON_THIRD => count match {
         case COUNT_SINGULAR => gender match {
-          case GENDER_M => mark match {
-            case MARK_DIRECT_OBJECT => "him"
+          case GENDER_M => inflection match {
+            case INFLECT_ACCUSATIVE => "him"
+            case INFLECT_GENITIVE => "his"
             case _ => "he"
           }
-          case GENDER_F => mark match {
-            case MARK_DIRECT_OBJECT => "her"
+          case GENDER_F => inflection match {
+            case INFLECT_ACCUSATIVE | INFLECT_GENITIVE => "her"
             case _ => "she"
           }
-          case GENDER_N => "it"
+          case GENDER_N => inflection match {
+            case INFLECT_GENITIVE => "its"
+            case _ => "it"
+          }
         }
-        case COUNT_PLURAL => mark match {
-          case MARK_DIRECT_OBJECT => "them"
+        case COUNT_PLURAL => inflection match {
+          case INFLECT_ACCUSATIVE => "them"
+          case INFLECT_GENITIVE => "their"
           case _ => "they"
         }
       }

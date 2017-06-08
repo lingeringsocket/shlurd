@@ -49,7 +49,8 @@ sealed trait ShlurdCount
 case object COUNT_SINGULAR extends ShlurdCount
 case object COUNT_PLURAL extends ShlurdCount
 
-sealed trait ShlurdMark
-case object MARK_NONE extends ShlurdMark
-case object MARK_SUBJECT extends ShlurdMark
-case object MARK_DIRECT_OBJECT extends ShlurdMark
+sealed trait ShlurdInflection
+case object INFLECT_NONE extends ShlurdInflection
+case object INFLECT_NOMINATIVE extends ShlurdInflection
+case object INFLECT_ACCUSATIVE extends ShlurdInflection
+case object INFLECT_GENITIVE extends ShlurdInflection

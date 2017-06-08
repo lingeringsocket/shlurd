@@ -53,7 +53,8 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
   def changeStateVerb(state : ShlurdWord) : String
 
   def delemmatizeNoun(
-    entity : ShlurdWord, count : ShlurdCount, mark : ShlurdMark) : String
+    entity : ShlurdWord, count : ShlurdCount,
+    inflection : ShlurdInflection) : String
 
   def delemmatizeState(state : ShlurdWord) : String
 
@@ -69,14 +70,9 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
 
   def pronoun(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mark : ShlurdMark) : String
+    inflection : ShlurdInflection) : String
 
-  def genitivePronoun(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) : String
-
-  def genitiveNoun(genitive : String) : String
-
-  def genitive(genitive : String, head : String) : String
+  def genitivePhrase(genitive : String, head : String) : String
 
   def unknownSentence() : String
 

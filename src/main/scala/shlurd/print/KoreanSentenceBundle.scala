@@ -84,9 +84,9 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   }
 
   override def delemmatizeNoun(
-    entity : ShlurdWord, count : ShlurdCount, mark : ShlurdMark) =
+    entity : ShlurdWord, count : ShlurdCount, inflection : ShlurdInflection) =
   {
-    markNoun(entity.lemma, count, mark)
+    inflectNoun(entity.lemma, count, inflection)
   }
 
   override def delemmatizeState(state : ShlurdWord) =
@@ -119,70 +119,44 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     phrase(compose(noun, position))
   }
 
-  override def genitivePronoun(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
-  {
-    val s = person match {
-      case PERSON_FIRST => count match {
-        case COUNT_SINGULAR => "내"
-        case COUNT_PLURAL => markGenitive(person, gender, count)
-      }
-      case PERSON_SECOND => count match {
-        case COUNT_SINGULAR => "네"
-        case COUNT_PLURAL => markGenitive(person, gender, count)
-      }
-      case PERSON_THIRD => markGenitive(person, gender, count)
-    }
-    phrase(s)
-  }
-
-  override def genitiveNoun(genitive : String) =
-  {
-    phrase(concat(genitive, "의"))
-  }
-
-  override def genitive(genitive : String, head : String) =
+  override def genitivePhrase(genitive : String, head : String) =
   {
     phrase(compose(genitive, head))
   }
 
-  private def markPronoun(pn : String, mark : ShlurdMark) =
+  private def inflectPronoun(pn : String, inflection : ShlurdInflection) =
   {
-    markNoun(pn, COUNT_SINGULAR, mark)
-  }
-
-  private def markGenitive(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
-  {
-    genitiveNoun(pronoun(person, gender, count, MARK_NONE))
+    inflectNoun(pn, COUNT_SINGULAR, inflection)
   }
 
   override def pronoun(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mark : ShlurdMark) =
+    inflection : ShlurdInflection) =
   {
     val s = person match {
       case PERSON_FIRST => count match {
-        case COUNT_SINGULAR => mark match {
-          case MARK_SUBJECT => markPronoun("내", mark)
-          case _ => markPronoun("나", mark)
+        case COUNT_SINGULAR => inflection match {
+          case INFLECT_NOMINATIVE => inflectPronoun("내", inflection)
+          case INFLECT_GENITIVE => "내"
+          case _ => inflectPronoun("나", inflection)
         }
-        case COUNT_PLURAL => markPronoun("우리", mark)
+        case COUNT_PLURAL => inflectPronoun("우리", inflection)
       }
       case PERSON_SECOND => count match {
-        case COUNT_SINGULAR => mark match {
-          case MARK_SUBJECT => markPronoun("니", mark)
-          case _ => markPronoun("너", mark)
+        case COUNT_SINGULAR => inflection match {
+          case INFLECT_NOMINATIVE => inflectPronoun("니", inflection)
+          case INFLECT_GENITIVE => "네"
+          case _ => inflectPronoun("너", inflection)
         }
-        case COUNT_PLURAL => markPronoun("여러분", mark)
+        case COUNT_PLURAL => inflectPronoun("여러분", inflection)
       }
       case PERSON_THIRD => count match {
         case COUNT_SINGULAR => gender match {
-          case GENDER_M => markPronoun("그", mark)
-          case GENDER_F => markPronoun("그녀", mark)
-          case GENDER_N => markPronoun("그것", mark)
+          case GENDER_M => inflectPronoun("그", inflection)
+          case GENDER_F => inflectPronoun("그녀", inflection)
+          case GENDER_N => inflectPronoun("그것", inflection)
         }
-        case COUNT_PLURAL => markPronoun("그들", mark)
+        case COUNT_PLURAL => inflectPronoun("그들", inflection)
       }
     }
     phrase(s)
@@ -236,7 +210,8 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     (finalConsonant != 0)
   }
 
-  def markNoun(lemma : String, count : ShlurdCount, mark : ShlurdMark) =
+  def inflectNoun(lemma : String, count : ShlurdCount,
+    inflection : ShlurdInflection) =
   {
     if (lemma.exists(c => isHangul(c))) {
       val numbered = count match {
@@ -244,30 +219,32 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
         case COUNT_PLURAL => concat(lemma, "들")
       }
       val marker = {
-        mark match {
-          case MARK_NONE => ""
-          case MARK_SUBJECT => {
+        inflection match {
+          case INFLECT_NONE => ""
+          case INFLECT_NOMINATIVE => {
             if (hasFinalConsonant(numbered)) {
               "이"
             } else {
               "가"
             }
           }
-          case MARK_DIRECT_OBJECT => {
+          case INFLECT_ACCUSATIVE => {
             if (hasFinalConsonant(numbered)) {
               "을"
             } else {
               "를"
             }
           }
+          case INFLECT_GENITIVE => "의"
         }
       }
       phrase(concat(numbered, marker))
     } else {
-      val marker = mark match {
-        case MARK_NONE => ""
-        case MARK_SUBJECT => "(subject)"
-        case MARK_DIRECT_OBJECT => "(direct object)"
+      val marker = inflection match {
+        case INFLECT_NONE => ""
+        case INFLECT_NOMINATIVE => "(nominative)"
+        case INFLECT_ACCUSATIVE => "(accusative)"
+        case INFLECT_GENITIVE => "(genitive)"
       }
       phrase(compose(lemma, marker))
     }

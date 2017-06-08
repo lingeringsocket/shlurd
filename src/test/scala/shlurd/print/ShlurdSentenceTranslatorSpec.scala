@@ -53,13 +53,13 @@ class ShlurdSentenceTranslatorSpec extends Specification
 object LimitedKoreanParlance extends ShlurdParlance
 {
   override def newSentenceBundle() = new KoreanSentenceBundle {
-    override def markNoun(
-      lemma : String, count : ShlurdCount, mark : ShlurdMark) =
+    override def inflectNoun(
+      lemma : String, count : ShlurdCount, inflection : ShlurdInflection) =
     {
       lemma match {
-        case "door" => super.markNoun("문", count, mark)
-        case "blind" => super.markNoun("블라인드", count, mark)
-        case _ => super.markNoun(lemma, count, mark)
+        case "door" => super.inflectNoun("문", count, inflection)
+        case "blind" => super.inflectNoun("블라인드", count, inflection)
+        case _ => super.inflectNoun(lemma, count, inflection)
       }
     }
 
