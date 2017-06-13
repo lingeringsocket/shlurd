@@ -21,3 +21,5 @@ libraryDependencies ++= Seq(
   "edu.stanford.nlp" % "stanford-corenlp" % "3.7.0",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.7.0" classifier "models"
 )
+
+publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath+"/.ivy2/local/com.lingeringsocket.shlurd")))
