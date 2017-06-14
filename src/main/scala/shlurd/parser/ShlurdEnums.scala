@@ -54,3 +54,9 @@ case object INFLECT_NONE extends ShlurdInflection
 case object INFLECT_NOMINATIVE extends ShlurdInflection
 case object INFLECT_ACCUSATIVE extends ShlurdInflection
 case object INFLECT_GENITIVE extends ShlurdInflection
+
+sealed trait ShlurdMood
+case object MOOD_INDICATIVE_POSITIVE extends ShlurdMood
+case object MOOD_INDICATIVE_NEGATIVE extends ShlurdMood
+case object MOOD_INTERROGATIVE extends ShlurdMood
+case object MOOD_IMPERATIVE extends ShlurdMood

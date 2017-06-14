@@ -44,7 +44,8 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
   def statePredicateCommand(subject : String, state : String) : String
 
   def copula(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) : String
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
+    mood : ShlurdMood) : String
 
   def determine(determiner : ShlurdDeterminer) : String
 
@@ -56,7 +57,7 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
     entity : ShlurdWord, count : ShlurdCount,
     inflection : ShlurdInflection) : String
 
-  def delemmatizeState(state : ShlurdWord) : String
+  def delemmatizeState(state : ShlurdWord, mood : ShlurdMood) : String
 
   def delemmatizeQualifier(qualifier : ShlurdWord) : String
 

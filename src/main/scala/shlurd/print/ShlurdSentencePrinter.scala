@@ -23,14 +23,21 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   def print(sentence : ShlurdSentence) : String =
   {
     sentence match {
-      case ShlurdPredicateStatement(predicate) => {
-        sb.statement(printPredicateStatement(predicate))
+      case ShlurdPredicateSentence(predicate, mood) => {
+        mood match {
+          case MOOD_INDICATIVE_POSITIVE | MOOD_INDICATIVE_NEGATIVE =>  {
+            sb.statement(printPredicateStatement(predicate, mood))
+          }
+          case MOOD_INTERROGATIVE => {
+            sb.question(printPredicateQuestion(predicate))
+          }
+          case MOOD_IMPERATIVE => {
+            sb.command(printPredicateCommand(predicate))
+          }
+        }
       }
       case ShlurdStateChangeCommand(predicate) => {
         sb.command(printPredicateCommand(predicate))
-      }
-      case ShlurdPredicateQuestion(predicate) => {
-        sb.question(printPredicateQuestion(predicate))
       }
       case ShlurdUnknownSentence => {
         sb.unknownSentence
@@ -81,11 +88,11 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def print(state : ShlurdState) : String =
+  def print(state : ShlurdState, mood : ShlurdMood) : String =
   {
     state match {
       case ShlurdPropertyState(state) => {
-        sb.delemmatizeState(state)
+        sb.delemmatizeState(state, mood)
       }
       case ShlurdLocationState(locative, location) => {
         sb.locationalNoun(
@@ -104,18 +111,18 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdPropertyState(state) => {
         sb.changeStateVerb(state)
       }
-      case _ => print(state)
+      case _ => print(state, MOOD_IMPERATIVE)
     }
   }
 
-  def printPredicateStatement(predicate : ShlurdPredicate) =
+  def printPredicateStatement(predicate : ShlurdPredicate, mood : ShlurdMood) =
   {
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE),
-          printCopula(subject, state),
-          print(state))
+          printCopula(subject, state, mood),
+          print(state, mood))
       }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateStatement
@@ -143,8 +150,8 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateQuestion(
           print(subject, INFLECT_NOMINATIVE),
-          printCopula(subject, state),
-          print(state))
+          printCopula(subject, state, MOOD_INTERROGATIVE),
+          print(state, MOOD_INTERROGATIVE))
       }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateQuestion
@@ -152,20 +159,22 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def printCopula(subject : ShlurdReference, state : ShlurdState) : String =
+  def printCopula(
+    subject : ShlurdReference, state : ShlurdState, mood : ShlurdMood)
+      : String =
   {
     subject match {
       case ShlurdPronounReference(person, gender, count, reference) => {
-        sb.copula(person, gender, count)
+        sb.copula(person, gender, count, mood)
       }
       case ShlurdEntityReference(entity, determiner, count) => {
-        sb.copula(PERSON_THIRD, GENDER_N, count)
+        sb.copula(PERSON_THIRD, GENDER_N, count, mood)
       }
       case ShlurdQualifiedReference(reference, qualifiers) => {
-        printCopula(reference, state)
+        printCopula(reference, state, mood)
       }
       case ShlurdGenitiveReference(genitive, reference) => {
-        printCopula(reference, state)
+        printCopula(reference, state, mood)
       }
       case ShlurdUnknownReference => {
         sb.unknownCopula

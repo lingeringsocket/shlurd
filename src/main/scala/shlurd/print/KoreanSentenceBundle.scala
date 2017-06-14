@@ -43,9 +43,21 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(subject, state)
 
   override def copula(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
+    mood : ShlurdMood) =
   {
-    "이에요"
+    mood match {
+      case MOOD_INDICATIVE_POSITIVE | MOOD_INTERROGATIVE => {
+        // FIXME:  use "예요" after vowel
+        "이에요"
+      }
+      case MOOD_INDICATIVE_NEGATIVE => {
+        "아니에요"
+      }
+      case _ => {
+        throw ShlurdSentenceUnprintable()
+      }
+    }
   }
 
   override def determine(determiner : ShlurdDeterminer) =
@@ -89,9 +101,9 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     inflectNoun(entity.lemma, count, inflection)
   }
 
-  override def delemmatizeState(state : ShlurdWord) =
+  override def delemmatizeState(state : ShlurdWord, mood : ShlurdMood) =
   {
-    conjugateAdjective(state.lemma)
+    conjugateAdjective(state.lemma, mood)
   }
 
   override def delemmatizeQualifier(qualifier : ShlurdWord) =
@@ -254,7 +266,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(lemma, "(imperative)")
   }
 
-  def conjugateAdjective(lemma : String) =
+  def conjugateAdjective(lemma : String, mood : ShlurdMood) =
   {
     compose(lemma, "(subject complement)")
   }

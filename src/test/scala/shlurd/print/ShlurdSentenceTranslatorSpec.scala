@@ -73,12 +73,13 @@ object LimitedKoreanParlance extends ShlurdParlance
       }
     }
 
-    override def conjugateAdjective(lemma : String) =
+    override def conjugateAdjective(lemma : String, mood : ShlurdMood) =
     {
+      // FIXME:  make use of mood
       lemma match {
         case "close" => "닫았어요"
         case "hungry" => "배고파요"
-        case _ => super.conjugateAdjective(lemma)
+        case _ => super.conjugateAdjective(lemma, mood)
       }
     }
   }

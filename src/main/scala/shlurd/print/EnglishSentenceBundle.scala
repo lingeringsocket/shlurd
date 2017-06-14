@@ -43,9 +43,10 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
     compose(state, subject)
 
   override def copula(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount) =
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
+    mood : ShlurdMood) =
   {
-    count match {
+    val inflected = count match {
       case COUNT_SINGULAR => {
         person match {
           case PERSON_FIRST => "am"
@@ -56,6 +57,11 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
       case COUNT_PLURAL => {
         "are"
       }
+    }
+    if (mood == MOOD_INDICATIVE_NEGATIVE) {
+      compose(inflected, "not")
+    } else {
+      inflected
     }
   }
 
@@ -131,7 +137,7 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
     }
   }
 
-  override def delemmatizeState(state : ShlurdWord) =
+  override def delemmatizeState(state : ShlurdWord, mood : ShlurdMood) =
   {
     if (state.inflected.isEmpty) {
       val lemma = state.lemma

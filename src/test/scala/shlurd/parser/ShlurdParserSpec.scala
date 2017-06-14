@@ -67,22 +67,32 @@ class ShlurdParserSpec extends Specification
     {
       val input = "the door is open"
       ShlurdParser(input).parse must be equalTo
-        ShlurdPredicateStatement(predDoor())
+        ShlurdPredicateSentence(predDoor())
       ShlurdParser(input + ".").parse must be equalTo
-        ShlurdPredicateStatement(predDoor())
+        ShlurdPredicateSentence(predDoor())
       ShlurdParser(input + "!").parse must be equalTo
-        ShlurdPredicateStatement(predDoor())
+        ShlurdPredicateSentence(predDoor())
       ShlurdParser(input + "?").parse must be equalTo
-        ShlurdPredicateQuestion(predDoor())
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
+    }
+
+    "parse a negation" in
+    {
+      val input = "the door is not open"
+      ShlurdParser(input).parse must be equalTo
+        ShlurdPredicateSentence(predDoor(), MOOD_INDICATIVE_NEGATIVE)
+      val contracted = "the door isn't open"
+      ShlurdParser(input).parse must be equalTo
+        ShlurdPredicateSentence(predDoor(), MOOD_INDICATIVE_NEGATIVE)
     }
 
     "parse a question" in
     {
       val input = "is the door open"
       ShlurdParser(input).parse must be equalTo
-        ShlurdPredicateQuestion(predDoor())
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
       ShlurdParser(input + "?").parse must be equalTo
-        ShlurdPredicateQuestion(predDoor())
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
     }
 
     "parse a command" in
@@ -105,14 +115,14 @@ class ShlurdParserSpec extends Specification
         ShlurdStateChangeCommand(predDoor(STATE_CLOSE))
       val question = "is the door closed"
       ShlurdParser(question).parse must be equalTo
-        ShlurdPredicateQuestion(predDoor(STATE_CLOSED))
+        ShlurdPredicateSentence(predDoor(STATE_CLOSED), MOOD_INTERROGATIVE)
     }
 
     "parse adverbial state" in
     {
       val question = "is the door sideways"
       ShlurdParser(question).parse must be equalTo
-        ShlurdPredicateQuestion(predDoor(STATE_SIDEWAYS))
+        ShlurdPredicateSentence(predDoor(STATE_SIDEWAYS), MOOD_INTERROGATIVE)
     }
 
     "parse determiners" in
@@ -139,7 +149,8 @@ class ShlurdParserSpec extends Specification
 
       val inputAnyQ = "is any door open"
       ShlurdParser(inputAnyQ).parse must be equalTo
-        ShlurdPredicateQuestion(predDoor(STATE_OPEN, DETERMINER_ANY))
+        ShlurdPredicateSentence(
+          predDoor(STATE_OPEN, DETERMINER_ANY), MOOD_INTERROGATIVE)
     }
 
     "parse qualifiers" in
@@ -158,19 +169,20 @@ class ShlurdParserSpec extends Specification
     {
       val input = "is franny at home"
       ShlurdParser(input).parse must be equalTo
-        ShlurdPredicateQuestion(
+        ShlurdPredicateSentence(
           ShlurdStatePredicate(
             ShlurdEntityReference(ENTITY_FRANNY),
             ShlurdLocationState(
               LOC_AT,
-              ShlurdEntityReference(ENTITY_HOME))))
+              ShlurdEntityReference(ENTITY_HOME))),
+          MOOD_INTERROGATIVE)
     }
 
     "parse pronouns" in
     {
       val input = "I am hungry"
       ShlurdParser(input).parse must be equalTo
-        ShlurdPredicateStatement(
+        ShlurdPredicateSentence(
           ShlurdStatePredicate(
             ShlurdPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
             ShlurdPropertyState(STATE_HUNGRY)))
@@ -180,14 +192,15 @@ class ShlurdParserSpec extends Specification
     {
       val input = "is his granddaughter at home"
       ShlurdParser(input).parse must be equalTo
-        ShlurdPredicateQuestion(
+        ShlurdPredicateSentence(
           ShlurdStatePredicate(
             ShlurdGenitiveReference(
               ShlurdPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
               ShlurdEntityReference(ENTITY_GRANDDAUGHTER)),
             ShlurdLocationState(
               LOC_AT,
-              ShlurdEntityReference(ENTITY_HOME))))
+              ShlurdEntityReference(ENTITY_HOME))),
+          MOOD_INTERROGATIVE)
     }
 
     "give up" in

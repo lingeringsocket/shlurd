@@ -133,7 +133,7 @@ class ShlurdParser(
         val np = children.head
         val vp = children.last
         if (isNounPhrase(np) && isVerbPhrase(vp)) {
-          expectStatement(np, vp, isQuestion)
+          expectPredicateSentence(np, vp, isQuestion)
         } else {
           ShlurdUnknownSentence
         }
@@ -149,8 +149,9 @@ class ShlurdParser(
         val np = children(1)
         val ap = children(2)
         if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
-          ShlurdPredicateQuestion(
-            expectPredicate(np, ap))
+          ShlurdPredicateSentence(
+            expectPredicate(np, ap),
+            MOOD_INTERROGATIVE)
         } else {
           ShlurdUnknownSentence
         }
@@ -162,15 +163,32 @@ class ShlurdParser(
     }
   }
 
-  private def expectStatement(np : Tree, vp : Tree, isQuestion : Boolean) =
+  private def expectPredicateSentence(
+    np : Tree, vp : Tree, isQuestion : Boolean) =
   {
     val verbHead = vp.firstChild
     if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
-      val predicate = expectPredicate(np, vp.lastChild)
-      if (isQuestion) {
-        ShlurdPredicateQuestion(predicate)
+      if (vp.numChildren > 3) {
+        ShlurdUnknownSentence
       } else {
-        ShlurdPredicateStatement(predicate)
+        val predicate = expectPredicate(np, vp.lastChild)
+        if (isQuestion) {
+          ShlurdPredicateSentence(predicate, MOOD_INTERROGATIVE)
+        } else {
+          val mood = {
+            if (vp.numChildren == 3) {
+              val adverb = vp.children()(1)
+              if (isAdverb(adverb) && hasTerminalLemma(adverb, "not")) {
+                MOOD_INDICATIVE_NEGATIVE
+              } else {
+                MOOD_INDICATIVE_POSITIVE
+              }
+            } else {
+              MOOD_INDICATIVE_POSITIVE
+            }
+          }
+          ShlurdPredicateSentence(predicate, mood)
+        }
       }
     } else {
       ShlurdUnknownSentence

@@ -16,18 +16,7 @@ package shlurd.parser
 
 sealed trait ShlurdSentence
 {
-}
-
-sealed trait ShlurdCommand extends ShlurdSentence
-{
-}
-
-sealed trait ShlurdQuestion extends ShlurdSentence
-{
-}
-
-sealed trait ShlurdStatement extends ShlurdSentence
-{
+  def mood : ShlurdMood
 }
 
 sealed trait ShlurdPredicate
@@ -46,8 +35,23 @@ sealed trait ShlurdState
 {
 }
 
+case class ShlurdPredicateSentence(
+  predicate : ShlurdPredicate,
+  mood : ShlurdMood = MOOD_INDICATIVE_POSITIVE
+) extends ShlurdSentence
+{
+}
+
+case class ShlurdStateChangeCommand(
+  predicate : ShlurdStatePredicate
+) extends ShlurdSentence
+{
+  override def mood = MOOD_IMPERATIVE
+}
+
 case object ShlurdUnknownSentence extends ShlurdSentence
 {
+  override def mood = MOOD_INDICATIVE_POSITIVE
 }
 
 case object ShlurdUnknownReference extends ShlurdReference
@@ -66,30 +70,6 @@ case class ShlurdStatePredicate(
   subject : ShlurdReference,
   state : ShlurdState
 ) extends ShlurdPredicate
-{
-}
-
-case class ShlurdStateChangeEvent(
-  predicate : ShlurdStatePredicate
-) extends ShlurdEvent
-{
-}
-
-case class ShlurdStateChangeCommand(
-  predicate : ShlurdStatePredicate
-) extends ShlurdCommand
-{
-}
-
-case class ShlurdPredicateQuestion(
-  predicate : ShlurdPredicate
-) extends ShlurdQuestion
-{
-}
-
-case class ShlurdPredicateStatement(
-  predicate : ShlurdPredicate
-) extends ShlurdStatement
 {
 }
 
