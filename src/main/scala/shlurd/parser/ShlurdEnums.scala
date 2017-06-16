@@ -56,7 +56,31 @@ case object INFLECT_ACCUSATIVE extends ShlurdInflection
 case object INFLECT_GENITIVE extends ShlurdInflection
 
 sealed trait ShlurdMood
-case object MOOD_INDICATIVE_POSITIVE extends ShlurdMood
-case object MOOD_INDICATIVE_NEGATIVE extends ShlurdMood
+{
+  def isPositive : Boolean = false
+  def isNegative : Boolean = false
+}
+sealed trait ShlurdIndicativeMood extends ShlurdMood
+{
+}
+case object MOOD_INDICATIVE_POSITIVE extends ShlurdIndicativeMood
+{
+  override def isPositive : Boolean = true
+}
+case object MOOD_INDICATIVE_NEGATIVE extends ShlurdIndicativeMood
+{
+  override def isNegative : Boolean = true
+}
+object ShlurdIndicativeMood
+{
+  def apply(positive : Boolean) =
+  {
+    if (positive) {
+      MOOD_INDICATIVE_POSITIVE
+    } else {
+      MOOD_INDICATIVE_NEGATIVE
+    }
+  }
+}
 case object MOOD_INTERROGATIVE extends ShlurdMood
 case object MOOD_IMPERATIVE extends ShlurdMood

@@ -25,7 +25,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     sentence match {
       case ShlurdPredicateSentence(predicate, mood) => {
         mood match {
-          case MOOD_INDICATIVE_POSITIVE | MOOD_INDICATIVE_NEGATIVE =>  {
+          case _ : ShlurdIndicativeMood =>  {
             sb.statement(printPredicateStatement(predicate, mood))
           }
           case MOOD_INTERROGATIVE => {
