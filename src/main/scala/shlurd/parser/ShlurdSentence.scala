@@ -14,24 +14,27 @@
 // limitations under the License.
 package shlurd.parser
 
-sealed trait ShlurdSentence
+trait ShlurdPhrase
+{
+  def children : Seq[ShlurdPhrase] = Seq.empty
+
+  def hasUnknown : Boolean = children.exists(_.hasUnknown)
+}
+
+sealed trait ShlurdSentence extends ShlurdPhrase
 {
   def mood : ShlurdMood
 }
 
-sealed trait ShlurdPredicate
+sealed trait ShlurdPredicate extends ShlurdPhrase
 {
 }
 
-sealed trait ShlurdEvent
+sealed trait ShlurdReference extends ShlurdPhrase
 {
 }
 
-sealed trait ShlurdReference
-{
-}
-
-sealed trait ShlurdState
+sealed trait ShlurdState extends ShlurdPhrase
 {
 }
 
@@ -40,30 +43,38 @@ case class ShlurdPredicateSentence(
   mood : ShlurdMood = MOOD_INDICATIVE_POSITIVE
 ) extends ShlurdSentence
 {
+  override def children = Seq(predicate)
 }
 
 case class ShlurdStateChangeCommand(
   predicate : ShlurdStatePredicate
 ) extends ShlurdSentence
 {
+  override def children = Seq(predicate)
+
   override def mood = MOOD_IMPERATIVE
 }
 
 case object ShlurdUnknownSentence extends ShlurdSentence
 {
   override def mood = MOOD_INDICATIVE_POSITIVE
+
+  override def hasUnknown = true
 }
 
 case object ShlurdUnknownReference extends ShlurdReference
 {
+  override def hasUnknown = true
 }
 
 case object ShlurdUnknownPredicate extends ShlurdPredicate
 {
+  override def hasUnknown = true
 }
 
 case object ShlurdUnknownState extends ShlurdState
 {
+  override def hasUnknown = true
 }
 
 case class ShlurdStatePredicate(
@@ -71,6 +82,7 @@ case class ShlurdStatePredicate(
   state : ShlurdState
 ) extends ShlurdPredicate
 {
+  override def children = Seq(subject, state)
 }
 
 case class ShlurdQualifiedReference(
@@ -78,6 +90,7 @@ case class ShlurdQualifiedReference(
   qualifiers : Seq[ShlurdWord]
 ) extends ShlurdReference
 {
+  override def children = Seq(reference)
 }
 
 case class ShlurdGenitiveReference(
@@ -85,6 +98,7 @@ case class ShlurdGenitiveReference(
   reference : ShlurdReference
 ) extends ShlurdReference
 {
+  override def children = Seq(genitive, reference)
 }
 
 case class ShlurdPronounReference(
@@ -115,6 +129,7 @@ case class ShlurdLocationState(
   location : ShlurdReference
 ) extends ShlurdState
 {
+  override def children = Seq(location)
 }
 
 case class ShlurdWord(

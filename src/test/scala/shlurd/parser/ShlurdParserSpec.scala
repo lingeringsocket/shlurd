@@ -208,8 +208,17 @@ class ShlurdParserSpec extends Specification
     "give up" in
     {
       val inputUnspecified = "open door"
-      parse(inputUnspecified) must be equalTo
-      ShlurdUnknownSentence
+      val result = parse(inputUnspecified)
+      result must be equalTo ShlurdUnknownSentence
+      result.hasUnknown must beTrue
+    }
+
+    "deal with unknowns" in
+    {
+      predDoor().hasUnknown must beFalse
+      ShlurdUnknownPredicate.hasUnknown must beTrue
+      ShlurdPredicateSentence(predDoor()).hasUnknown must beFalse
+      ShlurdPredicateSentence(ShlurdUnknownPredicate).hasUnknown must beTrue
     }
   }
 }
