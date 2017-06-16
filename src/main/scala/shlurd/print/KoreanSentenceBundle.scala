@@ -275,4 +275,14 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   {
     compose(lemma, "(qualifying adjective)")
   }
+
+  override def affirmAssumption(sentence : String) =
+  {
+    compose("내,", sentence)
+  }
+
+  def contradictAssumption(sentence : String) =
+  {
+    compose("아니요,", sentence)
+  }
 }

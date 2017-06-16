@@ -55,6 +55,11 @@ case object INFLECT_NOMINATIVE extends ShlurdInflection
 case object INFLECT_ACCUSATIVE extends ShlurdInflection
 case object INFLECT_GENITIVE extends ShlurdInflection
 
+sealed trait ShlurdAssumption
+case object ASSUMED_TRUE extends ShlurdAssumption
+case object ASSUMED_FALSE extends ShlurdAssumption
+case object ASSUMED_NOTHING extends ShlurdAssumption
+
 sealed trait ShlurdMood
 {
   def isPositive : Boolean = false

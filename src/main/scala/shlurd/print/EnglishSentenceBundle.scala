@@ -267,4 +267,14 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
   {
     "is it what now"
   }
+
+  override def affirmAssumption(sentence : String) =
+  {
+    compose("Yes,", sentence)
+  }
+
+  def contradictAssumption(sentence : String) =
+  {
+    compose("No,", sentence)
+  }
 }
