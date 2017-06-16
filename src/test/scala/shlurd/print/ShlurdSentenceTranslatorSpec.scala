@@ -24,7 +24,7 @@ class ShlurdSentenceTranslatorSpec extends Specification
     new ShlurdSentencePrinter(LimitedKoreanParlance)
 
   private def translate(s : String) =
-    printer.print(ShlurdParser(s).parse)
+    printer.print(ShlurdParser(s).parseOne)
 
   "ShlurdSentencePrinter" should
   {

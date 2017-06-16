@@ -23,7 +23,7 @@ class ShlurdSentencePrinterSpec extends Specification
   private val printer = new ShlurdSentencePrinter
 
   private def normalize(s : String) =
-    printer.print(ShlurdParser(s).parse)
+    printer.print(ShlurdParser(s).parseOne)
 
   "ShlurdSentencePrinter" should
   {

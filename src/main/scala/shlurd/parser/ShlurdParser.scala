@@ -21,8 +21,18 @@ import edu.stanford.nlp.simple.Document
 
 import scala.collection.JavaConverters._
 
-class ShlurdParser(
+trait ShlurdParser
+{
+  def parseOne() : ShlurdSentence
+
+  def parseFirst() : ShlurdSentence
+
+  def parseAll() : Seq[ShlurdSentence]
+}
+
+class ShlurdSingleParser(
   tree : Tree, lemmas : Seq[String], implicitQuestion : Boolean)
+    extends ShlurdParser
 {
   private def getLabel(tree : Tree) : String =
   {
@@ -399,10 +409,25 @@ class ShlurdParser(
     }
   }
 
-  def parse() : ShlurdSentence =
+  override def parseOne() = expectRoot(tree, implicitQuestion)
+
+  override def parseFirst() = parseOne
+
+  override def parseAll() = Seq(parseOne)
+}
+
+class ShlurdMultipleParser(singles : Seq[ShlurdSingleParser])
+    extends ShlurdParser
+{
+  override def parseOne() : ShlurdSentence =
   {
-    expectRoot(tree, implicitQuestion)
+    assert(singles.size == 1)
+    parseFirst
   }
+
+  override def parseFirst() = singles.head.parseOne
+
+  override def parseAll() = singles.map(_.parseOne)
 }
 
 object ShlurdParser
@@ -416,32 +441,39 @@ object ShlurdParser
     })
   }
 
-  private def tokenize(input : String) : Sentence =
+  private def tokenize(input : String) : Seq[Sentence] =
   {
     val doc = new Document(input)
-    val sentences = doc.sentences.asScala
-    assert(sentences.size == 1)
-    sentences.head
+    doc.sentences.asScala
   }
 
   private def newParser(
     sentence : Sentence, tree : Tree, implicitQuestion : Boolean)
-      : ShlurdParser =
+      : ShlurdSingleParser =
   {
     tree.indexLeaves(0, true)
     val lemmas = sentence.lemmas.asScala
-    new ShlurdParser(tree, lemmas, implicitQuestion)
+    new ShlurdSingleParser(tree, lemmas, implicitQuestion)
   }
 
-  def apply(input : String) : ShlurdParser =
+  private def prepareOne(sentence : Sentence) : ShlurdSingleParser =
   {
-    val sentence = tokenize(input)
     val tree = sentence.parse
     if (tree.preTerminalYield.asScala.last.value ==  ".") {
       newParser(sentence, tree, false)
     } else {
-      val question = tokenize(input + "?")
+      val question = tokenize(sentence.text + "?").head
       newParser(question, question.parse, true)
+    }
+  }
+
+  def apply(input : String) : ShlurdParser =
+  {
+    val sentences = tokenize(input)
+    if (sentences.size == 1) {
+      prepareOne(sentences.head)
+    } else {
+      new ShlurdMultipleParser(sentences.map(prepareOne(_)))
     }
   }
 }

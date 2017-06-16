@@ -61,94 +61,96 @@ class ShlurdParserSpec extends Specification
     pred(ENTITY_DOOR, state, determiner, count)
   }
 
+  private def parse(input : String) = ShlurdParser(input).parseOne
+
   "ShlurdParser" should
   {
     "parse a statement" in
     {
       val input = "the door is open"
-      ShlurdParser(input).parse must be equalTo
+      parse(input) must be equalTo
         ShlurdPredicateSentence(predDoor())
-      ShlurdParser(input + ".").parse must be equalTo
+      parse(input + ".") must be equalTo
         ShlurdPredicateSentence(predDoor())
-      ShlurdParser(input + "!").parse must be equalTo
+      parse(input + "!") must be equalTo
         ShlurdPredicateSentence(predDoor())
-      ShlurdParser(input + "?").parse must be equalTo
+      parse(input + "?") must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
     }
 
     "parse a negation" in
     {
       val input = "the door is not open"
-      ShlurdParser(input).parse must be equalTo
+      parse(input) must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INDICATIVE_NEGATIVE)
       val contracted = "the door isn't open"
-      ShlurdParser(input).parse must be equalTo
+      parse(input) must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INDICATIVE_NEGATIVE)
     }
 
     "parse a question" in
     {
       val input = "is the door open"
-      ShlurdParser(input).parse must be equalTo
+      parse(input) must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
-      ShlurdParser(input + "?").parse must be equalTo
+      parse(input + "?") must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
     }
 
     "parse a command" in
     {
       val input = "open the door"
-      ShlurdParser(input).parse must be equalTo
+      parse(input) must be equalTo
         ShlurdStateChangeCommand(predDoor())
-      ShlurdParser(input + ".").parse must be equalTo
+      parse(input + ".") must be equalTo
         ShlurdStateChangeCommand(predDoor())
-      ShlurdParser(input + "!").parse must be equalTo
+      parse(input + "!") must be equalTo
         ShlurdStateChangeCommand(predDoor())
-      ShlurdParser(input + "?").parse must be equalTo
+      parse(input + "?") must be equalTo
         ShlurdStateChangeCommand(predDoor())
     }
 
     "lemmatize correctly" in
     {
       val command = "close the door"
-      ShlurdParser(command).parse must be equalTo
+      parse(command) must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_CLOSE))
       val question = "is the door closed"
-      ShlurdParser(question).parse must be equalTo
+      parse(question) must be equalTo
         ShlurdPredicateSentence(predDoor(STATE_CLOSED), MOOD_INTERROGATIVE)
     }
 
     "parse adverbial state" in
     {
       val question = "is the door sideways"
-      ShlurdParser(question).parse must be equalTo
+      parse(question) must be equalTo
         ShlurdPredicateSentence(predDoor(STATE_SIDEWAYS), MOOD_INTERROGATIVE)
     }
 
     "parse determiners" in
     {
       val inputThe = "open the door"
-      ShlurdParser(inputThe).parse must be equalTo
+      parse(inputThe) must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_UNIQUE))
       val inputAny = "open any door"
-      ShlurdParser(inputAny).parse must be equalTo
+      parse(inputAny) must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_ANY))
       val inputA = "open a door"
-      ShlurdParser(inputA).parse must be equalTo
+      parse(inputA) must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONSPECIFIC))
       val inputSome = "open some door"
-      ShlurdParser(inputSome).parse must be equalTo
+      parse(inputSome) must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_ANY))
       val inputAll = "open all doors"
-      ShlurdParser(inputAll).parse must be equalTo
+      parse(inputAll) must be equalTo
         ShlurdStateChangeCommand(
           pred(ENTITY_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL))
       val inputNone = "open no door"
-      ShlurdParser(inputNone).parse must be equalTo
+      parse(inputNone) must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONE))
 
       val inputAnyQ = "is any door open"
-      ShlurdParser(inputAnyQ).parse must be equalTo
+      parse(inputAnyQ) must be equalTo
         ShlurdPredicateSentence(
           predDoor(STATE_OPEN, DETERMINER_ANY), MOOD_INTERROGATIVE)
     }
@@ -156,7 +158,7 @@ class ShlurdParserSpec extends Specification
     "parse qualifiers" in
     {
       val inputFront = "open the front door"
-      ShlurdParser(inputFront).parse must be equalTo
+      parse(inputFront) must be equalTo
         ShlurdStateChangeCommand(
           ShlurdStatePredicate(
             ShlurdQualifiedReference(
@@ -168,7 +170,7 @@ class ShlurdParserSpec extends Specification
     "parse locatives" in
     {
       val input = "is franny at home"
-      ShlurdParser(input).parse must be equalTo
+      parse(input) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
             ShlurdEntityReference(ENTITY_FRANNY),
@@ -181,7 +183,7 @@ class ShlurdParserSpec extends Specification
     "parse pronouns" in
     {
       val input = "I am hungry"
-      ShlurdParser(input).parse must be equalTo
+      parse(input) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
             ShlurdPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
@@ -191,7 +193,7 @@ class ShlurdParserSpec extends Specification
     "parse possessive pronouns" in
     {
       val input = "is his granddaughter at home"
-      ShlurdParser(input).parse must be equalTo
+      parse(input) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
             ShlurdGenitiveReference(
@@ -206,7 +208,7 @@ class ShlurdParserSpec extends Specification
     "give up" in
     {
       val inputUnspecified = "open door"
-      ShlurdParser(inputUnspecified).parse must be equalTo
+      parse(inputUnspecified) must be equalTo
       ShlurdUnknownSentence
     }
   }
