@@ -23,7 +23,7 @@ class ShlurdInterpreter(world : ShlurdWorld)
 {
   private val sentencePrinter = new ShlurdSentencePrinter
 
-  def fail(msg : String) = Failure(new RuntimeException(msg))
+  def fail(msg : String) = world.fail(msg)
 
   def interpret(sentence : ShlurdSentence) : String =
   {

@@ -80,8 +80,6 @@ class ShlurdInterpreterSpec extends Specification
     private def index[T <: NamedObject](set : Set[T]) =
       Map(set.map(x => (x.name, x)).toSeq:_*)
 
-    private def fail(msg : String) = interpreter.fail(msg)
-
     private val animals = index(Set(ZooLion, ZooTiger, ZooBear))
 
     private val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
