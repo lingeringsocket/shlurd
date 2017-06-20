@@ -342,7 +342,11 @@ class ShlurdSingleParser(
 
   private def expectAdjectiveState(ap : Tree) =
   {
-    if ((isAdjective(ap) || isParticipleOrGerund(ap)) && ap.isPreTerminal) {
+    // sometimes adverbs sneak into adjectival phrases,
+    // e.g. is the lion asleep?
+    if ((isAdjective(ap) || isParticipleOrGerund(ap) || isAdverb(ap))
+      && ap.isPreTerminal)
+    {
       ShlurdPropertyState(getWord(ap.firstChild))
     } else {
       ShlurdUnknownState

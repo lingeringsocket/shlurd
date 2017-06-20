@@ -94,7 +94,7 @@ class ShlurdParserSpec extends Specification
       parse(input) must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
       parse(input + "?") must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
+      ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
     }
 
     "parse a command" in

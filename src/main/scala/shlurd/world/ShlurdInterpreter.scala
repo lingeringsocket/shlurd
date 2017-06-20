@@ -17,25 +17,29 @@ package shlurd.world
 import shlurd.parser._
 import shlurd.print._
 
-class ShlurdInterpreter
+import scala.util._
+
+class ShlurdInterpreter(world : ShlurdWorld)
 {
   private val sentencePrinter = new ShlurdSentencePrinter
+
+  def fail(msg : String) = Failure(new RuntimeException(msg))
 
   def interpret(sentence : ShlurdSentence) : String =
   {
     sentence match {
       case ShlurdStateChangeCommand(predicate) => {
         evaluatePredicate(predicate) match {
-          case Some(true) => {
+          case Success(true) => {
             // FIXME:  use proper rephrasing
             "But it already is."
           }
-          case Some(false) => {
+          case Success(false) => {
             // FIXME:  carry out action
             "Okay, I will get right on that."
           }
-          case _ => {
-            "I don't know how to do that."
+          case Failure(e) => {
+            e.getMessage
           }
         }
       }
@@ -43,15 +47,16 @@ class ShlurdInterpreter
         mood match {
           case MOOD_INTERROGATIVE => {
             evaluatePredicate(predicate) match {
-              case Some(truth) => {
+              case Success(truth) => {
                 val responseMood = ShlurdIndicativeMood(truth)
-                sentencePrinter.sb.confirmAssumption(
+                sentencePrinter.sb.respondToAssumption(
                   ASSUMED_TRUE, truth,
                   sentencePrinter.print(
-                    ShlurdPredicateSentence(predicate, responseMood)))
+                    ShlurdPredicateSentence(predicate, responseMood)),
+                  false)
               }
-              case _ => {
-                "I don't know."
+              case Failure(e) => {
+                e.getMessage
               }
             }
           }
@@ -60,7 +65,7 @@ class ShlurdInterpreter
             val predicateTruth = evaluatePredicate(predicate)
             val responseMood = {
               predicateTruth match {
-                case Some(false) => {
+                case Success(false) => {
                   MOOD_INDICATIVE_NEGATIVE
                 }
                 case _ => {
@@ -70,22 +75,22 @@ class ShlurdInterpreter
               }
             }
             predicateTruth match {
-              case Some(truth) => {
+              case Success(truth) => {
                 if (truth == positivity) {
-                  // FIXME:  use strength like "That's right" instead of "Yes"
-                  sentencePrinter.sb.confirmAssumption(
+                  sentencePrinter.sb.respondToAssumption(
                     ASSUMED_TRUE, true,
                     sentencePrinter.print(
-                      ShlurdPredicateSentence(predicate, responseMood)))
+                      ShlurdPredicateSentence(predicate, responseMood)),
+                    true)
                 } else {
                   // FIXME:  add details on inconsistency, and maybe try
                   // to update state?
                   "Oh, really?"
                 }
               }
-              case _ => {
+              case Failure(e) => {
                 // FIXME:  try to update state?
-                "Oh, I wasn't sure."
+                e.getMessage
               }
             }
           }
@@ -100,7 +105,8 @@ class ShlurdInterpreter
     }
   }
 
-  private def evaluatePredicate(predicate : ShlurdPredicate) : Option[Boolean] =
+  private def evaluatePredicate(
+    predicate : ShlurdPredicate) : Try[Boolean] =
   {
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
@@ -111,26 +117,47 @@ class ShlurdInterpreter
           case ShlurdLocationState(locative, location) => {
             evaluateLocationStatePredicate(subject, locative, location)
           }
-          case ShlurdUnknownState => None
+          case ShlurdUnknownState => fail(
+            "I don't know about this kind of state")
         }
       }
-      case ShlurdUnknownPredicate => None
+      case ShlurdUnknownPredicate => fail(
+        "I don't know about this kind of predicate")
     }
   }
 
   private def evaluatePropertyStatePredicate(
-    subject : ShlurdReference,
-    state : ShlurdWord) =
+    subjectRef : ShlurdReference,
+    state : ShlurdWord) : Try[Boolean] =
   {
-    // FIXME
-    None
+    world.resolveReference(subjectRef, REF_SUBJECT) match {
+      case Success(entity) => {
+        world.resolveProperty(entity, state.lemma) match {
+          case Success(property) => {
+            world.evaluateEntityPropertyPredicate(
+              entity, property, state.lemma)
+          }
+          case Failure(e) => Failure(e)
+        }
+      }
+      case Failure(e) => Failure(e)
+    }
   }
 
   private def evaluateLocationStatePredicate(
-    subject : ShlurdReference, locative : ShlurdLocative,
-    location : ShlurdReference) =
+    subjectRef : ShlurdReference, locative : ShlurdLocative,
+    locationRef : ShlurdReference) : Try[Boolean] =
   {
-    // FIXME
-    None
+    world.resolveReference(subjectRef, REF_LOCATED) match {
+      case Success(entity) => {
+        world.resolveReference(locationRef, REF_LOCATION) match {
+          case Success(location) => {
+            world.evaluateEntityLocationPredicate(entity, location, locative)
+          }
+          case Failure(e) => Failure(e)
+        }
+      }
+      case Failure(e) => Failure(e)
+    }
   }
 }

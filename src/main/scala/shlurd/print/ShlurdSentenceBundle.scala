@@ -69,32 +69,33 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
 
   def locationalNoun(position : String, noun : String) : String
 
-  def confirmAssumption(
-    assumption : ShlurdAssumption, truth : Boolean, sentence : String)
+  def respondToAssumption(
+    assumption : ShlurdAssumption, truth : Boolean,
+    sentence : String, strength : Boolean)
       : String =
   {
     assumption match {
       case ASSUMED_TRUE => {
         if (truth) {
-          affirmAssumption(sentence)
+          affirmAssumption(sentence, strength)
         } else {
-          contradictAssumption(sentence)
+          contradictAssumption(sentence, strength)
         }
       }
       case ASSUMED_FALSE => {
         if (truth) {
-          contradictAssumption(sentence)
+          contradictAssumption(sentence, strength)
         } else {
-          affirmAssumption(sentence)
+          affirmAssumption(sentence, strength)
         }
       }
       case _ => sentence
     }
   }
 
-  def affirmAssumption(sentence : String) : String
+  def affirmAssumption(sentence : String, strength : Boolean) : String
 
-  def contradictAssumption(sentence : String) : String
+  def contradictAssumption(sentence : String, strength : Boolean) : String
 
   def pronoun(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
