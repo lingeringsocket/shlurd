@@ -34,7 +34,7 @@ trait ShlurdProperty
 trait ShlurdWorld
 {
   def fail(msg : String) = Failure(new RuntimeException(msg))
-  
+
   def resolveReference(
     reference : ShlurdReference,
     context : ShlurdReferenceContext) : Try[ShlurdEntity]
