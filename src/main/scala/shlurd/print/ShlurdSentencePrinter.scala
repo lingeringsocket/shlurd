@@ -23,21 +23,25 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   def print(sentence : ShlurdSentence) : String =
   {
     sentence match {
-      case ShlurdPredicateSentence(predicate, mood) => {
+      case ShlurdPredicateSentence(predicate, mood, formality) => {
         mood match {
           case _ : ShlurdIndicativeMood =>  {
-            sb.statement(printPredicateStatement(predicate, mood))
+            sb.terminatedSentence(
+              printPredicateStatement(predicate, mood), mood, formality)
           }
           case MOOD_INTERROGATIVE => {
-            sb.question(printPredicateQuestion(predicate))
+            sb.terminatedSentence(
+              printPredicateQuestion(predicate), mood, sentence.formality)
           }
           case MOOD_IMPERATIVE => {
-            sb.command(printPredicateCommand(predicate))
+            sb.terminatedSentence(
+              printPredicateCommand(predicate), mood, sentence.formality)
           }
         }
       }
-      case ShlurdStateChangeCommand(predicate) => {
-        sb.command(printPredicateCommand(predicate))
+      case ShlurdStateChangeCommand(predicate, formality) => {
+        sb.terminatedSentence(
+          printPredicateCommand(predicate), sentence.mood, formality)
       }
       case ShlurdUnknownSentence => {
         sb.unknownSentence
@@ -45,17 +49,29 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def print(reference : ShlurdReference,
-    inflection : ShlurdInflection) : String =
+  def print(
+    reference : ShlurdReference,
+    inflection : ShlurdInflection,
+    conjoining : ShlurdConjoining) : String =
   {
     reference match {
       case ShlurdEntityReference(entity, determiner, count) => {
         sb.determinedNoun(
           sb.determine(determiner),
-          sb.delemmatizeNoun(entity, count, inflection))
+          sb.delemmatizeNoun(entity, count, inflection, conjoining))
       }
       case ShlurdPronounReference(person, gender, count, _) => {
-        sb.pronoun(person, gender, count, inflection)
+        sb.pronoun(person, gender, count, inflection, conjoining)
+      }
+      case ShlurdConjunctiveReference(determiner, references, separator) => {
+        sb.conjoin(
+          determiner, separator, inflection,
+          references.zipWithIndex.map {
+            case (r, i) => print(
+              r, inflection,
+              ShlurdConjoining(determiner, separator, i, references.size))
+          }
+        )
       }
       case ShlurdQualifiedReference(sub, qualifiers) => {
         val qualifierString = sb.composeQualifiers(qualifiers)
@@ -64,23 +80,27 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             sb.determinedNoun(
               sb.determine(determiner),
               sb.qualifiedNoun(
-                qualifierString, sb.delemmatizeNoun(entity, count, inflection)))
+                qualifierString,
+                sb.delemmatizeNoun(entity, count, inflection, conjoining)))
           }
           case _ => {
-            sb.qualifiedNoun(qualifierString, print(sub, inflection))
+            sb.qualifiedNoun(
+              qualifierString, print(sub, inflection, conjoining))
           }
         }
       }
       case ShlurdGenitiveReference(genitive, reference) => {
         val qualifierString = genitive match {
           case ShlurdPronounReference(person, gender, count, _) => {
-            sb.pronoun(person, gender, count, INFLECT_GENITIVE)
+            sb.pronoun(
+              person, gender, count, INFLECT_GENITIVE, ShlurdConjoining.NONE)
           }
           case _ => {
-            print(genitive, INFLECT_GENITIVE)
+            print(genitive, INFLECT_GENITIVE, ShlurdConjoining.NONE)
           }
         }
-        sb.genitivePhrase(qualifierString, print(reference, inflection))
+        sb.genitivePhrase(
+          qualifierString, print(reference, inflection, conjoining))
       }
       case ShlurdUnknownReference => {
         sb.unknownReference
@@ -88,16 +108,29 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def print(state : ShlurdState, mood : ShlurdMood) : String =
+  def print(
+    state : ShlurdState, mood : ShlurdMood, conjoining : ShlurdConjoining)
+      : String =
   {
     state match {
       case ShlurdPropertyState(state) => {
-        sb.delemmatizeState(state, mood)
+        sb.delemmatizeState(state, mood, conjoining)
       }
       case ShlurdLocationState(locative, location) => {
         sb.locationalNoun(
           sb.position(locative),
-          print(location, INFLECT_NONE))
+          print(location, INFLECT_NONE, ShlurdConjoining.NONE),
+          conjoining)
+      }
+      case ShlurdConjunctiveState(determiner, states, separator) => {
+        sb.conjoin(
+          determiner, separator, INFLECT_NONE,
+          states.zipWithIndex.map {
+            case (s, i) => print(
+              s, mood,
+              ShlurdConjoining(determiner, separator, i, states.size))
+          }
+        )
       }
       case ShlurdUnknownState => {
         sb.unknownState
@@ -111,7 +144,8 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdPropertyState(state) => {
         sb.changeStateVerb(state)
       }
-      case _ => print(state, MOOD_IMPERATIVE)
+      // FIXME:  conjoining, e.g. "close and lock the door"
+      case _ => print(state, MOOD_IMPERATIVE, ShlurdConjoining.NONE)
     }
   }
 
@@ -120,9 +154,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateStatement(
-          print(subject, INFLECT_NOMINATIVE),
+          print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
           printCopula(subject, state, mood),
-          print(state, mood))
+          print(state, mood, ShlurdConjoining.NONE))
       }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateStatement
@@ -135,7 +169,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateCommand(
-          print(subject, INFLECT_ACCUSATIVE),
+          print(subject, INFLECT_ACCUSATIVE, ShlurdConjoining.NONE),
           printChangeStateVerb(state))
       }
       case ShlurdUnknownPredicate => {
@@ -149,9 +183,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateQuestion(
-          print(subject, INFLECT_NOMINATIVE),
+          print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
           printCopula(subject, state, MOOD_INTERROGATIVE),
-          print(state, MOOD_INTERROGATIVE))
+          print(state, MOOD_INTERROGATIVE, ShlurdConjoining.NONE))
       }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateQuestion
@@ -168,6 +202,16 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.copula(person, gender, count, mood)
       }
       case ShlurdEntityReference(entity, determiner, count) => {
+        sb.copula(PERSON_THIRD, GENDER_N, count, mood)
+      }
+      case ShlurdConjunctiveReference(determiner, references, _) => {
+        val count = determiner match {
+          case DETERMINER_ALL => COUNT_PLURAL
+          // DETERMINER_NONE is debatable
+          case _ => COUNT_SINGULAR
+        }
+        // FIXME:  also derive person and gender from underlying references,
+        // since it makes a difference in languages such as Spanish
         sb.copula(PERSON_THIRD, GENDER_N, count, mood)
       }
       case ShlurdQualifiedReference(reference, qualifiers) => {

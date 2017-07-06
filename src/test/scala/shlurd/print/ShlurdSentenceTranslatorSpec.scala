@@ -30,8 +30,6 @@ class ShlurdSentenceTranslatorSpec extends Specification
   {
     "translate sentences" in
     {
-      translate("the door is closed") must be equalTo
-        "문이 닫았어요."
       translate("is the door closed") must be equalTo
         "문이 닫았어요?"
       translate("are all doors closed") must be equalTo
@@ -48,6 +46,10 @@ class ShlurdSentenceTranslatorSpec extends Specification
         "그것을 닫으세요."
       translate("close my door") must be equalTo
         "내 문을 닫으세요."
+      translate("the door and the blind are closed") must be equalTo
+        "문과 블라인드가 닫았어요."
+      translate("the door or the blind is closed") must be equalTo
+        "문이나 블라인드가 닫았어요."
     }
   }
 }
@@ -56,12 +58,16 @@ object LimitedKoreanParlance extends ShlurdParlance
 {
   override def newSentenceBundle() = new KoreanSentenceBundle {
     override def inflectNoun(
-      lemma : String, count : ShlurdCount, inflection : ShlurdInflection) =
+      lemma : String, count : ShlurdCount,
+      inflection : ShlurdInflection, conjoining : ShlurdConjoining) =
     {
       lemma match {
-        case "door" => super.inflectNoun("문", count, inflection)
-        case "blind" => super.inflectNoun("블라인드", count, inflection)
-        case _ => super.inflectNoun(lemma, count, inflection)
+        case "door" => super.inflectNoun(
+          "문", count, inflection, conjoining)
+        case "blind" => super.inflectNoun(
+          "블라인드", count, inflection, conjoining)
+        case _ => super.inflectNoun(
+          lemma, count, inflection, conjoining)
       }
     }
 

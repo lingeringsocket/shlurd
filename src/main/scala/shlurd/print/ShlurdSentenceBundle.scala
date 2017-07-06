@@ -16,12 +16,28 @@ package shlurd.print
 
 import shlurd.parser._
 
-object ShlurdSentenceBundle
+case class ShlurdConjoining(
+  determiner : ShlurdDeterminer,
+  separator : ShlurdSeparator,
+  pos : Int,
+  total : Int)
 {
-  def apply(parlance : ShlurdParlance) = parlance.newSentenceBundle
+  def isLast() = ((pos + 1) == total)
 }
 
-abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
+object ShlurdConjoining
+{
+  val NONE = ShlurdConjoining(DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, 0, 1)
+}
+
+object ShlurdSentenceBundle
+{
+  def apply(parlance : ShlurdParlance) =
+    parlance.newSentenceBundle
+}
+
+abstract class ShlurdSentenceBundle
+    extends ShlurdParlanceBundle
 {
   protected def concat(s : String*) =
     s.mkString("")
@@ -29,11 +45,32 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
   protected def compose(s : String*) =
     s.filterNot(_.isEmpty).mkString(" ")
 
-  def command(s : String) : String
+  protected def separate(item : String, conjoining : ShlurdConjoining) =
+  {
+    if (conjoining.separator.needComma(conjoining.pos, conjoining.total)) {
+      concat(item, ",")
+    } else {
+      item
+    }
+  }
 
-  def statement(s : String) : String
+  protected def terminationMark(
+    mood : ShlurdMood, formality : ShlurdFormality) =
+  {
+    formality.force match {
+      case FORCE_NEUTRAL => mood match {
+        case MOOD_INTERROGATIVE => "?"
+        case _ => "."
+      }
+      case FORCE_EXCLAMATION => "!"
+    }
+  }
 
-  def question(s : String) : String
+  def terminatedSentence(
+    s : String, mood : ShlurdMood, formality : ShlurdFormality) : String =
+  {
+    concat(s, terminationMark(mood, formality))
+  }
 
   def statePredicateStatement(
     subject : String, copula : String, state : String) : String
@@ -55,11 +92,20 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
 
   def delemmatizeNoun(
     entity : ShlurdWord, count : ShlurdCount,
-    inflection : ShlurdInflection) : String
+    inflection : ShlurdInflection,
+    conjoining : ShlurdConjoining) : String
 
-  def delemmatizeState(state : ShlurdWord, mood : ShlurdMood) : String
+  def delemmatizeState(
+    state : ShlurdWord, mood : ShlurdMood,
+    conjoining : ShlurdConjoining) : String
 
   def delemmatizeQualifier(qualifier : ShlurdWord) : String
+
+  def conjoin(
+    determiner : ShlurdDeterminer,
+    separator : ShlurdSeparator,
+    inflection : ShlurdInflection,
+    items : Seq[String]) : String
 
   def composeQualifiers(qualifiers : Seq[ShlurdWord]) : String
 
@@ -67,7 +113,8 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
 
   def determinedNoun(determiner : String, noun : String) : String
 
-  def locationalNoun(position : String, noun : String) : String
+  def locationalNoun(
+    position : String, noun : String, conjoining : ShlurdConjoining) : String
 
   def respondToAssumption(
     assumption : ShlurdAssumption, truth : Boolean,
@@ -99,7 +146,7 @@ abstract class ShlurdSentenceBundle extends ShlurdParlanceBundle
 
   def pronoun(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    inflection : ShlurdInflection) : String
+    inflection : ShlurdInflection, conjoining : ShlurdConjoining) : String
 
   def genitivePhrase(genitive : String, head : String) : String
 

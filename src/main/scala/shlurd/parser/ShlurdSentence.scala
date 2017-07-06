@@ -24,6 +24,8 @@ trait ShlurdPhrase
 sealed trait ShlurdSentence extends ShlurdPhrase
 {
   def mood : ShlurdMood
+
+  def formality : ShlurdFormality
 }
 
 sealed trait ShlurdPredicate extends ShlurdPhrase
@@ -40,14 +42,16 @@ sealed trait ShlurdState extends ShlurdPhrase
 
 case class ShlurdPredicateSentence(
   predicate : ShlurdPredicate,
-  mood : ShlurdMood = MOOD_INDICATIVE_POSITIVE
+  mood : ShlurdMood = MOOD_INDICATIVE_POSITIVE,
+  formality : ShlurdFormality = ShlurdFormality.DEFAULT
 ) extends ShlurdSentence
 {
   override def children = Seq(predicate)
 }
 
 case class ShlurdStateChangeCommand(
-  predicate : ShlurdStatePredicate
+  predicate : ShlurdStatePredicate,
+  formality : ShlurdFormality = ShlurdFormality.DEFAULT
 ) extends ShlurdSentence
 {
   override def children = Seq(predicate)
@@ -58,6 +62,8 @@ case class ShlurdStateChangeCommand(
 case object ShlurdUnknownSentence extends ShlurdSentence
 {
   override def mood = MOOD_INDICATIVE_POSITIVE
+
+  override def formality = ShlurdFormality.DEFAULT
 
   override def hasUnknown = true
 }
@@ -110,6 +116,15 @@ case class ShlurdPronounReference(
 {
 }
 
+case class ShlurdConjunctiveReference(
+  determiner : ShlurdDeterminer,
+  references : Seq[ShlurdReference],
+  separator : ShlurdSeparator = SEPARATOR_CONJOINED
+) extends ShlurdReference
+{
+  override def children = references
+}
+
 case class ShlurdEntityReference(
   entity : ShlurdWord,
   determiner : ShlurdDeterminer = DETERMINER_UNSPECIFIED,
@@ -130,6 +145,15 @@ case class ShlurdLocationState(
 ) extends ShlurdState
 {
   override def children = Seq(location)
+}
+
+case class ShlurdConjunctiveState(
+  determiner : ShlurdDeterminer,
+  states : Seq[ShlurdState],
+  separator : ShlurdSeparator = SEPARATOR_CONJOINED
+) extends ShlurdState
+{
+  override def children = states
 }
 
 case class ShlurdWord(

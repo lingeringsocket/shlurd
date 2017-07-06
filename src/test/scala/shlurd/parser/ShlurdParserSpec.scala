@@ -24,6 +24,8 @@ class ShlurdParserSpec extends Specification
 
   private val ENTITY_FRANNY = word("franny")
 
+  private val ENTITY_ZOOEY = word("zooey")
+
   private val ENTITY_HOME = word("home")
 
   private val ENTITY_GRANDDAUGHTER = word("granddaughter")
@@ -73,7 +75,8 @@ class ShlurdParserSpec extends Specification
       parse(input + ".") must be equalTo
         ShlurdPredicateSentence(predDoor())
       parse(input + "!") must be equalTo
-        ShlurdPredicateSentence(predDoor())
+        ShlurdPredicateSentence(predDoor(),
+          MOOD_INDICATIVE_POSITIVE, ShlurdFormality(FORCE_EXCLAMATION))
       parse(input + "?") must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
     }
@@ -105,7 +108,7 @@ class ShlurdParserSpec extends Specification
       parse(input + ".") must be equalTo
         ShlurdStateChangeCommand(predDoor())
       parse(input + "!") must be equalTo
-        ShlurdStateChangeCommand(predDoor())
+        ShlurdStateChangeCommand(predDoor(), ShlurdFormality(FORCE_EXCLAMATION))
       parse(input + "?") must be equalTo
         ShlurdStateChangeCommand(predDoor())
     }
@@ -127,6 +130,34 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateSentence(predDoor(STATE_SIDEWAYS), MOOD_INTERROGATIVE)
     }
 
+    "parse conjunctive state" in
+    {
+      val disjunction = "is the door either open or closed"
+      parse(disjunction) must be equalTo
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdEntityReference(
+              ENTITY_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
+            ShlurdConjunctiveState(
+              DETERMINER_UNIQUE,
+              Seq(
+                ShlurdPropertyState(STATE_OPEN),
+                ShlurdPropertyState(STATE_CLOSED)))),
+          MOOD_INTERROGATIVE)
+      val conjunction = "is the door open and sideways"
+      parse(conjunction) must be equalTo
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdEntityReference(
+              ENTITY_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
+            ShlurdConjunctiveState(
+              DETERMINER_ALL,
+              Seq(
+                ShlurdPropertyState(STATE_OPEN),
+                ShlurdPropertyState(STATE_SIDEWAYS)))),
+          MOOD_INTERROGATIVE)
+    }
+
     "parse determiners" in
     {
       val inputThe = "open the door"
@@ -135,6 +166,9 @@ class ShlurdParserSpec extends Specification
       val inputAny = "open any door"
       parse(inputAny) must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_ANY))
+      val inputEither = "open either door"
+      parse(inputEither) must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_UNIQUE))
       val inputA = "open a door"
       parse(inputA) must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONSPECIFIC))
@@ -203,6 +237,51 @@ class ShlurdParserSpec extends Specification
               LOC_AT,
               ShlurdEntityReference(ENTITY_HOME))),
           MOOD_INTERROGATIVE)
+    }
+
+    "parse conjunctive reference" in
+    {
+      val inputPositive = "franny and zooey are hungry"
+      parse(inputPositive) must be equalTo
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdConjunctiveReference(
+              DETERMINER_ALL,
+              Seq(
+                ShlurdEntityReference(ENTITY_FRANNY),
+                ShlurdEntityReference(ENTITY_ZOOEY))),
+            ShlurdPropertyState(STATE_HUNGRY)))
+      // FIXME "neither franny nor zooey is hungry" should
+      // produce DETERMINER_NONE, but need either an improved
+      // version of Stanford parser, or a workaround
+    }
+
+    "parse disjunctive reference" in
+    {
+      // FIXME:  in this context, should really be DETERMINER_ANY
+      // instead of DETERMINER_UNIQUE
+      val inputExclusive = "either franny or zooey is hungry"
+      parse(inputExclusive) must be equalTo
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdConjunctiveReference(
+              DETERMINER_UNIQUE,
+              Seq(
+                ShlurdEntityReference(ENTITY_FRANNY),
+                ShlurdEntityReference(ENTITY_ZOOEY))),
+            ShlurdPropertyState(STATE_HUNGRY)))
+      // this would be more natural as part of a conditional,
+      // but whatever
+      val inputInclusive = "franny or zooey is hungry"
+      parse(inputInclusive) must be equalTo
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdConjunctiveReference(
+              DETERMINER_ANY,
+              Seq(
+                ShlurdEntityReference(ENTITY_FRANNY),
+                ShlurdEntityReference(ENTITY_ZOOEY))),
+            ShlurdPropertyState(STATE_HUNGRY)))
     }
 
     "give up" in

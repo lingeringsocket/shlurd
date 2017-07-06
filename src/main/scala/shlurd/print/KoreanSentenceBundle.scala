@@ -18,15 +18,6 @@ import shlurd.parser._
 
 class KoreanSentenceBundle extends ShlurdSentenceBundle
 {
-  override def command(s : String) =
-    concat(s, ".")
-
-  override def statement(s : String) =
-    concat(s, ".")
-
-  override def question(s : String) =
-    concat(s, "?")
-
   override def statePredicateStatement(
     subject : String, copula : String, state : String) =
   {
@@ -65,6 +56,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     determiner match {
       case DETERMINER_NONE => throw ShlurdSentenceUnprintable()
       case DETERMINER_ALL => "모든"
+      // FIXME:  sentence order is very much case-by-case
       case _ => ""
     }
   }
@@ -96,19 +88,34 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   }
 
   override def delemmatizeNoun(
-    entity : ShlurdWord, count : ShlurdCount, inflection : ShlurdInflection) =
+    entity : ShlurdWord,
+    count : ShlurdCount,
+    inflection : ShlurdInflection,
+    conjoining : ShlurdConjoining) =
   {
-    inflectNoun(entity.lemma, count, inflection)
+    inflectNoun(entity.lemma, count, inflection, conjoining)
   }
 
-  override def delemmatizeState(state : ShlurdWord, mood : ShlurdMood) =
+  override def delemmatizeState(
+    state : ShlurdWord, mood : ShlurdMood, conjoining : ShlurdConjoining) =
   {
+    // FIXME:  conjoining
     conjugateAdjective(state.lemma, mood)
   }
 
   override def delemmatizeQualifier(qualifier : ShlurdWord) =
   {
     qualifyAdjective(qualifier.lemma)
+  }
+
+  override def conjoin(
+    determiner : ShlurdDeterminer,
+    separator : ShlurdSeparator,
+    inflection : ShlurdInflection,
+    items : Seq[String]) =
+  {
+    // FIXME:  deal with other determiners such as DETERMINER_NONE
+    compose(items:_*)
   }
 
   override def composeQualifiers(qualifiers : Seq[ShlurdWord]) =
@@ -126,9 +133,11 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(determiner, noun)
   }
 
-  override def locationalNoun(position : String, noun : String) =
+  override def locationalNoun(
+    position : String, noun : String, conjoining : ShlurdConjoining) =
   {
-    compose(noun, position)
+    // FIXME:  need to overhaul caller
+    separate(compose(noun, position), conjoining)
   }
 
   override def genitivePhrase(genitive : String, head : String) =
@@ -136,39 +145,43 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(genitive, head)
   }
 
-  private def inflectPronoun(pn : String, inflection : ShlurdInflection) =
+  private def inflectPronoun(
+    pn : String,
+    inflection : ShlurdInflection,
+    conjoining : ShlurdConjoining) =
   {
-    inflectNoun(pn, COUNT_SINGULAR, inflection)
+    inflectNoun(pn, COUNT_SINGULAR, inflection, conjoining)
   }
 
   override def pronoun(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    inflection : ShlurdInflection) =
+    inflection : ShlurdInflection, conjoining : ShlurdConjoining) =
   {
     person match {
       case PERSON_FIRST => count match {
         case COUNT_SINGULAR => inflection match {
-          case INFLECT_NOMINATIVE => inflectPronoun("내", inflection)
+          case INFLECT_NOMINATIVE => inflectPronoun("내", inflection, conjoining)
           case INFLECT_GENITIVE => "내"
-          case _ => inflectPronoun("나", inflection)
+          case _ => inflectPronoun("나", inflection, conjoining)
         }
-        case COUNT_PLURAL => inflectPronoun("우리", inflection)
+        case COUNT_PLURAL => inflectPronoun("우리", inflection, conjoining)
       }
       case PERSON_SECOND => count match {
         case COUNT_SINGULAR => inflection match {
-          case INFLECT_NOMINATIVE => inflectPronoun("니", inflection)
+          case INFLECT_NOMINATIVE => inflectPronoun(
+            "니", inflection, conjoining)
           case INFLECT_GENITIVE => "네"
-          case _ => inflectPronoun("너", inflection)
+          case _ => inflectPronoun("너", inflection, conjoining)
         }
-        case COUNT_PLURAL => inflectPronoun("여러분", inflection)
+        case COUNT_PLURAL => inflectPronoun("여러분", inflection, conjoining)
       }
       case PERSON_THIRD => count match {
         case COUNT_SINGULAR => gender match {
-          case GENDER_M => inflectPronoun("그", inflection)
-          case GENDER_F => inflectPronoun("그녀", inflection)
-          case GENDER_N => inflectPronoun("그것", inflection)
+          case GENDER_M => inflectPronoun("그", inflection, conjoining)
+          case GENDER_F => inflectPronoun("그녀", inflection, conjoining)
+          case GENDER_N => inflectPronoun("그것", inflection, conjoining)
         }
-        case COUNT_PLURAL => inflectPronoun("그들", inflection)
+        case COUNT_PLURAL => inflectPronoun("그들", inflection, conjoining)
       }
     }
   }
@@ -221,8 +234,9 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     (finalConsonant != 0)
   }
 
-  def inflectNoun(lemma : String, count : ShlurdCount,
-    inflection : ShlurdInflection) =
+  def inflectNoun(
+    lemma : String, count : ShlurdCount,
+    inflection : ShlurdInflection, conjoining : ShlurdConjoining) =
   {
     if (lemma.exists(c => isHangul(c))) {
       val numbered = count match {
@@ -230,23 +244,43 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
         case COUNT_PLURAL => concat(lemma, "들")
       }
       val marker = {
-        inflection match {
-          case INFLECT_NONE => ""
-          case INFLECT_NOMINATIVE => {
-            if (hasFinalConsonant(numbered)) {
-              "이"
-            } else {
-              "가"
+        if (conjoining.isLast) {
+          inflection match {
+            case INFLECT_NONE => ""
+            case INFLECT_NOMINATIVE => {
+              if (hasFinalConsonant(numbered)) {
+                "이"
+              } else {
+                "가"
+              }
+            }
+            case INFLECT_ACCUSATIVE => {
+              if (hasFinalConsonant(numbered)) {
+                "을"
+              } else {
+                "를"
+              }
+            }
+            case INFLECT_GENITIVE => "의"
+          }
+        } else {
+          conjoining.determiner match {
+            case DETERMINER_ANY | DETERMINER_UNIQUE => {
+              if (hasFinalConsonant(numbered)) {
+                "이나"
+              } else {
+                "나"
+              }
+            }
+            // FIXME:  other variants such as comma, 도, 고, and 하고
+            case _ => {
+              if (hasFinalConsonant(numbered)) {
+                "과"
+              } else {
+                "와"
+              }
             }
           }
-          case INFLECT_ACCUSATIVE => {
-            if (hasFinalConsonant(numbered)) {
-              "을"
-            } else {
-              "를"
-            }
-          }
-          case INFLECT_GENITIVE => "의"
         }
       }
       concat(numbered, marker)

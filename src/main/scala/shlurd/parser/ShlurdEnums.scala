@@ -60,6 +60,36 @@ case object ASSUMED_TRUE extends ShlurdAssumption
 case object ASSUMED_FALSE extends ShlurdAssumption
 case object ASSUMED_NOTHING extends ShlurdAssumption
 
+sealed trait ShlurdForce
+case object FORCE_NEUTRAL extends ShlurdForce
+case object FORCE_EXCLAMATION extends ShlurdForce
+
+sealed trait ShlurdSeparator
+{
+  def needComma(pos : Int, total : Int) : Boolean
+}
+case object SEPARATOR_CONJOINED extends ShlurdSeparator
+{
+  override def needComma(pos : Int, total : Int) = false
+}
+case object SEPARATOR_COMMA extends ShlurdSeparator
+{
+  override def needComma(pos : Int, total : Int) = ((pos + 2) < total)
+}
+case object SEPARATOR_OXFORD_COMMA extends ShlurdSeparator
+{
+  override def needComma(pos : Int, total : Int) = ((pos + 1) < total)
+}
+
+case class ShlurdFormality(
+  force : ShlurdForce
+)
+
+object ShlurdFormality
+{
+  val DEFAULT = ShlurdFormality(FORCE_NEUTRAL)
+}
+
 sealed trait ShlurdMood
 {
   def isPositive : Boolean = false

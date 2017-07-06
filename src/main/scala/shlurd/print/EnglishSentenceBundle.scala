@@ -16,17 +16,9 @@ package shlurd.print
 
 import shlurd.parser._
 
-class EnglishSentenceBundle extends ShlurdSentenceBundle
+class EnglishSentenceBundle
+    extends ShlurdSentenceBundle
 {
-  override def command(s : String) =
-    concat(s, ".")
-
-  override def statement(s : String) =
-    concat(s, ".")
-
-  override def question(s : String) =
-    concat(s, "?")
-
   override def statePredicateStatement(
     subject : String, copula : String, state : String) =
   {
@@ -99,58 +91,66 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
 
   override def delemmatizeNoun(
     entity : ShlurdWord, count : ShlurdCount,
-    inflection : ShlurdInflection) =
+    inflection : ShlurdInflection,
+    conjoining : ShlurdConjoining) =
   {
-    if (entity.inflected.isEmpty) {
-      val lemma = entity.lemma
-      val base = count match {
-        case COUNT_SINGULAR => {
-          lemma
-        }
-        case COUNT_PLURAL => {
-          if (lemma.endsWith("s")) {
-            concat(lemma, "es")
-          } else {
-            concat(lemma, "s")
+    val unseparated = {
+      if (entity.inflected.isEmpty) {
+        val lemma = entity.lemma
+        val base = count match {
+          case COUNT_SINGULAR => {
+            lemma
+          }
+          case COUNT_PLURAL => {
+            if (lemma.endsWith("s")) {
+              concat(lemma, "es")
+            } else {
+              concat(lemma, "s")
+            }
           }
         }
-      }
-      inflection match {
-        case INFLECT_GENITIVE => {
-          count match {
-            case COUNT_SINGULAR => {
-              if (base.endsWith("s")) {
+        inflection match {
+          case INFLECT_GENITIVE => {
+            count match {
+              case COUNT_SINGULAR => {
+                if (base.endsWith("s")) {
+                  concat(base, "'")
+                } else {
+                  concat(base, "'s")
+                }
+              }
+              case COUNT_PLURAL => {
                 concat(base, "'")
-              } else {
-                concat(base, "'s")
               }
             }
-            case COUNT_PLURAL => {
-              concat(base, "'")
-            }
           }
+          case _ => base
         }
-        case _ => base
+      } else {
+        entity.inflected
       }
-    } else {
-      entity.inflected
     }
+    separate(unseparated, conjoining)
   }
 
-  override def delemmatizeState(state : ShlurdWord, mood : ShlurdMood) =
+  override def delemmatizeState(
+    state : ShlurdWord, mood : ShlurdMood, conjoining : ShlurdConjoining) =
   {
-    if (state.inflected.isEmpty) {
-      val lemma = state.lemma
-      if (lemma.endsWith("ed")) {
-        lemma
-      } else if (lemma.endsWith("e")) {
-        concat(lemma, "d")
+    val unseparated = {
+      if (state.inflected.isEmpty) {
+        val lemma = state.lemma
+        if (lemma.endsWith("ed")) {
+          lemma
+        } else if (lemma.endsWith("e")) {
+          concat(lemma, "d")
+        } else {
+          concat(lemma, "ed")
+        }
       } else {
-        concat(lemma, "ed")
+        state.inflected
       }
-    } else {
-      state.inflected
     }
+    separate(unseparated, conjoining)
   }
 
   override def delemmatizeQualifier(qualifier : ShlurdWord) =
@@ -160,6 +160,41 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
     } else {
       qualifier.inflected
     }
+  }
+
+  override def conjoin(
+    determiner : ShlurdDeterminer,
+    separator : ShlurdSeparator,
+    inflection : ShlurdInflection,
+    items : Seq[String]) =
+  {
+    val prefix = determiner match {
+      case DETERMINER_NONE => "neither"
+      case DETERMINER_UNIQUE => "either"
+      case _ => ""
+    }
+
+    val infix = determiner match {
+      case DETERMINER_NONE => "nor"
+      case DETERMINER_ANY | DETERMINER_UNIQUE => "or"
+      case _ => "and"
+    }
+
+    val seq = items.dropRight(1).zipWithIndex.flatMap {
+      case (n, i) => {
+        separator match {
+          case SEPARATOR_CONJOINED => Seq(n, infix)
+          case _ => {
+            if ((i + 2) < items.size) {
+              Seq(n)
+            } else {
+              Seq(n, infix)
+            }
+          }
+        }
+      }
+    }
+    compose((Seq(prefix) ++ seq ++ Seq(items.last)):_*)
   }
 
   override def composeQualifiers(qualifiers : Seq[ShlurdWord]) =
@@ -177,9 +212,10 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
     compose(determiner, noun)
   }
 
-  override def locationalNoun(position : String, noun : String) =
+  override def locationalNoun(
+    position : String, noun : String, conjoining : ShlurdConjoining) =
   {
-    compose(position, noun)
+    separate(compose(position, noun), conjoining)
   }
 
   override def genitivePhrase(genitive : String, head : String) =
@@ -189,48 +225,51 @@ class EnglishSentenceBundle extends ShlurdSentenceBundle
 
   override def pronoun(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    inflection : ShlurdInflection) =
+    inflection : ShlurdInflection, conjoining : ShlurdConjoining) =
   {
-    person match {
-      case PERSON_FIRST => count match {
-        case COUNT_SINGULAR => inflection match {
-          case INFLECT_ACCUSATIVE => "me"
-          case INFLECT_GENITIVE => "my"
-          case _ => "I"
-        }
-        case COUNT_PLURAL => inflection match {
-          case INFLECT_ACCUSATIVE => "us"
-          case INFLECT_GENITIVE => "our"
-          case _ => "we"
-        }
-      }
-      case PERSON_SECOND => inflection match {
-        case INFLECT_GENITIVE => "your"
-        case _ => "you"
-      }
-      case PERSON_THIRD => count match {
-        case COUNT_SINGULAR => gender match {
-          case GENDER_M => inflection match {
-            case INFLECT_ACCUSATIVE => "him"
-            case INFLECT_GENITIVE => "his"
-            case _ => "he"
+    val unseparated = {
+      person match {
+        case PERSON_FIRST => count match {
+          case COUNT_SINGULAR => inflection match {
+            case INFLECT_ACCUSATIVE => "me"
+            case INFLECT_GENITIVE => "my"
+            case _ => "I"
           }
-          case GENDER_F => inflection match {
-            case INFLECT_ACCUSATIVE | INFLECT_GENITIVE => "her"
-            case _ => "she"
-          }
-          case GENDER_N => inflection match {
-            case INFLECT_GENITIVE => "its"
-            case _ => "it"
+          case COUNT_PLURAL => inflection match {
+            case INFLECT_ACCUSATIVE => "us"
+            case INFLECT_GENITIVE => "our"
+            case _ => "we"
           }
         }
-        case COUNT_PLURAL => inflection match {
-          case INFLECT_ACCUSATIVE => "them"
-          case INFLECT_GENITIVE => "their"
-          case _ => "they"
+        case PERSON_SECOND => inflection match {
+          case INFLECT_GENITIVE => "your"
+          case _ => "you"
+        }
+        case PERSON_THIRD => count match {
+          case COUNT_SINGULAR => gender match {
+            case GENDER_M => inflection match {
+              case INFLECT_ACCUSATIVE => "him"
+              case INFLECT_GENITIVE => "his"
+              case _ => "he"
+            }
+            case GENDER_F => inflection match {
+              case INFLECT_ACCUSATIVE | INFLECT_GENITIVE => "her"
+              case _ => "she"
+            }
+            case GENDER_N => inflection match {
+              case INFLECT_GENITIVE => "its"
+              case _ => "it"
+            }
+          }
+          case COUNT_PLURAL => inflection match {
+            case INFLECT_ACCUSATIVE => "them"
+            case INFLECT_GENITIVE => "their"
+            case _ => "they"
+          }
         }
       }
     }
+    separate(unseparated, conjoining)
   }
 
   override def unknownSentence() =

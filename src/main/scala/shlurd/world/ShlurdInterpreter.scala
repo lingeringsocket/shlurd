@@ -28,7 +28,7 @@ class ShlurdInterpreter(world : ShlurdWorld)
   def interpret(sentence : ShlurdSentence) : String =
   {
     sentence match {
-      case ShlurdStateChangeCommand(predicate) => {
+      case ShlurdStateChangeCommand(predicate, formality) => {
         evaluatePredicate(predicate) match {
           case Success(true) => {
             // FIXME:  use proper rephrasing
@@ -43,7 +43,7 @@ class ShlurdInterpreter(world : ShlurdWorld)
           }
         }
       }
-      case ShlurdPredicateSentence(predicate, mood) => {
+      case ShlurdPredicateSentence(predicate, mood, formality) => {
         mood match {
           case MOOD_INTERROGATIVE => {
             evaluatePredicate(predicate) match {
@@ -111,6 +111,24 @@ class ShlurdInterpreter(world : ShlurdWorld)
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         state match {
+          case ShlurdConjunctiveState(determiner, states, _) => {
+            val tries = states.map(
+              s => evaluatePredicate(ShlurdStatePredicate(subject, s)))
+            tries.find(_.isFailure) match {
+              case Some(failed) => failed
+              case _ => {
+                val results = tries.map(_.get)
+                determiner match {
+                  case DETERMINER_NONE => Success(!results.exists(r => r))
+                  case DETERMINER_UNIQUE =>
+                    Success(results.count(r => r) == 1)
+                  case DETERMINER_ALL => Success(results.forall(r => r))
+                  case DETERMINER_ANY => Success(results.exists(r => r))
+                  case _ => fail("I don't know about this determiner")
+                }
+              }
+            }
+          }
           case ShlurdPropertyState(word) => {
             evaluatePropertyStatePredicate(subject, word)
           }

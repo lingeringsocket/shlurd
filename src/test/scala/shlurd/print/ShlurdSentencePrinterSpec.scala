@@ -23,34 +23,80 @@ class ShlurdSentencePrinterSpec extends Specification
   private val printer = new ShlurdSentencePrinter
 
   private def normalize(s : String) =
-    printer.print(ShlurdParser(s).parseOne)
+  {
+    val parsed = ShlurdParser(s).parseOne
+    val normalized = parsed match {
+      case ShlurdPredicateSentence(predicate, mood, formality) => {
+        mood match {
+          case MOOD_IMPERATIVE => ShlurdPredicateSentence(
+            predicate, mood,
+            formality.copy(force = FORCE_EXCLAMATION))
+          case _ => parsed
+        }
+      }
+      case ShlurdStateChangeCommand(predicate, formality) => {
+        ShlurdStateChangeCommand(
+          predicate,
+          formality.copy(force = FORCE_EXCLAMATION))
+      }
+      case ShlurdUnknownSentence => parsed
+    }
+    printer.print(normalized)
+  }
+
+  private def expectPreserved(s : String) =
+  {
+    normalize(s) must be equalTo s
+  }
+
+  private def expectStatement(s : String) =
+  {
+    normalize(s) must be equalTo (s + ".")
+  }
+
+  private def expectCommand(s : String) =
+  {
+    normalize(s) must be equalTo (s + "!")
+  }
+
+  private def expectQuestion(s : String) =
+  {
+    normalize(s) must be equalTo (s + "?")
+  }
 
   "ShlurdSentencePrinter" should
   {
+    "preserve sentences" in
+    {
+      expectPreserved("the door is closed.")
+      expectPreserved("the door is closed!")
+      expectPreserved("is the door closed?")
+    }
+
     "normalize sentences" in
     {
-      normalize("the door is closed") must be equalTo
-        "the door is closed."
-      normalize("is the door closed") must be equalTo
-        "is the door closed?"
-      normalize("close the door") must be equalTo
-        "close the door."
-      normalize("the chickens are fat") must be equalTo
-        "the chickens are fat."
-      normalize("I am hungry") must be equalTo
-        "I am hungry."
-      normalize("we are hungry") must be equalTo
-        "we are hungry."
-      normalize("you are hungry") must be equalTo
-        "you are hungry."
-      normalize("he is hungry") must be equalTo
-        "he is hungry."
-      normalize("they are hungry") must be equalTo
-        "they are hungry."
-      normalize("erase them") must be equalTo
-        "erase them."
-      normalize("is his granddaughter at home") must be equalTo
-        "is his granddaughter at home?"
+      expectStatement("the door is closed")
+      expectQuestion("is the door closed")
+      expectCommand("close the door")
+      expectStatement("the chickens are fat")
+      expectStatement("I am hungry")
+      expectStatement("we are hungry")
+      expectStatement("you are hungry")
+      expectStatement("he is hungry")
+      expectStatement("they are hungry")
+      expectCommand("erase them")
+      expectQuestion("is his granddaughter at home")
+      // FIXME:  either/both etc don't work here
+      expectQuestion("is franny or zooey speaking")
+      expectQuestion("are franny and zooey speaking")
+      expectQuestion("are franny, zooey, and phoebe speaking")
+      expectQuestion("are franny, zooey and phoebe speaking")
+      expectQuestion("is the server up and running")
+      expectQuestion("is the server down or failing")
+      expectStatement("the horse is healthy, strong, and hungry")
+      expectStatement("your friend and I are hungry")
+      expectStatement("your friend, Stalin, and I are hungry")
+      expectStatement("the red pig, Stalin, and I are hungry")
     }
   }
 }
