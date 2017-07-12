@@ -1,1 +1,3 @@
 A door must be either open or closed.
+You can open a door.
+You can close a door.

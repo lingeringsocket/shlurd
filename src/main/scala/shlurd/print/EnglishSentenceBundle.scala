@@ -20,40 +20,77 @@ class EnglishSentenceBundle
     extends ShlurdSentenceBundle
 {
   override def statePredicateStatement(
-    subject : String, copula : String, state : String) =
+    subject : String, copula : Seq[String], state : String) =
   {
-    compose(subject, copula, state)
+    compose((Seq(subject) ++ copula ++ Seq(state)):_*)
   }
 
   override def statePredicateQuestion(
-    subject : String, copula : String, state : String) =
+    subject : String, copula : Seq[String], state : String) =
   {
-    compose(copula, subject, state)
+    copula.size match {
+      // "is Larry clumsy?"
+      case 1 =>
+        compose(copula.head, subject, state)
+      // "is Larry not clumsy?" or "must Larry be clumsy?"
+      case 2 =>
+        compose(copula.head, subject, copula.last, state)
+      // "must Larry not be clumsy?"
+      case _ =>
+        compose((Seq(copula.head, subject) ++ copula.drop(1) ++ Seq(state)):_*)
+    }
   }
 
   override def statePredicateCommand(subject : String, state : String) =
     compose(state, subject)
 
+  private def modalCopula(mood : ShlurdMood) =
+  {
+    val aux = mood.getModality match {
+      case MODAL_NEUTRAL => ""
+      case MODAL_MUST => "must"
+      case MODAL_MAY => "may"
+      case MODAL_POSSIBLE => "might"
+      case MODAL_CAPABLE => "can"
+      case MODAL_PERMITTED => "may"
+      case MODAL_SHOULD => "should"
+    }
+    if (mood.isNegative) {
+      Seq(aux, "not", "be")
+    } else {
+      Seq(aux, "be")
+    }
+  }
+
   override def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
     mood : ShlurdMood) =
   {
-    val inflected = count match {
-      case COUNT_SINGULAR => {
-        person match {
-          case PERSON_FIRST => "am"
-          case PERSON_SECOND => "are"
-          case PERSON_THIRD => "is"
+    mood.getModality match {
+      case MODAL_NEUTRAL => {
+        val inflected = {
+          count match {
+            case COUNT_SINGULAR => {
+              person match {
+                case PERSON_FIRST => "am"
+                case PERSON_SECOND => "are"
+                case PERSON_THIRD => "is"
+              }
+            }
+            case COUNT_PLURAL => {
+              "are"
+            }
+          }
+        }
+        if (mood.isNegative) {
+          Seq(inflected, "not")
+        } else {
+          Seq(inflected)
         }
       }
-      case COUNT_PLURAL => {
-        "are"
+      case _ => {
+        modalCopula(mood)
       }
-    }
-    if (mood == MOOD_INDICATIVE_NEGATIVE) {
-      compose(inflected, "not")
-    } else {
-      inflected
     }
   }
 

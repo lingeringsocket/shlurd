@@ -49,6 +49,11 @@ class ShlurdSingleParser(
     getLabel(pt).startsWith("VB")
   }
 
+  private def isModal(pt : Tree) : Boolean =
+  {
+    hasLabel(pt, "MD")
+  }
+
   private def isParticipleOrGerund(verbal : Tree) : Boolean =
   {
     getLabel(verbal) match {
@@ -98,7 +103,7 @@ class ShlurdSingleParser(
 
   private def isDeterminer(pt : Tree) : Boolean =
   {
-    getLabel(pt) == "DT"
+    hasLabel(pt, "DT")
   }
 
   private def isCoordinatingDeterminer(
@@ -118,12 +123,12 @@ class ShlurdSingleParser(
 
   private def isComma(pt : Tree) : Boolean =
   {
-    getLabel(pt) == ","
+    hasLabel(pt, ",")
   }
 
   private def isCoordinatingConjunction(pt : Tree) : Boolean =
   {
-    getLabel(pt) == "CC"
+    hasLabel(pt, "CC")
   }
 
   private def hasTerminalLabel(
@@ -180,7 +185,8 @@ class ShlurdSingleParser(
         val np = children.head
         val vp = children.last
         if (isNounPhrase(np) && isVerbPhrase(vp)) {
-          expectPredicateSentence(np, vp, isQuestion, force)
+          expectPredicateSentence(
+            np, vp, isQuestion, force, MODAL_NEUTRAL, false)
         } else {
           ShlurdUnknownSentence
         }
@@ -191,14 +197,36 @@ class ShlurdSingleParser(
       val children = truncatePunctuation(tree, Seq("?"))
       if (isImperative(children)) {
         expectCommand(children.head, ShlurdFormality.DEFAULT)
-      } else  if (children.size == 3) {
-        val verbHead = children(0)
-        val np = children(1)
-        val ap = children(2)
-        if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
-          ShlurdPredicateSentence(
-            expectPredicate(np, ap),
-            MOOD_INTERROGATIVE)
+      } else  if (children.size > 2) {
+        val (modality, modeless) = extractModality(children)
+        val (negativeSuper, seq) = extractNegative(modeless)
+        val expectedSize = modality match {
+          case MODAL_NEUTRAL => 3
+          case _ => 2
+        }
+        if (seq.size == expectedSize) {
+          val (verbHead, np, ap, negative) = modality match {
+            // "is Larry smart?"
+            case MODAL_NEUTRAL => {
+              (seq(0), seq(1), seq(2), negativeSuper)
+            }
+            // "(can) Larry [be [smart]]?"
+            case _ => {
+              val vp = seq(1)
+              val (negativeSub, sub) = extractNegative(vp.children)
+              (sub.head, seq(0), sub.last, (negativeSub ^ negativeSuper))
+            }
+          }
+          if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
+            val (negativeSub, predicate) =
+              expectPredicate(np, ap.children, getLabel(ap))
+            val positive = !(negative ^ negativeSub)
+            ShlurdPredicateSentence(
+              predicate,
+              ShlurdInterrogativeMood(positive, modality))
+          } else {
+            ShlurdUnknownSentence
+          }
         } else {
           ShlurdUnknownSentence
         }
@@ -210,32 +238,61 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectPredicateSentence(
-    np : Tree, vp : Tree, isQuestion : Boolean, force : ShlurdForce) =
+  private def extractModality(seq : Seq[Tree]) : (ShlurdModality, Seq[Tree]) =
   {
-    val verbHead = vp.firstChild
-    if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
-      if (vp.numChildren > 3) {
+    val intro = seq.head
+    if (isModal(intro)) {
+      (modalityFor(getLemma(intro.firstChild)), seq.drop(1))
+    } else {
+      (MODAL_NEUTRAL, seq)
+    }
+  }
+
+  private def extractNegative(seq : Seq[Tree]) : (Boolean, Seq[Tree]) =
+  {
+    val pos = seq.indexWhere(
+      sub => isAdverb(sub) && hasTerminalLemma(sub, "not"))
+    if (pos == -1) {
+      (false, seq)
+    } else {
+      (true, seq.patch(pos, Seq.empty, 1))
+    }
+  }
+
+  private def expectPredicateSentence(
+    np : Tree, vp : Tree, isQuestion : Boolean,
+    force : ShlurdForce, modality : ShlurdModality,
+    negativeSuper : Boolean) : ShlurdSentence =
+  {
+    val (negativeSub, vpChildren) = extractNegative(vp.children)
+    // FIXME:  representation for double negatives?
+    val negative = negativeSuper ^ negativeSub
+    val verbHead = vpChildren.head
+    if (isModal(verbHead)) {
+      val vpSub = vpChildren.last
+      if ((vpChildren.size == 2) && isVerbPhrase(vpSub)) {
+        val modality = modalityFor(getLemma(verbHead.firstChild))
+        expectPredicateSentence(
+          np, vpSub, isQuestion, force, modality, negative)
+      } else {
+        ShlurdUnknownSentence
+      }
+    } else if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
+      if (vpChildren.size > 2) {
         ShlurdUnknownSentence
       } else {
-        val predicate = expectPredicate(np, vp.lastChild)
+        val complement = vpChildren.last
+        val (negativeComplement, predicate) = expectPredicate(
+          np, complement.children, getLabel(complement))
+        val positive = !(negative ^ negativeComplement)
         if (isQuestion) {
           ShlurdPredicateSentence(
-            predicate, MOOD_INTERROGATIVE, ShlurdFormality(force))
+            predicate, ShlurdInterrogativeMood(positive, modality),
+            ShlurdFormality(force))
         } else {
-          val mood = {
-            if (vp.numChildren == 3) {
-              val adverb = vp.children()(1)
-              if (isAdverb(adverb) && hasTerminalLemma(adverb, "not")) {
-                MOOD_INDICATIVE_NEGATIVE
-              } else {
-                MOOD_INDICATIVE_POSITIVE
-              }
-            } else {
-              MOOD_INDICATIVE_POSITIVE
-            }
-          }
-          ShlurdPredicateSentence(predicate, mood, ShlurdFormality(force))
+          ShlurdPredicateSentence(
+            predicate, ShlurdIndicativeMood(positive, modality),
+            ShlurdFormality(force))
         }
       }
     } else {
@@ -405,6 +462,18 @@ class ShlurdSingleParser(
     }
   }
 
+  private def modalityFor(lemma : String) =
+  {
+    lemma match {
+      case "must" => MODAL_MUST
+      case "may" => MODAL_MAY
+      case "could" | "can" => MODAL_CAPABLE
+      case "might" => MODAL_POSSIBLE
+      case "should" => MODAL_SHOULD
+      case _ => MODAL_NEUTRAL
+    }
+  }
+
   private def pronounFor(lemma : String) =
   {
     val person = lemma match {
@@ -528,20 +597,22 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectPredicate(np : Tree, complement : Tree) =
+  private def expectPredicate(
+    np : Tree, complement : Seq[Tree], label : String)
+      : (Boolean, ShlurdStatePredicate)=
   {
+    val (negative, seq) = extractNegative(complement)
     val subject = expectReference(np)
-    val label = getLabel(complement)
-    val state = splitCoordinatingConjunction(complement.children) match {
+    val state = splitCoordinatingConjunction(seq) match {
       case (DETERMINER_UNSPECIFIED, _, _) => {
-        expectStateComplement(complement.children, label)
+        expectStateComplement(seq, label)
       }
       case (determiner, separator, split) => {
         ShlurdConjunctiveState(
           determiner, split.map(expectStateComplement(_, label)), separator)
       }
     }
-    ShlurdStatePredicate(subject, state)
+    (negative, ShlurdStatePredicate(subject, state))
   }
 
   private def expectStateComplement(seq : Seq[Tree], label : String)
@@ -607,6 +678,11 @@ object ShlurdParser
     Range(0, sentence.length).foreach(i => {
       println("DEP = " + sentence.incomingDependencyLabel(i))
     })
+  }
+
+  def debug(s : String)
+  {
+    tokenize(s).foreach(dump(_))
   }
 
   private def tokenize(input : String) : Seq[Sentence] =

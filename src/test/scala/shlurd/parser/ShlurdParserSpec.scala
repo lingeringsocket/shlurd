@@ -78,7 +78,7 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateSentence(predDoor(),
           MOOD_INDICATIVE_POSITIVE, ShlurdFormality(FORCE_EXCLAMATION))
       parse(input + "?") must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse a negation" in
@@ -95,9 +95,27 @@ class ShlurdParserSpec extends Specification
     {
       val input = "is the door open"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
       parse(input + "?") must be equalTo
-      ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE)
+      ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
+    }
+
+    "parse a negated question" in
+    {
+      val input = "is not the door open"
+      parse(input) must be equalTo
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+      parse(input + "?") must be equalTo
+      ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+    }
+
+    "parse a negated question with contraction" in
+    {
+      val input = "isn't the door open"
+      parse(input) must be equalTo
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+      parse(input + "?") must be equalTo
+      ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
     }
 
     "parse a command" in
@@ -120,14 +138,16 @@ class ShlurdParserSpec extends Specification
         ShlurdStateChangeCommand(predDoor(STATE_CLOSE))
       val question = "is the door closed"
       parse(question) must be equalTo
-        ShlurdPredicateSentence(predDoor(STATE_CLOSED), MOOD_INTERROGATIVE)
+        ShlurdPredicateSentence(
+          predDoor(STATE_CLOSED), MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse adverbial state" in
     {
       val question = "is the door sideways"
       parse(question) must be equalTo
-        ShlurdPredicateSentence(predDoor(STATE_SIDEWAYS), MOOD_INTERROGATIVE)
+      ShlurdPredicateSentence(
+        predDoor(STATE_SIDEWAYS), MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse conjunctive state" in
@@ -143,7 +163,7 @@ class ShlurdParserSpec extends Specification
               Seq(
                 ShlurdPropertyState(STATE_OPEN),
                 ShlurdPropertyState(STATE_CLOSED)))),
-          MOOD_INTERROGATIVE)
+          MOOD_INTERROGATIVE_POSITIVE)
       val conjunction = "is the door open and sideways"
       parse(conjunction) must be equalTo
         ShlurdPredicateSentence(
@@ -155,7 +175,7 @@ class ShlurdParserSpec extends Specification
               Seq(
                 ShlurdPropertyState(STATE_OPEN),
                 ShlurdPropertyState(STATE_SIDEWAYS)))),
-          MOOD_INTERROGATIVE)
+          MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse determiners" in
@@ -186,7 +206,7 @@ class ShlurdParserSpec extends Specification
       val inputAnyQ = "is any door open"
       parse(inputAnyQ) must be equalTo
         ShlurdPredicateSentence(
-          predDoor(STATE_OPEN, DETERMINER_ANY), MOOD_INTERROGATIVE)
+          predDoor(STATE_OPEN, DETERMINER_ANY), MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse qualifiers" in
@@ -211,7 +231,7 @@ class ShlurdParserSpec extends Specification
             ShlurdLocationState(
               LOC_AT,
               ShlurdEntityReference(ENTITY_HOME))),
-          MOOD_INTERROGATIVE)
+          MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse pronouns" in
@@ -236,7 +256,7 @@ class ShlurdParserSpec extends Specification
             ShlurdLocationState(
               LOC_AT,
               ShlurdEntityReference(ENTITY_HOME))),
-          MOOD_INTERROGATIVE)
+          MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse conjunctive reference" in
@@ -282,6 +302,25 @@ class ShlurdParserSpec extends Specification
                 ShlurdEntityReference(ENTITY_FRANNY),
                 ShlurdEntityReference(ENTITY_ZOOEY))),
             ShlurdPropertyState(STATE_HUNGRY)))
+    }
+
+    "parse modals" in
+    {
+      parse("The door must be open") must be equalTo(
+        ShlurdPredicateSentence(
+          predDoor(), ShlurdIndicativeMood(true, MODAL_MUST)))
+      parse("Must the door be open") must be equalTo(
+        ShlurdPredicateSentence(
+          predDoor(), ShlurdInterrogativeMood(true, MODAL_MUST)))
+      parse("The door may be open") must be equalTo(
+        ShlurdPredicateSentence(
+          predDoor(), ShlurdIndicativeMood(true, MODAL_MAY)))
+      parse("The door must not be open") must be equalTo(
+        ShlurdPredicateSentence(
+          predDoor(), ShlurdIndicativeMood(false, MODAL_MUST)))
+      parse("Mustn't the door be open") must be equalTo(
+        ShlurdPredicateSentence(
+          predDoor(), ShlurdInterrogativeMood(false, MODAL_MUST)))
     }
 
     "give up" in

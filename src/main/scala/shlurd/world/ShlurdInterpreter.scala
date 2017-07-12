@@ -19,7 +19,8 @@ import shlurd.print._
 
 import scala.util._
 
-class ShlurdInterpreter(world : ShlurdWorld)
+class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
+  world : ShlurdWorld[E,P])
 {
   private val sentencePrinter = new ShlurdSentencePrinter
 
@@ -45,7 +46,8 @@ class ShlurdInterpreter(world : ShlurdWorld)
       }
       case ShlurdPredicateSentence(predicate, mood, formality) => {
         mood match {
-          case MOOD_INTERROGATIVE => {
+          // FIXME deal with positive, modality
+          case ShlurdInterrogativeMood(positive, modality) => {
             evaluatePredicate(predicate) match {
               case Success(truth) => {
                 val responseMood = ShlurdIndicativeMood(truth)
@@ -61,6 +63,7 @@ class ShlurdInterpreter(world : ShlurdWorld)
             }
           }
           case _ : ShlurdIndicativeMood => {
+            // FIXME deal with mood.getModality
             val positivity = mood.isPositive
             val predicateTruth = evaluatePredicate(predicate)
             val responseMood = {
@@ -139,7 +142,7 @@ class ShlurdInterpreter(world : ShlurdWorld)
             "I don't know about this kind of state")
         }
       }
-      case ShlurdUnknownPredicate => fail(
+      case _ => fail(
         "I don't know about this kind of predicate")
     }
   }

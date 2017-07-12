@@ -59,7 +59,7 @@ abstract class ShlurdSentenceBundle
   {
     formality.force match {
       case FORCE_NEUTRAL => mood match {
-        case MOOD_INTERROGATIVE => "?"
+        case _ : ShlurdInterrogativeMood => "?"
         case _ => "."
       }
       case FORCE_EXCLAMATION => "!"
@@ -73,16 +73,20 @@ abstract class ShlurdSentenceBundle
   }
 
   def statePredicateStatement(
-    subject : String, copula : String, state : String) : String
+    subject : String,
+    copula : Seq[String],
+    state : String) : String
 
   def statePredicateQuestion(
-    subject : String, copula : String, state : String) : String
+    subject : String,
+    copula : Seq[String],
+    state : String) : String
 
   def statePredicateCommand(subject : String, state : String) : String
 
   def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood) : String
+    mood : ShlurdMood) : Seq[String]
 
   def determine(determiner : ShlurdDeterminer) : String
 

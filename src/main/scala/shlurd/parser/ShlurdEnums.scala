@@ -64,6 +64,16 @@ sealed trait ShlurdForce
 case object FORCE_NEUTRAL extends ShlurdForce
 case object FORCE_EXCLAMATION extends ShlurdForce
 
+sealed trait ShlurdModality
+case object MODAL_NEUTRAL extends ShlurdModality
+case object MODAL_MUST extends ShlurdModality
+// "may" may be either possible or permitted
+case object MODAL_MAY extends ShlurdModality
+case object MODAL_POSSIBLE extends ShlurdModality
+case object MODAL_CAPABLE extends ShlurdModality
+case object MODAL_PERMITTED extends ShlurdModality
+case object MODAL_SHOULD extends ShlurdModality
+
 sealed trait ShlurdSeparator
 {
   def needComma(pos : Int, total : Int) : Boolean
@@ -81,7 +91,7 @@ case object SEPARATOR_OXFORD_COMMA extends ShlurdSeparator
   override def needComma(pos : Int, total : Int) = ((pos + 1) < total)
 }
 
-case class ShlurdFormality(
+sealed case class ShlurdFormality(
   force : ShlurdForce
 )
 
@@ -94,28 +104,30 @@ sealed trait ShlurdMood
 {
   def isPositive : Boolean = false
   def isNegative : Boolean = false
+  def getModality : ShlurdModality = MODAL_NEUTRAL
 }
-sealed trait ShlurdIndicativeMood extends ShlurdMood
+sealed trait ShlurdModalMood extends ShlurdMood
+{
+  def positive : Boolean
+  def modality : ShlurdModality
+  override def isPositive = positive
+  override def isNegative = !positive
+  override def getModality = modality
+}
+sealed case class ShlurdIndicativeMood(
+  positive : Boolean,
+  modality : ShlurdModality = MODAL_NEUTRAL
+) extends ShlurdModalMood
 {
 }
-case object MOOD_INDICATIVE_POSITIVE extends ShlurdIndicativeMood
+sealed case class ShlurdInterrogativeMood(
+  positive : Boolean,
+  modality : ShlurdModality = MODAL_NEUTRAL
+) extends ShlurdModalMood
 {
-  override def isPositive : Boolean = true
 }
-case object MOOD_INDICATIVE_NEGATIVE extends ShlurdIndicativeMood
-{
-  override def isNegative : Boolean = true
-}
-object ShlurdIndicativeMood
-{
-  def apply(positive : Boolean) =
-  {
-    if (positive) {
-      MOOD_INDICATIVE_POSITIVE
-    } else {
-      MOOD_INDICATIVE_NEGATIVE
-    }
-  }
-}
-case object MOOD_INTERROGATIVE extends ShlurdMood
+object MOOD_INDICATIVE_POSITIVE extends ShlurdIndicativeMood(true)
+object MOOD_INDICATIVE_NEGATIVE extends ShlurdIndicativeMood(false)
+object MOOD_INTERROGATIVE_POSITIVE extends ShlurdInterrogativeMood(true)
+object MOOD_INTERROGATIVE_NEGATIVE extends ShlurdInterrogativeMood(false)
 case object MOOD_IMPERATIVE extends ShlurdMood

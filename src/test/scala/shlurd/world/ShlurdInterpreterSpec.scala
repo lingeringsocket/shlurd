@@ -75,7 +75,7 @@ class ShlurdInterpreterSpec extends Specification
   object ZooAnimalAwake extends ZooAnimalSleepiness("awake")
   object ZooAnimalAsleep extends ZooAnimalSleepiness("asleep")
 
-  object ZooWorld extends ShlurdWorld
+  object ZooWorld extends ShlurdWorld[ShlurdEntity, ShlurdProperty]
   {
     private def index[T <: NamedObject](set : Set[T]) =
       Map(set.map(x => (x.name, x)).toSeq:_*)

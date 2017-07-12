@@ -19,13 +19,13 @@ import shlurd.parser._
 class KoreanSentenceBundle extends ShlurdSentenceBundle
 {
   override def statePredicateStatement(
-    subject : String, copula : String, state : String) =
+    subject : String, copula : Seq[String], state : String) =
   {
     compose(subject, state)
   }
 
   override def statePredicateQuestion(
-    subject : String, copula : String, state : String) =
+    subject : String, copula : Seq[String], state : String) =
   {
     compose(subject, state)
   }
@@ -38,12 +38,14 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     mood : ShlurdMood) =
   {
     mood match {
-      case MOOD_INDICATIVE_POSITIVE | MOOD_INTERROGATIVE => {
-        // FIXME:  use "예요" after vowel
-        "이에요"
-      }
-      case MOOD_INDICATIVE_NEGATIVE => {
-        "아니에요"
+      case modalMood : ShlurdModalMood => {
+        // FIXME:  use modalMood.getModality
+        if (modalMood.isPositive) {
+          // FIXME:  use "예요" after vowel
+          Seq("이에요")
+        } else {
+          Seq("아니에요")
+        }
       }
       case _ => {
         throw ShlurdSentenceUnprintable()

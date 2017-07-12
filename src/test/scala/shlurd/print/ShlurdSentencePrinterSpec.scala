@@ -64,6 +64,11 @@ class ShlurdSentencePrinterSpec extends Specification
     normalize(s) must be equalTo (s + "?")
   }
 
+  private def expectNormalized(s : String, normalized : String) =
+  {
+    normalize(s) must be equalTo(normalized)
+  }
+
   "ShlurdSentencePrinter" should
   {
     "preserve sentences" in
@@ -71,12 +76,24 @@ class ShlurdSentencePrinterSpec extends Specification
       expectPreserved("the door is closed.")
       expectPreserved("the door is closed!")
       expectPreserved("is the door closed?")
+      expectPreserved("the door can be closed.")
+      expectPreserved("can the door be closed?")
+      expectPreserved("can the door not be closed?")
     }
 
     "normalize sentences" in
     {
       expectStatement("the door is closed")
       expectQuestion("is the door closed")
+      expectQuestion("is the door not closed")
+      expectNormalized(
+        "is not the door closed", "is the door not closed?")
+      expectNormalized(
+        "isn't the door closed", "is the door not closed?")
+      expectNormalized(
+        "the door can be closed?", "can the door be closed?")
+      expectNormalized(
+        "the door can't be closed?", "can the door not be closed?")
       expectCommand("close the door")
       expectStatement("the chickens are fat")
       expectStatement("I am hungry")
@@ -97,6 +114,9 @@ class ShlurdSentencePrinterSpec extends Specification
       expectStatement("your friend and I are hungry")
       expectStatement("your friend, Stalin, and I are hungry")
       expectStatement("the red pig, Stalin, and I are hungry")
+      expectStatement("the door must be open")
+      expectStatement("the door may be open")
+      expectStatement("the door must not be open")
     }
   }
 }

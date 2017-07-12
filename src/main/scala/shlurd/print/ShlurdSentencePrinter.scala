@@ -29,9 +29,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             sb.terminatedSentence(
               printPredicateStatement(predicate, mood), mood, formality)
           }
-          case MOOD_INTERROGATIVE => {
+          case _ : ShlurdInterrogativeMood => {
             sb.terminatedSentence(
-              printPredicateQuestion(predicate), mood, sentence.formality)
+              printPredicateQuestion(predicate, mood), mood, sentence.formality)
           }
           case MOOD_IMPERATIVE => {
             sb.terminatedSentence(
@@ -149,13 +149,14 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def printPredicateStatement(predicate : ShlurdPredicate, mood : ShlurdMood) =
+  def printPredicateStatement(
+    predicate : ShlurdPredicate, mood : ShlurdMood) : String =
   {
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
-          printCopula(subject, state, mood),
+          getCopula(subject, state, mood),
           print(state, mood, ShlurdConjoining.NONE))
       }
       case ShlurdUnknownPredicate => {
@@ -172,20 +173,21 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           print(subject, INFLECT_ACCUSATIVE, ShlurdConjoining.NONE),
           printChangeStateVerb(state))
       }
-      case ShlurdUnknownPredicate => {
+      case _ => {
         sb.unknownPredicateCommand
       }
     }
   }
 
-  def printPredicateQuestion(predicate : ShlurdPredicate) =
+  def printPredicateQuestion(
+    predicate : ShlurdPredicate, mood : ShlurdMood) : String =
   {
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateQuestion(
           print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
-          printCopula(subject, state, MOOD_INTERROGATIVE),
-          print(state, MOOD_INTERROGATIVE, ShlurdConjoining.NONE))
+          getCopula(subject, state, mood),
+          print(state, mood, ShlurdConjoining.NONE))
       }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateQuestion
@@ -193,9 +195,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def printCopula(
+  def getCopula(
     subject : ShlurdReference, state : ShlurdState, mood : ShlurdMood)
-      : String =
+      : Seq[String] =
   {
     subject match {
       case ShlurdPronounReference(person, gender, count, reference) => {
@@ -215,13 +217,13 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.copula(PERSON_THIRD, GENDER_N, count, mood)
       }
       case ShlurdQualifiedReference(reference, qualifiers) => {
-        printCopula(reference, state, mood)
+        getCopula(reference, state, mood)
       }
       case ShlurdGenitiveReference(genitive, reference) => {
-        printCopula(reference, state, mood)
+        getCopula(reference, state, mood)
       }
       case ShlurdUnknownReference => {
-        sb.unknownCopula
+        Seq(sb.unknownCopula)
       }
     }
   }
