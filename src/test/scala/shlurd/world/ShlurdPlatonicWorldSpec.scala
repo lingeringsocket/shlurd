@@ -49,17 +49,36 @@ class ShlurdPlatonicWorldSpec extends Specification
 
   "ShlurdPlatonicWorld" should
   {
-    "understand property state enumeration" in
+    "understand closed property state enumeration" in
     {
       addBelief("a door must be either open or closed")
       expectUniqueForm("door")
       val form = world.getForms("door")
       expectDefaultProperty(form)
       val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 2
       states must contain("open")
       states must contain("close")
+      addBelief("a door may be open")
+      property.getStates.size must be equalTo 2
+    }
+
+    "understand open property state enumeration" in
+    {
+      addBelief("a door may be either open or closed")
+      addBelief("a door may be ajar")
+      expectUniqueForm("door")
+      val form = world.getForms("door")
+      expectDefaultProperty(form)
+      val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      property.isClosed must beFalse
+      val states = property.getStates
+      states.size must be equalTo 3
+      states must contain("open")
+      states must contain("close")
+      states must contain("ajar")
     }
 
     "understand singleton property state" in
@@ -69,6 +88,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       val form = world.getForms("door")
       expectDefaultProperty(form)
       val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 1
       states must contain("close")
@@ -83,16 +103,24 @@ class ShlurdPlatonicWorldSpec extends Specification
       val form = world.getForms("bit")
       expectDefaultProperty(form)
       val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 2
       states must contain("on")
       states must contain("off")
     }
 
+    "reject contradictory belief" in
+    {
+      addBelief("a door must be open or closed")
+      addBelief("a door may be ajar") must
+        throwA[ShlurdPlatonicWorld.ContradictoryBelief]
+    }
+
     "reject rules it cannot understand" in
     {
       addBelief("a green door must be either open or closed") must
-        throwA[ShlurdPlatonicWorld.MalformedBelief]
+        throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
     }
   }
 }

@@ -67,7 +67,16 @@ class ShlurdPlatonicProperty(val name : String)
   private[world] val states =
     new mutable.HashSet[String]
 
+  private var closed : Boolean = false
+
   def getStates : Set[String] = states
+
+  def isClosed = closed
+
+  private[world] def closeStates()
+  {
+    closed = true
+  }
 
   def instantiateState(word : ShlurdWord)
   {
@@ -101,8 +110,19 @@ object ShlurdPlatonicWorld
 
   val DEFAULT_PROPERTY_WORD = ShlurdWord(DEFAULT_PROPERTY, DEFAULT_PROPERTY)
 
-  class MalformedBelief extends RuntimeException(
-    "can't understand this belief")
+  abstract class RejectedBelief(
+    belief : ShlurdSentence,
+    cause : String) extends RuntimeException(cause)
+
+  class IncomprehensibleBelief(belief : ShlurdSentence)
+      extends RejectedBelief(belief,
+        "can't understand this belief")
+  {
+  }
+
+  class ContradictoryBelief(belief : ShlurdSentence)
+      extends RejectedBelief(belief,
+        "this belief contradicts previously accepted beliefs")
   {
   }
 }
@@ -126,11 +146,6 @@ class ShlurdPlatonicWorld
     forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
   }
 
-  def malformedBelief()
-  {
-    throw new MalformedBelief
-  }
-
   def loadBeliefs(source : Source)
   {
     val beliefs = source.getLines.mkString("\n")
@@ -148,28 +163,45 @@ class ShlurdPlatonicWorld
           state),
         mood, formality) =>
         {
-          // FIXME:  interpret mood (both modality and positivity)
           val form = instantiateForm(entity)
           val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
-          state match {
+          if (mood.isNegative) {
+            // FIXME:  interpret this as a constraint
+            throw new IncomprehensibleBelief(sentence)
+          }
+          val newStates = state match {
             case ShlurdPropertyState(word) => {
-              property.instantiateState(word)
+              Seq(word)
             }
             case ShlurdConjunctiveState(determiner, states, _) => {
-              // FIXME:  constraints for DETERMINER_UNIQUE
-              states.foreach(_ match {
+              // FIXME:  interpret determiner
+              states.flatMap(_ match {
                 case ShlurdPropertyState(word) => {
-                  property.instantiateState(word)
+                  Seq(word)
                 }
                 case _ => {
-                  malformedBelief
+                  throw new IncomprehensibleBelief(sentence)
                 }
               })
             }
-            case _ => malformedBelief
+            case _ => {
+              throw new IncomprehensibleBelief(sentence)
+            }
+          }
+          if (property.isClosed) {
+            if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates)) {
+              throw new ContradictoryBelief(sentence)
+            }
+          } else {
+            newStates.foreach(property.instantiateState(_))
+            if (mood.getModality == MODAL_MUST) {
+              property.closeStates
+            }
           }
         }
-      case _ => malformedBelief
+      case _ => {
+        throw new IncomprehensibleBelief(sentence)
+      }
     }
   }
 
