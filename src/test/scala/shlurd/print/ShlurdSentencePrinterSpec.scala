@@ -117,6 +117,7 @@ class ShlurdSentencePrinterSpec extends Specification
       expectStatement("the door must be open")
       expectStatement("the door may be open")
       expectStatement("the door must not be open")
+      expectStatement("a door must be either open or closed")
     }
   }
 }

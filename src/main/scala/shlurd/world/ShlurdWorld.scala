@@ -65,6 +65,13 @@ class ShlurdPlatonicProperty(val name : String)
 {
   private[world] val states =
     new mutable.HashSet[String]
+
+  def getStates : Set[String] = states
+
+  def instantiateState(word : ShlurdWord)
+  {
+    states += word.lemma
+  }
 }
 
 class ShlurdPlatonicForm(val name : String)
@@ -72,6 +79,14 @@ class ShlurdPlatonicForm(val name : String)
 {
   private[world] val properties =
     new mutable.HashMap[String, ShlurdPlatonicProperty]
+
+  def getProperties : Map[String, ShlurdPlatonicProperty] = properties
+
+  def instantiateProperty(word : ShlurdWord) =
+  {
+    val property = word.lemma
+    properties.getOrElseUpdate(property, new ShlurdPlatonicProperty(property))
+  }
 }
 
 class ShlurdPlatonicEntity(val name : String, val form : ShlurdPlatonicForm)
@@ -79,30 +94,73 @@ class ShlurdPlatonicEntity(val name : String, val form : ShlurdPlatonicForm)
 {
 }
 
+object ShlurdPlatonicWorld
+{
+  val DEFAULT_PROPERTY = "state"
+
+  val DEFAULT_PROPERTY_WORD = ShlurdWord(DEFAULT_PROPERTY, DEFAULT_PROPERTY)
+
+  class MalformedBelief extends RuntimeException(
+    "can't understand this belief")
+  {
+  }
+}
+
 class ShlurdPlatonicWorld
     extends ShlurdWorld[ShlurdPlatonicEntity, ShlurdPlatonicProperty]
 {
+  import ShlurdPlatonicWorld._
+
   private val forms =
     new mutable.HashMap[String, ShlurdPlatonicForm]
 
   private val entities =
     new mutable.HashMap[String, ShlurdPlatonicEntity]
 
+  def getForms : Map[String, ShlurdPlatonicForm] = forms
+
+  def instantiateForm(word : ShlurdWord) =
+  {
+    val name = word.lemma
+    forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
+  }
+
   def malformedBelief()
   {
-    throw new RuntimeException("can't understand this belief")
+    throw new MalformedBelief
   }
 
   def addBelief(sentence : ShlurdSentence)
   {
     sentence match {
-      case ShlurdPredicateSentence(predicate, mood, formality) => {
-        predicate match {
-          case ShlurdStatePredicate(subject, state) => {
+      case ShlurdPredicateSentence(
+        ShlurdStatePredicate(
+          ShlurdEntityReference(
+            entity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+          state),
+        mood, formality) =>
+        {
+          // FIXME:  interpret mood (both modality and positivity)
+          val form = instantiateForm(entity)
+          val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
+          state match {
+            case ShlurdPropertyState(word) => {
+              property.instantiateState(word)
+            }
+            case ShlurdConjunctiveState(determiner, states, _) => {
+              // FIXME:  constraints for DETERMINER_UNIQUE
+              states.foreach(_ match {
+                case ShlurdPropertyState(word) => {
+                  property.instantiateState(word)
+                }
+                case _ => {
+                  malformedBelief
+                }
+              })
+            }
+            case _ => malformedBelief
           }
-          case _ => malformedBelief
         }
-      }
       case _ => malformedBelief
     }
   }

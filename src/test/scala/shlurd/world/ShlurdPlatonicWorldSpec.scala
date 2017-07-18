@@ -1,0 +1,81 @@
+// shlurd:  a limited understanding of small worlds
+// Copyright 2017-2017 John V. Sichi
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+package shlurd.world
+
+import shlurd.parser._
+
+import org.specs2.mutable._
+
+class ShlurdPlatonicWorldSpec extends Specification
+{
+  // world is mutable, so we need isolation
+  isolated
+
+  private val world = new ShlurdPlatonicWorld
+
+  private def addBelief(input : String) =
+  {
+    val sentence = ShlurdParser(input).parseOne
+    world.addBelief(sentence)
+  }
+
+  private def expectUniqueForm(name : String) =
+  {
+      val forms = world.getForms
+      forms.size must be equalTo 1
+      forms must have key name
+  }
+
+  private def expectDefaultProperty(form : ShlurdPlatonicForm) =
+  {
+    val properties = form.getProperties
+    properties.size must be equalTo 1
+    properties must have key(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+  }
+
+  "ShlurdPlatonicWorld" should
+  {
+    "understand property state enumeration" in
+    {
+      addBelief("a door must be either open or closed")
+      expectUniqueForm("door")
+      val form = world.getForms("door")
+      expectDefaultProperty(form)
+      val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      val states = property.getStates
+      states.size must be equalTo 2
+      states must contain("open")
+      states must contain("close")
+    }
+
+    "understand singleton property state" in
+    {
+      addBelief("a door must be closed")
+      expectUniqueForm("door")
+      val form = world.getForms("door")
+      expectDefaultProperty(form)
+      val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      val states = property.getStates
+      states.size must be equalTo 1
+      states must contain("close")
+    }
+
+    "reject rules it cannot understand" in
+    {
+      addBelief("a green door must be either open or closed") must
+        throwA[ShlurdPlatonicWorld.MalformedBelief]
+    }
+  }
+}
