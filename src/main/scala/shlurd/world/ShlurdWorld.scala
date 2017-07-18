@@ -16,6 +16,7 @@ package shlurd.world
 
 import shlurd.parser._
 
+import scala.io._
 import scala.util._
 import scala.collection._
 
@@ -128,6 +129,13 @@ class ShlurdPlatonicWorld
   def malformedBelief()
   {
     throw new MalformedBelief
+  }
+
+  def loadBeliefs(source : Source)
+  {
+    val beliefs = source.getLines.mkString("\n")
+    val sentences = ShlurdParser(beliefs).parseAll
+    sentences.foreach(addBelief(_))
   }
 
   def addBelief(sentence : ShlurdSentence)

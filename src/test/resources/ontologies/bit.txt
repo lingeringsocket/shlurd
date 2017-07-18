@@ -1,0 +1,1 @@
+A bit must be either on or off.

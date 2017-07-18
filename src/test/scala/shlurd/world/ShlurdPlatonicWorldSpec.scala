@@ -18,6 +18,8 @@ import shlurd.parser._
 
 import org.specs2.mutable._
 
+import scala.io._
+
 class ShlurdPlatonicWorldSpec extends Specification
 {
   // world is mutable, so we need isolation
@@ -33,9 +35,9 @@ class ShlurdPlatonicWorldSpec extends Specification
 
   private def expectUniqueForm(name : String) =
   {
-      val forms = world.getForms
-      forms.size must be equalTo 1
-      forms must have key name
+    val forms = world.getForms
+    forms.size must be equalTo 1
+    forms must have key name
   }
 
   private def expectDefaultProperty(form : ShlurdPlatonicForm) =
@@ -70,6 +72,21 @@ class ShlurdPlatonicWorldSpec extends Specification
       val states = property.getStates
       states.size must be equalTo 1
       states must contain("close")
+    }
+
+    "load beliefs from a file" in
+    {
+      val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")
+      val source = Source.fromFile(file)
+      world.loadBeliefs(source)
+      expectUniqueForm("bit")
+      val form = world.getForms("bit")
+      expectDefaultProperty(form)
+      val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      val states = property.getStates
+      states.size must be equalTo 2
+      states must contain("on")
+      states must contain("off")
     }
 
     "reject rules it cannot understand" in

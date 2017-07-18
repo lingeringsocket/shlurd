@@ -19,7 +19,10 @@ import edu.stanford.nlp.trees._
 import edu.stanford.nlp.ling._
 import edu.stanford.nlp.simple.Document
 
+import scala.io._
 import scala.collection.JavaConverters._
+
+import java.io._
 
 trait ShlurdParser
 {
@@ -109,7 +112,7 @@ class ShlurdSingleParser(
   private def isCoordinatingDeterminer(
     pt : Tree, determiner : ShlurdDeterminer) : Boolean =
   {
-    if (isDeterminer(pt)) {
+    if (isDeterminer(pt) || isCoordinatingConjunction(pt)) {
       getLemma(pt.firstChild) match {
         case "both" => (determiner == DETERMINER_ALL)
         case "either" => (determiner == DETERMINER_ANY)
@@ -303,7 +306,7 @@ class ShlurdSingleParser(
   private def expectCommand(vp : Tree, formality : ShlurdFormality) =
   {
     if (vp.numChildren == 2) {
-      val state = expectVerbState(vp.firstChild)
+      val state = expectPropertyState(vp.firstChild)
       val subject = expectReference(vp.lastChild)
       ShlurdStateChangeCommand(
         ShlurdStatePredicate(subject, state),
@@ -335,11 +338,7 @@ class ShlurdSingleParser(
 
   private def isSinglePhrase(seq : Seq[Tree]) : Boolean =
   {
-    if (seq.size == 1) {
-      getLabel(seq.head).endsWith("P")
-    } else {
-      false
-    }
+    (seq.size == 1) && !seq.head.isPreTerminal
   }
 
   private def splitCoordinatingConjunction(components : Seq[Tree])
@@ -348,7 +347,7 @@ class ShlurdSingleParser(
     if (isSinglePhrase(components)) {
       return splitCoordinatingConjunction(components.head.children)
     }
-    val pos = components.indexWhere(t => isCoordinatingConjunction(t))
+    val pos = components.indexWhere(t => isCoordinatingConjunction(t), 1)
     if (pos == -1) {
       val (commaSplit, commaSeparator) = splitCommas(components)
       commaSeparator match {
@@ -544,31 +543,9 @@ class ShlurdSingleParser(
     ShlurdWord(getLabel(tree), getLemma(tree))
   }
 
-  private def expectVerbState(pt : Tree) =
+  private def expectPropertyState(ap : Tree) =
   {
-    if (pt.isPreTerminal && isVerb(pt)) {
-      ShlurdPropertyState(getWord(pt.firstChild))
-    } else {
-      ShlurdUnknownState
-    }
-  }
-
-  private def expectAdjectiveState(ap : Tree) =
-  {
-    // sometimes adverbs sneak into adjectival phrases,
-    // e.g. is the lion asleep?
-    if ((isAdjective(ap) || isParticipleOrGerund(ap) || isAdverb(ap))
-      && ap.isPreTerminal)
-    {
-      ShlurdPropertyState(getWord(ap.firstChild))
-    } else {
-      ShlurdUnknownState
-    }
-  }
-
-  private def expectAdverbState(ap : Tree) =
-  {
-    if (isAdverb(ap) && ap.isPreTerminal) {
+    if (ap.isPreTerminal) {
       ShlurdPropertyState(getWord(ap.firstChild))
     } else {
       ShlurdUnknownState
@@ -624,20 +601,20 @@ class ShlurdSingleParser(
     }
     label match {
       case "ADJP" => {
-        expectAdjectiveState(seq.head)
+        expectPropertyState(seq.head)
       }
       case "ADVP" => {
-        if (seq.size == 1) {
-          expectAdverbState(seq.head)
-        } else {
+        if (isPreposition(seq.head)) {
           expectPrepositionalState(seq)
+        } else {
+          expectPropertyState(seq.head)
         }
       }
       case "VP" => {
         // TODO:  ambiguity for action (passive construction) vs
         // state (participial adjective)
         if ((seq.size == 1) && seq.head.isPreTerminal) {
-          expectVerbState(seq.head)
+          expectPropertyState(seq.head)
         } else {
           ShlurdUnknownState
         }
@@ -682,7 +659,10 @@ object ShlurdParser
 
   def debug(s : String)
   {
-    tokenize(s).foreach(dump(_))
+    tokenize(s).foreach(sentence => {
+      dump(sentence)
+      println("SHLURD = " + prepareOne(sentence).parseOne)
+    })
   }
 
   private def tokenize(input : String) : Seq[Sentence] =
@@ -710,6 +690,16 @@ object ShlurdParser
       newParser(question, question.parse, true)
     }
   }
+
+  def getResourcePath(resource : String) =
+    getClass.getResource(resource).getPath
+
+  def getResourceFile(resource : String) =
+    new File(getResourcePath(resource))
+
+  def readResource(resource : String) : String =
+    Source.fromFile(getResourcePath(resource)).
+      getLines.mkString("\n")
 
   def apply(input : String) : ShlurdParser =
   {
