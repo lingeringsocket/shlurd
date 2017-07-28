@@ -69,6 +69,11 @@ class ShlurdSingleParser(
     }
   }
 
+  private def isExistential(np : Tree) : Boolean =
+  {
+    isNounPhrase(np) && hasLabel(np.firstChild, "EX")
+  }
+
   private def isNounPhrase(np : Tree) : Boolean =
   {
     hasLabel(np, "NP")
@@ -169,6 +174,17 @@ class ShlurdSingleParser(
     (children.size == 1) && hasLabel(children.head, "VP")
   }
 
+  private def isCopula(verbHead : Tree) =
+  {
+    isVerb(verbHead) &&
+      (hasTerminalLemma(verbHead, "be") || hasTerminalLemma(verbHead, "exist"))
+  }
+
+  private def isExists(verbHead : Tree) =
+  {
+    isVerb(verbHead) && hasTerminalLemma(verbHead, "exist")
+  }
+
   private def expectSentence(tree : Tree, implicitQuestion : Boolean) =
   {
     if (hasLabel(tree, "S")) {
@@ -220,13 +236,17 @@ class ShlurdSingleParser(
               (sub.head, seq(0), sub.last, (negativeSub ^ negativeSuper))
             }
           }
-          if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
-            val (negativeSub, predicate) =
-              expectPredicate(np, ap.children, getLabel(ap))
-            val positive = !(negative ^ negativeSub)
-            ShlurdPredicateSentence(
-              predicate,
-              ShlurdInterrogativeMood(positive, modality))
+          if (isCopula(verbHead)) {
+            if (!isExistential(np) && isExists(verbHead)) {
+              ShlurdUnknownSentence
+            } else {
+              val (negativeSub, predicate) =
+                expectPredicate(np, ap.children, getLabel(ap))
+              val positive = !(negative ^ negativeSub)
+              ShlurdPredicateSentence(
+                predicate,
+                ShlurdInterrogativeMood(positive, modality))
+            }
           } else {
             ShlurdUnknownSentence
           }
@@ -280,8 +300,9 @@ class ShlurdSingleParser(
       } else {
         ShlurdUnknownSentence
       }
-    } else if (isVerb(verbHead) && hasTerminalLemma(verbHead, "be")) {
-      if (vpChildren.size > 2) {
+    } else if (isCopula(verbHead)) {
+      if ((vpChildren.size > 2) || (!isExistential(np) && isExists(verbHead)))
+      {
         ShlurdUnknownSentence
       } else {
         val complement = vpChildren.last
@@ -579,17 +600,30 @@ class ShlurdSingleParser(
       : (Boolean, ShlurdStatePredicate)=
   {
     val (negative, seq) = extractNegative(complement)
-    val subject = expectReference(np)
-    val state = splitCoordinatingConjunction(seq) match {
-      case (DETERMINER_UNSPECIFIED, _, _) => {
-        expectStateComplement(seq, label)
+    if (isExistential(np)) {
+      val subject = splitCoordinatingConjunction(seq) match {
+        case (DETERMINER_UNSPECIFIED, _, _) => {
+          expectReference(seq)
+        }
+        case (determiner, separator, split) => {
+          ShlurdConjunctiveReference(
+            determiner, split.map(expectReference(_)), separator)
+        }
       }
-      case (determiner, separator, split) => {
-        ShlurdConjunctiveState(
-          determiner, split.map(expectStateComplement(_, label)), separator)
+      (negative, ShlurdStatePredicate(subject, ShlurdExistenceState()))
+    } else {
+      val subject = expectReference(np)
+      val state = splitCoordinatingConjunction(seq) match {
+        case (DETERMINER_UNSPECIFIED, _, _) => {
+          expectStateComplement(seq, label)
+        }
+        case (determiner, separator, split) => {
+          ShlurdConjunctiveState(
+            determiner, split.map(expectStateComplement(_, label)), separator)
+        }
       }
+      (negative, ShlurdStatePredicate(subject, state))
     }
-    (negative, ShlurdStatePredicate(subject, state))
   }
 
   private def expectStateComplement(seq : Seq[Tree], label : String)

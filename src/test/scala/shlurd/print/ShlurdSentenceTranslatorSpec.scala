@@ -50,6 +50,12 @@ class ShlurdSentenceTranslatorSpec extends Specification
         "문과 블라인드가 닫았어요."
       translate("the door or the blind is closed") must be equalTo
         "문이나 블라인드가 닫았어요."
+      translate("there is a door") must be equalTo
+        "문이 있어요."
+      translate("there isn't a door") must be equalTo
+        "문이 없어요."
+      translate("is there a door?") must be equalTo
+        "문이 있어요?"
     }
   }
 }

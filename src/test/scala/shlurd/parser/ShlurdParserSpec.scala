@@ -20,6 +20,8 @@ class ShlurdParserSpec extends Specification
 {
   private val ENTITY_DOOR = word("door")
 
+  private val ENTITY_WINDOW = word("window")
+
   private val ENTITY_DOORS = ShlurdWord("doors", "door")
 
   private val ENTITY_FRANNY = word("franny")
@@ -321,6 +323,65 @@ class ShlurdParserSpec extends Specification
       parse("Mustn't the door be open") must be equalTo(
         ShlurdPredicateSentence(
           predDoor(), ShlurdInterrogativeMood(false, MODAL_MUST)))
+    }
+
+    "parse existence" in
+    {
+      val doorExistencePred = ShlurdStatePredicate(
+        ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
+        ShlurdExistenceState())
+
+      parse("There is a door") must be equalTo(
+        ShlurdPredicateSentence(doorExistencePred))
+      parse("There exists a door") must be equalTo(
+        ShlurdPredicateSentence(doorExistencePred))
+      parse("There is not a door") must be equalTo(
+        ShlurdPredicateSentence(
+          doorExistencePred,
+          ShlurdIndicativeMood(false)))
+      parse("There must be a door") must be equalTo(
+        ShlurdPredicateSentence(
+          doorExistencePred,
+          ShlurdIndicativeMood(true, MODAL_MUST)))
+      parse("There is a door?") must be equalTo(
+        ShlurdPredicateSentence(
+          doorExistencePred,
+          ShlurdInterrogativeMood(true)))
+      parse("Is there a door") must be equalTo(
+        ShlurdPredicateSentence(
+          doorExistencePred,
+          ShlurdInterrogativeMood(true)))
+      parse("Must there be a door") must be equalTo(
+        ShlurdPredicateSentence(
+          doorExistencePred,
+          ShlurdInterrogativeMood(true, MODAL_MUST)))
+
+      parse("There is a front door") must be equalTo(
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdQualifiedReference(
+              ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
+              Seq(QUALIFIER_FRONT)),
+            ShlurdExistenceState())))
+
+      val doorPlusWindow = Seq(
+        ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
+        ShlurdEntityReference(ENTITY_WINDOW, DETERMINER_NONSPECIFIC))
+      parse("There is a door and a window") must be equalTo(
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdConjunctiveReference(
+              DETERMINER_ALL,
+              doorPlusWindow),
+            ShlurdExistenceState())))
+      parse("Is there a door or a window") must be equalTo(
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdConjunctiveReference(
+              DETERMINER_ANY,
+              doorPlusWindow),
+            ShlurdExistenceState()),
+          ShlurdInterrogativeMood(true)))
     }
 
     "give up" in

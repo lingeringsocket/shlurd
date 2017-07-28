@@ -113,6 +113,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       : String =
   {
     state match {
+      case ShlurdExistenceState() => {
+        ""
+      }
       case ShlurdPropertyState(state) => {
         sb.delemmatizeState(state, mood, conjoining)
       }
@@ -199,22 +202,31 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     subject : ShlurdReference, state : ShlurdState, mood : ShlurdMood)
       : Seq[String] =
   {
+    val isExistential = state match {
+      case ShlurdExistenceState() => true
+      case _ => false
+    }
     subject match {
       case ShlurdPronounReference(person, gender, count, reference) => {
-        sb.copula(person, gender, count, mood)
+        sb.copula(person, gender, count, mood, isExistential)
       }
       case ShlurdEntityReference(entity, determiner, count) => {
-        sb.copula(PERSON_THIRD, GENDER_N, count, mood)
+        sb.copula(PERSON_THIRD, GENDER_N, count, mood, isExistential)
       }
       case ShlurdConjunctiveReference(determiner, references, _) => {
-        val count = determiner match {
-          case DETERMINER_ALL => COUNT_PLURAL
-          // DETERMINER_NONE is debatable
-          case _ => COUNT_SINGULAR
+        val count = if (isExistential) {
+          // FIXME:  this is probably English-specific
+          getCount(references.head)
+        } else {
+          determiner match {
+            case DETERMINER_ALL => COUNT_PLURAL
+            // DETERMINER_NONE is debatable
+            case _ => COUNT_SINGULAR
+          }
         }
         // FIXME:  also derive person and gender from underlying references,
         // since it makes a difference in languages such as Spanish
-        sb.copula(PERSON_THIRD, GENDER_N, count, mood)
+        sb.copula(PERSON_THIRD, GENDER_N, count, mood, isExistential)
       }
       case ShlurdQualifiedReference(reference, qualifiers) => {
         getCopula(reference, state, mood)
@@ -225,6 +237,28 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdUnknownReference => {
         Seq(sb.unknownCopula)
       }
+    }
+  }
+
+  private def getCount(reference : ShlurdReference) : ShlurdCount =
+  {
+    reference match {
+      case ShlurdPronounReference(person, gender, count, reference) =>
+        count
+      case ShlurdEntityReference(entity, determiner, count) =>
+        count
+      case ShlurdConjunctiveReference(determiner, references, _) => {
+        determiner match {
+          case DETERMINER_ALL => COUNT_PLURAL
+          // DETERMINER_NONE is debatable
+          case _ => COUNT_SINGULAR
+        }
+      }
+      case ShlurdQualifiedReference(reference, qualifiers) =>
+        getCount(reference)
+      case ShlurdGenitiveReference(genitive, reference) =>
+        getCount(reference)
+      case ShlurdUnknownReference => COUNT_SINGULAR
     }
   }
 }

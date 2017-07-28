@@ -133,6 +133,11 @@ case class ShlurdEntityReference(
 {
 }
 
+case class ShlurdExistenceState(
+) extends ShlurdState
+{
+}
+
 case class ShlurdPropertyState(
   state : ShlurdWord
 ) extends ShlurdState

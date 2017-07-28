@@ -118,6 +118,22 @@ class ShlurdSentencePrinterSpec extends Specification
       expectStatement("the door may be open")
       expectStatement("the door must not be open")
       expectStatement("a door must be either open or closed")
+      expectStatement("there is a door")
+      expectStatement("there is a front door")
+      expectStatement("there is a front door and a back door")
+      expectNormalized("there exists a door", "there is a door.")
+      expectStatement("there is a door and a window")
+      expectStatement("there is a door and windows")
+      expectStatement("there are doors and a window")
+      expectStatement("there are doors and windows")
+      expectStatement("there is not a door")
+      expectStatement("there must be a door")
+      expectQuestion("is there a door")
+      expectQuestion("is there a front door")
+      expectQuestion("is there a front door or a back door")
+      expectQuestion("is there not a door")
+      // FIXME:  negated "must there NOT be a door" fails
+      expectQuestion("must there be a door")
     }
   }
 }

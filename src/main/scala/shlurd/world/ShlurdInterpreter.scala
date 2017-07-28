@@ -132,6 +132,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
             }
           }
+          case ShlurdExistenceState() => {
+            evaluateExistencePredicate(subject)
+          }
           case ShlurdPropertyState(word) => {
             evaluatePropertyStatePredicate(subject, word)
           }
@@ -144,6 +147,16 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
       case _ => fail(
         "I don't know about this kind of predicate")
+    }
+  }
+
+  private def evaluateExistencePredicate(subjectRef : ShlurdReference)
+      : Try[Boolean] =
+  {
+    // FIXME:  ambiguity etc
+    world.resolveReference(subjectRef, REF_SUBJECT) match {
+      case Success(entity) => Success(true)
+      case Failure(e) => Failure(e)
     }
   }
 

@@ -86,7 +86,7 @@ abstract class ShlurdSentenceBundle
 
   def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood) : Seq[String]
+    mood : ShlurdMood, isExistential : Boolean) : Seq[String]
 
   def determine(determiner : ShlurdDeterminer) : String
 

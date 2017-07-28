@@ -21,13 +21,18 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   override def statePredicateStatement(
     subject : String, copula : Seq[String], state : String) =
   {
-    compose(subject, state)
+    if (state.isEmpty) {
+      compose((Seq(subject) ++ copula):_*)
+    } else {
+      compose(subject, state)
+    }
   }
 
   override def statePredicateQuestion(
     subject : String, copula : Seq[String], state : String) =
   {
-    compose(subject, state)
+    // only holds for "요" politeness
+    statePredicateStatement(subject, copula, state)
   }
 
   override def statePredicateCommand(subject : String, state : String) =
@@ -35,16 +40,24 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
 
   override def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood) =
+    mood : ShlurdMood, isExistential : Boolean) =
   {
     mood match {
       case modalMood : ShlurdModalMood => {
         // FIXME:  use modalMood.getModality
         if (modalMood.isPositive) {
-          // FIXME:  use "예요" after vowel
-          Seq("이에요")
+          if (isExistential) {
+            Seq("있어요")
+          } else {
+            // FIXME:  use "예요" after vowel
+            Seq("이에요")
+          }
         } else {
-          Seq("아니에요")
+          if (isExistential) {
+            Seq("없어요")
+          } else {
+            Seq("아니에요")
+          }
         }
       }
       case _ => {

@@ -22,22 +22,33 @@ class EnglishSentenceBundle
   override def statePredicateStatement(
     subject : String, copula : Seq[String], state : String) =
   {
-    compose((Seq(subject) ++ copula ++ Seq(state)):_*)
+    if (state.isEmpty) {
+      // existential
+      compose((copula ++ Seq(subject)):_*)
+    } else {
+      compose((Seq(subject) ++ copula ++ Seq(state)):_*)
+    }
   }
 
   override def statePredicateQuestion(
     subject : String, copula : Seq[String], state : String) =
   {
-    copula.size match {
-      // "is Larry clumsy?"
-      case 1 =>
-        compose(copula.head, subject, state)
-      // "is Larry not clumsy?" or "must Larry be clumsy?"
-      case 2 =>
-        compose(copula.head, subject, copula.last, state)
-      // "must Larry not be clumsy?"
-      case _ =>
-        compose((Seq(copula.head, subject) ++ copula.drop(1) ++ Seq(state)):_*)
+    if (state.isEmpty) {
+      compose((copula.take(2).reverse ++ copula.drop(2) ++ Seq(subject)):_*)
+    } else {
+      val headSeq = Seq(copula.head)
+      val tailSeq = copula.drop(1)
+      copula.size match {
+        // "is Larry clumsy?"
+        case 1 =>
+          compose((headSeq ++ Seq(subject, state)):_*)
+        // "is Larry not clumsy?" or "must Larry be clumsy?"
+        case 2 =>
+          compose((headSeq ++ Seq(subject) ++ tailSeq ++ Seq(state)):_*)
+        // "must Larry not be clumsy?"
+        case _ =>
+          compose((headSeq ++ Seq(subject) ++ tailSeq ++ Seq(state)):_*)
+      }
     }
   }
 
@@ -64,9 +75,9 @@ class EnglishSentenceBundle
 
   override def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood) =
+    mood : ShlurdMood, isExistential : Boolean) =
   {
-    mood.getModality match {
+    val seq = mood.getModality match {
       case MODAL_NEUTRAL => {
         val inflected = {
           count match {
@@ -91,6 +102,11 @@ class EnglishSentenceBundle
       case _ => {
         modalCopula(mood)
       }
+    }
+    if (isExistential) {
+      Seq("there") ++ seq
+    } else {
+      seq
     }
   }
 
