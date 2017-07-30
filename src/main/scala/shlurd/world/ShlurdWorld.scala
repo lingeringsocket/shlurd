@@ -37,9 +37,9 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
 {
   def fail(msg : String) = Failure(new RuntimeException(msg))
 
-  def resolveReference(
-    reference : ShlurdReference,
-    context : ShlurdReferenceContext) : Try[E]
+  def resolveUnqualifiedEntity(
+    lemma : String,
+    context : ShlurdReferenceContext) : Try[Set[E]]
 
   def resolveProperty(
     entity : E,
@@ -138,12 +138,30 @@ class ShlurdPlatonicWorld
   private val entities =
     new mutable.HashMap[String, ShlurdPlatonicEntity]
 
+  private var nextId = 0
+
   def getForms : Map[String, ShlurdPlatonicForm] = forms
 
   def instantiateForm(word : ShlurdWord) =
   {
     val name = word.lemma
     forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
+  }
+
+  def instantiateEntity(form : ShlurdPlatonicForm) : ShlurdPlatonicEntity =
+  {
+    entities.values.find(_.form == form) match {
+      case Some(entity) => {
+        entity
+      }
+      case _ => {
+        val name = form.name + nextId
+        nextId += 1
+        val entity = new ShlurdPlatonicEntity(name, form)
+        entities.put(name, entity)
+        entity
+      }
+    }
   }
 
   def loadBeliefs(source : Source)
@@ -163,39 +181,17 @@ class ShlurdPlatonicWorld
           state),
         mood, formality) =>
         {
-          val form = instantiateForm(entity)
-          val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
           if (mood.isNegative) {
             // FIXME:  interpret this as a constraint
             throw new IncomprehensibleBelief(sentence)
           }
-          val newStates = state match {
-            case ShlurdPropertyState(word) => {
-              Seq(word)
-            }
-            case ShlurdConjunctiveState(determiner, states, _) => {
-              // FIXME:  interpret determiner
-              states.flatMap(_ match {
-                case ShlurdPropertyState(word) => {
-                  Seq(word)
-                }
-                case _ => {
-                  throw new IncomprehensibleBelief(sentence)
-                }
-              })
+          val form = instantiateForm(entity)
+          state match {
+            case ShlurdExistenceState() => {
+              addExistenceBelief(sentence, form, mood)
             }
             case _ => {
-              throw new IncomprehensibleBelief(sentence)
-            }
-          }
-          if (property.isClosed) {
-            if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates)) {
-              throw new ContradictoryBelief(sentence)
-            }
-          } else {
-            newStates.foreach(property.instantiateState(_))
-            if (mood.getModality == MODAL_MUST) {
-              property.closeStates
+              addPropertyBelief(sentence, form, state, mood)
             }
           }
         }
@@ -205,11 +201,62 @@ class ShlurdPlatonicWorld
     }
   }
 
-  override def resolveReference(
-    reference : ShlurdReference,
+  def addExistenceBelief(
+    sentence : ShlurdSentence,
+    form : ShlurdPlatonicForm, mood : ShlurdMood)
+  {
+    // FIXME:  interpret mood
+    instantiateEntity(form)
+  }
+
+  def addPropertyBelief(
+    sentence : ShlurdSentence,
+    form : ShlurdPlatonicForm, state : ShlurdState, mood : ShlurdMood)
+  {
+    val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
+    val newStates = state match {
+      case ShlurdPropertyState(word) => {
+        Seq(word)
+      }
+      case ShlurdConjunctiveState(determiner, states, _) => {
+        // FIXME:  interpret determiner
+        states.flatMap(_ match {
+          case ShlurdPropertyState(word) => {
+            Seq(word)
+          }
+          case _ => {
+            throw new IncomprehensibleBelief(sentence)
+          }
+        })
+      }
+      case _ => {
+        throw new IncomprehensibleBelief(sentence)
+      }
+    }
+    if (property.isClosed) {
+      if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates)) {
+        throw new ContradictoryBelief(sentence)
+      }
+    } else {
+      newStates.foreach(property.instantiateState(_))
+      if (mood.getModality == MODAL_MUST) {
+        property.closeStates
+      }
+    }
+  }
+
+  override def resolveUnqualifiedEntity(
+    lemma : String,
     context : ShlurdReferenceContext) =
   {
-    fail("FIXME")
+    forms.get(lemma) match {
+      case Some(form) => {
+        Success(entities.values.filter(_.form == form).toSet)
+      }
+      case _ => {
+        fail(s"unknown entity $lemma")
+      }
+    }
   }
 
   override def resolveProperty(

@@ -150,13 +150,90 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
+  private def evaluateDeterminer(results : Iterable[Try[Boolean]],
+    determiner : ShlurdDeterminer)
+      : Try[Boolean] =
+  {
+    val failures = results.filter(_.isFailure)
+    if (failures.isEmpty) {
+      val positives = results.count(_ == Success(true))
+      determiner match {
+        case DETERMINER_NONE => Success(positives == 0)
+        case DETERMINER_UNIQUE => Success(positives == 1)
+        case DETERMINER_ALL => Success(positives == results.size)
+        case _ => Success(positives > 0)
+      }
+    } else {
+      // FIXME:  combine failures
+      failures.head
+    }
+  }
+
+  private def evaluatePredicateOverReference(
+    reference : ShlurdReference,
+    context : ShlurdReferenceContext)(evaluator : E => Try[Boolean])
+      : Try[Boolean] =
+  {
+    reference match {
+      case ShlurdEntityReference(word, determiner, count) => {
+        val lemma = word.lemma
+        world.resolveUnqualifiedEntity(lemma, context) match {
+          case Success(entities) => {
+            determiner match {
+              case DETERMINER_UNIQUE => {
+                if (entities.isEmpty) {
+                  fail("I don't know about any " + lemma)
+                } else {
+                  count match {
+                    case COUNT_SINGULAR => {
+                      if (entities.size > 1) {
+                        fail("I am not sure which " + lemma + " you mean")
+                      } else {
+                        evaluator(entities.head)
+                      }
+                    }
+                    case COUNT_PLURAL => {
+                      if (entities.size > 1) {
+                        evaluateDeterminer(
+                          entities.map(evaluator), DETERMINER_ALL)
+                      } else {
+                        fail("I know about only one " + lemma)
+                      }
+                    }
+                  }
+                }
+              }
+              case _ => evaluateDeterminer(entities.map(evaluator), determiner)
+            }
+          }
+          case Failure(e) => Failure(e)
+        }
+      }
+      case ShlurdPronounReference(person, gender, count, _) => {
+        fail("FIXME")
+      }
+      case ShlurdConjunctiveReference(determiner, references, separator) => {
+        val results = references.map(
+          evaluatePredicateOverReference(_, context)(evaluator))
+        evaluateDeterminer(results, determiner)
+      }
+      case ShlurdQualifiedReference(sub, qualifiers) => {
+        fail("FIXME")
+      }
+      case ShlurdGenitiveReference(genitive, reference) => {
+        fail("FIXME")
+      }
+      case ShlurdUnknownReference => {
+        fail("I don't know about this kind of reference")
+      }
+    }
+  }
+
   private def evaluateExistencePredicate(subjectRef : ShlurdReference)
       : Try[Boolean] =
   {
-    // FIXME:  ambiguity etc
-    world.resolveReference(subjectRef, REF_SUBJECT) match {
-      case Success(entity) => Success(true)
-      case Failure(e) => Failure(e)
+    evaluatePredicateOverReference(subjectRef, REF_SUBJECT) {
+      entity => Success(true)
     }
   }
 
@@ -164,8 +241,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     subjectRef : ShlurdReference,
     state : ShlurdWord) : Try[Boolean] =
   {
-    world.resolveReference(subjectRef, REF_SUBJECT) match {
-      case Success(entity) => {
+    evaluatePredicateOverReference(subjectRef, REF_SUBJECT) {
+      entity => {
         world.resolveProperty(entity, state.lemma) match {
           case Success(property) => {
             world.evaluateEntityPropertyPredicate(
@@ -174,7 +251,6 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case Failure(e) => Failure(e)
         }
       }
-      case Failure(e) => Failure(e)
     }
   }
 
@@ -182,16 +258,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     subjectRef : ShlurdReference, locative : ShlurdLocative,
     locationRef : ShlurdReference) : Try[Boolean] =
   {
-    world.resolveReference(subjectRef, REF_LOCATED) match {
-      case Success(entity) => {
-        world.resolveReference(locationRef, REF_LOCATION) match {
-          case Success(location) => {
-            world.evaluateEntityLocationPredicate(entity, location, locative)
+    evaluatePredicateOverReference(subjectRef, REF_LOCATED) {
+      subjectEntity => {
+        evaluatePredicateOverReference(locationRef, REF_LOCATION) {
+          locationEntity => {
+            world.evaluateEntityLocationPredicate(
+              subjectEntity, locationEntity, locative)
           }
-          case Failure(e) => Failure(e)
         }
       }
-      case Failure(e) => Failure(e)
     }
   }
 }

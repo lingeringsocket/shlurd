@@ -44,6 +44,21 @@ class ShlurdInterpreterSpec extends Specification
         "No, the tiger is not asleep.")
       interpret("is the tiger awake") must be equalTo(
         "Yes, the tiger is awake.")
+      interpret("is there a tiger") must be equalTo(
+        "Yes, there is a tiger.")
+      interpret("is there a lion and a tiger") must be equalTo(
+        "Yes, there is a lion and a tiger.")
+      interpret("is there a lion or a peacock") must be equalTo(
+        "Yes, there is a lion or a peacock.")
+      interpret("is there a peacock") must be equalTo(
+        "No, there is not a peacock.")
+      // FIXME:  improve response phrasing
+      interpret("is there no peacock") must be equalTo(
+        "Yes, there is no peacock.")
+      interpret("is there a lion and a peacock") must be equalTo(
+        "No, there is not a lion and a peacock.")
+      interpret("is there an aardvark") must be equalTo(
+        "I don't know about this animal: aardvark")
     }
 
     "interpret statements" in
@@ -68,6 +83,7 @@ class ShlurdInterpreterSpec extends Specification
   object ZooLion extends ZooAnimalEntity("lion")
   object ZooTiger extends ZooAnimalEntity("tiger")
   object ZooBear extends ZooAnimalEntity("bear")
+  object ZooPeacock extends ZooAnimalEntity("peacock")
 
   object ZooAnimalSleepinessProperty extends ShlurdProperty
 
@@ -80,25 +96,27 @@ class ShlurdInterpreterSpec extends Specification
     private def index[T <: NamedObject](set : Set[T]) =
       Map(set.map(x => (x.name, x)).toSeq:_*)
 
-    private val animals = index(Set(ZooLion, ZooTiger, ZooBear))
+    private val animals = index(Set(ZooLion, ZooTiger, ZooBear, ZooPeacock))
 
     private val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
 
+    // if an animal doesn't appear here, we don't have one at the
+    // zoo
     private val awake =
       Map(ZooLion -> true, ZooTiger -> false, ZooBear -> true)
 
-    override def resolveReference(
-      reference : ShlurdReference,
+    override def resolveUnqualifiedEntity(
+      lemma : String,
       context : ShlurdReferenceContext) =
     {
-      reference match {
-        case ShlurdEntityReference(entity, determiner, count) => {
-          animals.get(entity.lemma) match {
-            case Some(entity) => Success(entity)
-            case _ => fail("I don't know about this animal: " + entity.lemma)
+      animals.get(lemma) match {
+        case Some(entity) => {
+          awake.get(entity) match {
+            case Some(_) => Success(Set(entity))
+            case _ => Success(Set.empty)
           }
         }
-        case _ => fail("I don't know about this entity reference: " + reference)
+        case _ => fail("I don't know about this animal: " + lemma)
       }
     }
 

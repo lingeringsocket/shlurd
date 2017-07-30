@@ -116,6 +116,7 @@ class EnglishSentenceBundle
       case DETERMINER_UNSPECIFIED => ""
       case DETERMINER_NONE => "no"
       case DETERMINER_UNIQUE => "the"
+      // FIXME:  "a" vs "an"
       case DETERMINER_NONSPECIFIC => "a"
       case DETERMINER_ANY => "any"
       case DETERMINER_ALL => "all"
