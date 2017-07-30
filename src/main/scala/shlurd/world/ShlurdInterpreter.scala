@@ -156,7 +156,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     val failures = results.filter(_.isFailure)
     if (failures.isEmpty) {
-      val positives = results.count(_ == Success(true))
+      val positives = results.count(_.get)
       determiner match {
         case DETERMINER_NONE => Success(positives == 0)
         case DETERMINER_UNIQUE => Success(positives == 1)
