@@ -94,6 +94,18 @@ class ShlurdPlatonicWorldSpec extends Specification
       states must contain("close")
     }
 
+    "understand qualified references" in
+    {
+      addBelief("there is a front door")
+      addBelief("there is a back door")
+      expectUniqueForm("door")
+      val frontDoor = world.resolveEntity("door", REF_SUBJECT, Set("front"))
+      frontDoor must beSuccessfulTry.which(_.size == 1)
+      val backDoor = world.resolveEntity("door", REF_SUBJECT, Set("back"))
+      backDoor must beSuccessfulTry.which(_.size == 1)
+      frontDoor must not be equalTo(backDoor)
+    }
+
     "load beliefs from a file" in
     {
       val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")
@@ -117,7 +129,21 @@ class ShlurdPlatonicWorldSpec extends Specification
         throwA[ShlurdPlatonicWorld.ContradictoryBelief]
     }
 
-    "reject rules it cannot understand" in
+    "reject ambiguous belief" in
+    {
+      addBelief("there is a front door")
+      addBelief("there is a door") must
+        throwA[ShlurdPlatonicWorld.AmbiguousBelief]
+    }
+
+    "reject another ambiguous belief" in
+    {
+      addBelief("there is a door")
+      addBelief("there is a front door") must
+        throwA[ShlurdPlatonicWorld.AmbiguousBelief]
+    }
+
+    "reject beliefs it cannot understand" in
     {
       addBelief("a green door must be either open or closed") must
         throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]

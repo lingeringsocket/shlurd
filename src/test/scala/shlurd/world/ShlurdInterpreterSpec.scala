@@ -18,6 +18,7 @@ import shlurd.parser._
 
 import org.specs2.mutable._
 
+import scala.collection._
 import scala.util._
 
 class ShlurdInterpreterSpec extends Specification
@@ -57,6 +58,24 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, there is no peacock.")
       interpret("is there a lion and a peacock") must be equalTo(
         "No, there is not a lion and a peacock.")
+      interpret("is there a bengal tiger") must be equalTo(
+        "No, there is not a bengal tiger.")
+      interpret("is there a bear") must be equalTo(
+        "Yes, there is a bear.")
+      interpret("is there a grizzly bear") must be equalTo(
+        "Yes, there is a grizzly bear.")
+      interpret("is there a polar bear") must be equalTo(
+        "Yes, there is a polar bear.")
+      interpret("is there a kodiak bear") must be equalTo(
+        "No, there is not a kodiak bear.")
+      interpret("is the polar bear asleep") must be equalTo(
+        "Yes, the polar bear is asleep.")
+      interpret("is the grizzly bear asleep") must be equalTo(
+        "No, the grizzly bear is not asleep.")
+      interpret("is the kodiak bear asleep") must be equalTo(
+        "I don't know about any such bear")
+      interpret("is the bear asleep") must be equalTo(
+        "I am not sure which bear you mean")
       interpret("is there an aardvark") must be equalTo(
         "I don't know about this animal: aardvark")
     }
@@ -82,7 +101,8 @@ class ShlurdInterpreterSpec extends Specification
       extends ShlurdEntity with NamedObject
   object ZooLion extends ZooAnimalEntity("lion")
   object ZooTiger extends ZooAnimalEntity("tiger")
-  object ZooBear extends ZooAnimalEntity("bear")
+  object ZooPolarBear extends ZooAnimalEntity("polar bear")
+  object ZooGrizzlyBear extends ZooAnimalEntity("grizzly bear")
   object ZooPeacock extends ZooAnimalEntity("peacock")
 
   object ZooAnimalSleepinessProperty extends ShlurdProperty
@@ -96,27 +116,29 @@ class ShlurdInterpreterSpec extends Specification
     private def index[T <: NamedObject](set : Set[T]) =
       Map(set.map(x => (x.name, x)).toSeq:_*)
 
-    private val animals = index(Set(ZooLion, ZooTiger, ZooBear, ZooPeacock))
+    private val animals =
+      index(Set(ZooLion, ZooTiger, ZooPolarBear, ZooGrizzlyBear, ZooPeacock))
 
     private val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
 
     // if an animal doesn't appear here, we don't have one at the
     // zoo
-    private val awake =
-      Map(ZooLion -> true, ZooTiger -> false, ZooBear -> true)
+    private val asleep =
+      Map(ZooLion -> true, ZooTiger -> false, ZooPolarBear -> true,
+        ZooGrizzlyBear -> false)
 
-    override def resolveUnqualifiedEntity(
+    override def resolveEntity(
       lemma : String,
-      context : ShlurdReferenceContext) =
+      context : ShlurdReferenceContext,
+      qualifiers : Set[String]) =
     {
-      animals.get(lemma) match {
-        case Some(entity) => {
-          awake.get(entity) match {
-            case Some(_) => Success(Set(entity))
-            case _ => Success(Set.empty)
-          }
-        }
-        case _ => fail("I don't know about this animal: " + lemma)
+      val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
+      if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
+        fail("I don't know about this animal: " + name)
+      } else {
+        Success(
+          animals.filterKeys(_.endsWith(name)).
+            values.filter(asleep.contains(_)).toSet)
       }
     }
 
@@ -146,8 +168,8 @@ class ShlurdInterpreterSpec extends Specification
           property match {
             case ZooAnimalSleepinessProperty => {
               sleepinessValues.get(lemma) match {
-                case Some(ZooAnimalAwake) => Success(!awake(animal))
-                case Some(ZooAnimalAsleep) => Success(awake(animal))
+                case Some(ZooAnimalAwake) => Success(!asleep(animal))
+                case Some(ZooAnimalAsleep) => Success(asleep(animal))
                 case _ => fail("I don't know about this state: " + lemma)
               }
             }

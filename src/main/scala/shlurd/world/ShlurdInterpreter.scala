@@ -171,18 +171,22 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def evaluatePredicateOverReference(
     reference : ShlurdReference,
-    context : ShlurdReferenceContext)(evaluator : E => Try[Boolean])
+    context : ShlurdReferenceContext,
+    qualifiers : Seq[ShlurdWord] = Seq.empty
+  )(evaluator : E => Try[Boolean])
       : Try[Boolean] =
   {
     reference match {
       case ShlurdEntityReference(word, determiner, count) => {
         val lemma = word.lemma
-        world.resolveUnqualifiedEntity(lemma, context) match {
+        world.resolveEntity(
+          lemma, context, world.qualifierSet(qualifiers)) match
+        {
           case Success(entities) => {
             determiner match {
               case DETERMINER_UNIQUE => {
                 if (entities.isEmpty) {
-                  fail("I don't know about any " + lemma)
+                  fail("I don't know about any such " + lemma)
                 } else {
                   count match {
                     case COUNT_SINGULAR => {
@@ -210,17 +214,20 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
       case ShlurdPronounReference(person, gender, count, _) => {
+        // also prevent qualifiers here
         fail("FIXME")
       }
       case ShlurdConjunctiveReference(determiner, references, separator) => {
         val results = references.map(
-          evaluatePredicateOverReference(_, context)(evaluator))
+          evaluatePredicateOverReference(_, context, qualifiers)(evaluator))
         evaluateDeterminer(results, determiner)
       }
       case ShlurdQualifiedReference(sub, qualifiers) => {
-        fail("FIXME")
+        evaluatePredicateOverReference(sub, context, qualifiers)(evaluator)
       }
       case ShlurdGenitiveReference(genitive, reference) => {
+        // maybe allow qualifiers here in case the parser gets
+        // it wrong (e.g. the red shadow of the moon)
         fail("FIXME")
       }
       case ShlurdUnknownReference => {

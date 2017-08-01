@@ -37,9 +37,10 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
 {
   def fail(msg : String) = Failure(new RuntimeException(msg))
 
-  def resolveUnqualifiedEntity(
+  def resolveEntity(
     lemma : String,
-    context : ShlurdReferenceContext) : Try[Set[E]]
+    context : ShlurdReferenceContext,
+    qualifiers : Set[String] = Set.empty) : Try[Set[E]]
 
   def resolveProperty(
     entity : E,
@@ -54,6 +55,9 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
     entity : E,
     location : E,
     locative : ShlurdLocative) : Try[Boolean]
+
+  def qualifierSet(qualifiers : Seq[ShlurdWord]) =
+    qualifiers.map(_.lemma).toSet
 }
 
 trait ShlurdNamedObject
@@ -99,7 +103,10 @@ class ShlurdPlatonicForm(val name : String)
   }
 }
 
-class ShlurdPlatonicEntity(val name : String, val form : ShlurdPlatonicForm)
+class ShlurdPlatonicEntity(
+  val name : String,
+  val form : ShlurdPlatonicForm,
+  val qualifiers : Set[String])
     extends ShlurdEntity with ShlurdNamedObject
 {
 }
@@ -125,6 +132,12 @@ object ShlurdPlatonicWorld
         "this belief contradicts previously accepted beliefs")
   {
   }
+
+  class AmbiguousBelief(belief : ShlurdSentence)
+      extends RejectedBelief(belief,
+        "this belief introduces ambiguity with previously accepted beliefs")
+  {
+  }
 }
 
 class ShlurdPlatonicWorld
@@ -148,20 +161,34 @@ class ShlurdPlatonicWorld
     forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
   }
 
-  def instantiateEntity(form : ShlurdPlatonicForm) : ShlurdPlatonicEntity =
+  private def hasQualifiers(
+    existing : ShlurdPlatonicEntity,
+    form : ShlurdPlatonicForm,
+    qualifiers : Set[String],
+    overlap : Boolean) : Boolean =
   {
-    entities.values.find(_.form == form) match {
-      case Some(entity) => {
-        entity
-      }
-      case _ => {
-        val name = form.name + nextId
-        nextId += 1
-        val entity = new ShlurdPlatonicEntity(name, form)
-        entities.put(name, entity)
-        entity
-      }
+    (form == existing.form) &&
+      (qualifiers.subsetOf(existing.qualifiers) ||
+        (overlap && existing.qualifiers.subsetOf(qualifiers)))
+  }
+
+  def instantiateEntity(
+    sentence : ShlurdSentence,
+    form : ShlurdPlatonicForm,
+    qualifierString : Seq[ShlurdWord]) : ShlurdPlatonicEntity =
+  {
+    val qualifiers = qualifierSet(qualifierString)
+    def redundantWith(existing : ShlurdPlatonicEntity) =
+      (form == existing.form) && qualifiers.subsetOf(existing.qualifiers)
+    if (entities.values.exists(hasQualifiers(_, form, qualifiers, true))) {
+      throw new AmbiguousBelief(sentence)
     }
+    val name =
+      (qualifierString ++ Seq(form.name, nextId.toString)).mkString("_")
+    nextId += 1
+    val entity = new ShlurdPlatonicEntity(name, form, qualifiers)
+    entities.put(name, entity)
+    entity
   }
 
   def loadBeliefs(source : Source)
@@ -171,27 +198,47 @@ class ShlurdPlatonicWorld
     sentences.foreach(addBelief(_))
   }
 
+  private def extractQualifiedEntity(
+    sentence : ShlurdSentence,
+    reference : ShlurdReference,
+    preQualifiers : Seq[ShlurdWord])
+      : (ShlurdWord, Seq[ShlurdWord]) =
+  {
+    reference match {
+      case ShlurdEntityReference(
+        entity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
+        {
+          (entity, preQualifiers)
+        }
+      case ShlurdQualifiedReference(subRef, qualifiers) =>
+        {
+          extractQualifiedEntity(
+            sentence, subRef, preQualifiers ++ qualifiers)
+        }
+      case _ => throw new IncomprehensibleBelief(sentence)
+    }
+  }
+
   def addBelief(sentence : ShlurdSentence)
   {
     sentence match {
       case ShlurdPredicateSentence(
-        ShlurdStatePredicate(
-          ShlurdEntityReference(
-            entity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
-          state),
+        ShlurdStatePredicate(ref, state),
         mood, formality) =>
         {
           if (mood.isNegative) {
             // FIXME:  interpret this as a constraint
             throw new IncomprehensibleBelief(sentence)
           }
+          val (entity, qualifiers) = extractQualifiedEntity(
+            sentence, ref, Seq.empty)
           val form = instantiateForm(entity)
           state match {
             case ShlurdExistenceState() => {
-              addExistenceBelief(sentence, form, mood)
+              addExistenceBelief(sentence, form, qualifiers, mood)
             }
             case _ => {
-              addPropertyBelief(sentence, form, state, mood)
+              addPropertyBelief(sentence, form, qualifiers, state, mood)
             }
           }
         }
@@ -201,18 +248,27 @@ class ShlurdPlatonicWorld
     }
   }
 
-  def addExistenceBelief(
+  private def addExistenceBelief(
     sentence : ShlurdSentence,
-    form : ShlurdPlatonicForm, mood : ShlurdMood)
+    form : ShlurdPlatonicForm,
+    qualifiers : Seq[ShlurdWord],
+    mood : ShlurdMood)
   {
     // FIXME:  interpret mood
-    instantiateEntity(form)
+    instantiateEntity(sentence, form, qualifiers)
   }
 
-  def addPropertyBelief(
+  private def addPropertyBelief(
     sentence : ShlurdSentence,
-    form : ShlurdPlatonicForm, state : ShlurdState, mood : ShlurdMood)
+    form : ShlurdPlatonicForm,
+    qualifiers : Seq[ShlurdWord],
+    state : ShlurdState,
+    mood : ShlurdMood)
   {
+    if (!qualifiers.isEmpty) {
+      // but maybe we should allow constraints on qualified entities?
+      throw new IncomprehensibleBelief(sentence)
+    }
     val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
     val newStates = state match {
       case ShlurdPropertyState(word) => {
@@ -245,13 +301,15 @@ class ShlurdPlatonicWorld
     }
   }
 
-  override def resolveUnqualifiedEntity(
+  override def resolveEntity(
     lemma : String,
-    context : ShlurdReferenceContext) =
+    context : ShlurdReferenceContext,
+    qualifiers : Set[String]) =
   {
     forms.get(lemma) match {
       case Some(form) => {
-        Success(entities.values.filter(_.form == form).toSet)
+        Success(entities.values.filter(
+          hasQualifiers(_, form, qualifiers, false)).toSet)
       }
       case _ => {
         fail(s"unknown entity $lemma")
