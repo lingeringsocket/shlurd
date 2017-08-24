@@ -1,0 +1,21 @@
+#!/bin/bash
+
+SRC_DIR=`dirname "$BASH_SOURCE"`/../..
+TARGET_DIR=/home/jvs/tmp/bundles
+
+set -e
+
+rm -rf ${TARGET_DIR}
+mkdir -p ${TARGET_DIR}
+pushd ${SRC_DIR}
+
+sbt clean publish-local
+cd models
+sbt clean publish-local
+cd ../osgi
+sbt clean deployLauncher:package
+cd target
+cp bundles/* ${TARGET_DIR}
+cp launcher/bundle/scala* ${TARGET_DIR}
+
+popd
