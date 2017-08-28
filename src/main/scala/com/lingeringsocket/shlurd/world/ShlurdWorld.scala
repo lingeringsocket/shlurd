@@ -338,7 +338,7 @@ class ShlurdPlatonicWorld
   override def evaluateEntityPropertyPredicate(
     entity : ShlurdPlatonicEntity,
     property : ShlurdPlatonicProperty,
-    lemma : String) =
+    lemma : String) : Try[Boolean] =
   {
     fail("FIXME")
   }
@@ -346,7 +346,7 @@ class ShlurdPlatonicWorld
   override def evaluateEntityLocationPredicate(
     entity : ShlurdPlatonicEntity,
     location : ShlurdPlatonicEntity,
-    locative : ShlurdLocative) =
+    locative : ShlurdLocative) : Try[Boolean] =
   {
     fail("FIXME")
   }
