@@ -517,7 +517,7 @@ class ShlurdSingleParser(
   {
     getLemma(leaf) match {
       case "no" | "neither" | "nor" => DETERMINER_NONE
-      case "both" | "and" | "all" => DETERMINER_ALL
+      case "both" | "and" | "all" | "every" => DETERMINER_ALL
       case "a" => DETERMINER_NONSPECIFIC
       case "the" | "either" => DETERMINER_UNIQUE
       case _ => DETERMINER_ANY

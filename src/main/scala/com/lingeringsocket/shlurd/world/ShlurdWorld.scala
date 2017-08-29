@@ -16,8 +16,6 @@ package com.lingeringsocket.shlurd.world
 
 import com.lingeringsocket.shlurd.parser._
 
-import java.io._
-
 import scala.io._
 import scala.util._
 import scala.collection._
@@ -198,12 +196,6 @@ class ShlurdPlatonicWorld
     val beliefs = source.getLines.mkString("\n")
     val sentences = ShlurdParser(beliefs).parseAll
     sentences.foreach(addBelief(_))
-  }
-
-  // for Java compatibility
-  def loadBeliefsFromFile(file : File)
-  {
-    loadBeliefs(Source.fromFile(file))
   }
 
   private def extractQualifiedEntity(

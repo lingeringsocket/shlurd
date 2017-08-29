@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.print._
 
 import scala.util._
 
+import org.bitbucket.inkytonik.kiama.rewriting._
+
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   world : ShlurdWorld[E,P])
 {
@@ -54,7 +56,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 sentencePrinter.sb.respondToAssumption(
                   ASSUMED_TRUE, truth,
                   sentencePrinter.print(
-                    ShlurdPredicateSentence(predicate, responseMood)),
+                    ShlurdPredicateSentence(
+                      normalizeResponse(predicate), responseMood)),
                   false)
               }
               case Failure(e) => {
@@ -83,7 +86,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   sentencePrinter.sb.respondToAssumption(
                     ASSUMED_TRUE, true,
                     sentencePrinter.print(
-                      ShlurdPredicateSentence(predicate, responseMood)),
+                      ShlurdPredicateSentence(
+                        normalizeResponse(predicate), responseMood)),
                     true)
                 } else {
                   // FIXME:  add details on inconsistency, and maybe try
@@ -275,5 +279,17 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
     }
+  }
+
+  private def normalizeResponse(predicate : ShlurdPredicate) =
+  {
+    val rewriteDeterminers =
+      Rewriter.rule[ShlurdPhrase] {
+        case ShlurdEntityReference(entity, DETERMINER_ANY, count) => {
+          ShlurdEntityReference(entity, DETERMINER_NONSPECIFIC, count)
+        }
+      }
+    Rewriter.rewrite(
+      Rewriter.everywhere("rewriteDeterminers", rewriteDeterminers))(predicate)
   }
 }
