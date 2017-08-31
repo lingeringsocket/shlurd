@@ -109,6 +109,15 @@ class ShlurdSingleParser(
     getLabel(pt).startsWith("IN")
   }
 
+  private def unwrapPhrase(pt : Tree) : Tree =
+  {
+    if (pt.isPrePreTerminal && (pt.numChildren == 1)) {
+      pt.firstChild
+    } else {
+      pt
+    }
+  }
+
   private def isDeterminer(pt : Tree) : Boolean =
   {
     hasLabel(pt, "DT")
@@ -117,8 +126,9 @@ class ShlurdSingleParser(
   private def isCoordinatingDeterminer(
     pt : Tree, determiner : ShlurdDeterminer) : Boolean =
   {
-    if (isDeterminer(pt) || isCoordinatingConjunction(pt)) {
-      getLemma(pt.firstChild) match {
+    val leaf = unwrapPhrase(pt)
+    if (isDeterminer(leaf) || isCoordinatingConjunction(leaf)) {
+      getLemma(leaf.firstChild) match {
         case "both" => (determiner == DETERMINER_ALL)
         case "either" => (determiner == DETERMINER_ANY)
         case "neither" => (determiner == DETERMINER_NONE)
@@ -422,8 +432,9 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectReference(seq : Seq[Tree]) : ShlurdReference =
+  private def expectReference(seqIn : Seq[Tree]) : ShlurdReference =
   {
+    val seq = seqIn.map(unwrapPhrase(_))
     if (seq.size == 1) {
       return expectReference(seq.head)
     }
@@ -436,7 +447,7 @@ class ShlurdSingleParser(
       }
     }
     val (determiner, components) = {
-      val first = seq.head
+      val first = unwrapPhrase(seq.head)
       if (isDeterminer(first)) {
         (expectDeterminer(first.firstChild), seq.drop(1))
       } else {

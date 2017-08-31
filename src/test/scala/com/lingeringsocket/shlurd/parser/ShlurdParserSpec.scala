@@ -209,6 +209,11 @@ class ShlurdParserSpec extends Specification
       parse(inputAnyQ) must be equalTo
         ShlurdPredicateSentence(
           predDoor(STATE_OPEN, DETERMINER_ANY), MOOD_INTERROGATIVE_POSITIVE)
+      val inputAllQ = "are all doors open"
+      parse(inputAllQ) must be equalTo
+        ShlurdPredicateSentence(
+          pred(ENTITY_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL),
+          MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse qualifiers" in
