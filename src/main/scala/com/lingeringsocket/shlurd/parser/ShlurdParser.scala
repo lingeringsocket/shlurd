@@ -531,6 +531,7 @@ class ShlurdSingleParser(
       case "both" | "and" | "all" | "every" => DETERMINER_ALL
       case "a" => DETERMINER_NONSPECIFIC
       case "the" | "either" => DETERMINER_UNIQUE
+      case "some" => DETERMINER_SOME
       case _ => DETERMINER_ANY
     }
   }

@@ -119,6 +119,7 @@ class EnglishSentenceBundle
       // FIXME:  "a" vs "an"
       case DETERMINER_NONSPECIFIC => "a"
       case DETERMINER_ANY => "any"
+      case DETERMINER_SOME => "some"
       case DETERMINER_ALL => "all"
     }
   }

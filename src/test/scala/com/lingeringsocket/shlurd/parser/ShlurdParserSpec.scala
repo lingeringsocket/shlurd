@@ -196,7 +196,7 @@ class ShlurdParserSpec extends Specification
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONSPECIFIC))
       val inputSome = "open some door"
       parse(inputSome) must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_ANY))
+        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_SOME))
       val inputAll = "open all doors"
       parse(inputAll) must be equalTo
         ShlurdStateChangeCommand(

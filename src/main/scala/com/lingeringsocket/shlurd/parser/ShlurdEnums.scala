@@ -29,6 +29,7 @@ case object DETERMINER_NONE extends ShlurdDeterminer
 case object DETERMINER_UNIQUE extends ShlurdDeterminer
 case object DETERMINER_NONSPECIFIC extends ShlurdDeterminer
 case object DETERMINER_ANY extends ShlurdDeterminer
+case object DETERMINER_SOME extends ShlurdDeterminer
 case object DETERMINER_ALL extends ShlurdDeterminer
 case object DETERMINER_UNSPECIFIED extends ShlurdDeterminer
 

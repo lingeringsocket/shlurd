@@ -78,6 +78,10 @@ class ShlurdInterpreterSpec extends Specification
         "I am not sure which bear you mean")
       interpret("is any bear asleep") must be equalTo(
         "Yes, a bear is asleep.")
+      interpret("is some bear asleep") must be equalTo(
+        "Yes, some bear is asleep.")
+      interpret("are any bears asleep") must be equalTo(
+        "Yes, some bears are asleep.")
       interpret("are all bears asleep") must be equalTo(
         "No, all bears are not asleep.")
       interpret("is there an aardvark") must be equalTo(

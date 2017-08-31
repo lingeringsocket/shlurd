@@ -130,7 +130,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   case DETERMINER_UNIQUE =>
                     Success(results.count(r => r) == 1)
                   case DETERMINER_ALL => Success(results.forall(r => r))
-                  case DETERMINER_ANY => Success(results.exists(r => r))
+                  case DETERMINER_ANY | DETERMINER_SOME =>
+                    Success(results.exists(r => r))
                   case _ => fail("I don't know about this determiner")
                 }
               }
@@ -285,8 +286,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     val rewriteDeterminers =
       Rewriter.rule[ShlurdPhrase] {
-        case ShlurdEntityReference(entity, DETERMINER_ANY, count) => {
-          ShlurdEntityReference(entity, DETERMINER_NONSPECIFIC, count)
+        case ShlurdEntityReference(entity, DETERMINER_ANY, COUNT_SINGULAR) => {
+          ShlurdEntityReference(entity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+        }
+        case ShlurdEntityReference(entity, DETERMINER_ANY, COUNT_PLURAL) => {
+          ShlurdEntityReference(entity, DETERMINER_SOME, COUNT_PLURAL)
         }
       }
     Rewriter.rewrite(
