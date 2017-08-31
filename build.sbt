@@ -19,7 +19,7 @@ traceLevel := 10
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-core" % "3.8.5" % "test",
   "org.slf4j" % "slf4j-simple" % "1.7.25",
-  "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.1.0",
+  "com.googlecode.kiama" %% "kiama" % "1.8.0",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.7.0",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.7.0" classifier "models"
 )

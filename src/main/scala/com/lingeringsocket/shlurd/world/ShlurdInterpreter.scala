@@ -19,7 +19,7 @@ import com.lingeringsocket.shlurd.print._
 
 import scala.util._
 
-import org.bitbucket.inkytonik.kiama.rewriting._
+import org.kiama.rewriting._
 
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   world : ShlurdWorld[E,P])
