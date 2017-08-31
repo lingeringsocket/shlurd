@@ -25,12 +25,36 @@ class ShlurdInterpreterSpec extends Specification
 {
   private val world = ZooWorld
 
-  private val interpreter = new ShlurdInterpreter(world)
+  type StateChangeInvocation = ShlurdStateChangeInvocation[ShlurdEntity]
 
   private def interpret(input : String) =
   {
     val sentence = ShlurdParser(input).parseOne
+    val interpreter = new ShlurdInterpreter(world) {
+      override protected def executeInvocation(
+        invocation : StateChangeInvocation)
+      {
+        throw new RuntimeException("unexpected invocation")
+      }
+    }
     interpreter.interpret(sentence)
+  }
+
+  private def interpretCommandExpected(
+    input : String, invocation : StateChangeInvocation) =
+  {
+    val sentence = ShlurdParser(input).parseOne
+    var actualInvocation : Option[StateChangeInvocation] = None
+    val interpreter = new ShlurdInterpreter(world) {
+      override protected def executeInvocation(
+        invocation : StateChangeInvocation)
+      {
+        actualInvocation = Some(invocation)
+      }
+    }
+    interpreter.interpret(sentence) must be equalTo(
+      "Okay, I will get right on that.")
+    actualInvocation must be equalTo(Some(invocation))
   }
 
   "ShlurdInterpreter" should
@@ -98,6 +122,21 @@ class ShlurdInterpreterSpec extends Specification
         "Oh, really?")
       interpret("the tiger is awake") must be equalTo(
         "Right, the tiger is awake.")
+    }
+
+    "interpret commands" in
+    {
+      interpretCommandExpected(
+        "awake the lion",
+        ShlurdStateChangeInvocation(Set(ZooLion), "awake"))
+      interpretCommandExpected(
+        "awake the lion and the tiger",
+        ShlurdStateChangeInvocation(Set(ZooLion), "awake"))
+      interpretCommandExpected(
+        "awake the polar bear and the lion",
+        ShlurdStateChangeInvocation(Set(ZooLion, ZooPolarBear), "awake"))
+      interpret("awake the tiger") must be equalTo(
+        "But it already is.")
     }
   }
 

@@ -21,24 +21,43 @@ import scala.util._
 
 import org.kiama.rewriting._
 
+import scala.collection._
+
+case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
+  entities : Set[E],
+  state : String)
+{
+}
+
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   world : ShlurdWorld[E,P])
 {
   private val sentencePrinter = new ShlurdSentencePrinter
 
+  class ResultCollector
+  {
+    val entityMap = new mutable.HashMap[E, Boolean]
+    val states = new mutable.HashSet[String]
+  }
+
   def fail(msg : String) = world.fail(msg)
 
   def interpret(sentence : ShlurdSentence) : String =
   {
+    val resultCollector = new ResultCollector
     sentence match {
       case ShlurdStateChangeCommand(predicate, formality) => {
-        evaluatePredicate(predicate) match {
+        evaluatePredicate(predicate, resultCollector) match {
           case Success(true) => {
             // FIXME:  use proper rephrasing
             "But it already is."
           }
           case Success(false) => {
-            // FIXME:  carry out action
+            assert(resultCollector.states.size == 1)
+            executeInvocation(
+              ShlurdStateChangeInvocation(
+                resultCollector.entityMap.filterNot(_._2).keySet,
+                resultCollector.states.head))
             "Okay, I will get right on that."
           }
           case Failure(e) => {
@@ -50,7 +69,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         mood match {
           // FIXME deal with positive, modality
           case ShlurdInterrogativeMood(positive, modality) => {
-            evaluatePredicate(predicate) match {
+            evaluatePredicate(predicate, resultCollector) match {
               case Success(truth) => {
                 val responseMood = ShlurdIndicativeMood(truth)
                 sentencePrinter.sb.respondToAssumption(
@@ -68,7 +87,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case _ : ShlurdIndicativeMood => {
             // FIXME deal with mood.getModality
             val positivity = mood.isPositive
-            val predicateTruth = evaluatePredicate(predicate)
+            val predicateTruth = evaluatePredicate(predicate, resultCollector)
             val responseMood = {
               predicateTruth match {
                 case Success(false) => {
@@ -112,15 +131,23 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
+  protected def executeInvocation(
+    invocation : ShlurdStateChangeInvocation[E])
+  {
+  }
+
   private def evaluatePredicate(
-    predicate : ShlurdPredicate) : Try[Boolean] =
+    predicate : ShlurdPredicate,
+    resultCollector : ResultCollector) : Try[Boolean] =
   {
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         state match {
           case ShlurdConjunctiveState(determiner, states, _) => {
+            // FIXME:  how to write to resultCollector.entityMap in this case?
             val tries = states.map(
-              s => evaluatePredicate(ShlurdStatePredicate(subject, s)))
+              s => evaluatePredicate(
+                ShlurdStatePredicate(subject, s), resultCollector))
             tries.find(_.isFailure) match {
               case Some(failed) => failed
               case _ => {
@@ -138,13 +165,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             }
           }
           case ShlurdExistenceState() => {
-            evaluateExistencePredicate(subject)
+            evaluateExistencePredicate(subject, resultCollector)
           }
           case ShlurdPropertyState(word) => {
-            evaluatePropertyStatePredicate(subject, word)
+            evaluatePropertyStatePredicate(subject, word, resultCollector)
           }
           case ShlurdLocationState(locative, location) => {
-            evaluateLocationStatePredicate(subject, locative, location)
+            evaluateLocationStatePredicate(
+              subject, locative, location, resultCollector)
           }
           case ShlurdUnknownState => fail(
             "I don't know about this kind of state")
@@ -177,6 +205,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def evaluatePredicateOverReference(
     reference : ShlurdReference,
     context : ShlurdReferenceContext,
+    resultCollector : ResultCollector,
     qualifiers : Seq[ShlurdWord] = Seq.empty
   )(evaluator : E => Try[Boolean])
       : Try[Boolean] =
@@ -198,13 +227,16 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                       if (entities.size > 1) {
                         fail("I am not sure which " + lemma + " you mean")
                       } else {
-                        evaluator(entities.head)
+                        invokeEvaluator(
+                          entities.head, resultCollector, evaluator)
                       }
                     }
                     case COUNT_PLURAL => {
                       if (entities.size > 1) {
                         evaluateDeterminer(
-                          entities.map(evaluator), DETERMINER_ALL)
+                          entities.map(
+                            invokeEvaluator(_, resultCollector, evaluator)),
+                          DETERMINER_ALL)
                       } else {
                         fail("I know about only one " + lemma)
                       }
@@ -212,7 +244,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   }
                 }
               }
-              case _ => evaluateDeterminer(entities.map(evaluator), determiner)
+              case _ => {
+                evaluateDeterminer(
+                  entities.map(invokeEvaluator(_, resultCollector, evaluator)),
+                  determiner)
+              }
             }
           }
           case Failure(e) => Failure(e)
@@ -224,11 +260,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
       case ShlurdConjunctiveReference(determiner, references, separator) => {
         val results = references.map(
-          evaluatePredicateOverReference(_, context, qualifiers)(evaluator))
+          evaluatePredicateOverReference(
+            _, context, resultCollector, qualifiers)(evaluator))
         evaluateDeterminer(results, determiner)
       }
       case ShlurdQualifiedReference(sub, qualifiers) => {
-        evaluatePredicateOverReference(sub, context, qualifiers)(evaluator)
+        evaluatePredicateOverReference(
+          sub, context, resultCollector, qualifiers)(evaluator)
       }
       case ShlurdGenitiveReference(genitive, reference) => {
         // maybe allow qualifiers here in case the parser gets
@@ -241,22 +279,37 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  private def evaluateExistencePredicate(subjectRef : ShlurdReference)
+  private def invokeEvaluator(
+    entity : E,
+    resultCollector : ResultCollector,
+    evaluator : E => Try[Boolean]) : Try[Boolean] =
+  {
+    val result = evaluator(entity)
+    result.foreach(resultCollector.entityMap.put(entity, _))
+    result
+  }
+
+  private def evaluateExistencePredicate(
+    subjectRef : ShlurdReference, resultCollector : ResultCollector)
       : Try[Boolean] =
   {
-    evaluatePredicateOverReference(subjectRef, REF_SUBJECT) {
+    evaluatePredicateOverReference(subjectRef, REF_SUBJECT, resultCollector) {
       entity => Success(true)
     }
   }
 
   private def evaluatePropertyStatePredicate(
     subjectRef : ShlurdReference,
-    state : ShlurdWord) : Try[Boolean] =
+    state : ShlurdWord,
+    resultCollector : ResultCollector)
+      : Try[Boolean] =
   {
-    evaluatePredicateOverReference(subjectRef, REF_SUBJECT) {
+    evaluatePredicateOverReference(subjectRef, REF_SUBJECT, resultCollector)
+    {
       entity => {
         world.resolveProperty(entity, state.lemma) match {
           case Success(property) => {
+            resultCollector.states += state.lemma
             world.evaluateEntityPropertyPredicate(
               entity, property, state.lemma)
           }
@@ -268,11 +321,17 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def evaluateLocationStatePredicate(
     subjectRef : ShlurdReference, locative : ShlurdLocative,
-    locationRef : ShlurdReference) : Try[Boolean] =
+    locationRef : ShlurdReference,
+    resultCollector : ResultCollector)
+      : Try[Boolean] =
   {
-    evaluatePredicateOverReference(subjectRef, REF_LOCATED) {
+    evaluatePredicateOverReference(
+      subjectRef, REF_LOCATED, resultCollector)
+    {
       subjectEntity => {
-        evaluatePredicateOverReference(locationRef, REF_LOCATION) {
+        evaluatePredicateOverReference(
+          locationRef, REF_LOCATION, resultCollector)
+        {
           locationEntity => {
             world.evaluateEntityLocationPredicate(
               subjectEntity, locationEntity, locative)
