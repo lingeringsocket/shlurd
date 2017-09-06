@@ -25,7 +25,7 @@ import scala.collection._
 
 case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
   entities : Set[E],
-  state : String)
+  state : ShlurdWord)
 {
 }
 
@@ -37,7 +37,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   class ResultCollector
   {
     val entityMap = new mutable.HashMap[E, Boolean]
-    val states = new mutable.HashSet[String]
+    val states = new mutable.HashSet[ShlurdWord]
   }
 
   def fail(msg : String) = world.fail(msg)
@@ -309,7 +309,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       entity => {
         world.resolveProperty(entity, state.lemma) match {
           case Success(property) => {
-            resultCollector.states += state.lemma
+            resultCollector.states += ShlurdWord(
+              property.getStates()(state.lemma), state.lemma)
             world.evaluateEntityPropertyPredicate(
               entity, property, state.lemma)
           }

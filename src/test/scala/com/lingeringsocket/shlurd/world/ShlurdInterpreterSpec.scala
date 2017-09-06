@@ -126,17 +126,22 @@ class ShlurdInterpreterSpec extends Specification
 
     "interpret commands" in
     {
+      val awake = ShlurdWord("awake", "awake")
       interpretCommandExpected(
         "awake the lion",
-        ShlurdStateChangeInvocation(Set(ZooLion), "awake"))
+        ShlurdStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the lion and the tiger",
-        ShlurdStateChangeInvocation(Set(ZooLion), "awake"))
+        ShlurdStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the polar bear and the lion",
-        ShlurdStateChangeInvocation(Set(ZooLion, ZooPolarBear), "awake"))
+        ShlurdStateChangeInvocation(Set(ZooLion, ZooPolarBear), awake))
       interpret("awake the tiger") must be equalTo(
         "But it already is.")
+      interpretCommandExpected("asleep the tiger",
+        ShlurdStateChangeInvocation(
+          Set(ZooTiger),
+          ShlurdWord("sleepify", "asleep")))
     }
   }
 
@@ -153,6 +158,12 @@ class ShlurdInterpreterSpec extends Specification
   object ZooPeacock extends ZooAnimalEntity("peacock")
 
   object ZooAnimalSleepinessProperty extends ShlurdProperty
+  {
+    override def getStates : Map[String, String] = Map(
+      "awake" -> "awake",
+      "asleep" -> "sleepify"
+    )
+  }
 
   sealed case class ZooAnimalSleepiness(name : String) extends NamedObject
   object ZooAnimalAwake extends ZooAnimalSleepiness("awake")

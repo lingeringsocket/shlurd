@@ -59,8 +59,8 @@ class ShlurdPlatonicWorldSpec extends Specification
       property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 2
-      states must contain("open")
-      states must contain("close")
+      states must contain("open" -> "open")
+      states must contain("close" -> "closed")
       addBelief("a door may be open")
       property.getStates.size must be equalTo 2
     }
@@ -76,9 +76,9 @@ class ShlurdPlatonicWorldSpec extends Specification
       property.isClosed must beFalse
       val states = property.getStates
       states.size must be equalTo 3
-      states must contain("open")
-      states must contain("close")
-      states must contain("ajar")
+      states must contain("open" -> "open")
+      states must contain("close" -> "closed")
+      states must contain("ajar" -> "ajar")
     }
 
     "understand singleton property state" in
@@ -91,7 +91,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 1
-      states must contain("close")
+      states must contain("close" -> "closed")
     }
 
     "understand qualified references" in
@@ -118,8 +118,8 @@ class ShlurdPlatonicWorldSpec extends Specification
       property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 2
-      states must contain("on")
-      states must contain("off")
+      states must contain("on" -> "on")
+      states must contain("off" -> "off")
     }
 
     "reject contradictory belief" in

@@ -31,6 +31,8 @@ trait ShlurdEntity
 
 trait ShlurdProperty
 {
+  // lemma -> inflected
+  def getStates() : Map[String, String]
 }
 
 trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
@@ -69,11 +71,11 @@ class ShlurdPlatonicProperty(val name : String)
     extends ShlurdProperty with ShlurdNamedObject
 {
   private[world] val states =
-    new mutable.HashSet[String]
+    new mutable.HashMap[String, String]
 
   private var closed : Boolean = false
 
-  def getStates : Set[String] = states
+  override def getStates : Map[String, String] = states
 
   def isClosed = closed
 
@@ -84,7 +86,7 @@ class ShlurdPlatonicProperty(val name : String)
 
   def instantiateState(word : ShlurdWord)
   {
-    states += word.lemma
+    states.put(word.lemma, word.inflected)
   }
 }
 
@@ -290,7 +292,7 @@ class ShlurdPlatonicWorld
       }
     }
     if (property.isClosed) {
-      if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates)) {
+      if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates.keySet)) {
         throw new ContradictoryBelief(sentence)
       }
     } else {
