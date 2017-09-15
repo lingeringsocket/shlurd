@@ -42,6 +42,10 @@ class ShlurdParserSpec extends Specification
 
   private val STATE_HUNGRY = word("hungry")
 
+  private val STATE_ON = word("on")
+
+  private val STATE_OFF = word("off")
+
   private val QUALIFIER_FRONT = word("front")
 
   private def word(s : String) = ShlurdWord(s, s)
@@ -142,6 +146,18 @@ class ShlurdParserSpec extends Specification
       parse(question) must be equalTo
         ShlurdPredicateSentence(
           predDoor(STATE_CLOSED), MOOD_INTERROGATIVE_POSITIVE)
+    }
+
+    "parse prepositional verbs" in
+    {
+      parse("turn the door on") must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_ON))
+      parse("turn on the door") must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_ON))
+      parse("turn the door off") must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_OFF))
+      parse("turn off the door") must be equalTo
+        ShlurdStateChangeCommand(predDoor(STATE_OFF))
     }
 
     "parse adverbial state" in

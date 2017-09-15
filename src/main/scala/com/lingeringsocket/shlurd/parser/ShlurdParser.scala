@@ -57,6 +57,39 @@ class ShlurdSingleParser(
     hasLabel(pt, "MD")
   }
 
+  private def isParticle(pt : Tree) : Boolean =
+  {
+    hasLabel(pt, "PRT") || hasLabel(pt, "RP") ||
+      (hasLabel(pt, "PP") && (pt.numChildren == 1))
+  }
+
+  private def expectParticle(pt : Tree) : Option[ShlurdWord] =
+  {
+    getLabel(pt) match {
+      case "PP" | "PRT" => Some(getWord(pt.firstChild.firstChild))
+      case "RP" => Some(getWord(pt.firstChild))
+      case _ => None
+    }
+  }
+
+  private def extractParticle(seq : Seq[Tree])
+      : (Option[ShlurdWord], Seq[Tree]) =
+  {
+    seq.indexWhere(isParticle(_)) match {
+      case -1 => {
+        val pp = seq.last
+        if (isPrepositionalPhrase(pp)) {
+          (expectParticle(pp), seq.dropRight(1) ++ pp.children.drop(1))
+        } else {
+          (None, seq)
+        }
+      }
+      case i => {
+        (expectParticle(seq(i)), seq.patch(i, Seq.empty, 1))
+      }
+    }
+  }
+
   private def isParticipleOrGerund(verbal : Tree) : Boolean =
   {
     getLabel(verbal) match {
@@ -82,6 +115,11 @@ class ShlurdSingleParser(
   private def isVerbPhrase(vp : Tree) : Boolean =
   {
     hasLabel(vp, "VP")
+  }
+
+  private def isPrepositionalPhrase(pp : Tree) : Boolean =
+  {
+    hasLabel(pp, "PP")
   }
 
   private def isNoun(pt : Tree) : Boolean =
@@ -336,9 +374,14 @@ class ShlurdSingleParser(
 
   private def expectCommand(vp : Tree, formality : ShlurdFormality) =
   {
-    if (vp.numChildren == 2) {
-      val state = expectPropertyState(vp.firstChild)
-      val subject = expectReference(vp.lastChild)
+    val (particle, seq) = extractParticle(vp.children)
+    if (seq.size == 2) {
+      val state = particle match {
+        // FIXME:  restrict verb pairing when particle is present
+        case Some(word) => ShlurdPropertyState(word)
+        case _ => expectPropertyState(seq.head)
+      }
+      val subject = expectReference(seq.last)
       ShlurdStateChangeCommand(
         ShlurdStatePredicate(subject, state),
         formality)
