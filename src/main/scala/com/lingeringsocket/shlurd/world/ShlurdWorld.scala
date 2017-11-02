@@ -20,6 +20,8 @@ import scala.io._
 import scala.util._
 import scala.collection._
 
+import spire.math._
+
 sealed trait ShlurdReferenceContext
 case object REF_SUBJECT extends ShlurdReferenceContext
 case object REF_LOCATION extends ShlurdReferenceContext
@@ -51,12 +53,12 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
   def evaluateEntityPropertyPredicate(
     entity : E,
     property : P,
-    lemma : String) : Try[Boolean]
+    lemma : String) : Try[Trilean]
 
   def evaluateEntityLocationPredicate(
     entity : E,
     location : E,
-    locative : ShlurdLocative) : Try[Boolean]
+    locative : ShlurdLocative) : Try[Trilean]
 
   def qualifierSet(qualifiers : Seq[ShlurdWord]) =
     qualifiers.map(_.lemma).toSet
@@ -332,7 +334,7 @@ class ShlurdPlatonicWorld
   override def evaluateEntityPropertyPredicate(
     entity : ShlurdPlatonicEntity,
     property : ShlurdPlatonicProperty,
-    lemma : String) : Try[Boolean] =
+    lemma : String) : Try[Trilean] =
   {
     fail("FIXME")
   }
@@ -340,7 +342,7 @@ class ShlurdPlatonicWorld
   override def evaluateEntityLocationPredicate(
     entity : ShlurdPlatonicEntity,
     location : ShlurdPlatonicEntity,
-    locative : ShlurdLocative) : Try[Boolean] =
+    locative : ShlurdLocative) : Try[Trilean] =
   {
     fail("FIXME")
   }

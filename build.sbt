@@ -20,6 +20,7 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-core" % "3.8.5" % "test",
   "org.slf4j" % "slf4j-simple" % "1.7.25",
   "com.googlecode.kiama" %% "kiama" % "1.8.0",
+  "org.typelevel" %% "spire" % "0.14.1",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0" classifier "models"
 )

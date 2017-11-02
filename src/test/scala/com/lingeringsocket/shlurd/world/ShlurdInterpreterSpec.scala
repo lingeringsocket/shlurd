@@ -18,6 +18,8 @@ import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 
+import spire.math._
+
 import scala.collection._
 import scala.util._
 
@@ -110,6 +112,20 @@ class ShlurdInterpreterSpec extends Specification
         "No, all bears are not asleep.")
       interpret("is there an aardvark") must be equalTo(
         "I don't know about this animal: aardvark")
+      interpret("is the sloth awake") must be equalTo(
+        "I don't know.")
+      // FIXME:  better would be something like
+      // "Yes, I'm not sure about the sloth, but the tiger is awake."
+      interpret("is the sloth or the tiger awake") must be equalTo(
+        "Yes, the sloth or the tiger is awake.")
+      interpret("is the sloth or the tiger asleep") must be equalTo(
+        "I don't know.")
+      interpret("is the sloth or the lion awake") must be equalTo(
+        "I don't know.")
+      // FIXME:  better would be something like
+      // "Yes, I'm not sure about the sloth, but the lion is asleep."
+      interpret("is the sloth or the lion asleep") must be equalTo(
+        "Yes, the sloth or the lion is asleep.")
     }
 
     "interpret statements" in
@@ -155,6 +171,7 @@ class ShlurdInterpreterSpec extends Specification
   object ZooTiger extends ZooAnimalEntity("tiger")
   object ZooPolarBear extends ZooAnimalEntity("polar bear")
   object ZooGrizzlyBear extends ZooAnimalEntity("grizzly bear")
+  object ZooSloth extends ZooAnimalEntity("sloth")
   object ZooPeacock extends ZooAnimalEntity("peacock")
 
   object ZooAnimalSleepinessProperty extends ShlurdProperty
@@ -175,15 +192,19 @@ class ShlurdInterpreterSpec extends Specification
       Map(set.map(x => (x.name, x)).toSeq:_*)
 
     private val animals =
-      index(Set(ZooLion, ZooTiger, ZooPolarBear, ZooGrizzlyBear, ZooPeacock))
+      index(Set(ZooLion, ZooTiger, ZooPolarBear,
+        ZooGrizzlyBear, ZooSloth, ZooPeacock))
 
     private val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
 
     // if an animal doesn't appear here, we don't have one at the
     // zoo
-    private val asleep =
-      Map(ZooLion -> true, ZooTiger -> false, ZooPolarBear -> true,
-        ZooGrizzlyBear -> false)
+    private val asleep = Map(
+      ZooLion -> Trilean.True,
+      ZooTiger -> Trilean.False,
+      ZooPolarBear -> Trilean.True,
+      ZooGrizzlyBear -> Trilean.False,
+      ZooSloth -> Trilean.Unknown)
 
     override def resolveEntity(
       lemma : String,
