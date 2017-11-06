@@ -1,12 +1,11 @@
 #!/bin/bash
 
 SRC_DIR=`dirname "$BASH_SOURCE"`/../..
-TARGET_DIR=/home/jvs/tmp/bundles
+TARGET_DIR=$(readlink -f "${SRC_DIR}/osgi/staging")
 
 set -e
 
-rm -rf ${TARGET_DIR}
-mkdir -p ${TARGET_DIR}
+rm -f ${TARGET_DIR}/*.jar
 pushd ${SRC_DIR}
 
 sbt clean publish-local

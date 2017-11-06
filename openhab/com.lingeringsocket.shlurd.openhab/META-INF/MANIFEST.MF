@@ -1,0 +1,29 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: SHLURD HLI Service
+Bundle-SymbolicName: com.lingeringsocket.shlurd.openhab;singleton:=true
+Bundle-Vendor: openHAB
+Bundle-Version: 2.2.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Import-Package: 
+ scala,
+ scala.io,
+ scala.util,
+ scala.collection,
+ scala.collection.convert,
+ scala.collection.mutable,
+ spire.math,
+ com.lingeringsocket.shlurd.world,
+ com.lingeringsocket.shlurd.parser,
+ org.eclipse.jdt.annotation;resolution:=optional,
+ org.eclipse.smarthome.config.core,
+ org.eclipse.smarthome.core.events,
+ org.eclipse.smarthome.core.items,
+ org.eclipse.smarthome.core.items.events,
+ org.eclipse.smarthome.core.types,
+ org.eclipse.smarthome.core.library.types,
+ org.eclipse.smarthome.core.voice.text,
+ org.osgi.framework,
+ org.slf4j
+Service-Component: OSGI-INF/*.xml
+Bundle-ActivationPolicy: lazy
