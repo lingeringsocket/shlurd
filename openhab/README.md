@@ -19,6 +19,7 @@
 1. select **openHAB Target Platform (Active)**
 1. **Edit...**, **Add...**, **Directory**, **Next**
 1. navigate to location where you already built the OSGI bundles, e.g. **/home/jvs/open/shlurd/osgi/staging**
+1. **OK**
 1. **Finish**
 1. **Finish**
 1. **Apply and Close**
