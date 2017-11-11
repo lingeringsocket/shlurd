@@ -1,5 +1,7 @@
 # Eclipse Build
 
+*(these instructions are for the Oxygen release of Eclipse)*
+
 ## Import project into Eclipse
 
 1. In **Package Explorer**, select **Runtime**
@@ -18,7 +20,7 @@
 1. **Edit...**, **Add...**, **Directory**, **Next**
 1. navigate to location where you already built the OSGI bundles, e.g. **/home/jvs/open/shlurd/osgi/staging**
 1. **Finish**
-1. **Finish*
+1. **Finish**
 1. **Apply and Close**
 1. *(after rebuild, all errors should clear up now)*
 
