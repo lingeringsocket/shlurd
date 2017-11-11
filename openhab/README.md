@@ -8,7 +8,7 @@
 1. Context menu **Import...**
 1. Under **General**, select **Existing Projects into Workspace**
 1. **Next**
-1. Browse to root directory, e.g. **/home/jvs/open/shlurd/openhab/com.lingeringsocket.shlurd.openhab**
+1. Browse to root directory, e.g. `/home/jvs/open/shlurd/openhab/com.lingeringsocket.shlurd.openhab`
 1. **OK**, **Finish**
 1. *you will get build errors; this is expected until you add the necessary bundles in the next step*
 
@@ -18,7 +18,7 @@
 1. Under **Plug-in Development**, select **Target Platform**
 1. select **openHAB Target Platform (Active)**
 1. **Edit...**, **Add...**, **Directory**, **Next**
-1. navigate to location where you already built the OSGI bundles, e.g. **/home/jvs/open/shlurd/osgi/staging**
+1. navigate to location where you already built the OSGI bundles, e.g. `/home/jvs/open/shlurd/osgi/staging`
 1. **OK**
 1. **Finish**
 1. **Finish**
@@ -48,3 +48,14 @@
 1. **Save**
 1. Back in Eclipse runtime console, type `smarthome voice interpret are any doors open`
 1. You should see a response such as `Yes, some doors are open`
+
+## Build Plugin JAR
+
+1. In **Package Explorer**, select **com.lingeringsocket.shlurd.openhab** under **Runtime**
+1. Context menu **Export > Java > JAR File**
+1. **Next**
+1. Fill in export destination, e.g. `/home/jvs/open/shlurd/osgi/staging/shlurd-openhab.jar`
+1. **Next, Next** (do NOT click **Finish** yet)
+1. Select **Use existing manifest from workspace** and browse to `META-INF/MANIFEST.MF` under **com.lingeringsocket.shlurd.openhab**
+1. **OK**
+1. **Finish**
