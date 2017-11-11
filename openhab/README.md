@@ -44,5 +44,7 @@
 1. Select **Paper UI**
 1. **Configuration > System**
 1. Scroll down to **Voice** section
-1. For **Default Human Language Interpeter**, switch to SHLURD
-1. Back in Eclipse runtime console, type `smarthome voice interpret are any lights on`
+1. For **Default Human Language Interpeter**, switch to **SHLURD-based Interpreter**
+1. **Save**
+1. Back in Eclipse runtime console, type `smarthome voice interpret are any doors open`
+1. You should see a response such as `Yes, some doors are open`
