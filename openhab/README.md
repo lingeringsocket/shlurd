@@ -28,9 +28,20 @@
 
 1. In **Package Explorer**, select **openHAB_Runtime.launch** under **Infrastructure**
 1. Context menu **Run As > Run Configurations**
-1. Selct **Plug-Ins** tab
+1. Select **Plug-Ins** tab
 1. Under **Workspace**, check **com.lingeringsocket.shlurd.openhab**
 1. Under **Target Platform**, uncheck **com.google.guava(15.0xxx)**
 1. **Add Required Plug-ins**
 1. **Validate Plug-ins**
 1. **Apply**
+
+## Try It Out
+1. In **Package Explorer**, select **openHAB_Runtime.launch** under **Infrastructure**
+1. Context menu **Run As > openHAB_Runtime**
+1. After console shows startup complete, browse to http://localhost:8080
+1. Select **Standard** setup
+1. Select **Paper UI**
+1. **Configuration > System**
+1. Scroll down to **Voice** section
+1. For **Default Human Language Interpeter**, switch to SHLURD
+1. Back in Eclipse runtime console, type `smarthome voice interpret are any lights on`
