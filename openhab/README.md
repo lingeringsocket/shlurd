@@ -35,8 +35,8 @@
 1. Context menu **Run As > Run Configurations**
 1. Select **Plug-Ins** tab
 1. Under **Workspace**, check **com.lingeringsocket.shlurd.openhab**
-1. Under **Target Platform**, uncheck **com.google.guava(15.0xxx)**
 1. **Add Required Plug-ins**
+1. Under **Target Platform**, uncheck **com.google.guava(15.0xxx)** and **javax.xml.bind**
 1. **Validate Plug-ins**
 1. **Apply**
 
