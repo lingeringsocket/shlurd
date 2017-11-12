@@ -2,6 +2,10 @@
 
 *(these instructions are for the Oxygen release of Eclipse)*
 
+## Prerequisites
+
+1. [Eclipse set up for OpenHab 2 development](http://docs.openhab.org/developers/development/ide.html)
+
 ## Import project into Eclipse
 
 1. In **Package Explorer**, select **Runtime**
