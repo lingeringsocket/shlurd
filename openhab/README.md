@@ -1,3 +1,13 @@
+# Deploy
+
+1. Unzip all jars directly into your openhab `addons` directory (e.g. `/usr/share/openhab2/addons`)
+
+(If instead you want to keep the SHLURD bundles in a subdirectory of `addons`, you need to change the `felix.fileinstall.subdir.mode` property to `recurse` in `/var/lib/openhab2/etc/org.apache.felix.fileinstall-deply.cfg`, or something like that.)
+
+# Undeploy
+
+1. Remove all jars from your addons directory
+
 # Eclipse Build
 
 *(these instructions are for the Oxygen release of Eclipse)*
@@ -64,3 +74,5 @@
 1. Select **Use existing manifest from workspace** and browse to `META-INF/MANIFEST.MF` under **com.lingeringsocket.shlurd.openhab**
 1. **OK**
 1. **Finish**
+
+Now you can test it by copying the exported jar to the `addons` directory of a deployed OpenHAB service.
