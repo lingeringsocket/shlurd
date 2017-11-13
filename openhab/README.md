@@ -5,6 +5,7 @@
 ## Prerequisites
 
 1. [Eclipse set up for OpenHab 2 development](http://docs.openhab.org/developers/development/ide.html)
+1. [OSGI bundles for SHLURD staged locally](../osgi/README.md)
 
 ## Import project into Eclipse
 
@@ -16,13 +17,13 @@
 1. **OK**, **Finish**
 1. *you will get build errors; this is expected until you add the necessary bundles in the next step*
 
-## Add SHLURD bundles to target platform
+## Add OSGI bundles for SHLURD to target platform
 
 1. Top menu **Window > Preferences**
 1. Under **Plug-in Development**, select **Target Platform**
 1. select **openHAB Target Platform (Active)**
 1. **Edit...**, **Add...**, **Directory**, **Next**
-1. navigate to location where you already built the OSGI bundles, e.g. `/home/jvs/open/shlurd/osgi/staging`
+1. navigate to location where you already staged the OSGI bundles, e.g. `/home/jvs/open/shlurd/osgi/staging`
 1. **OK**
 1. **Finish**
 1. **Finish**
