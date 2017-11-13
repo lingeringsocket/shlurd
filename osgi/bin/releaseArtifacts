@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+SRC_DIR=$(dirname "$BASH_SOURCE")/../..
+STAGING_DIR=$(readlink -f "${SRC_DIR}/osgi/staging")
+GIT_HASH=$(git rev-parse --short HEAD)
+ZIP_FILE=shlurd-openhab-${GIT_HASH}.zip
+
+pushd ${STAGING_DIR}
+
+rm -f ${ZIP_FILE}
+zip -0 ${ZIP_FILE} *.jar
+scp ${ZIP_FILE} jvs@lingeringsocket.com:/var/www/html/com.lingeringsocket.shlurd.openhab
+
+popd
