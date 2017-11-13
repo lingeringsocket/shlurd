@@ -19,13 +19,32 @@ As an alternative, you can configure the same setting via a configuration file; 
 
 # Try It Out
 
-In order to really speak with OpenHAB, you need to set up speech recognition and generation services, as described in [the OpenHAB multimedia docs](http://docs.openhab.org/configuration/multimedia.html).
+In order to really speak with OpenHAB, you need to set up audio source/sink and speech recognition/generation services, as described in [the OpenHAB multimedia docs](http://docs.openhab.org/configuration/multimedia.html).
 
 You can also use a text interface via [the OpenHAB console](http://docs.openhab.org/administration/console.html).  Try something like:
 
     smarthome:voice interpret are any doors open?
     
 You should get a response such as `Yes, some doors are open.`
+
+# Android
+
+If you want to use your Android phone to send voice commands, add this to your items file:
+
+    String VoiceCommand "Voice Command"                                             
+                                                                                
+ And then this to your rules file:
+
+    rule InterpretVoice                                                             
+    when                                                                            
+      Item VoiceCommand received command                                            
+    then                                                                            
+      var String command = VoiceCommand.state.toString                              
+      var String result = interpret(command, "shlurdhli")                           
+      say(result)                                                                   
+    end                                                                             
+
+This forwarding is necessary because the Android app ignores the setting for **Default Human Language Interpreter**.
 
 # Eclipse Build
 
