@@ -1,12 +1,19 @@
 # Deploy
 
+1. Get the latest release archive from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab)
 1. Unzip all jars directly into your openhab `addons` directory (e.g. `/usr/share/openhab2/addons`)
 
-(If instead you want to keep the SHLURD bundles in a subdirectory of `addons`, you need to change the `felix.fileinstall.subdir.mode` property to `recurse` in `/var/lib/openhab2/etc/org.apache.felix.fileinstall-deply.cfg`, or something like that.)
+(If instead you want to keep the SHLURD bundles in a subdirectory of `addons`, so that you can undeploy easily be removing that subdirectory, then you need to change the `felix.fileinstall.subdir.mode` property to `recurse` in `/var/lib/openhab2/etc/org.apache.felix.fileinstall-deply.cfg`, or something like that.)
 
-# Undeploy
+# Configure
 
-1. Remove all jars from your addons directory
+1. Browse to http://localhost:8080
+1. Select **Standard** setup
+1. Select **Paper UI**
+1. **Configuration > System**
+1. Scroll down to **Voice** section
+1. For **Default Human Language Interpeter**, switch to **SHLURD-based Interpreter**
+1. **Save**
 
 # Eclipse Build
 
