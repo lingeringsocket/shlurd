@@ -17,6 +17,16 @@ If instead you want to keep the SHLURD bundles in a subdirectory of `addons`, so
 
 As an alternative, you can configure the same setting via a configuration file; edit `runtime.cfg` (maybe in `/etc/openhab2/services`) and change `org.eclipse.smarthome.voice:defaultHLI` to `shlurdhli`
 
+# Try It Out
+
+In order to really speak with OpenHAB, you need to set up speech recognition and generation services, as described in [the OpenHAB multimedia docs](http://docs.openhab.org/configuration/multimedia.html).
+
+You can also use a text interface via [the OpenHAB console](http://docs.openhab.org/administration/console.html).  Try something like:
+
+    smarthome:voice interpret are any doors open?
+    
+You should get a response such as `Yes, some doors are open.`
+
 # Eclipse Build
 
 *(these instructions are for the Oxygen release of Eclipse)*
