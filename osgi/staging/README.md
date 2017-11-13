@@ -1,1 +1,1 @@
-OSGI bundle jars are collected here for deployment.
+OSGI bundle jars are collected here in preparation for deployment.

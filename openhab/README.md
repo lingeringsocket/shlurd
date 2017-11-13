@@ -1,3 +1,20 @@
+# Deploy
+
+1. Get the latest release archive from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab)
+1. Unzip all jars directly into your openhab `addons` directory (e.g. `/usr/share/openhab2/addons`)
+
+(If instead you want to keep the SHLURD bundles in a subdirectory of `addons`, so that you can undeploy easily be removing that subdirectory, then you need to change the `felix.fileinstall.subdir.mode` property to `recurse` in `/var/lib/openhab2/etc/org.apache.felix.fileinstall-deply.cfg`, or something like that.)
+
+# Configure
+
+1. Browse to http://localhost:8080
+1. Select **Standard** setup
+1. Select **Paper UI**
+1. **Configuration > System**
+1. Scroll down to **Voice** section
+1. For **Default Human Language Interpeter**, switch to **SHLURD-based Interpreter**
+1. **Save**
+
 # Eclipse Build
 
 *(these instructions are for the Oxygen release of Eclipse)*
@@ -5,6 +22,7 @@
 ## Prerequisites
 
 1. [Eclipse set up for OpenHab 2 development](http://docs.openhab.org/developers/development/ide.html)
+1. [OSGI bundles for SHLURD staged locally](../osgi/README.md)
 
 ## Import project into Eclipse
 
@@ -16,13 +34,13 @@
 1. **OK**, **Finish**
 1. *you will get build errors; this is expected until you add the necessary bundles in the next step*
 
-## Add SHLURD bundles to target platform
+## Add OSGI bundles for SHLURD to target platform
 
 1. Top menu **Window > Preferences**
 1. Under **Plug-in Development**, select **Target Platform**
 1. select **openHAB Target Platform (Active)**
 1. **Edit...**, **Add...**, **Directory**, **Next**
-1. navigate to location where you already built the OSGI bundles, e.g. `/home/jvs/open/shlurd/osgi/staging`
+1. navigate to location where you already staged the OSGI bundles, e.g. `/home/jvs/open/shlurd/osgi/staging`
 1. **OK**
 1. **Finish**
 1. **Finish**
@@ -63,3 +81,5 @@
 1. Select **Use existing manifest from workspace** and browse to `META-INF/MANIFEST.MF` under **com.lingeringsocket.shlurd.openhab**
 1. **OK**
 1. **Finish**
+
+Now you can test it by copying the exported jar to the `addons` directory of a deployed OpenHAB service.
