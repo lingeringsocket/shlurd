@@ -65,8 +65,11 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
 
     private final Locale supportedLocale = Locale.ENGLISH;
 
-    private final ShlurdPlatonicWorld world =
-        new ShlurdPlatonicWorld() {
+    private ShlurdPlatonicWorld world = null;
+
+    private void createWorld()
+    {
+        world = new ShlurdPlatonicWorld() {
             @Override
             public scala.util.Try<scala.collection.Set<ShlurdPlatonicEntity>> resolveEntity(
                 String lemma,
@@ -129,6 +132,7 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
                 }
             }
         };
+    }
 
     @Override
     public void setItemRegistry(ItemRegistry itemRegistry) {
@@ -168,6 +172,7 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
     }
 
     protected void modified(Map<String, Object> config) {
+        createWorld();
         String beliefFile = (String) config.get(BELIEF_FILE_KEY);
         String encoding = "UTF-8";
         if (beliefFile == null) {
@@ -196,6 +201,9 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
         if (!supportedLocale.getLanguage().equals(locale.getLanguage())) {
             throw new InterpretationException(
                 locale.getDisplayLanguage(Locale.ENGLISH) + " is not supported at the moment.");
+        }
+        if (world == null) {
+            createWorld();
         }
         // FIXME:  add convenience method to avoid this atrocity
         // FIXME:  non-string commands?
