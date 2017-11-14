@@ -50,6 +50,18 @@ If you want to use your Android phone to send voice commands, add this to your i
 
 This forwarding is necessary because the Android app ignores the setting for **Default Human Language Interpreter**.
 
+# Customize
+
+1. Save your custom beliefs in a file, e.g. `/path/to/your/custom/beliefs.txt`
+1. Browse to **Paper UI**
+1. **Configuration > Services**
+1. **Voice**
+1. For **SHLURD Voice Interpreter**, click **Configure**
+1. Fill in the path to your custom beliefs file
+1. **Save**
+
+As an alternative, you can customize this setting via a configuration file; in `/etc/openhab2/services`, create a file `shlurdhli.cfg` with the line `org.openhab.shlurdhli:beliefFile=/path/to/your/custom/beliefs.txt`
+
 # Eclipse Build
 
 *(these instructions are for the Oxygen release of Eclipse)*
