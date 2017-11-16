@@ -73,12 +73,24 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, the tiger is awake.")
       interpret("is there a tiger") must be equalTo(
         "Yes, there is a tiger.")
+      interpret("is there any tiger") must be equalTo(
+        "Yes, there is a tiger.")
+      // FIXME:  for some reason, CoreNLP interprets this as
+      // a statement instead of a question
+      // interpret("are there any tigers")
+      interpret("is there any goat") must be equalTo(
+        "Yes, there is a domestic goat, a siberian goat, and a mountain goat.")
       interpret("is there a lion and a tiger") must be equalTo(
         "Yes, there is a lion and a tiger.")
       interpret("is there a lion or a peacock") must be equalTo(
-        "Yes, there is a lion or a peacock.")
+        "Yes, there is a lion.")
       interpret("is there a peacock") must be equalTo(
         "No, there is not a peacock.")
+      interpret("is there a hippogriff or a peacock") must be equalTo(
+        "No, there is neither a hippogriff nor a peacock.")
+      interpret("is there a hippogriff, a peacock, or a salamander") must
+        be equalTo(
+          "No, there is neither a hippogriff, a peacock, nor a salamander.")
       // FIXME:  improve response phrasing
       interpret("is there no peacock") must be equalTo(
         "Yes, there is no peacock.")
@@ -103,29 +115,50 @@ class ShlurdInterpreterSpec extends Specification
       interpret("is the bear asleep") must be equalTo(
         "I am not sure which bear you mean")
       interpret("is any bear asleep") must be equalTo(
-        "Yes, a bear is asleep.")
+        "Yes, the polar bear is asleep.")
       interpret("is some bear asleep") must be equalTo(
-        "Yes, some bear is asleep.")
+        "Yes, the polar bear is asleep.")
+      interpret("are the bears asleep") must be equalTo(
+        "No, the bears are not asleep.")
       interpret("are any bears asleep") must be equalTo(
-        "Yes, some bears are asleep.")
+        "Yes, the polar bear is asleep.")
       interpret("are all bears asleep") must be equalTo(
-        "No, all bears are not asleep.")
+        "No, the grizzly bear is not asleep.")
+      interpret("are all goats asleep") must be equalTo(
+        "Yes, all goats are asleep.")
+      // FIXME:  "are all asleep" would be better
+      interpret("are any goats asleep") must be equalTo(
+        "Yes, the domestic goat, the siberian goat, " +
+          "and the mountain goat are asleep.")
+      interpret("are any goats awake") must be equalTo(
+        "No, no goats are awake.")
+      interpret("are all goats awake") must be equalTo(
+        "No, neither the domestic goat, the siberian goat, nor the mountain goat is awake.")
       interpret("is there an aardvark") must be equalTo(
         "I don't know about this animal: aardvark")
       interpret("is the sloth awake") must be equalTo(
         "I don't know.")
-      // FIXME:  better would be something like
-      // "Yes, I'm not sure about the sloth, but the tiger is awake."
       interpret("is the sloth or the tiger awake") must be equalTo(
-        "Yes, the sloth or the tiger is awake.")
+        "Yes, the tiger is awake.")
+      interpret("is the lion or the polar bear awake") must be equalTo(
+        "No, neither the lion nor the polar bear is awake.")
+      // FIXME:  "are both awake" would be better
+      interpret("is the grizzly bear or the tiger awake") must be equalTo(
+        "Yes, the tiger and the grizzly bear are awake.")
       interpret("is the sloth or the tiger asleep") must be equalTo(
         "I don't know.")
       interpret("is the sloth or the lion awake") must be equalTo(
         "I don't know.")
-      // FIXME:  better would be something like
-      // "Yes, I'm not sure about the sloth, but the lion is asleep."
       interpret("is the sloth or the lion asleep") must be equalTo(
-        "Yes, the sloth or the lion is asleep.")
+        "Yes, the lion is asleep.")
+      interpret("are the tiger and the grizzly bear awake") must be equalTo(
+        "Yes, the tiger and the grizzly bear are awake.")
+      interpret("are the bears and the lion asleep") must be equalTo(
+        "No, the grizzly bear is not asleep.")
+      interpret("are the bears and the lion awake") must be equalTo(
+        "No, neither the lion nor the polar bear is awake.")
+      interpret("are the tiger and the lion asleep") must be equalTo(
+        "No, the tiger is not asleep.")
     }
 
     "interpret statements" in
@@ -138,6 +171,8 @@ class ShlurdInterpreterSpec extends Specification
         "Oh, really?")
       interpret("the tiger is awake") must be equalTo(
         "Right, the tiger is awake.")
+      interpret("the lion or the polar bear is awake") must be equalTo(
+        "Oh, really?")
     }
 
     "interpret commands" in
@@ -173,6 +208,11 @@ class ShlurdInterpreterSpec extends Specification
   object ZooGrizzlyBear extends ZooAnimalEntity("grizzly bear")
   object ZooSloth extends ZooAnimalEntity("sloth")
   object ZooPeacock extends ZooAnimalEntity("peacock")
+  object ZooHippogriff extends ZooAnimalEntity("hippogriff")
+  object ZooSalamander extends ZooAnimalEntity("salamander")
+  object ZooMountainGoat extends ZooAnimalEntity("mountain goat")
+  object ZooDomesticGoat extends ZooAnimalEntity("domestic goat")
+  object ZooSiberianGoat extends ZooAnimalEntity("siberian goat")
 
   object ZooAnimalSleepinessProperty extends ShlurdProperty
   {
@@ -193,7 +233,9 @@ class ShlurdInterpreterSpec extends Specification
 
     private val animals =
       index(Set(ZooLion, ZooTiger, ZooPolarBear,
-        ZooGrizzlyBear, ZooSloth, ZooPeacock))
+        ZooGrizzlyBear, ZooSloth,
+        ZooMountainGoat, ZooDomesticGoat, ZooSiberianGoat,
+        ZooPeacock, ZooHippogriff, ZooSalamander))
 
     private val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
 
@@ -204,6 +246,9 @@ class ShlurdInterpreterSpec extends Specification
       ZooTiger -> Trilean.False,
       ZooPolarBear -> Trilean.True,
       ZooGrizzlyBear -> Trilean.False,
+      ZooMountainGoat -> Trilean.True,
+      ZooDomesticGoat -> Trilean.True,
+      ZooSiberianGoat -> Trilean.True,
       ZooSloth -> Trilean.Unknown)
 
     override def resolveEntity(
@@ -234,6 +279,26 @@ class ShlurdInterpreterSpec extends Specification
           }
         }
         case _ => fail("I don't know about this entity: " + entity)
+      }
+    }
+
+    override def specificReference(
+      entity : ShlurdEntity,
+      determiner : ShlurdDeterminer) =
+    {
+      entity match {
+        case animal : ZooAnimalEntity => {
+          val words = animal.name.split(" ")
+          val entityReference = ShlurdEntityReference(
+            ShlurdWord(words.last, words.last), determiner)
+          if (words.size == 1) {
+            entityReference
+          } else {
+            ShlurdQualifiedReference(
+              entityReference, words.dropRight(1).map(q => ShlurdWord(q, q)))
+          }
+        }
+        case _ => ShlurdUnknownReference
       }
     }
 

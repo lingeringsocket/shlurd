@@ -60,6 +60,10 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
     location : E,
     locative : ShlurdLocative) : Try[Trilean]
 
+  def specificReference(
+    entity : E,
+    determiner : ShlurdDeterminer) : ShlurdReference
+
   def qualifierSet(qualifiers : Seq[ShlurdWord]) =
     qualifiers.map(_.lemma).toSet
 }
@@ -328,6 +332,21 @@ class ShlurdPlatonicWorld
     entity.form.properties.values.find(p => p.states.contains(lemma)) match {
       case Some(p) => Success(p)
       case _ => fail(s"unknown property $lemma")
+    }
+  }
+
+  override def specificReference(
+    entity : ShlurdPlatonicEntity,
+    determiner : ShlurdDeterminer) =
+  {
+    val formName = entity.form.name
+    val entityReference = ShlurdEntityReference(
+      ShlurdWord(formName, formName), determiner)
+    if (entity.qualifiers.isEmpty) {
+      entityReference
+    } else {
+      ShlurdQualifiedReference(
+        entityReference, entity.qualifiers.map(q => ShlurdWord(q, q)).toSeq)
     }
   }
 

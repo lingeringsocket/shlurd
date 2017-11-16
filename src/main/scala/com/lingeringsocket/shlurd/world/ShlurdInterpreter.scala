@@ -77,13 +77,18 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 "I don't know."
               }
               case Success(truth) => {
+                val truthBoolean = truth.assumeFalse
+                val (normalizedResponse, negateCollection) =
+                  normalizeResponse(
+                    predicate, resultCollector)
                 val responseMood = ShlurdIndicativeMood(
-                  truth.assumeFalse)
+                  truthBoolean || negateCollection)
                 sentencePrinter.sb.respondToAssumption(
-                  ASSUMED_TRUE, truth.assumeFalse,
+                  ASSUMED_TRUE, truthBoolean,
                   sentencePrinter.print(
                     ShlurdPredicateSentence(
-                      normalizeResponse(predicate), responseMood)),
+                      normalizedResponse,
+                      responseMood)),
                   false)
               }
               case Failure(e) => {
@@ -113,11 +118,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
               case Success(truth) => {
                 if (truth.assumeFalse == positivity) {
+                  val (normalizedResponse, negateCollection) =
+                    normalizeResponse(predicate, resultCollector)
+                  assert(!negateCollection)
                   sentencePrinter.sb.respondToAssumption(
                     ASSUMED_TRUE, true,
                     sentencePrinter.print(
                       ShlurdPredicateSentence(
-                        normalizeResponse(predicate), responseMood)),
+                        normalizedResponse,
+                        responseMood)),
                     true)
                 } else {
                   // FIXME:  add details on inconsistency, and maybe try
@@ -357,18 +366,123 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  private def normalizeResponse(predicate : ShlurdPredicate) =
+  // FIXME:  cutoff for maximum enumeration size before switching
+  // to summary form
+  private def normalizeResponse(
+    predicate : ShlurdPredicate,
+    resultCollector : ResultCollector)
+      : (ShlurdPredicate, Boolean) =
   {
-    val rewriteDeterminers =
-      Rewriter.rule[ShlurdPhrase] {
-        case ShlurdEntityReference(entity, DETERMINER_ANY, COUNT_SINGULAR) => {
-          ShlurdEntityReference(entity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+    var negateCollection = false
+    val entityDeterminer = predicate match {
+      case ShlurdStatePredicate(subject, ShlurdExistenceState()) => {
+        DETERMINER_NONSPECIFIC
+      }
+      case _ => {
+        DETERMINER_UNIQUE
+      }
+    }
+    def normalizeConjunctionWrapper(
+      separator : ShlurdSeparator,
+      allRef : => ShlurdReference) =
+    {
+      normalizeConjunction(
+        resultCollector, entityDeterminer, separator
+      ) match {
+        case Some(nc : ShlurdConjunctiveReference) => {
+          negateCollection = true
+          nc
         }
-        case ShlurdEntityReference(entity, DETERMINER_ANY, COUNT_PLURAL) => {
-          ShlurdEntityReference(entity, DETERMINER_SOME, COUNT_PLURAL)
+        case Some(nr) => {
+          nr
+        }
+        case _ => {
+          allRef
         }
       }
-    Rewriter.rewrite(
+    }
+    val rewriteDeterminers =
+      Rewriter.rule[ShlurdPhrase] {
+        case ShlurdEntityReference(
+          entity, DETERMINER_ANY | DETERMINER_SOME, count
+        ) => {
+          normalizeDisjunction(
+            resultCollector, entityDeterminer, SEPARATOR_OXFORD_COMMA).getOrElse
+          {
+            negateCollection = true
+            ShlurdEntityReference(entity, DETERMINER_NONE, count)
+          }
+        }
+        case ShlurdEntityReference(
+          entity, DETERMINER_ALL, count
+        ) => {
+          normalizeConjunctionWrapper(
+            SEPARATOR_OXFORD_COMMA,
+            ShlurdEntityReference(entity, DETERMINER_ALL, count))
+        }
+        case ShlurdConjunctiveReference(determiner, references, separator) => {
+          determiner match {
+            case DETERMINER_ANY => {
+              normalizeDisjunction(
+                resultCollector, entityDeterminer, separator).getOrElse
+              {
+                negateCollection = true
+                ShlurdConjunctiveReference(
+                  DETERMINER_NONE, references, separator)
+              }
+            }
+            case DETERMINER_ALL => {
+              normalizeConjunctionWrapper(
+                separator,
+                ShlurdConjunctiveReference(
+                  DETERMINER_ALL, references, separator))
+            }
+            case _ => {
+              ShlurdConjunctiveReference(determiner, references, separator)
+            }
+          }
+        }
+      }
+    val rewritten = Rewriter.rewrite(
       Rewriter.everywhere("rewriteDeterminers", rewriteDeterminers))(predicate)
+    (rewritten, negateCollection)
+  }
+
+  private def normalizeDisjunction(
+    resultCollector : ResultCollector, entityDeterminer : ShlurdDeterminer,
+    separator : ShlurdSeparator) : Option[ShlurdReference] =
+  {
+    val trueEntities = resultCollector.entityMap.filter(
+      _._2.assumeFalse).keySet
+    if (trueEntities.isEmpty) {
+      None
+    } else if (trueEntities.size == 1) {
+      Some(world.specificReference(trueEntities.head, entityDeterminer))
+    } else {
+      Some(ShlurdConjunctiveReference(
+        DETERMINER_ALL,
+        trueEntities.map(
+          world.specificReference(_, entityDeterminer)).toSeq,
+        separator))
+    }
+  }
+
+  private def normalizeConjunction(
+    resultCollector : ResultCollector, entityDeterminer : ShlurdDeterminer,
+    separator : ShlurdSeparator) : Option[ShlurdReference] =
+  {
+    val falseEntities = resultCollector.entityMap.filterNot(
+      _._2.assumeTrue).keySet
+    if (falseEntities.isEmpty) {
+      None
+    } else if (falseEntities.size == 1) {
+      Some(world.specificReference(falseEntities.head, entityDeterminer))
+    } else {
+      Some(ShlurdConjunctiveReference(
+        DETERMINER_NONE,
+        falseEntities.map(
+          world.specificReference(_, entityDeterminer)).toSeq,
+        separator))
+    }
   }
 }

@@ -101,17 +101,19 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
                             return new Object[][]{};
                         }
                     };
-                String [] labelFragments = new String[qualifiers.size() + 1];
-                labelFragments[0] = lemma;
-                qualifiers.copyToArray(labelFragments, 1);
+                String [] labelFragments = new String[qualifiers.size()];
+                qualifiers.copyToArray(labelFragments);
                 ArrayList<Item> items =
                     getMatchingItems(language, labelFragments, null);
                 scala.collection.mutable.Set<ShlurdPlatonicEntity> set =
                     new scala.collection.mutable.HashSet<>();
                 items.forEach(
-                    // FIXME:  qualifiers
-                    item -> set.add(new ShlurdPlatonicEntity(
-                            item.getName(), form, qualifiers)));
+                    item -> {
+                        if (item.getName().toLowerCase().contains(lemma)) {
+                            set.add(new ShlurdPlatonicEntity(
+                                    item.getName(), form, qualifiers));
+                        }
+                    });
                 return new scala.util.Success(set);
             }
 
