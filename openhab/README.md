@@ -77,7 +77,7 @@ As an alternative, you can customize this setting via a configuration file; in `
 1. Context menu **Import...**
 1. Under **General**, select **Existing Projects into Workspace**
 1. **Next**
-1. Browse to **com.lingeringsocket.shlurd.openhab** subdirectory of your git checkout, e.g. `/home/jvs/open/shlurd/openhab/com.lingeringsocket.shlurd.openhab`
+1. Browse to `com.lingeringsocket.shlurd.openhab` subdirectory of your git checkout, e.g. `/home/jvs/open/shlurd/openhab/com.lingeringsocket.shlurd.openhab`
 1. **OK**, **Finish**
 1. *you will get build errors; this is expected until you add the necessary bundles in the next step*
 
