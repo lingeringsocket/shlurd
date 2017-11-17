@@ -48,7 +48,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     // only holds for "요" politeness
     statePredicateStatement(subject, copula, complement)
   }
-  
+
   override def statePredicateCommand(subject : String, state : String) =
     compose(subject, state)
 
