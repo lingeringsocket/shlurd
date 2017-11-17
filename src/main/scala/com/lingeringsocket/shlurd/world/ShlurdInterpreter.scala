@@ -64,6 +64,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             "Okay, I will get right on that."
           }
           case Failure(e) => {
+            diagnostics(e)
             e.getMessage
           }
         }
@@ -92,6 +93,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   false)
               }
               case Failure(e) => {
+                diagnostics(e)
                 e.getMessage
               }
             }
@@ -136,6 +138,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
               case Failure(e) => {
                 // FIXME:  try to update state?
+                diagnostics(e)
                 e.getMessage
               }
             }
@@ -148,6 +151,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case ShlurdUnknownSentence => {
         "Sorry, I do not understand."
       }
+    }
+  }
+
+  private def diagnostics(t : Throwable)
+  {
+    if (false) {
+      t.printStackTrace
     }
   }
 

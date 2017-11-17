@@ -73,6 +73,21 @@ trait ShlurdNamedObject
   def name : String
 }
 
+class ShlurdSynonymMap
+{
+  private val map = new mutable.HashMap[String, String]
+
+  def addSynonym(synonym : String, fundamental : String)
+  {
+    map.put(synonym, fundamental)
+  }
+
+  def resolveSynonym(synonym : String) : String =
+  {
+    map.get(synonym).getOrElse(synonym)
+  }
+}
+
 class ShlurdPlatonicProperty(val name : String)
     extends ShlurdProperty with ShlurdNamedObject
 {
@@ -159,15 +174,19 @@ class ShlurdPlatonicWorld
   private val entities =
     new mutable.HashMap[String, ShlurdPlatonicEntity]
 
+  private val formSynonyms = new ShlurdSynonymMap
+
   private var nextId = 0
 
   def getForms : Map[String, ShlurdPlatonicForm] = forms
 
   def instantiateForm(word : ShlurdWord) =
   {
-    val name = word.lemma
+    val name = formSynonyms.resolveSynonym(word.lemma)
     forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
   }
+
+  def getFormSynonyms = formSynonyms
 
   private def hasQualifiers(
     existing : ShlurdPlatonicEntity,
@@ -192,7 +211,8 @@ class ShlurdPlatonicWorld
       throw new AmbiguousBelief(sentence)
     }
     val name =
-      (qualifierString ++ Seq(form.name, nextId.toString)).mkString("_")
+      (qualifierString.map(_.lemma) ++
+        Seq(form.name, nextId.toString)).mkString("_")
     nextId += 1
     val entity = new ShlurdPlatonicEntity(name, form, qualifiers)
     entities.put(name, entity)
@@ -230,29 +250,46 @@ class ShlurdPlatonicWorld
   def addBelief(sentence : ShlurdSentence)
   {
     sentence match {
-      case ShlurdPredicateSentence(
-        ShlurdStatePredicate(ref, state),
-        mood, formality) =>
-        {
-          if (mood.isNegative) {
-            // FIXME:  interpret this as a constraint
-            throw new IncomprehensibleBelief(sentence)
-          }
-          val (entity, qualifiers) = extractQualifiedEntity(
-            sentence, ref, Seq.empty)
-          val form = instantiateForm(entity)
-          state match {
-            case ShlurdExistenceState() => {
-              addExistenceBelief(sentence, form, qualifiers, mood)
-            }
-            case _ => {
-              addPropertyBelief(sentence, form, qualifiers, state, mood)
-            }
-          }
+      case ShlurdPredicateSentence(predicate, mood, formality) => {
+        if (mood.isNegative) {
+          // FIXME:  interpret this as a constraint
+          throw new IncomprehensibleBelief(sentence)
         }
-      case _ => {
-        throw new IncomprehensibleBelief(sentence)
+        predicate match {
+          case ShlurdStatePredicate(ref, state) => {
+            val (entity, qualifiers) = extractQualifiedEntity(
+              sentence, ref, Seq.empty)
+            val form = instantiateForm(entity)
+            state match {
+              case ShlurdExistenceState() => {
+                addExistenceBelief(sentence, form, qualifiers, mood)
+              }
+              case _ => {
+                addPropertyBelief(sentence, form, qualifiers, state, mood)
+              }
+            }
+          }
+          case ShlurdIdentityPredicate(subject, complement) => {
+            val (complementEntity, qualifiers) = extractQualifiedEntity(
+              sentence, complement, Seq.empty)
+            if (!qualifiers.isEmpty) {
+              throw new IncomprehensibleBelief(sentence)
+            }
+            val form = instantiateForm(complementEntity)
+            // FIXME:  cycle detection
+            subject match {
+              case ShlurdEntityReference(
+                subjectEntity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+              ) => {
+                formSynonyms.addSynonym(subjectEntity.lemma, form.name)
+              }
+              case _ => throw new IncomprehensibleBelief(sentence)
+            }
+          }
+          case _ => throw new IncomprehensibleBelief(sentence)
+        }
       }
+      case _ => throw new IncomprehensibleBelief(sentence)
     }
   }
 
@@ -314,7 +351,7 @@ class ShlurdPlatonicWorld
     context : ShlurdReferenceContext,
     qualifiers : Set[String]) =
   {
-    forms.get(lemma) match {
+    forms.get(formSynonyms.resolveSynonym(lemma)) match {
       case Some(form) => {
         Success(entities.values.filter(
           hasQualifiers(_, form, qualifiers, false)).toSet)

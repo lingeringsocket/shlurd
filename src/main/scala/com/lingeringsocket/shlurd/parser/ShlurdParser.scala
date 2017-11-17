@@ -652,7 +652,7 @@ class ShlurdSingleParser(
 
   private def expectPredicate(
     np : Tree, complement : Seq[Tree], label : String)
-      : (Boolean, ShlurdStatePredicate)=
+      : (Boolean, ShlurdPredicate) =
   {
     val (negative, seq) = extractNegative(complement)
     if (isExistential(np)) {
@@ -666,6 +666,11 @@ class ShlurdSingleParser(
         }
       }
       (negative, ShlurdStatePredicate(subject, ShlurdExistenceState()))
+    } else if (label == "NP") {
+      val identityPredicate = ShlurdIdentityPredicate(
+        expectReference(np),
+        expectReference(seq))
+      (negative, identityPredicate)
     } else {
       val subject = expectReference(np)
       val state = splitCoordinatingConjunction(seq) match {

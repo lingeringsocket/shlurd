@@ -26,8 +26,20 @@ class EnglishSentenceBundle
       // existential
       compose((copula ++ Seq(subject)):_*)
     } else {
-      compose((Seq(subject) ++ copula ++ Seq(state)):_*)
+      composePredicateStatement(subject, copula, state)
     }
+  }
+
+  override def identityPredicateStatement(
+    subject : String, copula : Seq[String], complement : String) =
+  {
+    composePredicateStatement(subject, copula, complement)
+  }
+
+  private def composePredicateStatement(
+    subject : String, copula : Seq[String], complement : String) =
+  {
+    compose((Seq(subject) ++ copula ++ Seq(complement)):_*)
   }
 
   override def statePredicateQuestion(
@@ -36,19 +48,31 @@ class EnglishSentenceBundle
     if (state.isEmpty) {
       compose((copula.take(2).reverse ++ copula.drop(2) ++ Seq(subject)):_*)
     } else {
-      val headSeq = Seq(copula.head)
-      val tailSeq = copula.drop(1)
-      copula.size match {
-        // "is Larry clumsy?"
-        case 1 =>
-          compose((headSeq ++ Seq(subject, state)):_*)
-        // "is Larry not clumsy?" or "must Larry be clumsy?"
-        case 2 =>
-          compose((headSeq ++ Seq(subject) ++ tailSeq ++ Seq(state)):_*)
-        // "must Larry not be clumsy?"
-        case _ =>
-          compose((headSeq ++ Seq(subject) ++ tailSeq ++ Seq(state)):_*)
-      }
+      composePredicateQuestion(subject, copula, state)
+    }
+  }
+
+  override def identityPredicateQuestion(
+    subject : String, copula : Seq[String], complement : String) =
+  {
+    composePredicateQuestion(subject, copula, complement)
+  }
+
+  private def composePredicateQuestion(
+    subject : String, copula : Seq[String], complement : String) =
+  {
+    val headSeq = Seq(copula.head)
+    val tailSeq = copula.drop(1)
+    copula.size match {
+      // "is Larry clumsy?"
+      case 1 =>
+        compose((headSeq ++ Seq(subject, complement)):_*)
+      // "is Larry not clumsy?" or "must Larry be clumsy?"
+      case 2 =>
+        compose((headSeq ++ Seq(subject) ++ tailSeq ++ Seq(complement)):_*)
+      // "must Larry not be clumsy?"
+      case _ =>
+        compose((headSeq ++ Seq(subject) ++ tailSeq ++ Seq(complement)):_*)
     }
   }
 
@@ -107,20 +131,6 @@ class EnglishSentenceBundle
       Seq("there") ++ seq
     } else {
       seq
-    }
-  }
-
-  override def determine(determiner : ShlurdDeterminer) =
-  {
-    determiner match {
-      case DETERMINER_UNSPECIFIED => ""
-      case DETERMINER_NONE => "no"
-      case DETERMINER_UNIQUE => "the"
-      // FIXME:  "a" vs "an"
-      case DETERMINER_NONSPECIFIC => "a"
-      case DETERMINER_ANY => "any"
-      case DETERMINER_SOME => "some"
-      case DETERMINER_ALL => "all"
     }
   }
 
@@ -262,9 +272,25 @@ class EnglishSentenceBundle
     compose(qualifiers, noun)
   }
 
-  override def determinedNoun(determiner : String, noun : String) =
+  override def determinedNoun(determiner : ShlurdDeterminer, noun : String) =
   {
-    compose(determiner, noun)
+    val determinerString = determiner match {
+      case DETERMINER_UNSPECIFIED => ""
+      case DETERMINER_NONE => "no"
+      case DETERMINER_UNIQUE => "the"
+      case DETERMINER_NONSPECIFIC => {
+        // FIXME:  in reality it can be a little more complicated...
+        if ("aeiou".contains(noun.head)) {
+          "an"
+        } else {
+          "a"
+        }
+      }
+      case DETERMINER_ANY => "any"
+      case DETERMINER_SOME => "some"
+      case DETERMINER_ALL => "all"
+    }
+    compose(determinerString, noun)
   }
 
   override def locationalNoun(

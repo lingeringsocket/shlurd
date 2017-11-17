@@ -28,6 +28,13 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     }
   }
 
+  override def identityPredicateStatement(
+    subject : String, copula : Seq[String], complement : String) =
+  {
+    // FIXME
+    compose((Seq(subject) ++ Seq(complement) ++ copula):_*)
+  }
+
   override def statePredicateQuestion(
     subject : String, copula : Seq[String], state : String) =
   {
@@ -35,6 +42,13 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     statePredicateStatement(subject, copula, state)
   }
 
+  override def identityPredicateQuestion(
+    subject : String, copula : Seq[String], complement : String) =
+  {
+    // only holds for "요" politeness
+    statePredicateStatement(subject, copula, complement)
+  }
+  
   override def statePredicateCommand(subject : String, state : String) =
     compose(subject, state)
 
@@ -63,16 +77,6 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
       case _ => {
         throw ShlurdSentenceUnprintable()
       }
-    }
-  }
-
-  override def determine(determiner : ShlurdDeterminer) =
-  {
-    determiner match {
-      case DETERMINER_NONE => throw ShlurdSentenceUnprintable()
-      case DETERMINER_ALL => "모든"
-      // FIXME:  sentence order is very much case-by-case
-      case _ => ""
     }
   }
 
@@ -143,9 +147,15 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(qualifiers, noun)
   }
 
-  override def determinedNoun(determiner : String, noun : String) =
+  override def determinedNoun(determiner : ShlurdDeterminer, noun : String) =
   {
-    compose(determiner, noun)
+    val determinerString = determiner match {
+      case DETERMINER_NONE => throw ShlurdSentenceUnprintable()
+      case DETERMINER_ALL => "모든"
+      // FIXME:  sentence order is very much case-by-case
+      case _ => ""
+    }
+    compose(determinerString, noun)
   }
 
   override def locationalNoun(

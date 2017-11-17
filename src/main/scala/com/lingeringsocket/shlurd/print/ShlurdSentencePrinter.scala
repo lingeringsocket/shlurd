@@ -57,7 +57,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     reference match {
       case ShlurdEntityReference(entity, determiner, count) => {
         sb.determinedNoun(
-          sb.determine(determiner),
+          determiner,
           sb.delemmatizeNoun(entity, count, inflection, conjoining))
       }
       case ShlurdPronounReference(person, gender, count, _) => {
@@ -78,7 +78,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sub match {
           case ShlurdEntityReference(entity, determiner, count) => {
             sb.determinedNoun(
-              sb.determine(determiner),
+              determiner,
               sb.qualifiedNoun(
                 qualifierString,
                 sb.delemmatizeNoun(entity, count, inflection, conjoining)))
@@ -162,6 +162,12 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           getCopula(subject, state, mood),
           print(state, mood, ShlurdConjoining.NONE))
       }
+      case ShlurdIdentityPredicate(subject, complement) => {
+        sb.identityPredicateStatement(
+          print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
+          getCopula(subject, ShlurdExistenceState(), mood),
+          print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
+      }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateStatement
       }
@@ -191,6 +197,12 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
           getCopula(subject, state, mood),
           print(state, mood, ShlurdConjoining.NONE))
+      }
+      case ShlurdIdentityPredicate(subject, complement) => {
+        sb.identityPredicateQuestion(
+          print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
+          getCopula(subject, ShlurdExistenceState(), mood),
+          print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
       }
       case ShlurdUnknownPredicate => {
         sb.unknownPredicateQuestion

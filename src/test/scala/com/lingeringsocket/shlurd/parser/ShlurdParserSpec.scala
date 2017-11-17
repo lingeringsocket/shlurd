@@ -20,6 +20,8 @@ class ShlurdParserSpec extends Specification
 {
   private val ENTITY_DOOR = word("door")
 
+  private val ENTITY_PORTAL = word("portal")
+
   private val ENTITY_WINDOW = word("window")
 
   private val ENTITY_DOORS = ShlurdWord("doors", "door")
@@ -73,7 +75,7 @@ class ShlurdParserSpec extends Specification
 
   "ShlurdParser" should
   {
-    "parse a statement" in
+    "parse a state predicate statement" in
     {
       val input = "the door is open"
       parse(input) must be equalTo
@@ -97,13 +99,13 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateSentence(predDoor(), MOOD_INDICATIVE_NEGATIVE)
     }
 
-    "parse a question" in
+    "parse a state predicate question" in
     {
       val input = "is the door open"
       parse(input) must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
       parse(input + "?") must be equalTo
-      ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse a negated question" in
@@ -112,7 +114,7 @@ class ShlurdParserSpec extends Specification
       parse(input) must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
       parse(input + "?") must be equalTo
-      ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
     }
 
     "parse a negated question with contraction" in
@@ -121,7 +123,7 @@ class ShlurdParserSpec extends Specification
       parse(input) must be equalTo
         ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
       parse(input + "?") must be equalTo
-      ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
     }
 
     "parse a command" in
@@ -135,6 +137,20 @@ class ShlurdParserSpec extends Specification
         ShlurdStateChangeCommand(predDoor(), ShlurdFormality(FORCE_EXCLAMATION))
       parse(input + "?") must be equalTo
         ShlurdStateChangeCommand(predDoor())
+    }
+
+    "parse an identity statement" in
+    {
+      val input = "a portal is a door"
+      parse(input) must be equalTo
+        ShlurdPredicateSentence(
+          ShlurdIdentityPredicate(
+            ShlurdEntityReference(
+              ENTITY_PORTAL, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            ShlurdEntityReference(
+              ENTITY_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+          )
+        )
     }
 
     "lemmatize correctly" in

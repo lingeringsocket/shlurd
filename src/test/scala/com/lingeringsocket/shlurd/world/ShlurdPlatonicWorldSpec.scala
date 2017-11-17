@@ -22,34 +22,34 @@ import scala.io._
 
 class ShlurdPlatonicWorldSpec extends Specification
 {
-  // world is mutable, so we need isolation
-  isolated
-
-  private val world = new ShlurdPlatonicWorld
-
-  private def addBelief(input : String) =
+  trait WorldContext extends NameSpace
   {
-    val sentence = ShlurdParser(input).parseOne
-    world.addBelief(sentence)
-  }
+    protected val world = new ShlurdPlatonicWorld
 
-  private def expectUniqueForm(name : String) =
-  {
-    val forms = world.getForms
-    forms.size must be equalTo 1
-    forms must have key name
-  }
+    protected def addBelief(input : String) =
+    {
+      val sentence = ShlurdParser(input).parseOne
+      world.addBelief(sentence)
+    }
 
-  private def expectDefaultProperty(form : ShlurdPlatonicForm) =
-  {
-    val properties = form.getProperties
-    properties.size must be equalTo 1
-    properties must have key(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+    protected def expectUniqueForm(name : String) =
+    {
+      val forms = world.getForms
+      forms.size must be equalTo 1
+      forms must have key name
+    }
+
+    protected def expectDefaultProperty(form : ShlurdPlatonicForm) =
+    {
+      val properties = form.getProperties
+      properties.size must be equalTo 1
+      properties must have key(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+    }
   }
 
   "ShlurdPlatonicWorld" should
   {
-    "understand closed property state enumeration" in
+    "understand closed property state enumeration" in new WorldContext
     {
       addBelief("a door must be either open or closed")
       expectUniqueForm("door")
@@ -65,7 +65,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       property.getStates.size must be equalTo 2
     }
 
-    "understand open property state enumeration" in
+    "understand open property state enumeration" in new WorldContext
     {
       addBelief("a door may be either open or closed")
       addBelief("a door may be ajar")
@@ -81,7 +81,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       states must contain("ajar" -> "ajar")
     }
 
-    "understand singleton property state" in
+    "understand singleton property state" in new WorldContext
     {
       addBelief("a door must be closed")
       expectUniqueForm("door")
@@ -94,7 +94,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       states must contain("close" -> "closed")
     }
 
-    "understand qualified references" in
+    "understand qualified references" in new WorldContext
     {
       addBelief("there is a front door")
       addBelief("there is a back door")
@@ -106,7 +106,19 @@ class ShlurdPlatonicWorldSpec extends Specification
       frontDoor must not be equalTo(backDoor)
     }
 
-    "load beliefs from a file" in
+    "accept synonyms" in new WorldContext
+    {
+      val synonyms = world.getFormSynonyms
+      addBelief("there is a front door")
+      synonyms.addSynonym("portal", "door")
+      synonyms.resolveSynonym("door") must be equalTo "door"
+      synonyms.resolveSynonym("portal") must be equalTo "door"
+      synonyms.resolveSynonym("gateway") must be equalTo "gateway"
+      val frontDoor = world.resolveEntity("portal", REF_SUBJECT, Set("front"))
+      frontDoor must beSuccessfulTry.which(_.size == 1)
+    }
+
+    "load beliefs from a file" in new WorldContext
     {
       val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")
       val source = Source.fromFile(file)
@@ -122,28 +134,28 @@ class ShlurdPlatonicWorldSpec extends Specification
       states must contain("off" -> "off")
     }
 
-    "reject contradictory belief" in
+    "reject contradictory belief" in new WorldContext
     {
       addBelief("a door must be open or closed")
       addBelief("a door may be ajar") must
         throwA[ShlurdPlatonicWorld.ContradictoryBelief]
     }
 
-    "reject ambiguous belief" in
+    "reject ambiguous belief" in new WorldContext
     {
       addBelief("there is a front door")
       addBelief("there is a door") must
         throwA[ShlurdPlatonicWorld.AmbiguousBelief]
     }
 
-    "reject another ambiguous belief" in
+    "reject another ambiguous belief" in new WorldContext
     {
       addBelief("there is a door")
       addBelief("there is a front door") must
         throwA[ShlurdPlatonicWorld.AmbiguousBelief]
     }
 
-    "reject beliefs it cannot understand" in
+    "reject beliefs it cannot understand" in new WorldContext
     {
       addBelief("a green door must be either open or closed") must
         throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]

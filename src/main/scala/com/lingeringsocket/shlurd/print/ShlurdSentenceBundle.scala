@@ -77,18 +77,26 @@ abstract class ShlurdSentenceBundle
     copula : Seq[String],
     state : String) : String
 
+  def identityPredicateStatement(
+    firstRef : String,
+    copula : Seq[String],
+    secondRef : String) : String
+
   def statePredicateQuestion(
     subject : String,
     copula : Seq[String],
     state : String) : String
+
+  def identityPredicateQuestion(
+    firstRef : String,
+    copula : Seq[String],
+    secondRef : String) : String
 
   def statePredicateCommand(subject : String, state : String) : String
 
   def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
     mood : ShlurdMood, isExistential : Boolean) : Seq[String]
-
-  def determine(determiner : ShlurdDeterminer) : String
 
   def position(locative : ShlurdLocative) : String
 
@@ -115,7 +123,7 @@ abstract class ShlurdSentenceBundle
 
   def qualifiedNoun(qualifiers : String, noun : String) : String
 
-  def determinedNoun(determiner : String, noun : String) : String
+  def determinedNoun(determiner : ShlurdDeterminer, noun : String) : String
 
   def locationalNoun(
     position : String, noun : String, conjoining : ShlurdConjoining) : String

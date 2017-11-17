@@ -1,0 +1,2 @@
+A service must be either up or down.
+A server is a service.
