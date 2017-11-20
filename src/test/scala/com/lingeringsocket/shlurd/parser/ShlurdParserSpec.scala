@@ -38,6 +38,8 @@ class ShlurdParserSpec extends Specification
 
   private val STATE_CLOSE = word("close")
 
+  private val STATE_SHUT = word("shut")
+
   private val STATE_CLOSED = ShlurdWord("closed", "close")
 
   private val STATE_SIDEWAYS = word("sideways")
@@ -419,6 +421,17 @@ class ShlurdParserSpec extends Specification
               doorPlusWindow),
             ShlurdExistenceState()),
           ShlurdInterrogativeMood(true)))
+    }
+
+    "parse relative clauses" in
+    {
+      parse("a door that is shut is closed") must be equalTo(
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdQualifiedReference(
+              ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
+              Seq(STATE_SHUT)),
+            ShlurdPropertyState(STATE_CLOSED))))
     }
 
     "give up" in

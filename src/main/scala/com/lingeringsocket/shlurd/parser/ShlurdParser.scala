@@ -502,6 +502,16 @@ class ShlurdSingleParser(
         getLemma(components.head.firstChild))
       val entityReference = expectNounReference(components.last, determiner)
       ShlurdGenitiveReference(pronounReference, entityReference)
+    } else if ((components.size == 2) && isNounPhrase(components.head)) {
+      val entityReference = expectReference(components.head)
+      expectRelativeQualifier(components.last) match {
+        case Some(qualifiers) => {
+          ShlurdQualifiedReference(entityReference, qualifiers)
+        }
+        case _ => {
+          ShlurdUnknownReference
+        }
+      }
     } else if (components.forall(c => isNoun(c) || isAdjective(c))) {
       val entityReference = expectNounReference(components.last, determiner)
       if (components.size > 1) {
@@ -533,6 +543,39 @@ class ShlurdSingleParser(
       pronounFor(getLemma(np.firstChild))
     } else {
       ShlurdUnknownReference
+    }
+  }
+
+  private def expectRelativeQualifier(tree : Tree) : Option[Seq[ShlurdWord]] =
+  {
+    if (!hasLabel(tree, "SBAR") || (tree.numChildren != 2)) {
+      return None
+    }
+    val whnp = tree.firstChild
+    if (!hasLabel(whnp, "WHNP") || (whnp.numChildren != 1)) {
+      return None
+    }
+    val wdt = whnp.firstChild
+    if (!hasLabel(wdt, "WDT") || !wdt.isPreTerminal) {
+      return None
+    }
+    val sub = tree.lastChild
+    if (!hasLabel(sub, "S") || (sub.numChildren != 1)) {
+      return None
+    }
+    val vp = sub.firstChild
+    if (!isVerbPhrase(vp) || (vp.numChildren != 2)) {
+      return None
+    }
+    if (!isCopula(vp.firstChild)) {
+      return None
+    }
+    val state = expectStateComplement(Seq(vp.lastChild), getLabel(vp))
+    state match {
+      case ShlurdPropertyState(qualifier) => {
+        Some(Seq(qualifier))
+      }
+      case _ => None
     }
   }
 
@@ -697,8 +740,8 @@ class ShlurdSingleParser(
       case "ADJP" => {
         expectPropertyState(seq.head)
       }
-      case "ADVP" => {
-        if (isPreposition(seq.head)) {
+      case "ADVP" | "PP" => {
+        if (isPreposition(seq.head) && (seq.size > 1)) {
           expectPrepositionalState(seq)
         } else {
           expectPropertyState(seq.head)

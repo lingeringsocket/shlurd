@@ -274,7 +274,7 @@ class ShlurdInterpreterSpec extends Specification
       entity match {
         case a : ZooAnimalEntity => {
           if (sleepinessValues.contains(lemma)) {
-            Success(ZooAnimalSleepinessProperty)
+            Success((ZooAnimalSleepinessProperty, lemma))
           } else {
             fail("I don't know about this state: " + lemma)
           }

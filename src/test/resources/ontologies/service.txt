@@ -1,2 +1,8 @@
-A service must be either up or down.
+A service must be either on or off.
 A server is a service.
+A service that is up is on.
+A service that is down is off.
+A service that is available is on.
+A service that is unavailable is off.
+A service that is running is on.
+A service that is stopped is off.

@@ -26,8 +26,8 @@ import scala.util._
 class ShlurdPlatonicInterpreterSpec extends Specification
 {
   private val states = Map(
-    "alarm service" -> "up",
-    "multimedia service" -> "down"
+    "alarm service" -> "on",
+    "multimedia service" -> "off"
   )
 
   trait InterpreterContext extends NameSpace
@@ -82,6 +82,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "is the alarm service up",
         "Yes, the alarm service is up.")
       interpret(
+        "is the alarm service on",
+        "Yes, the alarm service is on.")
+      interpret(
         "is the multimedia service up",
         "No, the multimedia service is not up.")
       interpret(
@@ -91,8 +94,14 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "is any service down",
         "Yes, the multimedia service is down.")
       interpret(
+        "is any service off",
+        "Yes, the multimedia service is off.")
+      interpret(
         "are all services up",
         "No, the multimedia service is not up.")
+      interpret(
+        "are all services running",
+        "No, the multimedia service is not running.")
       interpret(
         "is the multimedia server up",
         "No, the multimedia server is not up.")

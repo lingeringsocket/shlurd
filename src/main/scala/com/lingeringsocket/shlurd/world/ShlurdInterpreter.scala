@@ -342,11 +342,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     {
       entity => {
         world.resolveProperty(entity, state.lemma) match {
-          case Success(property) => {
+          case Success((property, stateName)) => {
             resultCollector.states += ShlurdWord(
-              property.getStates()(state.lemma), state.lemma)
+              property.getStates()(stateName), stateName)
             world.evaluateEntityPropertyPredicate(
-              entity, property, state.lemma)
+              entity, property, stateName)
           }
           case Failure(e) => Failure(e)
         }

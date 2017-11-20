@@ -48,7 +48,7 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
 
   def resolveProperty(
     entity : E,
-    lemma : String) : Try[P]
+    lemma : String) : Try[(P, String)]
 
   def evaluateEntityPropertyPredicate(
     entity : E,
@@ -79,6 +79,7 @@ class ShlurdSynonymMap
 
   def addSynonym(synonym : String, fundamental : String)
   {
+    // FIXME:  cycle detection
     map.put(synonym, fundamental)
   }
 
@@ -116,6 +117,10 @@ class ShlurdPlatonicForm(val name : String)
 {
   private[world] val properties =
     new mutable.HashMap[String, ShlurdPlatonicProperty]
+
+  private val stateSynonyms = new ShlurdSynonymMap
+
+  def getStateSynonyms = stateSynonyms
 
   def getProperties : Map[String, ShlurdPlatonicProperty] = properties
 
@@ -276,7 +281,6 @@ class ShlurdPlatonicWorld
               throw new IncomprehensibleBelief(sentence)
             }
             val form = instantiateForm(complementEntity)
-            // FIXME:  cycle detection
             subject match {
               case ShlurdEntityReference(
                 subjectEntity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
@@ -310,7 +314,18 @@ class ShlurdPlatonicWorld
     state : ShlurdState,
     mood : ShlurdMood)
   {
-    if (!qualifiers.isEmpty) {
+    if (qualifiers.size == 1) {
+      state match {
+        case ShlurdPropertyState(word) => {
+          form.getStateSynonyms.addSynonym(
+            qualifiers.head.lemma, word.lemma)
+        }
+        case _ => {
+          throw new IncomprehensibleBelief(sentence)
+        }
+      }
+      return
+    } else if (!qualifiers.isEmpty) {
       // but maybe we should allow constraints on qualified entities?
       throw new IncomprehensibleBelief(sentence)
     }
@@ -366,8 +381,10 @@ class ShlurdPlatonicWorld
     entity : ShlurdPlatonicEntity,
     lemma : String) =
   {
-    entity.form.properties.values.find(p => p.states.contains(lemma)) match {
-      case Some(p) => Success(p)
+    val form = entity.form
+    val stateName = form.getStateSynonyms.resolveSynonym(lemma)
+    form.properties.values.find(p => p.states.contains(stateName)) match {
+      case Some(p) => Success((p, stateName))
       case _ => fail(s"unknown property $lemma")
     }
   }
