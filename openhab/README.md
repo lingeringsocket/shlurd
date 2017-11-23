@@ -1,6 +1,6 @@
 # Intro
 
-`shlurd-openhab` is an addon for [OpenHAB](https://www.openhab.org) which installs a new human language interpreter based on [SHLURD](../README.md).  It allows you to ask questions about the state of your house (e.g. "is the front door open?") as well as give commands (e.g. "turn off all the lights in the kitchen").
+**shlurd-openhab** is an addon for [OpenHAB 2](https://www.openhab.org) which installs a new human language interpreter based on [SHLURD](../README.md).  It allows you to ask questions about the state of your house (e.g. "is the front door open?") as well as give commands (e.g. "turn off all the lights in the kitchen").
 
 # Deploy
 
@@ -52,7 +52,24 @@ This forwarding is necessary because the Android app ignores the setting for **D
 
 # Customize
 
-1. Save your custom beliefs in a file, e.g. `/path/to/your/custom/beliefs.txt`
+The addon comes with a default ontology for a few openhab item types.  You can extend this with your own types by adding a custom belief file.  For example, suppose you have services running on your home network, e.g. a media service and an alarm service.  Using the [network binding](http://docs.openhab.org/addons/bindings/network/readme.html), you've already defined a Switch item for each service for monitoring purposes.
+
+You can write a custom belief file like this:
+
+    A service must be either on or off.
+    A server is a service.
+    A service that is up is on.
+    A service that is down is off.
+    A service that is available is on.
+    A service that is unavailable is off.
+    A service that is running is on.
+    A service that is stopped is off.
+
+This will allow you to ask questions such as `is the media service up?` or `are all servers running?`
+
+To add your custom beliefs, do the following:
+
+1. Save your custom beliefs in a file on your openhab , e.g. `/path/to/your/custom/beliefs.txt`
 1. Browse to **Paper UI**
 1. **Configuration > Services**
 1. **Voice**
