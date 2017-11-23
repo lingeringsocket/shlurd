@@ -403,7 +403,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           ShlurdQualifiedReference(nc : ShlurdConjunctiveReference, q)
         ) => {
           negateCollection = true
-          nc
+          ShlurdQualifiedReference(nc, q)
         }
         case Some(nr) => {
           nr
