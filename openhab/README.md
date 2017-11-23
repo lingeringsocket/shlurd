@@ -52,7 +52,7 @@ This forwarding is necessary because the Android app ignores the setting for **D
 
 # Customize
 
-The addon comes with a default ontology for a few openhab item types.  You can extend this with your own types by adding a custom belief file.  For example, suppose you have services running on your home network, e.g. a media service and an alarm service.  Using the [network binding](http://docs.openhab.org/addons/bindings/network/readme.html), you've already defined a Switch item for each service for monitoring purposes.
+The addon comes with a default ontology for a few openhab item types (currently only doors, windows, lights, and switches).  You can extend this with your own types by adding a custom belief file.  For example, suppose you have services running on your home network, e.g. a media service and an alarm service.  Using the [network binding](http://docs.openhab.org/addons/bindings/network/readme.html), you've already defined a Switch item for each service for monitoring purposes.
 
 You can write a custom belief file like this:
 
