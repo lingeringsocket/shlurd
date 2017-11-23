@@ -84,10 +84,11 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
                 ShlurdReferenceContext context,
                 scala.collection.Set<String> qualifiers)
             {
-                if (!world.getForms().contains(lemma)) {
+                String formName = world.getFormSynonyms().resolveSynonym(lemma);
+                if (!world.getForms().contains(formName)) {
                     return new scala.util.Failure(new RuntimeException("I don't know the word " + lemma));
                 }
-                ShlurdPlatonicForm form = world.getForms().apply(lemma);
+                ShlurdPlatonicForm form = world.getForms().apply(formName);
                 ResourceBundle language = new ListResourceBundle()
                     {
                         @Override
@@ -109,7 +110,7 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
                     new scala.collection.mutable.HashSet<>();
                 items.forEach(
                     item -> {
-                        if (item.getName().toLowerCase().contains(lemma)) {
+                        if (item.getName().toLowerCase().contains(formName)) {
                             set.add(new ShlurdPlatonicEntity(
                                     item.getName(), form, qualifiers));
                         }
@@ -126,16 +127,19 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
                 try {
                     Item item = itemRegistry.getItem(entity.name());
                     State state;
-                    if (isOnOff(entity.form())) {
+                    ShlurdPlatonicForm form = entity.form();
+                    if (isOnOff(form)) {
                         state = item.getStateAs(OnOffType.class);
                     } else {
                         state = item.getState();
                     }
+                    String stateName =
+                        form.getStateSynonyms().resolveSynonym(lemma);
                     Trilean trilean = new Trilean(
                         (state == null)
                         ? Trilean$.MODULE$.Unknown()
                         : Trilean$.MODULE$.apply(
-                            state.toString().toLowerCase().equals(lemma)));
+                            state.toString().toLowerCase().equals(stateName)));
                     return new scala.util.Success(trilean);
                 } catch (Exception ex) {
                     return new scala.util.Failure(ex);

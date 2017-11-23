@@ -91,6 +91,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "is any service up",
         "Yes, the alarm service is up.")
       interpret(
+        "are any services up",
+        "Yes, the alarm service is up.")
+      interpret(
         "is any service down",
         "Yes, the multimedia service is down.")
       interpret(
