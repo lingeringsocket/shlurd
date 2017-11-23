@@ -399,7 +399,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       normalizeConjunction(
         resultCollector, entityDeterminer, separator
       ) match {
-        case Some(nc : ShlurdConjunctiveReference) => {
+        case Some(
+          ShlurdQualifiedReference(nc : ShlurdConjunctiveReference, q)
+        ) => {
           negateCollection = true
           nc
         }
@@ -411,8 +413,22 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
     }
-    val rewriteDeterminers =
+    val rewriteReferences =
       Rewriter.rule[ShlurdPhrase] {
+        case ShlurdQualifiedReference(outer, qualifiers) => {
+          outer match {
+            case ShlurdQualifiedReference(inner, seq) => {
+              if (seq.isEmpty) {
+                inner
+              } else {
+                ShlurdQualifiedReference(outer, qualifiers)
+              }
+            }
+            case _ => {
+              ShlurdQualifiedReference(outer, qualifiers)
+            }
+          }
+        }
         case ShlurdEntityReference(
           entity, DETERMINER_ANY | DETERMINER_SOME, count
         ) => {
@@ -453,8 +469,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
+
     val rewritten = Rewriter.rewrite(
-      Rewriter.everywhere("rewriteDeterminers", rewriteDeterminers))(predicate)
+      Rewriter.everywherebu("rewriteReferences", rewriteReferences)
+    )(predicate)
+
     (rewritten, negateCollection)
   }
 
@@ -464,7 +483,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     val trueEntities = resultCollector.entityMap.filter(
       _._2.assumeFalse).keySet
-    if (trueEntities.isEmpty) {
+    (if (trueEntities.isEmpty) {
       None
     } else if (trueEntities.size == 1) {
       Some(world.specificReference(trueEntities.head, entityDeterminer))
@@ -474,7 +493,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         trueEntities.map(
           world.specificReference(_, entityDeterminer)).toSeq,
         separator))
-    }
+    }).map(r => ShlurdQualifiedReference(r, Seq.empty))
   }
 
   private def normalizeConjunction(
@@ -483,7 +502,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     val falseEntities = resultCollector.entityMap.filterNot(
       _._2.assumeTrue).keySet
-    if (falseEntities.isEmpty) {
+    (if (falseEntities.isEmpty) {
       None
     } else if (falseEntities.size == 1) {
       Some(world.specificReference(falseEntities.head, entityDeterminer))
@@ -493,6 +512,6 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         falseEntities.map(
           world.specificReference(_, entityDeterminer)).toSeq,
         separator))
-    }
+    }).map(r => ShlurdQualifiedReference(r, Seq.empty))
   }
 }

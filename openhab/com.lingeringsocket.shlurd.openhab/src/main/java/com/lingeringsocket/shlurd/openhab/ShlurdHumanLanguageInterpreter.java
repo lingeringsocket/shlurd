@@ -111,8 +111,18 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
                 items.forEach(
                     item -> {
                         if (item.getName().toLowerCase().contains(formName)) {
+                            ArrayList<String> tokens =
+                                tokenize(supportedLocale, item.getLabel());
+                            tokens.remove(formName);
+                            scala.collection.mutable.Set<String> qset =
+                                new scala.collection.mutable.HashSet<String>();
+                            tokens.forEach(
+                                token -> {
+                                    qset.add(token);
+                                });
                             set.add(new ShlurdPlatonicEntity(
-                                    item.getName(), form, qualifiers));
+                                    item.getName(), form,
+                                    qset));
                         }
                     });
                 return new scala.util.Success(set);
