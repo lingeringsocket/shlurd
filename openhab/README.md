@@ -2,6 +2,8 @@
 
 **shlurd-openhab** is an addon for [OpenHAB 2](https://www.openhab.org) which installs a new human language interpreter based on [SHLURD](../README.md).  It allows you to ask questions about the state of your house (e.g. "is the front door open?") as well as give commands (e.g. "turn off all kitchen lights").
 
+In order for it to work with your smarthome, it's currently required that you follow the item structure conventions defined in [the openhab docs](https://github.com/openhab/openhab1-addons/wiki/Controlling-openHAB-with-your-voice).
+
 # Deploy
 
 1. Get the latest release archive from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab).  The zipfile is quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments.
