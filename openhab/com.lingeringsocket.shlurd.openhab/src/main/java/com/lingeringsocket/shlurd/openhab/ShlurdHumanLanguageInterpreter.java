@@ -42,6 +42,8 @@ import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
 
 import org.eclipse.smarthome.core.items.Item;
+import org.eclipse.smarthome.core.items.GroupItem;
+import org.eclipse.smarthome.core.items.GroupFunction;
 import org.eclipse.smarthome.core.items.ItemNotFoundException;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.items.events.ItemEventFactory;
@@ -107,22 +109,13 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
                 ArrayList<Item> items =
                     getMatchingItems(language, labelFragments, null);
                 scala.collection.mutable.Set<ShlurdPlatonicEntity> set =
-                    new scala.collection.mutable.HashSet<>();
+                    new scala.collection.mutable.LinkedHashSet<>();
                 items.forEach(
                     item -> {
-                        if (item.getName().toLowerCase().contains(formName)) {
-                            ArrayList<String> tokens =
-                                tokenize(supportedLocale, item.getLabel());
-                            tokens.remove(formName);
-                            scala.collection.mutable.Set<String> qset =
-                                new scala.collection.mutable.HashSet<String>();
-                            tokens.forEach(
-                                token -> {
-                                    qset.add(token);
-                                });
-                            set.add(new ShlurdPlatonicEntity(
-                                    item.getName(), form,
-                                    qset));
+                        if (!(item instanceof GroupItem) &&
+                            item.getName().toLowerCase().contains(formName))
+                        {
+                            addItemToSet(item, set, form, formName);
                         }
                     });
                 return new scala.util.Success(set);
@@ -158,14 +151,69 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
         };
     }
 
+    private void addItemToSet(
+        Item item,
+        scala.collection.mutable.Set<ShlurdPlatonicEntity> set,
+        ShlurdPlatonicForm form,
+        String formName)
+    {
+        scala.collection.mutable.Set<String> qset =
+            new scala.collection.mutable.LinkedHashSet<String>();
+        item.getGroupNames().forEach(
+            group -> {
+                try {
+                    Item groupItem = itemRegistry.getItem(group);
+                    if (isQualifierGroup((GroupItem) groupItem)) {
+                        convertLabelTokensToQualifiers(
+                            groupItem, qset, "");
+                    }
+                } catch (ItemNotFoundException ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+        convertLabelTokensToQualifiers(item, qset, formName);
+        set.add(new ShlurdPlatonicEntity(
+                item.getName(), form,
+                qset));
+    }
+    
+    private void convertLabelTokensToQualifiers(
+        Item item, scala.collection.mutable.Set<String> qualifiers,
+        String formName)
+    {
+        ArrayList<String> tokens =
+            tokenize(supportedLocale, item.getLabel());
+        if (!formName.isEmpty()) {
+            tokens.remove(formName);
+        }
+        tokens.forEach(
+            token -> {
+                qualifiers.add(token);
+            });
+    }
+
+    private boolean isQualifierGroup(GroupItem groupItem)
+    {
+        String label = groupItem.getLabel();
+        if (label == null) {
+            return false;
+        }
+        if (label.contains("Floor")) {
+            return false;
+        }
+        return (groupItem.getFunction() == null);
+    }
+
     @Override
-    public void setItemRegistry(ItemRegistry itemRegistry) {
+    public void setItemRegistry(ItemRegistry itemRegistry)
+    {
         super.setItemRegistry(itemRegistry);
         this.itemRegistry = itemRegistry;
     }
 
     @Override
-    public void unsetItemRegistry(ItemRegistry itemRegistry) {
+    public void unsetItemRegistry(ItemRegistry itemRegistry)
+    {
         super.unsetItemRegistry(itemRegistry);
         if (itemRegistry == this.itemRegistry) {
             this.itemRegistry = null;
@@ -173,7 +221,8 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
     }
 
     @Override
-    public void setEventPublisher(EventPublisher eventPublisher) {
+    public void setEventPublisher(EventPublisher eventPublisher)
+    {
         super.setEventPublisher(eventPublisher);
         if (this.eventPublisher == null) {
             this.eventPublisher = eventPublisher;
@@ -181,7 +230,8 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
     }
 
     @Override
-    public void unsetEventPublisher(EventPublisher eventPublisher) {
+    public void unsetEventPublisher(EventPublisher eventPublisher)
+    {
         super.unsetEventPublisher(eventPublisher);
         if (eventPublisher == this.eventPublisher) {
             this.eventPublisher = null;
@@ -191,11 +241,13 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
     // TODO conventions
     private static final String BELIEF_FILE_KEY = "beliefFile";
     
-    protected void activate(Map<String, Object> config) {
+    protected void activate(Map<String, Object> config)
+    {
         modified(config);
     }
 
-    protected void modified(Map<String, Object> config) {
+    protected void modified(Map<String, Object> config)
+    {
         createWorld();
         String beliefFile = (String) config.get(BELIEF_FILE_KEY);
         String encoding = "UTF-8";
@@ -211,17 +263,21 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
     }
 
     @Override
-    public String getId() {
+    public String getId()
+    {
         return "shlurdhli";
     }
 
     @Override
-    public String getLabel(Locale locale) {
+    public String getLabel(Locale locale)
+    {
         return "SHLURD-based Interpreter";
     }
 
     @Override
-    public String interpret(Locale locale, String text) throws InterpretationException {
+    public String interpret(Locale locale, String text)
+        throws InterpretationException
+    {
         if (!supportedLocale.getLanguage().equals(locale.getLanguage())) {
             throw new InterpretationException(
                 locale.getDisplayLanguage(Locale.ENGLISH) + " is not supported at the moment.");
@@ -261,17 +317,20 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
     }
 
     @Override
-    public String getGrammar(Locale locale, String format) {
+    public String getGrammar(Locale locale, String format)
+    {
         return null;
     }
 
     @Override
-    public Set<Locale> getSupportedLocales() {
+    public Set<Locale> getSupportedLocales()
+    {
         return Collections.singleton(supportedLocale);
     }
 
     @Override
-    public Set<String> getSupportedGrammarFormats() {
+    public Set<String> getSupportedGrammarFormats()
+    {
         return Collections.emptySet();
     }
 

@@ -65,7 +65,7 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
     determiner : ShlurdDeterminer) : ShlurdReference
 
   def qualifierSet(qualifiers : Seq[ShlurdWord]) =
-    qualifiers.map(_.lemma).toSet
+    ((new mutable.LinkedHashSet) ++= qualifiers.map(_.lemma))
 }
 
 trait ShlurdNamedObject
