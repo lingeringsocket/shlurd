@@ -83,6 +83,15 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
                 qualifierString,
                 sb.delemmatizeNoun(entity, count, inflection, conjoining)))
           }
+          case ShlurdPronounReference(person, gender, count, reference) => {
+            // kludged representation for "three of them"
+            sb.locationalNoun(
+              sb.qualifiedNoun(qualifierString, "of"),
+              sb.pronoun(
+                person, gender, count, INFLECT_ACCUSATIVE,
+                ShlurdConjoining.NONE),
+              conjoining)
+          }
           case _ => {
             sb.qualifiedNoun(
               qualifierString, print(sub, inflection, conjoining))

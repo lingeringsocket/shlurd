@@ -29,10 +29,12 @@ class ShlurdInterpreterSpec extends Specification
 
   type StateChangeInvocation = ShlurdStateChangeInvocation[ShlurdEntity]
 
-  private def interpret(input : String) =
+  private def interpret(
+    input : String,
+    params : ShlurdInterpreterParams = ShlurdInterpreterParams()) =
   {
     val sentence = ShlurdParser(input).parseOne
-    val interpreter = new ShlurdInterpreter(world) {
+    val interpreter = new ShlurdInterpreter(world, params) {
       override protected def executeInvocation(
         invocation : StateChangeInvocation)
       {
@@ -128,10 +130,12 @@ class ShlurdInterpreterSpec extends Specification
         "No, the grizzly bear is not asleep.")
       interpret("are all goats asleep") must be equalTo(
         "Yes, all goats are asleep.")
-      // FIXME:  "are all asleep" would be better
       interpret("are any goats asleep") must be equalTo(
         "Yes, the domestic goat, the siberian goat, " +
           "and the mountain goat are asleep.")
+      val lowLimit = ShlurdInterpreterParams().copy(listLimit = 1)
+      interpret("are any goats asleep", lowLimit) must be equalTo(
+        "Yes, 3 of them are asleep.")
       interpret("are any goats awake") must be equalTo(
         "No, no goats are awake.")
       interpret("are all goats awake") must be equalTo(
@@ -160,6 +164,8 @@ class ShlurdInterpreterSpec extends Specification
         "No, the grizzly bear is not asleep.")
       interpret("are the bears and the lion awake") must be equalTo(
         "No, neither the lion nor the polar bear is awake.")
+      interpret("are the bears and the lion awake", lowLimit) must be equalTo(
+        "No, 2 of them are not awake.")
       interpret("are the tiger and the lion asleep") must be equalTo(
         "No, the tiger is not asleep.")
     }

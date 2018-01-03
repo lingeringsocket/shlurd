@@ -31,8 +31,15 @@ case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
 {
 }
 
+case class ShlurdInterpreterParams(
+  listLimit : Int = 3
+)
+{
+}
+
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
-  world : ShlurdWorld[E,P])
+  world : ShlurdWorld[E,P],
+  params : ShlurdInterpreterParams = ShlurdInterpreterParams())
 {
   private val sentencePrinter = new ShlurdSentencePrinter
 
@@ -397,7 +404,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       allRef : => ShlurdReference) =
     {
       normalizeConjunction(
-        resultCollector, entityDeterminer, separator
+        resultCollector, entityDeterminer, separator, params
       ) match {
         case Some(
           ShlurdQualifiedReference(nc : ShlurdConjunctiveReference, q)
@@ -433,7 +440,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           entity, DETERMINER_ANY | DETERMINER_SOME, count
         ) => {
           normalizeDisjunction(
-            resultCollector, entityDeterminer, SEPARATOR_OXFORD_COMMA).getOrElse
+            resultCollector, entityDeterminer,
+            SEPARATOR_OXFORD_COMMA, params).getOrElse
           {
             negateCollection = true
             ShlurdEntityReference(entity, DETERMINER_NONE, count)
@@ -450,7 +458,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           determiner match {
             case DETERMINER_ANY => {
               normalizeDisjunction(
-                resultCollector, entityDeterminer, separator).getOrElse
+                resultCollector, entityDeterminer,
+                separator, params).getOrElse
               {
                 negateCollection = true
                 ShlurdConjunctiveReference(
@@ -478,8 +487,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def normalizeDisjunction(
-    resultCollector : ResultCollector, entityDeterminer : ShlurdDeterminer,
-    separator : ShlurdSeparator) : Option[ShlurdReference] =
+    resultCollector : ResultCollector,
+    entityDeterminer : ShlurdDeterminer,
+    separator : ShlurdSeparator,
+    params : ShlurdInterpreterParams)
+      : Option[ShlurdReference] =
   {
     val trueEntities = resultCollector.entityMap.filter(
       _._2.assumeFalse).keySet
@@ -487,6 +499,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       None
     } else if (trueEntities.size == 1) {
       Some(world.specificReference(trueEntities.head, entityDeterminer))
+    } else if (trueEntities.size > params.listLimit) {
+      summarizeList(trueEntities)
     } else {
       Some(ShlurdConjunctiveReference(
         DETERMINER_ALL,
@@ -497,8 +511,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def normalizeConjunction(
-    resultCollector : ResultCollector, entityDeterminer : ShlurdDeterminer,
-    separator : ShlurdSeparator) : Option[ShlurdReference] =
+    resultCollector : ResultCollector,
+    entityDeterminer : ShlurdDeterminer,
+    separator : ShlurdSeparator,
+    params : ShlurdInterpreterParams) =
   {
     val falseEntities = resultCollector.entityMap.filterNot(
       _._2.assumeTrue).keySet
@@ -506,6 +522,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       None
     } else if (falseEntities.size == 1) {
       Some(world.specificReference(falseEntities.head, entityDeterminer))
+    } else if (falseEntities.size > params.listLimit) {
+      summarizeList(falseEntities)
     } else {
       Some(ShlurdConjunctiveReference(
         DETERMINER_NONE,
@@ -513,5 +531,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           world.specificReference(_, entityDeterminer)).toSeq,
         separator))
     }).map(r => ShlurdQualifiedReference(r, Seq.empty))
+  }
+
+  private def summarizeList(entities : Iterable[ShlurdEntity]) =
+  {
+    val number = entities.size.toString
+    // FIXME:  derive gender from entities
+    Some(
+      ShlurdQualifiedReference(
+        ShlurdPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL),
+        Seq(ShlurdWord(number, number))))
   }
 }
