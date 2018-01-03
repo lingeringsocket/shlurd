@@ -16,47 +16,44 @@
  */
 package com.lingeringsocket.shlurd.openhab;
 
-import java.io.File;
-import java.io.StringReader;
-
-import java.util.Locale;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.ListResourceBundle;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.ListResourceBundle;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.smarthome.core.events.EventPublisher;
+import org.eclipse.smarthome.core.items.GroupItem;
+import org.eclipse.smarthome.core.items.Item;
+import org.eclipse.smarthome.core.items.ItemNotFoundException;
+import org.eclipse.smarthome.core.items.ItemRegistry;
+import org.eclipse.smarthome.core.items.events.ItemEventFactory;
+import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.library.types.StringType;
+import org.eclipse.smarthome.core.types.Command;
+import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.voice.text.AbstractRuleBasedInterpreter;
-import org.eclipse.smarthome.core.voice.text.HumanLanguageInterpreter;
 import org.eclipse.smarthome.core.voice.text.InterpretationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.core.types.State;
+import com.lingeringsocket.shlurd.parser.ShlurdParser$;
+import com.lingeringsocket.shlurd.parser.ShlurdSentence;
+import com.lingeringsocket.shlurd.world.ShlurdInterpreter;
+import com.lingeringsocket.shlurd.world.ShlurdInterpreterParams;
+import com.lingeringsocket.shlurd.world.ShlurdInterpreterParams$;
+import com.lingeringsocket.shlurd.world.ShlurdPlatonicEntity;
+import com.lingeringsocket.shlurd.world.ShlurdPlatonicForm;
+import com.lingeringsocket.shlurd.world.ShlurdPlatonicProperty;
+import com.lingeringsocket.shlurd.world.ShlurdPlatonicWorld;
+import com.lingeringsocket.shlurd.world.ShlurdReferenceContext;
+import com.lingeringsocket.shlurd.world.ShlurdStateChangeInvocation;
 
-import org.eclipse.smarthome.core.items.Item;
-import org.eclipse.smarthome.core.items.GroupItem;
-import org.eclipse.smarthome.core.items.GroupFunction;
-import org.eclipse.smarthome.core.items.ItemNotFoundException;
-import org.eclipse.smarthome.core.items.ItemRegistry;
-import org.eclipse.smarthome.core.items.events.ItemEventFactory;
-
-import org.eclipse.smarthome.core.library.types.StringType;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-
-import com.lingeringsocket.shlurd.world.*;
-import com.lingeringsocket.shlurd.parser.*;
-
-import scala.io.Source$;
 import scala.collection.JavaConverters;
-
+import scala.io.Source$;
 import spire.math.Trilean;
 import spire.math.Trilean$;
 
@@ -65,8 +62,7 @@ import spire.math.Trilean$;
  *
  * @author John Sichi
  */
-public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
-{
+public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter {
     private final Logger logger = LoggerFactory.getLogger(ShlurdHumanLanguageInterpreter.class);
 
     private ItemRegistry itemRegistry;
@@ -77,56 +73,42 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
 
     private ShlurdPlatonicWorld world = null;
 
-    private void createWorld()
-    {
+    private void createWorld() {
         world = new ShlurdPlatonicWorld() {
             @Override
-            public scala.util.Try<scala.collection.Set<ShlurdPlatonicEntity>> resolveEntity(
-                String lemma,
-                ShlurdReferenceContext context,
-                scala.collection.Set<String> qualifiers)
-            {
+            public scala.util.Try<scala.collection.Set<ShlurdPlatonicEntity>> resolveEntity(String lemma,
+                    ShlurdReferenceContext context, scala.collection.Set<String> qualifiers) {
                 String formName = world.getFormSynonyms().resolveSynonym(lemma);
                 if (!world.getForms().contains(formName)) {
                     return new scala.util.Failure(new RuntimeException("I don't know the word " + lemma));
                 }
                 ShlurdPlatonicForm form = world.getForms().apply(formName);
-                ResourceBundle language = new ListResourceBundle()
-                    {
-                        @Override
-                        public Locale getLocale()
-                        {
-                            return supportedLocale;
-                        }
+                ResourceBundle language = new ListResourceBundle() {
+                    @Override
+                    public Locale getLocale() {
+                        return supportedLocale;
+                    }
 
-                        protected Object[][] getContents() 
-                        {
-                            return new Object[][]{};
-                        }
-                    };
-                String [] labelFragments = new String[qualifiers.size()];
+                    @Override
+                    protected Object[][] getContents() {
+                        return new Object[][] {};
+                    }
+                };
+                String[] labelFragments = new String[qualifiers.size()];
                 qualifiers.copyToArray(labelFragments);
-                ArrayList<Item> items =
-                    getMatchingItems(language, labelFragments, null);
-                scala.collection.mutable.Set<ShlurdPlatonicEntity> set =
-                    new scala.collection.mutable.LinkedHashSet<>();
-                items.forEach(
-                    item -> {
-                        if (!(item instanceof GroupItem) &&
-                            item.getName().toLowerCase().contains(formName))
-                        {
-                            addItemToSet(item, set, form, formName);
-                        }
-                    });
+                ArrayList<Item> items = getMatchingItems(language, labelFragments, null);
+                scala.collection.mutable.Set<ShlurdPlatonicEntity> set = new scala.collection.mutable.LinkedHashSet<>();
+                items.forEach(item -> {
+                    if (!(item instanceof GroupItem) && item.getName().toLowerCase().contains(formName)) {
+                        addItemToSet(item, set, form, formName);
+                    }
+                });
                 return new scala.util.Success(set);
             }
 
             @Override
-            public scala.util.Try<Trilean> evaluateEntityPropertyPredicate(
-                ShlurdPlatonicEntity entity,
-                ShlurdPlatonicProperty property,
-                String lemma)
-            {
+            public scala.util.Try<Trilean> evaluateEntityPropertyPredicate(ShlurdPlatonicEntity entity,
+                    ShlurdPlatonicProperty property, String lemma) {
                 try {
                     Item item = itemRegistry.getItem(entity.name());
                     State state;
@@ -136,13 +118,9 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
                     } else {
                         state = item.getState();
                     }
-                    String stateName =
-                        form.getStateSynonyms().resolveSynonym(lemma);
-                    Trilean trilean = new Trilean(
-                        (state == null)
-                        ? Trilean$.MODULE$.Unknown()
-                        : Trilean$.MODULE$.apply(
-                            state.toString().toLowerCase().equals(stateName)));
+                    String stateName = form.getStateSynonyms().resolveSynonym(lemma);
+                    Trilean trilean = new Trilean((state == null) ? Trilean$.MODULE$.Unknown()
+                            : Trilean$.MODULE$.apply(state.toString().toLowerCase().equals(stateName)));
                     return new scala.util.Success(trilean);
                 } catch (Exception ex) {
                     return new scala.util.Failure(ex);
@@ -151,49 +129,35 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
         };
     }
 
-    private void addItemToSet(
-        Item item,
-        scala.collection.mutable.Set<ShlurdPlatonicEntity> set,
-        ShlurdPlatonicForm form,
-        String formName)
-    {
-        scala.collection.mutable.Set<String> qset =
-            new scala.collection.mutable.LinkedHashSet<String>();
-        item.getGroupNames().forEach(
-            group -> {
-                try {
-                    Item groupItem = itemRegistry.getItem(group);
-                    if (isQualifierGroup((GroupItem) groupItem)) {
-                        convertLabelTokensToQualifiers(
-                            groupItem, qset, "");
-                    }
-                } catch (ItemNotFoundException ex) {
-                    throw new RuntimeException(ex);
+    private void addItemToSet(Item item, scala.collection.mutable.Set<ShlurdPlatonicEntity> set,
+            ShlurdPlatonicForm form, String formName) {
+        scala.collection.mutable.Set<String> qset = new scala.collection.mutable.LinkedHashSet<String>();
+        item.getGroupNames().forEach(group -> {
+            try {
+                Item groupItem = itemRegistry.getItem(group);
+                if (isQualifierGroup((GroupItem) groupItem)) {
+                    convertLabelTokensToQualifiers(groupItem, qset, "");
                 }
-            });
+            } catch (ItemNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
         convertLabelTokensToQualifiers(item, qset, formName);
-        set.add(new ShlurdPlatonicEntity(
-                item.getName(), form,
-                qset));
+        set.add(new ShlurdPlatonicEntity(item.getName(), form, qset));
     }
-    
-    private void convertLabelTokensToQualifiers(
-        Item item, scala.collection.mutable.Set<String> qualifiers,
-        String formName)
-    {
-        ArrayList<String> tokens =
-            tokenize(supportedLocale, item.getLabel());
+
+    private void convertLabelTokensToQualifiers(Item item, scala.collection.mutable.Set<String> qualifiers,
+            String formName) {
+        ArrayList<String> tokens = tokenize(supportedLocale, item.getLabel());
         if (!formName.isEmpty()) {
             tokens.remove(formName);
         }
-        tokens.forEach(
-            token -> {
-                qualifiers.add(token);
-            });
+        tokens.forEach(token -> {
+            qualifiers.add(token);
+        });
     }
 
-    private boolean isQualifierGroup(GroupItem groupItem)
-    {
+    private boolean isQualifierGroup(GroupItem groupItem) {
         String label = groupItem.getLabel();
         if (label == null) {
             return false;
@@ -205,15 +169,13 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
     }
 
     @Override
-    public void setItemRegistry(ItemRegistry itemRegistry)
-    {
+    public void setItemRegistry(ItemRegistry itemRegistry) {
         super.setItemRegistry(itemRegistry);
         this.itemRegistry = itemRegistry;
     }
 
     @Override
-    public void unsetItemRegistry(ItemRegistry itemRegistry)
-    {
+    public void unsetItemRegistry(ItemRegistry itemRegistry) {
         super.unsetItemRegistry(itemRegistry);
         if (itemRegistry == this.itemRegistry) {
             this.itemRegistry = null;
@@ -221,8 +183,7 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
     }
 
     @Override
-    public void setEventPublisher(EventPublisher eventPublisher)
-    {
+    public void setEventPublisher(EventPublisher eventPublisher) {
         super.setEventPublisher(eventPublisher);
         if (this.eventPublisher == null) {
             this.eventPublisher = eventPublisher;
@@ -230,8 +191,7 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
     }
 
     @Override
-    public void unsetEventPublisher(EventPublisher eventPublisher)
-    {
+    public void unsetEventPublisher(EventPublisher eventPublisher) {
         super.unsetEventPublisher(eventPublisher);
         if (eventPublisher == this.eventPublisher) {
             this.eventPublisher = null;
@@ -240,108 +200,94 @@ public class ShlurdHumanLanguageInterpreter extends AbstractRuleBasedInterpreter
 
     // TODO conventions
     private static final String BELIEF_FILE_KEY = "beliefFile";
-    
-    protected void activate(Map<String, Object> config)
-    {
+
+    protected void activate(Map<String, Object> config) {
         modified(config);
     }
 
-    protected void modified(Map<String, Object> config)
-    {
+    protected void modified(Map<String, Object> config) {
         createWorld();
         String beliefFile = (String) config.get(BELIEF_FILE_KEY);
         String encoding = "UTF-8";
         if (beliefFile == null) {
             world.loadBeliefs(
-                Source$.MODULE$.fromInputStream(
-                    getClass().getResourceAsStream("/beliefs.txt"),
-                    encoding));
+                    Source$.MODULE$.fromInputStream(getClass().getResourceAsStream("/beliefs.txt"), encoding));
         } else {
-            world.loadBeliefs(
-                Source$.MODULE$.fromFile(beliefFile, encoding));
+            world.loadBeliefs(Source$.MODULE$.fromFile(beliefFile, encoding));
         }
     }
 
     @Override
-    public String getId()
-    {
+    public String getId() {
         return "shlurdhli";
     }
 
     @Override
-    public String getLabel(Locale locale)
-    {
+    public String getLabel(Locale locale) {
         return "SHLURD-based Interpreter";
     }
 
     @Override
-    public String interpret(Locale locale, String text)
-        throws InterpretationException
-    {
+    public String interpret(Locale locale, String text) throws InterpretationException {
         if (!supportedLocale.getLanguage().equals(locale.getLanguage())) {
             throw new InterpretationException(
-                locale.getDisplayLanguage(Locale.ENGLISH) + " is not supported at the moment.");
+                    locale.getDisplayLanguage(Locale.ENGLISH) + " is not supported at the moment.");
         }
         if (world == null) {
             createWorld();
         }
-        // FIXME:  add convenience method to avoid this atrocity
-        // FIXME:  non-string commands?
-        // FIXME:  protected vs public?
+        // FIXME: add convenience method to avoid this atrocity
+        // FIXME: non-string commands?
+        // FIXME: protected vs public?
         ShlurdSentence sentence = ShlurdParser$.MODULE$.apply(text).parseOne();
-        ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty> interpreter = new ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty>(world) {
-                @Override
-                public void executeInvocation(
-                    ShlurdStateChangeInvocation<ShlurdPlatonicEntity> invocation)
-                {
-                    JavaConverters.setAsJavaSetConverter(invocation.entities()).asJava().forEach(
-                        entity -> {
-                            try {
-                                Item item = itemRegistry.getItem(entity.name());
-                                String upper = invocation.state().inflected().toUpperCase();
-                                Command command;
-                                if (isOnOff(entity.form())) {
-                                    command = OnOffType.valueOf(upper);
-                                } else {
-                                    command = new StringType(upper);
-                                }
-                                eventPublisher.post(ItemEventFactory.createCommandEvent(item.getName(), command));
-                            } catch (ItemNotFoundException ex) {
-                                // FIXME:  log this?
-                            }
-                        });
-                }
-            };
+        ShlurdInterpreterParams params = ShlurdInterpreterParams$.MODULE$.apply(3);
+        ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty> interpreter = new ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty>(
+                world, params) {
+            @Override
+            public void executeInvocation(ShlurdStateChangeInvocation<ShlurdPlatonicEntity> invocation) {
+                JavaConverters.setAsJavaSetConverter(invocation.entities()).asJava().forEach(entity -> {
+                    try {
+                        Item item = itemRegistry.getItem(entity.name());
+                        String upper = invocation.state().inflected().toUpperCase();
+                        Command command;
+                        if (isOnOff(entity.form())) {
+                            command = OnOffType.valueOf(upper);
+                        } else {
+                            command = new StringType(upper);
+                        }
+                        eventPublisher.post(ItemEventFactory.createCommandEvent(item.getName(), command));
+                    } catch (ItemNotFoundException ex) {
+                        // FIXME: log this?
+                    }
+                });
+            }
+        };
         String result = interpreter.interpret(sentence);
         return result;
     }
 
     @Override
-    public String getGrammar(Locale locale, String format)
-    {
+    public String getGrammar(Locale locale, String format) {
         return null;
     }
 
     @Override
-    public Set<Locale> getSupportedLocales()
-    {
+    public Set<Locale> getSupportedLocales() {
         return Collections.singleton(supportedLocale);
     }
 
     @Override
-    public Set<String> getSupportedGrammarFormats()
-    {
+    public Set<String> getSupportedGrammarFormats() {
         return Collections.emptySet();
     }
 
     @Override
-    protected void createRules()
-    {
+    protected void createRules() {
     }
 
-    private boolean isOnOff(ShlurdPlatonicForm form)
-    {
-        Set set1 = JavaConverters.setAsJavaSetConverter(form.getProperties().values().head().getStates().keySet()).asJava();
+    private boolean isOnOff(ShlurdPlatonicForm form) {
+        Set set1 = JavaConverters.setAsJavaSetConverter(form.getProperties().values().head().getStates().keySet())
+                .asJava();
         Set set2 = new java.util.HashSet<>(Arrays.asList("on", "off"));
         return set1.equals(set2);
     }
