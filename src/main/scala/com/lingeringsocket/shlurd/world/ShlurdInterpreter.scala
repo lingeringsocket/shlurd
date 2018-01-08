@@ -295,7 +295,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case Failure(e) => Failure(e)
         }
       }
-      case ShlurdPronounReference(person, gender, count, _) => {
+      case ShlurdPronounReference(person, gender, count) => {
         // also prevent qualifiers here
         fail("FIXME")
       }

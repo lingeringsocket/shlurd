@@ -60,7 +60,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           determiner,
           sb.delemmatizeNoun(entity, count, inflection, conjoining))
       }
-      case ShlurdPronounReference(person, gender, count, _) => {
+      case ShlurdPronounReference(person, gender, count) => {
         sb.pronoun(person, gender, count, inflection, conjoining)
       }
       case ShlurdConjunctiveReference(determiner, references, separator) => {
@@ -83,7 +83,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
                 qualifierString,
                 sb.delemmatizeNoun(entity, count, inflection, conjoining)))
           }
-          case ShlurdPronounReference(person, gender, count, reference) => {
+          case ShlurdPronounReference(person, gender, count) => {
             // kludged representation for "three of them"
             sb.locationalNoun(
               sb.qualifiedNoun(qualifierString, "of"),
@@ -100,7 +100,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       }
       case ShlurdGenitiveReference(genitive, reference) => {
         val qualifierString = genitive match {
-          case ShlurdPronounReference(person, gender, count, _) => {
+          case ShlurdPronounReference(person, gender, count) => {
             sb.pronoun(
               person, gender, count, INFLECT_GENITIVE, ShlurdConjoining.NONE)
           }
@@ -228,7 +228,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case _ => false
     }
     subject match {
-      case ShlurdPronounReference(person, gender, count, reference) => {
+      case ShlurdPronounReference(person, gender, count) => {
         sb.copula(person, gender, count, mood, isExistential)
       }
       case ShlurdEntityReference(entity, determiner, count) => {
@@ -264,7 +264,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   private def getCount(reference : ShlurdReference) : ShlurdCount =
   {
     reference match {
-      case ShlurdPronounReference(person, gender, count, reference) =>
+      case ShlurdPronounReference(person, gender, count) =>
         count
       case ShlurdEntityReference(entity, determiner, count) =>
         count

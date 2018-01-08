@@ -118,8 +118,7 @@ case class ShlurdGenitiveReference(
 case class ShlurdPronounReference(
   person : ShlurdPerson,
   gender : ShlurdGender,
-  count : ShlurdCount,
-  reference : ShlurdReference = ShlurdUnknownReference
+  count : ShlurdCount
 ) extends ShlurdReference
 {
 }
