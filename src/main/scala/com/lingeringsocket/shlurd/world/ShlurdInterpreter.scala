@@ -403,22 +403,12 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       separator : ShlurdSeparator,
       allRef : => ShlurdReference) =
     {
-      normalizeConjunction(
-        resultCollector, entityDeterminer, separator, params
-      ) match {
-        case Some(
-          ShlurdQualifiedReference(nc : ShlurdConjunctiveReference, q)
-        ) => {
-          negateCollection = true
-          ShlurdQualifiedReference(nc, q)
-        }
-        case Some(nr) => {
-          nr
-        }
-        case _ => {
-          allRef
-        }
+      val (rr, rn) = normalizeConjunction(
+        resultCollector, entityDeterminer, separator, params)
+      if (rn) {
+        negateCollection = true
       }
+      rr.getOrElse(allRef)
     }
     val rewriteReferences =
       Rewriter.rule[ShlurdPhrase] {
@@ -495,12 +485,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     val trueEntities = resultCollector.entityMap.filter(
       _._2.assumeFalse).keySet
+    val exhaustive = (trueEntities.size == resultCollector.entityMap.size)
+    val existence = resultCollector.states.isEmpty
     (if (trueEntities.isEmpty) {
       None
     } else if (trueEntities.size == 1) {
       Some(world.specificReference(trueEntities.head, entityDeterminer))
-    } else if (trueEntities.size > params.listLimit) {
-      summarizeList(trueEntities)
+    } else if (exhaustive || (trueEntities.size > params.listLimit)) {
+      summarizeList(trueEntities, exhaustive, existence, false)
     } else {
       Some(ShlurdConjunctiveReference(
         DETERMINER_ALL,
@@ -514,32 +506,63 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     resultCollector : ResultCollector,
     entityDeterminer : ShlurdDeterminer,
     separator : ShlurdSeparator,
-    params : ShlurdInterpreterParams) =
+    params : ShlurdInterpreterParams)
+      : (Option[ShlurdReference], Boolean) =
   {
     val falseEntities = resultCollector.entityMap.filterNot(
       _._2.assumeTrue).keySet
-    (if (falseEntities.isEmpty) {
-      None
+    val exhaustive = (falseEntities.size == resultCollector.entityMap.size)
+    val existence = resultCollector.states.isEmpty
+    val tuple = (if (falseEntities.isEmpty) {
+      (None, false)
     } else if (falseEntities.size == 1) {
-      Some(world.specificReference(falseEntities.head, entityDeterminer))
-    } else if (falseEntities.size > params.listLimit) {
-      summarizeList(falseEntities)
+      (Some(world.specificReference(falseEntities.head, entityDeterminer)),
+        false)
+    } else if (exhaustive || (falseEntities.size > params.listLimit)) {
+      (summarizeList(falseEntities, exhaustive, existence, true),
+        exhaustive)
     } else {
-      Some(ShlurdConjunctiveReference(
+      (Some(ShlurdConjunctiveReference(
         DETERMINER_NONE,
         falseEntities.map(
           world.specificReference(_, entityDeterminer)).toSeq,
-        separator))
-    }).map(r => ShlurdQualifiedReference(r, Seq.empty))
+        separator)),
+        true)
+    })
+    tuple.copy(_1 = tuple._1.map(r => ShlurdQualifiedReference(r, Seq.empty)))
   }
 
-  private def summarizeList(entities : Iterable[ShlurdEntity]) =
+  private def summarizeList(
+    entities : Iterable[ShlurdEntity],
+    exhaustive : Boolean,
+    existence : Boolean,
+    conjunction : Boolean) =
   {
-    val number = entities.size.toString
+    var all = exhaustive
+    // FIXME:  make this language-independent
+    val number = {
+      if (conjunction && exhaustive) {
+        all = false
+        "none"
+      } else  if ((entities.size == 2) && exhaustive) {
+        all = false
+        "both"
+      } else {
+        entities.size.toString
+      }
+    }
+    val prefix = {
+      if (all && !existence) {
+        Seq(ShlurdWord("all", "all"))
+      } else {
+        Seq.empty
+      }
+    }
+    val qualifiers = prefix ++ Seq(ShlurdWord(number, number))
     // FIXME:  derive gender from entities
     Some(
       ShlurdQualifiedReference(
         ShlurdPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL),
-        Seq(ShlurdWord(number, number))))
+        qualifiers))
   }
 }

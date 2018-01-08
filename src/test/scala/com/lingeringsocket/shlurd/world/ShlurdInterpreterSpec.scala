@@ -81,7 +81,7 @@ class ShlurdInterpreterSpec extends Specification
       // a statement instead of a question
       // interpret("are there any tigers")
       interpret("is there any goat") must be equalTo(
-        "Yes, there is a domestic goat, a siberian goat, and a mountain goat.")
+        "Yes, there are 3 of them.")
       interpret("is there a lion and a tiger") must be equalTo(
         "Yes, there is a lion and a tiger.")
       interpret("is there a lion or a peacock") must be equalTo(
@@ -131,16 +131,14 @@ class ShlurdInterpreterSpec extends Specification
       interpret("are all goats asleep") must be equalTo(
         "Yes, all goats are asleep.")
       interpret("are any goats asleep") must be equalTo(
-        "Yes, the domestic goat, the siberian goat, " +
-          "and the mountain goat are asleep.")
+        "Yes, all 3 of them are asleep.")
       val lowLimit = ShlurdInterpreterParams().copy(listLimit = 1)
       interpret("are any goats asleep", lowLimit) must be equalTo(
-        "Yes, 3 of them are asleep.")
+        "Yes, all 3 of them are asleep.")
       interpret("are any goats awake") must be equalTo(
         "No, no goats are awake.")
       interpret("are all goats awake") must be equalTo(
-        "No, neither the domestic goat, the siberian goat, " +
-          "nor the mountain goat is awake.")
+        "No, none of them are awake.")
       interpret("is there an aardvark") must be equalTo(
         "I don't know about this animal: aardvark")
       interpret("is the sloth awake") must be equalTo(
@@ -149,9 +147,8 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, the tiger is awake.")
       interpret("is the lion or the polar bear awake") must be equalTo(
         "No, neither the lion nor the polar bear is awake.")
-      // FIXME:  "are both awake" would be better
       interpret("is the grizzly bear or the tiger awake") must be equalTo(
-        "Yes, the tiger and the grizzly bear are awake.")
+        "Yes, both of them are awake.")
       interpret("is the sloth or the tiger asleep") must be equalTo(
         "I don't know.")
       interpret("is the sloth or the lion awake") must be equalTo(
