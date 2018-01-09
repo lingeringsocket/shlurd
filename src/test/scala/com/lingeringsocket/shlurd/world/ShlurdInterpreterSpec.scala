@@ -194,11 +194,17 @@ class ShlurdInterpreterSpec extends Specification
         "awake the polar bear and the lion",
         ShlurdStateChangeInvocation(Set(ZooLion, ZooPolarBear), awake))
       interpret("awake the tiger") must be equalTo(
-        "But it already is.")
+        "But the tiger is awake already.")
       interpretCommandExpected("asleep the tiger",
         ShlurdStateChangeInvocation(
           Set(ZooTiger),
           ShlurdWord("sleepify", "asleep")))
+      interpret("asleep the goats") must be equalTo(
+        "But the goats are asleep already.")
+      interpret("asleep the lion") must be equalTo(
+        "But the lion is asleep already.")
+      interpret("asleep the lion and the goats") must be equalTo(
+        "But the lion and the goats are asleep already.")
     }
   }
 

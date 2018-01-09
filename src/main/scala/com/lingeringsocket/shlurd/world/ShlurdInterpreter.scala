@@ -58,8 +58,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case ShlurdStateChangeCommand(predicate, formality) => {
         evaluatePredicate(predicate, resultCollector) match {
           case Success(Trilean.True) => {
-            // FIXME:  use proper rephrasing
-            "But it already is."
+            val (normalizedResponse, negateCollection) =
+              normalizeResponse(
+                predicate, resultCollector)
+            val responseMood = MOOD_INDICATIVE_POSITIVE
+            sentencePrinter.sb.respondToCounterfactual(
+              sentencePrinter.print(
+                ShlurdPredicateSentence(
+                  normalizedResponse,
+                  responseMood)))
           }
           case Success(_) => {
             assert(resultCollector.states.size == 1)

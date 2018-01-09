@@ -388,6 +388,11 @@ class EnglishSentenceBundle
     "is it what now"
   }
 
+  override def respondToCounterfactual(sentence : String) =
+  {
+    compose("But", sentence.stripSuffix("."), "already.")
+  }
+
   override def affirmAssumption(sentence : String, strength : Boolean) =
   {
     if (strength) {

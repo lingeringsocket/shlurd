@@ -128,6 +128,8 @@ abstract class ShlurdSentenceBundle
   def locationalNoun(
     position : String, noun : String, conjoining : ShlurdConjoining) : String
 
+  def respondToCounterfactual(sentence : String) : String
+
   def respondToAssumption(
     assumption : ShlurdAssumption, truth : Boolean,
     sentence : String, strength : Boolean)

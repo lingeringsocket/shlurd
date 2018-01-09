@@ -335,6 +335,12 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(lemma, "(qualifying adjective)")
   }
 
+  override def respondToCounterfactual(sentence : String) =
+  {
+    // FIXME should use 네요 sentence ending as well?
+    compose("하지만 ", sentence)
+  }
+
   override def affirmAssumption(sentence : String, strength : Boolean) =
   {
     val prefixed = {
