@@ -89,7 +89,8 @@ case object SEPARATOR_COMMA extends ShlurdSeparator
 }
 case object SEPARATOR_OXFORD_COMMA extends ShlurdSeparator
 {
-  override def needComma(pos : Int, total : Int) = ((pos + 1) < total)
+  override def needComma(pos : Int, total : Int) =
+    (((pos + 1) < total) && (total > 2))
 }
 
 sealed case class ShlurdFormality(

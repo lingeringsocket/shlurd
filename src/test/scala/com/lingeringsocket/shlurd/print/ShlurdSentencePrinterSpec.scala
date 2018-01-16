@@ -111,6 +111,9 @@ class ShlurdSentencePrinterSpec extends Specification
       expectQuestion("is the server up and running")
       expectQuestion("is the server down or failing")
       expectStatement("the horse is healthy, strong, and hungry")
+      expectNormalized(
+        "the horse is healthy, and strong",
+        "the horse is healthy and strong.")
       expectStatement("your friend and I are hungry")
       expectStatement("your friend, Stalin, and I are hungry")
       expectStatement("the red pig, Stalin, and I are hungry")
