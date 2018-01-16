@@ -130,6 +130,8 @@ abstract class ShlurdSentenceBundle
 
   def respondToCounterfactual(sentence : String) : String
 
+  def respondToImperative(sentence : String) : String
+
   def respondToAssumption(
     assumption : ShlurdAssumption, truth : Boolean,
     sentence : String, strength : Boolean)

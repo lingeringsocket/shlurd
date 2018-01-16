@@ -45,7 +45,9 @@ class ShlurdInterpreterSpec extends Specification
   }
 
   private def interpretCommandExpected(
-    input : String, invocation : StateChangeInvocation) =
+    input : String,
+    expectedResponse : String,
+    invocation : StateChangeInvocation) =
   {
     val sentence = ShlurdParser(input).parseOne
     var actualInvocation : Option[StateChangeInvocation] = None
@@ -56,8 +58,7 @@ class ShlurdInterpreterSpec extends Specification
         actualInvocation = Some(invocation)
       }
     }
-    interpreter.interpret(sentence) must be equalTo(
-      "Okay, I will get right on that.")
+    interpreter.interpret(sentence) must be equalTo(expectedResponse)
     actualInvocation must be equalTo(Some(invocation))
   }
 
@@ -186,16 +187,21 @@ class ShlurdInterpreterSpec extends Specification
       val awake = ShlurdWord("awake", "awake")
       interpretCommandExpected(
         "awake the lion",
+        "OK, I will awake the lion.",
         ShlurdStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the lion and the tiger",
+        "OK, I will awake the lion.",
         ShlurdStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the polar bear and the lion",
+        "OK, I will awake the polar bear and the lion.",
         ShlurdStateChangeInvocation(Set(ZooLion, ZooPolarBear), awake))
       interpret("awake the tiger") must be equalTo(
         "But the tiger is awake already.")
-      interpretCommandExpected("asleep the tiger",
+      interpretCommandExpected(
+        "asleep the tiger",
+        "OK, I will asleep the tiger.",
         ShlurdStateChangeInvocation(
           Set(ZooTiger),
           ShlurdWord("sleepify", "asleep")))

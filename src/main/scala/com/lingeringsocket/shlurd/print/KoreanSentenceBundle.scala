@@ -341,6 +341,12 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose("하지만 ", sentence)
   }
 
+  override def respondToImperative(sentence : String) =
+  {
+    // FIXME totally wrong
+    compose("내,", sentence)
+  }
+
   override def affirmAssumption(sentence : String, strength : Boolean) =
   {
     val prefixed = {

@@ -61,6 +61,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             val (normalizedResponse, negateCollection) =
               normalizeResponse(
                 predicate, resultCollector)
+            assert(!negateCollection)
             val responseMood = MOOD_INDICATIVE_POSITIVE
             sentencePrinter.sb.respondToCounterfactual(
               sentencePrinter.print(
@@ -75,7 +76,21 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 resultCollector.entityMap.filterNot(
                   _._2.assumeFalse).keySet,
                 resultCollector.states.head))
-            "Okay, I will get right on that."
+            val (normalizedResponse, negateCollection) =
+              normalizeResponse(
+                predicate, resultCollector)
+            val response = {
+              if (negateCollection) {
+                predicate
+              } else {
+                normalizedResponse
+              }
+            }
+            sentencePrinter.sb.respondToImperative(
+              sentencePrinter.print(
+                ShlurdPredicateSentence(
+                  response,
+                  MOOD_IMPERATIVE)))
           }
           case Failure(e) => {
             diagnostics(e)

@@ -393,6 +393,11 @@ class EnglishSentenceBundle
     compose("But", sentence.stripSuffix("."), "already.")
   }
 
+  override def respondToImperative(sentence : String) =
+  {
+    compose("OK, I will", sentence)
+  }
+
   override def affirmAssumption(sentence : String, strength : Boolean) =
   {
     if (strength) {
