@@ -76,21 +76,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 resultCollector.entityMap.filterNot(
                   _._2.assumeFalse).keySet,
                 resultCollector.states.head))
-            val (normalizedResponse, negateCollection) =
-              normalizeResponse(
-                predicate, resultCollector)
-            val response = {
-              if (negateCollection) {
-                predicate
-              } else {
-                normalizedResponse
-              }
-            }
-            sentencePrinter.sb.respondToImperative(
-              sentencePrinter.print(
-                ShlurdPredicateSentence(
-                  response,
-                  MOOD_IMPERATIVE)))
+            "OK."
           }
           case Failure(e) => {
             diagnostics(e)
