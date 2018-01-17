@@ -76,7 +76,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 resultCollector.entityMap.filterNot(
                   _._2.assumeFalse).keySet,
                 resultCollector.states.head))
-            "OK."
+            sentencePrinter.sb.respondCompliance()
           }
           case Failure(e) => {
             diagnostics(e)
@@ -90,7 +90,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case ShlurdInterrogativeMood(positive, modality) => {
             evaluatePredicate(predicate, resultCollector) match {
               case Success(Trilean.Unknown) => {
-                "I don't know."
+                sentencePrinter.sb.respondDontKnow()
               }
               case Success(truth) => {
                 val truthBoolean = truth.assumeFalse
@@ -159,12 +159,12 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             }
           }
           case _ => {
-            "I am not sure what you mean by that."
+            sentencePrinter.sb.respondCannotUnderstand()
           }
         }
       }
       case ShlurdUnknownSentence => {
-        "Sorry, I do not understand."
+        sentencePrinter.sb.respondCannotUnderstand()
       }
     }
   }
@@ -212,7 +212,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case DETERMINER_ANY | DETERMINER_SOME | DETERMINER_NONSPECIFIC => {
             Success(results.fold(Trilean.False)(_|_))
           }
-          case _ => fail("I don't know about this determiner")
+          case _ => fail(sentencePrinter.sb.respondCannotUnderstand())
         }
       }
     }
@@ -243,11 +243,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               subject, locative, location, resultCollector)
           }
           case ShlurdUnknownState => fail(
-            "I don't know about this kind of state")
+            sentencePrinter.sb.respondCannotUnderstand())
         }
       }
       case _ => fail(
-        "I don't know about this kind of predicate")
+        sentencePrinter.sb.respondCannotUnderstand())
     }
   }
 
@@ -269,12 +269,12 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             determiner match {
               case DETERMINER_UNIQUE => {
                 if (entities.isEmpty) {
-                  fail("I don't know about any such " + lemma)
+                  fail(sentencePrinter.sb.respondNonexistent(lemma))
                 } else {
                   count match {
                     case COUNT_SINGULAR => {
                       if (entities.size > 1) {
-                        fail("I am not sure which " + lemma + " you mean")
+                        fail(sentencePrinter.sb.respondAmbiguous(lemma))
                       } else {
                         invokeEvaluator(
                           entities.head, resultCollector, evaluator)
@@ -287,7 +287,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                             invokeEvaluator(_, resultCollector, evaluator)),
                           DETERMINER_ALL)
                       } else {
-                        fail("I know about only one " + lemma)
+                        fail(sentencePrinter.sb.respondUnique(lemma))
                       }
                     }
                   }
@@ -323,7 +323,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         fail("FIXME")
       }
       case ShlurdUnknownReference => {
-        fail("I don't know about this kind of reference")
+        fail(sentencePrinter.sb.respondCannotUnderstand())
       }
     }
   }

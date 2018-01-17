@@ -341,10 +341,34 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose("하지만 ", sentence)
   }
 
-  override def respondToImperative(sentence : String) =
+  override def respondAmbiguous(entity : String) =
   {
-    // FIXME totally wrong
-    compose("내,", sentence)
+    compose("무슨", entity, "?")
+  }
+
+  override def respondUnique(entity : String) =
+  {
+    "FIXME"
+  }
+
+  override def respondNonexistent(entity : String) =
+  {
+    compose(entity, "없어요")
+  }
+
+  override def respondCannotUnderstand() =
+  {
+    "이해 못 해요."
+  }
+
+  override def respondCompliance() =
+  {
+    "내, 알겠습니다."
+  }
+
+  override def respondDontKnow() =
+  {
+    "몰라요."
   }
 
   override def affirmAssumption(sentence : String, strength : Boolean) =

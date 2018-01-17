@@ -130,7 +130,17 @@ abstract class ShlurdSentenceBundle
 
   def respondToCounterfactual(sentence : String) : String
 
-  def respondToImperative(sentence : String) : String
+  def respondUnique(entity : String) : String
+
+  def respondAmbiguous(entity : String) : String
+
+  def respondNonexistent(entity : String) : String
+
+  def respondCannotUnderstand() : String
+
+  def respondDontKnow() : String
+
+  def respondCompliance() : String
 
   def respondToAssumption(
     assumption : ShlurdAssumption, truth : Boolean,

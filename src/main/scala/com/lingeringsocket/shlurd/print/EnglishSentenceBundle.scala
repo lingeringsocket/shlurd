@@ -393,9 +393,34 @@ class EnglishSentenceBundle
     compose("But", sentence.stripSuffix("."), "already.")
   }
 
-  override def respondToImperative(sentence : String) =
+  override def respondAmbiguous(entity : String) =
   {
-    compose("OK, I will", sentence)
+    compose("Please be more specific about which", entity, "you mean.")
+  }
+
+  override def respondUnique(entity : String) =
+  {
+    compose("But I only know about one", concat(entity, "."))
+  }
+
+  override def respondNonexistent(entity : String) =
+  {
+    compose("But I don't know about any such", concat(entity, "."))
+  }
+
+  override def respondCannotUnderstand() =
+  {
+    "Sorry, I cannot understand what you said."
+  }
+
+  override def respondDontKnow() =
+  {
+    "I don't know."
+  }
+
+  override def respondCompliance() =
+  {
+    "OK."
   }
 
   override def affirmAssumption(sentence : String, strength : Boolean) =
