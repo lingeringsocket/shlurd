@@ -137,6 +137,9 @@ class ShlurdSentencePrinterSpec extends Specification
       expectQuestion("is there not a door")
       // FIXME:  negated "must there NOT be a door" fails
       expectQuestion("must there be a door")
+      expectStatement("the window in the bathroom is open")
+      expectQuestion("is the window in the bathroom open")
+      expectCommand("open the window in the bathroom")
     }
   }
 }

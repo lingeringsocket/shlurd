@@ -73,8 +73,21 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           }
         )
       }
-      case ShlurdQualifiedReference(sub, qualifiers) => {
-        val qualifierString = sb.composeQualifiers(qualifiers)
+      case ShlurdStateSpecifiedReference(sub, state) => {
+        state match {
+          case ShlurdLocationState(locative, location) => {
+            val specified = print(sub, inflection, ShlurdConjoining.NONE)
+            val specifier = sb.locationalNoun(
+              sb.position(locative),
+              print(location, INFLECT_NONE, ShlurdConjoining.NONE),
+              conjoining)
+            return sb.specifiedNoun(specifier, specified)
+          }
+          case _ => {
+          }
+        }
+        val qualifierString = sb.composeQualifiers(
+          ShlurdReference.extractQualifiers(state))
         sub match {
           case ShlurdEntityReference(entity, determiner, count) => {
             sb.determinedNoun(
@@ -144,7 +157,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           }
         )
       }
-      case ShlurdUnknownState => {
+      case ShlurdNullState() | ShlurdUnknownState => {
         sb.unknownState
       }
     }
@@ -249,7 +262,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         // since it makes a difference in languages such as Spanish
         sb.copula(PERSON_THIRD, GENDER_N, count, mood, isExistential)
       }
-      case ShlurdQualifiedReference(reference, qualifiers) => {
+      case ShlurdStateSpecifiedReference(reference, _) => {
         getCopula(reference, state, mood)
       }
       case ShlurdGenitiveReference(genitive, reference) => {
@@ -264,20 +277,20 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   private def getCount(reference : ShlurdReference) : ShlurdCount =
   {
     reference match {
-      case ShlurdPronounReference(person, gender, count) =>
+      case ShlurdPronounReference(_, _, count) =>
         count
-      case ShlurdEntityReference(entity, determiner, count) =>
+      case ShlurdEntityReference(_, _, count) =>
         count
-      case ShlurdConjunctiveReference(determiner, references, _) => {
+      case ShlurdConjunctiveReference(determiner, _, _) => {
         determiner match {
           case DETERMINER_ALL => COUNT_PLURAL
           // DETERMINER_NONE is debatable
           case _ => COUNT_SINGULAR
         }
       }
-      case ShlurdQualifiedReference(reference, qualifiers) =>
+      case ShlurdStateSpecifiedReference(reference, _) =>
         getCount(reference)
-      case ShlurdGenitiveReference(genitive, reference) =>
+      case ShlurdGenitiveReference(_, reference) =>
         getCount(reference)
       case ShlurdUnknownReference => COUNT_SINGULAR
     }

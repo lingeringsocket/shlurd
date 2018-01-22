@@ -307,7 +307,7 @@ class ShlurdInterpreterSpec extends Specification
           if (words.size == 1) {
             entityReference
           } else {
-            ShlurdQualifiedReference(
+            ShlurdReference.qualified(
               entityReference, words.dropRight(1).map(q => ShlurdWord(q, q)))
           }
         }

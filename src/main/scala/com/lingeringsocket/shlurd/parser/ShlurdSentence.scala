@@ -99,12 +99,12 @@ case class ShlurdIdentityPredicate(
   override def children = Seq(subject, complement)
 }
 
-case class ShlurdQualifiedReference(
+case class ShlurdStateSpecifiedReference(
   reference : ShlurdReference,
-  qualifiers : Seq[ShlurdWord]
+  state : ShlurdState
 ) extends ShlurdReference
 {
-  override def children = Seq(reference)
+  override def children = Seq(reference, state)
 }
 
 case class ShlurdGenitiveReference(
@@ -145,6 +145,11 @@ case class ShlurdExistenceState(
 {
 }
 
+case class ShlurdNullState(
+) extends ShlurdState
+{
+}
+
 case class ShlurdPropertyState(
   state : ShlurdWord
 ) extends ShlurdState
@@ -172,4 +177,38 @@ case class ShlurdWord(
   inflected : String,
   lemma : String)
 {
+}
+
+object ShlurdReference
+{
+  def qualified(reference : ShlurdReference, qualifiers : Seq[ShlurdWord]) =
+  {
+    if (qualifiers.isEmpty) {
+      reference
+    } else if (qualifiers.size == 1) {
+      ShlurdStateSpecifiedReference(
+        reference, ShlurdPropertyState(qualifiers.head))
+    } else {
+      ShlurdStateSpecifiedReference(
+        reference,
+        ShlurdConjunctiveState(
+          DETERMINER_ALL,
+          qualifiers.map(ShlurdPropertyState(_)),
+          SEPARATOR_CONJOINED))
+    }
+  }
+
+  def extractQualifiers(state : ShlurdState) : Seq[ShlurdWord] =
+  {
+    state match {
+      case ShlurdConjunctiveState(DETERMINER_ALL, states, _) =>
+        states.flatMap(extractQualifiers(_))
+      case ShlurdPropertyState(state) => Seq(state)
+      case ShlurdNullState() | ShlurdExistenceState() => Seq.empty
+      case _ => {
+        assert(false)
+        Seq.empty
+      }
+    }
+  }
 }

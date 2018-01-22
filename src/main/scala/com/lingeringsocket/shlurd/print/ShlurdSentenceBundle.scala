@@ -123,6 +123,8 @@ abstract class ShlurdSentenceBundle
 
   def qualifiedNoun(qualifiers : String, noun : String) : String
 
+  def specifiedNoun(specifier : String, noun : String) : String
+
   def determinedNoun(determiner : ShlurdDeterminer, noun : String) : String
 
   def locationalNoun(

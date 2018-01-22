@@ -147,6 +147,11 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(qualifiers, noun)
   }
 
+  override def specifiedNoun(specifier : String, noun : String) =
+  {
+    compose(specifier, noun)
+  }
+
   override def determinedNoun(determiner : ShlurdDeterminer, noun : String) =
   {
     val determinerString = determiner match {

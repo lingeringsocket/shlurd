@@ -243,10 +243,11 @@ class ShlurdPlatonicWorld
         {
           (entity, preQualifiers)
         }
-      case ShlurdQualifiedReference(subRef, qualifiers) =>
+      case ShlurdStateSpecifiedReference(subRef, state) =>
         {
           extractQualifiedEntity(
-            sentence, subRef, preQualifiers ++ qualifiers)
+            sentence, subRef,
+            preQualifiers ++ ShlurdReference.extractQualifiers(state))
         }
       case _ => throw new IncomprehensibleBelief(sentence)
     }
@@ -399,7 +400,7 @@ class ShlurdPlatonicWorld
     if (entity.qualifiers.isEmpty) {
       entityReference
     } else {
-      ShlurdQualifiedReference(
+      ShlurdReference.qualified(
         entityReference, entity.qualifiers.map(q => ShlurdWord(q, q)).toSeq)
     }
   }

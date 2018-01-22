@@ -242,7 +242,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             evaluateLocationStatePredicate(
               subject, locative, location, resultCollector)
           }
-          case ShlurdUnknownState => fail(
+          case ShlurdNullState() | ShlurdUnknownState => fail(
             sentencePrinter.sb.respondCannotUnderstand())
         }
       }
@@ -255,7 +255,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     reference : ShlurdReference,
     context : ShlurdReferenceContext,
     resultCollector : ResultCollector,
-    qualifiers : Seq[ShlurdWord] = Seq.empty
+    specifiedState : ShlurdState = ShlurdNullState()
   )(evaluator : E => Try[Trilean])
       : Try[Trilean] =
   {
@@ -263,7 +263,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case ShlurdEntityReference(word, determiner, count) => {
         val lemma = word.lemma
         world.resolveEntity(
-          lemma, context, world.qualifierSet(qualifiers)) match
+          lemma, context,
+          world.qualifierSet(
+            ShlurdReference.extractQualifiers(specifiedState))) match
         {
           case Success(entities) => {
             determiner match {
@@ -310,12 +312,23 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case ShlurdConjunctiveReference(determiner, references, separator) => {
         val results = references.map(
           evaluatePredicateOverReference(
-            _, context, resultCollector, qualifiers)(evaluator))
+            _, context, resultCollector, specifiedState)(evaluator))
         evaluateDeterminer(results, determiner)
       }
-      case ShlurdQualifiedReference(sub, qualifiers) => {
+      case ShlurdStateSpecifiedReference(sub, subState) => {
+        val combinedState = {
+          if (specifiedState == ShlurdNullState()) {
+            subState
+          } else {
+            ShlurdConjunctiveState(
+              DETERMINER_ALL,
+              Seq(specifiedState, subState),
+              SEPARATOR_CONJOINED)
+          }
+        }
+        assert(specifiedState == ShlurdNullState())
         evaluatePredicateOverReference(
-          sub, context, resultCollector, qualifiers)(evaluator)
+          sub, context, resultCollector, combinedState)(evaluator)
       }
       case ShlurdGenitiveReference(genitive, reference) => {
         // maybe allow qualifiers here in case the parser gets
@@ -420,17 +433,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
     val rewriteReferences =
       Rewriter.rule[ShlurdPhrase] {
-        case ShlurdQualifiedReference(outer, qualifiers) => {
+        case ShlurdStateSpecifiedReference(outer, state) => {
           outer match {
-            case ShlurdQualifiedReference(inner, seq) => {
-              if (seq.isEmpty) {
-                inner
-              } else {
-                ShlurdQualifiedReference(outer, qualifiers)
-              }
+            case ShlurdStateSpecifiedReference(
+              inner, ShlurdNullState()) =>
+            {
+              inner
             }
             case _ => {
-              ShlurdQualifiedReference(outer, qualifiers)
+              ShlurdStateSpecifiedReference(outer, state)
             }
           }
         }
@@ -507,7 +518,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         trueEntities.map(
           world.specificReference(_, entityDeterminer)).toSeq,
         separator))
-    }).map(r => ShlurdQualifiedReference(r, Seq.empty))
+    }).map(r => ShlurdStateSpecifiedReference(r, ShlurdNullState()))
   }
 
   private def normalizeConjunction(
@@ -537,7 +548,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         separator)),
         true)
     })
-    tuple.copy(_1 = tuple._1.map(r => ShlurdQualifiedReference(r, Seq.empty)))
+    tuple.copy(_1 = tuple._1.map(
+      r => ShlurdStateSpecifiedReference(r, ShlurdNullState())))
   }
 
   private def summarizeList(
@@ -569,7 +581,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     val qualifiers = prefix ++ Seq(ShlurdWord(number, number))
     // FIXME:  derive gender from entities
     Some(
-      ShlurdQualifiedReference(
+      ShlurdReference.qualified(
         ShlurdPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL),
         qualifiers))
   }

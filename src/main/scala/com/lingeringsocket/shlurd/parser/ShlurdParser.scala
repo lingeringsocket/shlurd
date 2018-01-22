@@ -502,11 +502,15 @@ class ShlurdSingleParser(
         getLemma(components.head.firstChild))
       val entityReference = expectNounReference(components.last, determiner)
       ShlurdGenitiveReference(pronounReference, entityReference)
+    } else if (isPrepositionalPhrase(components.last)) {
+      ShlurdStateSpecifiedReference(
+        expectReference(seqIn.dropRight(1)),
+        expectPrepositionalState(components.last.children))
     } else if ((components.size == 2) && isNounPhrase(components.head)) {
       val entityReference = expectReference(components.head)
       expectRelativeQualifier(components.last) match {
         case Some(qualifiers) => {
-          ShlurdQualifiedReference(entityReference, qualifiers)
+          ShlurdReference.qualified(entityReference, qualifiers)
         }
         case _ => {
           ShlurdUnknownReference
@@ -515,7 +519,7 @@ class ShlurdSingleParser(
     } else if (components.forall(c => isNoun(c) || isAdjective(c))) {
       val entityReference = expectNounReference(components.last, determiner)
       if (components.size > 1) {
-        ShlurdQualifiedReference(
+        ShlurdReference.qualified(
           entityReference,
           components.dropRight(1).map(c => getWord(c.firstChild)))
       } else {

@@ -272,6 +272,11 @@ class EnglishSentenceBundle
     compose(qualifiers, noun)
   }
 
+  override def specifiedNoun(specifier : String, noun : String) =
+  {
+    compose(noun, specifier)
+  }
+
   override def determinedNoun(determiner : ShlurdDeterminer, noun : String) =
   {
     val determinerString = determiner match {

@@ -24,6 +24,8 @@ class ShlurdParserSpec extends Specification
 
   private val ENTITY_WINDOW = word("window")
 
+  private val ENTITY_BATHROOM = word("bathroom")
+
   private val ENTITY_DOORS = ShlurdWord("doors", "door")
 
   private val ENTITY_FRANNY = word("franny")
@@ -256,7 +258,7 @@ class ShlurdParserSpec extends Specification
       parse(inputFront) must be equalTo
         ShlurdStateChangeCommand(
           ShlurdStatePredicate(
-            ShlurdQualifiedReference(
+            ShlurdReference.qualified(
               ShlurdEntityReference(ENTITY_DOOR, DETERMINER_UNIQUE),
               Seq(QUALIFIER_FRONT)),
             ShlurdPropertyState(STATE_OPEN)))
@@ -273,6 +275,33 @@ class ShlurdParserSpec extends Specification
               LOC_AT,
               ShlurdEntityReference(ENTITY_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
+    }
+
+    "parse locative specifiers" in
+    {
+      val pred = ShlurdStatePredicate(
+        ShlurdStateSpecifiedReference(
+          ShlurdEntityReference(
+            ENTITY_WINDOW, DETERMINER_UNIQUE, COUNT_SINGULAR),
+          ShlurdLocationState(
+            LOC_INSIDE,
+            ShlurdEntityReference(
+              ENTITY_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR)
+          )
+        ),
+        ShlurdPropertyState(STATE_OPEN)
+      )
+      parse("the window in the bathroom is open") must be equalTo
+        ShlurdPredicateSentence(
+          pred,
+          MOOD_INDICATIVE_POSITIVE)
+      parse("is the window in the bathroom open") must be equalTo
+        ShlurdPredicateSentence(
+          pred,
+          MOOD_INTERROGATIVE_POSITIVE)
+      parse("open the window in the bathroom") must be equalTo
+        ShlurdStateChangeCommand(
+          pred)
     }
 
     "parse pronouns" in
@@ -398,7 +427,7 @@ class ShlurdParserSpec extends Specification
       parse("There is a front door") must be equalTo(
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
-            ShlurdQualifiedReference(
+            ShlurdReference.qualified(
               ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
               Seq(QUALIFIER_FRONT)),
             ShlurdExistenceState())))
@@ -428,7 +457,7 @@ class ShlurdParserSpec extends Specification
       parse("a door that is shut is closed") must be equalTo(
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
-            ShlurdQualifiedReference(
+            ShlurdReference.qualified(
               ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
               Seq(STATE_SHUT)),
             ShlurdPropertyState(STATE_CLOSED))))
