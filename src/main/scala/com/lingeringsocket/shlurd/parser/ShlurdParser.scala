@@ -227,7 +227,14 @@ class ShlurdSingleParser(
   {
     val i = seq.indexWhere(isCompoundPrepositionalPhrase(_))
     if (i == -1) {
-      (ShlurdNullState(), seq)
+      val last2 = seq.takeRight(2)
+      if (last2.map(getLabel) == Seq("ADVP", "NP")) {
+        val rewrite = new LabeledScoredTreeNode(last2.head.label)
+        rewrite.setChildren(Array(last2.head.firstChild, last2.last))
+        (ShlurdNullState(), seq.dropRight(2) :+ rewrite)
+      } else {
+        (ShlurdNullState(), seq)
+      }
     } else {
       (expectPrepositionalState(seq(i).children),
         seq.take(i) ++ seq.drop(i + 1))
@@ -250,7 +257,8 @@ class ShlurdSingleParser(
     isVerb(verbHead) && hasTerminalLemma(verbHead, "exist")
   }
 
-  private def expectSentence(tree : Tree, implicitQuestion : Boolean) =
+  private def expectSentence(tree : Tree, implicitQuestion : Boolean)
+      : ShlurdSentence =
   {
     if (hasLabel(tree, "S")) {
       val isQuestion =
@@ -282,8 +290,9 @@ class ShlurdSingleParser(
         truncatePunctuation(tree, Seq("?")))
       if (isImperative(children)) {
         assert(specifiedState == ShlurdNullState())
-        expectCommand(children.head, ShlurdFormality.DEFAULT)
-      } else  if (children.size > 2) {
+        return expectCommand(children.head, ShlurdFormality.DEFAULT)
+      }
+      if (children.size > 2) {
         val (modality, modeless) = extractModality(children)
         val (negativeSuper, seq) = extractNegative(modeless)
         val expectedSize = modality match {
@@ -754,8 +763,8 @@ class ShlurdSingleParser(
 
   private def expectPrepositionalState(seq : Seq[Tree]) : ShlurdState =
   {
-    val prep = seq.head
-    if ((seq.size == 2) && isPreposition(prep)) {
+    val prep = unwrapPhrase(seq.head)
+    if ((seq.size == 2) && (isPreposition(prep) || isAdverb(prep))) {
       val prepLemma = getLemma(prep.firstChild)
       val locative = prepLemma match {
         case "in" | "inside" | "within" => LOC_INSIDE
@@ -848,7 +857,7 @@ class ShlurdSingleParser(
         expectPropertyStateComplement(seq)
       }
       case "ADVP" | "PP" => {
-        if (isPreposition(seq.head) && (seq.size > 1) &&
+        if ((isPreposition(seq.head) || isAdverb(seq.head)) && (seq.size > 1) &&
           (!seq.exists(isPrepositionalPhrase)))
         {
           expectPrepositionalState(seq)

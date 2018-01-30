@@ -166,7 +166,19 @@ class ShlurdInterpreterSpec extends Specification
       interpret("are the tiger and the lion asleep") must be equalTo(
         "No, the tiger is not asleep.")
       interpret("is the tiger in the cage") must be equalTo(
-        "Yes, the tiger is in the cage.")
+        "Please be more specific about which cage you mean.")
+      interpret("is the tiger in the big cage") must be equalTo(
+        "Yes, the tiger is in the big cage.")
+      interpret("is there a tiger in the big cage") must be equalTo(
+        "Yes, there is a tiger in the big cage.")
+      interpret("is the tiger in the small cage") must be equalTo(
+        "No, the tiger is not in the small cage.")
+      interpret("is there a tiger in the small cage") must be equalTo(
+        "No, there is not a tiger in the small cage.")
+      interpret("is the tiger in the big cage awake") must be equalTo(
+        "Yes, the tiger in the big cage is awake.")
+      interpret("is the tiger in the small cage awake") must be equalTo(
+        "But I don't know about any such tiger.")
       // FIXME:  this one gets mistakenly interpreted as an identity:
       // "is the grizzly == bear in the cage"
       /*
@@ -194,6 +206,7 @@ class ShlurdInterpreterSpec extends Specification
     "interpret commands" in
     {
       val awake = ShlurdWord("awake", "awake")
+      val asleep = ShlurdWord("sleepify", "asleep")
       interpretCommandExpected(
         "awake the lion",
         ShlurdStateChangeInvocation(Set(ZooLion), awake))
@@ -207,9 +220,7 @@ class ShlurdInterpreterSpec extends Specification
         "But the tiger is awake already.")
       interpretCommandExpected(
         "asleep the tiger",
-        ShlurdStateChangeInvocation(
-          Set(ZooTiger),
-          ShlurdWord("sleepify", "asleep")))
+        ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
       interpret("asleep the goats") must be equalTo(
         "But the goats are asleep already.")
       interpret("asleep the lion") must be equalTo(
@@ -219,6 +230,9 @@ class ShlurdInterpreterSpec extends Specification
       interpretCommandExpected(
         "awake the goat on the farm.",
         ShlurdStateChangeInvocation(Set(ZooDomesticGoat), awake))
+      interpretCommandExpected(
+        "asleep the tiger in the big cage.",
+        ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
 
     }
   }
@@ -244,7 +258,8 @@ class ShlurdInterpreterSpec extends Specification
   sealed case class ZooLocationEntity(name : String)
       extends ShlurdEntity with NamedObject
   object ZooFarm extends ZooLocationEntity("farm")
-  object ZooCage extends ZooLocationEntity("cage")
+  object ZooBigCage extends ZooLocationEntity("big cage")
+  object ZooSmallCage extends ZooLocationEntity("small cage")
 
   object ZooAnimalSleepinessProperty extends ShlurdProperty
   {
@@ -270,7 +285,7 @@ class ShlurdInterpreterSpec extends Specification
         ZooPeacock, ZooHippogriff, ZooSalamander))
 
     private val locations =
-      index(Set(ZooFarm, ZooCage))
+      index(Set(ZooFarm, ZooBigCage, ZooSmallCage))
 
     private val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
 
@@ -288,9 +303,9 @@ class ShlurdInterpreterSpec extends Specification
 
     private val containment : Map[ShlurdEntity, ZooLocationEntity] =
       Map(
-        ZooLion -> ZooCage,
-        ZooTiger -> ZooCage,
-        ZooPolarBear -> ZooCage,
+        ZooLion -> ZooBigCage,
+        ZooTiger -> ZooBigCage,
+        ZooPolarBear -> ZooSmallCage,
         ZooGrizzlyBear -> ZooFarm,
         ZooDomesticGoat -> ZooFarm)
 
@@ -301,11 +316,7 @@ class ShlurdInterpreterSpec extends Specification
     {
       val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
       if (context == REF_LOCATION) {
-        locations.get(lemma) match {
-          case Some(e) => Success(Set(e))
-          case _ =>
-            fail("I don't know about this location: " + name)
-        }
+        Success(locations.filterKeys(_.endsWith(name)).values.toSet)
       } else {
         if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
           fail("I don't know about this animal: " + name)
