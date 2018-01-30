@@ -272,7 +272,32 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           world.qualifierSet(
             ShlurdReference.extractQualifiers(specifiedState))) match
         {
-          case Success(entities) => {
+          case Success(unfilteredEntities) => {
+            // probably we should be pushing filters down into resolveEntity
+            // for efficiency
+            val locationStates =
+              ShlurdReference.extractLocationSpecifiers(specifiedState)
+            val entities = {
+              if (locationStates.isEmpty) {
+                unfilteredEntities
+              } else {
+                // should probably be doing some caching for
+                // reference -> entity lookups
+                unfilteredEntities.filter(subjectEntity =>
+                  locationStates.forall(ls => {
+                    val evaluation = evaluatePredicateOverReference(
+                      ls.location, REF_LOCATION, new ResultCollector)
+                    {
+                      locationEntity => {
+                        world.evaluateEntityLocationPredicate(
+                          subjectEntity, locationEntity, ls.locative)
+                      }
+                    }
+                    evaluation.isSuccess && evaluation.get.isTrue
+                  }
+                ))
+              }
+            }
             determiner match {
               case DETERMINER_UNIQUE => {
                 if (entities.isEmpty) {

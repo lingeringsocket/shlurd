@@ -173,6 +173,8 @@ class ShlurdInterpreterSpec extends Specification
       interpret("is the grizzly bear in the cage") must be equalTo(
         "Yes, the grizzly bear is in the cage.")
        */
+      interpret("is the goat on the farm awake") must be equalTo(
+        "No, the goat on the farm is not awake.")
     }
 
     "interpret statements" in
@@ -214,6 +216,10 @@ class ShlurdInterpreterSpec extends Specification
         "But the lion is asleep already.")
       interpret("asleep the lion and the goats") must be equalTo(
         "But the lion and the goats are asleep already.")
+      interpretCommandExpected(
+        "awake the goat on the farm.",
+        ShlurdStateChangeInvocation(Set(ZooDomesticGoat), awake))
+
     }
   }
 
@@ -378,7 +384,7 @@ class ShlurdInterpreterSpec extends Specification
       location : ShlurdEntity,
       locative : ShlurdLocative) =
     {
-      if (locative != LOC_INSIDE) {
+      if ((locative != LOC_INSIDE) && (locative != LOC_ON)) {
         Success(Trilean.False)
       } else {
         containment.get(entity) match {

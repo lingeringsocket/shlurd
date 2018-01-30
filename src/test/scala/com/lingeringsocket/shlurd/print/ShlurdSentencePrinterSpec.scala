@@ -161,6 +161,8 @@ class ShlurdSentencePrinterSpec extends Specification
         "is the light in the bathroom on?")
       expectNormalized("is the light off in the bathroom",
         "is the light in the bathroom off?")
+      expectNormalized("awake the goat on the farm.",
+        "awake the goat on the farm!")
     }
   }
 }

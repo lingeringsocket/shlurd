@@ -209,13 +209,30 @@ object ShlurdReference
     }
   }
 
+  def extractLocationSpecifiers(state : ShlurdState)
+      : Seq[ShlurdLocationState] =
+  {
+    state match {
+      case ShlurdConjunctiveState(DETERMINER_ALL, states, _) =>
+        states.flatMap(extractLocationSpecifiers(_))
+      case ls : ShlurdLocationState => Seq(ls)
+      case ShlurdNullState() | ShlurdPropertyState(_) |
+          ShlurdExistenceState() => Seq.empty
+      case _ => {
+        assert(false)
+        Seq.empty
+      }
+    }
+  }
+
   def extractQualifiers(state : ShlurdState) : Seq[ShlurdWord] =
   {
     state match {
       case ShlurdConjunctiveState(DETERMINER_ALL, states, _) =>
         states.flatMap(extractQualifiers(_))
       case ShlurdPropertyState(state) => Seq(state)
-      case ShlurdNullState() | ShlurdExistenceState() => Seq.empty
+      case ShlurdNullState() | ShlurdLocationState(_, _) |
+          ShlurdExistenceState() => Seq.empty
       case _ => {
         assert(false)
         Seq.empty
