@@ -43,6 +43,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.terminatedSentence(
           printPredicateCommand(predicate), sentence.mood, formality)
       }
+      case ShlurdAmbiguousSentence(alternatives) => {
+        alternatives.map(print(_)).mkString(" | ")
+      }
       case ShlurdUnknownSentence => {
         sb.unknownSentence
       }

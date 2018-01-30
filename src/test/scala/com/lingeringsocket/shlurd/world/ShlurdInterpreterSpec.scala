@@ -165,6 +165,14 @@ class ShlurdInterpreterSpec extends Specification
         "No, 2 of them are not awake.")
       interpret("are the tiger and the lion asleep") must be equalTo(
         "No, the tiger is not asleep.")
+      interpret("is the tiger in the cage") must be equalTo(
+        "Yes, the tiger is in the cage.")
+      // FIXME:  this one gets mistakenly interpreted as an identity:
+      // "is the grizzly == bear in the cage"
+      /*
+      interpret("is the grizzly bear in the cage") must be equalTo(
+        "Yes, the grizzly bear is in the cage.")
+       */
     }
 
     "interpret statements" in
@@ -227,6 +235,11 @@ class ShlurdInterpreterSpec extends Specification
   object ZooDomesticGoat extends ZooAnimalEntity("domestic goat")
   object ZooSiberianGoat extends ZooAnimalEntity("siberian goat")
 
+  sealed case class ZooLocationEntity(name : String)
+      extends ShlurdEntity with NamedObject
+  object ZooFarm extends ZooLocationEntity("farm")
+  object ZooCage extends ZooLocationEntity("cage")
+
   object ZooAnimalSleepinessProperty extends ShlurdProperty
   {
     override def getStates : Map[String, String] = Map(
@@ -250,6 +263,9 @@ class ShlurdInterpreterSpec extends Specification
         ZooMountainGoat, ZooDomesticGoat, ZooSiberianGoat,
         ZooPeacock, ZooHippogriff, ZooSalamander))
 
+    private val locations =
+      index(Set(ZooFarm, ZooCage))
+
     private val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
 
     // if an animal doesn't appear here, we don't have one at the
@@ -264,18 +280,34 @@ class ShlurdInterpreterSpec extends Specification
       ZooSiberianGoat -> Trilean.True,
       ZooSloth -> Trilean.Unknown)
 
+    private val containment : Map[ShlurdEntity, ZooLocationEntity] =
+      Map(
+        ZooLion -> ZooCage,
+        ZooTiger -> ZooCage,
+        ZooPolarBear -> ZooCage,
+        ZooGrizzlyBear -> ZooFarm,
+        ZooDomesticGoat -> ZooFarm)
+
     override def resolveEntity(
       lemma : String,
       context : ShlurdReferenceContext,
       qualifiers : Set[String]) =
     {
       val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
-      if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
-        fail("I don't know about this animal: " + name)
+      if (context == REF_LOCATION) {
+        locations.get(lemma) match {
+          case Some(e) => Success(Set(e))
+          case _ =>
+            fail("I don't know about this location: " + name)
+        }
       } else {
-        Success(
-          animals.filterKeys(_.endsWith(name)).
-            values.filter(asleep.contains(_)).toSet)
+        if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
+          fail("I don't know about this animal: " + name)
+        } else {
+          Success(
+            animals.filterKeys(_.endsWith(name)).
+              values.filter(asleep.contains(_)).toSet)
+        }
       }
     }
 
@@ -308,7 +340,8 @@ class ShlurdInterpreterSpec extends Specification
             entityReference
           } else {
             ShlurdReference.qualified(
-              entityReference, words.dropRight(1).map(q => ShlurdWord(q, q)))
+              entityReference, words.dropRight(1).map(
+                q => ShlurdWord(q, q)))
           }
         }
         case _ => ShlurdUnknownReference
@@ -327,13 +360,16 @@ class ShlurdInterpreterSpec extends Specification
               sleepinessValues.get(lemma) match {
                 case Some(ZooAnimalAwake) => Success(!asleep(animal))
                 case Some(ZooAnimalAsleep) => Success(asleep(animal))
-                case _ => fail("I don't know about this state: " + lemma)
+                case _ =>
+                  fail("I don't know about this state: " + lemma)
               }
             }
-            case _ => fail("I don't know about this property: " + property)
+            case _ =>
+              fail("I don't know about this property: " + property)
           }
         }
-        case _ => fail("I don't know about this entity: " + entity)
+        case _ =>
+          fail("I don't know about this entity: " + entity)
       }
     }
 
@@ -342,7 +378,16 @@ class ShlurdInterpreterSpec extends Specification
       location : ShlurdEntity,
       locative : ShlurdLocative) =
     {
-      fail("I don't know about locations yet")
+      if (locative != LOC_INSIDE) {
+        Success(Trilean.False)
+      } else {
+        containment.get(entity) match {
+          case Some(actualLocation) =>
+            Success(Trilean(location == actualLocation))
+          case _ =>
+            Success(Trilean.False)
+        }
+      }
     }
   }
 }

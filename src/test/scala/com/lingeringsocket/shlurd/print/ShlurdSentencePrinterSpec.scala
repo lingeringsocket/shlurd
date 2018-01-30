@@ -22,10 +22,16 @@ class ShlurdSentencePrinterSpec extends Specification
 {
   private val printer = new ShlurdSentencePrinter
 
-  private def normalize(s : String) =
+  private def normalize(s : String) : String =
   {
     val parsed = ShlurdParser(s).parseOne
-    val normalized = parsed match {
+    val normalized = normalize(parsed)
+    printer.print(normalized)
+  }
+
+  private def normalize(parsed : ShlurdSentence) : ShlurdSentence =
+  {
+    parsed match {
       case ShlurdPredicateSentence(predicate, mood, formality) => {
         mood match {
           case MOOD_IMPERATIVE => ShlurdPredicateSentence(
@@ -39,9 +45,11 @@ class ShlurdSentencePrinterSpec extends Specification
           predicate,
           formality.copy(force = FORCE_EXCLAMATION))
       }
+      case ShlurdAmbiguousSentence(alternatives) => {
+        ShlurdAmbiguousSentence(alternatives.map(normalize))
+      }
       case ShlurdUnknownSentence => parsed
     }
-    printer.print(normalized)
   }
 
   private def expectPreserved(s : String) =
@@ -140,6 +148,19 @@ class ShlurdSentencePrinterSpec extends Specification
       expectStatement("the window in the bathroom is open")
       expectQuestion("is the window in the bathroom open")
       expectCommand("open the window in the bathroom")
+      expectQuestion("is the tiger in the cage")
+      // FIXME:  "is the grizzly bear in the cage"
+      expectQuestion("is the light in the bathroom on")
+      expectStatement("the light in the bathroom is on")
+      expectCommand("open all windows on the first floor")
+      expectNormalized("is the window open in the bathroom",
+        "is the window in the bathroom open?")
+      expectNormalized("is the window closed in the bathroom",
+        "is the window in the bathroom closed?")
+      expectNormalized("is the light on in the bathroom",
+        "is the light in the bathroom on?")
+      expectNormalized("is the light off in the bathroom",
+        "is the light in the bathroom off?")
     }
   }
 }

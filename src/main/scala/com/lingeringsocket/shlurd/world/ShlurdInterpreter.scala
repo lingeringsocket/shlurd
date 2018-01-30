@@ -163,6 +163,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
+      case ShlurdAmbiguousSentence(alternatives) => {
+        // FIXME:  try each in turn and use first
+        // that does not result in an error
+        sentencePrinter.sb.respondCannotUnderstand()
+      }
       case ShlurdUnknownSentence => {
         sentencePrinter.sb.respondCannotUnderstand()
       }

@@ -59,6 +59,17 @@ case class ShlurdStateChangeCommand(
   override def mood = MOOD_IMPERATIVE
 }
 
+case class ShlurdAmbiguousSentence(
+  alternatives : Seq[ShlurdSentence]
+) extends ShlurdSentence
+{
+  override def children = alternatives
+
+  override def mood = alternatives.head.mood
+
+  override def formality = alternatives.head.formality
+}
+
 case object ShlurdUnknownSentence extends ShlurdSentence
 {
   override def mood = MOOD_INDICATIVE_POSITIVE
