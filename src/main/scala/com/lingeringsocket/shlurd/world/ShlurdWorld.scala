@@ -185,6 +185,13 @@ class ShlurdPlatonicWorld
 
   def getForms : Map[String, ShlurdPlatonicForm] = forms
 
+  def getEntities : Map[String, ShlurdPlatonicEntity] = entities
+
+  def clear()
+  {
+    entities.clear()
+  }
+
   def instantiateForm(word : ShlurdWord) =
   {
     val name = formSynonyms.resolveSynonym(word.lemma)
@@ -220,8 +227,13 @@ class ShlurdPlatonicWorld
         Seq(form.name, nextId.toString)).mkString("_")
     nextId += 1
     val entity = new ShlurdPlatonicEntity(name, form, qualifiers)
-    entities.put(name, entity)
+    addEntity(entity)
     entity
+  }
+
+  protected def addEntity(entity : ShlurdPlatonicEntity)
+  {
+    entities.put(entity.name, entity)
   }
 
   def loadBeliefs(source : Source)

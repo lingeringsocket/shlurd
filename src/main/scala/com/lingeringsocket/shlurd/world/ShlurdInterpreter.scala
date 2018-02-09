@@ -356,7 +356,6 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               SEPARATOR_CONJOINED)
           }
         }
-        assert(specifiedState == ShlurdNullState())
         evaluatePredicateOverReference(
           sub, context, resultCollector, combinedState)(evaluator)
       }
