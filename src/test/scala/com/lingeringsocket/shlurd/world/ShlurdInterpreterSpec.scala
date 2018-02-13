@@ -140,7 +140,7 @@ class ShlurdInterpreterSpec extends Specification
       interpret("are all goats awake") must be equalTo(
         "No, none of them are awake.")
       interpret("is there an aardvark") must be equalTo(
-        "I don't know about this animal: aardvark")
+        "Sorry, I don't know what you mean by aardvark.")
       interpret("is the sloth awake") must be equalTo(
         "I don't know.")
       interpret("is the sloth or the tiger awake") must be equalTo(

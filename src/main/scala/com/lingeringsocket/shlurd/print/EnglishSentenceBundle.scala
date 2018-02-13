@@ -408,6 +408,11 @@ class EnglishSentenceBundle
     compose("But I only know about one", concat(entity, "."))
   }
 
+  override def respondUnknown(entity : String) =
+  {
+    compose("Sorry, I don't know what you mean by", concat(entity, "."))
+  }
+
   override def respondNonexistent(entity : String) =
   {
     compose("But I don't know about any such", concat(entity, "."))

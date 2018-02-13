@@ -293,7 +293,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                           subjectEntity, locationEntity, ls.locative)
                       }
                     }
-                    evaluation.isSuccess && evaluation.get.isTrue
+                    if (evaluation.isFailure) {
+                      return evaluation
+                    } else {
+                      evaluation.get.isTrue
+                    }
                   }
                 ))
               }
@@ -332,7 +336,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
             }
           }
-          case Failure(e) => Failure(e)
+          case Failure(e) => fail(sentencePrinter.sb.respondUnknown(lemma))
         }
       }
       case ShlurdPronounReference(person, gender, count) => {

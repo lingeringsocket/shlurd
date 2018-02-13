@@ -36,10 +36,46 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     qualifiers : Set[String]) : Try[Set[ShlurdPlatonicEntity]] =
   {
     context match {
-      case REF_LOCATION => super.resolveEntity(
-        locationFormName, context, qualifiers + lemma)
-      case _ => super.resolveEntity(
-        lemma, context, qualifiers)
+      case REF_LOCATION => {
+        val result = super.resolveEntity(
+          locationFormName, context, qualifiers + lemma)
+        if (result.isFailure) {
+          result
+        } else {
+          if (result.get.isEmpty) {
+            val any = super.resolveEntity(locationFormName, context, Set(lemma))
+            if (any.isFailure) {
+              result
+            } else {
+              if (any.get.isEmpty) {
+                fail(s"unknown entity $lemma")
+              } else {
+                result
+              }
+            }
+          } else {
+            result
+          }
+        }
+      }
+      case _ => {
+        val result = super.resolveEntity(
+          lemma, context, qualifiers)
+        if (result.isFailure) {
+          val any = super.resolveEntity(locationFormName, context, Set(lemma))
+          if (any.isFailure) {
+            result
+          } else {
+            if (any.get.isEmpty) {
+              result
+            } else {
+              super.resolveEntity(locationFormName, context, qualifiers + lemma)
+            }
+          }
+        } else {
+          result
+        }
+      }
     }
   }
 
@@ -161,7 +197,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     isGroup : Boolean,
     itemGroupNames : Set[String])
   {
-    val qualifiers = new mutable.HashSet[String]
+    val qualifiers = new mutable.LinkedHashSet[String]
     var trimmed = itemName
     itemGroupNames.foreach(groupName => {
       groupMap.addBinding(itemName, groupName)

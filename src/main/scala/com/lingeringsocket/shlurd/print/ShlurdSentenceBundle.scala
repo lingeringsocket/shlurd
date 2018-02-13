@@ -136,6 +136,8 @@ abstract class ShlurdSentenceBundle
 
   def respondAmbiguous(entity : String) : String
 
+  def respondUnknown(entity : String) : String
+
   def respondNonexistent(entity : String) : String
 
   def respondCannotUnderstand() : String

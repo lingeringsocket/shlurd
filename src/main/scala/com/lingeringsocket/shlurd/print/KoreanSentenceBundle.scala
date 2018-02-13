@@ -356,6 +356,11 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     "FIXME"
   }
 
+  override def respondUnknown(entity : String) =
+  {
+    "FIXME"
+  }
+
   override def respondNonexistent(entity : String) =
   {
     compose(entity, "없어요")

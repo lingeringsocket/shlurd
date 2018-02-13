@@ -27,18 +27,23 @@ class ShlurdOpenhabWorldSpec extends Specification
 {
   trait WorldContext extends NameSpace
   {
-    private val doorStates = Map(
+    private val itemStates = Map(
       "GF_Garage_Door" -> "open",
       "GF_Garden_Door" -> "close",
       "GF_Bedroom_Door" -> "close",
-      "FF_Bedroom_Door" -> "open"
+      "FF_Bedroom_Door" -> "open",
+      "GF_Garage_Light" -> "off",
+      "GF_Garden_Light_Solar" -> "off",
+      "GF_Bedroom_Light" -> "on",
+      "FF_Bedroom_Light_Ceiling" -> "on",
+      "FF_Bedroom_Light_Nightstand" -> "off"
     )
 
     protected val world = new ShlurdOpenhabWorld {
       override protected def evaluateState(
         entity : ShlurdPlatonicEntity, stateName : String) : Try[Trilean] =
       {
-        Success(Trilean(doorStates(entity.name) == stateName))
+        Success(Trilean(itemStates(entity.name) == stateName))
       }
     }
 
@@ -67,9 +72,14 @@ class ShlurdOpenhabWorldSpec extends Specification
       world.addItem("GF_Bedroom", "Bedroom", true, Set("GF"))
       world.addItem("FF_Bedroom", "Bedroom", true, Set("FF", "Junk"))
       world.addItem("GF_Garage_Door", "Door", false, Set("GF_Garage"))
+      world.addItem("GF_Garage_Light", "Light", false, Set("GF_Garage"))
       world.addItem("GF_Garden_Door", "Door", false, Set("GF_Garden"))
+      world.addItem("GF_Garden_Light_Solar", "Solar", false, Set("GF_Garden"))
       world.addItem("GF_Bedroom_Door", "Door", false, Set("GF_Bedroom"))
+      world.addItem("GF_Bedroom_Light", "Light", false, Set("GF_Bedroom"))
       world.addItem("FF_Bedroom_Door", "Door", false, Set("FF_Bedroom"))
+      world.addItem("FF_Bedroom_Light_Nightstand", "Nightstand", false, Set("FF_Bedroom"))
+      world.addItem("FF_Bedroom_Light_Ceiling", "Ceiling", false, Set("FF_Bedroom"))
       interpret(
         "is the door in the garage open",
         "Yes, the door in the garage is open.")
@@ -100,6 +110,48 @@ class ShlurdOpenhabWorldSpec extends Specification
       interpret(
         "is any bedroom door open",
         "Yes, the bedroom door on the first floor is open.")
+      interpret(
+        "is any bedroom light off",
+        "Yes, the bedroom nightstand light is off.")
+      interpret(
+        "is any light in the bedroom on the first floor off",
+        "Yes, the bedroom nightstand light is off.")
+      interpret(
+        "is any light in any bedroom off",
+        "Yes, the bedroom nightstand light is off.")
+      interpret(
+        "is any light in the bedroom off",
+        "Please be more specific about which bedroom you mean.")
+      interpret(
+        "is any printer on",
+        "Sorry, I don't know what you mean by printer.")
+      interpret(
+        "is there a stable",
+        "Sorry, I don't know what you mean by stable.")
+      interpret(
+        "is there a bedroom",
+        "Yes, there is a bedroom.")
+      interpret(
+        "is there a bedroom on the first floor",
+        "Yes, there is a bedroom on the first floor.")
+      interpret(
+        "is there a pink bedroom",
+        "No, there is not a pink bedroom.")
+      interpret(
+        "is there a garage",
+        "Yes, there is a garage.")
+      interpret(
+        "is there a garage on the ground floor",
+        "Yes, there is a garage on the ground floor.")
+      interpret(
+        "is there a garage on the first floor",
+        "No, there is not a garage on the first floor.")
+      interpret(
+        "is any light in the stable on",
+        "Sorry, I don't know what you mean by stable.")
+      interpret(
+        "is the solar light on",
+        "No, the solar light is not on.")
     }
   }
 }

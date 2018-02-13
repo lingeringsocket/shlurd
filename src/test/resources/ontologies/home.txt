@@ -1,1 +1,2 @@
 A door must be either open or closed.
+A light must be either on or off.
