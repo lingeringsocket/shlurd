@@ -202,7 +202,11 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     itemGroupNames.foreach(groupName => {
       groupMap.addBinding(itemName, groupName)
       trimmed = trimmed.replaceAllLiterally(groupName, "")
-      trimmed = trimmed.replaceAllLiterally("g" + groupName, "")
+      if (groupName.startsWith("g") && (groupName.size > 1)
+        && (groupName(1).isUpper))
+      {
+        trimmed = trimmed.replaceAllLiterally(groupName.stripPrefix("g"), "")
+      }
       if (!isGroup) {
         getEntities.get(groupName) match {
           case Some(groupEntity) => {

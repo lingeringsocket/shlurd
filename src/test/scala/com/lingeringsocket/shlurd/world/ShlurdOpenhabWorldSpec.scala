@@ -65,11 +65,11 @@ class ShlurdOpenhabWorldSpec extends Specification
       world.loadBeliefs(source)
       world.addItem("Home", "Our House", true, Set.empty)
       world.addItem("Junk", "Just Junk", true, Set.empty)
-      world.addItem("GF", "Ground Floor", true, Set("Home"))
+      world.addItem("gGF", "Ground Floor", true, Set("Home"))
       world.addItem("FF", "First Floor", true, Set("Home"))
-      world.addItem("GF_Garage", "Garage", true, Set("GF"))
-      world.addItem("GF_Garden", "Garden", true, Set("GF"))
-      world.addItem("GF_Bedroom", "Bedroom", true, Set("GF"))
+      world.addItem("GF_Garage", "Garage", true, Set("gGF"))
+      world.addItem("GF_Garden", "Garden", true, Set("gGF"))
+      world.addItem("GF_Bedroom", "Bedroom", true, Set("gGF"))
       world.addItem("FF_Bedroom", "Bedroom", true, Set("FF", "Junk"))
       world.addItem("GF_Garage_Door", "Door", false, Set("GF_Garage"))
       world.addItem("GF_Garage_Light", "Light", false, Set("GF_Garage"))
@@ -78,8 +78,10 @@ class ShlurdOpenhabWorldSpec extends Specification
       world.addItem("GF_Bedroom_Door", "Door", false, Set("GF_Bedroom"))
       world.addItem("GF_Bedroom_Light", "Light", false, Set("GF_Bedroom"))
       world.addItem("FF_Bedroom_Door", "Door", false, Set("FF_Bedroom"))
-      world.addItem("FF_Bedroom_Light_Nightstand", "Nightstand", false, Set("FF_Bedroom"))
-      world.addItem("FF_Bedroom_Light_Ceiling", "Ceiling", false, Set("FF_Bedroom"))
+      world.addItem("FF_Bedroom_Light_Nightstand",
+        "Nightstand", false, Set("FF_Bedroom"))
+      world.addItem("FF_Bedroom_Light_Ceiling",
+        "Ceiling", false, Set("FF_Bedroom"))
       interpret(
         "is the door in the garage open",
         "Yes, the door in the garage is open.")
