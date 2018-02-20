@@ -35,6 +35,7 @@ class ShlurdOpenhabWorldSpec extends Specification
       "GF_Garage_Light" -> "off",
       "GF_Garden_Light_Solar" -> "off",
       "GF_Bedroom_Light" -> "on",
+      "FF_LivingRoom_Light" -> "on",
       "FF_Bedroom_Light_Ceiling" -> "on",
       "FF_Bedroom_Light_Nightstand" -> "off"
     )
@@ -70,7 +71,9 @@ class ShlurdOpenhabWorldSpec extends Specification
       world.addItem("GF_Garage", "Garage", true, Set("gGF"))
       world.addItem("GF_Garden", "Garden", true, Set("gGF"))
       world.addItem("GF_Bedroom", "Bedroom", true, Set("gGF"))
+      world.addItem("FF_LivingRoom", "Living Room", true, Set("FF"))
       world.addItem("FF_Bedroom", "Bedroom", true, Set("FF", "Junk"))
+      world.addItem("FF_LivingRoom_Light", "Light", false, Set("FF_LivingRoom"))
       world.addItem("GF_Garage_Door", "Door", false, Set("GF_Garage"))
       world.addItem("GF_Garage_Light", "Light", false, Set("GF_Garage"))
       world.addItem("GF_Garden_Door", "Door", false, Set("GF_Garden"))
@@ -154,6 +157,15 @@ class ShlurdOpenhabWorldSpec extends Specification
       interpret(
         "is the solar light on",
         "No, the solar light is not on.")
+      interpret(
+        "is there a living room",
+        "Yes, there is a living room.")
+      interpret(
+        "is the living room light on",
+        "Yes, the living room light is on.")
+      interpret(
+        "is the light in the living room on",
+        "Yes, the light in the living room is on.")
     }
   }
 }

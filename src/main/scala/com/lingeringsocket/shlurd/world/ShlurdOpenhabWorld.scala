@@ -25,6 +25,8 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
 {
   private val locationFormName = "location"
 
+  private val roomLemma = "room"
+
   private val groupMap = new mutable.HashMap[String, mutable.Set[String]]
       with mutable.MultiMap[String, String]
 
@@ -35,15 +37,23 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     context : ShlurdReferenceContext,
     qualifiers : Set[String]) : Try[Set[ShlurdPlatonicEntity]] =
   {
+    val rewrittenLemma = {
+      if (lemma == roomLemma) {
+        Set.empty[String]
+      } else {
+        Set(lemma)
+      }
+    }
+    val rewrittenQualifiers = ((qualifiers - roomLemma) ++ rewrittenLemma)
     context match {
       case REF_LOCATION => {
         val result = super.resolveEntity(
-          locationFormName, context, qualifiers + lemma)
+          locationFormName, context, rewrittenQualifiers)
         if (result.isFailure) {
           result
         } else {
           if (result.get.isEmpty) {
-            val any = super.resolveEntity(locationFormName, context, Set(lemma))
+            val any = super.resolveEntity(locationFormName, context, rewrittenLemma)
             if (any.isFailure) {
               result
             } else {
@@ -60,16 +70,16 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
       }
       case _ => {
         val result = super.resolveEntity(
-          lemma, context, qualifiers)
+          lemma, context, (qualifiers - roomLemma))
         if (result.isFailure) {
-          val any = super.resolveEntity(locationFormName, context, Set(lemma))
+          val any = super.resolveEntity(locationFormName, context, rewrittenLemma)
           if (any.isFailure) {
             result
           } else {
             if (any.get.isEmpty) {
               result
             } else {
-              super.resolveEntity(locationFormName, context, qualifiers + lemma)
+              super.resolveEntity(locationFormName, context, rewrittenQualifiers)
             }
           }
         } else {
@@ -188,7 +198,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
 
   private def extractQualifiersFromLabel(label : String) =
   {
-    label.split(" ").map(_.toLowerCase).filterNot(_ == "room")
+    label.split(" ").map(_.toLowerCase).filterNot(_ == roomLemma)
   }
 
   def addItem(
