@@ -53,7 +53,8 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
           result
         } else {
           if (result.get.isEmpty) {
-            val any = super.resolveEntity(locationFormName, context, rewrittenLemma)
+            val any = super.resolveEntity(
+              locationFormName, context, rewrittenLemma)
             if (any.isFailure) {
               result
             } else {
@@ -72,14 +73,16 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
         val result = super.resolveEntity(
           lemma, context, (qualifiers - roomLemma))
         if (result.isFailure) {
-          val any = super.resolveEntity(locationFormName, context, rewrittenLemma)
+          val any = super.resolveEntity(
+            locationFormName, context, rewrittenLemma)
           if (any.isFailure) {
             result
           } else {
             if (any.get.isEmpty) {
               result
             } else {
-              super.resolveEntity(locationFormName, context, rewrittenQualifiers)
+              super.resolveEntity(
+                locationFormName, context, rewrittenQualifiers)
             }
           }
         } else {
