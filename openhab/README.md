@@ -33,6 +33,8 @@ You can also use a text interface via [the OpenHAB console](http://docs.openhab.
     
 You should get a response such as `Yes, some windows are open.`
 
+Note that the demo items do not all follow the Home Builder naming conventions correctly, so some commands may not be understood correctly as a result.
+
 # Android
 
 If you want to use your Android phone to send voice commands, add this to your items file:
