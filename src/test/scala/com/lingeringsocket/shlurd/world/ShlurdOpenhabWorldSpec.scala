@@ -75,7 +75,8 @@ class ShlurdOpenhabWorldSpec extends Specification
       world.addItem("FF_LivingRoom", "Living Room", true, Set("FF"))
       world.addItem("FF_Bedroom", "Bedroom", true, Set("FF", "Junk"))
       world.addItem("FF_LivingRoom_Light", "Light", false, Set("FF_LivingRoom"))
-      world.addItem("FF_LivingRoom_Heating", "LivingRoom", false, Set("FF_LivingRoom"))
+      world.addItem(
+        "FF_LivingRoom_Heating", "LivingRoom", false, Set("FF_LivingRoom"))
       world.addItem("GF_Garage_Door", "Door", false, Set("GF_Garage"))
       world.addItem("GF_Garage_Light", "Light", false, Set("GF_Garage"))
       world.addItem("GF_Garden_Door", "Door", false, Set("GF_Garden"))
