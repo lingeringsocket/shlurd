@@ -83,6 +83,8 @@ To add your custom beliefs, do the following:
 
 As an alternative, you can customize this setting via a configuration file; in `/etc/openhab2/services`, create a file `shlurdhli.cfg` with the line `org.openhab.shlurdhli:beliefFile=/path/to/your/custom/beliefs.txt`
 
+The default beliefs are defined in [this resource file](com.lingeringsocket.shlurd.openhab/src/main/resources/beliefs.txt)
+
 # Eclipse Build
 
 *(these instructions are for the Oxygen release of Eclipse)*
