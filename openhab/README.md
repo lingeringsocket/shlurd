@@ -29,11 +29,11 @@ In order to really speak with OpenHAB, you need to set up audio source/sink and 
 
 You can also use a text interface via [the OpenHAB console](http://docs.openhab.org/administration/console.html).  Try something like:
 
-    smarthome:voice interpret are any windows open?
+    smarthome:voice interpret are any lights on?
     
-You should get a response such as `Yes, some windows are open.`
+You should get a response such as `Yes, some lights are on.`
 
-Note that the demo items do not all follow the Home Builder naming conventions correctly, so some commands may not be understood correctly as a result.
+Note that the demo items do not all follow the Home Builder naming conventions correctly, so if you are using the demo configuration, some commands may not be understood correctly as a result.
 
 # Android
 
