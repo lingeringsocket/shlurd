@@ -213,23 +213,25 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     val qualifiers = new mutable.LinkedHashSet[String]
     var trimmed = itemName
     itemGroupNames.foreach(groupName => {
-      groupMap.addBinding(itemName, groupName)
-      trimmed = trimmed.replaceAllLiterally(groupName, "")
+      if (trimmed != groupName) {
+        trimmed = trimmed.replaceAllLiterally(groupName, "")
+      }
       if (groupName.startsWith("g") && (groupName.size > 1)
-        && (groupName(1).isUpper))
+        && (groupName.drop(1).forall(_.isUpper)))
       {
         trimmed = trimmed.replaceAllLiterally(groupName.stripPrefix("g"), "")
       }
-      if (!isGroup) {
-        getEntities.get(groupName) match {
-          case Some(groupEntity) => {
+      getEntities.get(groupName) match {
+        case Some(groupEntity) => {
+          groupMap.addBinding(itemName, groupName)
+          if (!isGroup) {
             qualifiers ++= groupEntity.qualifiers
           }
-          case _ =>
         }
+        case _ =>
       }
+      trimmed = trimmed.stripPrefix("_").stripSuffix("_")
     })
-    trimmed = trimmed.stripPrefix("_").stripSuffix("_")
     if (trimmed.contains('_')) {
       trimmed = trimmed.replaceAllLiterally(itemLabel, "")
       trimmed = trimmed.stripPrefix("_").stripSuffix("_")

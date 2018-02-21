@@ -30,15 +30,16 @@ class ShlurdOpenhabWorldSpec extends Specification
     private val itemStates = Map(
       "GF_Garage_Door" -> "open",
       "GF_Garden_Door" -> "close",
-      "GF_Bedroom_Door" -> "close",
-      "FF_Bedroom_Door" -> "open",
+      "GF_MasterBedroom_Door" -> "close",
+      "GF_GuestBedroom_Door" -> "close",
+      "FF_GuestBedroom_Door" -> "open",
       "GF_Garage_Light" -> "off",
       "GF_Garden_Light_Solar" -> "off",
-      "GF_Bedroom_Light" -> "on",
+      "GF_GuestBedroom_Light" -> "on",
       "FF_LivingRoom_Light" -> "on",
       "FF_LivingRoom_Heating" -> "on",
-      "FF_Bedroom_Light_Ceiling" -> "on",
-      "FF_Bedroom_Light_Nightstand" -> "off"
+      "FF_GuestBedroom_Light_Ceiling" -> "on",
+      "FF_GuestBedroom_Light_Nightstand" -> "off"
     )
 
     protected val world = new ShlurdOpenhabWorld {
@@ -71,23 +72,49 @@ class ShlurdOpenhabWorldSpec extends Specification
       world.addItem("FF", "First Floor", true, Set("Home"))
       world.addItem("GF_Garage", "Garage", true, Set("gGF"))
       world.addItem("GF_Garden", "Garden", true, Set("gGF"))
-      world.addItem("GF_Bedroom", "Bedroom", true, Set("gGF"))
+      world.addItem("GF_GuestBedroom", "Guest Bedroom", true, Set("gGF"))
+      world.addItem("GF_MasterBedroom", "Master Bedroom", true, Set("gGF"))
       world.addItem("FF_LivingRoom", "Living Room", true, Set("FF"))
-      world.addItem("FF_Bedroom", "Bedroom", true, Set("FF", "Junk"))
-      world.addItem("FF_LivingRoom_Light", "Light", false, Set("FF_LivingRoom"))
+      world.addItem("FF_GuestBedroom", "Guest Bedroom", true, Set("FF", "Junk"))
       world.addItem(
-        "FF_LivingRoom_Heating", "LivingRoom", false, Set("FF_LivingRoom"))
-      world.addItem("GF_Garage_Door", "Door", false, Set("GF_Garage"))
-      world.addItem("GF_Garage_Light", "Light", false, Set("GF_Garage"))
-      world.addItem("GF_Garden_Door", "Door", false, Set("GF_Garden"))
-      world.addItem("GF_Garden_Light_Solar", "Solar", false, Set("GF_Garden"))
-      world.addItem("GF_Bedroom_Door", "Door", false, Set("GF_Bedroom"))
-      world.addItem("GF_Bedroom_Light", "Light", false, Set("GF_Bedroom"))
-      world.addItem("FF_Bedroom_Door", "Door", false, Set("FF_Bedroom"))
-      world.addItem("FF_Bedroom_Light_Nightstand",
-        "Nightstand", false, Set("FF_Bedroom"))
-      world.addItem("FF_Bedroom_Light_Ceiling",
-        "Ceiling", false, Set("FF_Bedroom"))
+        "FF_LivingRoom_Light", "Light", false,
+        Set("FF_LivingRoom", "gLight"))
+      world.addItem(
+        "FF_LivingRoom_Heating", "Heating", false,
+        Set("FF_LivingRoom", "gHeating"))
+      world.addItem(
+        "GF_Garage_Door", "Door", false,
+        Set("GF_Garage", "gDoor"))
+      world.addItem(
+        "GF_Garage_Light", "Light", false,
+        Set("GF_Garage", "gLight"))
+      world.addItem(
+        "GF_Garden_Door", "Door", false,
+        Set("GF_Garden", "gDoor"))
+      world.addItem(
+        "GF_Garden_Light_Solar", "Solar", false,
+        Set("GF_Garden", "gLight"))
+      world.addItem(
+        "GF_MasterBedroom_Door", "Door", false,
+        Set("GF_MasterBedroom", "gDoor"))
+      world.addItem(
+        "GF_GuestBedroom_Door", "Door", false,
+        Set("GF_GuestBedroom", "gDoor"))
+      world.addItem(
+        "GF_GuestBedroom_Light", "Light", false,
+        Set("GF_GuestBedroom", "gLight"))
+      world.addItem(
+        "FF_GuestBedroom_Door", "Door", false,
+        Set("FF_GuestBedroom", "gDoor"))
+      world.addItem(
+        "FF_GuestBedroom_Light_Nightstand",
+        "Nightstand", false,
+        Set("FF_GuestBedroom", "gLight"))
+      world.addItem(
+        "FF_GuestBedroom_Light_Ceiling",
+        "Ceiling", false,
+        Set("FF_GuestBedroom", "gLight"))
+
       interpret(
         "is the door in the garage open",
         "Yes, the door in the garage is open.")
@@ -104,31 +131,31 @@ class ShlurdOpenhabWorldSpec extends Specification
         "is the garden door closed",
         "Yes, the garden door is closed.")
       interpret(
-        "is the bedroom door on the ground floor closed",
-        "Yes, the bedroom door on the ground floor is closed.")
+        "is the guest bedroom door on the ground floor closed",
+        "Yes, the guest bedroom door on the ground floor is closed.")
       interpret(
-        "is the bedroom door on the first floor closed",
-        "No, the bedroom door on the first floor is not closed.")
+        "is the guest bedroom door on the first floor closed",
+        "No, the guest bedroom door on the first floor is not closed.")
       interpret(
         "is any door open on the ground floor",
         "Yes, the garage door is open.")
       interpret(
         "is any door open on the first floor",
-        "Yes, the bedroom door on the first floor is open.")
+        "Yes, the guest bedroom door on the first floor is open.")
       interpret(
         "is any bedroom door open",
-        "Yes, the bedroom door on the first floor is open.")
+        "Yes, the guest bedroom door on the first floor is open.")
       interpret(
         "is any bedroom light off",
-        "Yes, the bedroom nightstand light is off.")
+        "Yes, the guest bedroom nightstand light is off.")
       interpret(
-        "is any light in the bedroom on the first floor off",
-        "Yes, the bedroom nightstand light is off.")
+        "is any light in the guest bedroom on the first floor off",
+        "Yes, the guest bedroom nightstand light is off.")
       interpret(
         "is any light in any bedroom off",
-        "Yes, the bedroom nightstand light is off.")
+        "Yes, the guest bedroom nightstand light is off.")
       interpret(
-        "is any light in the bedroom off",
+        "is any light in the guest bedroom off",
         "Please be more specific about which bedroom you mean.")
       interpret(
         "is any printer on",
@@ -163,6 +190,9 @@ class ShlurdOpenhabWorldSpec extends Specification
       interpret(
         "is there a living room",
         "Yes, there is a living room.")
+      interpret(
+        "is there a master bedroom",
+        "Yes, there is a master bedroom.")
       interpret(
         "is the living room light on",
         "Yes, the living room light is on.")
