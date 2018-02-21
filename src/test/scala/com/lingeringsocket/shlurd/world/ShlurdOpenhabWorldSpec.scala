@@ -36,6 +36,7 @@ class ShlurdOpenhabWorldSpec extends Specification
       "GF_Garden_Light_Solar" -> "off",
       "GF_Bedroom_Light" -> "on",
       "FF_LivingRoom_Light" -> "on",
+      "FF_LivingRoom_Heating" -> "on",
       "FF_Bedroom_Light_Ceiling" -> "on",
       "FF_Bedroom_Light_Nightstand" -> "off"
     )
@@ -74,6 +75,7 @@ class ShlurdOpenhabWorldSpec extends Specification
       world.addItem("FF_LivingRoom", "Living Room", true, Set("FF"))
       world.addItem("FF_Bedroom", "Bedroom", true, Set("FF", "Junk"))
       world.addItem("FF_LivingRoom_Light", "Light", false, Set("FF_LivingRoom"))
+      world.addItem("FF_LivingRoom_Heating", "LivingRoom", false, Set("FF_LivingRoom"))
       world.addItem("GF_Garage_Door", "Door", false, Set("GF_Garage"))
       world.addItem("GF_Garage_Light", "Light", false, Set("GF_Garage"))
       world.addItem("GF_Garden_Door", "Door", false, Set("GF_Garden"))
@@ -164,8 +166,23 @@ class ShlurdOpenhabWorldSpec extends Specification
         "is the living room light on",
         "Yes, the living room light is on.")
       interpret(
+        "is the living room light lit",
+        "Yes, the living room light is lit.")
+      interpret(
+        "is the living room light dark",
+        "No, the living room light is not dark.")
+      interpret(
         "is the light in the living room on",
         "Yes, the light in the living room is on.")
+      interpret(
+        "is the heating in the living room on",
+        "Yes, the heating in the living room is on.")
+      interpret(
+        "is the heater in the living room on",
+        "Yes, the heater in the living room is on.")
+      interpret(
+        "is the heat in the living room on",
+        "Yes, the heat in the living room is on.")
     }
   }
 }

@@ -2,3 +2,6 @@ A door must be either open or closed.
 A window must be either open or closed.
 A light must be either on or off.
 A switch must be either on or off.
+A heating must be either on or off.
+A heater is a heating.
+A heat is a heating.

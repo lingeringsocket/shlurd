@@ -1,2 +1,7 @@
 A door must be either open or closed.
 A light must be either on or off.
+A light that is lit is on.
+A light that is dark is off.
+A heating must be either on or off.
+A heater is a heating.
+A heat is a heating.
