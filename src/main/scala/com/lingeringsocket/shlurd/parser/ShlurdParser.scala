@@ -142,6 +142,11 @@ class ShlurdSingleParser(
     getLabel(pt).startsWith("JJ")
   }
 
+  private def isAdjectival(pt : Tree) : Boolean =
+  {
+    isAdjective(pt) || isParticipleOrGerund(pt)
+  }
+
   private def isAdverb(pt : Tree) : Boolean =
   {
     getLabel(pt).startsWith("RB")
@@ -602,7 +607,7 @@ class ShlurdSingleParser(
           ShlurdUnknownReference
         }
       }
-    } else if (components.forall(c => isNoun(c) || isAdjective(c))) {
+    } else if (components.forall(c => isNoun(c) || isAdjectival(c))) {
       val entityReference = expectNounReference(components.last, determiner)
       if (components.size > 1) {
         ShlurdReference.qualified(
@@ -717,7 +722,7 @@ class ShlurdSingleParser(
   {
     // we allow mislabeled adjectives to handle
     // cases like "roll up the blind"
-    if (isNoun(pt) || isAdjective(pt)) {
+    if (isNoun(pt) || isAdjectival(pt)) {
       val noun = pt.firstChild
       ShlurdEntityReference(
         getWord(noun),

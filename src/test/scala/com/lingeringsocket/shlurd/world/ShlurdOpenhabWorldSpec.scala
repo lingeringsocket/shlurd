@@ -214,6 +214,10 @@ class ShlurdOpenhabWorldSpec extends Specification
       interpret(
         "is the heat in the living room on",
         "Yes, the heat in the living room is on.")
+      ShlurdParser.debug("turn on the heater in the living room")
+      interpret(
+        "turn on the heater in the living room",
+        "But the heater in the living room is on already.")
     }
   }
 }
