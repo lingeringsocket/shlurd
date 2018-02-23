@@ -4,6 +4,8 @@
 
 In order for it to work with your smarthome, it's currently required that you follow the item structure (name+label+group) conventions produced by the [OpenHab Home Builder](https://docs.openhab.org/configuration/homebuilder.html).
 
+For examples of what's supported against the OpenHab demo items, see this [test dialogue](test/demo-out.ref).
+
 # Deploy
 
 1. Get the latest release archive from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab).  The zipfile is quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments.
