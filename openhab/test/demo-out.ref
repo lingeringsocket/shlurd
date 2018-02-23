@@ -1,0 +1,72 @@
+are all lights off
+Yes, all lights are off.
+
+are all lights on
+No, none of them are on.
+
+are any lights off
+Yes, all 16 of them are off.
+
+are any lights on
+No, no lights are on.
+
+turn on all lights
+OK.
+
+are all lights off
+No, none of them are off.
+
+are all lights on
+Yes, all lights are on.
+
+are any lights off
+No, no lights are off.
+
+are any lights on
+Yes, all 16 of them are on.
+
+turn off all lights in the bedroom
+OK.
+
+are all lights off
+No, 15 of them are not off.
+
+are all lights on
+No, the bedroom ceiling light is not on.
+
+are any lights off
+Yes, the bedroom ceiling light is off.
+
+are any lights on
+Yes, 15 of them are on.
+
+turn off all lights in the bathroom
+OK.
+
+are all lights on
+No, neither the bathroom ceiling light, the bathroom mirror light, nor the bedroom ceiling light is on.
+
+are any lights off
+Yes, the bathroom ceiling light, the bathroom mirror light, and the bedroom ceiling light are off.
+
+are any lights on
+Yes, 13 of them are on.
+
+turn on the bathroom ceiling light
+OK.
+
+are all lights on
+No, neither the bathroom mirror light nor the bedroom ceiling light is on.
+
+are any lights off
+Yes, the bathroom mirror light and the bedroom ceiling light are off.
+
+are any lights on
+Yes, 14 of them are on.
+
+are any bedroom lights on
+No, no bedroom lights are on.
+
+are any bathroom lights on
+Yes, the bathroom ceiling light is on.
+

@@ -1,0 +1,24 @@
+are all lights off
+are all lights on
+are any lights off
+are any lights on
+turn on all lights
+are all lights off
+are all lights on
+are any lights off
+are any lights on
+turn off all lights in the bedroom
+are all lights off
+are all lights on
+are any lights off
+are any lights on
+turn off all lights in the bathroom
+are all lights on
+are any lights off
+are any lights on
+turn on the bathroom ceiling light
+are all lights on
+are any lights off
+are any lights on
+are any bedroom lights on
+are any bathroom lights on
