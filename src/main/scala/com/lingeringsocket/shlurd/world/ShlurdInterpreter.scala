@@ -45,8 +45,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   class ResultCollector
   {
-    val entityMap = new mutable.HashMap[E, Trilean]
-    val states = new mutable.HashSet[ShlurdWord]
+    val entityMap = new mutable.LinkedHashMap[E, Trilean]
+    val states = new mutable.LinkedHashSet[ShlurdWord]
   }
 
   def fail(msg : String) = world.fail(msg)

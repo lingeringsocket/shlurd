@@ -160,7 +160,7 @@ class ShlurdInterpreterSpec extends Specification
       interpret("are the bears and the lion asleep") must be equalTo(
         "No, the grizzly bear is not asleep.")
       interpret("are the bears and the lion awake") must be equalTo(
-        "No, neither the lion nor the polar bear is awake.")
+        "No, neither the polar bear nor the lion is awake.")
       interpret("are the bears and the lion awake", lowLimit) must be equalTo(
         "No, 2 of them are not awake.")
       interpret("are the tiger and the lion asleep") must be equalTo(
