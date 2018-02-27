@@ -1,3 +1,90 @@
+is there a ground floor
+Yes, there is a ground floor.
+
+is there a first floor
+Yes, there is a first floor.
+
+is there a second floor
+No, there is not a second floor.
+
+is there a cellar
+Yes, there is a cellar.
+
+is there a garden
+Yes, there is a garden.
+
+is there a gazebo
+Sorry, I don't know what you mean by gazebo.
+
+is there a living room
+Yes, there is a living room.
+
+is there a kitchen
+Yes, there is a kitchen.
+
+is there a toilet
+Yes, there is a toilet.
+
+is there a corridor
+Yes, there is a corridor.
+
+is there a bathroom
+Yes, there is a bathroom.
+
+is there an office
+Yes, there is an office.
+
+is there a bedroom
+Yes, there is a bedroom.
+
+is there any room in the cellar
+No, there is no room in the cellar.
+
+is there any room in the garden
+No, there is no room in the garden.
+
+is there any room on the ground floor
+Yes, there are 4 of them.
+
+is there any room on the first floor
+Yes, there are 5 of them.
+
+is there a bedroom on the ground floor
+No, there is not a bedroom on the ground floor.
+
+is there a bedroom on the first floor
+Yes, there is a bedroom on the first floor.
+
+is there a corridor on the ground floor
+Yes, there is a corridor on the ground floor.
+
+is there a corridor on the first floor
+Yes, there is a corridor on the first floor.
+
+is there a corridor on the ground floor or the first floor
+Yes, there is a corridor on both of them.
+
+is there a corridor in the cellar
+No, there is not a corridor in the cellar.
+
+is there a light in the kitchen
+Yes, there is a light in the kitchen.
+
+is there a window in the kitchen
+Yes, there is a window in the kitchen.
+
+is there a heater in the kitchen
+Yes, there is a heater in the kitchen.
+
+is there a heater on the ground floor
+Yes, there is a heater on the ground floor.
+
+is there any heater on the ground floor
+Yes, there are 4 of them.
+
+is there any window on the ground floor
+Yes, there are 3 of them.
+
 are all lights off
 Yes, all lights are off.
 
@@ -13,6 +100,9 @@ No, no lights are on.
 turn on all lights
 OK.
 
+turn on all lights
+But all lights are on already.
+
 are all lights off
 No, none of them are off.
 
@@ -25,44 +115,80 @@ No, no lights are off.
 are any lights on
 Yes, all 16 of them are on.
 
+is the kitchen light on
+Please be more specific about which light you mean.
+
+is the kitchen table light on
+Yes, the kitchen table light is on.
+
+is the kitchen ceiling light on
+Yes, the kitchen ceiling light is on.
+
+is the kitchen microwave light on
+But I don't know about any such light.
+
+is any kitchen light on
+Yes, both of them are on.
+
+are all kitchen lights on
+Yes, all kitchen lights are on.
+
+turn off the kitchen ceiling light
+OK.
+
+is any kitchen light on
+Yes, the kitchen table light is on.
+
+is any light on in the kitchen or the bedroom
+Yes, the kitchen table light and the bedroom ceiling light are on.
+
+is the bedroom light on
+Yes, the bedroom light is on.
+
+is the light in the bedroom on
+Yes, the light in the bedroom is on.
+
 turn off all lights in the bedroom
 OK.
 
+is the bedroom light on
+No, the bedroom light is not on.
+
 are all lights off
-No, 15 of them are not off.
+No, 14 of them are not off.
 
 are all lights on
-No, the bedroom ceiling light is not on.
+No, neither the kitchen ceiling light nor the bedroom ceiling light is on.
 
 are any lights off
-Yes, the bedroom ceiling light is off.
+Yes, the kitchen ceiling light and the bedroom ceiling light are off.
 
 are any lights on
-Yes, 15 of them are on.
+Yes, 14 of them are on.
 
 turn off all lights in the bathroom
 OK.
 
 are all lights on
-No, neither the bathroom ceiling light, the bathroom mirror light, nor the bedroom ceiling light is on.
+No, 4 of them are not on.
 
 are any lights off
-Yes, the bathroom ceiling light, the bathroom mirror light, and the bedroom ceiling light are off.
+Yes, 4 of them are off.
 
 are any lights on
-Yes, 13 of them are on.
+Yes, 12 of them are on.
 
 turn on the bathroom ceiling light
 OK.
 
 are all lights on
-No, neither the bathroom mirror light nor the bedroom ceiling light is on.
+No, neither the bathroom mirror light, the kitchen ceiling light, nor the bedroom ceiling light is on.
 
 are any lights off
-Yes, the bathroom mirror light and the bedroom ceiling light are off.
+Yes, the bathroom mirror light, the kitchen ceiling light, and the bedroom ceiling light are off.
 
 are any lights on
-Yes, 14 of them are on.
+Yes, 13 of them are on.
 
 are any bedroom lights on
 No, no bedroom lights are on.
@@ -86,7 +212,7 @@ turn off all lights in the garden
 OK.
 
 are any lights on
-Yes, the cellar workshop light and the cellar staircase light are on.
+Yes, the cellar staircase light and the cellar workshop light are on.
 
 turn off all lights in the cellar
 OK.

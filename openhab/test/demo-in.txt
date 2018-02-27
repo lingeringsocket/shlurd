@@ -1,13 +1,55 @@
+is there a ground floor
+is there a first floor
+is there a second floor
+is there a cellar
+is there a garden
+is there a gazebo
+is there a living room
+is there a kitchen
+is there a toilet
+is there a corridor
+is there a bathroom
+is there an office
+is there a bedroom
+is there any room in the cellar
+is there any room in the garden
+is there any room on the ground floor
+is there any room on the first floor
+is there a bedroom on the ground floor
+is there a bedroom on the first floor
+is there a corridor on the ground floor
+is there a corridor on the first floor
+is there a corridor on the ground floor or the first floor
+is there a corridor in the cellar
+is there a light in the kitchen
+is there a window in the kitchen
+is there a heater in the kitchen
+is there a heater on the ground floor
+is there any heater on the ground floor
+is there any window on the ground floor
 are all lights off
 are all lights on
 are any lights off
 are any lights on
 turn on all lights
+turn on all lights
 are all lights off
 are all lights on
 are any lights off
 are any lights on
+is the kitchen light on
+is the kitchen table light on
+is the kitchen ceiling light on
+is the kitchen microwave light on
+is any kitchen light on
+are all kitchen lights on
+turn off the kitchen ceiling light
+is any kitchen light on
+is any light on in the kitchen or the bedroom
+is the bedroom light on
+is the light in the bedroom on
 turn off all lights in the bedroom
+is the bedroom light on
 are all lights off
 are all lights on
 are any lights off
