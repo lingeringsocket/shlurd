@@ -142,6 +142,16 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(qualifiers.map(delemmatizeQualifier(_)) :_*)
   }
 
+  override def query(noun : String, question : Option[ShlurdQuestion]) =
+  {
+    question match {
+      case Some(QUESTION_WHICH) => {
+        compose("무슨", noun)
+      }
+      case _ => noun
+    }
+  }
+
   override def qualifiedNoun(qualifiers : String, noun : String) =
   {
     compose(qualifiers, noun)
@@ -338,6 +348,11 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   def qualifyAdjective(lemma : String) =
   {
     compose(lemma, "(qualifying adjective)")
+  }
+
+  override def respondToQuery(sentence : String) =
+  {
+    sentence
   }
 
   override def respondToCounterfactual(sentence : String) =

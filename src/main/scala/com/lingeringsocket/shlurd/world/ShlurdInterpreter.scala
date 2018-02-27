@@ -35,11 +35,12 @@ case class ShlurdInterpreterParams(
   listLimit : Int = 3
 )
 {
+  def neverSummarize = (listLimit == Int.MaxValue)
 }
 
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   world : ShlurdWorld[E,P],
-  params : ShlurdInterpreterParams = ShlurdInterpreterParams())
+  generalParams : ShlurdInterpreterParams = ShlurdInterpreterParams())
 {
   private val sentencePrinter = new ShlurdSentencePrinter
 
@@ -77,6 +78,33 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   _._2.assumeFalse).keySet,
                 resultCollector.states.head))
             sentencePrinter.sb.respondCompliance()
+          }
+          case Failure(e) => {
+            diagnostics(e)
+            e.getMessage
+          }
+        }
+      }
+      case ShlurdPredicateQuery(predicate, question, mood, formality) => {
+        // FIXME deal with positive, modality
+        val rewrittenPredicate = rewriteQuery(predicate)
+        evaluatePredicate(rewrittenPredicate, resultCollector) match {
+          case Success(Trilean.Unknown) => {
+            sentencePrinter.sb.respondDontKnow()
+          }
+          case Success(truth) => {
+            val truthBoolean = truth.assumeFalse
+            val (normalizedResponse, negateCollection) =
+              normalizeResponse(
+                rewrittenPredicate, resultCollector,
+                generalParams.copy(listLimit = Int.MaxValue))
+            val responseMood = ShlurdIndicativeMood(
+              truthBoolean || negateCollection)
+            sentencePrinter.sb.respondToQuery(
+              sentencePrinter.print(
+                ShlurdPredicateSentence(
+                  normalizedResponse,
+                  responseMood)))
           }
           case Failure(e) => {
             diagnostics(e)
@@ -437,11 +465,29 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
+  private def rewriteQuery(
+    predicate : ShlurdPredicate) : ShlurdPredicate =
+  {
+    val rewriteSpecifier =
+      Rewriter.rule[ShlurdPhrase] {
+        case ShlurdEntityReference(
+          entity, DETERMINER_UNSPECIFIED, count
+        ) =>
+          {
+            ShlurdEntityReference(entity, DETERMINER_ANY, count)
+          }
+      }
+    Rewriter.rewrite(
+      Rewriter.everywherebu("rewriteQuery", rewriteSpecifier)
+    )(predicate)
+  }
+
   // FIXME:  cutoff for maximum enumeration size before switching
   // to summary form
   private def normalizeResponse(
     predicate : ShlurdPredicate,
-    resultCollector : ResultCollector)
+    resultCollector : ResultCollector,
+    params : ShlurdInterpreterParams = generalParams)
       : (ShlurdPredicate, Boolean) =
   {
     var negateCollection = false
@@ -537,7 +583,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     val trueEntities = resultCollector.entityMap.filter(
       _._2.assumeFalse).keySet
-    val exhaustive = (trueEntities.size == resultCollector.entityMap.size)
+    val exhaustive =
+      (trueEntities.size == resultCollector.entityMap.size) &&
+        !params.neverSummarize
     val existence = resultCollector.states.isEmpty
     (if (trueEntities.isEmpty) {
       None
@@ -563,7 +611,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     val falseEntities = resultCollector.entityMap.filterNot(
       _._2.assumeTrue).keySet
-    val exhaustive = (falseEntities.size == resultCollector.entityMap.size)
+    val exhaustive =
+      (falseEntities.size == resultCollector.entityMap.size) &&
+        !params.neverSummarize
     val existence = resultCollector.states.isEmpty
     val tuple = (if (falseEntities.isEmpty) {
       (None, false)

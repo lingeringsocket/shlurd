@@ -45,6 +45,7 @@ class ShlurdSentencePrinterSpec extends Specification
           predicate,
           formality.copy(force = FORCE_EXCLAMATION))
       }
+      case ShlurdPredicateQuery(predicate, question, mood, formality) => parsed
       case ShlurdAmbiguousSentence(alternatives) => {
         ShlurdAmbiguousSentence(alternatives.map(normalize))
       }

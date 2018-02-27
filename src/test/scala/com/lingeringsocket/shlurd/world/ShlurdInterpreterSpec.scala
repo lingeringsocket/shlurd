@@ -63,6 +63,29 @@ class ShlurdInterpreterSpec extends Specification
 
   "ShlurdInterpreter" should
   {
+    "deal with problem cases" in
+    {
+      skipped("maybe one day")
+      // FIXME:  we don't deal with negated questions yet
+      interpret("which goats are not awake") must be equalTo(
+        "The domestic goat, the siberian goat, " +
+          "and the mountain goat are not awake.")
+      // FIXME:  CoreNLP bug with singular vs plural
+      interpret("which goats are awake") must be equalTo(
+        "No goats are awake.")
+      // FIXME:  for some reason, CoreNLP interprets this as
+      // a statement instead of a question
+      interpret("are there any tigers") must be equalTo(
+        "Yes, there is a tiger.")
+      // FIXME:  this one gets mistakenly interpreted as an identity:
+      // "is the grizzly == bear in the cage"
+      interpret("is the grizzly bear in the cage") must be equalTo(
+        "Yes, the grizzly bear is in the cage.")
+      // FIXME:  we should use the same rules as for DETERMINER_UNIQUE
+      interpret("is any tiger in the small cage awake") must be equalTo(
+        "But I don't know about any such tiger.")
+    }
+
     "interpret questions" in
     {
       interpret("is the lion asleep") must be equalTo(
@@ -77,9 +100,6 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, there is a tiger.")
       interpret("is there any tiger") must be equalTo(
         "Yes, there is a tiger.")
-      // FIXME:  for some reason, CoreNLP interprets this as
-      // a statement instead of a question
-      // interpret("are there any tigers")
       interpret("is there any goat") must be equalTo(
         "Yes, there are 3 of them.")
       interpret("is there a lion and a tiger") must be equalTo(
@@ -179,14 +199,22 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, the tiger in the big cage is awake.")
       interpret("is the tiger in the small cage awake") must be equalTo(
         "But I don't know about any such tiger.")
-      // FIXME:  this one gets mistakenly interpreted as an identity:
-      // "is the grizzly == bear in the cage"
-      /*
-      interpret("is the grizzly bear in the cage") must be equalTo(
-        "Yes, the grizzly bear is in the cage.")
-       */
       interpret("is the goat on the farm awake") must be equalTo(
         "No, the goat on the farm is not awake.")
+      interpret("which goat is awake") must be equalTo(
+        "No goat is awake.")
+      interpret("what goat is awake") must be equalTo(
+        "No goat is awake.")
+      val list = "The domestic goat, the siberian goat, " +
+        "and the mountain goat are asleep."
+      interpret("which goat is asleep") must be equalTo(list)
+      interpret("which goats are asleep") must be equalTo(list)
+      interpret("which goat in the farm is asleep") must be equalTo(
+        "The domestic goat is asleep.")
+      interpret("which goat is asleep in the farm") must be equalTo(
+        "The domestic goat is asleep.")
+      interpret("which goat in the farm is awake") must be equalTo(
+        "No goat in the farm is awake.")
     }
 
     "interpret statements" in

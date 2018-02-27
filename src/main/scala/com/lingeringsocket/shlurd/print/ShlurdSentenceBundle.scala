@@ -121,6 +121,8 @@ abstract class ShlurdSentenceBundle
 
   def composeQualifiers(qualifiers : Seq[ShlurdWord]) : String
 
+  def query(noun : String, question : Option[ShlurdQuestion]) : String
+
   def qualifiedNoun(qualifiers : String, noun : String) : String
 
   def specifiedNoun(specifier : String, noun : String) : String
@@ -129,6 +131,8 @@ abstract class ShlurdSentenceBundle
 
   def locationalNoun(
     position : String, noun : String, conjoining : ShlurdConjoining) : String
+
+  def respondToQuery(sentence : String) : String
 
   def respondToCounterfactual(sentence : String) : String
 

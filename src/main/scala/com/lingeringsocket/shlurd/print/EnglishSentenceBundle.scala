@@ -267,6 +267,16 @@ class EnglishSentenceBundle
     compose(qualifiers.map(delemmatizeQualifier(_)) :_*)
   }
 
+  override def query(noun : String, question : Option[ShlurdQuestion]) =
+  {
+    question match {
+      case Some(QUESTION_WHICH) => {
+        compose("which", noun)
+      }
+      case _ => noun
+    }
+  }
+
   override def qualifiedNoun(qualifiers : String, noun : String) =
   {
     compose(qualifiers, noun)
@@ -391,6 +401,11 @@ class EnglishSentenceBundle
   override def unknownPredicateQuestion() =
   {
     "is it what now"
+  }
+
+  override def respondToQuery(sentence : String) =
+  {
+    sentence.head.toUpper + sentence.tail
   }
 
   override def respondToCounterfactual(sentence : String) =

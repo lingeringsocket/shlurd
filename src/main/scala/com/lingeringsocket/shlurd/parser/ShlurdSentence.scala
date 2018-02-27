@@ -59,6 +59,17 @@ case class ShlurdStateChangeCommand(
   override def mood = MOOD_IMPERATIVE
 }
 
+case class ShlurdPredicateQuery(
+  predicate : ShlurdPredicate,
+  question : ShlurdQuestion,
+  mood : ShlurdMood,
+  formality : ShlurdFormality = ShlurdFormality.DEFAULT
+) extends ShlurdSentence
+{
+  override def children = Seq(predicate)
+}
+
+
 case class ShlurdAmbiguousSentence(
   alternatives : Seq[ShlurdSentence]
 ) extends ShlurdSentence

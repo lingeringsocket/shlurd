@@ -35,32 +35,11 @@ trait ShlurdParser
 
 class ShlurdSingleParser(
   tree : Tree, lemmas : Seq[String], implicitQuestion : Boolean)
-    extends ShlurdParser
+    extends ShlurdParser with ShlurdParseUtils
 {
-  private def getLabel(tree : Tree) : String =
+  override def getLemma(leaf : Tree) : String =
   {
-    tree.label.value
-  }
-
-  private def hasLabel(tree : Tree, label : String) : Boolean =
-  {
-    getLabel(tree) == label
-  }
-
-  private def isVerb(pt : Tree) : Boolean =
-  {
-    getLabel(pt).startsWith("VB")
-  }
-
-  private def isModal(pt : Tree) : Boolean =
-  {
-    hasLabel(pt, "MD")
-  }
-
-  private def isParticle(pt : Tree) : Boolean =
-  {
-    hasLabel(pt, "PRT") || hasLabel(pt, "RP") ||
-      (hasLabel(pt, "PP") && (pt.numChildren == 1))
+    lemmas(leaf.label.asInstanceOf[HasIndex].index).toLowerCase
   }
 
   private def expectParticle(pt : Tree) : Option[ShlurdWord] =
@@ -89,88 +68,6 @@ class ShlurdSingleParser(
       }
     }
   }
-
-  private def isParticipleOrGerund(verbal : Tree) : Boolean =
-  {
-    getLabel(verbal) match {
-      case "VBG" | "VBN" => {
-        true
-      }
-      case _ => {
-        false
-      }
-    }
-  }
-
-  private def isExistential(np : Tree) : Boolean =
-  {
-    isNounPhrase(np) && hasLabel(np.firstChild, "EX")
-  }
-
-  private def isNounPhrase(np : Tree) : Boolean =
-  {
-    hasLabel(np, "NP")
-  }
-
-  private def isVerbPhrase(vp : Tree) : Boolean =
-  {
-    hasLabel(vp, "VP")
-  }
-
-  private def isPrepositionalPhrase(pp : Tree) : Boolean =
-  {
-    hasLabel(pp, "PP")
-  }
-
-  private def isCompoundPrepositionalPhrase(pp : Tree) : Boolean =
-  {
-    isPrepositionalPhrase(pp) && (pp.numChildren > 1)
-  }
-
-  private def isNoun(pt : Tree) : Boolean =
-  {
-    getLabel(pt).startsWith("NN")
-  }
-
-  private def isPronoun(pt : Tree) : Boolean =
-  {
-    getLabel(pt).startsWith("PRP")
-  }
-
-  private def isAdjective(pt : Tree) : Boolean =
-  {
-    getLabel(pt).startsWith("JJ")
-  }
-
-  private def isAdjectival(pt : Tree) : Boolean =
-  {
-    isAdjective(pt) || isParticipleOrGerund(pt)
-  }
-
-  private def isAdverb(pt : Tree) : Boolean =
-  {
-    getLabel(pt).startsWith("RB")
-  }
-
-  private def isPreposition(pt : Tree) : Boolean =
-  {
-    getLabel(pt).startsWith("IN")
-  }
-
-  private def unwrapPhrase(pt : Tree) : Tree =
-  {
-    if (pt.isPrePreTerminal && (pt.numChildren == 1)) {
-      pt.firstChild
-    } else {
-      pt
-    }
-  }
-
-  private def isDeterminer(pt : Tree) : Boolean =
-  {
-    hasLabel(pt, "DT")
-  }
-
   private def isCoordinatingDeterminer(
     pt : Tree, determiner : ShlurdDeterminer) : Boolean =
   {
@@ -185,23 +82,6 @@ class ShlurdSingleParser(
     } else {
       false
     }
-  }
-
-  private def isComma(pt : Tree) : Boolean =
-  {
-    hasLabel(pt, ",")
-  }
-
-  private def isCoordinatingConjunction(pt : Tree) : Boolean =
-  {
-    hasLabel(pt, "CC")
-  }
-
-  private def hasTerminalLabel(
-    tree : Tree, label : String, terminalLabel : String) : Boolean =
-  {
-    tree.isPreTerminal && hasLabel(tree, label) &&
-      hasLabel(tree.firstChild, terminalLabel)
   }
 
   private def expectRoot(tree : Tree, implicitQuestion : Boolean) =
@@ -246,22 +126,6 @@ class ShlurdSingleParser(
     }
   }
 
-  private def isImperative(children : Seq[Tree]) =
-  {
-    (children.size == 1) && hasLabel(children.head, "VP")
-  }
-
-  private def isCopula(verbHead : Tree) =
-  {
-    isVerb(verbHead) &&
-      (hasTerminalLemma(verbHead, "be") || hasTerminalLemma(verbHead, "exist"))
-  }
-
-  private def isExists(verbHead : Tree) =
-  {
-    isVerb(verbHead) && hasTerminalLemma(verbHead, "exist")
-  }
-
   private def expectSentence(tree : Tree, implicitQuestion : Boolean)
       : ShlurdSentence =
   {
@@ -290,7 +154,7 @@ class ShlurdSingleParser(
       } else {
         ShlurdUnknownSentence
       }
-    } else if (hasLabel(tree, "SQ")) {
+    } else if (isSubQuestion(tree)) {
       val (specifiedState, children) = extractPrepositionalState(
         truncatePunctuation(tree, Seq("?")))
       if (isImperative(children)) {
@@ -337,8 +201,70 @@ class ShlurdSingleParser(
       } else {
         ShlurdUnknownSentence
       }
+    } else if (hasLabel(tree, "SBARQ")) {
+      val children = truncatePunctuation(tree, Seq("?"))
+      val first = children.head
+      val second = children.last
+      val secondUnwrapped = {
+        if ((second.numChildren == 1) && isVerbPhrase(second.firstChild)) {
+          second.firstChild.children
+        } else {
+          second.children
+        }
+      }
+      val (negativeSuper, secondSub) = extractNegative(secondUnwrapped)
+      if ((children.size != 2) ||
+        !isQueryNoun(first) ||
+        !isSubQuestion(second) ||
+        !isCopula(secondSub.head))
+      {
+        ShlurdUnknownSentence
+      } else {
+        // FIXME support modality
+        val (specifiedState, whnpc) = extractPrepositionalState(first.children)
+        val seq : Seq[Tree] = {
+          if ((whnpc.size == 1) && isQueryNoun(whnpc.head)) {
+            whnpc.head.children
+          } else {
+            whnpc
+          }
+        }
+        val question = expectQuestion(seq.head) match {
+          case Some(q) => q
+          case _ => return ShlurdUnknownSentence
+        }
+        if (seq.size != 2) {
+          return ShlurdUnknownSentence
+        }
+        val np = seq.last
+        val complement = secondSub.tail
+        val (combinedState, complementRemainder) = {
+          if (specifiedState == ShlurdNullState()) {
+            extractPrepositionalState(complement)
+          } else {
+            (specifiedState, complement)
+          }
+        }
+        val (negativeSub, predicate) = expectPredicate(
+            np, complementRemainder, "VP", combinedState)
+        ShlurdPredicateQuery(
+          predicate, question,
+          ShlurdInterrogativeMood(!(negativeSuper ^ negativeSub)))
+      }
     } else {
       ShlurdUnknownSentence
+    }
+  }
+
+  private def expectQuestion(tree : Tree) : Option[ShlurdQuestion] =
+  {
+    if (!hasLabel(tree, "WDT")) {
+      None
+    } else {
+      getLemma(tree.firstChild) match {
+        case "which" | "what" => Some(QUESTION_WHICH)
+        case _ => None
+      }
     }
   }
 
@@ -489,11 +415,6 @@ class ShlurdSingleParser(
       }
       (Seq(prefix) ++ subSplit, separator)
     }
-  }
-
-  private def isSinglePhrase(seq : Seq[Tree]) : Boolean =
-  {
-    (seq.size == 1) && !seq.head.isPreTerminal
   }
 
   private def splitCoordinatingConjunction(components : Seq[Tree])
@@ -647,7 +568,7 @@ class ShlurdSingleParser(
       return None
     }
     val whnp = tree.firstChild
-    if (!hasLabel(whnp, "WHNP") || (whnp.numChildren != 1)) {
+    if (!isQueryNoun(whnp) || (whnp.numChildren != 1)) {
       return None
     }
     val wdt = whnp.firstChild
@@ -731,16 +652,6 @@ class ShlurdSingleParser(
     } else {
       ShlurdUnknownReference
     }
-  }
-
-  private def hasTerminalLemma(tree : Tree, lemma : String) =
-  {
-    tree.isPreTerminal && (getLemma(tree.firstChild) == lemma)
-  }
-
-  private def getLemma(leaf : Tree) : String =
-  {
-    lemmas(leaf.label.asInstanceOf[HasIndex].index).toLowerCase
   }
 
   private def getCount(tree : Tree) : ShlurdCount =

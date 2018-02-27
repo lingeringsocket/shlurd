@@ -65,6 +65,10 @@ sealed trait ShlurdForce
 case object FORCE_NEUTRAL extends ShlurdForce
 case object FORCE_EXCLAMATION extends ShlurdForce
 
+sealed trait ShlurdQuestion
+case object QUESTION_WHICH extends ShlurdQuestion
+case object QUESTION_HOW_MANY extends ShlurdQuestion
+
 sealed trait ShlurdModality
 case object MODAL_NEUTRAL extends ShlurdModality
 case object MODAL_MUST extends ShlurdModality

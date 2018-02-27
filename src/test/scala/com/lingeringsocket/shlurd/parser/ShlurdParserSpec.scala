@@ -112,6 +112,16 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
     }
 
+    "parse an enumeration question" in
+    {
+      val input = "which door is open"
+      val expected = ShlurdPredicateQuery(
+        predDoor(STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+        QUESTION_WHICH, MOOD_INTERROGATIVE_POSITIVE)
+      parse(input) must be equalTo expected
+      parse(input + "?") must be equalTo expected
+    }
+
     "parse a negated question" in
     {
       val input = "is not the door open"

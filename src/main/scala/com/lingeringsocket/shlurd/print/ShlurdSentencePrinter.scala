@@ -43,6 +43,11 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.terminatedSentence(
           printPredicateCommand(predicate), sentence.mood, formality)
       }
+      case ShlurdPredicateQuery(predicate, question, mood, formality) => {
+        sb.terminatedSentence(
+          printPredicateQuestion(
+            predicate, mood, Some(question)), mood, formality)
+      }
       case ShlurdAmbiguousSentence(alternatives) => {
         alternatives.map(print(_)).mkString(" | ")
       }
@@ -214,18 +219,23 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   }
 
   def printPredicateQuestion(
-    predicate : ShlurdPredicate, mood : ShlurdMood) : String =
+    predicate : ShlurdPredicate, mood : ShlurdMood,
+    question : Option[ShlurdQuestion] = None) : String =
   {
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateQuestion(
-          print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
+          sb.query(
+            print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
+            question),
           getCopula(subject, state, mood),
           print(state, mood, ShlurdConjoining.NONE))
       }
       case ShlurdIdentityPredicate(subject, complement) => {
         sb.identityPredicateQuestion(
-          print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
+          sb.query(
+            print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
+            question),
           getCopula(subject, ShlurdExistenceState(), mood),
           print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
       }
