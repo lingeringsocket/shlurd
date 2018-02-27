@@ -4,7 +4,9 @@
 
 In order for it to work with your smarthome, it's currently required that you follow the item structure (name+label+group) conventions produced by the [OpenHab Home Builder](https://docs.openhab.org/configuration/homebuilder.html).
 
-For examples of what's supported against the OpenHab demo items, see this [test dialogue](test/demo-out.ref).  (Some known parsing problems are demonstrated in [errata](test/errata-out.ref).)
+For examples of what's supported against the OpenHab demo items, see this [test dialogue](test/demo-out.ref).
+
+Caveat: some known parsing/naming problems are demonstrated in [errata](test/errata-out.ref).  Some of these are due to incorrect parses by Core NLP, some are due to oddities in the demo items definitions, some are due to ambiguities in the English language, and (naturally!) some are due to limitations in SHLURD itself.
 
 # Deploy
 
@@ -58,7 +60,7 @@ This forwarding is necessary because the Android app ignores the setting for **D
 
 # Customize
 
-The addon comes with a default ontology for a few openhab item types (currently only doors, windows, lights, and switches).  You can extend this with your own types by adding a custom belief file.  For example, suppose you have services running on your home network, e.g. a media service and an alarm service.  Using the [network binding](http://docs.openhab.org/addons/bindings/network/readme.html), you've already defined a Switch item for each service for monitoring purposes.
+The addon comes with a default ontology for a few openhab item types (currently only doors, windows, lights, heaters, and switches).  You can extend this with your own types by adding a custom belief file.  For example, suppose you have services running on your home network, e.g. a media service and an alarm service.  Using the [network binding](http://docs.openhab.org/addons/bindings/network/readme.html), you've already defined a Switch item for each service for monitoring purposes.
 
 You can write a custom belief file like this:
 
