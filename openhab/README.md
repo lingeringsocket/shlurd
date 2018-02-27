@@ -4,7 +4,7 @@
 
 In order for it to work with your smarthome, it's currently required that you follow the item structure (name+label+group) conventions produced by the [OpenHab Home Builder](https://docs.openhab.org/configuration/homebuilder.html).
 
-For examples of what's supported against the OpenHab demo items, see this [test dialogue](test/demo-out.ref).
+For examples of what's supported against the OpenHab demo items, see this [test dialogue](test/demo-out.ref).  (Some known parsing problems are demonstrated in [errata](test/errata-out.ref).)
 
 # Deploy
 
