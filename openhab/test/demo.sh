@@ -8,7 +8,8 @@ echo === Setup ===
 runscript setup.txt > /dev/null 2>&1
 
 echo === Run ===
-runscript demo-in.txt | tee demo-out.txt
+runscript demo-in.txt > demo-out.txt
+runscript errata-in.txt > errata-out.txt
 
 echo === Diff ===
 diff demo-out.ref demo-out.txt
