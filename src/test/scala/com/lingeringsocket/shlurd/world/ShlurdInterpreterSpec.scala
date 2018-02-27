@@ -84,6 +84,11 @@ class ShlurdInterpreterSpec extends Specification
       // FIXME:  we should use the same rules as for DETERMINER_UNIQUE
       interpret("is any tiger in the small cage awake") must be equalTo(
         "But I don't know about any such tiger.")
+      // FIXME:  ought to allow quantified existence queries
+      interpret("how many bears are there") must be equalTo(
+        "There are 2 bears.")
+      interpret("how many bears are there in the small cage") must be equalTo(
+        "There is 1 bear in the small cage.")
     }
 
     "interpret questions" in
@@ -215,6 +220,18 @@ class ShlurdInterpreterSpec extends Specification
         "The domestic goat is asleep.")
       interpret("which goat in the farm is awake") must be equalTo(
         "No goat in the farm is awake.")
+      interpret("how many goats are awake") must be equalTo(
+        "No goats are awake.")
+      interpret("how many goats are asleep") must be equalTo(
+        "All 3 of them are asleep.")
+      interpret("how many goats are asleep in the farm") must be equalTo(
+        "1 of them is asleep.")
+      interpret("how many goats in the farm are asleep") must be equalTo(
+        "1 of them is asleep.")
+      interpret("how many mountain goats are asleep") must be equalTo(
+        "1 of them is asleep.")
+      interpret("how many lions or polar bears are asleep") must be equalTo(
+        "Both of them are asleep.")
     }
 
     "interpret statements" in

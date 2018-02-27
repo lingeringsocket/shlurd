@@ -122,6 +122,16 @@ class ShlurdParserSpec extends Specification
       parse(input + "?") must be equalTo expected
     }
 
+    "parse a quantity question" in
+    {
+      val input = "how many doors are open"
+      val expected = ShlurdPredicateQuery(
+        pred(ENTITY_DOORS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_PLURAL),
+        QUESTION_HOW_MANY, MOOD_INTERROGATIVE_POSITIVE)
+      parse(input) must be equalTo expected
+      parse(input + "?") must be equalTo expected
+    }
+
     "parse a negated question" in
     {
       val input = "is not the door open"

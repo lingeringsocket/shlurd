@@ -109,7 +109,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             sb.locationalNoun(
               sb.qualifiedNoun(qualifierString, "of"),
               sb.pronoun(
-                person, gender, count, INFLECT_ACCUSATIVE,
+                person, gender, COUNT_PLURAL, INFLECT_ACCUSATIVE,
                 ShlurdConjoining.NONE),
               conjoining)
           }

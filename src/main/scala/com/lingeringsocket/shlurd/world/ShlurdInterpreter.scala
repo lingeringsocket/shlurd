@@ -36,6 +36,8 @@ case class ShlurdInterpreterParams(
 )
 {
   def neverSummarize = (listLimit == Int.MaxValue)
+
+  def alwaysSummarize = (listLimit == 0)
 }
 
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
@@ -94,10 +96,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
           case Success(truth) => {
             val truthBoolean = truth.assumeFalse
+            val extremeLimit = question match {
+              case QUESTION_WHICH => Int.MaxValue
+              case QUESTION_HOW_MANY => 0
+            }
             val (normalizedResponse, negateCollection) =
               normalizeResponse(
                 rewrittenPredicate, resultCollector,
-                generalParams.copy(listLimit = Int.MaxValue))
+                generalParams.copy(listLimit = extremeLimit))
             val responseMood = ShlurdIndicativeMood(
               truthBoolean || negateCollection)
             sentencePrinter.sb.respondToQuery(
@@ -589,7 +595,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     val existence = resultCollector.states.isEmpty
     (if (trueEntities.isEmpty) {
       None
-    } else if (trueEntities.size == 1) {
+    } else if ((trueEntities.size == 1) && !params.alwaysSummarize) {
       Some(world.specificReference(trueEntities.head, entityDeterminer))
     } else if (exhaustive || (trueEntities.size > params.listLimit)) {
       summarizeList(trueEntities, exhaustive, existence, false)
@@ -617,7 +623,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     val existence = resultCollector.states.isEmpty
     val tuple = (if (falseEntities.isEmpty) {
       (None, false)
-    } else if (falseEntities.size == 1) {
+    } else if ((falseEntities.size == 1) && !params.alwaysSummarize) {
       (Some(world.specificReference(falseEntities.head, entityDeterminer)),
         false)
     } else if (exhaustive || (falseEntities.size > params.listLimit)) {
@@ -641,7 +647,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     existence : Boolean,
     conjunction : Boolean) =
   {
-    var all = exhaustive
+    var all = exhaustive && (entities.size > 1)
     // FIXME:  make this language-independent
     val number = {
       if (conjunction && exhaustive) {
@@ -663,9 +669,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
     val qualifiers = prefix ++ Seq(ShlurdWord(number, number))
     // FIXME:  derive gender from entities
+    val count = number match {
+      case "1" => COUNT_SINGULAR
+      case _ => COUNT_PLURAL
+    }
     Some(
       ShlurdReference.qualified(
-        ShlurdPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL),
+        ShlurdPronounReference(PERSON_THIRD, GENDER_N, count),
         qualifiers))
   }
 }

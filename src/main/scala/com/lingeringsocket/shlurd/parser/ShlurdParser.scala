@@ -233,14 +233,17 @@ class ShlurdSingleParser(
           case Some(q) => q
           case _ => return ShlurdUnknownSentence
         }
-        if (seq.size != 2) {
-          return ShlurdUnknownSentence
-        }
-        val np = seq.last
+        val np = new LabeledScoredTreeNode(new StringLabel("NP"))
+        np.setChildren(seq.tail.toArray)
         val complement = secondSub.tail
         val (combinedState, complementRemainder) = {
           if (specifiedState == ShlurdNullState()) {
-            extractPrepositionalState(complement)
+            val (s, r) = extractPrepositionalState(complement)
+            if (r.isEmpty) {
+              (specifiedState, complement)
+            } else {
+              (s, r)
+            }
           } else {
             (specifiedState, complement)
           }
@@ -258,13 +261,25 @@ class ShlurdSingleParser(
 
   private def expectQuestion(tree : Tree) : Option[ShlurdQuestion] =
   {
-    if (!hasLabel(tree, "WDT")) {
-      None
-    } else {
+    if (hasLabel(tree, "WHADJP")) {
+      if (tree.numChildren != 2) {
+        None
+      } else {
+        if (hasTerminalLemma(tree.firstChild, "how") &&
+          hasTerminalLemma(tree.lastChild, "many"))
+        {
+          Some(QUESTION_HOW_MANY)
+        } else {
+          None
+        }
+      }
+    } else if (hasLabel(tree, "WDT")) {
       getLemma(tree.firstChild) match {
         case "which" | "what" => Some(QUESTION_WHICH)
         case _ => None
       }
+    } else {
+      None
     }
   }
 
