@@ -4,9 +4,9 @@
 
 In order for it to work with your smarthome, it's currently required that you follow the item structure (name+label+group) conventions produced by the [OpenHab Home Builder](https://docs.openhab.org/configuration/homebuilder.html).
 
-For examples of what's supported against the OpenHab demo items, see this [test dialogue](test/demo-out.ref).  (
+For examples of what's supported against the OpenHab demo items, see this [test dialogue](test/demo-out.ref).
 
-And some known parsing/naming problems are demonstrated in [errata](test/errata-out.ref).  Some of these are due to incorrect parses by Core NLP, some are due to oddities in the demo items definitions, some are due to ambiguities in the English language, and (naturally!) some are due to limitations in SHLURD itself.
+Caveat: some known parsing/naming problems are demonstrated in [errata](test/errata-out.ref).  Some of these are due to incorrect parses by Core NLP, some are due to oddities in the demo items definitions, some are due to ambiguities in the English language, and (naturally!) some are due to limitations in SHLURD itself.
 
 # Deploy
 
