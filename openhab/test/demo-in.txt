@@ -22,3 +22,15 @@ are any lights off
 are any lights on
 are any bedroom lights on
 are any bathroom lights on
+turn off all lights on the ground floor
+are any lights on
+turn off all lights on the first floor
+are any lights on
+turn off all lights in the garden
+are any lights on
+turn off all lights in the cellar
+are any lights on
+are any heaters on
+turn on the heater in the bedroom
+are any heaters on
+is the heat on in the bedroom
