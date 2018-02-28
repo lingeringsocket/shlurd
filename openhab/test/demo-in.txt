@@ -27,12 +27,21 @@ is there a heater in the kitchen
 is there a heater on the ground floor
 is there any heater on the ground floor
 is there any window on the ground floor
+how many lights are in the cellar
+which lights are in the cellar
+how many lights are on
+how many lights are off
+which lights are on
 are all lights off
 are all lights on
 are any lights off
 are any lights on
 turn on all lights
 turn on all lights
+how many lights are on
+how many lights are off
+how many corridor lights are on
+which corridor lights are on
 are all lights off
 are all lights on
 are any lights off
@@ -44,33 +53,48 @@ is the kitchen microwave light on
 is any kitchen light on
 are all kitchen lights on
 turn off the kitchen ceiling light
+which lights are off
+which lights are on in the kitchen
+which lights in the kitchen are off
+how many lights are on
 is any kitchen light on
 is any light on in the kitchen or the bedroom
 is the bedroom light on
 is the light in the bedroom on
 turn off all lights in the bedroom
+how many lights are on
+which lights are off
 is the bedroom light on
 are all lights off
 are all lights on
 are any lights off
 are any lights on
 turn off all lights in the bathroom
+how many lights are on
 are all lights on
 are any lights off
 are any lights on
 turn on the bathroom ceiling light
+how many lights are on
 are all lights on
 are any lights off
 are any lights on
 are any bedroom lights on
 are any bathroom lights on
 turn off all lights on the ground floor
+how many lights are on
 are any lights on
 turn off all lights on the first floor
+how many lights are on
+which lights are on
 are any lights on
 turn off all lights in the garden
+how many lights are on
+which lights are on
 are any lights on
 turn off all lights in the cellar
+how many lights are on
+how many lights are off
 are any lights on
 are any heaters on
 turn on the heater in the bedroom

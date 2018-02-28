@@ -1,3 +1,7 @@
+how many rooms are on the ground floor
+which rooms are on the ground floor
+how many windows are on the ground floor
+which windows are on the ground floor
 is there a child room
 is there a bed room
 are all lights on the first floor on
@@ -20,3 +24,12 @@ is the garage door open
 is the bedroom light on or off
 is the kitchen ceiling light or the kitchen table light on
 are any lights on in the kitchen and the bedroom
+how many lights are not on
+which lights are not on
+which lights are on
+are there any lights
+is the staircase light in the cellar
+is any pink light on
+which pink lights are on
+how many lights are there
+how many lights are there on the first floor

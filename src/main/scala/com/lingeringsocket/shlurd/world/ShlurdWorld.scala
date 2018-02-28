@@ -75,7 +75,7 @@ trait ShlurdNamedObject
 
 class ShlurdSynonymMap
 {
-  private val map = new mutable.HashMap[String, String]
+  private val map = new mutable.LinkedHashMap[String, String]
 
   def addSynonym(synonym : String, fundamental : String)
   {
@@ -93,7 +93,7 @@ class ShlurdPlatonicProperty(val name : String)
     extends ShlurdProperty with ShlurdNamedObject
 {
   private[world] val states =
-    new mutable.HashMap[String, String]
+    new mutable.LinkedHashMap[String, String]
 
   private var closed : Boolean = false
 
@@ -116,7 +116,7 @@ class ShlurdPlatonicForm(val name : String)
     extends ShlurdNamedObject
 {
   private[world] val properties =
-    new mutable.HashMap[String, ShlurdPlatonicProperty]
+    new mutable.LinkedHashMap[String, ShlurdPlatonicProperty]
 
   private val stateSynonyms = new ShlurdSynonymMap
 
@@ -174,10 +174,10 @@ class ShlurdPlatonicWorld
   import ShlurdPlatonicWorld._
 
   private val forms =
-    new mutable.HashMap[String, ShlurdPlatonicForm]
+    new mutable.LinkedHashMap[String, ShlurdPlatonicForm]
 
   private val entities =
-    new mutable.HashMap[String, ShlurdPlatonicEntity]
+    new mutable.LinkedHashMap[String, ShlurdPlatonicEntity]
 
   private val formSynonyms = new ShlurdSynonymMap
 
