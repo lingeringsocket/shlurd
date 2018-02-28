@@ -28,7 +28,9 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
   private val roomLemma = "room"
 
   private val groupMap = new mutable.LinkedHashMap[String, mutable.Set[String]]
-      with mutable.MultiMap[String, String]
+      with mutable.MultiMap[String, String] {
+    override protected def makeSet = new mutable.LinkedHashSet[String]
+  }
 
   instantiateForm(ShlurdWord(locationFormName, locationFormName))
 
