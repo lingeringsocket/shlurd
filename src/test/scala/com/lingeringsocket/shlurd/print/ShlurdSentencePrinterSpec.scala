@@ -90,6 +90,12 @@ class ShlurdSentencePrinterSpec extends Specification
       expectPreserved("can the door not be closed?")
     }
 
+    "deal with problem cases" in
+    {
+      skipped("maybe one day")
+      expectQuestion("is either franny or zooey speaking")
+    }
+
     "normalize sentences" in
     {
       expectStatement("the door is closed")
@@ -112,20 +118,20 @@ class ShlurdSentencePrinterSpec extends Specification
       expectStatement("they are hungry")
       expectCommand("erase them")
       expectQuestion("is his granddaughter at home")
-      // FIXME:  either/both etc don't work here
-      expectQuestion("is franny or zooey speaking")
-      expectQuestion("are franny and zooey speaking")
-      expectQuestion("are franny, zooey, and phoebe speaking")
-      expectQuestion("are franny, zooey and phoebe speaking")
       expectQuestion("is the server up and running")
       expectQuestion("is the server down or failing")
+      expectQuestion("is franny or zooey smart")
+      expectQuestion("are franny and zooey smart")
+      expectQuestion("is franny or zooey speaking")
+      expectQuestion("are franny, zooey and phoebe smart")
+      expectQuestion("are franny, zooey, and phoebe smart")
+      expectStatement("your friend and I are hungry")
+      expectStatement("your friend, Stalin, and I are hungry")
+      expectStatement("the red pig, Stalin, and I are hungry")
       expectStatement("the horse is healthy, strong, and hungry")
       expectNormalized(
         "the horse is healthy, and strong",
         "the horse is healthy and strong.")
-      expectStatement("your friend and I are hungry")
-      expectStatement("your friend, Stalin, and I are hungry")
-      expectStatement("the red pig, Stalin, and I are hungry")
       expectStatement("the door must be open")
       expectStatement("the door may be open")
       expectStatement("the door must not be open")
@@ -144,13 +150,12 @@ class ShlurdSentencePrinterSpec extends Specification
       expectQuestion("is there a front door")
       expectQuestion("is there a front door or a back door")
       expectQuestion("is there not a door")
-      // FIXME:  negated "must there NOT be a door" fails
       expectQuestion("must there be a door")
+      expectQuestion("must there not be a door")
       expectStatement("the window in the bathroom is open")
       expectQuestion("is the window in the bathroom open")
       expectCommand("open the window in the bathroom")
       expectQuestion("is the tiger in the cage")
-      // FIXME:  "is the grizzly bear in the cage"
       expectQuestion("is the light in the bathroom on")
       expectStatement("the light in the bathroom is on")
       expectCommand("open all windows on the first floor")

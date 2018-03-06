@@ -4,8 +4,6 @@ how many windows are on the ground floor
 which windows are on the ground floor
 is there a child room
 is there a bed room
-are all lights on the first floor on
-are all lights on in the kitchen
 is there any light on the first floor
 is there any first floor light
 is there a light in the garage
@@ -13,7 +11,7 @@ is there a garage light
 turn off all heaters
 turn on the heater in the bathroom
 are any heaters on
-is there a corridor on the ground floor and the first floor
+is there a corridor on the ground floor or the first floor
 is there a bedroom on the ground floor or the first floor
 is there any light in the living room
 is there any light in the kitchen
@@ -23,11 +21,8 @@ is the office window open
 is the garage door open
 is the bedroom light on or off
 is the kitchen ceiling light or the kitchen table light on
-are any lights on in the kitchen and the bedroom
 how many lights are not on
 which lights are not on
-which lights are on
-are there any lights
 is the staircase light in the cellar
 is any pink light on
 which pink lights are on

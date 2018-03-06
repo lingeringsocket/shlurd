@@ -20,7 +20,7 @@ trait ShlurdParseUtils
 {
   def getLabel(tree : Tree) : String =
   {
-    tree.label.value
+    tree.label.value.split("-").head
   }
 
   def hasLabel(tree : Tree, label : String) : Boolean =
@@ -179,4 +179,11 @@ trait ShlurdParseUtils
   }
 
   def getLemma(leaf : Tree) : String
+
+  def getToken(leaf : Tree) : String
+}
+
+object ShlurdParseUtils
+{
+  def capitalize(s : String) = s.head.toUpper + s.tail
 }

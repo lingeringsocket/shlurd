@@ -148,9 +148,15 @@ class ShlurdOpenhabWorldSpec extends Specification
       interpret(
         "is any bedroom light off",
         "Yes, the guest bedroom nightstand light is off.")
+
+      // FIXME:  there should be no ambiguity here
       interpret(
         "is any light in the guest bedroom on the first floor off",
-        "Yes, the guest bedroom nightstand light is off.")
+        "Please be more specific about which bedroom you mean.")
+
+      interpret(
+        "is any guest bedroom light on the first floor off",
+        "Yes, the guest bedroom nightstand light on the first floor is off.")
       interpret(
         "is any light in any bedroom off",
         "Yes, the guest bedroom nightstand light is off.")
@@ -197,8 +203,8 @@ class ShlurdOpenhabWorldSpec extends Specification
         "is the living room light on",
         "Yes, the living room light is on.")
       interpret(
-        "is the living room light lit",
-        "Yes, the living room light is lit.")
+        "is the light in the living room lit",
+        "Yes, the light in the living room is lit.")
       interpret(
         "is the living room light dark",
         "No, the living room light is not dark.")

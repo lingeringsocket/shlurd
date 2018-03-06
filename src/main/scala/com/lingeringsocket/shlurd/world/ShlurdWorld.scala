@@ -151,7 +151,7 @@ object ShlurdPlatonicWorld
 
   class IncomprehensibleBelief(belief : ShlurdSentence)
       extends RejectedBelief(belief,
-        "can't understand this belief")
+        "can't understand this belief:  " + belief)
   {
   }
 

@@ -405,7 +405,7 @@ class EnglishSentenceBundle
 
   override def respondToQuery(sentence : String) =
   {
-    sentence.head.toUpper + sentence.tail
+    ShlurdParseUtils.capitalize(sentence)
   }
 
   override def respondToCounterfactual(sentence : String) =

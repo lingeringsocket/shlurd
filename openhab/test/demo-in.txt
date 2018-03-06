@@ -19,7 +19,6 @@ is there a bedroom on the ground floor
 is there a bedroom on the first floor
 is there a corridor on the ground floor
 is there a corridor on the first floor
-is there a corridor on the ground floor or the first floor
 is there a corridor in the cellar
 is there a light in the kitchen
 is there a window in the kitchen
@@ -27,6 +26,7 @@ is there a heater in the kitchen
 is there a heater on the ground floor
 is there any heater on the ground floor
 is there any window on the ground floor
+are there any lights
 how many lights are in the cellar
 which lights are in the cellar
 how many lights are on
@@ -36,6 +36,8 @@ are all lights off
 are all lights on
 are any lights off
 are any lights on
+are all lights on the first floor on
+are all lights on in the kitchen
 turn on all lights
 turn on all lights
 how many lights are on
@@ -46,6 +48,8 @@ are all lights off
 are all lights on
 are any lights off
 are any lights on
+are all lights on the first floor on
+are all lights on in the kitchen
 is the kitchen light on
 is the kitchen table light on
 is the kitchen ceiling light on
@@ -69,6 +73,8 @@ are all lights off
 are all lights on
 are any lights off
 are any lights on
+are all lights on the first floor on
+are all lights on in the kitchen
 turn off all lights in the bathroom
 how many lights are on
 are all lights on

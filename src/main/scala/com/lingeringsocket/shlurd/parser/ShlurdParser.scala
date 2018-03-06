@@ -23,6 +23,7 @@ import scala.io._
 import scala.collection.JavaConverters._
 
 import java.io._
+import java.util.Properties
 
 trait ShlurdParser
 {
@@ -33,13 +34,41 @@ trait ShlurdParser
   def parseAll() : Seq[ShlurdSentence]
 }
 
+class ShlurdFallbackParser(
+  parsers : Seq[() => ShlurdParser])
+    extends ShlurdParser
+{
+  override def parseOne() : ShlurdSentence =
+  {
+    var sentence : ShlurdSentence = ShlurdUnknownSentence
+    parsers.foreach(parserSupplier => {
+      val parser = parserSupplier()
+      sentence = parser.parseOne
+      if (!sentence.hasUnknown) {
+        return sentence
+      }
+    })
+    sentence
+  }
+
+  override def parseFirst() = parseOne
+
+  override def parseAll() = Seq(parseOne)
+}
+
 class ShlurdSingleParser(
-  tree : Tree, lemmas : Seq[String], implicitQuestion : Boolean)
+  tree : Tree, tokens : Seq[String], lemmas : Seq[String],
+  guessedQuestion : Boolean)
     extends ShlurdParser with ShlurdParseUtils
 {
   override def getLemma(leaf : Tree) : String =
   {
     lemmas(leaf.label.asInstanceOf[HasIndex].index).toLowerCase
+  }
+
+  override def getToken(leaf : Tree) : String =
+  {
+    tokens(leaf.label.asInstanceOf[HasIndex].index)
   }
 
   private def expectParticle(pt : Tree) : Option[ShlurdWord] =
@@ -72,7 +101,9 @@ class ShlurdSingleParser(
     pt : Tree, determiner : ShlurdDeterminer) : Boolean =
   {
     val leaf = unwrapPhrase(pt)
-    if (isDeterminer(leaf) || isCoordinatingConjunction(leaf)) {
+    if (isDeterminer(leaf) || isCoordinatingConjunction(leaf) ||
+      isAdverb(leaf))
+    {
       getLemma(leaf.firstChild) match {
         case "both" => (determiner == DETERMINER_ALL)
         case "either" => (determiner == DETERMINER_ANY)
@@ -84,11 +115,11 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectRoot(tree : Tree, implicitQuestion : Boolean) =
+  private def expectRoot(tree : Tree, guessedQuestion : Boolean) =
   {
     if (hasLabel(tree, "ROOT")) {
       assert(tree.numChildren == 1)
-      expectSentence(tree.firstChild, implicitQuestion)
+      expectSentence(tree.firstChild, guessedQuestion)
     } else {
       ShlurdUnknownSentence
     }
@@ -126,12 +157,14 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectSentence(tree : Tree, implicitQuestion : Boolean)
+  private def expectSentence(tree : Tree, guessedQuestion : Boolean)
       : ShlurdSentence =
   {
-    if (hasLabel(tree, "S")) {
+    val forceSQ = isCopula(tree.firstChild.firstChild)
+    if (hasLabel(tree, "S") && !forceSQ) {
+      val hasQuestionMark = hasTerminalLabel(tree.children.last, ".", "?")
       val isQuestion =
-        hasTerminalLabel(tree.children.last, ".", "?") && !implicitQuestion
+        hasQuestionMark && !guessedQuestion
       val force = {
         if (hasTerminalLabel(tree.children.last, ".", "!")) {
           FORCE_EXCLAMATION
@@ -154,10 +187,24 @@ class ShlurdSingleParser(
       } else {
         ShlurdUnknownSentence
       }
-    } else if (isSubQuestion(tree)) {
-      val (specifiedState, children) = extractPrepositionalState(
-        truncatePunctuation(tree, Seq("?")))
-      if (isImperative(children)) {
+    } else if (forceSQ || isSubQuestion(tree)) {
+      val punctless = truncatePunctuation(tree, Seq("?"))
+      val (specifiedState, children) = {
+        val unwrapped : Seq[Tree] = {
+          if (forceSQ && isSinglePhrase(punctless)) {
+            punctless.head.children
+          } else {
+            punctless
+          }
+        }
+        val (s, c) = extractPrepositionalState(unwrapped)
+        if (c.size < 3) {
+          (ShlurdNullState(), unwrapped)
+        } else {
+          (s, c)
+        }
+      }
+      if (!forceSQ && isImperative(punctless)) {
         assert(specifiedState == ShlurdNullState())
         return expectCommand(children.head, ShlurdFormality.DEFAULT)
       }
@@ -287,7 +334,15 @@ class ShlurdSingleParser(
   {
     val intro = seq.head
     if (isModal(intro)) {
-      (modalityFor(getLemma(intro.firstChild)), seq.drop(1))
+      val suffix = seq.drop(1)
+      val remainder : Seq[Tree] = {
+        if (isSinglePhrase(suffix) && isVerbPhrase(suffix.head)) {
+          suffix.head.children
+        } else {
+          suffix
+        }
+      }
+      (modalityFor(getLemma(intro.firstChild)), remainder)
     } else {
       (MODAL_NEUTRAL, seq)
     }
@@ -295,7 +350,7 @@ class ShlurdSingleParser(
 
   private def extractNegative(seq : Seq[Tree]) : (Boolean, Seq[Tree]) =
   {
-    val pos = seq.indexWhere(
+    val pos = seq.map(unwrapPhrase).indexWhere(
       sub => isAdverb(sub) && hasTerminalLemma(sub, "not"))
     if (pos == -1) {
       (false, seq)
@@ -678,9 +733,9 @@ class ShlurdSingleParser(
     }
   }
 
-  private def getWord(tree : Tree) =
+  private def getWord(leaf : Tree) =
   {
-    ShlurdWord(getLabel(tree), getLemma(tree))
+    ShlurdWord(getToken(leaf), getLemma(leaf))
   }
 
   private def expectPropertyState(ap : Tree) =
@@ -821,14 +876,14 @@ class ShlurdSingleParser(
     }
   }
 
-  override def parseOne() = expectRoot(tree, implicitQuestion)
+  override def parseOne() = expectRoot(tree, guessedQuestion)
 
   override def parseFirst() = parseOne
 
   override def parseAll() = Seq(parseOne)
 }
 
-class ShlurdMultipleParser(singles : Seq[ShlurdSingleParser])
+class ShlurdMultipleParser(singles : Seq[ShlurdParser])
     extends ShlurdParser
 {
   override def parseOne() : ShlurdSentence =
@@ -844,20 +899,11 @@ class ShlurdMultipleParser(singles : Seq[ShlurdSingleParser])
 
 object ShlurdParser
 {
-  private def dump(sentence : Sentence)
-  {
-    val tree = sentence.parse
-    println("TREE = " + tree)
-    Range(0, sentence.length).foreach(i => {
-      println("DEP = " + sentence.incomingDependencyLabel(i))
-    })
-  }
-
   def debug(s : String)
   {
     tokenize(s).foreach(sentence => {
-      dump(sentence)
-      println("SHLURD = " + prepareOne(sentence).parseOne)
+      val parser = prepareOne(sentence, true)
+      println("SHLURD = " + parser.parseOne)
     })
   }
 
@@ -868,23 +914,79 @@ object ShlurdParser
   }
 
   private def newParser(
-    sentence : Sentence, tree : Tree, implicitQuestion : Boolean)
+    sentence : Sentence, tokens : Seq[String],
+    tree : Tree, guessedQuestion : Boolean)
       : ShlurdSingleParser =
   {
     tree.indexLeaves(0, true)
     val lemmas = sentence.lemmas.asScala
-    new ShlurdSingleParser(tree, lemmas, implicitQuestion)
+    new ShlurdSingleParser(tree, tokens, lemmas, guessedQuestion)
   }
 
-  private def prepareOne(sentence : Sentence) : ShlurdSingleParser =
+  private def prepareOne(
+    sentence : Sentence, dump : Boolean = false) : ShlurdParser =
   {
-    val tree = sentence.parse
-    if (tree.preTerminalYield.asScala.last.value == ".") {
-      newParser(sentence, tree, false)
+    val tokens = sentence.originalTexts.asScala
+    val sentenceString = ShlurdParseUtils.capitalize(sentence.text)
+    if (Set(".", "?", "!").contains(tokens.last)) {
+      prepareFallbacks(sentenceString, tokens, false, dump, "PUNCTUATED")
     } else {
-      val question = tokenize(sentence.text + "?").head
-      newParser(question, question.parse, true)
+      val questionString = sentenceString + "?"
+      prepareFallbacks(questionString, tokens, true, dump, "GUESSED QUESTION")
     }
+  }
+
+  private def prepareFallbacks(
+    sentenceString : String, tokens : Seq[String],
+    guessedQuestion : Boolean,
+    dump : Boolean, dumpPrefix : String) =
+  {
+    val props = new Properties
+    props.setProperty(
+      "parse.model",
+      "edu/stanford/nlp/models/lexparser/englishRNN.ser.gz")
+    val props2 = new Properties
+    props2.setProperty(
+      "parse.model",
+      "edu/stanford/nlp/models/srparser/englishSR.ser.gz")
+    val props3 = new Properties
+    def main() = prepareParser(
+      sentenceString, tokens, props, true, guessedQuestion,
+      dump, dumpPrefix + " RNN")
+    def fallback2() = prepareParser(
+      sentenceString, tokens, props2, false, guessedQuestion,
+      dump, dumpPrefix + " FALLBACK SR")
+    def fallback3() = prepareParser(
+      sentenceString, tokens, props3, false, guessedQuestion,
+      dump, dumpPrefix + " FALLBACK PCFG")
+    new ShlurdFallbackParser(Seq(main, fallback2, fallback3))
+  }
+
+  private def prepareParser(
+    sentenceString : String, tokens : Seq[String], props : Properties,
+    needDependencies : Boolean, guessedQuestion : Boolean,
+    dump : Boolean, dumpPrefix : String) =
+  {
+    val sentence = tokenize(sentenceString).head
+    if (needDependencies) {
+      // It's important to analyze dependencies BEFORE parsing in
+      // order to get the best parse
+      analyzeDependencies(sentence)
+    }
+    val tree = sentence.parse(props)
+    if (dump) {
+        println(dumpPrefix + " PARSE = " + tree)
+    }
+    newParser(sentence, tokens, tree, guessedQuestion)
+  }
+
+  private def analyzeDependencies(sentence : Sentence) =
+  {
+    val props = new Properties
+    props.setProperty(
+      "depparse.model",
+      "edu/stanford/nlp/models/parser/nndep/english_SD.gz")
+    sentence.dependencyGraph(props)
   }
 
   def getResourcePath(resource : String) =

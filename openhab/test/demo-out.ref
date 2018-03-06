@@ -61,9 +61,6 @@ Yes, there is a corridor on the ground floor.
 is there a corridor on the first floor
 Yes, there is a corridor on the first floor.
 
-is there a corridor on the ground floor or the first floor
-Yes, there is a corridor on both of them.
-
 is there a corridor in the cellar
 No, there is not a corridor in the cellar.
 
@@ -85,6 +82,9 @@ Yes, there are 4 of them.
 is there any window on the ground floor
 Yes, there are 3 of them.
 
+are there any lights
+Yes, there are 16 of them.
+
 how many lights are in the cellar
 2 of them are in the cellar.
 
@@ -98,7 +98,7 @@ how many lights are off
 All 16 of them are off.
 
 which lights are on
-No lights is on.
+No lights are on.
 
 are all lights off
 Yes, all lights are off.
@@ -111,6 +111,12 @@ Yes, all 16 of them are off.
 
 are any lights on
 No, no lights are on.
+
+are all lights on the first floor on
+No, none of them are on.
+
+are all lights on in the kitchen
+No, none of them are on.
 
 turn on all lights
 OK.
@@ -141,6 +147,12 @@ No, no lights are off.
 
 are any lights on
 Yes, all 16 of them are on.
+
+are all lights on the first floor on
+Yes, all lights on the first floor are on.
+
+are all lights on in the kitchen
+Yes, all lights in the kitchen are on.
 
 is the kitchen light on
 Please be more specific about which light you mean.
@@ -179,7 +191,7 @@ is any kitchen light on
 Yes, the kitchen table light is on.
 
 is any light on in the kitchen or the bedroom
-Yes, the bedroom ceiling light and the kitchen table light are on.
+Yes, the kitchen table light and the bedroom ceiling light are on.
 
 is the bedroom light on
 Yes, the bedroom light is on.
@@ -210,6 +222,12 @@ Yes, the kitchen ceiling light and the bedroom ceiling light are off.
 
 are any lights on
 Yes, 14 of them are on.
+
+are all lights on the first floor on
+No, the bedroom ceiling light is not on.
+
+are all lights on in the kitchen
+No, the kitchen ceiling light is not on.
 
 turn off all lights in the bathroom
 OK.

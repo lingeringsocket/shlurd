@@ -70,17 +70,6 @@ class ShlurdInterpreterSpec extends Specification
       interpret("which goats are not awake") must be equalTo(
         "The domestic goat, the siberian goat, " +
           "and the mountain goat are not awake.")
-      // FIXME:  CoreNLP bug with singular vs plural
-      interpret("which goats are awake") must be equalTo(
-        "No goats are awake.")
-      // FIXME:  for some reason, CoreNLP interprets this as
-      // a statement instead of a question
-      interpret("are there any tigers") must be equalTo(
-        "Yes, there is a tiger.")
-      // FIXME:  this one gets mistakenly interpreted as an identity:
-      // "is the grizzly == bear in the cage"
-      interpret("is the grizzly bear in the cage") must be equalTo(
-        "Yes, the grizzly bear is in the cage.")
       // FIXME:  we should use the same rules as for DETERMINER_UNIQUE
       interpret("is any tiger in the small cage awake") must be equalTo(
         "But I don't know about any such tiger.")
@@ -104,6 +93,8 @@ class ShlurdInterpreterSpec extends Specification
       interpret("is there a tiger") must be equalTo(
         "Yes, there is a tiger.")
       interpret("is there any tiger") must be equalTo(
+        "Yes, there is a tiger.")
+      interpret("are there any tigers") must be equalTo(
         "Yes, there is a tiger.")
       interpret("is there any goat") must be equalTo(
         "Yes, there are 3 of them.")
@@ -190,6 +181,8 @@ class ShlurdInterpreterSpec extends Specification
         "No, 2 of them are not awake.")
       interpret("are the tiger and the lion asleep") must be equalTo(
         "No, the tiger is not asleep.")
+      interpret("is the grizzly bear in any cage") must be equalTo(
+        "No, the grizzly bear is in no cage.")
       interpret("is the tiger in the cage") must be equalTo(
         "Please be more specific about which cage you mean.")
       interpret("is the tiger in the big cage") must be equalTo(
@@ -208,6 +201,8 @@ class ShlurdInterpreterSpec extends Specification
         "No, the goat on the farm is not awake.")
       interpret("which goat is awake") must be equalTo(
         "No goat is awake.")
+      interpret("which goats are awake") must be equalTo(
+        "No goats are awake.")
       interpret("what goat is awake") must be equalTo(
         "No goat is awake.")
       val list = "The domestic goat, the siberian goat, " +

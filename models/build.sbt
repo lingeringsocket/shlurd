@@ -11,8 +11,9 @@ maxErrors := 99
 traceLevel := 10
 
 libraryDependencies ++= Seq(
-  "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0",
-  "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0" classifier "models"
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models",
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-english"
 )
 
 publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath+"/.ivy2/local/com.lingeringsocket.shlurd")))
