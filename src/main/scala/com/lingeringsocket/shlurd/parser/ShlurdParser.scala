@@ -964,16 +964,10 @@ object ShlurdParser
       capitalizedString, tokens, props3, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK PCFG")
     def fallback4() = prepareParser(
-      sentenceString, tokens, props, true, guessedQuestion,
-      dump, dumpPrefix + " FALLBACK RNN CAPITALIZED")
-    def fallback5() = prepareParser(
       sentenceString, tokens, props2, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR CAPITALIZED")
-    def fallback6() = prepareParser(
-      sentenceString, tokens, props3, false, guessedQuestion,
-      dump, dumpPrefix + " FALLBACK PCFG CAPITALIZED")
     new ShlurdFallbackParser(Seq(
-      main, fallback2, fallback3, fallback4, fallback5, fallback6))
+      main, fallback2, fallback3, fallback4))
   }
 
   private def prepareParser(
