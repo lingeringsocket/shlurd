@@ -23,6 +23,24 @@ assemblyExcludedJars in assembly := {
   cp filter {!_.data.getName.startsWith("stanford-corenlp")}
 }
 
+def keepResource(s : String) : Boolean =
+{
+  val preservedResources = Seq(
+    "edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger",
+    "edu/stanford/nlp/models/parser/nndep/english_SD.gz",
+    "edu/stanford/nlp/models/lexparser/englishRNN.ser.gz",
+    "edu/stanford/nlp/models/srparser/englishSR.ser.gz",
+    "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
+  s.endsWith(".class") || s.endsWith(".properties") || preservedResources.contains(s)
+}
+
+assemblyMergeStrategy in assembly := {
+  case s : String if (!keepResource(s)) => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
+
 artifact in (Compile, assembly) := {
   val art = (artifact in (Compile, assembly)).value
   art.copy(`classifier` = Some("assembly"))

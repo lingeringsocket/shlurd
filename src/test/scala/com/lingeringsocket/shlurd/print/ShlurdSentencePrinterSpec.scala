@@ -170,6 +170,7 @@ class ShlurdSentencePrinterSpec extends Specification
       expectNormalized("awake the goat on the farm.",
         "awake the goat on the farm!")
       expectQuestion("is the tiger in the big cage")
+      expectQuestion("are all lights on the first floor on")
     }
   }
 }

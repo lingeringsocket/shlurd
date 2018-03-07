@@ -927,7 +927,7 @@ object ShlurdParser
     sentence : Sentence, dump : Boolean = false) : ShlurdParser =
   {
     val tokens = sentence.originalTexts.asScala
-    val sentenceString = ShlurdParseUtils.capitalize(sentence.text)
+    val sentenceString = sentence.text
     if (Set(".", "?", "!").contains(tokens.last)) {
       prepareFallbacks(sentenceString, tokens, false, dump, "PUNCTUATED")
     } else {
@@ -950,16 +950,29 @@ object ShlurdParser
       "parse.model",
       "edu/stanford/nlp/models/srparser/englishSR.ser.gz")
     val props3 = new Properties
+    props3.setProperty(
+      "parse.model",
+      "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
+    val capitalizedString = ShlurdParseUtils.capitalize(sentenceString)
     def main() = prepareParser(
-      sentenceString, tokens, props, true, guessedQuestion,
+      capitalizedString, tokens, props, true, guessedQuestion,
       dump, dumpPrefix + " RNN")
     def fallback2() = prepareParser(
-      sentenceString, tokens, props2, false, guessedQuestion,
+      capitalizedString, tokens, props2, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR")
     def fallback3() = prepareParser(
-      sentenceString, tokens, props3, false, guessedQuestion,
+      capitalizedString, tokens, props3, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK PCFG")
-    new ShlurdFallbackParser(Seq(main, fallback2, fallback3))
+    def fallback4() = prepareParser(
+      sentenceString, tokens, props, true, guessedQuestion,
+      dump, dumpPrefix + " FALLBACK RNN CAPITALIZED")
+    def fallback5() = prepareParser(
+      sentenceString, tokens, props2, false, guessedQuestion,
+      dump, dumpPrefix + " FALLBACK SR CAPITALIZED")
+    def fallback6() = prepareParser(
+      sentenceString, tokens, props3, false, guessedQuestion,
+      dump, dumpPrefix + " FALLBACK PCFG CAPITALIZED")
+    new ShlurdFallbackParser(Seq(main, fallback2, fallback3, fallback4, fallback5, fallback6))
   }
 
   private def prepareParser(
