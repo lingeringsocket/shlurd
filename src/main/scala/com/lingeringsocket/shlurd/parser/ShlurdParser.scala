@@ -972,7 +972,8 @@ object ShlurdParser
     def fallback6() = prepareParser(
       sentenceString, tokens, props3, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK PCFG CAPITALIZED")
-    new ShlurdFallbackParser(Seq(main, fallback2, fallback3, fallback4, fallback5, fallback6))
+    new ShlurdFallbackParser(Seq(
+      main, fallback2, fallback3, fallback4, fallback5, fallback6))
   }
 
   private def prepareParser(
