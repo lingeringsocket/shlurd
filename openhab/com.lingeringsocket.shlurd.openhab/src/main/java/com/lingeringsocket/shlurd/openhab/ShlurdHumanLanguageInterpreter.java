@@ -17,7 +17,9 @@
 package com.lingeringsocket.shlurd.openhab;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -100,7 +102,7 @@ public class ShlurdHumanLanguageInterpreter
 
     private void createWorld()
     {
-        logger.error("Recreating SHLURD world");
+        logger.info("Recreating SHLURD world");
         world = new ShlurdOpenhabWorld() {
             @Override
             public scala.util.Try<Trilean> evaluateState(ShlurdPlatonicEntity entity, String stateName) {
@@ -187,8 +189,39 @@ public class ShlurdHumanLanguageInterpreter
         return "SHLURD-based Interpreter";
     }
 
+    private static class SortableItem implements Comparable<SortableItem>
+    {
+        String name;
+        String label;
+        Boolean isGroup;
+        List<String> groupNames;
+
+        private String getGroupName()
+        {
+            if (name.startsWith("g")) {
+                return name.substring(1);
+            } else {
+                return name;
+            }
+        }
+
+        public int compareTo(SortableItem other)
+        {
+            if (isGroup && other.isGroup) {
+                return getGroupName().compareTo(other.getGroupName());
+            } else if (isGroup) {
+                return -1;
+            } else if (other.isGroup) {
+                return 1;
+            } else {
+                return name.compareTo(other.name);
+            }
+        }
+    }
+
     private void readItems()
     {
+        List<SortableItem> list = new ArrayList<SortableItem>();
         for (Item item : itemRegistry.getAll()) {
             String label = item.getLabel();
             boolean isGroup = false;
@@ -200,8 +233,18 @@ public class ShlurdHumanLanguageInterpreter
                 }
             }
             if (label != null) {
-                world.addItem(item.getName(), label, isGroup, JavaConverters.iterableAsScalaIterableConverter(item.getGroupNames()).asScala().toSet());
+                SortableItem sortable = new SortableItem();
+                sortable.name = item.getName();
+                sortable.label = label;
+                sortable.isGroup = isGroup;
+                sortable.groupNames = item.getGroupNames();
+                list.add(sortable);
             }
+        }
+        Collections.sort(list);
+        for (SortableItem sortable : list) {
+            world.addItem(sortable.name, sortable.label, sortable.isGroup,
+                JavaConverters.iterableAsScalaIterableConverter(sortable.groupNames).asScala());
         }
     }
 

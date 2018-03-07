@@ -25,7 +25,7 @@ assemblyExcludedJars in assembly := {
 
 def keepResource(s : String) : Boolean =
 {
-  val preservedResources = Seq(
+  val preservedResources = Set(
     "edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger",
     "edu/stanford/nlp/models/parser/nndep/english_SD.gz",
     "edu/stanford/nlp/models/lexparser/englishRNN.ser.gz",

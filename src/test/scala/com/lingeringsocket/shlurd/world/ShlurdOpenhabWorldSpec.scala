@@ -66,54 +66,54 @@ class ShlurdOpenhabWorldSpec extends Specification
       val file = ShlurdParser.getResourceFile("/ontologies/home.txt")
       val source = Source.fromFile(file)
       world.loadBeliefs(source)
-      world.addItem("Home", "Our House", true, Set.empty)
-      world.addItem("Junk", "Just Junk", true, Set.empty)
-      world.addItem("gGF", "Ground Floor", true, Set("Home"))
-      world.addItem("FF", "First Floor", true, Set("Home"))
-      world.addItem("GF_Garage", "Garage", true, Set("gGF"))
-      world.addItem("GF_Garden", "Garden", true, Set("gGF"))
-      world.addItem("GF_GuestBedroom", "Guest Bedroom", true, Set("gGF"))
-      world.addItem("GF_MasterBedroom", "Master Bedroom", true, Set("gGF"))
-      world.addItem("FF_LivingRoom", "Living Room", true, Set("FF"))
-      world.addItem("FF_GuestBedroom", "Guest Bedroom", true, Set("FF", "Junk"))
+      world.addItem("Home", "Our House", true, Seq.empty)
+      world.addItem("Junk", "Just Junk", true, Seq.empty)
+      world.addItem("gGF", "Ground Floor", true, Seq("Home"))
+      world.addItem("FF", "First Floor", true, Seq("Home"))
+      world.addItem("GF_Garage", "Garage", true, Seq("gGF"))
+      world.addItem("GF_Garden", "Garden", true, Seq("gGF"))
+      world.addItem("GF_GuestBedroom", "Guest Bedroom", true, Seq("gGF"))
+      world.addItem("GF_MasterBedroom", "Master Bedroom", true, Seq("gGF"))
+      world.addItem("FF_LivingRoom", "Living Room", true, Seq("FF"))
+      world.addItem("FF_GuestBedroom", "Guest Bedroom", true, Seq("FF", "Junk"))
       world.addItem(
         "FF_LivingRoom_Light", "Light", false,
-        Set("FF_LivingRoom", "gLight"))
+        Seq("FF_LivingRoom", "gLight"))
       world.addItem(
         "FF_LivingRoom_Heating", "Heating", false,
-        Set("FF_LivingRoom", "gHeating"))
+        Seq("FF_LivingRoom", "gHeating"))
       world.addItem(
         "GF_Garage_Door", "Door", false,
-        Set("GF_Garage", "gDoor"))
+        Seq("GF_Garage", "gDoor"))
       world.addItem(
         "GF_Garage_Light", "Light", false,
-        Set("GF_Garage", "gLight"))
+        Seq("GF_Garage", "gLight"))
       world.addItem(
         "GF_Garden_Door", "Door", false,
-        Set("GF_Garden", "gDoor"))
+        Seq("GF_Garden", "gDoor"))
       world.addItem(
         "GF_Garden_Light_Solar", "Solar", false,
-        Set("GF_Garden", "gLight"))
+        Seq("GF_Garden", "gLight"))
       world.addItem(
         "GF_MasterBedroom_Door", "Door", false,
-        Set("GF_MasterBedroom", "gDoor"))
+        Seq("GF_MasterBedroom", "gDoor"))
       world.addItem(
         "GF_GuestBedroom_Door", "Door", false,
-        Set("GF_GuestBedroom", "gDoor"))
+        Seq("GF_GuestBedroom", "gDoor"))
       world.addItem(
         "GF_GuestBedroom_Light", "Light", false,
-        Set("GF_GuestBedroom", "gLight"))
+        Seq("GF_GuestBedroom", "gLight"))
       world.addItem(
         "FF_GuestBedroom_Door", "Door", false,
-        Set("FF_GuestBedroom", "gDoor"))
+        Seq("FF_GuestBedroom", "gDoor"))
       world.addItem(
         "FF_GuestBedroom_Light_Nightstand",
         "Nightstand", false,
-        Set("FF_GuestBedroom", "gLight"))
+        Seq("FF_GuestBedroom", "gLight"))
       world.addItem(
         "FF_GuestBedroom_Light_Ceiling",
         "Ceiling", false,
-        Set("FF_GuestBedroom", "gLight"))
+        Seq("FF_GuestBedroom", "gLight"))
 
       interpret(
         "is the door in the garage open",

@@ -210,7 +210,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     itemName : String,
     itemLabel : String,
     isGroup : Boolean,
-    itemGroupNames : Set[String])
+    itemGroupNames : Iterable[String])
   {
     val qualifiers = new mutable.LinkedHashSet[String]
     var trimmed = itemName

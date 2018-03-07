@@ -89,7 +89,7 @@ how many lights are in the cellar
 2 of them are in the cellar.
 
 which lights are in the cellar
-The cellar staircase light and the cellar workshop light are in the cellar.
+The cellar workshop light and the cellar staircase light are in the cellar.
 
 how many lights are on
 No lights are on.
@@ -191,7 +191,7 @@ is any kitchen light on
 Yes, the kitchen table light is on.
 
 is any light on in the kitchen or the bedroom
-Yes, the kitchen table light and the bedroom ceiling light are on.
+Yes, the bedroom ceiling light and the kitchen table light are on.
 
 is the bedroom light on
 Yes, the bedroom light is on.
@@ -206,7 +206,7 @@ how many lights are on
 14 of them are on.
 
 which lights are off
-The kitchen ceiling light and the bedroom ceiling light are off.
+The bedroom ceiling light and the kitchen ceiling light are off.
 
 is the bedroom light on
 No, the bedroom light is not on.
@@ -215,10 +215,10 @@ are all lights off
 No, 14 of them are not off.
 
 are all lights on
-No, neither the kitchen ceiling light nor the bedroom ceiling light is on.
+No, neither the bedroom ceiling light nor the kitchen ceiling light is on.
 
 are any lights off
-Yes, the kitchen ceiling light and the bedroom ceiling light are off.
+Yes, the bedroom ceiling light and the kitchen ceiling light are off.
 
 are any lights on
 Yes, 14 of them are on.
@@ -251,10 +251,10 @@ how many lights are on
 13 of them are on.
 
 are all lights on
-No, neither the kitchen ceiling light, the bathroom mirror light, nor the bedroom ceiling light is on.
+No, neither the bedroom ceiling light, the kitchen ceiling light, nor the bathroom mirror light is on.
 
 are any lights off
-Yes, the kitchen ceiling light, the bathroom mirror light, and the bedroom ceiling light are off.
+Yes, the bedroom ceiling light, the kitchen ceiling light, and the bathroom mirror light are off.
 
 are any lights on
 Yes, 13 of them are on.
@@ -281,7 +281,7 @@ how many lights are on
 4 of them are on.
 
 which lights are on
-The cellar staircase light, the garden garage light, the cellar workshop light, and the garden terrace light are on.
+The cellar workshop light, the garden garage light, the cellar staircase light, and the garden terrace light are on.
 
 are any lights on
 Yes, 4 of them are on.
@@ -293,10 +293,10 @@ how many lights are on
 2 of them are on.
 
 which lights are on
-The cellar staircase light and the cellar workshop light are on.
+The cellar workshop light and the cellar staircase light are on.
 
 are any lights on
-Yes, the cellar staircase light and the cellar workshop light are on.
+Yes, the cellar workshop light and the cellar staircase light are on.
 
 turn off all lights in the cellar
 OK.
