@@ -189,5 +189,6 @@ object ShlurdParseUtils
 {
   def capitalize(s : String) = s.head.toUpper + s.tail
 
-  def orderedSet[T](iterable : Iterable[T]) = (new mutable.LinkedHashSet[T] ++= iterable)
+  def orderedSet[T](iterable : Iterable[T]) =
+    (new mutable.LinkedHashSet[T] ++= iterable)
 }
