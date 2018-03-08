@@ -455,12 +455,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     resultCollector : ResultCollector)
       : Try[Trilean] =
   {
+    val locationCollector = new ResultCollector
     evaluatePredicateOverReference(
       subjectRef, REF_LOCATED, resultCollector)
     {
       subjectEntity => {
         evaluatePredicateOverReference(
-          locationRef, REF_LOCATION, resultCollector)
+          locationRef, REF_LOCATION, locationCollector)
         {
           locationEntity => {
             world.evaluateEntityLocationPredicate(
@@ -488,8 +489,6 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     )(predicate)
   }
 
-  // FIXME:  cutoff for maximum enumeration size before switching
-  // to summary form
   private def normalizeResponse(
     predicate : ShlurdPredicate,
     resultCollector : ResultCollector,
@@ -653,7 +652,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       if (conjunction && exhaustive) {
         all = false
         "none"
-      } else  if ((entities.size == 2) && exhaustive) {
+      } else  if ((entities.size == 2) && exhaustive && !existence) {
         all = false
         "both"
       } else {

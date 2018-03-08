@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.parser
 
 import edu.stanford.nlp.trees._
 
+import scala.collection._
+
 trait ShlurdParseUtils
 {
   def getLabel(tree : Tree) : String =
@@ -186,4 +188,6 @@ trait ShlurdParseUtils
 object ShlurdParseUtils
 {
   def capitalize(s : String) = s.head.toUpper + s.tail
+
+  def orderedSet[T](iterable : Iterable[T]) = (new mutable.LinkedHashSet[T] ++= iterable)
 }

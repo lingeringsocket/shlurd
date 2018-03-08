@@ -32,6 +32,8 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     override protected def makeSet = new mutable.LinkedHashSet[String]
   }
 
+  private val roomyRooms = new mutable.LinkedHashSet[String]
+
   instantiateForm(ShlurdWord(locationFormName, locationFormName))
 
   override def resolveEntity(
@@ -130,18 +132,38 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
   {
     if (entity.form.name == locationFormName) {
       val seq = entity.qualifiers.toSeq
-      val realForm = seq.last
+      val specialRoom = roomyRooms.contains(entity.name)
+      val realForm = {
+        if (specialRoom) {
+          roomLemma
+        } else {
+          seq.last
+        }
+      }
       val ref = ShlurdEntityReference(
         ShlurdWord(realForm, realForm),
         determiner)
-      if (seq.size == 1) {
-        ref
+      if (specialRoom) {
+          ShlurdReference.qualified(
+            ref, seq.map(x => ShlurdWord(x, x)))
       } else {
-        ShlurdReference.qualified(
-          ref, seq.dropRight(1).map(x => ShlurdWord(x, x)))
+        if (seq.size == 1) {
+          ref
+        } else {
+          ShlurdReference.qualified(
+            ref, seq.dropRight(1).map(x => ShlurdWord(x, x)))
+        }
       }
     } else {
-      val ref = super.specificReference(entity, determiner)
+      val roomyEntity = {
+        if (isRoomy(entity)) {
+          new ShlurdPlatonicEntity(
+            entity.name, entity.form, entity.qualifiers + roomLemma)
+        } else {
+          entity
+        }
+      }
+      val ref = super.specificReference(roomyEntity, determiner)
       if (isAmbiguous(entity)) {
         getContainer(entity) match {
           case Some(containerEntity) => {
@@ -162,6 +184,16 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
       } else {
         ref
       }
+    }
+  }
+
+  private def isRoomy(entity : ShlurdPlatonicEntity) : Boolean =
+  {
+    getContainer(entity) match {
+      case Some(containerEntity) => {
+        roomyRooms.contains(containerEntity.name)
+      }
+      case _ => false
     }
   }
 
@@ -201,11 +233,6 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     }
   }
 
-  private def extractQualifiersFromLabel(label : String) =
-  {
-    label.split(" ").map(_.toLowerCase).filterNot(_ == roomLemma)
-  }
-
   def addItem(
     itemName : String,
     itemLabel : String,
@@ -239,14 +266,27 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
       trimmed = trimmed.stripPrefix("_").stripSuffix("_")
       trimmed = trimmed.replaceAllLiterally("_", "")
     }
-    var formName = locationFormName
-    if (isGroup) {
-      //
-    } else {
-      formName = trimmed.toLowerCase
+    val formName = {
+      if (isGroup) {
+        locationFormName
+      } else {
+        trimmed.toLowerCase
+      }
     }
-    qualifiers ++= extractQualifiersFromLabel(itemLabel).
-      filterNot(_ == formName)
+    val labelComponents = itemLabel.split(" ").map(_.toLowerCase)
+    if (labelComponents.contains(roomLemma)) {
+      roomyRooms += itemName
+    }
+    val lastQualifier = {
+      if (qualifiers.isEmpty) {
+        ""
+      } else {
+        qualifiers.last
+      }
+    }
+    qualifiers ++= labelComponents.filterNot(
+      s => (s == roomLemma) || (s == formName) ||
+        ((s + roomLemma) == lastQualifier))
 
     getForms.get(formName) match {
       case Some(form) => {

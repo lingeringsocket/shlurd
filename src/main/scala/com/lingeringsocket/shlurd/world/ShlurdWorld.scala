@@ -65,7 +65,7 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
     determiner : ShlurdDeterminer) : ShlurdReference
 
   def qualifierSet(qualifiers : Seq[ShlurdWord]) =
-    ((new mutable.LinkedHashSet) ++= qualifiers.map(_.lemma))
+    ShlurdParseUtils.orderedSet(qualifiers.map(_.lemma))
 }
 
 trait ShlurdNamedObject
@@ -131,7 +131,7 @@ class ShlurdPlatonicForm(val name : String)
   }
 }
 
-class ShlurdPlatonicEntity(
+case class ShlurdPlatonicEntity(
   val name : String,
   val form : ShlurdPlatonicForm,
   val qualifiers : Set[String])
@@ -381,8 +381,9 @@ class ShlurdPlatonicWorld
   {
     forms.get(formSynonyms.resolveSynonym(lemma)) match {
       case Some(form) => {
-        Success(entities.values.filter(
-          hasQualifiers(_, form, qualifiers, false)).toSet)
+        Success(ShlurdParseUtils.orderedSet(
+          entities.values.filter(
+            hasQualifiers(_, form, qualifiers, false))))
       }
       case _ => {
         fail(s"unknown entity $lemma")

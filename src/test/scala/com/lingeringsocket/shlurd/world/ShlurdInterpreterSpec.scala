@@ -356,7 +356,8 @@ class ShlurdInterpreterSpec extends Specification
     {
       val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
       if (context == REF_LOCATION) {
-        Success(locations.filterKeys(_.endsWith(name)).values.toSet)
+        Success(ShlurdParseUtils.orderedSet(
+          locations.filterKeys(_.endsWith(name)).values))
       } else {
         if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
           fail("I don't know about this animal: " + name)

@@ -856,6 +856,13 @@ class ShlurdSingleParser(
         // state (participial adjective)
         expectPropertyStateComplement(seq)
       }
+      case "PRT" => {
+        if (seq.size == 1) {
+          expectPropertyState(seq.head)
+        } else {
+          ShlurdUnknownState
+        }
+      }
       case _ => {
         ShlurdUnknownState
       }
