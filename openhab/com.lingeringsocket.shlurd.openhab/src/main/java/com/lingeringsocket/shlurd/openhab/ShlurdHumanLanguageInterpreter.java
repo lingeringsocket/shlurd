@@ -102,7 +102,7 @@ public class ShlurdHumanLanguageInterpreter
 
     private void createWorld()
     {
-        logger.info("Recreating SHLURD world");
+        logger.info("SHLURD recreating world...");
         world = new ShlurdOpenhabWorld() {
             @Override
             public scala.util.Try<Trilean> evaluateState(ShlurdPlatonicEntity entity, String stateName) {
@@ -123,6 +123,7 @@ public class ShlurdHumanLanguageInterpreter
                 }
             }
         };
+        logger.info("SHLURD world recreated");
     }
 
     public void setItemRegistry(ItemRegistry itemRegistry)
@@ -170,11 +171,14 @@ public class ShlurdHumanLanguageInterpreter
         String beliefFile = (String) config.get(BELIEF_FILE_KEY);
         String encoding = "UTF-8";
         if (beliefFile == null) {
+            logger.info("SHLURD loading default beliefs...");
             world.loadBeliefs(
                     Source$.MODULE$.fromInputStream(getClass().getResourceAsStream("/beliefs.txt"), encoding));
         } else {
+            logger.info("SHLURD loading beliefs from " + beliefFile + "...");
             world.loadBeliefs(Source$.MODULE$.fromFile(beliefFile, encoding));
         }
+        logger.info("SHLURD beliefs loaded");
     }
 
     @Override
@@ -259,7 +263,9 @@ public class ShlurdHumanLanguageInterpreter
             createWorld();
         }
         if (world.getEntities().isEmpty()) {
+            logger.info("SHLURD reloading items...");
             readItems();
+            logger.info("SHLURD items loaded");
         }
         // FIXME: need to support non-string commands
         ShlurdSentence sentence = ShlurdParser$.MODULE$.apply(text).parseOne();
