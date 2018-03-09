@@ -85,7 +85,7 @@ class ShlurdOpenhabWorldSpec extends Specification
         "FF_Family_Light", "Light", false,
         Seq("FF_Family", "gLight"))
       world.addItem(
-        "FF_LivingRoom_Light", "Light", false,
+        "FF_LivingRoom_Light", "Mood Light", false,
         Seq("FF_LivingRoom", "gLight"))
       world.addItem(
         "FF_LivingRoom_Heating", "Heating", false,
@@ -228,7 +228,7 @@ class ShlurdOpenhabWorldSpec extends Specification
       interpret(
         "which lights on the first floor are on",
         "The family room light, " +
-          "the living room light, " +
+          "the living room mood light, " +
           "and the guest bedroom ceiling light are on.")
       interpret(
         "is the light in the living room lit",

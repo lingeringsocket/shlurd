@@ -156,11 +156,20 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
       }
     } else {
       val roomyEntity = {
-        if (isRoomy(entity)) {
-          new ShlurdPlatonicEntity(
-            entity.name, entity.form, entity.qualifiers + roomLemma)
-        } else {
+        val roomyQualifiers = getRoomyQualifiers(entity)
+        if (roomyQualifiers.isEmpty) {
           entity
+        } else {
+          val seq = entity.qualifiers.toSeq
+          val i = seq.indexOfSlice(roomyQualifiers)
+          if (i == -1) {
+            entity
+          } else {
+            new ShlurdPlatonicEntity(
+              entity.name, entity.form,
+              ShlurdParseUtils.orderedSet(
+                seq.patch(i + roomyQualifiers.size, Seq(roomLemma), 0)))
+          }
         }
       }
       val ref = super.specificReference(roomyEntity, determiner)
@@ -169,7 +178,8 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
           case Some(containerEntity) => {
             getContainer(containerEntity) match {
               case Some(floorEntity) => {
-                val floorRef = specificReference(floorEntity, DETERMINER_UNIQUE)
+                val floorRef =
+                  specificReference(floorEntity, DETERMINER_UNIQUE)
                 ShlurdStateSpecifiedReference(
                   ref,
                   ShlurdLocationState(
@@ -187,13 +197,17 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     }
   }
 
-  private def isRoomy(entity : ShlurdPlatonicEntity) : Boolean =
+  private def getRoomyQualifiers(entity : ShlurdPlatonicEntity) : Seq[String] =
   {
     getContainer(entity) match {
       case Some(containerEntity) => {
-        roomyRooms.contains(containerEntity.name)
+        if (roomyRooms.contains(containerEntity.name)) {
+          Seq(containerEntity.qualifiers.last)
+        } else {
+          Seq.empty
+        }
       }
-      case _ => false
+      case _ => Seq.empty
     }
   }
 
