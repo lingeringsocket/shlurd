@@ -113,3 +113,4 @@ are any heaters on
 turn on the heater in the bedroom
 are any heaters on
 is the heat on in the bedroom
+is the lamp in the bedroom lit
