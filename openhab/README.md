@@ -89,6 +89,17 @@ As an alternative, you can customize this setting via a configuration file; in `
 
 The default beliefs are defined in [this resource file](com.lingeringsocket.shlurd.openhab/src/main/resources/beliefs.txt).
 
+## Logging
+
+To enable some logging from the plugin, you can add these to your [org.ops4j.pax.logging.cfg](https://docs.openhab.org/administration/logging.html#config-file) file:
+
+    log4j2.logger.corenlp.name = edu.stanford.nlp
+    log4j2.logger.corenlp.level = INFO
+
+    log4j2.logger.shlurd.name = com.lingeringsocket.shlurd
+    log4j2.logger.shlurd.level = INFO
+
+
 # Eclipse Build
 
 *(these instructions are for the Oxygen release of Eclipse)*
