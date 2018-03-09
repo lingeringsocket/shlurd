@@ -26,7 +26,14 @@ is there a heater in the kitchen
 is there a heater on the ground floor
 is there any heater on the ground floor
 is there any window on the ground floor
+how many rooms are on the ground floor
+which rooms are on the ground floor
+how many windows are on the ground floor
+which windows are on the ground floor
 are there any lights
+is there any light in the living room
+is there any light in the kitchen
+is the staircase light in the cellar
 how many lights are in the cellar
 which lights are in the cellar
 how many lights are on

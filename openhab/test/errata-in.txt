@@ -1,7 +1,3 @@
-how many rooms are on the ground floor
-which rooms are on the ground floor
-how many windows are on the ground floor
-which windows are on the ground floor
 is there a child room
 is there a bed room
 is there any light on the first floor
@@ -13,8 +9,6 @@ turn on the heater in the bathroom
 are any heaters on
 is there a corridor on the ground floor or the first floor
 is there a bedroom on the ground floor or the first floor
-is there any light in the living room
-is there any light in the kitchen
 is the kitchen window open
 is the kitchen window closed
 is the office window open
@@ -23,7 +17,6 @@ is the bedroom light on or off
 is the kitchen ceiling light or the kitchen table light on
 how many lights are not on
 which lights are not on
-is the staircase light in the cellar
 is any pink light on
 which pink lights are on
 how many lights are there
