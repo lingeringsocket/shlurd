@@ -1,6 +1,6 @@
 # Intro
 
-**shlurd-openhab** is an addon for [OpenHAB 2](https://www.openhab.org) which installs a new human language interpreter based on [SHLURD](../README.md).  It allows you to ask questions about the state of your house (e.g. "is the bedroom window open?") as well as give commands (e.g. "turn off all kitchen lights").  At the moment, the only natural language supported is English.
+**shlurd-openhab** is an addon for [OpenHAB 2](https://www.openhab.org) which installs a new human language interpreter based on [SHLURD](../README.md).  It allows you to ask questions about the state of your house (e.g. "is the bedroom window open?") as well as give commands (e.g. "turn off all lights in the kitchen").  At the moment, the only natural language supported is English.
 
 In order for it to work with your smarthome, it's currently required that you follow the item structure (name+label+group) conventions produced by the [OpenHab Home Builder](https://docs.openhab.org/configuration/homebuilder.html).
 
@@ -27,6 +27,8 @@ If instead you want to keep the SHLURD bundles in a subdirectory of `addons`, so
 
 As an alternative, you can configure the same setting via a configuration file; edit `runtime.cfg` (maybe in `/etc/openhab2/services`) and change `org.eclipse.smarthome.voice:defaultHLI` to `shlurdhli`
 
+Note that enabling SHLURD will cause openhab startup to take a bit longer, as loading the CoreNLP models into memory eats some time.
+
 # Try It Out
 
 In order to really speak with OpenHAB, you need to set up audio source/sink and speech recognition/generation services, as described in [the OpenHAB multimedia docs](http://docs.openhab.org/configuration/multimedia.html).
@@ -36,8 +38,6 @@ You can also use a text interface via [the OpenHAB console](http://docs.openhab.
     smarthome:voice interpret are any lights on?
     
 You should get a response such as `Yes, some lights are on.`
-
-Note that the demo items do not all follow the Home Builder naming conventions correctly, so if you are using the demo configuration, some commands may not be understood correctly as a result.
 
 # Android
 
@@ -87,11 +87,11 @@ To add your custom beliefs, do the following:
 
 As an alternative, you can customize this setting via a configuration file; in `/etc/openhab2/services`, create a file `shlurdhli.cfg` with the line `org.openhab.shlurdhli:beliefFile=/path/to/your/custom/beliefs.txt`
 
-The default beliefs are defined in [this resource file](com.lingeringsocket.shlurd.openhab/src/main/resources/beliefs.txt).
+The default beliefs are defined in [this resource file](com.lingeringsocket.shlurd.openhab/src/main/resources/beliefs.txt).  You'll probably want to copy those into the beginning of your custom beliefs file.
 
 ## Logging
 
-To enable some logging from the plugin, you can add these to your [org.ops4j.pax.logging.cfg](https://docs.openhab.org/administration/logging.html#config-file) file:
+To enable some logging from the plugin, you can add these lines to your [org.ops4j.pax.logging.cfg](https://docs.openhab.org/administration/logging.html#config-file) file:
 
     log4j2.logger.corenlp.name = edu.stanford.nlp
     log4j2.logger.corenlp.level = INFO
