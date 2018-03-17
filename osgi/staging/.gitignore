@@ -1,1 +1,6 @@
 *.jar
+ESH-INF
+META-INF
+OSGI-INF
+beliefs.txt
+com

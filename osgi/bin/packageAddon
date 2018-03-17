@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -e
+
+SRC_DIR=$(dirname "$BASH_SOURCE")/../..
+ADDON_DIR=${SRC_DIR}/openhab/com.lingeringsocket.shlurd.openhab
+STAGING_DIR=$(readlink -f "${SRC_DIR}/osgi/staging")
+INF_DIRS="ESH-INF OSGI-INF"
+CLASSES_SPEC="beliefs.txt com"
+
+pushd ${STAGING_DIR}
+GIT_HASH=$(git rev-parse --short HEAD)
+JAR_FILE=/tmp/shlurd-openhab-${GIT_HASH}.jar
+rm -f /tmp/shlurd-openhab-*.jar
+rm -rf ${INF_DIRS}
+rm -rf ${CLASSES_SPEC}
+popd
+
+pushd ${ADDON_DIR}
+cp -R ${INF_DIRS} ${STAGING_DIR}
+cd target/classes
+cp -R ${CLASSES_SPEC} ${STAGING_DIR}
+popd
+
+pushd ${STAGING_DIR}
+jar cfm ${JAR_FILE} ${ADDON_DIR}/META-INF/UBER.MF ${INF_DIRS} ${CLASSES_SPEC} LICENSES *.jar
+echo "Addon successfully packaged as ${JAR_FILE}"
+popd
