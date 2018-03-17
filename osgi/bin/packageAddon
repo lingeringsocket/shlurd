@@ -3,7 +3,7 @@
 set -e
 
 SRC_DIR=$(dirname "$BASH_SOURCE")/../..
-ADDON_DIR=${SRC_DIR}/openhab/com.lingeringsocket.shlurd.openhab
+ADDON_DIR=$(readlink -f "${SRC_DIR}/openhab/com.lingeringsocket.shlurd.openhab")
 STAGING_DIR=$(readlink -f "${SRC_DIR}/osgi/staging")
 INF_DIRS="ESH-INF OSGI-INF"
 CLASSES_SPEC="beliefs.txt com"
