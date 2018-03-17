@@ -20,8 +20,8 @@ From the OpenHab Paper UI:
 
 Notes:
 
-* The addon jar and Java heap memory requirements are quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments.
-* The addon is currently listed as a binding, but it's actually a voice addon.  This is due to the way the Eclipse IoT Market is currently set up.
+* The addon jar and Java heap memory requirements are quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments (e.g. Raspberry Pi).
+* The addon is listed as a binding, but it's actually a voice addon.  This is due to the way the Eclipse IoT Market is currently set up.
 
 If instead you want to install the addon manually, here are the instructions:
 
