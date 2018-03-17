@@ -10,7 +10,7 @@ Caveat: some known parsing/naming problems are demonstrated in [errata](test/err
 
 # Deploy
 
-1. Get the latest release archive .jar from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab).  The addon jar is quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments.
+1. Download the latest release archive .jar from [the Eclipse IoT marketplace](https://marketplace.eclipse.org/content/shlurd-human-language-interpreter) or from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab).  The addon jar is quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments.
 1. Move the jar into your openhab `addons` directory (e.g. `/usr/share/openhab2/addons`)
 
 # Configure
