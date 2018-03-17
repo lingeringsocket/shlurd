@@ -10,10 +10,8 @@ Caveat: some known parsing/naming problems are demonstrated in [errata](test/err
 
 # Deploy
 
-1. Get the latest release archive from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab).  The zipfile is quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments.
-1. Unzip all jars directly into your openhab `addons` directory (e.g. `/usr/share/openhab2/addons`)
-
-If instead you want to keep the SHLURD bundles in a subdirectory of `addons`, so that you can undeploy more easily by just removing that subdirectory, then you need to change the `felix.fileinstall.subdir.mode` property to `recurse` in `/var/lib/openhab2/etc/org.apache.felix.fileinstall-deply.cfg`, or something like that.
+1. Get the latest release archive .jar from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab).  The addon jar is quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments.
+1. Move the jar into your openhab `addons` directory (e.g. `/usr/share/openhab2/addons`)
 
 # Configure
 
