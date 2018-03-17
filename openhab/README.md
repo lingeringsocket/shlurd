@@ -156,15 +156,10 @@ To enable some logging from the plugin, you can add these lines to your [org.ops
 1. Back in Eclipse runtime console, type `smarthome voice interpret are any doors open`
 1. You should see a response such as `Yes, some doors are open`
 
-## Build Plugin JAR
+## Build Addon JAR
 
-1. In **Package Explorer**, select **com.lingeringsocket.shlurd.openhab** under **Runtime**
-1. Context menu **Export > Java > JAR File**
-1. **Next**
-1. Fill in export destination, e.g. `/home/jvs/open/shlurd/osgi/staging/shlurd-openhab.jar`
-1. **Next, Next** (do NOT click **Finish** yet)
-1. Select **Use existing manifest from workspace** and browse to `META-INF/MANIFEST.MF` under **com.lingeringsocket.shlurd.openhab**
-1. **OK**
-1. **Finish**
+1. As a prerequisite, you must have already run the project as described above in order for the classes to be built.
+1. Run the script `osgi/bin/packageAddon` ([source](../osgi/bin/packageAddon))
+1. The very large addon jar will be produced in `/tmp`, e.g. `/tmp/shlurd-openhab-551a0df.jar` (the git hash is used for the version identifier)
 
 Now you can test it by copying the exported jar to the `addons` directory of a deployed OpenHAB service.
