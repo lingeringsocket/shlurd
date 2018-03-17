@@ -10,8 +10,9 @@ Caveat: some known parsing/naming problems are demonstrated in [errata](test/err
 
 # Deploy
 
-From the OpenHab Paper UI:
-
+1. Browse to your OpenHAB service web UI, e.g.  http://localhost:8080
+1. Select **Standard** setup
+1. Select **Paper UI**
 1. Open the **Add-Ons** menu from the sidebar
 1. Select the **Misc** tab
 1. Install the **Eclipse IoT Market** addon if you haven't already
@@ -30,9 +31,8 @@ If instead you want to install the addon manually, here are the instructions:
 
 # Configure
 
-1. Browse to your OpenHAB service web UI, e.g.  http://localhost:8080
-1. Select **Standard** setup
-1. Select **Paper UI**
+From the OpenHab Paper UI:
+
 1. **Configuration > System**
 1. Scroll down to **Voice** section
 1. For **Default Human Language Interpeter**, switch to **SHLURD-based Interpreter**
