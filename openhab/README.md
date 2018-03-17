@@ -10,16 +10,29 @@ Caveat: some known parsing/naming problems are demonstrated in [errata](test/err
 
 # Deploy
 
-1. Get the latest release archive from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab).  The zipfile is quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments.
-1. Unzip all jars directly into your openhab `addons` directory (e.g. `/usr/share/openhab2/addons`)
-
-If instead you want to keep the SHLURD bundles in a subdirectory of `addons`, so that you can undeploy more easily by just removing that subdirectory, then you need to change the `felix.fileinstall.subdir.mode` property to `recurse` in `/var/lib/openhab2/etc/org.apache.felix.fileinstall-deply.cfg`, or something like that.
-
-# Configure
-
 1. Browse to your OpenHAB service web UI, e.g.  http://localhost:8080
 1. Select **Standard** setup
 1. Select **Paper UI**
+1. Open the **Add-Ons** menu from the sidebar
+1. Select the **Misc** tab
+1. Install the **Eclipse IoT Market** addon if you haven't already
+1. Select the **Bindings** tab
+1. Install the **SHLURD Human Language Interpreter** addon
+
+Notes:
+
+* The addon jar and Java heap memory requirements are quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments (e.g. Raspberry Pi).
+* The addon is listed as a binding, but it's actually a voice addon.  This is due to the way the Eclipse IoT Market is currently set up.
+
+If instead you want to install the addon manually, here are the instructions:
+
+1. Download the latest release archive .jar from [the Eclipse IoT marketplace](https://marketplace.eclipse.org/content/shlurd-human-language-interpreter) or from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab).
+1. Move the jar into your openhab `addons` directory (e.g. `/usr/share/openhab2/addons`)
+
+# Configure
+
+From the OpenHab Paper UI:
+
 1. **Configuration > System**
 1. Scroll down to **Voice** section
 1. For **Default Human Language Interpeter**, switch to **SHLURD-based Interpreter**
@@ -156,15 +169,10 @@ To enable some logging from the plugin, you can add these lines to your [org.ops
 1. Back in Eclipse runtime console, type `smarthome voice interpret are any doors open`
 1. You should see a response such as `Yes, some doors are open`
 
-## Build Plugin JAR
+## Build Addon JAR
 
-1. In **Package Explorer**, select **com.lingeringsocket.shlurd.openhab** under **Runtime**
-1. Context menu **Export > Java > JAR File**
-1. **Next**
-1. Fill in export destination, e.g. `/home/jvs/open/shlurd/osgi/staging/shlurd-openhab.jar`
-1. **Next, Next** (do NOT click **Finish** yet)
-1. Select **Use existing manifest from workspace** and browse to `META-INF/MANIFEST.MF` under **com.lingeringsocket.shlurd.openhab**
-1. **OK**
-1. **Finish**
+1. As a prerequisite, you must have already run the project as described above in order for the classes to be built.
+1. Run the script `osgi/bin/packageAddon` ([source](../osgi/bin/packageAddon))
+1. The very large addon jar will be produced in `/tmp`, e.g. `/tmp/shlurd-openhab-551a0df.jar` (the git hash is used for the version identifier)
 
 Now you can test it by copying the exported jar to the `addons` directory of a deployed OpenHAB service.
