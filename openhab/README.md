@@ -22,7 +22,7 @@ Caveat: some known parsing/naming problems are demonstrated in [errata](test/err
 Notes:
 
 * The addon jar and Java heap memory requirements are quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments (e.g. Raspberry Pi).
-* The addon is listed as a binding, but it's actually a voice addon.  This is due to the way the Eclipse IoT Market is currently set up.
+* The addon is listed as a binding, but it's actually a voice addon.  [This is due to the way the Eclipse IoT Market is currently set up.](https://community.openhab.org/t/marketplace-listings-for-non-binding-addons)
 
 If instead you want to install the addon manually, here are the instructions:
 
