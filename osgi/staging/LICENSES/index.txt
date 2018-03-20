@@ -9,5 +9,5 @@ scala, protobuf-java: 3-clause BSD
 stanford-corenlp: GPL v3
 
 Note that stanford-corenlp is repackaged into the
-shlurd-models_2.11-assembly.jar in order to select only the models
+shlurd-corenlp-models_2.11-assembly.jar in order to select only the models
 required by SHLURD.

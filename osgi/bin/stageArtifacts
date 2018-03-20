@@ -9,7 +9,7 @@ rm -f ${TARGET_DIR}/*.jar
 pushd ${SRC_DIR}
 
 sbt clean publish-local
-cd models
+cd corenlp-models
 sbt clean publish-local
 cd ../osgi
 sbt clean deployLauncher:package

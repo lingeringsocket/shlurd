@@ -1,6 +1,6 @@
 organization := "com.lingeringsocket.shlurd"
 
-name := "shlurd-models"
+name := "shlurd-corenlp-models"
 
 version := "0.1-SNAPSHOT"
 
