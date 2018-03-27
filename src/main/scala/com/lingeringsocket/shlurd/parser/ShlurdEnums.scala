@@ -45,6 +45,7 @@ case object LOC_LEFT extends ShlurdLocative
 case object LOC_RIGHT extends ShlurdLocative
 case object LOC_FRONT extends ShlurdLocative
 case object LOC_BEHIND extends ShlurdLocative
+case object LOC_GENITIVE_OF extends ShlurdLocative
 
 sealed trait ShlurdCount
 case object COUNT_SINGULAR extends ShlurdCount

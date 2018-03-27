@@ -96,6 +96,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
       case LOC_RIGHT => "오른쪽"
       case LOC_FRONT => "앞"
       case LOC_BEHIND => "뒤"
+      case LOC_GENITIVE_OF => "FIXME"
     }
     // later need to distinguish 에 from 에서
     compose(concat(pos, "에"), "있어요")
@@ -372,6 +373,11 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   }
 
   override def respondUnknown(entity : String) =
+  {
+    "FIXME"
+  }
+
+  override def respondUnknownPronoun(entity : String) =
   {
     "FIXME"
   }

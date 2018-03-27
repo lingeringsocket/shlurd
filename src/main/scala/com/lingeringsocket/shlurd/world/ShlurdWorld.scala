@@ -46,6 +46,11 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
     context : ShlurdReferenceContext,
     qualifiers : Set[String] = Set.empty) : Try[Set[E]]
 
+  def resolvePronoun(
+    person : ShlurdPerson,
+    gender : ShlurdGender,
+    count : ShlurdCount) : Try[Set[E]]
+
   def resolveProperty(
     entity : E,
     lemma : String) : Try[(P, String)]
@@ -389,6 +394,14 @@ class ShlurdPlatonicWorld
         fail(s"unknown entity $lemma")
       }
     }
+  }
+
+  override def resolvePronoun(
+    person : ShlurdPerson,
+    gender : ShlurdGender,
+    count : ShlurdCount) =
+  {
+    fail("pronouns not supported")
   }
 
   override def resolveProperty(

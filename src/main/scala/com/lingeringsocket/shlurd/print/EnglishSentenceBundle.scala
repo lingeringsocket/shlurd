@@ -148,6 +148,7 @@ class EnglishSentenceBundle
       case LOC_RIGHT => "to the right of"
       case LOC_FRONT => "in front of"
       case LOC_BEHIND => "behind"
+      case LOC_GENITIVE_OF => "of"
     }
   }
 
@@ -426,6 +427,12 @@ class EnglishSentenceBundle
   override def respondUnknown(entity : String) =
   {
     compose("Sorry, I don't know what you mean by", concat(entity, "."))
+  }
+
+  override def respondUnknownPronoun(entity : String) =
+  {
+    compose("Sorry, when you say",
+      concat("'", entity, "'"), "I don't know who or what you mean.")
   }
 
   override def respondNonexistent(entity : String) =

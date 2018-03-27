@@ -128,9 +128,15 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, the polar bear is asleep.")
       interpret("is the grizzly bear asleep") must be equalTo(
         "No, the grizzly bear is not asleep.")
+      interpret("is grizzly bear asleep") must be equalTo(
+        "No, grizzly bear is not asleep.")
       interpret("is the kodiak bear asleep") must be equalTo(
         "But I don't know about any such bear.")
+      interpret("is kodiak bear asleep") must be equalTo(
+        "But I don't know about any such bear.")
       interpret("is the bear asleep") must be equalTo(
+        "Please be more specific about which bear you mean.")
+      interpret("is bear asleep") must be equalTo(
         "Please be more specific about which bear you mean.")
       interpret("is any bear asleep") must be equalTo(
         "Yes, the polar bear is asleep.")
@@ -227,6 +233,26 @@ class ShlurdInterpreterSpec extends Specification
         "1 of them is asleep.")
       interpret("how many lions or polar bears are asleep") must be equalTo(
         "Both of them are asleep.")
+      interpret("am I in the big cage") must be equalTo(
+        "No, you are not in the big cage.")
+      interpret("are you in the big cage") must be equalTo(
+        "Yes, I am in the big cage.")
+      interpret("is he in the big cage") must be equalTo(
+        "Sorry, when you say 'he' I don't know who or what you mean.")
+      interpret("is his tiger in the big cage") must be equalTo(
+        "Sorry, when you say 'he' I don't know who or what you mean.")
+      interpret("are we in the big cage") must be equalTo(
+        "Sorry, when you say 'we' I don't know who or what you mean.")
+      interpret("are they in the big cage") must be equalTo(
+        "Sorry, when you say 'they' I don't know who or what you mean.")
+      interpret("is my tiger in the big cage") must be equalTo(
+        "Yes, your tiger is in the big cage.")
+      interpret("is your tiger in the big cage") must be equalTo(
+        "But I don't know about any such tiger.")
+      interpret("is my lion in the big cage") must be equalTo(
+        "But I don't know about any such lion.")
+      interpret("is your lion in the big cage") must be equalTo(
+        "Yes, my lion is in the big cage.")
     }
 
     "interpret statements" in
@@ -301,6 +327,11 @@ class ShlurdInterpreterSpec extends Specification
   object ZooBigCage extends ZooLocationEntity("big cage")
   object ZooSmallCage extends ZooLocationEntity("small cage")
 
+  sealed case class ZooPersonEntity(name : String)
+      extends ShlurdEntity with NamedObject
+  object ZooKeeper extends ZooPersonEntity("Muldoon")
+  object ZooVisitor extends ZooPersonEntity("Malcolm")
+
   object ZooAnimalSleepinessProperty extends ShlurdProperty
   {
     override def getStates : Map[String, String] = Map(
@@ -343,11 +374,18 @@ class ShlurdInterpreterSpec extends Specification
 
     private val containment : Map[ShlurdEntity, ZooLocationEntity] =
       Map(
+        ZooVisitor -> ZooFarm,
+        ZooKeeper -> ZooBigCage,
         ZooLion -> ZooBigCage,
         ZooTiger -> ZooBigCage,
         ZooPolarBear -> ZooSmallCage,
         ZooGrizzlyBear -> ZooFarm,
         ZooDomesticGoat -> ZooFarm)
+
+    private val ownership : Map[ShlurdEntity, ZooPersonEntity] =
+      Map(
+        ZooLion -> ZooKeeper,
+        ZooTiger -> ZooVisitor)
 
     override def resolveEntity(
       lemma : String,
@@ -367,6 +405,21 @@ class ShlurdInterpreterSpec extends Specification
               values.filter(asleep.contains(_)).toSet)
         }
       }
+    }
+
+    override def resolvePronoun(
+      person : ShlurdPerson,
+      gender : ShlurdGender,
+      count : ShlurdCount) : Try[Set[ShlurdEntity]] =
+    {
+      if (count == COUNT_SINGULAR) {
+        person match {
+          case PERSON_FIRST => return Success(Set(ZooVisitor))
+          case PERSON_SECOND => return Success(Set(ZooKeeper))
+          case _ =>
+        }
+      }
+      fail("unsupported pronoun reference")
     }
 
     override def resolveProperty(
@@ -434,17 +487,30 @@ class ShlurdInterpreterSpec extends Specification
     override def evaluateEntityLocationPredicate(
       entity : ShlurdEntity,
       location : ShlurdEntity,
-      locative : ShlurdLocative) =
+      locative : ShlurdLocative) : Try[Trilean] =
     {
-      if ((locative != LOC_INSIDE) && (locative != LOC_ON)) {
-        Success(Trilean.False)
-      } else {
-        containment.get(entity) match {
-          case Some(actualLocation) =>
-            Success(Trilean(location == actualLocation))
-          case _ =>
-            Success(Trilean.False)
+      val map = locative match {
+        case LOC_GENITIVE_OF => {
+          if (!location.isInstanceOf[ZooPersonEntity]) {
+            return Success(Trilean.False)
+          }
+          ownership
         }
+        case LOC_INSIDE | LOC_ON => {
+          if (!location.isInstanceOf[ZooLocationEntity]) {
+            return Success(Trilean.False)
+          }
+          containment
+        }
+        case _ => {
+          return Success(Trilean.False)
+        }
+      }
+      map.get(entity) match {
+        case Some(actualLocation) =>
+          Success(Trilean(location == actualLocation))
+        case _ =>
+          Success(Trilean.False)
       }
     }
   }

@@ -142,6 +142,8 @@ abstract class ShlurdSentenceBundle
 
   def respondUnknown(entity : String) : String
 
+  def respondUnknownPronoun(entity : String) : String
+
   def respondNonexistent(entity : String) : String
 
   def respondCannotUnderstand() : String

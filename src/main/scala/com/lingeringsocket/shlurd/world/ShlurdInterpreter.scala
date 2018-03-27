@@ -25,6 +25,8 @@ import spire.math._
 
 import scala.collection._
 
+import org.slf4j._
+
 case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
   entities : Set[E],
   state : ShlurdWord)
@@ -44,6 +46,12 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   world : ShlurdWorld[E,P],
   generalParams : ShlurdInterpreterParams = ShlurdInterpreterParams())
 {
+  private val logger = LoggerFactory.getLogger(classOf[ShlurdInterpreter[E,P]])
+
+  private val debugEnabled = logger.isDebugEnabled
+
+  private var debugDepth = 0
+
   private val sentencePrinter = new ShlurdSentencePrinter
 
   class ResultCollector
@@ -54,13 +62,31 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   def fail(msg : String) = world.fail(msg)
 
+  @inline private final def debug(msg : => String)
+  {
+    if (debugEnabled) {
+      val prefix = "*" * debugDepth
+      logger.debug(prefix + msg)
+    }
+  }
+
   def interpret(sentence : ShlurdSentence) : String =
+  {
+    debug(s"INTERPRETER INPUT : $sentence")
+    val response = interpretImpl(sentence)
+    debug(s"INTERPRETER RESPONSE : $response")
+    response
+  }
+
+  private def interpretImpl(sentence : ShlurdSentence) : String =
   {
     val resultCollector = new ResultCollector
     sentence match {
       case ShlurdStateChangeCommand(predicate, formality) => {
+        debug("STATE CHANGE COMMAND")
         evaluatePredicate(predicate, resultCollector) match {
           case Success(Trilean.True) => {
+            debug("COUNTERFACTUAL")
             val (normalizedResponse, negateCollection) =
               normalizeResponse(
                 predicate, resultCollector)
@@ -74,27 +100,34 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
           case Success(_) => {
             assert(resultCollector.states.size == 1)
-            executeInvocation(
+            val invocation =
               ShlurdStateChangeInvocation(
                 resultCollector.entityMap.filterNot(
                   _._2.assumeFalse).keySet,
-                resultCollector.states.head))
+                resultCollector.states.head)
+            debug(s"EXECUTE INVOCATION : $invocation")
+            executeInvocation(invocation)
             sentencePrinter.sb.respondCompliance()
           }
           case Failure(e) => {
+            debug("ERROR")
             diagnostics(e)
             e.getMessage
           }
         }
       }
       case ShlurdPredicateQuery(predicate, question, mood, formality) => {
+        debug("PREDICATE QUERY")
         // FIXME deal with positive, modality
         val rewrittenPredicate = rewriteQuery(predicate)
+        debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
         evaluatePredicate(rewrittenPredicate, resultCollector) match {
           case Success(Trilean.Unknown) => {
+            debug("ANSWER UNKNOWN")
             sentencePrinter.sb.respondDontKnow()
           }
           case Success(truth) => {
+            debug(s"ANSWER : $truth")
             val truthBoolean = truth.assumeFalse
             val extremeLimit = question match {
               case QUESTION_WHICH => Int.MaxValue
@@ -104,6 +137,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               normalizeResponse(
                 rewrittenPredicate, resultCollector,
                 generalParams.copy(listLimit = extremeLimit))
+            debug(s"NORMALIZED RESPONSE : $normalizedResponse")
             val responseMood = ShlurdIndicativeMood(
               truthBoolean || negateCollection)
             sentencePrinter.sb.respondToQuery(
@@ -113,6 +147,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   responseMood)))
           }
           case Failure(e) => {
+            debug("ERROR")
             diagnostics(e)
             e.getMessage
           }
@@ -122,15 +157,19 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         mood match {
           // FIXME deal with positive, modality
           case ShlurdInterrogativeMood(positive, modality) => {
+            debug("PREDICATE QUERY SENTENCE")
             evaluatePredicate(predicate, resultCollector) match {
               case Success(Trilean.Unknown) => {
+                debug("ANSWER UNKNOWN")
                 sentencePrinter.sb.respondDontKnow()
               }
               case Success(truth) => {
+                debug(s"ANSWER : $truth")
                 val truthBoolean = truth.assumeFalse
                 val (normalizedResponse, negateCollection) =
                   normalizeResponse(
                     predicate, resultCollector)
+                debug(s"NORMALIZED RESPONSE : $normalizedResponse")
                 val responseMood = ShlurdIndicativeMood(
                   truthBoolean || negateCollection)
                 sentencePrinter.sb.respondToAssumption(
@@ -142,6 +181,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   false)
               }
               case Failure(e) => {
+                debug("ERROR")
                 diagnostics(e)
                 e.getMessage
               }
@@ -150,6 +190,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case _ : ShlurdIndicativeMood => {
             // FIXME deal with mood.getModality
             val positivity = mood.isPositive
+            debug(s"POSITIVITY : $positivity")
             val predicateTruth = evaluatePredicate(predicate, resultCollector)
             val responseMood = {
               predicateTruth match {
@@ -164,10 +205,12 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             }
             predicateTruth match {
               case Success(Trilean.Unknown) => {
+                debug("TRUTH UNKNOWN")
                 // FIXME:  maybe try to update state?
                 "Oh, really?  Thanks for letting me know."
               }
               case Success(truth) => {
+                debug(s"KNOWN TRUTH : $truth")
                 if (truth.assumeFalse == positivity) {
                   val (normalizedResponse, negateCollection) =
                     normalizeResponse(predicate, resultCollector)
@@ -187,22 +230,26 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
               case Failure(e) => {
                 // FIXME:  try to update state?
+                debug("ERROR")
                 diagnostics(e)
                 e.getMessage
               }
             }
           }
           case _ => {
+            debug(s"UNEXPECTED MOOD : $mood")
             sentencePrinter.sb.respondCannotUnderstand()
           }
         }
       }
       case ShlurdAmbiguousSentence(alternatives) => {
+        debug("AMBIGUOUS SENTENCE")
         // FIXME:  try each in turn and use first
         // that does not result in an error
         sentencePrinter.sb.respondCannotUnderstand()
       }
       case ShlurdUnknownSentence => {
+        debug("UNKNOWN SENTENCE")
         sentencePrinter.sb.respondCannotUnderstand()
       }
     }
@@ -210,7 +257,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def diagnostics(t : Throwable)
   {
-    if (false) {
+    if (debugEnabled) {
       t.printStackTrace
     }
   }
@@ -224,6 +271,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     tries : Iterable[Try[Trilean]], determiner : ShlurdDeterminer)
       : Try[Trilean] =
   {
+    debug(s"EVALUATE DETERMINER : $determiner OVER $tries")
     tries.find(_.isFailure) match {
       // FIXME:  combine failures
       case Some(failed) => failed
@@ -233,7 +281,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case DETERMINER_NONE => {
             Success(!results.fold(Trilean.False)(_|_))
           }
-          case DETERMINER_UNIQUE => {
+          case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
             val lowerBound = results.count(_.assumeFalse)
             if (lowerBound > 1) {
               Success(Trilean.False)
@@ -261,7 +309,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     predicate : ShlurdPredicate,
     resultCollector : ResultCollector) : Try[Trilean] =
   {
-    predicate match {
+    debug(s"EVALUATE PREDICATE : $predicate")
+    debugDepth += 1
+    val result = predicate match {
       case ShlurdStatePredicate(subject, state) => {
         state match {
           case ShlurdConjunctiveState(determiner, states, _) => {
@@ -281,13 +331,20 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             evaluateLocationStatePredicate(
               subject, locative, location, resultCollector)
           }
-          case ShlurdNullState() | ShlurdUnknownState => fail(
-            sentencePrinter.sb.respondCannotUnderstand())
+          case ShlurdNullState() | ShlurdUnknownState => {
+            debug(s"UNEXPECTED STATE : $state")
+            fail(sentencePrinter.sb.respondCannotUnderstand())
+          }
         }
       }
-      case _ => fail(
-        sentencePrinter.sb.respondCannotUnderstand())
+      case _ => {
+        debug("UNEXPECTED PREDICATE TYPE")
+        fail(sentencePrinter.sb.respondCannotUnderstand())
+      }
     }
+    debugDepth -= 1
+    debug(s"PREDICATE TRUTH : $result")
+    result
   }
 
   private def evaluatePredicateOverReference(
@@ -296,6 +353,26 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     resultCollector : ResultCollector,
     specifiedState : ShlurdState = ShlurdNullState()
   )(evaluator : E => Try[Trilean])
+      : Try[Trilean] =
+  {
+    debug("EVALUATE PREDICATE OVER REFERENCE : " +
+      reference + " WITH CONTEXT " + context + " AND SPECIFIED STATE "
+      + specifiedState)
+    debugDepth += 1
+    val result = evaluatePredicateOverReferenceImpl(
+      reference, context, resultCollector,
+      specifiedState, evaluator)
+    debugDepth -= 1
+    debug(s"PREDICATE TRUTH OVER REFERENCE : $result")
+    result
+  }
+
+  private def evaluatePredicateOverReferenceImpl(
+    reference : ShlurdReference,
+    context : ShlurdReferenceContext,
+    resultCollector : ResultCollector,
+    specifiedState : ShlurdState,
+    evaluator : E => Try[Trilean])
       : Try[Trilean] =
   {
     reference match {
@@ -307,6 +384,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             ShlurdReference.extractQualifiers(specifiedState))) match
         {
           case Success(unfilteredEntities) => {
+            debug(s"CANDIDATE ENTITIES : $unfilteredEntities")
             // probably we should be pushing filters down into resolveEntity
             // for efficiency
             val locationStates =
@@ -319,12 +397,17 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 // reference -> entity lookups
                 unfilteredEntities.filter(subjectEntity =>
                   locationStates.forall(ls => {
+                    val locative = ls.locative
                     val evaluation = evaluatePredicateOverReference(
                       ls.location, REF_LOCATION, new ResultCollector)
                     {
                       locationEntity => {
-                        world.evaluateEntityLocationPredicate(
-                          subjectEntity, locationEntity, ls.locative)
+                        val result = world.evaluateEntityLocationPredicate(
+                          subjectEntity, locationEntity, locative)
+                        debug("RESULT FOR " +
+                          s"$subjectEntity $locative $locationEntity " +
+                          s"is $result")
+                        result
                       }
                     }
                     if (evaluation.isFailure) {
@@ -337,7 +420,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
             }
             determiner match {
-              case DETERMINER_UNIQUE => {
+              case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
                 if (entities.isEmpty) {
                   fail(sentencePrinter.sb.respondNonexistent(lemma))
                 } else {
@@ -370,12 +453,29 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
             }
           }
-          case Failure(e) => fail(sentencePrinter.sb.respondUnknown(lemma))
+          case Failure(e) => {
+            debug("ERROR")
+            fail(sentencePrinter.sb.respondUnknown(lemma))
+          }
         }
       }
       case ShlurdPronounReference(person, gender, count) => {
-        // also prevent qualifiers here
-        fail("FIXME")
+        // FIXME for third-person, need conversational coreference resolution
+        world.resolvePronoun(person, gender, count) match {
+          case Success(entities) => {
+            debug(s"CANDIDATE ENTITIES : $entities")
+            evaluateDeterminer(
+              entities.map(
+                invokeEvaluator(_, resultCollector, evaluator)),
+              DETERMINER_ALL)
+          }
+          case Failure(e) => {
+            debug("ERROR")
+            fail(sentencePrinter.sb.respondUnknownPronoun(
+              sentencePrinter.print(
+                reference, INFLECT_NOMINATIVE, ShlurdConjoining.NONE)))
+          }
+        }
       }
       case ShlurdConjunctiveReference(determiner, references, separator) => {
         val results = references.map(
@@ -384,28 +484,42 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         evaluateDeterminer(results, determiner)
       }
       case ShlurdStateSpecifiedReference(sub, subState) => {
-        val combinedState = {
-          if (specifiedState == ShlurdNullState()) {
-            subState
-          } else {
-            ShlurdConjunctiveState(
-              DETERMINER_ALL,
-              Seq(specifiedState, subState),
-              SEPARATOR_CONJOINED)
-          }
-        }
-        evaluatePredicateOverReference(
-          sub, context, resultCollector, combinedState)(evaluator)
+        evaluatePredicateOverState(
+          sub, subState, context, resultCollector, specifiedState, evaluator)
       }
-      case ShlurdGenitiveReference(genitive, reference) => {
-        // maybe allow qualifiers here in case the parser gets
-        // it wrong (e.g. the red shadow of the moon)
-        fail("FIXME")
+      case ShlurdGenitiveReference(genitive, sub) => {
+        val state = ShlurdLocationState(LOC_GENITIVE_OF, genitive)
+        evaluatePredicateOverState(
+          sub, state, context, resultCollector, specifiedState, evaluator)
       }
       case ShlurdUnknownReference => {
+        debug("UNKNOWN REFERENCE")
         fail(sentencePrinter.sb.respondCannotUnderstand())
       }
     }
+  }
+
+  private def evaluatePredicateOverState(
+    reference : ShlurdReference,
+    state : ShlurdState,
+    context : ShlurdReferenceContext,
+    resultCollector : ResultCollector,
+    specifiedState : ShlurdState,
+    evaluator : E => Try[Trilean])
+      : Try[Trilean] =
+  {
+    val combinedState = {
+      if (specifiedState == ShlurdNullState()) {
+        state
+      } else {
+        ShlurdConjunctiveState(
+          DETERMINER_ALL,
+          Seq(specifiedState, state),
+          SEPARATOR_CONJOINED)
+      }
+    }
+    evaluatePredicateOverReference(
+      reference, context, resultCollector, combinedState)(evaluator)
   }
 
   private def invokeEvaluator(
@@ -436,7 +550,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     evaluatePredicateOverReference(subjectRef, REF_SUBJECT, resultCollector)
     {
       entity => {
-        world.resolveProperty(entity, state.lemma) match {
+        val result = world.resolveProperty(entity, state.lemma) match {
           case Success((property, stateName)) => {
             resultCollector.states += ShlurdWord(
               property.getStates()(stateName), stateName)
@@ -445,6 +559,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
           case Failure(e) => Failure(e)
         }
+        debug(s"RESULT FOR $entity is $result")
+        result
       }
     }
   }
@@ -464,8 +580,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           locationRef, REF_LOCATION, locationCollector)
         {
           locationEntity => {
-            world.evaluateEntityLocationPredicate(
+            val result = world.evaluateEntityLocationPredicate(
               subjectEntity, locationEntity, locative)
+            debug("RESULT FOR " +
+              s"$subjectEntity $locative $locationEntity is $result")
+            result
           }
         }
       }
@@ -528,6 +647,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               ShlurdStateSpecifiedReference(outer, state)
             }
           }
+        }
+        case ShlurdPronounReference(person, gender, count)=> {
+          val speakerListenerReversed = person match {
+            case PERSON_FIRST => PERSON_SECOND
+            case PERSON_SECOND => PERSON_FIRST
+            case PERSON_THIRD => PERSON_THIRD
+          }
+          ShlurdPronounReference(speakerListenerReversed, gender, count)
         }
         case ShlurdEntityReference(
           entity, DETERMINER_ANY | DETERMINER_SOME, count
