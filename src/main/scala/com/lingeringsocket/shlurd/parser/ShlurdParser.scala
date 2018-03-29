@@ -906,6 +906,8 @@ class ShlurdMultipleParser(singles : Seq[ShlurdParser])
 
 object ShlurdParser
 {
+  def getEmptyDocument() = new Document("")
+
   def debug(s : String)
   {
     tokenize(s).foreach(sentence => {
