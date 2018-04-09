@@ -106,6 +106,33 @@ class ShlurdPlatonicWorldSpec extends Specification
       frontDoor must not be equalTo(backDoor)
     }
 
+    "understand genitives" in new WorldContext
+    {
+      addBelief("Joyce is a person")
+      addBelief("Will is a person")
+      addBelief("A mom is a person")
+      addBelief("A dad is a person")
+      addBelief("Joyce is Will's mom")
+
+      expectUniqueForm("person")
+
+      val joyces = world.resolveEntity("person", REF_SUBJECT, Set("joyce"))
+      joyces must beSuccessfulTry.which(_.size == 1)
+      val wills = world.resolveEntity("person", REF_SUBJECT, Set("will"))
+      wills must beSuccessfulTry.which(_.size == 1)
+      joyces must not be equalTo(wills)
+      val joyce = joyces.get.head
+      val will = wills.get.head
+      world.resolveGenitive(will, "mom") must be equalTo Set(joyce)
+      world.resolveGenitive(will, "dad") must beEmpty
+      world.resolveGenitive(joyce, "mom") must beEmpty
+
+      addBelief("Bert is Will's mom") must
+        throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
+      addBelief("Joyce is Bert's mom") must
+        throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
+    }
+
     "accept synonyms" in new WorldContext
     {
       val synonyms = world.getFormSynonyms

@@ -487,7 +487,8 @@ class ShlurdInterpreterSpec extends Specification
     override def evaluateEntityLocationPredicate(
       entity : ShlurdEntity,
       location : ShlurdEntity,
-      locative : ShlurdLocative) : Try[Trilean] =
+      locative : ShlurdLocative,
+      qualifiers : Set[String]) : Try[Trilean] =
     {
       val map = locative match {
         case LOC_GENITIVE_OF => {

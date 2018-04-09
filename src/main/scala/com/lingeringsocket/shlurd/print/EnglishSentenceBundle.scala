@@ -161,8 +161,11 @@ class EnglishSentenceBundle
     conjoining : ShlurdConjoining) =
   {
     val unseparated = {
-      if (entity.inflected.isEmpty) {
-        val lemma = entity.lemma
+      if (entity.inflected.isEmpty || (inflection == INFLECT_GENITIVE)) {
+        val lemma = inflection match {
+          case INFLECT_GENITIVE => entity.inflected
+          case _ => entity.lemma
+        }
         val base = count match {
           case COUNT_SINGULAR => {
             lemma

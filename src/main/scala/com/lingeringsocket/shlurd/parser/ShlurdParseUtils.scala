@@ -40,6 +40,11 @@ trait ShlurdParseUtils
     hasLabel(pt, "MD")
   }
 
+  def isPossessive(pt : Tree) : Boolean =
+  {
+    hasLabel(pt, "POS")
+  }
+
   def isParticle(pt : Tree) : Boolean =
   {
     hasLabel(pt, "PRT") || hasLabel(pt, "RP") ||

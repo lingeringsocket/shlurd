@@ -65,6 +65,37 @@ class ShlurdPlatonicInterpreterSpec extends Specification
 
   "ShlurdPlatonicInterpreter" should
   {
+    "understand people" in new InterpreterContext
+    {
+      loadBeliefs("/ontologies/people.txt")
+      interpret(
+        "is Todd Dirk's friend",
+        "Yes, Todd is Dirk's friend.")
+      interpret(
+        "is Dirk Todd's friend",
+        "Yes, Dirk is Todd's friend.")
+      interpret(
+        "is Amanda Todd's sister",
+        "Yes, Amanda is Todd's sister.")
+      interpret(
+        "is Dirk Todd's sister",
+        "No, Dirk is not Todd's sister.")
+      interpret(
+        "is Todd Amanda's brother",
+        "Yes, Todd is Amanda's brother.")
+      interpret(
+        "is Amanda Todd's friend",
+        "No, Amanda is not Todd's friend.")
+
+      // FIXME:  understand personal names better
+      interpret(
+        "is Ford Todd's friend",
+        "Sorry, I don't know what you mean by ford.")
+      interpret(
+        "is Todd Ford's friend",
+        "Sorry, I don't know what you mean by ford.")
+    }
+
     "understand services" in new InterpreterContext
     {
       loadBeliefs("/ontologies/service.txt")

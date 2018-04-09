@@ -48,7 +48,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 {
   private val logger = LoggerFactory.getLogger(classOf[ShlurdInterpreter[E,P]])
 
-  private val debugEnabled = logger.isDebugEnabled
+  private lazy val debugEnabled = logger.isDebugEnabled
 
   private var debugDepth = 0
 
@@ -67,6 +67,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     if (debugEnabled) {
       val prefix = "*" * debugDepth
       logger.debug(prefix + msg)
+    }
+  }
+
+  private final def debug(msg : => String, t : Throwable)
+  {
+    if (debugEnabled) {
+      val prefix = "*" * debugDepth
+      logger.error(prefix + msg, t)
     }
   }
 
@@ -110,8 +118,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             sentencePrinter.sb.respondCompliance()
           }
           case Failure(e) => {
-            debug("ERROR")
-            diagnostics(e)
+            debug("ERROR", e)
             e.getMessage
           }
         }
@@ -147,8 +154,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   responseMood)))
           }
           case Failure(e) => {
-            debug("ERROR")
-            diagnostics(e)
+            debug("ERROR", e)
             e.getMessage
           }
         }
@@ -181,8 +187,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   false)
               }
               case Failure(e) => {
-                debug("ERROR")
-                diagnostics(e)
+                debug("ERROR", e)
                 e.getMessage
               }
             }
@@ -230,8 +235,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
               case Failure(e) => {
                 // FIXME:  try to update state?
-                debug("ERROR")
-                diagnostics(e)
+                debug("ERROR", e)
                 e.getMessage
               }
             }
@@ -252,13 +256,6 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         debug("UNKNOWN SENTENCE")
         sentencePrinter.sb.respondCannotUnderstand()
       }
-    }
-  }
-
-  private def diagnostics(t : Throwable)
-  {
-    if (debugEnabled) {
-      t.printStackTrace
     }
   }
 
@@ -337,6 +334,20 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
+      case ShlurdIdentityPredicate(subjectRef, complementRef) => {
+        evaluatePredicateOverReference(subjectRef, REF_SUBJECT, resultCollector)
+        {
+          subjectEntity => {
+            evaluatePredicateOverReference(
+              complementRef, REF_SUBJECT, resultCollector)
+            {
+              complementEntity => {
+                Success(Trilean(subjectEntity == complementEntity))
+              }
+            }
+          }
+        }
+      }
       case _ => {
         debug("UNEXPECTED PREDICATE TYPE")
         fail(sentencePrinter.sb.respondCannotUnderstand())
@@ -402,11 +413,18 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                       ls.location, REF_LOCATION, new ResultCollector)
                     {
                       locationEntity => {
+                        val qualifiers : Set[String] = {
+                          if (locative == LOC_GENITIVE_OF) {
+                            Set(lemma)
+                          } else {
+                            Set.empty
+                          }
+                        }
                         val result = world.evaluateEntityLocationPredicate(
-                          subjectEntity, locationEntity, locative)
+                          subjectEntity, locationEntity, locative, qualifiers)
                         debug("RESULT FOR " +
                           s"$subjectEntity $locative $locationEntity " +
-                          s"is $result")
+                          s"with $qualifiers is $result")
                         result
                       }
                     }
@@ -454,7 +472,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             }
           }
           case Failure(e) => {
-            debug("ERROR")
+            debug("ERROR", e)
             fail(sentencePrinter.sb.respondUnknown(lemma))
           }
         }
@@ -470,7 +488,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               DETERMINER_ALL)
           }
           case Failure(e) => {
-            debug("ERROR")
+            debug("ERROR", e)
             fail(sentencePrinter.sb.respondUnknownPronoun(
               sentencePrinter.print(
                 reference, INFLECT_NOMINATIVE, ShlurdConjoining.NONE)))

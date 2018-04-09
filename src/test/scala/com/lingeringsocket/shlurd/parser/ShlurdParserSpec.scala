@@ -32,9 +32,13 @@ class ShlurdParserSpec extends Specification
 
   private val ENTITY_ZOOEY = word("zooey")
 
+  private val ENTITY_MOUSE = word("mouse")
+
   private val ENTITY_HOME = word("home")
 
   private val ENTITY_GRANDDAUGHTER = word("granddaughter")
+
+  private val ENTITY_SISTER = word("sister")
 
   private val STATE_OPEN = word("open")
 
@@ -335,6 +339,32 @@ class ShlurdParserSpec extends Specification
               LOC_AT,
               ShlurdEntityReference(ENTITY_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
+    }
+
+    "parse possessive reference" in
+    {
+      val input = "is franny's mouse hungry"
+      parse(input) must be equalTo
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdGenitiveReference(
+              ShlurdEntityReference(ENTITY_FRANNY),
+              ShlurdEntityReference(ENTITY_MOUSE)),
+            ShlurdPropertyState(STATE_HUNGRY)),
+          MOOD_INTERROGATIVE_POSITIVE)
+    }
+
+    "parse genitive reference" in
+    {
+      val input = "franny is zooey's sister"
+      parse(input) must be equalTo
+        ShlurdPredicateSentence(
+          ShlurdIdentityPredicate(
+            ShlurdEntityReference(ENTITY_FRANNY),
+            ShlurdGenitiveReference(
+              ShlurdEntityReference(ENTITY_ZOOEY),
+              ShlurdEntityReference(ENTITY_SISTER))),
+          MOOD_INDICATIVE_POSITIVE)
     }
 
     "parse conjunctive reference" in

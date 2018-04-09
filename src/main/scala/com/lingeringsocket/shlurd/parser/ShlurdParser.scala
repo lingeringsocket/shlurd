@@ -563,6 +563,11 @@ class ShlurdSingleParser(
     if (seq.size == 1) {
       return expectReference(seq.head)
     }
+    if (isPossessive(seq.head.lastChild)) {
+      return ShlurdGenitiveReference(
+        expectReference(seq.head.children.dropRight(1)),
+        expectReference(seq.tail))
+    }
     splitCoordinatingConjunction(seq) match {
       case (DETERMINER_UNSPECIFIED, _, _) => {
       }

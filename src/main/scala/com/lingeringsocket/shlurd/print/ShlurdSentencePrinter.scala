@@ -195,7 +195,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdIdentityPredicate(subject, complement) => {
         sb.identityPredicateStatement(
           print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
-          getCopula(subject, ShlurdExistenceState(), mood),
+          getCopula(subject, ShlurdNullState(), mood),
           print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
       }
       case ShlurdUnknownPredicate => {

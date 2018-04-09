@@ -1,0 +1,10 @@
+Dirk is a person.
+Todd is a person.
+Amanda is a person.
+A brother is a person.
+A sister is a person.
+A friend is a person.
+Todd is Amanda's brother.
+Amanda is Todd's sister.
+Dirk is Todd's friend.
+Todd is Dirk's friend.

@@ -225,9 +225,16 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
   override def evaluateEntityLocationPredicate(
     entity : ShlurdPlatonicEntity,
     location : ShlurdPlatonicEntity,
-    locative : ShlurdLocative) : Try[Trilean] =
+    locative : ShlurdLocative,
+    qualifiers : Set[String]) : Try[Trilean] =
   {
-    Success(Trilean(evaluateLocationPredicate(entity, location, locative)))
+    if (locative == LOC_GENITIVE_OF) {
+      super.evaluateEntityLocationPredicate(
+        entity, location, locative, qualifiers)
+    } else {
+      assert(qualifiers.isEmpty)
+      Success(Trilean(evaluateLocationPredicate(entity, location, locative)))
+    }
   }
 
   def evaluateLocationPredicate(
