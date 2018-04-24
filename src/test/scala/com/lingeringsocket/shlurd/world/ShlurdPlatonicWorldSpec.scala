@@ -110,9 +110,23 @@ class ShlurdPlatonicWorldSpec extends Specification
     {
       addBelief("Joyce is a person")
       addBelief("Will is a person")
+      addBelief("Jonathan is a person")
+      addBelief("Lonnie is a person")
       addBelief("A mom is a person")
       addBelief("A dad is a person")
+      addBelief("A son is a person")
+      addBelief("An ex-husband is a person")
+      addBelief("An ex-wife is a person")
       addBelief("Joyce is Will's mom")
+      addBelief("Joyce is Jonathan's mom")
+      addBelief("Will is Joyce's son")
+      addBelief("Jonathan is Joyce's son")
+      addBelief("Will is Lonnie's son")
+      addBelief("Jonathan is Lonnie's son")
+      addBelief("Lonnie is Will's dad")
+      addBelief("Lonnie is Jonathan's dad")
+      addBelief("Lonnie is Joyce's ex-husband")
+      addBelief("Joyce is Lonnie's ex-wife")
 
       expectUniqueForm("person")
 
@@ -120,12 +134,29 @@ class ShlurdPlatonicWorldSpec extends Specification
       joyces must beSuccessfulTry.which(_.size == 1)
       val wills = world.resolveEntity("person", REF_SUBJECT, Set("will"))
       wills must beSuccessfulTry.which(_.size == 1)
-      joyces must not be equalTo(wills)
+      val jonathans = world.resolveEntity("person", REF_SUBJECT, Set("jonathan"))
+      jonathans must beSuccessfulTry.which(_.size == 1)
+      val lonnies = world.resolveEntity("person", REF_SUBJECT, Set("lonnie"))
+      lonnies must beSuccessfulTry.which(_.size == 1)
       val joyce = joyces.get.head
       val will = wills.get.head
+      val jonathan = jonathans.get.head
+      val lonnie = lonnies.get.head
+      Set(joyce, will, jonathan, lonnie).size must be equalTo 4
       world.resolveGenitive(will, "mom") must be equalTo Set(joyce)
-      world.resolveGenitive(will, "dad") must beEmpty
+      world.resolveGenitive(will, "dad") must be equalTo Set(lonnie)
+      world.resolveGenitive(jonathan, "mom") must be equalTo Set(joyce)
+      world.resolveGenitive(jonathan, "dad") must be equalTo Set(lonnie)
+      world.resolveGenitive(joyce, "son") must be equalTo Set(will, jonathan)
+      world.resolveGenitive(lonnie, "son") must be equalTo Set(will, jonathan)
       world.resolveGenitive(joyce, "mom") must beEmpty
+      world.resolveGenitive(joyce, "dad") must beEmpty
+      world.resolveGenitive(lonnie, "mom") must beEmpty
+      world.resolveGenitive(lonnie, "dad") must beEmpty
+      world.resolveGenitive(joyce, "ex-husband") must be equalTo Set(lonnie)
+      world.resolveGenitive(joyce, "ex-wife") must beEmpty
+      world.resolveGenitive(lonnie, "ex-wife") must be equalTo Set(joyce)
+      world.resolveGenitive(lonnie, "ex-husband") must beEmpty
 
       addBelief("Bert is Will's mom") must
         throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
