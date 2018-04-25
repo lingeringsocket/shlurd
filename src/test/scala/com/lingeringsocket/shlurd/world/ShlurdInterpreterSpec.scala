@@ -253,6 +253,8 @@ class ShlurdInterpreterSpec extends Specification
         "But I don't know about any such lion.")
       interpret("is your lion in the big cage") must be equalTo(
         "Yes, my lion is in the big cage.")
+      interpret("who is in the big cage") must be equalTo(
+        "Muldoon is in the big cage.")
     }
 
     "interpret statements" in
@@ -299,7 +301,6 @@ class ShlurdInterpreterSpec extends Specification
       interpretCommandExpected(
         "asleep the tiger in the big cage.",
         ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
-
     }
   }
 
@@ -358,6 +359,9 @@ class ShlurdInterpreterSpec extends Specification
     private val locations =
       index(Set(ZooFarm, ZooBigCage, ZooSmallCage))
 
+    private val people =
+      index(Set(ZooKeeper, ZooVisitor))
+
     private val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
 
     // if an animal doesn't appear here, we don't have one at the
@@ -392,17 +396,22 @@ class ShlurdInterpreterSpec extends Specification
       context : ShlurdReferenceContext,
       qualifiers : Set[String]) =
     {
-      val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
-      if (context == REF_LOCATION) {
+      if (lemma == ShlurdParseUtils.WHO_LEMMA) {
         Success(ShlurdParseUtils.orderedSet(
-          locations.filterKeys(_.endsWith(name)).values))
+          people.values))
       } else {
-        if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
-          fail("I don't know about this animal: " + name)
+        val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
+        if (context == REF_LOCATION) {
+          Success(ShlurdParseUtils.orderedSet(
+            locations.filterKeys(_.endsWith(name)).values))
         } else {
-          Success(
-            animals.filterKeys(_.endsWith(name)).
-              values.filter(asleep.contains(_)).toSet)
+          if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
+            fail("I don't know about this animal: " + name)
+          } else {
+            Success(
+              animals.filterKeys(_.endsWith(name)).
+                values.filter(asleep.contains(_)).toSet)
+          }
         }
       }
     }
@@ -454,6 +463,10 @@ class ShlurdInterpreterSpec extends Specification
               entityReference, words.dropRight(1).map(
                 q => ShlurdWord(q, q)))
           }
+        }
+        case ZooPersonEntity(name) => {
+          ShlurdEntityReference(
+            ShlurdWord(name, name), DETERMINER_UNSPECIFIED)
         }
         case _ => ShlurdUnknownReference
       }

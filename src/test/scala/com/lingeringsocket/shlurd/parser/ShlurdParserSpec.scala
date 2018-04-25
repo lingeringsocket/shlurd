@@ -28,6 +28,8 @@ class ShlurdParserSpec extends Specification
 
   private val ENTITY_DOORS = ShlurdWord("doors", "door")
 
+  private val ENTITY_WHO = word(ShlurdParseUtils.WHO_LEMMA)
+
   private val ENTITY_FRANNY = word("franny")
 
   private val ENTITY_ZOOEY = word("zooey")
@@ -122,6 +124,20 @@ class ShlurdParserSpec extends Specification
       val expected = ShlurdPredicateQuery(
         predDoor(STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
         QUESTION_WHICH, MOOD_INTERROGATIVE_POSITIVE)
+      parse(input) must be equalTo expected
+      parse(input + "?") must be equalTo expected
+    }
+
+    "parse a who question" in
+    {
+      val input = "who is at home"
+      val expected = ShlurdPredicateQuery(
+        ShlurdStatePredicate(
+          ShlurdEntityReference(ENTITY_WHO),
+          ShlurdLocationState(
+            LOC_AT,
+            ShlurdEntityReference(ENTITY_HOME))),
+        QUESTION_WHO, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }

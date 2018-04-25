@@ -130,13 +130,17 @@ class ShlurdPlatonicWorldSpec extends Specification
 
       expectUniqueForm("person")
 
-      val joyces = world.resolveEntity("person", REF_SUBJECT, Set("joyce"))
+      val joyces = world.resolveEntity(
+        "person", REF_SUBJECT, Set("joyce"))
       joyces must beSuccessfulTry.which(_.size == 1)
-      val wills = world.resolveEntity("person", REF_SUBJECT, Set("will"))
+      val wills = world.resolveEntity(
+        "person", REF_SUBJECT, Set("will"))
       wills must beSuccessfulTry.which(_.size == 1)
-      val jonathans = world.resolveEntity("person", REF_SUBJECT, Set("jonathan"))
+      val jonathans = world.resolveEntity(
+        "person", REF_SUBJECT, Set("jonathan"))
       jonathans must beSuccessfulTry.which(_.size == 1)
-      val lonnies = world.resolveEntity("person", REF_SUBJECT, Set("lonnie"))
+      val lonnies = world.resolveEntity(
+        "person", REF_SUBJECT, Set("lonnie"))
       lonnies must beSuccessfulTry.which(_.size == 1)
       val joyce = joyces.get.head
       val will = wills.get.head

@@ -192,6 +192,8 @@ trait ShlurdParseUtils
 
 object ShlurdParseUtils
 {
+  val WHO_LEMMA = "who"
+
   def capitalize(s : String) = s.head.toUpper + s.tail
 
   def orderedSet[T](iterable : Iterable[T]) =

@@ -25,6 +25,8 @@ import scala.collection.JavaConverters._
 import java.io._
 import java.util.Properties
 
+import ShlurdParseUtils._
+
 trait ShlurdParser
 {
   def parseOne() : ShlurdSentence
@@ -281,7 +283,16 @@ class ShlurdSingleParser(
           case _ => return ShlurdUnknownSentence
         }
         val np = new LabeledScoredTreeNode(new StringLabel("NP"))
-        np.setChildren(seq.tail.toArray)
+        question match {
+          case QUESTION_WHO => {
+            val nn : Tree = new LabeledScoredTreeNode(new StringLabel("NN"))
+            nn.setChildren(seq.head.children)
+            np.setChildren(Array(nn))
+          }
+          case _ => {
+            np.setChildren(seq.tail.toArray)
+          }
+        }
         val complement = secondSub.tail
         val (combinedState, complementRemainder) = {
           if (specifiedState == ShlurdNullState()) {
@@ -323,6 +334,11 @@ class ShlurdSingleParser(
     } else if (hasLabel(tree, "WDT")) {
       getLemma(tree.firstChild) match {
         case "which" | "what" => Some(QUESTION_WHICH)
+        case _ => None
+      }
+    } else if (hasLabel(tree, "WP")) {
+      getLemma(tree.firstChild) match {
+        case WHO_LEMMA => Some(QUESTION_WHO)
         case _ => None
       }
     } else {
@@ -967,7 +983,7 @@ object ShlurdParser
     props3.setProperty(
       "parse.model",
       "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
-    val capitalizedString = ShlurdParseUtils.capitalize(sentenceString)
+    val capitalizedString = capitalize(sentenceString)
     def main() = prepareParser(
       capitalizedString, tokens, props, true, guessedQuestion,
       dump, dumpPrefix + " RNN")

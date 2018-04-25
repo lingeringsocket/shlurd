@@ -149,6 +149,10 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
       case Some(QUESTION_WHICH) => {
         compose("무슨", noun)
       }
+      case Some(QUESTION_WHO) => {
+        // FIXME inflection
+        "누구"
+      }
       case _ => noun
     }
   }
