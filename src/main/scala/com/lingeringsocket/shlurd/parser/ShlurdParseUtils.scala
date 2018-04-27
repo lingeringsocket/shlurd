@@ -14,46 +14,39 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import edu.stanford.nlp.trees._
-
 import scala.collection._
 
 trait ShlurdParseUtils
 {
-  def getLabel(tree : Tree) : String =
+  def hasLabel(tree : ShlurdSyntaxTree, label : String) : Boolean =
   {
-    tree.label.value.split("-").head
+    tree.label == label
   }
 
-  def hasLabel(tree : Tree, label : String) : Boolean =
+  def isVerb(pt : ShlurdSyntaxTree) : Boolean =
   {
-    getLabel(tree) == label
+    pt.label.startsWith("VB")
   }
 
-  def isVerb(pt : Tree) : Boolean =
-  {
-    getLabel(pt).startsWith("VB")
-  }
-
-  def isModal(pt : Tree) : Boolean =
+  def isModal(pt : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(pt, "MD") || (isVerb(pt) && hasTerminalLemma(pt, "do"))
   }
 
-  def isPossessive(pt : Tree) : Boolean =
+  def isPossessive(pt : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(pt, "POS")
   }
 
-  def isParticle(pt : Tree) : Boolean =
+  def isParticle(pt : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(pt, "PRT") || hasLabel(pt, "RP") ||
       (hasLabel(pt, "PP") && (pt.numChildren == 1))
   }
 
-  def isParticipleOrGerund(verbal : Tree) : Boolean =
+  def isParticipleOrGerund(verbal : ShlurdSyntaxTree) : Boolean =
   {
-    getLabel(verbal) match {
+    verbal.label match {
       case "VBG" | "VBN" => {
         true
       }
@@ -63,72 +56,72 @@ trait ShlurdParseUtils
     }
   }
 
-  def isExistential(np : Tree) : Boolean =
+  def isExistential(np : ShlurdSyntaxTree) : Boolean =
   {
     isNounPhrase(np) && hasLabel(np.firstChild, "EX")
   }
 
-  def isNounPhrase(np : Tree) : Boolean =
+  def isNounPhrase(np : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(np, "NP")
   }
 
-  def isVerbPhrase(vp : Tree) : Boolean =
+  def isVerbPhrase(vp : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(vp, "VP")
   }
 
-  def isPrepositionalPhrase(pp : Tree) : Boolean =
+  def isPrepositionalPhrase(pp : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(pp, "PP")
   }
 
-  def isCompoundPrepositionalPhrase(pp : Tree) : Boolean =
+  def isCompoundPrepositionalPhrase(pp : ShlurdSyntaxTree) : Boolean =
   {
     isPrepositionalPhrase(pp) && (pp.numChildren > 1)
   }
 
-  def isNoun(pt : Tree) : Boolean =
+  def isNoun(pt : ShlurdSyntaxTree) : Boolean =
   {
-    getLabel(pt).startsWith("NN")
+    pt.label.startsWith("NN")
   }
 
-  def isPronoun(pt : Tree) : Boolean =
+  def isPronoun(pt : ShlurdSyntaxTree) : Boolean =
   {
-    getLabel(pt).startsWith("PRP")
+    pt.label.startsWith("PRP")
   }
 
-  def isAdjective(pt : Tree) : Boolean =
+  def isAdjective(pt : ShlurdSyntaxTree) : Boolean =
   {
-    getLabel(pt).startsWith("JJ")
+    pt.label.startsWith("JJ")
   }
 
-  def isAdjectival(pt : Tree) : Boolean =
+  def isAdjectival(pt : ShlurdSyntaxTree) : Boolean =
   {
     isAdjective(pt) || isParticipleOrGerund(pt)
   }
 
-  def isAdverb(pt : Tree) : Boolean =
+  def isAdverb(pt : ShlurdSyntaxTree) : Boolean =
   {
-    getLabel(pt).startsWith("RB")
+    pt.label.startsWith("RB")
   }
 
-  def isPreposition(pt : Tree) : Boolean =
+  def isPreposition(pt : ShlurdSyntaxTree) : Boolean =
   {
-    getLabel(pt).startsWith("IN")
+    pt.label.startsWith("IN")
   }
 
-  def isSubQuestion(pt : Tree) : Boolean =
+  def isSubQuestion(pt : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(pt, "SQ")
   }
 
-  def isQueryNoun(pt : Tree) : Boolean =
+  def isQueryNoun(pt : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(pt, "WHNP")
   }
 
-  def unwrapPhrase(pt : Tree) : Tree =
+  def unwrapPhrase(pt : ShlurdSyntaxTree) : ShlurdSyntaxTree =
   {
     if (pt.isPrePreTerminal && (pt.numChildren == 1)) {
       pt.firstChild
@@ -137,68 +130,65 @@ trait ShlurdParseUtils
     }
   }
 
-  def isDeterminer(pt : Tree) : Boolean =
+  def isDeterminer(pt : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(pt, "DT")
   }
 
-  def isComma(pt : Tree) : Boolean =
+  def isComma(pt : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(pt, ",")
   }
 
-  def isCoordinatingConjunction(pt : Tree) : Boolean =
+  def isCoordinatingConjunction(pt : ShlurdSyntaxTree) : Boolean =
   {
     hasLabel(pt, "CC")
   }
 
-  def hasTerminalLemma(tree : Tree, lemma : String) =
+  def hasTerminalLemma(tree : ShlurdSyntaxTree, lemma : String) =
   {
-    tree.isPreTerminal && (getLemma(tree.firstChild) == lemma)
+    tree.isPreTerminal && (tree.firstChild.lemma == lemma)
   }
 
   def hasTerminalLabel(
-    tree : Tree, label : String, terminalLabel : String) : Boolean =
+    tree : ShlurdSyntaxTree,
+    label : String, terminalLabel : String) : Boolean =
   {
     tree.isPreTerminal && hasLabel(tree, label) &&
       hasLabel(tree.firstChild, terminalLabel)
   }
 
-  def isImperative(children : Seq[Tree]) =
+  def isImperative(children : Seq[ShlurdSyntaxTree]) =
   {
     (children.size == 1) && hasLabel(children.head, "VP")
   }
 
-  def isBeing(verbHead : Tree) =
+  def isBeing(verbHead : ShlurdSyntaxTree) =
   {
     isVerb(verbHead) &&
       (hasTerminalLemma(verbHead, "be") || hasTerminalLemma(verbHead, "exist"))
   }
 
-  def isPossession(verbHead : Tree) =
+  def isPossession(verbHead : ShlurdSyntaxTree) =
   {
     isVerb(verbHead) &&
       (hasTerminalLemma(verbHead, "have"))
   }
 
-  def isRelationship(verbHead : Tree) =
+  def isRelationship(verbHead : ShlurdSyntaxTree) =
   {
     isBeing(verbHead) || isPossession(verbHead)
   }
 
-  def isExists(verbHead : Tree) =
+  def isExists(verbHead : ShlurdSyntaxTree) =
   {
     isVerb(verbHead) && hasTerminalLemma(verbHead, "exist")
   }
 
-  def isSinglePhrase(seq : Seq[Tree]) : Boolean =
+  def isSinglePhrase(seq : Seq[ShlurdSyntaxTree]) : Boolean =
   {
     (seq.size == 1) && !seq.head.isPreTerminal
   }
-
-  def getLemma(leaf : Tree) : String
-
-  def getToken(leaf : Tree) : String
 }
 
 object ShlurdParseUtils

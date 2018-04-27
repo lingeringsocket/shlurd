@@ -59,31 +59,40 @@ class ShlurdFallbackParser(
 }
 
 class ShlurdSingleParser(
-  tree : Tree, tokens : Seq[String], lemmas : Seq[String],
+  corenlp : Tree, tokens : Seq[String], lemmas : Seq[String],
   guessedQuestion : Boolean)
     extends ShlurdParser with ShlurdParseUtils
 {
-  override def getLemma(leaf : Tree) : String =
+  val tree = new CorenlpTreeWrapper(corenlp)
+
+  class CorenlpTreeWrapper(corenlp : Tree) extends ShlurdSyntaxTree
   {
-    lemmas(leaf.label.asInstanceOf[HasIndex].index).toLowerCase
+    private val wrappedChildren =
+      corenlp.children.map(new CorenlpTreeWrapper(_))
+
+    override def label =
+      corenlp.label.value.split("-").head
+
+    override def lemma =
+      lemmas(corenlp.label.asInstanceOf[HasIndex].index).toLowerCase
+
+    override def token = tokens(corenlp.label.asInstanceOf[HasIndex].index)
+
+    override def children = wrappedChildren
   }
 
-  override def getToken(leaf : Tree) : String =
+  private def expectParticle(
+    pt : ShlurdSyntaxTree) : Option[ShlurdWord] =
   {
-    tokens(leaf.label.asInstanceOf[HasIndex].index)
-  }
-
-  private def expectParticle(pt : Tree) : Option[ShlurdWord] =
-  {
-    getLabel(pt) match {
+    pt.label match {
       case "PP" | "PRT" => Some(getWord(pt.firstChild.firstChild))
       case "RP" => Some(getWord(pt.firstChild))
       case _ => None
     }
   }
 
-  private def extractParticle(seq : Seq[Tree])
-      : (Option[ShlurdWord], Seq[Tree]) =
+  private def extractParticle(seq : Seq[ShlurdSyntaxTree])
+      : (Option[ShlurdWord], Seq[ShlurdSyntaxTree]) =
   {
     seq.indexWhere(isParticle(_)) match {
       case -1 => {
@@ -100,13 +109,13 @@ class ShlurdSingleParser(
     }
   }
   private def isCoordinatingDeterminer(
-    pt : Tree, determiner : ShlurdDeterminer) : Boolean =
+    pt : ShlurdSyntaxTree, determiner : ShlurdDeterminer) : Boolean =
   {
     val leaf = unwrapPhrase(pt)
     if (isDeterminer(leaf) || isCoordinatingConjunction(leaf) ||
       isAdverb(leaf))
     {
-      getLemma(leaf.firstChild) match {
+      leaf.firstChild.lemma match {
         case "both" => (determiner == DETERMINER_ALL)
         case "either" => (determiner == DETERMINER_ANY)
         case "neither" => (determiner == DETERMINER_NONE)
@@ -117,7 +126,7 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectRoot(tree : Tree, guessedQuestion : Boolean) =
+  private def expectRoot(tree : ShlurdSyntaxTree, guessedQuestion : Boolean) =
   {
     if (hasLabel(tree, "ROOT")) {
       assert(tree.numChildren == 1)
@@ -128,7 +137,8 @@ class ShlurdSingleParser(
   }
 
   private def truncatePunctuation(
-    tree : Tree, punctuationMarks : Iterable[String]) : Seq[Tree] =
+    tree : ShlurdSyntaxTree, punctuationMarks : Iterable[String])
+      : Seq[ShlurdSyntaxTree] =
   {
     val children = tree.children
     if (punctuationMarks.exists(punctuation =>
@@ -140,15 +150,16 @@ class ShlurdSingleParser(
     }
   }
 
-  private def extractPrepositionalState(seq : Seq[Tree])
-      : (ShlurdState, Seq[Tree])=
+  private def extractPrepositionalState(seq : Seq[ShlurdSyntaxTree])
+      : (ShlurdState, Seq[ShlurdSyntaxTree])=
   {
     val i = seq.indexWhere(isCompoundPrepositionalPhrase(_))
     if (i == -1) {
       val last2 = seq.takeRight(2)
-      if (last2.map(getLabel) == Seq("ADVP", "NP")) {
-        val rewrite = new LabeledScoredTreeNode(last2.head.label)
-        rewrite.setChildren(Array(last2.head.firstChild, last2.last))
+      if (last2.map(_.label) == Seq("ADVP", "NP")) {
+        val rewrite = ShlurdPennNode(
+          last2.head.label,
+          Seq(last2.head.firstChild, last2.last))
         (ShlurdNullState(), seq.dropRight(2) :+ rewrite)
       } else {
         (ShlurdNullState(), seq)
@@ -159,7 +170,8 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectSentence(tree : Tree, guessedQuestion : Boolean)
+  private def expectSentence(
+    tree : ShlurdSyntaxTree, guessedQuestion : Boolean)
       : ShlurdSentence =
   {
     val forceSQ = isBeing(tree.firstChild.firstChild)
@@ -192,7 +204,7 @@ class ShlurdSingleParser(
     } else if (forceSQ || isSubQuestion(tree)) {
       val punctless = truncatePunctuation(tree, Seq("?"))
       val (specifiedState, children) = {
-        val unwrapped : Seq[Tree] = {
+        val unwrapped = {
           if (forceSQ && isSinglePhrase(punctless)) {
             punctless.head.children
           } else {
@@ -235,7 +247,7 @@ class ShlurdSingleParser(
               ShlurdUnknownSentence
             } else {
               val (negativeSub, predicate) =
-                expectPredicate(np, ap.children, getLabel(ap), specifiedState,
+                expectPredicate(np, ap.children, ap.label, specifiedState,
                   extractRelationship(verbHead))
               val positive = !(negative ^ negativeSub)
               ShlurdPredicateSentence(
@@ -272,7 +284,7 @@ class ShlurdSingleParser(
       } else {
         // FIXME support modality
         val (specifiedState, whnpc) = extractPrepositionalState(first.children)
-        val seq : Seq[Tree] = {
+        val seq = {
           if ((whnpc.size == 1) && isQueryNoun(whnpc.head)) {
             whnpc.head.children
           } else {
@@ -283,15 +295,14 @@ class ShlurdSingleParser(
           case Some(q) => q
           case _ => return ShlurdUnknownSentence
         }
-        val np = new LabeledScoredTreeNode(new StringLabel("NP"))
-        question match {
+        val np = question match {
           case QUESTION_WHO => {
-            val nn : Tree = new LabeledScoredTreeNode(new StringLabel("NN"))
-            nn.setChildren(seq.head.children)
-            np.setChildren(Array(nn))
+            ShlurdPennNode(
+              "NP",
+              Seq(ShlurdPennNode("NN", seq.head.children)))
           }
           case _ => {
-            np.setChildren(seq.tail.toArray)
+            ShlurdPennNode("NP", seq.tail)
           }
         }
         val complement = secondSub.tail
@@ -308,7 +319,7 @@ class ShlurdSingleParser(
           }
         }
         val (negativeSub, predicate) = expectPredicate(
-          np, complementRemainder, getLabel(complement.head), combinedState,
+          np, complementRemainder, complement.head.label, combinedState,
           REL_IDENTITY)
         ShlurdPredicateQuery(
           predicate, question,
@@ -319,7 +330,8 @@ class ShlurdSingleParser(
     }
   }
 
-  private def extractRelationship(verbHead : Tree) : ShlurdRelationship =
+  private def extractRelationship(
+    verbHead : ShlurdSyntaxTree) : ShlurdRelationship =
   {
     if (isPossession(verbHead)) {
       REL_ASSOCIATION
@@ -329,7 +341,8 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectQuestion(tree : Tree) : Option[ShlurdQuestion] =
+  private def expectQuestion(
+    tree : ShlurdSyntaxTree) : Option[ShlurdQuestion] =
   {
     if (hasLabel(tree, "WHADJP")) {
       if (tree.numChildren != 2) {
@@ -344,12 +357,12 @@ class ShlurdSingleParser(
         }
       }
     } else if (hasLabel(tree, "WDT")) {
-      getLemma(tree.firstChild) match {
+      tree.firstChild.lemma match {
         case "which" | "what" => Some(QUESTION_WHICH)
         case _ => None
       }
     } else if (hasLabel(tree, "WP")) {
-      getLemma(tree.firstChild) match {
+      tree.firstChild.lemma match {
         case WHO_LEMMA => Some(QUESTION_WHO)
         case _ => None
       }
@@ -358,25 +371,29 @@ class ShlurdSingleParser(
     }
   }
 
-  private def extractModality(seq : Seq[Tree]) : (ShlurdModality, Seq[Tree]) =
+  private def extractModality(
+    seq : Seq[ShlurdSyntaxTree])
+      : (ShlurdModality, Seq[ShlurdSyntaxTree]) =
   {
     val intro = seq.head
     if (isModal(intro)) {
       val suffix = seq.drop(1)
-      val remainder : Seq[Tree] = {
+      val remainder = {
         if (isSinglePhrase(suffix) && isVerbPhrase(suffix.head)) {
           suffix.head.children
         } else {
           suffix
         }
       }
-      (modalityFor(getLemma(intro.firstChild)), remainder)
+      (modalityFor(intro.firstChild.lemma), remainder)
     } else {
       (MODAL_NEUTRAL, seq)
     }
   }
 
-  private def extractNegative(seq : Seq[Tree]) : (Boolean, Seq[Tree]) =
+  private def extractNegative(
+    seq : Seq[ShlurdSyntaxTree])
+      : (Boolean, Seq[ShlurdSyntaxTree]) =
   {
     val pos = seq.map(unwrapPhrase).indexWhere(
       sub => isAdverb(sub) && hasTerminalLemma(sub, "not"))
@@ -388,7 +405,7 @@ class ShlurdSingleParser(
   }
 
   private def expectPredicateSentence(
-    np : Tree, vp : Tree, isQuestion : Boolean,
+    np : ShlurdSyntaxTree, vp : ShlurdSyntaxTree, isQuestion : Boolean,
     force : ShlurdForce, modality : ShlurdModality,
     negativeSuper : Boolean) : ShlurdSentence =
   {
@@ -399,7 +416,7 @@ class ShlurdSingleParser(
     if (isModal(verbHead)) {
       val vpSub = vpChildren.last
       if ((vpChildren.size == 2) && isVerbPhrase(vpSub)) {
-        val modality = modalityFor(getLemma(verbHead.firstChild))
+        val modality = modalityFor(verbHead.firstChild.lemma)
         expectPredicateSentence(
           np, vpSub, isQuestion, force, modality, negative)
       } else {
@@ -414,7 +431,7 @@ class ShlurdSingleParser(
           extractPrepositionalState(vpChildren)
         val complement = vpRemainder.last
         val (negativeComplement, predicate) = expectPredicate(
-          np, complement.children, getLabel(complement), specifiedState,
+          np, complement.children, complement.label, specifiedState,
           extractRelationship(verbHead))
         val positive = !(negative ^ negativeComplement)
         if (isQuestion) {
@@ -453,7 +470,7 @@ class ShlurdSingleParser(
   }
 
   private def expectCommand(
-    vp : Tree, formality : ShlurdFormality) : ShlurdSentence =
+    vp : ShlurdSyntaxTree, formality : ShlurdFormality) : ShlurdSentence =
   {
     val alternative1 = {
       val (particle, unparticled) =
@@ -477,7 +494,7 @@ class ShlurdSingleParser(
   private def expectCommand(
     particle : Option[ShlurdWord],
     specifiedState : ShlurdState,
-    seq : Seq[Tree],
+    seq : Seq[ShlurdSyntaxTree],
     formality : ShlurdFormality) : ShlurdSentence =
   {
     if (seq.size == 2) {
@@ -496,8 +513,8 @@ class ShlurdSingleParser(
     }
   }
 
-  private def splitCommas(components : Seq[Tree])
-      : (Seq[Seq[Tree]], ShlurdSeparator) =
+  private def splitCommas(components : Seq[ShlurdSyntaxTree])
+      : (Seq[Seq[ShlurdSyntaxTree]], ShlurdSeparator) =
   {
     val pos = components.indexWhere(t => isComma(t))
     if (pos == -1) {
@@ -516,8 +533,9 @@ class ShlurdSingleParser(
     }
   }
 
-  private def splitCoordinatingConjunction(components : Seq[Tree])
-      : (ShlurdDeterminer, ShlurdSeparator, Seq[Seq[Tree]]) =
+  private def splitCoordinatingConjunction(
+    components : Seq[ShlurdSyntaxTree])
+      : (ShlurdDeterminer, ShlurdSeparator, Seq[Seq[ShlurdSyntaxTree]]) =
   {
     if (isSinglePhrase(components)) {
       return splitCoordinatingConjunction(components.head.children)
@@ -586,7 +604,8 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectReference(seqIn : Seq[Tree]) : ShlurdReference =
+  private def expectReference(
+    seqIn : Seq[ShlurdSyntaxTree]) : ShlurdReference =
   {
     val seq = seqIn.map(unwrapPhrase(_))
     if (seq.size == 1) {
@@ -615,7 +634,7 @@ class ShlurdSingleParser(
     }
     if ((components.size == 2) && isPronoun(components.head)) {
       val pronounReference = pronounFor(
-        getLemma(components.head.firstChild))
+        components.head.firstChild.lemma)
       val entityReference = expectNounReference(components.last, determiner)
       ShlurdGenitiveReference(pronounReference, entityReference)
     } else if (isCompoundPrepositionalPhrase(components.last)) {
@@ -646,7 +665,7 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectReference(np : Tree) : ShlurdReference =
+  private def expectReference(np : ShlurdSyntaxTree) : ShlurdReference =
   {
     if (isNounPhrase(np)) {
       if (np.numChildren == 1) {
@@ -660,13 +679,14 @@ class ShlurdSingleParser(
         DETERMINER_UNSPECIFIED,
         getCount(np))
     } else if (isPronoun(np)) {
-      pronounFor(getLemma(np.firstChild))
+      pronounFor(np.firstChild.lemma)
     } else {
       ShlurdUnknownReference
     }
   }
 
-  private def expectRelativeQualifier(tree : Tree) : Option[Seq[ShlurdWord]] =
+  private def expectRelativeQualifier(
+    tree : ShlurdSyntaxTree) : Option[Seq[ShlurdWord]] =
   {
     if (!hasLabel(tree, "SBAR") || (tree.numChildren != 2)) {
       return None
@@ -690,7 +710,7 @@ class ShlurdSingleParser(
     if (!isBeing(vp.firstChild)) {
       return None
     }
-    val state = expectStateComplement(Seq(vp.lastChild), getLabel(vp))
+    val state = expectStateComplement(Seq(vp.lastChild), vp.label)
     state match {
       case ShlurdPropertyState(qualifier) => {
         Some(Seq(qualifier))
@@ -731,9 +751,9 @@ class ShlurdSingleParser(
     ShlurdPronounReference(person, gender, count)
   }
 
-  private def expectDeterminer(leaf : Tree) : ShlurdDeterminer =
+  private def expectDeterminer(leaf : ShlurdSyntaxTree) : ShlurdDeterminer =
   {
-    getLemma(leaf) match {
+    leaf.lemma match {
       case "no" | "neither" | "nor" => DETERMINER_NONE
       case "both" | "and" | "all" | "every" => DETERMINER_ALL
       case "a" => DETERMINER_NONSPECIFIC
@@ -744,7 +764,7 @@ class ShlurdSingleParser(
   }
 
   private def expectNounReference(
-    pt : Tree, determiner : ShlurdDeterminer) =
+    pt : ShlurdSyntaxTree, determiner : ShlurdDeterminer) =
   {
     // we allow mislabeled adjectives to handle
     // cases like "roll up the blind"
@@ -759,21 +779,21 @@ class ShlurdSingleParser(
     }
   }
 
-  private def getCount(tree : Tree) : ShlurdCount =
+  private def getCount(tree : ShlurdSyntaxTree) : ShlurdCount =
   {
-    if (getLabel(tree).endsWith("S")) {
+    if (tree.label.endsWith("S")) {
       COUNT_PLURAL
     } else {
       COUNT_SINGULAR
     }
   }
 
-  private def getWord(leaf : Tree) =
+  private def getWord(leaf : ShlurdSyntaxTree) =
   {
-    ShlurdWord(getToken(leaf), getLemma(leaf))
+    ShlurdWord(leaf.token, leaf.lemma)
   }
 
-  private def expectPropertyState(ap : Tree) =
+  private def expectPropertyState(ap : ShlurdSyntaxTree) =
   {
     if (ap.isPreTerminal) {
       ShlurdPropertyState(getWord(ap.firstChild))
@@ -782,11 +802,12 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectPrepositionalState(seq : Seq[Tree]) : ShlurdState =
+  private def expectPrepositionalState(
+    seq : Seq[ShlurdSyntaxTree]) : ShlurdState =
   {
     val prep = unwrapPhrase(seq.head)
     if ((seq.size == 2) && (isPreposition(prep) || isAdverb(prep))) {
-      val prepLemma = getLemma(prep.firstChild)
+      val prepLemma = prep.firstChild.lemma
       val locative = prepLemma match {
         case "in" | "inside" | "within" => LOC_INSIDE
         case "outside" => LOC_OUTSIDE
@@ -805,7 +826,8 @@ class ShlurdSingleParser(
   }
 
   private def expectPredicate(
-    np : Tree, complement : Seq[Tree], label : String,
+    np : ShlurdSyntaxTree,
+    complement : Seq[ShlurdSyntaxTree], label : String,
     specifiedState : ShlurdState,
     relationship : ShlurdRelationship)
       : (Boolean, ShlurdPredicate) =
@@ -868,12 +890,13 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectStateComplement(seq : Seq[Tree], label : String)
+  private def expectStateComplement(
+    seq : Seq[ShlurdSyntaxTree], label : String)
       : ShlurdState =
   {
     if (isSinglePhrase(seq)) {
       val sub = seq.head
-      return expectStateComplement(sub.children, getLabel(sub))
+      return expectStateComplement(sub.children, sub.label)
     }
     label match {
       case "ADJP" => {
@@ -906,7 +929,8 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectPropertyStateComplement(seq : Seq[Tree]) : ShlurdState =
+  private def expectPropertyStateComplement(
+    seq : Seq[ShlurdSyntaxTree]) : ShlurdState =
   {
     val state = expectPropertyState(seq.head)
     if (seq.size == 1) {
@@ -916,7 +940,7 @@ class ShlurdSingleParser(
         DETERMINER_UNSPECIFIED,
         Seq(state) ++ seq.tail.map(
           component => expectStateComplement(
-            component.children, getLabel(component))))
+            component.children, component.label)))
     }
   }
 

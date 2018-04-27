@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-trait ShlurdPhrase
+sealed trait ShlurdPhrase
 {
   def children : Seq[ShlurdPhrase] = Seq.empty
 
