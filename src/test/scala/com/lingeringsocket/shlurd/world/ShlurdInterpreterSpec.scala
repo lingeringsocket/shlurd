@@ -78,6 +78,9 @@ class ShlurdInterpreterSpec extends Specification
         "There are 2 bears.")
       interpret("how many bears are there in the small cage") must be equalTo(
         "There is 1 bear in the small cage.")
+      // FIXME: this one is kinda cute
+      interpret("is bear asleep") must be equalTo(
+        "Please be more specific about which bear you mean.")
     }
 
     "interpret questions" in
@@ -135,8 +138,6 @@ class ShlurdInterpreterSpec extends Specification
       interpret("is kodiak bear asleep") must be equalTo(
         "But I don't know about any such bear.")
       interpret("is the bear asleep") must be equalTo(
-        "Please be more specific about which bear you mean.")
-      interpret("is bear asleep") must be equalTo(
         "Please be more specific about which bear you mean.")
       interpret("is any bear asleep") must be equalTo(
         "Yes, the polar bear is asleep.")

@@ -97,7 +97,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             debug("COUNTERFACTUAL")
             val (normalizedResponse, negateCollection) =
               normalizeResponse(
-                predicate, resultCollector)
+                predicate, resultCollector, generalParams)
             assert(!negateCollection)
             val responseMood = MOOD_INDICATIVE_POSITIVE
             sentencePrinter.sb.respondToCounterfactual(
@@ -164,7 +164,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           // FIXME deal with positive, modality
           case ShlurdInterrogativeMood(positive, modality) => {
             debug("PREDICATE QUERY SENTENCE")
-            evaluatePredicate(predicate, resultCollector) match {
+            val query = predicate
+            evaluatePredicate(query, resultCollector) match {
               case Success(Trilean.Unknown) => {
                 debug("ANSWER UNKNOWN")
                 sentencePrinter.sb.respondDontKnow()
@@ -172,9 +173,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               case Success(truth) => {
                 debug(s"ANSWER : $truth")
                 val truthBoolean = truth.assumeFalse
+                val params = query match {
+                  case rp : ShlurdRelationshipPredicate => {
+                    generalParams.copy(listLimit = 0)
+                  }
+                  case _ => generalParams
+                }
                 val (normalizedResponse, negateCollection) =
                   normalizeResponse(
-                    predicate, resultCollector)
+                    query, resultCollector, params)
                 debug(s"NORMALIZED RESPONSE : $normalizedResponse")
                 val responseMood = ShlurdIndicativeMood(
                   truthBoolean || negateCollection)
@@ -218,7 +225,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 debug(s"KNOWN TRUTH : $truth")
                 if (truth.assumeFalse == positivity) {
                   val (normalizedResponse, negateCollection) =
-                    normalizeResponse(predicate, resultCollector)
+                    normalizeResponse(
+                      predicate, resultCollector, generalParams)
                   assert(!negateCollection)
                   sentencePrinter.sb.respondToAssumption(
                     ASSUMED_TRUE, true,
@@ -338,7 +346,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         subjectRef, complementRef, relationship) =>
       {
         evaluatePredicateOverReference(
-          subjectRef, REF_SUBJECT, resultCollector)
+          subjectRef, REF_SUBJECT, new ResultCollector)
         {
           subjectEntity => {
             evaluatePredicateOverReference(
@@ -347,7 +355,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               complementEntity => {
                 relationship match {
                   case REL_IDENTITY => {
-                    Success(Trilean(subjectEntity == complementEntity))
+                    val result = Success(
+                      Trilean(subjectEntity == complementEntity))
+                    debug("RESULT FOR " +
+                      s"$subjectEntity == $complementEntity is $result")
+                    result
                   }
                   case REL_ASSOCIATION => {
                     // FIXME:  do something less hacky
@@ -357,9 +369,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                       }
                       case _ => Set.empty
                     }
-                    world.evaluateEntityLocationPredicate(
+                    val result = world.evaluateEntityLocationPredicate(
                       complementEntity, subjectEntity,
                       LOC_GENITIVE_OF, qualifiers)
+                    debug("RESULT FOR " +
+                      s"$complementEntity LOC_GENITIVE_OF " +
+                      s"$subjectEntity with $qualifiers is $result")
+                    result
                   }
                 }
               }
@@ -464,7 +480,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   count match {
                     case COUNT_SINGULAR => {
                       if (entities.size > 1) {
-                        fail(sentencePrinter.sb.respondAmbiguous(lemma))
+                        if (determiner == DETERMINER_UNIQUE) {
+                          fail(sentencePrinter.sb.respondAmbiguous(lemma))
+                        } else {
+                          evaluateDeterminer(
+                            entities.map(
+                              invokeEvaluator(_, resultCollector, evaluator)),
+                            DETERMINER_ANY)
+                        }
                       } else {
                         invokeEvaluator(
                           entities.head, resultCollector, evaluator)
@@ -472,10 +495,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                     }
                     case COUNT_PLURAL => {
                       if (entities.size > 1) {
+                        val newDeterminer = determiner match {
+                          case DETERMINER_UNIQUE => DETERMINER_ALL
+                          case _ => determiner
+                        }
                         evaluateDeterminer(
                           entities.map(
                             invokeEvaluator(_, resultCollector, evaluator)),
-                          DETERMINER_ALL)
+                          newDeterminer)
                       } else {
                         fail(sentencePrinter.sb.respondUnique(lemma))
                       }
@@ -648,7 +675,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def normalizeResponse(
     predicate : ShlurdPredicate,
     resultCollector : ResultCollector,
-    params : ShlurdInterpreterParams = generalParams)
+    params : ShlurdInterpreterParams)
       : (ShlurdPredicate, Boolean) =
   {
     var negateCollection = false
@@ -671,73 +698,77 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
       rr.getOrElse(allRef)
     }
-    val rewriteReferences =
-      Rewriter.rule[ShlurdPhrase] {
-        case ShlurdStateSpecifiedReference(outer, state) => {
-          outer match {
-            case ShlurdStateSpecifiedReference(
-              inner, ShlurdNullState()) =>
+    val rewriteReferences = Rewriter.rule[ShlurdPhrase] {
+      case ShlurdStateSpecifiedReference(outer, state) => {
+        outer match {
+          case ShlurdStateSpecifiedReference(
+            inner, ShlurdNullState()) =>
             {
               inner
             }
-            case _ => {
-              ShlurdStateSpecifiedReference(outer, state)
-            }
-          }
-        }
-        case ShlurdPronounReference(person, gender, count)=> {
-          val speakerListenerReversed = person match {
-            case PERSON_FIRST => PERSON_SECOND
-            case PERSON_SECOND => PERSON_FIRST
-            case PERSON_THIRD => PERSON_THIRD
-          }
-          ShlurdPronounReference(speakerListenerReversed, gender, count)
-        }
-        case ShlurdEntityReference(
-          entity, DETERMINER_ANY | DETERMINER_SOME, count
-        ) => {
-          normalizeDisjunction(
-            resultCollector, entityDeterminer,
-            SEPARATOR_OXFORD_COMMA, params).getOrElse
-          {
-            negateCollection = true
-            ShlurdEntityReference(entity, DETERMINER_NONE, count)
-          }
-        }
-        case ShlurdEntityReference(
-          entity, DETERMINER_ALL, count
-        ) => {
-          normalizeConjunctionWrapper(
-            SEPARATOR_OXFORD_COMMA,
-            ShlurdEntityReference(entity, DETERMINER_ALL, count))
-        }
-        case ShlurdConjunctiveReference(determiner, references, separator) => {
-          determiner match {
-            case DETERMINER_ANY => {
-              normalizeDisjunction(
-                resultCollector, entityDeterminer,
-                separator, params).getOrElse
-              {
-                negateCollection = true
-                ShlurdConjunctiveReference(
-                  DETERMINER_NONE, references, separator)
-              }
-            }
-            case DETERMINER_ALL => {
-              normalizeConjunctionWrapper(
-                separator,
-                ShlurdConjunctiveReference(
-                  DETERMINER_ALL, references, separator))
-            }
-            case _ => {
-              ShlurdConjunctiveReference(determiner, references, separator)
-            }
+          case _ => {
+            ShlurdStateSpecifiedReference(outer, state)
           }
         }
       }
+      case ShlurdPronounReference(person, gender, count)=> {
+        val speakerListenerReversed = person match {
+          case PERSON_FIRST => PERSON_SECOND
+          case PERSON_SECOND => PERSON_FIRST
+          case PERSON_THIRD => PERSON_THIRD
+        }
+        ShlurdPronounReference(speakerListenerReversed, gender, count)
+      }
+      case ShlurdConjunctiveReference(determiner, references, separator) => {
+        determiner match {
+          case DETERMINER_ANY => {
+            normalizeDisjunction(
+              resultCollector, entityDeterminer,
+              separator, params).getOrElse
+            {
+              negateCollection = true
+              ShlurdConjunctiveReference(
+                DETERMINER_NONE, references, separator)
+            }
+          }
+          case DETERMINER_ALL => {
+            normalizeConjunctionWrapper(
+              separator,
+              ShlurdConjunctiveReference(
+                DETERMINER_ALL, references, separator))
+          }
+          case _ => {
+            ShlurdConjunctiveReference(determiner, references, separator)
+          }
+        }
+      }
+    }
+
+    val expandReferences = Rewriter.rule[ShlurdPhrase] {
+      case ShlurdEntityReference(
+        entity, DETERMINER_ANY | DETERMINER_SOME, count
+      ) => {
+        normalizeDisjunction(
+          resultCollector, entityDeterminer,
+          SEPARATOR_OXFORD_COMMA, params).getOrElse
+        {
+          negateCollection = true
+          ShlurdEntityReference(entity, DETERMINER_NONE, count)
+        }
+      }
+      case ShlurdEntityReference(
+        entity, DETERMINER_ALL, count
+      ) => {
+        normalizeConjunctionWrapper(
+          SEPARATOR_OXFORD_COMMA,
+          ShlurdEntityReference(entity, DETERMINER_ALL, count))
+      }
+    }
+
+    val allRules = rewriteReferences + expandReferences
 
     val rewritten = Rewriter.rewrite(
-      Rewriter.everywherebu("rewriteReferences", rewriteReferences)
+      Rewriter.everywherebu("normalizeResponse", allRules)
     )(predicate)
 
     (rewritten, negateCollection)

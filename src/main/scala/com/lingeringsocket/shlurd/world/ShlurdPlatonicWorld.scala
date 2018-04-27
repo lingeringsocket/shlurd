@@ -553,10 +553,15 @@ class ShlurdPlatonicWorld
     determiner : ShlurdDeterminer) =
   {
     val formName = entity.form.name
-    val entityReference = ShlurdEntityReference(
+    def entityReference = ShlurdEntityReference(
       ShlurdWord(formName, formName), determiner)
     if (entity.qualifiers.isEmpty) {
       entityReference
+    } else if ((formName == ShlurdParseUtils.PERSON_LEMMA) &&
+      (entity.qualifiers.size == 1))
+    {
+      val name = ShlurdParseUtils.capitalize(entity.qualifiers.head)
+      ShlurdEntityReference(ShlurdWord(name, name), DETERMINER_UNSPECIFIED)
     } else {
       ShlurdReference.qualified(
         entityReference, entity.qualifiers.map(q => ShlurdWord(q, q)).toSeq)

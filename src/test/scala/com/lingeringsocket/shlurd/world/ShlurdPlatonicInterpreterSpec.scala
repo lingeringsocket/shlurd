@@ -86,13 +86,28 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "is Amanda Todd's friend",
         "No, Amanda is not Todd's friend.")
+      // FIXME:  should clarify that Dirk actually has more than one friend
       interpret(
         "does Dirk have a friend",
         "Yes, Dirk has a friend.")
-
-      // FIXME:  these two do not currently work:
-      // "does Todd have friends"
-      // "does Todd have any friends"
+      interpret(
+        "does Dirk have any friends",
+        "Yes, Dirk has 2 of them.")
+      interpret(
+        "does Todd have friends",
+        "Yes, Todd has friends.")
+      interpret(
+        "does Todd have any friends",
+        "Yes, Todd has 1 of them.")
+      interpret(
+        "does Amanda have friends",
+        "No, Amanda does not have friends.")
+      interpret(
+        "does Amanda have a friend",
+        "No, Amanda does not have a friend.")
+      interpret(
+        "does Amanda have any friends",
+        "No, Amanda has no friends.")
 
       // FIXME:  understand personal names better
       interpret(
