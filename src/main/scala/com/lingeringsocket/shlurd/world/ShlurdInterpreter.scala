@@ -126,7 +126,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case ShlurdPredicateQuery(predicate, question, mood, formality) => {
         debug("PREDICATE QUERY")
         // FIXME deal with positive, modality
+
         val rewrittenPredicate = rewriteQuery(predicate)
+
         debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
         evaluatePredicate(rewrittenPredicate, resultCollector) match {
           case Success(Trilean.Unknown) => {
@@ -345,12 +347,20 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case ShlurdRelationshipPredicate(
         subjectRef, complementRef, relationship) =>
       {
+        val subjectCollector = relationship match {
+          case REL_IDENTITY => resultCollector
+          case REL_ASSOCIATION => new ResultCollector
+        }
+        val complementCollector = relationship match {
+          case REL_IDENTITY => new ResultCollector
+          case REL_ASSOCIATION => resultCollector
+        }
         evaluatePredicateOverReference(
-          subjectRef, REF_SUBJECT, new ResultCollector)
+          subjectRef, REF_SUBJECT, subjectCollector)
         {
           subjectEntity => {
             evaluatePredicateOverReference(
-              complementRef, REF_SUBJECT, resultCollector)
+              complementRef, REF_SUBJECT, complementCollector)
             {
               complementEntity => {
                 relationship match {
@@ -667,9 +677,21 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             ShlurdEntityReference(entity, DETERMINER_ANY, count)
           }
       }
-    Rewriter.rewrite(
-      Rewriter.everywherebu("rewriteQuery", rewriteSpecifier)
-    )(predicate)
+    def rewriteSubject(subject : ShlurdReference) = Rewriter.rewrite(
+      Rewriter.everywherebu("rewriteSubject", rewriteSpecifier)
+    )(subject)
+    val rewritePredicate =
+      Rewriter.rule[ShlurdPredicate] {
+        case ShlurdStatePredicate(subject, state) => {
+          ShlurdStatePredicate(
+            rewriteSubject(subject), state)
+        }
+        case ShlurdRelationshipPredicate(subject, complement, relationship) => {
+          ShlurdRelationshipPredicate(
+            rewriteSubject(subject), complement, relationship)
+        }
+      }
+    Rewriter.rewrite(rewritePredicate)(predicate)
   }
 
   private def normalizeResponse(

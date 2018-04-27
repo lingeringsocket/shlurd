@@ -308,7 +308,7 @@ class ShlurdSingleParser(
           }
         }
         val (negativeSub, predicate) = expectPredicate(
-          np, complementRemainder, "VP", combinedState,
+          np, complementRemainder, getLabel(complement.head), combinedState,
           REL_IDENTITY)
         ShlurdPredicateQuery(
           predicate, question,

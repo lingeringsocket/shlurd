@@ -108,7 +108,23 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "does Amanda have any friends",
         "No, Amanda has no friends.")
-
+      interpret(
+        "who is Todd",
+        "Todd is Todd.")
+      interpret(
+        "who is Todd's friend",
+        "Dirk is Todd's friend.")
+      interpret(
+        "which person is Todd's friend",
+        "Dirk is Todd's friend.")
+      // FIXME:  need subject-complement agreement in number
+      interpret(
+        "who is Dirk's friend",
+        "Todd and Bart are Dirk's friend.")
+      // FIXME better would be "No one is Amanda's friend."
+      interpret(
+        "who is Amanda's friend",
+        "But I don't know about any such friend.")
       // FIXME:  understand personal names better
       interpret(
         "is Ford Todd's friend",

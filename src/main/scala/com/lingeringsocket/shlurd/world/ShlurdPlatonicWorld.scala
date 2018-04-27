@@ -155,6 +155,8 @@ class ShlurdPlatonicWorld
     new mutable.LinkedHashMap[String, ShlurdPlatonicEntity]
 
   private val formSynonyms = new ShlurdSynonymMap
+  formSynonyms.addSynonym(
+    ShlurdParseUtils.WHO_LEMMA, ShlurdParseUtils.PERSON_LEMMA)
 
   private val formGenitives =
     new DirectedPseudograph[ShlurdPlatonicForm, LabeledEdge](
