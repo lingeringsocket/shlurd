@@ -334,15 +334,34 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
-      case ShlurdIdentityPredicate(subjectRef, complementRef) => {
-        evaluatePredicateOverReference(subjectRef, REF_SUBJECT, resultCollector)
+      case ShlurdRelationshipPredicate(
+        subjectRef, complementRef, relationship) =>
+      {
+        evaluatePredicateOverReference(
+          subjectRef, REF_SUBJECT, resultCollector)
         {
           subjectEntity => {
             evaluatePredicateOverReference(
               complementRef, REF_SUBJECT, resultCollector)
             {
               complementEntity => {
-                Success(Trilean(subjectEntity == complementEntity))
+                relationship match {
+                  case REL_IDENTITY => {
+                    Success(Trilean(subjectEntity == complementEntity))
+                  }
+                  case REL_ASSOCIATION => {
+                    // FIXME:  do something less hacky
+                    val qualifiers : Set[String] = complementRef match {
+                      case ShlurdEntityReference(word, determiner, count) => {
+                        Set(word.lemma)
+                      }
+                      case _ => Set.empty
+                    }
+                    world.evaluateEntityLocationPredicate(
+                      complementEntity, subjectEntity,
+                      LOC_GENITIVE_OF, qualifiers)
+                  }
+                }
               }
             }
           }

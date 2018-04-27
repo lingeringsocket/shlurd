@@ -162,7 +162,7 @@ class ShlurdSingleParser(
   private def expectSentence(tree : Tree, guessedQuestion : Boolean)
       : ShlurdSentence =
   {
-    val forceSQ = isCopula(tree.firstChild.firstChild)
+    val forceSQ = isBeing(tree.firstChild.firstChild)
     if (hasLabel(tree, "S") && !forceSQ) {
       val hasQuestionMark = hasTerminalLabel(tree.children.last, ".", "?")
       val isQuestion =
@@ -230,12 +230,13 @@ class ShlurdSingleParser(
               (sub.head, seq(0), sub.last, (negativeSub ^ negativeSuper))
             }
           }
-          if (isCopula(verbHead)) {
+          if (isRelationship(verbHead)) {
             if (!isExistential(np) && isExists(verbHead)) {
               ShlurdUnknownSentence
             } else {
               val (negativeSub, predicate) =
-                expectPredicate(np, ap.children, getLabel(ap), specifiedState)
+                expectPredicate(np, ap.children, getLabel(ap), specifiedState,
+                  extractRelationship(verbHead))
               val positive = !(negative ^ negativeSub)
               ShlurdPredicateSentence(
                 predicate,
@@ -265,7 +266,7 @@ class ShlurdSingleParser(
       if ((children.size != 2) ||
         !isQueryNoun(first) ||
         !isSubQuestion(second) ||
-        !isCopula(secondSub.head))
+        !isBeing(secondSub.head))
       {
         ShlurdUnknownSentence
       } else {
@@ -307,13 +308,24 @@ class ShlurdSingleParser(
           }
         }
         val (negativeSub, predicate) = expectPredicate(
-            np, complementRemainder, "VP", combinedState)
+          np, complementRemainder, "VP", combinedState,
+          REL_IDENTITY)
         ShlurdPredicateQuery(
           predicate, question,
           ShlurdInterrogativeMood(!(negativeSuper ^ negativeSub)))
       }
     } else {
       ShlurdUnknownSentence
+    }
+  }
+
+  private def extractRelationship(verbHead : Tree) : ShlurdRelationship =
+  {
+    if (isPossession(verbHead)) {
+      REL_ASSOCIATION
+    } else {
+      assert(isBeing(verbHead))
+      REL_IDENTITY
     }
   }
 
@@ -393,7 +405,7 @@ class ShlurdSingleParser(
       } else {
         ShlurdUnknownSentence
       }
-    } else if (isCopula(verbHead)) {
+    } else if (isRelationship(verbHead)) {
       if ((vpChildren.size > 2) || (!isExistential(np) && isExists(verbHead)))
       {
         ShlurdUnknownSentence
@@ -402,7 +414,8 @@ class ShlurdSingleParser(
           extractPrepositionalState(vpChildren)
         val complement = vpRemainder.last
         val (negativeComplement, predicate) = expectPredicate(
-          np, complement.children, getLabel(complement), specifiedState)
+          np, complement.children, getLabel(complement), specifiedState,
+          extractRelationship(verbHead))
         val positive = !(negative ^ negativeComplement)
         if (isQuestion) {
           ShlurdPredicateSentence(
@@ -674,7 +687,7 @@ class ShlurdSingleParser(
     if (!isVerbPhrase(vp) || (vp.numChildren != 2)) {
       return None
     }
-    if (!isCopula(vp.firstChild)) {
+    if (!isBeing(vp.firstChild)) {
       return None
     }
     val state = expectStateComplement(Seq(vp.lastChild), getLabel(vp))
@@ -694,6 +707,7 @@ class ShlurdSingleParser(
       case "could" | "can" => MODAL_CAPABLE
       case "might" => MODAL_POSSIBLE
       case "should" => MODAL_SHOULD
+      case "do" => MODAL_EMPHATIC
       case _ => MODAL_NEUTRAL
     }
   }
@@ -792,7 +806,8 @@ class ShlurdSingleParser(
 
   private def expectPredicate(
     np : Tree, complement : Seq[Tree], label : String,
-    specifiedState : ShlurdState = ShlurdNullState())
+    specifiedState : ShlurdState,
+    relationship : ShlurdRelationship)
       : (Boolean, ShlurdPredicate) =
   {
     val (negative, seq) = extractNegative(complement)
@@ -811,10 +826,11 @@ class ShlurdSingleParser(
       }
       (negative, ShlurdStatePredicate(subject, ShlurdExistenceState()))
     } else if (label == "NP") {
-      val identityPredicate = ShlurdIdentityPredicate(
+      val relationshipPredicate = ShlurdRelationshipPredicate(
         specifyReference(expectReference(np), specifiedState),
-        expectReference(seq))
-      (negative, identityPredicate)
+        expectReference(seq),
+        relationship)
+      (negative, relationshipPredicate)
     } else {
       val state = splitCoordinatingConjunction(seq) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {

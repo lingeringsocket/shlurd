@@ -188,11 +188,12 @@ class ShlurdParserSpec extends Specification
       val input = "a portal is a door"
       parse(input) must be equalTo
         ShlurdPredicateSentence(
-          ShlurdIdentityPredicate(
+          ShlurdRelationshipPredicate(
             ShlurdEntityReference(
               ENTITY_PORTAL, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
             ShlurdEntityReference(
-              ENTITY_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+              ENTITY_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            REL_IDENTITY
           )
         )
     }
@@ -375,11 +376,13 @@ class ShlurdParserSpec extends Specification
       val input = "franny is zooey's sister"
       parse(input) must be equalTo
         ShlurdPredicateSentence(
-          ShlurdIdentityPredicate(
+          ShlurdRelationshipPredicate(
             ShlurdEntityReference(ENTITY_FRANNY),
             ShlurdGenitiveReference(
               ShlurdEntityReference(ENTITY_ZOOEY),
-              ShlurdEntityReference(ENTITY_SISTER))),
+              ShlurdEntityReference(ENTITY_SISTER)),
+            REL_IDENTITY
+          ),
           MOOD_INDICATIVE_POSITIVE)
     }
 

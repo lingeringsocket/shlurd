@@ -80,6 +80,11 @@ case object MODAL_POSSIBLE extends ShlurdModality
 case object MODAL_CAPABLE extends ShlurdModality
 case object MODAL_PERMITTED extends ShlurdModality
 case object MODAL_SHOULD extends ShlurdModality
+case object MODAL_EMPHATIC extends ShlurdModality
+
+sealed trait ShlurdRelationship
+case object REL_IDENTITY extends ShlurdRelationship
+case object REL_ASSOCIATION extends ShlurdRelationship
 
 sealed trait ShlurdSeparator
 {

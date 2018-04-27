@@ -189,13 +189,13 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
-          getCopula(subject, state, mood),
+          getCopula(subject, state, mood, REL_IDENTITY),
           print(state, mood, ShlurdConjoining.NONE))
       }
-      case ShlurdIdentityPredicate(subject, complement) => {
-        sb.identityPredicateStatement(
+      case ShlurdRelationshipPredicate(subject, complement, relationship) => {
+        sb.relationshipPredicateStatement(
           print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
-          getCopula(subject, ShlurdNullState(), mood),
+          getCopula(subject, ShlurdNullState(), mood, relationship),
           print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
       }
       case ShlurdUnknownPredicate => {
@@ -228,15 +228,15 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           sb.query(
             print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
             question),
-          getCopula(subject, state, mood),
+          getCopula(subject, state, mood, REL_IDENTITY),
           print(state, mood, ShlurdConjoining.NONE))
       }
-      case ShlurdIdentityPredicate(subject, complement) => {
-        sb.identityPredicateQuestion(
+      case ShlurdRelationshipPredicate(subject, complement, relationship) => {
+        sb.relationshipPredicateQuestion(
           sb.query(
             print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
             question),
-          getCopula(subject, ShlurdExistenceState(), mood),
+          getCopula(subject, ShlurdNullState(), mood, relationship),
           print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
       }
       case ShlurdUnknownPredicate => {
@@ -245,8 +245,9 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def getCopula(
-    subject : ShlurdReference, state : ShlurdState, mood : ShlurdMood)
+  private def getCopula(
+    subject : ShlurdReference, state : ShlurdState, mood : ShlurdMood,
+    relationship : ShlurdRelationship)
       : Seq[String] =
   {
     val isExistential = state match {
@@ -255,10 +256,11 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
     subject match {
       case ShlurdPronounReference(person, gender, count) => {
-        sb.copula(person, gender, count, mood, isExistential)
+        sb.copula(person, gender, count, mood, isExistential, relationship)
       }
       case ShlurdEntityReference(entity, determiner, count) => {
-        sb.copula(PERSON_THIRD, GENDER_N, count, mood, isExistential)
+        sb.copula(
+          PERSON_THIRD, GENDER_N, count, mood, isExistential, relationship)
       }
       case ShlurdConjunctiveReference(determiner, references, _) => {
         val count = if (isExistential) {
@@ -273,13 +275,14 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         }
         // FIXME:  also derive person and gender from underlying references,
         // since it makes a difference in languages such as Spanish
-        sb.copula(PERSON_THIRD, GENDER_N, count, mood, isExistential)
+        sb.copula(
+          PERSON_THIRD, GENDER_N, count, mood, isExistential, relationship)
       }
       case ShlurdStateSpecifiedReference(reference, _) => {
-        getCopula(reference, state, mood)
+        getCopula(reference, state, mood, relationship)
       }
       case ShlurdGenitiveReference(genitive, reference) => {
-        getCopula(reference, state, mood)
+        getCopula(reference, state, mood, relationship)
       }
       case ShlurdUnknownReference => {
         Seq(sb.unknownCopula)

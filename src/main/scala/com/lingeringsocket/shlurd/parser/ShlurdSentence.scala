@@ -113,9 +113,10 @@ case class ShlurdStatePredicate(
   override def children = Seq(subject, state)
 }
 
-case class ShlurdIdentityPredicate(
+case class ShlurdRelationshipPredicate(
   subject : ShlurdReference,
-  complement : ShlurdReference
+  complement : ShlurdReference,
+  relationship : ShlurdRelationship
 ) extends ShlurdPredicate
 {
   override def children = Seq(subject, complement)

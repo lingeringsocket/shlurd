@@ -77,7 +77,7 @@ abstract class ShlurdSentenceBundle
     copula : Seq[String],
     state : String) : String
 
-  def identityPredicateStatement(
+  def relationshipPredicateStatement(
     firstRef : String,
     copula : Seq[String],
     secondRef : String) : String
@@ -87,16 +87,17 @@ abstract class ShlurdSentenceBundle
     copula : Seq[String],
     state : String) : String
 
-  def identityPredicateQuestion(
+  def relationshipPredicateQuestion(
     firstRef : String,
-    copula : Seq[String],
+    coupla : Seq[String],
     secondRef : String) : String
 
   def statePredicateCommand(subject : String, state : String) : String
 
   def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood, isExistential : Boolean) : Seq[String]
+    mood : ShlurdMood, isExistential : Boolean,
+    relationship : ShlurdRelationship) : Seq[String]
 
   def position(locative : ShlurdLocative) : String
 

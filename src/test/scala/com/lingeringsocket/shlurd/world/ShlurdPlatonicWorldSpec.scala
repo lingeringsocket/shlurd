@@ -113,10 +113,15 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("Jonathan is a person")
       addBelief("Lonnie is a person")
       addBelief("A mom is a person")
+      addBelief("A person may have a mom")
       addBelief("A dad is a person")
+      addBelief("A person may have a dad")
       addBelief("A son is a person")
+      addBelief("A person may have sons")
       addBelief("An ex-husband is a person")
+      addBelief("A person may have an ex-husband")
       addBelief("An ex-wife is a person")
+      addBelief("A person may have an ex-wife")
       addBelief("Joyce is Will's mom")
       addBelief("Joyce is Jonathan's mom")
       addBelief("Will is Joyce's son")
@@ -127,6 +132,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("Lonnie is Jonathan's dad")
       addBelief("Lonnie is Joyce's ex-husband")
       addBelief("Joyce is Lonnie's ex-wife")
+      world.validateBeliefs
 
       expectUniqueForm("person")
 
@@ -166,6 +172,37 @@ class ShlurdPlatonicWorldSpec extends Specification
         throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
       addBelief("Joyce is Bert's mom") must
         throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
+    }
+
+    "require genitives to be defined before usage" in new WorldContext
+    {
+      addBelief("Joyce is a person")
+      addBelief("Will is a person")
+      addBelief("A mom is a person")
+      addBelief("Joyce is Will's mom") must
+        throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
+    }
+
+    "require mandatory genitives to be assigned" in new WorldContext
+    {
+      addBelief("Will is a person")
+      addBelief("A mom is a person")
+      addBelief("A person must have a mom")
+      world.validateBeliefs must
+        throwA[ShlurdPlatonicWorld.InvalidBeliefs]
+    }
+
+    "prevent single valued genitives from being multiple" in new WorldContext
+    {
+      addBelief("Will is a person")
+      addBelief("Joyce is a person")
+      addBelief("Elle is a person")
+      addBelief("A mom is a person")
+      addBelief("A person must have a mom")
+      addBelief("Joyce is Will's mom")
+      addBelief("Elle is Will's mom")
+      world.validateBeliefs must
+        throwA[ShlurdPlatonicWorld.InvalidBeliefs]
     }
 
     "accept synonyms" in new WorldContext

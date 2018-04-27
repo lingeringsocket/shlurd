@@ -102,6 +102,11 @@ object ShlurdPlatonicWorld
         "this belief introduces ambiguity with previously accepted beliefs")
   {
   }
+
+  class InvalidBeliefs() extends RuntimeException(
+        "accepted beliefs are invalid")
+  {
+  }
 }
 
 class LabeledEdge(val label : String) extends DefaultEdge
@@ -124,14 +129,18 @@ class LabeledEdge(val label : String) extends DefaultEdge
   }
 }
 
-class ProbeEdge(
-  val sourceEntity : ShlurdPlatonicEntity,
-  val targetEntity : ShlurdPlatonicEntity,
+class ProbeEdge[V <: AnyRef](
+  val sourceEntity : V,
+  val targetEntity : V,
   label : String) extends LabeledEdge(label)
 {
   override def getSource = sourceEntity
 
   override def getTarget = targetEntity
+}
+
+case class CardinalityConstraint(lower : Int, upper : Int)
+{
 }
 
 class ShlurdPlatonicWorld
@@ -147,7 +156,14 @@ class ShlurdPlatonicWorld
 
   private val formSynonyms = new ShlurdSynonymMap
 
-  private val genitiveGraph =
+  private val formGenitives =
+    new DirectedPseudograph[ShlurdPlatonicForm, LabeledEdge](
+      classOf[LabeledEdge])
+
+  private val genitiveConstraints =
+    new mutable.LinkedHashMap[LabeledEdge, CardinalityConstraint]
+
+  private val entityGenitives =
     new DirectedPseudograph[ShlurdPlatonicEntity, LabeledEdge](
       classOf[LabeledEdge])
 
@@ -211,19 +227,46 @@ class ShlurdPlatonicWorld
     val beliefs = source.getLines.mkString("\n")
     val sentences = ShlurdParser(beliefs).parseAll
     sentences.foreach(addBelief(_))
+    validateBeliefs
+  }
+
+  def validateBeliefs()
+  {
+    formGenitives.edgeSet.asScala.foreach(formEdge => {
+      val constraint = genitiveConstraints(formEdge)
+      if ((constraint.lower > 0) || (constraint.upper < Int.MaxValue)) {
+        val form = formGenitives.getEdgeSource(formEdge)
+        entities.values.filter(_.form == form).foreach(entity => {
+          if (entityGenitives.containsVertex(entity)) {
+            val c = entityGenitives.outgoingEdgesOf(entity).asScala.
+              count(_.label == formEdge.label)
+            if ((c < constraint.lower) || (c > constraint.upper)) {
+              throw new InvalidBeliefs()
+            }
+          } else if (constraint.lower > 0) {
+            throw new InvalidBeliefs()
+          }
+        })
+      }
+    })
   }
 
   private def extractQualifiedEntity(
     sentence : ShlurdSentence,
     reference : ShlurdReference,
     preQualifiers : Seq[ShlurdWord])
-      : (ShlurdWord, Seq[ShlurdWord]) =
+      : (ShlurdWord, Seq[ShlurdWord], ShlurdCount) =
   {
     reference match {
       case ShlurdEntityReference(
         entity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
         {
-          (entity, preQualifiers)
+          (entity, preQualifiers, COUNT_SINGULAR)
+        }
+      case ShlurdEntityReference(
+        entity, DETERMINER_UNSPECIFIED, COUNT_PLURAL) =>
+        {
+          (entity, preQualifiers, COUNT_PLURAL)
         }
       case ShlurdStateSpecifiedReference(subRef, state) =>
         {
@@ -237,7 +280,7 @@ class ShlurdPlatonicWorld
         ShlurdEntityReference(
           possession, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)) =>
         {
-          (possession, Seq(possessor))
+          (possession, Seq(possessor), COUNT_SINGULAR)
         }
       case _ => throw new IncomprehensibleBelief(sentence)
     }
@@ -253,7 +296,7 @@ class ShlurdPlatonicWorld
         }
         predicate match {
           case ShlurdStatePredicate(ref, state) => {
-            val (entity, qualifiers) = extractQualifiedEntity(
+            val (entity, qualifiers, count) = extractQualifiedEntity(
               sentence, ref, Seq.empty)
             val form = instantiateForm(entity)
             state match {
@@ -265,23 +308,67 @@ class ShlurdPlatonicWorld
               }
             }
           }
-          case ShlurdIdentityPredicate(subject, complement) => {
-            val (complementEntity, qualifiers) = extractQualifiedEntity(
+          case ShlurdRelationshipPredicate(
+            subject, complement, relationship) =>
+          {
+            val (complementEntity, qualifiers, count) = extractQualifiedEntity(
               sentence, complement, Seq.empty)
             subject match {
               case ShlurdEntityReference(
                 subjectEntity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
               ) => {
-                // "a canine is a dog"
                 if (!qualifiers.isEmpty) {
                   throw new IncomprehensibleBelief(sentence)
                 }
-                val form = instantiateForm(complementEntity)
-                formSynonyms.addSynonym(subjectEntity.lemma, form.name)
+                relationship match {
+                  case REL_IDENTITY => {
+                    // "a canine is a dog"
+                    assert(count == COUNT_SINGULAR)
+                    val form = instantiateForm(complementEntity)
+                    formSynonyms.addSynonym(subjectEntity.lemma, form.name)
+                  }
+                  case REL_ASSOCIATION => {
+                    // "a dog has an owner"
+                    val upper = count match {
+                      case COUNT_SINGULAR => 1
+                      case COUNT_PLURAL => Int.MaxValue
+                    }
+                    val newConstraint = sentence.mood.getModality match {
+                      case MODAL_NEUTRAL | MODAL_MUST | MODAL_EMPHATIC =>
+                        CardinalityConstraint(1, 1)
+                      case MODAL_MAY | MODAL_POSSIBLE |
+                          MODAL_CAPABLE | MODAL_PERMITTED =>
+                        CardinalityConstraint(0, upper)
+                      case MODAL_SHOULD =>
+                        throw new IncomprehensibleBelief(sentence)
+                    }
+                    val possessorForm = instantiateForm(subjectEntity)
+                    val possesseeForm = instantiateForm(complementEntity)
+                    formGenitives.addVertex(possessorForm)
+                    formGenitives.addVertex(possesseeForm)
+                    val label = complementEntity.lemma
+                    val edge = new ProbeEdge(
+                      possessorForm, possesseeForm, label)
+                    if (!formGenitives.containsEdge(edge)) {
+                      formGenitives.addEdge(
+                        possessorForm, possesseeForm,
+                        new LabeledEdge(label))
+                    }
+                    val constraint = genitiveConstraints.get(edge) match {
+                      case Some(oldConstraint) => CardinalityConstraint(
+                        Math.max(oldConstraint.lower, newConstraint.lower),
+                        Math.min(oldConstraint.upper, newConstraint.upper))
+                      case _ => newConstraint
+                    }
+                    genitiveConstraints.put(edge, constraint)
+                  }
+                }
               }
               case ShlurdEntityReference(
                 subjectEntity, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
               ) => {
+                // FIXME "Larry has a dog"
+                assert(relationship == REL_IDENTITY)
                 if (qualifiers.isEmpty) {
                   // "Fido is a dog"
                   val form = instantiateForm(complementEntity)
@@ -298,13 +385,21 @@ class ShlurdPlatonicWorld
                   }
                   val possessor = possessorOpt.get
                   val possessee = possesseeOpt.get
-                  genitiveGraph.addVertex(possessor)
-                  genitiveGraph.addVertex(possessee)
                   val label = complementEntity.lemma
-                  if (!genitiveGraph.containsEdge(new ProbeEdge(
+                  if (!formGenitives.containsEdge(new ProbeEdge(
+                    possessor.form,
+                    possessee.form,
+                    label)))
+                  {
+                    throw new IncomprehensibleBelief(sentence)
+                  }
+
+                  entityGenitives.addVertex(possessor)
+                  entityGenitives.addVertex(possessee)
+                  if (!entityGenitives.containsEdge(new ProbeEdge(
                     possessor, possessee, label)))
                   {
-                    genitiveGraph.addEdge(
+                    entityGenitives.addEdge(
                       possessor, possessee, new LabeledEdge(label))
                   }
                 }
@@ -400,12 +495,12 @@ class ShlurdPlatonicWorld
     label : String)
       : Set[ShlurdPlatonicEntity] =
   {
-    if (!genitiveGraph.containsVertex(possessor)) {
+    if (!entityGenitives.containsVertex(possessor)) {
       Set.empty
     } else {
-      genitiveGraph.outgoingEdgesOf(possessor).
+      entityGenitives.outgoingEdgesOf(possessor).
         asScala.filter(_.label == label).map(
-          genitiveGraph.getEdgeTarget)
+          entityGenitives.getEdgeTarget)
     }
   }
 
@@ -483,15 +578,16 @@ class ShlurdPlatonicWorld
     qualifiers : Set[String]) : Try[Trilean] =
   {
     if (locative == LOC_GENITIVE_OF) {
-      if (!genitiveGraph.containsVertex(entity) ||
-        !genitiveGraph.containsVertex(location) ||
+      if (!entityGenitives.containsVertex(entity) ||
+        !entityGenitives.containsVertex(location) ||
         (qualifiers.size != 1))
       {
         Success(Trilean.False)
       } else {
         val label = qualifiers.head
         Success(Trilean(
-          genitiveGraph.containsEdge(new ProbeEdge(location, entity, label))))
+          entityGenitives.containsEdge(
+            new ProbeEdge(location, entity, label))))
       }
     } else {
       fail("FIXME")

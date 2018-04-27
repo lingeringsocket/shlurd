@@ -255,6 +255,22 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, my lion is in the big cage.")
       interpret("who is in the big cage") must be equalTo(
         "Muldoon is in the big cage.")
+      interpret("does Muldoon have a lion") must be equalTo(
+        "Yes, Muldoon has a lion.")
+      interpret("does Malcolm have a lion") must be equalTo(
+        "No, Malcolm does not have a lion.")
+      interpret("has Muldoon a tiger") must be equalTo(
+        "No, Muldoon does not have a tiger.")
+      interpret("does Malcolm have a tiger") must be equalTo(
+        "Yes, Malcolm has a tiger.")
+      interpret("do I have a lion") must be equalTo(
+        "No, you do not have a lion.")
+      interpret("do you have a lion") must be equalTo(
+        "Yes, I have a lion.")
+      interpret("do I have a tiger") must be equalTo(
+        "Yes, you have a tiger.")
+      interpret("do you have a tiger") must be equalTo(
+        "No, I do not have a tiger.")
     }
 
     "interpret statements" in
@@ -406,7 +422,12 @@ class ShlurdInterpreterSpec extends Specification
             locations.filterKeys(_.endsWith(name)).values))
         } else {
           if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
-            fail("I don't know about this animal: " + name)
+            val namedPeople = people.filterKeys(_.toLowerCase == lemma).values
+            if (namedPeople.isEmpty) {
+              fail("I don't know about this name: " + name)
+            } else {
+              Success(namedPeople.toSet)
+            }
           } else {
             Success(
               animals.filterKeys(_.endsWith(name)).

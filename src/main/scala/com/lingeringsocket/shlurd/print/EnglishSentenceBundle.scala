@@ -30,16 +30,16 @@ class EnglishSentenceBundle
     }
   }
 
-  override def identityPredicateStatement(
-    subject : String, copula : Seq[String], complement : String) =
+  override def relationshipPredicateStatement(
+    subject : String, verb : Seq[String], complement : String) =
   {
-    composePredicateStatement(subject, copula, complement)
+    composePredicateStatement(subject, verb, complement)
   }
 
   private def composePredicateStatement(
-    subject : String, copula : Seq[String], complement : String) =
+    subject : String, verb : Seq[String], complement : String) =
   {
-    compose((Seq(subject) ++ copula ++ Seq(complement)):_*)
+    compose((Seq(subject) ++ verb ++ Seq(complement)):_*)
   }
 
   override def statePredicateQuestion(
@@ -52,18 +52,18 @@ class EnglishSentenceBundle
     }
   }
 
-  override def identityPredicateQuestion(
-    subject : String, copula : Seq[String], complement : String) =
+  override def relationshipPredicateQuestion(
+    subject : String, verb : Seq[String], complement : String) =
   {
-    composePredicateQuestion(subject, copula, complement)
+    composePredicateQuestion(subject, verb, complement)
   }
 
   private def composePredicateQuestion(
-    subject : String, copula : Seq[String], complement : String) =
+    subject : String, verb : Seq[String], complement : String) =
   {
-    val headSeq = Seq(copula.head)
-    val tailSeq = copula.drop(1)
-    copula.size match {
+    val headSeq = Seq(verb.head)
+    val tailSeq = verb.drop(1)
+    verb.size match {
       // "is Larry clumsy?"
       case 1 =>
         compose((headSeq ++ Seq(subject, complement)):_*)
@@ -79,9 +79,24 @@ class EnglishSentenceBundle
   override def statePredicateCommand(subject : String, state : String) =
     compose(state, subject)
 
-  private def modalCopula(mood : ShlurdMood) =
+  private def modalCopula(
+    mood : ShlurdMood, relationship : ShlurdRelationship,
+    person : ShlurdPerson, count : ShlurdCount) =
   {
-    val aux = mood.getModality match {
+    val verb = relationship match {
+      case REL_IDENTITY => "be"
+      case REL_ASSOCIATION => "have"
+    }
+    val modality = {
+      relationship match {
+        case REL_ASSOCIATION => mood.getModality match {
+          case MODAL_NEUTRAL => MODAL_EMPHATIC
+          case x => x
+        }
+        case REL_IDENTITY => mood.getModality
+      }
+    }
+    val aux = modality match {
       case MODAL_NEUTRAL => ""
       case MODAL_MUST => "must"
       case MODAL_MAY => "may"
@@ -89,31 +104,59 @@ class EnglishSentenceBundle
       case MODAL_CAPABLE => "can"
       case MODAL_PERMITTED => "may"
       case MODAL_SHOULD => "should"
+      case MODAL_EMPHATIC => {
+        count match {
+          case COUNT_SINGULAR => {
+            person match {
+              case PERSON_THIRD => "does"
+              case _ => "do"
+            }
+          }
+          case COUNT_PLURAL => "do"
+        }
+      }
     }
     if (mood.isNegative) {
-      Seq(aux, "not", "be")
+      Seq(aux, "not", verb)
     } else {
-      Seq(aux, "be")
+      Seq(aux, verb)
     }
   }
 
   override def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood, isExistential : Boolean) =
+    mood : ShlurdMood, isExistential : Boolean,
+    relationship : ShlurdRelationship) : Seq[String] =
   {
+    if ((relationship == REL_ASSOCIATION) && mood.isNegative) {
+      return modalCopula(mood, relationship, person, count)
+    }
     val seq = mood.getModality match {
       case MODAL_NEUTRAL => {
         val inflected = {
           count match {
             case COUNT_SINGULAR => {
-              person match {
-                case PERSON_FIRST => "am"
-                case PERSON_SECOND => "are"
-                case PERSON_THIRD => "is"
+              relationship match {
+                case REL_IDENTITY => {
+                  person match {
+                    case PERSON_FIRST => "am"
+                    case PERSON_SECOND => "are"
+                    case PERSON_THIRD => "is"
+                  }
+                }
+                case REL_ASSOCIATION => {
+                  person match {
+                    case PERSON_THIRD => "has"
+                    case _ => "have"
+                  }
+                }
               }
             }
             case COUNT_PLURAL => {
-              "are"
+              relationship match {
+                case REL_IDENTITY => "are"
+                case REL_ASSOCIATION => "have"
+              }
             }
           }
         }
@@ -124,7 +167,7 @@ class EnglishSentenceBundle
         }
       }
       case _ => {
-        modalCopula(mood)
+        modalCopula(mood, relationship, person, count)
       }
     }
     if (isExistential) {

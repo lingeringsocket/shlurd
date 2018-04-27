@@ -37,7 +37,7 @@ trait ShlurdParseUtils
 
   def isModal(pt : Tree) : Boolean =
   {
-    hasLabel(pt, "MD")
+    hasLabel(pt, "MD") || (isVerb(pt) && hasTerminalLemma(pt, "do"))
   }
 
   def isPossessive(pt : Tree) : Boolean =
@@ -169,10 +169,21 @@ trait ShlurdParseUtils
     (children.size == 1) && hasLabel(children.head, "VP")
   }
 
-  def isCopula(verbHead : Tree) =
+  def isBeing(verbHead : Tree) =
   {
     isVerb(verbHead) &&
       (hasTerminalLemma(verbHead, "be") || hasTerminalLemma(verbHead, "exist"))
+  }
+
+  def isPossession(verbHead : Tree) =
+  {
+    isVerb(verbHead) &&
+      (hasTerminalLemma(verbHead, "have"))
+  }
+
+  def isRelationship(verbHead : Tree) =
+  {
+    isBeing(verbHead) || isPossession(verbHead)
   }
 
   def isExists(verbHead : Tree) =

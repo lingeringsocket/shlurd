@@ -4,6 +4,9 @@ Amanda is a person.
 A brother is a person.
 A sister is a person.
 A friend is a person.
+A person may have brothers.
+A person may have sisters.
+A person may have friends.
 Todd is Amanda's brother.
 Amanda is Todd's sister.
 Dirk is Todd's friend.

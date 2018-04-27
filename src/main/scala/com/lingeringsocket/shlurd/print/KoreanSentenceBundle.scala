@@ -28,7 +28,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     }
   }
 
-  override def identityPredicateStatement(
+  override def relationshipPredicateStatement(
     subject : String, copula : Seq[String], complement : String) =
   {
     // FIXME
@@ -42,7 +42,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     statePredicateStatement(subject, copula, state)
   }
 
-  override def identityPredicateQuestion(
+  override def relationshipPredicateQuestion(
     subject : String, copula : Seq[String], complement : String) =
   {
     // only holds for "요" politeness
@@ -54,20 +54,22 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
 
   override def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood, isExistential : Boolean) =
+    mood : ShlurdMood, isExistential : Boolean,
+    relationship : ShlurdRelationship) =
   {
+    val exists = isExistential || (relationship == REL_ASSOCIATION)
     mood match {
       case modalMood : ShlurdModalMood => {
         // FIXME:  use modalMood.getModality
         if (modalMood.isPositive) {
-          if (isExistential) {
+          if (exists) {
             Seq("있어요")
           } else {
             // FIXME:  use "예요" after vowel
             Seq("이에요")
           }
         } else {
-          if (isExistential) {
+          if (exists) {
             Seq("없어요")
           } else {
             Seq("아니에요")

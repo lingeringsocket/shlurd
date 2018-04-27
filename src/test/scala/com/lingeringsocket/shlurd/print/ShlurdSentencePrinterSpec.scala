@@ -171,6 +171,11 @@ class ShlurdSentencePrinterSpec extends Specification
         "awake the goat on the farm!")
       expectQuestion("is the tiger in the big cage")
       expectQuestion("are all lights on the first floor on")
+      expectStatement("the tiger has a tail")
+      expectStatement("the tigers have tails")
+      expectStatement("Muldoon has a tiger")
+      expectStatement("Muldoon does have a tiger")
+      expectQuestion("does Muldoon have a tiger")
     }
   }
 }
