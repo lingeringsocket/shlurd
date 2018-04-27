@@ -132,6 +132,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "is Todd Ford's friend",
         "Sorry, I don't know what you mean by ford.")
+      // FIXME:  some other broken cases include
+      // "who has a friend"
+      // "who is a friend"
     }
 
     "understand services" in new InterpreterContext
