@@ -533,7 +533,7 @@ class ShlurdPlatonicWorld
   override def resolvePronoun(
     person : ShlurdPerson,
     gender : ShlurdGender,
-    count : ShlurdCount) =
+    count : ShlurdCount) : Try[Set[ShlurdPlatonicEntity]] =
   {
     fail("pronouns not supported")
   }

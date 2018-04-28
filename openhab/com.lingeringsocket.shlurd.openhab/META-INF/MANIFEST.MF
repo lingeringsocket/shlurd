@@ -12,6 +12,7 @@ Import-Package:
  scala.collection,
  scala.collection.convert,
  scala.collection.mutable,
+ org.kiama.rewriting,
  spire.math,
  com.lingeringsocket.shlurd.world,
  com.lingeringsocket.shlurd.parser,

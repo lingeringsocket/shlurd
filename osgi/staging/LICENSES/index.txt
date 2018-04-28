@@ -4,6 +4,7 @@ dependencies.  They are summarized below.
 dsinfo, dsprofile: LGPL v3
 algebra, cats, scallop, spire: MIT
 shlurd, joda-time, guava, ejml: Apache 2
+jgrapht: LGPL v2.1 or EPL
 kiama: Mozilla 2
 scala, protobuf-java: 3-clause BSD
 stanford-corenlp: GPL v3
