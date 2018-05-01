@@ -20,7 +20,7 @@ trait ShlurdParseUtils
 {
   def hasLabel(tree : ShlurdSyntaxTree, label : String) : Boolean =
   {
-    tree.label == label
+    tree.hasLabel(label)
   }
 
   def isVerb(pt : ShlurdSyntaxTree) : Boolean =
@@ -63,7 +63,7 @@ trait ShlurdParseUtils
 
   def isNounPhrase(np : ShlurdSyntaxTree) : Boolean =
   {
-    hasLabel(np, "NP")
+    np.hasLabel("NP")
   }
 
   def isVerbPhrase(vp : ShlurdSyntaxTree) : Boolean =
@@ -142,7 +142,7 @@ trait ShlurdParseUtils
 
   def isCoordinatingConjunction(pt : ShlurdSyntaxTree) : Boolean =
   {
-    hasLabel(pt, "CC")
+    pt.isCoordinatingConjunction
   }
 
   def hasTerminalLemma(tree : ShlurdSyntaxTree, lemma : String) =

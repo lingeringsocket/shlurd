@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-trait ShlurdSyntaxTree
+trait ShlurdAbstractSyntaxTree
 {
   def label : String
 
@@ -22,7 +22,7 @@ trait ShlurdSyntaxTree
 
   def token : String
 
-  def children : Seq[ShlurdSyntaxTree]
+  def children : Seq[ShlurdAbstractSyntaxTree]
 
   def numChildren = children.size
 
@@ -35,18 +35,53 @@ trait ShlurdSyntaxTree
   def isPreTerminal = ((children.size == 1) && firstChild.isLeaf)
 
   def isPrePreTerminal = !isLeaf && children.forall(_.isPreTerminal)
+
+  def hasLabel(s : String) = (label == s)
+
+  def hasLemma(s : String) = (lemma == s)
+
+  def isNounPhrase = hasLabel("NP")
+
+  def isCoordinatingConjunction = hasLabel("CC")
 }
 
-case class ShlurdPennNode(label : String, children : Seq[ShlurdSyntaxTree])
-    extends ShlurdSyntaxTree
+sealed trait ShlurdSyntaxTree extends ShlurdAbstractSyntaxTree
+{
+  override def children : Seq[ShlurdSyntaxTree]
+
+  override def firstChild : ShlurdSyntaxTree = children.head
+
+  override def lastChild : ShlurdSyntaxTree = children.last
+}
+
+sealed trait ShlurdSyntaxNonLeaf extends ShlurdSyntaxTree
 {
   override def token = ""
 
   override def lemma = ""
 }
 
-case class ShlurdPennLeaf(label : String, lemma : String, token : String)
+case class ShlurdSyntaxNode(label : String, children : Seq[ShlurdSyntaxTree])
+    extends ShlurdSyntaxNonLeaf
+{
+}
+
+case class ShlurdSyntaxLeaf(label : String, lemma : String, token : String)
     extends ShlurdSyntaxTree
 {
   override def children = Seq.empty
+}
+
+case class SptNP(children : ShlurdSyntaxTree*)
+    extends ShlurdSyntaxNonLeaf
+{
+  override def label = "NP"
+}
+
+case class SptCC(child : ShlurdSyntaxTree)
+    extends ShlurdSyntaxNonLeaf
+{
+  override def label = "CC"
+
+  override def children = Seq(child)
 }

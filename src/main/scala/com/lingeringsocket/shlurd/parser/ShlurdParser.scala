@@ -59,29 +59,10 @@ class ShlurdFallbackParser(
 }
 
 class ShlurdSingleParser(
-  corenlp : Tree, tokens : Seq[String], lemmas : Seq[String],
+  tree : ShlurdSyntaxTree, tokens : Seq[String], lemmas : Seq[String],
   guessedQuestion : Boolean)
     extends ShlurdParser with ShlurdParseUtils
 {
-  private val tree = ShlurdSyntaxRewrites.copyTree(
-    new CorenlpTreeWrapper(corenlp))
-
-  class CorenlpTreeWrapper(corenlp : Tree) extends ShlurdSyntaxTree
-  {
-    private val wrappedChildren =
-      corenlp.children.map(new CorenlpTreeWrapper(_))
-
-    override def label =
-      corenlp.label.value.split("-").head
-
-    override def lemma =
-      lemmas(corenlp.label.asInstanceOf[HasIndex].index).toLowerCase
-
-    override def token = tokens(corenlp.label.asInstanceOf[HasIndex].index)
-
-    override def children = wrappedChildren
-  }
-
   private def expectParticle(
     pt : ShlurdSyntaxTree) : Option[ShlurdWord] =
   {
@@ -158,7 +139,7 @@ class ShlurdSingleParser(
     if (i == -1) {
       val last2 = seq.takeRight(2)
       if (last2.map(_.label) == Seq("ADVP", "NP")) {
-        val rewrite = ShlurdPennNode(
+        val rewrite = ShlurdSyntaxNode(
           last2.head.label,
           Seq(last2.head.firstChild, last2.last))
         (ShlurdNullState(), seq.dropRight(2) :+ rewrite)
@@ -298,12 +279,12 @@ class ShlurdSingleParser(
         }
         val np = question match {
           case QUESTION_WHO => {
-            ShlurdPennNode(
+            ShlurdSyntaxNode(
               "NP",
-              Seq(ShlurdPennNode("NN", seq.head.children)))
+              Seq(ShlurdSyntaxNode("NN", seq.head.children)))
           }
           case _ => {
-            ShlurdPennNode("NP", seq.tail)
+            ShlurdSyntaxNode("NP", seq.tail)
           }
         }
         val complement = secondSub.tail
@@ -966,6 +947,24 @@ class ShlurdMultipleParser(singles : Seq[ShlurdParser])
   override def parseAll() = singles.map(_.parseOne)
 }
 
+class CorenlpTreeWrapper(
+  corenlp : Tree, tokens : Seq[String], lemmas : Seq[String])
+    extends ShlurdAbstractSyntaxTree
+{
+  private val wrappedChildren =
+    corenlp.children.map(new CorenlpTreeWrapper(_, tokens, lemmas))
+
+  override def label =
+    corenlp.label.value.split("-").head
+
+  override def lemma =
+    lemmas(corenlp.label.asInstanceOf[HasIndex].index).toLowerCase
+
+  override def token = tokens(corenlp.label.asInstanceOf[HasIndex].index)
+
+  override def children = wrappedChildren
+}
+
 object ShlurdParser
 {
   def getEmptyDocument() = new Document("")
@@ -984,26 +983,18 @@ object ShlurdParser
     doc.sentences.asScala
   }
 
-  private def newParser(
-    sentence : Sentence, tokens : Seq[String],
-    tree : Tree, guessedQuestion : Boolean)
-      : ShlurdSingleParser =
-  {
-    tree.indexLeaves(0, true)
-    val lemmas = sentence.lemmas.asScala
-    new ShlurdSingleParser(tree, tokens, lemmas, guessedQuestion)
-  }
-
   private def prepareOne(
     sentence : Sentence, dump : Boolean = false) : ShlurdParser =
   {
     val tokens = sentence.originalTexts.asScala
     val sentenceString = sentence.text
     if (Set(".", "?", "!").contains(tokens.last)) {
-      prepareFallbacks(sentenceString, tokens, false, dump, "PUNCTUATED")
+      prepareFallbacks(
+        sentenceString, tokens, false, dump, "PUNCTUATED")
     } else {
       val questionString = sentenceString + "?"
-      prepareFallbacks(questionString, tokens, true, dump, "GUESSED QUESTION")
+      prepareFallbacks(
+        questionString, tokens :+ "?", true, dump, "GUESSED QUESTION")
     }
   }
 
@@ -1052,11 +1043,19 @@ object ShlurdParser
       // order to get the best parse
       analyzeDependencies(sentence)
     }
-    val tree = sentence.parse(props)
+    val corenlp = sentence.parse(props)
     if (dump) {
-        println(dumpPrefix + " PARSE = " + tree)
+        println(dumpPrefix + " PARSE = " + corenlp)
     }
-    newParser(sentence, tokens, tree, guessedQuestion)
+    corenlp.indexLeaves(0, true)
+    val lemmas = sentence.lemmas.asScala
+    val syntaxTree = ShlurdSyntaxRewrite.rewriteAbstract(
+      new CorenlpTreeWrapper(corenlp, tokens, lemmas))
+    val rewrittenTree = ShlurdSyntaxRewrite.rewriteEither(syntaxTree)
+    if (dump) {
+        println(dumpPrefix + " REWRITE = " + rewrittenTree)
+    }
+    new ShlurdSingleParser(rewrittenTree, tokens, lemmas, guessedQuestion)
   }
 
   private def analyzeDependencies(sentence : Sentence) =

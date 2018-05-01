@@ -80,6 +80,14 @@ class ShlurdSentencePrinterSpec extends Specification
 
   "ShlurdSentencePrinter" should
   {
+    "deal with problem cases" in
+    {
+      skipped("maybe one day")
+      expectQuestion("is neither franny nor zooey speaking")
+      expectQuestion("how many lights are there")
+      expectQuestion("how many lights are there on the first floor")
+    }
+
     "preserve sentences" in
     {
       expectPreserved("the door is closed.")
@@ -88,12 +96,6 @@ class ShlurdSentencePrinterSpec extends Specification
       expectPreserved("the door can be closed.")
       expectPreserved("can the door be closed?")
       expectPreserved("can the door not be closed?")
-    }
-
-    "deal with problem cases" in
-    {
-      skipped("maybe one day")
-      expectQuestion("is either franny or zooey speaking")
     }
 
     "normalize sentences" in
@@ -123,6 +125,7 @@ class ShlurdSentencePrinterSpec extends Specification
       expectQuestion("is franny or zooey smart")
       expectQuestion("are franny and zooey smart")
       expectQuestion("is franny or zooey speaking")
+      expectQuestion("is either franny or zooey speaking")
       expectQuestion("are franny, zooey and phoebe smart")
       expectQuestion("are franny, zooey, and phoebe smart")
       expectStatement("your friend and I are hungry")
@@ -136,6 +139,7 @@ class ShlurdSentencePrinterSpec extends Specification
       expectStatement("the door may be open")
       expectStatement("the door must not be open")
       expectStatement("a door must be either open or closed")
+      expectStatement("a door must be neither open nor closed")
       expectStatement("there is a door")
       expectStatement("there is a front door")
       expectStatement("there is a front door and a back door")
