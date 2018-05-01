@@ -63,7 +63,8 @@ class ShlurdSingleParser(
   guessedQuestion : Boolean)
     extends ShlurdParser with ShlurdParseUtils
 {
-  val tree = new CorenlpTreeWrapper(corenlp)
+  private val tree = ShlurdSyntaxRewrites.copyTree(
+    new CorenlpTreeWrapper(corenlp))
 
   class CorenlpTreeWrapper(corenlp : Tree) extends ShlurdSyntaxTree
   {
