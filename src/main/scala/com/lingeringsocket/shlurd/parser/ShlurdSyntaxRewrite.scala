@@ -16,7 +16,7 @@ package com.lingeringsocket.shlurd.parser
 
 import org.kiama.rewriting._
 
-object ShlurdSyntaxRewrite extends ShlurdParseUtils
+object ShlurdSyntaxRewrite
 {
   def rewriteAbstract(tree : ShlurdAbstractSyntaxTree) : ShlurdSyntaxTree =
   {
@@ -24,10 +24,36 @@ object ShlurdSyntaxRewrite extends ShlurdParseUtils
       ShlurdSyntaxLeaf(tree.label, tree.lemma, tree.token)
     } else {
       val children = tree.children.map(rewriteAbstract)
-      if (tree.isNounPhrase) {
+      if (tree.isRoot) {
+        SptROOT(children:_*)
+      } else if (tree.isSentence) {
+        SptS(children:_*)
+      } else if (tree.isSBAR) {
+        SptSBAR(children:_*)
+      } else if (tree.isSBARQ) {
+        SptSBARQ(children:_*)
+      } else if (tree.isNounPhrase) {
         SptNP(children:_*)
+      } else if (tree.isVerbPhrase) {
+        SptVP(children:_*)
+      } else if (tree.isPrepositionalPhrase) {
+        SptPP(children:_*)
+      } else if (tree.isSubQuestion) {
+        SptSQ(children:_*)
+      } else if (tree.isQueryNoun) {
+        SptWHNP(children:_*)
+      } else if (tree.isQueryAdjective) {
+        SptWHADJP(children:_*)
+      } else if (tree.isQueryDeterminer) {
+        SptWDT(children:_*)
+      } else if (tree.isQueryPronoun) {
+        SptWP(children:_*)
       } else if (tree.isCoordinatingConjunction) {
         SptCC(expectUnique(children))
+      } else if (tree.isDeterminer) {
+        SptDT(expectUnique(children))
+      } else if (tree.isPossessive) {
+        SptPOS(expectUnique(children))
       } else {
         ShlurdSyntaxNode(tree.label, children)
       }
