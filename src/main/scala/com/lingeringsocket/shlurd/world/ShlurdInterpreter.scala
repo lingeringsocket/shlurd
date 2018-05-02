@@ -42,6 +42,12 @@ case class ShlurdInterpreterParams(
   def alwaysSummarize = (listLimit == 0)
 }
 
+class ResultCollector[E<:ShlurdEntity]
+{
+  val entityMap = new mutable.LinkedHashMap[E, Trilean]
+  val states = new mutable.LinkedHashSet[ShlurdWord]
+}
+
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   world : ShlurdWorld[E,P],
   generalParams : ShlurdInterpreterParams = ShlurdInterpreterParams())
@@ -54,11 +60,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private val sentencePrinter = new ShlurdSentencePrinter
 
-  class ResultCollector
-  {
-    val entityMap = new mutable.LinkedHashMap[E, Trilean]
-    val states = new mutable.LinkedHashSet[ShlurdWord]
-  }
+  private val responseRewrite = new ShlurdResponseRewrite(world)
 
   def fail(msg : String) = world.fail(msg)
 
@@ -88,7 +90,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def interpretImpl(sentence : ShlurdSentence) : String =
   {
-    val resultCollector = new ResultCollector
+    val resultCollector = new ResultCollector[E]
     sentence match {
       case ShlurdStateChangeCommand(predicate, formality) => {
         debug("STATE CHANGE COMMAND")
@@ -96,7 +98,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case Success(Trilean.True) => {
             debug("COUNTERFACTUAL")
             val (normalizedResponse, negateCollection) =
-              normalizeResponse(
+              responseRewrite.normalizeResponse(
                 predicate, resultCollector, generalParams)
             assert(!negateCollection)
             val responseMood = MOOD_INDICATIVE_POSITIVE
@@ -143,7 +145,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               case QUESTION_HOW_MANY => 0
             }
             val (normalizedResponse, negateCollection) =
-              normalizeResponse(
+              responseRewrite.normalizeResponse(
                 rewrittenPredicate, resultCollector,
                 generalParams.copy(listLimit = extremeLimit))
             debug(s"NORMALIZED RESPONSE : $normalizedResponse")
@@ -182,7 +184,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   case _ => generalParams
                 }
                 val (normalizedResponse, negateCollection) =
-                  normalizeResponse(
+                  responseRewrite.normalizeResponse(
                     query, resultCollector, params)
                 debug(s"NORMALIZED RESPONSE : $normalizedResponse")
                 val responseMood = ShlurdIndicativeMood(
@@ -227,7 +229,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 debug(s"KNOWN TRUTH : $truth")
                 if (truth.assumeFalse == positivity) {
                   val (normalizedResponse, negateCollection) =
-                    normalizeResponse(
+                    responseRewrite.normalizeResponse(
                       predicate, resultCollector, generalParams)
                   assert(!negateCollection)
                   sentencePrinter.sb.respondToAssumption(
@@ -314,7 +316,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def evaluatePredicate(
     predicate : ShlurdPredicate,
-    resultCollector : ResultCollector) : Try[Trilean] =
+    resultCollector : ResultCollector[E]) : Try[Trilean] =
   {
     debug(s"EVALUATE PREDICATE : $predicate")
     debugDepth += 1
@@ -349,10 +351,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       {
         val subjectCollector = relationship match {
           case REL_IDENTITY => resultCollector
-          case REL_ASSOCIATION => new ResultCollector
+          case REL_ASSOCIATION => new ResultCollector[E]
         }
         val complementCollector = relationship match {
-          case REL_IDENTITY => new ResultCollector
+          case REL_IDENTITY => new ResultCollector[E]
           case REL_ASSOCIATION => resultCollector
         }
         evaluatePredicateOverReference(
@@ -406,7 +408,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def evaluatePredicateOverReference(
     reference : ShlurdReference,
     context : ShlurdReferenceContext,
-    resultCollector : ResultCollector,
+    resultCollector : ResultCollector[E],
     specifiedState : ShlurdState = ShlurdNullState()
   )(evaluator : E => Try[Trilean])
       : Try[Trilean] =
@@ -426,7 +428,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def evaluatePredicateOverReferenceImpl(
     reference : ShlurdReference,
     context : ShlurdReferenceContext,
-    resultCollector : ResultCollector,
+    resultCollector : ResultCollector[E],
     specifiedState : ShlurdState,
     evaluator : E => Try[Trilean])
       : Try[Trilean] =
@@ -455,7 +457,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   locationStates.forall(ls => {
                     val locative = ls.locative
                     val evaluation = evaluatePredicateOverReference(
-                      ls.location, REF_LOCATION, new ResultCollector)
+                      ls.location, REF_LOCATION, new ResultCollector[E])
                     {
                       locationEntity => {
                         val qualifiers : Set[String] = {
@@ -504,18 +506,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                       }
                     }
                     case COUNT_PLURAL => {
-                      if (entities.size > 1) {
-                        val newDeterminer = determiner match {
-                          case DETERMINER_UNIQUE => DETERMINER_ALL
-                          case _ => determiner
-                        }
-                        evaluateDeterminer(
-                          entities.map(
-                            invokeEvaluator(_, resultCollector, evaluator)),
-                          newDeterminer)
-                      } else {
-                        fail(sentencePrinter.sb.respondUnique(lemma))
+                      val newDeterminer = determiner match {
+                        case DETERMINER_UNIQUE => DETERMINER_ALL
+                        case _ => determiner
                       }
+                      evaluateDeterminer(
+                        entities.map(
+                          invokeEvaluator(_, resultCollector, evaluator)),
+                        newDeterminer)
                     }
                   }
                 }
@@ -577,7 +575,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     reference : ShlurdReference,
     state : ShlurdState,
     context : ShlurdReferenceContext,
-    resultCollector : ResultCollector,
+    resultCollector : ResultCollector[E],
     specifiedState : ShlurdState,
     evaluator : E => Try[Trilean])
       : Try[Trilean] =
@@ -598,7 +596,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def invokeEvaluator(
     entity : E,
-    resultCollector : ResultCollector,
+    resultCollector : ResultCollector[E],
     evaluator : E => Try[Trilean]) : Try[Trilean] =
   {
     val result = evaluator(entity)
@@ -607,7 +605,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def evaluateExistencePredicate(
-    subjectRef : ShlurdReference, resultCollector : ResultCollector)
+    subjectRef : ShlurdReference, resultCollector : ResultCollector[E])
       : Try[Trilean] =
   {
     evaluatePredicateOverReference(subjectRef, REF_SUBJECT, resultCollector) {
@@ -618,7 +616,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def evaluatePropertyStatePredicate(
     subjectRef : ShlurdReference,
     state : ShlurdWord,
-    resultCollector : ResultCollector)
+    resultCollector : ResultCollector[E])
       : Try[Trilean] =
   {
     evaluatePredicateOverReference(subjectRef, REF_SUBJECT, resultCollector)
@@ -642,10 +640,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def evaluateLocationStatePredicate(
     subjectRef : ShlurdReference, locative : ShlurdLocative,
     locationRef : ShlurdReference,
-    resultCollector : ResultCollector)
+    resultCollector : ResultCollector[E])
       : Try[Trilean] =
   {
-    val locationCollector = new ResultCollector
+    val locationCollector = new ResultCollector[E]
     evaluatePredicateOverReference(
       subjectRef, REF_LOCATED, resultCollector)
     {
@@ -692,206 +690,5 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
     Rewriter.rewrite(rewritePredicate)(predicate)
-  }
-
-  private def normalizeResponse(
-    predicate : ShlurdPredicate,
-    resultCollector : ResultCollector,
-    params : ShlurdInterpreterParams)
-      : (ShlurdPredicate, Boolean) =
-  {
-    var negateCollection = false
-    val entityDeterminer = predicate match {
-      case ShlurdStatePredicate(subject, ShlurdExistenceState()) => {
-        DETERMINER_NONSPECIFIC
-      }
-      case _ => {
-        DETERMINER_UNIQUE
-      }
-    }
-    def normalizeConjunctionWrapper(
-      separator : ShlurdSeparator,
-      allRef : => ShlurdReference) =
-    {
-      val (rr, rn) = normalizeConjunction(
-        resultCollector, entityDeterminer, separator, params)
-      if (rn) {
-        negateCollection = true
-      }
-      rr.getOrElse(allRef)
-    }
-    val rewriteReferences = Rewriter.rule[ShlurdPhrase] {
-      case ShlurdStateSpecifiedReference(outer, state) => {
-        outer match {
-          case ShlurdStateSpecifiedReference(
-            inner, ShlurdNullState()) =>
-            {
-              inner
-            }
-          case _ => {
-            ShlurdStateSpecifiedReference(outer, state)
-          }
-        }
-      }
-      case ShlurdPronounReference(person, gender, count)=> {
-        val speakerListenerReversed = person match {
-          case PERSON_FIRST => PERSON_SECOND
-          case PERSON_SECOND => PERSON_FIRST
-          case PERSON_THIRD => PERSON_THIRD
-        }
-        ShlurdPronounReference(speakerListenerReversed, gender, count)
-      }
-      case ShlurdConjunctiveReference(determiner, references, separator) => {
-        determiner match {
-          case DETERMINER_ANY => {
-            normalizeDisjunction(
-              resultCollector, entityDeterminer,
-              separator, params).getOrElse
-            {
-              negateCollection = true
-              ShlurdConjunctiveReference(
-                DETERMINER_NONE, references, separator)
-            }
-          }
-          case DETERMINER_ALL => {
-            normalizeConjunctionWrapper(
-              separator,
-              ShlurdConjunctiveReference(
-                DETERMINER_ALL, references, separator))
-          }
-          case _ => {
-            ShlurdConjunctiveReference(determiner, references, separator)
-          }
-        }
-      }
-    }
-
-    val expandReferences = Rewriter.rule[ShlurdPhrase] {
-      case ShlurdEntityReference(
-        entity, DETERMINER_ANY | DETERMINER_SOME, count
-      ) => {
-        normalizeDisjunction(
-          resultCollector, entityDeterminer,
-          SEPARATOR_OXFORD_COMMA, params).getOrElse
-        {
-          negateCollection = true
-          ShlurdEntityReference(entity, DETERMINER_NONE, count)
-        }
-      }
-      case ShlurdEntityReference(
-        entity, DETERMINER_ALL, count
-      ) => {
-        normalizeConjunctionWrapper(
-          SEPARATOR_OXFORD_COMMA,
-          ShlurdEntityReference(entity, DETERMINER_ALL, count))
-      }
-    }
-
-    val allRules = rewriteReferences + expandReferences
-
-    val rewritten = Rewriter.rewrite(
-      Rewriter.everywherebu("normalizeResponse", allRules)
-    )(predicate)
-
-    (rewritten, negateCollection)
-  }
-
-  private def normalizeDisjunction(
-    resultCollector : ResultCollector,
-    entityDeterminer : ShlurdDeterminer,
-    separator : ShlurdSeparator,
-    params : ShlurdInterpreterParams)
-      : Option[ShlurdReference] =
-  {
-    val trueEntities = resultCollector.entityMap.filter(
-      _._2.assumeFalse).keySet
-    val exhaustive =
-      (trueEntities.size == resultCollector.entityMap.size) &&
-        !params.neverSummarize
-    val existence = resultCollector.states.isEmpty
-    (if (trueEntities.isEmpty) {
-      None
-    } else if ((trueEntities.size == 1) && !params.alwaysSummarize) {
-      Some(world.specificReference(trueEntities.head, entityDeterminer))
-    } else if (exhaustive || (trueEntities.size > params.listLimit)) {
-      summarizeList(trueEntities, exhaustive, existence, false)
-    } else {
-      Some(ShlurdConjunctiveReference(
-        DETERMINER_ALL,
-        trueEntities.map(
-          world.specificReference(_, entityDeterminer)).toSeq,
-        separator))
-    }).map(r => ShlurdStateSpecifiedReference(r, ShlurdNullState()))
-  }
-
-  private def normalizeConjunction(
-    resultCollector : ResultCollector,
-    entityDeterminer : ShlurdDeterminer,
-    separator : ShlurdSeparator,
-    params : ShlurdInterpreterParams)
-      : (Option[ShlurdReference], Boolean) =
-  {
-    val falseEntities = resultCollector.entityMap.filterNot(
-      _._2.assumeTrue).keySet
-    val exhaustive =
-      (falseEntities.size == resultCollector.entityMap.size) &&
-        !params.neverSummarize
-    val existence = resultCollector.states.isEmpty
-    val tuple = (if (falseEntities.isEmpty) {
-      (None, false)
-    } else if ((falseEntities.size == 1) && !params.alwaysSummarize) {
-      (Some(world.specificReference(falseEntities.head, entityDeterminer)),
-        false)
-    } else if (exhaustive || (falseEntities.size > params.listLimit)) {
-      (summarizeList(falseEntities, exhaustive, existence, true),
-        exhaustive)
-    } else {
-      (Some(ShlurdConjunctiveReference(
-        DETERMINER_NONE,
-        falseEntities.map(
-          world.specificReference(_, entityDeterminer)).toSeq,
-        separator)),
-        true)
-    })
-    tuple.copy(_1 = tuple._1.map(
-      r => ShlurdStateSpecifiedReference(r, ShlurdNullState())))
-  }
-
-  private def summarizeList(
-    entities : Iterable[ShlurdEntity],
-    exhaustive : Boolean,
-    existence : Boolean,
-    conjunction : Boolean) =
-  {
-    var all = exhaustive && (entities.size > 1)
-    // FIXME:  make this language-independent
-    val number = {
-      if (conjunction && exhaustive) {
-        all = false
-        "none"
-      } else  if ((entities.size == 2) && exhaustive && !existence) {
-        all = false
-        "both"
-      } else {
-        entities.size.toString
-      }
-    }
-    val prefix = {
-      if (all && !existence) {
-        Seq(ShlurdWord("all", "all"))
-      } else {
-        Seq.empty
-      }
-    }
-    val qualifiers = prefix ++ Seq(ShlurdWord(number, number))
-    // FIXME:  derive gender from entities
-    val count = number match {
-      case "1" => COUNT_SINGULAR
-      case _ => COUNT_PLURAL
-    }
-    Some(
-      ShlurdReference.qualified(
-        ShlurdPronounReference(PERSON_THIRD, GENDER_N, count),
-        qualifiers))
   }
 }

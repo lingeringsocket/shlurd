@@ -373,11 +373,6 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose("무슨", entity, "?")
   }
 
-  override def respondUnique(entity : String) =
-  {
-    "FIXME"
-  }
-
   override def respondUnknown(entity : String) =
   {
     "FIXME"

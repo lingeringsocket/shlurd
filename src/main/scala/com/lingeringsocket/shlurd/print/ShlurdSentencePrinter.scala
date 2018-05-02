@@ -265,7 +265,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdConjunctiveReference(determiner, references, _) => {
         val count = if (isExistential) {
           // FIXME:  this is probably English-specific
-          getCount(references.head)
+          ShlurdReference.getCount(references.head)
         } else {
           determiner match {
             case DETERMINER_ALL => COUNT_PLURAL
@@ -287,28 +287,6 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdUnknownReference => {
         Seq(sb.unknownCopula)
       }
-    }
-  }
-
-  private def getCount(reference : ShlurdReference) : ShlurdCount =
-  {
-    reference match {
-      case ShlurdPronounReference(_, _, count) =>
-        count
-      case ShlurdEntityReference(_, _, count) =>
-        count
-      case ShlurdConjunctiveReference(determiner, _, _) => {
-        determiner match {
-          case DETERMINER_ALL => COUNT_PLURAL
-          // DETERMINER_NONE is debatable
-          case _ => COUNT_SINGULAR
-        }
-      }
-      case ShlurdStateSpecifiedReference(reference, _) =>
-        getCount(reference)
-      case ShlurdGenitiveReference(_, reference) =>
-        getCount(reference)
-      case ShlurdUnknownReference => COUNT_SINGULAR
     }
   }
 }

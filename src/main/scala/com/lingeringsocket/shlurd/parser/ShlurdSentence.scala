@@ -204,6 +204,50 @@ case class ShlurdWord(
 
 object ShlurdReference
 {
+  def isCountCoercible(reference : ShlurdReference) : Boolean =
+  {
+    reference match {
+      case pr : ShlurdPronounReference =>
+        false
+      case ShlurdEntityReference(_, determiner, _) => {
+        determiner match {
+          case DETERMINER_NONE => false
+          case DETERMINER_UNSPECIFIED => false
+          case DETERMINER_UNIQUE => false
+          case _ => true
+        }
+      }
+      case cr : ShlurdConjunctiveReference =>
+        false
+      case ShlurdStateSpecifiedReference(reference, _) =>
+        isCountCoercible(reference)
+      case gr : ShlurdGenitiveReference => true
+      case ShlurdUnknownReference => false
+    }
+  }
+
+  def getCount(reference : ShlurdReference) : ShlurdCount =
+  {
+    reference match {
+      case ShlurdPronounReference(_, _, count) =>
+        count
+      case ShlurdEntityReference(_, _, count) =>
+        count
+      case ShlurdConjunctiveReference(determiner, _, _) => {
+        determiner match {
+          case DETERMINER_ALL => COUNT_PLURAL
+          // DETERMINER_NONE is debatable
+          case _ => COUNT_SINGULAR
+        }
+      }
+      case ShlurdStateSpecifiedReference(reference, _) =>
+        getCount(reference)
+      case ShlurdGenitiveReference(_, reference) =>
+        getCount(reference)
+      case ShlurdUnknownReference => COUNT_SINGULAR
+    }
+  }
+
   def qualified(reference : ShlurdReference, qualifiers : Seq[ShlurdWord]) =
   {
     if (qualifiers.isEmpty) {

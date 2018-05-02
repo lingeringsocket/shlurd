@@ -137,8 +137,6 @@ abstract class ShlurdSentenceBundle
 
   def respondToCounterfactual(sentence : String) : String
 
-  def respondUnique(entity : String) : String
-
   def respondAmbiguous(entity : String) : String
 
   def respondUnknown(entity : String) : String

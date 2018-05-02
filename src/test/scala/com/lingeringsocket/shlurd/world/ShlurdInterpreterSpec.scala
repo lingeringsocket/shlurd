@@ -87,6 +87,9 @@ class ShlurdInterpreterSpec extends Specification
     {
       interpret("is the lion asleep") must be equalTo(
         "Yes, the lion is asleep.")
+      // FIXME:  better would be "Yes, the lion is asleep."
+      interpret("are the lions asleep") must be equalTo(
+        "Yes, the lions are asleep.")
       interpret("is the lion awake") must be equalTo(
         "No, the lion is not awake.")
       interpret("is the tiger asleep") must be equalTo(

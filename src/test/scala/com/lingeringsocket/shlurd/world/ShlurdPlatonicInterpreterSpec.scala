@@ -115,12 +115,14 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "who is Todd's friend",
         "Dirk is Todd's friend.")
       interpret(
+        "who are Todd's friends",
+        "Dirk is Todd's friend.")
+      interpret(
         "which person is Todd's friend",
         "Dirk is Todd's friend.")
-      // FIXME:  need subject-complement agreement in number
       interpret(
         "who is Dirk's friend",
-        "Todd and Bart are Dirk's friend.")
+        "Todd and Bart are Dirk's friends.")
       // FIXME better would be "No one is Amanda's friend."
       interpret(
         "who is Amanda's friend",
