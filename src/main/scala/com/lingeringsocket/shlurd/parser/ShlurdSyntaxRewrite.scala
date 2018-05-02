@@ -18,12 +18,8 @@ import org.kiama.rewriting._
 
 object ShlurdSyntaxRewrite
 {
-  def rewriteAbstract(tree : ShlurdAbstractSyntaxTree) : ShlurdSyntaxTree =
+  def recompose(tree : ShlurdAbstractSyntaxTree, children : Seq[ShlurdSyntaxTree]) =
   {
-    if (tree.isLeaf) {
-      ShlurdSyntaxLeaf(tree.label, tree.lemma, tree.token)
-    } else {
-      val children = tree.children.map(rewriteAbstract)
       if (tree.isRoot) {
         SptROOT(expectUnique(children))
       } else if (tree.isSentence) {
@@ -36,8 +32,14 @@ object ShlurdSyntaxRewrite
         SptNP(children:_*)
       } else if (tree.isVerbPhrase) {
         SptVP(children:_*)
+      } else if (tree.isAdjectivePhrase) {
+        SptADJP(children:_*)
+      } else if (tree.isAdverbPhrase) {
+        SptADVP(children:_*)
       } else if (tree.isPrepositionalPhrase) {
         SptPP(children:_*)
+      } else if (tree.isParticlePhrase) {
+        SptPRT(children:_*)
       } else if (tree.isSubQuestion) {
         SptSQ(children:_*)
       } else if (tree.isQueryNoun) {
@@ -57,6 +59,15 @@ object ShlurdSyntaxRewrite
       } else {
         ShlurdSyntaxNode(tree.label, children)
       }
+  }
+
+  def rewriteAbstract(tree : ShlurdAbstractSyntaxTree) : ShlurdSyntaxTree =
+  {
+    if (tree.isLeaf) {
+      ShlurdSyntaxLeaf(tree.label, tree.lemma, tree.token)
+    } else {
+      val children = tree.children.map(rewriteAbstract)
+      recompose(tree, children)
     }
   }
 

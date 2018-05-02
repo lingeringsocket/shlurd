@@ -98,9 +98,9 @@ class ShlurdSingleParser(
       leaf.isAdverb)
     {
       leaf.firstChild.lemma match {
-        case "both" => (determiner == DETERMINER_ALL)
-        case "either" => (determiner == DETERMINER_ANY)
-        case "neither" => (determiner == DETERMINER_NONE)
+        case LEMMA_BOTH => (determiner == DETERMINER_ALL)
+        case LEMMA_EITHER => (determiner == DETERMINER_ANY)
+        case LEMMA_NEITHER => (determiner == DETERMINER_NONE)
         case _ => false
       }
     } else {
@@ -138,13 +138,16 @@ class ShlurdSingleParser(
     val i = seq.indexWhere(_.isCompoundPrepositionalPhrase)
     if (i == -1) {
       val last2 = seq.takeRight(2)
-      if (last2.map(_.label) == Seq("ADVP", "NP")) {
-        val rewrite = ShlurdSyntaxNode(
-          last2.head.label,
-          Seq(last2.head.firstChild, last2.last))
-        (ShlurdNullState(), seq.dropRight(2) :+ rewrite)
-      } else {
-        (ShlurdNullState(), seq)
+      last2 match {
+        case Seq(advp : SptADVP, np : SptNP) => {
+          val rewrite = ShlurdSyntaxRewrite.recompose(
+            advp,
+            Seq(advp.firstChild, np))
+          (ShlurdNullState(), seq.dropRight(2) :+ rewrite)
+        }
+        case _ => {
+          (ShlurdNullState(), seq)
+        }
       }
     } else {
       (expectPrepositionalState(seq(i).children),
@@ -239,7 +242,7 @@ class ShlurdSingleParser(
               ShlurdUnknownSentence
             } else {
               val (negativeSub, predicate) =
-                expectPredicate(np, ap.children, ap.label, specifiedState,
+                expectPredicate(np, ap.children, ap, specifiedState,
                   extractRelationship(verbHead))
               val positive = !(negative ^ negativeSub)
               ShlurdPredicateSentence(
@@ -289,12 +292,10 @@ class ShlurdSingleParser(
         }
         val np = question match {
           case QUESTION_WHO => {
-            ShlurdSyntaxNode(
-              "NP",
-              Seq(ShlurdSyntaxNode("NN", seq.head.children)))
+            SptNP(ShlurdSyntaxNode("NN", seq.head.children))
           }
           case _ => {
-            ShlurdSyntaxNode("NP", seq.tail)
+            SptNP(seq.tail:_*)
           }
         }
         val complement = secondSub.tail
@@ -311,7 +312,7 @@ class ShlurdSingleParser(
           }
         }
         val (negativeSub, predicate) = expectPredicate(
-          np, complementRemainder, complement.head.label, combinedState,
+          np, complementRemainder, complement.head, combinedState,
           REL_IDENTITY)
         ShlurdPredicateQuery(
           predicate, question,
@@ -338,8 +339,8 @@ class ShlurdSingleParser(
   {
     tree match {
       case SptWHADJP(how, many) => {
-        if (how.hasTerminalLemma("how") &&
-          many.hasTerminalLemma("many"))
+        if (how.hasTerminalLemma(LEMMA_HOW) &&
+          many.hasTerminalLemma(LEMMA_MANY))
         {
           Some(QUESTION_HOW_MANY)
         } else {
@@ -348,13 +349,13 @@ class ShlurdSingleParser(
       }
       case SptWDT(wdt) => {
         wdt.lemma match {
-          case "which" | "what" => Some(QUESTION_WHICH)
+          case LEMMA_WHICH | LEMMA_WHAT => Some(QUESTION_WHICH)
           case _ => None
         }
       }
       case SptWP(wp) => {
         wp.lemma match {
-          case WHO_LEMMA => Some(QUESTION_WHO)
+          case LEMMA_WHO => Some(QUESTION_WHO)
           case _ => None
         }
       }
@@ -387,7 +388,7 @@ class ShlurdSingleParser(
       : (Boolean, Seq[ShlurdSyntaxTree]) =
   {
     val pos = seq.map(_.unwrapPhrase).indexWhere(
-      sub => sub.isAdverb && sub.hasTerminalLemma("not"))
+      sub => sub.isAdverb && sub.hasTerminalLemma(LEMMA_NOT))
     if (pos == -1) {
       (false, seq)
     } else {
@@ -422,7 +423,7 @@ class ShlurdSingleParser(
           extractPrepositionalState(vpChildren)
         val complement = vpRemainder.last
         val (negativeComplement, predicate) = expectPredicate(
-          np, complement.children, complement.label, specifiedState,
+          np, complement.children, complement, specifiedState,
           extractRelationship(verbHead))
         val positive = !(negative ^ negativeComplement)
         if (isQuestion) {
@@ -687,7 +688,7 @@ class ShlurdSingleParser(
         SptWHNP(SptWDT(_)),
         SptS(SptVP(verb, complement))
       ) if (verb.isBeingVerb) => {
-        val state = expectStateComplement(Seq(complement), "VP")
+        val state = expectStateComplement(SptVP(complement))
         state match {
           case ShlurdPropertyState(qualifier) => {
             Some(Seq(qualifier))
@@ -702,12 +703,12 @@ class ShlurdSingleParser(
   private def modalityFor(lemma : String) =
   {
     lemma match {
-      case "must" => MODAL_MUST
-      case "may" => MODAL_MAY
-      case "could" | "can" => MODAL_CAPABLE
-      case "might" => MODAL_POSSIBLE
-      case "should" => MODAL_SHOULD
-      case "do" => MODAL_EMPHATIC
+      case LEMMA_MUST => MODAL_MUST
+      case LEMMA_MAY => MODAL_MAY
+      case LEMMA_COULD | LEMMA_CAN => MODAL_CAPABLE
+      case LEMMA_MIGHT => MODAL_POSSIBLE
+      case LEMMA_SHOULD => MODAL_SHOULD
+      case LEMMA_DO => MODAL_EMPHATIC
       case _ => MODAL_NEUTRAL
     }
   }
@@ -715,17 +716,18 @@ class ShlurdSingleParser(
   private def pronounFor(lemma : String) =
   {
     val person = lemma match {
-      case "i" | "me" | "we" | "my" | "our" | "mine" | "ours" => PERSON_FIRST
-      case "you" | "your" | "yours" => PERSON_SECOND
+      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY |
+          LEMMA_OUR | LEMMA_MINE | LEMMA_OURS => PERSON_FIRST
+      case LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS => PERSON_SECOND
       case _ => PERSON_THIRD
     }
     val count = lemma match {
-      case "we" | "us" | "they" | "our" | "their" => COUNT_PLURAL
+      case LEMMA_WE | LEMMA_US | LEMMA_THEY | LEMMA_OUR | LEMMA_THEIR => COUNT_PLURAL
       case _ => COUNT_SINGULAR
     }
     val gender = lemma match {
-      case "he" | "him" | "his" => GENDER_M
-      case "she" | "her" | "hers" => GENDER_F
+      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS => GENDER_M
+      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS => GENDER_F
       case _ => GENDER_N
     }
     ShlurdPronounReference(person, gender, count)
@@ -734,11 +736,11 @@ class ShlurdSingleParser(
   private def expectDeterminer(leaf : ShlurdSyntaxTree) : ShlurdDeterminer =
   {
     leaf.lemma match {
-      case "no" | "neither" | "nor" => DETERMINER_NONE
-      case "both" | "and" | "all" | "every" => DETERMINER_ALL
-      case "a" => DETERMINER_NONSPECIFIC
-      case "the" | "either" => DETERMINER_UNIQUE
-      case "some" => DETERMINER_SOME
+      case LEMMA_NO | LEMMA_NEITHER | LEMMA_NOR => DETERMINER_NONE
+      case LEMMA_BOTH | LEMMA_AND | LEMMA_ALL | LEMMA_EVERY => DETERMINER_ALL
+      case LEMMA_A => DETERMINER_NONSPECIFIC
+      case LEMMA_THE | LEMMA_EITHER => DETERMINER_UNIQUE
+      case LEMMA_SOME => DETERMINER_SOME
       case _ => DETERMINER_ANY
     }
   }
@@ -789,14 +791,15 @@ class ShlurdSingleParser(
     if ((seq.size == 2) && (prep.isPreposition || prep.isAdverb)) {
       val prepLemma = prep.firstChild.lemma
       val locative = prepLemma match {
-        case "in" | "inside" | "within" => LOC_INSIDE
-        case "outside" => LOC_OUTSIDE
-        case "at" => LOC_AT
-        case "near" | "nearby" => LOC_NEAR
-        case "on" => LOC_ON
-        case "above" | "over" => LOC_ABOVE
-        case "below" | "under" | "beneath" | "underneath" => LOC_BELOW
-        case "behind" => LOC_BEHIND
+        case LEMMA_IN | LEMMA_INSIDE | LEMMA_WITHIN => LOC_INSIDE
+        case LEMMA_OUTSIDE => LOC_OUTSIDE
+        case LEMMA_AT => LOC_AT
+        case LEMMA_NEAR | LEMMA_NEARBY => LOC_NEAR
+        case LEMMA_ON => LOC_ON
+        case LEMMA_ABOVE | LEMMA_OVER => LOC_ABOVE
+        case LEMMA_BELOW | LEMMA_UNDER | LEMMA_BENEATH |
+            LEMMA_UNDERNEATH => LOC_BELOW
+        case LEMMA_BEHIND => LOC_BEHIND
         case _ => return ShlurdUnknownState
       }
       ShlurdLocationState(locative, expectReference(seq.last))
@@ -807,7 +810,8 @@ class ShlurdSingleParser(
 
   private def expectPredicate(
     np : ShlurdSyntaxTree,
-    complement : Seq[ShlurdSyntaxTree], label : String,
+    complement : Seq[ShlurdSyntaxTree],
+    complementPhrase : ShlurdSyntaxTree,
     specifiedState : ShlurdState,
     relationship : ShlurdRelationship)
       : (Boolean, ShlurdPredicate) =
@@ -827,7 +831,7 @@ class ShlurdSingleParser(
         }
       }
       (negative, ShlurdStatePredicate(subject, ShlurdExistenceState()))
-    } else if (label == "NP") {
+    } else if (complementPhrase.isNounPhrase) {
       val relationshipPredicate = ShlurdRelationshipPredicate(
         specifyReference(expectReference(np), specifiedState),
         expectReference(seq),
@@ -836,11 +840,16 @@ class ShlurdSingleParser(
     } else {
       val state = splitCoordinatingConjunction(seq) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {
-          expectStateComplement(seq, label)
+          expectStateComplement(
+            ShlurdSyntaxRewrite.recompose(complementPhrase, seq))
         }
         case (determiner, separator, split) => {
           ShlurdConjunctiveState(
-            determiner, split.map(expectStateComplement(_, label)), separator)
+            determiner,
+            split.map(
+              subseq => expectStateComplement(
+                ShlurdSyntaxRewrite.recompose(complementPhrase, subseq))),
+            separator)
         }
       }
       state match {
@@ -870,19 +879,18 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectStateComplement(
-    seq : Seq[ShlurdSyntaxTree], label : String)
+  private def expectStateComplement(complement : ShlurdSyntaxTree)
       : ShlurdState =
   {
-    if (isSinglePhrase(seq)) {
-      val sub = seq.head
-      return expectStateComplement(sub.children, sub.label)
+    if (isSinglePhrase(complement.children)) {
+      return expectStateComplement(complement.firstChild)
     }
-    label match {
-      case "ADJP" => {
-        expectPropertyStateComplement(seq)
+    complement match {
+      case SptADJP(children @ _*) => {
+        expectPropertyStateComplement(children)
       }
-      case "ADVP" | "PP" => {
+      case phrase @ (_: SptADVP | _: SptPP) => {
+        val seq = phrase.children
         if ((seq.head.isPreposition || seq.head.isAdverb) && (seq.size > 1) &&
           (!seq.exists(_.isPrepositionalPhrase)))
         {
@@ -891,17 +899,13 @@ class ShlurdSingleParser(
           expectPropertyStateComplement(seq)
         }
       }
-      case "VP" => {
+      case SptVP(children @ _*) => {
         // TODO:  ambiguity for action (passive construction) vs
         // state (participial adjective)
-        expectPropertyStateComplement(seq)
+        expectPropertyStateComplement(children)
       }
-      case "PRT" => {
-        if (seq.size == 1) {
-          expectPropertyState(seq.head)
-        } else {
-          ShlurdUnknownState
-        }
+      case SptPRT(particle) => {
+        expectPropertyState(particle)
       }
       case _ => {
         ShlurdUnknownState
@@ -919,8 +923,7 @@ class ShlurdSingleParser(
       ShlurdConjunctiveState(
         DETERMINER_UNSPECIFIED,
         Seq(state) ++ seq.tail.map(
-          component => expectStateComplement(
-            component.children, component.label)))
+          component => expectStateComplement(component)))
     }
   }
 

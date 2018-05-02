@@ -28,7 +28,7 @@ class ShlurdParserSpec extends Specification
 
   private val ENTITY_DOORS = ShlurdWord("doors", "door")
 
-  private val ENTITY_WHO = word(ShlurdParseUtils.WHO_LEMMA)
+  private val ENTITY_WHO = word(ShlurdParseUtils.LEMMA_WHO)
 
   private val ENTITY_FRANNY = word("franny")
 

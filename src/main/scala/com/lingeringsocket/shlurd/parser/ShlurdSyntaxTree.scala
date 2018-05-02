@@ -58,7 +58,13 @@ trait ShlurdAbstractSyntaxTree
 
   def isVerbPhrase = hasLabel("VP")
 
+  def isAdjectivePhrase = hasLabel("ADJP")
+
+  def isAdverbPhrase = hasLabel("ADVP")
+
   def isPrepositionalPhrase = hasLabel("PP")
+
+  def isParticlePhrase = hasLabel("PRT")
 
   def isSubQuestion = hasLabel("SQ")
 
@@ -200,10 +206,28 @@ case class SptVP(children : ShlurdSyntaxTree*)
   override def label = "VP"
 }
 
+case class SptADJP(children : ShlurdSyntaxTree*)
+    extends ShlurdSyntaxNonLeaf
+{
+  override def label = "ADJP"
+}
+
+case class SptADVP(children : ShlurdSyntaxTree*)
+    extends ShlurdSyntaxNonLeaf
+{
+  override def label = "ADVP"
+}
+
 case class SptPP(children : ShlurdSyntaxTree*)
     extends ShlurdSyntaxNonLeaf
 {
   override def label = "PP"
+}
+
+case class SptPRT(children : ShlurdSyntaxTree*)
+    extends ShlurdSyntaxNonLeaf
+{
+  override def label = "PRT"
 }
 
 case class SptSQ(children : ShlurdSyntaxTree*)

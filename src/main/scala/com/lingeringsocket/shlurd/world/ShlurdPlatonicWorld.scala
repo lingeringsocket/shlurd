@@ -156,7 +156,7 @@ class ShlurdPlatonicWorld
 
   private val formSynonyms = new ShlurdSynonymMap
   formSynonyms.addSynonym(
-    ShlurdParseUtils.WHO_LEMMA, ShlurdParseUtils.PERSON_LEMMA)
+    ShlurdParseUtils.LEMMA_WHO, ShlurdParseUtils.LEMMA_PERSON)
 
   private val formGenitives =
     new DirectedPseudograph[ShlurdPlatonicForm, LabeledEdge](
@@ -559,7 +559,7 @@ class ShlurdPlatonicWorld
       ShlurdWord(formName, formName), determiner)
     if (entity.qualifiers.isEmpty) {
       entityReference
-    } else if ((formName == ShlurdParseUtils.PERSON_LEMMA) &&
+    } else if ((formName == ShlurdParseUtils.LEMMA_PERSON) &&
       (entity.qualifiers.size == 1))
     {
       val name = ShlurdParseUtils.capitalize(entity.qualifiers.head)

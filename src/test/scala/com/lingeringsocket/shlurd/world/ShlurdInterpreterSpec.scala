@@ -416,7 +416,7 @@ class ShlurdInterpreterSpec extends Specification
       context : ShlurdReferenceContext,
       qualifiers : Set[String]) =
     {
-      if (lemma == ShlurdParseUtils.WHO_LEMMA) {
+      if (lemma == ShlurdParseUtils.LEMMA_WHO) {
         Success(ShlurdParseUtils.orderedSet(
           people.values))
       } else {

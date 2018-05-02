@@ -134,7 +134,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("Joyce is Lonnie's ex-wife")
       world.validateBeliefs
 
-      val personLemma = ShlurdParseUtils.PERSON_LEMMA
+      val personLemma = ShlurdParseUtils.LEMMA_PERSON
       expectUniqueForm(personLemma)
 
       val joyces = world.resolveEntity(
