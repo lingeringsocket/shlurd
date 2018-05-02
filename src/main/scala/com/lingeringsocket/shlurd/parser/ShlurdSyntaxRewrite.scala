@@ -18,7 +18,9 @@ import org.kiama.rewriting._
 
 object ShlurdSyntaxRewrite
 {
-  def recompose(tree : ShlurdAbstractSyntaxTree, children : Seq[ShlurdSyntaxTree]) =
+  def recompose(
+    tree : ShlurdAbstractSyntaxTree,
+    children : Seq[ShlurdSyntaxTree]) =
   {
       if (tree.isRoot) {
         SptROOT(expectUnique(children))

@@ -722,7 +722,8 @@ class ShlurdSingleParser(
       case _ => PERSON_THIRD
     }
     val count = lemma match {
-      case LEMMA_WE | LEMMA_US | LEMMA_THEY | LEMMA_OUR | LEMMA_THEIR => COUNT_PLURAL
+      case LEMMA_WE | LEMMA_US | LEMMA_THEY |
+          LEMMA_OUR | LEMMA_THEIR => COUNT_PLURAL
       case _ => COUNT_SINGULAR
     }
     val gender = lemma match {
