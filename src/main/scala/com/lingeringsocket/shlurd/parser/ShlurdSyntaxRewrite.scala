@@ -25,7 +25,7 @@ object ShlurdSyntaxRewrite
     } else {
       val children = tree.children.map(rewriteAbstract)
       if (tree.isRoot) {
-        SptROOT(children:_*)
+        SptROOT(expectUnique(children))
       } else if (tree.isSentence) {
         SptS(children:_*)
       } else if (tree.isSBAR) {

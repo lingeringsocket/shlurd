@@ -162,10 +162,12 @@ case class ShlurdSyntaxLeaf(label : String, lemma : String, token : String)
   override def toString = token
 }
 
-case class SptROOT(children : ShlurdSyntaxTree*)
+case class SptROOT(child : ShlurdSyntaxTree)
     extends ShlurdSyntaxNonLeaf
 {
   override def label = "ROOT"
+
+  override def children = Seq(child)
 }
 
 case class SptS(children : ShlurdSyntaxTree*)

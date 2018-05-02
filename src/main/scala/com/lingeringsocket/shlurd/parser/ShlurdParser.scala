@@ -110,11 +110,11 @@ class ShlurdSingleParser(
 
   private def expectRoot(tree : ShlurdSyntaxTree, guessedQuestion : Boolean) =
   {
-    if (tree.isRoot) {
-      assert(tree.numChildren == 1)
-      expectSentence(tree.firstChild, guessedQuestion)
-    } else {
-      ShlurdUnknownSentence
+    tree match {
+      case SptROOT(sentence) => {
+        expectSentence(sentence, guessedQuestion)
+      }
+      case _ => ShlurdUnknownSentence
     }
   }
 
@@ -336,30 +336,29 @@ class ShlurdSingleParser(
   private def expectQuestion(
     tree : ShlurdSyntaxTree) : Option[ShlurdQuestion] =
   {
-    if (tree.isQueryAdjective) {
-      if (tree.numChildren != 2) {
-        None
-      } else {
-        if (tree.firstChild.hasTerminalLemma("how") &&
-          tree.lastChild.hasTerminalLemma("many"))
+    tree match {
+      case SptWHADJP(how, many) => {
+        if (how.hasTerminalLemma("how") &&
+          many.hasTerminalLemma("many"))
         {
           Some(QUESTION_HOW_MANY)
         } else {
           None
         }
       }
-    } else if (tree.isQueryDeterminer) {
-      tree.firstChild.lemma match {
-        case "which" | "what" => Some(QUESTION_WHICH)
-        case _ => None
+      case SptWDT(wdt) => {
+        wdt.lemma match {
+          case "which" | "what" => Some(QUESTION_WHICH)
+          case _ => None
+        }
       }
-    } else if (tree.isQueryPronoun) {
-      tree.firstChild.lemma match {
-        case WHO_LEMMA => Some(QUESTION_WHO)
-        case _ => None
+      case SptWP(wp) => {
+        wp.lemma match {
+          case WHO_LEMMA => Some(QUESTION_WHO)
+          case _ => None
+        }
       }
-    } else {
-      None
+      case _ => None
     }
   }
 
@@ -683,32 +682,18 @@ class ShlurdSingleParser(
   private def expectRelativeQualifier(
     tree : ShlurdSyntaxTree) : Option[Seq[ShlurdWord]] =
   {
-    if (!tree.isSBAR || (tree.numChildren != 2)) {
-      return None
-    }
-    val whnp = tree.firstChild
-    if (!whnp.isQueryNoun || (whnp.numChildren != 1)) {
-      return None
-    }
-    val wdt = whnp.firstChild
-    if (!wdt.isQueryDeterminer || !wdt.isPreTerminal) {
-      return None
-    }
-    val sub = tree.lastChild
-    if (!sub.isSentence || (sub.numChildren != 1)) {
-      return None
-    }
-    val vp = sub.firstChild
-    if (!vp.isVerbPhrase || (vp.numChildren != 2)) {
-      return None
-    }
-    if (!vp.firstChild.isBeingVerb) {
-      return None
-    }
-    val state = expectStateComplement(Seq(vp.lastChild), vp.label)
-    state match {
-      case ShlurdPropertyState(qualifier) => {
-        Some(Seq(qualifier))
+    tree match {
+      case SptSBAR(
+        SptWHNP(SptWDT(_)),
+        SptS(SptVP(verb, complement))
+      ) if (verb.isBeingVerb) => {
+        val state = expectStateComplement(Seq(complement), "VP")
+        state match {
+          case ShlurdPropertyState(qualifier) => {
+            Some(Seq(qualifier))
+          }
+          case _ => None
+        }
       }
       case _ => None
     }
