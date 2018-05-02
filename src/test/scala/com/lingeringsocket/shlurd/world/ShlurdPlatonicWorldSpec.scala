@@ -20,6 +20,8 @@ import org.specs2.mutable._
 
 import scala.io._
 
+import ShlurdEnglishLemmas._
+
 class ShlurdPlatonicWorldSpec extends Specification
 {
   trait WorldContext extends NameSpace
@@ -134,7 +136,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("Joyce is Lonnie's ex-wife")
       world.validateBeliefs
 
-      val personLemma = ShlurdParseUtils.LEMMA_PERSON
+      val personLemma = LEMMA_PERSON
       expectUniqueForm(personLemma)
 
       val joyces = world.resolveEntity(

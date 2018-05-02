@@ -25,6 +25,8 @@ import scala.util._
 import scala.collection._
 import scala.collection.JavaConverters._
 
+import ShlurdEnglishLemmas._
+
 class ShlurdPlatonicProperty(val name : String)
     extends ShlurdProperty with ShlurdNamedObject
 {
@@ -156,7 +158,7 @@ class ShlurdPlatonicWorld
 
   private val formSynonyms = new ShlurdSynonymMap
   formSynonyms.addSynonym(
-    ShlurdParseUtils.LEMMA_WHO, ShlurdParseUtils.LEMMA_PERSON)
+    LEMMA_WHO, LEMMA_PERSON)
 
   private val formGenitives =
     new DirectedPseudograph[ShlurdPlatonicForm, LabeledEdge](
@@ -559,7 +561,7 @@ class ShlurdPlatonicWorld
       ShlurdWord(formName, formName), determiner)
     if (entity.qualifiers.isEmpty) {
       entityReference
-    } else if ((formName == ShlurdParseUtils.LEMMA_PERSON) &&
+    } else if ((formName == LEMMA_PERSON) &&
       (entity.qualifiers.size == 1))
     {
       val name = ShlurdParseUtils.capitalize(entity.qualifiers.head)

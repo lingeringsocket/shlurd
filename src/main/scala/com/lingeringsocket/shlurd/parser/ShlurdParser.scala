@@ -25,6 +25,8 @@ import scala.collection.JavaConverters._
 import java.io._
 import java.util.Properties
 
+import ShlurdPennTreebankLabels._
+import ShlurdEnglishLemmas._
 import ShlurdParseUtils._
 
 trait ShlurdParser
@@ -66,9 +68,11 @@ class ShlurdSingleParser(
   private def expectParticle(
     pt : ShlurdSyntaxTree) : Option[ShlurdWord] =
   {
-    pt.label match {
-      case "PP" | "PRT" => Some(getWord(pt.firstChild.firstChild))
-      case "RP" => Some(getWord(pt.firstChild))
+    pt match {
+      case phrase @ (_: SptPRT | _: SptPP) => {
+        Some(getWord(phrase.firstChild.firstChild))
+      }
+      case SptRP(leaf) => Some(getWord(leaf))
       case _ => None
     }
   }
@@ -76,7 +80,7 @@ class ShlurdSingleParser(
   private def extractParticle(seq : Seq[ShlurdSyntaxTree])
       : (Option[ShlurdWord], Seq[ShlurdSyntaxTree]) =
   {
-    seq.indexWhere(_.isParticle) match {
+    seq.indexWhere(_.isParticleNode) match {
       case -1 => {
         val pp = seq.last
         if (pp.isPrepositionalPhrase) {
@@ -124,7 +128,7 @@ class ShlurdSingleParser(
   {
     val children = tree.children
     if (punctuationMarks.exists(punctuation =>
-      children.last.hasTerminalLabel(".", punctuation)))
+      children.last.hasTerminalLabel(LABEL_DOT, punctuation)))
     {
       children.dropRight(1)
     } else {
@@ -171,17 +175,22 @@ class ShlurdSingleParser(
   {
     val forceSQ = tree.firstChild.firstChild.isBeingVerb
     if (tree.isSentence && !forceSQ) {
-      val hasQuestionMark = tree.children.last.hasTerminalLabel(".", "?")
+      val hasQuestionMark =
+        tree.children.last.hasTerminalLabel(LABEL_DOT, LABEL_QUESTION_MARK)
       val isQuestion =
         hasQuestionMark && !guessedQuestion
       val force = {
-        if (tree.children.last.hasTerminalLabel(".", "!")) {
+        if (tree.children.last.hasTerminalLabel(
+          LABEL_DOT, LABEL_EXCLAMATION_MARK))
+        {
           FORCE_EXCLAMATION
         } else {
           FORCE_NEUTRAL
         }
       }
-      val children = truncatePunctuation(tree, Seq(".", "!", "?"))
+      val children =
+        truncatePunctuation(
+          tree, Seq(LABEL_DOT, LABEL_EXCLAMATION_MARK, LABEL_QUESTION_MARK))
       if (isImperative(children)) {
         expectCommand(children.head, ShlurdFormality(force))
       } else if (children.size == 2) {
@@ -197,7 +206,7 @@ class ShlurdSingleParser(
         ShlurdUnknownSentence
       }
     } else if (forceSQ || tree.isSubQuestion) {
-      val punctless = truncatePunctuation(tree, Seq("?"))
+      val punctless = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
       val (specifiedState, children) = {
         val unwrapped = {
           if (forceSQ && isSinglePhrase(punctless)) {
@@ -259,7 +268,7 @@ class ShlurdSingleParser(
         ShlurdUnknownSentence
       }
     } else if (tree.isSBARQ) {
-      val children = truncatePunctuation(tree, Seq("?"))
+      val children = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
       val first = children.head
       val second = children.last
       val secondUnwrapped = {
@@ -292,7 +301,7 @@ class ShlurdSingleParser(
         }
         val np = question match {
           case QUESTION_WHO => {
-            SptNP(ShlurdSyntaxNode("NN", seq.head.children))
+            SptNP(ShlurdSyntaxNode(LABEL_NN, seq.head.children))
           }
           case _ => {
             SptNP(seq.tail:_*)
@@ -990,13 +999,16 @@ object ShlurdParser
   {
     val tokens = sentence.originalTexts.asScala
     val sentenceString = sentence.text
-    if (Set(".", "?", "!").contains(tokens.last)) {
+    val punctuation = Set(
+      LABEL_DOT, LABEL_QUESTION_MARK, LABEL_EXCLAMATION_MARK)
+    if (punctuation.contains(tokens.last)) {
       prepareFallbacks(
         sentenceString, tokens, false, dump, "PUNCTUATED")
     } else {
-      val questionString = sentenceString + "?"
+      val questionString = sentenceString + LABEL_QUESTION_MARK
       prepareFallbacks(
-        questionString, tokens :+ "?", true, dump, "GUESSED QUESTION")
+        questionString, tokens :+ LABEL_QUESTION_MARK,
+        true, dump, "GUESSED QUESTION")
     }
   }
 

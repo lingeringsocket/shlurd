@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.parser
 
 import org.specs2.mutable._
 
+import ShlurdEnglishLemmas._
+
 class ShlurdParserSpec extends Specification
 {
   private val ENTITY_DOOR = word("door")
@@ -28,7 +30,7 @@ class ShlurdParserSpec extends Specification
 
   private val ENTITY_DOORS = ShlurdWord("doors", "door")
 
-  private val ENTITY_WHO = word(ShlurdParseUtils.LEMMA_WHO)
+  private val ENTITY_WHO = word(LEMMA_WHO)
 
   private val ENTITY_FRANNY = word("franny")
 

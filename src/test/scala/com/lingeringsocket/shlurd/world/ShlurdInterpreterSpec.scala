@@ -23,6 +23,8 @@ import spire.math._
 import scala.collection._
 import scala.util._
 
+import ShlurdEnglishLemmas._
+
 class ShlurdInterpreterSpec extends Specification
 {
   private val world = ZooWorld
@@ -416,7 +418,7 @@ class ShlurdInterpreterSpec extends Specification
       context : ShlurdReferenceContext,
       qualifiers : Set[String]) =
     {
-      if (lemma == ShlurdParseUtils.LEMMA_WHO) {
+      if (lemma == LEMMA_WHO) {
         Success(ShlurdParseUtils.orderedSet(
           people.values))
       } else {

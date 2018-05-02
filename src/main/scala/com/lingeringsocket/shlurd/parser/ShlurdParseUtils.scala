@@ -16,8 +16,11 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
 
-object ShlurdParseUtils
+object ShlurdEnglishLemmas
 {
+  val LEMMA_BE = "be"
+  val LEMMA_EXIST = "exist"
+  val LEMMA_HAVE = "have"
   val LEMMA_WHO = "who"
   val LEMMA_HOW = "how"
   val LEMMA_MANY = "many"
@@ -77,7 +80,10 @@ object ShlurdParseUtils
   val LEMMA_BENEATH = "beneath"
   val LEMMA_UNDERNEATH = "underneath"
   val LEMMA_BEHIND = "behind"
+}
 
+object ShlurdParseUtils
+{
   def capitalize(s : String) = s.head.toUpper + s.tail
 
   def orderedSet[T](iterable : Iterable[T]) =

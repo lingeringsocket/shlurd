@@ -53,11 +53,13 @@ object ShlurdSyntaxRewrite
       } else if (tree.isQueryPronoun) {
         SptWP(children:_*)
       } else if (tree.isCoordinatingConjunction) {
-        SptCC(expectUnique(children))
+        SptCC(expectLeaf(children))
       } else if (tree.isDeterminer) {
-        SptDT(expectUnique(children))
+        SptDT(expectLeaf(children))
+      } else if (tree.isParticle) {
+        SptRP(expectLeaf(children))
       } else if (tree.isPossessive) {
-        SptPOS(expectUnique(children))
+        SptPOS(expectLeaf(children))
       } else {
         ShlurdSyntaxNode(tree.label, children)
       }
@@ -77,6 +79,16 @@ object ShlurdSyntaxRewrite
   {
     assert(seq.size == 1)
     seq.head
+  }
+
+  private def expectLeaf(seq : Seq[ShlurdSyntaxTree]) : ShlurdSyntaxLeaf =
+  {
+    expectUnique(seq) match {
+      case leaf : ShlurdSyntaxLeaf => leaf
+      case nonLeaf => {
+        throw new IllegalArgumentException("leaf expected but got " + nonLeaf)
+      }
+    }
   }
 
   def rewriteEither = rewrite {
