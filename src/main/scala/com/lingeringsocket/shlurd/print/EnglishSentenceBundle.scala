@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.print
 
 import com.lingeringsocket.shlurd.parser._
 
+import ShlurdEnglishLemmas._
+
 class EnglishSentenceBundle
     extends ShlurdSentenceBundle
 {
@@ -43,9 +45,13 @@ class EnglishSentenceBundle
   }
 
   override def statePredicateQuestion(
-    subject : String, copula : Seq[String], state : String) =
+    subject : String, copula : Seq[String], state : String,
+    question : Option[ShlurdQuestion]) =
   {
-    if (state.isEmpty) {
+    if (!question.isEmpty) {
+      compose((Seq(subject) ++ copula.take(2).reverse ++
+        copula.drop(2) ++ Seq(state)):_*)
+    } else if (state.isEmpty) {
       compose((copula.take(2).reverse ++ copula.drop(2) ++ Seq(subject)):_*)
     } else {
       composePredicateQuestion(subject, copula, state)
@@ -84,8 +90,8 @@ class EnglishSentenceBundle
     person : ShlurdPerson, count : ShlurdCount) =
   {
     val verb = relationship match {
-      case REL_IDENTITY => "be"
-      case REL_ASSOCIATION => "have"
+      case REL_IDENTITY => LEMMA_BE
+      case REL_ASSOCIATION => LEMMA_HAVE
     }
     val modality = {
       relationship match {
@@ -98,26 +104,26 @@ class EnglishSentenceBundle
     }
     val aux = modality match {
       case MODAL_NEUTRAL => ""
-      case MODAL_MUST => "must"
-      case MODAL_MAY => "may"
-      case MODAL_POSSIBLE => "might"
-      case MODAL_CAPABLE => "can"
-      case MODAL_PERMITTED => "may"
-      case MODAL_SHOULD => "should"
+      case MODAL_MUST => LEMMA_MUST
+      case MODAL_MAY => LEMMA_MAY
+      case MODAL_POSSIBLE => LEMMA_MIGHT
+      case MODAL_CAPABLE => LEMMA_CAN
+      case MODAL_PERMITTED => LEMMA_MAY
+      case MODAL_SHOULD => LEMMA_SHOULD
       case MODAL_EMPHATIC => {
         count match {
           case COUNT_SINGULAR => {
             person match {
-              case PERSON_THIRD => "does"
-              case _ => "do"
+              case PERSON_THIRD => LEMMA_DOES
+              case _ => LEMMA_DO
             }
           }
-          case COUNT_PLURAL => "do"
+          case COUNT_PLURAL => LEMMA_DO
         }
       }
     }
     if (mood.isNegative) {
-      Seq(aux, "not", verb)
+      Seq(aux, LEMMA_NOT, verb)
     } else {
       Seq(aux, verb)
     }
@@ -147,7 +153,7 @@ class EnglishSentenceBundle
                 case REL_ASSOCIATION => {
                   person match {
                     case PERSON_THIRD => "has"
-                    case _ => "have"
+                    case _ => LEMMA_HAVE
                   }
                 }
               }
@@ -155,13 +161,13 @@ class EnglishSentenceBundle
             case COUNT_PLURAL => {
               relationship match {
                 case REL_IDENTITY => "are"
-                case REL_ASSOCIATION => "have"
+                case REL_ASSOCIATION => LEMMA_HAVE
               }
             }
           }
         }
         if (mood.isNegative) {
-          Seq(inflected, "not")
+          Seq(inflected, LEMMA_NOT)
         } else {
           Seq(inflected)
         }
@@ -171,7 +177,7 @@ class EnglishSentenceBundle
       }
     }
     if (isExistential) {
-      Seq("there") ++ seq
+      Seq(LEMMA_THERE) ++ seq
     } else {
       seq
     }
@@ -180,18 +186,18 @@ class EnglishSentenceBundle
   override def position(locative : ShlurdLocative) =
   {
     locative match {
-      case LOC_INSIDE => "in"
+      case LOC_INSIDE => LEMMA_IN
       case LOC_OUTSIDE => "outside of"
-      case LOC_AT => "at"
-      case LOC_NEAR => "near"
-      case LOC_ON => "on"
-      case LOC_ABOVE => "above"
-      case LOC_BELOW => "below"
+      case LOC_AT => LEMMA_AT
+      case LOC_NEAR => LEMMA_NEAR
+      case LOC_ON => LEMMA_ON
+      case LOC_ABOVE => LEMMA_ABOVE
+      case LOC_BELOW => LEMMA_BELOW
       case LOC_LEFT => "to the left of"
       case LOC_RIGHT => "to the right of"
       case LOC_FRONT => "in front of"
-      case LOC_BEHIND => "behind"
-      case LOC_GENITIVE_OF => "of"
+      case LOC_BEHIND => LEMMA_BEHIND
+      case LOC_GENITIVE_OF => LEMMA_OF
     }
   }
 
@@ -281,15 +287,15 @@ class EnglishSentenceBundle
     items : Seq[String]) =
   {
     val prefix = determiner match {
-      case DETERMINER_NONE => "neither"
-      case DETERMINER_UNIQUE => "either"
+      case DETERMINER_NONE => LEMMA_NEITHER
+      case DETERMINER_UNIQUE => LEMMA_EITHER
       case _ => ""
     }
 
     val infix = determiner match {
-      case DETERMINER_NONE => "nor"
-      case DETERMINER_ANY | DETERMINER_UNIQUE => "or"
-      case _ => "and"
+      case DETERMINER_NONE => LEMMA_NOR
+      case DETERMINER_ANY | DETERMINER_UNIQUE => LEMMA_OR
+      case _ => LEMMA_AND
     }
 
     val seq = items.dropRight(1).zipWithIndex.flatMap {
@@ -318,13 +324,16 @@ class EnglishSentenceBundle
   {
     question match {
       case Some(QUESTION_WHICH) => {
-        compose("which", noun)
+        compose(LEMMA_WHICH, noun)
       }
       case Some(QUESTION_WHO) => {
         // FIXME inflection for whom, whose
-        compose("who")
+        compose(LEMMA_WHO)
       }
-      case _ => noun
+      case Some(QUESTION_HOW_MANY) => {
+        compose(LEMMA_HOW, LEMMA_MANY, noun)
+      }
+      case None => noun
     }
   }
 
@@ -342,19 +351,19 @@ class EnglishSentenceBundle
   {
     val determinerString = determiner match {
       case DETERMINER_UNSPECIFIED => ""
-      case DETERMINER_NONE => "no"
-      case DETERMINER_UNIQUE => "the"
+      case DETERMINER_NONE => LEMMA_NO
+      case DETERMINER_UNIQUE => LEMMA_THE
       case DETERMINER_NONSPECIFIC => {
         // FIXME:  in reality it can be a little more complicated...
         if ("aeiou".contains(noun.head)) {
           "an"
         } else {
-          "a"
+          LEMMA_A
         }
       }
-      case DETERMINER_ANY => "any"
-      case DETERMINER_SOME => "some"
-      case DETERMINER_ALL => "all"
+      case DETERMINER_ANY => LEMMA_ANY
+      case DETERMINER_SOME => LEMMA_SOME
+      case DETERMINER_ALL => LEMMA_ALL
     }
     compose(determinerString, noun)
   }
@@ -378,40 +387,40 @@ class EnglishSentenceBundle
       person match {
         case PERSON_FIRST => count match {
           case COUNT_SINGULAR => inflection match {
-            case INFLECT_ACCUSATIVE => "me"
-            case INFLECT_GENITIVE => "my"
+            case INFLECT_ACCUSATIVE => LEMMA_ME
+            case INFLECT_GENITIVE => LEMMA_MY
             case _ => "I"
           }
           case COUNT_PLURAL => inflection match {
-            case INFLECT_ACCUSATIVE => "us"
-            case INFLECT_GENITIVE => "our"
-            case _ => "we"
+            case INFLECT_ACCUSATIVE => LEMMA_US
+            case INFLECT_GENITIVE => LEMMA_OUR
+            case _ => LEMMA_WE
           }
         }
         case PERSON_SECOND => inflection match {
-          case INFLECT_GENITIVE => "your"
-          case _ => "you"
+          case INFLECT_GENITIVE => LEMMA_YOUR
+          case _ => LEMMA_YOU
         }
         case PERSON_THIRD => count match {
           case COUNT_SINGULAR => gender match {
             case GENDER_M => inflection match {
-              case INFLECT_ACCUSATIVE => "him"
-              case INFLECT_GENITIVE => "his"
-              case _ => "he"
+              case INFLECT_ACCUSATIVE => LEMMA_HIM
+              case INFLECT_GENITIVE => LEMMA_HIS
+              case _ => LEMMA_HE
             }
             case GENDER_F => inflection match {
-              case INFLECT_ACCUSATIVE | INFLECT_GENITIVE => "her"
-              case _ => "she"
+              case INFLECT_ACCUSATIVE | INFLECT_GENITIVE => LEMMA_HER
+              case _ => LEMMA_SHE
             }
             case GENDER_N => inflection match {
-              case INFLECT_GENITIVE => "its"
-              case _ => "it"
+              case INFLECT_GENITIVE => LEMMA_ITS
+              case _ => LEMMA_IT
             }
           }
           case COUNT_PLURAL => inflection match {
-            case INFLECT_ACCUSATIVE => "them"
-            case INFLECT_GENITIVE => "their"
-            case _ => "they"
+            case INFLECT_ACCUSATIVE => LEMMA_THEM
+            case INFLECT_GENITIVE => LEMMA_THEIR
+            case _ => LEMMA_THEY
           }
         }
       }
@@ -436,7 +445,7 @@ class EnglishSentenceBundle
 
   override def unknownCopula() =
   {
-    "be"
+    LEMMA_BE
   }
 
   override def unknownPredicateStatement() =

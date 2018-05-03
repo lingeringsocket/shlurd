@@ -85,7 +85,8 @@ abstract class ShlurdSentenceBundle
   def statePredicateQuestion(
     subject : String,
     copula : Seq[String],
-    state : String) : String
+    state : String,
+    question : Option[ShlurdQuestion]) : String
 
   def relationshipPredicateQuestion(
     firstRef : String,

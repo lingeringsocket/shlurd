@@ -229,7 +229,8 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
             question),
           getCopula(subject, state, mood, REL_IDENTITY),
-          print(state, mood, ShlurdConjoining.NONE))
+          print(state, mood, ShlurdConjoining.NONE),
+          question)
       }
       case ShlurdRelationshipPredicate(subject, complement, relationship) => {
         sb.relationshipPredicateQuestion(

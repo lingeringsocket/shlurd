@@ -36,7 +36,8 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   }
 
   override def statePredicateQuestion(
-    subject : String, copula : Seq[String], state : String) =
+    subject : String, copula : Seq[String], state : String,
+    question : Option[ShlurdQuestion]) =
   {
     // only holds for "요" politeness
     statePredicateStatement(subject, copula, state)

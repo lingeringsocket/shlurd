@@ -18,6 +18,7 @@ import scala.collection._
 
 object ShlurdEnglishLemmas
 {
+  val LEMMA_THERE = "there"
   val LEMMA_BE = "be"
   val LEMMA_EXIST = "exist"
   val LEMMA_HAVE = "have"
@@ -32,9 +33,11 @@ object ShlurdEnglishLemmas
   val LEMMA_NOR = "nor"
   val LEMMA_BOTH = "both"
   val LEMMA_AND = "and"
+  val LEMMA_OR = "or"
   val LEMMA_A = "a"
   val LEMMA_THE = "the"
   val LEMMA_ALL = "all"
+  val LEMMA_ANY = "any"
   val LEMMA_EVERY = "every"
   val LEMMA_SOME = "some"
   val LEMMA_EITHER = "either"
@@ -46,6 +49,9 @@ object ShlurdEnglishLemmas
   val LEMMA_MIGHT = "might"
   val LEMMA_SHOULD = "should"
   val LEMMA_DO = "do"
+  val LEMMA_DOES = "does"
+  val LEMMA_IT = "it"
+  val LEMMA_ITS = "its"
   val LEMMA_I = "i"
   val LEMMA_ME = "me"
   val LEMMA_WE = "we"
@@ -59,6 +65,7 @@ object ShlurdEnglishLemmas
   val LEMMA_YOURS = "yours"
   val LEMMA_THEY = "they"
   val LEMMA_THEIR = "their"
+  val LEMMA_THEM = "them"
   val LEMMA_HE = "he"
   val LEMMA_HIM = "him"
   val LEMMA_HIS = "his"
@@ -80,6 +87,7 @@ object ShlurdEnglishLemmas
   val LEMMA_BENEATH = "beneath"
   val LEMMA_UNDERNEATH = "underneath"
   val LEMMA_BEHIND = "behind"
+  val LEMMA_OF = "of"
 }
 
 object ShlurdParseUtils

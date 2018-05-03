@@ -22,47 +22,51 @@ object ShlurdSyntaxRewrite
     tree : ShlurdAbstractSyntaxTree,
     children : Seq[ShlurdSyntaxTree]) =
   {
-      if (tree.isRoot) {
-        SptROOT(expectUnique(children))
-      } else if (tree.isSentence) {
-        SptS(children:_*)
-      } else if (tree.isSBAR) {
-        SptSBAR(children:_*)
-      } else if (tree.isSBARQ) {
-        SptSBARQ(children:_*)
-      } else if (tree.isNounPhrase) {
-        SptNP(children:_*)
-      } else if (tree.isVerbPhrase) {
-        SptVP(children:_*)
-      } else if (tree.isAdjectivePhrase) {
-        SptADJP(children:_*)
-      } else if (tree.isAdverbPhrase) {
-        SptADVP(children:_*)
-      } else if (tree.isPrepositionalPhrase) {
-        SptPP(children:_*)
-      } else if (tree.isParticlePhrase) {
-        SptPRT(children:_*)
-      } else if (tree.isSubQuestion) {
-        SptSQ(children:_*)
-      } else if (tree.isQueryNoun) {
-        SptWHNP(children:_*)
-      } else if (tree.isQueryAdjective) {
-        SptWHADJP(children:_*)
-      } else if (tree.isQueryDeterminer) {
-        SptWDT(children:_*)
-      } else if (tree.isQueryPronoun) {
-        SptWP(children:_*)
-      } else if (tree.isCoordinatingConjunction) {
-        SptCC(expectLeaf(children))
-      } else if (tree.isDeterminer) {
-        SptDT(expectLeaf(children))
-      } else if (tree.isParticle) {
-        SptRP(expectLeaf(children))
-      } else if (tree.isPossessive) {
-        SptPOS(expectLeaf(children))
-      } else {
-        ShlurdSyntaxNode(tree.label, children)
-      }
+    if ((children.size == 1) && tree.isInstanceOf[ShlurdSyntaxPhrase]
+      && (children.head.label == tree.label))
+    {
+      children.head
+    } else if (tree.isRoot) {
+      SptROOT(expectUnique(children))
+    } else if (tree.isSentence) {
+      SptS(children:_*)
+    } else if (tree.isSBAR) {
+      SptSBAR(children:_*)
+    } else if (tree.isSBARQ) {
+      SptSBARQ(children:_*)
+    } else if (tree.isNounPhrase) {
+      SptNP(children:_*)
+    } else if (tree.isVerbPhrase) {
+      SptVP(children:_*)
+    } else if (tree.isAdjectivePhrase) {
+      SptADJP(children:_*)
+    } else if (tree.isAdverbPhrase) {
+      SptADVP(children:_*)
+    } else if (tree.isPrepositionalPhrase) {
+      SptPP(children:_*)
+    } else if (tree.isParticlePhrase) {
+      SptPRT(children:_*)
+    } else if (tree.isSubQuestion) {
+      SptSQ(children:_*)
+    } else if (tree.isQueryNoun) {
+      SptWHNP(children:_*)
+    } else if (tree.isQueryAdjective) {
+      SptWHADJP(children:_*)
+    } else if (tree.isQueryDeterminer) {
+      SptWDT(children:_*)
+    } else if (tree.isQueryPronoun) {
+      SptWP(children:_*)
+    } else if (tree.isCoordinatingConjunction) {
+      SptCC(expectLeaf(children))
+    } else if (tree.isDeterminer) {
+      SptDT(expectLeaf(children))
+    } else if (tree.isParticle) {
+      SptRP(expectLeaf(children))
+    } else if (tree.isPossessive) {
+      SptPOS(expectLeaf(children))
+    } else {
+      ShlurdSyntaxNode(tree.label, children)
+    }
   }
 
   def rewriteAbstract(tree : ShlurdAbstractSyntaxTree) : ShlurdSyntaxTree =

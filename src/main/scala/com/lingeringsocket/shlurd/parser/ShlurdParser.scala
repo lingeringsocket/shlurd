@@ -251,7 +251,7 @@ class ShlurdSingleParser(
               ShlurdUnknownSentence
             } else {
               val (negativeSub, predicate) =
-                expectPredicate(np, ap.children, ap, specifiedState,
+                expectPredicate(np, ap, specifiedState,
                   extractRelationship(verbHead))
               val positive = !(negative ^ negativeSub)
               ShlurdPredicateSentence(
@@ -321,7 +321,10 @@ class ShlurdSingleParser(
           }
         }
         val (negativeSub, predicate) = expectPredicate(
-          np, complementRemainder, complement.head, combinedState,
+          np,
+          ShlurdSyntaxRewrite.recompose(
+            complement.head, complementRemainder),
+          combinedState,
           REL_IDENTITY)
         ShlurdPredicateQuery(
           predicate, question,
@@ -432,7 +435,7 @@ class ShlurdSingleParser(
           extractPrepositionalState(vpChildren)
         val complement = vpRemainder.last
         val (negativeComplement, predicate) = expectPredicate(
-          np, complement.children, complement, specifiedState,
+          np, complement, specifiedState,
           extractRelationship(verbHead))
         val positive = !(negative ^ negativeComplement)
         if (isQuestion) {
@@ -820,13 +823,12 @@ class ShlurdSingleParser(
 
   private def expectPredicate(
     np : ShlurdSyntaxTree,
-    complement : Seq[ShlurdSyntaxTree],
-    complementPhrase : ShlurdSyntaxTree,
+    complement : ShlurdSyntaxTree,
     specifiedState : ShlurdState,
     relationship : ShlurdRelationship)
       : (Boolean, ShlurdPredicate) =
   {
-    val (negative, seq) = extractNegative(complement)
+    val (negative, seq) = extractNegative(complement.children)
     if (np.isExistential) {
       val subject = splitCoordinatingConjunction(seq) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {
@@ -841,7 +843,11 @@ class ShlurdSingleParser(
         }
       }
       (negative, ShlurdStatePredicate(subject, ShlurdExistenceState()))
-    } else if (complementPhrase.isNounPhrase) {
+    } else if (complement.isExistential) {
+      (negative, ShlurdStatePredicate(
+        specifyReference(expectReference(np), specifiedState),
+          ShlurdExistenceState()))
+    } else if (complement.isNounPhrase) {
       val relationshipPredicate = ShlurdRelationshipPredicate(
         specifyReference(expectReference(np), specifiedState),
         expectReference(seq),
@@ -851,14 +857,14 @@ class ShlurdSingleParser(
       val state = splitCoordinatingConjunction(seq) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {
           expectStateComplement(
-            ShlurdSyntaxRewrite.recompose(complementPhrase, seq))
+            ShlurdSyntaxRewrite.recompose(complement, seq))
         }
         case (determiner, separator, split) => {
           ShlurdConjunctiveState(
             determiner,
             split.map(
               subseq => expectStateComplement(
-                ShlurdSyntaxRewrite.recompose(complementPhrase, subseq))),
+                ShlurdSyntaxRewrite.recompose(complement, subseq))),
             separator)
         }
       }
