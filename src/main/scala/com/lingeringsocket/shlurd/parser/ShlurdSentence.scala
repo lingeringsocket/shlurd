@@ -19,24 +19,67 @@ sealed trait ShlurdPhrase
   def children : Seq[ShlurdPhrase] = Seq.empty
 
   def hasUnknown : Boolean = children.exists(_.hasUnknown)
+
+  def isIncomplete : Boolean = children.exists(_.isIncomplete)
 }
 
-sealed trait ShlurdSentence extends ShlurdPhrase
+sealed trait ShlurdProtoSentence extends ShlurdPhrase
+{
+}
+
+sealed trait ShlurdProtoPredicate extends ShlurdPhrase
+{
+}
+
+sealed trait ShlurdProtoReference extends ShlurdPhrase
+{
+}
+
+sealed trait ShlurdProtoState extends ShlurdPhrase
+{
+}
+
+sealed trait ShlurdSentence extends ShlurdProtoSentence
 {
   def mood : ShlurdMood
 
   def formality : ShlurdFormality
 }
 
-sealed trait ShlurdPredicate extends ShlurdPhrase
+sealed trait ShlurdPredicate extends ShlurdProtoPredicate
 {
 }
 
-sealed trait ShlurdReference extends ShlurdPhrase
+sealed trait ShlurdReference extends ShlurdProtoReference
 {
 }
 
-sealed trait ShlurdState extends ShlurdPhrase
+sealed trait ShlurdState extends ShlurdProtoState
+{
+}
+
+sealed trait ShlurdExpectedPhrase extends ShlurdPhrase
+{
+  override def isIncomplete : Boolean = true
+}
+
+case class ShlurdExpectedSentence(tree : ShlurdSyntaxTree, forceSQ : Boolean)
+    extends ShlurdProtoSentence with ShlurdExpectedPhrase
+{
+}
+
+case class ShlurdExpectedPredicate(tree : ShlurdSyntaxTree)
+    extends ShlurdProtoPredicate with ShlurdExpectedPhrase
+{
+}
+
+case class ShlurdExpectedReference(tree : ShlurdSyntaxTree)
+    extends ShlurdProtoReference with ShlurdExpectedPhrase
+{
+}
+
+case class ShlurdExpectedState(tree : ShlurdSyntaxTree)
+    extends ShlurdProtoState with ShlurdExpectedPhrase
 {
 }
 

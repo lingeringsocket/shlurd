@@ -112,11 +112,15 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectRoot(tree : ShlurdSyntaxTree, guessedQuestion : Boolean) =
+  private def expectRoot(tree : ShlurdSyntaxTree) =
   {
     tree match {
-      case SptROOT(sentence) => {
-        expectSentence(sentence, guessedQuestion)
+      case SptROOT(sentenceSyntaxTree) => {
+        val phraseRewrite = new ShlurdPhraseRewrite(this)
+        val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
+        val expected = ShlurdExpectedSentence(sentenceSyntaxTree, forceSQ)
+        val phrase = phraseRewrite.rewriteSentence(expected)
+        phraseRewrite.completeSentence(phrase)
       }
       case _ => ShlurdUnknownSentence
     }
@@ -169,169 +173,171 @@ class ShlurdSingleParser(
     (children.size == 1) && children.head.isVerbPhrase
   }
 
-  private def expectSentence(
-    tree : ShlurdSyntaxTree, guessedQuestion : Boolean)
+  private[parser] def parseSentence(tree : SptS)
       : ShlurdSentence =
   {
-    val forceSQ = tree.firstChild.firstChild.isBeingVerb
-    if (tree.isSentence && !forceSQ) {
-      val hasQuestionMark =
-        tree.children.last.hasTerminalLabel(LABEL_DOT, LABEL_QUESTION_MARK)
-      val isQuestion =
-        hasQuestionMark && !guessedQuestion
-      val force = {
-        if (tree.children.last.hasTerminalLabel(
-          LABEL_DOT, LABEL_EXCLAMATION_MARK))
-        {
-          FORCE_EXCLAMATION
-        } else {
-          FORCE_NEUTRAL
-        }
-      }
-      val children =
-        truncatePunctuation(
-          tree, Seq(LABEL_DOT, LABEL_EXCLAMATION_MARK, LABEL_QUESTION_MARK))
-      if (isImperative(children)) {
-        expectCommand(children.head, ShlurdFormality(force))
-      } else if (children.size == 2) {
-        val np = children.head
-        val vp = children.last
-        if (np.isNounPhrase && vp.isVerbPhrase) {
-          expectPredicateSentence(
-            np, vp, isQuestion, force, MODAL_NEUTRAL, false)
-        } else {
-          ShlurdUnknownSentence
-        }
-      } else {
-        ShlurdUnknownSentence
-      }
-    } else if (forceSQ || tree.isSubQuestion) {
-      val punctless = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
-      val (specifiedState, children) = {
-        val unwrapped = {
-          if (forceSQ && isSinglePhrase(punctless)) {
-            punctless.head.children
-          } else {
-            punctless
-          }
-        }
-        val (s, c) = extractPrepositionalState(unwrapped)
-        if (c.size < 3) {
-          (ShlurdNullState(), unwrapped)
-        } else {
-          (s, c)
-        }
-      }
-      if (!forceSQ && isImperative(punctless)) {
-        assert(specifiedState == ShlurdNullState())
-        return expectCommand(children.head, ShlurdFormality.DEFAULT)
-      }
-      if (children.size > 2) {
-        val (modality, modeless) = extractModality(children)
-        val (negativeSuper, seq) = extractNegative(modeless)
-        val expectedSize = modality match {
-          case MODAL_NEUTRAL => 3
-          case _ => 2
-        }
-        if (seq.size == expectedSize) {
-          val (verbHead, np, ap, negative) = modality match {
-            // "is Larry smart?"
-            case MODAL_NEUTRAL => {
-              (seq(0), seq(1), seq(2), negativeSuper)
-            }
-            // "(can) Larry [be [smart]]?"
-            case _ => {
-              val vp = seq(1)
-              val (negativeSub, sub) = extractNegative(vp.children)
-              (sub.head, seq(0), sub.last, (negativeSub ^ negativeSuper))
-            }
-          }
-          if (verbHead.isRelationshipVerb) {
-            if (!np.isExistential && verbHead.isExistsVerb) {
-              ShlurdUnknownSentence
-            } else {
-              val (negativeSub, predicate) =
-                expectPredicate(np, ap, specifiedState,
-                  extractRelationship(verbHead))
-              val positive = !(negative ^ negativeSub)
-              ShlurdPredicateSentence(
-                predicate,
-                ShlurdInterrogativeMood(positive, modality))
-            }
-          } else {
-            ShlurdUnknownSentence
-          }
-        } else {
-          ShlurdUnknownSentence
-        }
-      } else {
-        ShlurdUnknownSentence
-      }
-    } else if (tree.isSBARQ) {
-      val children = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
-      val first = children.head
-      val second = children.last
-      val secondUnwrapped = {
-        if ((second.numChildren == 1) && second.firstChild.isVerbPhrase) {
-          second.firstChild.children
-        } else {
-          second.children
-        }
-      }
-      val (negativeSuper, secondSub) = extractNegative(secondUnwrapped)
-      if ((children.size != 2) ||
-        !first.isQueryNoun ||
-        !second.isSubQuestion ||
-        !secondSub.head.isBeingVerb)
+    val hasQuestionMark =
+      tree.children.last.hasTerminalLabel(LABEL_DOT, LABEL_QUESTION_MARK)
+    val isQuestion =
+      hasQuestionMark && !guessedQuestion
+    val force = {
+      if (tree.children.last.hasTerminalLabel(
+        LABEL_DOT, LABEL_EXCLAMATION_MARK))
       {
-        ShlurdUnknownSentence
+        FORCE_EXCLAMATION
       } else {
-        // FIXME support modality
-        val (specifiedState, whnpc) = extractPrepositionalState(first.children)
-        val seq = {
-          if ((whnpc.size == 1) && whnpc.head.isQueryNoun) {
-            whnpc.head.children
-          } else {
-            whnpc
-          }
-        }
-        val question = expectQuestion(seq.head) match {
-          case Some(q) => q
-          case _ => return ShlurdUnknownSentence
-        }
-        val np = question match {
-          case QUESTION_WHO => {
-            SptNP(ShlurdSyntaxNode(LABEL_NN, seq.head.children))
-          }
-          case _ => {
-            SptNP(seq.tail:_*)
-          }
-        }
-        val complement = secondSub.tail
-        val (combinedState, complementRemainder) = {
-          if (specifiedState == ShlurdNullState()) {
-            val (s, r) = extractPrepositionalState(complement)
-            if (r.isEmpty) {
-              (specifiedState, complement)
-            } else {
-              (s, r)
-            }
-          } else {
-            (specifiedState, complement)
-          }
-        }
-        val (negativeSub, predicate) = expectPredicate(
-          np,
-          ShlurdSyntaxRewrite.recompose(
-            complement.head, complementRemainder),
-          combinedState,
-          REL_IDENTITY)
-        ShlurdPredicateQuery(
-          predicate, question,
-          ShlurdInterrogativeMood(!(negativeSuper ^ negativeSub)))
+        FORCE_NEUTRAL
+      }
+    }
+    val children =
+      truncatePunctuation(
+        tree, Seq(LABEL_DOT, LABEL_EXCLAMATION_MARK, LABEL_QUESTION_MARK))
+    if (isImperative(children)) {
+      expectCommand(children.head, ShlurdFormality(force))
+    } else if (children.size == 2) {
+      val np = children.head
+      val vp = children.last
+      if (np.isNounPhrase && vp.isVerbPhrase) {
+        expectPredicateSentence(
+          np, vp, isQuestion, force, MODAL_NEUTRAL, false)
+      } else {
+        ShlurdUnknownSentence
       }
     } else {
       ShlurdUnknownSentence
+    }
+  }
+
+  private[parser] def parseSQ(tree : ShlurdSyntaxTree, forceSQ : Boolean)
+      : ShlurdSentence =
+  {
+    val punctless = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
+    val (specifiedState, children) = {
+      val unwrapped = {
+        if (forceSQ && isSinglePhrase(punctless)) {
+          punctless.head.children
+        } else {
+          punctless
+        }
+      }
+      val (s, c) = extractPrepositionalState(unwrapped)
+      if (c.size < 3) {
+        (ShlurdNullState(), unwrapped)
+      } else {
+        (s, c)
+      }
+    }
+    if (!forceSQ && isImperative(punctless)) {
+      assert(specifiedState == ShlurdNullState())
+      return expectCommand(children.head, ShlurdFormality.DEFAULT)
+    }
+    if (children.size > 2) {
+      val (modality, modeless) = extractModality(children)
+      val (negativeSuper, seq) = extractNegative(modeless)
+      val expectedSize = modality match {
+        case MODAL_NEUTRAL => 3
+        case _ => 2
+      }
+      if (seq.size == expectedSize) {
+        val (verbHead, np, ap, negative) = modality match {
+          // "is Larry smart?"
+          case MODAL_NEUTRAL => {
+            (seq(0), seq(1), seq(2), negativeSuper)
+          }
+          // "(can) Larry [be [smart]]?"
+          case _ => {
+            val vp = seq(1)
+            val (negativeSub, sub) = extractNegative(vp.children)
+            (sub.head, seq(0), sub.last, (negativeSub ^ negativeSuper))
+          }
+        }
+        if (verbHead.isRelationshipVerb) {
+          if (!np.isExistential && verbHead.isExistsVerb) {
+            ShlurdUnknownSentence
+          } else {
+            val (negativeSub, predicate) =
+              expectPredicate(np, ap, specifiedState,
+                extractRelationship(verbHead))
+            val positive = !(negative ^ negativeSub)
+            ShlurdPredicateSentence(
+              predicate,
+              ShlurdInterrogativeMood(positive, modality))
+          }
+        } else {
+          ShlurdUnknownSentence
+        }
+      } else {
+        ShlurdUnknownSentence
+      }
+    } else {
+      ShlurdUnknownSentence
+    }
+  }
+
+  private[parser] def parseSBARQ(tree : SptSBARQ)
+      : ShlurdSentence =
+  {
+    val children = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
+    val first = children.head
+    val second = children.last
+    val secondUnwrapped = {
+      if ((second.numChildren == 1) && second.firstChild.isVerbPhrase) {
+        second.firstChild.children
+      } else {
+        second.children
+      }
+    }
+    val (negativeSuper, secondSub) = extractNegative(secondUnwrapped)
+    if ((children.size != 2) ||
+      !first.isQueryNoun ||
+      !second.isSubQuestion ||
+      !secondSub.head.isBeingVerb)
+    {
+      ShlurdUnknownSentence
+    } else {
+      // FIXME support modality
+      val (specifiedState, whnpc) = extractPrepositionalState(first.children)
+      val seq = {
+        if ((whnpc.size == 1) && whnpc.head.isQueryNoun) {
+          whnpc.head.children
+        } else {
+          whnpc
+        }
+      }
+      val question = expectQuestion(seq.head) match {
+        case Some(q) => q
+        case _ => return ShlurdUnknownSentence
+      }
+      val np = question match {
+        case QUESTION_WHO => {
+          SptNP(ShlurdSyntaxNode(LABEL_NN, seq.head.children))
+        }
+        case _ => {
+          SptNP(seq.tail:_*)
+        }
+      }
+      val complement = secondSub.tail
+      val (combinedState, complementRemainder) = {
+        if (specifiedState == ShlurdNullState()) {
+          val (s, r) = extractPrepositionalState(complement)
+          if (r.isEmpty) {
+            (specifiedState, complement)
+          } else {
+            (s, r)
+          }
+        } else {
+          (specifiedState, complement)
+        }
+      }
+      val (negativeSub, predicate) = expectPredicate(
+        np,
+        ShlurdSyntaxRewrite.recompose(
+          complement.head, complementRemainder),
+        combinedState,
+        REL_IDENTITY)
+      ShlurdPredicateQuery(
+        predicate, question,
+        ShlurdInterrogativeMood(!(negativeSuper ^ negativeSub)))
     }
   }
 
@@ -943,7 +949,7 @@ class ShlurdSingleParser(
     }
   }
 
-  override def parseOne() = expectRoot(tree, guessedQuestion)
+  override def parseOne() = expectRoot(tree)
 
   override def parseFirst() = parseOne
 
