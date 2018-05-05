@@ -15,9 +15,14 @@
 package com.lingeringsocket.shlurd.parser
 
 import org.kiama.rewriting._
+import org.kiama.util._
+
+import org.slf4j._
 
 class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
 {
+  private val logger = LoggerFactory.getLogger(classOf[ShlurdPhraseRewrite])
+
   def completeSentence(
     tree : ShlurdSyntaxTree, phrase : ShlurdPhrase) : ShlurdSentence =
   {
@@ -35,11 +40,23 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
     rule : PartialFunction[ShlurdPhrase, ShlurdPhrase])
       : (ShlurdPhrase) => ShlurdPhrase =
   {
-    val strategy = Rewriter.rule[ShlurdPhrase](rule)
+    val strategy =
+      Rewriter.manybu(
+        "rewriteEverywhere",
+        Rewriter.rule[ShlurdPhrase](rule))
+    val maybeLogging = if (logger.isDebugEnabled) {
+      Rewriter.log(
+        "rewriteLog",
+        strategy,
+        "REWRITE ",
+        new ErrorEmitter)
+    } else {
+      strategy
+    }
     Rewriter.rewrite(
       Rewriter.repeat(
         "rewriteRepeat",
-        Rewriter.manybu("rewriteEverywhere", strategy)))
+        maybeLogging))
   }
 
   def rewriteSentence = rewrite {
