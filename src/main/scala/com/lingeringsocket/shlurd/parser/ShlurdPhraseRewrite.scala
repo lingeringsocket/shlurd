@@ -18,14 +18,15 @@ import org.kiama.rewriting._
 
 class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
 {
-  def completeSentence(phrase : ShlurdPhrase) : ShlurdSentence =
+  def completeSentence(
+    tree : ShlurdSyntaxTree, phrase : ShlurdPhrase) : ShlurdSentence =
   {
-    if (phrase.isIncomplete) {
-      ShlurdUnknownSentence
+    if (phrase.hasUnknown) {
+      ShlurdUnrecognizedSentence(tree)
     } else {
       phrase match {
         case sentence : ShlurdSentence => sentence
-        case _ => ShlurdUnknownSentence
+        case _ => ShlurdUnrecognizedSentence(tree)
       }
     }
   }
@@ -36,7 +37,9 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
   {
     val strategy = Rewriter.rule[ShlurdPhrase](rule)
     Rewriter.rewrite(
-        Rewriter.everywheretd("rewriteEverywhere", strategy))
+      Rewriter.repeat(
+        "rewriteRepeat",
+        Rewriter.manybu("rewriteEverywhere", strategy)))
   }
 
   def rewriteSentence = rewrite {
@@ -52,6 +55,28 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
     }
     case ShlurdExpectedSentence(sbarq : SptSBARQ, _) => {
       parser.parseSBARQ(sbarq)
+    }
+    case ShlurdExpectedReference(np : ShlurdSyntaxTree) => {
+      parser.parseReference(np)
+    }
+    case ambiguous : ShlurdAmbiguousSentence if (!ambiguous.hasUnresolved) => {
+      val alternatives = ambiguous.alternatives
+      assert(!alternatives.isEmpty)
+      val dedup = alternatives.distinct
+      if (dedup.size == 1) {
+        dedup.head
+      } else {
+        val clean = dedup.filterNot(_.hasUnknown)
+        if (clean.isEmpty) {
+          ShlurdAmbiguousSentence(dedup)
+        } else {
+          if (clean.size == 1) {
+            clean.head
+          } else {
+            ShlurdAmbiguousSentence(clean)
+          }
+        }
+      }
     }
   }
 }

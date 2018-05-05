@@ -495,7 +495,10 @@ class ShlurdInterpreterSpec extends Specification
           ShlurdEntityReference(
             ShlurdWord(name, name), DETERMINER_UNSPECIFIED)
         }
-        case _ => ShlurdUnknownReference
+        case ZooLocationEntity(name) => {
+          ShlurdEntityReference(
+            ShlurdWord(name, name), DETERMINER_UNSPECIFIED)
+        }
       }
     }
 

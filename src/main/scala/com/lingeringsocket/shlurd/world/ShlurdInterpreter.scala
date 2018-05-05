@@ -264,7 +264,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         // that does not result in an error
         sentencePrinter.sb.respondCannotUnderstand()
       }
-      case ShlurdUnknownSentence => {
+      case _ : ShlurdUnknownSentence => {
         debug("UNKNOWN SENTENCE")
         sentencePrinter.sb.respondCannotUnderstand()
       }
@@ -340,7 +340,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             evaluateLocationStatePredicate(
               subject, locative, location, resultCollector)
           }
-          case ShlurdNullState() | ShlurdUnknownState => {
+          case ShlurdNullState() | _ : ShlurdUnknownState => {
             debug(s"UNEXPECTED STATE : $state")
             fail(sentencePrinter.sb.respondCannotUnderstand())
           }
@@ -564,7 +564,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         evaluatePredicateOverState(
           sub, state, context, resultCollector, specifiedState, evaluator)
       }
-      case ShlurdUnknownReference => {
+      case _ : ShlurdUnknownReference => {
         debug("UNKNOWN REFERENCE")
         fail(sentencePrinter.sb.respondCannotUnderstand())
       }

@@ -20,66 +20,117 @@ sealed trait ShlurdPhrase
 
   def hasUnknown : Boolean = children.exists(_.hasUnknown)
 
-  def isIncomplete : Boolean = children.exists(_.isIncomplete)
+  def hasUnrecognized : Boolean = children.exists(_.hasUnrecognized)
+
+  def hasUnresolved : Boolean = children.exists(_.hasUnresolved)
 }
 
-sealed trait ShlurdProtoSentence extends ShlurdPhrase
-{
-}
-
-sealed trait ShlurdProtoPredicate extends ShlurdPhrase
-{
-}
-
-sealed trait ShlurdProtoReference extends ShlurdPhrase
-{
-}
-
-sealed trait ShlurdProtoState extends ShlurdPhrase
-{
-}
-
-sealed trait ShlurdSentence extends ShlurdProtoSentence
+sealed trait ShlurdSentence extends ShlurdPhrase
 {
   def mood : ShlurdMood
 
   def formality : ShlurdFormality
 }
 
-sealed trait ShlurdPredicate extends ShlurdProtoPredicate
+sealed trait ShlurdPredicate extends ShlurdPhrase
 {
 }
 
-sealed trait ShlurdReference extends ShlurdProtoReference
+sealed trait ShlurdReference extends ShlurdPhrase
 {
 }
 
-sealed trait ShlurdState extends ShlurdProtoState
+sealed trait ShlurdState extends ShlurdPhrase
 {
 }
 
-sealed trait ShlurdExpectedPhrase extends ShlurdPhrase
+sealed trait ShlurdUnknownPhrase extends ShlurdPhrase
 {
-  override def isIncomplete : Boolean = true
+  override def hasUnknown = true
+
+  def syntaxTree : ShlurdSyntaxTree
 }
 
-case class ShlurdExpectedSentence(tree : ShlurdSyntaxTree, forceSQ : Boolean)
-    extends ShlurdProtoSentence with ShlurdExpectedPhrase
+sealed trait ShlurdUnknownSentence
+    extends ShlurdSentence with ShlurdUnknownPhrase
+{
+  override def mood = MOOD_INDICATIVE_POSITIVE
+
+  override def formality = ShlurdFormality.DEFAULT
+}
+
+sealed trait ShlurdUnknownPredicate
+    extends ShlurdPredicate with ShlurdUnknownPhrase
 {
 }
 
-case class ShlurdExpectedPredicate(tree : ShlurdSyntaxTree)
-    extends ShlurdProtoPredicate with ShlurdExpectedPhrase
+sealed trait ShlurdUnknownReference
+    extends ShlurdReference with ShlurdUnknownPhrase
 {
 }
 
-case class ShlurdExpectedReference(tree : ShlurdSyntaxTree)
-    extends ShlurdProtoReference with ShlurdExpectedPhrase
+sealed trait ShlurdUnknownState
+    extends ShlurdState with ShlurdUnknownPhrase
 {
 }
 
-case class ShlurdExpectedState(tree : ShlurdSyntaxTree)
-    extends ShlurdProtoState with ShlurdExpectedPhrase
+sealed trait ShlurdUnrecognizedPhrase extends ShlurdPhrase
+{
+  override def hasUnrecognized = true
+}
+
+sealed trait ShlurdUnresolvedPhrase extends ShlurdPhrase
+{
+  override def hasUnresolved = true
+}
+
+case class ShlurdUnrecognizedSentence(
+  syntaxTree : ShlurdSyntaxTree ,
+  forceSQ : Boolean = false)
+    extends ShlurdUnknownSentence with ShlurdUnrecognizedPhrase
+{
+}
+
+case class ShlurdUnrecognizedPredicate(
+  syntaxTree : ShlurdSyntaxTree)
+    extends ShlurdUnknownPredicate with ShlurdUnrecognizedPhrase
+{
+}
+
+case class ShlurdUnrecognizedReference(
+  syntaxTree : ShlurdSyntaxTree)
+    extends ShlurdUnknownReference with ShlurdUnrecognizedPhrase
+{
+}
+
+case class ShlurdUnrecognizedState(
+  syntaxTree : ShlurdSyntaxTree)
+    extends ShlurdUnknownState with ShlurdUnrecognizedPhrase
+{
+}
+
+case class ShlurdExpectedSentence(
+  syntaxTree : ShlurdSyntaxTree,
+  forceSQ : Boolean = false)
+    extends ShlurdUnknownSentence with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdExpectedPredicate(
+  syntaxTree : ShlurdSyntaxTree)
+    extends ShlurdUnknownPredicate with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdExpectedReference(
+  syntaxTree : ShlurdSyntaxTree)
+    extends ShlurdUnknownReference with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdExpectedState(
+  syntaxTree : ShlurdSyntaxTree)
+    extends ShlurdUnknownState with ShlurdUnresolvedPhrase
 {
 }
 
@@ -122,30 +173,6 @@ case class ShlurdAmbiguousSentence(
   override def mood = alternatives.head.mood
 
   override def formality = alternatives.head.formality
-}
-
-case object ShlurdUnknownSentence extends ShlurdSentence
-{
-  override def mood = MOOD_INDICATIVE_POSITIVE
-
-  override def formality = ShlurdFormality.DEFAULT
-
-  override def hasUnknown = true
-}
-
-case object ShlurdUnknownReference extends ShlurdReference
-{
-  override def hasUnknown = true
-}
-
-case object ShlurdUnknownPredicate extends ShlurdPredicate
-{
-  override def hasUnknown = true
-}
-
-case object ShlurdUnknownState extends ShlurdState
-{
-  override def hasUnknown = true
 }
 
 case class ShlurdStatePredicate(
@@ -265,7 +292,7 @@ object ShlurdReference
       case ShlurdStateSpecifiedReference(reference, _) =>
         isCountCoercible(reference)
       case gr : ShlurdGenitiveReference => true
-      case ShlurdUnknownReference => false
+      case _ : ShlurdUnknownReference => false
     }
   }
 
@@ -287,7 +314,7 @@ object ShlurdReference
         getCount(reference)
       case ShlurdGenitiveReference(_, reference) =>
         getCount(reference)
-      case ShlurdUnknownReference => COUNT_SINGULAR
+      case _ : ShlurdUnknownReference => COUNT_SINGULAR
     }
   }
 

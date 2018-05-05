@@ -49,7 +49,7 @@ class ShlurdSentencePrinterSpec extends Specification
       case ShlurdAmbiguousSentence(alternatives) => {
         ShlurdAmbiguousSentence(alternatives.map(normalize))
       }
-      case ShlurdUnknownSentence => parsed
+      case _ : ShlurdUnknownSentence => parsed
     }
   }
 

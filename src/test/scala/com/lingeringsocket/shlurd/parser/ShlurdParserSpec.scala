@@ -546,16 +546,18 @@ class ShlurdParserSpec extends Specification
     {
       val inputUnspecified = "colorless green ideas slumber furiously"
       val result = parse(inputUnspecified)
-      result must be equalTo ShlurdUnknownSentence
+      result must haveClass[ShlurdUnrecognizedSentence]
       result.hasUnknown must beTrue
     }
 
     "deal with unknowns" in
     {
       predDoor().hasUnknown must beFalse
-      ShlurdUnknownPredicate.hasUnknown must beTrue
+      val tree = ShlurdSyntaxLeaf("", "", "")
+      ShlurdUnrecognizedPredicate(tree).hasUnknown must beTrue
       ShlurdPredicateSentence(predDoor()).hasUnknown must beFalse
-      ShlurdPredicateSentence(ShlurdUnknownPredicate).hasUnknown must beTrue
+      ShlurdPredicateSentence(
+        ShlurdUnrecognizedPredicate(tree)).hasUnknown must beTrue
     }
   }
 }

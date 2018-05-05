@@ -51,7 +51,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdAmbiguousSentence(alternatives) => {
         alternatives.map(print(_)).mkString(" | ")
       }
-      case ShlurdUnknownSentence => {
+      case _ : ShlurdUnknownSentence => {
         sb.unknownSentence
       }
     }
@@ -132,7 +132,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.genitivePhrase(
           qualifierString, print(reference, inflection, conjoining))
       }
-      case ShlurdUnknownReference => {
+      case _ : ShlurdUnknownReference => {
         sb.unknownReference
       }
     }
@@ -165,7 +165,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           }
         )
       }
-      case ShlurdNullState() | ShlurdUnknownState => {
+      case ShlurdNullState() | _ : ShlurdUnknownState => {
         sb.unknownState
       }
     }
@@ -198,7 +198,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           getCopula(subject, ShlurdNullState(), mood, relationship),
           print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
       }
-      case ShlurdUnknownPredicate => {
+      case _ : ShlurdUnknownPredicate => {
         sb.unknownPredicateStatement
       }
     }
@@ -240,7 +240,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           getCopula(subject, ShlurdNullState(), mood, relationship),
           print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
       }
-      case ShlurdUnknownPredicate => {
+      case _ : ShlurdUnknownPredicate => {
         sb.unknownPredicateQuestion
       }
     }
@@ -285,7 +285,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdGenitiveReference(genitive, reference) => {
         getCopula(reference, state, mood, relationship)
       }
-      case ShlurdUnknownReference => {
+      case _ : ShlurdUnknownReference => {
         Seq(sb.unknownCopula)
       }
     }
