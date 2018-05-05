@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd.parser
 import org.specs2.mutable._
 
 import ShlurdEnglishLemmas._
+import ShlurdPennTreebankLabels._
 
 class ShlurdParserSpec extends Specification
 {
@@ -548,6 +549,38 @@ class ShlurdParserSpec extends Specification
       val result = parse(inputUnspecified)
       result must haveClass[ShlurdUnrecognizedSentence]
       result.hasUnknown must beTrue
+    }
+
+    "preserve unrecognized syntax" in
+    {
+      def leaf(s : String) = ShlurdSyntaxLeaf(s, s, s)
+      def leafCapitalized(s : String) = ShlurdSyntaxLeaf(
+        ShlurdParseUtils.capitalize(s), s, s)
+      val input = "close the door quickly."
+      val result = parse(input)
+      result must be equalTo(ShlurdUnrecognizedSentence(
+        SptROOT(
+          SptS(
+            SptVP(
+              ShlurdSyntaxNode(
+                LABEL_VB,
+                Seq(leafCapitalized("close"))),
+              SptNP(
+                SptDT(leaf("the")),
+                ShlurdSyntaxNode(
+                  LABEL_NN,
+                  Seq(leaf("door")))
+              ),
+              SptADVP(
+                ShlurdSyntaxNode(
+                  LABEL_RB,
+                  Seq(leaf("quickly"))))
+            ),
+            ShlurdSyntaxNode(
+              LABEL_DOT,
+              Seq(leaf(LABEL_DOT)))
+          )
+        )))
     }
 
     "deal with unknowns" in

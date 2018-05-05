@@ -1052,7 +1052,7 @@ object ShlurdParser
       dump, dumpPrefix + " FALLBACK PCFG")
     def fallback4() = prepareParser(
       sentenceString, tokens, props2, false, guessedQuestion,
-      dump, dumpPrefix + " FALLBACK SR CAPITALIZED")
+      dump, dumpPrefix + " FALLBACK SR CASELESS")
     new ShlurdFallbackParser(Seq(
       main, fallback2, fallback3, fallback4))
   }
