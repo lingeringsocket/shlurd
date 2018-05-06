@@ -96,4 +96,21 @@ object ShlurdParseUtils
 
   def orderedSet[T](iterable : Iterable[T]) =
     (new mutable.LinkedHashSet[T] ++= iterable)
+
+  def expectUnique(seq : Seq[ShlurdSyntaxTree]) : ShlurdSyntaxTree =
+  {
+    assert(seq.size == 1)
+    seq.head
+  }
+
+  def expectLeaf(seq : Seq[ShlurdSyntaxTree]) : ShlurdSyntaxLeaf =
+  {
+    expectUnique(seq) match {
+      case leaf : ShlurdSyntaxLeaf => leaf
+      case nonLeaf => {
+        throw new IllegalArgumentException("leaf expected but got " + nonLeaf)
+      }
+    }
+  }
+
 }

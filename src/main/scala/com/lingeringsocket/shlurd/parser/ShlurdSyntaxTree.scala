@@ -32,15 +32,26 @@ object ShlurdPennTreebankLabels
   val LABEL_WDT = "WDT"
   val LABEL_WP = "WP"
   val LABEL_NN = "NN"
+  val LABEL_NNS = "NNS"
+  val LABEL_NNP = "NNP"
+  val LABEL_NNPS = "NNPS"
   val LABEL_VB = "VB"
+  val LABEL_VBZ = "VBZ"
+  val LABEL_VBP = "VBP"
+  val LABEL_VBD = "VBD"
   val LABEL_VBG = "VBG"
   val LABEL_VBN = "VBN"
   val LABEL_EX = "EX"
   val LABEL_DT = "DT"
   val LABEL_CC = "CC"
   val LABEL_PRP = "PRP"
+  val LABEL_PRPP = "PRP$"
   val LABEL_JJ = "JJ"
+  val LABEL_JJR = "JJ"
+  val LABEL_JJS = "JJ"
   val LABEL_RB = "RB"
+  val LABEL_RBR = "RBR"
+  val LABEL_RBS = "RBS"
   val LABEL_IN = "IN"
   val LABEL_POS = "POS"
   val LABEL_MD = "MD"
@@ -87,21 +98,9 @@ trait ShlurdAbstractSyntaxTree
   def hasTerminalLabel(label : String, terminalLabel : String) =
     isPreTerminal && hasLabel(label) && firstChild.hasLabel(terminalLabel)
 
-  def isRoot = hasLabel(LABEL_ROOT)
-
-  def isSentence = hasLabel(LABEL_S)
-
-  def isSBAR = hasLabel(LABEL_SBAR)
-
-  def isSBARQ = hasLabel(LABEL_SBARQ)
-
   def isNounPhrase = hasLabel(LABEL_NP)
 
   def isVerbPhrase = hasLabel(LABEL_VP)
-
-  def isAdjectivePhrase = hasLabel(LABEL_ADJP)
-
-  def isAdverbPhrase = hasLabel(LABEL_ADVP)
 
   def isPrepositionalPhrase = hasLabel(LABEL_PP)
 
@@ -120,19 +119,13 @@ trait ShlurdAbstractSyntaxTree
 
   def isQueryNoun = hasLabel(LABEL_WHNP)
 
-  def isQueryAdjective = hasLabel(LABEL_WHADJP)
-
-  def isQueryDeterminer = hasLabel(LABEL_WDT)
-
-  def isQueryPronoun = hasLabel(LABEL_WP)
-
   def isPronoun = label.startsWith(LABEL_PRP)
 
   def isAdjective = label.startsWith(LABEL_JJ)
 
   def isAdverb = label.startsWith(LABEL_RB)
 
-  def isPreposition = label.startsWith(LABEL_IN)
+  def isPreposition = hasLabel(LABEL_IN)
 
   def isAdjectival = isAdjective || isParticipleOrGerund
 
@@ -221,6 +214,54 @@ sealed trait ShlurdSyntaxPreTerminal extends ShlurdSyntaxUniqueChild
 }
 
 sealed trait ShlurdSyntaxPhrase extends ShlurdSyntaxNonLeaf
+{
+}
+
+sealed trait ShlurdSyntaxNoun extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxVerb extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxPronoun extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxAdjective extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxAdverb extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxPreposition extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxConjunction extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxDeterminer extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxPossessive extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxParticle extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxModal extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxPunctuation extends ShlurdSyntaxPreTerminal
 {
 }
 
@@ -319,26 +360,158 @@ case class SptWP(children : ShlurdSyntaxTree*)
   override def label = LABEL_WP
 }
 
+case class SptNN(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxNoun
+{
+  override def label = LABEL_NN
+}
+
+case class SptNNS(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxNoun
+{
+  override def label = LABEL_NNS
+}
+
+case class SptNNP(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxNoun
+{
+  override def label = LABEL_NNP
+}
+
+case class SptNNPS(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxNoun
+{
+  override def label = LABEL_NNPS
+}
+
+case class SptPRP(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxPronoun
+{
+  override def label = LABEL_PRP
+}
+
+case class SptPRPP(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxPronoun
+{
+  override def label = LABEL_PRPP
+}
+
+case class SptVB(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxVerb
+{
+  override def label = LABEL_VB
+}
+
+case class SptVBZ(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxVerb
+{
+  override def label = LABEL_VBZ
+}
+
+case class SptVBP(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxVerb
+{
+  override def label = LABEL_VBP
+}
+
+case class SptVBD(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxVerb
+{
+  override def label = LABEL_VBD
+}
+
+case class SptVBN(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxVerb
+{
+  override def label = LABEL_VBN
+}
+
+case class SptVBG(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxVerb
+{
+  override def label = LABEL_VBG
+}
+
 case class SptCC(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPreTerminal
+    extends ShlurdSyntaxConjunction
 {
   override def label = LABEL_CC
 }
 
 case class SptDT(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPreTerminal
+    extends ShlurdSyntaxDeterminer
 {
   override def label = LABEL_DT
 }
 
 case class SptPOS(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPreTerminal
+    extends ShlurdSyntaxPossessive
 {
   override def label = LABEL_POS
 }
 
 case class SptRP(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPreTerminal
+    extends ShlurdSyntaxParticle
 {
   override def label = LABEL_RP
+}
+
+case class SptMD(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxModal
+{
+  override def label = LABEL_MD
+}
+
+case class SptJJ(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxAdjective
+{
+  override def label = LABEL_JJ
+}
+
+case class SptJJR(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxAdjective
+{
+  override def label = LABEL_JJR
+}
+
+case class SptJJS(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxAdjective
+{
+  override def label = LABEL_JJS
+}
+
+case class SptRB(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxAdverb
+{
+  override def label = LABEL_RB
+}
+
+case class SptRBR(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxAdverb
+{
+  override def label = LABEL_RBR
+}
+
+case class SptRBS(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxAdverb
+{
+  override def label = LABEL_RBS
+}
+
+case class SptIN(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxPreposition
+{
+  override def label = LABEL_IN
+}
+
+case class SptDOT(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxPunctuation
+{
+  override def label = LABEL_DOT
+}
+
+case class SptCOMMA(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxPunctuation
+{
+  override def label = LABEL_COMMA
 }

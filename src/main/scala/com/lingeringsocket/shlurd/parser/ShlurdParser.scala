@@ -122,7 +122,7 @@ class ShlurdSingleParser(
         val phraseRewrite = new ShlurdPhraseRewrite(this)
         val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
         val expected = ShlurdExpectedSentence(sentenceSyntaxTree, forceSQ)
-        val phrase = phraseRewrite.rewriteSentence(expected)
+        val phrase = phraseRewrite.rewriteAllPhrases(expected)
         phraseRewrite.completeSentence(tree, phrase)
       }
       case _ => ShlurdUnrecognizedSentence(tree)
@@ -313,7 +313,7 @@ class ShlurdSingleParser(
       }
       val np = question match {
         case QUESTION_WHO => {
-          SptNP(ShlurdSyntaxNode(LABEL_NN, seq.head.children))
+          SptNP(SptNN(expectLeaf(seq.head.children)))
         }
         case _ => {
           SptNP(seq.tail:_*)
@@ -606,10 +606,10 @@ class ShlurdSingleParser(
     ShlurdExpectedReference(SptNP(seq:_*))
   }
 
-  private def parseReference(
-    tree : ShlurdSyntaxTree,
-    seqIn : Seq[ShlurdSyntaxTree]) : ShlurdReference =
+  private[parser] def parseNounPhraseReference(
+    tree : ShlurdSyntaxTree) : ShlurdReference =
   {
+    val seqIn = tree.children
     if (seqIn.isEmpty) {
       return ShlurdUnrecognizedReference(tree)
     }
@@ -676,26 +676,6 @@ class ShlurdSingleParser(
     ShlurdExpectedReference(np)
   }
 
-  private[parser] def parseReference(np : ShlurdSyntaxTree) : ShlurdReference =
-  {
-    if (np.isNounPhrase) {
-      if (np.numChildren == 1) {
-        parseReference(np.firstChild)
-      } else {
-        parseReference(np, np.children)
-      }
-    } else if (np.isNoun) {
-      ShlurdEntityReference(
-        getWord(np.firstChild),
-        DETERMINER_UNSPECIFIED,
-        getCount(np))
-    } else if (np.isPronoun) {
-      pronounFor(np.firstChild.lemma)
-    } else {
-      ShlurdUnrecognizedReference(np)
-    }
-  }
-
   private def expectRelativeQualifier(
     tree : ShlurdSyntaxTree) : Option[Seq[ShlurdWord]] =
   {
@@ -729,7 +709,7 @@ class ShlurdSingleParser(
     }
   }
 
-  private def pronounFor(lemma : String) =
+  private[parser] def pronounFor(lemma : String) =
   {
     val person = lemma match {
       case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY |
@@ -778,7 +758,7 @@ class ShlurdSingleParser(
     }
   }
 
-  private def getCount(tree : ShlurdSyntaxTree) : ShlurdCount =
+  private[parser] def getCount(tree : ShlurdSyntaxTree) : ShlurdCount =
   {
     if (tree.label.endsWith("S")) {
       COUNT_PLURAL
@@ -787,7 +767,7 @@ class ShlurdSingleParser(
     }
   }
 
-  private def getWord(leaf : ShlurdSyntaxTree) =
+  private[parser] def getWord(leaf : ShlurdSyntaxTree) =
   {
     ShlurdWord(leaf.token, leaf.lemma)
   }

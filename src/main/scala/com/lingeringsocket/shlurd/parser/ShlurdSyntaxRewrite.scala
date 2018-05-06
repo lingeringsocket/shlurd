@@ -16,57 +16,81 @@ package com.lingeringsocket.shlurd.parser
 
 import org.kiama.rewriting._
 
+import ShlurdParseUtils._
+import ShlurdPennTreebankLabels._
+
 object ShlurdSyntaxRewrite
 {
+  private val phraseConstructors = Map(
+    LABEL_S -> SptS.apply _,
+    LABEL_SBAR -> SptSBAR.apply _,
+    LABEL_SBARQ -> SptSBARQ.apply _,
+    LABEL_NP -> SptNP.apply _,
+    LABEL_VP -> SptVP.apply _,
+    LABEL_ADJP -> SptADJP.apply _,
+    LABEL_ADVP -> SptADVP.apply _,
+    LABEL_PP -> SptPP.apply _,
+    LABEL_PRT -> SptPRT.apply _,
+    LABEL_SQ -> SptSQ.apply _,
+    LABEL_WHNP -> SptWHNP.apply _,
+    LABEL_WHADJP -> SptWHADJP.apply _,
+    LABEL_WDT -> SptWDT.apply _,
+    LABEL_WP -> SptWP.apply _
+  )
+
+  private val uniqueChildConstructors = Map(
+    LABEL_ROOT -> SptROOT
+  )
+
+  private val preTerminalConstructors = Map(
+    LABEL_NN -> SptNN,
+    LABEL_NNS -> SptNNS,
+    LABEL_NNP -> SptNNP,
+    LABEL_NNPS -> SptNNPS,
+    LABEL_PRP -> SptPRP,
+    LABEL_PRPP -> SptPRPP,
+    LABEL_VB -> SptVB,
+    LABEL_VBZ -> SptVBZ,
+    LABEL_VBP -> SptVBP,
+    LABEL_VBD -> SptVBD,
+    LABEL_VBN -> SptVBN,
+    LABEL_VBG -> SptVBG,
+    LABEL_JJ -> SptJJ,
+    LABEL_JJR -> SptJJR,
+    LABEL_JJS -> SptJJS,
+    LABEL_RB -> SptRB,
+    LABEL_RBR -> SptRBR,
+    LABEL_RBS -> SptRBS,
+    LABEL_CC -> SptCC,
+    LABEL_DT -> SptDT,
+    LABEL_IN -> SptIN,
+    LABEL_RP -> SptRP,
+    LABEL_MD -> SptMD,
+    LABEL_POS -> SptPOS,
+    LABEL_DOT -> SptDOT,
+    LABEL_COMMA -> SptCOMMA
+  )
+
   def recompose(
     tree : ShlurdAbstractSyntaxTree,
-    children : Seq[ShlurdSyntaxTree]) =
+    children : Seq[ShlurdSyntaxTree]) : ShlurdSyntaxTree =
   {
-    if ((children.size == 1) && tree.isInstanceOf[ShlurdSyntaxPhrase]
-      && (children.head.label == tree.label))
+    val label = tree.label
+    if ((children.size == 1) && tree.isInstanceOf[ShlurdSyntaxNonLeaf]
+      && (children.head.label == label))
     {
-      children.head
-    } else if (tree.isRoot) {
-      SptROOT(expectUnique(children))
-    } else if (tree.isSentence) {
-      SptS(children:_*)
-    } else if (tree.isSBAR) {
-      SptSBAR(children:_*)
-    } else if (tree.isSBARQ) {
-      SptSBARQ(children:_*)
-    } else if (tree.isNounPhrase) {
-      SptNP(children:_*)
-    } else if (tree.isVerbPhrase) {
-      SptVP(children:_*)
-    } else if (tree.isAdjectivePhrase) {
-      SptADJP(children:_*)
-    } else if (tree.isAdverbPhrase) {
-      SptADVP(children:_*)
-    } else if (tree.isPrepositionalPhrase) {
-      SptPP(children:_*)
-    } else if (tree.isParticlePhrase) {
-      SptPRT(children:_*)
-    } else if (tree.isSubQuestion) {
-      SptSQ(children:_*)
-    } else if (tree.isQueryNoun) {
-      SptWHNP(children:_*)
-    } else if (tree.isQueryAdjective) {
-      SptWHADJP(children:_*)
-    } else if (tree.isQueryDeterminer) {
-      SptWDT(children:_*)
-    } else if (tree.isQueryPronoun) {
-      SptWP(children:_*)
-    } else if (tree.isCoordinatingConjunction) {
-      SptCC(expectLeaf(children))
-    } else if (tree.isDeterminer) {
-      SptDT(expectLeaf(children))
-    } else if (tree.isParticle) {
-      SptRP(expectLeaf(children))
-    } else if (tree.isPossessive) {
-      SptPOS(expectLeaf(children))
-    } else {
-      ShlurdSyntaxNode(tree.label, children)
+      return children.head
     }
+    preTerminalConstructors.get(label).foreach(
+      constructor => return constructor(expectLeaf(children))
+    )
+    phraseConstructors.get(label).foreach(
+      constructor => return constructor(children)
+    )
+    uniqueChildConstructors.get(label).foreach(
+      constructor => return constructor(expectUnique(children))
+    )
+    ShlurdSyntaxNode(label, children)
   }
 
   def rewriteAbstract(tree : ShlurdAbstractSyntaxTree) : ShlurdSyntaxTree =
@@ -76,22 +100,6 @@ object ShlurdSyntaxRewrite
     } else {
       val children = tree.children.map(rewriteAbstract)
       recompose(tree, children)
-    }
-  }
-
-  private def expectUnique(seq : Seq[ShlurdSyntaxTree]) =
-  {
-    assert(seq.size == 1)
-    seq.head
-  }
-
-  private def expectLeaf(seq : Seq[ShlurdSyntaxTree]) : ShlurdSyntaxLeaf =
-  {
-    expectUnique(seq) match {
-      case leaf : ShlurdSyntaxLeaf => leaf
-      case nonLeaf => {
-        throw new IllegalArgumentException("leaf expected but got " + nonLeaf)
-      }
     }
   }
 

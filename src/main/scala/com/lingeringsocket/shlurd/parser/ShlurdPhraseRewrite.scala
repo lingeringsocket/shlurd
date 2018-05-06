@@ -21,6 +21,8 @@ import org.slf4j._
 
 class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
 {
+  type ShlurdPhrasePartialFunction = PartialFunction[ShlurdPhrase, ShlurdPhrase]
+
   private val logger = LoggerFactory.getLogger(classOf[ShlurdPhraseRewrite])
 
   def completeSentence(
@@ -37,7 +39,7 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
   }
 
   def rewrite(
-    rule : PartialFunction[ShlurdPhrase, ShlurdPhrase])
+    rule : ShlurdPhrasePartialFunction)
       : (ShlurdPhrase) => ShlurdPhrase =
   {
     val strategy =
@@ -59,7 +61,19 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
         maybeLogging))
   }
 
-  def rewriteSentence = rewrite {
+  def rewriteAllPhrases = rewrite {
+    Seq(
+      rewriteExpectedSentence,
+      rewriteExpectedSBARQ,
+      rewriteExpectedSQ,
+      rewriteAmbiguousSentence,
+      rewriteExpectedReference).reduceLeft(_ orElse _)
+  }
+
+  def phraseMatcher(f : ShlurdPhrasePartialFunction)
+      : ShlurdPhrasePartialFunction = f
+
+  def rewriteExpectedSentence() = phraseMatcher {
     case ShlurdExpectedSentence(sentence : SptS, forceSQ) => {
       if (forceSQ) {
         parser.parseSQ(sentence, forceSQ)
@@ -67,15 +81,39 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
         parser.parseSentence(sentence)
       }
     }
-    case ShlurdExpectedSentence(sq : SptSQ, forceSQ) => {
-      parser.parseSQ(sq, forceSQ)
+  }
+
+  def rewriteExpectedReference = phraseMatcher {
+    case ShlurdExpectedReference(SptNP(noun)) => {
+      ShlurdExpectedReference(noun)
     }
+    case ShlurdExpectedReference(np : SptNP) => {
+      parser.parseNounPhraseReference(np)
+    }
+    case ShlurdExpectedReference(noun : ShlurdSyntaxNoun) => {
+      ShlurdEntityReference(
+        parser.getWord(noun.child),
+        DETERMINER_UNSPECIFIED,
+        parser.getCount(noun))
+    }
+    case ShlurdExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
+      parser.pronounFor(pronoun.child.lemma)
+    }
+  }
+
+  def rewriteExpectedSBARQ = phraseMatcher {
     case ShlurdExpectedSentence(sbarq : SptSBARQ, _) => {
       parser.parseSBARQ(sbarq)
     }
-    case ShlurdExpectedReference(np : ShlurdSyntaxTree) => {
-      parser.parseReference(np)
+  }
+
+  def rewriteExpectedSQ = phraseMatcher {
+    case ShlurdExpectedSentence(sq : SptSQ, forceSQ) => {
+      parser.parseSQ(sq, forceSQ)
     }
+  }
+
+  def rewriteAmbiguousSentence = phraseMatcher {
     case ambiguous : ShlurdAmbiguousSentence if (!ambiguous.hasUnresolved) => {
       val alternatives = ambiguous.alternatives
       assert(!alternatives.isEmpty)

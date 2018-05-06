@@ -562,23 +562,15 @@ class ShlurdParserSpec extends Specification
         SptROOT(
           SptS(
             SptVP(
-              ShlurdSyntaxNode(
-                LABEL_VB,
-                Seq(leafCapitalized("close"))),
+              SptVB(leafCapitalized("close")),
               SptNP(
                 SptDT(leaf("the")),
-                ShlurdSyntaxNode(
-                  LABEL_NN,
-                  Seq(leaf("door")))
+                SptNN(leaf("door"))
               ),
               SptADVP(
-                ShlurdSyntaxNode(
-                  LABEL_RB,
-                  Seq(leaf("quickly"))))
+                SptRB(leaf("quickly")))
             ),
-            ShlurdSyntaxNode(
-              LABEL_DOT,
-              Seq(leaf(LABEL_DOT)))
+            SptDOT(leaf(LABEL_DOT))
           )
         )))
     }
