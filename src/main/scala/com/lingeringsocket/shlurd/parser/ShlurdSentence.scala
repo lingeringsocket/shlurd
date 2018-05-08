@@ -128,9 +128,34 @@ case class ShlurdExpectedReference(
 {
 }
 
-case class ShlurdExpectedState(
+case class ShlurdExpectedComplementState(
   syntaxTree : ShlurdSyntaxTree)
     extends ShlurdUnknownState with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdExpectedPrepositionalState(
+  syntaxTree : ShlurdSyntaxTree)
+    extends ShlurdUnknownState with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdUnresolvedPredicate(
+  syntaxTree : ShlurdSyntaxTree,
+  subject : ShlurdReference,
+  state : ShlurdState,
+  specifiedState : ShlurdState
+)
+    extends ShlurdUnknownPredicate with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdUnresolvedRelativeReference(
+  syntaxTree : ShlurdSyntaxTree,
+  reference : ShlurdReference,
+  state : ShlurdState
+)
+    extends ShlurdUnknownReference with ShlurdUnresolvedPhrase
 {
 }
 

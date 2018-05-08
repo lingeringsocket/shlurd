@@ -161,7 +161,7 @@ class ShlurdSingleParser(
         }
       }
     } else {
-      (expectPrepositionalState(seq(i)),
+      (ShlurdExpectedPrepositionalState(seq(i)),
         seq.take(i) ++ seq.drop(i + 1))
     }
   }
@@ -259,7 +259,7 @@ class ShlurdSingleParser(
             ShlurdUnrecognizedSentence(tree)
           } else {
             val (negativeSub, predicate) =
-              expectPredicate(np, ap, specifiedState,
+              expectPredicate(tree, np, ap, specifiedState,
                 extractRelationship(verbHead))
             val positive = !(negative ^ negativeSub)
             ShlurdPredicateSentence(
@@ -333,6 +333,7 @@ class ShlurdSingleParser(
         }
       }
       val (negativeSub, predicate) = expectPredicate(
+        tree,
         np,
         ShlurdSyntaxRewrite.recompose(
           complement.head, complementRemainder),
@@ -445,6 +446,7 @@ class ShlurdSingleParser(
           extractPrepositionalState(vpChildren)
         val complement = vpRemainder.last
         val (negativeComplement, predicate) = expectPredicate(
+          tree,
           np, complement, specifiedState,
           extractRelationship(verbHead))
         val positive = !(negative ^ negativeComplement)
@@ -497,7 +499,7 @@ class ShlurdSingleParser(
       val state = particle match {
         // FIXME:  restrict verb pairing when particle is present
         case Some(word) => ShlurdPropertyState(word)
-        case _ => expectPropertyState(seq.head)
+        case _ => parsePropertyState(seq.head)
       }
       val subject = specifyReference(
         expectReference(seq.last), specifiedState)
@@ -590,7 +592,7 @@ class ShlurdSingleParser(
     }
   }
 
-  private def specifyReference(
+  private[parser] def specifyReference(
     ref : ShlurdReference, specifiedState : ShlurdState) : ShlurdReference =
   {
     if (specifiedState == ShlurdNullState()) {
@@ -646,17 +648,10 @@ class ShlurdSingleParser(
     } else if (components.last.isCompoundPrepositionalPhrase) {
       ShlurdStateSpecifiedReference(
         expectReference(seqIn.dropRight(1)),
-        expectPrepositionalState(components.last))
+        ShlurdExpectedPrepositionalState(components.last))
     } else if ((components.size == 2) && components.head.isNounPhrase) {
       val entityReference = expectReference(components.head)
-      expectRelativeQualifier(components.last) match {
-        case Some(qualifiers) => {
-          ShlurdReference.qualified(entityReference, qualifiers)
-        }
-        case _ => {
-          ShlurdUnrecognizedReference(tree)
-        }
-      }
+      expectRelativeReference(tree, entityReference, components.last)
     } else if (components.forall(c => c.isNoun || c.isAdjectival)) {
       val entityReference = expectNounReference(components.last, determiner)
       if (components.size > 1) {
@@ -676,23 +671,22 @@ class ShlurdSingleParser(
     ShlurdExpectedReference(np)
   }
 
-  private def expectRelativeQualifier(
-    tree : ShlurdSyntaxTree) : Option[Seq[ShlurdWord]] =
+  private def expectRelativeReference(
+    syntaxTree : ShlurdSyntaxTree,
+    reference : ShlurdReference,
+    relativeTree : ShlurdSyntaxTree) : ShlurdReference =
   {
-    tree match {
+    relativeTree match {
       case SptSBAR(
         SptWHNP(SptWDT(_)),
         SptS(SptVP(verb, complement))
       ) if (verb.isBeingVerb) => {
-        val state = expectStateComplement(SptVP(complement))
-        state match {
-          case ShlurdPropertyState(qualifier) => {
-            Some(Seq(qualifier))
-          }
-          case _ => None
-        }
+        val state = expectComplementState(SptVP(complement))
+        ShlurdUnresolvedRelativeReference(syntaxTree, reference, state)
       }
-      case _ => None
+      case _ => {
+        ShlurdUnrecognizedReference(syntaxTree)
+      }
     }
   }
 
@@ -772,7 +766,7 @@ class ShlurdSingleParser(
     ShlurdWord(leaf.token, leaf.lemma)
   }
 
-  private def expectPropertyState(ap : ShlurdSyntaxTree) =
+  private[parser] def parsePropertyState(ap : ShlurdSyntaxTree) =
   {
     if (ap.isPreTerminal) {
       ShlurdPropertyState(getWord(ap.firstChild))
@@ -781,7 +775,7 @@ class ShlurdSingleParser(
     }
   }
 
-  private def expectPrepositionalState(tree : ShlurdSyntaxTree)
+  private[parser] def parsePrepositionalState(tree : ShlurdSyntaxTree)
     : ShlurdState =
   {
     val seq = tree.children
@@ -807,6 +801,7 @@ class ShlurdSingleParser(
   }
 
   private def expectPredicate(
+    syntaxTree : ShlurdSyntaxTree,
     np : ShlurdSyntaxTree,
     complement : ShlurdSyntaxTree,
     specifiedState : ShlurdState,
@@ -841,90 +836,45 @@ class ShlurdSingleParser(
     } else {
       val state = splitCoordinatingConjunction(seq) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {
-          expectStateComplement(
+          expectComplementState(
             ShlurdSyntaxRewrite.recompose(complement, seq))
         }
         case (determiner, separator, split) => {
           ShlurdConjunctiveState(
             determiner,
             split.map(
-              subseq => expectStateComplement(
+              subseq => expectComplementState(
                 ShlurdSyntaxRewrite.recompose(complement, subseq))),
             separator)
         }
       }
-      state match {
-        case ShlurdConjunctiveState(DETERMINER_UNSPECIFIED, states, _) => {
-          val propertyState = states.head
-          val fullySpecifiedState = {
-            if (specifiedState == ShlurdNullState()) {
-              if (states.size == 2) {
-                states.last
-              } else {
-                ShlurdConjunctiveState(DETERMINER_ALL, states.tail)
-              }
-            } else {
-              ShlurdConjunctiveState(
-                DETERMINER_ALL, Seq(specifiedState) ++ states.tail)
-            }
-          }
-          val subject = specifyReference(
-            expectReference(np), fullySpecifiedState)
-          (negative, ShlurdStatePredicate(subject, propertyState))
-        }
-        case _ => {
-          val subject = specifyReference(expectReference(np), specifiedState)
-          (negative, ShlurdStatePredicate(subject, state))
-        }
-      }
+      (negative, ShlurdUnresolvedPredicate(
+        syntaxTree, expectReference(np), state, specifiedState)
+      )
     }
   }
 
-  private def expectStateComplement(complement : ShlurdSyntaxTree)
-      : ShlurdState =
-  {
-    if (isSinglePhrase(complement.children)) {
-      return expectStateComplement(complement.firstChild)
-    }
-    complement match {
-      case SptADJP(children @ _*) => {
-        expectPropertyStateComplement(children)
-      }
-      case phrase @ (_ : SptADVP | _ : SptPP) => {
-        val seq = phrase.children
-        if ((seq.head.isPreposition || seq.head.isAdverb) && (seq.size > 1) &&
-          (!seq.exists(_.isPrepositionalPhrase)))
-        {
-          expectPrepositionalState(phrase)
-        } else {
-          expectPropertyStateComplement(seq)
-        }
-      }
-      case SptVP(children @ _*) => {
-        // TODO:  ambiguity for action (passive construction) vs
-        // state (participial adjective)
-        expectPropertyStateComplement(children)
-      }
-      case SptPRT(particle) => {
-        expectPropertyState(particle)
-      }
-      case _ => {
-        ShlurdUnrecognizedState(complement)
-      }
-    }
-  }
-
-  private def expectPropertyStateComplement(
+  private[parser] def expectPropertyComplementState(
     seq : Seq[ShlurdSyntaxTree]) : ShlurdState =
   {
-    val state = expectPropertyState(seq.head)
+    val state = parsePropertyState(seq.head)
     if (seq.size == 1) {
       state
     } else {
       ShlurdConjunctiveState(
         DETERMINER_UNSPECIFIED,
         Seq(state) ++ seq.tail.map(
-          component => expectStateComplement(component)))
+          component => expectComplementState(component)))
+    }
+  }
+
+  private def expectComplementState(
+    tree : ShlurdSyntaxTree) : ShlurdState =
+  {
+    if (isSinglePhrase(tree.children)) {
+      expectComplementState(tree.firstChild)
+    } else {
+      ShlurdExpectedComplementState(tree)
     }
   }
 

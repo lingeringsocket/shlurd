@@ -65,6 +65,8 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
       rewriteExpectedSBARQ,
       rewriteExpectedSQ,
       rewriteAmbiguousSentence,
+      rewriteUnresolvedPredicate,
+      rewriteExpectedState,
       rewriteExpectedReference).reduceLeft(_ orElse _)
   }
 
@@ -97,6 +99,73 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
     case ShlurdExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
       parser.pronounFor(pronoun.child.lemma)
     }
+    case ShlurdUnresolvedRelativeReference(
+      syntaxTree, reference, ShlurdPropertyState(qualifier)) =>
+      {
+        ShlurdReference.qualified(reference, Seq(qualifier))
+      }
+  }
+
+  def rewriteExpectedState = phraseMatcher {
+    case ShlurdExpectedPrepositionalState(tree) => {
+      parser.parsePrepositionalState(tree)
+    }
+    case ShlurdExpectedComplementState(SptADJP(children @ _*)) => {
+      parser.expectPropertyComplementState(children)
+    }
+    case ShlurdExpectedComplementState(
+      phrase @ (_ : SptADVP | _ : SptPP)) =>
+    {
+      val seq = phrase.children
+      if ((seq.head.isPreposition || seq.head.isAdverb) && (seq.size > 1) &&
+        (!seq.exists(_.isPrepositionalPhrase)))
+      {
+        ShlurdExpectedPrepositionalState(phrase)
+      } else {
+        parser.expectPropertyComplementState(seq)
+      }
+    }
+    case ShlurdExpectedComplementState(SptVP(children @ _*)) => {
+      // TODO:  ambiguity for action (passive construction) vs
+      // state (participial adjective)
+      parser.expectPropertyComplementState(children)
+    }
+    case ShlurdExpectedComplementState(SptPRT(particle)) => {
+      parser.parsePropertyState(particle)
+    }
+  }
+
+  def rewriteUnresolvedPredicate = phraseMatcher {
+    case ShlurdUnresolvedPredicate(
+      _, subject, state, specifiedState)
+        if (!state.hasUnresolved) =>
+      {
+        state match {
+          case ShlurdConjunctiveState(DETERMINER_UNSPECIFIED, states, _) => {
+            val propertyState = states.head
+            val fullySpecifiedState = {
+              if (specifiedState == ShlurdNullState()) {
+                if (states.size == 2) {
+                  states.last
+                } else {
+                  ShlurdConjunctiveState(DETERMINER_ALL, states.tail)
+                }
+              } else {
+                ShlurdConjunctiveState(
+                  DETERMINER_ALL, Seq(specifiedState) ++ states.tail)
+              }
+            }
+            val specifiedSubject = parser.specifyReference(
+              subject, fullySpecifiedState)
+            ShlurdStatePredicate(specifiedSubject, propertyState)
+          }
+          case _ => {
+            val specifiedSubject = parser.specifyReference(
+              subject, specifiedState)
+            ShlurdStatePredicate(specifiedSubject, state)
+          }
+        }
+      }
   }
 
   def rewriteExpectedSBARQ = phraseMatcher {
@@ -143,8 +212,17 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
     case ShlurdExpectedReference(syntaxTree) => {
       ShlurdUnrecognizedReference(syntaxTree)
     }
-    case ShlurdExpectedState(syntaxTree) => {
+    case ShlurdExpectedComplementState(syntaxTree) => {
       ShlurdUnrecognizedState(syntaxTree)
+    }
+    case ShlurdExpectedPrepositionalState(syntaxTree) => {
+      ShlurdUnrecognizedState(syntaxTree)
+    }
+    case ShlurdUnresolvedRelativeReference(syntaxTree, _, _) => {
+      ShlurdUnrecognizedReference(syntaxTree)
+    }
+    case ShlurdUnresolvedPredicate(syntaxTree, _, _, _) => {
+      ShlurdUnrecognizedPredicate(syntaxTree)
     }
   }
 }
