@@ -19,7 +19,7 @@ import org.kiama.util._
 
 import org.slf4j._
 
-class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
+class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
 {
   type ShlurdPhrasePartialFunction = PartialFunction[ShlurdPhrase, ShlurdPhrase]
 
@@ -76,9 +76,9 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
   def rewriteExpectedSentence() = phraseMatcher {
     case ShlurdExpectedSentence(sentence : SptS, forceSQ) => {
       if (forceSQ) {
-        parser.parseSQ(sentence, forceSQ)
+        analyzer.analyzeSQ(sentence, forceSQ)
       } else {
-        parser.parseSentence(sentence)
+        analyzer.analyzeSentence(sentence)
       }
     }
   }
@@ -88,16 +88,16 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
       ShlurdExpectedReference(noun)
     }
     case ShlurdExpectedReference(np : SptNP) => {
-      parser.parseNounPhraseReference(np)
+      analyzer.analyzeNounPhrase(np)
     }
     case ShlurdExpectedReference(noun : ShlurdSyntaxNoun) => {
       ShlurdEntityReference(
-        parser.getWord(noun.child),
+        analyzer.getWord(noun.child),
         DETERMINER_UNSPECIFIED,
-        parser.getCount(noun))
+        analyzer.getCount(noun))
     }
     case ShlurdExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
-      parser.pronounFor(pronoun.child.lemma)
+      analyzer.recognizePronounReference(pronoun.child)
     }
     case ShlurdUnresolvedRelativeReference(
       syntaxTree, reference, ShlurdPropertyState(qualifier)) =>
@@ -108,10 +108,10 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
 
   def rewriteExpectedState = phraseMatcher {
     case ShlurdExpectedPrepositionalState(tree) => {
-      parser.parsePrepositionalState(tree)
+      analyzer.requirePrepositionalState(tree)
     }
     case ShlurdExpectedComplementState(SptADJP(children @ _*)) => {
-      parser.expectPropertyComplementState(children)
+      analyzer.requirePropertyComplementState(children)
     }
     case ShlurdExpectedComplementState(
       phrase @ (_ : SptADVP | _ : SptPP)) =>
@@ -122,16 +122,16 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
       {
         ShlurdExpectedPrepositionalState(phrase)
       } else {
-        parser.expectPropertyComplementState(seq)
+        analyzer.requirePropertyComplementState(seq)
       }
     }
     case ShlurdExpectedComplementState(SptVP(children @ _*)) => {
       // TODO:  ambiguity for action (passive construction) vs
       // state (participial adjective)
-      parser.expectPropertyComplementState(children)
+      analyzer.requirePropertyComplementState(children)
     }
     case ShlurdExpectedComplementState(SptPRT(particle)) => {
-      parser.parsePropertyState(particle)
+      analyzer.requirePropertyState(particle)
     }
   }
 
@@ -155,12 +155,12 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
                   DETERMINER_ALL, Seq(specifiedState) ++ states.tail)
               }
             }
-            val specifiedSubject = parser.specifyReference(
+            val specifiedSubject = analyzer.specifyReference(
               subject, fullySpecifiedState)
             ShlurdStatePredicate(specifiedSubject, propertyState)
           }
           case _ => {
-            val specifiedSubject = parser.specifyReference(
+            val specifiedSubject = analyzer.specifyReference(
               subject, specifiedState)
             ShlurdStatePredicate(specifiedSubject, state)
           }
@@ -170,13 +170,13 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
 
   def rewriteExpectedSBARQ = phraseMatcher {
     case ShlurdExpectedSentence(sbarq : SptSBARQ, _) => {
-      parser.parseSBARQ(sbarq)
+      analyzer.analyzeSBARQ(sbarq)
     }
   }
 
   def rewriteExpectedSQ = phraseMatcher {
     case ShlurdExpectedSentence(sq : SptSQ, forceSQ) => {
-      parser.parseSQ(sq, forceSQ)
+      analyzer.analyzeSQ(sq, forceSQ)
     }
   }
 

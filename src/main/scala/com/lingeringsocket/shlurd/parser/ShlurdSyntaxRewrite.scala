@@ -82,13 +82,13 @@ object ShlurdSyntaxRewrite
       return children.head
     }
     preTerminalConstructors.get(label).foreach(
-      constructor => return constructor(expectLeaf(children))
+      constructor => return constructor(requireLeaf(children))
     )
     phraseConstructors.get(label).foreach(
       constructor => return constructor(children)
     )
     uniqueChildConstructors.get(label).foreach(
-      constructor => return constructor(expectUnique(children))
+      constructor => return constructor(requireUnique(children))
     )
     ShlurdSyntaxNode(label, children)
   }

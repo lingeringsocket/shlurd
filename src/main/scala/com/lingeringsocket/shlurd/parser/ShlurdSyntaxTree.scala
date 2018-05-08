@@ -115,8 +115,6 @@ trait ShlurdAbstractSyntaxTree
 
   def isNoun = label.startsWith(LABEL_NN)
 
-  def isDeterminer = hasLabel(LABEL_DT)
-
   def isQueryNoun = hasLabel(LABEL_WHNP)
 
   def isPronoun = label.startsWith(LABEL_PRP)
