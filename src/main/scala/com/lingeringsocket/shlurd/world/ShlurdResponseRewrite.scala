@@ -1,5 +1,5 @@
 // shlurd:  a limited understanding of small worlds
-// Copyright 2017-2017 John V. Sichi
+// Copyright 2017-2018 John V. Sichi
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
