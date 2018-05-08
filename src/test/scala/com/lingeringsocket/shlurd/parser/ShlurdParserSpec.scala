@@ -86,6 +86,11 @@ class ShlurdParserSpec extends Specification
 
   private def parse(input : String) = ShlurdParser(input).parseOne
 
+  private def leaf(s : String) = ShlurdSyntaxLeaf(s, s, s)
+
+  private def leafCapitalized(s : String) = ShlurdSyntaxLeaf(
+    ShlurdParseUtils.capitalize(s), s, ShlurdParseUtils.capitalize(s))
+
   "ShlurdParser" should
   {
     "parse a state predicate statement" in
@@ -551,28 +556,44 @@ class ShlurdParserSpec extends Specification
       result.hasUnknown must beTrue
     }
 
-    "preserve unrecognized syntax" in
+    "preserve unrecognized sentence syntax" in
     {
-      def leaf(s : String) = ShlurdSyntaxLeaf(s, s, s)
-      def leafCapitalized(s : String) = ShlurdSyntaxLeaf(
-        ShlurdParseUtils.capitalize(s), s, s)
-      val input = "close the door quickly."
+      val input = "Close the door quickly."
       val result = parse(input)
       result must be equalTo(ShlurdUnrecognizedSentence(
-        SptROOT(
-          SptS(
-            SptVP(
-              SptVB(leafCapitalized("close")),
-              SptNP(
-                SptDT(leaf("the")),
-                SptNN(leaf("door"))
-              ),
-              SptADVP(
-                SptRB(leaf("quickly")))
+        SptS(
+          SptVP(
+            SptVB(leafCapitalized("close")),
+            SptNP(
+              SptDT(leaf("the")),
+              SptNN(leaf("door"))
             ),
-            SptDOT(leaf(LABEL_DOT))
-          )
-        )))
+            SptADVP(
+              SptRB(leaf("quickly")))
+          ),
+          SptDOT(leaf(LABEL_DOT))
+        )
+      ))
+    }
+
+    "preserve unrecognized reference syntax" in
+    {
+      val input = "The big nor strong door is open."
+      val result = parse(input)
+      result must be equalTo(
+        ShlurdPredicateSentence(
+          ShlurdStatePredicate(
+            ShlurdUnrecognizedReference(
+              SptNP(
+                SptDT(leafCapitalized("the")),
+                SptADJP(
+                  SptJJ(leaf("big")),
+                  SptCC(leaf("nor")),
+                  SptJJ(leaf("strong"))
+                ),
+                SptNN(leaf("door")))
+            ),
+            ShlurdPropertyState(STATE_OPEN))))
     }
 
     "deal with unknowns" in

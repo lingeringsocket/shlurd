@@ -48,7 +48,7 @@ object ShlurdSyntaxRewrite
     LABEL_NNP -> SptNNP,
     LABEL_NNPS -> SptNNPS,
     LABEL_PRP -> SptPRP,
-    LABEL_PRPP -> SptPRPP,
+    LABEL_PRP_POS -> SptPRP_POS,
     LABEL_VB -> SptVB,
     LABEL_VBZ -> SptVBZ,
     LABEL_VBP -> SptVBP,

@@ -28,13 +28,11 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
   def completeSentence(
     tree : ShlurdSyntaxTree, phrase : ShlurdPhrase) : ShlurdSentence =
   {
-    if (phrase.hasUnknown) {
-      ShlurdUnrecognizedSentence(tree)
-    } else {
-      phrase match {
-        case sentence : ShlurdSentence => sentence
-        case _ => ShlurdUnrecognizedSentence(tree)
-      }
+    val completed = rewrite(rewriteExpectedToUnrecognized)(phrase)
+    assert(!completed.hasUnresolved)
+    completed match {
+      case sentence : ShlurdSentence => sentence
+      case _ => ShlurdUnrecognizedSentence(tree)
     }
   }
 
@@ -132,6 +130,21 @@ class ShlurdPhraseRewrite(parser : ShlurdSingleParser)
           }
         }
       }
+    }
+  }
+
+  def rewriteExpectedToUnrecognized = phraseMatcher {
+    case ShlurdExpectedSentence(syntaxTree, _) => {
+      ShlurdUnrecognizedSentence(syntaxTree)
+    }
+    case ShlurdExpectedPredicate(syntaxTree) => {
+      ShlurdUnrecognizedPredicate(syntaxTree)
+    }
+    case ShlurdExpectedReference(syntaxTree) => {
+      ShlurdUnrecognizedReference(syntaxTree)
+    }
+    case ShlurdExpectedState(syntaxTree) => {
+      ShlurdUnrecognizedState(syntaxTree)
     }
   }
 }

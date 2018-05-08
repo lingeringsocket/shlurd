@@ -45,10 +45,10 @@ object ShlurdPennTreebankLabels
   val LABEL_DT = "DT"
   val LABEL_CC = "CC"
   val LABEL_PRP = "PRP"
-  val LABEL_PRPP = "PRP$"
+  val LABEL_PRP_POS = "PRP$"
   val LABEL_JJ = "JJ"
-  val LABEL_JJR = "JJ"
-  val LABEL_JJS = "JJ"
+  val LABEL_JJR = "JJR"
+  val LABEL_JJS = "JJS"
   val LABEL_RB = "RB"
   val LABEL_RBR = "RBR"
   val LABEL_RBS = "RBS"
@@ -268,6 +268,7 @@ sealed trait ShlurdSyntaxPunctuation extends ShlurdSyntaxPreTerminal
 case class ShlurdSyntaxNode(label : String, children : Seq[ShlurdSyntaxTree])
     extends ShlurdSyntaxNonLeaf
 {
+  override def toString = "NODE-" + super.toString
 }
 
 case class SptROOT(child : ShlurdSyntaxTree)
@@ -390,10 +391,10 @@ case class SptPRP(child : ShlurdSyntaxLeaf)
   override def label = LABEL_PRP
 }
 
-case class SptPRPP(child : ShlurdSyntaxLeaf)
+case class SptPRP_POS(child : ShlurdSyntaxLeaf)
     extends ShlurdSyntaxPronoun
 {
-  override def label = LABEL_PRPP
+  override def label = LABEL_PRP_POS
 }
 
 case class SptVB(child : ShlurdSyntaxLeaf)
