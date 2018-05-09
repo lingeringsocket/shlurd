@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import scala.collection._
+
 object ShlurdPennTreebankLabels
 {
   val LABEL_ROOT = "ROOT"
@@ -65,8 +67,10 @@ object ShlurdPennTreebankLabels
 
 import ShlurdPennTreebankLabels._
 import ShlurdEnglishLemmas._
+import ShlurdPrettyPrinter._
 
 trait ShlurdAbstractSyntaxTree
+    extends PrettyPrintable
 {
   def label : String
 
@@ -157,6 +161,15 @@ trait ShlurdAbstractSyntaxTree
   def isExistsVerb = isVerb && hasTerminalLemma(LEMMA_EXIST)
 
   def isComma = hasLabel(LABEL_COMMA)
+
+  override def toString = ShlurdPrettyPrinter.prettyPrint(this)
+
+  override def toDoc =
+  {
+    parens(
+      string(label) <> nest(
+        line <> vsep(children.map(_.toDoc).to[immutable.Seq], space)))
+  }
 }
 
 sealed trait ShlurdSyntaxTree extends ShlurdAbstractSyntaxTree
@@ -182,12 +195,6 @@ sealed trait ShlurdSyntaxNonLeaf extends ShlurdSyntaxTree
   override def token = ""
 
   override def lemma = ""
-
-  override def toString =
-  {
-    val childrenString = children.mkString(" ")
-    s"($label $childrenString)"
-  }
 }
 
 case class ShlurdSyntaxLeaf(label : String, lemma : String, token : String)
@@ -196,6 +203,11 @@ case class ShlurdSyntaxLeaf(label : String, lemma : String, token : String)
   override def children = Seq.empty
 
   override def toString = token
+
+  override def toDoc : Doc =
+  {
+    value(this)
+  }
 }
 
 
@@ -209,6 +221,11 @@ sealed trait ShlurdSyntaxUniqueChild extends ShlurdSyntaxNonLeaf
 sealed trait ShlurdSyntaxPreTerminal extends ShlurdSyntaxUniqueChild
 {
   override def child : ShlurdSyntaxLeaf
+
+  override def toDoc : Doc =
+  {
+    parens(string(label) <+> child.toDoc)
+  }
 }
 
 sealed trait ShlurdSyntaxPhrase extends ShlurdSyntaxNonLeaf
@@ -266,7 +283,6 @@ sealed trait ShlurdSyntaxPunctuation extends ShlurdSyntaxPreTerminal
 case class ShlurdSyntaxNode(label : String, children : Seq[ShlurdSyntaxTree])
     extends ShlurdSyntaxNonLeaf
 {
-  override def toString = "NODE-" + super.toString
 }
 
 case class SptROOT(child : ShlurdSyntaxTree)

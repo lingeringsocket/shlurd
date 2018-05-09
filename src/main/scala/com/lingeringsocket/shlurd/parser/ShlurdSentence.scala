@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import scala.collection._
+
 sealed trait ShlurdPhrase
 {
   def children : Seq[ShlurdPhrase] = Seq.empty
@@ -23,6 +25,8 @@ sealed trait ShlurdPhrase
   def hasUnrecognized : Boolean = children.exists(_.hasUnrecognized)
 
   def hasUnresolved : Boolean = children.exists(_.hasUnresolved)
+
+  override def toString = ShlurdPrettyPrinter.prettyPrint(this)
 }
 
 sealed trait ShlurdSentence extends ShlurdPhrase

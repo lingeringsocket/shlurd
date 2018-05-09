@@ -204,7 +204,7 @@ object ShlurdParser
     }
     val corenlp = sentence.parse(props)
     if (dump) {
-        println(dumpPrefix + " PARSE = " + corenlp)
+      println(dumpPrefix + " PARSE = " + corenlp)
     }
     corenlp.indexLeaves(0, true)
     val lemmas = sentence.lemmas.asScala
@@ -212,7 +212,7 @@ object ShlurdParser
       new CorenlpTreeWrapper(corenlp, tokens, lemmas))
     val rewrittenTree = ShlurdSyntaxRewrite.rewriteEither(syntaxTree)
     if (dump) {
-        println(dumpPrefix + " REWRITE = " + rewrittenTree)
+      println(dumpPrefix + " REWRITE = " + rewrittenTree)
     }
     new ShlurdSingleParser(rewrittenTree, tokens, lemmas, guessedQuestion)
   }
