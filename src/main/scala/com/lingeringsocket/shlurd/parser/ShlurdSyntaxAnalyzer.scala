@@ -226,7 +226,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
     if ((components.size == 2) && components.head.isPronoun) {
       val pronounReference = requireReference(components.head)
-      val entityReference = requireNounReference(components.last, determiner)
+      val entityReference = requireNounReference(
+        tree, components.last, determiner)
       ShlurdGenitiveReference(pronounReference, entityReference)
     } else if (components.last.isCompoundPrepositionalPhrase) {
       ShlurdStateSpecifiedReference(
@@ -236,7 +237,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val entityReference = requireReference(components.head)
       requireRelativeReference(tree, entityReference, components.last)
     } else if (components.forall(c => c.isNoun || c.isAdjectival)) {
-      val entityReference = requireNounReference(components.last, determiner)
+      val entityReference = requireNounReference(
+        tree, components.last, determiner)
       if (components.size > 1) {
         ShlurdReference.qualifiedByProperties(
           entityReference,
@@ -391,9 +393,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def requireNounReference(
-    pt : ShlurdSyntaxTree, determiner : ShlurdDeterminer) =
+    syntaxTree : ShlurdSyntaxTree,
+    preTerminal : ShlurdSyntaxTree,
+    determiner : ShlurdDeterminer) =
   {
-    ShlurdExpectedNounlikeReference(pt, determiner)
+    ShlurdExpectedNounlikeReference(syntaxTree, preTerminal, determiner)
   }
 
   private[parser] def requirePropertyState(syntaxTree : ShlurdSyntaxTree) =

@@ -335,9 +335,8 @@ class ShlurdInterpreterSpec extends Specification
       interpret("Is my squeaking door open?") must be equalTo(
         "I think you are asking whether something is open, but " +
           "I can't understand the phrase \"my squeaking door\"")
-      // FIXME:  should be THE door
       interpret("The door is how I want it.") must be equalTo(
-        "I think you are saying something about the state of door, but " +
+        "I think you are saying something about the state of the door, but " +
           "I can't understand the phrase \"how I want it\"")
     }
   }

@@ -164,7 +164,7 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
         analyzer.getCount(noun))
     }
     case ShlurdExpectedNounlikeReference(
-      nounlike : ShlurdSyntaxPreTerminal, determiner)
+      syntaxTree, nounlike : ShlurdSyntaxPreTerminal, determiner)
         if (nounlike.isNoun || nounlike.isAdjectival) =>
     {
       // we allow mislabeled adjectives to handle

@@ -168,6 +168,7 @@ case class ShlurdExpectedReference(
 
 case class ShlurdExpectedNounlikeReference(
   syntaxTree : ShlurdSyntaxTree,
+  preTerminal : ShlurdSyntaxTree,
   determiner : ShlurdDeterminer
 ) extends ShlurdUnknownReference with ShlurdUnresolvedPhrase
 {
