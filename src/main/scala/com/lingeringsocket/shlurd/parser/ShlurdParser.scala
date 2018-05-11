@@ -43,18 +43,22 @@ class ShlurdFallbackParser(
 {
   override def parseOne() : ShlurdSentence =
   {
-    var first : Option[ShlurdSentence] = None
+    var best : Option[ShlurdSentence] = None
+    var bestCount = Int.MaxValue
     parsers.foreach(parserSupplier => {
       val parser = parserSupplier()
       val sentence = parser.parseOne
       if (!sentence.hasUnknown) {
         return sentence
       }
-      if (first.isEmpty) {
-        first = Some(sentence)
+      // if not even one parser produces a complete parse, choose
+      // the one with the minimum number of unparsed leaves
+      val count = sentence.countUnknownSyntaxLeaves
+      if (count < bestCount) {
+        best = Some(sentence)
       }
     })
-    first.get
+    best.get
   }
 
   override def parseFirst() = parseOne

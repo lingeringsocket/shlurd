@@ -546,14 +546,11 @@ class EnglishSentenceBundle
     mood : ShlurdMood, subject : String) =
   {
     mood match {
-      case _ : ShlurdIndicativeMood => {
-        compose("something about the state of", subject)
-      }
-      case _ : ShlurdInterrogativeMood => {
-        compose("something about the state of ", subject)
-      }
       case MOOD_IMPERATIVE => {
         compose("do something with", subject)
+      }
+      case _ => {
+        compose("something about the state of", subject)
       }
     }
   }

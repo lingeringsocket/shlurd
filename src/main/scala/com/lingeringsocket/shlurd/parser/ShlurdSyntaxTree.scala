@@ -197,6 +197,15 @@ sealed trait ShlurdSyntaxTree extends ShlurdAbstractSyntaxTree
       this
     }
   }
+
+  def countLeaves : Int =
+  {
+    if (isLeaf) {
+      1
+    } else {
+      children.map(_.countLeaves).sum
+    }
+  }
 }
 
 sealed trait ShlurdSyntaxNonLeaf extends ShlurdSyntaxTree

@@ -37,6 +37,11 @@ sealed trait ShlurdPhrase
       case _ => toString
     }
   }
+
+  def countUnknownSyntaxLeaves : Int =
+  {
+    children.map(_.countUnknownSyntaxLeaves).sum
+  }
 }
 
 sealed trait ShlurdSentence extends ShlurdPhrase
@@ -65,6 +70,11 @@ sealed trait ShlurdUnknownPhrase extends ShlurdPhrase
   def syntaxTree : ShlurdSyntaxTree
 
   override def maybeSyntaxTree = Some(syntaxTree)
+
+  override def countUnknownSyntaxLeaves : Int =
+  {
+    syntaxTree.countLeaves
+  }
 }
 
 sealed trait ShlurdUnknownSentence

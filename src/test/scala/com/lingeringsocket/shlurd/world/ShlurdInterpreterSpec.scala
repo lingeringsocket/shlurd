@@ -338,6 +338,9 @@ class ShlurdInterpreterSpec extends Specification
       interpret("The door is how I want it.") must be equalTo(
         "I think you are saying something about the state of the door, but " +
           "I can't understand the phrase \"how I want it\"")
+      interpret("Is the door how I want it?") must be equalTo(
+        "I think you are asking something about the state of the door, but " +
+          "I can't understand the phrase \"how I want it\"")
     }
   }
 
