@@ -324,6 +324,22 @@ class ShlurdInterpreterSpec extends Specification
         "asleep the tiger in the big cage.",
         ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
     }
+
+    "respond to unrecognized phrases" in
+    {
+      interpret("colorless green ideas slumber furiously") must be equalTo(
+        "Sorry, I cannot understand what you said.")
+      interpret("My squeaking door is open.") must be equalTo(
+        "I think you are saying that something is open, but " +
+          "I can't understand the phrase \"My squeaking door\"")
+      interpret("Is my squeaking door open?") must be equalTo(
+        "I think you are asking whether something is open, but " +
+          "I can't understand the phrase \"my squeaking door\"")
+      // FIXME:  should be THE door
+      interpret("The door is how I want it.") must be equalTo(
+        "I think you are saying something about the state of door, but " +
+          "I can't understand the phrase \"how I want it\"")
+    }
   }
 
   trait NamedObject {

@@ -19,33 +19,62 @@ import org.kiama.util._
 
 import org.slf4j._
 
+import ShlurdParseUtils._
+import ShlurdEnglishLemmas._
+
 class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
 {
-  type ShlurdPhrasePartialFunction = PartialFunction[ShlurdPhrase, ShlurdPhrase]
+  type ShlurdPhraseTransformation = PartialFunction[ShlurdPhrase, ShlurdPhrase]
+
+  type ShlurdPhraseQuery = PartialFunction[ShlurdPhrase, Unit]
 
   private val logger = LoggerFactory.getLogger(classOf[ShlurdPhraseRewrite])
 
   def completeSentence(
     tree : ShlurdSyntaxTree, phrase : ShlurdPhrase) : ShlurdSentence =
   {
-    val completed = rewrite(rewriteExpectedToUnrecognized)(phrase)
-    assert(!completed.hasUnresolved)
+    val completed = rewrite(rewriteUnresolvedToUnrecognized)(phrase)
+    if (!completed.hasUnknown) {
+      query(validateResult)(completed)
+    }
     completed match {
       case sentence : ShlurdSentence => sentence
       case _ => ShlurdUnrecognizedSentence(tree)
     }
   }
 
+  object SyntaxPreservingRewriter extends CallbackRewriter
+  {
+    override def rewriting[PhraseType](
+      oldPhrase : PhraseType, newPhrase : PhraseType) : PhraseType =
+    {
+      (oldPhrase, newPhrase) match {
+        case (oldMaybeTree : ShlurdPhrase,
+          newTransformed : ShlurdTransformedPhrase) =>
+          {
+            oldMaybeTree.maybeSyntaxTree match {
+              case Some(syntaxTree) => {
+                rememberTransformation(syntaxTree, newTransformed)
+              }
+              case _ =>
+            }
+          }
+        case _ =>
+      }
+      newPhrase
+    }
+  }
+
   def rewrite(
-    rule : ShlurdPhrasePartialFunction)
+    rule : ShlurdPhraseTransformation)
       : (ShlurdPhrase) => ShlurdPhrase =
   {
     val strategy =
-      Rewriter.manybu(
+      SyntaxPreservingRewriter.manybu(
         "rewriteEverywhere",
-        Rewriter.rule[ShlurdPhrase](rule))
+        SyntaxPreservingRewriter.rule[ShlurdPhrase](rule))
     val maybeLogging = if (logger.isDebugEnabled) {
-      Rewriter.log(
+      SyntaxPreservingRewriter.log(
         "rewriteLog",
         strategy,
         "REWRITE ",
@@ -53,10 +82,21 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
     } else {
       strategy
     }
-    Rewriter.rewrite(
-      Rewriter.repeat(
+    SyntaxPreservingRewriter.rewrite[ShlurdPhrase](
+      SyntaxPreservingRewriter.repeat(
         "rewriteRepeat",
         maybeLogging))
+  }
+
+  def query(
+    rule : ShlurdPhraseQuery)
+      : (ShlurdPhrase) => Unit =
+  {
+    val strategy =
+      Rewriter.manybu(
+        "rewriteEverywhere",
+        Rewriter.query[ShlurdPhrase](rule))
+    Rewriter.rewrite(strategy)
   }
 
   def rewriteAllPhrases = rewrite {
@@ -70,10 +110,37 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
       rewriteExpectedReference).reduceLeft(_ orElse _)
   }
 
-  def phraseMatcher(f : ShlurdPhrasePartialFunction)
-      : ShlurdPhrasePartialFunction = f
+  def transformationMatcher(f : ShlurdPhraseTransformation)
+      : ShlurdPhraseTransformation = f
 
-  def rewriteExpectedSentence() = phraseMatcher {
+  def queryMatcher(f : ShlurdPhraseQuery)
+      : ShlurdPhraseQuery = f
+
+  private def rememberTransformation(
+    syntaxTree : ShlurdSyntaxTree,
+    phrase : ShlurdPhrase) =
+  {
+    phrase match {
+      case transformedPhrase : ShlurdTransformedPhrase => {
+        transformedPhrase.rememberSyntaxTree(syntaxTree)
+      }
+      case _ => assert(phrase.isInstanceOf[ShlurdUnknownPhrase])
+    }
+    phrase
+  }
+
+  def validateResult = queryMatcher {
+    // FIXME:  map syntax for conjunctions too
+    case _ : ShlurdConjunctiveReference => ;
+    case _ : ShlurdConjunctiveState => ;
+    case transformedPhrase : ShlurdTransformedPhrase => {
+      if (!transformedPhrase.hasSyntaxTree) {
+        throw new AssertionError("Syntax lost for " + transformedPhrase)
+      }
+    }
+  }
+
+  def rewriteExpectedSentence() = transformationMatcher {
     case ShlurdExpectedSentence(sentence : SptS, forceSQ) => {
       if (forceSQ) {
         analyzer.analyzeSQ(sentence, forceSQ)
@@ -83,7 +150,7 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
     }
   }
 
-  def rewriteExpectedReference = phraseMatcher {
+  def rewriteExpectedReference = transformationMatcher {
     case ShlurdExpectedReference(SptNP(noun)) => {
       ShlurdExpectedReference(noun)
     }
@@ -96,91 +163,87 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
         DETERMINER_UNSPECIFIED,
         analyzer.getCount(noun))
     }
+    case ShlurdExpectedNounlikeReference(
+      nounlike : ShlurdSyntaxPreTerminal, determiner)
+        if (nounlike.isNoun || nounlike.isAdjectival) =>
+    {
+      // we allow mislabeled adjectives to handle
+      // cases like "roll up the blind"
+      ShlurdEntityReference(
+        analyzer.getWord(nounlike.child),
+        determiner,
+        analyzer.getCount(nounlike))
+    }
     case ShlurdExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
-      analyzer.recognizePronounReference(pronoun.child)
+      recognizePronounReference(pronoun.child)
     }
     case ShlurdUnresolvedRelativeReference(
-      syntaxTree, reference, ShlurdPropertyState(qualifier)) =>
+      _, reference, qualifier : ShlurdPropertyState) =>
       {
-        ShlurdReference.qualified(reference, Seq(qualifier))
+        ShlurdReference.qualifiedByProperties(reference, Seq(qualifier))
       }
   }
 
-  def rewriteExpectedState = phraseMatcher {
-    case ShlurdExpectedPrepositionalState(tree) => {
-      analyzer.requirePrepositionalState(tree)
+  def rewriteExpectedState = transformationMatcher {
+    case ShlurdExpectedPrepositionalState(syntaxTree) => {
+      analyzer.requirePrepositionalState(syntaxTree)
     }
-    case ShlurdExpectedComplementState(SptADJP(children @ _*)) => {
-      analyzer.requirePropertyComplementState(children)
+    case ShlurdExpectedPropertyState(preTerminal : ShlurdSyntaxPreTerminal) => {
+      ShlurdPropertyState(analyzer.getWord(preTerminal.child))
+    }
+    case ShlurdExpectedExistenceState(_) => {
+      ShlurdExistenceState()
+    }
+    case ShlurdExpectedComplementState(adjp : SptADJP) => {
+      analyzer.requirePropertyComplementState(adjp.children)
     }
     case ShlurdExpectedComplementState(
-      phrase @ (_ : SptADVP | _ : SptPP)) =>
+      syntaxTree @ (_ : SptADVP | _ : SptPP)) =>
     {
-      val seq = phrase.children
+      val seq = syntaxTree.children
       if ((seq.head.isPreposition || seq.head.isAdverb) && (seq.size > 1) &&
         (!seq.exists(_.isPrepositionalPhrase)))
       {
-        ShlurdExpectedPrepositionalState(phrase)
+        ShlurdExpectedPrepositionalState(syntaxTree)
       } else {
         analyzer.requirePropertyComplementState(seq)
       }
     }
-    case ShlurdExpectedComplementState(SptVP(children @ _*)) => {
+    case ShlurdExpectedComplementState(vp : SptVP) => {
       // TODO:  ambiguity for action (passive construction) vs
       // state (participial adjective)
-      analyzer.requirePropertyComplementState(children)
+      analyzer.requirePropertyComplementState(vp.children)
     }
-    case ShlurdExpectedComplementState(SptPRT(particle)) => {
-      analyzer.requirePropertyState(particle)
+    case ShlurdExpectedComplementState(syntaxTree : SptPRT) => {
+      analyzer.requirePropertyState(requireUnique(syntaxTree.children))
     }
   }
 
-  def rewriteUnresolvedPredicate = phraseMatcher {
-    case ShlurdUnresolvedPredicate(
-      _, subject, state, specifiedState)
-        if (!state.hasUnresolved) =>
+  def rewriteUnresolvedPredicate = transformationMatcher {
+    case predicate : ShlurdUnresolvedStatePredicate
+        if (!predicate.state.hasUnresolved) =>
       {
-        state match {
-          case ShlurdConjunctiveState(DETERMINER_UNSPECIFIED, states, _) => {
-            val propertyState = states.head
-            val fullySpecifiedState = {
-              if (specifiedState == ShlurdNullState()) {
-                if (states.size == 2) {
-                  states.last
-                } else {
-                  ShlurdConjunctiveState(DETERMINER_ALL, states.tail)
-                }
-              } else {
-                ShlurdConjunctiveState(
-                  DETERMINER_ALL, Seq(specifiedState) ++ states.tail)
-              }
-            }
-            val specifiedSubject = analyzer.specifyReference(
-              subject, fullySpecifiedState)
-            ShlurdStatePredicate(specifiedSubject, propertyState)
-          }
-          case _ => {
-            val specifiedSubject = analyzer.specifyReference(
-              subject, specifiedState)
-            ShlurdStatePredicate(specifiedSubject, state)
-          }
-        }
+        resolveStatePredicate(predicate)
+      }
+    case predicate : ShlurdUnresolvedRelationshipPredicate =>
+      {
+        resolveRelationshipPredicate(predicate)
       }
   }
 
-  def rewriteExpectedSBARQ = phraseMatcher {
+  def rewriteExpectedSBARQ = transformationMatcher {
     case ShlurdExpectedSentence(sbarq : SptSBARQ, _) => {
       analyzer.analyzeSBARQ(sbarq)
     }
   }
 
-  def rewriteExpectedSQ = phraseMatcher {
+  def rewriteExpectedSQ = transformationMatcher {
     case ShlurdExpectedSentence(sq : SptSQ, forceSQ) => {
       analyzer.analyzeSQ(sq, forceSQ)
     }
   }
 
-  def rewriteAmbiguousSentence = phraseMatcher {
+  def rewriteAmbiguousSentence = transformationMatcher {
     case ambiguous : ShlurdAmbiguousSentence if (!ambiguous.hasUnresolved) => {
       val alternatives = ambiguous.alternatives
       assert(!alternatives.isEmpty)
@@ -202,27 +265,77 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
     }
   }
 
-  def rewriteExpectedToUnrecognized = phraseMatcher {
-    case ShlurdExpectedSentence(syntaxTree, _) => {
-      ShlurdUnrecognizedSentence(syntaxTree)
-    }
-    case ShlurdExpectedPredicate(syntaxTree) => {
-      ShlurdUnrecognizedPredicate(syntaxTree)
-    }
-    case ShlurdExpectedReference(syntaxTree) => {
-      ShlurdUnrecognizedReference(syntaxTree)
-    }
-    case ShlurdExpectedComplementState(syntaxTree) => {
-      ShlurdUnrecognizedState(syntaxTree)
-    }
-    case ShlurdExpectedPrepositionalState(syntaxTree) => {
-      ShlurdUnrecognizedState(syntaxTree)
-    }
+  def rewriteUnresolvedToUnrecognized = transformationMatcher {
     case ShlurdUnresolvedRelativeReference(syntaxTree, _, _) => {
       ShlurdUnrecognizedReference(syntaxTree)
     }
-    case ShlurdUnresolvedPredicate(syntaxTree, _, _, _) => {
-      ShlurdUnrecognizedPredicate(syntaxTree)
+    case predicate : ShlurdUnresolvedStatePredicate => {
+      resolveStatePredicate(predicate)
     }
+    case predicate : ShlurdUnresolvedRelationshipPredicate => {
+      resolveRelationshipPredicate(predicate)
+    }
+  }
+
+  private def resolveRelationshipPredicate(
+    predicate : ShlurdUnresolvedRelationshipPredicate) =
+  {
+    ShlurdRelationshipPredicate(
+      predicate.reference,
+      predicate.complement,
+      predicate.relationship)
+  }
+
+  private def resolveStatePredicate(
+    predicate : ShlurdUnresolvedStatePredicate) =
+  {
+    predicate.state match {
+      case ShlurdConjunctiveState(DETERMINER_UNSPECIFIED, states, _) => {
+        val propertyState = states.head
+        val fullySpecifiedState = {
+          if (predicate.specifiedState == ShlurdNullState()) {
+            if (states.size == 2) {
+              states.last
+            } else {
+              ShlurdConjunctiveState(DETERMINER_ALL, states.tail)
+            }
+          } else {
+            ShlurdConjunctiveState(
+              DETERMINER_ALL, Seq(predicate.specifiedState) ++ states.tail)
+          }
+        }
+        val specifiedSubject = analyzer.specifyReference(
+          predicate.subject, fullySpecifiedState)
+        ShlurdStatePredicate(specifiedSubject, propertyState)
+      }
+      case _ => {
+        val specifiedSubject = analyzer.specifyReference(
+          predicate.subject, predicate.specifiedState)
+        ShlurdStatePredicate(specifiedSubject, predicate.state)
+      }
+    }
+  }
+
+  private def recognizePronounReference(leaf : ShlurdSyntaxLeaf)
+      : ShlurdPronounReference=
+  {
+    val lemma = leaf.lemma
+    val person = lemma match {
+      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY |
+          LEMMA_OUR | LEMMA_MINE | LEMMA_OURS => PERSON_FIRST
+      case LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS => PERSON_SECOND
+      case _ => PERSON_THIRD
+    }
+    val count = lemma match {
+      case LEMMA_WE | LEMMA_US | LEMMA_THEY |
+          LEMMA_OUR | LEMMA_THEIR => COUNT_PLURAL
+      case _ => COUNT_SINGULAR
+    }
+    val gender = lemma match {
+      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS => GENDER_M
+      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS => GENDER_F
+      case _ => GENDER_N
+    }
+    ShlurdPronounReference(person, gender, count)
   }
 }

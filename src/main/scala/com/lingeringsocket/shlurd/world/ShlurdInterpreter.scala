@@ -90,6 +90,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def interpretImpl(sentence : ShlurdSentence) : String =
   {
+    if (sentence.hasUnknown) {
+      return respondToUnrecognized(sentence)
+    }
     val resultCollector = new ResultCollector[E]
     sentence match {
       case ShlurdStateChangeCommand(predicate, formality) => {
@@ -268,6 +271,50 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         debug("UNKNOWN SENTENCE")
         sentencePrinter.sb.respondCannotUnderstand()
       }
+    }
+  }
+
+  private def respondToUnrecognized(sentence : ShlurdSentence) : String =
+  {
+    sentence match {
+      case _ : ShlurdUnknownSentence => {
+        sentencePrinter.sb.respondCannotUnderstand()
+      }
+      case ShlurdPredicateSentence(predicate, mood, formality) => {
+        predicate match {
+          case ShlurdStatePredicate(subject, state) => {
+            if (!state.hasUnknown) {
+              subject match {
+                case unknown : ShlurdUnknownReference => {
+                  sentencePrinter.sb.respondNotUnderstood(
+                    mood,
+                    sentencePrinter.sb.predicateUnrecognizedReference(
+                      mood, state.toWordString),
+                    unknown.syntaxTree.toWordString
+                  )
+                }
+                case _ => "blah"
+              }
+            } else if (!subject.hasUnknown) {
+              state match {
+                case unknown : ShlurdUnknownState => {
+                  sentencePrinter.sb.respondNotUnderstood(
+                    mood,
+                    sentencePrinter.sb.predicateUnrecognizedState(
+                      mood, subject.toWordString),
+                    unknown.syntaxTree.toWordString
+                  )
+                }
+                case _ => "blah"
+              }
+            } else {
+              "blah"
+            }
+          }
+          case _ => "blah"
+        }
+      }
+      case _ => "blah"
     }
   }
 

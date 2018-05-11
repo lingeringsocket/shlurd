@@ -22,11 +22,21 @@ sealed trait ShlurdPhrase
 
   def hasUnknown : Boolean = children.exists(_.hasUnknown)
 
-  def hasUnrecognized : Boolean = children.exists(_.hasUnrecognized)
-
   def hasUnresolved : Boolean = children.exists(_.hasUnresolved)
 
   override def toString = ShlurdPrettyPrinter.prettyPrint(this)
+
+  def maybeSyntaxTree : Option[ShlurdSyntaxTree] = None
+
+  def toWordString : String =
+  {
+    maybeSyntaxTree match {
+      // FIXME:  instead of shotgun toLowerCase, need a proper way to exclude
+      // proper nouns
+      case Some(syntaxTree) => syntaxTree.toWordString.toLowerCase
+      case _ => toString
+    }
+  }
 }
 
 sealed trait ShlurdSentence extends ShlurdPhrase
@@ -53,6 +63,8 @@ sealed trait ShlurdUnknownPhrase extends ShlurdPhrase
   override def hasUnknown = true
 
   def syntaxTree : ShlurdSyntaxTree
+
+  override def maybeSyntaxTree = Some(syntaxTree)
 }
 
 sealed trait ShlurdUnknownSentence
@@ -80,7 +92,6 @@ sealed trait ShlurdUnknownState
 
 sealed trait ShlurdUnrecognizedPhrase extends ShlurdPhrase
 {
-  override def hasUnrecognized = true
 }
 
 sealed trait ShlurdUnresolvedPhrase extends ShlurdPhrase
@@ -88,69 +99,119 @@ sealed trait ShlurdUnresolvedPhrase extends ShlurdPhrase
   override def hasUnresolved = true
 }
 
+abstract class ShlurdTransformedPhrase extends ShlurdPhrase
+{
+  private var syntaxTreeOpt : Option[ShlurdSyntaxTree] = None
+
+  private[parser] def rememberSyntaxTree(syntaxTree : ShlurdSyntaxTree)
+  {
+    syntaxTreeOpt = Some(syntaxTree)
+  }
+
+  def hasSyntaxTree = !syntaxTreeOpt.isEmpty
+
+  override def maybeSyntaxTree = syntaxTreeOpt
+
+  override def toWordString =
+  {
+    syntaxTreeOpt match {
+      // FIXME:  instead of shotgun toLowerCase, need a proper way to exclude
+      // proper nouns
+      case Some(syntaxTree) => syntaxTree.toWordString.toLowerCase
+      case _ => super.toWordString
+    }
+  }
+}
+
 case class ShlurdUnrecognizedSentence(
-  syntaxTree : ShlurdSyntaxTree ,
-  forceSQ : Boolean = false)
-    extends ShlurdUnknownSentence with ShlurdUnrecognizedPhrase
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownSentence with ShlurdUnrecognizedPhrase
 {
 }
 
 case class ShlurdUnrecognizedPredicate(
-  syntaxTree : ShlurdSyntaxTree)
-    extends ShlurdUnknownPredicate with ShlurdUnrecognizedPhrase
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownPredicate with ShlurdUnrecognizedPhrase
 {
 }
 
 case class ShlurdUnrecognizedReference(
-  syntaxTree : ShlurdSyntaxTree)
-    extends ShlurdUnknownReference with ShlurdUnrecognizedPhrase
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownReference with ShlurdUnrecognizedPhrase
 {
 }
 
 case class ShlurdUnrecognizedState(
-  syntaxTree : ShlurdSyntaxTree)
-    extends ShlurdUnknownState with ShlurdUnrecognizedPhrase
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownState with ShlurdUnrecognizedPhrase
 {
 }
 
 case class ShlurdExpectedSentence(
   syntaxTree : ShlurdSyntaxTree,
-  forceSQ : Boolean = false)
-    extends ShlurdUnknownSentence with ShlurdUnresolvedPhrase
+  forceSQ : Boolean = false
+) extends ShlurdUnknownSentence with ShlurdUnresolvedPhrase
 {
 }
 
 case class ShlurdExpectedPredicate(
-  syntaxTree : ShlurdSyntaxTree)
-    extends ShlurdUnknownPredicate with ShlurdUnresolvedPhrase
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownPredicate with ShlurdUnresolvedPhrase
 {
 }
 
 case class ShlurdExpectedReference(
-  syntaxTree : ShlurdSyntaxTree)
-    extends ShlurdUnknownReference with ShlurdUnresolvedPhrase
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownReference with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdExpectedNounlikeReference(
+  syntaxTree : ShlurdSyntaxTree,
+  determiner : ShlurdDeterminer
+) extends ShlurdUnknownReference with ShlurdUnresolvedPhrase
 {
 }
 
 case class ShlurdExpectedComplementState(
-  syntaxTree : ShlurdSyntaxTree)
-    extends ShlurdUnknownState with ShlurdUnresolvedPhrase
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownState with ShlurdUnresolvedPhrase
 {
 }
 
 case class ShlurdExpectedPrepositionalState(
-  syntaxTree : ShlurdSyntaxTree)
-    extends ShlurdUnknownState with ShlurdUnresolvedPhrase
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownState with ShlurdUnresolvedPhrase
 {
 }
 
-case class ShlurdUnresolvedPredicate(
+case class ShlurdExpectedPropertyState(
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownState with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdExpectedExistenceState(
+  syntaxTree : ShlurdSyntaxTree
+) extends ShlurdUnknownState with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdUnresolvedStatePredicate(
   syntaxTree : ShlurdSyntaxTree,
   subject : ShlurdReference,
   state : ShlurdState,
   specifiedState : ShlurdState
-)
-    extends ShlurdUnknownPredicate with ShlurdUnresolvedPhrase
+) extends ShlurdUnknownPredicate with ShlurdUnresolvedPhrase
+{
+}
+
+case class ShlurdUnresolvedRelationshipPredicate(
+  syntaxTree : ShlurdSyntaxTree,
+  reference : ShlurdReference,
+  complement : ShlurdReference,
+  relationship : ShlurdRelationship
+) extends ShlurdUnknownPredicate with ShlurdUnresolvedPhrase
 {
 }
 
@@ -158,8 +219,7 @@ case class ShlurdUnresolvedRelativeReference(
   syntaxTree : ShlurdSyntaxTree,
   reference : ShlurdReference,
   state : ShlurdState
-)
-    extends ShlurdUnknownReference with ShlurdUnresolvedPhrase
+) extends ShlurdUnknownReference with ShlurdUnresolvedPhrase
 {
 }
 
@@ -167,15 +227,15 @@ case class ShlurdPredicateSentence(
   predicate : ShlurdPredicate,
   mood : ShlurdMood = MOOD_INDICATIVE_POSITIVE,
   formality : ShlurdFormality = ShlurdFormality.DEFAULT
-) extends ShlurdSentence
+) extends ShlurdTransformedPhrase with ShlurdSentence
 {
   override def children = Seq(predicate)
 }
 
 case class ShlurdStateChangeCommand(
-  predicate : ShlurdStatePredicate,
+  predicate : ShlurdPredicate,
   formality : ShlurdFormality = ShlurdFormality.DEFAULT
-) extends ShlurdSentence
+) extends ShlurdTransformedPhrase with ShlurdSentence
 {
   override def children = Seq(predicate)
 
@@ -187,7 +247,7 @@ case class ShlurdPredicateQuery(
   question : ShlurdQuestion,
   mood : ShlurdMood,
   formality : ShlurdFormality = ShlurdFormality.DEFAULT
-) extends ShlurdSentence
+) extends ShlurdTransformedPhrase with ShlurdSentence
 {
   override def children = Seq(predicate)
 }
@@ -195,7 +255,7 @@ case class ShlurdPredicateQuery(
 
 case class ShlurdAmbiguousSentence(
   alternatives : Seq[ShlurdSentence]
-) extends ShlurdSentence
+) extends ShlurdTransformedPhrase with ShlurdSentence
 {
   override def children = alternatives
 
@@ -207,7 +267,7 @@ case class ShlurdAmbiguousSentence(
 case class ShlurdStatePredicate(
   subject : ShlurdReference,
   state : ShlurdState
-) extends ShlurdPredicate
+) extends ShlurdTransformedPhrase with ShlurdPredicate
 {
   override def children = Seq(subject, state)
 }
@@ -216,7 +276,7 @@ case class ShlurdRelationshipPredicate(
   subject : ShlurdReference,
   complement : ShlurdReference,
   relationship : ShlurdRelationship
-) extends ShlurdPredicate
+) extends ShlurdTransformedPhrase with ShlurdPredicate
 {
   override def children = Seq(subject, complement)
 }
@@ -224,7 +284,7 @@ case class ShlurdRelationshipPredicate(
 case class ShlurdStateSpecifiedReference(
   reference : ShlurdReference,
   state : ShlurdState
-) extends ShlurdReference
+) extends ShlurdTransformedPhrase with ShlurdReference
 {
   override def children = Seq(reference, state)
 }
@@ -232,7 +292,7 @@ case class ShlurdStateSpecifiedReference(
 case class ShlurdGenitiveReference(
   genitive : ShlurdReference,
   reference : ShlurdReference
-) extends ShlurdReference
+) extends ShlurdTransformedPhrase with ShlurdReference
 {
   override def children = Seq(genitive, reference)
 }
@@ -241,7 +301,7 @@ case class ShlurdPronounReference(
   person : ShlurdPerson,
   gender : ShlurdGender,
   count : ShlurdCount
-) extends ShlurdReference
+) extends ShlurdTransformedPhrase with ShlurdReference
 {
 }
 
@@ -249,7 +309,7 @@ case class ShlurdConjunctiveReference(
   determiner : ShlurdDeterminer,
   references : Seq[ShlurdReference],
   separator : ShlurdSeparator = SEPARATOR_CONJOINED
-) extends ShlurdReference
+) extends ShlurdTransformedPhrase with ShlurdReference
 {
   override def children = references
 }
@@ -258,30 +318,30 @@ case class ShlurdEntityReference(
   entity : ShlurdWord,
   determiner : ShlurdDeterminer = DETERMINER_UNSPECIFIED,
   count : ShlurdCount = COUNT_SINGULAR
-) extends ShlurdReference
+) extends ShlurdTransformedPhrase with ShlurdReference
 {
 }
 
 case class ShlurdExistenceState(
-) extends ShlurdState
+) extends ShlurdTransformedPhrase with ShlurdState
 {
 }
 
 case class ShlurdNullState(
-) extends ShlurdState
+) extends ShlurdTransformedPhrase with ShlurdState
 {
 }
 
 case class ShlurdPropertyState(
   state : ShlurdWord
-) extends ShlurdState
+) extends ShlurdTransformedPhrase with ShlurdState
 {
 }
 
 case class ShlurdLocationState(
   locative : ShlurdLocative,
   location : ShlurdReference
-) extends ShlurdState
+) extends ShlurdTransformedPhrase with ShlurdState
 {
   override def children = Seq(location)
 }
@@ -290,7 +350,7 @@ case class ShlurdConjunctiveState(
   determiner : ShlurdDeterminer,
   states : Seq[ShlurdState],
   separator : ShlurdSeparator = SEPARATOR_CONJOINED
-) extends ShlurdState
+) extends ShlurdTransformedPhrase with ShlurdState
 {
   override def children = states
 }
@@ -347,21 +407,30 @@ object ShlurdReference
     }
   }
 
-  def qualified(reference : ShlurdReference, qualifiers : Seq[ShlurdWord]) =
+  def qualifiedByProperties(
+    reference : ShlurdReference,
+    qualifiers : Seq[ShlurdState])
+      : ShlurdReference =
   {
     if (qualifiers.isEmpty) {
       reference
     } else if (qualifiers.size == 1) {
       ShlurdStateSpecifiedReference(
-        reference, ShlurdPropertyState(qualifiers.head))
+        reference, qualifiers.head)
     } else {
       ShlurdStateSpecifiedReference(
         reference,
         ShlurdConjunctiveState(
           DETERMINER_ALL,
-          qualifiers.map(ShlurdPropertyState(_)),
+          qualifiers,
           SEPARATOR_CONJOINED))
     }
+  }
+
+  def qualified(reference : ShlurdReference, qualifiers : Seq[ShlurdWord])
+      : ShlurdReference =
+  {
+    qualifiedByProperties(reference, qualifiers.map(ShlurdPropertyState(_)))
   }
 
   def extractLocationSpecifiers(state : ShlurdState)

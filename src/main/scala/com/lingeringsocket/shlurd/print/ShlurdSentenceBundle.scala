@@ -150,6 +150,15 @@ abstract class ShlurdSentenceBundle
 
   def respondDontKnow() : String
 
+  def respondNotUnderstood(
+    mood : ShlurdMood, predicate : String, errorPhrase : String) : String
+
+  def predicateUnrecognizedReference(
+    mood : ShlurdMood, complement : String) : String
+
+  def predicateUnrecognizedState(
+    mood : ShlurdMood, subject : String) : String
+
   def respondCompliance() : String
 
   def respondToAssumption(

@@ -552,7 +552,7 @@ class ShlurdParserSpec extends Specification
     {
       val inputUnspecified = "colorless green ideas slumber furiously"
       val result = parse(inputUnspecified)
-      result must haveClass[ShlurdUnrecognizedSentence]
+      result.isInstanceOf[ShlurdUnknownSentence] must beTrue
       result.hasUnknown must beTrue
     }
 

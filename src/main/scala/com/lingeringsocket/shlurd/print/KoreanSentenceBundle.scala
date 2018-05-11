@@ -404,6 +404,24 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     "몰라요."
   }
 
+  override def respondNotUnderstood(
+    mood : ShlurdMood, predicate : String, errorPhrase : String) =
+  {
+    "FIXME"
+  }
+
+  override def predicateUnrecognizedReference(
+    mood : ShlurdMood, complement : String) =
+  {
+    "FIXME"
+  }
+
+  override def predicateUnrecognizedState(
+    mood : ShlurdMood, subject : String) =
+  {
+    "FIXME"
+  }
+
   override def affirmAssumption(sentence : String, strength : Boolean) =
   {
     val prefixed = {

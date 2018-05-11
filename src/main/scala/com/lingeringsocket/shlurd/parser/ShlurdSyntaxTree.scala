@@ -170,6 +170,15 @@ trait ShlurdAbstractSyntaxTree
       string(label) <> nest(
         line <> vsep(children.map(_.toDoc).to[immutable.Seq], space)))
   }
+
+  def toWordString : String =
+  {
+    if (children.isEmpty) {
+      label
+    } else {
+      children.map(_.toWordString).mkString(" ")
+    }
+  }
 }
 
 sealed trait ShlurdSyntaxTree extends ShlurdAbstractSyntaxTree

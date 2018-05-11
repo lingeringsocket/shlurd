@@ -504,6 +504,60 @@ class EnglishSentenceBundle
     "I don't know."
   }
 
+  override def respondNotUnderstood(
+    mood : ShlurdMood, predicate : String, errorPhrase : String) =
+  {
+    val prefix = mood match {
+      case _ : ShlurdIndicativeMood => {
+        "I think you are saying"
+      }
+      case _ : ShlurdInterrogativeMood => {
+        "I think you are asking"
+      }
+      case MOOD_IMPERATIVE => {
+        "I think you are telling me to"
+      }
+    }
+    compose(
+      prefix,
+      concat(predicate, ","),
+      "but I can't understand the phrase",
+      concat("\"", errorPhrase, "\""))
+  }
+
+  override def predicateUnrecognizedReference(
+    mood : ShlurdMood, complement : String) =
+  {
+    // FIXME:  copula number etc
+    mood match {
+      case _ : ShlurdIndicativeMood => {
+        compose("that something is", complement)
+      }
+      case _ : ShlurdInterrogativeMood => {
+        compose("whether something is", complement)
+      }
+      case MOOD_IMPERATIVE => {
+        compose("something", complement)
+      }
+    }
+  }
+
+  override def predicateUnrecognizedState(
+    mood : ShlurdMood, subject : String) =
+  {
+    mood match {
+      case _ : ShlurdIndicativeMood => {
+        compose("something about the state of", subject)
+      }
+      case _ : ShlurdInterrogativeMood => {
+        compose("something about the state of ", subject)
+      }
+      case MOOD_IMPERATIVE => {
+        compose("do something with", subject)
+      }
+    }
+  }
+
   override def respondCompliance() =
   {
     "OK."

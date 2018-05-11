@@ -225,8 +225,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       }
     }
     if ((components.size == 2) && components.head.isPronoun) {
-      val pronounReference = recognizePronounReference(
-        requireLeaf(components.head.children))
+      val pronounReference = requireReference(components.head)
       val entityReference = requireNounReference(components.last, determiner)
       ShlurdGenitiveReference(pronounReference, entityReference)
     } else if (components.last.isCompoundPrepositionalPhrase) {
@@ -239,9 +238,9 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     } else if (components.forall(c => c.isNoun || c.isAdjectival)) {
       val entityReference = requireNounReference(components.last, determiner)
       if (components.size > 1) {
-        ShlurdReference.qualified(
+        ShlurdReference.qualifiedByProperties(
           entityReference,
-          components.dropRight(1).map(c => getWord(c.firstChild)))
+          components.dropRight(1).map(requirePropertyState))
       } else {
         entityReference
       }
@@ -278,8 +277,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           extractPrepositionalState(vpChildren)
         val complement = vpRemainder.last
         val (negativeComplement, predicate) = requirePredicate(
-          tree,
-          np, complement, specifiedState,
+          tree, np, complement, specifiedState,
           relationshipFor(verbHead))
         val positive = !(negative ^ negativeComplement)
         if (isQuestion) {
@@ -322,7 +320,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
 
   private def requireCommand(
     tree : ShlurdSyntaxTree,
-    particle : Option[ShlurdWord],
+    particle : Option[ShlurdSyntaxTree],
     specifiedState : ShlurdState,
     seq : Seq[ShlurdSyntaxTree],
     formality : ShlurdFormality) : ShlurdSentence =
@@ -330,17 +328,35 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     if (seq.size == 2) {
       val state = particle match {
         // FIXME:  restrict verb pairing when particle is present
-        case Some(word) => ShlurdPropertyState(word)
+        case Some(preTerminal) => requirePropertyState(preTerminal)
         case _ => requirePropertyState(seq.head)
       }
       val subject = specifyReference(
         requireReference(seq.last), specifiedState)
       ShlurdStateChangeCommand(
-        ShlurdStatePredicate(subject, state),
+        requireStatePredicate(tree, subject, state),
         formality)
     } else {
       ShlurdUnrecognizedSentence(tree)
     }
+  }
+
+  private def requireStatePredicate(
+    syntaxTree : ShlurdSyntaxTree,
+    subject : ShlurdReference, state : ShlurdState,
+    specifiedState : ShlurdState = ShlurdNullState()) =
+  {
+    ShlurdUnresolvedStatePredicate(syntaxTree, subject, state, specifiedState)
+  }
+
+  private def requireRelationshipPredicate(
+    syntaxTree : ShlurdSyntaxTree,
+    subject : ShlurdReference,
+    complement : ShlurdReference,
+    relationship : ShlurdRelationship) =
+  {
+    ShlurdUnresolvedRelationshipPredicate(
+      syntaxTree, subject, complement, relationship)
   }
 
   private def requireReference(
@@ -377,26 +393,12 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   private def requireNounReference(
     pt : ShlurdSyntaxTree, determiner : ShlurdDeterminer) =
   {
-    // we allow mislabeled adjectives to handle
-    // cases like "roll up the blind"
-    if (pt.isNoun || pt.isAdjectival) {
-      val noun = pt.firstChild
-      ShlurdEntityReference(
-        getWord(noun),
-        determiner,
-        getCount(pt))
-    } else {
-      ShlurdUnrecognizedReference(pt)
-    }
+    ShlurdExpectedNounlikeReference(pt, determiner)
   }
 
-  private[parser] def requirePropertyState(ap : ShlurdSyntaxTree) =
+  private[parser] def requirePropertyState(syntaxTree : ShlurdSyntaxTree) =
   {
-    if (ap.isPreTerminal) {
-      ShlurdPropertyState(getWord(ap.firstChild))
-    } else {
-      ShlurdUnrecognizedState(ap)
-    }
+    ShlurdExpectedPropertyState(syntaxTree)
   }
 
   private[parser] def requirePrepositionalState(tree : ShlurdSyntaxTree)
@@ -446,13 +448,17 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
             separator)
         }
       }
-      (negative, ShlurdStatePredicate(subject, ShlurdExistenceState()))
+      (negative, requireStatePredicate(
+        syntaxTree, subject, requireExistenceState(np)))
     } else if (complement.isExistential) {
-      (negative, ShlurdStatePredicate(
-        specifyReference(requireReference(np), specifiedState),
-          ShlurdExistenceState()))
+      (negative, requireStatePredicate(
+        syntaxTree,
+        specifyReference(
+          requireReference(np), specifiedState),
+        requireExistenceState(complement)))
     } else if (complement.isNounPhrase) {
-      val relationshipPredicate = ShlurdRelationshipPredicate(
+      val relationshipPredicate = requireRelationshipPredicate(
+        syntaxTree,
         specifyReference(requireReference(np), specifiedState),
         requireReference(seq),
         relationship)
@@ -472,10 +478,15 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
             separator)
         }
       }
-      (negative, ShlurdUnresolvedPredicate(
+      (negative, requireStatePredicate(
         syntaxTree, requireReference(np), state, specifiedState)
       )
     }
+  }
+
+  private def requireExistenceState(syntaxTree : ShlurdSyntaxTree) =
+  {
+    ShlurdExpectedExistenceState(syntaxTree)
   }
 
   private[parser] def requirePropertyComplementState(
@@ -502,37 +513,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private[parser] def recognizePronounReference(leaf : ShlurdSyntaxLeaf)
-      : ShlurdPronounReference=
-  {
-    val lemma = leaf.lemma
-    val person = lemma match {
-      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY |
-          LEMMA_OUR | LEMMA_MINE | LEMMA_OURS => PERSON_FIRST
-      case LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS => PERSON_SECOND
-      case _ => PERSON_THIRD
-    }
-    val count = lemma match {
-      case LEMMA_WE | LEMMA_US | LEMMA_THEY |
-          LEMMA_OUR | LEMMA_THEIR => COUNT_PLURAL
-      case _ => COUNT_SINGULAR
-    }
-    val gender = lemma match {
-      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS => GENDER_M
-      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS => GENDER_F
-      case _ => GENDER_N
-    }
-    ShlurdPronounReference(person, gender, count)
-  }
-
   private def maybeRecognizeParticle(
-    pt : ShlurdSyntaxTree) : Option[ShlurdWord] =
+    pt : ShlurdSyntaxTree) : Option[ShlurdSyntaxTree] =
   {
     pt match {
       case phrase @ (_ : SptPRT | _ : SptPP) => {
-        Some(getWord(phrase.firstChild.firstChild))
+        Some(phrase.firstChild)
       }
-      case SptRP(leaf) => Some(getWord(leaf))
+      case rp : SptRP => Some(rp)
       case _ => None
     }
   }
@@ -662,7 +650,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def extractParticle(seq : Seq[ShlurdSyntaxTree])
-      : (Option[ShlurdWord], Seq[ShlurdSyntaxTree]) =
+      : (Option[ShlurdSyntaxTree], Seq[ShlurdSyntaxTree]) =
   {
     seq.indexWhere(_.isParticleNode) match {
       case -1 => {
@@ -726,6 +714,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     seq : Seq[ShlurdSyntaxTree])
       : (Boolean, Seq[ShlurdSyntaxTree]) =
   {
+    // FIXME:  don't reduce to empty seq
     val pos = seq.map(_.unwrapPhrase).indexWhere(
       sub => sub.isAdverb && sub.hasTerminalLemma(LEMMA_NOT))
     if (pos == -1) {
@@ -826,7 +815,17 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     if (specifiedState == ShlurdNullState()) {
       ref
     } else {
-      ShlurdStateSpecifiedReference(ref, specifiedState)
+      val specifiedReference = ShlurdStateSpecifiedReference(
+        ref, specifiedState)
+      ref.maybeSyntaxTree.foreach(
+        refSyntaxTree => specifiedState.maybeSyntaxTree.foreach(
+          stateSyntaxTree => {
+            specifiedReference.rememberSyntaxTree(
+              SptNP(refSyntaxTree, stateSyntaxTree))
+          }
+        )
+      )
+      specifiedReference
     }
   }
 }
