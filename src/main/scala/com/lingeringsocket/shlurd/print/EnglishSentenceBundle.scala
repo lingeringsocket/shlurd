@@ -525,24 +525,30 @@ class EnglishSentenceBundle
       concat("\"", errorPhrase, "\""))
   }
 
-  override def predicateUnrecognizedReference(
-    mood : ShlurdMood, complement : String) =
+  override def predicateUnrecognizedSubject(
+    mood : ShlurdMood, complement : String, copula : Seq[String],
+    count : ShlurdCount) =
   {
-    // FIXME:  copula number etc
+    val something = count match {
+      case COUNT_SINGULAR => compose("some entity")
+      case COUNT_PLURAL => compose("some", "entities")
+    }
     mood match {
       case _ : ShlurdIndicativeMood => {
-        compose("that something is", complement)
+        compose("that",
+          composePredicateStatement(something, copula, complement))
       }
       case _ : ShlurdInterrogativeMood => {
-        compose("whether something is", complement)
+        compose("whether",
+          composePredicateStatement(something, copula, complement))
       }
       case MOOD_IMPERATIVE => {
-        compose("something", complement)
+        compose(something, complement)
       }
     }
   }
 
-  override def predicateUnrecognizedState(
+  override def predicateUnrecognizedComplement(
     mood : ShlurdMood, subject : String) =
   {
     mood match {
@@ -550,7 +556,7 @@ class EnglishSentenceBundle
         compose("do something with", subject)
       }
       case _ => {
-        compose("something about the state of", subject)
+        compose("something about", subject)
       }
     }
   }

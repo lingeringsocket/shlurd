@@ -153,10 +153,11 @@ abstract class ShlurdSentenceBundle
   def respondNotUnderstood(
     mood : ShlurdMood, predicate : String, errorPhrase : String) : String
 
-  def predicateUnrecognizedReference(
-    mood : ShlurdMood, complement : String) : String
+  def predicateUnrecognizedSubject(
+    mood : ShlurdMood, complement : String, copula : Seq[String],
+    count : ShlurdCount) : String
 
-  def predicateUnrecognizedState(
+  def predicateUnrecognizedComplement(
     mood : ShlurdMood, subject : String) : String
 
   def respondCompliance() : String

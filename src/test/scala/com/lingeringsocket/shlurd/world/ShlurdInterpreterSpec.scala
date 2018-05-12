@@ -330,17 +330,45 @@ class ShlurdInterpreterSpec extends Specification
       interpret("colorless green ideas slumber furiously") must be equalTo(
         "Sorry, I cannot understand what you said.")
       interpret("My squeaking door is open.") must be equalTo(
-        "I think you are saying that something is open, but " +
-          "I can't understand the phrase \"My squeaking door\"")
-      interpret("Is my squeaking door open?") must be equalTo(
-        "I think you are asking whether something is open, but " +
+        "I think you are saying that some entity is open, but " +
           "I can't understand the phrase \"my squeaking door\"")
+      interpret("My squeaking doors are open.") must be equalTo(
+        "I think you are saying that some entity is open, but " +
+          "I can't understand the phrase \"my squeaking doors\"")
+      interpret("My squeaking door can be open.") must be equalTo(
+        "I think you are saying that some entity can be open, but " +
+          "I can't understand the phrase \"my squeaking door\"")
+      interpret("My squeaking door may not be open.") must be equalTo(
+        "I think you are saying that some entity may not be open, but " +
+          "I can't understand the phrase \"my squeaking door\"")
+      interpret("Is my squeaking door open?") must be equalTo(
+        "I think you are asking whether some entity is open, but " +
+          "I can't understand the phrase \"my squeaking door\"")
+      // FIXME:  capitalization
       interpret("The door is how I want it.") must be equalTo(
-        "I think you are saying something about the state of the door, but " +
-          "I can't understand the phrase \"how I want it\"")
+        "I think you are saying something about the door, but " +
+          "I can't understand the phrase \"how i want it\"")
       interpret("Is the door how I want it?") must be equalTo(
-        "I think you are asking something about the state of the door, but " +
-          "I can't understand the phrase \"how I want it\"")
+        "I think you are asking something about the door, but " +
+          "I can't understand the phrase \"how i want it\"")
+      interpret("The cake is a lie with a side of bacon.") must be equalTo(
+        "I think you are saying something about the cake, but " +
+          "I can't understand the phrase \"a lie with a side of bacon\"")
+      interpret("A lie with a side of bacon is a cake.") must be equalTo(
+        "I think you are saying that some entity is a cake, but " +
+          "I can't understand the phrase \"a lie with a side of bacon\"")
+      interpret("The cake has a lie with a side of bacon.") must be equalTo(
+        "I think you are saying something about the cake, but " +
+          "I can't understand the phrase \"a lie with a side of bacon\"")
+      interpret("A lie with a side of bacon has a cake.") must be equalTo(
+        "I think you are saying that some entity has a cake, but " +
+          "I can't understand the phrase \"a lie with a side of bacon\"")
+      interpret("Butterflies with a side of bacon are cakes.") must be equalTo(
+        "I think you are saying that some entities are cakes, but " +
+          "I can't understand the phrase \"butterflies with a side of bacon\"")
+      interpret("There is my squeaking door.") must be equalTo(
+        "I think you are saying that some entity is there, but " +
+          "I can't understand the phrase \"my squeaking door\"")
     }
   }
 
