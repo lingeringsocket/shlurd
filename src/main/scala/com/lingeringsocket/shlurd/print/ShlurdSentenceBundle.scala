@@ -156,10 +156,14 @@ abstract class ShlurdSentenceBundle
 
   def predicateUnrecognizedSubject(
     mood : ShlurdMood, complement : String, copula : Seq[String],
-    count : ShlurdCount, changeVerb : Option[ShlurdWord]) : String
+    count : ShlurdCount, changeVerb : Option[ShlurdWord],
+    question : Option[ShlurdQuestion]) : String
 
   def predicateUnrecognizedComplement(
-    mood : ShlurdMood, subject : String) : String
+    mood : ShlurdMood, subject : String,
+    copula : Seq[String],
+    question : Option[ShlurdQuestion],
+    isRelationship : Boolean) : String
 
   def respondCompliance() : String
 

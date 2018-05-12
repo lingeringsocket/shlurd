@@ -283,17 +283,17 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         predicate match {
           case ShlurdStatePredicate(subject, state) => {
             // FIXME:  infer ShlurdCount from verb whenever possible
-            val count = COUNT_SINGULAR
+            val count = ShlurdReference.getCount(subject)
             val response = respondToUnresolvedPredicate(
-              subject, state, mood, count, REL_IDENTITY)
+              subject, state, mood, count, None)
             if (!response.isEmpty) {
               return response
             }
           }
           case ShlurdRelationshipPredicate(subject, complement, rel) => {
-            val count = ShlurdReference.getCount(complement)
+            val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
-              subject, complement, mood, count, rel)
+              subject, complement, mood, count, Some(rel))
             if (!response.isEmpty) {
               return response
             }
@@ -305,17 +305,51 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         ShlurdStatePredicate(subject, state), changeVerb, _) =>
       {
         // FIXME:  infer ShlurdCount from verb whenever possible
-        val count = COUNT_SINGULAR
+        val count = ShlurdReference.getCount(subject)
         val response = respondToUnresolvedPredicate(
-          subject, state, MOOD_IMPERATIVE, count, REL_IDENTITY, changeVerb)
+          subject, state, MOOD_IMPERATIVE, count, None, changeVerb)
         if (!response.isEmpty) {
           return response
         }
       }
+      case ShlurdPredicateQuery(predicate, question, mood, _) => {
+        predicate match {
+          case ShlurdStatePredicate(subject, state) => {
+            // FIXME:  infer ShlurdCount from verb whenever possible
+            val count = ShlurdReference.getCount(subject)
+            val response = respondToUnresolvedPredicate(
+              subject, state, mood, count, None, None, Some(question))
+            if (!response.isEmpty) {
+              return response
+            }
+          }
+          case ShlurdRelationshipPredicate(subject, complement, rel) => {
+            val count = findKnownCount(subject, complement)
+            val response = respondToUnresolvedPredicate(
+              subject, complement, mood, count,
+              Some(rel), None, Some(question))
+            if (!response.isEmpty) {
+              return response
+            }
+          }
+          case _ =>
+        }
+      }
+      case _ : ShlurdStateChangeCommand => ;
+      case _ : ShlurdAmbiguousSentence => ;
       case _ : ShlurdUnknownSentence => ;
-      case _ => "blah"
     }
     sb.respondCannotUnderstand()
+  }
+
+  private def findKnownCount(
+    ref1 : ShlurdReference, ref2 : ShlurdReference) : ShlurdCount =
+  {
+    if (ref1.hasUnknown) {
+      ShlurdReference.getCount(ref2)
+    } else {
+      ShlurdReference.getCount(ref1)
+    }
   }
 
   private def respondToUnresolvedPredicate(
@@ -323,26 +357,27 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     complement : ShlurdPhrase,
     mood : ShlurdMood,
     count : ShlurdCount,
-    rel : ShlurdRelationship,
-    changeVerb : Option[ShlurdWord] = None) : String =
+    rel : Option[ShlurdRelationship],
+    changeVerb : Option[ShlurdWord] = None,
+    question : Option[ShlurdQuestion] = None) : String =
   {
     val sb = sentencePrinter.sb
+    val copula = sb.copula(
+      PERSON_THIRD, GENDER_N, count,
+      mood, false, rel.getOrElse(REL_IDENTITY))
     if (!subject.hasUnknown) {
       assert(complement.hasUnknown)
       sb.respondNotUnderstood(
         mood,
         sb.predicateUnrecognizedComplement(
-          mood, subject.toWordString),
+          mood, subject.toWordString, copula, question, !rel.isEmpty),
         complement.toWordString)
     } else if (!complement.hasUnknown) {
       assert(subject.hasUnknown)
-      val copula = sb.copula(
-        PERSON_THIRD, GENDER_N, count,
-        mood, false, rel)
       sb.respondNotUnderstood(
         mood,
         sb.predicateUnrecognizedSubject(
-          mood, complement.toWordString, copula, count, changeVerb),
+          mood, complement.toWordString, copula, count, changeVerb, question),
         subject.toWordString)
     } else {
       ""

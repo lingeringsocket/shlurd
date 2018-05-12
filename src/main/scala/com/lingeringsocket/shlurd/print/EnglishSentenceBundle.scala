@@ -530,11 +530,23 @@ class EnglishSentenceBundle
 
   override def predicateUnrecognizedSubject(
     mood : ShlurdMood, complement : String, copula : Seq[String],
-    count : ShlurdCount, changeVerb : Option[ShlurdWord]) =
+    count : ShlurdCount, changeVerb : Option[ShlurdWord],
+    question : Option[ShlurdQuestion]) =
   {
-    val something = count match {
-      case COUNT_SINGULAR => compose("some entity")
-      case COUNT_PLURAL => compose("some", "entities")
+    val entity = count match {
+      case COUNT_SINGULAR => {
+        "entity"
+      }
+      case COUNT_PLURAL => {
+        "entities"
+      }
+    }
+    val something = {
+      if (question.isEmpty) {
+        compose("some", entity)
+      } else {
+        ""
+      }
     }
     mood match {
       case _ : ShlurdIndicativeMood => {
@@ -542,7 +554,14 @@ class EnglishSentenceBundle
           composePredicateStatement(something, copula, complement))
       }
       case _ : ShlurdInterrogativeMood => {
-        compose("whether",
+        val whord = {
+          if (question.isEmpty) {
+            "whether"
+          } else {
+            query(entity, question)
+          }
+        }
+        compose(whord,
           composePredicateStatement(something, copula, complement))
       }
       case MOOD_IMPERATIVE => {
@@ -552,14 +571,29 @@ class EnglishSentenceBundle
   }
 
   override def predicateUnrecognizedComplement(
-    mood : ShlurdMood, subject : String) =
+    mood : ShlurdMood, subject : String,
+    copula : Seq[String],
+    question : Option[ShlurdQuestion],
+    isRelationship : Boolean) =
   {
     mood match {
       case MOOD_IMPERATIVE => {
         compose("do something with", subject)
       }
       case _ => {
-        compose("something about", subject)
+        if (question.isEmpty) {
+          compose("something about", subject)
+        } else {
+          val complement = {
+            if (isRelationship) {
+              compose("some", "entity")
+            } else {
+              compose("in", "some", "state")
+            }
+          }
+          composePredicateStatement(
+            query(subject, question), copula, complement)
+        }
       }
     }
   }

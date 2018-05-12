@@ -414,13 +414,17 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
 
   override def predicateUnrecognizedSubject(
     mood : ShlurdMood, complement : String, copula : Seq[String],
-    count : ShlurdCount, changeVerb : Option[ShlurdWord]) =
+    count : ShlurdCount, changeVerb : Option[ShlurdWord],
+    question : Option[ShlurdQuestion]) =
   {
     "FIXME"
   }
 
   override def predicateUnrecognizedComplement(
-    mood : ShlurdMood, subject : String) =
+    mood : ShlurdMood, subject : String,
+    copula : Seq[String],
+    question : Option[ShlurdQuestion],
+    isRelationship : Boolean) =
   {
     "FIXME"
   }

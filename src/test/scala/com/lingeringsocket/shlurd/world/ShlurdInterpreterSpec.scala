@@ -375,6 +375,21 @@ class ShlurdInterpreterSpec extends Specification
       interpret("Turn on my fracking light.") must be equalTo(
         "I think you are telling me to turn on some entity, but " +
           "I can't understand the phrase \"my fracking light\"")
+      interpret("Which my squeaking door is open?") must be equalTo(
+        "I think you are asking which entity is open, but " +
+          "I can't understand the phrase \"my squeaking door\"")
+      interpret("Which door is how I want it?") must be equalTo(
+        "I think you are asking which door is in some state, but " +
+          "I can't understand the phrase \"how i want it\"")
+      interpret("Who is how I want them?") must be equalTo(
+        "I think you are asking who is in some state, but " +
+          "I can't understand the phrase \"how i want them\"")
+      interpret("Which lie with a side of bacon is a cake?") must be equalTo(
+        "I think you are asking which entity is a cake, but " +
+          "I can't understand the phrase \"lie with a side of bacon\"")
+      interpret("Which cake is a lie with a side of bacon?") must be equalTo(
+        "I think you are asking which cake is some entity, but " +
+          "I can't understand the phrase \"a lie with a side of bacon\"")
     }
   }
 
