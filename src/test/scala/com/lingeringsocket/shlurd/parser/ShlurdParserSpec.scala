@@ -63,6 +63,8 @@ class ShlurdParserSpec extends Specification
 
   private val QUALIFIER_FRONT = word("front")
 
+  private val VERB_TURN = word("turn")
+
   private def word(s : String) = ShlurdWord(s, s)
 
   private def pred(
@@ -186,7 +188,9 @@ class ShlurdParserSpec extends Specification
       parse(input + ".") must be equalTo
         ShlurdStateChangeCommand(predDoor())
       parse(input + "!") must be equalTo
-        ShlurdStateChangeCommand(predDoor(), ShlurdFormality(FORCE_EXCLAMATION))
+        ShlurdStateChangeCommand(predDoor(),
+          None,
+          ShlurdFormality(FORCE_EXCLAMATION))
       parse(input + "?") must be equalTo
         ShlurdStateChangeCommand(predDoor())
     }
@@ -220,13 +224,13 @@ class ShlurdParserSpec extends Specification
     "parse prepositional verbs" in
     {
       parse("turn the door on") must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_ON))
+        ShlurdStateChangeCommand(predDoor(STATE_ON), Some(VERB_TURN))
       parse("turn on the door") must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_ON))
+        ShlurdStateChangeCommand(predDoor(STATE_ON), Some(VERB_TURN))
       parse("turn the door off") must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OFF))
+        ShlurdStateChangeCommand(predDoor(STATE_OFF), Some(VERB_TURN))
       parse("turn off the door") must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OFF))
+        ShlurdStateChangeCommand(predDoor(STATE_OFF), Some(VERB_TURN))
     }
 
     "parse adverbial state" in

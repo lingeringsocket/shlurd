@@ -201,8 +201,11 @@ class EnglishSentenceBundle
     }
   }
 
-  override def changeStateVerb(state : ShlurdWord) =
-    state.lemma
+  override def changeStateVerb(
+    state : ShlurdWord, changeVerb : Option[ShlurdWord]) =
+  {
+    compose(changeVerb.map(_.lemma).getOrElse(""), state.lemma)
+  }
 
   override def delemmatizeNoun(
     entity : ShlurdWord, count : ShlurdCount,
@@ -527,7 +530,7 @@ class EnglishSentenceBundle
 
   override def predicateUnrecognizedSubject(
     mood : ShlurdMood, complement : String, copula : Seq[String],
-    count : ShlurdCount) =
+    count : ShlurdCount, changeVerb : Option[ShlurdWord]) =
   {
     val something = count match {
       case COUNT_SINGULAR => compose("some entity")
@@ -543,7 +546,7 @@ class EnglishSentenceBundle
           composePredicateStatement(something, copula, complement))
       }
       case MOOD_IMPERATIVE => {
-        compose(something, complement)
+        compose(changeVerb.map(_.lemma).getOrElse(""), complement, something)
       }
     }
   }

@@ -105,8 +105,10 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(concat(pos, "에"), "있어요")
   }
 
-  override def changeStateVerb(state : ShlurdWord) =
+  override def changeStateVerb(
+    state : ShlurdWord, changeVerb : Option[ShlurdWord]) =
   {
+    // FIXME:  use changeVerb
     conjugateImperative(state.lemma)
   }
 
@@ -412,7 +414,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
 
   override def predicateUnrecognizedSubject(
     mood : ShlurdMood, complement : String, copula : Seq[String],
-    count : ShlurdCount) =
+    count : ShlurdCount, changeVerb : Option[ShlurdWord]) =
   {
     "FIXME"
   }

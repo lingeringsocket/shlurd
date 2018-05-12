@@ -39,16 +39,17 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           }
         }
       }
-      case ShlurdStateChangeCommand(predicate, formality) => {
+      case ShlurdStateChangeCommand(predicate, changeVerb, formality) => {
         sb.terminatedSentence(
-          printPredicateCommand(predicate), sentence.mood, formality)
+          printPredicateCommand(predicate, changeVerb),
+          sentence.mood, formality)
       }
       case ShlurdPredicateQuery(predicate, question, mood, formality) => {
         sb.terminatedSentence(
           printPredicateQuestion(
             predicate, mood, Some(question)), mood, formality)
       }
-      case ShlurdAmbiguousSentence(alternatives) => {
+      case ShlurdAmbiguousSentence(alternatives, _) => {
         alternatives.map(print(_)).mkString(" | ")
       }
       case _ : ShlurdUnknownSentence => {
@@ -171,11 +172,12 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def printChangeStateVerb(state : ShlurdState) =
+  def printChangeStateVerb(
+    state : ShlurdState, changeVerb : Option[ShlurdWord]) =
   {
     state match {
       case ShlurdPropertyState(state) => {
-        sb.changeStateVerb(state)
+        sb.changeStateVerb(state, changeVerb)
       }
       // FIXME:  conjoining, e.g. "close and lock the door"
       case _ => print(state, MOOD_IMPERATIVE, ShlurdConjoining.NONE)
@@ -204,13 +206,14 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  def printPredicateCommand(predicate : ShlurdPredicate) =
+  def printPredicateCommand(
+    predicate : ShlurdPredicate, changeVerb : Option[ShlurdWord] = None) =
   {
     predicate match {
       case ShlurdStatePredicate(subject, state) => {
         sb.statePredicateCommand(
           print(subject, INFLECT_ACCUSATIVE, ShlurdConjoining.NONE),
-          printChangeStateVerb(state))
+          printChangeStateVerb(state, changeVerb))
       }
       case _ => {
         sb.unknownPredicateCommand

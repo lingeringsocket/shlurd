@@ -102,7 +102,8 @@ abstract class ShlurdSentenceBundle
 
   def position(locative : ShlurdLocative) : String
 
-  def changeStateVerb(state : ShlurdWord) : String
+  def changeStateVerb(
+    state : ShlurdWord, changeVerb : Option[ShlurdWord]) : String
 
   def delemmatizeNoun(
     entity : ShlurdWord, count : ShlurdCount,
@@ -155,7 +156,7 @@ abstract class ShlurdSentenceBundle
 
   def predicateUnrecognizedSubject(
     mood : ShlurdMood, complement : String, copula : Seq[String],
-    count : ShlurdCount) : String
+    count : ShlurdCount, changeVerb : Option[ShlurdWord]) : String
 
   def predicateUnrecognizedComplement(
     mood : ShlurdMood, subject : String) : String

@@ -244,7 +244,7 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
   }
 
   def rewriteAmbiguousSentence = transformationMatcher {
-    case ambiguous : ShlurdAmbiguousSentence if (!ambiguous.hasUnresolved) => {
+    case ambiguous : ShlurdAmbiguousSentence if (ambiguous.isRipe) => {
       val alternatives = ambiguous.alternatives
       assert(!alternatives.isEmpty)
       val dedup = alternatives.distinct
@@ -253,12 +253,14 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
       } else {
         val clean = dedup.filterNot(_.hasUnknown)
         if (clean.isEmpty) {
-          ShlurdAmbiguousSentence(dedup)
+          // if all alternatives still contain unknowns, then
+          // pick the one with the minimum number of unparsed leaves
+          dedup.minBy(_.countUnknownSyntaxLeaves)
         } else {
           if (clean.size == 1) {
             clean.head
           } else {
-            ShlurdAmbiguousSentence(clean)
+            ShlurdAmbiguousSentence(clean, true)
           }
         }
       }

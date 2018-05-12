@@ -40,13 +40,14 @@ class ShlurdSentencePrinterSpec extends Specification
           case _ => parsed
         }
       }
-      case ShlurdStateChangeCommand(predicate, formality) => {
+      case ShlurdStateChangeCommand(predicate, changeVerb, formality) => {
         ShlurdStateChangeCommand(
           predicate,
+          changeVerb,
           formality.copy(force = FORCE_EXCLAMATION))
       }
       case ShlurdPredicateQuery(predicate, question, mood, formality) => parsed
-      case ShlurdAmbiguousSentence(alternatives) => {
+      case ShlurdAmbiguousSentence(alternatives, _) => {
         ShlurdAmbiguousSentence(alternatives.map(normalize))
       }
       case _ : ShlurdUnknownSentence => parsed

@@ -245,6 +245,7 @@ case class ShlurdPredicateSentence(
 
 case class ShlurdStateChangeCommand(
   predicate : ShlurdPredicate,
+  changeVerb : Option[ShlurdWord] = None,
   formality : ShlurdFormality = ShlurdFormality.DEFAULT
 ) extends ShlurdTransformedPhrase with ShlurdSentence
 {
@@ -265,7 +266,8 @@ case class ShlurdPredicateQuery(
 
 
 case class ShlurdAmbiguousSentence(
-  alternatives : Seq[ShlurdSentence]
+  alternatives : Seq[ShlurdSentence],
+  done : Boolean = false
 ) extends ShlurdTransformedPhrase with ShlurdSentence
 {
   override def children = alternatives
@@ -273,6 +275,8 @@ case class ShlurdAmbiguousSentence(
   override def mood = alternatives.head.mood
 
   override def formality = alternatives.head.formality
+
+  def isRipe = !hasUnresolved && !done
 }
 
 case class ShlurdStatePredicate(

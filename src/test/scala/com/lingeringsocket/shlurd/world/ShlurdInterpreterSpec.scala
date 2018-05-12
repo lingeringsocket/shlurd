@@ -369,6 +369,12 @@ class ShlurdInterpreterSpec extends Specification
       interpret("There is my squeaking door.") must be equalTo(
         "I think you are saying that some entity is there, but " +
           "I can't understand the phrase \"my squeaking door\"")
+      interpret("Open my squeaking door.") must be equalTo(
+        "I think you are telling me to open some entity, but " +
+          "I can't understand the phrase \"my squeaking door\"")
+      interpret("Turn on my fracking light.") must be equalTo(
+        "I think you are telling me to turn on some entity, but " +
+          "I can't understand the phrase \"my fracking light\"")
     }
   }
 

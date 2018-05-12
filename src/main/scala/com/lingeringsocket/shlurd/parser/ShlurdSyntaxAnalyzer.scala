@@ -328,15 +328,21 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     formality : ShlurdFormality) : ShlurdSentence =
   {
     if (seq.size == 2) {
-      val state = particle match {
+      val (state, changeVerb) = particle match {
         // FIXME:  restrict verb pairing when particle is present
-        case Some(preTerminal) => requirePropertyState(preTerminal)
-        case _ => requirePropertyState(seq.head)
+        case Some(preTerminal) => {
+          (requirePropertyState(preTerminal),
+            Some(getWord(requireLeaf(seq.head.children))))
+        }
+        case _ => {
+          (requirePropertyState(seq.head), None)
+        }
       }
       val subject = specifyReference(
         requireReference(seq.last), specifiedState)
       ShlurdStateChangeCommand(
         requireStatePredicate(tree, subject, state),
+        changeVerb,
         formality)
     } else {
       ShlurdUnrecognizedSentence(tree)
