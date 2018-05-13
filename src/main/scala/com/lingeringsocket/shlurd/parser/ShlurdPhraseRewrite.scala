@@ -183,7 +183,7 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
 
   def rewriteExpectedState = transformationMatcher {
     case ShlurdExpectedPrepositionalState(syntaxTree) => {
-      analyzer.requirePrepositionalState(syntaxTree)
+      analyzer.expectPrepositionalState(syntaxTree)
     }
     case ShlurdExpectedPropertyState(preTerminal : ShlurdSyntaxPreTerminal) => {
       ShlurdPropertyState(analyzer.getWord(preTerminal.child))
@@ -192,7 +192,7 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
       ShlurdExistenceState()
     }
     case ShlurdExpectedComplementState(adjp : SptADJP) => {
-      analyzer.requirePropertyComplementState(adjp.children)
+      analyzer.expectPropertyComplementState(adjp.children)
     }
     case ShlurdExpectedComplementState(
       syntaxTree @ (_ : SptADVP | _ : SptPP)) =>
@@ -203,16 +203,16 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
       {
         ShlurdExpectedPrepositionalState(syntaxTree)
       } else {
-        analyzer.requirePropertyComplementState(seq)
+        analyzer.expectPropertyComplementState(seq)
       }
     }
     case ShlurdExpectedComplementState(vp : SptVP) => {
       // TODO:  ambiguity for action (passive construction) vs
       // state (participial adjective)
-      analyzer.requirePropertyComplementState(vp.children)
+      analyzer.expectPropertyComplementState(vp.children)
     }
     case ShlurdExpectedComplementState(syntaxTree : SptPRT) => {
-      analyzer.requirePropertyState(requireUnique(syntaxTree.children))
+      analyzer.expectPropertyState(requireUnique(syntaxTree.children))
     }
   }
 
