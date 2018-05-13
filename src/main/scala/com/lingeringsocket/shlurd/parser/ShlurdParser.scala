@@ -118,7 +118,7 @@ class CorenlpTreeWrapper(
     corenlp.label.value.split("-").head
 
   override def lemma =
-    lemmas(corenlp.label.asInstanceOf[HasIndex].index).toLowerCase
+    lemmas(corenlp.label.asInstanceOf[HasIndex].index)
 
   override def token = tokens(corenlp.label.asInstanceOf[HasIndex].index)
 

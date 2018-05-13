@@ -52,7 +52,7 @@ object ShlurdEnglishLemmas
   val LEMMA_DOES = "does"
   val LEMMA_IT = "it"
   val LEMMA_ITS = "its"
-  val LEMMA_I = "i"
+  val LEMMA_I = "I"
   val LEMMA_ME = "me"
   val LEMMA_WE = "we"
   val LEMMA_US = "us"

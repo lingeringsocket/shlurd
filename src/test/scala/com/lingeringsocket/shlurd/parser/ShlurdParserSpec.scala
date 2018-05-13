@@ -33,9 +33,9 @@ class ShlurdParserSpec extends Specification
 
   private val ENTITY_WHO = word(LEMMA_WHO)
 
-  private val ENTITY_FRANNY = word("franny")
+  private val ENTITY_FRANNY = word("Franny")
 
-  private val ENTITY_ZOOEY = word("zooey")
+  private val ENTITY_ZOOEY = word("Zooey")
 
   private val ENTITY_MOUSE = word("mouse")
 
@@ -319,7 +319,7 @@ class ShlurdParserSpec extends Specification
 
     "parse locatives" in
     {
-      val input = "is franny at home"
+      val input = "is Franny at home"
       parse(input) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
@@ -384,7 +384,7 @@ class ShlurdParserSpec extends Specification
 
     "parse possessive reference" in
     {
-      val input = "is franny's mouse hungry"
+      val input = "is Franny's mouse hungry"
       parse(input) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
@@ -397,7 +397,7 @@ class ShlurdParserSpec extends Specification
 
     "parse genitive reference" in
     {
-      val input = "franny is zooey's sister"
+      val input = "Franny is Zooey's sister"
       parse(input) must be equalTo
         ShlurdPredicateSentence(
           ShlurdRelationshipPredicate(
@@ -412,7 +412,7 @@ class ShlurdParserSpec extends Specification
 
     "parse conjunctive reference" in
     {
-      val inputPositive = "franny and zooey are hungry"
+      val inputPositive = "Franny and Zooey are hungry"
       parse(inputPositive) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
@@ -422,7 +422,7 @@ class ShlurdParserSpec extends Specification
                 ShlurdEntityReference(ENTITY_FRANNY),
                 ShlurdEntityReference(ENTITY_ZOOEY))),
             ShlurdPropertyState(STATE_HUNGRY)))
-      val inputNegative = "neither franny nor zooey is hungry"
+      val inputNegative = "neither Franny nor Zooey is hungry"
       parse(inputNegative) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
@@ -438,7 +438,7 @@ class ShlurdParserSpec extends Specification
     {
       // this would be more natural as part of a conditional,
       // but whatever
-      val inputInclusive = "franny or zooey is hungry"
+      val inputInclusive = "Franny or Zooey is hungry"
       parse(inputInclusive) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
@@ -451,7 +451,7 @@ class ShlurdParserSpec extends Specification
 
       // FIXME:  in this context, should really be DETERMINER_ANY
       // instead of DETERMINER_UNIQUE
-      val inputExclusive = "either franny or zooey is hungry"
+      val inputExclusive = "either Franny or Zooey is hungry"
       parse(inputExclusive) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(

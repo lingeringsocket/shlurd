@@ -174,7 +174,11 @@ trait ShlurdAbstractSyntaxTree
   def toWordString : String =
   {
     if (children.isEmpty) {
-      label
+      if (!lemma.isEmpty && lemma.head.isLower) {
+        token.toLowerCase
+      } else {
+        token
+      }
     } else {
       children.map(_.toWordString).mkString(" ")
     }

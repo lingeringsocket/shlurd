@@ -127,13 +127,12 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "who is Amanda's friend",
         "But I don't know about any such friend.")
-      // FIXME:  understand personal names better
       interpret(
         "is Ford Todd's friend",
-        "Sorry, I don't know what you mean by ford.")
+        "Sorry, I don't know what you mean by Ford.")
       interpret(
         "is Todd Ford's friend",
-        "Sorry, I don't know what you mean by ford.")
+        "Sorry, I don't know what you mean by Ford.")
       // FIXME:  some other broken cases include
       // "who has a friend"
       // "who is a friend"

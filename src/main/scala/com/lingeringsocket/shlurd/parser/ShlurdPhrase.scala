@@ -31,9 +31,7 @@ sealed trait ShlurdPhrase
   def toWordString : String =
   {
     maybeSyntaxTree match {
-      // FIXME:  instead of shotgun toLowerCase, need a proper way to exclude
-      // proper nouns
-      case Some(syntaxTree) => syntaxTree.toWordString.toLowerCase
+      case Some(syntaxTree) => syntaxTree.toWordString
       case _ => toString
     }
   }
@@ -125,9 +123,7 @@ abstract class ShlurdTransformedPhrase extends ShlurdPhrase
   override def toWordString =
   {
     syntaxTreeOpt match {
-      // FIXME:  instead of shotgun toLowerCase, need a proper way to exclude
-      // proper nouns
-      case Some(syntaxTree) => syntaxTree.toWordString.toLowerCase
+      case Some(syntaxTree) => syntaxTree.toWordString
       case _ => super.toWordString
     }
   }
