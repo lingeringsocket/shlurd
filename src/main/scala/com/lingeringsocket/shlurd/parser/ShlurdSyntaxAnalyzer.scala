@@ -240,9 +240,19 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val entityReference = requireNounReference(
         tree, components.last, determiner)
       if (components.size > 1) {
-        ShlurdReference.qualifiedByProperties(
+        val adjComponents = components.dropRight(1)
+        val qualifiedReference = ShlurdReference.qualifiedByProperties(
           entityReference,
-          components.dropRight(1).map(requirePropertyState))
+          adjComponents.map(requirePropertyState))
+        qualifiedReference match {
+          case ShlurdStateSpecifiedReference(
+            _, state : ShlurdConjunctiveState) =>
+            {
+              rememberSyntheticADJP(state, adjComponents)
+            }
+          case _ =>
+        }
+        qualifiedReference
       } else {
         entityReference
       }
@@ -451,11 +461,13 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           specifyReference(requireReference(seq), specifiedState)
         }
         case (determiner, separator, split) => {
-          ShlurdConjunctiveReference(
+          val conjunctiveRef = ShlurdConjunctiveReference(
             determiner,
             split.map(x => specifyReference(
               requireReference(x), specifiedState)),
             separator)
+          rememberSyntheticNP(conjunctiveRef, seq)
+          conjunctiveRef
         }
       }
       (negative, requireStatePredicate(
@@ -480,12 +492,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
             ShlurdSyntaxRewrite.recompose(complement, seq))
         }
         case (determiner, separator, split) => {
-          ShlurdConjunctiveState(
+          val conjunctiveState = ShlurdConjunctiveState(
             determiner,
             split.map(
               subseq => requireComplementState(
                 ShlurdSyntaxRewrite.recompose(complement, subseq))),
             separator)
+          rememberSyntheticADJP(conjunctiveState, seq)
+          conjunctiveState
         }
       }
       (negative, requireStatePredicate(
@@ -830,12 +844,27 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       ref.maybeSyntaxTree.foreach(
         refSyntaxTree => specifiedState.maybeSyntaxTree.foreach(
           stateSyntaxTree => {
-            specifiedReference.rememberSyntaxTree(
-              SptNP(refSyntaxTree, stateSyntaxTree))
+            rememberSyntheticNP(
+              specifiedReference,
+              Seq(refSyntaxTree, stateSyntaxTree))
           }
         )
       )
       specifiedReference
     }
+  }
+
+  private def rememberSyntheticNP(
+    reference : ShlurdTransformedPhrase,
+    seq : Seq[ShlurdSyntaxTree])
+  {
+    reference.rememberSyntaxTree(SptNP(seq:_*))
+  }
+
+  private def rememberSyntheticADJP(
+    reference : ShlurdTransformedPhrase,
+    seq : Seq[ShlurdSyntaxTree])
+  {
+    reference.rememberSyntaxTree(SptADJP(seq:_*))
   }
 }

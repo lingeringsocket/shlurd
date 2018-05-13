@@ -390,6 +390,14 @@ class ShlurdInterpreterSpec extends Specification
       interpret("Which cake is a lie with a side of bacon?") must be equalTo(
         "I think you are asking which cake is some entity, but " +
           "I can't understand the phrase \"a lie with a side of bacon\"")
+      interpret("There is my squeaking door and a window") must
+        be equalTo("I think you are saying that some " +
+          "entities are there, but " +
+          "I can't understand the phrase \"my squeaking door and a window\"")
+      interpret("My squeaking door is open and sideways") must
+        be equalTo("I think you are saying that some " +
+          "entity is open and sideways, but " +
+          "I can't understand the phrase \"my squeaking door\"")
     }
   }
 

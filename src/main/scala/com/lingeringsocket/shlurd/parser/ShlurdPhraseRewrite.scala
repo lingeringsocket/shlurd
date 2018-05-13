@@ -130,9 +130,6 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
   }
 
   def validateResult = queryMatcher {
-    // FIXME:  map syntax for conjunctions too
-    case _ : ShlurdConjunctiveReference => ;
-    case _ : ShlurdConjunctiveState => ;
     case transformedPhrase : ShlurdTransformedPhrase => {
       if (!transformedPhrase.hasSyntaxTree) {
         throw new AssertionError("Syntax lost for " + transformedPhrase)
