@@ -16,10 +16,8 @@ package com.lingeringsocket.shlurd.world
 
 import com.lingeringsocket.shlurd.parser._
 
-import org.kiama.rewriting._
-
-class ShlurdResponseRewrite[E<:ShlurdEntity, P<:ShlurdProperty](
-  world : ShlurdWorld[E,P])
+class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
+  world : ShlurdWorld[E,P]) extends ShlurdPhraseRewriter
 {
   def normalizeResponse(
     predicate : ShlurdPredicate,
@@ -36,6 +34,7 @@ class ShlurdResponseRewrite[E<:ShlurdEntity, P<:ShlurdProperty](
         DETERMINER_UNIQUE
       }
     }
+
     def normalizeConjunctionWrapper(
       separator : ShlurdSeparator,
       allRef : => ShlurdReference) =
@@ -47,7 +46,8 @@ class ShlurdResponseRewrite[E<:ShlurdEntity, P<:ShlurdProperty](
       }
       rr.getOrElse(allRef)
     }
-    val rewriteReferences = Rewriter.rule[ShlurdPhrase] {
+
+    def replaceReferences = replacementMatcher {
       case ShlurdStateSpecifiedReference(outer, state) => {
         outer match {
           case ShlurdStateSpecifiedReference(
@@ -59,14 +59,6 @@ class ShlurdResponseRewrite[E<:ShlurdEntity, P<:ShlurdProperty](
             ShlurdStateSpecifiedReference(outer, state)
           }
         }
-      }
-      case ShlurdPronounReference(person, gender, count)=> {
-        val speakerListenerReversed = person match {
-          case PERSON_FIRST => PERSON_SECOND
-          case PERSON_SECOND => PERSON_FIRST
-          case PERSON_THIRD => PERSON_THIRD
-        }
-        ShlurdPronounReference(speakerListenerReversed, gender, count)
       }
       case ShlurdConjunctiveReference(determiner, references, separator) => {
         determiner match {
@@ -91,9 +83,6 @@ class ShlurdResponseRewrite[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
-    }
-
-    val expandReferences = Rewriter.rule[ShlurdPhrase] {
       case ShlurdEntityReference(
         entity, DETERMINER_ANY | DETERMINER_SOME, count
       ) => {
@@ -114,50 +103,61 @@ class ShlurdResponseRewrite[E<:ShlurdEntity, P<:ShlurdProperty](
       }
     }
 
-    val coerceCountAgreement = Rewriter.rule[ShlurdPhrase] {
-      case ShlurdRelationshipPredicate(subject, complement, REL_IDENTITY) => {
-        val subjectCount = ShlurdReference.getCount(subject)
-        val complementCount = ShlurdReference.getCount(complement)
-        if (subjectCount != complementCount) {
-          val subjectCoercible =
-            ShlurdReference.isCountCoercible(subject)
-          val complementCoercible =
-            ShlurdReference.isCountCoercible(complement)
-          assert(subjectCoercible || complementCoercible)
-          val agreedCount = {
-            if (subjectCoercible && complementCoercible) {
-              COUNT_PLURAL
-            } else if (subjectCoercible) {
-              complementCount
-            } else {
-              subjectCount
-            }
+    def allRules = combineRules(
+      replacePronounsSpeakerListener,
+      replaceReferences,
+      coerceCountAgreement)
+
+    val rewritten = rewrite(allRules, predicate)
+    (rewritten, negateCollection)
+  }
+
+  def replacePronounsSpeakerListener = replacementMatcher {
+    case ShlurdPronounReference(person, gender, count)=> {
+      val speakerListenerReversed = person match {
+        case PERSON_FIRST => PERSON_SECOND
+        case PERSON_SECOND => PERSON_FIRST
+        case PERSON_THIRD => PERSON_THIRD
+      }
+      ShlurdPronounReference(speakerListenerReversed, gender, count)
+    }
+  }
+
+  private def coerceCountAgreement = replacementMatcher {
+    case ShlurdRelationshipPredicate(subject, complement, REL_IDENTITY) => {
+      val subjectCount = ShlurdReference.getCount(subject)
+      val complementCount = ShlurdReference.getCount(complement)
+      if (subjectCount != complementCount) {
+        val subjectCoercible =
+          ShlurdReference.isCountCoercible(subject)
+        val complementCoercible =
+          ShlurdReference.isCountCoercible(complement)
+        assert(subjectCoercible || complementCoercible)
+        val agreedCount = {
+          if (subjectCoercible && complementCoercible) {
+            COUNT_PLURAL
+          } else if (subjectCoercible) {
+            complementCount
+          } else {
+            subjectCount
           }
-          def coerceIfNeeded(reference : ShlurdReference, count : ShlurdCount) =
-          {
-            if (count == agreedCount) {
-              reference
-            } else {
-              coerceCount(reference, agreedCount)
-            }
-          }
-          ShlurdRelationshipPredicate(
-            coerceIfNeeded(subject, subjectCount),
-            coerceIfNeeded(complement, complementCount),
-            REL_IDENTITY)
-        } else {
-          ShlurdRelationshipPredicate(subject, complement, REL_IDENTITY)
         }
+        def coerceIfNeeded(reference : ShlurdReference, count : ShlurdCount) =
+        {
+          if (count == agreedCount) {
+            reference
+          } else {
+            coerceCount(reference, agreedCount)
+          }
+        }
+        ShlurdRelationshipPredicate(
+          coerceIfNeeded(subject, subjectCount),
+          coerceIfNeeded(complement, complementCount),
+          REL_IDENTITY)
+      } else {
+        ShlurdRelationshipPredicate(subject, complement, REL_IDENTITY)
       }
     }
-
-    val allRules = rewriteReferences + expandReferences + coerceCountAgreement
-
-    val rewritten = Rewriter.rewrite(
-      Rewriter.everywherebu("normalizeResponse", allRules)
-    )(predicate)
-
-    (rewritten, negateCollection)
   }
 
   private def coerceCount(

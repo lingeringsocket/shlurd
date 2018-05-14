@@ -171,14 +171,19 @@ trait ShlurdAbstractSyntaxTree
         line <> vsep(children.map(_.toDoc).to[immutable.Seq], space)))
   }
 
+  def foldedToken : String =
+  {
+    if (!lemma.isEmpty && lemma.head.isLower) {
+      token.toLowerCase
+    } else {
+      token
+    }
+  }
+
   def toWordString : String =
   {
     if (children.isEmpty) {
-      if (!lemma.isEmpty && lemma.head.isLower) {
-        token.toLowerCase
-      } else {
-        token
-      }
+      foldedToken
     } else {
       children.map(_.toWordString).mkString(" ")
     }

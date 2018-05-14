@@ -19,13 +19,13 @@ import com.lingeringsocket.shlurd.print._
 
 import scala.util._
 
-import org.kiama.rewriting._
-
 import spire.math._
 
 import scala.collection._
 
 import org.slf4j._
+
+import ShlurdEnglishLemmas._
 
 case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
   entities : Set[E],
@@ -60,7 +60,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private val sentencePrinter = new ShlurdSentencePrinter
 
-  private val responseRewrite = new ShlurdResponseRewrite(world)
+  private val responseRewriter = new ShlurdResponseRewriter(world)
 
   def fail(msg : String) = world.fail(msg)
 
@@ -101,7 +101,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case Success(Trilean.True) => {
             debug("COUNTERFACTUAL")
             val (normalizedResponse, negateCollection) =
-              responseRewrite.normalizeResponse(
+              responseRewriter.normalizeResponse(
                 predicate, resultCollector, generalParams)
             assert(!negateCollection)
             val responseMood = MOOD_INDICATIVE_POSITIVE
@@ -148,7 +148,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               case QUESTION_HOW_MANY => 0
             }
             val (normalizedResponse, negateCollection) =
-              responseRewrite.normalizeResponse(
+              responseRewriter.normalizeResponse(
                 rewrittenPredicate, resultCollector,
                 generalParams.copy(listLimit = extremeLimit))
             debug(s"NORMALIZED RESPONSE : $normalizedResponse")
@@ -187,7 +187,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   case _ => generalParams
                 }
                 val (normalizedResponse, negateCollection) =
-                  responseRewrite.normalizeResponse(
+                  responseRewriter.normalizeResponse(
                     query, resultCollector, params)
                 debug(s"NORMALIZED RESPONSE : $normalizedResponse")
                 val responseMood = ShlurdIndicativeMood(
@@ -232,7 +232,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 debug(s"KNOWN TRUTH : $truth")
                 if (truth.assumeFalse == positivity) {
                   val (normalizedResponse, negateCollection) =
-                    responseRewrite.normalizeResponse(
+                    responseRewriter.normalizeResponse(
                       predicate, resultCollector, generalParams)
                   assert(!negateCollection)
                   sentencePrinter.sb.respondToAssumption(
@@ -274,8 +274,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  private def respondToUnrecognized(sentence : ShlurdSentence) : String =
+  private def respondToUnrecognized(unrecognized : ShlurdSentence) : String =
   {
+    val sentence = responseRewriter.rewrite(
+      responseRewriter.replacePronounsSpeakerListener, unrecognized)
     val sb = sentencePrinter.sb
     assert(sentence.hasUnknown)
     sentence match {
@@ -378,22 +380,56 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     question : Option[ShlurdQuestion] = None) : String =
   {
     val sb = sentencePrinter.sb
+    val verbLemma = {
+      complement match {
+        case ShlurdExistenceState() => {
+          LEMMA_EXIST
+        }
+        case _ => {
+          rel match {
+            case Some(REL_ASSOCIATION) => LEMMA_HAVE
+            case _ => LEMMA_BE
+          }
+        }
+      }
+    }
     val copula = sb.copula(
       PERSON_THIRD, GENDER_N, count,
-      mood, false, rel.getOrElse(REL_IDENTITY))
+      mood, false, verbLemma)
     if (!subject.hasUnknown) {
       assert(complement.hasUnknown)
       sb.respondNotUnderstood(
         mood,
         sb.predicateUnrecognizedComplement(
-          mood, subject.toWordString, copula, question, !rel.isEmpty),
+          mood,
+          sentencePrinter.print(
+            subject,
+            if (question.isEmpty) INFLECT_ACCUSATIVE else INFLECT_NOMINATIVE,
+            ShlurdConjoining.NONE),
+          copula, question, !rel.isEmpty),
         complement.toWordString)
     } else if (!complement.hasUnknown) {
       assert(subject.hasUnknown)
       sb.respondNotUnderstood(
         mood,
         sb.predicateUnrecognizedSubject(
-          mood, complement.toWordString, copula, count, changeVerb, question),
+          mood,
+          complement match {
+            case reference : ShlurdReference => {
+              sentencePrinter.print(
+                reference,
+                INFLECT_NOMINATIVE,
+                ShlurdConjoining.NONE)
+            }
+            case state : ShlurdState => {
+              sentencePrinter.print(
+                state,
+                mood,
+                ShlurdConjoining.NONE)
+            }
+            case _ => complement.toWordString
+          },
+          copula, count, changeVerb, question),
         subject.toWordString)
     } else {
       ""
@@ -795,29 +831,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def rewriteQuery(
     predicate : ShlurdPredicate) : ShlurdPredicate =
   {
-    val rewriteSpecifier =
-      Rewriter.rule[ShlurdPhrase] {
-        case ShlurdEntityReference(
-          entity, DETERMINER_UNSPECIFIED, count
-        ) =>
-          {
-            ShlurdEntityReference(entity, DETERMINER_ANY, count)
-          }
-      }
-    def rewriteSubject(subject : ShlurdReference) = Rewriter.rewrite(
-      Rewriter.everywherebu("rewriteSubject", rewriteSpecifier)
-    )(subject)
-    val rewritePredicate =
-      Rewriter.rule[ShlurdPredicate] {
-        case ShlurdStatePredicate(subject, state) => {
-          ShlurdStatePredicate(
-            rewriteSubject(subject), state)
-        }
-        case ShlurdRelationshipPredicate(subject, complement, relationship) => {
-          ShlurdRelationshipPredicate(
-            rewriteSubject(subject), complement, relationship)
-        }
-      }
-    Rewriter.rewrite(rewritePredicate)(predicate)
+    val queryRewriter = new ShlurdQueryRewriter()
+    queryRewriter.rewrite(
+      queryRewriter.rewritePredicate, predicate)
   }
 }

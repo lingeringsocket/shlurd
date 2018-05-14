@@ -14,130 +14,28 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import org.kiama.rewriting._
-import org.kiama.util._
-
-import org.slf4j._
-
 import ShlurdParseUtils._
 import ShlurdEnglishLemmas._
 
-class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
+class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
+  extends ShlurdPhraseRewriter
 {
-  type ShlurdPhraseTransformation = PartialFunction[ShlurdPhrase, ShlurdPhrase]
-
-  type ShlurdPhraseQuery = PartialFunction[ShlurdPhrase, Unit]
-
-  private val logger = LoggerFactory.getLogger(classOf[ShlurdPhraseRewrite])
-
-  def completeSentence(
-    tree : ShlurdSyntaxTree, phrase : ShlurdPhrase) : ShlurdSentence =
+  def parseSentence(sentenceSyntaxTree : ShlurdSyntaxTree) : ShlurdSentence =
   {
-    val completed = rewrite(rewriteUnresolvedToUnrecognized)(phrase)
+    val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
+    val expected = ShlurdExpectedSentence(sentenceSyntaxTree, forceSQ)
+    val phrase = rewrite[ShlurdSentence](replaceAllPhrases, expected, true)
+    val completed = rewrite(replaceUnresolvedWithUnrecognized, phrase)
     if (!completed.hasUnknown) {
-      query(validateResult)(completed)
+      query(validateResult, completed)
     }
     completed match {
       case sentence : ShlurdSentence => sentence
-      case _ => ShlurdUnrecognizedSentence(tree)
+      case _ => ShlurdUnrecognizedSentence(sentenceSyntaxTree)
     }
   }
 
-  object SyntaxPreservingRewriter extends CallbackRewriter
-  {
-    override def rewriting[PhraseType](
-      oldPhrase : PhraseType, newPhrase : PhraseType) : PhraseType =
-    {
-      (oldPhrase, newPhrase) match {
-        case (oldMaybeTree : ShlurdPhrase,
-          newTransformed : ShlurdTransformedPhrase) =>
-          {
-            oldMaybeTree.maybeSyntaxTree match {
-              case Some(syntaxTree) => {
-                rememberTransformation(syntaxTree, newTransformed)
-              }
-              case _ =>
-            }
-          }
-        case _ =>
-      }
-      (oldPhrase, newPhrase) match {
-        case (oldPredicate : ShlurdPredicate,
-          newPredicate : ShlurdPredicate) =>
-          {
-            newPredicate.setInflectedCount(oldPredicate.getInflectedCount)
-          }
-        case _ =>
-      }
-      newPhrase
-    }
-  }
-
-  def rewrite(
-    rule : ShlurdPhraseTransformation)
-      : (ShlurdPhrase) => ShlurdPhrase =
-  {
-    val strategy =
-      SyntaxPreservingRewriter.manybu(
-        "rewriteEverywhere",
-        SyntaxPreservingRewriter.rule[ShlurdPhrase](rule))
-    val maybeLogging = if (logger.isDebugEnabled) {
-      SyntaxPreservingRewriter.log(
-        "rewriteLog",
-        strategy,
-        "REWRITE ",
-        new ErrorEmitter)
-    } else {
-      strategy
-    }
-    SyntaxPreservingRewriter.rewrite[ShlurdPhrase](
-      SyntaxPreservingRewriter.repeat(
-        "rewriteRepeat",
-        maybeLogging))
-  }
-
-  def query(
-    rule : ShlurdPhraseQuery)
-      : (ShlurdPhrase) => Unit =
-  {
-    val strategy =
-      Rewriter.manybu(
-        "rewriteEverywhere",
-        Rewriter.query[ShlurdPhrase](rule))
-    Rewriter.rewrite(strategy)
-  }
-
-  def rewriteAllPhrases = rewrite {
-    Seq(
-      rewriteExpectedSentence,
-      rewriteExpectedSBARQ,
-      rewriteExpectedSQ,
-      rewriteAmbiguousSentence,
-      rewriteUnresolvedPredicate,
-      rewriteExpectedState,
-      rewriteExpectedReference).reduceLeft(_ orElse _)
-  }
-
-  def transformationMatcher(f : ShlurdPhraseTransformation)
-      : ShlurdPhraseTransformation = f
-
-  def queryMatcher(f : ShlurdPhraseQuery)
-      : ShlurdPhraseQuery = f
-
-  private def rememberTransformation(
-    syntaxTree : ShlurdSyntaxTree,
-    phrase : ShlurdPhrase) =
-  {
-    phrase match {
-      case transformedPhrase : ShlurdTransformedPhrase => {
-        transformedPhrase.rememberSyntaxTree(syntaxTree)
-      }
-      case _ => assert(phrase.isInstanceOf[ShlurdUnknownPhrase])
-    }
-    phrase
-  }
-
-  def validateResult = queryMatcher {
+  private def validateResult = queryMatcher {
     case transformedPhrase : ShlurdTransformedPhrase => {
       if (!transformedPhrase.hasSyntaxTree) {
         throw new AssertionError("Syntax lost for " + transformedPhrase)
@@ -145,7 +43,16 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
     }
   }
 
-  def rewriteExpectedSentence() = transformationMatcher {
+  private def replaceAllPhrases = combineRules(
+    replaceExpectedSentence,
+    replaceExpectedSBARQ,
+    replaceExpectedSQ,
+    replaceAmbiguousSentence,
+    replaceUnresolvedPredicate,
+    replaceExpectedState,
+    replaceExpectedReference)
+
+  private def replaceExpectedSentence = replacementMatcher {
     case ShlurdExpectedSentence(sentence : SptS, forceSQ) => {
       if (forceSQ) {
         analyzer.analyzeSQ(sentence, forceSQ)
@@ -155,7 +62,7 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
     }
   }
 
-  def rewriteExpectedReference = transformationMatcher {
+  private def replaceExpectedReference = replacementMatcher {
     case ShlurdExpectedReference(SptNP(noun)) => {
       ShlurdExpectedReference(noun)
     }
@@ -189,7 +96,7 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
       }
   }
 
-  def rewriteExpectedState = transformationMatcher {
+  private def replaceExpectedState = replacementMatcher {
     case ShlurdExpectedPrepositionalState(syntaxTree) => {
       analyzer.expectPrepositionalState(syntaxTree)
     }
@@ -224,7 +131,7 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
     }
   }
 
-  def rewriteUnresolvedPredicate = transformationMatcher {
+  private def replaceUnresolvedPredicate = replacementMatcher {
     case predicate : ShlurdUnresolvedStatePredicate
         if (!predicate.state.hasUnresolved) =>
       {
@@ -236,19 +143,19 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
       }
   }
 
-  def rewriteExpectedSBARQ = transformationMatcher {
+  private def replaceExpectedSBARQ = replacementMatcher {
     case ShlurdExpectedSentence(sbarq : SptSBARQ, _) => {
       analyzer.analyzeSBARQ(sbarq)
     }
   }
 
-  def rewriteExpectedSQ = transformationMatcher {
+  private def replaceExpectedSQ = replacementMatcher {
     case ShlurdExpectedSentence(sq : SptSQ, forceSQ) => {
       analyzer.analyzeSQ(sq, forceSQ)
     }
   }
 
-  def rewriteAmbiguousSentence = transformationMatcher {
+  private def replaceAmbiguousSentence = replacementMatcher {
     case ambiguous : ShlurdAmbiguousSentence if (ambiguous.isRipe) => {
       val alternatives = ambiguous.alternatives
       assert(!alternatives.isEmpty)
@@ -272,7 +179,7 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
     }
   }
 
-  def rewriteUnresolvedToUnrecognized = transformationMatcher {
+  private def replaceUnresolvedWithUnrecognized = replacementMatcher {
     case ShlurdUnresolvedRelativeReference(syntaxTree, _, _) => {
       ShlurdUnrecognizedReference(syntaxTree)
     }

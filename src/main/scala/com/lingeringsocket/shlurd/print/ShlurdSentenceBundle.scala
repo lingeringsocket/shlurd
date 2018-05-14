@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.print
 
 import com.lingeringsocket.shlurd.parser._
 
+import ShlurdEnglishLemmas._
+
 case class ShlurdConjoining(
   determiner : ShlurdDeterminer,
   separator : ShlurdSeparator,
@@ -98,7 +100,19 @@ abstract class ShlurdSentenceBundle
   def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
     mood : ShlurdMood, isExistential : Boolean,
-    relationship : ShlurdRelationship) : Seq[String]
+    relationship : ShlurdRelationship) : Seq[String] =
+  {
+    val verbLemma = relationship match {
+      case REL_IDENTITY => LEMMA_BE
+      case REL_ASSOCIATION => LEMMA_HAVE
+    }
+    copula(person, gender, count, mood, isExistential, verbLemma)
+  }
+
+  def copula(
+    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
+    mood : ShlurdMood, isExistential : Boolean,
+    verbLemma : String) : Seq[String]
 
   def position(locative : ShlurdLocative) : String
 

@@ -16,6 +16,9 @@ package com.lingeringsocket.shlurd.print
 
 import com.lingeringsocket.shlurd.parser._
 
+// FIXME:  this is terrible
+import ShlurdEnglishLemmas._
+
 class KoreanSentenceBundle extends ShlurdSentenceBundle
 {
   override def statePredicateStatement(
@@ -56,9 +59,9 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   override def copula(
     person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
     mood : ShlurdMood, isExistential : Boolean,
-    relationship : ShlurdRelationship) =
+    verbLemma : String) =
   {
-    val exists = isExistential || (relationship == REL_ASSOCIATION)
+    val exists = isExistential || (verbLemma == LEMMA_HAVE)
     mood match {
       case modalMood : ShlurdModalMood => {
         // FIXME:  use modalMood.getModality

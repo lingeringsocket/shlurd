@@ -366,7 +366,7 @@ class ShlurdInterpreterSpec extends Specification
         "I think you are saying that some entities are cakes, but " +
           "I can't understand the phrase \"butterflies with a side of bacon\"")
       interpret("There is my squeaking door.") must be equalTo(
-        "I think you are saying that some entity is there, but " +
+        "I think you are saying that some entity exists, but " +
           "I can't understand the phrase \"my squeaking door\"")
       interpret("Open my squeaking door.") must be equalTo(
         "I think you are telling me to open some entity, but " +
@@ -391,12 +391,15 @@ class ShlurdInterpreterSpec extends Specification
           "I can't understand the phrase \"a lie with a side of bacon\"")
       interpret("There is my squeaking door and a window") must
         be equalTo("I think you are saying that some " +
-          "entities are there, but " +
+          "entities exist, but " +
           "I can't understand the phrase \"my squeaking door and a window\"")
       interpret("My squeaking door is open and sideways") must
         be equalTo("I think you are saying that some " +
           "entity is open and sideways, but " +
           "I can't understand the phrase \"my squeaking door\"")
+      interpret("Are you how I want you?") must be equalTo(
+        "I think you are asking something about me, but " +
+          "I can't understand the phrase \"how I want you\"")
     }
   }
 

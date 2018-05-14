@@ -573,7 +573,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
 
   private[parser] def getWord(leaf : ShlurdSyntaxTree) =
   {
-    ShlurdWord(leaf.token, leaf.lemma)
+    ShlurdWord(leaf.foldedToken, leaf.lemma)
   }
 
   private def isCoordinatingDeterminer(

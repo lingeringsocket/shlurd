@@ -75,12 +75,9 @@ class ShlurdSingleParser(
   {
     tree match {
       case SptROOT(sentenceSyntaxTree) => {
-        val phraseRewrite = new ShlurdPhraseRewrite(
+        val parsingRewriter = new ShlurdParsingRewriter(
           new ShlurdSyntaxAnalyzer(guessedQuestion))
-        val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
-        val expected = ShlurdExpectedSentence(sentenceSyntaxTree, forceSQ)
-        val phrase = phraseRewrite.rewriteAllPhrases(expected)
-        phraseRewrite.completeSentence(tree, phrase)
+        parsingRewriter.parseSentence(sentenceSyntaxTree)
       }
       case _ => ShlurdUnrecognizedSentence(tree)
     }
