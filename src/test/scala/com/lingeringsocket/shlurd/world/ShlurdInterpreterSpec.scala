@@ -333,7 +333,7 @@ class ShlurdInterpreterSpec extends Specification
         "I think you are saying that some entity is open, but " +
           "I can't understand the phrase \"my squeaking door\"")
       interpret("My squeaking doors are open.") must be equalTo(
-        "I think you are saying that some entity is open, but " +
+        "I think you are saying that some entities are open, but " +
           "I can't understand the phrase \"my squeaking doors\"")
       interpret("My squeaking door can be open.") must be equalTo(
         "I think you are saying that some entity can be open, but " +

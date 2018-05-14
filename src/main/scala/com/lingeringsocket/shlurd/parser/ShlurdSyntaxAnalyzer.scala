@@ -106,6 +106,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
               expectPredicate(tree, np, ap, specifiedState,
                 relationshipFor(verbHead))
             val positive = !(negative ^ negativeSub)
+            rememberPredicateCount(predicate, verbHead)
             ShlurdPredicateSentence(
               predicate,
               ShlurdInterrogativeMood(positive, modality))
@@ -183,6 +184,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           complement.head, complementRemainder),
         combinedState,
         REL_IDENTITY)
+      rememberPredicateCount(predicate, secondSub.head)
       ShlurdPredicateQuery(
         predicate, question,
         ShlurdInterrogativeMood(!(negativeSuper ^ negativeSub)))
@@ -292,6 +294,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           tree, np, complement, specifiedState,
           relationshipFor(verbHead))
         val positive = !(negative ^ negativeComplement)
+        rememberPredicateCount(predicate, verbHead)
         if (isQuestion) {
           ShlurdPredicateSentence(
             predicate, ShlurdInterrogativeMood(positive, modality),
@@ -866,5 +869,15 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     seq : Seq[ShlurdSyntaxTree])
   {
     reference.rememberSyntaxTree(SptADJP(seq:_*))
+  }
+
+  private def rememberPredicateCount(
+    predicate : ShlurdPredicate,
+    verbHead : ShlurdSyntaxTree)
+  {
+    verbHead match {
+      case _ : SptVBP => predicate.setInflectedCount(COUNT_PLURAL)
+      case _ => predicate.setInflectedCount(COUNT_SINGULAR)
+    }
   }
 }

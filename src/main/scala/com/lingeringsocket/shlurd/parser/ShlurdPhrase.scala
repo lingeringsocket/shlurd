@@ -51,6 +51,14 @@ sealed trait ShlurdSentence extends ShlurdPhrase
 
 sealed trait ShlurdPredicate extends ShlurdPhrase
 {
+  private var inflectedCount : ShlurdCount = COUNT_SINGULAR
+
+  def getInflectedCount = inflectedCount
+
+  private[parser] def setInflectedCount(count : ShlurdCount)
+  {
+    inflectedCount = count
+  }
 }
 
 sealed trait ShlurdReference extends ShlurdPhrase

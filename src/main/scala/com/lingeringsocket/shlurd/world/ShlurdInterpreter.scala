@@ -282,8 +282,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case ShlurdPredicateSentence(predicate, mood, _) => {
         predicate match {
           case ShlurdStatePredicate(subject, state) => {
-            // FIXME:  infer ShlurdCount from verb whenever possible
-            val count = ShlurdReference.getCount(subject)
+            val count = computeMaxCount(
+              subject,
+              predicate.getInflectedCount)
             val response = respondToUnresolvedPredicate(
               subject, state, mood, count, None)
             if (!response.isEmpty) {
@@ -302,12 +303,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
       case ShlurdStateChangeCommand(
-        ShlurdStatePredicate(subject, state), changeVerb, _) =>
+        predicate : ShlurdStatePredicate, changeVerb, _) =>
       {
-        // FIXME:  infer ShlurdCount from verb whenever possible
-        val count = ShlurdReference.getCount(subject)
+        val count = computeMaxCount(
+          predicate.subject,
+          predicate.getInflectedCount)
         val response = respondToUnresolvedPredicate(
-          subject, state, MOOD_IMPERATIVE, count, None, changeVerb)
+          predicate.subject, predicate.state,
+          MOOD_IMPERATIVE, count, None, changeVerb)
         if (!response.isEmpty) {
           return response
         }
@@ -315,8 +318,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case ShlurdPredicateQuery(predicate, question, mood, _) => {
         predicate match {
           case ShlurdStatePredicate(subject, state) => {
-            // FIXME:  infer ShlurdCount from verb whenever possible
-            val count = ShlurdReference.getCount(subject)
+            val count = computeMaxCount(
+              subject,
+              predicate.getInflectedCount)
             val response = respondToUnresolvedPredicate(
               subject, state, mood, count, None, None, Some(question))
             if (!response.isEmpty) {
@@ -349,6 +353,18 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       ShlurdReference.getCount(ref2)
     } else {
       ShlurdReference.getCount(ref1)
+    }
+  }
+
+  private def computeMaxCount(
+    ref : ShlurdReference, count : ShlurdCount) : ShlurdCount =
+  {
+    if (ShlurdReference.getCount(ref) == COUNT_PLURAL) {
+      COUNT_PLURAL
+    } else if (count == COUNT_PLURAL) {
+      COUNT_PLURAL
+    } else {
+      COUNT_SINGULAR
     }
   }
 

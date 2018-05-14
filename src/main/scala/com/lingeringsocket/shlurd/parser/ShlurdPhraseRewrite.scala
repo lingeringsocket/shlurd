@@ -61,6 +61,14 @@ class ShlurdPhraseRewrite(analyzer : ShlurdSyntaxAnalyzer)
           }
         case _ =>
       }
+      (oldPhrase, newPhrase) match {
+        case (oldPredicate : ShlurdPredicate,
+          newPredicate : ShlurdPredicate) =>
+          {
+            newPredicate.setInflectedCount(oldPredicate.getInflectedCount)
+          }
+        case _ =>
+      }
       newPhrase
     }
   }
