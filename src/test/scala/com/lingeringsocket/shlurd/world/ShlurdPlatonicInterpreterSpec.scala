@@ -179,13 +179,18 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "is BLACKWING a conspiracy",
         "Yes, BLACKWING is a conspiracy.")
-      // FIXME:  "who has a friend"
       interpret(
         "who has an uncle",
         "No one has an uncle.")
       interpret(
         "which person has an uncle",
         "No person has an uncle.")
+      interpret(
+        "who has a friend",
+        "Dirk and Todd have a friend.")
+      interpret(
+        "who has friends",
+        "Dirk and Todd have friends.")
     }
 
     "understand services" in new InterpreterContext

@@ -19,7 +19,7 @@ import org.kiama.util._
 
 import org.slf4j._
 
-trait ShlurdPhraseRewriter
+class ShlurdPhraseRewriter
 {
   type ShlurdPhraseReplacement = PartialFunction[ShlurdPhrase, ShlurdPhrase]
 
