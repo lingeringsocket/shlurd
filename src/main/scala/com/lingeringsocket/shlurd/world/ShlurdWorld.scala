@@ -23,6 +23,7 @@ import scala.collection._
 
 sealed trait ShlurdReferenceContext
 case object REF_SUBJECT extends ShlurdReferenceContext
+case object REF_COMPLEMENT extends ShlurdReferenceContext
 case object REF_LOCATION extends ShlurdReferenceContext
 case object REF_LOCATED extends ShlurdReferenceContext
 

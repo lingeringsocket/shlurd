@@ -371,7 +371,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               evaluateCategorization(subjectEntity, categoryLabel)
             } else {
               evaluatePredicateOverReference(
-                complementRef, REF_SUBJECT, complementCollector)
+                complementRef, REF_COMPLEMENT, complementCollector)
               {
                 complementEntity => evaluateRelationshipPredicate(
                   subjectEntity, complementRef, complementEntity, relationship
@@ -532,12 +532,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             }
             determiner match {
               case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
-                if (entities.isEmpty) {
+                if (entities.isEmpty && (context != REF_COMPLEMENT)) {
                   fail(sentencePrinter.sb.respondNonexistent(lemma))
                 } else {
                   count match {
                     case COUNT_SINGULAR => {
-                      if (entities.size > 1) {
+                      if (entities.isEmpty) {
+                        Success(Trilean.False)
+                      } else if (entities.size > 1) {
                         if (determiner == DETERMINER_UNIQUE) {
                           fail(sentencePrinter.sb.respondAmbiguous(lemma))
                         } else {

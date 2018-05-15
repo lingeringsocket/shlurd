@@ -123,10 +123,12 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "who is Dirk's friend",
         "Todd and Bart are Dirk's friends.")
-      // FIXME better would be "No one is Amanda's friend."
       interpret(
         "who is Amanda's friend",
-        "But I don't know about any such friend.")
+        "No one is Amanda's friend.")
+      interpret(
+        "who are Amanda's friends",
+        "No one is Amanda's friend.")
       interpret(
         "is Ford Todd's friend",
         "Sorry, I don't know what you mean by Ford.")
