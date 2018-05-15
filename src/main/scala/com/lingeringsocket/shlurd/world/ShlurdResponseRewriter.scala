@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.world
 
 import com.lingeringsocket.shlurd.parser._
 
+import ShlurdEnglishLemmas._
+
 class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   world : ShlurdWorld[E,P]) extends ShlurdPhraseRewriter
 {
@@ -91,7 +93,13 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           SEPARATOR_OXFORD_COMMA, params).getOrElse
         {
           negateCollection = true
-          ShlurdEntityReference(entity, DETERMINER_NONE, count)
+          val responseNoun = entity match {
+            case ShlurdWord(LEMMA_WHO, LEMMA_WHO) => {
+              ShlurdWord(LEMMA_ONE, LEMMA_ONE)
+            }
+            case _ => entity
+          }
+          ShlurdEntityReference(responseNoun, DETERMINER_NONE, count)
         }
       }
       case ShlurdEntityReference(
@@ -176,9 +184,20 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         if (er.count == agreedCount) {
           er
         } else {
+          val newDeterminer = {
+            if (agreedCount == COUNT_PLURAL) {
+              if (er.determiner == DETERMINER_NONSPECIFIC) {
+                DETERMINER_UNSPECIFIED
+              } else {
+                er.determiner
+              }
+            } else {
+              er.determiner
+            }
+          }
           ShlurdEntityReference(
             ShlurdWord("", er.entity.lemma),
-            er.determiner, agreedCount)
+            newDeterminer, agreedCount)
         }
       }
       case _ => reference

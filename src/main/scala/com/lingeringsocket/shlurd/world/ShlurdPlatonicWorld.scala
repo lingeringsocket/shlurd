@@ -602,4 +602,35 @@ class ShlurdPlatonicWorld
       fail("FIXME")
     }
   }
+
+  override def evaluateEntityCategoryPredicate(
+    entity : ShlurdPlatonicEntity,
+    lemma : String,
+    qualifiers : Set[String] = Set.empty) : Try[Trilean] =
+  {
+    forms.get(formSynonyms.resolveSynonym(lemma)) match {
+      case Some(form) => {
+        if (entity.form == form) {
+          if (!formGenitives.containsVertex(form)) {
+            Success(Trilean.True)
+          } else {
+            if (formGenitives.incomingEdgesOf(form).asScala.
+              exists(_.label == lemma))
+            {
+              Success(Trilean(
+                entityGenitives.incomingEdgesOf(entity).asScala.
+                  exists(_.label == lemma)))
+            } else {
+              Success(Trilean.True)
+            }
+          }
+        } else {
+          Success(Trilean.False)
+        }
+      }
+      case _ => {
+        fail(s"unknown entity $lemma")
+      }
+    }
+  }
 }

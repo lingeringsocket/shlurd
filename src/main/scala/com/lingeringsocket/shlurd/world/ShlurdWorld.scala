@@ -54,6 +54,15 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
     entity : E,
     lemma : String) : Try[(P, String)]
 
+  def evaluateEntityCategoryPredicate(
+    entity : E,
+    lemma : String,
+    qualifiers : Set[String] = Set.empty) : Try[Trilean] =
+  {
+    resolveEntity(lemma, REF_SUBJECT, qualifiers).map(
+      set => Trilean(set.contains(entity)))
+  }
+
   def evaluateEntityPropertyPredicate(
     entity : E,
     property : P,

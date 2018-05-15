@@ -136,10 +136,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       }
     }
     val (negativeSuper, secondSub) = extractNegative(secondUnwrapped)
+    val verbHead = secondSub.head
     if ((children.size != 2) ||
       !first.isQueryNoun ||
       !second.isSubQuestion ||
-      !secondSub.head.isBeingVerb)
+      !verbHead.isRelationshipVerb)
     {
       ShlurdUnrecognizedSentence(tree)
     } else {
@@ -183,8 +184,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         ShlurdSyntaxRewrite.recompose(
           complement.head, complementRemainder),
         combinedState,
-        REL_IDENTITY)
-      rememberPredicateCount(predicate, secondSub.head)
+        relationshipFor(verbHead))
+      rememberPredicateCount(predicate, verbHead)
       ShlurdPredicateQuery(
         predicate, question,
         ShlurdInterrogativeMood(!(negativeSuper ^ negativeSub)))

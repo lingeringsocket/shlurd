@@ -133,9 +133,59 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "is Todd Ford's friend",
         "Sorry, I don't know what you mean by Ford.")
-      // FIXME:  some other broken cases include
-      // "who has a friend"
-      // "who is a friend"
+      // FIXME:  should clarify that they are not necessarily
+      // friends OF EACH OTHER
+      interpret(
+        "who is a friend",
+        "Dirk, Todd, and Bart are friends.")
+      interpret(
+        "is Amanda a friend",
+        "No, Amanda is not a friend.")
+      interpret(
+        "is Amanda a brother",
+        "No, Amanda is not a brother.")
+      interpret(
+        "is Amanda a dog",
+        "No, Amanda is not a dog.")
+      interpret(
+        "is Amanda an owner",
+        "No, Amanda is not an owner.")
+      // FIXME:  distinguish alias from subtype
+      interpret(
+        "is Amanda a groomer",
+        "Yes, Amanda is a groomer.")
+      interpret(
+        "is Rapunzel a dog",
+        "Yes, Rapunzel is a dog.")
+      interpret(
+        "is Bart an owner",
+        "Yes, Bart is an owner.")
+      interpret(
+        "is Amanda a robot",
+        "Sorry, I don't know what you mean by robot.")
+      // FIXME:  should be "are people"?
+      interpret(
+        "who is a person",
+        "Dirk, Todd, Amanda, and Bart are persons.")
+      interpret(
+        "who is a brother",
+        "Todd is a brother.")
+      // FIXME have to use BLACKWING because Blackwing gets parsed
+      // as -ing verb, heh
+      interpret(
+        "is BLACKWING an organization",
+        "Yes, BLACKWING is an organization.")
+      // FIXME:  distinguish alias from subtype
+      interpret(
+        "is BLACKWING a conspiracy",
+        "Yes, BLACKWING is a conspiracy.")
+      // FIXME:  "who has a friend"
+      interpret(
+        "who has an uncle",
+        "No one has an uncle.")
+      interpret(
+        "which person has an uncle",
+        "No person has an uncle.")
     }
 
     "understand services" in new InterpreterContext

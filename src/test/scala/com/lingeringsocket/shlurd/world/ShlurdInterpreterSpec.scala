@@ -29,6 +29,8 @@ class ShlurdInterpreterSpec extends Specification
 {
   private val world = ZooWorld
 
+  private val LEMMA_ANIMAL = "animal"
+
   type StateChangeInvocation = ShlurdStateChangeInvocation[ShlurdEntity]
 
   private def interpret(
@@ -277,6 +279,24 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, you have a tiger.")
       interpret("do you have a tiger") must be equalTo(
         "No, I do not have a tiger.")
+      interpret("is the grizzly bear a bear") must be equalTo(
+        "Yes, the grizzly bear is a bear.")
+      interpret("is the grizzly bear a lion") must be equalTo(
+        "No, the grizzly bear is not a lion.")
+      interpret("is the lion a lion") must be equalTo(
+        "Yes, the lion is a lion.")
+      interpret("who is Muldoon") must be equalTo(
+        "Muldoon is Muldoon.")
+      interpret("is the lion an animal") must be equalTo(
+        "Yes, the lion is an animal.")
+      interpret("is the lion a person") must be equalTo(
+        "No, the lion is not a person.")
+      interpret("is Muldoon an animal") must be equalTo(
+        "No, Muldoon is not an animal.")
+      interpret("is Muldoon a person") must be equalTo(
+        "Yes, Muldoon is a person.")
+      interpret("which animals are in the big cage") must be equalTo(
+        "The lion and the tiger are in the big cage.")
     }
 
     "interpret statements" in
@@ -495,9 +515,12 @@ class ShlurdInterpreterSpec extends Specification
       context : ShlurdReferenceContext,
       qualifiers : Set[String]) =
     {
-      if (lemma == LEMMA_WHO) {
+      if ((lemma == LEMMA_WHO) || (lemma == LEMMA_PERSON)) {
         Success(ShlurdParseUtils.orderedSet(
           people.values))
+      } else if (lemma == LEMMA_ANIMAL) {
+        Success(ShlurdParseUtils.orderedSet(
+          animals.values))
       } else {
         val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
         if (context == REF_LOCATION) {

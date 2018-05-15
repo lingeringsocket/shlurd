@@ -522,39 +522,23 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case REL_IDENTITY => new ResultCollector[E]
           case REL_ASSOCIATION => resultCollector
         }
+        val categoryLabel = relationship match {
+          case REL_IDENTITY => extractCategory(complementRef)
+          case _ => ""
+        }
         evaluatePredicateOverReference(
           subjectRef, REF_SUBJECT, subjectCollector)
         {
           subjectEntity => {
-            evaluatePredicateOverReference(
-              complementRef, REF_SUBJECT, complementCollector)
-            {
-              complementEntity => {
-                relationship match {
-                  case REL_IDENTITY => {
-                    val result = Success(
-                      Trilean(subjectEntity == complementEntity))
-                    debug("RESULT FOR " +
-                      s"$subjectEntity == $complementEntity is $result")
-                    result
-                  }
-                  case REL_ASSOCIATION => {
-                    // FIXME:  do something less hacky
-                    val qualifiers : Set[String] = complementRef match {
-                      case ShlurdEntityReference(word, determiner, count) => {
-                        Set(word.lemma)
-                      }
-                      case _ => Set.empty
-                    }
-                    val result = world.evaluateEntityLocationPredicate(
-                      complementEntity, subjectEntity,
-                      LOC_GENITIVE_OF, qualifiers)
-                    debug("RESULT FOR " +
-                      s"$complementEntity LOC_GENITIVE_OF " +
-                      s"$subjectEntity with $qualifiers is $result")
-                    result
-                  }
-                }
+            if ((relationship == REL_IDENTITY) && !categoryLabel.isEmpty) {
+              evaluateCategorization(subjectEntity, categoryLabel)
+            } else {
+              evaluatePredicateOverReference(
+                complementRef, REF_SUBJECT, complementCollector)
+              {
+                complementEntity => evaluateRelationshipPredicate(
+                  subjectEntity, complementRef, complementEntity, relationship
+                )
               }
             }
           }
@@ -568,6 +552,66 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     debugDepth -= 1
     debug(s"PREDICATE TRUTH : $result")
     result
+  }
+
+  private def extractCategory(reference : ShlurdReference) : String =
+  {
+    // FIXME:  support qualifiers etc
+    reference match {
+      case ShlurdEntityReference(
+        entity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => entity.lemma
+      case _ => ""
+    }
+  }
+
+  private def evaluateRelationshipPredicate(
+    subjectEntity : E,
+    complementRef : ShlurdReference,
+    complementEntity : E,
+    relationship : ShlurdRelationship) : Try[Trilean] =
+  {
+    relationship match {
+      case REL_IDENTITY => {
+        val result = Success(
+          Trilean(subjectEntity == complementEntity))
+        debug("RESULT FOR " +
+          s"$subjectEntity == $complementEntity is $result")
+        result
+      }
+      case REL_ASSOCIATION => {
+        // FIXME:  do something less hacky
+        val qualifiers : Set[String] = complementRef match {
+          case ShlurdEntityReference(word, determiner, count) => {
+            Set(word.lemma)
+          }
+          case _ => Set.empty
+        }
+        val result = world.evaluateEntityLocationPredicate(
+          complementEntity, subjectEntity,
+          LOC_GENITIVE_OF, qualifiers)
+        debug("RESULT FOR " +
+          s"$complementEntity LOC_GENITIVE_OF " +
+          s"$subjectEntity with $qualifiers is $result")
+        result
+      }
+    }
+  }
+
+  private def evaluateCategorization(
+    entity : E,
+    categoryLabel : String) : Try[Trilean] =
+  {
+    val result = world.evaluateEntityCategoryPredicate(entity, categoryLabel)
+    debug("RESULT FOR " +
+      s"$entity IN_CATEGORY " +
+      s"$categoryLabel is $result")
+    result match {
+      case Failure(e) => {
+        debug("ERROR", e)
+        fail(sentencePrinter.sb.respondUnknown(categoryLabel))
+      }
+      case _ => result
+    }
   }
 
   private def evaluatePredicateOverReference(

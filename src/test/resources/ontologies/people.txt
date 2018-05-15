@@ -5,11 +5,20 @@ Bart is a person.
 A brother is a person.
 A sister is a person.
 A friend is a person.
+An uncle is a person.
 A person may have brothers.
 A person may have sisters.
 A person may have friends.
+A person may have uncles.
 Todd is Amanda's brother.
 Amanda is Todd's sister.
 Dirk is Todd's friend.
 Todd is Dirk's friend.
 Bart is Dirk's friend.
+Rapunzel is a dog.
+An owner is a person.
+A groomer is a person.
+A dog may have an owner.
+Bart is Rapunzel's owner.
+BLACKWING is an organization.
+A conspiracy is an organization.

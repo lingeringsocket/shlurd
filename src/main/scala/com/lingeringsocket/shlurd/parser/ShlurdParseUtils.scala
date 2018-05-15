@@ -23,6 +23,7 @@ object ShlurdEnglishLemmas
   val LEMMA_EXIST = "exist"
   val LEMMA_HAVE = "have"
   val LEMMA_WHO = "who"
+  val LEMMA_ONE = "one"
   val LEMMA_HOW = "how"
   val LEMMA_MANY = "many"
   val LEMMA_WHICH = "which"
