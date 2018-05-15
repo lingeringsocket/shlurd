@@ -130,6 +130,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "who are Amanda's friends",
         "No one is Amanda's friend.")
       interpret(
+        "who has Amanda's friend",
+        "But I don't know about any such friend.")
+      interpret(
         "is Ford Todd's friend",
         "Sorry, I don't know what you mean by Ford.")
       interpret(

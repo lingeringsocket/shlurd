@@ -370,8 +370,12 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             if (!categoryLabel.isEmpty) {
               evaluateCategorization(subjectEntity, categoryLabel)
             } else {
+              val context = relationship match {
+                case REL_IDENTITY => REF_COMPLEMENT
+                case REL_ASSOCIATION => REF_SUBJECT
+              }
               evaluatePredicateOverReference(
-                complementRef, REF_COMPLEMENT, complementCollector)
+                complementRef, context, complementCollector)
               {
                 complementEntity => evaluateRelationshipPredicate(
                   subjectEntity, complementRef, complementEntity, relationship
