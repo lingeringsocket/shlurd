@@ -140,7 +140,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
           seq.last
         }
       }
-      val ref = ShlurdEntityReference(
+      val ref = ShlurdNounReference(
         ShlurdWord(realForm, realForm),
         determiner)
       if (specialRoom) {

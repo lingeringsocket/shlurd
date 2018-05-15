@@ -255,33 +255,33 @@ class ShlurdPlatonicWorld
     })
   }
 
-  private def extractQualifiedEntity(
+  private def extractQualifiedNoun(
     sentence : ShlurdSentence,
     reference : ShlurdReference,
     preQualifiers : Seq[ShlurdWord])
       : (ShlurdWord, Seq[ShlurdWord], ShlurdCount) =
   {
     reference match {
-      case ShlurdEntityReference(
-        entity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
+      case ShlurdNounReference(
+        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
         {
-          (entity, preQualifiers, COUNT_SINGULAR)
+          (noun, preQualifiers, COUNT_SINGULAR)
         }
-      case ShlurdEntityReference(
-        entity, DETERMINER_UNSPECIFIED, COUNT_PLURAL) =>
+      case ShlurdNounReference(
+        noun, DETERMINER_UNSPECIFIED, COUNT_PLURAL) =>
         {
-          (entity, preQualifiers, COUNT_PLURAL)
+          (noun, preQualifiers, COUNT_PLURAL)
         }
       case ShlurdStateSpecifiedReference(subRef, state) =>
         {
-          extractQualifiedEntity(
+          extractQualifiedNoun(
             sentence, subRef,
             preQualifiers ++ ShlurdReference.extractQualifiers(state))
         }
       case ShlurdGenitiveReference(
-        ShlurdEntityReference(
+        ShlurdNounReference(
           possessor, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-        ShlurdEntityReference(
+        ShlurdNounReference(
           possession, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)) =>
         {
           (possession, Seq(possessor), COUNT_SINGULAR)
@@ -300,9 +300,9 @@ class ShlurdPlatonicWorld
         }
         predicate match {
           case ShlurdStatePredicate(ref, state) => {
-            val (entity, qualifiers, count) = extractQualifiedEntity(
+            val (noun, qualifiers, count) = extractQualifiedNoun(
               sentence, ref, Seq.empty)
-            val form = instantiateForm(entity)
+            val form = instantiateForm(noun)
             state match {
               case ShlurdExistenceState() => {
                 addExistenceBelief(sentence, form, qualifiers, mood)
@@ -315,11 +315,11 @@ class ShlurdPlatonicWorld
           case ShlurdRelationshipPredicate(
             subject, complement, relationship) =>
           {
-            val (complementEntity, qualifiers, count) = extractQualifiedEntity(
+            val (complementNoun, qualifiers, count) = extractQualifiedNoun(
               sentence, complement, Seq.empty)
             subject match {
-              case ShlurdEntityReference(
-                subjectEntity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+              case ShlurdNounReference(
+                subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
               ) => {
                 if (!qualifiers.isEmpty) {
                   throw new IncomprehensibleBelief(sentence)
@@ -328,8 +328,8 @@ class ShlurdPlatonicWorld
                   case REL_IDENTITY => {
                     // "a canine is a dog"
                     assert(count == COUNT_SINGULAR)
-                    val form = instantiateForm(complementEntity)
-                    formSynonyms.addSynonym(subjectEntity.lemma, form.name)
+                    val form = instantiateForm(complementNoun)
+                    formSynonyms.addSynonym(subjectNoun.lemma, form.name)
                   }
                   case REL_ASSOCIATION => {
                     // "a dog has an owner"
@@ -346,11 +346,11 @@ class ShlurdPlatonicWorld
                       case MODAL_SHOULD =>
                         throw new IncomprehensibleBelief(sentence)
                     }
-                    val possessorForm = instantiateForm(subjectEntity)
-                    val possesseeForm = instantiateForm(complementEntity)
+                    val possessorForm = instantiateForm(subjectNoun)
+                    val possesseeForm = instantiateForm(complementNoun)
                     formGenitives.addVertex(possessorForm)
                     formGenitives.addVertex(possesseeForm)
-                    val label = complementEntity.lemma
+                    val label = complementNoun.lemma
                     val edge = new ProbeEdge(
                       possessorForm, possesseeForm, label)
                     if (!formGenitives.containsEdge(edge)) {
@@ -368,28 +368,28 @@ class ShlurdPlatonicWorld
                   }
                 }
               }
-              case ShlurdEntityReference(
-                subjectEntity, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+              case ShlurdNounReference(
+                subjectNoun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
               ) => {
                 // FIXME "Larry has a dog"
                 assert(relationship == REL_IDENTITY)
                 if (qualifiers.isEmpty) {
                   // "Fido is a dog"
-                  val form = instantiateForm(complementEntity)
-                  instantiateEntity(sentence, form, Seq(subjectEntity))
+                  val form = instantiateForm(complementNoun)
+                  instantiateEntity(sentence, form, Seq(subjectNoun))
                 } else {
                   // "Fido is Franny's pet"
                   if (qualifiers.size != 1) {
                     throw new IncomprehensibleBelief(sentence)
                   }
                   val possessorOpt = resolveUniqueName(qualifiers.head)
-                  val possesseeOpt = resolveUniqueName(subjectEntity)
+                  val possesseeOpt = resolveUniqueName(subjectNoun)
                   if (possessorOpt.isEmpty || possesseeOpt.isEmpty) {
                     throw new IncomprehensibleBelief(sentence)
                   }
                   val possessor = possessorOpt.get
                   val possessee = possesseeOpt.get
-                  val label = complementEntity.lemma
+                  val label = complementNoun.lemma
                   if (!formGenitives.containsEdge(new ProbeEdge(
                     possessor.form,
                     possessee.form,
@@ -557,18 +557,18 @@ class ShlurdPlatonicWorld
     determiner : ShlurdDeterminer) =
   {
     val formName = entity.form.name
-    def entityReference = ShlurdEntityReference(
+    def nounRef = ShlurdNounReference(
       ShlurdWord(formName, formName), determiner)
     if (entity.qualifiers.isEmpty) {
-      entityReference
+      nounRef
     } else if ((formName == LEMMA_PERSON) &&
       (entity.qualifiers.size == 1))
     {
       val name = ShlurdParseUtils.capitalize(entity.qualifiers.head)
-      ShlurdEntityReference(ShlurdWord(name, name), DETERMINER_UNSPECIFIED)
+      ShlurdNounReference(ShlurdWord(name, name), DETERMINER_UNSPECIFIED)
     } else {
       ShlurdReference.qualified(
-        entityReference, entity.qualifiers.map(q => ShlurdWord(q, q)).toSeq)
+        nounRef, entity.qualifiers.map(q => ShlurdWord(q, q)).toSeq)
     }
   }
 

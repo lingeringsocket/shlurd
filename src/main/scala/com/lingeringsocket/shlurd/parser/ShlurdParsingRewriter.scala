@@ -70,7 +70,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       analyzer.analyzeNounPhrase(np)
     }
     case ShlurdExpectedReference(noun : ShlurdSyntaxNoun) => {
-      ShlurdEntityReference(
+      ShlurdNounReference(
         analyzer.getWord(noun.child),
         DETERMINER_UNSPECIFIED,
         analyzer.getCount(noun))
@@ -81,7 +81,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     {
       // we allow mislabeled adjectives to handle
       // cases like "roll up the blind"
-      ShlurdEntityReference(
+      ShlurdNounReference(
         analyzer.getWord(nounlike.child),
         determiner,
         analyzer.getCount(nounlike))

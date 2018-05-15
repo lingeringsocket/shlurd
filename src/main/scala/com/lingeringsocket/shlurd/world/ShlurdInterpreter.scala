@@ -558,8 +558,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     // FIXME:  support qualifiers etc
     reference match {
-      case ShlurdEntityReference(
-        entity, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => entity.lemma
+      case ShlurdNounReference(
+        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => noun.lemma
       case _ => ""
     }
   }
@@ -581,8 +581,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case REL_ASSOCIATION => {
         // FIXME:  do something less hacky
         val qualifiers : Set[String] = complementRef match {
-          case ShlurdEntityReference(word, determiner, count) => {
-            Set(word.lemma)
+          case ShlurdNounReference(noun, determiner, count) => {
+            Set(noun.lemma)
           }
           case _ => Set.empty
         }
@@ -643,8 +643,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       : Try[Trilean] =
   {
     reference match {
-      case ShlurdEntityReference(word, determiner, count) => {
-        val lemma = word.lemma
+      case ShlurdNounReference(noun, determiner, count) => {
+        val lemma = noun.lemma
         world.resolveEntity(
           lemma, context,
           world.qualifierSet(

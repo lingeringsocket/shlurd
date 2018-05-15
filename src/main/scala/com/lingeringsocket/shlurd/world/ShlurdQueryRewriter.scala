@@ -19,11 +19,11 @@ import com.lingeringsocket.shlurd.parser._
 class ShlurdQueryRewriter extends ShlurdPhraseRewriter
 {
   def rewriteSpecifier = replacementMatcher {
-    case ShlurdEntityReference(
-      entity, DETERMINER_UNSPECIFIED, count
+    case ShlurdNounReference(
+      noun, DETERMINER_UNSPECIFIED, count
     ) =>
       {
-        ShlurdEntityReference(entity, DETERMINER_ANY, count)
+        ShlurdNounReference(noun, DETERMINER_ANY, count)
       }
   }
 

@@ -333,8 +333,8 @@ case class ShlurdConjunctiveReference(
   override def children = references
 }
 
-case class ShlurdEntityReference(
-  entity : ShlurdWord,
+case class ShlurdNounReference(
+  noun : ShlurdWord,
   determiner : ShlurdDeterminer = DETERMINER_UNSPECIFIED,
   count : ShlurdCount = COUNT_SINGULAR
 ) extends ShlurdTransformedPhrase with ShlurdReference
@@ -387,7 +387,7 @@ object ShlurdReference
     reference match {
       case pr : ShlurdPronounReference =>
         false
-      case ShlurdEntityReference(_, determiner, _) => {
+      case ShlurdNounReference(_, determiner, _) => {
         determiner match {
           case DETERMINER_NONE => false
           case DETERMINER_UNSPECIFIED => false
@@ -409,7 +409,7 @@ object ShlurdReference
     reference match {
       case ShlurdPronounReference(_, _, count) =>
         count
-      case ShlurdEntityReference(_, _, count) =>
+      case ShlurdNounReference(_, _, count) =>
         count
       case ShlurdConjunctiveReference(determiner, _, _) => {
         determiner match {

@@ -85,29 +85,29 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
-      case ShlurdEntityReference(
-        entity, DETERMINER_ANY | DETERMINER_SOME, count
+      case ShlurdNounReference(
+        noun, DETERMINER_ANY | DETERMINER_SOME, count
       ) => {
         normalizeDisjunction(
           resultCollector, entityDeterminer,
           SEPARATOR_OXFORD_COMMA, params).getOrElse
         {
           negateCollection = true
-          val responseNoun = entity match {
+          val responseNoun = noun match {
             case ShlurdWord(LEMMA_WHO, LEMMA_WHO) => {
               ShlurdWord(LEMMA_ONE, LEMMA_ONE)
             }
-            case _ => entity
+            case _ => noun
           }
-          ShlurdEntityReference(responseNoun, DETERMINER_NONE, count)
+          ShlurdNounReference(responseNoun, DETERMINER_NONE, count)
         }
       }
-      case ShlurdEntityReference(
-        entity, DETERMINER_ALL, count
+      case ShlurdNounReference(
+        noun, DETERMINER_ALL, count
       ) => {
         normalizeConjunctionWrapper(
           SEPARATOR_OXFORD_COMMA,
-          ShlurdEntityReference(entity, DETERMINER_ALL, count))
+          ShlurdNounReference(noun, DETERMINER_ALL, count))
       }
     }
 
@@ -180,23 +180,23 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         ShlurdGenitiveReference(
           genitive, coerceCount(subReference, agreedCount))
       }
-      case er : ShlurdEntityReference => {
-        if (er.count == agreedCount) {
-          er
+      case nounRef : ShlurdNounReference => {
+        if (nounRef.count == agreedCount) {
+          nounRef
         } else {
           val newDeterminer = {
             if (agreedCount == COUNT_PLURAL) {
-              if (er.determiner == DETERMINER_NONSPECIFIC) {
+              if (nounRef.determiner == DETERMINER_NONSPECIFIC) {
                 DETERMINER_UNSPECIFIED
               } else {
-                er.determiner
+                nounRef.determiner
               }
             } else {
-              er.determiner
+              nounRef.determiner
             }
           }
-          ShlurdEntityReference(
-            ShlurdWord("", er.entity.lemma),
+          ShlurdNounReference(
+            ShlurdWord("", nounRef.noun.lemma),
             newDeterminer, agreedCount)
         }
       }

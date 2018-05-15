@@ -21,29 +21,29 @@ import ShlurdPennTreebankLabels._
 
 class ShlurdParserSpec extends Specification
 {
-  private val ENTITY_DOOR = word("door")
+  private val NOUN_DOOR = word("door")
 
-  private val ENTITY_PORTAL = word("portal")
+  private val NOUN_PORTAL = word("portal")
 
-  private val ENTITY_WINDOW = word("window")
+  private val NOUN_WINDOW = word("window")
 
-  private val ENTITY_BATHROOM = word("bathroom")
+  private val NOUN_BATHROOM = word("bathroom")
 
-  private val ENTITY_DOORS = ShlurdWord("doors", "door")
+  private val NOUN_DOORS = ShlurdWord("doors", "door")
 
-  private val ENTITY_WHO = word(LEMMA_WHO)
+  private val NOUN_WHO = word(LEMMA_WHO)
 
-  private val ENTITY_FRANNY = word("Franny")
+  private val NOUN_FRANNY = word("Franny")
 
-  private val ENTITY_ZOOEY = word("Zooey")
+  private val NOUN_ZOOEY = word("Zooey")
 
-  private val ENTITY_MOUSE = word("mouse")
+  private val NOUN_MOUSE = word("mouse")
 
-  private val ENTITY_HOME = word("home")
+  private val NOUN_HOME = word("home")
 
-  private val ENTITY_GRANDDAUGHTER = word("granddaughter")
+  private val NOUN_GRANDDAUGHTER = word("granddaughter")
 
-  private val ENTITY_SISTER = word("sister")
+  private val NOUN_SISTER = word("sister")
 
   private val STATE_OPEN = word("open")
 
@@ -74,7 +74,7 @@ class ShlurdParserSpec extends Specification
     count : ShlurdCount = COUNT_SINGULAR) =
   {
     ShlurdStatePredicate(
-      ShlurdEntityReference(subject, determiner, count),
+      ShlurdNounReference(subject, determiner, count),
       ShlurdPropertyState(state))
   }
 
@@ -83,7 +83,7 @@ class ShlurdParserSpec extends Specification
     determiner : ShlurdDeterminer = DETERMINER_UNIQUE,
     count : ShlurdCount = COUNT_SINGULAR) =
   {
-    pred(ENTITY_DOOR, state, determiner, count)
+    pred(NOUN_DOOR, state, determiner, count)
   }
 
   private def parse(input : String) = ShlurdParser(input).parseOne
@@ -143,10 +143,10 @@ class ShlurdParserSpec extends Specification
       val input = "who is at home"
       val expected = ShlurdPredicateQuery(
         ShlurdStatePredicate(
-          ShlurdEntityReference(ENTITY_WHO),
+          ShlurdNounReference(NOUN_WHO),
           ShlurdLocationState(
             LOC_AT,
-            ShlurdEntityReference(ENTITY_HOME))),
+            ShlurdNounReference(NOUN_HOME))),
         QUESTION_WHO, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
@@ -156,7 +156,7 @@ class ShlurdParserSpec extends Specification
     {
       val input = "how many doors are open"
       val expected = ShlurdPredicateQuery(
-        pred(ENTITY_DOORS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_PLURAL),
+        pred(NOUN_DOORS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_PLURAL),
         QUESTION_HOW_MANY, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
@@ -201,10 +201,10 @@ class ShlurdParserSpec extends Specification
       parse(input) must be equalTo
         ShlurdPredicateSentence(
           ShlurdRelationshipPredicate(
-            ShlurdEntityReference(
-              ENTITY_PORTAL, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
-            ShlurdEntityReference(
-              ENTITY_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            ShlurdNounReference(
+              NOUN_PORTAL, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            ShlurdNounReference(
+              NOUN_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
             REL_IDENTITY
           )
         )
@@ -247,8 +247,8 @@ class ShlurdParserSpec extends Specification
       parse(conjunction) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
-            ShlurdEntityReference(
-              ENTITY_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
+            ShlurdNounReference(
+              NOUN_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
             ShlurdConjunctiveState(
               DETERMINER_ALL,
               Seq(
@@ -259,8 +259,8 @@ class ShlurdParserSpec extends Specification
       parse(disjunction) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
-            ShlurdEntityReference(
-              ENTITY_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
+            ShlurdNounReference(
+              NOUN_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
             ShlurdConjunctiveState(
               DETERMINER_UNIQUE,
               Seq(
@@ -289,7 +289,7 @@ class ShlurdParserSpec extends Specification
       val inputAll = "open all doors"
       parse(inputAll) must be equalTo
         ShlurdStateChangeCommand(
-          pred(ENTITY_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL))
+          pred(NOUN_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL))
       val inputNone = "open no door"
       parse(inputNone) must be equalTo
         ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONE))
@@ -301,7 +301,7 @@ class ShlurdParserSpec extends Specification
       val inputAllQ = "are all doors open"
       parse(inputAllQ) must be equalTo
         ShlurdPredicateSentence(
-          pred(ENTITY_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL),
+          pred(NOUN_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL),
           MOOD_INTERROGATIVE_POSITIVE)
     }
 
@@ -312,7 +312,7 @@ class ShlurdParserSpec extends Specification
         ShlurdStateChangeCommand(
           ShlurdStatePredicate(
             ShlurdReference.qualified(
-              ShlurdEntityReference(ENTITY_DOOR, DETERMINER_UNIQUE),
+              ShlurdNounReference(NOUN_DOOR, DETERMINER_UNIQUE),
               Seq(QUALIFIER_FRONT)),
             ShlurdPropertyState(STATE_OPEN)))
     }
@@ -323,10 +323,10 @@ class ShlurdParserSpec extends Specification
       parse(input) must be equalTo
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
-            ShlurdEntityReference(ENTITY_FRANNY),
+            ShlurdNounReference(NOUN_FRANNY),
             ShlurdLocationState(
               LOC_AT,
-              ShlurdEntityReference(ENTITY_HOME))),
+              ShlurdNounReference(NOUN_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
     }
 
@@ -334,12 +334,12 @@ class ShlurdParserSpec extends Specification
     {
       val pred = ShlurdStatePredicate(
         ShlurdStateSpecifiedReference(
-          ShlurdEntityReference(
-            ENTITY_WINDOW, DETERMINER_UNIQUE, COUNT_SINGULAR),
+          ShlurdNounReference(
+            NOUN_WINDOW, DETERMINER_UNIQUE, COUNT_SINGULAR),
           ShlurdLocationState(
             LOC_INSIDE,
-            ShlurdEntityReference(
-              ENTITY_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR)
+            ShlurdNounReference(
+              NOUN_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR)
           )
         ),
         ShlurdPropertyState(STATE_OPEN)
@@ -375,10 +375,10 @@ class ShlurdParserSpec extends Specification
           ShlurdStatePredicate(
             ShlurdGenitiveReference(
               ShlurdPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
-              ShlurdEntityReference(ENTITY_GRANDDAUGHTER)),
+              ShlurdNounReference(NOUN_GRANDDAUGHTER)),
             ShlurdLocationState(
               LOC_AT,
-              ShlurdEntityReference(ENTITY_HOME))),
+              ShlurdNounReference(NOUN_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
     }
 
@@ -389,8 +389,8 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
             ShlurdGenitiveReference(
-              ShlurdEntityReference(ENTITY_FRANNY),
-              ShlurdEntityReference(ENTITY_MOUSE)),
+              ShlurdNounReference(NOUN_FRANNY),
+              ShlurdNounReference(NOUN_MOUSE)),
             ShlurdPropertyState(STATE_HUNGRY)),
           MOOD_INTERROGATIVE_POSITIVE)
     }
@@ -401,10 +401,10 @@ class ShlurdParserSpec extends Specification
       parse(input) must be equalTo
         ShlurdPredicateSentence(
           ShlurdRelationshipPredicate(
-            ShlurdEntityReference(ENTITY_FRANNY),
+            ShlurdNounReference(NOUN_FRANNY),
             ShlurdGenitiveReference(
-              ShlurdEntityReference(ENTITY_ZOOEY),
-              ShlurdEntityReference(ENTITY_SISTER)),
+              ShlurdNounReference(NOUN_ZOOEY),
+              ShlurdNounReference(NOUN_SISTER)),
             REL_IDENTITY
           ),
           MOOD_INDICATIVE_POSITIVE)
@@ -419,8 +419,8 @@ class ShlurdParserSpec extends Specification
             ShlurdConjunctiveReference(
               DETERMINER_ALL,
               Seq(
-                ShlurdEntityReference(ENTITY_FRANNY),
-                ShlurdEntityReference(ENTITY_ZOOEY))),
+                ShlurdNounReference(NOUN_FRANNY),
+                ShlurdNounReference(NOUN_ZOOEY))),
             ShlurdPropertyState(STATE_HUNGRY)))
       val inputNegative = "neither Franny nor Zooey is hungry"
       parse(inputNegative) must be equalTo
@@ -429,8 +429,8 @@ class ShlurdParserSpec extends Specification
             ShlurdConjunctiveReference(
               DETERMINER_NONE,
               Seq(
-                ShlurdEntityReference(ENTITY_FRANNY),
-                ShlurdEntityReference(ENTITY_ZOOEY))),
+                ShlurdNounReference(NOUN_FRANNY),
+                ShlurdNounReference(NOUN_ZOOEY))),
             ShlurdPropertyState(STATE_HUNGRY)))
     }
 
@@ -445,8 +445,8 @@ class ShlurdParserSpec extends Specification
             ShlurdConjunctiveReference(
               DETERMINER_ANY,
               Seq(
-                ShlurdEntityReference(ENTITY_FRANNY),
-                ShlurdEntityReference(ENTITY_ZOOEY))),
+                ShlurdNounReference(NOUN_FRANNY),
+                ShlurdNounReference(NOUN_ZOOEY))),
             ShlurdPropertyState(STATE_HUNGRY)))
 
       // FIXME:  in this context, should really be DETERMINER_ANY
@@ -458,8 +458,8 @@ class ShlurdParserSpec extends Specification
             ShlurdConjunctiveReference(
               DETERMINER_UNIQUE,
               Seq(
-                ShlurdEntityReference(ENTITY_FRANNY),
-                ShlurdEntityReference(ENTITY_ZOOEY))),
+                ShlurdNounReference(NOUN_FRANNY),
+                ShlurdNounReference(NOUN_ZOOEY))),
             ShlurdPropertyState(STATE_HUNGRY)))
     }
 
@@ -485,7 +485,7 @@ class ShlurdParserSpec extends Specification
     "parse existence" in
     {
       val doorExistencePred = ShlurdStatePredicate(
-        ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
+        ShlurdNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
         ShlurdExistenceState())
 
       parse("There is a door") must be equalTo(
@@ -517,13 +517,13 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
             ShlurdReference.qualified(
-              ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
+              ShlurdNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
               Seq(QUALIFIER_FRONT)),
             ShlurdExistenceState())))
 
       val doorPlusWindow = Seq(
-        ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
-        ShlurdEntityReference(ENTITY_WINDOW, DETERMINER_NONSPECIFIC))
+        ShlurdNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
+        ShlurdNounReference(NOUN_WINDOW, DETERMINER_NONSPECIFIC))
       parse("There is a door and a window") must be equalTo(
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
@@ -547,7 +547,7 @@ class ShlurdParserSpec extends Specification
         ShlurdPredicateSentence(
           ShlurdStatePredicate(
             ShlurdReference.qualified(
-              ShlurdEntityReference(ENTITY_DOOR, DETERMINER_NONSPECIFIC),
+              ShlurdNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
               Seq(STATE_SHUT)),
             ShlurdPropertyState(STATE_CLOSED))))
     }

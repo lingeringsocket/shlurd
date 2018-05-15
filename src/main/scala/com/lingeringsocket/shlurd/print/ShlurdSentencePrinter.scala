@@ -64,10 +64,10 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     conjoining : ShlurdConjoining) : String =
   {
     reference match {
-      case ShlurdEntityReference(entity, determiner, count) => {
+      case ShlurdNounReference(noun, determiner, count) => {
         sb.determinedNoun(
           determiner,
-          sb.delemmatizeNoun(entity, count, inflection, conjoining))
+          sb.delemmatizeNoun(noun, count, inflection, conjoining))
       }
       case ShlurdPronounReference(person, gender, count) => {
         sb.pronoun(person, gender, count, inflection, conjoining)
@@ -98,12 +98,12 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         val qualifierString = sb.composeQualifiers(
           ShlurdReference.extractQualifiers(state))
         sub match {
-          case ShlurdEntityReference(entity, determiner, count) => {
+          case ShlurdNounReference(noun, determiner, count) => {
             sb.determinedNoun(
               determiner,
               sb.qualifiedNoun(
                 qualifierString,
-                sb.delemmatizeNoun(entity, count, inflection, conjoining)))
+                sb.delemmatizeNoun(noun, count, inflection, conjoining)))
           }
           case ShlurdPronounReference(person, gender, count) => {
             // kludged representation for "three of them"
@@ -262,7 +262,7 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case ShlurdPronounReference(person, gender, count) => {
         sb.copula(person, gender, count, mood, isExistential, relationship)
       }
-      case ShlurdEntityReference(entity, determiner, count) => {
+      case ShlurdNounReference(_, _, count) => {
         sb.copula(
           PERSON_THIRD, GENDER_N, count, mood, isExistential, relationship)
       }
