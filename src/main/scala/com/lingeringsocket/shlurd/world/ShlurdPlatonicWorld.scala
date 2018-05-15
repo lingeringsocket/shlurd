@@ -153,6 +153,9 @@ class ShlurdPlatonicWorld
   private val forms =
     new mutable.LinkedHashMap[String, ShlurdPlatonicForm]
 
+  private val roles =
+    new mutable.LinkedHashSet[String]
+
   private val entities =
     new mutable.LinkedHashMap[String, ShlurdPlatonicEntity]
 
@@ -186,6 +189,12 @@ class ShlurdPlatonicWorld
   {
     val name = formSynonyms.resolveSynonym(word.lemma)
     forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
+  }
+
+  def instantiateRole(word : ShlurdWord) =
+  {
+    roles += word.lemma
+    instantiateForm(word)
   }
 
   def getFormSynonyms = formSynonyms
@@ -347,7 +356,7 @@ class ShlurdPlatonicWorld
                         throw new IncomprehensibleBelief(sentence)
                     }
                     val possessorForm = instantiateForm(subjectNoun)
-                    val possesseeForm = instantiateForm(complementNoun)
+                    val possesseeForm = instantiateRole(complementNoun)
                     formGenitives.addVertex(possessorForm)
                     formGenitives.addVertex(possesseeForm)
                     val label = complementNoun.lemma
@@ -606,13 +615,14 @@ class ShlurdPlatonicWorld
   override def evaluateEntityCategoryPredicate(
     entity : ShlurdPlatonicEntity,
     lemma : String,
-    qualifiers : Set[String] = Set.empty) : Try[Trilean] =
+    qualifiers : Set[String]) : Try[Trilean] =
   {
     forms.get(formSynonyms.resolveSynonym(lemma)) match {
       case Some(form) => {
         if (entity.form == form) {
+          val isRole = roles.contains(lemma) || (form.name == lemma)
           if (!formGenitives.containsVertex(form)) {
-            Success(Trilean.True)
+            Success(Trilean(isRole))
           } else {
             if (formGenitives.incomingEdgesOf(form).asScala.
               exists(_.label == lemma))
@@ -621,7 +631,7 @@ class ShlurdPlatonicWorld
                 entityGenitives.incomingEdgesOf(entity).asScala.
                   exists(_.label == lemma)))
             } else {
-              Success(Trilean.True)
+              Success(Trilean(isRole))
             }
           }
         } else {

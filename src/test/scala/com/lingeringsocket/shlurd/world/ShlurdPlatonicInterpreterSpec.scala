@@ -155,10 +155,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "is Amanda an owner",
         "No, Amanda is not an owner.")
-      // FIXME:  distinguish alias from subtype
       interpret(
         "is Amanda a groomer",
-        "Yes, Amanda is a groomer.")
+        "No, Amanda is not a groomer.")
       interpret(
         "is Rapunzel a dog",
         "Yes, Rapunzel is a dog.")
@@ -180,10 +179,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "is BLACKWING an organization",
         "Yes, BLACKWING is an organization.")
-      // FIXME:  distinguish alias from subtype
       interpret(
         "is BLACKWING a conspiracy",
-        "Yes, BLACKWING is a conspiracy.")
+        "No, BLACKWING is not a conspiracy.")
       interpret(
         "who has an uncle",
         "No one has an uncle.")
