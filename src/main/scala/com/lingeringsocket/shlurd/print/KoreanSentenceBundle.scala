@@ -375,24 +375,24 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose("하지만 ", sentence)
   }
 
-  override def respondAmbiguous(entity : String) =
+  override def respondAmbiguous(noun : ShlurdWord) =
   {
-    compose("무슨", entity, "?")
+    compose("무슨", noun.lemma, "?")
   }
 
-  override def respondUnknown(entity : String) =
+  override def respondUnknown(noun : ShlurdWord) =
   {
     "FIXME"
   }
 
-  override def respondUnknownPronoun(entity : String) =
+  override def respondUnknownPronoun(pronoun : String) =
   {
     "FIXME"
   }
 
-  override def respondNonexistent(entity : String) =
+  override def respondNonexistent(noun : ShlurdWord) =
   {
-    compose(entity, "없어요")
+    compose(noun.lemma, "없어요")
   }
 
   override def respondCannotUnderstand() =

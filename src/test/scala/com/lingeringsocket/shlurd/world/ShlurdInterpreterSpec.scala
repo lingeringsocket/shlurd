@@ -583,22 +583,22 @@ class ShlurdInterpreterSpec extends Specification
         case animal : ZooAnimalEntity => {
           val words = animal.name.split(" ")
           val nounRef = ShlurdNounReference(
-            ShlurdWord(words.last, words.last), determiner)
+            ShlurdWord(words.last), determiner)
           if (words.size == 1) {
             nounRef
           } else {
             ShlurdReference.qualified(
               nounRef, words.dropRight(1).map(
-                q => ShlurdWord(q, q)))
+                q => ShlurdWord(q)))
           }
         }
         case ZooPersonEntity(name) => {
           ShlurdNounReference(
-            ShlurdWord(name, name), DETERMINER_UNSPECIFIED)
+            ShlurdWord(name), DETERMINER_UNSPECIFIED)
         }
         case ZooLocationEntity(name) => {
           ShlurdNounReference(
-            ShlurdWord(name, name), DETERMINER_UNSPECIFIED)
+            ShlurdWord(name), DETERMINER_UNSPECIFIED)
         }
       }
     }

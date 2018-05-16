@@ -376,8 +376,14 @@ case class ShlurdConjunctiveState(
 
 case class ShlurdWord(
   inflected : String,
-  lemma : String)
+  lemmaUnfolded : String)
 {
+  def lemma = lemmaUnfolded.toLowerCase
+}
+
+object ShlurdWord
+{
+  def apply(s : String) : ShlurdWord = ShlurdWord(s, s)
 }
 
 object ShlurdReference

@@ -207,7 +207,7 @@ class EnglishSentenceBundle
   override def changeStateVerb(
     state : ShlurdWord, changeVerb : Option[ShlurdWord]) =
   {
-    compose(changeVerb.map(_.lemma).getOrElse(""), state.lemma)
+    compose(changeVerb.map(_.lemmaUnfolded).getOrElse(""), state.lemmaUnfolded)
   }
 
   override def delemmatizeNoun(
@@ -219,7 +219,7 @@ class EnglishSentenceBundle
       if (entity.inflected.isEmpty || (inflection == INFLECT_GENITIVE)) {
         val lemma = inflection match {
           case INFLECT_GENITIVE => entity.inflected
-          case _ => entity.lemma
+          case _ => entity.lemmaUnfolded
         }
         val base = count match {
           case COUNT_SINGULAR => {
@@ -262,7 +262,7 @@ class EnglishSentenceBundle
   {
     val unseparated = {
       if (state.inflected.isEmpty) {
-        val lemma = state.lemma
+        val lemma = state.lemmaUnfolded
         if (lemma.endsWith("ed")) {
           lemma
         } else if (lemma.endsWith("e")) {
@@ -280,7 +280,7 @@ class EnglishSentenceBundle
   override def delemmatizeQualifier(qualifier : ShlurdWord) =
   {
     if (qualifier.inflected.isEmpty) {
-      qualifier.lemma
+      qualifier.lemmaUnfolded
     } else {
       qualifier.inflected
     }
@@ -479,25 +479,28 @@ class EnglishSentenceBundle
     compose("But", sentence.stripSuffix("."), "already.")
   }
 
-  override def respondAmbiguous(entity : String) =
+  override def respondAmbiguous(noun : ShlurdWord) =
   {
-    compose("Please be more specific about which", entity, "you mean.")
+    compose("Please be more specific about which",
+      noun.lemmaUnfolded, "you mean.")
   }
 
-  override def respondUnknown(entity : String) =
+  override def respondUnknown(noun : ShlurdWord) =
   {
-    compose("Sorry, I don't know what you mean by", concat(entity, "."))
+    compose("Sorry, I don't know what you mean by",
+      concat(noun.lemmaUnfolded, "."))
   }
 
-  override def respondUnknownPronoun(entity : String) =
+  override def respondUnknownPronoun(pronoun : String) =
   {
     compose("Sorry, when you say",
-      concat("'", entity, "'"), "I don't know who or what you mean.")
+      concat("'", pronoun, "'"), "I don't know who or what you mean.")
   }
 
-  override def respondNonexistent(entity : String) =
+  override def respondNonexistent(noun : ShlurdWord) =
   {
-    compose("But I don't know about any such", concat(entity, "."))
+    compose("But I don't know about any such",
+      concat(noun.lemmaUnfolded, "."))
   }
 
   override def respondCannotUnderstand() =
@@ -568,7 +571,8 @@ class EnglishSentenceBundle
           composePredicateStatement(something, copula, complement))
       }
       case MOOD_IMPERATIVE => {
-        compose(changeVerb.map(_.lemma).getOrElse(""), complement, something)
+        compose(
+          changeVerb.map(_.lemmaUnfolded).getOrElse(""), complement, something)
       }
     }
   }

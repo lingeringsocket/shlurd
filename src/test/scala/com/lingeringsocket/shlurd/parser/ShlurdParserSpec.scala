@@ -21,51 +21,49 @@ import ShlurdPennTreebankLabels._
 
 class ShlurdParserSpec extends Specification
 {
-  private val NOUN_DOOR = word("door")
+  private val NOUN_DOOR = ShlurdWord("door")
 
-  private val NOUN_PORTAL = word("portal")
+  private val NOUN_PORTAL = ShlurdWord("portal")
 
-  private val NOUN_WINDOW = word("window")
+  private val NOUN_WINDOW = ShlurdWord("window")
 
-  private val NOUN_BATHROOM = word("bathroom")
+  private val NOUN_BATHROOM = ShlurdWord("bathroom")
 
   private val NOUN_DOORS = ShlurdWord("doors", "door")
 
-  private val NOUN_WHO = word(LEMMA_WHO)
+  private val NOUN_WHO = ShlurdWord(LEMMA_WHO)
 
-  private val NOUN_FRANNY = word("Franny")
+  private val NOUN_FRANNY = ShlurdWord("Franny")
 
-  private val NOUN_ZOOEY = word("Zooey")
+  private val NOUN_ZOOEY = ShlurdWord("Zooey")
 
-  private val NOUN_MOUSE = word("mouse")
+  private val NOUN_MOUSE = ShlurdWord("mouse")
 
-  private val NOUN_HOME = word("home")
+  private val NOUN_HOME = ShlurdWord("home")
 
-  private val NOUN_GRANDDAUGHTER = word("granddaughter")
+  private val NOUN_GRANDDAUGHTER = ShlurdWord("granddaughter")
 
-  private val NOUN_SISTER = word("sister")
+  private val NOUN_SISTER = ShlurdWord("sister")
 
-  private val STATE_OPEN = word("open")
+  private val STATE_OPEN = ShlurdWord("open")
 
-  private val STATE_CLOSE = word("close")
+  private val STATE_CLOSE = ShlurdWord("close")
 
-  private val STATE_SHUT = word("shut")
+  private val STATE_SHUT = ShlurdWord("shut")
 
   private val STATE_CLOSED = ShlurdWord("closed", "close")
 
-  private val STATE_SIDEWAYS = word("sideways")
+  private val STATE_SIDEWAYS = ShlurdWord("sideways")
 
-  private val STATE_HUNGRY = word("hungry")
+  private val STATE_HUNGRY = ShlurdWord("hungry")
 
-  private val STATE_ON = word("on")
+  private val STATE_ON = ShlurdWord("on")
 
-  private val STATE_OFF = word("off")
+  private val STATE_OFF = ShlurdWord("off")
 
-  private val QUALIFIER_FRONT = word("front")
+  private val QUALIFIER_FRONT = ShlurdWord("front")
 
-  private val VERB_TURN = word("turn")
-
-  private def word(s : String) = ShlurdWord(s, s)
+  private val VERB_TURN = ShlurdWord("turn")
 
   private def pred(
     subject : ShlurdWord,

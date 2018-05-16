@@ -42,14 +42,23 @@ class ShlurdOpenhabWorldSpec extends Specification
       "FF_LivingRoom_Heating" -> "on",
       "FF_Bath_Heating" -> "off",
       "FF_GuestBedroom_Light_Ceiling" -> "on",
-      "FF_GuestBedroom_Light_Nightstand" -> "off"
+      "FF_GuestBedroom_Light_Nightstand" -> "off",
+      "Presence_Jack_Phone" -> "on",
+      "Presence_Jill" -> "off"
     )
 
     protected val world = new ShlurdOpenhabWorld {
       override protected def evaluateState(
         entity : ShlurdPlatonicEntity, stateName : String) : Try[Trilean] =
       {
-        Success(Trilean(itemStates(entity.name) == stateName))
+        itemStates.get(entity.name) match {
+          case Some(currentState) => {
+            Success(Trilean(currentState == stateName))
+          }
+          case _ => {
+            Success(Trilean.Unknown)
+          }
+        }
       }
     }
 
@@ -70,6 +79,7 @@ class ShlurdOpenhabWorldSpec extends Specification
       val source = Source.fromFile(file)
       world.loadBeliefs(source)
       world.addItem("Home", "Our House", true, Seq.empty)
+      world.addItem("Phone", "Phone Presence", true, Seq("Home"))
       world.addItem("Junk", "Just Junk", true, Seq.empty)
       world.addItem("gGF", "Ground Floor", true, Seq("Home"))
       world.addItem("FF", "First Floor", true, Seq("Home"))
@@ -129,6 +139,14 @@ class ShlurdOpenhabWorldSpec extends Specification
         "FF_Bath_Heating",
         "Bath", false,
         Seq("FF_Bath", "gHeating"))
+      world.addItem(
+        "Presence_Jack_Phone",
+        "Jack", false,
+        Seq("Phone"))
+      world.addItem(
+        "Presence_Jill",
+        "Jill", false,
+        Seq.empty)
 
       interpret(
         "is the door in the garage open",
@@ -260,6 +278,24 @@ class ShlurdOpenhabWorldSpec extends Specification
       interpret(
         "are any heaters off",
         "Yes, the bathroom heating is off.")
+      interpret(
+        "is Jack present",
+        "Yes, Jack is present.")
+      interpret(
+        "is Jill present",
+        "No, Jill is not present.")
+      interpret(
+        "is Larry present",
+        "I don't know.")
+      interpret(
+        "is Jack absent",
+        "No, Jack is not absent.")
+      interpret(
+        "is Jill absent",
+        "Yes, Jill is absent.")
+      interpret(
+        "is Larry absent",
+        "I don't know.")
     }
   }
 }

@@ -85,7 +85,7 @@ object ShlurdPlatonicWorld
 {
   val DEFAULT_PROPERTY = "state"
 
-  val DEFAULT_PROPERTY_WORD = ShlurdWord(DEFAULT_PROPERTY, DEFAULT_PROPERTY)
+  val DEFAULT_PROPERTY_WORD = ShlurdWord(DEFAULT_PROPERTY)
 
   abstract class RejectedBelief(
     belief : ShlurdSentence,
@@ -113,40 +113,58 @@ object ShlurdPlatonicWorld
         "accepted beliefs are invalid")
   {
   }
-}
 
-class LabeledEdge(val label : String) extends DefaultEdge
-{
-  override def hashCode() =
+  case class CardinalityConstraint(lower : Int, upper : Int)
   {
-    java.util.Objects.hash(getSource, getTarget, label)
   }
 
-  override def equals(a : Any) =
+  protected class LabeledEdge(val label : String) extends DefaultEdge
   {
-    a match {
-      case that : LabeledEdge => {
-        (this.getSource == that.getSource) &&
-        (this.getTarget == that.getTarget) &&
-        (this.label == that.label)
+    override def hashCode() =
+    {
+      java.util.Objects.hash(getSource, getTarget, label)
+    }
+
+    override def equals(a : Any) =
+    {
+      a match {
+        case that : LabeledEdge => {
+          (this.getSource == that.getSource) &&
+          (this.getTarget == that.getTarget) &&
+          (this.label == that.label)
+        }
+        case _ => false
       }
-      case _ => false
     }
   }
-}
 
-class ProbeEdge[V <: AnyRef](
-  val sourceEntity : V,
-  val targetEntity : V,
-  label : String) extends LabeledEdge(label)
-{
-  override def getSource = sourceEntity
+  protected class FormGenitiveEdge(label : String) extends LabeledEdge(label)
+  {
+  }
 
-  override def getTarget = targetEntity
-}
+  protected class EntityGenitiveEdge(label : String) extends LabeledEdge(label)
+  {
+  }
 
-case class CardinalityConstraint(lower : Int, upper : Int)
-{
+  private class ProbeFormEdge(
+    val sourceForm : ShlurdPlatonicForm,
+    val targetForm : ShlurdPlatonicForm,
+    label : String) extends FormGenitiveEdge(label)
+  {
+    override def getSource = sourceForm
+
+    override def getTarget = targetForm
+  }
+
+  private class ProbeEntityEdge(
+    val sourceEntity : ShlurdPlatonicEntity,
+    val targetEntity : ShlurdPlatonicEntity,
+    label : String) extends EntityGenitiveEdge(label)
+  {
+    override def getSource = sourceEntity
+
+    override def getTarget = targetEntity
+  }
 }
 
 class ShlurdPlatonicWorld
@@ -168,24 +186,26 @@ class ShlurdPlatonicWorld
     LEMMA_WHO, LEMMA_PERSON)
 
   private val formGenitives =
-    new DirectedPseudograph[ShlurdPlatonicForm, LabeledEdge](
-      classOf[LabeledEdge])
+    new DirectedPseudograph[ShlurdPlatonicForm, FormGenitiveEdge](
+      classOf[FormGenitiveEdge])
 
   private val genitiveConstraints =
-    new mutable.LinkedHashMap[LabeledEdge, CardinalityConstraint]
+    new mutable.LinkedHashMap[FormGenitiveEdge, CardinalityConstraint]
 
   private val propertyEdges =
-    new mutable.LinkedHashSet[LabeledEdge]
+    new mutable.LinkedHashSet[FormGenitiveEdge]
 
   private val entityGenitives =
-    new DirectedPseudograph[ShlurdPlatonicEntity, LabeledEdge](
-      classOf[LabeledEdge])
+    new DirectedPseudograph[ShlurdPlatonicEntity, EntityGenitiveEdge](
+      classOf[EntityGenitiveEdge])
 
   private var nextId = 0
 
   def getForms : Map[String, ShlurdPlatonicForm] = forms
 
   def getEntities : Map[String, ShlurdPlatonicEntity] = entities
+
+  protected def getPropertyEdges : Set[FormGenitiveEdge] = propertyEdges
 
   def clear()
   {
@@ -242,6 +262,65 @@ class ShlurdPlatonicWorld
     entities.put(entity.name, entity)
   }
 
+  protected def getPossessorForm(edge : FormGenitiveEdge) =
+    formGenitives.getEdgeSource(edge)
+
+  protected def getPossessorEntity(edge : EntityGenitiveEdge) =
+    entityGenitives.getEdgeSource(edge)
+
+  protected def getPossesseeForm(edge : FormGenitiveEdge) =
+    formGenitives.getEdgeTarget(edge)
+
+  protected def getPossesseeEntity(edge : EntityGenitiveEdge) =
+    entityGenitives.getEdgeTarget(edge)
+
+  protected def addFormGenitive(
+    possessor : ShlurdPlatonicForm,
+    possessee : ShlurdPlatonicForm,
+    label : String) : FormGenitiveEdge =
+  {
+    formGenitives.addVertex(possessor)
+    formGenitives.addVertex(possessee)
+    val probe = new ProbeFormEdge(possessor, possessee, label)
+    formGenitives.removeEdge(probe)
+    val edge = new FormGenitiveEdge(label)
+    formGenitives.addEdge(possessor, possessee, edge)
+    edge
+  }
+
+  protected def addEntityGenitive(
+    possessor : ShlurdPlatonicEntity,
+    possessee : ShlurdPlatonicEntity,
+    label : String) : EntityGenitiveEdge =
+  {
+    entityGenitives.addVertex(possessor)
+    entityGenitives.addVertex(possessee)
+    val probe = new ProbeEntityEdge(possessor, possessee, label)
+    entityGenitives.removeEdge(probe)
+    val edge = new EntityGenitiveEdge(label)
+    entityGenitives.addEdge(
+      possessor, possessee, edge)
+    edge
+  }
+
+  protected def isFormGenitive(
+    possessor : ShlurdPlatonicForm,
+    possessee : ShlurdPlatonicForm,
+    label : String) : Boolean =
+  {
+    formGenitives.containsEdge(
+      new ProbeFormEdge(possessor, possessee, label))
+  }
+
+  protected def isEntityGenitive(
+    possessor : ShlurdPlatonicEntity,
+    possessee : ShlurdPlatonicEntity,
+    label : String) : Boolean =
+  {
+    entityGenitives.containsEdge(
+      new ProbeEntityEdge(possessor, possessee, label))
+  }
+
   def loadBeliefs(source : Source)
   {
     val beliefs = source.getLines.mkString("\n")
@@ -255,7 +334,7 @@ class ShlurdPlatonicWorld
     formGenitives.edgeSet.asScala.foreach(formEdge => {
       val constraint = genitiveConstraints(formEdge)
       if ((constraint.lower > 0) || (constraint.upper < Int.MaxValue)) {
-        val form = formGenitives.getEdgeSource(formEdge)
+        val form = getPossessorForm(formEdge)
         entities.values.filter(_.form == form).foreach(entity => {
           if (entityGenitives.containsVertex(entity)) {
             val c = entityGenitives.outgoingEdgesOf(entity).asScala.
@@ -389,16 +468,9 @@ class ShlurdPlatonicWorld
                     }
                     val possessorForm = instantiateForm(subjectNoun)
                     val possesseeForm = instantiateRole(complementNoun)
-                    formGenitives.addVertex(possessorForm)
-                    formGenitives.addVertex(possesseeForm)
                     val label = complementNoun.lemma
-                    val edge = new ProbeEdge(
+                    val edge = addFormGenitive(
                       possessorForm, possesseeForm, label)
-                    if (!formGenitives.containsEdge(edge)) {
-                      formGenitives.addEdge(
-                        possessorForm, possesseeForm,
-                        new LabeledEdge(label))
-                    }
                     val constraint = genitiveConstraints.get(edge) match {
                       case Some(oldConstraint) => CardinalityConstraint(
                         Math.max(oldConstraint.lower, newConstraint.lower),
@@ -437,22 +509,10 @@ class ShlurdPlatonicWorld
                   val possessor = possessorOpt.get
                   val possessee = possesseeOpt.get
                   val label = complementNoun.lemma
-                  if (!formGenitives.containsEdge(new ProbeEdge(
-                    possessor.form,
-                    possessee.form,
-                    label)))
-                  {
+                  if (!isFormGenitive(possessor.form, possessee.form, label)) {
                     throw new IncomprehensibleBelief(sentence)
                   }
-
-                  entityGenitives.addVertex(possessor)
-                  entityGenitives.addVertex(possessee)
-                  if (!entityGenitives.containsEdge(new ProbeEdge(
-                    possessor, possessee, label)))
-                  {
-                    entityGenitives.addEdge(
-                      possessor, possessee, new LabeledEdge(label))
-                  }
+                  addEntityGenitive(possessor, possessee, label)
                 }
               }
               case _ => throw new IncomprehensibleBelief(sentence)
@@ -551,7 +611,7 @@ class ShlurdPlatonicWorld
     } else {
       entityGenitives.outgoingEdgesOf(possessor).
         asScala.filter(_.label == label).map(
-          entityGenitives.getEdgeTarget)
+          getPossesseeEntity)
     }
   }
 
@@ -605,7 +665,7 @@ class ShlurdPlatonicWorld
         if (formGenitives.containsVertex(form)) {
           formGenitives.outgoingEdgesOf(form).asScala.
             filter(propertyEdges.contains(_)).foreach(edge => {
-              val propertyForm = formGenitives.getEdgeTarget(edge)
+              val propertyForm = getPossesseeForm(edge)
               val attempt = resolveFormProperty(propertyForm, lemma)
               if (attempt.isSuccess) {
                 return attempt
@@ -623,17 +683,17 @@ class ShlurdPlatonicWorld
   {
     val formName = entity.form.name
     def nounRef = ShlurdNounReference(
-      ShlurdWord(formName, formName), determiner)
+      ShlurdWord(formName), determiner)
     if (entity.qualifiers.isEmpty) {
       nounRef
     } else if ((formName == LEMMA_PERSON) &&
       (entity.qualifiers.size == 1))
     {
       val name = ShlurdParseUtils.capitalize(entity.qualifiers.head)
-      ShlurdNounReference(ShlurdWord(name, name), DETERMINER_UNSPECIFIED)
+      ShlurdNounReference(ShlurdWord(name), DETERMINER_UNSPECIFIED)
     } else {
       ShlurdReference.qualified(
-        nounRef, entity.qualifiers.map(q => ShlurdWord(q, q)).toSeq)
+        nounRef, entity.qualifiers.map(q => ShlurdWord(q)).toSeq)
     }
   }
 
@@ -644,7 +704,7 @@ class ShlurdPlatonicWorld
   {
     if (entityGenitives.containsVertex(entity)) {
       entityGenitives.outgoingEdgesOf(entity).asScala.foreach(edge => {
-        val propertyEntity = entityGenitives.getEdgeTarget(edge)
+        val propertyEntity = getPossesseeEntity(edge)
         if (propertyEntity.form.properties.values.toSeq.contains(property)) {
           return evaluateEntityPropertyPredicate(
             propertyEntity,
@@ -653,7 +713,7 @@ class ShlurdPlatonicWorld
         }
       })
     }
-    fail(s"unknown property ${property.name} for ${entity.name}")
+    Success(Trilean.Unknown)
   }
 
   override def evaluateEntityLocationPredicate(
@@ -670,12 +730,10 @@ class ShlurdPlatonicWorld
         Success(Trilean.False)
       } else {
         val label = qualifiers.head
-        Success(Trilean(
-          entityGenitives.containsEdge(
-            new ProbeEdge(location, entity, label))))
+        Success(Trilean(isEntityGenitive(location, entity, label)))
       }
     } else {
-      fail("FIXME")
+      Success(Trilean.Unknown)
     }
   }
 

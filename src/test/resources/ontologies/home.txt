@@ -5,3 +5,10 @@ A light that is dark is off.
 A heating must be either on or off.
 A heater is a heating.
 A heat is a heating.
+A presence must be either on or off.
+A presence that is present is on.
+A presence that is absent is off.
+A person may have a presence as a property.
+Jack is a person.
+Jill is a person.
+Larry is a person.

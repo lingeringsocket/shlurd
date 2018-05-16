@@ -25,6 +25,8 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
 {
   private val locationFormName = "location"
 
+  private val presenceFormName = "presence"
+
   private val roomLemma = "room"
 
   private val groupMap = new mutable.LinkedHashMap[String, mutable.Set[String]]
@@ -34,7 +36,8 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
 
   private val roomyRooms = new mutable.LinkedHashSet[String]
 
-  instantiateForm(ShlurdWord(locationFormName, locationFormName))
+  instantiateForm(ShlurdWord(locationFormName))
+  instantiateForm(ShlurdWord(presenceFormName))
 
   override def resolveEntity(
     lemma : String,
@@ -141,17 +144,17 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
         }
       }
       val ref = ShlurdNounReference(
-        ShlurdWord(realForm, realForm),
+        ShlurdWord(realForm),
         determiner)
       if (specialRoom) {
           ShlurdReference.qualified(
-            ref, seq.map(x => ShlurdWord(x, x)))
+            ref, seq.map(x => ShlurdWord(x)))
       } else {
         if (seq.size == 1) {
           ref
         } else {
           ShlurdReference.qualified(
-            ref, seq.dropRight(1).map(x => ShlurdWord(x, x)))
+            ref, seq.dropRight(1).map(x => ShlurdWord(x)))
         }
       }
     } else {
@@ -216,7 +219,14 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     property : ShlurdPlatonicProperty,
     lemma : String) : Try[Trilean] =
   {
-    evaluateState(entity, entity.form.getStateSynonyms.resolveSynonym(lemma))
+    evaluateState(
+      entity, entity.form.getStateSynonyms.resolveSynonym(lemma)) match
+    {
+      case Success(Trilean.Unknown) => {
+        super.evaluateEntityPropertyPredicate(entity, property, lemma)
+      }
+      case x => x
+    }
   }
 
   protected def evaluateState(
@@ -313,6 +323,35 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
       case Some(form) => {
         val entity = new ShlurdPlatonicEntity(itemName, form, qualifiers)
         addEntity(entity)
+        // for now we silently ignore mismatches...should probably
+        // save up as warnings which can be nagged about
+        var warning = false
+        if (formName == presenceFormName) {
+          qualifiers.lastOption match {
+            case Some(personName) => {
+              getPropertyEdges.find(_.label == presenceFormName) match {
+                case Some(edge) => {
+                  val personForm = getPossessorForm(edge)
+                  resolveEntity(
+                    personForm.name, REF_SUBJECT, qualifiers.takeRight(1)) match
+                  {
+                    case Success(set) => {
+                      if (set.size == 1) {
+                        addEntityGenitive(
+                          set.head, entity, presenceFormName)
+                      } else {
+                        warning = true
+                      }
+                    }
+                    case _ => warning = true
+                  }
+                }
+                case _ => warning = true
+              }
+            }
+            case _ => warning = true
+          }
+        }
       }
       case _ =>
     }

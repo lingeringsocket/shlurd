@@ -449,7 +449,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     result match {
       case Failure(e) => {
         debug("ERROR", e)
-        fail(sentencePrinter.sb.respondUnknown(categoryLabel))
+        fail(sentencePrinter.sb.respondUnknown(ShlurdWord(categoryLabel)))
       }
       case _ => result
     }
@@ -537,7 +537,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             determiner match {
               case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
                 if (entities.isEmpty && (context != REF_COMPLEMENT)) {
-                  fail(sentencePrinter.sb.respondNonexistent(lemma))
+                  fail(sentencePrinter.sb.respondNonexistent(noun))
                 } else {
                   count match {
                     case COUNT_SINGULAR => {
@@ -545,7 +545,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                         Success(Trilean.False)
                       } else if (entities.size > 1) {
                         if (determiner == DETERMINER_UNIQUE) {
-                          fail(sentencePrinter.sb.respondAmbiguous(lemma))
+                          fail(sentencePrinter.sb.respondAmbiguous(
+                            noun))
                         } else {
                           evaluateDeterminer(
                             entities.map(
@@ -579,7 +580,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
           case Failure(e) => {
             debug("ERROR", e)
-            fail(sentencePrinter.sb.respondUnknown(lemma))
+            fail(sentencePrinter.sb.respondUnknown(noun))
           }
         }
       }

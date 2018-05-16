@@ -95,7 +95,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           negateCollection = true
           val responseNoun = noun match {
             case ShlurdWord(LEMMA_WHO, LEMMA_WHO) => {
-              ShlurdWord(LEMMA_ONE, LEMMA_ONE)
+              ShlurdWord(LEMMA_ONE)
             }
             case _ => noun
           }
@@ -286,12 +286,12 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
     val prefix = {
       if (all && !existence) {
-        Seq(ShlurdWord("all", "all"))
+        Seq(ShlurdWord("all"))
       } else {
         Seq.empty
       }
     }
-    val qualifiers = prefix ++ Seq(ShlurdWord(number, number))
+    val qualifiers = prefix ++ Seq(ShlurdWord(number))
     // FIXME:  derive gender from entities
     val count = number match {
       case "1" => COUNT_SINGULAR

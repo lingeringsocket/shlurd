@@ -28,8 +28,8 @@ class ShlurdPlatonicInterpreterSpec extends Specification
   private val states = Map(
     "alarm service" -> "on",
     "multimedia service" -> "off",
-    "JackPhone presence" -> "on",
-    "JillPhone presence" -> "off"
+    "jackphone presence" -> "on",
+    "jillphone presence" -> "off"
   )
 
   trait InterpreterContext extends NameSpace

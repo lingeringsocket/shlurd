@@ -153,13 +153,13 @@ abstract class ShlurdSentenceBundle
 
   def respondToCounterfactual(sentence : String) : String
 
-  def respondAmbiguous(entity : String) : String
+  def respondAmbiguous(entity : ShlurdWord) : String
 
-  def respondUnknown(entity : String) : String
+  def respondUnknown(entity : ShlurdWord) : String
 
-  def respondUnknownPronoun(entity : String) : String
+  def respondUnknownPronoun(pronoun : String) : String
 
-  def respondNonexistent(entity : String) : String
+  def respondNonexistent(entity : ShlurdWord) : String
 
   def respondCannotUnderstand() : String
 
