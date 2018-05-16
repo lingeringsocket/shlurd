@@ -436,6 +436,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         case LEMMA_IN | LEMMA_INSIDE | LEMMA_WITHIN => LOC_INSIDE
         case LEMMA_OUTSIDE => LOC_OUTSIDE
         case LEMMA_AT => LOC_AT
+        case LEMMA_AS => LOC_AS
         case LEMMA_NEAR | LEMMA_NEARBY => LOC_NEAR
         case LEMMA_ON => LOC_ON
         case LEMMA_ABOVE | LEMMA_OVER => LOC_ABOVE

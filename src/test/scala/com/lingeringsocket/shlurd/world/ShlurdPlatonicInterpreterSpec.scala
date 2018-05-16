@@ -27,7 +27,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
 {
   private val states = Map(
     "alarm service" -> "on",
-    "multimedia service" -> "off"
+    "multimedia service" -> "off",
+    "JackPhone presence" -> "on",
+    "JillPhone presence" -> "off"
   )
 
   trait InterpreterContext extends NameSpace
@@ -42,7 +44,8 @@ class ShlurdPlatonicInterpreterSpec extends Specification
           (entity.qualifiers.toSeq :+ entity.form.name).mkString(" ")
         states.get(qualifiedName) match {
           case Some(state) => Success(Trilean(state == lemma))
-          case _ => fail("unknown property")
+          case _ => super.evaluateEntityPropertyPredicate(
+            entity, property, lemma)
         }
       }
     }
@@ -239,6 +242,23 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "is the multimedia server up",
         "No, the multimedia server is not up.")
+    }
+
+    "understand presence" in new InterpreterContext
+    {
+      loadBeliefs("/ontologies/presence.txt")
+      interpret("is Jack's presence on",
+        "Yes, Jack's presence is on.")
+      interpret("is Jack present",
+        "Yes, Jack is present.")
+      interpret("is Jack absent",
+        "No, Jack is not absent.")
+      interpret("is Jill's presence on",
+        "No, Jill's presence is not on.")
+      interpret("is Jill present",
+        "No, Jill is not present.")
+      interpret("is Jill absent",
+        "Yes, Jill is absent.")
     }
   }
 }

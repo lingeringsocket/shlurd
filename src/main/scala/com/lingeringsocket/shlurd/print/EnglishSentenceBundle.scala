@@ -191,6 +191,7 @@ class EnglishSentenceBundle
       case LOC_INSIDE => LEMMA_IN
       case LOC_OUTSIDE => "outside of"
       case LOC_AT => LEMMA_AT
+      case LOC_AS => LEMMA_AS
       case LOC_NEAR => LEMMA_NEAR
       case LOC_ON => LEMMA_ON
       case LOC_ABOVE => LEMMA_ABOVE

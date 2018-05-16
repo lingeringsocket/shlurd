@@ -48,6 +48,8 @@ class ShlurdPlatonicProperty(val name : String)
   {
     states.put(word.lemma, word.inflected)
   }
+
+  override def toString = s"ShlurdPlatonicProperty($name)"
 }
 
 class ShlurdPlatonicForm(val name : String)
@@ -62,11 +64,13 @@ class ShlurdPlatonicForm(val name : String)
 
   def getProperties : Map[String, ShlurdPlatonicProperty] = properties
 
-  def instantiateProperty(word : ShlurdWord) =
+  def instantiateProperty(name : ShlurdWord) =
   {
-    val property = word.lemma
+    val property = name.lemma
     properties.getOrElseUpdate(property, new ShlurdPlatonicProperty(property))
   }
+
+  override def toString = s"ShlurdPlatonicForm($name)"
 }
 
 case class ShlurdPlatonicEntity(
@@ -169,6 +173,9 @@ class ShlurdPlatonicWorld
 
   private val genitiveConstraints =
     new mutable.LinkedHashMap[LabeledEdge, CardinalityConstraint]
+
+  private val propertyEdges =
+    new mutable.LinkedHashSet[LabeledEdge]
 
   private val entityGenitives =
     new DirectedPseudograph[ShlurdPlatonicEntity, LabeledEdge](
@@ -326,6 +333,31 @@ class ShlurdPlatonicWorld
           {
             val (complementNoun, qualifiers, count) = extractQualifiedNoun(
               sentence, complement, Seq.empty)
+            val property = complement match {
+              case ShlurdStateSpecifiedReference(
+                _,
+                ShlurdLocationState(locative, location)) =>
+                {
+                  if (locative != LOC_AS) {
+                    throw new IncomprehensibleBelief(sentence)
+                  }
+                  location match {
+                    case ShlurdNounReference(
+                      ShlurdWord(LEMMA_PROPERTY, LEMMA_PROPERTY),
+                      DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
+                      COUNT_SINGULAR) =>
+                      {
+                        if (relationship == REL_ASSOCIATION) {
+                          Some(complementNoun)
+                        } else {
+                          throw new IncomprehensibleBelief(sentence)
+                        }
+                      }
+                    case _ => throw new IncomprehensibleBelief(sentence)
+                  }
+                }
+              case _ => None
+            }
             subject match {
               case ShlurdNounReference(
                 subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
@@ -374,6 +406,12 @@ class ShlurdPlatonicWorld
                       case _ => newConstraint
                     }
                     genitiveConstraints.put(edge, constraint)
+                    property match {
+                      case Some(name) => {
+                        propertyEdges += edge
+                      }
+                      case _ =>
+                    }
                   }
                 }
               }
@@ -551,14 +589,32 @@ class ShlurdPlatonicWorld
 
   override def resolveProperty(
     entity : ShlurdPlatonicEntity,
-    lemma : String) =
+    lemma : String) : Try[(ShlurdPlatonicProperty, String)] =
   {
-    val form = entity.form
+    resolveFormProperty(entity.form, lemma)
+  }
+
+  private def resolveFormProperty(
+    form : ShlurdPlatonicForm,
+    lemma : String) : Try[(ShlurdPlatonicProperty, String)] =
+  {
     val stateName = form.getStateSynonyms.resolveSynonym(lemma)
     form.properties.values.find(p => p.states.contains(stateName)) match {
-      case Some(p) => Success((p, stateName))
-      case _ => fail(s"unknown property $lemma")
+      case Some(p) => return Success((p, stateName))
+      case _ => {
+        if (formGenitives.containsVertex(form)) {
+          formGenitives.outgoingEdgesOf(form).asScala.
+            filter(propertyEdges.contains(_)).foreach(edge => {
+              val propertyForm = formGenitives.getEdgeTarget(edge)
+              val attempt = resolveFormProperty(propertyForm, lemma)
+              if (attempt.isSuccess) {
+                return attempt
+              }
+            })
+        }
+      }
     }
+    fail(s"unknown property $lemma")
   }
 
   override def specificReference(
@@ -586,7 +642,18 @@ class ShlurdPlatonicWorld
     property : ShlurdPlatonicProperty,
     lemma : String) : Try[Trilean] =
   {
-    fail("FIXME")
+    if (entityGenitives.containsVertex(entity)) {
+      entityGenitives.outgoingEdgesOf(entity).asScala.foreach(edge => {
+        val propertyEntity = entityGenitives.getEdgeTarget(edge)
+        if (propertyEntity.form.properties.values.toSeq.contains(property)) {
+          return evaluateEntityPropertyPredicate(
+            propertyEntity,
+            property,
+            lemma)
+        }
+      })
+    }
+    fail(s"unknown property ${property.name} for ${entity.name}")
   }
 
   override def evaluateEntityLocationPredicate(

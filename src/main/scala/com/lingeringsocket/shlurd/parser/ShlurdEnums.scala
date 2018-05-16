@@ -37,6 +37,7 @@ sealed trait ShlurdLocative
 case object LOC_INSIDE extends ShlurdLocative
 case object LOC_OUTSIDE extends ShlurdLocative
 case object LOC_AT extends ShlurdLocative
+case object LOC_AS extends ShlurdLocative
 case object LOC_NEAR extends ShlurdLocative
 case object LOC_ON extends ShlurdLocative
 case object LOC_ABOVE extends ShlurdLocative

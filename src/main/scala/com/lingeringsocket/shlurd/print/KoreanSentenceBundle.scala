@@ -92,6 +92,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
       case LOC_INSIDE => "안"
       case LOC_OUTSIDE => "밖"
       case LOC_AT => ""
+      case LOC_AS => "FIXME"
       // FIXME:  distinguish "near" from "next to"
       case LOC_NEAR => "근처"
       case LOC_ON => "위"
