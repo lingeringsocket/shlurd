@@ -100,6 +100,10 @@ class ShlurdInterpreterSpec extends Specification
         "No, the tiger is not asleep.")
       interpret("is the tiger awake") must be equalTo(
         "Yes, the tiger is awake.")
+      interpret("is the lion in dreamland") must be equalTo(
+        "Yes, the lion is in dreamland.")
+      interpret("is the tiger in dreamland") must be equalTo(
+        "No, the tiger is not in dreamland.")
       interpret("is there a tiger") must be equalTo(
         "Yes, there is a tiger.")
       interpret("is there any tiger") must be equalTo(
@@ -656,6 +660,24 @@ class ShlurdInterpreterSpec extends Specification
           Success(Trilean(location == actualLocation))
         case _ =>
           Success(Trilean.False)
+      }
+    }
+
+    override def normalizeState(
+      entity : ShlurdEntity,
+      state : ShlurdState) : ShlurdState =
+    {
+      state match {
+        case ShlurdLocationState(
+          LOC_INSIDE,
+          ShlurdNounReference(
+            ShlurdWord("dreamland", _),
+            DETERMINER_UNSPECIFIED,
+            COUNT_SINGULAR)) =>
+          {
+            ShlurdPropertyState(ShlurdWord("asleep"))
+          }
+        case _ => state
       }
     }
   }

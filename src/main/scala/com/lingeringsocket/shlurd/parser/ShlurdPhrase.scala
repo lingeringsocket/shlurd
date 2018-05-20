@@ -230,14 +230,6 @@ case class ShlurdUnresolvedRelationshipPredicate(
 {
 }
 
-case class ShlurdUnresolvedRelativeReference(
-  syntaxTree : ShlurdSyntaxTree,
-  reference : ShlurdReference,
-  state : ShlurdState
-) extends ShlurdUnknownReference with ShlurdUnresolvedPhrase
-{
-}
-
 case class ShlurdPredicateSentence(
   predicate : ShlurdPredicate,
   mood : ShlurdMood = MOOD_INDICATIVE_POSITIVE,

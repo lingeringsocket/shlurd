@@ -220,6 +220,25 @@ class ShlurdPlatonicWorldSpec extends Specification
       frontDoor must beSuccessfulTry.which(_.size == 1)
     }
 
+    "accept alternative phrasing" in new WorldContext
+    {
+      addBelief("A person must be either present or absent")
+      addBelief("A person that is at home is present")
+      addBelief("Lana is a person")
+      expectUniqueForm("person")
+      val lana = world.resolveEntity("person", REF_SUBJECT, Set("lana"))
+      lana must beSuccessfulTry.which(_.size == 1)
+      val entity = lana.get.head
+      world.normalizeState(
+        entity,
+        ShlurdLocationState(
+          LOC_AT,
+          ShlurdNounReference(ShlurdWord("home")))
+      ) must be equalTo(
+        ShlurdPropertyState(ShlurdWord("present"))
+      )
+    }
+
     "load beliefs from a file" in new WorldContext
     {
       val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")

@@ -60,7 +60,12 @@ class ShlurdPlatonicForm(val name : String)
 
   private val stateSynonyms = new ShlurdSynonymMap
 
+  private val stateNormalizations =
+    new mutable.LinkedHashMap[ShlurdState, ShlurdState]
+
   def getStateSynonyms = stateSynonyms
+
+  def getStateNormalizations = stateNormalizations
 
   def getProperties : Map[String, ShlurdPlatonicProperty] = properties
 
@@ -398,12 +403,21 @@ class ShlurdPlatonicWorld
             val (noun, qualifiers, count) = extractQualifiedNoun(
               sentence, ref, Seq.empty)
             val form = instantiateForm(noun)
-            state match {
-              case ShlurdExistenceState() => {
-                addExistenceBelief(sentence, form, qualifiers, mood)
+            ref match {
+              case ShlurdStateSpecifiedReference(
+                _, locState : ShlurdLocationState) =>
+              {
+                form.getStateNormalizations.put(locState, state)
               }
               case _ => {
-                addPropertyBelief(sentence, form, qualifiers, state, mood)
+                state match {
+                  case ShlurdExistenceState() => {
+                    addExistenceBelief(sentence, form, qualifiers, mood)
+                  }
+                  case _ => {
+                    addPropertyBelief(sentence, form, qualifiers, state, mood)
+                  }
+                }
               }
             }
           }
@@ -543,6 +557,10 @@ class ShlurdPlatonicWorld
     mood : ShlurdMood)
   {
     if (qualifiers.size == 1) {
+      // "a light that is lit is on"
+      if (sentence.mood.getModality != MODAL_NEUTRAL) {
+          throw new IncomprehensibleBelief(sentence)
+      }
       state match {
         case ShlurdPropertyState(word) => {
           form.getStateSynonyms.addSynonym(
@@ -555,6 +573,10 @@ class ShlurdPlatonicWorld
       return
     } else if (!qualifiers.isEmpty) {
       // but maybe we should allow constraints on qualified entities?
+      throw new IncomprehensibleBelief(sentence)
+    }
+    // "a light may be on or off"
+    if (sentence.mood.getModality == MODAL_NEUTRAL) {
       throw new IncomprehensibleBelief(sentence)
     }
     val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
@@ -767,5 +789,11 @@ class ShlurdPlatonicWorld
         fail(s"unknown entity $lemma")
       }
     }
+  }
+
+  override def normalizeState(
+    entity : ShlurdPlatonicEntity, state : ShlurdState) =
+  {
+    entity.form.getStateNormalizations.get(state).getOrElse(state)
   }
 }

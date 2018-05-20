@@ -336,20 +336,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 ShlurdStatePredicate(subject, s), resultCollector))
             evaluateDeterminer(tries, determiner)
           }
-          case ShlurdExistenceState() => {
-            evaluateExistencePredicate(subject, resultCollector)
-          }
-          case ShlurdPropertyState(word) => {
-            evaluatePropertyStatePredicate(subject, word, resultCollector)
-          }
-          case ShlurdLocationState(locative, location) => {
-            evaluateLocationStatePredicate(
-              subject, locative, location, resultCollector)
-          }
-          case ShlurdNullState() | _ : ShlurdUnknownState => {
-            debug(s"UNEXPECTED STATE : $state")
-            fail(sentencePrinter.sb.respondCannotUnderstand())
-          }
+          case _ => evaluateNormalizedStatePredicate(
+            subject, state, resultCollector)
         }
       }
       case ShlurdRelationshipPredicate(
@@ -393,6 +381,43 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     debugDepth -= 1
     debug(s"PREDICATE TRUTH : $result")
     result
+  }
+
+  private def evaluateNormalizedStatePredicate(
+    subjectRef : ShlurdReference,
+    originalState : ShlurdState,
+    resultCollector : ResultCollector[E])
+      : Try[Trilean] =
+  {
+    val context = originalState match {
+      case _ : ShlurdLocationState => REF_LOCATED
+      case _ => REF_SUBJECT
+    }
+    evaluatePredicateOverReference(subjectRef, context, resultCollector)
+    {
+      entity => {
+        val normalizedState = world.normalizeState(entity, originalState)
+        if (originalState != normalizedState) {
+          debug(s"NORMALIZED STATE : $normalizedState")
+        }
+        normalizedState match {
+          case ShlurdExistenceState() => {
+            Success(Trilean.True)
+          }
+          case ShlurdPropertyState(word) => {
+            evaluatePropertyStatePredicate(entity, word, resultCollector)
+          }
+          case ShlurdLocationState(locative, location) => {
+            evaluateLocationStatePredicate(
+              entity, locative, location, resultCollector)
+          }
+          case _ => {
+            debug(s"UNEXPECTED STATE : $normalizedState")
+            fail(sentencePrinter.sb.respondCannotUnderstand())
+          }
+        }
+      }
+    }
   }
 
   private def extractCategory(reference : ShlurdReference) : String =
@@ -483,6 +508,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     evaluator : E => Try[Trilean])
       : Try[Trilean] =
   {
+    // FIXME should maybe use normalizeState here but it's a bit tricky
     reference match {
       case ShlurdNounReference(noun, determiner, count) => {
         val lemma = noun.lemma
@@ -657,61 +683,41 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     result
   }
 
-  private def evaluateExistencePredicate(
-    subjectRef : ShlurdReference, resultCollector : ResultCollector[E])
-      : Try[Trilean] =
-  {
-    evaluatePredicateOverReference(subjectRef, REF_SUBJECT, resultCollector) {
-      entity => Success(Trilean.True)
-    }
-  }
-
   private def evaluatePropertyStatePredicate(
-    subjectRef : ShlurdReference,
+    entity : E,
     state : ShlurdWord,
     resultCollector : ResultCollector[E])
       : Try[Trilean] =
   {
-    evaluatePredicateOverReference(subjectRef, REF_SUBJECT, resultCollector)
-    {
-      entity => {
-        val result = world.resolveProperty(entity, state.lemma) match {
-          case Success((property, stateName)) => {
-            resultCollector.states += ShlurdWord(
-              property.getStates()(stateName), stateName)
-            world.evaluateEntityPropertyPredicate(
-              entity, property, stateName)
-          }
-          case Failure(e) => Failure(e)
-        }
-        debug(s"RESULT FOR $entity is $result")
-        result
+    val result = world.resolveProperty(entity, state.lemma) match {
+      case Success((property, stateName)) => {
+        resultCollector.states += ShlurdWord(
+          property.getStates()(stateName), stateName)
+        world.evaluateEntityPropertyPredicate(
+          entity, property, stateName)
       }
+      case Failure(e) => Failure(e)
     }
+    debug(s"RESULT FOR $entity is $result")
+    result
   }
 
   private def evaluateLocationStatePredicate(
-    subjectRef : ShlurdReference, locative : ShlurdLocative,
+    subjectEntity : E, locative : ShlurdLocative,
     locationRef : ShlurdReference,
     resultCollector : ResultCollector[E])
       : Try[Trilean] =
   {
     val locationCollector = new ResultCollector[E]
     evaluatePredicateOverReference(
-      subjectRef, REF_LOCATED, resultCollector)
+      locationRef, REF_LOCATION, locationCollector)
     {
-      subjectEntity => {
-        evaluatePredicateOverReference(
-          locationRef, REF_LOCATION, locationCollector)
-        {
-          locationEntity => {
-            val result = world.evaluateEntityLocationPredicate(
-              subjectEntity, locationEntity, locative)
-            debug("RESULT FOR " +
-              s"$subjectEntity $locative $locationEntity is $result")
-            result
-          }
-        }
+      locationEntity => {
+        val result = world.evaluateEntityLocationPredicate(
+          subjectEntity, locationEntity, locative)
+        debug("RESULT FOR " +
+          s"$subjectEntity $locative $locationEntity is $result")
+        result
       }
     }
   }

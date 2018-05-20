@@ -81,6 +81,8 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
 
   def qualifierSet(qualifiers : Seq[ShlurdWord]) =
     ShlurdParseUtils.orderedSet(qualifiers.map(_.lemma))
+
+  def normalizeState(entity : E, state : ShlurdState) : ShlurdState = state
 }
 
 trait ShlurdNamedObject

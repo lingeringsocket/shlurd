@@ -404,7 +404,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         SptS(SptVP(verb, complement))
       ) if (verb.isBeingVerb) => {
         val state = expectComplementState(SptVP(complement))
-        ShlurdUnresolvedRelativeReference(syntaxTree, reference, state)
+        ShlurdStateSpecifiedReference(reference, state)
       }
       case _ => {
         ShlurdUnrecognizedReference(syntaxTree)

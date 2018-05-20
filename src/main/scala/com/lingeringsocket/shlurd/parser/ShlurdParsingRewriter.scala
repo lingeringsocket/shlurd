@@ -89,11 +89,6 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     case ShlurdExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
       recognizePronounReference(pronoun.child)
     }
-    case ShlurdUnresolvedRelativeReference(
-      _, reference, qualifier : ShlurdPropertyState) =>
-      {
-        ShlurdReference.qualifiedByProperties(reference, Seq(qualifier))
-      }
   }
 
   private def replaceExpectedState = replacementMatcher {
@@ -180,9 +175,6 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
   }
 
   private def replaceUnresolvedWithUnrecognized = replacementMatcher {
-    case ShlurdUnresolvedRelativeReference(syntaxTree, _, _) => {
-      ShlurdUnrecognizedReference(syntaxTree)
-    }
     case predicate : ShlurdUnresolvedStatePredicate => {
       resolveStatePredicate(predicate)
     }

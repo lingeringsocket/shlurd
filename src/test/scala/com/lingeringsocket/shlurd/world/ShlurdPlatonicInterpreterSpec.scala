@@ -251,12 +251,16 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "Yes, Jack's presence is on.")
       interpret("is Jack present",
         "Yes, Jack is present.")
+      interpret("is Jack at home",
+        "Yes, Jack is at home.")
       interpret("is Jack absent",
         "No, Jack is not absent.")
       interpret("is Jill's presence on",
         "No, Jill's presence is not on.")
       interpret("is Jill present",
         "No, Jill is not present.")
+      interpret("is Jill at home",
+        "No, Jill is not at home.")
       interpret("is Jill absent",
         "Yes, Jill is absent.")
     }
