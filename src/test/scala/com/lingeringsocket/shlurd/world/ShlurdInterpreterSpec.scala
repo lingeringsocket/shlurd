@@ -514,7 +514,7 @@ class ShlurdInterpreterSpec extends Specification
         ZooLion -> ZooKeeper,
         ZooTiger -> ZooVisitor)
 
-    override def resolveEntity(
+    override def resolveQualifiedNoun(
       lemma : String,
       context : ShlurdReferenceContext,
       qualifiers : Set[String]) =

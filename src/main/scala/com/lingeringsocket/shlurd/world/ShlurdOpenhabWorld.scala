@@ -39,7 +39,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
   instantiateForm(ShlurdWord(locationFormName))
   instantiateForm(ShlurdWord(presenceFormName))
 
-  override def resolveEntity(
+  override def resolveQualifiedNoun(
     lemma : String,
     context : ShlurdReferenceContext,
     qualifiers : Set[String]) : Try[Set[ShlurdPlatonicEntity]] =
@@ -54,13 +54,13 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     val rewrittenQualifiers = ((qualifiers - roomLemma) ++ rewrittenLemma)
     context match {
       case REF_LOCATION => {
-        val result = super.resolveEntity(
+        val result = super.resolveQualifiedNoun(
           locationFormName, context, rewrittenQualifiers)
         if (result.isFailure) {
           result
         } else {
           if (result.get.isEmpty) {
-            val any = super.resolveEntity(
+            val any = super.resolveQualifiedNoun(
               locationFormName, context, rewrittenLemma)
             if (any.isFailure) {
               result
@@ -77,10 +77,10 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
         }
       }
       case _ => {
-        val result = super.resolveEntity(
+        val result = super.resolveQualifiedNoun(
           lemma, context, (qualifiers - roomLemma))
         if (result.isFailure) {
-          val any = super.resolveEntity(
+          val any = super.resolveQualifiedNoun(
             locationFormName, context, rewrittenLemma)
           if (any.isFailure) {
             result
@@ -88,7 +88,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
             if (any.get.isEmpty) {
               result
             } else {
-              super.resolveEntity(
+              super.resolveQualifiedNoun(
                 locationFormName, context, rewrittenQualifiers)
             }
           }
@@ -101,7 +101,9 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
 
   private def isAmbiguous(entity : ShlurdPlatonicEntity) : Boolean =
   {
-    resolveEntity(entity.form.name, REF_SUBJECT, entity.qualifiers) match {
+    resolveQualifiedNoun(
+      entity.form.name, REF_SUBJECT, entity.qualifiers) match
+    {
       case Success(set) => {
         set.size > 1
       }
@@ -332,12 +334,12 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
               getPropertyEdges.find(_.label == presenceFormName) match {
                 case Some(edge) => {
                   val personForm = getPossessorForm(edge)
-                  resolveEntity(
+                  resolveQualifiedNoun(
                     personForm.name, REF_SUBJECT, qualifiers.takeRight(1)) match
                   {
                     case Success(set) => {
                       if (set.size == 1) {
-                        addEntityGenitive(
+                        addEntityAssoc(
                           set.head, entity, presenceFormName)
                       } else {
                         warning = true

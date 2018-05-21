@@ -143,18 +143,18 @@ object ShlurdPlatonicWorld
     }
   }
 
-  protected class FormGenitiveEdge(label : String) extends LabeledEdge(label)
+  protected class FormAssocEdge(label : String) extends LabeledEdge(label)
   {
   }
 
-  protected class EntityGenitiveEdge(label : String) extends LabeledEdge(label)
+  protected class EntityAssocEdge(label : String) extends LabeledEdge(label)
   {
   }
 
   private class ProbeFormEdge(
     val sourceForm : ShlurdPlatonicForm,
     val targetForm : ShlurdPlatonicForm,
-    label : String) extends FormGenitiveEdge(label)
+    label : String) extends FormAssocEdge(label)
   {
     override def getSource = sourceForm
 
@@ -164,7 +164,7 @@ object ShlurdPlatonicWorld
   private class ProbeEntityEdge(
     val sourceEntity : ShlurdPlatonicEntity,
     val targetEntity : ShlurdPlatonicEntity,
-    label : String) extends EntityGenitiveEdge(label)
+    label : String) extends EntityAssocEdge(label)
   {
     override def getSource = sourceEntity
 
@@ -190,19 +190,19 @@ class ShlurdPlatonicWorld
   formSynonyms.addSynonym(
     LEMMA_WHO, LEMMA_PERSON)
 
-  private val formGenitives =
-    new DirectedPseudograph[ShlurdPlatonicForm, FormGenitiveEdge](
-      classOf[FormGenitiveEdge])
+  private val formAssocs =
+    new DirectedPseudograph[ShlurdPlatonicForm, FormAssocEdge](
+      classOf[FormAssocEdge])
 
-  private val genitiveConstraints =
-    new mutable.LinkedHashMap[FormGenitiveEdge, CardinalityConstraint]
+  private val assocConstraints =
+    new mutable.LinkedHashMap[FormAssocEdge, CardinalityConstraint]
 
   private val propertyEdges =
-    new mutable.LinkedHashSet[FormGenitiveEdge]
+    new mutable.LinkedHashSet[FormAssocEdge]
 
-  private val entityGenitives =
-    new DirectedPseudograph[ShlurdPlatonicEntity, EntityGenitiveEdge](
-      classOf[EntityGenitiveEdge])
+  private val entityAssocs =
+    new DirectedPseudograph[ShlurdPlatonicEntity, EntityAssocEdge](
+      classOf[EntityAssocEdge])
 
   private var nextId = 0
 
@@ -210,7 +210,7 @@ class ShlurdPlatonicWorld
 
   def getEntities : Map[String, ShlurdPlatonicEntity] = entities
 
-  protected def getPropertyEdges : Set[FormGenitiveEdge] = propertyEdges
+  protected def getPropertyEdges : Set[FormAssocEdge] = propertyEdges
 
   def clear()
   {
@@ -267,62 +267,62 @@ class ShlurdPlatonicWorld
     entities.put(entity.name, entity)
   }
 
-  protected def getPossessorForm(edge : FormGenitiveEdge) =
-    formGenitives.getEdgeSource(edge)
+  protected def getPossessorForm(edge : FormAssocEdge) =
+    formAssocs.getEdgeSource(edge)
 
-  protected def getPossessorEntity(edge : EntityGenitiveEdge) =
-    entityGenitives.getEdgeSource(edge)
+  protected def getPossessorEntity(edge : EntityAssocEdge) =
+    entityAssocs.getEdgeSource(edge)
 
-  protected def getPossesseeForm(edge : FormGenitiveEdge) =
-    formGenitives.getEdgeTarget(edge)
+  protected def getPossesseeForm(edge : FormAssocEdge) =
+    formAssocs.getEdgeTarget(edge)
 
-  protected def getPossesseeEntity(edge : EntityGenitiveEdge) =
-    entityGenitives.getEdgeTarget(edge)
+  protected def getPossesseeEntity(edge : EntityAssocEdge) =
+    entityAssocs.getEdgeTarget(edge)
 
-  protected def addFormGenitive(
+  protected def addFormAssoc(
     possessor : ShlurdPlatonicForm,
     possessee : ShlurdPlatonicForm,
-    label : String) : FormGenitiveEdge =
+    label : String) : FormAssocEdge =
   {
-    formGenitives.addVertex(possessor)
-    formGenitives.addVertex(possessee)
+    formAssocs.addVertex(possessor)
+    formAssocs.addVertex(possessee)
     val probe = new ProbeFormEdge(possessor, possessee, label)
-    formGenitives.removeEdge(probe)
-    val edge = new FormGenitiveEdge(label)
-    formGenitives.addEdge(possessor, possessee, edge)
+    formAssocs.removeEdge(probe)
+    val edge = new FormAssocEdge(label)
+    formAssocs.addEdge(possessor, possessee, edge)
     edge
   }
 
-  protected def addEntityGenitive(
+  protected def addEntityAssoc(
     possessor : ShlurdPlatonicEntity,
     possessee : ShlurdPlatonicEntity,
-    label : String) : EntityGenitiveEdge =
+    label : String) : EntityAssocEdge =
   {
-    entityGenitives.addVertex(possessor)
-    entityGenitives.addVertex(possessee)
+    entityAssocs.addVertex(possessor)
+    entityAssocs.addVertex(possessee)
     val probe = new ProbeEntityEdge(possessor, possessee, label)
-    entityGenitives.removeEdge(probe)
-    val edge = new EntityGenitiveEdge(label)
-    entityGenitives.addEdge(
+    entityAssocs.removeEdge(probe)
+    val edge = new EntityAssocEdge(label)
+    entityAssocs.addEdge(
       possessor, possessee, edge)
     edge
   }
 
-  protected def isFormGenitive(
+  protected def isFormAssoc(
     possessor : ShlurdPlatonicForm,
     possessee : ShlurdPlatonicForm,
     label : String) : Boolean =
   {
-    formGenitives.containsEdge(
+    formAssocs.containsEdge(
       new ProbeFormEdge(possessor, possessee, label))
   }
 
-  protected def isEntityGenitive(
+  protected def isEntityAssoc(
     possessor : ShlurdPlatonicEntity,
     possessee : ShlurdPlatonicEntity,
     label : String) : Boolean =
   {
-    entityGenitives.containsEdge(
+    entityAssocs.containsEdge(
       new ProbeEntityEdge(possessor, possessee, label))
   }
 
@@ -336,13 +336,13 @@ class ShlurdPlatonicWorld
 
   def validateBeliefs()
   {
-    formGenitives.edgeSet.asScala.foreach(formEdge => {
-      val constraint = genitiveConstraints(formEdge)
+    formAssocs.edgeSet.asScala.foreach(formEdge => {
+      val constraint = assocConstraints(formEdge)
       if ((constraint.lower > 0) || (constraint.upper < Int.MaxValue)) {
         val form = getPossessorForm(formEdge)
         entities.values.filter(_.form == form).foreach(entity => {
-          if (entityGenitives.containsVertex(entity)) {
-            val c = entityGenitives.outgoingEdgesOf(entity).asScala.
+          if (entityAssocs.containsVertex(entity)) {
+            val c = entityAssocs.outgoingEdgesOf(entity).asScala.
               count(_.label == formEdge.label)
             if ((c < constraint.lower) || (c > constraint.upper)) {
               throw new InvalidBeliefs()
@@ -483,15 +483,15 @@ class ShlurdPlatonicWorld
                     val possessorForm = instantiateForm(subjectNoun)
                     val possesseeForm = instantiateRole(complementNoun)
                     val label = complementNoun.lemma
-                    val edge = addFormGenitive(
+                    val edge = addFormAssoc(
                       possessorForm, possesseeForm, label)
-                    val constraint = genitiveConstraints.get(edge) match {
+                    val constraint = assocConstraints.get(edge) match {
                       case Some(oldConstraint) => CardinalityConstraint(
                         Math.max(oldConstraint.lower, newConstraint.lower),
                         Math.min(oldConstraint.upper, newConstraint.upper))
                       case _ => newConstraint
                     }
-                    genitiveConstraints.put(edge, constraint)
+                    assocConstraints.put(edge, constraint)
                     property match {
                       case Some(name) => {
                         propertyEdges += edge
@@ -523,10 +523,10 @@ class ShlurdPlatonicWorld
                   val possessor = possessorOpt.get
                   val possessee = possesseeOpt.get
                   val label = complementNoun.lemma
-                  if (!isFormGenitive(possessor.form, possessee.form, label)) {
+                  if (!isFormAssoc(possessor.form, possessee.form, label)) {
                     throw new IncomprehensibleBelief(sentence)
                   }
-                  addEntityGenitive(possessor, possessee, label)
+                  addEntityAssoc(possessor, possessee, label)
                 }
               }
               case _ => throw new IncomprehensibleBelief(sentence)
@@ -628,16 +628,16 @@ class ShlurdPlatonicWorld
     label : String)
       : Set[ShlurdPlatonicEntity] =
   {
-    if (!entityGenitives.containsVertex(possessor)) {
+    if (!entityAssocs.containsVertex(possessor)) {
       Set.empty
     } else {
-      entityGenitives.outgoingEdgesOf(possessor).
+      entityAssocs.outgoingEdgesOf(possessor).
         asScala.filter(_.label == label).map(
           getPossesseeEntity)
     }
   }
 
-  override def resolveEntity(
+  override def resolveQualifiedNoun(
     lemma : String,
     context : ShlurdReferenceContext,
     qualifiers : Set[String]) =
@@ -684,8 +684,8 @@ class ShlurdPlatonicWorld
     form.properties.values.find(p => p.states.contains(stateName)) match {
       case Some(p) => return Success((p, stateName))
       case _ => {
-        if (formGenitives.containsVertex(form)) {
-          formGenitives.outgoingEdgesOf(form).asScala.
+        if (formAssocs.containsVertex(form)) {
+          formAssocs.outgoingEdgesOf(form).asScala.
             filter(propertyEdges.contains(_)).foreach(edge => {
               val propertyForm = getPossesseeForm(edge)
               val attempt = resolveFormProperty(propertyForm, lemma)
@@ -724,8 +724,8 @@ class ShlurdPlatonicWorld
     property : ShlurdPlatonicProperty,
     lemma : String) : Try[Trilean] =
   {
-    if (entityGenitives.containsVertex(entity)) {
-      entityGenitives.outgoingEdgesOf(entity).asScala.foreach(edge => {
+    if (entityAssocs.containsVertex(entity)) {
+      entityAssocs.outgoingEdgesOf(entity).asScala.foreach(edge => {
         val propertyEntity = getPossesseeEntity(edge)
         if (propertyEntity.form.properties.values.toSeq.contains(property)) {
           return evaluateEntityPropertyPredicate(
@@ -745,14 +745,14 @@ class ShlurdPlatonicWorld
     qualifiers : Set[String]) : Try[Trilean] =
   {
     if (locative == LOC_GENITIVE_OF) {
-      if (!entityGenitives.containsVertex(entity) ||
-        !entityGenitives.containsVertex(location) ||
+      if (!entityAssocs.containsVertex(entity) ||
+        !entityAssocs.containsVertex(location) ||
         (qualifiers.size != 1))
       {
         Success(Trilean.False)
       } else {
         val label = qualifiers.head
-        Success(Trilean(isEntityGenitive(location, entity, label)))
+        Success(Trilean(isEntityAssoc(location, entity, label)))
       }
     } else {
       Success(Trilean.Unknown)
@@ -768,14 +768,14 @@ class ShlurdPlatonicWorld
       case Some(form) => {
         if (entity.form == form) {
           val isRole = roles.contains(lemma) || (form.name == lemma)
-          if (!formGenitives.containsVertex(form)) {
+          if (!formAssocs.containsVertex(form)) {
             Success(Trilean(isRole))
           } else {
-            if (formGenitives.incomingEdgesOf(form).asScala.
+            if (formAssocs.incomingEdgesOf(form).asScala.
               exists(_.label == lemma))
             {
               Success(Trilean(
-                entityGenitives.incomingEdgesOf(entity).asScala.
+                entityAssocs.incomingEdgesOf(entity).asScala.
                   exists(_.label == lemma)))
             } else {
               Success(Trilean(isRole))

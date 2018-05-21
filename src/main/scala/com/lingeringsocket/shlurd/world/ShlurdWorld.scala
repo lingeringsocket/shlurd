@@ -41,7 +41,7 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
 {
   def fail(msg : String) = Failure(new RuntimeException(msg))
 
-  def resolveEntity(
+  def resolveQualifiedNoun(
     lemma : String,
     context : ShlurdReferenceContext,
     qualifiers : Set[String] = Set.empty) : Try[Set[E]]
@@ -60,7 +60,7 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
     lemma : String,
     qualifiers : Set[String] = Set.empty) : Try[Trilean] =
   {
-    resolveEntity(lemma, REF_SUBJECT, qualifiers).map(
+    resolveQualifiedNoun(lemma, REF_SUBJECT, qualifiers).map(
       set => Trilean(set.contains(entity)))
   }
 

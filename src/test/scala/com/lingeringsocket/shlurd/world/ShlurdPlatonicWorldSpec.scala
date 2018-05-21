@@ -101,9 +101,11 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("there is a front door")
       addBelief("there is a back door")
       expectUniqueForm("door")
-      val frontDoor = world.resolveEntity("door", REF_SUBJECT, Set("front"))
+      val frontDoor = world.resolveQualifiedNoun(
+        "door", REF_SUBJECT, Set("front"))
       frontDoor must beSuccessfulTry.which(_.size == 1)
-      val backDoor = world.resolveEntity("door", REF_SUBJECT, Set("back"))
+      val backDoor = world.resolveQualifiedNoun(
+        "door", REF_SUBJECT, Set("back"))
       backDoor must beSuccessfulTry.which(_.size == 1)
       frontDoor must not be equalTo(backDoor)
     }
@@ -139,16 +141,16 @@ class ShlurdPlatonicWorldSpec extends Specification
       val personLemma = LEMMA_PERSON
       expectUniqueForm(personLemma)
 
-      val joyces = world.resolveEntity(
+      val joyces = world.resolveQualifiedNoun(
         personLemma, REF_SUBJECT, Set("joyce"))
       joyces must beSuccessfulTry.which(_.size == 1)
-      val wills = world.resolveEntity(
+      val wills = world.resolveQualifiedNoun(
         personLemma, REF_SUBJECT, Set("will"))
       wills must beSuccessfulTry.which(_.size == 1)
-      val jonathans = world.resolveEntity(
+      val jonathans = world.resolveQualifiedNoun(
         personLemma, REF_SUBJECT, Set("jonathan"))
       jonathans must beSuccessfulTry.which(_.size == 1)
-      val lonnies = world.resolveEntity(
+      val lonnies = world.resolveQualifiedNoun(
         personLemma, REF_SUBJECT, Set("lonnie"))
       lonnies must beSuccessfulTry.which(_.size == 1)
       val joyce = joyces.get.head
@@ -216,7 +218,8 @@ class ShlurdPlatonicWorldSpec extends Specification
       synonyms.resolveSynonym("door") must be equalTo "door"
       synonyms.resolveSynonym("portal") must be equalTo "door"
       synonyms.resolveSynonym("gateway") must be equalTo "gateway"
-      val frontDoor = world.resolveEntity("portal", REF_SUBJECT, Set("front"))
+      val frontDoor = world.resolveQualifiedNoun(
+        "portal", REF_SUBJECT, Set("front"))
       frontDoor must beSuccessfulTry.which(_.size == 1)
     }
 
@@ -226,7 +229,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("A person that is at home is present")
       addBelief("Lana is a person")
       expectUniqueForm("person")
-      val lana = world.resolveEntity("person", REF_SUBJECT, Set("lana"))
+      val lana = world.resolveQualifiedNoun("person", REF_SUBJECT, Set("lana"))
       lana must beSuccessfulTry.which(_.size == 1)
       val entity = lana.get.head
       world.normalizeState(

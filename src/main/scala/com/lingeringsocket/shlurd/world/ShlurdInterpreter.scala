@@ -512,15 +512,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     reference match {
       case ShlurdNounReference(noun, determiner, count) => {
         val lemma = noun.lemma
-        world.resolveEntity(
+        world.resolveQualifiedNoun(
           lemma, context,
           world.qualifierSet(
             ShlurdReference.extractQualifiers(specifiedState))) match
         {
           case Success(unfilteredEntities) => {
             debug(s"CANDIDATE ENTITIES : $unfilteredEntities")
-            // probably we should be pushing filters down into resolveEntity
-            // for efficiency
+            // probably we should be pushing filters down into
+            // resolveQualifiedNoun for efficiency
             val locationStates =
               ShlurdReference.extractLocationSpecifiers(specifiedState)
             val entities = {
