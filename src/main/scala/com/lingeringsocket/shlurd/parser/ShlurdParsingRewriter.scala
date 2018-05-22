@@ -124,6 +124,9 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     case ShlurdExpectedComplementState(syntaxTree : SptPRT) => {
       analyzer.expectPropertyState(requireUnique(syntaxTree.children))
     }
+    case ShlurdExpectedComplementState(SptNP(noun)) => {
+      analyzer.expectPropertyState(noun)
+    }
   }
 
   private def replaceUnresolvedPredicate = replacementMatcher {

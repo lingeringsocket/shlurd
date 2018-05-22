@@ -29,7 +29,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
     "alarm service" -> "on",
     "multimedia service" -> "off",
     "jackphone presence" -> "on",
-    "jillphone presence" -> "off"
+    "jillphone presence" -> "off",
+    "casperphone presence" -> "on",
+    "yodaphone presence" -> "off"
   )
 
   trait InterpreterContext extends NameSpace
@@ -137,10 +139,10 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "But I don't know about any such friend.")
       interpret(
         "is Ford Todd's friend",
-        "Sorry, I don't know what you mean by Ford.")
+        "Sorry, I don't know what you mean by 'Ford'.")
       interpret(
         "is Todd Ford's friend",
-        "Sorry, I don't know what you mean by Ford.")
+        "Sorry, I don't know what you mean by 'Ford'.")
       // FIXME:  should clarify that they are not necessarily
       // friends OF EACH OTHER
       interpret(
@@ -169,7 +171,7 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "Yes, Bart is an owner.")
       interpret(
         "is Amanda a robot",
-        "Sorry, I don't know what you mean by robot.")
+        "Sorry, I don't know what you mean by 'robot'.")
       // FIXME:  should be "are people"?
       interpret(
         "who is a person",
@@ -246,6 +248,7 @@ class ShlurdPlatonicInterpreterSpec extends Specification
 
     "understand presence" in new InterpreterContext
     {
+      // FIXME:  in "is Jack home", interpret "home" as state instead of noun
       loadBeliefs("/ontologies/presence.txt")
       interpret("is Jack's presence on",
         "Yes, Jack's presence is on.")
@@ -255,6 +258,8 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "Yes, Jack is at home.")
       interpret("is Jack absent",
         "No, Jack is not absent.")
+      interpret("is Jack away",
+        "No, Jack is not away.")
       interpret("is Jill's presence on",
         "No, Jill's presence is not on.")
       interpret("is Jill present",
@@ -263,6 +268,22 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "No, Jill is not at home.")
       interpret("is Jill absent",
         "Yes, Jill is absent.")
+      interpret("is Jill away",
+        "Yes, Jill is away.")
+      interpret("is Jack on",
+        "Sorry, I don't know what you mean by 'on'.")
+      interpret("is Casper's presence on",
+        "Yes, Casper's presence is on.")
+      interpret("is Casper present",
+        "I don't know.")
+      interpret("is Yoda's presence on",
+        "No, Yoda's presence is not on.")
+      interpret("is Yoda present",
+        "No, Yoda is not present.")
+      interpret("is Yoda on",
+        "No, Yoda is not on.")
+      interpret("is Yoda off",
+        "Yes, Yoda is off.")
     }
   }
 }

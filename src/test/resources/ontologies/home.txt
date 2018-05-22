@@ -9,6 +9,7 @@ A presence must be either on or off.
 A presence that is present is on.
 A presence that is absent is off.
 A person may have a presence as a property.
+A person must be either present or absent.
 Jack is a person.
 Jill is a person.
 Larry is a person.

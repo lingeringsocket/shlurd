@@ -198,10 +198,10 @@ class ShlurdOpenhabWorldSpec extends Specification
         "Please be more specific about which bedroom you mean.")
       interpret(
         "is any printer on",
-        "Sorry, I don't know what you mean by printer.")
+        "Sorry, I don't know what you mean by 'printer'.")
       interpret(
         "is there a stable",
-        "Sorry, I don't know what you mean by stable.")
+        "Sorry, I don't know what you mean by 'stable'.")
       interpret(
         "is there a bedroom",
         "Yes, there is a bedroom.")
@@ -222,7 +222,7 @@ class ShlurdOpenhabWorldSpec extends Specification
         "No, there is not a garage on the first floor.")
       interpret(
         "is any light in the stable on",
-        "Sorry, I don't know what you mean by stable.")
+        "Sorry, I don't know what you mean by 'stable'.")
       interpret(
         "is the solar light on",
         "No, the solar light is not on.")

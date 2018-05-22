@@ -155,7 +155,7 @@ abstract class ShlurdSentenceBundle
 
   def respondAmbiguous(entity : ShlurdWord) : String
 
-  def respondUnknown(entity : ShlurdWord) : String
+  def respondUnknown(word : ShlurdWord) : String
 
   def respondUnknownPronoun(pronoun : String) : String
 

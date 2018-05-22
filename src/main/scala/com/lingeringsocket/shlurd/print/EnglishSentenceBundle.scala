@@ -485,10 +485,10 @@ class EnglishSentenceBundle
       noun.lemmaUnfolded, "you mean.")
   }
 
-  override def respondUnknown(noun : ShlurdWord) =
+  override def respondUnknown(word : ShlurdWord) =
   {
     compose("Sorry, I don't know what you mean by",
-      concat(noun.lemmaUnfolded, "."))
+      concat("'", word.lemmaUnfolded, "'."))
   }
 
   override def respondUnknownPronoun(pronoun : String) =

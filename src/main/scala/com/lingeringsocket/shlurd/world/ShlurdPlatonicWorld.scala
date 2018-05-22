@@ -392,6 +392,9 @@ class ShlurdPlatonicWorld
 
   def addBelief(sentence : ShlurdSentence)
   {
+    if (sentence.hasUnknown) {
+      throw new IncomprehensibleBelief(sentence)
+    }
     sentence match {
       case ShlurdPredicateSentence(predicate, mood, formality) => {
         if (mood.isNegative) {
@@ -407,11 +410,13 @@ class ShlurdPlatonicWorld
               case ShlurdStateSpecifiedReference(
                 _, locState : ShlurdLocationState) =>
               {
+                // "a television that is on the blink is broken"
                 form.getStateNormalizations.put(locState, state)
               }
               case _ => {
                 state match {
                   case ShlurdExistenceState() => {
+                    // "there is a television"
                     addExistenceBelief(sentence, form, qualifiers, mood)
                   }
                   case _ => {
@@ -434,6 +439,7 @@ class ShlurdPlatonicWorld
                   if (locative != LOC_AS) {
                     throw new IncomprehensibleBelief(sentence)
                   }
+                  // "A television has a volume as a property"
                   location match {
                     case ShlurdNounReference(
                       ShlurdWord(LEMMA_PROPERTY, LEMMA_PROPERTY),
@@ -564,7 +570,8 @@ class ShlurdPlatonicWorld
       state match {
         case ShlurdPropertyState(word) => {
           form.getStateSynonyms.addSynonym(
-            qualifiers.head.lemma, word.lemma)
+            qualifiers.head.lemma,
+            form.getStateSynonyms.resolveSynonym(word.lemma))
         }
         case _ => {
           throw new IncomprehensibleBelief(sentence)
@@ -683,20 +690,8 @@ class ShlurdPlatonicWorld
     val stateName = form.getStateSynonyms.resolveSynonym(lemma)
     form.properties.values.find(p => p.states.contains(stateName)) match {
       case Some(p) => return Success((p, stateName))
-      case _ => {
-        if (formAssocs.containsVertex(form)) {
-          formAssocs.outgoingEdgesOf(form).asScala.
-            filter(propertyEdges.contains(_)).foreach(edge => {
-              val propertyForm = getPossesseeForm(edge)
-              val attempt = resolveFormProperty(propertyForm, lemma)
-              if (attempt.isSuccess) {
-                return attempt
-              }
-            })
-        }
-      }
+      case _ => fail(s"unknown property $lemma")
     }
-    fail(s"unknown property $lemma")
   }
 
   override def specificReference(
@@ -724,16 +719,35 @@ class ShlurdPlatonicWorld
     property : ShlurdPlatonicProperty,
     lemma : String) : Try[Trilean] =
   {
+    val propertyEdgeNames = {
+      if (formAssocs.containsVertex(entity.form)) {
+        formAssocs.outgoingEdgesOf(entity.form).asScala.
+          filter(propertyEdges.contains(_)).map(_.label).toSet
+      } else {
+        Set.empty[String]
+      }
+    }
     if (entityAssocs.containsVertex(entity)) {
-      entityAssocs.outgoingEdgesOf(entity).asScala.foreach(edge => {
-        val propertyEntity = getPossesseeEntity(edge)
-        if (propertyEntity.form.properties.values.toSeq.contains(property)) {
-          return evaluateEntityPropertyPredicate(
-            propertyEntity,
-            property,
-            lemma)
-        }
-      })
+      entityAssocs.outgoingEdgesOf(entity).asScala.
+        filter(edge => propertyEdgeNames.contains(edge.label)).
+        foreach(edge => {
+          val propertyEntity = getPossesseeEntity(edge)
+          if (propertyEntity.form.properties.values.toSeq.contains(property)) {
+            return evaluateEntityPropertyPredicate(
+              propertyEntity,
+              property,
+              lemma)
+          }
+          resolveFormProperty(propertyEntity.form, lemma) match {
+            case Success((underlyingProperty, stateName)) => {
+              return evaluateEntityPropertyPredicate(
+                propertyEntity,
+                underlyingProperty,
+                stateName)
+            }
+            case _ =>
+          }
+        })
     }
     Success(Trilean.Unknown)
   }

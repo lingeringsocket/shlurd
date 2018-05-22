@@ -380,7 +380,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose("무슨", noun.lemma, "?")
   }
 
-  override def respondUnknown(noun : ShlurdWord) =
+  override def respondUnknown(word : ShlurdWord) =
   {
     "FIXME"
   }

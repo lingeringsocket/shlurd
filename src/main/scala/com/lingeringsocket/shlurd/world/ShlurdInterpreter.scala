@@ -696,7 +696,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         world.evaluateEntityPropertyPredicate(
           entity, property, stateName)
       }
-      case Failure(e) => Failure(e)
+      case Failure(e) => {
+        debug("ERROR", e)
+        fail(sentencePrinter.sb.respondUnknown(state))
+      }
     }
     debug(s"RESULT FOR $entity is $result")
     result
