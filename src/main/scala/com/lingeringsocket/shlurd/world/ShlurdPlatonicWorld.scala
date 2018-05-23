@@ -154,7 +154,8 @@ object ShlurdPlatonicWorld
   {
   }
 
-  protected class LabeledEdge(val label : String) extends DefaultEdge
+  protected[world] class LabeledEdge(
+    val label : String) extends DefaultEdge
   {
     override def hashCode() =
     {
@@ -174,11 +175,13 @@ object ShlurdPlatonicWorld
     }
   }
 
-  protected class FormAssocEdge(label : String) extends LabeledEdge(label)
+  protected[world] class FormAssocEdge(
+    label : String) extends LabeledEdge(label)
   {
   }
 
-  protected class EntityAssocEdge(label : String) extends LabeledEdge(label)
+  protected[world] class EntityAssocEdge(
+    label : String) extends LabeledEdge(label)
   {
   }
 
@@ -241,7 +244,9 @@ class ShlurdPlatonicWorld
 
   def getEntities : Map[String, ShlurdPlatonicEntity] = entities
 
-  protected def getPropertyEdges : Set[FormAssocEdge] = propertyEdges
+  protected[world] def getPropertyEdges = propertyEdges.toSet
+
+  protected[world] def getAssocConstraints = assocConstraints.toMap
 
   def clear()
   {
@@ -260,7 +265,14 @@ class ShlurdPlatonicWorld
     instantiateForm(word)
   }
 
-  def getFormSynonyms = formSynonyms
+  protected[world] def getFormSynonyms =
+    formSynonyms
+
+  protected[world] def getFormAssocGraph =
+    new AsUnmodifiableGraph(formAssocs)
+
+  protected[world] def getEntityAssocGraph =
+    new AsUnmodifiableGraph(entityAssocs)
 
   private def hasQualifiers(
     existing : ShlurdPlatonicEntity,
@@ -293,24 +305,24 @@ class ShlurdPlatonicWorld
     entity
   }
 
-  protected def addEntity(entity : ShlurdPlatonicEntity)
+  protected[world] def addEntity(entity : ShlurdPlatonicEntity)
   {
     entities.put(entity.name, entity)
   }
 
-  protected def getPossessorForm(edge : FormAssocEdge) =
+  protected[world] def getPossessorForm(edge : FormAssocEdge) =
     formAssocs.getEdgeSource(edge)
 
-  protected def getPossessorEntity(edge : EntityAssocEdge) =
+  protected[world] def getPossessorEntity(edge : EntityAssocEdge) =
     entityAssocs.getEdgeSource(edge)
 
-  protected def getPossesseeForm(edge : FormAssocEdge) =
+  protected[world] def getPossesseeForm(edge : FormAssocEdge) =
     formAssocs.getEdgeTarget(edge)
 
-  protected def getPossesseeEntity(edge : EntityAssocEdge) =
+  protected[world] def getPossesseeEntity(edge : EntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
 
-  protected def addFormAssoc(
+  protected[world] def addFormAssoc(
     possessor : ShlurdPlatonicForm,
     possessee : ShlurdPlatonicForm,
     label : String) : FormAssocEdge =
@@ -324,7 +336,7 @@ class ShlurdPlatonicWorld
     edge
   }
 
-  protected def addEntityAssoc(
+  protected[world] def addEntityAssoc(
     possessor : ShlurdPlatonicEntity,
     possessee : ShlurdPlatonicEntity,
     label : String) : EntityAssocEdge =
@@ -339,7 +351,7 @@ class ShlurdPlatonicWorld
     edge
   }
 
-  protected def isFormAssoc(
+  protected[world] def isFormAssoc(
     possessor : ShlurdPlatonicForm,
     possessee : ShlurdPlatonicForm,
     label : String) : Boolean =
@@ -348,7 +360,7 @@ class ShlurdPlatonicWorld
       new ProbeFormEdge(possessor, possessee, label))
   }
 
-  protected def isEntityAssoc(
+  protected[world] def isEntityAssoc(
     possessor : ShlurdPlatonicEntity,
     possessee : ShlurdPlatonicEntity,
     label : String) : Boolean =

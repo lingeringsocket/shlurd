@@ -341,6 +341,7 @@ case class ShlurdExistenceState(
 case class ShlurdNullState(
 ) extends ShlurdTransformedPhrase with ShlurdState
 {
+  override def hasUnknown = true
 }
 
 case class ShlurdPropertyState(

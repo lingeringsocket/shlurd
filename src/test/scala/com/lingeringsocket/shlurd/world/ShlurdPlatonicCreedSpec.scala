@@ -31,40 +31,90 @@ class ShlurdPlatonicCreedSpec extends Specification
       val sentence = ShlurdParser(input).parseOne
       world.addBelief(sentence)
     }
+
+    protected def expectPreserved(
+      input : Iterable[String]) =
+    {
+      expectNormalized(input, input)
+    }
+
+    protected def expectNormalized(
+      input : Iterable[String], expected : Iterable[String]) =
+    {
+      input.foreach(addBelief)
+      val printer = new ShlurdSentencePrinter
+      val beliefs = creed.allBeliefs.map(printer.print)
+      beliefs.map(ShlurdParseUtils.capitalize) must be equalTo expected
+    }
   }
 
-  private def expectBeliefs(
-    expected : Iterable[String], actual : Iterable[ShlurdSentence]) =
-  {
-    val printer = new ShlurdSentencePrinter
-    val beliefs = actual.map(printer.print)
-    beliefs.map(ShlurdParseUtils.capitalize) must be equalTo expected
-  }
+  private val stateMust = "A door must be open or closed."
+  private val stateMay = "A window may be open or closed."
+  private val stateAlias = "A lit light is on."
+  private val stateNormalization = "A person at home is present."
+  private val formSynonym = "A mentor is a person."
+  private val assocHas = "A dog has an owner."
+  private val assocMust = "A dog must have an owner."
+  private val assocMay = "A person may have a mentor."
+  private val assocMayPlural = "A person may have pets."
+  private val assocMayProperty = "A person may have a presence as a property."
+  private val entityExists = "There is a parakeet."
+  private val namedEntityExists = "Fido is a dog."
+  private val entityQualifiedExists = "There is an angry cat."
+  private val personExists = "Yoda is a person."
+  private val personExists2 = "Luke is a person."
+  private val personAssoc = "Yoda is Luke's mentor."
 
   "ShlurdPlatonicCreed" should
   {
     "preserve states" in new WorldContext
     {
-      val originalMust = "A door must be open or closed."
-      val originalMay = "A window may be open or closed."
-      addBelief(originalMust)
-      addBelief(originalMay)
-      expectBeliefs(Seq(originalMust, originalMay), creed.allBeliefs)
+      expectPreserved(Seq(stateMust, stateMay))
     }
 
     "preserve state alias" in new WorldContext
     {
-      val original = "A lit light is on."
-      addBelief(original)
-      expectBeliefs(Seq(original), creed.allBeliefs)
+      expectPreserved(Seq(stateAlias))
     }
-
 
     "preserve state normalizations" in new WorldContext
     {
-      val original = "A person at home is present."
-      addBelief(original)
-      expectBeliefs(Seq(original), creed.allBeliefs)
+      expectPreserved(Seq(stateNormalization))
+    }
+
+    "preserve form synonyms" in new WorldContext
+    {
+      expectPreserved(Seq(formSynonym))
+    }
+
+    "preserve form associations" in new WorldContext
+    {
+      expectPreserved(Seq(
+        assocMust, assocMay, assocMayPlural, assocMayProperty))
+    }
+
+    "normalize form associations" in new WorldContext
+    {
+      expectNormalized(Seq(assocHas), Seq(assocMust))
+    }
+
+    "preserve entity existence" in new WorldContext
+    {
+      expectPreserved(Seq(
+        entityExists, entityQualifiedExists, personExists))
+    }
+
+    "preserve named entity existence" in new WorldContext
+    {
+      skipped("need to handle named non-persons")
+      expectPreserved(Seq(namedEntityExists))
+    }
+
+    "preserve entity associations" in new WorldContext
+    {
+      expectPreserved(Seq(
+        formSynonym, assocMay,
+        personExists, personExists2, personAssoc))
     }
   }
 }
