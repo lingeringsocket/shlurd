@@ -227,6 +227,9 @@ class ShlurdOpenhabWorldSpec extends Specification
         "is the solar light on",
         "No, the solar light is not on.")
       interpret(
+        "is the solar light lit",
+        "No, the solar light is not lit.")
+      interpret(
         "is there a living room",
         "Yes, there is a living room.")
       interpret(

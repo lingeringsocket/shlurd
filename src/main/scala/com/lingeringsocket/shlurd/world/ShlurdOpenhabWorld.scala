@@ -221,9 +221,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     property : ShlurdPlatonicProperty,
     lemma : String) : Try[Trilean] =
   {
-    evaluateState(
-      entity, entity.form.getStateSynonyms.resolveSynonym(lemma)) match
-    {
+    evaluateState(entity, lemma) match {
       case Success(Trilean.Unknown) => {
         super.evaluateEntityPropertyPredicate(entity, property, lemma)
       }

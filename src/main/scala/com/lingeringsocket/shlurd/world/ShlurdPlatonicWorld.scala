@@ -58,14 +58,11 @@ class ShlurdPlatonicForm(val name : String)
   private[world] val properties =
     new mutable.LinkedHashMap[String, ShlurdPlatonicProperty]
 
-  private val stateSynonyms = new ShlurdSynonymMap
+  private val inflectedStateNormalizations =
+    new mutable.LinkedHashMap[ShlurdState, ShlurdState]
 
   private val stateNormalizations =
     new mutable.LinkedHashMap[ShlurdState, ShlurdState]
-
-  def getStateSynonyms = stateSynonyms
-
-  def getStateNormalizations = stateNormalizations
 
   def getProperties : Map[String, ShlurdPlatonicProperty] = properties
 
@@ -74,6 +71,40 @@ class ShlurdPlatonicForm(val name : String)
     val property = name.lemma
     properties.getOrElseUpdate(property, new ShlurdPlatonicProperty(property))
   }
+
+  def resolveStateSynonym(lemma : String) : String =
+  {
+    normalizeState(ShlurdPropertyState(ShlurdWord(lemma))) match {
+      case ShlurdPropertyState(word) => word.lemma
+      case _ => lemma
+    }
+  }
+
+  private[world] def addStateNormalization(
+    state : ShlurdState, transformed : ShlurdState)
+  {
+    val normalized = normalizeState(transformed)
+    inflectedStateNormalizations.put(state, normalized)
+    stateNormalizations.put(foldState(state), normalized)
+  }
+
+  def normalizeState(state : ShlurdState) : ShlurdState =
+  {
+    inflectedStateNormalizations.get(state).getOrElse(
+      stateNormalizations.get(foldState(state)).getOrElse(state))
+  }
+
+  private def foldState(state : ShlurdState) : ShlurdState =
+  {
+    // FIXME:  should fold compound states as well
+    state match {
+      case ShlurdPropertyState(word) =>
+        ShlurdPropertyState(ShlurdWord(word.lemma))
+      case _ => state
+    }
+  }
+
+  def getInflectedStateNormalizations = inflectedStateNormalizations.toIterable
 
   override def toString = s"ShlurdPlatonicForm($name)"
 }
@@ -408,21 +439,35 @@ class ShlurdPlatonicWorld
             val form = instantiateForm(noun)
             ref match {
               case ShlurdStateSpecifiedReference(
-                _, locState : ShlurdLocationState) =>
+                _, specifiedState @
+                  (_ : ShlurdLocationState | _ : ShlurdPropertyState)) =>
               {
                 // "a television that is on the blink is broken"
-                form.getStateNormalizations.put(locState, state)
-              }
-              case _ => {
+                // or "a television that is busted is broken"
+                // or "a busted television is broken"
+                if (sentence.mood.getModality != MODAL_NEUTRAL) {
+                  throw new IncomprehensibleBelief(sentence)
+                }
                 state match {
-                  case ShlurdExistenceState() => {
-                    // "there is a television"
-                    addExistenceBelief(sentence, form, qualifiers, mood)
+                  case ps : ShlurdPropertyState => {
+                    form.addStateNormalization(specifiedState, state)
+                    return
                   }
+                  case ShlurdExistenceState() =>
                   case _ => {
-                    addPropertyBelief(sentence, form, qualifiers, state, mood)
+                    throw new IncomprehensibleBelief(sentence)
                   }
                 }
+              }
+              case _ =>
+            }
+            state match {
+              case ShlurdExistenceState() => {
+                // "there is a television"
+                addExistenceBelief(sentence, form, qualifiers, mood)
+              }
+              case _ => {
+                addPropertyBelief(sentence, form, qualifiers, state, mood)
               }
             }
           }
@@ -562,23 +607,7 @@ class ShlurdPlatonicWorld
     state : ShlurdState,
     mood : ShlurdMood)
   {
-    if (qualifiers.size == 1) {
-      // "a light that is lit is on"
-      if (sentence.mood.getModality != MODAL_NEUTRAL) {
-          throw new IncomprehensibleBelief(sentence)
-      }
-      state match {
-        case ShlurdPropertyState(word) => {
-          form.getStateSynonyms.addSynonym(
-            qualifiers.head.lemma,
-            form.getStateSynonyms.resolveSynonym(word.lemma))
-        }
-        case _ => {
-          throw new IncomprehensibleBelief(sentence)
-        }
-      }
-      return
-    } else if (!qualifiers.isEmpty) {
+    if (!qualifiers.isEmpty) {
       // but maybe we should allow constraints on qualified entities?
       throw new IncomprehensibleBelief(sentence)
     }
@@ -687,7 +716,7 @@ class ShlurdPlatonicWorld
     form : ShlurdPlatonicForm,
     lemma : String) : Try[(ShlurdPlatonicProperty, String)] =
   {
-    val stateName = form.getStateSynonyms.resolveSynonym(lemma)
+    val stateName = form.resolveStateSynonym(lemma)
     form.properties.values.find(p => p.states.contains(stateName)) match {
       case Some(p) => return Success((p, stateName))
       case _ => fail(s"unknown property $lemma")
@@ -808,6 +837,6 @@ class ShlurdPlatonicWorld
   override def normalizeState(
     entity : ShlurdPlatonicEntity, state : ShlurdState) =
   {
-    entity.form.getStateNormalizations.get(state).getOrElse(state)
+    entity.form.normalizeState(state)
   }
 }
