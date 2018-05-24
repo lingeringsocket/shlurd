@@ -23,7 +23,7 @@ import ShlurdEnglishLemmas._
 
 class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
 {
-  def allBeliefs() : Iterable[ShlurdSentence] =
+  def allBeliefs() : Iterable[SilSentence] =
   {
     world.getFormSynonyms.getAll.filterNot(_._1 == LEMMA_WHO).map(
       formAliasBelief(_)
@@ -34,7 +34,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     )
   }
 
-  def formBeliefs(form : ShlurdPlatonicForm) : Iterable[ShlurdSentence] =
+  def formBeliefs(form : ShlurdPlatonicForm) : Iterable[SilSentence] =
   {
     form.properties.values.map(
       formPropertyBelief(form, _)
@@ -52,7 +52,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     }
   }
 
-  def entityBeliefs(entity : ShlurdPlatonicEntity) : Iterable[ShlurdSentence] =
+  def entityBeliefs(entity : ShlurdPlatonicEntity) : Iterable[SilSentence] =
   {
     Seq(entityFormBelief(entity)) ++ {
       val assocGraph = world.getEntityAssocGraph
@@ -65,10 +65,10 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     }
   }
 
-  def formAliasBelief(entry : (String, String)) : ShlurdSentence =
+  def formAliasBelief(entry : (String, String)) : SilSentence =
   {
-    ShlurdPredicateSentence(
-      ShlurdRelationshipPredicate(
+    SilPredicateSentence(
+      SilRelationshipPredicate(
         nounReference(entry._1),
         nounReference(entry._2),
         REL_IDENTITY))
@@ -77,21 +77,21 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
   def formPropertyBelief(
     form : ShlurdPlatonicForm,
     property : ShlurdPlatonicProperty
-  ) : ShlurdSentence =
+  ) : SilSentence =
   {
-    ShlurdPredicateSentence(
-      ShlurdStatePredicate(
+    SilPredicateSentence(
+      SilStatePredicate(
         formNoun(form),
         if (property.states.size == 1) {
           propertyState(property.states.head)
         } else {
-          ShlurdConjunctiveState(
+          SilConjunctiveState(
             DETERMINER_ANY,
             property.states.map(propertyState).toSeq,
             SEPARATOR_CONJOINED)
         }
       ),
-      ShlurdIndicativeMood(
+      SilIndicativeMood(
         true,
         if (property.isClosed) MODAL_MUST else MODAL_MAY)
     )
@@ -99,12 +99,12 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
 
   def formStateNormalizationBelief(
     form : ShlurdPlatonicForm,
-    entry : (ShlurdState, ShlurdState)
-  ) : ShlurdSentence =
+    entry : (SilState, SilState)
+  ) : SilSentence =
   {
-    ShlurdPredicateSentence(
-      ShlurdStatePredicate(
-        ShlurdStateSpecifiedReference(
+    SilPredicateSentence(
+      SilStatePredicate(
+        SilStateSpecifiedReference(
           formNoun(form),
           entry._1),
         entry._2
@@ -114,7 +114,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
 
   def formAssociationBelief(
     edge : FormAssocEdge
-  ) : ShlurdSentence =
+  ) : SilSentence =
   {
     val constraint = world.getAssocConstraints(edge)
     val isProperty = world.getPropertyEdges.contains(edge)
@@ -128,9 +128,9 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     val possesseeNoun = nounReference(edge.label, count)
     val possessee = {
       if (isProperty) {
-        ShlurdStateSpecifiedReference(
+        SilStateSpecifiedReference(
           possesseeNoun,
-          ShlurdLocationState(
+          SilLocationState(
             LOC_AS,
             nounReference(LEMMA_PROPERTY))
         )
@@ -138,39 +138,39 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
         possesseeNoun
       }
     }
-    ShlurdPredicateSentence(
-      ShlurdRelationshipPredicate(
+    SilPredicateSentence(
+      SilRelationshipPredicate(
         formNoun(world.getPossessorForm(edge)),
         possessee,
         REL_ASSOCIATION),
-      ShlurdIndicativeMood(
+      SilIndicativeMood(
         true,
         if (constraint.lower == 0) MODAL_MAY else MODAL_MUST)
     )
   }
 
-  def entityFormBelief(entity : ShlurdPlatonicEntity) : ShlurdSentence =
+  def entityFormBelief(entity : ShlurdPlatonicEntity) : SilSentence =
   {
     val subject = world.specificReference(entity, DETERMINER_NONSPECIFIC)
     val predicate = entity.properName match {
       case "" => {
-        ShlurdStatePredicate(
+        SilStatePredicate(
           subject,
-          ShlurdExistenceState())
+          SilExistenceState())
       }
       case _ => {
-        ShlurdRelationshipPredicate(
+        SilRelationshipPredicate(
           subject,
           formNoun(entity.form),
           REL_IDENTITY)
       }
     }
-    ShlurdPredicateSentence(predicate)
+    SilPredicateSentence(predicate)
   }
 
   def entityAssociationBelief(
     edge : EntityAssocEdge
-  ) : ShlurdSentence =
+  ) : SilSentence =
   {
     val possessor = world.specificReference(
       world.getPossessorEntity(edge), DETERMINER_NONSPECIFIC)
@@ -178,10 +178,10 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
       world.getPossesseeEntity(edge), DETERMINER_NONSPECIFIC)
     val role = nounReference(
       edge.label, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)
-    ShlurdPredicateSentence(
-      ShlurdRelationshipPredicate(
+    SilPredicateSentence(
+      SilRelationshipPredicate(
         possessee,
-        ShlurdGenitiveReference(
+        SilGenitiveReference(
           possessor,
           role),
         REL_IDENTITY)
@@ -189,28 +189,28 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
   }
 
   private def nounReference(
-    noun : String, count : ShlurdCount = COUNT_SINGULAR,
-    determiner : ShlurdDeterminer = DETERMINER_NONSPECIFIC) =
+    noun : String, count : SilCount = COUNT_SINGULAR,
+    determiner : SilDeterminer = DETERMINER_NONSPECIFIC) =
   {
     count match {
       case COUNT_SINGULAR => {
-        ShlurdNounReference(ShlurdWord(noun), determiner)
+        SilNounReference(SilWord(noun), determiner)
       }
       case COUNT_PLURAL => {
-        ShlurdNounReference(
-          ShlurdWord("", noun), DETERMINER_UNSPECIFIED, COUNT_PLURAL)
+        SilNounReference(
+          SilWord("", noun), DETERMINER_UNSPECIFIED, COUNT_PLURAL)
       }
     }
   }
 
   private def formNoun(
-    form : ShlurdPlatonicForm, count : ShlurdCount = COUNT_SINGULAR) =
+    form : ShlurdPlatonicForm, count : SilCount = COUNT_SINGULAR) =
   {
     nounReference(form.name, count)
   }
 
   private def propertyState(entry : (String, String)) =
   {
-    ShlurdPropertyState(ShlurdWord(entry._2, entry._1))
+    SilPropertyState(SilWord(entry._2, entry._1))
   }
 }

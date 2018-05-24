@@ -21,65 +21,65 @@ import ShlurdPennTreebankLabels._
 
 class ShlurdParserSpec extends Specification
 {
-  private val NOUN_DOOR = ShlurdWord("door")
+  private val NOUN_DOOR = SilWord("door")
 
-  private val NOUN_PORTAL = ShlurdWord("portal")
+  private val NOUN_PORTAL = SilWord("portal")
 
-  private val NOUN_WINDOW = ShlurdWord("window")
+  private val NOUN_WINDOW = SilWord("window")
 
-  private val NOUN_BATHROOM = ShlurdWord("bathroom")
+  private val NOUN_BATHROOM = SilWord("bathroom")
 
-  private val NOUN_DOORS = ShlurdWord("doors", "door")
+  private val NOUN_DOORS = SilWord("doors", "door")
 
-  private val NOUN_WHO = ShlurdWord(LEMMA_WHO)
+  private val NOUN_WHO = SilWord(LEMMA_WHO)
 
-  private val NOUN_FRANNY = ShlurdWord("Franny")
+  private val NOUN_FRANNY = SilWord("Franny")
 
-  private val NOUN_ZOOEY = ShlurdWord("Zooey")
+  private val NOUN_ZOOEY = SilWord("Zooey")
 
-  private val NOUN_MOUSE = ShlurdWord("mouse")
+  private val NOUN_MOUSE = SilWord("mouse")
 
-  private val NOUN_HOME = ShlurdWord("home")
+  private val NOUN_HOME = SilWord("home")
 
-  private val NOUN_GRANDDAUGHTER = ShlurdWord("granddaughter")
+  private val NOUN_GRANDDAUGHTER = SilWord("granddaughter")
 
-  private val NOUN_SISTER = ShlurdWord("sister")
+  private val NOUN_SISTER = SilWord("sister")
 
-  private val STATE_OPEN = ShlurdWord("open")
+  private val STATE_OPEN = SilWord("open")
 
-  private val STATE_CLOSE = ShlurdWord("close")
+  private val STATE_CLOSE = SilWord("close")
 
-  private val STATE_SHUT = ShlurdWord("shut")
+  private val STATE_SHUT = SilWord("shut")
 
-  private val STATE_CLOSED = ShlurdWord("closed", "close")
+  private val STATE_CLOSED = SilWord("closed", "close")
 
-  private val STATE_SIDEWAYS = ShlurdWord("sideways")
+  private val STATE_SIDEWAYS = SilWord("sideways")
 
-  private val STATE_HUNGRY = ShlurdWord("hungry")
+  private val STATE_HUNGRY = SilWord("hungry")
 
-  private val STATE_ON = ShlurdWord("on")
+  private val STATE_ON = SilWord("on")
 
-  private val STATE_OFF = ShlurdWord("off")
+  private val STATE_OFF = SilWord("off")
 
-  private val QUALIFIER_FRONT = ShlurdWord("front")
+  private val QUALIFIER_FRONT = SilWord("front")
 
-  private val VERB_TURN = ShlurdWord("turn")
+  private val VERB_TURN = SilWord("turn")
 
   private def pred(
-    subject : ShlurdWord,
-    state : ShlurdWord = STATE_OPEN,
-    determiner : ShlurdDeterminer = DETERMINER_UNIQUE,
-    count : ShlurdCount = COUNT_SINGULAR) =
+    subject : SilWord,
+    state : SilWord = STATE_OPEN,
+    determiner : SilDeterminer = DETERMINER_UNIQUE,
+    count : SilCount = COUNT_SINGULAR) =
   {
-    ShlurdStatePredicate(
-      ShlurdNounReference(subject, determiner, count),
-      ShlurdPropertyState(state))
+    SilStatePredicate(
+      SilNounReference(subject, determiner, count),
+      SilPropertyState(state))
   }
 
   private def predDoor(
-    state : ShlurdWord = STATE_OPEN,
-    determiner : ShlurdDeterminer = DETERMINER_UNIQUE,
-    count : ShlurdCount = COUNT_SINGULAR) =
+    state : SilWord = STATE_OPEN,
+    determiner : SilDeterminer = DETERMINER_UNIQUE,
+    count : SilCount = COUNT_SINGULAR) =
   {
     pred(NOUN_DOOR, state, determiner, count)
   }
@@ -97,39 +97,39 @@ class ShlurdParserSpec extends Specification
     {
       val input = "the door is open"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(predDoor())
+        SilPredicateSentence(predDoor())
       parse(input + ".") must be equalTo
-        ShlurdPredicateSentence(predDoor())
+        SilPredicateSentence(predDoor())
       parse(input + "!") must be equalTo
-        ShlurdPredicateSentence(predDoor(),
-          MOOD_INDICATIVE_POSITIVE, ShlurdFormality(FORCE_EXCLAMATION))
+        SilPredicateSentence(predDoor(),
+          MOOD_INDICATIVE_POSITIVE, SilFormality(FORCE_EXCLAMATION))
       parse(input + "?") must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
+        SilPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse a negation" in
     {
       val input = "the door is not open"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INDICATIVE_NEGATIVE)
+        SilPredicateSentence(predDoor(), MOOD_INDICATIVE_NEGATIVE)
       val contracted = "the door isn't open"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INDICATIVE_NEGATIVE)
+        SilPredicateSentence(predDoor(), MOOD_INDICATIVE_NEGATIVE)
     }
 
     "parse a state predicate question" in
     {
       val input = "is the door open"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
+        SilPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
       parse(input + "?") must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
+        SilPredicateSentence(predDoor(), MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse an enumeration question" in
     {
       val input = "which door is open"
-      val expected = ShlurdPredicateQuery(
+      val expected = SilPredicateQuery(
         predDoor(STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
         QUESTION_WHICH, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
@@ -139,12 +139,12 @@ class ShlurdParserSpec extends Specification
     "parse a who question" in
     {
       val input = "who is at home"
-      val expected = ShlurdPredicateQuery(
-        ShlurdStatePredicate(
-          ShlurdNounReference(NOUN_WHO),
-          ShlurdLocationState(
+      val expected = SilPredicateQuery(
+        SilStatePredicate(
+          SilNounReference(NOUN_WHO),
+          SilLocationState(
             LOC_AT,
-            ShlurdNounReference(NOUN_HOME))),
+            SilNounReference(NOUN_HOME))),
         QUESTION_WHO, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
@@ -153,7 +153,7 @@ class ShlurdParserSpec extends Specification
     "parse a quantity question" in
     {
       val input = "how many doors are open"
-      val expected = ShlurdPredicateQuery(
+      val expected = SilPredicateQuery(
         pred(NOUN_DOORS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_PLURAL),
         QUESTION_HOW_MANY, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
@@ -164,44 +164,44 @@ class ShlurdParserSpec extends Specification
     {
       val input = "is not the door open"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        SilPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
       parse(input + "?") must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        SilPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
     }
 
     "parse a negated question with contraction" in
     {
       val input = "isn't the door open"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        SilPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
       parse(input + "?") must be equalTo
-        ShlurdPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        SilPredicateSentence(predDoor(), MOOD_INTERROGATIVE_NEGATIVE)
     }
 
     "parse a command" in
     {
       val input = "open the door"
       parse(input) must be equalTo
-        ShlurdStateChangeCommand(predDoor())
+        SilStateChangeCommand(predDoor())
       parse(input + ".") must be equalTo
-        ShlurdStateChangeCommand(predDoor())
+        SilStateChangeCommand(predDoor())
       parse(input + "!") must be equalTo
-        ShlurdStateChangeCommand(predDoor(),
+        SilStateChangeCommand(predDoor(),
           None,
-          ShlurdFormality(FORCE_EXCLAMATION))
+          SilFormality(FORCE_EXCLAMATION))
       parse(input + "?") must be equalTo
-        ShlurdStateChangeCommand(predDoor())
+        SilStateChangeCommand(predDoor())
     }
 
     "parse an identity statement" in
     {
       val input = "a portal is a door"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdRelationshipPredicate(
-            ShlurdNounReference(
+        SilPredicateSentence(
+          SilRelationshipPredicate(
+            SilNounReference(
               NOUN_PORTAL, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
-            ShlurdNounReference(
+            SilNounReference(
               NOUN_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
             REL_IDENTITY
           )
@@ -212,30 +212,30 @@ class ShlurdParserSpec extends Specification
     {
       val command = "close the door"
       parse(command) must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_CLOSE))
+        SilStateChangeCommand(predDoor(STATE_CLOSE))
       val question = "is the door closed"
       parse(question) must be equalTo
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           predDoor(STATE_CLOSED), MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse prepositional verbs" in
     {
       parse("turn the door on") must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_ON), Some(VERB_TURN))
+        SilStateChangeCommand(predDoor(STATE_ON), Some(VERB_TURN))
       parse("turn on the door") must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_ON), Some(VERB_TURN))
+        SilStateChangeCommand(predDoor(STATE_ON), Some(VERB_TURN))
       parse("turn the door off") must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OFF), Some(VERB_TURN))
+        SilStateChangeCommand(predDoor(STATE_OFF), Some(VERB_TURN))
       parse("turn off the door") must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OFF), Some(VERB_TURN))
+        SilStateChangeCommand(predDoor(STATE_OFF), Some(VERB_TURN))
     }
 
     "parse adverbial state" in
     {
       val question = "is the door sideways"
       parse(question) must be equalTo
-      ShlurdPredicateSentence(
+      SilPredicateSentence(
         predDoor(STATE_SIDEWAYS), MOOD_INTERROGATIVE_POSITIVE)
     }
 
@@ -243,27 +243,27 @@ class ShlurdParserSpec extends Specification
     {
       val conjunction = "is the door open and sideways"
       parse(conjunction) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdNounReference(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilNounReference(
               NOUN_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
-            ShlurdConjunctiveState(
+            SilConjunctiveState(
               DETERMINER_ALL,
               Seq(
-                ShlurdPropertyState(STATE_OPEN),
-                ShlurdPropertyState(STATE_SIDEWAYS)))),
+                SilPropertyState(STATE_OPEN),
+                SilPropertyState(STATE_SIDEWAYS)))),
           MOOD_INTERROGATIVE_POSITIVE)
       val disjunction = "is the door either open or closed"
       parse(disjunction) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdNounReference(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilNounReference(
               NOUN_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
-            ShlurdConjunctiveState(
+            SilConjunctiveState(
               DETERMINER_UNIQUE,
               Seq(
-                ShlurdPropertyState(STATE_OPEN),
-                ShlurdPropertyState(STATE_CLOSED)))),
+                SilPropertyState(STATE_OPEN),
+                SilPropertyState(STATE_CLOSED)))),
           MOOD_INTERROGATIVE_POSITIVE)
     }
 
@@ -271,34 +271,34 @@ class ShlurdParserSpec extends Specification
     {
       val inputThe = "open the door"
       parse(inputThe) must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_UNIQUE))
+        SilStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_UNIQUE))
       val inputAny = "open any door"
       parse(inputAny) must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_ANY))
+        SilStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_ANY))
       val inputEither = "open either door"
       parse(inputEither) must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_UNIQUE))
+        SilStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_UNIQUE))
       val inputA = "open a door"
       parse(inputA) must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONSPECIFIC))
+        SilStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONSPECIFIC))
       val inputSome = "open some door"
       parse(inputSome) must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_SOME))
+        SilStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_SOME))
       val inputAll = "open all doors"
       parse(inputAll) must be equalTo
-        ShlurdStateChangeCommand(
+        SilStateChangeCommand(
           pred(NOUN_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL))
       val inputNone = "open no door"
       parse(inputNone) must be equalTo
-        ShlurdStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONE))
+        SilStateChangeCommand(predDoor(STATE_OPEN, DETERMINER_NONE))
 
       val inputAnyQ = "is any door open"
       parse(inputAnyQ) must be equalTo
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           predDoor(STATE_OPEN, DETERMINER_ANY), MOOD_INTERROGATIVE_POSITIVE)
       val inputAllQ = "are all doors open"
       parse(inputAllQ) must be equalTo
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           pred(NOUN_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL),
           MOOD_INTERROGATIVE_POSITIVE)
     }
@@ -307,51 +307,51 @@ class ShlurdParserSpec extends Specification
     {
       val inputFront = "open the front door"
       parse(inputFront) must be equalTo
-        ShlurdStateChangeCommand(
-          ShlurdStatePredicate(
-            ShlurdReference.qualified(
-              ShlurdNounReference(NOUN_DOOR, DETERMINER_UNIQUE),
+        SilStateChangeCommand(
+          SilStatePredicate(
+            SilReference.qualified(
+              SilNounReference(NOUN_DOOR, DETERMINER_UNIQUE),
               Seq(QUALIFIER_FRONT)),
-            ShlurdPropertyState(STATE_OPEN)))
+            SilPropertyState(STATE_OPEN)))
     }
 
     "parse locatives" in
     {
       val input = "is Franny at home"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdNounReference(NOUN_FRANNY),
-            ShlurdLocationState(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilNounReference(NOUN_FRANNY),
+            SilLocationState(
               LOC_AT,
-              ShlurdNounReference(NOUN_HOME))),
+              SilNounReference(NOUN_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
     }
 
     "parse locative specifiers" in
     {
-      val pred = ShlurdStatePredicate(
-        ShlurdStateSpecifiedReference(
-          ShlurdNounReference(
+      val pred = SilStatePredicate(
+        SilStateSpecifiedReference(
+          SilNounReference(
             NOUN_WINDOW, DETERMINER_UNIQUE, COUNT_SINGULAR),
-          ShlurdLocationState(
+          SilLocationState(
             LOC_INSIDE,
-            ShlurdNounReference(
+            SilNounReference(
               NOUN_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR)
           )
         ),
-        ShlurdPropertyState(STATE_OPEN)
+        SilPropertyState(STATE_OPEN)
       )
       parse("the window in the bathroom is open") must be equalTo
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           pred,
           MOOD_INDICATIVE_POSITIVE)
       parse("is the window in the bathroom open") must be equalTo
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           pred,
           MOOD_INTERROGATIVE_POSITIVE)
       parse("open the window in the bathroom") must be equalTo
-        ShlurdStateChangeCommand(
+        SilStateChangeCommand(
           pred)
     }
 
@@ -359,24 +359,24 @@ class ShlurdParserSpec extends Specification
     {
       val input = "I am hungry"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
-            ShlurdPropertyState(STATE_HUNGRY)))
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+            SilPropertyState(STATE_HUNGRY)))
     }
 
     "parse possessive pronouns" in
     {
       val input = "is his granddaughter at home"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdGenitiveReference(
-              ShlurdPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
-              ShlurdNounReference(NOUN_GRANDDAUGHTER)),
-            ShlurdLocationState(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilGenitiveReference(
+              SilPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
+              SilNounReference(NOUN_GRANDDAUGHTER)),
+            SilLocationState(
               LOC_AT,
-              ShlurdNounReference(NOUN_HOME))),
+              SilNounReference(NOUN_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
     }
 
@@ -384,12 +384,12 @@ class ShlurdParserSpec extends Specification
     {
       val input = "is Franny's mouse hungry"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdGenitiveReference(
-              ShlurdNounReference(NOUN_FRANNY),
-              ShlurdNounReference(NOUN_MOUSE)),
-            ShlurdPropertyState(STATE_HUNGRY)),
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilGenitiveReference(
+              SilNounReference(NOUN_FRANNY),
+              SilNounReference(NOUN_MOUSE)),
+            SilPropertyState(STATE_HUNGRY)),
           MOOD_INTERROGATIVE_POSITIVE)
     }
 
@@ -397,12 +397,12 @@ class ShlurdParserSpec extends Specification
     {
       val input = "Franny is Zooey's sister"
       parse(input) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdRelationshipPredicate(
-            ShlurdNounReference(NOUN_FRANNY),
-            ShlurdGenitiveReference(
-              ShlurdNounReference(NOUN_ZOOEY),
-              ShlurdNounReference(NOUN_SISTER)),
+        SilPredicateSentence(
+          SilRelationshipPredicate(
+            SilNounReference(NOUN_FRANNY),
+            SilGenitiveReference(
+              SilNounReference(NOUN_ZOOEY),
+              SilNounReference(NOUN_SISTER)),
             REL_IDENTITY
           ),
           MOOD_INDICATIVE_POSITIVE)
@@ -412,24 +412,24 @@ class ShlurdParserSpec extends Specification
     {
       val inputPositive = "Franny and Zooey are hungry"
       parse(inputPositive) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdConjunctiveReference(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilConjunctiveReference(
               DETERMINER_ALL,
               Seq(
-                ShlurdNounReference(NOUN_FRANNY),
-                ShlurdNounReference(NOUN_ZOOEY))),
-            ShlurdPropertyState(STATE_HUNGRY)))
+                SilNounReference(NOUN_FRANNY),
+                SilNounReference(NOUN_ZOOEY))),
+            SilPropertyState(STATE_HUNGRY)))
       val inputNegative = "neither Franny nor Zooey is hungry"
       parse(inputNegative) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdConjunctiveReference(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilConjunctiveReference(
               DETERMINER_NONE,
               Seq(
-                ShlurdNounReference(NOUN_FRANNY),
-                ShlurdNounReference(NOUN_ZOOEY))),
-            ShlurdPropertyState(STATE_HUNGRY)))
+                SilNounReference(NOUN_FRANNY),
+                SilNounReference(NOUN_ZOOEY))),
+            SilPropertyState(STATE_HUNGRY)))
     }
 
     "parse disjunctive reference" in
@@ -438,123 +438,123 @@ class ShlurdParserSpec extends Specification
       // but whatever
       val inputInclusive = "Franny or Zooey is hungry"
       parse(inputInclusive) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdConjunctiveReference(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilConjunctiveReference(
               DETERMINER_ANY,
               Seq(
-                ShlurdNounReference(NOUN_FRANNY),
-                ShlurdNounReference(NOUN_ZOOEY))),
-            ShlurdPropertyState(STATE_HUNGRY)))
+                SilNounReference(NOUN_FRANNY),
+                SilNounReference(NOUN_ZOOEY))),
+            SilPropertyState(STATE_HUNGRY)))
 
       // FIXME:  in this context, should really be DETERMINER_ANY
       // instead of DETERMINER_UNIQUE
       val inputExclusive = "either Franny or Zooey is hungry"
       parse(inputExclusive) must be equalTo
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdConjunctiveReference(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilConjunctiveReference(
               DETERMINER_UNIQUE,
               Seq(
-                ShlurdNounReference(NOUN_FRANNY),
-                ShlurdNounReference(NOUN_ZOOEY))),
-            ShlurdPropertyState(STATE_HUNGRY)))
+                SilNounReference(NOUN_FRANNY),
+                SilNounReference(NOUN_ZOOEY))),
+            SilPropertyState(STATE_HUNGRY)))
     }
 
     "parse modals" in
     {
       parse("The door must be open") must be equalTo(
-        ShlurdPredicateSentence(
-          predDoor(), ShlurdIndicativeMood(true, MODAL_MUST)))
+        SilPredicateSentence(
+          predDoor(), SilIndicativeMood(true, MODAL_MUST)))
       parse("Must the door be open") must be equalTo(
-        ShlurdPredicateSentence(
-          predDoor(), ShlurdInterrogativeMood(true, MODAL_MUST)))
+        SilPredicateSentence(
+          predDoor(), SilInterrogativeMood(true, MODAL_MUST)))
       parse("The door may be open") must be equalTo(
-        ShlurdPredicateSentence(
-          predDoor(), ShlurdIndicativeMood(true, MODAL_MAY)))
+        SilPredicateSentence(
+          predDoor(), SilIndicativeMood(true, MODAL_MAY)))
       parse("The door must not be open") must be equalTo(
-        ShlurdPredicateSentence(
-          predDoor(), ShlurdIndicativeMood(false, MODAL_MUST)))
+        SilPredicateSentence(
+          predDoor(), SilIndicativeMood(false, MODAL_MUST)))
       parse("Mustn't the door be open") must be equalTo(
-        ShlurdPredicateSentence(
-          predDoor(), ShlurdInterrogativeMood(false, MODAL_MUST)))
+        SilPredicateSentence(
+          predDoor(), SilInterrogativeMood(false, MODAL_MUST)))
     }
 
     "parse existence" in
     {
-      val doorExistencePred = ShlurdStatePredicate(
-        ShlurdNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
-        ShlurdExistenceState())
+      val doorExistencePred = SilStatePredicate(
+        SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
+        SilExistenceState())
 
       parse("There is a door") must be equalTo(
-        ShlurdPredicateSentence(doorExistencePred))
+        SilPredicateSentence(doorExistencePred))
       parse("There exists a door") must be equalTo(
-        ShlurdPredicateSentence(doorExistencePred))
+        SilPredicateSentence(doorExistencePred))
       parse("There is not a door") must be equalTo(
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           doorExistencePred,
-          ShlurdIndicativeMood(false)))
+          SilIndicativeMood(false)))
       parse("There must be a door") must be equalTo(
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           doorExistencePred,
-          ShlurdIndicativeMood(true, MODAL_MUST)))
+          SilIndicativeMood(true, MODAL_MUST)))
       parse("There is a door?") must be equalTo(
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           doorExistencePred,
-          ShlurdInterrogativeMood(true)))
+          SilInterrogativeMood(true)))
       parse("Is there a door") must be equalTo(
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           doorExistencePred,
-          ShlurdInterrogativeMood(true)))
+          SilInterrogativeMood(true)))
       parse("Must there be a door") must be equalTo(
-        ShlurdPredicateSentence(
+        SilPredicateSentence(
           doorExistencePred,
-          ShlurdInterrogativeMood(true, MODAL_MUST)))
+          SilInterrogativeMood(true, MODAL_MUST)))
 
       parse("There is a front door") must be equalTo(
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdReference.qualified(
-              ShlurdNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilReference.qualified(
+              SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
               Seq(QUALIFIER_FRONT)),
-            ShlurdExistenceState())))
+            SilExistenceState())))
 
       val doorPlusWindow = Seq(
-        ShlurdNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
-        ShlurdNounReference(NOUN_WINDOW, DETERMINER_NONSPECIFIC))
+        SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
+        SilNounReference(NOUN_WINDOW, DETERMINER_NONSPECIFIC))
       parse("There is a door and a window") must be equalTo(
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdConjunctiveReference(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilConjunctiveReference(
               DETERMINER_ALL,
               doorPlusWindow),
-            ShlurdExistenceState())))
+            SilExistenceState())))
       parse("Is there a door or a window") must be equalTo(
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdConjunctiveReference(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilConjunctiveReference(
               DETERMINER_ANY,
               doorPlusWindow),
-            ShlurdExistenceState()),
-          ShlurdInterrogativeMood(true)))
+            SilExistenceState()),
+          SilInterrogativeMood(true)))
     }
 
     "parse relative clauses" in
     {
       parse("a door that is shut is closed") must be equalTo(
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdReference.qualified(
-              ShlurdNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilReference.qualified(
+              SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
               Seq(STATE_SHUT)),
-            ShlurdPropertyState(STATE_CLOSED))))
+            SilPropertyState(STATE_CLOSED))))
     }
 
     "give up" in
     {
       val inputUnspecified = "colorless green ideas slumber furiously"
       val result = parse(inputUnspecified)
-      result.isInstanceOf[ShlurdUnknownSentence] must beTrue
+      result.isInstanceOf[SilUnknownSentence] must beTrue
       result.hasUnknown must beTrue
     }
 
@@ -562,7 +562,7 @@ class ShlurdParserSpec extends Specification
     {
       val input = "Close the door quickly."
       val result = parse(input)
-      result must be equalTo(ShlurdUnrecognizedSentence(
+      result must be equalTo(SilUnrecognizedSentence(
         SptS(
           SptVP(
             SptVB(leafCapitalized("close")),
@@ -583,9 +583,9 @@ class ShlurdParserSpec extends Specification
       val input = "The big nor strong door is open."
       val result = parse(input)
       result must be equalTo(
-        ShlurdPredicateSentence(
-          ShlurdStatePredicate(
-            ShlurdUnrecognizedReference(
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilUnrecognizedReference(
               SptNP(
                 SptDT(leafCapitalized("the")),
                 SptADJP(
@@ -595,17 +595,17 @@ class ShlurdParserSpec extends Specification
                 ),
                 SptNN(leaf("door")))
             ),
-            ShlurdPropertyState(STATE_OPEN))))
+            SilPropertyState(STATE_OPEN))))
     }
 
     "deal with unknowns" in
     {
       predDoor().hasUnknown must beFalse
       val tree = ShlurdSyntaxLeaf("", "", "")
-      ShlurdUnrecognizedPredicate(tree).hasUnknown must beTrue
-      ShlurdPredicateSentence(predDoor()).hasUnknown must beFalse
-      ShlurdPredicateSentence(
-        ShlurdUnrecognizedPredicate(tree)).hasUnknown must beTrue
+      SilUnrecognizedPredicate(tree).hasUnknown must beTrue
+      SilPredicateSentence(predDoor()).hasUnknown must beFalse
+      SilPredicateSentence(
+        SilUnrecognizedPredicate(tree)).hasUnknown must beTrue
     }
   }
 }

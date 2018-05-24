@@ -31,7 +31,7 @@ class ShlurdInterpreterSpec extends Specification
 
   private val LEMMA_ANIMAL = "animal"
 
-  type StateChangeInvocation = ShlurdStateChangeInvocation[ShlurdEntity]
+  type StateChangeInvocation = SilStateChangeInvocation[ShlurdEntity]
 
   private def interpret(
     input : String,
@@ -319,22 +319,22 @@ class ShlurdInterpreterSpec extends Specification
 
     "interpret commands" in
     {
-      val awake = ShlurdWord("awake", "awake")
-      val asleep = ShlurdWord("sleepify", "asleep")
+      val awake = SilWord("awake", "awake")
+      val asleep = SilWord("sleepify", "asleep")
       interpretCommandExpected(
         "awake the lion",
-        ShlurdStateChangeInvocation(Set(ZooLion), awake))
+        SilStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the lion and the tiger",
-        ShlurdStateChangeInvocation(Set(ZooLion), awake))
+        SilStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the polar bear and the lion",
-        ShlurdStateChangeInvocation(Set(ZooLion, ZooPolarBear), awake))
+        SilStateChangeInvocation(Set(ZooLion, ZooPolarBear), awake))
       interpret("awake the tiger") must be equalTo(
         "But the tiger is awake already.")
       interpretCommandExpected(
         "asleep the tiger",
-        ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
+        SilStateChangeInvocation(Set(ZooTiger), asleep))
       interpret("asleep the goats") must be equalTo(
         "But the goats are asleep already.")
       interpret("asleep the lion") must be equalTo(
@@ -343,10 +343,10 @@ class ShlurdInterpreterSpec extends Specification
         "But the lion and the goats are asleep already.")
       interpretCommandExpected(
         "awake the goat on the farm.",
-        ShlurdStateChangeInvocation(Set(ZooDomesticGoat), awake))
+        SilStateChangeInvocation(Set(ZooDomesticGoat), awake))
       interpretCommandExpected(
         "asleep the tiger in the big cage.",
-        ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
+        SilStateChangeInvocation(Set(ZooTiger), asleep))
     }
 
     "respond to unrecognized phrases" in
@@ -516,7 +516,7 @@ class ShlurdInterpreterSpec extends Specification
 
     override def resolveQualifiedNoun(
       lemma : String,
-      context : ShlurdReferenceContext,
+      context : SilReferenceContext,
       qualifiers : Set[String]) =
     {
       if ((lemma == LEMMA_WHO) || (lemma == LEMMA_PERSON)) {
@@ -549,9 +549,9 @@ class ShlurdInterpreterSpec extends Specification
     }
 
     override def resolvePronoun(
-      person : ShlurdPerson,
-      gender : ShlurdGender,
-      count : ShlurdCount) : Try[Set[ShlurdEntity]] =
+      person : SilPerson,
+      gender : SilGender,
+      count : SilCount) : Try[Set[ShlurdEntity]] =
     {
       if (count == COUNT_SINGULAR) {
         person match {
@@ -581,28 +581,28 @@ class ShlurdInterpreterSpec extends Specification
 
     override def specificReference(
       entity : ShlurdEntity,
-      determiner : ShlurdDeterminer) =
+      determiner : SilDeterminer) =
     {
       entity match {
         case animal : ZooAnimalEntity => {
           val words = animal.name.split(" ")
-          val nounRef = ShlurdNounReference(
-            ShlurdWord(words.last), determiner)
+          val nounRef = SilNounReference(
+            SilWord(words.last), determiner)
           if (words.size == 1) {
             nounRef
           } else {
-            ShlurdReference.qualified(
+            SilReference.qualified(
               nounRef, words.dropRight(1).map(
-                q => ShlurdWord(q)))
+                q => SilWord(q)))
           }
         }
         case ZooPersonEntity(name) => {
-          ShlurdNounReference(
-            ShlurdWord(name), DETERMINER_UNSPECIFIED)
+          SilNounReference(
+            SilWord(name), DETERMINER_UNSPECIFIED)
         }
         case ZooLocationEntity(name) => {
-          ShlurdNounReference(
-            ShlurdWord(name), DETERMINER_UNSPECIFIED)
+          SilNounReference(
+            SilWord(name), DETERMINER_UNSPECIFIED)
         }
       }
     }
@@ -635,7 +635,7 @@ class ShlurdInterpreterSpec extends Specification
     override def evaluateEntityLocationPredicate(
       entity : ShlurdEntity,
       location : ShlurdEntity,
-      locative : ShlurdLocative,
+      locative : SilLocative,
       qualifiers : Set[String]) : Try[Trilean] =
     {
       val map = locative match {
@@ -665,17 +665,17 @@ class ShlurdInterpreterSpec extends Specification
 
     override def normalizeState(
       entity : ShlurdEntity,
-      state : ShlurdState) : ShlurdState =
+      state : SilState) : SilState =
     {
       state match {
-        case ShlurdLocationState(
+        case SilLocationState(
           LOC_INSIDE,
-          ShlurdNounReference(
-            ShlurdWord("dreamland", _),
+          SilNounReference(
+            SilWord("dreamland", _),
             DETERMINER_UNSPECIFIED,
             COUNT_SINGULAR)) =>
           {
-            ShlurdPropertyState(ShlurdWord("asleep"))
+            SilPropertyState(SilWord("asleep"))
           }
         case _ => state
       }

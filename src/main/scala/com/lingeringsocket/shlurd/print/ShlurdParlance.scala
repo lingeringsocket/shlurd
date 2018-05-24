@@ -18,7 +18,7 @@ trait ShlurdParlanceBundle
 
 trait ShlurdParlance
 {
-  def newSentenceBundle() : ShlurdSentenceBundle
+  def newSentenceBundle() : SilSentenceBundle
 }
 
 object ShlurdDefaultParlance extends ShlurdParlance

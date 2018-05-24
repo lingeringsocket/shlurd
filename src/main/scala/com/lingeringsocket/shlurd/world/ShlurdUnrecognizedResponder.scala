@@ -19,17 +19,17 @@ import com.lingeringsocket.shlurd.print._
 
 import ShlurdEnglishLemmas._
 
-class ShlurdUnrecognizedResponder(sentencePrinter : ShlurdSentencePrinter)
+class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
 {
   private val sb = sentencePrinter.sb
 
-  def respond(unrecognized : ShlurdSentence) : String =
+  def respond(unrecognized : SilSentence) : String =
   {
     assert(unrecognized.hasUnknown)
     unrecognized match {
-      case ShlurdPredicateSentence(predicate, mood, _) => {
+      case SilPredicateSentence(predicate, mood, _) => {
         predicate match {
-          case ShlurdStatePredicate(subject, state) => {
+          case SilStatePredicate(subject, state) => {
             val count = computeMaxCount(
               subject,
               predicate.getInflectedCount)
@@ -39,7 +39,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : ShlurdSentencePrinter)
               return response
             }
           }
-          case ShlurdRelationshipPredicate(subject, complement, rel) => {
+          case SilRelationshipPredicate(subject, complement, rel) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
               subject, complement, mood, count, Some(rel))
@@ -50,8 +50,8 @@ class ShlurdUnrecognizedResponder(sentencePrinter : ShlurdSentencePrinter)
           case _ =>
         }
       }
-      case ShlurdStateChangeCommand(
-        predicate : ShlurdStatePredicate, changeVerb, _) =>
+      case SilStateChangeCommand(
+        predicate : SilStatePredicate, changeVerb, _) =>
       {
         val count = computeMaxCount(
           predicate.subject,
@@ -63,9 +63,9 @@ class ShlurdUnrecognizedResponder(sentencePrinter : ShlurdSentencePrinter)
           return response
         }
       }
-      case ShlurdPredicateQuery(predicate, question, mood, _) => {
+      case SilPredicateQuery(predicate, question, mood, _) => {
         predicate match {
-          case ShlurdStatePredicate(subject, state) => {
+          case SilStatePredicate(subject, state) => {
             val count = computeMaxCount(
               subject,
               predicate.getInflectedCount)
@@ -75,7 +75,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : ShlurdSentencePrinter)
               return response
             }
           }
-          case ShlurdRelationshipPredicate(subject, complement, rel) => {
+          case SilRelationshipPredicate(subject, complement, rel) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
               subject, complement, mood, count,
@@ -87,25 +87,25 @@ class ShlurdUnrecognizedResponder(sentencePrinter : ShlurdSentencePrinter)
           case _ =>
         }
       }
-      case _ : ShlurdStateChangeCommand => ;
-      case _ : ShlurdAmbiguousSentence => ;
-      case _ : ShlurdUnknownSentence => ;
+      case _ : SilStateChangeCommand => ;
+      case _ : SilAmbiguousSentence => ;
+      case _ : SilUnknownSentence => ;
     }
     sb.respondCannotUnderstand()
   }
 
   private def respondToUnresolvedPredicate(
-    subject : ShlurdReference,
-    complement : ShlurdPhrase,
-    mood : ShlurdMood,
-    count : ShlurdCount,
-    rel : Option[ShlurdRelationship],
-    changeVerb : Option[ShlurdWord] = None,
-    question : Option[ShlurdQuestion] = None) : String =
+    subject : SilReference,
+    complement : SilPhrase,
+    mood : SilMood,
+    count : SilCount,
+    rel : Option[SilRelationship],
+    changeVerb : Option[SilWord] = None,
+    question : Option[SilQuestion] = None) : String =
   {
     val verbLemma = {
       complement match {
-        case ShlurdExistenceState() => {
+        case SilExistenceState() => {
           LEMMA_EXIST
         }
         case _ => {
@@ -128,7 +128,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : ShlurdSentencePrinter)
           sentencePrinter.print(
             subject,
             if (question.isEmpty) INFLECT_ACCUSATIVE else INFLECT_NOMINATIVE,
-            ShlurdConjoining.NONE),
+            SilConjoining.NONE),
           copula, question, !rel.isEmpty),
         complement.toWordString)
     } else if (!complement.hasUnknown) {
@@ -138,17 +138,17 @@ class ShlurdUnrecognizedResponder(sentencePrinter : ShlurdSentencePrinter)
         sb.predicateUnrecognizedSubject(
           mood,
           complement match {
-            case reference : ShlurdReference => {
+            case reference : SilReference => {
               sentencePrinter.print(
                 reference,
                 INFLECT_NOMINATIVE,
-                ShlurdConjoining.NONE)
+                SilConjoining.NONE)
             }
-            case state : ShlurdState => {
+            case state : SilState => {
               sentencePrinter.print(
                 state,
                 mood,
-                ShlurdConjoining.NONE)
+                SilConjoining.NONE)
             }
             case _ => complement.toWordString
           },
@@ -159,19 +159,19 @@ class ShlurdUnrecognizedResponder(sentencePrinter : ShlurdSentencePrinter)
     }
   }
   private def findKnownCount(
-    ref1 : ShlurdReference, ref2 : ShlurdReference) : ShlurdCount =
+    ref1 : SilReference, ref2 : SilReference) : SilCount =
   {
     if (ref1.hasUnknown) {
-      ShlurdReference.getCount(ref2)
+      SilReference.getCount(ref2)
     } else {
-      ShlurdReference.getCount(ref1)
+      SilReference.getCount(ref1)
     }
   }
 
   private def computeMaxCount(
-    ref : ShlurdReference, count : ShlurdCount) : ShlurdCount =
+    ref : SilReference, count : SilCount) : SilCount =
   {
-    if (ShlurdReference.getCount(ref) == COUNT_PLURAL) {
+    if (SilReference.getCount(ref) == COUNT_PLURAL) {
       COUNT_PLURAL
     } else if (count == COUNT_PLURAL) {
       COUNT_PLURAL

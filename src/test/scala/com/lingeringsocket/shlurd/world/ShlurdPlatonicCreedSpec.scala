@@ -42,7 +42,7 @@ class ShlurdPlatonicCreedSpec extends Specification
       input : Iterable[String], expected : Iterable[String]) =
     {
       input.foreach(addBelief)
-      val printer = new ShlurdSentencePrinter
+      val printer = new SilSentencePrinter
       val beliefs = creed.allBeliefs.map(printer.print)
       beliefs.map(ShlurdParseUtils.capitalize) must be equalTo expected
     }

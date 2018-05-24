@@ -16,20 +16,20 @@ package com.lingeringsocket.shlurd.print
 
 import com.lingeringsocket.shlurd.parser._
 
-class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
+class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
 {
-  val sb = ShlurdSentenceBundle(parlance)
+  val sb = SilSentenceBundle(parlance)
 
-  def print(sentence : ShlurdSentence) : String =
+  def print(sentence : SilSentence) : String =
   {
     sentence match {
-      case ShlurdPredicateSentence(predicate, mood, formality) => {
+      case SilPredicateSentence(predicate, mood, formality) => {
         mood match {
-          case _ : ShlurdIndicativeMood =>  {
+          case _ : SilIndicativeMood =>  {
             sb.terminatedSentence(
               printPredicateStatement(predicate, mood), mood, formality)
           }
-          case _ : ShlurdInterrogativeMood => {
+          case _ : SilInterrogativeMood => {
             sb.terminatedSentence(
               printPredicateQuestion(predicate, mood), mood, sentence.formality)
           }
@@ -39,56 +39,56 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           }
         }
       }
-      case ShlurdStateChangeCommand(predicate, changeVerb, formality) => {
+      case SilStateChangeCommand(predicate, changeVerb, formality) => {
         sb.terminatedSentence(
           printPredicateCommand(predicate, changeVerb),
           sentence.mood, formality)
       }
-      case ShlurdPredicateQuery(predicate, question, mood, formality) => {
+      case SilPredicateQuery(predicate, question, mood, formality) => {
         sb.terminatedSentence(
           printPredicateQuestion(
             predicate, mood, Some(question)), mood, formality)
       }
-      case ShlurdAmbiguousSentence(alternatives, _) => {
+      case SilAmbiguousSentence(alternatives, _) => {
         alternatives.map(print(_)).mkString(" | ")
       }
-      case _ : ShlurdUnknownSentence => {
+      case _ : SilUnknownSentence => {
         sb.unknownSentence
       }
     }
   }
 
   def print(
-    reference : ShlurdReference,
-    inflection : ShlurdInflection,
-    conjoining : ShlurdConjoining) : String =
+    reference : SilReference,
+    inflection : SilInflection,
+    conjoining : SilConjoining) : String =
   {
     reference match {
-      case ShlurdNounReference(noun, determiner, count) => {
+      case SilNounReference(noun, determiner, count) => {
         sb.determinedNoun(
           determiner,
           sb.delemmatizeNoun(noun, count, inflection, conjoining))
       }
-      case ShlurdPronounReference(person, gender, count) => {
+      case SilPronounReference(person, gender, count) => {
         sb.pronoun(person, gender, count, inflection, conjoining)
       }
-      case ShlurdConjunctiveReference(determiner, references, separator) => {
+      case SilConjunctiveReference(determiner, references, separator) => {
         sb.conjoin(
           determiner, separator, inflection,
           references.zipWithIndex.map {
             case (r, i) => print(
               r, inflection,
-              ShlurdConjoining(determiner, separator, i, references.size))
+              SilConjoining(determiner, separator, i, references.size))
           }
         )
       }
-      case ShlurdStateSpecifiedReference(sub, state) => {
+      case SilStateSpecifiedReference(sub, state) => {
         state match {
-          case ShlurdLocationState(locative, location) => {
-            val specified = print(sub, inflection, ShlurdConjoining.NONE)
+          case SilLocationState(locative, location) => {
+            val specified = print(sub, inflection, SilConjoining.NONE)
             val specifier = sb.locationalNoun(
               sb.position(locative),
-              print(location, INFLECT_NONE, ShlurdConjoining.NONE),
+              print(location, INFLECT_NONE, SilConjoining.NONE),
               conjoining)
             return sb.specifiedNoun(specifier, specified)
           }
@@ -96,22 +96,22 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           }
         }
         val qualifierString = sb.composeQualifiers(
-          ShlurdReference.extractQualifiers(state))
+          SilReference.extractQualifiers(state))
         sub match {
-          case ShlurdNounReference(noun, determiner, count) => {
+          case SilNounReference(noun, determiner, count) => {
             sb.determinedNoun(
               determiner,
               sb.qualifiedNoun(
                 qualifierString,
                 sb.delemmatizeNoun(noun, count, inflection, conjoining)))
           }
-          case ShlurdPronounReference(person, gender, count) => {
+          case SilPronounReference(person, gender, count) => {
             // kludged representation for "three of them"
             sb.locationalNoun(
               sb.qualifiedNoun(qualifierString, "of"),
               sb.pronoun(
                 person, gender, COUNT_PLURAL, INFLECT_ACCUSATIVE,
-                ShlurdConjoining.NONE),
+                SilConjoining.NONE),
               conjoining)
           }
           case _ => {
@@ -120,99 +120,99 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           }
         }
       }
-      case ShlurdGenitiveReference(genitive, reference) => {
+      case SilGenitiveReference(genitive, reference) => {
         val qualifierString = genitive match {
-          case ShlurdPronounReference(person, gender, count) => {
+          case SilPronounReference(person, gender, count) => {
             sb.pronoun(
-              person, gender, count, INFLECT_GENITIVE, ShlurdConjoining.NONE)
+              person, gender, count, INFLECT_GENITIVE, SilConjoining.NONE)
           }
           case _ => {
-            print(genitive, INFLECT_GENITIVE, ShlurdConjoining.NONE)
+            print(genitive, INFLECT_GENITIVE, SilConjoining.NONE)
           }
         }
         sb.genitivePhrase(
           qualifierString, print(reference, inflection, conjoining))
       }
-      case _ : ShlurdUnknownReference => {
+      case _ : SilUnknownReference => {
         sb.unknownReference
       }
     }
   }
 
   def print(
-    state : ShlurdState, mood : ShlurdMood, conjoining : ShlurdConjoining)
+    state : SilState, mood : SilMood, conjoining : SilConjoining)
       : String =
   {
     state match {
-      case ShlurdExistenceState() => {
+      case SilExistenceState() => {
         ""
       }
-      case ShlurdPropertyState(state) => {
+      case SilPropertyState(state) => {
         sb.delemmatizeState(state, mood, conjoining)
       }
-      case ShlurdLocationState(locative, location) => {
+      case SilLocationState(locative, location) => {
         sb.locationalNoun(
           sb.position(locative),
-          print(location, INFLECT_NONE, ShlurdConjoining.NONE),
+          print(location, INFLECT_NONE, SilConjoining.NONE),
           conjoining)
       }
-      case ShlurdConjunctiveState(determiner, states, separator) => {
+      case SilConjunctiveState(determiner, states, separator) => {
         sb.conjoin(
           determiner, separator, INFLECT_NONE,
           states.zipWithIndex.map {
             case (s, i) => print(
               s, mood,
-              ShlurdConjoining(determiner, separator, i, states.size))
+              SilConjoining(determiner, separator, i, states.size))
           }
         )
       }
-      case ShlurdNullState() | _ : ShlurdUnknownState => {
+      case SilNullState() | _ : SilUnknownState => {
         sb.unknownState
       }
     }
   }
 
   def printChangeStateVerb(
-    state : ShlurdState, changeVerb : Option[ShlurdWord]) =
+    state : SilState, changeVerb : Option[SilWord]) =
   {
     state match {
-      case ShlurdPropertyState(state) => {
+      case SilPropertyState(state) => {
         sb.changeStateVerb(state, changeVerb)
       }
       // FIXME:  conjoining, e.g. "close and lock the door"
-      case _ => print(state, MOOD_IMPERATIVE, ShlurdConjoining.NONE)
+      case _ => print(state, MOOD_IMPERATIVE, SilConjoining.NONE)
     }
   }
 
   def printPredicateStatement(
-    predicate : ShlurdPredicate, mood : ShlurdMood) : String =
+    predicate : SilPredicate, mood : SilMood) : String =
   {
     predicate match {
-      case ShlurdStatePredicate(subject, state) => {
+      case SilStatePredicate(subject, state) => {
         sb.statePredicateStatement(
-          print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
+          print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getCopula(subject, state, mood, REL_IDENTITY),
-          print(state, mood, ShlurdConjoining.NONE))
+          print(state, mood, SilConjoining.NONE))
       }
-      case ShlurdRelationshipPredicate(subject, complement, relationship) => {
+      case SilRelationshipPredicate(subject, complement, relationship) => {
         sb.relationshipPredicateStatement(
-          print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
-          getCopula(subject, ShlurdNullState(), mood, relationship),
-          print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
+          print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
+          getCopula(subject, SilNullState(), mood, relationship),
+          print(complement, INFLECT_NOMINATIVE, SilConjoining.NONE))
       }
-      case _ : ShlurdUnknownPredicate => {
+      case _ : SilUnknownPredicate => {
         sb.unknownPredicateStatement
       }
     }
   }
 
   def printPredicateCommand(
-    predicate : ShlurdPredicate, changeVerb : Option[ShlurdWord] = None) =
+    predicate : SilPredicate, changeVerb : Option[SilWord] = None) =
   {
     predicate match {
-      case ShlurdStatePredicate(subject, state) => {
+      case SilStatePredicate(subject, state) => {
         sb.statePredicateCommand(
-          print(subject, INFLECT_ACCUSATIVE, ShlurdConjoining.NONE),
+          print(subject, INFLECT_ACCUSATIVE, SilConjoining.NONE),
           printChangeStateVerb(state, changeVerb))
       }
       case _ => {
@@ -222,54 +222,54 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   }
 
   def printPredicateQuestion(
-    predicate : ShlurdPredicate, mood : ShlurdMood,
-    question : Option[ShlurdQuestion] = None) : String =
+    predicate : SilPredicate, mood : SilMood,
+    question : Option[SilQuestion] = None) : String =
   {
     predicate match {
-      case ShlurdStatePredicate(subject, state) => {
+      case SilStatePredicate(subject, state) => {
         sb.statePredicateQuestion(
           sb.query(
-            print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
+            print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
             question),
           getCopula(subject, state, mood, REL_IDENTITY),
-          print(state, mood, ShlurdConjoining.NONE),
+          print(state, mood, SilConjoining.NONE),
           question)
       }
-      case ShlurdRelationshipPredicate(subject, complement, relationship) => {
+      case SilRelationshipPredicate(subject, complement, relationship) => {
         sb.relationshipPredicateQuestion(
           sb.query(
-            print(subject, INFLECT_NOMINATIVE, ShlurdConjoining.NONE),
+            print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
             question),
-          getCopula(subject, ShlurdNullState(), mood, relationship),
-          print(complement, INFLECT_NOMINATIVE, ShlurdConjoining.NONE))
+          getCopula(subject, SilNullState(), mood, relationship),
+          print(complement, INFLECT_NOMINATIVE, SilConjoining.NONE))
       }
-      case _ : ShlurdUnknownPredicate => {
+      case _ : SilUnknownPredicate => {
         sb.unknownPredicateQuestion
       }
     }
   }
 
   private def getCopula(
-    subject : ShlurdReference, state : ShlurdState, mood : ShlurdMood,
-    relationship : ShlurdRelationship)
+    subject : SilReference, state : SilState, mood : SilMood,
+    relationship : SilRelationship)
       : Seq[String] =
   {
     val isExistential = state match {
-      case ShlurdExistenceState() => true
+      case SilExistenceState() => true
       case _ => false
     }
     subject match {
-      case ShlurdPronounReference(person, gender, count) => {
+      case SilPronounReference(person, gender, count) => {
         sb.copula(person, gender, count, mood, isExistential, relationship)
       }
-      case ShlurdNounReference(_, _, count) => {
+      case SilNounReference(_, _, count) => {
         sb.copula(
           PERSON_THIRD, GENDER_N, count, mood, isExistential, relationship)
       }
-      case ShlurdConjunctiveReference(determiner, references, _) => {
+      case SilConjunctiveReference(determiner, references, _) => {
         val count = if (isExistential) {
           // FIXME:  this is probably English-specific
-          ShlurdReference.getCount(references.head)
+          SilReference.getCount(references.head)
         } else {
           determiner match {
             case DETERMINER_ALL => COUNT_PLURAL
@@ -282,19 +282,19 @@ class ShlurdSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.copula(
           PERSON_THIRD, GENDER_N, count, mood, isExistential, relationship)
       }
-      case ShlurdStateSpecifiedReference(reference, _) => {
+      case SilStateSpecifiedReference(reference, _) => {
         getCopula(reference, state, mood, relationship)
       }
-      case ShlurdGenitiveReference(genitive, reference) => {
+      case SilGenitiveReference(genitive, reference) => {
         getCopula(reference, state, mood, relationship)
       }
-      case _ : ShlurdUnknownReference => {
+      case _ : SilUnknownReference => {
         Seq(sb.unknownCopula)
       }
     }
   }
 }
 
-case class ShlurdSentenceUnprintable() extends RuntimeException
+case class SilSentenceUnprintable() extends RuntimeException
 {
 }

@@ -18,27 +18,27 @@ import com.lingeringsocket.shlurd.parser._
 
 import ShlurdEnglishLemmas._
 
-case class ShlurdConjoining(
-  determiner : ShlurdDeterminer,
-  separator : ShlurdSeparator,
+case class SilConjoining(
+  determiner : SilDeterminer,
+  separator : SilSeparator,
   pos : Int,
   total : Int)
 {
   def isLast() = ((pos + 1) == total)
 }
 
-object ShlurdConjoining
+object SilConjoining
 {
-  val NONE = ShlurdConjoining(DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, 0, 1)
+  val NONE = SilConjoining(DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, 0, 1)
 }
 
-object ShlurdSentenceBundle
+object SilSentenceBundle
 {
   def apply(parlance : ShlurdParlance) =
     parlance.newSentenceBundle
 }
 
-abstract class ShlurdSentenceBundle
+abstract class SilSentenceBundle
     extends ShlurdParlanceBundle
 {
   protected def concat(s : String*) =
@@ -47,7 +47,7 @@ abstract class ShlurdSentenceBundle
   protected def compose(s : String*) =
     s.filterNot(_.isEmpty).mkString(" ")
 
-  protected def separate(item : String, conjoining : ShlurdConjoining) =
+  protected def separate(item : String, conjoining : SilConjoining) =
   {
     if (conjoining.separator.needComma(conjoining.pos, conjoining.total)) {
       concat(item, ",")
@@ -57,11 +57,11 @@ abstract class ShlurdSentenceBundle
   }
 
   protected def terminationMark(
-    mood : ShlurdMood, formality : ShlurdFormality) =
+    mood : SilMood, formality : SilFormality) =
   {
     formality.force match {
       case FORCE_NEUTRAL => mood match {
-        case _ : ShlurdInterrogativeMood => "?"
+        case _ : SilInterrogativeMood => "?"
         case _ => "."
       }
       case FORCE_EXCLAMATION => "!"
@@ -69,7 +69,7 @@ abstract class ShlurdSentenceBundle
   }
 
   def terminatedSentence(
-    s : String, mood : ShlurdMood, formality : ShlurdFormality) : String =
+    s : String, mood : SilMood, formality : SilFormality) : String =
   {
     concat(s, terminationMark(mood, formality))
   }
@@ -88,7 +88,7 @@ abstract class ShlurdSentenceBundle
     subject : String,
     copula : Seq[String],
     state : String,
-    question : Option[ShlurdQuestion]) : String
+    question : Option[SilQuestion]) : String
 
   def relationshipPredicateQuestion(
     firstRef : String,
@@ -98,9 +98,9 @@ abstract class ShlurdSentenceBundle
   def statePredicateCommand(subject : String, state : String) : String
 
   def copula(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood, isExistential : Boolean,
-    relationship : ShlurdRelationship) : Seq[String] =
+    person : SilPerson, gender : SilGender, count : SilCount,
+    mood : SilMood, isExistential : Boolean,
+    relationship : SilRelationship) : Seq[String] =
   {
     val verbLemma = relationship match {
       case REL_IDENTITY => LEMMA_BE
@@ -110,79 +110,79 @@ abstract class ShlurdSentenceBundle
   }
 
   def copula(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood, isExistential : Boolean,
+    person : SilPerson, gender : SilGender, count : SilCount,
+    mood : SilMood, isExistential : Boolean,
     verbLemma : String) : Seq[String]
 
-  def position(locative : ShlurdLocative) : String
+  def position(locative : SilLocative) : String
 
   def changeStateVerb(
-    state : ShlurdWord, changeVerb : Option[ShlurdWord]) : String
+    state : SilWord, changeVerb : Option[SilWord]) : String
 
   def delemmatizeNoun(
-    entity : ShlurdWord, count : ShlurdCount,
-    inflection : ShlurdInflection,
-    conjoining : ShlurdConjoining) : String
+    entity : SilWord, count : SilCount,
+    inflection : SilInflection,
+    conjoining : SilConjoining) : String
 
   def delemmatizeState(
-    state : ShlurdWord, mood : ShlurdMood,
-    conjoining : ShlurdConjoining) : String
+    state : SilWord, mood : SilMood,
+    conjoining : SilConjoining) : String
 
-  def delemmatizeQualifier(qualifier : ShlurdWord) : String
+  def delemmatizeQualifier(qualifier : SilWord) : String
 
   def conjoin(
-    determiner : ShlurdDeterminer,
-    separator : ShlurdSeparator,
-    inflection : ShlurdInflection,
+    determiner : SilDeterminer,
+    separator : SilSeparator,
+    inflection : SilInflection,
     items : Seq[String]) : String
 
-  def composeQualifiers(qualifiers : Seq[ShlurdWord]) : String
+  def composeQualifiers(qualifiers : Seq[SilWord]) : String
 
-  def query(noun : String, question : Option[ShlurdQuestion]) : String
+  def query(noun : String, question : Option[SilQuestion]) : String
 
   def qualifiedNoun(qualifiers : String, noun : String) : String
 
   def specifiedNoun(specifier : String, noun : String) : String
 
-  def determinedNoun(determiner : ShlurdDeterminer, noun : String) : String
+  def determinedNoun(determiner : SilDeterminer, noun : String) : String
 
   def locationalNoun(
-    position : String, noun : String, conjoining : ShlurdConjoining) : String
+    position : String, noun : String, conjoining : SilConjoining) : String
 
   def respondToQuery(sentence : String) : String
 
   def respondToCounterfactual(sentence : String) : String
 
-  def respondAmbiguous(entity : ShlurdWord) : String
+  def respondAmbiguous(entity : SilWord) : String
 
-  def respondUnknown(word : ShlurdWord) : String
+  def respondUnknown(word : SilWord) : String
 
   def respondUnknownPronoun(pronoun : String) : String
 
-  def respondNonexistent(entity : ShlurdWord) : String
+  def respondNonexistent(entity : SilWord) : String
 
   def respondCannotUnderstand() : String
 
   def respondDontKnow() : String
 
   def respondNotUnderstood(
-    mood : ShlurdMood, predicate : String, errorPhrase : String) : String
+    mood : SilMood, predicate : String, errorPhrase : String) : String
 
   def predicateUnrecognizedSubject(
-    mood : ShlurdMood, complement : String, copula : Seq[String],
-    count : ShlurdCount, changeVerb : Option[ShlurdWord],
-    question : Option[ShlurdQuestion]) : String
+    mood : SilMood, complement : String, copula : Seq[String],
+    count : SilCount, changeVerb : Option[SilWord],
+    question : Option[SilQuestion]) : String
 
   def predicateUnrecognizedComplement(
-    mood : ShlurdMood, subject : String,
+    mood : SilMood, subject : String,
     copula : Seq[String],
-    question : Option[ShlurdQuestion],
+    question : Option[SilQuestion],
     isRelationship : Boolean) : String
 
   def respondCompliance() : String
 
   def respondToAssumption(
-    assumption : ShlurdAssumption, truth : Boolean,
+    assumption : SilAssumption, truth : Boolean,
     sentence : String, strength : Boolean)
       : String =
   {
@@ -210,8 +210,8 @@ abstract class ShlurdSentenceBundle
   def contradictAssumption(sentence : String, strength : Boolean) : String
 
   def pronoun(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    inflection : ShlurdInflection, conjoining : ShlurdConjoining) : String
+    person : SilPerson, gender : SilGender, count : SilCount,
+    inflection : SilInflection, conjoining : SilConjoining) : String
 
   def genitivePhrase(genitive : String, head : String) : String
 

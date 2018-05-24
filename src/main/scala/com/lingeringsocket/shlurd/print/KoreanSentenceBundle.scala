@@ -19,7 +19,7 @@ import com.lingeringsocket.shlurd.parser._
 // FIXME:  this is terrible
 import ShlurdEnglishLemmas._
 
-class KoreanSentenceBundle extends ShlurdSentenceBundle
+class KoreanSentenceBundle extends SilSentenceBundle
 {
   override def statePredicateStatement(
     subject : String, copula : Seq[String], state : String) =
@@ -40,7 +40,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
 
   override def statePredicateQuestion(
     subject : String, copula : Seq[String], state : String,
-    question : Option[ShlurdQuestion]) =
+    question : Option[SilQuestion]) =
   {
     // only holds for "요" politeness
     statePredicateStatement(subject, copula, state)
@@ -57,13 +57,13 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(subject, state)
 
   override def copula(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood, isExistential : Boolean,
+    person : SilPerson, gender : SilGender, count : SilCount,
+    mood : SilMood, isExistential : Boolean,
     verbLemma : String) =
   {
     val exists = isExistential || (verbLemma == LEMMA_HAVE)
     mood match {
-      case modalMood : ShlurdModalMood => {
+      case modalMood : SilModalMood => {
         // FIXME:  use modalMood.getModality
         if (modalMood.isPositive) {
           if (exists) {
@@ -81,12 +81,12 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
         }
       }
       case _ => {
-        throw ShlurdSentenceUnprintable()
+        throw SilSentenceUnprintable()
       }
     }
   }
 
-  override def position(locative : ShlurdLocative) =
+  override def position(locative : SilLocative) =
   {
     val pos = locative match {
       case LOC_INSIDE => "안"
@@ -110,49 +110,49 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   }
 
   override def changeStateVerb(
-    state : ShlurdWord, changeVerb : Option[ShlurdWord]) =
+    state : SilWord, changeVerb : Option[SilWord]) =
   {
     // FIXME:  use changeVerb
     conjugateImperative(state.lemma)
   }
 
   override def delemmatizeNoun(
-    entity : ShlurdWord,
-    count : ShlurdCount,
-    inflection : ShlurdInflection,
-    conjoining : ShlurdConjoining) =
+    entity : SilWord,
+    count : SilCount,
+    inflection : SilInflection,
+    conjoining : SilConjoining) =
   {
     inflectNoun(entity.lemma, count, inflection, conjoining)
   }
 
   override def delemmatizeState(
-    state : ShlurdWord, mood : ShlurdMood, conjoining : ShlurdConjoining) =
+    state : SilWord, mood : SilMood, conjoining : SilConjoining) =
   {
     // FIXME:  conjoining
     conjugateAdjective(state.lemma, mood)
   }
 
-  override def delemmatizeQualifier(qualifier : ShlurdWord) =
+  override def delemmatizeQualifier(qualifier : SilWord) =
   {
     qualifyAdjective(qualifier.lemma)
   }
 
   override def conjoin(
-    determiner : ShlurdDeterminer,
-    separator : ShlurdSeparator,
-    inflection : ShlurdInflection,
+    determiner : SilDeterminer,
+    separator : SilSeparator,
+    inflection : SilInflection,
     items : Seq[String]) =
   {
     // FIXME:  deal with other determiners such as DETERMINER_NONE
     compose(items:_*)
   }
 
-  override def composeQualifiers(qualifiers : Seq[ShlurdWord]) =
+  override def composeQualifiers(qualifiers : Seq[SilWord]) =
   {
     compose(qualifiers.map(delemmatizeQualifier(_)) :_*)
   }
 
-  override def query(noun : String, question : Option[ShlurdQuestion]) =
+  override def query(noun : String, question : Option[SilQuestion]) =
   {
     question match {
       case Some(QUESTION_WHICH) => {
@@ -176,10 +176,10 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(specifier, noun)
   }
 
-  override def determinedNoun(determiner : ShlurdDeterminer, noun : String) =
+  override def determinedNoun(determiner : SilDeterminer, noun : String) =
   {
     val determinerString = determiner match {
-      case DETERMINER_NONE => throw ShlurdSentenceUnprintable()
+      case DETERMINER_NONE => throw SilSentenceUnprintable()
       case DETERMINER_ALL => "모든"
       // FIXME:  sentence order is very much case-by-case
       case _ => ""
@@ -188,7 +188,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   }
 
   override def locationalNoun(
-    position : String, noun : String, conjoining : ShlurdConjoining) =
+    position : String, noun : String, conjoining : SilConjoining) =
   {
     // FIXME:  need to overhaul caller
     separate(compose(noun, position), conjoining)
@@ -201,15 +201,15 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
 
   private def inflectPronoun(
     pn : String,
-    inflection : ShlurdInflection,
-    conjoining : ShlurdConjoining) =
+    inflection : SilInflection,
+    conjoining : SilConjoining) =
   {
     inflectNoun(pn, COUNT_SINGULAR, inflection, conjoining)
   }
 
   override def pronoun(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    inflection : ShlurdInflection, conjoining : ShlurdConjoining) =
+    person : SilPerson, gender : SilGender, count : SilCount,
+    inflection : SilInflection, conjoining : SilConjoining) =
   {
     person match {
       case PERSON_FIRST => count match {
@@ -289,8 +289,8 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   }
 
   def inflectNoun(
-    lemma : String, count : ShlurdCount,
-    inflection : ShlurdInflection, conjoining : ShlurdConjoining) =
+    lemma : String, count : SilCount,
+    inflection : SilInflection, conjoining : SilConjoining) =
   {
     if (lemma.exists(c => isHangul(c))) {
       val numbered = count match {
@@ -354,7 +354,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose(lemma, "(imperative)")
   }
 
-  def conjugateAdjective(lemma : String, mood : ShlurdMood) =
+  def conjugateAdjective(lemma : String, mood : SilMood) =
   {
     compose(lemma, "(subject complement)")
   }
@@ -375,12 +375,12 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     compose("하지만 ", sentence)
   }
 
-  override def respondAmbiguous(noun : ShlurdWord) =
+  override def respondAmbiguous(noun : SilWord) =
   {
     compose("무슨", noun.lemma, "?")
   }
 
-  override def respondUnknown(word : ShlurdWord) =
+  override def respondUnknown(word : SilWord) =
   {
     "FIXME"
   }
@@ -390,7 +390,7 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
     "FIXME"
   }
 
-  override def respondNonexistent(noun : ShlurdWord) =
+  override def respondNonexistent(noun : SilWord) =
   {
     compose(noun.lemma, "없어요")
   }
@@ -411,23 +411,23 @@ class KoreanSentenceBundle extends ShlurdSentenceBundle
   }
 
   override def respondNotUnderstood(
-    mood : ShlurdMood, predicate : String, errorPhrase : String) =
+    mood : SilMood, predicate : String, errorPhrase : String) =
   {
     "FIXME"
   }
 
   override def predicateUnrecognizedSubject(
-    mood : ShlurdMood, complement : String, copula : Seq[String],
-    count : ShlurdCount, changeVerb : Option[ShlurdWord],
-    question : Option[ShlurdQuestion]) =
+    mood : SilMood, complement : String, copula : Seq[String],
+    count : SilCount, changeVerb : Option[SilWord],
+    question : Option[SilQuestion]) =
   {
     "FIXME"
   }
 
   override def predicateUnrecognizedComplement(
-    mood : ShlurdMood, subject : String,
+    mood : SilMood, subject : String,
     copula : Seq[String],
-    question : Option[ShlurdQuestion],
+    question : Option[SilQuestion],
     isRelationship : Boolean) =
   {
     "FIXME"

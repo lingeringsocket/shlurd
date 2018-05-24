@@ -44,7 +44,7 @@ class ShlurdPlatonicProperty(val name : String)
     closed = true
   }
 
-  def instantiateState(word : ShlurdWord)
+  def instantiateState(word : SilWord)
   {
     states.put(word.lemma, word.inflected)
   }
@@ -59,14 +59,14 @@ class ShlurdPlatonicForm(val name : String)
     new mutable.LinkedHashMap[String, ShlurdPlatonicProperty]
 
   private val inflectedStateNormalizations =
-    new mutable.LinkedHashMap[ShlurdState, ShlurdState]
+    new mutable.LinkedHashMap[SilState, SilState]
 
   private val stateNormalizations =
-    new mutable.LinkedHashMap[ShlurdState, ShlurdState]
+    new mutable.LinkedHashMap[SilState, SilState]
 
   def getProperties : Map[String, ShlurdPlatonicProperty] = properties
 
-  def instantiateProperty(name : ShlurdWord) =
+  def instantiateProperty(name : SilWord) =
   {
     val property = name.lemma
     properties.getOrElseUpdate(property, new ShlurdPlatonicProperty(property))
@@ -74,32 +74,32 @@ class ShlurdPlatonicForm(val name : String)
 
   def resolveStateSynonym(lemma : String) : String =
   {
-    normalizeState(ShlurdPropertyState(ShlurdWord(lemma))) match {
-      case ShlurdPropertyState(word) => word.lemma
+    normalizeState(SilPropertyState(SilWord(lemma))) match {
+      case SilPropertyState(word) => word.lemma
       case _ => lemma
     }
   }
 
   private[world] def addStateNormalization(
-    state : ShlurdState, transformed : ShlurdState)
+    state : SilState, transformed : SilState)
   {
     val normalized = normalizeState(transformed)
     inflectedStateNormalizations.put(state, normalized)
     stateNormalizations.put(foldState(state), normalized)
   }
 
-  def normalizeState(state : ShlurdState) : ShlurdState =
+  def normalizeState(state : SilState) : SilState =
   {
     inflectedStateNormalizations.get(state).getOrElse(
       stateNormalizations.get(foldState(state)).getOrElse(state))
   }
 
-  private def foldState(state : ShlurdState) : ShlurdState =
+  private def foldState(state : SilState) : SilState =
   {
     // FIXME:  should fold compound states as well
     state match {
-      case ShlurdPropertyState(word) =>
-        ShlurdPropertyState(ShlurdWord(word.lemma))
+      case SilPropertyState(word) =>
+        SilPropertyState(SilWord(word.lemma))
       case _ => state
     }
   }
@@ -122,25 +122,25 @@ object ShlurdPlatonicWorld
 {
   val DEFAULT_PROPERTY = "state"
 
-  val DEFAULT_PROPERTY_WORD = ShlurdWord(DEFAULT_PROPERTY)
+  val DEFAULT_PROPERTY_WORD = SilWord(DEFAULT_PROPERTY)
 
   abstract class RejectedBelief(
-    belief : ShlurdSentence,
+    belief : SilSentence,
     cause : String) extends RuntimeException(cause)
 
-  class IncomprehensibleBelief(belief : ShlurdSentence)
+  class IncomprehensibleBelief(belief : SilSentence)
       extends RejectedBelief(belief,
         "can't understand this belief:  " + belief)
   {
   }
 
-  class ContradictoryBelief(belief : ShlurdSentence)
+  class ContradictoryBelief(belief : SilSentence)
       extends RejectedBelief(belief,
         "this belief contradicts previously accepted beliefs")
   {
   }
 
-  class AmbiguousBelief(belief : ShlurdSentence)
+  class AmbiguousBelief(belief : SilSentence)
       extends RejectedBelief(belief,
         "this belief introduces ambiguity with previously accepted beliefs")
   {
@@ -254,13 +254,13 @@ class ShlurdPlatonicWorld
     entities.clear()
   }
 
-  def instantiateForm(word : ShlurdWord) =
+  def instantiateForm(word : SilWord) =
   {
     val name = formSynonyms.resolveSynonym(word.lemma)
     forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
   }
 
-  def instantiateRole(word : ShlurdWord) =
+  def instantiateRole(word : SilWord) =
   {
     roles += word.lemma
     instantiateForm(word)
@@ -287,9 +287,9 @@ class ShlurdPlatonicWorld
   }
 
   private def instantiateEntity(
-    sentence : ShlurdSentence,
+    sentence : SilSentence,
     form : ShlurdPlatonicForm,
-    qualifierString : Seq[ShlurdWord],
+    qualifierString : Seq[SilWord],
     properName : String = "") : ShlurdPlatonicEntity =
   {
     val qualifiers = qualifierSet(qualifierString)
@@ -401,32 +401,32 @@ class ShlurdPlatonicWorld
   }
 
   private def extractQualifiedNoun(
-    sentence : ShlurdSentence,
-    reference : ShlurdReference,
-    preQualifiers : Seq[ShlurdWord])
-      : (ShlurdWord, Seq[ShlurdWord], ShlurdCount) =
+    sentence : SilSentence,
+    reference : SilReference,
+    preQualifiers : Seq[SilWord])
+      : (SilWord, Seq[SilWord], SilCount) =
   {
     reference match {
-      case ShlurdNounReference(
+      case SilNounReference(
         noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
         {
           (noun, preQualifiers, COUNT_SINGULAR)
         }
-      case ShlurdNounReference(
+      case SilNounReference(
         noun, DETERMINER_UNSPECIFIED, COUNT_PLURAL) =>
         {
           (noun, preQualifiers, COUNT_PLURAL)
         }
-      case ShlurdStateSpecifiedReference(subRef, state) =>
+      case SilStateSpecifiedReference(subRef, state) =>
         {
           extractQualifiedNoun(
             sentence, subRef,
-            preQualifiers ++ ShlurdReference.extractQualifiers(state))
+            preQualifiers ++ SilReference.extractQualifiers(state))
         }
-      case ShlurdGenitiveReference(
-        ShlurdNounReference(
+      case SilGenitiveReference(
+        SilNounReference(
           possessor, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-        ShlurdNounReference(
+        SilNounReference(
           possession, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)) =>
         {
           (possession, Seq(possessor), COUNT_SINGULAR)
@@ -435,26 +435,26 @@ class ShlurdPlatonicWorld
     }
   }
 
-  def addBelief(sentence : ShlurdSentence)
+  def addBelief(sentence : SilSentence)
   {
     if (sentence.hasUnknown) {
       throw new IncomprehensibleBelief(sentence)
     }
     sentence match {
-      case ShlurdPredicateSentence(predicate, mood, formality) => {
+      case SilPredicateSentence(predicate, mood, formality) => {
         if (mood.isNegative) {
           // FIXME:  interpret this as a constraint
           throw new IncomprehensibleBelief(sentence)
         }
         predicate match {
-          case ShlurdStatePredicate(ref, state) => {
+          case SilStatePredicate(ref, state) => {
             val (noun, qualifiers, count) = extractQualifiedNoun(
               sentence, ref, Seq.empty)
             val form = instantiateForm(noun)
             ref match {
-              case ShlurdStateSpecifiedReference(
+              case SilStateSpecifiedReference(
                 _, specifiedState @
-                  (_ : ShlurdLocationState | _ : ShlurdPropertyState)) =>
+                  (_ : SilLocationState | _ : SilPropertyState)) =>
               {
                 // "a television that is on the blink is broken"
                 // or "a television that is busted is broken"
@@ -463,11 +463,11 @@ class ShlurdPlatonicWorld
                   throw new IncomprehensibleBelief(sentence)
                 }
                 state match {
-                  case ps : ShlurdPropertyState => {
+                  case ps : SilPropertyState => {
                     form.addStateNormalization(specifiedState, state)
                     return
                   }
-                  case ShlurdExistenceState() =>
+                  case SilExistenceState() =>
                   case _ => {
                     throw new IncomprehensibleBelief(sentence)
                   }
@@ -476,7 +476,7 @@ class ShlurdPlatonicWorld
               case _ =>
             }
             state match {
-              case ShlurdExistenceState() => {
+              case SilExistenceState() => {
                 // "there is a television"
                 addExistenceBelief(sentence, form, qualifiers, mood)
               }
@@ -485,23 +485,23 @@ class ShlurdPlatonicWorld
               }
             }
           }
-          case ShlurdRelationshipPredicate(
+          case SilRelationshipPredicate(
             subject, complement, relationship) =>
           {
             val (complementNoun, qualifiers, count) = extractQualifiedNoun(
               sentence, complement, Seq.empty)
             val property = complement match {
-              case ShlurdStateSpecifiedReference(
+              case SilStateSpecifiedReference(
                 _,
-                ShlurdLocationState(locative, location)) =>
+                SilLocationState(locative, location)) =>
                 {
                   if (locative != LOC_AS) {
                     throw new IncomprehensibleBelief(sentence)
                   }
                   // "A television has a volume as a property"
                   location match {
-                    case ShlurdNounReference(
-                      ShlurdWord(LEMMA_PROPERTY, LEMMA_PROPERTY),
+                    case SilNounReference(
+                      SilWord(LEMMA_PROPERTY, LEMMA_PROPERTY),
                       DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
                       COUNT_SINGULAR) =>
                       {
@@ -517,7 +517,7 @@ class ShlurdPlatonicWorld
               case _ => None
             }
             subject match {
-              case ShlurdNounReference(
+              case SilNounReference(
                 subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
               ) => {
                 if (!qualifiers.isEmpty) {
@@ -566,7 +566,7 @@ class ShlurdPlatonicWorld
                   }
                 }
               }
-              case ShlurdNounReference(
+              case SilNounReference(
                 subjectNoun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
               ) => {
                 // FIXME "Larry has a dog"
@@ -606,21 +606,21 @@ class ShlurdPlatonicWorld
   }
 
   private def addExistenceBelief(
-    sentence : ShlurdSentence,
+    sentence : SilSentence,
     form : ShlurdPlatonicForm,
-    qualifiers : Seq[ShlurdWord],
-    mood : ShlurdMood)
+    qualifiers : Seq[SilWord],
+    mood : SilMood)
   {
     // FIXME:  interpret mood
     instantiateEntity(sentence, form, qualifiers)
   }
 
   private def addPropertyBelief(
-    sentence : ShlurdSentence,
+    sentence : SilSentence,
     form : ShlurdPlatonicForm,
-    qualifiers : Seq[ShlurdWord],
-    state : ShlurdState,
-    mood : ShlurdMood)
+    qualifiers : Seq[SilWord],
+    state : SilState,
+    mood : SilMood)
   {
     if (!qualifiers.isEmpty) {
       // but maybe we should allow constraints on qualified entities?
@@ -632,13 +632,13 @@ class ShlurdPlatonicWorld
     }
     val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
     val newStates = state match {
-      case ShlurdPropertyState(word) => {
+      case SilPropertyState(word) => {
         Seq(word)
       }
-      case ShlurdConjunctiveState(determiner, states, _) => {
+      case SilConjunctiveState(determiner, states, _) => {
         // FIXME:  interpret determiner
         states.flatMap(_ match {
-          case ShlurdPropertyState(word) => {
+          case SilPropertyState(word) => {
             Seq(word)
           }
           case _ => {
@@ -662,7 +662,7 @@ class ShlurdPlatonicWorld
     }
   }
 
-  private def resolveUniqueName(word : ShlurdWord)
+  private def resolveUniqueName(word : SilWord)
       : Option[ShlurdPlatonicEntity] =
   {
     val candidates = entities.values.filter(
@@ -690,7 +690,7 @@ class ShlurdPlatonicWorld
 
   override def resolveQualifiedNoun(
     lemma : String,
-    context : ShlurdReferenceContext,
+    context : SilReferenceContext,
     qualifiers : Set[String]) =
   {
     forms.get(formSynonyms.resolveSynonym(lemma)) match {
@@ -713,9 +713,9 @@ class ShlurdPlatonicWorld
   }
 
   override def resolvePronoun(
-    person : ShlurdPerson,
-    gender : ShlurdGender,
-    count : ShlurdCount) : Try[Set[ShlurdPlatonicEntity]] =
+    person : SilPerson,
+    gender : SilGender,
+    count : SilCount) : Try[Set[ShlurdPlatonicEntity]] =
   {
     fail("pronouns not supported")
   }
@@ -740,17 +740,17 @@ class ShlurdPlatonicWorld
 
   override def specificReference(
     entity : ShlurdPlatonicEntity,
-    determiner : ShlurdDeterminer) =
+    determiner : SilDeterminer) =
   {
     val formName = entity.form.name
-    def nounRef = ShlurdNounReference(
-      ShlurdWord(formName), determiner)
+    def nounRef = SilNounReference(
+      SilWord(formName), determiner)
     if (!entity.properName.isEmpty) {
-      ShlurdNounReference(
-        ShlurdWord(entity.properName), DETERMINER_UNSPECIFIED)
+      SilNounReference(
+        SilWord(entity.properName), DETERMINER_UNSPECIFIED)
     } else {
-      ShlurdReference.qualified(
-        nounRef, entity.qualifiers.map(q => ShlurdWord(q)).toSeq)
+      SilReference.qualified(
+        nounRef, entity.qualifiers.map(q => SilWord(q)).toSeq)
     }
   }
 
@@ -795,7 +795,7 @@ class ShlurdPlatonicWorld
   override def evaluateEntityLocationPredicate(
     entity : ShlurdPlatonicEntity,
     location : ShlurdPlatonicEntity,
-    locative : ShlurdLocative,
+    locative : SilLocative,
     qualifiers : Set[String]) : Try[Trilean] =
   {
     if (locative == LOC_GENITIVE_OF) {
@@ -846,7 +846,7 @@ class ShlurdPlatonicWorld
   }
 
   override def normalizeState(
-    entity : ShlurdPlatonicEntity, state : ShlurdState) =
+    entity : ShlurdPlatonicEntity, state : SilState) =
   {
     entity.form.normalizeState(state)
   }

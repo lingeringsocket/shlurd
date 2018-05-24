@@ -18,9 +18,9 @@ import org.specs2.mutable._
 
 import com.lingeringsocket.shlurd.parser._
 
-class ShlurdSentencePrinterSpec extends Specification
+class SilSentencePrinterSpec extends Specification
 {
-  private val printer = new ShlurdSentencePrinter
+  private val printer = new SilSentencePrinter
 
   private def normalize(s : String) : String =
   {
@@ -29,28 +29,28 @@ class ShlurdSentencePrinterSpec extends Specification
     printer.print(normalized)
   }
 
-  private def normalize(parsed : ShlurdSentence) : ShlurdSentence =
+  private def normalize(parsed : SilSentence) : SilSentence =
   {
     parsed match {
-      case ShlurdPredicateSentence(predicate, mood, formality) => {
+      case SilPredicateSentence(predicate, mood, formality) => {
         mood match {
-          case MOOD_IMPERATIVE => ShlurdPredicateSentence(
+          case MOOD_IMPERATIVE => SilPredicateSentence(
             predicate, mood,
             formality.copy(force = FORCE_EXCLAMATION))
           case _ => parsed
         }
       }
-      case ShlurdStateChangeCommand(predicate, changeVerb, formality) => {
-        ShlurdStateChangeCommand(
+      case SilStateChangeCommand(predicate, changeVerb, formality) => {
+        SilStateChangeCommand(
           predicate,
           changeVerb,
           formality.copy(force = FORCE_EXCLAMATION))
       }
-      case ShlurdPredicateQuery(predicate, question, mood, formality) => parsed
-      case ShlurdAmbiguousSentence(alternatives, _) => {
-        ShlurdAmbiguousSentence(alternatives.map(normalize))
+      case SilPredicateQuery(predicate, question, mood, formality) => parsed
+      case SilAmbiguousSentence(alternatives, _) => {
+        SilAmbiguousSentence(alternatives.map(normalize))
       }
-      case _ : ShlurdUnknownSentence => parsed
+      case _ : SilUnknownSentence => parsed
     }
   }
 
@@ -79,7 +79,7 @@ class ShlurdSentencePrinterSpec extends Specification
     normalize(s) must be equalTo(normalized)
   }
 
-  "ShlurdSentencePrinter" should
+  "SilSentencePrinter" should
   {
     "deal with problem cases" in
     {

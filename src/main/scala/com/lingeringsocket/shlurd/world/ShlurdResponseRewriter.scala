@@ -19,17 +19,17 @@ import com.lingeringsocket.shlurd.parser._
 import ShlurdEnglishLemmas._
 
 class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
-  world : ShlurdWorld[E,P]) extends ShlurdPhraseRewriter
+  world : ShlurdWorld[E,P]) extends SilPhraseRewriter
 {
   def normalizeResponse(
-    predicate : ShlurdPredicate,
+    predicate : SilPredicate,
     resultCollector : ResultCollector[E],
     params : ShlurdInterpreterParams)
-      : (ShlurdPredicate, Boolean) =
+      : (SilPredicate, Boolean) =
   {
     var negateCollection = false
     val entityDeterminer = predicate match {
-      case ShlurdStatePredicate(subject, ShlurdExistenceState()) => {
+      case SilStatePredicate(subject, SilExistenceState()) => {
         DETERMINER_NONSPECIFIC
       }
       case _ => {
@@ -38,8 +38,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
 
     def normalizeConjunctionWrapper(
-      separator : ShlurdSeparator,
-      allRef : => ShlurdReference) =
+      separator : SilSeparator,
+      allRef : => SilReference) =
     {
       val (rr, rn) = normalizeConjunction(
         resultCollector, entityDeterminer, separator, params)
@@ -50,19 +50,19 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
 
     def replaceReferences = replacementMatcher {
-      case ShlurdStateSpecifiedReference(outer, state) => {
+      case SilStateSpecifiedReference(outer, state) => {
         outer match {
-          case ShlurdStateSpecifiedReference(
-            inner, ShlurdNullState()) =>
+          case SilStateSpecifiedReference(
+            inner, SilNullState()) =>
             {
               inner
             }
           case _ => {
-            ShlurdStateSpecifiedReference(outer, state)
+            SilStateSpecifiedReference(outer, state)
           }
         }
       }
-      case ShlurdConjunctiveReference(determiner, references, separator) => {
+      case SilConjunctiveReference(determiner, references, separator) => {
         determiner match {
           case DETERMINER_ANY => {
             normalizeDisjunction(
@@ -70,22 +70,22 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
               separator, params).getOrElse
             {
               negateCollection = true
-              ShlurdConjunctiveReference(
+              SilConjunctiveReference(
                 DETERMINER_NONE, references, separator)
             }
           }
           case DETERMINER_ALL => {
             normalizeConjunctionWrapper(
               separator,
-              ShlurdConjunctiveReference(
+              SilConjunctiveReference(
                 DETERMINER_ALL, references, separator))
           }
           case _ => {
-            ShlurdConjunctiveReference(determiner, references, separator)
+            SilConjunctiveReference(determiner, references, separator)
           }
         }
       }
-      case ShlurdNounReference(
+      case SilNounReference(
         noun, DETERMINER_ANY | DETERMINER_SOME, count
       ) => {
         normalizeDisjunction(
@@ -94,20 +94,20 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         {
           negateCollection = true
           val responseNoun = noun match {
-            case ShlurdWord(LEMMA_WHO, LEMMA_WHO) => {
-              ShlurdWord(LEMMA_ONE)
+            case SilWord(LEMMA_WHO, LEMMA_WHO) => {
+              SilWord(LEMMA_ONE)
             }
             case _ => noun
           }
-          ShlurdNounReference(responseNoun, DETERMINER_NONE, count)
+          SilNounReference(responseNoun, DETERMINER_NONE, count)
         }
       }
-      case ShlurdNounReference(
+      case SilNounReference(
         noun, DETERMINER_ALL, count
       ) => {
         normalizeConjunctionWrapper(
           SEPARATOR_OXFORD_COMMA,
-          ShlurdNounReference(noun, DETERMINER_ALL, count))
+          SilNounReference(noun, DETERMINER_ALL, count))
       }
     }
 
@@ -121,25 +121,25 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   def replacePronounsSpeakerListener = replacementMatcher {
-    case ShlurdPronounReference(person, gender, count)=> {
+    case SilPronounReference(person, gender, count)=> {
       val speakerListenerReversed = person match {
         case PERSON_FIRST => PERSON_SECOND
         case PERSON_SECOND => PERSON_FIRST
         case PERSON_THIRD => PERSON_THIRD
       }
-      ShlurdPronounReference(speakerListenerReversed, gender, count)
+      SilPronounReference(speakerListenerReversed, gender, count)
     }
   }
 
   private def coerceCountAgreement = replacementMatcher {
-    case ShlurdRelationshipPredicate(subject, complement, REL_IDENTITY) => {
-      val subjectCount = ShlurdReference.getCount(subject)
-      val complementCount = ShlurdReference.getCount(complement)
+    case SilRelationshipPredicate(subject, complement, REL_IDENTITY) => {
+      val subjectCount = SilReference.getCount(subject)
+      val complementCount = SilReference.getCount(complement)
       if (subjectCount != complementCount) {
         val subjectCoercible =
-          ShlurdReference.isCountCoercible(subject)
+          SilReference.isCountCoercible(subject)
         val complementCoercible =
-          ShlurdReference.isCountCoercible(complement)
+          SilReference.isCountCoercible(complement)
         assert(subjectCoercible || complementCoercible)
         val agreedCount = {
           if (subjectCoercible && complementCoercible) {
@@ -150,7 +150,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
             subjectCount
           }
         }
-        def coerceIfNeeded(reference : ShlurdReference, count : ShlurdCount) =
+        def coerceIfNeeded(reference : SilReference, count : SilCount) =
         {
           if (count == agreedCount) {
             reference
@@ -158,29 +158,29 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
             coerceCount(reference, agreedCount)
           }
         }
-        ShlurdRelationshipPredicate(
+        SilRelationshipPredicate(
           coerceIfNeeded(subject, subjectCount),
           coerceIfNeeded(complement, complementCount),
           REL_IDENTITY)
       } else {
-        ShlurdRelationshipPredicate(subject, complement, REL_IDENTITY)
+        SilRelationshipPredicate(subject, complement, REL_IDENTITY)
       }
     }
   }
 
   private def coerceCount(
-    reference : ShlurdReference, agreedCount : ShlurdCount) : ShlurdReference =
+    reference : SilReference, agreedCount : SilCount) : SilReference =
   {
     reference match {
-      case ShlurdStateSpecifiedReference(subReference, state) => {
-        ShlurdStateSpecifiedReference(
+      case SilStateSpecifiedReference(subReference, state) => {
+        SilStateSpecifiedReference(
           coerceCount(subReference, agreedCount), state)
       }
-      case ShlurdGenitiveReference(genitive, subReference) => {
-        ShlurdGenitiveReference(
+      case SilGenitiveReference(genitive, subReference) => {
+        SilGenitiveReference(
           genitive, coerceCount(subReference, agreedCount))
       }
-      case nounRef : ShlurdNounReference => {
+      case nounRef : SilNounReference => {
         if (nounRef.count == agreedCount) {
           nounRef
         } else {
@@ -195,8 +195,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
               nounRef.determiner
             }
           }
-          ShlurdNounReference(
-            ShlurdWord("", nounRef.noun.lemma),
+          SilNounReference(
+            SilWord("", nounRef.noun.lemma),
             newDeterminer, agreedCount)
         }
       }
@@ -206,10 +206,10 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def normalizeDisjunction(
     resultCollector : ResultCollector[E],
-    entityDeterminer : ShlurdDeterminer,
-    separator : ShlurdSeparator,
+    entityDeterminer : SilDeterminer,
+    separator : SilSeparator,
     params : ShlurdInterpreterParams)
-      : Option[ShlurdReference] =
+      : Option[SilReference] =
   {
     val trueEntities = resultCollector.entityMap.filter(
       _._2.assumeFalse).keySet
@@ -224,20 +224,20 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     } else if (exhaustive || (trueEntities.size > params.listLimit)) {
       summarizeList(trueEntities, exhaustive, existence, false)
     } else {
-      Some(ShlurdConjunctiveReference(
+      Some(SilConjunctiveReference(
         DETERMINER_ALL,
         trueEntities.map(
           world.specificReference(_, entityDeterminer)).toSeq,
         separator))
-    }).map(r => ShlurdStateSpecifiedReference(r, ShlurdNullState()))
+    }).map(r => SilStateSpecifiedReference(r, SilNullState()))
   }
 
   private def normalizeConjunction(
     resultCollector : ResultCollector[E],
-    entityDeterminer : ShlurdDeterminer,
-    separator : ShlurdSeparator,
+    entityDeterminer : SilDeterminer,
+    separator : SilSeparator,
     params : ShlurdInterpreterParams)
-      : (Option[ShlurdReference], Boolean) =
+      : (Option[SilReference], Boolean) =
   {
     val falseEntities = resultCollector.entityMap.filterNot(
       _._2.assumeTrue).keySet
@@ -254,7 +254,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       (summarizeList(falseEntities, exhaustive, existence, true),
         exhaustive)
     } else {
-      (Some(ShlurdConjunctiveReference(
+      (Some(SilConjunctiveReference(
         DETERMINER_NONE,
         falseEntities.map(
           world.specificReference(_, entityDeterminer)).toSeq,
@@ -262,7 +262,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         true)
     })
     tuple.copy(_1 = tuple._1.map(
-      r => ShlurdStateSpecifiedReference(r, ShlurdNullState())))
+      r => SilStateSpecifiedReference(r, SilNullState())))
   }
 
   private def summarizeList(
@@ -286,20 +286,20 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
     val prefix = {
       if (all && !existence) {
-        Seq(ShlurdWord("all"))
+        Seq(SilWord("all"))
       } else {
         Seq.empty
       }
     }
-    val qualifiers = prefix ++ Seq(ShlurdWord(number))
+    val qualifiers = prefix ++ Seq(SilWord(number))
     // FIXME:  derive gender from entities
     val count = number match {
       case "1" => COUNT_SINGULAR
       case _ => COUNT_PLURAL
     }
     Some(
-      ShlurdReference.qualified(
-        ShlurdPronounReference(PERSON_THIRD, GENDER_N, count),
+      SilReference.qualified(
+        SilPronounReference(PERSON_THIRD, GENDER_N, count),
         qualifiers))
   }
 }

@@ -18,15 +18,15 @@ import org.specs2.mutable._
 
 import com.lingeringsocket.shlurd.parser._
 
-class ShlurdSentenceTranslatorSpec extends Specification
+class SilSentenceTranslatorSpec extends Specification
 {
   private val printer =
-    new ShlurdSentencePrinter(LimitedKoreanParlance)
+    new SilSentencePrinter(LimitedKoreanParlance)
 
   private def translate(s : String) =
     printer.print(ShlurdParser(s).parseOne)
 
-  "ShlurdSentencePrinter" should
+  "SilSentencePrinter" should
   {
     "translate sentences" in
     {
@@ -64,8 +64,8 @@ object LimitedKoreanParlance extends ShlurdParlance
 {
   override def newSentenceBundle() = new KoreanSentenceBundle {
     override def inflectNoun(
-      lemma : String, count : ShlurdCount,
-      inflection : ShlurdInflection, conjoining : ShlurdConjoining) =
+      lemma : String, count : SilCount,
+      inflection : SilInflection, conjoining : SilConjoining) =
     {
       lemma match {
         case "door" => super.inflectNoun(
@@ -85,7 +85,7 @@ object LimitedKoreanParlance extends ShlurdParlance
       }
     }
 
-    override def conjugateAdjective(lemma : String, mood : ShlurdMood) =
+    override def conjugateAdjective(lemma : String, mood : SilMood) =
     {
       // FIXME:  make use of mood
       lemma match {

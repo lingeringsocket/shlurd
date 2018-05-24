@@ -18,25 +18,25 @@ import ShlurdParseUtils._
 import ShlurdEnglishLemmas._
 
 class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
-  extends ShlurdPhraseRewriter
+  extends SilPhraseRewriter
 {
-  def parseSentence(sentenceSyntaxTree : ShlurdSyntaxTree) : ShlurdSentence =
+  def parseSentence(sentenceSyntaxTree : ShlurdSyntaxTree) : SilSentence =
   {
     val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
-    val expected = ShlurdExpectedSentence(sentenceSyntaxTree, forceSQ)
-    val phrase = rewrite[ShlurdSentence](replaceAllPhrases, expected, true)
+    val expected = SilExpectedSentence(sentenceSyntaxTree, forceSQ)
+    val phrase = rewrite[SilSentence](replaceAllPhrases, expected, true)
     val completed = rewrite(replaceUnresolvedWithUnrecognized, phrase)
     if (!completed.hasUnknown) {
       query(validateResult, completed)
     }
     completed match {
-      case sentence : ShlurdSentence => sentence
-      case _ => ShlurdUnrecognizedSentence(sentenceSyntaxTree)
+      case sentence : SilSentence => sentence
+      case _ => SilUnrecognizedSentence(sentenceSyntaxTree)
     }
   }
 
   private def validateResult = queryMatcher {
-    case transformedPhrase : ShlurdTransformedPhrase => {
+    case transformedPhrase : SilTransformedPhrase => {
       if (!transformedPhrase.hasSyntaxTree) {
         throw new AssertionError("Syntax lost for " + transformedPhrase)
       }
@@ -53,7 +53,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     replaceExpectedReference)
 
   private def replaceExpectedSentence = replacementMatcher {
-    case ShlurdExpectedSentence(sentence : SptS, forceSQ) => {
+    case SilExpectedSentence(sentence : SptS, forceSQ) => {
       if (forceSQ) {
         analyzer.analyzeSQ(sentence, forceSQ)
       } else {
@@ -63,98 +63,98 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
   }
 
   private def replaceExpectedReference = replacementMatcher {
-    case ShlurdExpectedReference(SptNP(noun)) => {
-      ShlurdExpectedReference(noun)
+    case SilExpectedReference(SptNP(noun)) => {
+      SilExpectedReference(noun)
     }
-    case ShlurdExpectedReference(np : SptNP) => {
+    case SilExpectedReference(np : SptNP) => {
       analyzer.analyzeNounPhrase(np)
     }
-    case ShlurdExpectedReference(noun : ShlurdSyntaxNoun) => {
-      ShlurdNounReference(
+    case SilExpectedReference(noun : ShlurdSyntaxNoun) => {
+      SilNounReference(
         analyzer.getWord(noun.child),
         DETERMINER_UNSPECIFIED,
         analyzer.getCount(noun))
     }
-    case ShlurdExpectedNounlikeReference(
+    case SilExpectedNounlikeReference(
       syntaxTree, nounlike : ShlurdSyntaxPreTerminal, determiner)
         if (nounlike.isNoun || nounlike.isAdjectival) =>
     {
       // we allow mislabeled adjectives to handle
       // cases like "roll up the blind"
-      ShlurdNounReference(
+      SilNounReference(
         analyzer.getWord(nounlike.child),
         determiner,
         analyzer.getCount(nounlike))
     }
-    case ShlurdExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
+    case SilExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
       recognizePronounReference(pronoun.child)
     }
   }
 
   private def replaceExpectedState = replacementMatcher {
-    case ShlurdExpectedPrepositionalState(syntaxTree) => {
+    case SilExpectedPrepositionalState(syntaxTree) => {
       analyzer.expectPrepositionalState(syntaxTree)
     }
-    case ShlurdExpectedPropertyState(preTerminal : ShlurdSyntaxPreTerminal) => {
-      ShlurdPropertyState(analyzer.getWord(preTerminal.child))
+    case SilExpectedPropertyState(preTerminal : ShlurdSyntaxPreTerminal) => {
+      SilPropertyState(analyzer.getWord(preTerminal.child))
     }
-    case ShlurdExpectedExistenceState(_) => {
-      ShlurdExistenceState()
+    case SilExpectedExistenceState(_) => {
+      SilExistenceState()
     }
-    case ShlurdExpectedComplementState(adjp : SptADJP) => {
+    case SilExpectedComplementState(adjp : SptADJP) => {
       analyzer.expectPropertyComplementState(adjp.children)
     }
-    case ShlurdExpectedComplementState(
+    case SilExpectedComplementState(
       syntaxTree @ (_ : SptADVP | _ : SptPP)) =>
     {
       val seq = syntaxTree.children
       if ((seq.head.isPreposition || seq.head.isAdverb) && (seq.size > 1) &&
         (!seq.exists(_.isPrepositionalPhrase)))
       {
-        ShlurdExpectedPrepositionalState(syntaxTree)
+        SilExpectedPrepositionalState(syntaxTree)
       } else {
         analyzer.expectPropertyComplementState(seq)
       }
     }
-    case ShlurdExpectedComplementState(vp : SptVP) => {
+    case SilExpectedComplementState(vp : SptVP) => {
       // TODO:  ambiguity for action (passive construction) vs
       // state (participial adjective)
       analyzer.expectPropertyComplementState(vp.children)
     }
-    case ShlurdExpectedComplementState(syntaxTree : SptPRT) => {
+    case SilExpectedComplementState(syntaxTree : SptPRT) => {
       analyzer.expectPropertyState(requireUnique(syntaxTree.children))
     }
-    case ShlurdExpectedComplementState(SptNP(noun)) => {
+    case SilExpectedComplementState(SptNP(noun)) => {
       analyzer.expectPropertyState(noun)
     }
   }
 
   private def replaceUnresolvedPredicate = replacementMatcher {
-    case predicate : ShlurdUnresolvedStatePredicate
+    case predicate : SilUnresolvedStatePredicate
         if (!predicate.state.hasUnresolved) =>
       {
         resolveStatePredicate(predicate)
       }
-    case predicate : ShlurdUnresolvedRelationshipPredicate =>
+    case predicate : SilUnresolvedRelationshipPredicate =>
       {
         resolveRelationshipPredicate(predicate)
       }
   }
 
   private def replaceExpectedSBARQ = replacementMatcher {
-    case ShlurdExpectedSentence(sbarq : SptSBARQ, _) => {
+    case SilExpectedSentence(sbarq : SptSBARQ, _) => {
       analyzer.analyzeSBARQ(sbarq)
     }
   }
 
   private def replaceExpectedSQ = replacementMatcher {
-    case ShlurdExpectedSentence(sq : SptSQ, forceSQ) => {
+    case SilExpectedSentence(sq : SptSQ, forceSQ) => {
       analyzer.analyzeSQ(sq, forceSQ)
     }
   }
 
   private def replaceAmbiguousSentence = replacementMatcher {
-    case ambiguous : ShlurdAmbiguousSentence if (ambiguous.isRipe) => {
+    case ambiguous : SilAmbiguousSentence if (ambiguous.isRipe) => {
       val alternatives = ambiguous.alternatives
       assert(!alternatives.isEmpty)
       val dedup = alternatives.distinct
@@ -170,7 +170,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
           if (clean.size == 1) {
             clean.head
           } else {
-            ShlurdAmbiguousSentence(clean, true)
+            SilAmbiguousSentence(clean, true)
           }
         }
       }
@@ -178,55 +178,55 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
   }
 
   private def replaceUnresolvedWithUnrecognized = replacementMatcher {
-    case predicate : ShlurdUnresolvedStatePredicate => {
+    case predicate : SilUnresolvedStatePredicate => {
       resolveStatePredicate(predicate)
     }
-    case predicate : ShlurdUnresolvedRelationshipPredicate => {
+    case predicate : SilUnresolvedRelationshipPredicate => {
       resolveRelationshipPredicate(predicate)
     }
   }
 
   private def resolveRelationshipPredicate(
-    predicate : ShlurdUnresolvedRelationshipPredicate) =
+    predicate : SilUnresolvedRelationshipPredicate) =
   {
-    ShlurdRelationshipPredicate(
+    SilRelationshipPredicate(
       predicate.reference,
       predicate.complement,
       predicate.relationship)
   }
 
   private def resolveStatePredicate(
-    predicate : ShlurdUnresolvedStatePredicate) =
+    predicate : SilUnresolvedStatePredicate) =
   {
     predicate.state match {
-      case ShlurdConjunctiveState(DETERMINER_UNSPECIFIED, states, _) => {
+      case SilConjunctiveState(DETERMINER_UNSPECIFIED, states, _) => {
         val propertyState = states.head
         val fullySpecifiedState = {
-          if (predicate.specifiedState == ShlurdNullState()) {
+          if (predicate.specifiedState == SilNullState()) {
             if (states.size == 2) {
               states.last
             } else {
-              ShlurdConjunctiveState(DETERMINER_ALL, states.tail)
+              SilConjunctiveState(DETERMINER_ALL, states.tail)
             }
           } else {
-            ShlurdConjunctiveState(
+            SilConjunctiveState(
               DETERMINER_ALL, Seq(predicate.specifiedState) ++ states.tail)
           }
         }
         val specifiedSubject = analyzer.specifyReference(
           predicate.subject, fullySpecifiedState)
-        ShlurdStatePredicate(specifiedSubject, propertyState)
+        SilStatePredicate(specifiedSubject, propertyState)
       }
       case _ => {
         val specifiedSubject = analyzer.specifyReference(
           predicate.subject, predicate.specifiedState)
-        ShlurdStatePredicate(specifiedSubject, predicate.state)
+        SilStatePredicate(specifiedSubject, predicate.state)
       }
     }
   }
 
   private def recognizePronounReference(leaf : ShlurdSyntaxLeaf)
-      : ShlurdPronounReference=
+      : SilPronounReference=
   {
     val lemma = leaf.lemma
     val person = lemma match {
@@ -245,6 +245,6 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       case LEMMA_SHE | LEMMA_HER | LEMMA_HERS => GENDER_F
       case _ => GENDER_N
     }
-    ShlurdPronounReference(person, gender, count)
+    SilPronounReference(person, gender, count)
   }
 }

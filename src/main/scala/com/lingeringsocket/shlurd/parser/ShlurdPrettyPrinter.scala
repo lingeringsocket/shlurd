@@ -18,7 +18,7 @@ import org.kiama.output._
 
 object ShlurdPrettyPrinter extends PrettyPrinter
 {
-  def prettyPrint(phrase : ShlurdPhrase) : String =
+  def prettyPrint(phrase : SilPhrase) : String =
   {
     "\n" + pretty(any(phrase))
   }

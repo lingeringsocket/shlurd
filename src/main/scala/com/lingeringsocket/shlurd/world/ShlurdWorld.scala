@@ -21,11 +21,11 @@ import spire.math._
 import scala.util._
 import scala.collection._
 
-sealed trait ShlurdReferenceContext
-case object REF_SUBJECT extends ShlurdReferenceContext
-case object REF_COMPLEMENT extends ShlurdReferenceContext
-case object REF_LOCATION extends ShlurdReferenceContext
-case object REF_LOCATED extends ShlurdReferenceContext
+sealed trait SilReferenceContext
+case object REF_SUBJECT extends SilReferenceContext
+case object REF_COMPLEMENT extends SilReferenceContext
+case object REF_LOCATION extends SilReferenceContext
+case object REF_LOCATED extends SilReferenceContext
 
 trait ShlurdEntity
 {
@@ -43,13 +43,13 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
 
   def resolveQualifiedNoun(
     lemma : String,
-    context : ShlurdReferenceContext,
+    context : SilReferenceContext,
     qualifiers : Set[String] = Set.empty) : Try[Set[E]]
 
   def resolvePronoun(
-    person : ShlurdPerson,
-    gender : ShlurdGender,
-    count : ShlurdCount) : Try[Set[E]]
+    person : SilPerson,
+    gender : SilGender,
+    count : SilCount) : Try[Set[E]]
 
   def resolveProperty(
     entity : E,
@@ -72,17 +72,17 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
   def evaluateEntityLocationPredicate(
     entity : E,
     location : E,
-    locative : ShlurdLocative,
+    locative : SilLocative,
     qualifiers : Set[String] = Set.empty) : Try[Trilean]
 
   def specificReference(
     entity : E,
-    determiner : ShlurdDeterminer) : ShlurdReference
+    determiner : SilDeterminer) : SilReference
 
-  def qualifierSet(qualifiers : Seq[ShlurdWord]) =
+  def qualifierSet(qualifiers : Seq[SilWord]) =
     ShlurdParseUtils.orderedSet(qualifiers.map(_.lemma))
 
-  def normalizeState(entity : E, state : ShlurdState) : ShlurdState = state
+  def normalizeState(entity : E, state : SilState) : SilState = state
 }
 
 trait ShlurdNamedObject

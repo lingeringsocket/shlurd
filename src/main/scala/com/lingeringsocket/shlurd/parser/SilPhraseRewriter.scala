@@ -19,13 +19,13 @@ import org.kiama.util._
 
 import org.slf4j._
 
-class ShlurdPhraseRewriter
+class SilPhraseRewriter
 {
-  type ShlurdPhraseReplacement = PartialFunction[ShlurdPhrase, ShlurdPhrase]
+  type SilPhraseReplacement = PartialFunction[SilPhrase, SilPhrase]
 
-  type ShlurdPhraseQuery = PartialFunction[ShlurdPhrase, Unit]
+  type SilPhraseQuery = PartialFunction[SilPhrase, Unit]
 
-  private val logger = LoggerFactory.getLogger(classOf[ShlurdPhraseRewriter])
+  private val logger = LoggerFactory.getLogger(classOf[SilPhraseRewriter])
 
   object SyntaxPreservingRewriter extends CallbackRewriter
   {
@@ -33,8 +33,8 @@ class ShlurdPhraseRewriter
       oldPhrase : PhraseType, newPhrase : PhraseType) : PhraseType =
     {
       (oldPhrase, newPhrase) match {
-        case (oldMaybeTree : ShlurdPhrase,
-          newTransformed : ShlurdTransformedPhrase) =>
+        case (oldMaybeTree : SilPhrase,
+          newTransformed : SilTransformedPhrase) =>
           {
             oldMaybeTree.maybeSyntaxTree match {
               case Some(syntaxTree) => {
@@ -46,8 +46,8 @@ class ShlurdPhraseRewriter
         case _ =>
       }
       (oldPhrase, newPhrase) match {
-        case (oldPredicate : ShlurdPredicate,
-          newPredicate : ShlurdPredicate) =>
+        case (oldPredicate : SilPredicate,
+          newPredicate : SilPredicate) =>
           {
             newPredicate.setInflectedCount(oldPredicate.getInflectedCount)
           }
@@ -57,8 +57,8 @@ class ShlurdPhraseRewriter
     }
   }
 
-  def rewrite[PhraseType <: ShlurdPhrase](
-    rule : ShlurdPhraseReplacement,
+  def rewrite[PhraseType <: SilPhrase](
+    rule : SilPhraseReplacement,
     phrase : PhraseType,
     repeat : Boolean = false)
       : PhraseType =
@@ -92,37 +92,37 @@ class ShlurdPhraseRewriter
   }
 
   def query(
-    rule : ShlurdPhraseQuery,
-    phrase : ShlurdPhrase)
+    rule : SilPhraseQuery,
+    phrase : SilPhrase)
   {
     val strategy =
       Rewriter.manybu(
         "rewriteEverywhere",
-        Rewriter.query[ShlurdPhrase](rule))
+        Rewriter.query[SilPhrase](rule))
     Rewriter.rewrite(strategy)(phrase)
   }
 
-  def replacementMatcher(f : ShlurdPhraseReplacement)
-      : ShlurdPhraseReplacement = f
+  def replacementMatcher(f : SilPhraseReplacement)
+      : SilPhraseReplacement = f
 
-  def queryMatcher(f : ShlurdPhraseQuery)
-      : ShlurdPhraseQuery = f
+  def queryMatcher(f : SilPhraseQuery)
+      : SilPhraseQuery = f
 
-  def combineRules(rules : ShlurdPhraseReplacement*)
-      : ShlurdPhraseReplacement =
+  def combineRules(rules : SilPhraseReplacement*)
+      : SilPhraseReplacement =
   {
     rules.reduceLeft(_ orElse _)
   }
 
   private def rememberTransformation(
     syntaxTree : ShlurdSyntaxTree,
-    phrase : ShlurdPhrase) =
+    phrase : SilPhrase) =
   {
     phrase match {
-      case transformedPhrase : ShlurdTransformedPhrase => {
+      case transformedPhrase : SilTransformedPhrase => {
         transformedPhrase.rememberSyntaxTree(syntaxTree)
       }
-      case _ => assert(phrase.isInstanceOf[ShlurdUnknownPhrase])
+      case _ => assert(phrase.isInstanceOf[SilUnknownPhrase])
     }
     phrase
   }

@@ -19,7 +19,7 @@ import com.lingeringsocket.shlurd.parser._
 import ShlurdEnglishLemmas._
 
 class EnglishSentenceBundle
-    extends ShlurdSentenceBundle
+    extends SilSentenceBundle
 {
   override def statePredicateStatement(
     subject : String, copula : Seq[String], state : String) =
@@ -46,7 +46,7 @@ class EnglishSentenceBundle
 
   override def statePredicateQuestion(
     subject : String, copula : Seq[String], state : String,
-    question : Option[ShlurdQuestion]) =
+    question : Option[SilQuestion]) =
   {
     if (!question.isEmpty) {
       compose((Seq(subject) ++ copula.take(2).reverse ++
@@ -86,8 +86,8 @@ class EnglishSentenceBundle
     compose(state, subject)
 
   private def modalCopula(
-    mood : ShlurdMood, verbLemma : String,
-    person : ShlurdPerson, count : ShlurdCount) =
+    mood : SilMood, verbLemma : String,
+    person : SilPerson, count : SilCount) =
   {
     val modality = {
       verbLemma match {
@@ -126,8 +126,8 @@ class EnglishSentenceBundle
   }
 
   override def copula(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    mood : ShlurdMood, isExistential : Boolean,
+    person : SilPerson, gender : SilGender, count : SilCount,
+    mood : SilMood, isExistential : Boolean,
     verbLemma : String) : Seq[String] =
   {
     if ((verbLemma != LEMMA_BE) && mood.isNegative) {
@@ -185,7 +185,7 @@ class EnglishSentenceBundle
     }
   }
 
-  override def position(locative : ShlurdLocative) =
+  override def position(locative : SilLocative) =
   {
     locative match {
       case LOC_INSIDE => LEMMA_IN
@@ -205,15 +205,15 @@ class EnglishSentenceBundle
   }
 
   override def changeStateVerb(
-    state : ShlurdWord, changeVerb : Option[ShlurdWord]) =
+    state : SilWord, changeVerb : Option[SilWord]) =
   {
     compose(changeVerb.map(_.lemmaUnfolded).getOrElse(""), state.lemmaUnfolded)
   }
 
   override def delemmatizeNoun(
-    entity : ShlurdWord, count : ShlurdCount,
-    inflection : ShlurdInflection,
-    conjoining : ShlurdConjoining) =
+    entity : SilWord, count : SilCount,
+    inflection : SilInflection,
+    conjoining : SilConjoining) =
   {
     val unseparated = {
       if (entity.inflected.isEmpty || (inflection == INFLECT_GENITIVE)) {
@@ -258,7 +258,7 @@ class EnglishSentenceBundle
   }
 
   override def delemmatizeState(
-    state : ShlurdWord, mood : ShlurdMood, conjoining : ShlurdConjoining) =
+    state : SilWord, mood : SilMood, conjoining : SilConjoining) =
   {
     val unseparated = {
       if (state.inflected.isEmpty) {
@@ -277,7 +277,7 @@ class EnglishSentenceBundle
     separate(unseparated, conjoining)
   }
 
-  override def delemmatizeQualifier(qualifier : ShlurdWord) =
+  override def delemmatizeQualifier(qualifier : SilWord) =
   {
     if (qualifier.inflected.isEmpty) {
       qualifier.lemmaUnfolded
@@ -287,9 +287,9 @@ class EnglishSentenceBundle
   }
 
   override def conjoin(
-    determiner : ShlurdDeterminer,
-    separator : ShlurdSeparator,
-    inflection : ShlurdInflection,
+    determiner : SilDeterminer,
+    separator : SilSeparator,
+    inflection : SilInflection,
     items : Seq[String]) =
   {
     val prefix = determiner match {
@@ -321,12 +321,12 @@ class EnglishSentenceBundle
     compose((Seq(prefix) ++ seq ++ Seq(items.last)):_*)
   }
 
-  override def composeQualifiers(qualifiers : Seq[ShlurdWord]) =
+  override def composeQualifiers(qualifiers : Seq[SilWord]) =
   {
     compose(qualifiers.map(delemmatizeQualifier(_)) :_*)
   }
 
-  override def query(noun : String, question : Option[ShlurdQuestion]) =
+  override def query(noun : String, question : Option[SilQuestion]) =
   {
     question match {
       case Some(QUESTION_WHICH) => {
@@ -353,7 +353,7 @@ class EnglishSentenceBundle
     compose(noun, specifier)
   }
 
-  override def determinedNoun(determiner : ShlurdDeterminer, noun : String) =
+  override def determinedNoun(determiner : SilDeterminer, noun : String) =
   {
     val determinerString = determiner match {
       case DETERMINER_UNSPECIFIED => ""
@@ -375,7 +375,7 @@ class EnglishSentenceBundle
   }
 
   override def locationalNoun(
-    position : String, noun : String, conjoining : ShlurdConjoining) =
+    position : String, noun : String, conjoining : SilConjoining) =
   {
     separate(compose(position, noun), conjoining)
   }
@@ -386,8 +386,8 @@ class EnglishSentenceBundle
   }
 
   override def pronoun(
-    person : ShlurdPerson, gender : ShlurdGender, count : ShlurdCount,
-    inflection : ShlurdInflection, conjoining : ShlurdConjoining) =
+    person : SilPerson, gender : SilGender, count : SilCount,
+    inflection : SilInflection, conjoining : SilConjoining) =
   {
     val unseparated = {
       person match {
@@ -479,13 +479,13 @@ class EnglishSentenceBundle
     compose("But", sentence.stripSuffix("."), "already.")
   }
 
-  override def respondAmbiguous(noun : ShlurdWord) =
+  override def respondAmbiguous(noun : SilWord) =
   {
     compose("Please be more specific about which",
       noun.lemmaUnfolded, "you mean.")
   }
 
-  override def respondUnknown(word : ShlurdWord) =
+  override def respondUnknown(word : SilWord) =
   {
     compose("Sorry, I don't know what you mean by",
       concat("'", word.lemmaUnfolded, "'."))
@@ -497,7 +497,7 @@ class EnglishSentenceBundle
       concat("'", pronoun, "'"), "I don't know who or what you mean.")
   }
 
-  override def respondNonexistent(noun : ShlurdWord) =
+  override def respondNonexistent(noun : SilWord) =
   {
     compose("But I don't know about any such",
       concat(noun.lemmaUnfolded, "."))
@@ -514,13 +514,13 @@ class EnglishSentenceBundle
   }
 
   override def respondNotUnderstood(
-    mood : ShlurdMood, predicate : String, errorPhrase : String) =
+    mood : SilMood, predicate : String, errorPhrase : String) =
   {
     val prefix = mood match {
-      case _ : ShlurdIndicativeMood => {
+      case _ : SilIndicativeMood => {
         "I think you are saying"
       }
-      case _ : ShlurdInterrogativeMood => {
+      case _ : SilInterrogativeMood => {
         "I think you are asking"
       }
       case MOOD_IMPERATIVE => {
@@ -535,9 +535,9 @@ class EnglishSentenceBundle
   }
 
   override def predicateUnrecognizedSubject(
-    mood : ShlurdMood, complement : String, copula : Seq[String],
-    count : ShlurdCount, changeVerb : Option[ShlurdWord],
-    question : Option[ShlurdQuestion]) =
+    mood : SilMood, complement : String, copula : Seq[String],
+    count : SilCount, changeVerb : Option[SilWord],
+    question : Option[SilQuestion]) =
   {
     val entity = count match {
       case COUNT_SINGULAR => {
@@ -555,11 +555,11 @@ class EnglishSentenceBundle
       }
     }
     mood match {
-      case _ : ShlurdIndicativeMood => {
+      case _ : SilIndicativeMood => {
         compose("that",
           composePredicateStatement(something, copula, complement))
       }
-      case _ : ShlurdInterrogativeMood => {
+      case _ : SilInterrogativeMood => {
         val whord = {
           if (question.isEmpty) {
             "whether"
@@ -578,9 +578,9 @@ class EnglishSentenceBundle
   }
 
   override def predicateUnrecognizedComplement(
-    mood : ShlurdMood, subject : String,
+    mood : SilMood, subject : String,
     copula : Seq[String],
-    question : Option[ShlurdQuestion],
+    question : Option[SilQuestion],
     isRelationship : Boolean) =
   {
     mood match {

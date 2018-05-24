@@ -36,12 +36,12 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
 
   private val roomyRooms = new mutable.LinkedHashSet[String]
 
-  instantiateForm(ShlurdWord(locationFormName))
-  instantiateForm(ShlurdWord(presenceFormName))
+  instantiateForm(SilWord(locationFormName))
+  instantiateForm(SilWord(presenceFormName))
 
   override def resolveQualifiedNoun(
     lemma : String,
-    context : ShlurdReferenceContext,
+    context : SilReferenceContext,
     qualifiers : Set[String]) : Try[Set[ShlurdPlatonicEntity]] =
   {
     val rewrittenLemma = {
@@ -133,7 +133,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
 
   override def specificReference(
     entity : ShlurdPlatonicEntity,
-    determiner : ShlurdDeterminer) =
+    determiner : SilDeterminer) =
   {
     if (entity.form.name == locationFormName) {
       val seq = entity.qualifiers.toSeq
@@ -145,18 +145,18 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
           seq.last
         }
       }
-      val ref = ShlurdNounReference(
-        ShlurdWord(realForm),
+      val ref = SilNounReference(
+        SilWord(realForm),
         determiner)
       if (specialRoom) {
-          ShlurdReference.qualified(
-            ref, seq.map(x => ShlurdWord(x)))
+          SilReference.qualified(
+            ref, seq.map(x => SilWord(x)))
       } else {
         if (seq.size == 1) {
           ref
         } else {
-          ShlurdReference.qualified(
-            ref, seq.dropRight(1).map(x => ShlurdWord(x)))
+          SilReference.qualified(
+            ref, seq.dropRight(1).map(x => SilWord(x)))
         }
       }
     } else {
@@ -185,9 +185,9 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
               case Some(floorEntity) => {
                 val floorRef =
                   specificReference(floorEntity, DETERMINER_UNIQUE)
-                ShlurdStateSpecifiedReference(
+                SilStateSpecifiedReference(
                   ref,
-                  ShlurdLocationState(
+                  SilLocationState(
                     LOC_ON,
                     floorRef))
               }
@@ -235,7 +235,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
   override def evaluateEntityLocationPredicate(
     entity : ShlurdPlatonicEntity,
     location : ShlurdPlatonicEntity,
-    locative : ShlurdLocative,
+    locative : SilLocative,
     qualifiers : Set[String]) : Try[Trilean] =
   {
     if (locative == LOC_GENITIVE_OF) {
@@ -250,7 +250,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
   def evaluateLocationPredicate(
     entity : ShlurdPlatonicEntity,
     location : ShlurdPlatonicEntity,
-    locative : ShlurdLocative) : Boolean =
+    locative : SilLocative) : Boolean =
   {
     groupMap.get(entity.name) match {
       case Some(groupNames) => {

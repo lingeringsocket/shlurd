@@ -16,25 +16,25 @@ package com.lingeringsocket.shlurd.world
 
 import com.lingeringsocket.shlurd.parser._
 
-class ShlurdQueryRewriter extends ShlurdPhraseRewriter
+class ShlurdQueryRewriter extends SilPhraseRewriter
 {
   def rewriteSpecifier = replacementMatcher {
-    case ShlurdNounReference(
+    case SilNounReference(
       noun, DETERMINER_UNSPECIFIED, count
     ) =>
       {
-        ShlurdNounReference(noun, DETERMINER_ANY, count)
+        SilNounReference(noun, DETERMINER_ANY, count)
       }
   }
 
   def rewritePredicate = replacementMatcher {
-    case ShlurdStatePredicate(subject, state) => {
-      ShlurdStatePredicate(
+    case SilStatePredicate(subject, state) => {
+      SilStatePredicate(
         rewrite(rewriteSpecifier, subject),
         state)
     }
-    case ShlurdRelationshipPredicate(subject, complement, relationship) => {
-      ShlurdRelationshipPredicate(
+    case SilRelationshipPredicate(subject, complement, relationship) => {
+      SilRelationshipPredicate(
         rewrite(rewriteSpecifier, subject),
         complement, relationship)
     }

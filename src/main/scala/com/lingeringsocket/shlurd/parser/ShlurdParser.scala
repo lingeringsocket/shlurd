@@ -30,20 +30,20 @@ import ShlurdParseUtils._
 
 trait ShlurdParser
 {
-  def parseOne() : ShlurdSentence
+  def parseOne() : SilSentence
 
-  def parseFirst() : ShlurdSentence
+  def parseFirst() : SilSentence
 
-  def parseAll() : Seq[ShlurdSentence]
+  def parseAll() : Seq[SilSentence]
 }
 
 class ShlurdFallbackParser(
   parsers : Seq[() => ShlurdParser])
     extends ShlurdParser
 {
-  override def parseOne() : ShlurdSentence =
+  override def parseOne() : SilSentence =
   {
-    var best : Option[ShlurdSentence] = None
+    var best : Option[SilSentence] = None
     var bestCount = Int.MaxValue
     parsers.foreach(parserSupplier => {
       val parser = parserSupplier()
@@ -79,7 +79,7 @@ class ShlurdSingleParser(
           new ShlurdSyntaxAnalyzer(guessedQuestion))
         parsingRewriter.parseSentence(sentenceSyntaxTree)
       }
-      case _ => ShlurdUnrecognizedSentence(tree)
+      case _ => SilUnrecognizedSentence(tree)
     }
   }
 
@@ -93,7 +93,7 @@ class ShlurdSingleParser(
 class ShlurdMultipleParser(singles : Seq[ShlurdParser])
     extends ShlurdParser
 {
-  override def parseOne() : ShlurdSentence =
+  override def parseOne() : SilSentence =
   {
     assert(singles.size == 1)
     parseFirst
