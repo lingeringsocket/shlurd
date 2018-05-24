@@ -24,12 +24,14 @@ class ShlurdPlatonicCreedSpec extends Specification
   {
     protected val world = new ShlurdPlatonicWorld
 
+    protected val interpreter = new ShlurdPlatonicBeliefInterpreter(world)
+
     protected val creed = new ShlurdPlatonicCreed(world)
 
     protected def addBelief(input : String) =
     {
       val sentence = ShlurdParser(input).parseOne
-      world.addBelief(sentence)
+      interpreter.interpretBelief(sentence)
     }
 
     protected def expectPreserved(

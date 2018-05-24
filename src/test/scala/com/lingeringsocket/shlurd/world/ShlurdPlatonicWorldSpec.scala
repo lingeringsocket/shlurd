@@ -28,10 +28,12 @@ class ShlurdPlatonicWorldSpec extends Specification
   {
     protected val world = new ShlurdPlatonicWorld
 
+    protected val interpreter = new ShlurdPlatonicBeliefInterpreter(world)
+
     protected def addBelief(input : String) =
     {
       val sentence = ShlurdParser(input).parseOne
-      world.addBelief(sentence)
+      interpreter.interpretBelief(sentence)
     }
 
     protected def expectUniqueForm(name : String) =

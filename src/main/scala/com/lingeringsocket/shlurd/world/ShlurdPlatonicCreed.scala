@@ -116,7 +116,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     edge : FormAssocEdge
   ) : SilSentence =
   {
-    val constraint = world.getAssocConstraint(edge)
+    val constraint = world.getAssocConstraint(edge).get
     val isProperty = world.getPropertyEdges.contains(edge)
     val count = {
       if (constraint.upper == 1) {
