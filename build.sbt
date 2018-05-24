@@ -8,9 +8,11 @@ scalaVersion := "2.11.12"
 
 scalastyleFailOnError := true
 
-scalacOptions := Seq(
-  "-unchecked", "-feature", "-Xlint", "-Ywarn-unused-import",
+val scalacCommonOptions = Seq(
+  "-unchecked", "-feature", "-Xlint",
   "-deprecation", "-Xfatal-warnings", "-Yrangepos")
+
+scalacOptions := scalacCommonOptions :+ "-Ywarn-unused-import"
 
 maxErrors := 99
 
@@ -28,3 +30,11 @@ libraryDependencies ++= Seq(
 )
 
 publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath+"/.ivy2/local/com.lingeringsocket.shlurd")))
+
+scalacOptions in (Compile, console) := scalacCommonOptions :+ "-Yrepl-sync"
+
+initialCommands := """
+import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.print._
+import com.lingeringsocket.shlurd.world._
+"""
