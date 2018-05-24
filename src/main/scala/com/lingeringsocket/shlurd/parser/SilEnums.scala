@@ -33,20 +33,20 @@ case object DETERMINER_SOME extends SilDeterminer
 case object DETERMINER_ALL extends SilDeterminer
 case object DETERMINER_UNSPECIFIED extends SilDeterminer
 
-sealed trait SilLocative
-case object LOC_INSIDE extends SilLocative
-case object LOC_OUTSIDE extends SilLocative
-case object LOC_AT extends SilLocative
-case object LOC_AS extends SilLocative
-case object LOC_NEAR extends SilLocative
-case object LOC_ON extends SilLocative
-case object LOC_ABOVE extends SilLocative
-case object LOC_BELOW extends SilLocative
-case object LOC_LEFT extends SilLocative
-case object LOC_RIGHT extends SilLocative
-case object LOC_FRONT extends SilLocative
-case object LOC_BEHIND extends SilLocative
-case object LOC_GENITIVE_OF extends SilLocative
+sealed trait SilAdposition
+case object ADP_INSIDE extends SilAdposition
+case object ADP_OUTSIDE extends SilAdposition
+case object ADP_AT extends SilAdposition
+case object ADP_AS extends SilAdposition
+case object ADP_NEAR extends SilAdposition
+case object ADP_ON extends SilAdposition
+case object ADP_ABOVE extends SilAdposition
+case object ADP_BELOW extends SilAdposition
+case object ADP_LEFT extends SilAdposition
+case object ADP_RIGHT extends SilAdposition
+case object ADP_FRONT extends SilAdposition
+case object ADP_BEHIND extends SilAdposition
+case object ADP_GENITIVE_OF extends SilAdposition
 
 sealed trait SilCount
 case object COUNT_SINGULAR extends SilCount

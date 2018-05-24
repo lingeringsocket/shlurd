@@ -432,20 +432,20 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     val prep = seq.head.unwrapPhrase
     if ((seq.size == 2) && (prep.isPreposition || prep.isAdverb)) {
       val prepLemma = prep.firstChild.lemma
-      val locative = prepLemma match {
-        case LEMMA_IN | LEMMA_INSIDE | LEMMA_WITHIN => LOC_INSIDE
-        case LEMMA_OUTSIDE => LOC_OUTSIDE
-        case LEMMA_AT => LOC_AT
-        case LEMMA_AS => LOC_AS
-        case LEMMA_NEAR | LEMMA_NEARBY => LOC_NEAR
-        case LEMMA_ON => LOC_ON
-        case LEMMA_ABOVE | LEMMA_OVER => LOC_ABOVE
+      val adposition = prepLemma match {
+        case LEMMA_IN | LEMMA_INSIDE | LEMMA_WITHIN => ADP_INSIDE
+        case LEMMA_OUTSIDE => ADP_OUTSIDE
+        case LEMMA_AT => ADP_AT
+        case LEMMA_AS => ADP_AS
+        case LEMMA_NEAR | LEMMA_NEARBY => ADP_NEAR
+        case LEMMA_ON => ADP_ON
+        case LEMMA_ABOVE | LEMMA_OVER => ADP_ABOVE
         case LEMMA_BELOW | LEMMA_UNDER | LEMMA_BENEATH |
-            LEMMA_UNDERNEATH => LOC_BELOW
-        case LEMMA_BEHIND => LOC_BEHIND
+            LEMMA_UNDERNEATH => ADP_BELOW
+        case LEMMA_BEHIND => ADP_BEHIND
         case _ => return SilUnrecognizedState(tree)
       }
-      SilLocationState(locative, expectReference(seq.last))
+      SilAdpositionalState(adposition, expectReference(seq.last))
     } else {
       SilUnrecognizedState(tree)
     }

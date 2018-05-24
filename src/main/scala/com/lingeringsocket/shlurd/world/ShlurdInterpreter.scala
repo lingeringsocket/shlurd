@@ -390,7 +390,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       : Try[Trilean] =
   {
     val context = originalState match {
-      case _ : SilLocationState => REF_LOCATED
+      case _ : SilAdpositionalState => REF_LOCATED
       case _ => REF_SUBJECT
     }
     evaluatePredicateOverReference(subjectRef, context, resultCollector)
@@ -407,9 +407,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case SilPropertyState(word) => {
             evaluatePropertyStatePredicate(entity, word, resultCollector)
           }
-          case SilLocationState(locative, location) => {
-            evaluateLocationStatePredicate(
-              entity, locative, location, resultCollector)
+          case SilAdpositionalState(adposition, objRef) => {
+            evaluateAdpositionStatePredicate(
+              entity, adposition, objRef, resultCollector)
           }
           case _ => {
             debug(s"UNEXPECTED STATE : $normalizedState")
@@ -452,11 +452,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
           case _ => Set.empty
         }
-        val result = world.evaluateEntityLocationPredicate(
+        val result = world.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,
-          LOC_GENITIVE_OF, qualifiers)
+          ADP_GENITIVE_OF, qualifiers)
         debug("RESULT FOR " +
-          s"$complementEntity LOC_GENITIVE_OF " +
+          s"$complementEntity ADP_GENITIVE_OF " +
           s"$subjectEntity with $qualifiers is $result")
         result
       }
@@ -521,32 +521,32 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             debug(s"CANDIDATE ENTITIES : $unfilteredEntities")
             // probably we should be pushing filters down into
             // resolveQualifiedNoun for efficiency
-            val locationStates =
-              SilReference.extractLocationSpecifiers(specifiedState)
+            val adpositionStates =
+              SilReference.extractAdpositionSpecifiers(specifiedState)
             val entities = {
-              if (locationStates.isEmpty) {
+              if (adpositionStates.isEmpty) {
                 unfilteredEntities
               } else {
                 // should probably be doing some caching for
                 // reference -> entity lookups
                 unfilteredEntities.filter(subjectEntity =>
-                  locationStates.forall(ls => {
-                    val locative = ls.locative
+                  adpositionStates.forall(adp => {
+                    val adposition = adp.adposition
                     val evaluation = evaluatePredicateOverReference(
-                      ls.location, REF_LOCATION, new ResultCollector[E])
+                      adp.objRef, REF_LOCATION, new ResultCollector[E])
                     {
-                      locationEntity => {
+                      objEntity => {
                         val qualifiers : Set[String] = {
-                          if (locative == LOC_GENITIVE_OF) {
+                          if (adposition == ADP_GENITIVE_OF) {
                             Set(lemma)
                           } else {
                             Set.empty
                           }
                         }
-                        val result = world.evaluateEntityLocationPredicate(
-                          subjectEntity, locationEntity, locative, qualifiers)
+                        val result = world.evaluateEntityAdpositionPredicate(
+                          subjectEntity, objEntity, adposition, qualifiers)
                         debug("RESULT FOR " +
-                          s"$subjectEntity $locative $locationEntity " +
+                          s"$subjectEntity $adposition $objEntity " +
                           s"with $qualifiers is $result")
                         result
                       }
@@ -639,7 +639,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           sub, subState, context, resultCollector, specifiedState, evaluator)
       }
       case SilGenitiveReference(possessor, possessee) => {
-        val state = SilLocationState(LOC_GENITIVE_OF, possessor)
+        val state = SilAdpositionalState(ADP_GENITIVE_OF, possessor)
         evaluatePredicateOverState(
           possessee, state, context, resultCollector, specifiedState, evaluator)
       }
@@ -705,21 +705,21 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     result
   }
 
-  private def evaluateLocationStatePredicate(
-    subjectEntity : E, locative : SilLocative,
-    locationRef : SilReference,
+  private def evaluateAdpositionStatePredicate(
+    subjectEntity : E, adposition : SilAdposition,
+    objRef : SilReference,
     resultCollector : ResultCollector[E])
       : Try[Trilean] =
   {
-    val locationCollector = new ResultCollector[E]
+    val objCollector = new ResultCollector[E]
     evaluatePredicateOverReference(
-      locationRef, REF_LOCATION, locationCollector)
+      objRef, REF_LOCATION, objCollector)
     {
-      locationEntity => {
-        val result = world.evaluateEntityLocationPredicate(
-          subjectEntity, locationEntity, locative)
+      objEntity => {
+        val result = world.evaluateEntityAdpositionPredicate(
+          subjectEntity, objEntity, adposition)
         debug("RESULT FOR " +
-          s"$subjectEntity $locative $locationEntity is $result")
+          s"$subjectEntity $adposition $objEntity is $result")
         result
       }
     }

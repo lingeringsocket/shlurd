@@ -185,22 +185,22 @@ class EnglishSentenceBundle
     }
   }
 
-  override def position(locative : SilLocative) =
+  override def adpositionString(adposition : SilAdposition) =
   {
-    locative match {
-      case LOC_INSIDE => LEMMA_IN
-      case LOC_OUTSIDE => "outside of"
-      case LOC_AT => LEMMA_AT
-      case LOC_AS => LEMMA_AS
-      case LOC_NEAR => LEMMA_NEAR
-      case LOC_ON => LEMMA_ON
-      case LOC_ABOVE => LEMMA_ABOVE
-      case LOC_BELOW => LEMMA_BELOW
-      case LOC_LEFT => "to the left of"
-      case LOC_RIGHT => "to the right of"
-      case LOC_FRONT => "in front of"
-      case LOC_BEHIND => LEMMA_BEHIND
-      case LOC_GENITIVE_OF => LEMMA_OF
+    adposition match {
+      case ADP_INSIDE => LEMMA_IN
+      case ADP_OUTSIDE => "outside of"
+      case ADP_AT => LEMMA_AT
+      case ADP_AS => LEMMA_AS
+      case ADP_NEAR => LEMMA_NEAR
+      case ADP_ON => LEMMA_ON
+      case ADP_ABOVE => LEMMA_ABOVE
+      case ADP_BELOW => LEMMA_BELOW
+      case ADP_LEFT => "to the left of"
+      case ADP_RIGHT => "to the right of"
+      case ADP_FRONT => "in front of"
+      case ADP_BEHIND => LEMMA_BEHIND
+      case ADP_GENITIVE_OF => LEMMA_OF
     }
   }
 
@@ -374,7 +374,7 @@ class EnglishSentenceBundle
     compose(determinerString, noun)
   }
 
-  override def locationalNoun(
+  override def adpositionedNoun(
     position : String, noun : String, conjoining : SilConjoining) =
   {
     separate(compose(position, noun), conjoining)

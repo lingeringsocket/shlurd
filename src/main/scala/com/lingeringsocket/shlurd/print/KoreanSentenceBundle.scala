@@ -86,24 +86,24 @@ class KoreanSentenceBundle extends SilSentenceBundle
     }
   }
 
-  override def position(locative : SilLocative) =
+  override def adpositionString(adposition : SilAdposition) =
   {
-    val pos = locative match {
-      case LOC_INSIDE => "안"
-      case LOC_OUTSIDE => "밖"
-      case LOC_AT => ""
-      case LOC_AS => "FIXME"
+    val pos = adposition match {
+      case ADP_INSIDE => "안"
+      case ADP_OUTSIDE => "밖"
+      case ADP_AT => ""
+      case ADP_AS => "FIXME"
       // FIXME:  distinguish "near" from "next to"
-      case LOC_NEAR => "근처"
-      case LOC_ON => "위"
-      case LOC_ABOVE => "위"
-      case LOC_BELOW => "밑"
+      case ADP_NEAR => "근처"
+      case ADP_ON => "위"
+      case ADP_ABOVE => "위"
+      case ADP_BELOW => "밑"
       // FIXME:  need to attach 의 to previous word
-      case LOC_LEFT => "왼쪽"
-      case LOC_RIGHT => "오른쪽"
-      case LOC_FRONT => "앞"
-      case LOC_BEHIND => "뒤"
-      case LOC_GENITIVE_OF => "FIXME"
+      case ADP_LEFT => "왼쪽"
+      case ADP_RIGHT => "오른쪽"
+      case ADP_FRONT => "앞"
+      case ADP_BEHIND => "뒤"
+      case ADP_GENITIVE_OF => "FIXME"
     }
     // later need to distinguish 에 from 에서
     compose(concat(pos, "에"), "있어요")
@@ -187,7 +187,7 @@ class KoreanSentenceBundle extends SilSentenceBundle
     compose(determinerString, noun)
   }
 
-  override def locationalNoun(
+  override def adpositionedNoun(
     position : String, noun : String, conjoining : SilConjoining) =
   {
     // FIXME:  need to overhaul caller

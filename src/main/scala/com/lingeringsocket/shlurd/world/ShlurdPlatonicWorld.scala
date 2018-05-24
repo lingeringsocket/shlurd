@@ -245,9 +245,10 @@ class ShlurdPlatonicWorld
 
   def getEntities : Map[String, ShlurdPlatonicEntity] = entities
 
-  protected[world] def getPropertyEdges = propertyEdges.toSet
+  protected[world] def getPropertyEdges = propertyEdges
 
-  protected[world] def getAssocConstraints = assocConstraints.toMap
+  protected[world] def getAssocConstraint(edge : FormAssocEdge) =
+    assocConstraints(edge)
 
   def clear()
   {
@@ -454,7 +455,7 @@ class ShlurdPlatonicWorld
             ref match {
               case SilStateSpecifiedReference(
                 _, specifiedState @
-                  (_ : SilLocationState | _ : SilPropertyState)) =>
+                  (_ : SilAdpositionalState | _ : SilPropertyState)) =>
               {
                 // "a television that is on the blink is broken"
                 // or "a television that is busted is broken"
@@ -493,13 +494,13 @@ class ShlurdPlatonicWorld
             val property = complement match {
               case SilStateSpecifiedReference(
                 _,
-                SilLocationState(locative, location)) =>
+                SilAdpositionalState(adposition, objRef)) =>
                 {
-                  if (locative != LOC_AS) {
+                  if (adposition != ADP_AS) {
                     throw new IncomprehensibleBelief(sentence)
                   }
                   // "A television has a volume as a property"
-                  location match {
+                  objRef match {
                     case SilNounReference(
                       SilWord(LEMMA_PROPERTY, LEMMA_PROPERTY),
                       DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
@@ -792,21 +793,21 @@ class ShlurdPlatonicWorld
     Success(Trilean.Unknown)
   }
 
-  override def evaluateEntityLocationPredicate(
+  override def evaluateEntityAdpositionPredicate(
     entity : ShlurdPlatonicEntity,
-    location : ShlurdPlatonicEntity,
-    locative : SilLocative,
+    objRef : ShlurdPlatonicEntity,
+    adposition : SilAdposition,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    if (locative == LOC_GENITIVE_OF) {
+    if (adposition == ADP_GENITIVE_OF) {
       if (!entityAssocs.containsVertex(entity) ||
-        !entityAssocs.containsVertex(location) ||
+        !entityAssocs.containsVertex(objRef) ||
         (qualifiers.size != 1))
       {
         Success(Trilean.False)
       } else {
         val label = qualifiers.head
-        Success(Trilean(isEntityAssoc(location, entity, label)))
+        Success(Trilean(isEntityAssoc(objRef, entity, label)))
       }
     } else {
       Success(Trilean.Unknown)

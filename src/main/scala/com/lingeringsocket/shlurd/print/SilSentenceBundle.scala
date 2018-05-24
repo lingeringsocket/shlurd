@@ -114,7 +114,7 @@ abstract class SilSentenceBundle
     mood : SilMood, isExistential : Boolean,
     verbLemma : String) : Seq[String]
 
-  def position(locative : SilLocative) : String
+  def adpositionString(adposition : SilAdposition) : String
 
   def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) : String
@@ -146,7 +146,7 @@ abstract class SilSentenceBundle
 
   def determinedNoun(determiner : SilDeterminer, noun : String) : String
 
-  def locationalNoun(
+  def adpositionedNoun(
     position : String, noun : String, conjoining : SilConjoining) : String
 
   def respondToQuery(sentence : String) : String

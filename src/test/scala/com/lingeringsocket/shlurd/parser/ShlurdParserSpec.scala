@@ -142,8 +142,8 @@ class ShlurdParserSpec extends Specification
       val expected = SilPredicateQuery(
         SilStatePredicate(
           SilNounReference(NOUN_WHO),
-          SilLocationState(
-            LOC_AT,
+          SilAdpositionalState(
+            ADP_AT,
             SilNounReference(NOUN_HOME))),
         QUESTION_WHO, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
@@ -315,27 +315,27 @@ class ShlurdParserSpec extends Specification
             SilPropertyState(STATE_OPEN)))
     }
 
-    "parse locatives" in
+    "parse adpositions" in
     {
       val input = "is Franny at home"
       parse(input) must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
             SilNounReference(NOUN_FRANNY),
-            SilLocationState(
-              LOC_AT,
+            SilAdpositionalState(
+              ADP_AT,
               SilNounReference(NOUN_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
     }
 
-    "parse locative specifiers" in
+    "parse adposition specifiers" in
     {
       val pred = SilStatePredicate(
         SilStateSpecifiedReference(
           SilNounReference(
             NOUN_WINDOW, DETERMINER_UNIQUE, COUNT_SINGULAR),
-          SilLocationState(
-            LOC_INSIDE,
+          SilAdpositionalState(
+            ADP_INSIDE,
             SilNounReference(
               NOUN_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR)
           )
@@ -374,8 +374,8 @@ class ShlurdParserSpec extends Specification
             SilGenitiveReference(
               SilPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
               SilNounReference(NOUN_GRANDDAUGHTER)),
-            SilLocationState(
-              LOC_AT,
+            SilAdpositionalState(
+              ADP_AT,
               SilNounReference(NOUN_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
     }

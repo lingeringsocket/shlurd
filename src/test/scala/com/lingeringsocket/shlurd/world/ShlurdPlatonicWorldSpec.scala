@@ -234,8 +234,8 @@ class ShlurdPlatonicWorldSpec extends Specification
       val entity = lana.get.head
       world.normalizeState(
         entity,
-        SilLocationState(
-          LOC_AT,
+        SilAdpositionalState(
+          ADP_AT,
           SilNounReference(SilWord("home")))
       ) must be equalTo(
         SilPropertyState(SilWord("present"))

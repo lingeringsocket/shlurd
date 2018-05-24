@@ -44,7 +44,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     ) ++ {
       val assocGraph = world.getFormAssocGraph
       if (assocGraph.containsVertex(form)) {
-        assocGraph.outgoingEdgesOf(form).asScala.map(
+        assocGraph.outgoingEdgesOf(form).asScala.toSeq.map(
           formAssociationBelief(_))
       } else {
         Iterable.empty
@@ -57,7 +57,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     Seq(entityFormBelief(entity)) ++ {
       val assocGraph = world.getEntityAssocGraph
       if (assocGraph.containsVertex(entity)) {
-        assocGraph.outgoingEdgesOf(entity).asScala.map(
+        assocGraph.outgoingEdgesOf(entity).asScala.toSeq.map(
           entityAssociationBelief(_))
       } else {
         Iterable.empty
@@ -116,7 +116,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     edge : FormAssocEdge
   ) : SilSentence =
   {
-    val constraint = world.getAssocConstraints(edge)
+    val constraint = world.getAssocConstraint(edge)
     val isProperty = world.getPropertyEdges.contains(edge)
     val count = {
       if (constraint.upper == 1) {
@@ -130,8 +130,8 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
       if (isProperty) {
         SilStateSpecifiedReference(
           possesseeNoun,
-          SilLocationState(
-            LOC_AS,
+          SilAdpositionalState(
+            ADP_AS,
             nounReference(LEMMA_PROPERTY))
         )
       } else {

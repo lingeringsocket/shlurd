@@ -632,21 +632,21 @@ class ShlurdInterpreterSpec extends Specification
       }
     }
 
-    override def evaluateEntityLocationPredicate(
+    override def evaluateEntityAdpositionPredicate(
       entity : ShlurdEntity,
-      location : ShlurdEntity,
-      locative : SilLocative,
+      objEntity : ShlurdEntity,
+      adposition : SilAdposition,
       qualifiers : Set[String]) : Try[Trilean] =
     {
-      val map = locative match {
-        case LOC_GENITIVE_OF => {
-          if (!location.isInstanceOf[ZooPersonEntity]) {
+      val map = adposition match {
+        case ADP_GENITIVE_OF => {
+          if (!objEntity.isInstanceOf[ZooPersonEntity]) {
             return Success(Trilean.False)
           }
           ownership
         }
-        case LOC_INSIDE | LOC_ON => {
-          if (!location.isInstanceOf[ZooLocationEntity]) {
+        case ADP_INSIDE | ADP_ON => {
+          if (!objEntity.isInstanceOf[ZooLocationEntity]) {
             return Success(Trilean.False)
           }
           containment
@@ -657,7 +657,7 @@ class ShlurdInterpreterSpec extends Specification
       }
       map.get(entity) match {
         case Some(actualLocation) =>
-          Success(Trilean(location == actualLocation))
+          Success(Trilean(objEntity == actualLocation))
         case _ =>
           Success(Trilean.False)
       }
@@ -668,8 +668,8 @@ class ShlurdInterpreterSpec extends Specification
       state : SilState) : SilState =
     {
       state match {
-        case SilLocationState(
-          LOC_INSIDE,
+        case SilAdpositionalState(
+          ADP_INSIDE,
           SilNounReference(
             SilWord("dreamland", _),
             DETERMINER_UNSPECIFIED,

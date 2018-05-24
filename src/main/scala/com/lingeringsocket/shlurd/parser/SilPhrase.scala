@@ -350,12 +350,12 @@ case class SilPropertyState(
 {
 }
 
-case class SilLocationState(
-  locative : SilLocative,
-  location : SilReference
+case class SilAdpositionalState(
+  adposition : SilAdposition,
+  objRef : SilReference
 ) extends SilTransformedPhrase with SilState
 {
-  override def children = Seq(location)
+  override def children = Seq(objRef)
 }
 
 case class SilConjunctiveState(
@@ -451,13 +451,13 @@ object SilReference
     qualifiedByProperties(reference, qualifiers.map(SilPropertyState(_)))
   }
 
-  def extractLocationSpecifiers(state : SilState)
-      : Seq[SilLocationState] =
+  def extractAdpositionSpecifiers(state : SilState)
+      : Seq[SilAdpositionalState] =
   {
     state match {
       case SilConjunctiveState(DETERMINER_ALL, states, _) =>
-        states.flatMap(extractLocationSpecifiers(_))
-      case ls : SilLocationState => Seq(ls)
+        states.flatMap(extractAdpositionSpecifiers(_))
+      case adp : SilAdpositionalState => Seq(adp)
       case SilNullState() | SilPropertyState(_) |
           SilExistenceState() => Seq.empty
       case _ => {
@@ -473,7 +473,7 @@ object SilReference
       case SilConjunctiveState(DETERMINER_ALL, states, _) =>
         states.flatMap(extractQualifiers(_))
       case SilPropertyState(state) => Seq(state)
-      case SilNullState() | SilLocationState(_, _) |
+      case SilNullState() | SilAdpositionalState(_, _) |
           SilExistenceState() => Seq.empty
       case _ => {
         assert(false)

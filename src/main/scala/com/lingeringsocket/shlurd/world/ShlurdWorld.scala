@@ -69,10 +69,10 @@ trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
     property : P,
     lemma : String) : Try[Trilean]
 
-  def evaluateEntityLocationPredicate(
+  def evaluateEntityAdpositionPredicate(
     entity : E,
-    location : E,
-    locative : SilLocative,
+    objEntity : E,
+    adposition : SilAdposition,
     qualifiers : Set[String] = Set.empty) : Try[Trilean]
 
   def specificReference(

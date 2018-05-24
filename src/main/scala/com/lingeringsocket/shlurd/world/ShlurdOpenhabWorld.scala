@@ -187,8 +187,8 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
                   specificReference(floorEntity, DETERMINER_UNIQUE)
                 SilStateSpecifiedReference(
                   ref,
-                  SilLocationState(
-                    LOC_ON,
+                  SilAdpositionalState(
+                    ADP_ON,
                     floorRef))
               }
               case _ => ref
@@ -232,33 +232,34 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
   protected def evaluateState(
     entity : ShlurdPlatonicEntity, stateName : String) : Try[Trilean]
 
-  override def evaluateEntityLocationPredicate(
+  override def evaluateEntityAdpositionPredicate(
     entity : ShlurdPlatonicEntity,
     location : ShlurdPlatonicEntity,
-    locative : SilLocative,
+    adposition : SilAdposition,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    if (locative == LOC_GENITIVE_OF) {
-      super.evaluateEntityLocationPredicate(
-        entity, location, locative, qualifiers)
+    if (adposition == ADP_GENITIVE_OF) {
+      super.evaluateEntityAdpositionPredicate(
+        entity, location, adposition, qualifiers)
     } else {
       assert(qualifiers.isEmpty)
-      Success(Trilean(evaluateLocationPredicate(entity, location, locative)))
+      Success(Trilean(
+        evaluateAdpositionPredicate(entity, location, adposition)))
     }
   }
 
-  def evaluateLocationPredicate(
+  def evaluateAdpositionPredicate(
     entity : ShlurdPlatonicEntity,
     location : ShlurdPlatonicEntity,
-    locative : SilLocative) : Boolean =
+    adposition : SilAdposition) : Boolean =
   {
     groupMap.get(entity.name) match {
       case Some(groupNames) => {
         groupNames.contains(location.name) ||
           groupNames.exists(groupName =>
             getEntities.get(groupName).map(
-              evaluateLocationPredicate(
-                _, location, locative)).getOrElse(false))
+              evaluateAdpositionPredicate(
+                _, location, adposition)).getOrElse(false))
       }
       case _ => false
     }

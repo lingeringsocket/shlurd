@@ -84,11 +84,11 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       }
       case SilStateSpecifiedReference(sub, state) => {
         state match {
-          case SilLocationState(locative, location) => {
+          case SilAdpositionalState(adposition, objRef) => {
             val specified = print(sub, inflection, SilConjoining.NONE)
-            val specifier = sb.locationalNoun(
-              sb.position(locative),
-              print(location, INFLECT_NONE, SilConjoining.NONE),
+            val specifier = sb.adpositionedNoun(
+              sb.adpositionString(adposition),
+              print(objRef, INFLECT_NONE, SilConjoining.NONE),
               conjoining)
             return sb.specifiedNoun(specifier, specified)
           }
@@ -107,7 +107,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           }
           case SilPronounReference(person, gender, count) => {
             // kludged representation for "three of them"
-            sb.locationalNoun(
+            sb.adpositionedNoun(
               sb.qualifiedNoun(qualifierString, "of"),
               sb.pronoun(
                 person, gender, COUNT_PLURAL, INFLECT_ACCUSATIVE,
@@ -150,10 +150,10 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case SilPropertyState(state) => {
         sb.delemmatizeState(state, mood, conjoining)
       }
-      case SilLocationState(locative, location) => {
-        sb.locationalNoun(
-          sb.position(locative),
-          print(location, INFLECT_NONE, SilConjoining.NONE),
+      case SilAdpositionalState(adposition, objRef) => {
+        sb.adpositionedNoun(
+          sb.adpositionString(adposition),
+          print(objRef, INFLECT_NONE, SilConjoining.NONE),
           conjoining)
       }
       case SilConjunctiveState(determiner, states, separator) => {
