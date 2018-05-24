@@ -638,10 +638,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         evaluatePredicateOverState(
           sub, subState, context, resultCollector, specifiedState, evaluator)
       }
-      case SilGenitiveReference(genitive, sub) => {
-        val state = SilLocationState(LOC_GENITIVE_OF, genitive)
+      case SilGenitiveReference(possessor, possessee) => {
+        val state = SilLocationState(LOC_GENITIVE_OF, possessor)
         evaluatePredicateOverState(
-          sub, state, context, resultCollector, specifiedState, evaluator)
+          possessee, state, context, resultCollector, specifiedState, evaluator)
       }
       case _ : SilUnknownReference => {
         debug("UNKNOWN REFERENCE")

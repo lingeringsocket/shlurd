@@ -301,11 +301,11 @@ case class SilStateSpecifiedReference(
 }
 
 case class SilGenitiveReference(
-  genitive : SilReference,
-  reference : SilReference
+  possessor : SilReference,
+  possessee : SilReference
 ) extends SilTransformedPhrase with SilReference
 {
-  override def children = Seq(genitive, reference)
+  override def children = Seq(possessor, possessee)
 }
 
 case class SilPronounReference(
@@ -419,8 +419,8 @@ object SilReference
       }
       case SilStateSpecifiedReference(reference, _) =>
         getCount(reference)
-      case SilGenitiveReference(_, reference) =>
-        getCount(reference)
+      case SilGenitiveReference(_, possessee) =>
+        getCount(possessee)
       case _ : SilUnknownReference => COUNT_SINGULAR
     }
   }

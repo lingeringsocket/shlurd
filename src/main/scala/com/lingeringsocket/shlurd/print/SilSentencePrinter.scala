@@ -120,18 +120,18 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           }
         }
       }
-      case SilGenitiveReference(genitive, reference) => {
-        val qualifierString = genitive match {
+      case SilGenitiveReference(possessor, possessee) => {
+        val qualifierString = possessor match {
           case SilPronounReference(person, gender, count) => {
             sb.pronoun(
               person, gender, count, INFLECT_GENITIVE, SilConjoining.NONE)
           }
           case _ => {
-            print(genitive, INFLECT_GENITIVE, SilConjoining.NONE)
+            print(possessor, INFLECT_GENITIVE, SilConjoining.NONE)
           }
         }
         sb.genitivePhrase(
-          qualifierString, print(reference, inflection, conjoining))
+          qualifierString, print(possessee, inflection, conjoining))
       }
       case _ : SilUnknownReference => {
         sb.unknownReference
@@ -285,8 +285,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case SilStateSpecifiedReference(reference, _) => {
         getCopula(reference, state, mood, relationship)
       }
-      case SilGenitiveReference(genitive, reference) => {
-        getCopula(reference, state, mood, relationship)
+      case SilGenitiveReference(possessor, possessee) => {
+        getCopula(possessee, state, mood, relationship)
       }
       case _ : SilUnknownReference => {
         Seq(sb.unknownCopula)

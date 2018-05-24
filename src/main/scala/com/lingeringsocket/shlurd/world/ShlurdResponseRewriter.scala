@@ -176,9 +176,9 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         SilStateSpecifiedReference(
           coerceCount(subReference, agreedCount), state)
       }
-      case SilGenitiveReference(genitive, subReference) => {
+      case SilGenitiveReference(possessor, possessee) => {
         SilGenitiveReference(
-          genitive, coerceCount(subReference, agreedCount))
+          possessor, coerceCount(possessee, agreedCount))
       }
       case nounRef : SilNounReference => {
         if (nounRef.count == agreedCount) {
