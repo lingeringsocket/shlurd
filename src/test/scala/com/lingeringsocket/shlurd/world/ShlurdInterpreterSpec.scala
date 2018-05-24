@@ -31,7 +31,7 @@ class ShlurdInterpreterSpec extends Specification
 
   private val LEMMA_ANIMAL = "animal"
 
-  type StateChangeInvocation = SilStateChangeInvocation[ShlurdEntity]
+  type StateChangeInvocation = ShlurdStateChangeInvocation[ShlurdEntity]
 
   private def interpret(
     input : String,
@@ -323,18 +323,18 @@ class ShlurdInterpreterSpec extends Specification
       val asleep = SilWord("sleepify", "asleep")
       interpretCommandExpected(
         "awake the lion",
-        SilStateChangeInvocation(Set(ZooLion), awake))
+        ShlurdStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the lion and the tiger",
-        SilStateChangeInvocation(Set(ZooLion), awake))
+        ShlurdStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the polar bear and the lion",
-        SilStateChangeInvocation(Set(ZooLion, ZooPolarBear), awake))
+        ShlurdStateChangeInvocation(Set(ZooLion, ZooPolarBear), awake))
       interpret("awake the tiger") must be equalTo(
         "But the tiger is awake already.")
       interpretCommandExpected(
         "asleep the tiger",
-        SilStateChangeInvocation(Set(ZooTiger), asleep))
+        ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
       interpret("asleep the goats") must be equalTo(
         "But the goats are asleep already.")
       interpret("asleep the lion") must be equalTo(
@@ -343,10 +343,10 @@ class ShlurdInterpreterSpec extends Specification
         "But the lion and the goats are asleep already.")
       interpretCommandExpected(
         "awake the goat on the farm.",
-        SilStateChangeInvocation(Set(ZooDomesticGoat), awake))
+        ShlurdStateChangeInvocation(Set(ZooDomesticGoat), awake))
       interpretCommandExpected(
         "asleep the tiger in the big cage.",
-        SilStateChangeInvocation(Set(ZooTiger), asleep))
+        ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
     }
 
     "respond to unrecognized phrases" in

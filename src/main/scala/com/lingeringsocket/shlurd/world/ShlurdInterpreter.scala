@@ -27,7 +27,7 @@ import org.slf4j._
 
 import ShlurdEnglishLemmas._
 
-case class SilStateChangeInvocation[E<:ShlurdEntity](
+case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
   entities : Set[E],
   state : SilWord)
 {
@@ -117,7 +117,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case Success(_) => {
             assert(resultCollector.states.size == 1)
             val invocation =
-              SilStateChangeInvocation(
+              ShlurdStateChangeInvocation(
                 resultCollector.entityMap.filterNot(
                   _._2.assumeFalse).keySet,
                 resultCollector.states.head)
@@ -278,7 +278,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   protected def executeInvocation(
-    invocation : SilStateChangeInvocation[E])
+    invocation : ShlurdStateChangeInvocation[E])
   {
   }
 

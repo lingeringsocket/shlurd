@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.lingeringsocket.shlurd.parser.ShlurdParser$;
-import com.lingeringsocket.shlurd.parser.ShlurdSentence;
+import com.lingeringsocket.shlurd.parser.SilSentence;
 import com.lingeringsocket.shlurd.world.ShlurdInterpreter;
 import com.lingeringsocket.shlurd.world.ShlurdInterpreterParams;
 import com.lingeringsocket.shlurd.world.ShlurdInterpreterParams$;
@@ -268,7 +268,7 @@ public class ShlurdHumanLanguageInterpreter
             logger.info("SHLURD items loaded");
         }
         // FIXME: need to support non-string commands
-        ShlurdSentence sentence = ShlurdParser$.MODULE$.apply(text).parseOne();
+        SilSentence sentence = ShlurdParser$.MODULE$.apply(text).parseOne();
         ShlurdInterpreterParams params = ShlurdInterpreterParams$.MODULE$.apply(3);
         ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty> interpreter = new ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty>(
                 world, params) {
