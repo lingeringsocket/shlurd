@@ -106,7 +106,6 @@ class ShlurdPlatonicCreedSpec extends Specification
 
     "preserve named entity existence" in new WorldContext
     {
-      skipped("need to handle named non-persons")
       expectPreserved(Seq(namedEntityExists))
     }
 

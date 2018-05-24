@@ -112,7 +112,8 @@ class ShlurdPlatonicForm(val name : String)
 case class ShlurdPlatonicEntity(
   val name : String,
   val form : ShlurdPlatonicForm,
-  val qualifiers : Set[String])
+  val qualifiers : Set[String],
+  val properName : String = "")
     extends ShlurdEntity with ShlurdNamedObject
 {
 }
@@ -285,10 +286,11 @@ class ShlurdPlatonicWorld
         (overlap && existing.qualifiers.subsetOf(qualifiers)))
   }
 
-  def instantiateEntity(
+  private def instantiateEntity(
     sentence : ShlurdSentence,
     form : ShlurdPlatonicForm,
-    qualifierString : Seq[ShlurdWord]) : ShlurdPlatonicEntity =
+    qualifierString : Seq[ShlurdWord],
+    properName : String = "") : ShlurdPlatonicEntity =
   {
     val qualifiers = qualifierSet(qualifierString)
     def redundantWith(existing : ShlurdPlatonicEntity) =
@@ -300,7 +302,7 @@ class ShlurdPlatonicWorld
       (qualifierString.map(_.lemma) ++
         Seq(form.name, nextId.toString)).mkString("_")
     nextId += 1
-    val entity = new ShlurdPlatonicEntity(name, form, qualifiers)
+    val entity = new ShlurdPlatonicEntity(name, form, qualifiers, properName)
     addEntity(entity)
     entity
   }
@@ -572,7 +574,8 @@ class ShlurdPlatonicWorld
                 if (qualifiers.isEmpty) {
                   // "Fido is a dog"
                   val form = instantiateForm(complementNoun)
-                  instantiateEntity(sentence, form, Seq(subjectNoun))
+                  instantiateEntity(
+                    sentence, form, Seq(subjectNoun), subjectNoun.lemmaUnfolded)
                 } else {
                   // "Fido is Franny's pet"
                   if (qualifiers.size != 1) {
@@ -742,13 +745,9 @@ class ShlurdPlatonicWorld
     val formName = entity.form.name
     def nounRef = ShlurdNounReference(
       ShlurdWord(formName), determiner)
-    if (entity.qualifiers.isEmpty) {
-      nounRef
-    } else if ((formName == LEMMA_PERSON) &&
-      (entity.qualifiers.size == 1))
-    {
-      val name = ShlurdParseUtils.capitalize(entity.qualifiers.head)
-      ShlurdNounReference(ShlurdWord(name), DETERMINER_UNSPECIFIED)
+    if (!entity.properName.isEmpty) {
+      ShlurdNounReference(
+        ShlurdWord(entity.properName), DETERMINER_UNSPECIFIED)
     } else {
       ShlurdReference.qualified(
         nounRef, entity.qualifiers.map(q => ShlurdWord(q)).toSeq)

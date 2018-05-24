@@ -152,17 +152,17 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
   def entityFormBelief(entity : ShlurdPlatonicEntity) : ShlurdSentence =
   {
     val subject = world.specificReference(entity, DETERMINER_NONSPECIFIC)
-    val predicate = entity.form.name match {
-      case LEMMA_PERSON => {
+    val predicate = entity.properName match {
+      case "" => {
+        ShlurdStatePredicate(
+          subject,
+          ShlurdExistenceState())
+      }
+      case _ => {
         ShlurdRelationshipPredicate(
           subject,
           formNoun(entity.form),
           REL_IDENTITY)
-      }
-      case _ => {
-        ShlurdStatePredicate(
-          subject,
-          ShlurdExistenceState())
       }
     }
     ShlurdPredicateSentence(predicate)

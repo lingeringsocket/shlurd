@@ -261,6 +261,7 @@ sealed trait ShlurdSyntaxPhrase extends ShlurdSyntaxNonLeaf
 
 sealed trait ShlurdSyntaxNoun extends ShlurdSyntaxPreTerminal
 {
+  def isProper : Boolean = false
 }
 
 sealed trait ShlurdSyntaxVerb extends ShlurdSyntaxPreTerminal
@@ -418,12 +419,16 @@ case class SptNNP(child : ShlurdSyntaxLeaf)
     extends ShlurdSyntaxNoun
 {
   override def label = LABEL_NNP
+
+  override def isProper = true
 }
 
 case class SptNNPS(child : ShlurdSyntaxLeaf)
     extends ShlurdSyntaxNoun
 {
   override def label = LABEL_NNPS
+
+  override def isProper = true
 }
 
 case class SptPRP(child : ShlurdSyntaxLeaf)
