@@ -105,5 +105,5 @@ class ShlurdSynonymMap
     map.get(synonym).getOrElse(synonym)
   }
 
-  def getAll = map.toMap
+  def getAll : Map[String, String] = map
 }

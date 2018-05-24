@@ -137,16 +137,15 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
         val label = complementNoun.lemma
         val edge = world.addFormAssoc(
           possessorForm, possesseeForm, label)
-        val constraint = world.getAssocConstraint(edge) match {
+        val constraint = world.getAssocConstraints.get(edge) match {
           case Some(oldConstraint) => CardinalityConstraint(
             Math.max(oldConstraint.lower, newConstraint.lower),
             Math.min(oldConstraint.upper, newConstraint.upper))
           case _ => newConstraint
         }
-        world.setAssocConstraint(edge, constraint)
-        if (isPropertyAssoc(sentence, complement, relationship)) {
-          world.getPropertyEdges += edge
-        }
+        world.annotateFormAssoc(
+          edge, constraint,
+          isPropertyAssoc(sentence, complement, relationship))
       }
     }
   }

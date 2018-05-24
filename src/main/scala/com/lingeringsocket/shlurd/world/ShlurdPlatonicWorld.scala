@@ -245,15 +245,20 @@ class ShlurdPlatonicWorld
 
   def getEntities : Map[String, ShlurdPlatonicEntity] = entities
 
-  protected[world] def getPropertyEdges = propertyEdges
+  protected[world] def getPropertyEdges
+      : Set[FormAssocEdge] = propertyEdges
 
-  protected[world] def getAssocConstraint(edge : FormAssocEdge) =
-    assocConstraints.get(edge)
+  protected[world] def getAssocConstraints
+      : Map[FormAssocEdge, CardinalityConstraint]= assocConstraints
 
-  protected[world] def setAssocConstraint(
-    edge : FormAssocEdge, constraint : CardinalityConstraint)
+  protected[world] def annotateFormAssoc(
+    edge : FormAssocEdge, constraint : CardinalityConstraint,
+    isProperty : Boolean)
   {
     assocConstraints.put(edge, constraint)
+    if (isProperty) {
+      propertyEdges += edge
+    }
   }
 
   def clear()
