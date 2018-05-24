@@ -36,11 +36,9 @@ class ShlurdPlatonicWorldSpec extends Specification
       interpreter.interpretBelief(sentence)
     }
 
-    protected def expectUniqueForm(name : String) =
+    protected def expectNamedForm(name : String) =
     {
-      val forms = world.getForms
-      forms.size must be equalTo 1
-      forms must have key name
+      world.getForms.get(name) must beSome.which(_.name == name)
     }
 
     protected def expectDefaultProperty(form : ShlurdPlatonicForm) =
@@ -56,7 +54,7 @@ class ShlurdPlatonicWorldSpec extends Specification
     "understand closed property state enumeration" in new WorldContext
     {
       addBelief("a door must be either open or closed")
-      expectUniqueForm("door")
+      expectNamedForm("door")
       val form = world.getForms("door")
       expectDefaultProperty(form)
       val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
@@ -73,7 +71,7 @@ class ShlurdPlatonicWorldSpec extends Specification
     {
       addBelief("a door may be either open or closed")
       addBelief("a door may be ajar")
-      expectUniqueForm("door")
+      expectNamedForm("door")
       val form = world.getForms("door")
       expectDefaultProperty(form)
       val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
@@ -88,7 +86,7 @@ class ShlurdPlatonicWorldSpec extends Specification
     "understand singleton property state" in new WorldContext
     {
       addBelief("a door must be closed")
-      expectUniqueForm("door")
+      expectNamedForm("door")
       val form = world.getForms("door")
       expectDefaultProperty(form)
       val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
@@ -102,7 +100,7 @@ class ShlurdPlatonicWorldSpec extends Specification
     {
       addBelief("there is a front door")
       addBelief("there is a back door")
-      expectUniqueForm("door")
+      expectNamedForm("door")
       val frontDoor = world.resolveQualifiedNoun(
         "door", REF_SUBJECT, Set("front"))
       frontDoor must beSuccessfulTry.which(_.size == 1)
@@ -141,7 +139,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       world.validateBeliefs
 
       val personLemma = LEMMA_PERSON
-      expectUniqueForm(personLemma)
+      expectNamedForm(personLemma)
 
       val joyces = world.resolveQualifiedNoun(
         personLemma, REF_SUBJECT, Set("joyce"))
@@ -230,7 +228,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("A person must be either present or absent")
       addBelief("A person that is at home is present")
       addBelief("Lana is a person")
-      expectUniqueForm("person")
+      expectNamedForm("person")
       val lana = world.resolveQualifiedNoun("person", REF_SUBJECT, Set("lana"))
       lana must beSuccessfulTry.which(_.size == 1)
       val entity = lana.get.head
@@ -249,7 +247,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")
       val source = Source.fromFile(file)
       world.loadBeliefs(source)
-      expectUniqueForm("bit")
+      expectNamedForm("bit")
       val form = world.getForms("bit")
       expectDefaultProperty(form)
       val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)

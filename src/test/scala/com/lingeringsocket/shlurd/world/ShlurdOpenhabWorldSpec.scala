@@ -62,7 +62,7 @@ class ShlurdOpenhabWorldSpec extends Specification
       }
     }
 
-    protected val interpreter = new ShlurdInterpreter(world)
+    protected val interpreter = new ShlurdPlatonicInterpreter(world)
 
     protected def interpret(input : String, expected : String) =
     {

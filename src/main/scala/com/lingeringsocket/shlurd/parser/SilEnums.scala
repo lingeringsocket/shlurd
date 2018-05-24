@@ -116,6 +116,9 @@ object SilFormality
 
 sealed trait SilMood
 {
+  def isIndicative : Boolean = false
+  def isInterrogative : Boolean = false
+  def isImperative : Boolean = false
   def isPositive : Boolean = false
   def isNegative : Boolean = false
   def getModality : SilModality = MODAL_NEUTRAL
@@ -133,15 +136,20 @@ sealed case class SilIndicativeMood(
   modality : SilModality = MODAL_NEUTRAL
 ) extends SilModalMood
 {
+  override def isIndicative = true
 }
 sealed case class SilInterrogativeMood(
   positive : Boolean,
   modality : SilModality = MODAL_NEUTRAL
 ) extends SilModalMood
 {
+  override def isInterrogative = true
 }
 object MOOD_INDICATIVE_POSITIVE extends SilIndicativeMood(true)
 object MOOD_INDICATIVE_NEGATIVE extends SilIndicativeMood(false)
 object MOOD_INTERROGATIVE_POSITIVE extends SilInterrogativeMood(true)
 object MOOD_INTERROGATIVE_NEGATIVE extends SilInterrogativeMood(false)
 case object MOOD_IMPERATIVE extends SilMood
+{
+  override def isImperative = true
+}

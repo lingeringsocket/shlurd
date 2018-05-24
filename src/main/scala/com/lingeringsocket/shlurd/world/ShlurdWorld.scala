@@ -24,8 +24,8 @@ import scala.collection._
 sealed trait SilReferenceContext
 case object REF_SUBJECT extends SilReferenceContext
 case object REF_COMPLEMENT extends SilReferenceContext
-case object REF_LOCATION extends SilReferenceContext
-case object REF_LOCATED extends SilReferenceContext
+case object REF_ADPOSITION_OBJ extends SilReferenceContext
+case object REF_ADPOSITION_SUBJ extends SilReferenceContext
 
 trait ShlurdEntity
 {

@@ -34,7 +34,8 @@ class ShlurdPlatonicInterpreterSpec extends Specification
     "yodaphone presence" -> "off"
   )
 
-  trait InterpreterContext extends NameSpace
+  abstract class InterpreterContext(acceptNewBeliefs : Boolean = false)
+      extends NameSpace
   {
     protected val world = new ShlurdPlatonicWorld {
       override def evaluateEntityPropertyPredicate(
@@ -52,7 +53,8 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       }
     }
 
-    protected val interpreter = new ShlurdInterpreter(world)
+    protected val interpreter =
+      new ShlurdPlatonicInterpreter(world, acceptNewBeliefs)
 
     protected def loadBeliefs(resource : String)
     {
@@ -199,6 +201,17 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "who has friends",
         "Dirk and Todd have friends.")
+      interpret(
+        "who is Ford",
+        "Sorry, I don't know what you mean by 'Ford'.")
+    }
+
+    "respond correctly when no person exists" in new InterpreterContext
+    {
+      skipped("this should be resolved by eagerly evaluating references")
+      interpret(
+        "who is Ford",
+        "Sorry, I don't know what you mean by 'Ford'.")
     }
 
     "understand services" in new InterpreterContext
@@ -284,6 +297,30 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "No, Yoda is not on.")
       interpret("is Yoda off",
         "Yes, Yoda is off.")
+    }
+
+    "prevent new beliefs" in new InterpreterContext
+    {
+      interpret("There is a front door",
+        "Sorry, I don't know what you mean by 'door'.")
+    }
+
+    "accept new beliefs" in new InterpreterContext(true)
+    {
+      interpret("a door may be either open or closed",
+        "OK.")
+      interpret("there is a front door",
+        "OK.")
+      interpret("is the front door open",
+        "I don't know.")
+    }
+
+    "reject invalid new beliefs" in new InterpreterContext(true)
+    {
+      interpret("there is a front door",
+        "OK.")
+      interpret("there is a big front door",
+        "That assertion introduces ambiguity with previously accepted beliefs.")
     }
   }
 }

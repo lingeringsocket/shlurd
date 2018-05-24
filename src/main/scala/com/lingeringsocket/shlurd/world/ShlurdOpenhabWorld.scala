@@ -53,7 +53,7 @@ abstract class ShlurdOpenhabWorld extends ShlurdPlatonicWorld
     }
     val rewrittenQualifiers = ((qualifiers - roomLemma) ++ rewrittenLemma)
     context match {
-      case REF_LOCATION => {
+      case REF_ADPOSITION_OBJ => {
         val result = super.resolveQualifiedNoun(
           locationFormName, context, rewrittenQualifiers)
         if (result.isFailure) {

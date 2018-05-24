@@ -130,24 +130,24 @@ object ShlurdPlatonicWorld
 
   class IncomprehensibleBelief(belief : SilSentence)
       extends RejectedBelief(belief,
-        "can't understand this belief:  " + belief)
+        "That assertion cannot be understood.")
   {
   }
 
   class ContradictoryBelief(belief : SilSentence)
       extends RejectedBelief(belief,
-        "this belief contradicts previously accepted beliefs")
+        "That assertion contradicts previously accepted beliefs.")
   {
   }
 
   class AmbiguousBelief(belief : SilSentence)
       extends RejectedBelief(belief,
-        "this belief introduces ambiguity with previously accepted beliefs")
+        "That assertion introduces ambiguity with previously accepted beliefs.")
   {
   }
 
   class InvalidBeliefs() extends RuntimeException(
-        "accepted beliefs are invalid")
+        "Accepted beliefs are invalid.")
   {
   }
 
@@ -222,8 +222,6 @@ class ShlurdPlatonicWorld
     new mutable.LinkedHashMap[String, ShlurdPlatonicEntity]
 
   private val formSynonyms = new ShlurdSynonymMap
-  formSynonyms.addSynonym(
-    LEMMA_WHO, LEMMA_PERSON)
 
   private val formAssocs =
     new DirectedPseudograph[ShlurdPlatonicForm, FormAssocEdge](
@@ -240,6 +238,15 @@ class ShlurdPlatonicWorld
       classOf[EntityAssocEdge])
 
   private var nextId = 0
+
+  init()
+
+  private def init()
+  {
+    instantiateForm(SilWord(LEMMA_PERSON))
+    formSynonyms.addSynonym(
+      LEMMA_WHO, LEMMA_PERSON)
+  }
 
   def getForms : Map[String, ShlurdPlatonicForm] = forms
 

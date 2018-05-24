@@ -58,13 +58,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private var debugDepth = 0
 
-  private val sentencePrinter = new SilSentencePrinter
-
   private val responseRewriter = new ShlurdResponseRewriter(world)
+
+  protected val sentencePrinter = new SilSentencePrinter
 
   def fail(msg : String) = world.fail(msg)
 
-  @inline private final def debug(msg : => String)
+  @inline protected final def debug(msg : => String)
   {
     if (debugEnabled) {
       val prefix = "*" * debugDepth
@@ -72,7 +72,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  private final def debug(msg : => String, t : Throwable)
+  protected final def debug(msg : => String, t : Throwable)
   {
     if (debugEnabled) {
       val prefix = "*" * debugDepth
@@ -88,7 +88,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     response
   }
 
-  private def interpretImpl(sentence : SilSentence) : String =
+  protected def interpretImpl(sentence : SilSentence) : String =
   {
     if (sentence.hasUnknown) {
       val unrecognized = responseRewriter.rewrite(
@@ -390,7 +390,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       : Try[Trilean] =
   {
     val context = originalState match {
-      case _ : SilAdpositionalState => REF_LOCATED
+      case _ : SilAdpositionalState => REF_ADPOSITION_SUBJ
       case _ => REF_SUBJECT
     }
     evaluatePredicateOverReference(subjectRef, context, resultCollector)
@@ -533,7 +533,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   adpositionStates.forall(adp => {
                     val adposition = adp.adposition
                     val evaluation = evaluatePredicateOverReference(
-                      adp.objRef, REF_LOCATION, new ResultCollector[E])
+                      adp.objRef, REF_ADPOSITION_OBJ, new ResultCollector[E])
                     {
                       objEntity => {
                         val qualifiers : Set[String] = {
@@ -713,7 +713,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     val objCollector = new ResultCollector[E]
     evaluatePredicateOverReference(
-      objRef, REF_LOCATION, objCollector)
+      objRef, REF_ADPOSITION_OBJ, objCollector)
     {
       objEntity => {
         val result = world.evaluateEntityAdpositionPredicate(

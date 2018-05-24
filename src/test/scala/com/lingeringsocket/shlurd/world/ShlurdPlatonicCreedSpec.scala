@@ -92,7 +92,7 @@ class ShlurdPlatonicCreedSpec extends Specification
     "preserve form associations" in new WorldContext
     {
       expectPreserved(Seq(
-        assocMust, assocMay, assocMayPlural, assocMayProperty))
+        assocMay, assocMayPlural, assocMayProperty, assocMust))
     }
 
     "normalize form associations" in new WorldContext

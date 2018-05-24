@@ -527,7 +527,7 @@ class ShlurdInterpreterSpec extends Specification
           animals.values))
       } else {
         val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
-        if (context == REF_LOCATION) {
+        if (context == REF_ADPOSITION_OBJ) {
           Success(ShlurdParseUtils.orderedSet(
             locations.filterKeys(_.endsWith(name)).values))
         } else {

@@ -28,6 +28,10 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
     if (sentence.hasUnknown) {
       throw new IncomprehensibleBelief(sentence)
     }
+    if (!sentence.mood.isIndicative) {
+      // FIXME support interrogative
+      throw new IncomprehensibleBelief(sentence)
+    }
     sentence match {
       case SilPredicateSentence(predicate, mood, formality) => {
         if (mood.isNegative) {
