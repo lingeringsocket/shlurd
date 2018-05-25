@@ -208,7 +208,6 @@ class ShlurdPlatonicInterpreterSpec extends Specification
 
     "respond correctly when no person exists" in new InterpreterContext
     {
-      skipped("this should be resolved by eagerly evaluating references")
       interpret(
         "who is Ford",
         "Sorry, I don't know what you mean by 'Ford'.")

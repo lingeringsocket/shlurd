@@ -321,11 +321,20 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def evaluatePredicate(
-    predicate : SilPredicate,
+    predicateOriginal : SilPredicate,
     resultCollector : ResultCollector[E]) : Try[Trilean] =
   {
-    debug(s"EVALUATE PREDICATE : $predicate")
+    debug(s"EVALUATE PREDICATE : $predicateOriginal")
     debugDepth += 1
+    val predicate = {
+      try {
+        rewriteReferences(predicateOriginal)
+      } catch {
+        case ex : RuntimeException => {
+          return Failure(ex)
+        }
+      }
+    }
     val result = predicate match {
       case SilStatePredicate(subject, state) => {
         state match {
@@ -500,6 +509,105 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     result
   }
 
+  private def evaluatePredicateOverEntities(
+    unfilteredEntities : Iterable[E],
+    context : SilReferenceContext,
+    resultCollector : ResultCollector[E],
+    specifiedState : SilState,
+    determiner : SilDeterminer,
+    count : SilCount,
+    noun : SilWord,
+    evaluator : E => Try[Trilean])
+      : Try[Trilean] =
+  {
+    debug(s"CANDIDATE ENTITIES : $unfilteredEntities")
+    // probably we should be pushing filters down into
+    // resolveQualifiedNoun for efficiency
+    val adpositionStates =
+      SilReference.extractAdpositionSpecifiers(specifiedState)
+    val entities = {
+      if (adpositionStates.isEmpty) {
+        unfilteredEntities
+      } else {
+        // should probably be doing some caching for
+        // reference -> entity lookups
+        unfilteredEntities.filter(subjectEntity =>
+          adpositionStates.forall(adp => {
+            val adposition = adp.adposition
+            val evaluation = evaluatePredicateOverReference(
+              adp.objRef, REF_ADPOSITION_OBJ, new ResultCollector[E])
+            {
+              objEntity => {
+                val qualifiers : Set[String] = {
+                  if (adposition == ADP_GENITIVE_OF) {
+                    Set(noun.lemma)
+                  } else {
+                    Set.empty
+                  }
+                }
+                val result = world.evaluateEntityAdpositionPredicate(
+                  subjectEntity, objEntity, adposition, qualifiers)
+                debug("RESULT FOR " +
+                  s"$subjectEntity $adposition $objEntity " +
+                  s"with $qualifiers is $result")
+                result
+              }
+            }
+            if (evaluation.isFailure) {
+              return evaluation
+            } else {
+              evaluation.get.isTrue
+            }
+          }
+          )
+        )
+      }
+    }
+    determiner match {
+      case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
+        if (entities.isEmpty && (context != REF_COMPLEMENT)) {
+          fail(sentencePrinter.sb.respondNonexistent(noun))
+        } else {
+          count match {
+            case COUNT_SINGULAR => {
+              if (entities.isEmpty) {
+                Success(Trilean.False)
+              } else if (entities.size > 1) {
+                if (determiner == DETERMINER_UNIQUE) {
+                  fail(sentencePrinter.sb.respondAmbiguous(
+                    noun))
+                } else {
+                  evaluateDeterminer(
+                    entities.map(
+                      invokeEvaluator(_, resultCollector, evaluator)),
+                    DETERMINER_ANY)
+                }
+              } else {
+                invokeEvaluator(
+                  entities.head, resultCollector, evaluator)
+              }
+            }
+            case COUNT_PLURAL => {
+              val newDeterminer = determiner match {
+                case DETERMINER_UNIQUE => DETERMINER_ALL
+                case _ => determiner
+              }
+              evaluateDeterminer(
+                entities.map(
+                  invokeEvaluator(_, resultCollector, evaluator)),
+                newDeterminer)
+            }
+          }
+        }
+      }
+      case _ => {
+        evaluateDeterminer(
+          entities.map(invokeEvaluator(_, resultCollector, evaluator)),
+          determiner)
+      }
+    }
+  }
+
   private def evaluatePredicateOverReferenceImpl(
     reference : SilReference,
     context : SilReferenceContext,
@@ -508,101 +616,24 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     evaluator : E => Try[Trilean])
       : Try[Trilean] =
   {
-    // FIXME should maybe use normalizeState here but it's a bit tricky
+    // FIXME should maybe use normalizeState here, but it's a bit tricky
     reference match {
       case SilNounReference(noun, determiner, count) => {
-        val lemma = noun.lemma
         world.resolveQualifiedNoun(
-          lemma, context,
+          noun.lemma, context,
           world.qualifierSet(
             SilReference.extractQualifiers(specifiedState))) match
         {
-          case Success(unfilteredEntities) => {
-            debug(s"CANDIDATE ENTITIES : $unfilteredEntities")
-            // probably we should be pushing filters down into
-            // resolveQualifiedNoun for efficiency
-            val adpositionStates =
-              SilReference.extractAdpositionSpecifiers(specifiedState)
-            val entities = {
-              if (adpositionStates.isEmpty) {
-                unfilteredEntities
-              } else {
-                // should probably be doing some caching for
-                // reference -> entity lookups
-                unfilteredEntities.filter(subjectEntity =>
-                  adpositionStates.forall(adp => {
-                    val adposition = adp.adposition
-                    val evaluation = evaluatePredicateOverReference(
-                      adp.objRef, REF_ADPOSITION_OBJ, new ResultCollector[E])
-                    {
-                      objEntity => {
-                        val qualifiers : Set[String] = {
-                          if (adposition == ADP_GENITIVE_OF) {
-                            Set(lemma)
-                          } else {
-                            Set.empty
-                          }
-                        }
-                        val result = world.evaluateEntityAdpositionPredicate(
-                          subjectEntity, objEntity, adposition, qualifiers)
-                        debug("RESULT FOR " +
-                          s"$subjectEntity $adposition $objEntity " +
-                          s"with $qualifiers is $result")
-                        result
-                      }
-                    }
-                    if (evaluation.isFailure) {
-                      return evaluation
-                    } else {
-                      evaluation.get.isTrue
-                    }
-                  }
-                ))
-              }
-            }
-            determiner match {
-              case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
-                if (entities.isEmpty && (context != REF_COMPLEMENT)) {
-                  fail(sentencePrinter.sb.respondNonexistent(noun))
-                } else {
-                  count match {
-                    case COUNT_SINGULAR => {
-                      if (entities.isEmpty) {
-                        Success(Trilean.False)
-                      } else if (entities.size > 1) {
-                        if (determiner == DETERMINER_UNIQUE) {
-                          fail(sentencePrinter.sb.respondAmbiguous(
-                            noun))
-                        } else {
-                          evaluateDeterminer(
-                            entities.map(
-                              invokeEvaluator(_, resultCollector, evaluator)),
-                            DETERMINER_ANY)
-                        }
-                      } else {
-                        invokeEvaluator(
-                          entities.head, resultCollector, evaluator)
-                      }
-                    }
-                    case COUNT_PLURAL => {
-                      val newDeterminer = determiner match {
-                        case DETERMINER_UNIQUE => DETERMINER_ALL
-                        case _ => determiner
-                      }
-                      evaluateDeterminer(
-                        entities.map(
-                          invokeEvaluator(_, resultCollector, evaluator)),
-                        newDeterminer)
-                    }
-                  }
-                }
-              }
-              case _ => {
-                evaluateDeterminer(
-                  entities.map(invokeEvaluator(_, resultCollector, evaluator)),
-                  determiner)
-              }
-            }
+          case Success(entities) => {
+            evaluatePredicateOverEntities(
+              entities,
+              context,
+              resultCollector,
+              specifiedState,
+              determiner,
+              count,
+              noun,
+              evaluator)
           }
           case Failure(e) => {
             debug("ERROR", e)
@@ -642,6 +673,17 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         val state = SilAdpositionalState(ADP_GENITIVE_OF, possessor)
         evaluatePredicateOverState(
           possessee, state, context, resultCollector, specifiedState, evaluator)
+      }
+      case rr : SilResolvedReference[E] => {
+        evaluatePredicateOverEntities(
+          rr.entities,
+          context,
+          resultCollector,
+          specifiedState,
+          rr.determiner,
+          SilReference.getCount(rr),
+          rr.noun,
+          evaluator)
       }
       case _ : SilUnknownReference => {
         debug("UNKNOWN REFERENCE")
@@ -728,9 +770,17 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def rewriteQuery(
     predicate : SilPredicate) : SilPredicate =
   {
-    val queryRewriter = new ShlurdQueryRewriter()
+    val queryRewriter = new ShlurdQueryRewriter
     queryRewriter.rewrite(
       queryRewriter.rewritePredicate, predicate)
+  }
+
+  private def rewriteReferences(
+    predicate : SilPredicate) : SilPredicate =
+  {
+    val referenceRewriter = new ShlurdReferenceRewriter(world, sentencePrinter)
+    referenceRewriter.rewrite(
+      referenceRewriter.rewriteReferences, predicate)
   }
 
   private def chooseResultCollector(

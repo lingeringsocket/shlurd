@@ -16,6 +16,16 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
 
+trait ShlurdEntity
+{
+}
+
+trait ShlurdProperty
+{
+  // lemma -> inflected
+  def getStates() : Map[String, String]
+}
+
 sealed trait SilPhrase
 {
   def children : Seq[SilPhrase] = Seq.empty
@@ -333,6 +343,14 @@ case class SilNounReference(
 {
 }
 
+case class SilResolvedReference[E<:ShlurdEntity](
+  entities : Set[E],
+  noun : SilWord,
+  determiner : SilDeterminer
+) extends SilTransformedPhrase with SilReference
+{
+}
+
 case class SilExistenceState(
 ) extends SilTransformedPhrase with SilState
 {
@@ -372,6 +390,8 @@ case class SilWord(
   lemmaUnfolded : String)
 {
   def lemma = lemmaUnfolded.toLowerCase
+
+  def isProper = lemmaUnfolded.head.isUpper
 }
 
 object SilWord
@@ -384,7 +404,7 @@ object SilReference
   def isCountCoercible(reference : SilReference) : Boolean =
   {
     reference match {
-      case pr : SilPronounReference =>
+      case _ : SilPronounReference =>
         false
       case SilNounReference(_, determiner, _) => {
         determiner match {
@@ -394,11 +414,12 @@ object SilReference
           case _ => true
         }
       }
-      case cr : SilConjunctiveReference =>
+      case _ : SilConjunctiveReference =>
         false
       case SilStateSpecifiedReference(reference, _) =>
         isCountCoercible(reference)
-      case gr : SilGenitiveReference => true
+      case _ : SilGenitiveReference => true
+      case _ : SilResolvedReference[_] => false
       case _ : SilUnknownReference => false
     }
   }
@@ -421,6 +442,13 @@ object SilReference
         getCount(reference)
       case SilGenitiveReference(_, possessee) =>
         getCount(possessee)
+      case SilResolvedReference(entities, _, _) => {
+        if (entities.size < 2) {
+          COUNT_SINGULAR
+        } else {
+          COUNT_PLURAL
+        }
+      }
       case _ : SilUnknownReference => COUNT_SINGULAR
     }
   }

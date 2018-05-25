@@ -133,6 +133,10 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.genitivePhrase(
           qualifierString, print(possessee, inflection, conjoining))
       }
+      case _ : SilResolvedReference[_] => {
+        // FIXME:  call to world?
+        sb.unknownReference
+      }
       case _ : SilUnknownReference => {
         sb.unknownReference
       }
@@ -265,6 +269,11 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case SilNounReference(_, _, count) => {
         sb.copula(
           PERSON_THIRD, GENDER_N, count, mood, isExistential, relationship)
+      }
+      case rr : SilResolvedReference[_] => {
+        sb.copula(
+          PERSON_THIRD, GENDER_N, SilReference.getCount(rr),
+          mood, isExistential, relationship)
       }
       case SilConjunctiveReference(determiner, references, _) => {
         val count = if (isExistential) {

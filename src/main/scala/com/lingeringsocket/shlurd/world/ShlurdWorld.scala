@@ -27,16 +27,6 @@ case object REF_COMPLEMENT extends SilReferenceContext
 case object REF_ADPOSITION_OBJ extends SilReferenceContext
 case object REF_ADPOSITION_SUBJ extends SilReferenceContext
 
-trait ShlurdEntity
-{
-}
-
-trait ShlurdProperty
-{
-  // lemma -> inflected
-  def getStates() : Map[String, String]
-}
-
 trait ShlurdWorld[E<:ShlurdEntity, P<:ShlurdProperty]
 {
   def fail(msg : String) = Failure(new RuntimeException(msg))
