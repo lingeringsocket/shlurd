@@ -194,7 +194,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("A mom is a person")
       addBelief("A person must have a mom")
       world.validateBeliefs must
-        throwA[ShlurdPlatonicWorld.InvalidBeliefs]
+        throwA[ShlurdPlatonicWorld.CardinalityViolation]
     }
 
     "prevent single valued genitives from being multiple" in new WorldContext
@@ -207,7 +207,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("Joyce is Will's mom")
       addBelief("Elle is Will's mom")
       world.validateBeliefs must
-        throwA[ShlurdPlatonicWorld.InvalidBeliefs]
+        throwA[ShlurdPlatonicWorld.CardinalityViolation]
     }
 
     "accept synonyms" in new WorldContext

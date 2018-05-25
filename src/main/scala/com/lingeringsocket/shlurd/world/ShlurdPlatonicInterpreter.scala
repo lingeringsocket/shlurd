@@ -36,7 +36,7 @@ class ShlurdPlatonicInterpreter(
         case _ : IncomprehensibleBelief => {
           // fall through
         }
-        case ex : RejectedBelief => {
+        case ex : ContradictedBelief => {
           debug("NEW BELIEF REJECTED", ex)
           return ex.getMessage
         }

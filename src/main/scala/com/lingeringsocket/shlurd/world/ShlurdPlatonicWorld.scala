@@ -124,9 +124,12 @@ object ShlurdPlatonicWorld
 
   val DEFAULT_PROPERTY_WORD = SilWord(DEFAULT_PROPERTY)
 
+  abstract class ContradictedBelief(
+    cause : String) extends RuntimeException(cause)
+
   abstract class RejectedBelief(
     belief : SilSentence,
-    cause : String) extends RuntimeException(cause)
+    cause : String) extends ContradictedBelief(cause)
 
   class IncomprehensibleBelief(belief : SilSentence)
       extends RejectedBelief(belief,
@@ -146,8 +149,8 @@ object ShlurdPlatonicWorld
   {
   }
 
-  class InvalidBeliefs() extends RuntimeException(
-        "Accepted beliefs are invalid.")
+  class CardinalityViolation() extends ContradictedBelief(
+        "Cardinality constraint violated.")
   {
   }
 
@@ -256,7 +259,7 @@ class ShlurdPlatonicWorld
       : Set[FormAssocEdge] = propertyEdges
 
   protected[world] def getAssocConstraints
-      : Map[FormAssocEdge, CardinalityConstraint]= assocConstraints
+      : Map[FormAssocEdge, CardinalityConstraint] = assocConstraints
 
   protected[world] def annotateFormAssoc(
     edge : FormAssocEdge, constraint : CardinalityConstraint,
@@ -381,6 +384,21 @@ class ShlurdPlatonicWorld
       new ProbeFormEdge(possessor, possessee, label))
   }
 
+  protected[world] def getFormAssoc(
+    possessor : ShlurdPlatonicForm,
+    possessee : ShlurdPlatonicForm,
+    label : String) : Option[FormAssocEdge] =
+  {
+    if (formAssocs.containsVertex(possessor) &&
+      formAssocs.containsVertex(possessee))
+    {
+      formAssocs.getAllEdges(possessor, possessee).asScala.
+        find(_.label == label)
+    } else {
+      None
+    }
+  }
+
   protected[world] def isEntityAssoc(
     possessor : ShlurdPlatonicEntity,
     possessee : ShlurdPlatonicEntity,
@@ -410,10 +428,10 @@ class ShlurdPlatonicWorld
             val c = entityAssocs.outgoingEdgesOf(entity).asScala.
               count(_.label == formEdge.label)
             if ((c < constraint.lower) || (c > constraint.upper)) {
-              throw new InvalidBeliefs()
+              throw new CardinalityViolation()
             }
           } else if (constraint.lower > 0) {
-            throw new InvalidBeliefs()
+            throw new CardinalityViolation()
           }
         })
       }

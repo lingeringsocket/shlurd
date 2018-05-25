@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd.world
 import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
+import scala.collection.JavaConverters._
 
 import ShlurdEnglishLemmas._
 import ShlurdPlatonicWorld._
@@ -182,12 +183,26 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
       val possessor = possessorOpt.get
       val possessee = possesseeOpt.get
       val label = complementNoun.lemma
-      if (!world.isFormAssoc(
-        possessor.form, possessee.form, label))
+      world.getFormAssoc(
+        possessor.form, possessee.form, label) match
       {
-        throw new IncomprehensibleBelief(sentence)
+        case Some(formAssoc) => {
+          val constraint = world.getAssocConstraints(formAssoc)
+          val entityAssocGraph = world.getEntityAssocGraph
+          if (entityAssocGraph.containsVertex(possessor)) {
+            val edgeCount = entityAssocGraph.
+              outgoingEdgesOf(possessor).asScala.
+              count(_.label == label)
+            if ((edgeCount + 1) > constraint.upper) {
+              throw new CardinalityViolation()
+            }
+          }
+          world.addEntityAssoc(possessor, possessee, label)
+        }
+        case _ => {
+          throw new IncomprehensibleBelief(sentence)
+        }
       }
-      world.addEntityAssoc(possessor, possessee, label)
     }
   }
 

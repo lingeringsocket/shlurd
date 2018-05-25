@@ -321,5 +321,13 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret("there is a big front door",
         "That assertion introduces ambiguity with previously accepted beliefs.")
     }
+
+    "validate constraints incrementally" in new InterpreterContext(true)
+    {
+      loadBeliefs("/ontologies/people.txt")
+      interpret(
+        "Amanda is Rapunzel's owner",
+        "Cardinality constraint violated.")
+    }
   }
 }

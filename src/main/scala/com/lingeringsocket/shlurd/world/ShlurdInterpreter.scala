@@ -335,6 +335,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
     }
+    if (predicate != predicateOriginal) {
+      debug(s"REWRITTEN REFERENCES : $predicate")
+    }
     val result = predicate match {
       case SilStatePredicate(subject, state) => {
         state match {
