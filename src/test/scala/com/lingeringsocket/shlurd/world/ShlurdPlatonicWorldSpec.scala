@@ -205,8 +205,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("A mom is a person")
       addBelief("A person must have a mom")
       addBelief("Joyce is Will's mom")
-      addBelief("Elle is Will's mom")
-      world.validateBeliefs must
+      addBelief("Elle is Will's mom") must
         throwA[ShlurdPlatonicWorld.CardinalityViolation]
     }
 
