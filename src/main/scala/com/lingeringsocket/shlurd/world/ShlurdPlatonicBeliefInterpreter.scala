@@ -24,25 +24,50 @@ import ShlurdPlatonicWorld._
 
 class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
 {
+  type BeliefApplier = PartialFunction[ShlurdPlatonicBelief, Unit]
+
+  private val beliefAppliers = new mutable.ArrayBuffer[BeliefApplier]
+
+  private lazy val allBeliefApplier = beliefAppliers.reduceLeft(_ orElse _)
+
   def interpretBelief(sentence : SilSentence)
   {
+    recognizeBelief(sentence) match {
+      case Some(belief) => {
+        applyBelief(belief)
+      }
+      case _ => throw new IncomprehensibleBelief(sentence)
+    }
+  }
+
+  def applyBelief(belief : ShlurdPlatonicBelief)
+  {
+    allBeliefApplier.apply(belief)
+  }
+
+  def recognizeBelief(sentence : SilSentence)
+      : Option[ShlurdPlatonicBelief] =
+  {
     if (sentence.hasUnknown) {
-      throw new IncomprehensibleBelief(sentence)
+      return None
     }
     if (!sentence.mood.isIndicative) {
       // FIXME support interrogative
-      throw new IncomprehensibleBelief(sentence)
+      return None
     }
     sentence match {
       case SilPredicateSentence(predicate, mood, formality) => {
         if (mood.isNegative) {
           // FIXME:  interpret this as a constraint
-          throw new IncomprehensibleBelief(sentence)
+          return None
         }
         predicate match {
           case SilStatePredicate(ref, state) => {
-            val (noun, qualifiers, count) = extractQualifiedNoun(
+            val (noun, qualifiers, count, failed) = extractQualifiedNoun(
               sentence, ref, Seq.empty)
+            if (failed) {
+              return None
+            }
             val form = world.instantiateForm(noun)
             ref match {
               case SilStateSpecifiedReference(
@@ -53,16 +78,16 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
                 // or "a television that is busted is broken"
                 // or "a busted television is broken"
                 if (mood.getModality != MODAL_NEUTRAL) {
-                  throw new IncomprehensibleBelief(sentence)
+                  return None
                 }
                 state match {
                   case ps : SilPropertyState => {
-                    form.addStateNormalization(specifiedState, state)
-                    return
+                    return Some(StateEquivalenceBelief(
+                      sentence, noun, specifiedState, state))
                   }
                   case SilExistenceState() =>
                   case _ => {
-                    throw new IncomprehensibleBelief(sentence)
+                    return None
                   }
                 }
               }
@@ -71,10 +96,18 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
             state match {
               case SilExistenceState() => {
                 // "there is a television"
-                addExistenceBelief(sentence, form, qualifiers, mood)
+                // FIXME:  interpret mood
+                return Some(EntityExistenceBelief(
+                  sentence, noun, qualifiers, ""))
               }
               case _ => {
-                addPropertyBelief(sentence, form, qualifiers, state, mood)
+                if (!qualifiers.isEmpty) {
+                  // but maybe we should allow constraints on
+                  // qualified entities?
+                  return None
+                }
+                return definePropertyBelief(
+                  sentence, noun, qualifiers, state, mood)
               }
             }
           }
@@ -85,23 +118,24 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
               case SilNounReference(
                 subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
               ) => {
-                interpretFormRelationship(
+                return interpretFormRelationship(
                   sentence, subjectNoun, complement, relationship)
               }
               case SilNounReference(
                 subjectNoun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
               ) => {
-                interpretEntityRelationship(
+                return interpretEntityRelationship(
                   sentence, subjectNoun, complement, relationship)
               }
-              case _ => throw new IncomprehensibleBelief(sentence)
+              case _ =>
             }
           }
-          case _ => throw new IncomprehensibleBelief(sentence)
+          case _ =>
         }
       }
-      case _ => throw new IncomprehensibleBelief(sentence)
+      case _ =>
     }
+    None
   }
 
   private def interpretFormRelationship(
@@ -109,18 +143,20 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
     subjectNoun : SilWord,
     complement : SilReference,
     relationship : SilRelationship)
+      : Option[ShlurdPlatonicBelief] =
   {
-    val (complementNoun, qualifiers, count) = extractQualifiedNoun(
+    val (complementNoun, qualifiers, count, failed) = extractQualifiedNoun(
       sentence, complement, Seq.empty)
-    if (!qualifiers.isEmpty) {
-      throw new IncomprehensibleBelief(sentence)
+    if (failed || !qualifiers.isEmpty) {
+      return None
     }
     relationship match {
       case REL_IDENTITY => {
         // "a canine is a dog"
         assert(count == COUNT_SINGULAR)
-        val form = world.instantiateForm(complementNoun)
-        world.getFormSynonyms.addSynonym(subjectNoun.lemma, form.name)
+
+        Some(FormAliasBelief(
+          sentence, subjectNoun, complementNoun))
       }
       case REL_ASSOCIATION => {
         // "a dog has an owner"
@@ -135,22 +171,16 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
               MODAL_CAPABLE | MODAL_PERMITTED =>
             CardinalityConstraint(0, upper)
           case MODAL_SHOULD =>
-            throw new IncomprehensibleBelief(sentence)
+            return None
         }
-        val possessorForm = world.instantiateForm(subjectNoun)
-        val possesseeForm = world.instantiateRole(complementNoun)
-        val label = complementNoun.lemma
-        val edge = world.addFormAssoc(
-          possessorForm, possesseeForm, label)
-        val constraint = world.getAssocConstraints.get(edge) match {
-          case Some(oldConstraint) => CardinalityConstraint(
-            Math.max(oldConstraint.lower, newConstraint.lower),
-            Math.min(oldConstraint.upper, newConstraint.upper))
-          case _ => newConstraint
-        }
-        world.annotateFormAssoc(
-          edge, constraint,
-          isPropertyAssoc(sentence, complement, relationship))
+        isPropertyAssoc(sentence, complement, relationship).map(
+          isProperty => {
+            FormAssocBelief(
+              sentence,
+              subjectNoun, complementNoun, newConstraint,
+              isProperty)
+          }
+        )
       }
     }
   }
@@ -160,29 +190,211 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
     subjectNoun : SilWord,
     complement : SilReference,
     relationship : SilRelationship)
+      : Option[ShlurdPlatonicBelief] =
   {
     // FIXME "Larry has a dog"
     assert(relationship == REL_IDENTITY)
-    val (complementNoun, qualifiers, count) = extractQualifiedNoun(
+    val (complementNoun, qualifiers, count, failed) = extractQualifiedNoun(
       sentence, complement, Seq.empty)
+    if (failed) {
+      return None
+    }
     if (qualifiers.isEmpty) {
       // "Fido is a dog"
-      val form = world.instantiateForm(complementNoun)
-      world.instantiateEntity(
-        sentence, form, Seq(subjectNoun), subjectNoun.lemmaUnfolded)
+      Some(EntityExistenceBelief(
+        sentence,
+        complementNoun, Seq(subjectNoun), subjectNoun.lemmaUnfolded))
     } else {
       // "Fido is Franny's pet"
       if (qualifiers.size != 1) {
-        throw new IncomprehensibleBelief(sentence)
+        return None
       }
-      val possessorOpt = resolveUniqueName(qualifiers.head)
-      val possesseeOpt = resolveUniqueName(subjectNoun)
+      Some(EntityAssocBelief(
+        sentence,
+        qualifiers.head, subjectNoun, complementNoun))
+    }
+  }
+
+  private def definePropertyBelief(
+    sentence : SilSentence,
+    formName : SilWord,
+    qualifiers : Seq[SilWord],
+    state : SilState,
+    mood : SilMood)
+      : Option[ShlurdPlatonicBelief] =
+  {
+    // "a light may be on or off"
+    if (sentence.mood.getModality == MODAL_NEUTRAL) {
+      return None
+    }
+    val newStates = state match {
+      case SilPropertyState(word) => {
+        Seq(word)
+      }
+      case SilConjunctiveState(determiner, states, _) => {
+        // FIXME:  interpret determiner
+        states.flatMap(_ match {
+          case SilPropertyState(word) => {
+            Seq(word)
+          }
+          case _ => {
+            return None
+          }
+        })
+      }
+      case _ => {
+        return None
+      }
+    }
+    val isClosed = (mood.getModality == MODAL_MUST)
+    Some(FormPropertyBelief(
+      sentence, formName, newStates, isClosed))
+  }
+
+  private def resolveUniqueName(word : SilWord)
+      : Option[ShlurdPlatonicEntity] =
+  {
+    val candidates = world.getEntities.values.filter(
+      _.qualifiers == Set(word.lemma))
+    if (candidates.size > 1) {
+      None
+    } else {
+      candidates.headOption
+    }
+  }
+
+  private def isPropertyAssoc(
+    sentence : SilSentence, complement : SilReference,
+    relationship : SilRelationship) : Option[Boolean] =
+  {
+    complement match {
+      case SilStateSpecifiedReference(
+        _,
+        SilAdpositionalState(adposition, objRef)) =>
+        {
+          if (adposition != ADP_AS) {
+            return None
+          }
+          // "A television has a volume as a property"
+          objRef match {
+            case SilNounReference(
+              SilWord(LEMMA_PROPERTY, LEMMA_PROPERTY),
+              DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
+              COUNT_SINGULAR) =>
+              {
+                if (relationship == REL_ASSOCIATION) {
+                  Some(true)
+                } else {
+                  None
+                }
+              }
+            case _ => None
+          }
+        }
+      case _ => Some(false)
+    }
+  }
+
+  private def extractQualifiedNoun(
+    sentence : SilSentence,
+    reference : SilReference,
+    preQualifiers : Seq[SilWord])
+      : (SilWord, Seq[SilWord], SilCount, Boolean) =
+  {
+    reference match {
+      case SilNounReference(
+        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
+        {
+          (noun, preQualifiers, COUNT_SINGULAR, false)
+        }
+      case SilNounReference(
+        noun, DETERMINER_UNSPECIFIED, COUNT_PLURAL) =>
+        {
+          (noun, preQualifiers, COUNT_PLURAL, false)
+        }
+      case SilStateSpecifiedReference(subRef, state) =>
+        {
+          extractQualifiedNoun(
+            sentence, subRef,
+            preQualifiers ++ SilReference.extractQualifiers(state))
+        }
+      case SilGenitiveReference(
+        SilNounReference(
+          possessor, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+        SilNounReference(
+          possession, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)) =>
+        {
+          (possession, Seq(possessor), COUNT_SINGULAR, false)
+        }
+      case _ => (SilWord(""), Seq.empty, COUNT_SINGULAR, true)
+    }
+  }
+
+  def beliefApplier(applier : BeliefApplier)
+  {
+    beliefAppliers += applier
+  }
+
+  beliefApplier {
+    case StateEquivalenceBelief(
+      sentence, formName, state1, state2
+    ) => {
+      val form = world.instantiateForm(formName)
+      form.addStateNormalization(state1, state2)
+    }
+  }
+
+  beliefApplier {
+    case FormAliasBelief(
+      sentence, synonym, formName
+    ) => {
+      val form = world.instantiateForm(formName)
+      world.getFormSynonyms.addSynonym(synonym.lemma, form.name)
+    }
+  }
+
+  beliefApplier {
+    case FormAssocBelief(sentence, possessorFormName, possesseeFormName,
+      newConstraint, isProperty
+    ) => {
+      val possessorForm = world.instantiateForm(possessorFormName)
+      val possesseeForm = world.instantiateRole(possesseeFormName)
+      val label = possesseeFormName.lemma
+      val edge = world.addFormAssoc(
+        possessorForm, possesseeForm, label)
+      val constraint = world.getAssocConstraints.get(edge) match {
+        case Some(oldConstraint) => CardinalityConstraint(
+          Math.max(oldConstraint.lower, newConstraint.lower),
+          Math.min(oldConstraint.upper, newConstraint.upper))
+        case _ => newConstraint
+      }
+      world.annotateFormAssoc(edge, constraint, isProperty)
+    }
+  }
+
+  beliefApplier {
+    case EntityExistenceBelief(
+      sentence, formName, qualifiers, properName
+    ) => {
+      val form = world.instantiateForm(formName)
+      world.instantiateEntity(
+        sentence, form, qualifiers, properName)
+    }
+  }
+
+  beliefApplier {
+    case EntityAssocBelief(
+      sentence, possessorEntityName, possesseeEntityName, labelName
+    ) => {
+      val possessorOpt = resolveUniqueName(possessorEntityName)
+      val possesseeOpt = resolveUniqueName(possesseeEntityName)
+      val label = labelName.lemma
       if (possessorOpt.isEmpty || possesseeOpt.isEmpty) {
+        // FIXME should be a more specific error
         throw new IncomprehensibleBelief(sentence)
       }
       val possessor = possessorOpt.get
       val possessee = possesseeOpt.get
-      val label = complementNoun.lemma
       world.getFormAssoc(
         possessor.form, possessee.form, label) match
       {
@@ -200,144 +412,29 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
           world.addEntityAssoc(possessor, possessee, label)
         }
         case _ => {
+          // FIXME should be a more specific error
           throw new IncomprehensibleBelief(sentence)
         }
       }
     }
   }
 
-  private def addExistenceBelief(
-    sentence : SilSentence,
-    form : ShlurdPlatonicForm,
-    qualifiers : Seq[SilWord],
-    mood : SilMood)
-  {
-    // FIXME:  interpret mood
-    world.instantiateEntity(sentence, form, qualifiers)
-  }
-
-  private def addPropertyBelief(
-    sentence : SilSentence,
-    form : ShlurdPlatonicForm,
-    qualifiers : Seq[SilWord],
-    state : SilState,
-    mood : SilMood)
-  {
-    if (!qualifiers.isEmpty) {
-      // but maybe we should allow constraints on qualified entities?
-      throw new IncomprehensibleBelief(sentence)
-    }
-    // "a light may be on or off"
-    if (sentence.mood.getModality == MODAL_NEUTRAL) {
-      throw new IncomprehensibleBelief(sentence)
-    }
-    val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
-    val newStates = state match {
-      case SilPropertyState(word) => {
-        Seq(word)
-      }
-      case SilConjunctiveState(determiner, states, _) => {
-        // FIXME:  interpret determiner
-        states.flatMap(_ match {
-          case SilPropertyState(word) => {
-            Seq(word)
-          }
-          case _ => {
-            throw new IncomprehensibleBelief(sentence)
-          }
-        })
-      }
-      case _ => {
-        throw new IncomprehensibleBelief(sentence)
-      }
-    }
-    if (property.isClosed) {
-      if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates.keySet)) {
-        throw new ContradictoryBelief(sentence)
-      }
-    } else {
-      newStates.foreach(property.instantiateState(_))
-      if (mood.getModality == MODAL_MUST) {
-        property.closeStates
-      }
-    }
-  }
-  private def resolveUniqueName(word : SilWord)
-      : Option[ShlurdPlatonicEntity] =
-  {
-    val candidates = world.getEntities.values.filter(
-      _.qualifiers == Set(word.lemma))
-    if (candidates.size > 1) {
-      None
-    } else {
-      candidates.headOption
-    }
-  }
-
-  private def isPropertyAssoc(
-    sentence : SilSentence, complement : SilReference,
-    relationship : SilRelationship) : Boolean =
-  {
-    complement match {
-      case SilStateSpecifiedReference(
-        _,
-        SilAdpositionalState(adposition, objRef)) =>
-        {
-          if (adposition != ADP_AS) {
-            throw new IncomprehensibleBelief(sentence)
-          }
-          // "A television has a volume as a property"
-          objRef match {
-            case SilNounReference(
-              SilWord(LEMMA_PROPERTY, LEMMA_PROPERTY),
-              DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
-              COUNT_SINGULAR) =>
-              {
-                if (relationship == REL_ASSOCIATION) {
-                  true
-                } else {
-                  throw new IncomprehensibleBelief(sentence)
-                }
-              }
-            case _ => throw new IncomprehensibleBelief(sentence)
-          }
+  beliefApplier {
+    case FormPropertyBelief(
+      sentence, formName, newStates, isClosed
+    ) => {
+      val form = world.instantiateForm(formName)
+      val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
+      if (property.isClosed) {
+        if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates.keySet)) {
+          throw new ContradictoryBelief(sentence)
         }
-      case _ => false
-    }
-  }
-
-  private def extractQualifiedNoun(
-    sentence : SilSentence,
-    reference : SilReference,
-    preQualifiers : Seq[SilWord])
-      : (SilWord, Seq[SilWord], SilCount) =
-  {
-    reference match {
-      case SilNounReference(
-        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
-        {
-          (noun, preQualifiers, COUNT_SINGULAR)
+      } else {
+        newStates.foreach(property.instantiateState(_))
+        if (isClosed) {
+          property.closeStates
         }
-      case SilNounReference(
-        noun, DETERMINER_UNSPECIFIED, COUNT_PLURAL) =>
-        {
-          (noun, preQualifiers, COUNT_PLURAL)
-        }
-      case SilStateSpecifiedReference(subRef, state) =>
-        {
-          extractQualifiedNoun(
-            sentence, subRef,
-            preQualifiers ++ SilReference.extractQualifiers(state))
-        }
-      case SilGenitiveReference(
-        SilNounReference(
-          possessor, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-        SilNounReference(
-          possession, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)) =>
-        {
-          (possession, Seq(possessor), COUNT_SINGULAR)
-        }
-      case _ => throw new IncomprehensibleBelief(sentence)
+      }
     }
   }
 }

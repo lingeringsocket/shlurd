@@ -28,18 +28,21 @@ class ShlurdPlatonicInterpreter(
   override protected def interpretImpl(sentence : SilSentence) : String =
   {
     if (acceptNewBeliefs && sentence.mood.isIndicative) {
-      try {
-        beliefInterpreter.interpretBelief(sentence)
-        debug("NEW BELIEF ACCEPTED")
-        return sentencePrinter.sb.respondCompliance
-      } catch {
-        case _ : IncomprehensibleBelief => {
-          // fall through
+      beliefInterpreter.recognizeBelief(sentence) match {
+        case Some(belief) => {
+          debug(s"APPLYING NEW BELIEF : $belief")
+          try {
+            beliefInterpreter.applyBelief(belief)
+          } catch {
+            case ex : ContradictedBelief => {
+              debug("NEW BELIEF REJECTED", ex)
+              return ex.getMessage
+            }
+          }
+          debug("NEW BELIEF ACCEPTED")
+          return sentencePrinter.sb.respondCompliance
         }
-        case ex : ContradictedBelief => {
-          debug("NEW BELIEF REJECTED", ex)
-          return ex.getMessage
-        }
+        case _ =>
       }
     }
     super.interpretImpl(sentence)
