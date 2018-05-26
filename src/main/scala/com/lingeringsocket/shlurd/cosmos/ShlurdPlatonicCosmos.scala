@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
@@ -30,7 +30,7 @@ import ShlurdEnglishLemmas._
 class ShlurdPlatonicProperty(val name : String)
     extends ShlurdProperty with ShlurdNamedObject
 {
-  private[world] val states =
+  private[cosmos] val states =
     new mutable.LinkedHashMap[String, String]
 
   private var closed : Boolean = false
@@ -39,7 +39,7 @@ class ShlurdPlatonicProperty(val name : String)
 
   def isClosed = closed
 
-  private[world] def closeStates()
+  private[cosmos] def closeStates()
   {
     closed = true
   }
@@ -55,7 +55,7 @@ class ShlurdPlatonicProperty(val name : String)
 class ShlurdPlatonicForm(val name : String)
     extends ShlurdNamedObject
 {
-  private[world] val properties =
+  private[cosmos] val properties =
     new mutable.LinkedHashMap[String, ShlurdPlatonicProperty]
 
   private val inflectedStateNormalizations =
@@ -80,7 +80,7 @@ class ShlurdPlatonicForm(val name : String)
     }
   }
 
-  private[world] def addStateNormalization(
+  private[cosmos] def addStateNormalization(
     state : SilState, transformed : SilState)
   {
     val normalized = normalizeState(transformed)
@@ -118,7 +118,7 @@ case class ShlurdPlatonicEntity(
 {
 }
 
-object ShlurdPlatonicWorld
+object ShlurdPlatonicCosmos
 {
   val DEFAULT_PROPERTY = "state"
 
@@ -169,7 +169,7 @@ object ShlurdPlatonicWorld
   {
   }
 
-  protected[world] class LabeledEdge(
+  protected[cosmos] class LabeledEdge(
     val label : String) extends DefaultEdge
   {
     override def hashCode() =
@@ -190,12 +190,12 @@ object ShlurdPlatonicWorld
     }
   }
 
-  protected[world] class FormAssocEdge(
+  protected[cosmos] class FormAssocEdge(
     label : String) extends LabeledEdge(label)
   {
   }
 
-  protected[world] class EntityAssocEdge(
+  protected[cosmos] class EntityAssocEdge(
     label : String) extends LabeledEdge(label)
   {
   }
@@ -221,10 +221,10 @@ object ShlurdPlatonicWorld
   }
 }
 
-class ShlurdPlatonicWorld
-    extends ShlurdWorld[ShlurdPlatonicEntity, ShlurdPlatonicProperty]
+class ShlurdPlatonicCosmos
+    extends ShlurdCosmos[ShlurdPlatonicEntity, ShlurdPlatonicProperty]
 {
-  import ShlurdPlatonicWorld._
+  import ShlurdPlatonicCosmos._
 
   private val forms =
     new mutable.LinkedHashMap[String, ShlurdPlatonicForm]
@@ -266,13 +266,13 @@ class ShlurdPlatonicWorld
 
   def getEntities : Map[String, ShlurdPlatonicEntity] = entities
 
-  protected[world] def getPropertyEdges
+  protected[cosmos] def getPropertyEdges
       : Set[FormAssocEdge] = propertyEdges
 
-  protected[world] def getAssocConstraints
+  protected[cosmos] def getAssocConstraints
       : Map[FormAssocEdge, CardinalityConstraint] = assocConstraints
 
-  protected[world] def annotateFormAssoc(
+  protected[cosmos] def annotateFormAssoc(
     edge : FormAssocEdge, constraint : CardinalityConstraint,
     isProperty : Boolean)
   {
@@ -293,19 +293,19 @@ class ShlurdPlatonicWorld
     forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
   }
 
-  protected[world] def instantiateRole(word : SilWord) =
+  protected[cosmos] def instantiateRole(word : SilWord) =
   {
     roles += word.lemma
     instantiateForm(word)
   }
 
-  protected[world] def getFormSynonyms =
+  protected[cosmos] def getFormSynonyms =
     formSynonyms
 
-  protected[world] def getFormAssocGraph =
+  protected[cosmos] def getFormAssocGraph =
     new AsUnmodifiableGraph(formAssocs)
 
-  protected[world] def getEntityAssocGraph =
+  protected[cosmos] def getEntityAssocGraph =
     new AsUnmodifiableGraph(entityAssocs)
 
   private def hasQualifiers(
@@ -319,7 +319,7 @@ class ShlurdPlatonicWorld
         (overlap && existing.qualifiers.subsetOf(qualifiers)))
   }
 
-  protected[world] def instantiateEntity(
+  protected[cosmos] def instantiateEntity(
     form : ShlurdPlatonicForm,
     qualifierString : Seq[SilWord],
     properName : String = "") : (ShlurdPlatonicEntity, Boolean) =
@@ -342,24 +342,24 @@ class ShlurdPlatonicWorld
     (entity, true)
   }
 
-  protected[world] def addEntity(entity : ShlurdPlatonicEntity)
+  protected[cosmos] def addEntity(entity : ShlurdPlatonicEntity)
   {
     entities.put(entity.name, entity)
   }
 
-  protected[world] def getPossessorForm(edge : FormAssocEdge) =
+  protected[cosmos] def getPossessorForm(edge : FormAssocEdge) =
     formAssocs.getEdgeSource(edge)
 
-  protected[world] def getPossessorEntity(edge : EntityAssocEdge) =
+  protected[cosmos] def getPossessorEntity(edge : EntityAssocEdge) =
     entityAssocs.getEdgeSource(edge)
 
-  protected[world] def getPossesseeForm(edge : FormAssocEdge) =
+  protected[cosmos] def getPossesseeForm(edge : FormAssocEdge) =
     formAssocs.getEdgeTarget(edge)
 
-  protected[world] def getPossesseeEntity(edge : EntityAssocEdge) =
+  protected[cosmos] def getPossesseeEntity(edge : EntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
 
-  protected[world] def addFormAssoc(
+  protected[cosmos] def addFormAssoc(
     possessor : ShlurdPlatonicForm,
     possessee : ShlurdPlatonicForm,
     label : String) : FormAssocEdge =
@@ -373,7 +373,7 @@ class ShlurdPlatonicWorld
     edge
   }
 
-  protected[world] def addEntityAssoc(
+  protected[cosmos] def addEntityAssoc(
     possessor : ShlurdPlatonicEntity,
     possessee : ShlurdPlatonicEntity,
     label : String) : EntityAssocEdge =
@@ -388,7 +388,7 @@ class ShlurdPlatonicWorld
     edge
   }
 
-  protected[world] def isFormAssoc(
+  protected[cosmos] def isFormAssoc(
     possessor : ShlurdPlatonicForm,
     possessee : ShlurdPlatonicForm,
     label : String) : Boolean =
@@ -397,7 +397,7 @@ class ShlurdPlatonicWorld
       new ProbeFormEdge(possessor, possessee, label))
   }
 
-  protected[world] def getFormAssoc(
+  protected[cosmos] def getFormAssoc(
     possessor : ShlurdPlatonicForm,
     possessee : ShlurdPlatonicForm,
     label : String) : Option[FormAssocEdge] =
@@ -412,7 +412,7 @@ class ShlurdPlatonicWorld
     }
   }
 
-  protected[world] def isEntityAssoc(
+  protected[cosmos] def isEntityAssoc(
     possessor : ShlurdPlatonicEntity,
     possessee : ShlurdPlatonicEntity,
     label : String) : Boolean =

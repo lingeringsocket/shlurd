@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
@@ -22,13 +22,13 @@ import scala.io._
 
 import ShlurdEnglishLemmas._
 
-class ShlurdPlatonicWorldSpec extends Specification
+class ShlurdPlatonicCosmosSpec extends Specification
 {
-  trait WorldContext extends NameSpace
+  trait CosmosContext extends NameSpace
   {
-    protected val world = new ShlurdPlatonicWorld
+    protected val cosmos = new ShlurdPlatonicCosmos
 
-    protected val interpreter = new ShlurdPlatonicBeliefInterpreter(world)
+    protected val interpreter = new ShlurdPlatonicBeliefInterpreter(cosmos)
 
     protected def addBelief(input : String) =
     {
@@ -38,26 +38,26 @@ class ShlurdPlatonicWorldSpec extends Specification
 
     protected def expectNamedForm(name : String) =
     {
-      world.getForms.get(name) must beSome.which(_.name == name)
+      cosmos.getForms.get(name) must beSome.which(_.name == name)
     }
 
     protected def expectDefaultProperty(form : ShlurdPlatonicForm) =
     {
       val properties = form.getProperties
       properties.size must be equalTo 1
-      properties must have key(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      properties must have key(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
     }
   }
 
-  "ShlurdPlatonicWorld" should
+  "ShlurdPlatonicCosmos" should
   {
-    "understand closed property state enumeration" in new WorldContext
+    "understand closed property state enumeration" in new CosmosContext
     {
       addBelief("a door must be either open or closed")
       expectNamedForm("door")
-      val form = world.getForms("door")
+      val form = cosmos.getForms("door")
       expectDefaultProperty(form)
-      val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      val property = form.getProperties(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
       property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 2
@@ -67,14 +67,14 @@ class ShlurdPlatonicWorldSpec extends Specification
       property.getStates.size must be equalTo 2
     }
 
-    "understand open property state enumeration" in new WorldContext
+    "understand open property state enumeration" in new CosmosContext
     {
       addBelief("a door may be either open or closed")
       addBelief("a door may be ajar")
       expectNamedForm("door")
-      val form = world.getForms("door")
+      val form = cosmos.getForms("door")
       expectDefaultProperty(form)
-      val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      val property = form.getProperties(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
       property.isClosed must beFalse
       val states = property.getStates
       states.size must be equalTo 3
@@ -83,34 +83,34 @@ class ShlurdPlatonicWorldSpec extends Specification
       states must contain("ajar" -> "ajar")
     }
 
-    "understand singleton property state" in new WorldContext
+    "understand singleton property state" in new CosmosContext
     {
       addBelief("a door must be closed")
       expectNamedForm("door")
-      val form = world.getForms("door")
+      val form = cosmos.getForms("door")
       expectDefaultProperty(form)
-      val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      val property = form.getProperties(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
       property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 1
       states must contain("close" -> "closed")
     }
 
-    "understand qualified references" in new WorldContext
+    "understand qualified references" in new CosmosContext
     {
       addBelief("there is a front door")
       addBelief("there is a back door")
       expectNamedForm("door")
-      val frontDoor = world.resolveQualifiedNoun(
+      val frontDoor = cosmos.resolveQualifiedNoun(
         "door", REF_SUBJECT, Set("front"))
       frontDoor must beSuccessfulTry.which(_.size == 1)
-      val backDoor = world.resolveQualifiedNoun(
+      val backDoor = cosmos.resolveQualifiedNoun(
         "door", REF_SUBJECT, Set("back"))
       backDoor must beSuccessfulTry.which(_.size == 1)
       frontDoor must not be equalTo(backDoor)
     }
 
-    "understand genitives" in new WorldContext
+    "understand genitives" in new CosmosContext
     {
       addBelief("Joyce is a person")
       addBelief("Will is a person")
@@ -136,21 +136,21 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("Lonnie is Jonathan's dad")
       addBelief("Lonnie is Joyce's ex-husband")
       addBelief("Joyce is Lonnie's ex-wife")
-      world.validateBeliefs
+      cosmos.validateBeliefs
 
       val personLemma = LEMMA_PERSON
       expectNamedForm(personLemma)
 
-      val joyces = world.resolveQualifiedNoun(
+      val joyces = cosmos.resolveQualifiedNoun(
         personLemma, REF_SUBJECT, Set("joyce"))
       joyces must beSuccessfulTry.which(_.size == 1)
-      val wills = world.resolveQualifiedNoun(
+      val wills = cosmos.resolveQualifiedNoun(
         personLemma, REF_SUBJECT, Set("will"))
       wills must beSuccessfulTry.which(_.size == 1)
-      val jonathans = world.resolveQualifiedNoun(
+      val jonathans = cosmos.resolveQualifiedNoun(
         personLemma, REF_SUBJECT, Set("jonathan"))
       jonathans must beSuccessfulTry.which(_.size == 1)
-      val lonnies = world.resolveQualifiedNoun(
+      val lonnies = cosmos.resolveQualifiedNoun(
         personLemma, REF_SUBJECT, Set("lonnie"))
       lonnies must beSuccessfulTry.which(_.size == 1)
       val joyce = joyces.get.head
@@ -158,46 +158,46 @@ class ShlurdPlatonicWorldSpec extends Specification
       val jonathan = jonathans.get.head
       val lonnie = lonnies.get.head
       Set(joyce, will, jonathan, lonnie).size must be equalTo 4
-      world.resolveGenitive(will, "mom") must be equalTo Set(joyce)
-      world.resolveGenitive(will, "dad") must be equalTo Set(lonnie)
-      world.resolveGenitive(jonathan, "mom") must be equalTo Set(joyce)
-      world.resolveGenitive(jonathan, "dad") must be equalTo Set(lonnie)
-      world.resolveGenitive(joyce, "son") must be equalTo Set(will, jonathan)
-      world.resolveGenitive(lonnie, "son") must be equalTo Set(will, jonathan)
-      world.resolveGenitive(joyce, "mom") must beEmpty
-      world.resolveGenitive(joyce, "dad") must beEmpty
-      world.resolveGenitive(lonnie, "mom") must beEmpty
-      world.resolveGenitive(lonnie, "dad") must beEmpty
-      world.resolveGenitive(joyce, "ex-husband") must be equalTo Set(lonnie)
-      world.resolveGenitive(joyce, "ex-wife") must beEmpty
-      world.resolveGenitive(lonnie, "ex-wife") must be equalTo Set(joyce)
-      world.resolveGenitive(lonnie, "ex-husband") must beEmpty
+      cosmos.resolveGenitive(will, "mom") must be equalTo Set(joyce)
+      cosmos.resolveGenitive(will, "dad") must be equalTo Set(lonnie)
+      cosmos.resolveGenitive(jonathan, "mom") must be equalTo Set(joyce)
+      cosmos.resolveGenitive(jonathan, "dad") must be equalTo Set(lonnie)
+      cosmos.resolveGenitive(joyce, "son") must be equalTo Set(will, jonathan)
+      cosmos.resolveGenitive(lonnie, "son") must be equalTo Set(will, jonathan)
+      cosmos.resolveGenitive(joyce, "mom") must beEmpty
+      cosmos.resolveGenitive(joyce, "dad") must beEmpty
+      cosmos.resolveGenitive(lonnie, "mom") must beEmpty
+      cosmos.resolveGenitive(lonnie, "dad") must beEmpty
+      cosmos.resolveGenitive(joyce, "ex-husband") must be equalTo Set(lonnie)
+      cosmos.resolveGenitive(joyce, "ex-wife") must beEmpty
+      cosmos.resolveGenitive(lonnie, "ex-wife") must be equalTo Set(joyce)
+      cosmos.resolveGenitive(lonnie, "ex-husband") must beEmpty
 
       addBelief("Bert is Will's mom") must
-        throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
+        throwA[ShlurdPlatonicCosmos.IncomprehensibleBelief]
       addBelief("Joyce is Bert's mom") must
-        throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
+        throwA[ShlurdPlatonicCosmos.IncomprehensibleBelief]
     }
 
-    "require genitives to be defined before usage" in new WorldContext
+    "require genitives to be defined before usage" in new CosmosContext
     {
       addBelief("Joyce is a person")
       addBelief("Will is a person")
       addBelief("A mom is a person")
       addBelief("Joyce is Will's mom") must
-        throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
+        throwA[ShlurdPlatonicCosmos.IncomprehensibleBelief]
     }
 
-    "require mandatory genitives to be assigned" in new WorldContext
+    "require mandatory genitives to be assigned" in new CosmosContext
     {
       addBelief("Will is a person")
       addBelief("A mom is a person")
       addBelief("A person must have a mom")
-      world.validateBeliefs must
-        throwA[ShlurdPlatonicWorld.CardinalityViolation]
+      cosmos.validateBeliefs must
+        throwA[ShlurdPlatonicCosmos.CardinalityViolation]
     }
 
-    "prevent single valued genitives from being multiple" in new WorldContext
+    "prevent single valued genitives from being multiple" in new CosmosContext
     {
       addBelief("Will is a person")
       addBelief("Joyce is a person")
@@ -206,32 +206,32 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("A person must have a mom")
       addBelief("Joyce is Will's mom")
       addBelief("Elle is Will's mom") must
-        throwA[ShlurdPlatonicWorld.IncrementalCardinalityViolation]
+        throwA[ShlurdPlatonicCosmos.IncrementalCardinalityViolation]
     }
 
-    "accept synonyms" in new WorldContext
+    "accept synonyms" in new CosmosContext
     {
-      val synonyms = world.getFormSynonyms
+      val synonyms = cosmos.getFormSynonyms
       addBelief("there is a front door")
       synonyms.addSynonym("portal", "door")
       synonyms.resolveSynonym("door") must be equalTo "door"
       synonyms.resolveSynonym("portal") must be equalTo "door"
       synonyms.resolveSynonym("gateway") must be equalTo "gateway"
-      val frontDoor = world.resolveQualifiedNoun(
+      val frontDoor = cosmos.resolveQualifiedNoun(
         "portal", REF_SUBJECT, Set("front"))
       frontDoor must beSuccessfulTry.which(_.size == 1)
     }
 
-    "accept alternative phrasing" in new WorldContext
+    "accept alternative phrasing" in new CosmosContext
     {
       addBelief("A person must be either present or absent")
       addBelief("A person that is at home is present")
       addBelief("Lana is a person")
       expectNamedForm("person")
-      val lana = world.resolveQualifiedNoun("person", REF_SUBJECT, Set("lana"))
+      val lana = cosmos.resolveQualifiedNoun("person", REF_SUBJECT, Set("lana"))
       lana must beSuccessfulTry.which(_.size == 1)
       val entity = lana.get.head
-      world.normalizeState(
+      cosmos.normalizeState(
         entity,
         SilAdpositionalState(
           ADP_AT,
@@ -241,15 +241,15 @@ class ShlurdPlatonicWorldSpec extends Specification
       )
     }
 
-    "load beliefs from a file" in new WorldContext
+    "load beliefs from a file" in new CosmosContext
     {
       val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")
       val source = Source.fromFile(file)
-      world.loadBeliefs(source)
+      cosmos.loadBeliefs(source)
       expectNamedForm("bit")
-      val form = world.getForms("bit")
+      val form = cosmos.getForms("bit")
       expectDefaultProperty(form)
-      val property = form.getProperties(ShlurdPlatonicWorld.DEFAULT_PROPERTY)
+      val property = form.getProperties(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
       property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 2
@@ -257,31 +257,31 @@ class ShlurdPlatonicWorldSpec extends Specification
       states must contain("off" -> "off")
     }
 
-    "reject contradictory belief" in new WorldContext
+    "reject contradictory belief" in new CosmosContext
     {
       addBelief("a door must be open or closed")
       addBelief("a door may be ajar") must
-        throwA[ShlurdPlatonicWorld.ContradictoryBelief]
+        throwA[ShlurdPlatonicCosmos.ContradictoryBelief]
     }
 
-    "reject ambiguous belief" in new WorldContext
+    "reject ambiguous belief" in new CosmosContext
     {
       addBelief("there is a front door")
       addBelief("there is a door") must
-        throwA[ShlurdPlatonicWorld.AmbiguousBelief]
+        throwA[ShlurdPlatonicCosmos.AmbiguousBelief]
     }
 
-    "reject another ambiguous belief" in new WorldContext
+    "reject another ambiguous belief" in new CosmosContext
     {
       addBelief("there is a door")
       addBelief("there is a front door") must
-        throwA[ShlurdPlatonicWorld.AmbiguousBelief]
+        throwA[ShlurdPlatonicCosmos.AmbiguousBelief]
     }
 
-    "reject beliefs it cannot understand" in new WorldContext
+    "reject beliefs it cannot understand" in new CosmosContext
     {
       addBelief("a green door must be either open or closed") must
-        throwA[ShlurdPlatonicWorld.IncomprehensibleBelief]
+        throwA[ShlurdPlatonicCosmos.IncomprehensibleBelief]
     }
   }
 }

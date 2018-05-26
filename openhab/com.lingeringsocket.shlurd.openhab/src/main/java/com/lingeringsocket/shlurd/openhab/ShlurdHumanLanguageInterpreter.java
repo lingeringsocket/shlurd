@@ -42,14 +42,14 @@ import org.slf4j.LoggerFactory;
 
 import com.lingeringsocket.shlurd.parser.ShlurdParser$;
 import com.lingeringsocket.shlurd.parser.SilSentence;
-import com.lingeringsocket.shlurd.world.ShlurdInterpreter;
-import com.lingeringsocket.shlurd.world.ShlurdInterpreterParams;
-import com.lingeringsocket.shlurd.world.ShlurdInterpreterParams$;
-import com.lingeringsocket.shlurd.world.ShlurdOpenhabWorld;
-import com.lingeringsocket.shlurd.world.ShlurdPlatonicEntity;
-import com.lingeringsocket.shlurd.world.ShlurdPlatonicForm;
-import com.lingeringsocket.shlurd.world.ShlurdPlatonicProperty;
-import com.lingeringsocket.shlurd.world.ShlurdStateChangeInvocation;
+import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreter;
+import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreterParams;
+import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreterParams$;
+import com.lingeringsocket.shlurd.cosmos.ShlurdOpenhabCosmos;
+import com.lingeringsocket.shlurd.cosmos.ShlurdPlatonicEntity;
+import com.lingeringsocket.shlurd.cosmos.ShlurdPlatonicForm;
+import com.lingeringsocket.shlurd.cosmos.ShlurdPlatonicProperty;
+import com.lingeringsocket.shlurd.cosmos.ShlurdStateChangeInvocation;
 
 import scala.collection.JavaConverters;
 import scala.io.Source$;
@@ -72,7 +72,7 @@ public class ShlurdHumanLanguageInterpreter
 
     private final Locale supportedLocale = Locale.ENGLISH;
 
-    private ShlurdOpenhabWorld world = null;
+    private ShlurdOpenhabCosmos cosmos = null;
 
     private RegistryChangeListener<Item> registryChangeListener =
         new RegistryChangeListener<Item>()
@@ -95,15 +95,15 @@ public class ShlurdHumanLanguageInterpreter
 
     private void invalidate()
     {
-        if (world != null) {
-            world.clear();
+        if (cosmos != null) {
+            cosmos.clear();
         }
     }
 
-    private void createWorld()
+    private void createCosmos()
     {
         logger.info("SHLURD recreating world...");
-        world = new ShlurdOpenhabWorld() {
+        cosmos = new ShlurdOpenhabCosmos() {
             @Override
             public scala.util.Try<Trilean> evaluateState(ShlurdPlatonicEntity entity, String stateName) {
                 try {
@@ -167,16 +167,16 @@ public class ShlurdHumanLanguageInterpreter
 
     protected void modified(Map<String, Object> config)
     {
-        createWorld();
+        createCosmos();
         String beliefFile = (String) config.get(BELIEF_FILE_KEY);
         String encoding = "UTF-8";
         if (beliefFile == null) {
             logger.info("SHLURD loading default beliefs...");
-            world.loadBeliefs(
+            cosmos.loadBeliefs(
                     Source$.MODULE$.fromInputStream(getClass().getResourceAsStream("/beliefs.txt"), encoding));
         } else {
             logger.info("SHLURD loading beliefs from " + beliefFile + "...");
-            world.loadBeliefs(Source$.MODULE$.fromFile(beliefFile, encoding));
+            cosmos.loadBeliefs(Source$.MODULE$.fromFile(beliefFile, encoding));
         }
         logger.info("SHLURD beliefs loaded");
     }
@@ -247,7 +247,7 @@ public class ShlurdHumanLanguageInterpreter
         }
         Collections.sort(list);
         for (SortableItem sortable : list) {
-            world.addItem(sortable.name, sortable.label, sortable.isGroup,
+            cosmos.addItem(sortable.name, sortable.label, sortable.isGroup,
                 JavaConverters.iterableAsScalaIterableConverter(sortable.groupNames).asScala());
         }
     }
@@ -259,10 +259,10 @@ public class ShlurdHumanLanguageInterpreter
             throw new InterpretationException(
                     locale.getDisplayLanguage(Locale.ENGLISH) + " is not supported at the moment.");
         }
-        if (world == null) {
-            createWorld();
+        if (cosmos == null) {
+            createCosmos();
         }
-        if (world.getEntities().isEmpty()) {
+        if (cosmos.getEntities().isEmpty()) {
             logger.info("SHLURD reloading items...");
             readItems();
             logger.info("SHLURD items loaded");
@@ -271,7 +271,7 @@ public class ShlurdHumanLanguageInterpreter
         SilSentence sentence = ShlurdParser$.MODULE$.apply(text).parseOne();
         ShlurdInterpreterParams params = ShlurdInterpreterParams$.MODULE$.apply(3);
         ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty> interpreter = new ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty>(
-                world, params) {
+                cosmos, params) {
             @Override
             public void executeInvocation(ShlurdStateChangeInvocation<ShlurdPlatonicEntity> invocation) {
                 JavaConverters.setAsJavaSetConverter(invocation.entities()).asJava().forEach(entity -> {

@@ -12,31 +12,33 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
-class ShlurdQueryRewriter extends SilPhraseRewriter
-{
-  def rewriteSpecifier = replacementMatcher {
-    case SilNounReference(
-      noun, DETERMINER_UNSPECIFIED, count
-    ) =>
-      {
-        SilNounReference(noun, DETERMINER_ANY, count)
-      }
-  }
+import scala.io._
 
-  def rewritePredicate = replacementMatcher {
-    case SilStatePredicate(subject, state) => {
-      SilStatePredicate(
-        rewrite(rewriteSpecifier, subject),
-        state)
-    }
-    case SilRelationshipPredicate(subject, complement, relationship) => {
-      SilRelationshipPredicate(
-        rewrite(rewriteSpecifier, subject),
-        complement, relationship)
+object ShlurdPlatonicCosmosApp extends App
+{
+  private val cosmos = new ShlurdPlatonicCosmos
+
+  private val interpreter =
+    new ShlurdPlatonicInterpreter(cosmos, true)
+
+  var exit = false
+  while (!exit) {
+    print("SHLURD> ")
+    val input = StdIn.readLine
+    if (input == null) {
+      exit = true
+    } else {
+      val sentence = ShlurdParser(input).parseOne
+      val output = interpreter.interpret(sentence)
+      println
+      println(output)
+      println
     }
   }
+  println
+  println("Shutting down")
 }

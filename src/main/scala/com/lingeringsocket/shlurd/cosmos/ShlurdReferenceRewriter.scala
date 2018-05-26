@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
@@ -20,7 +20,7 @@ import com.lingeringsocket.shlurd.print._
 import scala.util._
 
 class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
-  world : ShlurdWorld[E, P],
+  cosmos : ShlurdCosmos[E, P],
   sentencePrinter : SilSentencePrinter)
     extends SilPhraseRewriter
 {
@@ -28,14 +28,14 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     case nr @ SilNounReference(
       noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
     ) if (noun.isProper) => {
-      world.resolveQualifiedNoun(
+      cosmos.resolveQualifiedNoun(
         noun.lemma, REF_SUBJECT, Set.empty) match
       {
         case Success(entities) => {
           SilResolvedReference(entities, noun, nr.determiner)
         }
         case Failure(e) => {
-          throw world.fail(sentencePrinter.sb.respondUnknown(noun)).exception
+          throw cosmos.fail(sentencePrinter.sb.respondUnknown(noun)).exception
         }
       }
     }

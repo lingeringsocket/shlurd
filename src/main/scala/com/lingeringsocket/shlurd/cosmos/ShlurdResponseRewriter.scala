@@ -12,14 +12,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
 import ShlurdEnglishLemmas._
 
 class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
-  world : ShlurdWorld[E,P]) extends SilPhraseRewriter
+  cosmos : ShlurdCosmos[E,P]) extends SilPhraseRewriter
 {
   def normalizeResponse(
     predicate : SilPredicate,
@@ -220,14 +220,14 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     (if (trueEntities.isEmpty) {
       None
     } else if ((trueEntities.size == 1) && !params.alwaysSummarize) {
-      Some(world.specificReference(trueEntities.head, entityDeterminer))
+      Some(cosmos.specificReference(trueEntities.head, entityDeterminer))
     } else if (exhaustive || (trueEntities.size > params.listLimit)) {
       summarizeList(trueEntities, exhaustive, existence, false)
     } else {
       Some(SilConjunctiveReference(
         DETERMINER_ALL,
         trueEntities.map(
-          world.specificReference(_, entityDeterminer)).toSeq,
+          cosmos.specificReference(_, entityDeterminer)).toSeq,
         separator))
     }).map(r => SilStateSpecifiedReference(r, SilNullState()))
   }
@@ -248,7 +248,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     val tuple = (if (falseEntities.isEmpty) {
       (None, false)
     } else if ((falseEntities.size == 1) && !params.alwaysSummarize) {
-      (Some(world.specificReference(falseEntities.head, entityDeterminer)),
+      (Some(cosmos.specificReference(falseEntities.head, entityDeterminer)),
         false)
     } else if (exhaustive || (falseEntities.size > params.listLimit)) {
       (summarizeList(falseEntities, exhaustive, existence, true),
@@ -257,7 +257,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       (Some(SilConjunctiveReference(
         DETERMINER_NONE,
         falseEntities.map(
-          world.specificReference(_, entityDeterminer)).toSeq,
+          cosmos.specificReference(_, entityDeterminer)).toSeq,
         separator)),
         true)
     })

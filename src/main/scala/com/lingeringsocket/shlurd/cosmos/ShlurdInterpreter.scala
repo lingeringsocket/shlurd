@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
@@ -49,7 +49,7 @@ class ResultCollector[E<:ShlurdEntity]
 }
 
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
-  world : ShlurdWorld[E,P],
+  cosmos : ShlurdCosmos[E,P],
   generalParams : ShlurdInterpreterParams = ShlurdInterpreterParams())
 {
   private val logger = LoggerFactory.getLogger(classOf[ShlurdInterpreter[E,P]])
@@ -58,11 +58,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private var debugDepth = 0
 
-  private val responseRewriter = new ShlurdResponseRewriter(world)
+  private val responseRewriter = new ShlurdResponseRewriter(cosmos)
 
   protected val sentencePrinter = new SilSentencePrinter
 
-  def fail(msg : String) = world.fail(msg)
+  def fail(msg : String) = cosmos.fail(msg)
 
   @inline protected final def debug(msg : => String)
   {
@@ -408,7 +408,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     evaluatePredicateOverReference(subjectRef, context, resultCollector)
     {
       entity => {
-        val normalizedState = world.normalizeState(entity, originalState)
+        val normalizedState = cosmos.normalizeState(entity, originalState)
         if (originalState != normalizedState) {
           debug(s"NORMALIZED STATE : $normalizedState")
         }
@@ -464,7 +464,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
           case _ => Set.empty
         }
-        val result = world.evaluateEntityAdpositionPredicate(
+        val result = cosmos.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,
           ADP_GENITIVE_OF, qualifiers)
         debug("RESULT FOR " +
@@ -479,7 +479,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     entity : E,
     categoryLabel : String) : Try[Trilean] =
   {
-    val result = world.evaluateEntityCategoryPredicate(entity, categoryLabel)
+    val result = cosmos.evaluateEntityCategoryPredicate(entity, categoryLabel)
     debug("RESULT FOR " +
       s"$entity IN_CATEGORY " +
       s"$categoryLabel is $result")
@@ -548,7 +548,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                     Set.empty
                   }
                 }
-                val result = world.evaluateEntityAdpositionPredicate(
+                val result = cosmos.evaluateEntityAdpositionPredicate(
                   subjectEntity, objEntity, adposition, qualifiers)
                 debug("RESULT FOR " +
                   s"$subjectEntity $adposition $objEntity " +
@@ -622,9 +622,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     // FIXME should maybe use normalizeState here, but it's a bit tricky
     reference match {
       case SilNounReference(noun, determiner, count) => {
-        world.resolveQualifiedNoun(
+        cosmos.resolveQualifiedNoun(
           noun.lemma, context,
-          world.qualifierSet(
+          cosmos.qualifierSet(
             SilReference.extractQualifiers(specifiedState))) match
         {
           case Success(entities) => {
@@ -646,7 +646,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
       case SilPronounReference(person, gender, count) => {
         // FIXME for third-person, need conversational coreference resolution
-        world.resolvePronoun(person, gender, count) match {
+        cosmos.resolvePronoun(person, gender, count) match {
           case Success(entities) => {
             debug(s"CANDIDATE ENTITIES : $entities")
             evaluateDeterminer(
@@ -734,11 +734,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     resultCollector : ResultCollector[E])
       : Try[Trilean] =
   {
-    val result = world.resolveProperty(entity, state.lemma) match {
+    val result = cosmos.resolveProperty(entity, state.lemma) match {
       case Success((property, stateName)) => {
         resultCollector.states += SilWord(
           property.getStates()(stateName), stateName)
-        world.evaluateEntityPropertyPredicate(
+        cosmos.evaluateEntityPropertyPredicate(
           entity, property, stateName)
       }
       case Failure(e) => {
@@ -761,7 +761,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       objRef, REF_ADPOSITION_OBJ, objCollector)
     {
       objEntity => {
-        val result = world.evaluateEntityAdpositionPredicate(
+        val result = cosmos.evaluateEntityAdpositionPredicate(
           subjectEntity, objEntity, adposition)
         debug("RESULT FOR " +
           s"$subjectEntity $adposition $objEntity is $result")
@@ -781,7 +781,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def rewriteReferences(
     predicate : SilPredicate) : SilPredicate =
   {
-    val referenceRewriter = new ShlurdReferenceRewriter(world, sentencePrinter)
+    val referenceRewriter = new ShlurdReferenceRewriter(cosmos, sentencePrinter)
     referenceRewriter.rewrite(
       referenceRewriter.rewriteReferences, predicate)
   }

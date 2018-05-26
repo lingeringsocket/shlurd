@@ -134,7 +134,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           qualifierString, print(possessee, inflection, conjoining))
       }
       case _ : SilResolvedReference[_] => {
-        // FIXME:  call to world?
+        // FIXME:  call to cosmos?
         sb.unknownReference
       }
       case _ : SilUnknownReference => {

@@ -12,25 +12,25 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
 import scala.collection.JavaConverters._
 
-import ShlurdPlatonicWorld._
+import ShlurdPlatonicCosmos._
 import ShlurdEnglishLemmas._
 
-class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
+class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
 {
   def allBeliefs() : Iterable[SilSentence] =
   {
-    world.getFormSynonyms.getAll.filterNot(_._1 == LEMMA_WHO).map(
+    cosmos.getFormSynonyms.getAll.filterNot(_._1 == LEMMA_WHO).map(
       formAliasBelief(_)
     ) ++ (
-      world.getForms.values.flatMap(formBeliefs(_))
+      cosmos.getForms.values.flatMap(formBeliefs(_))
     ) ++ (
-      world.getEntities.values.flatMap(entityBeliefs(_))
+      cosmos.getEntities.values.flatMap(entityBeliefs(_))
     )
   }
 
@@ -42,7 +42,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     form.getInflectedStateNormalizations.map(
       formStateNormalizationBelief(form, _)
     ) ++ {
-      val assocGraph = world.getFormAssocGraph
+      val assocGraph = cosmos.getFormAssocGraph
       if (assocGraph.containsVertex(form)) {
         assocGraph.outgoingEdgesOf(form).asScala.toSeq.map(
           formAssociationBelief(_))
@@ -55,7 +55,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
   def entityBeliefs(entity : ShlurdPlatonicEntity) : Iterable[SilSentence] =
   {
     Seq(entityFormBelief(entity)) ++ {
-      val assocGraph = world.getEntityAssocGraph
+      val assocGraph = cosmos.getEntityAssocGraph
       if (assocGraph.containsVertex(entity)) {
         assocGraph.outgoingEdgesOf(entity).asScala.toSeq.map(
           entityAssociationBelief(_))
@@ -116,8 +116,8 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     edge : FormAssocEdge
   ) : SilSentence =
   {
-    val constraint = world.getAssocConstraints(edge)
-    val isProperty = world.getPropertyEdges.contains(edge)
+    val constraint = cosmos.getAssocConstraints(edge)
+    val isProperty = cosmos.getPropertyEdges.contains(edge)
     val count = {
       if (constraint.upper == 1) {
         COUNT_SINGULAR
@@ -140,7 +140,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     }
     SilPredicateSentence(
       SilRelationshipPredicate(
-        formNoun(world.getPossessorForm(edge)),
+        formNoun(cosmos.getPossessorForm(edge)),
         possessee,
         REL_ASSOCIATION),
       SilIndicativeMood(
@@ -151,7 +151,7 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
 
   def entityFormBelief(entity : ShlurdPlatonicEntity) : SilSentence =
   {
-    val subject = world.specificReference(entity, DETERMINER_NONSPECIFIC)
+    val subject = cosmos.specificReference(entity, DETERMINER_NONSPECIFIC)
     val predicate = entity.properName match {
       case "" => {
         SilStatePredicate(
@@ -172,10 +172,10 @@ class ShlurdPlatonicCreed(world : ShlurdPlatonicWorld)
     edge : EntityAssocEdge
   ) : SilSentence =
   {
-    val possessor = world.specificReference(
-      world.getPossessorEntity(edge), DETERMINER_NONSPECIFIC)
-    val possessee = world.specificReference(
-      world.getPossesseeEntity(edge), DETERMINER_NONSPECIFIC)
+    val possessor = cosmos.specificReference(
+      cosmos.getPossessorEntity(edge), DETERMINER_NONSPECIFIC)
+    val possessee = cosmos.specificReference(
+      cosmos.getPossesseeEntity(edge), DETERMINER_NONSPECIFIC)
     val role = nounReference(
       edge.label, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)
     SilPredicateSentence(

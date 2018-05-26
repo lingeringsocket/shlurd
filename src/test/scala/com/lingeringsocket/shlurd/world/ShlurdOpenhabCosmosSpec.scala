@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
@@ -23,9 +23,9 @@ import scala.util._
 
 import spire.math._
 
-class ShlurdOpenhabWorldSpec extends Specification
+class ShlurdOpenhabCosmosSpec extends Specification
 {
-  trait WorldContext extends NameSpace
+  trait CosmosContext extends NameSpace
   {
     private val itemStates = Map(
       "GF_Garage_Door" -> "open",
@@ -47,7 +47,7 @@ class ShlurdOpenhabWorldSpec extends Specification
       "Presence_Jill" -> "off"
     )
 
-    protected val world = new ShlurdOpenhabWorld {
+    protected val cosmos = new ShlurdOpenhabCosmos {
       override protected def evaluateState(
         entity : ShlurdPlatonicEntity, stateName : String) : Try[Trilean] =
       {
@@ -62,7 +62,7 @@ class ShlurdOpenhabWorldSpec extends Specification
       }
     }
 
-    protected val interpreter = new ShlurdPlatonicInterpreter(world)
+    protected val interpreter = new ShlurdPlatonicInterpreter(cosmos)
 
     protected def interpret(input : String, expected : String) =
     {
@@ -71,79 +71,81 @@ class ShlurdOpenhabWorldSpec extends Specification
     }
   }
 
-  "ShlurdOpenhabWorld" should
+  "ShlurdOpenhabCosmos" should
   {
-    "understand items" in new WorldContext
+    "understand items" in new CosmosContext
     {
       val file = ShlurdParser.getResourceFile("/ontologies/home.txt")
       val source = Source.fromFile(file)
-      world.loadBeliefs(source)
-      world.addItem("Home", "Our House", true, Seq.empty)
-      world.addItem("Phone", "Phone Presence", true, Seq("Home"))
-      world.addItem("Junk", "Just Junk", true, Seq.empty)
-      world.addItem("gGF", "Ground Floor", true, Seq("Home"))
-      world.addItem("FF", "First Floor", true, Seq("Home"))
-      world.addItem("GF_Garage", "Garage", true, Seq("gGF"))
-      world.addItem("GF_Garden", "Garden", true, Seq("gGF"))
-      world.addItem("GF_GuestBedroom", "Guest Bedroom", true, Seq("gGF"))
-      world.addItem("GF_MasterBedroom", "Master Bedroom", true, Seq("gGF"))
-      world.addItem("FF_Family", "Family Room", true, Seq("FF"))
-      world.addItem("FF_LivingRoom", "Living Room", true, Seq("FF"))
-      world.addItem("FF_GuestBedroom", "Guest Bedroom", true, Seq("FF", "Junk"))
-      world.addItem("FF_Bath", "Bathroom", true, Seq("FF"))
-      world.addItem(
+      cosmos.loadBeliefs(source)
+      cosmos.addItem("Home", "Our House", true, Seq.empty)
+      cosmos.addItem("Phone", "Phone Presence", true, Seq("Home"))
+      cosmos.addItem("Junk", "Just Junk", true, Seq.empty)
+      cosmos.addItem("gGF", "Ground Floor", true, Seq("Home"))
+      cosmos.addItem("FF", "First Floor", true, Seq("Home"))
+      cosmos.addItem("GF_Garage", "Garage", true, Seq("gGF"))
+      cosmos.addItem("GF_Garden", "Garden", true, Seq("gGF"))
+      cosmos.addItem("GF_GuestBedroom", "Guest Bedroom", true, Seq("gGF"))
+      cosmos.addItem("GF_MasterBedroom", "Master Bedroom", true, Seq("gGF"))
+      cosmos.addItem("FF_Family", "Family Room", true, Seq("FF"))
+      cosmos.addItem("FF_LivingRoom", "Living Room", true, Seq("FF"))
+      cosmos.addItem(
+        "FF_GuestBedroom", "Guest Bedroom", true, Seq("FF", "Junk"))
+      cosmos.addItem(
+        "FF_Bath", "Bathroom", true, Seq("FF"))
+      cosmos.addItem(
         "FF_Family_Light", "Light", false,
         Seq("FF_Family", "gLight"))
-      world.addItem(
+      cosmos.addItem(
         "FF_LivingRoom_Light", "Mood Light", false,
         Seq("FF_LivingRoom", "gLight"))
-      world.addItem(
+      cosmos.addItem(
         "FF_LivingRoom_Heating", "Heating", false,
         Seq("FF_LivingRoom", "gHeating"))
-      world.addItem(
+      cosmos.addItem(
         "GF_Garage_Door", "Door", false,
         Seq("GF_Garage", "gDoor"))
-      world.addItem(
+      cosmos.addItem(
         "GF_Garage_Light", "Light", false,
         Seq("GF_Garage", "gLight"))
-      world.addItem(
+      cosmos.addItem(
         "GF_Garden_Door", "Door", false,
         Seq("GF_Garden", "gDoor"))
-      world.addItem(
+      cosmos.addItem(
         "GF_Garden_Light_Solar", "Solar", false,
         Seq("GF_Garden", "gLight"))
-      world.addItem(
+      cosmos.addItem(
         "GF_Garden_Light_Terrace", "Terrace", false,
         Seq("GF_Garden", "gLight"))
-      world.addItem(
+      cosmos.addItem(
         "GF_MasterBedroom_Door", "Door", false,
         Seq("GF_MasterBedroom", "gDoor"))
-      world.addItem(
+      cosmos.addItem(
         "GF_GuestBedroom_Door", "Door", false,
         Seq("GF_GuestBedroom", "gDoor"))
-      world.addItem(
+      cosmos.addItem(
         "GF_GuestBedroom_Light", "Light", false,
         Seq("GF_GuestBedroom", "gLight"))
-      world.addItem(
+      cosmos.addItem(
         "FF_GuestBedroom_Door", "Door", false,
         Seq("FF_GuestBedroom", "gDoor"))
-      world.addItem(
+      cosmos.addItem(
         "FF_GuestBedroom_Light_Nightstand",
         "Nightstand", false,
         Seq("FF_GuestBedroom", "gLight"))
-      world.addItem(
+      cosmos.addItem(
         "FF_GuestBedroom_Light_Ceiling",
         "Ceiling", false,
         Seq("FF_GuestBedroom", "gLight"))
-      world.addItem(
+      cosmos.addItem(
         "FF_Bath_Heating",
         "Bath", false,
         Seq("FF_Bath", "gHeating"))
-      world.addItem(
+      cosmos.addItem(
         "Presence_Jack_Phone",
         "Jack", false,
         Seq("Phone"))
-      world.addItem(
+      cosmos.addItem(
         "Presence_Jill",
         "Jill", false,
         Seq.empty)

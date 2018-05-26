@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
@@ -20,9 +20,9 @@ import scala.collection._
 import scala.collection.JavaConverters._
 
 import ShlurdEnglishLemmas._
-import ShlurdPlatonicWorld._
+import ShlurdPlatonicCosmos._
 
-class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
+class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
 {
   type BeliefApplier = PartialFunction[ShlurdPlatonicBelief, Unit]
 
@@ -30,7 +30,7 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
 
   private lazy val allBeliefApplier = beliefAppliers.reduceLeft(_ orElse _)
 
-  private val creed = new ShlurdPlatonicCreed(world)
+  private val creed = new ShlurdPlatonicCreed(cosmos)
 
   def interpretBelief(sentence : SilSentence)
   {
@@ -255,7 +255,7 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
   private def resolveUniqueName(word : SilWord)
       : Option[ShlurdPlatonicEntity] =
   {
-    val candidates = world.getEntities.values.filter(
+    val candidates = cosmos.getEntities.values.filter(
       _.qualifiers == Set(word.lemma))
     if (candidates.size > 1) {
       None
@@ -340,7 +340,7 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
     case StateEquivalenceBelief(
       sentence, formName, state1, state2
     ) => {
-      val form = world.instantiateForm(formName)
+      val form = cosmos.instantiateForm(formName)
       form.addStateNormalization(state1, state2)
     }
   }
@@ -349,8 +349,8 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
     case FormAliasBelief(
       sentence, synonym, formName
     ) => {
-      val form = world.instantiateForm(formName)
-      world.getFormSynonyms.addSynonym(synonym.lemma, form.name)
+      val form = cosmos.instantiateForm(formName)
+      cosmos.getFormSynonyms.addSynonym(synonym.lemma, form.name)
     }
   }
 
@@ -358,18 +358,18 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
     case FormAssocBelief(sentence, possessorFormName, possesseeFormName,
       newConstraint, isProperty
     ) => {
-      val possessorForm = world.instantiateForm(possessorFormName)
-      val possesseeForm = world.instantiateRole(possesseeFormName)
+      val possessorForm = cosmos.instantiateForm(possessorFormName)
+      val possesseeForm = cosmos.instantiateRole(possesseeFormName)
       val label = possesseeFormName.lemma
-      val edge = world.addFormAssoc(
+      val edge = cosmos.addFormAssoc(
         possessorForm, possesseeForm, label)
-      val constraint = world.getAssocConstraints.get(edge) match {
+      val constraint = cosmos.getAssocConstraints.get(edge) match {
         case Some(oldConstraint) => CardinalityConstraint(
           Math.max(oldConstraint.lower, newConstraint.lower),
           Math.min(oldConstraint.upper, newConstraint.upper))
         case _ => newConstraint
       }
-      world.annotateFormAssoc(edge, constraint, isProperty)
+      cosmos.annotateFormAssoc(edge, constraint, isProperty)
     }
   }
 
@@ -377,11 +377,11 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
     case EntityExistenceBelief(
       sentence, formName, qualifiers, properName
     ) => {
-      val form = world.instantiateForm(formName)
-      val (entity, success) = world.instantiateEntity(
+      val form = cosmos.instantiateForm(formName)
+      val (entity, success) = cosmos.instantiateEntity(
         form, qualifiers, properName)
       if (!success) {
-        val creed = new ShlurdPlatonicCreed(world)
+        val creed = new ShlurdPlatonicCreed(cosmos)
         throw new AmbiguousBelief(sentence, creed.entityFormBelief(entity))
       }
     }
@@ -400,12 +400,12 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
       }
       val possessor = possessorOpt.get
       val possessee = possesseeOpt.get
-      world.getFormAssoc(
+      cosmos.getFormAssoc(
         possessor.form, possessee.form, label) match
       {
         case Some(formAssoc) => {
-          val constraint = world.getAssocConstraints(formAssoc)
-          val entityAssocGraph = world.getEntityAssocGraph
+          val constraint = cosmos.getAssocConstraints(formAssoc)
+          val entityAssocGraph = cosmos.getEntityAssocGraph
           if (entityAssocGraph.containsVertex(possessor)) {
             val edgeCount = entityAssocGraph.
               outgoingEdgesOf(possessor).asScala.
@@ -415,7 +415,7 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
                 sentence, creed.formAssociationBelief(formAssoc))
             }
           }
-          world.addEntityAssoc(possessor, possessee, label)
+          cosmos.addEntityAssoc(possessor, possessee, label)
         }
         case _ => {
           // FIXME should be a more specific error
@@ -429,7 +429,7 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
     case FormPropertyBelief(
       sentence, formName, newStates, isClosed
     ) => {
-      val form = world.instantiateForm(formName)
+      val form = cosmos.instantiateForm(formName)
       val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
       if (property.isClosed) {
         if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates.keySet)) {

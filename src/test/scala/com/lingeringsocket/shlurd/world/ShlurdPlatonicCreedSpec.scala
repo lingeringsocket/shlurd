@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
@@ -20,13 +20,13 @@ import com.lingeringsocket.shlurd.print._
 import org.specs2.mutable._
 class ShlurdPlatonicCreedSpec extends Specification
 {
-  trait WorldContext extends NameSpace
+  trait CosmosContext extends NameSpace
   {
-    protected val world = new ShlurdPlatonicWorld
+    protected val cosmos = new ShlurdPlatonicCosmos
 
-    protected val interpreter = new ShlurdPlatonicBeliefInterpreter(world)
+    protected val interpreter = new ShlurdPlatonicBeliefInterpreter(cosmos)
 
-    protected val creed = new ShlurdPlatonicCreed(world)
+    protected val creed = new ShlurdPlatonicCreed(cosmos)
 
     protected def addBelief(input : String) =
     {
@@ -69,49 +69,49 @@ class ShlurdPlatonicCreedSpec extends Specification
 
   "ShlurdPlatonicCreed" should
   {
-    "preserve states" in new WorldContext
+    "preserve states" in new CosmosContext
     {
       expectPreserved(Seq(stateMust, stateMay))
     }
 
-    "preserve state alias" in new WorldContext
+    "preserve state alias" in new CosmosContext
     {
       expectPreserved(Seq(stateAlias))
     }
 
-    "preserve state normalizations" in new WorldContext
+    "preserve state normalizations" in new CosmosContext
     {
       expectPreserved(Seq(stateNormalization))
     }
 
-    "preserve form synonyms" in new WorldContext
+    "preserve form synonyms" in new CosmosContext
     {
       expectPreserved(Seq(formSynonym))
     }
 
-    "preserve form associations" in new WorldContext
+    "preserve form associations" in new CosmosContext
     {
       expectPreserved(Seq(
         assocMay, assocMayPlural, assocMayProperty, assocMust))
     }
 
-    "normalize form associations" in new WorldContext
+    "normalize form associations" in new CosmosContext
     {
       expectNormalized(Seq(assocHas), Seq(assocMust))
     }
 
-    "preserve entity existence" in new WorldContext
+    "preserve entity existence" in new CosmosContext
     {
       expectPreserved(Seq(
         entityExists, entityQualifiedExists, personExists))
     }
 
-    "preserve named entity existence" in new WorldContext
+    "preserve named entity existence" in new CosmosContext
     {
       expectPreserved(Seq(namedEntityExists))
     }
 
-    "preserve entity associations" in new WorldContext
+    "preserve entity associations" in new CosmosContext
     {
       expectPreserved(Seq(
         formSynonym, assocMay,

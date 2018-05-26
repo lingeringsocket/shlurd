@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
@@ -27,7 +27,7 @@ import ShlurdEnglishLemmas._
 
 class ShlurdInterpreterSpec extends Specification
 {
-  private val world = ZooWorld
+  private val cosmos = ZooCosmos
 
   private val LEMMA_ANIMAL = "animal"
 
@@ -38,7 +38,7 @@ class ShlurdInterpreterSpec extends Specification
     params : ShlurdInterpreterParams = ShlurdInterpreterParams()) =
   {
     val sentence = ShlurdParser(input).parseOne
-    val interpreter = new ShlurdInterpreter(world, params) {
+    val interpreter = new ShlurdInterpreter(cosmos, params) {
       override protected def executeInvocation(
         invocation : StateChangeInvocation)
       {
@@ -54,7 +54,7 @@ class ShlurdInterpreterSpec extends Specification
   {
     val sentence = ShlurdParser(input).parseOne
     var actualInvocation : Option[StateChangeInvocation] = None
-    val interpreter = new ShlurdInterpreter(world) {
+    val interpreter = new ShlurdInterpreter(cosmos) {
       override protected def executeInvocation(
         invocation : StateChangeInvocation)
       {
@@ -468,7 +468,7 @@ class ShlurdInterpreterSpec extends Specification
   object ZooAnimalAwake extends ZooAnimalSleepiness("awake")
   object ZooAnimalAsleep extends ZooAnimalSleepiness("asleep")
 
-  object ZooWorld extends ShlurdWorld[ShlurdEntity, ShlurdProperty]
+  object ZooCosmos extends ShlurdCosmos[ShlurdEntity, ShlurdProperty]
   {
     private def index[T <: NamedObject](set : Set[T]) =
       Map(set.map(x => (x.name, x)).toSeq:_*)

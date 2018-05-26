@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.world
+package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
@@ -37,7 +37,7 @@ class ShlurdPlatonicInterpreterSpec extends Specification
   abstract class InterpreterContext(acceptNewBeliefs : Boolean = false)
       extends NameSpace
   {
-    protected val world = new ShlurdPlatonicWorld {
+    protected val cosmos = new ShlurdPlatonicCosmos {
       override def evaluateEntityPropertyPredicate(
         entity : ShlurdPlatonicEntity,
         property : ShlurdPlatonicProperty,
@@ -54,13 +54,13 @@ class ShlurdPlatonicInterpreterSpec extends Specification
     }
 
     protected val interpreter =
-      new ShlurdPlatonicInterpreter(world, acceptNewBeliefs)
+      new ShlurdPlatonicInterpreter(cosmos, acceptNewBeliefs)
 
     protected def loadBeliefs(resource : String)
     {
       val file = ShlurdParser.getResourceFile(resource)
       val source = Source.fromFile(file)
-      world.loadBeliefs(source)
+      cosmos.loadBeliefs(source)
     }
 
     protected def interpret(input : String, expected : String) =
