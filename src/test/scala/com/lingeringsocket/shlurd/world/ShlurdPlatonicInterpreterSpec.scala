@@ -327,7 +327,7 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       loadBeliefs("/ontologies/people.txt")
       interpret(
         "Amanda is Rapunzel's owner",
-        "Cardinality constraint violated.")
+        "That assertion violates a previously accepted cardinality constraint.")
     }
   }
 }

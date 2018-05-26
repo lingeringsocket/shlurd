@@ -206,7 +206,7 @@ class ShlurdPlatonicWorldSpec extends Specification
       addBelief("A person must have a mom")
       addBelief("Joyce is Will's mom")
       addBelief("Elle is Will's mom") must
-        throwA[ShlurdPlatonicWorld.CardinalityViolation]
+        throwA[ShlurdPlatonicWorld.IncrementalCardinalityViolation]
     }
 
     "accept synonyms" in new WorldContext

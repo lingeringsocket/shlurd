@@ -137,19 +137,30 @@ object ShlurdPlatonicWorld
   {
   }
 
-  class ContradictoryBelief(belief : SilSentence)
+  class ContradictoryBelief(
+    belief : SilSentence, originalBelief : SilSentence)
       extends RejectedBelief(belief,
         "That assertion contradicts previously accepted beliefs.")
   {
   }
 
-  class AmbiguousBelief(belief : SilSentence)
+  class AmbiguousBelief(belief : SilSentence, originalBelief : SilSentence)
       extends RejectedBelief(belief,
         "That assertion introduces ambiguity with previously accepted beliefs.")
   {
   }
 
-  class CardinalityViolation() extends ContradictedBelief(
+  class IncrementalCardinalityViolation(
+    belief : SilSentence, originalBelief : SilSentence)
+      extends RejectedBelief(belief,
+        "That assertion violates a previously " +
+          "accepted cardinality constraint.")
+  {
+  }
+
+  class CardinalityViolation(
+    originalBelief : SilSentence)
+      extends ContradictedBelief(
         "Cardinality constraint violated.")
   {
   }
@@ -309,16 +320,18 @@ class ShlurdPlatonicWorld
   }
 
   protected[world] def instantiateEntity(
-    sentence : SilSentence,
     form : ShlurdPlatonicForm,
     qualifierString : Seq[SilWord],
-    properName : String = "") : ShlurdPlatonicEntity =
+    properName : String = "") : (ShlurdPlatonicEntity, Boolean) =
   {
     val qualifiers = qualifierSet(qualifierString)
     def redundantWith(existing : ShlurdPlatonicEntity) =
       (form == existing.form) && qualifiers.subsetOf(existing.qualifiers)
-    if (entities.values.exists(hasQualifiers(_, form, qualifiers, true))) {
-      throw new AmbiguousBelief(sentence)
+    entities.values.find(hasQualifiers(_, form, qualifiers, true)) match {
+      case Some(entity) => {
+        return (entity, false)
+      }
+      case _ =>
     }
     val name =
       (qualifierString.map(_.lemma) ++
@@ -326,7 +339,7 @@ class ShlurdPlatonicWorld
     nextId += 1
     val entity = new ShlurdPlatonicEntity(name, form, qualifiers, properName)
     addEntity(entity)
-    entity
+    (entity, true)
   }
 
   protected[world] def addEntity(entity : ShlurdPlatonicEntity)
@@ -419,6 +432,7 @@ class ShlurdPlatonicWorld
 
   def validateBeliefs()
   {
+    val creed = new ShlurdPlatonicCreed(this)
     formAssocs.edgeSet.asScala.foreach(formEdge => {
       val constraint = assocConstraints(formEdge)
       if ((constraint.lower > 0) || (constraint.upper < Int.MaxValue)) {
@@ -428,10 +442,12 @@ class ShlurdPlatonicWorld
             val c = entityAssocs.outgoingEdgesOf(entity).asScala.
               count(_.label == formEdge.label)
             if ((c < constraint.lower) || (c > constraint.upper)) {
-              throw new CardinalityViolation()
+              throw new CardinalityViolation(
+                creed.formAssociationBelief(formEdge))
             }
           } else if (constraint.lower > 0) {
-            throw new CardinalityViolation()
+            throw new CardinalityViolation(
+              creed.formAssociationBelief(formEdge))
           }
         })
       }

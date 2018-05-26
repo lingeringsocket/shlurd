@@ -30,6 +30,8 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
 
   private lazy val allBeliefApplier = beliefAppliers.reduceLeft(_ orElse _)
 
+  private val creed = new ShlurdPlatonicCreed(world)
+
   def interpretBelief(sentence : SilSentence)
   {
     recognizeBelief(sentence) match {
@@ -68,7 +70,6 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
             if (failed) {
               return None
             }
-            val form = world.instantiateForm(noun)
             ref match {
               case SilStateSpecifiedReference(
                 _, specifiedState @
@@ -377,8 +378,12 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
       sentence, formName, qualifiers, properName
     ) => {
       val form = world.instantiateForm(formName)
-      world.instantiateEntity(
-        sentence, form, qualifiers, properName)
+      val (entity, success) = world.instantiateEntity(
+        form, qualifiers, properName)
+      if (!success) {
+        val creed = new ShlurdPlatonicCreed(world)
+        throw new AmbiguousBelief(sentence, creed.entityFormBelief(entity))
+      }
     }
   }
 
@@ -406,7 +411,8 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
               outgoingEdgesOf(possessor).asScala.
               count(_.label == label)
             if ((edgeCount + 1) > constraint.upper) {
-              throw new CardinalityViolation()
+              throw new IncrementalCardinalityViolation(
+                sentence, creed.formAssociationBelief(formAssoc))
             }
           }
           world.addEntityAssoc(possessor, possessee, label)
@@ -427,7 +433,9 @@ class ShlurdPlatonicBeliefInterpreter(world : ShlurdPlatonicWorld)
       val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
       if (property.isClosed) {
         if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates.keySet)) {
-          throw new ContradictoryBelief(sentence)
+          throw new ContradictoryBelief(
+            sentence,
+            creed.formPropertyBelief(form, property))
         }
       } else {
         newStates.foreach(property.instantiateState(_))
