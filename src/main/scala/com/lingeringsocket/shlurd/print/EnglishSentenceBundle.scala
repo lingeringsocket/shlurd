@@ -370,6 +370,14 @@ class EnglishSentenceBundle
       case DETERMINER_ANY => LEMMA_ANY
       case DETERMINER_SOME => LEMMA_SOME
       case DETERMINER_ALL => LEMMA_ALL
+      case SilIntegerDeterminer(number : Int) => {
+        // FIXME:  render all small numbers
+        if (number == 1) {
+          LEMMA_ONE
+        } else {
+          number.toString
+        }
+      }
     }
     compose(determinerString, noun)
   }

@@ -32,6 +32,7 @@ case object DETERMINER_ANY extends SilDeterminer
 case object DETERMINER_SOME extends SilDeterminer
 case object DETERMINER_ALL extends SilDeterminer
 case object DETERMINER_UNSPECIFIED extends SilDeterminer
+case class SilIntegerDeterminer(number : Int) extends SilDeterminer
 
 sealed trait SilAdposition
 case object ADP_INSIDE extends SilAdposition

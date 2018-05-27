@@ -124,47 +124,6 @@ object ShlurdPlatonicCosmos
 
   val DEFAULT_PROPERTY_WORD = SilWord(DEFAULT_PROPERTY)
 
-  abstract class ContradictedBelief(
-    cause : String) extends RuntimeException(cause)
-
-  abstract class RejectedBelief(
-    belief : SilSentence,
-    cause : String) extends ContradictedBelief(cause)
-
-  class IncomprehensibleBelief(belief : SilSentence)
-      extends RejectedBelief(belief,
-        "That assertion cannot be understood.")
-  {
-  }
-
-  class ContradictoryBelief(
-    belief : SilSentence, originalBelief : SilSentence)
-      extends RejectedBelief(belief,
-        "That assertion contradicts previously accepted beliefs.")
-  {
-  }
-
-  class AmbiguousBelief(belief : SilSentence, originalBelief : SilSentence)
-      extends RejectedBelief(belief,
-        "That assertion introduces ambiguity with previously accepted beliefs.")
-  {
-  }
-
-  class IncrementalCardinalityViolation(
-    belief : SilSentence, originalBelief : SilSentence)
-      extends RejectedBelief(belief,
-        "That assertion violates a previously " +
-          "accepted cardinality constraint.")
-  {
-  }
-
-  class CardinalityViolation(
-    originalBelief : SilSentence)
-      extends ContradictedBelief(
-        "Cardinality constraint violated.")
-  {
-  }
-
   case class CardinalityConstraint(lower : Int, upper : Int)
   {
   }

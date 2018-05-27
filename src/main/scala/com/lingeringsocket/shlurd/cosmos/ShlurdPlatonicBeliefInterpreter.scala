@@ -407,12 +407,19 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
           val constraint = cosmos.getAssocConstraints(formAssoc)
           val entityAssocGraph = cosmos.getEntityAssocGraph
           if (entityAssocGraph.containsVertex(possessor)) {
-            val edgeCount = entityAssocGraph.
+            val edges = entityAssocGraph.
               outgoingEdgesOf(possessor).asScala.
-              count(_.label == label)
-            if ((edgeCount + 1) > constraint.upper) {
+              filter(_.label == label)
+
+            val edgeCount = edges.size
+            if (edgeCount >= constraint.upper) {
+              val originalBelief = SilConjunctiveSentence(
+                DETERMINER_ALL,
+                Seq(creed.formAssociationBelief(formAssoc)) ++
+                  edges.map(creed.entityAssociationBelief(_)),
+                SEPARATOR_OXFORD_COMMA)
               throw new IncrementalCardinalityViolation(
-                sentence, creed.formAssociationBelief(formAssoc))
+                sentence, originalBelief)
             }
           }
           cosmos.addEntityAssoc(possessor, possessee, label)

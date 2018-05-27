@@ -319,7 +319,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret("there is a front door",
         "OK.")
       interpret("there is a big front door",
-        "That assertion introduces ambiguity with previously accepted beliefs.")
+        "Previously I was told that there is a front door.  " +
+          "So I am unclear how to interpret the belief that " +
+          "there is a big front door.")
     }
 
     "validate constraints incrementally" in new InterpreterContext(true)
@@ -327,7 +329,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       loadBeliefs("/ontologies/people.txt")
       interpret(
         "Amanda is Rapunzel's owner",
-        "That assertion violates a previously accepted cardinality constraint.")
+        "Previously I was told that a dog may have one owner and Bart " +
+          "is Rapunzel's owner.  So it does not add up when I hear that " +
+          "Amanda is Rapunzel's owner.")
     }
   }
 }

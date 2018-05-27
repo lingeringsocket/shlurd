@@ -24,9 +24,16 @@ class ShlurdPlatonicCreedSpec extends Specification
   {
     protected val cosmos = new ShlurdPlatonicCosmos
 
+    private val refriedCosmos = new ShlurdPlatonicCosmos
+
     protected val interpreter = new ShlurdPlatonicBeliefInterpreter(cosmos)
 
+    private val refriedInterpreter =
+      new ShlurdPlatonicBeliefInterpreter(refriedCosmos)
+
     protected val creed = new ShlurdPlatonicCreed(cosmos)
+
+    private val refriedCreed = new ShlurdPlatonicCreed(refriedCosmos)
 
     protected def addBelief(input : String) =
     {
@@ -45,8 +52,18 @@ class ShlurdPlatonicCreedSpec extends Specification
     {
       input.foreach(addBelief)
       val printer = new SilSentencePrinter
-      val beliefs = creed.allBeliefs.map(printer.print)
-      beliefs.map(ShlurdParseUtils.capitalize) must be equalTo expected
+      val beliefStrings = creed.allBeliefs.map(printer.print)
+      beliefStrings.map(ShlurdParseUtils.capitalize) must be equalTo expected
+      val refriedBeliefs = beliefStrings.map(beliefString => {
+        val sentence = ShlurdParser(beliefString).parseOne
+        refriedInterpreter.recognizeBelief(sentence)
+      })
+      refriedBeliefs.foreach(belief => {
+        belief must beSome
+        refriedInterpreter.applyBelief(belief.get)
+      })
+      val refriedStrings = refriedCreed.allBeliefs.map(printer.print)
+      refriedStrings.map(ShlurdParseUtils.capitalize) must be equalTo expected
     }
   }
 
@@ -56,10 +73,10 @@ class ShlurdPlatonicCreedSpec extends Specification
   private val stateNormalization = "A person at home is present."
   private val formSynonym = "A mentor is a person."
   private val assocHas = "A dog has an owner."
-  private val assocMust = "A dog must have an owner."
-  private val assocMay = "A person may have a mentor."
+  private val assocMust = "A dog must have one owner."
+  private val assocMay = "A person may have one mentor."
   private val assocMayPlural = "A person may have pets."
-  private val assocMayProperty = "A person may have a presence as a property."
+  private val assocMayProperty = "A person may have one presence as a property."
   private val entityExists = "There is a parakeet."
   private val namedEntityExists = "Fido is a dog."
   private val entityQualifiedExists = "There is an angry cat."

@@ -36,5 +36,5 @@ scalacOptions in (Compile, console) := scalacCommonOptions :+ "-Yrepl-sync"
 initialCommands := """
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
-import com.lingeringsocket.shlurd.world._
+import com.lingeringsocket.shlurd.cosmos._
 """

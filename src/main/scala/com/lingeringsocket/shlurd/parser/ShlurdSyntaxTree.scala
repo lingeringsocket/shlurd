@@ -58,6 +58,7 @@ object ShlurdPennTreebankLabels
   val LABEL_POS = "POS"
   val LABEL_MD = "MD"
   val LABEL_RP = "RP"
+  val LABEL_CD = "CD"
 
   val LABEL_COMMA = ","
   val LABEL_DOT = "."
@@ -185,7 +186,9 @@ trait ShlurdAbstractSyntaxTree
     if (children.isEmpty) {
       foldedToken
     } else {
-      children.map(_.toWordString).mkString(" ")
+      // FIXME uniform handling for all clitics
+      children.map(_.toWordString).mkString(" ").
+        replaceAllLiterally(" 's", "'s")
     }
   }
 }
@@ -305,6 +308,10 @@ sealed trait ShlurdSyntaxModal extends ShlurdSyntaxPreTerminal
 }
 
 sealed trait ShlurdSyntaxPunctuation extends ShlurdSyntaxPreTerminal
+{
+}
+
+sealed trait ShlurdSyntaxNumber extends ShlurdSyntaxPreTerminal
 {
 }
 
@@ -549,6 +556,12 @@ case class SptIN(child : ShlurdSyntaxLeaf)
     extends ShlurdSyntaxPreposition
 {
   override def label = LABEL_IN
+}
+
+case class SptCD(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxNumber
+{
+  override def label = LABEL_CD
 }
 
 case class SptDOT(child : ShlurdSyntaxLeaf)

@@ -118,14 +118,15 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
   {
     val constraint = cosmos.getAssocConstraints(edge)
     val isProperty = cosmos.getPropertyEdges.contains(edge)
-    val count = {
+    val (count, determiner) = {
       if (constraint.upper == 1) {
-        COUNT_SINGULAR
+        (COUNT_SINGULAR, SilIntegerDeterminer(constraint.upper))
       } else {
-        COUNT_PLURAL
+        (COUNT_PLURAL, DETERMINER_UNSPECIFIED)
       }
     }
-    val possesseeNoun = nounReference(edge.label, count)
+    val possesseeNoun = nounReference(
+      edge.label, count, determiner)
     val possessee = {
       if (isProperty) {
         SilStateSpecifiedReference(

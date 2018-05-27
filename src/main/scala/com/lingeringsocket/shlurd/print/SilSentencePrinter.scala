@@ -22,35 +22,41 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
 
   def print(sentence : SilSentence) : String =
   {
+    sb.terminatedSentence(
+      printUnterminated(sentence),
+      sentence.mood, sentence.formality)
+  }
+
+  def printUnterminated(sentence : SilSentence) : String =
+  {
     sentence match {
-      case SilPredicateSentence(predicate, mood, formality) => {
+      case SilPredicateSentence(predicate, mood, _) => {
         mood match {
           case _ : SilIndicativeMood =>  {
-            sb.terminatedSentence(
-              printPredicateStatement(predicate, mood), mood, formality)
+            printPredicateStatement(predicate, mood)
           }
           case _ : SilInterrogativeMood => {
-            sb.terminatedSentence(
-              printPredicateQuestion(predicate, mood), mood, sentence.formality)
+            printPredicateQuestion(predicate, mood)
           }
           case MOOD_IMPERATIVE => {
-            sb.terminatedSentence(
-              printPredicateCommand(predicate), mood, sentence.formality)
+            printPredicateCommand(predicate)
           }
         }
       }
-      case SilStateChangeCommand(predicate, changeVerb, formality) => {
-        sb.terminatedSentence(
-          printPredicateCommand(predicate, changeVerb),
-          sentence.mood, formality)
+      case SilStateChangeCommand(predicate, changeVerb, _) => {
+        printPredicateCommand(predicate, changeVerb)
       }
-      case SilPredicateQuery(predicate, question, mood, formality) => {
-        sb.terminatedSentence(
-          printPredicateQuestion(
-            predicate, mood, Some(question)), mood, formality)
+      case SilPredicateQuery(predicate, question, mood, _) => {
+        printPredicateQuestion(
+          predicate, mood, Some(question))
+      }
+      case SilConjunctiveSentence(determiner, sentences, separator) => {
+        sb.conjoin(
+          determiner, separator, INFLECT_NONE,
+          sentences.map(printUnterminated))
       }
       case SilAmbiguousSentence(alternatives, _) => {
-        alternatives.map(print(_)).mkString(" | ")
+        alternatives.map(printUnterminated).mkString(" | ")
       }
       case _ : SilUnknownSentence => {
         sb.unknownSentence

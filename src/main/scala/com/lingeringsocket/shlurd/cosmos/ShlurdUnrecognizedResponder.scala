@@ -87,6 +87,9 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
           case _ =>
         }
       }
+      case SilConjunctiveSentence(determiner, sentences, _) => {
+        // FIXME:  divide and conquer if possible
+      }
       case _ : SilStateChangeCommand => ;
       case _ : SilAmbiguousSentence => ;
       case _ : SilUnknownSentence => ;

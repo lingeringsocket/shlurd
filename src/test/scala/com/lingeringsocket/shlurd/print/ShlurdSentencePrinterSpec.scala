@@ -50,6 +50,10 @@ class SilSentencePrinterSpec extends Specification
       case SilAmbiguousSentence(alternatives, _) => {
         SilAmbiguousSentence(alternatives.map(normalize))
       }
+      case _ : SilConjunctiveSentence => {
+        // FIXME
+        parsed
+      }
       case _ : SilUnknownSentence => parsed
     }
   }

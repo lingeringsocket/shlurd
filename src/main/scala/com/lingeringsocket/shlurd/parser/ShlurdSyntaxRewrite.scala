@@ -63,6 +63,7 @@ object ShlurdSyntaxRewrite
     LABEL_RBS -> SptRBS,
     LABEL_CC -> SptCC,
     LABEL_DT -> SptDT,
+    LABEL_CD -> SptCD,
     LABEL_IN -> SptIN,
     LABEL_RP -> SptRP,
     LABEL_MD -> SptMD,

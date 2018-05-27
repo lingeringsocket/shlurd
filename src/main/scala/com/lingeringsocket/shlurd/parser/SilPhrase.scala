@@ -137,14 +137,6 @@ abstract class SilTransformedPhrase extends SilPhrase
   def hasSyntaxTree = !syntaxTreeOpt.isEmpty
 
   override def maybeSyntaxTree = syntaxTreeOpt
-
-  override def toWordString =
-  {
-    syntaxTreeOpt match {
-      case Some(syntaxTree) => syntaxTree.toWordString
-      case _ => super.toWordString
-    }
-  }
 }
 
 case class SilUnrecognizedSentence(
@@ -270,6 +262,19 @@ case class SilPredicateQuery(
   override def children = Seq(predicate)
 }
 
+case class SilConjunctiveSentence(
+  determiner : SilDeterminer,
+  sentences : Seq[SilSentence],
+  separator : SilSeparator = SEPARATOR_CONJOINED
+) extends SilTransformedPhrase with SilSentence
+{
+  override def children = sentences
+
+  // not really sure there's any more meaningful implementation
+  override def mood = sentences.head.mood
+
+  override def formality = sentences.head.formality
+}
 
 case class SilAmbiguousSentence(
   alternatives : Seq[SilSentence],

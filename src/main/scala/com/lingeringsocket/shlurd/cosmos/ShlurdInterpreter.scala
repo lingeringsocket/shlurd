@@ -264,6 +264,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
+      case SilConjunctiveSentence(determiner, sentences, _) => {
+        // FIXME
+        debug("CONJUNCTIVE SENTENCE")
+        sentencePrinter.sb.respondCannotUnderstand()
+      }
       case SilAmbiguousSentence(alternatives, _) => {
         debug("AMBIGUOUS SENTENCE")
         // FIXME:  try each in turn and use first

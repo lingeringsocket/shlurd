@@ -16,8 +16,6 @@ package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
-import ShlurdPlatonicCosmos._
-
 class ShlurdPlatonicInterpreter(
   cosmos : ShlurdPlatonicCosmos,
   acceptNewBeliefs : Boolean = false)
@@ -34,9 +32,9 @@ class ShlurdPlatonicInterpreter(
           try {
             beliefInterpreter.applyBelief(belief)
           } catch {
-            case ex : ContradictedBelief => {
+            case ex : RejectedBelief => {
               debug("NEW BELIEF REJECTED", ex)
-              return ex.getMessage
+              return respondContradiction(ex)
             }
           }
           debug("NEW BELIEF ACCEPTED")
@@ -46,5 +44,41 @@ class ShlurdPlatonicInterpreter(
       }
     }
     super.interpretImpl(sentence)
+  }
+
+  // FIXME:  i18n
+  private def respondContradiction(ex : RejectedBelief) : String =
+  {
+    val beliefString = printBelief(ex.belief)
+    ex match {
+      case IncomprehensibleBelief(belief) => {
+        s"I am unable to understand the belief that ${beliefString}."
+      }
+      case ContradictoryBelief(belief, originalBelief) => {
+        val originalBeliefString = printBelief(originalBelief)
+        s"Previously I was told that ${originalBeliefString}." +
+          s"  So I am unable to accept that ${beliefString}."
+      }
+      case AmbiguousBelief(belief, originalBelief) => {
+        val originalBeliefString = printBelief(originalBelief)
+        s"Previously I was told that ${originalBeliefString}." +
+          s"  So I am unclear how to interpret the belief that ${beliefString}."
+      }
+      case IncrementalCardinalityViolation(belief, originalBelief) => {
+        val originalBeliefString = printBelief(originalBelief)
+        s"Previously I was told that ${originalBeliefString}." +
+          s"  So it does not add up when I hear that ${beliefString}."
+      }
+    }
+  }
+
+  private def printBelief(belief : SilSentence) : String =
+  {
+    val punctuated = belief.maybeSyntaxTree match {
+      case Some(syntaxTree) => syntaxTree.toWordString
+      case _ => sentencePrinter.print(belief)
+    }
+    // FIXME:  need a cleaner way to omit full stop
+    punctuated.dropRight(1).trim
   }
 }

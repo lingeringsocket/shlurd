@@ -219,11 +219,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     val (determiner, components) = {
       val first = seq.head.unwrapPhrase
       first match {
-        case SptDT(leaf) => {
-          (determinerFor(leaf), seq.drop(1))
+        case pt @ (_ : SptDT | _ : SptCD) => {
+          (determinerFor(requireLeaf(pt.children)), seq.drop(1))
         }
         case _ => {
-        (DETERMINER_UNSPECIFIED, seq)
+          (DETERMINER_UNSPECIFIED, seq)
         }
       }
     }
@@ -657,7 +657,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     leaf.lemma match {
       case LEMMA_NO | LEMMA_NEITHER | LEMMA_NOR => DETERMINER_NONE
       case LEMMA_BOTH | LEMMA_AND | LEMMA_ALL | LEMMA_EVERY => DETERMINER_ALL
-      case LEMMA_A => DETERMINER_NONSPECIFIC
+      // FIXME LEMMA_ONE should really map to SilIntegerDeterminer
+      case LEMMA_ONE | LEMMA_A => DETERMINER_NONSPECIFIC
       case LEMMA_THE | LEMMA_EITHER => DETERMINER_UNIQUE
       case LEMMA_SOME => DETERMINER_SOME
       case _ => DETERMINER_ANY

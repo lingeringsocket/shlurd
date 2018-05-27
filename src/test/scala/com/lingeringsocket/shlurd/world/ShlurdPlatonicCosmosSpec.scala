@@ -174,9 +174,9 @@ class ShlurdPlatonicCosmosSpec extends Specification
       cosmos.resolveGenitive(lonnie, "ex-husband") must beEmpty
 
       addBelief("Bert is Will's mom") must
-        throwA[ShlurdPlatonicCosmos.IncomprehensibleBelief]
+        throwA[IncomprehensibleBelief]
       addBelief("Joyce is Bert's mom") must
-        throwA[ShlurdPlatonicCosmos.IncomprehensibleBelief]
+        throwA[IncomprehensibleBelief]
     }
 
     "require genitives to be defined before usage" in new CosmosContext
@@ -185,7 +185,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("Will is a person")
       addBelief("A mom is a person")
       addBelief("Joyce is Will's mom") must
-        throwA[ShlurdPlatonicCosmos.IncomprehensibleBelief]
+        throwA[IncomprehensibleBelief]
     }
 
     "require mandatory genitives to be assigned" in new CosmosContext
@@ -194,7 +194,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("A mom is a person")
       addBelief("A person must have a mom")
       cosmos.validateBeliefs must
-        throwA[ShlurdPlatonicCosmos.CardinalityViolation]
+        throwA[CardinalityViolation]
     }
 
     "prevent single valued genitives from being multiple" in new CosmosContext
@@ -206,7 +206,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("A person must have a mom")
       addBelief("Joyce is Will's mom")
       addBelief("Elle is Will's mom") must
-        throwA[ShlurdPlatonicCosmos.IncrementalCardinalityViolation]
+        throwA[IncrementalCardinalityViolation]
     }
 
     "accept synonyms" in new CosmosContext
@@ -261,27 +261,27 @@ class ShlurdPlatonicCosmosSpec extends Specification
     {
       addBelief("a door must be open or closed")
       addBelief("a door may be ajar") must
-        throwA[ShlurdPlatonicCosmos.ContradictoryBelief]
+        throwA[ContradictoryBelief]
     }
 
     "reject ambiguous belief" in new CosmosContext
     {
       addBelief("there is a front door")
       addBelief("there is a door") must
-        throwA[ShlurdPlatonicCosmos.AmbiguousBelief]
+        throwA[AmbiguousBelief]
     }
 
     "reject another ambiguous belief" in new CosmosContext
     {
       addBelief("there is a door")
       addBelief("there is a front door") must
-        throwA[ShlurdPlatonicCosmos.AmbiguousBelief]
+        throwA[AmbiguousBelief]
     }
 
     "reject beliefs it cannot understand" in new CosmosContext
     {
       addBelief("a green door must be either open or closed") must
-        throwA[ShlurdPlatonicCosmos.IncomprehensibleBelief]
+        throwA[IncomprehensibleBelief]
     }
   }
 }
