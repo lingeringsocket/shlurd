@@ -32,7 +32,7 @@ class ShlurdPlatonicInterpreter(
           try {
             beliefInterpreter.applyBelief(belief)
           } catch {
-            case ex : RejectedBelief => {
+            case ex : RejectedBeliefExcn => {
               debug("NEW BELIEF REJECTED", ex)
               return respondContradiction(ex)
             }
@@ -47,24 +47,27 @@ class ShlurdPlatonicInterpreter(
   }
 
   // FIXME:  i18n
-  private def respondContradiction(ex : RejectedBelief) : String =
+  private def respondContradiction(ex : RejectedBeliefExcn) : String =
   {
     val beliefString = printBelief(ex.belief)
     ex match {
-      case IncomprehensibleBelief(belief) => {
+      case UnimplementedBeliefExcn(belief) => {
+        s"I am not yet capable of processing the belief that ${beliefString}."
+      }
+      case IncomprehensibleBeliefExcn(belief) => {
         s"I am unable to understand the belief that ${beliefString}."
       }
-      case ContradictoryBelief(belief, originalBelief) => {
+      case ContradictoryBeliefExcn(belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)
         s"Previously I was told that ${originalBeliefString}." +
           s"  So I am unable to accept that ${beliefString}."
       }
-      case AmbiguousBelief(belief, originalBelief) => {
+      case AmbiguousBeliefExcn(belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)
         s"Previously I was told that ${originalBeliefString}." +
           s"  So I am unclear how to interpret the belief that ${beliefString}."
       }
-      case IncrementalCardinalityViolation(belief, originalBelief) => {
+      case IncrementalCardinalityExcn(belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)
         s"Previously I was told that ${originalBeliefString}." +
           s"  So it does not add up when I hear that ${beliefString}."

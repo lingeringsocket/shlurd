@@ -38,7 +38,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       case Some(belief) => {
         applyBelief(belief)
       }
-      case _ => throw new IncomprehensibleBelief(sentence)
+      case _ => throw new IncomprehensibleBeliefExcn(sentence)
     }
   }
 
@@ -61,7 +61,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       case SilPredicateSentence(predicate, mood, formality) => {
         if (mood.isNegative) {
           // FIXME:  interpret this as a constraint
-          return None
+          return Some(UnimplementedBelief(sentence))
         }
         predicate match {
           case SilStatePredicate(ref, state) => {
@@ -79,7 +79,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
                 // or "a television that is busted is broken"
                 // or "a busted television is broken"
                 if (mood.getModality != MODAL_NEUTRAL) {
-                  return None
+                  return Some(UnimplementedBelief(sentence))
                 }
                 state match {
                   case ps : SilPropertyState => {
@@ -88,7 +88,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
                   }
                   case SilExistenceState() =>
                   case _ => {
-                    return None
+                    return Some(UnimplementedBelief(sentence))
                   }
                 }
               }
@@ -103,9 +103,9 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
               }
               case _ => {
                 if (!qualifiers.isEmpty) {
-                  // but maybe we should allow constraints on
+                  // maybe we should allow constraints on
                   // qualified entities?
-                  return None
+                  return Some(UnimplementedBelief(sentence))
                 }
                 return definePropertyBelief(
                   sentence, noun, qualifiers, state, mood)
@@ -148,8 +148,11 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
   {
     val (complementNoun, qualifiers, count, failed) = extractQualifiedNoun(
       sentence, complement, Seq.empty)
-    if (failed || !qualifiers.isEmpty) {
+    if (failed) {
       return None
+    }
+    if (!qualifiers.isEmpty) {
+      return Some(UnimplementedBelief(sentence))
     }
     relationship match {
       case REL_IDENTITY => {
@@ -172,7 +175,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
               MODAL_CAPABLE | MODAL_PERMITTED =>
             CardinalityConstraint(0, upper)
           case MODAL_SHOULD =>
-            return None
+            return Some(UnimplementedBelief(sentence))
         }
         isPropertyAssoc(sentence, complement, relationship).map(
           isProperty => {
@@ -208,7 +211,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     } else {
       // "Fido is Franny's pet"
       if (qualifiers.size != 1) {
-        return None
+        return Some(UnimplementedBelief(sentence))
       }
       Some(EntityAssocBelief(
         sentence,
@@ -337,6 +340,14 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
   }
 
   beliefApplier {
+    case UnimplementedBelief(
+      sentence
+    ) => {
+      throw new UnimplementedBeliefExcn(sentence)
+    }
+  }
+
+  beliefApplier {
     case StateEquivalenceBelief(
       sentence, formName, state1, state2
     ) => {
@@ -382,7 +393,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
         form, qualifiers, properName)
       if (!success) {
         val creed = new ShlurdPlatonicCreed(cosmos)
-        throw new AmbiguousBelief(sentence, creed.entityFormBelief(entity))
+        throw new AmbiguousBeliefExcn(sentence, creed.entityFormBelief(entity))
       }
     }
   }
@@ -396,7 +407,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       val label = labelName.lemma
       if (possessorOpt.isEmpty || possesseeOpt.isEmpty) {
         // FIXME should be a more specific error
-        throw new IncomprehensibleBelief(sentence)
+        throw new IncomprehensibleBeliefExcn(sentence)
       }
       val possessor = possessorOpt.get
       val possessee = possesseeOpt.get
@@ -418,7 +429,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
                 Seq(creed.formAssociationBelief(formAssoc)) ++
                   edges.map(creed.entityAssociationBelief(_)),
                 SEPARATOR_OXFORD_COMMA)
-              throw new IncrementalCardinalityViolation(
+              throw new IncrementalCardinalityExcn(
                 sentence, originalBelief)
             }
           }
@@ -426,7 +437,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
         }
         case _ => {
           // FIXME should be a more specific error
-          throw new IncomprehensibleBelief(sentence)
+          throw new IncomprehensibleBeliefExcn(sentence)
         }
       }
     }
@@ -440,7 +451,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
       if (property.isClosed) {
         if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates.keySet)) {
-          throw new ContradictoryBelief(
+          throw new ContradictoryBeliefExcn(
             sentence,
             creed.formPropertyBelief(form, property))
         }

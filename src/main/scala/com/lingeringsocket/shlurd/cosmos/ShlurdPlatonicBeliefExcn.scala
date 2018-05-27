@@ -19,40 +19,46 @@ import com.lingeringsocket.shlurd.parser._
 sealed abstract class ShlurdPlatonicBeliefExcn(
   cause : String) extends RuntimeException(cause)
 
-sealed abstract class RejectedBelief(
+sealed abstract class RejectedBeliefExcn(
   cause : String) extends ShlurdPlatonicBeliefExcn(cause)
 {
   def belief : SilSentence
 }
 
-case class IncomprehensibleBelief(belief : SilSentence)
-    extends RejectedBelief(
+case class IncomprehensibleBeliefExcn(belief : SilSentence)
+    extends RejectedBeliefExcn(
       "New belief cannot be understood.")
 {
 }
 
-case class ContradictoryBelief(
+case class UnimplementedBeliefExcn(belief : SilSentence)
+    extends RejectedBeliefExcn(
+      "New belief is not supported yet.")
+{
+}
+
+case class ContradictoryBeliefExcn(
   belief : SilSentence, originalBelief : SilSentence)
-    extends RejectedBelief(
+    extends RejectedBeliefExcn(
       "New belief contradicts previously accepted beliefs.")
 {
 }
 
-case class AmbiguousBelief(
+case class AmbiguousBeliefExcn(
   belief : SilSentence, originalBelief : SilSentence)
-    extends RejectedBelief(
+    extends RejectedBeliefExcn(
       "New belief introduces ambiguity with previously accepted beliefs.")
 {
 }
 
-case class IncrementalCardinalityViolation(
+case class IncrementalCardinalityExcn(
   belief : SilSentence, originalBelief : SilSentence)
-    extends RejectedBelief(
+    extends RejectedBeliefExcn(
       "New belief violates a previously accepted cardinality constraint.")
 {
 }
 
-case class CardinalityViolation(
+case class CardinalityExcn(
   originalBelief : SilSentence)
     extends ShlurdPlatonicBeliefExcn(
   "Cardinality constraint belief violated.")

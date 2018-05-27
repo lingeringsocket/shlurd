@@ -401,11 +401,11 @@ class ShlurdPlatonicCosmos
             val c = entityAssocs.outgoingEdgesOf(entity).asScala.
               count(_.label == formEdge.label)
             if ((c < constraint.lower) || (c > constraint.upper)) {
-              throw new CardinalityViolation(
+              throw new CardinalityExcn(
                 creed.formAssociationBelief(formEdge))
             }
           } else if (constraint.lower > 0) {
-            throw new CardinalityViolation(
+            throw new CardinalityExcn(
               creed.formAssociationBelief(formEdge))
           }
         })

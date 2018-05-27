@@ -25,6 +25,12 @@ sealed trait ShlurdPlatonicBelief
   def sentence : SilSentence
 }
 
+case class UnimplementedBelief(
+  sentence : SilSentence
+) extends ShlurdPlatonicBelief
+{
+}
+
 case class StateEquivalenceBelief(
   sentence : SilSentence,
   formName : SilWord,
