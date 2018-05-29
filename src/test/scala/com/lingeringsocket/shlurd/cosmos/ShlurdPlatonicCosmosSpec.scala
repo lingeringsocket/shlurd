@@ -110,6 +110,23 @@ class ShlurdPlatonicCosmosSpec extends Specification
       frontDoor must not be equalTo(backDoor)
     }
 
+    "understand taxonomy" in new CosmosContext
+    {
+      addBelief("a mammal is a kind of animal")
+      addBelief("a bird is a kind of animal")
+      addBelief("a canine is a kind of mammal")
+      addBelief("a dog is a kind of canine")
+      cosmos.validateBeliefs
+    }
+
+    "prevent taxonomy cycles" in new CosmosContext
+    {
+      addBelief("a duck is a kind of bird")
+      // FIXME:  better exception type
+      addBelief("a bird is a kind of duck") must
+        throwA[IllegalArgumentException]
+    }
+
     "understand genitives" in new CosmosContext
     {
       addBelief("Joyce is a person")

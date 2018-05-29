@@ -47,6 +47,7 @@ case object ADP_LEFT extends SilAdposition
 case object ADP_RIGHT extends SilAdposition
 case object ADP_FRONT extends SilAdposition
 case object ADP_BEHIND extends SilAdposition
+case object ADP_OF extends SilAdposition
 case object ADP_GENITIVE_OF extends SilAdposition
 
 sealed trait SilCount

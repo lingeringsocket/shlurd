@@ -200,7 +200,7 @@ class EnglishSentenceBundle
       case ADP_RIGHT => "to the right of"
       case ADP_FRONT => "in front of"
       case ADP_BEHIND => LEMMA_BEHIND
-      case ADP_GENITIVE_OF => LEMMA_OF
+      case ADP_OF | ADP_GENITIVE_OF => LEMMA_OF
     }
   }
 

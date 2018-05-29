@@ -40,6 +40,14 @@ case class StateEquivalenceBelief(
 {
 }
 
+case class FormTaxonomyBelief(
+  sentence : SilSentence,
+  specificFormName : SilWord,
+  genericFormName : SilWord
+) extends ShlurdPlatonicBelief
+{
+}
+
 case class FormAliasBelief(
   sentence : SilSentence,
   synonym : SilWord,

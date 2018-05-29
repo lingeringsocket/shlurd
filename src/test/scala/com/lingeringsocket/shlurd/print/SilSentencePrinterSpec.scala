@@ -191,6 +191,7 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("how many lights are on the first floor")
       expectNormalized("a person that is at home is present",
         "a person at home is present.")
+      expectStatement("a jackrabbit is a kind of animal")
     }
   }
 }

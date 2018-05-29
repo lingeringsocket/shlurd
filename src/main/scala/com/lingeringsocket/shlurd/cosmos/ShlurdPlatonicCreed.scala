@@ -42,6 +42,14 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
     form.getInflectedStateNormalizations.map(
       formStateNormalizationBelief(form, _)
     ) ++ {
+      val taxonomyGraph = cosmos.getFormTaxonomyGraph
+      if (taxonomyGraph.containsVertex(form)) {
+        taxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.map(
+          formTaxonomyBelief(_))
+      } else {
+        Iterable.empty
+      }
+    } ++ {
       val assocGraph = cosmos.getFormAssocGraph
       if (assocGraph.containsVertex(form)) {
         assocGraph.outgoingEdgesOf(form).asScala.toSeq.map(
@@ -63,6 +71,21 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
         Iterable.empty
       }
     }
+  }
+
+  def formTaxonomyBelief(
+    edge : FormTaxonomyEdge
+  ) : SilSentence =
+  {
+    SilPredicateSentence(
+      SilRelationshipPredicate(
+        formNoun(cosmos.getSpecificForm(edge)),
+        SilStateSpecifiedReference(
+          nounReference(LEMMA_KIND),
+          SilAdpositionalState(
+            ADP_OF,
+            formNoun(cosmos.getGenericForm(edge)))),
+        REL_IDENTITY))
   }
 
   def formAliasBelief(entry : (String, String)) : SilSentence =

@@ -157,10 +157,29 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     relationship match {
       case REL_IDENTITY => {
         // "a canine is a dog"
-        assert(count == COUNT_SINGULAR)
-
-        Some(FormAliasBelief(
-          sentence, subjectNoun, complementNoun))
+        if (count != COUNT_SINGULAR) {
+          return Some(UnimplementedBelief(sentence))
+        }
+        if (complementNoun.lemma == LEMMA_KIND) {
+          complement match {
+            case SilStateSpecifiedReference(
+              _,
+              SilAdpositionalState(
+                ADP_OF,
+                SilNounReference(
+                  genericFormName,
+                  DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
+                  COUNT_SINGULAR))
+            ) => {
+              Some(FormTaxonomyBelief(
+                sentence, subjectNoun, genericFormName))
+            }
+            case _ => None
+          }
+        } else {
+          Some(FormAliasBelief(
+            sentence, subjectNoun, complementNoun))
+        }
       }
       case REL_ASSOCIATION => {
         // "a dog has an owner"
@@ -197,7 +216,9 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       : Option[ShlurdPlatonicBelief] =
   {
     // FIXME "Larry has a dog"
-    assert(relationship == REL_IDENTITY)
+    if (relationship != REL_IDENTITY) {
+      return Some(UnimplementedBelief(sentence))
+    }
     val (complementNoun, qualifiers, count, failed) = extractQualifiedNoun(
       sentence, complement, Seq.empty)
     if (failed) {
@@ -362,6 +383,18 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     ) => {
       val form = cosmos.instantiateForm(formName)
       cosmos.getFormSynonyms.addSynonym(synonym.lemma, form.name)
+    }
+  }
+
+  beliefApplier {
+    case FormTaxonomyBelief(
+      sentence, specificFormName, genericFormName
+    ) => {
+      val specificForm = cosmos.instantiateForm(specificFormName)
+      val genericForm = cosmos.instantiateRole(genericFormName)
+      // FIXME:  handle cycle exceptions
+      cosmos.addFormTaxonomy(
+        specificForm, genericForm)
     }
   }
 

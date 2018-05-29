@@ -90,6 +90,7 @@ object ShlurdEnglishLemmas
   val LEMMA_BENEATH = "beneath"
   val LEMMA_UNDERNEATH = "underneath"
   val LEMMA_BEHIND = "behind"
+  val LEMMA_KIND = "kind"
   val LEMMA_OF = "of"
 }
 

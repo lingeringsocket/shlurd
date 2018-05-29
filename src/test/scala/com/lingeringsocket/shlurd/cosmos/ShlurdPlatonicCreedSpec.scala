@@ -71,6 +71,7 @@ class ShlurdPlatonicCreedSpec extends Specification
   private val stateMay = "A window may be open or closed."
   private val stateAlias = "A lit light is on."
   private val stateNormalization = "A person at home is present."
+  private val formTaxonomy = "A duck is a kind of a bird."
   private val formSynonym = "A mentor is a person."
   private val assocHas = "A dog has an owner."
   private val assocMust = "A dog must have one owner."
@@ -104,6 +105,11 @@ class ShlurdPlatonicCreedSpec extends Specification
     "preserve form synonyms" in new CosmosContext
     {
       expectPreserved(Seq(formSynonym))
+    }
+
+    "preserve form taxonomy" in new CosmosContext
+    {
+      expectPreserved(Seq(formTaxonomy))
     }
 
     "preserve form associations" in new CosmosContext

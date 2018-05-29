@@ -122,6 +122,8 @@ object ShlurdPlatonicCosmos
 {
   val DEFAULT_PROPERTY = "state"
 
+  val LABEL_KIND = "aKindOf"
+
   val DEFAULT_PROPERTY_WORD = SilWord(DEFAULT_PROPERTY)
 
   case class CardinalityConstraint(lower : Int, upper : Int)
@@ -151,6 +153,11 @@ object ShlurdPlatonicCosmos
 
   protected[cosmos] class FormAssocEdge(
     label : String) extends LabeledEdge(label)
+  {
+  }
+
+  protected[cosmos] class FormTaxonomyEdge(
+    label : String = LABEL_KIND) extends LabeledEdge(label)
   {
   }
 
@@ -195,6 +202,10 @@ class ShlurdPlatonicCosmos
     new mutable.LinkedHashMap[String, ShlurdPlatonicEntity]
 
   private val formSynonyms = new ShlurdSynonymMap
+
+  private val formTaxonomy =
+    new DirectedAcyclicGraph[ShlurdPlatonicForm, FormTaxonomyEdge](
+      classOf[FormTaxonomyEdge])
 
   private val formAssocs =
     new DirectedPseudograph[ShlurdPlatonicForm, FormAssocEdge](
@@ -261,6 +272,9 @@ class ShlurdPlatonicCosmos
   protected[cosmos] def getFormSynonyms =
     formSynonyms
 
+  protected[cosmos] def getFormTaxonomyGraph =
+    new AsUnmodifiableGraph(formTaxonomy)
+
   protected[cosmos] def getFormAssocGraph =
     new AsUnmodifiableGraph(formAssocs)
 
@@ -306,6 +320,12 @@ class ShlurdPlatonicCosmos
     entities.put(entity.name, entity)
   }
 
+  protected[cosmos] def getSpecificForm(edge : FormTaxonomyEdge) =
+    formTaxonomy.getEdgeSource(edge)
+
+  protected[cosmos] def getGenericForm(edge : FormTaxonomyEdge) =
+    formTaxonomy.getEdgeTarget(edge)
+
   protected[cosmos] def getPossessorForm(edge : FormAssocEdge) =
     formAssocs.getEdgeSource(edge)
 
@@ -317,6 +337,18 @@ class ShlurdPlatonicCosmos
 
   protected[cosmos] def getPossesseeEntity(edge : EntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
+
+  protected[cosmos] def addFormTaxonomy(
+    specificForm : ShlurdPlatonicForm,
+    genericForm : ShlurdPlatonicForm,
+    label : String = LABEL_KIND) : FormTaxonomyEdge =
+  {
+    formTaxonomy.addVertex(specificForm)
+    formTaxonomy.addVertex(genericForm)
+    val edge = new FormTaxonomyEdge(label)
+    formTaxonomy.addEdge(specificForm, genericForm, edge)
+    edge
+  }
 
   protected[cosmos] def addFormAssoc(
     possessor : ShlurdPlatonicForm,

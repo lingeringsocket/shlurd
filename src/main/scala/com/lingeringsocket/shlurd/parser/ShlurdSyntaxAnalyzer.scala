@@ -443,6 +443,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         case LEMMA_BELOW | LEMMA_UNDER | LEMMA_BENEATH |
             LEMMA_UNDERNEATH => ADP_BELOW
         case LEMMA_BEHIND => ADP_BEHIND
+        case LEMMA_OF => ADP_OF
         case _ => return SilUnrecognizedState(tree)
       }
       SilAdpositionalState(adposition, expectReference(seq.last))

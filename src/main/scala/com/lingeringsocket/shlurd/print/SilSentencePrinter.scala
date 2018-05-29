@@ -99,10 +99,16 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             return sb.specifiedNoun(specifier, specified)
           }
           case _ => {
+
           }
         }
-        val qualifierString = sb.composeQualifiers(
-          SilReference.extractQualifiers(state))
+        val qualifierString = state match {
+          case _ : SilUnknownState => sb.unknownState
+          case _ =>  {
+            sb.composeQualifiers(
+              SilReference.extractQualifiers(state))
+          }
+        }
         sub match {
           case SilNounReference(noun, determiner, count) => {
             sb.determinedNoun(
