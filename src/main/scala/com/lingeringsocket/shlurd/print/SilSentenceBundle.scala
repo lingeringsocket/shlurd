@@ -92,7 +92,7 @@ abstract class SilSentenceBundle
 
   def relationshipPredicateQuestion(
     firstRef : String,
-    coupla : Seq[String],
+    copula : Seq[String],
     secondRef : String) : String
 
   def statePredicateCommand(subject : String, state : String) : String

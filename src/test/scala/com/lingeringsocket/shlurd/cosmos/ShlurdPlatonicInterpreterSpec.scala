@@ -350,8 +350,8 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "Yes, Jill is away.")
       interpret("is Jack on",
         "Sorry, I don't know what 'on' means for Jack.")
-      interpret("is Casper's presence on",
-        "Yes, Casper's presence is on.")
+      interpret("is Casper's haunting on",
+        "Yes, Casper's haunting is on.")
       interpret("is Casper present",
         "I don't know.")
       interpret("is Yoda's presence on",

@@ -265,10 +265,12 @@ class ShlurdPlatonicCosmos
     forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
   }
 
-  protected[cosmos] def instantiateRole(word : SilWord) =
+  def addFormSynonym(synonym : String, fundamental : String, isRole : Boolean)
   {
-    roles += word.lemma
-    instantiateForm(word)
+    formSynonyms.addSynonym(synonym, fundamental)
+    if (isRole) {
+      roles += synonym
+    }
   }
 
   protected[cosmos] def getFormSynonyms =
@@ -467,6 +469,11 @@ class ShlurdPlatonicCosmos
     }
   }
 
+  def isRole(name : SilWord) : Boolean =
+  {
+    roles.contains(name.lemma)
+  }
+
   def isHyponym(
     hyponymForm : ShlurdPlatonicForm,
     hypernymForm : ShlurdPlatonicForm) : Boolean =
@@ -640,19 +647,12 @@ class ShlurdPlatonicCosmos
     forms.get(formSynonyms.resolveSynonym(lemma)) match {
       case Some(form) => {
         if (isHyponym(entity.form, form)) {
-          val isRole = roles.contains(lemma) || (form.name == lemma)
-          if (!formAssocs.containsVertex(form)) {
-            Success(Trilean(isRole))
+          if (roles.contains(lemma)) {
+            Success(Trilean(
+              entityAssocs.incomingEdgesOf(entity).asScala.
+                exists(_.label == lemma)))
           } else {
-            if (formAssocs.incomingEdgesOf(form).asScala.
-              exists(_.label == lemma))
-            {
-              Success(Trilean(
-                entityAssocs.incomingEdgesOf(entity).asScala.
-                  exists(_.label == lemma)))
-            } else {
-              Success(Trilean(isRole))
-            }
+            Success(Trilean.True)
           }
         } else {
           Success(Trilean.False)

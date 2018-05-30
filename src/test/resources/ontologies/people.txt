@@ -2,10 +2,10 @@ Dirk is a person.
 Todd is a person.
 Amanda is a person.
 Bart is a person.
-A brother is a person.
-A sister is a person.
-A friend is a person.
-An uncle is a person.
+A brother must be a person.
+A sister must be a person.
+A friend must be a person.
+An uncle must be a person.
 A person may have brothers.
 A person may have sisters.
 A person may have friends.
@@ -16,9 +16,9 @@ Dirk is Todd's friend.
 Todd is Dirk's friend.
 Bart is Dirk's friend.
 Rapunzel is a dog.
-An owner is a person.
-A groomer is a person.
+An owner must be a person.
+A groomer must be a person.
 A dog may have an owner.
 Bart is Rapunzel's owner.
 BLACKWING is an organization.
-A conspiracy is an organization.
+A conspiracy is a kind of organization.

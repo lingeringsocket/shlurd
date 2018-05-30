@@ -156,11 +156,11 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     }
     relationship match {
       case REL_IDENTITY => {
-        // "a canine is a dog"
         if (count != COUNT_SINGULAR) {
           return Some(UnimplementedBelief(sentence))
         }
         if (complementNoun.lemma == LEMMA_KIND) {
+          // "a dog is a kind of canine"
           complement match {
             case SilStateSpecifiedReference(
               _,
@@ -177,8 +177,15 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
             case _ => None
           }
         } else {
-          Some(FormAliasBelief(
-            sentence, subjectNoun, complementNoun))
+          if (sentence.mood.getModality == MODAL_NEUTRAL) {
+            // "a fridge is a refrigerator"
+            Some(FormAliasBelief(
+              sentence, subjectNoun, complementNoun))
+          } else {
+            // "an owner must be a person"
+            Some(FormRoleBelief(
+              sentence, subjectNoun, complementNoun))
+          }
         }
       }
       case REL_ASSOCIATION => {
@@ -215,6 +222,9 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     relationship : SilRelationship)
       : Option[ShlurdPlatonicBelief] =
   {
+    if (sentence.mood.getModality != MODAL_NEUTRAL) {
+      return Some(UnimplementedBelief(sentence))
+    }
     // FIXME "Larry has a dog"
     if (relationship != REL_IDENTITY) {
       return Some(UnimplementedBelief(sentence))
@@ -382,7 +392,17 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       sentence, synonym, formName
     ) => {
       val form = cosmos.instantiateForm(formName)
-      cosmos.getFormSynonyms.addSynonym(synonym.lemma, form.name)
+      cosmos.addFormSynonym(synonym.lemma, form.name, false)
+    }
+  }
+
+  beliefApplier {
+    case FormRoleBelief(
+      sentence, role, formName
+    ) => {
+      val form = cosmos.instantiateForm(formName)
+      // FIXME validation
+      cosmos.addFormSynonym(role.lemma, form.name, true)
     }
   }
 
@@ -391,7 +411,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       sentence, specificFormName, genericFormName
     ) => {
       val specificForm = cosmos.instantiateForm(specificFormName)
-      val genericForm = cosmos.instantiateRole(genericFormName)
+      val genericForm = cosmos.instantiateForm(genericFormName)
       // FIXME:  handle cycle exceptions
       cosmos.addFormTaxonomy(
         specificForm, genericForm)
@@ -399,11 +419,18 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
   }
 
   beliefApplier {
-    case FormAssocBelief(sentence, possessorFormName, possesseeFormName,
+    case FormAssocBelief(
+      sentence, possessorFormName, possesseeFormName,
       newConstraint, isProperty
     ) => {
       val possessorForm = cosmos.instantiateForm(possessorFormName)
-      val possesseeForm = cosmos.instantiateRole(possesseeFormName)
+      if (!isProperty) {
+        if (!cosmos.isRole(possesseeFormName)) {
+          // FIXME:  maybe throw a more specific excn
+          throw new UnknownPossesseeBeliefExcn(sentence)
+        }
+      }
+      val possesseeForm = cosmos.instantiateForm(possesseeFormName)
       val label = possesseeFormName.lemma
       val edge = cosmos.addFormAssoc(
         possessorForm, possesseeForm, label)

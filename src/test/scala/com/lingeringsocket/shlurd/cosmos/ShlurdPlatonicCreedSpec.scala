@@ -72,7 +72,10 @@ class ShlurdPlatonicCreedSpec extends Specification
   private val stateAlias = "A lit light is on."
   private val stateNormalization = "A person at home is present."
   private val formTaxonomy = "A duck is a kind of a bird."
-  private val formSynonym = "A mentor is a person."
+  private val formSynonym = "An automobile is a car."
+  private val formRole = "A mentor must be a person."
+  private val formRole2 = "An owner must be a person."
+  private val formRole3 = "A pet must be an animal."
   private val assocHas = "A dog has an owner."
   private val assocMust = "A dog must have one owner."
   private val assocMay = "A person may have one mentor."
@@ -115,12 +118,13 @@ class ShlurdPlatonicCreedSpec extends Specification
     "preserve form associations" in new CosmosContext
     {
       expectPreserved(Seq(
-        assocMay, assocMayPlural, assocMayProperty, assocMust))
+        formRole, formRole2, formRole3, assocMay, assocMayPlural,
+        assocMayProperty, assocMust))
     }
 
     "normalize form associations" in new CosmosContext
     {
-      expectNormalized(Seq(assocHas), Seq(assocMust))
+      expectNormalized(Seq(formRole2, assocHas), Seq(formRole2, assocMust))
     }
 
     "preserve entity existence" in new CosmosContext
@@ -137,7 +141,7 @@ class ShlurdPlatonicCreedSpec extends Specification
     "preserve entity associations" in new CosmosContext
     {
       expectPreserved(Seq(
-        formSynonym, assocMay,
+        formRole, assocMay,
         personExists, personExists2, personAssoc))
     }
   }

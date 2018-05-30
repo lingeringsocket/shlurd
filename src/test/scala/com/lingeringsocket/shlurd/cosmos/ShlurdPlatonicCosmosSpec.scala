@@ -195,15 +195,15 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("Will is a person")
       addBelief("Jonathan is a person")
       addBelief("Lonnie is a person")
-      addBelief("A mom is a person")
+      addBelief("A mom must be a person")
       addBelief("A person may have a mom")
-      addBelief("A dad is a person")
+      addBelief("A dad must be a person")
       addBelief("A person may have a dad")
-      addBelief("A son is a person")
+      addBelief("A son must be a person")
       addBelief("A person may have sons")
-      addBelief("An ex-husband is a person")
+      addBelief("An ex-husband must be a person")
       addBelief("A person may have an ex-husband")
-      addBelief("An ex-wife is a person")
+      addBelief("An ex-wife must be a person")
       addBelief("A person may have an ex-wife")
       addBelief("Joyce is Will's mom")
       addBelief("Joyce is Jonathan's mom")
@@ -266,7 +266,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
     "require mandatory genitives to be assigned" in new CosmosContext
     {
       addBelief("Will is a person")
-      addBelief("A mom is a person")
+      addBelief("A mom must be a person")
       addBelief("A person must have a mom")
       cosmos.validateBeliefs must
         throwA[CardinalityExcn]
@@ -277,7 +277,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("Will is a person")
       addBelief("Joyce is a person")
       addBelief("Elle is a person")
-      addBelief("A mom is a person")
+      addBelief("A mom must be a person")
       addBelief("A person must have a mom")
       addBelief("Joyce is Will's mom")
       addBelief("Elle is Will's mom") must

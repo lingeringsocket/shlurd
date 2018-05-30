@@ -56,6 +56,14 @@ case class FormAliasBelief(
 {
 }
 
+case class FormRoleBelief(
+  sentence : SilSentence,
+  role : SilWord,
+  formName : SilWord
+) extends ShlurdPlatonicBelief
+{
+}
+
 case class FormAssocBelief(
   sentence : SilSentence,
   possessorFormName : SilWord,

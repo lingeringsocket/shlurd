@@ -25,9 +25,13 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
 {
   def allBeliefs() : Iterable[SilSentence] =
   {
-    cosmos.getFormSynonyms.getAll.filterNot(_._1 == LEMMA_WHO).map(
-      formAliasBelief(_)
-    ) ++ (
+    cosmos.getFormSynonyms.getAll.filterNot(_._1 == LEMMA_WHO).map(entry => {
+      if (cosmos.isRole(SilWord(entry._1))) {
+        formRoleBelief(entry)
+      } else {
+        formAliasBelief(entry)
+      }
+    }) ++ (
       cosmos.getForms.values.flatMap(formBeliefs(_))
     ) ++ (
       cosmos.getEntities.values.flatMap(entityBeliefs(_))
@@ -86,6 +90,16 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
             ADP_OF,
             formNoun(cosmos.getGenericForm(edge)))),
         REL_IDENTITY))
+  }
+
+  def formRoleBelief(entry : (String, String)) : SilSentence =
+  {
+    SilPredicateSentence(
+      SilRelationshipPredicate(
+        nounReference(entry._1),
+        nounReference(entry._2),
+        REL_IDENTITY),
+      SilIndicativeMood(true, MODAL_MUST))
   }
 
   def formAliasBelief(entry : (String, String)) : SilSentence =

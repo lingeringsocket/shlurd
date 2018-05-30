@@ -6,7 +6,8 @@ A person must be either present or absent.
 A person that is away is absent.
 A person that is home is present.
 A person that is at home is present.
-A ghost may have a presence.
+A haunting must be a presence.
+A ghost may have a haunting.
 A ghost must be either present or absent.
 A hologram may have a presence as a property.
 A hologram must be either on or off.
@@ -22,5 +23,5 @@ Casper is a ghost.
 Yoda is a hologram.
 JackPhone is Jack's presence.
 JillPhone is Jill's presence.
-CasperPhone is Casper's presence.
+CasperPhone is Casper's haunting.
 YodaPhone is Yoda's presence.
