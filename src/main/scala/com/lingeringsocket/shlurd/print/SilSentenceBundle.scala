@@ -103,7 +103,13 @@ abstract class SilSentenceBundle
     relationship : SilRelationship) : Seq[String] =
   {
     val verbLemma = relationship match {
-      case REL_IDENTITY => LEMMA_BE
+      case REL_IDENTITY => {
+        if (isExistential && (mood.getModality == MODAL_EMPHATIC)) {
+          LEMMA_EXIST
+        } else {
+          LEMMA_BE
+        }
+      }
       case REL_ASSOCIATION => LEMMA_HAVE
     }
     copula(person, gender, count, mood, isExistential, verbLemma)

@@ -219,7 +219,7 @@ class ShlurdParserSpec extends Specification
           predDoor(STATE_CLOSED), MOOD_INTERROGATIVE_POSITIVE)
     }
 
-    "parse prepositional verbs" in
+    "parse adpositional verbs" in
     {
       parse("turn the door on") must be equalTo
         SilStateChangeCommand(predDoor(STATE_ON), Some(VERB_TURN))

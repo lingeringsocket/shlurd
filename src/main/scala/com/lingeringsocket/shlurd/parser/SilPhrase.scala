@@ -196,7 +196,7 @@ case class SilExpectedComplementState(
 {
 }
 
-case class SilExpectedPrepositionalState(
+case class SilExpectedAdpositionalState(
   syntaxTree : ShlurdSyntaxTree
 ) extends SilUnknownState with SilUnresolvedPhrase
 {

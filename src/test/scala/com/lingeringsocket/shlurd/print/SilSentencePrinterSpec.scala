@@ -90,7 +90,6 @@ class SilSentencePrinterSpec extends Specification
       skipped("maybe one day")
       expectQuestion("is neither franny nor zooey speaking")
       expectStatement("a vehicle must be either moving or stopped")
-      expectQuestion("which vehicles exist")
     }
 
     "preserve sentences" in
@@ -194,6 +193,15 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("a person that is at home is present",
         "a person at home is present.")
       expectStatement("a jackrabbit is a kind of animal")
+      expectNormalized("does a vehicle exist", "does there exist a vehicle?")
+      expectNormalized("a vehicle exists", "there is a vehicle.")
+      expectNormalized("a vehicle does exist", "there does exist a vehicle.")
+      expectNormalized("which vehicles exist", "which vehicles are there?")
+      expectNormalized("how many vehicles exist",
+        "how many vehicles are there?")
+      expectNormalized("a vehicle with a propellor exists",
+        "there is a vehicle with a propellor.")
+      expectNormalized("who exists", "who is there?")
     }
   }
 }

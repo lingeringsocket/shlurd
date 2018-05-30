@@ -67,7 +67,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           punctless
         }
       }
-      val (s, c) = extractPrepositionalState(unwrapped)
+      val (s, c) = extractAdpositionalState(unwrapped)
       if (c.size < 3) {
         (SilNullState(), unwrapped)
       } else {
@@ -99,18 +99,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           }
         }
         if (verbHead.isRelationshipVerb) {
-          if (!np.isExistential && verbHead.isExistsVerb) {
-            SilUnrecognizedSentence(tree)
-          } else {
-            val (negativeSub, predicate) =
-              expectPredicate(tree, np, ap, specifiedState,
-                relationshipFor(verbHead))
-            val positive = !(negative ^ negativeSub)
-            rememberPredicateCount(predicate, verbHead)
-            SilPredicateSentence(
-              predicate,
-              SilInterrogativeMood(positive, modality))
-          }
+          val (negativeSub, predicate) =
+            expectPredicate(tree, np, ap, specifiedState,
+              relationshipFor(verbHead))
+          val positive = !(negative ^ negativeSub)
+          rememberPredicateCount(predicate, verbHead)
+          SilPredicateSentence(
+            predicate,
+            SilInterrogativeMood(positive, modality))
         } else {
           SilUnrecognizedSentence(tree)
         }
@@ -145,7 +141,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       SilUnrecognizedSentence(tree)
     } else {
       // FIXME support modality
-      val (specifiedState, whnpc) = extractPrepositionalState(first.children)
+      val (specifiedState, whnpc) = extractAdpositionalState(first.children)
       val seq = {
         if ((whnpc.size == 1) && whnpc.head.isQueryNoun) {
           whnpc.head.children
@@ -168,7 +164,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val complement = secondSub.tail
       val (combinedState, complementRemainder) = {
         if (specifiedState == SilNullState()) {
-          val (s, r) = extractPrepositionalState(complement)
+          val (s, r) = extractAdpositionalState(complement)
           if (r.isEmpty) {
             (specifiedState, complement)
           } else {
@@ -178,11 +174,18 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           (specifiedState, complement)
         }
       }
+      val recomposedComplement = {
+        if (complement.isEmpty) {
+          verbHead
+        } else {
+          ShlurdSyntaxRewrite.recompose(
+            complement.head, complementRemainder)
+        }
+      }
       val (negativeSub, predicate) = expectPredicate(
         tree,
         np,
-        ShlurdSyntaxRewrite.recompose(
-          complement.head, complementRemainder),
+        recomposedComplement,
         combinedState,
         relationshipFor(verbHead))
       rememberPredicateCount(predicate, verbHead)
@@ -232,10 +235,10 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val entityReference = expectNounReference(
         tree, components.last, determiner)
       SilGenitiveReference(pronounReference, entityReference)
-    } else if (components.last.isCompoundPrepositionalPhrase) {
+    } else if (components.last.isCompoundAdpositionalPhrase) {
       SilStateSpecifiedReference(
         expectReference(seqIn.dropRight(1)),
-        SilExpectedPrepositionalState(components.last))
+        SilExpectedAdpositionalState(components.last))
     } else if ((components.size == 2) && components.head.isNounPhrase) {
       val entityReference = expectReference(components.head)
       expectRelativeReference(tree, entityReference, components.last)
@@ -284,12 +287,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         SilUnrecognizedSentence(tree)
       }
     } else if (verbHead.isRelationshipVerb) {
-      if ((vpChildren.size > 2) || (!np.isExistential && verbHead.isExistsVerb))
-      {
+      if (vpChildren.size > 2) {
         SilUnrecognizedSentence(tree)
       } else {
         val (specifiedState, vpRemainder) =
-          extractPrepositionalState(vpChildren)
+          extractAdpositionalState(vpChildren)
         val complement = vpRemainder.last
         val (negativeComplement, predicate) = expectPredicate(
           tree, np, complement, specifiedState,
@@ -319,13 +321,13 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val (particle, unparticled) =
         extractParticle(vp.children)
       val (specifiedState, seq) =
-        extractPrepositionalState(unparticled)
+        extractAdpositionalState(unparticled)
       expectCommand(tree, particle, specifiedState, seq, formality)
     }
 
     val alternative2 = {
       val (specifiedState, unspecified) =
-        extractPrepositionalState(vp.children)
+        extractAdpositionalState(vp.children)
       val (particle, seq) =
         extractParticle(unspecified)
       expectCommand(tree, particle, specifiedState, seq, formality)
@@ -425,17 +427,18 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     SilExpectedPropertyState(syntaxTree)
   }
 
-  private[parser] def expectPrepositionalState(tree : ShlurdSyntaxTree)
+  private[parser] def expectAdpositionalState(tree : ShlurdSyntaxTree)
     : SilState =
   {
     val seq = tree.children
     val prep = seq.head.unwrapPhrase
-    if ((seq.size == 2) && (prep.isPreposition || prep.isAdverb)) {
+    if ((seq.size == 2) && (prep.isAdposition || prep.isAdverb)) {
       val prepLemma = prep.firstChild.lemma
       val adposition = prepLemma match {
         case LEMMA_IN | LEMMA_INSIDE | LEMMA_WITHIN => ADP_INSIDE
         case LEMMA_OUTSIDE => ADP_OUTSIDE
         case LEMMA_AT => ADP_AT
+        case LEMMA_WITH => ADP_WITH
         case LEMMA_AS => ADP_AS
         case LEMMA_NEAR | LEMMA_NEARBY => ADP_NEAR
         case LEMMA_ON => ADP_ON
@@ -686,7 +689,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     seq.indexWhere(_.isParticleNode) match {
       case -1 => {
         val pp = seq.last
-        if (pp.isPrepositionalPhrase) {
+        if (pp.isAdpositionalPhrase) {
           (maybeRecognizeParticle(pp), seq.dropRight(1) ++ pp.children.drop(1))
         } else {
           (None, seq)
@@ -698,10 +701,10 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def extractPrepositionalState(seq : Seq[ShlurdSyntaxTree])
+  private def extractAdpositionalState(seq : Seq[ShlurdSyntaxTree])
       : (SilState, Seq[ShlurdSyntaxTree])=
   {
-    val i = seq.indexWhere(_.isCompoundPrepositionalPhrase)
+    val i = seq.indexWhere(_.isCompoundAdpositionalPhrase)
     if (i == -1) {
       val last2 = seq.takeRight(2)
       last2 match {
@@ -716,7 +719,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         }
       }
     } else {
-      (SilExpectedPrepositionalState(seq(i)),
+      (SilExpectedAdpositionalState(seq(i)),
         seq.take(i) ++ seq.drop(i + 1))
     }
   }

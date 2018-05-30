@@ -374,21 +374,22 @@ class ShlurdInterpreterSpec extends Specification
       interpret("Is the door how I want it?") must be equalTo(
         "I think you are asking something about the door, but " +
           "I can't understand the phrase \"how I want it\"")
-      interpret("The cake is a lie with a side of bacon.") must be equalTo(
+      interpret("The cake is a lie against a side of bacon.") must be equalTo(
         "I think you are saying something about the cake, but " +
-          "I can't understand the phrase \"a lie with a side of bacon\"")
-      interpret("A lie with a side of bacon is a cake.") must be equalTo(
+          "I can't understand the phrase \"a lie against a side of bacon\"")
+      interpret("A lie against a side of bacon is a cake.") must be equalTo(
         "I think you are saying that some entity is a cake, but " +
-          "I can't understand the phrase \"a lie with a side of bacon\"")
-      interpret("The cake has a lie with a side of bacon.") must be equalTo(
+          "I can't understand the phrase \"a lie against a side of bacon\"")
+      interpret("The cake has a lie against a side of bacon.") must be equalTo(
         "I think you are saying something about the cake, but " +
-          "I can't understand the phrase \"a lie with a side of bacon\"")
-      interpret("A lie with a side of bacon has a cake.") must be equalTo(
+          "I can't understand the phrase \"a lie against a side of bacon\"")
+      interpret("A lie against a side of bacon has a cake.") must be equalTo(
         "I think you are saying that some entity has a cake, but " +
-          "I can't understand the phrase \"a lie with a side of bacon\"")
-      interpret("Butterflies with a side of bacon are cakes.") must be equalTo(
-        "I think you are saying that some entities are cakes, but " +
-          "I can't understand the phrase \"butterflies with a side of bacon\"")
+          "I can't understand the phrase \"a lie against a side of bacon\"")
+      interpret(
+        "Butterflies against a side of bacon are cakes.") must be equalTo(
+        "I think you are saying that some entities are cakes, but I can't " +
+          "understand the phrase \"butterflies against a side of bacon\"")
       interpret("There is my squeaking door.") must be equalTo(
         "I think you are saying that some entity exists, but " +
           "I can't understand the phrase \"my squeaking door\"")
@@ -407,12 +408,12 @@ class ShlurdInterpreterSpec extends Specification
       interpret("Who is how I want them?") must be equalTo(
         "I think you are asking who is in some state, but " +
           "I can't understand the phrase \"how I want them\"")
-      interpret("Which lie with a side of bacon is a cake?") must be equalTo(
+      interpret("Which lie against a side of bacon is a cake?") must be equalTo(
         "I think you are asking which entity is a cake, but " +
-          "I can't understand the phrase \"lie with a side of bacon\"")
-      interpret("Which cake is a lie with a side of bacon?") must be equalTo(
+          "I can't understand the phrase \"lie against a side of bacon\"")
+      interpret("Which cake is a lie against a side of bacon?") must be equalTo(
         "I think you are asking which cake is some entity, but " +
-          "I can't understand the phrase \"a lie with a side of bacon\"")
+          "I can't understand the phrase \"a lie against a side of bacon\"")
       interpret("There is my squeaking door and a window") must
         be equalTo("I think you are saying that some " +
           "entities exist, but " +

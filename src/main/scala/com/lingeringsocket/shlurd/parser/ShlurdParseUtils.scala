@@ -79,6 +79,7 @@ object ShlurdEnglishLemmas
   val LEMMA_WITHIN = "within"
   val LEMMA_OUTSIDE = "outside"
   val LEMMA_AT = "at"
+  val LEMMA_WITH = "with"
   val LEMMA_AS = "as"
   val LEMMA_NEAR = "near"
   val LEMMA_NEARBY = "nearby"

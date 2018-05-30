@@ -38,6 +38,7 @@ sealed trait SilAdposition
 case object ADP_INSIDE extends SilAdposition
 case object ADP_OUTSIDE extends SilAdposition
 case object ADP_AT extends SilAdposition
+case object ADP_WITH extends SilAdposition
 case object ADP_AS extends SilAdposition
 case object ADP_NEAR extends SilAdposition
 case object ADP_ON extends SilAdposition

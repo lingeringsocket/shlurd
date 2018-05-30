@@ -103,6 +103,8 @@ class KoreanSentenceBundle extends SilSentenceBundle
       case ADP_RIGHT => "오른쪽"
       case ADP_FRONT => "앞"
       case ADP_BEHIND => "뒤"
+      // FIXME:  context-dependent
+      case ADP_WITH => "하고"
       case ADP_OF | ADP_GENITIVE_OF => "FIXME"
     }
     // later need to distinguish 에 from 에서

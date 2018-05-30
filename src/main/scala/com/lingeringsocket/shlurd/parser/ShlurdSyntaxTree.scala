@@ -107,14 +107,14 @@ trait ShlurdAbstractSyntaxTree
 
   def isVerbPhrase = hasLabel(LABEL_VP)
 
-  def isPrepositionalPhrase = hasLabel(LABEL_PP)
+  def isAdpositionalPhrase = hasLabel(LABEL_PP)
 
   def isParticlePhrase = hasLabel(LABEL_PRT)
 
   def isSubQuestion = hasLabel(LABEL_SQ)
 
-  def isCompoundPrepositionalPhrase =
-    isPrepositionalPhrase && (numChildren > 1)
+  def isCompoundAdpositionalPhrase =
+    isAdpositionalPhrase && (numChildren > 1)
 
   def isVerb = label.startsWith(LABEL_VB)
 
@@ -128,7 +128,7 @@ trait ShlurdAbstractSyntaxTree
 
   def isAdverb = label.startsWith(LABEL_RB)
 
-  def isPreposition = hasLabel(LABEL_IN)
+  def isAdposition = hasLabel(LABEL_IN)
 
   def isAdjectival = isAdjective || isParticipleOrGerund
 
@@ -144,12 +144,12 @@ trait ShlurdAbstractSyntaxTree
 
   def isParticleNode =
     isParticlePhrase || isParticle ||
-      (isPrepositionalPhrase && (numChildren == 1))
+      (isAdpositionalPhrase && (numChildren == 1))
 
   def isParticipleOrGerund = hasLabel(LABEL_VBG) || hasLabel(LABEL_VBN)
 
   def isExistential =
-    isNounPhrase && firstChild.hasLabel(LABEL_EX)
+    (isNounPhrase && firstChild.hasLabel(LABEL_EX)) || isExistsVerb
 
   def isBeingVerb =
     isVerb && (hasTerminalLemma(LEMMA_BE) || hasTerminalLemma(LEMMA_EXIST))
@@ -283,7 +283,7 @@ sealed trait ShlurdSyntaxAdverb extends ShlurdSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxPreposition extends ShlurdSyntaxPreTerminal
+sealed trait ShlurdSyntaxAdposition extends ShlurdSyntaxPreTerminal
 {
 }
 
@@ -553,7 +553,7 @@ case class SptRBS(child : ShlurdSyntaxLeaf)
 }
 
 case class SptIN(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPreposition
+    extends ShlurdSyntaxAdposition
 {
   override def label = LABEL_IN
 }

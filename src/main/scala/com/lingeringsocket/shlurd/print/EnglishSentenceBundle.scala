@@ -191,6 +191,7 @@ class EnglishSentenceBundle
       case ADP_INSIDE => LEMMA_IN
       case ADP_OUTSIDE => "outside of"
       case ADP_AT => LEMMA_AT
+      case ADP_WITH => LEMMA_WITH
       case ADP_AS => LEMMA_AS
       case ADP_NEAR => LEMMA_NEAR
       case ADP_ON => LEMMA_ON

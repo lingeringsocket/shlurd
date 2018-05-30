@@ -92,8 +92,8 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
   }
 
   private def replaceExpectedState = replacementMatcher {
-    case SilExpectedPrepositionalState(syntaxTree) => {
-      analyzer.expectPrepositionalState(syntaxTree)
+    case SilExpectedAdpositionalState(syntaxTree) => {
+      analyzer.expectAdpositionalState(syntaxTree)
     }
     case SilExpectedPropertyState(preTerminal : ShlurdSyntaxPreTerminal) => {
       SilPropertyState(analyzer.getWord(preTerminal.child))
@@ -108,10 +108,10 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       syntaxTree @ (_ : SptADVP | _ : SptPP)) =>
     {
       val seq = syntaxTree.children
-      if ((seq.head.isPreposition || seq.head.isAdverb) && (seq.size > 1) &&
-        (!seq.exists(_.isPrepositionalPhrase)))
+      if ((seq.head.isAdposition || seq.head.isAdverb) && (seq.size > 1) &&
+        (!seq.exists(_.isAdpositionalPhrase)))
       {
-        SilExpectedPrepositionalState(syntaxTree)
+        SilExpectedAdpositionalState(syntaxTree)
       } else {
         analyzer.expectPropertyComplementState(seq)
       }
