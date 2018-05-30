@@ -26,41 +26,59 @@ sealed abstract class RejectedBeliefExcn(
 }
 
 case class IncomprehensibleBeliefExcn(belief : SilSentence)
-    extends RejectedBeliefExcn(
-      "New belief cannot be understood.")
+    extends RejectedBeliefExcn("New belief cannot be understood:  " +
+      belief.toWordString)
 {
 }
 
 case class UnimplementedBeliefExcn(belief : SilSentence)
-    extends RejectedBeliefExcn(
-      "New belief is not supported yet.")
+    extends RejectedBeliefExcn("New belief is not supported yet:  " +
+      belief.toWordString)
+{
+}
+
+case class UnknownPossessorBeliefExcn(belief : SilSentence)
+    extends RejectedBeliefExcn("New belief references unknown possessor:  " +
+      belief.toWordString)
+{
+}
+
+case class UnknownPossesseeBeliefExcn(belief : SilSentence)
+    extends RejectedBeliefExcn("New belief references unknown possessee:  " +
+      belief.toWordString)
+{
+}
+
+case class MissingAssocBeliefExcn(belief : SilSentence)
+    extends RejectedBeliefExcn("New belief involves unknown association:  " +
+      belief.toWordString)
 {
 }
 
 case class ContradictoryBeliefExcn(
   belief : SilSentence, originalBelief : SilSentence)
-    extends RejectedBeliefExcn(
-      "New belief contradicts previously accepted beliefs.")
+    extends RejectedBeliefExcn("New belief contradiction:  " +
+      belief.toWordString + " vs " + originalBelief.toWordString)
 {
 }
 
 case class AmbiguousBeliefExcn(
   belief : SilSentence, originalBelief : SilSentence)
-    extends RejectedBeliefExcn(
-      "New belief introduces ambiguity with previously accepted beliefs.")
+    extends RejectedBeliefExcn("New belief ambiguity:  " +
+      belief.toWordString + " vs " + originalBelief.toWordString)
 {
 }
 
 case class IncrementalCardinalityExcn(
   belief : SilSentence, originalBelief : SilSentence)
-    extends RejectedBeliefExcn(
-      "New belief violates a previously accepted cardinality constraint.")
+    extends RejectedBeliefExcn("New belief cardinality violation:  " +
+      belief.toWordString + " vs " + originalBelief.toWordString)
 {
 }
 
 case class CardinalityExcn(
   originalBelief : SilSentence)
-    extends ShlurdPlatonicBeliefExcn(
-  "Cardinality constraint belief violated.")
+    extends ShlurdPlatonicBeliefExcn("Cardinality constraint violation:  " +
+      originalBelief.toString)
 {
 }

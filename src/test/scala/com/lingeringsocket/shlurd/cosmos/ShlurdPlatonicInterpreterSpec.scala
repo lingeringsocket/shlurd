@@ -31,7 +31,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
     "jackphone presence" -> "on",
     "jillphone presence" -> "off",
     "casperphone presence" -> "on",
-    "yodaphone presence" -> "off"
+    "yodaphone presence" -> "off",
+    "titanic boat" -> "move",
+    "herbie car" -> "stop"
   )
 
   abstract class InterpreterContext(acceptNewBeliefs : Boolean = false)
@@ -206,6 +208,70 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "Sorry, I don't know what you mean by 'Ford'.")
     }
 
+    "understand taxonomy" in new InterpreterContext
+    {
+      loadBeliefs("/ontologies/vehicles.txt")
+      interpret(
+        "is Herbie moving",
+        "No, Herbie is not moving.")
+      interpret(
+        "is Herbie stopped",
+        "Yes, Herbie is stopped.")
+      interpret(
+        "is Titanic moving",
+        "Yes, Titanic is moving.")
+      interpret(
+        "is Titanic stopped",
+        "No, Titanic is not stopped.")
+      interpret(
+        "is any boat stopped",
+        "No, no boat is stopped.")
+      interpret(
+        "is any boat moving",
+        "Yes, Titanic is moving.")
+      interpret(
+        "is any vehicle stopped",
+        "Yes, Herbie is stopped.")
+      interpret(
+        "is any vehicle moving",
+        "Yes, Titanic is moving.")
+      interpret(
+        "is Titanic floating",
+        "No, Titanic is not floating.")
+      interpret(
+        "is Herbie floating",
+        "Sorry, I don't know what 'float' means for Herbie.")
+      // FIXME:  error should be "for a car"
+      interpret(
+        "is any car floating",
+        "Sorry, I don't know what 'float' means for Herbie.")
+      interpret(
+        "is Herbie a car",
+        "Yes, Herbie is a car.")
+      interpret(
+        "is Herbie a boat",
+        "No, Herbie is not a boat.")
+      interpret(
+        "is Herbie a vehicle",
+        "Yes, Herbie is a vehicle.")
+      interpret(
+        "is Titanic a boat",
+        "Yes, Titanic is a boat.")
+      interpret(
+        "is Titanic a vehicle",
+        "Yes, Titanic is a vehicle.")
+      interpret(
+        "is Titanic a car",
+        "No, Titanic is not a car.")
+      interpret(
+        "how many vehicles are there",
+        "There are 2 of them.")
+      // FIXME resolve number agreement
+      interpret(
+        "which vehicles are there",
+        "There is Herbie and Titanic.")
+    }
+
     "respond correctly when no person exists" in new InterpreterContext
     {
       interpret(
@@ -283,7 +349,7 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret("is Jill away",
         "Yes, Jill is away.")
       interpret("is Jack on",
-        "Sorry, I don't know what you mean by 'on'.")
+        "Sorry, I don't know what 'on' means for Jack.")
       interpret("is Casper's presence on",
         "Yes, Casper's presence is on.")
       interpret("is Casper present",

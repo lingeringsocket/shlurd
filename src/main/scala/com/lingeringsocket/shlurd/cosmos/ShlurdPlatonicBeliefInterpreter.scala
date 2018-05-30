@@ -438,9 +438,11 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       val possessorOpt = resolveUniqueName(possessorEntityName)
       val possesseeOpt = resolveUniqueName(possesseeEntityName)
       val label = labelName.lemma
-      if (possessorOpt.isEmpty || possesseeOpt.isEmpty) {
-        // FIXME should be a more specific error
-        throw new IncomprehensibleBeliefExcn(sentence)
+      if (possessorOpt.isEmpty) {
+        throw new UnknownPossessorBeliefExcn(sentence)
+      }
+      if (possesseeOpt.isEmpty) {
+        throw new UnknownPossesseeBeliefExcn(sentence)
       }
       val possessor = possessorOpt.get
       val possessee = possesseeOpt.get
@@ -469,8 +471,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
           cosmos.addEntityAssoc(possessor, possessee, label)
         }
         case _ => {
-          // FIXME should be a more specific error
-          throw new IncomprehensibleBeliefExcn(sentence)
+          throw new MissingAssocBeliefExcn(sentence)
         }
       }
     }

@@ -89,6 +89,8 @@ class SilSentencePrinterSpec extends Specification
     {
       skipped("maybe one day")
       expectQuestion("is neither franny nor zooey speaking")
+      expectStatement("a vehicle must be either moving or stopped")
+      expectQuestion("which vehicles exist")
     }
 
     "preserve sentences" in

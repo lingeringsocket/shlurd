@@ -157,6 +157,8 @@ abstract class SilSentenceBundle
 
   def respondUnknown(word : SilWord) : String
 
+  def respondUnknownState(subject : String, word : SilWord) : String
+
   def respondUnknownPronoun(pronoun : String) : String
 
   def respondNonexistent(entity : SilWord) : String

@@ -499,6 +499,13 @@ class EnglishSentenceBundle
       concat("'", word.lemmaUnfolded, "'."))
   }
 
+  override def respondUnknownState(subject : String, state : SilWord) =
+  {
+    compose("Sorry, I don't know what",
+      concat("'", state.lemmaUnfolded, "'"),
+      "means for", concat(subject, "."))
+  }
+
   override def respondUnknownPronoun(pronoun : String) =
   {
     compose("Sorry, when you say",

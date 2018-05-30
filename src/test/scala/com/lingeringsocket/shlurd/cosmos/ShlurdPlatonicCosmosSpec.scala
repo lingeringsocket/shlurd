@@ -19,6 +19,7 @@ import com.lingeringsocket.shlurd.parser._
 import org.specs2.mutable._
 
 import scala.io._
+import scala.util._
 
 import ShlurdEnglishLemmas._
 
@@ -46,6 +47,13 @@ class ShlurdPlatonicCosmosSpec extends Specification
       val properties = form.getProperties
       properties.size must be equalTo 1
       properties must have key(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
+    }
+
+    protected def expectUnique(
+      entities : Try[collection.Set[ShlurdPlatonicEntity]]) =
+    {
+      entities must beSuccessfulTry.which(_.size == 1)
+      entities.get.head
     }
   }
 
@@ -112,11 +120,65 @@ class ShlurdPlatonicCosmosSpec extends Specification
 
     "understand taxonomy" in new CosmosContext
     {
-      addBelief("a mammal is a kind of animal")
-      addBelief("a bird is a kind of animal")
-      addBelief("a canine is a kind of mammal")
       addBelief("a dog is a kind of canine")
+      addBelief("a duck is a kind of bird")
+      addBelief("a mallard is a kind of duck")
+      addBelief("a canvasback is a kind of duck")
       cosmos.validateBeliefs
+      expectNamedForm("dog")
+      expectNamedForm("canine")
+      expectNamedForm("duck")
+      expectNamedForm("bird")
+      expectNamedForm("canvasback")
+      val dog = cosmos.getForms("dog")
+      val canine = cosmos.getForms("canine")
+      val bird = cosmos.getForms("bird")
+      val duck = cosmos.getForms("duck")
+      val mallard = cosmos.getForms("mallard")
+      val canvasback = cosmos.getForms("canvasback")
+      cosmos.isHyponym(dog, canine) must beTrue
+      cosmos.isHyponym(canine, dog) must beFalse
+      cosmos.isHyponym(duck, bird) must beTrue
+      cosmos.isHyponym(bird, duck) must beFalse
+      cosmos.isHyponym(mallard, duck) must beTrue
+      cosmos.isHyponym(mallard, bird) must beTrue
+      cosmos.isHyponym(duck, mallard) must beFalse
+      cosmos.isHyponym(bird, mallard) must beFalse
+      cosmos.isHyponym(canvasback, duck) must beTrue
+      cosmos.isHyponym(canvasback, bird) must beTrue
+      cosmos.isHyponym(canvasback, mallard) must beFalse
+      cosmos.isHyponym(mallard, canvasback) must beFalse
+      cosmos.isHyponym(canine, bird) must beFalse
+      cosmos.isHyponym(bird, canine) must beFalse
+      cosmos.isHyponym(dog, duck) must beFalse
+    }
+
+    "understand property inheritance" in new CosmosContext
+    {
+      addBelief("a bird must be either happy or sad")
+      addBelief("a duck is a kind of bird")
+      addBelief("Daffy is a duck")
+      addBelief("Woodstock is a bird")
+      cosmos.validateBeliefs
+      val bird = cosmos.getForms("bird")
+      val duck = cosmos.getForms("duck")
+      val daffy = expectUnique(
+        cosmos.resolveQualifiedNoun(
+          "duck", REF_SUBJECT, Set("daffy")))
+      val woodstock = expectUnique(
+        cosmos.resolveQualifiedNoun(
+          "bird", REF_SUBJECT, Set("woodstock")))
+      Seq(daffy, woodstock).foreach(entity => {
+        val propertyTry = cosmos.resolveProperty(entity, "happy")
+        propertyTry must beSuccessfulTry
+        val (property, stateName) = propertyTry.get
+        stateName must be equalTo "happy"
+        property.isClosed must beTrue
+        val states = property.getStates
+        states.size must be equalTo 2
+        states must contain("happy" -> "happy")
+        states must contain("sad" -> "sad")
+      })
     }
 
     "prevent taxonomy cycles" in new CosmosContext
@@ -158,22 +220,18 @@ class ShlurdPlatonicCosmosSpec extends Specification
       val personLemma = LEMMA_PERSON
       expectNamedForm(personLemma)
 
-      val joyces = cosmos.resolveQualifiedNoun(
-        personLemma, REF_SUBJECT, Set("joyce"))
-      joyces must beSuccessfulTry.which(_.size == 1)
-      val wills = cosmos.resolveQualifiedNoun(
-        personLemma, REF_SUBJECT, Set("will"))
-      wills must beSuccessfulTry.which(_.size == 1)
-      val jonathans = cosmos.resolveQualifiedNoun(
-        personLemma, REF_SUBJECT, Set("jonathan"))
-      jonathans must beSuccessfulTry.which(_.size == 1)
-      val lonnies = cosmos.resolveQualifiedNoun(
-        personLemma, REF_SUBJECT, Set("lonnie"))
-      lonnies must beSuccessfulTry.which(_.size == 1)
-      val joyce = joyces.get.head
-      val will = wills.get.head
-      val jonathan = jonathans.get.head
-      val lonnie = lonnies.get.head
+      val joyce = expectUnique(
+        cosmos.resolveQualifiedNoun(
+          personLemma, REF_SUBJECT, Set("joyce")))
+      val will = expectUnique(
+        cosmos.resolveQualifiedNoun(
+          personLemma, REF_SUBJECT, Set("will")))
+      val jonathan = expectUnique(
+        cosmos.resolveQualifiedNoun(
+          personLemma, REF_SUBJECT, Set("jonathan")))
+      val lonnie = expectUnique(
+        cosmos.resolveQualifiedNoun(
+          personLemma, REF_SUBJECT, Set("lonnie")))
       Set(joyce, will, jonathan, lonnie).size must be equalTo 4
       cosmos.resolveGenitive(will, "mom") must be equalTo Set(joyce)
       cosmos.resolveGenitive(will, "dad") must be equalTo Set(lonnie)
@@ -191,9 +249,9 @@ class ShlurdPlatonicCosmosSpec extends Specification
       cosmos.resolveGenitive(lonnie, "ex-husband") must beEmpty
 
       addBelief("Bert is Will's mom") must
-        throwA[IncomprehensibleBeliefExcn]
+        throwA[UnknownPossesseeBeliefExcn]
       addBelief("Joyce is Bert's mom") must
-        throwA[IncomprehensibleBeliefExcn]
+        throwA[UnknownPossessorBeliefExcn]
     }
 
     "require genitives to be defined before usage" in new CosmosContext
@@ -202,7 +260,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("Will is a person")
       addBelief("A mom is a person")
       addBelief("Joyce is Will's mom") must
-        throwA[IncomprehensibleBeliefExcn]
+        throwA[MissingAssocBeliefExcn]
     }
 
     "require mandatory genitives to be assigned" in new CosmosContext

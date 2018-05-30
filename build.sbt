@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.25",
   "com.googlecode.kiama" %% "kiama" % "1.8.0",
   "org.typelevel" %% "spire" % "0.14.1",
-  "org.jgrapht" % "jgrapht-core" % "1.1.0",
+  "org.jgrapht" % "jgrapht-core" % "1.2.0",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-english"

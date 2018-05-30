@@ -422,7 +422,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             Success(Trilean.True)
           }
           case SilPropertyState(word) => {
-            evaluatePropertyStatePredicate(entity, word, resultCollector)
+            evaluatePropertyStatePredicate(
+              entity, word, resultCollector)
           }
           case SilAdpositionalState(adposition, objRef) => {
             evaluateAdpositionStatePredicate(
@@ -748,7 +749,12 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
       case Failure(e) => {
         debug("ERROR", e)
-        fail(sentencePrinter.sb.respondUnknown(state))
+        fail(sentencePrinter.sb.respondUnknownState(
+          sentencePrinter.print(
+            cosmos.specificReference(entity, DETERMINER_NONSPECIFIC),
+            INFLECT_NOMINATIVE,
+            SilConjoining.NONE),
+          state))
       }
     }
     debug(s"RESULT FOR $entity is $result")

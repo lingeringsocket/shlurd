@@ -17,6 +17,8 @@ package com.lingeringsocket.shlurd.cosmos
 import com.lingeringsocket.shlurd.parser._
 
 import org.jgrapht.graph._
+import org.jgrapht.alg.shortestpath._
+import org.jgrapht.traverse._
 
 import spire.math._
 
@@ -287,7 +289,7 @@ class ShlurdPlatonicCosmos
     qualifiers : Set[String],
     overlap : Boolean) : Boolean =
   {
-    (form == existing.form) &&
+    (isHyponym(existing.form, form)) &&
       (qualifiers.subsetOf(existing.qualifiers) ||
         (overlap && existing.qualifiers.subsetOf(qualifiers)))
   }
@@ -298,8 +300,6 @@ class ShlurdPlatonicCosmos
     properName : String = "") : (ShlurdPlatonicEntity, Boolean) =
   {
     val qualifiers = qualifierSet(qualifierString)
-    def redundantWith(existing : ShlurdPlatonicEntity) =
-      (form == existing.form) && qualifiers.subsetOf(existing.qualifiers)
     entities.values.find(hasQualifiers(_, form, qualifiers, true)) match {
       case Some(entity) => {
         return (entity, false)
@@ -393,14 +393,19 @@ class ShlurdPlatonicCosmos
     possessee : ShlurdPlatonicForm,
     label : String) : Option[FormAssocEdge] =
   {
-    if (formAssocs.containsVertex(possessor) &&
-      formAssocs.containsVertex(possessee))
-    {
-      formAssocs.getAllEdges(possessor, possessee).asScala.
-        find(_.label == label)
-    } else {
-      None
+    if (!formAssocs.containsVertex(possessee)) {
+      return None
     }
+    getHypernyms(possessor).foreach(hyperPossessor => {
+      if (formAssocs.containsVertex(hyperPossessor)) {
+        formAssocs.getAllEdges(hyperPossessor, possessee).asScala.
+          find(_.label == label) match {
+            case opt @ Some(edge) => return opt
+            case _ =>
+          }
+      }
+    })
+    None
   }
 
   protected[cosmos] def isEntityAssoc(
@@ -428,19 +433,22 @@ class ShlurdPlatonicCosmos
       val constraint = assocConstraints(formEdge)
       if ((constraint.lower > 0) || (constraint.upper < Int.MaxValue)) {
         val form = getPossessorForm(formEdge)
-        entities.values.filter(_.form == form).foreach(entity => {
-          if (entityAssocs.containsVertex(entity)) {
-            val c = entityAssocs.outgoingEdgesOf(entity).asScala.
-              count(_.label == formEdge.label)
-            if ((c < constraint.lower) || (c > constraint.upper)) {
+        entities.values.filter(
+          e => isHyponym(e.form, form)).foreach(entity =>
+          {
+            if (entityAssocs.containsVertex(entity)) {
+              val c = entityAssocs.outgoingEdgesOf(entity).asScala.
+                count(_.label == formEdge.label)
+              if ((c < constraint.lower) || (c > constraint.upper)) {
+                throw new CardinalityExcn(
+                  creed.formAssociationBelief(formEdge))
+              }
+            } else if (constraint.lower > 0) {
               throw new CardinalityExcn(
                 creed.formAssociationBelief(formEdge))
             }
-          } else if (constraint.lower > 0) {
-            throw new CardinalityExcn(
-              creed.formAssociationBelief(formEdge))
           }
-        })
+        )
       }
     })
   }
@@ -457,6 +465,24 @@ class ShlurdPlatonicCosmos
         asScala.filter(_.label == label).map(
           getPossesseeEntity)
     }
+  }
+
+  def isHyponym(
+    hyponymForm : ShlurdPlatonicForm,
+    hypernymForm : ShlurdPlatonicForm) : Boolean =
+  {
+    if (hyponymForm == hypernymForm) {
+      return true
+    }
+    if (!formTaxonomy.containsVertex(hyponymForm)) {
+      return false
+    }
+    if (!formTaxonomy.containsVertex(hypernymForm)) {
+      return false
+    }
+    val path = DijkstraShortestPath.findPathBetween(
+      formTaxonomy, hyponymForm, hypernymForm)
+    return (path != null)
   }
 
   override def resolveQualifiedNoun(
@@ -498,15 +524,37 @@ class ShlurdPlatonicCosmos
     resolveFormProperty(entity.form, lemma)
   }
 
+  private def getHypernyms(
+    form : ShlurdPlatonicForm) : Iterator[ShlurdPlatonicForm] =
+  {
+    if (formTaxonomy.containsVertex(form)) {
+      new BreadthFirstIterator(formTaxonomy, form).asScala
+    } else {
+      Seq(form).iterator
+    }
+  }
+
   private def resolveFormProperty(
     form : ShlurdPlatonicForm,
     lemma : String) : Try[(ShlurdPlatonicProperty, String)] =
   {
-    val stateName = form.resolveStateSynonym(lemma)
-    form.properties.values.find(p => p.states.contains(stateName)) match {
-      case Some(p) => return Success((p, stateName))
-      case _ => fail(s"unknown property $lemma")
+    val hypernyms = {
+      if (formTaxonomy.containsVertex(form)) {
+        new BreadthFirstIterator(formTaxonomy, form).asScala
+      } else {
+        Seq(form).iterator
+      }
     }
+    getHypernyms(form).foreach(hyperForm => {
+      val stateName = hyperForm.resolveStateSynonym(lemma)
+      hyperForm.properties.values.find(
+        p => p.states.contains(stateName)) match
+      {
+        case Some(p) => return Success((p, stateName))
+        case _ =>
+      }
+    })
+    fail(s"unknown property $lemma")
   }
 
   override def specificReference(
@@ -591,7 +639,7 @@ class ShlurdPlatonicCosmos
   {
     forms.get(formSynonyms.resolveSynonym(lemma)) match {
       case Some(form) => {
-        if (entity.form == form) {
+        if (isHyponym(entity.form, form)) {
           val isRole = roles.contains(lemma) || (form.name == lemma)
           if (!formAssocs.containsVertex(form)) {
             Success(Trilean(isRole))
@@ -617,8 +665,12 @@ class ShlurdPlatonicCosmos
   }
 
   override def normalizeState(
-    entity : ShlurdPlatonicEntity, state : SilState) =
+    entity : ShlurdPlatonicEntity, originalState : SilState) =
   {
-    entity.form.normalizeState(state)
+    getHypernyms(entity.form).foldLeft(originalState) {
+      case (state, form) => {
+        form.normalizeState(state)
+      }
+    }
   }
 }
