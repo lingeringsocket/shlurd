@@ -32,8 +32,9 @@ class ShlurdPlatonicInterpreterSpec extends Specification
     "jillphone presence" -> "off",
     "casperphone presence" -> "on",
     "yodaphone presence" -> "off",
-    "titanic boat" -> "move",
-    "herbie car" -> "stop"
+    "titanicflotation flotation" -> "sink",
+    "titanicmobility mobility" -> "move",
+    "herbiemobility mobility" -> "stop"
   )
 
   abstract class InterpreterContext(acceptNewBeliefs : Boolean = false)
@@ -270,6 +271,12 @@ class ShlurdPlatonicInterpreterSpec extends Specification
       interpret(
         "which vehicles are there",
         "There is Herbie and Titanic.")
+      interpret(
+        "who is Herbie's owner",
+        "Jim is Herbie's owner.")
+      interpret(
+        "who is Titanic's owner",
+        "No one is Titanic's owner.")
     }
 
     "respond correctly when no person exists" in new InterpreterContext

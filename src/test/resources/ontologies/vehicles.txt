@@ -1,10 +1,21 @@
 An owner must be a person.
+A man is a kind of person.
+A mobility must be moving or stopped.
+A vehicle may have a mobility as a property.
 A vehicle must be moving or stopped.
 A vehicle may have an owner.
 A car is a kind of vehicle.
+A flotation must be floating or sinking.
+A boat may have a flotation as a property.
 A boat is a kind of vehicle.
 A boat must be floating or sinking.
 Herbie is a car.
 Titanic is a boat.
-Jim is a person.
+Jim is a man.
 Jim is Herbie's owner.
+HerbieMobility is a mobility.
+HerbieMobility is Herbie's mobility.
+TitanicMobility is a mobility.
+TitanicMobility is Titanic's mobility.
+TitanicFlotation is a flotation.
+TitanicFlotation is Titanic's flotation.

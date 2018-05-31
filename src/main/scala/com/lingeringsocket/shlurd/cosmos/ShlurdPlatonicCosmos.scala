@@ -381,30 +381,19 @@ class ShlurdPlatonicCosmos
     edge
   }
 
-  protected[cosmos] def isFormAssoc(
-    possessor : ShlurdPlatonicForm,
-    possessee : ShlurdPlatonicForm,
-    label : String) : Boolean =
-  {
-    formAssocs.containsEdge(
-      new ProbeFormEdge(possessor, possessee, label))
-  }
-
   protected[cosmos] def getFormAssoc(
     possessor : ShlurdPlatonicForm,
     possessee : ShlurdPlatonicForm,
     label : String) : Option[FormAssocEdge] =
   {
-    if (!formAssocs.containsVertex(possessee)) {
-      return None
-    }
-    getHypernyms(possessor).foreach(hyperPossessor => {
-      if (formAssocs.containsVertex(hyperPossessor)) {
-        formAssocs.getAllEdges(hyperPossessor, possessee).asScala.
-          find(_.label == label) match {
-            case opt @ Some(edge) => return opt
-            case _ =>
-          }
+    val edges = formAssocs.edgeSet.asScala.filter(_.label == label)
+    edges.foreach(edge => {
+      val hyperPossessor = getPossessorForm(edge)
+      val hyperPossessee = getPossesseeForm(edge)
+      if (isHyponym(possessor, hyperPossessor) &&
+        isHyponym(possessee, hyperPossessee))
+      {
+        return Some(edge)
       }
     })
     None
@@ -545,13 +534,6 @@ class ShlurdPlatonicCosmos
     form : ShlurdPlatonicForm,
     lemma : String) : Try[(ShlurdPlatonicProperty, String)] =
   {
-    val hypernyms = {
-      if (formTaxonomy.containsVertex(form)) {
-        new BreadthFirstIterator(formTaxonomy, form).asScala
-      } else {
-        Seq(form).iterator
-      }
-    }
     getHypernyms(form).foreach(hyperForm => {
       val stateName = hyperForm.resolveStateSynonym(lemma)
       hyperForm.properties.values.find(
@@ -585,9 +567,11 @@ class ShlurdPlatonicCosmos
     property : ShlurdPlatonicProperty,
     lemma : String) : Try[Trilean] =
   {
-    val propertyEdgeNames = {
-      if (formAssocs.containsVertex(entity.form)) {
-        formAssocs.outgoingEdgesOf(entity.form).asScala.
+
+    val hypernymSet = getHypernyms(entity.form).toSet
+    val propertyEdgeNames = hypernymSet.flatMap { form =>
+      if (formAssocs.containsVertex(form)) {
+        formAssocs.outgoingEdgesOf(form).asScala.
           filter(propertyEdges.contains(_)).map(_.label).toSet
       } else {
         Set.empty[String]
