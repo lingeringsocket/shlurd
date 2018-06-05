@@ -1,0 +1,3 @@
+A stove must be on or off.
+A stove must be hot or cold.
+There is a stove.

@@ -42,11 +42,11 @@ class ShlurdPlatonicCosmosSpec extends Specification
       cosmos.getForms.get(name) must beSome.which(_.name == name)
     }
 
-    protected def expectDefaultProperty(form : ShlurdPlatonicForm) =
+    protected def expectSingleProperty(form : ShlurdPlatonicForm) =
     {
       val properties = form.getProperties
       properties.size must be equalTo 1
-      properties must have key(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
+      form.getProperties.head._2
     }
 
     protected def expectUnique(
@@ -64,8 +64,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("a door must be either open or closed")
       expectNamedForm("door")
       val form = cosmos.getForms("door")
-      expectDefaultProperty(form)
-      val property = form.getProperties(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
+      val property = expectSingleProperty(form)
       property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 2
@@ -78,11 +77,10 @@ class ShlurdPlatonicCosmosSpec extends Specification
     "understand open property state enumeration" in new CosmosContext
     {
       addBelief("a door may be either open or closed")
-      addBelief("a door may be ajar")
+      addBelief("a door may be either open or ajar")
       expectNamedForm("door")
       val form = cosmos.getForms("door")
-      expectDefaultProperty(form)
-      val property = form.getProperties(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
+      val property = expectSingleProperty(form)
       property.isClosed must beFalse
       val states = property.getStates
       states.size must be equalTo 3
@@ -96,8 +94,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("a door must be closed")
       expectNamedForm("door")
       val form = cosmos.getForms("door")
-      expectDefaultProperty(form)
-      val property = form.getProperties(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
+      val property = expectSingleProperty(form)
       property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 1
@@ -323,8 +320,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
       cosmos.loadBeliefs(source)
       expectNamedForm("bit")
       val form = cosmos.getForms("bit")
-      expectDefaultProperty(form)
-      val property = form.getProperties(ShlurdPlatonicCosmos.DEFAULT_PROPERTY)
+      val property = expectSingleProperty(form)
       property.isClosed must beTrue
       val states = property.getStates
       states.size must be equalTo 2
@@ -335,7 +331,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
     "reject contradictory belief" in new CosmosContext
     {
       addBelief("a door must be open or closed")
-      addBelief("a door may be ajar") must
+      addBelief("a door may be open or ajar") must
         throwA[ContradictoryBeliefExcn]
     }
 

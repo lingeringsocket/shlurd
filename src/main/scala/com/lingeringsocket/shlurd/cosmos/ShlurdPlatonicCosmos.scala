@@ -74,6 +74,14 @@ class ShlurdPlatonicForm(val name : String)
     properties.getOrElseUpdate(property, new ShlurdPlatonicProperty(property))
   }
 
+  def resolveProperty(lemma : String)
+      : Option[(ShlurdPlatonicProperty, String)] =
+  {
+    val stateName = resolveStateSynonym(lemma)
+    properties.values.find(
+      p => p.states.contains(stateName)).map((_, stateName))
+  }
+
   def resolveStateSynonym(lemma : String) : String =
   {
     normalizeState(SilPropertyState(SilWord(lemma))) match {
@@ -122,11 +130,7 @@ case class ShlurdPlatonicEntity(
 
 object ShlurdPlatonicCosmos
 {
-  val DEFAULT_PROPERTY = "state"
-
   val LABEL_KIND = "aKindOf"
-
-  val DEFAULT_PROPERTY_WORD = SilWord(DEFAULT_PROPERTY)
 
   case class CardinalityConstraint(lower : Int, upper : Int)
   {
@@ -535,11 +539,8 @@ class ShlurdPlatonicCosmos
     lemma : String) : Try[(ShlurdPlatonicProperty, String)] =
   {
     getHypernyms(form).foreach(hyperForm => {
-      val stateName = hyperForm.resolveStateSynonym(lemma)
-      hyperForm.properties.values.find(
-        p => p.states.contains(stateName)) match
-      {
-        case Some(p) => return Success((p, stateName))
+      hyperForm.resolveProperty(lemma) match {
+        case Some(pair) => return Success(pair)
         case _ =>
       }
     })

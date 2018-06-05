@@ -509,7 +509,24 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       sentence, formName, newStates, isClosed
     ) => {
       val form = cosmos.instantiateForm(formName)
-      val property = form.instantiateProperty(DEFAULT_PROPERTY_WORD)
+      val properties = newStates.flatMap(
+        w => form.resolveProperty(w.lemma).map(_._1).toSeq)
+      val property = properties match {
+        case Seq() => {
+          form.instantiateProperty(
+            SilWord(formName.lemma + "_" +
+              newStates.map(_.lemma).mkString("_")))
+        }
+        case Seq(p) => {
+          // FIXME:  if we add more states to an existing property,
+          // we should rename the property too
+          p
+        }
+        case _ => {
+          // maybe unify multiple properties??
+          throw new UnimplementedBeliefExcn(sentence)
+        }
+      }
       if (property.isClosed) {
         if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates.keySet)) {
           throw new ContradictoryBeliefExcn(

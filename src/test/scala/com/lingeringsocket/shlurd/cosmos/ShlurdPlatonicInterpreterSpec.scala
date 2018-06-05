@@ -26,15 +26,17 @@ import scala.util._
 class ShlurdPlatonicInterpreterSpec extends Specification
 {
   private val states = Map(
-    "alarm service" -> "on",
-    "multimedia service" -> "off",
-    "jackphone presence" -> "on",
-    "jillphone presence" -> "off",
-    "casperphone presence" -> "on",
-    "yodaphone presence" -> "off",
-    "titanicflotation flotation" -> "sink",
-    "titanicmobility mobility" -> "move",
-    "herbiemobility mobility" -> "stop"
+    "alarm service service_on_off" -> "on",
+    "multimedia service service_on_off" -> "off",
+    "jackphone presence presence_on_off" -> "on",
+    "jillphone presence presence_on_off" -> "off",
+    "casperphone presence presence_on_off" -> "on",
+    "yodaphone presence presence_on_off" -> "off",
+    "stove stove_on_off" -> "off",
+    "stove stove_hot_cold" -> "hot",
+    "titanic boat boat_float_sink" -> "sink",
+    "titanic boat vehicle_move_stop" -> "move",
+    "herbie car vehicle_move_stop" -> "stop"
   )
 
   abstract class InterpreterContext(acceptNewBeliefs : Boolean = false)
@@ -47,7 +49,8 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         lemma : String) =
       {
         val qualifiedName =
-          (entity.qualifiers.toSeq :+ entity.form.name).mkString(" ")
+          (entity.qualifiers.toSeq :+ entity.form.name
+            :+ property.name).mkString(" ")
         states.get(qualifiedName) match {
           case Some(state) => Success(Trilean(state == lemma))
           case _ => super.evaluateEntityPropertyPredicate(
@@ -369,6 +372,17 @@ class ShlurdPlatonicInterpreterSpec extends Specification
         "No, Yoda is not on.")
       interpret("is Yoda off",
         "Yes, Yoda is off.")
+    }
+
+    "understand multiple properties for same form" in new InterpreterContext
+    {
+      loadBeliefs("/ontologies/stove.txt")
+      interpret("is there a stove?",
+        "Yes, there is a stove.")
+      interpret("is the stove hot?",
+        "Yes, the stove is hot.")
+      interpret("is the stove on?",
+        "No, the stove is not on.")
     }
 
     "prevent new beliefs" in new InterpreterContext
