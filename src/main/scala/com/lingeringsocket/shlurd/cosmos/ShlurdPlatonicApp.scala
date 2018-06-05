@@ -32,11 +32,13 @@ object ShlurdPlatonicCosmosApp extends App
     if (input == null) {
       exit = true
     } else {
-      val sentence = ShlurdParser(input).parseOne
-      val output = interpreter.interpret(sentence)
-      println
-      println(output)
-      println
+      val sentences = ShlurdParser(input).parseAll
+      sentences.foreach(sentence => {
+        val output = interpreter.interpret(sentence)
+        println
+        println(output)
+        println
+      })
     }
   }
   println
