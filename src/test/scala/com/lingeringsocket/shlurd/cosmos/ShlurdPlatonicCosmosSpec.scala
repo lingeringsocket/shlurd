@@ -181,9 +181,8 @@ class ShlurdPlatonicCosmosSpec extends Specification
     "prevent taxonomy cycles" in new CosmosContext
     {
       addBelief("a duck is a kind of bird")
-      // FIXME:  better exception type
       addBelief("a bird is a kind of duck") must
-        throwA[IllegalArgumentException]
+        throwA[ContradictoryBeliefExcn]
     }
 
     "understand genitives" in new CosmosContext

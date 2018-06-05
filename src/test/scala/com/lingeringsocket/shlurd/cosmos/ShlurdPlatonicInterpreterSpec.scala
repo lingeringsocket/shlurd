@@ -411,6 +411,16 @@ class ShlurdPlatonicInterpreterSpec extends Specification
           "there is a big front door.")
     }
 
+    "reject cyclic taxonomy belief" in new InterpreterContext(true)
+    {
+      interpret("a bird is a kind of animal", "OK.")
+      interpret("a duck is a kind of bird", "OK.")
+      interpret("an animal is a kind of duck",
+        "Previously I was told that a duck is a kind of a bird and a bird " +
+          "is a kind of an animal.  So I am unable to accept that " +
+          "an animal is a kind of duck.")
+    }
+
     "validate constraints incrementally" in new InterpreterContext(true)
     {
       loadBeliefs("/ontologies/people.txt")

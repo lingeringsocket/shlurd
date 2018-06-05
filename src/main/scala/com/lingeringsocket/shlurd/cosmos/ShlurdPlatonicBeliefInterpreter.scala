@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.parser._
 import scala.collection._
 import scala.collection.JavaConverters._
 
+import org.jgrapht.alg.shortestpath._
+
 import ShlurdEnglishLemmas._
 import ShlurdPlatonicCosmos._
 
@@ -412,9 +414,24 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     ) => {
       val specificForm = cosmos.instantiateForm(specificFormName)
       val genericForm = cosmos.instantiateForm(genericFormName)
-      // FIXME:  handle cycle exceptions
-      cosmos.addFormTaxonomy(
-        specificForm, genericForm)
+      try {
+        cosmos.addFormTaxonomy(
+          specificForm, genericForm)
+      } catch {
+        case ex : IllegalArgumentException => {
+          // report detected cycle
+          val path = DijkstraShortestPath.findPathBetween(
+            cosmos.getFormTaxonomyGraph, genericForm, specificForm)
+          assert(path != null)
+          val originalBelief = SilConjunctiveSentence(
+            DETERMINER_ALL,
+            path.getEdgeList.asScala.map(creed.formTaxonomyBelief(_)),
+            SEPARATOR_OXFORD_COMMA)
+          throw new ContradictoryBeliefExcn(
+            sentence,
+            originalBelief)
+        }
+      }
     }
   }
 
