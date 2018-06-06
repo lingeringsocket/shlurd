@@ -18,7 +18,9 @@ import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 
-import SpcCosmos._
+case class SpcCardinalityConstraint(lower : Int, upper : Int)
+{
+}
 
 sealed trait SpcBelief
 {
@@ -68,7 +70,7 @@ case class FormAssocBelief(
   sentence : SilSentence,
   possessorFormName : SilWord,
   possesseeFormName : SilWord,
-  constraint : CardinalityConstraint,
+  constraint : SpcCardinalityConstraint,
   isProperty : Boolean
 ) extends SpcBelief
 {

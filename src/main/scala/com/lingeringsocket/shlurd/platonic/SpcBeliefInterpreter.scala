@@ -22,7 +22,6 @@ import scala.collection.JavaConverters._
 import org.jgrapht.alg.shortestpath._
 
 import ShlurdEnglishLemmas._
-import SpcCosmos._
 
 class SpcBeliefInterpreter(cosmos : SpcCosmos)
 {
@@ -198,10 +197,10 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         }
         val newConstraint = sentence.mood.getModality match {
           case MODAL_NEUTRAL | MODAL_MUST | MODAL_EMPHATIC =>
-            CardinalityConstraint(1, 1)
+            SpcCardinalityConstraint(1, 1)
           case MODAL_MAY | MODAL_POSSIBLE |
               MODAL_CAPABLE | MODAL_PERMITTED =>
-            CardinalityConstraint(0, upper)
+            SpcCardinalityConstraint(0, upper)
           case MODAL_SHOULD =>
             return Some(UnimplementedBelief(sentence))
         }
@@ -452,7 +451,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       val edge = cosmos.addFormAssoc(
         possessorForm, possesseeForm, label)
       val constraint = cosmos.getAssocConstraints.get(edge) match {
-        case Some(oldConstraint) => CardinalityConstraint(
+        case Some(oldConstraint) => SpcCardinalityConstraint(
           Math.max(oldConstraint.lower, newConstraint.lower),
           Math.min(oldConstraint.upper, newConstraint.upper))
         case _ => newConstraint

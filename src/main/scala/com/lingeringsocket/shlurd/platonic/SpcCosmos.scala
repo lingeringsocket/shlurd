@@ -127,10 +127,6 @@ case class SpcEntity(
 
 object SpcCosmos
 {
-  case class CardinalityConstraint(lower : Int, upper : Int)
-  {
-  }
-
   private class ProbeFormEdge(
     val sourceForm : SpcForm,
     val targetForm : SpcForm,
@@ -173,7 +169,7 @@ class SpcCosmos
   private val unmodifiableGraph = graph.asUnmodifiable
 
   private val assocConstraints =
-    new mutable.LinkedHashMap[SpcFormAssocEdge, CardinalityConstraint]
+    new mutable.LinkedHashMap[SpcFormAssocEdge, SpcCardinalityConstraint]
 
   private val propertyEdges =
     new mutable.LinkedHashSet[SpcFormAssocEdge]
@@ -199,10 +195,10 @@ class SpcCosmos
       : Set[SpcFormAssocEdge] = propertyEdges
 
   protected[platonic] def getAssocConstraints
-      : Map[SpcFormAssocEdge, CardinalityConstraint] = assocConstraints
+      : Map[SpcFormAssocEdge, SpcCardinalityConstraint] = assocConstraints
 
   protected[platonic] def annotateFormAssoc(
-    edge : SpcFormAssocEdge, constraint : CardinalityConstraint,
+    edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint,
     isProperty : Boolean)
   {
     assocConstraints.put(edge, constraint)
