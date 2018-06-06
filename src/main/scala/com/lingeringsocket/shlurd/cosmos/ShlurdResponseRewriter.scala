@@ -111,13 +111,36 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
     }
 
-    def allRules = combineRules(
-      replacePronounsSpeakerListener,
-      replaceReferences,
-      coerceCountAgreement)
+    val firstRules = {
+      if (getTrueEntities(resultCollector).isEmpty ||
+        resultCollector.isCategorization)
+      {
+        replacePronounsSpeakerListener
+      } else {
+        combineRules(
+          flipPredicateQueries,
+          replacePronounsSpeakerListener)
+      }
+    }
 
-    val rewritten = rewrite(allRules, predicate)
-    (rewritten, negateCollection)
+    val rewrite1 = rewrite(
+      firstRules,
+      predicate)
+    val rewrite2 = rewrite(
+      combineRules(
+        coerceCountAgreement,
+        replaceReferences),
+      rewrite1)
+    val rewrite3 = rewrite(
+      combineRules(
+        removeNullStates,
+        avoidTautologies),
+      rewrite2)
+    val rewrite4 = rewrite(
+      replaceResolvedReferences,
+      rewrite3)
+
+    (rewrite4, negateCollection)
   }
 
   def replacePronounsSpeakerListener = replacementMatcher {
@@ -128,6 +151,87 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         case PERSON_THIRD => PERSON_THIRD
       }
       SilPronounReference(speakerListenerReversed, gender, count)
+    }
+  }
+
+  private def removeNullStates = replacementMatcher {
+    case SilStateSpecifiedReference(ref, SilNullState()) => {
+      ref
+    }
+  }
+
+  // "Who is Slothrop?" becomes "Slothrop is who" so that the response
+  // comes out more naturally as "Slothrop is a lieutenant"
+  private def flipPredicateQueries = replacementMatcher {
+    case SilRelationshipPredicate(
+      lhs,
+      rhs,
+      REL_IDENTITY
+    ) if (containsWildcard(lhs) && !containsWildcard(rhs)) =>
+      {
+        SilRelationshipPredicate(
+          rhs,
+          lhs,
+          REL_IDENTITY)
+      }
+  }
+
+  private def avoidTautologies = replacementMatcher {
+    case SilRelationshipPredicate(
+      rr : SilResolvedReference[E],
+      other : SilReference,
+      REL_IDENTITY)
+        if (rr.entities.size == 1) =>
+      {
+        SilRelationshipPredicate(
+          chooseReference(rr.entities.head, other, rr.determiner),
+          other,
+          REL_IDENTITY)
+      }
+    case SilRelationshipPredicate(
+      other : SilReference,
+      rr : SilResolvedReference[E],
+      REL_IDENTITY)
+        if (rr.entities.size == 1) =>
+      {
+        SilRelationshipPredicate(
+          other,
+          chooseReference(rr.entities.head, other, rr.determiner),
+          REL_IDENTITY)
+      }
+  }
+
+  protected def equivalentReferences(
+    entity : E,
+    determiner : SilDeterminer)
+      : Seq[SilReference] =
+  {
+    Seq(cosmos.specificReference(entity, determiner))
+  }
+
+  private def resolveReference(
+    entity : E,
+    determiner : SilDeterminer) : SilReference =
+  {
+    // FIXME:  something better for SilWord
+    SilResolvedReference(Set(entity), SilWord(entity.toString), determiner)
+  }
+
+  private def chooseReference(
+    entity : E,
+    other : SilReference,
+    determiner : SilDeterminer) : SilReference =
+  {
+    val equivs = equivalentReferences(entity, determiner)
+    equivs.find(_ != other) match {
+      case Some(ref) => ref
+      case _ => equivs.head
+    }
+  }
+
+  private def replaceResolvedReferences = replacementMatcher {
+    case rr : SilResolvedReference[E] if (rr.entities.size == 1) => {
+      cosmos.specificReference(rr.entities.head, rr.determiner)
     }
   }
 
@@ -204,6 +308,20 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
+  private def getTrueEntities(resultCollector : ResultCollector[E]) =
+  {
+    ShlurdParseUtils.orderedSet(
+      resultCollector.entityMap.filter(
+        _._2.assumeFalse).keySet)
+  }
+
+  private def getFalseEntities(resultCollector : ResultCollector[E]) =
+  {
+    ShlurdParseUtils.orderedSet(
+      resultCollector.entityMap.filterNot(
+        _._2.assumeTrue).keySet)
+  }
+
   private def normalizeDisjunction(
     resultCollector : ResultCollector[E],
     entityDeterminer : SilDeterminer,
@@ -211,8 +329,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     params : ShlurdInterpreterParams)
       : Option[SilReference] =
   {
-    val trueEntities = resultCollector.entityMap.filter(
-      _._2.assumeFalse).keySet
+    val trueEntities = getTrueEntities(resultCollector)
     val exhaustive =
       (trueEntities.size == resultCollector.entityMap.size) &&
         !params.neverSummarize
@@ -220,14 +337,14 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     (if (trueEntities.isEmpty) {
       None
     } else if ((trueEntities.size == 1) && !params.alwaysSummarize) {
-      Some(cosmos.specificReference(trueEntities.head, entityDeterminer))
+      Some(resolveReference(trueEntities.head, entityDeterminer))
     } else if (exhaustive || (trueEntities.size > params.listLimit)) {
       summarizeList(trueEntities, exhaustive, existence, false)
     } else {
       Some(SilConjunctiveReference(
         DETERMINER_ALL,
         trueEntities.map(
-          cosmos.specificReference(_, entityDeterminer)).toSeq,
+          resolveReference(_, entityDeterminer)).toSeq,
         separator))
     }).map(r => SilStateSpecifiedReference(r, SilNullState()))
   }
@@ -239,8 +356,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     params : ShlurdInterpreterParams)
       : (Option[SilReference], Boolean) =
   {
-    val falseEntities = resultCollector.entityMap.filterNot(
-      _._2.assumeTrue).keySet
+    val falseEntities = getFalseEntities(resultCollector)
     val exhaustive =
       (falseEntities.size == resultCollector.entityMap.size) &&
         !params.neverSummarize
@@ -248,7 +364,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     val tuple = (if (falseEntities.isEmpty) {
       (None, false)
     } else if ((falseEntities.size == 1) && !params.alwaysSummarize) {
-      (Some(cosmos.specificReference(falseEntities.head, entityDeterminer)),
+      (Some(resolveReference(falseEntities.head, entityDeterminer)),
         false)
     } else if (exhaustive || (falseEntities.size > params.listLimit)) {
       (summarizeList(falseEntities, exhaustive, existence, true),
@@ -257,7 +373,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       (Some(SilConjunctiveReference(
         DETERMINER_NONE,
         falseEntities.map(
-          cosmos.specificReference(_, entityDeterminer)).toSeq,
+          resolveReference(_, entityDeterminer)).toSeq,
         separator)),
         true)
     })
@@ -301,5 +417,36 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       SilReference.qualified(
         SilPronounReference(PERSON_THIRD, GENDER_N, count),
         qualifiers))
+  }
+
+  def containsWildcard(phrase : SilPhrase) : Boolean =
+  {
+    val querier = new SilPhraseRewriter
+    var wildcard = false
+    def matchWildcard = querier.queryMatcher {
+      case SilConjunctiveReference(
+        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL,
+        _,
+        _
+      ) => {
+        wildcard = true
+      }
+      case SilNounReference(
+        _,
+        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL,
+        _
+      ) => {
+        wildcard = true
+      }
+      case SilNounReference(
+        SilWord(LEMMA_WHO, LEMMA_WHO),
+        _,
+        _
+      ) => {
+        wildcard = true
+      }
+    }
+    querier.query(matchWildcard, phrase)
+    wildcard
   }
 }

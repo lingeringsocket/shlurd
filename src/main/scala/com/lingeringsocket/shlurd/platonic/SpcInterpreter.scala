@@ -47,6 +47,11 @@ class SpcInterpreter(
     super.interpretImpl(sentence)
   }
 
+  override protected def newResponseRewriter() =
+  {
+    new SpcResponseRewriter(cosmos)
+  }
+
   // FIXME:  i18n
   private def respondContradiction(ex : RejectedBeliefExcn) : String =
   {

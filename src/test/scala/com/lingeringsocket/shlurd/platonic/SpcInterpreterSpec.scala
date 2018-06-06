@@ -123,19 +123,19 @@ class SpcInterpreterSpec extends Specification
         "No, Amanda has no friends.")
       interpret(
         "who is Todd",
-        "Todd is Todd.")
+        "Todd is Amanda's brother.")
       interpret(
         "who is Todd's friend",
-        "Dirk is Todd's friend.")
+        "Todd's friend is Dirk.")
       interpret(
         "who are Todd's friends",
-        "Dirk is Todd's friend.")
+        "Todd's friend is Dirk.")
       interpret(
         "which person is Todd's friend",
-        "Dirk is Todd's friend.")
+        "Todd's friend is Dirk.")
       interpret(
         "who is Dirk's friend",
-        "Todd and Bart are Dirk's friends.")
+        "Dirk's friends are Todd and Bart.")
       interpret(
         "who is Amanda's friend",
         "No one is Amanda's friend.")
@@ -180,10 +180,9 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "is Amanda a robot",
         "Sorry, I don't know what you mean by 'robot'.")
-      // FIXME:  should be "are people"?
       interpret(
         "who is a person",
-        "Dirk, Todd, Amanda, and Bart are persons.")
+        "Dirk, Todd, Amanda, Bart, and Hugo are persons.")
       interpret(
         "who is a brother",
         "Todd is a brother.")
@@ -210,6 +209,9 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "who is Ford",
         "Sorry, I don't know what you mean by 'Ford'.")
+      interpret(
+        "who is Hugo",
+        "Hugo is a person.")
     }
 
     "understand taxonomy" in new InterpreterContext
@@ -276,7 +278,7 @@ class SpcInterpreterSpec extends Specification
         "There is Herbie and Titanic.")
       interpret(
         "who is Herbie's owner",
-        "Jim is Herbie's owner.")
+        "Herbie's owner is Jim.")
       interpret(
         "who is Titanic's owner",
         "No one is Titanic's owner.")

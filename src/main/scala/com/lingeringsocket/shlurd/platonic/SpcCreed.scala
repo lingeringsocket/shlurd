@@ -45,34 +45,19 @@ class SpcCreed(cosmos : SpcCosmos)
     form.getInflectedStateNormalizations.map(
       formStateNormalizationBelief(form, _)
     ) ++ {
-      val taxonomyGraph = cosmos.getFormTaxonomyGraph
-      if (taxonomyGraph.containsVertex(form)) {
-        taxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.map(
-          formTaxonomyBelief(_))
-      } else {
-        Iterable.empty
-      }
+      cosmos.getFormTaxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.map(
+        formTaxonomyBelief(_))
     } ++ {
-      val assocGraph = cosmos.getFormAssocGraph
-      if (assocGraph.containsVertex(form)) {
-        assocGraph.outgoingEdgesOf(form).asScala.toSeq.map(
-          formAssociationBelief(_))
-      } else {
-        Iterable.empty
-      }
+      cosmos.getFormAssocGraph.outgoingEdgesOf(form).asScala.toSeq.map(
+        formAssociationBelief(_))
     }
   }
 
   def entityBeliefs(entity : SpcEntity) : Iterable[SilSentence] =
   {
     Seq(entityFormBelief(entity)) ++ {
-      val assocGraph = cosmos.getEntityAssocGraph
-      if (assocGraph.containsVertex(entity)) {
-        assocGraph.outgoingEdgesOf(entity).asScala.toSeq.map(
-          entityAssociationBelief(_))
-      } else {
-        Iterable.empty
-      }
+      cosmos.getEntityAssocGraph.outgoingEdgesOf(entity).asScala.toSeq.map(
+        entityAssociationBelief(_))
     }
   }
 

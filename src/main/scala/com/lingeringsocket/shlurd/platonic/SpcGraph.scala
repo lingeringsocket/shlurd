@@ -134,12 +134,6 @@ class SpcGraph(
     if (hyponymForm == hypernymForm) {
       return true
     }
-    if (!formTaxonomy.containsVertex(hyponymForm)) {
-      return false
-    }
-    if (!formTaxonomy.containsVertex(hypernymForm)) {
-      return false
-    }
     val path = DijkstraShortestPath.findPathBetween(
       formTaxonomy, hyponymForm, hypernymForm)
     return (path != null)
@@ -148,10 +142,6 @@ class SpcGraph(
   def getHypernyms(
     form : SpcForm) : Iterator[SpcForm] =
   {
-    if (formTaxonomy.containsVertex(form)) {
-      new BreadthFirstIterator(formTaxonomy, form).asScala
-    } else {
-      Seq(form).iterator
-    }
+    new BreadthFirstIterator(formTaxonomy, form).asScala
   }
 }

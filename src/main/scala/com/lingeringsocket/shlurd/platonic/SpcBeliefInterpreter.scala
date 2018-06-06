@@ -425,7 +425,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           assert(path != null)
           val originalBelief = SilConjunctiveSentence(
             DETERMINER_ALL,
-            path.getEdgeList.asScala.map(creed.formTaxonomyBelief(_)),
+            path.getEdgeList.asScala.toSeq.map(creed.formTaxonomyBelief(_)),
             SEPARATOR_OXFORD_COMMA)
           throw new ContradictoryBeliefExcn(
             sentence,
@@ -496,21 +496,19 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         case Some(formAssoc) => {
           val constraint = cosmos.getAssocConstraints(formAssoc)
           val entityAssocGraph = cosmos.getEntityAssocGraph
-          if (entityAssocGraph.containsVertex(possessor)) {
-            val edges = entityAssocGraph.
-              outgoingEdgesOf(possessor).asScala.
-              filter(_.label == label)
+          val edges = entityAssocGraph.
+            outgoingEdgesOf(possessor).asScala.toSeq.
+            filter(_.label == label)
 
-            val edgeCount = edges.size
-            if (edgeCount >= constraint.upper) {
-              val originalBelief = SilConjunctiveSentence(
-                DETERMINER_ALL,
-                Seq(creed.formAssociationBelief(formAssoc)) ++
-                  edges.map(creed.entityAssociationBelief(_)),
-                SEPARATOR_OXFORD_COMMA)
-              throw new IncrementalCardinalityExcn(
-                sentence, originalBelief)
-            }
+          val edgeCount = edges.size
+          if (edgeCount >= constraint.upper) {
+            val originalBelief = SilConjunctiveSentence(
+              DETERMINER_ALL,
+              Seq(creed.formAssociationBelief(formAssoc)) ++
+                edges.map(creed.entityAssociationBelief(_)),
+              SEPARATOR_OXFORD_COMMA)
+            throw new IncrementalCardinalityExcn(
+              sentence, originalBelief)
           }
           cosmos.addEntityAssoc(possessor, possessee, label)
         }

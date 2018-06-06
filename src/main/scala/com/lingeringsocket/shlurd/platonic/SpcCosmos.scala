@@ -220,7 +220,10 @@ class SpcCosmos
   def instantiateForm(word : SilWord) =
   {
     val name = formSynonyms.resolveSynonym(word.lemma)
-    forms.getOrElseUpdate(name, new SpcForm(name))
+    val form = forms.getOrElseUpdate(name, new SpcForm(name))
+    graph.formTaxonomy.addVertex(form)
+    graph.formAssocs.addVertex(form)
+    form
   }
 
   def addFormSynonym(synonym : String, fundamental : String, isRole : Boolean)
@@ -278,6 +281,7 @@ class SpcCosmos
   protected[platonic] def addEntity(entity : SpcEntity)
   {
     entities.put(entity.name, entity)
+    graph.entityAssocs.addVertex(entity)
   }
 
   protected[platonic] def addFormTaxonomy(
@@ -349,14 +353,9 @@ class SpcCosmos
         entities.values.filter(
           e => graph.isHyponym(e.form, form)).foreach(entity =>
           {
-            if (getEntityAssocGraph.containsVertex(entity)) {
-              val c = getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
-                count(_.label == formEdge.label)
-              if ((c < constraint.lower) || (c > constraint.upper)) {
-                throw new CardinalityExcn(
-                  creed.formAssociationBelief(formEdge))
-              }
-            } else if (constraint.lower > 0) {
+            val c = getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
+              count(_.label == formEdge.label)
+            if ((c < constraint.lower) || (c > constraint.upper)) {
               throw new CardinalityExcn(
                 creed.formAssociationBelief(formEdge))
             }
@@ -371,13 +370,9 @@ class SpcCosmos
     label : String)
       : Set[SpcEntity] =
   {
-    if (!getEntityAssocGraph.containsVertex(possessor)) {
-      Set.empty
-    } else {
-      getEntityAssocGraph.outgoingEdgesOf(possessor).
-        asScala.filter(_.label == label).map(
-          graph.getPossesseeEntity)
-    }
+    getEntityAssocGraph.outgoingEdgesOf(possessor).
+      asScala.filter(_.label == label).map(
+        graph.getPossesseeEntity)
   }
 
   def isRole(name : SilWord) : Boolean =
@@ -437,13 +432,13 @@ class SpcCosmos
     fail(s"unknown property $lemma")
   }
 
-  private def properReference(entity : SpcEntity) =
+  def properReference(entity : SpcEntity) =
   {
     SilNounReference(
       SilWord(entity.properName), DETERMINER_UNSPECIFIED)
   }
 
-  private def qualifiedReference(
+  def qualifiedReference(
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {
@@ -474,38 +469,31 @@ class SpcCosmos
     property : SpcProperty,
     lemma : String) : Try[Trilean] =
   {
-
     val hypernymSet = graph.getHypernyms(entity.form).toSet
     val propertyEdgeNames = hypernymSet.flatMap { form =>
-      if (getFormAssocGraph.containsVertex(form)) {
-        getFormAssocGraph.outgoingEdgesOf(form).asScala.
-          filter(propertyEdges.contains(_)).map(_.label).toSet
-      } else {
-        Set.empty[String]
-      }
+      getFormAssocGraph.outgoingEdgesOf(form).asScala.
+        filter(propertyEdges.contains(_)).map(_.label).toSet
     }
-    if (getEntityAssocGraph.containsVertex(entity)) {
-      getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
-        filter(edge => propertyEdgeNames.contains(edge.label)).
-        foreach(edge => {
-          val propertyEntity = graph.getPossesseeEntity(edge)
-          if (propertyEntity.form.properties.values.toSeq.contains(property)) {
+    getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
+      filter(edge => propertyEdgeNames.contains(edge.label)).
+      foreach(edge => {
+        val propertyEntity = graph.getPossesseeEntity(edge)
+        if (propertyEntity.form.properties.values.toSeq.contains(property)) {
+          return evaluateEntityPropertyPredicate(
+            propertyEntity,
+            property,
+            lemma)
+        }
+        resolveFormProperty(propertyEntity.form, lemma) match {
+          case Success((underlyingProperty, stateName)) => {
             return evaluateEntityPropertyPredicate(
               propertyEntity,
-              property,
-              lemma)
+              underlyingProperty,
+              stateName)
           }
-          resolveFormProperty(propertyEntity.form, lemma) match {
-            case Success((underlyingProperty, stateName)) => {
-              return evaluateEntityPropertyPredicate(
-                propertyEntity,
-                underlyingProperty,
-                stateName)
-            }
-            case _ =>
-          }
-        })
-    }
+          case _ =>
+        }
+      })
     Success(Trilean.Unknown)
   }
 
@@ -516,10 +504,7 @@ class SpcCosmos
     qualifiers : Set[String]) : Try[Trilean] =
   {
     if (adposition == ADP_GENITIVE_OF) {
-      if (!getEntityAssocGraph.containsVertex(entity) ||
-        !getEntityAssocGraph.containsVertex(objRef) ||
-        (qualifiers.size != 1))
-      {
+      if (qualifiers.size != 1) {
         Success(Trilean.False)
       } else {
         val label = qualifiers.head

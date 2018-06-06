@@ -25,8 +25,6 @@ import scala.collection._
 
 import org.slf4j._
 
-import ShlurdEnglishLemmas._
-
 case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
   entities : Set[E],
   state : SilWord)
@@ -46,6 +44,7 @@ class ResultCollector[E<:ShlurdEntity]
 {
   val entityMap = new mutable.LinkedHashMap[E, Trilean]
   val states = new mutable.LinkedHashSet[SilWord]
+  var isCategorization = false
 }
 
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
@@ -58,11 +57,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private var debugDepth = 0
 
-  private val responseRewriter = new ShlurdResponseRewriter(cosmos)
+  private lazy val responseRewriter = newResponseRewriter()
 
   protected val sentencePrinter = new SilSentencePrinter
 
   def fail(msg : String) = cosmos.fail(msg)
+
+  protected def newResponseRewriter() = new ShlurdResponseRewriter(cosmos)
 
   @inline protected final def debug(msg : => String)
   {
@@ -373,6 +374,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         {
           subjectEntity => {
             if (!categoryLabel.isEmpty) {
+              resultCollector.isCategorization = true
               evaluateCategorization(subjectEntity, categoryLabel)
             } else {
               val context = relationship match {
@@ -801,41 +803,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     phrase : SilPhrase,
     collector : ResultCollector[E]) =
   {
-    if (containsWildcard(phrase)) {
+    if (responseRewriter.containsWildcard(phrase)) {
       collector
     } else {
       new ResultCollector[E]
     }
-  }
-
-  private def containsWildcard(phrase : SilPhrase) : Boolean =
-  {
-    val querier = new SilPhraseRewriter
-    var wildcard = false
-    def matchWildcard = querier.queryMatcher {
-      case SilConjunctiveReference(
-        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL,
-        _,
-        _
-      ) => {
-        wildcard = true
-      }
-      case SilNounReference(
-        _,
-        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL,
-        _
-      ) => {
-        wildcard = true
-      }
-      case SilNounReference(
-        SilWord(LEMMA_WHO, LEMMA_WHO),
-        _,
-        _
-      ) => {
-        wildcard = true
-      }
-    }
-    querier.query(matchWildcard, phrase)
-    wildcard
   }
 }

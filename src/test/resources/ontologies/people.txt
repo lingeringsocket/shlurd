@@ -22,3 +22,4 @@ A dog may have an owner.
 Bart is Rapunzel's owner.
 BLACKWING is an organization.
 A conspiracy is a kind of organization.
+Hugo is a person.
