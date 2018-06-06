@@ -329,6 +329,16 @@ class SpcCosmosSpec extends Specification
       specificRef must be equalTo properRef
     }
 
+    "clear all entities" in new CosmosContext
+    {
+      addBelief("Lana is a person")
+      val entity = expectPerson("lana")
+      cosmos.clear
+      val cleared = cosmos.resolveQualifiedNoun(
+        LEMMA_PERSON, REF_SUBJECT, Set("Lana"))
+      cleared must beSuccessfulTry.which(_.isEmpty)
+    }
+
     "load beliefs from a file" in new CosmosContext
     {
       val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")

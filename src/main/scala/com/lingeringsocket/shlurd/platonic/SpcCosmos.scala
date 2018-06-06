@@ -24,6 +24,8 @@ import scala.util._
 import scala.collection._
 import scala.collection.JavaConverters._
 
+import org.jgrapht.util._
+
 import ShlurdEnglishLemmas._
 
 class SpcProperty(val name : String)
@@ -209,8 +211,9 @@ class SpcCosmos
 
   def clear()
   {
-    // FIXME should clear some other entity-related stuff too
     entities.clear()
+    graph.entityAssocs.removeAllVertices(
+      new ArrayUnenforcedSet(graph.entityAssocs.vertexSet))
   }
 
   def instantiateForm(word : SilWord) =
