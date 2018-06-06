@@ -12,9 +12,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.cosmos._
 
 import org.jgrapht.graph._
 import org.jgrapht.alg.shortestpath._
@@ -29,10 +30,10 @@ import scala.collection.JavaConverters._
 
 import ShlurdEnglishLemmas._
 
-class ShlurdPlatonicProperty(val name : String)
+class SpcProperty(val name : String)
     extends ShlurdProperty with ShlurdNamedObject
 {
-  private[cosmos] val states =
+  private[platonic] val states =
     new mutable.LinkedHashMap[String, String]
 
   private var closed : Boolean = false
@@ -41,7 +42,7 @@ class ShlurdPlatonicProperty(val name : String)
 
   def isClosed = closed
 
-  private[cosmos] def closeStates()
+  private[platonic] def closeStates()
   {
     closed = true
   }
@@ -51,14 +52,14 @@ class ShlurdPlatonicProperty(val name : String)
     states.put(word.lemma, word.inflected)
   }
 
-  override def toString = s"ShlurdPlatonicProperty($name)"
+  override def toString = s"SpcProperty($name)"
 }
 
-class ShlurdPlatonicForm(val name : String)
+class SpcForm(val name : String)
     extends ShlurdNamedObject
 {
-  private[cosmos] val properties =
-    new mutable.LinkedHashMap[String, ShlurdPlatonicProperty]
+  private[platonic] val properties =
+    new mutable.LinkedHashMap[String, SpcProperty]
 
   private val inflectedStateNormalizations =
     new mutable.LinkedHashMap[SilState, SilState]
@@ -66,16 +67,16 @@ class ShlurdPlatonicForm(val name : String)
   private val stateNormalizations =
     new mutable.LinkedHashMap[SilState, SilState]
 
-  def getProperties : Map[String, ShlurdPlatonicProperty] = properties
+  def getProperties : Map[String, SpcProperty] = properties
 
   def instantiateProperty(name : SilWord) =
   {
     val property = name.lemma
-    properties.getOrElseUpdate(property, new ShlurdPlatonicProperty(property))
+    properties.getOrElseUpdate(property, new SpcProperty(property))
   }
 
   def resolveProperty(lemma : String)
-      : Option[(ShlurdPlatonicProperty, String)] =
+      : Option[(SpcProperty, String)] =
   {
     val stateName = resolveStateSynonym(lemma)
     properties.values.find(
@@ -90,7 +91,7 @@ class ShlurdPlatonicForm(val name : String)
     }
   }
 
-  private[cosmos] def addStateNormalization(
+  private[platonic] def addStateNormalization(
     state : SilState, transformed : SilState)
   {
     val normalized = normalizeState(transformed)
@@ -116,19 +117,19 @@ class ShlurdPlatonicForm(val name : String)
 
   def getInflectedStateNormalizations = inflectedStateNormalizations.toIterable
 
-  override def toString = s"ShlurdPlatonicForm($name)"
+  override def toString = s"SpcForm($name)"
 }
 
-case class ShlurdPlatonicEntity(
+case class SpcEntity(
   val name : String,
-  val form : ShlurdPlatonicForm,
+  val form : SpcForm,
   val qualifiers : Set[String],
   val properName : String = "")
     extends ShlurdEntity with ShlurdNamedObject
 {
 }
 
-object ShlurdPlatonicCosmos
+object SpcCosmos
 {
   val LABEL_KIND = "aKindOf"
 
@@ -136,7 +137,7 @@ object ShlurdPlatonicCosmos
   {
   }
 
-  protected[cosmos] class LabeledEdge(
+  protected[platonic] class LabeledEdge(
     val label : String) extends DefaultEdge
   {
     override def hashCode() =
@@ -157,24 +158,24 @@ object ShlurdPlatonicCosmos
     }
   }
 
-  protected[cosmos] class FormAssocEdge(
+  protected[platonic] class FormAssocEdge(
     label : String) extends LabeledEdge(label)
   {
   }
 
-  protected[cosmos] class FormTaxonomyEdge(
+  protected[platonic] class FormTaxonomyEdge(
     label : String = LABEL_KIND) extends LabeledEdge(label)
   {
   }
 
-  protected[cosmos] class EntityAssocEdge(
+  protected[platonic] class EntityAssocEdge(
     label : String) extends LabeledEdge(label)
   {
   }
 
   private class ProbeFormEdge(
-    val sourceForm : ShlurdPlatonicForm,
-    val targetForm : ShlurdPlatonicForm,
+    val sourceForm : SpcForm,
+    val targetForm : SpcForm,
     label : String) extends FormAssocEdge(label)
   {
     override def getSource = sourceForm
@@ -183,8 +184,8 @@ object ShlurdPlatonicCosmos
   }
 
   private class ProbeEntityEdge(
-    val sourceEntity : ShlurdPlatonicEntity,
-    val targetEntity : ShlurdPlatonicEntity,
+    val sourceEntity : SpcEntity,
+    val targetEntity : SpcEntity,
     label : String) extends EntityAssocEdge(label)
   {
     override def getSource = sourceEntity
@@ -193,28 +194,28 @@ object ShlurdPlatonicCosmos
   }
 }
 
-class ShlurdPlatonicCosmos
-    extends ShlurdCosmos[ShlurdPlatonicEntity, ShlurdPlatonicProperty]
+class SpcCosmos
+    extends ShlurdCosmos[SpcEntity, SpcProperty]
 {
-  import ShlurdPlatonicCosmos._
+  import SpcCosmos._
 
   private val forms =
-    new mutable.LinkedHashMap[String, ShlurdPlatonicForm]
+    new mutable.LinkedHashMap[String, SpcForm]
 
   private val roles =
     new mutable.LinkedHashSet[String]
 
   private val entities =
-    new mutable.LinkedHashMap[String, ShlurdPlatonicEntity]
+    new mutable.LinkedHashMap[String, SpcEntity]
 
   private val formSynonyms = new ShlurdSynonymMap
 
   private val formTaxonomy =
-    new DirectedAcyclicGraph[ShlurdPlatonicForm, FormTaxonomyEdge](
+    new DirectedAcyclicGraph[SpcForm, FormTaxonomyEdge](
       classOf[FormTaxonomyEdge])
 
   private val formAssocs =
-    new DirectedPseudograph[ShlurdPlatonicForm, FormAssocEdge](
+    new DirectedPseudograph[SpcForm, FormAssocEdge](
       classOf[FormAssocEdge])
 
   private val assocConstraints =
@@ -224,7 +225,7 @@ class ShlurdPlatonicCosmos
     new mutable.LinkedHashSet[FormAssocEdge]
 
   private val entityAssocs =
-    new DirectedPseudograph[ShlurdPlatonicEntity, EntityAssocEdge](
+    new DirectedPseudograph[SpcEntity, EntityAssocEdge](
       classOf[EntityAssocEdge])
 
   private var nextId = 0
@@ -238,17 +239,17 @@ class ShlurdPlatonicCosmos
       LEMMA_WHO, LEMMA_PERSON)
   }
 
-  def getForms : Map[String, ShlurdPlatonicForm] = forms
+  def getForms : Map[String, SpcForm] = forms
 
-  def getEntities : Map[String, ShlurdPlatonicEntity] = entities
+  def getEntities : Map[String, SpcEntity] = entities
 
-  protected[cosmos] def getPropertyEdges
+  protected[platonic] def getPropertyEdges
       : Set[FormAssocEdge] = propertyEdges
 
-  protected[cosmos] def getAssocConstraints
+  protected[platonic] def getAssocConstraints
       : Map[FormAssocEdge, CardinalityConstraint] = assocConstraints
 
-  protected[cosmos] def annotateFormAssoc(
+  protected[platonic] def annotateFormAssoc(
     edge : FormAssocEdge, constraint : CardinalityConstraint,
     isProperty : Boolean)
   {
@@ -266,7 +267,7 @@ class ShlurdPlatonicCosmos
   def instantiateForm(word : SilWord) =
   {
     val name = formSynonyms.resolveSynonym(word.lemma)
-    forms.getOrElseUpdate(name, new ShlurdPlatonicForm(name))
+    forms.getOrElseUpdate(name, new SpcForm(name))
   }
 
   def addFormSynonym(synonym : String, fundamental : String, isRole : Boolean)
@@ -277,21 +278,21 @@ class ShlurdPlatonicCosmos
     }
   }
 
-  protected[cosmos] def getFormSynonyms =
+  protected[platonic] def getFormSynonyms =
     formSynonyms
 
-  protected[cosmos] def getFormTaxonomyGraph =
+  protected[platonic] def getFormTaxonomyGraph =
     new AsUnmodifiableGraph(formTaxonomy)
 
-  protected[cosmos] def getFormAssocGraph =
+  protected[platonic] def getFormAssocGraph =
     new AsUnmodifiableGraph(formAssocs)
 
-  protected[cosmos] def getEntityAssocGraph =
+  protected[platonic] def getEntityAssocGraph =
     new AsUnmodifiableGraph(entityAssocs)
 
   private def hasQualifiers(
-    existing : ShlurdPlatonicEntity,
-    form : ShlurdPlatonicForm,
+    existing : SpcEntity,
+    form : SpcForm,
     qualifiers : Set[String],
     overlap : Boolean) : Boolean =
   {
@@ -300,10 +301,10 @@ class ShlurdPlatonicCosmos
         (overlap && existing.qualifiers.subsetOf(qualifiers)))
   }
 
-  protected[cosmos] def instantiateEntity(
-    form : ShlurdPlatonicForm,
+  protected[platonic] def instantiateEntity(
+    form : SpcForm,
     qualifierString : Seq[SilWord],
-    properName : String = "") : (ShlurdPlatonicEntity, Boolean) =
+    properName : String = "") : (SpcEntity, Boolean) =
   {
     val qualifiers = qualifierSet(qualifierString)
     entities.values.find(hasQualifiers(_, form, qualifiers, true)) match {
@@ -316,37 +317,37 @@ class ShlurdPlatonicCosmos
       (qualifierString.map(_.lemma) ++
         Seq(form.name, nextId.toString)).mkString("_")
     nextId += 1
-    val entity = new ShlurdPlatonicEntity(name, form, qualifiers, properName)
+    val entity = new SpcEntity(name, form, qualifiers, properName)
     addEntity(entity)
     (entity, true)
   }
 
-  protected[cosmos] def addEntity(entity : ShlurdPlatonicEntity)
+  protected[platonic] def addEntity(entity : SpcEntity)
   {
     entities.put(entity.name, entity)
   }
 
-  protected[cosmos] def getSpecificForm(edge : FormTaxonomyEdge) =
+  protected[platonic] def getSpecificForm(edge : FormTaxonomyEdge) =
     formTaxonomy.getEdgeSource(edge)
 
-  protected[cosmos] def getGenericForm(edge : FormTaxonomyEdge) =
+  protected[platonic] def getGenericForm(edge : FormTaxonomyEdge) =
     formTaxonomy.getEdgeTarget(edge)
 
-  protected[cosmos] def getPossessorForm(edge : FormAssocEdge) =
+  protected[platonic] def getPossessorForm(edge : FormAssocEdge) =
     formAssocs.getEdgeSource(edge)
 
-  protected[cosmos] def getPossessorEntity(edge : EntityAssocEdge) =
+  protected[platonic] def getPossessorEntity(edge : EntityAssocEdge) =
     entityAssocs.getEdgeSource(edge)
 
-  protected[cosmos] def getPossesseeForm(edge : FormAssocEdge) =
+  protected[platonic] def getPossesseeForm(edge : FormAssocEdge) =
     formAssocs.getEdgeTarget(edge)
 
-  protected[cosmos] def getPossesseeEntity(edge : EntityAssocEdge) =
+  protected[platonic] def getPossesseeEntity(edge : EntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
 
-  protected[cosmos] def addFormTaxonomy(
-    specificForm : ShlurdPlatonicForm,
-    genericForm : ShlurdPlatonicForm,
+  protected[platonic] def addFormTaxonomy(
+    specificForm : SpcForm,
+    genericForm : SpcForm,
     label : String = LABEL_KIND) : FormTaxonomyEdge =
   {
     formTaxonomy.addVertex(specificForm)
@@ -356,9 +357,9 @@ class ShlurdPlatonicCosmos
     edge
   }
 
-  protected[cosmos] def addFormAssoc(
-    possessor : ShlurdPlatonicForm,
-    possessee : ShlurdPlatonicForm,
+  protected[platonic] def addFormAssoc(
+    possessor : SpcForm,
+    possessee : SpcForm,
     label : String) : FormAssocEdge =
   {
     formAssocs.addVertex(possessor)
@@ -370,9 +371,9 @@ class ShlurdPlatonicCosmos
     edge
   }
 
-  protected[cosmos] def addEntityAssoc(
-    possessor : ShlurdPlatonicEntity,
-    possessee : ShlurdPlatonicEntity,
+  protected[platonic] def addEntityAssoc(
+    possessor : SpcEntity,
+    possessee : SpcEntity,
     label : String) : EntityAssocEdge =
   {
     entityAssocs.addVertex(possessor)
@@ -385,9 +386,9 @@ class ShlurdPlatonicCosmos
     edge
   }
 
-  protected[cosmos] def getFormAssoc(
-    possessor : ShlurdPlatonicForm,
-    possessee : ShlurdPlatonicForm,
+  protected[platonic] def getFormAssoc(
+    possessor : SpcForm,
+    possessee : SpcForm,
     label : String) : Option[FormAssocEdge] =
   {
     val edges = formAssocs.edgeSet.asScala.filter(_.label == label)
@@ -403,9 +404,9 @@ class ShlurdPlatonicCosmos
     None
   }
 
-  protected[cosmos] def isEntityAssoc(
-    possessor : ShlurdPlatonicEntity,
-    possessee : ShlurdPlatonicEntity,
+  protected[platonic] def isEntityAssoc(
+    possessor : SpcEntity,
+    possessee : SpcEntity,
     label : String) : Boolean =
   {
     entityAssocs.containsEdge(
@@ -416,14 +417,14 @@ class ShlurdPlatonicCosmos
   {
     val beliefs = source.getLines.mkString("\n")
     val sentences = ShlurdParser(beliefs).parseAll
-    val interpreter = new ShlurdPlatonicBeliefInterpreter(this)
+    val interpreter = new SpcBeliefInterpreter(this)
     sentences.foreach(interpreter.interpretBelief(_))
     validateBeliefs
   }
 
   def validateBeliefs()
   {
-    val creed = new ShlurdPlatonicCreed(this)
+    val creed = new SpcCreed(this)
     formAssocs.edgeSet.asScala.foreach(formEdge => {
       val constraint = assocConstraints(formEdge)
       if ((constraint.lower > 0) || (constraint.upper < Int.MaxValue)) {
@@ -449,9 +450,9 @@ class ShlurdPlatonicCosmos
   }
 
   def resolveGenitive(
-    possessor : ShlurdPlatonicEntity,
+    possessor : SpcEntity,
     label : String)
-      : Set[ShlurdPlatonicEntity] =
+      : Set[SpcEntity] =
   {
     if (!entityAssocs.containsVertex(possessor)) {
       Set.empty
@@ -468,8 +469,8 @@ class ShlurdPlatonicCosmos
   }
 
   def isHyponym(
-    hyponymForm : ShlurdPlatonicForm,
-    hypernymForm : ShlurdPlatonicForm) : Boolean =
+    hyponymForm : SpcForm,
+    hypernymForm : SpcForm) : Boolean =
   {
     if (hyponymForm == hypernymForm) {
       return true
@@ -512,20 +513,20 @@ class ShlurdPlatonicCosmos
   override def resolvePronoun(
     person : SilPerson,
     gender : SilGender,
-    count : SilCount) : Try[Set[ShlurdPlatonicEntity]] =
+    count : SilCount) : Try[Set[SpcEntity]] =
   {
     fail("pronouns not supported")
   }
 
   override def resolveProperty(
-    entity : ShlurdPlatonicEntity,
-    lemma : String) : Try[(ShlurdPlatonicProperty, String)] =
+    entity : SpcEntity,
+    lemma : String) : Try[(SpcProperty, String)] =
   {
     resolveFormProperty(entity.form, lemma)
   }
 
   private def getHypernyms(
-    form : ShlurdPlatonicForm) : Iterator[ShlurdPlatonicForm] =
+    form : SpcForm) : Iterator[SpcForm] =
   {
     if (formTaxonomy.containsVertex(form)) {
       new BreadthFirstIterator(formTaxonomy, form).asScala
@@ -535,8 +536,8 @@ class ShlurdPlatonicCosmos
   }
 
   private def resolveFormProperty(
-    form : ShlurdPlatonicForm,
-    lemma : String) : Try[(ShlurdPlatonicProperty, String)] =
+    form : SpcForm,
+    lemma : String) : Try[(SpcProperty, String)] =
   {
     getHypernyms(form).foreach(hyperForm => {
       hyperForm.resolveProperty(lemma) match {
@@ -547,25 +548,41 @@ class ShlurdPlatonicCosmos
     fail(s"unknown property $lemma")
   }
 
-  override def specificReference(
-    entity : ShlurdPlatonicEntity,
+  private def properReference(entity : SpcEntity) =
+  {
+    SilNounReference(
+      SilWord(entity.properName), DETERMINER_UNSPECIFIED)
+  }
+
+  private def qualifiedReference(
+    entity : SpcEntity,
     determiner : SilDeterminer) =
   {
     val formName = entity.form.name
-    def nounRef = SilNounReference(
+    val nounRef = SilNounReference(
       SilWord(formName), determiner)
-    if (!entity.properName.isEmpty) {
-      SilNounReference(
-        SilWord(entity.properName), DETERMINER_UNSPECIFIED)
-    } else {
+    if (entity.properName.isEmpty) {
       SilReference.qualified(
         nounRef, entity.qualifiers.map(q => SilWord(q)).toSeq)
+    } else {
+      nounRef
+    }
+  }
+
+  override def specificReference(
+    entity : SpcEntity,
+    determiner : SilDeterminer) =
+  {
+    if (!entity.properName.isEmpty) {
+      properReference(entity)
+    } else {
+      qualifiedReference(entity, determiner)
     }
   }
 
   override def evaluateEntityPropertyPredicate(
-    entity : ShlurdPlatonicEntity,
-    property : ShlurdPlatonicProperty,
+    entity : SpcEntity,
+    property : SpcProperty,
     lemma : String) : Try[Trilean] =
   {
 
@@ -604,8 +621,8 @@ class ShlurdPlatonicCosmos
   }
 
   override def evaluateEntityAdpositionPredicate(
-    entity : ShlurdPlatonicEntity,
-    objRef : ShlurdPlatonicEntity,
+    entity : SpcEntity,
+    objRef : SpcEntity,
     adposition : SilAdposition,
     qualifiers : Set[String]) : Try[Trilean] =
   {
@@ -625,7 +642,7 @@ class ShlurdPlatonicCosmos
   }
 
   override def evaluateEntityCategoryPredicate(
-    entity : ShlurdPlatonicEntity,
+    entity : SpcEntity,
     lemma : String,
     qualifiers : Set[String]) : Try[Trilean] =
   {
@@ -650,7 +667,7 @@ class ShlurdPlatonicCosmos
   }
 
   override def normalizeState(
-    entity : ShlurdPlatonicEntity, originalState : SilState) =
+    entity : SpcEntity, originalState : SilState) =
   {
     getHypernyms(entity.form).foldLeft(originalState) {
       case (state, form) => {

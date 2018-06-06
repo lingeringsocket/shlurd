@@ -12,15 +12,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 
-sealed abstract class ShlurdPlatonicBeliefExcn(
+sealed abstract class SpcBeliefExcn(
   cause : String) extends RuntimeException(cause)
 
 sealed abstract class RejectedBeliefExcn(
-  cause : String) extends ShlurdPlatonicBeliefExcn(cause)
+  cause : String) extends SpcBeliefExcn(cause)
 {
   def belief : SilSentence
 }
@@ -78,7 +78,7 @@ case class IncrementalCardinalityExcn(
 
 case class CardinalityExcn(
   originalBelief : SilSentence)
-    extends ShlurdPlatonicBeliefExcn("Belief:  " +
+    extends SpcBeliefExcn("Belief:  " +
       originalBelief.toString)
 {
 }

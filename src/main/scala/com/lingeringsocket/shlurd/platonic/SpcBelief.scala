@@ -12,22 +12,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 
-import ShlurdPlatonicCosmos._
+import SpcCosmos._
 
-sealed trait ShlurdPlatonicBelief
+sealed trait SpcBelief
 {
   def sentence : SilSentence
 }
 
 case class UnimplementedBelief(
   sentence : SilSentence
-) extends ShlurdPlatonicBelief
+) extends SpcBelief
 {
 }
 
@@ -36,7 +36,7 @@ case class StateEquivalenceBelief(
   formName : SilWord,
   state1 : SilState,
   state2 : SilState
-) extends ShlurdPlatonicBelief
+) extends SpcBelief
 {
 }
 
@@ -44,7 +44,7 @@ case class FormTaxonomyBelief(
   sentence : SilSentence,
   specificFormName : SilWord,
   genericFormName : SilWord
-) extends ShlurdPlatonicBelief
+) extends SpcBelief
 {
 }
 
@@ -52,7 +52,7 @@ case class FormAliasBelief(
   sentence : SilSentence,
   synonym : SilWord,
   formName : SilWord
-) extends ShlurdPlatonicBelief
+) extends SpcBelief
 {
 }
 
@@ -60,7 +60,7 @@ case class FormRoleBelief(
   sentence : SilSentence,
   role : SilWord,
   formName : SilWord
-) extends ShlurdPlatonicBelief
+) extends SpcBelief
 {
 }
 
@@ -70,7 +70,7 @@ case class FormAssocBelief(
   possesseeFormName : SilWord,
   constraint : CardinalityConstraint,
   isProperty : Boolean
-) extends ShlurdPlatonicBelief
+) extends SpcBelief
 {
 }
 
@@ -79,7 +79,7 @@ case class EntityExistenceBelief(
   formName : SilWord,
   qualifiers : Seq[SilWord],
   properName : String
-) extends ShlurdPlatonicBelief
+) extends SpcBelief
 {
 }
 
@@ -88,7 +88,7 @@ case class EntityAssocBelief(
   possessorEntityName : SilWord,
   possesseeEntityName : SilWord,
   labelName : SilWord
-) extends ShlurdPlatonicBelief
+) extends SpcBelief
 {
 }
 
@@ -97,6 +97,6 @@ case class FormPropertyBelief(
   formName : SilWord,
   states : Seq[SilWord],
   isClosed : Boolean
-) extends ShlurdPlatonicBelief
+) extends SpcBelief
 {
 }

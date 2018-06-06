@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 
@@ -23,7 +23,7 @@ import spire.math._
 import scala.io._
 import scala.util._
 
-class ShlurdPlatonicInterpreterSpec extends Specification
+class SpcInterpreterSpec extends Specification
 {
   private val states = Map(
     "alarm service service_on_off" -> "on",
@@ -42,10 +42,10 @@ class ShlurdPlatonicInterpreterSpec extends Specification
   abstract class InterpreterContext(acceptNewBeliefs : Boolean = false)
       extends NameSpace
   {
-    protected val cosmos = new ShlurdPlatonicCosmos {
+    protected val cosmos = new SpcCosmos {
       override def evaluateEntityPropertyPredicate(
-        entity : ShlurdPlatonicEntity,
-        property : ShlurdPlatonicProperty,
+        entity : SpcEntity,
+        property : SpcProperty,
         lemma : String) =
       {
         val qualifiedName =
@@ -60,7 +60,7 @@ class ShlurdPlatonicInterpreterSpec extends Specification
     }
 
     protected val interpreter =
-      new ShlurdPlatonicInterpreter(cosmos, acceptNewBeliefs)
+      new SpcInterpreter(cosmos, acceptNewBeliefs)
 
     protected def loadBeliefs(resource : String)
     {
@@ -76,7 +76,7 @@ class ShlurdPlatonicInterpreterSpec extends Specification
     }
   }
 
-  "ShlurdPlatonicInterpreter" should
+  "SpcInterpreter" should
   {
     "understand people" in new InterpreterContext
     {

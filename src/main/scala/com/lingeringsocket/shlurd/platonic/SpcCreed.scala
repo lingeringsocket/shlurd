@@ -12,16 +12,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 
 import scala.collection.JavaConverters._
 
-import ShlurdPlatonicCosmos._
+import SpcCosmos._
 import ShlurdEnglishLemmas._
 
-class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
+class SpcCreed(cosmos : SpcCosmos)
 {
   def allBeliefs() : Iterable[SilSentence] =
   {
@@ -38,7 +38,7 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
     )
   }
 
-  def formBeliefs(form : ShlurdPlatonicForm) : Iterable[SilSentence] =
+  def formBeliefs(form : SpcForm) : Iterable[SilSentence] =
   {
     form.properties.values.map(
       formPropertyBelief(form, _)
@@ -64,7 +64,7 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
     }
   }
 
-  def entityBeliefs(entity : ShlurdPlatonicEntity) : Iterable[SilSentence] =
+  def entityBeliefs(entity : SpcEntity) : Iterable[SilSentence] =
   {
     Seq(entityFormBelief(entity)) ++ {
       val assocGraph = cosmos.getEntityAssocGraph
@@ -112,8 +112,8 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
   }
 
   def formPropertyBelief(
-    form : ShlurdPlatonicForm,
-    property : ShlurdPlatonicProperty
+    form : SpcForm,
+    property : SpcProperty
   ) : SilSentence =
   {
     SilPredicateSentence(
@@ -135,7 +135,7 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
   }
 
   def formStateNormalizationBelief(
-    form : ShlurdPlatonicForm,
+    form : SpcForm,
     entry : (SilState, SilState)
   ) : SilSentence =
   {
@@ -187,7 +187,7 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
     )
   }
 
-  def entityFormBelief(entity : ShlurdPlatonicEntity) : SilSentence =
+  def entityFormBelief(entity : SpcEntity) : SilSentence =
   {
     val subject = cosmos.specificReference(entity, DETERMINER_NONSPECIFIC)
     val predicate = entity.properName match {
@@ -242,7 +242,7 @@ class ShlurdPlatonicCreed(cosmos : ShlurdPlatonicCosmos)
   }
 
   private def formNoun(
-    form : ShlurdPlatonicForm, count : SilCount = COUNT_SINGULAR) =
+    form : SpcForm, count : SilCount = COUNT_SINGULAR) =
   {
     nounReference(form.name, count)
   }

@@ -12,16 +12,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.cosmos._
 
-class ShlurdPlatonicInterpreter(
-  cosmos : ShlurdPlatonicCosmos,
+class SpcInterpreter(
+  cosmos : SpcCosmos,
   acceptNewBeliefs : Boolean = false)
     extends ShlurdInterpreter(cosmos)
 {
-  private val beliefInterpreter = new ShlurdPlatonicBeliefInterpreter(cosmos)
+  private val beliefInterpreter = new SpcBeliefInterpreter(cosmos)
 
   override protected def interpretImpl(sentence : SilSentence) : String =
   {

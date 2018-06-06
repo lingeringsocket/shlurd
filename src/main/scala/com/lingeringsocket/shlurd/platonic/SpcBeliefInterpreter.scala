@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 
@@ -22,17 +22,17 @@ import scala.collection.JavaConverters._
 import org.jgrapht.alg.shortestpath._
 
 import ShlurdEnglishLemmas._
-import ShlurdPlatonicCosmos._
+import SpcCosmos._
 
-class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
+class SpcBeliefInterpreter(cosmos : SpcCosmos)
 {
-  type BeliefApplier = PartialFunction[ShlurdPlatonicBelief, Unit]
+  type BeliefApplier = PartialFunction[SpcBelief, Unit]
 
   private val beliefAppliers = new mutable.ArrayBuffer[BeliefApplier]
 
   private lazy val allBeliefApplier = beliefAppliers.reduceLeft(_ orElse _)
 
-  private val creed = new ShlurdPlatonicCreed(cosmos)
+  private val creed = new SpcCreed(cosmos)
 
   def interpretBelief(sentence : SilSentence)
   {
@@ -44,13 +44,13 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     }
   }
 
-  def applyBelief(belief : ShlurdPlatonicBelief)
+  def applyBelief(belief : SpcBelief)
   {
     allBeliefApplier.apply(belief)
   }
 
   def recognizeBelief(sentence : SilSentence)
-      : Option[ShlurdPlatonicBelief] =
+      : Option[SpcBelief] =
   {
     if (sentence.hasUnknown) {
       return None
@@ -146,7 +146,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     subjectNoun : SilWord,
     complement : SilReference,
     relationship : SilRelationship)
-      : Option[ShlurdPlatonicBelief] =
+      : Option[SpcBelief] =
   {
     val (complementNoun, qualifiers, count, failed) = extractQualifiedNoun(
       sentence, complement, Seq.empty)
@@ -222,7 +222,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     subjectNoun : SilWord,
     complement : SilReference,
     relationship : SilRelationship)
-      : Option[ShlurdPlatonicBelief] =
+      : Option[SpcBelief] =
   {
     if (sentence.mood.getModality != MODAL_NEUTRAL) {
       return Some(UnimplementedBelief(sentence))
@@ -258,7 +258,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
     qualifiers : Seq[SilWord],
     state : SilState,
     mood : SilMood)
-      : Option[ShlurdPlatonicBelief] =
+      : Option[SpcBelief] =
   {
     // "a light may be on or off"
     if (sentence.mood.getModality == MODAL_NEUTRAL) {
@@ -289,7 +289,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
   }
 
   private def resolveUniqueName(word : SilWord)
-      : Option[ShlurdPlatonicEntity] =
+      : Option[SpcEntity] =
   {
     val candidates = cosmos.getEntities.values.filter(
       _.qualifiers == Set(word.lemma))
@@ -469,7 +469,7 @@ class ShlurdPlatonicBeliefInterpreter(cosmos : ShlurdPlatonicCosmos)
       val (entity, success) = cosmos.instantiateEntity(
         form, qualifiers, properName)
       if (!success) {
-        val creed = new ShlurdPlatonicCreed(cosmos)
+        val creed = new SpcCreed(cosmos)
         throw new AmbiguousBeliefExcn(sentence, creed.entityFormBelief(entity))
       }
     }

@@ -12,9 +12,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.cosmos._
 
 import org.specs2.mutable._
 
@@ -23,13 +24,13 @@ import scala.util._
 
 import ShlurdEnglishLemmas._
 
-class ShlurdPlatonicCosmosSpec extends Specification
+class SpcCosmosSpec extends Specification
 {
   trait CosmosContext extends NameSpace
   {
-    protected val cosmos = new ShlurdPlatonicCosmos
+    protected val cosmos = new SpcCosmos
 
-    protected val interpreter = new ShlurdPlatonicBeliefInterpreter(cosmos)
+    protected val interpreter = new SpcBeliefInterpreter(cosmos)
 
     protected def addBelief(input : String) =
     {
@@ -42,22 +43,32 @@ class ShlurdPlatonicCosmosSpec extends Specification
       cosmos.getForms.get(name) must beSome.which(_.name == name)
     }
 
-    protected def expectSingleProperty(form : ShlurdPlatonicForm) =
+    protected def expectSingleProperty(form : SpcForm)
+        : SpcProperty =
     {
       val properties = form.getProperties
       properties.size must be equalTo 1
       form.getProperties.head._2
     }
 
+    protected def expectPerson(name : String) : SpcEntity =
+    {
+      expectNamedForm(LEMMA_PERSON)
+      val person = cosmos.resolveQualifiedNoun(
+        LEMMA_PERSON, REF_SUBJECT, Set(name))
+      person must beSuccessfulTry.which(_.size == 1)
+      person.get.head
+    }
+
     protected def expectUnique(
-      entities : Try[collection.Set[ShlurdPlatonicEntity]]) =
+      entities : Try[collection.Set[SpcEntity]]) =
     {
       entities must beSuccessfulTry.which(_.size == 1)
       entities.get.head
     }
   }
 
-  "ShlurdPlatonicCosmos" should
+  "SpcCosmos" should
   {
     "understand closed property state enumeration" in new CosmosContext
     {
@@ -213,21 +224,20 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("Joyce is Lonnie's ex-wife")
       cosmos.validateBeliefs
 
-      val personLemma = LEMMA_PERSON
-      expectNamedForm(personLemma)
+      expectNamedForm(LEMMA_PERSON)
 
       val joyce = expectUnique(
         cosmos.resolveQualifiedNoun(
-          personLemma, REF_SUBJECT, Set("joyce")))
+          LEMMA_PERSON, REF_SUBJECT, Set("joyce")))
       val will = expectUnique(
         cosmos.resolveQualifiedNoun(
-          personLemma, REF_SUBJECT, Set("will")))
+          LEMMA_PERSON, REF_SUBJECT, Set("will")))
       val jonathan = expectUnique(
         cosmos.resolveQualifiedNoun(
-          personLemma, REF_SUBJECT, Set("jonathan")))
+          LEMMA_PERSON, REF_SUBJECT, Set("jonathan")))
       val lonnie = expectUnique(
         cosmos.resolveQualifiedNoun(
-          personLemma, REF_SUBJECT, Set("lonnie")))
+          LEMMA_PERSON, REF_SUBJECT, Set("lonnie")))
       Set(joyce, will, jonathan, lonnie).size must be equalTo 4
       cosmos.resolveGenitive(will, "mom") must be equalTo Set(joyce)
       cosmos.resolveGenitive(will, "dad") must be equalTo Set(lonnie)
@@ -298,10 +308,7 @@ class ShlurdPlatonicCosmosSpec extends Specification
       addBelief("A person must be either present or absent")
       addBelief("A person that is at home is present")
       addBelief("Lana is a person")
-      expectNamedForm("person")
-      val lana = cosmos.resolveQualifiedNoun("person", REF_SUBJECT, Set("lana"))
-      lana must beSuccessfulTry.which(_.size == 1)
-      val entity = lana.get.head
+      val entity = expectPerson("lana")
       cosmos.normalizeState(
         entity,
         SilAdpositionalState(
@@ -310,6 +317,15 @@ class ShlurdPlatonicCosmosSpec extends Specification
       ) must be equalTo(
         SilPropertyState(SilWord("present"))
       )
+    }
+
+    "produce entity references" in new CosmosContext
+    {
+      addBelief("Lana is a person")
+      val entity = expectPerson("lana")
+      val properRef = SilNounReference(SilWord("Lana"))
+      val specificRef = cosmos.specificReference(entity, DETERMINER_UNSPECIFIED)
+      specificRef must be equalTo properRef
     }
 
     "load beliefs from a file" in new CosmosContext

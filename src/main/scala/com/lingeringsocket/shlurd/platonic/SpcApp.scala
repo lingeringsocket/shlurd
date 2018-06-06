@@ -12,18 +12,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 
 import scala.io._
 
-object ShlurdPlatonicCosmosApp extends App
+object SpcCosmosApp extends App
 {
-  private val cosmos = new ShlurdPlatonicCosmos
+  private val cosmos = new SpcCosmos
 
   private val interpreter =
-    new ShlurdPlatonicInterpreter(cosmos, true)
+    new SpcInterpreter(cosmos, true)
 
   var exit = false
   while (!exit) {

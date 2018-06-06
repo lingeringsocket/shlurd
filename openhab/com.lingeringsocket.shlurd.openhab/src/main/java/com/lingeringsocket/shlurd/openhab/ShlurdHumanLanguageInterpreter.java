@@ -45,11 +45,11 @@ import com.lingeringsocket.shlurd.parser.SilSentence;
 import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreter;
 import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreterParams;
 import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreterParams$;
-import com.lingeringsocket.shlurd.cosmos.ShlurdOpenhabCosmos;
-import com.lingeringsocket.shlurd.cosmos.ShlurdPlatonicEntity;
-import com.lingeringsocket.shlurd.cosmos.ShlurdPlatonicForm;
-import com.lingeringsocket.shlurd.cosmos.ShlurdPlatonicProperty;
 import com.lingeringsocket.shlurd.cosmos.ShlurdStateChangeInvocation;
+import com.lingeringsocket.shlurd.platonic.SpcOpenhabCosmos;
+import com.lingeringsocket.shlurd.platonic.SpcEntity;
+import com.lingeringsocket.shlurd.platonic.SpcForm;
+import com.lingeringsocket.shlurd.platonic.SpcProperty;
 
 import scala.collection.JavaConverters;
 import scala.io.Source$;
@@ -72,7 +72,7 @@ public class ShlurdHumanLanguageInterpreter
 
     private final Locale supportedLocale = Locale.ENGLISH;
 
-    private ShlurdOpenhabCosmos cosmos = null;
+    private SpcOpenhabCosmos cosmos = null;
 
     private RegistryChangeListener<Item> registryChangeListener =
         new RegistryChangeListener<Item>()
@@ -103,13 +103,13 @@ public class ShlurdHumanLanguageInterpreter
     private void createCosmos()
     {
         logger.info("SHLURD recreating world...");
-        cosmos = new ShlurdOpenhabCosmos() {
+        cosmos = new SpcOpenhabCosmos() {
             @Override
-            public scala.util.Try<Trilean> evaluateState(ShlurdPlatonicEntity entity, String stateName) {
+            public scala.util.Try<Trilean> evaluateState(SpcEntity entity, String stateName) {
                 try {
                     Item item = itemRegistry.getItem(entity.name());
                     State state;
-                    ShlurdPlatonicForm form = entity.form();
+                    SpcForm form = entity.form();
                     if (isOnOff(form)) {
                         state = item.getStateAs(OnOffType.class);
                     } else {
@@ -270,10 +270,10 @@ public class ShlurdHumanLanguageInterpreter
         // FIXME: need to support non-string commands
         SilSentence sentence = ShlurdParser$.MODULE$.apply(text).parseOne();
         ShlurdInterpreterParams params = ShlurdInterpreterParams$.MODULE$.apply(3);
-        ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty> interpreter = new ShlurdInterpreter<ShlurdPlatonicEntity, ShlurdPlatonicProperty>(
+        ShlurdInterpreter<SpcEntity, SpcProperty> interpreter = new ShlurdInterpreter<SpcEntity, SpcProperty>(
                 cosmos, params) {
             @Override
-            public void executeInvocation(ShlurdStateChangeInvocation<ShlurdPlatonicEntity> invocation) {
+            public void executeInvocation(ShlurdStateChangeInvocation<SpcEntity> invocation) {
                 JavaConverters.setAsJavaSetConverter(invocation.entities()).asJava().forEach(entity -> {
                     try {
                         Item item = itemRegistry.getItem(entity.name());
@@ -313,7 +313,7 @@ public class ShlurdHumanLanguageInterpreter
         return Collections.emptySet();
     }
 
-    private boolean isOnOff(ShlurdPlatonicForm form)
+    private boolean isOnOff(SpcForm form)
     {
         Set set1 = JavaConverters.setAsJavaSetConverter(form.getProperties().values().head().getStates().keySet())
                 .asJava();

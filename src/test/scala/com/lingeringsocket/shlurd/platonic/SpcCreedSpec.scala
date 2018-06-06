@@ -12,28 +12,28 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
 
 import org.specs2.mutable._
-class ShlurdPlatonicCreedSpec extends Specification
+class SpcCreedSpec extends Specification
 {
   trait CosmosContext extends NameSpace
   {
-    protected val cosmos = new ShlurdPlatonicCosmos
+    protected val cosmos = new SpcCosmos
 
-    private val refriedCosmos = new ShlurdPlatonicCosmos
+    private val refriedCosmos = new SpcCosmos
 
-    protected val interpreter = new ShlurdPlatonicBeliefInterpreter(cosmos)
+    protected val interpreter = new SpcBeliefInterpreter(cosmos)
 
     private val refriedInterpreter =
-      new ShlurdPlatonicBeliefInterpreter(refriedCosmos)
+      new SpcBeliefInterpreter(refriedCosmos)
 
-    protected val creed = new ShlurdPlatonicCreed(cosmos)
+    protected val creed = new SpcCreed(cosmos)
 
-    private val refriedCreed = new ShlurdPlatonicCreed(refriedCosmos)
+    private val refriedCreed = new SpcCreed(refriedCosmos)
 
     protected def addBelief(input : String) =
     {
@@ -88,7 +88,7 @@ class ShlurdPlatonicCreedSpec extends Specification
   private val personExists2 = "Luke is a person."
   private val personAssoc = "Yoda is Luke's mentor."
 
-  "ShlurdPlatonicCreed" should
+  "SpcCreed" should
   {
     "preserve states" in new CosmosContext
     {

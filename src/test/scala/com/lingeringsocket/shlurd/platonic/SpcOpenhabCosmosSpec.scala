@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 
@@ -23,7 +23,7 @@ import scala.util._
 
 import spire.math._
 
-class ShlurdOpenhabCosmosSpec extends Specification
+class SpcOpenhabCosmosSpec extends Specification
 {
   trait CosmosContext extends NameSpace
   {
@@ -47,9 +47,9 @@ class ShlurdOpenhabCosmosSpec extends Specification
       "Presence_Jill" -> "off"
     )
 
-    protected val cosmos = new ShlurdOpenhabCosmos {
+    protected val cosmos = new SpcOpenhabCosmos {
       override protected def evaluateState(
-        entity : ShlurdPlatonicEntity, stateName : String) : Try[Trilean] =
+        entity : SpcEntity, stateName : String) : Try[Trilean] =
       {
         itemStates.get(entity.name) match {
           case Some(currentState) => {
@@ -62,7 +62,7 @@ class ShlurdOpenhabCosmosSpec extends Specification
       }
     }
 
-    protected val interpreter = new ShlurdPlatonicInterpreter(cosmos)
+    protected val interpreter = new SpcInterpreter(cosmos)
 
     protected def interpret(input : String, expected : String) =
     {
@@ -71,7 +71,7 @@ class ShlurdOpenhabCosmosSpec extends Specification
     }
   }
 
-  "ShlurdOpenhabCosmos" should
+  "SpcOpenhabCosmos" should
   {
     "understand items" in new CosmosContext
     {

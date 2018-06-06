@@ -12,16 +12,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cosmos
+package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.cosmos._
 
 import scala.util._
 import scala.collection._
 
 import spire.math._
 
-abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
+abstract class SpcOpenhabCosmos extends SpcCosmos
 {
   private val locationFormName = "location"
 
@@ -42,7 +43,7 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
   override def resolveQualifiedNoun(
     lemma : String,
     context : SilReferenceContext,
-    qualifiers : Set[String]) : Try[Set[ShlurdPlatonicEntity]] =
+    qualifiers : Set[String]) : Try[Set[SpcEntity]] =
   {
     val rewrittenLemma = {
       if (lemma == roomLemma) {
@@ -99,7 +100,7 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
     }
   }
 
-  private def isAmbiguous(entity : ShlurdPlatonicEntity) : Boolean =
+  private def isAmbiguous(entity : SpcEntity) : Boolean =
   {
     resolveQualifiedNoun(
       entity.form.name, REF_SUBJECT, entity.qualifiers) match
@@ -111,8 +112,8 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
     }
   }
 
-  private def getContainer(entity : ShlurdPlatonicEntity)
-      : Option[ShlurdPlatonicEntity] =
+  private def getContainer(entity : SpcEntity)
+      : Option[SpcEntity] =
   {
     groupMap.get(entity.name) match {
       case Some(groupNames) => {
@@ -132,7 +133,7 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
   }
 
   override def specificReference(
-    entity : ShlurdPlatonicEntity,
+    entity : SpcEntity,
     determiner : SilDeterminer) =
   {
     if (entity.form.name == locationFormName) {
@@ -170,7 +171,7 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
           if (i == -1) {
             entity
           } else {
-            new ShlurdPlatonicEntity(
+            new SpcEntity(
               entity.name, entity.form,
               ShlurdParseUtils.orderedSet(
                 seq.patch(i + roomyQualifiers.size, Seq(roomLemma), 0)))
@@ -202,7 +203,7 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
     }
   }
 
-  private def getRoomyQualifiers(entity : ShlurdPlatonicEntity) : Seq[String] =
+  private def getRoomyQualifiers(entity : SpcEntity) : Seq[String] =
   {
     getContainer(entity) match {
       case Some(containerEntity) => {
@@ -217,8 +218,8 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
   }
 
   override def evaluateEntityPropertyPredicate(
-    entity : ShlurdPlatonicEntity,
-    property : ShlurdPlatonicProperty,
+    entity : SpcEntity,
+    property : SpcProperty,
     lemma : String) : Try[Trilean] =
   {
     evaluateState(entity, lemma) match {
@@ -230,11 +231,11 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
   }
 
   protected def evaluateState(
-    entity : ShlurdPlatonicEntity, stateName : String) : Try[Trilean]
+    entity : SpcEntity, stateName : String) : Try[Trilean]
 
   override def evaluateEntityAdpositionPredicate(
-    entity : ShlurdPlatonicEntity,
-    location : ShlurdPlatonicEntity,
+    entity : SpcEntity,
+    location : SpcEntity,
     adposition : SilAdposition,
     qualifiers : Set[String]) : Try[Trilean] =
   {
@@ -249,8 +250,8 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
   }
 
   def evaluateAdpositionPredicate(
-    entity : ShlurdPlatonicEntity,
-    location : ShlurdPlatonicEntity,
+    entity : SpcEntity,
+    location : SpcEntity,
     adposition : SilAdposition) : Boolean =
   {
     groupMap.get(entity.name) match {
@@ -322,7 +323,7 @@ abstract class ShlurdOpenhabCosmos extends ShlurdPlatonicCosmos
 
     getForms.get(formName) match {
       case Some(form) => {
-        val entity = new ShlurdPlatonicEntity(itemName, form, qualifiers)
+        val entity = new SpcEntity(itemName, form, qualifiers)
         addEntity(entity)
         // for now we silently ignore mismatches...should probably
         // save up as warnings which can be nagged about
