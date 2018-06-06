@@ -94,7 +94,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             val specified = print(sub, inflection, SilConjoining.NONE)
             val specifier = sb.adpositionedNoun(
               sb.adpositionString(adposition),
-              print(objRef, INFLECT_NONE, SilConjoining.NONE),
+              print(objRef, INFLECT_ACCUSATIVE, SilConjoining.NONE),
               conjoining)
             return sb.specifiedNoun(specifier, specified)
           }
@@ -116,15 +116,6 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
               sb.qualifiedNoun(
                 qualifierString,
                 sb.delemmatizeNoun(noun, count, inflection, conjoining)))
-          }
-          case SilPronounReference(person, gender, count) => {
-            // kludged representation for "three of them"
-            sb.adpositionedNoun(
-              sb.qualifiedNoun(qualifierString, "of"),
-              sb.pronoun(
-                person, gender, COUNT_PLURAL, INFLECT_ACCUSATIVE,
-                SilConjoining.NONE),
-              conjoining)
           }
           case _ => {
             sb.qualifiedNoun(

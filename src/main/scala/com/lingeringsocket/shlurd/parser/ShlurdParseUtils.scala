@@ -33,6 +33,7 @@ object ShlurdEnglishLemmas
   val LEMMA_NO = "no"
   val LEMMA_NOT = "not"
   val LEMMA_NOR = "nor"
+  val LEMMA_NONE = "none"
   val LEMMA_BOTH = "both"
   val LEMMA_AND = "and"
   val LEMMA_OR = "or"

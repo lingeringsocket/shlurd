@@ -84,6 +84,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   def interpret(sentence : SilSentence) : String =
   {
     debug(s"INTERPRETER INPUT : $sentence")
+    SilPhraseValidator.validatePhrase(sentence)
     val response = interpretImpl(sentence)
     debug(s"INTERPRETER RESPONSE : $response")
     response

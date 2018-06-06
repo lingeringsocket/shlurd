@@ -191,7 +191,7 @@ class SpcOpenhabCosmosSpec extends Specification
 
       interpret(
         "is any guest bedroom light on the first floor off",
-        "Yes, the guest bedroom nightstand light on the first floor is off.")
+        "Yes, the guest bedroom nightstand light is off.")
       interpret(
         "is any light in any bedroom off",
         "Yes, the guest bedroom nightstand light is off.")

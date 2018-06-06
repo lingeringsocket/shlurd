@@ -73,6 +73,7 @@ sealed trait SilPredicate extends SilPhrase
 
 sealed trait SilReference extends SilPhrase
 {
+  def acceptsSpecifiers : Boolean = true
 }
 
 sealed trait SilState extends SilPhrase
@@ -313,6 +314,24 @@ case class SilStateSpecifiedReference(
 ) extends SilTransformedPhrase with SilReference
 {
   override def children = Seq(reference, state)
+
+  override def acceptsSpecifiers : Boolean = {
+    // FIXME:  weird special case for "3 of them"
+    state match {
+      case SilAdpositionalState(ADP_OF, pn : SilPronounReference) => {
+        reference match {
+          case SilNounReference(word, _, _) => {
+            if (word.lemma.forall(Character.isDigit)) {
+              return false
+            }
+          }
+          case _ =>
+        }
+      }
+      case _ =>
+    }
+    reference.acceptsSpecifiers
+  }
 }
 
 case class SilGenitiveReference(
@@ -329,6 +348,7 @@ case class SilPronounReference(
   count : SilCount
 ) extends SilTransformedPhrase with SilReference
 {
+  override def acceptsSpecifiers = false
 }
 
 case class SilConjunctiveReference(
@@ -338,6 +358,8 @@ case class SilConjunctiveReference(
 ) extends SilTransformedPhrase with SilReference
 {
   override def children = references
+
+  override def acceptsSpecifiers = children.exists(_.acceptsSpecifiers)
 }
 
 case class SilNounReference(
@@ -354,6 +376,7 @@ case class SilResolvedReference[E<:ShlurdEntity](
   determiner : SilDeterminer
 ) extends SilTransformedPhrase with SilReference
 {
+  override def acceptsSpecifiers = false
 }
 
 case class SilExistenceState(

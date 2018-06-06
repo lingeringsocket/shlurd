@@ -87,11 +87,17 @@ class ShlurdInterpreterSpec extends Specification
         "Please be more specific about which bear you mean.")
     }
 
+    "foo" in
+    {
+      interpret("is any polar bear asleep") must be equalTo(
+        "Yes, the polar bear is asleep.")
+    }
+
     "interpret questions" in
     {
       interpret("is the lion asleep") must be equalTo(
         "Yes, the lion is asleep.")
-      // FIXME:  better would be "Yes, the lion is asleep."
+      // FIXME:  better would be "Yes, the only lion is asleep."
       interpret("are the lions asleep") must be equalTo(
         "Yes, the lions are asleep.")
       interpret("is the lion awake") must be equalTo(

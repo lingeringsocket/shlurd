@@ -50,17 +50,10 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
 
     def replaceReferences = replacementMatcher {
-      case SilStateSpecifiedReference(outer, state) => {
-        outer match {
-          case SilStateSpecifiedReference(
-            inner, SilNullState()) =>
-            {
-              inner
-            }
-          case _ => {
-            SilStateSpecifiedReference(outer, state)
-          }
-        }
+      case SilStateSpecifiedReference(
+        ref, _
+      ) if (!ref.acceptsSpecifiers) => {
+        ref
       }
       case SilConjunctiveReference(determiner, references, separator) => {
         determiner match {
@@ -132,15 +125,15 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         replaceReferences),
       rewrite1)
     val rewrite3 = rewrite(
-      combineRules(
-        removeNullStates,
-        avoidTautologies),
+      avoidTautologies,
       rewrite2)
-    val rewrite4 = rewrite(
+    val rewriteLast = rewrite(
       replaceResolvedReferences,
       rewrite3)
 
-    (rewrite4, negateCollection)
+    SilPhraseValidator.validatePhrase(rewriteLast)
+
+    (rewriteLast, negateCollection)
   }
 
   def replacePronounsSpeakerListener = replacementMatcher {
@@ -151,12 +144,6 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         case PERSON_THIRD => PERSON_THIRD
       }
       SilPronounReference(speakerListenerReversed, gender, count)
-    }
-  }
-
-  private def removeNullStates = replacementMatcher {
-    case SilStateSpecifiedReference(ref, SilNullState()) => {
-      ref
     }
   }
 
@@ -346,7 +333,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         trueEntities.map(
           resolveReference(_, entityDeterminer)).toSeq,
         separator))
-    }).map(r => SilStateSpecifiedReference(r, SilNullState()))
+    })
   }
 
   private def normalizeConjunction(
@@ -361,7 +348,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       (falseEntities.size == resultCollector.entityMap.size) &&
         !params.neverSummarize
     val existence = resultCollector.states.isEmpty
-    val tuple = (if (falseEntities.isEmpty) {
+    if (falseEntities.isEmpty) {
       (None, false)
     } else if ((falseEntities.size == 1) && !params.alwaysSummarize) {
       (Some(resolveReference(falseEntities.head, entityDeterminer)),
@@ -376,9 +363,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           resolveReference(_, entityDeterminer)).toSeq,
         separator)),
         true)
-    })
-    tuple.copy(_1 = tuple._1.map(
-      r => SilStateSpecifiedReference(r, SilNullState())))
+    }
   }
 
   private def summarizeList(
@@ -392,31 +377,32 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     val number = {
       if (conjunction && exhaustive) {
         all = false
-        "none"
+        LEMMA_NONE
       } else  if ((entities.size == 2) && exhaustive && !existence) {
         all = false
-        "both"
+        LEMMA_BOTH
       } else {
         entities.size.toString
       }
     }
-    val prefix = {
+    val determiner = {
       if (all && !existence) {
-        Seq(SilWord("all"))
+        DETERMINER_ALL
       } else {
-        Seq.empty
+        DETERMINER_UNSPECIFIED
       }
     }
-    val qualifiers = prefix ++ Seq(SilWord(number))
     // FIXME:  derive gender from entities
     val count = number match {
       case "1" => COUNT_SINGULAR
       case _ => COUNT_PLURAL
     }
     Some(
-      SilReference.qualified(
-        SilPronounReference(PERSON_THIRD, GENDER_N, count),
-        qualifiers))
+      SilStateSpecifiedReference(
+        SilNounReference(SilWord(number), determiner, count),
+        SilAdpositionalState(
+          ADP_OF,
+          SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))
   }
 
   def containsWildcard(phrase : SilPhrase) : Boolean =
