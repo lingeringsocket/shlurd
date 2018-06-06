@@ -144,21 +144,22 @@ class SpcCosmosSpec extends Specification
       val duck = cosmos.getForms("duck")
       val mallard = cosmos.getForms("mallard")
       val canvasback = cosmos.getForms("canvasback")
-      cosmos.isHyponym(dog, canine) must beTrue
-      cosmos.isHyponym(canine, dog) must beFalse
-      cosmos.isHyponym(duck, bird) must beTrue
-      cosmos.isHyponym(bird, duck) must beFalse
-      cosmos.isHyponym(mallard, duck) must beTrue
-      cosmos.isHyponym(mallard, bird) must beTrue
-      cosmos.isHyponym(duck, mallard) must beFalse
-      cosmos.isHyponym(bird, mallard) must beFalse
-      cosmos.isHyponym(canvasback, duck) must beTrue
-      cosmos.isHyponym(canvasback, bird) must beTrue
-      cosmos.isHyponym(canvasback, mallard) must beFalse
-      cosmos.isHyponym(mallard, canvasback) must beFalse
-      cosmos.isHyponym(canine, bird) must beFalse
-      cosmos.isHyponym(bird, canine) must beFalse
-      cosmos.isHyponym(dog, duck) must beFalse
+      val graph = cosmos.getGraph
+      graph.isHyponym(dog, canine) must beTrue
+      graph.isHyponym(canine, dog) must beFalse
+      graph.isHyponym(duck, bird) must beTrue
+      graph.isHyponym(bird, duck) must beFalse
+      graph.isHyponym(mallard, duck) must beTrue
+      graph.isHyponym(mallard, bird) must beTrue
+      graph.isHyponym(duck, mallard) must beFalse
+      graph.isHyponym(bird, mallard) must beFalse
+      graph.isHyponym(canvasback, duck) must beTrue
+      graph.isHyponym(canvasback, bird) must beTrue
+      graph.isHyponym(canvasback, mallard) must beFalse
+      graph.isHyponym(mallard, canvasback) must beFalse
+      graph.isHyponym(canine, bird) must beFalse
+      graph.isHyponym(bird, canine) must beFalse
+      graph.isHyponym(dog, duck) must beFalse
     }
 
     "understand property inheritance" in new CosmosContext

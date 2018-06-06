@@ -18,7 +18,6 @@ import com.lingeringsocket.shlurd.parser._
 
 import scala.collection.JavaConverters._
 
-import SpcCosmos._
 import ShlurdEnglishLemmas._
 
 class SpcCreed(cosmos : SpcCosmos)
@@ -78,17 +77,17 @@ class SpcCreed(cosmos : SpcCosmos)
   }
 
   def formTaxonomyBelief(
-    edge : FormTaxonomyEdge
+    edge : SpcTaxonomyEdge
   ) : SilSentence =
   {
     SilPredicateSentence(
       SilRelationshipPredicate(
-        formNoun(cosmos.getSpecificForm(edge)),
+        formNoun(cosmos.getGraph.getSpecificForm(edge)),
         SilStateSpecifiedReference(
           nounReference(LEMMA_KIND),
           SilAdpositionalState(
             ADP_OF,
-            formNoun(cosmos.getGenericForm(edge)))),
+            formNoun(cosmos.getGraph.getGenericForm(edge)))),
         REL_IDENTITY))
   }
 
@@ -150,7 +149,7 @@ class SpcCreed(cosmos : SpcCosmos)
   }
 
   def formAssociationBelief(
-    edge : FormAssocEdge
+    edge : SpcFormAssocEdge
   ) : SilSentence =
   {
     val constraint = cosmos.getAssocConstraints(edge)
@@ -178,7 +177,7 @@ class SpcCreed(cosmos : SpcCosmos)
     }
     SilPredicateSentence(
       SilRelationshipPredicate(
-        formNoun(cosmos.getPossessorForm(edge)),
+        formNoun(cosmos.getGraph.getPossessorForm(edge)),
         possessee,
         REL_ASSOCIATION),
       SilIndicativeMood(
@@ -207,13 +206,13 @@ class SpcCreed(cosmos : SpcCosmos)
   }
 
   def entityAssociationBelief(
-    edge : EntityAssocEdge
+    edge : SpcEntityAssocEdge
   ) : SilSentence =
   {
     val possessor = cosmos.specificReference(
-      cosmos.getPossessorEntity(edge), DETERMINER_NONSPECIFIC)
+      cosmos.getGraph.getPossessorEntity(edge), DETERMINER_NONSPECIFIC)
     val possessee = cosmos.specificReference(
-      cosmos.getPossesseeEntity(edge), DETERMINER_NONSPECIFIC)
+      cosmos.getGraph.getPossesseeEntity(edge), DETERMINER_NONSPECIFIC)
     val role = nounReference(
       edge.label, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)
     SilPredicateSentence(

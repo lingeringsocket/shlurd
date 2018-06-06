@@ -17,10 +17,6 @@ package com.lingeringsocket.shlurd.platonic
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.cosmos._
 
-import org.jgrapht.graph._
-import org.jgrapht.alg.shortestpath._
-import org.jgrapht.traverse._
-
 import spire.math._
 
 import scala.io._
@@ -131,52 +127,14 @@ case class SpcEntity(
 
 object SpcCosmos
 {
-  val LABEL_KIND = "aKindOf"
-
   case class CardinalityConstraint(lower : Int, upper : Int)
-  {
-  }
-
-  protected[platonic] class LabeledEdge(
-    val label : String) extends DefaultEdge
-  {
-    override def hashCode() =
-    {
-      java.util.Objects.hash(getSource, getTarget, label)
-    }
-
-    override def equals(a : Any) =
-    {
-      a match {
-        case that : LabeledEdge => {
-          (this.getSource == that.getSource) &&
-          (this.getTarget == that.getTarget) &&
-          (this.label == that.label)
-        }
-        case _ => false
-      }
-    }
-  }
-
-  protected[platonic] class FormAssocEdge(
-    label : String) extends LabeledEdge(label)
-  {
-  }
-
-  protected[platonic] class FormTaxonomyEdge(
-    label : String = LABEL_KIND) extends LabeledEdge(label)
-  {
-  }
-
-  protected[platonic] class EntityAssocEdge(
-    label : String) extends LabeledEdge(label)
   {
   }
 
   private class ProbeFormEdge(
     val sourceForm : SpcForm,
     val targetForm : SpcForm,
-    label : String) extends FormAssocEdge(label)
+    label : String) extends SpcFormAssocEdge(label)
   {
     override def getSource = sourceForm
 
@@ -186,7 +144,7 @@ object SpcCosmos
   private class ProbeEntityEdge(
     val sourceEntity : SpcEntity,
     val targetEntity : SpcEntity,
-    label : String) extends EntityAssocEdge(label)
+    label : String) extends SpcEntityAssocEdge(label)
   {
     override def getSource = sourceEntity
 
@@ -210,23 +168,15 @@ class SpcCosmos
 
   private val formSynonyms = new ShlurdSynonymMap
 
-  private val formTaxonomy =
-    new DirectedAcyclicGraph[SpcForm, FormTaxonomyEdge](
-      classOf[FormTaxonomyEdge])
+  private val graph = SpcGraph()
 
-  private val formAssocs =
-    new DirectedPseudograph[SpcForm, FormAssocEdge](
-      classOf[FormAssocEdge])
+  private val unmodifiableGraph = graph.asUnmodifiable
 
   private val assocConstraints =
-    new mutable.LinkedHashMap[FormAssocEdge, CardinalityConstraint]
+    new mutable.LinkedHashMap[SpcFormAssocEdge, CardinalityConstraint]
 
   private val propertyEdges =
-    new mutable.LinkedHashSet[FormAssocEdge]
-
-  private val entityAssocs =
-    new DirectedPseudograph[SpcEntity, EntityAssocEdge](
-      classOf[EntityAssocEdge])
+    new mutable.LinkedHashSet[SpcFormAssocEdge]
 
   private var nextId = 0
 
@@ -243,14 +193,16 @@ class SpcCosmos
 
   def getEntities : Map[String, SpcEntity] = entities
 
+  def getGraph = unmodifiableGraph
+
   protected[platonic] def getPropertyEdges
-      : Set[FormAssocEdge] = propertyEdges
+      : Set[SpcFormAssocEdge] = propertyEdges
 
   protected[platonic] def getAssocConstraints
-      : Map[FormAssocEdge, CardinalityConstraint] = assocConstraints
+      : Map[SpcFormAssocEdge, CardinalityConstraint] = assocConstraints
 
   protected[platonic] def annotateFormAssoc(
-    edge : FormAssocEdge, constraint : CardinalityConstraint,
+    edge : SpcFormAssocEdge, constraint : CardinalityConstraint,
     isProperty : Boolean)
   {
     assocConstraints.put(edge, constraint)
@@ -261,6 +213,7 @@ class SpcCosmos
 
   def clear()
   {
+    // FIXME should clear some other entity-related stuff too
     entities.clear()
   }
 
@@ -281,14 +234,14 @@ class SpcCosmos
   protected[platonic] def getFormSynonyms =
     formSynonyms
 
-  protected[platonic] def getFormTaxonomyGraph =
-    new AsUnmodifiableGraph(formTaxonomy)
+  def getFormTaxonomyGraph =
+    unmodifiableGraph.formTaxonomy
 
-  protected[platonic] def getFormAssocGraph =
-    new AsUnmodifiableGraph(formAssocs)
+  def getFormAssocGraph =
+    unmodifiableGraph.formAssocs
 
-  protected[platonic] def getEntityAssocGraph =
-    new AsUnmodifiableGraph(entityAssocs)
+  def getEntityAssocGraph =
+    unmodifiableGraph.entityAssocs
 
   private def hasQualifiers(
     existing : SpcEntity,
@@ -296,7 +249,7 @@ class SpcCosmos
     qualifiers : Set[String],
     overlap : Boolean) : Boolean =
   {
-    (isHyponym(existing.form, form)) &&
+    (graph.isHyponym(existing.form, form)) &&
       (qualifiers.subsetOf(existing.qualifiers) ||
         (overlap && existing.qualifiers.subsetOf(qualifiers)))
   }
@@ -327,81 +280,45 @@ class SpcCosmos
     entities.put(entity.name, entity)
   }
 
-  protected[platonic] def getSpecificForm(edge : FormTaxonomyEdge) =
-    formTaxonomy.getEdgeSource(edge)
-
-  protected[platonic] def getGenericForm(edge : FormTaxonomyEdge) =
-    formTaxonomy.getEdgeTarget(edge)
-
-  protected[platonic] def getPossessorForm(edge : FormAssocEdge) =
-    formAssocs.getEdgeSource(edge)
-
-  protected[platonic] def getPossessorEntity(edge : EntityAssocEdge) =
-    entityAssocs.getEdgeSource(edge)
-
-  protected[platonic] def getPossesseeForm(edge : FormAssocEdge) =
-    formAssocs.getEdgeTarget(edge)
-
-  protected[platonic] def getPossesseeEntity(edge : EntityAssocEdge) =
-    entityAssocs.getEdgeTarget(edge)
-
   protected[platonic] def addFormTaxonomy(
     specificForm : SpcForm,
     genericForm : SpcForm,
-    label : String = LABEL_KIND) : FormTaxonomyEdge =
+    label : String = SpcGraph.LABEL_KIND) : SpcTaxonomyEdge =
   {
-    formTaxonomy.addVertex(specificForm)
-    formTaxonomy.addVertex(genericForm)
-    val edge = new FormTaxonomyEdge(label)
-    formTaxonomy.addEdge(specificForm, genericForm, edge)
+    graph.formTaxonomy.addVertex(specificForm)
+    graph.formTaxonomy.addVertex(genericForm)
+    val edge = new SpcTaxonomyEdge(label)
+    graph.formTaxonomy.addEdge(specificForm, genericForm, edge)
     edge
   }
 
   protected[platonic] def addFormAssoc(
     possessor : SpcForm,
     possessee : SpcForm,
-    label : String) : FormAssocEdge =
+    label : String) : SpcFormAssocEdge =
   {
-    formAssocs.addVertex(possessor)
-    formAssocs.addVertex(possessee)
+    graph.formAssocs.addVertex(possessor)
+    graph.formAssocs.addVertex(possessee)
     val probe = new ProbeFormEdge(possessor, possessee, label)
-    formAssocs.removeEdge(probe)
-    val edge = new FormAssocEdge(label)
-    formAssocs.addEdge(possessor, possessee, edge)
+    graph.formAssocs.removeEdge(probe)
+    val edge = new SpcFormAssocEdge(label)
+    graph.formAssocs.addEdge(possessor, possessee, edge)
     edge
   }
 
   protected[platonic] def addEntityAssoc(
     possessor : SpcEntity,
     possessee : SpcEntity,
-    label : String) : EntityAssocEdge =
+    label : String) : SpcEntityAssocEdge =
   {
-    entityAssocs.addVertex(possessor)
-    entityAssocs.addVertex(possessee)
+    graph.entityAssocs.addVertex(possessor)
+    graph.entityAssocs.addVertex(possessee)
     val probe = new ProbeEntityEdge(possessor, possessee, label)
-    entityAssocs.removeEdge(probe)
-    val edge = new EntityAssocEdge(label)
-    entityAssocs.addEdge(
+    graph.entityAssocs.removeEdge(probe)
+    val edge = new SpcEntityAssocEdge(label)
+    graph.entityAssocs.addEdge(
       possessor, possessee, edge)
     edge
-  }
-
-  protected[platonic] def getFormAssoc(
-    possessor : SpcForm,
-    possessee : SpcForm,
-    label : String) : Option[FormAssocEdge] =
-  {
-    val edges = formAssocs.edgeSet.asScala.filter(_.label == label)
-    edges.foreach(edge => {
-      val hyperPossessor = getPossessorForm(edge)
-      val hyperPossessee = getPossesseeForm(edge)
-      if (isHyponym(possessor, hyperPossessor) &&
-        isHyponym(possessee, hyperPossessee))
-      {
-        return Some(edge)
-      }
-    })
-    None
   }
 
   protected[platonic] def isEntityAssoc(
@@ -409,7 +326,7 @@ class SpcCosmos
     possessee : SpcEntity,
     label : String) : Boolean =
   {
-    entityAssocs.containsEdge(
+    getEntityAssocGraph.containsEdge(
       new ProbeEntityEdge(possessor, possessee, label))
   }
 
@@ -425,15 +342,15 @@ class SpcCosmos
   def validateBeliefs()
   {
     val creed = new SpcCreed(this)
-    formAssocs.edgeSet.asScala.foreach(formEdge => {
+    getFormAssocGraph.edgeSet.asScala.foreach(formEdge => {
       val constraint = assocConstraints(formEdge)
       if ((constraint.lower > 0) || (constraint.upper < Int.MaxValue)) {
-        val form = getPossessorForm(formEdge)
+        val form = graph.getPossessorForm(formEdge)
         entities.values.filter(
-          e => isHyponym(e.form, form)).foreach(entity =>
+          e => graph.isHyponym(e.form, form)).foreach(entity =>
           {
-            if (entityAssocs.containsVertex(entity)) {
-              val c = entityAssocs.outgoingEdgesOf(entity).asScala.
+            if (getEntityAssocGraph.containsVertex(entity)) {
+              val c = getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
                 count(_.label == formEdge.label)
               if ((c < constraint.lower) || (c > constraint.upper)) {
                 throw new CardinalityExcn(
@@ -454,36 +371,18 @@ class SpcCosmos
     label : String)
       : Set[SpcEntity] =
   {
-    if (!entityAssocs.containsVertex(possessor)) {
+    if (!getEntityAssocGraph.containsVertex(possessor)) {
       Set.empty
     } else {
-      entityAssocs.outgoingEdgesOf(possessor).
+      getEntityAssocGraph.outgoingEdgesOf(possessor).
         asScala.filter(_.label == label).map(
-          getPossesseeEntity)
+          graph.getPossesseeEntity)
     }
   }
 
   def isRole(name : SilWord) : Boolean =
   {
     roles.contains(name.lemma)
-  }
-
-  def isHyponym(
-    hyponymForm : SpcForm,
-    hypernymForm : SpcForm) : Boolean =
-  {
-    if (hyponymForm == hypernymForm) {
-      return true
-    }
-    if (!formTaxonomy.containsVertex(hyponymForm)) {
-      return false
-    }
-    if (!formTaxonomy.containsVertex(hypernymForm)) {
-      return false
-    }
-    val path = DijkstraShortestPath.findPathBetween(
-      formTaxonomy, hyponymForm, hypernymForm)
-    return (path != null)
   }
 
   override def resolveQualifiedNoun(
@@ -525,21 +424,11 @@ class SpcCosmos
     resolveFormProperty(entity.form, lemma)
   }
 
-  private def getHypernyms(
-    form : SpcForm) : Iterator[SpcForm] =
-  {
-    if (formTaxonomy.containsVertex(form)) {
-      new BreadthFirstIterator(formTaxonomy, form).asScala
-    } else {
-      Seq(form).iterator
-    }
-  }
-
   private def resolveFormProperty(
     form : SpcForm,
     lemma : String) : Try[(SpcProperty, String)] =
   {
-    getHypernyms(form).foreach(hyperForm => {
+    graph.getHypernyms(form).foreach(hyperForm => {
       hyperForm.resolveProperty(lemma) match {
         case Some(pair) => return Success(pair)
         case _ =>
@@ -586,20 +475,20 @@ class SpcCosmos
     lemma : String) : Try[Trilean] =
   {
 
-    val hypernymSet = getHypernyms(entity.form).toSet
+    val hypernymSet = graph.getHypernyms(entity.form).toSet
     val propertyEdgeNames = hypernymSet.flatMap { form =>
-      if (formAssocs.containsVertex(form)) {
-        formAssocs.outgoingEdgesOf(form).asScala.
+      if (getFormAssocGraph.containsVertex(form)) {
+        getFormAssocGraph.outgoingEdgesOf(form).asScala.
           filter(propertyEdges.contains(_)).map(_.label).toSet
       } else {
         Set.empty[String]
       }
     }
-    if (entityAssocs.containsVertex(entity)) {
-      entityAssocs.outgoingEdgesOf(entity).asScala.
+    if (getEntityAssocGraph.containsVertex(entity)) {
+      getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
         filter(edge => propertyEdgeNames.contains(edge.label)).
         foreach(edge => {
-          val propertyEntity = getPossesseeEntity(edge)
+          val propertyEntity = graph.getPossesseeEntity(edge)
           if (propertyEntity.form.properties.values.toSeq.contains(property)) {
             return evaluateEntityPropertyPredicate(
               propertyEntity,
@@ -627,8 +516,8 @@ class SpcCosmos
     qualifiers : Set[String]) : Try[Trilean] =
   {
     if (adposition == ADP_GENITIVE_OF) {
-      if (!entityAssocs.containsVertex(entity) ||
-        !entityAssocs.containsVertex(objRef) ||
+      if (!getEntityAssocGraph.containsVertex(entity) ||
+        !getEntityAssocGraph.containsVertex(objRef) ||
         (qualifiers.size != 1))
       {
         Success(Trilean.False)
@@ -648,10 +537,10 @@ class SpcCosmos
   {
     forms.get(formSynonyms.resolveSynonym(lemma)) match {
       case Some(form) => {
-        if (isHyponym(entity.form, form)) {
+        if (graph.isHyponym(entity.form, form)) {
           if (roles.contains(lemma)) {
             Success(Trilean(
-              entityAssocs.incomingEdgesOf(entity).asScala.
+              getEntityAssocGraph.incomingEdgesOf(entity).asScala.
                 exists(_.label == lemma)))
           } else {
             Success(Trilean.True)
@@ -669,7 +558,7 @@ class SpcCosmos
   override def normalizeState(
     entity : SpcEntity, originalState : SilState) =
   {
-    getHypernyms(entity.form).foldLeft(originalState) {
+    graph.getHypernyms(entity.form).foldLeft(originalState) {
       case (state, form) => {
         form.normalizeState(state)
       }

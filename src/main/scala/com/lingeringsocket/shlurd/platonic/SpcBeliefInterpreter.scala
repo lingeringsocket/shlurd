@@ -490,7 +490,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       }
       val possessor = possessorOpt.get
       val possessee = possesseeOpt.get
-      cosmos.getFormAssoc(
+      cosmos.getGraph.getFormAssoc(
         possessor.form, possessee.form, label) match
       {
         case Some(formAssoc) => {
