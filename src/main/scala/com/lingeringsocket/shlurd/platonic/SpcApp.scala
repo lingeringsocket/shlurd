@@ -64,8 +64,10 @@ object SpcCosmosApp extends App
   private def run()
   {
     var exit = false
+    println("SHLURD> Hello human!")
+    println
     while (!exit) {
-      print("SHLURD> ")
+      print("> ")
       val input = StdIn.readLine
       if (input == null) {
         exit = true
@@ -74,6 +76,7 @@ object SpcCosmosApp extends App
         sentences.foreach(sentence => {
           val output = interpreter.interpret(sentence)
           println
+          print("SHLURD> ")
           println(output)
           println
         })
