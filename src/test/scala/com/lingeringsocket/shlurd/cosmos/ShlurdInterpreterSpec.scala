@@ -56,7 +56,7 @@ class ShlurdInterpreterSpec extends Specification
       }
     }
 
-    val interpreter = new ShlurdInterpreter(cosmos, mind, params) {
+    val interpreter = new ShlurdInterpreter(mind, params) {
       override protected def executeInvocation(
         invocation : StateChangeInvocation)
       {
@@ -72,7 +72,7 @@ class ShlurdInterpreterSpec extends Specification
   {
     val sentence = ShlurdParser(input).parseOne
     var actualInvocation : Option[StateChangeInvocation] = None
-    val interpreter = new ShlurdInterpreter(cosmos, new ShlurdMind(cosmos)) {
+    val interpreter = new ShlurdInterpreter(new ShlurdMind(cosmos)) {
       override protected def executeInvocation(
         invocation : StateChangeInvocation)
       {

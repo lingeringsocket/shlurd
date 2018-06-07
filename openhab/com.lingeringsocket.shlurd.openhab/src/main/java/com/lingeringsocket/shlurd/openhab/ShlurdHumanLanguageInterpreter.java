@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import com.lingeringsocket.shlurd.parser.ShlurdParser$;
 import com.lingeringsocket.shlurd.parser.SilSentence;
-import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreter;
 import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreterParams;
 import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreterParams$;
 import com.lingeringsocket.shlurd.cosmos.ShlurdStateChangeInvocation;
@@ -50,6 +49,8 @@ import com.lingeringsocket.shlurd.platonic.SpcOpenhabCosmos;
 import com.lingeringsocket.shlurd.platonic.SpcEntity;
 import com.lingeringsocket.shlurd.platonic.SpcForm;
 import com.lingeringsocket.shlurd.platonic.SpcProperty;
+import com.lingeringsocket.shlurd.platonic.SpcInterpreter;
+import com.lingeringsocket.shlurd.platonic.SpcMind;
 
 import scala.collection.JavaConverters;
 import scala.io.Source$;
@@ -270,8 +271,8 @@ public class ShlurdHumanLanguageInterpreter
         // FIXME: need to support non-string commands
         SilSentence sentence = ShlurdParser$.MODULE$.apply(text).parseOne();
         ShlurdInterpreterParams params = ShlurdInterpreterParams$.MODULE$.apply(3);
-        ShlurdInterpreter<SpcEntity, SpcProperty> interpreter = new ShlurdInterpreter<SpcEntity, SpcProperty>(
-                cosmos, params) {
+        SpcInterpreter interpreter = new SpcInterpreter(
+            new SpcMind(cosmos), params) {
             @Override
             public void executeInvocation(ShlurdStateChangeInvocation<SpcEntity> invocation) {
                 JavaConverters.setAsJavaSetConverter(invocation.entities()).asJava().forEach(entity -> {

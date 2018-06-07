@@ -22,11 +22,21 @@ import scala.util._
 class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
   cosmos : ShlurdCosmos[E,P])
 {
+  def getCosmos = cosmos
+
   def resolvePronoun(
     person : SilPerson,
     gender : SilGender,
     count : SilCount) : Try[Set[E]] =
   {
     cosmos.fail("pronouns not supported")
+  }
+
+  def equivalentReferences(
+    entity : E,
+    determiner : SilDeterminer)
+      : Seq[SilReference] =
+  {
+    Seq(cosmos.specificReference(entity, determiner))
   }
 }

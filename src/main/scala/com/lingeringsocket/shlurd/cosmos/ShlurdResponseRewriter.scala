@@ -19,8 +19,10 @@ import com.lingeringsocket.shlurd.parser._
 import ShlurdEnglishLemmas._
 
 class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
-  cosmos : ShlurdCosmos[E,P]) extends SilPhraseRewriter
+  mind : ShlurdMind[E,P]) extends SilPhraseRewriter
 {
+  private val cosmos = mind.getCosmos
+
   def normalizeResponse(
     predicate : SilPredicate,
     resultCollector : ResultCollector[E],
@@ -188,14 +190,6 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
   }
 
-  protected def equivalentReferences(
-    entity : E,
-    determiner : SilDeterminer)
-      : Seq[SilReference] =
-  {
-    Seq(cosmos.specificReference(entity, determiner))
-  }
-
   private def resolveReference(
     entity : E,
     determiner : SilDeterminer) : SilReference =
@@ -209,7 +203,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     other : SilReference,
     determiner : SilDeterminer) : SilReference =
   {
-    val equivs = equivalentReferences(entity, determiner)
+    val equivs = mind.equivalentReferences(entity, determiner)
     equivs.find(_ != other) match {
       case Some(ref) => ref
       case _ => equivs.head

@@ -22,10 +22,11 @@ import scala.collection.JavaConverters._
 
 import ShlurdEnglishLemmas._
 
-class SpcResponseRewriter(cosmos : SpcCosmos)
-    extends ShlurdResponseRewriter(cosmos)
+class SpcMind(cosmos : SpcCosmos) extends ShlurdMind(cosmos)
 {
-  override protected def equivalentReferences(
+  override def getCosmos = cosmos
+
+  override def equivalentReferences(
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {

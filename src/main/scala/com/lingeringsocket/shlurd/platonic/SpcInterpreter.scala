@@ -18,12 +18,11 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.cosmos._
 
 class SpcInterpreter(
-  cosmos : SpcCosmos,
-  mind : ShlurdMind[SpcEntity, SpcProperty],
+  mind : SpcMind,
   acceptNewBeliefs : Boolean = false)
-    extends ShlurdInterpreter(cosmos, mind)
+    extends ShlurdInterpreter(mind)
 {
-  private val beliefInterpreter = new SpcBeliefInterpreter(cosmos)
+  private val beliefInterpreter = new SpcBeliefInterpreter(mind.getCosmos)
 
   override protected def interpretImpl(sentence : SilSentence) : String =
   {
@@ -46,11 +45,6 @@ class SpcInterpreter(
       }
     }
     super.interpretImpl(sentence)
-  }
-
-  override protected def newResponseRewriter() =
-  {
-    new SpcResponseRewriter(cosmos)
   }
 
   // FIXME:  i18n

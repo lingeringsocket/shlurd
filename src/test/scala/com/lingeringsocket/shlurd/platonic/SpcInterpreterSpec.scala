@@ -15,7 +15,6 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.cosmos._
 
 import org.specs2.mutable._
 
@@ -61,7 +60,7 @@ class SpcInterpreterSpec extends Specification
     }
 
     protected val interpreter =
-      new SpcInterpreter(cosmos, new ShlurdMind(cosmos), acceptNewBeliefs)
+      new SpcInterpreter(new SpcMind(cosmos), acceptNewBeliefs)
 
     protected def loadBeliefs(resource : String)
     {

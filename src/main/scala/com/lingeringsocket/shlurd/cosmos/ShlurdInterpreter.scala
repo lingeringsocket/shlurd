@@ -50,11 +50,12 @@ class ResultCollector[E<:ShlurdEntity]
 }
 
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
-  cosmos : ShlurdCosmos[E,P],
   mind : ShlurdMind[E,P],
   generalParams : ShlurdInterpreterParams = ShlurdInterpreterParams())
 {
   type PredicateEvaluator = (E, SilReference) => Try[Trilean]
+
+  private val cosmos = mind.getCosmos
 
   private val logger = LoggerFactory.getLogger(classOf[ShlurdInterpreter[E,P]])
 
@@ -62,13 +63,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private var debugDepth = 0
 
-  private val responseRewriter = newResponseRewriter()
+  private val responseRewriter = new ShlurdResponseRewriter(mind)
 
   protected val sentencePrinter = new SilSentencePrinter
 
   def fail(msg : String) = cosmos.fail(msg)
-
-  protected def newResponseRewriter() = new ShlurdResponseRewriter(cosmos)
 
   @inline protected final def debug(msg : => String)
   {
