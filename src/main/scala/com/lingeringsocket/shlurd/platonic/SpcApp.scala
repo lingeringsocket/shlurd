@@ -14,33 +14,71 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd.cosmos._
 import com.lingeringsocket.shlurd.parser._
 
 import scala.io._
 
+import ShlurdEnglishLemmas._
+
 object SpcCosmosApp extends App
 {
-  private val cosmos = new SpcCosmos
+  private val cosmos = new SpcCosmos {
+    override def resolvePronoun(
+      person : SilPerson,
+      gender : SilGender,
+      count : SilCount) =
+    {
+      if (count == COUNT_SINGULAR) {
+        person match {
+          case PERSON_FIRST => {
+            resolveQualifiedNoun(
+              "interviewer", REF_SUBJECT, Set())
+          }
+          case PERSON_SECOND => {
+            resolveQualifiedNoun(
+              LEMMA_PERSON, REF_SUBJECT, Set("shlurd"))
+          }
+          case _ => super.resolvePronoun(person, gender, count)
+        }
+      } else {
+        super.resolvePronoun(person, gender, count)
+      }
+    }
+  }
 
   private val interpreter =
     new SpcInterpreter(cosmos, true)
 
-  var exit = false
-  while (!exit) {
-    print("SHLURD> ")
-    val input = StdIn.readLine
-    if (input == null) {
-      exit = true
-    } else {
-      val sentences = ShlurdParser(input).parseAll
-      sentences.foreach(sentence => {
-        val output = interpreter.interpret(sentence)
-        println
-        println(output)
-        println
-      })
-    }
+  init()
+  run()
+
+  private def init()
+  {
+    val file = ShlurdParser.getResourceFile("/ontologies/console.txt")
+    val source = Source.fromFile(file)
+    cosmos.loadBeliefs(source)
   }
-  println
-  println("Shutting down")
+
+  private def run()
+  {
+    var exit = false
+    while (!exit) {
+      print("SHLURD> ")
+      val input = StdIn.readLine
+      if (input == null) {
+        exit = true
+      } else {
+        val sentences = ShlurdParser(input).parseAll
+        sentences.foreach(sentence => {
+          val output = interpreter.interpret(sentence)
+          println
+          println(output)
+          println
+        })
+      }
+    }
+    println
+    println("Shutting down")
+  }
 }

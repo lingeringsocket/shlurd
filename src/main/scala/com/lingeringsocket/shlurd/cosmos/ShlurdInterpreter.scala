@@ -316,7 +316,12 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             }
           }
           case DETERMINER_ALL => {
-            Success(results.fold(Trilean.True)(_&_))
+            if (results.isEmpty) {
+              // FIXME:  logic dictates otherwise
+              Success(Trilean.False)
+            } else {
+              Success(results.fold(Trilean.True)(_&_))
+            }
           }
           case DETERMINER_ANY | DETERMINER_SOME | DETERMINER_NONSPECIFIC => {
             Success(results.fold(Trilean.False)(_|_))

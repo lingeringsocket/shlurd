@@ -231,7 +231,6 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           SilReference.isCountCoercible(subject)
         val complementCoercible =
           SilReference.isCountCoercible(complement)
-        assert(subjectCoercible || complementCoercible)
         val agreedCount = {
           if (subjectCoercible && complementCoercible) {
             COUNT_PLURAL
