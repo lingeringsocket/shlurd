@@ -25,6 +25,8 @@ import scala.collection._
 
 import org.slf4j._
 
+import ShlurdEnglishLemmas._
+
 case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
   entities : Set[E],
   state : SilWord)
@@ -52,6 +54,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   mind : ShlurdMind[E,P],
   generalParams : ShlurdInterpreterParams = ShlurdInterpreterParams())
 {
+  type PredicateEvaluator = (E, SilReference) => Try[Trilean]
+
   private val logger = LoggerFactory.getLogger(classOf[ShlurdInterpreter[E,P]])
 
   private lazy val debugEnabled = logger.isDebugEnabled
@@ -379,7 +383,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         evaluatePredicateOverReference(
           subjectRef, REF_SUBJECT, subjectCollector)
         {
-          subjectEntity => {
+          (subjectEntity, entityRef) => {
             if (!categoryLabel.isEmpty) {
               resultCollector.isCategorization = true
               evaluateCategorization(subjectEntity, categoryLabel)
@@ -391,7 +395,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               evaluatePredicateOverReference(
                 complementRef, context, complementCollector)
               {
-                complementEntity => evaluateRelationshipPredicate(
+                (complementEntity, entityRef) => evaluateRelationshipPredicate(
                   subjectEntity, complementRef, complementEntity, relationship
                 )
               }
@@ -421,7 +425,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
     evaluatePredicateOverReference(subjectRef, context, resultCollector)
     {
-      entity => {
+      (entity, entityRef) => {
         val normalizedState = cosmos.normalizeState(entity, originalState)
         if (originalState != normalizedState) {
           debug(s"NORMALIZED STATE : $normalizedState")
@@ -432,7 +436,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
           case SilPropertyState(word) => {
             evaluatePropertyStatePredicate(
-              entity, word, resultCollector)
+              entity, entityRef, word, resultCollector)
           }
           case SilAdpositionalState(adposition, objRef) => {
             evaluateAdpositionStatePredicate(
@@ -512,7 +516,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     context : SilReferenceContext,
     resultCollector : ResultCollector[E],
     specifiedState : SilState = SilNullState()
-  )(evaluator : E => Try[Trilean])
+  )(evaluator : PredicateEvaluator)
       : Try[Trilean] =
   {
     debug("EVALUATE PREDICATE OVER REFERENCE : " +
@@ -529,13 +533,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def evaluatePredicateOverEntities(
     unfilteredEntities : Iterable[E],
+    entityRef : SilReference,
     context : SilReferenceContext,
     resultCollector : ResultCollector[E],
     specifiedState : SilState,
     determiner : SilDeterminer,
     count : SilCount,
     noun : SilWord,
-    evaluator : E => Try[Trilean])
+    evaluator : PredicateEvaluator)
       : Try[Trilean] =
   {
     debug(s"CANDIDATE ENTITIES : $unfilteredEntities")
@@ -555,7 +560,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             val evaluation = evaluatePredicateOverReference(
               adp.objRef, REF_ADPOSITION_OBJ, new ResultCollector[E])
             {
-              objEntity => {
+              (objEntity, entityRef) => {
                 val qualifiers : Set[String] = {
                   if (adposition == ADP_GENITIVE_OF) {
                     Set(noun.lemma)
@@ -597,12 +602,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 } else {
                   evaluateDeterminer(
                     entities.map(
-                      invokeEvaluator(_, resultCollector, evaluator)),
+                      invokeEvaluator(
+                        _, entityRef, resultCollector, evaluator)),
                     DETERMINER_ANY)
                 }
               } else {
                 invokeEvaluator(
-                  entities.head, resultCollector, evaluator)
+                  entities.head, entityRef, resultCollector, evaluator)
               }
             }
             case COUNT_PLURAL => {
@@ -612,7 +618,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
               evaluateDeterminer(
                 entities.map(
-                  invokeEvaluator(_, resultCollector, evaluator)),
+                  invokeEvaluator(_, entityRef, resultCollector, evaluator)),
                 newDeterminer)
             }
           }
@@ -620,7 +626,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
       case _ => {
         evaluateDeterminer(
-          entities.map(invokeEvaluator(_, resultCollector, evaluator)),
+          entities.map(invokeEvaluator(
+            _, entityRef, resultCollector, evaluator)),
           determiner)
       }
     }
@@ -631,7 +638,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     context : SilReferenceContext,
     resultCollector : ResultCollector[E],
     specifiedState : SilState,
-    evaluator : E => Try[Trilean])
+    evaluator : PredicateEvaluator)
       : Try[Trilean] =
   {
     // FIXME should maybe use normalizeState here, but it's a bit tricky
@@ -645,6 +652,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case Success(entities) => {
             evaluatePredicateOverEntities(
               entities,
+              reference,
               context,
               resultCollector,
               specifiedState,
@@ -666,7 +674,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             debug(s"CANDIDATE ENTITIES : $entities")
             evaluateDeterminer(
               entities.map(
-                invokeEvaluator(_, resultCollector, evaluator)),
+                invokeEvaluator(_, reference, resultCollector, evaluator)),
               DETERMINER_ALL)
           }
           case Failure(e) => {
@@ -695,6 +703,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       case rr : SilResolvedReference[E] => {
         evaluatePredicateOverEntities(
           rr.entities,
+          rr,
           context,
           resultCollector,
           specifiedState,
@@ -716,7 +725,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     context : SilReferenceContext,
     resultCollector : ResultCollector[E],
     specifiedState : SilState,
-    evaluator : E => Try[Trilean])
+    evaluator : PredicateEvaluator)
       : Try[Trilean] =
   {
     val combinedState = {
@@ -735,16 +744,19 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def invokeEvaluator(
     entity : E,
+    entityRef : SilReference,
     resultCollector : ResultCollector[E],
-    evaluator : E => Try[Trilean]) : Try[Trilean] =
+    evaluator : PredicateEvaluator) : Try[Trilean] =
   {
-    val result = evaluator(entity)
+    val result = evaluator(
+      entity, entityRef)
     result.foreach(resultCollector.entityMap.put(entity, _))
     result
   }
 
   private def evaluatePropertyStatePredicate(
     entity : E,
+    entityRef : SilReference,
     state : SilWord,
     resultCollector : ResultCollector[E])
       : Try[Trilean] =
@@ -758,9 +770,21 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
       case Failure(e) => {
         debug("ERROR", e)
+        val errorRef = entityRef match {
+          case SilNounReference(noun, determiner, count) => {
+            val rephrased = noun match {
+              case SilWord(LEMMA_WHO, LEMMA_WHO) => SilWord(LEMMA_PERSON)
+              case _ => noun
+            }
+            SilNounReference(rephrased, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+          }
+          case _ => {
+            cosmos.specificReference(entity, DETERMINER_NONSPECIFIC)
+          }
+        }
         fail(sentencePrinter.sb.respondUnknownState(
           sentencePrinter.print(
-            cosmos.specificReference(entity, DETERMINER_NONSPECIFIC),
+            errorRef,
             INFLECT_NOMINATIVE,
             SilConjoining.NONE),
           state))
@@ -780,7 +804,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     evaluatePredicateOverReference(
       objRef, REF_ADPOSITION_OBJ, objCollector)
     {
-      objEntity => {
+      (objEntity, entityRef) => {
         val result = cosmos.evaluateEntityAdpositionPredicate(
           subjectEntity, objEntity, adposition)
         debug("RESULT FOR " +

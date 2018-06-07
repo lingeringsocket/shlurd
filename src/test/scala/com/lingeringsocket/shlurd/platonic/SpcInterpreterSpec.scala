@@ -248,10 +248,12 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "is Herbie floating",
         "Sorry, I don't know what 'float' means for Herbie.")
-      // FIXME:  error should be "for a car"
       interpret(
         "is any car floating",
-        "Sorry, I don't know what 'float' means for Herbie.")
+        "Sorry, I don't know what 'float' means for a car.")
+      interpret(
+        "who is floating",
+        "Sorry, I don't know what 'float' means for a person.")
       interpret(
         "is Herbie a car",
         "Yes, Herbie is a car.")
