@@ -288,8 +288,6 @@ class SpcCosmos
     genericForm : SpcForm,
     label : String = SpcGraph.LABEL_KIND) : SpcTaxonomyEdge =
   {
-    graph.formTaxonomy.addVertex(specificForm)
-    graph.formTaxonomy.addVertex(genericForm)
     val edge = new SpcTaxonomyEdge(label)
     graph.formTaxonomy.addEdge(specificForm, genericForm, edge)
     edge
@@ -300,8 +298,6 @@ class SpcCosmos
     possessee : SpcForm,
     label : String) : SpcFormAssocEdge =
   {
-    graph.formAssocs.addVertex(possessor)
-    graph.formAssocs.addVertex(possessee)
     val probe = new ProbeFormEdge(possessor, possessee, label)
     graph.formAssocs.removeEdge(probe)
     val edge = new SpcFormAssocEdge(label)
@@ -314,8 +310,6 @@ class SpcCosmos
     possessee : SpcEntity,
     label : String) : SpcEntityAssocEdge =
   {
-    graph.entityAssocs.addVertex(possessor)
-    graph.entityAssocs.addVertex(possessee)
     val probe = new ProbeEntityEdge(possessor, possessee, label)
     graph.entityAssocs.removeEdge(probe)
     val edge = new SpcEntityAssocEdge(label)
