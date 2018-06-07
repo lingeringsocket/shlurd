@@ -49,6 +49,7 @@ class ResultCollector[E<:ShlurdEntity]
 
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   cosmos : ShlurdCosmos[E,P],
+  mind : ShlurdMind[E,P],
   generalParams : ShlurdInterpreterParams = ShlurdInterpreterParams())
 {
   private val logger = LoggerFactory.getLogger(classOf[ShlurdInterpreter[E,P]])
@@ -57,7 +58,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private var debugDepth = 0
 
-  private lazy val responseRewriter = newResponseRewriter()
+  private val responseRewriter = newResponseRewriter()
 
   protected val sentencePrinter = new SilSentencePrinter
 
@@ -660,7 +661,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
       case SilPronounReference(person, gender, count) => {
         // FIXME for third-person, need conversational coreference resolution
-        cosmos.resolvePronoun(person, gender, count) match {
+        mind.resolvePronoun(person, gender, count) match {
           case Success(entities) => {
             debug(s"CANDIDATE ENTITIES : $entities")
             evaluateDeterminer(

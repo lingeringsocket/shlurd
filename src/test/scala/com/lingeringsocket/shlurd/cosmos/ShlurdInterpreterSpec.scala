@@ -38,7 +38,25 @@ class ShlurdInterpreterSpec extends Specification
     params : ShlurdInterpreterParams = ShlurdInterpreterParams()) =
   {
     val sentence = ShlurdParser(input).parseOne
-    val interpreter = new ShlurdInterpreter(cosmos, params) {
+
+    val mind = new ShlurdMind(cosmos) {
+      override def resolvePronoun(
+        person : SilPerson,
+        gender : SilGender,
+        count : SilCount) : Try[Set[ShlurdEntity]] =
+      {
+        if (count == COUNT_SINGULAR) {
+          person match {
+            case PERSON_FIRST => return Success(Set(ZooVisitor))
+            case PERSON_SECOND => return Success(Set(ZooKeeper))
+            case _ =>
+          }
+        }
+        cosmos.fail("unsupported pronoun reference")
+      }
+    }
+
+    val interpreter = new ShlurdInterpreter(cosmos, mind, params) {
       override protected def executeInvocation(
         invocation : StateChangeInvocation)
       {
@@ -54,7 +72,7 @@ class ShlurdInterpreterSpec extends Specification
   {
     val sentence = ShlurdParser(input).parseOne
     var actualInvocation : Option[StateChangeInvocation] = None
-    val interpreter = new ShlurdInterpreter(cosmos) {
+    val interpreter = new ShlurdInterpreter(cosmos, new ShlurdMind(cosmos)) {
       override protected def executeInvocation(
         invocation : StateChangeInvocation)
       {
@@ -551,21 +569,6 @@ class ShlurdInterpreterSpec extends Specification
           }
         }
       }
-    }
-
-    override def resolvePronoun(
-      person : SilPerson,
-      gender : SilGender,
-      count : SilCount) : Try[Set[ShlurdEntity]] =
-    {
-      if (count == COUNT_SINGULAR) {
-        person match {
-          case PERSON_FIRST => return Success(Set(ZooVisitor))
-          case PERSON_SECOND => return Success(Set(ZooKeeper))
-          case _ =>
-        }
-      }
-      fail("unsupported pronoun reference")
     }
 
     override def resolveProperty(

@@ -36,11 +36,6 @@ trait ShlurdCosmos[E<:ShlurdEntity, P<:ShlurdProperty]
     context : SilReferenceContext,
     qualifiers : Set[String] = Set.empty) : Try[Set[E]]
 
-  def resolvePronoun(
-    person : SilPerson,
-    gender : SilGender,
-    count : SilCount) : Try[Set[E]]
-
   def resolveProperty(
     entity : E,
     lemma : String) : Try[(P, String)]

@@ -23,7 +23,9 @@ import ShlurdEnglishLemmas._
 
 object SpcCosmosApp extends App
 {
-  private val cosmos = new SpcCosmos {
+  private val cosmos = new SpcCosmos
+
+  private val mind = new ShlurdMind(cosmos) {
     override def resolvePronoun(
       person : SilPerson,
       gender : SilGender,
@@ -32,11 +34,11 @@ object SpcCosmosApp extends App
       if (count == COUNT_SINGULAR) {
         person match {
           case PERSON_FIRST => {
-            resolveQualifiedNoun(
+            cosmos.resolveQualifiedNoun(
               "interviewer", REF_SUBJECT, Set())
           }
           case PERSON_SECOND => {
-            resolveQualifiedNoun(
+            cosmos.resolveQualifiedNoun(
               LEMMA_PERSON, REF_SUBJECT, Set("shlurd"))
           }
           case _ => super.resolvePronoun(person, gender, count)
@@ -47,8 +49,7 @@ object SpcCosmosApp extends App
     }
   }
 
-  private val interpreter =
-    new SpcInterpreter(cosmos, true)
+  private val interpreter = new SpcInterpreter(cosmos, mind, true)
 
   init()
   run()

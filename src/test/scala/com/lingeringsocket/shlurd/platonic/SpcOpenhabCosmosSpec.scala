@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.cosmos._
 
 import org.specs2.mutable._
 
@@ -62,7 +63,8 @@ class SpcOpenhabCosmosSpec extends Specification
       }
     }
 
-    protected val interpreter = new SpcInterpreter(cosmos)
+    protected val interpreter =
+      new SpcInterpreter(cosmos, new ShlurdMind(cosmos))
 
     protected def interpret(input : String, expected : String) =
     {

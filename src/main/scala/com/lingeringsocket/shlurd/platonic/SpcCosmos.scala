@@ -397,14 +397,6 @@ class SpcCosmos
     }
   }
 
-  override def resolvePronoun(
-    person : SilPerson,
-    gender : SilGender,
-    count : SilCount) : Try[Set[SpcEntity]] =
-  {
-    fail("pronouns not supported")
-  }
-
   override def resolveProperty(
     entity : SpcEntity,
     lemma : String) : Try[(SpcProperty, String)] =
