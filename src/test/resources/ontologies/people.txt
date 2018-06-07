@@ -21,5 +21,11 @@ A groomer must be a person.
 A dog may have an owner.
 Bart is Rapunzel's owner.
 BLACKWING is an organization.
+An operative must be a person.
+An organization may have operatives.
 A conspiracy is a kind of organization.
 Hugo is a person.
+Scott is a person.
+Hugo is BLACKWING's operative.
+Scott is BLACKWING's operative.
+Arthur is a person.

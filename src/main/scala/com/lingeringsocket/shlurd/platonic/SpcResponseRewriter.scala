@@ -20,6 +20,8 @@ import com.lingeringsocket.shlurd.cosmos._
 import scala.collection._
 import scala.collection.JavaConverters._
 
+import ShlurdEnglishLemmas._
+
 class SpcResponseRewriter(cosmos : SpcCosmos)
     extends ShlurdResponseRewriter(cosmos)
 {
@@ -27,19 +29,45 @@ class SpcResponseRewriter(cosmos : SpcCosmos)
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {
-    val buf = new mutable.ArrayBuffer[SilReference]
-    buf += cosmos.specificReference(entity, determiner)
-    cosmos.getEntityAssocGraph.incomingEdgesOf(entity).asScala.foreach(
+    val assocGraph = cosmos.getEntityAssocGraph
+    val genitives = assocGraph.incomingEdgesOf(entity).asScala.toSeq.map(
       edge => {
         val possessor = cosmos.getGraph.getPossessorEntity(edge)
-        buf += SilGenitiveReference(
-          cosmos.specificReference(possessor, determiner),
-          SilNounReference(SilWord(edge.label)))
+        // we prefer more specific associations over less specific ones
+        // e.g. "Larry's father" is better than "one of Pete's uncles"
+        val count = assocGraph.outgoingEdgesOf(possessor).asScala.
+          count(_.label == edge.label)
+        val genitive = {
+          if (count > 1) {
+            // "one of Pete's uncles"
+            SilStateSpecifiedReference(
+              SilNounReference(SilWord(LEMMA_ONE)),
+              SilAdpositionalState(
+                ADP_OF,
+                SilGenitiveReference(
+                  cosmos.specificReference(possessor, determiner),
+                  SilNounReference(SilWord("", edge.label),
+                    DETERMINER_UNSPECIFIED,
+                    COUNT_PLURAL))))
+          } else {
+            // "Larry's father"
+            SilGenitiveReference(
+              cosmos.specificReference(possessor, determiner),
+              SilNounReference(SilWord(edge.label)))
+          }
+        }
+        (genitive, count)
       }
     )
-    if (!entity.properName.isEmpty) {
-      buf += cosmos.qualifiedReference(entity, DETERMINER_NONSPECIFIC)
+    val qualifiedSeq = {
+      if (!entity.properName.isEmpty) {
+        Seq(cosmos.qualifiedReference(entity, DETERMINER_NONSPECIFIC))
+      } else {
+        Seq.empty
+      }
     }
-    buf.toSeq
+    Seq(
+      cosmos.specificReference(entity, determiner)
+    ) ++ genitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
   }
 }

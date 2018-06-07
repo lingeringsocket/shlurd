@@ -126,6 +126,9 @@ class SpcInterpreterSpec extends Specification
         "who is Todd",
         "Todd is Amanda's brother.")
       interpret(
+        "who is Bart",
+        "Bart is Rapunzel's owner.")
+      interpret(
         "who is Todd's friend",
         "Todd's friend is Dirk.")
       interpret(
@@ -183,7 +186,7 @@ class SpcInterpreterSpec extends Specification
         "Sorry, I don't know what you mean by 'robot'.")
       interpret(
         "who is a person",
-        "Dirk, Todd, Amanda, Bart, and Hugo are persons.")
+        "Dirk, Todd, Amanda, Bart, Hugo, Scott, and Arthur are persons.")
       interpret(
         "who is a brother",
         "Todd is a brother.")
@@ -212,7 +215,10 @@ class SpcInterpreterSpec extends Specification
         "Sorry, I don't know what you mean by 'Ford'.")
       interpret(
         "who is Hugo",
-        "Hugo is a person.")
+        "Hugo is one of BLACKWING's operatives.")
+      interpret(
+        "who is Arthur",
+        "Arthur is a person.")
     }
 
     "understand taxonomy" in new InterpreterContext
