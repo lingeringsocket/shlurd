@@ -1,0 +1,4 @@
+A mindbot is a kind of person.
+An interviewer is a kind of person.
+SHLURD is a mindbot.
+There is an interviewer.
