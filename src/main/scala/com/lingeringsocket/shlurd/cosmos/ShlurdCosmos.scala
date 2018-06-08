@@ -74,21 +74,3 @@ trait ShlurdNamedObject
 {
   def name : String
 }
-
-class ShlurdSynonymMap
-{
-  private val map = new mutable.LinkedHashMap[String, String]
-
-  def addSynonym(synonym : String, fundamental : String)
-  {
-    // FIXME:  cycle detection
-    map.put(synonym, fundamental)
-  }
-
-  def resolveSynonym(synonym : String) : String =
-  {
-    map.get(synonym).getOrElse(synonym)
-  }
-
-  def getAll : Map[String, String] = map
-}

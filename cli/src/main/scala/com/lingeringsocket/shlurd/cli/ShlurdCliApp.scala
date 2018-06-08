@@ -12,62 +12,52 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.platonic
+package com.lingeringsocket.shlurd.cli
 
-import com.lingeringsocket.shlurd.cosmos._
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.platonic._
 
-import scala.collection._
 import scala.io._
 
-import ShlurdEnglishLemmas._
+import java.io._
 
-object SpcApp extends App
+object ShlurdCliApp extends App
 {
-  private val cosmos = new SpcCosmos
+  val serializer = new ShlurdCliSerializer
+  val file = new File("mind.kryo")
+  val mind = loadOrCreate(file)
+  val app = new ShlurdCliApp(mind, file, serializer)
+  app.run
 
-  private val mind = new SpcMind(cosmos) {
-    private lazy val entityInterviewer = uniqueEntity(
-      cosmos.resolveQualifiedNoun(
-        "interviewer", REF_SUBJECT, Set()))
-
-    private lazy val entityShlurd = uniqueEntity(
-      cosmos.resolveQualifiedNoun(
-        LEMMA_PERSON, REF_SUBJECT, Set("shlurd")))
-
-    override def resolvePronoun(
-      person : SilPerson,
-      gender : SilGender,
-      count : SilCount) =
-    {
-      if (count == COUNT_SINGULAR) {
-        person match {
-          case PERSON_FIRST => entityInterviewer.map(Set(_))
-          case PERSON_SECOND => entityShlurd.map(Set(_))
-          case _ => super.resolvePronoun(person, gender, count)
-        }
-      } else {
-        super.resolvePronoun(person, gender, count)
-      }
+  private def loadOrCreate(file : File) : ShlurdCliMind =
+  {
+    if (file.exists) {
+      println("SHLURD> Awaking from kryo...")
+      val oldMind = serializer.load(file)
+      println("SHLURD> Hello again, human!")
+      oldMind
+    } else {
+      println("SHLURD> Loading initial beliefs...")
+      val cosmos = new SpcCosmos
+      val beliefs = ShlurdParser.getResourceFile("/ontologies/console.txt")
+      val source = Source.fromFile(beliefs)
+      cosmos.loadBeliefs(source)
+      println("SHLURD> Hello, human!")
+      new ShlurdCliMind(cosmos)
     }
   }
+}
 
+class ShlurdCliApp(
+  mind : ShlurdCliMind,
+  file : File,
+  serializer : ShlurdCliSerializer)
+{
   private val interpreter = new SpcInterpreter(mind, true)
-
-  init()
-  run()
-
-  private def init()
-  {
-    val file = ShlurdParser.getResourceFile("/ontologies/console.txt")
-    val source = Source.fromFile(file)
-    cosmos.loadBeliefs(source)
-  }
 
   private def run()
   {
     var exit = false
-    println("SHLURD> Hello human!")
     println
     while (!exit) {
       print("> ")
@@ -86,6 +76,7 @@ object SpcApp extends App
       }
     }
     println
-    println("Shutting down")
+    println("SHLURD> Shutting down...")
+    serializer.save(mind, file)
   }
 }

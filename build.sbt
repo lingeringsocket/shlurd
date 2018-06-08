@@ -1,25 +1,28 @@
-organization := "com.lingeringsocket.shlurd"
+organization := Common.organization
 
 name := "shlurd"
 
-version := "0.1-SNAPSHOT"
+version := Common.version
 
-scalaVersion := "2.11.12"
+scalaVersion := Common.scalaVersion
 
 scalastyleFailOnError := true
 
-val scalacCommonOptions = Seq(
-  "-unchecked", "-feature", "-Xlint",
-  "-deprecation", "-Xfatal-warnings", "-Yrangepos")
+scalacOptions := Common.scalacOptions
 
-scalacOptions := scalacCommonOptions :+ "-Ywarn-unused-import"
+maxErrors := Common.maxErrors
 
-maxErrors := 99
+traceLevel := Common.traceLevel
 
-traceLevel := 10
+lazy val rootProject = (project in file("."))
+
+lazy val cli = project.dependsOn(rootProject)
+
+lazy val root = rootProject.aggregate(cli)
+
+libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
-  "org.specs2" %% "specs2-core" % "4.0.3" % "test",
   "org.slf4j" % "slf4j-simple" % "1.7.25",
   "com.googlecode.kiama" %% "kiama" % "1.8.0",
   "org.typelevel" %% "spire" % "0.14.1",
@@ -31,10 +34,15 @@ libraryDependencies ++= Seq(
 
 publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath+"/.ivy2/local/com.lingeringsocket.shlurd")))
 
-scalacOptions in (Compile, console) := scalacCommonOptions :+ "-Yrepl-sync"
+mainClass in Compile := Some("com.lingeringsocket.shlurd.cli.ShlurdCliApp")
+
+fullClasspath in Runtime ++= (fullClasspath in cli in Runtime).value
+
+scalacOptions in (Compile, console) := Common.scalacCommonOptions :+ "-Yrepl-sync"
 
 initialCommands := """
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
 import com.lingeringsocket.shlurd.cosmos._
+import com.lingeringsocket.shlurd.platonic._
 """

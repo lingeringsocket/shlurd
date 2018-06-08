@@ -201,10 +201,10 @@ class SpcOpenhabCosmosSpec extends Specification
         "Please be more specific about which bedroom you mean.")
       interpret(
         "is any printer on",
-        "Sorry, I don't know what you mean by 'printer'.")
+        "Sorry, I don't know about any 'printer'.")
       interpret(
         "is there a stable",
-        "Sorry, I don't know what you mean by 'stable'.")
+        "Sorry, I don't know about any 'stable'.")
       interpret(
         "is there a bedroom",
         "Yes, there is a bedroom.")
@@ -225,7 +225,7 @@ class SpcOpenhabCosmosSpec extends Specification
         "No, there is not a garage on the first floor.")
       interpret(
         "is any light in the stable on",
-        "Sorry, I don't know what you mean by 'stable'.")
+        "Sorry, I don't know about any 'stable'.")
       interpret(
         "is the solar light on",
         "No, the solar light is not on.")

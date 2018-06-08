@@ -1,5 +1,6 @@
 TAGS
 *.class
+mind.kryo
 
 # sbt specific
 .cache

@@ -150,10 +150,10 @@ class SpcInterpreterSpec extends Specification
         "But I don't know about any such friend.")
       interpret(
         "is Ford Todd's friend",
-        "Sorry, I don't know what you mean by 'Ford'.")
+        "Sorry, I don't know about any 'Ford'.")
       interpret(
         "is Todd Ford's friend",
-        "Sorry, I don't know what you mean by 'Ford'.")
+        "Sorry, I don't know about any 'Ford'.")
       // FIXME:  should clarify that they are not necessarily
       // friends OF EACH OTHER
       interpret(
@@ -182,7 +182,7 @@ class SpcInterpreterSpec extends Specification
         "Yes, Bart is an owner.")
       interpret(
         "is Amanda a robot",
-        "Sorry, I don't know what you mean by 'robot'.")
+        "Sorry, I don't know about any 'robot'.")
       interpret(
         "who is a person",
         "Dirk, Todd, Amanda, Bart, Hugo, Scott, and Arthur are persons.")
@@ -211,7 +211,7 @@ class SpcInterpreterSpec extends Specification
         "Dirk and Todd have friends.")
       interpret(
         "who is Ford",
-        "Sorry, I don't know what you mean by 'Ford'.")
+        "Sorry, I don't know about any 'Ford'.")
       interpret(
         "who is Hugo",
         "Hugo is one of BLACKWING's operatives.")
@@ -296,7 +296,7 @@ class SpcInterpreterSpec extends Specification
     {
       interpret(
         "who is Ford",
-        "Sorry, I don't know what you mean by 'Ford'.")
+        "Sorry, I don't know about any 'Ford'.")
     }
 
     "understand services" in new InterpreterContext
@@ -398,7 +398,7 @@ class SpcInterpreterSpec extends Specification
     "prevent new beliefs" in new InterpreterContext
     {
       interpret("There is a front door",
-        "Sorry, I don't know what you mean by 'door'.")
+        "Sorry, I don't know about any 'door'.")
     }
 
     "accept new beliefs" in new InterpreterContext(true)

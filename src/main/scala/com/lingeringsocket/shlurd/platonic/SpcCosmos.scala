@@ -127,6 +127,24 @@ case class SpcEntity(
 {
 }
 
+class SpcSynonymMap
+{
+  private val map = new mutable.LinkedHashMap[String, String]
+
+  def addSynonym(synonym : String, fundamental : String)
+  {
+    // FIXME:  cycle detection
+    map.put(synonym, fundamental)
+  }
+
+  def resolveSynonym(synonym : String) : String =
+  {
+    map.get(synonym).getOrElse(synonym)
+  }
+
+  def getAll : Map[String, String] = map
+}
+
 object SpcCosmos
 {
   private class ProbeFormEdge(
@@ -164,7 +182,7 @@ class SpcCosmos
   private val entities =
     new mutable.LinkedHashMap[String, SpcEntity]
 
-  private val formSynonyms = new ShlurdSynonymMap
+  private val formSynonyms = new SpcSynonymMap
 
   private val graph = SpcGraph()
 

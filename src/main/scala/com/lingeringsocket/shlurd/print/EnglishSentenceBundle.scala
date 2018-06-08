@@ -496,7 +496,7 @@ class EnglishSentenceBundle
 
   override def respondUnknown(word : SilWord) =
   {
-    compose("Sorry, I don't know what you mean by",
+    compose("Sorry, I don't know about any",
       concat("'", word.lemmaUnfolded, "'."))
   }
 
