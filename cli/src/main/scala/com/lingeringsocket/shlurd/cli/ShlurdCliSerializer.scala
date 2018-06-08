@@ -14,31 +14,69 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
+import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.print._
+import com.lingeringsocket.shlurd.platonic._
+
 import com.twitter.chill.ScalaKryoInstantiator
 import com.esotericsoftware.kryo.io._
 
 import java.io._
+import java.util.zip._
 
 class ShlurdCliSerializer
 {
+  private val KRYO_ENTRY = "mind.kryo"
+
+  private val BELIEF_ENTRY = "beliefs.txt"
+
   private val instantiator = new ScalaKryoInstantiator
   instantiator.setRegistrationRequired(false)
   private val kryo = instantiator.newKryo
 
   def save(mind : ShlurdCliMind, file : File)
   {
-    val fos = new FileOutputStream(file)
-    val output = new Output(fos)
-    kryo.writeObject(output, mind)
-    output.close
+    val zos = new ZipOutputStream(new FileOutputStream(file))
+    try {
+      saveEntry(zos, KRYO_ENTRY)(outputStream => {
+        val output = new Output(outputStream)
+        kryo.writeObject(output, mind)
+        output.flush
+      })
+      saveEntry(zos, BELIEF_ENTRY)(outputStream => {
+        val pw = new PrintWriter(outputStream)
+        val creed = new SpcCreed(mind.getCosmos)
+        val printer = new SilSentencePrinter
+        creed.allBeliefs.foreach(belief => {
+          val beliefString = printer.print(belief)
+          pw.println(ShlurdParseUtils.capitalize(beliefString))
+        })
+        pw.flush
+      })
+    } finally {
+      zos.close
+    }
+  }
+
+  def saveEntry(
+    zos : ZipOutputStream,
+    entry : String)(writeEntry : OutputStream => Unit)
+  {
+    zos.putNextEntry(new ZipEntry(entry))
+    writeEntry(zos)
+    zos.closeEntry
   }
 
   def load(file : File) : ShlurdCliMind =
   {
-    val fis = new FileInputStream(file)
-    val input = new Input(fis)
-    val oldMind = kryo.readObject(input, classOf[ShlurdCliMind])
-    input.close
-    oldMind
+    val zis = new ZipInputStream(new FileInputStream(file))
+    try {
+      val nextEntry = zis.getNextEntry
+      assert(nextEntry.getName == KRYO_ENTRY)
+      val input = new Input(zis)
+      kryo.readObject(input, classOf[ShlurdCliMind])
+    } finally {
+      zis.close
+    }
   }
 }

@@ -24,7 +24,7 @@ import java.io._
 object ShlurdCliApp extends App
 {
   val serializer = new ShlurdCliSerializer
-  val file = new File("mind.kryo")
+  val file = new File("shlurd-mind.zip")
   val mind = loadOrCreate(file)
   val app = new ShlurdCliApp(mind, file, serializer)
   app.run
