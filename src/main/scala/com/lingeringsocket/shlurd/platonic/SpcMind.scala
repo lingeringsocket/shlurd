@@ -67,8 +67,7 @@ class SpcMind(cosmos : SpcCosmos) extends ShlurdMind(cosmos)
         Seq.empty
       }
     }
-    Seq(
-      cosmos.specificReference(entity, determiner)
-    ) ++ genitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
+    super.equivalentReferences(entity, determiner) ++
+      genitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
   }
 }

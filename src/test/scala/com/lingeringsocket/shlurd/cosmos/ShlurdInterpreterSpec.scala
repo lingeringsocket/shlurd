@@ -308,11 +308,13 @@ class ShlurdInterpreterSpec extends Specification
       interpret("is the lion a lion") must be equalTo(
         "Yes, the lion is a lion.")
       interpret("who is Muldoon") must be equalTo(
-        "Muldoon is Muldoon.")
+        "I am Muldoon.")
       interpret("who am I") must be equalTo(
         "You are Malcolm.")
       interpret("who are you") must be equalTo(
         "I am Muldoon.")
+      interpret("who is Malcolm") must be equalTo(
+        "You are Malcolm.")
       interpret("is the lion an animal") must be equalTo(
         "Yes, the lion is an animal.")
       interpret("is the lion a person") must be equalTo(

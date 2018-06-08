@@ -106,21 +106,22 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
     }
 
-    val firstRules = {
+    val rewrite1 = {
       if (getTrueEntities(resultCollector).isEmpty ||
         resultCollector.isCategorization)
       {
-        replacePronounsSpeakerListener
+        rewrite(
+          swapPronounsSpeakerListener,
+          predicate)
       } else {
-        combineRules(
-          flipPredicateQueries,
-          replacePronounsSpeakerListener)
+        rewrite(
+          combineRules(
+            swapPronounsSpeakerListener,
+            flipPredicateQueries
+          ),
+          predicate)
       }
     }
-
-    val rewrite1 = rewrite(
-      firstRules,
-      predicate)
     val rewrite2 = rewrite(
       combineRules(
         coerceCountAgreement,
@@ -130,7 +131,9 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       avoidTautologies,
       rewrite2)
     val rewriteLast = rewrite(
-      replaceResolvedReferences,
+      combineRules(
+        replaceResolvedReferences,
+        flipPronouns),
       rewrite3)
 
     SilPhraseValidator.validatePhrase(rewriteLast)
@@ -138,7 +141,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     (rewriteLast, negateCollection)
   }
 
-  def replacePronounsSpeakerListener = replacementMatcher {
+  def swapPronounsSpeakerListener = replacementMatcher {
     case SilPronounReference(person, gender, count)=> {
       val speakerListenerReversed = person match {
         case PERSON_FIRST => PERSON_SECOND
@@ -146,6 +149,20 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         case PERSON_THIRD => PERSON_THIRD
       }
       SilPronounReference(speakerListenerReversed, gender, count)
+    }
+  }
+
+  // "Groot is I" becomes "I am Groot"
+  private def flipPronouns = replacementMatcher {
+    case SilRelationshipPredicate(
+      lhs,
+      rhs : SilPronounReference,
+      REL_IDENTITY
+    ) => {
+      SilRelationshipPredicate(
+        rhs,
+        lhs,
+        REL_IDENTITY)
     }
   }
 
@@ -203,7 +220,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     other : SilReference,
     determiner : SilDeterminer) : SilReference =
   {
-    val equivs = mind.equivalentReferences(entity, determiner)
+    val equivs = mind.equivalentReferences(entity, determiner).map(
+      ref => rewrite(swapPronounsSpeakerListener, ref))
     equivs.find(_ != other) match {
       case Some(ref) => ref
       case _ => equivs.head

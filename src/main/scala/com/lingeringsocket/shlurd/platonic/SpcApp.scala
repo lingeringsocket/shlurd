@@ -19,23 +19,22 @@ import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 import scala.io._
-import scala.util._
 
 import ShlurdEnglishLemmas._
 
-object SpcCosmosApp extends App
+object SpcApp extends App
 {
   private val cosmos = new SpcCosmos
 
-  private lazy val entityInterviewer = uniqueEntity(
-    cosmos.resolveQualifiedNoun(
-      "interviewer", REF_SUBJECT, Set()))
-
-  private lazy val entityShlurd = uniqueEntity(
-    cosmos.resolveQualifiedNoun(
-      LEMMA_PERSON, REF_SUBJECT, Set("shlurd")))
-
   private val mind = new SpcMind(cosmos) {
+    private lazy val entityInterviewer = uniqueEntity(
+      cosmos.resolveQualifiedNoun(
+        "interviewer", REF_SUBJECT, Set()))
+
+    private lazy val entityShlurd = uniqueEntity(
+      cosmos.resolveQualifiedNoun(
+        LEMMA_PERSON, REF_SUBJECT, Set("shlurd")))
+
     override def resolvePronoun(
       person : SilPerson,
       gender : SilGender,
@@ -43,8 +42,8 @@ object SpcCosmosApp extends App
     {
       if (count == COUNT_SINGULAR) {
         person match {
-          case PERSON_FIRST => Success(Set(entityInterviewer))
-          case PERSON_SECOND => Success(Set(entityShlurd))
+          case PERSON_FIRST => entityInterviewer.map(Set(_))
+          case PERSON_SECOND => entityShlurd.map(Set(_))
           case _ => super.resolvePronoun(person, gender, count)
         }
       } else {
@@ -63,16 +62,6 @@ object SpcCosmosApp extends App
     val file = ShlurdParser.getResourceFile("/ontologies/console.txt")
     val source = Source.fromFile(file)
     cosmos.loadBeliefs(source)
-  }
-
-  private def uniqueEntity(result : Try[Set[SpcEntity]]) : SpcEntity =
-  {
-    val set = result.get
-    if (set.size > 1) {
-      throw new RuntimeException("unique entity expected")
-    } else {
-      set.head
-    }
   }
 
   private def run()

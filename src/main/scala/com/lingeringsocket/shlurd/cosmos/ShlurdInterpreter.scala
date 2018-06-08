@@ -98,7 +98,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     if (sentence.hasUnknown) {
       val unrecognized = responseRewriter.rewrite(
-        responseRewriter.replacePronounsSpeakerListener, sentence)
+        responseRewriter.swapPronounsSpeakerListener, sentence)
       val responder = new ShlurdUnrecognizedResponder(sentencePrinter)
       return responder.respond(unrecognized)
     }
