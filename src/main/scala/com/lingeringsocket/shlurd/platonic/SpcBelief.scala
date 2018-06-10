@@ -69,9 +69,18 @@ case class FormRoleBelief(
 case class FormAssocBelief(
   sentence : SilSentence,
   possessorFormName : SilWord,
-  possesseeFormName : SilWord,
+  possesseeRoleName : SilWord,
   constraint : SpcCardinalityConstraint,
   isProperty : Boolean
+) extends SpcBelief
+{
+}
+
+case class InverseAssocBelief(
+  sentence : SilSentence,
+  possessorFormName : SilWord,
+  possessorRoleName : SilWord,
+  possesseeRoleName : SilWord
 ) extends SpcBelief
 {
 }

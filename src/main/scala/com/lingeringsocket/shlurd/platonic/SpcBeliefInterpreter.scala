@@ -129,6 +129,30 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
                 return interpretEntityRelationship(
                   sentence, subjectNoun, complement, relationship)
               }
+              case SilStateSpecifiedReference(
+                SilNounReference(
+                  possessorFormName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+                SilAdpositionalState(
+                  ADP_WITH,
+                  SilNounReference(
+                    possesseeRoleName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+                )
+              ) => {
+                // "a person with a child is a parent"
+                if (mood.getModality != MODAL_NEUTRAL) {
+                  return Some(UnimplementedBelief(sentence))
+                }
+                complement match {
+                  case SilNounReference(
+                    possessorRoleName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+                  ) => {
+                    return Some(InverseAssocBelief(
+                      sentence,
+                      possessorFormName, possessorRoleName, possesseeRoleName))
+                  }
+                  case _ =>
+                }
+              }
               case _ =>
             }
           }
@@ -436,18 +460,18 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
 
   beliefApplier {
     case FormAssocBelief(
-      sentence, possessorFormName, possesseeFormName,
+      sentence, possessorFormName, possesseeRoleName,
       newConstraint, isProperty
     ) => {
       val possessorForm = cosmos.instantiateForm(possessorFormName)
       if (!isProperty) {
-        if (!cosmos.isRole(possesseeFormName)) {
+        if (!cosmos.isRole(possesseeRoleName)) {
           // FIXME:  maybe throw a more specific excn
           throw new UnknownPossesseeBeliefExcn(sentence)
         }
       }
-      val possesseeForm = cosmos.instantiateForm(possesseeFormName)
-      val label = possesseeFormName.lemma
+      val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
+      val label = possesseeRoleName.lemma
       val edge = cosmos.addFormAssoc(
         possessorForm, possesseeForm, label)
       val constraint = cosmos.getAssocConstraints.get(edge) match {
@@ -515,6 +539,22 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           throw new MissingAssocBeliefExcn(sentence)
         }
       }
+    }
+  }
+
+  beliefApplier {
+    case InverseAssocBelief(
+      sentence, possessorFormName, possessorRoleName, possesseeRoleName
+    ) => {
+      val possessorForm = cosmos.instantiateForm(possessorFormName)
+      val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
+      val label = possesseeRoleName.lemma
+      val inverseLabel = possessorRoleName.lemma
+      val edge = cosmos.addFormAssoc(
+        possessorForm, possesseeForm, label)
+      val inverseEdge = cosmos.addFormAssoc(
+        possesseeForm, possessorForm, inverseLabel)
+      cosmos.connectInverseAssocEdges(edge, inverseEdge)
     }
   }
 

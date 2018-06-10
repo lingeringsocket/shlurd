@@ -33,6 +33,9 @@ class SpcCreed(cosmos : SpcCosmos)
     }) ++ (
       cosmos.getForms.values.flatMap(formBeliefs(_))
     ) ++ (
+      cosmos.getInverseAssocEdges.map(
+        entry => inverseAssocBelief(entry._1, entry._2))
+    ) ++ (
       cosmos.getEntities.values.flatMap(entityBeliefs(_))
     )
   }
@@ -208,6 +211,22 @@ class SpcCreed(cosmos : SpcCosmos)
           role),
         REL_IDENTITY)
     )
+  }
+
+  def inverseAssocBelief(
+    edge1 : SpcFormAssocEdge,
+    edge2 : SpcFormAssocEdge
+  ) : SilSentence =
+  {
+    SilPredicateSentence(
+      SilRelationshipPredicate(
+        SilStateSpecifiedReference(
+          formNoun(cosmos.getGraph.getPossessorForm(edge1)),
+          SilAdpositionalState(
+            ADP_WITH,
+            nounReference(edge1.label))),
+        nounReference(edge2.label),
+        REL_IDENTITY))
   }
 
   private def nounReference(

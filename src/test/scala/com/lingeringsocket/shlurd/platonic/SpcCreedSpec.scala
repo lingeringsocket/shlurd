@@ -87,6 +87,12 @@ class SpcCreedSpec extends Specification
   private val personExists = "Yoda is a person."
   private val personExists2 = "Luke is a person."
   private val personAssoc = "Yoda is Luke's mentor."
+  private val mentorRole = "A mentor must be a jedi."
+  private val padawanRole = "A padawan must be a jedi."
+  private val jediPadawan = "A jedi may have padawans."
+  private val jediMentor = "A jedi may have one mentor."
+  private val assocInverse1 = "A jedi with a padawan is a mentor."
+  private val assocInverse2 = "A jedi with a mentor is a padawan."
 
   "SpcCreed" should
   {
@@ -143,6 +149,26 @@ class SpcCreedSpec extends Specification
       expectPreserved(Seq(
         formRole, assocMay,
         personExists, personExists2, personAssoc))
+    }
+
+    "preserve inverse associations" in new CosmosContext
+    {
+      expectPreserved(Seq(
+        mentorRole, padawanRole,
+        jediPadawan, jediMentor,
+        assocInverse1, assocInverse2))
+    }
+
+    "normalize inverse associations" in new CosmosContext
+    {
+      expectNormalized(
+        Seq(
+          mentorRole, padawanRole,
+          jediMentor, assocInverse1),
+        Seq(
+          mentorRole, padawanRole,
+          jediMentor, jediPadawan,
+          assocInverse1, assocInverse2))
     }
   }
 }

@@ -10,20 +10,23 @@ A person may have brothers.
 A person may have sisters.
 A person may have friends.
 A person may have uncles.
+An owner must be a person.
+A dog may have an owner.
+A groomer must be a person.
+An operative must be a person.
+An organization may have operatives.
+A conspiracy is a kind of organization.
+An employer must be an organization.
+A person may have an employer.
+An organization with an operative is an employer.
 Todd is Amanda's brother.
 Amanda is Todd's sister.
 Dirk is Todd's friend.
 Todd is Dirk's friend.
 Bart is Dirk's friend.
 Rapunzel is a dog.
-An owner must be a person.
-A groomer must be a person.
-A dog may have an owner.
 Bart is Rapunzel's owner.
 BLACKWING is an organization.
-An operative must be a person.
-An organization may have operatives.
-A conspiracy is a kind of organization.
 Hugo is a person.
 Scott is a person.
 Hugo is BLACKWING's operative.

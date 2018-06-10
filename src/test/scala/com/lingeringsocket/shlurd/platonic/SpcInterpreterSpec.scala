@@ -218,6 +218,18 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "who is Arthur",
         "Arthur is a person.")
+      interpret(
+        "is BLACKWING Hugo's employer",
+        "Yes, BLACKWING is Hugo's employer.")
+      interpret(
+        "which organization is Hugo's employer",
+        "Hugo's employer is BLACKWING.")
+      interpret(
+        "is BLACKWING Todd's employer",
+        "No, BLACKWING is not Todd's employer.")
+      interpret(
+        "which organization is Todd's employer",
+        "No organization is Todd's employer.")
     }
 
     "understand taxonomy" in new InterpreterContext

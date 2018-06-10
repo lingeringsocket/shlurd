@@ -145,34 +145,9 @@ class SpcSynonymMap
   def getAll : Map[String, String] = map
 }
 
-object SpcCosmos
-{
-  private class ProbeFormEdge(
-    val sourceForm : SpcForm,
-    val targetForm : SpcForm,
-    label : String) extends SpcFormAssocEdge(label)
-  {
-    override def getSource = sourceForm
-
-    override def getTarget = targetForm
-  }
-
-  private class ProbeEntityEdge(
-    val sourceEntity : SpcEntity,
-    val targetEntity : SpcEntity,
-    label : String) extends SpcEntityAssocEdge(label)
-  {
-    override def getSource = sourceEntity
-
-    override def getTarget = targetEntity
-  }
-}
-
 class SpcCosmos
     extends ShlurdCosmos[SpcEntity, SpcProperty]
 {
-  import SpcCosmos._
-
   private val forms =
     new mutable.LinkedHashMap[String, SpcForm]
 
@@ -189,10 +164,17 @@ class SpcCosmos
   private val unmodifiableGraph = graph.asUnmodifiable
 
   private val assocConstraints =
-    new mutable.LinkedHashMap[SpcFormAssocEdge, SpcCardinalityConstraint]
+    new mutable.LinkedHashMap[SpcFormAssocEdge, SpcCardinalityConstraint] {
+      override def default(key : SpcFormAssocEdge) = {
+        SpcCardinalityConstraint(0, Int.MaxValue)
+      }
+    }
 
   private val propertyEdges =
     new mutable.LinkedHashSet[SpcFormAssocEdge]
+
+  private val inverseAssocEdges =
+    new mutable.LinkedHashMap[SpcFormAssocEdge, SpcFormAssocEdge]
 
   private var nextId = 0
 
@@ -263,6 +245,9 @@ class SpcCosmos
   def getEntityAssocGraph =
     unmodifiableGraph.entityAssocs
 
+  def getInverseAssocEdges : Map[SpcFormAssocEdge, SpcFormAssocEdge] =
+    inverseAssocEdges
+
   private def hasQualifiers(
     existing : SpcEntity,
     form : SpcForm,
@@ -301,6 +286,25 @@ class SpcCosmos
     graph.entityAssocs.addVertex(entity)
   }
 
+  protected[platonic] def connectInverseAssocEdges(
+    edge1 : SpcFormAssocEdge,
+    edge2 : SpcFormAssocEdge)
+  {
+    inverseAssocEdges.get(edge1) match {
+      case Some(existing) => {
+        if (existing == edge2) {
+          return
+        } else {
+          inverseAssocEdges.remove(existing)
+          inverseAssocEdges.get(edge2).foreach(inverseAssocEdges.remove)
+        }
+      }
+      case _ =>
+    }
+    inverseAssocEdges.put(edge1, edge2)
+    inverseAssocEdges.put(edge2, edge1)
+  }
+
   protected[platonic] def addFormTaxonomy(
     specificForm : SpcForm,
     genericForm : SpcForm,
@@ -316,11 +320,16 @@ class SpcCosmos
     possessee : SpcForm,
     label : String) : SpcFormAssocEdge =
   {
-    val probe = new ProbeFormEdge(possessor, possessee, label)
-    graph.formAssocs.removeEdge(probe)
-    val edge = new SpcFormAssocEdge(label)
-    graph.formAssocs.addEdge(possessor, possessee, edge)
-    edge
+    graph.formAssocs.getAllEdges(
+      possessor, possessee).asScala.find(_.label == label) match
+    {
+      case Some(edge) => edge
+      case _ => {
+        val edge = new SpcFormAssocEdge(label)
+        graph.formAssocs.addEdge(possessor, possessee, edge)
+        edge
+      }
+    }
   }
 
   protected[platonic] def addEntityAssoc(
@@ -328,21 +337,60 @@ class SpcCosmos
     possessee : SpcEntity,
     label : String) : SpcEntityAssocEdge =
   {
-    val probe = new ProbeEntityEdge(possessor, possessee, label)
-    graph.entityAssocs.removeEdge(probe)
-    val edge = new SpcEntityAssocEdge(label)
-    graph.entityAssocs.addEdge(
-      possessor, possessee, edge)
-    edge
+    graph.getFormAssoc(possessor.form, possessee.form, label) match {
+      case Some(formAssocEdge) => {
+        val edge = addEntityAssocEdge(
+          possessor, possessee, formAssocEdge)
+        inverseAssocEdges.get(formAssocEdge) match {
+          case Some(inverseAssocEdge) => {
+            addEntityAssocEdge(
+              possessee, possessor, inverseAssocEdge)
+          }
+          case _ =>
+        }
+        edge
+      }
+      case _ => {
+        throw new IllegalArgumentException("addEntityAssoc")
+      }
+    }
   }
 
-  protected[platonic] def isEntityAssoc(
+  private def addEntityAssocEdge(
+    possessor : SpcEntity,
+    possessee : SpcEntity,
+    formAssocEdge : SpcFormAssocEdge) : SpcEntityAssocEdge =
+  {
+    getEntityAssocEdge(possessor, possessee, formAssocEdge.label) match {
+      case Some(edge) => {
+        assert(edge.formEdge == formAssocEdge)
+        edge
+      }
+      case _ => {
+        val edge = new SpcEntityAssocEdge(formAssocEdge)
+        graph.entityAssocs.addEdge(
+          possessor, possessee, edge)
+        edge
+      }
+    }
+  }
+
+  def isEntityAssoc(
     possessor : SpcEntity,
     possessee : SpcEntity,
     label : String) : Boolean =
   {
-    getEntityAssocGraph.containsEdge(
-      new ProbeEntityEdge(possessor, possessee, label))
+    !getEntityAssocEdge(possessor, possessee, label).isEmpty
+  }
+
+  def getEntityAssocEdge(
+    possessor : SpcEntity,
+    possessee : SpcEntity,
+    label : String
+  ) : Option[SpcEntityAssocEdge] =
+  {
+    graph.entityAssocs.getAllEdges(
+      possessor, possessee).asScala.find(_.label == label)
   }
 
   def loadBeliefs(source : Source)

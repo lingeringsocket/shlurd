@@ -72,7 +72,7 @@ class SpcTaxonomyEdge(
 }
 
 class SpcEntityAssocEdge(
-  label : String) extends SpcLabeledEdge(label)
+  val formEdge : SpcFormAssocEdge) extends SpcLabeledEdge(formEdge.label)
 {
 }
 
