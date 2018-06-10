@@ -60,7 +60,7 @@ class SpcCreedSpec extends Specification
       })
       refriedBeliefs.foreach(belief => {
         belief must beSome
-        refriedInterpreter.applyBelief(belief.get)
+          refriedInterpreter.applyBelief(belief.get)
       })
       val refriedStrings = refriedCreed.allBeliefs.map(printer.print)
       refriedStrings.map(ShlurdParseUtils.capitalize) must be equalTo expected
@@ -93,6 +93,7 @@ class SpcCreedSpec extends Specification
   private val jediMentor = "A jedi may have one mentor."
   private val assocInverse1 = "A jedi with a padawan is a mentor."
   private val assocInverse2 = "A jedi with a mentor is a padawan."
+  private val padawanMentor = "A padawan may have mentors."
 
   "SpcCreed" should
   {
@@ -169,6 +170,13 @@ class SpcCreedSpec extends Specification
           mentorRole, padawanRole,
           jediMentor, jediPadawan,
           assocInverse1, assocInverse2))
+    }
+
+    "normalize inverse associations with implied roles" in new CosmosContext
+    {
+      expectNormalized(
+        Seq(assocInverse1),
+        Seq(mentorRole, jediPadawan, padawanMentor, assocInverse1))
     }
   }
 }

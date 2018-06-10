@@ -33,7 +33,7 @@ class SpcCreed(cosmos : SpcCosmos)
     }) ++ (
       cosmos.getForms.values.flatMap(formBeliefs(_))
     ) ++ (
-      cosmos.getInverseAssocEdges.map(
+      cosmos.getInverseAssocEdges.filter(isNonTrivialInverse).map(
         entry => inverseAssocBelief(entry._1, entry._2))
     ) ++ (
       cosmos.getEntities.values.flatMap(entityBeliefs(_))
@@ -211,6 +211,14 @@ class SpcCreed(cosmos : SpcCosmos)
           role),
         REL_IDENTITY)
     )
+  }
+
+  private def isNonTrivialInverse(
+    entry : (SpcFormAssocEdge, SpcFormAssocEdge)) =
+  {
+    val possessorForm = cosmos.getGraph.getPossessorForm(entry._1)
+    val label = entry._2.label
+    (possessorForm.name != label)
   }
 
   def inverseAssocBelief(

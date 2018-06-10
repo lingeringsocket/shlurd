@@ -464,12 +464,6 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       newConstraint, isProperty
     ) => {
       val possessorForm = cosmos.instantiateForm(possessorFormName)
-      if (!isProperty) {
-        if (!cosmos.isRole(possesseeRoleName)) {
-          // FIXME:  maybe throw a more specific excn
-          throw new UnknownPossesseeBeliefExcn(sentence)
-        }
-      }
       val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
       val label = possesseeRoleName.lemma
       val edge = cosmos.addFormAssoc(
@@ -548,6 +542,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     ) => {
       val possessorForm = cosmos.instantiateForm(possessorFormName)
       val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
+      cosmos.addFormSynonym(
+        possessorRoleName.lemma, possessorFormName.lemma, true)
       val label = possesseeRoleName.lemma
       val inverseLabel = possessorRoleName.lemma
       val edge = cosmos.addFormAssoc(
