@@ -254,9 +254,14 @@ class SpcCosmos
     qualifiers : Set[String],
     overlap : Boolean) : Boolean =
   {
-    (graph.isHyponym(existing.form, form)) &&
-      (qualifiers.subsetOf(existing.qualifiers) ||
-        (overlap && existing.qualifiers.subsetOf(qualifiers)))
+    if (overlap) {
+      graph.isHyponym(form, existing.form) &&
+        (qualifiers.subsetOf(existing.qualifiers) ||
+          (overlap && existing.qualifiers.subsetOf(qualifiers)))
+    } else {
+      graph.isHyponym(existing.form, form) &&
+        qualifiers.subsetOf(existing.qualifiers)
+    }
   }
 
   protected[platonic] def instantiateEntity(

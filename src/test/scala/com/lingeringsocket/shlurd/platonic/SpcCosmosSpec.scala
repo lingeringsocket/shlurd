@@ -19,6 +19,7 @@ import com.lingeringsocket.shlurd.cosmos._
 
 import org.specs2.mutable._
 
+import scala.collection._
 import scala.io._
 import scala.util._
 
@@ -61,7 +62,7 @@ class SpcCosmosSpec extends Specification
     }
 
     protected def expectUnique(
-      entities : Try[collection.Set[SpcEntity]]) =
+      entities : Try[Set[SpcEntity]]) =
     {
       entities must beSuccessfulTry.which(_.size == 1)
       entities.get.head
@@ -318,6 +319,18 @@ class SpcCosmosSpec extends Specification
       ) must be equalTo(
         SilPropertyState(SilWord("present"))
       )
+    }
+
+    "distinguish entities" in new CosmosContext
+    {
+      addBelief("an interviewer is a kind of person")
+      addBelief("there is an interviewer")
+      addBelief("Larry is a person")
+      val interviewer = expectUnique(
+        cosmos.resolveQualifiedNoun(
+          "interviewer", REF_SUBJECT, Set()))
+      val larry = expectPerson("larry")
+      larry must not be equalTo(interviewer)
     }
 
     "produce entity references" in new CosmosContext
