@@ -26,8 +26,6 @@ import scala.collection.JavaConverters._
 
 import org.jgrapht.util._
 
-import ShlurdEnglishLemmas._
-
 class SpcProperty(val name : String)
     extends ShlurdProperty with ShlurdNamedObject
 {
@@ -177,15 +175,6 @@ class SpcCosmos
     new mutable.LinkedHashMap[SpcFormAssocEdge, SpcFormAssocEdge]
 
   private var nextId = 0
-
-  init()
-
-  private def init()
-  {
-    instantiateForm(SilWord(LEMMA_PERSON))
-    formSynonyms.addSynonym(
-      LEMMA_WHO, LEMMA_PERSON)
-  }
 
   def getForms : Map[String, SpcForm] = forms
 

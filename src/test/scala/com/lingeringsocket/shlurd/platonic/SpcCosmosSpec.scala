@@ -352,6 +352,16 @@ class SpcCosmosSpec extends Specification
       cleared must beSuccessfulTry.which(_.isEmpty)
     }
 
+    "support primordial forms" in new CosmosContext
+    {
+      cosmos.getForms.size must be equalTo 0
+      SpcPrimordial.initCosmos(cosmos)
+      cosmos.getForms.size must be equalTo 1
+      expectNamedForm(LEMMA_PERSON)
+      cosmos.getFormSynonyms.resolveSynonym(LEMMA_WHO) must
+        be equalTo LEMMA_PERSON
+    }
+
     "load beliefs from a file" in new CosmosContext
     {
       val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")

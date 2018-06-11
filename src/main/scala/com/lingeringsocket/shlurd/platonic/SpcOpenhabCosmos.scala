@@ -37,6 +37,7 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
 
   private val roomyRooms = new mutable.LinkedHashSet[String]
 
+  SpcPrimordial.initCosmos(this)
   instantiateForm(SilWord(locationFormName))
   instantiateForm(SilWord(presenceFormName))
 

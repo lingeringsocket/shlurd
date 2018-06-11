@@ -39,6 +39,7 @@ object ShlurdCliApp extends App
     } else {
       println("SHLURD> Loading initial beliefs...")
       val cosmos = new SpcCosmos
+      SpcPrimordial.initCosmos(cosmos)
       val beliefs = ShlurdParser.getResourceFile("/ontologies/console.txt")
       val source = Source.fromFile(beliefs)
       cosmos.loadBeliefs(source)

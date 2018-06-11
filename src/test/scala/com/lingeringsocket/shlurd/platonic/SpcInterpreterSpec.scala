@@ -57,6 +57,8 @@ class SpcInterpreterSpec extends Specification
             entity, property, lemma)
         }
       }
+
+      SpcPrimordial.initCosmos(this)
     }
 
     protected val interpreter =
