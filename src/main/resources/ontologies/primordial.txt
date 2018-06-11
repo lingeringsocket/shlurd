@@ -1,0 +1,1 @@
+A person's gender may be either masculine or feminine.

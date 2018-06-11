@@ -24,7 +24,9 @@ class SpcCreed(cosmos : SpcCosmos)
 {
   def allBeliefs() : Iterable[SilSentence] =
   {
-    cosmos.getFormSynonyms.getAll.filterNot(_._1 == LEMMA_WHO).map(entry => {
+    cosmos.getFormSynonyms.getAll.filterNot(
+      SpcPrimordial.isPrimordialSynonym
+    ).map(entry => {
       if (cosmos.isRole(SilWord(entry._1))) {
         formRoleBelief(entry)
       } else {
@@ -103,9 +105,19 @@ class SpcCreed(cosmos : SpcCosmos)
     property : SpcProperty
   ) : SilSentence =
   {
+    val noun = {
+      if (property.isSynthetic) {
+        formNoun(form)
+      } else {
+        SilGenitiveReference(
+          formNoun(form),
+          nounReference(
+            property.name, COUNT_SINGULAR, DETERMINER_UNSPECIFIED))
+      }
+    }
     SilPredicateSentence(
       SilStatePredicate(
-        formNoun(form),
+        noun,
         if (property.states.size == 1) {
           propertyState(property.states.head)
         } else {

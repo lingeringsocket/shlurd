@@ -1,11 +1,16 @@
-Dirk is a person.
-Todd is a person.
-Amanda is a person.
-Bart is a person.
-A brother must be a person.
-A sister must be a person.
+A person's gender may be masculine, feminine, or fantastic.
+A man is a kind of person.
+A woman is a kind of person.
+A man's gender must be masculine.
+A woman's gender must be feminine.
+Dirk is a man.
+Todd is a man.
+Amanda is a woman.
+Bart is a woman.
+A brother must be a man.
+A sister must be a woman.
 A friend must be a person.
-An uncle must be a person.
+An uncle must be a man.
 A person may have brothers.
 A person may have sisters.
 A person may have friends.
@@ -27,8 +32,8 @@ Bart is Dirk's friend.
 Rapunzel is a dog.
 Bart is Rapunzel's owner.
 BLACKWING is an organization.
-Hugo is a person.
+Hugo is a man.
 Scott is a person.
 Hugo is BLACKWING's operative.
 Scott is BLACKWING's operative.
-Arthur is a person.
+Arthur is a man.

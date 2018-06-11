@@ -71,6 +71,7 @@ class SpcCreedSpec extends Specification
   private val stateMay = "A window may be open or closed."
   private val stateAlias = "A lit light is on."
   private val stateNormalization = "A person at home is present."
+  private val stateProperty = "A dog's mood may be happy or sad."
   private val formTaxonomy = "A duck is a kind of a bird."
   private val formSynonym = "An automobile is a car."
   private val formRole = "A mentor must be a person."
@@ -110,6 +111,11 @@ class SpcCreedSpec extends Specification
     "preserve state normalizations" in new CosmosContext
     {
       expectPreserved(Seq(stateNormalization))
+    }
+
+    "preserve state property" in new CosmosContext
+    {
+      expectPreserved(Seq(stateProperty))
     }
 
     "preserve form synonyms" in new CosmosContext

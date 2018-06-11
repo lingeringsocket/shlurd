@@ -48,6 +48,8 @@ class SpcProperty(val name : String)
     states.put(word.lemma, word.inflected)
   }
 
+  def isSynthetic = name.contains('_')
+
   override def toString = s"SpcProperty($name)"
 }
 
@@ -464,17 +466,35 @@ class SpcCosmos
     resolveFormProperty(entity.form, lemma)
   }
 
-  private def resolveFormProperty(
+  def resolveFormProperty(
     form : SpcForm,
     lemma : String) : Try[(SpcProperty, String)] =
   {
     graph.getHypernyms(form).foreach(hyperForm => {
       hyperForm.resolveProperty(lemma) match {
-        case Some(pair) => return Success(pair)
+        case Some((property, stateName)) => {
+          return Success(
+            (findProperty(form, property.name).getOrElse(property),
+              stateName))
+        }
         case _ =>
       }
     })
     fail(s"unknown property $lemma")
+  }
+
+  def findProperty(
+    form : SpcForm, name : String) : Option[SpcProperty] =
+  {
+    graph.getHypernyms(form).foreach(hyperForm => {
+      hyperForm.properties.get(name) match {
+        case Some(matchingProperty) => {
+          return Some(matchingProperty)
+        }
+        case _ =>
+      }
+    })
+    None
   }
 
   def properReference(entity : SpcEntity) =
@@ -514,6 +534,14 @@ class SpcCosmos
     property : SpcProperty,
     lemma : String) : Try[Trilean] =
   {
+    if (property.isClosed) {
+      if (property.getStates.size == 1) {
+        return Success(Trilean(lemma == property.getStates.keySet.head))
+      }
+      if (!property.getStates.contains(lemma)) {
+        return Success(Trilean.False)
+      }
+    }
     val hypernymSet = graph.getHypernyms(entity.form).toSet
     val propertyEdgeNames = hypernymSet.flatMap { form =>
       getFormAssocGraph.outgoingEdgesOf(form).asScala.

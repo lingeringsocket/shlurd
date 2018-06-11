@@ -763,7 +763,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     val result = cosmos.resolveProperty(entity, state.lemma) match {
       case Success((property, stateName)) => {
         resultCollector.states += SilWord(
-          property.getStates()(stateName), stateName)
+          property.getStates().get(stateName).getOrElse(stateName), stateName)
         cosmos.evaluateEntityPropertyPredicate(
           entity, property, stateName)
       }

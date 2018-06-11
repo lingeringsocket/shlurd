@@ -188,6 +188,10 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "who is a person",
         "Dirk, Todd, Amanda, Bart, Hugo, Scott, and Arthur are persons.")
+      // FIXME custom pluralization
+      interpret(
+        "who is a man",
+        "Dirk, Todd, Hugo, and Arthur are mans.")
       interpret(
         "who is a brother",
         "Todd is a brother.")
@@ -219,7 +223,34 @@ class SpcInterpreterSpec extends Specification
         "Hugo is one of BLACKWING's operatives.")
       interpret(
         "who is Arthur",
-        "Arthur is a person.")
+        "Arthur is a man.")
+      interpret(
+        "is Todd masculine",
+        "Yes, Todd is masculine.")
+      interpret(
+        "is Todd feminine",
+        "No, Todd is not feminine.")
+      interpret(
+        "is Todd fantastic",
+        "No, Todd is not fantastic.")
+      interpret(
+        "is Amanda feminine",
+        "Yes, Amanda is feminine.")
+      interpret(
+        "is Amanda masculine",
+        "No, Amanda is not masculine.")
+      interpret(
+        "is Amanda fantastic",
+        "No, Amanda is not fantastic.")
+      interpret(
+        "is Scott masculine",
+        "I don't know.")
+      interpret(
+        "is Scott feminine",
+        "I don't know.")
+      interpret(
+        "is Scott fantastic",
+        "I don't know.")
       interpret(
         "is BLACKWING Hugo's employer",
         "Yes, BLACKWING is Hugo's employer.")

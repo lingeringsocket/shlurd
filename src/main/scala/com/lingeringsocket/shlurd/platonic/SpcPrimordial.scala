@@ -16,14 +16,23 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 
+import scala.io._
+
 import ShlurdEnglishLemmas._
 
 object SpcPrimordial
 {
   def initCosmos(cosmos : SpcCosmos)
   {
-    cosmos.instantiateForm(SilWord(LEMMA_PERSON))
+    cosmos.loadBeliefs(
+      Source.fromFile(
+        ShlurdParser.getResourceFile("/ontologies/primordial.txt")))
     // all the Whos down in Whoville
     cosmos.addFormSynonym(LEMMA_WHO, LEMMA_PERSON, false)
+  }
+
+  def isPrimordialSynonym(pair : (String, _)) : Boolean =
+  {
+    pair._1 == LEMMA_WHO
   }
 }

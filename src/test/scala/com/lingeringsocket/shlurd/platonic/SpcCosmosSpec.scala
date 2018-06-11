@@ -305,6 +305,20 @@ class SpcCosmosSpec extends Specification
       frontDoor must beSuccessfulTry.which(_.size == 1)
     }
 
+    "accept override belief" in new CosmosContext
+    {
+      addBelief("a portal must be open or closed")
+      addBelief("a door is a kind of portal")
+      addBelief("a door must be open")
+      expectNamedForm("door")
+      val form = cosmos.getForms("door")
+      val property = expectSingleProperty(form)
+      property.isClosed must beTrue
+      val states = property.getStates
+      states.size must be equalTo 1
+      states must contain("open" -> "open")
+    }
+
     "accept alternative phrasing" in new CosmosContext
     {
       addBelief("A person must be either present or absent")
@@ -358,6 +372,14 @@ class SpcCosmosSpec extends Specification
       SpcPrimordial.initCosmos(cosmos)
       cosmos.getForms.size must be equalTo 1
       expectNamedForm(LEMMA_PERSON)
+      val form = cosmos.getForms(LEMMA_PERSON)
+      val propGender = expectSingleProperty(form)
+      propGender.name must be equalTo LEMMA_GENDER
+      propGender.isClosed must beFalse
+      val genderValues = propGender.getStates
+      genderValues.size must be equalTo 2
+      genderValues must contain(LEMMA_MASCULINE -> LEMMA_MASCULINE)
+      genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
       cosmos.getFormSynonyms.resolveSynonym(LEMMA_WHO) must
         be equalTo LEMMA_PERSON
     }
@@ -380,6 +402,14 @@ class SpcCosmosSpec extends Specification
     "reject contradictory belief" in new CosmosContext
     {
       addBelief("a door must be open or closed")
+      addBelief("a door may be open or ajar") must
+        throwA[ContradictoryBeliefExcn]
+    }
+
+    "reject contradictory override belief" in new CosmosContext
+    {
+      addBelief("a portal must be open or closed")
+      addBelief("a door is a kind of portal")
       addBelief("a door may be open or ajar") must
         throwA[ContradictoryBeliefExcn]
     }

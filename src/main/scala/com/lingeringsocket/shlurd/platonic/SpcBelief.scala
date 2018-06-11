@@ -107,7 +107,8 @@ case class FormPropertyBelief(
   sentence : SilSentence,
   formName : SilWord,
   states : Seq[SilWord],
-  isClosed : Boolean
+  isClosed : Boolean,
+  propertyName : Option[SilWord] = None
 ) extends SpcBelief
 {
 }

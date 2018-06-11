@@ -104,12 +104,21 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
               }
               case _ => {
                 if (!qualifiers.isEmpty) {
-                  // maybe we should allow constraints on
-                  // qualified entities?
-                  return Some(UnimplementedBelief(sentence))
+                  if ((qualifiers.size > 1) ||
+                    !ref.isInstanceOf[SilGenitiveReference])
+                  {
+                    // maybe we should allow constraints on
+                    // qualified entities?
+                    return Some(UnimplementedBelief(sentence))
+                  } else {
+                    // "a cat's voracity must be carnivore"
+                    return definePropertyBelief(
+                      sentence, qualifiers.head, Some(noun), state, mood)
+                  }
                 }
+                // "a lifeform may be either animal or vegetable"
                 return definePropertyBelief(
-                  sentence, noun, qualifiers, state, mood)
+                  sentence, noun, None, state, mood)
               }
             }
           }
@@ -278,7 +287,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
   private def definePropertyBelief(
     sentence : SilSentence,
     formName : SilWord,
-    qualifiers : Seq[SilWord],
+    propertyName : Option[SilWord],
     state : SilState,
     mood : SilMood)
       : Option[SpcBelief] =
@@ -308,7 +317,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     }
     val isClosed = (mood.getModality == MODAL_MUST)
     Some(FormPropertyBelief(
-      sentence, formName, newStates, isClosed))
+      sentence, formName, newStates, isClosed, propertyName))
   }
 
   private def resolveUniqueName(word : SilWord)
@@ -378,11 +387,12 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
             sentence, subRef,
             preQualifiers ++ SilReference.extractQualifiers(state))
         }
+      // FIXME:  be pickier about determiners here
       case SilGenitiveReference(
         SilNounReference(
-          possessor, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+          possessor, _, COUNT_SINGULAR),
         SilNounReference(
-          possession, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)) =>
+          possession, _, COUNT_SINGULAR)) =>
         {
           (possession, Seq(possessor), COUNT_SINGULAR, false)
         }
@@ -435,6 +445,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     case FormTaxonomyBelief(
       sentence, specificFormName, genericFormName
     ) => {
+      // FIXME need to make sure all hypernyms are (and remain) compatible
       val specificForm = cosmos.instantiateForm(specificFormName)
       val genericForm = cosmos.instantiateForm(genericFormName)
       try {
@@ -556,38 +567,63 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
 
   beliefApplier {
     case FormPropertyBelief(
-      sentence, formName, newStates, isClosed
+      sentence, formName, newStates, isClosed, propertyNameOpt
     ) => {
       val form = cosmos.instantiateForm(formName)
-      val properties = newStates.flatMap(
-        w => form.resolveProperty(w.lemma).map(_._1).toSeq)
-      val property = properties match {
-        case Seq() => {
-          form.instantiateProperty(
-            SilWord(formName.lemma + "_" +
-              newStates.map(_.lemma).mkString("_")))
-        }
-        case Seq(p) => {
-          // FIXME:  if we add more states to an existing property,
-          // we should rename the property too
-          p
+      val property = propertyNameOpt match {
+        case Some(propertyName) => {
+          form.instantiateProperty(propertyName)
         }
         case _ => {
-          // maybe unify multiple properties??
-          throw new UnimplementedBeliefExcn(sentence)
+          val properties = newStates.flatMap(
+            w => form.resolveProperty(w.lemma).map(_._1).toSeq)
+          properties match {
+            case Seq() => {
+              form.instantiateProperty(
+                SilWord(formName.lemma + "_" +
+                  newStates.map(_.lemma).mkString("_")))
+            }
+            case Seq(p) => {
+              // FIXME:  if we add more states to an existing property,
+              // we should rename the property too
+              p
+            }
+            case _ => {
+              // maybe unify multiple properties??
+              throw new UnimplementedBeliefExcn(sentence)
+            }
+          }
         }
       }
-      if (property.isClosed) {
-        if (!newStates.map(_.lemma).toSet.subsetOf(property.getStates.keySet)) {
+      val baselineProperty = propertyNameOpt match {
+        case Some(propertyName) => {
+          cosmos.findProperty(form, propertyName.lemma).getOrElse(property)
+        }
+        case _ => {
+          val hyperProperties = newStates.flatMap(
+            w => cosmos.resolveFormProperty(form, w.lemma).
+              toOption.map(_._1).toSeq)
+          hyperProperties match {
+            case Seq() => property
+            case Seq(hyperProperty) => hyperProperty
+            case _ => {
+              throw new UnimplementedBeliefExcn(sentence)
+            }
+          }
+        }
+      }
+      if (baselineProperty.isClosed) {
+        if (!newStates.map(_.lemma).toSet.subsetOf(
+          baselineProperty.getStates.keySet))
+        {
           throw new ContradictoryBeliefExcn(
             sentence,
-            creed.formPropertyBelief(form, property))
+            creed.formPropertyBelief(form, baselineProperty))
         }
-      } else {
-        newStates.foreach(property.instantiateState(_))
-        if (isClosed) {
-          property.closeStates
-        }
+      }
+      newStates.foreach(property.instantiateState(_))
+      if (isClosed || baselineProperty.isClosed) {
+        property.closeStates
       }
     }
   }
