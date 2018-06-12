@@ -24,8 +24,11 @@ A conspiracy is a kind of organization.
 An employer must be an organization.
 A person may have an employer.
 An organization with an operative is an employer.
+A man with a brother is a brother.
+A man with a sister is a brother.
+A woman with a brother is a sister.
+A woman with a sister is a sister.
 Todd is Amanda's brother.
-Amanda is Todd's sister.
 Dirk is Todd's friend.
 Todd is Dirk's friend.
 Bart is Dirk's friend.

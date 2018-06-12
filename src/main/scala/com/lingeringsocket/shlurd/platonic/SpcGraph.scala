@@ -18,8 +18,13 @@ import org.jgrapht._
 import org.jgrapht.graph._
 import org.jgrapht.alg.shortestpath._
 import org.jgrapht.traverse._
+import org.jgrapht.io._
+
+import java.io._
 
 import scala.collection.JavaConverters._
+
+import GmlExporter.Parameter._
 
 object SpcGraph
 {
@@ -59,6 +64,8 @@ class SpcLabeledEdge(
       case _ => false
     }
   }
+
+  override def toString = super.toString + " : " + label
 }
 
 class SpcFormAssocEdge(
@@ -114,17 +121,29 @@ class SpcGraph(
     possessee : SpcForm,
     label : String) : Option[SpcFormAssocEdge] =
   {
-    val edges = formAssocs.edgeSet.asScala.filter(_.label == label)
-    edges.foreach(edge => {
-      val hyperPossessor = getPossessorForm(edge)
-      val hyperPossessee = getPossesseeForm(edge)
-      if (isHyponym(possessor, hyperPossessor) &&
-        isHyponym(possessee, hyperPossessee))
-      {
-        return Some(edge)
+    val edges = formAssocs.edgeSet.asScala.filter(edge =>
+      (edge.label == label) &&
+        isHyponym(possessor, getPossessorForm(edge)) &&
+        isHyponym(possessee, getPossesseeForm(edge)))
+    def compareEdges(
+      edge1 : SpcFormAssocEdge, edge2 : SpcFormAssocEdge) : Boolean =
+    {
+      def possessor1 = getPossessorForm(edge1)
+      def possessor2 = getPossessorForm(edge2)
+      if (isHyponym(possessor1, possessor2)) {
+        if (possessor1 == possessor2) {
+          val possessee1 = getPossesseeForm(edge1)
+          val possessee2 = getPossesseeForm(edge2)
+          assert (possessee1 != possessee2)
+          isHyponym(possessee1, possessee2)
+        } else {
+          true
+        }
+      } else {
+        false
       }
-    })
-    None
+    }
+    edges.toSeq.sortWith(compareEdges).headOption
   }
 
   def isHyponym(
@@ -143,5 +162,15 @@ class SpcGraph(
     form : SpcForm) : Iterator[SpcForm] =
   {
     new BreadthFirstIterator(formTaxonomy, form).asScala
+  }
+
+  def render[V, E](graph : Graph[V, E]) : String =
+  {
+    val exporter = new GmlExporter[V, E]
+    exporter.setParameter(EXPORT_VERTEX_LABELS, true)
+    exporter.setParameter(EXPORT_EDGE_LABELS, true)
+    val sw = new StringWriter
+    exporter.exportGraph(graph, sw)
+    sw.toString
   }
 }

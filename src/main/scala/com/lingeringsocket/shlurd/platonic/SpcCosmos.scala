@@ -425,9 +425,9 @@ class SpcCosmos
     label : String)
       : Set[SpcEntity] =
   {
-    getEntityAssocGraph.outgoingEdgesOf(possessor).
-      asScala.filter(_.label == label).map(
-        graph.getPossesseeEntity)
+    ShlurdParseUtils.orderedSet(getEntityAssocGraph.outgoingEdgesOf(possessor).
+      asScala.toSeq.filter(_.label == label).map(
+        graph.getPossesseeEntity))
   }
 
   def isRole(name : SilWord) : Boolean =
@@ -463,24 +463,27 @@ class SpcCosmos
     entity : SpcEntity,
     lemma : String) : Try[(SpcProperty, String)] =
   {
-    resolveFormProperty(entity.form, lemma)
+    resolveFormProperty(entity.form, lemma) match {
+      case Some((property, stateName)) => Success((property, stateName))
+      case _ => fail(s"unknown property $lemma")
+    }
   }
 
   def resolveFormProperty(
     form : SpcForm,
-    lemma : String) : Try[(SpcProperty, String)] =
+    lemma : String) : Option[(SpcProperty, String)] =
   {
     graph.getHypernyms(form).foreach(hyperForm => {
       hyperForm.resolveProperty(lemma) match {
         case Some((property, stateName)) => {
-          return Success(
+          return Some(
             (findProperty(form, property.name).getOrElse(property),
               stateName))
         }
         case _ =>
       }
     })
-    fail(s"unknown property $lemma")
+    None
   }
 
   def findProperty(
@@ -558,7 +561,7 @@ class SpcCosmos
             lemma)
         }
         resolveFormProperty(propertyEntity.form, lemma) match {
-          case Success((underlyingProperty, stateName)) => {
+          case Some((underlyingProperty, stateName)) => {
             return evaluateEntityPropertyPredicate(
               propertyEntity,
               underlyingProperty,

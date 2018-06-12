@@ -446,6 +446,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       sentence, specificFormName, genericFormName
     ) => {
       // FIXME need to make sure all hypernyms are (and remain) compatible
+      // FIXME also need to allow existing form to be refined
       val specificForm = cosmos.instantiateForm(specificFormName)
       val genericForm = cosmos.instantiateForm(genericFormName)
       try {
@@ -522,6 +523,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         possessor.form, possessee.form, label) match
       {
         case Some(formAssoc) => {
+          // FIXME need to do constraint checking for inverse edges as well!
           val constraint = cosmos.getAssocConstraints(formAssoc)
           val entityAssocGraph = cosmos.getEntityAssocGraph
           val edges = entityAssocGraph.
@@ -602,7 +604,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         case _ => {
           val hyperProperties = newStates.flatMap(
             w => cosmos.resolveFormProperty(form, w.lemma).
-              toOption.map(_._1).toSeq)
+              map(_._1).toSeq)
           hyperProperties match {
             case Seq() => property
             case Seq(hyperProperty) => hyperProperty
