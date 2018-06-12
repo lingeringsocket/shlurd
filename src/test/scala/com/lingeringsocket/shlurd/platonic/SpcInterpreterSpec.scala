@@ -484,6 +484,11 @@ class SpcInterpreterSpec extends Specification
         "Previously I was told that a dog may have one owner and Bart " +
           "is Rapunzel's owner.  So it does not add up when I hear that " +
           "Amanda is Rapunzel's owner.")
+      interpret(
+        "Scott is RowdyThree's operative",
+        "Previously I was told that a person may have one employer and " +
+          "BLACKWING is Scott's employer.  So it does not add up when I " +
+          "hear that Scott is RowdyThree's operative.")
     }
   }
 }

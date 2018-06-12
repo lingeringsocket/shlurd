@@ -333,7 +333,7 @@ class SpcCosmos
     possessee : SpcEntity,
     label : String) : SpcEntityAssocEdge =
   {
-    graph.getFormAssoc(possessor.form, possessee.form, label) match {
+    graph.getFormAssocEdge(possessor.form, possessee.form, label) match {
       case Some(formAssocEdge) => {
         val edge = addEntityAssocEdge(
           possessor, possessee, formAssocEdge)
@@ -352,7 +352,7 @@ class SpcCosmos
     }
   }
 
-  private def addEntityAssocEdge(
+  protected[platonic] def addEntityAssocEdge(
     possessor : SpcEntity,
     possessee : SpcEntity,
     formAssocEdge : SpcFormAssocEdge) : SpcEntityAssocEdge =

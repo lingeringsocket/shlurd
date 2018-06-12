@@ -116,7 +116,7 @@ class SpcGraph(
   def getPossesseeEntity(edge : SpcEntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
 
-  def getFormAssoc(
+  def getFormAssocEdge(
     possessor : SpcForm,
     possessee : SpcForm,
     label : String) : Option[SpcFormAssocEdge] =

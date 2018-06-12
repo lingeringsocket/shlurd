@@ -35,6 +35,7 @@ Bart is Dirk's friend.
 Rapunzel is a dog.
 Bart is Rapunzel's owner.
 BLACKWING is an organization.
+RowdyThree is an organization.
 Hugo is a man.
 Scott is a person.
 Hugo is BLACKWING's operative.

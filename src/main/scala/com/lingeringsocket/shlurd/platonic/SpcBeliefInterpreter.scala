@@ -400,6 +400,29 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     }
   }
 
+  private def validateEdgeCardinality(
+    sentence : SilSentence,
+    formAssoc : SpcFormAssocEdge,
+    possessor : SpcEntity)
+  {
+    val constraint = cosmos.getAssocConstraints(formAssoc)
+    val entityAssocGraph = cosmos.getEntityAssocGraph
+    val edges = entityAssocGraph.
+      outgoingEdgesOf(possessor).asScala.
+      filter(_.label == formAssoc.label)
+
+    val edgeCount = edges.size
+    if (edgeCount >= constraint.upper) {
+      val originalBelief = SilConjunctiveSentence(
+        DETERMINER_ALL,
+        Seq(creed.formAssociationBelief(formAssoc)) ++
+          edges.map(creed.entityAssociationBelief(_)),
+        SEPARATOR_OXFORD_COMMA)
+      throw new IncrementalCardinalityExcn(
+        sentence, originalBelief)
+    }
+  }
+
   def beliefApplier(applier : BeliefApplier)
   {
     beliefAppliers += applier
@@ -494,6 +517,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     case EntityExistenceBelief(
       sentence, formName, qualifiers, properName
     ) => {
+      // FIXME also need to allow existing form to be refined
       val form = cosmos.instantiateForm(formName)
       val (entity, success) = cosmos.instantiateEntity(
         form, qualifiers, properName)
@@ -519,28 +543,24 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       }
       val possessor = possessorOpt.get
       val possessee = possesseeOpt.get
-      cosmos.getGraph.getFormAssoc(
+      cosmos.getGraph.getFormAssocEdge(
         possessor.form, possessee.form, label) match
       {
-        case Some(formAssoc) => {
-          // FIXME need to do constraint checking for inverse edges as well!
-          val constraint = cosmos.getAssocConstraints(formAssoc)
-          val entityAssocGraph = cosmos.getEntityAssocGraph
-          val edges = entityAssocGraph.
-            outgoingEdgesOf(possessor).asScala.toSeq.
-            filter(_.label == label)
-
-          val edgeCount = edges.size
-          if (edgeCount >= constraint.upper) {
-            val originalBelief = SilConjunctiveSentence(
-              DETERMINER_ALL,
-              Seq(creed.formAssociationBelief(formAssoc)) ++
-                edges.map(creed.entityAssociationBelief(_)),
-              SEPARATOR_OXFORD_COMMA)
-            throw new IncrementalCardinalityExcn(
-              sentence, originalBelief)
+        case Some(formAssocEdge) => {
+          validateEdgeCardinality(sentence, formAssocEdge, possessor)
+          cosmos.getInverseAssocEdges.get(formAssocEdge) match {
+            case Some(inverseAssocEdge) => {
+              validateEdgeCardinality(sentence, inverseAssocEdge, possessee)
+              cosmos.addEntityAssocEdge(
+                possessor, possessee, formAssocEdge)
+              cosmos.addEntityAssocEdge(
+                possessee, possessor, inverseAssocEdge)
+            }
+            case _ => {
+              cosmos.addEntityAssocEdge(
+                possessor, possessee, formAssocEdge)
+            }
           }
-          cosmos.addEntityAssoc(possessor, possessee, label)
         }
         case _ => {
           throw new MissingAssocBeliefExcn(sentence)
