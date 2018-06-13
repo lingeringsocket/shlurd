@@ -19,6 +19,12 @@ import org.kiama.util._
 
 import org.slf4j._
 
+import scala.collection._
+
+trait SilRewriteOption
+case object REWRITE_REPEAT extends SilRewriteOption
+case object REWRITE_TOP_DOWN extends SilRewriteOption
+
 class SilPhraseRewriter
 {
   type SilPhraseReplacement = PartialFunction[SilPhrase, SilPhrase]
@@ -60,13 +66,12 @@ class SilPhraseRewriter
   def rewrite[PhraseType <: SilPhrase](
     rule : SilPhraseReplacement,
     phrase : PhraseType,
-    repeat : Boolean = false,
-    topDown : Boolean = false)
+    options : Set[SilRewriteOption] = Set())
       : PhraseType =
   {
     val strategy = {
       val ruleStrategy = SyntaxPreservingRewriter.rule(rule)
-      if (topDown) {
+      if (options.contains(REWRITE_TOP_DOWN)) {
         SyntaxPreservingRewriter.manytd(
           "rewriteEverywhere",
           ruleStrategy)
@@ -88,7 +93,7 @@ class SilPhraseRewriter
       }
     }
     val finalStrategy = {
-      if (repeat) {
+      if (options.contains(REWRITE_REPEAT)) {
         SyntaxPreservingRewriter.rewrite[PhraseType](
           SyntaxPreservingRewriter.repeat(
             "rewriteRepeat",

@@ -332,6 +332,9 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "how many vehicles are there",
         "There are 2 of them.")
+      interpret(
+        "Herbie and Titanic are vehicles?",
+        "Yes, they are vehicles.")
       // FIXME resolve number agreement
       interpret(
         "which vehicles are there",
@@ -351,6 +354,11 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "are Herbie and Titanic vehicles",
         "Yes, they are vehicles.")
+    }
+
+    "foo" in new InterpreterContext
+    {
+      loadBeliefs("/ontologies/vehicles.txt")
     }
 
     "respond correctly when no person exists" in new InterpreterContext

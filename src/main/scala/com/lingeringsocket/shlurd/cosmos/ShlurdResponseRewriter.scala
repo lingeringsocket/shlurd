@@ -133,11 +133,9 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       avoidTautologies,
       rewrite2)
     val rewrite4 = rewrite(
-      combineRules(
-        replaceResolvedReferences(resultCollector.referenceMap),
-        flipPronouns),
+      replaceResolvedReferences(resultCollector.referenceMap),
       rewrite3)
-    val rewriteLast = {
+    val rewrite5 = {
       val useThirdPartyPronouns = predicate match {
         case SilStatePredicate(_, SilExistenceState()) => false
         case _ => params.thirdPartyPronouns
@@ -169,17 +167,19 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
         querier.query(preprocess, rewrite4)
+        // use top down rewrite so that replacement of leaf references
+        // does not mess up replacement of containing references
         rewrite(
           replaceThirdPersonReferences(referenceMap),
           rewrite4,
-          false,
-          // top down so that replacement of leaf references
-          // does not mess up replacement of containing references
-          true)
+          Set(REWRITE_TOP_DOWN))
       } else {
         rewrite4
       }
     }
+    val rewriteLast = rewrite(
+      flipPronouns,
+      rewrite5)
 
     SilPhraseValidator.validatePhrase(rewriteLast)
 

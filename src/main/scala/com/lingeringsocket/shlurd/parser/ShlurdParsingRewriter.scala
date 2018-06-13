@@ -24,7 +24,8 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
   {
     val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
     val expected = SilExpectedSentence(sentenceSyntaxTree, forceSQ)
-    val phrase = rewrite[SilSentence](replaceAllPhrases, expected, true)
+    val phrase = rewrite[SilSentence](
+      replaceAllPhrases, expected, Set(REWRITE_REPEAT))
     val completed = rewrite(replaceUnresolvedWithUnrecognized, phrase)
     if (!completed.hasUnknown) {
       query(validateResult, completed)
