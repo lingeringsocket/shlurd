@@ -28,6 +28,7 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "spire" % "0.14.1",
   "org.jgrapht" % "jgrapht-core" % "1.2.0",
   "org.jgrapht" % "jgrapht-io" % "1.2.0",
+  "org.atteo" % "evo-inflector" % "1.2.2",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-english"

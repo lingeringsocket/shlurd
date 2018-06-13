@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.print
 
 import com.lingeringsocket.shlurd.parser._
 
+import org.atteo.evo.inflector.{English => EnglishPluralizer}
+
 import ShlurdEnglishLemmas._
 
 class EnglishSentenceBundle
@@ -227,11 +229,7 @@ class EnglishSentenceBundle
             lemma
           }
           case COUNT_PLURAL => {
-            if (lemma.endsWith("s")) {
-              concat(lemma, "es")
-            } else {
-              concat(lemma, "s")
-            }
+            EnglishPluralizer.plural(lemma)
           }
         }
         inflection match {

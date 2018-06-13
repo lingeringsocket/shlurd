@@ -284,6 +284,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
+  // FIXME:  this needs to be limited in cases where
+  // it results in ambiguity
   private def replaceThirdPersonReferences(
     referenceMap : Map[SilReference, Set[E]]
   ) = replacementMatcher {

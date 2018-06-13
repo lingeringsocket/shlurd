@@ -192,10 +192,9 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "who is a person",
         "Dirk, Todd, Amanda, Bart, Hugo, Scott, and Arthur are persons.")
-      // FIXME custom pluralization
       interpret(
         "who is a man",
-        "Dirk, Todd, Hugo, and Arthur are mans.")
+        "Dirk, Todd, Hugo, and Arthur are men.")
       interpret(
         "who is a brother",
         "Todd is a brother.")
