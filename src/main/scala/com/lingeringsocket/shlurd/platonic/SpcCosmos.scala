@@ -248,7 +248,7 @@ class SpcCosmos
     if (overlap) {
       graph.isHyponym(form, existing.form) &&
         (qualifiers.subsetOf(existing.qualifiers) ||
-          (overlap && existing.qualifiers.subsetOf(qualifiers)))
+          existing.qualifiers.subsetOf(qualifiers))
     } else {
       graph.isHyponym(existing.form, form) &&
         qualifiers.subsetOf(existing.qualifiers)
@@ -448,8 +448,8 @@ class SpcCosmos
       }
       case _ => {
         val results = entities.values.filter(
-            entity => hasQualifiers(
-              entity, entity.form, qualifiers + lemma, false))
+          entity => hasQualifiers(
+            entity, entity.form, qualifiers + lemma, false))
         if (results.isEmpty) {
           fail(s"unknown entity $lemma")
         } else {

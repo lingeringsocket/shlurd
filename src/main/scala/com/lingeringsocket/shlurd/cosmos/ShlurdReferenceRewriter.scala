@@ -21,7 +21,8 @@ import scala.util._
 
 class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   cosmos : ShlurdCosmos[E, P],
-  sentencePrinter : SilSentencePrinter)
+  sentencePrinter : SilSentencePrinter,
+  resultCollector : ResultCollector[E])
     extends SilPhraseRewriter
 {
   def rewriteReferences = replacementMatcher {
@@ -32,7 +33,10 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         noun.lemma, REF_SUBJECT, Set.empty) match
       {
         case Success(entities) => {
-          SilResolvedReference(entities, noun, nr.determiner)
+          val rr = SilResolvedReference(entities, noun, nr.determiner)
+          resultCollector.referenceMap.put(rr, entities)
+          resultCollector.referenceMap.put(nr, entities)
+          rr
         }
         case Failure(e) => {
           throw cosmos.fail(sentencePrinter.sb.respondUnknown(noun)).exception

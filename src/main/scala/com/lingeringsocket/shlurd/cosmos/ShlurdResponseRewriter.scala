@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cosmos
 
+import scala.collection._
+
 import com.lingeringsocket.shlurd.parser._
 
 import ShlurdEnglishLemmas._
@@ -130,11 +132,54 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     val rewrite3 = rewrite(
       avoidTautologies,
       rewrite2)
-    val rewriteLast = rewrite(
+    val rewrite4 = rewrite(
       combineRules(
-        replaceResolvedReferences,
+        replaceResolvedReferences(resultCollector.referenceMap),
         flipPronouns),
       rewrite3)
+    val rewriteLast = {
+      val useThirdPartyPronouns = predicate match {
+        case SilStatePredicate(_, SilExistenceState()) => false
+        case _ => params.thirdPartyPronouns
+      }
+      if (useThirdPartyPronouns) {
+        val querier = new SilPhraseRewriter
+        val referenceMap = resultCollector.referenceMap
+        def preprocess = querier.queryMatcher {
+          case SilGenitiveReference(possessor, possessee) => {
+            referenceMap.remove(possessee)
+          }
+          case SilStateSpecifiedReference(sub, state) => {
+            referenceMap.remove(sub)
+          }
+          case SilAdpositionalState(_, sub) => {
+            referenceMap.remove(sub)
+          }
+          case cr @ SilConjunctiveReference(determiner, references, _) => {
+            if ((determiner != DETERMINER_ALL) ||
+              !references.forall(r => referenceMap.contains(r)))
+            {
+              referenceMap --= references
+            } else {
+              referenceMap.put(
+                cr,
+                ShlurdParseUtils.orderedSet(
+                  references.flatMap(r => referenceMap(r))))
+            }
+          }
+        }
+        querier.query(preprocess, rewrite4)
+        rewrite(
+          replaceThirdPersonReferences(referenceMap),
+          rewrite4,
+          false,
+          // top down so that replacement of leaf references
+          // does not mess up replacement of containing references
+          true)
+      } else {
+        rewrite4
+      }
+    }
 
     SilPhraseValidator.validatePhrase(rewriteLast)
 
@@ -211,8 +256,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     entity : E,
     determiner : SilDeterminer) : SilReference =
   {
-    // FIXME:  something better for SilWord
-    SilResolvedReference(Set(entity), SilWord(entity.toString), determiner)
+    SilResolvedReference(Set(entity), SilWord(""), determiner)
   }
 
   private def chooseReference(
@@ -228,9 +272,37 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  private def replaceResolvedReferences = replacementMatcher {
+  private def replaceResolvedReferences(
+    referenceMap : mutable.Map[SilReference, Set[E]]
+  ) = replacementMatcher {
     case rr : SilResolvedReference[E] if (rr.entities.size == 1) => {
-      cosmos.specificReference(rr.entities.head, rr.determiner)
+      val ref = cosmos.specificReference(rr.entities.head, rr.determiner)
+      if (rr.noun.lemma.isEmpty) {
+        referenceMap.remove(ref)
+      }
+      ref
+    }
+  }
+
+  private def replaceThirdPersonReferences(
+    referenceMap : Map[SilReference, Set[E]]
+  ) = replacementMatcher {
+    case ref : SilReference if (referenceMap.contains(ref)) => {
+      ref match {
+        case SilNounReference(_, DETERMINER_UNIQUE, _) |
+            SilStateSpecifiedReference(_, _) |
+            SilConjunctiveReference(_, _, _) |
+            SilResolvedReference(_, _, _) =>
+          {
+            mind.thirdPersonReference(referenceMap(ref)).getOrElse(ref)
+          }
+        case SilNounReference(
+          noun, DETERMINER_UNSPECIFIED, _) if (noun.isProper) =>
+          {
+            mind.thirdPersonReference(referenceMap(ref)).getOrElse(ref)
+          }
+        case _ => ref
+      }
     }
   }
 

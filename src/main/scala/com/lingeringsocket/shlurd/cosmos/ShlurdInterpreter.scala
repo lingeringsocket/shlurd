@@ -34,7 +34,8 @@ case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
 }
 
 case class ShlurdInterpreterParams(
-  listLimit : Int = 3
+  listLimit : Int = 3,
+  thirdPartyPronouns : Boolean = true
 )
 {
   def neverSummarize = (listLimit == Int.MaxValue)
@@ -42,11 +43,20 @@ case class ShlurdInterpreterParams(
   def alwaysSummarize = (listLimit == 0)
 }
 
-class ResultCollector[E<:ShlurdEntity]
+class ResultCollector[E<:ShlurdEntity](
+  val referenceMap : mutable.Map[SilReference, Set[E]])
 {
   val entityMap = new mutable.LinkedHashMap[E, Trilean]
   val states = new mutable.LinkedHashSet[SilWord]
   var isCategorization = false
+
+  def spawn() = new ResultCollector[E](referenceMap)
+}
+
+object ResultCollector
+{
+  def apply[E<:ShlurdEntity]() =
+    new ResultCollector(new mutable.LinkedHashMap[SilReference, Set[E]])
 }
 
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
@@ -102,7 +112,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       val responder = new ShlurdUnrecognizedResponder(sentencePrinter)
       return responder.respond(unrecognized)
     }
-    val resultCollector = new ResultCollector[E]
+    val resultCollector = ResultCollector[E]
     sentence match {
       case SilStateChangeCommand(predicate, _, formality) => {
         debug("STATE CHANGE COMMAND")
@@ -159,7 +169,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             val (normalizedResponse, negateCollection) =
               responseRewriter.normalizeResponse(
                 rewrittenPredicate, resultCollector,
-                generalParams.copy(listLimit = extremeLimit))
+                generalParams.copy(
+                  listLimit = extremeLimit))
             debug(s"NORMALIZED RESPONSE : $normalizedResponse")
             val responseMood = SilIndicativeMood(
               truthBoolean || negateCollection)
@@ -344,7 +355,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     debugDepth += 1
     val predicate = {
       try {
-        rewriteReferences(predicateOriginal)
+        rewriteReferences(predicateOriginal, resultCollector)
       } catch {
         case ex : RuntimeException => {
           return Failure(ex)
@@ -557,7 +568,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           adpositionStates.forall(adp => {
             val adposition = adp.adposition
             val evaluation = evaluatePredicateOverReference(
-              adp.objRef, REF_ADPOSITION_OBJ, new ResultCollector[E])
+              adp.objRef, REF_ADPOSITION_OBJ,
+                resultCollector.spawn)
             {
               (objEntity, entityRef) => {
                 val qualifiers : Set[String] = {
@@ -580,10 +592,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             } else {
               evaluation.get.isTrue
             }
-          }
-          )
+          })
         )
       }
+    }
+    if (!entities.isEmpty) {
+      resultCollector.referenceMap.put(
+        entityRef, ShlurdParseUtils.orderedSet(entities))
     }
     determiner match {
       case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
@@ -640,6 +655,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     evaluator : PredicateEvaluator)
       : Try[Trilean] =
   {
+    val referenceMap = resultCollector.referenceMap
     // FIXME should maybe use normalizeState here, but it's a bit tricky
     reference match {
       case SilNounReference(noun, determiner, count) => {
@@ -670,6 +686,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         // FIXME for third-person, need conversational coreference resolution
         mind.resolvePronoun(person, gender, count) match {
           case Success(entities) => {
+            referenceMap.put(reference, entities)
             debug(s"CANDIDATE ENTITIES : $entities")
             evaluateDeterminer(
               entities.map(
@@ -691,8 +708,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         evaluateDeterminer(results, determiner)
       }
       case SilStateSpecifiedReference(sub, subState) => {
-        evaluatePredicateOverState(
+        val result = evaluatePredicateOverState(
           sub, subState, context, resultCollector, specifiedState, evaluator)
+        referenceMap.get(sub) match {
+          case Some(entities) => {
+            referenceMap.put(reference, entities)
+          }
+          case _ =>
+        }
+        result
       }
       case SilGenitiveReference(possessor, possessee) => {
         val state = SilAdpositionalState(ADP_GENITIVE_OF, possessor)
@@ -799,7 +823,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     resultCollector : ResultCollector[E])
       : Try[Trilean] =
   {
-    val objCollector = new ResultCollector[E]
+    val objCollector = resultCollector.spawn
     evaluatePredicateOverReference(
       objRef, REF_ADPOSITION_OBJ, objCollector)
     {
@@ -822,9 +846,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def rewriteReferences(
-    predicate : SilPredicate) : SilPredicate =
+    predicate : SilPredicate,
+    resultCollector : ResultCollector[E]) : SilPredicate =
   {
-    val referenceRewriter = new ShlurdReferenceRewriter(cosmos, sentencePrinter)
+    val referenceRewriter = new ShlurdReferenceRewriter(
+      cosmos, sentencePrinter, resultCollector)
     referenceRewriter.rewrite(
       referenceRewriter.rewriteReferences, predicate)
   }
@@ -836,7 +862,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     if (responseRewriter.containsWildcard(phrase)) {
       collector
     } else {
-      new ResultCollector[E]
+      collector.spawn
     }
   }
 }

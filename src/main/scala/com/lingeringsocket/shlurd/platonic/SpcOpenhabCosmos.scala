@@ -324,12 +324,12 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
 
     getForms.get(formName) match {
       case Some(form) => {
-        val entity = new SpcEntity(itemName, form, qualifiers)
-        addEntity(entity)
         // for now we silently ignore mismatches...should probably
         // save up as warnings which can be nagged about
         var warning = false
         if (formName == presenceFormName) {
+          val entity = new SpcEntity(itemName, form, Set.empty)
+          addEntity(entity)
           qualifiers.lastOption match {
             case Some(personName) => {
               getPropertyEdges.find(_.label == presenceFormName) match {
@@ -354,6 +354,9 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
             }
             case _ => warning = true
           }
+        } else {
+          val entity = new SpcEntity(itemName, form, qualifiers)
+          addEntity(entity)
         }
       }
       case _ =>

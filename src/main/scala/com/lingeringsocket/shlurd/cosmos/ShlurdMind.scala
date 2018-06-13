@@ -48,6 +48,11 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
     Seq(cosmos.specificReference(entity, determiner))
   }
 
+  def thirdPersonReference(entities : Set[E]) : Option[SilReference] =
+  {
+    None
+  }
+
   private def pronounReference(
     entity : E, pronounEntity : Try[E],
     person : SilPerson)

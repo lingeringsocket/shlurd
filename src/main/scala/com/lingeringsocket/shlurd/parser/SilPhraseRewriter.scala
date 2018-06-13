@@ -60,13 +60,22 @@ class SilPhraseRewriter
   def rewrite[PhraseType <: SilPhrase](
     rule : SilPhraseReplacement,
     phrase : PhraseType,
-    repeat : Boolean = false)
+    repeat : Boolean = false,
+    topDown : Boolean = false)
       : PhraseType =
   {
-    val strategy =
-      SyntaxPreservingRewriter.manybu(
-        "rewriteEverywhere",
-        SyntaxPreservingRewriter.rule(rule))
+    val strategy = {
+      val ruleStrategy = SyntaxPreservingRewriter.rule(rule)
+      if (topDown) {
+        SyntaxPreservingRewriter.manytd(
+          "rewriteEverywhere",
+          ruleStrategy)
+      } else {
+        SyntaxPreservingRewriter.manybu(
+          "rewriteEverywhere",
+          ruleStrategy)
+      }
+    }
     val maybeLogging = {
       if (logger.isDebugEnabled) {
         SyntaxPreservingRewriter.log(

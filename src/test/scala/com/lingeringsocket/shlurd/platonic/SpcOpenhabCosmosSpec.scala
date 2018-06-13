@@ -153,25 +153,25 @@ class SpcOpenhabCosmosSpec extends Specification
 
       interpret(
         "is the door in the garage open",
-        "Yes, the door in the garage is open.")
+        "Yes, it is open.")
       interpret(
         "is the garage door open",
-        "Yes, the garage door is open.")
+        "Yes, it is open.")
       interpret(
         "is the garage door closed",
-        "No, the garage door is not closed.")
+        "No, it is not closed.")
       interpret(
         "is the garden door open",
-        "No, the garden door is not open.")
+        "No, it is not open.")
       interpret(
         "is the garden door closed",
-        "Yes, the garden door is closed.")
+        "Yes, it is closed.")
       interpret(
         "is the guest bedroom door on the ground floor closed",
-        "Yes, the guest bedroom door on the ground floor is closed.")
+        "Yes, it is closed.")
       interpret(
         "is the guest bedroom door on the first floor closed",
-        "No, the guest bedroom door on the first floor is not closed.")
+        "No, it is not closed.")
       interpret(
         "is any door open on the ground floor",
         "Yes, the garage door is open.")
@@ -228,10 +228,10 @@ class SpcOpenhabCosmosSpec extends Specification
         "Sorry, I don't know about any 'stable'.")
       interpret(
         "is the solar light on",
-        "No, the solar light is not on.")
+        "No, it is not on.")
       interpret(
         "is the solar light lit",
-        "No, the solar light is not lit.")
+        "No, it is not lit.")
       interpret(
         "is there a living room",
         "Yes, there is a living room.")
@@ -240,10 +240,10 @@ class SpcOpenhabCosmosSpec extends Specification
         "Yes, there is a master bedroom.")
       interpret(
         "is the living room light on",
-        "Yes, the living room light is on.")
+        "Yes, it is on.")
       interpret(
         "is the family room light on",
-        "Yes, the family room light is on.")
+        "Yes, it is on.")
       interpret(
         "which rooms are on the first floor",
         "The family room, the living room, " +
@@ -256,25 +256,25 @@ class SpcOpenhabCosmosSpec extends Specification
           "and the guest bedroom ceiling light are on.")
       interpret(
         "is the light in the living room lit",
-        "Yes, the light in the living room is lit.")
+        "Yes, it is lit.")
       interpret(
         "is the living room light dark",
-        "No, the living room light is not dark.")
+        "No, it is not dark.")
       interpret(
         "is the light in the living room on",
-        "Yes, the light in the living room is on.")
+        "Yes, it is on.")
       interpret(
         "is the heating in the living room on",
-        "Yes, the heating in the living room is on.")
+        "Yes, it is on.")
       interpret(
         "is the heater in the living room on",
-        "Yes, the heater in the living room is on.")
+        "Yes, it is on.")
       interpret(
         "is the heat in the living room on",
-        "Yes, the heat in the living room is on.")
+        "Yes, it is on.")
       interpret(
         "turn on the heater in the living room",
-        "But the heater in the living room is on already.")
+        "But it is on already.")
       interpret(
         "is there any light in the garage",
         "Yes, there is a garage light.")
@@ -286,19 +286,19 @@ class SpcOpenhabCosmosSpec extends Specification
         "Yes, the bathroom heating is off.")
       interpret(
         "is Jack present",
-        "Yes, Jack is present.")
+        "Yes, he is present.")
       interpret(
         "is Jill present",
-        "No, Jill is not present.")
+        "No, she is not present.")
       interpret(
         "is Larry present",
         "I don't know.")
       interpret(
         "is Jack absent",
-        "No, Jack is not absent.")
+        "No, he is not absent.")
       interpret(
         "is Jill absent",
-        "Yes, Jill is absent.")
+        "Yes, she is absent.")
       interpret(
         "is Larry absent",
         "I don't know.")

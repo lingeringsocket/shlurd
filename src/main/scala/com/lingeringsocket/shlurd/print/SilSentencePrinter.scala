@@ -202,10 +202,14 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           print(state, mood, SilConjoining.NONE))
       }
       case SilRelationshipPredicate(subject, complement, relationship) => {
+        val complementInflection = relationship match {
+          case REL_IDENTITY => INFLECT_NOMINATIVE
+          case REL_ASSOCIATION => INFLECT_ACCUSATIVE
+        }
         sb.relationshipPredicateStatement(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getCopula(subject, SilNullState(), mood, relationship),
-          print(complement, INFLECT_NOMINATIVE, SilConjoining.NONE))
+          print(complement, complementInflection, SilConjoining.NONE))
       }
       case _ : SilUnknownPredicate => {
         sb.unknownPredicateStatement

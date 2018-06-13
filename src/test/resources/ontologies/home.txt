@@ -1,3 +1,7 @@
+A man is a kind of person.
+A woman is a kind of person.
+A man's gender must be masculine.
+A woman's gender must be feminine.
 A door must be either open or closed.
 A light must be either on or off.
 A light that is lit is on.
@@ -10,6 +14,6 @@ A presence that is present is on.
 A presence that is absent is off.
 A person may have a presence as a property.
 A person must be either present or absent.
-Jack is a person.
-Jill is a person.
-Larry is a person.
+Jack is a man.
+Jill is a woman.
+Larry is a man.

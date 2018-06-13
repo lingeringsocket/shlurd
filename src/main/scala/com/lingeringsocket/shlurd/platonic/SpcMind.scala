@@ -17,8 +17,11 @@ package com.lingeringsocket.shlurd.platonic
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.cosmos._
 
+import spire.math._
+
 import scala.collection._
 import scala.collection.JavaConverters._
+import scala.util._
 
 import ShlurdEnglishLemmas._
 
@@ -69,5 +72,51 @@ class SpcMind(cosmos : SpcCosmos) extends ShlurdMind(cosmos)
     }
     super.equivalentReferences(entity, determiner) ++
       genitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
+  }
+
+  override def thirdPersonReference(entities : Set[SpcEntity])
+      : Option[SilReference] =
+  {
+    val gender = {
+      if (entities.size == 1) {
+        val entity = entities.head
+        cosmos.findProperty(entity.form, LEMMA_GENDER) match {
+          case Some(genderProp) => {
+            // FIXME add direct access to state value
+            cosmos.evaluateEntityPropertyPredicate(
+              entity, genderProp, LEMMA_FEMININE) match
+            {
+              case Success(Trilean.True) => {
+                GENDER_F
+              }
+              case _ => {
+                cosmos.evaluateEntityPropertyPredicate(
+                  entity, genderProp, LEMMA_MASCULINE) match
+                {
+                  case Success(Trilean.True) => {
+                    GENDER_M
+                  }
+                  case _ => {
+                    GENDER_N
+                  }
+                }
+              }
+            }
+          }
+          case _ => GENDER_N
+        }
+      } else {
+        // FIXME:  for languages like Spanish, need to be macho
+        GENDER_N
+      }
+    }
+    val count = {
+      if (entities.size == 1) {
+        COUNT_SINGULAR
+      } else {
+        COUNT_PLURAL
+      }
+    }
+    Some(SilPronounReference(PERSON_THIRD, gender, count))
   }
 }
