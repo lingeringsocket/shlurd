@@ -25,6 +25,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
 {
   private val cosmos = mind.getCosmos
 
+  private val querier = new SilPhraseRewriter
+
   def normalizeResponse(
     predicate : SilPredicate,
     resultCollector : ResultCollector[E],
@@ -136,43 +138,12 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       replaceResolvedReferences(resultCollector.referenceMap),
       rewrite3)
     val rewrite5 = {
-      val useThirdPartyPronouns = predicate match {
+      val useThirdPersonPronouns = predicate match {
         case SilStatePredicate(_, SilExistenceState()) => false
-        case _ => params.thirdPartyPronouns
+        case _ => params.thirdPersonPronouns
       }
-      if (useThirdPartyPronouns) {
-        val querier = new SilPhraseRewriter
-        val referenceMap = resultCollector.referenceMap
-        def preprocess = querier.queryMatcher {
-          case SilGenitiveReference(possessor, possessee) => {
-            referenceMap.remove(possessee)
-          }
-          case SilStateSpecifiedReference(sub, state) => {
-            referenceMap.remove(sub)
-          }
-          case SilAdpositionalState(_, sub) => {
-            referenceMap.remove(sub)
-          }
-          case cr @ SilConjunctiveReference(determiner, references, _) => {
-            if ((determiner != DETERMINER_ALL) ||
-              !references.forall(r => referenceMap.contains(r)))
-            {
-              referenceMap --= references
-            } else {
-              referenceMap.put(
-                cr,
-                ShlurdParseUtils.orderedSet(
-                  references.flatMap(r => referenceMap(r))))
-            }
-          }
-        }
-        querier.query(preprocess, rewrite4)
-        // use top down rewrite so that replacement of leaf references
-        // does not mess up replacement of containing references
-        rewrite(
-          replaceThirdPersonReferences(referenceMap),
-          rewrite4,
-          Set(REWRITE_TOP_DOWN))
+      if (useThirdPersonPronouns) {
+        rewriteThirdPersonReferences(resultCollector, rewrite4)
       } else {
         rewrite4
       }
@@ -197,6 +168,66 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
+  class AmbiguousRefDetector(
+    val referenceMap : mutable.Map[SilReference, Set[E]])
+  {
+    val replacedRefMap = new mutable.LinkedHashMap[SilReference, Set[E]]
+    val ambiguousRefs = new mutable.LinkedHashSet[SilReference]
+
+    def analyze(originalRef : SilReference)
+    {
+      val newEntitySet = referenceMap(originalRef)
+      mind.thirdPersonReference(newEntitySet) match {
+        case Some(replacedRef) => {
+          replacedRefMap.get(replacedRef) match {
+            case Some(existingEntitySet) => {
+              if (existingEntitySet != newEntitySet) {
+                // FIXME be a little smarter and choose the "best"
+                // entity to preserve instead of the first one
+                ambiguousRefs += originalRef
+              }
+            }
+            case _ => {
+              replacedRefMap.put(replacedRef, newEntitySet)
+            }
+          }
+        }
+        case _ =>
+      }
+    }
+  }
+
+  private def rewriteThirdPersonReferences(
+    resultCollector : ResultCollector[E],
+    predicate : SilPredicate) : SilPredicate =
+  {
+    val referenceMap = resultCollector.referenceMap
+    val detector = new AmbiguousRefDetector(referenceMap)
+    querier.query(disqualifyThirdPersonReferences(referenceMap), predicate)
+    querier.query(disambiguateThirdPersonReferences(detector), predicate)
+    referenceMap --= detector.ambiguousRefs
+    predicate match {
+      case SilRelationshipPredicate(subject, complement, REL_IDENTITY) => {
+        (referenceMap.get(subject), referenceMap.get(complement)) match {
+          case (Some(subjectEntities), Some(complementEntities)) => {
+            if (subjectEntities == complementEntities) {
+              // prevent a tautology
+              referenceMap -= complement
+            }
+          }
+          case _ =>
+        }
+      }
+      case _ =>
+    }
+    // use top down rewrite so that replacement of leaf references
+    // does not mess up replacement of containing references
+    rewrite(
+      replaceThirdPersonReferences(referenceMap),
+      predicate,
+      Set(REWRITE_TOP_DOWN))
+  }
+
   // "Groot is I" becomes "I am Groot"
   private def flipPronouns = replacementMatcher {
     case SilRelationshipPredicate(
@@ -204,6 +235,16 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       rhs : SilPronounReference,
       REL_IDENTITY
     ) => {
+      SilRelationshipPredicate(
+        rhs,
+        lhs,
+        REL_IDENTITY)
+    }
+    case SilRelationshipPredicate(
+      lhs,
+      rhs @ SilConjunctiveReference(_, references, _),
+      REL_IDENTITY
+    ) if (references.exists(_.isInstanceOf[SilPronounReference])) => {
       SilRelationshipPredicate(
         rhs,
         lhs,
@@ -284,24 +325,81 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  // FIXME:  this needs to be limited in cases where
-  // it results in ambiguity
-  private def replaceThirdPersonReferences(
-    referenceMap : Map[SilReference, Set[E]]
-  ) = replacementMatcher {
-    case ref : SilReference if (referenceMap.contains(ref)) => {
+  private def disqualifyThirdPersonReferences(
+    referenceMap : mutable.Map[SilReference, Set[E]]
+  ) = querier.queryMatcher {
+    case nr @ SilNounReference(noun, determiner, _) => {
+      determiner match {
+        case DETERMINER_UNIQUE =>
+        case DETERMINER_UNSPECIFIED => {
+          if (!noun.isProper) {
+            referenceMap.remove(nr)
+          }
+        }
+        case _ => {
+          referenceMap.remove(nr)
+        }
+      }
+    }
+    case SilGenitiveReference(possessor, possessee) => {
+      referenceMap.remove(possessee)
+    }
+    case SilStateSpecifiedReference(sub, state) => {
+      referenceMap.remove(sub)
+    }
+    case SilAdpositionalState(_, sub) => {
+      referenceMap.remove(sub)
+    }
+    case cr @ SilConjunctiveReference(determiner, references, _) => {
+      if ((determiner != DETERMINER_ALL) ||
+        !references.forall(r => referenceMap.contains(r)))
+      {
+        referenceMap --= references
+      } else {
+        referenceMap.put(
+          cr,
+          ShlurdParseUtils.orderedSet(
+            references.flatMap(r => referenceMap(r))))
+      }
+    }
+  }
+
+  // FIXME:  also need to disambiguate with respect to
+  // pronouns that were present in the original sentence
+  private def disambiguateThirdPersonReferences(
+    detector : AmbiguousRefDetector
+  ) = querier.queryMatcher {
+    case ref : SilReference if (detector.referenceMap.contains(ref)) => {
       ref match {
         case SilNounReference(_, DETERMINER_UNIQUE, _) |
             SilStateSpecifiedReference(_, _) |
             SilConjunctiveReference(_, _, _) |
             SilResolvedReference(_, _, _) =>
           {
-            mind.thirdPersonReference(referenceMap(ref)).getOrElse(ref)
+            detector.analyze(ref)
           }
         case SilNounReference(
           noun, DETERMINER_UNSPECIFIED, _) if (noun.isProper) =>
           {
-            mind.thirdPersonReference(referenceMap(ref)).getOrElse(ref)
+            detector.analyze(ref)
+          }
+        case _ =>
+      }
+    }
+  }
+
+  private def replaceThirdPersonReferences(
+    referenceMap : Map[SilReference, Set[E]]
+  ) = replacementMatcher {
+    case ref : SilReference => {
+      ref match {
+        case SilNounReference(_, _, _) |
+            SilStateSpecifiedReference(_, _) |
+            SilConjunctiveReference(_, _, _) |
+            SilResolvedReference(_, _, _) =>
+          {
+            referenceMap.get(ref).flatMap(
+              entities => mind.thirdPersonReference(entities)).getOrElse(ref)
           }
         case _ => ref
       }
@@ -492,7 +590,6 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   def containsWildcard(phrase : SilPhrase) : Boolean =
   {
-    val querier = new SilPhraseRewriter
     var wildcard = false
     def matchWildcard = querier.queryMatcher {
       case SilConjunctiveReference(

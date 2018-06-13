@@ -35,7 +35,7 @@ case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
 
 case class ShlurdInterpreterParams(
   listLimit : Int = 3,
-  thirdPartyPronouns : Boolean = true
+  thirdPersonPronouns : Boolean = true
 )
 {
   def neverSummarize = (listLimit == Int.MaxValue)

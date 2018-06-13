@@ -89,16 +89,16 @@ class SpcInterpreterSpec extends Specification
       loadBeliefs("/ontologies/people.txt")
       interpret(
         "is Todd Dirk's friend",
-        "Yes, he is his friend.")
+        "Yes, he is Dirk's friend.")
       interpret(
         "is Dirk Todd's friend",
-        "Yes, he is his friend.")
+        "Yes, he is Todd's friend.")
       interpret(
         "is Amanda Todd's sister",
         "Yes, she is his sister.")
       interpret(
         "is Dirk Todd's sister",
-        "No, he is not his sister.")
+        "No, he is not Todd's sister.")
       interpret(
         "is Todd Amanda's brother",
         "Yes, he is her brother.")
@@ -323,6 +323,9 @@ class SpcInterpreterSpec extends Specification
         "is Titanic a boat",
         "Yes, it is a boat.")
       interpret(
+        "is Titanic the boat",
+        "Yes, it is the boat.")
+      interpret(
         "is Titanic a vehicle",
         "Yes, it is a vehicle.")
       interpret(
@@ -353,11 +356,6 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "are Herbie and Titanic vehicles",
         "Yes, they are vehicles.")
-    }
-
-    "foo" in new InterpreterContext
-    {
-      loadBeliefs("/ontologies/vehicles.txt")
     }
 
     "respond correctly when no person exists" in new InterpreterContext
@@ -467,7 +465,7 @@ class SpcInterpreterSpec extends Specification
     }
 
     "allow pronouns to be avoided" in new InterpreterContext(
-      false, ShlurdInterpreterParams().copy(thirdPartyPronouns = false))
+      false, ShlurdInterpreterParams().copy(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/stove.txt")
       interpret("is the stove hot?",
