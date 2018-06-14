@@ -42,7 +42,7 @@ class SpcInterpreterSpec extends Specification
 
   abstract class InterpreterContext(
     acceptNewBeliefs : Boolean = false,
-    params : ShlurdInterpreterParams = ShlurdInterpreterParams()
+    params : ShlurdResponseParams = ShlurdResponseParams()
   ) extends NameSpace
   {
     protected val cosmos = new SpcCosmos {
@@ -559,7 +559,7 @@ class SpcInterpreterSpec extends Specification
     }
 
     "allow pronouns to be avoided" in new InterpreterContext(
-      false, ShlurdInterpreterParams().copy(thirdPersonPronouns = false))
+      false, ShlurdResponseParams().copy(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/stove.txt")
       interpret("is the stove hot?",

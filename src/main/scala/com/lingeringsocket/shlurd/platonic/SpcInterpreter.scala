@@ -20,7 +20,7 @@ import com.lingeringsocket.shlurd.cosmos._
 class SpcInterpreter(
   mind : SpcMind,
   acceptNewBeliefs : Boolean = false,
-  params : ShlurdInterpreterParams = ShlurdInterpreterParams())
+  params : ShlurdResponseParams = ShlurdResponseParams())
     extends ShlurdInterpreter(mind, params)
 {
   private val beliefInterpreter = new SpcBeliefInterpreter(mind.getCosmos)

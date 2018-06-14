@@ -33,9 +33,10 @@ case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
 {
 }
 
-case class ShlurdInterpreterParams(
+case class ShlurdResponseParams(
   listLimit : Int = 3,
-  thirdPersonPronouns : Boolean = true
+  thirdPersonPronouns : Boolean = true,
+  terse : Boolean = false
 )
 {
   def neverSummarize = (listLimit == Int.MaxValue)
@@ -61,7 +62,7 @@ object ResultCollector
 
 class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   mind : ShlurdMind[E,P],
-  generalParams : ShlurdInterpreterParams = ShlurdInterpreterParams())
+  generalParams : ShlurdResponseParams = ShlurdResponseParams())
 {
   type PredicateEvaluator = (E, SilReference) => Try[Trilean]
 
@@ -212,13 +213,18 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 debug(s"NORMALIZED RESPONSE : $normalizedResponse")
                 val responseMood = SilIndicativeMood(
                   truthBoolean || negateCollection)
+                val printedSentence = {
+                  if (params.terse) {
+                    ""
+                  } else {
+                    sentencePrinter.print(
+                      SilPredicateSentence(
+                        normalizedResponse,
+                        responseMood))
+                  }
+                }
                 sentencePrinter.sb.respondToAssumption(
-                  ASSUMED_TRUE, truthBoolean,
-                  sentencePrinter.print(
-                    SilPredicateSentence(
-                      normalizedResponse,
-                      responseMood)),
-                  false)
+                  ASSUMED_TRUE, truthBoolean, printedSentence, false)
               }
               case Failure(e) => {
                 debug("ERROR", e)
@@ -255,13 +261,18 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                     responseRewriter.normalizeResponse(
                       predicate, resultCollector, generalParams)
                   assert(!negateCollection)
+                  val printedSentence = {
+                    if (generalParams.terse) {
+                      ""
+                    } else {
+                      sentencePrinter.print(
+                        SilPredicateSentence(
+                          normalizedResponse,
+                          responseMood))
+                    }
+                  }
                   sentencePrinter.sb.respondToAssumption(
-                    ASSUMED_TRUE, true,
-                    sentencePrinter.print(
-                      SilPredicateSentence(
-                        normalizedResponse,
-                        responseMood)),
-                    true)
+                    ASSUMED_TRUE, true, printedSentence, true)
                 } else {
                   // FIXME:  add details on inconsistency, and maybe try
                   // to update state?

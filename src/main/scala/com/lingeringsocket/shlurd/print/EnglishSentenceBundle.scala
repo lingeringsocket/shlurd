@@ -626,19 +626,30 @@ class EnglishSentenceBundle
 
   override def affirmAssumption(sentence : String, strength : Boolean) =
   {
-    if (strength) {
-      compose("Right,", sentence)
+    val affirmation = {
+      if (strength) {
+        "Right"
+      } else {
+        "Yes"
+      }
+    }
+    if (sentence.isEmpty) {
+      concat(affirmation, ".")
     } else {
-      compose("Yes,", sentence)
+      compose(concat(affirmation, ","), sentence)
     }
   }
 
   override def contradictAssumption(sentence : String, strength : Boolean) =
   {
-    if (strength) {
-      compose("No, actually", sentence)
+    if (sentence.isEmpty) {
+      "No."
     } else {
-      compose("No,", sentence)
+      if (strength) {
+        compose("No, actually", sentence)
+      } else {
+        compose("No,", sentence)
+      }
     }
   }
 }

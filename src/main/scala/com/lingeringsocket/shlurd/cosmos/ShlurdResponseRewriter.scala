@@ -30,7 +30,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   def normalizeResponse(
     predicate : SilPredicate,
     resultCollector : ResultCollector[E],
-    params : ShlurdInterpreterParams)
+    params : ShlurdResponseParams)
       : (SilPredicate, Boolean) =
   {
     var negateCollection = false
@@ -496,7 +496,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     resultCollector : ResultCollector[E],
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
-    params : ShlurdInterpreterParams)
+    params : ShlurdResponseParams)
       : Option[SilReference] =
   {
     val trueEntities = getTrueEntities(resultCollector)
@@ -523,7 +523,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     resultCollector : ResultCollector[E],
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
-    params : ShlurdInterpreterParams)
+    params : ShlurdResponseParams)
       : (Option[SilReference], Boolean) =
   {
     val falseEntities = getFalseEntities(resultCollector)

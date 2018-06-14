@@ -442,25 +442,33 @@ class KoreanSentenceBundle extends SilSentenceBundle
 
   override def affirmAssumption(sentence : String, strength : Boolean) =
   {
-    val prefixed = {
-      if (strength) {
-        compose("맞아요,", sentence)
-      } else {
-        sentence
+    if (sentence.isEmpty) {
+      "내."
+    } else {
+      val prefixed = {
+        if (strength) {
+          compose("맞아요,", sentence)
+        } else {
+          sentence
+        }
       }
+      compose("내,", prefixed)
     }
-    compose("내,", prefixed)
   }
 
   override def contradictAssumption(sentence : String, strength : Boolean) =
   {
-    val prefixed = {
-      if (strength) {
-        compose("실은", sentence)
-      } else {
-        sentence
+    if (sentence.isEmpty) {
+      "아니요."
+    } else {
+      val prefixed = {
+        if (strength) {
+          compose("실은", sentence)
+        } else {
+          sentence
+        }
       }
+      compose("아니요,", prefixed)
     }
-    compose("아니요,", prefixed)
   }
 }

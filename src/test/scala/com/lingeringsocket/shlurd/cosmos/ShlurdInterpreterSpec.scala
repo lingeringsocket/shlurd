@@ -35,7 +35,7 @@ class ShlurdInterpreterSpec extends Specification
 
   private def interpret(
     input : String,
-    params : ShlurdInterpreterParams = ShlurdInterpreterParams()) =
+    params : ShlurdResponseParams = ShlurdResponseParams()) =
   {
     val sentence = ShlurdParser(input).parseOne
 
@@ -107,13 +107,18 @@ class ShlurdInterpreterSpec extends Specification
 
     "interpret questions" in
     {
+      val terse = ShlurdResponseParams().copy(terse = true)
       interpret("is the lion asleep") must be equalTo(
         "Yes, the lion is asleep.")
+      interpret("is the lion asleep", terse) must be equalTo(
+        "Yes.")
       // FIXME:  better would be "Yes, the only lion is asleep."
       interpret("are the lions asleep") must be equalTo(
         "Yes, the lions are asleep.")
       interpret("is the lion awake") must be equalTo(
         "No, the lion is not awake.")
+      interpret("is the lion awake", terse) must be equalTo(
+        "No.")
       interpret("is the tiger asleep") must be equalTo(
         "No, the tiger is not asleep.")
       interpret("is the tiger awake") must be equalTo(
@@ -184,7 +189,7 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, all goats are asleep.")
       interpret("are any goats asleep") must be equalTo(
         "Yes, all 3 of them are asleep.")
-      val lowLimit = ShlurdInterpreterParams().copy(listLimit = 1)
+      val lowLimit = ShlurdResponseParams().copy(listLimit = 1)
       interpret("are any goats asleep", lowLimit) must be equalTo(
         "Yes, all 3 of them are asleep.")
       interpret("are any goats awake") must be equalTo(
@@ -329,8 +334,11 @@ class ShlurdInterpreterSpec extends Specification
 
     "interpret statements" in
     {
+      val terse = ShlurdResponseParams().copy(terse = true)
       interpret("the lion is asleep") must be equalTo(
         "Right, the lion is asleep.")
+      interpret("the lion is asleep", terse) must be equalTo(
+        "Right.")
       interpret("the lion is awake") must be equalTo(
         "Oh, really?")
       interpret("the tiger is asleep") must be equalTo(
