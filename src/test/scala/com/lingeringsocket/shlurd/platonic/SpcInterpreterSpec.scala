@@ -68,6 +68,11 @@ class SpcInterpreterSpec extends Specification
       new SpcInterpreter(
         new SpcMind(cosmos), acceptNewBeliefs, params)
 
+    protected val interpreterWithoutPronouns =
+      new SpcInterpreter(
+        new SpcMind(cosmos), acceptNewBeliefs, params.
+          copy(thirdPersonPronouns = false))
+
     protected def loadBeliefs(resource : String)
     {
       val file = ShlurdParser.getResourceFile(resource)
@@ -80,6 +85,18 @@ class SpcInterpreterSpec extends Specification
       val sentence = ShlurdParser(input).parseOne
       interpreter.interpret(sentence) must be equalTo(expected)
     }
+
+    protected def interpretMatrix(
+      input : String,
+      expectedWithPronouns : String,
+      expectedWithoutPronouns : String) =
+    {
+      val sentence = ShlurdParser(input).parseOne
+      interpreter.interpret(sentence) must be equalTo(
+        expectedWithPronouns)
+      interpreterWithoutPronouns.interpret(
+        sentence) must be equalTo(expectedWithoutPronouns)
+    }
   }
 
   "SpcInterpreter" should
@@ -87,70 +104,89 @@ class SpcInterpreterSpec extends Specification
     "understand people" in new InterpreterContext
     {
       loadBeliefs("/ontologies/people.txt")
-      interpret(
+      interpretMatrix(
         "is Todd Dirk's friend",
-        "Yes, he is Dirk's friend.")
-      interpret(
+        "Yes, he is Dirk's friend.",
+        "Yes, Todd is Dirk's friend.")
+      interpretMatrix(
         "is Dirk Todd's friend",
-        "Yes, he is Todd's friend.")
-      interpret(
+        "Yes, he is Todd's friend.",
+        "Yes, Dirk is Todd's friend.")
+      interpretMatrix(
         "is Amanda Todd's sister",
-        "Yes, she is his sister.")
-      interpret(
+        "Yes, she is his sister.",
+        "Yes, Amanda is Todd's sister.")
+      interpretMatrix(
         "is Dirk Todd's sister",
-        "No, he is not Todd's sister.")
-      interpret(
+        "No, he is not Todd's sister.",
+        "No, Dirk is not Todd's sister.")
+      interpretMatrix(
         "is Todd Amanda's brother",
-        "Yes, he is her brother.")
-      interpret(
+        "Yes, he is her brother.",
+        "Yes, Todd is Amanda's brother.")
+      interpretMatrix(
         "is Amanda Todd's friend",
-        "No, she is not his friend.")
+        "No, she is not his friend.",
+        "No, Amanda is not Todd's friend.")
       // FIXME:  should clarify that Dirk actually has more than one friend
-      interpret(
+      interpretMatrix(
         "does Dirk have a friend",
-        "Yes, he has a friend.")
+        "Yes, he has a friend.",
+        "Yes, Dirk has a friend.")
       interpret(
         "does Dirk have any friends",
         "Yes, he has 2 of them.")
-      interpret(
+      interpretMatrix(
         "does Todd have friends",
-        "Yes, he has friends.")
+        "Yes, he has friends.",
+        "Yes, Todd has friends.")
       interpret(
         "does Todd have any friends",
         "Yes, he has 1 of them.")
-      interpret(
+      interpretMatrix(
         "does Amanda have friends",
-        "No, she does not have friends.")
-      interpret(
+        "No, she does not have friends.",
+        "No, Amanda does not have friends.")
+      interpretMatrix(
         "does Amanda have a friend",
-        "No, she does not have a friend.")
-      interpret(
+        "No, she does not have a friend.",
+        "No, Amanda does not have a friend.")
+      interpretMatrix(
         "does Amanda have any friends",
-        "No, she has no friends.")
-      interpret(
+        "No, she has no friends.",
+        "No, Amanda has no friends.")
+      interpretMatrix(
         "who is Todd",
-        "He is Amanda's brother.")
-      interpret(
+        "He is Amanda's brother.",
+        "Todd is Amanda's brother.")
+      interpretMatrix(
         "who is Bart",
-        "She is Rapunzel's owner.")
-      interpret(
+        "She is Rapunzel's owner.",
+        "Bart is Rapunzel's owner.")
+      interpretMatrix(
         "who is Todd's friend",
-        "His friend is Dirk.")
-      interpret(
+        "His friend is Dirk.",
+        "Todd's friend is Dirk.")
+      interpretMatrix(
         "who are Todd's friends",
-        "His friend is Dirk.")
-      interpret(
+        "His friend is Dirk.",
+        "Todd's friend is Dirk.")
+      interpretMatrix(
         "which person is Todd's friend",
-        "His friend is Dirk.")
-      interpret(
+        "His friend is Dirk.",
+        "Todd's friend is Dirk.")
+      interpretMatrix(
         "who is Dirk's friend",
-        "His friends are Todd and Bart.")
-      interpret(
+        "His friends are Todd and Bart.",
+        "Dirk's friends are Todd and Bart.")
+      interpretMatrix(
         "who is Amanda's friend",
-        "No one is her friend.")
-      interpret(
+        "No one is her friend.",
+        "No one is Amanda's friend.")
+      interpretMatrix(
         "who are Amanda's friends",
-        "No one is her friend.")
+        "No one is her friend.",
+        "No one is Amanda's friend.")
       interpret(
         "who has Amanda's friend",
         "But I don't know about any such friend.")
@@ -165,27 +201,34 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "who is a friend",
         "Dirk, Todd, and Bart are friends.")
-      interpret(
+      interpretMatrix(
         "is Amanda a friend",
-        "No, she is not a friend.")
-      interpret(
+        "No, she is not a friend.",
+        "No, Amanda is not a friend.")
+      interpretMatrix(
         "is Amanda a brother",
-        "No, she is not a brother.")
-      interpret(
+        "No, she is not a brother.",
+        "No, Amanda is not a brother.")
+      interpretMatrix(
         "is Amanda a dog",
-        "No, she is not a dog.")
-      interpret(
+        "No, she is not a dog.",
+        "No, Amanda is not a dog.")
+      interpretMatrix(
         "is Amanda an owner",
-        "No, she is not an owner.")
-      interpret(
+        "No, she is not an owner.",
+        "No, Amanda is not an owner.")
+      interpretMatrix(
         "is Amanda a groomer",
-        "No, she is not a groomer.")
-      interpret(
+        "No, she is not a groomer.",
+        "No, Amanda is not a groomer.")
+      interpretMatrix(
         "is Rapunzel a dog",
-        "Yes, it is a dog.")
-      interpret(
+        "Yes, it is a dog.",
+        "Yes, Rapunzel is a dog.")
+      interpretMatrix(
         "is Bart an owner",
-        "Yes, she is an owner.")
+        "Yes, she is an owner.",
+        "Yes, Bart is an owner.")
       interpret(
         "is Amanda a robot",
         "Sorry, I don't know about any 'robot'.")
@@ -200,12 +243,14 @@ class SpcInterpreterSpec extends Specification
         "Todd is a brother.")
       // FIXME have to use BLACKWING because Blackwing gets parsed
       // as -ing verb, heh
-      interpret(
+      interpretMatrix(
         "is BLACKWING an organization",
-        "Yes, it is an organization.")
-      interpret(
+        "Yes, it is an organization.",
+        "Yes, BLACKWING is an organization.")
+      interpretMatrix(
         "is BLACKWING a conspiracy",
-        "No, it is not a conspiracy.")
+        "No, it is not a conspiracy.",
+        "No, BLACKWING is not a conspiracy.")
       interpret(
         "who has an uncle",
         "No one has an uncle.")
@@ -221,30 +266,38 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "who is Ford",
         "Sorry, I don't know about any 'Ford'.")
-      interpret(
+      interpretMatrix(
         "who is Hugo",
-        "He is one of BLACKWING's operatives.")
-      interpret(
+        "He is one of BLACKWING's operatives.",
+        "Hugo is one of BLACKWING's operatives.")
+      interpretMatrix(
         "who is Arthur",
-        "He is a man.")
-      interpret(
+        "He is a man.",
+        "Arthur is a man.")
+      interpretMatrix(
         "is Todd masculine",
-        "Yes, he is masculine.")
-      interpret(
+        "Yes, he is masculine.",
+        "Yes, Todd is masculine.")
+      interpretMatrix(
         "is Todd feminine",
-        "No, he is not feminine.")
-      interpret(
+        "No, he is not feminine.",
+        "No, Todd is not feminine.")
+      interpretMatrix(
         "is Todd fantastic",
-        "No, he is not fantastic.")
-      interpret(
+        "No, he is not fantastic.",
+        "No, Todd is not fantastic.")
+      interpretMatrix(
         "is Amanda feminine",
-        "Yes, she is feminine.")
-      interpret(
+        "Yes, she is feminine.",
+        "Yes, Amanda is feminine.")
+      interpretMatrix(
         "is Amanda masculine",
-        "No, she is not masculine.")
-      interpret(
+        "No, she is not masculine.",
+        "No, Amanda is not masculine.")
+      interpretMatrix(
         "is Amanda fantastic",
-        "No, she is not fantastic.")
+        "No, she is not fantastic.",
+        "No, Amanda is not fantastic.")
       interpret(
         "is Scott masculine",
         "I don't know.")
@@ -254,35 +307,43 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "is Scott fantastic",
         "I don't know.")
-      interpret(
+      interpretMatrix(
         "is BLACKWING Hugo's employer",
-        "Yes, it is his employer.")
-      interpret(
+        "Yes, it is his employer.",
+        "Yes, BLACKWING is Hugo's employer.")
+      interpretMatrix(
         "which organization is Hugo's employer",
-        "His employer is BLACKWING.")
-      interpret(
+        "His employer is BLACKWING.",
+        "Hugo's employer is BLACKWING.")
+      interpretMatrix(
         "is BLACKWING Todd's employer",
-        "No, it is not his employer.")
-      interpret(
+        "No, it is not his employer.",
+        "No, BLACKWING is not Todd's employer.")
+      interpretMatrix(
         "which organization is Todd's employer",
-        "No organization is his employer.")
+        "No organization is his employer.",
+        "No organization is Todd's employer.")
     }
 
     "understand taxonomy" in new InterpreterContext
     {
       loadBeliefs("/ontologies/vehicles.txt")
-      interpret(
+      interpretMatrix(
         "is Herbie moving",
-        "No, he is not moving.")
-      interpret(
+        "No, he is not moving.",
+        "No, Herbie is not moving.")
+      interpretMatrix(
         "is Herbie stopped",
-        "Yes, he is stopped.")
-      interpret(
+        "Yes, he is stopped.",
+        "Yes, Herbie is stopped.")
+      interpretMatrix(
         "is Titanic moving",
-        "Yes, it is moving.")
-      interpret(
+        "Yes, it is moving.",
+        "Yes, Titanic is moving.")
+      interpretMatrix(
         "is Titanic stopped",
-        "No, it is not stopped.")
+        "No, it is not stopped.",
+        "No, Titanic is not stopped.")
       interpret(
         "is any boat stopped",
         "No, no boat is stopped.")
@@ -298,9 +359,10 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "are both Herbie and Titanic moving",
         "No, Herbie is not moving.")
-      interpret(
+      interpretMatrix(
         "is Titanic floating",
-        "No, it is not floating.")
+        "No, it is not floating.",
+        "No, Titanic is not floating.")
       interpret(
         "is Herbie floating",
         "Sorry, I don't know what 'float' means for Herbie.")
@@ -310,52 +372,63 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "who is floating",
         "Sorry, I don't know what 'float' means for a person.")
-      interpret(
+      interpretMatrix(
         "is Herbie a car",
-        "Yes, he is a car.")
-      interpret(
+        "Yes, he is a car.",
+        "Yes, Herbie is a car.")
+      interpretMatrix(
         "is Herbie a boat",
-        "No, he is not a boat.")
-      interpret(
+        "No, he is not a boat.",
+        "No, Herbie is not a boat.")
+      interpretMatrix(
         "is Herbie a vehicle",
-        "Yes, he is a vehicle.")
-      interpret(
+        "Yes, he is a vehicle.",
+        "Yes, Herbie is a vehicle.")
+      interpretMatrix(
         "is Titanic a boat",
-        "Yes, it is a boat.")
-      interpret(
+        "Yes, it is a boat.",
+        "Yes, Titanic is a boat.")
+      interpretMatrix(
         "is Titanic the boat",
-        "Yes, it is the boat.")
-      interpret(
+        "Yes, it is the boat.",
+        "Yes, Titanic is the boat.")
+      interpretMatrix(
         "is Titanic a vehicle",
-        "Yes, it is a vehicle.")
-      interpret(
+        "Yes, it is a vehicle.",
+        "Yes, Titanic is a vehicle.")
+      interpretMatrix(
         "is Titanic a car",
-        "No, it is not a car.")
+        "No, it is not a car.",
+        "No, Titanic is not a car.")
       interpret(
         "how many vehicles are there",
         "There are 2 of them.")
-      interpret(
+      interpretMatrix(
         "Herbie and Titanic are vehicles?",
-        "Yes, they are vehicles.")
+        "Yes, they are vehicles.",
+        "Yes, Herbie and Titanic are vehicles.")
       // FIXME resolve number agreement
       interpret(
         "which vehicles are there",
         "There is Herbie and Titanic.")
-      interpret(
+      interpretMatrix(
         "who is Herbie's owner",
-        "His owner is Jim.")
-      interpret(
+        "His owner is Jim.",
+        "Herbie's owner is Jim.")
+      interpretMatrix(
         "who is Titanic's owner",
-        "No one is its owner.")
+        "No one is its owner.",
+        "No one is Titanic's owner.")
     }
 
     "deal with problem cases" in new InterpreterContext
     {
       skipped("maybe one day")
       loadBeliefs("/ontologies/vehicles.txt")
-      interpret(
+      interpretMatrix(
         "are Herbie and Titanic vehicles",
-        "Yes, they are vehicles.")
+        "Yes, they are vehicles.",
+        "Yes, Herbie and Titanic are vehicles.")
     }
 
     "respond correctly when no person exists" in new InterpreterContext
@@ -378,15 +451,18 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "is there a laundry service",
         "No, there is not a laundry service.")
-      interpret(
+      interpretMatrix(
         "is the alarm service up",
-        "Yes, it is up.")
-      interpret(
+        "Yes, it is up.",
+        "Yes, the alarm service is up.")
+      interpretMatrix(
         "is the alarm service on",
-        "Yes, it is on.")
-      interpret(
+        "Yes, it is on.",
+        "Yes, the alarm service is on.")
+      interpretMatrix(
         "is the multimedia service up",
-        "No, it is not up.")
+        "No, it is not up.",
+        "No, the multimedia service is not up.")
       interpret(
         "is any service up",
         "Yes, the alarm service is up.")
@@ -405,52 +481,69 @@ class SpcInterpreterSpec extends Specification
       interpret(
         "are all services running",
         "No, the multimedia service is not running.")
-      interpret(
+      interpretMatrix(
         "is the multimedia server up",
-        "No, it is not up.")
+        "No, it is not up.",
+        "No, the multimedia server is not up.")
     }
 
     "understand presence" in new InterpreterContext
     {
       // FIXME:  in "is Jack home", interpret "home" as state instead of noun
       loadBeliefs("/ontologies/presence.txt")
-      interpret("is Jack's presence on",
-        "Yes, his presence is on.")
-      interpret("is Jack present",
-        "Yes, he is present.")
-      interpret("is Jack at home",
-        "Yes, he is at home.")
-      interpret("is Jack absent",
-        "No, he is not absent.")
-      interpret("is Jack away",
-        "No, he is not away.")
-      interpret("is Jill's presence on",
-        "No, her presence is not on.")
-      interpret("is Jill present",
-        "No, she is not present.")
-      interpret("is Jill at home",
-        "No, she is not at home.")
-      interpret("is Jill absent",
-        "Yes, she is absent.")
-      interpret("is Jill away",
-        "Yes, she is away.")
+      interpretMatrix("is Jack's presence on",
+        "Yes, his presence is on.",
+        "Yes, Jack's presence is on.")
+      interpretMatrix("is Jack present",
+        "Yes, he is present.",
+        "Yes, Jack is present.")
+      interpretMatrix("is Jack at home",
+        "Yes, he is at home.",
+        "Yes, Jack is at home.")
+      interpretMatrix("is Jack absent",
+        "No, he is not absent.",
+        "No, Jack is not absent.")
+      interpretMatrix("is Jack away",
+        "No, he is not away.",
+        "No, Jack is not away.")
+      interpretMatrix("is Jill's presence on",
+        "No, her presence is not on.",
+        "No, Jill's presence is not on.")
+      interpretMatrix("is Jill present",
+        "No, she is not present.",
+        "No, Jill is not present.")
+      interpretMatrix("is Jill at home",
+        "No, she is not at home.",
+        "No, Jill is not at home.")
+      interpretMatrix("is Jill absent",
+        "Yes, she is absent.",
+        "Yes, Jill is absent.")
+      interpretMatrix("is Jill away",
+        "Yes, she is away.",
+        "Yes, Jill is away.")
       interpret("is Jack on",
         "Sorry, I don't know what 'on' means for Jack.")
-      interpret("is Casper's haunting on",
-        "Yes, his haunting is on.")
+      interpretMatrix("is Casper's haunting on",
+        "Yes, his haunting is on.",
+        "Yes, Casper's haunting is on.")
       interpret("is Casper present",
         "I don't know.")
-      interpret("is Yoda's presence on",
-        "No, his presence is not on.")
-      interpret("is Yoda present",
-        "No, he is not present.")
-      interpret("is Yoda on",
-        "No, he is not on.")
-      interpret("is Yoda off",
-        "Yes, he is off.")
-      interpret(
+      interpretMatrix("is Yoda's presence on",
+        "No, his presence is not on.",
+        "No, Yoda's presence is not on.")
+      interpretMatrix("is Yoda present",
+        "No, he is not present.",
+        "No, Yoda is not present.")
+      interpretMatrix("is Yoda on",
+        "No, he is not on.",
+        "No, Yoda is not on.")
+      interpretMatrix("is Yoda off",
+        "Yes, he is off.",
+        "Yes, Yoda is off.")
+      interpretMatrix(
         "are Jill and Yoda absent",
-        "Yes, they are absent.")
+        "Yes, they are absent.",
+        "Yes, Jill and Yoda are absent.")
     }
 
     "understand multiple properties for same form" in new InterpreterContext
@@ -460,8 +553,9 @@ class SpcInterpreterSpec extends Specification
         "Yes, there is a stove.")
       interpret("is the stove hot?",
         "Yes, it is hot.")
-      interpret("is the stove on?",
-        "No, it is not on.")
+      interpretMatrix("is the stove on?",
+        "No, it is not on.",
+        "No, the stove is not on.")
     }
 
     "allow pronouns to be avoided" in new InterpreterContext(

@@ -259,7 +259,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       lhs,
       rhs,
       REL_IDENTITY
-    ) if (containsWildcard(lhs) && !containsWildcard(rhs)) =>
+    ) if (containsWildcard(lhs, false) && !containsWildcard(rhs, false)) =>
       {
         SilRelationshipPredicate(
           rhs,
@@ -588,7 +588,9 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))
   }
 
-  def containsWildcard(phrase : SilPhrase) : Boolean =
+  def containsWildcard(
+    phrase : SilPhrase,
+    includeConjunctions : Boolean = true) : Boolean =
   {
     var wildcard = false
     def matchWildcard = querier.queryMatcher {
@@ -597,7 +599,9 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         _,
         _
       ) => {
-        wildcard = true
+        if (includeConjunctions) {
+          wildcard = true
+        }
       }
       case SilNounReference(
         _,
