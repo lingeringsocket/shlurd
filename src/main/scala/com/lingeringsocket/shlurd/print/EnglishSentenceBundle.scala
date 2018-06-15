@@ -108,7 +108,7 @@ class EnglishSentenceBundle
       case MODAL_CAPABLE => LEMMA_CAN
       case MODAL_PERMITTED => LEMMA_MAY
       case MODAL_SHOULD => LEMMA_SHOULD
-      case MODAL_EMPHATIC => {
+      case MODAL_EMPHATIC | MODAL_ELLIPTICAL => {
         count match {
           case COUNT_SINGULAR => {
             person match {
@@ -120,10 +120,16 @@ class EnglishSentenceBundle
         }
       }
     }
-    if (mood.isNegative) {
-      Seq(aux, LEMMA_NOT, verbLemma)
-    } else {
-      Seq(aux, verbLemma)
+    val prefix = {
+      if (mood.isNegative) {
+        Seq(aux, LEMMA_NOT)
+      } else {
+        Seq(aux)
+      }
+    }
+    modality match {
+      case MODAL_ELLIPTICAL => prefix
+      case _ => prefix :+ verbLemma
     }
   }
 

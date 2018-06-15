@@ -61,6 +61,8 @@ sealed trait SilSentence extends SilPhrase
 
 sealed trait SilPredicate extends SilPhrase
 {
+  def getSubject : SilReference
+
   private var inflectedCount : SilCount = COUNT_SINGULAR
 
   def getInflectedCount = inflectedCount
@@ -105,6 +107,7 @@ sealed trait SilUnknownSentence
 sealed trait SilUnknownPredicate
     extends SilPredicate with SilUnknownPhrase
 {
+  override def getSubject : SilReference = SilUnrecognizedReference(syntaxTree)
 }
 
 sealed trait SilUnknownReference
@@ -222,6 +225,7 @@ case class SilUnresolvedStatePredicate(
   specifiedState : SilState
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
+  override def getSubject = subject
 }
 
 case class SilUnresolvedRelationshipPredicate(
@@ -296,6 +300,8 @@ case class SilStatePredicate(
   state : SilState
 ) extends SilTransformedPhrase with SilPredicate
 {
+  override def getSubject = subject
+
   override def children = Seq(subject, state)
 }
 
@@ -305,6 +311,8 @@ case class SilRelationshipPredicate(
   relationship : SilRelationship
 ) extends SilTransformedPhrase with SilPredicate
 {
+  override def getSubject = subject
+
   override def children = Seq(subject, complement)
 }
 

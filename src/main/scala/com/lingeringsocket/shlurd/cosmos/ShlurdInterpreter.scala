@@ -33,10 +33,15 @@ case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
 {
 }
 
+sealed trait ShlurdResponseVerbosity
+case object RESPONSE_TERSE extends ShlurdResponseVerbosity
+case object RESPONSE_ELLIPSIS extends ShlurdResponseVerbosity
+case object RESPONSE_COMPLETE extends ShlurdResponseVerbosity
+
 case class ShlurdResponseParams(
   listLimit : Int = 3,
   thirdPersonPronouns : Boolean = true,
-  terse : Boolean = false
+  verbosity : ShlurdResponseVerbosity = RESPONSE_COMPLETE
 )
 {
   def neverSummarize = (listLimit == Int.MaxValue)
@@ -66,6 +71,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 {
   type PredicateEvaluator = (E, SilReference) => Try[Trilean]
 
+  type SentenceInterpreter = PartialFunction[SilSentence, String]
+
   private val cosmos = mind.getCosmos
 
   private val logger = LoggerFactory.getLogger(classOf[ShlurdInterpreter[E,P]])
@@ -77,6 +84,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private val responseRewriter = new ShlurdResponseRewriter(mind)
 
   protected val sentencePrinter = new SilSentencePrinter
+
+  private val interpreterMatchers = Seq(
+    interpretStateChangeCommand,
+    interpretPredicateQuery,
+    interpretPredicateSentence,
+    interpretUnsupportedSentence
+  ).reduceLeft(_ orElse _)
 
   def fail(msg : String) = cosmos.fail(msg)
 
@@ -113,200 +127,251 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       val responder = new ShlurdUnrecognizedResponder(sentencePrinter)
       return responder.respond(unrecognized)
     }
-    val resultCollector = ResultCollector[E]
-    sentence match {
-      case SilStateChangeCommand(predicate, _, formality) => {
-        debug("STATE CHANGE COMMAND")
-        evaluatePredicate(predicate, resultCollector) match {
-          case Success(Trilean.True) => {
-            debug("COUNTERFACTUAL")
-            val (normalizedResponse, negateCollection) =
-              responseRewriter.normalizeResponse(
-                predicate, resultCollector, generalParams)
-            assert(!negateCollection)
-            val responseMood = MOOD_INDICATIVE_POSITIVE
-            sentencePrinter.sb.respondToCounterfactual(
-              sentencePrinter.print(
-                SilPredicateSentence(
-                  normalizedResponse,
-                  responseMood)))
-          }
-          case Success(_) => {
-            assert(resultCollector.states.size == 1)
-            val invocation =
-              ShlurdStateChangeInvocation(
-                resultCollector.entityMap.filterNot(
-                  _._2.assumeFalse).keySet,
-                resultCollector.states.head)
-            debug(s"EXECUTE INVOCATION : $invocation")
-            executeInvocation(invocation)
-            sentencePrinter.sb.respondCompliance()
-          }
-          case Failure(e) => {
-            debug("ERROR", e)
-            e.getMessage
-          }
+    interpreterMatchers.applyOrElse(
+      sentence,
+      { s : SilSentence =>
+        debug("UNKNOWN SENTENCE")
+        sentencePrinter.sb.respondCannotUnderstand()
+      }
+    )
+  }
+
+  private def sentenceInterpreter(f : SentenceInterpreter)
+      : SentenceInterpreter = f
+
+  private def interpretStateChangeCommand = sentenceInterpreter {
+    case SilStateChangeCommand(predicate, _, formality) => {
+      debug("STATE CHANGE COMMAND")
+
+      val resultCollector = ResultCollector[E]
+      evaluatePredicate(predicate, resultCollector) match {
+        case Success(Trilean.True) => {
+          debug("COUNTERFACTUAL")
+          val (normalizedResponse, negateCollection) =
+            responseRewriter.normalizeResponse(
+              predicate, resultCollector, generalParams)
+          assert(!negateCollection)
+          val responseMood = MOOD_INDICATIVE_POSITIVE
+          sentencePrinter.sb.respondToCounterfactual(
+            sentencePrinter.print(
+              SilPredicateSentence(
+                normalizedResponse,
+                responseMood)))
+        }
+        case Success(_) => {
+          assert(resultCollector.states.size == 1)
+          val invocation =
+            ShlurdStateChangeInvocation(
+              resultCollector.entityMap.filterNot(
+                _._2.assumeFalse).keySet,
+              resultCollector.states.head)
+          debug(s"EXECUTE INVOCATION : $invocation")
+          executeInvocation(invocation)
+          sentencePrinter.sb.respondCompliance()
+        }
+        case Failure(e) => {
+          debug("ERROR", e)
+          e.getMessage
         }
       }
-      case SilPredicateQuery(predicate, question, mood, formality) => {
-        debug("PREDICATE QUERY")
-        // FIXME deal with positive, modality
+    }
+  }
 
-        val rewrittenPredicate = rewriteQuery(predicate)
+  private def interpretPredicateQuery = sentenceInterpreter {
+    case sentence @ SilPredicateQuery(predicate, question, mood, formality) => {
+      debug("PREDICATE QUERY")
+      // FIXME deal with positive, modality
 
-        debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
-        evaluatePredicate(rewrittenPredicate, resultCollector) match {
-          case Success(Trilean.Unknown) => {
-            debug("ANSWER UNKNOWN")
-            sentencePrinter.sb.respondDontKnow()
+      val rewrittenPredicate = rewriteQuery(predicate)
+      debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
+
+      val resultCollector = ResultCollector[E]
+      evaluatePredicate(rewrittenPredicate, resultCollector) match {
+        case Success(Trilean.Unknown) => {
+          debug("ANSWER UNKNOWN")
+          sentencePrinter.sb.respondDontKnow()
+        }
+        case Success(truth) => {
+          debug(s"ANSWER : $truth")
+          val truthBoolean = truth.assumeFalse
+          val extremeLimit = question match {
+            case QUESTION_WHICH | QUESTION_WHO => Int.MaxValue
+            case QUESTION_HOW_MANY => 0
           }
-          case Success(truth) => {
-            debug(s"ANSWER : $truth")
-            val truthBoolean = truth.assumeFalse
-            val extremeLimit = question match {
-              case QUESTION_WHICH | QUESTION_WHO => Int.MaxValue
-              case QUESTION_HOW_MANY => 0
+          val (normalizedResponse, negateCollection) =
+            responseRewriter.normalizeResponse(
+              rewrittenPredicate, resultCollector,
+              generalParams.copy(
+                listLimit = extremeLimit))
+          debug(s"NORMALIZED RESPONSE : $normalizedResponse")
+          val responseMood = SilIndicativeMood(
+            truthBoolean || negateCollection)
+          val adjustedResponse = generalParams.verbosity match {
+            // FIXME:  for RESPONSE_ELLIPSIS, include the verb as well
+            case RESPONSE_TERSE | RESPONSE_ELLIPSIS => {
+              sentencePrinter.sb.terminatedSentence(
+                sentencePrinter.print(
+                  normalizedResponse.getSubject,
+                  INFLECT_NOMINATIVE,
+                  SilConjoining.NONE),
+                responseMood, sentence.formality)
             }
-            val (normalizedResponse, negateCollection) =
-              responseRewriter.normalizeResponse(
-                rewrittenPredicate, resultCollector,
-                generalParams.copy(
-                  listLimit = extremeLimit))
-            debug(s"NORMALIZED RESPONSE : $normalizedResponse")
-            val responseMood = SilIndicativeMood(
-              truthBoolean || negateCollection)
-            sentencePrinter.sb.respondToQuery(
+            case _ => {
               sentencePrinter.print(
                 SilPredicateSentence(
                   normalizedResponse,
-                  responseMood)))
+                  responseMood))
+            }
           }
-          case Failure(e) => {
-            debug("ERROR", e)
-            e.getMessage
-          }
+          sentencePrinter.sb.respondToQuery(adjustedResponse)
+        }
+        case Failure(e) => {
+          debug("ERROR", e)
+          e.getMessage
         }
       }
-      case SilPredicateSentence(predicate, mood, formality) => {
-        mood match {
-          // FIXME deal with positive, modality
-          case SilInterrogativeMood(positive, modality) => {
-            debug("PREDICATE QUERY SENTENCE")
-            val query = predicate
-            evaluatePredicate(query, resultCollector) match {
-              case Success(Trilean.Unknown) => {
-                debug("ANSWER UNKNOWN")
-                sentencePrinter.sb.respondDontKnow()
-              }
-              case Success(truth) => {
-                debug(s"ANSWER : $truth")
-                val truthBoolean = truth.assumeFalse
-                val params = query match {
-                  case rp : SilRelationshipPredicate => {
-                    generalParams.copy(listLimit = 0)
-                  }
-                  case _ => generalParams
+    }
+  }
+
+  private def interpretPredicateSentence = sentenceInterpreter {
+    case SilPredicateSentence(predicate, mood, formality) => {
+      val resultCollector = ResultCollector[E]
+      mood match {
+        // FIXME deal with positive, modality
+        case SilInterrogativeMood(positive, modality) => {
+          debug("PREDICATE QUERY SENTENCE")
+          val query = predicate
+          evaluatePredicate(query, resultCollector) match {
+            case Success(Trilean.Unknown) => {
+              debug("ANSWER UNKNOWN")
+              sentencePrinter.sb.respondDontKnow()
+            }
+            case Success(truth) => {
+              debug(s"ANSWER : $truth")
+              val truthBoolean = truth.assumeFalse
+              val params = query match {
+                case rp : SilRelationshipPredicate => {
+                  generalParams.copy(listLimit = 0)
                 }
-                val (normalizedResponse, negateCollection) =
-                  responseRewriter.normalizeResponse(
-                    query, resultCollector, params)
-                debug(s"NORMALIZED RESPONSE : $normalizedResponse")
-                val responseMood = SilIndicativeMood(
-                  truthBoolean || negateCollection)
-                val printedSentence = {
-                  if (params.terse) {
+                case _ => generalParams
+              }
+              val (normalizedResponse, negateCollection) =
+                responseRewriter.normalizeResponse(
+                  query, resultCollector, params)
+              debug(s"NORMALIZED RESPONSE : $normalizedResponse")
+              val printedSentence = {
+                params.verbosity match {
+                  case RESPONSE_TERSE => {
                     ""
-                  } else {
+                  }
+                  case RESPONSE_ELLIPSIS => {
                     sentencePrinter.print(
                       SilPredicateSentence(
                         normalizedResponse,
-                        responseMood))
+                        SilIndicativeMood(truthBoolean)),
+                      true)
+                  }
+                  case RESPONSE_COMPLETE => {
+                    sentencePrinter.print(
+                      SilPredicateSentence(
+                        normalizedResponse,
+                        SilIndicativeMood(
+                          truthBoolean || negateCollection)))
                   }
                 }
-                sentencePrinter.sb.respondToAssumption(
-                  ASSUMED_TRUE, truthBoolean, printedSentence, false)
               }
-              case Failure(e) => {
-                debug("ERROR", e)
-                e.getMessage
+              sentencePrinter.sb.respondToAssumption(
+                ASSUMED_TRUE, truthBoolean, printedSentence, false)
+            }
+            case Failure(e) => {
+              debug("ERROR", e)
+              e.getMessage
+            }
+          }
+        }
+        case _ : SilIndicativeMood => {
+          // FIXME deal with mood.getModality
+          val positivity = mood.isPositive
+          debug(s"POSITIVITY : $positivity")
+          val predicateTruth = evaluatePredicate(predicate, resultCollector)
+          val responseMood = {
+            predicateTruth match {
+              case Success(Trilean.False) => {
+                MOOD_INDICATIVE_NEGATIVE
+              }
+              case _ => {
+                // FIXME:  deal with uncertainty
+                MOOD_INDICATIVE_POSITIVE
               }
             }
           }
-          case _ : SilIndicativeMood => {
-            // FIXME deal with mood.getModality
-            val positivity = mood.isPositive
-            debug(s"POSITIVITY : $positivity")
-            val predicateTruth = evaluatePredicate(predicate, resultCollector)
-            val responseMood = {
-              predicateTruth match {
-                case Success(Trilean.False) => {
-                  MOOD_INDICATIVE_NEGATIVE
-                }
-                case _ => {
-                  // FIXME:  deal with uncertainty
-                  MOOD_INDICATIVE_POSITIVE
-                }
-              }
+          predicateTruth match {
+            case Success(Trilean.Unknown) => {
+              debug("TRUTH UNKNOWN")
+              // FIXME:  maybe try to update state?
+              "Oh, really?  Thanks for letting me know."
             }
-            predicateTruth match {
-              case Success(Trilean.Unknown) => {
-                debug("TRUTH UNKNOWN")
-                // FIXME:  maybe try to update state?
-                "Oh, really?  Thanks for letting me know."
-              }
-              case Success(truth) => {
-                debug(s"KNOWN TRUTH : $truth")
-                if (truth.assumeFalse == positivity) {
-                  val (normalizedResponse, negateCollection) =
-                    responseRewriter.normalizeResponse(
-                      predicate, resultCollector, generalParams)
-                  assert(!negateCollection)
-                  val printedSentence = {
-                    if (generalParams.terse) {
+            case Success(truth) => {
+              debug(s"KNOWN TRUTH : $truth")
+              if (truth.assumeFalse == positivity) {
+                val (normalizedResponse, negateCollection) =
+                  responseRewriter.normalizeResponse(
+                    predicate, resultCollector, generalParams)
+                assert(!negateCollection)
+                val printedSentence = {
+                  generalParams.verbosity match {
+                    case RESPONSE_TERSE => {
                       ""
-                    } else {
+                    }
+                    case RESPONSE_ELLIPSIS => {
+                      sentencePrinter.print(
+                        SilPredicateSentence(
+                          normalizedResponse,
+                          responseMood),
+                        true)
+                    }
+                    case RESPONSE_COMPLETE => {
                       sentencePrinter.print(
                         SilPredicateSentence(
                           normalizedResponse,
                           responseMood))
                     }
                   }
-                  sentencePrinter.sb.respondToAssumption(
-                    ASSUMED_TRUE, true, printedSentence, true)
-                } else {
-                  // FIXME:  add details on inconsistency, and maybe try
-                  // to update state?
-                  "Oh, really?"
                 }
-              }
-              case Failure(e) => {
-                // FIXME:  try to update state?
-                debug("ERROR", e)
-                e.getMessage
+                sentencePrinter.sb.respondToAssumption(
+                  ASSUMED_TRUE, true, printedSentence, true)
+              } else {
+                // FIXME:  add details on inconsistency, and maybe try
+                // to update state?
+                "Oh, really?"
               }
             }
-          }
-          case _ => {
-            debug(s"UNEXPECTED MOOD : $mood")
-            sentencePrinter.sb.respondCannotUnderstand()
+            case Failure(e) => {
+              // FIXME:  try to update state?
+              debug("ERROR", e)
+              e.getMessage
+            }
           }
         }
+        case _ => {
+          debug(s"UNEXPECTED MOOD : $mood")
+          sentencePrinter.sb.respondCannotUnderstand()
+        }
       }
-      case SilConjunctiveSentence(determiner, sentences, _) => {
-        // FIXME
-        debug("CONJUNCTIVE SENTENCE")
-        sentencePrinter.sb.respondCannotUnderstand()
-      }
-      case SilAmbiguousSentence(alternatives, _) => {
-        debug("AMBIGUOUS SENTENCE")
-        // FIXME:  try each in turn and use first
-        // that does not result in an error
-        sentencePrinter.sb.respondCannotUnderstand()
-      }
-      case _ : SilUnknownSentence => {
-        debug("UNKNOWN SENTENCE")
-        sentencePrinter.sb.respondCannotUnderstand()
-      }
+    }
+  }
+
+  private def interpretUnsupportedSentence = sentenceInterpreter {
+    case SilConjunctiveSentence(determiner, sentences, _) => {
+      // FIXME
+      debug("CONJUNCTIVE SENTENCE")
+      sentencePrinter.sb.respondCannotUnderstand()
+    }
+    case SilAmbiguousSentence(alternatives, _) => {
+      debug("AMBIGUOUS SENTENCE")
+      // FIXME:  try each in turn and use first
+      // that does not result in an error
+      sentencePrinter.sb.respondCannotUnderstand()
     }
   }
 

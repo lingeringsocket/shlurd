@@ -33,6 +33,12 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     params : ShlurdResponseParams)
       : (SilPredicate, Boolean) =
   {
+    // for incomplete responses, prevent flipping subject/complement so that we
+    // can more easily find the answer to the question asked
+    val allowFlips = params.verbosity match {
+      case RESPONSE_COMPLETE => true
+      case _ => false
+    }
     var negateCollection = false
     val entityDeterminer = predicate match {
       case SilStatePredicate(subject, SilExistenceState()) => {
@@ -112,7 +118,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
 
     val rewrite1 = {
       if (getTrueEntities(resultCollector).isEmpty ||
-        resultCollector.isCategorization)
+        resultCollector.isCategorization || !allowFlips)
       {
         rewrite(
           swapPronounsSpeakerListener,
@@ -148,9 +154,15 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         rewrite4
       }
     }
-    val rewriteLast = rewrite(
-      flipPronouns,
-      rewrite5)
+    val rewriteLast = {
+      if (allowFlips) {
+        rewrite(
+          flipPronouns,
+          rewrite5)
+      } else {
+        rewrite5
+      }
+    }
 
     SilPhraseValidator.validatePhrase(rewriteLast)
 

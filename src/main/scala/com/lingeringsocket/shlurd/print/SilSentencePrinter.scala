@@ -16,24 +16,35 @@ package com.lingeringsocket.shlurd.print
 
 import com.lingeringsocket.shlurd.parser._
 
+object SilSentencePrinter
+{
+  private val ELLIPSIS_MARKER = "<...>"
+
+  private val ELLIPSIS_REMOVAL = " " + ELLIPSIS_MARKER
+}
+import SilSentencePrinter._
+
 class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
 {
   val sb = SilSentenceBundle(parlance)
 
-  def print(sentence : SilSentence) : String =
+  def print(
+    sentence : SilSentence, ellipsis : Boolean = false) : String =
   {
     sb.terminatedSentence(
-      printUnterminated(sentence),
+      printUnterminated(sentence, ellipsis),
       sentence.mood, sentence.formality)
   }
 
-  def printUnterminated(sentence : SilSentence) : String =
+  def printUnterminated(
+    sentence : SilSentence, ellipsis : Boolean = false) : String =
   {
     sentence match {
       case SilPredicateSentence(predicate, mood, _) => {
         mood match {
           case _ : SilIndicativeMood =>  {
-            printPredicateStatement(predicate, mood)
+            printPredicateStatement(predicate, mood, ellipsis).
+              replaceAllLiterally(ELLIPSIS_REMOVAL, "")
           }
           case _ : SilInterrogativeMood => {
             printPredicateQuestion(predicate, mood)
@@ -53,10 +64,10 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case SilConjunctiveSentence(determiner, sentences, separator) => {
         sb.conjoin(
           determiner, separator, INFLECT_NONE,
-          sentences.map(printUnterminated))
+          sentences.map(s => printUnterminated(s, ellipsis)))
       }
       case SilAmbiguousSentence(alternatives, _) => {
-        alternatives.map(printUnterminated).mkString(" | ")
+        alternatives.map(s => printUnterminated(s, ellipsis)).mkString(" | ")
       }
       case _ : SilUnknownSentence => {
         sb.unknownSentence
@@ -192,24 +203,52 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   }
 
   def printPredicateStatement(
-    predicate : SilPredicate, mood : SilMood) : String =
+    predicate : SilPredicate, moodOriginal : SilMood,
+    ellipsis : Boolean = false) : String =
   {
     predicate match {
       case SilStatePredicate(subject, state) => {
+        val mood = moodOriginal
+        val rhs = {
+          if (ellipsis) {
+            ELLIPSIS_MARKER
+          } else {
+            print(state, mood, SilConjoining.NONE)
+          }
+        }
         sb.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getCopula(subject, state, mood, REL_IDENTITY),
-          print(state, mood, SilConjoining.NONE))
+          rhs)
       }
       case SilRelationshipPredicate(subject, complement, relationship) => {
         val complementInflection = relationship match {
           case REL_IDENTITY => INFLECT_NOMINATIVE
           case REL_ASSOCIATION => INFLECT_ACCUSATIVE
         }
+        val mood = {
+          if (ellipsis && (relationship == REL_ASSOCIATION)) {
+            moodOriginal match {
+              case SilIndicativeMood(positive, _) => {
+                SilIndicativeMood(positive, MODAL_ELLIPTICAL)
+              }
+              case _ => moodOriginal
+            }
+          } else {
+            moodOriginal
+          }
+        }
+        val rhs = {
+          if (ellipsis) {
+            ELLIPSIS_MARKER
+          } else {
+            print(complement, complementInflection, SilConjoining.NONE)
+          }
+        }
         sb.relationshipPredicateStatement(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getCopula(subject, SilNullState(), mood, relationship),
-          print(complement, complementInflection, SilConjoining.NONE))
+          rhs)
       }
       case _ : SilUnknownPredicate => {
         sb.unknownPredicateStatement

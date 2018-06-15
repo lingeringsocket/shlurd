@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.cli
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.cosmos._
 import com.lingeringsocket.shlurd.platonic._
 
 import scala.io._
@@ -54,11 +55,14 @@ class ShlurdCliApp(
   file : File,
   serializer : ShlurdCliSerializer)
 {
-  private val interpreter = new SpcInterpreter(mind, true)
+  private val params = ShlurdResponseParams().copy(
+    verbosity = RESPONSE_ELLIPSIS)
+
+  private val interpreter = new SpcInterpreter(mind, true, params)
 
   private def run()
   {
-    var exit = false
+     var exit = false
     println
     while (!exit) {
       print("> ")

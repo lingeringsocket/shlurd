@@ -85,6 +85,7 @@ case object MODAL_CAPABLE extends SilModality
 case object MODAL_PERMITTED extends SilModality
 case object MODAL_SHOULD extends SilModality
 case object MODAL_EMPHATIC extends SilModality
+case object MODAL_ELLIPTICAL extends SilModality
 
 sealed trait SilRelationship
 case object REL_IDENTITY extends SilRelationship

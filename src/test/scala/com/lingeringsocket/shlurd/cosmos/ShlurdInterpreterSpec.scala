@@ -107,7 +107,7 @@ class ShlurdInterpreterSpec extends Specification
 
     "interpret questions" in
     {
-      val terse = ShlurdResponseParams().copy(terse = true)
+      val terse = ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE)
       interpret("is the lion asleep") must be equalTo(
         "Yes, the lion is asleep.")
       interpret("is the lion asleep", terse) must be equalTo(
@@ -334,7 +334,7 @@ class ShlurdInterpreterSpec extends Specification
 
     "interpret statements" in
     {
-      val terse = ShlurdResponseParams().copy(terse = true)
+      val terse = ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE)
       interpret("the lion is asleep") must be equalTo(
         "Right, the lion is asleep.")
       interpret("the lion is asleep", terse) must be equalTo(

@@ -234,7 +234,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           case MODAL_MAY | MODAL_POSSIBLE |
               MODAL_CAPABLE | MODAL_PERMITTED =>
             SpcCardinalityConstraint(0, upper)
-          case MODAL_SHOULD =>
+          case MODAL_SHOULD | MODAL_ELLIPTICAL =>
             return Some(UnimplementedBelief(sentence))
         }
         isPropertyAssoc(sentence, complement, relationship).map(
