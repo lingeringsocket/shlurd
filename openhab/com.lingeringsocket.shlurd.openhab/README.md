@@ -1,5 +1,3 @@
 # Shlurd HLI
 
-## Overview
-
-TODO
+See the [Shlurd OPENHAB](../README.md)
