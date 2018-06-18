@@ -1,3 +1,3 @@
 # Shlurd HLI
 
-See the [Shlurd Openhab README](../README.md)
+See the [shlurd-openhab README](../README.md)
