@@ -46,7 +46,7 @@ class SpcMind(cosmos : SpcCosmos) extends ShlurdMind(cosmos)
         // e.g. "Larry's father" is better than "one of Pete's uncles"
         val cardinality = assocGraph.outgoingEdgesOf(possessor).asScala.
           count(edge2 => {
-            (edge2.label == edge.label) &&
+            (edge2.getRoleName == edge.getRoleName) &&
             (role == specializedRole) || graph.isHyponym(
               specializedRole,
               graph.getPossesseeEntity(edge2).form)

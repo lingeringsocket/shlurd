@@ -332,7 +332,7 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
           addEntity(entity)
           qualifiers.lastOption match {
             case Some(personName) => {
-              getPropertyEdges.find(_.label == presenceFormName) match {
+              getPropertyEdges.find(_.getRoleName == presenceFormName) match {
                 case Some(edge) => {
                   val personForm = getGraph.getPossessorForm(edge)
                   resolveQualifiedNoun(

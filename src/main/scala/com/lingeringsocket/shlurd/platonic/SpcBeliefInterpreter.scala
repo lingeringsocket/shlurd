@@ -402,20 +402,20 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
 
   private def validateEdgeCardinality(
     sentence : SilSentence,
-    formAssoc : SpcFormAssocEdge,
+    formAssocEdge : SpcFormAssocEdge,
     possessor : SpcEntity)
   {
-    val constraint = cosmos.getAssocConstraints(formAssoc)
+    val constraint = cosmos.getAssocConstraints(formAssocEdge)
     val entityAssocGraph = cosmos.getEntityAssocGraph
     val edges = entityAssocGraph.
       outgoingEdgesOf(possessor).asScala.
-      filter(_.label == formAssoc.label)
+      filter(_.formEdge == formAssocEdge)
 
     val edgeCount = edges.size
     if (edgeCount >= constraint.upper) {
       val originalBelief = SilConjunctiveSentence(
         DETERMINER_ALL,
-        Seq(creed.formAssociationBelief(formAssoc)) ++
+        Seq(creed.formAssociationBelief(formAssocEdge)) ++
           edges.map(creed.entityAssociationBelief(_)),
         SEPARATOR_OXFORD_COMMA)
       throw new IncrementalCardinalityExcn(
@@ -508,9 +508,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
         cosmos.addIdealTaxonomy(possesseeRole, possesseeForm)
       }
-      val label = possesseeRoleName.lemma
       val edge = cosmos.addFormAssoc(
-        possessorForm, possesseeRole, label)
+        possessorForm, possesseeRole)
       val constraint = cosmos.getAssocConstraints.get(edge) match {
         case Some(oldConstraint) => SpcCardinalityConstraint(
           Math.max(oldConstraint.lower, newConstraint.lower),
@@ -594,12 +593,10 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         case _ => cosmos.instantiateForm(possesseeRoleName)
       }
       cosmos.addIdealTaxonomy(possessorRole, possessorForm)
-      val label = possesseeRoleName.lemma
-      val inverseLabel = possessorRoleName.lemma
       val edge = cosmos.addFormAssoc(
-        possessorForm, possesseeRole, label)
+        possessorForm, possesseeRole)
       val inverseEdge = cosmos.addFormAssoc(
-        possesseeForm, possessorRole, inverseLabel)
+        possesseeForm, possessorRole)
       cosmos.connectInverseAssocEdges(edge, inverseEdge)
     }
   }

@@ -353,15 +353,15 @@ class SpcCosmos
 
   protected[platonic] def addFormAssoc(
     possessor : SpcForm,
-    possessee : SpcRole,
-    label : String) : SpcFormAssocEdge =
+    possessee : SpcRole) : SpcFormAssocEdge =
   {
+    val roleName = possessee.name
     graph.formAssocs.getAllEdges(
-      possessor, possessee).asScala.find(_.label == label) match
+      possessor, possessee).asScala.find(_.getRoleName == roleName) match
     {
       case Some(edge) => edge
       case _ => {
-        val edge = new SpcFormAssocEdge(label)
+        val edge = new SpcFormAssocEdge(roleName)
         graph.formAssocs.addEdge(possessor, possessee, edge)
         edge
       }
@@ -398,7 +398,8 @@ class SpcCosmos
     possessee : SpcEntity,
     formAssocEdge : SpcFormAssocEdge) : SpcEntityAssocEdge =
   {
-    getEntityAssocEdge(possessor, possessee, formAssocEdge.label) match {
+    val role = graph.getPossesseeRole(formAssocEdge)
+    getEntityAssocEdge(possessor, possessee, role) match {
       case Some(edge) => {
         assert(edge.formEdge == formAssocEdge)
         edge
@@ -415,18 +416,17 @@ class SpcCosmos
   def isEntityAssoc(
     possessor : SpcEntity,
     possessee : SpcEntity,
-    roleName : String) : Boolean =
+    role : SpcRole) : Boolean =
   {
-    !getEntityAssocEdge(possessor, possessee, roleName).isEmpty
+    !getEntityAssocEdge(possessor, possessee, role).isEmpty
   }
 
   def getEntityAssocEdge(
     possessor : SpcEntity,
     possessee : SpcEntity,
-    roleName : String
+    role : SpcRole
   ) : Option[SpcEntityAssocEdge] =
   {
-    val role = roles(roleName)
     graph.entityAssocs.getAllEdges(
       possessor, possessee).asScala.find(edge => {
         graph.isHyponym(role, graph.getPossesseeRole(edge.formEdge))
@@ -454,7 +454,7 @@ class SpcCosmos
           e => graph.isHyponym(e.form, form)).foreach(entity =>
           {
             val c = getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
-              count(_.label == formEdge.label)
+              count(_ == formEdge)
             if ((c < constraint.lower) || (c > constraint.upper)) {
               throw new CardinalityExcn(
                 creed.formAssociationBelief(formEdge))
@@ -467,11 +467,11 @@ class SpcCosmos
 
   def resolveGenitive(
     possessor : SpcEntity,
-    label : String)
+    roleName : String)
       : Set[SpcEntity] =
   {
     ShlurdParseUtils.orderedSet(getEntityAssocGraph.outgoingEdgesOf(possessor).
-      asScala.toSeq.filter(_.label == label).map(
+      asScala.toSeq.filter(_.getRoleName == roleName).map(
         graph.getPossesseeEntity))
   }
 
@@ -602,12 +602,12 @@ class SpcCosmos
       }
     }
     val hypernymSet = graph.getFormHypernyms(entity.form).toSet
-    val propertyEdgeNames = hypernymSet.flatMap { form =>
+    val outgoingPropertyEdges = hypernymSet.flatMap { form =>
       getFormAssocGraph.outgoingEdgesOf(form).asScala.
-        filter(propertyEdges.contains(_)).map(_.label).toSet
+        filter(propertyEdges.contains(_)).toSet
     }
     getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
-      filter(edge => propertyEdgeNames.contains(edge.label)).
+      filter(edge => outgoingPropertyEdges.contains(edge.formEdge)).
       foreach(edge => {
         val propertyEntity = graph.getPossesseeEntity(edge)
         if (propertyEntity.form.properties.values.toSeq.contains(property)) {
@@ -637,10 +637,17 @@ class SpcCosmos
   {
     if (adposition == ADP_GENITIVE_OF) {
       if (qualifiers.size != 1) {
-        Success(Trilean.False)
+        Success(Trilean.Unknown)
       } else {
         val roleName = qualifiers.head
-        Success(Trilean(isEntityAssoc(objRef, entity, roleName)))
+        roles.get(roleName) match {
+          case Some(role) => {
+            Success(Trilean(isEntityAssoc(objRef, entity, role)))
+          }
+          case _ => {
+            Success(Trilean.Unknown)
+          }
+        }
       }
     } else {
       Success(Trilean.Unknown)

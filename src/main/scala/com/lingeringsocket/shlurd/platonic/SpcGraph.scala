@@ -70,8 +70,9 @@ class SpcLabeledEdge(
 }
 
 class SpcFormAssocEdge(
-  label : String) extends SpcLabeledEdge(label)
+  roleName : String) extends SpcLabeledEdge(roleName)
 {
+  def getRoleName = label
 }
 
 class SpcTaxonomyEdge(
@@ -80,8 +81,9 @@ class SpcTaxonomyEdge(
 }
 
 class SpcEntityAssocEdge(
-  val formEdge : SpcFormAssocEdge) extends SpcLabeledEdge(formEdge.label)
+  val formEdge : SpcFormAssocEdge) extends SpcLabeledEdge(formEdge.getRoleName)
 {
+  def getRoleName = formEdge.getRoleName
 }
 
 class SpcGraph(

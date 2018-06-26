@@ -181,7 +181,7 @@ class SpcCreed(cosmos : SpcCosmos)
       }
     }
     val possesseeNoun = nounReference(
-      edge.label, count, determiner)
+      edge.getRoleName, count, determiner)
     val possessee = {
       if (isProperty) {
         SilStateSpecifiedReference(
@@ -235,7 +235,7 @@ class SpcCreed(cosmos : SpcCosmos)
     val possessee = cosmos.specificReference(
       cosmos.getGraph.getPossesseeEntity(edge), DETERMINER_NONSPECIFIC)
     val role = nounReference(
-      edge.label, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)
+      edge.getRoleName, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)
     SilPredicateSentence(
       SilRelationshipPredicate(
         possessee,
@@ -250,8 +250,8 @@ class SpcCreed(cosmos : SpcCosmos)
     entry : (SpcFormAssocEdge, SpcFormAssocEdge)) =
   {
     val possessorForm = cosmos.getGraph.getPossessorForm(entry._1)
-    val label = entry._2.label
-    (possessorForm.name == label)
+    val roleName = entry._2.getRoleName
+    (possessorForm.name == roleName)
   }
 
   private def isTrivialTaxonomy(
@@ -272,8 +272,8 @@ class SpcCreed(cosmos : SpcCosmos)
           idealNoun(cosmos.getGraph.getPossessorForm(edge1)),
           SilAdpositionalState(
             ADP_WITH,
-            nounReference(edge1.label))),
-        nounReference(edge2.label),
+            nounReference(edge1.getRoleName))),
+        nounReference(edge2.getRoleName),
         REL_IDENTITY))
   }
 
