@@ -42,10 +42,11 @@ case class StateEquivalenceBelief(
 {
 }
 
-case class FormTaxonomyBelief(
+case class IdealTaxonomyBelief(
   sentence : SilSentence,
   hyponymIdealName : SilWord,
-  hypernymIdealName : SilWord
+  hypernymIdealName : SilWord,
+  hyponymIsRole : Boolean
 ) extends SpcBelief
 {
 }
@@ -54,14 +55,6 @@ case class IdealAliasBelief(
   sentence : SilSentence,
   synonym : SilWord,
   idealName : SilWord
-) extends SpcBelief
-{
-}
-
-case class RoleTaxonomyBelief(
-  sentence : SilSentence,
-  role : SilWord,
-  formName : SilWord
 ) extends SpcBelief
 {
 }

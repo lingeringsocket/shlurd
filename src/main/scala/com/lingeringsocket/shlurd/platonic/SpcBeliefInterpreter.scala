@@ -205,8 +205,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
                   DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
                   COUNT_SINGULAR))
             ) => {
-              Some(FormTaxonomyBelief(
-                sentence, subjectNoun, hypernymIdealName))
+              Some(IdealTaxonomyBelief(
+                sentence, subjectNoun, hypernymIdealName, false))
             }
             case _ => None
           }
@@ -217,8 +217,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
               sentence, subjectNoun, complementNoun))
           } else {
             // "an owner must be a person"
-            Some(RoleTaxonomyBelief(
-              sentence, subjectNoun, complementNoun))
+            Some(IdealTaxonomyBelief(
+              sentence, subjectNoun, complementNoun, true))
           }
         }
       }
@@ -455,24 +455,15 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
   }
 
   beliefApplier {
-    case RoleTaxonomyBelief(
-      sentence, roleName, formName
-    ) => {
-      // FIXME validation
-      val role = cosmos.instantiateRole(roleName)
-      val form = cosmos.instantiateForm(formName)
-      cosmos.addIdealTaxonomy(role, form)
-    }
-  }
-
-  beliefApplier {
-    case FormTaxonomyBelief(
-      sentence, hyponymIdealName, hypernymIdealName
+    case IdealTaxonomyBelief(
+      sentence, hyponymIdealName, hypernymIdealName, hyponymIsRole
     ) => {
       // FIXME need to make sure all hypernyms are (and remain) compatible
       // FIXME also need to allow existing form to be refined
-      val hyponymIdeal = cosmos.instantiateForm(hyponymIdealName)
-      val hypernymIdeal = cosmos.instantiateForm(hypernymIdealName)
+      val hyponymIdeal = cosmos.instantiateIdeal(
+        hyponymIdealName, hyponymIsRole)
+      val hypernymIdeal = cosmos.instantiateIdeal(
+        hypernymIdealName, false)
       try {
         cosmos.addIdealTaxonomy(
           hyponymIdeal, hypernymIdeal)

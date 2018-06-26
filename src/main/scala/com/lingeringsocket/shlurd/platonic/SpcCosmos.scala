@@ -228,22 +228,21 @@ class SpcCosmos
       new ArrayUnenforcedSet(graph.entityAssocs.vertexSet))
   }
 
-  type IdealConstructor = (String) => SpcIdeal
-
   private def registerIdeal(ideal : SpcIdeal)
   {
     graph.idealTaxonomy.addVertex(ideal)
     graph.formAssocs.addVertex(ideal)
   }
 
-  def instantiateIdeal(word : SilWord) =
+  def instantiateIdeal(word : SilWord, assumeRole : Boolean = false) =
   {
     val name = idealSynonyms.resolveSynonym(word.lemma)
-    roles.get(name) match {
-      case Some(role) => role
-      case _ => {
-        instantiateForm(word)
-      }
+    def checkRole = roles.get(name)
+    def checkForm = forms.get(name)
+    if (assumeRole) {
+      checkRole.getOrElse(checkForm.getOrElse(instantiateRole(word)))
+    } else {
+      checkForm.getOrElse(checkRole.getOrElse(instantiateForm(word)))
     }
   }
 
