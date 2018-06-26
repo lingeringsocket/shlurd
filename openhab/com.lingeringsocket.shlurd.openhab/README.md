@@ -1,5 +1,3 @@
 # Shlurd HLI
 
-## Overview
-
-TODO
+See the [shlurd-openhab README](../README.md)

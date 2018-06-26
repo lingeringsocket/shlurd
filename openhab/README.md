@@ -16,15 +16,15 @@ Caveat: some known parsing/naming problems are demonstrated in [errata](test/err
 1. Open the **Add-Ons** menu from the sidebar
 1. Select the **Misc** tab
 1. Install the **Eclipse IoT Market** addon if you haven't already
-1. Select the **Bindings** tab
+1. Select the **Voice** tab
 1. Install the **SHLURD Human Language Interpreter** addon
 
 Notes:
 
 * The addon jar and Java heap memory requirements are quite large due to the inclusion of Stanford CoreNLP models, so it may not be suitable for lightweight deployments (e.g. Raspberry Pi).
-* The addon is listed as a binding, but it's actually a voice addon.  [This is due to the way the Eclipse IoT Market is currently set up.](https://community.openhab.org/t/marketplace-listings-for-non-binding-addons)
+* The instructions above will only work for OpenHab installations running a version which includes [this Eclipse Smart Home pull request](https://github.com/eclipse/smarthome/pull/5349).  For older versions, either upgrade or use the manual instructions given below.
 
-If instead you want to install the addon manually, here are the instructions:
+Manual installation:
 
 1. Download the latest release archive .jar from [the Eclipse IoT marketplace](https://marketplace.eclipse.org/content/shlurd-human-language-interpreter) or from [lingeringsocket.com](https://lingeringsocket.com/com.lingeringsocket.shlurd.openhab).
 1. Move the jar into your openhab `addons` directory (e.g. `/usr/share/openhab2/addons`)
