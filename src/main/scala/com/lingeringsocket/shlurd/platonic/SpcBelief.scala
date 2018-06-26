@@ -91,7 +91,7 @@ case class EntityAssocBelief(
   sentence : SilSentence,
   possessorEntityName : SilWord,
   possesseeEntityName : SilWord,
-  labelName : SilWord
+  roleName : SilWord
 ) extends SpcBelief
 {
 }

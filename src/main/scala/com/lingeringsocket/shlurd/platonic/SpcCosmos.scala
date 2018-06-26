@@ -56,11 +56,9 @@ class SpcProperty(val name : String)
 sealed abstract class SpcIdeal(val name : String)
     extends ShlurdNamedObject
 {
-}
+  def isRole : Boolean = false
 
-object SpcForm
-{
-  def apply(name : String) = new SpcForm(name)
+  def isForm : Boolean = false
 }
 
 class SpcForm(name : String)
@@ -125,18 +123,17 @@ class SpcForm(name : String)
 
   def getInflectedStateNormalizations = inflectedStateNormalizations.toIterable
 
-  override def toString = s"SpcForm($name)"
-}
+  override def isForm = true
 
-object SpcRole
-{
-  def apply(name : String) = new SpcRole(name)
+  override def toString = s"SpcForm($name)"
 }
 
 class SpcRole(name : String)
     extends SpcIdeal(name)
 {
-  override def toString = s"SpcIdeal($name)"
+  override def isRole = true
+
+  override def toString = s"SpcRole($name)"
 }
 
 case class SpcEntity(
@@ -374,9 +371,10 @@ class SpcCosmos
   protected[platonic] def addEntityAssoc(
     possessor : SpcEntity,
     possessee : SpcEntity,
-    label : String) : SpcEntityAssocEdge =
+    roleName : String) : SpcEntityAssocEdge =
   {
-    graph.getFormAssocEdge(possessor.form, possessee.form, label) match {
+    val role = roles(roleName)
+    graph.getFormAssocEdge(possessor.form, possessee.form, role) match {
       case Some(formAssocEdge) => {
         val edge = addEntityAssocEdge(
           possessor, possessee, formAssocEdge)
@@ -417,19 +415,23 @@ class SpcCosmos
   def isEntityAssoc(
     possessor : SpcEntity,
     possessee : SpcEntity,
-    label : String) : Boolean =
+    roleName : String) : Boolean =
   {
-    !getEntityAssocEdge(possessor, possessee, label).isEmpty
+    !getEntityAssocEdge(possessor, possessee, roleName).isEmpty
   }
 
   def getEntityAssocEdge(
     possessor : SpcEntity,
     possessee : SpcEntity,
-    label : String
+    roleName : String
   ) : Option[SpcEntityAssocEdge] =
   {
+    val role = roles(roleName)
     graph.entityAssocs.getAllEdges(
-      possessor, possessee).asScala.find(_.label == label)
+      possessor, possessee).asScala.find(edge => {
+        graph.isHyponym(role, graph.getPossesseeRole(edge.formEdge))
+      }
+    )
   }
 
   def loadBeliefs(source : Source)
@@ -473,16 +475,16 @@ class SpcCosmos
         graph.getPossesseeEntity))
   }
 
-  private def resolveIdealToForm(
-    lemma : String) : (Option[SpcForm], Boolean) =
+  private def resolveIdeal(
+    lemma : String) : (Option[SpcForm], Option[SpcRole]) =
   {
     val name = idealSynonyms.resolveSynonym(lemma)
     forms.get(name) match {
-      case Some(f) => (Some(f), false)
+      case Some(f) => (Some(f), None)
       case _ => {
         roles.get(name) match {
-          case Some(role) => (graph.getFormForRole(role), true)
-          case _ => (None, false)
+          case Some(role) => (graph.getFormForRole(role), Some(role))
+          case _ => (None, None)
         }
       }
     }
@@ -493,7 +495,7 @@ class SpcCosmos
     context : SilReferenceContext,
     qualifiers : Set[String]) =
   {
-    val (formOpt, isRoleName) = resolveIdealToForm(lemma)
+    val (formOpt, roleOpt) = resolveIdeal(lemma)
     formOpt match {
       case Some(form) => {
         Success(ShlurdParseUtils.orderedSet(
@@ -637,8 +639,8 @@ class SpcCosmos
       if (qualifiers.size != 1) {
         Success(Trilean.False)
       } else {
-        val label = qualifiers.head
-        Success(Trilean(isEntityAssoc(objRef, entity, label)))
+        val roleName = qualifiers.head
+        Success(Trilean(isEntityAssoc(objRef, entity, roleName)))
       }
     } else {
       Success(Trilean.Unknown)
@@ -650,16 +652,22 @@ class SpcCosmos
     lemma : String,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    val (formOpt, isRoleName) = resolveIdealToForm(lemma)
+    val (formOpt, roleOpt) = resolveIdeal(lemma)
     formOpt match {
       case Some(form) => {
         if (graph.isHyponym(entity.form, form)) {
-          if (isRoleName) {
-            Success(Trilean(
-              getEntityAssocGraph.incomingEdgesOf(entity).asScala.
-                exists(_.label == lemma)))
-          } else {
-            Success(Trilean.True)
+          roleOpt match {
+            case Some(role) => {
+              Success(Trilean(
+                getEntityAssocGraph.incomingEdgesOf(entity).asScala.
+                  exists(edge =>
+                    graph.isHyponym(
+                      role,
+                      graph.getPossesseeRole(edge.formEdge)))))
+            }
+            case _ => {
+              Success(Trilean.True)
+            }
           }
         } else {
           Success(Trilean.False)

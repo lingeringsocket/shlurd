@@ -141,6 +141,18 @@ class SpcInterpreterSpec extends Specification
         "Yes.",
         "Yes, she is.")
       interpretMatrix(
+        "is Amanda Todd's sibling",
+        "Yes, she is his sibling.",
+        "Yes, Amanda is Todd's sibling.",
+        "Yes.",
+        "Yes, she is.")
+      interpretMatrix(
+        "is Amanda Todd's brother",
+        "No, she is not his brother.",
+        "No, Amanda is not Todd's brother.",
+        "No.",
+        "No, she is not.")
+      interpretMatrix(
         "is Dirk Todd's sister",
         "No, he is not Todd's sister.",
         "No, Dirk is not Todd's sister.",

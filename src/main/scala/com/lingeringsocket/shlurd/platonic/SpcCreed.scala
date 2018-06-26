@@ -71,6 +71,16 @@ class SpcCreed(cosmos : SpcCosmos)
     }
   }
 
+  def idealTaxonomyBelief(
+    edge : SpcTaxonomyEdge
+  ) : SilSentence =
+  {
+    cosmos.getGraph.getHyponymIdeal(edge) match {
+      case _ : SpcForm => formTaxonomyBelief(edge)
+      case _ : SpcRole => roleTaxonomyBelief(edge)
+    }
+  }
+
   def formTaxonomyBelief(
     edge : SpcTaxonomyEdge
   ) : SilSentence =
@@ -86,7 +96,9 @@ class SpcCreed(cosmos : SpcCosmos)
         REL_IDENTITY))
   }
 
-  def roleTaxonomyBelief(edge : SpcTaxonomyEdge) : SilSentence =
+  def roleTaxonomyBelief(
+    edge : SpcTaxonomyEdge
+  ) : SilSentence =
   {
     SilPredicateSentence(
       SilRelationshipPredicate(
@@ -96,7 +108,9 @@ class SpcCreed(cosmos : SpcCosmos)
       SilIndicativeMood(true, MODAL_MUST))
   }
 
-  def formAliasBelief(entry : (String, String)) : SilSentence =
+  def formAliasBelief(
+    entry : (String, String)
+  ) : SilSentence =
   {
     SilPredicateSentence(
       SilRelationshipPredicate(
@@ -191,7 +205,9 @@ class SpcCreed(cosmos : SpcCosmos)
     )
   }
 
-  def entityFormBelief(entity : SpcEntity) : SilSentence =
+  def entityFormBelief(
+    entity : SpcEntity
+  ) : SilSentence =
   {
     val subject = cosmos.specificReference(entity, DETERMINER_NONSPECIFIC)
     val predicate = entity.properName match {

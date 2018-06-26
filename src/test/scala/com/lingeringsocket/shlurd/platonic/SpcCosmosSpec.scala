@@ -196,11 +196,40 @@ class SpcCosmosSpec extends Specification
       })
     }
 
+    "understand role inheritance" in new CosmosContext
+    {
+      addBelief("a man is a kind of person")
+      addBelief("a sibling must be a person")
+      addBelief("a brother is a kind of sibling")
+      val person = cosmos.getForms(LEMMA_PERSON)
+      val man = cosmos.getForms("man")
+      val brother = cosmos.getRoles("brother")
+      cosmos.getGraph.getFormForRole(brother) must be equalTo Some(person)
+      addBelief("a brother must be a man")
+      cosmos.getGraph.getFormForRole(brother) must be equalTo Some(man)
+    }
+
     "prevent taxonomy cycles" in new CosmosContext
     {
       addBelief("a duck is a kind of bird")
       addBelief("a bird is a kind of duck") must
         throwA[ContradictoryBeliefExcn]
+    }
+
+    "prevent form as hyponym for role" in new CosmosContext
+    {
+      // some forms
+      addBelief("a man is a kind of person")
+      addBelief("a buffoon is a kind of person")
+      addBelief("a groomsman is a kind of man")
+      // minion is a role
+      addBelief("a minion must be a person")
+      // should not be able to make an existing form a hyponym for a role
+      addBelief("a groomsman is a kind of minion") must
+        throwA[IncomprehensibleBeliefExcn]
+      // should not be able to change an existing form into a role
+      addBelief("a groomsman must be a buffoon") must
+        throwA[IncomprehensibleBeliefExcn]
     }
 
     "understand genitives" in new CosmosContext

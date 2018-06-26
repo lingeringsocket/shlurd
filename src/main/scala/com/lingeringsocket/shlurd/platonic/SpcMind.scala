@@ -36,13 +36,23 @@ class SpcMind(cosmos : SpcCosmos) extends ShlurdMind(cosmos)
     val assocGraph = cosmos.getEntityAssocGraph
     val genitives = assocGraph.incomingEdgesOf(entity).asScala.toSeq.map(
       edge => {
-        val possessor = cosmos.getGraph.getPossessorEntity(edge)
+        val graph = cosmos.getGraph
+        val possessor = graph.getPossessorEntity(edge)
+        val role = graph.getPossesseeRole(edge.formEdge)
+        val specializedRole = graph.specializeRoleForForm(
+          role,
+          entity.form)
         // we prefer more specific associations over less specific ones
         // e.g. "Larry's father" is better than "one of Pete's uncles"
-        val count = assocGraph.outgoingEdgesOf(possessor).asScala.
-          count(_.label == edge.label)
+        val cardinality = assocGraph.outgoingEdgesOf(possessor).asScala.
+          count(edge2 => {
+            (edge2.label == edge.label) &&
+            (role == specializedRole) || graph.isHyponym(
+              specializedRole,
+              graph.getPossesseeEntity(edge2).form)
+          })
         val genitive = {
-          if (count > 1) {
+          if (cardinality > 1) {
             // "one of Pete's uncles"
             SilStateSpecifiedReference(
               SilNounReference(SilWord(LEMMA_ONE)),
@@ -50,17 +60,17 @@ class SpcMind(cosmos : SpcCosmos) extends ShlurdMind(cosmos)
                 ADP_OF,
                 SilGenitiveReference(
                   cosmos.specificReference(possessor, determiner),
-                  SilNounReference(SilWord("", edge.label),
+                  SilNounReference(SilWord("", specializedRole.name),
                     DETERMINER_UNSPECIFIED,
                     COUNT_PLURAL))))
           } else {
             // "Larry's father"
             SilGenitiveReference(
               cosmos.specificReference(possessor, determiner),
-              SilNounReference(SilWord(edge.label)))
+              SilNounReference(SilWord(specializedRole.name)))
           }
         }
-        (genitive, count)
+        (genitive, cardinality)
       }
     )
     val qualifiedSeq = {

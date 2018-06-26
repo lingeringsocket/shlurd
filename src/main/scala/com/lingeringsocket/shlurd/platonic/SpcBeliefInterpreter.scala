@@ -460,10 +460,22 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     ) => {
       // FIXME need to make sure all hypernyms are (and remain) compatible
       // FIXME also need to allow existing form to be refined
-      val hyponymIdeal = cosmos.instantiateIdeal(
-        hyponymIdealName, hyponymIsRole)
       val hypernymIdeal = cosmos.instantiateIdeal(
         hypernymIdealName, false)
+      val hypernymIsRole = hypernymIdeal.isRole
+      val hyponymIdeal = cosmos.instantiateIdeal(
+        hyponymIdealName, hyponymIsRole || hypernymIsRole)
+      if (hyponymIsRole || hypernymIsRole) {
+        hyponymIdeal match {
+          case form : SpcForm => {
+            // FIXME:  thow a ContradictoryBeliefExcn pinpointing the reason
+            // we believe hyponym to be a form, not a role
+            throw new IncomprehensibleBeliefExcn(
+              sentence)
+          }
+          case _ =>
+        }
+      }
       try {
         cosmos.addIdealTaxonomy(
           hyponymIdeal, hypernymIdeal)
@@ -475,7 +487,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           assert(path != null)
           val originalBelief = SilConjunctiveSentence(
             DETERMINER_ALL,
-            path.getEdgeList.asScala.toSeq.map(creed.formTaxonomyBelief(_)),
+            path.getEdgeList.asScala.toSeq.map(creed.idealTaxonomyBelief(_)),
             SEPARATOR_OXFORD_COMMA)
           throw new ContradictoryBeliefExcn(
             sentence,
@@ -526,11 +538,10 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
 
   beliefApplier {
     case EntityAssocBelief(
-      sentence, possessorEntityName, possesseeEntityName, labelName
+      sentence, possessorEntityName, possesseeEntityName, roleName
     ) => {
       val possessorOpt = resolveUniqueName(possessorEntityName)
       val possesseeOpt = resolveUniqueName(possesseeEntityName)
-      val label = labelName.lemma
       if (possessorOpt.isEmpty) {
         throw new UnknownPossessorBeliefExcn(sentence)
       }
@@ -539,8 +550,14 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       }
       val possessor = possessorOpt.get
       val possessee = possesseeOpt.get
+      val role = cosmos.getRoles.get(roleName.lemma) match {
+        case Some(r) => r
+        case _ => {
+          throw new MissingAssocBeliefExcn(sentence)
+        }
+      }
       cosmos.getGraph.getFormAssocEdge(
-        possessor.form, possessee.form, label) match
+        possessor.form, possessee.form, role) match
       {
         case Some(formAssocEdge) => {
           validateEdgeCardinality(sentence, formAssocEdge, possessor)

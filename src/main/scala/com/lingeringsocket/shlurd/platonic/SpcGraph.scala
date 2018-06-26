@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.platonic
 
 import org.jgrapht._
 import org.jgrapht.graph._
+import org.jgrapht.alg._
 import org.jgrapht.alg.shortestpath._
 import org.jgrapht.traverse._
 import org.jgrapht.io._
@@ -113,7 +114,6 @@ class SpcGraph(
   def getPossesseeRole(edge : SpcFormAssocEdge) =
     formAssocs.getEdgeTarget(edge).asInstanceOf[SpcRole]
 
-  // FIXME deal with nonexistent form
   def getPossesseeForm(edge : SpcFormAssocEdge) =
     getFormForRole(getPossesseeRole(edge)).get
 
@@ -123,12 +123,13 @@ class SpcGraph(
   def getFormAssocEdge(
     possessor : SpcForm,
     possessee : SpcForm,
-    label : String) : Option[SpcFormAssocEdge] =
+    role : SpcRole) : Option[SpcFormAssocEdge] =
   {
-    val edges = formAssocs.edgeSet.asScala.filter(edge =>
-      (edge.label == label) &&
-        isHyponym(possessor, getPossessorForm(edge)) &&
-        isHyponym(possessee, getPossesseeForm(edge)))
+    val edges = formAssocs.edgeSet.asScala.filter(edge => {
+      isHyponym(role, getPossesseeRole(edge)) &&
+      isHyponym(possessor, getPossessorForm(edge)) &&
+      isHyponym(possessee, getPossesseeForm(edge))
+    })
     def compareEdges(
       edge1 : SpcFormAssocEdge, edge2 : SpcFormAssocEdge) : Boolean =
     {
@@ -177,12 +178,27 @@ class SpcGraph(
   def getFormForRole(
     role : SpcRole) : Option[SpcForm] =
   {
-    // FIXME:  choose most specific form
-    getIdealHypernyms(role).foreach(_ match {
+    // choose most specific form in subgraph of role's hypernyms
+    val subgraph = new AsSubgraph(
+      idealTaxonomy, getIdealHypernyms(role).toSet.asJava)
+    val iter = new TopologicalOrderIterator(subgraph)
+    iter.asScala.foreach(_ match {
       case form : SpcForm => return Some(form)
       case _ =>
     })
     None
+  }
+
+  def specializeRoleForForm(
+    role : SpcRole,
+    form : SpcForm) : SpcRole =
+  {
+    // choose role which is lowest common ancestor for inputs;
+    // forms cannot be hyponyms of roles, so any LCA must
+    // be a role
+    val alg = new NaiveLcaFinder(idealTaxonomy)
+    Option(alg.findLca(role, form)).
+      map(_.asInstanceOf[SpcRole]).getOrElse(role)
   }
 
   def render[V, E](graph : Graph[V, E]) : String =
