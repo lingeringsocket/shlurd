@@ -44,6 +44,11 @@ class SpcCosmosSpec extends Specification
       cosmos.getForms.get(name) must beSome.which(_.name == name)
     }
 
+    protected def expectNamedRole(name : String) =
+    {
+      cosmos.getRoles.get(name) must beSome.which(_.name == name)
+    }
+
     protected def expectSingleProperty(form : SpcForm)
         : SpcProperty =
     {
@@ -227,6 +232,11 @@ class SpcCosmosSpec extends Specification
       cosmos.validateBeliefs
 
       expectNamedForm(LEMMA_PERSON)
+      expectNamedRole("mom")
+      expectNamedRole("dad")
+      expectNamedRole("son")
+      expectNamedRole("ex-husband")
+      expectNamedRole("ex-wife")
 
       val joyce = expectUnique(
         cosmos.resolveQualifiedNoun(
@@ -294,7 +304,7 @@ class SpcCosmosSpec extends Specification
 
     "accept synonyms" in new CosmosContext
     {
-      val synonyms = cosmos.getFormSynonyms
+      val synonyms = cosmos.getIdealSynonyms
       addBelief("there is a front door")
       synonyms.addSynonym("portal", "door")
       synonyms.resolveSynonym("door") must be equalTo "door"
@@ -380,7 +390,7 @@ class SpcCosmosSpec extends Specification
       genderValues.size must be equalTo 2
       genderValues must contain(LEMMA_MASCULINE -> LEMMA_MASCULINE)
       genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
-      cosmos.getFormSynonyms.resolveSynonym(LEMMA_WHO) must
+      cosmos.getIdealSynonyms.resolveSynonym(LEMMA_WHO) must
         be equalTo LEMMA_PERSON
     }
 

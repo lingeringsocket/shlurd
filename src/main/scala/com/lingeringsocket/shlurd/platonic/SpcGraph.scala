@@ -32,16 +32,16 @@ object SpcGraph
 
   def apply() =
   {
-    val formTaxonomy =
-      new DirectedAcyclicGraph[SpcForm, SpcTaxonomyEdge](
+    val idealTaxonomy =
+      new DirectedAcyclicGraph[SpcIdeal, SpcTaxonomyEdge](
         classOf[SpcTaxonomyEdge])
     val formAssocs =
-      new DirectedPseudograph[SpcForm, SpcFormAssocEdge](
+      new DirectedPseudograph[SpcIdeal, SpcFormAssocEdge](
         classOf[SpcFormAssocEdge])
     val entityAssocs =
       new DirectedPseudograph[SpcEntity, SpcEntityAssocEdge](
         classOf[SpcEntityAssocEdge])
-    new SpcGraph(formTaxonomy, formAssocs, entityAssocs)
+    new SpcGraph(idealTaxonomy, formAssocs, entityAssocs)
   }
 }
 
@@ -84,34 +84,38 @@ class SpcEntityAssocEdge(
 }
 
 class SpcGraph(
-  val formTaxonomy : Graph[SpcForm, SpcTaxonomyEdge],
-  val formAssocs : Graph[SpcForm, SpcFormAssocEdge],
+  val idealTaxonomy : Graph[SpcIdeal, SpcTaxonomyEdge],
+  val formAssocs : Graph[SpcIdeal, SpcFormAssocEdge],
   val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge]
 )
 {
   def asUnmodifiable() =
   {
     new SpcGraph(
-      new AsUnmodifiableGraph(formTaxonomy),
+      new AsUnmodifiableGraph(idealTaxonomy),
       new AsUnmodifiableGraph(formAssocs),
       new AsUnmodifiableGraph(entityAssocs)
     )
   }
 
-  def getSpecificForm(edge : SpcTaxonomyEdge) =
-    formTaxonomy.getEdgeSource(edge)
+  def getHyponymIdeal(edge : SpcTaxonomyEdge) =
+    idealTaxonomy.getEdgeSource(edge)
 
-  def getGenericForm(edge : SpcTaxonomyEdge) =
-    formTaxonomy.getEdgeTarget(edge)
+  def getHypernymIdeal(edge : SpcTaxonomyEdge) =
+    idealTaxonomy.getEdgeTarget(edge)
 
   def getPossessorForm(edge : SpcFormAssocEdge) =
-    formAssocs.getEdgeSource(edge)
+    formAssocs.getEdgeSource(edge).asInstanceOf[SpcForm]
 
   def getPossessorEntity(edge : SpcEntityAssocEdge) =
     entityAssocs.getEdgeSource(edge)
 
+  def getPossesseeRole(edge : SpcFormAssocEdge) =
+    formAssocs.getEdgeTarget(edge).asInstanceOf[SpcRole]
+
+  // FIXME deal with nonexistent form
   def getPossesseeForm(edge : SpcFormAssocEdge) =
-    formAssocs.getEdgeTarget(edge)
+    getFormForRole(getPossesseeRole(edge)).get
 
   def getPossesseeEntity(edge : SpcEntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
@@ -147,21 +151,38 @@ class SpcGraph(
   }
 
   def isHyponym(
-    hyponymForm : SpcForm,
-    hypernymForm : SpcForm) : Boolean =
+    hyponymIdeal : SpcIdeal,
+    hypernymIdeal : SpcIdeal) : Boolean =
   {
-    if (hyponymForm == hypernymForm) {
+    if (hyponymIdeal == hypernymIdeal) {
       return true
     }
     val path = DijkstraShortestPath.findPathBetween(
-      formTaxonomy, hyponymForm, hypernymForm)
+      idealTaxonomy, hyponymIdeal, hypernymIdeal)
     return (path != null)
   }
 
-  def getHypernyms(
+  def getIdealHypernyms(
+    ideal : SpcIdeal) : Iterator[SpcIdeal] =
+  {
+    new BreadthFirstIterator(idealTaxonomy, ideal).asScala
+  }
+
+  def getFormHypernyms(
     form : SpcForm) : Iterator[SpcForm] =
   {
-    new BreadthFirstIterator(formTaxonomy, form).asScala
+    getIdealHypernyms(form).map(_.asInstanceOf[SpcForm])
+  }
+
+  def getFormForRole(
+    role : SpcRole) : Option[SpcForm] =
+  {
+    // FIXME:  choose most specific form
+    getIdealHypernyms(role).foreach(_ match {
+      case form : SpcForm => return Some(form)
+      case _ =>
+    })
+    None
   }
 
   def render[V, E](graph : Graph[V, E]) : String =

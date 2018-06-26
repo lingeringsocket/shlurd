@@ -201,23 +201,23 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
               SilAdpositionalState(
                 ADP_OF,
                 SilNounReference(
-                  genericFormName,
+                  hypernymIdealName,
                   DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
                   COUNT_SINGULAR))
             ) => {
               Some(FormTaxonomyBelief(
-                sentence, subjectNoun, genericFormName))
+                sentence, subjectNoun, hypernymIdealName))
             }
             case _ => None
           }
         } else {
           if (sentence.mood.getModality == MODAL_NEUTRAL) {
             // "a fridge is a refrigerator"
-            Some(FormAliasBelief(
+            Some(IdealAliasBelief(
               sentence, subjectNoun, complementNoun))
           } else {
             // "an owner must be a person"
-            Some(FormRoleBelief(
+            Some(RoleTaxonomyBelief(
               sentence, subjectNoun, complementNoun))
           }
         }
@@ -446,40 +446,41 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
   }
 
   beliefApplier {
-    case FormAliasBelief(
-      sentence, synonym, formName
+    case IdealAliasBelief(
+      sentence, synonym, idealName
     ) => {
-      val form = cosmos.instantiateForm(formName)
-      cosmos.addFormSynonym(synonym.lemma, form.name, false)
+      val ideal = cosmos.instantiateIdeal(idealName)
+      cosmos.addIdealSynonym(synonym.lemma, ideal.name)
     }
   }
 
   beliefApplier {
-    case FormRoleBelief(
-      sentence, role, formName
+    case RoleTaxonomyBelief(
+      sentence, roleName, formName
     ) => {
-      val form = cosmos.instantiateForm(formName)
       // FIXME validation
-      cosmos.addFormSynonym(role.lemma, form.name, true)
+      val role = cosmos.instantiateRole(roleName)
+      val form = cosmos.instantiateForm(formName)
+      cosmos.addIdealTaxonomy(role, form)
     }
   }
 
   beliefApplier {
     case FormTaxonomyBelief(
-      sentence, specificFormName, genericFormName
+      sentence, hyponymIdealName, hypernymIdealName
     ) => {
       // FIXME need to make sure all hypernyms are (and remain) compatible
       // FIXME also need to allow existing form to be refined
-      val specificForm = cosmos.instantiateForm(specificFormName)
-      val genericForm = cosmos.instantiateForm(genericFormName)
+      val hyponymIdeal = cosmos.instantiateForm(hyponymIdealName)
+      val hypernymIdeal = cosmos.instantiateForm(hypernymIdealName)
       try {
-        cosmos.addFormTaxonomy(
-          specificForm, genericForm)
+        cosmos.addIdealTaxonomy(
+          hyponymIdeal, hypernymIdeal)
       } catch {
         case ex : IllegalArgumentException => {
           // report detected cycle
           val path = DijkstraShortestPath.findPathBetween(
-            cosmos.getFormTaxonomyGraph, genericForm, specificForm)
+            cosmos.getIdealTaxonomyGraph, hypernymIdeal, hyponymIdeal)
           assert(path != null)
           val originalBelief = SilConjunctiveSentence(
             DETERMINER_ALL,
@@ -499,10 +500,14 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       newConstraint, isProperty
     ) => {
       val possessorForm = cosmos.instantiateForm(possessorFormName)
-      val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
+      val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
+      if (isProperty) {
+        val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
+        cosmos.addIdealTaxonomy(possesseeRole, possesseeForm)
+      }
       val label = possesseeRoleName.lemma
       val edge = cosmos.addFormAssoc(
-        possessorForm, possesseeForm, label)
+        possessorForm, possesseeRole, label)
       val constraint = cosmos.getAssocConstraints.get(edge) match {
         case Some(oldConstraint) => SpcCardinalityConstraint(
           Math.max(oldConstraint.lower, newConstraint.lower),
@@ -574,15 +579,19 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       sentence, possessorFormName, possessorRoleName, possesseeRoleName
     ) => {
       val possessorForm = cosmos.instantiateForm(possessorFormName)
-      val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
-      cosmos.addFormSynonym(
-        possessorRoleName.lemma, possessorFormName.lemma, true)
+      val possessorRole = cosmos.instantiateRole(possessorRoleName)
+      val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
+      val possesseeForm = cosmos.getGraph.getFormForRole(possesseeRole) match {
+        case Some(form) => form
+        case _ => cosmos.instantiateForm(possesseeRoleName)
+      }
+      cosmos.addIdealTaxonomy(possessorRole, possessorForm)
       val label = possesseeRoleName.lemma
       val inverseLabel = possessorRoleName.lemma
       val edge = cosmos.addFormAssoc(
-        possessorForm, possesseeForm, label)
+        possessorForm, possesseeRole, label)
       val inverseEdge = cosmos.addFormAssoc(
-        possesseeForm, possessorForm, inverseLabel)
+        possesseeForm, possessorRole, inverseLabel)
       cosmos.connectInverseAssocEdges(edge, inverseEdge)
     }
   }

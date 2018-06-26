@@ -24,18 +24,16 @@ class SpcCreed(cosmos : SpcCosmos)
 {
   def allBeliefs() : Iterable[SilSentence] =
   {
-    cosmos.getFormSynonyms.getAll.filterNot(
+    cosmos.getIdealSynonyms.getAll.filterNot(
       SpcPrimordial.isPrimordialSynonym
-    ).map(entry => {
-      if (cosmos.isRole(SilWord(entry._1))) {
-        formRoleBelief(entry)
-      } else {
-        formAliasBelief(entry)
-      }
-    }) ++ (
+    ).map(
+      formAliasBelief
+    ) ++ (
+      cosmos.getRoles.values.flatMap(roleBeliefs(_))
+    ) ++ (
       cosmos.getForms.values.flatMap(formBeliefs(_))
     ) ++ (
-      cosmos.getInverseAssocEdges.filter(isNonTrivialInverse).map(
+      cosmos.getInverseAssocEdges.filterNot(isTrivialInverse).map(
         entry => inverseAssocBelief(entry._1, entry._2))
     ) ++ (
       cosmos.getEntities.values.flatMap(entityBeliefs(_))
@@ -50,12 +48,19 @@ class SpcCreed(cosmos : SpcCosmos)
     form.getInflectedStateNormalizations.map(
       formStateNormalizationBelief(form, _)
     ) ++ {
-      cosmos.getFormTaxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.map(
+      cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.map(
         formTaxonomyBelief(_))
     } ++ {
       cosmos.getFormAssocGraph.outgoingEdgesOf(form).asScala.toSeq.map(
         formAssociationBelief(_))
     }
+  }
+
+  def roleBeliefs(role : SpcRole) : Iterable[SilSentence] =
+  {
+    cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(role).asScala.toSeq.
+      filterNot(isTrivialTaxonomy).map(
+        roleTaxonomyBelief(_))
   }
 
   def entityBeliefs(entity : SpcEntity) : Iterable[SilSentence] =
@@ -72,21 +77,21 @@ class SpcCreed(cosmos : SpcCosmos)
   {
     SilPredicateSentence(
       SilRelationshipPredicate(
-        formNoun(cosmos.getGraph.getSpecificForm(edge)),
+        idealNoun(cosmos.getGraph.getHyponymIdeal(edge)),
         SilStateSpecifiedReference(
           nounReference(LEMMA_KIND),
           SilAdpositionalState(
             ADP_OF,
-            formNoun(cosmos.getGraph.getGenericForm(edge)))),
+            idealNoun(cosmos.getGraph.getHypernymIdeal(edge)))),
         REL_IDENTITY))
   }
 
-  def formRoleBelief(entry : (String, String)) : SilSentence =
+  def roleTaxonomyBelief(edge : SpcTaxonomyEdge) : SilSentence =
   {
     SilPredicateSentence(
       SilRelationshipPredicate(
-        nounReference(entry._1),
-        nounReference(entry._2),
+        idealNoun(cosmos.getGraph.getHyponymIdeal(edge)),
+        idealNoun(cosmos.getGraph.getHypernymIdeal(edge)),
         REL_IDENTITY),
       SilIndicativeMood(true, MODAL_MUST))
   }
@@ -107,10 +112,10 @@ class SpcCreed(cosmos : SpcCosmos)
   {
     val noun = {
       if (property.isSynthetic) {
-        formNoun(form)
+        idealNoun(form)
       } else {
         SilGenitiveReference(
-          formNoun(form),
+          idealNoun(form),
           nounReference(
             property.name, COUNT_SINGULAR, DETERMINER_UNSPECIFIED))
       }
@@ -141,7 +146,7 @@ class SpcCreed(cosmos : SpcCosmos)
     SilPredicateSentence(
       SilStatePredicate(
         SilStateSpecifiedReference(
-          formNoun(form),
+          idealNoun(form),
           entry._1),
         entry._2
       )
@@ -177,7 +182,7 @@ class SpcCreed(cosmos : SpcCosmos)
     }
     SilPredicateSentence(
       SilRelationshipPredicate(
-        formNoun(cosmos.getGraph.getPossessorForm(edge)),
+        idealNoun(cosmos.getGraph.getPossessorForm(edge)),
         possessee,
         REL_ASSOCIATION),
       SilIndicativeMood(
@@ -198,7 +203,7 @@ class SpcCreed(cosmos : SpcCosmos)
       case _ => {
         SilRelationshipPredicate(
           subject,
-          formNoun(entity.form),
+          idealNoun(entity.form),
           REL_IDENTITY)
       }
     }
@@ -225,12 +230,19 @@ class SpcCreed(cosmos : SpcCosmos)
     )
   }
 
-  private def isNonTrivialInverse(
+  private def isTrivialInverse(
     entry : (SpcFormAssocEdge, SpcFormAssocEdge)) =
   {
     val possessorForm = cosmos.getGraph.getPossessorForm(entry._1)
     val label = entry._2.label
-    (possessorForm.name != label)
+    (possessorForm.name == label)
+  }
+
+  private def isTrivialTaxonomy(
+    edge : SpcTaxonomyEdge) =
+  {
+    cosmos.getGraph.getHypernymIdeal(edge).name.equals(
+      cosmos.getGraph.getHyponymIdeal(edge).name)
   }
 
   def inverseAssocBelief(
@@ -241,7 +253,7 @@ class SpcCreed(cosmos : SpcCosmos)
     SilPredicateSentence(
       SilRelationshipPredicate(
         SilStateSpecifiedReference(
-          formNoun(cosmos.getGraph.getPossessorForm(edge1)),
+          idealNoun(cosmos.getGraph.getPossessorForm(edge1)),
           SilAdpositionalState(
             ADP_WITH,
             nounReference(edge1.label))),
@@ -264,10 +276,10 @@ class SpcCreed(cosmos : SpcCosmos)
     }
   }
 
-  private def formNoun(
-    form : SpcForm, count : SilCount = COUNT_SINGULAR) =
+  private def idealNoun(
+    ideal : SpcIdeal, count : SilCount = COUNT_SINGULAR) =
   {
-    nounReference(form.name, count)
+    nounReference(ideal.name, count)
   }
 
   private def propertyState(entry : (String, String)) =
