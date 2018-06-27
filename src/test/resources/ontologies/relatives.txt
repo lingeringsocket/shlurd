@@ -7,14 +7,21 @@ An aunt must be a woman.
 An uncle must be a man.
 A niece must be a woman.
 A nephew must be a man.
+A son must be a man.
+A daughter must be a woman.
 A man with an uncle or aunt is a nephew.
 A woman with uncles or aunts is a niece.
+A person may have sons or daughters.
 Henry is a man.
+James is a man.
 Laura is a woman.
 Fancy is a woman.
 Marion is a woman.
 Titus is a man.
-Henry is Titus's uncle.
+Henry is Titus' uncle.
 Fancy is Laura's niece.
 Titus is Laura's nephew.
 Marion is Laura's niece.
+Marion is Henry's daughter.
+Fancy is Henry's daughter.
+Titus is James' son.

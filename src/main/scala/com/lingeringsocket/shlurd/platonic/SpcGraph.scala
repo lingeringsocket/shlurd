@@ -117,7 +117,7 @@ class SpcGraph(
     formAssocs.getEdgeTarget(edge).asInstanceOf[SpcRole]
 
   def getPossesseeForm(edge : SpcFormAssocEdge) =
-    getFormForRole(getPossesseeRole(edge)).get
+    getFormForRole(getPossesseeRole(edge))
 
   def getPossesseeEntity(edge : SpcEntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
@@ -142,7 +142,7 @@ class SpcGraph(
           val possessee1 = getPossesseeForm(edge1)
           val possessee2 = getPossesseeForm(edge2)
           assert (possessee1 != possessee2)
-          isHyponym(possessee1, possessee2)
+          isHyponym(possessee1.get, possessee2)
         } else {
           true
         }
@@ -151,6 +151,18 @@ class SpcGraph(
       }
     }
     edges.toSeq.sortWith(compareEdges).headOption
+  }
+
+  def isHyponym(
+    hyponymIdeal : SpcIdeal,
+    hypernymIdealOpt : Option[SpcIdeal]) : Boolean =
+  {
+    hypernymIdealOpt match {
+      case Some(hypernymIdeal) => {
+        isHyponym(hyponymIdeal, hypernymIdeal)
+      }
+      case _ => false
+    }
   }
 
   def isHyponym(

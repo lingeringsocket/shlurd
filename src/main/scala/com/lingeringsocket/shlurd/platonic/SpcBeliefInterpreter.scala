@@ -196,16 +196,16 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     relationship : SilRelationship)
       : Option[SpcBelief] =
   {
-    val (complementNoun, qualifiers, count, failed) = extractQualifiedNoun(
-      sentence, complement, Seq.empty)
-    if (failed) {
-      return None
-    }
-    if (!qualifiers.isEmpty) {
-      return Some(UnimplementedBelief(sentence))
-    }
     relationship match {
       case REL_IDENTITY => {
+        val (complementNoun, qualifiers, count, failed) = extractQualifiedNoun(
+          sentence, complement, Seq.empty)
+        if (failed) {
+          return None
+        }
+        if (!qualifiers.isEmpty) {
+          return Some(UnimplementedBelief(sentence))
+        }
         if (count != COUNT_SINGULAR) {
           return Some(UnimplementedBelief(sentence))
         }
@@ -239,7 +239,42 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         }
       }
       case REL_ASSOCIATION => {
-        // "a dog has an owner"
+        val (complementNouns, count) = complement match {
+          // "a dog may have an owner and a groomer"
+          case SilConjunctiveReference(_, refs, _) => {
+            val pairs = refs.map(ref => {
+              val (complementNoun, qualifiers, count, failed) =
+                extractQualifiedNoun(
+                  sentence, ref, Seq.empty)
+              if (failed) {
+                return None
+              }
+              if (!qualifiers.isEmpty) {
+                return Some(UnimplementedBelief(sentence))
+              }
+              (complementNoun, count)
+            })
+            (pairs.map(_._1), pairs.map(_._2).maxBy(
+              _ match {
+                case COUNT_SINGULAR => 1
+                case COUNT_PLURAL => 2
+              })
+            )
+          }
+          // "a dog has an owner"
+          case ref => {
+            val (complementNoun, qualifiers, count, failed) =
+              extractQualifiedNoun(
+                sentence, ref, Seq.empty)
+            if (failed) {
+              return None
+            }
+            if (!qualifiers.isEmpty) {
+              return Some(UnimplementedBelief(sentence))
+            }
+            (Seq(complementNoun), count)
+          }
+        }
         val upper = count match {
           case COUNT_SINGULAR => 1
           case COUNT_PLURAL => Int.MaxValue
@@ -257,7 +292,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           isProperty => {
             FormAssocBelief(
               sentence,
-              subjectNoun, complementNoun, newConstraint,
+              subjectNoun, complementNouns, newConstraint,
               isProperty)
           }
         )
@@ -515,24 +550,26 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
 
   beliefApplier {
     case FormAssocBelief(
-      sentence, possessorFormName, possesseeRoleName,
+      sentence, possessorFormName, possesseeRoleNames,
       newConstraint, isProperty
     ) => {
       val possessorForm = cosmos.instantiateForm(possessorFormName)
-      val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
-      if (isProperty) {
-        val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
-        cosmos.addIdealTaxonomy(possesseeRole, possesseeForm)
-      }
-      val edge = cosmos.addFormAssoc(
-        possessorForm, possesseeRole)
-      val constraint = cosmos.getAssocConstraints.get(edge) match {
-        case Some(oldConstraint) => SpcCardinalityConstraint(
-          Math.max(oldConstraint.lower, newConstraint.lower),
-          Math.min(oldConstraint.upper, newConstraint.upper))
-        case _ => newConstraint
-      }
-      cosmos.annotateFormAssoc(edge, constraint, isProperty)
+      possesseeRoleNames.foreach(possesseeRoleName => {
+        val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
+        if (isProperty) {
+          val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
+          cosmos.addIdealTaxonomy(possesseeRole, possesseeForm)
+        }
+        val edge = cosmos.addFormAssoc(
+          possessorForm, possesseeRole)
+        val constraint = cosmos.getAssocConstraints.get(edge) match {
+          case Some(oldConstraint) => SpcCardinalityConstraint(
+            Math.max(oldConstraint.lower, newConstraint.lower),
+            Math.min(oldConstraint.upper, newConstraint.upper))
+          case _ => newConstraint
+        }
+        cosmos.annotateFormAssoc(edge, constraint, isProperty)
+      })
     }
   }
 

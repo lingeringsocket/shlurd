@@ -216,6 +216,15 @@ class SpcCosmosSpec extends Specification
         throwA[ContradictoryBeliefExcn]
     }
 
+    "prevent unknown role in association" in new CosmosContext
+    {
+      addBelief("a person may have admirers")
+      addBelief("Yoko is a person")
+      addBelief("John is a person")
+      addBelief("John is Yoko's admirer") must
+        throwA[MissingAssocBeliefExcn]
+    }
+
     "prevent form as hyponym for role" in new CosmosContext
     {
       // some forms
