@@ -4,6 +4,7 @@ A woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
 An aunt must be a woman.
+An auntie is an aunt.
 An uncle must be a man.
 A niece must be a woman.
 A nephew must be a man.
@@ -19,7 +20,7 @@ Fancy is a woman.
 Marion is a woman.
 Titus is a man.
 Henry is Titus' uncle.
-Fancy is Laura's niece.
+Laura is Fancy's auntie.
 Titus is Laura's nephew.
 Marion is Laura's niece.
 Marion is Henry's daughter.

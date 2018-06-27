@@ -602,7 +602,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       }
       val possessor = possessorOpt.get
       val possessee = possesseeOpt.get
-      val role = cosmos.getRoles.get(roleName.lemma) match {
+      val role = cosmos.resolveRole(roleName.lemma) match {
         case Some(r) => r
         case _ => {
           throw new MissingAssocBeliefExcn(sentence)

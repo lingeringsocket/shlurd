@@ -435,6 +435,7 @@ class SpcInterpreterSpec extends Specification
       loadBeliefs("/ontologies/relatives.txt")
       interpret("who is Henry", "He is Titus' uncle.")
       interpret("who is Marion's aunt", "Her aunt is Laura.")
+      interpret("who is Marion's auntie", "Her auntie is Laura.")
       interpret("who is Laura's niece?", "Her nieces are Fancy and Marion.")
       interpret("Fancy is Laura's nephew?", "No, she is not Laura's nephew.")
     }

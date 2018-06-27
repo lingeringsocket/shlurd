@@ -243,6 +243,10 @@ class SpcCosmos
     }
   }
 
+  def resolveForm(name : String) = resolveIdeal(name, false)._1
+
+  def resolveRole(name : String) = resolveIdeal(name, true)._2
+
   def instantiateForm(word : SilWord) =
   {
     val name = idealSynonyms.resolveSynonym(word.lemma)
@@ -476,16 +480,28 @@ class SpcCosmos
   }
 
   private def resolveIdeal(
-    lemma : String) : (Option[SpcForm], Option[SpcRole]) =
+    lemma : String,
+    assumeRole : Boolean) : (Option[SpcForm], Option[SpcRole]) =
   {
     val name = idealSynonyms.resolveSynonym(lemma)
-    forms.get(name) match {
-      case Some(f) => (Some(f), None)
-      case _ => {
-        roles.get(name) match {
-          case Some(role) => (graph.getFormForRole(role), Some(role))
-          case _ => (None, None)
-        }
+    def checkRole = roles.get(name) match {
+      case Some(role) => (graph.getFormForRole(role), Some(role))
+      case _ => (None, None)
+    }
+    def checkForm = (forms.get(name), None)
+    if (assumeRole) {
+      val pair = checkRole
+      if (pair._2.isEmpty) {
+        checkForm
+      } else {
+        pair
+      }
+    } else {
+      val pair = checkForm
+      if (pair._1.isEmpty) {
+        checkRole
+      } else {
+        pair
       }
     }
   }
@@ -495,7 +511,7 @@ class SpcCosmos
     context : SilReferenceContext,
     qualifiers : Set[String]) =
   {
-    val (formOpt, roleOpt) = resolveIdeal(lemma)
+    val (formOpt, roleOpt) = resolveIdeal(lemma, false)
     formOpt match {
       case Some(form) => {
         Success(ShlurdParseUtils.orderedSet(
@@ -640,7 +656,7 @@ class SpcCosmos
         Success(Trilean.Unknown)
       } else {
         val roleName = qualifiers.head
-        roles.get(roleName) match {
+        resolveRole(roleName) match {
           case Some(role) => {
             Success(Trilean(isEntityAssoc(objRef, entity, role)))
           }
@@ -659,7 +675,7 @@ class SpcCosmos
     lemma : String,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    val (formOpt, roleOpt) = resolveIdeal(lemma)
+    val (formOpt, roleOpt) = resolveIdeal(lemma, false)
     formOpt match {
       case Some(form) => {
         if (graph.isHyponym(entity.form, form)) {
