@@ -143,13 +143,28 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
                   possessorFormName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
                 SilAdpositionalState(
                   ADP_WITH,
-                  SilNounReference(
-                    possesseeRoleName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+                  possesseeRef
                 )
               ) => {
                 // "a person with a child is a parent"
                 if (mood.getModality != MODAL_NEUTRAL) {
                   return Some(UnimplementedBelief(sentence))
+                }
+                val possesseeRoleNames = possesseeRef match {
+                  case SilNounReference(
+                    possesseeRoleName, _, _
+                  ) => {
+                    Seq(possesseeRoleName)
+                  }
+                  case SilConjunctiveReference(_, references, _) => {
+                    references.map({
+                      case SilNounReference(possesseeRoleName, _, _) => {
+                        possesseeRoleName
+                      }
+                      case _ => return Some(UnimplementedBelief(sentence))
+                    })
+                  }
+                  case _ => return Some(UnimplementedBelief(sentence))
                 }
                 complement match {
                   case SilNounReference(
@@ -157,7 +172,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
                   ) => {
                     return Some(InverseAssocBelief(
                       sentence,
-                      possessorFormName, possessorRoleName, possesseeRoleName))
+                      possessorFormName, possessorRoleName,
+                      possesseeRoleNames))
                   }
                   case _ =>
                 }
@@ -583,21 +599,24 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
 
   beliefApplier {
     case InverseAssocBelief(
-      sentence, possessorFormName, possessorRoleName, possesseeRoleName
+      sentence, possessorFormName, possessorRoleName, possesseeRoleNames
     ) => {
       val possessorForm = cosmos.instantiateForm(possessorFormName)
       val possessorRole = cosmos.instantiateRole(possessorRoleName)
-      val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
-      val possesseeForm = cosmos.getGraph.getFormForRole(possesseeRole) match {
-        case Some(form) => form
-        case _ => cosmos.instantiateForm(possesseeRoleName)
-      }
       cosmos.addIdealTaxonomy(possessorRole, possessorForm)
-      val edge = cosmos.addFormAssoc(
-        possessorForm, possesseeRole)
-      val inverseEdge = cosmos.addFormAssoc(
-        possesseeForm, possessorRole)
-      cosmos.connectInverseAssocEdges(edge, inverseEdge)
+      possesseeRoleNames.foreach(possesseeRoleName => {
+        val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
+        val possesseeForm = cosmos.getGraph.getFormForRole(possesseeRole) match
+        {
+          case Some(form) => form
+          case _ => cosmos.instantiateForm(possesseeRoleName)
+        }
+        val edge = cosmos.addFormAssoc(
+          possessorForm, possesseeRole)
+        val inverseEdge = cosmos.addFormAssoc(
+          possesseeForm, possessorRole)
+        cosmos.connectInverseAssocEdges(edge, inverseEdge)
+      })
     }
   }
 

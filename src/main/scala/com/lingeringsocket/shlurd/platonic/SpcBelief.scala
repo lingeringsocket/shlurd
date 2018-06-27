@@ -73,7 +73,7 @@ case class InverseAssocBelief(
   sentence : SilSentence,
   possessorFormName : SilWord,
   possessorRoleName : SilWord,
-  possesseeRoleName : SilWord
+  possesseeRoleNames : Seq[SilWord]
 ) extends SpcBelief
 {
 }

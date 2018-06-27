@@ -1,0 +1,20 @@
+A person's gender may be masculine, or feminine.
+A man is a kind of person.
+A woman is a kind of person.
+A man's gender must be masculine.
+A woman's gender must be feminine.
+An aunt must be a woman.
+An uncle must be a man.
+A niece must be a woman.
+A nephew must be a man.
+A man with an uncle or aunt is a nephew.
+A woman with uncles or aunts is a niece.
+Henry is a man.
+Laura is a woman.
+Fancy is a woman.
+Marion is a woman.
+Titus is a man.
+Henry is Titus's uncle.
+Fancy is Laura's niece.
+Titus is Laura's nephew.
+Marion is Laura's niece.

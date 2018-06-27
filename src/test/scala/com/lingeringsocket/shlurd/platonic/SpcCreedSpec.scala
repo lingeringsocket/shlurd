@@ -95,6 +95,14 @@ class SpcCreedSpec extends Specification
   private val assocInverse1 = "A jedi with a padawan is a mentor."
   private val assocInverse2 = "A jedi with a mentor is a padawan."
   private val padawanMentor = "A padawan may have mentors."
+  private val nephew = "A man with an uncle or aunt is a nephew."
+  private val auntNephews = "An aunt may have nephews."
+  private val uncleNephews = "An uncle may have nephews."
+  private val manAunts = "A man may have aunts."
+  private val manAuntNephew = "A man with an aunt is a nephew."
+  private val manUncles = "A man may have uncles."
+  private val manUncleNephew = "A man with an uncle is a nephew."
+  private val nephewMan = "A nephew must be a man."
 
   "SpcCreed" should
   {
@@ -183,6 +191,14 @@ class SpcCreedSpec extends Specification
       expectNormalized(
         Seq(assocInverse1),
         Seq(mentorRole, jediPadawan, padawanMentor, assocInverse1))
+    }
+
+    "normalize inverse associations with multiple roles" in new CosmosContext
+    {
+      expectNormalized(
+        Seq(nephew),
+        Seq(nephewMan, manUncles, manAunts, uncleNephews,
+          auntNephews, manUncleNephew, manAuntNephew))
     }
   }
 }

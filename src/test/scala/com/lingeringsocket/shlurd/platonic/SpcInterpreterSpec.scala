@@ -430,6 +430,15 @@ class SpcInterpreterSpec extends Specification
         "No organization.")
     }
 
+    "understand relatives" in new InterpreterContext
+    {
+      loadBeliefs("/ontologies/relatives.txt")
+      interpret("who is Henry", "He is Titus' uncle.")
+      interpret("who is Marion's aunt", "Her aunt is Laura.")
+      interpret("who is Laura's niece?", "Her nieces are Fancy and Marion.")
+      interpret("Fancy is Laura's nephew?", "No, she is not Laura's nephew.")
+    }
+
     "understand taxonomy" in new InterpreterContext
     {
       loadBeliefs("/ontologies/vehicles.txt")
