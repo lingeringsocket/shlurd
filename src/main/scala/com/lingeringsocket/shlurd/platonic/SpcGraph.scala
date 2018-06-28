@@ -17,6 +17,8 @@ package com.lingeringsocket.shlurd.platonic
 import org.jgrapht._
 import org.jgrapht.graph._
 import org.jgrapht.alg._
+import org.jgrapht.alg.cycle._
+import org.jgrapht.alg.cycle.CycleDetector
 import org.jgrapht.alg.shortestpath._
 import org.jgrapht.traverse._
 import org.jgrapht.io._
@@ -223,5 +225,24 @@ class SpcGraph(
     val sw = new StringWriter
     exporter.exportGraph(graph, sw)
     sw.toString
+  }
+
+  def sanityCheck() : Boolean =
+  {
+    idealTaxonomy.edgeSet.asScala.foreach(taxonomyEdge => {
+      val hyponym = getHyponymIdeal(taxonomyEdge)
+      val hypernym = getHypernymIdeal(taxonomyEdge)
+      assert(!(hyponym.isForm && hypernym.isRole))
+    })
+    assert(!new CycleDetector(idealTaxonomy).detectCycles)
+    formAssocs.edgeSet.asScala.foreach(formEdge => {
+      val role = getPossesseeRole(formEdge)
+      assert(role.name == formEdge.getRoleName)
+      assert(!getFormForRole(role).isEmpty)
+    })
+    entityAssocs.edgeSet.asScala.foreach(entityEdge => {
+      assert(formAssocs.containsEdge(entityEdge.formEdge))
+    })
+    true
   }
 }

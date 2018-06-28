@@ -214,6 +214,10 @@ class SpcCosmosSpec extends Specification
       addBelief("a duck is a kind of bird")
       addBelief("a bird is a kind of duck") must
         throwA[ContradictoryBeliefExcn]
+      addBelief("a sibling must be a person")
+      addBelief("a brother is a kind of sibling")
+      addBelief("a sibling is a kind of brother") must
+        throwA[ContradictoryBeliefExcn]
     }
 
     "prevent unknown role in association" in new CosmosContext

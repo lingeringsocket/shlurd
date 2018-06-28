@@ -449,6 +449,7 @@ class SpcCosmos
 
   def validateBeliefs()
   {
+    assert(sanityCheck)
     val creed = new SpcCreed(this)
     getFormAssocGraph.edgeSet.asScala.foreach(formEdge => {
       val constraint = assocConstraints(formEdge)
@@ -467,6 +468,12 @@ class SpcCosmos
         )
       }
     })
+  }
+
+  def sanityCheck() : Boolean =
+  {
+    assert(graph.sanityCheck)
+    true
   }
 
   def resolveGenitive(
