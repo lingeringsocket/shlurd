@@ -28,6 +28,8 @@ object ShlurdEnglishLemmas
   val LEMMA_MANY = "many"
   val LEMMA_WHICH = "which"
   val LEMMA_WHAT = "what"
+  val LEMMA_ACTUALITY = "actuality"
+  val LEMMA_ENTITY = "entity"
   val LEMMA_PERSON = "person"
   val LEMMA_PROPERTY = "property"
   val LEMMA_GENDER = "gender"

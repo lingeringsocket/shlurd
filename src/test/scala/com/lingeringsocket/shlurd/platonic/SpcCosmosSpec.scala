@@ -41,12 +41,16 @@ class SpcCosmosSpec extends Specification
 
     protected def expectNamedForm(name : String) =
     {
-      cosmos.getForms.get(name) must beSome.which(_.name == name)
+      val formOpt = cosmos.getForms.get(name)
+      formOpt must beSome.which(_.name == name)
+      formOpt.get
     }
 
     protected def expectNamedRole(name : String) =
     {
-      cosmos.getRoles.get(name) must beSome.which(_.name == name)
+      val roleOpt = cosmos.getRoles.get(name)
+      roleOpt must beSome.which(_.name == name)
+      roleOpt.get
     }
 
     protected def expectSingleProperty(form : SpcForm)
@@ -60,14 +64,25 @@ class SpcCosmosSpec extends Specification
     protected def expectPerson(name : String) : SpcEntity =
     {
       expectNamedForm(LEMMA_PERSON)
-      val person = cosmos.resolveQualifiedNoun(
-        LEMMA_PERSON, REF_SUBJECT, Set(name))
-      person must beSuccessfulTry.which(_.size == 1)
-      person.get.head
+      expectUnique(cosmos.resolveQualifiedNoun(
+        LEMMA_PERSON, REF_SUBJECT, Set(name)))
+    }
+
+    protected def expectProperName(name : String) : SpcEntity =
+    {
+      expectUnique(
+        cosmos.getEntities.values.filter(_.properName == name))
     }
 
     protected def expectUnique(
-      entities : Try[Set[SpcEntity]]) =
+      entities : Iterable[SpcEntity]) : SpcEntity =
+    {
+      entities.size must be equalTo(1)
+      entities.head
+    }
+
+    protected def expectUnique(
+      entities : Try[Iterable[SpcEntity]]) : SpcEntity =
     {
       entities must beSuccessfulTry.which(_.size == 1)
       entities.get.head
@@ -79,8 +94,7 @@ class SpcCosmosSpec extends Specification
     "understand closed property state enumeration" in new CosmosContext
     {
       addBelief("a door must be either open or closed")
-      expectNamedForm("door")
-      val form = cosmos.getForms("door")
+      val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
       property.isClosed must beTrue
       val states = property.getStates
@@ -95,8 +109,7 @@ class SpcCosmosSpec extends Specification
     {
       addBelief("a door may be either open or closed")
       addBelief("a door may be either open or ajar")
-      expectNamedForm("door")
-      val form = cosmos.getForms("door")
+      val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
       property.isClosed must beFalse
       val states = property.getStates
@@ -109,8 +122,7 @@ class SpcCosmosSpec extends Specification
     "understand singleton property state" in new CosmosContext
     {
       addBelief("a door must be closed")
-      expectNamedForm("door")
-      val form = cosmos.getForms("door")
+      val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
       property.isClosed must beTrue
       val states = property.getStates
@@ -139,17 +151,12 @@ class SpcCosmosSpec extends Specification
       addBelief("a mallard is a kind of duck")
       addBelief("a canvasback is a kind of duck")
       cosmos.validateBeliefs
-      expectNamedForm("dog")
-      expectNamedForm("canine")
-      expectNamedForm("duck")
-      expectNamedForm("bird")
-      expectNamedForm("canvasback")
-      val dog = cosmos.getForms("dog")
-      val canine = cosmos.getForms("canine")
-      val bird = cosmos.getForms("bird")
-      val duck = cosmos.getForms("duck")
-      val mallard = cosmos.getForms("mallard")
-      val canvasback = cosmos.getForms("canvasback")
+      val dog = expectNamedForm("dog")
+      val canine = expectNamedForm("canine")
+      val bird = expectNamedForm("bird")
+      val duck = expectNamedForm("duck")
+      val mallard = expectNamedForm("mallard")
+      val canvasback = expectNamedForm("canvasback")
       val graph = cosmos.getGraph
       graph.isHyponym(dog, canine) must beTrue
       graph.isHyponym(canine, dog) must beFalse
@@ -220,15 +227,6 @@ class SpcCosmosSpec extends Specification
         throwA[ContradictoryBeliefExcn]
     }
 
-    "prevent unknown role in association" in new CosmosContext
-    {
-      addBelief("a person may have admirers")
-      addBelief("Yoko is a person")
-      addBelief("John is a person")
-      addBelief("John is Yoko's admirer") must
-        throwA[MissingAssocBeliefExcn]
-    }
-
     "prevent form as hyponym for role" in new CosmosContext
     {
       // some forms
@@ -267,7 +265,7 @@ class SpcCosmosSpec extends Specification
       addBelief("Jonathan is Joyce's son")
       addBelief("Will is Lonnie's son")
       addBelief("Jonathan is Lonnie's son")
-      addBelief("Lonnie is Will's dad")
+      addBelief("Will's dad is Lonnie")
       addBelief("Lonnie is Jonathan's dad")
       addBelief("Lonnie is Joyce's ex-husband")
       addBelief("Joyce is Lonnie's ex-wife")
@@ -307,20 +305,6 @@ class SpcCosmosSpec extends Specification
       cosmos.resolveGenitive(joyce, "ex-wife") must beEmpty
       cosmos.resolveGenitive(lonnie, "ex-wife") must be equalTo Set(joyce)
       cosmos.resolveGenitive(lonnie, "ex-husband") must beEmpty
-
-      addBelief("Bert is Will's mom") must
-        throwA[UnknownPossesseeBeliefExcn]
-      addBelief("Joyce is Bert's mom") must
-        throwA[UnknownPossessorBeliefExcn]
-    }
-
-    "require genitives to be defined before usage" in new CosmosContext
-    {
-      addBelief("Joyce is a person")
-      addBelief("Will is a person")
-      addBelief("A mom is a person")
-      addBelief("Joyce is Will's mom") must
-        throwA[MissingAssocBeliefExcn]
     }
 
     "require mandatory genitives to be assigned" in new CosmosContext
@@ -334,6 +318,9 @@ class SpcCosmosSpec extends Specification
 
     "prevent single valued genitives from being multiple" in new CosmosContext
     {
+      SpcPrimordial.initCosmos(cosmos)
+
+      // starting with a permanent form
       addBelief("Will is a person")
       addBelief("Joyce is a person")
       addBelief("Elle is a person")
@@ -342,6 +329,30 @@ class SpcCosmosSpec extends Specification
       addBelief("Joyce is Will's mom")
       addBelief("Elle is Will's mom") must
         throwA[IncrementalCardinalityExcn]
+
+      cosmos.sanityCheck must beTrue
+
+      // starting with a tentative form
+      addBelief("Harry's house is Hufflepuff")
+      addBelief("Harry's house is Ravenclaw")
+      addBelief("a student may have a house")
+      addBelief("Harry is a student") must
+        throwA[IncrementalCardinalityExcn]
+
+      cosmos.sanityCheck must beTrue
+    }
+
+    "support inverse associations with tentative forms" in new CosmosContext
+    {
+      skipped("maybe one day")
+
+      SpcPrimordial.initCosmos(cosmos)
+
+      addBelief("Edison's invention is Byron")
+      addBelief("a person with an invention is an inventor")
+      addBelief("Edison is a person")
+
+      cosmos.sanityCheck must beTrue
     }
 
     "accept synonyms" in new CosmosContext
@@ -362,8 +373,7 @@ class SpcCosmosSpec extends Specification
       addBelief("a portal must be open or closed")
       addBelief("a door is a kind of portal")
       addBelief("a door must be open")
-      expectNamedForm("door")
-      val form = cosmos.getForms("door")
+      val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
       property.isClosed must beTrue
       val states = property.getStates
@@ -385,6 +395,78 @@ class SpcCosmosSpec extends Specification
       ) must be equalTo(
         SilPropertyState(SilWord("present"))
       )
+    }
+
+    "prevent incompatible role modification" in new CosmosContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+      addBelief("a pet may have an owner")
+      addBelief("Timmy is a freak")
+      addBelief("Timmy is Lassie's owner")
+      addBelief("an owner must be a person") must
+        throwA[ContradictoryBeliefExcn]
+
+      cosmos.sanityCheck must beTrue
+    }
+
+    "infer role for tentative form" in new CosmosContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+      addBelief("a pet may have an owner")
+      addBelief("Timmy is Lassie's owner")
+      addBelief("an owner must be a person")
+
+      val timmy = expectProperName("Timmy")
+      val person = expectNamedForm(LEMMA_PERSON)
+      cosmos.getGraph.isHyponym(timmy.form, person) must beTrue
+
+      cosmos.sanityCheck must beTrue
+    }
+
+    "accept beliefs in any order" in new CosmosContext
+    {
+      // entity association before form association
+      addBelief("Bessie's owner is Jack")
+
+      // entity before form
+      addBelief("Lassie is a dog")
+
+      // properties before taxonomy
+      addBelief("a cow's flesh may be tender or tough")
+      addBelief("a cow is a kind of animal")
+      addBelief("a dog is a kind of animal")
+      addBelief("a cow may have an owner")
+      addBelief("an owner must be a person")
+
+      // replace tentative form
+      addBelief("Bessie is a cow")
+
+      val animal = expectNamedForm("animal")
+      val cow = expectNamedForm("cow")
+      val cowFlesh = expectSingleProperty(cow)
+      cowFlesh.name must be equalTo("flesh")
+      cowFlesh.getStates.size must be equalTo 2
+      val bessie = expectProperName("Bessie")
+      bessie.form must be equalTo(cow)
+      val jack = expectProperName("Jack")
+      cosmos.resolveGenitive(bessie, "owner") must be equalTo Set(jack)
+
+      addBelief("Bessie is an animal")
+      val bessieAnimal = expectProperName("Bessie")
+      bessieAnimal must be equalTo(bessie)
+
+      addBelief("Babe is an animal")
+      val babeAnimal = expectProperName("Babe")
+      babeAnimal.form must be equalTo(animal)
+
+      addBelief("Babe is a cow")
+      val babeCow = expectProperName("Babe")
+      babeCow.form must be equalTo(cow)
+
+      addBelief("Babe is a dog") must
+        throwA[ContradictoryBeliefExcn]
+
+      cosmos.sanityCheck must beTrue
     }
 
     "distinguish entities" in new CosmosContext
@@ -422,10 +504,10 @@ class SpcCosmosSpec extends Specification
     {
       cosmos.getForms.size must be equalTo 0
       SpcPrimordial.initCosmos(cosmos)
-      cosmos.getForms.size must be equalTo 1
-      expectNamedForm(LEMMA_PERSON)
-      val form = cosmos.getForms(LEMMA_PERSON)
-      val propGender = expectSingleProperty(form)
+      cosmos.getForms.size must be equalTo 2
+      val entity = expectNamedForm(LEMMA_ENTITY)
+      val person = expectNamedForm(LEMMA_PERSON)
+      val propGender = expectSingleProperty(person)
       propGender.name must be equalTo LEMMA_GENDER
       propGender.isClosed must beFalse
       val genderValues = propGender.getStates
@@ -434,6 +516,38 @@ class SpcCosmosSpec extends Specification
       genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
       cosmos.getIdealSynonyms.resolveSynonym(LEMMA_WHO) must
         be equalTo LEMMA_PERSON
+      cosmos.getIdealSynonyms.resolveSynonym(LEMMA_ACTUALITY) must
+        be equalTo LEMMA_ENTITY
+      val graph = cosmos.getGraph
+      graph.getFormHypernyms(entity).toSeq must be equalTo(
+        Seq(entity))
+      graph.getFormHypernyms(person).toSeq must be equalTo(
+        Seq(person, entity))
+      graph.isHyponym(person, entity) must beTrue
+      graph.isHyponym(entity, person) must beFalse
+      graph.isHyponym(person, person) must beTrue
+      graph.isHyponym(entity, entity) must beTrue
+    }
+
+    "elide redundant taxonomy edges" in new CosmosContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+      addBelief("a firefighter is a kind of person")
+      val entity = expectNamedForm(LEMMA_ENTITY)
+      val person = expectNamedForm(LEMMA_PERSON)
+      val firefighter = expectNamedForm("firefighter")
+      val graph = cosmos.getGraph
+      graph.getFormHypernyms(entity).toSeq must be equalTo(
+        Seq(entity))
+      graph.getFormHypernyms(person).toSeq must be equalTo(
+        Seq(person, entity))
+      graph.getFormHypernyms(firefighter).toSeq must be equalTo(
+        Seq(firefighter, person, entity))
+      graph.isHyponym(firefighter, person) must beTrue
+      graph.isHyponym(person, firefighter) must beFalse
+      graph.isHyponym(person, entity) must beTrue
+      graph.isHyponym(firefighter, entity) must beTrue
+      cosmos.sanityCheck must beTrue
     }
 
     "load beliefs from a file" in new CosmosContext
@@ -441,8 +555,7 @@ class SpcCosmosSpec extends Specification
       val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")
       val source = Source.fromFile(file)
       cosmos.loadBeliefs(source)
-      expectNamedForm("bit")
-      val form = cosmos.getForms("bit")
+      val form = expectNamedForm("bit")
       val property = expectSingleProperty(form)
       property.isClosed must beTrue
       val states = property.getStates

@@ -329,7 +329,7 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
         var warning = false
         if (formName == presenceFormName) {
           val entity = new SpcEntity(itemName, form, Set.empty)
-          addEntity(entity)
+          createOrReplaceEntity(entity)
           qualifiers.lastOption match {
             case Some(personName) => {
               getPropertyEdges.find(_.getRoleName == presenceFormName) match {
@@ -356,7 +356,7 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
           }
         } else {
           val entity = new SpcEntity(itemName, form, qualifiers)
-          addEntity(entity)
+          createOrReplaceEntity(entity)
         }
       }
       case _ =>

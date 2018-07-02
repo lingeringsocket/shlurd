@@ -37,24 +37,6 @@ case class UnimplementedBeliefExcn(belief : SilSentence)
 {
 }
 
-case class UnknownPossessorBeliefExcn(belief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
-      belief.toWordString)
-{
-}
-
-case class UnknownPossesseeBeliefExcn(belief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
-      belief.toWordString)
-{
-}
-
-case class MissingAssocBeliefExcn(belief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
-      belief.toWordString)
-{
-}
-
 case class ContradictoryBeliefExcn(
   belief : SilSentence, originalBelief : SilSentence)
     extends RejectedBeliefExcn("New belief:  " +

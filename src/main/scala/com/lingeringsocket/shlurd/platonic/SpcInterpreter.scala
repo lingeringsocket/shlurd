@@ -59,17 +59,6 @@ class SpcInterpreter(
       case IncomprehensibleBeliefExcn(belief) => {
         s"I am unable to understand the belief that ${beliefString}."
       }
-      case UnknownPossessorBeliefExcn(belief) => {
-        // FIXME:  use explicit possessor name instead
-        s"I do not know the possessor in the belief that ${beliefString}."
-      }
-      case UnknownPossesseeBeliefExcn(belief) => {
-        // FIXME:  use explicit possessee name instead
-        s"I do not know the possessee in the belief that ${beliefString}."
-      }
-      case MissingAssocBeliefExcn(belief) => {
-        s"I do not know the association in the belief that ${beliefString}."
-      }
       case ContradictoryBeliefExcn(belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)
         s"Previously I was told that ${originalBeliefString}." +

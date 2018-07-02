@@ -31,8 +31,6 @@ import GmlExporter.Parameter._
 
 object SpcGraph
 {
-  val LABEL_KIND = "aKindOf"
-
   def apply() =
   {
     val idealTaxonomy =
@@ -51,23 +49,6 @@ object SpcGraph
 class SpcLabeledEdge(
   val label : String) extends DefaultEdge
 {
-  override def hashCode() =
-  {
-    java.util.Objects.hash(getSource, getTarget, label)
-  }
-
-  override def equals(a : Any) =
-  {
-    a match {
-      case that : SpcLabeledEdge => {
-        (this.getSource == that.getSource) &&
-        (this.getTarget == that.getTarget) &&
-        (this.label == that.label)
-      }
-      case _ => false
-    }
-  }
-
   override def toString = super.toString + " : " + label
 }
 
@@ -77,13 +58,12 @@ class SpcFormAssocEdge(
   def getRoleName = label
 }
 
-class SpcTaxonomyEdge(
-  label : String = SpcGraph.LABEL_KIND) extends SpcLabeledEdge(label)
+class SpcTaxonomyEdge extends DefaultEdge
 {
 }
 
 class SpcEntityAssocEdge(
-  val formEdge : SpcFormAssocEdge) extends SpcLabeledEdge(formEdge.getRoleName)
+  val formEdge : SpcFormAssocEdge) extends DefaultEdge
 {
   def getRoleName = formEdge.getRoleName
 }
@@ -227,22 +207,54 @@ class SpcGraph(
     sw.toString
   }
 
+  def replaceVertex[V, E](graph : Graph[V, E], oldVertex : V, newVertex : V)
+  {
+    def replaceOld(v : V) = {
+      if (v == oldVertex) {
+        newVertex
+      } else {
+        v
+      }
+    }
+    val edgeTriples = graph.edgesOf(oldVertex).asScala.toSeq.map(edge =>
+      (edge,
+        replaceOld(graph.getEdgeSource(edge)),
+        replaceOld(graph.getEdgeTarget(edge))))
+    graph.removeAllEdges(edgeTriples.map(_._1).asJava)
+    edgeTriples.foreach(edgeTriple => {
+      graph.addEdge(edgeTriple._2, edgeTriple._3, edgeTriple._1)
+    })
+  }
+
   def sanityCheck() : Boolean =
   {
     idealTaxonomy.edgeSet.asScala.foreach(taxonomyEdge => {
       val hyponym = getHyponymIdeal(taxonomyEdge)
       val hypernym = getHypernymIdeal(taxonomyEdge)
-      assert(!(hyponym.isForm && hypernym.isRole))
+      assert(!(hyponym.isForm && hypernym.isRole), (hyponym, hypernym).toString)
     })
     assert(!new CycleDetector(idealTaxonomy).detectCycles)
     formAssocs.edgeSet.asScala.foreach(formEdge => {
       val role = getPossesseeRole(formEdge)
-      assert(role.name == formEdge.getRoleName)
-      assert(!getFormForRole(role).isEmpty)
+      assert(role.name == formEdge.getRoleName,
+        (role, formEdge).toString)
+      assert(!getFormForRole(role).isEmpty, role.toString)
     })
     entityAssocs.edgeSet.asScala.foreach(entityEdge => {
-      assert(formAssocs.containsEdge(entityEdge.formEdge))
+      val formEdge = entityEdge.formEdge
+      assert(formAssocs.containsEdge(formEdge),
+        entityEdge.toString)
+      val possessorForm = getPossessorForm(formEdge)
+      val possessorEntity = getPossessorEntity(entityEdge)
+      val possesseeEntity = getPossesseeEntity(entityEdge)
+      assert(isHyponym(possessorEntity.form, possessorForm))
+      val role = getPossesseeRole(formEdge)
+      getIdealHypernyms(role).filter(_.isForm).foreach(hypernym =>
+        assert(isHyponym(possesseeEntity.form, hypernym)))
     })
+    val taxonomyCountBeforeReduction = idealTaxonomy.edgeSet.size
+    TransitiveReduction.INSTANCE.reduce(idealTaxonomy)
+    assert(idealTaxonomy.edgeSet.size == taxonomyCountBeforeReduction)
     true
   }
 }

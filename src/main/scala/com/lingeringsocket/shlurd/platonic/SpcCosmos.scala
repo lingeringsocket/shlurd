@@ -26,6 +26,8 @@ import scala.collection.JavaConverters._
 
 import org.jgrapht.util._
 
+import ShlurdEnglishLemmas._
+
 class SpcProperty(val name : String)
     extends ShlurdProperty with ShlurdNamedObject
 {
@@ -61,9 +63,18 @@ sealed abstract class SpcIdeal(val name : String)
   def isForm : Boolean = false
 }
 
+object SpcForm
+{
+  private val TENTATIVE_SUFFIX = "_form"
+
+  def tentativeName(word : SilWord) = SilWord(word.lemma + TENTATIVE_SUFFIX)
+}
+
 class SpcForm(name : String)
     extends SpcIdeal(name)
 {
+  import SpcForm._
+
   private[platonic] val properties =
     new mutable.LinkedHashMap[String, SpcProperty]
 
@@ -72,6 +83,8 @@ class SpcForm(name : String)
 
   private val stateNormalizations =
     new mutable.LinkedHashMap[SilState, SilState]
+
+  def isTentative = name.endsWith(TENTATIVE_SUFFIX)
 
   def getProperties : Map[String, SpcProperty] = properties
 
@@ -225,10 +238,37 @@ class SpcCosmos
       new ArrayUnenforcedSet(graph.entityAssocs.vertexSet))
   }
 
-  private def registerIdeal(ideal : SpcIdeal)
+  private def registerIdeal(ideal : SpcIdeal) =
   {
     graph.idealTaxonomy.addVertex(ideal)
     graph.formAssocs.addVertex(ideal)
+    forms.get(LEMMA_ENTITY) match {
+      case Some(entityForm) => {
+        addIdealTaxonomy(ideal, entityForm)
+      }
+      case _ =>
+    }
+    ideal
+  }
+
+  private def forgetIdeal(ideal : SpcIdeal)
+  {
+    assert(graph.idealTaxonomy.inDegreeOf(ideal) == 0)
+    assert(graph.formAssocs.degreeOf(ideal) == 0)
+    graph.idealTaxonomy.removeVertex(ideal)
+    graph.formAssocs.removeVertex(ideal)
+  }
+
+  private def registerForm(form : SpcForm) =
+  {
+    registerIdeal(form)
+    form
+  }
+
+  private def registerRole(role : SpcRole) =
+  {
+    registerIdeal(role)
+    role
   }
 
   def instantiateIdeal(word : SilWord, assumeRole : Boolean = false) =
@@ -250,17 +290,84 @@ class SpcCosmos
   def instantiateForm(word : SilWord) =
   {
     val name = idealSynonyms.resolveSynonym(word.lemma)
-    val ideal = forms.getOrElseUpdate(name, new SpcForm(name))
-    registerIdeal(ideal)
+    val ideal = forms.getOrElseUpdate(
+      name, registerForm(new SpcForm(name)))
     ideal
   }
 
   def instantiateRole(word : SilWord) =
   {
     val name = idealSynonyms.resolveSynonym(word.lemma)
-    val ideal = roles.getOrElseUpdate(name, new SpcRole(name))
-    registerIdeal(ideal)
+    val ideal = roles.getOrElseUpdate(
+      name, registerRole(new SpcRole(name)))
     ideal
+  }
+
+  def forgetForm(form : SpcForm)
+  {
+    // FIXME remove synonyms?
+    assert(!entities.values.exists(_.form == form))
+    forms.remove(form.name)
+    forgetIdeal(form)
+  }
+
+  def matchAssocs(oldForm : SpcForm, newForm : SpcForm)
+      : Seq[(SpcFormAssocEdge, SpcFormAssocEdge)]=
+  {
+    val formAssocs = graph.formAssocs
+    formAssocs.outgoingEdgesOf(oldForm).asScala.toSeq.flatMap(
+      oldEdge => {
+        assert(!inverseAssocEdges.contains(oldEdge))
+        val possesseeForm = graph.getPossesseeForm(oldEdge).get
+        val possesseeRole = graph.getPossesseeRole(oldEdge)
+        graph.getFormAssocEdge(newForm, possesseeForm, possesseeRole).map(
+          newEdge => (oldEdge, newEdge))
+      }
+    )
+  }
+
+  private[platonic] def isValidMergeAssoc(
+    oldEdge : SpcFormAssocEdge, newEdge : SpcFormAssocEdge) : Boolean =
+  {
+    val entityAssocs = graph.entityAssocs
+    val constraint = assocConstraints(newEdge)
+    if (constraint.upper < Int.MaxValue) {
+      val oldEntityEdges =
+        entityAssocs.edgeSet.asScala.filter(_.formEdge == oldEdge)
+      oldEntityEdges.groupBy(graph.getPossessorEntity(_)).
+        filter(_._2.size > constraint.upper).isEmpty
+    } else {
+      true
+    }
+  }
+
+  private[platonic] def mergeAssoc(
+    oldEdge : SpcFormAssocEdge, newEdge : SpcFormAssocEdge)
+  {
+    assert(!inverseAssocEdges.contains(oldEdge))
+    // FIXME we should be able to support this
+    assert(!inverseAssocEdges.contains(newEdge))
+    val formAssocs = graph.formAssocs
+    val entityAssocs = graph.entityAssocs
+    val oldEntityEdges =
+      entityAssocs.edgeSet.asScala.filter(_.formEdge == oldEdge)
+    oldEntityEdges.foreach(
+      entityEdge => {
+        entityAssocs.addEdge(
+          graph.getPossessorEntity(entityEdge),
+          graph.getPossesseeEntity(entityEdge),
+          new SpcEntityAssocEdge(newEdge))
+        entityAssocs.removeEdge(entityEdge)
+      }
+    )
+    formAssocs.removeEdge(oldEdge)
+  }
+
+  def replaceForm(oldForm : SpcForm, newForm : SpcForm)
+  {
+    assert(oldForm.isTentative)
+    graph.replaceVertex(graph.formAssocs, oldForm, newForm)
+    forgetForm(oldForm)
   }
 
   def addIdealSynonym(synonym : String, fundamental : String)
@@ -305,25 +412,43 @@ class SpcCosmos
     properName : String = "") : (SpcEntity, Boolean) =
   {
     val qualifiers = qualifierSet(qualifierString)
-    entities.values.find(hasQualifiers(_, form, qualifiers, true)) match {
-      case Some(entity) => {
-        return (entity, false)
+    if (properName.isEmpty) {
+      entities.values.find(hasQualifiers(_, form, qualifiers, true)) match {
+        case Some(entity) => {
+          return (entity, false)
+        }
+        case _ =>
       }
-      case _ =>
+    } else {
+      entities.values.filter(_.properName == properName).headOption match {
+        case Some(entity) => {
+          return (entity, false)
+        }
+        case _ =>
+      }
     }
     val name =
       (qualifierString.map(_.lemma) ++
         Seq(form.name, nextId.toString)).mkString("_")
     nextId += 1
     val entity = new SpcEntity(name, form, qualifiers, properName)
-    addEntity(entity)
+    createOrReplaceEntity(entity)
     (entity, true)
   }
 
-  protected[platonic] def addEntity(entity : SpcEntity)
+  protected[platonic] def createOrReplaceEntity(entity : SpcEntity)
   {
-    entities.put(entity.name, entity)
     graph.entityAssocs.addVertex(entity)
+    entities.put(entity.name, entity) match {
+      case Some(old) => {
+        if (old != entity) {
+          graph.replaceVertex(graph.entityAssocs, old, entity)
+          assert(graph.entityAssocs.degreeOf(old) == 0)
+          graph.entityAssocs.removeVertex(old)
+        }
+      }
+      case _ =>
+    }
   }
 
   protected[platonic] def connectInverseAssocEdges(
@@ -347,12 +472,23 @@ class SpcCosmos
 
   protected[platonic] def addIdealTaxonomy(
     hyponymIdeal : SpcIdeal,
-    hypernymIdeal : SpcIdeal,
-    label : String = SpcGraph.LABEL_KIND) : SpcTaxonomyEdge =
+    hypernymIdeal : SpcIdeal)
   {
-    val edge = new SpcTaxonomyEdge(label)
-    graph.idealTaxonomy.addEdge(hyponymIdeal, hypernymIdeal, edge)
-    edge
+    if (!graph.isHyponym(hyponymIdeal, hypernymIdeal)) {
+      val idealTaxonomy = graph.idealTaxonomy
+      val newHypernyms = graph.getIdealHypernyms(hypernymIdeal)
+      val redundantEdges = idealTaxonomy.outgoingEdgesOf(hyponymIdeal).
+        asScala.filter(
+          edge => newHypernyms.contains(graph.getHypernymIdeal(edge)))
+      val newEdge = new SpcTaxonomyEdge()
+      val added = idealTaxonomy.addEdge(hyponymIdeal, hypernymIdeal, newEdge)
+      // since we already checked for an existing relationship and there
+      // was none, the new edge should not have been redundant
+      assert(added)
+      // defer this until after addEdge since addEdge may throw a
+      // cycle exception
+      idealTaxonomy.removeAllEdges(redundantEdges.asJava)
+    }
   }
 
   protected[platonic] def addFormAssoc(
@@ -449,7 +585,6 @@ class SpcCosmos
 
   def validateBeliefs()
   {
-    assert(sanityCheck)
     val creed = new SpcCreed(this)
     getFormAssocGraph.edgeSet.asScala.foreach(formEdge => {
       val constraint = assocConstraints(formEdge)
@@ -458,8 +593,9 @@ class SpcCosmos
         entities.values.filter(
           e => graph.isHyponym(e.form, form)).foreach(entity =>
           {
-            val c = getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
-              count(_ == formEdge)
+            val entityEdges = getEntityAssocGraph.
+              outgoingEdgesOf(entity).asScala
+            val c = entityEdges.count(_.formEdge == formEdge)
             if ((c < constraint.lower) || (c > constraint.upper)) {
               throw new CardinalityExcn(
                 creed.formAssociationBelief(formEdge))
@@ -468,11 +604,24 @@ class SpcCosmos
         )
       }
     })
+    assert(sanityCheck)
   }
 
   def sanityCheck() : Boolean =
   {
     assert(graph.sanityCheck)
+    val ideals = forms.values.toSet ++ roles.values.toSet
+    assert(ideals == graph.idealTaxonomy.vertexSet.asScala)
+    assert(ideals == graph.formAssocs.vertexSet.asScala)
+    assert(entities.values.toSet == graph.entityAssocs.vertexSet.asScala)
+    forms.foreach(pair => assert(pair._1 == pair._2.name))
+    entities.foreach(pair => assert(pair._1 == pair._2.name))
+    forms.values.foreach(form => {
+      assert((graph.formAssocs.outDegreeOf(form) ==
+        graph.formAssocs.outgoingEdgesOf(form).
+        asScala.map(_.getRoleName).toSet.size),
+        form.toString)
+    })
     true
   }
 

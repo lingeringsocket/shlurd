@@ -138,6 +138,18 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
                 return interpretEntityRelationship(
                   sentence, subjectNoun, complement, relationship)
               }
+              case gr : SilGenitiveReference => {
+                complement match {
+                  // "Will's dad is Lonnie"
+                  case SilNounReference(
+                    subjectNoun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+                  ) => {
+                    return interpretEntityRelationship(
+                      sentence, subjectNoun, gr, relationship)
+                  }
+                  case _ =>
+                }
+              }
               case SilStateSpecifiedReference(
                 SilNounReference(
                   possessorFormName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
@@ -372,14 +384,22 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
   }
 
   private def resolveUniqueName(word : SilWord)
-      : Option[SpcEntity] =
+      : SpcEntity =
   {
     val candidates = cosmos.getEntities.values.filter(
       _.qualifiers == Set(word.lemma))
-    if (candidates.size > 1) {
-      None
-    } else {
-      candidates.headOption
+    assert(candidates.size < 2)
+    candidates.headOption match {
+      case Some(entity) => entity
+      case _ => {
+        val tentativeName = SpcForm.tentativeName(word)
+        assert(cosmos.resolveForm(tentativeName.lemma).isEmpty)
+        val newForm = cosmos.instantiateForm(tentativeName)
+        val (entity, success) = cosmos.instantiateEntity(
+          newForm, Seq(word), word.lemmaUnfolded)
+        assert(success)
+        entity
+      }
     }
   }
 
@@ -474,6 +494,38 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     }
   }
 
+  private def transmogrify(
+    sentence : SilSentence, entity : SpcEntity, newForm : SpcForm)
+  {
+    // we are changing the form of an existing entity
+    val oldForm = entity.form
+    val newEntity = SpcEntity(
+      entity.name, newForm, entity.qualifiers, entity.properName)
+    val graph = cosmos.getGraph
+    if (oldForm.isTentative) {
+      val matchedAssocs = cosmos.matchAssocs(oldForm, newForm)
+      matchedAssocs.foreach(pair => {
+        // FIXME:  the "original belief" in this exception
+        // isn't terribly helpful
+        if (!cosmos.isValidMergeAssoc(pair._1, pair._2)) {
+          val creed = new SpcCreed(cosmos)
+          throw new IncrementalCardinalityExcn(
+            sentence,
+            creed.formAssociationBelief(pair._2))
+        }
+      })
+      cosmos.createOrReplaceEntity(newEntity)
+      matchedAssocs.foreach(pair => {
+        cosmos.mergeAssoc(pair._1, pair._2)
+      })
+      cosmos.replaceForm(oldForm, newForm)
+    } else {
+      // the only form change allowed is a refinement
+      assert(graph.isHyponym(newForm, oldForm))
+      cosmos.createOrReplaceEntity(newEntity)
+    }
+  }
+
   def beliefApplier(applier : BeliefApplier)
   {
     beliefAppliers += applier
@@ -527,6 +579,38 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           case _ =>
         }
       }
+      if (hyponymIsRole) {
+        val entityAssocs = cosmos.getEntityAssocGraph
+        entityAssocs.edgeSet.asScala.foreach(
+          entityEdge => {
+            val formEdge = entityEdge.formEdge
+            val possesseeRole = cosmos.getGraph.getPossesseeRole(formEdge)
+            if (possesseeRole == hyponymIdeal) {
+              val possesseeEntity =
+                cosmos.getGraph.getPossesseeEntity(entityEdge)
+              if (!cosmos.getGraph.isHyponym(
+                possesseeEntity.form, hypernymIdeal))
+              {
+                if (possesseeEntity.form.isTentative) {
+                  // do we need to worry about cycles here?
+                  cosmos.addIdealTaxonomy(
+                    possesseeEntity.form, hypernymIdeal)
+                } else {
+                  val creed = new SpcCreed(cosmos)
+                  val formBelief = creed.entityFormBelief(possesseeEntity)
+                  val assocBelief = creed.entityAssociationBelief(entityEdge)
+                  throw new ContradictoryBeliefExcn(
+                    sentence,
+                    SilConjunctiveSentence(
+                      DETERMINER_ALL,
+                      Seq(formBelief, assocBelief),
+                      SEPARATOR_OXFORD_COMMA))
+                }
+              }
+            }
+          }
+        )
+      }
       try {
         cosmos.addIdealTaxonomy(
           hyponymIdeal, hypernymIdeal)
@@ -577,13 +661,37 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     case EntityExistenceBelief(
       sentence, formName, qualifiers, properName
     ) => {
-      // FIXME also need to allow existing form to be refined
       val form = cosmos.instantiateForm(formName)
       val (entity, success) = cosmos.instantiateEntity(
         form, qualifiers, properName)
       if (!success) {
-        val creed = new SpcCreed(cosmos)
-        throw new AmbiguousBeliefExcn(sentence, creed.entityFormBelief(entity))
+        val graph = cosmos.getGraph
+        val sameForm = (form == entity.form)
+        if (!sameForm && graph.isHyponym(entity.form, form)) {
+          // from "Bessie is a cow" to "Bessie is an animal"
+          // so nothing to do
+        } else if (!sameForm && graph.isHyponym(form, entity.form)) {
+          // from "Bessie is an animal" to "Bessie is a cow"
+          // so need to replace with refinement
+          transmogrify(sentence, entity, form)
+        } else {
+          if (!sameForm && entity.form.isTentative) {
+            // from "Bessie is a Bessie-form" to "Bessie is a cow"
+            transmogrify(sentence, entity, form)
+          } else {
+            // from "Bessies is a dog" to "Bessie is a cow"
+            // FIXME:  initiate dialog with user to sort it out,
+            // e.g. "is a dog a kind of cow?"
+            val creed = new SpcCreed(cosmos)
+            if (properName.isEmpty) {
+              throw new AmbiguousBeliefExcn(
+                sentence, creed.entityFormBelief(entity))
+            } else {
+              throw new ContradictoryBeliefExcn(
+                sentence, creed.entityFormBelief(entity))
+            }
+          }
+        }
       }
     }
   }
@@ -592,43 +700,35 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     case EntityAssocBelief(
       sentence, possessorEntityName, possesseeEntityName, roleName
     ) => {
-      val possessorOpt = resolveUniqueName(possessorEntityName)
-      val possesseeOpt = resolveUniqueName(possesseeEntityName)
-      if (possessorOpt.isEmpty) {
-        throw new UnknownPossessorBeliefExcn(sentence)
-      }
-      if (possesseeOpt.isEmpty) {
-        throw new UnknownPossesseeBeliefExcn(sentence)
-      }
-      val possessor = possessorOpt.get
-      val possessee = possesseeOpt.get
+      val possessor = resolveUniqueName(possessorEntityName)
+      val possessee = resolveUniqueName(possesseeEntityName)
       val role = cosmos.resolveRole(roleName.lemma) match {
         case Some(r) => r
         case _ => {
-          throw new MissingAssocBeliefExcn(sentence)
+          val newRole = cosmos.instantiateRole(roleName)
+          newRole
         }
       }
-      cosmos.getGraph.getFormAssocEdge(
-        possessor.form, possessee.form, role) match
-      {
-        case Some(formAssocEdge) => {
-          validateEdgeCardinality(sentence, formAssocEdge, possessor)
-          cosmos.getInverseAssocEdges.get(formAssocEdge) match {
-            case Some(inverseAssocEdge) => {
-              validateEdgeCardinality(sentence, inverseAssocEdge, possessee)
-              cosmos.addEntityAssocEdge(
-                possessor, possessee, formAssocEdge)
-              cosmos.addEntityAssocEdge(
-                possessee, possessor, inverseAssocEdge)
-            }
-            case _ => {
-              cosmos.addEntityAssocEdge(
-                possessor, possessee, formAssocEdge)
-            }
-          }
+      val formAssocEdge = cosmos.getGraph.getFormAssocEdge(
+        possessor.form, possessee.form, role
+      ) match {
+        case Some(formEdge) => formEdge
+        case _ => {
+          cosmos.addFormAssoc(possessor.form, role)
+        }
+      }
+      validateEdgeCardinality(sentence, formAssocEdge, possessor)
+      cosmos.getInverseAssocEdges.get(formAssocEdge) match {
+        case Some(inverseAssocEdge) => {
+          validateEdgeCardinality(sentence, inverseAssocEdge, possessee)
+          cosmos.addEntityAssocEdge(
+            possessor, possessee, formAssocEdge)
+          cosmos.addEntityAssocEdge(
+            possessee, possessor, inverseAssocEdge)
         }
         case _ => {
-          throw new MissingAssocBeliefExcn(sentence)
+          cosmos.addEntityAssocEdge(
+            possessor, possessee, formAssocEdge)
         }
       }
     }
