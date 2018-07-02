@@ -436,8 +436,9 @@ class SpcInterpreterSpec extends Specification
       interpret("who is Henry", "He is Titus' uncle.")
       interpret("who is Marion's aunt", "Her aunt is Laura.")
       interpret("who is Marion's auntie", "Her auntie is Laura.")
-      interpret("who is Laura's niece?", "Her nieces are Fancy and Marion.")
+      interpret("who is Laura's niece", "Her nieces are Fancy and Marion.")
       interpret("Fancy is Laura's nephew?", "No, she is not Laura's nephew.")
+      interpret("is Everard a person?", "I don't know.")
     }
 
     "understand taxonomy" in new InterpreterContext

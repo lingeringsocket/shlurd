@@ -849,7 +849,11 @@ class SpcCosmos
             }
           }
         } else {
-          Success(Trilean.False)
+          if (entity.form.isTentative) {
+            Success(Trilean.Unknown)
+          } else {
+            Success(Trilean.False)
+          }
         }
       }
       case _ => {
