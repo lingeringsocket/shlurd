@@ -680,11 +680,11 @@ class SpcInterpreterSpec extends Specification
       // FIXME:  in "is Jack home", interpret "home" as state instead of noun
       // FIXME:  "Jack's presence" should become "it"
       loadBeliefs("/ontologies/presence.txt")
-      interpretMatrix("is Jack's presence on",
-        "Yes, his presence is on.",
-        "Yes, Jack's presence is on.",
+      interpretMatrix("is Jack's personal_presence on",
+        "Yes, his personal_presence is on.",
+        "Yes, Jack's personal_presence is on.",
         "Yes.",
-        "Yes, his presence is.")
+        "Yes, his personal_presence is.")
       interpretMatrix("is Jack present",
         "Yes, he is present.",
         "Yes, Jack is present.",
@@ -705,11 +705,11 @@ class SpcInterpreterSpec extends Specification
         "No, Jack is not away.",
         "No.",
         "No, he is not.")
-      interpretMatrix("is Jill's presence on",
-        "No, her presence is not on.",
-        "No, Jill's presence is not on.",
+      interpretMatrix("is Jill's personal_presence on",
+        "No, her personal_presence is not on.",
+        "No, Jill's personal_presence is not on.",
         "No.",
-        "No, her presence is not.")
+        "No, her personal_presence is not.")
       interpretMatrix("is Jill present",
         "No, she is not present.",
         "No, Jill is not present.",
@@ -739,11 +739,11 @@ class SpcInterpreterSpec extends Specification
         "Yes, his haunting is.")
       interpret("is Casper present",
         "I don't know.")
-      interpretMatrix("is Yoda's presence on",
-        "No, his presence is not on.",
-        "No, Yoda's presence is not on.",
+      interpretMatrix("is Yoda's personal_presence on",
+        "No, his personal_presence is not on.",
+        "No, Yoda's personal_presence is not on.",
         "No.",
-        "No, his presence is not.")
+        "No, his personal_presence is not.")
       interpretMatrix("is Yoda present",
         "No, he is not present.",
         "No, Yoda is not present.",
@@ -861,7 +861,17 @@ class SpcInterpreterSpec extends Specification
 
       interpret("a footman must be a man", "OK.")
       interpret("a footman must be a plebeian", "OK.")
+      interpret("a punter is a kind of man", "OK.")
+      interpret("a punter is a kind of plebeian", "OK.")
       interpret("a gentleman with a footman is a lord", "OK.")
+      interpret("Peter is a gentleman", "OK.")
+      interpret("Bunter is a punter", "OK.")
+      interpret("Bunter is Peter's footman", "OK.")
+      interpretTerse("is Bunter a footman", "Yes.")
+      interpretTerse("is Bunter a man", "Yes.")
+      interpretTerse("is Bunter a plebeian", "Yes.")
+      interpretTerse("who is Peter's footman", "Bunter.")
+      interpretTerse("who is Bunter's lord", "Peter.")
 
       cosmos.sanityCheck must beTrue
     }

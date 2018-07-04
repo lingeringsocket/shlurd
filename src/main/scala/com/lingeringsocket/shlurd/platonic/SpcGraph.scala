@@ -66,6 +66,8 @@ class SpcEntityAssocEdge(
   val formEdge : SpcFormAssocEdge) extends DefaultEdge
 {
   def getRoleName = formEdge.getRoleName
+
+  override def toString = super.toString + " : " + getRoleName
 }
 
 class SpcGraph(
@@ -89,8 +91,8 @@ class SpcGraph(
   def getHypernymIdeal(edge : SpcTaxonomyEdge) =
     idealTaxonomy.getEdgeTarget(edge)
 
-  def getPossessorForm(edge : SpcFormAssocEdge) =
-    formAssocs.getEdgeSource(edge).asInstanceOf[SpcForm]
+  def getPossessorIdeal(edge : SpcFormAssocEdge) =
+    formAssocs.getEdgeSource(edge)
 
   def getPossessorEntity(edge : SpcEntityAssocEdge) =
     entityAssocs.getEdgeSource(edge)
@@ -102,11 +104,11 @@ class SpcGraph(
     entityAssocs.getEdgeTarget(edge)
 
   def getFormAssocEdge(
-    possessor : SpcForm,
+    possessor : SpcIdeal,
     role : SpcRole) : Option[SpcFormAssocEdge] =
   {
-    getFormHypernyms(possessor).foreach(form => {
-      formAssocs.outgoingEdgesOf(form).asScala.foreach(edge => {
+    getIdealHypernyms(possessor).foreach(hypernym => {
+      formAssocs.outgoingEdgesOf(hypernym).asScala.foreach(edge => {
         if (isHyponym(role, getPossesseeRole(edge))) {
           return Some(edge)
         }
@@ -139,6 +141,13 @@ class SpcGraph(
     return (path != null)
   }
 
+  def getIdealHyponyms(
+    ideal : SpcIdeal) : Iterator[SpcIdeal] =
+  {
+    new BreadthFirstIterator(
+      new EdgeReversedGraph(idealTaxonomy), ideal).asScala
+  }
+
   def getIdealHypernyms(
     ideal : SpcIdeal) : Iterator[SpcIdeal] =
   {
@@ -161,6 +170,14 @@ class SpcGraph(
       vertex => subgraph.inDegreeOf(vertex) == 0).map(_.asInstanceOf[SpcForm])
   }
 
+  def getRolesForForm(
+    form : SpcForm) : Iterable[SpcRole] =
+  {
+    getIdealHyponyms(form).toSeq.filter(_.isRole).
+      map(_.asInstanceOf[SpcRole]).filter(
+        role => isCompatible(form, role))
+  }
+
   def isCompatible(form : SpcForm, role : SpcRole) : Boolean =
   {
     getIdealHypernyms(role).filter(_.isForm).forall(hypernym =>
@@ -177,6 +194,12 @@ class SpcGraph(
     val alg = new NaiveLcaFinder(idealTaxonomy)
     Option(alg.findLca(role, form)).
       map(_.asInstanceOf[SpcRole]).getOrElse(role)
+  }
+
+  def render() : String =
+  {
+    render(idealTaxonomy) + "\n" + render(formAssocs) + "\n" +
+      render(entityAssocs)
   }
 
   def render[V, E](graph : Graph[V, E]) : String =
@@ -226,10 +249,17 @@ class SpcGraph(
       val formEdge = entityEdge.formEdge
       assert(formAssocs.containsEdge(formEdge),
         entityEdge.toString)
-      val possessorForm = getPossessorForm(formEdge)
+      val possessorIdeal = getPossessorIdeal(formEdge)
       val possessorEntity = getPossessorEntity(entityEdge)
       val possesseeEntity = getPossesseeEntity(entityEdge)
-      assert(isHyponym(possessorEntity.form, possessorForm))
+      possessorIdeal match {
+        case form : SpcForm => {
+          assert(isHyponym(possessorEntity.form, form))
+        }
+        case role : SpcRole => {
+          assert(isCompatible(possessorEntity.form, role))
+        }
+      }
       val role = getPossesseeRole(formEdge)
       assert(isCompatible(possesseeEntity.form, role),
         (possesseeEntity.form, role).toString)

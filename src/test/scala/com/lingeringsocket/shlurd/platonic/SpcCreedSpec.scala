@@ -91,17 +91,17 @@ class SpcCreedSpec extends Specification
   private val personAssocFlipped = "Luke's mentor is Yoda."
   private val mentorRole = "A mentor must be a jedi."
   private val padawanRole = "A padawan must be a jedi."
-  private val jediPadawan = "A jedi may have padawans."
-  private val jediMentor = "A jedi may have one mentor."
+  private val mentorPadawan = "A mentor may have padawans."
+  private val padawanMentor = "A padawan may have one mentor."
   private val assocInverse1 = "A jedi with a padawan is a mentor."
   private val assocInverse2 = "A jedi with a mentor is a padawan."
-  private val padawanMentor = "A padawan may have mentors."
+  private val padawanMentors = "A padawan may have mentors."
   private val nephew = "A man with an uncle or aunt is a nephew."
   private val auntNephews = "An aunt may have nephews."
   private val uncleNephews = "An uncle may have nephews."
-  private val manAunts = "A man may have aunts."
+  private val nephewAunts = "A nephew may have aunts."
   private val manAuntNephew = "A man with an aunt is a nephew."
-  private val manUncles = "A man may have uncles."
+  private val nephewUncles = "A nephew may have uncles."
   private val manUncleNephew = "A man with an uncle is a nephew."
   private val nephewMan = "A nephew must be a man."
   private val children = "A person may have sons or daughters."
@@ -185,7 +185,7 @@ class SpcCreedSpec extends Specification
     {
       expectPreserved(Seq(
         mentorRole, padawanRole,
-        jediPadawan, jediMentor,
+        mentorPadawan, padawanMentor,
         assocInverse1, assocInverse2))
     }
 
@@ -194,10 +194,10 @@ class SpcCreedSpec extends Specification
       expectNormalized(
         Seq(
           mentorRole, padawanRole,
-          jediMentor, assocInverse1),
+          padawanMentor, assocInverse1),
         Seq(
           mentorRole, padawanRole,
-          jediMentor, jediPadawan,
+          mentorPadawan, padawanMentor,
           assocInverse1, assocInverse2))
     }
 
@@ -205,7 +205,7 @@ class SpcCreedSpec extends Specification
     {
       expectNormalized(
         Seq(assocInverse1),
-        Seq(mentorRole, jediPadawan, padawanMentor, assocInverse1))
+        Seq(mentorRole, mentorPadawan, padawanMentors, assocInverse1))
     }
 
     "normalize associations with multiple roles" in new CosmosContext
@@ -219,7 +219,7 @@ class SpcCreedSpec extends Specification
     {
       expectNormalized(
         Seq(nephew),
-        Seq(nephewMan, manUncles, manAunts, uncleNephews,
+        Seq(nephewMan, nephewUncles, nephewAunts, uncleNephews,
           auntNephews, manUncleNephew, manAuntNephew))
     }
   }

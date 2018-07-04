@@ -41,14 +41,14 @@ class SpcCosmosSpec extends Specification
 
     protected def expectNamedForm(name : String) =
     {
-      val formOpt = cosmos.getForms.get(name)
+      val formOpt = cosmos.resolveForm(name)
       formOpt must beSome.which(_.name == name)
       formOpt.get
     }
 
     protected def expectNamedRole(name : String) =
     {
-      val roleOpt = cosmos.getRoles.get(name)
+      val roleOpt = cosmos.resolveRole(name)
       roleOpt must beSome.which(_.name == name)
       roleOpt.get
     }
@@ -88,10 +88,20 @@ class SpcCosmosSpec extends Specification
       entities.get.head
     }
 
+    protected def resolveForm(name : String) : SpcForm =
+    {
+      cosmos.resolveForm(name).get
+    }
+
+    protected def resolveRole(name : String) : SpcRole =
+    {
+      cosmos.resolveRole(name).get
+    }
+
     protected def resolveGenitive(possessor : SpcEntity, roleName : String)
         : Set[SpcEntity] =
     {
-      cosmos.getRoles.get(roleName) match {
+      cosmos.resolveRole(roleName) match {
         case Some(role) => {
           cosmos.resolveGenitive(possessor, role)
         }
@@ -193,8 +203,8 @@ class SpcCosmosSpec extends Specification
       addBelief("Daffy is a duck")
       addBelief("Woodstock is a bird")
       cosmos.validateBeliefs
-      val bird = cosmos.getForms("bird")
-      val duck = cosmos.getForms("duck")
+      val bird = resolveForm("bird")
+      val duck = resolveForm("duck")
       val daffy = expectUnique(
         cosmos.resolveQualifiedNoun(
           "duck", REF_SUBJECT, Set("daffy")))
@@ -219,9 +229,9 @@ class SpcCosmosSpec extends Specification
       addBelief("a man is a kind of person")
       addBelief("a sibling must be a person")
       addBelief("a brother is a kind of sibling")
-      val person = cosmos.getForms(LEMMA_PERSON)
-      val man = cosmos.getForms("man")
-      val brother = cosmos.getRoles("brother")
+      val person = resolveForm(LEMMA_PERSON)
+      val man = resolveForm("man")
+      val brother = resolveRole("brother")
       cosmos.getGraph.getFormsForRole(brother) must be equalTo Iterable(person)
       addBelief("a brother must be a man")
       cosmos.getGraph.getFormsForRole(brother) must be equalTo Iterable(man)

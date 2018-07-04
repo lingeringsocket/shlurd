@@ -28,6 +28,8 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
 
   private val presenceFormName = "presence"
 
+  private val presenceRoleName = "personal_presence"
+
   private val roomLemma = "room"
 
   private val groupMap = new mutable.LinkedHashMap[String, mutable.Set[String]]
@@ -322,7 +324,7 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
       s => (s == roomLemma) || (s == formName) ||
         ((s + roomLemma) == lastQualifier))
 
-    getForms.get(formName) match {
+    resolveForm(formName) match {
       case Some(form) => {
         // for now we silently ignore mismatches...should probably
         // save up as warnings which can be nagged about
@@ -332,16 +334,17 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
           createOrReplaceEntity(entity)
           qualifiers.lastOption match {
             case Some(personName) => {
-              getPropertyEdges.find(_.getRoleName == presenceFormName) match {
+              getPropertyEdges.find(_.getRoleName == presenceRoleName) match {
                 case Some(edge) => {
-                  val personForm = getGraph.getPossessorForm(edge)
+                  val personIdeal = getGraph.getPossessorIdeal(edge)
                   resolveQualifiedNoun(
-                    personForm.name, REF_SUBJECT, qualifiers.takeRight(1)) match
+                    personIdeal.name, REF_SUBJECT,
+                    qualifiers.takeRight(1)) match
                   {
                     case Success(set) => {
                       if (set.size == 1) {
                         addEntityAssoc(
-                          set.head, entity, getRoles(presenceFormName))
+                          set.head, entity, resolveRole(presenceRoleName).get)
                       } else {
                         warning = true
                       }

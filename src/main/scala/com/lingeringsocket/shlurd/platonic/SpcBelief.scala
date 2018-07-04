@@ -61,7 +61,7 @@ case class IdealAliasBelief(
 
 case class FormAssocBelief(
   sentence : SilSentence,
-  possessorFormName : SilWord,
+  possessorIdealName : SilWord,
   possesseeRoleNames : Seq[SilWord],
   constraint : SpcCardinalityConstraint,
   isProperty : Boolean

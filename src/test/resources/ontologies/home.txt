@@ -12,7 +12,8 @@ A heat is a heating.
 A presence must be either on or off.
 A presence that is present is on.
 A presence that is absent is off.
-A person may have a presence as a property.
+A personal_presence must be a presence.
+A person may have a personal_presence as a property.
 A person must be either present or absent.
 Jack is a man.
 Jill is a woman.

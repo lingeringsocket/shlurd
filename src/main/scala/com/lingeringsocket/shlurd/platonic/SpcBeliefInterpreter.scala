@@ -485,7 +485,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     val edgeCount = edges.size
     if (edgeCount >= constraint.upper) {
       val originalBelief = conjunctiveBelief(
-        Seq(creed.formAssociationBelief(formAssocEdge)) ++
+        Seq(creed.idealAssociationBelief(formAssocEdge)) ++
           edges.map(creed.entityAssociationBelief(_)))
       throw new IncrementalCardinalityExcn(
         sentence, originalBelief)
@@ -517,7 +517,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           val creed = new SpcCreed(cosmos)
           throw new IncrementalCardinalityExcn(
             sentence,
-            creed.formAssociationBelief(pair._2))
+            creed.idealAssociationBelief(pair._2))
         }
       })
       cosmos.createOrReplaceEntity(newEntity)
@@ -652,18 +652,14 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
 
   beliefApplier {
     case FormAssocBelief(
-      sentence, possessorFormName, possesseeRoleNames,
+      sentence, possessorIdealName, possesseeRoleNames,
       newConstraint, isProperty
     ) => {
-      val possessorForm = cosmos.instantiateForm(possessorFormName)
+      val possessorIdeal = cosmos.instantiateIdeal(possessorIdealName)
       possesseeRoleNames.foreach(possesseeRoleName => {
         val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
-        if (isProperty) {
-          val possesseeForm = cosmos.instantiateForm(possesseeRoleName)
-          cosmos.addIdealTaxonomy(possesseeRole, possesseeForm)
-        }
         val edge = cosmos.addFormAssoc(
-          possessorForm, possesseeRole)
+          possessorIdeal, possesseeRole)
         val constraint = cosmos.getAssocConstraints.get(edge) match {
           case Some(oldConstraint) => SpcCardinalityConstraint(
             Math.max(oldConstraint.lower, newConstraint.lower),
@@ -727,11 +723,12 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           newRole
         }
       }
+      val graph = cosmos.getGraph
       if (possessee.form.isTentative) {
-        cosmos.getGraph.getFormsForRole(role).foreach(form =>
+        graph.getFormsForRole(role).foreach(form =>
           cosmos.addIdealTaxonomy(possessee.form, form))
       }
-      if (!cosmos.getGraph.isCompatible(possessee.form, role)) {
+      if (!graph.isCompatible(possessee.form, role)) {
         val creed = new SpcCreed(cosmos)
         val originalBelief = conjunctiveBelief(
           creed.roleTaxonomyBeliefs(role).toSeq)
@@ -739,9 +736,11 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           sentence,
           originalBelief)
       }
-      val formAssocEdge = cosmos.getGraph.getFormAssocEdge(
-        possessor.form, role
-      ) match {
+      val candidates =
+        Seq(possessor.form) ++ graph.getRolesForForm(possessor.form)
+      val formAssocEdge = candidates.flatMap(hyponym =>
+        graph.getFormAssocEdge(hyponym, role)).headOption match
+      {
         case Some(formEdge) => formEdge
         case _ => {
           cosmos.addFormAssoc(possessor.form, role)
@@ -784,20 +783,10 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       cosmos.addIdealTaxonomy(possessorRole, possessorForm)
       possesseeRoleNames.foreach(possesseeRoleName => {
         val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
-        val possesseeForms = cosmos.getGraph.getFormsForRole(possesseeRole)
-        // FIXME:  throw a proper excn
-        assert(possesseeForms.size < 2)
-        val possesseeForm = {
-          if (possesseeForms.isEmpty) {
-            cosmos.instantiateForm(possesseeRoleName)
-          } else {
-            possesseeForms.head
-          }
-        }
         val edge = cosmos.addFormAssoc(
-          possessorForm, possesseeRole)
+          possessorRole, possesseeRole)
         val inverseEdge = cosmos.addFormAssoc(
-          possesseeForm, possessorRole)
+          possesseeRole, possessorRole)
         cosmos.connectInverseAssocEdges(edge, inverseEdge)
       })
     }

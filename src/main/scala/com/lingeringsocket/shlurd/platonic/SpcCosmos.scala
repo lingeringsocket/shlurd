@@ -180,9 +180,7 @@ class SpcSynonymMap
 class SpcCosmos
     extends ShlurdCosmos[SpcEntity, SpcProperty]
 {
-  private val forms = new mutable.LinkedHashMap[String, SpcForm]
-
-  private val roles = new mutable.LinkedHashMap[String, SpcRole]
+  private val ideals = new mutable.LinkedHashMap[String, SpcIdeal]
 
   private val entities =
     new mutable.LinkedHashMap[String, SpcEntity]
@@ -208,9 +206,9 @@ class SpcCosmos
 
   private var nextId = 0
 
-  def getForms : Map[String, SpcForm] = forms
+  def getForms = ideals.values.filter(_.isForm).map(_.asInstanceOf[SpcForm])
 
-  def getRoles : Map[String, SpcRole] = roles
+  def getRoles = ideals.values.filter(_.isRole).map(_.asInstanceOf[SpcRole])
 
   def getEntities : Map[String, SpcEntity] = entities
 
@@ -243,7 +241,7 @@ class SpcCosmos
   {
     graph.idealTaxonomy.addVertex(ideal)
     graph.formAssocs.addVertex(ideal)
-    forms.get(LEMMA_ENTITY) match {
+    ideals.get(LEMMA_ENTITY) match {
       case Some(entityForm) => {
         addIdealTaxonomy(ideal, entityForm)
       }
@@ -275,40 +273,42 @@ class SpcCosmos
   def instantiateIdeal(word : SilWord, assumeRole : Boolean = false) =
   {
     val name = idealSynonyms.resolveSynonym(word.lemma)
-    def checkRole = roles.get(name)
-    def checkForm = forms.get(name)
-    if (assumeRole) {
-      checkRole.getOrElse(checkForm.getOrElse(instantiateRole(word)))
-    } else {
-      checkForm.getOrElse(checkRole.getOrElse(instantiateForm(word)))
-    }
+    ideals.get(name).getOrElse({
+      if (assumeRole) {
+        instantiateRole(word)
+      } else {
+        instantiateForm(word)
+      }
+    })
   }
 
-  def resolveForm(name : String) = resolveIdeal(name, false)._1
+  def resolveForm(name : String) = resolveIdeal(name)._1
 
-  def resolveRole(name : String) = resolveIdeal(name, true)._2
+  def resolveRole(name : String) = resolveIdeal(name)._2
 
   def instantiateForm(word : SilWord) =
   {
     val name = idealSynonyms.resolveSynonym(word.lemma)
-    val ideal = forms.getOrElseUpdate(
+    val ideal = ideals.getOrElseUpdate(
       name, registerForm(new SpcForm(name)))
-    ideal
+    assert(ideal.isForm)
+    ideal.asInstanceOf[SpcForm]
   }
 
   def instantiateRole(word : SilWord) =
   {
     val name = idealSynonyms.resolveSynonym(word.lemma)
-    val ideal = roles.getOrElseUpdate(
+    val ideal = ideals.getOrElseUpdate(
       name, registerRole(new SpcRole(name)))
-    ideal
+    assert(ideal.isRole)
+    ideal.asInstanceOf[SpcRole]
   }
 
   private[platonic] def forgetForm(form : SpcForm)
   {
     // FIXME remove synonyms?
     assert(!entities.values.exists(_.form == form))
-    forms.remove(form.name)
+    ideals.remove(form.name)
     forgetIdeal(form)
   }
 
@@ -507,17 +507,14 @@ class SpcCosmos
   }
 
   protected[platonic] def addFormAssoc(
-    possessor : SpcForm,
-    possessee : SpcRole) : SpcFormAssocEdge =
+    possessor : SpcIdeal,
+    role : SpcRole) : SpcFormAssocEdge =
   {
-    val roleName = possessee.name
-    graph.formAssocs.getAllEdges(
-      possessor, possessee).asScala.find(_.getRoleName == roleName) match
-    {
+    graph.getFormAssocEdge(possessor, role) match {
       case Some(edge) => edge
       case _ => {
-        val edge = new SpcFormAssocEdge(roleName)
-        graph.formAssocs.addEdge(possessor, possessee, edge)
+        val edge = new SpcFormAssocEdge(role.name)
+        graph.formAssocs.addEdge(possessor, role, edge)
         edge
       }
     }
@@ -606,25 +603,25 @@ class SpcCosmos
   def sanityCheck() : Boolean =
   {
     assert(graph.sanityCheck)
-    val ideals = forms.values.toSet ++ roles.values.toSet
-    assert(ideals == graph.idealTaxonomy.vertexSet.asScala)
-    assert(ideals == graph.formAssocs.vertexSet.asScala)
+    val idealSet = ideals.values.toSet
+    assert(idealSet == graph.idealTaxonomy.vertexSet.asScala)
+    assert(idealSet == graph.formAssocs.vertexSet.asScala)
     assert(entities.values.toSet == graph.entityAssocs.vertexSet.asScala)
-    forms.foreach(pair => assert(pair._1 == pair._2.name))
+    ideals.foreach(pair => assert(pair._1 == pair._2.name))
     entities.foreach(pair => assert(pair._1 == pair._2.name))
     val formAssocs = graph.formAssocs
-    forms.values.foreach(form => {
-      assert((formAssocs.outDegreeOf(form) ==
-        formAssocs.outgoingEdgesOf(form).
+    idealSet.foreach(ideal => {
+      assert((formAssocs.outDegreeOf(ideal) ==
+        formAssocs.outgoingEdgesOf(ideal).
         asScala.map(_.getRoleName).toSet.size),
-        form.toString)
+        ideal.toString)
     })
     formAssocs.edgeSet.asScala.foreach(formEdge => {
       val constraint = assocConstraints(formEdge)
       if (constraint.upper < Int.MaxValue) {
-        val form = graph.getPossessorForm(formEdge)
+        val ideal = graph.getPossessorIdeal(formEdge)
         entities.values.filter(
-          e => graph.isHyponym(e.form, form)).foreach(entity =>
+          e => graph.isHyponym(e.form, ideal)).foreach(entity =>
           {
             val entityEdges = getEntityAssocGraph.
               outgoingEdgesOf(entity).asScala
@@ -653,29 +650,17 @@ class SpcCosmos
   }
 
   private def resolveIdeal(
-    lemma : String,
-    assumeRole : Boolean) : (Option[SpcForm], Option[SpcRole]) =
+    lemma : String) : (Option[SpcForm], Option[SpcRole]) =
   {
     val name = idealSynonyms.resolveSynonym(lemma)
-    def checkRole = roles.get(name) match {
-      case Some(role) => (None, Some(role))
+    ideals.get(name) match {
+      case Some(form : SpcForm) => {
+        (Some(form), None)
+      }
+      case Some(role : SpcRole) => {
+        (None, Some(role))
+      }
       case _ => (None, None)
-    }
-    def checkForm = (forms.get(name), None)
-    if (assumeRole) {
-      val pair = checkRole
-      if (pair._2.isEmpty) {
-        checkForm
-      } else {
-        pair
-      }
-    } else {
-      val pair = checkForm
-      if (pair._1.isEmpty) {
-        checkRole
-      } else {
-        pair
-      }
     }
   }
 
@@ -684,7 +669,7 @@ class SpcCosmos
     context : SilReferenceContext,
     qualifiers : Set[String]) =
   {
-    val (formOpt, roleOpt) = resolveIdeal(lemma, false)
+    val (formOpt, roleOpt) = resolveIdeal(lemma)
     roleOpt match {
       case Some(role) => {
         Success(ShlurdParseUtils.orderedSet(
@@ -704,7 +689,7 @@ class SpcCosmos
               entity => hasQualifiers(
                 entity, entity.form, qualifiers + lemma, false))
             if (results.isEmpty) {
-              fail(s"unknown entity $lemma")
+              fail(s"unknown ideal $lemma")
             } else {
               Success(ShlurdParseUtils.orderedSet(results))
             }
@@ -858,7 +843,7 @@ class SpcCosmos
     lemma : String,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    val (formOpt, roleOpt) = resolveIdeal(lemma, false)
+    val (formOpt, roleOpt) = resolveIdeal(lemma)
     roleOpt match {
       case Some(role) => {
         Success(Trilean(
@@ -883,7 +868,7 @@ class SpcCosmos
             }
           }
           case _ => {
-            fail(s"unknown entity $lemma")
+            fail(s"unknown ideal $lemma")
           }
         }
       }
@@ -905,7 +890,7 @@ class SpcCosmos
     roleName : String,
     onlyIfProven : Boolean)
   {
-    val role = roles.get(roleName) match {
+    val role = resolveRole(roleName) match {
       case Some(r) => r
         // FIXME assert instead?
       case _ => return
