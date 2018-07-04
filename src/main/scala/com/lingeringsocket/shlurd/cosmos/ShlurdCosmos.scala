@@ -68,6 +68,10 @@ trait ShlurdCosmos[E<:ShlurdEntity, P<:ShlurdProperty]
     ShlurdParseUtils.orderedSet(qualifiers.map(_.lemma))
 
   def normalizeState(entity : E, state : SilState) : SilState = state
+
+  def reifyRole(possessor : E, roleName : String, onlyIfProven : Boolean)
+  {
+  }
 }
 
 trait ShlurdNamedObject

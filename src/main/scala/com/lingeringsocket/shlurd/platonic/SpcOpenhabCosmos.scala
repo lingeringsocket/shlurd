@@ -341,7 +341,7 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
                     case Success(set) => {
                       if (set.size == 1) {
                         addEntityAssoc(
-                          set.head, entity, presenceFormName)
+                          set.head, entity, getRoles(presenceFormName))
                       } else {
                         warning = true
                       }

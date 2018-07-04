@@ -58,6 +58,11 @@ class SpcCreed(cosmos : SpcCosmos)
 
   def roleBeliefs(role : SpcRole) : Iterable[SilSentence] =
   {
+    roleTaxonomyBeliefs(role)
+  }
+
+  def roleTaxonomyBeliefs(role : SpcRole) : Iterable[SilSentence] =
+  {
     cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(role).asScala.toSeq.
       filterNot(isTrivialTaxonomy).map(
         roleTaxonomyBelief(_))

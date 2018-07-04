@@ -87,6 +87,17 @@ class SpcCosmosSpec extends Specification
       entities must beSuccessfulTry.which(_.size == 1)
       entities.get.head
     }
+
+    protected def resolveGenitive(possessor : SpcEntity, roleName : String)
+        : Set[SpcEntity] =
+    {
+      cosmos.getRoles.get(roleName) match {
+        case Some(role) => {
+          cosmos.resolveGenitive(possessor, role)
+        }
+        case _ => Set.empty
+      }
+    }
   }
 
   "SpcCosmos" should
@@ -211,9 +222,9 @@ class SpcCosmosSpec extends Specification
       val person = cosmos.getForms(LEMMA_PERSON)
       val man = cosmos.getForms("man")
       val brother = cosmos.getRoles("brother")
-      cosmos.getGraph.getFormForRole(brother) must be equalTo Some(person)
+      cosmos.getGraph.getFormsForRole(brother) must be equalTo Iterable(person)
       addBelief("a brother must be a man")
-      cosmos.getGraph.getFormForRole(brother) must be equalTo Some(man)
+      cosmos.getGraph.getFormsForRole(brother) must be equalTo Iterable(man)
     }
 
     "prevent taxonomy cycles" in new CosmosContext
@@ -291,29 +302,20 @@ class SpcCosmosSpec extends Specification
         cosmos.resolveQualifiedNoun(
           LEMMA_PERSON, REF_SUBJECT, Set("lonnie")))
       Set(joyce, will, jonathan, lonnie).size must be equalTo 4
-      cosmos.resolveGenitive(will, "mom") must be equalTo Set(joyce)
-      cosmos.resolveGenitive(will, "dad") must be equalTo Set(lonnie)
-      cosmos.resolveGenitive(jonathan, "mom") must be equalTo Set(joyce)
-      cosmos.resolveGenitive(jonathan, "dad") must be equalTo Set(lonnie)
-      cosmos.resolveGenitive(joyce, "son") must be equalTo Set(will, jonathan)
-      cosmos.resolveGenitive(lonnie, "son") must be equalTo Set(will, jonathan)
-      cosmos.resolveGenitive(joyce, "mom") must beEmpty
-      cosmos.resolveGenitive(joyce, "dad") must beEmpty
-      cosmos.resolveGenitive(lonnie, "mom") must beEmpty
-      cosmos.resolveGenitive(lonnie, "dad") must beEmpty
-      cosmos.resolveGenitive(joyce, "ex-husband") must be equalTo Set(lonnie)
-      cosmos.resolveGenitive(joyce, "ex-wife") must beEmpty
-      cosmos.resolveGenitive(lonnie, "ex-wife") must be equalTo Set(joyce)
-      cosmos.resolveGenitive(lonnie, "ex-husband") must beEmpty
-    }
-
-    "require mandatory genitives to be assigned" in new CosmosContext
-    {
-      addBelief("Will is a person")
-      addBelief("A mom must be a person")
-      addBelief("A person must have a mom")
-      cosmos.validateBeliefs must
-        throwA[CardinalityExcn]
+      resolveGenitive(will, "mom") must be equalTo Set(joyce)
+      resolveGenitive(will, "dad") must be equalTo Set(lonnie)
+      resolveGenitive(jonathan, "mom") must be equalTo Set(joyce)
+      resolveGenitive(jonathan, "dad") must be equalTo Set(lonnie)
+      resolveGenitive(joyce, "son") must be equalTo Set(will, jonathan)
+      resolveGenitive(lonnie, "son") must be equalTo Set(will, jonathan)
+      resolveGenitive(joyce, "mom") must beEmpty
+      resolveGenitive(joyce, "dad") must beEmpty
+      resolveGenitive(lonnie, "mom") must beEmpty
+      resolveGenitive(lonnie, "dad") must beEmpty
+      resolveGenitive(joyce, "ex-husband") must be equalTo Set(lonnie)
+      resolveGenitive(joyce, "ex-wife") must beEmpty
+      resolveGenitive(lonnie, "ex-wife") must be equalTo Set(joyce)
+      resolveGenitive(lonnie, "ex-husband") must beEmpty
     }
 
     "prevent single valued genitives from being multiple" in new CosmosContext
@@ -449,7 +451,7 @@ class SpcCosmosSpec extends Specification
       val bessie = expectProperName("Bessie")
       bessie.form must be equalTo(cow)
       val jack = expectProperName("Jack")
-      cosmos.resolveGenitive(bessie, "owner") must be equalTo Set(jack)
+      resolveGenitive(bessie, "owner") must be equalTo Set(jack)
 
       addBelief("Bessie is an animal")
       val bessieAnimal = expectProperName("Bessie")

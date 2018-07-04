@@ -96,6 +96,15 @@ class SpcInterpreterSpec extends Specification
       interpreter.interpret(sentence) must be equalTo(expected)
     }
 
+    protected def interpretTerse(
+      input : String,
+      expected : String)
+    {
+      val sentence = ShlurdParser(input).parseOne
+      interpreterTerse.interpret(
+        sentence) must be equalTo(expected)
+    }
+
     protected def interpretMatrix(
       input : String,
       expectedWithPronouns : String,
@@ -430,7 +439,7 @@ class SpcInterpreterSpec extends Specification
         "No organization.")
     }
 
-    "understand relatives" in new InterpreterContext
+    "understand relatives" in new InterpreterContext(true)
     {
       loadBeliefs("/ontologies/relatives.txt")
       interpret("who is Henry", "He is Titus' uncle.")
@@ -439,6 +448,19 @@ class SpcInterpreterSpec extends Specification
       interpret("who is Laura's niece", "Her nieces are Fancy and Marion.")
       interpret("Fancy is Laura's nephew?", "No, she is not Laura's nephew.")
       interpret("is Everard a person?", "I don't know.")
+      interpret("does Laura have a godmother", "Yes, she has a godmother.")
+      interpret("who is Laura's godmother", "I don't know.")
+      interpret("Marion is Laura's godmother?", "I don't know.")
+      // FIXME we can rule this one out since a godmother must be a woman
+      interpret("Henry is Laura's godmother?", "I don't know.")
+      interpret("does Laura have a godfather",
+        "No, she does not have a godfather.")
+      interpret("Fancy is Laura's godmother", "OK.")
+      interpret("Titus is Laura's godfather", "OK.")
+      interpret("who is Laura's godmother", "Her godmother is Fancy.")
+      interpret("who is Laura's godfather", "Her godfather is Titus.")
+
+      cosmos.sanityCheck must beTrue
     }
 
     "understand taxonomy" in new InterpreterContext
@@ -801,6 +823,47 @@ class SpcInterpreterSpec extends Specification
         "Previously I was told that a duck is a kind of a bird and a bird " +
           "is a kind of an animal.  So I am unable to accept that " +
           "an animal is a kind of duck.")
+    }
+
+    "reject incompatible form for role" in new InterpreterContext(true)
+    {
+      interpret("a person must have a lawyer", "OK.")
+      interpret("a lawyer must be a weasel", "OK.")
+      interpret("Michael is a snake", "OK.")
+      interpret("Michael is Donald's lawyer",
+        "Previously I was told that a lawyer must be a weasel.  So I am " +
+          "unable to accept that Michael is Donald's lawyer.")
+
+      cosmos.sanityCheck must beTrue
+    }
+
+    "reify unknown person" in new InterpreterContext(true)
+    {
+      interpret("a person must have a lawyer", "OK.")
+      interpret("Donald is a person", "OK.")
+      interpret("who is Donald's lawyer", "I don't know.")
+
+      cosmos.sanityCheck must beTrue
+    }
+
+    "infer form from role" in new InterpreterContext(true)
+    {
+      interpret("a lawyer must be a weasel", "OK.")
+      interpret("Michael is Donald's lawyer", "OK.")
+      interpretTerse("is Michael a weasel", "Yes.")
+
+      cosmos.sanityCheck must beTrue
+    }
+
+    "support roles with multiple forms" in new InterpreterContext(true)
+    {
+      skipped("maybe one day")
+
+      interpret("a footman must be a man", "OK.")
+      interpret("a footman must be a plebeian", "OK.")
+      interpret("a gentleman with a footman is a lord", "OK.")
+
+      cosmos.sanityCheck must beTrue
     }
 
     "validate constraints incrementally" in new InterpreterContext(true)

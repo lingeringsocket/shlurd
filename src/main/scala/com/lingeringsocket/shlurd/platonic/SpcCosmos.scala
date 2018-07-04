@@ -156,6 +156,7 @@ case class SpcEntity(
   val properName : String = "")
     extends ShlurdEntity with ShlurdNamedObject
 {
+  override def isTentative = properName.contains("_")
 }
 
 class SpcSynonymMap
@@ -303,12 +304,21 @@ class SpcCosmos
     ideal
   }
 
-  def forgetForm(form : SpcForm)
+  private[platonic] def forgetForm(form : SpcForm)
   {
     // FIXME remove synonyms?
     assert(!entities.values.exists(_.form == form))
     forms.remove(form.name)
     forgetIdeal(form)
+  }
+
+  private[platonic] def forgetEntity(entity : SpcEntity)
+  {
+    assert(graph.entityAssocs.degreeOf(entity) == 0)
+    if (entities.get(entity.name) == Some(entity)) {
+      entities.remove(entity.name)
+    }
+    graph.entityAssocs.removeVertex(entity)
   }
 
   def matchAssocs(oldForm : SpcForm, newForm : SpcForm)
@@ -318,9 +328,7 @@ class SpcCosmos
     formAssocs.outgoingEdgesOf(oldForm).asScala.toSeq.flatMap(
       oldEdge => {
         assert(!inverseAssocEdges.contains(oldEdge))
-        val possesseeForm = graph.getPossesseeForm(oldEdge).get
-        val possesseeRole = graph.getPossesseeRole(oldEdge)
-        graph.getFormAssocEdge(newForm, possesseeForm, possesseeRole).map(
+        graph.getFormAssocEdge(newForm, graph.getPossesseeRole(oldEdge)).map(
           newEdge => (oldEdge, newEdge))
       }
     )
@@ -363,11 +371,22 @@ class SpcCosmos
     formAssocs.removeEdge(oldEdge)
   }
 
-  def replaceForm(oldForm : SpcForm, newForm : SpcForm)
+  private[platonic] def replaceForm(oldForm : SpcForm, newForm : SpcForm)
   {
     assert(oldForm.isTentative)
     graph.replaceVertex(graph.formAssocs, oldForm, newForm)
     forgetForm(oldForm)
+  }
+
+  private[platonic] def replaceEntity(
+    oldEntity : SpcEntity, newEntity : SpcEntity)
+  {
+    // FIXME verify that entities are role-compatible across all
+    // relevant form associations, constraints aren't violated, etc
+    if (oldEntity != newEntity) {
+      graph.replaceVertex(graph.entityAssocs, oldEntity, newEntity)
+      forgetEntity(oldEntity)
+    }
   }
 
   def addIdealSynonym(synonym : String, fundamental : String)
@@ -441,11 +460,7 @@ class SpcCosmos
     graph.entityAssocs.addVertex(entity)
     entities.put(entity.name, entity) match {
       case Some(old) => {
-        if (old != entity) {
-          graph.replaceVertex(graph.entityAssocs, old, entity)
-          assert(graph.entityAssocs.degreeOf(old) == 0)
-          graph.entityAssocs.removeVertex(old)
-        }
+        replaceEntity(old, entity)
       }
       case _ =>
     }
@@ -511,10 +526,10 @@ class SpcCosmos
   protected[platonic] def addEntityAssoc(
     possessor : SpcEntity,
     possessee : SpcEntity,
-    roleName : String) : SpcEntityAssocEdge =
+    role : SpcRole) : SpcEntityAssocEdge =
   {
-    val role = roles(roleName)
-    graph.getFormAssocEdge(possessor.form, possessee.form, role) match {
+    assert(graph.isCompatible(possessee.form, role))
+    graph.getFormAssocEdge(possessor.form, role) match {
       case Some(formAssocEdge) => {
         val edge = addEntityAssocEdge(
           possessor, possessee, formAssocEdge)
@@ -585,25 +600,6 @@ class SpcCosmos
 
   def validateBeliefs()
   {
-    val creed = new SpcCreed(this)
-    getFormAssocGraph.edgeSet.asScala.foreach(formEdge => {
-      val constraint = assocConstraints(formEdge)
-      if ((constraint.lower > 0) || (constraint.upper < Int.MaxValue)) {
-        val form = graph.getPossessorForm(formEdge)
-        entities.values.filter(
-          e => graph.isHyponym(e.form, form)).foreach(entity =>
-          {
-            val entityEdges = getEntityAssocGraph.
-              outgoingEdgesOf(entity).asScala
-            val c = entityEdges.count(_.formEdge == formEdge)
-            if ((c < constraint.lower) || (c > constraint.upper)) {
-              throw new CardinalityExcn(
-                creed.formAssociationBelief(formEdge))
-            }
-          }
-        )
-      }
-    })
     assert(sanityCheck)
   }
 
@@ -616,22 +612,43 @@ class SpcCosmos
     assert(entities.values.toSet == graph.entityAssocs.vertexSet.asScala)
     forms.foreach(pair => assert(pair._1 == pair._2.name))
     entities.foreach(pair => assert(pair._1 == pair._2.name))
+    val formAssocs = graph.formAssocs
     forms.values.foreach(form => {
-      assert((graph.formAssocs.outDegreeOf(form) ==
-        graph.formAssocs.outgoingEdgesOf(form).
+      assert((formAssocs.outDegreeOf(form) ==
+        formAssocs.outgoingEdgesOf(form).
         asScala.map(_.getRoleName).toSet.size),
         form.toString)
+    })
+    formAssocs.edgeSet.asScala.foreach(formEdge => {
+      val constraint = assocConstraints(formEdge)
+      if (constraint.upper < Int.MaxValue) {
+        val form = graph.getPossessorForm(formEdge)
+        entities.values.filter(
+          e => graph.isHyponym(e.form, form)).foreach(entity =>
+          {
+            val entityEdges = getEntityAssocGraph.
+              outgoingEdgesOf(entity).asScala
+            val c = entityEdges.count(_.formEdge == formEdge)
+            assert(c <= constraint.upper)
+          }
+        )
+      }
     })
     true
   }
 
   def resolveGenitive(
     possessor : SpcEntity,
-    roleName : String)
+    role : SpcRole)
       : Set[SpcEntity] =
   {
     ShlurdParseUtils.orderedSet(getEntityAssocGraph.outgoingEdgesOf(possessor).
-      asScala.toSeq.filter(_.getRoleName == roleName).map(
+      asScala.toSeq.filter(
+        edge => {
+          graph.isHyponym(role, graph.getPossesseeRole(edge.formEdge)) &&
+            graph.isCompatible(graph.getPossesseeEntity(edge).form, role)
+        }
+      ).map(
         graph.getPossesseeEntity))
   }
 
@@ -641,7 +658,7 @@ class SpcCosmos
   {
     val name = idealSynonyms.resolveSynonym(lemma)
     def checkRole = roles.get(name) match {
-      case Some(role) => (graph.getFormForRole(role), Some(role))
+      case Some(role) => (None, Some(role))
       case _ => (None, None)
     }
     def checkForm = (forms.get(name), None)
@@ -668,20 +685,30 @@ class SpcCosmos
     qualifiers : Set[String]) =
   {
     val (formOpt, roleOpt) = resolveIdeal(lemma, false)
-    formOpt match {
-      case Some(form) => {
+    roleOpt match {
+      case Some(role) => {
         Success(ShlurdParseUtils.orderedSet(
-          entities.values.filter(
-            hasQualifiers(_, form, qualifiers, false))))
+          entities.values.filter(entity =>
+            graph.isCompatible(entity.form, role) &&
+              hasQualifiers(entity, entity.form, qualifiers, false))))
       }
       case _ => {
-        val results = entities.values.filter(
-          entity => hasQualifiers(
-            entity, entity.form, qualifiers + lemma, false))
-        if (results.isEmpty) {
-          fail(s"unknown entity $lemma")
-        } else {
-          Success(ShlurdParseUtils.orderedSet(results))
+        formOpt match {
+          case Some(form) => {
+            Success(ShlurdParseUtils.orderedSet(
+              entities.values.filter(
+                hasQualifiers(_, form, qualifiers, false))))
+          }
+          case _ => {
+            val results = entities.values.filter(
+              entity => hasQualifiers(
+                entity, entity.form, qualifiers + lemma, false))
+            if (results.isEmpty) {
+              fail(s"unknown entity $lemma")
+            } else {
+              Success(ShlurdParseUtils.orderedSet(results))
+            }
+          }
         }
       }
     }
@@ -832,32 +859,33 @@ class SpcCosmos
     qualifiers : Set[String]) : Try[Trilean] =
   {
     val (formOpt, roleOpt) = resolveIdeal(lemma, false)
-    formOpt match {
-      case Some(form) => {
-        if (graph.isHyponym(entity.form, form)) {
-          roleOpt match {
-            case Some(role) => {
-              Success(Trilean(
-                getEntityAssocGraph.incomingEdgesOf(entity).asScala.
-                  exists(edge =>
-                    graph.isHyponym(
-                      role,
-                      graph.getPossesseeRole(edge.formEdge)))))
-            }
-            case _ => {
-              Success(Trilean.True)
-            }
-          }
-        } else {
-          if (entity.form.isTentative) {
-            Success(Trilean.Unknown)
-          } else {
-            Success(Trilean.False)
-          }
-        }
+    roleOpt match {
+      case Some(role) => {
+        Success(Trilean(
+          graph.isCompatible(entity.form, role) &&
+            getEntityAssocGraph.incomingEdgesOf(entity).asScala.
+            exists(edge =>
+              graph.isHyponym(
+                role,
+                graph.getPossesseeRole(edge.formEdge)))))
       }
       case _ => {
-        fail(s"unknown entity $lemma")
+        formOpt match {
+          case Some(form) => {
+            if (graph.isHyponym(entity.form, form)) {
+              Success(Trilean.True)
+            } else {
+              if (entity.form.isTentative) {
+                Success(Trilean.Unknown)
+              } else {
+                Success(Trilean.False)
+              }
+            }
+          }
+          case _ => {
+            fail(s"unknown entity $lemma")
+          }
+        }
       }
     }
   }
@@ -868,6 +896,43 @@ class SpcCosmos
     graph.getFormHypernyms(entity.form).foldLeft(originalState) {
       case (state, form) => {
         form.normalizeState(state)
+      }
+    }
+  }
+
+  override def reifyRole(
+    possessor : SpcEntity,
+    roleName : String,
+    onlyIfProven : Boolean)
+  {
+    val role = roles.get(roleName) match {
+      case Some(r) => r
+        // FIXME assert instead?
+      case _ => return
+    }
+    graph.getFormAssocEdge(possessor.form, role) match {
+      case Some(formEdge) => {
+        if (onlyIfProven) {
+          val constraint = assocConstraints(formEdge)
+          if (constraint.lower == 0) {
+            return
+          }
+        }
+        val existing = resolveGenitive(possessor, role)
+        if (existing.isEmpty) {
+          // make up possessee out of thin air
+          val name = possessor.name + "_" + roleName
+          val form = instantiateForm(SpcForm.tentativeName(SilWord(name)))
+          graph.getFormsForRole(graph.getPossesseeRole(formEdge)).foreach(
+            hypernym => addIdealTaxonomy(form, hypernym))
+          val (possessee, success) = instantiateEntity(
+            form, Seq(SilWord(name)), name)
+          assert(success)
+          addEntityAssoc(possessor, possessee, role)
+        }
+      }
+      case _ => {
+        // FIXME make up role out of thin air?
       }
     }
   }

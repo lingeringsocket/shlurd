@@ -478,6 +478,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 case REL_IDENTITY => REF_COMPLEMENT
                 case REL_ASSOCIATION => REF_SUBJECT
               }
+              if (relationship == REL_ASSOCIATION) {
+                val roleQualifiers = extractRoleQualifiers(complementRef)
+                if (roleQualifiers.size == 1) {
+                  val roleName = roleQualifiers.head
+                  cosmos.reifyRole(subjectEntity, roleName, true)
+                }
+              }
               evaluatePredicateOverReference(
                 complementRef, context, complementCollector)
               {
@@ -555,28 +562,39 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   {
     relationship match {
       case REL_IDENTITY => {
-        val result = Success(
-          Trilean(subjectEntity == complementEntity))
+        val result = {
+          if (subjectEntity.isTentative || complementEntity.isTentative) {
+            Success(Trilean.Unknown)
+          } else {
+            Success(Trilean(subjectEntity == complementEntity))
+          }
+        }
         debug("RESULT FOR " +
           s"$subjectEntity == $complementEntity is $result")
         result
       }
       case REL_ASSOCIATION => {
-        // FIXME:  do something less hacky
-        val qualifiers : Set[String] = complementRef match {
-          case SilNounReference(noun, determiner, count) => {
-            Set(noun.lemma)
-          }
-          case _ => Set.empty
-        }
+        val roleQualifiers = extractRoleQualifiers(complementRef)
         val result = cosmos.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,
-          ADP_GENITIVE_OF, qualifiers)
+          ADP_GENITIVE_OF, roleQualifiers)
         debug("RESULT FOR " +
           s"$complementEntity ADP_GENITIVE_OF " +
-          s"$subjectEntity with $qualifiers is $result")
+          s"$subjectEntity with $roleQualifiers is $result")
         result
       }
+    }
+  }
+
+  private def extractRoleQualifiers(complementRef : SilReference)
+      : Set[String] =
+  {
+    // FIXME:  do something less hacky
+    complementRef match {
+      case SilNounReference(noun, determiner, count) => {
+        Set(noun.lemma)
+      }
+      case _ => Set.empty
     }
   }
 
@@ -643,18 +661,18 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         unfilteredEntities.filter(subjectEntity =>
           adpositionStates.forall(adp => {
             val adposition = adp.adposition
+            val qualifiers : Set[String] = {
+              if (adposition == ADP_GENITIVE_OF) {
+                Set(noun.lemma)
+              } else {
+                Set.empty
+              }
+            }
             val evaluation = evaluatePredicateOverReference(
               adp.objRef, REF_ADPOSITION_OBJ,
                 resultCollector.spawn)
             {
               (objEntity, entityRef) => {
-                val qualifiers : Set[String] = {
-                  if (adposition == ADP_GENITIVE_OF) {
-                    Set(noun.lemma)
-                  } else {
-                    Set.empty
-                  }
-                }
                 val result = cosmos.evaluateEntityAdpositionPredicate(
                   subjectEntity, objEntity, adposition, qualifiers)
                 debug("RESULT FOR " +

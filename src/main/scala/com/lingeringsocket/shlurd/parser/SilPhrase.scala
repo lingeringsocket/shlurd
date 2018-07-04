@@ -18,6 +18,7 @@ import scala.collection._
 
 trait ShlurdEntity
 {
+  def isTentative : Boolean = false
 }
 
 trait ShlurdProperty

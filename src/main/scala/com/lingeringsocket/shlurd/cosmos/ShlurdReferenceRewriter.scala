@@ -43,5 +43,11 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
     }
+    case gr @ SilGenitiveReference(
+      rr : SilResolvedReference[E], SilNounReference(noun, _, _)
+    ) => {
+      rr.entities.foreach(entity => cosmos.reifyRole(entity, noun.lemma, true))
+      gr
+    }
   }
 }

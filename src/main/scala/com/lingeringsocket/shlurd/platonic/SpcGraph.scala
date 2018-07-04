@@ -98,41 +98,21 @@ class SpcGraph(
   def getPossesseeRole(edge : SpcFormAssocEdge) =
     formAssocs.getEdgeTarget(edge).asInstanceOf[SpcRole]
 
-  def getPossesseeForm(edge : SpcFormAssocEdge) =
-    getFormForRole(getPossesseeRole(edge))
-
   def getPossesseeEntity(edge : SpcEntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
 
   def getFormAssocEdge(
     possessor : SpcForm,
-    possessee : SpcForm,
     role : SpcRole) : Option[SpcFormAssocEdge] =
   {
-    val edges = formAssocs.edgeSet.asScala.filter(edge => {
-      isHyponym(role, getPossesseeRole(edge)) &&
-      isHyponym(possessor, getPossessorForm(edge)) &&
-      isHyponym(possessee, getPossesseeForm(edge))
-    })
-    def compareEdges(
-      edge1 : SpcFormAssocEdge, edge2 : SpcFormAssocEdge) : Boolean =
-    {
-      def possessor1 = getPossessorForm(edge1)
-      def possessor2 = getPossessorForm(edge2)
-      if (isHyponym(possessor1, possessor2)) {
-        if (possessor1 == possessor2) {
-          val possessee1 = getPossesseeForm(edge1)
-          val possessee2 = getPossesseeForm(edge2)
-          assert (possessee1 != possessee2)
-          isHyponym(possessee1.get, possessee2)
-        } else {
-          true
+    getFormHypernyms(possessor).foreach(form => {
+      formAssocs.outgoingEdgesOf(form).asScala.foreach(edge => {
+        if (isHyponym(role, getPossesseeRole(edge))) {
+          return Some(edge)
         }
-      } else {
-        false
-      }
-    }
-    edges.toSeq.sortWith(compareEdges).headOption
+      })
+    })
+    None
   }
 
   def isHyponym(
@@ -171,18 +151,20 @@ class SpcGraph(
     getIdealHypernyms(form).map(_.asInstanceOf[SpcForm])
   }
 
-  def getFormForRole(
-    role : SpcRole) : Option[SpcForm] =
+  def getFormsForRole(
+    role : SpcRole) : Iterable[SpcForm] =
   {
-    // choose most specific form in subgraph of role's hypernyms
+    // choose most specific forms in subgraph of role's hypernyms
     val subgraph = new AsSubgraph(
-      idealTaxonomy, getIdealHypernyms(role).toSet.asJava)
-    val iter = new TopologicalOrderIterator(subgraph)
-    iter.asScala.foreach(_ match {
-      case form : SpcForm => return Some(form)
-      case _ =>
-    })
-    None
+      idealTaxonomy, getIdealHypernyms(role).filter(_.isForm).toSet.asJava)
+    subgraph.vertexSet.asScala.toSeq.filter(
+      vertex => subgraph.inDegreeOf(vertex) == 0).map(_.asInstanceOf[SpcForm])
+  }
+
+  def isCompatible(form : SpcForm, role : SpcRole) : Boolean =
+  {
+    getIdealHypernyms(role).filter(_.isForm).forall(hypernym =>
+      isHyponym(form, hypernym))
   }
 
   def specializeRoleForForm(
@@ -238,7 +220,7 @@ class SpcGraph(
       val role = getPossesseeRole(formEdge)
       assert(role.name == formEdge.getRoleName,
         (role, formEdge).toString)
-      assert(!getFormForRole(role).isEmpty, role.toString)
+      assert(!getFormsForRole(role).isEmpty, role.toString)
     })
     entityAssocs.edgeSet.asScala.foreach(entityEdge => {
       val formEdge = entityEdge.formEdge
@@ -249,8 +231,8 @@ class SpcGraph(
       val possesseeEntity = getPossesseeEntity(entityEdge)
       assert(isHyponym(possessorEntity.form, possessorForm))
       val role = getPossesseeRole(formEdge)
-      getIdealHypernyms(role).filter(_.isForm).foreach(hypernym =>
-        assert(isHyponym(possesseeEntity.form, hypernym)))
+      assert(isCompatible(possesseeEntity.form, role),
+        (possesseeEntity.form, role).toString)
     })
     val taxonomyCountBeforeReduction = idealTaxonomy.edgeSet.size
     TransitiveReduction.INSTANCE.reduce(idealTaxonomy)

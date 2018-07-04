@@ -484,14 +484,20 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
 
     val edgeCount = edges.size
     if (edgeCount >= constraint.upper) {
-      val originalBelief = SilConjunctiveSentence(
-        DETERMINER_ALL,
+      val originalBelief = conjunctiveBelief(
         Seq(creed.formAssociationBelief(formAssocEdge)) ++
-          edges.map(creed.entityAssociationBelief(_)),
-        SEPARATOR_OXFORD_COMMA)
+          edges.map(creed.entityAssociationBelief(_)))
       throw new IncrementalCardinalityExcn(
         sentence, originalBelief)
     }
+  }
+
+  private def conjunctiveBelief(sentences : Seq[SilSentence]) : SilSentence =
+  {
+    SilConjunctiveSentence(
+      DETERMINER_ALL,
+      sentences,
+      SEPARATOR_OXFORD_COMMA)
   }
 
   private def transmogrify(
@@ -523,6 +529,23 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       // the only form change allowed is a refinement
       assert(graph.isHyponym(newForm, oldForm))
       cosmos.createOrReplaceEntity(newEntity)
+    }
+  }
+
+  private def findTentativePossessee(
+    possessor : SpcEntity, formAssoc : SpcFormAssocEdge) : Option[SpcEntity] =
+  {
+    val set = cosmos.resolveGenitive(
+      possessor, cosmos.getGraph.getPossesseeRole(formAssoc))
+    if (set.size == 1) {
+      val entity = set.head
+      if (entity.isTentative) {
+        Some(entity)
+      } else {
+        None
+      }
+    } else {
+      None
     }
   }
 
@@ -601,10 +624,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
                   val assocBelief = creed.entityAssociationBelief(entityEdge)
                   throw new ContradictoryBeliefExcn(
                     sentence,
-                    SilConjunctiveSentence(
-                      DETERMINER_ALL,
-                      Seq(formBelief, assocBelief),
-                      SEPARATOR_OXFORD_COMMA))
+                    conjunctiveBelief(Seq(formBelief, assocBelief)))
                 }
               }
             }
@@ -620,10 +640,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           val path = DijkstraShortestPath.findPathBetween(
             cosmos.getIdealTaxonomyGraph, hypernymIdeal, hyponymIdeal)
           assert(path != null)
-          val originalBelief = SilConjunctiveSentence(
-            DETERMINER_ALL,
-            path.getEdgeList.asScala.toSeq.map(creed.idealTaxonomyBelief(_)),
-            SEPARATOR_OXFORD_COMMA)
+          val originalBelief = conjunctiveBelief(
+            path.getEdgeList.asScala.toSeq.map(creed.idealTaxonomyBelief(_)))
           throw new ContradictoryBeliefExcn(
             sentence,
             originalBelief)
@@ -709,15 +727,38 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           newRole
         }
       }
+      if (possessee.form.isTentative) {
+        cosmos.getGraph.getFormsForRole(role).foreach(form =>
+          cosmos.addIdealTaxonomy(possessee.form, form))
+      }
+      if (!cosmos.getGraph.isCompatible(possessee.form, role)) {
+        val creed = new SpcCreed(cosmos)
+        val originalBelief = conjunctiveBelief(
+          creed.roleTaxonomyBeliefs(role).toSeq)
+        throw new ContradictoryBeliefExcn(
+          sentence,
+          originalBelief)
+      }
       val formAssocEdge = cosmos.getGraph.getFormAssocEdge(
-        possessor.form, possessee.form, role
+        possessor.form, role
       ) match {
         case Some(formEdge) => formEdge
         case _ => {
           cosmos.addFormAssoc(possessor.form, role)
         }
       }
-      validateEdgeCardinality(sentence, formAssocEdge, possessor)
+      // FIXME it may not be correct to assume same identity in the case
+      // of a multi-valued association
+      findTentativePossessee(possessor, formAssocEdge) match {
+        case Some(tentativePossessee) => {
+          // FIXME in case of inverse assoc, should not be doing this until
+          // after validateEdgeCardinality below (or else need rollback support)
+          cosmos.replaceEntity(tentativePossessee, possessee)
+        }
+        case _ => {
+          validateEdgeCardinality(sentence, formAssocEdge, possessor)
+        }
+      }
       cosmos.getInverseAssocEdges.get(formAssocEdge) match {
         case Some(inverseAssocEdge) => {
           validateEdgeCardinality(sentence, inverseAssocEdge, possessee)
@@ -743,10 +784,15 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       cosmos.addIdealTaxonomy(possessorRole, possessorForm)
       possesseeRoleNames.foreach(possesseeRoleName => {
         val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
-        val possesseeForm = cosmos.getGraph.getFormForRole(possesseeRole) match
-        {
-          case Some(form) => form
-          case _ => cosmos.instantiateForm(possesseeRoleName)
+        val possesseeForms = cosmos.getGraph.getFormsForRole(possesseeRole)
+        // FIXME:  throw a proper excn
+        assert(possesseeForms.size < 2)
+        val possesseeForm = {
+          if (possesseeForms.isEmpty) {
+            cosmos.instantiateForm(possesseeRoleName)
+          } else {
+            possesseeForms.head
+          }
         }
         val edge = cosmos.addFormAssoc(
           possessorForm, possesseeRole)

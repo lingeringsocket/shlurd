@@ -57,10 +57,3 @@ case class IncrementalCardinalityExcn(
       belief.toWordString + " vs original:  " + originalBelief.toWordString)
 {
 }
-
-case class CardinalityExcn(
-  originalBelief : SilSentence)
-    extends SpcBeliefExcn("Belief:  " +
-      originalBelief.toString)
-{
-}
