@@ -42,7 +42,9 @@ object SpcGraph
     val entityAssocs =
       new DirectedPseudograph[SpcEntity, SpcEntityAssocEdge](
         classOf[SpcEntityAssocEdge])
-    new SpcGraph(idealTaxonomy, formAssocs, entityAssocs)
+    val components = new DirectedAcyclicGraph[SpcVertex, SpcComponentEdge](
+        classOf[SpcComponentEdge])
+    new SpcGraph(idealTaxonomy, formAssocs, entityAssocs, components)
   }
 }
 
@@ -70,10 +72,15 @@ class SpcEntityAssocEdge(
   override def toString = super.toString + " : " + getRoleName
 }
 
+class SpcComponentEdge extends DefaultEdge
+{
+}
+
 class SpcGraph(
   val idealTaxonomy : Graph[SpcIdeal, SpcTaxonomyEdge],
   val formAssocs : Graph[SpcIdeal, SpcFormAssocEdge],
-  val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge]
+  val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge],
+  val components : Graph[SpcVertex, SpcComponentEdge]
 )
 {
   def asUnmodifiable() =
@@ -81,9 +88,16 @@ class SpcGraph(
     new SpcGraph(
       new AsUnmodifiableGraph(idealTaxonomy),
       new AsUnmodifiableGraph(formAssocs),
-      new AsUnmodifiableGraph(entityAssocs)
+      new AsUnmodifiableGraph(entityAssocs),
+      new AsUnmodifiableGraph(components)
     )
   }
+
+  def getContainer(edge : SpcComponentEdge) =
+    components.getEdgeSource(edge)
+
+  def getComponent(edge : SpcComponentEdge) =
+    components.getEdgeTarget(edge)
 
   def getHyponymIdeal(edge : SpcTaxonomyEdge) =
     idealTaxonomy.getEdgeSource(edge)
@@ -244,6 +258,13 @@ class SpcGraph(
     })
   }
 
+  def removeContainer(container : SpcVertex)
+  {
+    val reachable =
+      new BreadthFirstIterator(components, container).asScala.toSet
+    components.removeAllVertices(reachable.asJava)
+  }
+
   def sanityCheck() : Boolean =
   {
     idealTaxonomy.edgeSet.asScala.foreach(taxonomyEdge => {
@@ -252,6 +273,7 @@ class SpcGraph(
       assert(!(hyponym.isForm && hypernym.isRole), (hyponym, hypernym).toString)
     })
     assert(!new CycleDetector(idealTaxonomy).detectCycles)
+    assert(!new CycleDetector(components).detectCycles)
     formAssocs.edgeSet.asScala.foreach(formEdge => {
       val role = getPossesseeRole(formEdge)
       assert(role.name == formEdge.getRoleName,
@@ -269,6 +291,10 @@ class SpcGraph(
       val role = getPossesseeRole(formEdge)
       assert(isFormCompatibleWithRole(possesseeEntity.form, role),
         (possesseeEntity.form, role).toString)
+    })
+    components.edgeSet.asScala.foreach(componentEdge => {
+      assert(getContainer(componentEdge).isInstanceOf[SpcForm])
+      assert(getComponent(componentEdge).isInstanceOf[SpcProperty])
     })
     val taxonomyCountBeforeReduction = idealTaxonomy.edgeSet.size
     TransitiveReduction.INSTANCE.reduce(idealTaxonomy)

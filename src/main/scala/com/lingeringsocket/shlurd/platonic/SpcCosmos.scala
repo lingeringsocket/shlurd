@@ -28,8 +28,12 @@ import org.jgrapht.util._
 
 import ShlurdEnglishLemmas._
 
+trait SpcVertex
+{
+}
+
 class SpcProperty(val name : String)
-    extends ShlurdProperty with ShlurdNamedObject
+    extends ShlurdProperty with ShlurdNamedObject with SpcVertex
 {
   private[platonic] val states =
     new mutable.LinkedHashMap[String, String]
@@ -56,7 +60,7 @@ class SpcProperty(val name : String)
 }
 
 sealed abstract class SpcIdeal(val name : String)
-    extends ShlurdNamedObject
+    extends ShlurdNamedObject with SpcVertex
 {
   def isRole : Boolean = false
 
@@ -75,9 +79,6 @@ class SpcForm(name : String)
 {
   import SpcForm._
 
-  private[platonic] val properties =
-    new mutable.LinkedHashMap[String, SpcProperty]
-
   private val inflectedStateNormalizations =
     new mutable.LinkedHashMap[SilState, SilState]
 
@@ -85,22 +86,6 @@ class SpcForm(name : String)
     new mutable.LinkedHashMap[SilState, SilState]
 
   def isTentative = name.endsWith(TENTATIVE_SUFFIX)
-
-  def getProperties : Map[String, SpcProperty] = properties
-
-  def instantiateProperty(name : SilWord) =
-  {
-    val property = name.lemma
-    properties.getOrElseUpdate(property, new SpcProperty(property))
-  }
-
-  def resolveProperty(lemma : String)
-      : Option[(SpcProperty, String)] =
-  {
-    val stateName = resolveStateSynonym(lemma)
-    properties.values.find(
-      p => p.states.contains(stateName)).map((_, stateName))
-  }
 
   def resolveStateSynonym(lemma : String) : String =
   {
@@ -154,7 +139,7 @@ case class SpcEntity(
   val form : SpcForm,
   val qualifiers : Set[String],
   val properName : String = "")
-    extends ShlurdEntity with ShlurdNamedObject
+    extends ShlurdEntity with ShlurdNamedObject with SpcVertex
 {
   override def isTentative = properName.contains("_")
 }
@@ -261,6 +246,7 @@ class SpcCosmos
   private def registerForm(form : SpcForm) =
   {
     registerIdeal(form)
+    graph.components.addVertex(form)
     form
   }
 
@@ -309,6 +295,7 @@ class SpcCosmos
     // FIXME remove synonyms?
     assert(!entities.values.exists(_.form == form))
     ideals.remove(form.name)
+    graph.removeContainer(form)
     forgetIdeal(form)
   }
 
@@ -374,6 +361,7 @@ class SpcCosmos
   private[platonic] def replaceForm(oldForm : SpcForm, newForm : SpcForm)
   {
     assert(oldForm.isTentative)
+    assert(graph.components.degreeOf(oldForm) == 0)
     graph.replaceVertex(graph.formAssocs, oldForm, newForm)
     forgetForm(oldForm)
   }
@@ -631,6 +619,10 @@ class SpcCosmos
         )
       }
     })
+    val componentSet = graph.components.vertexSet.asScala
+    val formSet = getForms.toSet
+    val propertySet = formSet.flatMap(getProperties(_).values).toSet
+    assert((formSet ++ propertySet) == componentSet)
     true
   }
 
@@ -704,18 +696,26 @@ class SpcCosmos
     entity : SpcEntity,
     lemma : String) : Try[(SpcProperty, String)] =
   {
-    resolveFormProperty(entity.form, lemma) match {
+    resolveHypernymProperty(entity.form, lemma) match {
       case Some((property, stateName)) => Success((property, stateName))
       case _ => fail(s"unknown property $lemma")
     }
   }
 
-  def resolveFormProperty(
+  def resolveFormProperty(form : SpcForm, lemma : String)
+      : Option[(SpcProperty, String)] =
+  {
+    val stateName = form.resolveStateSynonym(lemma)
+    getProperties(form).values.find(
+      p => p.states.contains(stateName)).map((_, stateName))
+  }
+
+  def resolveHypernymProperty(
     form : SpcForm,
     lemma : String) : Option[(SpcProperty, String)] =
   {
     graph.getFormHypernyms(form).foreach(hyperForm => {
-      hyperForm.resolveProperty(lemma) match {
+      resolveFormProperty(hyperForm, lemma) match {
         case Some((property, stateName)) => {
           return Some(
             (findProperty(form, property.name).getOrElse(property),
@@ -727,11 +727,22 @@ class SpcCosmos
     None
   }
 
+  def getProperties(form : SpcForm) : Map[String, SpcProperty] =
+  {
+    val seq = graph.components.outgoingEdgesOf(form).asScala.toSeq.map(
+      edge => {
+        val property = graph.getComponent(edge).asInstanceOf[SpcProperty]
+        (property.name, property)
+      }
+    )
+    Map(seq:_*)
+  }
+
   def findProperty(
     form : SpcForm, name : String) : Option[SpcProperty] =
   {
     graph.getFormHypernyms(form).foreach(hyperForm => {
-      hyperForm.properties.get(name) match {
+      getProperties(hyperForm).get(name) match {
         case Some(matchingProperty) => {
           return Some(matchingProperty)
         }
@@ -739,6 +750,20 @@ class SpcCosmos
       }
     })
     None
+  }
+
+  def instantiateProperty(form : SpcForm, name : SilWord) : SpcProperty =
+  {
+    val propertyName = name.lemma
+    getProperties(form).get(propertyName) match {
+      case Some(property) => property
+      case _ => {
+        val property = new SpcProperty(propertyName)
+        graph.components.addVertex(property)
+        graph.components.addEdge(form, property)
+        property
+      }
+    }
   }
 
   def properReference(entity : SpcEntity) =
@@ -795,13 +820,15 @@ class SpcCosmos
       filter(edge => outgoingPropertyEdges.contains(edge.formEdge)).
       foreach(edge => {
         val propertyEntity = graph.getPossesseeEntity(edge)
-        if (propertyEntity.form.properties.values.toSeq.contains(property)) {
+        if (getProperties(propertyEntity.form).
+          values.toSeq.contains(property))
+        {
           return evaluateEntityPropertyPredicate(
             propertyEntity,
             property,
             lemma)
         }
-        resolveFormProperty(propertyEntity.form, lemma) match {
+        resolveHypernymProperty(propertyEntity.form, lemma) match {
           case Some((underlyingProperty, stateName)) => {
             return evaluateEntityPropertyPredicate(
               propertyEntity,

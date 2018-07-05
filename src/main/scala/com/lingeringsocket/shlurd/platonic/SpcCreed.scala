@@ -44,7 +44,7 @@ class SpcCreed(cosmos : SpcCosmos)
 
   def formBeliefs(form : SpcForm) : Iterable[SilSentence] =
   {
-    form.properties.values.map(
+    cosmos.getProperties(form).values.map(
       formPropertyBelief(form, _)
     ) ++
     form.getInflectedStateNormalizations.map(

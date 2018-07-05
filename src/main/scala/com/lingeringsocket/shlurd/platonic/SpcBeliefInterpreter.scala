@@ -819,14 +819,15 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       val form = cosmos.instantiateForm(formName)
       val property = propertyNameOpt match {
         case Some(propertyName) => {
-          form.instantiateProperty(propertyName)
+          cosmos.instantiateProperty(form, propertyName)
         }
         case _ => {
           val properties = newStates.flatMap(
-            w => form.resolveProperty(w.lemma).map(_._1).toSeq)
+            w => cosmos.resolveFormProperty(form, w.lemma).map(_._1).toSeq)
           properties match {
             case Seq() => {
-              form.instantiateProperty(
+              cosmos.instantiateProperty(
+                form,
                 SilWord(formName.lemma + "_" +
                   newStates.map(_.lemma).mkString("_")))
             }
@@ -848,7 +849,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         }
         case _ => {
           val hyperProperties = newStates.flatMap(
-            w => cosmos.resolveFormProperty(form, w.lemma).
+            w => cosmos.resolveHypernymProperty(form, w.lemma).
               map(_._1).toSeq)
           hyperProperties match {
             case Seq() => property

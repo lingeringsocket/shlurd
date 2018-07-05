@@ -56,9 +56,9 @@ class SpcCosmosSpec extends Specification
     protected def expectSingleProperty(form : SpcForm)
         : SpcProperty =
     {
-      val properties = form.getProperties
+      val properties = cosmos.getProperties(form)
       properties.size must be equalTo 1
-      form.getProperties.head._2
+      properties.head._2
     }
 
     protected def expectPerson(name : String) : SpcEntity =
