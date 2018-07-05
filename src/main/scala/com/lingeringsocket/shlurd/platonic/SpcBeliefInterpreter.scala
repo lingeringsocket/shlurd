@@ -728,7 +728,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         graph.getFormsForRole(role).foreach(form =>
           cosmos.addIdealTaxonomy(possessee.form, form))
       }
-      if (!graph.isCompatible(possessee.form, role)) {
+      if (!graph.isFormCompatibleWithRole(possessee.form, role)) {
         val creed = new SpcCreed(cosmos)
         val originalBelief = conjunctiveBelief(
           creed.roleTaxonomyBeliefs(role).toSeq)
@@ -737,13 +737,33 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           originalBelief)
       }
       val candidates =
-        Seq(possessor.form) ++ graph.getRolesForForm(possessor.form)
+        Seq(possessor.form) ++ graph.getRolesForForm(possessor.form) ++ {
+          if (possessor.form.isTentative) {
+            graph.formAssocs.incomingEdgesOf(role).asScala.
+              toSeq.map(graph.getPossessorIdeal)
+          } else {
+            Seq.empty
+          }
+        }
       val formAssocEdge = candidates.flatMap(hyponym =>
         graph.getFormAssocEdge(hyponym, role)).headOption match
       {
         case Some(formEdge) => formEdge
         case _ => {
           cosmos.addFormAssoc(possessor.form, role)
+        }
+      }
+      val possessorIdeal = graph.getPossessorIdeal(formAssocEdge)
+      if (!graph.isFormCompatibleWithIdeal(possessor.form, possessorIdeal)) {
+        assert(possessor.form.isTentative)
+        possessorIdeal match {
+          case possessorForm : SpcForm => {
+            cosmos.addIdealTaxonomy(possessor.form, possessorForm)
+          }
+          case possessorRole : SpcRole => {
+            graph.getFormsForRole(possessorRole).foreach(possessorForm =>
+              cosmos.addIdealTaxonomy(possessor.form, possessorForm))
+          }
         }
       }
       // FIXME it may not be correct to assume same identity in the case

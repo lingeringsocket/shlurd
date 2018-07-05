@@ -525,7 +525,7 @@ class SpcCosmos
     possessee : SpcEntity,
     role : SpcRole) : SpcEntityAssocEdge =
   {
-    assert(graph.isCompatible(possessee.form, role))
+    assert(graph.isFormCompatibleWithRole(possessee.form, role))
     graph.getFormAssocEdge(possessor.form, role) match {
       case Some(formAssocEdge) => {
         val edge = addEntityAssocEdge(
@@ -643,7 +643,8 @@ class SpcCosmos
       asScala.toSeq.filter(
         edge => {
           graph.isHyponym(role, graph.getPossesseeRole(edge.formEdge)) &&
-            graph.isCompatible(graph.getPossesseeEntity(edge).form, role)
+            graph.isFormCompatibleWithRole(
+              graph.getPossesseeEntity(edge).form, role)
         }
       ).map(
         graph.getPossesseeEntity))
@@ -674,7 +675,7 @@ class SpcCosmos
       case Some(role) => {
         Success(ShlurdParseUtils.orderedSet(
           entities.values.filter(entity =>
-            graph.isCompatible(entity.form, role) &&
+            graph.isFormCompatibleWithRole(entity.form, role) &&
               hasQualifiers(entity, entity.form, qualifiers, false))))
       }
       case _ => {
@@ -847,7 +848,7 @@ class SpcCosmos
     roleOpt match {
       case Some(role) => {
         Success(Trilean(
-          graph.isCompatible(entity.form, role) &&
+          graph.isFormCompatibleWithRole(entity.form, role) &&
             getEntityAssocGraph.incomingEdgesOf(entity).asScala.
             exists(edge =>
               graph.isHyponym(

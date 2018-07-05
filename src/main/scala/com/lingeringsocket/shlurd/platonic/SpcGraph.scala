@@ -175,13 +175,26 @@ class SpcGraph(
   {
     getIdealHyponyms(form).toSeq.filter(_.isRole).
       map(_.asInstanceOf[SpcRole]).filter(
-        role => isCompatible(form, role))
+        role => isFormCompatibleWithRole(form, role))
   }
 
-  def isCompatible(form : SpcForm, role : SpcRole) : Boolean =
+  def isFormCompatibleWithRole(form : SpcForm, role : SpcRole) : Boolean =
   {
     getIdealHypernyms(role).filter(_.isForm).forall(hypernym =>
       isHyponym(form, hypernym))
+  }
+
+  def isFormCompatibleWithIdeal(
+    form : SpcForm, possessorIdeal : SpcIdeal) : Boolean =
+  {
+    possessorIdeal match {
+      case possessorForm : SpcForm => {
+        isHyponym(form, possessorForm)
+      }
+      case role : SpcRole => {
+        isFormCompatibleWithRole(form, role)
+      }
+    }
   }
 
   def specializeRoleForForm(
@@ -252,16 +265,9 @@ class SpcGraph(
       val possessorIdeal = getPossessorIdeal(formEdge)
       val possessorEntity = getPossessorEntity(entityEdge)
       val possesseeEntity = getPossesseeEntity(entityEdge)
-      possessorIdeal match {
-        case form : SpcForm => {
-          assert(isHyponym(possessorEntity.form, form))
-        }
-        case role : SpcRole => {
-          assert(isCompatible(possessorEntity.form, role))
-        }
-      }
+      assert(isFormCompatibleWithIdeal(possessorEntity.form, possessorIdeal))
       val role = getPossesseeRole(formEdge)
-      assert(isCompatible(possesseeEntity.form, role),
+      assert(isFormCompatibleWithRole(possesseeEntity.form, role),
         (possesseeEntity.form, role).toString)
     })
     val taxonomyCountBeforeReduction = idealTaxonomy.edgeSet.size

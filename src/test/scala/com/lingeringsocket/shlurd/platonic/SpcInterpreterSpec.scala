@@ -857,19 +857,16 @@ class SpcInterpreterSpec extends Specification
 
     "support roles with multiple forms" in new InterpreterContext(true)
     {
-      skipped("maybe one day")
-
+      interpret("a man is a kind of person", "OK.")
+      interpret("a gentleman is a kind of man", "OK.")
       interpret("a footman must be a man", "OK.")
       interpret("a footman must be a plebeian", "OK.")
-      interpret("a punter is a kind of man", "OK.")
-      interpret("a punter is a kind of plebeian", "OK.")
       interpret("a gentleman with a footman is a lord", "OK.")
-      interpret("Peter is a gentleman", "OK.")
-      interpret("Bunter is a punter", "OK.")
       interpret("Bunter is Peter's footman", "OK.")
       interpretTerse("is Bunter a footman", "Yes.")
       interpretTerse("is Bunter a man", "Yes.")
       interpretTerse("is Bunter a plebeian", "Yes.")
+      interpretTerse("is Peter a gentleman", "Yes.")
       interpretTerse("who is Peter's footman", "Bunter.")
       interpretTerse("who is Bunter's lord", "Peter.")
 
