@@ -862,16 +862,19 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       }
       if (baselineProperty.isClosed) {
         if (!newStates.map(_.lemma).toSet.subsetOf(
-          baselineProperty.getStates.keySet))
+          cosmos.getPropertyStateMap(baselineProperty).keySet))
         {
           throw new ContradictoryBeliefExcn(
             sentence,
             creed.formPropertyBelief(form, baselineProperty))
         }
       }
-      newStates.foreach(property.instantiateState(_))
+      val existingStates = cosmos.getPropertyStateMap(property)
+      val statesToAdd = newStates.filterNot(
+        word => existingStates.contains(word.lemma))
+      statesToAdd.foreach(cosmos.instantiatePropertyState(property, _))
       if (isClosed || baselineProperty.isClosed) {
-        property.closeStates
+        cosmos.closePropertyStates(property)
       }
     }
   }

@@ -67,6 +67,9 @@ trait ShlurdCosmos[E<:ShlurdEntity, P<:ShlurdProperty]
   def qualifierSet(qualifiers : Seq[SilWord]) =
     ShlurdParseUtils.orderedSet(qualifiers.map(_.lemma))
 
+  // lemma -> inflected
+  def getPropertyStateMap(property : P) : Map[String, String]
+
   def normalizeState(entity : E, state : SilState) : SilState = state
 
   def reifyRole(possessor : E, roleName : String, onlyIfProven : Boolean)

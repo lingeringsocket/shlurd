@@ -226,7 +226,7 @@ class SpcGraph(
   def render() : String =
   {
     render(idealTaxonomy) + "\n" + render(formAssocs) + "\n" +
-      render(entityAssocs)
+      render(components) + "\n" + render(entityAssocs)
   }
 
   def render[V, E](graph : Graph[V, E]) : String =
@@ -265,6 +265,12 @@ class SpcGraph(
     components.removeAllVertices(reachable.asJava)
   }
 
+  def addComponent(container : SpcVertex, component : SpcVertex)
+  {
+    components.addVertex(component)
+    components.addEdge(container, component)
+  }
+
   def sanityCheck() : Boolean =
   {
     idealTaxonomy.edgeSet.asScala.foreach(taxonomyEdge => {
@@ -293,8 +299,18 @@ class SpcGraph(
         (possesseeEntity.form, role).toString)
     })
     components.edgeSet.asScala.foreach(componentEdge => {
-      assert(getContainer(componentEdge).isInstanceOf[SpcForm])
-      assert(getComponent(componentEdge).isInstanceOf[SpcProperty])
+      val container = getContainer(componentEdge)
+      val component = getComponent(componentEdge)
+      assert(components.inDegreeOf(component) == 1)
+      val pair = (container, component)
+      pair match {
+        case (form : SpcForm, property : SpcProperty) => {
+          assert(components.inDegreeOf(form) == 0)
+        }
+        case (property : SpcProperty, state : SpcPropertyState) => {
+        }
+        case unexpected => assert(false, unexpected)
+      }
     })
     val taxonomyCountBeforeReduction = idealTaxonomy.edgeSet.size
     TransitiveReduction.INSTANCE.reduce(idealTaxonomy)

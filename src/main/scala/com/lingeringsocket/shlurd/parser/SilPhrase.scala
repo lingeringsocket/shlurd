@@ -23,8 +23,6 @@ trait ShlurdEntity
 
 trait ShlurdProperty
 {
-  // lemma -> inflected
-  def getStates() : Map[String, String]
 }
 
 sealed trait SilPhrase

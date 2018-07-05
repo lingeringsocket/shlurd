@@ -44,7 +44,7 @@ class SpcCreed(cosmos : SpcCosmos)
 
   def formBeliefs(form : SpcForm) : Iterable[SilSentence] =
   {
-    cosmos.getProperties(form).values.map(
+    cosmos.getPropertyMap(form).values.map(
       formPropertyBelief(form, _)
     ) ++
     form.getInflectedStateNormalizations.map(
@@ -149,13 +149,16 @@ class SpcCreed(cosmos : SpcCosmos)
     SilPredicateSentence(
       SilStatePredicate(
         noun,
-        if (property.states.size == 1) {
-          propertyState(property.states.head)
-        } else {
-          SilConjunctiveState(
-            DETERMINER_ANY,
-            property.states.map(propertyState).toSeq,
-            SEPARATOR_CONJOINED)
+        {
+          val propertyStates = cosmos.getPropertyStateMap(property)
+          if (propertyStates.size == 1) {
+            propertyState(propertyStates.head)
+          } else {
+            SilConjunctiveState(
+              DETERMINER_ANY,
+              propertyStates.map(propertyState).toSeq,
+              SEPARATOR_CONJOINED)
+          }
         }
       ),
       SilIndicativeMood(

@@ -490,12 +490,6 @@ class ShlurdInterpreterSpec extends Specification
   object ZooVisitor extends ZooPersonEntity("Malcolm")
 
   object ZooAnimalSleepinessProperty extends ShlurdProperty
-  {
-    override def getStates : Map[String, String] = Map(
-      "awake" -> "awake",
-      "asleep" -> "sleepify"
-    )
-  }
 
   sealed case class ZooAnimalSleepiness(name : String) extends NamedObject
   object ZooAnimalAwake extends ZooAnimalSleepiness("awake")
@@ -594,6 +588,19 @@ class ShlurdInterpreterSpec extends Specification
           }
         }
         case _ => fail("I don't know about this entity: " + entity)
+      }
+    }
+
+    override def getPropertyStateMap(property : ShlurdProperty) =
+    {
+      property match {
+        case ZooAnimalSleepinessProperty => {
+          Map(
+            "awake" -> "awake",
+            "asleep" -> "sleepify"
+          )
+        }
+        case _ => Map.empty
       }
     }
 

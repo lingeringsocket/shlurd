@@ -32,28 +32,14 @@ trait SpcVertex
 {
 }
 
-class SpcProperty(val name : String)
+class SpcPropertyState(val lemma : String, val inflected : String)
+    extends SpcVertex
+{
+}
+
+class SpcProperty(val name : String, val isClosed : Boolean)
     extends ShlurdProperty with ShlurdNamedObject with SpcVertex
 {
-  private[platonic] val states =
-    new mutable.LinkedHashMap[String, String]
-
-  private var closed : Boolean = false
-
-  override def getStates : Map[String, String] = states
-
-  def isClosed = closed
-
-  private[platonic] def closeStates()
-  {
-    closed = true
-  }
-
-  def instantiateState(word : SilWord)
-  {
-    states.put(word.lemma, word.inflected)
-  }
-
   def isSynthetic = name.contains('_')
 
   override def toString = s"SpcProperty($name)"
@@ -603,6 +589,13 @@ class SpcCosmos
         formAssocs.outgoingEdgesOf(ideal).
         asScala.map(_.getRoleName).toSet.size),
         ideal.toString)
+      ideal match {
+        case form : SpcForm => {
+          assert(getPropertyMap(form).size ==
+            graph.components.outDegreeOf(form))
+        }
+        case _ =>
+      }
     })
     formAssocs.edgeSet.asScala.foreach(formEdge => {
       val constraint = assocConstraints(formEdge)
@@ -621,8 +614,14 @@ class SpcCosmos
     })
     val componentSet = graph.components.vertexSet.asScala
     val formSet = getForms.toSet
-    val propertySet = formSet.flatMap(getProperties(_).values).toSet
-    assert((formSet ++ propertySet) == componentSet)
+    val propertySet = formSet.flatMap(getPropertyMap(_).values).toSet
+    val propertyStateSet =
+      propertySet.flatMap(getPropertyStates(_)).toSet
+    assert((formSet ++ propertySet ++ propertyStateSet) == componentSet)
+    propertySet.foreach(property => {
+      assert(getPropertyStateMap(property).keySet.size ==
+        graph.components.outDegreeOf(property))
+    })
     true
   }
 
@@ -706,8 +705,8 @@ class SpcCosmos
       : Option[(SpcProperty, String)] =
   {
     val stateName = form.resolveStateSynonym(lemma)
-    getProperties(form).values.find(
-      p => p.states.contains(stateName)).map((_, stateName))
+    getPropertyMap(form).values.find(
+      p => getPropertyStateMap(p).contains(stateName)).map((_, stateName))
   }
 
   def resolveHypernymProperty(
@@ -727,7 +726,7 @@ class SpcCosmos
     None
   }
 
-  def getProperties(form : SpcForm) : Map[String, SpcProperty] =
+  def getPropertyMap(form : SpcForm) : Map[String, SpcProperty] =
   {
     val seq = graph.components.outgoingEdgesOf(form).asScala.toSeq.map(
       edge => {
@@ -738,11 +737,24 @@ class SpcCosmos
     Map(seq:_*)
   }
 
+  def getPropertyStates(property : SpcProperty) : Seq[SpcPropertyState] =
+  {
+    graph.components.outgoingEdgesOf(property).asScala.toSeq.map(
+      edge => graph.getComponent(edge).asInstanceOf[SpcPropertyState]
+    )
+  }
+
+  override def getPropertyStateMap(property : SpcProperty) =
+  {
+    val seq = getPropertyStates(property).map(ps => (ps.lemma, ps.inflected))
+    Map(seq:_*)
+  }
+
   def findProperty(
     form : SpcForm, name : String) : Option[SpcProperty] =
   {
     graph.getFormHypernyms(form).foreach(hyperForm => {
-      getProperties(hyperForm).get(name) match {
+      getPropertyMap(hyperForm).get(name) match {
         case Some(matchingProperty) => {
           return Some(matchingProperty)
         }
@@ -755,15 +767,32 @@ class SpcCosmos
   def instantiateProperty(form : SpcForm, name : SilWord) : SpcProperty =
   {
     val propertyName = name.lemma
-    getProperties(form).get(propertyName) match {
+    getPropertyMap(form).get(propertyName) match {
       case Some(property) => property
       case _ => {
-        val property = new SpcProperty(propertyName)
-        graph.components.addVertex(property)
-        graph.components.addEdge(form, property)
+        val property = new SpcProperty(propertyName, false)
+        graph.addComponent(form, property)
         property
       }
     }
+  }
+
+  def closePropertyStates(property : SpcProperty)
+  {
+    if (!property.isClosed) {
+      val closedProperty = new SpcProperty(property.name, true)
+      graph.components.addVertex(closedProperty)
+      graph.replaceVertex(graph.components, property, closedProperty)
+      assert(graph.components.degreeOf(property) == 0)
+      graph.components.removeVertex(property)
+    }
+  }
+
+  def instantiatePropertyState(
+    property : SpcProperty, word : SilWord)
+  {
+    val propertyState = new SpcPropertyState(word.lemma, word.inflected)
+    graph.addComponent(property, propertyState)
   }
 
   def properReference(entity : SpcEntity) =
@@ -804,10 +833,11 @@ class SpcCosmos
     lemma : String) : Try[Trilean] =
   {
     if (property.isClosed) {
-      if (property.getStates.size == 1) {
-        return Success(Trilean(lemma == property.getStates.keySet.head))
+      val propertyStates = getPropertyStateMap(property)
+      if (propertyStates.size == 1) {
+        return Success(Trilean(lemma == propertyStates.keySet.head))
       }
-      if (!property.getStates.contains(lemma)) {
+      if (!propertyStates.contains(lemma)) {
         return Success(Trilean.False)
       }
     }
@@ -820,7 +850,7 @@ class SpcCosmos
       filter(edge => outgoingPropertyEdges.contains(edge.formEdge)).
       foreach(edge => {
         val propertyEntity = graph.getPossesseeEntity(edge)
-        if (getProperties(propertyEntity.form).
+        if (getPropertyMap(propertyEntity.form).
           values.toSeq.contains(property))
         {
           return evaluateEntityPropertyPredicate(
