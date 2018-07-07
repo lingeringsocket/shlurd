@@ -567,7 +567,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       sentence, formName, state1, state2
     ) => {
       val form = cosmos.instantiateForm(formName)
-      form.addStateNormalization(state1, state2)
+      cosmos.addStateNormalization(form, state1, state2)
     }
   }
 

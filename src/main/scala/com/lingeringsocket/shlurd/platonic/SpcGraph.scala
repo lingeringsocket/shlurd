@@ -305,7 +305,8 @@ class SpcGraph(
       val pair = (container, component)
       pair match {
         case (form : SpcForm, property : SpcProperty) => {
-          assert(components.inDegreeOf(form) == 0)
+        }
+        case (form : SpcForm, normalization : SpcStateNormalization) => {
         }
         case (property : SpcProperty, state : SpcPropertyState) => {
         }

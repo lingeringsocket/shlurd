@@ -47,7 +47,7 @@ class SpcCreed(cosmos : SpcCosmos)
     cosmos.getPropertyMap(form).values.map(
       formPropertyBelief(form, _)
     ) ++
-    form.getInflectedStateNormalizations.map(
+    cosmos.getInflectedStateNormalizations(form).map(
       formStateNormalizationBelief(form, _)
     ) ++ {
       cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.map(

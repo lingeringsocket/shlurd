@@ -53,6 +53,14 @@ sealed abstract class SpcIdeal(val name : String)
   def isForm : Boolean = false
 }
 
+class SpcStateNormalization(
+  val original : SilState,
+  val normalized : SilState,
+  val inflected : Boolean)
+    extends SpcVertex
+{
+}
+
 object SpcForm
 {
   private val TENTATIVE_SUFFIX = "_form"
@@ -65,47 +73,13 @@ class SpcForm(name : String)
 {
   import SpcForm._
 
-  private val inflectedStateNormalizations =
+  private[platonic] val inflectedStateNormalizations =
     new mutable.LinkedHashMap[SilState, SilState]
 
-  private val stateNormalizations =
+  private[platonic] val stateNormalizations =
     new mutable.LinkedHashMap[SilState, SilState]
 
   def isTentative = name.endsWith(TENTATIVE_SUFFIX)
-
-  def resolveStateSynonym(lemma : String) : String =
-  {
-    normalizeState(SilPropertyState(SilWord(lemma))) match {
-      case SilPropertyState(word) => word.lemma
-      case _ => lemma
-    }
-  }
-
-  private[platonic] def addStateNormalization(
-    state : SilState, transformed : SilState)
-  {
-    val normalized = normalizeState(transformed)
-    inflectedStateNormalizations.put(state, normalized)
-    stateNormalizations.put(foldState(state), normalized)
-  }
-
-  def normalizeState(state : SilState) : SilState =
-  {
-    inflectedStateNormalizations.get(state).getOrElse(
-      stateNormalizations.get(foldState(state)).getOrElse(state))
-  }
-
-  private def foldState(state : SilState) : SilState =
-  {
-    // FIXME:  should fold compound states as well
-    state match {
-      case SilPropertyState(word) =>
-        SilPropertyState(SilWord(word.lemma))
-      case _ => state
-    }
-  }
-
-  def getInflectedStateNormalizations = inflectedStateNormalizations.toIterable
 
   override def isForm = true
 
@@ -591,6 +565,7 @@ class SpcCosmos
         ideal.toString)
       ideal match {
         case form : SpcForm => {
+          assert(graph.components.inDegreeOf(form) == 0)
           assert(getPropertyMap(form).size ==
             graph.components.outDegreeOf(form))
         }
@@ -704,7 +679,7 @@ class SpcCosmos
   def resolveFormProperty(form : SpcForm, lemma : String)
       : Option[(SpcProperty, String)] =
   {
-    val stateName = form.resolveStateSynonym(lemma)
+    val stateName = resolveStateSynonym(form, lemma)
     getPropertyMap(form).values.find(
       p => getPropertyStateMap(p).contains(stateName)).map((_, stateName))
   }
@@ -933,12 +908,47 @@ class SpcCosmos
     }
   }
 
+  def resolveStateSynonym(form : SpcForm, lemma : String) : String =
+  {
+    normalizeState(form, SilPropertyState(SilWord(lemma))) match {
+      case SilPropertyState(word) => word.lemma
+      case _ => lemma
+    }
+  }
+
+  private[platonic] def addStateNormalization(
+    form : SpcForm, state : SilState, transformed : SilState)
+  {
+    val normalized = normalizeState(form, transformed)
+    form.inflectedStateNormalizations.put(state, normalized)
+    form.stateNormalizations.put(foldState(state), normalized)
+  }
+
+  def normalizeState(form : SpcForm, state : SilState) : SilState =
+  {
+    form.inflectedStateNormalizations.get(state).getOrElse(
+      form.stateNormalizations.get(foldState(state)).getOrElse(state))
+  }
+
+  private def foldState(state : SilState) : SilState =
+  {
+    // FIXME:  should fold compound states as well
+    state match {
+      case SilPropertyState(word) =>
+        SilPropertyState(SilWord(word.lemma))
+      case _ => state
+    }
+  }
+
+  def getInflectedStateNormalizations(form : SpcForm) =
+    form.inflectedStateNormalizations.toIterable
+
   override def normalizeState(
     entity : SpcEntity, originalState : SilState) =
   {
     graph.getFormHypernyms(entity.form).foldLeft(originalState) {
       case (state, form) => {
-        form.normalizeState(state)
+        normalizeState(form, state)
       }
     }
   }
