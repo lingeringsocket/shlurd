@@ -56,7 +56,7 @@ sealed abstract class SpcIdeal(val name : String)
 class SpcStateNormalization(
   val original : SilState,
   val normalized : SilState,
-  val inflected : Boolean)
+  val isInflected : Boolean)
     extends SpcVertex
 {
 }
@@ -72,12 +72,6 @@ class SpcForm(name : String)
     extends SpcIdeal(name)
 {
   import SpcForm._
-
-  private[platonic] val inflectedStateNormalizations =
-    new mutable.LinkedHashMap[SilState, SilState]
-
-  private[platonic] val stateNormalizations =
-    new mutable.LinkedHashMap[SilState, SilState]
 
   def isTentative = name.endsWith(TENTATIVE_SUFFIX)
 
@@ -566,8 +560,10 @@ class SpcCosmos
       ideal match {
         case form : SpcForm => {
           assert(graph.components.inDegreeOf(form) == 0)
-          assert(getPropertyMap(form).size ==
-            graph.components.outDegreeOf(form))
+          assert(
+            getPropertyMap(form).size +
+              getStateNormalizationMap(form).size ==
+              graph.components.outDegreeOf(form))
         }
         case _ =>
       }
@@ -592,7 +588,11 @@ class SpcCosmos
     val propertySet = formSet.flatMap(getPropertyMap(_).values).toSet
     val propertyStateSet =
       propertySet.flatMap(getPropertyStateObjMap(_).values).toSet
-    assert((formSet ++ propertySet ++ propertyStateSet) == componentSet)
+    val stateNormalizationSet =
+      formSet.flatMap(getStateNormalizationMap(_).values).toSet
+    assert(
+      (formSet ++ propertySet ++ propertyStateSet ++ stateNormalizationSet)
+      == componentSet)
     propertySet.foreach(property => {
       assert(getPropertyStateMap(property).keySet.size ==
         graph.components.outDegreeOf(property))
@@ -737,6 +737,7 @@ class SpcCosmos
       case Some(property) => property
       case _ => {
         val property = new SpcProperty(propertyName, false)
+        assert(!getPropertyMap(form).contains(property.name))
         graph.addComponent(form, property)
         property
       }
@@ -758,6 +759,7 @@ class SpcCosmos
     property : SpcProperty, word : SilWord)
   {
     val propertyState = new SpcPropertyState(word.lemma, word.inflected)
+    assert(!getPropertyStateMap(property).contains(propertyState.lemma))
     graph.addComponent(property, propertyState)
   }
 
@@ -907,18 +909,37 @@ class SpcCosmos
     }
   }
 
+  private def getStateNormalizationMap(form : SpcForm)
+      : Map[SilState, SpcStateNormalization] =
+  {
+    graph.stateNormalizationIndex.accessComponentMap(form)
+  }
+
   private[platonic] def addStateNormalization(
     form : SpcForm, state : SilState, transformed : SilState)
   {
     val normalized = normalizeState(form, transformed)
-    form.inflectedStateNormalizations.put(state, normalized)
-    form.stateNormalizations.put(foldState(state), normalized)
+    val map = getStateNormalizationMap(form)
+    val inflected =
+      new SpcStateNormalization(state, normalized, true)
+    val uninflected =
+      new SpcStateNormalization(foldState(state), normalized, false)
+    if (!map.contains(inflected.original)) {
+      graph.addComponent(form, inflected)
+    }
+    if ((uninflected.original != inflected.original) &&
+      !map.contains(uninflected.original))
+    {
+      graph.addComponent(form, uninflected)
+    }
   }
 
   def normalizeState(form : SpcForm, state : SilState) : SilState =
   {
-    form.inflectedStateNormalizations.get(state).getOrElse(
-      form.stateNormalizations.get(foldState(state)).getOrElse(state))
+    val map = getStateNormalizationMap(form)
+    map.get(state).map(_.normalized).getOrElse(
+        map.get(foldState(state)).map(_.normalized).getOrElse(
+          state))
   }
 
   private def foldState(state : SilState) : SilState =
@@ -932,7 +953,10 @@ class SpcCosmos
   }
 
   def getInflectedStateNormalizations(form : SpcForm) =
-    form.inflectedStateNormalizations.toIterable
+  {
+    getStateNormalizationMap(form).values.filter(_.isInflected).map(
+      sn => (sn.original, sn.normalized))
+  }
 
   override def normalizeState(
     entity : SpcEntity, originalState : SilState) =

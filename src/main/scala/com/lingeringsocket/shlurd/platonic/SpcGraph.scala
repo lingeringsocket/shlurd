@@ -29,6 +29,8 @@ import scala.collection.JavaConverters._
 
 import GmlExporter.Parameter._
 
+import com.lingeringsocket.shlurd.parser._
+
 object SpcGraph
 {
   def apply() =
@@ -45,12 +47,26 @@ object SpcGraph
     val components = new DefaultListenableGraph(
       new DirectedAcyclicGraph[SpcVertex, SpcComponentEdge](
         classOf[SpcComponentEdge]))
-    val propertyIndex = new SpcComponentIndex(
-      components, (property : SpcProperty) => property.name)
-    val propertyStateIndex = new SpcComponentIndex(
-      components, (ps : SpcPropertyState) => ps.lemma)
+    val propertyIndex =
+      new SpcComponentIndex[String, SpcProperty](
+        components, _ match {
+          case property : SpcProperty => Some(property.name)
+          case _ => None
+        })
+    val propertyStateIndex =
+      new SpcComponentIndex[String, SpcPropertyState](
+        components, _ match {
+          case ps : SpcPropertyState => Some(ps.lemma)
+          case _ => None
+        })
+    val stateNormalizationIndex =
+      new SpcComponentIndex[SilState, SpcStateNormalization](
+        components, _ match {
+          case sn : SpcStateNormalization => Some(sn.original)
+          case _ => None
+        })
     new SpcGraph(idealTaxonomy, formAssocs, entityAssocs, components,
-      propertyIndex, propertyStateIndex)
+      propertyIndex, propertyStateIndex, stateNormalizationIndex)
   }
 }
 
@@ -88,7 +104,9 @@ class SpcGraph(
   val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge],
   val components : Graph[SpcVertex, SpcComponentEdge],
   val propertyIndex : SpcComponentIndex[String, SpcProperty],
-  val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState]
+  val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState],
+  val stateNormalizationIndex :
+      SpcComponentIndex[SilState, SpcStateNormalization]
 )
 {
   def asUnmodifiable() =
@@ -99,7 +117,8 @@ class SpcGraph(
       new AsUnmodifiableGraph(entityAssocs),
       new AsUnmodifiableGraph(components),
       propertyIndex,
-      propertyStateIndex
+      propertyStateIndex,
+      stateNormalizationIndex
     )
   }
 

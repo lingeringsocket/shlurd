@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 
 class SpcComponentIndex[KeyType, ComponentType](
   graph : ListenableGraph[SpcVertex, SpcComponentEdge],
-  keyFunc : (ComponentType) => KeyType)
+  keyExtractor : (SpcVertex) => Option[KeyType])
     extends GraphListener[SpcVertex, SpcComponentEdge]
 {
   private val map =
@@ -44,10 +44,12 @@ class SpcComponentIndex[KeyType, ComponentType](
   private def buildComponentMap(container : SpcVertex)
       : Map[KeyType, ComponentType] =
   {
-    val seq = graph.outgoingEdgesOf(container).asScala.toSeq.map(
+    val seq = graph.outgoingEdgesOf(container).asScala.toSeq.flatMap(
       edge => {
-        val component = graph.getEdgeTarget(edge).asInstanceOf[ComponentType]
-        (keyFunc(component), component)
+        val component = graph.getEdgeTarget(edge)
+        keyExtractor(component).map(key => {
+          (key, component.asInstanceOf[ComponentType])
+        })
       }
     )
     Map(seq:_*)
