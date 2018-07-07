@@ -24,8 +24,8 @@ class SpcCreed(cosmos : SpcCosmos)
 {
   def allBeliefs() : Iterable[SilSentence] =
   {
-    cosmos.getIdealSynonyms.getAll.filterNot(
-      SpcPrimordial.isPrimordialSynonym
+    cosmos.getIdealSynonyms.filterNot(
+      pair => SpcPrimordial.isPrimordialSynonym(pair) || isTrivialSynonym(pair)
     ).map(
       formAliasBelief
     ) ++ (
@@ -266,6 +266,12 @@ class SpcCreed(cosmos : SpcCosmos)
   {
     cosmos.getGraph.getHypernymIdeal(edge).name.equals(
       cosmos.getGraph.getHyponymIdeal(edge).name)
+  }
+
+  private def isTrivialSynonym(
+    pair : (String, String)) =
+  {
+    pair._1 == pair._2
   }
 
   def inverseAssocBelief(

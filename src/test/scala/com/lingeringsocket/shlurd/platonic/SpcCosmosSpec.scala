@@ -369,12 +369,11 @@ class SpcCosmosSpec extends Specification
 
     "accept synonyms" in new CosmosContext
     {
-      val synonyms = cosmos.getIdealSynonyms
       addBelief("there is a front door")
-      synonyms.addSynonym("portal", "door")
-      synonyms.resolveSynonym("door") must be equalTo "door"
-      synonyms.resolveSynonym("portal") must be equalTo "door"
-      synonyms.resolveSynonym("gateway") must be equalTo "gateway"
+      addBelief("a portal is a door")
+      cosmos.resolveSynonym("door") must be equalTo "door"
+      cosmos.resolveSynonym("portal") must be equalTo "door"
+      cosmos.resolveSynonym("gateway") must be equalTo "gateway"
       val frontDoor = cosmos.resolveQualifiedNoun(
         "portal", REF_SUBJECT, Set("front"))
       frontDoor must beSuccessfulTry.which(_.size == 1)
@@ -526,9 +525,9 @@ class SpcCosmosSpec extends Specification
       genderValues.size must be equalTo 2
       genderValues must contain(LEMMA_MASCULINE -> LEMMA_MASCULINE)
       genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
-      cosmos.getIdealSynonyms.resolveSynonym(LEMMA_WHO) must
+      cosmos.resolveSynonym(LEMMA_WHO) must
         be equalTo LEMMA_PERSON
-      cosmos.getIdealSynonyms.resolveSynonym(LEMMA_ACTUALITY) must
+      cosmos.resolveSynonym(LEMMA_ACTUALITY) must
         be equalTo LEMMA_ENTITY
       val graph = cosmos.getGraph
       graph.getFormHypernyms(entity).toSeq must be equalTo(

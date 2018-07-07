@@ -35,6 +35,9 @@ object SpcGraph
 {
   def apply() =
   {
+    val idealSynonyms =
+      new DirectedAcyclicGraph[SpcNym, SpcSynonymEdge](
+        classOf[SpcSynonymEdge])
     val idealTaxonomy =
       new DirectedAcyclicGraph[SpcIdeal, SpcTaxonomyEdge](
         classOf[SpcTaxonomyEdge])
@@ -65,7 +68,8 @@ object SpcGraph
           case sn : SpcStateNormalization => Some(sn.original)
           case _ => None
         })
-    new SpcGraph(idealTaxonomy, formAssocs, entityAssocs, components,
+    new SpcGraph(
+      idealSynonyms, idealTaxonomy, formAssocs, entityAssocs, components,
       propertyIndex, propertyStateIndex, stateNormalizationIndex)
   }
 }
@@ -86,6 +90,10 @@ class SpcTaxonomyEdge extends DefaultEdge
 {
 }
 
+class SpcSynonymEdge extends DefaultEdge
+{
+}
+
 class SpcEntityAssocEdge(
   val formEdge : SpcFormAssocEdge) extends DefaultEdge
 {
@@ -99,6 +107,7 @@ class SpcComponentEdge extends DefaultEdge
 }
 
 class SpcGraph(
+  val idealSynonyms : Graph[SpcNym, SpcSynonymEdge],
   val idealTaxonomy : Graph[SpcIdeal, SpcTaxonomyEdge],
   val formAssocs : Graph[SpcIdeal, SpcFormAssocEdge],
   val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge],
@@ -112,6 +121,7 @@ class SpcGraph(
   def asUnmodifiable() =
   {
     new SpcGraph(
+      new AsUnmodifiableGraph(idealSynonyms),
       new AsUnmodifiableGraph(idealTaxonomy),
       new AsUnmodifiableGraph(formAssocs),
       new AsUnmodifiableGraph(entityAssocs),
@@ -254,8 +264,11 @@ class SpcGraph(
 
   def render() : String =
   {
-    render(idealTaxonomy) + "\n" + render(formAssocs) + "\n" +
-      render(components) + "\n" + render(entityAssocs)
+    render(idealSynonyms) + "\n" +
+    render(idealTaxonomy) + "\n" +
+    render(formAssocs) + "\n" +
+    render(components) + "\n" +
+    render(entityAssocs)
   }
 
   def render[V, E](graph : Graph[V, E]) : String =
@@ -302,6 +315,15 @@ class SpcGraph(
 
   def sanityCheck() : Boolean =
   {
+    idealSynonyms.edgeSet.asScala.foreach(synonymEdge => {
+      val synonym = idealSynonyms.getEdgeSource(synonymEdge)
+      val ideal = idealSynonyms.getEdgeTarget(synonymEdge)
+      assert(synonym.isInstanceOf[SpcSynonym])
+      assert(ideal.isInstanceOf[SpcIdeal])
+      assert(idealSynonyms.inDegreeOf(synonym) == 0)
+      assert(idealSynonyms.outDegreeOf(synonym) == 1)
+      assert(idealSynonyms.outDegreeOf(ideal) == 0)
+    })
     idealTaxonomy.edgeSet.asScala.foreach(taxonomyEdge => {
       val hyponym = getHyponymIdeal(taxonomyEdge)
       val hypernym = getHypernymIdeal(taxonomyEdge)

@@ -24,6 +24,7 @@ import scala.util._
 import scala.collection._
 import scala.collection.JavaConverters._
 
+import org.jgrapht._
 import org.jgrapht.util._
 
 import ShlurdEnglishLemmas._
@@ -45,12 +46,30 @@ class SpcProperty(val name : String, val isClosed : Boolean)
   override def toString = s"SpcProperty($name)"
 }
 
-sealed abstract class SpcIdeal(val name : String)
-    extends ShlurdNamedObject with SpcVertex
+sealed trait SpcNym
+    extends ShlurdNamedObject
 {
+  def name : String
+
+  def isIdeal : Boolean = false
+
   def isRole : Boolean = false
 
   def isForm : Boolean = false
+
+  def isSynonym : Boolean = false
+}
+
+case class SpcSynonym(name : String)
+    extends SpcNym
+{
+  override def isSynonym = true
+}
+
+sealed abstract class SpcIdeal(val name : String)
+    extends SpcNym
+{
+  override def isIdeal : Boolean = true
 }
 
 class SpcStateNormalization(
@@ -69,7 +88,7 @@ object SpcForm
 }
 
 class SpcForm(name : String)
-    extends SpcIdeal(name)
+    extends SpcIdeal(name) with SpcVertex
 {
   import SpcForm._
 
@@ -98,33 +117,11 @@ case class SpcEntity(
   override def isTentative = properName.contains("_")
 }
 
-class SpcSynonymMap
-{
-  private val map = new mutable.LinkedHashMap[String, String]
-
-  def addSynonym(synonym : String, fundamental : String)
-  {
-    // FIXME:  cycle detection
-    map.put(synonym, fundamental)
-  }
-
-  def resolveSynonym(synonym : String) : String =
-  {
-    map.get(synonym).getOrElse(synonym)
-  }
-
-  def getAll : Map[String, String] = map
-}
-
 class SpcCosmos
     extends ShlurdCosmos[SpcEntity, SpcProperty]
 {
-  private val ideals = new mutable.LinkedHashMap[String, SpcIdeal]
-
   private val entities =
     new mutable.LinkedHashMap[String, SpcEntity]
-
-  private val idealSynonyms = new SpcSynonymMap
 
   private val graph = SpcGraph()
 
@@ -145,9 +142,11 @@ class SpcCosmos
 
   private var nextId = 0
 
-  def getForms = ideals.values.filter(_.isForm).map(_.asInstanceOf[SpcForm])
+  def getForms = graph.idealSynonyms.vertexSet.asScala.toSeq.
+    filter(_.isForm).map(_.asInstanceOf[SpcForm])
 
-  def getRoles = ideals.values.filter(_.isRole).map(_.asInstanceOf[SpcRole])
+  def getRoles = graph.idealSynonyms.vertexSet.asScala.toSeq.
+    filter(_.isRole).map(_.asInstanceOf[SpcRole])
 
   def getEntities : Map[String, SpcEntity] = entities
 
@@ -178,9 +177,14 @@ class SpcCosmos
 
   private def registerIdeal(ideal : SpcIdeal) =
   {
+    val synonym = SpcSynonym(ideal.name)
+    assert(!graph.idealSynonyms.containsVertex(synonym))
+    graph.idealSynonyms.addVertex(synonym)
+    graph.idealSynonyms.addVertex(ideal)
+    graph.idealSynonyms.addEdge(synonym, ideal)
     graph.idealTaxonomy.addVertex(ideal)
     graph.formAssocs.addVertex(ideal)
-    ideals.get(LEMMA_ENTITY) match {
+    resolveIdealSynonym(LEMMA_ENTITY) match {
       case Some(entityForm) => {
         addIdealTaxonomy(ideal, entityForm)
       }
@@ -191,8 +195,10 @@ class SpcCosmos
 
   private def forgetIdeal(ideal : SpcIdeal)
   {
+    assert(graph.idealSynonyms.degreeOf(ideal) == 0)
     assert(graph.idealTaxonomy.inDegreeOf(ideal) == 0)
     assert(graph.formAssocs.degreeOf(ideal) == 0)
+    graph.idealSynonyms.removeVertex(ideal)
     graph.idealTaxonomy.removeVertex(ideal)
     graph.formAssocs.removeVertex(ideal)
   }
@@ -210,10 +216,28 @@ class SpcCosmos
     role
   }
 
+  private def resolveIdealSynonym(name : String) : Option[SpcIdeal] =
+  {
+    val synonym = SpcSynonym(name)
+    if (graph.idealSynonyms.containsVertex(synonym)) {
+      Some(Graphs.successorListOf(
+        graph.idealSynonyms, synonym).iterator.next.asInstanceOf[SpcIdeal])
+    } else {
+      None
+    }
+  }
+
+  def resolveSynonym(name : String) : String =
+  {
+    resolveIdealSynonym(name) match {
+      case Some(ideal) => ideal.name
+      case _ => name
+    }
+  }
+
   def instantiateIdeal(word : SilWord, assumeRole : Boolean = false) =
   {
-    val name = idealSynonyms.resolveSynonym(word.lemma)
-    ideals.get(name).getOrElse({
+    resolveIdealSynonym(word.lemma).getOrElse({
       if (assumeRole) {
         instantiateRole(word)
       } else {
@@ -228,27 +252,27 @@ class SpcCosmos
 
   def instantiateForm(word : SilWord) =
   {
-    val name = idealSynonyms.resolveSynonym(word.lemma)
-    val ideal = ideals.getOrElseUpdate(
-      name, registerForm(new SpcForm(name)))
+    val name = word.lemma
+    val ideal = resolveIdealSynonym(name).getOrElse(
+      registerForm(new SpcForm(name)))
     assert(ideal.isForm)
     ideal.asInstanceOf[SpcForm]
   }
 
   def instantiateRole(word : SilWord) =
   {
-    val name = idealSynonyms.resolveSynonym(word.lemma)
-    val ideal = ideals.getOrElseUpdate(
-      name, registerRole(new SpcRole(name)))
+    val name = word.lemma
+    val ideal = resolveIdealSynonym(name).getOrElse(
+      registerRole(new SpcRole(name)))
     assert(ideal.isRole)
     ideal.asInstanceOf[SpcRole]
   }
 
   private[platonic] def forgetForm(form : SpcForm)
   {
-    // FIXME remove synonyms?
+    val synonymEdges = graph.idealSynonyms.incomingEdgesOf(form).asScala.toSeq
+    graph.idealSynonyms.removeAllEdges(synonymEdges.asJava)
     assert(!entities.values.exists(_.form == form))
-    ideals.remove(form.name)
     graph.removeContainer(form)
     forgetIdeal(form)
   }
@@ -331,13 +355,19 @@ class SpcCosmos
     }
   }
 
-  def addIdealSynonym(synonym : String, fundamental : String)
+  def addIdealSynonym(synonymName : String, fundamentalName : String)
   {
-    idealSynonyms.addSynonym(synonym, fundamental)
+    val synonym = SpcSynonym(synonymName)
+    assert(!graph.idealSynonyms.containsVertex(synonym))
+    graph.idealSynonyms.addVertex(synonym)
+    val ideal = resolveIdealSynonym(fundamentalName).get
+    graph.idealSynonyms.addEdge(synonym, ideal)
   }
 
   protected[platonic] def getIdealSynonyms =
-    idealSynonyms
+    graph.idealSynonyms.edgeSet.asScala.toSeq.map(edge =>
+      (graph.idealSynonyms.getEdgeSource(edge).name,
+        graph.idealSynonyms.getEdgeTarget(edge).name))
 
   def getIdealTaxonomyGraph =
     unmodifiableGraph.idealTaxonomy
@@ -545,11 +575,11 @@ class SpcCosmos
   def sanityCheck() : Boolean =
   {
     assert(graph.sanityCheck)
-    val idealSet = ideals.values.toSet
+    val idealSet = graph.idealSynonyms.vertexSet.asScala.filter(_.isIdeal).
+      map(_.asInstanceOf[SpcIdeal])
     assert(idealSet == graph.idealTaxonomy.vertexSet.asScala)
     assert(idealSet == graph.formAssocs.vertexSet.asScala)
     assert(entities.values.toSet == graph.entityAssocs.vertexSet.asScala)
-    ideals.foreach(pair => assert(pair._1 == pair._2.name))
     entities.foreach(pair => assert(pair._1 == pair._2.name))
     val formAssocs = graph.formAssocs
     idealSet.foreach(ideal => {
@@ -557,6 +587,7 @@ class SpcCosmos
         formAssocs.outgoingEdgesOf(ideal).
         asScala.map(_.getRoleName).toSet.size),
         ideal.toString)
+      assert(resolveIdealSynonym(ideal.name) == Some(ideal))
       ideal match {
         case form : SpcForm => {
           assert(graph.components.inDegreeOf(form) == 0)
@@ -619,8 +650,7 @@ class SpcCosmos
   private def resolveIdeal(
     lemma : String) : (Option[SpcForm], Option[SpcRole]) =
   {
-    val name = idealSynonyms.resolveSynonym(lemma)
-    ideals.get(name) match {
+    resolveIdealSynonym(lemma) match {
       case Some(form : SpcForm) => {
         (Some(form), None)
       }
