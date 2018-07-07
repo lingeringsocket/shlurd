@@ -591,7 +591,7 @@ class SpcCosmos
     val formSet = getForms.toSet
     val propertySet = formSet.flatMap(getPropertyMap(_).values).toSet
     val propertyStateSet =
-      propertySet.flatMap(getPropertyStates(_)).toSet
+      propertySet.flatMap(getPropertyStateObjMap(_).values).toSet
     assert((formSet ++ propertySet ++ propertyStateSet) == componentSet)
     propertySet.foreach(property => {
       assert(getPropertyStateMap(property).keySet.size ==
@@ -703,26 +703,17 @@ class SpcCosmos
 
   def getPropertyMap(form : SpcForm) : Map[String, SpcProperty] =
   {
-    val seq = graph.components.outgoingEdgesOf(form).asScala.toSeq.map(
-      edge => {
-        val property = graph.getComponent(edge).asInstanceOf[SpcProperty]
-        (property.name, property)
-      }
-    )
-    Map(seq:_*)
+    graph.propertyIndex.accessComponentMap(form)
   }
 
-  def getPropertyStates(property : SpcProperty) : Seq[SpcPropertyState] =
+  private def getPropertyStateObjMap(property : SpcProperty) =
   {
-    graph.components.outgoingEdgesOf(property).asScala.toSeq.map(
-      edge => graph.getComponent(edge).asInstanceOf[SpcPropertyState]
-    )
+    graph.propertyStateIndex.accessComponentMap(property)
   }
 
   override def getPropertyStateMap(property : SpcProperty) =
   {
-    val seq = getPropertyStates(property).map(ps => (ps.lemma, ps.inflected))
-    Map(seq:_*)
+    getPropertyStateObjMap(property).mapValues(_.inflected)
   }
 
   def findProperty(

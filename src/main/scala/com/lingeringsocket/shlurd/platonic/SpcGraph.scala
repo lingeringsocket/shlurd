@@ -42,9 +42,15 @@ object SpcGraph
     val entityAssocs =
       new DirectedPseudograph[SpcEntity, SpcEntityAssocEdge](
         classOf[SpcEntityAssocEdge])
-    val components = new DirectedAcyclicGraph[SpcVertex, SpcComponentEdge](
-        classOf[SpcComponentEdge])
-    new SpcGraph(idealTaxonomy, formAssocs, entityAssocs, components)
+    val components = new DefaultListenableGraph(
+      new DirectedAcyclicGraph[SpcVertex, SpcComponentEdge](
+        classOf[SpcComponentEdge]))
+    val propertyIndex = new SpcComponentIndex(
+      components, (property : SpcProperty) => property.name)
+    val propertyStateIndex = new SpcComponentIndex(
+      components, (ps : SpcPropertyState) => ps.lemma)
+    new SpcGraph(idealTaxonomy, formAssocs, entityAssocs, components,
+      propertyIndex, propertyStateIndex)
   }
 }
 
@@ -80,7 +86,9 @@ class SpcGraph(
   val idealTaxonomy : Graph[SpcIdeal, SpcTaxonomyEdge],
   val formAssocs : Graph[SpcIdeal, SpcFormAssocEdge],
   val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge],
-  val components : Graph[SpcVertex, SpcComponentEdge]
+  val components : Graph[SpcVertex, SpcComponentEdge],
+  val propertyIndex : SpcComponentIndex[String, SpcProperty],
+  val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState]
 )
 {
   def asUnmodifiable() =
@@ -89,7 +97,9 @@ class SpcGraph(
       new AsUnmodifiableGraph(idealTaxonomy),
       new AsUnmodifiableGraph(formAssocs),
       new AsUnmodifiableGraph(entityAssocs),
-      new AsUnmodifiableGraph(components)
+      new AsUnmodifiableGraph(components),
+      propertyIndex,
+      propertyStateIndex
     )
   }
 
