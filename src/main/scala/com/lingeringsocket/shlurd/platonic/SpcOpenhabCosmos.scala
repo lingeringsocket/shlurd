@@ -121,7 +121,7 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
     groupMap.get(entity.name) match {
       case Some(groupNames) => {
         if (!groupNames.isEmpty) {
-          getEntities.get(groupNames.head) match {
+          getEntityBySynonym(groupNames.head) match {
             case Some(groupEntity) => {
               Some(groupEntity)
             }
@@ -261,7 +261,7 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
       case Some(groupNames) => {
         groupNames.contains(location.name) ||
           groupNames.exists(groupName =>
-            getEntities.get(groupName).map(
+            getEntityBySynonym(groupName).map(
               evaluateAdpositionPredicate(
                 _, location, adposition)).getOrElse(false))
       }
@@ -286,7 +286,7 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
       {
         trimmed = trimmed.replaceAllLiterally(groupName.stripPrefix("g"), "")
       }
-      getEntities.get(groupName) match {
+      getEntityBySynonym(groupName) match {
         case Some(groupEntity) => {
           groupMap.addBinding(itemName, groupName)
           if (!isGroup) {

@@ -44,11 +44,14 @@ object SpcGraph
     val formAssocs =
       new DirectedPseudograph[SpcIdeal, SpcFormAssocEdge](
         classOf[SpcFormAssocEdge])
+    val entitySynonyms =
+      new DirectedAcyclicGraph[SpcEntityVertex, SpcSynonymEdge](
+        classOf[SpcSynonymEdge])
     val entityAssocs =
       new DirectedPseudograph[SpcEntity, SpcEntityAssocEdge](
         classOf[SpcEntityAssocEdge])
     val components = new DefaultListenableGraph(
-      new DirectedAcyclicGraph[SpcVertex, SpcComponentEdge](
+      new DirectedAcyclicGraph[SpcIdealVertex, SpcComponentEdge](
         classOf[SpcComponentEdge]))
     val propertyIndex =
       new SpcComponentIndex[String, SpcProperty](
@@ -69,7 +72,8 @@ object SpcGraph
           case _ => None
         })
     new SpcGraph(
-      idealSynonyms, idealTaxonomy, formAssocs, entityAssocs, components,
+      idealSynonyms, idealTaxonomy, formAssocs, entitySynonyms,
+      entityAssocs, components,
       propertyIndex, propertyStateIndex, stateNormalizationIndex)
   }
 }
@@ -110,8 +114,9 @@ class SpcGraph(
   val idealSynonyms : Graph[SpcNym, SpcSynonymEdge],
   val idealTaxonomy : Graph[SpcIdeal, SpcTaxonomyEdge],
   val formAssocs : Graph[SpcIdeal, SpcFormAssocEdge],
+  val entitySynonyms : Graph[SpcEntityVertex, SpcSynonymEdge],
   val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge],
-  val components : Graph[SpcVertex, SpcComponentEdge],
+  val components : Graph[SpcIdealVertex, SpcComponentEdge],
   val propertyIndex : SpcComponentIndex[String, SpcProperty],
   val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState],
   val stateNormalizationIndex :
@@ -124,6 +129,7 @@ class SpcGraph(
       new AsUnmodifiableGraph(idealSynonyms),
       new AsUnmodifiableGraph(idealTaxonomy),
       new AsUnmodifiableGraph(formAssocs),
+      new AsUnmodifiableGraph(entitySynonyms),
       new AsUnmodifiableGraph(entityAssocs),
       new AsUnmodifiableGraph(components),
       propertyIndex,
@@ -268,6 +274,7 @@ class SpcGraph(
     render(idealTaxonomy) + "\n" +
     render(formAssocs) + "\n" +
     render(components) + "\n" +
+    render(entitySynonyms) + "\n" +
     render(entityAssocs)
   }
 
@@ -300,14 +307,14 @@ class SpcGraph(
     })
   }
 
-  def removeContainer(container : SpcVertex)
+  def removeContainer(container : SpcIdealVertex)
   {
     val reachable =
       new BreadthFirstIterator(components, container).asScala.toSet
     components.removeAllVertices(reachable.asJava)
   }
 
-  def addComponent(container : SpcVertex, component : SpcVertex)
+  def addComponent(container : SpcIdealVertex, component : SpcIdealVertex)
   {
     components.addVertex(component)
     components.addEdge(container, component)
@@ -315,10 +322,12 @@ class SpcGraph(
 
   def sanityCheck() : Boolean =
   {
+    assert(!idealSynonyms.vertexSet.asScala.exists(v =>
+      idealSynonyms.degreeOf(v) == 0))
     idealSynonyms.edgeSet.asScala.foreach(synonymEdge => {
       val synonym = idealSynonyms.getEdgeSource(synonymEdge)
       val ideal = idealSynonyms.getEdgeTarget(synonymEdge)
-      assert(synonym.isInstanceOf[SpcSynonym])
+      assert(synonym.isInstanceOf[SpcIdealSynonym])
       assert(ideal.isInstanceOf[SpcIdeal])
       assert(idealSynonyms.inDegreeOf(synonym) == 0)
       assert(idealSynonyms.outDegreeOf(synonym) == 1)
@@ -336,6 +345,18 @@ class SpcGraph(
       assert(role.name == formEdge.getRoleName,
         (role, formEdge).toString)
       assert(!getFormsForRole(role).isEmpty, role.toString)
+    })
+    assert(!entitySynonyms.vertexSet.asScala.exists(v =>
+      entitySynonyms.degreeOf(v) == 0))
+    entitySynonyms.edgeSet.asScala.foreach(synonymEdge => {
+      val synonym = entitySynonyms.getEdgeSource(synonymEdge)
+      val entity = entitySynonyms.getEdgeTarget(synonymEdge)
+      assert(synonym.isInstanceOf[SpcEntitySynonym])
+      assert(entity.isInstanceOf[SpcEntity])
+      assert(entitySynonyms.inDegreeOf(synonym) == 0)
+      assert(entitySynonyms.outDegreeOf(synonym) == 1)
+      assert(entitySynonyms.inDegreeOf(entity) == 1)
+      assert(entitySynonyms.outDegreeOf(entity) == 0)
     })
     entityAssocs.edgeSet.asScala.foreach(entityEdge => {
       val formEdge = entityEdge.formEdge

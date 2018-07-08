@@ -386,7 +386,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
   private def resolveUniqueName(word : SilWord)
       : SpcEntity =
   {
-    val candidates = cosmos.getEntities.values.filter(
+    val candidates = cosmos.getEntities.filter(
       _.qualifiers == Set(word.lemma))
     assert(candidates.size < 2)
     candidates.headOption match {

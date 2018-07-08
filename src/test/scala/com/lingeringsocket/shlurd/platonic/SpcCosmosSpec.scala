@@ -71,7 +71,7 @@ class SpcCosmosSpec extends Specification
     protected def expectProperName(name : String) : SpcEntity =
     {
       expectUnique(
-        cosmos.getEntities.values.filter(_.properName == name))
+        cosmos.getEntities.filter(_.properName == name))
     }
 
     protected def expectUnique(
@@ -371,9 +371,9 @@ class SpcCosmosSpec extends Specification
     {
       addBelief("there is a front door")
       addBelief("a portal is a door")
-      cosmos.resolveSynonym("door") must be equalTo "door"
-      cosmos.resolveSynonym("portal") must be equalTo "door"
-      cosmos.resolveSynonym("gateway") must be equalTo "gateway"
+      cosmos.resolveIdealSynonym("door") must be equalTo "door"
+      cosmos.resolveIdealSynonym("portal") must be equalTo "door"
+      cosmos.resolveIdealSynonym("gateway") must be equalTo "gateway"
       val frontDoor = cosmos.resolveQualifiedNoun(
         "portal", REF_SUBJECT, Set("front"))
       frontDoor must beSuccessfulTry.which(_.size == 1)
@@ -525,9 +525,9 @@ class SpcCosmosSpec extends Specification
       genderValues.size must be equalTo 2
       genderValues must contain(LEMMA_MASCULINE -> LEMMA_MASCULINE)
       genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
-      cosmos.resolveSynonym(LEMMA_WHO) must
+      cosmos.resolveIdealSynonym(LEMMA_WHO) must
         be equalTo LEMMA_PERSON
-      cosmos.resolveSynonym(LEMMA_ACTUALITY) must
+      cosmos.resolveIdealSynonym(LEMMA_ACTUALITY) must
         be equalTo LEMMA_ENTITY
       val graph = cosmos.getGraph
       graph.getFormHypernyms(entity).toSeq must be equalTo(

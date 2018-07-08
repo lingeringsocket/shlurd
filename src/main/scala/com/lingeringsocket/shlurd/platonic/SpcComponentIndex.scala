@@ -21,12 +21,12 @@ import scala.collection._
 import scala.collection.JavaConverters._
 
 class SpcComponentIndex[KeyType, ComponentType](
-  graph : ListenableGraph[SpcVertex, SpcComponentEdge],
-  keyExtractor : (SpcVertex) => Option[KeyType])
-    extends GraphListener[SpcVertex, SpcComponentEdge]
+  graph : ListenableGraph[SpcIdealVertex, SpcComponentEdge],
+  keyExtractor : (SpcIdealVertex) => Option[KeyType])
+    extends GraphListener[SpcIdealVertex, SpcComponentEdge]
 {
   private val map =
-    new mutable.HashMap[SpcVertex, Map[KeyType, ComponentType]]
+    new mutable.HashMap[SpcIdealVertex, Map[KeyType, ComponentType]]
 
   init()
 
@@ -35,13 +35,13 @@ class SpcComponentIndex[KeyType, ComponentType](
     graph.addGraphListener(this)
   }
 
-  def accessComponentMap(container : SpcVertex)
+  def accessComponentMap(container : SpcIdealVertex)
       : Map[KeyType, ComponentType] =
   {
     map.get(container).getOrElse(buildComponentMap(container))
   }
 
-  private def buildComponentMap(container : SpcVertex)
+  private def buildComponentMap(container : SpcIdealVertex)
       : Map[KeyType, ComponentType] =
   {
     val seq = graph.outgoingEdgesOf(container).asScala.toSeq.flatMap(
@@ -55,30 +55,30 @@ class SpcComponentIndex[KeyType, ComponentType](
     Map(seq:_*)
   }
 
-  private def invalidateComponentMap(container : SpcVertex)
+  private def invalidateComponentMap(container : SpcIdealVertex)
   {
     map.remove(container)
   }
 
   override def vertexAdded(
-    event : GraphVertexChangeEvent[SpcVertex])
+    event : GraphVertexChangeEvent[SpcIdealVertex])
   {
   }
 
   override def vertexRemoved(
-    event : GraphVertexChangeEvent[SpcVertex])
+    event : GraphVertexChangeEvent[SpcIdealVertex])
   {
     invalidateComponentMap(event.getVertex)
   }
 
   override def edgeAdded(
-    event : GraphEdgeChangeEvent[SpcVertex, SpcComponentEdge])
+    event : GraphEdgeChangeEvent[SpcIdealVertex, SpcComponentEdge])
   {
     invalidateComponentMap(event.getEdgeSource)
   }
 
   override def edgeRemoved(
-    event : GraphEdgeChangeEvent[SpcVertex, SpcComponentEdge])
+    event : GraphEdgeChangeEvent[SpcIdealVertex, SpcComponentEdge])
   {
     invalidateComponentMap(event.getEdgeSource)
   }
