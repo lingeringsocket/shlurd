@@ -85,7 +85,11 @@ class SpcLabeledEdge(
 }
 
 class SpcFormAssocEdge(
-  roleName : String) extends SpcLabeledEdge(roleName)
+  roleName : String,
+  var isProperty : Boolean = false,
+  var constraint : SpcCardinalityConstraint =
+    SpcCardinalityConstraint(0, Int.MaxValue)
+) extends SpcLabeledEdge(roleName)
 {
   def getRoleName = label
 }

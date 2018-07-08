@@ -186,8 +186,8 @@ class SpcCreed(cosmos : SpcCosmos)
     edge : SpcFormAssocEdge
   ) : SilSentence =
   {
-    val constraint = cosmos.getAssocConstraints(edge)
-    val isProperty = cosmos.getPropertyEdges.contains(edge)
+    val constraint = edge.constraint
+    val isProperty = edge.isProperty
     val (count, determiner) = {
       if (constraint.upper == 1) {
         (COUNT_SINGULAR, SilIntegerDeterminer(constraint.upper))

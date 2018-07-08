@@ -131,16 +131,6 @@ class SpcCosmos
 
   private val unmodifiableGraph = graph.asUnmodifiable
 
-  private val assocConstraints =
-    new mutable.LinkedHashMap[SpcFormAssocEdge, SpcCardinalityConstraint] {
-      override def default(key : SpcFormAssocEdge) = {
-        SpcCardinalityConstraint(0, Int.MaxValue)
-      }
-    }
-
-  private val propertyEdges =
-    new mutable.LinkedHashSet[SpcFormAssocEdge]
-
   private val inverseAssocEdges =
     new mutable.LinkedHashMap[SpcFormAssocEdge, SpcFormAssocEdge]
 
@@ -158,20 +148,12 @@ class SpcCosmos
 
   def getGraph = unmodifiableGraph
 
-  protected[platonic] def getPropertyEdges
-      : Set[SpcFormAssocEdge] = propertyEdges
-
-  protected[platonic] def getAssocConstraints
-      : Map[SpcFormAssocEdge, SpcCardinalityConstraint] = assocConstraints
-
   protected[platonic] def annotateFormAssoc(
     edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint,
     isProperty : Boolean)
   {
-    assocConstraints.put(edge, constraint)
-    if (isProperty) {
-      propertyEdges += edge
-    }
+    edge.constraint = constraint
+    edge.isProperty = isProperty
   }
 
   def clear()
@@ -328,7 +310,7 @@ class SpcCosmos
     oldEdge : SpcFormAssocEdge, newEdge : SpcFormAssocEdge) : Boolean =
   {
     val entityAssocs = graph.entityAssocs
-    val constraint = assocConstraints(newEdge)
+    val constraint = newEdge.constraint
     if (constraint.upper < Int.MaxValue) {
       val oldEntityEdges =
         entityAssocs.edgeSet.asScala.filter(_.formEdge == oldEdge)
@@ -631,7 +613,7 @@ class SpcCosmos
     })
     val entitySet = getEntities.toSet
     formAssocs.edgeSet.asScala.foreach(formEdge => {
-      val constraint = assocConstraints(formEdge)
+      val constraint = formEdge.constraint
       if (constraint.upper < Int.MaxValue) {
         val ideal = graph.getPossessorIdeal(formEdge)
         entitySet.filter(
@@ -879,7 +861,7 @@ class SpcCosmos
     val hypernymSet = graph.getFormHypernyms(entity.form).toSet
     val outgoingPropertyEdges = hypernymSet.flatMap { form =>
       getFormAssocGraph.outgoingEdgesOf(form).asScala.
-        filter(propertyEdges.contains(_)).toSet
+        filter(_.isProperty).toSet
     }
     getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
       filter(edge => outgoingPropertyEdges.contains(edge.formEdge)).
@@ -1048,7 +1030,7 @@ class SpcCosmos
     graph.getFormAssocEdge(possessor.form, role) match {
       case Some(formEdge) => {
         if (onlyIfProven) {
-          val constraint = assocConstraints(formEdge)
+          val constraint = formEdge.constraint
           if (constraint.lower == 0) {
             return
           }

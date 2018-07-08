@@ -476,7 +476,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     formAssocEdge : SpcFormAssocEdge,
     possessor : SpcEntity)
   {
-    val constraint = cosmos.getAssocConstraints(formAssocEdge)
+    val constraint = formAssocEdge.constraint
     val entityAssocGraph = cosmos.getEntityAssocGraph
     val edges = entityAssocGraph.
       outgoingEdgesOf(possessor).asScala.
@@ -660,12 +660,10 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
         val edge = cosmos.addFormAssoc(
           possessorIdeal, possesseeRole)
-        val constraint = cosmos.getAssocConstraints.get(edge) match {
-          case Some(oldConstraint) => SpcCardinalityConstraint(
-            Math.max(oldConstraint.lower, newConstraint.lower),
-            Math.min(oldConstraint.upper, newConstraint.upper))
-          case _ => newConstraint
-        }
+        val oldConstraint = edge.constraint
+        val constraint = SpcCardinalityConstraint(
+          Math.max(oldConstraint.lower, newConstraint.lower),
+          Math.min(oldConstraint.upper, newConstraint.upper))
         cosmos.annotateFormAssoc(edge, constraint, isProperty)
       })
     }

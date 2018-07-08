@@ -19,6 +19,7 @@ import com.lingeringsocket.shlurd.cosmos._
 
 import scala.util._
 import scala.collection._
+import scala.collection.JavaConverters._
 
 import spire.math._
 
@@ -334,7 +335,10 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
           createOrReplaceEntity(entity)
           qualifiers.lastOption match {
             case Some(personName) => {
-              getPropertyEdges.find(_.getRoleName == presenceRoleName) match {
+              getGraph.formAssocs.edgeSet.asScala.find(
+                edge => (edge.getRoleName == presenceRoleName)
+                  && edge.isProperty) match
+              {
                 case Some(edge) => {
                   val personIdeal = getGraph.getPossessorIdeal(edge)
                   resolveQualifiedNoun(
