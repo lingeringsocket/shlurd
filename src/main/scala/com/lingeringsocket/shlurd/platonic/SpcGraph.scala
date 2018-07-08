@@ -44,6 +44,9 @@ object SpcGraph
     val formAssocs =
       new DirectedPseudograph[SpcIdeal, SpcFormAssocEdge](
         classOf[SpcFormAssocEdge])
+    val inverseAssocs =
+      new DefaultUndirectedGraph[SpcFormAssocEdge, SpcInverseAssocEdge](
+        classOf[SpcInverseAssocEdge])
     val entitySynonyms =
       new DirectedAcyclicGraph[SpcEntityVertex, SpcSynonymEdge](
         classOf[SpcSynonymEdge])
@@ -72,8 +75,8 @@ object SpcGraph
           case _ => None
         })
     new SpcGraph(
-      idealSynonyms, idealTaxonomy, formAssocs, entitySynonyms,
-      entityAssocs, components,
+      idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
+      entitySynonyms, entityAssocs, components,
       propertyIndex, propertyStateIndex, stateNormalizationIndex)
   }
 }
@@ -92,6 +95,10 @@ class SpcFormAssocEdge(
 ) extends SpcLabeledEdge(roleName)
 {
   def getRoleName = label
+}
+
+class SpcInverseAssocEdge extends DefaultEdge
+{
 }
 
 class SpcTaxonomyEdge extends DefaultEdge
@@ -118,6 +125,7 @@ class SpcGraph(
   val idealSynonyms : Graph[SpcNym, SpcSynonymEdge],
   val idealTaxonomy : Graph[SpcIdeal, SpcTaxonomyEdge],
   val formAssocs : Graph[SpcIdeal, SpcFormAssocEdge],
+  val inverseAssocs : Graph[SpcFormAssocEdge, SpcInverseAssocEdge],
   val entitySynonyms : Graph[SpcEntityVertex, SpcSynonymEdge],
   val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge],
   val components : Graph[SpcIdealVertex, SpcComponentEdge],
@@ -133,6 +141,7 @@ class SpcGraph(
       new AsUnmodifiableGraph(idealSynonyms),
       new AsUnmodifiableGraph(idealTaxonomy),
       new AsUnmodifiableGraph(formAssocs),
+      new AsUnmodifiableGraph(inverseAssocs),
       new AsUnmodifiableGraph(entitySynonyms),
       new AsUnmodifiableGraph(entityAssocs),
       new AsUnmodifiableGraph(components),
@@ -277,6 +286,7 @@ class SpcGraph(
     render(idealSynonyms) + "\n" +
     render(idealTaxonomy) + "\n" +
     render(formAssocs) + "\n" +
+    render(inverseAssocs) + "\n" +
     render(components) + "\n" +
     render(entitySynonyms) + "\n" +
     render(entityAssocs)
@@ -350,6 +360,11 @@ class SpcGraph(
         (role, formEdge).toString)
       assert(!getFormsForRole(role).isEmpty, role.toString)
     })
+    val inverseAssocsVertexSet = inverseAssocs.vertexSet.asScala
+    assert(inverseAssocsVertexSet.subsetOf(
+      formAssocs.edgeSet.asScala))
+    inverseAssocsVertexSet.foreach(
+      vertex => assert(inverseAssocs.edgesOf(vertex).size == 1))
     assert(!entitySynonyms.vertexSet.asScala.exists(v =>
       entitySynonyms.degreeOf(v) == 0))
     entitySynonyms.edgeSet.asScala.foreach(synonymEdge => {

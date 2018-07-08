@@ -776,7 +776,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           validateEdgeCardinality(sentence, formAssocEdge, possessor)
         }
       }
-      cosmos.getInverseAssocEdges.get(formAssocEdge) match {
+      cosmos.getInverseAssocEdge(formAssocEdge) match {
         case Some(inverseAssocEdge) => {
           validateEdgeCardinality(sentence, inverseAssocEdge, possessee)
           cosmos.addEntityAssocEdge(

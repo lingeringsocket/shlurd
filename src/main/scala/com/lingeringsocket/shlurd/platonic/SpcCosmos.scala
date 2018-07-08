@@ -131,9 +131,6 @@ class SpcCosmos
 
   private val unmodifiableGraph = graph.asUnmodifiable
 
-  private val inverseAssocEdges =
-    new mutable.LinkedHashMap[SpcFormAssocEdge, SpcFormAssocEdge]
-
   private var nextId = 0
 
   def getForms = graph.idealSynonyms.vertexSet.asScala.toSeq.
@@ -299,7 +296,7 @@ class SpcCosmos
     val formAssocs = graph.formAssocs
     formAssocs.outgoingEdgesOf(oldForm).asScala.toSeq.flatMap(
       oldEdge => {
-        assert(!inverseAssocEdges.contains(oldEdge))
+        assert(!graph.inverseAssocs.containsVertex(oldEdge))
         graph.getFormAssocEdge(newForm, graph.getPossesseeRole(oldEdge)).map(
           newEdge => (oldEdge, newEdge))
       }
@@ -324,9 +321,9 @@ class SpcCosmos
   private[platonic] def mergeAssoc(
     oldEdge : SpcFormAssocEdge, newEdge : SpcFormAssocEdge)
   {
-    assert(!inverseAssocEdges.contains(oldEdge))
+    assert(!graph.inverseAssocs.containsVertex(oldEdge))
     // FIXME we should be able to support this
-    assert(!inverseAssocEdges.contains(newEdge))
+    assert(!graph.inverseAssocs.containsVertex(newEdge))
     val formAssocs = graph.formAssocs
     val entityAssocs = graph.entityAssocs
     val oldEntityEdges =
@@ -385,8 +382,9 @@ class SpcCosmos
   def getEntityAssocGraph =
     unmodifiableGraph.entityAssocs
 
-  def getInverseAssocEdges : Map[SpcFormAssocEdge, SpcFormAssocEdge] =
-    inverseAssocEdges
+  def getInverseAssocEdges : Seq[(SpcFormAssocEdge, SpcFormAssocEdge)] =
+    graph.inverseAssocs.vertexSet.asScala.toSeq.map(vertex =>
+      (vertex, getInverseAssocEdge(vertex).get))
 
   private def hasQualifiers(
     existing : SpcEntity,
@@ -452,23 +450,35 @@ class SpcCosmos
     }
   }
 
+  def getInverseAssocEdge(edge : SpcFormAssocEdge)
+      : Option[SpcFormAssocEdge] =
+  {
+    val inverseAssocs = graph.inverseAssocs
+    if (!inverseAssocs.containsVertex(edge)) {
+      None
+    } else {
+      Some(Graphs.neighborListOf(inverseAssocs, edge).get(0))
+    }
+  }
+
   protected[platonic] def connectInverseAssocEdges(
     edge1 : SpcFormAssocEdge,
     edge2 : SpcFormAssocEdge)
   {
-    inverseAssocEdges.get(edge1) match {
+    val inverseAssocs = graph.inverseAssocs
+    getInverseAssocEdge(edge1) match {
       case Some(existing) => {
         if (existing == edge2) {
           return
-        } else {
-          inverseAssocEdges.remove(existing)
-          inverseAssocEdges.get(edge2).foreach(inverseAssocEdges.remove)
         }
       }
       case _ =>
     }
-    inverseAssocEdges.put(edge1, edge2)
-    inverseAssocEdges.put(edge2, edge1)
+    inverseAssocs.removeVertex(edge1)
+    inverseAssocs.removeVertex(edge2)
+    inverseAssocs.addVertex(edge1)
+    inverseAssocs.addVertex(edge2)
+    inverseAssocs.addEdge(edge1, edge2)
   }
 
   protected[platonic] def addIdealTaxonomy(
@@ -516,7 +526,7 @@ class SpcCosmos
       case Some(formAssocEdge) => {
         val edge = addEntityAssocEdge(
           possessor, possessee, formAssocEdge)
-        inverseAssocEdges.get(formAssocEdge) match {
+        getInverseAssocEdge(formAssocEdge) match {
           case Some(inverseAssocEdge) => {
             addEntityAssocEdge(
               possessee, possessor, inverseAssocEdge)
