@@ -24,6 +24,8 @@ import scala.util._
 import scala.collection._
 import scala.collection.JavaConverters._
 
+import java.util.concurrent.atomic._
+
 import org.jgrapht._
 import org.jgrapht.util._
 
@@ -36,6 +38,7 @@ trait SpcIdealVertex
 class SpcPropertyState(val lemma : String, val inflected : String)
     extends SpcIdealVertex
 {
+  override def toString = s"SpcPropertyState($lemma -> $inflected)"
 }
 
 class SpcProperty(val name : String, val isClosed : Boolean)
@@ -124,14 +127,12 @@ case class SpcEntitySynonym(val name : String)
 {
 }
 
-class SpcCosmos
-    extends ShlurdCosmos[SpcEntity, SpcProperty]
+class SpcCosmos(
+  graph : SpcGraph = SpcGraph(),
+  idGenerator : AtomicLong = new AtomicLong
+) extends ShlurdCosmos[SpcEntity, SpcProperty] with DeltaModification
 {
-  private val graph = SpcGraph()
-
   private val unmodifiableGraph = graph.asUnmodifiable
-
-  private var nextId = 0
 
   def getForms = graph.idealSynonyms.vertexSet.asScala.toSeq.
     filter(_.isForm).map(_.asInstanceOf[SpcForm])
@@ -151,6 +152,11 @@ class SpcCosmos
   {
     edge.constraint = constraint
     edge.isProperty = isProperty
+  }
+
+  def fork() : SpcCosmos =
+  {
+    new SpcCosmos(SpcGraph.fork(graph), idGenerator)
   }
 
   def clear()
@@ -423,10 +429,10 @@ class SpcCosmos
         case _ =>
       }
     }
+    val formId = idGenerator.getAndIncrement.toString
     val name =
       (qualifierString.map(_.lemma) ++
-        Seq(form.name, nextId.toString)).mkString("_")
-    nextId += 1
+        Seq(form.name, formId)).mkString("_")
     val entity = new SpcEntity(name, form, qualifiers, properName)
     createOrReplaceEntity(entity)
     (entity, true)
@@ -1062,5 +1068,12 @@ class SpcCosmos
         // FIXME make up role out of thin air?
       }
     }
+  }
+
+  override def applyModifications()
+  {
+    validateBeliefs
+    graph.applyModifications
+    validateBeliefs
   }
 }

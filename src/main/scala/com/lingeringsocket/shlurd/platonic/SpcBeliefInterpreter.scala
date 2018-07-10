@@ -23,7 +23,7 @@ import org.jgrapht.alg.shortestpath._
 
 import ShlurdEnglishLemmas._
 
-class SpcBeliefInterpreter(cosmos : SpcCosmos)
+class SpcBeliefInterpreter(val cosmos : SpcCosmos)
 {
   type BeliefApplier = PartialFunction[SpcBelief, Unit]
 
@@ -549,6 +549,25 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     }
   }
 
+  private def addIdealTaxonomy(
+    sentence : SilSentence,
+    hyponymIdeal : SpcIdeal,
+    hypernymIdeal : SpcIdeal)
+  {
+    val path = DijkstraShortestPath.findPathBetween(
+      cosmos.getIdealTaxonomyGraph, hypernymIdeal, hyponymIdeal)
+    if (path == null) {
+      cosmos.addIdealTaxonomy(
+        hyponymIdeal, hypernymIdeal)
+    } else {
+      val originalBelief = conjunctiveBelief(
+        path.getEdgeList.asScala.toSeq.map(creed.idealTaxonomyBelief(_)))
+      throw new ContradictoryBeliefExcn(
+        sentence,
+        originalBelief)
+    }
+  }
+
   def beliefApplier(applier : BeliefApplier)
   {
     beliefAppliers += applier
@@ -615,9 +634,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
                 possesseeEntity.form, hypernymIdeal))
               {
                 if (possesseeEntity.form.isTentative) {
-                  // do we need to worry about cycles here?
-                  cosmos.addIdealTaxonomy(
-                    possesseeEntity.form, hypernymIdeal)
+                  addIdealTaxonomy(
+                    sentence, possesseeEntity.form, hypernymIdeal)
                 } else {
                   val creed = new SpcCreed(cosmos)
                   val formBelief = creed.entityFormBelief(possesseeEntity)
@@ -631,22 +649,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
           }
         )
       }
-      try {
-        cosmos.addIdealTaxonomy(
-          hyponymIdeal, hypernymIdeal)
-      } catch {
-        case ex : IllegalArgumentException => {
-          // report detected cycle
-          val path = DijkstraShortestPath.findPathBetween(
-            cosmos.getIdealTaxonomyGraph, hypernymIdeal, hyponymIdeal)
-          assert(path != null)
-          val originalBelief = conjunctiveBelief(
-            path.getEdgeList.asScala.toSeq.map(creed.idealTaxonomyBelief(_)))
-          throw new ContradictoryBeliefExcn(
-            sentence,
-            originalBelief)
-        }
-      }
+      addIdealTaxonomy(sentence, hyponymIdeal, hypernymIdeal)
     }
   }
 
@@ -724,7 +727,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       val graph = cosmos.getGraph
       if (possessee.form.isTentative) {
         graph.getFormsForRole(role).foreach(form =>
-          cosmos.addIdealTaxonomy(possessee.form, form))
+          addIdealTaxonomy(sentence, possessee.form, form))
       }
       if (!graph.isFormCompatibleWithRole(possessee.form, role)) {
         val creed = new SpcCreed(cosmos)
@@ -756,11 +759,11 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
         assert(possessor.form.isTentative)
         possessorIdeal match {
           case possessorForm : SpcForm => {
-            cosmos.addIdealTaxonomy(possessor.form, possessorForm)
+            addIdealTaxonomy(sentence, possessor.form, possessorForm)
           }
           case possessorRole : SpcRole => {
             graph.getFormsForRole(possessorRole).foreach(possessorForm =>
-              cosmos.addIdealTaxonomy(possessor.form, possessorForm))
+              addIdealTaxonomy(sentence, possessor.form, possessorForm))
           }
         }
       }
@@ -768,8 +771,6 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       // of a multi-valued association
       findTentativePossessee(possessor, formAssocEdge) match {
         case Some(tentativePossessee) => {
-          // FIXME in case of inverse assoc, should not be doing this until
-          // after validateEdgeCardinality below (or else need rollback support)
           cosmos.replaceEntity(tentativePossessee, possessee)
         }
         case _ => {
@@ -798,7 +799,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
     ) => {
       val possessorForm = cosmos.instantiateForm(possessorFormName)
       val possessorRole = cosmos.instantiateRole(possessorRoleName)
-      cosmos.addIdealTaxonomy(possessorRole, possessorForm)
+      addIdealTaxonomy(sentence, possessorRole, possessorForm)
       possesseeRoleNames.foreach(possesseeRoleName => {
         val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
         val edge = cosmos.addFormAssoc(

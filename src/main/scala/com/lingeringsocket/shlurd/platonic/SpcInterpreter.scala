@@ -23,10 +23,9 @@ class SpcInterpreter(
   params : ShlurdResponseParams = ShlurdResponseParams())
     extends ShlurdInterpreter(mind, params)
 {
-  private val beliefInterpreter = new SpcBeliefInterpreter(mind.getCosmos)
-
   override protected def interpretImpl(sentence : SilSentence) : String =
   {
+    val beliefInterpreter = new SpcBeliefInterpreter(mind.getCosmos.fork)
     if (acceptNewBeliefs && sentence.mood.isIndicative) {
       beliefInterpreter.recognizeBelief(sentence) match {
         case Some(belief) => {
@@ -39,6 +38,7 @@ class SpcInterpreter(
               return respondContradiction(ex)
             }
           }
+          beliefInterpreter.cosmos.applyModifications
           debug("NEW BELIEF ACCEPTED")
           return sentencePrinter.sb.respondCompliance
         }

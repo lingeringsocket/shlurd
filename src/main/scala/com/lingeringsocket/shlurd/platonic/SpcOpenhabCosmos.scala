@@ -21,9 +21,23 @@ import scala.util._
 import scala.collection._
 import scala.collection.JavaConverters._
 
+import java.util.concurrent.atomic._
+
 import spire.math._
 
-abstract class SpcOpenhabCosmos extends SpcCosmos
+class GroupMap extends mutable.LinkedHashMap[String, mutable.Set[String]]
+    with mutable.MultiMap[String, String]
+{
+  override protected def makeSet = new mutable.LinkedHashSet[String]
+}
+
+abstract class SpcOpenhabCosmos(
+  graph : SpcGraph = SpcGraph(),
+  idGenerator : AtomicLong = new AtomicLong,
+  groupMap : GroupMap = new GroupMap,
+  roomyRooms : mutable.Set[String] = new mutable.LinkedHashSet[String],
+  forked : Boolean = false
+) extends SpcCosmos(graph, idGenerator)
 {
   private val locationFormName = "location"
 
@@ -33,16 +47,25 @@ abstract class SpcOpenhabCosmos extends SpcCosmos
 
   private val roomLemma = "room"
 
-  private val groupMap = new mutable.LinkedHashMap[String, mutable.Set[String]]
-      with mutable.MultiMap[String, String] {
-    override protected def makeSet = new mutable.LinkedHashSet[String]
+  if (!forked) {
+    SpcPrimordial.initCosmos(this)
+    instantiateForm(SilWord(locationFormName))
+    instantiateForm(SilWord(presenceFormName))
   }
 
-  private val roomyRooms = new mutable.LinkedHashSet[String]
-
-  SpcPrimordial.initCosmos(this)
-  instantiateForm(SilWord(locationFormName))
-  instantiateForm(SilWord(presenceFormName))
+  override def fork() : SpcOpenhabCosmos =
+  {
+    val base = this
+    new SpcOpenhabCosmos(
+      SpcGraph.fork(graph), idGenerator, groupMap, roomyRooms, true)
+    {
+      protected def evaluateState(
+        entity : SpcEntity, stateName : String) : Try[Trilean] =
+      {
+        base.evaluateState(entity, stateName)
+      }
+    }
+  }
 
   override def resolveQualifiedNoun(
     lemma : String,

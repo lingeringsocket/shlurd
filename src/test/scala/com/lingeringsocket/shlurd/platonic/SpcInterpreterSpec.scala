@@ -45,7 +45,7 @@ class SpcInterpreterSpec extends Specification
     params : ShlurdResponseParams = ShlurdResponseParams()
   ) extends NameSpace
   {
-    protected val cosmos = new SpcCosmos {
+    protected val cosmos = new SpcCosmos() {
       override def evaluateEntityPropertyPredicate(
         entity : SpcEntity,
         property : SpcProperty,

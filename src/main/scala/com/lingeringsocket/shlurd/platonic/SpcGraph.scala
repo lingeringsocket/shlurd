@@ -27,19 +27,37 @@ import java.io._
 
 import scala.collection.JavaConverters._
 
-import GmlExporter.Parameter._
-
 import com.lingeringsocket.shlurd.parser._
 
 object SpcGraph
 {
-  def apply() =
+  def fork(base : SpcGraph) : SpcGraph =
+  {
+    val idealSynonyms = DeltaGraph(base.idealSynonyms)
+    val idealTaxonomy = DeltaGraph(base.idealTaxonomy)
+    val formAssocs = DeltaGraph(base.formAssocs)
+    val inverseAssocs = DeltaGraph(base.inverseAssocs)
+    val entitySynonyms = DeltaGraph(base.entitySynonyms)
+    val entityAssocs = DeltaGraph(base.entityAssocs)
+    val componentsDelta = DeltaGraph(base.components)
+    val components = new DefaultListenableGraph(componentsDelta)
+    val (propertyIndex, propertyStateIndex, stateNormalizationIndex) =
+      createIndexes(components)
+    new SpcGraph(
+      idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
+      entitySynonyms, entityAssocs, components,
+      propertyIndex, propertyStateIndex, stateNormalizationIndex,
+      Seq(idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
+        entitySynonyms, entityAssocs, componentsDelta))
+  }
+
+  def apply() : SpcGraph =
   {
     val idealSynonyms =
-      new DirectedAcyclicGraph[SpcNym, SpcSynonymEdge](
+      new SimpleDirectedGraph[SpcNym, SpcSynonymEdge](
         classOf[SpcSynonymEdge])
     val idealTaxonomy =
-      new DirectedAcyclicGraph[SpcIdeal, SpcTaxonomyEdge](
+      new SimpleDirectedGraph[SpcIdeal, SpcTaxonomyEdge](
         classOf[SpcTaxonomyEdge])
     val formAssocs =
       new DirectedPseudograph[SpcIdeal, SpcFormAssocEdge](
@@ -48,14 +66,25 @@ object SpcGraph
       new DefaultUndirectedGraph[SpcFormAssocEdge, SpcInverseAssocEdge](
         classOf[SpcInverseAssocEdge])
     val entitySynonyms =
-      new DirectedAcyclicGraph[SpcEntityVertex, SpcSynonymEdge](
+      new SimpleDirectedGraph[SpcEntityVertex, SpcSynonymEdge](
         classOf[SpcSynonymEdge])
     val entityAssocs =
       new DirectedPseudograph[SpcEntity, SpcEntityAssocEdge](
         classOf[SpcEntityAssocEdge])
     val components = new DefaultListenableGraph(
-      new DirectedAcyclicGraph[SpcIdealVertex, SpcComponentEdge](
+      new SimpleDirectedGraph[SpcIdealVertex, SpcComponentEdge](
         classOf[SpcComponentEdge]))
+    val (propertyIndex, propertyStateIndex, stateNormalizationIndex) =
+      createIndexes(components)
+    new SpcGraph(
+      idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
+      entitySynonyms, entityAssocs, components,
+      propertyIndex, propertyStateIndex, stateNormalizationIndex)
+  }
+
+  private def createIndexes(
+    components : ListenableGraph[SpcIdealVertex, SpcComponentEdge]) =
+  {
     val propertyIndex =
       new SpcComponentIndex[String, SpcProperty](
         components, _ match {
@@ -74,15 +103,18 @@ object SpcGraph
           case sn : SpcStateNormalization => Some(sn.original)
           case _ => None
         })
-    new SpcGraph(
-      idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
-      entitySynonyms, entityAssocs, components,
-      propertyIndex, propertyStateIndex, stateNormalizationIndex)
+    (propertyIndex, propertyStateIndex, stateNormalizationIndex)
   }
 }
 
+class SpcEdge
+{
+  override def toString = super.toString.replaceAllLiterally(
+    "com.lingeringsocket.shlurd.platonic.", "")
+}
+
 class SpcLabeledEdge(
-  val label : String) extends DefaultEdge
+  val label : String) extends SpcEdge
 {
   override def toString = super.toString + " : " + label
 }
@@ -97,27 +129,27 @@ class SpcFormAssocEdge(
   def getRoleName = label
 }
 
-class SpcInverseAssocEdge extends DefaultEdge
+class SpcInverseAssocEdge extends SpcEdge
 {
 }
 
-class SpcTaxonomyEdge extends DefaultEdge
+class SpcTaxonomyEdge extends SpcEdge
 {
 }
 
-class SpcSynonymEdge extends DefaultEdge
+class SpcSynonymEdge extends SpcEdge
 {
 }
 
 class SpcEntityAssocEdge(
-  val formEdge : SpcFormAssocEdge) extends DefaultEdge
+  val formEdge : SpcFormAssocEdge) extends SpcEdge
 {
   def getRoleName = formEdge.getRoleName
 
   override def toString = super.toString + " : " + getRoleName
 }
 
-class SpcComponentEdge extends DefaultEdge
+class SpcComponentEdge extends SpcEdge
 {
 }
 
@@ -132,8 +164,9 @@ class SpcGraph(
   val propertyIndex : SpcComponentIndex[String, SpcProperty],
   val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState],
   val stateNormalizationIndex :
-      SpcComponentIndex[SilState, SpcStateNormalization]
-)
+      SpcComponentIndex[SilState, SpcStateNormalization],
+  deltas : Iterable[DeltaModification] = Iterable.empty
+) extends DeltaModification
 {
   def asUnmodifiable() =
   {
@@ -295,8 +328,8 @@ class SpcGraph(
   def render[V, E](graph : Graph[V, E]) : String =
   {
     val exporter = new GmlExporter[V, E]
-    exporter.setParameter(EXPORT_VERTEX_LABELS, true)
-    exporter.setParameter(EXPORT_EDGE_LABELS, true)
+    exporter.setVertexIDProvider(new StringComponentNameProvider[V])
+    exporter.setEdgeIDProvider(new StringComponentNameProvider[E])
     val sw = new StringWriter
     exporter.exportGraph(graph, sw)
     sw.toString
@@ -353,6 +386,8 @@ class SpcGraph(
       assert(!(hyponym.isForm && hypernym.isRole), (hyponym, hypernym).toString)
     })
     assert(!new CycleDetector(idealTaxonomy).detectCycles)
+    assert(!new CycleDetector(idealSynonyms).detectCycles)
+    assert(!new CycleDetector(entitySynonyms).detectCycles)
     assert(!new CycleDetector(components).detectCycles)
     formAssocs.edgeSet.asScala.foreach(formEdge => {
       val role = getPossesseeRole(formEdge)
@@ -408,5 +443,10 @@ class SpcGraph(
     TransitiveReduction.INSTANCE.reduce(idealTaxonomy)
     assert(idealTaxonomy.edgeSet.size == taxonomyCountBeforeReduction)
     true
+  }
+
+  override def applyModifications()
+  {
+    deltas.foreach(_.applyModifications)
   }
 }
