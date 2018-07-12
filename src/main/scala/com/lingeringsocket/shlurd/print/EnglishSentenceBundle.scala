@@ -24,54 +24,84 @@ class EnglishSentenceBundle
     extends SilSentenceBundle
 {
   override def statePredicateStatement(
-    subject : String, copula : Seq[String], state : String) =
+    subject : String, verbSeq : Seq[String], state : String) =
   {
     if (state.isEmpty) {
       // existential
-      compose((copula ++ Seq(subject)):_*)
+      compose((verbSeq ++ Seq(subject)):_*)
     } else {
-      composePredicateStatement(subject, copula, state)
+      composePredicateStatement(subject, verbSeq, state)
     }
   }
 
-  override def relationshipPredicateStatement(
-    subject : String, verb : Seq[String], complement : String) =
+  override def actionPredicate(
+    subject : String,
+    verbSeq : Seq[String],
+    directObject : Option[String],
+    indirectObject : Option[String],
+    modifiers : Seq[String],
+    mood : SilMood) =
   {
-    composePredicateStatement(subject, verb, complement)
+    val complement = compose((directObject.toSeq ++
+      indirectObject.map(n => compose(LEMMA_TO, n)) ++
+      modifiers):_*)
+    if (!mood.isInterrogative || (mood.getModality == MODAL_NEUTRAL)) {
+      composePredicateStatement(
+        subject, verbSeq, complement)
+    } else {
+      composePredicateQuestion(
+        subject, verbSeq, complement)
+    }
   }
 
   private def composePredicateStatement(
-    subject : String, verb : Seq[String], complement : String) =
+    subject : String, verbSeq : Seq[String], complement : String) =
   {
-    compose((Seq(subject) ++ verb ++ Seq(complement)):_*)
+    compose((Seq(subject) ++ verbSeq ++ Seq(complement)):_*)
   }
 
   override def statePredicateQuestion(
-    subject : String, copula : Seq[String], state : String,
+    subject : String, verbSeq : Seq[String], state : String,
     question : Option[SilQuestion]) =
   {
     if (!question.isEmpty) {
-      compose((Seq(subject) ++ copula.take(2).reverse ++
-        copula.drop(2) ++ Seq(state)):_*)
+      compose((Seq(subject) ++ verbSeq.take(2).reverse ++
+        verbSeq.drop(2) ++ Seq(state)):_*)
     } else if (state.isEmpty) {
-      compose((copula.take(2).reverse ++ copula.drop(2) ++ Seq(subject)):_*)
+      compose((verbSeq.take(2).reverse ++ verbSeq.drop(2) ++ Seq(subject)):_*)
     } else {
-      composePredicateQuestion(subject, copula, state)
+      composePredicateQuestion(subject, verbSeq, state)
     }
   }
 
-  override def relationshipPredicateQuestion(
-    subject : String, verb : Seq[String], complement : String) =
+  override def relationshipPredicate(
+    subject : String, verbSeq : Seq[String], complement : String,
+    relationship : SilRelationship, mood : SilMood) =
   {
-    composePredicateQuestion(subject, verb, complement)
+    if (mood.isInterrogative) {
+      relationship match {
+        case REL_IDENTITY => {
+          composePredicateQuestion(subject, verbSeq, complement)
+        }
+        case REL_ASSOCIATION => {
+          if (mood.getModality == MODAL_NEUTRAL) {
+            composePredicateStatement(subject, verbSeq, complement)
+          } else {
+            composePredicateQuestion(subject, verbSeq, complement)
+          }
+        }
+      }
+    } else {
+      composePredicateStatement(subject, verbSeq, complement)
+    }
   }
 
   private def composePredicateQuestion(
-    subject : String, verb : Seq[String], complement : String) =
+    subject : String, verbSeq : Seq[String], complement : String) =
   {
-    val headSeq = Seq(verb.head)
-    val tailSeq = verb.drop(1)
-    verb.size match {
+    val headSeq = Seq(verbSeq.head)
+    val tailSeq = verbSeq.drop(1)
+    verbSeq.size match {
       // "is Larry clumsy?"
       case 1 =>
         compose((headSeq ++ Seq(subject, complement)):_*)
@@ -85,7 +115,9 @@ class EnglishSentenceBundle
   }
 
   override def statePredicateCommand(subject : String, state : String) =
+  {
     compose(state, subject)
+  }
 
   private def modalCopula(
     mood : SilMood, verbLemma : String,
@@ -133,11 +165,12 @@ class EnglishSentenceBundle
     }
   }
 
-  override def copula(
+  override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
     mood : SilMood, isExistential : Boolean,
-    verbLemma : String) : Seq[String] =
+    verb : SilWord) : Seq[String] =
   {
+    val verbLemma = verb.lemma
     if ((verbLemma != LEMMA_BE) && mood.isNegative) {
       return modalCopula(mood, verbLemma, person, count)
     }
@@ -166,12 +199,13 @@ class EnglishSentenceBundle
                     case _ => LEMMA_EXIST
                   }
                 }
+                case _ => delemmatizeWord(verb)
               }
             }
             case COUNT_PLURAL => {
               verbLemma match {
                 case LEMMA_BE => "are"
-                case x => x
+                case _ => delemmatizeWord(verb)
               }
             }
           }
@@ -213,6 +247,12 @@ class EnglishSentenceBundle
     }
   }
 
+  override def actionVerb(
+    action : SilWord) =
+  {
+    delemmatizeWord(action)
+  }
+
   override def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) =
   {
@@ -220,15 +260,15 @@ class EnglishSentenceBundle
   }
 
   override def delemmatizeNoun(
-    entity : SilWord, count : SilCount,
+    noun : SilWord, count : SilCount,
     inflection : SilInflection,
     conjoining : SilConjoining) =
   {
     val unseparated = {
-      if (entity.inflected.isEmpty || (inflection == INFLECT_GENITIVE)) {
+      if (noun.inflected.isEmpty || (inflection == INFLECT_GENITIVE)) {
         val lemma = inflection match {
-          case INFLECT_GENITIVE => entity.inflected
-          case _ => entity.lemmaUnfolded
+          case INFLECT_GENITIVE => noun.inflected
+          case _ => noun.lemmaUnfolded
         }
         val base = count match {
           case COUNT_SINGULAR => {
@@ -256,7 +296,7 @@ class EnglishSentenceBundle
           case _ => base
         }
       } else {
-        entity.inflected
+        noun.inflected
       }
     }
     separate(unseparated, conjoining)
@@ -282,13 +322,18 @@ class EnglishSentenceBundle
     separate(unseparated, conjoining)
   }
 
+  private def delemmatizeWord(word : SilWord) =
+  {
+    if (word.inflected.isEmpty) {
+      word.lemmaUnfolded
+    } else {
+      word.inflected
+    }
+  }
+
   override def delemmatizeQualifier(qualifier : SilWord) =
   {
-    if (qualifier.inflected.isEmpty) {
-      qualifier.lemmaUnfolded
-    } else {
-      qualifier.inflected
-    }
+    delemmatizeWord(qualifier)
   }
 
   override def conjoin(
@@ -406,12 +451,12 @@ class EnglishSentenceBundle
       person match {
         case PERSON_FIRST => count match {
           case COUNT_SINGULAR => inflection match {
-            case INFLECT_ACCUSATIVE => LEMMA_ME
+            case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_ME
             case INFLECT_GENITIVE => LEMMA_MY
             case _ => "I"
           }
           case COUNT_PLURAL => inflection match {
-            case INFLECT_ACCUSATIVE => LEMMA_US
+            case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_US
             case INFLECT_GENITIVE => LEMMA_OUR
             case _ => LEMMA_WE
           }
@@ -423,12 +468,13 @@ class EnglishSentenceBundle
         case PERSON_THIRD => count match {
           case COUNT_SINGULAR => gender match {
             case GENDER_M => inflection match {
-              case INFLECT_ACCUSATIVE => LEMMA_HIM
+              case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_HIM
               case INFLECT_GENITIVE => LEMMA_HIS
               case _ => LEMMA_HE
             }
             case GENDER_F => inflection match {
-              case INFLECT_ACCUSATIVE | INFLECT_GENITIVE => LEMMA_HER
+              case INFLECT_ACCUSATIVE | INFLECT_GENITIVE |
+                  INFLECT_DATIVE => LEMMA_HER
               case _ => LEMMA_SHE
             }
             case GENDER_N => inflection match {
@@ -437,7 +483,7 @@ class EnglishSentenceBundle
             }
           }
           case COUNT_PLURAL => inflection match {
-            case INFLECT_ACCUSATIVE => LEMMA_THEM
+            case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_THEM
             case INFLECT_GENITIVE => LEMMA_THEIR
             case _ => LEMMA_THEY
           }
@@ -460,6 +506,11 @@ class EnglishSentenceBundle
   override def unknownState() =
   {
     "discombobulated"
+  }
+
+  override def unknownVerbModifier() =
+  {
+    "mimsily"
   }
 
   override def unknownCopula() =
@@ -555,7 +606,7 @@ class EnglishSentenceBundle
   }
 
   override def predicateUnrecognizedSubject(
-    mood : SilMood, complement : String, copula : Seq[String],
+    mood : SilMood, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],
     question : Option[SilQuestion]) =
   {
@@ -577,7 +628,7 @@ class EnglishSentenceBundle
     mood match {
       case _ : SilIndicativeMood => {
         compose("that",
-          composePredicateStatement(something, copula, complement))
+          composePredicateStatement(something, verbSeq, complement))
       }
       case _ : SilInterrogativeMood => {
         val whord = {
@@ -588,7 +639,7 @@ class EnglishSentenceBundle
           }
         }
         compose(whord,
-          composePredicateStatement(something, copula, complement))
+          composePredicateStatement(something, verbSeq, complement))
       }
       case MOOD_IMPERATIVE => {
         compose(
@@ -599,7 +650,7 @@ class EnglishSentenceBundle
 
   override def predicateUnrecognizedComplement(
     mood : SilMood, subject : String,
-    copula : Seq[String],
+    verbSeq : Seq[String],
     question : Option[SilQuestion],
     isRelationship : Boolean) =
   {
@@ -619,7 +670,7 @@ class EnglishSentenceBundle
             }
           }
           composePredicateStatement(
-            query(subject, question), copula, complement)
+            query(subject, question), verbSeq, complement)
         }
       }
     }

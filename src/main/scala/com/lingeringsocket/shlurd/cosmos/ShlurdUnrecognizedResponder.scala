@@ -119,9 +119,9 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
         }
       }
     }
-    val copula = sb.copula(
+    val verbSeq = sb.delemmatizeVerb(
       PERSON_THIRD, GENDER_N, count,
-      mood, false, verbLemma)
+      mood, false, SilWord(verbLemma))
     if (!subject.hasUnknown) {
       assert(complement.hasUnknown)
       sb.respondNotUnderstood(
@@ -132,7 +132,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
             subject,
             if (question.isEmpty) INFLECT_ACCUSATIVE else INFLECT_NOMINATIVE,
             SilConjoining.NONE),
-          copula, question, !rel.isEmpty),
+          verbSeq, question, !rel.isEmpty),
         complement.toWordString)
     } else if (!complement.hasUnknown) {
       assert(subject.hasUnknown)
@@ -155,7 +155,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
             }
             case _ => complement.toWordString
           },
-          copula, count, changeVerb, question),
+          verbSeq, count, changeVerb, question),
         subject.toWordString)
     } else {
       ""

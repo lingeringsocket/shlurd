@@ -16,8 +16,6 @@ package com.lingeringsocket.shlurd.print
 
 import com.lingeringsocket.shlurd.parser._
 
-import ShlurdEnglishLemmas._
-
 case class SilConjoining(
   determiner : SilDeterminer,
   separator : SilSeparator,
@@ -76,51 +74,41 @@ abstract class SilSentenceBundle
 
   def statePredicateStatement(
     subject : String,
-    copula : Seq[String],
+    verbSeq : Seq[String],
     state : String) : String
 
-  def relationshipPredicateStatement(
+  def actionPredicate(
+    subject : String,
+    verbSeq : Seq[String],
+    directObject : Option[String],
+    indirectObject : Option[String],
+    modifiers : Seq[String],
+    mood : SilMood) : String
+
+  def relationshipPredicate(
     firstRef : String,
-    copula : Seq[String],
-    secondRef : String) : String
+    verbSeq : Seq[String],
+    secondRef : String,
+    relationship : SilRelationship,
+    mood : SilMood) : String
 
   def statePredicateQuestion(
     subject : String,
-    copula : Seq[String],
+    verbSeq : Seq[String],
     state : String,
     question : Option[SilQuestion]) : String
 
-  def relationshipPredicateQuestion(
-    firstRef : String,
-    copula : Seq[String],
-    secondRef : String) : String
-
   def statePredicateCommand(subject : String, state : String) : String
 
-  def copula(
+  def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
     mood : SilMood, isExistential : Boolean,
-    relationship : SilRelationship) : Seq[String] =
-  {
-    val verbLemma = relationship match {
-      case REL_IDENTITY => {
-        if (isExistential && (mood.getModality == MODAL_EMPHATIC)) {
-          LEMMA_EXIST
-        } else {
-          LEMMA_BE
-        }
-      }
-      case REL_ASSOCIATION => LEMMA_HAVE
-    }
-    copula(person, gender, count, mood, isExistential, verbLemma)
-  }
-
-  def copula(
-    person : SilPerson, gender : SilGender, count : SilCount,
-    mood : SilMood, isExistential : Boolean,
-    verbLemma : String) : Seq[String]
+    verb : SilWord) : Seq[String]
 
   def adpositionString(adposition : SilAdposition) : String
+
+  def actionVerb(
+    action : SilWord) : String
 
   def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) : String
@@ -177,13 +165,13 @@ abstract class SilSentenceBundle
     mood : SilMood, predicate : String, errorPhrase : String) : String
 
   def predicateUnrecognizedSubject(
-    mood : SilMood, complement : String, copula : Seq[String],
+    mood : SilMood, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],
     question : Option[SilQuestion]) : String
 
   def predicateUnrecognizedComplement(
     mood : SilMood, subject : String,
-    copula : Seq[String],
+    verbSeq : Seq[String],
     question : Option[SilQuestion],
     isRelationship : Boolean) : String
 
@@ -228,6 +216,8 @@ abstract class SilSentenceBundle
   def unknownReference() : String
 
   def unknownState() : String
+
+  def unknownVerbModifier() : String
 
   def unknownCopula() : String
 

@@ -94,12 +94,22 @@ object ShlurdSyntaxRewrite
     ShlurdSyntaxNode(label, children)
   }
 
-  def rewriteAbstract(tree : ShlurdAbstractSyntaxTree) : ShlurdSyntaxTree =
+  def rewriteAbstract(
+    tree : ShlurdAbstractSyntaxTree,
+    stripDependencies : Boolean = false) : ShlurdSyntaxTree =
   {
     if (tree.isLeaf) {
-      ShlurdSyntaxLeaf(tree.label, tree.lemma, tree.token)
+      val incomingDep = {
+        if (stripDependencies) {
+          ""
+        } else {
+          tree.incomingDep
+        }
+      }
+      ShlurdSyntaxLeaf(tree.label, tree.lemma, tree.token, incomingDep)
     } else {
-      val children = tree.children.map(rewriteAbstract)
+      val children = tree.children.map(
+        c => rewriteAbstract(c, stripDependencies))
       recompose(tree, children)
     }
   }

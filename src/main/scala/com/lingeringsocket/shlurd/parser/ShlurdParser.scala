@@ -105,11 +105,13 @@ class ShlurdMultipleParser(singles : Seq[ShlurdParser])
 }
 
 class CorenlpTreeWrapper(
-  corenlp : Tree, tokens : Seq[String], lemmas : Seq[String])
+  corenlp : Tree, tokens : Seq[String], lemmas : Seq[String],
+  incomingDeps : Seq[String])
     extends ShlurdAbstractSyntaxTree
 {
   private val wrappedChildren =
-    corenlp.children.map(new CorenlpTreeWrapper(_, tokens, lemmas))
+    corenlp.children.map(
+      new CorenlpTreeWrapper(_, tokens, lemmas, incomingDeps))
 
   override def label =
     corenlp.label.value.split("-").head
@@ -118,6 +120,9 @@ class CorenlpTreeWrapper(
     lemmas(corenlp.label.asInstanceOf[HasIndex].index)
 
   override def token = tokens(corenlp.label.asInstanceOf[HasIndex].index)
+
+  override def incomingDep =
+    incomingDeps(corenlp.label.asInstanceOf[HasIndex].index)
 
   override def children = wrappedChildren
 }
@@ -194,23 +199,32 @@ object ShlurdParser
 
   private def prepareParser(
     sentenceString : String, tokens : Seq[String], props : Properties,
-    needDependencies : Boolean, guessedQuestion : Boolean,
+    preDependencies : Boolean, guessedQuestion : Boolean,
     dump : Boolean, dumpPrefix : String) =
   {
+    var deps : Seq[String] = Seq.empty
     val sentence = tokenize(sentenceString).head
-    if (needDependencies) {
-      // It's important to analyze dependencies BEFORE parsing in
-      // order to get the best parse
-      analyzeDependencies(sentence)
+    if (preDependencies) {
+      // when preDependencies is requested, it's important to analyze
+      // dependencies BEFORE parsing in order to get the best parse
+      deps = analyzeDependencies(sentence)
     }
     val corenlp = sentence.parse(props)
     if (dump) {
       println(dumpPrefix + " PARSE = " + corenlp)
     }
     corenlp.indexLeaves(0, true)
+    if (!preDependencies) {
+      // when preDependencies is not requested, it's important to analyze
+      // dependencies AFTER parsing in order to get the best parse
+      deps = analyzeDependencies(sentence)
+    }
     val lemmas = sentence.lemmas.asScala
+    if (dump) {
+      println(dumpPrefix + " DEPS = " + tokens.zip(deps))
+    }
     val syntaxTree = ShlurdSyntaxRewrite.rewriteAbstract(
-      new CorenlpTreeWrapper(corenlp, tokens, lemmas))
+      new CorenlpTreeWrapper(corenlp, tokens, lemmas, deps))
     val rewrittenTree = ShlurdSyntaxRewrite.rewriteEither(syntaxTree)
     if (dump) {
       println(dumpPrefix + " REWRITE = " + rewrittenTree)
@@ -218,13 +232,13 @@ object ShlurdParser
     new ShlurdSingleParser(rewrittenTree, tokens, lemmas, guessedQuestion)
   }
 
-  private def analyzeDependencies(sentence : Sentence) =
+  private def analyzeDependencies(sentence : Sentence) : Seq[String] =
   {
     val props = new Properties
     props.setProperty(
       "depparse.model",
       "edu/stanford/nlp/models/parser/nndep/english_SD.gz")
-    sentence.dependencyGraph(props)
+    sentence.incomingDependencyLabels(props).asScala.map(_.orElse(""))
   }
 
   def getResourcePath(resource : String) =

@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.print
 
 import com.lingeringsocket.shlurd.parser._
 
+import ShlurdEnglishLemmas._
+
 object SilSentencePrinter
 {
   private val ELLIPSIS_MARKER = "<...>"
@@ -101,12 +103,10 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       }
       case SilStateSpecifiedReference(sub, state) => {
         state match {
-          case SilAdpositionalState(adposition, objRef) => {
+          case adpositionalState : SilAdpositionalState => {
             val specified = print(sub, inflection, SilConjoining.NONE)
-            val specifier = sb.adpositionedNoun(
-              sb.adpositionString(adposition),
-              print(objRef, INFLECT_ACCUSATIVE, SilConjoining.NONE),
-              conjoining)
+            val specifier = printAdpositionalPhrase(
+              adpositionalState, conjoining)
             return sb.specifiedNoun(specifier, specified)
           }
           case _ => {
@@ -168,11 +168,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case SilPropertyState(state) => {
         sb.delemmatizeState(state, mood, conjoining)
       }
-      case SilAdpositionalState(adposition, objRef) => {
-        sb.adpositionedNoun(
-          sb.adpositionString(adposition),
-          print(objRef, INFLECT_NONE, SilConjoining.NONE),
-          conjoining)
+      case adpositionalState : SilAdpositionalState => {
+        printAdpositionalPhrase(adpositionalState, conjoining)
       }
       case SilConjunctiveState(determiner, states, separator) => {
         sb.conjoin(
@@ -218,7 +215,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         }
         sb.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
-          getCopula(subject, state, mood, REL_IDENTITY),
+          getVerbSeq(subject, state, mood, REL_IDENTITY),
           rhs)
       }
       case SilRelationshipPredicate(subject, complement, relationship) => {
@@ -245,10 +242,26 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             print(complement, complementInflection, SilConjoining.NONE)
           }
         }
-        sb.relationshipPredicateStatement(
+        sb.relationshipPredicate(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
-          getCopula(subject, SilNullState(), mood, relationship),
-          rhs)
+          getVerbSeq(subject, SilNullState(), mood, relationship),
+          rhs,
+          relationship,
+          mood)
+      }
+      case SilActionPredicate(
+        subject, action, directObject, indirectObject, modifiers
+      ) => {
+        val count = SilReference.getCount(subject)
+        sb.actionPredicate(
+          print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
+          getVerbSeq(subject, action, moodOriginal),
+          directObject.map(
+            ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
+          indirectObject.map(
+            ref => print(ref, INFLECT_DATIVE, SilConjoining.NONE)),
+          modifiers.map(printVerbModifier(_)),
+          moodOriginal)
       }
       case _ : SilUnknownPredicate => {
         sb.unknownPredicateStatement
@@ -281,17 +294,32 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           sb.query(
             print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
             question),
-          getCopula(subject, state, mood, REL_IDENTITY),
+          getVerbSeq(subject, state, mood, REL_IDENTITY),
           print(state, mood, SilConjoining.NONE),
           question)
       }
+      case SilActionPredicate(
+        subject, action, directObject, indirectObject, modifiers
+      ) => {
+        sb.actionPredicate(
+          print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
+          getVerbSeq(subject, action, mood),
+          directObject.map(
+            ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
+          indirectObject.map(
+            ref => print(ref, INFLECT_DATIVE, SilConjoining.NONE)),
+          modifiers.map(printVerbModifier(_)),
+          mood)
+      }
       case SilRelationshipPredicate(subject, complement, relationship) => {
-        sb.relationshipPredicateQuestion(
+        sb.relationshipPredicate(
           sb.query(
             print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
             question),
-          getCopula(subject, SilNullState(), mood, relationship),
-          print(complement, INFLECT_NOMINATIVE, SilConjoining.NONE))
+          getVerbSeq(subject, SilNullState(), mood, relationship),
+          print(complement, INFLECT_NOMINATIVE, SilConjoining.NONE),
+          relationship,
+          mood)
       }
       case _ : SilUnknownPredicate => {
         sb.unknownPredicateQuestion
@@ -299,27 +327,54 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
-  private def getCopula(
-    subject : SilReference, state : SilState, mood : SilMood,
-    relationship : SilRelationship)
-      : Seq[String] =
+  private def getVerbSeq(
+    person : SilPerson, gender : SilGender, count : SilCount,
+    mood : SilMood, isExistential : Boolean,
+    relationship : SilRelationship) : Seq[String] =
   {
-    val isExistential = state match {
-      case SilExistenceState() => true
-      case _ => false
+    val verbLemma = relationship match {
+      case REL_IDENTITY => {
+        if (isExistential && (mood.getModality == MODAL_EMPHATIC)) {
+          LEMMA_EXIST
+        } else {
+          LEMMA_BE
+        }
+      }
+      case REL_ASSOCIATION => LEMMA_HAVE
     }
+    sb.delemmatizeVerb(
+      person, gender, count, mood, isExistential, SilWord(verbLemma))
+  }
+
+  private def getVerbSeq(
+    subject : SilReference,
+    action : SilWord,
+    mood : SilMood) : Seq[String] =
+  {
+    subject match {
+      case _ : SilUnknownReference => {
+        Seq(sb.unknownCopula)
+      }
+      case _ => {
+        val (person, gender, count) = getSubjectAttributes(subject)
+        sb.delemmatizeVerb(person, gender, count, mood, false, action)
+      }
+    }
+  }
+
+  private def getSubjectAttributes(
+    subject : SilReference, isExistential : Boolean = false)
+      : (SilPerson, SilGender, SilCount) =
+  {
     subject match {
       case SilPronounReference(person, gender, count) => {
-        sb.copula(person, gender, count, mood, isExistential, relationship)
+        (person, gender, count)
       }
       case SilNounReference(_, _, count) => {
-        sb.copula(
-          PERSON_THIRD, GENDER_N, count, mood, isExistential, relationship)
+        (PERSON_THIRD, GENDER_N, count)
       }
       case rr : SilResolvedReference[_] => {
-        sb.copula(
-          PERSON_THIRD, GENDER_N, SilReference.getCount(rr),
-          mood, isExistential, relationship)
+        (PERSON_THIRD, GENDER_N, SilReference.getCount(rr))
       }
       case SilConjunctiveReference(determiner, references, _) => {
         val count = if (isExistential) {
@@ -334,19 +389,64 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         }
         // FIXME:  also derive person and gender from underlying references,
         // since it makes a difference in languages such as Spanish
-        sb.copula(
-          PERSON_THIRD, GENDER_N, count, mood, isExistential, relationship)
+        (PERSON_THIRD, GENDER_N, count)
       }
       case SilStateSpecifiedReference(reference, _) => {
-        getCopula(reference, state, mood, relationship)
+        getSubjectAttributes(reference, isExistential)
       }
       case SilGenitiveReference(possessor, possessee) => {
-        getCopula(possessee, state, mood, relationship)
+        getSubjectAttributes(possessee, isExistential)
       }
+      case _ : SilUnknownReference => {
+        (PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
+      }
+    }
+  }
+
+  private def getVerbSeq(
+    subject : SilReference, state : SilState, mood : SilMood,
+    relationship : SilRelationship)
+      : Seq[String] =
+  {
+    subject match {
       case _ : SilUnknownReference => {
         Seq(sb.unknownCopula)
       }
+      case _ => {
+        val isExistential = state match {
+          case SilExistenceState() => true
+          case _ => false
+        }
+        val (person, gender, count) =
+          getSubjectAttributes(subject, isExistential)
+        getVerbSeq(person, gender, count, mood, isExistential, relationship)
+      }
     }
+  }
+
+  def printVerbModifier(modifier : SilVerbModifier) : String =
+  {
+    modifier match {
+      case SilBasicVerbModifier(words) => {
+        sb.composeQualifiers(words)
+      }
+      case adpositionalPhrase : SilAdpositionalVerbModifier => {
+        printAdpositionalPhrase(adpositionalPhrase, SilConjoining.NONE)
+      }
+      case _ : SilUnknownVerbModifier => {
+        sb.unknownVerbModifier
+      }
+    }
+  }
+
+  def printAdpositionalPhrase(
+    phrase : SilAdpositionalPhrase,
+    conjoining : SilConjoining) : String =
+  {
+    sb.adpositionedNoun(
+      sb.adpositionString(phrase.adposition),
+      print(phrase.objRef, INFLECT_ACCUSATIVE, SilConjoining.NONE),
+      conjoining)
   }
 }
 

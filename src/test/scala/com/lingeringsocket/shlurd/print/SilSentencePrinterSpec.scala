@@ -90,6 +90,8 @@ class SilSentencePrinterSpec extends Specification
       skipped("maybe one day")
       expectQuestion("is neither franny nor zooey speaking")
       expectStatement("a vehicle must be either moving or stopped")
+      expectQuestion("does the door close")
+      expectPreserved("does the mule kick the ball smugly at the vase?")
     }
 
     "preserve sentences" in
@@ -100,6 +102,9 @@ class SilSentencePrinterSpec extends Specification
       expectPreserved("the door can be closed.")
       expectPreserved("can the door be closed?")
       expectPreserved("can the door not be closed?")
+      expectPreserved("the mule has the ball?")
+      expectPreserved("the mule kicks the ball smugly at the vase?")
+      expectPreserved("does the mule have the ball?")
     }
 
     "normalize sentences" in
@@ -202,6 +207,21 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("a vehicle with a propellor exists",
         "there is a vehicle with a propellor.")
       expectNormalized("who exists", "who is there?")
+      expectStatement("the door closes")
+      expectStatement("the door does close")
+      expectStatement("my parents close the door")
+      expectStatement("Marina closes the door")
+      expectQuestion("does the door open")
+      expectQuestion("do my parents open the door")
+      expectQuestion("does Marina open the door")
+      expectNormalized(
+        "Scalieri sends Mozart a letter",
+        "Scalieri sends a letter to Mozart.")
+      expectNormalized(
+        "in the morning Scalieri sends Mozart a letter",
+        "Scalieri sends a letter to Mozart in the morning.")
+      expectStatement("the mule kicks the ball smugly at the vase")
+      expectQuestion("does the mule eat the grass very smugly in the field")
     }
   }
 }

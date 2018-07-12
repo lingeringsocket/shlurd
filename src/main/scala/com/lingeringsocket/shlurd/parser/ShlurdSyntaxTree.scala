@@ -79,6 +79,8 @@ trait ShlurdAbstractSyntaxTree
 
   def token : String
 
+  def incomingDep : String
+
   def children : Seq[ShlurdAbstractSyntaxTree]
 
   def numChildren = children.size
@@ -103,11 +105,19 @@ trait ShlurdAbstractSyntaxTree
   def hasTerminalLabel(label : String, terminalLabel : String) =
     isPreTerminal && hasLabel(label) && firstChild.hasLabel(terminalLabel)
 
+  def isNounNode = isNoun || isNounPhrase
+
   def isNounPhrase = hasLabel(LABEL_NP)
 
   def isVerbPhrase = hasLabel(LABEL_VP)
 
+  def isAdverbPhrase = hasLabel(LABEL_ADVP)
+
+  def isAdverbNode = isAdverbPhrase || isAdverb
+
   def isAdpositionalPhrase = hasLabel(LABEL_PP)
+
+  def isAdverbialPhrase = isAdpositionalPhrase || isAdverbNode
 
   def isParticlePhrase = hasLabel(LABEL_PRT)
 
@@ -172,6 +182,12 @@ trait ShlurdAbstractSyntaxTree
         line <> vsep(children.map(_.toDoc).to[immutable.Seq], space)))
   }
 
+  def containsIncomingDependency(dep : String) : Boolean =
+  {
+    (incomingDep == dep) ||
+      children.exists(_.containsIncomingDependency(dep))
+  }
+
   def foldedToken : String =
   {
     if (!lemma.isEmpty && lemma.head.isLower) {
@@ -225,9 +241,12 @@ sealed trait ShlurdSyntaxNonLeaf extends ShlurdSyntaxTree
   override def token = ""
 
   override def lemma = ""
+
+  override def incomingDep = ""
 }
 
-case class ShlurdSyntaxLeaf(label : String, lemma : String, token : String)
+case class ShlurdSyntaxLeaf(
+  label : String, lemma : String, token : String, incomingDep : String = "")
     extends ShlurdSyntaxTree
 {
   override def children = Seq.empty
@@ -239,7 +258,6 @@ case class ShlurdSyntaxLeaf(label : String, lemma : String, token : String)
     value(this)
   }
 }
-
 
 sealed trait ShlurdSyntaxUniqueChild extends ShlurdSyntaxNonLeaf
 {

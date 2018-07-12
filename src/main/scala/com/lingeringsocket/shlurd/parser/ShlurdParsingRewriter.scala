@@ -51,6 +51,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     replaceAmbiguousSentence,
     replaceUnresolvedPredicate,
     replaceExpectedState,
+    replaceExpectedVerbModifier,
     replaceExpectedReference)
 
   private def replaceExpectedSentence = replacementMatcher {
@@ -89,6 +90,18 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     }
     case SilExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
       recognizePronounReference(pronoun.child)
+    }
+  }
+
+  private def replaceExpectedVerbModifier = replacementMatcher {
+    case SilExpectedVerbModifier(advp : SptADVP) => {
+      analyzer.expectAdverbialVerbModifier(advp)
+    }
+    case SilExpectedVerbModifier(advp : ShlurdSyntaxAdverb) => {
+      analyzer.expectBasicVerbModifier(advp)
+    }
+    case SilExpectedVerbModifier(pp : SptPP) => {
+      analyzer.expectAdpositionalVerbModifier(pp)
     }
   }
 
@@ -136,6 +149,10 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       {
         resolveStatePredicate(predicate)
       }
+    case predicate : SilUnresolvedActionPredicate =>
+      {
+        resolveActionPredicate(predicate)
+      }
     case predicate : SilUnresolvedRelationshipPredicate =>
       {
         resolveRelationshipPredicate(predicate)
@@ -182,6 +199,9 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     case predicate : SilUnresolvedStatePredicate => {
       resolveStatePredicate(predicate)
     }
+    case predicate : SilUnresolvedActionPredicate => {
+      resolveActionPredicate(predicate)
+    }
     case predicate : SilUnresolvedRelationshipPredicate => {
       resolveRelationshipPredicate(predicate)
     }
@@ -191,9 +211,20 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     predicate : SilUnresolvedRelationshipPredicate) =
   {
     SilRelationshipPredicate(
-      predicate.reference,
+      predicate.subject,
       predicate.complement,
       predicate.relationship)
+  }
+
+  private def resolveActionPredicate(
+    predicate : SilUnresolvedActionPredicate) =
+  {
+    SilActionPredicate(
+      predicate.subject,
+      predicate.action,
+      predicate.directObject,
+      predicate.indirectObject,
+      predicate.modifiers)
   }
 
   private def resolveStatePredicate(

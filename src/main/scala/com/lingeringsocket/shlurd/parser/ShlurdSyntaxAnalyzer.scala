@@ -41,12 +41,17 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         tree, Seq(LABEL_DOT, LABEL_EXCLAMATION_MARK, LABEL_QUESTION_MARK))
     if (isImperative(children)) {
       expectCommand(tree, children.head, SilFormality(force))
-    } else if (children.size == 2) {
-      val np = children.head
-      val vp = children.last
-      if (np.isNounPhrase && vp.isVerbPhrase) {
+    } else if (children.size >= 2) {
+      val tail = children.takeRight(2)
+      val np = tail.head
+      val vp = tail.last
+      val verbModifiers = children.dropRight(2)
+      if (np.isNounPhrase && vp.isVerbPhrase &&
+        verbModifiers.forall(_.isAdverbialPhrase))
+      {
         expectPredicateSentence(
-          tree, np, vp, isQuestion, force, MODAL_NEUTRAL, false)
+          tree, np, vp, verbModifiers,
+          isQuestion, force, MODAL_NEUTRAL, false)
       } else {
         SilUnrecognizedSentence(tree)
       }
@@ -86,21 +91,23 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         case _ => 2
       }
       if (seq.size == expectedSize) {
-        val (verbHead, np, ap, negative) = modality match {
+        val (verbHead, np, vp, rhs, negative) = modality match {
           // "is Larry smart?"
           case MODAL_NEUTRAL => {
-            (seq(0), seq(1), seq(2), negativeSuper)
+            val vp = SptVP(seq(0), seq(2))
+            (seq(0), seq(1), vp, seq(2), negativeSuper)
           }
           // "(can) Larry [be [smart]]?"
           case _ => {
             val vp = seq(1)
             val (negativeSub, sub) = extractNegative(vp.children)
-            (sub.head, seq(0), sub.last, (negativeSub ^ negativeSuper))
+            (sub.head, seq(0), vp, sub.last, (negativeSub ^ negativeSuper))
           }
         }
         if (verbHead.isRelationshipVerb) {
+          // FIXME process remainder
           val (negativeSub, predicate) =
-            expectPredicate(tree, np, ap, specifiedState,
+            expectPredicate(tree, np, rhs, specifiedState,
               relationshipFor(verbHead))
           val positive = !(negative ^ negativeSub)
           rememberPredicateCount(predicate, verbHead)
@@ -108,7 +115,12 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
             predicate,
             SilInterrogativeMood(positive, modality))
         } else {
-          SilUnrecognizedSentence(tree)
+          val (negativeSub, predicate) = analyzeActionPredicate(tree, np, vp)
+          val positive = !(negative ^ negativeSub)
+          rememberPredicateCount(predicate, verbHead)
+          SilPredicateSentence(
+            predicate,
+            SilInterrogativeMood(positive, modality))
         }
       } else {
         SilUnrecognizedSentence(tree)
@@ -269,7 +281,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
 
   private def expectPredicateSentence(
     tree : SptS,
-    np : ShlurdSyntaxTree, vp : ShlurdSyntaxTree, isQuestion : Boolean,
+    np : ShlurdSyntaxTree, vp : ShlurdSyntaxTree,
+    verbModifiers : Seq[ShlurdSyntaxTree], isQuestion : Boolean,
     force : SilForce, modality : SilModality,
     negativeSuper : Boolean) : SilSentence =
   {
@@ -280,14 +293,16 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     if (verbHead.isModal) {
       val vpSub = vpChildren.last
       if ((vpChildren.size == 2) && vpSub.isVerbPhrase) {
-        val modality = modalityFor(requireLeaf(verbHead.children))
+        val explicitModality = modalityFor(requireLeaf(verbHead.children))
         expectPredicateSentence(
-          tree, np, vpSub, isQuestion, force, modality, negative)
+          tree, np, vpSub, verbModifiers,
+          isQuestion, force, explicitModality, negative)
       } else {
         SilUnrecognizedSentence(tree)
       }
     } else if (verbHead.isRelationshipVerb) {
-      if (vpChildren.size > 2) {
+      // FIXME:  support verbModifiers
+      if (vpChildren.size > 2 || !verbModifiers.isEmpty) {
         SilUnrecognizedSentence(tree)
       } else {
         val (specifiedState, vpRemainder) =
@@ -298,18 +313,32 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           relationshipFor(verbHead))
         val positive = !(negative ^ negativeComplement)
         rememberPredicateCount(predicate, verbHead)
-        if (isQuestion) {
-          SilPredicateSentence(
-            predicate, SilInterrogativeMood(positive, modality),
-            SilFormality(force))
-        } else {
-          SilPredicateSentence(
-            predicate, SilIndicativeMood(positive, modality),
-            SilFormality(force))
+        val mood = {
+          if (isQuestion) {
+            SilInterrogativeMood(positive, modality)
+          } else {
+            SilIndicativeMood(positive, modality)
+          }
         }
+        SilPredicateSentence(
+          predicate, mood, SilFormality(force))
       }
     } else {
-      SilUnrecognizedSentence(tree)
+      val (negativeVerb, predicate) = analyzeActionPredicate(
+        tree, np, vp, verbModifiers)
+      val positive = !(negative ^ negativeVerb)
+      rememberPredicateCount(predicate, verbHead)
+      val mood = {
+        if (isQuestion) {
+          SilInterrogativeMood(positive, modality)
+        } else {
+          SilIndicativeMood(positive, modality)
+        }
+      }
+      SilPredicateSentence(
+        predicate,
+        mood,
+        SilFormality(force))
     }
   }
 
@@ -371,6 +400,17 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     specifiedState : SilState = SilNullState()) =
   {
     SilUnresolvedStatePredicate(syntaxTree, subject, state, specifiedState)
+  }
+
+  private def expectActionPredicate(
+    syntaxTree : ShlurdSyntaxTree,
+    subject : SilReference, action : SilWord,
+    directObject : Option[SilReference],
+    indirectObject : Option[SilReference],
+    modifiers : Seq[SilVerbModifier]) =
+  {
+    SilUnresolvedActionPredicate(
+      syntaxTree, subject, action, directObject, indirectObject, modifiers)
   }
 
   private def expectRelationshipPredicate(
@@ -452,6 +492,108 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       SilAdpositionalState(adposition, expectReference(seq.last))
     } else {
       SilUnrecognizedState(tree)
+    }
+  }
+
+  private def analyzeActionPredicate(
+    syntaxTree : ShlurdSyntaxTree,
+    np : ShlurdSyntaxTree,
+    vp : ShlurdSyntaxTree,
+    verbModifiers : Seq[ShlurdSyntaxTree] = Seq.empty)
+      : (Boolean, SilPredicate) =
+  {
+    val (negative, seq) = extractNegative(vp.children)
+    // FIXME should support "there goes the mailman"?
+    if (np.isExistential) {
+      return (negative, SilUnrecognizedPredicate(syntaxTree))
+    }
+    val subject = expectReference(np)
+    if (seq.isEmpty) {
+      return (negative, SilUnrecognizedPredicate(syntaxTree))
+    }
+    val verbHead = seq.head
+    val action = verbHead match {
+      case verb : ShlurdSyntaxVerb => {
+        getWord(verb.child)
+      }
+      case _ => {
+        return (negative, SilUnrecognizedPredicate(syntaxTree))
+      }
+    }
+    val (directObject, indirectObject, extraModifiers) =
+      expectVerbObjectsAndModifiers(seq.drop(1))
+    val predicate = expectActionPredicate(
+      syntaxTree,
+      subject, action,
+      directObject,
+      indirectObject,
+      verbModifiers.map(expectVerbModifier) ++ extraModifiers)
+    (negative, predicate)
+  }
+
+  private def expectVerbObjectsAndModifiers(seq : Seq[ShlurdSyntaxTree]) =
+  {
+    val objCandidates = seq.filter(_.isNounNode)
+    val directObjTree = objCandidates.find(
+      _.containsIncomingDependency("dobj")) match
+    {
+      case Some(dobj) => {
+        Some(dobj)
+      }
+      case _ => {
+        objCandidates.lastOption
+      }
+    }
+    val minusDirect = objCandidates.filterNot(Some(_) == directObjTree)
+    val indirectObjTree = minusDirect.find(
+      _.containsIncomingDependency("iobj")) match
+    {
+      case Some(iobj) => {
+        Some(iobj)
+      }
+      case _ => {
+        minusDirect.headOption
+      }
+    }
+    val objTrees = directObjTree.toSeq ++ indirectObjTree
+    val modifiers = seq.filterNot(objTrees.contains(_))
+    (directObjTree.map(expectReference),
+      indirectObjTree.map(expectReference),
+      modifiers.map(expectVerbModifier))
+  }
+
+  private def expectVerbModifier(tree : ShlurdSyntaxTree) =
+  {
+    SilExpectedVerbModifier(tree)
+  }
+
+  private[parser] def expectAdverbialVerbModifier(tree : SptADVP)
+      : SilVerbModifier =
+  {
+    val words = tree.children.map(_ match {
+      case adverb : ShlurdSyntaxAdverb => {
+        getWord(adverb.child)
+      }
+      case _ => return expectAdpositionalVerbModifier(tree)
+    })
+    SilBasicVerbModifier(words)
+  }
+
+  private[parser] def expectBasicVerbModifier(tree : ShlurdSyntaxAdverb)
+      : SilVerbModifier =
+  {
+    SilBasicVerbModifier(Seq(getWord(tree.child)))
+  }
+
+  private[parser] def expectAdpositionalVerbModifier(tree : ShlurdSyntaxTree) =
+  {
+    expectAdpositionalState(tree) match {
+      case SilAdpositionalState(adposition, objRef) => {
+        SilAdpositionalVerbModifier(adposition, objRef)
+      }
+      case _ => {
+        SilUnrecognizedVerbModifier(tree)
+      }
     }
   }
 

@@ -81,6 +81,10 @@ sealed trait SilState extends SilPhrase
 {
 }
 
+sealed trait SilVerbModifier extends SilPhrase
+{
+}
+
 sealed trait SilUnknownPhrase extends SilPhrase
 {
   override def hasUnknown = true
@@ -119,6 +123,11 @@ sealed trait SilUnknownState
 {
 }
 
+sealed trait SilUnknownVerbModifier
+    extends SilVerbModifier with SilUnknownPhrase
+{
+}
+
 sealed trait SilUnrecognizedPhrase extends SilPhrase
 {
 }
@@ -142,6 +151,15 @@ abstract class SilTransformedPhrase extends SilPhrase
   override def maybeSyntaxTree = syntaxTreeOpt
 }
 
+sealed trait SilAdpositionalPhrase extends SilTransformedPhrase
+{
+  def adposition : SilAdposition
+
+  def objRef : SilReference
+
+  override def children = Seq(objRef)
+}
+
 case class SilUnrecognizedSentence(
   syntaxTree : ShlurdSyntaxTree
 ) extends SilUnknownSentence with SilUnrecognizedPhrase
@@ -163,6 +181,12 @@ case class SilUnrecognizedReference(
 case class SilUnrecognizedState(
   syntaxTree : ShlurdSyntaxTree
 ) extends SilUnknownState with SilUnrecognizedPhrase
+{
+}
+
+case class SilUnrecognizedVerbModifier(
+  syntaxTree : ShlurdSyntaxTree
+) extends SilUnknownVerbModifier with SilUnrecognizedPhrase
 {
 }
 
@@ -217,6 +241,12 @@ case class SilExpectedExistenceState(
 {
 }
 
+case class SilExpectedVerbModifier(
+  syntaxTree : ShlurdSyntaxTree
+) extends SilUnknownVerbModifier with SilUnresolvedPhrase
+{
+}
+
 case class SilUnresolvedStatePredicate(
   syntaxTree : ShlurdSyntaxTree,
   subject : SilReference,
@@ -227,9 +257,21 @@ case class SilUnresolvedStatePredicate(
   override def getSubject = subject
 }
 
+case class SilUnresolvedActionPredicate(
+  syntaxTree : ShlurdSyntaxTree,
+  subject : SilReference,
+  action : SilWord,
+  directObject : Option[SilReference],
+  indirectObject : Option[SilReference],
+  modifiers : Seq[SilVerbModifier]
+) extends SilUnknownPredicate with SilUnresolvedPhrase
+{
+  override def getSubject = subject
+}
+
 case class SilUnresolvedRelationshipPredicate(
   syntaxTree : ShlurdSyntaxTree,
-  reference : SilReference,
+  subject : SilReference,
   complement : SilReference,
   relationship : SilRelationship
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
@@ -313,6 +355,21 @@ case class SilRelationshipPredicate(
   override def getSubject = subject
 
   override def children = Seq(subject, complement)
+}
+
+case class SilActionPredicate(
+  subject : SilReference,
+  action : SilWord,
+  directObject : Option[SilReference] = None,
+  indirectObject : Option[SilReference] = None,
+  modifiers : Seq[SilVerbModifier] = Seq.empty
+) extends SilTransformedPhrase with SilPredicate
+{
+  override def getSubject = subject
+
+  override def children =
+    Seq(subject) ++ directObject ++ indirectObject ++
+      modifiers.flatMap(_.children)
 }
 
 case class SilStateSpecifiedReference(
@@ -406,9 +463,8 @@ case class SilPropertyState(
 case class SilAdpositionalState(
   adposition : SilAdposition,
   objRef : SilReference
-) extends SilTransformedPhrase with SilState
+) extends SilAdpositionalPhrase with SilState
 {
-  override def children = Seq(objRef)
 }
 
 case class SilConjunctiveState(
@@ -418,6 +474,19 @@ case class SilConjunctiveState(
 ) extends SilTransformedPhrase with SilState
 {
   override def children = states
+}
+
+case class SilBasicVerbModifier(
+  words : Seq[SilWord]
+) extends SilTransformedPhrase with SilVerbModifier
+{
+}
+
+case class SilAdpositionalVerbModifier(
+  adposition : SilAdposition,
+  objRef : SilReference
+) extends SilAdpositionalPhrase with SilVerbModifier
+{
 }
 
 case class SilWord(

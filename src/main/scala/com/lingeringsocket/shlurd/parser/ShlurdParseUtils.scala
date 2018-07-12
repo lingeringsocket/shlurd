@@ -89,6 +89,7 @@ object ShlurdEnglishLemmas
   val LEMMA_AS = "as"
   val LEMMA_NEAR = "near"
   val LEMMA_NEARBY = "nearby"
+  val LEMMA_TO = "to"
   val LEMMA_ON = "on"
   val LEMMA_ABOVE = "above"
   val LEMMA_OVER = "over"

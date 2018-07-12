@@ -22,45 +22,54 @@ import ShlurdEnglishLemmas._
 class KoreanSentenceBundle extends SilSentenceBundle
 {
   override def statePredicateStatement(
-    subject : String, copula : Seq[String], state : String) =
+    subject : String, verbSeq : Seq[String], state : String) =
   {
     if (state.isEmpty) {
-      compose((Seq(subject) ++ copula):_*)
+      compose((Seq(subject) ++ verbSeq):_*)
     } else {
       compose(subject, state)
     }
   }
 
-  override def relationshipPredicateStatement(
-    subject : String, copula : Seq[String], complement : String) =
+  override def actionPredicate(
+    subject : String,
+    verbSeq : Seq[String],
+    directObject : Option[String],
+    indirectObject : Option[String],
+    modifiers : Seq[String],
+    mood : SilMood) =
+  {
+    // FIXME:  for interrogative mood, this only holds for "요" politeness
+    compose((Seq(subject) ++ modifiers ++ indirectObject ++
+      directObject ++ verbSeq):_*)
+  }
+
+  override def relationshipPredicate(
+    subject : String, verbSeq : Seq[String], complement : String,
+    relationship : SilRelationship, mood : SilMood) =
   {
     // FIXME
-    compose((Seq(subject) ++ Seq(complement) ++ copula):_*)
+    compose((Seq(subject) ++ Seq(complement) ++ verbSeq):_*)
   }
 
   override def statePredicateQuestion(
-    subject : String, copula : Seq[String], state : String,
+    subject : String, verbSeq : Seq[String], state : String,
     question : Option[SilQuestion]) =
   {
-    // only holds for "요" politeness
-    statePredicateStatement(subject, copula, state)
-  }
-
-  override def relationshipPredicateQuestion(
-    subject : String, copula : Seq[String], complement : String) =
-  {
-    // only holds for "요" politeness
-    statePredicateStatement(subject, copula, complement)
+    // FIXME:  only holds for "요" politeness
+    statePredicateStatement(subject, verbSeq, state)
   }
 
   override def statePredicateCommand(subject : String, state : String) =
     compose(subject, state)
 
-  override def copula(
+  override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
     mood : SilMood, isExistential : Boolean,
-    verbLemma : String) =
+    verb : SilWord) =
   {
+    // FIXME arbitrary lemmas
+    val verbLemma = verb.lemma
     val exists = isExistential || (verbLemma == LEMMA_HAVE)
     mood match {
       case modalMood : SilModalMood => {
@@ -111,6 +120,12 @@ class KoreanSentenceBundle extends SilSentenceBundle
     compose(concat(pos, "에"), "있어요")
   }
 
+  override def actionVerb(
+    action : SilWord) =
+  {
+    conjugateAction(action.lemma)
+  }
+
   override def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) =
   {
@@ -119,12 +134,12 @@ class KoreanSentenceBundle extends SilSentenceBundle
   }
 
   override def delemmatizeNoun(
-    entity : SilWord,
+    noun : SilWord,
     count : SilCount,
     inflection : SilInflection,
     conjoining : SilConjoining) =
   {
-    inflectNoun(entity.lemma, count, inflection, conjoining)
+    inflectNoun(noun.lemma, count, inflection, conjoining)
   }
 
   override def delemmatizeState(
@@ -257,6 +272,11 @@ class KoreanSentenceBundle extends SilSentenceBundle
     "뭐뭐뭐"
   }
 
+  override def unknownVerbModifier() =
+  {
+    "뭐뭐뭐게"
+  }
+
   override def unknownCopula() =
   {
     "뭐뭐뭐요"
@@ -317,6 +337,10 @@ class KoreanSentenceBundle extends SilSentenceBundle
                 "를"
               }
             }
+            case INFLECT_DATIVE => {
+              // should take formality into account
+              "에게"
+            }
             case INFLECT_GENITIVE => "의"
           }
         } else {
@@ -345,10 +369,16 @@ class KoreanSentenceBundle extends SilSentenceBundle
         case INFLECT_NONE => ""
         case INFLECT_NOMINATIVE => "(nominative)"
         case INFLECT_ACCUSATIVE => "(accusative)"
+        case INFLECT_DATIVE => "(dative)"
         case INFLECT_GENITIVE => "(genitive)"
       }
       compose(lemma, marker)
     }
+  }
+
+  def conjugateAction(lemma : String) =
+  {
+    compose(lemma, "(action)")
   }
 
   def conjugateImperative(lemma : String) =
@@ -424,7 +454,7 @@ class KoreanSentenceBundle extends SilSentenceBundle
   }
 
   override def predicateUnrecognizedSubject(
-    mood : SilMood, complement : String, copula : Seq[String],
+    mood : SilMood, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],
     question : Option[SilQuestion]) =
   {
@@ -433,7 +463,7 @@ class KoreanSentenceBundle extends SilSentenceBundle
 
   override def predicateUnrecognizedComplement(
     mood : SilMood, subject : String,
-    copula : Seq[String],
+    verbSeq : Seq[String],
     question : Option[SilQuestion],
     isRelationship : Boolean) =
   {
