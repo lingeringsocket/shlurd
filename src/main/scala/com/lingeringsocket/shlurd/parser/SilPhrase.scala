@@ -33,6 +33,9 @@ sealed trait SilPhrase
 
   def hasUnresolved : Boolean = children.exists(_.hasUnresolved)
 
+  def isUninterpretable : Boolean =
+    hasUnknown || children.exists(_.isUninterpretable)
+
   override def toString = ShlurdPrettyPrinter.prettyPrint(this)
 
   def maybeSyntaxTree : Option[ShlurdSyntaxTree] = None
@@ -83,6 +86,7 @@ sealed trait SilState extends SilPhrase
 
 sealed trait SilVerbModifier extends SilPhrase
 {
+  override def isUninterpretable = true
 }
 
 sealed trait SilUnknownPhrase extends SilPhrase
@@ -251,7 +255,8 @@ case class SilUnresolvedStatePredicate(
   syntaxTree : ShlurdSyntaxTree,
   subject : SilReference,
   state : SilState,
-  specifiedState : SilState
+  specifiedState : SilState,
+  modifiers : Seq[SilVerbModifier]
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
   override def getSubject = subject
@@ -273,7 +278,8 @@ case class SilUnresolvedRelationshipPredicate(
   syntaxTree : ShlurdSyntaxTree,
   subject : SilReference,
   complement : SilReference,
-  relationship : SilRelationship
+  relationship : SilRelationship,
+  modifiers : Seq[SilVerbModifier]
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
 }
@@ -338,23 +344,25 @@ case class SilAmbiguousSentence(
 
 case class SilStatePredicate(
   subject : SilReference,
-  state : SilState
+  state : SilState,
+  modifiers : Seq[SilVerbModifier] = Seq.empty
 ) extends SilTransformedPhrase with SilPredicate
 {
   override def getSubject = subject
 
-  override def children = Seq(subject, state)
+  override def children = Seq(subject, state) ++ modifiers
 }
 
 case class SilRelationshipPredicate(
   subject : SilReference,
   complement : SilReference,
-  relationship : SilRelationship
+  relationship : SilRelationship,
+  modifiers : Seq[SilVerbModifier] = Seq.empty
 ) extends SilTransformedPhrase with SilPredicate
 {
   override def getSubject = subject
 
-  override def children = Seq(subject, complement)
+  override def children = Seq(subject, complement) ++ modifiers
 }
 
 case class SilActionPredicate(
@@ -368,8 +376,7 @@ case class SilActionPredicate(
   override def getSubject = subject
 
   override def children =
-    Seq(subject) ++ directObject ++ indirectObject ++
-      modifiers.flatMap(_.children)
+    Seq(subject) ++ directObject ++ indirectObject ++ modifiers
 }
 
 case class SilStateSpecifiedReference(

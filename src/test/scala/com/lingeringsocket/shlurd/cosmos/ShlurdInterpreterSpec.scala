@@ -457,6 +457,9 @@ class ShlurdInterpreterSpec extends Specification
       interpret("Are you how I want you?") must be equalTo(
         "I think you are asking something about me, but " +
           "I can't understand the phrase \"how I want you\"")
+      interpret("in the kitchen my guitar is weeping") must
+        be equalTo("I think you are saying something, " +
+          "but I can't understand the phrase \"in the kitchen\"")
     }
   }
 

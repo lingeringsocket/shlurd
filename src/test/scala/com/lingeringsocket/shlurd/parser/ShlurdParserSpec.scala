@@ -643,7 +643,8 @@ class ShlurdParserSpec extends Specification
         case SilPredicateSentence(
           SilStatePredicate(
             SilUnrecognizedReference(syntaxTree),
-            SilPropertyState(STATE_OPEN)),
+            SilPropertyState(STATE_OPEN),
+            Seq()),
           MOOD_INDICATIVE_POSITIVE,
           SilFormality.DEFAULT
         ) => {

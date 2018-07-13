@@ -65,7 +65,7 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
           return Some(UnimplementedBelief(sentence))
         }
         predicate match {
-          case SilStatePredicate(ref, state) => {
+          case SilStatePredicate(ref, state, _) => {
             val (noun, qualifiers, count, failed) = extractQualifiedNoun(
               sentence, ref, Seq.empty)
             if (failed) {
@@ -123,7 +123,7 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
             }
           }
           case SilRelationshipPredicate(
-            subject, complement, relationship
+            subject, complement, relationship, _
           ) => {
             subject match {
               case SilNounReference(

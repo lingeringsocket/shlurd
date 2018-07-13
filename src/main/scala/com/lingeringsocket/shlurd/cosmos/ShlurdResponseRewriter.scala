@@ -41,7 +41,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
     var negateCollection = false
     val entityDeterminer = predicate match {
-      case SilStatePredicate(subject, SilExistenceState()) => {
+      case SilStatePredicate(subject, SilExistenceState(), _) => {
         DETERMINER_NONSPECIFIC
       }
       case _ => {
@@ -145,7 +145,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       rewrite3)
     val rewrite5 = {
       val useThirdPersonPronouns = predicate match {
-        case SilStatePredicate(_, SilExistenceState()) => false
+        case SilStatePredicate(_, SilExistenceState(), _) => false
         case _ => params.thirdPersonPronouns
       }
       if (useThirdPersonPronouns) {
@@ -219,7 +219,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     querier.query(disambiguateThirdPersonReferences(detector), predicate)
     referenceMap --= detector.ambiguousRefs
     predicate match {
-      case SilRelationshipPredicate(subject, complement, REL_IDENTITY) => {
+      case SilRelationshipPredicate(subject, complement, REL_IDENTITY, _) => {
         (referenceMap.get(subject), referenceMap.get(complement)) match {
           case (Some(subjectEntities), Some(complementEntities)) => {
             if (subjectEntities == complementEntities) {
@@ -245,7 +245,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     case SilRelationshipPredicate(
       lhs,
       rhs : SilPronounReference,
-      REL_IDENTITY
+      REL_IDENTITY,
+      _
     ) => {
       SilRelationshipPredicate(
         rhs,
@@ -255,7 +256,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     case SilRelationshipPredicate(
       lhs,
       rhs @ SilConjunctiveReference(_, references, _),
-      REL_IDENTITY
+      REL_IDENTITY,
+      _
     ) if (references.exists(_.isInstanceOf[SilPronounReference])) => {
       SilRelationshipPredicate(
         rhs,
@@ -270,7 +272,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     case SilRelationshipPredicate(
       lhs,
       rhs,
-      REL_IDENTITY
+      REL_IDENTITY,
+      _
     ) if (containsWildcard(lhs, false) && !containsWildcard(rhs, false)) =>
       {
         SilRelationshipPredicate(
@@ -284,7 +287,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     case SilRelationshipPredicate(
       rr : SilResolvedReference[E],
       other : SilReference,
-      REL_IDENTITY)
+      REL_IDENTITY,
+      _)
         if (rr.entities.size == 1) =>
       {
         SilRelationshipPredicate(
@@ -295,7 +299,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     case SilRelationshipPredicate(
       other : SilReference,
       rr : SilResolvedReference[E],
-      REL_IDENTITY)
+      REL_IDENTITY,
+      _)
         if (rr.entities.size == 1) =>
       {
         SilRelationshipPredicate(
@@ -419,7 +424,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def coerceCountAgreement = replacementMatcher {
-    case SilRelationshipPredicate(subject, complement, REL_IDENTITY) => {
+    case SilRelationshipPredicate(subject, complement, REL_IDENTITY, _) => {
       val subjectCount = SilReference.getCount(subject)
       val complementCount = SilReference.getCount(complement)
       if (subjectCount != complementCount) {

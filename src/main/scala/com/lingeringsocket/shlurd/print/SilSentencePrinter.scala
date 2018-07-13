@@ -204,7 +204,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     ellipsis : Boolean = false) : String =
   {
     predicate match {
-      case SilStatePredicate(subject, state) => {
+      case SilStatePredicate(subject, state, modifiers) => {
         val mood = moodOriginal
         val rhs = {
           if (ellipsis) {
@@ -216,9 +216,13 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         sb.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(subject, state, mood, REL_IDENTITY),
-          rhs)
+          rhs,
+          modifiers.map(printVerbModifier(_))
+        )
       }
-      case SilRelationshipPredicate(subject, complement, relationship) => {
+      case SilRelationshipPredicate(
+        subject, complement, relationship, modifiers
+      ) => {
         val complementInflection = relationship match {
           case REL_IDENTITY => INFLECT_NOMINATIVE
           case REL_ASSOCIATION => INFLECT_ACCUSATIVE
@@ -247,7 +251,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           getVerbSeq(subject, SilNullState(), mood, relationship),
           rhs,
           relationship,
-          mood)
+          mood,
+          modifiers.map(printVerbModifier(_)))
       }
       case SilActionPredicate(
         subject, action, directObject, indirectObject, modifiers
@@ -273,10 +278,11 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     predicate : SilPredicate, changeVerb : Option[SilWord] = None) =
   {
     predicate match {
-      case SilStatePredicate(subject, state) => {
+      case SilStatePredicate(subject, state, modifiers) => {
         sb.statePredicateCommand(
           print(subject, INFLECT_ACCUSATIVE, SilConjoining.NONE),
-          printChangeStateVerb(state, changeVerb))
+          printChangeStateVerb(state, changeVerb),
+          modifiers.map(printVerbModifier(_)))
       }
       case _ => {
         sb.unknownPredicateCommand
@@ -289,14 +295,15 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     question : Option[SilQuestion] = None) : String =
   {
     predicate match {
-      case SilStatePredicate(subject, state) => {
+      case SilStatePredicate(subject, state, modifiers) => {
         sb.statePredicateQuestion(
           sb.query(
             print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
             question),
           getVerbSeq(subject, state, mood, REL_IDENTITY),
           print(state, mood, SilConjoining.NONE),
-          question)
+          question,
+          modifiers.map(printVerbModifier(_)))
       }
       case SilActionPredicate(
         subject, action, directObject, indirectObject, modifiers
@@ -311,7 +318,9 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           modifiers.map(printVerbModifier(_)),
           mood)
       }
-      case SilRelationshipPredicate(subject, complement, relationship) => {
+      case SilRelationshipPredicate(
+        subject, complement, relationship, modifiers
+      ) => {
         sb.relationshipPredicate(
           sb.query(
             print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
@@ -319,7 +328,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           getVerbSeq(subject, SilNullState(), mood, relationship),
           print(complement, INFLECT_NOMINATIVE, SilConjoining.NONE),
           relationship,
-          mood)
+          mood,
+          modifiers.map(printVerbModifier(_)))
       }
       case _ : SilUnknownPredicate => {
         sb.unknownPredicateQuestion

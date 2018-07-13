@@ -23,6 +23,7 @@ object ShlurdSyntaxRewrite
 {
   private val phraseConstructors = Map(
     LABEL_S -> SptS.apply _,
+    LABEL_SINV -> SptSINV.apply _,
     LABEL_SBAR -> SptSBAR.apply _,
     LABEL_SBARQ -> SptSBARQ.apply _,
     LABEL_NP -> SptNP.apply _,

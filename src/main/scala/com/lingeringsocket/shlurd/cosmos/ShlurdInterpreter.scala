@@ -121,7 +121,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   protected def interpretImpl(sentence : SilSentence) : String =
   {
-    if (sentence.hasUnknown) {
+    if (sentence.isUninterpretable) {
       val unrecognized = responseRewriter.rewrite(
         responseRewriter.swapPronounsSpeakerListener, sentence)
       val responder = new ShlurdUnrecognizedResponder(sentencePrinter)
@@ -441,8 +441,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     if (predicate != predicateOriginal) {
       debug(s"REWRITTEN REFERENCES : $predicate")
     }
+    // FIXME implement action predicates, verb modifiers
     val result = predicate match {
-      case SilStatePredicate(subject, state) => {
+      case SilStatePredicate(subject, state, modifiers) => {
         state match {
           case SilConjunctiveState(determiner, states, _) => {
             // FIXME:  how to write to resultCollector.entityMap in this case?
@@ -456,7 +457,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
       case SilRelationshipPredicate(
-        subjectRef, complementRef, relationship) =>
+        subjectRef, complementRef, relationship, modifiers) =>
       {
         val subjectCollector = chooseResultCollector(
           subjectRef, resultCollector)

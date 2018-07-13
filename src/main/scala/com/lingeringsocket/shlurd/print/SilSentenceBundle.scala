@@ -75,7 +75,8 @@ abstract class SilSentenceBundle
   def statePredicateStatement(
     subject : String,
     verbSeq : Seq[String],
-    state : String) : String
+    state : String,
+    modifiers : Seq[String]) : String
 
   def actionPredicate(
     subject : String,
@@ -90,15 +91,20 @@ abstract class SilSentenceBundle
     verbSeq : Seq[String],
     secondRef : String,
     relationship : SilRelationship,
-    mood : SilMood) : String
+    mood : SilMood,
+    modifiers : Seq[String]) : String
 
   def statePredicateQuestion(
     subject : String,
     verbSeq : Seq[String],
     state : String,
-    question : Option[SilQuestion]) : String
+    question : Option[SilQuestion],
+    modifiers : Seq[String]) : String
 
-  def statePredicateCommand(subject : String, state : String) : String
+  def statePredicateCommand(
+    subject : String,
+    state : String,
+    modifiers : Seq[String]) : String
 
   def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,

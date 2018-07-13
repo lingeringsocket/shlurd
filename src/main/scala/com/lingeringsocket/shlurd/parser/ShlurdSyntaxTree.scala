@@ -20,6 +20,7 @@ object ShlurdPennTreebankLabels
 {
   val LABEL_ROOT = "ROOT"
   val LABEL_S = "S"
+  val LABEL_SINV = "SINV"
   val LABEL_SBAR = "SBAR"
   val LABEL_SBARQ = "SBARQ"
   val LABEL_NP = "NP"
@@ -111,6 +112,8 @@ trait ShlurdAbstractSyntaxTree
 
   def isVerbPhrase = hasLabel(LABEL_VP)
 
+  def isVerbNode = isVerb || isVerbPhrase
+
   def isAdverbPhrase = hasLabel(LABEL_ADVP)
 
   def isAdverbNode = isAdverbPhrase || isAdverb
@@ -146,9 +149,10 @@ trait ShlurdAbstractSyntaxTree
 
   def isCoordinatingConjunction = hasLabel(LABEL_CC)
 
-  def isModal =
+  def isModal : Boolean =
     hasLabel(LABEL_MD) ||
-      (isVerb && hasTerminalLemma(LEMMA_DO))
+      (isVerb && hasTerminalLemma(LEMMA_DO)) ||
+      (isVerbPhrase && (numChildren == 1) && firstChild.isModal)
 
   def isParticle = hasLabel(LABEL_RP)
 
@@ -348,6 +352,12 @@ case class SptS(children : ShlurdSyntaxTree*)
     extends ShlurdSyntaxPhrase
 {
   override def label = LABEL_S
+}
+
+case class SptSINV(children : ShlurdSyntaxTree*)
+    extends ShlurdSyntaxPhrase
+{
+  override def label = LABEL_SINV
 }
 
 case class SptSBAR(children : ShlurdSyntaxTree*)

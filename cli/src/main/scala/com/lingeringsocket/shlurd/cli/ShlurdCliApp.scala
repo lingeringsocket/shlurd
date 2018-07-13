@@ -62,7 +62,7 @@ class ShlurdCliApp(
 
   private def run()
   {
-     var exit = false
+    var exit = false
     println
     while (!exit) {
       print("> ")

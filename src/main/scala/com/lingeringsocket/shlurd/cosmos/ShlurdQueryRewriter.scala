@@ -28,15 +28,18 @@ class ShlurdQueryRewriter extends SilPhraseRewriter
   }
 
   def rewritePredicate = replacementMatcher {
-    case SilStatePredicate(subject, state) => {
+    case SilStatePredicate(subject, state, modifiers) => {
       SilStatePredicate(
         rewrite(rewriteSpecifier, subject),
-        state)
+        state,
+        modifiers)
     }
-    case SilRelationshipPredicate(subject, complement, relationship) => {
+    case SilRelationshipPredicate(subject, complement,
+      relationship, modifiers
+    ) => {
       SilRelationshipPredicate(
         rewrite(rewriteSpecifier, subject),
-        complement, relationship)
+        complement, relationship, modifiers)
     }
   }
 }

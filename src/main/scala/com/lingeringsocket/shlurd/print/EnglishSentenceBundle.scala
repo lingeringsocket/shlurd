@@ -24,13 +24,14 @@ class EnglishSentenceBundle
     extends SilSentenceBundle
 {
   override def statePredicateStatement(
-    subject : String, verbSeq : Seq[String], state : String) =
+    subject : String, verbSeq : Seq[String], state : String,
+    modifiers : Seq[String]) =
   {
     if (state.isEmpty) {
       // existential
-      compose((verbSeq ++ Seq(subject)):_*)
+      compose((verbSeq ++ Seq(subject) ++ modifiers):_*)
     } else {
-      composePredicateStatement(subject, verbSeq, state)
+      composePredicateStatement(subject, verbSeq, state, modifiers)
     }
   }
 
@@ -43,80 +44,87 @@ class EnglishSentenceBundle
     mood : SilMood) =
   {
     val complement = compose((directObject.toSeq ++
-      indirectObject.map(n => compose(LEMMA_TO, n)) ++
-      modifiers):_*)
+      indirectObject.map(n => compose(LEMMA_TO, n))):_*)
     if (!mood.isInterrogative || (mood.getModality == MODAL_NEUTRAL)) {
       composePredicateStatement(
-        subject, verbSeq, complement)
+        subject, verbSeq, complement, modifiers)
     } else {
       composePredicateQuestion(
-        subject, verbSeq, complement)
+        subject, verbSeq, complement, modifiers)
     }
   }
 
   private def composePredicateStatement(
-    subject : String, verbSeq : Seq[String], complement : String) =
+    subject : String, verbSeq : Seq[String], complement : String,
+    modifiers : Seq[String] = Seq.empty) =
   {
-    compose((Seq(subject) ++ verbSeq ++ Seq(complement)):_*)
+    compose((Seq(subject) ++ verbSeq ++ Seq(complement) ++ modifiers):_*)
   }
 
   override def statePredicateQuestion(
     subject : String, verbSeq : Seq[String], state : String,
-    question : Option[SilQuestion]) =
+    question : Option[SilQuestion],
+    modifiers : Seq[String]) =
   {
     if (!question.isEmpty) {
       compose((Seq(subject) ++ verbSeq.take(2).reverse ++
-        verbSeq.drop(2) ++ Seq(state)):_*)
+        verbSeq.drop(2) ++ Seq(state) ++ modifiers):_*)
     } else if (state.isEmpty) {
-      compose((verbSeq.take(2).reverse ++ verbSeq.drop(2) ++ Seq(subject)):_*)
+      compose((verbSeq.take(2).reverse ++ verbSeq.drop(2) ++
+        Seq(subject) ++ modifiers):_*)
     } else {
-      composePredicateQuestion(subject, verbSeq, state)
+      composePredicateQuestion(subject, verbSeq, state, modifiers)
     }
   }
 
   override def relationshipPredicate(
     subject : String, verbSeq : Seq[String], complement : String,
-    relationship : SilRelationship, mood : SilMood) =
+    relationship : SilRelationship, mood : SilMood,
+    modifiers : Seq[String]) =
   {
     if (mood.isInterrogative) {
       relationship match {
         case REL_IDENTITY => {
-          composePredicateQuestion(subject, verbSeq, complement)
+          composePredicateQuestion(subject, verbSeq, complement, modifiers)
         }
         case REL_ASSOCIATION => {
           if (mood.getModality == MODAL_NEUTRAL) {
-            composePredicateStatement(subject, verbSeq, complement)
+            composePredicateStatement(subject, verbSeq, complement, modifiers)
           } else {
-            composePredicateQuestion(subject, verbSeq, complement)
+            composePredicateQuestion(subject, verbSeq, complement, modifiers)
           }
         }
       }
     } else {
-      composePredicateStatement(subject, verbSeq, complement)
+      composePredicateStatement(subject, verbSeq, complement, modifiers)
     }
   }
 
   private def composePredicateQuestion(
-    subject : String, verbSeq : Seq[String], complement : String) =
+    subject : String, verbSeq : Seq[String], complement : String,
+    modifiers : Seq[String] = Seq.empty) =
   {
     val headSeq = Seq(verbSeq.head)
     val tailSeq = verbSeq.drop(1)
     verbSeq.size match {
       // "is Larry clumsy?"
       case 1 =>
-        compose((headSeq ++ Seq(subject, complement)):_*)
+        compose((headSeq ++ Seq(subject, complement) ++ modifiers):_*)
       // "is Larry not clumsy?" or "must Larry be clumsy?"
       case 2 =>
-        compose((headSeq ++ Seq(subject) ++ tailSeq ++ Seq(complement)):_*)
+        compose((headSeq ++ Seq(subject) ++ tailSeq ++
+          Seq(complement) ++ modifiers):_*)
       // "must Larry not be clumsy?"
       case _ =>
-        compose((headSeq ++ Seq(subject) ++ tailSeq ++ Seq(complement)):_*)
+        compose((headSeq ++ Seq(subject) ++ tailSeq ++
+          Seq(complement) ++ modifiers):_*)
     }
   }
 
-  override def statePredicateCommand(subject : String, state : String) =
+  override def statePredicateCommand(subject : String, state : String,
+    modifiers : Seq[String]) =
   {
-    compose(state, subject)
+    compose((Seq(state) ++ Seq(subject) ++ modifiers):_*)
   }
 
   private def modalCopula(

@@ -166,6 +166,9 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
   }
 
   private def replaceExpectedSQ = replacementMatcher {
+    case SilExpectedSentence(sinv : SptSINV, forceSQ) => {
+      analyzer.analyzeSQ(sinv, forceSQ)
+    }
     case SilExpectedSentence(sq : SptSQ, forceSQ) => {
       analyzer.analyzeSQ(sq, forceSQ)
     }
@@ -213,7 +216,8 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     SilRelationshipPredicate(
       predicate.subject,
       predicate.complement,
-      predicate.relationship)
+      predicate.relationship,
+      predicate.modifiers)
   }
 
   private def resolveActionPredicate(
@@ -247,12 +251,13 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
         }
         val specifiedSubject = analyzer.specifyReference(
           predicate.subject, fullySpecifiedState)
-        SilStatePredicate(specifiedSubject, propertyState)
+        SilStatePredicate(specifiedSubject, propertyState, predicate.modifiers)
       }
       case _ => {
         val specifiedSubject = analyzer.specifyReference(
           predicate.subject, predicate.specifiedState)
-        SilStatePredicate(specifiedSubject, predicate.state)
+        SilStatePredicate(
+          specifiedSubject, predicate.state, predicate.modifiers)
       }
     }
   }

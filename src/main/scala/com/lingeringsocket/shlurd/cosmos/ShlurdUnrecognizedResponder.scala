@@ -25,24 +25,26 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
 
   def respond(unrecognized : SilSentence) : String =
   {
-    assert(unrecognized.hasUnknown)
+    assert(unrecognized.isUninterpretable)
     unrecognized match {
       case SilPredicateSentence(predicate, mood, _) => {
         predicate match {
-          case SilStatePredicate(subject, state) => {
+          case SilStatePredicate(subject, state, modifiers) => {
             val count = computeMaxCount(
               subject,
               predicate.getInflectedCount)
             val response = respondToUnresolvedPredicate(
-              subject, state, mood, count, None)
+              subject, state, mood, count, None, modifiers)
             if (!response.isEmpty) {
               return response
             }
           }
-          case SilRelationshipPredicate(subject, complement, rel) => {
+          case SilRelationshipPredicate(
+            subject, complement, rel, modifiers
+          ) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
-              subject, complement, mood, count, Some(rel))
+              subject, complement, mood, count, Some(rel), modifiers)
             if (!response.isEmpty) {
               return response
             }
@@ -58,28 +60,31 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
           predicate.getInflectedCount)
         val response = respondToUnresolvedPredicate(
           predicate.subject, predicate.state,
-          MOOD_IMPERATIVE, count, None, changeVerb)
+          MOOD_IMPERATIVE, count, None, predicate.modifiers, changeVerb)
         if (!response.isEmpty) {
           return response
         }
       }
       case SilPredicateQuery(predicate, question, mood, _) => {
         predicate match {
-          case SilStatePredicate(subject, state) => {
+          case SilStatePredicate(subject, state, modifiers) => {
             val count = computeMaxCount(
               subject,
               predicate.getInflectedCount)
             val response = respondToUnresolvedPredicate(
-              subject, state, mood, count, None, None, Some(question))
+              subject, state, mood, count, None, modifiers, None,
+              Some(question))
             if (!response.isEmpty) {
               return response
             }
           }
-          case SilRelationshipPredicate(subject, complement, rel) => {
+          case SilRelationshipPredicate(
+            subject, complement, rel, modifiers
+          ) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
               subject, complement, mood, count,
-              Some(rel), None, Some(question))
+              Some(rel), modifiers, None, Some(question))
             if (!response.isEmpty) {
               return response
             }
@@ -103,9 +108,16 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     mood : SilMood,
     count : SilCount,
     rel : Option[SilRelationship],
+    modifiers : Seq[SilVerbModifier],
     changeVerb : Option[SilWord] = None,
     question : Option[SilQuestion] = None) : String =
   {
+    if (!modifiers.isEmpty) {
+      // FIXME get real
+      return sb.respondNotUnderstood(
+        mood, "something",
+        modifiers.map(_.toWordString).mkString(" "))
+    }
     val verbLemma = {
       complement match {
         case SilExistenceState() => {

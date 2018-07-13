@@ -22,12 +22,13 @@ import ShlurdEnglishLemmas._
 class KoreanSentenceBundle extends SilSentenceBundle
 {
   override def statePredicateStatement(
-    subject : String, verbSeq : Seq[String], state : String) =
+    subject : String, verbSeq : Seq[String], state : String,
+    modifiers : Seq[String]) =
   {
     if (state.isEmpty) {
-      compose((Seq(subject) ++ verbSeq):_*)
+      compose((Seq(subject) ++ modifiers ++ verbSeq):_*)
     } else {
-      compose(subject, state)
+      compose((Seq(subject) ++ modifiers ++ Seq(state)):_*)
     }
   }
 
@@ -46,22 +47,26 @@ class KoreanSentenceBundle extends SilSentenceBundle
 
   override def relationshipPredicate(
     subject : String, verbSeq : Seq[String], complement : String,
-    relationship : SilRelationship, mood : SilMood) =
+    relationship : SilRelationship, mood : SilMood,
+    modifiers : Seq[String]) =
   {
     // FIXME
-    compose((Seq(subject) ++ Seq(complement) ++ verbSeq):_*)
+    compose((Seq(subject) ++ modifiers ++ Seq(complement) ++ verbSeq):_*)
   }
 
   override def statePredicateQuestion(
     subject : String, verbSeq : Seq[String], state : String,
-    question : Option[SilQuestion]) =
+    question : Option[SilQuestion], modifiers : Seq[String]) =
   {
     // FIXME:  only holds for "요" politeness
-    statePredicateStatement(subject, verbSeq, state)
+    statePredicateStatement(subject, verbSeq, state, modifiers)
   }
 
-  override def statePredicateCommand(subject : String, state : String) =
-    compose(subject, state)
+  override def statePredicateCommand(subject : String, state : String,
+    modifiers : Seq[String]) =
+  {
+    compose((Seq(subject) ++ modifiers ++ Seq(state)):_*)
+  }
 
   override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
