@@ -75,6 +75,7 @@ sealed trait SilQuestion
 case object QUESTION_WHO extends SilQuestion
 case object QUESTION_WHICH extends SilQuestion
 case object QUESTION_HOW_MANY extends SilQuestion
+case object QUESTION_WHERE extends SilQuestion
 
 sealed trait SilModality
 case object MODAL_NEUTRAL extends SilModality

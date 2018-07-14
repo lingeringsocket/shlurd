@@ -35,7 +35,9 @@ object ShlurdSyntaxRewrite
     LABEL_SQ -> SptSQ.apply _,
     LABEL_WHNP -> SptWHNP.apply _,
     LABEL_WHADJP -> SptWHADJP.apply _,
+    LABEL_WHADVP -> SptWHADVP.apply _,
     LABEL_WDT -> SptWDT.apply _,
+    LABEL_WRB -> SptWRB.apply _,
     LABEL_WP -> SptWP.apply _
   )
 

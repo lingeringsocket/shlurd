@@ -51,7 +51,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       {
         expectPredicateSentence(
           tree, np, vp, verbModifiers,
-          isQuestion, force, MODAL_NEUTRAL, false)
+          isQuestion, force, MODAL_NEUTRAL, COUNT_SINGULAR, false)
       } else {
         SilUnrecognizedSentence(tree)
       }
@@ -84,7 +84,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       return expectCommand(tree, children.head, SilFormality.DEFAULT)
     }
     if (children.size > 2) {
-      val (modality, modeless) = extractModality(children)
+      val (modality, modeless, modalCount) = extractModality(children)
       val (negativeSuper, seq) = extractNegative(modeless)
       val expectedSize = modality match {
         case MODAL_NEUTRAL => 3
@@ -127,7 +127,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
             expectPredicate(tree, np, rhs, specifiedState,
               relationshipFor(verbHead), verbModifiers)
           val positive = !(negative ^ negativeSub)
-          rememberPredicateCount(predicate, verbHead)
+          rememberPredicateCount(predicate, verbHead, modality, modalCount)
           SilPredicateSentence(
             predicate,
             SilInterrogativeMood(positive, modality))
@@ -135,7 +135,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           val (negativeSub, predicate) =
             analyzeActionPredicate(tree, np, vp, verbModifiers)
           val positive = !(negative ^ negativeSub)
-          rememberPredicateCount(predicate, verbHead)
+          rememberPredicateCount(predicate, verbHead, modality, modalCount)
           SilPredicateSentence(
             predicate,
             SilInterrogativeMood(positive, modality))
@@ -164,27 +164,33 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     val (negativeSuper, secondSub) = extractNegative(secondUnwrapped)
     val verbHead = secondSub.head
     if ((children.size != 2) ||
-      !first.isQueryNoun ||
+      !first.isQueryPhrase ||
       !second.isSubQuestion ||
       !verbHead.isRelationshipVerb)
     {
       SilUnrecognizedSentence(tree)
     } else {
-      // FIXME support modality
-      val (specifiedState, whnpc) = extractAdpositionalState(first.children)
+      // FIXME support modality and non-relationship verbs,
+      // e.g. "who runs this place?" or "whom does Madeline love?"
+      val (specifiedState, whpc) = extractAdpositionalState(first.children)
       val seq = {
-        if ((whnpc.size == 1) && whnpc.head.isQueryNoun) {
-          whnpc.head.children
+        if ((whpc.size == 1) && whpc.head.isQueryPhrase) {
+          whpc.head.children
         } else {
-          whnpc
+          whpc
         }
       }
       val question = maybeQuestionFor(seq.head) match {
         case Some(q) => q
         case _ => return SilUnrecognizedSentence(tree)
       }
+      if ((question == QUESTION_WHERE) && !verbHead.isBeingVerb) {
+        return SilUnrecognizedSentence(tree)
+      }
+      // FIXME for QUESTION_WHERE, it shouldn't be a noun phrase at all;
+      // it should be either a state or verb modifier
       val np = question match {
-        case QUESTION_WHO => {
+        case QUESTION_WHO | QUESTION_WHERE => {
           SptNP(SptNN(requireLeaf(seq.head.children)))
         }
         case _ => {
@@ -301,7 +307,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     tree : SptS,
     np : ShlurdSyntaxTree, vp : ShlurdSyntaxTree,
     verbModifiers : Seq[ShlurdSyntaxTree], isQuestion : Boolean,
-    force : SilForce, modality : SilModality,
+    force : SilForce, modality : SilModality, modalCount : SilCount,
     negativeSuper : Boolean) : SilSentence =
   {
     val (negativeSub, vpChildren) = extractNegative(vp.children)
@@ -311,10 +317,12 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     if (verbHead.isModal) {
       val vpSub = vpChildren.last
       if ((vpChildren.size == 2) && vpSub.isVerbPhrase) {
-        val explicitModality = modalityFor(requireLeaf(verbHead.children))
         expectPredicateSentence(
           tree, np, vpSub, verbModifiers,
-          isQuestion, force, explicitModality, negative)
+          isQuestion, force,
+          modalityFor(requireLeaf(verbHead.children)),
+          getVerbCount(verbHead),
+          negative)
       } else {
         SilUnrecognizedSentence(tree)
       }
@@ -334,7 +342,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         tree, np, complement, specifiedState,
         relationshipFor(verbHead), verbModifiers ++ extraModifiers)
       val positive = !(negative ^ negativeComplement)
-      rememberPredicateCount(predicate, verbHead)
+      rememberPredicateCount(predicate, verbHead, modality, modalCount)
       val mood = {
         if (isQuestion) {
           SilInterrogativeMood(positive, modality)
@@ -348,7 +356,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val (negativeVerb, predicate) = analyzeActionPredicate(
         tree, np, vp, verbModifiers)
       val positive = !(negative ^ negativeVerb)
-      rememberPredicateCount(predicate, verbHead)
+      rememberPredicateCount(predicate, verbHead, modality, modalCount)
       val mood = {
         if (isQuestion) {
           SilInterrogativeMood(positive, modality)
@@ -832,6 +840,12 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           None
         }
       }
+      case SptWRB(where) => {
+        where.lemma match {
+          case LEMMA_WHERE => Some(QUESTION_WHERE)
+          case _ => None
+        }
+      }
       case SptWDT(wdt) => {
         wdt.lemma match {
           case LEMMA_WHICH | LEMMA_WHAT => Some(QUESTION_WHICH)
@@ -923,14 +937,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
 
   private def extractModality(
     seq : Seq[ShlurdSyntaxTree])
-      : (SilModality, Seq[ShlurdSyntaxTree]) =
+      : (SilModality, Seq[ShlurdSyntaxTree], SilCount) =
   {
     // FIXME for "does", we need to be careful to make sure it's
     // acting as an auxiliary, e.g. "Luke does know" but not
     // "Luke does the dishes"
     val iModal = seq.indexWhere(_.unwrapPhrase.isModal)
     if (iModal < 0) {
-      (MODAL_NEUTRAL, seq)
+      (MODAL_NEUTRAL, seq, COUNT_SINGULAR)
     } else {
       val nonModal = seq.patch(iModal, Seq.empty, 1)
       val remainder = {
@@ -940,9 +954,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           nonModal
         }
       }
-      (modalityFor(
-        requireLeaf(seq(iModal).unwrapPhrase.children)),
-        remainder)
+      val aux = seq(iModal).unwrapPhrase
+      val leaf = requireLeaf(aux.children)
+      (modalityFor(leaf),
+        remainder,
+        getVerbCount(aux))
     }
   }
 
@@ -1082,11 +1098,45 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
 
   private def rememberPredicateCount(
     predicate : SilPredicate,
+    count : SilCount)
+  {
+    predicate.setInflectedCount(count)
+  }
+
+  private def getVerbCount(verb : ShlurdSyntaxTree) : SilCount =
+  {
+    verb match {
+      case _ : SptVBP => {
+        if (verb.firstChild.label == "am") {
+          COUNT_SINGULAR
+        } else {
+          COUNT_PLURAL
+        }
+      }
+      case _ => COUNT_SINGULAR
+    }
+  }
+
+  private def rememberPredicateCount(
+    predicate : SilPredicate,
     verbHead : ShlurdSyntaxTree)
   {
-    verbHead match {
-      case _ : SptVBP => predicate.setInflectedCount(COUNT_PLURAL)
-      case _ => predicate.setInflectedCount(COUNT_SINGULAR)
+    rememberPredicateCount(predicate, getVerbCount(verbHead))
+  }
+
+  private def rememberPredicateCount(
+    predicate : SilPredicate,
+    verbHead : ShlurdSyntaxTree,
+    modality : SilModality,
+    modalCount : SilCount)
+  {
+    modality match {
+      case MODAL_NEUTRAL => {
+        rememberPredicateCount(predicate, verbHead)
+      }
+      case _ => {
+        rememberPredicateCount(predicate, modalCount)
+      }
     }
   }
 }

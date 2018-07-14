@@ -47,7 +47,9 @@ class KoreanSentenceBundle extends SilSentenceBundle
 
   override def relationshipPredicate(
     subject : String, verbSeq : Seq[String], complement : String,
-    relationship : SilRelationship, mood : SilMood,
+    relationship : SilRelationship,
+    question : Option[SilQuestion],
+    mood : SilMood,
     modifiers : Seq[String]) =
   {
     // FIXME
@@ -183,6 +185,10 @@ class KoreanSentenceBundle extends SilSentenceBundle
       case Some(QUESTION_WHO) => {
         // FIXME inflection
         "누구"
+      }
+      case Some(QUESTION_WHERE) => {
+        // discriminate between being and action
+        "어디에"
       }
       case _ => noun
     }

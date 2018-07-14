@@ -69,7 +69,7 @@ sealed trait SilPredicate extends SilPhrase
 
   def getInflectedCount = inflectedCount
 
-  private[parser] def setInflectedCount(count : SilCount)
+  def setInflectedCount(count : SilCount)
   {
     inflectedCount = count
   }

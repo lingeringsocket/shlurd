@@ -79,10 +79,12 @@ class EnglishSentenceBundle
 
   override def relationshipPredicate(
     subject : String, verbSeq : Seq[String], complement : String,
-    relationship : SilRelationship, mood : SilMood,
+    relationship : SilRelationship,
+    question : Option[SilQuestion],
+    mood : SilMood,
     modifiers : Seq[String]) =
   {
-    if (mood.isInterrogative) {
+    if (mood.isInterrogative && question.isEmpty) {
       relationship match {
         case REL_IDENTITY => {
           composePredicateQuestion(subject, verbSeq, complement, modifiers)
@@ -396,6 +398,9 @@ class EnglishSentenceBundle
       }
       case Some(QUESTION_HOW_MANY) => {
         compose(LEMMA_HOW, LEMMA_MANY, noun)
+      }
+      case Some(QUESTION_WHERE) => {
+        compose(LEMMA_WHERE)
       }
       case None => noun
     }

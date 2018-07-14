@@ -515,9 +515,10 @@ class SpcCosmosSpec extends Specification
     {
       cosmos.getForms.size must be equalTo 0
       SpcPrimordial.initCosmos(cosmos)
-      cosmos.getForms.size must be equalTo 2
+      cosmos.getForms.size must be equalTo 3
       val entity = expectNamedForm(LEMMA_ENTITY)
       val person = expectNamedForm(LEMMA_PERSON)
+      val obj = expectNamedForm(LEMMA_OBJECT)
       val propGender = expectSingleProperty(person)
       propGender.name must be equalTo LEMMA_GENDER
       propGender.isClosed must beFalse
@@ -532,12 +533,15 @@ class SpcCosmosSpec extends Specification
       val graph = cosmos.getGraph
       graph.getFormHypernyms(entity).toSeq must be equalTo(
         Seq(entity))
+      graph.getFormHypernyms(obj).toSeq must be equalTo(
+        Seq(obj, entity))
       graph.getFormHypernyms(person).toSeq must be equalTo(
-        Seq(person, entity))
+        Seq(person, obj, entity))
       graph.isHyponym(person, entity) must beTrue
       graph.isHyponym(entity, person) must beFalse
       graph.isHyponym(person, person) must beTrue
       graph.isHyponym(entity, entity) must beTrue
+      // FIXME verify container/containee association
     }
 
     "elide redundant taxonomy edges" in new CosmosContext
@@ -546,16 +550,20 @@ class SpcCosmosSpec extends Specification
       addBelief("a firefighter is a kind of person")
       val entity = expectNamedForm(LEMMA_ENTITY)
       val person = expectNamedForm(LEMMA_PERSON)
+      val obj = expectNamedForm(LEMMA_OBJECT)
       val firefighter = expectNamedForm("firefighter")
       val graph = cosmos.getGraph
       graph.getFormHypernyms(entity).toSeq must be equalTo(
         Seq(entity))
       graph.getFormHypernyms(person).toSeq must be equalTo(
-        Seq(person, entity))
+        Seq(person, obj, entity))
       graph.getFormHypernyms(firefighter).toSeq must be equalTo(
-        Seq(firefighter, person, entity))
+        Seq(firefighter, person, obj, entity))
       graph.isHyponym(firefighter, person) must beTrue
+      graph.isHyponym(firefighter, obj) must beTrue
       graph.isHyponym(person, firefighter) must beFalse
+      graph.isHyponym(obj, firefighter) must beFalse
+      graph.isHyponym(person, obj) must beTrue
       graph.isHyponym(person, entity) must beTrue
       graph.isHyponym(firefighter, entity) must beTrue
       cosmos.sanityCheck must beTrue

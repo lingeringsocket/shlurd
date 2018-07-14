@@ -91,6 +91,7 @@ abstract class SilSentenceBundle
     verbSeq : Seq[String],
     secondRef : String,
     relationship : SilRelationship,
+    question : Option[SilQuestion],
     mood : SilMood,
     modifiers : Seq[String]) : String
 

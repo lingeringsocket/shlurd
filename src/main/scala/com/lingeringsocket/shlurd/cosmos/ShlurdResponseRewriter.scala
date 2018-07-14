@@ -164,6 +164,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
     }
 
+    querier.query(clearInflectedCounts, rewriteLast)
+
     SilPhraseValidator.validatePhrase(rewriteLast)
 
     (rewriteLast, negateCollection)
@@ -339,6 +341,12 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         referenceMap.remove(ref)
       }
       ref
+    }
+  }
+
+  private def clearInflectedCounts = querier.queryMatcher {
+    case predicate : SilPredicate => {
+      predicate.setInflectedCount(COUNT_SINGULAR)
     }
   }
 
@@ -628,7 +636,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         wildcard = true
       }
       case SilNounReference(
-        SilWord(LEMMA_WHO, LEMMA_WHO),
+        SilWord(LEMMA_WHO, LEMMA_WHO) | SilWord(LEMMA_WHERE, LEMMA_WHERE),
         _,
         _
       ) => {

@@ -212,6 +212,10 @@ class SilSentencePrinterSpec extends Specification
         "how many vehicles are there?")
       expectNormalized("a vehicle with a propellor exists",
         "there is a vehicle with a propellor.")
+      expectQuestion("where are the enchanted isles")
+      expectQuestion("where is my mother")
+      expectQuestion("who is John Galt")
+      expectQuestion("who are the twin sisters")
       expectNormalized("who exists", "who is there?")
       expectStatement("the door closes")
       expectStatement("the door does close")

@@ -215,7 +215,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         }
         sb.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
-          getVerbSeq(subject, state, mood, REL_IDENTITY),
+          getVerbSeq(
+            subject, state, mood, REL_IDENTITY, predicate.getInflectedCount),
           rhs,
           modifiers.map(printVerbModifier(_))
         )
@@ -248,9 +249,12 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         }
         sb.relationshipPredicate(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
-          getVerbSeq(subject, SilNullState(), mood, relationship),
+          getVerbSeq(
+            subject, SilNullState(), mood, relationship,
+            predicate.getInflectedCount),
           rhs,
           relationship,
+          None,
           mood,
           modifiers.map(printVerbModifier(_)))
       }
@@ -260,7 +264,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         val count = SilReference.getCount(subject)
         sb.actionPredicate(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
-          getVerbSeq(subject, action, moodOriginal),
+          getVerbSeq(
+            subject, action, moodOriginal, predicate.getInflectedCount),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
           indirectObject.map(
@@ -300,7 +305,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           sb.query(
             print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
             question),
-          getVerbSeq(subject, state, mood, REL_IDENTITY),
+          getVerbSeq(
+            subject, state, mood, REL_IDENTITY, predicate.getInflectedCount),
           print(state, mood, SilConjoining.NONE),
           question,
           modifiers.map(printVerbModifier(_)))
@@ -310,7 +316,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       ) => {
         sb.actionPredicate(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
-          getVerbSeq(subject, action, mood),
+          getVerbSeq(subject, action, mood, predicate.getInflectedCount),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
           indirectObject.map(
@@ -325,9 +331,12 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           sb.query(
             print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
             question),
-          getVerbSeq(subject, SilNullState(), mood, relationship),
+          getVerbSeq(
+            subject, SilNullState(), mood, relationship,
+            predicate.getInflectedCount),
           print(complement, INFLECT_NOMINATIVE, SilConjoining.NONE),
           relationship,
+          question,
           mood,
           modifiers.map(printVerbModifier(_)))
       }
@@ -359,7 +368,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
   private def getVerbSeq(
     subject : SilReference,
     action : SilWord,
-    mood : SilMood) : Seq[String] =
+    mood : SilMood,
+    predicateCount : SilCount) : Seq[String] =
   {
     subject match {
       case _ : SilUnknownReference => {
@@ -367,7 +377,9 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       }
       case _ => {
         val (person, gender, count) = getSubjectAttributes(subject)
-        sb.delemmatizeVerb(person, gender, count, mood, false, action)
+        sb.delemmatizeVerb(
+          person, gender, combineCounts(count, predicateCount),
+          mood, false, action)
       }
     }
   }
@@ -413,9 +425,17 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     }
   }
 
+  private def combineCounts(count1 : SilCount, count2 : SilCount) : SilCount =
+  {
+    (count1, count2) match {
+      case (COUNT_SINGULAR, COUNT_SINGULAR) => COUNT_SINGULAR
+      case _ => COUNT_PLURAL
+    }
+  }
+
   private def getVerbSeq(
     subject : SilReference, state : SilState, mood : SilMood,
-    relationship : SilRelationship)
+    relationship : SilRelationship, predicateCount : SilCount)
       : Seq[String] =
   {
     subject match {
@@ -429,7 +449,9 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         }
         val (person, gender, count) =
           getSubjectAttributes(subject, isExistential)
-        getVerbSeq(person, gender, count, mood, isExistential, relationship)
+        getVerbSeq(
+          person, gender, combineCounts(count, predicateCount),
+          mood, isExistential, relationship)
       }
     }
   }

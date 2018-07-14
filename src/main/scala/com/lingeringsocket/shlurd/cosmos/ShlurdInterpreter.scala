@@ -195,7 +195,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           debug(s"ANSWER : $truth")
           val truthBoolean = truth.assumeFalse
           val extremeLimit = question match {
-            case QUESTION_WHICH | QUESTION_WHO => Int.MaxValue
+            case QUESTION_WHICH | QUESTION_WHO | QUESTION_WHERE => Int.MaxValue
             case QUESTION_HOW_MANY => 0
           }
           val (normalizedResponse, negateCollection) =
@@ -893,6 +893,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           case SilNounReference(noun, determiner, count) => {
             val rephrased = noun match {
               case SilWord(LEMMA_WHO, LEMMA_WHO) => SilWord(LEMMA_PERSON)
+              case SilWord(LEMMA_WHERE, LEMMA_WHERE) => SilWord(LEMMA_CONTAINER)
               case _ => noun
             }
             SilNounReference(rephrased, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)

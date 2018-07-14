@@ -29,10 +29,11 @@ object SpcPrimordial
         ShlurdParser.getResourceFile("/ontologies/primordial.txt")))
     // all the Whos down in Whoville
     cosmos.addIdealSynonym(LEMMA_WHO, LEMMA_PERSON)
+    cosmos.addIdealSynonym(LEMMA_WHERE, LEMMA_CONTAINER)
   }
 
   def isPrimordialSynonym(pair : (String, _)) : Boolean =
   {
-    pair._1 == LEMMA_WHO
+    (pair._1 == LEMMA_WHO) || (pair._1 == LEMMA_WHERE)
   }
 }

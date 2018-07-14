@@ -32,8 +32,10 @@ object ShlurdPennTreebankLabels
   val LABEL_SQ = "SQ"
   val LABEL_WHNP = "WHNP"
   val LABEL_WHADJP = "WHADJP"
+  val LABEL_WHADVP = "WHADVP"
   val LABEL_WDT = "WDT"
   val LABEL_WP = "WP"
+  val LABEL_WRB = "WRB"
   val LABEL_NN = "NN"
   val LABEL_NNS = "NNS"
   val LABEL_NNP = "NNP"
@@ -133,7 +135,11 @@ trait ShlurdAbstractSyntaxTree
 
   def isNoun = label.startsWith(LABEL_NN)
 
-  def isQueryNoun = hasLabel(LABEL_WHNP)
+  def isQueryPhrase = isQueryNounPhrase || isQueryAdverbPhrase
+
+  def isQueryNounPhrase = hasLabel(LABEL_WHNP)
+
+  def isQueryAdverbPhrase = hasLabel(LABEL_WHADVP)
 
   def isPronoun = label.startsWith(LABEL_PRP)
 
@@ -426,10 +432,22 @@ case class SptWHADJP(children : ShlurdSyntaxTree*)
   override def label = LABEL_WHADJP
 }
 
+case class SptWHADVP(children : ShlurdSyntaxTree*)
+    extends ShlurdSyntaxPhrase
+{
+  override def label = LABEL_WHADVP
+}
+
 case class SptWDT(children : ShlurdSyntaxTree*)
     extends ShlurdSyntaxPhrase
 {
   override def label = LABEL_WDT
+}
+
+case class SptWRB(children : ShlurdSyntaxTree*)
+    extends ShlurdSyntaxPhrase
+{
+  override def label = LABEL_WRB
 }
 
 case class SptWP(children : ShlurdSyntaxTree*)
