@@ -22,7 +22,16 @@ import ShlurdEnglishLemmas._
 
 object SpcPrimordial
 {
-  def initCosmos(cosmos : SpcCosmos)
+  private lazy val seedCosmos = initSeedCosmos()
+
+  private def initSeedCosmos() =
+  {
+    val newCosmos = new SpcCosmos()
+    initCosmosFromBeliefs(newCosmos)
+    newCosmos
+  }
+
+  private def initCosmosFromBeliefs(cosmos : SpcCosmos)
   {
     cosmos.loadBeliefs(
       Source.fromFile(
@@ -30,6 +39,11 @@ object SpcPrimordial
     // all the Whos down in Whoville
     cosmos.addIdealSynonym(LEMMA_WHO, LEMMA_PERSON)
     cosmos.addIdealSynonym(LEMMA_WHERE, LEMMA_CONTAINER)
+  }
+
+  def initCosmos(cosmos : SpcCosmos)
+  {
+    cosmos.copyFrom(seedCosmos)
   }
 
   def isPrimordialSynonym(pair : (String, _)) : Boolean =

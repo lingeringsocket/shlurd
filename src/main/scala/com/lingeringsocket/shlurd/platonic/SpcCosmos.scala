@@ -146,6 +146,8 @@ class SpcCosmos(
 
   def getGraph = unmodifiableGraph
 
+  private def getIdGenerator = idGenerator
+
   protected[platonic] def annotateFormAssoc(
     edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint,
     isProperty : Boolean)
@@ -165,6 +167,22 @@ class SpcCosmos(
       new ArrayUnenforcedSet(graph.entitySynonyms.vertexSet))
     graph.entityAssocs.removeAllVertices(
       new ArrayUnenforcedSet(graph.entityAssocs.vertexSet))
+  }
+
+  protected[platonic] def copyFrom(src : SpcCosmos)
+  {
+    assert(idGenerator.get == 0)
+    val dstGraphs = graph.getGraphs
+    dstGraphs.foreach(graph => assert(graph.vertexSet.isEmpty))
+    idGenerator.set(src.getIdGenerator.get)
+    dstGraphs.zip(src.getGraph.getGraphs).foreach({
+      case (dstGraph, srcGraph) => {
+        // FIXME find a way to do this without ugly casts
+        val dstGraphUp = dstGraph.asInstanceOf[Graph[Any, Any]]
+        val srcGraphUp = srcGraph.asInstanceOf[Graph[Any, Any]]
+        Graphs.addGraph(dstGraphUp, srcGraphUp)
+      }
+    })
   }
 
   private def registerIdeal(ideal : SpcIdeal) =

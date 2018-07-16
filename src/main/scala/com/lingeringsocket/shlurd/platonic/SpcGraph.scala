@@ -184,6 +184,12 @@ class SpcGraph(
     )
   }
 
+  def getGraphs() : Seq[Graph[_, _]] =
+  {
+    Seq(idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs, entitySynonyms,
+      entityAssocs, components)
+  }
+
   def getContainer(edge : SpcComponentEdge) =
     components.getEdgeSource(edge)
 
