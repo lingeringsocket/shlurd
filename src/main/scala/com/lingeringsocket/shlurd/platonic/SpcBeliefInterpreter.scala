@@ -154,7 +154,7 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
                 SilNounReference(
                   possessorFormName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
                 SilAdpositionalState(
-                  ADP_WITH,
+                  SilAdposition.WITH,
                   possesseeRef
                 )
               ) => {
@@ -227,7 +227,7 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
             case SilStateSpecifiedReference(
               _,
               SilAdpositionalState(
-                ADP_OF,
+                SilAdposition.OF,
                 SilNounReference(
                   hypernymIdealName,
                   DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
@@ -412,7 +412,7 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
         _,
         SilAdpositionalState(adposition, objRef)) =>
         {
-          if (adposition != ADP_AS) {
+          if (adposition != SilAdposition.AS) {
             return None
           }
           // "A television has a volume as a property"

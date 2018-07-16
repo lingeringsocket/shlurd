@@ -609,7 +609,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       SilStateSpecifiedReference(
         SilNounReference(SilWord(number), determiner, count),
         SilAdpositionalState(
-          ADP_OF,
+          SilAdposition.OF,
           SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))
   }
 

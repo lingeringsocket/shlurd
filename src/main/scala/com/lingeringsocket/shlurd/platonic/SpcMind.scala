@@ -57,7 +57,7 @@ class SpcMind(cosmos : SpcCosmos) extends ShlurdMind(cosmos)
             SilStateSpecifiedReference(
               SilNounReference(SilWord(LEMMA_ONE)),
               SilAdpositionalState(
-                ADP_OF,
+                SilAdposition.OF,
                 SilGenitiveReference(
                   cosmos.specificReference(possessor, determiner),
                   SilNounReference(SilWord("", specializedRole.name),

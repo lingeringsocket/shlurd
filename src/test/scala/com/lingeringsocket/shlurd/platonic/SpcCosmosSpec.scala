@@ -401,7 +401,7 @@ class SpcCosmosSpec extends Specification
       cosmos.normalizeState(
         entity,
         SilAdpositionalState(
-          ADP_AT,
+          SilAdposition.AT,
           SilNounReference(SilWord("home")))
       ) must be equalTo(
         SilPropertyState(SilWord("present"))

@@ -104,24 +104,25 @@ class KoreanSentenceBundle extends SilSentenceBundle
 
   override def adpositionString(adposition : SilAdposition) =
   {
-    val pos = adposition match {
-      case ADP_INSIDE => "안"
-      case ADP_OUTSIDE => "밖"
-      case ADP_AT => ""
-      case ADP_AS => "FIXME"
+    // FIXME find significant word in phrase such as "to the right of"
+    val pos = adposition.words.head.lemma match {
+      case LEMMA_IN | LEMMA_WITHIN | LEMMA_INSIDE => "안"
+      case LEMMA_OUTSIDE => "밖"
+      case LEMMA_AT => ""
       // FIXME:  distinguish "near" from "next to"
-      case ADP_NEAR => "근처"
-      case ADP_ON => "위"
-      case ADP_ABOVE => "위"
-      case ADP_BELOW => "밑"
+      case LEMMA_NEAR | LEMMA_NEARBY => "근처"
+      case LEMMA_ON | LEMMA_ABOVE | LEMMA_OVER => "위"
+      case LEMMA_BELOW | LEMMA_UNDER |
+          LEMMA_UNDERNEATH | LEMMA_BENEATH => "밑"
       // FIXME:  need to attach 의 to previous word
-      case ADP_LEFT => "왼쪽"
-      case ADP_RIGHT => "오른쪽"
-      case ADP_FRONT => "앞"
-      case ADP_BEHIND => "뒤"
+      case LEMMA_LEFT => "왼쪽"
+      case LEMMA_RIGHT => "오른쪽"
+      case LEMMA_FRONT => "앞"
+      case LEMMA_BACK | LEMMA_BEHIND => "뒤"
       // FIXME:  context-dependent
-      case ADP_WITH => "하고"
-      case ADP_OF | ADP_GENITIVE_OF => "FIXME"
+      case LEMMA_WITH => "하고"
+      // FIXME:  OF etc
+      case _ => compose(adposition.words.map(_.lemma):_*)
     }
     // later need to distinguish 에 from 에서
     compose(concat(pos, "에"), "있어요")

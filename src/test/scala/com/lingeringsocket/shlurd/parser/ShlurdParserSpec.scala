@@ -189,7 +189,7 @@ class ShlurdParserSpec extends Specification
         SilStatePredicate(
           SilNounReference(NOUN_WHO),
           SilAdpositionalState(
-            ADP_AT,
+            SilAdposition.AT,
             SilNounReference(NOUN_HOME))),
         QUESTION_WHO, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
@@ -370,7 +370,7 @@ class ShlurdParserSpec extends Specification
           SilStatePredicate(
             SilNounReference(NOUN_FRANNY),
             SilAdpositionalState(
-              ADP_AT,
+              SilAdposition.AT,
               SilNounReference(NOUN_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
     }
@@ -382,7 +382,7 @@ class ShlurdParserSpec extends Specification
           SilNounReference(
             NOUN_WINDOW, DETERMINER_UNIQUE, COUNT_SINGULAR),
           SilAdpositionalState(
-            ADP_INSIDE,
+            SilAdposition.IN,
             SilNounReference(
               NOUN_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR)
           )
@@ -422,7 +422,7 @@ class ShlurdParserSpec extends Specification
               SilPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
               SilNounReference(NOUN_GRANDDAUGHTER)),
             SilAdpositionalState(
-              ADP_AT,
+              SilAdposition.AT,
               SilNounReference(NOUN_HOME))),
           MOOD_INTERROGATIVE_POSITIVE)
     }

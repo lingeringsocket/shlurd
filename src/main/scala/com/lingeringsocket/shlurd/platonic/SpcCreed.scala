@@ -103,7 +103,7 @@ class SpcCreed(cosmos : SpcCosmos)
         SilStateSpecifiedReference(
           nounReference(LEMMA_KIND),
           SilAdpositionalState(
-            ADP_OF,
+            SilAdposition.OF,
             idealNoun(cosmos.getGraph.getHypernymIdeal(edge)))),
         REL_IDENTITY))
   }
@@ -202,7 +202,7 @@ class SpcCreed(cosmos : SpcCosmos)
         SilStateSpecifiedReference(
           possesseeNoun,
           SilAdpositionalState(
-            ADP_AS,
+            SilAdposition.AS,
             nounReference(LEMMA_PROPERTY))
         )
       } else {
@@ -298,7 +298,7 @@ class SpcCreed(cosmos : SpcCosmos)
           SilStateSpecifiedReference(
             idealNoun(possessorIdeal),
             SilAdpositionalState(
-              ADP_WITH,
+              SilAdposition.WITH,
               nounReference(edge1.getRoleName))),
           nounReference(edge2.getRoleName),
           REL_IDENTITY))

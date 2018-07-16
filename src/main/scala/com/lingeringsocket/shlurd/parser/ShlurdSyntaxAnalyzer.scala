@@ -519,20 +519,31 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   private def extractAdposition(preTerminal : ShlurdSyntaxTree)
       : Option[SilAdposition] =
   {
-    preTerminal.firstChild.lemma match {
-      case LEMMA_IN | LEMMA_INSIDE | LEMMA_WITHIN => Some(ADP_INSIDE)
-      case LEMMA_OUTSIDE => Some(ADP_OUTSIDE)
-      case LEMMA_AT => Some(ADP_AT)
-      case LEMMA_WITH => Some(ADP_WITH)
-      case LEMMA_AS => Some(ADP_AS)
-      case LEMMA_NEAR | LEMMA_NEARBY => Some(ADP_NEAR)
-      case LEMMA_ON => Some(ADP_ON)
-      case LEMMA_ABOVE | LEMMA_OVER => Some(ADP_ABOVE)
-      case LEMMA_BELOW | LEMMA_UNDER | LEMMA_BENEATH |
-          LEMMA_UNDERNEATH => Some(ADP_BELOW)
-      case LEMMA_BEHIND => Some(ADP_BEHIND)
-      case LEMMA_OF => Some(ADP_OF)
-      case _ => None
+    preTerminal match {
+      case SptIN(leaf) => {
+        Some(SilAdposition(Seq(getWord(leaf))))
+      }
+      case _ => preTerminal.firstChild.lemma match {
+        case LEMMA_IN => Some(SilAdposition.IN)
+        case LEMMA_INSIDE => Some(SilAdposition.INSIDE)
+        case LEMMA_WITHIN => Some(SilAdposition.WITHIN)
+        case LEMMA_OUTSIDE => Some(SilAdposition.OUTSIDE)
+        case LEMMA_AT => Some(SilAdposition.AT)
+        case LEMMA_WITH => Some(SilAdposition.WITH)
+        case LEMMA_AS => Some(SilAdposition.AS)
+        case LEMMA_NEAR => Some(SilAdposition.NEAR)
+        case LEMMA_NEARBY => Some(SilAdposition.NEARBY)
+        case LEMMA_ON => Some(SilAdposition.ON)
+        case LEMMA_ABOVE => Some(SilAdposition.ABOVE)
+        case LEMMA_OVER => Some(SilAdposition.OVER)
+        case LEMMA_BELOW => Some(SilAdposition.BELOW)
+        case LEMMA_UNDER => Some(SilAdposition.UNDER)
+        case LEMMA_BENEATH => Some(SilAdposition.BENEATH)
+        case LEMMA_UNDERNEATH => Some(SilAdposition.UNDERNEATH)
+        case LEMMA_BEHIND => Some(SilAdposition.BEHIND)
+        case LEMMA_OF => Some(SilAdposition.OF)
+        case _ => None
+      }
     }
   }
 

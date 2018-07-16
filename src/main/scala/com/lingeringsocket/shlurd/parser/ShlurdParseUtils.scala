@@ -95,6 +95,10 @@ object ShlurdEnglishLemmas
   val LEMMA_NEARBY = "nearby"
   val LEMMA_TO = "to"
   val LEMMA_ON = "on"
+  val LEMMA_LEFT = "left"
+  val LEMMA_RIGHT = "right"
+  val LEMMA_FRONT = "front"
+  val LEMMA_BACK = "back"
   val LEMMA_ABOVE = "above"
   val LEMMA_OVER = "over"
   val LEMMA_BELOW = "below"
@@ -104,6 +108,7 @@ object ShlurdEnglishLemmas
   val LEMMA_BEHIND = "behind"
   val LEMMA_KIND = "kind"
   val LEMMA_OF = "of"
+  val LEMMA_GENITIVE_OF = "_of_"
 }
 
 object ShlurdParseUtils

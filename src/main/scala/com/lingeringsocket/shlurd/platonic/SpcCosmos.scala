@@ -910,7 +910,7 @@ class SpcCosmos(
     adposition : SilAdposition,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    if (adposition == ADP_GENITIVE_OF) {
+    if (adposition == SilAdposition.GENITIVE_OF) {
       if (qualifiers.size != 1) {
         Success(Trilean.Unknown)
       } else {

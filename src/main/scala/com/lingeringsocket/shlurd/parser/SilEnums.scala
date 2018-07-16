@@ -14,6 +14,9 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+// FIXME
+import ShlurdEnglishLemmas._
+
 sealed trait SilPerson
 case object PERSON_FIRST extends SilPerson
 case object PERSON_SECOND extends SilPerson
@@ -34,22 +37,41 @@ case object DETERMINER_ALL extends SilDeterminer
 case object DETERMINER_UNSPECIFIED extends SilDeterminer
 case class SilIntegerDeterminer(number : Int) extends SilDeterminer
 
-sealed trait SilAdposition
-case object ADP_INSIDE extends SilAdposition
-case object ADP_OUTSIDE extends SilAdposition
-case object ADP_AT extends SilAdposition
-case object ADP_WITH extends SilAdposition
-case object ADP_AS extends SilAdposition
-case object ADP_NEAR extends SilAdposition
-case object ADP_ON extends SilAdposition
-case object ADP_ABOVE extends SilAdposition
-case object ADP_BELOW extends SilAdposition
-case object ADP_LEFT extends SilAdposition
-case object ADP_RIGHT extends SilAdposition
-case object ADP_FRONT extends SilAdposition
-case object ADP_BEHIND extends SilAdposition
-case object ADP_OF extends SilAdposition
-case object ADP_GENITIVE_OF extends SilAdposition
+case class SilAdposition(words : Seq[SilWord])
+{
+}
+
+object SilAdposition
+{
+  private def adposition(lemma : String) =
+  {
+    SilAdposition(Seq(SilWord(lemma, lemma)))
+  }
+
+  val IN = adposition(LEMMA_IN)
+  val INSIDE = adposition(LEMMA_INSIDE)
+  val WITHIN = adposition(LEMMA_WITHIN)
+  val OUTSIDE = adposition(LEMMA_OUTSIDE)
+  val AT = adposition(LEMMA_AT)
+  val WITH = adposition(LEMMA_WITH)
+  val AS = adposition(LEMMA_AS)
+  val NEAR = adposition(LEMMA_NEAR)
+  val NEARBY = adposition(LEMMA_NEARBY)
+  val ON = adposition(LEMMA_ON)
+  val ABOVE = adposition(LEMMA_ABOVE)
+  val OVER = adposition(LEMMA_OVER)
+  val BELOW = adposition(LEMMA_BELOW)
+  val UNDER = adposition(LEMMA_UNDER)
+  val BENEATH = adposition(LEMMA_BENEATH)
+  val UNDERNEATH = adposition(LEMMA_UNDERNEATH)
+  val LEFT = adposition(LEMMA_LEFT)
+  val RIGHT = adposition(LEMMA_RIGHT)
+  val FRONT = adposition(LEMMA_FRONT)
+  val BACK = adposition(LEMMA_BACK)
+  val BEHIND = adposition(LEMMA_BEHIND)
+  val OF = adposition(LEMMA_OF)
+  val GENITIVE_OF = adposition(LEMMA_GENITIVE_OF)
+}
 
 sealed trait SilCount
 case object COUNT_SINGULAR extends SilCount

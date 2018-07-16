@@ -216,7 +216,7 @@ abstract class SpcOpenhabCosmos(
                 SilStateSpecifiedReference(
                   ref,
                   SilAdpositionalState(
-                    ADP_ON,
+                    SilAdposition.ON,
                     floorRef))
               }
               case _ => ref
@@ -266,7 +266,7 @@ abstract class SpcOpenhabCosmos(
     adposition : SilAdposition,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    if (adposition == ADP_GENITIVE_OF) {
+    if (adposition == SilAdposition.GENITIVE_OF) {
       super.evaluateEntityAdpositionPredicate(
         entity, location, adposition, qualifiers)
     } else {

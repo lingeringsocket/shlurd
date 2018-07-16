@@ -578,9 +578,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         val roleQualifiers = extractRoleQualifiers(complementRef)
         val result = cosmos.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,
-          ADP_GENITIVE_OF, roleQualifiers)
+          SilAdposition.GENITIVE_OF, roleQualifiers)
         debug("RESULT FOR " +
-          s"$complementEntity ADP_GENITIVE_OF " +
+          s"$complementEntity GENITIVE_OF " +
           s"$subjectEntity with $roleQualifiers is $result")
         result
       }
@@ -663,7 +663,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           adpositionStates.forall(adp => {
             val adposition = adp.adposition
             val qualifiers : Set[String] = {
-              if (adposition == ADP_GENITIVE_OF) {
+              if (adposition == SilAdposition.GENITIVE_OF) {
                 Set(noun.lemma)
               } else {
                 Set.empty
@@ -814,7 +814,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         result
       }
       case SilGenitiveReference(possessor, possessee) => {
-        val state = SilAdpositionalState(ADP_GENITIVE_OF, possessor)
+        val state = SilAdpositionalState(SilAdposition.GENITIVE_OF, possessor)
         evaluatePredicateOverState(
           possessee, state, context, resultCollector, specifiedState, evaluator)
       }
