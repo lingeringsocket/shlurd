@@ -24,6 +24,7 @@ object ShlurdEnglishLemmas
   val LEMMA_HAVE = "have"
   val LEMMA_WHO = "who"
   val LEMMA_WHERE = "where"
+  val LEMMA_NOWHERE = "nowhere"
   val LEMMA_ONE = "one"
   val LEMMA_HOW = "how"
   val LEMMA_MANY = "many"

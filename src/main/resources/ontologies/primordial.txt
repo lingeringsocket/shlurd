@@ -4,5 +4,5 @@ A person is a kind of object.
 A container must be an object.
 A containee must be an object.
 An object may have containees.
-An object may have a container.
+An object must have a container.
 An object with a containee is a container.

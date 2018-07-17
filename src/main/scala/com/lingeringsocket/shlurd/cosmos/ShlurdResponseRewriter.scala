@@ -30,13 +30,20 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   def normalizeResponse(
     predicate : SilPredicate,
     resultCollector : ResultCollector[E],
-    params : ShlurdResponseParams)
+    params : ShlurdResponseParams,
+    question : Option[SilQuestion] = None)
       : (SilPredicate, Boolean) =
   {
-    // for incomplete responses, prevent flipping subject/complement so that we
-    // can more easily find the answer to the question asked
+    // for incomplete responses or where-questions, prevent flipping
+    // subject/complement so that we can more easily find the answer
+    // to the question asked
     val allowFlips = params.verbosity match {
-      case RESPONSE_COMPLETE => true
+      case RESPONSE_COMPLETE => {
+        question match {
+          case Some(QUESTION_WHERE) => false
+          case _ => true
+        }
+      }
       case _ => false
     }
     var negateCollection = false
@@ -98,13 +105,16 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           SEPARATOR_OXFORD_COMMA, params).getOrElse
         {
           negateCollection = true
-          val responseNoun = noun match {
+          val (responseDeterminer, responseNoun) = noun match {
             case SilWord(LEMMA_WHO, LEMMA_WHO) => {
-              SilWord(LEMMA_ONE)
+              (DETERMINER_NONE, SilWord(LEMMA_ONE))
             }
-            case _ => noun
+            case SilWord(LEMMA_WHERE, LEMMA_WHERE) => {
+              (DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE))
+            }
+            case _ => (DETERMINER_NONE, noun)
           }
-          SilNounReference(responseNoun, DETERMINER_NONE, count)
+          SilNounReference(responseNoun, responseDeterminer, count)
         }
       }
       case SilNounReference(
@@ -166,9 +176,10 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
 
     querier.query(clearInflectedCounts, rewriteLast)
 
-    SilPhraseValidator.validatePhrase(rewriteLast)
-
-    (rewriteLast, negateCollection)
+    val normalized = transformQuestionResponse(
+      rewriteLast, params, question)
+    SilPhraseValidator.validatePhrase(normalized)
+    (normalized, negateCollection)
   }
 
   def swapPronounsSpeakerListener = replacementMatcher {
@@ -207,6 +218,47 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
         case _ =>
+      }
+    }
+  }
+
+  private def transformQuestionResponse(
+    predicate : SilPredicate,
+    params : ShlurdResponseParams,
+    question : Option[SilQuestion]) : SilPredicate =
+  {
+    params.verbosity match {
+      case RESPONSE_TERSE | RESPONSE_ELLIPSIS => {
+        // in this case we just want to keep the container as the
+        // subject for easy extraction, so don't transform back
+        return predicate
+      }
+      case _ =>
+    }
+    (predicate, question) match {
+      case (rp @
+          SilRelationshipPredicate(
+            container,
+            SilGenitiveReference(
+              subject,
+              SilNounReference(
+                SilWord(LEMMA_CONTAINER, LEMMA_CONTAINER),
+                DETERMINER_UNSPECIFIED,
+                COUNT_SINGULAR)),
+            REL_IDENTITY,
+            verbModifiers
+          ),
+        Some(QUESTION_WHERE)
+      ) => {
+        SilStatePredicate(
+          subject,
+          SilAdpositionalState(
+            SilAdposition.IN,
+            container),
+          verbModifiers)
+      }
+      case _ => {
+        predicate
       }
     }
   }

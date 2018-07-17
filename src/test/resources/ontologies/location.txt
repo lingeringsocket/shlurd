@@ -1,0 +1,14 @@
+Ubuntu is an entity.
+A man is a kind of person.
+A woman is a kind of person.
+A man's gender must be masculine.
+A woman's gender must be feminine.
+A car is a kind of object.
+Herbie is a car.
+Christine is a car.
+Chrissy is a woman.
+Jack is a man.
+Janet is a woman.
+Jack's container is Herbie.
+Chrissy's container is Christine.
+Janet's container is Christine.

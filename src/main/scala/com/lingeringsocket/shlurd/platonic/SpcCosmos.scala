@@ -928,22 +928,28 @@ class SpcCosmos(
     adposition : SilAdposition,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    if (adposition == SilAdposition.GENITIVE_OF) {
-      if (qualifiers.size != 1) {
-        Success(Trilean.Unknown)
-      } else {
-        val roleName = qualifiers.head
-        resolveRole(roleName) match {
-          case Some(role) => {
-            Success(Trilean(isEntityAssoc(objRef, entity, role)))
-          }
-          case _ => {
-            Success(Trilean.Unknown)
-          }
+    val roleName = adposition match {
+      case SilAdposition.GENITIVE_OF => {
+        if (qualifiers.size != 1) {
+          return Success(Trilean.Unknown)
+        } else {
+          qualifiers.head
         }
       }
-    } else {
-      Success(Trilean.Unknown)
+      case SilAdposition.IN => {
+        LEMMA_CONTAINEE
+      }
+      case _ => {
+        return Success(Trilean.Unknown)
+      }
+    }
+    resolveRole(roleName) match {
+      case Some(role) => {
+        Success(Trilean(isEntityAssoc(objRef, entity, role)))
+      }
+      case _ => {
+        Success(Trilean.Unknown)
+      }
     }
   }
 

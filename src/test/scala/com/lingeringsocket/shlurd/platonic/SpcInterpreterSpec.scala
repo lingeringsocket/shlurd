@@ -463,6 +463,36 @@ class SpcInterpreterSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
+    "understand locations" in new InterpreterContext
+    {
+      loadBeliefs("/ontologies/location.txt")
+
+      interpretMatrix(
+        "where is Jack",
+        "He is in Herbie.",
+        "Jack is in Herbie.",
+        "Herbie.",
+        "Herbie.")
+      interpretTerse("where is Ubuntu", "Nowhere.")
+      interpretTerse("where is Herbie", "I don't know.")
+      interpretTerse("where is Christine", "I don't know.")
+      interpretTerse("where is Chrissy", "Christine.")
+      interpretTerse("where is Janet", "Christine.")
+      interpretTerse("is Jack in Herbie", "Yes.")
+      interpretTerse("is Jack in Christine", "No.")
+      interpretTerse("is Chrissy in Herbie", "No.")
+      interpretTerse("is Chrissy in Christine", "Yes.")
+      interpretTerse("is Janet in Herbie", "No.")
+      interpretTerse("is Janet in Christine", "Yes.")
+      interpretTerse("who is in Herbie", "Jack.")
+      interpretTerse("who is in Christine", "Chrissy and Janet.")
+      interpretTerse("how many men are in Herbie", "1 of them.")
+      interpretTerse("how many women are in Herbie", "No women.")
+      interpretTerse("how many men are in Christine", "No men.")
+      interpretTerse("how many women are in Christine", "2 of them.")
+      cosmos.sanityCheck must beTrue
+    }
+
     "understand taxonomy" in new InterpreterContext
     {
       loadBeliefs("/ontologies/vehicles.txt")

@@ -182,7 +182,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       debug("PREDICATE QUERY")
       // FIXME deal with positive, modality
 
-      val rewrittenPredicate = rewriteQuery(predicate)
+      val rewrittenPredicate = rewriteQuery(predicate, question)
       debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
 
       val resultCollector = ResultCollector[E]
@@ -202,12 +202,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             responseRewriter.normalizeResponse(
               rewrittenPredicate, resultCollector,
               generalParams.copy(
-                listLimit = extremeLimit))
+                listLimit = extremeLimit),
+              Some(question))
           debug(s"NORMALIZED RESPONSE : $normalizedResponse")
           val responseMood = SilIndicativeMood(
             truthBoolean || negateCollection)
           val adjustedResponse = generalParams.verbosity match {
             // FIXME:  for RESPONSE_ELLIPSIS, include the verb as well
+            // (or the adposition in the case of QUESTION_WHERE)
             case RESPONSE_TERSE | RESPONSE_ELLIPSIS => {
               sentencePrinter.sb.terminatedSentence(
                 sentencePrinter.print(
@@ -935,9 +937,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def rewriteQuery(
-    predicate : SilPredicate) : SilPredicate =
+    predicate : SilPredicate, question : SilQuestion) : SilPredicate =
   {
-    val queryRewriter = new ShlurdQueryRewriter
+    val queryRewriter = new ShlurdQueryRewriter(question)
     queryRewriter.rewrite(
       queryRewriter.rewritePredicate, predicate)
   }

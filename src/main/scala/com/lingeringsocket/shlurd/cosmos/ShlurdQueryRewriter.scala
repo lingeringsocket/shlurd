@@ -16,7 +16,9 @@ package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
-class ShlurdQueryRewriter extends SilPhraseRewriter
+import ShlurdEnglishLemmas._
+
+class ShlurdQueryRewriter(question : SilQuestion) extends SilPhraseRewriter
 {
   def rewriteSpecifier = replacementMatcher {
     case SilNounReference(
@@ -37,9 +39,17 @@ class ShlurdQueryRewriter extends SilPhraseRewriter
     case SilRelationshipPredicate(subject, complement,
       relationship, modifiers
     ) => {
+      val rewrittenComplement = question match {
+        case QUESTION_WHERE => {
+          SilGenitiveReference(
+            complement,
+            SilNounReference(SilWord(LEMMA_CONTAINER)))
+        }
+        case _ => complement
+      }
       SilRelationshipPredicate(
         rewrite(rewriteSpecifier, subject),
-        complement, relationship, modifiers)
+        rewrittenComplement, relationship, modifiers)
     }
   }
 }
