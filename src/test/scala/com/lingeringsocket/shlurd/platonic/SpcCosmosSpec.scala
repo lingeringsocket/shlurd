@@ -61,6 +61,13 @@ class SpcCosmosSpec extends Specification
       properties.head._2
     }
 
+    protected def expectFormSingleton(form : SpcForm) : SpcEntity =
+    {
+      expectUnique(
+        cosmos.resolveQualifiedNoun(
+          form.name, REF_SUBJECT, Set()))
+    }
+
     protected def expectPerson(name : String) : SpcEntity =
     {
       expectNamedForm(LEMMA_PERSON)
@@ -163,6 +170,24 @@ class SpcCosmosSpec extends Specification
         "door", REF_SUBJECT, Set("back"))
       backDoor must beSuccessfulTry.which(_.size == 1)
       frontDoor must not be equalTo(backDoor)
+    }
+
+    "understand specific references" in new CosmosContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+
+      addBelief("there is a door")
+      addBelief("the door's creator is Sirius")
+      cosmos.validateBeliefs
+      val door = expectNamedForm("door")
+      val anonDoor = expectFormSingleton(door)
+      val sirius = expectProperName("Sirius")
+      resolveGenitive(anonDoor, "creator") must be equalTo Set(sirius)
+
+      addBelief("the door's maintainer is the android")
+      val android = expectNamedForm("android")
+      val anonAndroid = expectFormSingleton(android)
+      resolveGenitive(anonDoor, "maintainer") must be equalTo Set(anonAndroid)
     }
 
     "understand taxonomy" in new CosmosContext
@@ -603,6 +628,11 @@ class SpcCosmosSpec extends Specification
       addBelief("there is a front door")
       addBelief("there is a door") must
         throwA[AmbiguousBeliefExcn]
+
+      addBelief("there is a red pig")
+      addBelief("there is a green pig")
+      addBelief("the pig is Charlotte's pet") must
+        throwA[AmbiguousBeliefExcn]
     }
 
     "reject another ambiguous belief" in new CosmosContext
@@ -615,6 +645,12 @@ class SpcCosmosSpec extends Specification
     "reject beliefs it cannot understand" in new CosmosContext
     {
       addBelief("he may be either open or closed") must
+        throwA[IncomprehensibleBeliefExcn]
+      addBelief("Daffy is duck") must
+        throwA[IncomprehensibleBeliefExcn]
+      addBelief("Daffy is a pig's duck") must
+        throwA[IncomprehensibleBeliefExcn]
+      addBelief("Daffy is Porky Pig's duck") must
         throwA[IncomprehensibleBeliefExcn]
     }
 

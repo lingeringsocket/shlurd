@@ -66,8 +66,10 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
         }
         predicate match {
           case SilStatePredicate(ref, state, _) => {
-            val (noun, qualifiers, count, failed) = extractQualifiedNoun(
-              sentence, ref, Seq.empty)
+            // FIXME we should not be allowing genitives here except
+            // in certain cases
+            val (noun, qualifiers, count, determiner, failed) =
+              extractQualifiedNoun(sentence, ref, Seq.empty, true)
             if (failed) {
               return None
             }
@@ -82,6 +84,7 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
                 if (mood.getModality != MODAL_NEUTRAL) {
                   return Some(UnimplementedBelief(sentence))
                 }
+                // FIXME assert something about qualifiers here
                 state match {
                   case ps : SilPropertyState => {
                     return Some(StateEquivalenceBelief(
@@ -133,19 +136,21 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
                   sentence, subjectNoun, complement, relationship)
               }
               case SilNounReference(
-                subjectNoun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+                subjectNoun, subjectDeterminer, COUNT_SINGULAR
               ) => {
                 return interpretEntityRelationship(
-                  sentence, subjectNoun, complement, relationship)
+                  sentence, subjectDeterminer, subjectNoun,
+                  complement, relationship)
               }
               case gr : SilGenitiveReference => {
                 complement match {
                   // "Will's dad is Lonnie"
                   case SilNounReference(
-                    subjectNoun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+                    subjectNoun, subjectDeterminer, COUNT_SINGULAR
                   ) => {
                     return interpretEntityRelationship(
-                      sentence, subjectNoun, gr, relationship)
+                      sentence, subjectDeterminer, subjectNoun,
+                      gr, relationship)
                   }
                   case _ =>
                 }
@@ -210,8 +215,8 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
   {
     relationship match {
       case REL_IDENTITY => {
-        val (complementNoun, qualifiers, count, failed) = extractQualifiedNoun(
-          sentence, complement, Seq.empty)
+        val (complementNoun, qualifiers, count, determiner, failed) =
+          extractQualifiedNoun(sentence, complement, Seq.empty)
         if (failed) {
           return None
         }
@@ -255,9 +260,8 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
           // "a dog may have an owner and a groomer"
           case SilConjunctiveReference(_, refs, _) => {
             val pairs = refs.map(ref => {
-              val (complementNoun, qualifiers, count, failed) =
-                extractQualifiedNoun(
-                  sentence, ref, Seq.empty)
+              val (complementNoun, qualifiers, count, determiner, failed) =
+                extractQualifiedNoun(sentence, ref, Seq.empty)
               if (failed) {
                 return None
               }
@@ -275,9 +279,8 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
           }
           // "a dog has an owner"
           case ref => {
-            val (complementNoun, qualifiers, count, failed) =
-              extractQualifiedNoun(
-                sentence, ref, Seq.empty)
+            val (complementNoun, qualifiers, count, determiner, failed) =
+              extractQualifiedNoun(sentence, ref, Seq.empty)
             if (failed) {
               return None
             }
@@ -314,11 +317,18 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
 
   private def interpretEntityRelationship(
     sentence : SilSentence,
+    subjectDeterminer : SilDeterminer,
     subjectNoun : SilWord,
     complement : SilReference,
     relationship : SilRelationship)
       : Option[SpcBelief] =
   {
+    subjectDeterminer match {
+      case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE =>
+      case _ => {
+        return None
+      }
+    }
     if (sentence.mood.getModality != MODAL_NEUTRAL) {
       return Some(UnimplementedBelief(sentence))
     }
@@ -326,24 +336,40 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
     if (relationship != REL_IDENTITY) {
       return Some(UnimplementedBelief(sentence))
     }
-    val (complementNoun, qualifiers, count, failed) = extractQualifiedNoun(
-      sentence, complement, Seq.empty)
+    val (complementNoun, qualifiers, count, complementDeterminer, failed) =
+      extractQualifiedNoun(sentence, complement, Seq.empty, true)
     if (failed) {
       return None
     }
     if (qualifiers.isEmpty) {
+      if (complementDeterminer != DETERMINER_NONSPECIFIC) {
+        // FIXME this should be easy to implement
+        // "Oz is the werewolf"
+        return Some(UnimplementedBelief(sentence))
+      }
+      if (subjectDeterminer != DETERMINER_UNSPECIFIED) {
+        // FIXME this should be easy to implement
+        // "The dog is a werewolf"
+        return Some(UnimplementedBelief(sentence))
+      }
       // "Fido is a dog"
       Some(EntityExistenceBelief(
         sentence,
         complementNoun, Seq(subjectNoun), subjectNoun.lemmaUnfolded))
     } else {
       // "Fido is Franny's pet"
-      if (qualifiers.size != 1) {
-        return Some(UnimplementedBelief(sentence))
+      complementDeterminer match {
+        case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE => {
+          if (qualifiers.size != 1) {
+            return None
+          }
+        }
+        case _ => return None
       }
       Some(EntityAssocBelief(
         sentence,
-        qualifiers.head, subjectNoun, complementNoun))
+        complementDeterminer, qualifiers.head,
+        subjectDeterminer, subjectNoun, complementNoun))
     }
   }
 
@@ -383,22 +409,50 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
       sentence, formName, newStates, isClosed, propertyName))
   }
 
-  private def resolveUniqueName(word : SilWord)
+  private def resolveUniqueName(
+    sentence : SilSentence,
+    word : SilWord,
+    determiner : SilDeterminer = DETERMINER_UNSPECIFIED)
       : SpcEntity =
   {
-    val candidates = cosmos.getEntities.filter(
-      _.qualifiers == Set(word.lemma))
-    assert(candidates.size < 2)
-    candidates.headOption match {
-      case Some(entity) => entity
+    determiner match {
+      case DETERMINER_UNIQUE => {
+        val form = cosmos.instantiateForm(word)
+        val entities = cosmos.getEntities.filter(entity =>
+          cosmos.getGraph.isHyponym(entity.form, form))
+        if (entities.isEmpty) {
+          val (entity, success) = cosmos.instantiateEntity(
+            form, Seq.empty)
+          assert(success)
+          entity
+        } else if (entities.size > 1) {
+          val creed = new SpcCreed(cosmos)
+          val originalBelief = conjunctiveBelief(
+            entities.map(creed.entityFormBelief(_)))
+          throw new AmbiguousBeliefExcn(sentence, originalBelief)
+        } else {
+          entities.head
+        }
+      }
+      case DETERMINER_UNSPECIFIED => {
+        val candidates = cosmos.getEntities.filter(
+          _.qualifiers == Set(word.lemma))
+        assert(candidates.size < 2)
+        candidates.headOption match {
+          case Some(entity) => entity
+          case _ => {
+            val tentativeName = SpcForm.tentativeName(word)
+            assert(cosmos.resolveForm(tentativeName.lemma).isEmpty)
+            val newForm = cosmos.instantiateForm(tentativeName)
+            val (entity, success) = cosmos.instantiateEntity(
+              newForm, Seq(word), word.lemmaUnfolded)
+            assert(success)
+            entity
+          }
+        }
+      }
       case _ => {
-        val tentativeName = SpcForm.tentativeName(word)
-        assert(cosmos.resolveForm(tentativeName.lemma).isEmpty)
-        val newForm = cosmos.instantiateForm(tentativeName)
-        val (entity, success) = cosmos.instantiateEntity(
-          newForm, Seq(word), word.lemmaUnfolded)
-        assert(success)
-        entity
+        throw new AssertionError("Unexpected determiner " + determiner)
       }
     }
   }
@@ -438,19 +492,20 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
   private def extractQualifiedNoun(
     sentence : SilSentence,
     reference : SilReference,
-    preQualifiers : Seq[SilWord])
-      : (SilWord, Seq[SilWord], SilCount, Boolean) =
+    preQualifiers : Seq[SilWord],
+    allowGenitive : Boolean = false)
+      : (SilWord, Seq[SilWord], SilCount, SilDeterminer, Boolean) =
   {
     reference match {
       case SilNounReference(
         noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
         {
-          (noun, preQualifiers, COUNT_SINGULAR, false)
+          (noun, preQualifiers, COUNT_SINGULAR, DETERMINER_NONSPECIFIC, false)
         }
       case SilNounReference(
         noun, DETERMINER_UNSPECIFIED, COUNT_PLURAL) =>
         {
-          (noun, preQualifiers, COUNT_PLURAL, false)
+          (noun, preQualifiers, COUNT_PLURAL, DETERMINER_UNSPECIFIED, false)
         }
       case SilStateSpecifiedReference(subRef, state) =>
         {
@@ -458,16 +513,23 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
             sentence, subRef,
             preQualifiers ++ SilReference.extractQualifiers(state))
         }
-      // FIXME:  be pickier about determiners here
       case SilGenitiveReference(
         SilNounReference(
-          possessor, _, COUNT_SINGULAR),
+          possessor, possessorDeterminer, COUNT_SINGULAR),
         SilNounReference(
-          possession, _, COUNT_SINGULAR)) =>
+          possession, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)) =>
         {
-          (possession, Seq(possessor), COUNT_SINGULAR, false)
+          val failed = possessorDeterminer match {
+            case DETERMINER_UNSPECIFIED => false
+            case DETERMINER_NONSPECIFIC => false
+            case DETERMINER_UNIQUE => false
+            case _ => true
+          }
+          (possession, Seq(possessor),
+            COUNT_SINGULAR, possessorDeterminer, failed || !allowGenitive)
         }
-      case _ => (SilWord(""), Seq.empty, COUNT_SINGULAR, true)
+      case _ => (SilWord(""), Seq.empty, COUNT_SINGULAR,
+        DETERMINER_UNSPECIFIED, true)
     }
   }
 
@@ -713,10 +775,13 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
 
   beliefApplier {
     case EntityAssocBelief(
-      sentence, possessorEntityName, possesseeEntityName, roleName
+      sentence, possessorDeterminer, possessorName,
+      possesseeDeterminer, possesseeName, roleName
     ) => {
-      val possessor = resolveUniqueName(possessorEntityName)
-      val possessee = resolveUniqueName(possesseeEntityName)
+      val possessor = resolveUniqueName(
+        sentence, possessorName, possessorDeterminer)
+      val possessee = resolveUniqueName(
+        sentence, possesseeName, possesseeDeterminer)
       val role = cosmos.resolveRole(roleName.lemma) match {
         case Some(r) => r
         case _ => {
