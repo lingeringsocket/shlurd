@@ -433,6 +433,14 @@ class SpcCosmosSpec extends Specification
       )
     }
 
+    "accept triggers" in new CosmosContext
+    {
+      cosmos.getTriggers must beEmpty
+      addBelief("If an object moves to a location, " +
+        "then the location is the object's container.")
+      cosmos.getTriggers.size must be equalTo(1)
+    }
+
     "prevent incompatible role modification" in new CosmosContext
     {
       SpcPrimordial.initCosmos(cosmos)

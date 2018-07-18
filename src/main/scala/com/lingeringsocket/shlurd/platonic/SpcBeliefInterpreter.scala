@@ -497,4 +497,12 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
       }
     }
   }
+
+  beliefApplier {
+    case ConsequenceBelief(
+      sentence
+    ) => {
+      cosmos.addTrigger(sentence)
+    }
+  }
 }

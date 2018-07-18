@@ -107,6 +107,8 @@ class SpcCreedSpec extends Specification
   private val children = "A person may have sons or daughters."
   private val childrenSons = "A person may have sons."
   private val childrenDaughters = "A person may have daughters."
+  private val moveTrigger = "If an object moves to a location, " +
+    "then the location is the object's container."
 
   "SpcCreed" should
   {
@@ -221,6 +223,11 @@ class SpcCreedSpec extends Specification
         Seq(nephew),
         Seq(nephewMan, nephewUncles, nephewAunts, uncleNephews,
           auntNephews, manUncleNephew, manAuntNephew))
+    }
+
+    "preserve triggers" in new CosmosContext
+    {
+      expectPreserved(Seq(moveTrigger))
     }
   }
 }

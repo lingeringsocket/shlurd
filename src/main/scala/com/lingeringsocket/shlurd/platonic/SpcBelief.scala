@@ -108,8 +108,8 @@ case class FormPropertyBelief(
 {
 }
 
-case class ActionConsequenceBelief(
-  sentence : SilSentence
+case class ConsequenceBelief(
+  sentence : SilConditionalSentence
 ) extends SpcBelief
 {
 }

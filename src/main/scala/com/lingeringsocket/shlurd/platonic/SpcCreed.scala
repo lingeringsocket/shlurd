@@ -39,6 +39,8 @@ class SpcCreed(cosmos : SpcCosmos)
         entry => inverseAssocBelief(entry._1, entry._2))
     ) ++ (
       cosmos.getEntities.flatMap(entityBeliefs(_))
+    ) ++ (
+      cosmos.getTriggers
     )
   }
 

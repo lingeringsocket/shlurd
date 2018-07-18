@@ -34,12 +34,12 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       // FIXME support interrogative
       return None
     }
+    if (sentence.mood.isNegative) {
+      // FIXME:  interpret this as a constraint
+      return None
+    }
     sentence match {
       case SilPredicateSentence(predicate, mood, formality) => {
-        if (mood.isNegative) {
-          // FIXME:  interpret this as a constraint
-          return None
-        }
         if (!predicate.getModifiers.isEmpty) {
           return None
         }
@@ -54,6 +54,9 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           }
           case _ =>
         }
+      }
+      case conditionalSentence : SilConditionalSentence => {
+        return recognizeConsequenceBelief(conditionalSentence)
       }
       case _ =>
     }
@@ -205,6 +208,42 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       case _ =>
     }
     None
+  }
+
+  private def recognizeConsequenceBelief(sentence : SilConditionalSentence)
+      : Option[SpcBelief] =
+  {
+    val antecedent = sentence.antecedent
+    val consequent = sentence.consequent
+    antecedent match {
+      case _ : SilActionPredicate => {
+      }
+      case _ => return None
+    }
+    consequent match {
+      case rp @ SilRelationshipPredicate(
+        subject, _ : SilGenitiveReference, REL_IDENTITY, _
+      ) => {
+        var invalid = false
+        val querier = new SilPhraseRewriter
+        def validateReferences = querier.queryMatcher {
+          case SilNounReference(_, determiner, _) => {
+            determiner match {
+              case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED =>
+              case _ => {
+                invalid = true
+              }
+            }
+          }
+        }
+        querier.query(validateReferences, rp)
+        if (invalid) {
+          return None
+        }
+      }
+      case _ => return None
+    }
+    Some(ConsequenceBelief(sentence))
   }
 
   private def interpretFormRelationship(

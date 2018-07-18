@@ -144,6 +144,9 @@ class SpcCosmos(
     graph.entitySynonyms.vertexSet.asScala.toSeq.
       filter(_.isInstanceOf[SpcEntity]).map(_.asInstanceOf[SpcEntity])
 
+  def getTriggers =
+    graph.triggers.vertexSet.asScala.toSeq
+
   def getGraph = unmodifiableGraph
 
   private def getIdGenerator = idGenerator
@@ -1092,6 +1095,11 @@ class SpcCosmos(
         // FIXME make up role out of thin air?
       }
     }
+  }
+
+  def addTrigger(sentence : SilConditionalSentence)
+  {
+    graph.triggers.addVertex(sentence)
   }
 
   override def applyModifications()
