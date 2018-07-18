@@ -46,7 +46,8 @@ class SilSentencePrinterSpec extends Specification
           changeVerb,
           formality.copy(force = FORCE_EXCLAMATION))
       }
-      case SilPredicateQuery(predicate, question, mood, formality) => parsed
+      case _ : SilConditionalSentence => parsed
+      case _ : SilPredicateQuery => parsed
       case SilAmbiguousSentence(alternatives, _) => {
         SilAmbiguousSentence(alternatives.map(normalize))
       }
@@ -262,6 +263,13 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("a bulb is usually lit",
         "a bulb is lit usually.")
       expectStatement("a person may have a personal_presence as a property")
+      expectStatement("if an object moves to a location, " +
+        "then the location is the object's container")
+      expectNormalized("when an object moves to a location, " +
+        "the location is the object's container",
+        "if an object moves to a location, " +
+          "then the location is the object's container."
+      )
     }
   }
 }

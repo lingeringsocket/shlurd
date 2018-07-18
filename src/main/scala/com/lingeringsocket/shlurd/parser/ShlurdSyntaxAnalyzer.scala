@@ -39,7 +39,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     val children =
       truncatePunctuation(
         tree, Seq(LABEL_DOT, LABEL_EXCLAMATION_MARK, LABEL_QUESTION_MARK))
-    if (isImperative(children)) {
+    val antecedent = extractAntecedent(children)
+    if (!antecedent.isEmpty) {
+      expectConditionalSentence(
+        tree,
+        antecedent.get,
+        SptS(children.tail.filterNot(c => c.isComma || c.isThen):_*),
+        SilFormality(force))
+    } else  if (isImperative(children)) {
       expectCommand(tree, children.head, SilFormality(force))
     } else if (children.size >= 2) {
       val tail = children.takeRight(2)
@@ -371,6 +378,38 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
+  private def expectConditionalSentence(
+    tree : ShlurdSyntaxTree,
+    antecedent : SptS,
+    consequent : SptS,
+    formality : SilFormality) : SilSentence =
+  {
+    val antecedentSentence = analyzeSentence(antecedent)
+    val consequentSentence = analyzeSentence(consequent)
+    if (antecedentSentence.mood != MOOD_INDICATIVE_POSITIVE) {
+      // Oooooo....modal logic.  Maybe one day.
+      return SilUnrecognizedSentence(tree)
+    }
+    val antecedentPredicate = antecedentSentence match {
+      case SilPredicateSentence(predicate, _, _) => predicate
+      case _ => {
+        return SilUnrecognizedSentence(tree)
+      }
+    }
+    val consequentPredicate = consequentSentence match {
+      case SilPredicateSentence(predicate, _, _) => predicate
+      case _ => {
+        return SilUnrecognizedSentence(tree)
+      }
+    }
+    SilConditionalSentence(
+      antecedentPredicate,
+      consequentPredicate,
+      consequentSentence.mood,
+      formality
+    )
+  }
+
   private def expectCommand(
     tree : ShlurdSyntaxTree,
     vp : ShlurdSyntaxTree, formality : SilFormality) : SilSentence =
@@ -520,8 +559,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       : Option[SilAdposition] =
   {
     preTerminal match {
-      case SptIN(leaf) => {
-        Some(SilAdposition(Seq(getWord(leaf))))
+      case adp : ShlurdSyntaxAdposition => {
+        Some(SilAdposition(Seq(getWord(adp.child))))
       }
       case _ => preTerminal.firstChild.lemma match {
         case LEMMA_IN => Some(SilAdposition.IN)
@@ -542,6 +581,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         case LEMMA_UNDERNEATH => Some(SilAdposition.UNDERNEATH)
         case LEMMA_BEHIND => Some(SilAdposition.BEHIND)
         case LEMMA_OF => Some(SilAdposition.OF)
+        case LEMMA_TO => Some(SilAdposition.TO)
         case _ => None
       }
     }
@@ -777,6 +817,26 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   private def isImperative(children : Seq[ShlurdSyntaxTree]) =
   {
     (children.size == 1) && children.head.isVerbPhrase
+  }
+
+  private def extractAntecedent(children : Seq[ShlurdSyntaxTree])
+      : Option[SptS] =
+  {
+    children.headOption match {
+      case Some(SptSBAR(SptIN(leaf), antecedent : SptS)) => {
+        leaf.lemma match {
+          case LEMMA_IF => Some(antecedent)
+          case _ => None
+        }
+      }
+      case Some(SptSBAR(SptWHADVP(SptWRB(leaf)), antecedent : SptS)) => {
+        leaf.lemma match {
+          case LEMMA_WHEN => Some(antecedent)
+          case _ => None
+        }
+      }
+      case _ => None
+    }
   }
 
   private[parser] def getCount(tree : ShlurdSyntaxTree) : SilCount =

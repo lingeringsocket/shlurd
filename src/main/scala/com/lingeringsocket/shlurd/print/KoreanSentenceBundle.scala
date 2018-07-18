@@ -172,6 +172,14 @@ class KoreanSentenceBundle extends SilSentenceBundle
     compose(items:_*)
   }
 
+  override def conditional(
+    antecedent : String,
+    consequent : String) =
+  {
+    // FIXME proper conjugation
+    compose(concat(antecedent, "면"), consequent)
+  }
+
   override def composeQualifiers(qualifiers : Seq[SilWord]) =
   {
     compose(qualifiers.map(delemmatizeQualifier(_)) :_*)

@@ -71,6 +71,14 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case SilAmbiguousSentence(alternatives, _) => {
         alternatives.map(s => printUnterminated(s, ellipsis)).mkString(" | ")
       }
+      case SilConditionalSentence(antecedent, consequent, mood, _) => {
+        assert(!ellipsis)
+        sb.conditional(
+          printPredicateStatement(
+            antecedent, MOOD_INDICATIVE_POSITIVE, ellipsis),
+          printPredicateStatement(
+            consequent, mood, ellipsis))
+      }
       case _ : SilUnknownSentence => {
         sb.unknownSentence
       }

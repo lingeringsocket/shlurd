@@ -293,6 +293,16 @@ case class SilPredicateSentence(
   override def children = Seq(predicate)
 }
 
+case class SilConditionalSentence(
+  antecedent : SilPredicate,
+  consequent : SilPredicate,
+  mood : SilMood = MOOD_INDICATIVE_POSITIVE,
+  formality : SilFormality = SilFormality.DEFAULT
+) extends SilTransformedPhrase with SilSentence
+{
+  override def children = Seq(antecedent, consequent)
+}
+
 case class SilStateChangeCommand(
   predicate : SilPredicate,
   changeVerb : Option[SilWord] = None,

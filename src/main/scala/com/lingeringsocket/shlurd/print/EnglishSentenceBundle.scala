@@ -366,6 +366,13 @@ class EnglishSentenceBundle
     compose((Seq(prefix) ++ seq ++ Seq(items.last)):_*)
   }
 
+  override def conditional(
+    antecedent : String,
+    consequent : String) =
+  {
+    compose(LEMMA_IF, concat(antecedent, ","), LEMMA_THEN, consequent)
+  }
+
   override def composeQualifiers(qualifiers : Seq[SilWord]) =
   {
     compose(qualifiers.map(delemmatizeQualifier(_)) :_*)

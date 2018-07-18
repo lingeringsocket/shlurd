@@ -69,6 +69,7 @@ object SilAdposition
   val FRONT = adposition(LEMMA_FRONT)
   val BACK = adposition(LEMMA_BACK)
   val BEHIND = adposition(LEMMA_BEHIND)
+  val TO = adposition(LEMMA_TO)
   val OF = adposition(LEMMA_OF)
   val GENITIVE_OF = adposition(LEMMA_GENITIVE_OF)
 }

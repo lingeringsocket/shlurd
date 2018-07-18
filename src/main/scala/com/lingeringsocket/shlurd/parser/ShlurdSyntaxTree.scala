@@ -58,6 +58,7 @@ object ShlurdPennTreebankLabels
   val LABEL_RBR = "RBR"
   val LABEL_RBS = "RBS"
   val LABEL_IN = "IN"
+  val LABEL_TO = "TO"
   val LABEL_POS = "POS"
   val LABEL_MD = "MD"
   val LABEL_RP = "RP"
@@ -147,7 +148,7 @@ trait ShlurdAbstractSyntaxTree
 
   def isAdverb = label.startsWith(LABEL_RB)
 
-  def isAdposition = hasLabel(LABEL_IN)
+  def isAdposition = hasLabel(LABEL_IN) || hasLabel(LABEL_TO)
 
   def isAdjectival = isAdjective || isParticipleOrGerund
 
@@ -207,6 +208,15 @@ trait ShlurdAbstractSyntaxTree
     }
   }
 
+  def countLeaves : Int =
+  {
+    if (isLeaf) {
+      1
+    } else {
+      children.map(_.countLeaves).sum
+    }
+  }
+
   def toWordString : String =
   {
     if (children.isEmpty) {
@@ -236,14 +246,7 @@ sealed trait ShlurdSyntaxTree extends ShlurdAbstractSyntaxTree
     }
   }
 
-  def countLeaves : Int =
-  {
-    if (isLeaf) {
-      1
-    } else {
-      children.map(_.countLeaves).sum
-    }
-  }
+  def isThen = unwrapPhrase.hasTerminalLemma(LEMMA_THEN)
 }
 
 sealed trait ShlurdSyntaxNonLeaf extends ShlurdSyntaxTree
@@ -602,6 +605,12 @@ case class SptIN(child : ShlurdSyntaxLeaf)
     extends ShlurdSyntaxAdposition
 {
   override def label = LABEL_IN
+}
+
+case class SptTO(child : ShlurdSyntaxLeaf)
+    extends ShlurdSyntaxAdposition
+{
+  override def label = LABEL_TO
 }
 
 case class SptCD(child : ShlurdSyntaxLeaf)

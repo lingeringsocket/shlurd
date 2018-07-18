@@ -137,6 +137,10 @@ abstract class SilSentenceBundle
     inflection : SilInflection,
     items : Seq[String]) : String
 
+  def conditional(
+    antecedent : String,
+    consequent : String) : String
+
   def composeQualifiers(qualifiers : Seq[SilWord]) : String
 
   def query(noun : String, question : Option[SilQuestion]) : String
