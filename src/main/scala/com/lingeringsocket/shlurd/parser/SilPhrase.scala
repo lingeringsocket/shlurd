@@ -73,6 +73,8 @@ sealed trait SilPredicate extends SilPhrase
   {
     inflectedCount = count
   }
+
+  def getModifiers : Seq[SilVerbModifier] = Seq.empty
 }
 
 sealed trait SilReference extends SilPhrase
@@ -260,6 +262,10 @@ case class SilUnresolvedStatePredicate(
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
   override def getSubject = subject
+
+  override def getModifiers = modifiers
+
+  override def children = Seq(subject, state) ++ modifiers
 }
 
 case class SilUnresolvedActionPredicate(
@@ -272,6 +278,11 @@ case class SilUnresolvedActionPredicate(
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
   override def getSubject = subject
+
+  override def getModifiers = modifiers
+
+  override def children =
+    Seq(subject) ++ directObject ++ indirectObject ++ modifiers
 }
 
 case class SilUnresolvedRelationshipPredicate(
@@ -282,6 +293,11 @@ case class SilUnresolvedRelationshipPredicate(
   modifiers : Seq[SilVerbModifier]
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
+  override def getSubject = subject
+
+  override def getModifiers = modifiers
+
+  override def children = Seq(subject, complement) ++ modifiers
 }
 
 case class SilPredicateSentence(
@@ -360,6 +376,8 @@ case class SilStatePredicate(
 {
   override def getSubject = subject
 
+  override def getModifiers = modifiers
+
   override def children = Seq(subject, state) ++ modifiers
 }
 
@@ -371,6 +389,8 @@ case class SilRelationshipPredicate(
 ) extends SilTransformedPhrase with SilPredicate
 {
   override def getSubject = subject
+
+  override def getModifiers = modifiers
 
   override def children = Seq(subject, complement) ++ modifiers
 }
@@ -384,6 +404,8 @@ case class SilActionPredicate(
 ) extends SilTransformedPhrase with SilPredicate
 {
   override def getSubject = subject
+
+  override def getModifiers = modifiers
 
   override def children =
     Seq(subject) ++ directObject ++ indirectObject ++ modifiers

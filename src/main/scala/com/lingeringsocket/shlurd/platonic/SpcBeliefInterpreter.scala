@@ -62,141 +62,166 @@ class SpcBeliefInterpreter(val cosmos : SpcCosmos)
       case SilPredicateSentence(predicate, mood, formality) => {
         if (mood.isNegative) {
           // FIXME:  interpret this as a constraint
-          return Some(UnimplementedBelief(sentence))
+          return None
+        }
+        if (!predicate.getModifiers.isEmpty) {
+          return None
         }
         predicate match {
-          case SilStatePredicate(ref, state, _) => {
-            // FIXME we should not be allowing genitives here except
-            // in certain cases
-            val (noun, qualifiers, count, determiner, failed) =
-              extractQualifiedNoun(sentence, ref, Seq.empty, true)
-            if (failed) {
-              return None
-            }
-            ref match {
-              case SilStateSpecifiedReference(
-                _, specifiedState @
-                  (_ : SilAdpositionalState | _ : SilPropertyState)
-              ) => {
-                // "a television that is on the blink is broken"
-                // or "a television that is busted is broken"
-                // or "a busted television is broken"
-                if (mood.getModality != MODAL_NEUTRAL) {
-                  return Some(UnimplementedBelief(sentence))
-                }
-                // FIXME assert something about qualifiers here
-                state match {
-                  case ps : SilPropertyState => {
-                    return Some(StateEquivalenceBelief(
-                      sentence, noun, specifiedState, state))
-                  }
-                  case SilExistenceState() =>
-                  case _ => {
-                    return Some(UnimplementedBelief(sentence))
-                  }
-                }
-              }
-              case _ =>
-            }
-            state match {
-              case SilExistenceState() => {
-                // "there is a television"
-                // FIXME:  interpret mood
-                return Some(EntityExistenceBelief(
-                  sentence, noun, qualifiers, ""))
-              }
-              case _ => {
-                if (!qualifiers.isEmpty) {
-                  if ((qualifiers.size > 1) ||
-                    !ref.isInstanceOf[SilGenitiveReference])
-                  {
-                    // maybe we should allow constraints on
-                    // qualified entities?
-                    return Some(UnimplementedBelief(sentence))
-                  } else {
-                    // "a cat's voracity must be carnivore"
-                    return definePropertyBelief(
-                      sentence, qualifiers.head, Some(noun), state, mood)
-                  }
-                }
-                // "a lifeform may be either animal or vegetable"
-                return definePropertyBelief(
-                  sentence, noun, None, state, mood)
-              }
-            }
+          case statePredicate : SilStatePredicate => {
+            return recognizeStatePredicateBelief(
+              sentence, statePredicate, mood)
           }
-          case SilRelationshipPredicate(
-            subject, complement, relationship, _
+          case relationshipPredicate : SilRelationshipPredicate => {
+            return recognizeRelationshipPredicateBelief(
+              sentence, relationshipPredicate, mood)
+          }
+          case _ =>
+        }
+      }
+      case _ =>
+    }
+    None
+  }
+
+  private def recognizeStatePredicateBelief(
+    sentence : SilSentence,
+    predicate : SilStatePredicate,
+    mood : SilMood) : Option[SpcBelief] =
+  {
+    val ref = predicate.subject
+    val state = predicate.state
+    // FIXME we should not be allowing genitives here except
+    // in certain cases
+    val (noun, qualifiers, count, determiner, failed) =
+      extractQualifiedNoun(sentence, ref, Seq.empty, true)
+    if (failed) {
+      return None
+    }
+    ref match {
+      case SilStateSpecifiedReference(
+        _, specifiedState @
+          (_ : SilAdpositionalState | _ : SilPropertyState)
+      ) => {
+        // "a television that is on the blink is broken"
+        // or "a television that is busted is broken"
+        // or "a busted television is broken"
+        if (mood.getModality != MODAL_NEUTRAL) {
+          return Some(UnimplementedBelief(sentence))
+        }
+        // FIXME assert something about qualifiers here
+        state match {
+          case ps : SilPropertyState => {
+            return Some(StateEquivalenceBelief(
+              sentence, noun, specifiedState, state))
+          }
+          case SilExistenceState() =>
+          case _ => {
+            return Some(UnimplementedBelief(sentence))
+          }
+        }
+      }
+      case _ =>
+    }
+    state match {
+      case SilExistenceState() => {
+        // "there is a television"
+        // FIXME:  interpret mood
+        Some(EntityExistenceBelief(
+          sentence, noun, qualifiers, ""))
+      }
+      case _ => {
+        if (!qualifiers.isEmpty) {
+          if ((qualifiers.size > 1) ||
+            !ref.isInstanceOf[SilGenitiveReference])
+          {
+            // maybe we should allow constraints on
+            // qualified entities?
+            return Some(UnimplementedBelief(sentence))
+          } else {
+            // "a cat's voracity must be carnivore"
+            return definePropertyBelief(
+              sentence, qualifiers.head, Some(noun), state, mood)
+          }
+        }
+        // "a lifeform may be either animal or vegetable"
+        definePropertyBelief(
+          sentence, noun, None, state, mood)
+      }
+    }
+  }
+
+  private def recognizeRelationshipPredicateBelief(
+    sentence : SilSentence,
+    predicate : SilRelationshipPredicate,
+    mood : SilMood) : Option[SpcBelief] =
+  {
+    val subject = predicate.subject
+    val complement = predicate.complement
+    val relationship = predicate.relationship
+    subject match {
+      case SilNounReference(
+        subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+      ) => {
+        return interpretFormRelationship(
+          sentence, subjectNoun, complement, relationship)
+      }
+      case SilNounReference(
+        subjectNoun, subjectDeterminer, COUNT_SINGULAR
+      ) => {
+        return interpretEntityRelationship(
+          sentence, subjectDeterminer, subjectNoun,
+          complement, relationship)
+      }
+      case gr : SilGenitiveReference => {
+        complement match {
+          // "Will's dad is Lonnie"
+          case SilNounReference(
+            subjectNoun, subjectDeterminer, COUNT_SINGULAR
           ) => {
-            subject match {
-              case SilNounReference(
-                subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-              ) => {
-                return interpretFormRelationship(
-                  sentence, subjectNoun, complement, relationship)
+            return interpretEntityRelationship(
+              sentence, subjectDeterminer, subjectNoun,
+              gr, relationship)
+          }
+          case _ =>
+        }
+      }
+      case SilStateSpecifiedReference(
+        SilNounReference(
+          possessorFormName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+        SilAdpositionalState(
+          SilAdposition.WITH,
+          possesseeRef
+        )
+      ) => {
+        // "a person with a child is a parent"
+        if (mood.getModality != MODAL_NEUTRAL) {
+          return Some(UnimplementedBelief(sentence))
+        }
+        val possesseeRoleNames = possesseeRef match {
+          case SilNounReference(
+            possesseeRoleName, _, _
+          ) => {
+            Seq(possesseeRoleName)
+          }
+          case SilConjunctiveReference(_, references, _) => {
+            references.map({
+              case SilNounReference(possesseeRoleName, _, _) => {
+                possesseeRoleName
               }
-              case SilNounReference(
-                subjectNoun, subjectDeterminer, COUNT_SINGULAR
-              ) => {
-                return interpretEntityRelationship(
-                  sentence, subjectDeterminer, subjectNoun,
-                  complement, relationship)
-              }
-              case gr : SilGenitiveReference => {
-                complement match {
-                  // "Will's dad is Lonnie"
-                  case SilNounReference(
-                    subjectNoun, subjectDeterminer, COUNT_SINGULAR
-                  ) => {
-                    return interpretEntityRelationship(
-                      sentence, subjectDeterminer, subjectNoun,
-                      gr, relationship)
-                  }
-                  case _ =>
-                }
-              }
-              case SilStateSpecifiedReference(
-                SilNounReference(
-                  possessorFormName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
-                SilAdpositionalState(
-                  SilAdposition.WITH,
-                  possesseeRef
-                )
-              ) => {
-                // "a person with a child is a parent"
-                if (mood.getModality != MODAL_NEUTRAL) {
-                  return Some(UnimplementedBelief(sentence))
-                }
-                val possesseeRoleNames = possesseeRef match {
-                  case SilNounReference(
-                    possesseeRoleName, _, _
-                  ) => {
-                    Seq(possesseeRoleName)
-                  }
-                  case SilConjunctiveReference(_, references, _) => {
-                    references.map({
-                      case SilNounReference(possesseeRoleName, _, _) => {
-                        possesseeRoleName
-                      }
-                      case _ => return Some(UnimplementedBelief(sentence))
-                    })
-                  }
-                  case _ => return Some(UnimplementedBelief(sentence))
-                }
-                complement match {
-                  case SilNounReference(
-                    possessorRoleName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-                  ) => {
-                    return Some(InverseAssocBelief(
-                      sentence,
-                      possessorFormName, possessorRoleName,
-                      possesseeRoleNames))
-                  }
-                  case _ =>
-                }
-              }
-              case _ =>
-            }
+              case _ => return Some(UnimplementedBelief(sentence))
+            })
+          }
+          case _ => return Some(UnimplementedBelief(sentence))
+        }
+        complement match {
+          case SilNounReference(
+            possessorRoleName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+          ) => {
+            return Some(InverseAssocBelief(
+              sentence,
+              possessorFormName, possessorRoleName,
+              possesseeRoleNames))
           }
           case _ =>
         }
