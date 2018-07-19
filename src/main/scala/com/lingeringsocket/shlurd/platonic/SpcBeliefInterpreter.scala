@@ -21,7 +21,7 @@ import scala.collection.JavaConverters._
 
 import org.jgrapht.alg.shortestpath._
 
-class SpcBeliefInterpreter(cosmos : SpcCosmos)
+class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     extends SpcBeliefRecognizer(cosmos)
 {
   type BeliefApplier = PartialFunction[SpcBelief, Unit]
@@ -105,11 +105,17 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos)
 
     val edgeCount = edges.size
     if (edgeCount >= constraint.upper) {
-      val originalBelief = conjunctiveBelief(
-        Seq(creed.idealAssociationBelief(formAssocEdge)) ++
-          edges.map(creed.entityAssociationBelief(_)))
-      throw new IncrementalCardinalityExcn(
-        sentence, originalBelief)
+      if ((constraint.upper == 1) && allowUpdates) {
+        // FIXME if the existence of this edge supports other beliefs
+        // or inferences, then we have to deal with the fallout
+        cosmos.removeEntityAssociation(edges.head)
+      } else {
+        val originalBelief = conjunctiveBelief(
+          Seq(creed.idealAssociationBelief(formAssocEdge)) ++
+            edges.map(creed.entityAssociationBelief(_)))
+        throw new IncrementalCardinalityExcn(
+          sentence, originalBelief)
+      }
     }
   }
 

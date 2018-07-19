@@ -588,6 +588,11 @@ class SpcCosmos(
     }
   }
 
+  protected[platonic] def removeEntityAssociation(edge : SpcEntityAssocEdge)
+  {
+    graph.entityAssocs.removeEdge(edge)
+  }
+
   def isEntityAssoc(
     possessor : SpcEntity,
     possessee : SpcEntity,

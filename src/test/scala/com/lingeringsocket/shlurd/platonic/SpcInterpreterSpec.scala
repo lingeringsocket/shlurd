@@ -41,7 +41,7 @@ class SpcInterpreterSpec extends Specification
   )
 
   abstract class InterpreterContext(
-    acceptNewBeliefs : Boolean = false,
+    beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
     params : ShlurdResponseParams = ShlurdResponseParams()
   ) extends NameSpace
   {
@@ -66,21 +66,21 @@ class SpcInterpreterSpec extends Specification
 
     protected val interpreter =
       new SpcInterpreter(
-        new SpcMind(cosmos), acceptNewBeliefs, params)
+        new SpcMind(cosmos), beliefAcceptance, params)
 
     protected val interpreterWithoutPronouns =
       new SpcInterpreter(
-        new SpcMind(cosmos), acceptNewBeliefs, params.
+        new SpcMind(cosmos), beliefAcceptance, params.
           copy(thirdPersonPronouns = false))
 
     protected val interpreterTerse =
       new SpcInterpreter(
-        new SpcMind(cosmos), acceptNewBeliefs, params.
+        new SpcMind(cosmos), beliefAcceptance, params.
           copy(verbosity = RESPONSE_TERSE))
 
     protected val interpreterEllipsis =
       new SpcInterpreter(
-        new SpcMind(cosmos), acceptNewBeliefs, params.
+        new SpcMind(cosmos), beliefAcceptance, params.
           copy(verbosity = RESPONSE_ELLIPSIS))
 
     protected def loadBeliefs(resource : String)
@@ -439,7 +439,7 @@ class SpcInterpreterSpec extends Specification
         "No organization.")
     }
 
-    "understand relatives" in new InterpreterContext(true)
+    "understand relatives" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/relatives.txt")
       interpret("who is Henry", "He is Titus' uncle.")
@@ -491,6 +491,19 @@ class SpcInterpreterSpec extends Specification
       interpretTerse("how many men are in Christine", "No men.")
       interpretTerse("how many women are in Christine", "2 of them.")
       cosmos.sanityCheck must beTrue
+    }
+
+    "understand actions" in new InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+    {
+      interpret("if an object moves to a location, " +
+        "then the object is in the location", "OK.")
+      interpret("Snowpiercer is an object", "OK.")
+      interpret("Fuji is an object", "OK.")
+      interpret("Kilimanjaro is an object", "OK.")
+      interpret("Snowpiercer moves to Fuji", "OK.")
+      interpret("where is Snowpiercer", "It is in Fuji.")
+      interpret("Snowpiercer moves to Kilimanjaro", "OK.")
+      interpret("where is Snowpiercer", "It is in Kilimanjaro.")
     }
 
     "understand taxonomy" in new InterpreterContext
@@ -812,7 +825,8 @@ class SpcInterpreterSpec extends Specification
     }
 
     "allow pronouns to be avoided" in new InterpreterContext(
-      false, ShlurdResponseParams().copy(thirdPersonPronouns = false))
+      ACCEPT_NO_BELIEFS,
+      ShlurdResponseParams().copy(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/stove.txt")
       interpret("is the stove hot?",
@@ -825,7 +839,7 @@ class SpcInterpreterSpec extends Specification
         "Sorry, I don't know about any 'door'.")
     }
 
-    "accept new beliefs" in new InterpreterContext(true)
+    "accept new beliefs" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
       interpret("a door may be either open or closed",
         "OK.")
@@ -835,7 +849,7 @@ class SpcInterpreterSpec extends Specification
         "I don't know.")
     }
 
-    "reject invalid new beliefs" in new InterpreterContext(true)
+    "reject invalid new beliefs" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
       interpret("there is a front door",
         "OK.")
@@ -845,7 +859,8 @@ class SpcInterpreterSpec extends Specification
           "there is a big front door.")
     }
 
-    "reject cyclic taxonomy belief" in new InterpreterContext(true)
+    "reject cyclic taxonomy belief" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
     {
       interpret("a bird is a kind of animal", "OK.")
       interpret("a duck is a kind of bird", "OK.")
@@ -855,7 +870,8 @@ class SpcInterpreterSpec extends Specification
           "an animal is a kind of duck.")
     }
 
-    "reject incompatible form for role" in new InterpreterContext(true)
+    "reject incompatible form for role" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
     {
       interpret("a person must have a lawyer", "OK.")
       interpret("a lawyer must be a weasel", "OK.")
@@ -867,7 +883,7 @@ class SpcInterpreterSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
-    "reify unknown person" in new InterpreterContext(true)
+    "reify unknown person" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
       interpret("a person must have a lawyer", "OK.")
       interpret("Donald is a person", "OK.")
@@ -876,7 +892,7 @@ class SpcInterpreterSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
-    "infer form from role" in new InterpreterContext(true)
+    "infer form from role" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
       interpret("a lawyer must be a weasel", "OK.")
       interpret("Michael is Donald's lawyer", "OK.")
@@ -885,7 +901,8 @@ class SpcInterpreterSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
-    "support roles with multiple forms" in new InterpreterContext(true)
+    "support roles with multiple forms" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
     {
       interpret("a man is a kind of person", "OK.")
       interpret("a gentleman is a kind of man", "OK.")
@@ -903,7 +920,8 @@ class SpcInterpreterSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
-    "validate constraints incrementally" in new InterpreterContext(true)
+    "validate constraints incrementally" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/people.txt")
       interpret(
@@ -916,6 +934,19 @@ class SpcInterpreterSpec extends Specification
         "Previously I was told that a person may have one employer and " +
           "BLACKWING is Scott's employer.  So it does not add up when I " +
           "hear that Scott is RowdyThree's operative.")
+    }
+
+    "validate constraints incrementally" in new InterpreterContext(
+      ACCEPT_MODIFIED_BELIEFS)
+    {
+      loadBeliefs("/ontologies/people.txt")
+      // FIXME verify effectiveness
+      interpret(
+        "Amanda is Rapunzel's owner",
+        "OK.")
+      interpret(
+        "Scott is RowdyThree's operative",
+        "OK.")
     }
   }
 }

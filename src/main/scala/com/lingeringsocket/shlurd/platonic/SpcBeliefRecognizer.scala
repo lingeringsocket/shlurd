@@ -237,30 +237,24 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       }
       case _ => return None
     }
-    consequent match {
-      case rp @ SilRelationshipPredicate(
-        subject, _ : SilGenitiveReference, REL_IDENTITY, _
-      ) => {
-        var invalid = false
-        val querier = new SilPhraseRewriter
-        def validateReferences = querier.queryMatcher {
-          case SilNounReference(_, determiner, _) => {
-            determiner match {
-              case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED =>
-              case _ => {
-                invalid = true
-              }
-            }
+    var invalid = false
+    val querier = new SilPhraseRewriter
+    def validateReferences = querier.queryMatcher {
+      case SilNounReference(_, determiner, _) => {
+        determiner match {
+          case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED =>
+          case _ => {
+            invalid = true
           }
         }
-        querier.query(validateReferences, rp)
-        if (invalid) {
-          return None
-        }
       }
-      case _ => return None
     }
-    Some(ConsequenceBelief(sentence))
+    querier.query(validateReferences, consequent)
+    if (invalid) {
+      None
+    } else {
+      Some(ConsequenceBelief(sentence))
+    }
   }
 
   private def interpretFormRelationship(

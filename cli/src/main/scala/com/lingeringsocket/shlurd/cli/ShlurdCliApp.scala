@@ -58,7 +58,8 @@ class ShlurdCliApp(
   private val params = ShlurdResponseParams().copy(
     verbosity = RESPONSE_ELLIPSIS)
 
-  private val interpreter = new SpcInterpreter(mind, true, params)
+  private val interpreter = new SpcInterpreter(
+    mind, ACCEPT_MODIFIED_BELIEFS, params)
 
   private def run()
   {

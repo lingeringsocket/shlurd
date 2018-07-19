@@ -17,35 +17,163 @@ package com.lingeringsocket.shlurd.platonic
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.cosmos._
 
+import scala.collection._
+
+sealed trait SpcBeliefAcceptance
+case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
+case object ACCEPT_NEW_BELIEFS extends SpcBeliefAcceptance
+case object ACCEPT_MODIFIED_BELIEFS extends SpcBeliefAcceptance
+
 class SpcInterpreter(
   mind : SpcMind,
-  acceptNewBeliefs : Boolean = false,
+  beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
   params : ShlurdResponseParams = ShlurdResponseParams())
     extends ShlurdInterpreter(mind, params)
 {
   override protected def interpretImpl(sentence : SilSentence) : String =
   {
-    val beliefInterpreter = new SpcBeliefInterpreter(mind.getCosmos.fork)
-    if (acceptNewBeliefs && sentence.mood.isIndicative) {
-      beliefInterpreter.recognizeBelief(sentence) match {
-        case Some(belief) => {
-          debug(s"APPLYING NEW BELIEF : $belief")
-          try {
-            beliefInterpreter.applyBelief(belief)
-          } catch {
-            case ex : RejectedBeliefExcn => {
-              debug("NEW BELIEF REJECTED", ex)
-              return respondContradiction(ex)
-            }
-          }
-          beliefInterpreter.cosmos.applyModifications
-          debug("NEW BELIEF ACCEPTED")
-          return sentencePrinter.sb.respondCompliance
+    if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
+      sentence.mood.isIndicative)
+    {
+      val beliefInterpreter =
+        new SpcBeliefInterpreter(
+          mind.getCosmos.fork,
+          (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS))
+      attemptAsBelief(beliefInterpreter, sentence, true).foreach(result => {
+        return result
+      })
+      sentence match {
+        case SilPredicateSentence(ap : SilActionPredicate, _, _) => {
+          return interpretAction(beliefInterpreter, ap)
         }
         case _ =>
       }
     }
     super.interpretImpl(sentence)
+  }
+
+  private def attemptAsBelief(
+    beliefInterpreter : SpcBeliefInterpreter,
+    sentence : SilSentence,
+    commit : Boolean) : Option[String] =
+  {
+    beliefInterpreter.recognizeBelief(sentence) match {
+      case Some(belief) => {
+        debug(s"APPLYING NEW BELIEF : $belief")
+        try {
+          beliefInterpreter.applyBelief(belief)
+        } catch {
+          case ex : RejectedBeliefExcn => {
+            debug("NEW BELIEF REJECTED", ex)
+            return Some(respondContradiction(ex))
+          }
+        }
+        if (commit) {
+          beliefInterpreter.cosmos.applyModifications
+          debug("NEW BELIEF ACCEPTED")
+          Some(sentencePrinter.sb.respondCompliance)
+        } else {
+          None
+        }
+      }
+      case _ => None
+    }
+  }
+
+  private def interpretAction(
+    beliefInterpreter : SpcBeliefInterpreter,
+    predicate : SilActionPredicate) : String =
+  {
+    mind.getCosmos.getTriggers.foreach(trigger => {
+      applyTrigger(beliefInterpreter, trigger, predicate).foreach(result => {
+        return result
+      })
+    })
+    beliefInterpreter.cosmos.applyModifications
+    sentencePrinter.sb.respondCompliance
+  }
+
+  private def applyTrigger(
+    beliefInterpreter : SpcBeliefInterpreter,
+    trigger : SilConditionalSentence,
+    predicate : SilActionPredicate) : Option[String] =
+  {
+    debug(s"APPLY TRIGGER $trigger")
+    val antecedent = trigger.antecedent
+    val consequent = trigger.consequent
+    val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
+    antecedent match {
+      case SilActionPredicate(
+        subject, action, directObject, indirectObject, modifiers
+      ) => {
+        // FIXME process directObject, indirectObject, modifiers
+        if (action.lemma != predicate.action.lemma) {
+          debug(s"ACTION ${predicate.action.lemma} DOES NOT MATCH")
+          return None
+        }
+        // FIXME support other subject patterns
+        subject match {
+          case SilNounReference(
+            subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+          ) => {
+            val subjectPattern = SilNounReference(
+              subjectNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
+            // FIXME verify that predicate.subject matches subjectPattern
+            replacements.put(subjectPattern, predicate.subject)
+          }
+          case _ => {
+            debug("SUBJECT PATTERN UNSUPPORTED")
+            return None
+          }
+        }
+        // FIXME support multiple modifiers and other patterns
+        modifiers match {
+          case Seq(SilAdpositionalVerbModifier(
+            adposition1, SilNounReference(
+              objNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR))
+          ) => {
+            predicate.modifiers match {
+              case Seq(SilAdpositionalVerbModifier(
+                adposition2, actualRef)
+              ) => {
+                if (adposition1 != adposition2) {
+                  debug(s"ADPOSITION $adposition2 DOES NOT MATCH")
+                  return None
+                }
+                val objPattern = SilNounReference(
+                  objNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
+                // FIXME verify that actualRef matches objPattern
+                replacements.put(objPattern, actualRef)
+
+              }
+              case _ => {
+                debug("VERB MODIFIER PATTERN DOES NOT MATCH")
+                return None
+              }
+            }
+          }
+          case Seq() => {
+          }
+          case _ => {
+            debug("VERB MODIFIER PATTERN UNSUPPORTED")
+            return None
+          }
+        }
+      }
+      case _ => {
+        debug("ANTECEDENT PATTERN UNSUPPORTED")
+        return None
+      }
+    }
+    val rewriter = new SilPhraseRewriter
+    def replaceReferences = rewriter.replacementMatcher {
+      case ref : SilReference => {
+        replacements.get(ref).getOrElse(ref)
+      }
+    }
+    val newPredicate = rewriter.rewrite(replaceReferences, consequent)
+    val newSentence = SilPredicateSentence(newPredicate)
+    attemptAsBelief(beliefInterpreter, newSentence, false)
   }
 
   // FIXME:  i18n
