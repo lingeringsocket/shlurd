@@ -70,6 +70,23 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
   {
     val ref = predicate.subject
     val state = predicate.state
+    state match {
+      case SilAdpositionalState(SilAdposition.IN, container) => {
+        return recognizeRelationshipPredicateBelief(
+          sentence,
+          SilRelationshipPredicate(
+            container,
+            SilGenitiveReference(
+              ref,
+              SilNounReference(SilWord(LEMMA_CONTAINER),
+                DETERMINER_UNSPECIFIED,
+                COUNT_SINGULAR)),
+            REL_IDENTITY
+          ),
+          sentence.mood)
+      }
+      case _ =>
+    }
     // FIXME we should not be allowing genitives here except
     // in certain cases
     val (noun, qualifiers, count, determiner, failed) =

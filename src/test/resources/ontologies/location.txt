@@ -9,6 +9,6 @@ Christine is a car.
 Chrissy is a woman.
 Jack is a man.
 Janet is a woman.
-Jack's container is Herbie.
+Jack is in Herbie.
 Chrissy's container is Christine.
-Janet's container is Christine.
+Janet is in Christine.
