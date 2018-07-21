@@ -21,8 +21,8 @@ import scala.io._
 
 /*
   sbt "runMain com.lingeringsocket.shlurd.platonic.SpcInterpretTester \
-       /home/jvs/tmp/beliefs.txt" \
-    < /home/jvs/Downloads/tasks_1-20_v1-2/en-valid/qa1_valid.txt
+       src/test/resources/expect/babl-beliefs.txt" \
+    < src/test/resources/expect/babl.txt
  */
 class SpcInterpretTester(beliefsFile : String) extends ShlurdParseTester
 {
@@ -58,5 +58,5 @@ class SpcInterpretTester(beliefsFile : String) extends ShlurdParseTester
 object SpcInterpretTester extends App
 {
   val tester = new SpcInterpretTester(args.head)
-  tester.run
+  tester.run(Source.stdin)
 }

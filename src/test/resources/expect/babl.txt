@@ -1,0 +1,13 @@
+1 Peter journeyed to the island.
+2 Lucy travelled to the forest.
+3 Susan moved to the castle.
+4 Edmund went to the swamp.
+5 Where is Susan?	castle	3
+6 Susan travelled to the forest.
+7 Where is Susan?	forest	6
+8 Where is Edmund?	swamp	4
+9 Peter went to the forest.
+10 Where is Lucy?	forest	2
+11 Where is Peter?	forest	9
+12 Susan went back to the castle.
+13 Where is Susan?	castle	12

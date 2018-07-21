@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
 
 import org.specs2.mutable._
+
 class SpcCreedSpec extends Specification
 {
   trait CosmosContext extends NameSpace

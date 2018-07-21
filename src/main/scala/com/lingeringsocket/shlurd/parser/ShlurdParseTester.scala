@@ -18,15 +18,14 @@ import scala.io._
 
 /*
   sbt "runMain com.lingeringsocket.shlurd.parser.ShlurdParseTester" < \
-    /home/jvs/Downloads/tasks_1-20_v1-2/en-valid/qa10_valid.txt
+    src/test/resources/expect/babl.txt
  */
 class ShlurdParseTester
 {
-  def run()
+  def run(source : Source) =
   {
     var successes = 0
     var failures = 0
-    var done = false
     var lineNumber = 1
     var lastCheckpoint = 0
 
@@ -37,31 +36,29 @@ class ShlurdParseTester
       println("FAILURES:  " + failures)
     }
 
-    while (!done) {
-      val input = StdIn.readLine
-      if (input == null) {
-        done = true
+    val iter = source.getLines
+    while (iter.hasNext) {
+      val input = iter.next
+      val cleaned = input.dropWhile(_.isDigit).split("\t")
+      val sentence = cleaned.head
+      val answer = cleaned.drop(1).headOption.getOrElse("")
+      val result = processOne(sentence, answer)
+      if (result.isEmpty) {
+        successes += 1
       } else {
-        val cleaned = input.dropWhile(_.isDigit).split("\t")
-        val sentence = cleaned.head
-        val answer = cleaned.drop(1).headOption.getOrElse("")
-        val result = processOne(sentence, answer)
-        if (result.isEmpty) {
-          successes += 1
-        } else {
-          failures += 1
-          println
-          println(s"LINE $lineNumber FAILED:  $input")
-          println(s"LINE $lineNumber $result")
-        }
-        lineNumber += 1
-        if (lineNumber - lastCheckpoint > 20) {
-          reportStatus
-          lastCheckpoint = lineNumber
-        }
+        failures += 1
+        println
+        println(s"LINE $lineNumber FAILED:  $input")
+        println(s"LINE $lineNumber $result")
+      }
+      lineNumber += 1
+      if (lineNumber - lastCheckpoint > 20) {
+        reportStatus
+        lastCheckpoint = lineNumber
       }
     }
     reportStatus
+    (successes, failures)
   }
 
   protected def processOne(
@@ -79,5 +76,5 @@ class ShlurdParseTester
 object ShlurdParseTester extends App
 {
   val tester = new ShlurdParseTester
-  tester.run
+  tester.run(Source.stdin)
 }
