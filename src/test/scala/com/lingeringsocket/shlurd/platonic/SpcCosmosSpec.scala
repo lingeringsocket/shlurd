@@ -221,6 +221,20 @@ class SpcCosmosSpec extends Specification
       graph.isHyponym(dog, duck) must beFalse
     }
 
+    "understand unique entity existence" in new CosmosContext
+    {
+      addBelief("the dog is a werewolf")
+      val dog = expectNamedForm("dog")
+      val werewolf = expectNamedForm("werewolf")
+      val anonDog = expectFormSingleton(dog)
+      val graph = cosmos.getGraph
+      // FIXME this should hold
+      // graph.isHyponym(dog, werewolf) must beFalse
+      graph.isHyponym(anonDog.form, werewolf) must beTrue
+      graph.isHyponym(anonDog.form, dog) must beTrue
+      cosmos.sanityCheck must beTrue
+    }
+
     "understand property inheritance" in new CosmosContext
     {
       addBelief("a bird must be either happy or sad")

@@ -124,7 +124,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         // "there is a television"
         // FIXME:  interpret mood
         Some(EntityExistenceBelief(
-          sentence, noun, qualifiers, ""))
+          sentence, noun, DETERMINER_NONSPECIFIC, qualifiers, ""))
       }
       case _ => {
         if (!qualifiers.isEmpty) {
@@ -398,15 +398,26 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         // "Oz is the werewolf"
         return Some(UnimplementedBelief(sentence))
       }
-      if (subjectDeterminer != DETERMINER_UNSPECIFIED) {
-        // FIXME this should be easy to implement
-        // "The dog is a werewolf"
-        return Some(UnimplementedBelief(sentence))
+      subjectDeterminer match {
+        case DETERMINER_UNSPECIFIED => {
+          // "Fido is a dog"
+          Some(EntityExistenceBelief(
+            sentence,
+            complementNoun,
+            subjectDeterminer, Seq(subjectNoun), subjectNoun.lemmaUnfolded))
+        }
+        case DETERMINER_UNIQUE => {
+          // "The boss is a werewolf"
+          Some(EntityExistenceBelief(
+            sentence,
+            complementNoun,
+            subjectDeterminer, Seq(subjectNoun), ""))
+        }
+        case _ => {
+          // We don't yet support stuff like "all dogs are werewolves"
+          return Some(UnimplementedBelief(sentence))
+        }
       }
-      // "Fido is a dog"
-      Some(EntityExistenceBelief(
-        sentence,
-        complementNoun, Seq(subjectNoun), subjectNoun.lemmaUnfolded))
     } else {
       // "Fido is Franny's pet"
       complementDeterminer match {

@@ -20,10 +20,8 @@ import scala.io._
   sbt "runMain com.lingeringsocket.shlurd.parser.ShlurdParseTester" < \
     /home/jvs/Downloads/tasks_1-20_v1-2/en-valid/qa10_valid.txt
  */
-object ShlurdParseTester extends App
+class ShlurdParseTester
 {
-  run()
-
   def run()
   {
     var successes = 0
@@ -44,13 +42,17 @@ object ShlurdParseTester extends App
       if (input == null) {
         done = true
       } else {
-        val cleaned = input.dropWhile(_.isDigit)
-        val sentence = ShlurdParser(cleaned).parseFirst
-        if (sentence.hasUnknown) {
-          failures += 1
-          println(s"LINE $lineNumber FAILED:  $sentence")
-        } else {
+        val cleaned = input.dropWhile(_.isDigit).split("\t")
+        val sentence = cleaned.head
+        val answer = cleaned.drop(1).headOption.getOrElse("")
+        val result = processOne(sentence, answer)
+        if (result.isEmpty) {
           successes += 1
+        } else {
+          failures += 1
+          println
+          println(s"LINE $lineNumber FAILED:  $input")
+          println(s"LINE $lineNumber $result")
         }
         lineNumber += 1
         if (lineNumber - lastCheckpoint > 20) {
@@ -61,4 +63,21 @@ object ShlurdParseTester extends App
     }
     reportStatus
   }
+
+  protected def processOne(
+    input : String, answer : String) : String =
+  {
+    val sentence = ShlurdParser(input).parseOne
+    if (sentence.hasUnknown) {
+      s"INCOMPLETE PARSE:  $sentence"
+    } else {
+      ""
+    }
+  }
+}
+
+object ShlurdParseTester extends App
+{
+  val tester = new ShlurdParseTester
+  tester.run
 }

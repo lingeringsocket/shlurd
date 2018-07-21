@@ -51,6 +51,15 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     determiner : SilDeterminer = DETERMINER_UNSPECIFIED)
       : SpcEntity =
   {
+    resolveUniqueNameAndExistence(sentence, word, determiner)._1
+  }
+
+  private def resolveUniqueNameAndExistence(
+    sentence : SilSentence,
+    word : SilWord,
+    determiner : SilDeterminer = DETERMINER_UNSPECIFIED)
+      : (SpcEntity, Boolean) =
+  {
     determiner match {
       case DETERMINER_UNIQUE => {
         val form = cosmos.instantiateForm(word)
@@ -60,13 +69,13 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
           val (entity, success) = cosmos.instantiateEntity(
             form, Seq.empty)
           assert(success)
-          entity
+          (entity, success)
         } else if (entities.size > 1) {
           val originalBelief = conjunctiveBelief(
             entities.map(creed.entityFormBelief(_)))
           throw new AmbiguousBeliefExcn(sentence, originalBelief)
         } else {
-          entities.head
+          (entities.head, false)
         }
       }
       case DETERMINER_UNSPECIFIED => {
@@ -74,7 +83,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
           _.qualifiers == Set(word.lemma))
         assert(candidates.size < 2)
         candidates.headOption match {
-          case Some(entity) => entity
+          case Some(entity) => (entity, false)
           case _ => {
             val tentativeName = SpcForm.tentativeName(word)
             assert(cosmos.resolveForm(tentativeName.lemma).isEmpty)
@@ -82,7 +91,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
             val (entity, success) = cosmos.instantiateEntity(
               newForm, Seq(word), word.lemmaUnfolded)
             assert(success)
-            entity
+            (entity, success)
           }
         }
       }
@@ -180,6 +189,9 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     hyponymIdeal : SpcIdeal,
     hypernymIdeal : SpcIdeal)
   {
+    if (hyponymIdeal == hypernymIdeal) {
+      return
+    }
     val path = DijkstraShortestPath.findPathBetween(
       cosmos.getIdealTaxonomyGraph, hypernymIdeal, hyponymIdeal)
     if (path == null) {
@@ -299,38 +311,48 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
 
   beliefApplier {
     case EntityExistenceBelief(
-      sentence, formName, qualifiers, properName
+      sentence, formName, determiner, qualifiers, properName
     ) => {
       val form = cosmos.instantiateForm(formName)
-      val (entity, success) = cosmos.instantiateEntity(
-        form, qualifiers, properName)
-      if (!success) {
+      val (entity, newEntity) = {
+        if (determiner == DETERMINER_UNIQUE) {
+          assert(qualifiers.size == 1)
+          assert(properName.isEmpty)
+          resolveUniqueNameAndExistence(
+            sentence, qualifiers.head, determiner)
+        } else {
+          cosmos.instantiateEntity(
+            form, qualifiers, properName)
+        }
+      }
+      if (!newEntity) {
         val graph = cosmos.getGraph
-        val sameForm = (form == entity.form)
-        if (!sameForm && graph.isHyponym(entity.form, form)) {
+        if (form == entity.form) {
+          if (properName.isEmpty) {
+            throw new AmbiguousBeliefExcn(
+              sentence, creed.entityFormBelief(entity))
+          }
+        } else if (graph.isHyponym(entity.form, form)) {
           // from "Bessie is a cow" to "Bessie is an animal"
           // so nothing to do
-        } else if (!sameForm && graph.isHyponym(form, entity.form)) {
+        } else if (graph.isHyponym(form, entity.form)) {
           // from "Bessie is an animal" to "Bessie is a cow"
           // so need to replace with refinement
           transmogrify(sentence, entity, form)
+        } else if (entity.form.isTentative) {
+          // from "Bessie is a Bessie-form" to "Bessie is a cow"
+          transmogrify(sentence, entity, form)
         } else {
-          if (!sameForm && entity.form.isTentative) {
-            // from "Bessie is a Bessie-form" to "Bessie is a cow"
-            transmogrify(sentence, entity, form)
-          } else {
-            // from "Bessies is a dog" to "Bessie is a cow"
-            // FIXME:  initiate dialog with user to sort it out,
-            // e.g. "is a dog a kind of cow?"
-            if (properName.isEmpty) {
-              throw new AmbiguousBeliefExcn(
-                sentence, creed.entityFormBelief(entity))
-            } else {
-              throw new ContradictoryBeliefExcn(
-                sentence, creed.entityFormBelief(entity))
-            }
-          }
+          // from "Bessie is a dog" to "Bessie is a cow"
+          // FIXME:  initiate dialog with user to sort it out,
+          // e.g. "is a dog a kind of cow?"
+          throw new ContradictoryBeliefExcn(
+            sentence, creed.entityFormBelief(entity))
         }
+      } else if (determiner == DETERMINER_UNIQUE) {
+        // FIXME this has the unfortunate side-effect that
+        // "the dog is a werewolf" implies "all dogs are werewolves"
+        addIdealTaxonomy(sentence, entity.form, form)
       }
     }
   }

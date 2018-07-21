@@ -106,7 +106,7 @@ class SpcInterpreter(
       case SilActionPredicate(
         subject, action, directObject, indirectObject, modifiers
       ) => {
-        // FIXME process directObject, indirectObject, modifiers
+        // FIXME process directObject, indirectObject
         if (action.lemma != predicate.action.lemma) {
           debug(s"ACTION ${predicate.action.lemma} DOES NOT MATCH")
           return None
@@ -129,28 +129,25 @@ class SpcInterpreter(
         // FIXME support multiple modifiers and other patterns
         modifiers match {
           case Seq(SilAdpositionalVerbModifier(
-            adposition1, SilNounReference(
+            adposition, SilNounReference(
               objNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR))
           ) => {
-            predicate.modifiers match {
-              case Seq(SilAdpositionalVerbModifier(
-                adposition2, actualRef)
-              ) => {
-                if (adposition1 != adposition2) {
-                  debug(s"ADPOSITION $adposition2 DOES NOT MATCH")
-                  return None
-                }
-                val objPattern = SilNounReference(
-                  objNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
+            // FIXME some predicate.modifiers (e.g. "never") might
+            // negate the match
+            val actualRefs = predicate.modifiers.flatMap(_ match {
+              case SilAdpositionalVerbModifier(adposition, actualRef) => {
                 // FIXME verify that actualRef matches objPattern
-                replacements.put(objPattern, actualRef)
-
+                Some(actualRef)
               }
-              case _ => {
-                debug("VERB MODIFIER PATTERN DOES NOT MATCH")
-                return None
-              }
+              case _ => None
+            })
+            if (actualRefs.size != 1) {
+              debug("VERB MODIFIER PATTERN DOES NOT MATCH")
+              return None
             }
+            val objPattern = SilNounReference(
+              objNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
+            replacements.put(objPattern, actualRefs.head)
           }
           case Seq() => {
           }
