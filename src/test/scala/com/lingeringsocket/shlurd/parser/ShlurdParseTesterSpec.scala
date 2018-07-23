@@ -24,7 +24,7 @@ class ShlurdParseTesterSpec extends Specification
   {
     "parse babl format" in
     {
-      val script = ShlurdParser.getResourceFile("/expect/babl.txt")
+      val script = ShlurdParser.getResourceFile("/expect/babl-unit-script.txt")
       Console.withOut(new java.io.ByteArrayOutputStream) {
         val tester = new ShlurdParseTester
         val (successes, failures) = tester.run(Source.fromFile(script))

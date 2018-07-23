@@ -167,58 +167,27 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       case SilNounReference(
         subjectNoun, subjectDeterminer, COUNT_SINGULAR
       ) => {
+        // "Lonnie is Will's dad"
         return interpretEntityRelationship(
           sentence, subjectDeterminer, subjectNoun,
           complement, relationship)
       }
-      case grSubject : SilGenitiveReference => {
+      case _ : SilGenitiveReference => {
         complement match {
           // "Will's dad is Lonnie"
           case SilNounReference(
-            subjectNoun, subjectDeterminer, COUNT_SINGULAR
+            complementNoun, complementDeterminer, COUNT_SINGULAR
           ) => {
+            // flip subject/complement to match "Lonnie is Will's dad"
             return interpretEntityRelationship(
-              sentence, subjectDeterminer, subjectNoun,
-              grSubject, relationship)
+              sentence, complementDeterminer, complementNoun,
+              subject, relationship)
           }
-          case grComplement : SilGenitiveReference => {
-            // "Will's dad is Joyce's ex-husband"
-            // we have genitives on both sides; attempt to resolve
-            // the complement side before proceeding
-            val rewriter =
-              new ShlurdReferenceRewriter[SpcEntity, SpcProperty](
-                cosmos,
-                new SilSentencePrinter,
-                ResultCollector[SpcEntity],
-                false)
-            rewriter.rewrite(rewriter.rewriteReferences, complement) match {
-              case SilResolvedReference(
-                set : Set[_], _, _
-              ) if (!set.isEmpty) => {
-                return set.toSeq.flatMap(_ match {
-                  case entity : SpcEntity => {
-                    val (subjectDeterminer, subjectNoun) = {
-                      if (entity.properName.isEmpty) {
-                        // FIXME we may be losing important qualifiers here
-                        (DETERMINER_UNIQUE, SilWord(entity.form.name))
-                      } else {
-                        (DETERMINER_UNSPECIFIED, SilWord(entity.properName))
-                      }
-                    }
-                    interpretEntityRelationship(
-                      sentence, subjectDeterminer, subjectNoun,
-                      grSubject, relationship)
-                  }
-                  case _ => Seq.empty
-                })
-              }
-              case _ => {
-                // FIXME for single-valued associations, not sure we
-                // should be doing this if the association is already
-                // bound
-                return Seq(EpsilonBelief(sentence))
-              }
-            }
+          case _ : SilGenitiveReference => {
+            // "Will's dad is Joyce's ex-husband": resolve "Joyce's ex-husband"
+            // to "Lonnie" and then proceed flipping subject/complement
+            return interpretIndirectEntityRelationship(
+              sentence, subject, complement, relationship)
           }
           case _ =>
         }
@@ -266,6 +235,63 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       case _ =>
     }
     Seq.empty
+  }
+
+  private def interpretResolvedReference(
+    sentence : SilSentence,
+    ref : SilReference,
+    interpretation : (SpcEntity) => Seq[SpcBelief]) : Seq[SpcBelief] =
+  {
+    val rewriter =
+      new ShlurdReferenceRewriter[SpcEntity, SpcProperty](
+        cosmos,
+        new SilSentencePrinter,
+        ResultCollector[SpcEntity],
+        false)
+    rewriter.rewrite(rewriter.rewriteReferences, ref) match {
+      case SilResolvedReference(
+        set : Set[_], _, _
+      ) => {
+        if (set.isEmpty) {
+          // FIXME for single-valued associations, not sure we
+          // should be doing this if the association is already
+          // bound
+          return Seq(EpsilonBelief(sentence))
+        }
+        set.toSeq.flatMap(_ match {
+          case entity : SpcEntity => {
+            val seq = interpretation(entity)
+            if (seq.isEmpty) {
+              return seq
+            }
+            seq
+          }
+          case _ => return Seq.empty
+        })
+      }
+      case _ => Seq.empty
+    }
+  }
+
+  private def interpretIndirectEntityRelationship(
+    sentence : SilSentence,
+    complement : SilReference,
+    subject : SilReference,
+    relationship : SilRelationship) : Seq[SpcBelief] =
+  {
+    interpretResolvedReference(sentence, subject, entity => {
+      val (subjectDeterminer, subjectNoun) = {
+        if (entity.properName.isEmpty) {
+          // FIXME we may be losing important qualifiers here
+          (DETERMINER_UNIQUE, SilWord(entity.form.name))
+        } else {
+          (DETERMINER_UNSPECIFIED, SilWord(entity.properName))
+        }
+      }
+      interpretEntityRelationship(
+        sentence, subjectDeterminer, subjectNoun,
+        complement, relationship)
+    })
   }
 
   private def recognizeConsequenceBelief(sentence : SilConditionalSentence)
@@ -448,6 +474,24 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       }
       case REL_IDENTITY =>
     }
+    complement match {
+      case SilGenitiveReference(gr : SilGenitiveReference, possessee) => {
+        // "Lurch is Morticia's children's butler" =>
+        // "Lurch is Wednesday's butler", "Lurch is Pugsley's butler"
+        return interpretResolvedReference(
+          sentence,
+          gr,
+          entity => {
+            val flattenedComplement = SilGenitiveReference(
+              cosmos.specificReference(entity, DETERMINER_UNIQUE),
+              possessee)
+            interpretEntityRelationship(
+              sentence, subjectDeterminer, subjectNoun, flattenedComplement,
+              relationship)
+          })
+      }
+      case _ =>
+    }
     val (complementNoun, qualifiers, count, complementDeterminer, failed) =
       extractQualifiedNoun(sentence, complement, Seq.empty, true)
     if (failed) {
@@ -604,15 +648,6 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           (possession, Seq(possessor),
             count, possessorDeterminer, failed || !allowGenitive)
         }
-      case rr : SilResolvedReference[_] => {
-        rr.entities match {
-          case Seq(entity : SpcEntity) => {
-            (SilWord(entity.form.name), entity.qualifiers.map(SilWord(_)).toSeq,
-              COUNT_SINGULAR, DETERMINER_UNIQUE, false)
-          }
-          case _ => failedResult
-        }
-      }
       case _ => failedResult
     }
   }

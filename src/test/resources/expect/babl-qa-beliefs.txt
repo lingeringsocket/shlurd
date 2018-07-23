@@ -18,7 +18,7 @@ A person may have possessions.
 An object may have a possessor.
 A person with a possession is a possessor.
 If a person goes to a location, then the person is in the location.
-If a person goes to a location, then the location's containees are the person's possessions.
+If a person goes to a location, then the person's possessions are in the location.
 If a person moves to a location, then the person goes to the location.
 If a person journeys to a location, then the person goes to the location.
 If a person travels to a location, then the person goes to the location.

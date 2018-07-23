@@ -18,7 +18,7 @@ import scala.io._
 
 /*
   sbt "runMain com.lingeringsocket.shlurd.parser.ShlurdParseTester" < \
-    src/test/resources/expect/babl.txt
+    src/test/resources/expect/babl-unit-script.txt
  */
 class ShlurdParseTester
 {

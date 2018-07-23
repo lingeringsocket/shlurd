@@ -26,8 +26,10 @@ class SpcInterpretTesterSpec extends Specification
   {
     "interpret babl format" in
     {
-      val beliefs = ShlurdParser.getResourceFile("/expect/babl-beliefs.txt")
-      val script = ShlurdParser.getResourceFile("/expect/babl.txt")
+      val beliefs = ShlurdParser.getResourceFile(
+        "/expect/babl-unit-beliefs.txt")
+      val script = ShlurdParser.getResourceFile(
+        "/expect/babl-unit-script.txt")
       Console.withOut(new java.io.ByteArrayOutputStream) {
         val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
         val (successes, failures) = tester.run(Source.fromFile(script))

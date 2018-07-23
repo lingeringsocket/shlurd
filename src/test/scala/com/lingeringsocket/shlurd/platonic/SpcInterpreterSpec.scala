@@ -558,12 +558,28 @@ class SpcInterpreterSpec extends Specification
         "The wrench and the screwdriver.")
     }
 
-    "understand epislon beliefs" in new
+    "understand epsilon beliefs" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
       interpret("the engine is an object", "OK.")
       interpret("Mason is a person", "OK.")
       interpret("the engine's containee is Mason's possession", "OK.")
+      interpretTerse("which objects are in the engine", "No objects.")
+    }
+
+    "foo" in new
+      InterpreterContext(ACCEPT_NEW_BELIEFS)
+    {
+      interpret("the engine is an object", "OK.")
+      interpret("the wrench is an object", "OK.")
+      interpret("the screwdriver is an object", "OK.")
+      interpret("the saw is an object", "OK.")
+      interpret("Edgar is a person", "OK.")
+      interpret("the wrench is Edgar's possession", "OK.")
+      interpret("the screwdriver is Edgar's possession", "OK.")
+      interpret("Edgar's possessions are in the engine", "OK.")
+      interpretTerse("which objects are in the engine",
+        "The wrench and the screwdriver.")
     }
 
     "understand taxonomy" in new InterpreterContext
