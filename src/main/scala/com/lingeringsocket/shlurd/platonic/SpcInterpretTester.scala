@@ -47,7 +47,7 @@ class SpcInterpretTester(beliefsFile : String) extends ShlurdParseTester
         answer
       }
     }
-    if (!response.contains(expected)) {
+    if (!response.toLowerCase.contains(expected.toLowerCase)) {
       s"INCORRECT RESPONSE:  $response"
     } else {
       ""
