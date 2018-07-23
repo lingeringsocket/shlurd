@@ -17,13 +17,19 @@ package com.lingeringsocket.shlurd.cosmos
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
 
+import scala.collection._
 import scala.util._
+
+case class ShlurdResolutionOptions(
+  failOnUnknown : Boolean = true,
+  resolveConjunctions : Boolean = false
+)
 
 class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   cosmos : ShlurdCosmos[E, P],
   sentencePrinter : SilSentencePrinter,
   resultCollector : ResultCollector[E],
-  failOnUnknown : Boolean = true)
+  options : ShlurdResolutionOptions = ShlurdResolutionOptions())
     extends SilPhraseRewriter
 {
   def rewriteReferences = replacementMatcher {
@@ -40,13 +46,31 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           rr
         }
         case Failure(e) => {
-          if (failOnUnknown) {
+          if (options.failOnUnknown) {
             throw cosmos.fail(
               sentencePrinter.sb.respondUnknown(noun)).exception
           } else {
             nr
           }
         }
+      }
+    }
+    case cr @ SilConjunctiveReference(
+      DETERMINER_ALL, references, _
+    ) if (options.resolveConjunctions) => {
+      val resolved = references.flatMap(_ match {
+        case SilResolvedReference(entities, noun, determiner) => {
+          Some((entities, noun, determiner))
+        }
+        case _ => {
+          None
+        }
+      })
+      if (resolved.size != references.size) {
+        cr
+      } else {
+        SilResolvedReference(
+          resolved.flatMap(_._1).toSet, resolved.head._2, resolved.head._3)
       }
     }
     case gr @ SilGenitiveReference(

@@ -517,6 +517,7 @@ class SpcInterpreterSpec extends Specification
       interpret("if an object rolls into a location, " +
         "then the object moves to the location", "OK.")
       interpret("Snowpiercer is an object", "OK.")
+      interpret("Thomas is an object", "OK.")
       interpret("Fuji is an object", "OK.")
       interpret("Kilimanjaro is an object", "OK.")
       interpret("Denali is an object", "OK.")
@@ -530,6 +531,10 @@ class SpcInterpreterSpec extends Specification
       // since nothing matched
       interpret("Snowpiercer rolls to Denali", "OK.")
       interpret("where is Snowpiercer", "It is in Kilimanjaro.")
+
+      interpret("Snowpiercer and Thomas move to Denali", "OK.")
+      interpret("where is Snowpiercer", "It is in Denali.")
+      interpret("where is Thomas", "It is in Denali.")
 
       interpret("if a person drops an object, " +
         "then the object is in the person's container", "OK.")

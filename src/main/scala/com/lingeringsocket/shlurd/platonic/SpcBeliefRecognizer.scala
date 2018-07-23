@@ -247,7 +247,9 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         cosmos,
         new SilSentencePrinter,
         ResultCollector[SpcEntity],
-        false)
+        ShlurdResolutionOptions(
+          failOnUnknown = false, resolveConjunctions = true)
+      )
     rewriter.rewrite(rewriter.rewriteReferences, ref) match {
       case SilResolvedReference(
         set : Set[_], _, _
@@ -475,12 +477,20 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       case REL_IDENTITY =>
     }
     complement match {
-      case SilGenitiveReference(gr : SilGenitiveReference, possessee) => {
+      case SilGenitiveReference(
+        sub @ (_ : SilGenitiveReference
+          | SilConjunctiveReference(DETERMINER_ALL, _, _)),
+        possessee
+      ) => {
         // "Lurch is Morticia's children's butler" =>
         // "Lurch is Wednesday's butler", "Lurch is Pugsley's butler"
+        //
+        // or likewise for
+        //
+        // "Lurch is (Wednesday and Pugsley)'s butler
         return interpretResolvedReference(
           sentence,
-          gr,
+          sub,
           entity => {
             val flattenedComplement = SilGenitiveReference(
               cosmos.specificReference(entity, DETERMINER_UNIQUE),
