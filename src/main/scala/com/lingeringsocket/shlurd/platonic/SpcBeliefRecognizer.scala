@@ -248,7 +248,9 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         new SilSentencePrinter,
         ResultCollector[SpcEntity],
         ShlurdResolutionOptions(
-          failOnUnknown = false, resolveConjunctions = true)
+          failOnUnknown = false,
+          resolveConjunctions = true,
+          resolveUniqueDeterminers = true)
       )
     rewriter.rewrite(rewriter.rewriteReferences, ref) match {
       case SilResolvedReference(

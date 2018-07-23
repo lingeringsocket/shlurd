@@ -572,7 +572,7 @@ class SpcInterpreterSpec extends Specification
       interpretTerse("which objects are in the engine", "No objects.")
     }
 
-    "foo" in new
+    "understand compound subject references" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
       interpret("the engine is an object", "OK.")
@@ -585,6 +585,18 @@ class SpcInterpreterSpec extends Specification
       interpret("Edgar's possessions are in the engine", "OK.")
       interpretTerse("which objects are in the engine",
         "The wrench and the screwdriver.")
+    }
+
+    "understand unique determiner in genitive" in new
+      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+    {
+      interpret("the engine is an object", "OK.")
+      interpret("the box is an object", "OK.")
+      interpret("the box is in the engine", "OK.")
+      interpret("the wrench is an object", "OK.")
+      interpret("the wrench's container is the box's container", "OK.")
+      interpretTerse("which objects are in the engine",
+        "The box and the wrench.")
     }
 
     "understand taxonomy" in new InterpreterContext

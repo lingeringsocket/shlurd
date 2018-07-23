@@ -22,6 +22,7 @@ import scala.util._
 
 case class ShlurdResolutionOptions(
   failOnUnknown : Boolean = true,
+  resolveUniqueDeterminers : Boolean = false,
   resolveConjunctions : Boolean = false
 )
 
@@ -55,6 +56,23 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
     }
+    case nr @ SilNounReference(
+      noun, DETERMINER_UNIQUE, COUNT_SINGULAR
+    ) if (options.resolveUniqueDeterminers) => {
+      cosmos.resolveQualifiedNoun(
+        noun.lemma, REF_SUBJECT, Set.empty) match
+      {
+        case Success(entities) => {
+          val rr = SilResolvedReference(entities, noun, nr.determiner)
+          resultCollector.referenceMap.put(rr, entities)
+          resultCollector.referenceMap.put(nr, entities)
+          rr
+        }
+        case Failure(e) => {
+          nr
+        }
+      }
+    }
     case cr @ SilConjunctiveReference(
       DETERMINER_ALL, references, _
     ) if (options.resolveConjunctions) => {
@@ -69,6 +87,7 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       if (resolved.size != references.size) {
         cr
       } else {
+        // FIXME do we need to some resultCollector.referenceMap.put?
         SilResolvedReference(
           resolved.flatMap(_._1).toSet, resolved.head._2, resolved.head._3)
       }
@@ -83,7 +102,8 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       if (attempts.exists(_.isFailure)) {
         gr
       } else {
-        // FIXME is this correct for noun and determiner??
+        // FIXME do we need to some resultCollector.referenceMap.put?
+        // and is this correct for noun and determiner??
         SilResolvedReference[E](
           attempts.map(_.get).flatMap(_.toSet), noun, rr.determiner)
       }
