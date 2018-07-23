@@ -99,6 +99,15 @@ case class EntityAssocBelief(
 {
 }
 
+case class EntityNoAssocBelief(
+  sentence : SilSentence,
+  possessorDeterminer : SilDeterminer,
+  possessorName : SilWord,
+  roleName : SilWord
+) extends SpcBelief
+{
+}
+
 case class FormPropertyBelief(
   sentence : SilSentence,
   formName : SilWord,
@@ -111,6 +120,12 @@ case class FormPropertyBelief(
 
 case class ConsequenceBelief(
   sentence : SilConditionalSentence
+) extends SpcBelief
+{
+}
+
+case class EpsilonBelief(
+  sentence : SilSentence
 ) extends SpcBelief
 {
 }

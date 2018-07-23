@@ -1,0 +1,33 @@
+Daniel is a person.
+Sandra is a person.
+John is a person.
+Mary is a person.
+A place is a kind of object.
+The kitchen is a place.
+The garden is a place.
+The office is a place.
+The hallway is a place.
+The bathroom is a place.
+The bedroom is a place.
+The football is an object.
+The apple is an object.
+The milk is an object.
+A possessor must be a person.
+A possession must be an object.
+A person may have possessions.
+An object may have a possessor.
+A person with a possession is a possessor.
+If a person goes to a location, then the person is in the location.
+If a person goes to a location, then the location's containees are the person's possessions.
+If a person moves to a location, then the person goes to the location.
+If a person journeys to a location, then the person goes to the location.
+If a person travels to a location, then the person goes to the location.
+If a person takes an object, then the object's possessor is the person.
+If a person grabs an object, then the person takes the object.
+If a person picks up an object, then the person takes the object.
+If a person gets an object, then the person takes the object.
+If a person drops an object, then the object is in the person's container.
+If a person drops an object, then the object has no possessor.
+If a person leaves an object, then the person drops the object.
+If a person discards an object, then the person drops the object.
+If a person puts down an object, then the person drops the object.

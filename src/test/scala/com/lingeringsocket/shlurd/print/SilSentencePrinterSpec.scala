@@ -98,6 +98,7 @@ class SilSentencePrinterSpec extends Specification
       expectStatement("a body has a tail generally")
       expectStatement("Scalieri sends Mozart a letter angrily")
       expectQuestion("does Scalieri send Mozart a letter angrily")
+      expectQuestion("what is the cave south of")
     }
 
     "preserve sentences" in
@@ -270,6 +271,9 @@ class SilSentencePrinterSpec extends Specification
         "if an object moves to a location, " +
           "then the location is the object's container."
       )
+      expectNormalized("Merry picked up the apple there",
+        "Merry picked the apple up there.")
+      expectQuestion("what is south of the cave")
     }
   }
 }

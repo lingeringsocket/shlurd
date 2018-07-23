@@ -103,6 +103,8 @@ class ShlurdInterpreterSpec extends Specification
       // FIXME: this one is kinda cute
       interpret("is bear asleep") must be equalTo(
         "Please be more specific about which bear you mean.")
+      interpret("which goat is asleep in the farm") must be equalTo(
+        "The domestic goat is asleep.")
     }
 
     "interpret questions" in
@@ -252,7 +254,7 @@ class ShlurdInterpreterSpec extends Specification
       interpret("which goats are asleep") must be equalTo(list)
       interpret("which goat in the farm is asleep") must be equalTo(
         "The domestic goat is asleep.")
-      interpret("which goat is asleep in the farm") must be equalTo(
+      interpret("which goat is asleep on the farm") must be equalTo(
         "The domestic goat is asleep.")
       interpret("which goat in the farm is awake") must be equalTo(
         "No goat in the farm is awake.")

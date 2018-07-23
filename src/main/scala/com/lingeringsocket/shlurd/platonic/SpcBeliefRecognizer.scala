@@ -15,6 +15,8 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.print._
+import com.lingeringsocket.shlurd.cosmos._
 
 import scala.collection._
 
@@ -24,24 +26,24 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
 {
   protected val creed = new SpcCreed(cosmos)
 
-  def recognizeBelief(sentence : SilSentence)
-      : Option[SpcBelief] =
+  def recognizeBeliefs(sentence : SilSentence)
+      : Seq[SpcBelief] =
   {
     if (sentence.hasUnknown) {
-      return None
+      return Seq.empty
     }
     if (!sentence.mood.isIndicative) {
       // FIXME support interrogative
-      return None
+      return Seq.empty
     }
     if (sentence.mood.isNegative) {
       // FIXME:  interpret this as a constraint
-      return None
+      return Seq.empty
     }
     sentence match {
       case SilPredicateSentence(predicate, mood, formality) => {
         if (!predicate.getModifiers.isEmpty) {
-          return None
+          return Seq.empty
         }
         predicate match {
           case statePredicate : SilStatePredicate => {
@@ -60,13 +62,13 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       }
       case _ =>
     }
-    None
+    Seq.empty
   }
 
   private def recognizeStatePredicateBelief(
     sentence : SilSentence,
     predicate : SilStatePredicate,
-    mood : SilMood) : Option[SpcBelief] =
+    mood : SilMood) : Seq[SpcBelief] =
   {
     val ref = predicate.subject
     val state = predicate.state
@@ -75,12 +77,12 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         return recognizeRelationshipPredicateBelief(
           sentence,
           SilRelationshipPredicate(
-            container,
             SilGenitiveReference(
               ref,
               SilNounReference(SilWord(LEMMA_CONTAINER),
                 DETERMINER_UNSPECIFIED,
                 COUNT_SINGULAR)),
+            container,
             REL_IDENTITY
           ),
           sentence.mood)
@@ -92,7 +94,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     val (noun, qualifiers, count, determiner, failed) =
       extractQualifiedNoun(sentence, ref, Seq.empty, true)
     if (failed) {
-      return None
+      return Seq.empty
     }
     ref match {
       case SilStateSpecifiedReference(
@@ -103,17 +105,17 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         // or "a television that is busted is broken"
         // or "a busted television is broken"
         if (mood.getModality != MODAL_NEUTRAL) {
-          return Some(UnimplementedBelief(sentence))
+          return Seq(UnimplementedBelief(sentence))
         }
         // FIXME assert something about qualifiers here
         state match {
           case ps : SilPropertyState => {
-            return Some(StateEquivalenceBelief(
+            return Seq(StateEquivalenceBelief(
               sentence, noun, specifiedState, state))
           }
           case SilExistenceState() =>
           case _ => {
-            return Some(UnimplementedBelief(sentence))
+            return Seq(UnimplementedBelief(sentence))
           }
         }
       }
@@ -123,7 +125,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       case SilExistenceState() => {
         // "there is a television"
         // FIXME:  interpret mood
-        Some(EntityExistenceBelief(
+        Seq(EntityExistenceBelief(
           sentence, noun, DETERMINER_NONSPECIFIC, qualifiers, ""))
       }
       case _ => {
@@ -133,7 +135,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           {
             // maybe we should allow constraints on
             // qualified entities?
-            return Some(UnimplementedBelief(sentence))
+            return Seq(UnimplementedBelief(sentence))
           } else {
             // "a cat's voracity must be carnivore"
             return definePropertyBelief(
@@ -150,7 +152,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
   private def recognizeRelationshipPredicateBelief(
     sentence : SilSentence,
     predicate : SilRelationshipPredicate,
-    mood : SilMood) : Option[SpcBelief] =
+    mood : SilMood) : Seq[SpcBelief] =
   {
     val subject = predicate.subject
     val complement = predicate.complement
@@ -169,7 +171,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           sentence, subjectDeterminer, subjectNoun,
           complement, relationship)
       }
-      case gr : SilGenitiveReference => {
+      case grSubject : SilGenitiveReference => {
         complement match {
           // "Will's dad is Lonnie"
           case SilNounReference(
@@ -177,7 +179,46 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           ) => {
             return interpretEntityRelationship(
               sentence, subjectDeterminer, subjectNoun,
-              gr, relationship)
+              grSubject, relationship)
+          }
+          case grComplement : SilGenitiveReference => {
+            // "Will's dad is Joyce's ex-husband"
+            // we have genitives on both sides; attempt to resolve
+            // the complement side before proceeding
+            val rewriter =
+              new ShlurdReferenceRewriter[SpcEntity, SpcProperty](
+                cosmos,
+                new SilSentencePrinter,
+                ResultCollector[SpcEntity],
+                false)
+            rewriter.rewrite(rewriter.rewriteReferences, complement) match {
+              case SilResolvedReference(
+                set : Set[_], _, _
+              ) if (!set.isEmpty) => {
+                return set.toSeq.flatMap(_ match {
+                  case entity : SpcEntity => {
+                    val (subjectDeterminer, subjectNoun) = {
+                      if (entity.properName.isEmpty) {
+                        // FIXME we may be losing important qualifiers here
+                        (DETERMINER_UNIQUE, SilWord(entity.form.name))
+                      } else {
+                        (DETERMINER_UNSPECIFIED, SilWord(entity.properName))
+                      }
+                    }
+                    interpretEntityRelationship(
+                      sentence, subjectDeterminer, subjectNoun,
+                      grSubject, relationship)
+                  }
+                  case _ => Seq.empty
+                })
+              }
+              case _ => {
+                // FIXME for single-valued associations, not sure we
+                // should be doing this if the association is already
+                // bound
+                return Seq(EpsilonBelief(sentence))
+              }
+            }
           }
           case _ =>
         }
@@ -192,7 +233,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       ) => {
         // "a person with a child is a parent"
         if (mood.getModality != MODAL_NEUTRAL) {
-          return Some(UnimplementedBelief(sentence))
+          return Seq(UnimplementedBelief(sentence))
         }
         val possesseeRoleNames = possesseeRef match {
           case SilNounReference(
@@ -205,16 +246,16 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
               case SilNounReference(possesseeRoleName, _, _) => {
                 possesseeRoleName
               }
-              case _ => return Some(UnimplementedBelief(sentence))
+              case _ => return Seq(UnimplementedBelief(sentence))
             })
           }
-          case _ => return Some(UnimplementedBelief(sentence))
+          case _ => return Seq(UnimplementedBelief(sentence))
         }
         complement match {
           case SilNounReference(
             possessorRoleName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
           ) => {
-            return Some(InverseAssocBelief(
+            return Seq(InverseAssocBelief(
               sentence,
               possessorFormName, possessorRoleName,
               possesseeRoleNames))
@@ -224,25 +265,25 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       }
       case _ =>
     }
-    None
+    Seq.empty
   }
 
   private def recognizeConsequenceBelief(sentence : SilConditionalSentence)
-      : Option[SpcBelief] =
+      : Seq[SpcBelief] =
   {
     val antecedent = sentence.antecedent
     val consequent = sentence.consequent
     antecedent match {
       case _ : SilActionPredicate => {
       }
-      case _ => return None
+      case _ => return Seq.empty
     }
     var invalid = false
     val querier = new SilPhraseRewriter
     def validateReferences = querier.queryMatcher {
       case SilNounReference(_, determiner, _) => {
         determiner match {
-          case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED =>
+          case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED | DETERMINER_NONE =>
           case _ => {
             invalid = true
           }
@@ -251,9 +292,9 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     }
     querier.query(validateReferences, consequent)
     if (invalid) {
-      None
+      Seq.empty
     } else {
-      Some(ConsequenceBelief(sentence))
+      Seq(ConsequenceBelief(sentence))
     }
   }
 
@@ -262,20 +303,20 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     subjectNoun : SilWord,
     complement : SilReference,
     relationship : SilRelationship)
-      : Option[SpcBelief] =
+      : Seq[SpcBelief] =
   {
     relationship match {
       case REL_IDENTITY => {
         val (complementNoun, qualifiers, count, determiner, failed) =
           extractQualifiedNoun(sentence, complement, Seq.empty)
         if (failed) {
-          return None
+          return Seq.empty
         }
         if (!qualifiers.isEmpty) {
-          return Some(UnimplementedBelief(sentence))
+          return Seq(UnimplementedBelief(sentence))
         }
         if (count != COUNT_SINGULAR) {
-          return Some(UnimplementedBelief(sentence))
+          return Seq(UnimplementedBelief(sentence))
         }
         if (complementNoun.lemma == LEMMA_KIND) {
           // "a dog is a kind of canine"
@@ -289,19 +330,19 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
                   DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
                   COUNT_SINGULAR))
             ) => {
-              Some(IdealTaxonomyBelief(
+              Seq(IdealTaxonomyBelief(
                 sentence, subjectNoun, hypernymIdealName, false))
             }
-            case _ => None
+            case _ => Seq.empty
           }
         } else {
           if (sentence.mood.getModality == MODAL_NEUTRAL) {
             // "a fridge is a refrigerator"
-            Some(IdealAliasBelief(
+            Seq(IdealAliasBelief(
               sentence, subjectNoun, complementNoun))
           } else {
             // "an owner must be a person"
-            Some(IdealTaxonomyBelief(
+            Seq(IdealTaxonomyBelief(
               sentence, subjectNoun, complementNoun, true))
           }
         }
@@ -314,10 +355,10 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
               val (complementNoun, qualifiers, count, determiner, failed) =
                 extractQualifiedNoun(sentence, ref, Seq.empty)
               if (failed) {
-                return None
+                return Seq.empty
               }
               if (!qualifiers.isEmpty) {
-                return Some(UnimplementedBelief(sentence))
+                return Seq(UnimplementedBelief(sentence))
               }
               (complementNoun, count)
             })
@@ -333,10 +374,10 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
             val (complementNoun, qualifiers, count, determiner, failed) =
               extractQualifiedNoun(sentence, ref, Seq.empty)
             if (failed) {
-              return None
+              return Seq.empty
             }
             if (!qualifiers.isEmpty) {
-              return Some(UnimplementedBelief(sentence))
+              return Seq(UnimplementedBelief(sentence))
             }
             (Seq(complementNoun), count)
           }
@@ -352,7 +393,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
               MODAL_CAPABLE | MODAL_PERMITTED =>
             SpcCardinalityConstraint(0, upper)
           case MODAL_SHOULD | MODAL_ELLIPTICAL =>
-            return Some(UnimplementedBelief(sentence))
+            return Seq(UnimplementedBelief(sentence))
         }
         isPropertyAssoc(sentence, complement, relationship).map(
           isProperty => {
@@ -361,7 +402,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
               subjectNoun, complementNouns, newConstraint,
               isProperty)
           }
-        )
+        ).toSeq
       }
     }
   }
@@ -372,50 +413,70 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     subjectNoun : SilWord,
     complement : SilReference,
     relationship : SilRelationship)
-      : Option[SpcBelief] =
+      : Seq[SpcBelief] =
   {
     subjectDeterminer match {
       case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE =>
       case _ => {
-        return None
+        return Seq.empty
       }
     }
     if (sentence.mood.getModality != MODAL_NEUTRAL) {
-      return Some(UnimplementedBelief(sentence))
+      return Seq(UnimplementedBelief(sentence))
     }
-    // FIXME "Larry has a dog"
-    if (relationship != REL_IDENTITY) {
-      return Some(UnimplementedBelief(sentence))
+    relationship match {
+      case REL_ASSOCIATION => {
+        complement match {
+          case SilNounReference(
+            roleNoun,
+            DETERMINER_NONE,
+            _
+          ) => {
+            // "Larry has no pets"
+            return Seq(EntityNoAssocBelief(
+              sentence,
+              subjectDeterminer,
+              subjectNoun,
+              roleNoun
+            ))
+          }
+          case _ => {
+            // FIXME "Larry has a dog"
+            return Seq(UnimplementedBelief(sentence))
+          }
+        }
+      }
+      case REL_IDENTITY =>
     }
     val (complementNoun, qualifiers, count, complementDeterminer, failed) =
       extractQualifiedNoun(sentence, complement, Seq.empty, true)
     if (failed) {
-      return None
+      return Seq.empty
     }
     if (qualifiers.isEmpty) {
       if (complementDeterminer != DETERMINER_NONSPECIFIC) {
         // FIXME this should be easy to implement
         // "Oz is the werewolf"
-        return Some(UnimplementedBelief(sentence))
+        return Seq(UnimplementedBelief(sentence))
       }
       subjectDeterminer match {
         case DETERMINER_UNSPECIFIED => {
           // "Fido is a dog"
-          Some(EntityExistenceBelief(
+          Seq(EntityExistenceBelief(
             sentence,
             complementNoun,
             subjectDeterminer, Seq(subjectNoun), subjectNoun.lemmaUnfolded))
         }
         case DETERMINER_UNIQUE => {
           // "The boss is a werewolf"
-          Some(EntityExistenceBelief(
+          Seq(EntityExistenceBelief(
             sentence,
             complementNoun,
             subjectDeterminer, Seq(subjectNoun), ""))
         }
         case _ => {
           // We don't yet support stuff like "all dogs are werewolves"
-          return Some(UnimplementedBelief(sentence))
+          return Seq(UnimplementedBelief(sentence))
         }
       }
     } else {
@@ -423,12 +484,12 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       complementDeterminer match {
         case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE => {
           if (qualifiers.size != 1) {
-            return None
+            return Seq.empty
           }
         }
-        case _ => return None
+        case _ => return Seq.empty
       }
-      Some(EntityAssocBelief(
+      Seq(EntityAssocBelief(
         sentence,
         complementDeterminer, qualifiers.head,
         subjectDeterminer, subjectNoun, complementNoun))
@@ -441,11 +502,11 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     propertyName : Option[SilWord],
     state : SilState,
     mood : SilMood)
-      : Option[SpcBelief] =
+      : Seq[SpcBelief] =
   {
     // "a light may be on or off"
     if (sentence.mood.getModality == MODAL_NEUTRAL) {
-      return None
+      return Seq.empty
     }
     val newStates = state match {
       case SilPropertyState(word) => {
@@ -458,16 +519,16 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
             Seq(word)
           }
           case _ => {
-            return None
+            return Seq.empty
           }
         })
       }
       case _ => {
-        return None
+        return Seq.empty
       }
     }
     val isClosed = (mood.getModality == MODAL_MUST)
-    Some(FormPropertyBelief(
+    Seq(FormPropertyBelief(
       sentence, formName, newStates, isClosed, propertyName))
   }
   private def isPropertyAssoc(
@@ -509,6 +570,8 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     allowGenitive : Boolean = false)
       : (SilWord, Seq[SilWord], SilCount, SilDeterminer, Boolean) =
   {
+    def failedResult = (SilWord(""), Seq.empty, COUNT_SINGULAR,
+      DETERMINER_UNSPECIFIED, true)
     reference match {
       case SilNounReference(
         noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
@@ -530,7 +593,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         SilNounReference(
           possessor, possessorDeterminer, COUNT_SINGULAR),
         SilNounReference(
-          possession, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)) =>
+          possession, DETERMINER_UNSPECIFIED, count)) =>
         {
           val failed = possessorDeterminer match {
             case DETERMINER_UNSPECIFIED => false
@@ -539,10 +602,18 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
             case _ => true
           }
           (possession, Seq(possessor),
-            COUNT_SINGULAR, possessorDeterminer, failed || !allowGenitive)
+            count, possessorDeterminer, failed || !allowGenitive)
         }
-      case _ => (SilWord(""), Seq.empty, COUNT_SINGULAR,
-        DETERMINER_UNSPECIFIED, true)
+      case rr : SilResolvedReference[_] => {
+        rr.entities match {
+          case Seq(entity : SpcEntity) => {
+            (SilWord(entity.form.name), entity.qualifiers.map(SilWord(_)).toSeq,
+              COUNT_SINGULAR, DETERMINER_UNIQUE, false)
+          }
+          case _ => failedResult
+        }
+      }
+      case _ => failedResult
     }
   }
 }

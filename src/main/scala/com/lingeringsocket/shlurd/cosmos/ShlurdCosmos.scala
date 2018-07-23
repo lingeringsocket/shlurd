@@ -36,6 +36,13 @@ trait ShlurdCosmos[E<:ShlurdEntity, P<:ShlurdProperty]
     context : SilReferenceContext,
     qualifiers : Set[String] = Set.empty) : Try[Set[E]]
 
+  def resolveEntityAssoc(
+    entity : E,
+    roleName : String) : Try[Set[E]] =
+  {
+    Failure(new UnsupportedOperationException())
+  }
+
   def resolveProperty(
     entity : E,
     lemma : String) : Try[(P, String)]

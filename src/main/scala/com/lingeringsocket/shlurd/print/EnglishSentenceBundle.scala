@@ -388,6 +388,9 @@ class EnglishSentenceBundle
         // FIXME inflection for whom, whose
         compose(LEMMA_WHO)
       }
+      case Some(QUESTION_WHAT) => {
+        compose(LEMMA_WHAT)
+      }
       case Some(QUESTION_HOW_MANY) => {
         compose(LEMMA_HOW, LEMMA_MANY, noun)
       }

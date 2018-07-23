@@ -197,7 +197,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       // FIXME for QUESTION_WHERE, it shouldn't be a noun phrase at all;
       // it should be either a state or verb modifier
       val np = question match {
-        case QUESTION_WHO | QUESTION_WHERE => {
+        case QUESTION_WHO | QUESTION_WHERE  | QUESTION_WHAT => {
           SptNP(SptNN(requireLeaf(seq.head.children)))
         }
         case _ => {
@@ -545,10 +545,27 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     val adpTree = seq.head.unwrapPhrase
     if ((seq.size == 2) && (adpTree.isAdposition || adpTree.isAdverb)) {
       extractAdposition(adpTree) match {
+        // "in the car"
         case Some(adposition) => {
           SilAdpositionalState(adposition, expectReference(seq.last))
         }
-        case _ => SilUnrecognizedState(tree)
+        case _ => {
+          if (adpTree.isAdverb && seq.last.isAdpositionalPhrase) {
+            // "south of the border"
+            expectAdpositionalState(seq.last) match {
+              case SilAdpositionalState(SilAdposition(words), ref) => {
+                SilAdpositionalState(
+                  SilAdposition(getWord(adpTree.firstChild) +: words),
+                  ref)
+              }
+              case _ => {
+                SilUnrecognizedState(tree)
+              }
+            }
+          } else {
+            SilUnrecognizedState(tree)
+          }
+        }
       }
     } else {
       SilUnrecognizedState(tree)
@@ -659,22 +676,26 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     SilExpectedVerbModifier(tree)
   }
 
-  private[parser] def expectAdverbialVerbModifier(tree : SptADVP)
+  private[parser] def expectVerbModifierPhrase(tree : ShlurdSyntaxPhrase)
       : SilVerbModifier =
   {
     val words = tree.children.map(_ match {
       case adverb : ShlurdSyntaxAdverb => {
         getWord(adverb.child)
       }
+      case particle : SptRP => {
+        getWord(particle.child)
+      }
       case _ => return expectAdpositionalVerbModifier(tree)
     })
     SilBasicVerbModifier(words)
   }
 
-  private[parser] def expectBasicVerbModifier(tree : ShlurdSyntaxAdverb)
+  private[parser] def expectBasicVerbModifier(
+    preTerminal : ShlurdSyntaxPreTerminal)
       : SilVerbModifier =
   {
-    SilBasicVerbModifier(Seq(getWord(tree.child)))
+    SilBasicVerbModifier(Seq(getWord(preTerminal.child)))
   }
 
   private[parser] def expectAdpositionalVerbModifier(tree : ShlurdSyntaxTree) =
@@ -926,6 +947,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       case SptWP(wp) => {
         wp.lemma match {
           case LEMMA_WHO => Some(QUESTION_WHO)
+          case LEMMA_WHAT => Some(QUESTION_WHAT)
           case _ => None
         }
       }

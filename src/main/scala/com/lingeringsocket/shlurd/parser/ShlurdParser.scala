@@ -34,7 +34,7 @@ trait ShlurdParser
 
   def parseFirst() : SilSentence
 
-  def parseAll() : Seq[SilSentence]
+  def parseAll() : Stream[SilSentence]
 }
 
 class ShlurdFallbackParser(
@@ -63,7 +63,7 @@ class ShlurdFallbackParser(
 
   override def parseFirst() = parseOne
 
-  override def parseAll() = Seq(parseOne)
+  override def parseAll() = Stream(parseOne)
 }
 
 class ShlurdSingleParser(
@@ -87,10 +87,10 @@ class ShlurdSingleParser(
 
   override def parseFirst() = parseOne
 
-  override def parseAll() = Seq(parseOne)
+  override def parseAll() = Stream(parseOne)
 }
 
-class ShlurdMultipleParser(singles : Seq[ShlurdParser])
+class ShlurdMultipleParser(singles : Stream[ShlurdParser])
     extends ShlurdParser
 {
   override def parseOne() : SilSentence =
@@ -257,7 +257,7 @@ object ShlurdParser
     if (sentences.size == 1) {
       prepareOne(sentences.head)
     } else {
-      new ShlurdMultipleParser(sentences.map(prepareOne(_)))
+      new ShlurdMultipleParser(sentences.toStream.map(prepareOne(_)))
     }
   }
 }

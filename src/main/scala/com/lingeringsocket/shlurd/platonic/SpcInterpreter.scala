@@ -39,12 +39,10 @@ class SpcInterpreter(
         new SpcBeliefInterpreter(
           mind.getCosmos.fork,
           (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS))
-      attemptAsBelief(beliefInterpreter, sentence, true).foreach(result => {
-        return result
-      })
-      sentence match {
-        case SilPredicateSentence(ap : SilActionPredicate, _, _) => {
-          return interpretAction(beliefInterpreter, ap)
+      interpretBeliefOrAction(beliefInterpreter, sentence) match {
+        case Some(result) => {
+          beliefInterpreter.cosmos.applyModifications
+          return result
         }
         case _ =>
       }
@@ -52,29 +50,40 @@ class SpcInterpreter(
     super.interpretImpl(sentence)
   }
 
+  private def interpretBeliefOrAction(
+    beliefInterpreter : SpcBeliefInterpreter,
+    sentence : SilSentence) : Option[String] =
+  {
+    attemptAsBelief(beliefInterpreter, sentence).foreach(result => {
+      return Some(result)
+    })
+    sentence match {
+      case SilPredicateSentence(ap : SilActionPredicate, _, _) => {
+        return Some(interpretAction(beliefInterpreter, ap))
+      }
+      case _ => None
+    }
+  }
+
   private def attemptAsBelief(
     beliefInterpreter : SpcBeliefInterpreter,
-    sentence : SilSentence,
-    commit : Boolean) : Option[String] =
+    sentence : SilSentence) : Option[String] =
   {
-    beliefInterpreter.recognizeBelief(sentence) match {
-      case Some(belief) => {
-        debug(s"APPLYING NEW BELIEF : $belief")
-        try {
-          beliefInterpreter.applyBelief(belief)
-        } catch {
-          case ex : RejectedBeliefExcn => {
-            debug("NEW BELIEF REJECTED", ex)
-            return Some(respondContradiction(ex))
+    beliefInterpreter.recognizeBeliefs(sentence) match {
+      case beliefs : Seq[SpcBelief] if (!beliefs.isEmpty) => {
+        beliefs.foreach(belief => {
+          debug(s"APPLYING NEW BELIEF : $belief")
+          try {
+            beliefInterpreter.applyBelief(belief)
+          } catch {
+            case ex : RejectedBeliefExcn => {
+              debug("NEW BELIEF REJECTED", ex)
+              return Some(respondContradiction(ex))
+            }
           }
-        }
-        if (commit) {
-          beliefInterpreter.cosmos.applyModifications
           debug("NEW BELIEF ACCEPTED")
-          Some(sentencePrinter.sb.respondCompliance)
-        } else {
-          None
-        }
+        })
+        Some(sentencePrinter.sb.respondCompliance)
       }
       case _ => None
     }
@@ -84,13 +93,15 @@ class SpcInterpreter(
     beliefInterpreter : SpcBeliefInterpreter,
     predicate : SilActionPredicate) : String =
   {
+    val compliance = sentencePrinter.sb.respondCompliance
     mind.getCosmos.getTriggers.foreach(trigger => {
       applyTrigger(beliefInterpreter, trigger, predicate).foreach(result => {
-        return result
+        if (result != compliance) {
+          return result
+        }
       })
     })
-    beliefInterpreter.cosmos.applyModifications
-    sentencePrinter.sb.respondCompliance
+    compliance
   }
 
   private def applyTrigger(
@@ -111,23 +122,39 @@ class SpcInterpreter(
           debug(s"ACTION ${predicate.action.lemma} DOES NOT MATCH")
           return None
         }
-        // FIXME support other subject patterns
-        subject match {
-          case SilNounReference(
-            subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-          ) => {
-            val subjectPattern = SilNounReference(
-              subjectNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
-            // FIXME verify that predicate.subject matches subjectPattern
-            replacements.put(subjectPattern, predicate.subject)
-          }
-          case _ => {
-            debug("SUBJECT PATTERN UNSUPPORTED")
-            return None
-          }
+        // FIXME detect colliding replacement nouns e.g.
+        // "if an object hits an object"
+        if (!prepareReplacement(replacements, subject, predicate.subject)) {
+          return None
         }
+        directObject.foreach(obj => {
+          predicate.directObject match {
+            case Some(actualObj) => {
+              if (!prepareReplacement(replacements, obj, actualObj)) {
+                return None
+              }
+            }
+            case _ => {
+              debug(s"DIRECT OBJECT MISSING")
+              return None
+            }
+          }
+        })
         // FIXME support multiple modifiers and other patterns
-        modifiers match {
+        val filteredModifiers = modifiers.filterNot(_ match {
+          case bm : SilBasicVerbModifier => {
+            if (predicate.modifiers.contains(bm)) {
+              // matched:  discard
+              true
+            } else {
+              debug("BASIC VERB MODIFIER MISSING")
+              return None
+            }
+          }
+          // keep
+          case _ => false
+        })
+        filteredModifiers match {
           case Seq(SilAdpositionalVerbModifier(
             adposition, SilNounReference(
               objNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR))
@@ -135,7 +162,13 @@ class SpcInterpreter(
             // FIXME some predicate.modifiers (e.g. "never") might
             // negate the match
             val actualRefs = predicate.modifiers.flatMap(_ match {
-              case SilAdpositionalVerbModifier(adposition, actualRef) => {
+              case SilAdpositionalVerbModifier(
+                actualAdposition, actualRef
+              ) if (adposition.words.toSet.subsetOf(
+                // FIXME this is to allow "goes back to" to subsume "goes to"
+                // but it's kinda dicey
+                actualAdposition.words.toSet)
+              ) => {
                 // FIXME verify that actualRef matches objPattern
                 Some(actualRef)
               }
@@ -170,7 +203,39 @@ class SpcInterpreter(
     }
     val newPredicate = rewriter.rewrite(replaceReferences, consequent)
     val newSentence = SilPredicateSentence(newPredicate)
-    attemptAsBelief(beliefInterpreter, newSentence, false)
+    // println("ATTEMPT " + newSentence)
+    // FIXME detect loops and also limit recursion depth
+    val result = interpretBeliefOrAction(beliefInterpreter, newSentence)
+    // println("RESULT " + result)
+    if (result.isEmpty) {
+      // FIXME i18n
+      Some("Invalid consequent")
+    } else {
+      result
+    }
+  }
+
+  private def prepareReplacement(
+    replacements : mutable.Map[SilReference, SilReference],
+    ref : SilReference,
+    actualRef : SilReference) =
+  {
+    // FIXME support other reference patterns
+    ref match {
+      case SilNounReference(
+        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+      ) => {
+        val patternRef = SilNounReference(
+          noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
+        // FIXME verify that actualRef matches refPattern
+        replacements.put(patternRef, actualRef)
+        true
+      }
+      case _ => {
+        debug("REFERENCE PATTERN UNSUPPORTED")
+        false
+      }
+    }
   }
 
   // FIXME:  i18n
@@ -191,8 +256,8 @@ class SpcInterpreter(
       }
       case AmbiguousBeliefExcn(belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)
-        s"Previously I was told that ${originalBeliefString}." +
-          s"  So I am unclear how to interpret the belief that ${beliefString}."
+        s"Previously I was told that ${originalBeliefString}.  So there is" +
+          s" an ambiguous reference in the belief that ${beliefString}."
       }
       case IncrementalCardinalityExcn(belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)

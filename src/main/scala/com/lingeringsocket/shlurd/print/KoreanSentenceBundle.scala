@@ -195,6 +195,10 @@ class KoreanSentenceBundle extends SilSentenceBundle
         // FIXME inflection
         "누구"
       }
+      case Some(QUESTION_WHAT) => {
+        // FIXME inflection
+        "뭐"
+      }
       case Some(QUESTION_WHERE) => {
         // discriminate between being and action
         "어디에"

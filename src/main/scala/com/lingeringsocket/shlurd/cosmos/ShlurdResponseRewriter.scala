@@ -177,7 +177,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     querier.query(clearInflectedCounts, rewriteLast)
 
     val normalized = transformQuestionResponse(
-      rewriteLast, params, question)
+      rewriteLast, params, question, negateCollection)
     SilPhraseValidator.validatePhrase(normalized)
     (normalized, negateCollection)
   }
@@ -225,7 +225,8 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def transformQuestionResponse(
     predicate : SilPredicate,
     params : ShlurdResponseParams,
-    question : Option[SilQuestion]) : SilPredicate =
+    question : Option[SilQuestion],
+    negateCollection : Boolean) : SilPredicate =
   {
     params.verbosity match {
       case RESPONSE_TERSE | RESPONSE_ELLIPSIS => {
@@ -250,12 +251,22 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           ),
         Some(QUESTION_WHERE)
       ) => {
-        SilStatePredicate(
-          subject,
-          SilAdpositionalState(
-            SilAdposition.IN,
-            container),
-          verbModifiers)
+        if (negateCollection) {
+          // FIXME this isn't right--I guess "nowhere" should really
+          // be an adverb in this context?
+          SilRelationshipPredicate(
+            subject,
+            container,
+            REL_IDENTITY,
+            verbModifiers)
+        } else {
+          SilStatePredicate(
+            subject,
+            SilAdpositionalState(
+              SilAdposition.IN,
+              container),
+            verbModifiers)
+        }
       }
       case _ => {
         predicate
@@ -342,26 +353,24 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       rr : SilResolvedReference[E],
       other : SilReference,
       REL_IDENTITY,
-      _)
-        if (rr.entities.size == 1) =>
-      {
-        SilRelationshipPredicate(
-          chooseReference(rr.entities.head, other, rr.determiner),
-          other,
-          REL_IDENTITY)
-      }
+      _
+    ) if (rr.entities.size == 1) => {
+      SilRelationshipPredicate(
+        chooseReference(rr.entities.head, other, rr.determiner),
+        other,
+        REL_IDENTITY)
+    }
     case SilRelationshipPredicate(
       other : SilReference,
       rr : SilResolvedReference[E],
       REL_IDENTITY,
-      _)
-        if (rr.entities.size == 1) =>
-      {
-        SilRelationshipPredicate(
-          other,
-          chooseReference(rr.entities.head, other, rr.determiner),
-          REL_IDENTITY)
-      }
+      _
+    ) if (rr.entities.size == 1) => {
+      SilRelationshipPredicate(
+        other,
+        chooseReference(rr.entities.head, other, rr.determiner),
+        REL_IDENTITY)
+    }
   }
 
   private def resolveReference(

@@ -96,6 +96,7 @@ case object FORCE_EXCLAMATION extends SilForce
 
 sealed trait SilQuestion
 case object QUESTION_WHO extends SilQuestion
+case object QUESTION_WHAT extends SilQuestion
 case object QUESTION_WHICH extends SilQuestion
 case object QUESTION_HOW_MANY extends SilQuestion
 case object QUESTION_WHERE extends SilQuestion

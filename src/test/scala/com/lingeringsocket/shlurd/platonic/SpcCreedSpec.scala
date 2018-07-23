@@ -55,13 +55,12 @@ class SpcCreedSpec extends Specification
       val printer = new SilSentencePrinter
       val beliefStrings = creed.allBeliefs.map(s => printer.print(s))
       beliefStrings.map(ShlurdParseUtils.capitalize) must be equalTo expected
-      val refriedBeliefs = beliefStrings.map(beliefString => {
+      val refriedBeliefs = beliefStrings.flatMap(beliefString => {
         val sentence = ShlurdParser(beliefString).parseOne
-        refriedInterpreter.recognizeBelief(sentence)
+        refriedInterpreter.recognizeBeliefs(sentence)
       })
       refriedBeliefs.foreach(belief => {
-        belief must beSome
-          refriedInterpreter.applyBelief(belief.get)
+        refriedInterpreter.applyBelief(belief)
       })
       val refriedStrings = refriedCreed.allBeliefs.map(s => printer.print(s))
       refriedStrings.map(ShlurdParseUtils.capitalize) must be equalTo expected

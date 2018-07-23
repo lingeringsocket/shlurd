@@ -32,11 +32,13 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
 
   def interpretBelief(sentence : SilSentence)
   {
-    recognizeBelief(sentence) match {
-      case Some(belief) => {
-        applyBelief(belief)
+    recognizeBeliefs(sentence) match {
+      case beliefs : Seq[SpcBelief] if (!beliefs.isEmpty) => {
+        beliefs.foreach(applyBelief)
       }
-      case _ => throw new IncomprehensibleBeliefExcn(sentence)
+      case _ => {
+        throw new IncomprehensibleBeliefExcn(sentence)
+      }
     }
   }
 
@@ -73,6 +75,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
         } else if (entities.size > 1) {
           val originalBelief = conjunctiveBelief(
             entities.map(creed.entityFormBelief(_)))
+          // FIXME this conjunction may come out way too long, and may
+          // also be phrased confusingly depending on what objects exist.
           throw new AmbiguousBeliefExcn(sentence, originalBelief)
         } else {
           (entities.head, false)
@@ -109,7 +113,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     val constraint = formAssocEdge.constraint
     val entityAssocGraph = cosmos.getEntityAssocGraph
     val edges = entityAssocGraph.
-      outgoingEdgesOf(possessor).asScala.
+      outgoingEdgesOf(possessor).asScala.toSeq.
       filter(_.formEdge == formAssocEdge)
 
     val edgeCount = edges.size
@@ -117,7 +121,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
       if ((constraint.upper == 1) && allowUpdates) {
         // FIXME if the existence of this edge supports other beliefs
         // or inferences, then we have to deal with the fallout
-        cosmos.removeEntityAssociation(edges.head)
+        removeEntityAssocEdges(possessor, formAssocEdge, edges)
       } else {
         val originalBelief = conjunctiveBelief(
           Seq(creed.idealAssociationBelief(formAssocEdge)) ++
@@ -130,10 +134,11 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
 
   private def conjunctiveBelief(sentences : Seq[SilSentence]) : SilSentence =
   {
+    // FIXME use commas instead
     SilConjunctiveSentence(
       DETERMINER_ALL,
       sentences,
-      SEPARATOR_OXFORD_COMMA)
+      SEPARATOR_CONJOINED)
   }
 
   private def transmogrify(
@@ -204,6 +209,67 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
         sentence,
         originalBelief)
     }
+  }
+
+  private def removeEntityAssocEdges(
+    possessor : SpcEntity,
+    formAssocEdge : SpcFormAssocEdge,
+    edges : Seq[SpcEntityAssocEdge])
+  {
+    val entityAssocGraph = cosmos.getEntityAssocGraph
+    cosmos.getInverseAssocEdge(formAssocEdge) match {
+      case Some(inverseAssocEdge) => {
+        val inverseEdges = entityAssocGraph.
+          incomingEdgesOf(possessor).asScala.
+          filter(_.formEdge == inverseAssocEdge)
+        inverseEdges.foreach(cosmos.removeEntityAssociation)
+      }
+      case _ =>
+    }
+    edges.foreach(cosmos.removeEntityAssociation)
+  }
+
+  private def analyzeAssoc(
+    sentence : SilSentence, possessor : SpcEntity, roleName : SilWord) =
+  {
+    val graph = cosmos.getGraph
+    val role = cosmos.resolveRole(roleName.lemma) match {
+      case Some(r) => r
+      case _ => {
+        cosmos.instantiateRole(roleName)
+      }
+    }
+    val candidates =
+      Seq(possessor.form) ++ graph.getRolesForForm(possessor.form) ++ {
+        if (possessor.form.isTentative) {
+          graph.formAssocs.incomingEdgesOf(role).asScala.
+            toSeq.map(graph.getPossessorIdeal)
+        } else {
+          Seq.empty
+        }
+      }
+    val formAssocEdge = candidates.flatMap(hyponym =>
+      graph.getFormAssocEdge(hyponym, role)).headOption match
+      {
+        case Some(formEdge) => formEdge
+        case _ => {
+          cosmos.addFormAssoc(possessor.form, role)
+        }
+      }
+    val possessorIdeal = graph.getPossessorIdeal(formAssocEdge)
+    if (!graph.isFormCompatibleWithIdeal(possessor.form, possessorIdeal)) {
+      assert(possessor.form.isTentative)
+      possessorIdeal match {
+        case possessorForm : SpcForm => {
+          addIdealTaxonomy(sentence, possessor.form, possessorForm)
+        }
+        case possessorRole : SpcRole => {
+          graph.getFormsForRole(possessorRole).foreach(possessorForm =>
+            addIdealTaxonomy(sentence, possessor.form, possessorForm))
+        }
+      }
+    }
+    (formAssocEdge, possessorIdeal, role)
   }
 
   private def beliefApplier(applier : BeliefApplier)
@@ -358,6 +424,31 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
   }
 
   beliefApplier {
+    case EntityNoAssocBelief(
+      sentence, possessorDeterminer, possessorName, roleName
+    ) => {
+      val possessor = resolveUniqueName(
+        sentence, possessorName, possessorDeterminer)
+      val (formAssocEdge, possessorIdeal, role) =
+        analyzeAssoc(sentence, possessor, roleName)
+      val entityAssocGraph = cosmos.getEntityAssocGraph
+      val edges = entityAssocGraph.
+        outgoingEdgesOf(possessor).asScala.toSeq.
+        filter(_.formEdge == formAssocEdge)
+      if (!edges.isEmpty && !allowUpdates) {
+        // FIXME also, in the !allowUpdates case, henceforth we should
+        // reject any attempt to add a matching edge
+        val originalBelief = conjunctiveBelief(
+          edges.map(creed.entityAssociationBelief(_)))
+        throw new ContradictoryBeliefExcn(
+          sentence,
+          originalBelief)
+      }
+      removeEntityAssocEdges(possessor, formAssocEdge, edges)
+    }
+  }
+
+  beliefApplier {
     case EntityAssocBelief(
       sentence, possessorDeterminer, possessorName,
       possesseeDeterminer, possesseeName, roleName
@@ -366,13 +457,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
         sentence, possessorName, possessorDeterminer)
       val possessee = resolveUniqueName(
         sentence, possesseeName, possesseeDeterminer)
-      val role = cosmos.resolveRole(roleName.lemma) match {
-        case Some(r) => r
-        case _ => {
-          val newRole = cosmos.instantiateRole(roleName)
-          newRole
-        }
-      }
+      val (formAssocEdge, possessorIdeal, role) =
+        analyzeAssoc(sentence, possessor, roleName)
       val graph = cosmos.getGraph
       if (possessee.form.isTentative) {
         graph.getFormsForRole(role).foreach(form =>
@@ -385,36 +471,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
           sentence,
           originalBelief)
       }
-      val candidates =
-        Seq(possessor.form) ++ graph.getRolesForForm(possessor.form) ++ {
-          if (possessor.form.isTentative) {
-            graph.formAssocs.incomingEdgesOf(role).asScala.
-              toSeq.map(graph.getPossessorIdeal)
-          } else {
-            Seq.empty
-          }
-        }
-      val formAssocEdge = candidates.flatMap(hyponym =>
-        graph.getFormAssocEdge(hyponym, role)).headOption match
-      {
-        case Some(formEdge) => formEdge
-        case _ => {
-          cosmos.addFormAssoc(possessor.form, role)
-        }
-      }
-      val possessorIdeal = graph.getPossessorIdeal(formAssocEdge)
-      if (!graph.isFormCompatibleWithIdeal(possessor.form, possessorIdeal)) {
-        assert(possessor.form.isTentative)
-        possessorIdeal match {
-          case possessorForm : SpcForm => {
-            addIdealTaxonomy(sentence, possessor.form, possessorForm)
-          }
-          case possessorRole : SpcRole => {
-            graph.getFormsForRole(possessorRole).foreach(possessorForm =>
-              addIdealTaxonomy(sentence, possessor.form, possessorForm))
-          }
-        }
-      }
+
       // FIXME it may not be correct to assume same identity in the case
       // of a multi-valued association
       findTentativePossessee(possessor, formAssocEdge) match {
@@ -531,6 +588,13 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
       sentence
     ) => {
       cosmos.addTrigger(sentence)
+    }
+  }
+
+  beliefApplier {
+    case EpsilonBelief(
+      sentence
+    ) => {
     }
   }
 }

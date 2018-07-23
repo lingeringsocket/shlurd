@@ -691,6 +691,20 @@ class SpcCosmos(
     true
   }
 
+  override def resolveEntityAssoc(
+    entity : SpcEntity,
+    roleName : String) =
+  {
+    resolveRole(roleName) match {
+      case Some(role) => {
+        Success(resolveGenitive(entity, role))
+      }
+      case _ => {
+        Success(Set.empty)
+      }
+    }
+  }
+
   def resolveGenitive(
     possessor : SpcEntity,
     role : SpcRole)

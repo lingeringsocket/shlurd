@@ -493,17 +493,77 @@ class SpcInterpreterSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
+    "understand inverse associations" in new
+      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+    {
+      interpret("a confessor must be a person", "OK.")
+      interpret("a confessee must be a person", "OK.")
+      interpret("a person may have confessees", "OK.")
+      interpret("a person may have a confessor", "OK.")
+      interpret("a person with a confessee is a confessor", "OK.")
+      interpret("Eugene is John's confessor", "OK.")
+      interpret("Eugene is Erik's confessor", "OK.")
+      interpret("Jerold is Erik's confessor", "OK.")
+      interpretTerse("who are Eugene's confessees", "John.")
+      interpret("John has no confessor", "OK.")
+      interpretTerse("who is John's confessor", "No one.")
+      interpretTerse("who are Eugene's confessees", "No one.")
+    }
+
     "understand actions" in new InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
       interpret("if an object moves to a location, " +
         "then the object is in the location", "OK.")
+      interpret("if an object rolls into a location, " +
+        "then the object moves to the location", "OK.")
       interpret("Snowpiercer is an object", "OK.")
       interpret("Fuji is an object", "OK.")
       interpret("Kilimanjaro is an object", "OK.")
+      interpret("Denali is an object", "OK.")
       interpret("Snowpiercer moves to Fuji", "OK.")
       interpret("where is Snowpiercer", "It is in Fuji.")
-      interpret("Snowpiercer moves to Kilimanjaro", "OK.")
+      interpret("Snowpiercer rolls into Kilimanjaro", "OK.")
       interpret("where is Snowpiercer", "It is in Kilimanjaro.")
+
+      // FIXME it's correct that this doesn't move Snowpiercer,
+      // but the "rolls to" action should result in a warning
+      // since nothing matched
+      interpret("Snowpiercer rolls to Denali", "OK.")
+      interpret("where is Snowpiercer", "It is in Kilimanjaro.")
+
+      interpret("if a person drops an object, " +
+        "then the object is in the person's container", "OK.")
+      interpret("Curtis is a person", "OK.")
+      interpret("the boiler is an object", "OK.")
+      interpret("the engine is an object", "OK.")
+      interpret("the bomb is an object", "OK.")
+      interpret("where is the bomb", "It is nowhere.")
+      interpret("Curtis is in the boiler", "OK.")
+      interpret("Curtis drops the bomb", "OK.")
+      interpret("Curtis moves to the engine", "OK.")
+      interpretTerse("where is Curtis", "The engine.")
+      interpret("where is the bomb", "It is in the boiler.")
+    }
+
+    "understand genitives in beliefs" in new
+      InterpreterContext(ACCEPT_NEW_BELIEFS)
+    {
+      interpret("the wrench is an object", "OK.")
+      interpret("the screwdriver is an object", "OK.")
+      interpret("the engine is an object", "OK.")
+      interpret("the wrench is Mason's possession", "OK.")
+      interpret("the screwdriver is Mason's possession", "OK.")
+      interpret("the engine's containees are Mason's possessions", "OK.")
+      interpretTerse("which objects are in the engine",
+        "The wrench and the screwdriver.")
+    }
+
+    "understand epislon beliefs" in new
+      InterpreterContext(ACCEPT_NEW_BELIEFS)
+    {
+      interpret("the engine is an object", "OK.")
+      interpret("Mason is a person", "OK.")
+      interpret("the engine's containee is Mason's possession", "OK.")
     }
 
     "understand taxonomy" in new InterpreterContext
@@ -855,7 +915,7 @@ class SpcInterpreterSpec extends Specification
         "OK.")
       interpret("there is a big front door",
         "Previously I was told that there is a front door.  " +
-          "So I am unclear how to interpret the belief that " +
+          "So there is an ambiguous reference in the belief that " +
           "there is a big front door.")
     }
 

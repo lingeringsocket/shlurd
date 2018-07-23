@@ -307,6 +307,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
     predicate : SilPredicate, mood : SilMood,
     question : Option[SilQuestion] = None) : String =
   {
+    // FIXME when subject is a SilStateSpecifiedReference, the
+    // state gets lost for questions such as QUESTION_WHAT
     predicate match {
       case SilStatePredicate(subject, state, modifiers) => {
         sb.statePredicateQuestion(

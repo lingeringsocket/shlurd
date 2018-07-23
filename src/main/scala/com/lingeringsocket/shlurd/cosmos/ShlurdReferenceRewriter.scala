@@ -22,7 +22,8 @@ import scala.util._
 class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   cosmos : ShlurdCosmos[E, P],
   sentencePrinter : SilSentencePrinter,
-  resultCollector : ResultCollector[E])
+  resultCollector : ResultCollector[E],
+  failOnUnknown : Boolean = true)
     extends SilPhraseRewriter
 {
   def rewriteReferences = replacementMatcher {
@@ -39,15 +40,29 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           rr
         }
         case Failure(e) => {
-          throw cosmos.fail(sentencePrinter.sb.respondUnknown(noun)).exception
+          if (failOnUnknown) {
+            throw cosmos.fail(
+              sentencePrinter.sb.respondUnknown(noun)).exception
+          } else {
+            nr
+          }
         }
       }
     }
     case gr @ SilGenitiveReference(
       rr : SilResolvedReference[E], SilNounReference(noun, _, _)
     ) => {
-      rr.entities.foreach(entity => cosmos.reifyRole(entity, noun.lemma, true))
-      gr
+      val roleName = noun.lemma
+      rr.entities.foreach(entity => cosmos.reifyRole(entity, roleName, true))
+      val attempts = rr.entities.map(
+        entity => cosmos.resolveEntityAssoc(entity, roleName))
+      if (attempts.exists(_.isFailure)) {
+        gr
+      } else {
+        // FIXME is this correct for noun and determiner??
+        SilResolvedReference[E](
+          attempts.map(_.get).flatMap(_.toSet), noun, rr.determiner)
+      }
     }
   }
 }

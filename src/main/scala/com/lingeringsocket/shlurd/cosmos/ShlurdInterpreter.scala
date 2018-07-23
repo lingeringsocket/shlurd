@@ -195,7 +195,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           debug(s"ANSWER : $truth")
           val truthBoolean = truth.assumeFalse
           val extremeLimit = question match {
-            case QUESTION_WHICH | QUESTION_WHO | QUESTION_WHERE => Int.MaxValue
+            case QUESTION_WHICH | QUESTION_WHO |
+                QUESTION_WHAT | QUESTION_WHERE => Int.MaxValue
             case QUESTION_HOW_MANY => 0
           }
           val (normalizedResponse, negateCollection) =

@@ -95,10 +95,16 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
 
   private def replaceExpectedVerbModifier = replacementMatcher {
     case SilExpectedVerbModifier(advp : SptADVP) => {
-      analyzer.expectAdverbialVerbModifier(advp)
+      analyzer.expectVerbModifierPhrase(advp)
     }
-    case SilExpectedVerbModifier(advp : ShlurdSyntaxAdverb) => {
-      analyzer.expectBasicVerbModifier(advp)
+    case SilExpectedVerbModifier(prt : SptPRT) => {
+      analyzer.expectVerbModifierPhrase(prt)
+    }
+    case SilExpectedVerbModifier(adv : ShlurdSyntaxAdverb) => {
+      analyzer.expectBasicVerbModifier(adv)
+    }
+    case SilExpectedVerbModifier(particle : SptRP) => {
+      analyzer.expectBasicVerbModifier(particle)
     }
     case SilExpectedVerbModifier(pp : SptPP) => {
       analyzer.expectAdpositionalVerbModifier(pp)
@@ -123,7 +129,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     {
       val seq = syntaxTree.children
       if ((seq.head.isAdposition || seq.head.isAdverb) && (seq.size > 1) &&
-        (!seq.exists(_.isAdpositionalPhrase)))
+        ((seq.head.isAdverb || !seq.exists(_.isAdpositionalPhrase))))
       {
         SilExpectedAdpositionalState(syntaxTree)
       } else {
