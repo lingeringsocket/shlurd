@@ -453,7 +453,8 @@ class EnglishSentenceBundle
 
   override def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    inflection : SilInflection, conjoining : SilConjoining) =
+    distance : SilDistance, inflection : SilInflection,
+    conjoining : SilConjoining) =
   {
     val unseparated = {
       person match {
@@ -485,15 +486,23 @@ class EnglishSentenceBundle
                   INFLECT_DATIVE => LEMMA_HER
               case _ => LEMMA_SHE
             }
-            case GENDER_N => inflection match {
-              case INFLECT_GENITIVE => LEMMA_ITS
-              case _ => LEMMA_IT
+            case GENDER_N => distance match {
+              case DISTANCE_HERE => LEMMA_THIS
+              case DISTANCE_THERE => LEMMA_THAT
+              case DISTANCE_UNSPECIFIED => inflection match {
+                case INFLECT_GENITIVE => LEMMA_ITS
+                case _ => LEMMA_IT
+              }
             }
           }
-          case COUNT_PLURAL => inflection match {
-            case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_THEM
-            case INFLECT_GENITIVE => LEMMA_THEIR
-            case _ => LEMMA_THEY
+          case COUNT_PLURAL => distance match {
+            case DISTANCE_HERE => LEMMA_THESE
+            case DISTANCE_THERE => LEMMA_THOSE
+            case DISTANCE_UNSPECIFIED => inflection match {
+              case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_THEM
+              case INFLECT_GENITIVE => LEMMA_THEIR
+              case _ => LEMMA_THEY
+            }
           }
         }
       }

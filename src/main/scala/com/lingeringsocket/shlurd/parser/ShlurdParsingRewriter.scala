@@ -91,6 +91,11 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     case SilExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
       recognizePronounReference(pronoun.child)
     }
+    case SilExpectedReference(
+      determiner : ShlurdSyntaxDeterminer
+    ) if (determiner.isDemonstrative) => {
+      recognizePronounReference(determiner.child)
+    }
   }
 
   private def replaceExpectedVerbModifier = replacementMatcher {
@@ -269,7 +274,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
   }
 
   private def recognizePronounReference(leaf : ShlurdSyntaxLeaf)
-      : SilPronounReference=
+      : SilPronounReference =
   {
     val lemma = leaf.lemma
     val person = lemma match {
@@ -279,7 +284,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       case _ => PERSON_THIRD
     }
     val count = lemma match {
-      case LEMMA_WE | LEMMA_US | LEMMA_THEY |
+      case LEMMA_WE | LEMMA_US | LEMMA_THEY | LEMMA_THESE | LEMMA_THOSE |
           LEMMA_OUR | LEMMA_THEIR => COUNT_PLURAL
       case _ => COUNT_SINGULAR
     }
@@ -288,6 +293,11 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       case LEMMA_SHE | LEMMA_HER | LEMMA_HERS => GENDER_F
       case _ => GENDER_N
     }
-    SilPronounReference(person, gender, count)
+    val distance = lemma match {
+      case LEMMA_THIS | LEMMA_THESE => DISTANCE_HERE
+      case LEMMA_THAT | LEMMA_THOSE => DISTANCE_THERE
+      case _ => DISTANCE_UNSPECIFIED
+    }
+    SilPronounReference(person, gender, count, distance)
   }
 }

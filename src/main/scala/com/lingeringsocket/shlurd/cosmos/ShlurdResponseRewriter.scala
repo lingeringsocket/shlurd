@@ -183,13 +183,13 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   def swapPronounsSpeakerListener = replacementMatcher {
-    case SilPronounReference(person, gender, count)=> {
+    case SilPronounReference(person, gender, count, distance)=> {
       val speakerListenerReversed = person match {
         case PERSON_FIRST => PERSON_SECOND
         case PERSON_SECOND => PERSON_FIRST
         case PERSON_THIRD => PERSON_THIRD
       }
-      SilPronounReference(speakerListenerReversed, gender, count)
+      SilPronounReference(speakerListenerReversed, gender, count, distance)
     }
   }
 

@@ -18,6 +18,7 @@ import org.kiama.rewriting._
 
 import ShlurdParseUtils._
 import ShlurdPennTreebankLabels._
+import ShlurdEnglishLemmas._
 
 object ShlurdSyntaxRewrite
 {
@@ -118,17 +119,33 @@ object ShlurdSyntaxRewrite
     }
   }
 
-  def rewriteEither = rewrite {
+  def rewriteWarts = rewrite {
     case SptNP(
       SptNP(SptCC(dt), n1),
       SptCC(cc),
       n2
-    ) if (dt.hasLemma("either")) => {
+    ) if (dt.hasLemma(LEMMA_EITHER)) => {
       SptNP(
         SptCC(dt),
         n1,
         SptCC(cc),
         n2)
+    }
+    case SptS(
+      SptVP(
+        SptVBG(vbg),
+        SptSBAR(
+          dem : SptIN,
+          SptS(children @ _*))
+      ),
+      remainder @ _*
+    ) if (dem.isDemonstrative) => {
+      SptS(
+        (Seq(SptPP(
+          SptIN(vbg),
+          SptDT(dem.child)
+        )) ++ children ++ remainder):_*
+      )
     }
   }
 

@@ -218,7 +218,8 @@ abstract class SilSentenceBundle
 
   def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    inflection : SilInflection, conjoining : SilConjoining) : String
+    distance : SilDistance, inflection : SilInflection,
+    conjoining : SilConjoining) : String
 
   def genitivePhrase(genitive : String, head : String) : String
 

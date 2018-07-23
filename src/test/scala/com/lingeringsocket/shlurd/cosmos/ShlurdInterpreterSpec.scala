@@ -43,7 +43,8 @@ class ShlurdInterpreterSpec extends Specification
       override def resolvePronoun(
         person : SilPerson,
         gender : SilGender,
-        count : SilCount) : Try[Set[ShlurdEntity]] =
+        count : SilCount,
+        distance : SilDistance) : Try[Set[ShlurdEntity]] =
       {
         if (count == COUNT_SINGULAR) {
           person match {

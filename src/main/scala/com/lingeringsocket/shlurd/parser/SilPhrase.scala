@@ -448,7 +448,8 @@ case class SilGenitiveReference(
 case class SilPronounReference(
   person : SilPerson,
   gender : SilGender,
-  count : SilCount
+  count : SilCount,
+  distance : SilDistance = DISTANCE_UNSPECIFIED
 ) extends SilTransformedPhrase with SilReference
 {
   override def acceptsSpecifiers = false
@@ -570,7 +571,7 @@ object SilReference
   def getCount(reference : SilReference) : SilCount =
   {
     reference match {
-      case SilPronounReference(_, _, count) =>
+      case SilPronounReference(_, _, count, _) =>
         count
       case SilNounReference(_, _, count) =>
         count

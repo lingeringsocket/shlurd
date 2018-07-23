@@ -33,7 +33,8 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
   def resolvePronoun(
     person : SilPerson,
     gender : SilGender,
-    count : SilCount) : Try[Set[E]] =
+    count : SilCount,
+    distance : SilDistance = DISTANCE_UNSPECIFIED) : Try[Set[E]] =
   {
     cosmos.fail("pronouns not supported")
   }

@@ -37,6 +37,11 @@ case object DETERMINER_ALL extends SilDeterminer
 case object DETERMINER_UNSPECIFIED extends SilDeterminer
 case class SilIntegerDeterminer(number : Int) extends SilDeterminer
 
+sealed trait SilDistance
+case object DISTANCE_HERE extends SilDistance
+case object DISTANCE_THERE extends SilDistance
+case object DISTANCE_UNSPECIFIED extends SilDistance
+
 case class SilAdposition(words : Seq[SilWord])
 {
 }

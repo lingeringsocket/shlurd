@@ -274,6 +274,10 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("Merry picked up the apple there",
         "Merry picked the apple up there.")
       expectQuestion("what is south of the cave")
+      expectNormalized("after that he travelled to the lake",
+        "he travelled after that to the lake.")
+      expectNormalized("following that she went back to the dorm",
+        "she went following that back to the dorm.")
     }
   }
 }

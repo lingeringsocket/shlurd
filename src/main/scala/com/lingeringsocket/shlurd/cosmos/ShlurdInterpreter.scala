@@ -780,9 +780,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
-      case SilPronounReference(person, gender, count) => {
+      case SilPronounReference(person, gender, count, distance) => {
         // FIXME for third-person, need conversational coreference resolution
-        mind.resolvePronoun(person, gender, count) match {
+        mind.resolvePronoun(person, gender, count, distance) match {
           case Success(entities) => {
             referenceMap.put(reference, entities)
             debug(s"CANDIDATE ENTITIES : $entities")

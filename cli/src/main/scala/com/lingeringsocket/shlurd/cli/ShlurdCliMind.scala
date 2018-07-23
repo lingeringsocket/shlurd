@@ -33,16 +33,17 @@ class ShlurdCliMind(cosmos : SpcCosmos) extends SpcMind(cosmos)
   override def resolvePronoun(
     person : SilPerson,
     gender : SilGender,
-    count : SilCount) =
+    count : SilCount,
+    distance : SilDistance) =
   {
     if (count == COUNT_SINGULAR) {
       person match {
         case PERSON_FIRST => entityInterviewer.map(Set(_))
         case PERSON_SECOND => entityShlurd.map(Set(_))
-        case _ => super.resolvePronoun(person, gender, count)
+        case _ => super.resolvePronoun(person, gender, count, distance)
       }
     } else {
-      super.resolvePronoun(person, gender, count)
+      super.resolvePronoun(person, gender, count, distance)
     }
   }
 }

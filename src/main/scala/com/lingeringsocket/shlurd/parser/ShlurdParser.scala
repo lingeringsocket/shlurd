@@ -225,7 +225,7 @@ object ShlurdParser
     }
     val syntaxTree = ShlurdSyntaxRewrite.rewriteAbstract(
       new CorenlpTreeWrapper(corenlp, tokens, lemmas, deps))
-    val rewrittenTree = ShlurdSyntaxRewrite.rewriteEither(syntaxTree)
+    val rewrittenTree = ShlurdSyntaxRewrite.rewriteWarts(syntaxTree)
     if (dump) {
       println(dumpPrefix + " REWRITTEN SYNTAX = " + rewrittenTree)
     }

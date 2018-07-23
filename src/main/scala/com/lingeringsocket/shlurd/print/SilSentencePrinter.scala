@@ -96,8 +96,8 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           determiner,
           sb.delemmatizeNoun(noun, count, inflection, conjoining))
       }
-      case SilPronounReference(person, gender, count) => {
-        sb.pronoun(person, gender, count, inflection, conjoining)
+      case SilPronounReference(person, gender, count, distance) => {
+        sb.pronoun(person, gender, count, distance, inflection, conjoining)
       }
       case SilConjunctiveReference(determiner, references, separator) => {
         sb.conjoin(
@@ -144,9 +144,10 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       }
       case SilGenitiveReference(possessor, possessee) => {
         val qualifierString = possessor match {
-          case SilPronounReference(person, gender, count) => {
+          case SilPronounReference(person, gender, count, distance) => {
             sb.pronoun(
-              person, gender, count, INFLECT_GENITIVE, SilConjoining.NONE)
+              person, gender, count, distance,
+              INFLECT_GENITIVE, SilConjoining.NONE)
           }
           case _ => {
             print(possessor, INFLECT_GENITIVE, SilConjoining.NONE)
@@ -399,7 +400,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       : (SilPerson, SilGender, SilCount) =
   {
     subject match {
-      case SilPronounReference(person, gender, count) => {
+      case SilPronounReference(person, gender, count, _) => {
         (person, gender, count)
       }
       case SilNounReference(_, _, count) => {

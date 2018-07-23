@@ -250,7 +250,8 @@ class KoreanSentenceBundle extends SilSentenceBundle
 
   override def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    inflection : SilInflection, conjoining : SilConjoining) =
+    distance : SilDistance, inflection : SilInflection,
+    conjoining : SilConjoining) =
   {
     person match {
       case PERSON_FIRST => count match {
@@ -274,9 +275,27 @@ class KoreanSentenceBundle extends SilSentenceBundle
         case COUNT_SINGULAR => gender match {
           case GENDER_M => inflectPronoun("그", inflection, conjoining)
           case GENDER_F => inflectPronoun("그녀", inflection, conjoining)
-          case GENDER_N => inflectPronoun("그것", inflection, conjoining)
+          case GENDER_N => {
+            // FIXME discriminate "그" from "저"
+            distance match {
+              case DISTANCE_HERE =>
+                inflectPronoun("이것", inflection, conjoining)
+              case _ =>
+                inflectPronoun("그것", inflection, conjoining)
+            }
+          }
         }
-        case COUNT_PLURAL => inflectPronoun("그들", inflection, conjoining)
+        case COUNT_PLURAL => {
+          // FIXME discriminate "그" from "저"
+          distance match {
+            case DISTANCE_HERE =>
+              inflectPronoun("이것들", inflection, conjoining)
+            case DISTANCE_THERE =>
+              inflectPronoun("그것들", inflection, conjoining)
+            case DISTANCE_UNSPECIFIED =>
+              inflectPronoun("그들", inflection, conjoining)
+          }
+        }
       }
     }
   }

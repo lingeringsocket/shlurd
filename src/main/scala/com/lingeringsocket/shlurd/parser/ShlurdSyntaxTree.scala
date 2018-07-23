@@ -182,6 +182,10 @@ trait ShlurdAbstractSyntaxTree
 
   def isExistsVerb = isVerb && hasTerminalLemma(LEMMA_EXIST)
 
+  def isDemonstrative = isPreTerminal &&
+    Set(LEMMA_THIS, LEMMA_THAT, LEMMA_THESE, LEMMA_THOSE).contains(
+      firstChild.lemma)
+
   def isComma = hasLabel(LABEL_COMMA)
 
   override def toString = ShlurdPrettyPrinter.prettyPrint(this)
