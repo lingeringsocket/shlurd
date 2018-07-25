@@ -33,13 +33,10 @@ class ShlurdInterpreterSpec extends Specification
 
   type StateChangeInvocation = ShlurdStateChangeInvocation[ShlurdEntity]
 
-  private def interpret(
-    input : String,
-    params : ShlurdResponseParams = ShlurdResponseParams()) =
+  abstract class InterpreterContext(
+  ) extends NameSpace
   {
-    val sentence = ShlurdParser(input).parseOne
-
-    val mind = new ShlurdMind(cosmos) {
+    protected val mind = new ShlurdMind(cosmos) {
       override def resolvePronoun(
         person : SilPerson,
         gender : SilGender,
@@ -57,36 +54,43 @@ class ShlurdInterpreterSpec extends Specification
       }
     }
 
-    val interpreter = new ShlurdInterpreter(mind, params) {
-      override protected def executeInvocation(
-        invocation : StateChangeInvocation)
-      {
-        throw new RuntimeException("unexpected invocation")
+    protected def interpret(
+      input : String,
+      params : ShlurdResponseParams = ShlurdResponseParams()) =
+    {
+      val interpreter = new ShlurdInterpreter(mind, params) {
+        override protected def executeInvocation(
+          invocation : StateChangeInvocation)
+        {
+          throw new RuntimeException("unexpected invocation")
+        }
       }
-    }
-    interpreter.interpret(sentence)
-  }
 
-  private def interpretCommandExpected(
-    input : String,
-    invocation : StateChangeInvocation) =
-  {
-    val sentence = ShlurdParser(input).parseOne
-    var actualInvocation : Option[StateChangeInvocation] = None
-    val interpreter = new ShlurdInterpreter(new ShlurdMind(cosmos)) {
-      override protected def executeInvocation(
-        invocation : StateChangeInvocation)
-      {
-        actualInvocation = Some(invocation)
-      }
+      val sentence = ShlurdParser(input).parseOne
+      interpreter.interpret(sentence)
     }
-    interpreter.interpret(sentence) must be equalTo("OK.")
-    actualInvocation must be equalTo(Some(invocation))
+
+    protected def interpretCommandExpected(
+      input : String,
+      invocation : StateChangeInvocation) =
+    {
+      val sentence = ShlurdParser(input).parseOne
+      var actualInvocation : Option[StateChangeInvocation] = None
+      val interpreter = new ShlurdInterpreter(mind) {
+        override protected def executeInvocation(
+          invocation : StateChangeInvocation)
+        {
+          actualInvocation = Some(invocation)
+        }
+      }
+      interpreter.interpret(sentence) must be equalTo("OK.")
+      actualInvocation must be equalTo(Some(invocation))
+    }
   }
 
   "ShlurdInterpreter" should
   {
-    "deal with problem cases" in
+    "deal with problem cases" in new InterpreterContext
     {
       skipped("maybe one day")
       // FIXME:  we don't deal with negated questions yet
@@ -108,7 +112,7 @@ class ShlurdInterpreterSpec extends Specification
         "The domestic goat is asleep.")
     }
 
-    "interpret questions" in
+    "interpret questions" in new InterpreterContext
     {
       val terse = ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE)
       interpret("is the lion asleep") must be equalTo(
@@ -335,7 +339,7 @@ class ShlurdInterpreterSpec extends Specification
         "The lion and the tiger are in the big cage.")
     }
 
-    "interpret statements" in
+    "interpret statements" in new InterpreterContext
     {
       val terse = ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE)
       interpret("the lion is asleep") must be equalTo(
@@ -352,7 +356,7 @@ class ShlurdInterpreterSpec extends Specification
         "Oh, really?")
     }
 
-    "interpret commands" in
+    "interpret commands" in new InterpreterContext
     {
       val awake = SilWord("awake", "awake")
       val asleep = SilWord("sleepify", "asleep")
@@ -384,7 +388,7 @@ class ShlurdInterpreterSpec extends Specification
         ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
     }
 
-    "respond to unrecognized phrases" in
+    "respond to unrecognized phrases" in new InterpreterContext
     {
       interpret("colorless green ideas slumber furiously") must be equalTo(
         "Sorry, I cannot understand what you said.")
@@ -466,6 +470,34 @@ class ShlurdInterpreterSpec extends Specification
       interpret("in the kitchen my guitar is weeping") must
         be equalTo("I think you are saying something, " +
           "but I can't understand the phrase \"in the kitchen\"")
+    }
+
+    "remember conversation" in new InterpreterContext
+    {
+      mind.startConversation
+      interpret("who are you") must be equalTo("I am Muldoon.")
+      mind.getConversation.getUtterances must be equalTo Seq(
+        SpeakerUtterance(
+          ShlurdConversation.SPEAKER_NAME_PERSON,
+          SilPredicateQuery(
+            SilRelationshipPredicate(
+              SilNounReference(SilWord(LEMMA_WHO)),
+              SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
+              REL_IDENTITY
+            ),
+            QUESTION_WHO,
+            MOOD_INTERROGATIVE_POSITIVE,
+            SilFormality(FORCE_NEUTRAL))),
+        SpeakerUtterance(
+          ShlurdConversation.SPEAKER_NAME_SHLURD,
+          SilPredicateSentence(
+            SilRelationshipPredicate(
+              SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+              SilNounReference(SilWord("Muldoon")),
+              REL_IDENTITY),
+            MOOD_INDICATIVE_POSITIVE,
+            SilFormality(FORCE_NEUTRAL)))
+      )
     }
   }
 

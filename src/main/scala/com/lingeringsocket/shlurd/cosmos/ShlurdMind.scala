@@ -28,7 +28,35 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
   private lazy val personSecond =
     uniqueEntity(resolvePronoun(PERSON_SECOND, GENDER_N, COUNT_SINGULAR))
 
+  private var conversation : Option[ShlurdConversation] = None
+
   def getCosmos = cosmos
+
+  def startConversation()
+  {
+    conversation = Some(new ShlurdConversation)
+  }
+
+  def endConversation()
+  {
+    conversation = None
+  }
+
+  def isConversing() : Boolean =
+  {
+    !conversation.isEmpty
+  }
+
+  def getConversation() : ShlurdConversation =
+  {
+    conversation.get
+  }
+
+  def rememberSpeakerSentence(
+    speakerName : String, sentence : SilSentence)
+  {
+    conversation.foreach(_.addSpeakerSentence(speakerName, sentence))
+  }
 
   def resolvePronoun(
     person : SilPerson,

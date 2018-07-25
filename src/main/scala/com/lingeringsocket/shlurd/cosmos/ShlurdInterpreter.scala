@@ -113,9 +113,20 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   def interpret(sentence : SilSentence) : String =
   {
     debug(s"INTERPRETER INPUT : $sentence")
+    if (mind.isConversing) {
+      mind.rememberSpeakerSentence(
+        ShlurdConversation.SPEAKER_NAME_PERSON, sentence)
+    }
     SilPhraseValidator.validatePhrase(sentence)
     val response = interpretImpl(sentence)
+    // FIXME preserve original SilSentence response form instead
+    // of reparsing it
     debug(s"INTERPRETER RESPONSE : $response")
+    if (mind.isConversing) {
+      val parsedResponse = ShlurdParser(response).parseOne
+      mind.rememberSpeakerSentence(
+        ShlurdConversation.SPEAKER_NAME_SHLURD, parsedResponse)
+    }
     response
   }
 
