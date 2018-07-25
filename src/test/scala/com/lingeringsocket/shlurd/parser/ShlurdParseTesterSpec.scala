@@ -22,9 +22,9 @@ class ShlurdParseTesterSpec extends Specification
 {
   "ShlurdParseTester" should
   {
-    "parse babl format" in
+    "parse babi format" in
     {
-      val script = ShlurdParser.getResourceFile("/expect/babl-unit-script.txt")
+      val script = ShlurdParser.getResourceFile("/expect/babi-unit-script.txt")
       Console.withOut(new java.io.ByteArrayOutputStream) {
         val tester = new ShlurdParseTester
         val (successes, failures) = tester.run(Source.fromFile(script))
