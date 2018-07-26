@@ -113,7 +113,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
         }
       }
       case _ => {
-        throw new AssertionError("Unexpected determiner " + determiner)
+        throw new IncomprehensibleBeliefExcn(sentence)
       }
     }
   }

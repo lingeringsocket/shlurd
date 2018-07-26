@@ -512,54 +512,50 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       }
       case _ =>
     }
+
+    complementRef match {
+      case SilGenitiveReference(
+        possessorRef, SilNounReference(roleNoun, DETERMINER_UNSPECIFIED, _)
+      ) => {
+        // "Fido is Franny's pet"
+        return Seq(EntityAssocBelief(
+          sentence,
+          possessorRef,
+          subjectRef,
+          roleNoun))
+      }
+      case _ =>
+    }
+
     val (complementNoun, qualifiers, count, complementDeterminer, failed) =
-      extractQualifiedNoun(sentence, complementRef, Seq.empty, true)
-    if (failed) {
+      extractQualifiedNoun(sentence, complementRef, Seq.empty)
+    if (failed || !qualifiers.isEmpty) {
       return Seq.empty
     }
-    if (qualifiers.isEmpty) {
-      if (complementDeterminer != DETERMINER_NONSPECIFIC) {
-        // FIXME this should be easy to implement
-        // "Oz is the werewolf"
+    if (complementDeterminer != DETERMINER_NONSPECIFIC) {
+      // FIXME this should be easy to implement
+      // "Oz is the werewolf"
+      return Seq(UnimplementedBelief(sentence))
+    }
+    subjectDeterminer match {
+      case DETERMINER_UNSPECIFIED => {
+        // "Fido is a dog"
+        Seq(EntityExistenceBelief(
+          sentence,
+          complementNoun,
+          subjectDeterminer, Seq(subjectNoun), subjectNoun.lemmaUnfolded))
+      }
+      case DETERMINER_UNIQUE => {
+        // "The boss is a werewolf"
+        Seq(EntityExistenceBelief(
+          sentence,
+          complementNoun,
+          subjectDeterminer, Seq(subjectNoun), ""))
+      }
+      case _ => {
+        // We don't yet support stuff like "all dogs are werewolves"
         return Seq(UnimplementedBelief(sentence))
       }
-      subjectDeterminer match {
-        case DETERMINER_UNSPECIFIED => {
-          // "Fido is a dog"
-          Seq(EntityExistenceBelief(
-            sentence,
-            complementNoun,
-            subjectDeterminer, Seq(subjectNoun), subjectNoun.lemmaUnfolded))
-        }
-        case DETERMINER_UNIQUE => {
-          // "The boss is a werewolf"
-          Seq(EntityExistenceBelief(
-            sentence,
-            complementNoun,
-            subjectDeterminer, Seq(subjectNoun), ""))
-        }
-        case _ => {
-          // We don't yet support stuff like "all dogs are werewolves"
-          return Seq(UnimplementedBelief(sentence))
-        }
-      }
-    } else {
-      // "Fido is Franny's pet"
-      complementDeterminer match {
-        case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE => {
-          if (qualifiers.size != 1) {
-            return Seq.empty
-          }
-        }
-        case _ => return Seq.empty
-      }
-      // FIXME can we use the original ref instead?
-      val possessorRef = SilNounReference(qualifiers.head, complementDeterminer)
-      Seq(EntityAssocBelief(
-        sentence,
-        possessorRef,
-        subjectRef,
-        complementNoun))
     }
   }
 
