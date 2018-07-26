@@ -56,6 +56,7 @@ class SilSentencePrinterSpec extends Specification
         parsed
       }
       case _ : SilUnknownSentence => parsed
+      case _ : SilUnparsedSentence => parsed
     }
   }
 

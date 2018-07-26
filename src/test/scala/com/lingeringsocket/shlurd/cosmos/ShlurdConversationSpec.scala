@@ -32,6 +32,12 @@ class ShlurdConversationSpec extends Specification
 
   private val REFERENCE_D = makeReference("d")
 
+  private val TEXT_A = "a"
+
+  private val TEXT_B = "b"
+
+  private val TEXT_C = "c"
+
   private val ENTITY_1 = new ShlurdEntity {}
 
   private val ENTITY_2 = new ShlurdEntity {}
@@ -56,10 +62,11 @@ class ShlurdConversationSpec extends Specification
   private def utterance(
     speakerName : String,
     sentence : SilSentence,
+    text : String,
     refMap : Map[SilReference, Set[ShlurdEntity]] =
       Map.empty[SilReference, Set[ShlurdEntity]]) =
   {
-    SpeakerUtterance[ShlurdEntity](speakerName, sentence, refMap)
+    SpeakerUtterance(speakerName, sentence, text, refMap)
   }
 
   "ShlurdConversation" should
@@ -67,39 +74,46 @@ class ShlurdConversationSpec extends Specification
     "remember utterances" in
     {
       val conversation = new ShlurdConversation[ShlurdEntity]
-      conversation.addSpeakerSentence(SPEAKER_FRED, SENTENCE_A, REF_MAP_1)
-      conversation.addSpeakerSentence(SPEAKER_FRED, SENTENCE_B)
-      conversation.addSpeakerSentence(SPEAKER_BARNEY, SENTENCE_C)
-      conversation.addSpeakerSentence(SPEAKER_FRED, SENTENCE_C)
-      conversation.addSpeakerSentence(SPEAKER_FRED, SENTENCE_B)
+      conversation.addSpeakerSentence(
+        SPEAKER_FRED, SENTENCE_A, TEXT_A, REF_MAP_1)
+      conversation.addSpeakerSentence(
+        SPEAKER_FRED, SENTENCE_B, TEXT_B)
+      conversation.addSpeakerSentence(
+        SPEAKER_BARNEY, SENTENCE_C, TEXT_C)
+      conversation.addSpeakerSentence(
+        SPEAKER_FRED, SENTENCE_C, TEXT_C)
+      conversation.addSpeakerSentence(
+        SPEAKER_FRED, SENTENCE_B, TEXT_B)
       conversation.getUtterances must be equalTo Seq(
-        utterance(SPEAKER_FRED, SENTENCE_A, REF_MAP_1),
-        utterance(SPEAKER_FRED, SENTENCE_B),
-        utterance(SPEAKER_BARNEY, SENTENCE_C),
-        utterance(SPEAKER_FRED, SENTENCE_C),
-        utterance(SPEAKER_FRED, SENTENCE_B))
+        utterance(SPEAKER_FRED, SENTENCE_A, TEXT_A, REF_MAP_1),
+        utterance(SPEAKER_FRED, SENTENCE_B, TEXT_B),
+        utterance(SPEAKER_BARNEY, SENTENCE_C, TEXT_C),
+        utterance(SPEAKER_FRED, SENTENCE_C, TEXT_C),
+        utterance(SPEAKER_FRED, SENTENCE_B, TEXT_B))
     }
 
     "update sentence analysis" in
     {
       val conversation = new ShlurdConversation[ShlurdEntity]
-      conversation.addSpeakerSentence(SPEAKER_FRED, SENTENCE_A)
+      conversation.addSpeakerSentence(
+        SPEAKER_FRED, SENTENCE_A, TEXT_A)
       conversation.getUtterances must be equalTo Seq(
-        utterance(SPEAKER_FRED, SENTENCE_A))
+        utterance(SPEAKER_FRED, SENTENCE_A, TEXT_A))
       conversation.updateSentenceAnalysis(REF_MAP_1)
       conversation.getUtterances must be equalTo Seq(
-        utterance(SPEAKER_FRED, SENTENCE_A, REF_MAP_1))
+        utterance(SPEAKER_FRED, SENTENCE_A, TEXT_A, REF_MAP_1))
       conversation.updateSentenceAnalysis(REF_MAP_2)
       conversation.getUtterances must be equalTo Seq(
-        utterance(SPEAKER_FRED, SENTENCE_A, REF_MAP_2))
-      conversation.addSpeakerSentence(SPEAKER_FRED, SENTENCE_B)
+        utterance(SPEAKER_FRED, SENTENCE_A, TEXT_A, REF_MAP_2))
+      conversation.addSpeakerSentence(
+        SPEAKER_FRED, SENTENCE_B, TEXT_B)
       conversation.getUtterances must be equalTo Seq(
-        utterance(SPEAKER_FRED, SENTENCE_A, REF_MAP_2),
-        utterance(SPEAKER_FRED, SENTENCE_B))
+        utterance(SPEAKER_FRED, SENTENCE_A, TEXT_A, REF_MAP_2),
+        utterance(SPEAKER_FRED, SENTENCE_B, TEXT_B))
       conversation.updateSentenceAnalysis(REF_MAP_1)
       conversation.getUtterances must be equalTo Seq(
-        utterance(SPEAKER_FRED, SENTENCE_A, REF_MAP_2),
-        utterance(SPEAKER_FRED, SENTENCE_B, REF_MAP_1))
+        utterance(SPEAKER_FRED, SENTENCE_A, TEXT_A, REF_MAP_2),
+        utterance(SPEAKER_FRED, SENTENCE_B, TEXT_B, REF_MAP_1))
     }
   }
 }

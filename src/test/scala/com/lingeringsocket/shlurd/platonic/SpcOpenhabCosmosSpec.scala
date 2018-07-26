@@ -68,7 +68,7 @@ class SpcOpenhabCosmosSpec extends Specification
     protected def interpret(input : String, expected : String) =
     {
       val sentence = ShlurdParser(input).parseOne
-      interpreter.interpret(sentence) must be equalTo(expected)
+      interpreter.interpret(sentence, input) must be equalTo(expected)
     }
   }
 

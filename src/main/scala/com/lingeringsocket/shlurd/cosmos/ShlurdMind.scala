@@ -57,10 +57,18 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
   def rememberSpeakerSentence(
     speakerName : String,
     sentence : SilSentence,
+    text : String,
     referenceMap : Map[SilReference, Set[E]] = Map.empty)
   {
+    val savedText = {
+      if (text.isEmpty) {
+        sentence.toWordString
+      } else {
+        text
+      }
+    }
     conversation.foreach(_.addSpeakerSentence(
-      speakerName, sentence, referenceMap))
+      speakerName, sentence, text, referenceMap))
   }
 
   def rememberSentenceAnalysis(

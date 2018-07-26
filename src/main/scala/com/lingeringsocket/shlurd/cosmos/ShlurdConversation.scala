@@ -28,6 +28,7 @@ object ShlurdConversation
 case class SpeakerUtterance[E <: ShlurdEntity](
   speakerName : String,
   sentence : SilSentence,
+  text : String,
   referenceMap : Map[SilReference, Set[E]] = Map.empty[SilReference, Set[E]])
 {
 }
@@ -39,9 +40,10 @@ class ShlurdConversation[E <: ShlurdEntity]
   def addSpeakerSentence(
     speakerName : String,
     sentence : SilSentence,
+    text : String,
     referenceMap : Map[SilReference, Set[E]] = Map.empty)
   {
-    utterances += SpeakerUtterance(speakerName, sentence, referenceMap)
+    utterances += SpeakerUtterance(speakerName, sentence, text, referenceMap)
   }
 
   def updateSentenceAnalysis(referenceMap : Map[SilReference, Set[E]])
@@ -49,7 +51,7 @@ class ShlurdConversation[E <: ShlurdEntity]
     val last = utterances.last
     utterances.reduceToSize(utterances.size - 1)
     utterances += SpeakerUtterance(
-      last.speakerName, last.sentence, referenceMap)
+      last.speakerName, last.sentence, last.text, referenceMap)
   }
 
   def getUtterances() : Seq[SpeakerUtterance[E]] = utterances

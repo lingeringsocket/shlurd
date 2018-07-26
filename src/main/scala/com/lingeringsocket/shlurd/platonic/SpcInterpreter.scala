@@ -32,7 +32,8 @@ class SpcInterpreter(
   params : ShlurdResponseParams = ShlurdResponseParams())
     extends ShlurdInterpreter(mind, params)
 {
-  override protected def interpretImpl(sentence : SilSentence) : String =
+  override protected def interpretImpl(sentence : SilSentence)
+      : (SilSentence, String) =
   {
     // FIXME this is madness...we make a half-hearted attempt at
     // collecting references here because SpcBeliefInterpreter does
@@ -64,7 +65,7 @@ class SpcInterpreter(
       interpretBeliefOrAction(beliefInterpreter, sentence) match {
         case Some(result) => {
           beliefInterpreter.cosmos.applyModifications
-          return result
+          return wrapResponseText(result)
         }
         case _ =>
       }

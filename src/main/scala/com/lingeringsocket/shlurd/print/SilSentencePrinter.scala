@@ -79,6 +79,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           printPredicateStatement(
             consequent, mood, ellipsis))
       }
+      case SilUnparsedSentence(text) => text
       case _ : SilUnknownSentence => {
         sb.unknownSentence
       }

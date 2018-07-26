@@ -42,7 +42,7 @@ class SpcInterpretTester(beliefsFile : String) extends ShlurdParseTester
     input : String, answer : String) =
   {
     val sentence = ShlurdParser(input).parseOne
-    val response = interpreter.interpret(sentence)
+    val response = interpreter.interpret(sentence, input)
     val expected = {
       if (answer.isEmpty) {
         "OK."

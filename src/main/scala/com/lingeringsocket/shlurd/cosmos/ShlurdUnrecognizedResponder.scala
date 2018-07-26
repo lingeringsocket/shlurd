@@ -99,6 +99,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
       case _ : SilStateChangeCommand => ;
       case _ : SilAmbiguousSentence => ;
       case _ : SilUnknownSentence => ;
+      case _ : SilUnparsedSentence => ;
     }
     sb.respondCannotUnderstand()
   }

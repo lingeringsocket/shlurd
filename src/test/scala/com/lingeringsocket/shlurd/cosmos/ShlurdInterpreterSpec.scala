@@ -66,7 +66,7 @@ class ShlurdInterpreterSpec extends Specification
       }
 
       val sentence = ShlurdParser(input).parseOne
-      interpreter.interpret(sentence)
+      interpreter.interpret(sentence, input)
     }
 
     protected def interpretCommandExpected(
@@ -82,7 +82,7 @@ class ShlurdInterpreterSpec extends Specification
           actualInvocation = Some(invocation)
         }
       }
-      interpreter.interpret(sentence) must be equalTo("OK.")
+      interpreter.interpret(sentence, input) must be equalTo("OK.")
       actualInvocation must be equalTo(Some(invocation))
     }
   }
@@ -487,6 +487,7 @@ class ShlurdInterpreterSpec extends Specification
             QUESTION_WHO,
             MOOD_INTERROGATIVE_POSITIVE,
             SilFormality(FORCE_NEUTRAL)),
+          "who are you",
           Map(
             SilNounReference(SilWord(LEMMA_WHO), DETERMINER_ANY) ->
               Set(ZooKeeper, ZooVisitor),
@@ -500,7 +501,8 @@ class ShlurdInterpreterSpec extends Specification
               SilNounReference(SilWord("Muldoon")),
               REL_IDENTITY),
             MOOD_INDICATIVE_POSITIVE,
-            SilFormality(FORCE_NEUTRAL)))
+            SilFormality(FORCE_NEUTRAL)),
+          "I am Muldoon.")
       )
     }
 

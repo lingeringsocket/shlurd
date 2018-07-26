@@ -93,7 +93,7 @@ class SpcInterpreterSpec extends Specification
     protected def interpret(input : String, expected : String) =
     {
       val sentence = ShlurdParser(input).parseOne
-      interpreter.interpret(sentence) must be equalTo(expected)
+      interpreter.interpret(sentence, input) must be equalTo(expected)
     }
 
     protected def interpretTerse(
@@ -102,7 +102,7 @@ class SpcInterpreterSpec extends Specification
     {
       val sentence = ShlurdParser(input).parseOne
       interpreterTerse.interpret(
-        sentence) must be equalTo(expected)
+        sentence, input) must be equalTo(expected)
     }
 
     protected def interpretMatrix(
@@ -113,15 +113,15 @@ class SpcInterpreterSpec extends Specification
       expectedEllipsis : String = "") =
     {
       val sentence = ShlurdParser(input).parseOne
-      interpreter.interpret(sentence) must be equalTo(
+      interpreter.interpret(sentence, input) must be equalTo(
         expectedWithPronouns)
       interpreterWithoutPronouns.interpret(
-        sentence) must be equalTo(expectedWithoutPronouns)
+        sentence, input) must be equalTo(expectedWithoutPronouns)
       interpreterTerse.interpret(
-        sentence) must be equalTo(expectedTerse)
+        sentence, input) must be equalTo(expectedTerse)
       if (!expectedEllipsis.isEmpty) {
         interpreterEllipsis.interpret(
-          sentence) must be equalTo(expectedEllipsis)
+          sentence, input) must be equalTo(expectedEllipsis)
       }
     }
   }

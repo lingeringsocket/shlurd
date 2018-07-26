@@ -166,6 +166,23 @@ sealed trait SilAdpositionalPhrase extends SilTransformedPhrase
   override def children = Seq(objRef)
 }
 
+case class SilUnparsedSentence(
+  text : String
+) extends SilSentence with SilUnrecognizedPhrase
+{
+  override def hasUnknown = true
+
+  override def toString = text
+
+  override def toWordString = text
+
+  override def countUnknownSyntaxLeaves = Int.MaxValue
+
+  override def mood = MOOD_INDICATIVE_POSITIVE
+
+  override def formality = SilFormality.DEFAULT
+}
+
 case class SilUnrecognizedSentence(
   syntaxTree : ShlurdSyntaxTree
 ) extends SilUnknownSentence with SilUnrecognizedPhrase

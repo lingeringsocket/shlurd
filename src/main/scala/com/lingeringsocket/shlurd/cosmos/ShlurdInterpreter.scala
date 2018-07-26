@@ -71,7 +71,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 {
   type PredicateEvaluator = (E, SilReference) => Try[Trilean]
 
-  type SentenceInterpreter = PartialFunction[SilSentence, String]
+  type SentenceInterpreter = PartialFunction[SilSentence, (SilSentence, String)]
 
   private val cosmos = mind.getCosmos
 
@@ -110,39 +110,49 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  def interpret(sentence : SilSentence) : String =
+  def interpret(sentence : SilSentence, input : String = "") : String =
   {
-    debug(s"INTERPRETER INPUT : $sentence")
-    mind.rememberSpeakerSentence(
-      ShlurdConversation.SPEAKER_NAME_PERSON, sentence)
-    SilPhraseValidator.validatePhrase(sentence)
-    val response = interpretImpl(sentence)
-    debug(s"INTERPRETER RESPONSE : $response")
-    if (mind.isConversing) {
-      // FIXME preserve original SilSentence response form instead
-      // of reparsing it, and synthesize referenceMap
-      val parsedResponse = ShlurdParser(response).parseOne
-      mind.rememberSpeakerSentence(
-        ShlurdConversation.SPEAKER_NAME_SHLURD, parsedResponse)
+    if (!input.isEmpty) {
+      debug(s"INTERPRETER INPUT TEXT : $input")
     }
-    response
+    debug(s"INTERPRETER INPUT SENTENCE : $sentence")
+    mind.rememberSpeakerSentence(
+      ShlurdConversation.SPEAKER_NAME_PERSON, sentence, input)
+    SilPhraseValidator.validatePhrase(sentence)
+    val (responseSentence, responseText) = interpretImpl(sentence)
+    debug(s"INTERPRETER RESPONSE TEXT : $responseText")
+    debug(s"INTERPRETER RESPONSE SENTENCE : $responseSentence")
+    if (mind.isConversing) {
+      // FIXME synthesize referenceMap
+      mind.rememberSpeakerSentence(
+        ShlurdConversation.SPEAKER_NAME_SHLURD,
+        responseSentence, responseText)
+    }
+    responseText
   }
 
-  protected def interpretImpl(sentence : SilSentence) : String =
+  protected def interpretImpl(sentence : SilSentence)
+      : (SilSentence, String) =
   {
     if (sentence.isUninterpretable) {
       val unrecognized = responseRewriter.rewrite(
         responseRewriter.swapPronounsSpeakerListener, sentence)
       val responder = new ShlurdUnrecognizedResponder(sentencePrinter)
-      return responder.respond(unrecognized)
+      return wrapResponseText(responder.respond(unrecognized))
     }
     interpreterMatchers.applyOrElse(
       sentence,
       { s : SilSentence =>
         debug("UNKNOWN SENTENCE")
-        sentencePrinter.sb.respondCannotUnderstand()
+        wrapResponseText(sentencePrinter.sb.respondCannotUnderstand())
       }
     )
+  }
+
+  protected def wrapResponseText(text : String)
+      : (SilSentence, String) =
+  {
+    (SilUnparsedSentence(text), text)
   }
 
   private def sentenceInterpreter(f : SentenceInterpreter)
@@ -163,11 +173,12 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               predicate, resultCollector, generalParams)
           assert(!negateCollection)
           val responseMood = MOOD_INDICATIVE_POSITIVE
-          sentencePrinter.sb.respondToCounterfactual(
-            sentencePrinter.print(
-              SilPredicateSentence(
-                normalizedResponse,
-                responseMood)))
+          val responseSentence = SilPredicateSentence(
+            normalizedResponse,
+            responseMood)
+          (responseSentence,
+            sentencePrinter.sb.respondToCounterfactual(
+              sentencePrinter.print(responseSentence)))
         }
         case Success(_) => {
           assert(resultCollector.states.size == 1)
@@ -178,11 +189,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               resultCollector.states.head)
           debug(s"EXECUTE INVOCATION : $invocation")
           executeInvocation(invocation)
-          sentencePrinter.sb.respondCompliance()
+          wrapResponseText(sentencePrinter.sb.respondCompliance())
         }
         case Failure(e) => {
           debug("ERROR", e)
-          e.getMessage
+          wrapResponseText(e.getMessage)
         }
       }
     }
@@ -202,7 +213,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       result match {
         case Success(Trilean.Unknown) => {
           debug("ANSWER UNKNOWN")
-          sentencePrinter.sb.respondDontKnow()
+          wrapResponseText(sentencePrinter.sb.respondDontKnow())
         }
         case Success(truth) => {
           debug(s"ANSWER : $truth")
@@ -221,6 +232,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           debug(s"NORMALIZED RESPONSE : $normalizedResponse")
           val responseMood = SilIndicativeMood(
             truthBoolean || negateCollection)
+          val responseSentence = SilPredicateSentence(
+            normalizedResponse,
+            responseMood)
           val adjustedResponse = generalParams.verbosity match {
             // FIXME:  for RESPONSE_ELLIPSIS, include the verb as well
             // (or the adposition in the case of QUESTION_WHERE)
@@ -233,17 +247,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 responseMood, sentence.formality)
             }
             case _ => {
-              sentencePrinter.print(
-                SilPredicateSentence(
-                  normalizedResponse,
-                  responseMood))
+              sentencePrinter.print(responseSentence)
             }
           }
-          sentencePrinter.sb.respondToQuery(adjustedResponse)
+          (responseSentence,
+            sentencePrinter.sb.respondToQuery(adjustedResponse))
         }
         case Failure(e) => {
           debug("ERROR", e)
-          e.getMessage
+          wrapResponseText(e.getMessage)
         }
       }
     }
@@ -262,7 +274,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           result match {
             case Success(Trilean.Unknown) => {
               debug("ANSWER UNKNOWN")
-              sentencePrinter.sb.respondDontKnow()
+              wrapResponseText(sentencePrinter.sb.respondDontKnow())
             }
             case Success(truth) => {
               debug(s"ANSWER : $truth")
@@ -277,6 +289,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 responseRewriter.normalizeResponse(
                   query, resultCollector, params)
               debug(s"NORMALIZED RESPONSE : $normalizedResponse")
+              val responseTruth = params.verbosity match {
+                case RESPONSE_ELLIPSIS => truthBoolean
+                case _ => truthBoolean || negateCollection
+              }
+              val responseSentence = SilPredicateSentence(
+                normalizedResponse,
+                SilIndicativeMood(responseTruth))
               val printedSentence = {
                 params.verbosity match {
                   case RESPONSE_TERSE => {
@@ -284,26 +303,22 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   }
                   case RESPONSE_ELLIPSIS => {
                     sentencePrinter.print(
-                      SilPredicateSentence(
-                        normalizedResponse,
-                        SilIndicativeMood(truthBoolean)),
+                      responseSentence,
                       true)
                   }
                   case RESPONSE_COMPLETE => {
                     sentencePrinter.print(
-                      SilPredicateSentence(
-                        normalizedResponse,
-                        SilIndicativeMood(
-                          truthBoolean || negateCollection)))
+                      responseSentence)
                   }
                 }
               }
-              sentencePrinter.sb.respondToAssumption(
-                ASSUMED_TRUE, truthBoolean, printedSentence, false)
+              (responseSentence,
+                sentencePrinter.sb.respondToAssumption(
+                  ASSUMED_TRUE, truthBoolean, printedSentence, false))
             }
             case Failure(e) => {
               debug("ERROR", e)
-              e.getMessage
+              wrapResponseText(e.getMessage)
             }
           }
         }
@@ -328,7 +343,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             case Success(Trilean.Unknown) => {
               debug("TRUTH UNKNOWN")
               // FIXME:  maybe try to update state?
-              "Oh, really?  Thanks for letting me know."
+              wrapResponseText("Oh, really?  Thanks for letting me know.")
             }
             case Success(truth) => {
               debug(s"KNOWN TRUTH : $truth")
@@ -337,6 +352,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                   responseRewriter.normalizeResponse(
                     predicate, resultCollector, generalParams)
                 assert(!negateCollection)
+                val responseSentence = SilPredicateSentence(
+                  normalizedResponse,
+                  responseMood)
                 val printedSentence = {
                   generalParams.verbosity match {
                     case RESPONSE_TERSE => {
@@ -344,37 +362,34 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                     }
                     case RESPONSE_ELLIPSIS => {
                       sentencePrinter.print(
-                        SilPredicateSentence(
-                          normalizedResponse,
-                          responseMood),
+                        responseSentence,
                         true)
                     }
                     case RESPONSE_COMPLETE => {
                       sentencePrinter.print(
-                        SilPredicateSentence(
-                          normalizedResponse,
-                          responseMood))
+                        responseSentence)
                     }
                   }
                 }
-                sentencePrinter.sb.respondToAssumption(
-                  ASSUMED_TRUE, true, printedSentence, true)
+                (responseSentence,
+                  sentencePrinter.sb.respondToAssumption(
+                    ASSUMED_TRUE, true, printedSentence, true))
               } else {
                 // FIXME:  add details on inconsistency, and maybe try
                 // to update state?
-                "Oh, really?"
+                wrapResponseText("Oh, really?")
               }
             }
             case Failure(e) => {
               // FIXME:  try to update state?
               debug("ERROR", e)
-              e.getMessage
+              wrapResponseText(e.getMessage)
             }
           }
         }
         case _ => {
           debug(s"UNEXPECTED MOOD : $mood")
-          sentencePrinter.sb.respondCannotUnderstand()
+          wrapResponseText(sentencePrinter.sb.respondCannotUnderstand())
         }
       }
     }
@@ -384,13 +399,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     case SilConjunctiveSentence(determiner, sentences, _) => {
       // FIXME
       debug("CONJUNCTIVE SENTENCE")
-      sentencePrinter.sb.respondCannotUnderstand()
+      wrapResponseText(sentencePrinter.sb.respondCannotUnderstand())
     }
     case SilAmbiguousSentence(alternatives, _) => {
       debug("AMBIGUOUS SENTENCE")
       // FIXME:  try each in turn and use first
       // that does not result in an error
-      sentencePrinter.sb.respondCannotUnderstand()
+      wrapResponseText(sentencePrinter.sb.respondCannotUnderstand())
     }
   }
 
