@@ -123,10 +123,21 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     debug(s"INTERPRETER RESPONSE TEXT : $responseText")
     debug(s"INTERPRETER RESPONSE SENTENCE : $responseSentence")
     if (mind.isConversing) {
-      // FIXME synthesize referenceMap
+      // perhapse we should synthesize referenceMap as we go instead
+      // of attempting to reconstruct it here
+      val resultCollector = ResultCollector[E]
+      val rewriter = new ShlurdReferenceRewriter(
+        mind.getCosmos, new SilSentencePrinter, resultCollector,
+        ShlurdResolutionOptions(
+          failOnUnknown = false,
+          resolveConjunctions = true,
+          resolveUniqueDeterminers = true))
+      // discard the rewrite result; we just want the
+      // resultCollector side effects
+      rewriter.rewrite(rewriter.rewriteReferences, responseSentence)
       mind.rememberSpeakerSentence(
         ShlurdConversation.SPEAKER_NAME_SHLURD,
-        responseSentence, responseText)
+        responseSentence, responseText, resultCollector.referenceMap)
     }
     responseText
   }

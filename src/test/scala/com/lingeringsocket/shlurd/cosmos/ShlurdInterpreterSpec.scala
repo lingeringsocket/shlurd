@@ -489,8 +489,6 @@ class ShlurdInterpreterSpec extends Specification
             SilFormality(FORCE_NEUTRAL)),
           "who are you",
           Map(
-            SilNounReference(SilWord(LEMMA_WHO), DETERMINER_ANY) ->
-              Set(ZooKeeper, ZooVisitor),
             SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR) ->
               Set(ZooKeeper))),
         SpeakerUtterance(
@@ -502,7 +500,11 @@ class ShlurdInterpreterSpec extends Specification
               REL_IDENTITY),
             MOOD_INDICATIVE_POSITIVE,
             SilFormality(FORCE_NEUTRAL)),
-          "I am Muldoon.")
+          "I am Muldoon.",
+          Map(
+            SilNounReference(SilWord("Muldoon")) -> Set(ZooKeeper)
+          )
+        )
       )
     }
 

@@ -64,23 +64,25 @@ class SpcInterpreterSpec extends Specification
       SpcPrimordial.initCosmos(this)
     }
 
+    protected val mind = new SpcMind(cosmos)
+
     protected val interpreter =
       new SpcInterpreter(
-        new SpcMind(cosmos), beliefAcceptance, params)
+        mind, beliefAcceptance, params)
 
     protected val interpreterWithoutPronouns =
       new SpcInterpreter(
-        new SpcMind(cosmos), beliefAcceptance, params.
+        mind, beliefAcceptance, params.
           copy(thirdPersonPronouns = false))
 
     protected val interpreterTerse =
       new SpcInterpreter(
-        new SpcMind(cosmos), beliefAcceptance, params.
+        mind, beliefAcceptance, params.
           copy(verbosity = RESPONSE_TERSE))
 
     protected val interpreterEllipsis =
       new SpcInterpreter(
-        new SpcMind(cosmos), beliefAcceptance, params.
+        mind, beliefAcceptance, params.
           copy(verbosity = RESPONSE_ELLIPSIS))
 
     protected def loadBeliefs(resource : String)
@@ -924,6 +926,19 @@ class SpcInterpreterSpec extends Specification
       loadBeliefs("/ontologies/stove.txt")
       interpret("is the stove hot?",
         "Yes, the stove is hot.")
+    }
+
+    "understand conversational pronoun references" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS,
+      ShlurdResponseParams().copy(thirdPersonPronouns = false))
+    {
+      loadBeliefs("/ontologies/people.txt")
+      mind.startConversation
+      interpret("is she a dog",
+        "Sorry, when you say 'she' I don't know who or what you mean.")
+      interpret("who is Todd", "Todd is Amanda's brother.")
+      interpret("is she a dog", "No, Amanda is not a dog.")
+      interpret("is he Dirk's friend", "Yes, Todd is Dirk's friend.")
     }
 
     "prevent new beliefs" in new InterpreterContext

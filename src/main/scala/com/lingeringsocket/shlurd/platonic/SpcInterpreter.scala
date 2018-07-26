@@ -41,7 +41,7 @@ class SpcInterpreter(
     if (mind.isConversing) {
       val resultCollector = ResultCollector[SpcEntity]
       val rewriter =
-        new ShlurdReferenceRewriter[SpcEntity, SpcProperty](
+        new ShlurdReferenceRewriter(
           mind.getCosmos,
           new SilSentencePrinter,
           resultCollector,

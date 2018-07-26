@@ -54,6 +54,33 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
     conversation.get
   }
 
+  private def filterReferenceMap(referenceMap : Map[SilReference, Set[E]]) =
+  {
+    referenceMap.filterKeys(isRetainableReference)
+  }
+
+  private def isRetainableReference(ref : SilReference) : Boolean =
+  {
+    ref match {
+      case SilNounReference(
+        _, DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED, _
+      ) => {
+        true
+      }
+      case _ : SilPronounReference => true
+      case SilConjunctiveReference(_, references, _) => {
+        references.forall(isRetainableReference)
+      }
+      case SilGenitiveReference(possessor, _) => {
+        isRetainableReference(possessor)
+      }
+      case SilStateSpecifiedReference(sub, state) => {
+        isRetainableReference(sub)
+      }
+      case _ => false
+    }
+  }
+
   def rememberSpeakerSentence(
     speakerName : String,
     sentence : SilSentence,
@@ -68,27 +95,32 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
       }
     }
     conversation.foreach(_.addSpeakerSentence(
-      speakerName, sentence, text, referenceMap))
+      speakerName, sentence, text, filterReferenceMap(referenceMap)))
   }
 
   def rememberSentenceAnalysis(
     referenceMap : Map[SilReference, Set[E]])
   {
-    conversation.foreach(_.updateSentenceAnalysis(referenceMap))
+    conversation.foreach(_.updateSentenceAnalysis(
+      filterReferenceMap(referenceMap)))
   }
 
   def resolvePronoun(
     reference : SilPronounReference) : Try[Set[E]] =
   {
     // FIXME proper coreference resolution, including within current sentence;
-    // also, there should probably be some limit on how far back to search,
-    // and we should exclude nonspecific entries from the reference map
-    conversation.foreach(_.getUtterances.reverseIterator.foreach(utterance => {
-      findMatchingPronounReference(utterance, reference) match {
-        case Some(set) => return Success(set)
-        case _ =>
-      }
-    }))
+    // also, there should probably be some limit on how far back to search.
+    // Note that for the moment we exclude the current sentence completely.
+    conversation.foreach(
+      _.getUtterances.reverseIterator.drop(1).foreach(
+        utterance => {
+          findMatchingPronounReference(utterance, reference) match {
+            case Some(set) => return Success(set)
+            case _ =>
+          }
+        }
+      )
+    )
     cosmos.fail("pronoun cannot be resolved")
   }
 
