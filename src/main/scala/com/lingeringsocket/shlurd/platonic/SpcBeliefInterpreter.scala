@@ -47,24 +47,37 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     allBeliefApplier.apply(belief)
   }
 
-  private def resolveUniqueName(
+  private def resolveReference(
     sentence : SilSentence,
-    word : SilWord,
-    determiner : SilDeterminer = DETERMINER_UNSPECIFIED)
-      : SpcEntity =
+    ref : SilReference) : SpcEntity =
   {
-    resolveUniqueNameAndExistence(sentence, word, determiner)._1
+    ref match {
+      case SilNounReference(noun, determiner, _) => {
+        resolveUniqueNameAndExistence(sentence, noun, determiner)._1
+      }
+      case SilResolvedReference(entities, _, _) if (entities.size == 1) => {
+        entities.head match {
+          case entity : SpcEntity => entity
+          case _ => {
+            throw new IncomprehensibleBeliefExcn(sentence)
+          }
+        }
+      }
+      case _ => {
+        throw new IncomprehensibleBeliefExcn(sentence)
+      }
+    }
   }
 
   private def resolveUniqueNameAndExistence(
     sentence : SilSentence,
-    word : SilWord,
+    noun : SilWord,
     determiner : SilDeterminer = DETERMINER_UNSPECIFIED)
       : (SpcEntity, Boolean) =
   {
     determiner match {
       case DETERMINER_UNIQUE => {
-        val form = cosmos.instantiateForm(word)
+        val form = cosmos.instantiateForm(noun)
         val entities = cosmos.getEntities.filter(entity =>
           cosmos.getGraph.isHyponym(entity.form, form))
         if (entities.isEmpty) {
@@ -84,16 +97,16 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
       }
       case DETERMINER_UNSPECIFIED => {
         val candidates = cosmos.getEntities.filter(
-          _.qualifiers == Set(word.lemma))
+          _.qualifiers == Set(noun.lemma))
         assert(candidates.size < 2)
         candidates.headOption match {
           case Some(entity) => (entity, false)
           case _ => {
-            val tentativeName = SpcForm.tentativeName(word)
+            val tentativeName = SpcForm.tentativeName(noun)
             assert(cosmos.resolveForm(tentativeName.lemma).isEmpty)
             val newForm = cosmos.instantiateForm(tentativeName)
             val (entity, success) = cosmos.instantiateEntity(
-              newForm, Seq(word), word.lemmaUnfolded)
+              newForm, Seq(noun), noun.lemmaUnfolded)
             assert(success)
             (entity, success)
           }
@@ -425,10 +438,10 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
 
   beliefApplier {
     case EntityNoAssocBelief(
-      sentence, possessorDeterminer, possessorName, roleName
+      sentence, possessorRef, roleName
     ) => {
-      val possessor = resolveUniqueName(
-        sentence, possessorName, possessorDeterminer)
+      val possessor = resolveReference(
+        sentence, possessorRef)
       val (formAssocEdge, possessorIdeal, role) =
         analyzeAssoc(sentence, possessor, roleName)
       val entityAssocGraph = cosmos.getEntityAssocGraph
@@ -450,13 +463,12 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
 
   beliefApplier {
     case EntityAssocBelief(
-      sentence, possessorDeterminer, possessorName,
-      possesseeDeterminer, possesseeName, roleName
+      sentence, possessorRef, possesseeRef, roleName
     ) => {
-      val possessor = resolveUniqueName(
-        sentence, possessorName, possessorDeterminer)
-      val possessee = resolveUniqueName(
-        sentence, possesseeName, possesseeDeterminer)
+      val possessor = resolveReference(
+        sentence, possessorRef)
+      val possessee = resolveReference(
+        sentence, possesseeRef)
       val (formAssocEdge, possessorIdeal, role) =
         analyzeAssoc(sentence, possessor, roleName)
       val graph = cosmos.getGraph

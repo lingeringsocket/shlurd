@@ -90,10 +90,8 @@ case class EntityExistenceBelief(
 
 case class EntityAssocBelief(
   sentence : SilSentence,
-  possessorDeterminer : SilDeterminer,
-  possessorName : SilWord,
-  possesseeDeterminer : SilDeterminer,
-  possesseeName : SilWord,
+  possessorRef : SilReference,
+  possesseeRef : SilReference,
   roleName : SilWord
 ) extends SpcBelief
 {
@@ -101,8 +99,7 @@ case class EntityAssocBelief(
 
 case class EntityNoAssocBelief(
   sentence : SilSentence,
-  possessorDeterminer : SilDeterminer,
-  possessorName : SilWord,
+  possessor : SilReference,
   roleName : SilWord
 ) extends SpcBelief
 {
