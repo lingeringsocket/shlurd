@@ -47,6 +47,19 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     allBeliefApplier.apply(belief)
   }
 
+  private def getUniqueEntity(
+    rr : SilResolvedReference[_]) : Option[SpcEntity] =
+  {
+    if (rr.entities.size == 1) {
+      rr.entities.head match {
+        case entity : SpcEntity => Some(entity)
+        case _ => None
+      }
+    } else {
+      None
+    }
+  }
+
   private def resolveReference(
     sentence : SilSentence,
     ref : SilReference) : SpcEntity =
@@ -55,13 +68,9 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
       case SilNounReference(noun, determiner, _) => {
         resolveUniqueNameAndExistence(sentence, noun, determiner)._1
       }
-      case SilResolvedReference(entities, _, _) if (entities.size == 1) => {
-        entities.head match {
-          case entity : SpcEntity => entity
-          case _ => {
-            throw new IncomprehensibleBeliefExcn(sentence)
-          }
-        }
+      case rr : SilResolvedReference[_] => {
+        getUniqueEntity(rr).getOrElse(
+          throw new IncomprehensibleBeliefExcn(sentence))
       }
       case _ => {
         throw new IncomprehensibleBeliefExcn(sentence)
@@ -332,8 +341,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
           case form : SpcForm => {
             // FIXME:  thow a ContradictoryBeliefExcn pinpointing the reason
             // we believe hyponym to be a form, not a role
-            throw new IncomprehensibleBeliefExcn(
-              sentence)
+            throw new IncomprehensibleBeliefExcn(sentence)
           }
           case _ =>
         }
@@ -390,21 +398,37 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
 
   beliefApplier {
     case EntityExistenceBelief(
-      sentence, formName, determiner, qualifiers, properName
+      sentence, entityRef, formName, qualifiers, properName
     ) => {
       val form = cosmos.instantiateForm(formName)
-      val (entity, newEntity) = {
-        if (determiner == DETERMINER_UNIQUE) {
-          assert(qualifiers.size == 1)
-          assert(properName.isEmpty)
-          resolveUniqueNameAndExistence(
-            sentence, qualifiers.head, determiner)
-        } else {
-          cosmos.instantiateEntity(
-            form, qualifiers, properName)
+      val (entity, isNewEntity, determiner) = entityRef match {
+        case SilNounReference(noun, determiner, count) => {
+          val (entity, isNewEntity) = {
+            if (determiner == DETERMINER_UNIQUE) {
+              assert(properName.isEmpty)
+              resolveUniqueNameAndExistence(
+                sentence, noun, determiner)
+            } else {
+              cosmos.instantiateEntity(
+                form, qualifiers, properName)
+            }
+          }
+          (entity, isNewEntity, determiner)
+        }
+        case rr @ SilResolvedReference(
+          entities, _, determiner
+        ) => {
+          getUniqueEntity(rr).map(
+            entity => (entity, false, determiner)
+          ).getOrElse(
+            throw new IncomprehensibleBeliefExcn(sentence))
+        }
+        case _ => {
+          throw new IncomprehensibleBeliefExcn(sentence)
         }
       }
-      if (!newEntity) {
+
+      if (!isNewEntity) {
         val graph = cosmos.getGraph
         if (form == entity.form) {
           if (properName.isEmpty) {

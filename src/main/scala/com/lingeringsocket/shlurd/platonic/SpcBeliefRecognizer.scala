@@ -126,7 +126,9 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         // "there is a television"
         // FIXME:  interpret mood
         Seq(EntityExistenceBelief(
-          sentence, noun, DETERMINER_NONSPECIFIC, qualifiers, ""))
+          sentence,
+          SilNounReference(noun, DETERMINER_NONSPECIFIC),
+          noun, qualifiers, ""))
       }
       case _ => {
         if (!qualifiers.isEmpty) {
@@ -165,22 +167,22 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           sentence, subjectNoun, complementRef, relationship)
       }
       case SilNounReference(
-        subjectNoun, subjectDeterminer, COUNT_SINGULAR
+        _, _, COUNT_SINGULAR
       ) => {
         // "Lonnie is Will's dad"
         return interpretEntityRelationship(
-          sentence, subjectDeterminer, subjectNoun, subjectRef,
+          sentence, subjectRef,
           complementRef, relationship)
       }
       case _ : SilGenitiveReference => {
         complementRef match {
           // "Will's dad is Lonnie"
           case SilNounReference(
-            complementNoun, complementDeterminer, COUNT_SINGULAR
+            _, _, COUNT_SINGULAR
           ) => {
             // flip subject/complement to match "Lonnie is Will's dad"
             return interpretEntityRelationship(
-              sentence, complementDeterminer, complementNoun, complementRef,
+              sentence, complementRef,
               subjectRef, relationship)
           }
           case _ : SilGenitiveReference => {
@@ -294,7 +296,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           }
         }
         interpretEntityRelationship(
-          sentence, subjectDeterminer, subjectNoun,
+          sentence,
           SilResolvedReference(Set(entity), subjectNoun, subjectDeterminer),
           complementRef, relationship)
       }
@@ -442,15 +444,21 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
 
   private def interpretEntityRelationship(
     sentence : SilSentence,
-    // FIXME we shouldn't need this
-    subjectDeterminer : SilDeterminer,
-    // FIXME we shouldn't need this
-    subjectNoun : SilWord,
     subjectRef : SilReference,
     complementRef : SilReference,
     relationship : SilRelationship)
       : Seq[SpcBelief] =
   {
+    val (subjectNoun, subjectDeterminer) = subjectRef match {
+      case SilNounReference(noun, determiner, _) => {
+        (noun, determiner)
+      }
+      case SilResolvedReference(_, noun, determiner) => {
+        (noun, determiner)
+      }
+      case _ => return Seq.empty
+    }
+
     subjectDeterminer match {
       case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE =>
       case _ => {
@@ -504,7 +512,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
                 cosmos.specificReference(entity, DETERMINER_UNIQUE),
                 possessee)
               interpretEntityRelationship(
-                sentence, subjectDeterminer, subjectNoun, subjectRef,
+                sentence, subjectRef,
                 flattenedComplement,
                 relationship)
             }
@@ -542,15 +550,17 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         // "Fido is a dog"
         Seq(EntityExistenceBelief(
           sentence,
+          subjectRef,
           complementNoun,
-          subjectDeterminer, Seq(subjectNoun), subjectNoun.lemmaUnfolded))
+          Seq(subjectNoun), subjectNoun.lemmaUnfolded))
       }
       case DETERMINER_UNIQUE => {
         // "The boss is a werewolf"
         Seq(EntityExistenceBelief(
           sentence,
+          subjectRef,
           complementNoun,
-          subjectDeterminer, Seq(subjectNoun), ""))
+          Seq.empty, ""))
       }
       case _ => {
         // We don't yet support stuff like "all dogs are werewolves"

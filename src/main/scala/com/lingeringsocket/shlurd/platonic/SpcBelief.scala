@@ -80,8 +80,8 @@ case class InverseAssocBelief(
 
 case class EntityExistenceBelief(
   sentence : SilSentence,
+  entityRef : SilReference,
   formName : SilWord,
-  determiner : SilDeterminer,
   qualifiers : Seq[SilWord],
   properName : String
 ) extends SpcBelief
