@@ -25,22 +25,32 @@ object ShlurdConversation
   val SPEAKER_NAME_PERSON = "PERSON"
 }
 
-case class SpeakerUtterance(speakerName : String, sentence : SilSentence)
+case class SpeakerUtterance[E <: ShlurdEntity](
+  speakerName : String,
+  sentence : SilSentence,
+  referenceMap : Map[SilReference, Set[E]] = Map.empty[SilReference, Set[E]])
 {
 }
 
-case class SpeakerTurn(speakerName : String, sentences : Seq[SilSentence])
+class ShlurdConversation[E <: ShlurdEntity]
 {
-}
+  private val utterances = new mutable.ArrayBuffer[SpeakerUtterance[E]]
 
-class ShlurdConversation
-{
-  private val utterances = new mutable.ArrayBuffer[SpeakerUtterance]
-
-  def addSpeakerSentence(speakerName : String, sentence : SilSentence)
+  def addSpeakerSentence(
+    speakerName : String,
+    sentence : SilSentence,
+    referenceMap : Map[SilReference, Set[E]] = Map.empty)
   {
-    utterances += SpeakerUtterance(speakerName, sentence)
+    utterances += SpeakerUtterance(speakerName, sentence, referenceMap)
   }
 
-  def getUtterances() : Seq[SpeakerUtterance] = utterances
+  def updateSentenceAnalysis(referenceMap : Map[SilReference, Set[E]])
+  {
+    val last = utterances.last
+    utterances.reduceToSize(utterances.size - 1)
+    utterances += SpeakerUtterance(
+      last.speakerName, last.sentence, referenceMap)
+  }
+
+  def getUtterances() : Seq[SpeakerUtterance[E]] = utterances
 }

@@ -16,8 +16,10 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.cosmos._
+import com.lingeringsocket.shlurd.print._
 
 import scala.collection._
+import scala.util._
 
 sealed trait SpcBeliefAcceptance
 case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
@@ -32,6 +34,26 @@ class SpcInterpreter(
 {
   override protected def interpretImpl(sentence : SilSentence) : String =
   {
+    // FIXME this is madness...we make a half-hearted attempt at
+    // collecting references here because SpcBeliefInterpreter does
+    // not do anything in that regard.
+    if (mind.isConversing) {
+      val resultCollector = ResultCollector[SpcEntity]
+      val rewriter =
+        new ShlurdReferenceRewriter[SpcEntity, SpcProperty](
+          mind.getCosmos,
+          new SilSentencePrinter,
+          resultCollector,
+          ShlurdResolutionOptions(
+            failOnUnknown = false,
+            resolveConjunctions = true,
+            resolveUniqueDeterminers = true))
+      // discard the rewrite result; we just want the
+      // resultCollector side effects
+      rewriter.rewrite(rewriter.rewriteReferences, sentence)
+      mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+    }
+
     if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
       sentence.mood.isIndicative)
     {
@@ -203,10 +225,8 @@ class SpcInterpreter(
     }
     val newPredicate = rewriter.rewrite(replaceReferences, consequent)
     val newSentence = SilPredicateSentence(newPredicate)
-    // println("ATTEMPT " + newSentence)
     // FIXME detect loops and also limit recursion depth
     val result = interpretBeliefOrAction(beliefInterpreter, newSentence)
-    // println("RESULT " + result)
     if (result.isEmpty) {
       // FIXME i18n
       Some("Invalid consequent")
@@ -218,7 +238,7 @@ class SpcInterpreter(
   private def prepareReplacement(
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
-    actualRef : SilReference) =
+    actualRef : SilReference) : Boolean =
   {
     // FIXME support other reference patterns
     ref match {
@@ -228,7 +248,21 @@ class SpcInterpreter(
         val patternRef = SilNounReference(
           noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
         // FIXME verify that actualRef matches refPattern
-        replacements.put(patternRef, actualRef)
+        val boundRef = actualRef match {
+          case pr : SilPronounReference => {
+            mind.resolvePronoun(pr) match {
+              case Success(set) if (!set.isEmpty) => {
+                mind.getCosmos.specificReferences(set, DETERMINER_UNIQUE)
+              }
+              case _ =>  {
+                debug("PRONOUN UNRESOLVED")
+                return false
+              }
+            }
+          }
+          case _ => actualRef
+        }
+        replacements.put(patternRef, boundRef)
         true
       }
       case _ => {

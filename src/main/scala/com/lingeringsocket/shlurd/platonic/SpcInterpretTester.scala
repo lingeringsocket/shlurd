@@ -30,9 +30,12 @@ class SpcInterpretTester(beliefsFile : String) extends ShlurdParseTester
   SpcPrimordial.initCosmos(cosmos)
   cosmos.loadBeliefs(Source.fromFile(beliefsFile))
 
+  private val mind = new SpcMind(cosmos)
+  mind.startConversation
+
   private val interpreter =
     new SpcInterpreter(
-      new SpcMind(cosmos), ACCEPT_MODIFIED_BELIEFS,
+      mind, ACCEPT_MODIFIED_BELIEFS,
       ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE))
 
   override protected def processOne(

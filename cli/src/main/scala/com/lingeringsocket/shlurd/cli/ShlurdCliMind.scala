@@ -30,20 +30,16 @@ class ShlurdCliMind(cosmos : SpcCosmos) extends SpcMind(cosmos)
     cosmos.resolveQualifiedNoun(
       LEMMA_PERSON, REF_SUBJECT, Set("shlurd")))
 
-  override def resolvePronoun(
-    person : SilPerson,
-    gender : SilGender,
-    count : SilCount,
-    distance : SilDistance) =
+  override def resolvePronoun(reference : SilPronounReference) =
   {
-    if (count == COUNT_SINGULAR) {
-      person match {
+    if (reference.count == COUNT_SINGULAR) {
+      reference.person match {
         case PERSON_FIRST => entityInterviewer.map(Set(_))
         case PERSON_SECOND => entityShlurd.map(Set(_))
-        case _ => super.resolvePronoun(person, gender, count, distance)
+        case _ => super.resolvePronoun(reference)
       }
     } else {
-      super.resolvePronoun(person, gender, count, distance)
+      super.resolvePronoun(reference)
     }
   }
 }

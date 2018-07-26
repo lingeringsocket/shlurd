@@ -63,6 +63,7 @@ class ShlurdCliApp(
 
   private def run()
   {
+    mind.startConversation
     var exit = false
     println
     while (!exit) {
@@ -83,6 +84,9 @@ class ShlurdCliApp(
     }
     println
     println("SHLURD> Shutting down...")
+    // don't serialize conversation since that could be an extra source of
+    // deserialization problems later
+    mind.stopConversation
     serializer.save(mind, file)
   }
 }

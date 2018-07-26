@@ -161,7 +161,9 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       if (useThirdPersonPronouns) {
         rewriteThirdPersonReferences(resultCollector, rewrite4)
       } else {
-        rewrite4
+        rewrite(
+          replaceThirdPersonPronouns(resultCollector.referenceMap),
+          rewrite4)
       }
     }
     val rewriteLast = {
@@ -489,6 +491,16 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         case _ => ref
       }
+    }
+  }
+
+  private def replaceThirdPersonPronouns(
+    referenceMap : Map[SilReference, Set[E]]
+  ) = replacementMatcher {
+    case pr @ SilPronounReference(PERSON_THIRD, _, _, _) => {
+      referenceMap.get(pr).map(
+        entities => cosmos.specificReferences(entities, DETERMINER_UNIQUE)
+      ).getOrElse(pr)
     }
   }
 

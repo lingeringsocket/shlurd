@@ -23,21 +23,23 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
   cosmos : ShlurdCosmos[E,P])
 {
   private lazy val personFirst =
-    uniqueEntity(resolvePronoun(PERSON_FIRST, GENDER_N, COUNT_SINGULAR))
+    uniqueEntity(resolvePronoun(
+      SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)))
 
   private lazy val personSecond =
-    uniqueEntity(resolvePronoun(PERSON_SECOND, GENDER_N, COUNT_SINGULAR))
+    uniqueEntity(resolvePronoun(
+      SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)))
 
-  private var conversation : Option[ShlurdConversation] = None
+  private var conversation : Option[ShlurdConversation[E]] = None
 
   def getCosmos = cosmos
 
   def startConversation()
   {
-    conversation = Some(new ShlurdConversation)
+    conversation = Some(new ShlurdConversation[E])
   }
 
-  def endConversation()
+  def stopConversation()
   {
     conversation = None
   }
@@ -47,24 +49,48 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
     !conversation.isEmpty
   }
 
-  def getConversation() : ShlurdConversation =
+  def getConversation() : ShlurdConversation[E] =
   {
     conversation.get
   }
 
   def rememberSpeakerSentence(
-    speakerName : String, sentence : SilSentence)
+    speakerName : String,
+    sentence : SilSentence,
+    referenceMap : Map[SilReference, Set[E]] = Map.empty)
   {
-    conversation.foreach(_.addSpeakerSentence(speakerName, sentence))
+    conversation.foreach(_.addSpeakerSentence(
+      speakerName, sentence, referenceMap))
+  }
+
+  def rememberSentenceAnalysis(
+    referenceMap : Map[SilReference, Set[E]])
+  {
+    conversation.foreach(_.updateSentenceAnalysis(referenceMap))
   }
 
   def resolvePronoun(
-    person : SilPerson,
-    gender : SilGender,
-    count : SilCount,
-    distance : SilDistance = DISTANCE_UNSPECIFIED) : Try[Set[E]] =
+    reference : SilPronounReference) : Try[Set[E]] =
   {
-    cosmos.fail("pronouns not supported")
+    // FIXME proper coreference resolution, including within current sentence;
+    // also, there should probably be some limit on how far back to search,
+    // and we should exclude nonspecific entries from the reference map
+    conversation.foreach(_.getUtterances.reverseIterator.foreach(utterance => {
+      findMatchingPronounReference(utterance, reference) match {
+        case Some(set) => return Success(set)
+        case _ =>
+      }
+    }))
+    cosmos.fail("pronoun cannot be resolved")
+  }
+
+  private def findMatchingPronounReference(
+    utterance : SpeakerUtterance[E],
+    reference : SilPronounReference) : Option[Set[E]] =
+  {
+    utterance.referenceMap.values.find(set => {
+      thirdPersonReference(set) == Some(reference)
+    })
   }
 
   def equivalentReferences(
@@ -79,7 +105,13 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
 
   def thirdPersonReference(entities : Set[E]) : Option[SilReference] =
   {
-    None
+    if (entities.isEmpty) {
+      None
+    } else if (entities.size == 1) {
+      Some(SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_SINGULAR))
+    } else {
+      Some(SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))
+    }
   }
 
   private def pronounReference(

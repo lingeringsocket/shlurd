@@ -34,29 +34,28 @@ class ShlurdInterpreterSpec extends Specification
   type StateChangeInvocation = ShlurdStateChangeInvocation[ShlurdEntity]
 
   abstract class InterpreterContext(
+    responseParams : ShlurdResponseParams =
+      ShlurdResponseParams().copy(thirdPersonPronouns = false)
   ) extends NameSpace
   {
     protected val mind = new ShlurdMind(cosmos) {
       override def resolvePronoun(
-        person : SilPerson,
-        gender : SilGender,
-        count : SilCount,
-        distance : SilDistance) : Try[Set[ShlurdEntity]] =
+        reference : SilPronounReference) : Try[Set[ShlurdEntity]] =
       {
-        if (count == COUNT_SINGULAR) {
-          person match {
+        if (reference.count == COUNT_SINGULAR) {
+          reference.person match {
             case PERSON_FIRST => return Success(Set(ZooVisitor))
             case PERSON_SECOND => return Success(Set(ZooKeeper))
             case _ =>
           }
         }
-        cosmos.fail("unsupported pronoun reference")
+        super.resolvePronoun(reference)
       }
     }
 
     protected def interpret(
       input : String,
-      params : ShlurdResponseParams = ShlurdResponseParams()) =
+      params : ShlurdResponseParams = responseParams) =
     {
       val interpreter = new ShlurdInterpreter(mind, params) {
         override protected def executeInvocation(
@@ -76,7 +75,7 @@ class ShlurdInterpreterSpec extends Specification
     {
       val sentence = ShlurdParser(input).parseOne
       var actualInvocation : Option[StateChangeInvocation] = None
-      val interpreter = new ShlurdInterpreter(mind) {
+      val interpreter = new ShlurdInterpreter(mind, responseParams) {
         override protected def executeInvocation(
           invocation : StateChangeInvocation)
         {
@@ -487,7 +486,12 @@ class ShlurdInterpreterSpec extends Specification
             ),
             QUESTION_WHO,
             MOOD_INTERROGATIVE_POSITIVE,
-            SilFormality(FORCE_NEUTRAL))),
+            SilFormality(FORCE_NEUTRAL)),
+          Map(
+            SilNounReference(SilWord(LEMMA_WHO), DETERMINER_ANY) ->
+              Set(ZooKeeper, ZooVisitor),
+            SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR) ->
+              Set(ZooKeeper))),
         SpeakerUtterance(
           ShlurdConversation.SPEAKER_NAME_SHLURD,
           SilPredicateSentence(
@@ -498,6 +502,18 @@ class ShlurdInterpreterSpec extends Specification
             MOOD_INDICATIVE_POSITIVE,
             SilFormality(FORCE_NEUTRAL)))
       )
+    }
+
+    "understand conversational pronoun references" in new
+      InterpreterContext
+    {
+      mind.startConversation
+      interpret("is it asleep") must be equalTo(
+        "Sorry, when you say 'it' I don't know who or what you mean.")
+      interpret("is the tiger asleep") must be equalTo(
+        "No, the tiger is not asleep.")
+      interpret("is it awake") must be equalTo(
+        "Yes, the tiger is awake.")
     }
   }
 

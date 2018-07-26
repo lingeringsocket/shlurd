@@ -1,7 +1,12 @@
-Daniel is a person.
-Sandra is a person.
-John is a person.
-Mary is a person.
+A person's gender may be masculine or feminine.
+A man is a kind of person.
+A woman is a kind of person.
+A man's gender must be masculine.
+A woman's gender must be feminine.
+Daniel is a man.
+Sandra is a woman.
+John is a man.
+Mary is a woman.
 A place is a kind of object.
 The kitchen is a place.
 The garden is a place.

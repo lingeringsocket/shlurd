@@ -113,16 +113,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   def interpret(sentence : SilSentence) : String =
   {
     debug(s"INTERPRETER INPUT : $sentence")
-    if (mind.isConversing) {
-      mind.rememberSpeakerSentence(
-        ShlurdConversation.SPEAKER_NAME_PERSON, sentence)
-    }
+    mind.rememberSpeakerSentence(
+      ShlurdConversation.SPEAKER_NAME_PERSON, sentence)
     SilPhraseValidator.validatePhrase(sentence)
     val response = interpretImpl(sentence)
-    // FIXME preserve original SilSentence response form instead
-    // of reparsing it
     debug(s"INTERPRETER RESPONSE : $response")
     if (mind.isConversing) {
+      // FIXME preserve original SilSentence response form instead
+      // of reparsing it, and synthesize referenceMap
       val parsedResponse = ShlurdParser(response).parseOne
       mind.rememberSpeakerSentence(
         ShlurdConversation.SPEAKER_NAME_SHLURD, parsedResponse)
@@ -155,7 +153,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       debug("STATE CHANGE COMMAND")
 
       val resultCollector = ResultCollector[E]
-      evaluatePredicate(predicate, resultCollector) match {
+      val result = evaluatePredicate(predicate, resultCollector)
+      mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+      result match {
         case Success(Trilean.True) => {
           debug("COUNTERFACTUAL")
           val (normalizedResponse, negateCollection) =
@@ -197,7 +197,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
 
       val resultCollector = ResultCollector[E]
-      evaluatePredicate(rewrittenPredicate, resultCollector) match {
+      val result = evaluatePredicate(rewrittenPredicate, resultCollector)
+      mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+      result match {
         case Success(Trilean.Unknown) => {
           debug("ANSWER UNKNOWN")
           sentencePrinter.sb.respondDontKnow()
@@ -255,7 +257,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         case SilInterrogativeMood(positive, modality) => {
           debug("PREDICATE QUERY SENTENCE")
           val query = predicate
-          evaluatePredicate(query, resultCollector) match {
+          val result = evaluatePredicate(query, resultCollector)
+          mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+          result match {
             case Success(Trilean.Unknown) => {
               debug("ANSWER UNKNOWN")
               sentencePrinter.sb.respondDontKnow()
@@ -308,6 +312,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           val positivity = mood.isPositive
           debug(s"POSITIVITY : $positivity")
           val predicateTruth = evaluatePredicate(predicate, resultCollector)
+          mind.rememberSentenceAnalysis(resultCollector.referenceMap)
           val responseMood = {
             predicateTruth match {
               case Success(Trilean.False) => {
@@ -791,9 +796,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
-      case SilPronounReference(person, gender, count, distance) => {
-        // FIXME for third-person, need conversational coreference resolution
-        mind.resolvePronoun(person, gender, count, distance) match {
+      case pr : SilPronounReference => {
+        mind.resolvePronoun(pr) match {
           case Success(entities) => {
             referenceMap.put(reference, entities)
             debug(s"CANDIDATE ENTITIES : $entities")

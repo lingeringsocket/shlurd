@@ -77,8 +77,8 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       DETERMINER_ALL, references, _
     ) if (options.resolveConjunctions) => {
       val resolved = references.flatMap(_ match {
-        case SilResolvedReference(entities, noun, determiner) => {
-          Some((entities, noun, determiner))
+        case rr : SilResolvedReference[E] => {
+          Some(rr)
         }
         case _ => {
           None
@@ -87,25 +87,32 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       if (resolved.size != references.size) {
         cr
       } else {
-        // FIXME do we need to some resultCollector.referenceMap.put?
-        SilResolvedReference(
-          resolved.flatMap(_._1).toSet, resolved.head._2, resolved.head._3)
+        val entities = resolved.flatMap(_.entities).toSet
+        // FIXME is this correct for noun and determiner??
+        val rr = SilResolvedReference(
+          entities, resolved.head.noun, resolved.head.determiner)
+        resultCollector.referenceMap.put(rr, entities)
+        resultCollector.referenceMap.put(cr, entities)
+        rr
       }
     }
     case gr @ SilGenitiveReference(
-      rr : SilResolvedReference[E], SilNounReference(noun, _, _)
+      grr : SilResolvedReference[E], SilNounReference(noun, _, _)
     ) => {
       val roleName = noun.lemma
-      rr.entities.foreach(entity => cosmos.reifyRole(entity, roleName, true))
-      val attempts = rr.entities.map(
+      grr.entities.foreach(entity => cosmos.reifyRole(entity, roleName, true))
+      val attempts = grr.entities.map(
         entity => cosmos.resolveEntityAssoc(entity, roleName))
       if (attempts.exists(_.isFailure)) {
         gr
       } else {
-        // FIXME do we need to some resultCollector.referenceMap.put?
-        // and is this correct for noun and determiner??
-        SilResolvedReference[E](
-          attempts.map(_.get).flatMap(_.toSet), noun, rr.determiner)
+        // FIXME is this correct for noun and determiner??
+        val entities = attempts.map(_.get).flatMap(_.toSet)
+        val rr = SilResolvedReference(
+          entities, noun, grr.determiner)
+        resultCollector.referenceMap.put(rr, entities)
+        resultCollector.referenceMap.put(gr, entities)
+        rr
       }
     }
   }
