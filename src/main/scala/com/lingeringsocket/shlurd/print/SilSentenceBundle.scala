@@ -84,7 +84,8 @@ abstract class SilSentenceBundle
     directObject : Option[String],
     indirectObject : Option[String],
     modifiers : Seq[String],
-    mood : SilMood) : String
+    mood : SilMood,
+    answerInflection : SilInflection = INFLECT_NONE) : String
 
   def relationshipPredicate(
     firstRef : String,

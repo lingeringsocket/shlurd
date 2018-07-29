@@ -59,9 +59,11 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case SilStateChangeCommand(predicate, changeVerb, _) => {
         printPredicateCommand(predicate, changeVerb)
       }
-      case SilPredicateQuery(predicate, question, mood, _) => {
+      case SilPredicateQuery(
+        predicate, question, answerInflection, mood, _
+      ) => {
         printPredicateQuestion(
-          predicate, mood, Some(question))
+          predicate, mood, answerInflection, Some(question))
       }
       case SilConjunctiveSentence(determiner, sentences, separator) => {
         sb.conjoin(
@@ -307,16 +309,21 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
 
   def printPredicateQuestion(
     predicate : SilPredicate, mood : SilMood,
+    answerInflection : SilInflection = INFLECT_NONE,
     question : Option[SilQuestion] = None) : String =
   {
     // FIXME when subject is a SilStateSpecifiedReference, the
     // state gets lost for questions such as QUESTION_WHAT
+    val plainSubject = print(
+      predicate.getSubject, INFLECT_NOMINATIVE, SilConjoining.NONE)
+    val subjectString = answerInflection match {
+      case INFLECT_ACCUSATIVE => plainSubject
+      case _ => sb.query(plainSubject, question)
+    }
     predicate match {
       case SilStatePredicate(subject, state, modifiers) => {
         sb.statePredicateQuestion(
-          sb.query(
-            print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
-            question),
+          subjectString,
           getVerbSeq(
             subject, state, mood, REL_IDENTITY, predicate.getInflectedCount),
           print(state, mood, SilConjoining.NONE),
@@ -326,23 +333,29 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
       case SilActionPredicate(
         subject, action, directObject, indirectObject, modifiers
       ) => {
+        val plainDirectObject = directObject.map(
+          ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE))
+        val directObjectString = answerInflection match {
+          case INFLECT_ACCUSATIVE => {
+            plainDirectObject.map(sb.query(_, question))
+          }
+          case _ => plainDirectObject
+        }
         sb.actionPredicate(
-          print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
+          subjectString,
           getVerbSeq(subject, action, mood, predicate.getInflectedCount),
-          directObject.map(
-            ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
+          directObjectString,
           indirectObject.map(
             ref => print(ref, INFLECT_DATIVE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier(_)),
-          mood)
+          mood,
+          answerInflection)
       }
       case SilRelationshipPredicate(
         subject, complement, relationship, modifiers
       ) => {
         sb.relationshipPredicate(
-          sb.query(
-            print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
-            question),
+          subjectString,
           getVerbSeq(
             subject, SilNullState(), mood, relationship,
             predicate.getInflectedCount),

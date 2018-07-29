@@ -485,6 +485,7 @@ class ShlurdInterpreterSpec extends Specification
               REL_IDENTITY
             ),
             QUESTION_WHO,
+            INFLECT_NOMINATIVE,
             MOOD_INTERROGATIVE_POSITIVE,
             SilFormality(FORCE_NEUTRAL)),
           "who are you",

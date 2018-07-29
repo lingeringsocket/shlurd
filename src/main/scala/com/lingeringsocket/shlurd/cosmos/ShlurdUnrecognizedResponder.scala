@@ -65,7 +65,9 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
           return response
         }
       }
-      case SilPredicateQuery(predicate, question, mood, _) => {
+      case SilPredicateQuery(
+        predicate, question, answerInflection, mood, _
+      ) => {
         predicate match {
           case SilStatePredicate(subject, state, modifiers) => {
             val count = computeMaxCount(

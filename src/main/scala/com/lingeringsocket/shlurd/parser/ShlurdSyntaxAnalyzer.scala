@@ -91,67 +91,82 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       return expectCommand(tree, children.head, SilFormality.DEFAULT)
     }
     if (children.size > 2) {
-      val (modality, modeless, modalCount) = extractModality(children)
-      val (negativeSuper, seq) = extractNegative(modeless)
-      val expectedSize = modality match {
-        case MODAL_NEUTRAL => 3
-        case _ => 2
-      }
-      if (seq.size >= expectedSize) {
-        val iVerb = seq.indexWhere(_.isVerbNode)
-        if (iVerb < 0) {
-          return SilUnrecognizedSentence(tree)
+      analyzeSubQueryChildren(tree, children, specifiedState) match {
+        case Some((predicate, mood)) => {
+          SilPredicateSentence(predicate, mood)
         }
-        val (verbHead, np, vp, rhs, negative, verbModifiers) = modality match {
-          // "is Larry smart?"
-          case MODAL_NEUTRAL => {
-            if (seq.size < (iVerb + expectedSize)) {
-              return SilUnrecognizedSentence(tree)
-            }
-            val fromVerbSlice = seq.slice(iVerb, iVerb + expectedSize)
-            val vp = SptVP(fromVerbSlice(0), fromVerbSlice(2))
-            (fromVerbSlice(0), fromVerbSlice(1), vp,
-              fromVerbSlice(2), negativeSuper,
-              seq.patch(iVerb, Seq.empty, expectedSize))
-          }
-          // "(can) Larry [be [smart]]?"
-          case _ => {
-            assert(iVerb > 0)
-            val iNoun = iVerb - 1
-            if (seq.size < (iNoun + expectedSize)) {
-              return SilUnrecognizedSentence(tree)
-            }
-            val fromNounSlice = seq.slice(iNoun, iNoun + expectedSize)
-            val vp = fromNounSlice(1)
-            val (negativeSub, sub) = extractNegative(vp.children)
-            (sub.head, fromNounSlice(0), vp,
-              sub.last, (negativeSub ^ negativeSuper),
-              seq.patch(iNoun, Seq.empty, expectedSize))
-          }
-        }
-        if (verbHead.isRelationshipVerb) {
-          val (negativeSub, predicate) =
-            expectPredicate(tree, np, rhs, specifiedState,
-              relationshipFor(verbHead), verbModifiers)
-          val positive = !(negative ^ negativeSub)
-          rememberPredicateCount(predicate, verbHead, modality, modalCount)
-          SilPredicateSentence(
-            predicate,
-            SilInterrogativeMood(positive, modality))
-        } else {
-          val (negativeSub, predicate) =
-            analyzeActionPredicate(tree, np, vp, verbModifiers)
-          val positive = !(negative ^ negativeSub)
-          rememberPredicateCount(predicate, verbHead, modality, modalCount)
-          SilPredicateSentence(
-            predicate,
-            SilInterrogativeMood(positive, modality))
-        }
-      } else {
-        SilUnrecognizedSentence(tree)
+        case _ => SilUnrecognizedSentence(tree)
       }
     } else {
       SilUnrecognizedSentence(tree)
+    }
+  }
+
+  private def analyzeSubQueryChildren(
+    tree : ShlurdSyntaxTree,
+    children : Seq[ShlurdSyntaxTree],
+    specifiedState : SilState,
+    specifiedDirectObject : Option[SilReference] = None)
+      : Option[(SilPredicate, SilMood)] =
+  {
+    val (modality, modeless, modalCount) = extractModality(children)
+    val (negativeSuper, seq) = extractNegative(modeless)
+    val expectedSize = modality match {
+      case MODAL_NEUTRAL => 3
+      case _ => 2
+    }
+    if (seq.size < expectedSize) {
+      return None
+    }
+    val iVerb = seq.indexWhere(_.isVerbNode)
+    if (iVerb < 0) {
+      return None
+    }
+
+    val (verbHead, np, vp, rhs, negative, verbModifiers) = {
+      if (seq.head.unwrapPhrase.isRelationshipVerb) {
+        // "is Larry smart?"
+        if (seq.size < (iVerb + expectedSize)) {
+          return None
+        }
+        val fromVerbSlice = seq.slice(iVerb, iVerb + expectedSize)
+        val vp = SptVP(fromVerbSlice(0), fromVerbSlice(2))
+        (fromVerbSlice(0), fromVerbSlice(1), vp,
+          fromVerbSlice(2), negativeSuper,
+          seq.patch(iVerb, Seq.empty, expectedSize))
+      } else {
+        // "(can) Larry [be [smart]]?"
+        assert(iVerb > 0)
+        val iNoun = iVerb - 1
+        if (seq.size < (iNoun + expectedSize)) {
+          return None
+        }
+        val fromNounSlice = seq.slice(iNoun, iNoun + expectedSize)
+        val nounSuccessor = fromNounSlice(1)
+        val vp = nounSuccessor match {
+          case _ : SptVP => nounSuccessor
+          case _ => SptVP(seq.drop(iNoun + 1):_*)
+        }
+        val (negativeSub, sub) = extractNegative(vp.children)
+        (sub.head, fromNounSlice(0), vp,
+          sub.last, (negativeSub ^ negativeSuper),
+          seq.patch(iNoun, Seq.empty, expectedSize))
+      }
+    }
+    if (verbHead.isRelationshipVerb) {
+      assert(specifiedDirectObject.isEmpty)
+      val (negativeSub, predicate) =
+        expectPredicate(tree, np, rhs, specifiedState,
+          relationshipFor(verbHead), verbModifiers)
+      val positive = !(negative ^ negativeSub)
+      rememberPredicateCount(predicate, verbHead, modality, modalCount)
+      Some((predicate, SilInterrogativeMood(positive, modality)))
+    } else {
+      val (negativeSub, predicate) = analyzeActionPredicate(
+        tree, np, vp, specifiedDirectObject, verbModifiers)
+      val positive = !(negative ^ negativeSub)
+      rememberPredicateCount(predicate, verbHead, modality, modalCount)
+      Some((predicate, SilInterrogativeMood(positive, modality)))
     }
   }
 
@@ -159,8 +174,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       : SilSentence =
   {
     val children = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
+    if (children.size != 2) {
+      return SilUnrecognizedSentence(tree)
+    }
     val first = children.head
-    val second = children.last
+    val second = children(1)
     val secondUnwrapped = {
       if ((second.numChildren == 1) && second.firstChild.isVerbPhrase) {
         second.firstChild.children
@@ -170,40 +188,39 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
     val (negativeSuper, secondSub) = extractNegative(secondUnwrapped)
     val verbHead = secondSub.head
-    if ((children.size != 2) ||
-      !first.isQueryPhrase ||
-      !second.isSubQuestion ||
-      !verbHead.isRelationshipVerb)
-    {
-      SilUnrecognizedSentence(tree)
-    } else {
-      // FIXME support modality and non-relationship verbs,
-      // e.g. "who runs this place?" or "whom does Madeline love?"
-      val (specifiedState, whpc) = extractAdpositionalState(first.children)
-      val seq = {
-        if ((whpc.size == 1) && whpc.head.isQueryPhrase) {
-          whpc.head.children
-        } else {
-          whpc
-        }
+    if (!first.isQueryPhrase || !second.isSubQuestion) {
+      return SilUnrecognizedSentence(tree)
+    }
+    val (specifiedState, whpc) = extractAdpositionalState(first.children)
+    val seq = {
+      if ((whpc.size == 1) && whpc.head.isQueryPhrase) {
+        whpc.head.children
+      } else {
+        whpc
       }
-      val question = maybeQuestionFor(seq.head) match {
-        case Some(q) => q
-        case _ => return SilUnrecognizedSentence(tree)
+    }
+    val question = maybeQuestionFor(seq.head) match {
+      case Some(q) => q
+      case _ => return SilUnrecognizedSentence(tree)
+    }
+    if ((question == QUESTION_WHERE) && !verbHead.isBeingVerb) {
+      return SilUnrecognizedSentence(tree)
+    }
+    // FIXME for QUESTION_WHERE, it shouldn't be a noun phrase at all;
+    // it should be either a state or verb modifier
+    val np = question match {
+      // FIXME for QUESTION_WHAT, there are two flavors (plain "what
+      // do you want?" and also "what beer is most delicious?")
+      case QUESTION_WHO | QUESTION_WHERE  | QUESTION_WHAT => {
+        SptNP(SptNN(requireLeaf(seq.head.children)))
       }
-      if ((question == QUESTION_WHERE) && !verbHead.isBeingVerb) {
-        return SilUnrecognizedSentence(tree)
+      case _ => {
+        // FIXME likewise, QUESTION_WHICH has two flavors "which do you want?"
+        // and "which flavor do you want?"
+        SptNP(seq.tail:_*)
       }
-      // FIXME for QUESTION_WHERE, it shouldn't be a noun phrase at all;
-      // it should be either a state or verb modifier
-      val np = question match {
-        case QUESTION_WHO | QUESTION_WHERE  | QUESTION_WHAT => {
-          SptNP(SptNN(requireLeaf(seq.head.children)))
-        }
-        case _ => {
-          SptNP(seq.tail:_*)
-        }
-      }
+    }
+    if (verbHead.isRelationshipVerb) {
       val complement = secondSub.tail
       val (combinedState, complementRemainder) = {
         if (specifiedState == SilNullState()) {
@@ -233,8 +250,28 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         relationshipFor(verbHead))
       rememberPredicateCount(predicate, verbHead)
       SilPredicateQuery(
-        predicate, question,
+        predicate, question, INFLECT_NOMINATIVE,
         SilInterrogativeMood(!(negativeSuper ^ negativeSub)))
+    } else {
+      // FIXME support dative and adpositional objects too
+      val (specifiedDirectObject, answerInflection, sqChildren) = {
+        if (verbHead.isModal) {
+          (Some(expectReference(np)), INFLECT_ACCUSATIVE, secondUnwrapped)
+        } else {
+          (None, INFLECT_NOMINATIVE, Seq(np) ++ secondUnwrapped)
+        }
+      }
+      analyzeSubQueryChildren(
+        tree, sqChildren, specifiedState, specifiedDirectObject) match
+      {
+        case Some((predicate, mood)) => {
+          SilPredicateQuery(
+            predicate, question, answerInflection, mood)
+        }
+        case _ => {
+          SilUnrecognizedSentence(tree)
+        }
+      }
     }
   }
 
@@ -361,7 +398,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         predicate, mood, SilFormality(force))
     } else {
       val (negativeVerb, predicate) = analyzeActionPredicate(
-        tree, np, vp, verbModifiers)
+        tree, np, vp, None, verbModifiers)
       val positive = !(negative ^ negativeVerb)
       rememberPredicateCount(predicate, verbHead, modality, modalCount)
       val mood = {
@@ -608,7 +645,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     syntaxTree : ShlurdSyntaxTree,
     np : ShlurdSyntaxTree,
     vp : ShlurdSyntaxTree,
-    verbModifiers : Seq[ShlurdSyntaxTree] = Seq.empty)
+    specifiedDirectObject : Option[SilReference],
+    verbModifiers : Seq[ShlurdSyntaxTree])
       : (Boolean, SilPredicate) =
   {
     val (negative, seq) = extractNegative(vp.children)
@@ -630,17 +668,21 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       }
     }
     val (directObject, indirectObject, extraModifiers) =
-      expectVerbObjectsAndModifiers(seq.drop(1))
+      expectVerbObjectsAndModifiers(seq.drop(1), specifiedDirectObject)
+    val directObjects = Seq(directObject, specifiedDirectObject).flatten
+    assert(directObject.size < 2)
     val predicate = expectActionPredicate(
       syntaxTree,
       subject, action,
-      directObject,
+      directObjects.headOption,
       indirectObject,
       verbModifiers.map(expectVerbModifier) ++ extraModifiers)
     (negative, predicate)
   }
 
-  private def expectVerbObjectsAndModifiers(seq : Seq[ShlurdSyntaxTree]) =
+  private def expectVerbObjectsAndModifiers(
+    seq : Seq[ShlurdSyntaxTree],
+    specifiedDirectObject : Option[SilReference]) =
   {
     val objCandidates = seq.filter(_.isNounNode)
     val directObjTree = objCandidates.find(
@@ -650,7 +692,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         Some(dobj)
       }
       case _ => {
-        objCandidates.lastOption
+        if (specifiedDirectObject.isEmpty) {
+          objCandidates.lastOption
+        } else {
+          None
+        }
       }
     }
     val minusDirect = objCandidates.filterNot(Some(_) == directObjTree)

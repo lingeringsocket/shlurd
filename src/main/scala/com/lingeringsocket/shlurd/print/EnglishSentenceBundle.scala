@@ -41,16 +41,29 @@ class EnglishSentenceBundle
     directObject : Option[String],
     indirectObject : Option[String],
     modifiers : Seq[String],
-    mood : SilMood) =
+    mood : SilMood,
+    answerInflection : SilInflection) =
   {
-    val complement = compose((directObject.toSeq ++
+    val directObjectPost = answerInflection match {
+      case INFLECT_ACCUSATIVE => None
+      case _ => directObject
+    }
+    val complement = compose((directObjectPost.toSeq ++
       indirectObject.map(n => compose(LEMMA_TO, n))):_*)
-    if (!mood.isInterrogative || (mood.getModality == MODAL_NEUTRAL)) {
-      composePredicateStatement(
-        subject, verbSeq, complement, modifiers)
-    } else {
-      composePredicateQuestion(
-        subject, verbSeq, complement, modifiers)
+    val primary = {
+      if (!mood.isInterrogative || (mood.getModality == MODAL_NEUTRAL)) {
+        composePredicateStatement(
+          subject, verbSeq, complement, modifiers)
+      } else {
+        composePredicateQuestion(
+          subject, verbSeq, complement, modifiers)
+      }
+    }
+    answerInflection match {
+      case INFLECT_ACCUSATIVE => {
+        compose((directObject.toSeq ++ Seq(primary)):_*)
+      }
+      case _ => primary
     }
   }
 

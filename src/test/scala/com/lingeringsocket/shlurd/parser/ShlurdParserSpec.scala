@@ -47,7 +47,9 @@ class ShlurdParserSpec extends Specification
 
   private val STATE_OPEN = SilWord("open")
 
-  private val ACTION_OPEN = SilWord("opens", "open")
+  private val ACTION_OPENS = SilWord("opens", "open")
+
+  private val ACTION_OPEN = SilWord("open")
 
   private val STATE_CLOSE = SilWord("close")
 
@@ -69,7 +71,7 @@ class ShlurdParserSpec extends Specification
 
   private def predTransitiveAction(
     subject : SilWord,
-    action : SilWord = ACTION_OPEN,
+    action : SilWord = ACTION_OPENS,
     directObject : SilWord = NOUN_DOOR,
     determiner : SilDeterminer = DETERMINER_UNIQUE,
     count : SilCount = COUNT_SINGULAR) =
@@ -82,7 +84,7 @@ class ShlurdParserSpec extends Specification
 
   private def predIntransitiveAction(
     subject : SilWord,
-    action : SilWord = ACTION_OPEN,
+    action : SilWord = ACTION_OPENS,
     determiner : SilDeterminer = DETERMINER_UNIQUE,
     count : SilCount = COUNT_SINGULAR) =
   {
@@ -172,17 +174,29 @@ class ShlurdParserSpec extends Specification
         SilPredicateSentence(predStateDoor(), MOOD_INTERROGATIVE_POSITIVE)
     }
 
-    "parse an enumeration question" in
+    "parse a nominative enumeration question" in
     {
       val input = "which door is open"
       val expected = SilPredicateQuery(
         predStateDoor(STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-        QUESTION_WHICH, MOOD_INTERROGATIVE_POSITIVE)
+        QUESTION_WHICH, INFLECT_NOMINATIVE, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }
 
-    "parse a who question" in
+    "parse an accusative enumeration question" in
+    {
+      val input = "which door must Franny open"
+      val expected = SilPredicateQuery(
+        predTransitiveAction(
+          NOUN_FRANNY, ACTION_OPEN, NOUN_DOOR, DETERMINER_UNSPECIFIED),
+        QUESTION_WHICH, INFLECT_ACCUSATIVE,
+        SilInterrogativeMood(true, MODAL_MUST))
+      parse(input) must be equalTo expected
+      parse(input + "?") must be equalTo expected
+    }
+
+    "parse a who identity question" in
     {
       val input = "who is at home"
       val expected = SilPredicateQuery(
@@ -191,7 +205,17 @@ class ShlurdParserSpec extends Specification
           SilAdpositionalState(
             SilAdposition.AT,
             SilNounReference(NOUN_HOME))),
-        QUESTION_WHO, MOOD_INTERROGATIVE_POSITIVE)
+        QUESTION_WHO, INFLECT_NOMINATIVE, MOOD_INTERROGATIVE_POSITIVE)
+      parse(input) must be equalTo expected
+      parse(input + "?") must be equalTo expected
+    }
+
+    "parse a who nominative question" in
+    {
+      val input = "who opens the door"
+      val expected = SilPredicateQuery(
+        predTransitiveAction(NOUN_WHO),
+        QUESTION_WHO, INFLECT_NOMINATIVE, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }
@@ -201,7 +225,7 @@ class ShlurdParserSpec extends Specification
       val input = "how many doors are open"
       val expected = SilPredicateQuery(
         predState(NOUN_DOORS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_PLURAL),
-        QUESTION_HOW_MANY, MOOD_INTERROGATIVE_POSITIVE)
+        QUESTION_HOW_MANY, INFLECT_NOMINATIVE, MOOD_INTERROGATIVE_POSITIVE)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }

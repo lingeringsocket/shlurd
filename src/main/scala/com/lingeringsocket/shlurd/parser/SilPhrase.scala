@@ -350,6 +350,7 @@ case class SilStateChangeCommand(
 case class SilPredicateQuery(
   predicate : SilPredicate,
   question : SilQuestion,
+  answerInflection : SilInflection,
   mood : SilMood,
   formality : SilFormality = SilFormality.DEFAULT
 ) extends SilTransformedPhrase with SilSentence

@@ -38,7 +38,8 @@ class KoreanSentenceBundle extends SilSentenceBundle
     directObject : Option[String],
     indirectObject : Option[String],
     modifiers : Seq[String],
-    mood : SilMood) =
+    mood : SilMood,
+    answerInflection : SilInflection) =
   {
     // FIXME:  for interrogative mood, this only holds for "요" politeness
     compose((Seq(subject) ++ modifiers ++ indirectObject ++

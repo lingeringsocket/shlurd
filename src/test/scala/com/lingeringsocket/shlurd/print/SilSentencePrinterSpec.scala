@@ -279,6 +279,8 @@ class SilSentencePrinterSpec extends Specification
         "he travelled after that to the lake.")
       expectNormalized("following that she went back to the dorm",
         "she went following that back to the dorm.")
+      expectQuestion("which door must Franny open")
+      expectQuestion("who opens the door")
     }
   }
 }

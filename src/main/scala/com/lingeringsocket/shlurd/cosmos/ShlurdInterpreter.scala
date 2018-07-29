@@ -211,7 +211,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def interpretPredicateQuery = sentenceInterpreter {
-    case sentence @ SilPredicateQuery(predicate, question, mood, formality) => {
+    case sentence @ SilPredicateQuery(
+      predicate, question, answerInflection, mood, formality
+    ) => {
       debug("PREDICATE QUERY")
       // FIXME deal with positive, modality
 
