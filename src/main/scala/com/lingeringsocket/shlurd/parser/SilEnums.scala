@@ -116,6 +116,8 @@ case object MODAL_CAPABLE extends SilModality
 case object MODAL_PERMITTED extends SilModality
 case object MODAL_SHOULD extends SilModality
 case object MODAL_EMPHATIC extends SilModality
+// FIXME combine aspect with modality
+case object MODAL_PROGRESSIVE extends SilModality
 case object MODAL_ELLIPTICAL extends SilModality
 
 sealed trait SilRelationship

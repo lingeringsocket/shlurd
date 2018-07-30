@@ -102,6 +102,26 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
+  private def detectProgressive(
+    seq : Seq[ShlurdSyntaxTree]) : (Boolean, Int) =
+  {
+    val iFirstVerb = seq.indexWhere(_.isVerbNode)
+    if (iFirstVerb < 0) {
+      return (false, -1)
+    }
+    val iNextVerb = seq.indexWhere(_.isVerbNode, iFirstVerb + 1)
+    if (iNextVerb < 0) {
+      return (false, iFirstVerb)
+    }
+    if (seq(iFirstVerb).unwrapPhrase.isRelationshipVerb &&
+      seq(iNextVerb).unwrapPhrase.isGerund)
+    {
+      (true, iNextVerb)
+    } else {
+      (false, iFirstVerb)
+    }
+  }
+
   private def analyzeSubQueryChildren(
     tree : ShlurdSyntaxTree,
     children : Seq[ShlurdSyntaxTree],
@@ -111,15 +131,15 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   {
     val (modality, modeless, modalCount) = extractModality(children)
     val (negativeSuper, seq) = extractNegative(modeless)
+    val iVerb = seq.indexWhere(_.isVerbNode)
+    if (iVerb < 0) {
+      return None
+    }
     val expectedSize = modality match {
       case MODAL_NEUTRAL => 3
       case _ => 2
     }
     if (seq.size < expectedSize) {
-      return None
-    }
-    val iVerb = seq.indexWhere(_.isVerbNode)
-    if (iVerb < 0) {
       return None
     }
 
@@ -153,6 +173,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           seq.patch(iNoun, Seq.empty, expectedSize))
       }
     }
+
     if (verbHead.isRelationshipVerb) {
       assert(specifiedDirectObject.isEmpty)
       val (negativeSub, predicate) =
@@ -187,7 +208,6 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       }
     }
     val (negativeSuper, secondSub) = extractNegative(secondUnwrapped)
-    val verbHead = secondSub.head
     if (!first.isQueryPhrase || !second.isSubQuestion) {
       return SilUnrecognizedSentence(tree)
     }
@@ -203,6 +223,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       case Some(q) => q
       case _ => return SilUnrecognizedSentence(tree)
     }
+    val verbHead = secondSub.head
     if ((question == QUESTION_WHERE) && !verbHead.isBeingVerb) {
       return SilUnrecognizedSentence(tree)
     }
@@ -220,7 +241,9 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         SptNP(seq.tail:_*)
       }
     }
-    if (verbHead.isRelationshipVerb) {
+    val (progressive, iVerb) = detectProgressive(secondSub)
+    assert(iVerb >= 0)
+    if (verbHead.isRelationshipVerb && !progressive) {
       val complement = secondSub.tail
       val (combinedState, complementRemainder) = {
         if (specifiedState == SilNullState()) {
@@ -255,7 +278,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     } else {
       // FIXME support dative and adpositional objects too
       val (specifiedDirectObject, answerInflection, sqChildren) = {
-        if (verbHead.isModal) {
+        if (verbHead.isModal || (progressive && (iVerb > 1))) {
           (Some(expectReference(np)), INFLECT_ACCUSATIVE, secondUnwrapped)
         } else {
           (None, INFLECT_NOMINATIVE, Seq(np) ++ secondUnwrapped)
@@ -950,6 +973,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       case LEMMA_MIGHT => MODAL_POSSIBLE
       case LEMMA_SHOULD => MODAL_SHOULD
       case LEMMA_DO => MODAL_EMPHATIC
+      case LEMMA_BE => MODAL_PROGRESSIVE
       case _ => MODAL_NEUTRAL
     }
   }
@@ -1082,23 +1106,37 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     // acting as an auxiliary, e.g. "Luke does know" but not
     // "Luke does the dishes"
     val iModal = seq.indexWhere(_.unwrapPhrase.isModal)
-    if (iModal < 0) {
-      (MODAL_NEUTRAL, seq, COUNT_SINGULAR)
-    } else {
-      val nonModal = seq.patch(iModal, Seq.empty, 1)
-      val remainder = {
-        if (isSinglePhrase(nonModal) && nonModal.head.isVerbPhrase) {
-          nonModal.head.children
+
+    val (nonAux, iAux) = {
+      if (iModal < 0) {
+        val (progressive, iVerb) = detectProgressive(seq)
+        if (!progressive) {
+          return (MODAL_NEUTRAL, seq, COUNT_SINGULAR)
         } else {
-          nonModal
+          val iBeing = seq.indexWhere(_.isVerbNode)
+          val being = seq(iBeing).unwrapPhrase
+          assert(being.isRelationshipVerb)
+          val nonBeing = seq.patch(iBeing, Seq.empty, 1)
+          (nonBeing, iBeing)
         }
+      } else {
+        val nonModal = seq.patch(iModal, Seq.empty, 1)
+        (nonModal, iModal)
       }
-      val aux = seq(iModal).unwrapPhrase
-      val leaf = requireLeaf(aux.children)
-      (modalityFor(leaf),
-        remainder,
-        getVerbCount(aux))
     }
+
+    val remainder = {
+      if (isSinglePhrase(nonAux) && nonAux.head.isVerbPhrase) {
+        nonAux.head.children
+      } else {
+        nonAux
+      }
+    }
+    val aux = seq(iAux).unwrapPhrase
+    val leaf = requireLeaf(aux.children)
+    (modalityFor(leaf),
+      remainder,
+      getVerbCount(aux))
   }
 
   private def extractNegative(

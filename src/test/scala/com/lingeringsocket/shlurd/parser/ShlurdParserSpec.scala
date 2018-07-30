@@ -31,6 +31,8 @@ class ShlurdParserSpec extends Specification
 
   private val NOUN_DOORS = SilWord("doors", "door")
 
+  private val NOUN_PIGS = SilWord("pigs", "pig")
+
   private val NOUN_WHO = SilWord(LEMMA_WHO)
 
   private val NOUN_FRANNY = SilWord("Franny")
@@ -52,6 +54,8 @@ class ShlurdParserSpec extends Specification
   private val ACTION_OPEN = SilWord("open")
 
   private val STATE_CLOSE = SilWord("close")
+
+  private val ACTION_CARRYING = SilWord("carrying", "carry")
 
   private val STATE_SHUT = SilWord("shut")
 
@@ -226,6 +230,19 @@ class ShlurdParserSpec extends Specification
       val expected = SilPredicateQuery(
         predState(NOUN_DOORS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_PLURAL),
         QUESTION_HOW_MANY, INFLECT_NOMINATIVE, MOOD_INTERROGATIVE_POSITIVE)
+      parse(input) must be equalTo expected
+      parse(input + "?") must be equalTo expected
+    }
+
+    "parse an accusative progressive quantity question" in
+    {
+      val input = "how many pigs is Franny carrying"
+      val expected = SilPredicateQuery(
+        predTransitiveAction(
+          NOUN_FRANNY, ACTION_CARRYING, NOUN_PIGS,
+          DETERMINER_UNSPECIFIED, COUNT_PLURAL),
+        QUESTION_HOW_MANY, INFLECT_ACCUSATIVE,
+        SilInterrogativeMood(true, MODAL_PROGRESSIVE))
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }

@@ -427,7 +427,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           case MODAL_MAY | MODAL_POSSIBLE |
               MODAL_CAPABLE | MODAL_PERMITTED =>
             SpcCardinalityConstraint(0, upper)
-          case MODAL_SHOULD | MODAL_ELLIPTICAL =>
+          case MODAL_SHOULD | MODAL_ELLIPTICAL | MODAL_PROGRESSIVE =>
             return Seq(UnimplementedBelief(sentence))
         }
         isPropertyAssoc(sentence, complementRef, relationship).map(

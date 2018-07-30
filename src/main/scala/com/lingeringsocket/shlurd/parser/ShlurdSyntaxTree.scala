@@ -167,7 +167,11 @@ trait ShlurdAbstractSyntaxTree
     isParticlePhrase || isParticle ||
       (isAdpositionalPhrase && (numChildren == 1))
 
-  def isParticipleOrGerund = hasLabel(LABEL_VBG) || hasLabel(LABEL_VBN)
+  def isParticipleOrGerund = isParticiple || isGerund
+
+  def isParticiple = hasLabel(LABEL_VBN)
+
+  def isGerund = hasLabel(LABEL_VBG)
 
   def isExistential =
     (isNounPhrase && firstChild.hasLabel(LABEL_EX)) || isExistsVerb

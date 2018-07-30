@@ -81,6 +81,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private var debugDepth = 0
 
+  private val inputRewriter = new ShlurdInputRewriter(mind)
+
   private val responseRewriter = new ShlurdResponseRewriter(mind)
 
   protected val sentencePrinter = new SilSentencePrinter
@@ -145,14 +147,18 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   protected def interpretImpl(sentence : SilSentence)
       : (SilSentence, String) =
   {
-    if (sentence.isUninterpretable) {
+    val normalizedInput = inputRewriter.normalizeInput(sentence)
+    if (normalizedInput != sentence) {
+      debug(s"REWRITTEN INPUT : $normalizedInput")
+    }
+    if (normalizedInput.isUninterpretable) {
       val unrecognized = responseRewriter.rewrite(
-        responseRewriter.swapPronounsSpeakerListener, sentence)
+        responseRewriter.swapPronounsSpeakerListener, normalizedInput)
       val responder = new ShlurdUnrecognizedResponder(sentencePrinter)
       return wrapResponseText(responder.respond(unrecognized))
     }
     interpreterMatchers.applyOrElse(
-      sentence,
+      normalizedInput,
       { s : SilSentence =>
         debug("UNKNOWN SENTENCE")
         wrapResponseText(sentencePrinter.sb.respondCannotUnderstand())

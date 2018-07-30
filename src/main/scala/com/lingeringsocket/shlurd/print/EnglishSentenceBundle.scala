@@ -51,7 +51,11 @@ class EnglishSentenceBundle
     val complement = compose((directObjectPost.toSeq ++
       indirectObject.map(n => compose(LEMMA_TO, n))):_*)
     val primary = {
-      if (!mood.isInterrogative || (mood.getModality == MODAL_NEUTRAL)) {
+      if (!mood.isInterrogative ||
+        (mood.getModality == MODAL_NEUTRAL) ||
+        ((mood.getModality == MODAL_PROGRESSIVE) &&
+          (answerInflection == INFLECT_NOMINATIVE)))
+      {
         composePredicateStatement(
           subject, verbSeq, complement, modifiers)
       } else {
@@ -142,10 +146,11 @@ class EnglishSentenceBundle
     compose((Seq(state) ++ Seq(subject) ++ modifiers):_*)
   }
 
-  private def modalCopula(
-    mood : SilMood, verbLemma : String,
-    person : SilPerson, count : SilCount) =
+  private def delemmatizeModalVerb(
+    mood : SilMood, verb : SilWord,
+    person : SilPerson, gender : SilGender, count : SilCount) =
   {
+    val verbLemma = verb.lemma
     val modality = {
       verbLemma match {
         case LEMMA_BE => mood.getModality
@@ -163,6 +168,8 @@ class EnglishSentenceBundle
       case MODAL_CAPABLE => LEMMA_CAN
       case MODAL_PERMITTED => LEMMA_MAY
       case MODAL_SHOULD => LEMMA_SHOULD
+      case MODAL_PROGRESSIVE =>
+        delemmatizeModelessVerb(person, gender, count, SilWord(LEMMA_BE))
       case MODAL_EMPHATIC | MODAL_ELLIPTICAL => {
         count match {
           case COUNT_SINGULAR => {
@@ -184,7 +191,48 @@ class EnglishSentenceBundle
     }
     modality match {
       case MODAL_ELLIPTICAL => prefix
+      case MODAL_PROGRESSIVE => prefix :+ delemmatizeProgressive(verb)
       case _ => prefix :+ verbLemma
+    }
+  }
+
+  private def delemmatizeModelessVerb(
+    person : SilPerson, gender : SilGender, count : SilCount,
+    verb : SilWord
+  ) : String =
+  {
+    val verbLemma = verb.lemma
+    count match {
+      case COUNT_SINGULAR => {
+        verbLemma match {
+          case LEMMA_BE => {
+            person match {
+              case PERSON_FIRST => "am"
+              case PERSON_SECOND => "are"
+              case PERSON_THIRD => "is"
+            }
+          }
+          case LEMMA_HAVE => {
+            person match {
+              case PERSON_THIRD => "has"
+              case _ => LEMMA_HAVE
+            }
+          }
+          case LEMMA_EXIST => {
+            person match {
+              case PERSON_THIRD => "exists"
+              case _ => LEMMA_EXIST
+            }
+          }
+          case _ => delemmatizeWord(verb)
+        }
+      }
+      case COUNT_PLURAL => {
+        verbLemma match {
+          case LEMMA_BE => "are"
+          case _ => delemmatizeWord(verb)
+        }
+      }
     }
   }
 
@@ -193,46 +241,13 @@ class EnglishSentenceBundle
     mood : SilMood, isExistential : Boolean,
     verb : SilWord) : Seq[String] =
   {
-    val verbLemma = verb.lemma
-    if ((verbLemma != LEMMA_BE) && mood.isNegative) {
-      return modalCopula(mood, verbLemma, person, count)
+    if ((verb.lemma != LEMMA_BE) && mood.isNegative) {
+      return delemmatizeModalVerb(mood, verb, person, gender, count)
     }
     val seq = mood.getModality match {
       case MODAL_NEUTRAL => {
-        val inflected = {
-          count match {
-            case COUNT_SINGULAR => {
-              verbLemma match {
-                case LEMMA_BE => {
-                  person match {
-                    case PERSON_FIRST => "am"
-                    case PERSON_SECOND => "are"
-                    case PERSON_THIRD => "is"
-                  }
-                }
-                case LEMMA_HAVE => {
-                  person match {
-                    case PERSON_THIRD => "has"
-                    case _ => LEMMA_HAVE
-                  }
-                }
-                case LEMMA_EXIST => {
-                  person match {
-                    case PERSON_THIRD => "exists"
-                    case _ => LEMMA_EXIST
-                  }
-                }
-                case _ => delemmatizeWord(verb)
-              }
-            }
-            case COUNT_PLURAL => {
-              verbLemma match {
-                case LEMMA_BE => "are"
-                case _ => delemmatizeWord(verb)
-              }
-            }
-          }
-        }
+        val inflected = delemmatizeModelessVerb(
+          person, gender, count, verb)
         if (mood.isNegative) {
           Seq(inflected, LEMMA_NOT)
         } else {
@@ -240,7 +255,7 @@ class EnglishSentenceBundle
         }
       }
       case _ => {
-        modalCopula(mood, verbLemma, person, count)
+        delemmatizeModalVerb(mood, verb, person, gender, count)
       }
     }
     if (isExistential) {
@@ -308,6 +323,16 @@ class EnglishSentenceBundle
       }
     }
     separate(unseparated, conjoining)
+  }
+
+  private def delemmatizeProgressive(verb : SilWord) : String =
+  {
+    if (verb.inflected.isEmpty) {
+      // FIXME sometimes we need to morph the lemma first...
+      concat(verb.lemma, "ing")
+    } else {
+      verb.inflected
+    }
   }
 
   override def delemmatizeState(
