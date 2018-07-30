@@ -107,6 +107,11 @@ class SpcInterpreterSpec extends Specification
         sentence, input) must be equalTo(expected)
     }
 
+    protected def interpretBelief(input : String) =
+    {
+      interpret(input, "OK.")
+    }
+
     protected def interpretMatrix(
       input : String,
       expectedWithPronouns : String,
@@ -457,8 +462,8 @@ class SpcInterpreterSpec extends Specification
       interpret("Henry is Laura's godmother?", "I don't know.")
       interpret("does Laura have a godfather",
         "No, she does not have a godfather.")
-      interpret("Fancy is Laura's godmother", "OK.")
-      interpret("Titus is Laura's godfather", "OK.")
+      interpretBelief("Fancy is Laura's godmother")
+      interpretBelief("Titus is Laura's godfather")
       interpret("who is Laura's godmother", "Her godmother is Fancy.")
       interpret("who is Laura's godfather", "Her godfather is Titus.")
 
@@ -498,56 +503,56 @@ class SpcInterpreterSpec extends Specification
     "understand inverse associations" in new
       InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
-      interpret("a confessor must be a person", "OK.")
-      interpret("a confessee must be a person", "OK.")
-      interpret("a person may have confessees", "OK.")
-      interpret("a person may have a confessor", "OK.")
-      interpret("a person with a confessee is a confessor", "OK.")
-      interpret("Eugene is John's confessor", "OK.")
-      interpret("Eugene is Erik's confessor", "OK.")
-      interpret("Jerold is Erik's confessor", "OK.")
+      interpretBelief("a confessor must be a person")
+      interpretBelief("a confessee must be a person")
+      interpretBelief("a person may have confessees")
+      interpretBelief("a person may have a confessor")
+      interpretBelief("a person with a confessee is a confessor")
+      interpretBelief("Eugene is John's confessor")
+      interpretBelief("Eugene is Erik's confessor")
+      interpretBelief("Jerold is Erik's confessor")
       interpretTerse("who are Eugene's confessees", "John.")
-      interpret("John has no confessor", "OK.")
+      interpretBelief("John has no confessor")
       interpretTerse("who is John's confessor", "No one.")
       interpretTerse("who are Eugene's confessees", "No one.")
     }
 
     "understand actions" in new InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
-      interpret("if an object moves to a location, " +
-        "then the object is in the location", "OK.")
-      interpret("if an object rolls into a location, " +
-        "then the object moves to the location", "OK.")
-      interpret("Snowpiercer is an object", "OK.")
-      interpret("Thomas is an object", "OK.")
-      interpret("Fuji is an object", "OK.")
-      interpret("Kilimanjaro is an object", "OK.")
-      interpret("Denali is an object", "OK.")
-      interpret("Snowpiercer moves to Fuji", "OK.")
+      interpretBelief("if an object moves to a location, " +
+        "then the object is in the location")
+      interpretBelief("if an object rolls into a location, " +
+        "then the object moves to the location")
+      interpretBelief("Snowpiercer is an object")
+      interpretBelief("Thomas is an object")
+      interpretBelief("Fuji is an object")
+      interpretBelief("Kilimanjaro is an object")
+      interpretBelief("Denali is an object")
+      interpretBelief("Snowpiercer moves to Fuji")
       interpret("where is Snowpiercer", "It is in Fuji.")
-      interpret("Snowpiercer rolls into Kilimanjaro", "OK.")
+      interpretBelief("Snowpiercer rolls into Kilimanjaro")
       interpret("where is Snowpiercer", "It is in Kilimanjaro.")
 
       // FIXME it's correct that this doesn't move Snowpiercer,
       // but the "rolls to" action should result in a warning
       // since nothing matched
-      interpret("Snowpiercer rolls to Denali", "OK.")
+      interpretBelief("Snowpiercer rolls to Denali")
       interpret("where is Snowpiercer", "It is in Kilimanjaro.")
 
-      interpret("Snowpiercer and Thomas move to Denali", "OK.")
+      interpretBelief("Snowpiercer and Thomas move to Denali")
       interpret("where is Snowpiercer", "It is in Denali.")
       interpret("where is Thomas", "It is in Denali.")
 
-      interpret("if a person drops an object, " +
-        "then the object is in the person's container", "OK.")
-      interpret("Curtis is a person", "OK.")
-      interpret("the boiler is an object", "OK.")
-      interpret("the engine is an object", "OK.")
-      interpret("the bomb is an object", "OK.")
+      interpretBelief("if a person drops an object, " +
+        "then the object is in the person's container")
+      interpretBelief("Curtis is a person")
+      interpretBelief("the boiler is an object")
+      interpretBelief("the engine is an object")
+      interpretBelief("the bomb is an object")
       interpret("where is the bomb", "It is nowhere.")
-      interpret("Curtis is in the boiler", "OK.")
-      interpret("Curtis drops the bomb", "OK.")
-      interpret("Curtis moves to the engine", "OK.")
+      interpretBelief("Curtis is in the boiler")
+      interpretBelief("Curtis drops the bomb")
+      interpretBelief("Curtis moves to the engine")
       interpretTerse("where is Curtis", "The engine.")
       interpret("where is the bomb", "It is in the boiler.")
     }
@@ -555,12 +560,12 @@ class SpcInterpreterSpec extends Specification
     "understand genitives in beliefs" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
-      interpret("the wrench is an object", "OK.")
-      interpret("the screwdriver is an object", "OK.")
-      interpret("the engine is an object", "OK.")
-      interpret("the wrench is Mason's possession", "OK.")
-      interpret("the screwdriver is Mason's possession", "OK.")
-      interpret("the engine's containees are Mason's possessions", "OK.")
+      interpretBelief("the wrench is an object")
+      interpretBelief("the screwdriver is an object")
+      interpretBelief("the engine is an object")
+      interpretBelief("the wrench is Mason's possession")
+      interpretBelief("the screwdriver is Mason's possession")
+      interpretBelief("the engine's containees are Mason's possessions")
       interpretTerse("which objects are in the engine",
         "The wrench and the screwdriver.")
     }
@@ -568,23 +573,23 @@ class SpcInterpreterSpec extends Specification
     "understand epsilon beliefs" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
-      interpret("the engine is an object", "OK.")
-      interpret("Mason is a person", "OK.")
-      interpret("the engine's containee is Mason's possession", "OK.")
+      interpretBelief("the engine is an object")
+      interpretBelief("Mason is a person")
+      interpretBelief("the engine's containee is Mason's possession")
       interpretTerse("which objects are in the engine", "No objects.")
     }
 
     "understand compound subject references" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
-      interpret("the engine is an object", "OK.")
-      interpret("the wrench is an object", "OK.")
-      interpret("the screwdriver is an object", "OK.")
-      interpret("the saw is an object", "OK.")
-      interpret("Edgar is a person", "OK.")
-      interpret("the wrench is Edgar's possession", "OK.")
-      interpret("the screwdriver is Edgar's possession", "OK.")
-      interpret("Edgar's possessions are in the engine", "OK.")
+      interpretBelief("the engine is an object")
+      interpretBelief("the wrench is an object")
+      interpretBelief("the screwdriver is an object")
+      interpretBelief("the saw is an object")
+      interpretBelief("Edgar is a person")
+      interpretBelief("the wrench is Edgar's possession")
+      interpretBelief("the screwdriver is Edgar's possession")
+      interpretBelief("Edgar's possessions are in the engine")
       interpretTerse("which objects are in the engine",
         "The wrench and the screwdriver.")
     }
@@ -592,11 +597,11 @@ class SpcInterpreterSpec extends Specification
     "understand unique determiner in genitive" in new
       InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
-      interpret("the engine is an object", "OK.")
-      interpret("the box is an object", "OK.")
-      interpret("the box is in the engine", "OK.")
-      interpret("the wrench is an object", "OK.")
-      interpret("the wrench's container is the box's container", "OK.")
+      interpretBelief("the engine is an object")
+      interpretBelief("the box is an object")
+      interpretBelief("the box is in the engine")
+      interpretBelief("the wrench is an object")
+      interpretBelief("the wrench's container is the box's container")
       interpretTerse("which objects are in the engine",
         "The box and the wrench.")
     }
@@ -949,18 +954,15 @@ class SpcInterpreterSpec extends Specification
 
     "accept new beliefs" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
-      interpret("a door may be either open or closed",
-        "OK.")
-      interpret("there is a front door",
-        "OK.")
+      interpretBelief("a door may be either open or closed")
+      interpretBelief("there is a front door")
       interpret("is the front door open",
         "I don't know.")
     }
 
     "reject invalid new beliefs" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
-      interpret("there is a front door",
-        "OK.")
+      interpretBelief("there is a front door")
       interpret("there is a big front door",
         "Previously I was told that there is a front door.  " +
           "So there is an ambiguous reference in the belief that " +
@@ -970,8 +972,8 @@ class SpcInterpreterSpec extends Specification
     "reject cyclic taxonomy belief" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
-      interpret("a bird is a kind of animal", "OK.")
-      interpret("a duck is a kind of bird", "OK.")
+      interpretBelief("a bird is a kind of animal")
+      interpretBelief("a duck is a kind of bird")
       interpret("an animal is a kind of duck",
         "Previously I was told that a duck is a kind of a bird and a bird " +
           "is a kind of an animal.  So I am unable to accept that " +
@@ -981,9 +983,9 @@ class SpcInterpreterSpec extends Specification
     "reject incompatible form for role" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
-      interpret("a person must have a lawyer", "OK.")
-      interpret("a lawyer must be a weasel", "OK.")
-      interpret("Michael is a snake", "OK.")
+      interpretBelief("a person must have a lawyer")
+      interpretBelief("a lawyer must be a weasel")
+      interpretBelief("Michael is a snake")
       interpret("Michael is Donald's lawyer",
         "Previously I was told that a lawyer must be a weasel.  So I am " +
           "unable to accept that Michael is Donald's lawyer.")
@@ -993,8 +995,8 @@ class SpcInterpreterSpec extends Specification
 
     "reify unknown person" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
-      interpret("a person must have a lawyer", "OK.")
-      interpret("Donald is a person", "OK.")
+      interpretBelief("a person must have a lawyer")
+      interpretBelief("Donald is a person")
       interpret("who is Donald's lawyer", "I don't know.")
 
       cosmos.sanityCheck must beTrue
@@ -1002,8 +1004,8 @@ class SpcInterpreterSpec extends Specification
 
     "infer form from role" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
-      interpret("a lawyer must be a weasel", "OK.")
-      interpret("Michael is Donald's lawyer", "OK.")
+      interpretBelief("a lawyer must be a weasel")
+      interpretBelief("Michael is Donald's lawyer")
       interpretTerse("is Michael a weasel", "Yes.")
 
       cosmos.sanityCheck must beTrue
@@ -1012,12 +1014,12 @@ class SpcInterpreterSpec extends Specification
     "support roles with multiple forms" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
-      interpret("a man is a kind of person", "OK.")
-      interpret("a gentleman is a kind of man", "OK.")
-      interpret("a footman must be a man", "OK.")
-      interpret("a footman must be a plebeian", "OK.")
-      interpret("a gentleman with a footman is a lord", "OK.")
-      interpret("Bunter is Peter's footman", "OK.")
+      interpretBelief("a man is a kind of person")
+      interpretBelief("a gentleman is a kind of man")
+      interpretBelief("a footman must be a man")
+      interpretBelief("a footman must be a plebeian")
+      interpretBelief("a gentleman with a footman is a lord")
+      interpretBelief("Bunter is Peter's footman")
       interpretTerse("is Bunter a footman", "Yes.")
       interpretTerse("is Bunter a man", "Yes.")
       interpretTerse("is Bunter a plebeian", "Yes.")
@@ -1048,13 +1050,10 @@ class SpcInterpreterSpec extends Specification
       ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/people.txt")
-      // FIXME verify effectiveness
-      interpret(
-        "Amanda is Rapunzel's owner",
-        "OK.")
-      interpret(
-        "Scott is RowdyThree's operative",
-        "OK.")
+      interpretBelief("Amanda is Rapunzel's owner")
+      interpretTerse("who is Rapunzel's owner", "Amanda.")
+      interpretBelief("Scott is RowdyThree's operative")
+      interpretTerse("who is RowdyThree's operative", "Scott.")
     }
   }
 }
