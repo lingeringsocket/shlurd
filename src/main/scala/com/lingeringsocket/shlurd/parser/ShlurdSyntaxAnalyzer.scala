@@ -456,9 +456,13 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   {
     val antecedentSentence = analyzeSentence(antecedent)
     val consequentSentence = analyzeSentence(consequent)
-    if (antecedentSentence.mood != MOOD_INDICATIVE_POSITIVE) {
-      // Oooooo....modal logic.  Maybe one day.
-      return SilUnrecognizedSentence(tree)
+
+    antecedentSentence.mood match {
+      case SilIndicativeMood(true, MODAL_NEUTRAL | MODAL_PROGRESSIVE) =>
+      case _ => {
+        // Oooooo....modal logic.  Maybe one day.
+        return SilUnrecognizedSentence(tree)
+      }
     }
     val antecedentPredicate = antecedentSentence match {
       case SilPredicateSentence(predicate, _, _) => predicate
@@ -475,6 +479,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     SilConditionalSentence(
       antecedentPredicate,
       consequentPredicate,
+      antecedentSentence.mood,
       consequentSentence.mood,
       formality
     )

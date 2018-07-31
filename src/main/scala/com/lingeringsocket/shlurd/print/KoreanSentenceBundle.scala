@@ -74,7 +74,7 @@ class KoreanSentenceBundle extends SilSentenceBundle
   override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
     mood : SilMood, isExistential : Boolean,
-    verb : SilWord) =
+    verb : SilWord, answerInflection : SilInflection) =
   {
     // FIXME arbitrary lemmas
     val verbLemma = verb.lemma

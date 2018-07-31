@@ -51,5 +51,8 @@ class ShlurdQueryRewriter(question : SilQuestion) extends SilPhraseRewriter
         rewrite(rewriteSpecifier, subject),
         rewrittenComplement, relationship, modifiers)
     }
+    case ap : SilActionPredicate => {
+      rewrite(rewriteSpecifier, ap)
+    }
   }
 }

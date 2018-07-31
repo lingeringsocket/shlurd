@@ -137,7 +137,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     }
     val verbSeq = sb.delemmatizeVerb(
       PERSON_THIRD, GENDER_N, count,
-      mood, false, SilWord(verbLemma))
+      mood, false, SilWord(verbLemma), INFLECT_NONE)
     if (!subject.hasUnknown) {
       assert(complement.hasUnknown)
       sb.respondNotUnderstood(

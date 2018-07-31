@@ -250,7 +250,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               Some(question))
           debug(s"NORMALIZED RESPONSE : $normalizedResponse")
           val responseMood = SilIndicativeMood(
-            truthBoolean || negateCollection)
+            truthBoolean || negateCollection,
+            mood.getModality
+          )
           val responseSentence = SilPredicateSentence(
             normalizedResponse,
             responseMood)
@@ -314,7 +316,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
               val responseSentence = SilPredicateSentence(
                 normalizedResponse,
-                SilIndicativeMood(responseTruth))
+                SilIndicativeMood(responseTruth, mood.getModality))
               val printedSentence = {
                 params.verbosity match {
                   case RESPONSE_TERSE => {
@@ -350,11 +352,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           val responseMood = {
             predicateTruth match {
               case Success(Trilean.False) => {
-                MOOD_INDICATIVE_NEGATIVE
+                SilIndicativeMood(false, mood.getModality)
               }
               case _ => {
                 // FIXME:  deal with uncertainty
-                MOOD_INDICATIVE_POSITIVE
+                SilIndicativeMood(true, mood.getModality)
               }
             }
           }
@@ -476,7 +478,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  private def evaluatePredicate(
+  protected def evaluatePredicate(
     predicateOriginal : SilPredicate,
     resultCollector : ResultCollector[E]) : Try[Trilean] =
   {
@@ -550,6 +552,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           }
         }
       }
+      case ap : SilActionPredicate => {
+        evaluateActionPredicate(ap, resultCollector)
+      }
       case _ => {
         debug("UNEXPECTED PREDICATE TYPE")
         fail(sentencePrinter.sb.respondCannotUnderstand())
@@ -558,6 +563,14 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     debugDepth -= 1
     debug(s"PREDICATE TRUTH : $result")
     result
+  }
+
+  protected def evaluateActionPredicate(
+    ap : SilActionPredicate,
+    resultCollector : ResultCollector[E]) : Try[Trilean] =
+  {
+    debug("ACTION PREDICATES UNSUPPORTED")
+    fail(sentencePrinter.sb.respondCannotUnderstand())
   }
 
   private def evaluateNormalizedStatePredicate(

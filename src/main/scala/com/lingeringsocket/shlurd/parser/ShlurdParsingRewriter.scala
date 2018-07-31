@@ -31,6 +31,34 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       query(validateResult, completed)
     }
     completed match {
+      // here we remove the emphatic from questions such as
+      // "does Pete have a dog?" since that's more natural in
+      // modern English than "has Pete a dog?"
+      case SilPredicateSentence(
+        predicate,
+        SilInterrogativeMood(positive, MODAL_EMPHATIC),
+        formality
+      ) => {
+        SilPredicateSentence(
+          predicate,
+          SilInterrogativeMood(positive, MODAL_NEUTRAL),
+          formality)
+      }
+      case SilPredicateQuery(
+        predicate,
+        question,
+        answerInflection,
+        SilInterrogativeMood(positive, MODAL_EMPHATIC),
+        formality
+      ) => {
+        SilPredicateQuery(
+          predicate,
+          question,
+          answerInflection,
+          SilInterrogativeMood(positive, MODAL_NEUTRAL),
+          formality
+        )
+      }
       case sentence : SilSentence => sentence
       case _ => SilUnrecognizedSentence(sentenceSyntaxTree)
     }

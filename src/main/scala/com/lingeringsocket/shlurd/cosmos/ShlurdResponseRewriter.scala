@@ -41,6 +41,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       case RESPONSE_COMPLETE => {
         question match {
           case Some(QUESTION_WHERE) => false
+          case Some(QUESTION_HOW_MANY) => false
           case _ => true
         }
       }

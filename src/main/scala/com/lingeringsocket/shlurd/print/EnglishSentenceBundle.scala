@@ -52,9 +52,7 @@ class EnglishSentenceBundle
       indirectObject.map(n => compose(LEMMA_TO, n))):_*)
     val primary = {
       if (!mood.isInterrogative ||
-        (mood.getModality == MODAL_NEUTRAL) ||
-        ((mood.getModality == MODAL_PROGRESSIVE) &&
-          (answerInflection == INFLECT_NOMINATIVE)))
+        (answerInflection == INFLECT_NOMINATIVE))
       {
         composePredicateStatement(
           subject, verbSeq, complement, modifiers)
@@ -107,7 +105,7 @@ class EnglishSentenceBundle
           composePredicateQuestion(subject, verbSeq, complement, modifiers)
         }
         case REL_ASSOCIATION => {
-          if (mood.getModality == MODAL_NEUTRAL) {
+          if (mood.isIndicative && (mood.getModality == MODAL_NEUTRAL)) {
             composePredicateStatement(subject, verbSeq, complement, modifiers)
           } else {
             composePredicateQuestion(subject, verbSeq, complement, modifiers)
@@ -239,9 +237,15 @@ class EnglishSentenceBundle
   override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
     mood : SilMood, isExistential : Boolean,
-    verb : SilWord) : Seq[String] =
+    verb : SilWord,
+    answerInflection : SilInflection
+  )
+      : Seq[String] =
   {
-    if ((verb.lemma != LEMMA_BE) && mood.isNegative) {
+    if ((verb.lemma != LEMMA_BE) && (verb.lemma != LEMMA_EXIST) &&
+      (mood.isNegative || mood.isInterrogative) &&
+      (answerInflection != INFLECT_NOMINATIVE))
+    {
       return delemmatizeModalVerb(mood, verb, person, gender, count)
     }
     val seq = mood.getModality match {

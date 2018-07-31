@@ -21,6 +21,8 @@ import com.lingeringsocket.shlurd.print._
 import scala.collection._
 import scala.util._
 
+import spire.math._
+
 sealed trait SpcBeliefAcceptance
 case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_NEW_BELIEFS extends SpcBeliefAcceptance
@@ -112,6 +114,22 @@ class SpcInterpreter(
     }
   }
 
+  override protected def evaluateActionPredicate(
+    ap : SilActionPredicate,
+    resultCollector : ResultCollector[SpcEntity]) : Try[Trilean] =
+  {
+    mind.getCosmos.getTriggers.foreach(trigger => {
+      // FIXME we should require iff for trigger instead of just if
+      matchTrigger(trigger, ap) match {
+        case Some(newPredicate) => {
+          return super.evaluatePredicate(newPredicate, resultCollector)
+        }
+        case _ =>
+      }
+    })
+    super.evaluateActionPredicate(ap, resultCollector)
+  }
+
   private def interpretAction(
     beliefInterpreter : SpcBeliefInterpreter,
     predicate : SilActionPredicate) : String =
@@ -132,7 +150,26 @@ class SpcInterpreter(
     trigger : SilConditionalSentence,
     predicate : SilActionPredicate) : Option[String] =
   {
-    debug(s"APPLY TRIGGER $trigger")
+    matchTrigger(trigger, predicate) match {
+      case Some(newPredicate) => {
+        val newSentence = SilPredicateSentence(newPredicate)
+        val result = interpretBeliefOrAction(beliefInterpreter, newSentence)
+        if (result.isEmpty) {
+          // FIXME i18n
+          Some("Invalid consequent")
+        } else {
+          result
+        }
+      }
+      case _ => None
+    }
+  }
+
+  private def matchTrigger(
+    trigger : SilConditionalSentence,
+    predicate : SilActionPredicate) : Option[SilPredicate] =
+  {
+    debug(s"MATCH TRIGGER $trigger")
     val antecedent = trigger.antecedent
     val consequent = trigger.consequent
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
@@ -224,16 +261,9 @@ class SpcInterpreter(
         replacements.get(ref).getOrElse(ref)
       }
     }
-    val newPredicate = rewriter.rewrite(replaceReferences, consequent)
-    val newSentence = SilPredicateSentence(newPredicate)
     // FIXME detect loops and also limit recursion depth
-    val result = interpretBeliefOrAction(beliefInterpreter, newSentence)
-    if (result.isEmpty) {
-      // FIXME i18n
-      Some("Invalid consequent")
-    } else {
-      result
-    }
+    val newPredicate = rewriter.rewrite(replaceReferences, consequent)
+    Some(newPredicate)
   }
 
   private def prepareReplacement(

@@ -609,6 +609,9 @@ class SpcInterpreterSpec extends Specification
     "understand taxonomy" in new InterpreterContext
     {
       loadBeliefs("/ontologies/vehicles.txt")
+
+      interpret("is Herbie moving", "No, he is not moving.")
+
       interpretMatrix(
         "is Herbie moving",
         "No, he is not moving.",
@@ -944,6 +947,51 @@ class SpcInterpreterSpec extends Specification
       interpret("who is Todd", "Todd is Amanda's brother.")
       interpret("is she a dog", "No, Amanda is not a dog.")
       interpret("is he Dirk's friend", "Yes, Todd is Dirk's friend.")
+    }
+
+    "understand progressive action predicates" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
+    {
+      interpretBelief("If an item is filling an object, " +
+        "then the item is the object's containee.")
+      interpretBelief("If an item is occupying an object, " +
+        "then the item is in the object.")
+      interpretBelief("The wallet is an object.")
+      interpretBelief("The pocket is an object.")
+      interpretBelief("The money is an object.")
+      interpretBelief("The card is an object.")
+      interpretBelief("The key is an object.")
+      interpretBelief("The money is in the wallet.")
+      interpretBelief("The card is in the wallet.")
+      interpretBelief("The key is in the pocket.")
+      interpret("how many objects are in the wallet",
+        "2 of them are in the wallet.")
+      interpret("how many objects are in the pocket",
+        "1 of them is in the pocket.")
+      interpret("how many objects are the wallet's containee",
+        "2 of them are its containees.")
+      interpret("how many objects are the pocket's containees",
+        "1 of them is its containee.")
+      interpretMatrix("how many objects are filling the wallet",
+        "2 of them are filling it.",
+        "2 of them are filling the wallet.",
+        "2 of them.",
+        "2 of them.")
+      interpretMatrix("how many objects are occupying the pocket",
+        "1 of them is occupying it.",
+        "1 of them is occupying the pocket.",
+        "1 of them.",
+        "1 of them.")
+      interpretMatrix("which objects are filling the wallet",
+        "The money and the card are filling it.",
+        "The money and the card are filling the wallet.",
+        "The money and the card.",
+        "The money and the card.")
+      interpretMatrix("which objects are occupying the pocket",
+        "The key is occupying it.",
+        "The key is occupying the pocket.",
+        "The key.",
+        "The key.")
     }
 
     "prevent new beliefs" in new InterpreterContext

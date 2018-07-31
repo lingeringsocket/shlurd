@@ -34,7 +34,7 @@ class ShlurdInputRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         subject, action, None, None, modifiers),
       mood, formality
     ) if (mood.getModality == MODAL_PROGRESSIVE) => {
-      mood match {
+      val regressiveMood = mood match {
         case m : SilIndicativeMood => SilIndicativeMood(m.isPositive)
         case m : SilInterrogativeMood => SilInterrogativeMood(m.isPositive)
         case _ => mood
@@ -42,7 +42,7 @@ class ShlurdInputRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       SilPredicateSentence(
         SilStatePredicate(
           subject, SilPropertyState(action), modifiers),
-        mood, formality)
+        regressiveMood, formality)
     }
     case SilPredicateQuery(
       SilActionPredicate(

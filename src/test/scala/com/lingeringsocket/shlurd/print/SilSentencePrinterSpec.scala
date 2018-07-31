@@ -92,14 +92,14 @@ class SilSentencePrinterSpec extends Specification
       skipped("maybe one day")
       expectQuestion("is neither franny nor zooey speaking")
       expectStatement("a vehicle must be either moving or stopped")
-      expectQuestion("does the door close")
-      expectPreserved("does the mule kick the ball smugly at the vase?")
       expectNormalized("a body generally has a tail",
         "a body has a tail generally.")
       expectStatement("a body has a tail generally")
       expectStatement("Scalieri sends Mozart a letter angrily")
       expectQuestion("does Scalieri send Mozart a letter angrily")
       expectQuestion("what is the cave south of")
+      expectPreserved("does the mule kick the ball smugly at the vase?")
+      expectQuestion("does the door close")
     }
 
     "preserve sentences" in
@@ -110,14 +110,16 @@ class SilSentencePrinterSpec extends Specification
       expectPreserved("the door can be closed.")
       expectPreserved("can the door be closed?")
       expectPreserved("can the door not be closed?")
-      expectPreserved("the mule has the ball?")
-      expectPreserved("the mule kicks the ball smugly at the vase?")
       expectPreserved("does the mule have the ball?")
       expectPreserved("Fred is in the cinema.")
     }
 
     "normalize sentences" in
     {
+      expectNormalized("the mule kicks the ball smugly at the vase?",
+        "does the mule kick the ball smugly at the vase?")
+      expectNormalized("the mule has the ball?",
+        "does the mule have the ball?")
       expectStatement("the door is closed")
       expectQuestion("is the door closed")
       expectQuestion("is the door not closed")
@@ -207,7 +209,7 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("a person that is at home is present",
         "a person at home is present.")
       expectStatement("a jackrabbit is a kind of animal")
-      expectNormalized("does a vehicle exist", "does there exist a vehicle?")
+      expectNormalized("does a vehicle exist", "is there a vehicle?")
       expectNormalized("a vehicle exists", "there is a vehicle.")
       expectNormalized("a vehicle does exist", "there does exist a vehicle.")
       expectNormalized("which vehicles exist", "which vehicles are there?")
@@ -255,7 +257,7 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("angrily Scalieri sends Mozart a letter",
         "Scalieri sends a letter to Mozart angrily.")
       expectNormalized("angrily Scalieri sends Mozart a letter?",
-        "Scalieri sends a letter to Mozart angrily?")
+        "does Scalieri send a letter to Mozart angrily?")
       expectNormalized("usually a bulb is lit?",
         "is a bulb lit usually?")
       expectNormalized("a bulb is usually lit?",
@@ -282,6 +284,7 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("which door must Franny open")
       expectQuestion("who opens the door")
       expectQuestion("how many pigs is Franny carrying")
+      expectQuestion("how many objects are filling the wallet")
       expectStatement("Franny is carrying the pigs")
       expectQuestion("who is floating")
     }

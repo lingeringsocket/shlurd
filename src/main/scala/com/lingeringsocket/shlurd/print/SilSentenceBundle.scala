@@ -111,7 +111,7 @@ abstract class SilSentenceBundle
   def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
     mood : SilMood, isExistential : Boolean,
-    verb : SilWord) : Seq[String]
+    verb : SilWord, answerInflection : SilInflection) : Seq[String]
 
   def adpositionString(adposition : SilAdposition) : String
 
