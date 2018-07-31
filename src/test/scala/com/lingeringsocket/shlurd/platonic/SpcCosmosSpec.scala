@@ -450,8 +450,8 @@ class SpcCosmosSpec extends Specification
     "accept triggers" in new CosmosContext
     {
       cosmos.getTriggers must beEmpty
-      addBelief("if an object moves to a location, " +
-        "then the location is the object's container")
+      addBelief("if a person is an object's possessor, " +
+        "then the person is carrying the object")
       cosmos.getTriggers.size must be equalTo(1)
     }
 

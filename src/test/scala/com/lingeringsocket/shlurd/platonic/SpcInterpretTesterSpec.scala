@@ -30,12 +30,12 @@ class SpcInterpretTesterSpec extends Specification
         "/expect/babi-unit-beliefs.txt")
       val script = ShlurdParser.getResourceFile(
         "/expect/babi-unit-script.txt")
-      Console.withOut(new java.io.ByteArrayOutputStream) {
-        val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
-        val (successes, failures) = tester.run(Source.fromFile(script))
-        successes must be equalTo 13
-        failures must be equalTo 0
-      }
+      val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
+      val (successes, failures) = tester.run(
+        Source.fromFile(script),
+        NullConsoleOutput)
+      successes must be equalTo 13
+      failures must be equalTo 0
     }
   }
 }

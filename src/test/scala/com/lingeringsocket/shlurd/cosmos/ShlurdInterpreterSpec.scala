@@ -448,13 +448,13 @@ class ShlurdInterpreterSpec extends Specification
           "I can't understand the phrase \"how I want them\"")
       // FIXME
       /*
-      interpret("Which lie running circles is a cake?") must be equalTo(
+      interpret("Which lie flunk circles is a cake?") must be equalTo(
         "I think you are asking which entity is a cake, but " +
-          "I can't understand the phrase \"lie running circles\"")
+          "I can't understand the phrase \"lie flunk circles\"")
        */
-      interpret("Which cake is a lie running circles?") must be equalTo(
+      interpret("Which cake is a lie flunk circles?") must be equalTo(
         "I think you are asking which cake is some entity, but " +
-          "I can't understand the phrase \"a lie running circles\"")
+          "I can't understand the phrase \"a lie flunk circles\"")
       interpret("There is my squeaking door and a window") must
         be equalTo("I think you are saying that some " +
           "entities exist, but " +

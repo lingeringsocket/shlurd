@@ -282,6 +282,7 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("which door must Franny open")
       expectQuestion("who opens the door")
       expectQuestion("how many pigs is Franny carrying")
+      expectStatement("Franny is carrying the pigs")
       expectQuestion("who is floating")
     }
   }

@@ -113,8 +113,17 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     if (iNextVerb < 0) {
       return (false, iFirstVerb)
     }
+    val nextVerb = seq(iNextVerb) match {
+      case vp : SptVP => {
+        vp.children.find(_.isVerbNode) match {
+          case Some(vb) => vb
+          case _ => vp
+        }
+      }
+      case vb => vb
+    }
     if (seq(iFirstVerb).unwrapPhrase.isRelationshipVerb &&
-      seq(iNextVerb).unwrapPhrase.isGerund)
+      nextVerb.unwrapPhrase.isGerund)
     {
       (true, iNextVerb)
     } else {
@@ -381,7 +390,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     // FIXME:  representation for double negatives?
     val negative = negativeSuper ^ negativeSub
     val verbHead = vpChildren.head
-    if (verbHead.isModal) {
+    val (progressive, iVerb) = detectProgressive(vpChildren)
+    if (verbHead.isModal || progressive) {
       val vpSub = vpChildren.last
       if ((vpChildren.size == 2) && vpSub.isVerbPhrase) {
         expectPredicateSentence(

@@ -16,13 +16,33 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.io._
 
+trait ConsoleOutput
+{
+  def println(s : String = "")
+}
+
+object DefaultConsoleOutput extends ConsoleOutput
+{
+  override def println(s : String = "")
+  {
+    Console.println(s)
+  }
+}
+
+object NullConsoleOutput extends ConsoleOutput
+{
+  override def println(s : String = "")
+  {
+  }
+}
+
 /*
   sbt "runMain com.lingeringsocket.shlurd.parser.ShlurdParseTester" < \
     src/test/resources/expect/babi-unit-script.txt
  */
 class ShlurdParseTester
 {
-  def run(source : Source) =
+  def run(source : Source, target : ConsoleOutput = DefaultConsoleOutput) =
   {
     var successes = 0
     var failures = 0
@@ -31,9 +51,9 @@ class ShlurdParseTester
 
     def reportStatus()
     {
-      println
-      println("SUCCESSES:  " + successes)
-      println("FAILURES:  " + failures)
+      target.println()
+      target.println("SUCCESSES:  " + successes)
+      target.println("FAILURES:  " + failures)
     }
 
     val iter = source.getLines
@@ -47,9 +67,9 @@ class ShlurdParseTester
         successes += 1
       } else {
         failures += 1
-        println
-        println(s"LINE $lineNumber FAILED:  $input")
-        println(s"LINE $lineNumber $result")
+        target.println()
+        target.println(s"LINE $lineNumber FAILED:  $input")
+        target.println(s"LINE $lineNumber $result")
       }
       lineNumber += 1
       if (lineNumber - lastCheckpoint > 20) {

@@ -306,13 +306,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
   private def recognizeConsequenceBelief(sentence : SilConditionalSentence)
       : Seq[SpcBelief] =
   {
-    val antecedent = sentence.antecedent
     val consequent = sentence.consequent
-    antecedent match {
-      case _ : SilActionPredicate => {
-      }
-      case _ => return Seq.empty
-    }
     var invalid = false
     val querier = new SilPhraseRewriter
     def validateReferences = querier.queryMatcher {
