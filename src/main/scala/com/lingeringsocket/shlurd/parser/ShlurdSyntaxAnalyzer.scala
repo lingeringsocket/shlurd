@@ -199,14 +199,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val positive = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
-        tam.withMood(MOOD_INTERROGATIVE).withPositivity(positive)))
+        tam.withMood(MOOD_INTERROGATIVE).withPolarity(positive)))
     } else {
       val (negativeSub, predicate) = analyzeActionPredicate(
         tree, np, vp, specifiedDirectObject, verbModifiers)
       val positive = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
-        tam.withMood(MOOD_INTERROGATIVE).withPositivity(positive)))
+        tam.withMood(MOOD_INTERROGATIVE).withPolarity(positive)))
     }
   }
 
@@ -293,7 +293,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       rememberPredicateCount(predicate, verbHead)
       SilPredicateQuery(
         predicate, question, INFLECT_NOMINATIVE,
-        SilTam.interrogative.withPositivity(!(negativeSuper ^ negativeSub)))
+        SilTam.interrogative.withPolarity(!(negativeSuper ^ negativeSub)))
     } else {
       // FIXME support dative and adpositional objects too
       val (specifiedDirectObject, answerInflection, sqChildren) = {
@@ -431,13 +431,13 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val positive = !(negative ^ negativeComplement)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       SilPredicateSentence(
-        predicate, tam.withPositivity(positive), SilFormality(force))
+        predicate, tam.withPolarity(positive), SilFormality(force))
     } else {
       val (negativeVerb, predicate) = analyzeActionPredicate(
         tree, np, vp, None, verbModifiers)
       val positive = !(negative ^ negativeVerb)
       rememberPredicateCount(
-        predicate, verbHead, tam.withPositivity(positive), auxCount)
+        predicate, verbHead, tam.withPolarity(positive), auxCount)
       SilPredicateSentence(
         predicate,
         tam,

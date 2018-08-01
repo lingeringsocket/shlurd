@@ -123,6 +123,10 @@ case object MODAL_SHOULD extends SilModality
 case object MODAL_EMPHATIC extends SilModality
 case object MODAL_ELLIPTICAL extends SilModality
 
+sealed trait SilPolarity
+case object POLARITY_POSITIVE extends SilPolarity
+case object POLARITY_NEGATIVE extends SilPolarity
+
 sealed trait SilRelationship
 case object REL_IDENTITY extends SilRelationship
 case object REL_ASSOCIATION extends SilRelationship
@@ -156,7 +160,8 @@ object SilFormality
 
 object SilTam
 {
-  def apply(mood : SilMood) = SilTamImmutable(mood, true, MODAL_NEUTRAL, false)
+  def apply(mood : SilMood) =
+    SilTamImmutable(mood, POLARITY_POSITIVE, MODAL_NEUTRAL, false)
 
   def indicative = SilTam(MOOD_INDICATIVE)
 
@@ -168,39 +173,42 @@ object SilTam
 sealed trait SilTam
 {
   def mood : SilMood
+  def polarity : SilPolarity
+  def modality : SilModality
   def isIndicative : Boolean = (mood == MOOD_INDICATIVE)
   def isInterrogative : Boolean = (mood == MOOD_INTERROGATIVE)
   def isImperative : Boolean = (mood == MOOD_IMPERATIVE)
-  def positivity : Boolean
-  def isPositive : Boolean = positivity
-  def isNegative : Boolean = !positivity
+  def isPositive : Boolean = (polarity == POLARITY_POSITIVE)
+  def isNegative : Boolean = (polarity == POLARITY_NEGATIVE)
   def isProgressive : Boolean = false
   // FIXME this is English-specific
   def requiresAux : Boolean = false
-  def modality : SilModality
   def positive : SilTam
   def negative : SilTam
   def progressive : SilTam
-  def withProgressivity(progressivity : Boolean) : SilTam
-  def withPositivity(positivity : Boolean) : SilTam
-  def withModality(modality : SilModality) : SilTam
-  def withMood(mood : SilMood) : SilTam
+  def withProgressivity(newProgressivity : Boolean) : SilTam
+  def withPolarity(newPolarity : SilPolarity) : SilTam
+  def withModality(newModality : SilModality) : SilTam
+  def withMood(newMood : SilMood) : SilTam
   def validate() : SilTam
+
+  def withPolarity(newPolarity : Boolean) : SilTam =
+    withPolarity(if (newPolarity) POLARITY_POSITIVE else POLARITY_NEGATIVE)
 }
 
 case class SilTamImmutable(
   mood : SilMood,
-  positivity : Boolean,
+  polarity : SilPolarity,
   modality : SilModality,
   progressivity : Boolean
 ) extends SilTam
 {
   override def isProgressive = progressivity
-  override def positive = copy(positivity = true).validate
-  override def negative = copy(positivity = false).validate
+  override def positive = copy(polarity = POLARITY_POSITIVE).validate
+  override def negative = copy(polarity = POLARITY_NEGATIVE).validate
   override def progressive = copy(progressivity = true).validate
-  override def withPositivity(newPositivity : Boolean) =
-    copy(positivity = newPositivity).validate
+  override def withPolarity(newPolarity : SilPolarity) =
+    copy(polarity = newPolarity).validate
   override def withProgressivity(newProgressivity : Boolean) =
     copy(progressivity = newProgressivity).validate
   override def withModality(newModality : SilModality) =
