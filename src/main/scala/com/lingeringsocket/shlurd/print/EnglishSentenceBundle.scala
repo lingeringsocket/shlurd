@@ -19,6 +19,7 @@ import com.lingeringsocket.shlurd.parser._
 import org.atteo.evo.inflector.{English => EnglishPluralizer}
 
 import ShlurdEnglishLemmas._
+import ShlurdEnglishAffixes._
 
 class EnglishSentenceBundle
     extends SilSentenceBundle
@@ -105,7 +106,7 @@ class EnglishSentenceBundle
           composePredicateQuestion(subject, verbSeq, complement, modifiers)
         }
         case REL_ASSOCIATION => {
-          if (tam.isIndicative && (tam.modality == MODAL_NEUTRAL)) {
+          if (tam.isIndicative && !tam.requiresAux) {
             composePredicateStatement(subject, verbSeq, complement, modifiers)
           } else {
             composePredicateQuestion(subject, verbSeq, complement, modifiers)
@@ -154,29 +155,33 @@ class EnglishSentenceBundle
         case LEMMA_BE => tam.modality
         case _ => tam.modality match {
           case MODAL_NEUTRAL => MODAL_EMPHATIC
-          case x => x
+          case _ => tam.modality
         }
       }
     }
-    val aux = modality match {
-      case MODAL_NEUTRAL => ""
-      case MODAL_MUST => LEMMA_MUST
-      case MODAL_MAY => LEMMA_MAY
-      case MODAL_POSSIBLE => LEMMA_MIGHT
-      case MODAL_CAPABLE => LEMMA_CAN
-      case MODAL_PERMITTED => LEMMA_MAY
-      case MODAL_SHOULD => LEMMA_SHOULD
-      case MODAL_PROGRESSIVE =>
+    val aux = {
+      if (tam.isProgressive) {
         delemmatizeModelessVerb(person, gender, count, SilWord(LEMMA_BE))
-      case MODAL_EMPHATIC | MODAL_ELLIPTICAL => {
-        count match {
-          case COUNT_SINGULAR => {
-            person match {
-              case PERSON_THIRD => LEMMA_DOES
-              case _ => LEMMA_DO
+      } else {
+        modality match {
+          case MODAL_NEUTRAL => ""
+          case MODAL_MUST => LEMMA_MUST
+          case MODAL_MAY => LEMMA_MAY
+          case MODAL_POSSIBLE => LEMMA_MIGHT
+          case MODAL_CAPABLE => LEMMA_CAN
+          case MODAL_PERMITTED => LEMMA_MAY
+          case MODAL_SHOULD => LEMMA_SHOULD
+          case MODAL_EMPHATIC | MODAL_ELLIPTICAL => {
+            count match {
+              case COUNT_SINGULAR => {
+                person match {
+                  case PERSON_THIRD => LEMMA_DOES
+                  case _ => LEMMA_DO
+                }
+              }
+              case COUNT_PLURAL => LEMMA_DO
             }
           }
-          case COUNT_PLURAL => LEMMA_DO
         }
       }
     }
@@ -187,10 +192,13 @@ class EnglishSentenceBundle
         Seq(aux)
       }
     }
-    modality match {
-      case MODAL_ELLIPTICAL => prefix
-      case MODAL_PROGRESSIVE => prefix :+ delemmatizeProgressive(verb)
-      case _ => prefix :+ verbLemma
+    if (tam.isProgressive) {
+      prefix :+ delemmatizeProgressive(verb)
+    } else {
+      modality match {
+        case MODAL_ELLIPTICAL => prefix
+        case _ => prefix :+ verbLemma
+      }
     }
   }
 
@@ -248,8 +256,10 @@ class EnglishSentenceBundle
     {
       return delemmatizeModalVerb(tam, verb, person, gender, count)
     }
-    val seq = tam.modality match {
-      case MODAL_NEUTRAL => {
+    val seq = {
+      if (tam.requiresAux) {
+        delemmatizeModalVerb(tam, verb, person, gender, count)
+      } else {
         val inflected = delemmatizeModelessVerb(
           person, gender, count, verb)
         if (tam.isNegative) {
@@ -257,9 +267,6 @@ class EnglishSentenceBundle
         } else {
           Seq(inflected)
         }
-      }
-      case _ => {
-        delemmatizeModalVerb(tam, verb, person, gender, count)
       }
     }
     if (isExistential) {
@@ -337,7 +344,7 @@ class EnglishSentenceBundle
   {
     if (verb.inflected.isEmpty) {
       // FIXME sometimes we need to morph the lemma first...
-      concat(verb.lemma, "ing")
+      concat(verb.lemma, SUFFIX_ING)
     } else {
       verb.inflected
     }

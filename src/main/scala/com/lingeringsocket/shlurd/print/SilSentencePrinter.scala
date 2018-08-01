@@ -246,8 +246,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
         val tam = {
           if (ellipsis && (relationship == REL_ASSOCIATION)) {
             if (tamOriginal.isIndicative) {
-              SilTam.indicative.withPositivity(tamOriginal.isPositive).
-                withModality(MODAL_ELLIPTICAL)
+              tamOriginal.withModality(MODAL_ELLIPTICAL)
             } else {
               tamOriginal
             }

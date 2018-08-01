@@ -119,6 +119,11 @@ object ShlurdEnglishLemmas
   val LEMMA_GENITIVE_OF = "_of_"
 }
 
+object ShlurdEnglishAffixes
+{
+  val SUFFIX_ING = "ing"
+}
+
 object ShlurdParseUtils
 {
   def capitalize(s : String) = s.head.toUpper + s.tail

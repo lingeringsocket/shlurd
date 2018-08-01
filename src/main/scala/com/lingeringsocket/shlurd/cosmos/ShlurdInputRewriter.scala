@@ -34,17 +34,10 @@ class ShlurdInputRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         subject, action, None, None, modifiers),
       tam, formality
     ) if (tam.isProgressive) => {
-      val tamRegressive = tam.mood match {
-        case MOOD_INDICATIVE =>
-          SilTam.indicative.withPositivity(tam.isPositive)
-        case MOOD_INTERROGATIVE =>
-          SilTam.interrogative.withPositivity(tam.isPositive)
-        case MOOD_IMPERATIVE => tam
-      }
       SilPredicateSentence(
         SilStatePredicate(
           subject, SilPropertyState(action), modifiers),
-        tamRegressive, formality)
+        tam.withProgressivity(false), formality)
     }
     case SilPredicateQuery(
       SilActionPredicate(
@@ -55,7 +48,7 @@ class ShlurdInputRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         SilStatePredicate(
           subject, SilPropertyState(action), modifiers),
         question, answerInflection,
-        SilTam.interrogative.withPositivity(tam.isPositive), formality)
+        tam.withMood(MOOD_INTERROGATIVE), formality)
     }
   }
 }

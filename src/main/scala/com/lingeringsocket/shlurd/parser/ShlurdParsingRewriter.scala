@@ -41,8 +41,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       ) if (tam.isInterrogative && (tam.modality == MODAL_EMPHATIC)) => {
         SilPredicateSentence(
           predicate,
-          SilTam.interrogative.withPositivity(tam.isPositive).
-            withModality(MODAL_NEUTRAL),
+          tam.withModality(MODAL_NEUTRAL),
           formality)
       }
       case SilPredicateQuery(
@@ -56,8 +55,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
           predicate,
           question,
           answerInflection,
-          SilTam.interrogative.withPositivity(tam.isPositive).
-            withModality(MODAL_NEUTRAL),
+          tam.withModality(MODAL_NEUTRAL),
           formality
         )
       }

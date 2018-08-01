@@ -242,7 +242,7 @@ class ShlurdParserSpec extends Specification
           NOUN_FRANNY, ACTION_CARRYING, NOUN_PIGS,
           DETERMINER_UNSPECIFIED, COUNT_PLURAL),
         QUESTION_HOW_MANY, INFLECT_ACCUSATIVE,
-        SilTam.interrogative.withModality(MODAL_PROGRESSIVE))
+        SilTam.interrogative.progressive)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }

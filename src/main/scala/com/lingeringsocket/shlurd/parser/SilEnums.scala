@@ -121,8 +121,6 @@ case object MODAL_CAPABLE extends SilModality
 case object MODAL_PERMITTED extends SilModality
 case object MODAL_SHOULD extends SilModality
 case object MODAL_EMPHATIC extends SilModality
-// FIXME combine aspect with modality
-case object MODAL_PROGRESSIVE extends SilModality
 case object MODAL_ELLIPTICAL extends SilModality
 
 sealed trait SilRelationship
@@ -158,16 +156,13 @@ object SilFormality
 
 object SilTam
 {
-  def indicative =
-    SilTamImmutable(MOOD_INDICATIVE, true, MODAL_NEUTRAL)
+  def apply(mood : SilMood) = SilTamImmutable(mood, true, MODAL_NEUTRAL, false)
 
-  def interrogative =
-    SilTamImmutable(MOOD_INTERROGATIVE, true, MODAL_NEUTRAL)
+  def indicative = SilTam(MOOD_INDICATIVE)
 
-  def imperative =
-  {
-    SilTamImmutable(MOOD_IMPERATIVE, true, MODAL_NEUTRAL)
-  }
+  def interrogative = SilTam(MOOD_INTERROGATIVE)
+
+  def imperative = SilTam(MOOD_IMPERATIVE)
 }
 
 sealed trait SilTam
@@ -180,27 +175,65 @@ sealed trait SilTam
   def isPositive : Boolean = positivity
   def isNegative : Boolean = !positivity
   def isProgressive : Boolean = false
+  // FIXME this is English-specific
+  def requiresAux : Boolean = false
   def modality : SilModality
   def positive : SilTam
   def negative : SilTam
+  def progressive : SilTam
+  def withProgressivity(progressivity : Boolean) : SilTam
   def withPositivity(positivity : Boolean) : SilTam
   def withModality(modality : SilModality) : SilTam
   def withMood(mood : SilMood) : SilTam
+  def validate() : SilTam
 }
 
 case class SilTamImmutable(
   mood : SilMood,
   positivity : Boolean,
-  modality : SilModality
+  modality : SilModality,
+  progressivity : Boolean
 ) extends SilTam
 {
-  override def isProgressive = (modality == MODAL_PROGRESSIVE)
-  override def positive = copy(positivity = true)
-  override def negative = copy(positivity = false)
+  override def isProgressive = progressivity
+  override def positive = copy(positivity = true).validate
+  override def negative = copy(positivity = false).validate
+  override def progressive = copy(progressivity = true).validate
   override def withPositivity(newPositivity : Boolean) =
-    copy(positivity = newPositivity)
+    copy(positivity = newPositivity).validate
+  override def withProgressivity(newProgressivity : Boolean) =
+    copy(progressivity = newProgressivity).validate
   override def withModality(newModality : SilModality) =
-    copy(modality = newModality)
+    copy(modality = newModality).validate
   override def withMood(newMood : SilMood) =
-    copy(mood = newMood)
+    copy(mood = newMood).validate
+
+  override def requiresAux =
+  {
+    if (isProgressive) {
+      true
+    } else {
+      modality match {
+        case MODAL_NEUTRAL => false
+        case _ => true
+      }
+    }
+  }
+
+  override def validate() =
+  {
+    mood match {
+      case MOOD_IMPERATIVE => {
+        assert(modality == MODAL_NEUTRAL)
+        assert(!isProgressive)
+      }
+      case _ => {
+        if (isProgressive) {
+          // this needs refinement for tense/aspect
+          assert(modality == MODAL_NEUTRAL)
+        }
+      }
+    }
+    this
+  }
 }

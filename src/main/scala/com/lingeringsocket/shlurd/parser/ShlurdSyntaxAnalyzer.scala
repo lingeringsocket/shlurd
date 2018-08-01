@@ -56,9 +56,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       if (np.isNounPhrase && vp.isVerbPhrase &&
         verbModifiers.forall(_.isAdverbialPhrase))
       {
+        val tam = if (isQuestion) {
+          SilTam.interrogative
+        } else {
+          SilTam.indicative
+        }
         expectPredicateSentence(
           tree, np, vp, verbModifiers,
-          isQuestion, force, MODAL_NEUTRAL, COUNT_SINGULAR, false)
+          force, tam, COUNT_SINGULAR, false)
       } else {
         SilUnrecognizedSentence(tree)
       }
@@ -123,7 +128,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       case vb => vb
     }
     if (seq(iFirstVerb).unwrapPhrase.isRelationshipVerb &&
-      nextVerb.unwrapPhrase.isGerund)
+      nextVerb.unwrapPhrase.isProgressiveVerb)
     {
       (true, iNextVerb)
     } else {
@@ -138,15 +143,18 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     specifiedDirectObject : Option[SilReference] = None)
       : Option[(SilPredicate, SilTam)] =
   {
-    val (modality, modeless, modalCount) = extractModality(children)
-    val (negativeSuper, seq) = extractNegative(modeless)
+    val (tam, auxless, auxCount) = extractAux(children)
+    val (negativeSuper, seq) = extractNegative(auxless)
     val iVerb = seq.indexWhere(_.isVerbNode)
     if (iVerb < 0) {
       return None
     }
-    val expectedSize = modality match {
-      case MODAL_NEUTRAL => 3
-      case _ => 2
+    val expectedSize = {
+      if (tam.requiresAux) {
+        2
+      } else {
+        3
+      }
     }
     if (seq.size < expectedSize) {
       return None
@@ -189,16 +197,16 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         expectPredicate(tree, np, rhs, specifiedState,
           relationshipFor(verbHead), verbModifiers)
       val positive = !(negative ^ negativeSub)
-      rememberPredicateCount(predicate, verbHead, modality, modalCount)
-      Some((predicate, SilTam.interrogative.withPositivity(positive).
-        withModality(modality)))
+      rememberPredicateCount(predicate, verbHead, tam, auxCount)
+      Some((predicate,
+        tam.withMood(MOOD_INTERROGATIVE).withPositivity(positive)))
     } else {
       val (negativeSub, predicate) = analyzeActionPredicate(
         tree, np, vp, specifiedDirectObject, verbModifiers)
       val positive = !(negative ^ negativeSub)
-      rememberPredicateCount(predicate, verbHead, modality, modalCount)
-      Some((predicate, SilTam.interrogative.withPositivity(positive).
-        withModality(modality)))
+      rememberPredicateCount(predicate, verbHead, tam, auxCount)
+      Some((predicate,
+        tam.withMood(MOOD_INTERROGATIVE).withPositivity(positive)))
     }
   }
 
@@ -384,8 +392,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   private def expectPredicateSentence(
     tree : SptS,
     np : ShlurdSyntaxTree, vp : ShlurdSyntaxTree,
-    verbModifiers : Seq[ShlurdSyntaxTree], isQuestion : Boolean,
-    force : SilForce, modality : SilModality, modalCount : SilCount,
+    verbModifiers : Seq[ShlurdSyntaxTree],
+    force : SilForce, tam : SilTam, auxCount : SilCount,
     negativeSuper : Boolean) : SilSentence =
   {
     val (negativeSub, vpChildren) = extractNegative(vp.children)
@@ -398,8 +406,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       if ((vpChildren.size == 2) && vpSub.isVerbPhrase) {
         expectPredicateSentence(
           tree, np, vpSub, verbModifiers,
-          isQuestion, force,
-          modalityFor(requireLeaf(verbHead.children)),
+          force,
+          tamForAux(requireLeaf(verbHead.children)).withMood(tam.mood),
           getVerbCount(verbHead),
           negative)
       } else {
@@ -421,28 +429,15 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         tree, np, complement, specifiedState,
         relationshipFor(verbHead), verbModifiers ++ extraModifiers)
       val positive = !(negative ^ negativeComplement)
-      rememberPredicateCount(predicate, verbHead, modality, modalCount)
-      val tam = {
-        if (isQuestion) {
-          SilTam.interrogative.withPositivity(positive).withModality(modality)
-        } else {
-          SilTam.indicative.withPositivity(positive).withModality(modality)
-        }
-      }
+      rememberPredicateCount(predicate, verbHead, tam, auxCount)
       SilPredicateSentence(
-        predicate, tam, SilFormality(force))
+        predicate, tam.withPositivity(positive), SilFormality(force))
     } else {
       val (negativeVerb, predicate) = analyzeActionPredicate(
         tree, np, vp, None, verbModifiers)
       val positive = !(negative ^ negativeVerb)
-      rememberPredicateCount(predicate, verbHead, modality, modalCount)
-      val tam = {
-        if (isQuestion) {
-          SilTam.interrogative.withPositivity(positive).withModality(modality)
-        } else {
-          SilTam.indicative.withPositivity(positive).withModality(modality)
-        }
-      }
+      rememberPredicateCount(
+        predicate, verbHead, tam.withPositivity(positive), auxCount)
       SilPredicateSentence(
         predicate,
         tam,
@@ -463,7 +458,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       return SilUnrecognizedSentence(tree)
     }
     antecedentSentence.tam.modality match {
-      case MODAL_NEUTRAL | MODAL_PROGRESSIVE =>
+      case MODAL_NEUTRAL =>
       case _ => {
         // Oooooo....modal logic.  Maybe one day.
         return SilUnrecognizedSentence(tree)
@@ -984,17 +979,18 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def modalityFor(leaf : ShlurdSyntaxLeaf) : SilModality =
+  private def tamForAux(leaf : ShlurdSyntaxLeaf) : SilTam =
   {
+    val tam = SilTam.indicative
     leaf.lemma match {
-      case LEMMA_MUST => MODAL_MUST
-      case LEMMA_MAY => MODAL_MAY
-      case LEMMA_COULD | LEMMA_CAN => MODAL_CAPABLE
-      case LEMMA_MIGHT => MODAL_POSSIBLE
-      case LEMMA_SHOULD => MODAL_SHOULD
-      case LEMMA_DO => MODAL_EMPHATIC
-      case LEMMA_BE => MODAL_PROGRESSIVE
-      case _ => MODAL_NEUTRAL
+      case LEMMA_MUST => tam.withModality(MODAL_MUST)
+      case LEMMA_MAY => tam.withModality(MODAL_MAY)
+      case LEMMA_COULD | LEMMA_CAN => tam.withModality(MODAL_CAPABLE)
+      case LEMMA_MIGHT => tam.withModality(MODAL_POSSIBLE)
+      case LEMMA_SHOULD => tam.withModality(MODAL_SHOULD)
+      case LEMMA_DO => tam.withModality(MODAL_EMPHATIC)
+      case LEMMA_BE => tam.progressive
+      case _ => tam
     }
   }
 
@@ -1118,9 +1114,9 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def extractModality(
+  private def extractAux(
     seq : Seq[ShlurdSyntaxTree])
-      : (SilModality, Seq[ShlurdSyntaxTree], SilCount) =
+      : (SilTam, Seq[ShlurdSyntaxTree], SilCount) =
   {
     // FIXME for "does", we need to be careful to make sure it's
     // acting as an auxiliary, e.g. "Luke does know" but not
@@ -1131,7 +1127,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       if (iModal < 0) {
         val (progressive, iVerb) = detectProgressive(seq)
         if (!progressive) {
-          return (MODAL_NEUTRAL, seq, COUNT_SINGULAR)
+          return (SilTam.indicative, seq, COUNT_SINGULAR)
         } else {
           val iBeing = seq.indexWhere(_.isVerbNode)
           val being = seq(iBeing).unwrapPhrase
@@ -1154,7 +1150,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
     val aux = seq(iAux).unwrapPhrase
     val leaf = requireLeaf(aux.children)
-    (modalityFor(leaf),
+    (tamForAux(leaf),
       remainder,
       getVerbCount(aux))
   }
@@ -1324,16 +1320,13 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   private def rememberPredicateCount(
     predicate : SilPredicate,
     verbHead : ShlurdSyntaxTree,
-    modality : SilModality,
-    modalCount : SilCount)
+    tam : SilTam,
+    auxCount : SilCount)
   {
-    modality match {
-      case MODAL_NEUTRAL => {
-        rememberPredicateCount(predicate, verbHead)
-      }
-      case _ => {
-        rememberPredicateCount(predicate, modalCount)
-      }
+    if (tam.requiresAux) {
+      rememberPredicateCount(predicate, auxCount)
+    } else {
+      rememberPredicateCount(predicate, verbHead)
     }
   }
 }

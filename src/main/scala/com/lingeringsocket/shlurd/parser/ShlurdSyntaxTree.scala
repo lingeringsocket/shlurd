@@ -72,6 +72,7 @@ object ShlurdPennTreebankLabels
 
 import ShlurdPennTreebankLabels._
 import ShlurdEnglishLemmas._
+import ShlurdEnglishAffixes._
 import ShlurdPrettyPrinter._
 
 trait ShlurdAbstractSyntaxTree
@@ -172,6 +173,10 @@ trait ShlurdAbstractSyntaxTree
   def isParticiple = hasLabel(LABEL_VBN)
 
   def isGerund = hasLabel(LABEL_VBG)
+
+  // FIXME this is English-specific
+  def isProgressiveVerb =
+    isGerund && firstChild.foldedToken.endsWith(SUFFIX_ING)
 
   def isExistential =
     (isNounPhrase && firstChild.hasLabel(LABEL_EX)) || isExistsVerb

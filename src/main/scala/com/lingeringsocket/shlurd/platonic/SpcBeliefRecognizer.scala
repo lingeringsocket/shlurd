@@ -415,13 +415,16 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           case COUNT_SINGULAR => 1
           case COUNT_PLURAL => Int.MaxValue
         }
+        if (sentence.tam.isProgressive) {
+          return Seq(UnimplementedBelief(sentence))
+        }
         val newConstraint = sentence.tam.modality match {
           case MODAL_NEUTRAL | MODAL_MUST | MODAL_EMPHATIC =>
             SpcCardinalityConstraint(1, 1)
           case MODAL_MAY | MODAL_POSSIBLE |
               MODAL_CAPABLE | MODAL_PERMITTED =>
             SpcCardinalityConstraint(0, upper)
-          case MODAL_SHOULD | MODAL_ELLIPTICAL | MODAL_PROGRESSIVE =>
+          case MODAL_SHOULD | MODAL_ELLIPTICAL =>
             return Seq(UnimplementedBelief(sentence))
         }
         isPropertyAssoc(sentence, complementRef, relationship).map(
