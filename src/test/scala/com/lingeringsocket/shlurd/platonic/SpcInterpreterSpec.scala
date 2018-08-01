@@ -533,10 +533,8 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("Snowpiercer rolls into Kilimanjaro")
       interpret("where is Snowpiercer", "It is in Kilimanjaro.")
 
-      // FIXME it's correct that this doesn't move Snowpiercer,
-      // but the "rolls to" action should result in a warning
-      // since nothing matched
-      interpretBelief("Snowpiercer rolls to Denali")
+      interpret("Snowpiercer rolls to Denali",
+        "Sorry, I cannot understand what you said.")
       interpret("where is Snowpiercer", "It is in Kilimanjaro.")
 
       interpretBelief("Snowpiercer and Thomas move to Denali")
@@ -1080,6 +1078,15 @@ class SpcInterpreterSpec extends Specification
           "unable to accept that Michael is Donald's lawyer.")
 
       cosmos.sanityCheck must beTrue
+    }
+
+    "reject unknown actions" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
+    {
+      interpretBelief("Superman is a person")
+      interpretBelief("the kite is an object")
+      interpret("Superman flies the kite",
+        "Sorry, I cannot understand what you said.")
     }
 
     "reify unknown person" in new InterpreterContext(ACCEPT_NEW_BELIEFS)

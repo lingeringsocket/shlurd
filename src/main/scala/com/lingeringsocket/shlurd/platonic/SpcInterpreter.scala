@@ -84,7 +84,7 @@ class SpcInterpreter(
     })
     sentence match {
       case SilPredicateSentence(ap : SilActionPredicate, _, _) => {
-        return Some(interpretAction(beliefInterpreter, ap))
+        return interpretAction(beliefInterpreter, ap)
       }
       case _ => None
     }
@@ -132,17 +132,24 @@ class SpcInterpreter(
 
   private def interpretAction(
     beliefInterpreter : SpcBeliefInterpreter,
-    predicate : SilActionPredicate) : String =
+    predicate : SilActionPredicate) : Option[String] =
   {
+    var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
     mind.getCosmos.getTriggers.foreach(trigger => {
       applyTrigger(beliefInterpreter, trigger, predicate).foreach(result => {
         if (result != compliance) {
-          return result
+          return Some(result)
+        } else {
+          matched = true
         }
       })
     })
-    compliance
+    if (matched) {
+      Some(compliance)
+    } else {
+      None
+    }
   }
 
   private def applyTrigger(
