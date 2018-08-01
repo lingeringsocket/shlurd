@@ -37,7 +37,7 @@ class ShlurdInputRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       SilPredicateSentence(
         SilStatePredicate(
           subject, SilPropertyState(action), modifiers),
-        tam.withProgressivity(false), formality)
+        tam.withAspect(ASPECT_SIMPLE), formality)
     }
     case SilPredicateQuery(
       SilActionPredicate(
