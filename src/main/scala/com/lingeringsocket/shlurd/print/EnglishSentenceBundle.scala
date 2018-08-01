@@ -40,7 +40,6 @@ class EnglishSentenceBundle
     subject : String,
     verbSeq : Seq[String],
     directObject : Option[String],
-    indirectObject : Option[String],
     modifiers : Seq[String],
     tam : SilTam,
     answerInflection : SilInflection) =
@@ -49,8 +48,7 @@ class EnglishSentenceBundle
       case INFLECT_ACCUSATIVE => None
       case _ => directObject
     }
-    val complement = compose((directObjectPost.toSeq ++
-      indirectObject.map(n => compose(LEMMA_TO, n))):_*)
+    val complement = compose(directObjectPost.toSeq:_*)
     val primary = {
       if (!tam.isInterrogative ||
         (answerInflection == INFLECT_NOMINATIVE))

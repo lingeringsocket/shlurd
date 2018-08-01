@@ -82,7 +82,6 @@ abstract class SilSentenceBundle
     subject : String,
     verbSeq : Seq[String],
     directObject : Option[String],
-    indirectObject : Option[String],
     modifiers : Seq[String],
     tam : SilTam,
     answerInflection : SilInflection = INFLECT_NONE) : String

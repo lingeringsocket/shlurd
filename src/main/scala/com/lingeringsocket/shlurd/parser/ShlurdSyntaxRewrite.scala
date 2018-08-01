@@ -120,6 +120,31 @@ object ShlurdSyntaxRewrite
   }
 
   def rewriteWarts = rewrite {
+    case np @ SptNP(children @ _*) if (children.count(_.isDeterminer) == 2)=> {
+      val iFirst = children.indexWhere(_.isDeterminer)
+      assert(iFirst >= 0)
+      val iSecond = children.indexWhere(_.isDeterminer, iFirst + 1)
+      assert(iSecond >= 0)
+      if (iSecond == iFirst + 1) {
+        np
+      } else {
+        SptNP(
+          SptNP(children.take(iSecond):_*),
+          SptNP(children.drop(iSecond):_*)
+        )
+      }
+    }
+    case vp @ SptVP(children @ _*) => {
+      def pullUpNP(child : ShlurdSyntaxTree) = {
+        child match {
+          case SptNP(grand @ _*) if (grand.forall(_.isNounPhrase)) => {
+            grand
+          }
+          case _ => Seq(child)
+        }
+      }
+      SptVP(children.flatMap(pullUpNP):_*)
+    }
     case SptNP(
       SptNP(SptCC(dt), n1),
       SptCC(cc),

@@ -36,14 +36,12 @@ class KoreanSentenceBundle extends SilSentenceBundle
     subject : String,
     verbSeq : Seq[String],
     directObject : Option[String],
-    indirectObject : Option[String],
     modifiers : Seq[String],
     tam : SilTam,
     answerInflection : SilInflection) =
   {
     // FIXME:  for interrogative mood, this only holds for "요" politeness
-    compose((Seq(subject) ++ modifiers ++ indirectObject ++
-      directObject ++ verbSeq):_*)
+    compose((Seq(subject) ++ modifiers ++ directObject ++ verbSeq):_*)
   }
 
   override def relationshipPredicate(

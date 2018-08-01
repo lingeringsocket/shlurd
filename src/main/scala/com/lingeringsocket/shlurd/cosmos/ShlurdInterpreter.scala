@@ -261,7 +261,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               val answer = (answerInflection, normalizedResponse) match {
                 case (
                   INFLECT_ACCUSATIVE,
-                  SilActionPredicate(_, _, Some(directObject), _, _)
+                  SilActionPredicate(_, _, Some(directObject), _)
                 ) => {
                   sentencePrinter.print(
                     directObject,

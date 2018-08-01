@@ -273,7 +273,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           modifiers.map(printVerbModifier(_)))
       }
       case SilActionPredicate(
-        subject, action, directObject, indirectObject, modifiers
+        subject, action, directObject, modifiers
       ) => {
         val count = SilReference.getCount(subject)
         sb.actionPredicate(
@@ -283,8 +283,6 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
             predicate.getInflectedCount, INFLECT_NONE),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
-          indirectObject.map(
-            ref => print(ref, INFLECT_DATIVE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier(_)),
           tamOriginal)
       }
@@ -335,7 +333,7 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           modifiers.map(printVerbModifier(_)))
       }
       case SilActionPredicate(
-        subject, action, directObject, indirectObject, modifiers
+        subject, action, directObject, modifiers
       ) => {
         val plainDirectObject = directObject.map(
           ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE))
@@ -350,8 +348,6 @@ class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
           getVerbSeq(subject, action, tam,
             predicate.getInflectedCount, answerInflection),
           directObjectString,
-          indirectObject.map(
-            ref => print(ref, INFLECT_DATIVE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier(_)),
           tam,
           answerInflection)

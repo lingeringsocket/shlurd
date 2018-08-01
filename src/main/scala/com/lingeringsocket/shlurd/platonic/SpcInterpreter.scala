@@ -169,15 +169,14 @@ class SpcInterpreter(
     trigger : SilConditionalSentence,
     predicate : SilActionPredicate) : Option[SilPredicate] =
   {
-    debug(s"MATCH TRIGGER $trigger")
+    debug(s"ATTEMPT TRIGGER MATCH $trigger")
     val antecedent = trigger.antecedent
     val consequent = trigger.consequent
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
     antecedent match {
       case SilActionPredicate(
-        subject, action, directObject, indirectObject, modifiers
+        subject, action, directObject, modifiers
       ) => {
-        // FIXME process directObject, indirectObject
         if (action.lemma != predicate.action.lemma) {
           debug(s"ACTION ${predicate.action.lemma} DOES NOT MATCH")
           return None

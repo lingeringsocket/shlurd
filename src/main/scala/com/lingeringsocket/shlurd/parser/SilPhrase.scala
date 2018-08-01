@@ -290,7 +290,6 @@ case class SilUnresolvedActionPredicate(
   subject : SilReference,
   action : SilWord,
   directObject : Option[SilReference],
-  indirectObject : Option[SilReference],
   modifiers : Seq[SilVerbModifier]
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
@@ -299,7 +298,7 @@ case class SilUnresolvedActionPredicate(
   override def getModifiers = modifiers
 
   override def children =
-    Seq(subject) ++ directObject ++ indirectObject ++ modifiers
+    Seq(subject) ++ directObject ++ modifiers
 }
 
 case class SilUnresolvedRelationshipPredicate(
@@ -420,7 +419,6 @@ case class SilActionPredicate(
   subject : SilReference,
   action : SilWord,
   directObject : Option[SilReference] = None,
-  indirectObject : Option[SilReference] = None,
   modifiers : Seq[SilVerbModifier] = Seq.empty
 ) extends SilTransformedPhrase with SilPredicate
 {
@@ -429,7 +427,7 @@ case class SilActionPredicate(
   override def getModifiers = modifiers
 
   override def children =
-    Seq(subject) ++ directObject ++ indirectObject ++ modifiers
+    Seq(subject) ++ directObject ++ modifiers
 }
 
 case class SilStateSpecifiedReference(

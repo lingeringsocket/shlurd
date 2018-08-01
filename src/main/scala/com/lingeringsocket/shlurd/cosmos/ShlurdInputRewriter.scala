@@ -31,7 +31,7 @@ class ShlurdInputRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def convertProgressive = replacementMatcher {
     case SilPredicateSentence(
       SilActionPredicate(
-        subject, action, None, None, modifiers),
+        subject, action, None, modifiers),
       tam, formality
     ) if (tam.isProgressive) => {
       SilPredicateSentence(
@@ -41,7 +41,7 @@ class ShlurdInputRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
     case SilPredicateQuery(
       SilActionPredicate(
-        subject, action, None, None, modifiers),
+        subject, action, None, modifiers),
       question, answerInflection, tam, formality
     ) if (tam.isProgressive) => {
       SilPredicateQuery(

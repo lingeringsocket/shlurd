@@ -266,7 +266,6 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       predicate.subject,
       predicate.action,
       predicate.directObject,
-      predicate.indirectObject,
       predicate.modifiers)
   }
 

@@ -551,11 +551,10 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     syntaxTree : ShlurdSyntaxTree,
     subject : SilReference, action : SilWord,
     directObject : Option[SilReference],
-    indirectObject : Option[SilReference],
     verbModifiers : Seq[SilVerbModifier]) =
   {
     SilUnresolvedActionPredicate(
-      syntaxTree, subject, action, directObject, indirectObject, verbModifiers)
+      syntaxTree, subject, action, directObject, verbModifiers)
   }
 
   private def expectRelationshipPredicate(
@@ -705,7 +704,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         return (negative, SilUnrecognizedPredicate(syntaxTree))
       }
     }
-    val (directObject, indirectObject, extraModifiers) =
+    val (directObject, extraModifiers) =
       expectVerbObjectsAndModifiers(seq.drop(1), specifiedDirectObject)
     val directObjects = Seq(directObject, specifiedDirectObject).flatten
     assert(directObject.size < 2)
@@ -713,8 +712,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       syntaxTree,
       subject, action,
       directObjects.headOption,
-      indirectObject,
-      verbModifiers.map(expectVerbModifier) ++ extraModifiers)
+      extraModifiers ++ verbModifiers.map(expectVerbModifier))
     (negative, predicate)
   }
 
@@ -749,10 +747,17 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       }
     }
     val objTrees = directObjTree.toSeq ++ indirectObjTree
+    val indirectAdposition = indirectObjTree.map(indirectObj => {
+      val modifier = SilAdpositionalVerbModifier(
+        SilAdposition.TO,
+        expectReference(indirectObj)
+      )
+      modifier.rememberSyntaxTree(indirectObj)
+      modifier
+    })
     val modifiers = seq.filterNot(objTrees.contains(_))
     (directObjTree.map(expectReference),
-      indirectObjTree.map(expectReference),
-      modifiers.map(expectVerbModifier))
+      indirectAdposition.toSeq ++ modifiers.map(expectVerbModifier))
   }
 
   private def expectVerbModifier(tree : ShlurdSyntaxTree) =

@@ -278,9 +278,9 @@ class SilSentencePrinterSpec extends Specification
         "Merry picked the apple up there.")
       expectQuestion("what is south of the cave")
       expectNormalized("after that he travelled to the lake",
-        "he travelled after that to the lake.")
+        "he travelled to the lake after that.")
       expectNormalized("following that she went back to the dorm",
-        "she went following that back to the dorm.")
+        "she went back to the dorm following that.")
       expectQuestion("which door must Franny open")
       expectQuestion("who opens the door")
       expectQuestion("how many pigs is Franny carrying")

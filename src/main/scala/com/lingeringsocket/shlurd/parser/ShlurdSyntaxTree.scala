@@ -143,6 +143,8 @@ trait ShlurdAbstractSyntaxTree
 
   def isQueryAdverbPhrase = hasLabel(LABEL_WHADVP)
 
+  def isDeterminer = hasLabel(LABEL_DT)
+
   def isPronoun = label.startsWith(LABEL_PRP)
 
   def isAdjective = label.startsWith(LABEL_JJ)

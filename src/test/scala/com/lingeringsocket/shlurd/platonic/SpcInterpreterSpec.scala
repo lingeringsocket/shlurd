@@ -557,6 +557,32 @@ class SpcInterpreterSpec extends Specification
       interpret("where is the bomb", "It is in the boiler.")
     }
 
+    "understand indirect objects" in new
+      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+    {
+      interpretBelief("if a person gives an object to a recipient, " +
+        "then the object is the recipient's containee")
+
+      // FIXME this should be OK as well, but corenlp interprets
+      // the prepositional phrase as a state specifier
+      // instead of a verb modifier
+      /*
+      interpretBelief("if a person passes an object to a recipient, " +
+        "then the person gives the object to the recipient")
+       */
+
+      interpretBelief("if a person passes a recipient an object, " +
+        "then the person gives the object to the recipient")
+      interpretBelief("Curtis is a person")
+      interpretBelief("Andrew is a person")
+      interpretBelief("the bomb is an object")
+      interpret("where is the bomb", "It is nowhere.")
+      interpretBelief("Curtis gives Andrew the bomb")
+      interpretTerse("where is the bomb", "Andrew.")
+      interpretBelief("Andrew passes the bomb to Curtis")
+      interpretTerse("where is the bomb", "Curtis.")
+    }
+
     "understand genitives in beliefs" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {

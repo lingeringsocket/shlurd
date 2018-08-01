@@ -37,3 +37,6 @@ If a person leaves an object, then the person drops the object.
 If a person discards an object, then the person drops the object.
 If a person puts down an object, then the person drops the object.
 If a person is carrying an object, then the object is the person's possession.
+If a person gives an object to a recipient, then the object is the recipient's possession.
+If a person passes a recipient an object, then the person gives the object to the recipient.
+If a person hands an object to a recipient, then the person gives the object to the recipient.
