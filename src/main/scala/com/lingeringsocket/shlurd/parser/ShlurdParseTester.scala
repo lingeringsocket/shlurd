@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.parser
 
 import scala.io._
+import scala.util._
 
 trait ConsoleOutput
 {
@@ -48,6 +49,7 @@ class ShlurdParseTester
     var failures = 0
     var lineNumber = 1
     var lastCheckpoint = 0
+    var lastSeqNo = 0
 
     def reportStatus()
     {
@@ -56,10 +58,18 @@ class ShlurdParseTester
       target.println("FAILURES:  " + failures)
     }
 
+    restartSequence
+
     val iter = source.getLines
     while (iter.hasNext) {
       val input = iter.next
-      val cleaned = input.dropWhile(_.isDigit).split("\t")
+      val prefix = input.takeWhile(_.isDigit)
+      val seqNo = Try(prefix.toInt).getOrElse(0)
+      if (seqNo < lastSeqNo) {
+        restartSequence
+      }
+      lastSeqNo = seqNo
+      val cleaned = input.stripPrefix(prefix).split("\t")
       val sentence = cleaned.head
       val answer = cleaned.drop(1).headOption.getOrElse("")
       val result = processOne(sentence, answer)
@@ -79,6 +89,10 @@ class ShlurdParseTester
     }
     reportStatus
     (successes, failures)
+  }
+
+  protected def restartSequence()
+  {
   }
 
   protected def processOne(

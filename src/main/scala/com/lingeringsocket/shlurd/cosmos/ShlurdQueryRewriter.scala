@@ -23,7 +23,7 @@ class ShlurdQueryRewriter(question : SilQuestion) extends SilPhraseRewriter
   def rewriteSpecifier = replacementMatcher {
     case SilNounReference(
       noun, DETERMINER_UNSPECIFIED, count
-    ) =>
+    ) if (!noun.isProper) =>
       {
         SilNounReference(noun, DETERMINER_ANY, count)
       }

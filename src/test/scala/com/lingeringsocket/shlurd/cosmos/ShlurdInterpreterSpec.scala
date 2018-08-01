@@ -140,7 +140,7 @@ class ShlurdInterpreterSpec extends Specification
       interpret("are there any tigers") must be equalTo(
         "Yes, there is a tiger.")
       interpret("is there any goat") must be equalTo(
-        "Yes, there are 3 of them.")
+        "Yes, there are three of them.")
       interpret("is there a lion and a tiger") must be equalTo(
         "Yes, there is a lion and a tiger.")
       interpret("is there a lion or a peacock") must be equalTo(
@@ -194,10 +194,10 @@ class ShlurdInterpreterSpec extends Specification
       interpret("are all goats asleep") must be equalTo(
         "Yes, all goats are asleep.")
       interpret("are any goats asleep") must be equalTo(
-        "Yes, all 3 of them are asleep.")
+        "Yes, all three of them are asleep.")
       val lowLimit = ShlurdResponseParams().copy(listLimit = 1)
       interpret("are any goats asleep", lowLimit) must be equalTo(
-        "Yes, all 3 of them are asleep.")
+        "Yes, all three of them are asleep.")
       interpret("are any goats awake") must be equalTo(
         "No, no goats are awake.")
       interpret("are all goats awake") must be equalTo(
@@ -225,7 +225,7 @@ class ShlurdInterpreterSpec extends Specification
       interpret("are the bears and the lion awake") must be equalTo(
         "No, neither the polar bear nor the lion is awake.")
       interpret("are the bears and the lion awake", lowLimit) must be equalTo(
-        "No, 2 of them are not awake.")
+        "No, two of them are not awake.")
       interpret("are the tiger and the lion asleep") must be equalTo(
         "No, the tiger is not asleep.")
       interpret("is the grizzly bear in any cage") must be equalTo(
@@ -265,13 +265,13 @@ class ShlurdInterpreterSpec extends Specification
       interpret("how many goats are awake") must be equalTo(
         "No goats are awake.")
       interpret("how many goats are asleep") must be equalTo(
-        "All 3 of them are asleep.")
+        "All three of them are asleep.")
       interpret("how many goats are asleep in the farm") must be equalTo(
-        "1 of them is asleep.")
+        "One of them is asleep.")
       interpret("how many goats in the farm are asleep") must be equalTo(
-        "1 of them is asleep.")
+        "One of them is asleep.")
       interpret("how many mountain goats are asleep") must be equalTo(
-        "1 of them is asleep.")
+        "One of them is asleep.")
       interpret("how many lions or polar bears are asleep") must be equalTo(
         "Both of them are asleep.")
       interpret("am I in the big cage") must be equalTo(

@@ -224,6 +224,8 @@ abstract class SilSentenceBundle
 
   def genitivePhrase(genitive : String, head : String) : String
 
+  def cardinalNumber(num : Int) : String = num.toString
+
   def unknownSentence() : String
 
   def unknownReference() : String

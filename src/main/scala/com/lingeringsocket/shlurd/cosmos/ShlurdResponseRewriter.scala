@@ -659,12 +659,12 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     val number = {
       if (conjunction && exhaustive) {
         all = false
-        LEMMA_NONE
+        SilWord(LEMMA_NONE)
       } else  if ((entities.size == 2) && exhaustive && !existence) {
         all = false
-        LEMMA_BOTH
+        SilWord(LEMMA_BOTH)
       } else {
-        entities.size.toString
+        SilWord("", entities.size.toString)
       }
     }
     val determiner = {
@@ -675,13 +675,13 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
     }
     // FIXME:  derive gender from entities
-    val count = number match {
+    val count = number.lemma match {
       case "1" => COUNT_SINGULAR
       case _ => COUNT_PLURAL
     }
     Some(
       SilStateSpecifiedReference(
-        SilNounReference(SilWord(number), determiner, count),
+        SilNounReference(number, determiner, count),
         SilAdpositionalState(
           SilAdposition.OF,
           SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))

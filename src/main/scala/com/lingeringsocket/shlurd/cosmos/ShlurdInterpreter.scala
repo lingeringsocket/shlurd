@@ -260,11 +260,25 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             // FIXME:  for RESPONSE_ELLIPSIS, include the verb as well
             // (or the adposition in the case of QUESTION_WHERE)
             case RESPONSE_TERSE | RESPONSE_ELLIPSIS => {
+              val answer = (answerInflection, normalizedResponse) match {
+                case (
+                  INFLECT_ACCUSATIVE,
+                  SilActionPredicate(_, _, Some(directObject), _, _)
+                ) => {
+                  sentencePrinter.print(
+                    directObject,
+                    INFLECT_ACCUSATIVE,
+                    SilConjoining.NONE)
+                }
+                case _ => {
+                  sentencePrinter.print(
+                    normalizedResponse.getSubject,
+                    INFLECT_NOMINATIVE,
+                    SilConjoining.NONE)
+                }
+              }
               sentencePrinter.sb.terminatedSentence(
-                sentencePrinter.print(
-                  normalizedResponse.getSubject,
-                  INFLECT_NOMINATIVE,
-                  SilConjoining.NONE),
+                answer,
                 responseMood, sentence.formality)
             }
             case _ => {

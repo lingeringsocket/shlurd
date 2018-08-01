@@ -36,3 +36,4 @@ If a person drops an object, then the object has no possessor.
 If a person leaves an object, then the person drops the object.
 If a person discards an object, then the person drops the object.
 If a person puts down an object, then the person drops the object.
+If a person is carrying an object, then the object is the person's possession.

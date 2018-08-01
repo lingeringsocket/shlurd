@@ -195,8 +195,8 @@ class SpcInterpreterSpec extends Specification
         "Yes, he does.")
       interpretMatrix(
         "does Dirk have any friends",
-        "Yes, he has 2 of them.",
-        "Yes, Dirk has 2 of them.",
+        "Yes, he has two of them.",
+        "Yes, Dirk has two of them.",
         "Yes.",
         "Yes, he does.")
       interpretMatrix(
@@ -207,8 +207,8 @@ class SpcInterpreterSpec extends Specification
         "Yes, he does.")
       interpretMatrix(
         "does Todd have any friends",
-        "Yes, he has 1 of them.",
-        "Yes, Todd has 1 of them.",
+        "Yes, he has one of them.",
+        "Yes, Todd has one of them.",
         "Yes.",
         "Yes, he does.")
       interpretMatrix(
@@ -493,10 +493,10 @@ class SpcInterpreterSpec extends Specification
       interpretTerse("is Janet in Christine", "Yes.")
       interpretTerse("who is in Herbie", "Jack.")
       interpretTerse("who is in Christine", "Chrissy and Janet.")
-      interpretTerse("how many men are in Herbie", "1 of them.")
+      interpretTerse("how many men are in Herbie", "One of them.")
       interpretTerse("how many women are in Herbie", "No women.")
       interpretTerse("how many men are in Christine", "No men.")
-      interpretTerse("how many women are in Christine", "2 of them.")
+      interpretTerse("how many women are in Christine", "Two of them.")
       cosmos.sanityCheck must beTrue
     }
 
@@ -710,7 +710,7 @@ class SpcInterpreterSpec extends Specification
         "No, it is not.")
       interpret(
         "how many vehicles are there",
-        "There are 2 of them.")
+        "There are two of them.")
       interpretMatrix(
         "Herbie and Titanic are vehicles?",
         "Yes, they are vehicles.",
@@ -956,6 +956,16 @@ class SpcInterpreterSpec extends Specification
         "then the item is the object's containee.")
       interpretBelief("If an item is occupying an object, " +
         "then the item is in the object.")
+
+      interpretBelief("If an object is carrying an item, " +
+        "then the item is the object's containee.")
+
+      // FIXME this belief should be equivalent
+      /*
+      interpretBelief("If an object is carrying an item, " +
+        "then the object is the item's container.")
+       */
+
       interpretBelief("The wallet is an object.")
       interpretBelief("The pocket is an object.")
       interpretBelief("The money is an object.")
@@ -965,23 +975,28 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("The card is in the wallet.")
       interpretBelief("The key is in the pocket.")
       interpret("how many objects are in the wallet",
-        "2 of them are in the wallet.")
+        "Two of them are in the wallet.")
       interpret("how many objects are in the pocket",
-        "1 of them is in the pocket.")
+        "One of them is in the pocket.")
       interpret("how many objects are the wallet's containee",
-        "2 of them are its containees.")
+        "Two of them are its containees.")
       interpret("how many objects are the pocket's containees",
-        "1 of them is its containee.")
+        "One of them is its containee.")
       interpretMatrix("how many objects are filling the wallet",
-        "2 of them are filling it.",
-        "2 of them are filling the wallet.",
-        "2 of them.",
-        "2 of them.")
+        "Two of them are filling it.",
+        "Two of them are filling the wallet.",
+        "Two of them.",
+        "Two of them.")
+      interpretMatrix("how many objects is the wallet carrying",
+        "It is carrying two of them.",
+        "The wallet is carrying two of them.",
+        "Two of them.",
+        "Two of them.")
       interpretMatrix("how many objects are occupying the pocket",
-        "1 of them is occupying it.",
-        "1 of them is occupying the pocket.",
-        "1 of them.",
-        "1 of them.")
+        "One of them is occupying it.",
+        "One of them is occupying the pocket.",
+        "One of them.",
+        "One of them.")
       interpretMatrix("which objects are filling the wallet",
         "The money and the card are filling it.",
         "The money and the card are filling the wallet.",

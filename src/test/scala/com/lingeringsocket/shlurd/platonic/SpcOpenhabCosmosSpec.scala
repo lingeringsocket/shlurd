@@ -280,7 +280,7 @@ class SpcOpenhabCosmosSpec extends Specification
         "Yes, there is a garage light.")
       interpret(
         "is there any light in the garden",
-        "Yes, there are 2 of them.")
+        "Yes, there are two of them.")
       interpret(
         "are any heaters off",
         "Yes, the bathroom heating is off.")

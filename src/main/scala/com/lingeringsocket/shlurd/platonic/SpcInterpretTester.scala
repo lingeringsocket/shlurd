@@ -26,26 +26,36 @@ import scala.io._
  */
 class SpcInterpretTester(beliefsFile : String) extends ShlurdParseTester
 {
-  private val cosmos = new SpcCosmos
-  SpcPrimordial.initCosmos(cosmos)
-  cosmos.loadBeliefs(Source.fromFile(beliefsFile))
+  private val seedCosmos = new SpcCosmos
+  SpcPrimordial.initCosmos(seedCosmos)
+  seedCosmos.loadBeliefs(Source.fromFile(beliefsFile))
 
-  private val mind = new SpcMind(cosmos)
-  mind.startConversation
+  private var cosmos = new SpcCosmos
+  private var mind = new SpcMind(cosmos)
 
-  private val interpreter =
-    new SpcInterpreter(
-      mind, ACCEPT_MODIFIED_BELIEFS,
-      ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE))
+  override protected def restartSequence()
+  {
+    cosmos = new SpcCosmos
+    cosmos.copyFrom(seedCosmos)
+    mind = new SpcMind(cosmos)
+    mind.startConversation
+  }
 
   override protected def processOne(
     input : String, answer : String) =
   {
+    val interpreter =
+      new SpcInterpreter(
+        mind, ACCEPT_MODIFIED_BELIEFS,
+        ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE))
+
     val sentence = ShlurdParser(input).parseOne
     val response = interpreter.interpret(sentence, input)
     val expected = {
       if (answer.isEmpty) {
         "OK."
+      } else if (answer == "none") {
+        "No "
       } else {
         answer
       }
