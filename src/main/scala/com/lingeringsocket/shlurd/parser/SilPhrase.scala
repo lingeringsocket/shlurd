@@ -56,7 +56,7 @@ sealed trait SilPhrase
 
 sealed trait SilSentence extends SilPhrase
 {
-  def mood : SilMood
+  def tam : SilTam
 
   def formality : SilFormality
 }
@@ -108,7 +108,7 @@ sealed trait SilUnknownPhrase extends SilPhrase
 sealed trait SilUnknownSentence
     extends SilSentence with SilUnknownPhrase
 {
-  override def mood = MOOD_INDICATIVE_POSITIVE
+  override def tam = SilTam.indicative
 
   override def formality = SilFormality.DEFAULT
 }
@@ -178,7 +178,7 @@ case class SilUnparsedSentence(
 
   override def countUnknownSyntaxLeaves = Int.MaxValue
 
-  override def mood = MOOD_INDICATIVE_POSITIVE
+  override def tam = SilTam.indicative
 
   override def formality = SilFormality.DEFAULT
 }
@@ -319,7 +319,7 @@ case class SilUnresolvedRelationshipPredicate(
 
 case class SilPredicateSentence(
   predicate : SilPredicate,
-  mood : SilMood = MOOD_INDICATIVE_POSITIVE,
+  tam : SilTam = SilTam.indicative,
   formality : SilFormality = SilFormality.DEFAULT
 ) extends SilTransformedPhrase with SilSentence
 {
@@ -329,14 +329,14 @@ case class SilPredicateSentence(
 case class SilConditionalSentence(
   antecedent : SilPredicate,
   consequent : SilPredicate,
-  antecedentMood : SilMood,
-  consequentMood : SilMood,
+  tamAntecedent : SilTam,
+  tamConsequent : SilTam,
   formality : SilFormality = SilFormality.DEFAULT
 ) extends SilTransformedPhrase with SilSentence
 {
   override def children = Seq(antecedent, consequent)
 
-  override def mood = consequentMood
+  override def tam = tamConsequent
 }
 
 case class SilStateChangeCommand(
@@ -347,14 +347,14 @@ case class SilStateChangeCommand(
 {
   override def children = Seq(predicate)
 
-  override def mood = MOOD_IMPERATIVE
+  override def tam = SilTam.imperative
 }
 
 case class SilPredicateQuery(
   predicate : SilPredicate,
   question : SilQuestion,
   answerInflection : SilInflection,
-  mood : SilMood,
+  tam : SilTam,
   formality : SilFormality = SilFormality.DEFAULT
 ) extends SilTransformedPhrase with SilSentence
 {
@@ -370,7 +370,7 @@ case class SilConjunctiveSentence(
   override def children = sentences
 
   // not really sure there's any more meaningful implementation
-  override def mood = sentences.head.mood
+  override def tam = sentences.head.tam
 
   override def formality = sentences.head.formality
 }
@@ -382,7 +382,7 @@ case class SilAmbiguousSentence(
 {
   override def children = alternatives
 
-  override def mood = alternatives.head.mood
+  override def tam = alternatives.head.tam
 
   override def formality = alternatives.head.formality
 

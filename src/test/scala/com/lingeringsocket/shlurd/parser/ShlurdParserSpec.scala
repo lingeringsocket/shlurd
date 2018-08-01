@@ -134,9 +134,9 @@ class ShlurdParserSpec extends Specification
         SilPredicateSentence(predStateDoor())
       parse(input + "!") must be equalTo
         SilPredicateSentence(predStateDoor(),
-          MOOD_INDICATIVE_POSITIVE, SilFormality(FORCE_EXCLAMATION))
+          SilTam.indicative, SilFormality(FORCE_EXCLAMATION))
       parse(input + "?") must be equalTo
-        SilPredicateSentence(predStateDoor(), MOOD_INTERROGATIVE_POSITIVE)
+        SilPredicateSentence(predStateDoor(), SilTam.interrogative)
     }
 
     "parse a transitive action predicate statement" in
@@ -146,7 +146,7 @@ class ShlurdParserSpec extends Specification
         SilPredicateSentence(predTransitiveAction(NOUN_FRANNY))
       parse(input + "?") must be equalTo
         SilPredicateSentence(predTransitiveAction(NOUN_FRANNY),
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
     }
 
     "parse an intransitive action predicate statement" in
@@ -156,26 +156,26 @@ class ShlurdParserSpec extends Specification
         SilPredicateSentence(predIntransitiveAction(NOUN_DOOR))
       parse(input + "?") must be equalTo
         SilPredicateSentence(predIntransitiveAction(NOUN_DOOR),
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
     }
 
     "parse a negation" in
     {
       val input = "the door is not open"
       parse(input) must be equalTo
-        SilPredicateSentence(predStateDoor(), MOOD_INDICATIVE_NEGATIVE)
+        SilPredicateSentence(predStateDoor(), SilTam.indicative.negative)
       val contracted = "the door isn't open"
       parse(input) must be equalTo
-        SilPredicateSentence(predStateDoor(), MOOD_INDICATIVE_NEGATIVE)
+        SilPredicateSentence(predStateDoor(), SilTam.indicative.negative)
     }
 
     "parse a state predicate question" in
     {
       val input = "is the door open"
       parse(input) must be equalTo
-        SilPredicateSentence(predStateDoor(), MOOD_INTERROGATIVE_POSITIVE)
+        SilPredicateSentence(predStateDoor(), SilTam.interrogative)
       parse(input + "?") must be equalTo
-        SilPredicateSentence(predStateDoor(), MOOD_INTERROGATIVE_POSITIVE)
+        SilPredicateSentence(predStateDoor(), SilTam.interrogative)
     }
 
     "parse a nominative enumeration question" in
@@ -183,7 +183,7 @@ class ShlurdParserSpec extends Specification
       val input = "which door is open"
       val expected = SilPredicateQuery(
         predStateDoor(STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-        QUESTION_WHICH, INFLECT_NOMINATIVE, MOOD_INTERROGATIVE_POSITIVE)
+        QUESTION_WHICH, INFLECT_NOMINATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }
@@ -195,7 +195,7 @@ class ShlurdParserSpec extends Specification
         predTransitiveAction(
           NOUN_FRANNY, ACTION_OPEN, NOUN_DOOR, DETERMINER_UNSPECIFIED),
         QUESTION_WHICH, INFLECT_ACCUSATIVE,
-        SilInterrogativeMood(true, MODAL_MUST))
+        SilTam.interrogative.withModality(MODAL_MUST))
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }
@@ -209,7 +209,7 @@ class ShlurdParserSpec extends Specification
           SilAdpositionalState(
             SilAdposition.AT,
             SilNounReference(NOUN_HOME))),
-        QUESTION_WHO, INFLECT_NOMINATIVE, MOOD_INTERROGATIVE_POSITIVE)
+        QUESTION_WHO, INFLECT_NOMINATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }
@@ -219,7 +219,7 @@ class ShlurdParserSpec extends Specification
       val input = "who opens the door"
       val expected = SilPredicateQuery(
         predTransitiveAction(NOUN_WHO),
-        QUESTION_WHO, INFLECT_NOMINATIVE, MOOD_INTERROGATIVE_POSITIVE)
+        QUESTION_WHO, INFLECT_NOMINATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }
@@ -229,7 +229,7 @@ class ShlurdParserSpec extends Specification
       val input = "how many doors are open"
       val expected = SilPredicateQuery(
         predState(NOUN_DOORS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_PLURAL),
-        QUESTION_HOW_MANY, INFLECT_NOMINATIVE, MOOD_INTERROGATIVE_POSITIVE)
+        QUESTION_HOW_MANY, INFLECT_NOMINATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }
@@ -242,7 +242,7 @@ class ShlurdParserSpec extends Specification
           NOUN_FRANNY, ACTION_CARRYING, NOUN_PIGS,
           DETERMINER_UNSPECIFIED, COUNT_PLURAL),
         QUESTION_HOW_MANY, INFLECT_ACCUSATIVE,
-        SilInterrogativeMood(true, MODAL_PROGRESSIVE))
+        SilTam.interrogative.withModality(MODAL_PROGRESSIVE))
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }
@@ -251,18 +251,18 @@ class ShlurdParserSpec extends Specification
     {
       val input = "is not the door open"
       parse(input) must be equalTo
-        SilPredicateSentence(predStateDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        SilPredicateSentence(predStateDoor(), SilTam.interrogative.negative)
       parse(input + "?") must be equalTo
-        SilPredicateSentence(predStateDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        SilPredicateSentence(predStateDoor(), SilTam.interrogative.negative)
     }
 
     "parse a negated question with contraction" in
     {
       val input = "isn't the door open"
       parse(input) must be equalTo
-        SilPredicateSentence(predStateDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        SilPredicateSentence(predStateDoor(), SilTam.interrogative.negative)
       parse(input + "?") must be equalTo
-        SilPredicateSentence(predStateDoor(), MOOD_INTERROGATIVE_NEGATIVE)
+        SilPredicateSentence(predStateDoor(), SilTam.interrogative.negative)
     }
 
     "parse a command" in
@@ -303,7 +303,7 @@ class ShlurdParserSpec extends Specification
       val question = "is the door closed"
       parse(question) must be equalTo
         SilPredicateSentence(
-          predStateDoor(STATE_CLOSED), MOOD_INTERROGATIVE_POSITIVE)
+          predStateDoor(STATE_CLOSED), SilTam.interrogative)
     }
 
     "parse adpositional verbs" in
@@ -323,7 +323,7 @@ class ShlurdParserSpec extends Specification
       val question = "is the door sideways"
       parse(question) must be equalTo
       SilPredicateSentence(
-        predStateDoor(STATE_SIDEWAYS), MOOD_INTERROGATIVE_POSITIVE)
+        predStateDoor(STATE_SIDEWAYS), SilTam.interrogative)
     }
 
     "parse conjunctive state" in
@@ -339,7 +339,7 @@ class ShlurdParserSpec extends Specification
               Seq(
                 SilPropertyState(STATE_OPEN),
                 SilPropertyState(STATE_SIDEWAYS)))),
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
       val disjunction = "is the door either open or closed"
       parse(disjunction) must be equalTo
         SilPredicateSentence(
@@ -351,7 +351,7 @@ class ShlurdParserSpec extends Specification
               Seq(
                 SilPropertyState(STATE_OPEN),
                 SilPropertyState(STATE_CLOSED)))),
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
     }
 
     "parse determiners" in
@@ -383,12 +383,12 @@ class ShlurdParserSpec extends Specification
       parse(inputAnyQ) must be equalTo
         SilPredicateSentence(
           predStateDoor(STATE_OPEN, DETERMINER_ANY),
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
       val inputAllQ = "are all doors open"
       parse(inputAllQ) must be equalTo
         SilPredicateSentence(
           predState(NOUN_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL),
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
     }
 
     "parse qualifiers" in
@@ -413,7 +413,7 @@ class ShlurdParserSpec extends Specification
             SilAdpositionalState(
               SilAdposition.AT,
               SilNounReference(NOUN_HOME))),
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
     }
 
     "parse adposition specifiers" in
@@ -433,11 +433,11 @@ class ShlurdParserSpec extends Specification
       parse("the window in the bathroom is open") must be equalTo
         SilPredicateSentence(
           pred,
-          MOOD_INDICATIVE_POSITIVE)
+          SilTam.indicative)
       parse("is the window in the bathroom open") must be equalTo
         SilPredicateSentence(
           pred,
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
       parse("open the window in the bathroom") must be equalTo
         SilStateChangeCommand(
           pred)
@@ -465,7 +465,7 @@ class ShlurdParserSpec extends Specification
             SilAdpositionalState(
               SilAdposition.AT,
               SilNounReference(NOUN_HOME))),
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
     }
 
     "parse possessive reference" in
@@ -478,7 +478,7 @@ class ShlurdParserSpec extends Specification
               SilNounReference(NOUN_FRANNY),
               SilNounReference(NOUN_MOUSE)),
             SilPropertyState(STATE_HUNGRY)),
-          MOOD_INTERROGATIVE_POSITIVE)
+          SilTam.interrogative)
     }
 
     "parse genitive reference" in
@@ -493,7 +493,7 @@ class ShlurdParserSpec extends Specification
               SilNounReference(NOUN_SISTER)),
             REL_IDENTITY
           ),
-          MOOD_INDICATIVE_POSITIVE)
+          SilTam.indicative)
     }
 
     "parse conjunctive reference" in
@@ -553,19 +553,21 @@ class ShlurdParserSpec extends Specification
     {
       parse("The door must be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(), SilIndicativeMood(true, MODAL_MUST)))
+          predStateDoor(), SilTam.indicative.withModality(MODAL_MUST)))
       parse("Must the door be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(), SilInterrogativeMood(true, MODAL_MUST)))
+          predStateDoor(), SilTam.interrogative.withModality(MODAL_MUST)))
       parse("The door may be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(), SilIndicativeMood(true, MODAL_MAY)))
+          predStateDoor(), SilTam.indicative.withModality(MODAL_MAY)))
       parse("The door must not be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(), SilIndicativeMood(false, MODAL_MUST)))
+          predStateDoor(),
+          SilTam.indicative.negative.withModality(MODAL_MUST)))
       parse("Mustn't the door be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(), SilInterrogativeMood(false, MODAL_MUST)))
+          predStateDoor(),
+          SilTam.interrogative.negative.withModality(MODAL_MUST)))
     }
 
     "parse existence" in
@@ -581,23 +583,23 @@ class ShlurdParserSpec extends Specification
       parse("There is not a door") must be equalTo(
         SilPredicateSentence(
           doorExistencePred,
-          SilIndicativeMood(false)))
+          SilTam.indicative.negative))
       parse("There must be a door") must be equalTo(
         SilPredicateSentence(
           doorExistencePred,
-          SilIndicativeMood(true, MODAL_MUST)))
+          SilTam.indicative.withModality(MODAL_MUST)))
       parse("There is a door?") must be equalTo(
         SilPredicateSentence(
           doorExistencePred,
-          SilInterrogativeMood(true)))
+          SilTam.interrogative))
       parse("Is there a door") must be equalTo(
         SilPredicateSentence(
           doorExistencePred,
-          SilInterrogativeMood(true)))
+          SilTam.interrogative))
       parse("Must there be a door") must be equalTo(
         SilPredicateSentence(
           doorExistencePred,
-          SilInterrogativeMood(true, MODAL_MUST)))
+          SilTam.interrogative.withModality(MODAL_MUST)))
 
       parse("There is a front door") must be equalTo(
         SilPredicateSentence(
@@ -624,7 +626,7 @@ class ShlurdParserSpec extends Specification
               DETERMINER_ANY,
               doorPlusWindow),
             SilExistenceState()),
-          SilInterrogativeMood(true)))
+          SilTam.interrogative))
     }
 
     "parse relative clauses" in
@@ -686,9 +688,9 @@ class ShlurdParserSpec extends Specification
             SilUnrecognizedReference(syntaxTree),
             SilPropertyState(STATE_OPEN),
             Seq()),
-          MOOD_INDICATIVE_POSITIVE,
+          tam,
           SilFormality.DEFAULT
-        ) => {
+        ) if (tam.isIndicative) => {
           val dependencyStripped = ShlurdSyntaxRewrite.rewriteAbstract(
             syntaxTree,
             true)

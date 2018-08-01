@@ -27,14 +27,14 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
   {
     assert(unrecognized.isUninterpretable)
     unrecognized match {
-      case SilPredicateSentence(predicate, mood, _) => {
+      case SilPredicateSentence(predicate, tam, _) => {
         predicate match {
           case SilStatePredicate(subject, state, modifiers) => {
             val count = computeMaxCount(
               subject,
               predicate.getInflectedCount)
             val response = respondToUnresolvedPredicate(
-              subject, state, mood, count, None, modifiers)
+              subject, state, tam, count, None, modifiers)
             if (!response.isEmpty) {
               return response
             }
@@ -44,7 +44,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
           ) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
-              subject, complement, mood, count, Some(rel), modifiers)
+              subject, complement, tam, count, Some(rel), modifiers)
             if (!response.isEmpty) {
               return response
             }
@@ -60,13 +60,13 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
           predicate.getInflectedCount)
         val response = respondToUnresolvedPredicate(
           predicate.subject, predicate.state,
-          MOOD_IMPERATIVE, count, None, predicate.modifiers, changeVerb)
+          SilTam.imperative, count, None, predicate.modifiers, changeVerb)
         if (!response.isEmpty) {
           return response
         }
       }
       case SilPredicateQuery(
-        predicate, question, answerInflection, mood, _
+        predicate, question, answerInflection, tam, _
       ) => {
         predicate match {
           case SilStatePredicate(subject, state, modifiers) => {
@@ -74,7 +74,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
               subject,
               predicate.getInflectedCount)
             val response = respondToUnresolvedPredicate(
-              subject, state, mood, count, None, modifiers, None,
+              subject, state, tam, count, None, modifiers, None,
               Some(question))
             if (!response.isEmpty) {
               return response
@@ -85,7 +85,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
           ) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
-              subject, complement, mood, count,
+              subject, complement, tam, count,
               Some(rel), modifiers, None, Some(question))
             if (!response.isEmpty) {
               return response
@@ -109,7 +109,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
   private def respondToUnresolvedPredicate(
     subject : SilReference,
     complement : SilPhrase,
-    mood : SilMood,
+    tam : SilTam,
     count : SilCount,
     rel : Option[SilRelationship],
     modifiers : Seq[SilVerbModifier],
@@ -119,7 +119,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     if (!modifiers.isEmpty) {
       // FIXME get real
       return sb.respondNotUnderstood(
-        mood, "something",
+        tam, "something",
         modifiers.map(_.toWordString).mkString(" "))
     }
     val verbLemma = {
@@ -137,13 +137,13 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     }
     val verbSeq = sb.delemmatizeVerb(
       PERSON_THIRD, GENDER_N, count,
-      mood, false, SilWord(verbLemma), INFLECT_NONE)
+      tam, false, SilWord(verbLemma), INFLECT_NONE)
     if (!subject.hasUnknown) {
       assert(complement.hasUnknown)
       sb.respondNotUnderstood(
-        mood,
+        tam,
         sb.predicateUnrecognizedComplement(
-          mood,
+          tam,
           sentencePrinter.print(
             subject,
             if (question.isEmpty) INFLECT_ACCUSATIVE else INFLECT_NOMINATIVE,
@@ -153,9 +153,9 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     } else if (!complement.hasUnknown) {
       assert(subject.hasUnknown)
       sb.respondNotUnderstood(
-        mood,
+        tam,
         sb.predicateUnrecognizedSubject(
-          mood,
+          tam,
           complement match {
             case reference : SilReference => {
               sentencePrinter.print(
@@ -166,7 +166,7 @@ class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
             case state : SilState => {
               sentencePrinter.print(
                 state,
-                mood,
+                tam,
                 SilConjoining.NONE)
             }
             case _ => complement.toWordString

@@ -92,8 +92,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
     if (children.size > 2) {
       analyzeSubQueryChildren(tree, children, specifiedState) match {
-        case Some((predicate, mood)) => {
-          SilPredicateSentence(predicate, mood)
+        case Some((predicate, tam)) => {
+          SilPredicateSentence(predicate, tam)
         }
         case _ => SilUnrecognizedSentence(tree)
       }
@@ -136,7 +136,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     children : Seq[ShlurdSyntaxTree],
     specifiedState : SilState,
     specifiedDirectObject : Option[SilReference] = None)
-      : Option[(SilPredicate, SilMood)] =
+      : Option[(SilPredicate, SilTam)] =
   {
     val (modality, modeless, modalCount) = extractModality(children)
     val (negativeSuper, seq) = extractNegative(modeless)
@@ -190,13 +190,15 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
           relationshipFor(verbHead), verbModifiers)
       val positive = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, modality, modalCount)
-      Some((predicate, SilInterrogativeMood(positive, modality)))
+      Some((predicate, SilTam.interrogative.withPositivity(positive).
+        withModality(modality)))
     } else {
       val (negativeSub, predicate) = analyzeActionPredicate(
         tree, np, vp, specifiedDirectObject, verbModifiers)
       val positive = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, modality, modalCount)
-      Some((predicate, SilInterrogativeMood(positive, modality)))
+      Some((predicate, SilTam.interrogative.withPositivity(positive).
+        withModality(modality)))
     }
   }
 
@@ -283,7 +285,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       rememberPredicateCount(predicate, verbHead)
       SilPredicateQuery(
         predicate, question, INFLECT_NOMINATIVE,
-        SilInterrogativeMood(!(negativeSuper ^ negativeSub)))
+        SilTam.interrogative.withPositivity(!(negativeSuper ^ negativeSub)))
     } else {
       // FIXME support dative and adpositional objects too
       val (specifiedDirectObject, answerInflection, sqChildren) = {
@@ -296,9 +298,9 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       analyzeSubQueryChildren(
         tree, sqChildren, specifiedState, specifiedDirectObject) match
       {
-        case Some((predicate, mood)) => {
+        case Some((predicate, tam)) => {
           SilPredicateQuery(
-            predicate, question, answerInflection, mood)
+            predicate, question, answerInflection, tam)
         }
         case _ => {
           SilUnrecognizedSentence(tree)
@@ -420,30 +422,30 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         relationshipFor(verbHead), verbModifiers ++ extraModifiers)
       val positive = !(negative ^ negativeComplement)
       rememberPredicateCount(predicate, verbHead, modality, modalCount)
-      val mood = {
+      val tam = {
         if (isQuestion) {
-          SilInterrogativeMood(positive, modality)
+          SilTam.interrogative.withPositivity(positive).withModality(modality)
         } else {
-          SilIndicativeMood(positive, modality)
+          SilTam.indicative.withPositivity(positive).withModality(modality)
         }
       }
       SilPredicateSentence(
-        predicate, mood, SilFormality(force))
+        predicate, tam, SilFormality(force))
     } else {
       val (negativeVerb, predicate) = analyzeActionPredicate(
         tree, np, vp, None, verbModifiers)
       val positive = !(negative ^ negativeVerb)
       rememberPredicateCount(predicate, verbHead, modality, modalCount)
-      val mood = {
+      val tam = {
         if (isQuestion) {
-          SilInterrogativeMood(positive, modality)
+          SilTam.interrogative.withPositivity(positive).withModality(modality)
         } else {
-          SilIndicativeMood(positive, modality)
+          SilTam.indicative.withPositivity(positive).withModality(modality)
         }
       }
       SilPredicateSentence(
         predicate,
-        mood,
+        tam,
         SilFormality(force))
     }
   }
@@ -457,8 +459,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     val antecedentSentence = analyzeSentence(antecedent)
     val consequentSentence = analyzeSentence(consequent)
 
-    antecedentSentence.mood match {
-      case SilIndicativeMood(true, MODAL_NEUTRAL | MODAL_PROGRESSIVE) =>
+    if (!antecedentSentence.tam.isPositive) {
+      return SilUnrecognizedSentence(tree)
+    }
+    antecedentSentence.tam.modality match {
+      case MODAL_NEUTRAL | MODAL_PROGRESSIVE =>
       case _ => {
         // Oooooo....modal logic.  Maybe one day.
         return SilUnrecognizedSentence(tree)
@@ -479,8 +484,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     SilConditionalSentence(
       antecedentPredicate,
       consequentPredicate,
-      antecedentSentence.mood,
-      consequentSentence.mood,
+      antecedentSentence.tam,
+      consequentSentence.tam,
       formality
     )
   }

@@ -119,7 +119,7 @@ class SpcCreed(cosmos : SpcCosmos)
         idealNoun(cosmos.getGraph.getHyponymIdeal(edge)),
         idealNoun(cosmos.getGraph.getHypernymIdeal(edge)),
         REL_IDENTITY),
-      SilIndicativeMood(true, MODAL_MUST))
+      SilTam.indicative.withModality(MODAL_MUST))
   }
 
   def formAliasBelief(
@@ -163,8 +163,7 @@ class SpcCreed(cosmos : SpcCosmos)
           }
         }
       ),
-      SilIndicativeMood(
-        true,
+      SilTam.indicative.withModality(
         if (property.isClosed) MODAL_MUST else MODAL_MAY)
     )
   }
@@ -216,8 +215,7 @@ class SpcCreed(cosmos : SpcCosmos)
         idealNoun(cosmos.getGraph.getPossessorIdeal(edge)),
         possessee,
         REL_ASSOCIATION),
-      SilIndicativeMood(
-        true,
+      SilTam.indicative.withModality(
         if (constraint.lower == 0) MODAL_MAY else MODAL_MUST)
     )
   }

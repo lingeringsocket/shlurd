@@ -55,11 +55,11 @@ abstract class SilSentenceBundle
   }
 
   protected def terminationMark(
-    mood : SilMood, formality : SilFormality) =
+    tam : SilTam, formality : SilFormality) =
   {
     formality.force match {
-      case FORCE_NEUTRAL => mood match {
-        case _ : SilInterrogativeMood => "?"
+      case FORCE_NEUTRAL => tam.mood match {
+        case MOOD_INTERROGATIVE => "?"
         case _ => "."
       }
       case FORCE_EXCLAMATION => "!"
@@ -67,9 +67,9 @@ abstract class SilSentenceBundle
   }
 
   def terminatedSentence(
-    s : String, mood : SilMood, formality : SilFormality) : String =
+    s : String, tam : SilTam, formality : SilFormality) : String =
   {
-    concat(s, terminationMark(mood, formality))
+    concat(s, terminationMark(tam, formality))
   }
 
   def statePredicateStatement(
@@ -84,7 +84,7 @@ abstract class SilSentenceBundle
     directObject : Option[String],
     indirectObject : Option[String],
     modifiers : Seq[String],
-    mood : SilMood,
+    tam : SilTam,
     answerInflection : SilInflection = INFLECT_NONE) : String
 
   def relationshipPredicate(
@@ -93,7 +93,7 @@ abstract class SilSentenceBundle
     secondRef : String,
     relationship : SilRelationship,
     question : Option[SilQuestion],
-    mood : SilMood,
+    tam : SilTam,
     modifiers : Seq[String]) : String
 
   def statePredicateQuestion(
@@ -110,7 +110,7 @@ abstract class SilSentenceBundle
 
   def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
-    mood : SilMood, isExistential : Boolean,
+    tam : SilTam, isExistential : Boolean,
     verb : SilWord, answerInflection : SilInflection) : Seq[String]
 
   def adpositionString(adposition : SilAdposition) : String
@@ -127,7 +127,7 @@ abstract class SilSentenceBundle
     conjoining : SilConjoining) : String
 
   def delemmatizeState(
-    state : SilWord, mood : SilMood,
+    state : SilWord, tam : SilTam,
     conjoining : SilConjoining) : String
 
   def delemmatizeQualifier(qualifier : SilWord) : String
@@ -174,15 +174,15 @@ abstract class SilSentenceBundle
   def respondDontKnow() : String
 
   def respondNotUnderstood(
-    mood : SilMood, predicate : String, errorPhrase : String) : String
+    tam : SilTam, predicate : String, errorPhrase : String) : String
 
   def predicateUnrecognizedSubject(
-    mood : SilMood, complement : String, verbSeq : Seq[String],
+    tam : SilTam, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],
     question : Option[SilQuestion]) : String
 
   def predicateUnrecognizedComplement(
-    mood : SilMood, subject : String,
+    tam : SilTam, subject : String,
     verbSeq : Seq[String],
     question : Option[SilQuestion],
     isRelationship : Boolean) : String

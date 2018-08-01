@@ -41,7 +41,7 @@ class EnglishSentenceBundle
     directObject : Option[String],
     indirectObject : Option[String],
     modifiers : Seq[String],
-    mood : SilMood,
+    tam : SilTam,
     answerInflection : SilInflection) =
   {
     val directObjectPost = answerInflection match {
@@ -51,7 +51,7 @@ class EnglishSentenceBundle
     val complement = compose((directObjectPost.toSeq ++
       indirectObject.map(n => compose(LEMMA_TO, n))):_*)
     val primary = {
-      if (!mood.isInterrogative ||
+      if (!tam.isInterrogative ||
         (answerInflection == INFLECT_NOMINATIVE))
       {
         composePredicateStatement(
@@ -96,16 +96,16 @@ class EnglishSentenceBundle
     subject : String, verbSeq : Seq[String], complement : String,
     relationship : SilRelationship,
     question : Option[SilQuestion],
-    mood : SilMood,
+    tam : SilTam,
     modifiers : Seq[String]) =
   {
-    if (mood.isInterrogative && question.isEmpty) {
+    if (tam.isInterrogative && question.isEmpty) {
       relationship match {
         case REL_IDENTITY => {
           composePredicateQuestion(subject, verbSeq, complement, modifiers)
         }
         case REL_ASSOCIATION => {
-          if (mood.isIndicative && (mood.getModality == MODAL_NEUTRAL)) {
+          if (tam.isIndicative && (tam.modality == MODAL_NEUTRAL)) {
             composePredicateStatement(subject, verbSeq, complement, modifiers)
           } else {
             composePredicateQuestion(subject, verbSeq, complement, modifiers)
@@ -145,14 +145,14 @@ class EnglishSentenceBundle
   }
 
   private def delemmatizeModalVerb(
-    mood : SilMood, verb : SilWord,
+    tam : SilTam, verb : SilWord,
     person : SilPerson, gender : SilGender, count : SilCount) =
   {
     val verbLemma = verb.lemma
     val modality = {
       verbLemma match {
-        case LEMMA_BE => mood.getModality
-        case _ => mood.getModality match {
+        case LEMMA_BE => tam.modality
+        case _ => tam.modality match {
           case MODAL_NEUTRAL => MODAL_EMPHATIC
           case x => x
         }
@@ -181,7 +181,7 @@ class EnglishSentenceBundle
       }
     }
     val prefix = {
-      if (mood.isNegative) {
+      if (tam.isNegative) {
         Seq(aux, LEMMA_NOT)
       } else {
         Seq(aux)
@@ -236,30 +236,30 @@ class EnglishSentenceBundle
 
   override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
-    mood : SilMood, isExistential : Boolean,
+    tam : SilTam, isExistential : Boolean,
     verb : SilWord,
     answerInflection : SilInflection
   )
       : Seq[String] =
   {
     if ((verb.lemma != LEMMA_BE) && (verb.lemma != LEMMA_EXIST) &&
-      (mood.isNegative || mood.isInterrogative) &&
+      (tam.isNegative || tam.isInterrogative) &&
       (answerInflection != INFLECT_NOMINATIVE))
     {
-      return delemmatizeModalVerb(mood, verb, person, gender, count)
+      return delemmatizeModalVerb(tam, verb, person, gender, count)
     }
-    val seq = mood.getModality match {
+    val seq = tam.modality match {
       case MODAL_NEUTRAL => {
         val inflected = delemmatizeModelessVerb(
           person, gender, count, verb)
-        if (mood.isNegative) {
+        if (tam.isNegative) {
           Seq(inflected, LEMMA_NOT)
         } else {
           Seq(inflected)
         }
       }
       case _ => {
-        delemmatizeModalVerb(mood, verb, person, gender, count)
+        delemmatizeModalVerb(tam, verb, person, gender, count)
       }
     }
     if (isExistential) {
@@ -344,7 +344,7 @@ class EnglishSentenceBundle
   }
 
   override def delemmatizeState(
-    state : SilWord, mood : SilMood, conjoining : SilConjoining) =
+    state : SilWord, tam : SilTam, conjoining : SilConjoining) =
   {
     val unseparated = {
       if (state.inflected.isEmpty) {
@@ -702,13 +702,13 @@ class EnglishSentenceBundle
   }
 
   override def respondNotUnderstood(
-    mood : SilMood, predicate : String, errorPhrase : String) =
+    tam : SilTam, predicate : String, errorPhrase : String) =
   {
-    val prefix = mood match {
-      case _ : SilIndicativeMood => {
+    val prefix = tam.mood match {
+      case MOOD_INDICATIVE => {
         "I think you are saying"
       }
-      case _ : SilInterrogativeMood => {
+      case MOOD_INTERROGATIVE => {
         "I think you are asking"
       }
       case MOOD_IMPERATIVE => {
@@ -723,7 +723,7 @@ class EnglishSentenceBundle
   }
 
   override def predicateUnrecognizedSubject(
-    mood : SilMood, complement : String, verbSeq : Seq[String],
+    tam : SilTam, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],
     question : Option[SilQuestion]) =
   {
@@ -742,12 +742,12 @@ class EnglishSentenceBundle
         ""
       }
     }
-    mood match {
-      case _ : SilIndicativeMood => {
+    tam.mood match {
+      case MOOD_INDICATIVE => {
         compose("that",
           composePredicateStatement(something, verbSeq, complement))
       }
-      case _ : SilInterrogativeMood => {
+      case MOOD_INTERROGATIVE => {
         val whord = {
           if (question.isEmpty) {
             "whether"
@@ -766,12 +766,12 @@ class EnglishSentenceBundle
   }
 
   override def predicateUnrecognizedComplement(
-    mood : SilMood, subject : String,
+    tam : SilTam, subject : String,
     verbSeq : Seq[String],
     question : Option[SilQuestion],
     isRelationship : Boolean) =
   {
-    mood match {
+    tam.mood match {
       case MOOD_IMPERATIVE => {
         compose("do something with", subject)
       }

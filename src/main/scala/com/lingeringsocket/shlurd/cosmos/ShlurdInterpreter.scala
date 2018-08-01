@@ -189,10 +189,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             responseRewriter.normalizeResponse(
               predicate, resultCollector, generalParams)
           assert(!negateCollection)
-          val responseMood = MOOD_INDICATIVE_POSITIVE
+          val tamResponse = SilTam.indicative
           val responseSentence = SilPredicateSentence(
             normalizedResponse,
-            responseMood)
+            tamResponse)
           (responseSentence,
             sentencePrinter.sb.respondToCounterfactual(
               sentencePrinter.print(responseSentence)))
@@ -218,7 +218,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def interpretPredicateQuery = sentenceInterpreter {
     case sentence @ SilPredicateQuery(
-      predicate, question, answerInflection, mood, formality
+      predicate, question, answerInflection, tam, formality
     ) => {
       debug("PREDICATE QUERY")
       // FIXME deal with positive, modality
@@ -249,13 +249,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 listLimit = extremeLimit),
               Some(question))
           debug(s"NORMALIZED RESPONSE : $normalizedResponse")
-          val responseMood = SilIndicativeMood(
-            truthBoolean || negateCollection,
-            mood.getModality
-          )
+          val tamResponse = SilTam.indicative.withPositivity(
+            truthBoolean || negateCollection).withModality(tam.modality)
           val responseSentence = SilPredicateSentence(
             normalizedResponse,
-            responseMood)
+            tamResponse)
           val adjustedResponse = generalParams.verbosity match {
             // FIXME:  for RESPONSE_ELLIPSIS, include the verb as well
             // (or the adposition in the case of QUESTION_WHERE)
@@ -279,7 +277,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
               sentencePrinter.sb.terminatedSentence(
                 answer,
-                responseMood, sentence.formality)
+                tamResponse, sentence.formality)
             }
             case _ => {
               sentencePrinter.print(responseSentence)
@@ -297,11 +295,11 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def interpretPredicateSentence = sentenceInterpreter {
-    case SilPredicateSentence(predicate, mood, formality) => {
+    case SilPredicateSentence(predicate, tam, formality) => {
       val resultCollector = ResultCollector[E]
-      mood match {
+      tam.mood match {
         // FIXME deal with positive, modality
-        case SilInterrogativeMood(positive, modality) => {
+        case MOOD_INTERROGATIVE => {
           debug("PREDICATE QUERY SENTENCE")
           val query = predicate
           val result = evaluatePredicate(query, resultCollector)
@@ -330,7 +328,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
               }
               val responseSentence = SilPredicateSentence(
                 normalizedResponse,
-                SilIndicativeMood(responseTruth, mood.getModality))
+                SilTam.indicative.withPositivity(responseTruth).
+                  withModality(tam.modality))
               val printedSentence = {
                 params.verbosity match {
                   case RESPONSE_TERSE => {
@@ -357,20 +356,20 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             }
           }
         }
-        case _ : SilIndicativeMood => {
-          // FIXME deal with mood.getModality
-          val positivity = mood.isPositive
+        case MOOD_INDICATIVE => {
+          // FIXME deal with modality
+          val positivity = tam.isPositive
           debug(s"POSITIVITY : $positivity")
           val predicateTruth = evaluatePredicate(predicate, resultCollector)
           mind.rememberSentenceAnalysis(resultCollector.referenceMap)
-          val responseMood = {
+          val tamResponse = {
             predicateTruth match {
               case Success(Trilean.False) => {
-                SilIndicativeMood(false, mood.getModality)
+                SilTam.indicative.negative.withModality(tam.modality)
               }
               case _ => {
                 // FIXME:  deal with uncertainty
-                SilIndicativeMood(true, mood.getModality)
+                SilTam.indicative.withModality(tam.modality)
               }
             }
           }
@@ -389,7 +388,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
                 assert(!negateCollection)
                 val responseSentence = SilPredicateSentence(
                   normalizedResponse,
-                  responseMood)
+                  tamResponse)
                 val printedSentence = {
                   generalParams.verbosity match {
                     case RESPONSE_TERSE => {
@@ -422,8 +421,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
             }
           }
         }
-        case _ => {
-          debug(s"UNEXPECTED MOOD : $mood")
+        case MOOD_IMPERATIVE => {
+          debug(s"UNEXPECTED MOOD : $tam")
           wrapResponseText(sentencePrinter.sb.respondCannotUnderstand())
         }
       }

@@ -32,10 +32,10 @@ class SilSentencePrinterSpec extends Specification
   private def normalize(parsed : SilSentence) : SilSentence =
   {
     parsed match {
-      case SilPredicateSentence(predicate, mood, formality) => {
-        mood match {
+      case SilPredicateSentence(predicate, tam, formality) => {
+        tam.mood match {
           case MOOD_IMPERATIVE => SilPredicateSentence(
-            predicate, mood,
+            predicate, tam,
             formality.copy(force = FORCE_EXCLAMATION))
           case _ => parsed
         }

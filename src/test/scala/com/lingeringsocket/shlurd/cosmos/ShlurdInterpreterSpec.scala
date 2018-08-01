@@ -486,7 +486,7 @@ class ShlurdInterpreterSpec extends Specification
             ),
             QUESTION_WHO,
             INFLECT_NOMINATIVE,
-            MOOD_INTERROGATIVE_POSITIVE,
+            SilTam.interrogative,
             SilFormality(FORCE_NEUTRAL)),
           "who are you",
           Map(
@@ -499,7 +499,7 @@ class ShlurdInterpreterSpec extends Specification
               SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
               SilNounReference(SilWord("Muldoon")),
               REL_IDENTITY),
-            MOOD_INDICATIVE_POSITIVE,
+            SilTam.indicative,
             SilFormality(FORCE_NEUTRAL)),
           "I am Muldoon.",
           Map(

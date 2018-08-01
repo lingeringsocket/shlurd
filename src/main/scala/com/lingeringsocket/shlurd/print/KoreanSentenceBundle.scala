@@ -38,7 +38,7 @@ class KoreanSentenceBundle extends SilSentenceBundle
     directObject : Option[String],
     indirectObject : Option[String],
     modifiers : Seq[String],
-    mood : SilMood,
+    tam : SilTam,
     answerInflection : SilInflection) =
   {
     // FIXME:  for interrogative mood, this only holds for "요" politeness
@@ -50,7 +50,7 @@ class KoreanSentenceBundle extends SilSentenceBundle
     subject : String, verbSeq : Seq[String], complement : String,
     relationship : SilRelationship,
     question : Option[SilQuestion],
-    mood : SilMood,
+    tam : SilTam,
     modifiers : Seq[String]) =
   {
     // FIXME
@@ -73,32 +73,25 @@ class KoreanSentenceBundle extends SilSentenceBundle
 
   override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
-    mood : SilMood, isExistential : Boolean,
+    tam : SilTam, isExistential : Boolean,
     verb : SilWord, answerInflection : SilInflection) =
   {
     // FIXME arbitrary lemmas
     val verbLemma = verb.lemma
     val exists = isExistential || (verbLemma == LEMMA_HAVE)
-    mood match {
-      case modalMood : SilModalMood => {
-        // FIXME:  use modalMood.getModality
-        if (modalMood.isPositive) {
-          if (exists) {
-            Seq("있어요")
-          } else {
-            // FIXME:  use "예요" after vowel
-            Seq("이에요")
-          }
-        } else {
-          if (exists) {
-            Seq("없어요")
-          } else {
-            Seq("아니에요")
-          }
-        }
+    // FIXME:  use tam.modality
+    if (tam.isPositive) {
+      if (exists) {
+        Seq("있어요")
+      } else {
+        // FIXME:  use "예요" after vowel
+        Seq("이에요")
       }
-      case _ => {
-        throw SilSentenceUnprintable()
+    } else {
+      if (exists) {
+        Seq("없어요")
+      } else {
+        Seq("아니에요")
       }
     }
   }
@@ -152,10 +145,10 @@ class KoreanSentenceBundle extends SilSentenceBundle
   }
 
   override def delemmatizeState(
-    state : SilWord, mood : SilMood, conjoining : SilConjoining) =
+    state : SilWord, tam : SilTam, conjoining : SilConjoining) =
   {
     // FIXME:  conjoining
-    conjugateAdjective(state.lemma, mood)
+    conjugateAdjective(state.lemma, tam)
   }
 
   override def delemmatizeQualifier(qualifier : SilWord) =
@@ -430,7 +423,7 @@ class KoreanSentenceBundle extends SilSentenceBundle
     compose(lemma, "(imperative)")
   }
 
-  def conjugateAdjective(lemma : String, mood : SilMood) =
+  def conjugateAdjective(lemma : String, tam : SilTam) =
   {
     compose(lemma, "(subject complement)")
   }
@@ -492,13 +485,13 @@ class KoreanSentenceBundle extends SilSentenceBundle
   }
 
   override def respondNotUnderstood(
-    mood : SilMood, predicate : String, errorPhrase : String) =
+    tam : SilTam, predicate : String, errorPhrase : String) =
   {
     "FIXME"
   }
 
   override def predicateUnrecognizedSubject(
-    mood : SilMood, complement : String, verbSeq : Seq[String],
+    tam : SilTam, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],
     question : Option[SilQuestion]) =
   {
@@ -506,7 +499,7 @@ class KoreanSentenceBundle extends SilSentenceBundle
   }
 
   override def predicateUnrecognizedComplement(
-    mood : SilMood, subject : String,
+    tam : SilTam, subject : String,
     verbSeq : Seq[String],
     question : Option[SilQuestion],
     isRelationship : Boolean) =

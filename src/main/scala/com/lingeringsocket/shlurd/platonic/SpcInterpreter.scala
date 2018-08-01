@@ -58,7 +58,7 @@ class SpcInterpreter(
     }
 
     if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
-      sentence.mood.isIndicative)
+      sentence.tam.isIndicative)
     {
       val beliefInterpreter =
         new SpcBeliefInterpreter(

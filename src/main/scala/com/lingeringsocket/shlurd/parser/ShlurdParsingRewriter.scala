@@ -36,26 +36,28 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
       // modern English than "has Pete a dog?"
       case SilPredicateSentence(
         predicate,
-        SilInterrogativeMood(positive, MODAL_EMPHATIC),
+        tam,
         formality
-      ) => {
+      ) if (tam.isInterrogative && (tam.modality == MODAL_EMPHATIC)) => {
         SilPredicateSentence(
           predicate,
-          SilInterrogativeMood(positive, MODAL_NEUTRAL),
+          SilTam.interrogative.withPositivity(tam.isPositive).
+            withModality(MODAL_NEUTRAL),
           formality)
       }
       case SilPredicateQuery(
         predicate,
         question,
         answerInflection,
-        SilInterrogativeMood(positive, MODAL_EMPHATIC),
+        tam,
         formality
-      ) => {
+      ) if (tam.modality == MODAL_EMPHATIC) => {
         SilPredicateQuery(
           predicate,
           question,
           answerInflection,
-          SilInterrogativeMood(positive, MODAL_NEUTRAL),
+          SilTam.interrogative.withPositivity(tam.isPositive).
+            withModality(MODAL_NEUTRAL),
           formality
         )
       }

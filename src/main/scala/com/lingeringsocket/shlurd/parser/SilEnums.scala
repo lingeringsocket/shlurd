@@ -106,6 +106,11 @@ case object QUESTION_WHICH extends SilQuestion
 case object QUESTION_HOW_MANY extends SilQuestion
 case object QUESTION_WHERE extends SilQuestion
 
+sealed trait SilMood
+case object MOOD_INDICATIVE extends SilMood
+case object MOOD_INTERROGATIVE extends SilMood
+case object MOOD_IMPERATIVE extends SilMood
+
 sealed trait SilModality
 case object MODAL_NEUTRAL extends SilModality
 case object MODAL_MUST extends SilModality
@@ -151,42 +156,51 @@ object SilFormality
   val DEFAULT = SilFormality(FORCE_NEUTRAL)
 }
 
-sealed trait SilMood
+object SilTam
 {
-  def isIndicative : Boolean = false
-  def isInterrogative : Boolean = false
-  def isImperative : Boolean = false
-  def isPositive : Boolean = false
-  def isNegative : Boolean = false
-  def getModality : SilModality = MODAL_NEUTRAL
+  def indicative =
+    SilTamImmutable(MOOD_INDICATIVE, true, MODAL_NEUTRAL)
+
+  def interrogative =
+    SilTamImmutable(MOOD_INTERROGATIVE, true, MODAL_NEUTRAL)
+
+  def imperative =
+  {
+    SilTamImmutable(MOOD_IMPERATIVE, true, MODAL_NEUTRAL)
+  }
 }
-sealed trait SilModalMood extends SilMood
+
+sealed trait SilTam
 {
-  def positive : Boolean
+  def mood : SilMood
+  def isIndicative : Boolean = (mood == MOOD_INDICATIVE)
+  def isInterrogative : Boolean = (mood == MOOD_INTERROGATIVE)
+  def isImperative : Boolean = (mood == MOOD_IMPERATIVE)
+  def positivity : Boolean
+  def isPositive : Boolean = positivity
+  def isNegative : Boolean = !positivity
+  def isProgressive : Boolean = false
   def modality : SilModality
-  override def isPositive = positive
-  override def isNegative = !positive
-  override def getModality = modality
+  def positive : SilTam
+  def negative : SilTam
+  def withPositivity(positivity : Boolean) : SilTam
+  def withModality(modality : SilModality) : SilTam
+  def withMood(mood : SilMood) : SilTam
 }
-sealed case class SilIndicativeMood(
-  positive : Boolean,
-  modality : SilModality = MODAL_NEUTRAL
-) extends SilModalMood
+
+case class SilTamImmutable(
+  mood : SilMood,
+  positivity : Boolean,
+  modality : SilModality
+) extends SilTam
 {
-  override def isIndicative = true
-}
-sealed case class SilInterrogativeMood(
-  positive : Boolean,
-  modality : SilModality = MODAL_NEUTRAL
-) extends SilModalMood
-{
-  override def isInterrogative = true
-}
-object MOOD_INDICATIVE_POSITIVE extends SilIndicativeMood(true)
-object MOOD_INDICATIVE_NEGATIVE extends SilIndicativeMood(false)
-object MOOD_INTERROGATIVE_POSITIVE extends SilInterrogativeMood(true)
-object MOOD_INTERROGATIVE_NEGATIVE extends SilInterrogativeMood(false)
-case object MOOD_IMPERATIVE extends SilMood
-{
-  override def isImperative = true
+  override def isProgressive = (modality == MODAL_PROGRESSIVE)
+  override def positive = copy(positivity = true)
+  override def negative = copy(positivity = false)
+  override def withPositivity(newPositivity : Boolean) =
+    copy(positivity = newPositivity)
+  override def withModality(newModality : SilModality) =
+    copy(modality = newModality)
+  override def withMood(newMood : SilMood) =
+    copy(mood = newMood)
 }

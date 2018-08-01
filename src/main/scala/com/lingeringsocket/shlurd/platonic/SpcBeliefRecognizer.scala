@@ -32,27 +32,27 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     if (sentence.hasUnknown) {
       return Seq.empty
     }
-    if (!sentence.mood.isIndicative) {
+    if (!sentence.tam.isIndicative) {
       // FIXME support interrogative
       return Seq.empty
     }
-    if (sentence.mood.isNegative) {
+    if (sentence.tam.isNegative) {
       // FIXME:  interpret this as a constraint
       return Seq.empty
     }
     sentence match {
-      case SilPredicateSentence(predicate, mood, formality) => {
+      case SilPredicateSentence(predicate, tam, formality) => {
         if (!predicate.getModifiers.isEmpty) {
           return Seq.empty
         }
         predicate match {
           case statePredicate : SilStatePredicate => {
             return recognizeStatePredicateBelief(
-              sentence, statePredicate, mood)
+              sentence, statePredicate, tam)
           }
           case relationshipPredicate : SilRelationshipPredicate => {
             return recognizeRelationshipPredicateBelief(
-              sentence, relationshipPredicate, mood)
+              sentence, relationshipPredicate, tam)
           }
           case _ =>
         }
@@ -68,7 +68,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
   private def recognizeStatePredicateBelief(
     sentence : SilSentence,
     predicate : SilStatePredicate,
-    mood : SilMood) : Seq[SpcBelief] =
+    tam : SilTam) : Seq[SpcBelief] =
   {
     val ref = predicate.subject
     val state = predicate.state
@@ -85,7 +85,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
             container,
             REL_IDENTITY
           ),
-          sentence.mood)
+          sentence.tam)
       }
       case _ =>
     }
@@ -104,7 +104,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         // "a television that is on the blink is broken"
         // or "a television that is busted is broken"
         // or "a busted television is broken"
-        if (mood.getModality != MODAL_NEUTRAL) {
+        if (tam.modality != MODAL_NEUTRAL) {
           return Seq(UnimplementedBelief(sentence))
         }
         // FIXME assert something about qualifiers here
@@ -124,7 +124,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     state match {
       case SilExistenceState() => {
         // "there is a television"
-        // FIXME:  interpret mood
+        // FIXME:  interpret tam
         Seq(EntityExistenceBelief(
           sentence,
           SilNounReference(noun, DETERMINER_NONSPECIFIC),
@@ -141,12 +141,12 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           } else {
             // "a cat's voracity must be carnivore"
             return definePropertyBelief(
-              sentence, qualifiers.head, Some(noun), state, mood)
+              sentence, qualifiers.head, Some(noun), state, tam)
           }
         }
         // "a lifeform may be either animal or vegetable"
         definePropertyBelief(
-          sentence, noun, None, state, mood)
+          sentence, noun, None, state, tam)
       }
     }
   }
@@ -154,7 +154,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
   private def recognizeRelationshipPredicateBelief(
     sentence : SilSentence,
     predicate : SilRelationshipPredicate,
-    mood : SilMood) : Seq[SpcBelief] =
+    tam : SilTam) : Seq[SpcBelief] =
   {
     val subjectRef = predicate.subject
     val complementRef = predicate.complement
@@ -203,7 +203,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         )
       ) => {
         // "a person with a child is a parent"
-        if (mood.getModality != MODAL_NEUTRAL) {
+        if (tam.modality != MODAL_NEUTRAL) {
           return Seq(UnimplementedBelief(sentence))
         }
         val possesseeRoleNames = possesseeRef match {
@@ -365,7 +365,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
             case _ => Seq.empty
           }
         } else {
-          if (sentence.mood.getModality == MODAL_NEUTRAL) {
+          if (sentence.tam.modality == MODAL_NEUTRAL) {
             // "a fridge is a refrigerator"
             Seq(IdealAliasBelief(
               sentence, subjectNoun, complementNoun))
@@ -415,7 +415,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           case COUNT_SINGULAR => 1
           case COUNT_PLURAL => Int.MaxValue
         }
-        val newConstraint = sentence.mood.getModality match {
+        val newConstraint = sentence.tam.modality match {
           case MODAL_NEUTRAL | MODAL_MUST | MODAL_EMPHATIC =>
             SpcCardinalityConstraint(1, 1)
           case MODAL_MAY | MODAL_POSSIBLE |
@@ -459,7 +459,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         return Seq.empty
       }
     }
-    if (sentence.mood.getModality != MODAL_NEUTRAL) {
+    if (sentence.tam.modality != MODAL_NEUTRAL) {
       return Seq(UnimplementedBelief(sentence))
     }
     relationship match {
@@ -568,11 +568,11 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     formName : SilWord,
     propertyName : Option[SilWord],
     state : SilState,
-    mood : SilMood)
+    tam : SilTam)
       : Seq[SpcBelief] =
   {
     // "a light may be on or off"
-    if (sentence.mood.getModality == MODAL_NEUTRAL) {
+    if (sentence.tam.modality == MODAL_NEUTRAL) {
       return Seq.empty
     }
     val newStates = state match {
@@ -594,7 +594,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         return Seq.empty
       }
     }
-    val isClosed = (mood.getModality == MODAL_MUST)
+    val isClosed = (tam.modality == MODAL_MUST)
     Seq(FormPropertyBelief(
       sentence, formName, newStates, isClosed, propertyName))
   }
