@@ -477,6 +477,11 @@ class KoreanSentenceBundle extends SilSentenceBundle
     "내, 알겠습니다."
   }
 
+  override def circularAction() =
+  {
+    "Oopsie."
+  }
+
   override def respondDontKnow() =
   {
     "몰라요."

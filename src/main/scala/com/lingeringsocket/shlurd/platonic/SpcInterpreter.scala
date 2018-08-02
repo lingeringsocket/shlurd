@@ -34,7 +34,19 @@ class SpcInterpreter(
   params : ShlurdResponseParams = ShlurdResponseParams())
     extends ShlurdInterpreter(mind, params)
 {
+  val already = new mutable.HashSet[SilPredicate]
+
   override protected def interpretImpl(sentence : SilSentence)
+      : (SilSentence, String) =
+  {
+    try {
+      attemptInterpret(sentence)
+    } finally {
+      already.clear
+    }
+  }
+
+  private def attemptInterpret(sentence : SilSentence)
       : (SilSentence, String) =
   {
     // FIXME this is madness...we make a half-hearted attempt at
@@ -72,12 +84,14 @@ class SpcInterpreter(
         case _ =>
       }
     }
+    already.clear
     super.interpretImpl(sentence)
   }
 
   private def interpretBeliefOrAction(
     beliefInterpreter : SpcBeliefInterpreter,
-    sentence : SilSentence) : Option[String] =
+    sentence : SilSentence)
+      : Option[String] =
   {
     attemptAsBelief(beliefInterpreter, sentence).foreach(result => {
       return Some(result)
@@ -115,19 +129,22 @@ class SpcInterpreter(
   }
 
   override protected def evaluateActionPredicate(
-    ap : SilActionPredicate,
+    predicate : SilActionPredicate,
     resultCollector : ResultCollector[SpcEntity]) : Try[Trilean] =
   {
+    if (checkCycle(predicate)) {
+      return fail(sentencePrinter.sb.circularAction)
+    }
     mind.getCosmos.getTriggers.foreach(trigger => {
       // FIXME we should require iff for trigger instead of just if
-      matchTrigger(trigger, ap) match {
+      matchTrigger(trigger, predicate) match {
         case Some(newPredicate) => {
           return super.evaluatePredicate(newPredicate, resultCollector)
         }
         case _ =>
       }
     })
-    super.evaluateActionPredicate(ap, resultCollector)
+    super.evaluateActionPredicate(predicate, resultCollector)
   }
 
   private def interpretAction(
@@ -137,7 +154,9 @@ class SpcInterpreter(
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
     mind.getCosmos.getTriggers.foreach(trigger => {
-      applyTrigger(beliefInterpreter, trigger, predicate).foreach(result => {
+      applyTrigger(
+        beliefInterpreter, trigger, predicate
+      ).foreach(result => {
         if (result != compliance) {
           return Some(result)
         } else {
@@ -155,12 +174,17 @@ class SpcInterpreter(
   private def applyTrigger(
     beliefInterpreter : SpcBeliefInterpreter,
     trigger : SilConditionalSentence,
-    predicate : SilActionPredicate) : Option[String] =
+    predicate : SilActionPredicate)
+      : Option[String] =
   {
     matchTrigger(trigger, predicate) match {
       case Some(newPredicate) => {
+        if (checkCycle(newPredicate)) {
+          return Some(sentencePrinter.sb.circularAction)
+        }
         val newSentence = SilPredicateSentence(newPredicate)
-        val result = interpretBeliefOrAction(beliefInterpreter, newSentence)
+        val result = interpretBeliefOrAction(
+          beliefInterpreter, newSentence)
         if (result.isEmpty) {
           // FIXME i18n
           Some("Invalid consequent")
@@ -169,6 +193,17 @@ class SpcInterpreter(
         }
       }
       case _ => None
+    }
+  }
+
+  private def checkCycle(predicate : SilPredicate) : Boolean =
+  {
+    // FIXME also need to limit recursion depth
+    if (already.contains(predicate)) {
+      true
+    } else {
+      already += predicate
+      false
     }
   }
 
@@ -267,7 +302,6 @@ class SpcInterpreter(
         replacements.get(ref).getOrElse(ref)
       }
     }
-    // FIXME detect loops and also limit recursion depth
     val newPredicate = rewriter.rewrite(replaceReferences, consequent)
     Some(newPredicate)
   }

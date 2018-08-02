@@ -240,4 +240,6 @@ abstract class SilSentenceBundle
   def unknownPredicateCommand() : String
 
   def unknownPredicateQuestion() : String
+
+  def circularAction() : String
 }

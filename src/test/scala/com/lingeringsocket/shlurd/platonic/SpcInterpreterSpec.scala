@@ -1089,6 +1089,20 @@ class SpcInterpreterSpec extends Specification
         "Sorry, I cannot understand what you said.")
     }
 
+    "prevent action cycles" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
+    {
+      interpretBelief("if a person sends a recipient a message, " +
+        "then the person conveys the recipient the message")
+      interpretBelief("if a person conveys a recipient a message, " +
+        "then the person sends the recipient the message")
+      interpretBelief("Curtis is a person")
+      interpretBelief("Andrew is a person")
+      interpretBelief("the signal is a message")
+      interpret("Curtis sends Andrew the signal",
+        "Action beliefs are circular.")
+    }
+
     "reify unknown person" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
       interpretBelief("a person must have a lawyer")

@@ -803,6 +803,11 @@ class EnglishSentenceBundle
     "OK."
   }
 
+  override def circularAction() =
+  {
+    "Action beliefs are circular."
+  }
+
   override def affirmAssumption(sentence : String, strength : Boolean) =
   {
     val affirmation = {
