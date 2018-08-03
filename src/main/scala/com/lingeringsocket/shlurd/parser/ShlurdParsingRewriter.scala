@@ -24,41 +24,13 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
   {
     val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
     val expected = SilExpectedSentence(sentenceSyntaxTree, forceSQ)
-    val phrase = rewrite[SilSentence](
+    val transformed = rewrite[SilSentence](
       replaceAllPhrases, expected, Set(REWRITE_REPEAT))
-    val completed = rewrite(replaceUnresolvedWithUnrecognized, phrase)
+    val completed = rewrite(replaceUnresolvedWithUnrecognized, transformed)
     if (!completed.hasUnknown) {
       query(validateResult, completed)
     }
     completed match {
-      // here we remove the emphatic from questions such as
-      // "does Pete have a dog?" since that's more natural in
-      // modern English than "has Pete a dog?"
-      case SilPredicateSentence(
-        predicate,
-        tam,
-        formality
-      ) if (tam.isInterrogative && (tam.modality == MODAL_EMPHATIC)) => {
-        SilPredicateSentence(
-          predicate,
-          tam.withModality(MODAL_NEUTRAL),
-          formality)
-      }
-      case SilPredicateQuery(
-        predicate,
-        question,
-        answerInflection,
-        tam,
-        formality
-      ) if (tam.modality == MODAL_EMPHATIC) => {
-        SilPredicateQuery(
-          predicate,
-          question,
-          answerInflection,
-          tam.withModality(MODAL_NEUTRAL),
-          formality
-        )
-      }
       case sentence : SilSentence => sentence
       case _ => SilUnrecognizedSentence(sentenceSyntaxTree)
     }

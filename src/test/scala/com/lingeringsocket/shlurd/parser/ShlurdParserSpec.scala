@@ -443,6 +443,24 @@ class ShlurdParserSpec extends Specification
           pred)
     }
 
+    "parse verb modifiers" in
+    {
+      parse("where was the mouse before the bathroom") must be equalTo
+        SilPredicateQuery(
+          SilRelationshipPredicate(
+            SilNounReference(SilWord(LEMMA_WHERE)),
+            SilNounReference(NOUN_MOUSE, DETERMINER_UNIQUE),
+            REL_IDENTITY,
+            Seq(SilAdpositionalVerbModifier(
+              SilAdposition(Seq(SilWord("before"))),
+              SilNounReference(NOUN_BATHROOM, DETERMINER_UNIQUE)
+            ))
+          ),
+          QUESTION_WHERE,
+          INFLECT_NOMINATIVE,
+          SilTam.interrogative.past)
+    }
+
     "parse pronouns" in
     {
       val input = "I am hungry"

@@ -560,17 +560,9 @@ class SpcInterpreterSpec extends Specification
     {
       interpretBelief("if a person gives an object to a recipient, " +
         "then the object is the recipient's containee")
-
-      // FIXME this should be OK as well, but corenlp interprets
-      // the prepositional phrase as a state specifier
-      // instead of a verb modifier
-      /*
       interpretBelief("if a person passes an object to a recipient, " +
         "then the person gives the object to the recipient")
-       */
 
-      interpretBelief("if a person passes a recipient an object, " +
-        "then the person gives the object to the recipient")
       interpretBelief("Curtis is a person")
       interpretBelief("Andrew is a person")
       interpretBelief("the bomb is an object")

@@ -77,7 +77,9 @@ class ShlurdSingleParser(
       case SptROOT(sentenceSyntaxTree) => {
         val parsingRewriter = new ShlurdParsingRewriter(
           new ShlurdSyntaxAnalyzer(guessedQuestion))
-        parsingRewriter.parseSentence(sentenceSyntaxTree)
+        val parsed = parsingRewriter.parseSentence(sentenceSyntaxTree)
+        val normalizationRewriter = new ShlurdNormalizationRewriter
+        normalizationRewriter.normalize(parsed)
       }
       case _ => SilUnrecognizedSentence(tree)
     }
