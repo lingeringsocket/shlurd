@@ -60,7 +60,7 @@ class SpcMind(cosmos : SpcCosmos) extends ShlurdMind(cosmos)
                 SilAdposition.OF,
                 SilGenitiveReference(
                   cosmos.specificReference(possessor, determiner),
-                  SilNounReference(SilWord("", specializedRole.name),
+                  SilNounReference(SilWord.uninflected(specializedRole.name),
                     DETERMINER_UNSPECIFIED,
                     COUNT_PLURAL))))
           } else {

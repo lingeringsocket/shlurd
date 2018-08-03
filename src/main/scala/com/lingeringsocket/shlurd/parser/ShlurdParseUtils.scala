@@ -62,7 +62,6 @@ object ShlurdEnglishLemmas
   val LEMMA_MIGHT = "might"
   val LEMMA_SHOULD = "should"
   val LEMMA_DO = "do"
-  val LEMMA_DOES = "does"
   val LEMMA_IF = "if"
   val LEMMA_WHEN = "when"
   val LEMMA_THEN = "then"

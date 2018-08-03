@@ -287,6 +287,9 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("how many objects are filling the wallet")
       expectStatement("Franny is carrying the pigs")
       expectQuestion("who is floating")
+      expectNormalized("Ramona went to the library?",
+        "did Ramona go to the library?")
+      expectQuestion("did Ramona go to the library")
     }
   }
 }

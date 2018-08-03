@@ -135,6 +135,8 @@ trait ShlurdAbstractSyntaxTree
 
   def isVerb = label.startsWith(LABEL_VB)
 
+  def isVerbPastTense = label.equals(LABEL_VBD)
+
   def isNoun = label.startsWith(LABEL_NN)
 
   def isQueryPhrase = isQueryNounPhrase || isQueryAdverbPhrase

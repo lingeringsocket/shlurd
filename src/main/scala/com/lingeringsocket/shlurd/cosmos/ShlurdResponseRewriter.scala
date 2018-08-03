@@ -569,7 +569,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
             }
           }
           SilNounReference(
-            SilWord("", nounRef.noun.lemma),
+            SilWord.uninflected(nounRef.noun.lemma),
             newDeterminer, agreedCount)
         }
       }
@@ -664,7 +664,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         all = false
         SilWord(LEMMA_BOTH)
       } else {
-        SilWord("", entities.size.toString)
+        SilWord.uninflected(entities.size.toString)
       }
     }
     val determiner = {

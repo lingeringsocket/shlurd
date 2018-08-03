@@ -560,6 +560,8 @@ case class SilWord(
 object SilWord
 {
   def apply(s : String) : SilWord = SilWord(s, s)
+
+  def uninflected(s : String) = SilWord("", s)
 }
 
 object SilReference

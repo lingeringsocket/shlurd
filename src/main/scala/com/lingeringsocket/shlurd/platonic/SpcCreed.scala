@@ -315,7 +315,7 @@ class SpcCreed(cosmos : SpcCosmos)
       }
       case COUNT_PLURAL => {
         SilNounReference(
-          SilWord("", noun), DETERMINER_UNSPECIFIED, COUNT_PLURAL)
+          SilWord.uninflected(noun), DETERMINER_UNSPECIFIED, COUNT_PLURAL)
       }
     }
   }

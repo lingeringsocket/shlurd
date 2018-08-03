@@ -159,7 +159,7 @@ class EnglishSentenceBundle
     }
     val aux = {
       if (tam.isProgressive) {
-        delemmatizeModelessVerb(person, gender, count, SilWord(LEMMA_BE))
+        delemmatizeModelessVerb(person, gender, count, SilWord(LEMMA_BE), tam)
       } else {
         modality match {
           case MODAL_NEUTRAL => ""
@@ -170,14 +170,18 @@ class EnglishSentenceBundle
           case MODAL_PERMITTED => LEMMA_MAY
           case MODAL_SHOULD => LEMMA_SHOULD
           case MODAL_EMPHATIC | MODAL_ELLIPTICAL => {
-            count match {
-              case COUNT_SINGULAR => {
-                person match {
-                  case PERSON_THIRD => LEMMA_DOES
-                  case _ => LEMMA_DO
+            tam.tense match {
+              case TENSE_PAST => "did"
+              case TENSE_FUTURE => LEMMA_DO
+              case TENSE_PRESENT => count match {
+                case COUNT_SINGULAR => {
+                  person match {
+                    case PERSON_THIRD => "does"
+                    case _ => LEMMA_DO
+                  }
                 }
+                case COUNT_PLURAL => LEMMA_DO
               }
-              case COUNT_PLURAL => LEMMA_DO
             }
           }
         }
@@ -202,39 +206,60 @@ class EnglishSentenceBundle
 
   private def delemmatizeModelessVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
-    verb : SilWord
+    verb : SilWord, tam : SilTam
   ) : String =
   {
     val verbLemma = verb.lemma
-    count match {
-      case COUNT_SINGULAR => {
-        verbLemma match {
-          case LEMMA_BE => {
-            person match {
+    verbLemma match {
+      case LEMMA_BE => {
+        tam.tense match {
+          case TENSE_PAST => count match {
+            case COUNT_SINGULAR => person match {
+              case PERSON_SECOND => "were"
+              case _ => "was"
+            }
+            case COUNT_PLURAL => "were"
+          }
+          case TENSE_PRESENT => count match {
+            case COUNT_SINGULAR => person match {
               case PERSON_FIRST => "am"
               case PERSON_SECOND => "are"
               case PERSON_THIRD => "is"
             }
+            case COUNT_PLURAL => "are"
           }
-          case LEMMA_HAVE => {
-            person match {
-              case PERSON_THIRD => "has"
-              case _ => LEMMA_HAVE
-            }
-          }
-          case LEMMA_EXIST => {
-            person match {
-              case PERSON_THIRD => "exists"
-              case _ => LEMMA_EXIST
-            }
-          }
-          case _ => delemmatizeWord(verb)
+          case TENSE_FUTURE => LEMMA_BE
         }
       }
-      case COUNT_PLURAL => {
-        verbLemma match {
-          case LEMMA_BE => "are"
-          case _ => delemmatizeWord(verb)
+      case LEMMA_HAVE => {
+        tam.tense match {
+          case TENSE_PAST => "had"
+          case TENSE_FUTURE => LEMMA_HAVE
+          case TENSE_PRESENT => (person, count) match {
+            case (PERSON_THIRD, COUNT_SINGULAR) => "has"
+            case _ => LEMMA_HAVE
+          }
+        }
+      }
+      case _ => {
+        if (verb.inflected.isEmpty) {
+          // FIXME irregulars
+          tam.tense match {
+            case TENSE_PAST => {
+              if (verbLemma.last == 'e') {
+                concat(verbLemma, "d")
+              } else {
+                concat(verbLemma, "ed")
+              }
+            }
+            case TENSE_FUTURE => verbLemma
+            case TENSE_PRESENT => (person, count) match {
+              case (PERSON_THIRD, COUNT_SINGULAR) => concat(verbLemma, "s")
+              case _ => verbLemma
+            }
+          }
+        } else {
+          verb.inflected
         }
       }
     }
@@ -259,7 +284,7 @@ class EnglishSentenceBundle
         delemmatizeModalVerb(tam, verb, person, gender, count)
       } else {
         val inflected = delemmatizeModelessVerb(
-          person, gender, count, verb)
+          person, gender, count, verb, tam)
         if (tam.isNegative) {
           Seq(inflected, LEMMA_NOT)
         } else {

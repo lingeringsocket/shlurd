@@ -127,6 +127,11 @@ sealed trait SilPolarity
 case object POLARITY_POSITIVE extends SilPolarity
 case object POLARITY_NEGATIVE extends SilPolarity
 
+sealed trait SilTense
+case object TENSE_PAST extends SilTense
+case object TENSE_PRESENT extends SilTense
+case object TENSE_FUTURE extends SilTense
+
 sealed trait SilAspect
 case object ASPECT_SIMPLE extends SilAspect
 case object ASPECT_PROGRESSIVE extends SilAspect
@@ -164,8 +169,9 @@ object SilFormality
 
 object SilTam
 {
-  def apply(mood : SilMood) =
-    SilTamImmutable(mood, POLARITY_POSITIVE, MODAL_NEUTRAL, ASPECT_SIMPLE)
+  private def apply(mood : SilMood) =
+    SilTamImmutable(
+      mood, POLARITY_POSITIVE, MODAL_NEUTRAL, ASPECT_SIMPLE, TENSE_PRESENT)
 
   def indicative = SilTam(MOOD_INDICATIVE)
 
@@ -180,19 +186,27 @@ sealed trait SilTam
   def polarity : SilPolarity
   def modality : SilModality
   def aspect : SilAspect
+  def tense : SilTense
   def isIndicative : Boolean = (mood == MOOD_INDICATIVE)
   def isInterrogative : Boolean = (mood == MOOD_INTERROGATIVE)
   def isImperative : Boolean = (mood == MOOD_IMPERATIVE)
   def isPositive : Boolean = (polarity == POLARITY_POSITIVE)
   def isNegative : Boolean = (polarity == POLARITY_NEGATIVE)
   def isProgressive = (aspect == ASPECT_PROGRESSIVE)
+  def isPast = (tense == TENSE_PAST)
+  def isPresent = (tense == TENSE_PRESENT)
+  def isFuture = (tense == TENSE_FUTURE)
   def positive : SilTam
   def negative : SilTam
   def progressive : SilTam
+  def past : SilTam
+  def present : SilTam
+  def future : SilTam
   def withAspect(newAspect : SilAspect) : SilTam
   def withPolarity(newPolarity : SilPolarity) : SilTam
   def withModality(newModality : SilModality) : SilTam
   def withMood(newMood : SilMood) : SilTam
+  def withTense(newTense : SilTense) : SilTam
   def validate() : SilTam
 
   def withPolarity(newPolarity : Boolean) : SilTam =
@@ -216,12 +230,18 @@ case class SilTamImmutable(
   mood : SilMood,
   polarity : SilPolarity,
   modality : SilModality,
-  aspect : SilAspect
+  aspect : SilAspect,
+  tense : SilTense
 ) extends SilTam
 {
-  override def positive = copy(polarity = POLARITY_POSITIVE).validate
-  override def negative = copy(polarity = POLARITY_NEGATIVE).validate
-  override def progressive = copy(aspect = ASPECT_PROGRESSIVE).validate
+  override def positive = withPolarity(POLARITY_POSITIVE)
+  override def negative = withPolarity(POLARITY_NEGATIVE)
+  override def progressive = withAspect(ASPECT_PROGRESSIVE)
+
+  def past : SilTam = withTense(TENSE_PAST)
+  def present : SilTam = withTense(TENSE_PRESENT)
+  def future : SilTam = withTense(TENSE_FUTURE)
+
   override def withPolarity(newPolarity : SilPolarity) =
     copy(polarity = newPolarity).validate
   override def withAspect(newAspect : SilAspect) =
@@ -230,11 +250,14 @@ case class SilTamImmutable(
     copy(modality = newModality).validate
   override def withMood(newMood : SilMood) =
     copy(mood = newMood).validate
+  override def withTense(newTense : SilTense) =
+    copy(tense = newTense).validate
 
   override def validate() =
   {
     mood match {
       case MOOD_IMPERATIVE => {
+        assert(tense == TENSE_PRESENT)
         assert(modality == MODAL_NEUTRAL)
         assert(!isProgressive)
       }

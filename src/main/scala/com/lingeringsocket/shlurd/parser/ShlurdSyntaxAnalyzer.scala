@@ -191,6 +191,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       }
     }
 
+    val tamTensed = extractTense(verbHead, tam)
+
     if (verbHead.isRelationshipVerb) {
       assert(specifiedDirectObject.isEmpty)
       val (negativeSub, predicate) =
@@ -199,14 +201,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val positive = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
-        tam.withMood(MOOD_INTERROGATIVE).withPolarity(positive)))
+        tamTensed.withMood(MOOD_INTERROGATIVE).withPolarity(positive)))
     } else {
       val (negativeSub, predicate) = analyzeActionPredicate(
         tree, np, vp, specifiedDirectObject, verbModifiers)
       val positive = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
-        tam.withMood(MOOD_INTERROGATIVE).withPolarity(positive)))
+        tamTensed.withMood(MOOD_INTERROGATIVE).withPolarity(positive)))
     }
   }
 
@@ -291,9 +293,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         combinedState,
         relationshipFor(verbHead))
       rememberPredicateCount(predicate, verbHead)
+      val tam = SilTam.interrogative.
+        withPolarity(!(negativeSuper ^ negativeSub))
+      val tamTensed = extractTense(verbHead, tam)
       SilPredicateQuery(
-        predicate, question, INFLECT_NOMINATIVE,
-        SilTam.interrogative.withPolarity(!(negativeSuper ^ negativeSub)))
+        predicate, question, INFLECT_NOMINATIVE, tamTensed)
     } else {
       // FIXME support dative and adpositional objects too
       val (specifiedDirectObject, answerInflection, sqChildren) = {
@@ -400,6 +404,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     // FIXME:  representation for double negatives?
     val negative = negativeSuper ^ negativeSub
     val verbHead = vpChildren.head
+    val tamTensed = extractTense(verbHead, tam)
     val (progressive, iVerb) = detectProgressive(vpChildren)
     if (verbHead.isModal || progressive) {
       val vpSub = vpChildren.last
@@ -407,7 +412,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         expectPredicateSentence(
           tree, np, vpSub, verbModifiers,
           force,
-          tamForAux(requireLeaf(verbHead.children)).withMood(tam.mood),
+          tamForAux(requireLeaf(verbHead.children)).withMood(tam.mood).
+            withTense(tamTensed.tense),
           getVerbCount(verbHead),
           negative)
       } else {
@@ -431,7 +437,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val positive = !(negative ^ negativeComplement)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       SilPredicateSentence(
-        predicate, tam.withPolarity(positive), SilFormality(force))
+        predicate, tamTensed.withPolarity(positive), SilFormality(force))
     } else {
       val (negativeVerb, predicate) = analyzeActionPredicate(
         tree, np, vp, None, verbModifiers)
@@ -440,7 +446,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         predicate, verbHead, tam.withPolarity(positive), auxCount)
       SilPredicateSentence(
         predicate,
-        tam,
+        tamTensed,
         SilFormality(force))
     }
   }
@@ -1059,6 +1065,15 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
+  private def extractTense(verbHead : ShlurdSyntaxTree, tam : SilTam) : SilTam =
+  {
+    if (verbHead.isVerbPastTense) {
+      tam.past
+    } else {
+      tam
+    }
+  }
+
   private def truncatePunctuation(
     tree : ShlurdSyntaxTree, punctuationMarks : Iterable[String])
       : Seq[ShlurdSyntaxTree] =
@@ -1155,9 +1170,9 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
     val aux = seq(iAux).unwrapPhrase
     val leaf = requireLeaf(aux.children)
-    (tamForAux(leaf),
-      remainder,
-      getVerbCount(aux))
+    val tam = tamForAux(leaf)
+    val tamTensed = extractTense(aux, tam)
+    (tamTensed, remainder, getVerbCount(aux))
   }
 
   private def extractNegative(
