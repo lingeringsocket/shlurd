@@ -16,8 +16,13 @@ package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
-class ShlurdInputRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
-  mind : ShlurdMind[E,P]) extends SilPhraseRewriter
+class ShlurdInputRewriter[
+  EntityType<:ShlurdEntity,
+  PropertyType<:ShlurdProperty,
+  CosmosType <:ShlurdCosmos[EntityType, PropertyType]
+](
+  mind : ShlurdMind[EntityType, PropertyType, CosmosType]
+) extends ShlurdPhraseRewriter
 {
   def normalizeInput(
     sentence : SilSentence) : SilSentence =
@@ -49,6 +54,22 @@ class ShlurdInputRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
           subject, SilPropertyState(action), modifiers),
         question, answerInflection,
         tam.withMood(MOOD_INTERROGATIVE), formality)
+    }
+  }
+
+  def bindPredicateWildcard(predicate : SilPredicate, objRef : SilReference)
+      : SilPredicate =
+  {
+    rewrite(
+      replacePredicateWildcard(objRef),
+      predicate)
+  }
+
+  private def replacePredicateWildcard(
+    objRef : SilReference) = replacementMatcher
+  {
+    case ref : SilNounReference if containsWildcard(ref, false) => {
+      objRef
     }
   }
 }

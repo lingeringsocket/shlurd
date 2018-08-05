@@ -20,16 +20,21 @@ import com.lingeringsocket.shlurd.parser._
 
 import ShlurdEnglishLemmas._
 
-class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
-  mind : ShlurdMind[E,P]) extends SilPhraseRewriter
+class ShlurdResponseRewriter[
+  EntityType<:ShlurdEntity,
+  PropertyType<:ShlurdProperty,
+  CosmosType<:ShlurdCosmos[EntityType, PropertyType]
+](
+  mind : ShlurdMind[EntityType, PropertyType, CosmosType]
+) extends ShlurdPhraseRewriter
 {
-  private val cosmos = mind.getCosmos
+  type ResultCollectorType = ResultCollector[EntityType]
 
-  private val querier = new SilPhraseRewriter
+  private val cosmos = mind.getCosmos
 
   def normalizeResponse(
     predicate : SilPredicate,
-    resultCollector : ResultCollector[E],
+    resultCollector : ResultCollectorType,
     params : ShlurdResponseParams,
     question : Option[SilQuestion] = None)
       : (SilPredicate, Boolean) =
@@ -197,10 +202,12 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   class AmbiguousRefDetector(
-    val referenceMap : mutable.Map[SilReference, Set[E]])
+    val referenceMap : mutable.Map[SilReference, Set[EntityType]])
   {
-    val replacedRefMap = new mutable.LinkedHashMap[SilReference, Set[E]]
-    val ambiguousRefs = new mutable.LinkedHashSet[SilReference]
+    val replacedRefMap =
+      new mutable.LinkedHashMap[SilReference, Set[EntityType]]
+    val ambiguousRefs =
+      new mutable.LinkedHashSet[SilReference]
 
     def analyze(originalRef : SilReference)
     {
@@ -278,7 +285,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def rewriteThirdPersonReferences(
-    resultCollector : ResultCollector[E],
+    resultCollector : ResultCollectorType,
     predicate : SilPredicate) : SilPredicate =
   {
     val referenceMap = resultCollector.referenceMap
@@ -353,7 +360,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def avoidTautologies = replacementMatcher {
     case SilRelationshipPredicate(
-      rr : SilResolvedReference[E],
+      rr : SilResolvedReference[EntityType],
       other : SilReference,
       REL_IDENTITY,
       _
@@ -365,7 +372,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
     case SilRelationshipPredicate(
       other : SilReference,
-      rr : SilResolvedReference[E],
+      rr : SilResolvedReference[EntityType],
       REL_IDENTITY,
       _
     ) if (rr.entities.size == 1) => {
@@ -377,14 +384,14 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def resolveReference(
-    entity : E,
+    entity : EntityType,
     determiner : SilDeterminer) : SilReference =
   {
     SilResolvedReference(Set(entity), SilWord(""), determiner)
   }
 
   private def chooseReference(
-    entity : E,
+    entity : EntityType,
     other : SilReference,
     determiner : SilDeterminer) : SilReference =
   {
@@ -397,9 +404,9 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def replaceResolvedReferences(
-    referenceMap : mutable.Map[SilReference, Set[E]]
+    referenceMap : mutable.Map[SilReference, Set[EntityType]]
   ) = replacementMatcher {
-    case rr : SilResolvedReference[E] if (rr.entities.size == 1) => {
+    case rr : SilResolvedReference[EntityType] if (rr.entities.size == 1) => {
       val ref = cosmos.specificReference(rr.entities.head, rr.determiner)
       if (rr.noun.lemma.isEmpty) {
         referenceMap.remove(ref)
@@ -415,7 +422,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def disqualifyThirdPersonReferences(
-    referenceMap : mutable.Map[SilReference, Set[E]]
+    referenceMap : mutable.Map[SilReference, Set[EntityType]]
   ) = querier.queryMatcher {
     case nr @ SilNounReference(noun, determiner, _) => {
       determiner match {
@@ -478,7 +485,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def replaceThirdPersonReferences(
-    referenceMap : Map[SilReference, Set[E]]
+    referenceMap : Map[SilReference, Set[EntityType]]
   ) = replacementMatcher {
     case ref : SilReference => {
       ref match {
@@ -496,7 +503,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def replaceThirdPersonPronouns(
-    referenceMap : Map[SilReference, Set[E]]
+    referenceMap : Map[SilReference, Set[EntityType]]
   ) = replacementMatcher {
     case pr @ SilPronounReference(PERSON_THIRD, _, _, _) => {
       referenceMap.get(pr).map(
@@ -577,14 +584,14 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  private def getTrueEntities(resultCollector : ResultCollector[E]) =
+  private def getTrueEntities(resultCollector : ResultCollectorType) =
   {
     ShlurdParseUtils.orderedSet(
       resultCollector.entityMap.filter(
         _._2.assumeFalse).keySet)
   }
 
-  private def getFalseEntities(resultCollector : ResultCollector[E]) =
+  private def getFalseEntities(resultCollector : ResultCollectorType) =
   {
     ShlurdParseUtils.orderedSet(
       resultCollector.entityMap.filterNot(
@@ -592,7 +599,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def normalizeDisjunction(
-    resultCollector : ResultCollector[E],
+    resultCollector : ResultCollectorType,
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
     params : ShlurdResponseParams)
@@ -619,7 +626,7 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def normalizeConjunction(
-    resultCollector : ResultCollector[E],
+    resultCollector : ResultCollectorType,
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
     params : ShlurdResponseParams)
@@ -685,39 +692,5 @@ class ShlurdResponseRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
         SilAdpositionalState(
           SilAdposition.OF,
           SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))
-  }
-
-  def containsWildcard(
-    phrase : SilPhrase,
-    includeConjunctions : Boolean = true) : Boolean =
-  {
-    var wildcard = false
-    def matchWildcard = querier.queryMatcher {
-      case SilConjunctiveReference(
-        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL,
-        _,
-        _
-      ) => {
-        if (includeConjunctions) {
-          wildcard = true
-        }
-      }
-      case SilNounReference(
-        _,
-        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL,
-        _
-      ) => {
-        wildcard = true
-      }
-      case SilNounReference(
-        SilWord(LEMMA_WHO, LEMMA_WHO) | SilWord(LEMMA_WHERE, LEMMA_WHERE),
-        _,
-        _
-      ) => {
-        wildcard = true
-      }
-    }
-    querier.query(matchWildcard, phrase)
-    wildcard
   }
 }

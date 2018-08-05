@@ -98,7 +98,7 @@ private[parser] class ShlurdNormalizationRewriter
     // we should leave it ambiguous and try it both ways.
     adposition.words match {
       case Seq(word) => word.lemma match {
-        case "before" | "after" | LEMMA_TO => true
+        case LEMMA_BEFORE | LEMMA_AFTER | LEMMA_TO => true
         case _ => false
       }
       case _ => false

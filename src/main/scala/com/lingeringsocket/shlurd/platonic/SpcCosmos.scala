@@ -164,6 +164,11 @@ class SpcCosmos(
     new SpcCosmos(SpcGraph.fork(graph), idGenerator)
   }
 
+  def asUnmodifiable() : SpcCosmos =
+  {
+    new SpcCosmos(unmodifiableGraph)
+  }
+
   def clear()
   {
     graph.entitySynonyms.removeAllVertices(

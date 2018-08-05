@@ -69,6 +69,8 @@ object SilAdposition
   val UNDER = adposition(LEMMA_UNDER)
   val BENEATH = adposition(LEMMA_BENEATH)
   val UNDERNEATH = adposition(LEMMA_UNDERNEATH)
+  val BEFORE = adposition(LEMMA_BEFORE)
+  val AFTER = adposition(LEMMA_AFTER)
   val LEFT = adposition(LEMMA_LEFT)
   val RIGHT = adposition(LEMMA_RIGHT)
   val FRONT = adposition(LEMMA_FRONT)

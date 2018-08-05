@@ -75,6 +75,8 @@ sealed trait SilPredicate extends SilPhrase
   }
 
   def getModifiers : Seq[SilVerbModifier] = Seq.empty
+
+  def withNewModifiers(newModifiers : Seq[SilVerbModifier]) : SilPredicate
 }
 
 sealed trait SilReference extends SilPhrase
@@ -88,7 +90,6 @@ sealed trait SilState extends SilPhrase
 
 sealed trait SilVerbModifier extends SilPhrase
 {
-  override def isUninterpretable = true
 }
 
 sealed trait SilUnknownPhrase extends SilPhrase
@@ -117,6 +118,8 @@ sealed trait SilUnknownPredicate
     extends SilPredicate with SilUnknownPhrase
 {
   override def getSubject : SilReference = SilUnrecognizedReference(syntaxTree)
+
+  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) = this
 }
 
 sealed trait SilUnknownReference
@@ -283,6 +286,9 @@ case class SilUnresolvedStatePredicate(
   override def getModifiers = modifiers
 
   override def children = Seq(subject, state) ++ modifiers
+
+  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
+    copy(modifiers = newModifiers)
 }
 
 case class SilUnresolvedActionPredicate(
@@ -299,6 +305,9 @@ case class SilUnresolvedActionPredicate(
 
   override def children =
     Seq(subject) ++ directObject ++ modifiers
+
+  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
+    copy(modifiers = newModifiers)
 }
 
 case class SilUnresolvedRelationshipPredicate(
@@ -314,6 +323,9 @@ case class SilUnresolvedRelationshipPredicate(
   override def getModifiers = modifiers
 
   override def children = Seq(subject, complement) ++ modifiers
+
+  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
+    copy(modifiers = newModifiers)
 }
 
 case class SilPredicateSentence(
@@ -399,6 +411,9 @@ case class SilStatePredicate(
   override def getModifiers = modifiers
 
   override def children = Seq(subject, state) ++ modifiers
+
+  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
+    copy(modifiers = newModifiers)
 }
 
 case class SilRelationshipPredicate(
@@ -413,6 +428,9 @@ case class SilRelationshipPredicate(
   override def getModifiers = modifiers
 
   override def children = Seq(subject, complement) ++ modifiers
+
+  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
+    copy(modifiers = newModifiers)
 }
 
 case class SilActionPredicate(
@@ -428,6 +446,9 @@ case class SilActionPredicate(
 
   override def children =
     Seq(subject) ++ directObject ++ modifiers
+
+  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
+    copy(modifiers = newModifiers)
 }
 
 case class SilStateSpecifiedReference(
@@ -493,8 +514,8 @@ case class SilNounReference(
 {
 }
 
-case class SilResolvedReference[E<:ShlurdEntity](
-  entities : Set[E],
+case class SilResolvedReference[EntityType<:ShlurdEntity](
+  entities : Set[EntityType],
   noun : SilWord,
   determiner : SilDeterminer
 ) extends SilTransformedPhrase with SilReference

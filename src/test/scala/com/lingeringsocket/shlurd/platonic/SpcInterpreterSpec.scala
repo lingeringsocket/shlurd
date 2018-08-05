@@ -965,6 +965,32 @@ class SpcInterpreterSpec extends Specification
       interpret("is he Dirk's friend", "Yes, Todd is Dirk's friend.")
     }
 
+    "understand timeframes" in new InterpreterContext(
+      ACCEPT_MODIFIED_BELIEFS)
+    {
+      interpretBelief("the key is an object")
+      interpretBelief("the pocket is an object")
+      interpretBelief("the purse is an object")
+      interpretBelief("the shoe is an object")
+      interpretTerse("where was the key before the pocket",
+        "No narrative in progress.")
+      mind.startNarrative
+      interpretBelief("the key was in the pocket")
+      interpretBelief("the key was in the purse")
+      interpretBelief("the key was in the shoe")
+      interpretTerse("where is the key", "The shoe.")
+      interpretTerse("where was the key",
+        "A timeframe must be specified.")
+      interpretTerse("where was the key before the purse", "The pocket.")
+      interpretTerse("where was the key after the purse", "The shoe.")
+      interpretTerse("where was the key before the shoe", "The purse.")
+      interpretTerse("where was the key after the pocket", "The purse.")
+      interpretTerse("where was the key after the shoe",
+        "No such timeframe in narrative.")
+      interpretTerse("where was the key before the pocket",
+        "No such timeframe in narrative.")
+    }
+
     "understand progressive action predicates" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {

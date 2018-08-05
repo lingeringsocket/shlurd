@@ -39,6 +39,7 @@ class SpcInterpretTester(beliefsFile : String) extends ShlurdParseTester
     cosmos.copyFrom(seedCosmos)
     mind = new SpcMind(cosmos)
     mind.startConversation
+    mind.startNarrative
   }
 
   override protected def processOne(

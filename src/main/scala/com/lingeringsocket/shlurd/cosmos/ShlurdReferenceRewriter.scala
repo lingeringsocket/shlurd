@@ -26,10 +26,13 @@ case class ShlurdResolutionOptions(
   resolveConjunctions : Boolean = false
 )
 
-class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
-  cosmos : ShlurdCosmos[E, P],
+class ShlurdReferenceRewriter[
+  EntityType<:ShlurdEntity, PropertyType<:ShlurdProperty
+]
+  (
+  cosmos : ShlurdCosmos[EntityType, PropertyType],
   sentencePrinter : SilSentencePrinter,
-  resultCollector : ResultCollector[E],
+  resultCollector : ResultCollector[EntityType],
   options : ShlurdResolutionOptions = ShlurdResolutionOptions())
     extends SilPhraseRewriter
 {
@@ -77,7 +80,7 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       DETERMINER_ALL, references, _
     ) if (options.resolveConjunctions) => {
       val resolved = references.flatMap(_ match {
-        case rr : SilResolvedReference[E] => {
+        case rr : SilResolvedReference[EntityType] => {
           Some(rr)
         }
         case _ => {
@@ -97,7 +100,7 @@ class ShlurdReferenceRewriter[E<:ShlurdEntity, P<:ShlurdProperty](
       }
     }
     case gr @ SilGenitiveReference(
-      grr : SilResolvedReference[E], SilNounReference(noun, _, _)
+      grr : SilResolvedReference[EntityType], SilNounReference(noun, _, _)
     ) => {
       val roleName = noun.lemma
       grr.entities.foreach(entity => cosmos.reifyRole(entity, roleName, true))

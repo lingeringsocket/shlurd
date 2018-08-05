@@ -25,7 +25,8 @@ import scala.util._
 
 import ShlurdEnglishLemmas._
 
-class SpcMind(cosmos : SpcCosmos) extends ShlurdMind(cosmos)
+class SpcMind(cosmos : SpcCosmos)
+    extends ShlurdMind[SpcEntity, SpcProperty, SpcCosmos](cosmos)
 {
   override def getCosmos = cosmos
 

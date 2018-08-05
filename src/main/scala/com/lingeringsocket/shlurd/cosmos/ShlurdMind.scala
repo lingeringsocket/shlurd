@@ -19,9 +19,16 @@ import com.lingeringsocket.shlurd.parser._
 import scala.collection._
 import scala.util._
 
-class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
-  cosmos : ShlurdCosmos[E,P])
+class ShlurdMind[
+  EntityType<:ShlurdEntity,
+  PropertyType<:ShlurdProperty,
+  CosmosType<:ShlurdCosmos[EntityType, PropertyType]
+](
+  cosmos : CosmosType)
 {
+  type ConversationType = ShlurdConversation[EntityType]
+  type TimelineType = ShlurdTimeline[EntityType, PropertyType, CosmosType]
+
   private lazy val personFirst =
     uniqueEntity(resolvePronoun(
       SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)))
@@ -30,13 +37,16 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
     uniqueEntity(resolvePronoun(
       SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)))
 
-  private var conversation : Option[ShlurdConversation[E]] = None
+  private var conversation : Option[ConversationType] = None
+
+  private var timeline
+      : Option[TimelineType] = None
 
   def getCosmos = cosmos
 
   def startConversation()
   {
-    conversation = Some(new ShlurdConversation[E])
+    conversation = Some(new ConversationType)
   }
 
   def stopConversation()
@@ -44,17 +54,38 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
     conversation = None
   }
 
+  def startNarrative()
+  {
+    timeline = Some(new TimelineType)
+  }
+
+  def stopNarrative()
+  {
+    timeline = None
+  }
+
+  def hasNarrative() =
+  {
+    !timeline.isEmpty
+  }
+
+  def getNarrative() : TimelineType =
+  {
+    timeline.get
+  }
+
   def isConversing() : Boolean =
   {
     !conversation.isEmpty
   }
 
-  def getConversation() : ShlurdConversation[E] =
+  def getConversation() : ConversationType =
   {
     conversation.get
   }
 
-  private def filterReferenceMap(referenceMap : Map[SilReference, Set[E]]) =
+  private def filterReferenceMap(
+    referenceMap : Map[SilReference, Set[EntityType]]) =
   {
     referenceMap.filterKeys(isRetainableReference)
   }
@@ -85,7 +116,7 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
     speakerName : String,
     sentence : SilSentence,
     text : String,
-    referenceMap : Map[SilReference, Set[E]] = Map.empty)
+    referenceMap : Map[SilReference, Set[EntityType]] = Map.empty)
   {
     val savedText = {
       if (text.isEmpty) {
@@ -99,14 +130,23 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   def rememberSentenceAnalysis(
-    referenceMap : Map[SilReference, Set[E]])
+    referenceMap : Map[SilReference, Set[EntityType]])
   {
     conversation.foreach(_.updateSentenceAnalysis(
       filterReferenceMap(referenceMap)))
   }
 
+  def rememberTimelineEvent(
+    updatedCosmos : CosmosType,
+    predicate : SilPredicate,
+    referenceMap : Map[SilReference, Set[EntityType]])
+  {
+    timeline.foreach(_.addEntry(
+      new ShlurdTimelineEntry(updatedCosmos, predicate, referenceMap)))
+  }
+
   def resolvePronoun(
-    reference : SilPronounReference) : Try[Set[E]] =
+    reference : SilPronounReference) : Try[Set[EntityType]] =
   {
     // FIXME proper coreference resolution, including within current sentence;
     // also, there should probably be some limit on how far back to search.
@@ -125,8 +165,8 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def findMatchingPronounReference(
-    utterance : SpeakerUtterance[E],
-    reference : SilPronounReference) : Option[Set[E]] =
+    utterance : SpeakerUtterance[EntityType],
+    reference : SilPronounReference) : Option[Set[EntityType]] =
   {
     utterance.referenceMap.values.find(set => {
       thirdPersonReference(set) == Some(reference)
@@ -134,7 +174,7 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   def equivalentReferences(
-    entity : E,
+    entity : EntityType,
     determiner : SilDeterminer)
       : Seq[SilReference] =
   {
@@ -143,7 +183,7 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
     Seq(cosmos.specificReference(entity, determiner))
   }
 
-  def thirdPersonReference(entities : Set[E]) : Option[SilReference] =
+  def thirdPersonReference(entities : Set[EntityType]) : Option[SilReference] =
   {
     if (entities.isEmpty) {
       None
@@ -155,7 +195,7 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def pronounReference(
-    entity : E, pronounEntity : Try[E],
+    entity : EntityType, pronounEntity : Try[EntityType],
     person : SilPerson)
       : Seq[SilReference] =
   {
@@ -167,7 +207,8 @@ class ShlurdMind[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
-  protected def uniqueEntity(result : Try[Set[E]]) : Try[E] =
+  protected def uniqueEntity(
+    result : Try[Set[EntityType]]) : Try[EntityType] =
   {
     result.flatMap(set => {
       if (set.size == 1) {

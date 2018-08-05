@@ -27,8 +27,8 @@ import org.slf4j._
 
 import ShlurdEnglishLemmas._
 
-case class ShlurdStateChangeInvocation[E<:ShlurdEntity](
-  entities : Set[E],
+case class ShlurdStateChangeInvocation[EntityType<:ShlurdEntity](
+  entities : Set[EntityType],
   state : SilWord)
 {
 }
@@ -49,33 +49,44 @@ case class ShlurdResponseParams(
   def alwaysSummarize = (listLimit == 0)
 }
 
-class ResultCollector[E<:ShlurdEntity](
-  val referenceMap : mutable.Map[SilReference, Set[E]])
+class ResultCollector[EntityType<:ShlurdEntity](
+  val referenceMap : mutable.Map[SilReference, Set[EntityType]])
 {
-  val entityMap = new mutable.LinkedHashMap[E, Trilean]
+  val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
   val states = new mutable.LinkedHashSet[SilWord]
   var isCategorization = false
 
-  def spawn() = new ResultCollector[E](referenceMap)
+  def spawn() = new ResultCollector[EntityType](referenceMap)
 }
 
 object ResultCollector
 {
-  def apply[E<:ShlurdEntity]() =
-    new ResultCollector(new mutable.LinkedHashMap[SilReference, Set[E]])
+  def apply[EntityType<:ShlurdEntity]() =
+    new ResultCollector(
+      new mutable.LinkedHashMap[SilReference, Set[EntityType]])
 }
 
-class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
-  mind : ShlurdMind[E,P],
+class ShlurdInterpreter[
+  EntityType<:ShlurdEntity,
+  PropertyType<:ShlurdProperty,
+  CosmosType<:ShlurdCosmos[EntityType, PropertyType],
+  MindType<:ShlurdMind[EntityType, PropertyType, CosmosType]
+](
+  mind : MindType,
   generalParams : ShlurdResponseParams = ShlurdResponseParams())
 {
-  type PredicateEvaluator = (E, SilReference) => Try[Trilean]
+  type ResultCollectorType = ResultCollector[EntityType]
+
+  type PredicateEvaluator = (EntityType, SilReference) => Try[Trilean]
 
   type SentenceInterpreter = PartialFunction[SilSentence, (SilSentence, String)]
 
-  private val cosmos = mind.getCosmos
+  private def cosmos = mind.getCosmos
 
-  private val logger = LoggerFactory.getLogger(classOf[ShlurdInterpreter[E,P]])
+  private val logger =
+    LoggerFactory.getLogger(
+      classOf[ShlurdInterpreter[
+        EntityType, PropertyType, CosmosType, MindType]])
 
   private lazy val debugEnabled = logger.isDebugEnabled
 
@@ -125,9 +136,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     debug(s"INTERPRETER RESPONSE TEXT : $responseText")
     debug(s"INTERPRETER RESPONSE SENTENCE : $responseSentence")
     if (mind.isConversing) {
-      // perhapse we should synthesize referenceMap as we go instead
+      // perhaps we should synthesize referenceMap as we go instead
       // of attempting to reconstruct it here
-      val resultCollector = ResultCollector[E]
+      val resultCollector = ResultCollector[EntityType]
       val rewriter = new ShlurdReferenceRewriter(
         mind.getCosmos, new SilSentencePrinter, resultCollector,
         ShlurdResolutionOptions(
@@ -166,6 +177,15 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     )
   }
 
+  protected def updateNarrative(
+    updatedCosmos : CosmosType,
+    predicate : SilPredicate,
+    referenceMap : Map[SilReference, Set[EntityType]])
+  {
+    // FIXME deal with tense/aspect/mood
+    mind.rememberTimelineEvent(updatedCosmos, predicate, referenceMap)
+  }
+
   protected def wrapResponseText(text : String)
       : (SilSentence, String) =
   {
@@ -179,7 +199,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     case SilStateChangeCommand(predicate, _, formality) => {
       debug("STATE CHANGE COMMAND")
 
-      val resultCollector = ResultCollector[E]
+      val resultCollector = ResultCollector[EntityType]
       val result = evaluatePredicate(predicate, resultCollector)
       mind.rememberSentenceAnalysis(resultCollector.referenceMap)
       result match {
@@ -226,8 +246,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
       val rewrittenPredicate = rewriteQuery(predicate, question)
       debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
 
-      val resultCollector = ResultCollector[E]
-      val result = evaluatePredicate(rewrittenPredicate, resultCollector)
+      val resultCollector = ResultCollector[EntityType]
+      val result = evaluateTamPredicate(
+        rewrittenPredicate, tam, resultCollector)
       mind.rememberSentenceAnalysis(resultCollector.referenceMap)
       result match {
         case Success(Trilean.Unknown) => {
@@ -296,13 +317,13 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def interpretPredicateSentence = sentenceInterpreter {
     case SilPredicateSentence(predicate, tam, formality) => {
-      val resultCollector = ResultCollector[E]
+      val resultCollector = ResultCollector[EntityType]
       tam.mood match {
         // FIXME deal with positive, modality
         case MOOD_INTERROGATIVE => {
           debug("PREDICATE QUERY SENTENCE")
           val query = predicate
-          val result = evaluatePredicate(query, resultCollector)
+          val result = evaluateTamPredicate(query, tam, resultCollector)
           mind.rememberSentenceAnalysis(resultCollector.referenceMap)
           result match {
             case Success(Trilean.Unknown) => {
@@ -359,7 +380,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
           // FIXME deal with modality
           val positivity = tam.isPositive
           debug(s"POSITIVITY : $positivity")
-          val predicateTruth = evaluatePredicate(predicate, resultCollector)
+          val predicateTruth = evaluateTamPredicate(
+            predicate, tam, resultCollector)
           mind.rememberSentenceAnalysis(resultCollector.referenceMap)
           val tamResponse = {
             predicateTruth match {
@@ -443,7 +465,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   protected def executeInvocation(
-    invocation : ShlurdStateChangeInvocation[E])
+    invocation : ShlurdStateChangeInvocation[EntityType])
   {
   }
 
@@ -490,9 +512,102 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     }
   }
 
+  private def evaluateTamPredicate(
+    predicate : SilPredicate,
+    tam : SilTam,
+    resultCollector : ResultCollectorType) : Try[Trilean] =
+  {
+    assert(tam.modality == MODAL_NEUTRAL)
+    tam.tense match {
+      case TENSE_PAST => {
+        evaluatePastPredicate(predicate, resultCollector)
+      }
+      case TENSE_PRESENT => {
+        evaluatePredicate(predicate, resultCollector)
+      }
+      case TENSE_FUTURE => {
+        // FIXME i18n
+        fail("Future tense not supported yet.")
+      }
+    }
+  }
+
+  private def evaluatePastPredicate(
+    predicate : SilPredicate,
+    resultCollector : ResultCollectorType) : Try[Trilean] =
+  {
+    // FIXME i18n
+    if (!mind.hasNarrative) {
+      return fail("No narrative in progress.")
+    }
+    val timeframes = predicate.getModifiers.map(_ match {
+      case SilAdpositionalVerbModifier(
+        adp @ (SilAdposition.BEFORE | SilAdposition.AFTER),
+        objRef
+      ) => {
+        Some((adp, objRef))
+      }
+      case _ => None
+    })
+
+    val iTimeframe = timeframes.indexWhere(t => !t.isEmpty)
+    if (iTimeframe < 0) {
+      return fail("A timeframe must be specified.")
+    }
+
+    val reducedModifiers = predicate.getModifiers.patch(
+      iTimeframe, Seq.empty, 1)
+    val (adp, objRef) = timeframes(iTimeframe).get
+    val timeline = mind.getNarrative
+    var trueSeen = false
+    val freePredicate =
+      predicate.withNewModifiers(reducedModifiers)
+    val boundPredicate =
+      inputRewriter.bindPredicateWildcard(freePredicate, objRef)
+    val iter = adp match {
+      case SilAdposition.BEFORE => timeline.getEntries.reverseIterator
+      case _ => timeline.getEntries.iterator
+    }
+    iter.foreach(entry => {
+      val pastCollector = ResultCollector[EntityType]
+      val pastMind = imagine(entry.updatedCosmos)
+      val pastInterpreter = spawn(pastMind)
+      val pastTruthTry = pastInterpreter.evaluatePredicate(
+        boundPredicate, pastCollector)
+      val pastTruth =
+        pastTruthTry.getOrElse(return pastTruthTry).assumeFalse
+      if (trueSeen) {
+        if (!pastTruth) {
+          // now re-evaluate the original predicate at that point in time
+          return pastInterpreter.evaluatePredicate(
+            freePredicate, resultCollector)
+        }
+      } else {
+        if (pastTruth) {
+          trueSeen = true
+        }
+      }
+    })
+    fail("No such timeframe in narrative.")
+  }
+
+  protected def imagine(alternateCosmos : CosmosType)
+      : MindType =
+  {
+    throw new UnsupportedOperationException("I lack imagination")
+  }
+
+  // FIXME this isn't guaranteed to preserve overrides, e.g.
+  // executeInvocation
+  protected def spawn(subMind : MindType) =
+  {
+    new ShlurdInterpreter[EntityType, PropertyType, CosmosType, MindType](
+      subMind, generalParams)
+  }
+
   protected def evaluatePredicate(
     predicateOriginal : SilPredicate,
-    resultCollector : ResultCollector[E]) : Try[Trilean] =
+    resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     debug(s"EVALUATE PREDICATE : $predicateOriginal")
     debugDepth += 1
@@ -565,6 +680,8 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         }
       }
       case ap : SilActionPredicate => {
+        // FIXME we should be calling updateNarrative() here too for
+        // indicative statements
         evaluateActionPredicate(ap, resultCollector)
       }
       case _ => {
@@ -579,7 +696,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   protected def evaluateActionPredicate(
     ap : SilActionPredicate,
-    resultCollector : ResultCollector[E]) : Try[Trilean] =
+    resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     debug("ACTION PREDICATES UNSUPPORTED")
     fail(sentencePrinter.sb.respondCannotUnderstand())
@@ -588,7 +705,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def evaluateNormalizedStatePredicate(
     subjectRef : SilReference,
     originalState : SilState,
-    resultCollector : ResultCollector[E])
+    resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
     val context = originalState match {
@@ -634,9 +751,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def evaluateRelationshipPredicate(
-    subjectEntity : E,
+    subjectEntity : EntityType,
     complementRef : SilReference,
-    complementEntity : E,
+    complementEntity : EntityType,
     relationship : SilRelationship) : Try[Trilean] =
   {
     relationship match {
@@ -678,7 +795,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def evaluateCategorization(
-    entity : E,
+    entity : EntityType,
     categoryLabel : String) : Try[Trilean] =
   {
     val result = cosmos.evaluateEntityCategoryPredicate(entity, categoryLabel)
@@ -697,7 +814,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def evaluatePredicateOverReference(
     reference : SilReference,
     context : SilReferenceContext,
-    resultCollector : ResultCollector[E],
+    resultCollector : ResultCollectorType,
     specifiedState : SilState = SilNullState()
   )(evaluator : PredicateEvaluator)
       : Try[Trilean] =
@@ -715,10 +832,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def evaluatePredicateOverEntities(
-    unfilteredEntities : Iterable[E],
+    unfilteredEntities : Iterable[EntityType],
     entityRef : SilReference,
     context : SilReferenceContext,
-    resultCollector : ResultCollector[E],
+    resultCollector : ResultCollectorType,
     specifiedState : SilState,
     determiner : SilDeterminer,
     count : SilCount,
@@ -823,7 +940,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   private def evaluatePredicateOverReferenceImpl(
     reference : SilReference,
     context : SilReferenceContext,
-    resultCollector : ResultCollector[E],
+    resultCollector : ResultCollectorType,
     specifiedState : SilState,
     evaluator : PredicateEvaluator)
       : Try[Trilean] =
@@ -895,7 +1012,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
         evaluatePredicateOverState(
           possessee, state, context, resultCollector, specifiedState, evaluator)
       }
-      case rr : SilResolvedReference[E] => {
+      case rr : SilResolvedReference[EntityType] => {
         evaluatePredicateOverEntities(
           rr.entities,
           rr,
@@ -918,7 +1035,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
     reference : SilReference,
     state : SilState,
     context : SilReferenceContext,
-    resultCollector : ResultCollector[E],
+    resultCollector : ResultCollectorType,
     specifiedState : SilState,
     evaluator : PredicateEvaluator)
       : Try[Trilean] =
@@ -938,9 +1055,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def invokeEvaluator(
-    entity : E,
+    entity : EntityType,
     entityRef : SilReference,
-    resultCollector : ResultCollector[E],
+    resultCollector : ResultCollectorType,
     evaluator : PredicateEvaluator) : Try[Trilean] =
   {
     val result = evaluator(
@@ -950,10 +1067,10 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def evaluatePropertyStatePredicate(
-    entity : E,
+    entity : EntityType,
     entityRef : SilReference,
     state : SilWord,
-    resultCollector : ResultCollector[E])
+    resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
     val result = cosmos.resolveProperty(entity, state.lemma) match {
@@ -992,9 +1109,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
   }
 
   private def evaluateAdpositionStatePredicate(
-    subjectEntity : E, adposition : SilAdposition,
+    subjectEntity : EntityType, adposition : SilAdposition,
     objRef : SilReference,
-    resultCollector : ResultCollector[E])
+    resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
     val objCollector = resultCollector.spawn
@@ -1021,7 +1138,7 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def rewriteReferences(
     predicate : SilPredicate,
-    resultCollector : ResultCollector[E]) : SilPredicate =
+    resultCollector : ResultCollectorType) : SilPredicate =
   {
     val referenceRewriter = new ShlurdReferenceRewriter(
       cosmos, sentencePrinter, resultCollector)
@@ -1031,9 +1148,9 @@ class ShlurdInterpreter[E<:ShlurdEntity, P<:ShlurdProperty](
 
   private def chooseResultCollector(
     phrase : SilPhrase,
-    collector : ResultCollector[E]) =
+    collector : ResultCollectorType) =
   {
-    if (responseRewriter.containsWildcard(phrase)) {
+    if (inputRewriter.containsWildcard(phrase)) {
       collector
     } else {
       collector.spawn

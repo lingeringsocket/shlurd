@@ -27,6 +27,9 @@ import ShlurdEnglishLemmas._
 
 class ShlurdInterpreterSpec extends Specification
 {
+  type CosmosType = ShlurdCosmos[ShlurdEntity, ShlurdProperty]
+  type MindType = ShlurdMind[ShlurdEntity, ShlurdProperty, CosmosType]
+
   private val cosmos = ZooCosmos
 
   private val LEMMA_ANIMAL = "animal"
@@ -38,7 +41,7 @@ class ShlurdInterpreterSpec extends Specification
       ShlurdResponseParams().copy(thirdPersonPronouns = false)
   ) extends NameSpace
   {
-    protected val mind = new ShlurdMind(cosmos) {
+    protected val mind = new MindType(cosmos) {
       override def resolvePronoun(
         reference : SilPronounReference) : Try[Set[ShlurdEntity]] =
       {
@@ -57,7 +60,13 @@ class ShlurdInterpreterSpec extends Specification
       input : String,
       params : ShlurdResponseParams = responseParams) =
     {
-      val interpreter = new ShlurdInterpreter(mind, params) {
+      val interpreter =
+        new ShlurdInterpreter[
+          ShlurdEntity, ShlurdProperty,
+          CosmosType, MindType
+        ](
+          mind, params)
+      {
         override protected def executeInvocation(
           invocation : StateChangeInvocation)
         {
@@ -75,7 +84,9 @@ class ShlurdInterpreterSpec extends Specification
     {
       val sentence = ShlurdParser(input).parseOne
       var actualInvocation : Option[StateChangeInvocation] = None
-      val interpreter = new ShlurdInterpreter(mind, responseParams) {
+      val interpreter = new ShlurdInterpreter[
+        ShlurdEntity, ShlurdProperty, CosmosType, MindType
+      ](mind, responseParams) {
         override protected def executeInvocation(
           invocation : StateChangeInvocation)
         {
@@ -466,9 +477,6 @@ class ShlurdInterpreterSpec extends Specification
       interpret("Are you how I want you?") must be equalTo(
         "I think you are asking something about me, but " +
           "I can't understand the phrase \"how I want you\"")
-      interpret("in the kitchen my guitar is weeping") must
-        be equalTo("I think you are saying something, " +
-          "but I can't understand the phrase \"in the kitchen\"")
     }
 
     "remember conversation" in new InterpreterContext
@@ -557,7 +565,7 @@ class ShlurdInterpreterSpec extends Specification
   object ZooAnimalAwake extends ZooAnimalSleepiness("awake")
   object ZooAnimalAsleep extends ZooAnimalSleepiness("asleep")
 
-  object ZooCosmos extends ShlurdCosmos[ShlurdEntity, ShlurdProperty]
+  object ZooCosmos extends CosmosType
   {
     private def index[T <: NamedObject](set : Set[T]) =
       Map(set.map(x => (x.name, x)).toSeq:_*)

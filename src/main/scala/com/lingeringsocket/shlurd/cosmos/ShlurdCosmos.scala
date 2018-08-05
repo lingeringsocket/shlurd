@@ -27,28 +27,28 @@ case object REF_COMPLEMENT extends SilReferenceContext
 case object REF_ADPOSITION_OBJ extends SilReferenceContext
 case object REF_ADPOSITION_SUBJ extends SilReferenceContext
 
-trait ShlurdCosmos[E<:ShlurdEntity, P<:ShlurdProperty]
+trait ShlurdCosmos[EntityType<:ShlurdEntity, PropertyType<:ShlurdProperty]
 {
   def fail(msg : String) = Failure(new RuntimeException(msg))
 
   def resolveQualifiedNoun(
     lemma : String,
     context : SilReferenceContext,
-    qualifiers : Set[String] = Set.empty) : Try[Set[E]]
+    qualifiers : Set[String] = Set.empty) : Try[Set[EntityType]]
 
   def resolveEntityAssoc(
-    entity : E,
-    roleName : String) : Try[Set[E]] =
+    entity : EntityType,
+    roleName : String) : Try[Set[EntityType]] =
   {
     Failure(new UnsupportedOperationException())
   }
 
   def resolveProperty(
-    entity : E,
-    lemma : String) : Try[(P, String)]
+    entity : EntityType,
+    lemma : String) : Try[(PropertyType, String)]
 
   def evaluateEntityCategoryPredicate(
-    entity : E,
+    entity : EntityType,
     lemma : String,
     qualifiers : Set[String] = Set.empty) : Try[Trilean] =
   {
@@ -57,22 +57,22 @@ trait ShlurdCosmos[E<:ShlurdEntity, P<:ShlurdProperty]
   }
 
   def evaluateEntityPropertyPredicate(
-    entity : E,
-    property : P,
+    entity : EntityType,
+    property : PropertyType,
     lemma : String) : Try[Trilean]
 
   def evaluateEntityAdpositionPredicate(
-    entity : E,
-    objEntity : E,
+    entity : EntityType,
+    objEntity : EntityType,
     adposition : SilAdposition,
     qualifiers : Set[String] = Set.empty) : Try[Trilean]
 
   def specificReference(
-    entity : E,
+    entity : EntityType,
     determiner : SilDeterminer) : SilReference
 
   def specificReferences(
-    entities : Set[E],
+    entities : Set[EntityType],
     determiner : SilDeterminer) : SilReference =
   {
     assert(!entities.isEmpty)
@@ -91,11 +91,12 @@ trait ShlurdCosmos[E<:ShlurdEntity, P<:ShlurdProperty]
     ShlurdParseUtils.orderedSet(qualifiers.map(_.lemma))
 
   // lemma -> inflected
-  def getPropertyStateMap(property : P) : Map[String, String]
+  def getPropertyStateMap(property : PropertyType) : Map[String, String]
 
-  def normalizeState(entity : E, state : SilState) : SilState = state
+  def normalizeState(entity : EntityType, state : SilState) : SilState = state
 
-  def reifyRole(possessor : E, roleName : String, onlyIfProven : Boolean)
+  def reifyRole(
+    possessor : EntityType, roleName : String, onlyIfProven : Boolean)
   {
   }
 }

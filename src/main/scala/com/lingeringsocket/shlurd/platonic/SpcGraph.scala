@@ -175,19 +175,23 @@ class SpcGraph(
 {
   def asUnmodifiable() =
   {
-    new SpcGraph(
-      new AsUnmodifiableGraph(idealSynonyms),
-      new AsUnmodifiableGraph(idealTaxonomy),
-      new AsUnmodifiableGraph(formAssocs),
-      new AsUnmodifiableGraph(inverseAssocs),
-      new AsUnmodifiableGraph(entitySynonyms),
-      new AsUnmodifiableGraph(entityAssocs),
-      new AsUnmodifiableGraph(components),
-      new AsUnmodifiableGraph(triggers),
-      propertyIndex,
-      propertyStateIndex,
-      stateNormalizationIndex
-    )
+    if (getGraphs().exists(_.getType.isModifiable)) {
+      new SpcGraph(
+        new AsUnmodifiableGraph(idealSynonyms),
+        new AsUnmodifiableGraph(idealTaxonomy),
+        new AsUnmodifiableGraph(formAssocs),
+        new AsUnmodifiableGraph(inverseAssocs),
+        new AsUnmodifiableGraph(entitySynonyms),
+        new AsUnmodifiableGraph(entityAssocs),
+        new AsUnmodifiableGraph(components),
+        new AsUnmodifiableGraph(triggers),
+        propertyIndex,
+        propertyStateIndex,
+        stateNormalizationIndex
+      )
+    } else {
+      this
+    }
   }
 
   def getGraphs() : Seq[Graph[_, _]] =

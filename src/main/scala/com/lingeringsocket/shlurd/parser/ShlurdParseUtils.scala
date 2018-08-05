@@ -102,6 +102,8 @@ object ShlurdEnglishLemmas
   val LEMMA_NEARBY = "nearby"
   val LEMMA_TO = "to"
   val LEMMA_ON = "on"
+  val LEMMA_BEFORE = "before"
+  val LEMMA_AFTER = "after"
   val LEMMA_LEFT = "left"
   val LEMMA_RIGHT = "right"
   val LEMMA_FRONT = "front"

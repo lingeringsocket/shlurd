@@ -32,9 +32,24 @@ class SpcInterpreter(
   mind : SpcMind,
   beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
   params : ShlurdResponseParams = ShlurdResponseParams())
-    extends ShlurdInterpreter(mind, params)
+    extends ShlurdInterpreter[
+  SpcEntity, SpcProperty, SpcCosmos, SpcMind
+](
+  mind, params
+)
 {
   val already = new mutable.HashSet[SilPredicate]
+
+  override protected def spawn(subMind : SpcMind) =
+  {
+    new SpcInterpreter(subMind, beliefAcceptance, params)
+  }
+
+  override protected def imagine(
+    alternateCosmos : SpcCosmos) =
+  {
+    new SpcMind(alternateCosmos)
+  }
 
   override protected def interpretImpl(sentence : SilSentence)
       : (SilSentence, String) =
@@ -52,21 +67,26 @@ class SpcInterpreter(
     // FIXME this is madness...we make a half-hearted attempt at
     // collecting references here because SpcBeliefInterpreter does
     // not do anything in that regard.
-    if (mind.isConversing) {
-      val resultCollector = ResultCollector[SpcEntity]
-      val rewriter =
-        new ShlurdReferenceRewriter(
-          mind.getCosmos,
-          new SilSentencePrinter,
-          resultCollector,
-          ShlurdResolutionOptions(
-            failOnUnknown = false,
-            resolveConjunctions = true,
-            resolveUniqueDeterminers = true))
-      // discard the rewrite result; we just want the
-      // resultCollector side effects
-      rewriter.rewrite(rewriter.rewriteReferences, sentence)
-      mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+    val referenceMap = {
+      if (mind.isConversing || mind.hasNarrative) {
+        val resultCollector = ResultCollector[SpcEntity]
+        val rewriter =
+          new ShlurdReferenceRewriter(
+            mind.getCosmos,
+            new SilSentencePrinter,
+            resultCollector,
+            ShlurdResolutionOptions(
+              failOnUnknown = false,
+              resolveConjunctions = true,
+              resolveUniqueDeterminers = true))
+        // discard the rewrite result; we just want the
+        // resultCollector side effects
+        rewriter.rewrite(rewriter.rewriteReferences, sentence)
+        mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+        Some(resultCollector.referenceMap)
+      } else {
+        None
+      }
     }
 
     if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
@@ -76,8 +96,22 @@ class SpcInterpreter(
         new SpcBeliefInterpreter(
           mind.getCosmos.fork,
           (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS))
-      interpretBeliefOrAction(beliefInterpreter, sentence) match {
+      interpretBeliefOrAction(
+        beliefInterpreter, sentence
+      ) match {
         case Some(result) => {
+          sentence match {
+            case SilPredicateSentence(predicate, _, _) => {
+              referenceMap.foreach(rm => {
+                val updatedCosmos = new SpcCosmos
+                // FIXME use smart deltas instead of wholesale copy
+                updatedCosmos.copyFrom(beliefInterpreter.cosmos)
+                updateNarrative(
+                  updatedCosmos.asUnmodifiable, predicate, rm)
+              })
+            }
+            case _ =>
+          }
           beliefInterpreter.cosmos.applyModifications
           return wrapResponseText(result)
         }
@@ -96,12 +130,13 @@ class SpcInterpreter(
     attemptAsBelief(beliefInterpreter, sentence).foreach(result => {
       return Some(result)
     })
-    sentence match {
+    val result = sentence match {
       case SilPredicateSentence(ap : SilActionPredicate, _, _) => {
-        return interpretAction(beliefInterpreter, ap)
+        interpretAction(beliefInterpreter, ap)
       }
       case _ => None
     }
+    result
   }
 
   private def attemptAsBelief(
