@@ -40,11 +40,11 @@ import org.eclipse.smarthome.core.voice.text.InterpretationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.lingeringsocket.shlurd.parser.ShlurdParser$;
+import com.lingeringsocket.shlurd.parser.SprParser$;
 import com.lingeringsocket.shlurd.parser.SilSentence;
-import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreterParams;
-import com.lingeringsocket.shlurd.cosmos.ShlurdInterpreterParams$;
-import com.lingeringsocket.shlurd.cosmos.ShlurdStateChangeInvocation;
+import com.lingeringsocket.shlurd.mind.SmcInterpreterParams;
+import com.lingeringsocket.shlurd.mind.SmcInterpreterParams$;
+import com.lingeringsocket.shlurd.mind.SmcStateChangeInvocation;
 import com.lingeringsocket.shlurd.platonic.SpcOpenhabCosmos;
 import com.lingeringsocket.shlurd.platonic.SpcEntity;
 import com.lingeringsocket.shlurd.platonic.SpcForm;
@@ -269,12 +269,12 @@ public class ShlurdHumanLanguageInterpreter
             logger.info("SHLURD items loaded");
         }
         // FIXME: need to support non-string commands
-        SilSentence sentence = ShlurdParser$.MODULE$.apply(text).parseOne();
-        ShlurdInterpreterParams params = ShlurdInterpreterParams$.MODULE$.apply(3);
+        SilSentence sentence = SprParser$.MODULE$.apply(text).parseOne();
+        SmcInterpreterParams params = SmcInterpreterParams$.MODULE$.apply(3);
         SpcInterpreter interpreter = new SpcInterpreter(
             new SpcMind(cosmos), params) {
             @Override
-            public void executeInvocation(ShlurdStateChangeInvocation<SpcEntity> invocation) {
+            public void executeInvocation(SmcStateChangeInvocation<SpcEntity> invocation) {
                 JavaConverters.setAsJavaSetConverter(invocation.entities()).asJava().forEach(entity -> {
                     try {
                         Item item = itemRegistry.getItem(entity.name());

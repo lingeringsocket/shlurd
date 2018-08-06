@@ -45,6 +45,6 @@ scalacOptions in (Compile, console) := Common.scalacCommonOptions :+ "-Yrepl-syn
 initialCommands := """
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
-import com.lingeringsocket.shlurd.cosmos._
+import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 """

@@ -15,7 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.cosmos._
+import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
 

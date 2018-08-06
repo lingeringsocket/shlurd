@@ -15,7 +15,7 @@ Import-Package:
  org.kiama.rewriting,
  spire.math,
  com.lingeringsocket.shlurd.parser,
- com.lingeringsocket.shlurd.cosmos,
+ com.lingeringsocket.shlurd.mind,
  com.lingeringsocket.shlurd.platonic,
  org.eclipse.jdt.annotation;resolution:=optional,
  org.eclipse.smarthome.config.core,
