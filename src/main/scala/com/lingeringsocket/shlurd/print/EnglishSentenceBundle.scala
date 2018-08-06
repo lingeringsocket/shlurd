@@ -18,8 +18,8 @@ import com.lingeringsocket.shlurd.parser._
 
 import org.atteo.evo.inflector.{English => EnglishPluralizer}
 
-import ShlurdEnglishLemmas._
-import ShlurdEnglishAffixes._
+import SprEnglishLemmas._
+import SprEnglishAffixes._
 
 class EnglishSentenceBundle
     extends SilSentenceBundle
@@ -682,7 +682,7 @@ class EnglishSentenceBundle
 
   override def respondToQuery(sentence : String) =
   {
-    ShlurdParseUtils.capitalize(sentence)
+    SprUtils.capitalize(sentence)
   }
 
   override def respondToCounterfactual(sentence : String) =

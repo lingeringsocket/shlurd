@@ -14,14 +14,14 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.print
 
-trait ShlurdParlanceBundle
+trait SilParlanceBundle
 
-trait ShlurdParlance
+trait SilParlance
 {
   def newSentenceBundle() : SilSentenceBundle
 }
 
-object ShlurdDefaultParlance extends ShlurdParlance
+object SilDefaultParlance extends SilParlance
 {
   override def newSentenceBundle() = new EnglishSentenceBundle
 }

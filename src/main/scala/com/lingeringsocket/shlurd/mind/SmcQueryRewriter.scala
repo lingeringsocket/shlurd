@@ -16,9 +16,9 @@ package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
-class ShlurdQueryRewriter(question : SilQuestion) extends SilPhraseRewriter
+class SmcQueryRewriter(question : SilQuestion) extends SilPhraseRewriter
 {
   def rewriteSpecifier = replacementMatcher {
     case SilNounReference(

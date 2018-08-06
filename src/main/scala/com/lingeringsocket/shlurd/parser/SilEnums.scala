@@ -15,7 +15,7 @@
 package com.lingeringsocket.shlurd.parser
 
 // FIXME
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 sealed trait SilPerson
 case object PERSON_FIRST extends SilPerson

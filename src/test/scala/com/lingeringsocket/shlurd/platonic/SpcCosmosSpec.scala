@@ -23,7 +23,7 @@ import scala.collection._
 import scala.io._
 import scala.util._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 class SpcCosmosSpec extends Specification
 {
@@ -35,7 +35,7 @@ class SpcCosmosSpec extends Specification
 
     protected def addBelief(input : String) =
     {
-      val sentence = ShlurdParser(input).parseOne
+      val sentence = SprParser(input).parseOne
       interpreter.interpretBelief(sentence)
     }
 
@@ -618,7 +618,7 @@ class SpcCosmosSpec extends Specification
 
     "load beliefs from a file" in new CosmosContext
     {
-      val file = ShlurdParser.getResourceFile("/ontologies/bit.txt")
+      val file = SprParser.getResourceFile("/ontologies/bit.txt")
       val source = Source.fromFile(file)
       cosmos.loadBeliefs(source)
       val form = expectNamedForm("bit")

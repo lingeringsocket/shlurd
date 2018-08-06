@@ -20,7 +20,7 @@ import com.lingeringsocket.shlurd.cosmos._
 
 import scala.collection._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 class SpcBeliefRecognizer(val cosmos : SpcCosmos)
 {
@@ -246,11 +246,11 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       : Seq[SpcBelief] =
   {
     val rewriter =
-      new ShlurdReferenceRewriter[SpcEntity, SpcProperty](
+      new SmcReferenceRewriter[SpcEntity, SpcProperty](
         cosmos,
         new SilSentencePrinter,
-        ResultCollector[SpcEntity],
-        ShlurdResolutionOptions(
+        SmcResultCollector[SpcEntity],
+        SmcResolutionOptions(
           failOnUnknown = false,
           resolveConjunctions = true,
           resolveUniqueDeterminers = true)

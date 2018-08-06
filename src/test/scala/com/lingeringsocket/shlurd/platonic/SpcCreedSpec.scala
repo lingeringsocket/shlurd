@@ -38,7 +38,7 @@ class SpcCreedSpec extends Specification
 
     protected def addBelief(input : String) =
     {
-      val sentence = ShlurdParser(input).parseOne
+      val sentence = SprParser(input).parseOne
       interpreter.interpretBelief(sentence)
     }
 
@@ -54,16 +54,16 @@ class SpcCreedSpec extends Specification
       input.foreach(addBelief)
       val printer = new SilSentencePrinter
       val beliefStrings = creed.allBeliefs.map(s => printer.print(s))
-      beliefStrings.map(ShlurdParseUtils.capitalize) must be equalTo expected
+      beliefStrings.map(SprUtils.capitalize) must be equalTo expected
       val refriedBeliefs = beliefStrings.flatMap(beliefString => {
-        val sentence = ShlurdParser(beliefString).parseOne
+        val sentence = SprParser(beliefString).parseOne
         refriedInterpreter.recognizeBeliefs(sentence)
       })
       refriedBeliefs.foreach(belief => {
         refriedInterpreter.applyBelief(belief)
       })
       val refriedStrings = refriedCreed.allBeliefs.map(s => printer.print(s))
-      refriedStrings.map(ShlurdParseUtils.capitalize) must be equalTo expected
+      refriedStrings.map(SprUtils.capitalize) must be equalTo expected
     }
   }
 

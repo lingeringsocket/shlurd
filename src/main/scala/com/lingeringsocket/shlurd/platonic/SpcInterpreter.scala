@@ -31,8 +31,8 @@ case object ACCEPT_MODIFIED_BELIEFS extends SpcBeliefAcceptance
 class SpcInterpreter(
   mind : SpcMind,
   beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
-  params : ShlurdResponseParams = ShlurdResponseParams())
-    extends ShlurdInterpreter[
+  params : SmcResponseParams = SmcResponseParams())
+    extends SmcInterpreter[
   SpcEntity, SpcProperty, SpcCosmos, SpcMind
 ](
   mind, params
@@ -69,13 +69,13 @@ class SpcInterpreter(
     // not do anything in that regard.
     val referenceMap = {
       if (mind.isConversing || mind.hasNarrative) {
-        val resultCollector = ResultCollector[SpcEntity]
+        val resultCollector = SmcResultCollector[SpcEntity]
         val rewriter =
-          new ShlurdReferenceRewriter(
+          new SmcReferenceRewriter(
             mind.getCosmos,
             new SilSentencePrinter,
             resultCollector,
-            ShlurdResolutionOptions(
+            SmcResolutionOptions(
               failOnUnknown = false,
               resolveConjunctions = true,
               resolveUniqueDeterminers = true))
@@ -165,7 +165,7 @@ class SpcInterpreter(
 
   override protected def evaluateActionPredicate(
     predicate : SilActionPredicate,
-    resultCollector : ResultCollector[SpcEntity]) : Try[Trilean] =
+    resultCollector : SmcResultCollector[SpcEntity]) : Try[Trilean] =
   {
     if (checkCycle(predicate)) {
       return fail(sentencePrinter.sb.circularAction)

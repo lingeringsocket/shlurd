@@ -17,9 +17,9 @@ package com.lingeringsocket.shlurd.cosmos
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.print._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
-class ShlurdUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
+class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
 {
   private val sb = sentencePrinter.sb
 

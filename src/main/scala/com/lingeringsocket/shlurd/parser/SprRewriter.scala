@@ -14,13 +14,13 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import ShlurdParseUtils._
-import ShlurdEnglishLemmas._
+import SprUtils._
+import SprEnglishLemmas._
 
-class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
+class SprRewriter(analyzer : SprSyntaxAnalyzer)
   extends SilPhraseRewriter
 {
-  def parseSentence(sentenceSyntaxTree : ShlurdSyntaxTree) : SilSentence =
+  def parseSentence(sentenceSyntaxTree : SprSyntaxTree) : SilSentence =
   {
     val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
     val expected = SilExpectedSentence(sentenceSyntaxTree, forceSQ)
@@ -71,14 +71,14 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     case SilExpectedReference(np : SptNP) => {
       analyzer.analyzeNounPhrase(np)
     }
-    case SilExpectedReference(noun : ShlurdSyntaxNoun) => {
+    case SilExpectedReference(noun : SprSyntaxNoun) => {
       SilNounReference(
         analyzer.getWord(noun.child),
         DETERMINER_UNSPECIFIED,
         analyzer.getCount(noun))
     }
     case SilExpectedNounlikeReference(
-      syntaxTree, nounlike : ShlurdSyntaxPreTerminal, determiner)
+      syntaxTree, nounlike : SprSyntaxPreTerminal, determiner)
         if (nounlike.isNoun || nounlike.isAdjectival) =>
     {
       // we allow mislabeled adjectives to handle
@@ -88,11 +88,11 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
         determiner,
         analyzer.getCount(nounlike))
     }
-    case SilExpectedReference(pronoun : ShlurdSyntaxPronoun) => {
+    case SilExpectedReference(pronoun : SprSyntaxPronoun) => {
       recognizePronounReference(pronoun.child)
     }
     case SilExpectedReference(
-      determiner : ShlurdSyntaxDeterminer
+      determiner : SprSyntaxDeterminer
     ) if (determiner.isDemonstrative) => {
       recognizePronounReference(determiner.child)
     }
@@ -105,7 +105,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     case SilExpectedVerbModifier(prt : SptPRT) => {
       analyzer.expectVerbModifierPhrase(prt)
     }
-    case SilExpectedVerbModifier(adv : ShlurdSyntaxAdverb) => {
+    case SilExpectedVerbModifier(adv : SprSyntaxAdverb) => {
       analyzer.expectBasicVerbModifier(adv)
     }
     case SilExpectedVerbModifier(particle : SptRP) => {
@@ -120,7 +120,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     case SilExpectedAdpositionalState(syntaxTree) => {
       analyzer.expectAdpositionalState(syntaxTree)
     }
-    case SilExpectedPropertyState(preTerminal : ShlurdSyntaxPreTerminal) => {
+    case SilExpectedPropertyState(preTerminal : SprSyntaxPreTerminal) => {
       SilPropertyState(analyzer.getWord(preTerminal.child))
     }
     case SilExpectedExistenceState(_) => {
@@ -272,7 +272,7 @@ class ShlurdParsingRewriter(analyzer : ShlurdSyntaxAnalyzer)
     }
   }
 
-  private def recognizePronounReference(leaf : ShlurdSyntaxLeaf)
+  private def recognizePronounReference(leaf : SprSyntaxLeaf)
       : SilPronounReference =
   {
     val lemma = leaf.lemma

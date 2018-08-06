@@ -16,7 +16,7 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
 
-object ShlurdEnglishLemmas
+object SprEnglishLemmas
 {
   val LEMMA_THERE = "there"
   val LEMMA_BE = "be"
@@ -120,28 +120,28 @@ object ShlurdEnglishLemmas
   val LEMMA_GENITIVE_OF = "_of_"
 }
 
-object ShlurdEnglishAffixes
+object SprEnglishAffixes
 {
   val SUFFIX_ING = "ing"
 }
 
-object ShlurdParseUtils
+object SprUtils
 {
   def capitalize(s : String) = s.head.toUpper + s.tail
 
   def orderedSet[T](iterable : Iterable[T]) =
     (new mutable.LinkedHashSet[T] ++= iterable)
 
-  def requireUnique(seq : Seq[ShlurdSyntaxTree]) : ShlurdSyntaxTree =
+  def requireUnique(seq : Seq[SprSyntaxTree]) : SprSyntaxTree =
   {
     assert(seq.size == 1)
     seq.head
   }
 
-  def requireLeaf(seq : Seq[ShlurdSyntaxTree]) : ShlurdSyntaxLeaf =
+  def requireLeaf(seq : Seq[SprSyntaxTree]) : SprSyntaxLeaf =
   {
     requireUnique(seq) match {
-      case leaf : ShlurdSyntaxLeaf => leaf
+      case leaf : SprSyntaxLeaf => leaf
       case nonLeaf => {
         throw new IllegalArgumentException("leaf expected but got " + nonLeaf)
       }

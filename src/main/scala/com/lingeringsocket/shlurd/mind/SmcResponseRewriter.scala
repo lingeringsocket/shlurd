@@ -18,24 +18,24 @@ import scala.collection._
 
 import com.lingeringsocket.shlurd.parser._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
-class ShlurdResponseRewriter[
-  EntityType<:ShlurdEntity,
-  PropertyType<:ShlurdProperty,
-  CosmosType<:ShlurdCosmos[EntityType, PropertyType]
+class SmcResponseRewriter[
+  EntityType<:SmcEntity,
+  PropertyType<:SmcProperty,
+  CosmosType<:SmcCosmos[EntityType, PropertyType]
 ](
-  mind : ShlurdMind[EntityType, PropertyType, CosmosType]
-) extends ShlurdPhraseRewriter
+  mind : SmcMind[EntityType, PropertyType, CosmosType]
+) extends SmcPhraseRewriter
 {
-  type ResultCollectorType = ResultCollector[EntityType]
+  type SmcResultCollectorType = SmcResultCollector[EntityType]
 
   private val cosmos = mind.getCosmos
 
   def normalizeResponse(
     predicate : SilPredicate,
-    resultCollector : ResultCollectorType,
-    params : ShlurdResponseParams,
+    resultCollector : SmcResultCollectorType,
+    params : SmcResponseParams,
     question : Option[SilQuestion] = None)
       : (SilPredicate, Boolean) =
   {
@@ -234,7 +234,7 @@ class ShlurdResponseRewriter[
 
   private def transformQuestionResponse(
     predicate : SilPredicate,
-    params : ShlurdResponseParams,
+    params : SmcResponseParams,
     question : Option[SilQuestion],
     negateCollection : Boolean) : SilPredicate =
   {
@@ -285,7 +285,7 @@ class ShlurdResponseRewriter[
   }
 
   private def rewriteThirdPersonReferences(
-    resultCollector : ResultCollectorType,
+    resultCollector : SmcResultCollectorType,
     predicate : SilPredicate) : SilPredicate =
   {
     val referenceMap = resultCollector.referenceMap
@@ -454,7 +454,7 @@ class ShlurdResponseRewriter[
       } else {
         referenceMap.put(
           cr,
-          ShlurdParseUtils.orderedSet(
+          SprUtils.orderedSet(
             references.flatMap(r => referenceMap(r))))
       }
     }
@@ -584,25 +584,25 @@ class ShlurdResponseRewriter[
     }
   }
 
-  private def getTrueEntities(resultCollector : ResultCollectorType) =
+  private def getTrueEntities(resultCollector : SmcResultCollectorType) =
   {
-    ShlurdParseUtils.orderedSet(
+    SprUtils.orderedSet(
       resultCollector.entityMap.filter(
         _._2.assumeFalse).keySet)
   }
 
-  private def getFalseEntities(resultCollector : ResultCollectorType) =
+  private def getFalseEntities(resultCollector : SmcResultCollectorType) =
   {
-    ShlurdParseUtils.orderedSet(
+    SprUtils.orderedSet(
       resultCollector.entityMap.filterNot(
         _._2.assumeTrue).keySet)
   }
 
   private def normalizeDisjunction(
-    resultCollector : ResultCollectorType,
+    resultCollector : SmcResultCollectorType,
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
-    params : ShlurdResponseParams)
+    params : SmcResponseParams)
       : Option[SilReference] =
   {
     val trueEntities = getTrueEntities(resultCollector)
@@ -626,10 +626,10 @@ class ShlurdResponseRewriter[
   }
 
   private def normalizeConjunction(
-    resultCollector : ResultCollectorType,
+    resultCollector : SmcResultCollectorType,
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
-    params : ShlurdResponseParams)
+    params : SmcResponseParams)
       : (Option[SilReference], Boolean) =
   {
     val falseEntities = getFalseEntities(resultCollector)
@@ -656,7 +656,7 @@ class ShlurdResponseRewriter[
   }
 
   private def summarizeList(
-    entities : Iterable[ShlurdEntity],
+    entities : Iterable[SmcEntity],
     exhaustive : Boolean,
     existence : Boolean,
     conjunction : Boolean) =

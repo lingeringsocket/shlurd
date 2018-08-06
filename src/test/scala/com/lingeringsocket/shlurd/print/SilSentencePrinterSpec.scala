@@ -24,7 +24,7 @@ class SilSentencePrinterSpec extends Specification
 
   private def normalize(s : String) : String =
   {
-    val parsed = ShlurdParser(s).parseOne
+    val parsed = SprParser(s).parseOne
     val normalized = normalize(parsed)
     printer.print(normalized)
   }

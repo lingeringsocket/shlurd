@@ -24,7 +24,7 @@ import scala.io._
        src/test/resources/expect/babi-unit-beliefs.txt" \
     < src/test/resources/expect/babi-unit-script.txt
  */
-class SpcInterpretTester(beliefsFile : String) extends ShlurdParseTester
+class SpcInterpretTester(beliefsFile : String) extends SprTester
 {
   private val seedCosmos = new SpcCosmos
   SpcPrimordial.initCosmos(seedCosmos)
@@ -48,9 +48,9 @@ class SpcInterpretTester(beliefsFile : String) extends ShlurdParseTester
     val interpreter =
       new SpcInterpreter(
         mind, ACCEPT_MODIFIED_BELIEFS,
-        ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE))
+        SmcResponseParams().copy(verbosity = RESPONSE_TERSE))
 
-    val sentence = ShlurdParser(input).parseOne
+    val sentence = SprParser(input).parseOne
     val response = interpreter.interpret(sentence, input)
     val expected = {
       if (answer.isEmpty) {

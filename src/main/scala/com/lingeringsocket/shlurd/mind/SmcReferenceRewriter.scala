@@ -20,20 +20,20 @@ import com.lingeringsocket.shlurd.print._
 import scala.collection._
 import scala.util._
 
-case class ShlurdResolutionOptions(
+case class SmcResolutionOptions(
   failOnUnknown : Boolean = true,
   resolveUniqueDeterminers : Boolean = false,
   resolveConjunctions : Boolean = false
 )
 
-class ShlurdReferenceRewriter[
-  EntityType<:ShlurdEntity, PropertyType<:ShlurdProperty
+class SmcReferenceRewriter[
+  EntityType<:SmcEntity, PropertyType<:SmcProperty
 ]
   (
-  cosmos : ShlurdCosmos[EntityType, PropertyType],
+  cosmos : SmcCosmos[EntityType, PropertyType],
   sentencePrinter : SilSentencePrinter,
-  resultCollector : ResultCollector[EntityType],
-  options : ShlurdResolutionOptions = ShlurdResolutionOptions())
+  resultCollector : SmcResultCollector[EntityType],
+  options : SmcResolutionOptions = SmcResolutionOptions())
     extends SilPhraseRewriter
 {
   def rewriteReferences = replacementMatcher {

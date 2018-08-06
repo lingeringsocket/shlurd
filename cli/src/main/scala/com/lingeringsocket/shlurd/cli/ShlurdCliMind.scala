@@ -18,7 +18,7 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.cosmos._
 import com.lingeringsocket.shlurd.platonic._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 class ShlurdCliMind(cosmos : SpcCosmos) extends SpcMind(cosmos)
 {

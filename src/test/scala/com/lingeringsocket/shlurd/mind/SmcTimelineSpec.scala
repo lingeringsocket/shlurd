@@ -18,22 +18,22 @@ import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 
-class ShlurdTimelineSpec extends Specification
+class SmcTimelineSpec extends Specification
 {
   private val PRED_A = makePredicate("a")
 
   private val REFERENCE_D = makeReference("d")
 
-  private val ENTITY_1 = new ShlurdEntity {}
+  private val ENTITY_1 = new SmcEntity {}
 
-  private val ENTITY_2 = new ShlurdEntity {}
+  private val ENTITY_2 = new SmcEntity {}
 
-  val REF_MAP_1 = Map[SilReference, Set[ShlurdEntity]](
+  val REF_MAP_1 = Map[SilReference, Set[SmcEntity]](
     REFERENCE_D -> Set(ENTITY_1)
   )
 
   private def makeLeaf(s : String) =
-    ShlurdSyntaxLeaf(s, s, s)
+    SprSyntaxLeaf(s, s, s)
 
   private def makePredicate(s : String) =
     SilUnrecognizedPredicate(makeLeaf(s))
@@ -41,18 +41,18 @@ class ShlurdTimelineSpec extends Specification
   private def makeReference(s : String) =
     SilUnrecognizedReference(makeLeaf(s))
 
-  "ShlurdTimeline" should
+  "SmcTimeline" should
   {
     "record events" in
     {
-      val timeline = new ShlurdTimeline[
-        ShlurdEntity, ShlurdProperty,
-        ShlurdCosmos[ShlurdEntity, ShlurdProperty]
+      val timeline = new SmcTimeline[
+        SmcEntity, SmcProperty,
+        SmcCosmos[SmcEntity, SmcProperty]
       ]
-      val cosmos : ShlurdCosmos[ShlurdEntity, ShlurdProperty] = null
-      val entry = ShlurdTimelineEntry[
-        ShlurdEntity, ShlurdProperty,
-        ShlurdCosmos[ShlurdEntity, ShlurdProperty]
+      val cosmos : SmcCosmos[SmcEntity, SmcProperty] = null
+      val entry = SmcTimelineEntry[
+        SmcEntity, SmcProperty,
+        SmcCosmos[SmcEntity, SmcProperty]
       ](cosmos, PRED_A, REF_MAP_1)
       timeline.addEntry(entry)
       val entries = timeline.getEntries

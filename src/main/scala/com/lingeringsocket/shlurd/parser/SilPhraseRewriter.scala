@@ -129,7 +129,7 @@ class SilPhraseRewriter
   }
 
   private def rememberTransformation(
-    syntaxTree : ShlurdSyntaxTree,
+    syntaxTree : SprSyntaxTree,
     phrase : SilPhrase) =
   {
     phrase match {

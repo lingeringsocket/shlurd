@@ -200,7 +200,7 @@ abstract class SpcOpenhabCosmos(
           } else {
             new SpcEntity(
               entity.name, entity.form,
-              ShlurdParseUtils.orderedSet(
+              SprUtils.orderedSet(
                 seq.patch(i + roomyQualifiers.size, Seq(roomLemma), 0)))
           }
         }

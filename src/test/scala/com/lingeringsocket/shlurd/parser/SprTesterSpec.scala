@@ -14,27 +14,23 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import org.kiama.output._
+import org.specs2.mutable._
 
-object ShlurdPrettyPrinter extends PrettyPrinter
+import scala.io._
+
+class SprTesterSpec extends Specification
 {
-  def prettyPrint(phrase : SilPhrase) : String =
+  "SprTester" should
   {
-    "\n" + pretty(any(phrase))
-  }
-
-  def prettyPrint(tree : ShlurdAbstractSyntaxTree) : String =
-  {
-    "\n" + pretty(tree)
-  }
-
-  override def any(p : Any) : Doc =
-  {
-    p match {
-      case tree : ShlurdAbstractSyntaxTree => tree.toDoc
-      case _ => super.any(p)
+    "parse babi format" in
+    {
+      val script = SprParser.getResourceFile("/expect/babi-unit-script.txt")
+      val tester = new SprTester
+      val (successes, failures) = tester.run(
+        Source.fromFile(script),
+        NullConsoleOutput)
+      successes must be equalTo 13
+      failures must be equalTo 0
     }
   }
-
-  override val defaultIndent = 2
 }

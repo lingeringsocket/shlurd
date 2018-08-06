@@ -18,7 +18,7 @@ import com.lingeringsocket.shlurd.parser._
 
 import scala.io._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 object SpcPrimordial
 {
@@ -35,7 +35,7 @@ object SpcPrimordial
   {
     cosmos.loadBeliefs(
       Source.fromFile(
-        ShlurdParser.getResourceFile("/ontologies/primordial.txt")))
+        SprParser.getResourceFile("/ontologies/primordial.txt")))
     // all the Whos down in Whoville
     cosmos.addIdealSynonym(LEMMA_WHO, LEMMA_PERSON)
     cosmos.addIdealSynonym(LEMMA_WHERE, LEMMA_CONTAINER)

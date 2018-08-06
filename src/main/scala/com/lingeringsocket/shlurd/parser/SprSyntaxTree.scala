@@ -16,7 +16,7 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
 
-object ShlurdPennTreebankLabels
+object SprPennTreebankLabels
 {
   val LABEL_ROOT = "ROOT"
   val LABEL_S = "S"
@@ -70,12 +70,12 @@ object ShlurdPennTreebankLabels
   val LABEL_EXCLAMATION_MARK = "!"
 }
 
-import ShlurdPennTreebankLabels._
-import ShlurdEnglishLemmas._
-import ShlurdEnglishAffixes._
-import ShlurdPrettyPrinter._
+import SprPennTreebankLabels._
+import SprEnglishLemmas._
+import SprEnglishAffixes._
+import SprPrettyPrinter._
 
-trait ShlurdAbstractSyntaxTree
+trait SprAbstractSyntaxTree
     extends PrettyPrintable
 {
   def label : String
@@ -86,7 +86,7 @@ trait ShlurdAbstractSyntaxTree
 
   def incomingDep : String
 
-  def children : Seq[ShlurdAbstractSyntaxTree]
+  def children : Seq[SprAbstractSyntaxTree]
 
   def numChildren = children.size
 
@@ -201,7 +201,7 @@ trait ShlurdAbstractSyntaxTree
 
   def isComma = hasLabel(LABEL_COMMA)
 
-  override def toString = ShlurdPrettyPrinter.prettyPrint(this)
+  override def toString = SprPrettyPrinter.prettyPrint(this)
 
   override def toDoc =
   {
@@ -246,13 +246,13 @@ trait ShlurdAbstractSyntaxTree
   }
 }
 
-sealed trait ShlurdSyntaxTree extends ShlurdAbstractSyntaxTree
+sealed trait SprSyntaxTree extends SprAbstractSyntaxTree
 {
-  override def children : Seq[ShlurdSyntaxTree]
+  override def children : Seq[SprSyntaxTree]
 
-  override def firstChild : ShlurdSyntaxTree = children.head
+  override def firstChild : SprSyntaxTree = children.head
 
-  override def lastChild : ShlurdSyntaxTree = children.last
+  override def lastChild : SprSyntaxTree = children.last
 
   def unwrapPhrase =
   {
@@ -266,7 +266,7 @@ sealed trait ShlurdSyntaxTree extends ShlurdAbstractSyntaxTree
   def isThen = unwrapPhrase.hasTerminalLemma(LEMMA_THEN)
 }
 
-sealed trait ShlurdSyntaxNonLeaf extends ShlurdSyntaxTree
+sealed trait SprSyntaxNonLeaf extends SprSyntaxTree
 {
   override def token = ""
 
@@ -275,9 +275,9 @@ sealed trait ShlurdSyntaxNonLeaf extends ShlurdSyntaxTree
   override def incomingDep = ""
 }
 
-case class ShlurdSyntaxLeaf(
+case class SprSyntaxLeaf(
   label : String, lemma : String, token : String, incomingDep : String = "")
-    extends ShlurdSyntaxTree
+    extends SprSyntaxTree
 {
   override def children = Seq.empty
 
@@ -289,16 +289,16 @@ case class ShlurdSyntaxLeaf(
   }
 }
 
-sealed trait ShlurdSyntaxUniqueChild extends ShlurdSyntaxNonLeaf
+sealed trait SprSyntaxUniqueChild extends SprSyntaxNonLeaf
 {
-  def child : ShlurdSyntaxTree
+  def child : SprSyntaxTree
 
   override def children = Seq(child)
 }
 
-sealed trait ShlurdSyntaxPreTerminal extends ShlurdSyntaxUniqueChild
+sealed trait SprSyntaxPreTerminal extends SprSyntaxUniqueChild
 {
-  override def child : ShlurdSyntaxLeaf
+  override def child : SprSyntaxLeaf
 
   override def toDoc : Doc =
   {
@@ -306,344 +306,344 @@ sealed trait ShlurdSyntaxPreTerminal extends ShlurdSyntaxUniqueChild
   }
 }
 
-sealed trait ShlurdSyntaxPhrase extends ShlurdSyntaxNonLeaf
+sealed trait SprSyntaxPhrase extends SprSyntaxNonLeaf
 {
 }
 
-sealed trait ShlurdSyntaxNoun extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxNoun extends SprSyntaxPreTerminal
 {
   def isProper : Boolean = false
 }
 
-sealed trait ShlurdSyntaxVerb extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxVerb extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxPronoun extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxPronoun extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxAdjective extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxAdjective extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxAdverb extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxAdverb extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxAdposition extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxAdposition extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxConjunction extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxConjunction extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxDeterminer extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxDeterminer extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxPossessive extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxPossessive extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxParticle extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxParticle extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxModal extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxModal extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxPunctuation extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxPunctuation extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait ShlurdSyntaxNumber extends ShlurdSyntaxPreTerminal
+sealed trait SprSyntaxNumber extends SprSyntaxPreTerminal
 {
 }
 
-case class ShlurdSyntaxNode(label : String, children : Seq[ShlurdSyntaxTree])
-    extends ShlurdSyntaxNonLeaf
+case class SprSyntaxNode(label : String, children : Seq[SprSyntaxTree])
+    extends SprSyntaxNonLeaf
 {
 }
 
-case class SptROOT(child : ShlurdSyntaxTree)
-    extends ShlurdSyntaxUniqueChild
+case class SptROOT(child : SprSyntaxTree)
+    extends SprSyntaxUniqueChild
 {
   override def label = LABEL_ROOT
 }
 
-case class SptS(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptS(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_S
 }
 
-case class SptSINV(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptSINV(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_SINV
 }
 
-case class SptSBAR(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptSBAR(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_SBAR
 }
 
-case class SptSBARQ(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptSBARQ(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_SBARQ
 }
 
-case class SptNP(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptNP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_NP
 }
 
-case class SptVP(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptVP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_VP
 }
 
-case class SptADJP(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptADJP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_ADJP
 }
 
-case class SptADVP(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptADVP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_ADVP
 }
 
-case class SptPP(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptPP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_PP
 }
 
-case class SptPRT(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptPRT(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_PRT
 }
 
-case class SptSQ(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptSQ(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_SQ
 }
 
-case class SptWHNP(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptWHNP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_WHNP
 }
 
-case class SptWHADJP(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptWHADJP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_WHADJP
 }
 
-case class SptWHADVP(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptWHADVP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_WHADVP
 }
 
-case class SptWDT(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptWDT(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_WDT
 }
 
-case class SptWRB(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptWRB(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_WRB
 }
 
-case class SptWP(children : ShlurdSyntaxTree*)
-    extends ShlurdSyntaxPhrase
+case class SptWP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
 {
   override def label = LABEL_WP
 }
 
-case class SptNN(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxNoun
+case class SptNN(child : SprSyntaxLeaf)
+    extends SprSyntaxNoun
 {
   override def label = LABEL_NN
 }
 
-case class SptNNS(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxNoun
+case class SptNNS(child : SprSyntaxLeaf)
+    extends SprSyntaxNoun
 {
   override def label = LABEL_NNS
 }
 
-case class SptNNP(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxNoun
+case class SptNNP(child : SprSyntaxLeaf)
+    extends SprSyntaxNoun
 {
   override def label = LABEL_NNP
 
   override def isProper = true
 }
 
-case class SptNNPS(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxNoun
+case class SptNNPS(child : SprSyntaxLeaf)
+    extends SprSyntaxNoun
 {
   override def label = LABEL_NNPS
 
   override def isProper = true
 }
 
-case class SptPRP(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPronoun
+case class SptPRP(child : SprSyntaxLeaf)
+    extends SprSyntaxPronoun
 {
   override def label = LABEL_PRP
 }
 
-case class SptPRP_POS(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPronoun
+case class SptPRP_POS(child : SprSyntaxLeaf)
+    extends SprSyntaxPronoun
 {
   override def label = LABEL_PRP_POS
 }
 
-case class SptVB(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxVerb
+case class SptVB(child : SprSyntaxLeaf)
+    extends SprSyntaxVerb
 {
   override def label = LABEL_VB
 }
 
-case class SptVBZ(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxVerb
+case class SptVBZ(child : SprSyntaxLeaf)
+    extends SprSyntaxVerb
 {
   override def label = LABEL_VBZ
 }
 
-case class SptVBP(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxVerb
+case class SptVBP(child : SprSyntaxLeaf)
+    extends SprSyntaxVerb
 {
   override def label = LABEL_VBP
 }
 
-case class SptVBD(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxVerb
+case class SptVBD(child : SprSyntaxLeaf)
+    extends SprSyntaxVerb
 {
   override def label = LABEL_VBD
 }
 
-case class SptVBN(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxVerb
+case class SptVBN(child : SprSyntaxLeaf)
+    extends SprSyntaxVerb
 {
   override def label = LABEL_VBN
 }
 
-case class SptVBG(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxVerb
+case class SptVBG(child : SprSyntaxLeaf)
+    extends SprSyntaxVerb
 {
   override def label = LABEL_VBG
 }
 
-case class SptCC(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxConjunction
+case class SptCC(child : SprSyntaxLeaf)
+    extends SprSyntaxConjunction
 {
   override def label = LABEL_CC
 }
 
-case class SptDT(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxDeterminer
+case class SptDT(child : SprSyntaxLeaf)
+    extends SprSyntaxDeterminer
 {
   override def label = LABEL_DT
 }
 
-case class SptPOS(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPossessive
+case class SptPOS(child : SprSyntaxLeaf)
+    extends SprSyntaxPossessive
 {
   override def label = LABEL_POS
 }
 
-case class SptRP(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxParticle
+case class SptRP(child : SprSyntaxLeaf)
+    extends SprSyntaxParticle
 {
   override def label = LABEL_RP
 }
 
-case class SptMD(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxModal
+case class SptMD(child : SprSyntaxLeaf)
+    extends SprSyntaxModal
 {
   override def label = LABEL_MD
 }
 
-case class SptJJ(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxAdjective
+case class SptJJ(child : SprSyntaxLeaf)
+    extends SprSyntaxAdjective
 {
   override def label = LABEL_JJ
 }
 
-case class SptJJR(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxAdjective
+case class SptJJR(child : SprSyntaxLeaf)
+    extends SprSyntaxAdjective
 {
   override def label = LABEL_JJR
 }
 
-case class SptJJS(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxAdjective
+case class SptJJS(child : SprSyntaxLeaf)
+    extends SprSyntaxAdjective
 {
   override def label = LABEL_JJS
 }
 
-case class SptRB(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxAdverb
+case class SptRB(child : SprSyntaxLeaf)
+    extends SprSyntaxAdverb
 {
   override def label = LABEL_RB
 }
 
-case class SptRBR(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxAdverb
+case class SptRBR(child : SprSyntaxLeaf)
+    extends SprSyntaxAdverb
 {
   override def label = LABEL_RBR
 }
 
-case class SptRBS(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxAdverb
+case class SptRBS(child : SprSyntaxLeaf)
+    extends SprSyntaxAdverb
 {
   override def label = LABEL_RBS
 }
 
-case class SptIN(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxAdposition
+case class SptIN(child : SprSyntaxLeaf)
+    extends SprSyntaxAdposition
 {
   override def label = LABEL_IN
 }
 
-case class SptTO(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxAdposition
+case class SptTO(child : SprSyntaxLeaf)
+    extends SprSyntaxAdposition
 {
   override def label = LABEL_TO
 }
 
-case class SptCD(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxNumber
+case class SptCD(child : SprSyntaxLeaf)
+    extends SprSyntaxNumber
 {
   override def label = LABEL_CD
 }
 
-case class SptDOT(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPunctuation
+case class SptDOT(child : SprSyntaxLeaf)
+    extends SprSyntaxPunctuation
 {
   override def label = LABEL_DOT
 }
 
-case class SptCOMMA(child : ShlurdSyntaxLeaf)
-    extends ShlurdSyntaxPunctuation
+case class SptCOMMA(child : SprSyntaxLeaf)
+    extends SprSyntaxPunctuation
 {
   override def label = LABEL_COMMA
 }

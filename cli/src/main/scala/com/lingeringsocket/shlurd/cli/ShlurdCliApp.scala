@@ -41,7 +41,7 @@ object ShlurdCliApp extends App
       println("SHLURD> Loading initial beliefs...")
       val cosmos = new SpcCosmos()
       SpcPrimordial.initCosmos(cosmos)
-      val beliefs = ShlurdParser.getResourceFile("/ontologies/console.txt")
+      val beliefs = SprParser.getResourceFile("/ontologies/console.txt")
       val source = Source.fromFile(beliefs)
       cosmos.loadBeliefs(source)
       println("SHLURD> Hello, human!")
@@ -55,7 +55,7 @@ class ShlurdCliApp(
   file : File,
   serializer : ShlurdCliSerializer)
 {
-  private val params = ShlurdResponseParams().copy(
+  private val params = SmcResponseParams().copy(
     verbosity = RESPONSE_ELLIPSIS)
 
   private val interpreter = new SpcInterpreter(
@@ -72,7 +72,7 @@ class ShlurdCliApp(
       if (input == null) {
         exit = true
       } else {
-        val sentences = ShlurdParser(input).parseAll
+        val sentences = SprParser(input).parseAll
         sentences.foreach(sentence => {
           val output = interpreter.interpret(sentence)
           println

@@ -42,7 +42,7 @@ class SpcInterpreterSpec extends Specification
 
   abstract class InterpreterContext(
     beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
-    params : ShlurdResponseParams = ShlurdResponseParams()
+    params : SmcResponseParams = SmcResponseParams()
   ) extends NameSpace
   {
     protected val cosmos = new SpcCosmos() {
@@ -87,14 +87,14 @@ class SpcInterpreterSpec extends Specification
 
     protected def loadBeliefs(resource : String)
     {
-      val file = ShlurdParser.getResourceFile(resource)
+      val file = SprParser.getResourceFile(resource)
       val source = Source.fromFile(file)
       cosmos.loadBeliefs(source)
     }
 
     protected def interpret(input : String, expected : String) =
     {
-      val sentence = ShlurdParser(input).parseOne
+      val sentence = SprParser(input).parseOne
       interpreter.interpret(sentence, input) must be equalTo(expected)
     }
 
@@ -102,7 +102,7 @@ class SpcInterpreterSpec extends Specification
       input : String,
       expected : String)
     {
-      val sentence = ShlurdParser(input).parseOne
+      val sentence = SprParser(input).parseOne
       interpreterTerse.interpret(
         sentence, input) must be equalTo(expected)
     }
@@ -119,7 +119,7 @@ class SpcInterpreterSpec extends Specification
       expectedTerse : String,
       expectedEllipsis : String = "") =
     {
-      val sentence = ShlurdParser(input).parseOne
+      val sentence = SprParser(input).parseOne
       interpreter.interpret(sentence, input) must be equalTo(
         expectedWithPronouns)
       interpreterWithoutPronouns.interpret(
@@ -945,7 +945,7 @@ class SpcInterpreterSpec extends Specification
 
     "allow pronouns to be avoided" in new InterpreterContext(
       ACCEPT_NO_BELIEFS,
-      ShlurdResponseParams().copy(thirdPersonPronouns = false))
+      SmcResponseParams().copy(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/stove.txt")
       interpret("is the stove hot?",
@@ -954,7 +954,7 @@ class SpcInterpreterSpec extends Specification
 
     "understand conversational pronoun references" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS,
-      ShlurdResponseParams().copy(thirdPersonPronouns = false))
+      SmcResponseParams().copy(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/people.txt")
       mind.startConversation

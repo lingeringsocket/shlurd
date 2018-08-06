@@ -18,14 +18,14 @@ import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 
-object ShlurdConversation
+object SmcConversation
 {
   val SPEAKER_NAME_SHLURD = "SHLURD"
 
   val SPEAKER_NAME_PERSON = "PERSON"
 }
 
-case class SpeakerUtterance[EntityType <: ShlurdEntity](
+case class SpeakerUtterance[EntityType <: SmcEntity](
   speakerName : String,
   sentence : SilSentence,
   text : String,
@@ -34,7 +34,7 @@ case class SpeakerUtterance[EntityType <: ShlurdEntity](
 {
 }
 
-class ShlurdConversation[EntityType <: ShlurdEntity]
+class SmcConversation[EntityType <: SmcEntity]
 {
   type UtteranceType = SpeakerUtterance[EntityType]
 

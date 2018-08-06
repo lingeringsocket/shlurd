@@ -16,10 +16,10 @@ package com.lingeringsocket.shlurd.parser
 
 import org.specs2.mutable._
 
-import ShlurdEnglishLemmas._
-import ShlurdPennTreebankLabels._
+import SprEnglishLemmas._
+import SprPennTreebankLabels._
 
-class ShlurdParserSpec extends Specification
+class SprParserSpec extends Specification
 {
   private val NOUN_DOOR = SilWord("door")
 
@@ -116,14 +116,14 @@ class ShlurdParserSpec extends Specification
     predState(NOUN_DOOR, state, determiner, count)
   }
 
-  private def parse(input : String) = ShlurdParser(input).parseOne
+  private def parse(input : String) = SprParser(input).parseOne
 
-  private def leaf(s : String) = ShlurdSyntaxLeaf(s, s, s)
+  private def leaf(s : String) = SprSyntaxLeaf(s, s, s)
 
-  private def leafCapitalized(s : String) = ShlurdSyntaxLeaf(
-    ShlurdParseUtils.capitalize(s), s, ShlurdParseUtils.capitalize(s))
+  private def leafCapitalized(s : String) = SprSyntaxLeaf(
+    SprUtils.capitalize(s), s, SprUtils.capitalize(s))
 
-  "ShlurdParser" should
+  "SprParser" should
   {
     "parse a state predicate statement" in
     {
@@ -672,7 +672,7 @@ class ShlurdParserSpec extends Specification
       val result = parse(input)
       result match {
         case SilUnrecognizedSentence(syntaxTree) => {
-          val dependencyStripped = ShlurdSyntaxRewrite.rewriteAbstract(
+          val dependencyStripped = SprSyntaxRewriter.rewriteAbstract(
             syntaxTree,
             true)
           dependencyStripped must be equalTo(
@@ -709,7 +709,7 @@ class ShlurdParserSpec extends Specification
           tam,
           SilFormality.DEFAULT
         ) if (tam.isIndicative) => {
-          val dependencyStripped = ShlurdSyntaxRewrite.rewriteAbstract(
+          val dependencyStripped = SprSyntaxRewriter.rewriteAbstract(
             syntaxTree,
             true)
           dependencyStripped must be equalTo(
@@ -731,7 +731,7 @@ class ShlurdParserSpec extends Specification
     "deal with unknowns" in
     {
       predStateDoor().hasUnknown must beFalse
-      val tree = ShlurdSyntaxLeaf("", "", "")
+      val tree = SprSyntaxLeaf("", "", "")
       SilUnrecognizedPredicate(tree).hasUnknown must beTrue
       SilPredicateSentence(predStateDoor()).hasUnknown must beFalse
       SilPredicateSentence(

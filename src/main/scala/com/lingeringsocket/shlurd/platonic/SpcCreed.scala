@@ -18,7 +18,7 @@ import com.lingeringsocket.shlurd.parser._
 
 import scala.collection.JavaConverters._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 class SpcCreed(cosmos : SpcCosmos)
 {

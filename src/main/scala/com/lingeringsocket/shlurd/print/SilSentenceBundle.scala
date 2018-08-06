@@ -32,12 +32,12 @@ object SilConjoining
 
 object SilSentenceBundle
 {
-  def apply(parlance : ShlurdParlance) =
+  def apply(parlance : SilParlance) =
     parlance.newSentenceBundle
 }
 
 abstract class SilSentenceBundle
-    extends ShlurdParlanceBundle
+    extends SilParlanceBundle
 {
   protected def concat(s : String*) =
     s.mkString("")

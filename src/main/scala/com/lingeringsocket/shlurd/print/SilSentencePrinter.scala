@@ -16,7 +16,7 @@ package com.lingeringsocket.shlurd.print
 
 import com.lingeringsocket.shlurd.parser._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 object SilSentencePrinter
 {
@@ -26,7 +26,7 @@ object SilSentencePrinter
 }
 import SilSentencePrinter._
 
-class SilSentencePrinter(parlance : ShlurdParlance = ShlurdDefaultParlance)
+class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
 {
   val sb = SilSentenceBundle(parlance)
 

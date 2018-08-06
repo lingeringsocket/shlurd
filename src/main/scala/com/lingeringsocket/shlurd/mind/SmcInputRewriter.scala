@@ -16,13 +16,13 @@ package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
-class ShlurdInputRewriter[
-  EntityType<:ShlurdEntity,
-  PropertyType<:ShlurdProperty,
-  CosmosType <:ShlurdCosmos[EntityType, PropertyType]
+class SmcInputRewriter[
+  EntityType<:SmcEntity,
+  PropertyType<:SmcProperty,
+  CosmosType <:SmcCosmos[EntityType, PropertyType]
 ](
-  mind : ShlurdMind[EntityType, PropertyType, CosmosType]
-) extends ShlurdPhraseRewriter
+  mind : SmcMind[EntityType, PropertyType, CosmosType]
+) extends SmcPhraseRewriter
 {
   def normalizeInput(
     sentence : SilSentence) : SilSentence =

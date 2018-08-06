@@ -26,9 +26,9 @@ class SpcInterpretTesterSpec extends Specification
   {
     "interpret babi format" in
     {
-      val beliefs = ShlurdParser.getResourceFile(
+      val beliefs = SprParser.getResourceFile(
         "/expect/babi-unit-beliefs.txt")
-      val script = ShlurdParser.getResourceFile(
+      val script = SprParser.getResourceFile(
         "/expect/babi-unit-script.txt")
       val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
       val (successes, failures) = tester.run(

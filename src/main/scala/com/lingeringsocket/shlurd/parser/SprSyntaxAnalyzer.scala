@@ -14,11 +14,11 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import ShlurdPennTreebankLabels._
-import ShlurdEnglishLemmas._
-import ShlurdParseUtils._
+import SprPennTreebankLabels._
+import SprEnglishLemmas._
+import SprUtils._
 
-class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
+class SprSyntaxAnalyzer(guessedQuestion : Boolean)
 {
   private[parser] def analyzeSentence(tree : SptS)
       : SilSentence =
@@ -72,7 +72,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private[parser] def analyzeSQ(tree : ShlurdSyntaxTree, forceSQ : Boolean)
+  private[parser] def analyzeSQ(tree : SprSyntaxTree, forceSQ : Boolean)
       : SilSentence =
   {
     val punctless = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
@@ -108,7 +108,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def detectProgressive(
-    seq : Seq[ShlurdSyntaxTree]) : (Boolean, Int) =
+    seq : Seq[SprSyntaxTree]) : (Boolean, Int) =
   {
     val iFirstVerb = seq.indexWhere(_.isVerbNode)
     if (iFirstVerb < 0) {
@@ -137,8 +137,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def analyzeSubQueryChildren(
-    tree : ShlurdSyntaxTree,
-    children : Seq[ShlurdSyntaxTree],
+    tree : SprSyntaxTree,
+    children : Seq[SprSyntaxTree],
     specifiedState : SilState,
     specifiedDirectObject : Option[SilReference] = None)
       : Option[(SilPredicate, SilTam)] =
@@ -282,7 +282,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         if (complement.isEmpty) {
           verbHead
         } else {
-          ShlurdSyntaxRewrite.recompose(
+          SprSyntaxRewriter.recompose(
             complement.head, complementRemainder)
         }
       }
@@ -395,8 +395,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
 
   private def expectPredicateSentence(
     tree : SptS,
-    np : ShlurdSyntaxTree, vp : ShlurdSyntaxTree,
-    verbModifiers : Seq[ShlurdSyntaxTree],
+    np : SprSyntaxTree, vp : SprSyntaxTree,
+    verbModifiers : Seq[SprSyntaxTree],
     force : SilForce, tam : SilTam, auxCount : SilCount,
     negativeSuper : Boolean) : SilSentence =
   {
@@ -452,7 +452,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectConditionalSentence(
-    tree : ShlurdSyntaxTree,
+    tree : SprSyntaxTree,
     antecedent : SptS,
     consequent : SptS,
     formality : SilFormality) : SilSentence =
@@ -492,8 +492,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectCommand(
-    tree : ShlurdSyntaxTree,
-    vp : ShlurdSyntaxTree, formality : SilFormality) : SilSentence =
+    tree : SprSyntaxTree,
+    vp : SprSyntaxTree, formality : SilFormality) : SilSentence =
   {
     val alternative1 = {
       val (particle, unparticled) =
@@ -515,10 +515,10 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectCommand(
-    tree : ShlurdSyntaxTree,
-    particle : Option[ShlurdSyntaxTree],
+    tree : SprSyntaxTree,
+    particle : Option[SprSyntaxTree],
     specifiedState : SilState,
-    seq : Seq[ShlurdSyntaxTree],
+    seq : Seq[SprSyntaxTree],
     formality : SilFormality) : SilSentence =
   {
     if (seq.size == 2) {
@@ -544,7 +544,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectStatePredicate(
-    syntaxTree : ShlurdSyntaxTree,
+    syntaxTree : SprSyntaxTree,
     subject : SilReference, state : SilState,
     specifiedState : SilState = SilNullState(),
     verbModifiers : Seq[SilVerbModifier] = Seq.empty) =
@@ -554,7 +554,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectActionPredicate(
-    syntaxTree : ShlurdSyntaxTree,
+    syntaxTree : SprSyntaxTree,
     subject : SilReference, action : SilWord,
     directObject : Option[SilReference],
     verbModifiers : Seq[SilVerbModifier]) =
@@ -564,7 +564,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectRelationshipPredicate(
-    syntaxTree : ShlurdSyntaxTree,
+    syntaxTree : SprSyntaxTree,
     subject : SilReference,
     complement : SilReference,
     relationship : SilRelationship,
@@ -575,21 +575,21 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectReference(
-    seq : Seq[ShlurdSyntaxTree]) : SilReference =
+    seq : Seq[SprSyntaxTree]) : SilReference =
   {
     SilExpectedReference(SptNP(seq:_*))
   }
 
-  private def expectReference(np : ShlurdSyntaxTree)
+  private def expectReference(np : SprSyntaxTree)
       : SilExpectedReference =
   {
     SilExpectedReference(np)
   }
 
   private def expectRelativeReference(
-    syntaxTree : ShlurdSyntaxTree,
+    syntaxTree : SprSyntaxTree,
     reference : SilReference,
-    relativeTree : ShlurdSyntaxTree) : SilReference =
+    relativeTree : SprSyntaxTree) : SilReference =
   {
     relativeTree match {
       case SptSBAR(
@@ -606,19 +606,19 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectNounReference(
-    syntaxTree : ShlurdSyntaxTree,
-    preTerminal : ShlurdSyntaxTree,
+    syntaxTree : SprSyntaxTree,
+    preTerminal : SprSyntaxTree,
     determiner : SilDeterminer) =
   {
     SilExpectedNounlikeReference(syntaxTree, preTerminal, determiner)
   }
 
-  private[parser] def expectPropertyState(syntaxTree : ShlurdSyntaxTree) =
+  private[parser] def expectPropertyState(syntaxTree : SprSyntaxTree) =
   {
     SilExpectedPropertyState(syntaxTree)
   }
 
-  private[parser] def expectAdpositionalState(tree : ShlurdSyntaxTree)
+  private[parser] def expectAdpositionalState(tree : SprSyntaxTree)
     : SilState =
   {
     val seq = tree.children
@@ -652,11 +652,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def extractAdposition(preTerminal : ShlurdSyntaxTree)
+  private def extractAdposition(preTerminal : SprSyntaxTree)
       : Option[SilAdposition] =
   {
     preTerminal match {
-      case adp : ShlurdSyntaxAdposition => {
+      case adp : SprSyntaxAdposition => {
         Some(SilAdposition(Seq(getWord(adp.child))))
       }
       case _ => preTerminal.firstChild.lemma match {
@@ -685,11 +685,11 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def analyzeActionPredicate(
-    syntaxTree : ShlurdSyntaxTree,
-    np : ShlurdSyntaxTree,
-    vp : ShlurdSyntaxTree,
+    syntaxTree : SprSyntaxTree,
+    np : SprSyntaxTree,
+    vp : SprSyntaxTree,
     specifiedDirectObject : Option[SilReference],
-    verbModifiers : Seq[ShlurdSyntaxTree])
+    verbModifiers : Seq[SprSyntaxTree])
       : (Boolean, SilPredicate) =
   {
     val (negative, seq) = extractNegative(vp.children)
@@ -703,7 +703,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
     val verbHead = seq.head
     val action = verbHead match {
-      case verb : ShlurdSyntaxVerb => {
+      case verb : SprSyntaxVerb => {
         getWord(verb.child)
       }
       case _ => {
@@ -723,7 +723,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectVerbObjectsAndModifiers(
-    seq : Seq[ShlurdSyntaxTree],
+    seq : Seq[SprSyntaxTree],
     specifiedDirectObject : Option[SilReference]) =
   {
     val objCandidates = seq.filter(_.isNounNode)
@@ -766,16 +766,16 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       indirectAdposition.toSeq ++ modifiers.map(expectVerbModifier))
   }
 
-  private def expectVerbModifier(tree : ShlurdSyntaxTree) =
+  private def expectVerbModifier(tree : SprSyntaxTree) =
   {
     SilExpectedVerbModifier(tree)
   }
 
-  private[parser] def expectVerbModifierPhrase(tree : ShlurdSyntaxPhrase)
+  private[parser] def expectVerbModifierPhrase(tree : SprSyntaxPhrase)
       : SilVerbModifier =
   {
     val words = tree.children.map(_ match {
-      case adverb : ShlurdSyntaxAdverb => {
+      case adverb : SprSyntaxAdverb => {
         getWord(adverb.child)
       }
       case particle : SptRP => {
@@ -787,13 +787,13 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private[parser] def expectBasicVerbModifier(
-    preTerminal : ShlurdSyntaxPreTerminal)
+    preTerminal : SprSyntaxPreTerminal)
       : SilVerbModifier =
   {
     SilBasicVerbModifier(Seq(getWord(preTerminal.child)))
   }
 
-  private[parser] def expectAdpositionalVerbModifier(tree : ShlurdSyntaxTree) =
+  private[parser] def expectAdpositionalVerbModifier(tree : SprSyntaxTree) =
   {
     expectAdpositionalState(tree) match {
       case SilAdpositionalState(adposition, objRef) => {
@@ -806,12 +806,12 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectPredicate(
-    syntaxTree : ShlurdSyntaxTree,
-    np : ShlurdSyntaxTree,
-    complement : ShlurdSyntaxTree,
+    syntaxTree : SprSyntaxTree,
+    np : SprSyntaxTree,
+    complement : SprSyntaxTree,
     specifiedState : SilState,
     relationship : SilRelationship,
-    verbModifiers : Seq[ShlurdSyntaxTree] = Seq.empty)
+    verbModifiers : Seq[SprSyntaxTree] = Seq.empty)
       : (Boolean, SilPredicate) =
   {
     val (negative, seq) = extractNegative(complement.children)
@@ -864,14 +864,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
       val state = splitCoordinatingConjunction(seq) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {
           expectComplementState(
-            ShlurdSyntaxRewrite.recompose(complement, seq))
+            SprSyntaxRewriter.recompose(complement, seq))
         }
         case (determiner, separator, split) => {
           val conjunctiveState = SilConjunctiveState(
             determiner,
             split.map(
               subseq => expectComplementState(
-                ShlurdSyntaxRewrite.recompose(complement, subseq))),
+                SprSyntaxRewriter.recompose(complement, subseq))),
             separator)
           rememberSyntheticADJP(conjunctiveState, seq)
           conjunctiveState
@@ -884,13 +884,13 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def expectExistenceState(syntaxTree : ShlurdSyntaxTree) =
+  private def expectExistenceState(syntaxTree : SprSyntaxTree) =
   {
     SilExpectedExistenceState(syntaxTree)
   }
 
   private[parser] def expectPropertyComplementState(
-    seq : Seq[ShlurdSyntaxTree]) : SilState =
+    seq : Seq[SprSyntaxTree]) : SilState =
   {
     val state = expectPropertyState(seq.head)
     if (seq.size == 1) {
@@ -904,7 +904,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def expectComplementState(
-    tree : ShlurdSyntaxTree) : SilState =
+    tree : SprSyntaxTree) : SilState =
   {
     if (isSinglePhrase(tree.children)) {
       expectComplementState(tree.firstChild)
@@ -914,7 +914,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def maybeRecognizeParticle(
-    pt : ShlurdSyntaxTree) : Option[ShlurdSyntaxTree] =
+    pt : SprSyntaxTree) : Option[SprSyntaxTree] =
   {
     pt match {
       case phrase @ (_ : SptPRT | _ : SptPP) => {
@@ -925,17 +925,17 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def isSinglePhrase(seq : Seq[ShlurdSyntaxTree]) =
+  private def isSinglePhrase(seq : Seq[SprSyntaxTree]) =
   {
     (seq.size == 1) && !seq.head.isPreTerminal
   }
 
-  private def isImperative(children : Seq[ShlurdSyntaxTree]) =
+  private def isImperative(children : Seq[SprSyntaxTree]) =
   {
     (children.size == 1) && children.head.isVerbPhrase
   }
 
-  private def extractAntecedent(children : Seq[ShlurdSyntaxTree])
+  private def extractAntecedent(children : Seq[SprSyntaxTree])
       : Option[SptS] =
   {
     children.headOption match {
@@ -955,7 +955,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private[parser] def getCount(tree : ShlurdSyntaxTree) : SilCount =
+  private[parser] def getCount(tree : SprSyntaxTree) : SilCount =
   {
     if (tree.label.endsWith("S")) {
       COUNT_PLURAL
@@ -964,18 +964,18 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private[parser] def getWord(leaf : ShlurdSyntaxTree) =
+  private[parser] def getWord(leaf : SprSyntaxTree) =
   {
     SilWord(leaf.foldedToken, leaf.lemma)
   }
 
   private def isCoordinatingDeterminer(
-    syntaxTree : ShlurdSyntaxTree, determiner : SilDeterminer) : Boolean =
+    syntaxTree : SprSyntaxTree, determiner : SilDeterminer) : Boolean =
   {
     syntaxTree.unwrapPhrase match {
-      case preTerminal : ShlurdSyntaxPreTerminal => {
+      case preTerminal : SprSyntaxPreTerminal => {
         preTerminal match {
-          case (_ : SptDT | _ : SptCC | _ : ShlurdSyntaxAdverb) => {
+          case (_ : SptDT | _ : SptCC | _ : SprSyntaxAdverb) => {
             preTerminal.child.lemma match {
               case LEMMA_BOTH => (determiner == DETERMINER_ALL)
               case LEMMA_EITHER => (determiner == DETERMINER_ANY)
@@ -990,7 +990,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def tamForAux(leaf : ShlurdSyntaxLeaf) : SilTam =
+  private def tamForAux(leaf : SprSyntaxLeaf) : SilTam =
   {
     val tam = SilTam.indicative
     leaf.lemma match {
@@ -1006,7 +1006,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def relationshipFor(
-    verbHead : ShlurdSyntaxTree) : SilRelationship =
+    verbHead : SprSyntaxTree) : SilRelationship =
   {
     if (verbHead.isPossessionVerb) {
       REL_ASSOCIATION
@@ -1017,7 +1017,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def maybeQuestionFor(
-    tree : ShlurdSyntaxTree) : Option[SilQuestion] =
+    tree : SprSyntaxTree) : Option[SilQuestion] =
   {
     tree match {
       case SptWHADJP(how, many) => {
@@ -1052,7 +1052,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def determinerFor(leaf : ShlurdSyntaxLeaf) : SilDeterminer =
+  private def determinerFor(leaf : SprSyntaxLeaf) : SilDeterminer =
   {
     leaf.lemma match {
       case LEMMA_NO | LEMMA_NEITHER | LEMMA_NOR => DETERMINER_NONE
@@ -1065,7 +1065,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def extractTense(verbHead : ShlurdSyntaxTree, tam : SilTam) : SilTam =
+  private def extractTense(verbHead : SprSyntaxTree, tam : SilTam) : SilTam =
   {
     if (verbHead.isVerbPastTense) {
       tam.past
@@ -1075,8 +1075,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def truncatePunctuation(
-    tree : ShlurdSyntaxTree, punctuationMarks : Iterable[String])
-      : Seq[ShlurdSyntaxTree] =
+    tree : SprSyntaxTree, punctuationMarks : Iterable[String])
+      : Seq[SprSyntaxTree] =
   {
     val children = tree.children
     if (punctuationMarks.exists(punctuation =>
@@ -1088,8 +1088,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def extractParticle(seq : Seq[ShlurdSyntaxTree])
-      : (Option[ShlurdSyntaxTree], Seq[ShlurdSyntaxTree]) =
+  private def extractParticle(seq : Seq[SprSyntaxTree])
+      : (Option[SprSyntaxTree], Seq[SprSyntaxTree]) =
   {
     seq.indexWhere(_.isParticleNode) match {
       case -1 => {
@@ -1106,8 +1106,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def extractAdpositionalState(seq : Seq[ShlurdSyntaxTree])
-      : (SilState, Seq[ShlurdSyntaxTree])=
+  private def extractAdpositionalState(seq : Seq[SprSyntaxTree])
+      : (SilState, Seq[SprSyntaxTree])=
   {
     // skip first child since that should always be treated
     // as verb modifier, not state; FIXME:  need better
@@ -1119,7 +1119,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
         case Seq(
           advp : SptADVP, np : SptNP
         ) if (!extractAdposition(advp.firstChild).isEmpty) => {
-          val rewrite = ShlurdSyntaxRewrite.recompose(
+          val rewrite = SprSyntaxRewriter.recompose(
             advp,
             Seq(advp.firstChild, np))
           (SilNullState(), seq.dropRight(2) :+ rewrite)
@@ -1135,8 +1135,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def extractAux(
-    seq : Seq[ShlurdSyntaxTree])
-      : (SilTam, Seq[ShlurdSyntaxTree], SilCount) =
+    seq : Seq[SprSyntaxTree])
+      : (SilTam, Seq[SprSyntaxTree], SilCount) =
   {
     // FIXME for "does", we need to be careful to make sure it's
     // acting as an auxiliary, e.g. "Luke does know" but not
@@ -1176,8 +1176,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def extractNegative(
-    seq : Seq[ShlurdSyntaxTree])
-      : (Boolean, Seq[ShlurdSyntaxTree]) =
+    seq : Seq[SprSyntaxTree])
+      : (Boolean, Seq[SprSyntaxTree]) =
   {
     // FIXME:  don't reduce to empty seq
     val pos = seq.map(_.unwrapPhrase).indexWhere(
@@ -1189,8 +1189,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def splitCommas(components : Seq[ShlurdSyntaxTree])
-      : (Seq[Seq[ShlurdSyntaxTree]], SilSeparator) =
+  private def splitCommas(components : Seq[SprSyntaxTree])
+      : (Seq[Seq[SprSyntaxTree]], SilSeparator) =
   {
     val pos = components.indexWhere(_.isComma)
     if (pos == -1) {
@@ -1210,8 +1210,8 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def splitCoordinatingConjunction(
-    components : Seq[ShlurdSyntaxTree])
-      : (SilDeterminer, SilSeparator, Seq[Seq[ShlurdSyntaxTree]]) =
+    components : Seq[SprSyntaxTree])
+      : (SilDeterminer, SilSeparator, Seq[Seq[SprSyntaxTree]]) =
   {
     if (isSinglePhrase(components)) {
       return splitCoordinatingConjunction(components.head.children)
@@ -1297,14 +1297,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
 
   private def rememberSyntheticNP(
     reference : SilTransformedPhrase,
-    seq : Seq[ShlurdSyntaxTree])
+    seq : Seq[SprSyntaxTree])
   {
     reference.rememberSyntaxTree(SptNP(seq:_*))
   }
 
   private def rememberSyntheticADJP(
     reference : SilTransformedPhrase,
-    seq : Seq[ShlurdSyntaxTree])
+    seq : Seq[SprSyntaxTree])
   {
     reference.rememberSyntaxTree(SptADJP(seq:_*))
   }
@@ -1316,7 +1316,7 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
     predicate.setInflectedCount(count)
   }
 
-  private def getVerbCount(verb : ShlurdSyntaxTree) : SilCount =
+  private def getVerbCount(verb : SprSyntaxTree) : SilCount =
   {
     verb match {
       case _ : SptVBP => {
@@ -1332,14 +1332,14 @@ class ShlurdSyntaxAnalyzer(guessedQuestion : Boolean)
 
   private def rememberPredicateCount(
     predicate : SilPredicate,
-    verbHead : ShlurdSyntaxTree)
+    verbHead : SprSyntaxTree)
   {
     rememberPredicateCount(predicate, getVerbCount(verbHead))
   }
 
   private def rememberPredicateCount(
     predicate : SilPredicate,
-    verbHead : ShlurdSyntaxTree,
+    verbHead : SprSyntaxTree,
     tam : SilTam,
     auxCount : SilCount)
   {

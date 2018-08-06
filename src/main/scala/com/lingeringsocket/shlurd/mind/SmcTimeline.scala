@@ -18,10 +18,10 @@ import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 
-case class ShlurdTimelineEntry[
-  EntityType<:ShlurdEntity,
-  PropertyType<:ShlurdProperty,
-  CosmosType<:ShlurdCosmos[EntityType,PropertyType]
+case class SmcTimelineEntry[
+  EntityType<:SmcEntity,
+  PropertyType<:SmcProperty,
+  CosmosType<:SmcCosmos[EntityType,PropertyType]
 ](
   updatedCosmos : CosmosType,
   predicate : SilPredicate,
@@ -30,12 +30,12 @@ case class ShlurdTimelineEntry[
 {
 }
 
-class ShlurdTimeline[
-  EntityType <: ShlurdEntity,
-  PropertyType<:ShlurdProperty,
-  CosmosType<:ShlurdCosmos[EntityType, PropertyType]]
+class SmcTimeline[
+  EntityType <: SmcEntity,
+  PropertyType<:SmcProperty,
+  CosmosType<:SmcCosmos[EntityType, PropertyType]]
 {
-  type EntryType = ShlurdTimelineEntry[EntityType, PropertyType, CosmosType]
+  type EntryType = SmcTimelineEntry[EntityType, PropertyType, CosmosType]
 
   // FIXME use spire intervals instead
   val entries = new mutable.ArrayBuffer[EntryType]

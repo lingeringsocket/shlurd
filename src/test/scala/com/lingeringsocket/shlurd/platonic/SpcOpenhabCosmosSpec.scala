@@ -67,7 +67,7 @@ class SpcOpenhabCosmosSpec extends Specification
 
     protected def interpret(input : String, expected : String) =
     {
-      val sentence = ShlurdParser(input).parseOne
+      val sentence = SprParser(input).parseOne
       interpreter.interpret(sentence, input) must be equalTo(expected)
     }
   }
@@ -76,7 +76,7 @@ class SpcOpenhabCosmosSpec extends Specification
   {
     "understand items" in new CosmosContext
     {
-      val file = ShlurdParser.getResourceFile("/ontologies/home.txt")
+      val file = SprParser.getResourceFile("/ontologies/home.txt")
       val source = Source.fromFile(file)
       cosmos.loadBeliefs(source)
       cosmos.addItem("Home", "Our House", true, Seq.empty)

@@ -18,7 +18,7 @@ import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 
-class ShlurdConversationSpec extends Specification
+class SmcConversationSpec extends Specification
 {
   private val SPEAKER_FRED = "Fred"
 
@@ -38,20 +38,20 @@ class ShlurdConversationSpec extends Specification
 
   private val TEXT_C = "c"
 
-  private val ENTITY_1 = new ShlurdEntity {}
+  private val ENTITY_1 = new SmcEntity {}
 
-  private val ENTITY_2 = new ShlurdEntity {}
+  private val ENTITY_2 = new SmcEntity {}
 
-  val REF_MAP_1 = Map[SilReference, Set[ShlurdEntity]](
+  val REF_MAP_1 = Map[SilReference, Set[SmcEntity]](
     REFERENCE_D -> Set(ENTITY_1)
   )
 
-  val REF_MAP_2 = Map[SilReference, Set[ShlurdEntity]](
+  val REF_MAP_2 = Map[SilReference, Set[SmcEntity]](
     REFERENCE_D -> Set(ENTITY_2)
   )
 
   private def makeLeaf(s : String) =
-    ShlurdSyntaxLeaf(s, s, s)
+    SprSyntaxLeaf(s, s, s)
 
   private def makeSentence(s : String) =
     SilUnrecognizedSentence(makeLeaf(s))
@@ -63,17 +63,17 @@ class ShlurdConversationSpec extends Specification
     speakerName : String,
     sentence : SilSentence,
     text : String,
-    refMap : Map[SilReference, Set[ShlurdEntity]] =
-      Map.empty[SilReference, Set[ShlurdEntity]]) =
+    refMap : Map[SilReference, Set[SmcEntity]] =
+      Map.empty[SilReference, Set[SmcEntity]]) =
   {
     SpeakerUtterance(speakerName, sentence, text, refMap)
   }
 
-  "ShlurdConversation" should
+  "SmcConversation" should
   {
     "remember utterances" in
     {
-      val conversation = new ShlurdConversation[ShlurdEntity]
+      val conversation = new SmcConversation[SmcEntity]
       conversation.addSpeakerSentence(
         SPEAKER_FRED, SENTENCE_A, TEXT_A, REF_MAP_1)
       conversation.addSpeakerSentence(
@@ -94,7 +94,7 @@ class ShlurdConversationSpec extends Specification
 
     "update sentence analysis" in
     {
-      val conversation = new ShlurdConversation[ShlurdEntity]
+      val conversation = new SmcConversation[SmcEntity]
       conversation.addSpeakerSentence(
         SPEAKER_FRED, SENTENCE_A, TEXT_A)
       conversation.getUtterances must be equalTo Seq(

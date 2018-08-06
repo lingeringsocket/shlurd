@@ -16,11 +16,11 @@ package com.lingeringsocket.shlurd.parser
 
 import org.kiama.rewriting._
 
-import ShlurdParseUtils._
-import ShlurdPennTreebankLabels._
-import ShlurdEnglishLemmas._
+import SprUtils._
+import SprPennTreebankLabels._
+import SprEnglishLemmas._
 
-object ShlurdSyntaxRewrite
+object SprSyntaxRewriter
 {
   private val phraseConstructors = Map(
     LABEL_S -> SptS.apply _,
@@ -78,11 +78,11 @@ object ShlurdSyntaxRewrite
   )
 
   def recompose(
-    tree : ShlurdAbstractSyntaxTree,
-    children : Seq[ShlurdSyntaxTree]) : ShlurdSyntaxTree =
+    tree : SprAbstractSyntaxTree,
+    children : Seq[SprSyntaxTree]) : SprSyntaxTree =
   {
     val label = tree.label
-    if ((children.size == 1) && tree.isInstanceOf[ShlurdSyntaxNonLeaf]
+    if ((children.size == 1) && tree.isInstanceOf[SprSyntaxNonLeaf]
       && (children.head.label == label))
     {
       return children.head
@@ -96,12 +96,12 @@ object ShlurdSyntaxRewrite
     uniqueChildConstructors.get(label).foreach(
       constructor => return constructor(requireUnique(children))
     )
-    ShlurdSyntaxNode(label, children)
+    SprSyntaxNode(label, children)
   }
 
   def rewriteAbstract(
-    tree : ShlurdAbstractSyntaxTree,
-    stripDependencies : Boolean = false) : ShlurdSyntaxTree =
+    tree : SprAbstractSyntaxTree,
+    stripDependencies : Boolean = false) : SprSyntaxTree =
   {
     if (tree.isLeaf) {
       val incomingDep = {
@@ -111,7 +111,7 @@ object ShlurdSyntaxRewrite
           tree.incomingDep
         }
       }
-      ShlurdSyntaxLeaf(tree.label, tree.lemma, tree.token, incomingDep)
+      SprSyntaxLeaf(tree.label, tree.lemma, tree.token, incomingDep)
     } else {
       val children = tree.children.map(
         c => rewriteAbstract(c, stripDependencies))
@@ -135,7 +135,7 @@ object ShlurdSyntaxRewrite
       }
     }
     case vp @ SptVP(children @ _*) => {
-      def pullUpNP(child : ShlurdSyntaxTree) = {
+      def pullUpNP(child : SprSyntaxTree) = {
         child match {
           case SptNP(grand @ _*) if (grand.forall(_.isNounPhrase)) => {
             grand
@@ -175,10 +175,10 @@ object ShlurdSyntaxRewrite
   }
 
   def rewrite(
-    rule : PartialFunction[ShlurdSyntaxTree, ShlurdSyntaxTree])
-      : (ShlurdSyntaxTree) => ShlurdSyntaxTree =
+    rule : PartialFunction[SprSyntaxTree, SprSyntaxTree])
+      : (SprSyntaxTree) => SprSyntaxTree =
   {
-    val strategy = Rewriter.rule[ShlurdSyntaxTree](rule)
+    val strategy = Rewriter.rule[SprSyntaxTree](rule)
     Rewriter.rewrite(
         Rewriter.everywherebu("rewriteEverywhere", strategy))
   }

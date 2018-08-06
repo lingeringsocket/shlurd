@@ -16,12 +16,12 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
 
-trait ShlurdEntity
+trait SmcEntity
 {
   def isTentative : Boolean = false
 }
 
-trait ShlurdProperty
+trait SmcProperty
 {
 }
 
@@ -36,9 +36,9 @@ sealed trait SilPhrase
   def isUninterpretable : Boolean =
     hasUnknown || children.exists(_.isUninterpretable)
 
-  override def toString = ShlurdPrettyPrinter.prettyPrint(this)
+  override def toString = SprPrettyPrinter.prettyPrint(this)
 
-  def maybeSyntaxTree : Option[ShlurdSyntaxTree] = None
+  def maybeSyntaxTree : Option[SprSyntaxTree] = None
 
   def toWordString : String =
   {
@@ -96,7 +96,7 @@ sealed trait SilUnknownPhrase extends SilPhrase
 {
   override def hasUnknown = true
 
-  def syntaxTree : ShlurdSyntaxTree
+  def syntaxTree : SprSyntaxTree
 
   override def maybeSyntaxTree = Some(syntaxTree)
 
@@ -148,9 +148,9 @@ sealed trait SilUnresolvedPhrase extends SilPhrase
 
 abstract class SilTransformedPhrase extends SilPhrase
 {
-  private var syntaxTreeOpt : Option[ShlurdSyntaxTree] = None
+  private var syntaxTreeOpt : Option[SprSyntaxTree] = None
 
-  private[parser] def rememberSyntaxTree(syntaxTree : ShlurdSyntaxTree)
+  private[parser] def rememberSyntaxTree(syntaxTree : SprSyntaxTree)
   {
     syntaxTreeOpt = Some(syntaxTree)
   }
@@ -187,94 +187,94 @@ case class SilUnparsedSentence(
 }
 
 case class SilUnrecognizedSentence(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownSentence with SilUnrecognizedPhrase
 {
 }
 
 case class SilUnrecognizedPredicate(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownPredicate with SilUnrecognizedPhrase
 {
 }
 
 case class SilUnrecognizedReference(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownReference with SilUnrecognizedPhrase
 {
 }
 
 case class SilUnrecognizedState(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownState with SilUnrecognizedPhrase
 {
 }
 
 case class SilUnrecognizedVerbModifier(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownVerbModifier with SilUnrecognizedPhrase
 {
 }
 
 case class SilExpectedSentence(
-  syntaxTree : ShlurdSyntaxTree,
+  syntaxTree : SprSyntaxTree,
   forceSQ : Boolean = false
 ) extends SilUnknownSentence with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedPredicate(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedReference(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownReference with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedNounlikeReference(
-  syntaxTree : ShlurdSyntaxTree,
-  preTerminal : ShlurdSyntaxTree,
+  syntaxTree : SprSyntaxTree,
+  preTerminal : SprSyntaxTree,
   determiner : SilDeterminer
 ) extends SilUnknownReference with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedComplementState(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownState with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedAdpositionalState(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownState with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedPropertyState(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownState with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedExistenceState(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownState with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedVerbModifier(
-  syntaxTree : ShlurdSyntaxTree
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownVerbModifier with SilUnresolvedPhrase
 {
 }
 
 case class SilUnresolvedStatePredicate(
-  syntaxTree : ShlurdSyntaxTree,
+  syntaxTree : SprSyntaxTree,
   subject : SilReference,
   state : SilState,
   specifiedState : SilState,
@@ -292,7 +292,7 @@ case class SilUnresolvedStatePredicate(
 }
 
 case class SilUnresolvedActionPredicate(
-  syntaxTree : ShlurdSyntaxTree,
+  syntaxTree : SprSyntaxTree,
   subject : SilReference,
   action : SilWord,
   directObject : Option[SilReference],
@@ -311,7 +311,7 @@ case class SilUnresolvedActionPredicate(
 }
 
 case class SilUnresolvedRelationshipPredicate(
-  syntaxTree : ShlurdSyntaxTree,
+  syntaxTree : SprSyntaxTree,
   subject : SilReference,
   complement : SilReference,
   relationship : SilRelationship,
@@ -514,7 +514,7 @@ case class SilNounReference(
 {
 }
 
-case class SilResolvedReference[EntityType<:ShlurdEntity](
+case class SilResolvedReference[EntityType<:SmcEntity](
   entities : Set[EntityType],
   noun : SilWord,
   determiner : SilDeterminer

@@ -38,10 +38,10 @@ object NullConsoleOutput extends ConsoleOutput
 }
 
 /*
-  sbt "runMain com.lingeringsocket.shlurd.parser.ShlurdParseTester" < \
+  sbt "runMain com.lingeringsocket.shlurd.parser.SprTester" < \
     src/test/resources/expect/babi-unit-script.txt
  */
-class ShlurdParseTester
+class SprTester
 {
   def run(source : Source, target : ConsoleOutput = DefaultConsoleOutput) =
   {
@@ -102,7 +102,7 @@ class ShlurdParseTester
     if (input.endsWith("of?")) {
       return ""
     }
-    val sentence = ShlurdParser(input).parseOne
+    val sentence = SprParser(input).parseOne
     if (sentence.hasUnknown) {
       s"INCOMPLETE PARSE:  $sentence"
     } else {
@@ -111,8 +111,8 @@ class ShlurdParseTester
   }
 }
 
-object ShlurdParseTester extends App
+object SprTester extends App
 {
-  val tester = new ShlurdParseTester
+  val tester = new SprTester
   tester.run(Source.stdin)
 }

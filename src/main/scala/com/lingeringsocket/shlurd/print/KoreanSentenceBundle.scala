@@ -17,7 +17,7 @@ package com.lingeringsocket.shlurd.print
 import com.lingeringsocket.shlurd.parser._
 
 // FIXME:  this is terrible
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 class KoreanSentenceBundle extends SilSentenceBundle
 {

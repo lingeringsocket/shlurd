@@ -23,27 +23,27 @@ import spire.math._
 import scala.collection._
 import scala.util._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
-class ShlurdInterpreterSpec extends Specification
+class SmcInterpreterSpec extends Specification
 {
-  type CosmosType = ShlurdCosmos[ShlurdEntity, ShlurdProperty]
-  type MindType = ShlurdMind[ShlurdEntity, ShlurdProperty, CosmosType]
+  type CosmosType = SmcCosmos[SmcEntity, SmcProperty]
+  type MindType = SmcMind[SmcEntity, SmcProperty, CosmosType]
 
   private val cosmos = ZooCosmos
 
   private val LEMMA_ANIMAL = "animal"
 
-  type StateChangeInvocation = ShlurdStateChangeInvocation[ShlurdEntity]
+  type StateChangeInvocation = SmcStateChangeInvocation[SmcEntity]
 
   abstract class InterpreterContext(
-    responseParams : ShlurdResponseParams =
-      ShlurdResponseParams().copy(thirdPersonPronouns = false)
+    responseParams : SmcResponseParams =
+      SmcResponseParams().copy(thirdPersonPronouns = false)
   ) extends NameSpace
   {
     protected val mind = new MindType(cosmos) {
       override def resolvePronoun(
-        reference : SilPronounReference) : Try[Set[ShlurdEntity]] =
+        reference : SilPronounReference) : Try[Set[SmcEntity]] =
       {
         if (reference.count == COUNT_SINGULAR) {
           reference.person match {
@@ -58,11 +58,11 @@ class ShlurdInterpreterSpec extends Specification
 
     protected def interpret(
       input : String,
-      params : ShlurdResponseParams = responseParams) =
+      params : SmcResponseParams = responseParams) =
     {
       val interpreter =
-        new ShlurdInterpreter[
-          ShlurdEntity, ShlurdProperty,
+        new SmcInterpreter[
+          SmcEntity, SmcProperty,
           CosmosType, MindType
         ](
           mind, params)
@@ -74,7 +74,7 @@ class ShlurdInterpreterSpec extends Specification
         }
       }
 
-      val sentence = ShlurdParser(input).parseOne
+      val sentence = SprParser(input).parseOne
       interpreter.interpret(sentence, input)
     }
 
@@ -82,10 +82,10 @@ class ShlurdInterpreterSpec extends Specification
       input : String,
       invocation : StateChangeInvocation) =
     {
-      val sentence = ShlurdParser(input).parseOne
+      val sentence = SprParser(input).parseOne
       var actualInvocation : Option[StateChangeInvocation] = None
-      val interpreter = new ShlurdInterpreter[
-        ShlurdEntity, ShlurdProperty, CosmosType, MindType
+      val interpreter = new SmcInterpreter[
+        SmcEntity, SmcProperty, CosmosType, MindType
       ](mind, responseParams) {
         override protected def executeInvocation(
           invocation : StateChangeInvocation)
@@ -98,7 +98,7 @@ class ShlurdInterpreterSpec extends Specification
     }
   }
 
-  "ShlurdInterpreter" should
+  "SmcInterpreter" should
   {
     "deal with problem cases" in new InterpreterContext
     {
@@ -124,7 +124,7 @@ class ShlurdInterpreterSpec extends Specification
 
     "interpret questions" in new InterpreterContext
     {
-      val terse = ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE)
+      val terse = SmcResponseParams().copy(verbosity = RESPONSE_TERSE)
       interpret("is the lion asleep") must be equalTo(
         "Yes, the lion is asleep.")
       interpret("is the lion asleep", terse) must be equalTo(
@@ -206,7 +206,7 @@ class ShlurdInterpreterSpec extends Specification
         "Yes, all goats are asleep.")
       interpret("are any goats asleep") must be equalTo(
         "Yes, all three of them are asleep.")
-      val lowLimit = ShlurdResponseParams().copy(listLimit = 1)
+      val lowLimit = SmcResponseParams().copy(listLimit = 1)
       interpret("are any goats asleep", lowLimit) must be equalTo(
         "Yes, all three of them are asleep.")
       interpret("are any goats awake") must be equalTo(
@@ -351,7 +351,7 @@ class ShlurdInterpreterSpec extends Specification
 
     "interpret statements" in new InterpreterContext
     {
-      val terse = ShlurdResponseParams().copy(verbosity = RESPONSE_TERSE)
+      val terse = SmcResponseParams().copy(verbosity = RESPONSE_TERSE)
       interpret("the lion is asleep") must be equalTo(
         "Right, the lion is asleep.")
       interpret("the lion is asleep", terse) must be equalTo(
@@ -372,18 +372,18 @@ class ShlurdInterpreterSpec extends Specification
       val asleep = SilWord("sleepify", "asleep")
       interpretCommandExpected(
         "awake the lion",
-        ShlurdStateChangeInvocation(Set(ZooLion), awake))
+        SmcStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the lion and the tiger",
-        ShlurdStateChangeInvocation(Set(ZooLion), awake))
+        SmcStateChangeInvocation(Set(ZooLion), awake))
       interpretCommandExpected(
         "awake the polar bear and the lion",
-        ShlurdStateChangeInvocation(Set(ZooLion, ZooPolarBear), awake))
+        SmcStateChangeInvocation(Set(ZooLion, ZooPolarBear), awake))
       interpret("awake the tiger") must be equalTo(
         "But the tiger is awake already.")
       interpretCommandExpected(
         "asleep the tiger",
-        ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
+        SmcStateChangeInvocation(Set(ZooTiger), asleep))
       interpret("asleep the goats") must be equalTo(
         "But the goats are asleep already.")
       interpret("asleep the lion") must be equalTo(
@@ -392,10 +392,10 @@ class ShlurdInterpreterSpec extends Specification
         "But the lion and the goats are asleep already.")
       interpretCommandExpected(
         "awake the goat on the farm.",
-        ShlurdStateChangeInvocation(Set(ZooDomesticGoat), awake))
+        SmcStateChangeInvocation(Set(ZooDomesticGoat), awake))
       interpretCommandExpected(
         "asleep the tiger in the big cage.",
-        ShlurdStateChangeInvocation(Set(ZooTiger), asleep))
+        SmcStateChangeInvocation(Set(ZooTiger), asleep))
     }
 
     "respond to unrecognized phrases" in new InterpreterContext
@@ -485,7 +485,7 @@ class ShlurdInterpreterSpec extends Specification
       interpret("who are you") must be equalTo("I am Muldoon.")
       mind.getConversation.getUtterances must be equalTo Seq(
         SpeakerUtterance(
-          ShlurdConversation.SPEAKER_NAME_PERSON,
+          SmcConversation.SPEAKER_NAME_PERSON,
           SilPredicateQuery(
             SilRelationshipPredicate(
               SilNounReference(SilWord(LEMMA_WHO)),
@@ -501,7 +501,7 @@ class ShlurdInterpreterSpec extends Specification
             SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR) ->
               Set(ZooKeeper))),
         SpeakerUtterance(
-          ShlurdConversation.SPEAKER_NAME_SHLURD,
+          SmcConversation.SPEAKER_NAME_SHLURD,
           SilPredicateSentence(
             SilRelationshipPredicate(
               SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
@@ -535,7 +535,7 @@ class ShlurdInterpreterSpec extends Specification
   }
 
   sealed case class ZooAnimalEntity(name : String)
-      extends ShlurdEntity with NamedObject
+      extends SmcEntity with NamedObject
   object ZooLion extends ZooAnimalEntity("lion")
   object ZooTiger extends ZooAnimalEntity("tiger")
   object ZooPolarBear extends ZooAnimalEntity("polar bear")
@@ -549,17 +549,17 @@ class ShlurdInterpreterSpec extends Specification
   object ZooSiberianGoat extends ZooAnimalEntity("siberian goat")
 
   sealed case class ZooLocationEntity(name : String)
-      extends ShlurdEntity with NamedObject
+      extends SmcEntity with NamedObject
   object ZooFarm extends ZooLocationEntity("farm")
   object ZooBigCage extends ZooLocationEntity("big cage")
   object ZooSmallCage extends ZooLocationEntity("small cage")
 
   sealed case class ZooPersonEntity(name : String)
-      extends ShlurdEntity with NamedObject
+      extends SmcEntity with NamedObject
   object ZooKeeper extends ZooPersonEntity("Muldoon")
   object ZooVisitor extends ZooPersonEntity("Malcolm")
 
-  object ZooAnimalSleepinessProperty extends ShlurdProperty
+  object ZooAnimalSleepinessProperty extends SmcProperty
 
   sealed case class ZooAnimalSleepiness(name : String) extends NamedObject
   object ZooAnimalAwake extends ZooAnimalSleepiness("awake")
@@ -596,7 +596,7 @@ class ShlurdInterpreterSpec extends Specification
       ZooSiberianGoat -> Trilean.True,
       ZooSloth -> Trilean.Unknown)
 
-    private val containment : Map[ShlurdEntity, ZooLocationEntity] =
+    private val containment : Map[SmcEntity, ZooLocationEntity] =
       Map(
         ZooVisitor -> ZooFarm,
         ZooKeeper -> ZooBigCage,
@@ -606,7 +606,7 @@ class ShlurdInterpreterSpec extends Specification
         ZooGrizzlyBear -> ZooFarm,
         ZooDomesticGoat -> ZooFarm)
 
-    private val ownership : Map[ShlurdEntity, ZooPersonEntity] =
+    private val ownership : Map[SmcEntity, ZooPersonEntity] =
       Map(
         ZooLion -> ZooKeeper,
         ZooTiger -> ZooVisitor)
@@ -617,15 +617,15 @@ class ShlurdInterpreterSpec extends Specification
       qualifiers : Set[String]) =
     {
       if ((lemma == LEMMA_WHO) || (lemma == LEMMA_PERSON)) {
-        Success(ShlurdParseUtils.orderedSet(
+        Success(SprUtils.orderedSet(
           people.values))
       } else if (lemma == LEMMA_ANIMAL) {
-        Success(ShlurdParseUtils.orderedSet(
+        Success(SprUtils.orderedSet(
           animals.values))
       } else {
         val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
         if (context == REF_ADPOSITION_OBJ) {
-          Success(ShlurdParseUtils.orderedSet(
+          Success(SprUtils.orderedSet(
             locations.filterKeys(_.endsWith(name)).values))
         } else {
           if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
@@ -646,7 +646,7 @@ class ShlurdInterpreterSpec extends Specification
     }
 
     override def resolveProperty(
-      entity : ShlurdEntity,
+      entity : SmcEntity,
       lemma : String) =
     {
       entity match {
@@ -661,7 +661,7 @@ class ShlurdInterpreterSpec extends Specification
       }
     }
 
-    override def getPropertyStateMap(property : ShlurdProperty) =
+    override def getPropertyStateMap(property : SmcProperty) =
     {
       property match {
         case ZooAnimalSleepinessProperty => {
@@ -675,7 +675,7 @@ class ShlurdInterpreterSpec extends Specification
     }
 
     override def specificReference(
-      entity : ShlurdEntity,
+      entity : SmcEntity,
       determiner : SilDeterminer) =
     {
       entity match {
@@ -703,8 +703,8 @@ class ShlurdInterpreterSpec extends Specification
     }
 
     override def evaluateEntityPropertyPredicate(
-      entity : ShlurdEntity,
-      property : ShlurdProperty,
+      entity : SmcEntity,
+      property : SmcProperty,
       lemma : String) =
     {
       entity match {
@@ -728,8 +728,8 @@ class ShlurdInterpreterSpec extends Specification
     }
 
     override def evaluateEntityAdpositionPredicate(
-      entity : ShlurdEntity,
-      objEntity : ShlurdEntity,
+      entity : SmcEntity,
+      objEntity : SmcEntity,
       adposition : SilAdposition,
       qualifiers : Set[String]) : Try[Trilean] =
     {
@@ -759,7 +759,7 @@ class ShlurdInterpreterSpec extends Specification
     }
 
     override def normalizeState(
-      entity : ShlurdEntity,
+      entity : SmcEntity,
       state : SilState) : SilState =
     {
       state match {

@@ -49,7 +49,7 @@ class ShlurdCliSerializer
         val printer = new SilSentencePrinter
         creed.allBeliefs.foreach(belief => {
           val beliefString = printer.print(belief)
-          pw.println(ShlurdParseUtils.capitalize(beliefString))
+          pw.println(SprUtils.capitalize(beliefString))
         })
         pw.flush
       })

@@ -29,7 +29,7 @@ import java.util.concurrent.atomic._
 import org.jgrapht._
 import org.jgrapht.util._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 trait SpcIdealVertex
 {
@@ -42,7 +42,7 @@ class SpcPropertyState(val lemma : String, val inflected : String)
 }
 
 class SpcProperty(val name : String, val isClosed : Boolean)
-    extends ShlurdProperty with ShlurdNamedObject with SpcIdealVertex
+    extends SmcProperty with SmcNamedObject with SpcIdealVertex
 {
   def isSynthetic = name.contains('_')
 
@@ -50,7 +50,7 @@ class SpcProperty(val name : String, val isClosed : Boolean)
 }
 
 sealed trait SpcNym
-    extends ShlurdNamedObject
+    extends SmcNamedObject
 {
   def isIdeal : Boolean = false
 
@@ -108,7 +108,7 @@ class SpcRole(name : String)
   override def toString = s"SpcRole($name)"
 }
 
-trait SpcEntityVertex extends ShlurdNamedObject
+trait SpcEntityVertex extends SmcNamedObject
 {
 }
 
@@ -117,7 +117,7 @@ case class SpcEntity(
   val form : SpcForm,
   val qualifiers : Set[String],
   val properName : String = "")
-    extends ShlurdEntity with SpcEntityVertex
+    extends SmcEntity with SpcEntityVertex
 {
   override def isTentative = properName.contains("_")
 }
@@ -130,7 +130,7 @@ case class SpcEntitySynonym(val name : String)
 class SpcCosmos(
   graph : SpcGraph = SpcGraph(),
   idGenerator : AtomicLong = new AtomicLong
-) extends ShlurdCosmos[SpcEntity, SpcProperty] with DeltaModification
+) extends SmcCosmos[SpcEntity, SpcProperty] with DeltaModification
 {
   private val unmodifiableGraph = graph.asUnmodifiable
 
@@ -622,7 +622,7 @@ class SpcCosmos(
   def loadBeliefs(source : Source)
   {
     val beliefs = source.getLines.mkString("\n")
-    val sentences = ShlurdParser(beliefs).parseAll
+    val sentences = SprParser(beliefs).parseAll
     val interpreter = new SpcBeliefInterpreter(this)
     sentences.foreach(interpreter.interpretBelief(_))
     validateBeliefs
@@ -715,7 +715,7 @@ class SpcCosmos(
     role : SpcRole)
       : Set[SpcEntity] =
   {
-    ShlurdParseUtils.orderedSet(getEntityAssocGraph.outgoingEdgesOf(possessor).
+    SprUtils.orderedSet(getEntityAssocGraph.outgoingEdgesOf(possessor).
       asScala.toSeq.filter(
         edge => {
           graph.isHyponym(role, graph.getPossesseeRole(edge.formEdge)) &&
@@ -749,7 +749,7 @@ class SpcCosmos(
     val entities = getEntities
     roleOpt match {
       case Some(role) => {
-        Success(ShlurdParseUtils.orderedSet(
+        Success(SprUtils.orderedSet(
           entities.filter(entity =>
             graph.isFormCompatibleWithRole(entity.form, role) &&
               hasQualifiers(entity, entity.form, qualifiers, false))))
@@ -757,7 +757,7 @@ class SpcCosmos(
       case _ => {
         formOpt match {
           case Some(form) => {
-            Success(ShlurdParseUtils.orderedSet(
+            Success(SprUtils.orderedSet(
               entities.filter(
                 hasQualifiers(_, form, qualifiers, false))))
           }
@@ -768,7 +768,7 @@ class SpcCosmos(
             if (results.isEmpty) {
               fail(s"unknown ideal $lemma")
             } else {
-              Success(ShlurdParseUtils.orderedSet(results))
+              Success(SprUtils.orderedSet(results))
             }
           }
         }

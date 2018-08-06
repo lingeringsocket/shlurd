@@ -25,10 +25,10 @@ import scala.collection.JavaConverters._
 import java.io._
 import java.util.Properties
 
-import ShlurdPennTreebankLabels._
-import ShlurdParseUtils._
+import SprPennTreebankLabels._
+import SprUtils._
 
-trait ShlurdParser
+trait SprParser
 {
   def parseOne() : SilSentence
 
@@ -37,9 +37,9 @@ trait ShlurdParser
   def parseAll() : Stream[SilSentence]
 }
 
-class ShlurdFallbackParser(
-  parsers : Seq[() => ShlurdParser])
-    extends ShlurdParser
+class SprFallbackParser(
+  parsers : Seq[() => SprParser])
+    extends SprParser
 {
   override def parseOne() : SilSentence =
   {
@@ -66,19 +66,19 @@ class ShlurdFallbackParser(
   override def parseAll() = Stream(parseOne)
 }
 
-class ShlurdSingleParser(
-  tree : ShlurdSyntaxTree, tokens : Seq[String], lemmas : Seq[String],
+class SprSingleParser(
+  tree : SprSyntaxTree, tokens : Seq[String], lemmas : Seq[String],
   guessedQuestion : Boolean)
-    extends ShlurdParser
+    extends SprParser
 {
-  private def parseRoot(tree : ShlurdSyntaxTree) =
+  private def parseRoot(tree : SprSyntaxTree) =
   {
     tree match {
       case SptROOT(sentenceSyntaxTree) => {
-        val parsingRewriter = new ShlurdParsingRewriter(
-          new ShlurdSyntaxAnalyzer(guessedQuestion))
+        val parsingRewriter = new SprRewriter(
+          new SprSyntaxAnalyzer(guessedQuestion))
         val parsed = parsingRewriter.parseSentence(sentenceSyntaxTree)
-        val normalizationRewriter = new ShlurdNormalizationRewriter
+        val normalizationRewriter = new SprNormalizationRewriter
         normalizationRewriter.normalize(parsed)
       }
       case _ => SilUnrecognizedSentence(tree)
@@ -92,8 +92,8 @@ class ShlurdSingleParser(
   override def parseAll() = Stream(parseOne)
 }
 
-class ShlurdMultipleParser(singles : Stream[ShlurdParser])
-    extends ShlurdParser
+class SprMultipleParser(singles : Stream[SprParser])
+    extends SprParser
 {
   override def parseOne() : SilSentence =
   {
@@ -109,7 +109,7 @@ class ShlurdMultipleParser(singles : Stream[ShlurdParser])
 class CorenlpTreeWrapper(
   corenlp : Tree, tokens : Seq[String], lemmas : Seq[String],
   incomingDeps : Seq[String])
-    extends ShlurdAbstractSyntaxTree
+    extends SprAbstractSyntaxTree
 {
   private val wrappedChildren =
     corenlp.children.map(
@@ -129,7 +129,7 @@ class CorenlpTreeWrapper(
   override def children = wrappedChildren
 }
 
-object ShlurdParser
+object SprParser
 {
   def getEmptyDocument() = new Document("")
 
@@ -148,7 +148,7 @@ object ShlurdParser
   }
 
   private def prepareOne(
-    sentence : Sentence, dump : Boolean = false) : ShlurdParser =
+    sentence : Sentence, dump : Boolean = false) : SprParser =
   {
     val tokens = sentence.originalTexts.asScala
     val sentenceString = sentence.text
@@ -195,7 +195,7 @@ object ShlurdParser
     def fallback4() = prepareParser(
       sentenceString, tokens, props2, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR CASELESS")
-    new ShlurdFallbackParser(Seq(
+    new SprFallbackParser(Seq(
       main, fallback2, fallback3, fallback4))
   }
 
@@ -225,13 +225,13 @@ object ShlurdParser
     if (dump) {
       println(dumpPrefix + " DEPS = " + tokens.zip(deps))
     }
-    val syntaxTree = ShlurdSyntaxRewrite.rewriteAbstract(
+    val syntaxTree = SprSyntaxRewriter.rewriteAbstract(
       new CorenlpTreeWrapper(corenlp, tokens, lemmas, deps))
-    val rewrittenTree = ShlurdSyntaxRewrite.rewriteWarts(syntaxTree)
+    val rewrittenTree = SprSyntaxRewriter.rewriteWarts(syntaxTree)
     if (dump) {
       println(dumpPrefix + " REWRITTEN SYNTAX = " + rewrittenTree)
     }
-    new ShlurdSingleParser(rewrittenTree, tokens, lemmas, guessedQuestion)
+    new SprSingleParser(rewrittenTree, tokens, lemmas, guessedQuestion)
   }
 
   private def analyzeDependencies(sentence : Sentence) : Seq[String] =
@@ -253,13 +253,13 @@ object ShlurdParser
     Source.fromFile(getResourcePath(resource)).
       getLines.mkString("\n")
 
-  def apply(input : String) : ShlurdParser =
+  def apply(input : String) : SprParser =
   {
     val sentences = tokenize(input)
     if (sentences.size == 1) {
       prepareOne(sentences.head)
     } else {
-      new ShlurdMultipleParser(sentences.toStream.map(prepareOne(_)))
+      new SprMultipleParser(sentences.toStream.map(prepareOne(_)))
     }
   }
 }

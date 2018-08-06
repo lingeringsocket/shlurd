@@ -14,9 +14,9 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
-private[parser] class ShlurdNormalizationRewriter
+private[parser] class SprNormalizationRewriter
   extends SilPhraseRewriter
 {
   def normalize(sentence : SilSentence) : SilSentence =

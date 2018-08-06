@@ -27,7 +27,7 @@ case object REF_COMPLEMENT extends SilReferenceContext
 case object REF_ADPOSITION_OBJ extends SilReferenceContext
 case object REF_ADPOSITION_SUBJ extends SilReferenceContext
 
-trait ShlurdCosmos[EntityType<:ShlurdEntity, PropertyType<:ShlurdProperty]
+trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
 {
   def fail(msg : String) = Failure(new RuntimeException(msg))
 
@@ -88,7 +88,7 @@ trait ShlurdCosmos[EntityType<:ShlurdEntity, PropertyType<:ShlurdProperty]
   }
 
   def qualifierSet(qualifiers : Seq[SilWord]) =
-    ShlurdParseUtils.orderedSet(qualifiers.map(_.lemma))
+    SprUtils.orderedSet(qualifiers.map(_.lemma))
 
   // lemma -> inflected
   def getPropertyStateMap(property : PropertyType) : Map[String, String]
@@ -101,7 +101,7 @@ trait ShlurdCosmos[EntityType<:ShlurdEntity, PropertyType<:ShlurdProperty]
   }
 }
 
-trait ShlurdNamedObject
+trait SmcNamedObject
 {
   def name : String
 }

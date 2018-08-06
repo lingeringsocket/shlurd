@@ -16,9 +16,9 @@ package com.lingeringsocket.shlurd.cosmos
 
 import com.lingeringsocket.shlurd.parser._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
-class ShlurdPhraseRewriter extends SilPhraseRewriter
+class SmcPhraseRewriter extends SilPhraseRewriter
 {
   protected val querier = new SilPhraseRewriter
 

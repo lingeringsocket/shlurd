@@ -23,10 +23,10 @@ import scala.collection._
 import scala.collection.JavaConverters._
 import scala.util._
 
-import ShlurdEnglishLemmas._
+import SprEnglishLemmas._
 
 class SpcMind(cosmos : SpcCosmos)
-    extends ShlurdMind[SpcEntity, SpcProperty, SpcCosmos](cosmos)
+    extends SmcMind[SpcEntity, SpcProperty, SpcCosmos](cosmos)
 {
   override def getCosmos = cosmos
 

@@ -19,15 +19,15 @@ import com.lingeringsocket.shlurd.parser._
 import scala.collection._
 import scala.util._
 
-class ShlurdMind[
-  EntityType<:ShlurdEntity,
-  PropertyType<:ShlurdProperty,
-  CosmosType<:ShlurdCosmos[EntityType, PropertyType]
+class SmcMind[
+  EntityType<:SmcEntity,
+  PropertyType<:SmcProperty,
+  CosmosType<:SmcCosmos[EntityType, PropertyType]
 ](
   cosmos : CosmosType)
 {
-  type ConversationType = ShlurdConversation[EntityType]
-  type TimelineType = ShlurdTimeline[EntityType, PropertyType, CosmosType]
+  type ConversationType = SmcConversation[EntityType]
+  type TimelineType = SmcTimeline[EntityType, PropertyType, CosmosType]
 
   private lazy val personFirst =
     uniqueEntity(resolvePronoun(
@@ -142,7 +142,7 @@ class ShlurdMind[
     referenceMap : Map[SilReference, Set[EntityType]])
   {
     timeline.foreach(_.addEntry(
-      new ShlurdTimelineEntry(updatedCosmos, predicate, referenceMap)))
+      new SmcTimelineEntry(updatedCosmos, predicate, referenceMap)))
   }
 
   def resolvePronoun(

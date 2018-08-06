@@ -24,7 +24,7 @@ class SilSentenceTranslatorSpec extends Specification
     new SilSentencePrinter(LimitedKoreanParlance)
 
   private def translate(s : String) =
-    printer.print(ShlurdParser(s).parseOne)
+    printer.print(SprParser(s).parseOne)
 
   "SilSentencePrinter" should
   {
@@ -60,7 +60,7 @@ class SilSentenceTranslatorSpec extends Specification
   }
 }
 
-object LimitedKoreanParlance extends ShlurdParlance
+object LimitedKoreanParlance extends SilParlance
 {
   override def newSentenceBundle() = new KoreanSentenceBundle {
     override def inflectNoun(
