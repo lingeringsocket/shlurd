@@ -171,7 +171,8 @@ class SpcInterpreter(
       return fail(sentencePrinter.sb.circularAction)
     }
     mind.getCosmos.getTriggers.foreach(trigger => {
-      // FIXME we should require iff for trigger instead of just if
+      // technically we should require iff for trigger instead of just if,
+      // but let's not split hairs
       matchTrigger(trigger, predicate) match {
         case Some(newPredicate) => {
           return super.evaluatePredicate(newPredicate, resultCollector)
