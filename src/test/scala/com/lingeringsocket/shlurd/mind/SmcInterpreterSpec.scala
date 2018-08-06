@@ -60,19 +60,16 @@ class SmcInterpreterSpec extends Specification
       input : String,
       params : SmcResponseParams = responseParams) =
     {
-      val interpreter =
-        new SmcInterpreter[
-          SmcEntity, SmcProperty,
-          CosmosType, MindType
-        ](
-          mind, params)
-      {
-        override protected def executeInvocation(
+      val executor = new SmcExecutor[SmcEntity] {
+        override def executeInvocation(
           invocation : StateChangeInvocation)
         {
           throw new RuntimeException("unexpected invocation")
         }
       }
+      val interpreter =
+        new SmcInterpreter[SmcEntity, SmcProperty,CosmosType, MindType](
+          mind, params, executor)
 
       val sentence = SprParser(input).parseOne
       interpreter.interpret(sentence, input)
@@ -84,15 +81,16 @@ class SmcInterpreterSpec extends Specification
     {
       val sentence = SprParser(input).parseOne
       var actualInvocation : Option[StateChangeInvocation] = None
-      val interpreter = new SmcInterpreter[
-        SmcEntity, SmcProperty, CosmosType, MindType
-      ](mind, responseParams) {
-        override protected def executeInvocation(
+      val executor = new SmcExecutor[SmcEntity] {
+        override def executeInvocation(
           invocation : StateChangeInvocation)
         {
           actualInvocation = Some(invocation)
         }
       }
+      val interpreter =
+        new SmcInterpreter[SmcEntity, SmcProperty, CosmosType, MindType](
+          mind, responseParams, executor)
       interpreter.interpret(sentence, input) must be equalTo("OK.")
       actualInvocation must be equalTo(Some(invocation))
     }

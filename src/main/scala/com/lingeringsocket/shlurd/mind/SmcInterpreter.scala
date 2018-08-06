@@ -66,6 +66,15 @@ object SmcResultCollector
       new mutable.LinkedHashMap[SilReference, Set[EntityType]])
 }
 
+class SmcExecutor[EntityType<:SmcEntity]
+{
+  def executeInvocation(
+    invocation : SmcStateChangeInvocation[EntityType])
+  {
+    throw new UnsupportedOperationException()
+  }
+}
+
 class SmcInterpreter[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -73,9 +82,10 @@ class SmcInterpreter[
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
   mind : MindType,
-  generalParams : SmcResponseParams = SmcResponseParams())
+  generalParams : SmcResponseParams = SmcResponseParams(),
+  executor : SmcExecutor[EntityType] = new SmcExecutor[EntityType])
 {
-  type SmcResultCollectorType = SmcResultCollector[EntityType]
+  type ResultCollectorType = SmcResultCollector[EntityType]
 
   type PredicateEvaluator = (EntityType, SilReference) => Try[Trilean]
 
@@ -225,7 +235,7 @@ class SmcInterpreter[
                 _._2.assumeFalse).keySet,
               resultCollector.states.head)
           debug(s"EXECUTE INVOCATION : $invocation")
-          executeInvocation(invocation)
+          executor.executeInvocation(invocation)
           wrapResponseText(sentencePrinter.sb.respondCompliance())
         }
         case Failure(e) => {
@@ -464,11 +474,6 @@ class SmcInterpreter[
     }
   }
 
-  protected def executeInvocation(
-    invocation : SmcStateChangeInvocation[EntityType])
-  {
-  }
-
   private def evaluateDeterminer(
     tries : Iterable[Try[Trilean]], determiner : SilDeterminer)
       : Try[Trilean] =
@@ -515,7 +520,7 @@ class SmcInterpreter[
   private def evaluateTamPredicate(
     predicate : SilPredicate,
     tam : SilTam,
-    resultCollector : SmcResultCollectorType) : Try[Trilean] =
+    resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     assert(tam.modality == MODAL_NEUTRAL)
     tam.tense match {
@@ -534,7 +539,7 @@ class SmcInterpreter[
 
   private def evaluatePastPredicate(
     predicate : SilPredicate,
-    resultCollector : SmcResultCollectorType) : Try[Trilean] =
+    resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     // FIXME i18n
     if (!mind.hasNarrative) {
@@ -597,17 +602,15 @@ class SmcInterpreter[
     throw new UnsupportedOperationException("I lack imagination")
   }
 
-  // FIXME this isn't guaranteed to preserve overrides, e.g.
-  // executeInvocation
   protected def spawn(subMind : MindType) =
   {
     new SmcInterpreter[EntityType, PropertyType, CosmosType, MindType](
-      subMind, generalParams)
+      subMind, generalParams, executor)
   }
 
   protected def evaluatePredicate(
     predicateOriginal : SilPredicate,
-    resultCollector : SmcResultCollectorType) : Try[Trilean] =
+    resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     debug(s"EVALUATE PREDICATE : $predicateOriginal")
     debugDepth += 1
@@ -696,7 +699,7 @@ class SmcInterpreter[
 
   protected def evaluateActionPredicate(
     ap : SilActionPredicate,
-    resultCollector : SmcResultCollectorType) : Try[Trilean] =
+    resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     debug("ACTION PREDICATES UNSUPPORTED")
     fail(sentencePrinter.sb.respondCannotUnderstand())
@@ -705,7 +708,7 @@ class SmcInterpreter[
   private def evaluateNormalizedStatePredicate(
     subjectRef : SilReference,
     originalState : SilState,
-    resultCollector : SmcResultCollectorType)
+    resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
     val context = originalState match {
@@ -814,7 +817,7 @@ class SmcInterpreter[
   private def evaluatePredicateOverReference(
     reference : SilReference,
     context : SilReferenceContext,
-    resultCollector : SmcResultCollectorType,
+    resultCollector : ResultCollectorType,
     specifiedState : SilState = SilNullState()
   )(evaluator : PredicateEvaluator)
       : Try[Trilean] =
@@ -835,7 +838,7 @@ class SmcInterpreter[
     unfilteredEntities : Iterable[EntityType],
     entityRef : SilReference,
     context : SilReferenceContext,
-    resultCollector : SmcResultCollectorType,
+    resultCollector : ResultCollectorType,
     specifiedState : SilState,
     determiner : SilDeterminer,
     count : SilCount,
@@ -940,7 +943,7 @@ class SmcInterpreter[
   private def evaluatePredicateOverReferenceImpl(
     reference : SilReference,
     context : SilReferenceContext,
-    resultCollector : SmcResultCollectorType,
+    resultCollector : ResultCollectorType,
     specifiedState : SilState,
     evaluator : PredicateEvaluator)
       : Try[Trilean] =
@@ -1035,7 +1038,7 @@ class SmcInterpreter[
     reference : SilReference,
     state : SilState,
     context : SilReferenceContext,
-    resultCollector : SmcResultCollectorType,
+    resultCollector : ResultCollectorType,
     specifiedState : SilState,
     evaluator : PredicateEvaluator)
       : Try[Trilean] =
@@ -1057,7 +1060,7 @@ class SmcInterpreter[
   private def invokeEvaluator(
     entity : EntityType,
     entityRef : SilReference,
-    resultCollector : SmcResultCollectorType,
+    resultCollector : ResultCollectorType,
     evaluator : PredicateEvaluator) : Try[Trilean] =
   {
     val result = evaluator(
@@ -1070,7 +1073,7 @@ class SmcInterpreter[
     entity : EntityType,
     entityRef : SilReference,
     state : SilWord,
-    resultCollector : SmcResultCollectorType)
+    resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
     val result = cosmos.resolveProperty(entity, state.lemma) match {
@@ -1111,7 +1114,7 @@ class SmcInterpreter[
   private def evaluateAdpositionStatePredicate(
     subjectEntity : EntityType, adposition : SilAdposition,
     objRef : SilReference,
-    resultCollector : SmcResultCollectorType)
+    resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
     val objCollector = resultCollector.spawn
@@ -1138,7 +1141,7 @@ class SmcInterpreter[
 
   private def rewriteReferences(
     predicate : SilPredicate,
-    resultCollector : SmcResultCollectorType) : SilPredicate =
+    resultCollector : ResultCollectorType) : SilPredicate =
   {
     val referenceRewriter = new SmcReferenceRewriter(
       cosmos, sentencePrinter, resultCollector)
@@ -1148,7 +1151,7 @@ class SmcInterpreter[
 
   private def chooseSmcResultCollector(
     phrase : SilPhrase,
-    collector : SmcResultCollectorType) =
+    collector : ResultCollectorType) =
   {
     if (inputRewriter.containsWildcard(phrase)) {
       collector

@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import com.lingeringsocket.shlurd.parser.SprParser$;
 import com.lingeringsocket.shlurd.parser.SilSentence;
+import com.lingeringsocket.shlurd.mind.SmcExecutor;
 import com.lingeringsocket.shlurd.mind.SmcInterpreterParams;
 import com.lingeringsocket.shlurd.mind.SmcInterpreterParams$;
 import com.lingeringsocket.shlurd.mind.SmcStateChangeInvocation;
@@ -271,8 +272,7 @@ public class ShlurdHumanLanguageInterpreter
         // FIXME: need to support non-string commands
         SilSentence sentence = SprParser$.MODULE$.apply(text).parseOne();
         SmcInterpreterParams params = SmcInterpreterParams$.MODULE$.apply(3);
-        SpcInterpreter interpreter = new SpcInterpreter(
-            new SpcMind(cosmos), params) {
+        SmcExecutor<SpcEntity> executor = new SmcExecutor<SpcEntity> {
             @Override
             public void executeInvocation(SmcStateChangeInvocation<SpcEntity> invocation) {
                 JavaConverters.setAsJavaSetConverter(invocation.entities()).asJava().forEach(entity -> {
@@ -292,6 +292,8 @@ public class ShlurdHumanLanguageInterpreter
                 });
             }
         };
+
+        SpcInterpreter interpreter = new SpcInterpreter(new SpcMind(cosmos), params, executor);
         String result = interpreter.interpret(sentence);
         return result;
     }

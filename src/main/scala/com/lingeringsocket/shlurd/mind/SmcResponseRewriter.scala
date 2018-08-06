@@ -28,13 +28,13 @@ class SmcResponseRewriter[
   mind : SmcMind[EntityType, PropertyType, CosmosType]
 ) extends SmcPhraseRewriter
 {
-  type SmcResultCollectorType = SmcResultCollector[EntityType]
+  type ResultCollectorType = SmcResultCollector[EntityType]
 
   private val cosmos = mind.getCosmos
 
   def normalizeResponse(
     predicate : SilPredicate,
-    resultCollector : SmcResultCollectorType,
+    resultCollector : ResultCollectorType,
     params : SmcResponseParams,
     question : Option[SilQuestion] = None)
       : (SilPredicate, Boolean) =
@@ -285,7 +285,7 @@ class SmcResponseRewriter[
   }
 
   private def rewriteThirdPersonReferences(
-    resultCollector : SmcResultCollectorType,
+    resultCollector : ResultCollectorType,
     predicate : SilPredicate) : SilPredicate =
   {
     val referenceMap = resultCollector.referenceMap
@@ -584,14 +584,14 @@ class SmcResponseRewriter[
     }
   }
 
-  private def getTrueEntities(resultCollector : SmcResultCollectorType) =
+  private def getTrueEntities(resultCollector : ResultCollectorType) =
   {
     SprUtils.orderedSet(
       resultCollector.entityMap.filter(
         _._2.assumeFalse).keySet)
   }
 
-  private def getFalseEntities(resultCollector : SmcResultCollectorType) =
+  private def getFalseEntities(resultCollector : ResultCollectorType) =
   {
     SprUtils.orderedSet(
       resultCollector.entityMap.filterNot(
@@ -599,7 +599,7 @@ class SmcResponseRewriter[
   }
 
   private def normalizeDisjunction(
-    resultCollector : SmcResultCollectorType,
+    resultCollector : ResultCollectorType,
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
     params : SmcResponseParams)
@@ -626,7 +626,7 @@ class SmcResponseRewriter[
   }
 
   private def normalizeConjunction(
-    resultCollector : SmcResultCollectorType,
+    resultCollector : ResultCollectorType,
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
     params : SmcResponseParams)

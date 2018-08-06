@@ -31,8 +31,8 @@ case object ACCEPT_MODIFIED_BELIEFS extends SpcBeliefAcceptance
 class SpcInterpreter(
   mind : SpcMind,
   beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
-  params : SmcResponseParams = SmcResponseParams())
-    extends SmcInterpreter[
+  params : SmcResponseParams = SmcResponseParams()
+) extends SmcInterpreter[
   SpcEntity, SpcProperty, SpcCosmos, SpcMind
 ](
   mind, params
