@@ -57,33 +57,70 @@ private[parser] class SprNormalizationRewriter
   }
 
   private def normalizeAdpositionalPhrases = replacementMatcher {
+    case SilStatePredicate(
+      subject,
+      state,
+      modifiers
+    ) => {
+      val (subjectExtracted, subjectModifiers) =
+        extractVerbModifier(subject)
+      SilStatePredicate(
+        subjectExtracted,
+        state,
+        subjectModifiers ++ modifiers
+      )
+    }
     case SilRelationshipPredicate(
       subject,
-      SilStateSpecifiedReference(
-        complement,
-        SilAdpositionalState(adposition, objRef)),
+      complement,
       relationship,
       modifiers
-    ) if (isAdverbialAdposition(complement, adposition, objRef)) => {
+    ) => {
+      val (subjectExtracted, subjectModifiers) =
+        extractVerbModifier(subject)
+      val (complementExtracted, complementModifiers) =
+        extractVerbModifier(complement)
       SilRelationshipPredicate(
-        subject,
-        complement,
+        subjectExtracted,
+        complementExtracted,
         relationship,
-        SilAdpositionalVerbModifier(adposition, objRef) +: modifiers)
+        subjectModifiers ++ complementModifiers ++ modifiers)
     }
     case SilActionPredicate(
       subject,
       action,
-      Some(SilStateSpecifiedReference(
-        complement,
-        SilAdpositionalState(adposition, objRef))),
+      directObject,
       modifiers
-    ) if (isAdverbialAdposition(complement, adposition, objRef)) => {
+    ) => {
+      val (subjectExtracted, subjectModifiers) =
+        extractVerbModifier(subject)
+      val (directObjectExtracted, directObjectModifiers) =
+        directObject match {
+          case Some(obj) => {
+            val (r, m) = extractVerbModifier(obj)
+            (Some(r), m)
+          }
+          case _ => (None, Seq.empty)
+        }
       SilActionPredicate(
         subject,
         action,
-        Some(complement),
-        SilAdpositionalVerbModifier(adposition, objRef) +: modifiers)
+        directObjectExtracted,
+        subjectModifiers ++ directObjectModifiers ++ modifiers)
+    }
+  }
+
+  private def extractVerbModifier(ref : SilReference)
+      : (SilReference, Seq[SilVerbModifier]) =
+  {
+    ref match {
+      case SilStateSpecifiedReference(
+        sub,
+        SilAdpositionalState(adposition, objRef)
+      ) if (isAdverbialAdposition(sub, adposition, objRef)) => {
+        (sub, Seq(SilAdpositionalVerbModifier(adposition, objRef)))
+      }
+      case _ => (ref, Seq.empty)
     }
   }
 

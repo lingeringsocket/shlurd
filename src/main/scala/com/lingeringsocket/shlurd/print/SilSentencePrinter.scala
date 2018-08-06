@@ -505,10 +505,17 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     phrase : SilAdpositionalPhrase,
     conjoining : SilConjoining) : String =
   {
-    sb.adpositionedNoun(
-      sb.adpositionString(phrase.adposition),
-      print(phrase.objRef, INFLECT_ACCUSATIVE, SilConjoining.NONE),
-      conjoining)
+    phrase.adposition match {
+      case SilAdposition.ADVERBIAL_TMP => {
+        print(phrase.objRef, INFLECT_NONE, conjoining)
+      }
+      case _ => {
+        sb.adpositionedNoun(
+          sb.adpositionString(phrase.adposition),
+          print(phrase.objRef, INFLECT_ACCUSATIVE, SilConjoining.NONE),
+          conjoining)
+      }
+    }
   }
 }
 

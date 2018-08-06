@@ -79,6 +79,7 @@ object SilAdposition
   val TO = adposition(LEMMA_TO)
   val OF = adposition(LEMMA_OF)
   val GENITIVE_OF = adposition(LEMMA_GENITIVE_OF)
+  val ADVERBIAL_TMP = adposition(LEMMA_ADVERBIAL_TMP)
 }
 
 sealed trait SilCount

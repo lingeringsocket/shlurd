@@ -118,6 +118,7 @@ object SprEnglishLemmas
   val LEMMA_KIND = "kind"
   val LEMMA_OF = "of"
   val LEMMA_GENITIVE_OF = "_of_"
+  val LEMMA_ADVERBIAL_TMP = "_TEMPORAL_"
 }
 
 object SprEnglishAffixes

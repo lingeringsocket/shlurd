@@ -290,6 +290,8 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("Ramona went to the library?",
         "did Ramona go to the library?")
       expectQuestion("did Ramona go to the library")
+      expectStatement("Mortimer went to the beach yesterday")
+      expectStatement("Mortimer went to the beach this morning")
     }
   }
 }

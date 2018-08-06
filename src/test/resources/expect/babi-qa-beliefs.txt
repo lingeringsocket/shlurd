@@ -14,6 +14,9 @@ The office is a place.
 The hallway is a place.
 The bathroom is a place.
 The bedroom is a place.
+The park is a place.
+The cinema is a place.
+The school is a place.
 The football is an object.
 The apple is an object.
 The milk is an object.

@@ -118,6 +118,9 @@ class CorenlpTreeWrapper(
   override def label =
     corenlp.label.value.split("-").head
 
+  override def tags =
+    corenlp.label.value.split("-").tail.toSet
+
   override def lemma =
     lemmas(corenlp.label.asInstanceOf[HasIndex].index)
 

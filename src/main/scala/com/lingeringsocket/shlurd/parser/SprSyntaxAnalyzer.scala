@@ -348,7 +348,7 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
     val (determiner, components) = {
       val first = seq.head.unwrapPhrase
       first match {
-        case pt @ (_ : SptDT | _ : SptCD) => {
+        case pt @ (_ : SptDT | _ : SptCD) if (!pt.isDemonstrative) => {
           (determinerFor(requireLeaf(pt.children)), seq.drop(1))
         }
         case _ => {
@@ -356,7 +356,7 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
         }
       }
     }
-    if ((components.size == 2) && components.head.isPronoun) {
+    if ((components.size == 2) && components.head.isPronounOrDemonstrative) {
       val pronounReference = expectReference(components.head)
       val entityReference = expectNounReference(
         tree, components.last, determiner)
@@ -647,6 +647,9 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
           }
         }
       }
+    } else if ((seq.size == 1) && seq.head.isNounPhrase) {
+      SilAdpositionalState(
+        SilAdposition.ADVERBIAL_TMP, expectReference(seq.head))
     } else {
       SilUnrecognizedState(tree)
     }
@@ -726,7 +729,8 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
     seq : Seq[SprSyntaxTree],
     specifiedDirectObject : Option[SilReference]) =
   {
-    val objCandidates = seq.filter(_.isNounNode)
+    val objCandidates = seq.filter(_.isNounNode).filterNot(
+      _.containsIncomingDependency("tmod"))
     val directObjTree = objCandidates.find(
       _.containsIncomingDependency("dobj")) match
     {
@@ -774,16 +778,22 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
   private[parser] def expectVerbModifierPhrase(tree : SprSyntaxPhrase)
       : SilVerbModifier =
   {
-    val words = tree.children.map(_ match {
-      case adverb : SprSyntaxAdverb => {
-        getWord(adverb.child)
-      }
-      case particle : SptRP => {
-        getWord(particle.child)
-      }
-      case _ => return expectAdpositionalVerbModifier(tree)
-    })
-    SilBasicVerbModifier(words)
+    if (tree.containsIncomingDependency("tmod")) {
+      SilAdpositionalVerbModifier(
+        SilAdposition.ADVERBIAL_TMP,
+        expectReference(tree))
+    } else {
+      val words = tree.children.map(_ match {
+        case adverb : SprSyntaxAdverb => {
+          getWord(adverb.child)
+        }
+        case particle : SptRP => {
+          getWord(particle.child)
+        }
+        case _ => return expectAdpositionalVerbModifier(tree)
+      })
+      SilBasicVerbModifier(words)
+    }
   }
 
   private[parser] def expectBasicVerbModifier(

@@ -86,6 +86,8 @@ trait SprAbstractSyntaxTree
 
   def incomingDep : String
 
+  def tags : Set[String] = Set.empty
+
   def children : Seq[SprAbstractSyntaxTree]
 
   def numChildren = children.size
@@ -148,6 +150,8 @@ trait SprAbstractSyntaxTree
   def isDeterminer = hasLabel(LABEL_DT)
 
   def isPronoun = label.startsWith(LABEL_PRP)
+
+  def isPronounOrDemonstrative = isPronoun || isDemonstrative
 
   def isAdjective = label.startsWith(LABEL_JJ)
 
@@ -212,7 +216,7 @@ trait SprAbstractSyntaxTree
 
   def containsIncomingDependency(dep : String) : Boolean =
   {
-    (incomingDep == dep) ||
+    (incomingDep.contains(dep)) ||
       children.exists(_.containsIncomingDependency(dep))
   }
 
