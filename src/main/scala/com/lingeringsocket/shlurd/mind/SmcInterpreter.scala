@@ -33,6 +33,11 @@ case class SmcStateChangeInvocation[EntityType<:SmcEntity](
 {
 }
 
+case class CausalityViolationExcn(cause : String)
+    extends RuntimeException(cause)
+{
+}
+
 sealed trait SmcResponseVerbosity
 case object RESPONSE_TERSE extends SmcResponseVerbosity
 case object RESPONSE_ELLIPSIS extends SmcResponseVerbosity
@@ -188,12 +193,32 @@ class SmcInterpreter[
   }
 
   protected def updateNarrative(
+    interval : SmcTimeInterval,
     updatedCosmos : CosmosType,
     predicate : SilPredicate,
     referenceMap : Map[SilReference, Set[EntityType]])
   {
     // FIXME deal with tense/aspect/mood
-    mind.rememberTimelineEvent(updatedCosmos, predicate, referenceMap)
+    if (mind.hasNarrative) {
+      def cosmosMutator(
+        eventPredicate : SilPredicate,
+        eventCosmos : CosmosType) : CosmosType =
+      {
+        val sentence = SilPredicateSentence(eventPredicate)
+        val eventMind = imagine(eventCosmos)
+        val eventInterpreter = spawn(eventMind)
+        val result = eventInterpreter.interpret(sentence)
+        if (result != sentencePrinter.sb.respondCompliance) {
+          throw new CausalityViolationExcn(result)
+        }
+        freezeCosmos(eventMind.getCosmos)
+      }
+
+      val timeline = mind.getNarrative
+      timeline.addEntry(new SmcTimelineEntry(
+        interval, updatedCosmos, predicate, referenceMap),
+        cosmosMutator)
+    }
   }
 
   protected def wrapResponseText(text : String)
@@ -600,6 +625,11 @@ class SmcInterpreter[
       : MindType =
   {
     throw new UnsupportedOperationException("I lack imagination")
+  }
+
+  protected def freezeCosmos(mutableCosmos : CosmosType) : CosmosType =
+  {
+    mutableCosmos
   }
 
   protected def spawn(subMind : MindType) =

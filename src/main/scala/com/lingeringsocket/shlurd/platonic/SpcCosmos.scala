@@ -129,7 +129,8 @@ case class SpcEntitySynonym(val name : String)
 
 class SpcCosmos(
   graph : SpcGraph = SpcGraph(),
-  idGenerator : AtomicLong = new AtomicLong
+  idGenerator : AtomicLong = new AtomicLong,
+  forkLevel : Int = 0
 ) extends SmcCosmos[SpcEntity, SpcProperty] with DeltaModification
 {
   private val unmodifiableGraph = graph.asUnmodifiable
@@ -161,12 +162,20 @@ class SpcCosmos(
 
   def fork() : SpcCosmos =
   {
-    new SpcCosmos(SpcGraph.fork(graph), idGenerator)
+    // we don't currently support true nested forks
+    val forkedGraph = {
+      if (forkLevel > 0) {
+        graph
+      } else {
+        SpcGraph.fork(graph)
+      }
+    }
+    new SpcCosmos(forkedGraph, idGenerator, forkLevel + 1)
   }
 
   def asUnmodifiable() : SpcCosmos =
   {
-    new SpcCosmos(unmodifiableGraph)
+    new SpcCosmos(unmodifiableGraph, idGenerator, forkLevel)
   }
 
   def clear()
@@ -1129,7 +1138,10 @@ class SpcCosmos(
   override def applyModifications()
   {
     validateBeliefs
-    graph.applyModifications
-    validateBeliefs
+    assert(forkLevel != 0)
+    if (forkLevel == 1) {
+      graph.applyModifications
+      validateBeliefs
+    }
   }
 }

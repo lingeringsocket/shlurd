@@ -177,29 +177,29 @@ object SprParser
     props.setProperty(
       "parse.model",
       "edu/stanford/nlp/models/lexparser/englishRNN.ser.gz")
-    val props2 = new Properties
-    props2.setProperty(
+    val propsSR = new Properties
+    propsSR.setProperty(
       "parse.model",
       "edu/stanford/nlp/models/srparser/englishSR.ser.gz")
-    val props3 = new Properties
-    props3.setProperty(
+    val propsPCFG = new Properties
+    propsPCFG.setProperty(
       "parse.model",
       "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
     val capitalizedString = capitalize(sentenceString)
     def main() = prepareParser(
       capitalizedString, tokens, props, true, guessedQuestion,
       dump, dumpPrefix + " RNN")
-    def fallback2() = prepareParser(
-      capitalizedString, tokens, props2, false, guessedQuestion,
+    def fallbackSR() = prepareParser(
+      capitalizedString, tokens, propsSR, true, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR")
-    def fallback3() = prepareParser(
-      capitalizedString, tokens, props3, false, guessedQuestion,
+    def fallbackPCFG() = prepareParser(
+      capitalizedString, tokens, propsPCFG, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK PCFG")
-    def fallback4() = prepareParser(
-      sentenceString, tokens, props2, false, guessedQuestion,
+    def fallbackSRCASELESS() = prepareParser(
+      sentenceString, tokens, propsSR, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR CASELESS")
     new SprFallbackParser(Seq(
-      main, fallback2, fallback3, fallback4))
+      main, fallbackSR, fallbackPCFG, fallbackSRCASELESS))
   }
 
   private def prepareParser(

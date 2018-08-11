@@ -26,7 +26,7 @@ object SpcPrimordial
 
   private def initSeedCosmos() =
   {
-    val newCosmos = new SpcCosmos()
+    val newCosmos = new SpcCosmos
     initCosmosFromBeliefs(newCosmos)
     newCosmos
   }

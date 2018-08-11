@@ -43,7 +43,8 @@ object SprSyntaxRewriter
   )
 
   private val uniqueChildConstructors = Map(
-    LABEL_ROOT -> SptROOT
+    LABEL_ROOT -> SptROOT,
+    LABEL_TMOD -> SptTMOD
   )
 
   private val preTerminalConstructors = Map(
@@ -155,6 +156,9 @@ object SprSyntaxRewriter
         n1,
         SptCC(cc),
         n2)
+    }
+    case np : SptNP if (np.containsIncomingDependency("tmod")) => {
+      SptTMOD(np)
     }
     case SptS(
       SptVP(

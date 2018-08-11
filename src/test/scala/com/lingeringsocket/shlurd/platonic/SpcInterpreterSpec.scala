@@ -45,7 +45,7 @@ class SpcInterpreterSpec extends Specification
     params : SmcResponseParams = SmcResponseParams()
   ) extends NameSpace
   {
-    protected val cosmos = new SpcCosmos() {
+    protected val cosmos = new SpcCosmos {
       override def evaluateEntityPropertyPredicate(
         entity : SpcEntity,
         property : SpcProperty,
@@ -965,7 +965,7 @@ class SpcInterpreterSpec extends Specification
       interpret("is he Dirk's friend", "Yes, Todd is Dirk's friend.")
     }
 
-    "understand timeframes" in new InterpreterContext(
+    "understand sequential timeframes" in new InterpreterContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
       interpretBelief("the key is an object")
@@ -989,6 +989,39 @@ class SpcInterpreterSpec extends Specification
         "No such timeframe in narrative.")
       interpretTerse("where was the key before the pocket",
         "No such timeframe in narrative.")
+    }
+
+    "understand relative timeframes" in new InterpreterContext(
+      ACCEPT_MODIFIED_BELIEFS)
+    {
+      interpretBelief("the key is an object")
+      interpretBelief("the pocket is an object")
+      interpretBelief("the purse is an object")
+      interpretBelief("the shoe is an object")
+      interpretBelief("the card is an object")
+      mind.startNarrative
+      interpretBelief("the key was in the pocket this afternoon")
+      interpretBelief("this morning, the card was in the purse")
+      interpretBelief("yesterday, the card was in the shoe")
+      interpretBelief("this evening, the key was in the shoe")
+      interpretBelief("this afternoon the card was in the shoe")
+      interpretTerse("where was the card before the shoe", "The purse.")
+      interpretTerse("where was the card before the purse", "The shoe.")
+      interpretTerse("where was the key before the shoe", "The pocket.")
+    }
+
+    "detect causality violations" in  new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
+    {
+      mind.startNarrative
+      interpretBelief("yesterday, Harvey was Elwood's pet")
+      interpret("this afternoon, Elwood had no pets",
+        "The belief that Elwood had no pets " +
+          "contradicts the belief that Harvey is Elwood's pet.")
+      interpretBelief("this afternoon, Calvin had no pets")
+      interpret("yesterday, Hobbes was Calvin's pet",
+        "The belief that Calvin has no pets " +
+          "contradicts the belief that Hobbes is Calvin's pet.")
     }
 
     "understand progressive action predicates" in new InterpreterContext(
@@ -1080,9 +1113,9 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("a bird is a kind of animal")
       interpretBelief("a duck is a kind of bird")
       interpret("an animal is a kind of duck",
-        "Previously I was told that a duck is a kind of a bird and a bird " +
-          "is a kind of an animal.  So I am unable to accept that " +
-          "an animal is a kind of duck.")
+        "The belief that an animal is a kind of duck contradicts " +
+          "the belief that a duck is a kind of a bird and " +
+          "a bird is a kind of an animal.")
     }
 
     "reject incompatible form for role" in new InterpreterContext(
@@ -1092,8 +1125,8 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("a lawyer must be a weasel")
       interpretBelief("Michael is a snake")
       interpret("Michael is Donald's lawyer",
-        "Previously I was told that a lawyer must be a weasel.  So I am " +
-          "unable to accept that Michael is Donald's lawyer.")
+        "The belief that Michael is Donald's lawyer contradicts " +
+          "the belief that a lawyer must be a weasel.")
 
       cosmos.sanityCheck must beTrue
     }

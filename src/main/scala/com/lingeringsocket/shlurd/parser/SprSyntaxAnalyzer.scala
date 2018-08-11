@@ -36,15 +36,13 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
         FORCE_NEUTRAL
       }
     }
-    val children =
-      truncatePunctuation(
-        tree, Seq(LABEL_DOT, LABEL_EXCLAMATION_MARK, LABEL_QUESTION_MARK))
+    val children = stripPauses(tree)
     val antecedent = extractAntecedent(children)
     if (!antecedent.isEmpty) {
       expectConditionalSentence(
         tree,
         antecedent.get,
-        SptS(children.tail.filterNot(c => c.isComma || c.isThen):_*),
+        SptS(children.tail.filterNot(c => c.isThen):_*),
         SilFormality(force))
     } else  if (isImperative(children)) {
       expectCommand(tree, children.head, SilFormality(force))
@@ -75,7 +73,7 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
   private[parser] def analyzeSQ(tree : SprSyntaxTree, forceSQ : Boolean)
       : SilSentence =
   {
-    val punctless = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
+    val punctless = stripPauses(tree)
     val (specifiedState, children) = {
       val unwrapped = {
         if (forceSQ && isSinglePhrase(punctless)) {
@@ -215,7 +213,7 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
   private[parser] def analyzeSBARQ(tree : SptSBARQ)
       : SilSentence =
   {
-    val children = truncatePunctuation(tree, Seq(LABEL_QUESTION_MARK))
+    val children = stripPauses(tree)
     if (children.size != 2) {
       return SilUnrecognizedSentence(tree)
     }
@@ -660,7 +658,11 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
   {
     preTerminal match {
       case adp : SprSyntaxAdposition => {
-        Some(SilAdposition(Seq(getWord(adp.child))))
+        val leaf = adp.child
+        leaf.lemma match {
+          case LEMMA_IF | LEMMA_WHEN => None
+          case _ => Some(SilAdposition(Seq(getWord(adp.child))))
+        }
       }
       case _ => preTerminal.firstChild.lemma match {
         case LEMMA_IN => Some(SilAdposition.IN)
@@ -729,15 +731,13 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
     seq : Seq[SprSyntaxTree],
     specifiedDirectObject : Option[SilReference]) =
   {
-    val objCandidates = seq.filter(_.isNounNode).filterNot(
-      _.containsIncomingDependency("tmod"))
-    val directObjTree = objCandidates.find(
-      _.containsIncomingDependency("dobj")) match
-    {
-      case Some(dobj) => {
-        Some(dobj)
-      }
-      case _ => {
+    val objCandidates = seq.filter(_.isNounNode)
+    val directCandidates =
+      objCandidates.filter(_.containsIncomingDependency("dobj"))
+    val directObjTree = {
+      if (directCandidates.size == 1) {
+        directCandidates.headOption
+      } else {
         if (specifiedDirectObject.isEmpty) {
           objCandidates.lastOption
         } else {
@@ -775,25 +775,27 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
     SilExpectedVerbModifier(tree)
   }
 
+  private[parser] def expectTemporalVerbModifier(tmod : SptTMOD)
+      : SilVerbModifier =
+  {
+    SilAdpositionalVerbModifier(
+      SilAdposition.ADVERBIAL_TMP,
+      expectReference(tmod.child))
+  }
+
   private[parser] def expectVerbModifierPhrase(tree : SprSyntaxPhrase)
       : SilVerbModifier =
   {
-    if (tree.containsIncomingDependency("tmod")) {
-      SilAdpositionalVerbModifier(
-        SilAdposition.ADVERBIAL_TMP,
-        expectReference(tree))
-    } else {
-      val words = tree.children.map(_ match {
-        case adverb : SprSyntaxAdverb => {
-          getWord(adverb.child)
-        }
-        case particle : SptRP => {
-          getWord(particle.child)
-        }
-        case _ => return expectAdpositionalVerbModifier(tree)
-      })
-      SilBasicVerbModifier(words)
-    }
+    val words = tree.children.map(_ match {
+      case adverb : SprSyntaxAdverb => {
+        getWord(adverb.child)
+      }
+      case particle : SptRP => {
+        getWord(particle.child)
+      }
+      case _ => return expectAdpositionalVerbModifier(tree)
+    })
+    SilBasicVerbModifier(words)
   }
 
   private[parser] def expectBasicVerbModifier(
@@ -871,26 +873,38 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
         verbModifiers.map(expectVerbModifier))
       (negative, relationshipPredicate)
     } else {
-      val state = splitCoordinatingConjunction(seq) match {
-        case (DETERMINER_UNSPECIFIED, _, _) => {
-          expectComplementState(
-            SprSyntaxRewriter.recompose(complement, seq))
-        }
-        case (determiner, separator, split) => {
-          val conjunctiveState = SilConjunctiveState(
-            determiner,
-            split.map(
-              subseq => expectComplementState(
-                SprSyntaxRewriter.recompose(complement, subseq))),
-            separator)
-          rememberSyntheticADJP(conjunctiveState, seq)
-          conjunctiveState
+      val (state, extraModifiers, refinedState) = {
+        complement match {
+          // FIXME there are all kinds of other verb modifiers that need to
+          // be handled, and that goes for the other predicate types above
+          // too!
+          case tmod : SptTMOD if (specifiedState != SilNullState()) => {
+            (specifiedState, Seq(tmod), SilNullState())
+          }
+          case _ => {
+            val seqState = splitCoordinatingConjunction(seq) match {
+              case (DETERMINER_UNSPECIFIED, _, _) => {
+                expectComplementState(
+                  SprSyntaxRewriter.recompose(complement, seq))
+              }
+              case (determiner, separator, split) => {
+                val conjunctiveState = SilConjunctiveState(
+                  determiner,
+                  split.map(
+                    subseq => expectComplementState(
+                      SprSyntaxRewriter.recompose(complement, subseq))),
+                  separator)
+                rememberSyntheticADJP(conjunctiveState, seq)
+                conjunctiveState
+              }
+            }
+            (seqState, Seq.empty, specifiedState)
+          }
         }
       }
       (negative, expectStatePredicate(
-        syntaxTree, expectReference(np), state, specifiedState,
-        verbModifiers.map(expectVerbModifier))
-      )
+        syntaxTree, expectReference(np), state, refinedState,
+        (verbModifiers ++ extraModifiers).map(expectVerbModifier)))
     }
   }
 
@@ -1084,18 +1098,10 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  private def truncatePunctuation(
-    tree : SprSyntaxTree, punctuationMarks : Iterable[String])
+  private def stripPauses(tree : SprSyntaxTree)
       : Seq[SprSyntaxTree] =
   {
-    val children = tree.children
-    if (punctuationMarks.exists(punctuation =>
-      children.last.hasTerminalLabel(LABEL_DOT, punctuation)))
-    {
-      children.dropRight(1)
-    } else {
-      children
-    }
+    tree.children.filterNot(_.isPause)
   }
 
   private def extractParticle(seq : Seq[SprSyntaxTree])

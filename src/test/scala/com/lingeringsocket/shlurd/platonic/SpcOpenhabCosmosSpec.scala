@@ -48,7 +48,7 @@ class SpcOpenhabCosmosSpec extends Specification
     )
 
     protected val cosmos = new SpcOpenhabCosmos {
-      override protected def evaluateState(
+      override protected[platonic] def evaluateState(
         entity : SpcEntity, stateName : String) : Try[Trilean] =
       {
         itemStates.get(entity.name) match {

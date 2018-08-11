@@ -105,8 +105,8 @@ class SprRewriter(analyzer : SprSyntaxAnalyzer)
     case SilExpectedVerbModifier(prt : SptPRT) => {
       analyzer.expectVerbModifierPhrase(prt)
     }
-    case SilExpectedVerbModifier(np : SptNP) => {
-      analyzer.expectVerbModifierPhrase(np)
+    case SilExpectedVerbModifier(tmod : SptTMOD) => {
+      analyzer.expectTemporalVerbModifier(tmod)
     }
     case SilExpectedVerbModifier(adv : SprSyntaxAdverb) => {
       analyzer.expectBasicVerbModifier(adv)

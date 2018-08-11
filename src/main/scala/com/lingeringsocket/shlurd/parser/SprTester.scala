@@ -69,10 +69,26 @@ class SprTester
         restartSequence
       }
       lastSeqNo = seqNo
-      val cleaned = input.stripPrefix(prefix).split("\t")
+      val cleaned = input.stripPrefix(prefix).trim.split("\t")
       val sentence = cleaned.head
       val answer = cleaned.drop(1).headOption.getOrElse("")
-      val result = processOne(sentence, answer)
+      val blurbs = Set("Yesterday", "This morning",
+        "This afternoon", "This evening")
+      val munged = {
+        blurbs.find(blurb => sentence.startsWith(blurb + " ")) match {
+          case Some(blurb) => {
+            blurb + "," + sentence.stripPrefix(blurb)
+          }
+          case None => sentence
+        }
+      }
+      val result = Try(processOne(munged, answer)) match {
+        case Success(r) => r
+        case Failure(e) => {
+          target.println(s"LINE $lineNumber ERROR:  $input")
+          throw e
+        }
+      }
       if (result.isEmpty) {
         successes += 1
       } else {

@@ -63,6 +63,7 @@ object SprPennTreebankLabels
   val LABEL_MD = "MD"
   val LABEL_RP = "RP"
   val LABEL_CD = "CD"
+  val LABEL_TMOD = "TMOD"
 
   val LABEL_COMMA = ","
   val LABEL_DOT = "."
@@ -126,7 +127,8 @@ trait SprAbstractSyntaxTree
 
   def isAdpositionalPhrase = hasLabel(LABEL_PP)
 
-  def isAdverbialPhrase = isAdpositionalPhrase || isAdverbNode
+  def isAdverbialPhrase =
+    isAdpositionalPhrase || isAdverbNode || hasLabel(LABEL_TMOD)
 
   def isParticlePhrase = hasLabel(LABEL_PRT)
 
@@ -205,6 +207,8 @@ trait SprAbstractSyntaxTree
 
   def isComma = hasLabel(LABEL_COMMA)
 
+  def isPause = isComma || hasLabel(LABEL_DOT)
+
   override def toString = SprPrettyPrinter.prettyPrint(this)
 
   override def toDoc =
@@ -243,9 +247,10 @@ trait SprAbstractSyntaxTree
     if (children.isEmpty) {
       foldedToken
     } else {
-      // FIXME uniform handling for all clitics
+      // FIXME uniform handling for all clitics and punctuation
       children.map(_.toWordString).mkString(" ").
-        replaceAllLiterally(" 's", "'s")
+        replaceAllLiterally(" 's", "'s").
+        replaceAllLiterally(" ,", ",")
     }
   }
 }
@@ -650,4 +655,11 @@ case class SptCOMMA(child : SprSyntaxLeaf)
     extends SprSyntaxPunctuation
 {
   override def label = LABEL_COMMA
+}
+
+// this is a non-standard one we cons up to wrap tmod NP's as adverbial
+case class SptTMOD(child : SprSyntaxTree)
+    extends SprSyntaxUniqueChild
+{
+  override def label = LABEL_TMOD
 }

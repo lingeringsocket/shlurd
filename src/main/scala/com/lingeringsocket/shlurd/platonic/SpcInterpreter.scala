@@ -48,7 +48,7 @@ class SpcInterpreter(
   override protected def imagine(
     alternateCosmos : SpcCosmos) =
   {
-    new SpcMind(alternateCosmos)
+    new SpcMind(alternateCosmos.fork)
   }
 
   override protected def interpretImpl(sentence : SilSentence)
@@ -92,27 +92,77 @@ class SpcInterpreter(
     if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
       sentence.tam.isIndicative)
     {
+      val (interval, predicateOpt, baselineCosmos, temporal) = sentence match {
+        case SilPredicateSentence(predicate, _, _) => {
+          val temporalRefs = predicate.getModifiers.map(
+            _ match {
+              case SilAdpositionalVerbModifier(
+                SilAdposition.ADVERBIAL_TMP,
+                ref
+              ) => {
+                Some(ref)
+              }
+              case _ => {
+                None
+              }
+            }
+          )
+          val iTemporal = temporalRefs.indexWhere(!_.isEmpty)
+          val (interval, predicateOpt, baselineCosmos, temporal) = {
+            if (iTemporal < 0) {
+              (SmcTimeInterval.NEXT_INSTANT, predicate, mind.getCosmos, false)
+            } else {
+              val interval = Interval.point[SmcTimePoint](
+                SmcRelativeTimePoint(
+                  temporalRefs(iTemporal).get))
+              val temporalCosmos = mind.getTemporalCosmos(interval)
+              (interval,
+                predicate.withNewModifiers(
+                  predicate.getModifiers.patch(iTemporal, Seq.empty, 1)),
+                temporalCosmos,
+                true)
+            }
+          }
+          (interval, Some(predicateOpt), baselineCosmos, temporal)
+        }
+        case _ => {
+          (SmcTimeInterval.NEXT_INSTANT, None, mind.getCosmos, false)
+        }
+      }
+
       val beliefInterpreter =
         new SpcBeliefInterpreter(
-          mind.getCosmos.fork,
+          baselineCosmos.fork,
           (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS))
+      val inputSentence =
+        predicateOpt.map(
+          SilPredicateSentence(_, sentence.tam)).getOrElse(sentence)
       interpretBeliefOrAction(
-        beliefInterpreter, sentence
+        beliefInterpreter, inputSentence
       ) match {
         case Some(result) => {
-          sentence match {
-            case SilPredicateSentence(predicate, _, _) => {
-              referenceMap.foreach(rm => {
-                val updatedCosmos = new SpcCosmos
-                // FIXME use smart deltas instead of wholesale copy
-                updatedCosmos.copyFrom(beliefInterpreter.cosmos)
-                updateNarrative(
-                  updatedCosmos.asUnmodifiable, predicate, rm)
-              })
-            }
-            case _ =>
+          if (result != sentencePrinter.sb.respondCompliance) {
+            return wrapResponseText(result)
           }
-          beliefInterpreter.cosmos.applyModifications
+          if (mind.hasNarrative) {
+            predicateOpt.foreach(predicate => {
+              val updatedCosmos = freezeCosmos(beliefInterpreter.cosmos)
+              try {
+                updateNarrative(
+                  interval,
+                  updatedCosmos,
+                  predicate,
+                  referenceMap.get)
+              } catch {
+                case CausalityViolationExcn(cause) => {
+                  return wrapResponseText(cause)
+                }
+              }
+            })
+          }
+          if (!temporal) {
+            beliefInterpreter.cosmos.applyModifications
+          }
           return wrapResponseText(result)
         }
         case _ =>
@@ -120,6 +170,14 @@ class SpcInterpreter(
     }
     already.clear
     super.interpretImpl(sentence)
+  }
+
+  override protected def freezeCosmos(mutableCosmos : SpcCosmos) =
+  {
+    // FIXME use smart deltas instead of wholesale copy
+    val frozenCosmos = new SpcCosmos
+    frozenCosmos.copyFrom(mutableCosmos)
+    frozenCosmos.asUnmodifiable
   }
 
   private def interpretBeliefOrAction(
@@ -392,8 +450,8 @@ class SpcInterpreter(
       }
       case ContradictoryBeliefExcn(belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)
-        s"Previously I was told that ${originalBeliefString}." +
-          s"  So I am unable to accept that ${beliefString}."
+        s"The belief that ${beliefString} contradicts " +
+        s"the belief that ${originalBeliefString}."
       }
       case AmbiguousBeliefExcn(belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)

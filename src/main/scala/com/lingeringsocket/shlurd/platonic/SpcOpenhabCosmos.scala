@@ -33,11 +33,11 @@ class GroupMap extends mutable.LinkedHashMap[String, mutable.Set[String]]
 
 abstract class SpcOpenhabCosmos(
   graph : SpcGraph = SpcGraph(),
-  idGenerator : AtomicLong = new AtomicLong,
-  groupMap : GroupMap = new GroupMap,
-  roomyRooms : mutable.Set[String] = new mutable.LinkedHashSet[String],
-  forked : Boolean = false
-) extends SpcCosmos(graph, idGenerator)
+  val idGenerator : AtomicLong = new AtomicLong,
+  val groupMap : GroupMap = new GroupMap,
+  val roomyRooms : mutable.Set[String] = new mutable.LinkedHashSet[String],
+  forkLevel : Int = 0
+) extends SpcCosmos(graph, idGenerator, forkLevel)
 {
   private val locationFormName = "location"
 
@@ -47,7 +47,7 @@ abstract class SpcOpenhabCosmos(
 
   private val roomLemma = "room"
 
-  if (!forked) {
+  if (forkLevel == 0) {
     SpcPrimordial.initCosmos(this)
     instantiateForm(SilWord(locationFormName))
     instantiateForm(SilWord(presenceFormName))
@@ -55,16 +55,19 @@ abstract class SpcOpenhabCosmos(
 
   override def fork() : SpcOpenhabCosmos =
   {
-    val base = this
-    new SpcOpenhabCosmos(
-      SpcGraph.fork(graph), idGenerator, groupMap, roomyRooms, true)
-    {
-      protected def evaluateState(
-        entity : SpcEntity, stateName : String) : Try[Trilean] =
-      {
-        base.evaluateState(entity, stateName)
+    val forkedGraph = {
+      if (forkLevel > 0) {
+        graph
+      } else {
+        SpcGraph.fork(graph)
       }
     }
+    new SpcOpenhabDerivedCosmos(this, forkedGraph, forkLevel + 1)
+  }
+
+  override def asUnmodifiable() : SpcOpenhabCosmos =
+  {
+    new SpcOpenhabDerivedCosmos(this, getGraph, forkLevel)
   }
 
   override def resolveQualifiedNoun(
@@ -257,7 +260,7 @@ abstract class SpcOpenhabCosmos(
     }
   }
 
-  protected def evaluateState(
+  protected[platonic] def evaluateState(
     entity : SpcEntity, stateName : String) : Try[Trilean]
 
   override def evaluateEntityAdpositionPredicate(
@@ -391,5 +394,19 @@ abstract class SpcOpenhabCosmos(
       }
       case _ =>
     }
+  }
+}
+
+class SpcOpenhabDerivedCosmos(
+  base : SpcOpenhabCosmos, graph : SpcGraph, forkLevel : Int)
+    extends SpcOpenhabCosmos(
+  graph, base.idGenerator, base.groupMap, base.roomyRooms,
+      forkLevel
+  )
+{
+  override protected[platonic] def evaluateState(
+    entity : SpcEntity, stateName : String) : Try[Trilean] =
+  {
+    base.evaluateState(entity, stateName)
   }
 }

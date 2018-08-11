@@ -136,13 +136,16 @@ class SmcMind[
       filterReferenceMap(referenceMap)))
   }
 
-  def rememberTimelineEvent(
-    updatedCosmos : CosmosType,
-    predicate : SilPredicate,
-    referenceMap : Map[SilReference, Set[EntityType]])
+  def getTemporalCosmos(interval : SmcTimeInterval) : CosmosType =
   {
-    timeline.foreach(_.addEntry(
-      new SmcTimelineEntry(updatedCosmos, predicate, referenceMap)))
+    timeline match {
+      case Some(tl) => {
+       tl.findGlb(interval).map(_.updatedCosmos).getOrElse(getCosmos)
+      }
+      case _ => {
+        getCosmos
+      }
+    }
   }
 
   def resolvePronoun(

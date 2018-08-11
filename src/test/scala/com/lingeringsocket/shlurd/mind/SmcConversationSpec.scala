@@ -42,11 +42,11 @@ class SmcConversationSpec extends Specification
 
   private val ENTITY_2 = new SmcEntity {}
 
-  val REF_MAP_1 = Map[SilReference, Set[SmcEntity]](
+  private val REF_MAP_1 = Map[SilReference, Set[SmcEntity]](
     REFERENCE_D -> Set(ENTITY_1)
   )
 
-  val REF_MAP_2 = Map[SilReference, Set[SmcEntity]](
+  private val REF_MAP_2 = Map[SilReference, Set[SmcEntity]](
     REFERENCE_D -> Set(ENTITY_2)
   )
 

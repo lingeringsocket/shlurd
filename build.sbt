@@ -25,7 +25,8 @@ libraryDependencies ++= Common.specs2Deps
 libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.25",
   "com.googlecode.kiama" %% "kiama" % "1.8.0",
-  "org.typelevel" %% "spire" % "0.14.1",
+  "org.typelevel" %% "spire" % "0.16.0",
+  "org.typelevel" %% "spire-extras" % "0.16.0",
   "org.jgrapht" % "jgrapht-core" % "1.2.0",
   "org.jgrapht" % "jgrapht-io" % "1.2.0",
   "org.atteo" % "evo-inflector" % "1.2.2",
