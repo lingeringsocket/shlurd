@@ -15,7 +15,6 @@
 package com.lingeringsocket.shlurd.parser
 
 import SprUtils._
-import SprEnglishLemmas._
 
 class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
   extends SilPhraseRewriter
@@ -89,12 +88,12 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
         analyzer.getCount(nounlike))
     }
     case SilExpectedReference(pronoun : SprSyntaxPronoun) => {
-      recognizePronounReference(pronoun.child)
+      analyzer.analyzePronounReference(pronoun.child)
     }
     case SilExpectedReference(
       determiner : SprSyntaxDeterminer
     ) if (determiner.isDemonstrative) => {
-      recognizePronounReference(determiner.child)
+      analyzer.analyzePronounReference(determiner.child)
     }
   }
 
@@ -273,33 +272,5 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
           specifiedSubject, predicate.state, predicate.modifiers)
       }
     }
-  }
-
-  private def recognizePronounReference(leaf : SprSyntaxLeaf)
-      : SilPronounReference =
-  {
-    val lemma = leaf.lemma
-    val person = lemma match {
-      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY |
-          LEMMA_OUR | LEMMA_MINE | LEMMA_OURS => PERSON_FIRST
-      case LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS => PERSON_SECOND
-      case _ => PERSON_THIRD
-    }
-    val count = lemma match {
-      case LEMMA_WE | LEMMA_US | LEMMA_THEY | LEMMA_THESE | LEMMA_THOSE |
-          LEMMA_OUR | LEMMA_THEIR => COUNT_PLURAL
-      case _ => COUNT_SINGULAR
-    }
-    val gender = lemma match {
-      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS => GENDER_M
-      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS => GENDER_F
-      case _ => GENDER_N
-    }
-    val distance = lemma match {
-      case LEMMA_THIS | LEMMA_THESE => DISTANCE_HERE
-      case LEMMA_THAT | LEMMA_THOSE => DISTANCE_THERE
-      case _ => DISTANCE_UNSPECIFIED
-    }
-    SilPronounReference(person, gender, count, distance)
   }
 }

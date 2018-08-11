@@ -21,7 +21,7 @@ import org.specs2.specification.core._
 
 import SprEnglishLemmas._
 
-// FIXME:  add coverage for state predicates; to exist lemma;
+// FIXME:  add coverage for state predicates; LEMMA_EXIST;
 // various modifier types
 class SprEnglishVerbSpec extends Specification
 {
@@ -154,7 +154,8 @@ class SprEnglishVerbSpec extends Specification
   {
     Seq(
       MODAL_NEUTRAL,
-      MODAL_MUST
+      MODAL_MUST,
+      MODAL_EMPHATIC
     )
   }
 
@@ -209,7 +210,8 @@ class SprEnglishVerbSpec extends Specification
     } else {
       (!isRelationship(lemma) || !rhs.isEmpty) &&
         (question.isEmpty || tam.isInterrogative) &&
-        ((pronoun.person == PERSON_SECOND) || !tam.isImperative)
+        ((pronoun.person == PERSON_SECOND) || !tam.isImperative) &&
+        ((tam.modality != MODAL_EMPHATIC) || !tam.isInterrogative)
     }
   }
 

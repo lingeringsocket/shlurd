@@ -210,11 +210,16 @@ sealed trait SilTam
   def withModality(newModality : SilModality) : SilTam
   def withMood(newMood : SilMood) : SilTam
   def withTense(newTense : SilTense) : SilTam
-  def validate() : SilTam
   def isValid(withAssert : Boolean = false) : Boolean
 
   def withPolarity(newPolarity : Boolean) : SilTam =
     withPolarity(if (newPolarity) POLARITY_POSITIVE else POLARITY_NEGATIVE)
+
+  def validate() : SilTam =
+  {
+    assert(isValid(true))
+    this
+  }
 
   // FIXME this is English-specific
   def requiresAux =
@@ -284,11 +289,5 @@ case class SilTamImmutable(
       }
     }
     valid
-  }
-
-  override def validate() =
-  {
-    assert(isValid(true))
-    this
   }
 }

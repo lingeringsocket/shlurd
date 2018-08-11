@@ -21,7 +21,7 @@ import org.atteo.evo.inflector.{English => EnglishPluralizer}
 import SprEnglishLemmas._
 import SprEnglishAffixes._
 
-class EnglishSentenceBundle
+class SilEnglishSentenceBundle
     extends SilSentenceBundle
 {
   override def statePredicateStatement(

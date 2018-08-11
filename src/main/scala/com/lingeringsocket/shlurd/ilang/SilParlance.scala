@@ -23,5 +23,5 @@ trait SilParlance
 
 object SilDefaultParlance extends SilParlance
 {
-  override def newSentenceBundle() = new EnglishSentenceBundle
+  override def newSentenceBundle() = new SilEnglishSentenceBundle
 }

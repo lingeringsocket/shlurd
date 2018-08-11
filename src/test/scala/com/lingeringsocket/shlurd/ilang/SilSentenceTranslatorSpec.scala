@@ -62,7 +62,7 @@ class SilSentenceTranslatorSpec extends Specification
 
 object LimitedKoreanParlance extends SilParlance
 {
-  override def newSentenceBundle() = new KoreanSentenceBundle {
+  override def newSentenceBundle() = new SilKoreanSentenceBundle {
     override def inflectNoun(
       lemma : String, count : SilCount,
       inflection : SilInflection, conjoining : SilConjoining) =

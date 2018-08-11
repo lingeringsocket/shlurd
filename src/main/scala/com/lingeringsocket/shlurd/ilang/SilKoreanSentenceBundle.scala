@@ -19,7 +19,7 @@ import com.lingeringsocket.shlurd.parser._
 // FIXME:  this is terrible
 import SprEnglishLemmas._
 
-class KoreanSentenceBundle extends SilSentenceBundle
+class SilKoreanSentenceBundle extends SilSentenceBundle
 {
   override def statePredicateStatement(
     subject : String, verbSeq : Seq[String], state : String,

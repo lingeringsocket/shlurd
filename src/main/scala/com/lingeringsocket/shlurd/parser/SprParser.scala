@@ -76,7 +76,7 @@ class SprSingleParser(
     tree match {
       case SptROOT(sentenceSyntaxTree) => {
         val parsingRewriter = new SprPhraseRewriter(
-          new SprSyntaxAnalyzer(guessedQuestion))
+          new SprEnglishSyntaxAnalyzer(guessedQuestion))
         val parsed = parsingRewriter.parseSentence(sentenceSyntaxTree)
         val normalizationRewriter = new SprNormalizationRewriter
         normalizationRewriter.normalize(parsed)
