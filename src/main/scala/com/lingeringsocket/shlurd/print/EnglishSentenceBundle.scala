@@ -461,7 +461,7 @@ class EnglishSentenceBundle
 
   override def composeQualifiers(qualifiers : Seq[SilWord]) =
   {
-    compose(qualifiers.map(delemmatizeQualifier(_)) :_*)
+    compose(qualifiers.map(delemmatizeQualifier) :_*)
   }
 
   override def query(noun : String, question : Option[SilQuestion]) =

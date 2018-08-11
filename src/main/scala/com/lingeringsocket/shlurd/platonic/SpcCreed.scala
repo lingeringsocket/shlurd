@@ -29,16 +29,16 @@ class SpcCreed(cosmos : SpcCosmos)
     ).map(
       formAliasBelief
     ) ++ (
-      cosmos.getRoles.flatMap(roleTaxonomyBeliefs(_))
+      cosmos.getRoles.flatMap(roleTaxonomyBeliefs)
     ) ++ (
-      cosmos.getRoles.flatMap(idealAssociationBeliefs(_))
+      cosmos.getRoles.flatMap(idealAssociationBeliefs)
     ) ++ (
-      cosmos.getForms.flatMap(formBeliefs(_))
+      cosmos.getForms.flatMap(formBeliefs)
     ) ++ (
       cosmos.getInverseAssocEdges.flatMap(
         entry => inverseAssocBelief(entry._1, entry._2))
     ) ++ (
-      cosmos.getEntities.flatMap(entityBeliefs(_))
+      cosmos.getEntities.flatMap(entityBeliefs)
     ) ++ (
       cosmos.getTriggers
     )
@@ -53,7 +53,7 @@ class SpcCreed(cosmos : SpcCosmos)
       formStateNormalizationBelief(form, _)
     ) ++ {
       cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.map(
-        formTaxonomyBelief(_))
+        formTaxonomyBelief)
     } ++ {
       idealAssociationBeliefs(form)
     }
@@ -62,7 +62,7 @@ class SpcCreed(cosmos : SpcCosmos)
   def idealAssociationBeliefs(ideal : SpcIdeal) : Iterable[SilSentence] =
   {
     cosmos.getFormAssocGraph.outgoingEdgesOf(ideal).asScala.toSeq.map(
-      idealAssociationBelief(_))
+      idealAssociationBelief)
   }
 
   def roleBeliefs(role : SpcRole) : Iterable[SilSentence] =
@@ -74,14 +74,14 @@ class SpcCreed(cosmos : SpcCosmos)
   {
     cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(role).asScala.toSeq.
       filterNot(isTrivialTaxonomy).map(
-        roleTaxonomyBelief(_))
+        roleTaxonomyBelief)
   }
 
   def entityBeliefs(entity : SpcEntity) : Iterable[SilSentence] =
   {
     Seq(entityFormBelief(entity)) ++ {
       cosmos.getEntityAssocGraph.outgoingEdgesOf(entity).asScala.toSeq.map(
-        entityAssociationBelief(_))
+        entityAssociationBelief)
     }
   }
 

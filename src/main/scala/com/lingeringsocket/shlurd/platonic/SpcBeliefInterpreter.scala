@@ -96,7 +96,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
           (entity, success)
         } else if (entities.size > 1) {
           val originalBelief = conjunctiveBelief(
-            entities.map(creed.entityFormBelief(_)))
+            entities.map(creed.entityFormBelief))
           // FIXME this conjunction may come out way too long, and may
           // also be phrased confusingly depending on what objects exist.
           throw new AmbiguousBeliefExcn(sentence, originalBelief)
@@ -147,7 +147,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
       } else {
         val originalBelief = conjunctiveBelief(
           Seq(creed.idealAssociationBelief(formAssocEdge)) ++
-            edges.map(creed.entityAssociationBelief(_)))
+            edges.map(creed.entityAssociationBelief))
         throw new IncrementalCardinalityExcn(
           sentence, originalBelief)
       }
@@ -226,7 +226,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
         hyponymIdeal, hypernymIdeal)
     } else {
       val originalBelief = conjunctiveBelief(
-        path.getEdgeList.asScala.toSeq.map(creed.idealTaxonomyBelief(_)))
+        path.getEdgeList.asScala.toSeq.map(creed.idealTaxonomyBelief))
       throw new ContradictoryBeliefExcn(
         sentence,
         originalBelief)
@@ -476,7 +476,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
         // FIXME also, in the !allowUpdates case, henceforth we should
         // reject any attempt to add a matching edge
         val originalBelief = conjunctiveBelief(
-          edges.map(creed.entityAssociationBelief(_)))
+          edges.map(creed.entityAssociationBelief))
         throw new ContradictoryBeliefExcn(
           sentence,
           originalBelief)

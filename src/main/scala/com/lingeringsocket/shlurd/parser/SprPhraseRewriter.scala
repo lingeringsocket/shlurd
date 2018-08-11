@@ -17,7 +17,7 @@ package com.lingeringsocket.shlurd.parser
 import SprUtils._
 import SprEnglishLemmas._
 
-class SprRewriter(analyzer : SprSyntaxAnalyzer)
+class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
   extends SilPhraseRewriter
 {
   def parseSentence(sentenceSyntaxTree : SprSyntaxTree) : SilSentence =

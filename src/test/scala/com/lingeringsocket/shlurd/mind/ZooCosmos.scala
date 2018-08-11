@@ -130,7 +130,7 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
         } else {
           Success(
             animals.filterKeys(_.endsWith(name)).
-              values.filter(asleep.contains(_)).toSet)
+              values.filter(asleep.contains).toSet)
         }
       }
     }

@@ -352,7 +352,7 @@ class SpcCosmos(
     if (constraint.upper < Int.MaxValue) {
       val oldEntityEdges =
         entityAssocs.edgeSet.asScala.filter(_.formEdge == oldEdge)
-      oldEntityEdges.groupBy(graph.getPossessorEntity(_)).
+      oldEntityEdges.groupBy(graph.getPossessorEntity).
         filter(_._2.size > constraint.upper).isEmpty
     } else {
       true
@@ -633,7 +633,7 @@ class SpcCosmos(
     val beliefs = source.getLines.mkString("\n")
     val sentences = SprParser(beliefs).parseAll
     val interpreter = new SpcBeliefInterpreter(this)
-    sentences.foreach(interpreter.interpretBelief(_))
+    sentences.foreach(interpreter.interpretBelief)
     validateBeliefs
   }
 

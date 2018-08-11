@@ -662,7 +662,7 @@ object SilReference
   def qualified(reference : SilReference, qualifiers : Seq[SilWord])
       : SilReference =
   {
-    qualifiedByProperties(reference, qualifiers.map(SilPropertyState(_)))
+    qualifiedByProperties(reference, qualifiers.map(SilPropertyState))
   }
 
   def extractAdpositionSpecifiers(state : SilState)
@@ -670,7 +670,7 @@ object SilReference
   {
     state match {
       case SilConjunctiveState(DETERMINER_ALL, states, _) =>
-        states.flatMap(extractAdpositionSpecifiers(_))
+        states.flatMap(extractAdpositionSpecifiers)
       case adp : SilAdpositionalState => Seq(adp)
       case SilNullState() | SilPropertyState(_) |
           SilExistenceState() => Seq.empty
@@ -685,7 +685,7 @@ object SilReference
   {
     state match {
       case SilConjunctiveState(DETERMINER_ALL, states, _) =>
-        states.flatMap(extractQualifiers(_))
+        states.flatMap(extractQualifiers)
       case SilPropertyState(state) => Seq(state)
       case SilNullState() | SilAdpositionalState(_, _) |
           SilExistenceState() => Seq.empty

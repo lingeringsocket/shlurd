@@ -340,7 +340,7 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
       }
       case (determiner, separator, split) => {
         return SilConjunctiveReference(
-          determiner, split.map(expectReference(_)), separator)
+          determiner, split.map(expectReference), separator)
       }
     }
     val (determiner, components) = {
@@ -765,7 +765,7 @@ class SprSyntaxAnalyzer(guessedQuestion : Boolean)
       modifier.rememberSyntaxTree(indirectObj)
       modifier
     })
-    val modifiers = seq.filterNot(objTrees.contains(_))
+    val modifiers = seq.filterNot(objTrees.contains)
     (directObjTree.map(expectReference),
       indirectAdposition.toSeq ++ modifiers.map(expectVerbModifier))
   }
