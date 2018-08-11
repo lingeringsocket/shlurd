@@ -15,7 +15,7 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.print._
+import com.lingeringsocket.shlurd.ilang._
 
 import SprEnglishLemmas._
 

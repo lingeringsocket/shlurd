@@ -44,8 +44,8 @@ fullClasspath in Runtime ++= (fullClasspath in cli in Runtime).value
 scalacOptions in (Compile, console) := Common.scalacCommonOptions :+ "-Yrepl-sync"
 
 initialCommands := """
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.print._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 """
