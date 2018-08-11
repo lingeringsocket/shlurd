@@ -211,6 +211,7 @@ sealed trait SilTam
   def withMood(newMood : SilMood) : SilTam
   def withTense(newTense : SilTense) : SilTam
   def validate() : SilTam
+  def isValid(withAssert : Boolean = false) : Boolean
 
   def withPolarity(newPolarity : Boolean) : SilTam =
     withPolarity(if (newPolarity) POLARITY_POSITIVE else POLARITY_NEGATIVE)
@@ -256,21 +257,38 @@ case class SilTamImmutable(
   override def withTense(newTense : SilTense) =
     copy(tense = newTense).validate
 
-  override def validate() =
+  override def isValid(withAssert : Boolean = false) : Boolean =
   {
+    var valid = true
+    def check(condition : Boolean) {
+      assert(condition || !withAssert)
+      if (!condition) {
+        valid = false
+      }
+    }
     mood match {
       case MOOD_IMPERATIVE => {
-        assert(tense == TENSE_PRESENT)
-        assert(modality == MODAL_NEUTRAL)
-        assert(!isProgressive)
+        check(tense == TENSE_PRESENT)
+        check(modality == MODAL_NEUTRAL)
+        check(!isProgressive)
       }
       case _ => {
         if (isProgressive) {
-          // this needs refinement for tense/aspect
-          assert(modality == MODAL_NEUTRAL)
+          // this needs some refinement
+          check(modality == MODAL_NEUTRAL)
+        }
+        if (isPast) {
+          // this needs some refinement
+          check(modality == MODAL_NEUTRAL || modality == MODAL_EMPHATIC)
         }
       }
     }
+    valid
+  }
+
+  override def validate() =
+  {
+    assert(isValid(true))
     this
   }
 }

@@ -162,6 +162,17 @@ object SprSyntaxRewriter
     }
     case SptS(
       SptVP(
+        SptSQ(
+          vb : SprSyntaxVerb,
+          SptS(children @ _*)
+        )
+      ),
+      remainder @ _*
+    ) => {
+      SptSQ((Seq(vb) ++ children ++ remainder):_*)
+    }
+    case SptS(
+      SptVP(
         SptVBG(vbg),
         SptSBAR(
           dem : SptIN,

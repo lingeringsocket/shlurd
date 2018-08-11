@@ -210,6 +210,9 @@ class EnglishSentenceBundle
   ) : String =
   {
     val verbLemma = verb.lemma
+    if (tam.isImperative) {
+      return verbLemma
+    }
     verbLemma match {
       case LEMMA_BE => {
         tam.tense match {
@@ -366,8 +369,15 @@ class EnglishSentenceBundle
   private def delemmatizeProgressive(verb : SilWord) : String =
   {
     if (verb.inflected.isEmpty) {
-      // FIXME sometimes we need to morph the lemma first...
-      concat(verb.lemma, SUFFIX_ING)
+      // FIXME sometimes we need more morphing on the lemma first...
+      val base = {
+        if (verb.lemma == LEMMA_BE) {
+          verb.lemma
+        } else {
+          verb.lemma.stripSuffix("e")
+        }
+      }
+      concat(base, SUFFIX_ING)
     } else {
       verb.inflected
     }

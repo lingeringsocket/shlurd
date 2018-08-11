@@ -52,12 +52,14 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
             printPredicateQuestion(predicate, tam)
           }
           case MOOD_IMPERATIVE => {
-            printPredicateCommand(predicate)
+            printPredicateCommand(predicate, tam)
           }
         }
       }
       case SilStateChangeCommand(predicate, changeVerb, _) => {
-        printPredicateCommand(predicate, changeVerb)
+        // FIXME SilStateChangeCommand should support tam
+        // for polarity, emphatic
+        printPredicateCommand(predicate, SilTam.imperative, changeVerb)
       }
       case SilPredicateQuery(
         predicate, question, answerInflection, tam, _
@@ -233,7 +235,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
             subject, state, tam, REL_IDENTITY,
             predicate.getInflectedCount, INFLECT_NONE),
           rhs,
-          modifiers.map(printVerbModifier(_))
+          modifiers.map(printVerbModifier)
         )
       }
       case SilRelationshipPredicate(
@@ -270,7 +272,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           relationship,
           None,
           tam,
-          modifiers.map(printVerbModifier(_)))
+          modifiers.map(printVerbModifier))
       }
       case SilActionPredicate(
         subject, action, directObject, modifiers
@@ -283,7 +285,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
             predicate.getInflectedCount, INFLECT_NONE),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
-          modifiers.map(printVerbModifier(_)),
+          modifiers.map(printVerbModifier),
           tamOriginal)
       }
       case _ : SilUnknownPredicate => {
@@ -293,14 +295,44 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
   }
 
   def printPredicateCommand(
-    predicate : SilPredicate, changeVerb : Option[SilWord] = None) =
+    predicate : SilPredicate, tam : SilTam,
+    changeVerb : Option[SilWord] = None) =
   {
     predicate match {
       case SilStatePredicate(subject, state, modifiers) => {
         sb.statePredicateCommand(
           print(subject, INFLECT_ACCUSATIVE, SilConjoining.NONE),
           printChangeStateVerb(state, changeVerb),
-          modifiers.map(printVerbModifier(_)))
+          modifiers.map(printVerbModifier))
+      }
+      case SilRelationshipPredicate(
+        subject, complement, relationship, modifiers
+      ) => {
+        assert(changeVerb.isEmpty)
+        val action = relationship match {
+          case REL_IDENTITY => SilWord(LEMMA_BE)
+          case REL_ASSOCIATION => SilWord(LEMMA_HAVE)
+        }
+        sb.actionPredicate(
+          "",
+          sb.delemmatizeVerb(
+            PERSON_SECOND, GENDER_N, COUNT_SINGULAR,
+            tam, false, action, INFLECT_NONE),
+          Some(print(complement, INFLECT_NONE, SilConjoining.NONE)),
+          modifiers.map(printVerbModifier),
+          tam)
+      }
+      case SilActionPredicate(_, action, directObject, modifiers) => {
+        assert(changeVerb.isEmpty)
+        sb.actionPredicate(
+          "",
+          sb.delemmatizeVerb(
+            PERSON_SECOND, GENDER_N, COUNT_SINGULAR,
+            tam, false, action, INFLECT_NONE),
+          directObject.map(
+            ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
+          modifiers.map(printVerbModifier),
+          tam)
       }
       case _ => {
         sb.unknownPredicateCommand
@@ -330,7 +362,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
             predicate.getInflectedCount, answerInflection),
           print(state, tam, SilConjoining.NONE),
           question,
-          modifiers.map(printVerbModifier(_)))
+          modifiers.map(printVerbModifier))
       }
       case SilActionPredicate(
         subject, action, directObject, modifiers
@@ -348,7 +380,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           getVerbSeq(subject, action, tam,
             predicate.getInflectedCount, answerInflection),
           directObjectString,
-          modifiers.map(printVerbModifier(_)),
+          modifiers.map(printVerbModifier),
           tam,
           answerInflection)
       }
@@ -364,7 +396,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           relationship,
           question,
           tam,
-          modifiers.map(printVerbModifier(_)))
+          modifiers.map(printVerbModifier))
       }
       case _ : SilUnknownPredicate => {
         sb.unknownPredicateQuestion
