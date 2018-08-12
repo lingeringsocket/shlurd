@@ -185,7 +185,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
           case _ => SptVP(seq.drop(iNoun + 1):_*)
         }
         val (negativeSub, sub) = extractNegative(vp.children)
-        (sub.head, fromNounSlice(0), vp,
+        (sub.head, fromNounSlice(0), SptVP(sub:_*),
           sub.last, (negativeSub ^ negativeSuper),
           seq.patch(iNoun, Seq.empty, expectedSize))
       }
@@ -198,17 +198,17 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       val (negativeSub, predicate) =
         expectPredicate(tree, np, rhs, specifiedState,
           relationshipFor(verbHead), verbModifiers)
-      val positive = !(negative ^ negativeSub)
+      val polarity = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
-        tamTensed.withMood(MOOD_INTERROGATIVE).withPolarity(positive)))
+        tamTensed.withMood(MOOD_INTERROGATIVE).withPolarity(polarity)))
     } else {
       val (negativeSub, predicate) = analyzeActionPredicate(
         tree, np, vp, specifiedDirectObject, verbModifiers)
-      val positive = !(negative ^ negativeSub)
+      val polarity = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
-        tamTensed.withMood(MOOD_INTERROGATIVE).withPolarity(positive)))
+        tamTensed.withMood(MOOD_INTERROGATIVE).withPolarity(polarity)))
     }
   }
 
@@ -434,19 +434,19 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       val (negativeComplement, predicate) = expectPredicate(
         tree, np, complement, specifiedState,
         relationshipFor(verbHead), verbModifiers ++ extraModifiers)
-      val positive = !(negative ^ negativeComplement)
+      val polarity = !(negative ^ negativeComplement)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       SilPredicateSentence(
-        predicate, tamTensed.withPolarity(positive), SilFormality(force))
+        predicate, tamTensed.withPolarity(polarity), SilFormality(force))
     } else {
       val (negativeVerb, predicate) = analyzeActionPredicate(
         tree, np, vp, None, verbModifiers)
-      val positive = !(negative ^ negativeVerb)
+      val polarity = !(negative ^ negativeVerb)
       rememberPredicateCount(
-        predicate, verbHead, tam.withPolarity(positive), auxCount)
+        predicate, verbHead, tam, auxCount)
       SilPredicateSentence(
         predicate,
-        tamTensed,
+        tamTensed.withPolarity(polarity),
         SilFormality(force))
     }
   }

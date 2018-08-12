@@ -25,15 +25,18 @@ private[parser] class SprNormalizationRewriter
   }
 
   private def normalizeAllPhrases = combineRules(
-    normalizeInterrogativeEmphatic,
+    normalizeEmphatic,
     normalizeAdpositionalPhrases)
 
-  private def normalizeInterrogativeEmphatic = replacementMatcher {
+  private def normalizeEmphatic = replacementMatcher {
     case SilPredicateSentence(
       predicate,
       tam,
       formality
-    ) if (tam.isInterrogative && (tam.modality == MODAL_EMPHATIC)) => {
+    ) if (
+      (tam.isInterrogative || tam.isNegative) &&
+        (tam.modality == MODAL_EMPHATIC)
+    ) => {
       SilPredicateSentence(
         predicate,
         tam.withModality(MODAL_NEUTRAL),

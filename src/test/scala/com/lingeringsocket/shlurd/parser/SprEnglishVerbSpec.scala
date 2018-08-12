@@ -177,9 +177,9 @@ class SprEnglishVerbSpec extends Specification
 
   private def polaritySeq() : Seq[SilPolarity] =
   {
-    // FIXME need to make POLARITY_NEGATIVE work
     Seq(
-      POLARITY_POSITIVE
+      POLARITY_POSITIVE,
+      POLARITY_NEGATIVE
     )
   }
 
@@ -211,7 +211,8 @@ class SprEnglishVerbSpec extends Specification
       (!isRelationship(lemma) || !rhs.isEmpty) &&
         (question.isEmpty || tam.isInterrogative) &&
         ((pronoun.person == PERSON_SECOND) || !tam.isImperative) &&
-        ((tam.modality != MODAL_EMPHATIC) || !tam.isInterrogative)
+        ((tam.modality != MODAL_EMPHATIC) ||
+          (!tam.isInterrogative && !tam.isNegative))
     }
   }
 
@@ -254,7 +255,7 @@ class SprEnglishVerbSpec extends Specification
 
   "SprEnglishVerbParser" should
   {
-    "parse verbs" >>
+    "parse matrix" >>
     {
       Fragment.foreach(
         allSeq(LEMMA_BE) ++ allSeq(LEMMA_HAVE) ++ allSeq("bamboozle")
@@ -271,6 +272,21 @@ class SprEnglishVerbSpec extends Specification
         }
       }
     }
+
+    // can be edited for a specific scenario and then run by itself
+    "parse one" in
+    {
+      val pronoun = SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL)
+      val rhs = Some(SilNounReference(SilWord("customer"), DETERMINER_UNIQUE))
+      val lemma = "bamboozle"
+      val tam = SilTam.interrogative.negative
+      val input = generateInput(
+        pronoun, rhs, lemma, tam, None)
+      if (false) {
+        println(s"INPUT:  $input")
+      }
+      parse(input) must be equalTo ParsedVerb(
+        pronoun, rhs, lemma, tam, None)
+    }
   }
 }
-
