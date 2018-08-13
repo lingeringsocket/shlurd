@@ -143,7 +143,7 @@ class SprEnglishVerbSpec extends Specification
 
   private def moodSeq() : Seq[SilTam] =
   {
-    // FIXME SilTam.imperative is not ready for prime time
+    // SilTam.imperative is handled via a separate matrix
     Seq(
       SilTam.indicative,
       SilTam.interrogative
@@ -287,6 +287,30 @@ class SprEnglishVerbSpec extends Specification
     ).distinct
   }
 
+  private def imperativeSeq(lemma : String)
+      : Seq[(SilReference, Option[SilReference], String, SilTam)] =
+  {
+    // FIXME support POLARITY_NEGATIVE, MODALITY_EMPHATIC
+    val pronoun = SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
+    rhsSeq.flatMap(
+      rhs => {
+        val tam = SilTamImmutable(
+          MOOD_IMPERATIVE,
+          POLARITY_POSITIVE,
+          MODAL_NEUTRAL,
+          ASPECT_SIMPLE,
+          TENSE_PRESENT)
+        if (isConsistent(
+          pronoun, rhs, lemma, tam))
+        {
+          Some((pronoun, rhs, lemma, tam))
+        } else {
+          None
+        }
+      }
+    )
+  }.distinct
+
   "SprEnglishVerbParser" should
   {
     "parse main matrix" >>
@@ -320,6 +344,25 @@ class SprEnglishVerbSpec extends Specification
           "in phrase: " + input >> {
             parse(input) must be equalTo ParsedVerb(
               subject, rhs, lemma, tam, Some(question))
+          }
+        }
+      }
+    }
+
+    "parse imperative matrix" >>
+    {
+      Fragment.foreach(
+        Seq(LEMMA_BE, LEMMA_HAVE, "execute").flatMap(imperativeSeq)
+      ) {
+        case (
+          subject, rhs, lemma, tam
+        ) => {
+          val input = generateInput(
+            subject, rhs, lemma, tam, None)
+          "in phrase: " + input >> {
+            skipped("not ready for prime time")
+            parse(input) must be equalTo ParsedVerb(
+              subject, rhs, lemma, tam, None)
           }
         }
       }
