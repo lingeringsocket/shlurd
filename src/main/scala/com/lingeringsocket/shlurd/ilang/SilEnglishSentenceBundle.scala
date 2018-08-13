@@ -277,8 +277,8 @@ class SilEnglishSentenceBundle
       : Seq[String] =
   {
     if ((verb.lemma != LEMMA_BE) && (verb.lemma != LEMMA_EXIST) &&
-      (tam.isNegative || tam.isInterrogative) &&
-      (answerInflection != INFLECT_NOMINATIVE))
+      (tam.isNegative ||
+        (tam.isInterrogative && (answerInflection != INFLECT_NOMINATIVE))))
     {
       return delemmatizeModalVerb(tam, verb, person, gender, count)
     }

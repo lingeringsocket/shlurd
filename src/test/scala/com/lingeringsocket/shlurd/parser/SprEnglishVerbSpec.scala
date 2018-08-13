@@ -97,7 +97,7 @@ class SprEnglishVerbSpec extends Specification
   }
 
   private def generateInput(
-    pronoun : SilPronounReference,
+    subject : SilReference,
     rhs : Option[SilReference],
     lemma : String,
     tam : SilTam,
@@ -106,13 +106,13 @@ class SprEnglishVerbSpec extends Specification
     val predicate = {
       if (isRelationship(lemma) && !tam.isProgressive) {
         SilRelationshipPredicate(
-          pronoun,
+          subject,
           rhs.get,
           relationshipFor(lemma)
         )
       } else {
         SilActionPredicate(
-          pronoun,
+          subject,
           SilWord("", lemma),
           rhs,
           Seq.empty
@@ -191,34 +191,32 @@ class SprEnglishVerbSpec extends Specification
     )
   }
 
-  private def questionSeq : Seq[Option[(SilQuestion, SilInflection)]] =
+  private def questionSeq
+      : Seq[(SilReference, (SilQuestion, SilInflection))] =
   {
-    // FIXME this has all kinds of problems
-    // Some((QUESTION_WHICH, INFLECT_ACCUSATIVE))
     Seq(
-      None
+      (SilNounReference(SilWord(LEMMA_WHO)),
+        (QUESTION_WHO, INFLECT_NOMINATIVE))
     )
   }
 
   private def isConsistent(
     pronoun : SilPronounReference,
     rhs : Option[SilReference], lemma : String,
-    tam : SilTam, question : Option[(SilQuestion, SilInflection)]) : Boolean =
+    tam : SilTam) : Boolean =
   {
     if (!tam.isValid()) {
       false
     } else {
       (!isRelationship(lemma) || !rhs.isEmpty) &&
-        (question.isEmpty || tam.isInterrogative) &&
         ((pronoun.person == PERSON_SECOND) || !tam.isImperative) &&
         ((tam.modality != MODAL_EMPHATIC) ||
-          (!tam.isInterrogative && !tam.isNegative))
+          (!tam.isInterrogative && !tam.isNegative && (lemma != LEMMA_BE)))
     }
   }
 
-  private def allSeq(lemma : String)
-      : Seq[(SilPronounReference, Option[SilReference], String, SilTam,
-        Option[(SilQuestion, SilInflection)])] =
+  private def mainSeq(lemma : String)
+      : Seq[(SilReference, Option[SilReference], String, SilTam)] =
   {
     pronounSeq.flatMap(
       pronoun => moodSeq.flatMap(
@@ -226,48 +224,100 @@ class SprEnglishVerbSpec extends Specification
           tense => aspectSeq.flatMap(
             aspect => modalitySeq.flatMap(
               modality => rhsSeq.flatMap(
-                rhs => questionSeq.flatMap(
-                  question => polaritySeq.flatMap(
-                    polarity => {
-                      val tam = SilTamImmutable(
-                        mood.mood,
-                        polarity,
-                        modality,
-                        aspect,
-                        tense)
-                      if (isConsistent(
-                        pronoun, rhs, lemma, tam, question))
-                      {
-                        Some((pronoun, rhs, lemma, tam, question))
-                      } else {
-                        None
-                      }
+                rhs => polaritySeq.flatMap(
+                  polarity => {
+                    val tam = SilTamImmutable(
+                      mood.mood,
+                      polarity,
+                      modality,
+                      aspect,
+                      tense)
+                    if (isConsistent(
+                      pronoun, rhs, lemma, tam))
+                    {
+                      Some((pronoun, rhs, lemma, tam))
+                    } else {
+                      None
                     }
-                  )
+                  }
                 )
               )
             )
           )
         )
       )
-    )
+    ).distinct
+  }
+
+  private def querySeq(lemma : String)
+      : Seq[(SilReference, Option[SilReference], String, SilTam,
+        (SilQuestion, SilInflection))] =
+  {
+    pronounSeq.flatMap(
+      pronoun => tenseSeq.flatMap(
+        tense => aspectSeq.flatMap(
+          aspect => modalitySeq.flatMap(
+            modality => rhsSeq.flatMap(
+              rhs => questionSeq.flatMap(
+                question => polaritySeq.flatMap(
+                  polarity => {
+                    val tam = SilTamImmutable(
+                      MOOD_INTERROGATIVE,
+                      polarity,
+                      modality,
+                      aspect,
+                      tense)
+                    val subject = question._1
+                    if (isConsistent(
+                      pronoun, rhs, lemma, tam))
+                    {
+                      Some((subject, rhs, lemma, tam, question._2))
+                    } else {
+                      None
+                    }
+                  }
+                )
+              )
+            )
+          )
+        )
+      )
+    ).distinct
   }
 
   "SprEnglishVerbParser" should
   {
-    "parse matrix" >>
+    "parse main matrix" >>
     {
       Fragment.foreach(
-        allSeq(LEMMA_BE) ++ allSeq(LEMMA_HAVE) ++ allSeq("bamboozle")
+        Seq(LEMMA_BE, LEMMA_HAVE, "bamboozle").flatMap(mainSeq)
       ) {
         case (
-          pronoun, rhs, lemma, tam, question
+          subject, rhs, lemma, tam
         ) => {
           val input = generateInput(
-            pronoun, rhs, lemma, tam, question)
+            subject, rhs, lemma, tam, None)
           "in phrase: " + input >> {
             parse(input) must be equalTo ParsedVerb(
-              pronoun, rhs, lemma, tam, question)
+              subject, rhs, lemma, tam, None)
+          }
+        }
+      }
+    }
+
+    "parse query matrix" >>
+    {
+      Fragment.foreach(
+        Seq(LEMMA_BE, LEMMA_HAVE, "chase").flatMap(querySeq)
+      ) {
+        case (
+          subject, rhs, lemma, tam, question
+        ) => {
+          val input = generateInput(
+            subject, rhs, lemma, tam, Some(question))
+          "in phrase: " + input >> {
+            parse(input) must be equalTo ParsedVerb(
+              subject, rhs, lemma, tam, Some(question))
           }
         }
       }
@@ -276,17 +326,19 @@ class SprEnglishVerbSpec extends Specification
     // can be edited for a specific scenario and then run by itself
     "parse one" in
     {
-      val pronoun = SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL)
+      val subject = SilNounReference(SilWord(LEMMA_WHO))
       val rhs = Some(SilNounReference(SilWord("customer"), DETERMINER_UNIQUE))
-      val lemma = "bamboozle"
-      val tam = SilTam.interrogative.negative
+      val lemma = "chase"
+      val tam = SilTam.interrogative
+      val question = Some((QUESTION_WHO, INFLECT_NOMINATIVE))
       val input = generateInput(
-        pronoun, rhs, lemma, tam, None)
+        subject, rhs, lemma, tam, question)
       if (false) {
         println(s"INPUT:  $input")
+        SprParser.debug(input)
       }
       parse(input) must be equalTo ParsedVerb(
-        pronoun, rhs, lemma, tam, None)
+        subject, rhs, lemma, tam, question)
     }
   }
 }

@@ -139,7 +139,7 @@ trait SprAbstractSyntaxTree
 
   def isVerb = label.startsWith(LABEL_VB)
 
-  def isVerbPastTense = label.equals(LABEL_VBD)
+  def isVerbPastTense = label.equals(LABEL_VBD) || label.equals(LABEL_VBN)
 
   def isNoun = label.startsWith(LABEL_NN)
 

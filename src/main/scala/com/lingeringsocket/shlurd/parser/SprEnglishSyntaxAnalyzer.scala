@@ -149,20 +149,11 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     if (iVerb < 0) {
       return None
     }
-    val expectedSize = {
-      if (tam.requiresAux) {
-        2
-      } else {
-        3
-      }
-    }
-    if (seq.size < expectedSize) {
-      return None
-    }
 
     val (verbHead, np, vp, rhs, negative, verbModifiers) = {
       if (seq.head.unwrapPhrase.isRelationshipVerb) {
         // "is Larry smart?"
+        val expectedSize = 3
         if (seq.size < (iVerb + expectedSize)) {
           return None
         }
@@ -174,6 +165,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       } else {
         // "(can) Larry [be [smart]]?"
         assert(iVerb > 0)
+        val expectedSize = 2
         val iNoun = iVerb - 1
         if (seq.size < (iNoun + expectedSize)) {
           return None
@@ -204,7 +196,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         tamTensed.withMood(MOOD_INTERROGATIVE).withPolarity(polarity)))
     } else {
       val (negativeSub, predicate) = analyzeActionPredicate(
-        tree, np, vp, specifiedDirectObject, verbModifiers)
+        tree, np, vp, specifiedDirectObject, Seq.empty)
       val polarity = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
@@ -301,7 +293,12 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     } else {
       // FIXME support dative and adpositional objects too
       val (specifiedDirectObject, answerInflection, sqChildren) = {
-        if (verbHead.isModal || (progressive && (iVerb > 1))) {
+        // FIXME:  this is correct pedantically, since any
+        // accusative usage should contain whom instead of who,
+        // but come on, Maxwell Smart...
+        if ((question != QUESTION_WHO) &&
+          (verbHead.isModal || (progressive && (iVerb > 1))))
+        {
           (Some(expectReference(np)), INFLECT_ACCUSATIVE, secondUnwrapped)
         } else {
           (None, INFLECT_NOMINATIVE, Seq(np) ++ secondUnwrapped)
