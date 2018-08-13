@@ -177,7 +177,8 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     compose(qualifiers.map(delemmatizeQualifier) :_*)
   }
 
-  override def query(noun : String, question : Option[SilQuestion]) =
+  override def query(noun : String, question : Option[SilQuestion],
+    answerInflection : SilInflection) =
   {
     question match {
       case Some(QUESTION_WHICH) => {

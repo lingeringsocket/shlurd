@@ -187,12 +187,18 @@ class SprEnglishVerbSpec extends Specification
   }
 
   private def rhsSeq(
-    inflection : SilInflection = INFLECT_NONE) : Seq[Option[SilReference]] =
+    question : Option[(SilQuestion, SilInflection)] = None)
+      : Seq[Option[SilReference]] =
   {
-    inflection match {
-      case INFLECT_ACCUSATIVE => {
+    question match {
+      case Some((QUESTION_WHO, INFLECT_ACCUSATIVE)) => {
         Seq(
-          Some(SilNounReference(SilWord("customer"), DETERMINER_UNSPECIFIED))
+          Some(SilNounReference(SilWord(LEMMA_WHOM)))
+        )
+      }
+      case Some((QUESTION_WHICH, INFLECT_ACCUSATIVE)) => {
+        Seq(
+          Some(SilNounReference(SilWord("customer")))
         )
       }
       case _ => {
@@ -210,6 +216,8 @@ class SprEnglishVerbSpec extends Specification
     Seq(
       (SilNounReference(SilWord(LEMMA_WHO)),
         (QUESTION_WHO, INFLECT_NOMINATIVE)),
+      (SilNounReference(SilWord("salesperson"), DETERMINER_UNIQUE),
+        (QUESTION_WHO, INFLECT_ACCUSATIVE)),
       (SilNounReference(SilWord("salesperson")),
         (QUESTION_WHICH, INFLECT_NOMINATIVE)),
       (SilNounReference(SilWord("salesperson"), DETERMINER_UNIQUE),
@@ -276,7 +284,7 @@ class SprEnglishVerbSpec extends Specification
         tense => aspectSeq.flatMap(
           aspect => modalitySeq.flatMap(
             modality => questionSeq.flatMap(
-              question => rhsSeq(question._2._2).flatMap(
+              question => rhsSeq(Some(question._2)).flatMap(
                 rhs => polaritySeq.flatMap(
                   polarity => {
                     val tam = SilTamImmutable(
@@ -328,11 +336,13 @@ class SprEnglishVerbSpec extends Specification
   }.distinct
 
   private def notYetWorking(
-    tam : SilTam, inflection : SilInflection) : Boolean =
+    tam : SilTam, question : SilQuestion,
+    inflection : SilInflection) : Boolean =
   {
     // FIXME corenlp doesn't seem to understand progressives in this context
-    (tam.polarity, tam.aspect, inflection) match {
-      case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE, INFLECT_ACCUSATIVE) => true
+    (tam.polarity, tam.aspect, question, inflection) match {
+      case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE,
+        QUESTION_WHICH | QUESTION_WHO, INFLECT_ACCUSATIVE) => true
       case _ => false
     }
   }
@@ -368,8 +378,8 @@ class SprEnglishVerbSpec extends Specification
         ) => {
           val input = generateInput(
             subject, rhs, lemma, tam, Some(question))
-          "in phrase: " + input >> {
-            if (notYetWorking(tam, question._2)) {
+          "in query: " + input >> {
+            if (notYetWorking(tam, question._1, question._2)) {
               skipped("not working yet")
             }
             parse(input) must be equalTo ParsedVerb(
@@ -389,7 +399,7 @@ class SprEnglishVerbSpec extends Specification
         ) => {
           val input = generateInput(
             subject, rhs, lemma, tam, None)
-          "in phrase: " + input >> {
+          "in command: " + input >> {
             skipped("not ready for prime time")
             parse(input) must be equalTo ParsedVerb(
               subject, rhs, lemma, tam, None)

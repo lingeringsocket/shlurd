@@ -351,7 +351,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       predicate.getSubject, INFLECT_NOMINATIVE, SilConjoining.NONE)
     val subjectString = answerInflection match {
       case INFLECT_ACCUSATIVE => plainSubject
-      case _ => sb.query(plainSubject, question)
+      case _ => sb.query(plainSubject, question, answerInflection)
     }
     predicate match {
       case SilStatePredicate(subject, state, modifiers) => {
@@ -371,7 +371,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE))
         val directObjectString = answerInflection match {
           case INFLECT_ACCUSATIVE => {
-            plainDirectObject.map(sb.query(_, question))
+            plainDirectObject.map(sb.query(_, question, answerInflection))
           }
           case _ => plainDirectObject
         }

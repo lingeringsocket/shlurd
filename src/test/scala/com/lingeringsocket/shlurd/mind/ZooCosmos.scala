@@ -107,7 +107,9 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
     context : SilReferenceContext,
     qualifiers : Set[String]) =
   {
-    if ((lemma == LEMMA_WHO) || (lemma == LEMMA_PERSON)) {
+    if ((lemma == LEMMA_WHO) || (lemma == LEMMA_WHOM) ||
+      (lemma == LEMMA_PERSON))
+    {
       Success(SprUtils.orderedSet(
         people.values))
     } else if (lemma == LEMMA_ANIMAL) {

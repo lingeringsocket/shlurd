@@ -22,6 +22,13 @@ import SprEnglishLemmas._
 
 object SpcPrimordial
 {
+  // all the Whos down in Whoville
+  private val synonyms = Map(
+    LEMMA_WHO -> LEMMA_PERSON,
+    LEMMA_WHOM -> LEMMA_PERSON,
+    LEMMA_WHERE -> LEMMA_CONTAINER
+  )
+
   private lazy val seedCosmos = initSeedCosmos()
 
   private def initSeedCosmos() =
@@ -36,9 +43,7 @@ object SpcPrimordial
     cosmos.loadBeliefs(
       Source.fromFile(
         SprParser.getResourceFile("/ontologies/primordial.txt")))
-    // all the Whos down in Whoville
-    cosmos.addIdealSynonym(LEMMA_WHO, LEMMA_PERSON)
-    cosmos.addIdealSynonym(LEMMA_WHERE, LEMMA_CONTAINER)
+    synonyms.foreach(e => cosmos.addIdealSynonym(e._1, e._2))
   }
 
   def initCosmos(cosmos : SpcCosmos)
@@ -48,6 +53,6 @@ object SpcPrimordial
 
   def isPrimordialSynonym(pair : (String, _)) : Boolean =
   {
-    (pair._1 == LEMMA_WHO) || (pair._1 == LEMMA_WHERE)
+    synonyms.contains(pair._1)
   }
 }

@@ -23,6 +23,7 @@ object SprEnglishLemmas
   val LEMMA_EXIST = "exist"
   val LEMMA_HAVE = "have"
   val LEMMA_WHO = "who"
+  val LEMMA_WHOM = "whom"
   val LEMMA_WHERE = "where"
   val LEMMA_NOWHERE = "nowhere"
   val LEMMA_ONE = "one"

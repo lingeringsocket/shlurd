@@ -1120,6 +1120,7 @@ class SmcInterpreter[
           case SilNounReference(noun, determiner, count) => {
             val rephrased = noun match {
               case SilWord(LEMMA_WHO, LEMMA_WHO) => SilWord(LEMMA_PERSON)
+              case SilWord(LEMMA_WHOM, LEMMA_WHOM) => SilWord(LEMMA_PERSON)
               case SilWord(LEMMA_WHERE, LEMMA_WHERE) => SilWord(LEMMA_CONTAINER)
               case _ => noun
             }

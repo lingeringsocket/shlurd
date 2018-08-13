@@ -115,6 +115,9 @@ class SmcResponseRewriter[
             case SilWord(LEMMA_WHO, LEMMA_WHO) => {
               (DETERMINER_NONE, SilWord(LEMMA_ONE))
             }
+            case SilWord(LEMMA_WHOM, LEMMA_WHOM) => {
+              (DETERMINER_NONE, SilWord(LEMMA_ONE))
+            }
             case SilWord(LEMMA_WHERE, LEMMA_WHERE) => {
               (DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE))
             }

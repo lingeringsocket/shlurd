@@ -293,7 +293,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         predicate, question, INFLECT_NOMINATIVE, tamTensed)
     } else {
       // FIXME support dative and adpositional objects;
-      // and maybe use dependency info too
+      // and maybe use dependency info (plus WHO vs WHOM) too
       val (specifiedDirectObject, answerInflection, sqChildren) = {
         val accusativePattern = {
           if (secondSub.size > 1) {
@@ -1073,7 +1073,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       }
       case SptWP(wp) => {
         wp.lemma match {
-          case LEMMA_WHO => Some(QUESTION_WHO)
+          case LEMMA_WHO | LEMMA_WHOM => Some(QUESTION_WHO)
           case LEMMA_WHAT => Some(QUESTION_WHAT)
           case _ => None
         }

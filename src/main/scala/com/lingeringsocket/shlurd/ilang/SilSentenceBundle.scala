@@ -143,7 +143,8 @@ abstract class SilSentenceBundle
 
   def composeQualifiers(qualifiers : Seq[SilWord]) : String
 
-  def query(noun : String, question : Option[SilQuestion]) : String
+  def query(noun : String, question : Option[SilQuestion],
+    answerInflection : SilInflection = INFLECT_NONE) : String
 
   def qualifiedNoun(qualifiers : String, noun : String) : String
 

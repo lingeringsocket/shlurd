@@ -464,15 +464,23 @@ class SilEnglishSentenceBundle
     compose(qualifiers.map(delemmatizeQualifier) :_*)
   }
 
-  override def query(noun : String, question : Option[SilQuestion]) =
+  override def query(noun : String, question : Option[SilQuestion],
+    answerInflection : SilInflection) =
   {
     question match {
       case Some(QUESTION_WHICH) => {
         compose(LEMMA_WHICH, noun)
       }
       case Some(QUESTION_WHO) => {
-        // FIXME inflection for whom, whose
-        compose(LEMMA_WHO)
+        // FIXME inflection for whose
+        answerInflection match {
+          case INFLECT_ACCUSATIVE => {
+            compose(LEMMA_WHOM)
+          }
+          case _ => {
+            compose(LEMMA_WHO)
+          }
+        }
       }
       case Some(QUESTION_WHAT) => {
         compose(LEMMA_WHAT)
