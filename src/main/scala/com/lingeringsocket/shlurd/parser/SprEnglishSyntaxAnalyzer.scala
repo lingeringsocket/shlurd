@@ -151,7 +151,9 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     }
 
     val (verbHead, np, vp, rhs, negative, verbModifiers) = {
-      if (seq.head.unwrapPhrase.isRelationshipVerb) {
+      if (seq.head.unwrapPhrase.isRelationshipVerb &&
+        (tam.modality == MODAL_NEUTRAL))
+      {
         // "is Larry smart?"
         val expectedSize = 3
         if (seq.size < (iVerb + expectedSize)) {
@@ -163,8 +165,8 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
           fromVerbSlice(2), negativeSuper,
           seq.patch(iVerb, Seq.empty, expectedSize))
       } else {
-        // "(can) Larry [be [smart]]?"
         assert(iVerb > 0)
+        // "(can) Larry [be [smart]]?"
         val expectedSize = 2
         val iNoun = iVerb - 1
         if (seq.size < (iNoun + expectedSize)) {
@@ -293,12 +295,8 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     } else {
       // FIXME support dative and adpositional objects too
       val (specifiedDirectObject, answerInflection, sqChildren) = {
-        // FIXME:  this is correct pedantically, since any
-        // accusative usage should contain whom instead of who,
-        // but come on, Maxwell Smart...
-        if ((question != QUESTION_WHO) &&
-          (verbHead.isModal || (progressive && (iVerb > 1))))
-        {
+        if ((verbHead.isModal || progressive) && (iVerb > 1)) {
+          // I think you mean "whom", Chief!
           (Some(expectReference(np)), INFLECT_ACCUSATIVE, secondUnwrapped)
         } else {
           (None, INFLECT_NOMINATIVE, Seq(np) ++ secondUnwrapped)

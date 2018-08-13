@@ -196,7 +196,9 @@ class SprEnglishVerbSpec extends Specification
   {
     Seq(
       (SilNounReference(SilWord(LEMMA_WHO)),
-        (QUESTION_WHO, INFLECT_NOMINATIVE))
+        (QUESTION_WHO, INFLECT_NOMINATIVE)),
+      (SilNounReference(SilWord("agent")),
+        (QUESTION_WHICH, INFLECT_NOMINATIVE))
     )
   }
 
@@ -326,11 +328,11 @@ class SprEnglishVerbSpec extends Specification
     // can be edited for a specific scenario and then run by itself
     "parse one" in
     {
-      val subject = SilNounReference(SilWord(LEMMA_WHO))
+      val subject = SilNounReference(SilWord("agent"))
       val rhs = Some(SilNounReference(SilWord("customer"), DETERMINER_UNIQUE))
-      val lemma = "chase"
-      val tam = SilTam.interrogative
-      val question = Some((QUESTION_WHO, INFLECT_NOMINATIVE))
+      val lemma = LEMMA_BE
+      val tam = SilTam.interrogative.withModality(MODAL_MUST)
+      val question = Some((QUESTION_WHICH, INFLECT_NOMINATIVE))
       val input = generateInput(
         subject, rhs, lemma, tam, question)
       if (false) {
