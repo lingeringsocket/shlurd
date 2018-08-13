@@ -33,10 +33,10 @@ class SprEnglishVerbSpec extends Specification
     question : Option[(SilQuestion, SilInflection)]
   )
 
-  private def isRelationship(lemma : String) =
+  private def isRelationship(lemma : String, inflection : SilInflection) =
   {
     lemma match {
-      case LEMMA_BE | LEMMA_HAVE => true
+      case LEMMA_BE | LEMMA_HAVE => (inflection != INFLECT_ACCUSATIVE)
       case _ => false
     }
   }
@@ -104,7 +104,10 @@ class SprEnglishVerbSpec extends Specification
     question : Option[(SilQuestion, SilInflection)]) : String =
   {
     val predicate = {
-      if (isRelationship(lemma) && !tam.isProgressive) {
+      if (isRelationship(
+        lemma, question.map(_._2).getOrElse(INFLECT_NONE)) &&
+        !tam.isProgressive)
+      {
         SilRelationshipPredicate(
           subject,
           rhs.get,
@@ -183,12 +186,22 @@ class SprEnglishVerbSpec extends Specification
     )
   }
 
-  private def rhsSeq : Seq[Option[SilReference]] =
+  private def rhsSeq(
+    inflection : SilInflection = INFLECT_NONE) : Seq[Option[SilReference]] =
   {
-    Seq(
-      None,
-      Some(SilNounReference(SilWord("customer"), DETERMINER_UNIQUE))
-    )
+    inflection match {
+      case INFLECT_ACCUSATIVE => {
+        Seq(
+          Some(SilNounReference(SilWord("customer"), DETERMINER_UNSPECIFIED))
+        )
+      }
+      case _ => {
+        Seq(
+          None,
+          Some(SilNounReference(SilWord("customer"), DETERMINER_UNIQUE))
+        )
+      }
+    }
   }
 
   private def questionSeq
@@ -197,23 +210,26 @@ class SprEnglishVerbSpec extends Specification
     Seq(
       (SilNounReference(SilWord(LEMMA_WHO)),
         (QUESTION_WHO, INFLECT_NOMINATIVE)),
-      (SilNounReference(SilWord("agent")),
-        (QUESTION_WHICH, INFLECT_NOMINATIVE))
+      (SilNounReference(SilWord("salesperson")),
+        (QUESTION_WHICH, INFLECT_NOMINATIVE)),
+      (SilNounReference(SilWord("salesperson"), DETERMINER_UNIQUE),
+        (QUESTION_WHICH, INFLECT_ACCUSATIVE))
     )
   }
 
   private def isConsistent(
     pronoun : SilPronounReference,
     rhs : Option[SilReference], lemma : String,
-    tam : SilTam) : Boolean =
+    tam : SilTam, inflection : SilInflection = INFLECT_NONE) : Boolean =
   {
     if (!tam.isValid()) {
       false
     } else {
-      (!isRelationship(lemma) || !rhs.isEmpty) &&
+      (!isRelationship(lemma, inflection) || !rhs.isEmpty) &&
         ((pronoun.person == PERSON_SECOND) || !tam.isImperative) &&
         ((tam.modality != MODAL_EMPHATIC) ||
-          (!tam.isInterrogative && !tam.isNegative && (lemma != LEMMA_BE)))
+          (!tam.isInterrogative && !tam.isNegative && (lemma != LEMMA_BE))) &&
+        ((inflection != INFLECT_ACCUSATIVE) || (lemma != LEMMA_BE))
     }
   }
 
@@ -225,7 +241,7 @@ class SprEnglishVerbSpec extends Specification
         mood => tenseSeq.flatMap(
           tense => aspectSeq.flatMap(
             aspect => modalitySeq.flatMap(
-              modality => rhsSeq.flatMap(
+              modality => rhsSeq().flatMap(
                 rhs => polaritySeq.flatMap(
                   polarity => {
                     val tam = SilTamImmutable(
@@ -259,9 +275,9 @@ class SprEnglishVerbSpec extends Specification
       pronoun => tenseSeq.flatMap(
         tense => aspectSeq.flatMap(
           aspect => modalitySeq.flatMap(
-            modality => rhsSeq.flatMap(
-              rhs => questionSeq.flatMap(
-                question => polaritySeq.flatMap(
+            modality => questionSeq.flatMap(
+              question => rhsSeq(question._2._2).flatMap(
+                rhs => polaritySeq.flatMap(
                   polarity => {
                     val tam = SilTamImmutable(
                       MOOD_INTERROGATIVE,
@@ -271,7 +287,7 @@ class SprEnglishVerbSpec extends Specification
                       tense)
                     val subject = question._1
                     if (isConsistent(
-                      pronoun, rhs, lemma, tam))
+                      pronoun, rhs, lemma, tam, question._2._2))
                     {
                       Some((subject, rhs, lemma, tam, question._2))
                     } else {
@@ -292,7 +308,7 @@ class SprEnglishVerbSpec extends Specification
   {
     // FIXME support POLARITY_NEGATIVE, MODALITY_EMPHATIC
     val pronoun = SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
-    rhsSeq.flatMap(
+    rhsSeq().flatMap(
       rhs => {
         val tam = SilTamImmutable(
           MOOD_IMPERATIVE,
@@ -310,6 +326,16 @@ class SprEnglishVerbSpec extends Specification
       }
     )
   }.distinct
+
+  private def notYetWorking(
+    tam : SilTam, inflection : SilInflection) : Boolean =
+  {
+    // FIXME corenlp doesn't seem to understand progressives in this context
+    (tam.polarity, tam.aspect, inflection) match {
+      case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE, INFLECT_ACCUSATIVE) => true
+      case _ => false
+    }
+  }
 
   "SprEnglishVerbParser" should
   {
@@ -333,6 +359,7 @@ class SprEnglishVerbSpec extends Specification
 
     "parse query matrix" >>
     {
+      // FIXME implement all the questions
       Fragment.foreach(
         Seq(LEMMA_BE, LEMMA_HAVE, "chase").flatMap(querySeq)
       ) {
@@ -342,6 +369,9 @@ class SprEnglishVerbSpec extends Specification
           val input = generateInput(
             subject, rhs, lemma, tam, Some(question))
           "in phrase: " + input >> {
+            if (notYetWorking(tam, question._2)) {
+              skipped("not working yet")
+            }
             parse(input) must be equalTo ParsedVerb(
               subject, rhs, lemma, tam, Some(question))
           }
@@ -371,11 +401,11 @@ class SprEnglishVerbSpec extends Specification
     // can be edited for a specific scenario and then run by itself
     "parse one" in
     {
-      val subject = SilNounReference(SilWord("agent"))
-      val rhs = Some(SilNounReference(SilWord("customer"), DETERMINER_UNIQUE))
-      val lemma = LEMMA_BE
-      val tam = SilTam.interrogative.withModality(MODAL_MUST)
-      val question = Some((QUESTION_WHICH, INFLECT_NOMINATIVE))
+      val subject = SilNounReference(SilWord("salesperson"), DETERMINER_UNIQUE)
+      val rhs = Some(SilNounReference(SilWord("customer")))
+      val lemma = "chase"
+      val tam = SilTam.interrogative
+      val question = Some((QUESTION_WHICH, INFLECT_ACCUSATIVE))
       val input = generateInput(
         subject, rhs, lemma, tam, question)
       if (false) {

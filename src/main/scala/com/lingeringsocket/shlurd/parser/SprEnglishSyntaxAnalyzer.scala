@@ -187,8 +187,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
 
     val tamTensed = extractTense(verbHead, tam)
 
-    if (verbHead.isRelationshipVerb) {
-      assert(specifiedDirectObject.isEmpty)
+    if (verbHead.isRelationshipVerb && specifiedDirectObject.isEmpty) {
       val (negativeSub, predicate) =
         expectPredicate(tree, np, rhs, specifiedState,
           relationshipFor(verbHead), verbModifiers)
@@ -293,9 +292,17 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       SilPredicateQuery(
         predicate, question, INFLECT_NOMINATIVE, tamTensed)
     } else {
-      // FIXME support dative and adpositional objects too
+      // FIXME support dative and adpositional objects;
+      // and maybe use dependency info too
       val (specifiedDirectObject, answerInflection, sqChildren) = {
-        if ((verbHead.isModal || progressive) && (iVerb > 1)) {
+        val accusativePattern = {
+          if (secondSub.size > 1) {
+            !secondSub(1).isVerbNode
+          } else {
+            false
+          }
+        }
+        if ((verbHead.isModal || progressive) && accusativePattern) {
           // I think you mean "whom", Chief!
           (Some(expectReference(np)), INFLECT_ACCUSATIVE, secondUnwrapped)
         } else {
