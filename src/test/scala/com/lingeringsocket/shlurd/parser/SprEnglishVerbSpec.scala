@@ -20,6 +20,7 @@ import org.specs2.mutable._
 import org.specs2.specification.core._
 
 import SprEnglishLemmas._
+import SprEnglishAffixes._
 
 // FIXME:  add coverage for state predicates; LEMMA_EXIST;
 // various modifier types
@@ -74,6 +75,13 @@ class SprEnglishVerbSpec extends Specification
       ) => {
         ParsedVerb(subject, Some(complement), lemmaFor(rel), tam, None)
       }
+      case SilPredicateSentence(
+        SilStatePredicate(subject, SilPropertyState(state), Seq()),
+        tam, _
+      ) if (state.inflected.endsWith(SUFFIX_ING)) => {
+        ParsedVerb(subject, None, state.lemma,
+          tam.progressive, None)
+      }
       case SilPredicateQuery(
         SilActionPredicate(subject, action, rhs, Seq()),
         question, answerInflection, tam, _
@@ -88,6 +96,14 @@ class SprEnglishVerbSpec extends Specification
       ) => {
         ParsedVerb(
           subject, Some(complement), lemmaFor(rel), tam,
+          Some((question, answerInflection)))
+      }
+      case SilPredicateQuery(
+        SilStatePredicate(subject, SilPropertyState(state), Seq()),
+        question, answerInflection, tam, _
+      ) if (state.inflected.endsWith(SUFFIX_ING)) => {
+        ParsedVerb(
+          subject, None, state.lemma, tam.progressive,
           Some((question, answerInflection)))
       }
       case _ => {
@@ -201,6 +217,12 @@ class SprEnglishVerbSpec extends Specification
           Some(SilNounReference(SilWord("customer")))
         )
       }
+      case Some((QUESTION_HOW_MANY, INFLECT_ACCUSATIVE)) => {
+        Seq(
+          Some(SilNounReference(SilWord("customers", "customer"),
+            DETERMINER_UNSPECIFIED, COUNT_PLURAL))
+        )
+      }
       case _ => {
         Seq(
           None,
@@ -216,12 +238,17 @@ class SprEnglishVerbSpec extends Specification
     Seq(
       (SilNounReference(SilWord(LEMMA_WHO)),
         (QUESTION_WHO, INFLECT_NOMINATIVE)),
-      (SilNounReference(SilWord("salesperson"), DETERMINER_UNIQUE),
+      (SilNounReference(SilWord("agent"), DETERMINER_UNIQUE),
         (QUESTION_WHO, INFLECT_ACCUSATIVE)),
-      (SilNounReference(SilWord("salesperson")),
+      (SilNounReference(SilWord("agent")),
         (QUESTION_WHICH, INFLECT_NOMINATIVE)),
-      (SilNounReference(SilWord("salesperson"), DETERMINER_UNIQUE),
-        (QUESTION_WHICH, INFLECT_ACCUSATIVE))
+      (SilNounReference(SilWord("agent"), DETERMINER_UNIQUE),
+        (QUESTION_WHICH, INFLECT_ACCUSATIVE)),
+      (SilNounReference(SilWord("agents", "agent"),
+        DETERMINER_UNSPECIFIED, COUNT_PLURAL),
+        (QUESTION_HOW_MANY, INFLECT_NOMINATIVE)),
+      (SilNounReference(SilWord("agent"), DETERMINER_UNIQUE),
+        (QUESTION_HOW_MANY, INFLECT_ACCUSATIVE))
     )
   }
 
@@ -340,9 +367,8 @@ class SprEnglishVerbSpec extends Specification
     inflection : SilInflection) : Boolean =
   {
     // FIXME corenlp doesn't seem to understand progressives in this context
-    (tam.polarity, tam.aspect, question, inflection) match {
-      case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE,
-        QUESTION_WHICH | QUESTION_WHO, INFLECT_ACCUSATIVE) => true
+    (tam.polarity, tam.aspect, inflection) match {
+      case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE, INFLECT_ACCUSATIVE) => true
       case _ => false
     }
   }
@@ -371,7 +397,7 @@ class SprEnglishVerbSpec extends Specification
     {
       // FIXME implement all the questions
       Fragment.foreach(
-        Seq(LEMMA_BE, LEMMA_HAVE, "chase").flatMap(querySeq)
+        Seq(LEMMA_BE, LEMMA_HAVE, "pester").flatMap(querySeq)
       ) {
         case (
           subject, rhs, lemma, tam, question
@@ -411,7 +437,7 @@ class SprEnglishVerbSpec extends Specification
     // can be edited for a specific scenario and then run by itself
     "parse one" in
     {
-      val subject = SilNounReference(SilWord("salesperson"), DETERMINER_UNIQUE)
+      val subject = SilNounReference(SilWord("agent"), DETERMINER_UNIQUE)
       val rhs = Some(SilNounReference(SilWord("customer")))
       val lemma = "chase"
       val tam = SilTam.interrogative

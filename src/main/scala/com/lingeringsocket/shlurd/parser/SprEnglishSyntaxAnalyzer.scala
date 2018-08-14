@@ -1054,6 +1054,8 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         if (how.hasTerminalLemma(LEMMA_HOW) &&
           many.hasTerminalLemma(LEMMA_MANY))
         {
+          // FIXME for HOW_MANY, force the corresponding noun reference
+          // to plural
           Some(QUESTION_HOW_MANY)
         } else {
           None
