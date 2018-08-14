@@ -235,6 +235,11 @@ class SprEnglishVerbSpec extends Specification
   private def questionSeq
       : Seq[(SilReference, (SilQuestion, SilInflection))] =
   {
+    // FIXME properly implement QUESTION_WHAT and test that;
+    // also test non-modifier version of QUESTION_WHICH
+    // FIXME rework representation for QUESTION_WHERE and test that
+    // FIXME test INFLECT_DATIVE and INFLECT_GENITIVE, plus
+    // adpositional objects
     Seq(
       (SilNounReference(SilWord(LEMMA_WHO)),
         (QUESTION_WHO, INFLECT_NOMINATIVE)),
@@ -395,7 +400,6 @@ class SprEnglishVerbSpec extends Specification
 
     "parse query matrix" >>
     {
-      // FIXME implement all the questions
       Fragment.foreach(
         Seq(LEMMA_BE, LEMMA_HAVE, "pester").flatMap(querySeq)
       ) {
