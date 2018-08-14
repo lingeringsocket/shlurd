@@ -67,8 +67,7 @@ class SprFallbackParser(
 }
 
 class SprSingleParser(
-  tree : SprSyntaxTree, tokens : Seq[String], lemmas : Seq[String],
-  guessedQuestion : Boolean)
+  tree : SprSyntaxTree, guessedQuestion : Boolean)
     extends SprParser
 {
   private def parseRoot(tree : SprSyntaxTree) =
@@ -234,7 +233,7 @@ object SprParser
     if (dump) {
       println(dumpPrefix + " REWRITTEN SYNTAX = " + rewrittenTree)
     }
-    new SprSingleParser(rewrittenTree, tokens, lemmas, guessedQuestion)
+    new SprSingleParser(rewrittenTree, guessedQuestion)
   }
 
   private def analyzeDependencies(sentence : Sentence) : Seq[String] =
