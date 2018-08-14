@@ -43,6 +43,12 @@ fullClasspath in Runtime ++= (fullClasspath in cli in Runtime).value
 
 scalacOptions in (Compile, console) := Common.scalacCommonOptions :+ "-Yrepl-sync"
 
+testOptions in Test += Tests.Setup(
+  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.ShlurdTestSetup").newInstance)
+
+testOptions in Test += Tests.Cleanup(
+  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.ShlurdTestCleanup").newInstance)
+
 initialCommands := """
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._

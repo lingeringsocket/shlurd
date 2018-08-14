@@ -20,6 +20,7 @@ import edu.stanford.nlp.ling._
 import edu.stanford.nlp.simple.Document
 
 import scala.io._
+import scala.collection._
 import scala.collection.JavaConverters._
 
 import java.io._
@@ -133,6 +134,19 @@ class CorenlpTreeWrapper(
 
 object SprParser
 {
+  case class CacheKey(
+    sentence : String,
+    config : String
+  )
+
+  type CacheValue = SprSyntaxTree
+
+  private var cache : Option[mutable.Map[CacheKey, CacheValue]] = None
+
+  private var cacheDirty = false
+
+  private var cacheFile : Option[File] = None
+
   def getEmptyDocument() = new Document("")
 
   def debug(s : String)
@@ -141,6 +155,65 @@ object SprParser
       val parser = prepareOne(sentence, true)
       println("SHLURD = " + parser.parseOne)
     })
+  }
+
+  def enableCache(file : Option[File] = None)
+  {
+    cacheFile = file
+    cacheDirty = false
+    cache = file.filter(_.exists).map(loadCache).orElse(
+      Some(new concurrent.TrieMap[CacheKey, CacheValue]))
+  }
+
+  private def loadCache(file : File) =
+  {
+    val fileIn = new FileInputStream(file)
+    try {
+      // https://stackoverflow.com/a/22375260/2913158
+      val objIn = new ObjectInputStream(fileIn) {
+        override def resolveClass(
+          desc: java.io.ObjectStreamClass): Class[_] =
+        {
+          try {
+            Class.forName(desc.getName, false, getClass.getClassLoader)
+          } catch {
+            case ex : ClassNotFoundException => super.resolveClass(desc)
+          }
+        }
+      }
+      objIn.readObject.asInstanceOf[mutable.Map[CacheKey, CacheValue]]
+    } finally {
+      fileIn.close
+    }
+  }
+
+  def saveCache()
+  {
+    if (cacheDirty) {
+      cacheFile.foreach(file => {
+        cache.foreach(c => {
+          val fileOut = new FileOutputStream(file)
+          try {
+            val objOut = new ObjectOutputStream(fileOut)
+            objOut.writeObject(c)
+            objOut.flush
+            cacheDirty = false
+          } finally {
+            fileOut.close
+          }
+        })
+      })
+    }
+  }
+
+  private def cacheParse(
+    key : CacheKey,
+    parse : () => CacheValue) : CacheValue =
+  {
+    cache.map(_.getOrElseUpdate(key, {
+      cacheDirty = true
+      parse()
+    })).getOrElse(parse())
   }
 
   private def tokenize(input : String) : Seq[Sentence] =
@@ -206,29 +279,34 @@ object SprParser
     preDependencies : Boolean, guessedQuestion : Boolean,
     dump : Boolean, dumpPrefix : String) =
   {
-    var deps : Seq[String] = Seq.empty
-    val sentence = tokenize(sentenceString).head
-    if (preDependencies) {
-      // when preDependencies is requested, it's important to analyze
-      // dependencies BEFORE parsing in order to get the best parse
-      deps = analyzeDependencies(sentence)
+    def corenlpParse() : SprSyntaxTree = {
+      var deps : Seq[String] = Seq.empty
+      val sentence = tokenize(sentenceString).head
+      if (preDependencies) {
+        // when preDependencies is requested, it's important to analyze
+        // dependencies BEFORE parsing in order to get the best parse
+        deps = analyzeDependencies(sentence)
+      }
+      val corenlp = sentence.parse(props)
+      if (dump) {
+        println(dumpPrefix + " PARSE = " + corenlp)
+      }
+      corenlp.indexLeaves(0, true)
+      if (!preDependencies) {
+        // when preDependencies is not requested, it's important to analyze
+        // dependencies AFTER parsing in order to get the best parse
+        deps = analyzeDependencies(sentence)
+      }
+      val lemmas = sentence.lemmas.asScala
+      if (dump) {
+        println(dumpPrefix + " DEPS = " + tokens.zip(deps))
+      }
+      SprSyntaxRewriter.rewriteAbstract(
+        new CorenlpTreeWrapper(corenlp, tokens, lemmas, deps))
     }
-    val corenlp = sentence.parse(props)
-    if (dump) {
-      println(dumpPrefix + " PARSE = " + corenlp)
-    }
-    corenlp.indexLeaves(0, true)
-    if (!preDependencies) {
-      // when preDependencies is not requested, it's important to analyze
-      // dependencies AFTER parsing in order to get the best parse
-      deps = analyzeDependencies(sentence)
-    }
-    val lemmas = sentence.lemmas.asScala
-    if (dump) {
-      println(dumpPrefix + " DEPS = " + tokens.zip(deps))
-    }
-    val syntaxTree = SprSyntaxRewriter.rewriteAbstract(
-      new CorenlpTreeWrapper(corenlp, tokens, lemmas, deps))
+
+    val syntaxTree = cacheParse(
+      CacheKey(sentenceString, dumpPrefix), corenlpParse)
     val rewrittenTree = SprSyntaxRewriter.rewriteWarts(syntaxTree)
     if (dump) {
       println(dumpPrefix + " REWRITTEN SYNTAX = " + rewrittenTree)

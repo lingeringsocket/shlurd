@@ -1,6 +1,6 @@
 TAGS
 *.class
-shlurd-mind.zip
+run/*
 
 # sbt specific
 .cache
