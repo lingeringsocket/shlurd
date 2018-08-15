@@ -185,16 +185,30 @@ class SpcInterpreter(
     sentence : SilSentence)
       : Option[String] =
   {
+    var matched = false
+    val compliance = sentencePrinter.sb.respondCompliance
     attemptAsBelief(beliefInterpreter, sentence).foreach(result => {
-      return Some(result)
-    })
-    val result = sentence match {
-      case SilPredicateSentence(ap : SilActionPredicate, _, _) => {
-        interpretAction(beliefInterpreter, ap)
+      if (result != compliance) {
+        return Some(result)
+      } else {
+        matched = true
       }
-      case _ => None
+    })
+    sentence match {
+      case SilPredicateSentence(predicate, _, _) => {
+        val result = interpretTriggerablePredicate(beliefInterpreter, predicate)
+        if (!result.isEmpty) {
+          return result
+        }
+      }
+      case _ => {
+      }
     }
-    result
+    if (matched) {
+      Some(compliance)
+    } else {
+      None
+    }
   }
 
   private def attemptAsBelief(
@@ -241,9 +255,9 @@ class SpcInterpreter(
     super.evaluateActionPredicate(predicate, resultCollector)
   }
 
-  private def interpretAction(
+  private def interpretTriggerablePredicate(
     beliefInterpreter : SpcBeliefInterpreter,
-    predicate : SilActionPredicate) : Option[String] =
+    predicate : SilPredicate) : Option[String] =
   {
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
@@ -268,7 +282,7 @@ class SpcInterpreter(
   private def applyTrigger(
     beliefInterpreter : SpcBeliefInterpreter,
     trigger : SilConditionalSentence,
-    predicate : SilActionPredicate)
+    predicate : SilPredicate)
       : Option[String] =
   {
     matchTrigger(trigger, predicate) match {
@@ -303,27 +317,72 @@ class SpcInterpreter(
 
   private def matchTrigger(
     trigger : SilConditionalSentence,
-    predicate : SilActionPredicate) : Option[SilPredicate] =
+    predicate : SilPredicate) : Option[SilPredicate] =
   {
     debug(s"ATTEMPT TRIGGER MATCH $trigger")
     val antecedent = trigger.antecedent
     val consequent = trigger.consequent
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
     antecedent match {
+      case SilRelationshipPredicate(
+        subject, complement, relationship, modifiers
+      ) => {
+        val relPredicate = predicate match {
+          case rp : SilRelationshipPredicate => rp
+          case _ => {
+            debug(s"PREDICATE ${predicate} IS NOT A RELATIONSHIP")
+            return None
+          }
+        }
+        if (relationship != relPredicate.relationship) {
+          debug(s"RELATIONSHIP ${relPredicate.relationship} DOES NOT MATCH")
+          return None
+        }
+        if (!prepareReplacement(
+          replacements, subject, relPredicate.subject))
+        {
+          return None
+        }
+        relationship match {
+          case REL_IDENTITY => {
+            if (complement != relPredicate.complement) {
+              debug(s"COMPLEMENT ${complement} " +
+                s"DOES NOT MATCH ${relPredicate.complement}")
+              return None
+            }
+          }
+          case REL_ASSOCIATION => {
+            if (!prepareReplacement(
+              replacements, complement, relPredicate.complement))
+            {
+              return None
+            }
+          }
+        }
+      }
       case SilActionPredicate(
         subject, action, directObject, modifiers
       ) => {
-        if (action.lemma != predicate.action.lemma) {
-          debug(s"ACTION ${predicate.action.lemma} DOES NOT MATCH")
+        val actionPredicate = predicate match {
+          case ap : SilActionPredicate => ap
+          case _ => {
+            debug(s"PREDICATE ${predicate} IS NOT AN ACTION")
+            return None
+          }
+        }
+        if (action.lemma != actionPredicate.action.lemma) {
+          debug(s"ACTION ${actionPredicate.action.lemma} DOES NOT MATCH")
           return None
         }
         // FIXME detect colliding replacement nouns e.g.
         // "if an object hits an object"
-        if (!prepareReplacement(replacements, subject, predicate.subject)) {
+        if (!prepareReplacement(
+          replacements, subject, actionPredicate.subject))
+        {
           return None
         }
         directObject.foreach(obj => {
-          predicate.directObject match {
+          actionPredicate.directObject match {
             case Some(actualObj) => {
               if (!prepareReplacement(replacements, obj, actualObj)) {
                 return None
@@ -338,7 +397,7 @@ class SpcInterpreter(
         // FIXME support multiple modifiers and other patterns
         val filteredModifiers = modifiers.filterNot(_ match {
           case bm : SilBasicVerbModifier => {
-            if (predicate.modifiers.contains(bm)) {
+            if (actionPredicate.modifiers.contains(bm)) {
               // matched:  discard
               true
             } else {
@@ -354,9 +413,9 @@ class SpcInterpreter(
             adposition, SilNounReference(
               objNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR))
           ) => {
-            // FIXME some predicate.modifiers (e.g. "never") might
+            // FIXME some modifiers (e.g. "never") might
             // negate the match
-            val actualRefs = predicate.modifiers.flatMap(_ match {
+            val actualRefs = actionPredicate.modifiers.flatMap(_ match {
               case SilAdpositionalVerbModifier(
                 actualAdposition, actualRef
               ) if (adposition.words.toSet.subsetOf(
@@ -424,6 +483,9 @@ class SpcInterpreter(
                 return false
               }
             }
+          }
+          case SilNounReference(_, DETERMINER_NONSPECIFIC, _) => {
+            return true
           }
           case _ => actualRef
         }

@@ -37,5 +37,19 @@ class SpcInterpretTesterSpec extends Specification
       successes must be equalTo 13
       failures must be equalTo 0
     }
+
+    "understand babi qa beliefs" in
+    {
+      val beliefs = SprParser.getResourceFile(
+        "/expect/babi-qa-beliefs.txt")
+      val script = SprParser.getResourceFile(
+        "/expect/babi-qa-script.txt")
+      val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
+      val (successes, failures) = tester.run(
+        Source.fromFile(script),
+        NullConsoleOutput)
+      successes must be equalTo 2
+      failures must be equalTo 0
+    }
   }
 }

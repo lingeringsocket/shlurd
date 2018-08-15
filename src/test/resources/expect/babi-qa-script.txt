@@ -1,0 +1,2 @@
+100 Leo is a lion.
+101 Which genus is Leo's classification?	Panthera
