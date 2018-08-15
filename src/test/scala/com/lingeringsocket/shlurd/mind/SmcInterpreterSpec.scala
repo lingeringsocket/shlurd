@@ -511,7 +511,7 @@ class SmcInterpreterSpec extends Specification
       )
     }
 
-    "understand conversational pronoun references" in new
+    "understand conversational singular pronoun references" in new
       InterpreterContext
     {
       mind.startConversation
@@ -521,6 +521,20 @@ class SmcInterpreterSpec extends Specification
         "No, the tiger is not asleep.")
       interpret("is it awake") must be equalTo(
         "Yes, the tiger is awake.")
+    }
+
+    "understand conversational plural pronoun references" in new
+      InterpreterContext
+    {
+      mind.startConversation
+      interpret("are they asleep") must be equalTo(
+        "Sorry, when you say 'they' I don't know who or what you mean.")
+      interpret("are the lion and the tiger asleep") must be equalTo(
+        "No, the tiger is not asleep.")
+      // FIXME:  the answer should be "No, the lion is not awake."; need to
+      // split the pronoun reference somehow when evaluating it
+      interpret("are they awake") must be equalTo(
+        "No, the lion and the tiger are not awake.")
     }
   }
 }

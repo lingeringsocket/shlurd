@@ -42,7 +42,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     }
     sentence match {
       case SilPredicateSentence(predicate, tam, formality) => {
-        if (!predicate.getModifiers.isEmpty) {
+        if (!predicate.getModifiers.filterNot(isIgnorableModifier).isEmpty) {
           return Seq.empty
         }
         predicate match {
@@ -630,6 +630,20 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           }
         }
       case _ => Some(false)
+    }
+  }
+
+  private def isIgnorableModifier(modifier : SilVerbModifier) : Boolean =
+  {
+    modifier match {
+      // "after this | that"
+      case SilAdpositionalVerbModifier(
+        SilAdposition.AFTER,
+        SilPronounReference(
+          PERSON_THIRD, GENDER_N, COUNT_SINGULAR,
+          DISTANCE_HERE | DISTANCE_THERE)
+      ) => true
+      case _ => false
     }
   }
 

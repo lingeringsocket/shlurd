@@ -953,7 +953,7 @@ class SpcInterpreterSpec extends Specification
     }
 
     "understand conversational pronoun references" in new InterpreterContext(
-      ACCEPT_NEW_BELIEFS,
+      ACCEPT_MODIFIED_BELIEFS,
       SmcResponseParams().copy(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/people.txt")
@@ -963,6 +963,10 @@ class SpcInterpreterSpec extends Specification
       interpret("who is Todd", "Todd is Amanda's brother.")
       interpret("is she a dog", "No, Amanda is not a dog.")
       interpret("is he Dirk's friend", "Yes, Todd is Dirk's friend.")
+      interpretBelief("the jail is an object")
+      interpretBelief("if a person teleports, then the person is in the jail")
+      interpretBelief("Todd and Dirk teleport")
+      interpret("are they in the jail", "Yes, Todd and Dirk are in the jail.")
     }
 
     "understand sequential timeframes" in new InterpreterContext(
@@ -976,8 +980,8 @@ class SpcInterpreterSpec extends Specification
         "No narrative in progress.")
       mind.startNarrative
       interpretBelief("the key was in the pocket")
-      interpretBelief("the key was in the purse")
-      interpretBelief("the key was in the shoe")
+      interpretBelief("after that the key was in the purse")
+      interpretBelief("after that the key was in the shoe")
       interpretTerse("where is the key", "The shoe.")
       interpretTerse("where was the key",
         "A timeframe must be specified.")

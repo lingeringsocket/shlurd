@@ -36,6 +36,23 @@ class SmcReferenceRewriter[
   options : SmcResolutionOptions = SmcResolutionOptions())
     extends SilPhraseRewriter
 {
+  private val reverseMap = new mutable.HashMap[SilReference, SilReference]
+
+  private def newResolved(
+    entities : Set[EntityType],
+    noun : SilWord,
+    determiner : SilDeterminer,
+    unresolved : SilReference,
+    intermediate : Option[SilReference] = None) =
+  {
+    val rr = SilResolvedReference(entities, noun, determiner)
+    reverseMap.put(rr, unresolved)
+    resultCollector.referenceMap.put(rr, entities)
+    resultCollector.referenceMap.put(unresolved, entities)
+    intermediate.foreach(resultCollector.referenceMap.put(_, entities))
+    rr
+  }
+
   def rewriteReferences = replacementMatcher {
     case nr @ SilNounReference(
       noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
@@ -44,10 +61,7 @@ class SmcReferenceRewriter[
         noun.lemma, REF_SUBJECT, Set.empty) match
       {
         case Success(entities) => {
-          val rr = SilResolvedReference(entities, noun, nr.determiner)
-          resultCollector.referenceMap.put(rr, entities)
-          resultCollector.referenceMap.put(nr, entities)
-          rr
+          newResolved(entities, noun, nr.determiner, nr)
         }
         case Failure(e) => {
           if (options.failOnUnknown) {
@@ -66,10 +80,7 @@ class SmcReferenceRewriter[
         noun.lemma, REF_SUBJECT, Set.empty) match
       {
         case Success(entities) => {
-          val rr = SilResolvedReference(entities, noun, nr.determiner)
-          resultCollector.referenceMap.put(rr, entities)
-          resultCollector.referenceMap.put(nr, entities)
-          rr
+          newResolved(entities, noun, nr.determiner, nr)
         }
         case Failure(e) => {
           nr
@@ -77,7 +88,7 @@ class SmcReferenceRewriter[
       }
     }
     case cr @ SilConjunctiveReference(
-      DETERMINER_ALL, references, _
+      DETERMINER_ALL, references, separator
     ) if (options.resolveConjunctions) => {
       val resolved = references.flatMap(_ match {
         case rr : SilResolvedReference[EntityType] => {
@@ -91,12 +102,12 @@ class SmcReferenceRewriter[
         cr
       } else {
         val entities = resolved.flatMap(_.entities).toSet
+        val reconstructed = SilConjunctiveReference(
+          DETERMINER_ALL, references.map(reverseMap), separator)
         // FIXME is this correct for noun and determiner??
-        val rr = SilResolvedReference(
-          entities, resolved.head.noun, resolved.head.determiner)
-        resultCollector.referenceMap.put(rr, entities)
-        resultCollector.referenceMap.put(cr, entities)
-        rr
+        newResolved(
+          entities, resolved.head.noun, resolved.head.determiner,
+          reconstructed, Some(cr))
       }
     }
     case gr @ SilGenitiveReference(
@@ -109,13 +120,10 @@ class SmcReferenceRewriter[
       if (attempts.exists(_.isFailure)) {
         gr
       } else {
-        // FIXME is this correct for noun and determiner??
         val entities = attempts.map(_.get).flatMap(_.toSet)
-        val rr = SilResolvedReference(
-          entities, noun, grr.determiner)
-        resultCollector.referenceMap.put(rr, entities)
-        resultCollector.referenceMap.put(gr, entities)
-        rr
+        val reconstructed = SilGenitiveReference(reverseMap(grr), gr.possessee)
+        // FIXME is this correct for noun and determiner??
+        newResolved(entities, noun, grr.determiner, reconstructed, Some(gr))
       }
     }
   }

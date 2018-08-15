@@ -656,7 +656,7 @@ class SmcInterpreter[
     if (predicate != predicateOriginal) {
       debug(s"REWRITTEN REFERENCES : $predicate")
     }
-    // FIXME implement action predicates, verb modifiers
+    // FIXME analyze verb modifiers
     val result = predicate match {
       case SilStatePredicate(subject, state, modifiers) => {
         state match {
@@ -1027,6 +1027,13 @@ class SmcInterpreter[
         val results = references.map(
           evaluatePredicateOverReference(
             _, context, resultCollector, specifiedState)(evaluator))
+        val combinedEntities = references.flatMap(sub => {
+          referenceMap.get(sub) match {
+            case Some(entities) => entities
+            case _ => Seq.empty
+          }
+        })
+        referenceMap.put(reference, combinedEntities.toSet)
         evaluateDeterminer(results, determiner)
       }
       case SilStateSpecifiedReference(sub, subState) => {
