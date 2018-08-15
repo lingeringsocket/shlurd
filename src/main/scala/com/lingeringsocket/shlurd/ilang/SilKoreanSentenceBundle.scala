@@ -57,7 +57,8 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def statePredicateQuestion(
     subject : String, verbSeq : Seq[String], state : String,
-    question : Option[SilQuestion], modifiers : Seq[String]) =
+    isExistential : Boolean, question : Option[SilQuestion],
+    modifiers : Seq[String]) =
   {
     // FIXME:  only holds for "요" politeness
     statePredicateStatement(subject, verbSeq, state, modifiers)

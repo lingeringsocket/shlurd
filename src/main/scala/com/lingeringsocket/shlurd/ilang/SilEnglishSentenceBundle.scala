@@ -77,12 +77,17 @@ class SilEnglishSentenceBundle
 
   override def statePredicateQuestion(
     subject : String, verbSeq : Seq[String], state : String,
+    isExistential : Boolean,
     question : Option[SilQuestion],
     modifiers : Seq[String]) =
   {
     if (!question.isEmpty) {
-      compose((Seq(subject) ++ verbSeq.take(2).reverse ++
-        verbSeq.drop(2) ++ Seq(state) ++ modifiers):_*)
+      if (isExistential) {
+        compose((Seq(subject) ++ verbSeq.take(2).reverse ++
+          verbSeq.drop(2) ++ Seq(state) ++ modifiers):_*)
+      } else {
+        composePredicateStatement(subject, verbSeq, state, modifiers)
+      }
     } else if (state.isEmpty) {
       compose((verbSeq.take(2).reverse ++ verbSeq.drop(2) ++
         Seq(subject) ++ modifiers):_*)

@@ -22,13 +22,13 @@ import org.specs2.specification.core._
 import SprEnglishLemmas._
 import SprEnglishAffixes._
 
-// FIXME:  add coverage for state predicates; LEMMA_EXIST;
-// various modifier types
+// FIXME:  add coverage for various modifier types
+// LEMMA_EXIST, including "there is" form
 class SprEnglishVerbSpec extends Specification
 {
   case class ParsedVerb(
     subject : SilReference,
-    rhs : Option[SilReference],
+    rhs : Option[SilPhrase],
     lemma : String,
     tam : SilTam,
     question : Option[(SilQuestion, SilInflection)]
@@ -76,11 +76,16 @@ class SprEnglishVerbSpec extends Specification
         ParsedVerb(subject, Some(complement), lemmaFor(rel), tam, None)
       }
       case SilPredicateSentence(
-        SilStatePredicate(subject, SilPropertyState(state), Seq()),
+        SilStatePredicate(subject, rhs @ SilPropertyState(state), Seq()),
         tam, _
-      ) if (state.inflected.endsWith(SUFFIX_ING)) => {
-        ParsedVerb(subject, None, state.lemma,
-          tam.progressive, None)
+      ) => {
+        if (state.inflected.endsWith(SUFFIX_ING)) {
+          ParsedVerb(subject, None, state.lemma,
+            tam.progressive, None)
+        } else {
+          ParsedVerb(subject, Some(rhs), LEMMA_BE,
+            tam, None)
+        }
       }
       case SilPredicateQuery(
         SilActionPredicate(subject, action, rhs, Seq()),
@@ -99,12 +104,17 @@ class SprEnglishVerbSpec extends Specification
           Some((question, answerInflection)))
       }
       case SilPredicateQuery(
-        SilStatePredicate(subject, SilPropertyState(state), Seq()),
+        SilStatePredicate(subject, rhs @ SilPropertyState(state), Seq()),
         question, answerInflection, tam, _
-      ) if (state.inflected.endsWith(SUFFIX_ING)) => {
-        ParsedVerb(
-          subject, None, state.lemma, tam.progressive,
-          Some((question, answerInflection)))
+      ) => {
+        if (state.inflected.endsWith(SUFFIX_ING)) {
+          ParsedVerb(
+            subject, None, state.lemma, tam.progressive,
+            Some((question, answerInflection)))
+        } else {
+          ParsedVerb(subject, Some(rhs), LEMMA_BE,
+            tam, Some((question, answerInflection)))
+        }
       }
       case _ => {
         throw new RuntimeException(s"unexpected sentence: $sentence")
@@ -114,28 +124,45 @@ class SprEnglishVerbSpec extends Specification
 
   private def generateInput(
     subject : SilReference,
-    rhs : Option[SilReference],
+    rhs : Option[SilPhrase],
     lemma : String,
     tam : SilTam,
     question : Option[(SilQuestion, SilInflection)]) : String =
   {
+    def expectReference(phrase : SilPhrase) =
+    {
+      phrase match {
+        case ref : SilReference => ref
+        case _ => throw new RuntimeException(s"unexpected phrase $phrase")
+      }
+    }
     val predicate = {
-      if (isRelationship(
-        lemma, question.map(_._2).getOrElse(INFLECT_NONE)) &&
-        !tam.isProgressive)
-      {
-        SilRelationshipPredicate(
-          subject,
-          rhs.get,
-          relationshipFor(lemma)
-        )
-      } else {
-        SilActionPredicate(
-          subject,
-          SilWord("", lemma),
-          rhs,
-          Seq.empty
-        )
+      rhs match {
+        case Some(state : SilState) => {
+          SilStatePredicate(
+            subject,
+            state
+          )
+        }
+        case _ => {
+          if (isRelationship(
+            lemma, question.map(_._2).getOrElse(INFLECT_NONE)) &&
+            !tam.isProgressive)
+          {
+            SilRelationshipPredicate(
+              subject,
+              rhs.map(expectReference).get,
+              relationshipFor(lemma)
+            )
+          } else {
+            SilActionPredicate(
+              subject,
+              SilWord("", lemma),
+              rhs.map(expectReference),
+              Seq.empty
+            )
+          }
+        }
       }
     }
     val sentence = question match {
@@ -204,7 +231,7 @@ class SprEnglishVerbSpec extends Specification
 
   private def rhsSeq(
     question : Option[(SilQuestion, SilInflection)] = None)
-      : Seq[Option[SilReference]] =
+      : Seq[Option[SilPhrase]] =
   {
     question match {
       case Some((QUESTION_WHO, INFLECT_ACCUSATIVE)) => {
@@ -226,7 +253,8 @@ class SprEnglishVerbSpec extends Specification
       case _ => {
         Seq(
           None,
-          Some(SilNounReference(SilWord("customer"), DETERMINER_UNIQUE))
+          Some(SilNounReference(SilWord("customer"), DETERMINER_UNIQUE)),
+          Some(SilPropertyState(SilWord("ridiculous")))
         )
       }
     }
@@ -259,7 +287,7 @@ class SprEnglishVerbSpec extends Specification
 
   private def isConsistent(
     pronoun : SilPronounReference,
-    rhs : Option[SilReference], lemma : String,
+    rhs : Option[SilPhrase], lemma : String,
     tam : SilTam, inflection : SilInflection = INFLECT_NONE) : Boolean =
   {
     if (!tam.isValid()) {
@@ -267,6 +295,8 @@ class SprEnglishVerbSpec extends Specification
     } else {
       (!isRelationship(lemma, inflection) || !rhs.isEmpty) &&
         ((pronoun.person == PERSON_SECOND) || !tam.isImperative) &&
+        (rhs.isEmpty || !rhs.get.isInstanceOf[SilState] ||
+          (lemma == LEMMA_BE)) &&
         ((tam.modality != MODAL_EMPHATIC) ||
           (!tam.isInterrogative && !tam.isNegative && (lemma != LEMMA_BE))) &&
         ((inflection != INFLECT_ACCUSATIVE) || (lemma != LEMMA_BE))
@@ -274,7 +304,7 @@ class SprEnglishVerbSpec extends Specification
   }
 
   private def mainSeq(lemma : String)
-      : Seq[(SilReference, Option[SilReference], String, SilTam)] =
+      : Seq[(SilPronounReference, Option[SilPhrase], String, SilTam)] =
   {
     pronounSeq.flatMap(
       pronoun => moodSeq.flatMap(
@@ -308,7 +338,7 @@ class SprEnglishVerbSpec extends Specification
   }
 
   private def querySeq(lemma : String)
-      : Seq[(SilReference, Option[SilReference], String, SilTam,
+      : Seq[(SilReference, Option[SilPhrase], String, SilTam,
         (SilQuestion, SilInflection))] =
   {
     pronounSeq.flatMap(
@@ -344,7 +374,7 @@ class SprEnglishVerbSpec extends Specification
   }
 
   private def imperativeSeq(lemma : String)
-      : Seq[(SilReference, Option[SilReference], String, SilTam)] =
+      : Seq[(SilReference, Option[SilPhrase], String, SilTam)] =
   {
     // FIXME support POLARITY_NEGATIVE, MODALITY_EMPHATIC
     val pronoun = SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
@@ -368,12 +398,15 @@ class SprEnglishVerbSpec extends Specification
   }.distinct
 
   private def notYetWorking(
-    tam : SilTam, question : SilQuestion,
+    tam : SilTam, rhs : Option[SilPhrase],
     inflection : SilInflection) : Boolean =
   {
-    // FIXME corenlp doesn't seem to understand progressives in this context
-    (tam.polarity, tam.aspect, inflection) match {
-      case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE, INFLECT_ACCUSATIVE) => true
+    // FIXME corenlp doesn't seem to understand progressives in these contexts
+    (tam.polarity, tam.aspect, rhs, inflection) match {
+      case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE,
+        _, INFLECT_ACCUSATIVE) => true
+      case (POLARITY_NEGATIVE, ASPECT_PROGRESSIVE,
+        Some(_ : SilState), INFLECT_NONE) => true
       case _ => false
     }
   }
@@ -391,6 +424,9 @@ class SprEnglishVerbSpec extends Specification
           val input = generateInput(
             subject, rhs, lemma, tam, None)
           "in phrase: " + input >> {
+            if (notYetWorking(tam, rhs, INFLECT_NONE)) {
+              skipped("not working yet")
+            }
             parse(input) must be equalTo ParsedVerb(
               subject, rhs, lemma, tam, None)
           }
@@ -409,7 +445,7 @@ class SprEnglishVerbSpec extends Specification
           val input = generateInput(
             subject, rhs, lemma, tam, Some(question))
           "in query: " + input >> {
-            if (notYetWorking(tam, question._1, question._2)) {
+            if (notYetWorking(tam, rhs, question._2)) {
               skipped("not working yet")
             }
             parse(input) must be equalTo ParsedVerb(
@@ -441,11 +477,11 @@ class SprEnglishVerbSpec extends Specification
     // can be edited for a specific scenario and then run by itself
     "parse one" in
     {
-      val subject = SilNounReference(SilWord("agent"), DETERMINER_UNIQUE)
-      val rhs = Some(SilNounReference(SilWord("customer")))
-      val lemma = "chase"
-      val tam = SilTam.interrogative
-      val question = Some((QUESTION_WHICH, INFLECT_ACCUSATIVE))
+      val subject = SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+      val rhs = Some(SilPropertyState(SilWord("ridiculous")))
+      val lemma = LEMMA_BE
+      val tam = SilTam.interrogative.progressive
+      val question = None
       val input = generateInput(
         subject, rhs, lemma, tam, question)
       if (false) {

@@ -1402,4 +1402,10 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     }
     SilPronounReference(person, gender, count, distance)
   }
+
+  override private[parser] def isProhibitedPropertyState(
+    preTerminal : SprSyntaxPreTerminal) : Boolean =
+  {
+    getWord(preTerminal.child).lemma == LEMMA_BE
+  }
 }

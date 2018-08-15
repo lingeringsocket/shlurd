@@ -99,6 +99,7 @@ abstract class SilSentenceBundle
     subject : String,
     verbSeq : Seq[String],
     state : String,
+    isExistential : Boolean,
     question : Option[SilQuestion],
     modifiers : Seq[String]) : String
 

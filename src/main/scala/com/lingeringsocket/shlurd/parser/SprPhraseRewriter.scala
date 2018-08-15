@@ -122,7 +122,9 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
     case SilExpectedAdpositionalState(syntaxTree) => {
       analyzer.expectAdpositionalState(syntaxTree)
     }
-    case SilExpectedPropertyState(preTerminal : SprSyntaxPreTerminal) => {
+    case SilExpectedPropertyState(
+      preTerminal : SprSyntaxPreTerminal
+    ) if (!analyzer.isProhibitedPropertyState(preTerminal)) => {
       SilPropertyState(analyzer.getWord(preTerminal.child))
     }
     case SilExpectedExistenceState(_) => {
@@ -144,7 +146,7 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
       }
     }
     case SilExpectedComplementState(vp : SptVP) => {
-      // TODO:  ambiguity for action (passive construction) vs
+      // FIXME:  ambiguity for action (passive construction) vs
       // state (participial adjective)
       analyzer.expectPropertyComplementState(vp.children)
     }

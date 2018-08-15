@@ -72,6 +72,9 @@ abstract class SprSyntaxAnalyzer(guessedQuestion : Boolean)
     leaf : SprSyntaxTree)
       : SilWord
 
+  private[parser] def isProhibitedPropertyState(
+    preTerminal : SprSyntaxPreTerminal) : Boolean
+
   private[parser] def specifyReference(
     ref : SilReference, specifiedState : SilState)
       : SilReference
