@@ -21,7 +21,7 @@ import com.lingeringsocket.shlurd.parser._
 import SprEnglishLemmas._
 
 class SmcResponseRewriter[
-  EntityType<:SmcEntity,
+  EntityType<:SilEntity,
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType]
 ](
@@ -659,7 +659,7 @@ class SmcResponseRewriter[
   }
 
   private def summarizeList(
-    entities : Iterable[SmcEntity],
+    entities : Iterable[SilEntity],
     exhaustive : Boolean,
     existence : Boolean,
     conjunction : Boolean) =

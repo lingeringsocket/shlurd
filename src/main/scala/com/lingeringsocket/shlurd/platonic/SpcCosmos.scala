@@ -117,7 +117,7 @@ case class SpcEntity(
   val form : SpcForm,
   val qualifiers : Set[String],
   val properName : String = "")
-    extends SmcEntity with SpcEntityVertex
+    extends SilEntity with SpcEntityVertex
 {
   override def isTentative = properName.contains("_")
 }

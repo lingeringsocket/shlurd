@@ -27,7 +27,7 @@ case class SmcResolutionOptions(
 )
 
 class SmcReferenceRewriter[
-  EntityType<:SmcEntity, PropertyType<:SmcProperty
+  EntityType<:SilEntity, PropertyType<:SmcProperty
 ]
   (
   cosmos : SmcCosmos[EntityType, PropertyType],

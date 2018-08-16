@@ -27,7 +27,7 @@ import org.slf4j._
 
 import SprEnglishLemmas._
 
-case class SmcStateChangeInvocation[EntityType<:SmcEntity](
+case class SmcStateChangeInvocation[EntityType<:SilEntity](
   entities : Set[EntityType],
   state : SilWord)
 {
@@ -54,7 +54,7 @@ case class SmcResponseParams(
   def alwaysSummarize = (listLimit == 0)
 }
 
-class SmcResultCollector[EntityType<:SmcEntity](
+class SmcResultCollector[EntityType<:SilEntity](
   val referenceMap : mutable.Map[SilReference, Set[EntityType]])
 {
   val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
@@ -66,12 +66,12 @@ class SmcResultCollector[EntityType<:SmcEntity](
 
 object SmcResultCollector
 {
-  def apply[EntityType<:SmcEntity]() =
+  def apply[EntityType<:SilEntity]() =
     new SmcResultCollector(
       new mutable.LinkedHashMap[SilReference, Set[EntityType]])
 }
 
-class SmcExecutor[EntityType<:SmcEntity]
+class SmcExecutor[EntityType<:SilEntity]
 {
   def executeInvocation(
     invocation : SmcStateChangeInvocation[EntityType])
@@ -81,7 +81,7 @@ class SmcExecutor[EntityType<:SmcEntity]
 }
 
 class SmcInterpreter[
-  EntityType<:SmcEntity,
+  EntityType<:SilEntity,
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]

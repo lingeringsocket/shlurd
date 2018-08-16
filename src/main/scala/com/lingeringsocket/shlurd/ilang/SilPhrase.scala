@@ -16,13 +16,9 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
 
-trait SmcEntity
+trait SilEntity
 {
   def isTentative : Boolean = false
-}
-
-trait SmcProperty
-{
 }
 
 sealed trait SilPhrase
@@ -514,7 +510,7 @@ case class SilNounReference(
 {
 }
 
-case class SilResolvedReference[EntityType<:SmcEntity](
+case class SilResolvedReference[EntityType<:SilEntity](
   entities : Set[EntityType],
   noun : SilWord,
   determiner : SilDeterminer

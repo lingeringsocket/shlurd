@@ -38,15 +38,15 @@ class SmcConversationSpec extends Specification
 
   private val TEXT_C = "c"
 
-  private val ENTITY_1 = new SmcEntity {}
+  private val ENTITY_1 = new SilEntity {}
 
-  private val ENTITY_2 = new SmcEntity {}
+  private val ENTITY_2 = new SilEntity {}
 
-  private val REF_MAP_1 = Map[SilReference, Set[SmcEntity]](
+  private val REF_MAP_1 = Map[SilReference, Set[SilEntity]](
     REFERENCE_D -> Set(ENTITY_1)
   )
 
-  private val REF_MAP_2 = Map[SilReference, Set[SmcEntity]](
+  private val REF_MAP_2 = Map[SilReference, Set[SilEntity]](
     REFERENCE_D -> Set(ENTITY_2)
   )
 
@@ -63,8 +63,8 @@ class SmcConversationSpec extends Specification
     speakerName : String,
     sentence : SilSentence,
     text : String,
-    refMap : Map[SilReference, Set[SmcEntity]] =
-      Map.empty[SilReference, Set[SmcEntity]]) =
+    refMap : Map[SilReference, Set[SilEntity]] =
+      Map.empty[SilReference, Set[SilEntity]]) =
   {
     SpeakerUtterance(speakerName, sentence, text, refMap)
   }
@@ -73,7 +73,7 @@ class SmcConversationSpec extends Specification
   {
     "remember utterances" in
     {
-      val conversation = new SmcConversation[SmcEntity]
+      val conversation = new SmcConversation[SilEntity]
       conversation.addSpeakerSentence(
         SPEAKER_FRED, SENTENCE_A, TEXT_A, REF_MAP_1)
       conversation.addSpeakerSentence(
@@ -94,7 +94,7 @@ class SmcConversationSpec extends Specification
 
     "update sentence analysis" in
     {
-      val conversation = new SmcConversation[SmcEntity]
+      val conversation = new SmcConversation[SilEntity]
       conversation.addSpeakerSentence(
         SPEAKER_FRED, SENTENCE_A, TEXT_A)
       conversation.getUtterances must be equalTo Seq(

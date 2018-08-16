@@ -17,7 +17,7 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd.parser._
 
 class SmcInputRewriter[
-  EntityType<:SmcEntity,
+  EntityType<:SilEntity,
   PropertyType<:SmcProperty,
   CosmosType <:SmcCosmos[EntityType, PropertyType]
 ](

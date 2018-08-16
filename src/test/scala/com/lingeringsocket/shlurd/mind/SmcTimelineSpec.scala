@@ -24,10 +24,10 @@ class SmcTimelineSpec extends Specification
 {
   type CosmosType = ZooCosmos
 
-  type TimelineType = SmcTimeline[SmcEntity, SmcProperty, CosmosType]
+  type TimelineType = SmcTimeline[SilEntity, SmcProperty, CosmosType]
 
   type TimelineEntry = SmcTimelineEntry[
-    SmcEntity, SmcProperty,
+    SilEntity, SmcProperty,
     CosmosType
   ]
 
@@ -35,11 +35,11 @@ class SmcTimelineSpec extends Specification
 
   private val REFERENCE_D = makeReference("d")
 
-  private val ENTITY_1 = new SmcEntity {}
+  private val ENTITY_1 = new SilEntity {}
 
-  private val ENTITY_2 = new SmcEntity {}
+  private val ENTITY_2 = new SilEntity {}
 
-  private val REF_MAP_1 = Map[SilReference, Set[SmcEntity]](
+  private val REF_MAP_1 = Map[SilReference, Set[SilEntity]](
     REFERENCE_D -> Set(ENTITY_1)
   )
 
