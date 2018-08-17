@@ -21,8 +21,6 @@ import org.specs2.mutable._
 import scala.io._
 import scala.util._
 
-import spire.math._
-
 class SpcOpenhabCosmosSpec extends Specification
 {
   trait CosmosContext extends NameSpace
@@ -48,16 +46,12 @@ class SpcOpenhabCosmosSpec extends Specification
     )
 
     protected val cosmos = new SpcOpenhabCosmos {
-      override protected[platonic] def evaluateState(
-        entity : SpcEntity, stateName : String) : Try[Trilean] =
+      override protected[platonic] def evaluateEntityProperty(
+        entity : SpcEntity, property : SpcProperty) =
       {
         itemStates.get(entity.name) match {
-          case Some(currentState) => {
-            Success(Trilean(currentState == stateName))
-          }
-          case _ => {
-            Success(Trilean.Unknown)
-          }
+          case Some(state) => Success(Some(state))
+          case _ => super.evaluateEntityProperty(entity, property)
         }
       }
     }

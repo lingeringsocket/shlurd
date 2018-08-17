@@ -96,6 +96,24 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     if (failed) {
       return Seq.empty
     }
+    if (determiner != DETERMINER_NONSPECIFIC) {
+      state match {
+        case SilPropertyState(stateName) => {
+          return interpretResolvedReference(sentence, ref, {
+            entity => {
+              Seq(EntityPropertyBelief(
+                sentence,
+                SilResolvedReference(Set(entity), noun, determiner),
+                None, stateName
+              ))
+            }
+          })
+        }
+        case _ => {
+          return Seq(UnimplementedBelief(sentence))
+        }
+      }
+    }
     ref match {
       case SilStateSpecifiedReference(
         _, specifiedState @
@@ -601,6 +619,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     Seq(FormPropertyBelief(
       sentence, formName, newStates, isClosed, propertyName))
   }
+
   private def isPropertyAssoc(
     sentence : SilSentence, complementRef : SilReference,
     relationship : SilRelationship) : Option[Boolean] =
@@ -658,36 +677,40 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
       DETERMINER_UNSPECIFIED, true)
     reference match {
       case SilNounReference(
-        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) =>
-        {
-          (noun, preQualifiers, COUNT_SINGULAR, DETERMINER_NONSPECIFIC, false)
-        }
+        noun,
+        determiner @ (DETERMINER_NONSPECIFIC | DETERMINER_UNIQUE |
+          DETERMINER_UNSPECIFIED),
+        COUNT_SINGULAR
+      ) => {
+        (noun, preQualifiers, COUNT_SINGULAR, determiner, false)
+      }
       case SilNounReference(
-        noun, DETERMINER_UNSPECIFIED, COUNT_PLURAL) =>
-        {
-          (noun, preQualifiers, COUNT_PLURAL, DETERMINER_UNSPECIFIED, false)
-        }
-      case SilStateSpecifiedReference(subRef, state) =>
-        {
-          extractQualifiedNoun(
-            sentence, subRef,
-            preQualifiers ++ SilReference.extractQualifiers(state))
-        }
+        noun, DETERMINER_UNSPECIFIED, COUNT_PLURAL
+      ) => {
+        (noun, preQualifiers, COUNT_PLURAL, DETERMINER_UNSPECIFIED, false)
+      }
+      case SilStateSpecifiedReference(
+        subRef, state
+      ) => {
+        extractQualifiedNoun(
+          sentence, subRef,
+          preQualifiers ++ SilReference.extractQualifiers(state))
+      }
       case SilGenitiveReference(
         SilNounReference(
           possessor, possessorDeterminer, COUNT_SINGULAR),
         SilNounReference(
-          possession, DETERMINER_UNSPECIFIED, count)) =>
-        {
-          val failed = possessorDeterminer match {
-            case DETERMINER_UNSPECIFIED => false
-            case DETERMINER_NONSPECIFIC => false
-            case DETERMINER_UNIQUE => false
-            case _ => true
-          }
-          (possession, Seq(possessor),
-            count, possessorDeterminer, failed || !allowGenitive)
+          possession, DETERMINER_UNSPECIFIED, count)
+      ) => {
+        val failed = possessorDeterminer match {
+          case DETERMINER_UNSPECIFIED => false
+          case DETERMINER_NONSPECIFIC => false
+          case DETERMINER_UNIQUE => false
+          case _ => true
         }
+        (possession, Seq(possessor),
+          count, possessorDeterminer, failed || !allowGenitive)
+      }
       case _ => failedResult
     }
   }

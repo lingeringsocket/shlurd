@@ -19,8 +19,6 @@ import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
 
-import spire.math._
-
 import scala.io._
 import scala.util._
 
@@ -46,18 +44,16 @@ class SpcInterpreterSpec extends Specification
   ) extends NameSpace
   {
     protected val cosmos = new SpcCosmos {
-      override def evaluateEntityPropertyPredicate(
+      override protected[platonic] def evaluateEntityProperty(
         entity : SpcEntity,
-        property : SpcProperty,
-        lemma : String) =
+        property : SpcProperty) =
       {
         val qualifiedName =
           (entity.qualifiers.toSeq :+ entity.form.name
             :+ property.name).mkString(" ")
         states.get(qualifiedName) match {
-          case Some(state) => Success(Trilean(state == lemma))
-          case _ => super.evaluateEntityPropertyPredicate(
-            entity, property, lemma)
+          case Some(state) => Success(Some(state))
+          case _ => super.evaluateEntityProperty(entity, property)
         }
       }
 
@@ -523,22 +519,22 @@ class SpcInterpreterSpec extends Specification
         "then the object is in the location")
       interpretBelief("if an object rolls into a location, " +
         "then the object moves to the location")
-      interpretBelief("Snowpiercer is an object")
+      interpretBelief("Percy is an object")
       interpretBelief("Thomas is an object")
       interpretBelief("Fuji is an object")
       interpretBelief("Kilimanjaro is an object")
       interpretBelief("Denali is an object")
-      interpretBelief("Snowpiercer moves to Fuji")
-      interpret("where is Snowpiercer", "It is in Fuji.")
-      interpretBelief("Snowpiercer rolls into Kilimanjaro")
-      interpret("where is Snowpiercer", "It is in Kilimanjaro.")
+      interpretBelief("Percy moves to Fuji")
+      interpret("where is Percy", "It is in Fuji.")
+      interpretBelief("Percy rolls into Kilimanjaro")
+      interpret("where is Percy", "It is in Kilimanjaro.")
 
-      interpret("Snowpiercer rolls to Denali",
+      interpret("Percy rolls to Denali",
         "Sorry, I cannot understand what you said.")
-      interpret("where is Snowpiercer", "It is in Kilimanjaro.")
+      interpret("where is Percy", "It is in Kilimanjaro.")
 
-      interpretBelief("Snowpiercer and Thomas move to Denali")
-      interpret("where is Snowpiercer", "It is in Denali.")
+      interpretBelief("Percy and Thomas move to Denali")
+      interpret("where is Percy", "It is in Denali.")
       interpret("where is Thomas", "It is in Denali.")
 
       interpretBelief("if a person drops an object, " +
@@ -1100,6 +1096,22 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("there is a front door")
       interpret("is the front door open",
         "I don't know.")
+    }
+
+    "understand property updates" in new
+      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+    {
+      interpretBelief("a door may be open or closed")
+      interpretBelief("there is a door")
+      interpretTerse("is the door open", "I don't know.")
+      interpretBelief("the door is open")
+      interpretTerse("is the door open", "Yes.")
+      interpretTerse("is the door closed", "No.")
+      interpretBelief("the door is closed")
+      interpretTerse("is the door open", "No.")
+      interpretTerse("is the door closed", "Yes.")
+
+      cosmos.sanityCheck must beTrue
     }
 
     "reject invalid new beliefs" in new InterpreterContext(ACCEPT_NEW_BELIEFS)

@@ -294,6 +294,75 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     (formAssocEdge, possessorIdeal, role)
   }
 
+  private def instantiatePropertyStates(
+    sentence : SilSentence,
+    form : SpcForm,
+    newStates : Seq[SilWord],
+    isClosed : Boolean,
+    propertyNameOpt : Option[SilWord]) =
+  {
+    val property = propertyNameOpt match {
+      case Some(propertyName) => {
+        cosmos.instantiateProperty(form, propertyName)
+      }
+      case _ => {
+        val properties = newStates.flatMap(
+          w => cosmos.resolveFormProperty(form, w.lemma).map(_._1).toSeq)
+        properties match {
+          case Seq() => {
+            cosmos.instantiateProperty(
+              form,
+              SilWord(form.name + "_" +
+                newStates.map(_.lemma).mkString("_")))
+          }
+          case Seq(p) => {
+            // FIXME:  if we add more states to an existing property,
+            // we should rename the property too
+            p
+          }
+          case _ => {
+            // maybe unify multiple properties??
+            throw new UnimplementedBeliefExcn(sentence)
+          }
+        }
+      }
+    }
+    val baselineProperty = propertyNameOpt match {
+      case Some(propertyName) => {
+        cosmos.findProperty(form, propertyName.lemma).getOrElse(property)
+      }
+      case _ => {
+        val hyperProperties = newStates.flatMap(
+          w => cosmos.resolveHypernymProperty(form, w.lemma).
+            map(_._1).toSeq)
+        hyperProperties match {
+          case Seq() => property
+          case Seq(hyperProperty) => hyperProperty
+          case _ => {
+            throw new UnimplementedBeliefExcn(sentence)
+          }
+        }
+      }
+    }
+    if (baselineProperty.isClosed) {
+      if (!newStates.map(_.lemma).toSet.subsetOf(
+        cosmos.getPropertyStateMap(baselineProperty).keySet))
+      {
+        throw new ContradictoryBeliefExcn(
+          sentence,
+          creed.formPropertyBelief(form, baselineProperty))
+      }
+    }
+    val existingStates = cosmos.getPropertyStateMap(property)
+    val statesToAdd = newStates.filterNot(
+      word => existingStates.contains(word.lemma))
+    statesToAdd.foreach(cosmos.instantiatePropertyState(property, _))
+    if (isClosed || baselineProperty.isClosed) {
+      cosmos.closePropertyStates(property)
+    }
+    property
+  }
+
   private def beliefApplier(applier : BeliefApplier)
   {
     beliefAppliers += applier
@@ -486,6 +555,19 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
   }
 
   beliefApplier {
+    case EntityPropertyBelief(
+      sentence, reference, propertyName, stateName
+    ) => {
+      val entity = resolveReference(sentence, reference)
+      val form = entity.form
+      val property = instantiatePropertyStates(
+        sentence, form, Seq(stateName), false, propertyName)
+      // FIXME need to honor allowUpdates
+      cosmos.updateEntityProperty(entity, property, stateName.lemma)
+    }
+  }
+
+  beliefApplier {
     case EntityAssocBelief(
       sentence, possessorRef, possesseeRef, roleName
     ) => {
@@ -557,65 +639,8 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
       sentence, formName, newStates, isClosed, propertyNameOpt
     ) => {
       val form = cosmos.instantiateForm(formName)
-      val property = propertyNameOpt match {
-        case Some(propertyName) => {
-          cosmos.instantiateProperty(form, propertyName)
-        }
-        case _ => {
-          val properties = newStates.flatMap(
-            w => cosmos.resolveFormProperty(form, w.lemma).map(_._1).toSeq)
-          properties match {
-            case Seq() => {
-              cosmos.instantiateProperty(
-                form,
-                SilWord(formName.lemma + "_" +
-                  newStates.map(_.lemma).mkString("_")))
-            }
-            case Seq(p) => {
-              // FIXME:  if we add more states to an existing property,
-              // we should rename the property too
-              p
-            }
-            case _ => {
-              // maybe unify multiple properties??
-              throw new UnimplementedBeliefExcn(sentence)
-            }
-          }
-        }
-      }
-      val baselineProperty = propertyNameOpt match {
-        case Some(propertyName) => {
-          cosmos.findProperty(form, propertyName.lemma).getOrElse(property)
-        }
-        case _ => {
-          val hyperProperties = newStates.flatMap(
-            w => cosmos.resolveHypernymProperty(form, w.lemma).
-              map(_._1).toSeq)
-          hyperProperties match {
-            case Seq() => property
-            case Seq(hyperProperty) => hyperProperty
-            case _ => {
-              throw new UnimplementedBeliefExcn(sentence)
-            }
-          }
-        }
-      }
-      if (baselineProperty.isClosed) {
-        if (!newStates.map(_.lemma).toSet.subsetOf(
-          cosmos.getPropertyStateMap(baselineProperty).keySet))
-        {
-          throw new ContradictoryBeliefExcn(
-            sentence,
-            creed.formPropertyBelief(form, baselineProperty))
-        }
-      }
-      val existingStates = cosmos.getPropertyStateMap(property)
-      val statesToAdd = newStates.filterNot(
-        word => existingStates.contains(word.lemma))
-      statesToAdd.foreach(cosmos.instantiatePropertyState(property, _))
-      if (isClosed || baselineProperty.isClosed) {
-        cosmos.closePropertyStates(property)
-      }
+      instantiatePropertyStates(
+        sentence, form, newStates, isClosed, propertyNameOpt)
     }
   }
 

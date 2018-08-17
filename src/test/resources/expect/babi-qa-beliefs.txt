@@ -46,20 +46,18 @@ If a person is carrying an object, then the object is the person's possession.
 If a person gives an object to a recipient, then the object is the recipient's possession.
 If a person passes a recipient an object, then the person gives the object to the recipient.
 If a person hands an object to a recipient, then the person gives the object to the recipient.
-A rainbow's color may be white, gray, yellow, or green.
-An animal is a kind of rainbow.
-A genus is a kind of rainbow.
-A classification must be a genus.
-An animal may have a classification.
+A coloration must be white, gray, yellow, or green.
+A color must be a coloration.
+An animal may have a color as a property.
+Lion_color is a coloration.
+Rhino_color is a coloration.
+Swan_color is a coloration.
+Frog_color is a coloration.
 A lion is a kind of animal.
 A rhino is a kind of animal.
 A swan is a kind of animal.
 A frog is a kind of animal.
-Panthera is a genus.
-Rhinoceros is a genus.
-Cygnus is a genus.
-Rana is a genus.
-If an animal is a lion, then the animal's classification is Panthera.
-If an animal is a rhino, then the animal's classification is Rhinoceros.
-If an animal is a swan, then the animal's classification is Cygnus.
-If an animal is a frog, then the animal's classification is Rana.
+If an animal is a lion, then the animal's color is Lion_color.
+If an animal is a rhino, then the animal's color is Rhino_color.
+If an animal is a swan, then the animal's color is Swan_color.
+If an animal is a frog, then the animal's color is Frog_color.

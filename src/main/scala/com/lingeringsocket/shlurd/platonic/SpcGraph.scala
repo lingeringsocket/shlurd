@@ -42,12 +42,13 @@ object SpcGraph
     val componentsDelta = DeltaGraph(base.components)
     val components = new DefaultListenableGraph(componentsDelta)
     val triggers = DeltaGraph(base.triggers)
-    val (propertyIndex, propertyStateIndex, stateNormalizationIndex) =
-      createIndexes(components)
+    val (formPropertyIndex, entityPropertyIndex, propertyStateIndex,
+      stateNormalizationIndex) = createIndexes(components)
     new SpcGraph(
       idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
       entitySynonyms, entityAssocs, components, triggers,
-      propertyIndex, propertyStateIndex, stateNormalizationIndex,
+      formPropertyIndex, entityPropertyIndex,
+      propertyStateIndex, stateNormalizationIndex,
       Seq(idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
         entitySynonyms, entityAssocs, componentsDelta, triggers))
   }
@@ -73,26 +74,33 @@ object SpcGraph
       new DirectedPseudograph[SpcEntity, SpcEntityAssocEdge](
         classOf[SpcEntityAssocEdge])
     val components = new DefaultListenableGraph(
-      new SimpleDirectedGraph[SpcIdealVertex, SpcComponentEdge](
+      new SimpleDirectedGraph[SpcContainmentVertex, SpcComponentEdge](
         classOf[SpcComponentEdge]))
     val triggers =
       new SimpleDirectedGraph[SilConditionalSentence, SpcEdge](
         classOf[SpcEdge])
-    val (propertyIndex, propertyStateIndex, stateNormalizationIndex) =
-      createIndexes(components)
+    val (formPropertyIndex, entityPropertyIndex,
+      propertyStateIndex, stateNormalizationIndex) = createIndexes(components)
     new SpcGraph(
       idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
       entitySynonyms, entityAssocs, components, triggers,
-      propertyIndex, propertyStateIndex, stateNormalizationIndex)
+      formPropertyIndex, entityPropertyIndex,
+      propertyStateIndex, stateNormalizationIndex)
   }
 
   private def createIndexes(
-    components : ListenableGraph[SpcIdealVertex, SpcComponentEdge]) =
+    components : ListenableGraph[SpcContainmentVertex, SpcComponentEdge]) =
   {
-    val propertyIndex =
+    val formPropertyIndex =
       new SpcComponentIndex[String, SpcProperty](
         components, _ match {
           case property : SpcProperty => Some(property.name)
+          case _ => None
+        })
+    val entityPropertyIndex =
+      new SpcComponentIndex[SpcProperty, SpcEntityPropertyState](
+        components, _ match {
+          case ps : SpcEntityPropertyState => Some(ps.property)
           case _ => None
         })
     val propertyStateIndex =
@@ -107,7 +115,8 @@ object SpcGraph
           case sn : SpcStateNormalization => Some(sn.original)
           case _ => None
         })
-    (propertyIndex, propertyStateIndex, stateNormalizationIndex)
+    (formPropertyIndex, entityPropertyIndex,
+      propertyStateIndex, stateNormalizationIndex)
   }
 }
 
@@ -164,9 +173,11 @@ class SpcGraph(
   val inverseAssocs : Graph[SpcFormAssocEdge, SpcInverseAssocEdge],
   val entitySynonyms : Graph[SpcEntityVertex, SpcSynonymEdge],
   val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge],
-  val components : Graph[SpcIdealVertex, SpcComponentEdge],
+  val components : Graph[SpcContainmentVertex, SpcComponentEdge],
   val triggers : Graph[SilConditionalSentence, SpcEdge],
-  val propertyIndex : SpcComponentIndex[String, SpcProperty],
+  val formPropertyIndex : SpcComponentIndex[String, SpcProperty],
+  val entityPropertyIndex :
+      SpcComponentIndex[SpcProperty, SpcEntityPropertyState],
   val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState],
   val stateNormalizationIndex :
       SpcComponentIndex[SilState, SpcStateNormalization],
@@ -185,7 +196,8 @@ class SpcGraph(
         new AsUnmodifiableGraph(entityAssocs),
         new AsUnmodifiableGraph(components),
         new AsUnmodifiableGraph(triggers),
-        propertyIndex,
+        formPropertyIndex,
+        entityPropertyIndex,
         propertyStateIndex,
         stateNormalizationIndex
       )
@@ -370,17 +382,24 @@ class SpcGraph(
     })
   }
 
-  def removeContainer(container : SpcIdealVertex)
+  def removeContainer(container : SpcContainmentVertex)
   {
     val reachable =
       new BreadthFirstIterator(components, container).asScala.toSet
     components.removeAllVertices(reachable.asJava)
   }
 
-  def addComponent(container : SpcIdealVertex, component : SpcIdealVertex)
+  def addComponent(
+    container : SpcContainmentVertex, component : SpcContainmentVertex)
   {
     components.addVertex(component)
     components.addEdge(container, component)
+  }
+
+  def removeComponent(
+    component : SpcContainmentVertex)
+  {
+    components.removeVertex(component)
   }
 
   def sanityCheck() : Boolean =
@@ -451,6 +470,8 @@ class SpcGraph(
         case (form : SpcForm, normalization : SpcStateNormalization) => {
         }
         case (property : SpcProperty, state : SpcPropertyState) => {
+        }
+        case (entity : SpcEntity, state : SpcEntityPropertyState) => {
         }
         case unexpected => assert(false, unexpected)
       }

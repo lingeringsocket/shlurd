@@ -432,7 +432,6 @@ class SmcInterpreter[
           predicateTruth match {
             case Success(Trilean.Unknown) => {
               debug("TRUTH UNKNOWN")
-              // FIXME:  maybe try to update state?
               wrapResponseText("Oh, really?  Thanks for letting me know.")
             }
             case Success(truth) => {

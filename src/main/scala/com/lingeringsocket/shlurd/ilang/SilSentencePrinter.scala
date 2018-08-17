@@ -300,9 +300,18 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
   {
     predicate match {
       case SilStatePredicate(subject, state, modifiers) => {
+        val (subjectString, verbString) = subject match {
+          case SilPronounReference(PERSON_SECOND, _, _, _) => {
+            ("", printChangeStateVerb(state, Some(SilWord(LEMMA_BE))))
+          }
+          case _ => {
+            (print(subject, INFLECT_ACCUSATIVE, SilConjoining.NONE),
+              printChangeStateVerb(state, changeVerb))
+          }
+        }
         sb.statePredicateCommand(
-          print(subject, INFLECT_ACCUSATIVE, SilConjoining.NONE),
-          printChangeStateVerb(state, changeVerb),
+          subjectString,
+          verbString,
           modifiers.map(printVerbModifier))
       }
       case SilRelationshipPredicate(

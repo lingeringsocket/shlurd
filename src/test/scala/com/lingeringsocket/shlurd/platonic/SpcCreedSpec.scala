@@ -55,12 +55,12 @@ class SpcCreedSpec extends Specification
       val printer = new SilSentencePrinter
       val beliefStrings = creed.allBeliefs.map(s => printer.print(s))
       beliefStrings.map(SprUtils.capitalize) must be equalTo expected
-      val refriedBeliefs = beliefStrings.flatMap(beliefString => {
+      beliefStrings.foreach(beliefString => {
         val sentence = SprParser(beliefString).parseOne
-        refriedInterpreter.recognizeBeliefs(sentence)
-      })
-      refriedBeliefs.foreach(belief => {
-        refriedInterpreter.applyBelief(belief)
+        val refriedBeliefs = refriedInterpreter.recognizeBeliefs(sentence)
+        refriedBeliefs.foreach(belief => {
+          refriedInterpreter.applyBelief(belief)
+        })
       })
       val refriedStrings = refriedCreed.allBeliefs.map(s => printer.print(s))
       refriedStrings.map(SprUtils.capitalize) must be equalTo expected
@@ -71,7 +71,7 @@ class SpcCreedSpec extends Specification
   private val stateMay = "A window may be open or closed."
   private val stateAlias = "A lit light is on."
   private val stateNormalization = "A person at home is present."
-  private val stateProperty = "A dog's mood may be happy or sad."
+  private val stateProperty = "A parakeet's mood may be happy or sad."
   private val formTaxonomy = "A duck is a kind of a bird."
   private val formSynonym = "An automobile is a car."
   private val formRole = "A mentor must be a person."
@@ -83,6 +83,7 @@ class SpcCreedSpec extends Specification
   private val assocMayPlural = "A person may have pets."
   private val assocMayProperty = "A person may have one presence as a property."
   private val entityExists = "There is a parakeet."
+  private val entityState = "The parakeet is happy."
   private val namedEntityExists = "Fido is a dog."
   private val entityQualifiedExists = "There is an angry cat."
   private val personExists = "Yoda is a person."
@@ -163,6 +164,12 @@ class SpcCreedSpec extends Specification
     "preserve named entity existence" in new CosmosContext
     {
       expectPreserved(Seq(namedEntityExists))
+    }
+
+    "preserve entity state" in new CosmosContext
+    {
+      expectPreserved(Seq(
+        stateProperty, entityExists, entityState))
     }
 
     "preserve entity associations" in new CosmosContext

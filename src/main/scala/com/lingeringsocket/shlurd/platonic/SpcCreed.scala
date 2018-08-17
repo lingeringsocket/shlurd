@@ -46,7 +46,7 @@ class SpcCreed(cosmos : SpcCosmos)
 
   def formBeliefs(form : SpcForm) : Iterable[SilSentence] =
   {
-    cosmos.getPropertyMap(form).values.map(
+    cosmos.getFormPropertyMap(form).values.map(
       formPropertyBelief(form, _)
     ) ++
     cosmos.getInflectedStateNormalizations(form).map(
@@ -82,6 +82,9 @@ class SpcCreed(cosmos : SpcCosmos)
     Seq(entityFormBelief(entity)) ++ {
       cosmos.getEntityAssocGraph.outgoingEdgesOf(entity).asScala.toSeq.map(
         entityAssociationBelief)
+    } ++ {
+      cosmos.getEntityPropertyMap(entity).values.map(
+        entityPropertyBelief(entity, _))
     }
   }
 
@@ -241,14 +244,30 @@ class SpcCreed(cosmos : SpcCosmos)
     SilPredicateSentence(predicate)
   }
 
+  def entityPropertyBelief(
+    entity : SpcEntity,
+    eps : SpcEntityPropertyState
+  ) : SilSentence =
+  {
+    val subject = cosmos.specificReference(entity, DETERMINER_UNIQUE)
+    val propertyStates = cosmos.getPropertyStateMap(eps.property)
+    // FIXME be specific about property
+    SilPredicateSentence(
+      SilStatePredicate(
+        subject,
+        propertyState((eps.lemma, propertyStates(eps.lemma)))
+      )
+    )
+  }
+
   def entityAssociationBelief(
     edge : SpcEntityAssocEdge
   ) : SilSentence =
   {
     val possessor = cosmos.specificReference(
-      cosmos.getGraph.getPossessorEntity(edge), DETERMINER_NONSPECIFIC)
+      cosmos.getGraph.getPossessorEntity(edge), DETERMINER_UNIQUE)
     val possessee = cosmos.specificReference(
-      cosmos.getGraph.getPossesseeEntity(edge), DETERMINER_NONSPECIFIC)
+      cosmos.getGraph.getPossesseeEntity(edge), DETERMINER_UNIQUE)
     val role = nounReference(
       edge.getRoleName, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)
     SilPredicateSentence(

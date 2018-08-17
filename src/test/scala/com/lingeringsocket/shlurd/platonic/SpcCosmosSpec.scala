@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
 
+import spire.math._
+
 import scala.collection._
 import scala.io._
 import scala.util._
@@ -56,7 +58,7 @@ class SpcCosmosSpec extends Specification
     protected def expectSingleProperty(form : SpcForm)
         : SpcProperty =
     {
-      val properties = cosmos.getPropertyMap(form)
+      val properties = cosmos.getFormPropertyMap(form)
       properties.size must be equalTo 1
       properties.head._2
     }
@@ -467,6 +469,22 @@ class SpcCosmosSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
+    "update entity properties" in new CosmosContext
+    {
+      addBelief("a door may be open or closed")
+      val form = expectNamedForm("door")
+      val property = expectSingleProperty(form)
+      addBelief("there is a door")
+      val entity = expectFormSingleton(form)
+      cosmos.evaluateEntityPropertyPredicate(entity, property, "open") must
+        be equalTo Success(Trilean.Unknown)
+      addBelief("the door is closed")
+      cosmos.evaluateEntityPropertyPredicate(entity, property, "close") must
+        be equalTo Success(Trilean.True)
+      cosmos.evaluateEntityPropertyPredicate(entity, property, "open") must
+        be equalTo Success(Trilean.False)
+    }
+
     "infer role for tentative form" in new CosmosContext
     {
       SpcPrimordial.initCosmos(cosmos)
@@ -667,8 +685,6 @@ class SpcCosmosSpec extends Specification
     "reject beliefs it cannot understand" in new CosmosContext
     {
       addBelief("he may be either open or closed") must
-        throwA[IncomprehensibleBeliefExcn]
-      addBelief("Daffy is duck") must
         throwA[IncomprehensibleBeliefExcn]
       addBelief("Daffy is a pig's duck") must
         throwA[IncomprehensibleBeliefExcn]

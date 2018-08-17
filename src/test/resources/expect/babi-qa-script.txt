@@ -1,2 +1,7 @@
-100 Leo is a lion.
-101 Which genus is Leo's classification?	Panthera
+Leo is a lion.
+Jack is a lion.
+Jack is white.
+Jack is white?	yes
+Leo is white?	yes
+Jack is green?	no
+Leo is green?	no

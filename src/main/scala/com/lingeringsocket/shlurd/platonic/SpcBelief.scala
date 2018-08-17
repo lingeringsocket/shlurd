@@ -115,6 +115,15 @@ case class FormPropertyBelief(
 {
 }
 
+case class EntityPropertyBelief(
+  sentence : SilSentence,
+  reference : SilReference,
+  propertyName : Option[SilWord],
+  stateName : SilWord
+) extends SpcBelief
+{
+}
+
 case class ConsequenceBelief(
   sentence : SilConditionalSentence
 ) extends SpcBelief

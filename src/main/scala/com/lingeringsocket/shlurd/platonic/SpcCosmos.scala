@@ -31,22 +31,29 @@ import org.jgrapht.util._
 
 import SprEnglishLemmas._
 
-trait SpcIdealVertex
+trait SpcContainmentVertex
 {
 }
 
 class SpcPropertyState(val lemma : String, val inflected : String)
-    extends SpcIdealVertex
+    extends SpcContainmentVertex
 {
   override def toString = s"SpcPropertyState($lemma -> $inflected)"
 }
 
 class SpcProperty(val name : String, val isClosed : Boolean)
-    extends SmcProperty with SmcNamedObject with SpcIdealVertex
+    extends SmcProperty with SmcNamedObject with SpcContainmentVertex
 {
   def isSynthetic = name.contains('_')
 
   override def toString = s"SpcProperty($name)"
+}
+
+class SpcEntityPropertyState(val property : SpcProperty, val lemma : String)
+    extends SpcContainmentVertex
+{
+  override def toString =
+    s"SpcEntityPropertyState(${property.name} -> $lemma)"
 }
 
 sealed trait SpcNym
@@ -77,7 +84,7 @@ class SpcStateNormalization(
   val original : SilState,
   val normalized : SilState,
   val isInflected : Boolean)
-    extends SpcIdealVertex
+    extends SpcContainmentVertex
 {
 }
 
@@ -89,7 +96,7 @@ object SpcForm
 }
 
 class SpcForm(name : String)
-    extends SpcIdeal(name) with SpcIdealVertex
+    extends SpcIdeal(name) with SpcContainmentVertex
 {
   import SpcForm._
 
@@ -117,7 +124,7 @@ case class SpcEntity(
   val form : SpcForm,
   val qualifiers : Set[String],
   val properName : String = "")
-    extends SilEntity with SpcEntityVertex
+    extends SilEntity with SpcEntityVertex with SpcContainmentVertex
 {
   override def isTentative = properName.contains("_")
 }
@@ -180,6 +187,8 @@ class SpcCosmos(
 
   def clear()
   {
+    graph.entityAssocs.vertexSet.asScala.foreach(entity =>
+      graph.removeContainer(entity))
     graph.entitySynonyms.removeAllVertices(
       new ArrayUnenforcedSet(graph.entitySynonyms.vertexSet))
     graph.entityAssocs.removeAllVertices(
@@ -329,6 +338,7 @@ class SpcCosmos(
     assert(graph.entitySynonyms.degreeOf(entity) == 0)
     graph.entitySynonyms.removeVertex(entity)
     graph.entityAssocs.removeVertex(entity)
+    graph.removeContainer(entity)
   }
 
   def matchAssocs(oldForm : SpcForm, newForm : SpcForm)
@@ -477,6 +487,7 @@ class SpcCosmos(
   {
     graph.entityAssocs.addVertex(entity)
     graph.entitySynonyms.addVertex(entity)
+    graph.components.addVertex(entity)
     val synonym = SpcEntitySynonym(entity.name)
     getEntityBySynonym(entity.name) match {
       case Some(old) => {
@@ -660,7 +671,7 @@ class SpcCosmos(
         case form : SpcForm => {
           assert(graph.components.inDegreeOf(form) == 0)
           assert(
-            getPropertyMap(form).size +
+            getFormPropertyMap(form).size +
               getStateNormalizationMap(form).size ==
               graph.components.outDegreeOf(form))
         }
@@ -687,17 +698,31 @@ class SpcCosmos(
     entitySet.foreach(entity => {
       assert(getEntityBySynonym(entity.name) == Some(entity))
       assert(formSet.contains(entity.form))
+      val propertyMap = getEntityPropertyMap(entity)
+      assert(propertyMap.keySet.size ==
+        graph.components.outDegreeOf(entity))
+      propertyMap.values.foreach(entityProperty => {
+        val property = entityProperty.property
+        assert(getFormPropertyMap(entity.form).values.toSeq.contains(property))
+        getPropertyStateObjMap(property).contains(entityProperty.lemma)
+      })
     })
     assert(entitySet == graph.entityAssocs.vertexSet.asScala)
     val componentSet = graph.components.vertexSet.asScala
-    val propertySet = formSet.flatMap(getPropertyMap(_).values).toSet
+    val propertySet = formSet.flatMap(getFormPropertyMap(_).values).toSet
     val propertyStateSet =
       propertySet.flatMap(getPropertyStateObjMap(_).values).toSet
     val stateNormalizationSet =
       formSet.flatMap(getStateNormalizationMap(_).values).toSet
+    val entityPropertyStateSet = entitySet.flatMap(
+      getEntityPropertyMap(_).values).toSet
     assert(
-      (formSet ++ propertySet ++ propertyStateSet ++ stateNormalizationSet)
-      == componentSet)
+      (
+        formSet ++ propertySet ++ propertyStateSet ++
+          stateNormalizationSet ++ entitySet ++
+          entityPropertyStateSet
+      ) == componentSet
+    )
     propertySet.foreach(property => {
       assert(getPropertyStateMap(property).keySet.size ==
         graph.components.outDegreeOf(property))
@@ -799,7 +824,7 @@ class SpcCosmos(
       : Option[(SpcProperty, String)] =
   {
     val stateName = resolveStateSynonym(form, lemma)
-    getPropertyMap(form).values.find(
+    getFormPropertyMap(form).values.find(
       p => getPropertyStateMap(p).contains(stateName)).map((_, stateName))
   }
 
@@ -820,9 +845,9 @@ class SpcCosmos(
     None
   }
 
-  def getPropertyMap(form : SpcForm) : Map[String, SpcProperty] =
+  def getFormPropertyMap(form : SpcForm) : Map[String, SpcProperty] =
   {
-    graph.propertyIndex.accessComponentMap(form)
+    graph.formPropertyIndex.accessComponentMap(form)
   }
 
   private def getPropertyStateObjMap(property : SpcProperty) =
@@ -835,11 +860,17 @@ class SpcCosmos(
     getPropertyStateObjMap(property).mapValues(_.inflected)
   }
 
+  def getEntityPropertyMap(entity : SpcEntity)
+      : Map[SpcProperty, SpcEntityPropertyState] =
+  {
+    graph.entityPropertyIndex.accessComponentMap(entity)
+  }
+
   def findProperty(
     form : SpcForm, name : String) : Option[SpcProperty] =
   {
     graph.getFormHypernyms(form).foreach(hyperForm => {
-      getPropertyMap(hyperForm).get(name) match {
+      getFormPropertyMap(hyperForm).get(name) match {
         case Some(matchingProperty) => {
           return Some(matchingProperty)
         }
@@ -852,11 +883,11 @@ class SpcCosmos(
   def instantiateProperty(form : SpcForm, name : SilWord) : SpcProperty =
   {
     val propertyName = name.lemma
-    getPropertyMap(form).get(propertyName) match {
+    getFormPropertyMap(form).get(propertyName) match {
       case Some(property) => property
       case _ => {
         val property = new SpcProperty(propertyName, false)
-        assert(!getPropertyMap(form).contains(property.name))
+        assert(!getFormPropertyMap(form).contains(property.name))
         graph.addComponent(form, property)
         property
       }
@@ -880,6 +911,30 @@ class SpcCosmos(
     val propertyState = new SpcPropertyState(word.lemma, word.inflected)
     assert(!getPropertyStateMap(property).contains(propertyState.lemma))
     graph.addComponent(property, propertyState)
+  }
+
+  def updateEntityProperty(
+    originalEntity : SpcEntity, originalProperty : SpcProperty,
+    originalLemma : String)
+  {
+    visitEntityProperty(originalEntity, originalProperty, originalLemma, {
+      (entity, property, lemma) => {
+        Success(Trilean.Unknown)
+      }
+    }, {
+      (entity, property, lemma) => {
+        getEntityPropertyMap(entity).get(property) match {
+          case Some(old) => {
+            graph.removeComponent(old)
+          }
+          case _ =>
+        }
+        val ps = new SpcEntityPropertyState(property, lemma)
+        graph.addComponent(entity, ps)
+        Success(Trilean.True)
+      }
+    })
+
   }
 
   def properReference(entity : SpcEntity) =
@@ -915,18 +970,59 @@ class SpcCosmos(
   }
 
   override def evaluateEntityPropertyPredicate(
-    entity : SpcEntity,
-    property : SpcProperty,
-    lemma : String) : Try[Trilean] =
+    originalEntity : SpcEntity,
+    originalProperty : SpcProperty,
+    originalLemma : String) : Try[Trilean] =
+  {
+    visitEntityProperty(originalEntity, originalProperty, originalLemma, {
+      (entity, property, lemma) => {
+        checkEntityProperty(entity, property, lemma)
+      }
+    }, {
+      (entity, property, lemma) => {
+        val result = evaluateEntityProperty(entity, property)
+        result.map(_ match {
+          case Some(actual) => Trilean(actual == lemma)
+          case _ => Trilean.Unknown
+        })
+      }
+    })
+  }
+
+  private def checkEntityProperty(
+    entity : SpcEntity, property : SpcProperty, lemma : String) : Try[Trilean] =
   {
     if (property.isClosed) {
       val propertyStates = getPropertyStateMap(property)
       if (propertyStates.size == 1) {
-        return Success(Trilean(lemma == propertyStates.keySet.head))
+        Success(Trilean(lemma == propertyStates.keySet.head))
+      } else if (!propertyStates.contains(lemma)) {
+        Success(Trilean.False)
+      } else {
+        Success(Trilean.Unknown)
       }
-      if (!propertyStates.contains(lemma)) {
-        return Success(Trilean.False)
-      }
+    } else {
+      Success(Trilean.Unknown)
+    }
+  }
+
+  protected[platonic] def evaluateEntityProperty(
+    entity : SpcEntity, property : SpcProperty) : Try[Option[String]] =
+  {
+    Success(getEntityPropertyMap(entity).get(property).map(_.lemma))
+  }
+
+  private def visitEntityProperty(
+    entity : SpcEntity,
+    property : SpcProperty,
+    lemma : String,
+    preVisit : (SpcEntity, SpcProperty, String) => Try[Trilean],
+    postVisit : (SpcEntity, SpcProperty, String) => Try[Trilean])
+      : Try[Trilean] =
+  {
+    preVisit(entity, property, lemma) match {
+      case Success(Trilean.Unknown) =>
+      case preResult => return preResult
     }
     val hypernymSet = graph.getFormHypernyms(entity.form).toSet
     val outgoingPropertyEdges = hypernymSet.flatMap { form =>
@@ -937,25 +1033,29 @@ class SpcCosmos(
       filter(edge => outgoingPropertyEdges.contains(edge.formEdge)).
       foreach(edge => {
         val propertyEntity = graph.getPossesseeEntity(edge)
-        if (getPropertyMap(propertyEntity.form).
+        if (getFormPropertyMap(propertyEntity.form).
           values.toSeq.contains(property))
         {
-          return evaluateEntityPropertyPredicate(
+          return visitEntityProperty(
             propertyEntity,
             property,
-            lemma)
+            lemma,
+            preVisit,
+            postVisit)
         }
         resolveHypernymProperty(propertyEntity.form, lemma) match {
           case Some((underlyingProperty, stateName)) => {
-            return evaluateEntityPropertyPredicate(
+            return visitEntityProperty(
               propertyEntity,
               underlyingProperty,
-              stateName)
+              stateName,
+              preVisit,
+              postVisit)
           }
           case _ =>
         }
       })
-    Success(Trilean.Unknown)
+    postVisit(entity, property, lemma)
   }
 
   override def evaluateEntityAdpositionPredicate(

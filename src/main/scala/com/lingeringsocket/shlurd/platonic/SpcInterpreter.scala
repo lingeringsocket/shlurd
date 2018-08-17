@@ -38,7 +38,9 @@ class SpcInterpreter(
   mind, params
 )
 {
-  val already = new mutable.HashSet[SilPredicate]
+  private val already = new mutable.HashSet[SilPredicate]
+
+  private var referenceMap : Option[Map[SilReference, Set[SpcEntity]]] = None
 
   override protected def spawn(subMind : SpcMind) =
   {
@@ -58,37 +60,13 @@ class SpcInterpreter(
       attemptInterpret(sentence)
     } finally {
       already.clear
+      referenceMap = None
     }
   }
 
   private def attemptInterpret(sentence : SilSentence)
       : (SilSentence, String) =
   {
-    // FIXME this is madness...we make a half-hearted attempt at
-    // collecting references here because SpcBeliefInterpreter does
-    // not do anything in that regard.
-    val referenceMap = {
-      if (mind.isConversing || mind.hasNarrative) {
-        val resultCollector = SmcResultCollector[SpcEntity]
-        val rewriter =
-          new SmcReferenceRewriter(
-            mind.getCosmos,
-            new SilSentencePrinter,
-            resultCollector,
-            SmcResolutionOptions(
-              failOnUnknown = false,
-              resolveConjunctions = true,
-              resolveUniqueDeterminers = true))
-        // discard the rewrite result; we just want the
-        // resultCollector side effects
-        rewriter.rewrite(rewriter.rewriteReferences, sentence)
-        mind.rememberSentenceAnalysis(resultCollector.referenceMap)
-        Some(resultCollector.referenceMap)
-      } else {
-        None
-      }
-    }
-
     if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
       sentence.tam.isIndicative)
     {
@@ -169,7 +147,38 @@ class SpcInterpreter(
       }
     }
     already.clear
+    // in case we haven't done this already, need to do it now
+    // in case evaluateActionPredicate is by super
+    saveReferenceMap(sentence, mind.getCosmos)
     super.interpretImpl(sentence)
+  }
+
+  private def saveReferenceMap(
+    sentence : SilSentence,
+    cosmos : SpcCosmos)
+  {
+    // FIXME what if reentrant invocation needs the references???
+    if (!referenceMap.isEmpty) {
+      return
+    }
+    // FIXME this is madness...we make a half-hearted attempt at
+    // collecting references here because SpcBeliefInterpreter does
+    // not do anything in that regard.
+    val resultCollector = SmcResultCollector[SpcEntity]
+    val rewriter =
+      new SmcReferenceRewriter(
+        cosmos,
+        new SilSentencePrinter,
+        resultCollector,
+        SmcResolutionOptions(
+          failOnUnknown = false,
+          resolveConjunctions = true,
+          resolveUniqueDeterminers = true))
+    // discard the rewrite result; we just want the resultCollector
+    // side effects
+    rewriter.rewrite(rewriter.rewriteReferences, sentence)
+    mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+    referenceMap = Some(resultCollector.referenceMap)
   }
 
   override protected def freezeCosmos(mutableCosmos : SpcCosmos) =
@@ -194,6 +203,9 @@ class SpcInterpreter(
         matched = true
       }
     })
+    // defer until this point so that any newly created entities etc will
+    // already have taken effect
+    saveReferenceMap(sentence, beliefInterpreter.cosmos)
     sentence match {
       case SilPredicateSentence(predicate, _, _) => {
         val result = interpretTriggerablePredicate(beliefInterpreter, predicate)
@@ -245,7 +257,7 @@ class SpcInterpreter(
     mind.getCosmos.getTriggers.foreach(trigger => {
       // technically we should require iff for trigger instead of just if,
       // but let's not split hairs
-      matchTrigger(trigger, predicate) match {
+      matchTrigger(mind.getCosmos, trigger, predicate) match {
         case Some(newPredicate) => {
           return super.evaluatePredicate(newPredicate, resultCollector)
         }
@@ -285,7 +297,7 @@ class SpcInterpreter(
     predicate : SilPredicate)
       : Option[String] =
   {
-    matchTrigger(trigger, predicate) match {
+    matchTrigger(beliefInterpreter.cosmos, trigger, predicate) match {
       case Some(newPredicate) => {
         if (checkCycle(newPredicate)) {
           return Some(sentencePrinter.sb.circularAction)
@@ -306,8 +318,8 @@ class SpcInterpreter(
 
   private def checkCycle(predicate : SilPredicate) : Boolean =
   {
-    // FIXME also need to limit recursion depth
-    if (already.contains(predicate)) {
+    // FIXME make limit configurable and add test
+    if (already.contains(predicate) || (already.size > 100)) {
       true
     } else {
       already += predicate
@@ -316,6 +328,7 @@ class SpcInterpreter(
   }
 
   private def matchTrigger(
+    cosmos : SpcCosmos,
     trigger : SilConditionalSentence,
     predicate : SilPredicate) : Option[SilPredicate] =
   {
@@ -324,6 +337,28 @@ class SpcInterpreter(
     val consequent = trigger.consequent
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
     antecedent match {
+      case SilStatePredicate(
+        subject, state, modifiers
+      ) => {
+        val statePredicate = predicate match {
+          case sp : SilStatePredicate => sp
+          case _ => {
+            debug(s"PREDICATE ${predicate} IS NOT A STATE")
+            return None
+          }
+        }
+        // FIXME allow this to be a variable
+        if (state != statePredicate.state) {
+          debug(s"STATE ${state} " +
+            s"DOES NOT MATCH ${statePredicate.state}")
+          return None
+        }
+        if (!prepareReplacement(
+          cosmos, replacements, subject, statePredicate.subject))
+        {
+          return None
+        }
+      }
       case SilRelationshipPredicate(
         subject, complement, relationship, modifiers
       ) => {
@@ -339,12 +374,13 @@ class SpcInterpreter(
           return None
         }
         if (!prepareReplacement(
-          replacements, subject, relPredicate.subject))
+          cosmos, replacements, subject, relPredicate.subject))
         {
           return None
         }
         relationship match {
           case REL_IDENTITY => {
+            // FIXME allow this to be a variable too?
             if (complement != relPredicate.complement) {
               debug(s"COMPLEMENT ${complement} " +
                 s"DOES NOT MATCH ${relPredicate.complement}")
@@ -353,7 +389,7 @@ class SpcInterpreter(
           }
           case REL_ASSOCIATION => {
             if (!prepareReplacement(
-              replacements, complement, relPredicate.complement))
+              cosmos, replacements, complement, relPredicate.complement))
             {
               return None
             }
@@ -377,14 +413,14 @@ class SpcInterpreter(
         // FIXME detect colliding replacement nouns e.g.
         // "if an object hits an object"
         if (!prepareReplacement(
-          replacements, subject, actionPredicate.subject))
+          cosmos, replacements, subject, actionPredicate.subject))
         {
           return None
         }
         directObject.foreach(obj => {
           actionPredicate.directObject match {
             case Some(actualObj) => {
-              if (!prepareReplacement(replacements, obj, actualObj)) {
+              if (!prepareReplacement(cosmos, replacements, obj, actualObj)) {
                 return None
               }
             }
@@ -460,6 +496,7 @@ class SpcInterpreter(
   }
 
   private def prepareReplacement(
+    cosmos : SpcCosmos,
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
     actualRef : SilReference) : Boolean =
@@ -471,8 +508,7 @@ class SpcInterpreter(
       ) => {
         val patternRef = SilNounReference(
           noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
-        // FIXME verify that actualRef matches refPattern
-        val boundRef = actualRef match {
+        val candidateRef = actualRef match {
           case pr : SilPronounReference => {
             mind.resolvePronoun(pr) match {
               case Success(set) if (!set.isEmpty) => {
@@ -485,11 +521,34 @@ class SpcInterpreter(
             }
           }
           case SilNounReference(_, DETERMINER_NONSPECIFIC, _) => {
-            return true
+            debug("NONSPECIFIC REFERENCE")
+            return false
           }
           case _ => actualRef
         }
-        replacements.put(patternRef, boundRef)
+        cosmos.resolveForm(noun.lemma).foreach(form => {
+          referenceMap.flatMap(_.get(candidateRef)) match {
+            case Some(entities) => {
+              entities.foreach(_ match {
+                case entity : SpcEntity => {
+                  if (!cosmos.getGraph.isHyponym(entity.form, form)) {
+                    debug("FORM DOES NOT MATCH")
+                    return false
+                  }
+                }
+                case _ => {
+                  debug("UNEXPECTED ENTITY TYPE")
+                  return false
+                }
+              })
+            }
+            case _ => {
+              debug("UNRESOLVED REFERENCE")
+              return false
+            }
+          }
+        })
+        replacements.put(patternRef, candidateRef)
         true
       }
       case _ => {

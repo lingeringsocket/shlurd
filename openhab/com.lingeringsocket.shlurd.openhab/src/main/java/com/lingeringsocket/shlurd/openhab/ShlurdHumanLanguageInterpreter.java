@@ -55,8 +55,10 @@ import com.lingeringsocket.shlurd.platonic.SpcMind;
 
 import scala.collection.JavaConverters;
 import scala.io.Source$;
-import spire.math.Trilean;
-import spire.math.Trilean$;
+import scala.Option;
+import scala.util.Try;
+import scala.util.Success;
+import scala.util.Failure;
 
 /**
  * A human language command interpretation service based on SHLURD.
@@ -107,7 +109,7 @@ public class ShlurdHumanLanguageInterpreter
         logger.info("SHLURD recreating world...");
         cosmos = new SpcOpenhabCosmos() {
             @Override
-            public scala.util.Try<Trilean> evaluateState(SpcEntity entity, String stateName) {
+            public Try<Option<String>> evaluateEntityProperty(SpcEntity entity, SpcProperty property) {
                 try {
                     Item item = itemRegistry.getItem(entity.name());
                     State state;
@@ -117,11 +119,13 @@ public class ShlurdHumanLanguageInterpreter
                     } else {
                         state = item.getState();
                     }
-                    Trilean trilean = new Trilean((state == null) ? Trilean$.MODULE$.Unknown()
-                            : Trilean$.MODULE$.apply(state.toString().toLowerCase().equals(stateName)));
-                    return new scala.util.Success(trilean);
+                    if (state == null) {
+                        return new Success(Option.empty());
+                    } else {
+                        return new Success(Option.apply(state.toString().toLowerCase()));
+                    }
                 } catch (Exception ex) {
-                    return new scala.util.Failure(ex);
+                    return new Failure(ex);
                 }
             }
         };

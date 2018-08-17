@@ -247,22 +247,6 @@ abstract class SpcOpenhabCosmos(
     }
   }
 
-  override def evaluateEntityPropertyPredicate(
-    entity : SpcEntity,
-    property : SpcProperty,
-    lemma : String) : Try[Trilean] =
-  {
-    evaluateState(entity, lemma) match {
-      case Success(Trilean.Unknown) => {
-        super.evaluateEntityPropertyPredicate(entity, property, lemma)
-      }
-      case x => x
-    }
-  }
-
-  protected[platonic] def evaluateState(
-    entity : SpcEntity, stateName : String) : Try[Trilean]
-
   override def evaluateEntityAdpositionPredicate(
     entity : SpcEntity,
     location : SpcEntity,
@@ -404,9 +388,10 @@ class SpcOpenhabDerivedCosmos(
       forkLevel
   )
 {
-  override protected[platonic] def evaluateState(
-    entity : SpcEntity, stateName : String) : Try[Trilean] =
+  override protected[platonic] def evaluateEntityProperty(
+    entity : SpcEntity,
+    property : SpcProperty) : Try[Option[String]] =
   {
-    base.evaluateState(entity, stateName)
+    base.evaluateEntityProperty(entity, property)
   }
 }
