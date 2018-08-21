@@ -218,10 +218,10 @@ class SpcGraph(
   def getComponent(edge : SpcComponentEdge) =
     components.getEdgeTarget(edge)
 
-  def getHyponymIdeal(edge : SpcTaxonomyEdge) =
+  def getSubclassIdeal(edge : SpcTaxonomyEdge) =
     idealTaxonomy.getEdgeSource(edge)
 
-  def getHypernymIdeal(edge : SpcTaxonomyEdge) =
+  def getSuperclassIdeal(edge : SpcTaxonomyEdge) =
     idealTaxonomy.getEdgeTarget(edge)
 
   def getPossessorIdeal(edge : SpcFormAssocEdge) =
@@ -420,9 +420,10 @@ class SpcGraph(
       assert(idealSynonyms.outDegreeOf(ideal) == 0)
     })
     idealTaxonomy.edgeSet.asScala.foreach(taxonomyEdge => {
-      val hyponym = getHyponymIdeal(taxonomyEdge)
-      val hypernym = getHypernymIdeal(taxonomyEdge)
-      assert(!(hyponym.isForm && hypernym.isRole), (hyponym, hypernym).toString)
+      val subclass = getSubclassIdeal(taxonomyEdge)
+      val superclass = getSuperclassIdeal(taxonomyEdge)
+      assert(!(subclass.isForm && superclass.isRole),
+        (subclass, superclass).toString)
     })
     assert(!new CycleDetector(idealTaxonomy).detectCycles)
     assert(!new CycleDetector(idealSynonyms).detectCycles)

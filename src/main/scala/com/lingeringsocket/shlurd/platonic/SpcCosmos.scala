@@ -554,7 +554,7 @@ class SpcCosmos(
       val newHypernyms = graph.getIdealHypernyms(hypernymIdeal)
       val redundantEdges = idealTaxonomy.outgoingEdgesOf(hyponymIdeal).
         asScala.filter(
-          edge => newHypernyms.contains(graph.getHypernymIdeal(edge)))
+          edge => newHypernyms.contains(graph.getSuperclassIdeal(edge)))
       val newEdge = new SpcTaxonomyEdge()
       val added = idealTaxonomy.addEdge(hyponymIdeal, hypernymIdeal, newEdge)
       // since we already checked for an existing relationship and there
@@ -562,11 +562,11 @@ class SpcCosmos(
       assert(added)
       // defer this until after addEdge since addEdge may throw a
       // cycle exception
-      redundantEdges.foreach(edge => meta.idealHypernym(
-        graph.getHyponymIdeal(edge), graph.getHypernymIdeal(edge), false
+      redundantEdges.foreach(edge => meta.idealSuperclass(
+        graph.getSubclassIdeal(edge), graph.getSuperclassIdeal(edge), false
       ))
       idealTaxonomy.removeAllEdges(redundantEdges.asJava)
-      meta.idealHypernym(hyponymIdeal, hypernymIdeal, true)
+      meta.idealSuperclass(hyponymIdeal, hypernymIdeal, true)
     }
   }
 

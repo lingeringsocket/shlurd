@@ -36,8 +36,6 @@ object SpcMeta
 
   val TYPE_METAROLE_NAME = "spc-type"
 
-  // FIXME apply hypernym/hyponym vs superclass/subclass
-  // distinction everywhere
   val SUPERCLASS_METAROLE_NAME = "spc-superclass"
 
   val ATTRIBUTE_METAROLE_NAME = "spc-attribute"
@@ -162,11 +160,11 @@ class SpcMeta(cosmos : SpcCosmos)
     )
   }
 
-  def idealHypernym(
-    hyponym : SpcIdeal, hypernym : SpcIdeal, positive : Boolean)
+  def idealSuperclass(
+    subclass : SpcIdeal, superclass : SpcIdeal, positive : Boolean)
   {
-    val hyponymEntityName = idealMetaEntityName(hyponym)
-    val hypernymEntityName = idealMetaEntityName(hypernym)
+    val subclassEntityName = idealMetaEntityName(subclass)
+    val superclassEntityName = idealMetaEntityName(superclass)
     val modifier = {
       if (positive) {
         ""
@@ -177,10 +175,10 @@ class SpcMeta(cosmos : SpcCosmos)
     enqueueBelief(
       EntityAssocBelief(
         SilUnparsedSentence(
-          s"$hypernymEntityName is $modifier $hyponymEntityName's "
+          s"$superclassEntityName is $modifier $subclassEntityName's "
             + "spc-superclass"),
-        SilNounReference(SilWord(hyponymEntityName)),
-        SilNounReference(SilWord(hypernymEntityName)),
+        SilNounReference(SilWord(subclassEntityName)),
+        SilNounReference(SilWord(superclassEntityName)),
         SilWord(SUPERCLASS_METAROLE_NAME),
         positive))
   }

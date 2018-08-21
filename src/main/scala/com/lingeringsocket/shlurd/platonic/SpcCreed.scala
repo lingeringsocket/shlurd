@@ -94,7 +94,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     edge : SpcTaxonomyEdge
   ) : SilSentence =
   {
-    cosmos.getGraph.getHyponymIdeal(edge) match {
+    cosmos.getGraph.getSubclassIdeal(edge) match {
       case _ : SpcForm => formTaxonomyBelief(edge)
       case _ : SpcRole => roleTaxonomyBelief(edge)
     }
@@ -106,12 +106,12 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   {
     SilPredicateSentence(
       SilRelationshipPredicate(
-        idealNoun(cosmos.getGraph.getHyponymIdeal(edge)),
+        idealNoun(cosmos.getGraph.getSubclassIdeal(edge)),
         SilStateSpecifiedReference(
           nounReference(LEMMA_KIND),
           SilAdpositionalState(
             SilAdposition.OF,
-            idealNoun(cosmos.getGraph.getHypernymIdeal(edge)))),
+            idealNoun(cosmos.getGraph.getSuperclassIdeal(edge)))),
         REL_IDENTITY))
   }
 
@@ -121,8 +121,8 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   {
     SilPredicateSentence(
       SilRelationshipPredicate(
-        idealNoun(cosmos.getGraph.getHyponymIdeal(edge)),
-        idealNoun(cosmos.getGraph.getHypernymIdeal(edge)),
+        idealNoun(cosmos.getGraph.getSubclassIdeal(edge)),
+        idealNoun(cosmos.getGraph.getSuperclassIdeal(edge)),
         REL_IDENTITY),
       SilTam.indicative.withModality(MODAL_MUST))
   }
@@ -285,8 +285,8 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   private def isTrivialTaxonomy(
     edge : SpcTaxonomyEdge) =
   {
-    cosmos.getGraph.getHypernymIdeal(edge).name.equals(
-      cosmos.getGraph.getHyponymIdeal(edge).name)
+    cosmos.getGraph.getSuperclassIdeal(edge).name.equals(
+      cosmos.getGraph.getSubclassIdeal(edge).name)
   }
 
   private def isTrivialSynonym(
