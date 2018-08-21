@@ -1084,6 +1084,16 @@ class SpcInterpreterSpec extends Specification
         "The key.")
     }
 
+    "understand state queries" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
+    {
+      skipped("very soon now")
+      interpretBelief(
+        "an animal's color must be white, gray, yellow, or green")
+      interpretBelief("Leo is an animal.")
+      interpretBelief("Leo is yellow.")
+      interpretTerse("what color is Leo", "yellow")
+    }
+
     "prevent new beliefs" in new InterpreterContext
     {
       interpret("There is a front door",

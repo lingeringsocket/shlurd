@@ -244,11 +244,11 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
         val inverseEdges = entityAssocGraph.
           incomingEdgesOf(possessor).asScala.
           filter(_.formEdge == inverseAssocEdge)
-        inverseEdges.foreach(cosmos.removeEntityAssociation)
+        inverseEdges.foreach(cosmos.removeEntityAssocEdge)
       }
       case _ =>
     }
-    edges.foreach(cosmos.removeEntityAssociation)
+    edges.foreach(cosmos.removeEntityAssocEdge)
   }
 
   private def analyzeAssoc(
@@ -467,7 +467,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
 
   beliefApplier {
     case EntityExistenceBelief(
-      sentence, entityRef, formName, qualifiers, properName
+      sentence, entityRef, formName, qualifiers, properName, true
     ) => {
       val form = cosmos.instantiateForm(formName)
       val (entity, isNewEntity, determiner) = entityRef match {
@@ -530,6 +530,16 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
   }
 
   beliefApplier {
+    case EntityExistenceBelief(
+      sentence, entityRef, _, _, _, false
+    ) => {
+      val entity = resolveReference(
+        sentence, entityRef)
+      cosmos.forgetEntity(entity)
+    }
+  }
+
+  beliefApplier {
     case EntityNoAssocBelief(
       sentence, possessorRef, roleName
     ) => {
@@ -569,7 +579,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
 
   beliefApplier {
     case EntityAssocBelief(
-      sentence, possessorRef, possesseeRef, roleName
+      sentence, possessorRef, possesseeRef, roleName, positive
     ) => {
       val possessor = resolveReference(
         sentence, possessorRef)
@@ -578,39 +588,53 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
       val (formAssocEdge, possessorIdeal, role) =
         analyzeAssoc(sentence, possessor, roleName)
       val graph = cosmos.getGraph
-      if (possessee.form.isTentative) {
-        graph.getFormsForRole(role).foreach(form =>
-          addIdealTaxonomy(sentence, possessee.form, form))
-      }
-      if (!graph.isFormCompatibleWithRole(possessee.form, role)) {
-        val originalBelief = conjunctiveBelief(
-          creed.roleTaxonomyBeliefs(role).toSeq)
-        throw new ContradictoryBeliefExcn(
-          sentence,
-          originalBelief)
-      }
-
-      // FIXME it may not be correct to assume same identity in the case
-      // of a multi-valued association
-      findTentativePossessee(possessor, formAssocEdge) match {
-        case Some(tentativePossessee) => {
-          cosmos.replaceEntity(tentativePossessee, possessee)
+      if (positive) {
+        if (possessee.form.isTentative) {
+          graph.getFormsForRole(role).foreach(form =>
+            addIdealTaxonomy(sentence, possessee.form, form))
         }
-        case _ => {
-          validateEdgeCardinality(sentence, formAssocEdge, possessor)
+        if (!graph.isFormCompatibleWithRole(possessee.form, role)) {
+          val originalBelief = conjunctiveBelief(
+            creed.roleTaxonomyBeliefs(role).toSeq)
+          throw new ContradictoryBeliefExcn(
+            sentence,
+            originalBelief)
+        }
+
+        // FIXME it may not be correct to assume same identity in the case
+        // of a multi-valued association
+        findTentativePossessee(possessor, formAssocEdge) match {
+          case Some(tentativePossessee) => {
+            cosmos.replaceEntity(tentativePossessee, possessee)
+          }
+          case _ => {
+            validateEdgeCardinality(sentence, formAssocEdge, possessor)
+          }
         }
       }
       cosmos.getInverseAssocEdge(formAssocEdge) match {
         case Some(inverseAssocEdge) => {
-          validateEdgeCardinality(sentence, inverseAssocEdge, possessee)
-          cosmos.addEntityAssocEdge(
-            possessor, possessee, formAssocEdge)
-          cosmos.addEntityAssocEdge(
-            possessee, possessor, inverseAssocEdge)
+          if (positive) {
+            validateEdgeCardinality(sentence, inverseAssocEdge, possessee)
+            cosmos.addEntityAssocEdge(
+              possessor, possessee, formAssocEdge)
+            cosmos.addEntityAssocEdge(
+              possessee, possessor, inverseAssocEdge)
+          } else {
+            cosmos.removeEntityAssociation(
+              possessor, possessee, formAssocEdge)
+            cosmos.removeEntityAssociation(
+              possessee, possessor, inverseAssocEdge)
+          }
         }
         case _ => {
-          cosmos.addEntityAssocEdge(
-            possessor, possessee, formAssocEdge)
+          if (positive) {
+            cosmos.addEntityAssocEdge(
+              possessor, possessee, formAssocEdge)
+          } else {
+            cosmos.removeEntityAssociation(
+              possessor, possessee, formAssocEdge)
+          }
         }
       }
     }

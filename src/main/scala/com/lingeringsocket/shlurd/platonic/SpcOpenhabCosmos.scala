@@ -62,7 +62,9 @@ abstract class SpcOpenhabCosmos(
         SpcGraph.fork(graph)
       }
     }
-    new SpcOpenhabDerivedCosmos(this, forkedGraph, forkLevel + 1)
+    val forked = new SpcOpenhabDerivedCosmos(this, forkedGraph, forkLevel + 1)
+    forked.meta.afterFork(meta)
+    forked
   }
 
   override def asUnmodifiable() : SpcOpenhabCosmos =

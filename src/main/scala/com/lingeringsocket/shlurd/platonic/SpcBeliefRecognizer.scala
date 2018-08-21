@@ -271,7 +271,8 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         SmcResolutionOptions(
           failOnUnknown = false,
           resolveConjunctions = true,
-          resolveUniqueDeterminers = true)
+          resolveUniqueDeterminers = true,
+          reifyRoles = false)
       )
     rewriter.rewrite(rewriter.rewriteReferences, ref) match {
       case SilResolvedReference(

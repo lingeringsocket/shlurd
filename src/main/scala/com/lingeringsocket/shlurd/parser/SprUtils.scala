@@ -31,8 +31,6 @@ object SprEnglishLemmas
   val LEMMA_MANY = "many"
   val LEMMA_WHICH = "which"
   val LEMMA_WHAT = "what"
-  val LEMMA_ACTUALITY = "actuality"
-  val LEMMA_ENTITY = "entity"
   val LEMMA_OBJECT = "object"
   val LEMMA_CONTAINER = "container"
   val LEMMA_CONTAINEE = "containee"

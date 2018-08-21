@@ -518,7 +518,7 @@ class SilEnglishSentenceBundle
       case DETERMINER_UNIQUE => LEMMA_THE
       case DETERMINER_NONSPECIFIC => {
         // FIXME:  in reality it can be a little more complicated...
-        if ("aeiou".contains(noun.head)) {
+        if ("aeiou".contains(noun.head) || noun.startsWith("spc-")) {
           "an"
         } else {
           LEMMA_A

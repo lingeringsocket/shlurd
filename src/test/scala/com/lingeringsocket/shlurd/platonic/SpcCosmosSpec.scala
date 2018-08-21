@@ -566,22 +566,12 @@ class SpcCosmosSpec extends Specification
       specificRef must be equalTo properRef
     }
 
-    "clear all entities" in new CosmosContext
-    {
-      addBelief("Lana is a person")
-      val entity = expectPerson("lana")
-      cosmos.clear
-      val cleared = cosmos.resolveQualifiedNoun(
-        LEMMA_PERSON, REF_SUBJECT, Set("Lana"))
-      cleared must beSuccessfulTry.which(_.isEmpty)
-    }
-
     "support primordial forms" in new CosmosContext
     {
       cosmos.getForms.size must be equalTo 0
       SpcPrimordial.initCosmos(cosmos)
-      cosmos.getForms.size must be equalTo 3
-      val entity = expectNamedForm(LEMMA_ENTITY)
+      cosmos.getForms.size must be greaterThan 0
+      val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
       val person = expectNamedForm(LEMMA_PERSON)
       val obj = expectNamedForm(LEMMA_OBJECT)
       val propGender = expectSingleProperty(person)
@@ -593,8 +583,6 @@ class SpcCosmosSpec extends Specification
       genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
       cosmos.resolveIdealSynonym(LEMMA_WHO) must
         be equalTo LEMMA_PERSON
-      cosmos.resolveIdealSynonym(LEMMA_ACTUALITY) must
-        be equalTo LEMMA_ENTITY
       val graph = cosmos.getGraph
       graph.getFormHypernyms(entity).toSeq must be equalTo(
         Seq(entity))
@@ -613,7 +601,7 @@ class SpcCosmosSpec extends Specification
     {
       SpcPrimordial.initCosmos(cosmos)
       addBelief("a firefighter is a kind of person")
-      val entity = expectNamedForm(LEMMA_ENTITY)
+      val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
       val person = expectNamedForm(LEMMA_PERSON)
       val obj = expectNamedForm(LEMMA_OBJECT)
       val firefighter = expectNamedForm("firefighter")

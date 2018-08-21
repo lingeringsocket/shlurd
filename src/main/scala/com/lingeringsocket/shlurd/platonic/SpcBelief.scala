@@ -83,7 +83,8 @@ case class EntityExistenceBelief(
   entityRef : SilReference,
   formName : SilWord,
   qualifiers : Seq[SilWord],
-  properName : String
+  properName : String,
+  positive : Boolean = true
 ) extends SpcBelief
 {
 }
@@ -92,7 +93,8 @@ case class EntityAssocBelief(
   sentence : SilSentence,
   possessorRef : SilReference,
   possesseeRef : SilReference,
-  roleName : SilWord
+  roleName : SilWord,
+  positive : Boolean = true
 ) extends SpcBelief
 {
 }

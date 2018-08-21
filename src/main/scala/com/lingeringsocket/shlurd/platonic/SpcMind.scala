@@ -35,7 +35,7 @@ class SpcMind(cosmos : SpcCosmos)
     determiner : SilDeterminer) =
   {
     val assocGraph = cosmos.getEntityAssocGraph
-    val genitives = assocGraph.incomingEdgesOf(entity).asScala.toSeq.map(
+    val genitives = assocGraph.incomingEdgesOf(entity).asScala.toSeq.flatMap(
       edge => {
         val graph = cosmos.getGraph
         val possessor = graph.getPossessorEntity(edge)
@@ -71,7 +71,11 @@ class SpcMind(cosmos : SpcCosmos)
               SilNounReference(SilWord(specializedRole.name)))
           }
         }
-        (genitive, cardinality)
+        if (SpcMeta.isMetaEntity(possessor)) {
+          None
+        } else {
+          Some((genitive, cardinality))
+        }
       }
     )
     val qualifiedSeq = {

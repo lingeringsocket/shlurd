@@ -344,21 +344,25 @@ class SpcGraph(
 
   def render() : String =
   {
-    render(idealSynonyms) + "\n" +
-    render(idealTaxonomy) + "\n" +
-    render(formAssocs) + "\n" +
-    render(inverseAssocs) + "\n" +
-    render(components) + "\n" +
-    render(entitySynonyms) + "\n" +
-    render(entityAssocs)
+    render(idealSynonyms, "Ideal synonyms") + "\n" +
+    render(idealTaxonomy, "Ideal taxonomy") + "\n" +
+    render(formAssocs, "Form associations") + "\n" +
+    render(inverseAssocs, "Inverse associations") + "\n" +
+    render(components, "Components") + "\n" +
+    render(entitySynonyms, "Entity synonyms") + "\n" +
+    render(entityAssocs, "Entity associations") + "\n" +
+    render(triggers, "Triggers")
   }
 
-  def render[V, E](graph : Graph[V, E]) : String =
+  def render[V, E](graph : Graph[V, E], title : String) : String =
   {
     val exporter = new GmlExporter[V, E]
     exporter.setVertexIDProvider(new StringComponentNameProvider[V])
     exporter.setEdgeIDProvider(new StringComponentNameProvider[E])
     val sw = new StringWriter
+    sw.write("# ")
+    sw.write(title)
+    sw.write("\n")
     exporter.exportGraph(graph, sw)
     sw.toString
   }

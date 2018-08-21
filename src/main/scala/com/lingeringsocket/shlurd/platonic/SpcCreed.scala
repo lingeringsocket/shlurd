@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 
 import SprEnglishLemmas._
 
-class SpcCreed(cosmos : SpcCosmos)
+class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
 {
   def allBeliefs() : Iterable[SilSentence] =
   {
@@ -38,7 +38,9 @@ class SpcCreed(cosmos : SpcCosmos)
       cosmos.getInverseAssocEdges.flatMap(
         entry => inverseAssocBelief(entry._1, entry._2))
     ) ++ (
-      cosmos.getEntities.flatMap(entityBeliefs)
+      cosmos.getEntities.
+        filterNot(e => SpcMeta.isMetaEntity(e) && !includeMeta).
+        flatMap(entityBeliefs)
     ) ++ (
       cosmos.getTriggers
     )
@@ -301,9 +303,15 @@ class SpcCreed(cosmos : SpcCosmos)
     val possessorIdeal = cosmos.getGraph.getPossessorIdeal(edge1) match {
       case form : SpcForm => form
       case role : SpcRole => {
-        val forms = cosmos.getGraph.getFormsForRole(role)
-        // FIXME
-        assert(forms.size < 2)
+        val candidates = cosmos.getGraph.getFormsForRole(role)
+        val forms = {
+          if (candidates.size > 1) {
+            candidates.filterNot(_.name == SpcMeta.ENTITY_METAFORM_NAME)
+          } else {
+            candidates
+          }
+        }
+        assert(forms.size < 2, (role, forms))
         if (forms.isEmpty) {
           return None
         } else {

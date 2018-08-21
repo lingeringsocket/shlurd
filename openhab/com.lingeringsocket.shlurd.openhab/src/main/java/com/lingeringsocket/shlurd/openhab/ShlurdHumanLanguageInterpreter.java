@@ -99,9 +99,7 @@ public class ShlurdHumanLanguageInterpreter
 
     private void invalidate()
     {
-        if (cosmos != null) {
-            cosmos.clear();
-        }
+        cosmos = null;
     }
 
     private void createCosmos()
@@ -267,11 +265,7 @@ public class ShlurdHumanLanguageInterpreter
         }
         if (cosmos == null) {
             createCosmos();
-        }
-        if (cosmos.getEntities().isEmpty()) {
-            logger.info("SHLURD reloading items...");
             readItems();
-            logger.info("SHLURD items loaded");
         }
         // FIXME: need to support non-string commands
         SilSentence sentence = SprParser$.MODULE$.apply(text).parseOne();

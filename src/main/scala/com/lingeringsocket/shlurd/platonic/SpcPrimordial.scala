@@ -34,7 +34,9 @@ object SpcPrimordial
   private def initSeedCosmos() =
   {
     val newCosmos = new SpcCosmos
+    newCosmos.meta.enableBuffering
     initCosmosFromBeliefs(newCosmos)
+    newCosmos.meta.flush
     newCosmos
   }
 
@@ -49,6 +51,7 @@ object SpcPrimordial
   def initCosmos(cosmos : SpcCosmos)
   {
     cosmos.copyFrom(seedCosmos)
+    cosmos.meta.enable
   }
 
   def isPrimordialSynonym(pair : (String, _)) : Boolean =

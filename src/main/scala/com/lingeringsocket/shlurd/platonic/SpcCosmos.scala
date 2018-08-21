@@ -27,7 +27,6 @@ import scala.collection.JavaConverters._
 import java.util.concurrent.atomic._
 
 import org.jgrapht._
-import org.jgrapht.util._
 
 import SprEnglishLemmas._
 
@@ -126,7 +125,8 @@ case class SpcEntity(
   val properName : String = "")
     extends SilEntity with SpcEntityVertex with SpcContainmentVertex
 {
-  override def isTentative = properName.contains("_")
+  override def isTentative =
+    properName.contains("_") && !SpcMeta.isMetaEntity(this)
 }
 
 case class SpcEntitySynonym(val name : String)
@@ -141,6 +141,8 @@ class SpcCosmos(
 ) extends SmcCosmos[SpcEntity, SpcProperty] with DeltaModification
 {
   private val unmodifiableGraph = graph.asUnmodifiable
+
+  private[platonic] val meta = new SpcMeta(this)
 
   def getForms = graph.idealSynonyms.vertexSet.asScala.toSeq.
     filter(_.isForm).map(_.asInstanceOf[SpcForm])
@@ -177,22 +179,14 @@ class SpcCosmos(
         SpcGraph.fork(graph)
       }
     }
-    new SpcCosmos(forkedGraph, idGenerator, forkLevel + 1)
+    val forked = new SpcCosmos(forkedGraph, idGenerator, forkLevel + 1)
+    forked.meta.afterFork(meta)
+    forked
   }
 
   def asUnmodifiable() : SpcCosmos =
   {
     new SpcCosmos(unmodifiableGraph, idGenerator, forkLevel)
-  }
-
-  def clear()
-  {
-    graph.entityAssocs.vertexSet.asScala.foreach(entity =>
-      graph.removeContainer(entity))
-    graph.entitySynonyms.removeAllVertices(
-      new ArrayUnenforcedSet(graph.entitySynonyms.vertexSet))
-    graph.entityAssocs.removeAllVertices(
-      new ArrayUnenforcedSet(graph.entityAssocs.vertexSet))
   }
 
   protected[platonic] def copyFrom(src : SpcCosmos)
@@ -213,6 +207,9 @@ class SpcCosmos(
 
   private def registerIdeal(ideal : SpcIdeal) =
   {
+    // FIXME we should validate the form name to make sure it doesn't
+    // intrude on system conventions, e.g. spc- prefix.  Likewise
+    // for entity names, role names, etc.
     val synonym = SpcIdealSynonym(ideal.name)
     assert(!graph.idealSynonyms.containsVertex(synonym))
     graph.idealSynonyms.addVertex(synonym)
@@ -220,7 +217,7 @@ class SpcCosmos(
     graph.idealSynonyms.addEdge(synonym, ideal)
     graph.idealTaxonomy.addVertex(ideal)
     graph.formAssocs.addVertex(ideal)
-    getIdealBySynonym(LEMMA_ENTITY) match {
+    getIdealBySynonym(SpcMeta.ENTITY_METAFORM_NAME) match {
       case Some(entityForm) => {
         addIdealTaxonomy(ideal, entityForm)
       }
@@ -241,6 +238,7 @@ class SpcCosmos(
 
   private def registerForm(form : SpcForm) =
   {
+    meta.formExistence(form, true)
     registerIdeal(form)
     graph.components.addVertex(form)
     form
@@ -248,6 +246,7 @@ class SpcCosmos(
 
   private def registerRole(role : SpcRole) =
   {
+    meta.roleExistence(role)
     registerIdeal(role)
     role
   }
@@ -318,6 +317,7 @@ class SpcCosmos(
 
   private[platonic] def forgetForm(form : SpcForm)
   {
+    meta.formExistence(form, false)
     assert(!getEntities.exists(_.form == form))
     val synonymEdges = graph.idealSynonyms.incomingEdgesOf(form).asScala.toSeq
     synonymEdges.foreach(edge => graph.idealSynonyms.removeVertex(
@@ -328,6 +328,7 @@ class SpcCosmos(
 
   private[platonic] def forgetEntity(entity : SpcEntity)
   {
+    meta.entityExistence(entity, false)
     assert(graph.entityAssocs.degreeOf(entity) == 0)
     if (getEntityBySynonym(entity.name) == Some(entity)) {
       val synonymEdges = graph.entitySynonyms.
@@ -405,8 +406,18 @@ class SpcCosmos(
     // FIXME verify that entities are role-compatible across all
     // relevant form associations, constraints aren't violated, etc
     if (oldEntity != newEntity) {
+      // this happens again later, but we have to do it now
+      // to make sure that newEntity doesn't end up with
+      // multiple types
+      meta.entityExistence(oldEntity, false)
       graph.replaceVertex(graph.entityAssocs, oldEntity, newEntity)
       forgetEntity(oldEntity)
+      // FIXME we currently leave garbage lying around
+      /*
+      if (oldEntity.form.isTentative) {
+        forgetForm(oldEntity.form)
+      }
+       */
     }
   }
 
@@ -480,6 +491,7 @@ class SpcCosmos(
         Seq(form.name, formId)).mkString("_")
     val entity = new SpcEntity(name, form, qualifiers, properName)
     createOrReplaceEntity(entity)
+    meta.entityExistence(entity, true)
     (entity, true)
   }
 
@@ -550,7 +562,11 @@ class SpcCosmos(
       assert(added)
       // defer this until after addEdge since addEdge may throw a
       // cycle exception
+      redundantEdges.foreach(edge => meta.idealHypernym(
+        graph.getHyponymIdeal(edge), graph.getHypernymIdeal(edge), false
+      ))
       idealTaxonomy.removeAllEdges(redundantEdges.asJava)
+      meta.idealHypernym(hyponymIdeal, hypernymIdeal, true)
     }
   }
 
@@ -613,7 +629,20 @@ class SpcCosmos(
     }
   }
 
-  protected[platonic] def removeEntityAssociation(edge : SpcEntityAssocEdge)
+  protected[platonic] def removeEntityAssociation(
+    possessor : SpcEntity,
+    possessee : SpcEntity,
+    formAssocEdge : SpcFormAssocEdge)
+  {
+    getEntityAssocEdge(
+      possessor, possessee,
+      graph.getPossesseeRole(formAssocEdge)
+    ).foreach(
+      removeEntityAssocEdge
+    )
+  }
+
+  protected[platonic] def removeEntityAssocEdge(edge : SpcEntityAssocEdge)
   {
     graph.entityAssocs.removeEdge(edge)
   }
@@ -689,7 +718,7 @@ class SpcCosmos(
             val entityEdges = getEntityAssocGraph.
               outgoingEdgesOf(entity).asScala
             val c = entityEdges.count(_.formEdge == formEdge)
-            assert(c <= constraint.upper)
+            assert(c <= constraint.upper, (formEdge, entity))
           }
         )
       }
@@ -810,6 +839,13 @@ class SpcCosmos(
     }
   }
 
+  def getPropertyForm(property : SpcProperty) : SpcForm =
+  {
+    val inEdges = getGraph.components.incomingEdgesOf(property).asScala
+    assert(inEdges.size == 1)
+    getGraph.getContainer(inEdges.head).asInstanceOf[SpcForm]
+  }
+
   override def resolveProperty(
     entity : SpcEntity,
     lemma : String) : Try[(SpcProperty, String)] =
@@ -888,6 +924,7 @@ class SpcCosmos(
       case _ => {
         val property = new SpcProperty(propertyName, false)
         assert(!getFormPropertyMap(form).contains(property.name))
+        meta.propertyExistence(form, property)
         graph.addComponent(form, property)
         property
       }
@@ -910,6 +947,8 @@ class SpcCosmos(
   {
     val propertyState = new SpcPropertyState(word.lemma, word.inflected)
     assert(!getPropertyStateMap(property).contains(propertyState.lemma))
+    meta.propertyValueExistence(
+      getPropertyForm(property), property, propertyState)
     graph.addComponent(property, propertyState)
   }
 

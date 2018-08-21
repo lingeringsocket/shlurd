@@ -49,6 +49,14 @@ testOptions in Test += Tests.Setup(
 testOptions in Test += Tests.Cleanup(
   (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.ShlurdTestCleanup").newInstance)
 
+if (sys.env.get("xonly").getOrElse("true") != "false") {
+  Seq(
+    testOptions in Test += Tests.Argument("xonly")
+  )
+} else {
+  Seq()
+}
+
 initialCommands := """
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._

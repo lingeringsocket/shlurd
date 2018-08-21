@@ -30,6 +30,8 @@ class ShlurdCliSerializer
 
   private val BELIEF_ENTRY = "beliefs.txt"
 
+  private val GML_ENTRY = "graphs.gml"
+
   private val instantiator = new ScalaKryoInstantiator
   instantiator.setRegistrationRequired(false)
   private val kryo = instantiator.newKryo
@@ -51,6 +53,11 @@ class ShlurdCliSerializer
           val beliefString = printer.print(belief)
           pw.println(SprUtils.capitalize(beliefString))
         })
+        pw.flush
+      })
+      saveEntry(zos, GML_ENTRY)(outputStream => {
+        val pw = new PrintWriter(outputStream)
+        pw.println(mind.getCosmos.getGraph.render)
         pw.flush
       })
     } finally {

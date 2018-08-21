@@ -173,7 +173,8 @@ class SpcInterpreter(
         SmcResolutionOptions(
           failOnUnknown = false,
           resolveConjunctions = true,
-          resolveUniqueDeterminers = true))
+          resolveUniqueDeterminers = true,
+          reifyRoles = false))
     // discard the rewrite result; we just want the resultCollector
     // side effects
     rewriter.rewrite(rewriter.rewriteReferences, sentence)

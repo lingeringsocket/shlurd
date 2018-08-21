@@ -30,14 +30,14 @@ class ShlurdCliSpec extends Specification
       val cosmos = new SpcCosmos
       cosmos.getForms.size must be equalTo 0
       cosmos.instantiateForm(SilWord("dog"))
-      cosmos.getForms.size must be equalTo 1
+      cosmos.getForms.size must be greaterThan 0
       val oldMind = new ShlurdCliMind(cosmos)
       val serializer = new ShlurdCliSerializer
       val file = File.createTempFile("testmind", ".kryo")
       try {
         serializer.save(oldMind, file)
         val newMind = serializer.load(file)
-        newMind.getCosmos.getForms.size must be equalTo 1
+        newMind.getCosmos.getForms.size must be greaterThan 0
       } finally {
         file.delete
       }

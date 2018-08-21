@@ -23,7 +23,8 @@ import scala.util._
 case class SmcResolutionOptions(
   failOnUnknown : Boolean = true,
   resolveUniqueDeterminers : Boolean = false,
-  resolveConjunctions : Boolean = false
+  resolveConjunctions : Boolean = false,
+  reifyRoles : Boolean = true
 )
 
 class SmcReferenceRewriter[
@@ -114,7 +115,9 @@ class SmcReferenceRewriter[
       grr : SilResolvedReference[EntityType], SilNounReference(noun, _, _)
     ) => {
       val roleName = noun.lemma
-      grr.entities.foreach(entity => cosmos.reifyRole(entity, roleName, true))
+      if (options.reifyRoles) {
+        grr.entities.foreach(entity => cosmos.reifyRole(entity, roleName, true))
+      }
       val attempts = grr.entities.map(
         entity => cosmos.resolveEntityAssoc(entity, roleName))
       if (attempts.exists(_.isFailure)) {
