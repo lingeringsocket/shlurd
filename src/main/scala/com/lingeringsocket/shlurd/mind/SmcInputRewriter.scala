@@ -28,8 +28,25 @@ class SmcInputRewriter[
     sentence : SilSentence) : SilSentence =
   {
     rewrite(
-      convertProgressive,
+      combineRules(convertProgressive, convertGenitiveOf),
       sentence)
+  }
+
+  // FIXME this should be context-sensitive, and should be able to
+  // handle more complicated constructs such as
+  // "the first cousin of Elizabeth"
+  private def convertGenitiveOf = replacementMatcher {
+    case SilStateSpecifiedReference(
+      SilNounReference(noun, _, count),
+      SilAdpositionalState(
+        SilAdposition.OF,
+        possessor
+      )
+    ) => {
+      SilGenitiveReference(
+        possessor,
+        SilNounReference(noun, DETERMINER_UNSPECIFIED, count))
+    }
   }
 
   // FIXME this rewrite is just a hack to keep tests passing for the moment

@@ -22,7 +22,6 @@ class SmcPhraseRewriter extends SilPhraseRewriter
 {
   protected val querier = new SilPhraseRewriter
 
-
   def containsWildcard(
     phrase : SilPhrase,
     includeConjunctions : Boolean = true) : Boolean =
