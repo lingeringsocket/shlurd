@@ -239,6 +239,7 @@ class SpcCosmosSpec extends Specification
 
     "understand property inheritance" in new CosmosContext
     {
+      SpcPrimordial.initCosmos(cosmos)
       addBelief("a bird must be either happy or sad")
       addBelief("a duck is a kind of bird")
       addBelief("Daffy is a duck")
@@ -252,6 +253,14 @@ class SpcCosmosSpec extends Specification
       val woodstock = expectUnique(
         cosmos.resolveQualifiedNoun(
           "bird", REF_SUBJECT, Set("woodstock")))
+      cosmos.getFormHyponymRealizations(bird) must be equalTo
+        Seq(woodstock, daffy)
+      cosmos.getFormHypernymRealizations(bird) must be equalTo
+        Seq(woodstock)
+      cosmos.getFormHyponymRealizations(duck) must be equalTo
+        Seq(daffy)
+      cosmos.getFormHypernymRealizations(duck) must be equalTo
+        Seq(daffy, woodstock)
       Seq(daffy, woodstock).foreach(entity => {
         val propertyTry = cosmos.resolveProperty(entity, "happy")
         propertyTry must beSuccessfulTry

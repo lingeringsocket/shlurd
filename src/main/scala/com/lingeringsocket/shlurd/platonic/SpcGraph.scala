@@ -293,6 +293,13 @@ class SpcGraph(
     getIdealHypernyms(form).map(_.asInstanceOf[SpcForm])
   }
 
+  def getFormHyponyms(
+    form : SpcForm) : Iterator[SpcForm] =
+  {
+    getIdealHyponyms(form).filter(_.isInstanceOf[SpcForm]).
+      map(_.asInstanceOf[SpcForm])
+  }
+
   def getFormsForRole(
     role : SpcRole) : Iterable[SpcForm] =
   {

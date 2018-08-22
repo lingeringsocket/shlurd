@@ -186,7 +186,9 @@ class SpcCosmos(
 
   def asUnmodifiable() : SpcCosmos =
   {
-    new SpcCosmos(unmodifiableGraph, idGenerator, forkLevel)
+    val frozen = new SpcCosmos(unmodifiableGraph, idGenerator, forkLevel)
+    frozen.meta.afterFork(meta)
+    frozen
   }
 
   protected[platonic] def copyFrom(src : SpcCosmos)
@@ -265,13 +267,52 @@ class SpcCosmos(
   protected[platonic] def getEntityBySynonym(name : String)
       : Option[SpcEntity] =
   {
-    val synonym = SpcEntitySynonym(name)
+    val synonym = SpcEntitySynonym(name.toLowerCase)
     if (graph.entitySynonyms.containsVertex(synonym)) {
       Some(Graphs.successorListOf(
         graph.entitySynonyms, synonym).iterator.next.asInstanceOf[SpcEntity])
     } else {
       None
     }
+  }
+
+  def getFormHyponymRealizations(form : SpcForm) : Seq[SpcEntity] =
+  {
+    if (meta.isFresh) {
+      graph.getFormHyponyms(form).toSeq.flatMap(getFormRealizations)
+    } else {
+      getEntities.filter(entity => graph.isHyponym(entity.form, form))
+    }
+  }
+
+  def getFormHypernymRealizations(form : SpcForm) : Seq[SpcEntity] =
+  {
+    if (meta.isFresh) {
+      graph.getFormHypernyms(form).toSeq.flatMap(getFormRealizations)
+    } else {
+      getEntities.filter(entity => graph.isHyponym(form, entity.form))
+    }
+  }
+
+  def getRoleRealizations(role : SpcRole) : Seq[SpcEntity] =
+  {
+    if (meta.isFresh) {
+      graph.getIdealHypernyms(role).toSeq.filter(_.isForm).
+        map(_.asInstanceOf[SpcForm]).
+        flatMap(graph.getFormHyponyms).distinct.flatMap(getFormRealizations)
+    } else {
+      getEntities.filter(
+        entity => graph.isFormCompatibleWithRole(entity.form, role))
+    }
+  }
+
+  def getFormRealizations(form : SpcForm) : Seq[SpcEntity] =
+  {
+    val formEntityName = SpcMeta.formMetaEntityName(form)
+    val formEntity = getEntityBySynonym(formEntityName).get
+    graph.entityAssocs.outgoingEdgesOf(formEntity).asScala.toSeq.filter(
+      _.getRoleName == SpcMeta.REALIZATION_METAROLE_NAME).map(
+      graph.getPossesseeEntity)
   }
 
   def resolveIdealSynonym(name : String) : String =
@@ -317,8 +358,8 @@ class SpcCosmos(
 
   private[platonic] def forgetForm(form : SpcForm)
   {
+    assert(getFormHyponymRealizations(form).isEmpty)
     meta.formExistence(form, false)
-    assert(!getEntities.exists(_.form == form))
     val synonymEdges = graph.idealSynonyms.incomingEdgesOf(form).asScala.toSeq
     synonymEdges.foreach(edge => graph.idealSynonyms.removeVertex(
       graph.idealSynonyms.getEdgeSource(edge)))
@@ -471,14 +512,16 @@ class SpcCosmos(
   {
     val qualifiers = qualifierSet(qualifierString)
     if (properName.isEmpty) {
-      getEntities.find(hasQualifiers(_, form, qualifiers, true)) match {
+      getFormHypernymRealizations(form).find(hasQualifiers(
+        _, form, qualifiers, true)) match
+      {
         case Some(entity) => {
           return (entity, false)
         }
         case _ =>
       }
     } else {
-      getEntities.filter(_.properName == properName).headOption match {
+      getEntityBySynonym(properName) match {
         case Some(entity) => {
           return (entity, false)
         }
@@ -486,12 +529,16 @@ class SpcCosmos(
       }
     }
     val formId = idGenerator.getAndIncrement.toString
-    val name =
-      (qualifierString.map(_.lemma) ++
-        Seq(form.name, formId)).mkString("_")
+    val name = {
+      if (properName.isEmpty) {
+        (qualifierString.map(_.lemma) ++
+          Seq(form.name, formId)).mkString("_")
+      } else {
+        properName
+      }
+    }
     val entity = new SpcEntity(name, form, qualifiers, properName)
     createOrReplaceEntity(entity)
-    meta.entityExistence(entity, true)
     (entity, true)
   }
 
@@ -500,9 +547,10 @@ class SpcCosmos(
     graph.entityAssocs.addVertex(entity)
     graph.entitySynonyms.addVertex(entity)
     graph.components.addVertex(entity)
-    val synonym = SpcEntitySynonym(entity.name)
+    val synonym = SpcEntitySynonym(entity.name.toLowerCase)
     getEntityBySynonym(entity.name) match {
       case Some(old) => {
+        assert(old != entity)
         graph.entitySynonyms.removeEdge(synonym, old)
         graph.entitySynonyms.addEdge(synonym, entity)
         replaceEntity(old, entity)
@@ -512,6 +560,7 @@ class SpcCosmos(
         graph.entitySynonyms.addEdge(synonym, entity)
       }
     }
+    meta.entityExistence(entity, true)
   }
 
   def getInverseAssocEdge(edge : SpcFormAssocEdge)
@@ -809,29 +858,29 @@ class SpcCosmos(
     qualifiers : Set[String]) =
   {
     val (formOpt, roleOpt) = resolveIdeal(lemma)
-    val entities = getEntities
     roleOpt match {
       case Some(role) => {
         Success(SprUtils.orderedSet(
-          entities.filter(entity =>
-            graph.isFormCompatibleWithRole(entity.form, role) &&
+          getRoleRealizations(role).filter(entity =>
               hasQualifiers(entity, entity.form, qualifiers, false))))
       }
       case _ => {
         formOpt match {
           case Some(form) => {
             Success(SprUtils.orderedSet(
-              entities.filter(
+              getFormHyponymRealizations(form).filter(
                 hasQualifiers(_, form, qualifiers, false))))
           }
           case _ => {
-            val results = entities.filter(
-              entity => hasQualifiers(
-                entity, entity.form, qualifiers + lemma, false))
-            if (results.isEmpty) {
-              fail(s"unknown ideal $lemma")
-            } else {
-              Success(SprUtils.orderedSet(results))
+            getEntityBySynonym(lemma) match {
+              case Some(entity) if (hasQualifiers(
+                entity, entity.form, qualifiers + lemma, false)
+              ) => {
+                Success(Set(entity))
+              }
+              case _ => {
+                fail(s"unknown ideal $lemma")
+              }
             }
           }
         }

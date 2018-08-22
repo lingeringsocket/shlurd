@@ -36,6 +36,8 @@ object SpcMeta
 
   val TYPE_METAROLE_NAME = "spc-type"
 
+  val REALIZATION_METAROLE_NAME = "spc-realization"
+
   val SUPERCLASS_METAROLE_NAME = "spc-superclass"
 
   val ATTRIBUTE_METAROLE_NAME = "spc-attribute"
@@ -219,6 +221,11 @@ class SpcMeta(cosmos : SpcCosmos)
     if (!original.buffer.isEmpty) {
       buffer = original.buffer
     }
+  }
+
+  def isFresh() : Boolean =
+  {
+    !beliefInterpreter.isEmpty && buffer.isEmpty
   }
 
   def enable()

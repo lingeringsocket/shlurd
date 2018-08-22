@@ -327,7 +327,7 @@ class SpcInterpreterSpec extends Specification
         "Sorry, I don't know about any 'robot'.")
       interpret(
         "who is a person",
-        "Dirk, Todd, Amanda, Bart, Hugo, Scott, and Arthur are persons.")
+        "Scott, Dirk, Todd, Hugo, Arthur, Amanda, and Bart are persons.")
       interpret(
         "who is a man",
         "Dirk, Todd, Hugo, and Arthur are men.")

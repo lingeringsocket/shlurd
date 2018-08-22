@@ -69,7 +69,9 @@ abstract class SpcOpenhabCosmos(
 
   override def asUnmodifiable() : SpcOpenhabCosmos =
   {
-    new SpcOpenhabDerivedCosmos(this, getGraph, forkLevel)
+    val frozen = new SpcOpenhabDerivedCosmos(this, getGraph, forkLevel)
+    frozen.meta.afterFork(meta)
+    frozen
   }
 
   override def resolveQualifiedNoun(

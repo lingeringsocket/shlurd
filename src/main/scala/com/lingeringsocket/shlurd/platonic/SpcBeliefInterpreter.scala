@@ -87,8 +87,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     determiner match {
       case DETERMINER_UNIQUE => {
         val form = cosmos.instantiateForm(noun)
-        val entities = cosmos.getEntities.filter(entity =>
-          cosmos.getGraph.isHyponym(entity.form, form))
+        val entities = cosmos.getFormHyponymRealizations(form)
         if (entities.isEmpty) {
           val (entity, success) = cosmos.instantiateEntity(
             form, Seq.empty)
@@ -105,10 +104,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
         }
       }
       case DETERMINER_UNSPECIFIED => {
-        val candidates = cosmos.getEntities.filter(
-          _.qualifiers == Set(noun.lemma))
-        assert(candidates.size < 2)
-        candidates.headOption match {
+        cosmos.getEntityBySynonym(noun.lemma) match {
           case Some(entity) => (entity, false)
           case _ => {
             val tentativeName = SpcForm.tentativeName(noun)
