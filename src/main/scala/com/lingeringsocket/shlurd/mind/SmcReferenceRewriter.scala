@@ -24,6 +24,7 @@ case class SmcResolutionOptions(
   failOnUnknown : Boolean = true,
   resolveUniqueDeterminers : Boolean = false,
   resolveConjunctions : Boolean = false,
+  resolveGenitives : Boolean = true,
   reifyRoles : Boolean = true
 )
 
@@ -113,7 +114,7 @@ class SmcReferenceRewriter[
     }
     case gr @ SilGenitiveReference(
       grr : SilResolvedReference[EntityType], SilNounReference(noun, _, _)
-    ) => {
+    ) if (options.resolveGenitives) => {
       val roleName = noun.lemma
       if (options.reifyRoles) {
         grr.entities.foreach(entity => cosmos.reifyRole(entity, roleName, true))

@@ -42,6 +42,8 @@ class SpcInterpreter(
 
   private var referenceMap : Option[Map[SilReference, Set[SpcEntity]]] = None
 
+  private val typeMap = new mutable.LinkedHashMap[SilReference, SpcForm]
+
   override protected def spawn(subMind : SpcMind) =
   {
     new SpcInterpreter(subMind, beliefAcceptance, params)
@@ -61,6 +63,7 @@ class SpcInterpreter(
     } finally {
       already.clear
       referenceMap = None
+      typeMap.clear
     }
   }
 
@@ -596,5 +599,71 @@ class SpcInterpreter(
     }
     // FIXME:  need a cleaner way to omit full stop
     punctuated.dropRight(1).trim
+  }
+
+  private def unknownType() : SpcForm =
+  {
+    mind.getCosmos.instantiateForm(SilWord(SpcMeta.ENTITY_METAFORM_NAME))
+  }
+
+  private[platonic] def deriveType(ref : SilReference) : SpcForm =
+  {
+    def cosmos = mind.getCosmos
+    typeMap.getOrElseUpdate(ref, {
+      ref match {
+        case SilResolvedReference(entities, _, _) => {
+          lcaType(entities.map(_.asInstanceOf[SpcEntity].form))
+        }
+        case SilConjunctiveReference(_, refs, _) => {
+          lcaType(refs.map(deriveType).toSet)
+        }
+        case SilGenitiveReference(_, SilNounReference(noun, _, _)) => {
+          // FIXME probably the possessor's type should be used for scoping
+          // here?  Also need to handle properties.
+          cosmos.resolveRole(noun.lemma) match {
+            case Some(role) => {
+              lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
+            }
+            case _ => unknownType
+          }
+        }
+        case SilNounReference(noun, _, _) => {
+          // FIXME resolve roles as well?
+          cosmos.resolveForm(noun.lemma).getOrElse(unknownType)
+        }
+        case pr : SilPronounReference => {
+          mind.resolvePronoun(pr) match {
+            case Success(entities) => {
+              lcaType(entities.map(_.form))
+            }
+            case _ => unknownType
+          }
+        }
+        case SilStateSpecifiedReference(sub, state) => {
+          deriveType(sub)
+        }
+        case _ => unknownType
+      }
+    })
+  }
+
+  private def lcaType(forms : Set[SpcForm]) : SpcForm =
+  {
+    if (forms.isEmpty) {
+      unknownType
+    } else {
+      def lcaPair(o1 : Option[SpcForm], o2 : Option[SpcForm])
+          : Option[SpcForm] =
+      {
+        (o1, o2) match {
+          case (Some(f1), Some(f2)) => {
+            mind.getCosmos.getGraph.closestCommonHypernym(f1, f2).
+              map(_.asInstanceOf[SpcForm])
+          }
+          case _ => None
+        }
+      }
+      forms.map(Some(_)).reduce(lcaPair).getOrElse(unknownType)
+    }
   }
 }

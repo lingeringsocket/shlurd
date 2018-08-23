@@ -349,6 +349,13 @@ class SpcGraph(
       map(_.asInstanceOf[SpcRole]).getOrElse(role)
   }
 
+  def closestCommonHypernym(
+    ideal1 : SpcIdeal, ideal2 : SpcIdeal) : Option[SpcIdeal] =
+  {
+    val alg = new NaiveLcaFinder(new EdgeReversedGraph(idealTaxonomy))
+    Option(alg.findLca(ideal1, ideal2))
+  }
+
   def render() : String =
   {
     render(idealSynonyms, "Ideal synonyms") + "\n" +

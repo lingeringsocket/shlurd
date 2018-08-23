@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 import spire.math._
 
@@ -29,7 +30,7 @@ import SprEnglishLemmas._
 
 class SpcCosmosSpec extends Specification
 {
-  trait CosmosContext extends NameSpace
+  trait CosmosContext extends Scope
   {
     protected val cosmos = new SpcCosmos
 

@@ -16,8 +16,10 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
+import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 import scala.io._
 import scala.util._
@@ -41,7 +43,7 @@ class SpcInterpreterSpec extends Specification
   abstract class InterpreterContext(
     beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
     params : SmcResponseParams = SmcResponseParams()
-  ) extends NameSpace
+  ) extends Scope
   {
     protected val cosmos = new SpcCosmos {
       override protected[platonic] def evaluateEntityProperty(
@@ -1242,6 +1244,54 @@ class SpcInterpreterSpec extends Specification
       interpretTerse("who is Rapunzel's owner", "Amanda.")
       interpretBelief("Scott is RowdyThree's operative")
       interpretTerse("who is RowdyThree's operative", "Scott.")
+    }
+
+    "derive types" >> new InterpreterContext
+    {
+      loadBeliefs("/ontologies/people.txt")
+      Seq(
+        ("the dog", "dog"),
+        ("a dog", "dog"),
+        ("a frog", "spc-entity"),
+        ("the big dog", "dog"),
+        ("an organization with a problem", "organization"),
+        ("Amanda", "woman"),
+        ("Todd", "man"),
+        ("it", "spc-entity"),
+        ("Amanda and Todd", "person"),
+        ("Amanda and BLACKWING", "spc-entity"),
+        ("Todd's sister", "woman"),
+        ("Rapunzel's owner", "person")
+      ).foreach {
+        case (
+          subject, expectedType
+        ) => {
+          val input = s"$subject is hungry"
+          val sentence = SprParser(input).parseOne
+          val rewriter = new SmcReferenceRewriter(
+            cosmos, new SilSentencePrinter,
+            SmcResultCollector[SpcEntity](),
+            SmcResolutionOptions().copy(resolveGenitives = false))
+          val rewritten = rewriter.rewrite(
+            rewriter.rewriteReferences, sentence)
+          val subjectRef = rewritten match {
+            case SilPredicateSentence(
+              SilStatePredicate(
+                subject,
+                _,
+                _),
+              _,
+              _
+            ) => {
+              subject
+            }
+            case _ => {
+              throw new RuntimeException(s"unexpected sentence $sentence")
+            }
+          }
+          interpreter.deriveType(subjectRef).name ==== expectedType
+        }
+      }
     }
   }
 }

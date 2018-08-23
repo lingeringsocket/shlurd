@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 import scala.collection._
 import scala.util._
@@ -35,7 +36,7 @@ class SmcInterpreterSpec extends Specification
   abstract class InterpreterContext(
     responseParams : SmcResponseParams =
       SmcResponseParams().copy(thirdPersonPronouns = false)
-  ) extends NameSpace
+  ) extends Scope
   {
     protected val mind = new MindType(cosmos) {
       override def resolvePronoun(

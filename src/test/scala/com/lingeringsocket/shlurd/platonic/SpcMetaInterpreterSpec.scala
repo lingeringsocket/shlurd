@@ -18,10 +18,11 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 class SpcMetaInterpreterSpec extends Specification
 {
-  class MetaInterpreterContext extends NameSpace
+  class MetaInterpreterContext extends Scope
   {
     protected val cosmos = new SpcCosmos
     SpcPrimordial.initCosmos(cosmos)

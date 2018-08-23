@@ -17,13 +17,14 @@ package com.lingeringsocket.shlurd.platonic
 import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 import scala.io._
 import scala.util._
 
 class SpcOpenhabCosmosSpec extends Specification
 {
-  trait CosmosContext extends NameSpace
+  trait CosmosContext extends Scope
   {
     private val itemStates = Map(
       "GF_Garage_Door" -> "open",
