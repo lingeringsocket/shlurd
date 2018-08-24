@@ -44,12 +44,19 @@ trait SmcCosmos[EntityType<:SilEntity, PropertyType<:SmcProperty]
     entity : EntityType,
     roleName : String) : Try[Set[EntityType]] =
   {
-    Failure(new UnsupportedOperationException())
+    Failure(new UnsupportedOperationException)
   }
 
-  def resolveProperty(
+  def resolvePropertyState(
     entity : EntityType,
     lemma : String) : Try[(PropertyType, String)]
+
+  def resolvePropertyName(
+    entity : EntityType,
+    propertyName : String) : Try[PropertyType] =
+  {
+    Failure(new UnsupportedOperationException)
+  }
 
   def evaluateEntityCategoryPredicate(
     entity : EntityType,
@@ -64,6 +71,11 @@ trait SmcCosmos[EntityType<:SilEntity, PropertyType<:SmcProperty]
     entity : EntityType,
     property : PropertyType,
     lemma : String) : Try[Trilean]
+
+  def evaluateEntityProperty(
+    entity : EntityType,
+    propertyName : String,
+    specific : Boolean = false) : Try[(Option[PropertyType], Option[String])]
 
   def evaluateEntityAdpositionPredicate(
     entity : EntityType,

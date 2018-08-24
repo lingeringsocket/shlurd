@@ -138,7 +138,7 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
     }
   }
 
-  override def resolveProperty(
+  override def resolvePropertyState(
     entity : SilEntity,
     lemma : String) =
   {
@@ -193,6 +193,14 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
           SilWord(name), DETERMINER_UNSPECIFIED)
       }
     }
+  }
+
+  override def evaluateEntityProperty(
+    entity : SilEntity,
+    propertyName : String,
+    specific : Boolean = false) : Try[(Option[SmcProperty], Option[String])] =
+  {
+    fail("I don't know how to evaluate this property: " + propertyName)
   }
 
   override def evaluateEntityPropertyPredicate(

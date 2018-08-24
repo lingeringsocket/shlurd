@@ -273,12 +273,13 @@ class SmcInterpreter[
 
   private def interpretPredicateQuery = sentenceInterpreter {
     case sentence @ SilPredicateQuery(
-      predicate, question, answerInflection, tam, formality
+      predicate, question, originalAnswerInflection, tam, formality
     ) => {
       debug("PREDICATE QUERY")
       // FIXME deal with positive, modality
 
-      val rewrittenPredicate = rewriteQuery(predicate, question)
+      val (rewrittenPredicate, answerInflection) = rewriteQuery(
+        predicate, question, originalAnswerInflection)
       debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
 
       val resultCollector = SmcResultCollector[EntityType]
@@ -324,7 +325,15 @@ class SmcInterpreter[
                     INFLECT_ACCUSATIVE,
                     SilConjoining.NONE)
                 }
+                case (
+                  INFLECT_COMPLEMENT,
+                  SilStatePredicate(_, state, _)
+                ) => {
+                  sentencePrinter.print(
+                    state, tamResponse, SilConjoining.NONE)
+                }
                 case _ => {
+                  // FIXME lots of other cases need to be handled
                   sentencePrinter.print(
                     normalizedResponse.getSubject,
                     INFLECT_NOMINATIVE,
@@ -759,6 +768,10 @@ class SmcInterpreter[
             evaluatePropertyStatePredicate(
               entity, entityRef, word, resultCollector)
           }
+          case SilPropertyQueryState(propertyName) => {
+            evaluatePropertyStateQuery(
+              entity, entityRef, propertyName, resultCollector)
+          }
           case SilAdpositionalState(adposition, objRef) => {
             evaluateAdpositionStatePredicate(
               entity, adposition, objRef, resultCollector)
@@ -1105,6 +1118,32 @@ class SmcInterpreter[
     result
   }
 
+  private def evaluatePropertyStateQuery(
+    entity : EntityType,
+    entityRef : SilReference,
+    propertyName : String,
+    resultCollector : ResultCollectorType)
+      : Try[Trilean] =
+  {
+    val result = cosmos.evaluateEntityProperty(entity, propertyName) match {
+      case Success((Some(actualProperty), Some(stateName))) => {
+        resultCollector.states += SilWord(
+          cosmos.getPropertyStateMap(actualProperty).get(stateName).
+            getOrElse(stateName), stateName)
+        Success(Trilean.True)
+      }
+      case Success((_, _)) => {
+        Success(Trilean.Unknown)
+      }
+      case Failure(e) => {
+        debug("PROPERTY EVALUATION ERROR", e)
+        Failure(e)
+      }
+    }
+    debug(s"RESULT FOR $entity is $result")
+    result
+  }
+
   private def evaluatePropertyStatePredicate(
     entity : EntityType,
     entityRef : SilReference,
@@ -1112,7 +1151,7 @@ class SmcInterpreter[
     resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
-    val result = cosmos.resolveProperty(entity, state.lemma) match {
+    val result = cosmos.resolvePropertyState(entity, state.lemma) match {
       case Success((property, stateName)) => {
         resultCollector.states += SilWord(
           cosmos.getPropertyStateMap(property).get(stateName).
@@ -1168,22 +1207,26 @@ class SmcInterpreter[
     }
   }
 
-  private def rewriteQuery(
-    predicate : SilPredicate, question : SilQuestion) : SilPredicate =
+  protected def rewriteQuery(
+    predicate : SilPredicate,
+    question : SilQuestion,
+    answerInflection : SilInflection)
+      : (SilPredicate, SilInflection) =
   {
     val queryRewriter = new SmcQueryRewriter(question)
-    queryRewriter.rewrite(
+    val rewritten = queryRewriter.rewrite(
       queryRewriter.rewritePredicate, predicate)
+    (rewritten, answerInflection)
   }
 
-  private def rewriteReferences(
-    predicate : SilPredicate,
-    resultCollector : ResultCollectorType) : SilPredicate =
+  protected def rewriteReferences[PhraseType <: SilPhrase](
+    phrase : PhraseType,
+    resultCollector : ResultCollectorType) : PhraseType =
   {
     val referenceRewriter = new SmcReferenceRewriter(
       cosmos, sentencePrinter, resultCollector)
     referenceRewriter.rewrite(
-      referenceRewriter.rewriteReferences, predicate)
+      referenceRewriter.rewriteReferences, phrase)
   }
 
   private def chooseSmcResultCollector(

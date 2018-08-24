@@ -530,6 +530,12 @@ case class SilNullState(
   override def hasUnknown = true
 }
 
+case class SilPropertyQueryState(
+  propertyName : String
+) extends SilTransformedPhrase with SilState
+{
+}
+
 case class SilPropertyState(
   state : SilWord
 ) extends SilTransformedPhrase with SilState

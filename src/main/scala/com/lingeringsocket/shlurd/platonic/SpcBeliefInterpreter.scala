@@ -297,7 +297,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     isClosed : Boolean,
     propertyNameOpt : Option[SilWord]) =
   {
-    val property = propertyNameOpt match {
+    lazy val property = propertyNameOpt match {
       case Some(propertyName) => {
         cosmos.instantiateProperty(form, propertyName)
       }
@@ -329,7 +329,7 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
       }
       case _ => {
         val hyperProperties = newStates.flatMap(
-          w => cosmos.resolveHypernymProperty(form, w.lemma).
+          w => cosmos.resolveHypernymPropertyState(form, w.lemma).
             map(_._1).toSeq)
         hyperProperties match {
           case Seq() => property
@@ -566,10 +566,32 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     ) => {
       val entity = resolveReference(sentence, reference)
       val form = entity.form
-      val property = instantiatePropertyStates(
-        sentence, form, Seq(stateName), false, propertyName)
+      val propertyOpt = propertyName match {
+        case Some(word) => {
+          cosmos.findProperty(form, word.lemma) match {
+            case Some(property) => {
+              if (cosmos.getPropertyStateObjMap(property).
+                contains(stateName.lemma))
+              {
+                Some((property, stateName.lemma))
+              } else {
+                None
+              }
+            }
+            case _ => None
+          }
+        }
+        case _ => {
+          cosmos.resolveHypernymPropertyState(form, stateName.lemma)
+        }
+      }
+      val (property, actualState) = propertyOpt.getOrElse({
+        val p = instantiatePropertyStates(
+          sentence, form, Seq(stateName), false, propertyName)
+        (p, stateName.lemma)
+      })
       // FIXME need to honor allowUpdates
-      cosmos.updateEntityProperty(entity, property, stateName.lemma)
+      cosmos.updateEntityProperty(entity, property, actualState)
     }
   }
 

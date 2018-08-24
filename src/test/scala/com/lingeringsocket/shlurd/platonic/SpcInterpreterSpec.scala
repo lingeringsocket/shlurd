@@ -46,16 +46,18 @@ class SpcInterpreterSpec extends Specification
   ) extends Scope
   {
     protected val cosmos = new SpcCosmos {
-      override protected[platonic] def evaluateEntityProperty(
+      override def evaluateEntityProperty(
         entity : SpcEntity,
-        property : SpcProperty) =
+        propertyName : String,
+        specific : Boolean) =
       {
         val qualifiedName =
           (entity.qualifiers.toSeq :+ entity.form.name
-            :+ property.name).mkString(" ")
+            :+ propertyName).mkString(" ")
         states.get(qualifiedName) match {
-          case Some(state) => Success(Some(state))
-          case _ => super.evaluateEntityProperty(entity, property)
+          case Some(state) => Success((
+            findProperty(entity.form, propertyName), Some(state)))
+          case _ => super.evaluateEntityProperty(entity, propertyName, specific)
         }
       }
 
@@ -1109,6 +1111,21 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("there is a front door")
       interpret("is the front door open",
         "I don't know.")
+    }
+
+    "understand property queries" in new
+      InterpreterContext(ACCEPT_NEW_BELIEFS)
+    {
+      interpretBelief("a sheep's color may be white or black")
+      interpretBelief("Dolly is a sheep")
+      interpret("what color is Dolly", "I don't know.")
+      interpretBelief("Dolly is black")
+      interpretMatrix(
+        "what color is Dolly",
+        "It is black.",
+        "Dolly is black.",
+        "Black.",
+        "Black.")
     }
 
     "understand property updates" in new

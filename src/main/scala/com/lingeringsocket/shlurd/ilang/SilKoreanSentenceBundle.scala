@@ -359,7 +359,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
       val marker = {
         if (conjoining.isLast) {
           inflection match {
-            case INFLECT_NONE => ""
+            case INFLECT_NONE | INFLECT_COMPLEMENT => ""
             case INFLECT_NOMINATIVE => {
               if (hasFinalConsonant(numbered)) {
                 "이"
@@ -408,6 +408,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
         case INFLECT_ACCUSATIVE => "(accusative)"
         case INFLECT_DATIVE => "(dative)"
         case INFLECT_GENITIVE => "(genitive)"
+        case INFLECT_COMPLEMENT => "(complement)"
       }
       compose(lemma, marker)
     }

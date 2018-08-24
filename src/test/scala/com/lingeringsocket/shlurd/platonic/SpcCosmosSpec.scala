@@ -241,29 +241,36 @@ class SpcCosmosSpec extends Specification
     "understand property inheritance" in new CosmosContext
     {
       SpcPrimordial.initCosmos(cosmos)
-      addBelief("a bird must be either happy or sad")
+      addBelief("a bird's mood must be either happy or sad")
       addBelief("a duck is a kind of bird")
       addBelief("Daffy is a duck")
+      addBelief("Daisy is a duck")
       addBelief("Woodstock is a bird")
+      addBelief("Daffy is happy")
+      addBelief("Woodstock is sad")
       cosmos.validateBeliefs
+
       val bird = resolveForm("bird")
       val duck = resolveForm("duck")
       val daffy = expectUnique(
         cosmos.resolveQualifiedNoun(
           "duck", REF_SUBJECT, Set("daffy")))
+      val daisy = expectUnique(
+        cosmos.resolveQualifiedNoun(
+          "duck", REF_SUBJECT, Set("daisy")))
       val woodstock = expectUnique(
         cosmos.resolveQualifiedNoun(
           "bird", REF_SUBJECT, Set("woodstock")))
       cosmos.getFormHyponymRealizations(bird) must be equalTo
-        Seq(woodstock, daffy)
+        Seq(woodstock, daffy, daisy)
       cosmos.getFormHypernymRealizations(bird) must be equalTo
         Seq(woodstock)
       cosmos.getFormHyponymRealizations(duck) must be equalTo
-        Seq(daffy)
+        Seq(daffy, daisy)
       cosmos.getFormHypernymRealizations(duck) must be equalTo
-        Seq(daffy, woodstock)
-      Seq(daffy, woodstock).foreach(entity => {
-        val propertyTry = cosmos.resolveProperty(entity, "happy")
+        Seq(daffy, daisy, woodstock)
+      Seq(daffy, daisy, woodstock).foreach(entity => {
+        val propertyTry = cosmos.resolvePropertyState(entity, "happy")
         propertyTry must beSuccessfulTry
         val (property, stateName) = propertyTry.get
         stateName must be equalTo "happy"
@@ -273,6 +280,49 @@ class SpcCosmosSpec extends Specification
         states must contain("happy" -> "happy")
         states must contain("sad" -> "sad")
       })
+      val birdMood = expectSingleProperty(bird)
+      cosmos.getFormPropertyMap(duck) must beEmpty
+      cosmos.evaluateEntityProperty(daffy, birdMood.name) must be equalTo
+        Success((Some(birdMood), Some("happy")))
+      cosmos.evaluateEntityPropertyPredicate(
+        daffy, birdMood, "happy") must be equalTo Success(Trilean.True)
+      cosmos.evaluateEntityPropertyPredicate(
+        daffy, birdMood, "sad") must be equalTo Success(Trilean.False)
+      cosmos.evaluateEntityPropertyPredicate(
+        daffy, birdMood, "silly") must be equalTo Success(Trilean.False)
+      cosmos.evaluateEntityProperty(woodstock, birdMood.name) must be equalTo
+        Success((Some(birdMood), Some("sad")))
+      cosmos.evaluateEntityProperty(daisy, birdMood.name) must be equalTo
+        Success((Some(birdMood), None))
+      cosmos.evaluateEntityPropertyPredicate(
+        daisy, birdMood, "happy") must be equalTo Success(Trilean.Unknown)
+
+      // this should fail since mood property is closed
+      addBelief("Daisy's mood is grumpy") must
+        throwA[ContradictoryBeliefExcn]
+
+      // however, this should succeed since it creates
+      // a new property
+      addBelief("Daisy is grumpy")
+      val duckProperty = expectSingleProperty(duck)
+      cosmos.evaluateEntityProperty(daisy, duckProperty.name) must be equalTo
+        Success((Some(duckProperty), Some("grumpy")))
+      cosmos.evaluateEntityPropertyPredicate(
+        daisy, duckProperty, "grumpy") must be equalTo Success(Trilean.True)
+      cosmos.evaluateEntityPropertyPredicate(
+        daisy, duckProperty, "happy") must be equalTo Success(Trilean.False)
+      cosmos.evaluateEntityPropertyPredicate(
+        daisy, duckProperty, "happy") must be equalTo Success(Trilean.False)
+      cosmos.evaluateEntityPropertyPredicate(
+        daisy, birdMood, "happy") must be equalTo Success(Trilean.Unknown)
+      cosmos.evaluateEntityProperty(daffy, duckProperty.name) must be equalTo
+        Success((Some(duckProperty), None))
+      cosmos.evaluateEntityPropertyPredicate(
+        daffy, duckProperty, "grumpy") must be equalTo Success(Trilean.Unknown)
+      cosmos.evaluateEntityPropertyPredicate(
+        daffy, duckProperty, "happy") must be equalTo Success(Trilean.Unknown)
+      cosmos.evaluateEntityProperty(woodstock, duckProperty.name) must
+        be equalTo Success((None, None))
     }
 
     "understand role inheritance" in new CosmosContext
@@ -488,11 +538,15 @@ class SpcCosmosSpec extends Specification
       val entity = expectFormSingleton(form)
       cosmos.evaluateEntityPropertyPredicate(entity, property, "open") must
         be equalTo Success(Trilean.Unknown)
+      cosmos.evaluateEntityProperty(entity, property.name) must
+        be equalTo Success((Some(property), None))
       addBelief("the door is closed")
       cosmos.evaluateEntityPropertyPredicate(entity, property, "close") must
         be equalTo Success(Trilean.True)
       cosmos.evaluateEntityPropertyPredicate(entity, property, "open") must
         be equalTo Success(Trilean.False)
+      cosmos.evaluateEntityProperty(entity, property.name) must
+        be equalTo Success((Some(property), Some("close")))
     }
 
     "infer role for tentative form" in new CosmosContext

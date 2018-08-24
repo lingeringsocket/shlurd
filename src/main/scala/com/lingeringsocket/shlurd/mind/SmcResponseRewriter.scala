@@ -154,6 +154,7 @@ class SmcResponseRewriter[
     val rewrite2 = rewrite(
       combineRules(
         coerceCountAgreement,
+        answerPropertyQueries(resultCollector.states),
         replaceReferences),
       rewrite1)
     val rewrite3 = rewrite(
@@ -512,6 +513,15 @@ class SmcResponseRewriter[
       referenceMap.get(pr).map(
         entities => cosmos.specificReferences(entities, DETERMINER_UNIQUE)
       ).getOrElse(pr)
+    }
+  }
+
+  private def answerPropertyQueries(
+    states : Set[SilWord]
+  )= replacementMatcher {
+    case SilPropertyQueryState(_) => {
+      assert(states.size == 1)
+      SilPropertyState(states.head)
     }
   }
 

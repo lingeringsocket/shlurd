@@ -86,12 +86,14 @@ sealed trait SilCount
 case object COUNT_SINGULAR extends SilCount
 case object COUNT_PLURAL extends SilCount
 
+// FIXME:  this naming is nonstandard
 sealed trait SilInflection
 case object INFLECT_NONE extends SilInflection
 case object INFLECT_NOMINATIVE extends SilInflection
 case object INFLECT_ACCUSATIVE extends SilInflection
 case object INFLECT_DATIVE extends SilInflection
 case object INFLECT_GENITIVE extends SilInflection
+case object INFLECT_COMPLEMENT extends SilInflection
 
 sealed trait SilAssumption
 case object ASSUMED_TRUE extends SilAssumption

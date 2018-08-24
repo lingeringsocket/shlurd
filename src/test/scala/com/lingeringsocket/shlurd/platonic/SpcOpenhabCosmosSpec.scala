@@ -47,12 +47,14 @@ class SpcOpenhabCosmosSpec extends Specification
     )
 
     protected val cosmos = new SpcOpenhabCosmos {
-      override protected[platonic] def evaluateEntityProperty(
-        entity : SpcEntity, property : SpcProperty) =
+      override def evaluateEntityProperty(
+        entity : SpcEntity, propertyName : String,
+        specific : Boolean = false) =
       {
         itemStates.get(entity.name) match {
-          case Some(state) => Success(Some(state))
-          case _ => super.evaluateEntityProperty(entity, property)
+          case Some(state) => Success((
+            findProperty(entity.form, propertyName), Some(state)))
+          case _ => super.evaluateEntityProperty(entity, propertyName, specific)
         }
       }
     }

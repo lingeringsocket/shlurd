@@ -99,13 +99,29 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     if (determiner != DETERMINER_NONSPECIFIC) {
       state match {
         case SilPropertyState(stateName) => {
-          return interpretResolvedReference(sentence, ref, {
+          assert(qualifiers.size < 2)
+          val rr = ref match {
+            case SilGenitiveReference(possessor, _) => {
+              possessor
+            }
+            case _ => ref
+          }
+          return interpretResolvedReference(sentence, rr, {
             entity => {
-              Seq(EntityPropertyBelief(
-                sentence,
-                SilResolvedReference(Set(entity), noun, determiner),
-                None, stateName
-              ))
+              if (qualifiers.isEmpty) {
+                Seq(EntityPropertyBelief(
+                  sentence,
+                  SilResolvedReference(Set(entity), noun, determiner),
+                  None, stateName
+                ))
+              } else {
+                Seq(EntityPropertyBelief(
+                  sentence,
+                  SilResolvedReference(
+                    Set(entity), qualifiers.head, determiner),
+                  Some(noun), stateName
+                ))
+              }
             }
           })
         }

@@ -17,8 +17,6 @@ package com.lingeringsocket.shlurd.platonic
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
-import spire.math._
-
 import scala.collection._
 import scala.collection.JavaConverters._
 import scala.util._
@@ -95,29 +93,9 @@ class SpcMind(cosmos : SpcCosmos)
     val gender = {
       if (entities.size == 1) {
         val entity = entities.head
-        cosmos.findProperty(entity.form, LEMMA_GENDER) match {
-          case Some(genderProp) => {
-            // FIXME add direct access to state value
-            cosmos.evaluateEntityPropertyPredicate(
-              entity, genderProp, LEMMA_FEMININE) match
-            {
-              case Success(Trilean.True) => {
-                GENDER_F
-              }
-              case _ => {
-                cosmos.evaluateEntityPropertyPredicate(
-                  entity, genderProp, LEMMA_MASCULINE) match
-                {
-                  case Success(Trilean.True) => {
-                    GENDER_M
-                  }
-                  case _ => {
-                    GENDER_N
-                  }
-                }
-              }
-            }
-          }
+        cosmos.evaluateEntityProperty(entity, LEMMA_GENDER) match {
+          case Success((_, Some(LEMMA_FEMININE))) => GENDER_F
+          case Success((_, Some(LEMMA_MASCULINE))) => GENDER_M
           case _ => GENDER_N
         }
       } else {

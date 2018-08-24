@@ -156,6 +156,40 @@ class SpcInterpreter(
     super.interpretImpl(sentence)
   }
 
+  override protected def rewriteQuery(
+    predicate : SilPredicate, question : SilQuestion,
+    originalAnswerInflection : SilInflection)
+      : (SilPredicate, SilInflection) =
+  {
+    val (rewritten, answerInflection) =
+      super.rewriteQuery(predicate, question, originalAnswerInflection)
+    if (question == QUESTION_WHICH) {
+      rewritten match {
+        case SilRelationshipPredicate(
+          SilNounReference(noun, DETERMINER_ANY, count),
+          complement,
+          REL_IDENTITY,
+          modifiers
+        ) => {
+          // FIXME resequence things so that rewriteReferences is already
+          // done by super
+          val form = deriveType(
+            rewriteReferences(complement, SmcResultCollector()))
+          if (mind.getCosmos.formHasProperty(form, noun.lemma)) {
+            val statePredicate = SilStatePredicate(
+              complement,
+              SilPropertyQueryState(noun.lemma),
+              modifiers
+            )
+            return (statePredicate, INFLECT_COMPLEMENT)
+          }
+        }
+        case _ =>
+      }
+    }
+    (rewritten, answerInflection)
+  }
+
   private def saveReferenceMap(
     sentence : SilSentence,
     cosmos : SpcCosmos)

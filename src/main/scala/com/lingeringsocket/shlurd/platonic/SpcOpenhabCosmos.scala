@@ -392,10 +392,11 @@ class SpcOpenhabDerivedCosmos(
       forkLevel
   )
 {
-  override protected[platonic] def evaluateEntityProperty(
+  override def evaluateEntityProperty(
     entity : SpcEntity,
-    property : SpcProperty) : Try[Option[String]] =
+    propertyName : String,
+    specific : Boolean = false) : Try[(Option[SpcProperty], Option[String])] =
   {
-    base.evaluateEntityProperty(entity, property)
+    base.evaluateEntityProperty(entity, propertyName, specific)
   }
 }

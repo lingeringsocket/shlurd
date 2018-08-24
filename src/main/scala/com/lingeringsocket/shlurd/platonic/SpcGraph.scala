@@ -98,9 +98,9 @@ object SpcGraph
           case _ => None
         })
     val entityPropertyIndex =
-      new SpcComponentIndex[SpcProperty, SpcEntityPropertyState](
+      new SpcComponentIndex[String, SpcEntityPropertyState](
         components, _ match {
-          case ps : SpcEntityPropertyState => Some(ps.property)
+          case ps : SpcEntityPropertyState => Some(ps.propertyName)
           case _ => None
         })
     val propertyStateIndex =
@@ -177,7 +177,7 @@ class SpcGraph(
   val triggers : Graph[SilConditionalSentence, SpcEdge],
   val formPropertyIndex : SpcComponentIndex[String, SpcProperty],
   val entityPropertyIndex :
-      SpcComponentIndex[SpcProperty, SpcEntityPropertyState],
+      SpcComponentIndex[String, SpcEntityPropertyState],
   val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState],
   val stateNormalizationIndex :
       SpcComponentIndex[SilState, SpcStateNormalization],

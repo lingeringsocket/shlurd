@@ -252,7 +252,8 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   ) : SilSentence =
   {
     val subject = cosmos.specificReference(entity, DETERMINER_UNIQUE)
-    val propertyStates = cosmos.getPropertyStateMap(eps.property)
+    val property = cosmos.resolvePropertyName(entity, eps.propertyName).get
+    val propertyStates = cosmos.getPropertyStateMap(property)
     // FIXME be specific about property
     SilPredicateSentence(
       SilStatePredicate(

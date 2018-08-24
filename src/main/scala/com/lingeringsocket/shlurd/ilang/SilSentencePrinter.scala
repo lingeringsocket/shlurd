@@ -184,6 +184,9 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilPropertyState(state) => {
         sb.delemmatizeState(state, tam, conjoining)
       }
+      case SilPropertyQueryState(propertyName) => {
+        propertyName
+      }
       case adpositionalState : SilAdpositionalState => {
         printAdpositionalPhrase(adpositionalState, conjoining)
       }

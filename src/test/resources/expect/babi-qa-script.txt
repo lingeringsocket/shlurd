@@ -5,3 +5,8 @@ Jack is white?	yes
 Leo is white?	yes
 Jack is green?	no
 Leo is green?	no
+What color is Jack?	white
+What color is Leo?	white
+Leo is gray.
+What color is Jack?	gray
+What color is Leo?	gray
