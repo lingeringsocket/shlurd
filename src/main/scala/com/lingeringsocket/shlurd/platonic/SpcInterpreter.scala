@@ -49,6 +49,31 @@ class SpcInterpreter(
     new SpcInterpreter(subMind, beliefAcceptance, params)
   }
 
+  override protected def newPredicateEvaluator() =
+    new SmcPredicateEvaluator[SpcEntity, SpcProperty, SpcCosmos, SpcMind](
+      mind, sentencePrinter, debugger)
+  {
+    override protected def evaluateActionPredicate(
+      predicate : SilActionPredicate,
+      resultCollector : SmcResultCollector[SpcEntity]) : Try[Trilean] =
+    {
+      if (checkCycle(predicate)) {
+        return fail(sentencePrinter.sb.circularAction)
+      }
+      mind.getCosmos.getTriggers.foreach(trigger => {
+        // technically we should require iff for trigger instead of just if,
+        // but let's not split hairs
+        matchTrigger(mind.getCosmos, trigger, predicate) match {
+          case Some(newPredicate) => {
+            return super.evaluatePredicate(newPredicate, resultCollector)
+          }
+          case _ =>
+        }
+      })
+      super.evaluateActionPredicate(predicate, resultCollector)
+    }
+  }
+
   override protected def imagine(
     alternateCosmos : SpcCosmos) =
   {
@@ -151,7 +176,7 @@ class SpcInterpreter(
     }
     already.clear
     // in case we haven't done this already, need to do it now
-    // in case evaluateActionPredicate is by super
+    // in case evaluateActionPredicate is called by super
     saveReferenceMap(sentence, mind.getCosmos)
     super.interpretImpl(sentence)
   }
@@ -174,7 +199,8 @@ class SpcInterpreter(
           // FIXME resequence things so that rewriteReferences is already
           // done by super
           val form = deriveType(
-            rewriteReferences(complement, SmcResultCollector()))
+            predicateEvaluator.rewriteReferences(
+              complement, SmcResultCollector()))
           if (mind.getCosmos.formHasProperty(form, noun.lemma)) {
             val statePredicate = SilStatePredicate(
               complement,
@@ -283,26 +309,6 @@ class SpcInterpreter(
       }
       case _ => None
     }
-  }
-
-  override protected def evaluateActionPredicate(
-    predicate : SilActionPredicate,
-    resultCollector : SmcResultCollector[SpcEntity]) : Try[Trilean] =
-  {
-    if (checkCycle(predicate)) {
-      return fail(sentencePrinter.sb.circularAction)
-    }
-    mind.getCosmos.getTriggers.foreach(trigger => {
-      // technically we should require iff for trigger instead of just if,
-      // but let's not split hairs
-      matchTrigger(mind.getCosmos, trigger, predicate) match {
-        case Some(newPredicate) => {
-          return super.evaluatePredicate(newPredicate, resultCollector)
-        }
-        case _ =>
-      }
-    })
-    super.evaluateActionPredicate(predicate, resultCollector)
   }
 
   private def interpretTriggerablePredicate(
