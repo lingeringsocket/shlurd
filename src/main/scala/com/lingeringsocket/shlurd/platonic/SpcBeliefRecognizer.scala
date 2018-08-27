@@ -107,18 +107,17 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
             case _ => ref
           }
           return interpretResolvedReference(sentence, rr, {
-            entity => {
+            entityRef => {
               if (qualifiers.isEmpty) {
                 Seq(EntityPropertyBelief(
                   sentence,
-                  SilResolvedReference(Set(entity), noun, determiner),
+                  entityRef,
                   None, stateName
                 ))
               } else {
                 Seq(EntityPropertyBelief(
                   sentence,
-                  SilResolvedReference(
-                    Set(entity), qualifiers.head, determiner),
+                  entityRef,
                   Some(noun), stateName
                 ))
               }
@@ -276,7 +275,7 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
   private def interpretResolvedReference(
     sentence : SilSentence,
     ref : SilReference,
-    interpretation : (SpcEntity) => Seq[SpcBelief])
+    interpretation : (SilReference) => Seq[SpcBelief])
       : Seq[SpcBelief] =
   {
     val resultCollector = SmcResultCollector[SpcEntity]
@@ -303,7 +302,8 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
         }
         set.toSeq.flatMap(_ match {
           case entity : SpcEntity => {
-            val seq = interpretation(entity)
+            val entityRef = SilNounReference(SilWord(entity.name))
+            val seq = interpretation(entityRef)
             if (seq.isEmpty) {
               return seq
             }
@@ -323,17 +323,10 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     relationship : SilRelationship) : Seq[SpcBelief] =
   {
     interpretResolvedReference(sentence, subjectRef, {
-      entity => {
-        val (subjectDeterminer, subjectNoun) = {
-          if (entity.properName.isEmpty) {
-            (DETERMINER_UNIQUE, SilWord(entity.form.name))
-          } else {
-            (DETERMINER_UNSPECIFIED, SilWord(entity.properName))
-          }
-        }
+      entityRef => {
         interpretEntityRelationship(
           sentence,
-          SilResolvedReference(Set(entity), subjectNoun, subjectDeterminer),
+          entityRef,
           complementRef, relationship)
       }
     })
@@ -540,9 +533,9 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
           sentence,
           sub,
           {
-            entity => {
+            entityRef => {
               val flattenedComplement = SilGenitiveReference(
-                cosmos.specificReference(entity, DETERMINER_UNIQUE),
+                entityRef,
                 possessee)
               interpretEntityRelationship(
                 sentence, subjectRef,
