@@ -75,7 +75,7 @@ class SpcMeta(cosmos : SpcCosmos)
 {
   import SpcMeta._
 
-  private var beliefInterpreter : Option[SpcBeliefInterpreter] = None
+  private var enabled = false
 
   private var buffer : Option[mutable.Buffer[SpcBelief]] = None
 
@@ -214,7 +214,7 @@ class SpcMeta(cosmos : SpcCosmos)
 
   def afterFork(original : SpcMeta)
   {
-    if (!original.beliefInterpreter.isEmpty) {
+    if (original.enabled) {
       enable
     }
     if (!original.buffer.isEmpty) {
@@ -224,12 +224,12 @@ class SpcMeta(cosmos : SpcCosmos)
 
   def isFresh() : Boolean =
   {
-    !beliefInterpreter.isEmpty && buffer.isEmpty
+    enabled && buffer.isEmpty
   }
 
   def enable()
   {
-    beliefInterpreter = Some(new SpcBeliefInterpreter(cosmos))
+    enabled = true
   }
 
   def enableBuffering()
@@ -264,6 +264,9 @@ class SpcMeta(cosmos : SpcCosmos)
 
   private def applyBelief(belief : SpcBelief)
   {
-    beliefInterpreter.foreach(_.applyBelief(belief))
+    if (enabled) {
+      val beliefInterpreter = new SpcBeliefInterpreter(cosmos)
+      beliefInterpreter.applyBelief(belief)
+    }
   }
 }

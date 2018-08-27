@@ -22,13 +22,19 @@ import scala.collection._
 
 import SprEnglishLemmas._
 
-class SpcBeliefRecognizer(val cosmos : SpcCosmos)
+class SpcBeliefRecognizer(
+  val cosmos : SpcCosmos,
+  resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
 {
   protected val creed = new SpcCreed(cosmos)
+
+  private var finished = false
 
   def recognizeBeliefs(sentence : SilSentence)
       : Seq[SpcBelief] =
   {
+    assert(!finished)
+    finished = true
     if (sentence.hasUnknown) {
       return Seq.empty
     }
@@ -278,7 +284,6 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     interpretation : (SilReference) => Seq[SpcBelief])
       : Seq[SpcBelief] =
   {
-    val resultCollector = SmcResultCollector[SpcEntity]
     val rewriter =
       new SmcReferenceRewriter[SpcEntity, SpcProperty](
         cosmos,
@@ -477,9 +482,6 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
   {
     val (subjectNoun, subjectDeterminer) = subjectRef match {
       case SilNounReference(noun, determiner, _) => {
-        (noun, determiner)
-      }
-      case SilResolvedReference(_, noun, determiner) => {
         (noun, determiner)
       }
       case _ => return Seq.empty

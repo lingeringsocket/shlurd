@@ -721,8 +721,10 @@ class SpcCosmos(
   {
     val beliefs = source.getLines.mkString("\n")
     val sentences = SprParser(beliefs).parseAll
-    val interpreter = new SpcBeliefInterpreter(this)
-    sentences.foreach(interpreter.interpretBelief)
+    sentences.foreach(sentence => {
+      val interpreter = new SpcBeliefInterpreter(this)
+      interpreter.interpretBelief(sentence)
+    })
     validateBeliefs
   }
 

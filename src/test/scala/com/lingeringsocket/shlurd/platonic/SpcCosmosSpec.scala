@@ -34,11 +34,10 @@ class SpcCosmosSpec extends Specification
   {
     protected val cosmos = new SpcCosmos
 
-    protected val interpreter = new SpcBeliefInterpreter(cosmos)
-
     protected def addBelief(input : String) =
     {
       val sentence = SprParser(input).parseOne
+      val interpreter = new SpcBeliefInterpreter(cosmos)
       interpreter.interpretBelief(sentence)
     }
 

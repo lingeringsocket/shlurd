@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
@@ -21,8 +22,11 @@ import scala.collection.JavaConverters._
 
 import org.jgrapht.alg.shortestpath._
 
-class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
-    extends SpcBeliefRecognizer(cosmos)
+class SpcBeliefInterpreter(
+  cosmos : SpcCosmos,
+  allowUpdates : Boolean = false,
+  resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
+    extends SpcBeliefRecognizer(cosmos, resultCollector)
 {
   type BeliefApplier = PartialFunction[SpcBelief, Unit]
 
@@ -30,8 +34,12 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
 
   private lazy val allBeliefApplier = beliefAppliers.reduceLeft(_ orElse _)
 
+  private var finished = false
+
   def interpretBelief(sentence : SilSentence)
   {
+    assert(!finished)
+    finished = true
     recognizeBeliefs(sentence) match {
       case beliefs : Seq[SpcBelief] if (!beliefs.isEmpty) => {
         beliefs.foreach(applyBelief)
@@ -48,13 +56,10 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
   }
 
   private def getUniqueEntity(
-    rr : SilResolvedReference[_]) : Option[SpcEntity] =
+    entities : Iterable[SpcEntity]) : Option[SpcEntity] =
   {
-    if (rr.entities.size == 1) {
-      rr.entities.head match {
-        case entity : SpcEntity => Some(entity)
-        case _ => None
-      }
+    if (entities.size == 1) {
+      Some(entities.head)
     } else {
       None
     }
@@ -64,18 +69,18 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
     sentence : SilSentence,
     ref : SilReference) : SpcEntity =
   {
-    ref match {
-      case SilNounReference(noun, determiner, _) => {
-        resolveUniqueNameAndExistence(sentence, noun, determiner)._1
+    resultCollector.referenceMap.get(ref).map(entities =>
+      getUniqueEntity(entities).getOrElse(
+        throw new IncomprehensibleBeliefExcn(sentence))).getOrElse(
+      ref match {
+        case SilNounReference(noun, determiner, _) => {
+          resolveUniqueNameAndExistence(sentence, noun, determiner)._1
+        }
+        case _ => {
+          throw new IncomprehensibleBeliefExcn(sentence)
+        }
       }
-      case rr : SilResolvedReference[_] => {
-        getUniqueEntity(rr).getOrElse(
-          throw new IncomprehensibleBeliefExcn(sentence))
-      }
-      case _ => {
-        throw new IncomprehensibleBeliefExcn(sentence)
-      }
-    }
+    )
   }
 
   private def resolveUniqueNameAndExistence(
@@ -466,33 +471,32 @@ class SpcBeliefInterpreter(cosmos : SpcCosmos, allowUpdates : Boolean = false)
       sentence, entityRef, formName, qualifiers, properName, true
     ) => {
       val form = cosmos.instantiateForm(formName)
-      val (entity, isNewEntity, determiner) = entityRef match {
-        case SilNounReference(noun, determiner, count) => {
-          val (entity, isNewEntity) = {
-            if (determiner == DETERMINER_UNIQUE) {
-              assert(properName.isEmpty)
-              resolveUniqueNameAndExistence(
-                sentence, noun, determiner)
-            } else {
-              cosmos.instantiateEntity(
-                form, qualifiers, properName)
-            }
-          }
-          (entity, isNewEntity, determiner)
-        }
-        case rr @ SilResolvedReference(
-          entities, _, determiner
-        ) => {
-          getUniqueEntity(rr).map(
-            entity => (entity, false, determiner)
+      val (entity, isNewEntity, determiner) =
+        resultCollector.referenceMap.get(entityRef).map(entities =>
+          getUniqueEntity(entities).map(
+            entity => (entity, false, DETERMINER_UNIQUE)
           ).getOrElse(
             throw new IncomprehensibleBeliefExcn(sentence))
-        }
-        case _ => {
-          throw new IncomprehensibleBeliefExcn(sentence)
-        }
-      }
-
+        ).getOrElse(
+          entityRef match {
+            case SilNounReference(noun, determiner, count) => {
+              val (entity, isNewEntity) = {
+                if (determiner == DETERMINER_UNIQUE) {
+                  assert(properName.isEmpty)
+                  resolveUniqueNameAndExistence(
+                    sentence, noun, determiner)
+                } else {
+                  cosmos.instantiateEntity(
+                    form, qualifiers, properName)
+                }
+              }
+              (entity, isNewEntity, determiner)
+            }
+            case _ => {
+              throw new IncomprehensibleBeliefExcn(sentence)
+            }
+          }
+        )
       if (!isNewEntity) {
         val graph = cosmos.getGraph
         if (form == entity.form) {

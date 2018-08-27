@@ -55,7 +55,7 @@ class SpcInterpreter(
   {
     override protected def evaluateActionPredicate(
       predicate : SilActionPredicate,
-      resultCollector : SmcResultCollector[SpcEntity]) : Try[Trilean] =
+      resultCollector : ResultCollectorType) : Try[Trilean] =
     {
       if (checkCycle(predicate)) {
         return fail(sentencePrinter.sb.circularAction)
@@ -138,15 +138,12 @@ class SpcInterpreter(
         }
       }
 
-      val beliefInterpreter =
-        new SpcBeliefInterpreter(
-          baselineCosmos.fork,
-          (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS))
+      val forkedCosmos = baselineCosmos.fork
       val inputSentence =
         predicateOpt.map(
           SilPredicateSentence(_, sentence.tam)).getOrElse(sentence)
       interpretBeliefOrAction(
-        beliefInterpreter, inputSentence
+        forkedCosmos, inputSentence, resultCollector
       ) match {
         case Some(result) => {
           if (result != sentencePrinter.sb.respondCompliance) {
@@ -154,7 +151,7 @@ class SpcInterpreter(
           }
           if (mind.hasNarrative) {
             predicateOpt.foreach(predicate => {
-              val updatedCosmos = freezeCosmos(beliefInterpreter.cosmos)
+              val updatedCosmos = freezeCosmos(forkedCosmos)
               try {
                 updateNarrative(
                   interval,
@@ -169,7 +166,7 @@ class SpcInterpreter(
             })
           }
           if (!temporal) {
-            beliefInterpreter.cosmos.applyModifications
+            forkedCosmos.applyModifications
           }
           return wrapResponseText(result)
         }
@@ -258,12 +255,18 @@ class SpcInterpreter(
   }
 
   private def interpretBeliefOrAction(
-    beliefInterpreter : SpcBeliefInterpreter,
-    sentence : SilSentence)
+    forkedCosmos : SpcCosmos,
+    sentence : SilSentence,
+    resultCollector : ResultCollectorType)
       : Option[String] =
   {
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
+    val beliefInterpreter =
+      new SpcBeliefInterpreter(
+        forkedCosmos,
+        (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS),
+        resultCollector)
     attemptAsBelief(beliefInterpreter, sentence).foreach(result => {
       if (result != compliance) {
         return Some(result)
@@ -276,7 +279,7 @@ class SpcInterpreter(
     saveReferenceMap(sentence, beliefInterpreter.cosmos)
     sentence match {
       case SilPredicateSentence(predicate, _, _) => {
-        val result = interpretTriggerablePredicate(beliefInterpreter, predicate)
+        val result = interpretTriggerablePredicate(forkedCosmos, predicate)
         if (!result.isEmpty) {
           return result
         }
@@ -316,14 +319,14 @@ class SpcInterpreter(
   }
 
   private def interpretTriggerablePredicate(
-    beliefInterpreter : SpcBeliefInterpreter,
+    forkedCosmos : SpcCosmos,
     predicate : SilPredicate) : Option[String] =
   {
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
     mind.getCosmos.getTriggers.foreach(trigger => {
       applyTrigger(
-        beliefInterpreter, trigger, predicate
+        forkedCosmos, trigger, predicate
       ).foreach(result => {
         if (result != compliance) {
           return Some(result)
@@ -340,19 +343,19 @@ class SpcInterpreter(
   }
 
   private def applyTrigger(
-    beliefInterpreter : SpcBeliefInterpreter,
+    forkedCosmos : SpcCosmos,
     trigger : SilConditionalSentence,
     predicate : SilPredicate)
       : Option[String] =
   {
-    matchTrigger(beliefInterpreter.cosmos, trigger, predicate) match {
+    matchTrigger(forkedCosmos, trigger, predicate) match {
       case Some(newPredicate) => {
         if (checkCycle(newPredicate)) {
           return Some(sentencePrinter.sb.circularAction)
         }
         val newSentence = SilPredicateSentence(newPredicate)
         val result = interpretBeliefOrAction(
-          beliefInterpreter, newSentence)
+          forkedCosmos, newSentence, SmcResultCollector[SpcEntity]())
         if (result.isEmpty) {
           // FIXME i18n
           Some("Invalid consequent")

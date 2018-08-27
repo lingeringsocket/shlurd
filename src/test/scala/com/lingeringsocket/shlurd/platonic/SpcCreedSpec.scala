@@ -28,11 +28,6 @@ class SpcCreedSpec extends Specification
 
     private val refriedCosmos = new SpcCosmos
 
-    protected val interpreter = new SpcBeliefInterpreter(cosmos)
-
-    private val refriedInterpreter =
-      new SpcBeliefInterpreter(refriedCosmos)
-
     protected val creed = new SpcCreed(cosmos)
 
     private val refriedCreed = new SpcCreed(refriedCosmos)
@@ -40,6 +35,7 @@ class SpcCreedSpec extends Specification
     protected def addBelief(input : String) =
     {
       val sentence = SprParser(input).parseOne
+      val interpreter = new SpcBeliefInterpreter(cosmos)
       interpreter.interpretBelief(sentence)
     }
 
@@ -58,6 +54,7 @@ class SpcCreedSpec extends Specification
       beliefStrings.map(SprUtils.capitalize) must be equalTo expected
       beliefStrings.foreach(beliefString => {
         val sentence = SprParser(beliefString).parseOne
+        val refriedInterpreter = new SpcBeliefInterpreter(refriedCosmos)
         val refriedBeliefs = refriedInterpreter.recognizeBeliefs(sentence)
         refriedBeliefs.foreach(belief => {
           refriedInterpreter.applyBelief(belief)
