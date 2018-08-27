@@ -163,10 +163,6 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         sb.genitivePhrase(
           qualifierString, print(possessee, inflection, conjoining))
       }
-      case _ : SilResolvedReference[_] => {
-        // FIXME:  call to cosmos?
-        sb.unknownReference
-      }
       case _ : SilUnknownReference => {
         sb.unknownReference
       }
@@ -472,9 +468,6 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       }
       case SilNounReference(_, _, count) => {
         (PERSON_THIRD, GENDER_N, count)
-      }
-      case rr : SilResolvedReference[_] => {
-        (PERSON_THIRD, GENDER_N, SilReference.getCount(rr))
       }
       case SilConjunctiveReference(determiner, references, _) => {
         val count = if (isExistential) {

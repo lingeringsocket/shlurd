@@ -21,7 +21,7 @@ import com.lingeringsocket.shlurd.parser._
 import SprEnglishLemmas._
 
 class SmcResponseRewriter[
-  EntityType<:SilEntity,
+  EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType]
 ](
@@ -31,6 +31,9 @@ class SmcResponseRewriter[
   type ResultCollectorType = SmcResultCollector[EntityType]
 
   private val cosmos = mind.getCosmos
+
+  private val entityMap =
+    new mutable.LinkedHashMap[String, EntityType]
 
   def normalizeResponse(
     predicate : SilPredicate,
@@ -158,7 +161,9 @@ class SmcResponseRewriter[
         replaceReferences),
       rewrite1)
     val rewrite3 = rewrite(
-      avoidTautologies,
+      combineRules(
+        avoidTautologies(resultCollector.referenceMap),
+        removeResolvedReferenceQualifiers),
       rewrite2)
     val rewrite4 = rewrite(
       replaceResolvedReferences(resultCollector.referenceMap),
@@ -362,36 +367,43 @@ class SmcResponseRewriter[
       }
   }
 
-  private def avoidTautologies = replacementMatcher {
+  private def avoidTautologies(
+    referenceMap : Map[SilReference, Set[EntityType]]
+  ) = replacementMatcher {
     case SilRelationshipPredicate(
-      rr : SilResolvedReference[EntityType],
+      SilMappedReference(key, determiner),
       other : SilReference,
       REL_IDENTITY,
       _
-    ) if (rr.entities.size == 1) => {
+    ) => {
+      val entity = entityMap(key)
       SilRelationshipPredicate(
-        chooseReference(rr.entities.head, other, rr.determiner),
+        chooseReference(entity, other, determiner),
         other,
         REL_IDENTITY)
     }
     case SilRelationshipPredicate(
       other : SilReference,
-      rr : SilResolvedReference[EntityType],
+      SilMappedReference(key, determiner),
       REL_IDENTITY,
       _
-    ) if (rr.entities.size == 1) => {
+    ) => {
+      val entity = entityMap(key)
       SilRelationshipPredicate(
         other,
-        chooseReference(rr.entities.head, other, rr.determiner),
+        chooseReference(entity, other, determiner),
         REL_IDENTITY)
     }
   }
 
   private def resolveReference(
     entity : EntityType,
-    determiner : SilDeterminer) : SilReference =
+    determiner : SilDeterminer,
+    resultCollector : ResultCollectorType) : SilReference =
   {
-    SilResolvedReference(Set(entity), SilWord(""), determiner)
+    val key = entity.getUniqueIdentifier
+    entityMap.put(key, entity)
+    SilMappedReference(key, determiner)
   }
 
   private def chooseReference(
@@ -407,14 +419,22 @@ class SmcResponseRewriter[
     }
   }
 
+  private def removeResolvedReferenceQualifiers = replacementMatcher {
+    case SilStateSpecifiedReference(
+      mr : SilMappedReference,
+      _ : SilState
+    ) => {
+      mr
+    }
+  }
+
   private def replaceResolvedReferences(
     referenceMap : mutable.Map[SilReference, Set[EntityType]]
   ) = replacementMatcher {
-    case rr : SilResolvedReference[EntityType] if (rr.entities.size == 1) => {
-      val ref = cosmos.specificReference(rr.entities.head, rr.determiner)
-      if (rr.noun.lemma.isEmpty) {
-        referenceMap.remove(ref)
-      }
+    case SilMappedReference(key, determiner) => {
+      val entity = entityMap(key)
+      val ref = cosmos.specificReference(entity, determiner)
+      referenceMap.remove(ref)
       ref
     }
   }
@@ -425,10 +445,14 @@ class SmcResponseRewriter[
     }
   }
 
+  // FIXME we should not be messing with the
+  // resultCollector's referenceMap like this!
   private def disqualifyThirdPersonReferences(
     referenceMap : mutable.Map[SilReference, Set[EntityType]]
   ) = querier.queryMatcher {
-    case nr @ SilNounReference(noun, determiner, _) => {
+    case nr @ SilNounReference(
+      noun, determiner, _
+    ) => {
       determiner match {
         case DETERMINER_UNIQUE =>
         case DETERMINER_UNSPECIFIED => {
@@ -473,13 +497,16 @@ class SmcResponseRewriter[
       ref match {
         case SilNounReference(_, DETERMINER_UNIQUE, _) |
             SilStateSpecifiedReference(_, _) |
-            SilConjunctiveReference(_, _, _) |
-            SilResolvedReference(_, _, _) =>
+            SilConjunctiveReference(_, _, _) =>
           {
             detector.analyze(ref)
           }
         case SilNounReference(
           noun, DETERMINER_UNSPECIFIED, _) if (noun.isProper) =>
+          {
+            detector.analyze(ref)
+          }
+        case _ : SilMappedReference =>
           {
             detector.analyze(ref)
           }
@@ -495,8 +522,7 @@ class SmcResponseRewriter[
       ref match {
         case SilNounReference(_, _, _) |
             SilStateSpecifiedReference(_, _) |
-            SilConjunctiveReference(_, _, _) |
-            SilResolvedReference(_, _, _) =>
+            SilConjunctiveReference(_, _, _) =>
           {
             referenceMap.get(ref).flatMap(
               entities => mind.thirdPersonReference(entities)).getOrElse(ref)
@@ -626,14 +652,15 @@ class SmcResponseRewriter[
     (if (trueEntities.isEmpty) {
       None
     } else if ((trueEntities.size == 1) && !params.alwaysSummarize) {
-      Some(resolveReference(trueEntities.head, entityDeterminer))
+      Some(resolveReference(
+        trueEntities.head, entityDeterminer, resultCollector))
     } else if (exhaustive || (trueEntities.size > params.listLimit)) {
       summarizeList(trueEntities, exhaustive, existence, false)
     } else {
       Some(SilConjunctiveReference(
         DETERMINER_ALL,
         trueEntities.map(
-          resolveReference(_, entityDeterminer)).toSeq,
+          resolveReference(_, entityDeterminer, resultCollector)).toSeq,
         separator))
     })
   }
@@ -653,7 +680,8 @@ class SmcResponseRewriter[
     if (falseEntities.isEmpty) {
       (None, false)
     } else if ((falseEntities.size == 1) && !params.alwaysSummarize) {
-      (Some(resolveReference(falseEntities.head, entityDeterminer)),
+      (Some(resolveReference(
+        falseEntities.head, entityDeterminer, resultCollector)),
         false)
     } else if (exhaustive || (falseEntities.size > params.listLimit)) {
       (summarizeList(falseEntities, exhaustive, existence, true),
@@ -662,14 +690,14 @@ class SmcResponseRewriter[
       (Some(SilConjunctiveReference(
         DETERMINER_NONE,
         falseEntities.map(
-          resolveReference(_, entityDeterminer)).toSeq,
+          resolveReference(_, entityDeterminer, resultCollector)).toSeq,
         separator)),
         true)
     }
   }
 
   private def summarizeList(
-    entities : Iterable[SilEntity],
+    entities : Iterable[SmcEntity],
     exhaustive : Boolean,
     existence : Boolean,
     conjunction : Boolean) =

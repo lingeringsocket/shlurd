@@ -101,7 +101,7 @@ object SmcTimePointOrder extends Order[SmcTimePoint]
 }
 
 case class SmcTimelineEntry[
-  EntityType<:SilEntity,
+  EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType,PropertyType]
 ](
@@ -114,7 +114,7 @@ case class SmcTimelineEntry[
 }
 
 class SmcTimeline[
-  EntityType <: SilEntity,
+  EntityType <: SmcEntity,
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType]
 ] {

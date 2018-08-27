@@ -20,7 +20,7 @@ import scala.collection._
 import scala.util._
 
 class SmcMind[
-  EntityType<:SilEntity,
+  EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType]
 ](

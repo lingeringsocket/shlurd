@@ -16,11 +16,6 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
 
-trait SilEntity
-{
-  def isTentative : Boolean = false
-}
-
 sealed trait SilPhrase
 {
   def children : Seq[SilPhrase] = Seq.empty
@@ -510,13 +505,12 @@ case class SilNounReference(
 {
 }
 
-case class SilResolvedReference[EntityType<:SilEntity](
-  entities : Set[EntityType],
-  noun : SilWord,
+case class SilMappedReference(
+  key : String,
   determiner : SilDeterminer
-) extends SilTransformedPhrase with SilReference
+) extends SilUnknownReference
 {
-  override def acceptsSpecifiers = false
+  override def syntaxTree = SprSyntaxLeaf(key, key, key)
 }
 
 case class SilExistenceState(
@@ -607,7 +601,6 @@ object SilReference
       case SilStateSpecifiedReference(reference, _) =>
         isCountCoercible(reference)
       case _ : SilGenitiveReference => true
-      case _ : SilResolvedReference[_] => false
       case _ : SilUnknownReference => false
     }
   }
@@ -630,13 +623,6 @@ object SilReference
         getCount(reference)
       case SilGenitiveReference(_, possessee) =>
         getCount(possessee)
-      case SilResolvedReference(entities, _, _) => {
-        if (entities.size < 2) {
-          COUNT_SINGULAR
-        } else {
-          COUNT_PLURAL
-        }
-      }
       case _ : SilUnknownReference => COUNT_SINGULAR
     }
   }

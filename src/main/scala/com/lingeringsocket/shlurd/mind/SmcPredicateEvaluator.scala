@@ -26,7 +26,7 @@ import scala.collection._
 import SprEnglishLemmas._
 
 class SmcPredicateEvaluator[
-  EntityType<:SilEntity,
+  EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
@@ -461,18 +461,6 @@ class SmcPredicateEvaluator[
         referenceMap.get(possessee).foreach(
           entitySet => referenceMap.put(reference, entitySet))
         result
-      }
-      case rr : SilResolvedReference[EntityType] => {
-        evaluatePredicateOverEntities(
-          rr.entities,
-          rr,
-          context,
-          resultCollector,
-          specifiedState,
-          rr.determiner,
-          SilReference.getCount(rr),
-          rr.noun,
-          evaluator)
       }
       case _ : SilUnknownReference => {
         debug("UNKNOWN REFERENCE")

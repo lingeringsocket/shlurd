@@ -27,11 +27,18 @@ case object REF_COMPLEMENT extends SilReferenceContext
 case object REF_ADPOSITION_OBJ extends SilReferenceContext
 case object REF_ADPOSITION_SUBJ extends SilReferenceContext
 
+trait SmcEntity
+{
+  def isTentative : Boolean = false
+
+  def getUniqueIdentifier : String
+}
+
 trait SmcProperty
 {
 }
 
-trait SmcCosmos[EntityType<:SilEntity, PropertyType<:SmcProperty]
+trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
 {
   def fail(msg : String) = Failure(new RuntimeException(msg))
 

@@ -23,7 +23,7 @@ import spire.math._
 
 import scala.collection._
 
-case class SmcStateChangeInvocation[EntityType<:SilEntity](
+case class SmcStateChangeInvocation[EntityType<:SmcEntity](
   entities : Set[EntityType],
   state : SilWord)
 {
@@ -50,7 +50,7 @@ case class SmcResponseParams(
   def alwaysSummarize = (listLimit == 0)
 }
 
-class SmcResultCollector[EntityType<:SilEntity](
+class SmcResultCollector[EntityType<:SmcEntity](
   val referenceMap : mutable.Map[SilReference, Set[EntityType]])
 {
   val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
@@ -62,12 +62,12 @@ class SmcResultCollector[EntityType<:SilEntity](
 
 object SmcResultCollector
 {
-  def apply[EntityType<:SilEntity]() =
+  def apply[EntityType<:SmcEntity]() =
     new SmcResultCollector(
       new mutable.LinkedHashMap[SilReference, Set[EntityType]])
 }
 
-class SmcExecutor[EntityType<:SilEntity]
+class SmcExecutor[EntityType<:SmcEntity]
 {
   def executeInvocation(
     invocation : SmcStateChangeInvocation[EntityType])
@@ -77,7 +77,7 @@ class SmcExecutor[EntityType<:SilEntity]
 }
 
 class SmcInterpreter[
-  EntityType<:SilEntity,
+  EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]

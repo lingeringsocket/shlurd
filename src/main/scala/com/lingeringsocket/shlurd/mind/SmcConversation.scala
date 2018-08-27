@@ -25,7 +25,7 @@ object SmcConversation
   val SPEAKER_NAME_PERSON = "PERSON"
 }
 
-case class SpeakerUtterance[EntityType <: SilEntity](
+case class SpeakerUtterance[EntityType <: SmcEntity](
   speakerName : String,
   sentence : SilSentence,
   text : String,
@@ -34,7 +34,7 @@ case class SpeakerUtterance[EntityType <: SilEntity](
 {
 }
 
-class SmcConversation[EntityType <: SilEntity]
+class SmcConversation[EntityType <: SmcEntity]
 {
   type UtteranceType = SpeakerUtterance[EntityType]
 

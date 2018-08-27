@@ -123,10 +123,12 @@ case class SpcEntity(
   val form : SpcForm,
   val qualifiers : Set[String],
   val properName : String = "")
-    extends SilEntity with SpcEntityVertex with SpcContainmentVertex
+    extends SmcEntity with SpcEntityVertex with SpcContainmentVertex
 {
   override def isTentative =
     properName.contains("_") && !SpcMeta.isMetaEntity(this)
+
+  override def getUniqueIdentifier = name
 }
 
 case class SpcEntitySynonym(val name : String)

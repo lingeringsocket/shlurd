@@ -29,7 +29,7 @@ case class SmcResolutionOptions(
 )
 
 class SmcReferenceResolver[
-  EntityType<:SilEntity, PropertyType<:SmcProperty
+  EntityType<:SmcEntity, PropertyType<:SmcProperty
 ]
   (
   cosmos : SmcCosmos[EntityType, PropertyType],

@@ -27,11 +27,11 @@ import SprEnglishLemmas._
 class SmcInterpreterSpec extends Specification
 {
   type CosmosType = ZooCosmos
-  type MindType = SmcMind[SilEntity, SmcProperty, CosmosType]
+  type MindType = SmcMind[SmcEntity, SmcProperty, CosmosType]
 
   private val cosmos = new ZooCosmos
 
-  type StateChangeInvocation = SmcStateChangeInvocation[SilEntity]
+  type StateChangeInvocation = SmcStateChangeInvocation[SmcEntity]
 
   abstract class InterpreterContext(
     responseParams : SmcResponseParams =
@@ -40,7 +40,7 @@ class SmcInterpreterSpec extends Specification
   {
     protected val mind = new MindType(cosmos) {
       override def resolvePronoun(
-        reference : SilPronounReference) : Try[Set[SilEntity]] =
+        reference : SilPronounReference) : Try[Set[SmcEntity]] =
       {
         if (reference.count == COUNT_SINGULAR) {
           reference.person match {
@@ -57,7 +57,7 @@ class SmcInterpreterSpec extends Specification
       input : String,
       params : SmcResponseParams = responseParams) =
     {
-      val executor = new SmcExecutor[SilEntity] {
+      val executor = new SmcExecutor[SmcEntity] {
         override def executeInvocation(
           invocation : StateChangeInvocation)
         {
@@ -65,7 +65,7 @@ class SmcInterpreterSpec extends Specification
         }
       }
       val interpreter =
-        new SmcInterpreter[SilEntity, SmcProperty,CosmosType, MindType](
+        new SmcInterpreter[SmcEntity, SmcProperty,CosmosType, MindType](
           mind, params, executor)
 
       val sentence = SprParser(input).parseOne
@@ -78,7 +78,7 @@ class SmcInterpreterSpec extends Specification
     {
       val sentence = SprParser(input).parseOne
       var actualInvocation : Option[StateChangeInvocation] = None
-      val executor = new SmcExecutor[SilEntity] {
+      val executor = new SmcExecutor[SmcEntity] {
         override def executeInvocation(
           invocation : StateChangeInvocation)
         {
@@ -86,7 +86,7 @@ class SmcInterpreterSpec extends Specification
         }
       }
       val interpreter =
-        new SmcInterpreter[SilEntity, SmcProperty, CosmosType, MindType](
+        new SmcInterpreter[SmcEntity, SmcProperty, CosmosType, MindType](
           mind, responseParams, executor)
       interpreter.interpret(sentence, input) must be equalTo("OK.")
       actualInvocation must be equalTo(Some(invocation))

@@ -23,8 +23,12 @@ import scala.util._
 
 import SprEnglishLemmas._
 
-sealed case class ZooAnimalEntity(name : String)
-    extends SilEntity with SmcNamedObject
+trait ZooEntity extends SmcEntity with SmcNamedObject
+{
+  override def getUniqueIdentifier = name
+}
+
+sealed case class ZooAnimalEntity(name : String) extends ZooEntity
 object ZooLion extends ZooAnimalEntity("lion")
 object ZooTiger extends ZooAnimalEntity("tiger")
 object ZooPolarBear extends ZooAnimalEntity("polar bear")
@@ -37,14 +41,12 @@ object ZooMountainGoat extends ZooAnimalEntity("mountain goat")
 object ZooDomesticGoat extends ZooAnimalEntity("domestic goat")
 object ZooSiberianGoat extends ZooAnimalEntity("siberian goat")
 
-sealed case class ZooLocationEntity(name : String)
-    extends SilEntity with SmcNamedObject
+sealed case class ZooLocationEntity(name : String) extends ZooEntity
 object ZooFarm extends ZooLocationEntity("farm")
 object ZooBigCage extends ZooLocationEntity("big cage")
 object ZooSmallCage extends ZooLocationEntity("small cage")
 
-sealed case class ZooPersonEntity(name : String)
-    extends SilEntity with SmcNamedObject
+sealed case class ZooPersonEntity(name : String) extends ZooEntity
 object ZooKeeper extends ZooPersonEntity("Muldoon")
 object ZooVisitor extends ZooPersonEntity("Malcolm")
 
@@ -54,7 +56,7 @@ sealed case class ZooAnimalSleepiness(name : String) extends SmcNamedObject
 object ZooAnimalAwake extends ZooAnimalSleepiness("awake")
 object ZooAnimalAsleep extends ZooAnimalSleepiness("asleep")
 
-class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
+class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
 {
   private val LEMMA_ANIMAL = "animal"
 
@@ -87,7 +89,7 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
     ZooSiberianGoat -> Trilean.True,
     ZooSloth -> Trilean.Unknown)
 
-  private val containment : Map[SilEntity, ZooLocationEntity] =
+  private val containment : Map[SmcEntity, ZooLocationEntity] =
     Map(
       ZooVisitor -> ZooFarm,
       ZooKeeper -> ZooBigCage,
@@ -97,7 +99,7 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
       ZooGrizzlyBear -> ZooFarm,
       ZooDomesticGoat -> ZooFarm)
 
-  private val ownership : Map[SilEntity, ZooPersonEntity] =
+  private val ownership : Map[SmcEntity, ZooPersonEntity] =
     Map(
       ZooLion -> ZooKeeper,
       ZooTiger -> ZooVisitor)
@@ -139,7 +141,7 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
   }
 
   override def resolvePropertyState(
-    entity : SilEntity,
+    entity : SmcEntity,
     lemma : String) =
   {
     entity match {
@@ -168,7 +170,7 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
   }
 
   override def specificReference(
-    entity : SilEntity,
+    entity : SmcEntity,
     determiner : SilDeterminer) =
   {
     entity match {
@@ -196,7 +198,7 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
   }
 
   override def evaluateEntityProperty(
-    entity : SilEntity,
+    entity : SmcEntity,
     propertyName : String,
     specific : Boolean = false) : Try[(Option[SmcProperty], Option[String])] =
   {
@@ -204,7 +206,7 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
   }
 
   override def evaluateEntityPropertyPredicate(
-    entity : SilEntity,
+    entity : SmcEntity,
     property : SmcProperty,
     lemma : String) =
   {
@@ -229,8 +231,8 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
   }
 
   override def evaluateEntityAdpositionPredicate(
-    entity : SilEntity,
-    objEntity : SilEntity,
+    entity : SmcEntity,
+    objEntity : SmcEntity,
     adposition : SilAdposition,
     qualifiers : Set[String]) : Try[Trilean] =
   {
@@ -260,7 +262,7 @@ class ZooCosmos extends SmcCosmos[SilEntity, SmcProperty]
   }
 
   override def normalizeState(
-    entity : SilEntity,
+    entity : SmcEntity,
     state : SilState) : SilState =
   {
     state match {
