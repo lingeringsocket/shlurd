@@ -101,11 +101,13 @@ class SmcInterpreter[
 
   lazy protected val predicateEvaluator = newPredicateEvaluator
 
-  private val interpreterMatchers = Seq(
-    interpretStateChangeCommand,
-    interpretPredicateQuery,
-    interpretPredicateSentence,
-    interpretUnsupportedSentence
+  private def interpreterMatchers(
+    resultCollector : ResultCollectorType
+  ) = Seq(
+    interpretStateChangeCommand(resultCollector),
+    interpretPredicateQuery(resultCollector),
+    interpretPredicateSentence(resultCollector),
+    interpretUnsupportedSentence(resultCollector)
   ).reduceLeft(_ orElse _)
 
   def fail(msg : String) = cosmos.fail(msg)
@@ -123,30 +125,33 @@ class SmcInterpreter[
     mind.rememberSpeakerSentence(
       SmcConversation.SPEAKER_NAME_PERSON, sentence, input)
     SilPhraseValidator.validatePhrase(sentence)
-    val (responseSentence, responseText) = interpretImpl(sentence)
+    val resultCollector = SmcResultCollector[EntityType]
+    val (responseSentence, responseText) =
+      interpretImpl(sentence, resultCollector)
     debug(s"INTERPRETER RESPONSE TEXT : $responseText")
     debug(s"INTERPRETER RESPONSE SENTENCE : $responseSentence")
     if (mind.isConversing) {
       // perhaps we should synthesize referenceMap as we go instead
       // of attempting to reconstruct it here
-      val resultCollector = SmcResultCollector[EntityType]
+      val responseResultCollector = SmcResultCollector[EntityType]
       val rewriter = new SmcReferenceRewriter(
-        mind.getCosmos, new SilSentencePrinter, resultCollector,
+        mind.getCosmos, new SilSentencePrinter, responseResultCollector,
         SmcResolutionOptions(
           failOnUnknown = false,
           resolveConjunctions = true,
           resolveUniqueDeterminers = true))
       // discard the rewrite result; we just want the
-      // resultCollector side effects
+      // responseResultCollector side effects
       rewriter.rewrite(rewriter.rewriteReferences, responseSentence)
       mind.rememberSpeakerSentence(
         SmcConversation.SPEAKER_NAME_SHLURD,
-        responseSentence, responseText, resultCollector.referenceMap)
+        responseSentence, responseText, responseResultCollector.referenceMap)
     }
     responseText
   }
 
-  protected def interpretImpl(sentence : SilSentence)
+  protected def interpretImpl(
+    sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
     val normalizedInput = inputRewriter.normalizeInput(sentence)
@@ -159,7 +164,7 @@ class SmcInterpreter[
       val responder = new SmcUnrecognizedResponder(sentencePrinter)
       return wrapResponseText(responder.respond(unrecognized))
     }
-    interpreterMatchers.applyOrElse(
+    interpreterMatchers(resultCollector).applyOrElse(
       normalizedInput,
       { s : SilSentence =>
         debug("UNKNOWN SENTENCE")
@@ -206,11 +211,12 @@ class SmcInterpreter[
   private def sentenceInterpreter(f : SentenceInterpreter)
       : SentenceInterpreter = f
 
-  private def interpretStateChangeCommand = sentenceInterpreter {
+  private def interpretStateChangeCommand(
+    resultCollector : ResultCollectorType) = sentenceInterpreter
+  {
     case SilStateChangeCommand(predicate, _, formality) => {
       debug("STATE CHANGE COMMAND")
 
-      val resultCollector = SmcResultCollector[EntityType]
       val result = predicateEvaluator.evaluatePredicate(
         predicate, resultCollector)
       mind.rememberSentenceAnalysis(resultCollector.referenceMap)
@@ -248,7 +254,9 @@ class SmcInterpreter[
     }
   }
 
-  private def interpretPredicateQuery = sentenceInterpreter {
+  private def interpretPredicateQuery(
+    resultCollector : ResultCollectorType) = sentenceInterpreter
+  {
     case sentence @ SilPredicateQuery(
       predicate, question, originalAnswerInflection, tam, formality
     ) => {
@@ -256,10 +264,10 @@ class SmcInterpreter[
       // FIXME deal with positive, modality
 
       val (rewrittenPredicate, answerInflection) = rewriteQuery(
-        predicate, question, originalAnswerInflection)
+        predicate, question,
+        originalAnswerInflection, resultCollector)
       debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
 
-      val resultCollector = SmcResultCollector[EntityType]
       val result = evaluateTamPredicate(
         rewrittenPredicate, tam, resultCollector)
       mind.rememberSentenceAnalysis(resultCollector.referenceMap)
@@ -336,9 +344,10 @@ class SmcInterpreter[
     }
   }
 
-  private def interpretPredicateSentence = sentenceInterpreter {
+  private def interpretPredicateSentence(
+    resultCollector : ResultCollectorType) = sentenceInterpreter
+  {
     case SilPredicateSentence(predicate, tam, formality) => {
-      val resultCollector = SmcResultCollector[EntityType]
       tam.mood match {
         // FIXME deal with positive, modality
         case MOOD_INTERROGATIVE => {
@@ -470,7 +479,9 @@ class SmcInterpreter[
     }
   }
 
-  private def interpretUnsupportedSentence = sentenceInterpreter {
+  private def interpretUnsupportedSentence(
+    resultCollector : ResultCollectorType) = sentenceInterpreter
+  {
     case SilConjunctiveSentence(determiner, sentences, _) => {
       // FIXME
       debug("CONJUNCTIVE SENTENCE")
@@ -583,7 +594,8 @@ class SmcInterpreter[
   protected def rewriteQuery(
     predicate : SilPredicate,
     question : SilQuestion,
-    answerInflection : SilInflection)
+    answerInflection : SilInflection,
+    resultCollector : ResultCollectorType)
       : (SilPredicate, SilInflection) =
   {
     val queryRewriter = new SmcQueryRewriter(question)

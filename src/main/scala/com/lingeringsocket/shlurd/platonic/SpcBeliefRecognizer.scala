@@ -279,21 +279,22 @@ class SpcBeliefRecognizer(val cosmos : SpcCosmos)
     interpretation : (SpcEntity) => Seq[SpcBelief])
       : Seq[SpcBelief] =
   {
+    val resultCollector = SmcResultCollector[SpcEntity]
     val rewriter =
       new SmcReferenceRewriter[SpcEntity, SpcProperty](
         cosmos,
         new SilSentencePrinter,
-        SmcResultCollector[SpcEntity],
+        resultCollector,
         SmcResolutionOptions(
           failOnUnknown = false,
           resolveConjunctions = true,
           resolveUniqueDeterminers = true,
           reifyRoles = false)
       )
-    rewriter.rewrite(rewriter.rewriteReferences, ref) match {
-      case SilResolvedReference(
-        set : Set[_], _, _
-      ) => {
+    // discard results; use resultCollector lookup instead
+    rewriter.rewrite(rewriter.rewriteReferences, ref)
+    resultCollector.referenceMap.get(ref) match {
+      case Some(set) => {
         if (set.isEmpty) {
           // FIXME for single-valued associations, not sure we
           // should be doing this if the association is already

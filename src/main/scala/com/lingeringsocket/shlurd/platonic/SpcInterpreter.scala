@@ -42,7 +42,7 @@ class SpcInterpreter(
 
   private var referenceMap : Option[Map[SilReference, Set[SpcEntity]]] = None
 
-  private val typeMap = new mutable.LinkedHashMap[SilReference, SpcForm]
+  private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
   override protected def spawn(subMind : SpcMind) =
   {
@@ -80,19 +80,21 @@ class SpcInterpreter(
     new SpcMind(alternateCosmos.fork)
   }
 
-  override protected def interpretImpl(sentence : SilSentence)
+  override protected def interpretImpl(
+    sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
     try {
-      attemptInterpret(sentence)
+      attemptInterpret(sentence, resultCollector)
     } finally {
       already.clear
       referenceMap = None
-      typeMap.clear
+      typeMemo.clear
     }
   }
 
-  private def attemptInterpret(sentence : SilSentence)
+  private def attemptInterpret(
+    sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
     if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
@@ -178,16 +180,17 @@ class SpcInterpreter(
     // in case we haven't done this already, need to do it now
     // in case evaluateActionPredicate is called by super
     saveReferenceMap(sentence, mind.getCosmos)
-    super.interpretImpl(sentence)
+    super.interpretImpl(sentence, resultCollector)
   }
 
   override protected def rewriteQuery(
     predicate : SilPredicate, question : SilQuestion,
-    originalAnswerInflection : SilInflection)
+    originalAnswerInflection : SilInflection,
+    resultCollector : ResultCollectorType)
       : (SilPredicate, SilInflection) =
   {
-    val (rewritten, answerInflection) =
-      super.rewriteQuery(predicate, question, originalAnswerInflection)
+    val (rewritten, answerInflection) = super.rewriteQuery(
+      predicate, question, originalAnswerInflection, resultCollector)
     if (question == QUESTION_WHICH) {
       rewritten match {
         case SilRelationshipPredicate(
@@ -200,7 +203,8 @@ class SpcInterpreter(
           // done by super
           val form = deriveType(
             predicateEvaluator.rewriteReferences(
-              complement, SmcResultCollector()))
+              complement, resultCollector),
+            resultCollector)
           if (mind.getCosmos.formHasProperty(form, noun.lemma)) {
             val statePredicate = SilStatePredicate(
               complement,
@@ -646,44 +650,46 @@ class SpcInterpreter(
     mind.getCosmos.instantiateForm(SilWord(SpcMeta.ENTITY_METAFORM_NAME))
   }
 
-  private[platonic] def deriveType(ref : SilReference) : SpcForm =
+  private[platonic] def deriveType(
+    ref : SilReference,
+    resultCollector : ResultCollectorType) : SpcForm =
   {
     def cosmos = mind.getCosmos
-    typeMap.getOrElseUpdate(ref, {
-      ref match {
-        case SilResolvedReference(entities, _, _) => {
-          lcaType(entities.map(_.asInstanceOf[SpcEntity].form))
-        }
-        case SilConjunctiveReference(_, refs, _) => {
-          lcaType(refs.map(deriveType).toSet)
-        }
-        case SilGenitiveReference(_, SilNounReference(noun, _, _)) => {
-          // FIXME probably the possessor's type should be used for scoping
-          // here?  Also need to handle properties.
-          cosmos.resolveRole(noun.lemma) match {
-            case Some(role) => {
-              lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
-            }
-            case _ => unknownType
+    typeMemo.getOrElseUpdate(ref, {
+      resultCollector.referenceMap.get(ref).map(entities =>
+        lcaType(entities.map(_.form))).getOrElse(
+        ref match {
+          case SilConjunctiveReference(_, refs, _) => {
+            lcaType(refs.map(deriveType(_, resultCollector)).toSet)
           }
-        }
-        case SilNounReference(noun, _, _) => {
-          // FIXME resolve roles as well?
-          cosmos.resolveForm(noun.lemma).getOrElse(unknownType)
-        }
-        case pr : SilPronounReference => {
-          mind.resolvePronoun(pr) match {
-            case Success(entities) => {
-              lcaType(entities.map(_.form))
+          case SilGenitiveReference(_, SilNounReference(noun, _, _)) => {
+            // FIXME probably the possessor's type should be used for scoping
+            // here?  Also need to handle properties.
+            cosmos.resolveRole(noun.lemma) match {
+              case Some(role) => {
+                lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
+              }
+              case _ => unknownType
             }
-            case _ => unknownType
           }
+          case SilNounReference(noun, _, _) => {
+            // FIXME resolve roles as well?
+            cosmos.resolveForm(noun.lemma).getOrElse(unknownType)
+          }
+          case pr : SilPronounReference => {
+            mind.resolvePronoun(pr) match {
+              case Success(entities) => {
+                lcaType(entities.map(_.form))
+              }
+              case _ => unknownType
+            }
+          }
+          case SilStateSpecifiedReference(sub, state) => {
+            deriveType(sub, resultCollector)
+          }
+          case _ => unknownType
         }
-        case SilStateSpecifiedReference(sub, state) => {
-          deriveType(sub)
-        }
-        case _ => unknownType
-      }
+      )
     })
   }
 

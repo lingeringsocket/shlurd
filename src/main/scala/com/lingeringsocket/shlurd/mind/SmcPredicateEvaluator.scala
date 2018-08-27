@@ -292,8 +292,6 @@ class SmcPredicateEvaluator[
       if (adpositionStates.isEmpty) {
         unfilteredEntities
       } else {
-        // should probably be doing some caching for
-        // reference -> entity lookups
         unfilteredEntities.filter(subjectEntity =>
           adpositionStates.forall(adp => {
             val adposition = adp.adposition
@@ -326,10 +324,8 @@ class SmcPredicateEvaluator[
         )
       }
     }
-    if (!entities.isEmpty) {
-      resultCollector.referenceMap.put(
-        entityRef, SprUtils.orderedSet(entities))
-    }
+    resultCollector.referenceMap.put(
+      entityRef, SprUtils.orderedSet(entities))
     determiner match {
       case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
         if (entities.isEmpty && (context != REF_COMPLEMENT)) {
@@ -389,11 +385,18 @@ class SmcPredicateEvaluator[
     // FIXME should maybe use normalizeState here, but it's a bit tricky
     reference match {
       case SilNounReference(noun, determiner, count) => {
-        cosmos.resolveQualifiedNoun(
-          noun.lemma, context,
-          cosmos.qualifierSet(
-            SilReference.extractQualifiers(specifiedState))) match
-        {
+        // FIXME should verify that specifiedState hasn't changed
+        // from when result was cached?
+        val entitiesTry = referenceMap.get(reference) match {
+          case Some(entities) => Success(entities)
+          case _ => {
+            cosmos.resolveQualifiedNoun(
+              noun.lemma, context,
+              cosmos.qualifierSet(
+                SilReference.extractQualifiers(specifiedState)))
+          }
+        }
+        entitiesTry match {
           case Success(entities) => {
             evaluatePredicateOverEntities(
               entities,
@@ -413,9 +416,16 @@ class SmcPredicateEvaluator[
         }
       }
       case pr : SilPronounReference => {
-        mind.resolvePronoun(pr) match {
-          case Success(entities) => {
+        assert(specifiedState == SilNullState())
+        val entitiesTry = referenceMap.get(reference) match {
+          case Some(entities) => Success(entities)
+          case _ => mind.resolvePronoun(pr).map(entities => {
             referenceMap.put(reference, entities)
+            entities
+          })
+        }
+        entitiesTry match {
+          case Success(entities) => {
             debug(s"CANDIDATE ENTITIES : $entities")
             evaluateDeterminer(
               entities.map(
@@ -446,18 +456,17 @@ class SmcPredicateEvaluator[
       case SilStateSpecifiedReference(sub, subState) => {
         val result = evaluatePredicateOverState(
           sub, subState, context, resultCollector, specifiedState, evaluator)
-        referenceMap.get(sub) match {
-          case Some(entities) => {
-            referenceMap.put(reference, entities)
-          }
-          case _ =>
-        }
+        referenceMap.get(sub).foreach(
+          entitySet => referenceMap.put(reference, entitySet))
         result
       }
       case SilGenitiveReference(possessor, possessee) => {
         val state = SilAdpositionalState(SilAdposition.GENITIVE_OF, possessor)
-        evaluatePredicateOverState(
+        val result = evaluatePredicateOverState(
           possessee, state, context, resultCollector, specifiedState, evaluator)
+        referenceMap.get(possessee).foreach(
+          entitySet => referenceMap.put(reference, entitySet))
+        result
       }
       case rr : SilResolvedReference[EntityType] => {
         evaluatePredicateOverEntities(
@@ -609,8 +618,7 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType,
     evaluator : EntityPredicateEvaluator) : Try[Trilean] =
   {
-    val result = evaluator(
-      entity, entityRef)
+    val result = evaluator(entity, entityRef)
     result.foreach(resultCollector.entityMap.put(entity, _))
     result
   }

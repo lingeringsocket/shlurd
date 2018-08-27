@@ -206,8 +206,7 @@ class SpcMeta(cosmos : SpcCosmos)
       EntityAssocBelief(
         SilUnparsedSentence(
           s"$formEntityName is $modifier $entityName's spc-type"),
-        SilResolvedReference(
-          Set(entity), SilWord(entityName), DETERMINER_UNIQUE),
+        SilNounReference(SilWord(entityName)),
         SilNounReference(SilWord(formEntityName)),
         SilWord(TYPE_METAROLE_NAME),
         positive))

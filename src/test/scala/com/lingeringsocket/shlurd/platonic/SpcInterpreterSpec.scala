@@ -1285,9 +1285,10 @@ class SpcInterpreterSpec extends Specification
         ) => {
           val input = s"$subject is hungry"
           val sentence = SprParser(input).parseOne
+          val resultCollector = SmcResultCollector[SpcEntity]()
           val rewriter = new SmcReferenceRewriter(
             cosmos, new SilSentencePrinter,
-            SmcResultCollector[SpcEntity](),
+            resultCollector,
             SmcResolutionOptions().copy(resolveGenitives = false))
           val rewritten = rewriter.rewrite(
             rewriter.rewriteReferences, sentence)
@@ -1306,7 +1307,8 @@ class SpcInterpreterSpec extends Specification
               throw new RuntimeException(s"unexpected sentence $sentence")
             }
           }
-          interpreter.deriveType(subjectRef).name ==== expectedType
+          interpreter.deriveType(subjectRef, resultCollector).name must
+            be equalTo expectedType
         }
       }
     }
