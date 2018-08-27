@@ -35,7 +35,7 @@ class SmcInterpreterSpec extends Specification
 
   abstract class InterpreterContext(
     responseParams : SmcResponseParams =
-      SmcResponseParams().copy(thirdPersonPronouns = false)
+      SmcResponseParams(thirdPersonPronouns = false)
   ) extends Scope
   {
     protected val mind = new MindType(cosmos) {
@@ -119,7 +119,7 @@ class SmcInterpreterSpec extends Specification
 
     "interpret questions" in new InterpreterContext
     {
-      val terse = SmcResponseParams().copy(verbosity = RESPONSE_TERSE)
+      val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
       interpret("is the lion asleep") must be equalTo(
         "Yes, the lion is asleep.")
       interpret("is the lion asleep", terse) must be equalTo(
@@ -201,7 +201,7 @@ class SmcInterpreterSpec extends Specification
         "Yes, all goats are asleep.")
       interpret("are any goats asleep") must be equalTo(
         "Yes, all three of them are asleep.")
-      val lowLimit = SmcResponseParams().copy(listLimit = 1)
+      val lowLimit = SmcResponseParams(listLimit = 1)
       interpret("are any goats asleep", lowLimit) must be equalTo(
         "Yes, all three of them are asleep.")
       interpret("are any goats awake") must be equalTo(
@@ -346,7 +346,7 @@ class SmcInterpreterSpec extends Specification
 
     "interpret statements" in new InterpreterContext
     {
-      val terse = SmcResponseParams().copy(verbosity = RESPONSE_TERSE)
+      val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
       interpret("the lion is asleep") must be equalTo(
         "Right, the lion is asleep.")
       interpret("the lion is asleep", terse) must be equalTo(

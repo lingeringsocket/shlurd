@@ -176,7 +176,7 @@ class SpcInterpreter(
     already.clear
     // in case we haven't done this already, need to do it now
     // in case evaluateActionPredicate is called by super
-    saveReferenceMap(sentence, mind.getCosmos)
+    saveReferenceMap(sentence, mind.getCosmos, resultCollector)
     super.interpretImpl(sentence, resultCollector)
   }
 
@@ -196,10 +196,6 @@ class SpcInterpreter(
           REL_IDENTITY,
           modifiers
         ) => {
-          // FIXME resequence things so that resolveReferences is already
-          // done by super
-          predicateEvaluator.resolveReferences(
-            complement, resultCollector)
           val form = deriveType(
             complement,
             resultCollector)
@@ -220,7 +216,8 @@ class SpcInterpreter(
 
   private def saveReferenceMap(
     sentence : SilSentence,
-    cosmos : SpcCosmos)
+    cosmos : SpcCosmos,
+    unusedResultCollector : ResultCollectorType)
   {
     // FIXME what if reentrant invocation needs the references???
     if (!referenceMap.isEmpty) {
@@ -237,10 +234,10 @@ class SpcInterpreter(
         resultCollector,
         SmcResolutionOptions(
           failOnUnknown = false,
-          resolveConjunctions = true,
           resolveUniqueDeterminers = true,
           reifyRoles = false))
     resolver.resolve(sentence)
+
     mind.rememberSentenceAnalysis(resultCollector.referenceMap)
     referenceMap = Some(resultCollector.referenceMap)
   }
@@ -275,7 +272,7 @@ class SpcInterpreter(
     })
     // defer until this point so that any newly created entities etc will
     // already have taken effect
-    saveReferenceMap(sentence, beliefInterpreter.cosmos)
+    saveReferenceMap(sentence, forkedCosmos, resultCollector)
     sentence match {
       case SilPredicateSentence(predicate, _, _) => {
         val result = interpretTriggerablePredicate(forkedCosmos, predicate)

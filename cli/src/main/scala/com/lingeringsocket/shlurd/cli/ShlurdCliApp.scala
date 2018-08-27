@@ -55,8 +55,7 @@ class ShlurdCliApp(
   file : File,
   serializer : ShlurdCliSerializer)
 {
-  private val params = SmcResponseParams().copy(
-    verbosity = RESPONSE_ELLIPSIS)
+  private val params = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
 
   private val interpreter = new SpcInterpreter(
     mind, ACCEPT_MODIFIED_BELIEFS, params)

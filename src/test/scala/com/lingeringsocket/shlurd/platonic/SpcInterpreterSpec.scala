@@ -946,7 +946,7 @@ class SpcInterpreterSpec extends Specification
 
     "allow pronouns to be avoided" in new InterpreterContext(
       ACCEPT_NO_BELIEFS,
-      SmcResponseParams().copy(thirdPersonPronouns = false))
+      SmcResponseParams(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/stove.txt")
       interpret("is the stove hot?",
@@ -955,7 +955,7 @@ class SpcInterpreterSpec extends Specification
 
     "understand conversational pronoun references" in new InterpreterContext(
       ACCEPT_MODIFIED_BELIEFS,
-      SmcResponseParams().copy(thirdPersonPronouns = false))
+      SmcResponseParams(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/people.txt")
       mind.startConversation
@@ -1289,7 +1289,7 @@ class SpcInterpreterSpec extends Specification
           val resolver = new SmcReferenceResolver(
             cosmos, new SilSentencePrinter,
             resultCollector,
-            SmcResolutionOptions().copy(resolveGenitives = false))
+            SmcResolutionOptions(resolveGenitives = false))
           resolver.resolve(sentence)
           val subjectRef = sentence match {
             case SilPredicateSentence(

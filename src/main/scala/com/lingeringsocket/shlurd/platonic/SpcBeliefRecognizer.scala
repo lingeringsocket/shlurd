@@ -291,7 +291,6 @@ class SpcBeliefRecognizer(
         resultCollector,
         SmcResolutionOptions(
           failOnUnknown = false,
-          resolveConjunctions = true,
           resolveUniqueDeterminers = true,
           reifyRoles = false)
       )

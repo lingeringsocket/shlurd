@@ -32,7 +32,7 @@ class SpcMetaInterpreterSpec extends Specification
     protected val interpreter =
       new SpcInterpreter(
         mind, ACCEPT_MODIFIED_BELIEFS,
-        SmcResponseParams().copy(verbosity = RESPONSE_TERSE))
+        SmcResponseParams(verbosity = RESPONSE_TERSE))
 
     protected def interpret(input : String, expected : String) =
     {

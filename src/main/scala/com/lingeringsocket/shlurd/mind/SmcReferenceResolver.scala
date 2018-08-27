@@ -23,15 +23,13 @@ import scala.util._
 case class SmcResolutionOptions(
   failOnUnknown : Boolean = true,
   resolveUniqueDeterminers : Boolean = false,
-  resolveConjunctions : Boolean = false,
   resolveGenitives : Boolean = true,
   reifyRoles : Boolean = true
 )
 
 class SmcReferenceResolver[
   EntityType<:SmcEntity, PropertyType<:SmcProperty
-]
-  (
+](
   cosmos : SmcCosmos[EntityType, PropertyType],
   sentencePrinter : SilSentencePrinter,
   resultCollector : SmcResultCollector[EntityType],
@@ -50,6 +48,12 @@ class SmcReferenceResolver[
   }
 
   private def resolveReference = queryMatcher {
+    case ref : SilReference if (
+      resultCollector.referenceMap.contains(ref)
+    ) => {
+      // already resolved, nothing to do but FIXME we should probably
+      // assert that the evaluation comes out the same every time
+    }
     case nr @ SilNounReference(
       noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
     ) if (noun.isProper) => {
@@ -81,7 +85,7 @@ class SmcReferenceResolver[
     }
     case cr @ SilConjunctiveReference(
       DETERMINER_ALL, references, separator
-    ) if (options.resolveConjunctions) => {
+    ) => {
       val resolved = references.flatMap(r =>
         resultCollector.referenceMap.get(r)
       )

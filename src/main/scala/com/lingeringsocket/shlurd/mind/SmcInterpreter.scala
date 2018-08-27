@@ -126,6 +126,10 @@ class SmcInterpreter[
       SmcConversation.SPEAKER_NAME_PERSON, sentence, input)
     SilPhraseValidator.validatePhrase(sentence)
     val resultCollector = SmcResultCollector[EntityType]
+    val resolver = new SmcReferenceResolver(
+      cosmos, sentencePrinter, resultCollector,
+      SmcResolutionOptions(failOnUnknown = false))
+    resolver.resolve(sentence)
     val (responseSentence, responseText) =
       interpretImpl(sentence, resultCollector)
     debug(s"INTERPRETER RESPONSE TEXT : $responseText")
@@ -138,7 +142,6 @@ class SmcInterpreter[
         mind.getCosmos, new SilSentencePrinter, responseResultCollector,
         SmcResolutionOptions(
           failOnUnknown = false,
-          resolveConjunctions = true,
           resolveUniqueDeterminers = true))
       resolver.resolve(responseSentence)
       mind.rememberSpeakerSentence(
