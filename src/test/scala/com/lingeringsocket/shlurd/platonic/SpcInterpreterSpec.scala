@@ -1286,13 +1286,12 @@ class SpcInterpreterSpec extends Specification
           val input = s"$subject is hungry"
           val sentence = SprParser(input).parseOne
           val resultCollector = SmcResultCollector[SpcEntity]()
-          val rewriter = new SmcReferenceRewriter(
+          val resolver = new SmcReferenceResolver(
             cosmos, new SilSentencePrinter,
             resultCollector,
             SmcResolutionOptions().copy(resolveGenitives = false))
-          val rewritten = rewriter.rewrite(
-            rewriter.rewriteReferences, sentence)
-          val subjectRef = rewritten match {
+          resolver.resolve(sentence)
+          val subjectRef = sentence match {
             case SilPredicateSentence(
               SilStatePredicate(
                 subject,

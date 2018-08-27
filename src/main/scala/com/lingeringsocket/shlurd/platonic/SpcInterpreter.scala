@@ -196,11 +196,12 @@ class SpcInterpreter(
           REL_IDENTITY,
           modifiers
         ) => {
-          // FIXME resequence things so that rewriteReferences is already
+          // FIXME resequence things so that resolveReferences is already
           // done by super
+          predicateEvaluator.resolveReferences(
+            complement, resultCollector)
           val form = deriveType(
-            predicateEvaluator.rewriteReferences(
-              complement, resultCollector),
+            complement,
             resultCollector)
           if (mind.getCosmos.formHasProperty(form, noun.lemma)) {
             val statePredicate = SilStatePredicate(
@@ -229,8 +230,8 @@ class SpcInterpreter(
     // collecting references here because SpcBeliefInterpreter does
     // not do anything in that regard.
     val resultCollector = SmcResultCollector[SpcEntity]
-    val rewriter =
-      new SmcReferenceRewriter(
+    val resolver =
+      new SmcReferenceResolver(
         cosmos,
         new SilSentencePrinter,
         resultCollector,
@@ -239,9 +240,7 @@ class SpcInterpreter(
           resolveConjunctions = true,
           resolveUniqueDeterminers = true,
           reifyRoles = false))
-    // discard the rewrite result; we just want the resultCollector
-    // side effects
-    rewriter.rewrite(rewriter.rewriteReferences, sentence)
+    resolver.resolve(sentence)
     mind.rememberSentenceAnalysis(resultCollector.referenceMap)
     referenceMap = Some(resultCollector.referenceMap)
   }

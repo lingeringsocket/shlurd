@@ -284,8 +284,8 @@ class SpcBeliefRecognizer(
     interpretation : (SilReference) => Seq[SpcBelief])
       : Seq[SpcBelief] =
   {
-    val rewriter =
-      new SmcReferenceRewriter[SpcEntity, SpcProperty](
+    val resolver =
+      new SmcReferenceResolver[SpcEntity, SpcProperty](
         cosmos,
         new SilSentencePrinter,
         resultCollector,
@@ -295,8 +295,7 @@ class SpcBeliefRecognizer(
           resolveUniqueDeterminers = true,
           reifyRoles = false)
       )
-    // discard results; use resultCollector lookup instead
-    rewriter.rewrite(rewriter.rewriteReferences, ref)
+    resolver.resolve(ref)
     resultCollector.referenceMap.get(ref) match {
       case Some(set) => {
         if (set.isEmpty) {

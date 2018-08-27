@@ -45,22 +45,17 @@ class SmcPredicateEvaluator[
   private def fail(msg : String) = cosmos.fail(msg)
 
   protected[mind] def evaluatePredicate(
-    predicateOriginal : SilPredicate,
+    predicate : SilPredicate,
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
-    debug(s"EVALUATE PREDICATE : $predicateOriginal")
+    debug(s"EVALUATE PREDICATE : $predicate")
     debugPushLevel()
-    val predicate = {
-      try {
-        rewriteReferences(predicateOriginal, resultCollector)
-      } catch {
-        case ex : RuntimeException => {
-          return Failure(ex)
-        }
+    try {
+      resolveReferences(predicate, resultCollector)
+    } catch {
+      case ex : RuntimeException => {
+        return Failure(ex)
       }
-    }
-    if (predicate != predicateOriginal) {
-      debug(s"REWRITTEN REFERENCES : $predicate")
     }
     // FIXME analyze verb modifiers
     val result = predicate match {
@@ -141,14 +136,13 @@ class SmcPredicateEvaluator[
     fail(sentencePrinter.sb.respondCannotUnderstand)
   }
 
-  def rewriteReferences[PhraseType <: SilPhrase](
-    phrase : PhraseType,
-    resultCollector : ResultCollectorType) : PhraseType =
+  def resolveReferences(
+    phrase : SilPhrase,
+    resultCollector : ResultCollectorType)
   {
-    val referenceRewriter = new SmcReferenceRewriter(
+    val resolver = new SmcReferenceResolver(
       cosmos, sentencePrinter, resultCollector)
-    referenceRewriter.rewrite(
-      referenceRewriter.rewriteReferences, phrase)
+    resolver.resolve(phrase)
   }
 
   private def evaluatePropertyStateQuery(
@@ -535,7 +529,11 @@ class SmcPredicateEvaluator[
               case SilWord(LEMMA_WHERE, LEMMA_WHERE) => SilWord(LEMMA_CONTAINER)
               case _ => noun
             }
-            SilNounReference(rephrased, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+            val rephrasedDeterminer = determiner match {
+              case DETERMINER_ANY | DETERMINER_SOME => DETERMINER_NONSPECIFIC
+              case _ => determiner
+            }
+            SilNounReference(rephrased, rephrasedDeterminer, count)
           }
           case _ => {
             cosmos.specificReference(entity, DETERMINER_NONSPECIFIC)

@@ -701,7 +701,8 @@ class SpcCosmos(
     possessee : SpcEntity,
     role : SpcRole) : Boolean =
   {
-    !getEntityAssocEdge(possessor, possessee, role).isEmpty
+    !getEntityAssocEdge(possessor, possessee, role).isEmpty &&
+      graph.isFormCompatibleWithRole(possessee.form, role)
   }
 
   def getEntityAssocEdge(

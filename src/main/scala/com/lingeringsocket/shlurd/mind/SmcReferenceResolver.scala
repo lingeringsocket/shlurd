@@ -28,7 +28,7 @@ case class SmcResolutionOptions(
   reifyRoles : Boolean = true
 )
 
-class SmcReferenceRewriter[
+class SmcReferenceResolver[
   EntityType<:SilEntity, PropertyType<:SmcProperty
 ]
   (
@@ -38,24 +38,18 @@ class SmcReferenceRewriter[
   options : SmcResolutionOptions = SmcResolutionOptions())
     extends SilPhraseRewriter
 {
-  private val reverseMap = new mutable.HashMap[SilReference, SilReference]
-
-  private def newResolved(
-    entities : Set[EntityType],
-    noun : SilWord,
-    determiner : SilDeterminer,
-    unresolved : SilReference,
-    intermediate : Option[SilReference] = None) =
-  {
-    val rr = SilResolvedReference(entities, noun, determiner)
-    reverseMap.put(rr, unresolved)
-    resultCollector.referenceMap.put(rr, entities)
-    resultCollector.referenceMap.put(unresolved, entities)
-    intermediate.foreach(resultCollector.referenceMap.put(_, entities))
-    rr
+  def resolve(phrase : SilPhrase) {
+    query(resolveReference, phrase)
   }
 
-  def rewriteReferences = replacementMatcher {
+  private def storeResolved(
+    ref : SilReference,
+    entities : Set[EntityType])
+  {
+    resultCollector.referenceMap.put(ref, entities)
+  }
+
+  private def resolveReference = queryMatcher {
     case nr @ SilNounReference(
       noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
     ) if (noun.isProper) => {
@@ -63,14 +57,12 @@ class SmcReferenceRewriter[
         noun.lemma, REF_SUBJECT, Set.empty) match
       {
         case Success(entities) => {
-          newResolved(entities, noun, nr.determiner, nr)
+          storeResolved(nr, entities)
         }
         case Failure(e) => {
           if (options.failOnUnknown) {
             throw cosmos.fail(
               sentencePrinter.sb.respondUnknown(noun)).exception
-          } else {
-            nr
           }
         }
       }
@@ -82,53 +74,38 @@ class SmcReferenceRewriter[
         noun.lemma, REF_SUBJECT, Set.empty) match
       {
         case Success(entities) => {
-          newResolved(entities, noun, nr.determiner, nr)
+          storeResolved(nr, entities)
         }
-        case Failure(e) => {
-          nr
-        }
+        case Failure(e) =>
       }
     }
     case cr @ SilConjunctiveReference(
       DETERMINER_ALL, references, separator
     ) if (options.resolveConjunctions) => {
-      val resolved = references.flatMap(_ match {
-        case rr : SilResolvedReference[EntityType] => {
-          Some(rr)
-        }
-        case _ => {
-          None
-        }
-      })
-      if (resolved.size != references.size) {
-        cr
-      } else {
-        val entities = resolved.flatMap(_.entities).toSet
-        val reconstructed = SilConjunctiveReference(
-          DETERMINER_ALL, references.map(reverseMap), separator)
-        // FIXME is this correct for noun and determiner??
-        newResolved(
-          entities, resolved.head.noun, resolved.head.determiner,
-          reconstructed, Some(cr))
+      val resolved = references.flatMap(r =>
+        resultCollector.referenceMap.get(r)
+      )
+      if (resolved.size == references.size) {
+        val entities = resolved.flatten.toSet
+        storeResolved(cr, entities)
       }
     }
     case gr @ SilGenitiveReference(
-      grr : SilResolvedReference[EntityType], SilNounReference(noun, _, _)
+      grr,
+      SilNounReference(noun, _, _)
     ) if (options.resolveGenitives) => {
-      val roleName = noun.lemma
-      if (options.reifyRoles) {
-        grr.entities.foreach(entity => cosmos.reifyRole(entity, roleName, true))
-      }
-      val attempts = grr.entities.map(
-        entity => cosmos.resolveEntityAssoc(entity, roleName))
-      if (attempts.exists(_.isFailure)) {
-        gr
-      } else {
-        val entities = attempts.map(_.get).flatMap(_.toSet)
-        val reconstructed = SilGenitiveReference(reverseMap(grr), gr.possessee)
-        // FIXME is this correct for noun and determiner??
-        newResolved(entities, noun, grr.determiner, reconstructed, Some(gr))
-      }
+      resultCollector.referenceMap.get(grr).foreach(entities => {
+        val roleName = noun.lemma
+        if (options.reifyRoles) {
+          entities.foreach(entity => cosmos.reifyRole(entity, roleName, true))
+        }
+        val attempts = entities.map(
+          entity => cosmos.resolveEntityAssoc(entity, roleName))
+        if (!attempts.exists(_.isFailure)) {
+          val entities = attempts.map(_.get).flatMap(_.toSet)
+          storeResolved(gr, entities)
+        }
+      })
     }
   }
 }

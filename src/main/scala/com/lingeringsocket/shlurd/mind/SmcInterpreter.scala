@@ -134,15 +134,13 @@ class SmcInterpreter[
       // perhaps we should synthesize referenceMap as we go instead
       // of attempting to reconstruct it here
       val responseResultCollector = SmcResultCollector[EntityType]
-      val rewriter = new SmcReferenceRewriter(
+      val resolver = new SmcReferenceResolver(
         mind.getCosmos, new SilSentencePrinter, responseResultCollector,
         SmcResolutionOptions(
           failOnUnknown = false,
           resolveConjunctions = true,
           resolveUniqueDeterminers = true))
-      // discard the rewrite result; we just want the
-      // responseResultCollector side effects
-      rewriter.rewrite(rewriter.rewriteReferences, responseSentence)
+      resolver.resolve(responseSentence)
       mind.rememberSpeakerSentence(
         SmcConversation.SPEAKER_NAME_SHLURD,
         responseSentence, responseText, responseResultCollector.referenceMap)
