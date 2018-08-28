@@ -532,8 +532,17 @@ class SmcPredicateEvaluator[
           }
         }
       }
-      case pr : SilPronounReference => {
+      case prOriginal : SilPronounReference => {
         assert(specifiedState == SilNullState())
+        val pr = {
+          if (resultCollector.swapSpeakerListener) {
+            val rewriter = new SmcResponseRewriter(mind)
+            rewriter.rewrite(
+              rewriter.swapPronounsSpeakerListener, prOriginal)
+          } else {
+            prOriginal
+          }
+        }
         val entitiesTry = cacheReference(
           resultCollector,
           reference,

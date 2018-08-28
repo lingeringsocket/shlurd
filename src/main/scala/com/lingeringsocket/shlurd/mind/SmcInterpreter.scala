@@ -57,10 +57,12 @@ class SmcResultCollector[EntityType<:SmcEntity](
   val states = new mutable.LinkedHashSet[SilWord]
   var isCategorization = false
   var expandWildcards = true
+  var swapSpeakerListener = false
 
   def spawn() = {
     val newCollector = new SmcResultCollector[EntityType](referenceMap)
     newCollector.expandWildcards = expandWildcards
+    newCollector.swapSpeakerListener = swapSpeakerListener
     newCollector
   }
 }
@@ -140,12 +142,9 @@ class SmcInterpreter[
       // perhaps we should synthesize referenceMap as we go instead
       // of attempting to reconstruct it here
       val responseResultCollector = SmcResultCollector[EntityType]
-      val resolver = new SmcReferenceResolver(
-        mind.getCosmos, new SilSentencePrinter, responseResultCollector,
-        SmcResolutionOptions(
-          failOnUnknown = false,
-          resolveUniqueDeterminers = true))
-      resolver.resolve(responseSentence)
+      responseResultCollector.swapSpeakerListener = true
+      predicateEvaluator.resolveReferences(
+        responseSentence, responseResultCollector)
       mind.rememberSpeakerSentence(
         SmcConversation.SPEAKER_NAME_SHLURD,
         responseSentence, responseText, responseResultCollector.referenceMap)

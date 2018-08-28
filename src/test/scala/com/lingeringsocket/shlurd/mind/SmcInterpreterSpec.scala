@@ -506,6 +506,8 @@ class SmcInterpreterSpec extends Specification
             SilFormality(FORCE_NEUTRAL)),
           "I am Muldoon.",
           Map(
+            SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR) ->
+              Set(ZooKeeper),
             SilNounReference(SilWord("Muldoon")) -> Set(ZooKeeper)
           )
         )
