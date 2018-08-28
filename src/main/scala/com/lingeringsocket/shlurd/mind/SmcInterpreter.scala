@@ -56,8 +56,13 @@ class SmcResultCollector[EntityType<:SmcEntity](
   val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
   val states = new mutable.LinkedHashSet[SilWord]
   var isCategorization = false
+  var expandWildcards = true
 
-  def spawn() = new SmcResultCollector[EntityType](referenceMap)
+  def spawn() = {
+    val newCollector = new SmcResultCollector[EntityType](referenceMap)
+    newCollector.expandWildcards = expandWildcards
+    newCollector
+  }
 }
 
 object SmcResultCollector
@@ -126,10 +131,7 @@ class SmcInterpreter[
       SmcConversation.SPEAKER_NAME_PERSON, sentence, input)
     SilPhraseValidator.validatePhrase(sentence)
     val resultCollector = SmcResultCollector[EntityType]
-    val resolver = new SmcReferenceResolver(
-      cosmos, sentencePrinter, resultCollector,
-      SmcResolutionOptions(failOnUnknown = false))
-    resolver.resolve(sentence)
+    predicateEvaluator.resolveReferences(sentence, resultCollector)
     val (responseSentence, responseText) =
       interpretImpl(sentence, resultCollector)
     debug(s"INTERPRETER RESPONSE TEXT : $responseText")

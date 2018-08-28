@@ -50,13 +50,7 @@ class SmcPredicateEvaluator[
   {
     debug(s"EVALUATE PREDICATE : $predicate")
     debugPushLevel()
-    try {
-      resolveReferences(predicate, resultCollector)
-    } catch {
-      case ex : RuntimeException => {
-        return Failure(ex)
-      }
-    }
+    resolveReferences(predicate, resultCollector)
     // FIXME analyze verb modifiers
     val result = predicate match {
       case SilStatePredicate(
@@ -176,8 +170,8 @@ class SmcPredicateEvaluator[
     }
   }
 
-  private def resolveReferences(
-    predicate : SilPredicate,
+  private[mind] def resolveReferences(
+    phrase : SilPhrase,
     resultCollector : ResultCollectorType)
   {
     val phraseQuerier = new SilPhraseRewriter
@@ -232,7 +226,9 @@ class SmcPredicateEvaluator[
         resolveOne(ap.objRef, REF_ADPOSITION_OBJ)
       }
     }
-    phraseQuerier.query(rule, predicate, SilRewriteOptions(topDown = true))
+    resultCollector.expandWildcards = false
+    phraseQuerier.query(rule, phrase, SilRewriteOptions(topDown = true))
+    resultCollector.expandWildcards = true
   }
 
   private def relationshipComplementContext(
@@ -498,6 +494,17 @@ class SmcPredicateEvaluator[
     // FIXME should maybe use normalizeState here, but it's a bit tricky
     reference match {
       case SilNounReference(noun, determiner, count) => {
+        if (!resultCollector.expandWildcards) {
+          val bail = determiner match {
+            case DETERMINER_UNIQUE => false
+            // FIXME this is silly
+            case DETERMINER_UNSPECIFIED => (noun.lemma == LEMMA_WHO)
+            case _ => true
+          }
+          if (bail) {
+            return Success(Trilean.Unknown)
+          }
+        }
         val entitiesTry = cacheReference(
           resultCollector,
           reference,
