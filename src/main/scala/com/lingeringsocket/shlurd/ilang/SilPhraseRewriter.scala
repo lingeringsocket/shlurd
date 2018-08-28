@@ -19,11 +19,12 @@ import org.kiama.util._
 
 import org.slf4j._
 
-import scala.collection._
-
-trait SilRewriteOption
-case object REWRITE_REPEAT extends SilRewriteOption
-case object REWRITE_TOP_DOWN extends SilRewriteOption
+case class SilRewriteOptions(
+  repeat : Boolean = false,
+  topDown : Boolean = false
+)
+{
+}
 
 class SilPhraseRewriter
 {
@@ -66,12 +67,12 @@ class SilPhraseRewriter
   def rewrite[PhraseType <: SilPhrase](
     rule : SilPhraseReplacement,
     phrase : PhraseType,
-    options : Set[SilRewriteOption] = Set())
+    options : SilRewriteOptions = SilRewriteOptions())
       : PhraseType =
   {
     val strategy = {
       val ruleStrategy = SyntaxPreservingRewriter.rule(rule)
-      if (options.contains(REWRITE_TOP_DOWN)) {
+      if (options.topDown) {
         SyntaxPreservingRewriter.manytd(
           "rewriteEverywhere",
           ruleStrategy)
@@ -93,7 +94,7 @@ class SilPhraseRewriter
       }
     }
     val finalStrategy = {
-      if (options.contains(REWRITE_REPEAT)) {
+      if (options.repeat) {
         SyntaxPreservingRewriter.rewrite[PhraseType](
           SyntaxPreservingRewriter.repeat(
             "rewriteRepeat",
@@ -107,12 +108,22 @@ class SilPhraseRewriter
 
   def query(
     rule : SilPhraseQuery,
-    phrase : SilPhrase)
+    phrase : SilPhrase,
+    options : SilRewriteOptions = SilRewriteOptions())
   {
-    val strategy =
-      Rewriter.manybu(
-        "rewriteEverywhere",
-        Rewriter.query[SilPhrase](rule))
+    assert(!options.repeat)
+    val ruleStrategy = Rewriter.query[SilPhrase](rule)
+    val strategy = {
+      if (options.topDown) {
+        Rewriter.manytd(
+          "rewriteEverywhere",
+          ruleStrategy)
+      } else {
+        Rewriter.manybu(
+          "rewriteEverywhere",
+          ruleStrategy)
+      }
+    }
     Rewriter.rewrite(strategy)(phrase)
   }
 

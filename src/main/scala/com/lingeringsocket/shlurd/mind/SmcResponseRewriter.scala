@@ -321,7 +321,7 @@ class SmcResponseRewriter[
     rewrite(
       replaceThirdPersonReferences(referenceMap),
       predicate,
-      Set(REWRITE_TOP_DOWN))
+      SilRewriteOptions(topDown = true))
   }
 
   // "Groot is I" becomes "I am Groot"

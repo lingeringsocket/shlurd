@@ -24,7 +24,7 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
     val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
     val expected = SilExpectedSentence(sentenceSyntaxTree, forceSQ)
     val transformed = rewrite[SilSentence](
-      replaceAllPhrases, expected, Set(REWRITE_REPEAT))
+      replaceAllPhrases, expected, SilRewriteOptions(repeat = true))
     val completed = rewrite(replaceUnresolvedWithUnrecognized, transformed)
     if (!completed.hasUnknown) {
       query(validateResult, completed)

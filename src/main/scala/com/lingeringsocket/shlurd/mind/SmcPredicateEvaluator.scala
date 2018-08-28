@@ -59,7 +59,9 @@ class SmcPredicateEvaluator[
     }
     // FIXME analyze verb modifiers
     val result = predicate match {
-      case SilStatePredicate(subject, state, modifiers) => {
+      case SilStatePredicate(
+        subject, state, modifiers
+      ) => {
         state match {
           case SilConjunctiveState(determiner, states, _) => {
             // FIXME:  how to write to resultCollector.entityMap in this case?
@@ -73,41 +75,57 @@ class SmcPredicateEvaluator[
         }
       }
       case SilRelationshipPredicate(
-        subjectRef, complementRef, relationship, modifiers) =>
-      {
+        subjectRef, complementRef, relationship, modifiers
+      ) => {
         val subjectCollector = chooseResultCollector(
           subjectRef, resultCollector)
         val complementCollector = chooseResultCollector(
           complementRef, resultCollector)
-        val categoryLabel = relationship match {
-          case REL_IDENTITY => extractCategory(complementRef)
-          case _ => ""
+        val (context, categoryLabel) =
+          relationshipComplementContext(relationship, complementRef)
+        val tryComplement = {
+          if (!categoryLabel.isEmpty) {
+            resultCollector.isCategorization = true
+            Success(Trilean.Unknown)
+          } else {
+            // just in case we skip evaluating complementRef, force
+            // it now for any side effects such as error detection
+            resolveReference(complementRef, context, resultCollector).map(
+              _ => Trilean.Unknown)
+          }
         }
-        evaluatePredicateOverReference(
-          subjectRef, REF_SUBJECT, subjectCollector)
-        {
-          (subjectEntity, entityRef) => {
-            if (!categoryLabel.isEmpty) {
-              resultCollector.isCategorization = true
-              evaluateCategorization(subjectEntity, categoryLabel)
-            } else {
-              val context = relationship match {
-                case REL_IDENTITY => REF_COMPLEMENT
-                case REL_ASSOCIATION => REF_SUBJECT
-              }
-              if (relationship == REL_ASSOCIATION) {
-                val roleQualifiers = extractRoleQualifiers(complementRef)
-                if (roleQualifiers.size == 1) {
-                  val roleName = roleQualifiers.head
-                  cosmos.reifyRole(subjectEntity, roleName, true)
+        if (tryComplement.isFailure) {
+          tryComplement
+        } else {
+          evaluatePredicateOverReference(
+            subjectRef, REF_SUBJECT, subjectCollector)
+          {
+            (subjectEntity, entityRef) => {
+              if (!categoryLabel.isEmpty) {
+                evaluateCategorization(subjectEntity, categoryLabel)
+              } else {
+                if (relationship == REL_ASSOCIATION) {
+                  val roleQualifiers = extractRoleQualifiers(complementRef)
+                  if (roleQualifiers.size == 1) {
+                    val roleName = roleQualifiers.head
+                    cosmos.reifyRole(subjectEntity, roleName, true)
+                    // invalidate any cached result for complementRef since
+                    // we just reified a new entity
+                    complementRef.descendantReferences.foreach(
+                      resultCollector.referenceMap.remove
+                    )
+                  }
                 }
-              }
-              evaluatePredicateOverReference(
-                complementRef, context, complementCollector)
-              {
-                (complementEntity, entityRef) => evaluateRelationshipPredicate(
-                  subjectEntity, complementRef, complementEntity, relationship
-                )
+                evaluatePredicateOverReference(
+                  complementRef, context, complementCollector)
+                {
+                  (complementEntity, entityRef) => {
+                    evaluateRelationshipPredicate(
+                      subjectEntity, complementRef,
+                      complementEntity, relationship
+                    )
+                  }
+                }
               }
             }
           }
@@ -136,13 +154,99 @@ class SmcPredicateEvaluator[
     fail(sentencePrinter.sb.respondCannotUnderstand)
   }
 
-  def resolveReferences(
-    phrase : SilPhrase,
+  private def resolveReference(
+    ref : SilReference,
+    context : SilReferenceContext,
+    resultCollector : ResultCollectorType) =
+  {
+    // FIXME for a cache hit, we should assert that the result is
+    // the same as what we would have gotten from re-evaluation;
+    // however, this isn't currently true due to postprocessing
+    resultCollector.referenceMap.get(ref) match {
+      case Some(entities) => Success(entities)
+      case _ => {
+        evaluatePredicateOverReference(
+          ref, context, resultCollector.spawn, SilNullState())
+        {
+          (entity, entityRef) => {
+            Success(Trilean.Unknown)
+          }
+        }
+      }
+    }
+  }
+
+  private def resolveReferences(
+    predicate : SilPredicate,
     resultCollector : ResultCollectorType)
   {
-    val resolver = new SmcReferenceResolver(
-      cosmos, sentencePrinter, resultCollector)
-    resolver.resolve(phrase)
+    val phraseQuerier = new SilPhraseRewriter
+    def resolveOne(
+      ref : SilReference,
+      context : SilReferenceContext)
+    {
+      val cached = resultCollector.referenceMap.contains(ref)
+      // in current usage, we always ignore failures
+      resolveReference(ref, context, resultCollector).foreach(_ => {
+        ref match {
+          case SilGenitiveReference(
+            grr,
+            SilNounReference(noun, _, _)
+          ) if (!cached) => {
+            val roleName = noun.lemma
+            resultCollector.referenceMap.get(grr).foreach(entities => {
+              entities.foreach(
+                entity => cosmos.reifyRole(entity, roleName, true))
+            })
+            // now clear cache and repeat to pick up the newly
+            // reifed entities
+            ref.descendantReferences.foreach(
+              resultCollector.referenceMap.remove)
+            resolveReference(ref, context, resultCollector)
+          }
+          case _ =>
+        }
+      })
+    }
+
+    val rule = phraseQuerier.queryMatcher {
+      case SilStatePredicate(subjectRef, state, modifiers) => {
+        resolveOne(subjectRef, REF_SUBJECT)
+      }
+      case SilRelationshipPredicate(
+        subjectRef, complementRef, relationship, modifiers
+      ) => {
+        resolveOne(subjectRef, REF_SUBJECT)
+        val (context, categoryLabel) =
+          relationshipComplementContext(relationship, complementRef)
+        if (categoryLabel.isEmpty) {
+          resolveOne(complementRef, context)
+        }
+      }
+      case SilActionPredicate(subject, action, directObject, modifiers) => {
+        resolveOne(subject, REF_SUBJECT)
+        directObject.foreach(resolveOne(_, REF_DIRECT_OBJECT))
+      }
+      case ap : SilAdpositionalPhrase => {
+        // FIXME also need to use REF_ADPOSITION_SUBJ above?
+        resolveOne(ap.objRef, REF_ADPOSITION_OBJ)
+      }
+    }
+    phraseQuerier.query(rule, predicate, SilRewriteOptions(topDown = true))
+  }
+
+  private def relationshipComplementContext(
+    rel : SilRelationship,
+    complementRef : SilReference) : (SilReferenceContext, String) =
+  {
+    rel match {
+      case REL_IDENTITY => {
+        (REF_COMPLEMENT, extractCategory(complementRef))
+      }
+      case REL_ASSOCIATION => {
+        (REF_SUBJECT, "")
+      }
+    }
   }
 
   private def evaluatePropertyStateQuery(
@@ -367,6 +471,21 @@ class SmcPredicateEvaluator[
     }
   }
 
+  private def cacheReference(
+    resultCollector : ResultCollectorType,
+    ref : SilReference,
+    evaluator : () => Try[Set[EntityType]]) =
+  {
+    resultCollector.referenceMap.get(ref) match {
+      case Some(entities) => {
+        Success(entities)
+      }
+      case _ => {
+        evaluator()
+      }
+    }
+  }
+
   private def evaluatePredicateOverReferenceImpl(
     reference : SilReference,
     context : SilReferenceContext,
@@ -379,17 +498,14 @@ class SmcPredicateEvaluator[
     // FIXME should maybe use normalizeState here, but it's a bit tricky
     reference match {
       case SilNounReference(noun, determiner, count) => {
-        // FIXME should verify that specifiedState hasn't changed
-        // from when result was cached?
-        val entitiesTry = referenceMap.get(reference) match {
-          case Some(entities) => Success(entities)
-          case _ => {
-            cosmos.resolveQualifiedNoun(
-              noun.lemma, context,
-              cosmos.qualifierSet(
-                SilReference.extractQualifiers(specifiedState)))
-          }
-        }
+        val entitiesTry = cacheReference(
+          resultCollector,
+          reference,
+          () => cosmos.resolveQualifiedNoun(
+            noun.lemma, context,
+            cosmos.qualifierSet(
+              SilReference.extractQualifiers(specifiedState)))
+        )
         entitiesTry match {
           case Success(entities) => {
             evaluatePredicateOverEntities(
@@ -411,13 +527,13 @@ class SmcPredicateEvaluator[
       }
       case pr : SilPronounReference => {
         assert(specifiedState == SilNullState())
-        val entitiesTry = referenceMap.get(reference) match {
-          case Some(entities) => Success(entities)
-          case _ => mind.resolvePronoun(pr).map(entities => {
+        val entitiesTry = cacheReference(
+          resultCollector,
+          reference,
+          () => mind.resolvePronoun(pr).map(entities => {
             referenceMap.put(reference, entities)
             entities
-          })
-        }
+          }))
         entitiesTry match {
           case Success(entities) => {
             debug(s"CANDIDATE ENTITIES : $entities")

@@ -301,7 +301,9 @@ class SpcCosmos(
     if (meta.isFresh) {
       graph.getIdealHypernyms(role).toSeq.filter(_.isForm).
         map(_.asInstanceOf[SpcForm]).
-        flatMap(graph.getFormHyponyms).distinct.flatMap(getFormRealizations)
+        flatMap(graph.getFormHyponyms).distinct.filter(form =>
+          graph.isFormCompatibleWithRole(form, role)).
+        flatMap(getFormRealizations)
     } else {
       getEntities.filter(
         entity => graph.isFormCompatibleWithRole(entity.form, role))

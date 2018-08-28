@@ -73,6 +73,11 @@ sealed trait SilPredicate extends SilPhrase
 sealed trait SilReference extends SilPhrase
 {
   def acceptsSpecifiers : Boolean = true
+
+  def descendantReferences : Set[SilReference] = {
+    Set(this) ++ children.filter(_.isInstanceOf[SilReference]).
+      map(_.asInstanceOf[SilReference]).flatMap(_.descendantReferences)
+  }
 }
 
 sealed trait SilState extends SilPhrase
