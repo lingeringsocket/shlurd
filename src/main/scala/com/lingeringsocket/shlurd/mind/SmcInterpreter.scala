@@ -133,7 +133,7 @@ class SmcInterpreter[
       SmcConversation.SPEAKER_NAME_PERSON, sentence, input)
     SilPhraseValidator.validatePhrase(sentence)
     val resultCollector = SmcResultCollector[EntityType]
-    predicateEvaluator.resolveReferences(sentence, resultCollector)
+    resolveReferences(sentence, resultCollector)
     val (responseSentence, responseText) =
       interpretImpl(sentence, resultCollector)
     debug(s"INTERPRETER RESPONSE TEXT : $responseText")
@@ -143,13 +143,20 @@ class SmcInterpreter[
       // of attempting to reconstruct it here
       val responseResultCollector = SmcResultCollector[EntityType]
       responseResultCollector.swapSpeakerListener = true
-      predicateEvaluator.resolveReferences(
+      resolveReferences(
         responseSentence, responseResultCollector)
       mind.rememberSpeakerSentence(
         SmcConversation.SPEAKER_NAME_SHLURD,
         responseSentence, responseText, responseResultCollector.referenceMap)
     }
     responseText
+  }
+
+  def resolveReferences(
+    phrase : SilPhrase,
+    resultCollector : ResultCollectorType)
+  {
+    predicateEvaluator.resolveReferences(phrase, resultCollector)
   }
 
   protected def interpretImpl(

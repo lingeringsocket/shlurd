@@ -16,7 +16,6 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
-import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
 import org.specs2.specification._
@@ -1286,11 +1285,7 @@ class SpcInterpreterSpec extends Specification
           val input = s"$subject is hungry"
           val sentence = SprParser(input).parseOne
           val resultCollector = SmcResultCollector[SpcEntity]()
-          val resolver = new SmcReferenceResolver(
-            cosmos, new SilSentencePrinter,
-            resultCollector,
-            SmcResolutionOptions(resolveGenitives = false))
-          resolver.resolve(sentence)
+          interpreter.resolveReferences(sentence, resultCollector)
           val subjectRef = sentence match {
             case SilPredicateSentence(
               SilStatePredicate(

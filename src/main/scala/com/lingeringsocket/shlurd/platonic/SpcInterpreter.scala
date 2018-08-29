@@ -227,7 +227,7 @@ class SpcInterpreter(
     // point, so run another full reference resolution pass to pick
     // them up
     resultCollector.referenceMap.clear
-    spawn(imagine(cosmos)).predicateEvaluator.resolveReferences(
+    spawn(imagine(cosmos)).resolveReferences(
       sentence, resultCollector)
 
     mind.rememberSentenceAnalysis(resultCollector.referenceMap)
@@ -641,40 +641,42 @@ class SpcInterpreter(
   {
     def cosmos = mind.getCosmos
     typeMemo.getOrElseUpdate(ref, {
-      resultCollector.referenceMap.get(ref).map(entities =>
-        lcaType(entities.map(_.form))).getOrElse(
-        ref match {
-          case SilConjunctiveReference(_, refs, _) => {
-            lcaType(refs.map(deriveType(_, resultCollector)).toSet)
-          }
-          case SilGenitiveReference(_, SilNounReference(noun, _, _)) => {
-            // FIXME probably the possessor's type should be used for scoping
-            // here?  Also need to handle properties.
-            cosmos.resolveRole(noun.lemma) match {
-              case Some(role) => {
-                lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
-              }
-              case _ => unknownType
+      ref match {
+        case SilConjunctiveReference(_, refs, _) => {
+          lcaType(refs.map(deriveType(_, resultCollector)).toSet)
+        }
+        case SilGenitiveReference(_, SilNounReference(noun, _, _)) => {
+          // FIXME probably the possessor's type should be used for scoping
+          // here?  Also need to handle properties.
+          cosmos.resolveRole(noun.lemma) match {
+            case Some(role) => {
+              lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
             }
+            case _ => unknownType
           }
-          case SilNounReference(noun, _, _) => {
-            // FIXME resolve roles as well?
+        }
+        case SilNounReference(noun, _, _) => {
+          // FIXME resolve roles as well?
+          if (noun.isProper) {
+            cosmos.getEntityBySynonym(noun.lemma).map(_.form).
+              getOrElse(unknownType)
+          } else {
             cosmos.resolveForm(noun.lemma).getOrElse(unknownType)
           }
-          case pr : SilPronounReference => {
-            mind.resolvePronoun(pr) match {
-              case Success(entities) => {
-                lcaType(entities.map(_.form))
-              }
-              case _ => unknownType
-            }
-          }
-          case SilStateSpecifiedReference(sub, state) => {
-            deriveType(sub, resultCollector)
-          }
-          case _ => unknownType
         }
-      )
+        case pr : SilPronounReference => {
+          mind.resolvePronoun(pr) match {
+            case Success(entities) => {
+              lcaType(entities.map(_.form))
+            }
+            case _ => unknownType
+          }
+        }
+        case SilStateSpecifiedReference(sub, state) => {
+          deriveType(sub, resultCollector)
+        }
+        case _ => unknownType
+      }
     })
   }
 

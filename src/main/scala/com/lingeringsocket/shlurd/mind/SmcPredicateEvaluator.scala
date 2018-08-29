@@ -170,7 +170,7 @@ class SmcPredicateEvaluator[
     }
   }
 
-  def resolveReferences(
+  private[mind] def resolveReferences(
     phrase : SilPhrase,
     resultCollector : ResultCollectorType)
   {
