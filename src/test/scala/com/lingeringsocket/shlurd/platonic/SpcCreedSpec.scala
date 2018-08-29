@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
@@ -35,8 +36,12 @@ class SpcCreedSpec extends Specification
     protected def addBelief(input : String) =
     {
       val sentence = SprParser(input).parseOne
-      val interpreter = new SpcBeliefInterpreter(cosmos)
-      interpreter.interpretBelief(sentence)
+      val interpreter = new SpcInterpreter(new SpcMind(cosmos))
+      val resultCollector = SmcResultCollector[SpcEntity]()
+      interpreter.resolveReferences(sentence, resultCollector)
+      val beliefInterpreter = new SpcBeliefInterpreter(
+        cosmos, false, resultCollector)
+      beliefInterpreter.interpretBelief(sentence)
     }
 
     protected def expectPreserved(
@@ -54,10 +59,16 @@ class SpcCreedSpec extends Specification
       beliefStrings.map(SprUtils.capitalize) must be equalTo expected
       beliefStrings.foreach(beliefString => {
         val sentence = SprParser(beliefString).parseOne
-        val refriedInterpreter = new SpcBeliefInterpreter(refriedCosmos)
-        val refriedBeliefs = refriedInterpreter.recognizeBeliefs(sentence)
+        val refriedInterpreter =
+          new SpcInterpreter(new SpcMind(refriedCosmos))
+        val resultCollector = SmcResultCollector[SpcEntity]()
+        refriedInterpreter.resolveReferences(sentence, resultCollector)
+        val refriedBeliefInterpreter =
+          new SpcBeliefInterpreter(refriedCosmos, false, resultCollector)
+        val refriedBeliefs =
+          refriedBeliefInterpreter.recognizeBeliefs(sentence)
         refriedBeliefs.foreach(belief => {
-          refriedInterpreter.applyBelief(belief)
+          refriedBeliefInterpreter.applyBelief(belief)
         })
       })
       val refriedStrings = refriedCreed.allBeliefs.map(s => printer.print(s))

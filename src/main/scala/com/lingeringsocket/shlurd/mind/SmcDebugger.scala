@@ -44,6 +44,12 @@ class SmcDebugger
     logger.debug(prefix + msg)
   }
 
+  @inline final def trace(msg : => String)
+  {
+    val prefix = "*" * debugDepth
+    logger.trace(prefix + msg)
+  }
+
   final def debug(msg : => String, t : Throwable)
   {
     val prefix = "*" * debugDepth
@@ -66,6 +72,11 @@ abstract class SmcDebuggable(protected val debugger : Option[SmcDebugger])
   @inline protected final def debug(msg : => String)
   {
     debugger.foreach(_.debug(msg))
+  }
+
+  @inline protected final def trace(msg : => String)
+  {
+    debugger.foreach(_.trace(msg))
   }
 
   protected final def debug(msg : => String, t : Throwable)

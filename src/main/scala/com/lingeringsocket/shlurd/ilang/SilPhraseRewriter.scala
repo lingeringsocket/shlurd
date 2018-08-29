@@ -83,7 +83,7 @@ class SilPhraseRewriter
       }
     }
     val maybeLogging = {
-      if (logger.isDebugEnabled) {
+      if (logger.isTraceEnabled) {
         SyntaxPreservingRewriter.log(
           "rewriteLog",
           strategy,

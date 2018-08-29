@@ -589,6 +589,7 @@ class SpcInterpreterSpec extends Specification
     "understand epsilon beliefs" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
+      interpretBelief("a person may have possessions")
       interpretBelief("the engine is an object")
       interpretBelief("Mason is a person")
       interpretBelief("the engine's containee is Mason's possession")

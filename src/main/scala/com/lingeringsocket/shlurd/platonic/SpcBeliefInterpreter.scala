@@ -56,10 +56,17 @@ class SpcBeliefInterpreter(
   }
 
   private def getUniqueEntity(
+    sentence : SilSentence,
     entities : Iterable[SpcEntity]) : Option[SpcEntity] =
   {
     if (entities.size == 1) {
       Some(entities.head)
+    } else if (entities.size > 1) {
+      val originalBelief = conjunctiveBelief(
+        entities.toSeq.map(creed.entityFormBelief))
+      // FIXME this conjunction may come out way too long, and may
+      // also be phrased confusingly depending on what objects exist.
+      throw new AmbiguousBeliefExcn(sentence, originalBelief)
     } else {
       None
     }
@@ -70,7 +77,7 @@ class SpcBeliefInterpreter(
     ref : SilReference) : SpcEntity =
   {
     resultCollector.referenceMap.get(ref).map(entities =>
-      getUniqueEntity(entities).getOrElse(
+      getUniqueEntity(sentence, entities).getOrElse(
         throw new IncomprehensibleBeliefExcn(sentence))).getOrElse(
       ref match {
         case SilNounReference(noun, determiner, _) => {
@@ -92,21 +99,13 @@ class SpcBeliefInterpreter(
     determiner match {
       case DETERMINER_UNIQUE => {
         val form = cosmos.instantiateForm(noun)
-        val entities = cosmos.getFormHyponymRealizations(form)
-        if (entities.isEmpty) {
-          val (entity, success) = cosmos.instantiateEntity(
-            form, Seq.empty)
-          assert(success)
-          (entity, success)
-        } else if (entities.size > 1) {
-          val originalBelief = conjunctiveBelief(
-            entities.map(creed.entityFormBelief))
-          // FIXME this conjunction may come out way too long, and may
-          // also be phrased confusingly depending on what objects exist.
-          throw new AmbiguousBeliefExcn(sentence, originalBelief)
-        } else {
-          (entities.head, false)
-        }
+        // if there was an existing match, it would already
+        // be cached
+        assert(cosmos.getFormHyponymRealizations(form).isEmpty)
+        val (entity, success) = cosmos.instantiateEntity(
+          form, Seq.empty)
+        assert(success)
+        (entity, success)
       }
       case DETERMINER_UNSPECIFIED => {
         cosmos.getEntityBySynonym(noun.lemma) match {
@@ -473,7 +472,7 @@ class SpcBeliefInterpreter(
       val form = cosmos.instantiateForm(formName)
       val (entity, isNewEntity, determiner) =
         resultCollector.referenceMap.get(entityRef).map(entities =>
-          getUniqueEntity(entities).map(
+          getUniqueEntity(sentence, entities).map(
             entity => (entity, false, DETERMINER_UNIQUE)
           ).getOrElse(
             throw new IncomprehensibleBeliefExcn(sentence))

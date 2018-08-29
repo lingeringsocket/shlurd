@@ -42,7 +42,8 @@ case object RESPONSE_COMPLETE extends SmcResponseVerbosity
 case class SmcResponseParams(
   listLimit : Int = 3,
   thirdPersonPronouns : Boolean = true,
-  verbosity : SmcResponseVerbosity = RESPONSE_COMPLETE
+  verbosity : SmcResponseVerbosity = RESPONSE_COMPLETE,
+  throwRejectedBeliefs : Boolean = false
 )
 {
   def neverSummarize = (listLimit == Int.MaxValue)
@@ -165,7 +166,7 @@ class SmcInterpreter[
   {
     val normalizedInput = inputRewriter.normalizeInput(sentence)
     if (normalizedInput != sentence) {
-      debug(s"REWRITTEN INPUT : $normalizedInput")
+      trace(s"REWRITTEN INPUT : $normalizedInput")
     }
     if (normalizedInput.isUninterpretable) {
       val unrecognized = responseRewriter.rewrite(
@@ -269,13 +270,13 @@ class SmcInterpreter[
     case sentence @ SilPredicateQuery(
       predicate, question, originalAnswerInflection, tam, formality
     ) => {
-      debug("PREDICATE QUERY")
+      trace("PREDICATE QUERY")
       // FIXME deal with positive, modality
 
       val (rewrittenPredicate, answerInflection) = rewriteQuery(
         predicate, question,
         originalAnswerInflection, resultCollector)
-      debug(s"REWRITTEN PREDICATE : $rewrittenPredicate")
+      trace(s"REWRITTEN PREDICATE : $rewrittenPredicate")
 
       val result = evaluateTamPredicate(
         rewrittenPredicate, tam, resultCollector)
@@ -299,7 +300,7 @@ class SmcInterpreter[
               generalParams.copy(
                 listLimit = extremeLimit),
               Some(question))
-          debug(s"NORMALIZED RESPONSE : $normalizedResponse")
+          trace(s"NORMALIZED RESPONSE : $normalizedResponse")
           val tamResponse = tam.withMood(MOOD_INDICATIVE).withPolarity(
             truthBoolean || negateCollection)
           val responseSentence = SilPredicateSentence(
@@ -360,7 +361,7 @@ class SmcInterpreter[
       tam.mood match {
         // FIXME deal with positive, modality
         case MOOD_INTERROGATIVE => {
-          debug("PREDICATE QUERY SENTENCE")
+          trace("PREDICATE QUERY SENTENCE")
           val query = predicate
           val result = evaluateTamPredicate(query, tam, resultCollector)
           mind.rememberSentenceAnalysis(resultCollector.referenceMap)
@@ -381,7 +382,7 @@ class SmcInterpreter[
               val (normalizedResponse, negateCollection) =
                 responseRewriter.normalizeResponse(
                   query, resultCollector, params)
-              debug(s"NORMALIZED RESPONSE : $normalizedResponse")
+              trace(s"NORMALIZED RESPONSE : $normalizedResponse")
               val responseTruth = params.verbosity match {
                 case RESPONSE_ELLIPSIS => truthBoolean
                 case _ => truthBoolean || negateCollection
@@ -418,7 +419,7 @@ class SmcInterpreter[
         case MOOD_INDICATIVE => {
           // FIXME deal with modality
           val positivity = tam.isPositive
-          debug(s"POSITIVITY : $positivity")
+          trace(s"POSITIVITY : $positivity")
           val predicateTruth = evaluateTamPredicate(
             predicate, tam, resultCollector)
           mind.rememberSentenceAnalysis(resultCollector.referenceMap)
@@ -493,7 +494,7 @@ class SmcInterpreter[
   {
     case SilConjunctiveSentence(determiner, sentences, _) => {
       // FIXME
-      debug("CONJUNCTIVE SENTENCE")
+      trace("CONJUNCTIVE SENTENCE")
       wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
     }
     case SilAmbiguousSentence(alternatives, _) => {

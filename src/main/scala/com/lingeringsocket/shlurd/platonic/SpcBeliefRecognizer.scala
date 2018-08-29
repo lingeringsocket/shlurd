@@ -15,7 +15,6 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 
 import scala.collection._
@@ -105,16 +104,16 @@ class SpcBeliefRecognizer(
     if (determiner != DETERMINER_NONSPECIFIC) {
       state match {
         case SilPropertyState(stateName) => {
-          assert(qualifiers.size < 2)
-          val rr = ref match {
+          val (rr, isGenitive) = ref match {
             case SilGenitiveReference(possessor, _) => {
-              possessor
+              assert(qualifiers.size == 1)
+              (possessor, true)
             }
-            case _ => ref
+            case _ => (ref, false)
           }
           return interpretResolvedReference(sentence, rr, {
             entityRef => {
-              if (qualifiers.isEmpty) {
+              if (!isGenitive) {
                 Seq(EntityPropertyBelief(
                   sentence,
                   entityRef,
@@ -205,14 +204,6 @@ class SpcBeliefRecognizer(
         return interpretFormRelationship(
           sentence, subjectNoun, complementRef, relationship)
       }
-      case SilNounReference(
-        _, _, COUNT_SINGULAR
-      ) => {
-        // "Lonnie is Will's dad"
-        return interpretEntityRelationship(
-          sentence, subjectRef,
-          complementRef, relationship)
-      }
       case _ : SilGenitiveReference => {
         complementRef match {
           // "Will's dad is Lonnie"
@@ -273,7 +264,12 @@ class SpcBeliefRecognizer(
           case _ =>
         }
       }
-      case _ =>
+      case _ => {
+        // "Lonnie is Will's dad"
+        return interpretEntityRelationship(
+          sentence, subjectRef,
+          complementRef, relationship)
+      }
     }
     Seq.empty
   }
@@ -284,17 +280,6 @@ class SpcBeliefRecognizer(
     interpretation : (SilReference) => Seq[SpcBelief])
       : Seq[SpcBelief] =
   {
-    val resolver =
-      new SmcReferenceResolver[SpcEntity, SpcProperty](
-        cosmos,
-        new SilSentencePrinter,
-        resultCollector,
-        SmcResolutionOptions(
-          failOnUnknown = false,
-          resolveUniqueDeterminers = true,
-          reifyRoles = false)
-      )
-    resolver.resolve(ref)
     resultCollector.referenceMap.get(ref) match {
       case Some(set) => {
         if (set.isEmpty) {
@@ -312,7 +297,9 @@ class SpcBeliefRecognizer(
           seq
         })
       }
-      case _ => Seq.empty
+      case _ => {
+        Seq.empty
+      }
     }
   }
 
@@ -475,19 +462,6 @@ class SpcBeliefRecognizer(
     relationship : SilRelationship)
       : Seq[SpcBelief] =
   {
-    val (subjectNoun, subjectDeterminer) = subjectRef match {
-      case SilNounReference(noun, determiner, _) => {
-        (noun, determiner)
-      }
-      case _ => return Seq.empty
-    }
-
-    subjectDeterminer match {
-      case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE =>
-      case _ => {
-        return Seq.empty
-      }
-    }
     if (sentence.tam.modality != MODAL_NEUTRAL) {
       return Seq(UnimplementedBelief(sentence))
     }
@@ -556,6 +530,20 @@ class SpcBeliefRecognizer(
           roleNoun))
       }
       case _ =>
+    }
+
+    val (subjectNoun, subjectDeterminer) = subjectRef match {
+      case SilNounReference(noun, determiner, _) => {
+        (noun, determiner)
+      }
+      case _ => return Seq.empty
+    }
+
+    subjectDeterminer match {
+      case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE =>
+      case _ => {
+        return Seq.empty
+      }
     }
 
     val (complementNoun, qualifiers, count, complementDeterminer, failed) =

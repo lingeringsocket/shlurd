@@ -37,8 +37,11 @@ class SpcCosmosSpec extends Specification
     protected def addBelief(input : String) =
     {
       val sentence = SprParser(input).parseOne
-      val interpreter = new SpcBeliefInterpreter(cosmos)
-      interpreter.interpretBelief(sentence)
+      val mind = new SpcMind(cosmos)
+      val interpreter = new SpcInterpreter(
+        mind, ACCEPT_NEW_BELIEFS,
+        SmcResponseParams(throwRejectedBeliefs = true))
+      interpreter.interpret(sentence)
     }
 
     protected def expectNamedForm(name : String) =
@@ -162,16 +165,31 @@ class SpcCosmosSpec extends Specification
 
     "understand qualified references" in new CosmosContext
     {
+      SpcPrimordial.initCosmos(cosmos)
+      addBelief("a door must be open or closed")
       addBelief("there is a front door")
       addBelief("there is a back door")
-      expectNamedForm("door")
-      val frontDoor = cosmos.resolveQualifiedNoun(
+      addBelief("the front door is open")
+      addBelief("the back door is closed")
+      addBelief("Usher is a house")
+      addBelief("the front door is Usher's entrance")
+      val door = expectNamedForm("door")
+      val house = expectProperName("Usher")
+      val property = expectSingleProperty(door)
+      val frontDoorTry = cosmos.resolveQualifiedNoun(
         "door", REF_SUBJECT, Set("front"))
-      frontDoor must beSuccessfulTry.which(_.size == 1)
-      val backDoor = cosmos.resolveQualifiedNoun(
+      frontDoorTry must beSuccessfulTry.which(_.size == 1)
+      val backDoorTry = cosmos.resolveQualifiedNoun(
         "door", REF_SUBJECT, Set("back"))
-      backDoor must beSuccessfulTry.which(_.size == 1)
+      backDoorTry must beSuccessfulTry.which(_.size == 1)
+      val frontDoor = frontDoorTry.get.head
+      val backDoor = backDoorTry.get.head
       frontDoor must not be equalTo(backDoor)
+      cosmos.evaluateEntityProperty(frontDoor, property.name) must be equalTo
+        Success((Some(property), Some("open")))
+      cosmos.evaluateEntityProperty(backDoor, property.name) must be equalTo
+        Success((Some(property), Some("close")))
+      resolveGenitive(house, "entrance") must be equalTo Set(frontDoor)
     }
 
     "understand specific references" in new CosmosContext
@@ -564,6 +582,8 @@ class SpcCosmosSpec extends Specification
 
     "accept beliefs in any order" in new CosmosContext
     {
+      SpcPrimordial.initCosmos(cosmos)
+
       // entity association before form association
       addBelief("Bessie's owner is Jack")
 

@@ -48,9 +48,12 @@ class SmcPredicateEvaluator[
     predicate : SilPredicate,
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
-    debug(s"EVALUATE PREDICATE : $predicate")
+    trace(s"EVALUATE PREDICATE : $predicate")
     debugPushLevel()
-    resolveReferences(predicate, resultCollector)
+    // we are re-resolving with reification this time, so
+    // already cached references might be stale
+    resultCollector.referenceMap.clear
+    resolveReferences(predicate, resultCollector, true)
     // FIXME analyze verb modifiers
     val result = predicate match {
       case SilStatePredicate(
@@ -136,7 +139,7 @@ class SmcPredicateEvaluator[
       }
     }
     debugPopLevel()
-    debug(s"PREDICATE TRUTH : $result")
+    trace(s"PREDICATE TRUTH : $result")
     result
   }
 
@@ -172,35 +175,56 @@ class SmcPredicateEvaluator[
 
   private[mind] def resolveReferences(
     phrase : SilPhrase,
-    resultCollector : ResultCollectorType)
+    resultCollector : ResultCollectorType,
+    full : Boolean = false)
   {
     val phraseQuerier = new SilPhraseRewriter
+    // FIXME the cases below need special handling at any
+    // level (not just root of reference subtree)
     def resolveOne(
       ref : SilReference,
       context : SilReferenceContext)
     {
       val cached = resultCollector.referenceMap.contains(ref)
-      // in current usage, we always ignore failures
-      resolveReference(ref, context, resultCollector).foreach(_ => {
-        ref match {
-          case SilGenitiveReference(
-            grr,
-            SilNounReference(noun, _, _)
-          ) if (!cached) => {
-            val roleName = noun.lemma
-            resultCollector.referenceMap.get(grr).foreach(entities => {
-              entities.foreach(
-                entity => cosmos.reifyRole(entity, roleName, true))
-            })
-            // now clear cache and repeat to pick up the newly
-            // reifed entities
-            ref.descendantReferences.foreach(
-              resultCollector.referenceMap.remove)
-            resolveReference(ref, context, resultCollector)
+      ref match {
+        case SilGenitiveReference(possessor, possessee) => {
+          // regardless of resolution for possessee, make
+          // sure possessor gets resolved
+          resolveOne(possessor, context)
+          if (!cached) {
+            // in case we had weird junk already cached just
+            // for possessee--don't ask me how, but it
+            // happens sometimes
+            resultCollector.referenceMap.remove(possessee)
           }
-          case _ =>
         }
-      })
+        case _ =>
+      }
+      val result = resolveReference(ref, context, resultCollector)
+      // in current usage, we always ignore failures
+      if (full && !cached) {
+        result.foreach(_ => {
+          ref match {
+            case SilGenitiveReference(
+              possessor,
+              possessee @ SilNounReference(noun, _, _)
+            ) => {
+              val roleName = noun.lemma
+              resultCollector.referenceMap.get(possessor).
+                foreach(entities => {
+                  entities.foreach(
+                    entity => cosmos.reifyRole(entity, roleName, true))
+                })
+              // now clear cache and repeat to pick up the newly
+              // reifed entities
+              resultCollector.referenceMap.remove(ref)
+              resultCollector.referenceMap.remove(possessee)
+              resolveReference(ref, context, resultCollector)
+            }
+            case _ =>
+          }
+        })
+      }
     }
 
     val rule = phraseQuerier.queryMatcher {
@@ -267,7 +291,7 @@ class SmcPredicateEvaluator[
         Failure(e)
       }
     }
-    debug(s"RESULT FOR $entity is $result")
+    trace(s"RESULT FOR $entity is $result")
     result
   }
 
@@ -286,7 +310,7 @@ class SmcPredicateEvaluator[
       (entity, entityRef) => {
         val normalizedState = cosmos.normalizeState(entity, originalState)
         if (originalState != normalizedState) {
-          debug(s"NORMALIZED STATE : $normalizedState")
+          trace(s"NORMALIZED STATE : $normalizedState")
         }
         normalizedState match {
           case SilExistenceState() => {
@@ -328,7 +352,7 @@ class SmcPredicateEvaluator[
             Success(Trilean(subjectEntity == complementEntity))
           }
         }
-        debug("RESULT FOR " +
+        trace("RESULT FOR " +
           s"$subjectEntity == $complementEntity is $result")
         result
       }
@@ -337,7 +361,7 @@ class SmcPredicateEvaluator[
         val result = cosmos.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,
           SilAdposition.GENITIVE_OF, roleQualifiers)
-        debug("RESULT FOR " +
+        trace("RESULT FOR " +
           s"$complementEntity GENITIVE_OF " +
           s"$subjectEntity with $roleQualifiers is $result")
         result
@@ -353,7 +377,7 @@ class SmcPredicateEvaluator[
   )(evaluator : EntityPredicateEvaluator)
       : Try[Trilean] =
   {
-    debug("EVALUATE PREDICATE OVER REFERENCE : " +
+    trace("EVALUATE PREDICATE OVER REFERENCE : " +
       reference + " WITH CONTEXT " + context + " AND SPECIFIED STATE "
       + specifiedState)
     debugPushLevel()
@@ -361,7 +385,7 @@ class SmcPredicateEvaluator[
       reference, context, resultCollector,
       specifiedState, evaluator)
     debugPopLevel()
-    debug(s"PREDICATE TRUTH OVER REFERENCE : $result")
+    trace(s"PREDICATE TRUTH OVER REFERENCE : $result")
     result
   }
 
@@ -377,7 +401,7 @@ class SmcPredicateEvaluator[
     evaluator : EntityPredicateEvaluator)
       : Try[Trilean] =
   {
-    debug(s"CANDIDATE ENTITIES : $unfilteredEntities")
+    trace(s"CANDIDATE ENTITIES : $unfilteredEntities")
     // probably we should be pushing filters down into
     // resolveQualifiedNoun for efficiency
     val adpositionStates =
@@ -403,7 +427,7 @@ class SmcPredicateEvaluator[
               (objEntity, entityRef) => {
                 val result = cosmos.evaluateEntityAdpositionPredicate(
                   subjectEntity, objEntity, adposition, qualifiers)
-                debug("RESULT FOR " +
+                trace("RESULT FOR " +
                   s"$subjectEntity $adposition $objEntity " +
                   s"with $qualifiers is $result")
                 result
@@ -552,7 +576,7 @@ class SmcPredicateEvaluator[
           }))
         entitiesTry match {
           case Success(entities) => {
-            debug(s"CANDIDATE ENTITIES : $entities")
+            trace(s"CANDIDATE ENTITIES : $entities")
             evaluateDeterminer(
               entities.map(
                 invokeEvaluator(_, reference, resultCollector, evaluator)),
@@ -667,7 +691,7 @@ class SmcPredicateEvaluator[
           state))
       }
     }
-    debug(s"RESULT FOR $entity is $result")
+    trace(s"RESULT FOR $entity is $result")
     result
   }
 
@@ -684,7 +708,7 @@ class SmcPredicateEvaluator[
       (objEntity, entityRef) => {
         val result = cosmos.evaluateEntityAdpositionPredicate(
           subjectEntity, objEntity, adposition)
-        debug("RESULT FOR " +
+        trace("RESULT FOR " +
           s"$subjectEntity $adposition $objEntity is $result")
         result
       }
@@ -718,7 +742,7 @@ class SmcPredicateEvaluator[
     categoryLabel : String) : Try[Trilean] =
   {
     val result = cosmos.evaluateEntityCategoryPredicate(entity, categoryLabel)
-    debug("RESULT FOR " +
+    trace("RESULT FOR " +
       s"$entity IN_CATEGORY " +
       s"$categoryLabel is $result")
     result match {
@@ -745,7 +769,7 @@ class SmcPredicateEvaluator[
     tries : Iterable[Try[Trilean]], determiner : SilDeterminer)
       : Try[Trilean] =
   {
-    debug(s"EVALUATE DETERMINER : $determiner OVER $tries")
+    trace(s"EVALUATE DETERMINER : $determiner OVER $tries")
     tries.find(_.isFailure) match {
       // FIXME:  combine failures
       case Some(failed) => failed

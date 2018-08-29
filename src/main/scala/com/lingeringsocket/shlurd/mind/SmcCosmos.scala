@@ -48,13 +48,6 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
     context : SilReferenceContext,
     qualifiers : Set[String] = Set.empty) : Try[Set[EntityType]]
 
-  def resolveEntityAssoc(
-    entity : EntityType,
-    roleName : String) : Try[Set[EntityType]] =
-  {
-    Failure(new UnsupportedOperationException)
-  }
-
   def resolvePropertyState(
     entity : EntityType,
     lemma : String) : Try[(PropertyType, String)]

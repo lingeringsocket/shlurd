@@ -295,14 +295,22 @@ class SpcInterpreter(
           } catch {
             case ex : RejectedBeliefExcn => {
               debug("NEW BELIEF REJECTED", ex)
-              return Some(respondContradiction(ex))
+              if (params.throwRejectedBeliefs) {
+                throw ex
+              }
+              return Some(respondRejection(ex))
             }
           }
           debug("NEW BELIEF ACCEPTED")
         })
         Some(sentencePrinter.sb.respondCompliance)
       }
-      case _ => None
+      case _ => {
+        if (params.throwRejectedBeliefs) {
+          throw new IncomprehensibleBeliefExcn(sentence)
+        }
+        None
+      }
     }
   }
 
@@ -342,8 +350,11 @@ class SpcInterpreter(
           return Some(sentencePrinter.sb.circularAction)
         }
         val newSentence = SilPredicateSentence(newPredicate)
+        val resultCollector = SmcResultCollector[SpcEntity]()
+        spawn(imagine(forkedCosmos)).resolveReferences(
+          newSentence, resultCollector)
         val result = interpretBeliefOrAction(
-          forkedCosmos, newSentence, SmcResultCollector[SpcEntity]())
+          forkedCosmos, newSentence, resultCollector)
         if (result.isEmpty) {
           // FIXME i18n
           Some("Invalid consequent")
@@ -371,7 +382,7 @@ class SpcInterpreter(
     trigger : SilConditionalSentence,
     predicate : SilPredicate) : Option[SilPredicate] =
   {
-    debug(s"ATTEMPT TRIGGER MATCH $trigger")
+    trace(s"ATTEMPT TRIGGER MATCH $trigger")
     val antecedent = trigger.antecedent
     val consequent = trigger.consequent
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
@@ -382,13 +393,13 @@ class SpcInterpreter(
         val statePredicate = predicate match {
           case sp : SilStatePredicate => sp
           case _ => {
-            debug(s"PREDICATE $predicate IS NOT A STATE")
+            trace(s"PREDICATE $predicate IS NOT A STATE")
             return None
           }
         }
         // FIXME allow this to be a variable
         if (state != statePredicate.state) {
-          debug(s"STATE $state " +
+          trace(s"STATE $state " +
             s"DOES NOT MATCH ${statePredicate.state}")
           return None
         }
@@ -404,12 +415,12 @@ class SpcInterpreter(
         val relPredicate = predicate match {
           case rp : SilRelationshipPredicate => rp
           case _ => {
-            debug(s"PREDICATE ${predicate} IS NOT A RELATIONSHIP")
+            trace(s"PREDICATE ${predicate} IS NOT A RELATIONSHIP")
             return None
           }
         }
         if (relationship != relPredicate.relationship) {
-          debug(s"RELATIONSHIP ${relPredicate.relationship} DOES NOT MATCH")
+          trace(s"RELATIONSHIP ${relPredicate.relationship} DOES NOT MATCH")
           return None
         }
         if (!prepareReplacement(
@@ -421,7 +432,7 @@ class SpcInterpreter(
           case REL_IDENTITY => {
             // FIXME allow this to be a variable too?
             if (complement != relPredicate.complement) {
-              debug(s"COMPLEMENT ${complement} " +
+              trace(s"COMPLEMENT ${complement} " +
                 s"DOES NOT MATCH ${relPredicate.complement}")
               return None
             }
@@ -441,12 +452,12 @@ class SpcInterpreter(
         val actionPredicate = predicate match {
           case ap : SilActionPredicate => ap
           case _ => {
-            debug(s"PREDICATE ${predicate} IS NOT AN ACTION")
+            trace(s"PREDICATE ${predicate} IS NOT AN ACTION")
             return None
           }
         }
         if (action.lemma != actionPredicate.action.lemma) {
-          debug(s"ACTION ${actionPredicate.action.lemma} DOES NOT MATCH")
+          trace(s"ACTION ${actionPredicate.action.lemma} DOES NOT MATCH")
           return None
         }
         // FIXME detect colliding replacement nouns e.g.
@@ -464,7 +475,7 @@ class SpcInterpreter(
               }
             }
             case _ => {
-              debug(s"DIRECT OBJECT MISSING")
+              trace(s"DIRECT OBJECT MISSING")
               return None
             }
           }
@@ -476,7 +487,7 @@ class SpcInterpreter(
               // matched:  discard
               true
             } else {
-              debug(s"BASIC VERB MODIFIER $bm MISSING")
+              trace(s"BASIC VERB MODIFIER $bm MISSING")
               return None
             }
           }
@@ -504,7 +515,7 @@ class SpcInterpreter(
               case _ => None
             })
             if (actualRefs.size != 1) {
-              debug("VERB MODIFIER PATTERN DOES NOT MATCH")
+              trace("VERB MODIFIER PATTERN DOES NOT MATCH")
               return None
             }
             val objPattern = SilNounReference(
@@ -514,13 +525,13 @@ class SpcInterpreter(
           case Seq() => {
           }
           case _ => {
-            debug("VERB MODIFIER PATTERN UNSUPPORTED")
+            trace("VERB MODIFIER PATTERN UNSUPPORTED")
             return None
           }
         }
       }
       case _ => {
-        debug("ANTECEDENT PATTERN UNSUPPORTED")
+        trace("ANTECEDENT PATTERN UNSUPPORTED")
         return None
       }
     }
@@ -554,13 +565,13 @@ class SpcInterpreter(
                 mind.getCosmos.specificReferences(set, DETERMINER_UNIQUE)
               }
               case _ =>  {
-                debug(s"PRONOUN $pr UNRESOLVED")
+                trace(s"PRONOUN $pr UNRESOLVED")
                 return false
               }
             }
           }
           case SilNounReference(_, DETERMINER_NONSPECIFIC, _) => {
-            debug(s"NONSPECIFIC REFERENCE $actualRef")
+            trace(s"NONSPECIFIC REFERENCE $actualRef")
             return false
           }
           case _ => actualRef
@@ -570,13 +581,13 @@ class SpcInterpreter(
             case Some(entities) => {
               entities.foreach(entity => {
                 if (!cosmos.getGraph.isHyponym(entity.form, form)) {
-                  debug(s"FORM ${entity.form} DOES NOT MATCH $form")
+                  trace(s"FORM ${entity.form} DOES NOT MATCH $form")
                   return false
                 }
               })
             }
             case _ => {
-              debug(s"UNRESOLVED REFERENCE $candidateRef")
+              trace(s"UNRESOLVED REFERENCE $candidateRef")
               return false
             }
           }
@@ -585,14 +596,14 @@ class SpcInterpreter(
         true
       }
       case _ => {
-        debug(s"REFERENCE PATTERN $ref UNSUPPORTED")
+        trace(s"REFERENCE PATTERN $ref UNSUPPORTED")
         false
       }
     }
   }
 
   // FIXME:  i18n
-  private def respondContradiction(ex : RejectedBeliefExcn) : String =
+  private def respondRejection(ex : RejectedBeliefExcn) : String =
   {
     val beliefString = printBelief(ex.belief)
     ex match {

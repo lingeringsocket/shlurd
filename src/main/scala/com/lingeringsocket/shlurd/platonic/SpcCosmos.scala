@@ -363,6 +363,11 @@ class SpcCosmos(
   private[platonic] def forgetForm(form : SpcForm)
   {
     assert(getFormHyponymRealizations(form).isEmpty)
+    assert(graph.idealTaxonomy.incomingEdgesOf(form).isEmpty)
+    graph.idealTaxonomy.outgoingEdgesOf(form).asScala.foreach(edge => {
+      val superclass = graph.getSuperclassIdeal(edge)
+      meta.idealSuperclass(form, superclass, false)
+    })
     meta.formExistence(form, false)
     val synonymEdges = graph.idealSynonyms.incomingEdgesOf(form).asScala.toSeq
     synonymEdges.foreach(edge => graph.idealSynonyms.removeVertex(
@@ -813,20 +818,6 @@ class SpcCosmos(
         graph.components.outDegreeOf(property))
     })
     true
-  }
-
-  override def resolveEntityAssoc(
-    entity : SpcEntity,
-    roleName : String) =
-  {
-    resolveRole(roleName) match {
-      case Some(role) => {
-        Success(resolveGenitive(entity, role))
-      }
-      case _ => {
-        Success(Set.empty)
-      }
-    }
   }
 
   def resolveGenitive(
