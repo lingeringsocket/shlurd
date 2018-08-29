@@ -303,16 +303,13 @@ class SpcBeliefRecognizer(
           // bound
           return Seq(EpsilonBelief(sentence))
         }
-        set.toSeq.flatMap(_ match {
-          case entity : SpcEntity => {
-            val entityRef = SilNounReference(SilWord(entity.name))
-            val seq = interpretation(entityRef)
-            if (seq.isEmpty) {
-              return seq
-            }
-            seq
+        set.toSeq.flatMap(entity => {
+          val entityRef = SilNounReference(SilWord(entity.name))
+          val seq = interpretation(entityRef)
+          if (seq.isEmpty) {
+            return seq
           }
-          case _ => return Seq.empty
+          seq
         })
       }
       case _ => Seq.empty

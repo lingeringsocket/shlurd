@@ -16,7 +16,6 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
-import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
 import scala.util._
@@ -217,26 +216,19 @@ class SpcInterpreter(
   private def saveReferenceMap(
     sentence : SilSentence,
     cosmos : SpcCosmos,
-    unusedResultCollector : ResultCollectorType)
+    resultCollector : ResultCollectorType)
   {
     // FIXME what if reentrant invocation needs the references???
     if (!referenceMap.isEmpty) {
       return
     }
-    // FIXME this is madness...we make a half-hearted attempt at
-    // collecting references here because SpcBeliefInterpreter does
-    // not do anything in that regard.
-    val resultCollector = SmcResultCollector[SpcEntity]
-    val resolver =
-      new SmcReferenceResolver(
-        cosmos,
-        new SilSentencePrinter,
-        resultCollector,
-        SmcResolutionOptions(
-          failOnUnknown = false,
-          resolveUniqueDeterminers = true,
-          reifyRoles = false))
-    resolver.resolve(sentence)
+
+    // we may have modified cosmos (e.g. with new entities) by this
+    // point, so run another full reference resolution pass to pick
+    // them up
+    resultCollector.referenceMap.clear
+    spawn(imagine(cosmos)).predicateEvaluator.resolveReferences(
+      sentence, resultCollector)
 
     mind.rememberSentenceAnalysis(resultCollector.referenceMap)
     referenceMap = Some(resultCollector.referenceMap)
@@ -390,13 +382,13 @@ class SpcInterpreter(
         val statePredicate = predicate match {
           case sp : SilStatePredicate => sp
           case _ => {
-            debug(s"PREDICATE ${predicate} IS NOT A STATE")
+            debug(s"PREDICATE $predicate IS NOT A STATE")
             return None
           }
         }
         // FIXME allow this to be a variable
         if (state != statePredicate.state) {
-          debug(s"STATE ${state} " +
+          debug(s"STATE $state " +
             s"DOES NOT MATCH ${statePredicate.state}")
           return None
         }
@@ -484,7 +476,7 @@ class SpcInterpreter(
               // matched:  discard
               true
             } else {
-              debug("BASIC VERB MODIFIER MISSING")
+              debug(s"BASIC VERB MODIFIER $bm MISSING")
               return None
             }
           }
@@ -562,13 +554,13 @@ class SpcInterpreter(
                 mind.getCosmos.specificReferences(set, DETERMINER_UNIQUE)
               }
               case _ =>  {
-                debug("PRONOUN UNRESOLVED")
+                debug(s"PRONOUN $pr UNRESOLVED")
                 return false
               }
             }
           }
           case SilNounReference(_, DETERMINER_NONSPECIFIC, _) => {
-            debug("NONSPECIFIC REFERENCE")
+            debug(s"NONSPECIFIC REFERENCE $actualRef")
             return false
           }
           case _ => actualRef
@@ -576,21 +568,15 @@ class SpcInterpreter(
         cosmos.resolveForm(noun.lemma).foreach(form => {
           referenceMap.flatMap(_.get(candidateRef)) match {
             case Some(entities) => {
-              entities.foreach(_ match {
-                case entity : SpcEntity => {
-                  if (!cosmos.getGraph.isHyponym(entity.form, form)) {
-                    debug("FORM DOES NOT MATCH")
-                    return false
-                  }
-                }
-                case _ => {
-                  debug("UNEXPECTED ENTITY TYPE")
+              entities.foreach(entity => {
+                if (!cosmos.getGraph.isHyponym(entity.form, form)) {
+                  debug(s"FORM ${entity.form} DOES NOT MATCH $form")
                   return false
                 }
               })
             }
             case _ => {
-              debug("UNRESOLVED REFERENCE")
+              debug(s"UNRESOLVED REFERENCE $candidateRef")
               return false
             }
           }
@@ -599,7 +585,7 @@ class SpcInterpreter(
         true
       }
       case _ => {
-        debug("REFERENCE PATTERN UNSUPPORTED")
+        debug(s"REFERENCE PATTERN $ref UNSUPPORTED")
         false
       }
     }
