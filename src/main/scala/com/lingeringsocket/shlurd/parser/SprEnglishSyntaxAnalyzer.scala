@@ -1204,12 +1204,24 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       : (Boolean, Seq[SprSyntaxTree]) =
   {
     // FIXME:  don't reduce to empty seq
-    val pos = seq.map(_.unwrapPhrase).indexWhere(
-      sub => sub.isAdverb && sub.hasTerminalLemma(LEMMA_NOT))
+    val pos = seq.indexWhere(isNegative)
     if (pos == -1) {
       (false, seq)
     } else {
       (true, seq.patch(pos, Seq.empty, 1))
+    }
+  }
+
+  private def isNegative(tree : SprSyntaxTree) : Boolean =
+  {
+    // FIXME I just can't even
+    if (tree.unwrapPhrase.hasTerminalLemma(LEMMA_NOT)) {
+      true
+    } else if (tree.isAdverbPhrase && (tree.children.size > 1)) {
+      tree.children.exists(c =>
+        c.hasTerminalLemma(LEMMA_NOT) || c.hasTerminalLemma(LEMMA_NO))
+    } else {
+      false
     }
   }
 

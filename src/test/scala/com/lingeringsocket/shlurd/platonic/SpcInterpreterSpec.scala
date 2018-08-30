@@ -623,6 +623,26 @@ class SpcInterpreterSpec extends Specification
         "The box and the wrench.")
     }
 
+    "understand negatives" in new
+      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+    {
+      interpretBelief("the wrench is an object")
+      interpretBelief("the hammer is an object")
+      interpretBelief("the screwdriver is an object")
+      interpretBelief("the box is an object")
+      interpretBelief("the wrench's container is the box")
+      interpretBelief("the hammer and the screwdriver are in the box")
+      interpretTerse("which objects are in the box",
+        "The wrench, the hammer, and the screwdriver.")
+      interpretBelief("the wrench's container is not the box")
+      interpretTerse("which objects are in the box",
+        "The hammer and the screwdriver.")
+      interpretBelief("the hammer is no longer in the box")
+      interpretTerse("which objects are in the box", "The screwdriver.")
+      interpretBelief("the screwdriver is not in the box")
+      interpretTerse("which objects are in the box", "No objects.")
+    }
+
     "understand taxonomy" in new InterpreterContext
     {
       loadBeliefs("/ontologies/vehicles.txt")

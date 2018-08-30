@@ -32,6 +32,28 @@ class SpcBeliefRecognizer(
   def recognizeBeliefs(sentence : SilSentence)
       : Seq[SpcBelief] =
   {
+    val beliefs = recognizeBeliefsImpl(sentence)
+    if (sentence.tam.isNegative) {
+      if (beliefs.forall(_ match {
+        case _ : EntityAssocBelief => {
+          true
+        }
+        case _ => {
+          false
+        }
+      })) {
+        beliefs
+      } else {
+        Seq(UnimplementedBelief(sentence))
+      }
+    } else {
+      beliefs
+    }
+  }
+
+  private def recognizeBeliefsImpl(sentence : SilSentence)
+      : Seq[SpcBelief] =
+  {
     assert(!finished)
     finished = true
     if (sentence.hasUnknown) {
@@ -39,10 +61,6 @@ class SpcBeliefRecognizer(
     }
     if (!sentence.tam.isIndicative) {
       // FIXME support interrogative
-      return Seq.empty
-    }
-    if (sentence.tam.isNegative) {
-      // FIXME:  interpret this as a constraint
       return Seq.empty
     }
     sentence match {
@@ -527,7 +545,8 @@ class SpcBeliefRecognizer(
           sentence,
           possessorRef,
           subjectRef,
-          roleNoun))
+          roleNoun,
+          sentence.tam.isPositive))
       }
       case _ =>
     }

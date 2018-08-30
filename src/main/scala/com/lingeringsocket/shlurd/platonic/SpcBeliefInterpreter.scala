@@ -633,6 +633,9 @@ class SpcBeliefInterpreter(
           }
         }
       }
+      // FIXME if (!positive && !allowUpdates), then we
+      // should fail if existing assoc, otherwise
+      // prevent future constraint violations
       cosmos.getInverseAssocEdge(formAssocEdge) match {
         case Some(inverseAssocEdge) => {
           if (positive) {
