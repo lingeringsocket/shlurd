@@ -11,3 +11,4 @@
 11 Where is Peter?	forest	9
 12 Susan went back to the castle.
 13 Where is Susan?	castle	12
+14 Who is in the forest?	Lucy,Peter

@@ -1092,6 +1092,16 @@ class SpcInterpreterSpec extends Specification
         "The wallet is carrying two of them.",
         "Two of them.",
         "Two of them.")
+      interpretMatrix("which objects is the wallet carrying",
+        "It is carrying the money and the card.",
+        "The wallet is carrying the money and the card.",
+        "The money and the card.",
+        "The money and the card.")
+      interpretMatrix("what is the wallet carrying",
+        "It is carrying the money and the card.",
+        "The wallet is carrying the money and the card.",
+        "The money and the card.",
+        "The money and the card.")
       interpretMatrix("how many objects are occupying the pocket",
         "One of them is occupying it.",
         "One of them is occupying the pocket.",

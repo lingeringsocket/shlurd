@@ -10,3 +10,5 @@ What color is Leo?	white
 Leo is gray.
 What color is Jack?	gray
 What color is Leo?	gray
+Julie picked up the milk.
+What is Julie carrying?	milk

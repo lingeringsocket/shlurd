@@ -29,7 +29,7 @@ class SprTesterSpec extends Specification
       val (successes, failures) = tester.run(
         Source.fromFile(script),
         NullConsoleOutput)
-      successes must be equalTo 13
+      successes must be equalTo 14
       failures must be equalTo 0
     }
   }

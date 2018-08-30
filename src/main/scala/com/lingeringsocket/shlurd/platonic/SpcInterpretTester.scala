@@ -54,14 +54,14 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
     val response = interpreter.interpret(sentence, input)
     val expected = {
       if (answer.isEmpty) {
-        "OK."
+        Seq("OK.")
       } else if (answer == "none") {
-        "No "
+        Seq("No ")
       } else {
-        answer
+        answer.split(",").toSeq
       }
     }
-    if (!response.toLowerCase.contains(expected.toLowerCase)) {
+    if (!expected.forall(e => response.toLowerCase.contains(e.toLowerCase))) {
       s"INCORRECT RESPONSE:  $response"
     } else {
       ""

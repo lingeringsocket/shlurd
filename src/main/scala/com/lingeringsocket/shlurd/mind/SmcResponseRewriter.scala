@@ -124,6 +124,9 @@ class SmcResponseRewriter[
             case SilWord(LEMMA_WHERE, LEMMA_WHERE) => {
               (DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE))
             }
+            case SilWord(LEMMA_WHAT, LEMMA_WHAT) => {
+              (DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOTHING))
+            }
             case _ => (DETERMINER_NONE, noun)
           }
           SilNounReference(responseNoun, responseDeterminer, count)

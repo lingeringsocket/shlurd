@@ -26,6 +26,7 @@ object SprEnglishLemmas
   val LEMMA_WHOM = "whom"
   val LEMMA_WHERE = "where"
   val LEMMA_NOWHERE = "nowhere"
+  val LEMMA_NOTHING = "nothing"
   val LEMMA_ONE = "one"
   val LEMMA_HOW = "how"
   val LEMMA_MANY = "many"

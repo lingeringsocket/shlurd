@@ -26,6 +26,7 @@ object SpcPrimordial
   private val synonyms = Map(
     LEMMA_WHO -> LEMMA_PERSON,
     LEMMA_WHOM -> LEMMA_PERSON,
+    LEMMA_WHAT -> SpcMeta.ENTITY_METAFORM_NAME,
     LEMMA_WHERE -> LEMMA_CONTAINER
   )
 

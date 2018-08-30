@@ -33,19 +33,19 @@ If a person goes to a location, then the person's possessions are in the locatio
 If a person moves to a location, then the person goes to the location.
 If a person journeys to a location, then the person goes to the location.
 If a person travels to a location, then the person goes to the location.
-If a person takes an object, then the object's possessor is the person.
-If a person grabs an object, then the person takes the object.
-If a person picks up an object, then the person takes the object.
-If a person gets an object, then the person takes the object.
-If a person drops an object, then the object is in the person's container.
-If a person drops an object, then the object has no possessor.
-If a person leaves an object, then the person drops the object.
-If a person discards an object, then the person drops the object.
-If a person puts down an object, then the person drops the object.
-If a person is carrying an object, then the object is the person's possession.
-If a person gives an object to a recipient, then the object is the recipient's possession.
-If a person passes a recipient an object, then the person gives the object to the recipient.
-If a person hands an object to a recipient, then the person gives the object to the recipient.
+If a person takes an item, then the item's possessor is the person.
+If a person grabs an item, then the person takes the item.
+If a person picks up an item, then the person takes the item.
+If a person gets an item, then the person takes the item.
+If a person drops an item, then the item is in the person's container.
+If a person drops an item, then the item has no possessor.
+If a person leaves an item, then the person drops the item.
+If a person discards an item, then the person drops the item.
+If a person puts down an item, then the person drops the item.
+If a person is carrying an item, then the item is the person's possession.
+If a person gives an item to a recipient, then the item is the recipient's possession.
+If a person passes a recipient an item, then the person gives the item to the recipient.
+If a person hands an item to a recipient, then the person gives the item to the recipient.
 A coloration must be white, gray, yellow, or green.
 A color must be a coloration.
 An animal may have a color as a property.

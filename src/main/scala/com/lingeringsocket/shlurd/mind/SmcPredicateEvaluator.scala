@@ -522,7 +522,9 @@ class SmcPredicateEvaluator[
           val bail = determiner match {
             case DETERMINER_UNIQUE => false
             // FIXME this is silly
-            case DETERMINER_UNSPECIFIED => (noun.lemma == LEMMA_WHO)
+            case DETERMINER_UNSPECIFIED =>
+              (noun.lemma == LEMMA_WHO) || (noun.lemma == LEMMA_WHAT) ||
+              (noun.lemma == LEMMA_WHERE)
             case _ => true
           }
           if (bail) {
@@ -668,9 +670,14 @@ class SmcPredicateEvaluator[
         val errorRef = entityRef match {
           case SilNounReference(noun, determiner, count) => {
             val rephrased = noun match {
-              case SilWord(LEMMA_WHO, LEMMA_WHO) => SilWord(LEMMA_PERSON)
-              case SilWord(LEMMA_WHOM, LEMMA_WHOM) => SilWord(LEMMA_PERSON)
-              case SilWord(LEMMA_WHERE, LEMMA_WHERE) => SilWord(LEMMA_CONTAINER)
+              case SilWord(LEMMA_WHO, LEMMA_WHO) =>
+                SilWord(LEMMA_PERSON)
+              case SilWord(LEMMA_WHOM, LEMMA_WHOM) =>
+                SilWord(LEMMA_OBJECT)
+              case SilWord(LEMMA_WHAT, LEMMA_WHAT) =>
+                SilWord(LEMMA_THAT)
+              case SilWord(LEMMA_WHERE, LEMMA_WHERE) =>
+                SilWord(LEMMA_CONTAINER)
               case _ => noun
             }
             val rephrasedDeterminer = determiner match {
