@@ -69,7 +69,7 @@ abstract class SprSyntaxAnalyzer(guessedQuestion : Boolean)
       : SilCount
 
   private[parser] def getWord(
-    leaf : SprSyntaxTree)
+    leaf : SprSyntaxLeaf)
       : SilWord
 
   private[parser] def isProhibitedPropertyState(

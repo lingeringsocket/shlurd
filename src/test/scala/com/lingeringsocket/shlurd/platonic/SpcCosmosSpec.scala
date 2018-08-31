@@ -516,8 +516,8 @@ class SpcCosmosSpec extends Specification
       addBelief("A person that is at home is present")
       addBelief("Lana is a person")
       val entity = expectPerson("lana")
-      cosmos.normalizeState(
-        entity,
+      cosmos.normalizeHyperFormState(
+        entity.form,
         SilAdpositionalState(
           SilAdposition.AT,
           SilNounReference(SilWord("home")))

@@ -1343,7 +1343,7 @@ class SpcCosmos(
 
   def resolveStateSynonym(form : SpcForm, lemma : String) : String =
   {
-    normalizeState(form, SilPropertyState(SilWord(lemma))) match {
+    normalizeFormState(form, SilPropertyState(SilWord(lemma))) match {
       case SilPropertyState(word) => word.lemma
       case _ => lemma
     }
@@ -1358,7 +1358,7 @@ class SpcCosmos(
   private[platonic] def addStateNormalization(
     form : SpcForm, state : SilState, transformed : SilState)
   {
-    val normalized = normalizeState(form, transformed)
+    val normalized = normalizeFormState(form, transformed)
     val map = getStateNormalizationMap(form)
     val inflected =
       new SpcStateNormalization(state, normalized, true)
@@ -1374,7 +1374,7 @@ class SpcCosmos(
     }
   }
 
-  def normalizeState(form : SpcForm, state : SilState) : SilState =
+  private def normalizeFormState(form : SpcForm, state : SilState) : SilState =
   {
     val map = getStateNormalizationMap(form)
     map.get(state).map(_.normalized).getOrElse(
@@ -1398,12 +1398,12 @@ class SpcCosmos(
       sn => (sn.original, sn.normalized))
   }
 
-  override def normalizeState(
-    entity : SpcEntity, originalState : SilState) =
+  private[platonic] def normalizeHyperFormState(
+    form : SpcForm, originalState : SilState) =
   {
-    graph.getFormHypernyms(entity.form).foldLeft(originalState) {
+    graph.getFormHypernyms(form).foldLeft(originalState) {
       case (state, form) => {
-        normalizeState(form, state)
+        normalizeFormState(form, state)
       }
     }
   }

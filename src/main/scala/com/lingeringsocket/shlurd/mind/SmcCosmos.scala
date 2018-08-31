@@ -110,8 +110,6 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
   // lemma -> inflected
   def getPropertyStateMap(property : PropertyType) : Map[String, String]
 
-  def normalizeState(entity : EntityType, state : SilState) : SilState = state
-
   def reifyRole(
     possessor : EntityType, roleName : String, onlyIfProven : Boolean)
   {

@@ -71,6 +71,18 @@ class SpcInterpreter(
       })
       super.evaluateActionPredicate(predicate, resultCollector)
     }
+
+    override protected def normalizePredicate(predicate : SilPredicate) =
+    {
+      predicate match {
+        case SilStatePredicate(subject, state, modifiers) => {
+          val normalizedState = mind.getCosmos.normalizeHyperFormState(
+            deriveType(subject), state)
+          SilStatePredicate(subject, normalizedState, modifiers)
+        }
+        case _ => predicate
+      }
+    }
   }
 
   override protected def imagine(
@@ -195,9 +207,7 @@ class SpcInterpreter(
           REL_IDENTITY,
           modifiers
         ) => {
-          val form = deriveType(
-            complement,
-            resultCollector)
+          val form = deriveType(complement)
           if (mind.getCosmos.formHasProperty(form, noun.lemma)) {
             val statePredicate = SilStatePredicate(
               complement,
@@ -647,14 +657,13 @@ class SpcInterpreter(
   }
 
   private[platonic] def deriveType(
-    ref : SilReference,
-    resultCollector : ResultCollectorType) : SpcForm =
+    ref : SilReference) : SpcForm =
   {
     def cosmos = mind.getCosmos
     typeMemo.getOrElseUpdate(ref, {
       ref match {
         case SilConjunctiveReference(_, refs, _) => {
-          lcaType(refs.map(deriveType(_, resultCollector)).toSet)
+          lcaType(refs.map(deriveType).toSet)
         }
         case SilGenitiveReference(_, SilNounReference(noun, _, _)) => {
           // FIXME probably the possessor's type should be used for scoping
@@ -684,7 +693,7 @@ class SpcInterpreter(
           }
         }
         case SilStateSpecifiedReference(sub, state) => {
-          deriveType(sub, resultCollector)
+          deriveType(sub)
         }
         case _ => unknownType
       }

@@ -10,6 +10,7 @@ Mary is a woman.
 Bill is a man.
 Julie is a woman.
 Fred is a man.
+Jeff is a man.
 A place is a kind of object.
 The kitchen is a place.
 The garden is a place.

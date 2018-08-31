@@ -53,6 +53,8 @@ class SprParserSpec extends Specification
 
   private val ACTION_OPEN = SilWord("open")
 
+  private val ACTION_GIVE = SilWord("give")
+
   private val STATE_CLOSE = SilWord("close")
 
   private val ACTION_CARRYING = SilWord("carrying", "carry")
@@ -220,6 +222,16 @@ class SprParserSpec extends Specification
       val expected = SilPredicateQuery(
         predTransitiveAction(NOUN_WHO),
         QUESTION_WHO, INFLECT_NOMINATIVE, SilTam.interrogative)
+      parse(input) must be equalTo expected
+      parse(input + "?") must be equalTo expected
+    }
+
+    "parse a who dative question" in
+    {
+      val input = "whom does Franny give the mouse to"
+      val expected = SilPredicateQuery(
+        predTransitiveAction(NOUN_FRANNY, ACTION_GIVE, NOUN_MOUSE),
+        QUESTION_WHO, INFLECT_DATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }

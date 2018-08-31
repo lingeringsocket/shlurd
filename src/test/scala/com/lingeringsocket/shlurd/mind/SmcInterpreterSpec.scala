@@ -33,6 +33,49 @@ class SmcInterpreterSpec extends Specification
 
   type StateChangeInvocation = SmcStateChangeInvocation[SmcEntity]
 
+  class ZooInterpreter(
+    mind : SmcMind[SmcEntity, SmcProperty, CosmosType],
+    params : SmcResponseParams,
+    executor : SmcExecutor[SmcEntity]
+  ) extends SmcInterpreter[
+    SmcEntity, SmcProperty, CosmosType, MindType](mind, params, executor)
+  {
+    override protected def newPredicateEvaluator() =
+    {
+      new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
+        mind, sentencePrinter, debugger)
+      {
+
+        private def normalizeState(
+          state : SilState) : SilState =
+        {
+          state match {
+            case SilAdpositionalState(
+              SilAdposition.IN,
+              SilNounReference(
+                SilWord("dreamland", _),
+                DETERMINER_UNSPECIFIED,
+                COUNT_SINGULAR)) =>
+              {
+                SilPropertyState(SilWord("asleep"))
+              }
+            case _ => state
+          }
+        }
+
+        override protected def normalizePredicate(predicate : SilPredicate) =
+        {
+          predicate match {
+            case SilStatePredicate(subject, state, modifiers) => {
+              SilStatePredicate(subject, normalizeState(state), modifiers)
+            }
+            case _ => predicate
+          }
+        }
+      }
+    }
+  }
+
   abstract class InterpreterContext(
     responseParams : SmcResponseParams =
       SmcResponseParams(thirdPersonPronouns = false)
@@ -65,8 +108,7 @@ class SmcInterpreterSpec extends Specification
         }
       }
       val interpreter =
-        new SmcInterpreter[SmcEntity, SmcProperty,CosmosType, MindType](
-          mind, params, executor)
+        new ZooInterpreter(mind, params, executor)
 
       val sentence = SprParser(input).parseOne
       interpreter.interpret(sentence, input)
@@ -86,8 +128,7 @@ class SmcInterpreterSpec extends Specification
         }
       }
       val interpreter =
-        new SmcInterpreter[SmcEntity, SmcProperty, CosmosType, MindType](
-          mind, responseParams, executor)
+        new ZooInterpreter(mind, responseParams, executor)
       interpreter.interpret(sentence, input) must be equalTo("OK.")
       actualInvocation must be equalTo(Some(invocation))
     }
@@ -395,8 +436,6 @@ class SmcInterpreterSpec extends Specification
 
     "respond to unrecognized phrases" in new InterpreterContext
     {
-      interpret("colorless green ideas slumber furiously") must be equalTo(
-        "Sorry, I cannot understand what you said.")
       interpret("My squeaking door is open.") must be equalTo(
         "I think you are saying that some entity is open, but " +
           "I can't understand the phrase \"my squeaking door\"")

@@ -45,15 +45,23 @@ class SmcPredicateEvaluator[
   private def fail(msg : String) = cosmos.fail(msg)
 
   protected[mind] def evaluatePredicate(
-    predicate : SilPredicate,
+    predicateOriginal : SilPredicate,
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
-    trace(s"EVALUATE PREDICATE : $predicate")
+    trace(s"EVALUATE PREDICATE : $predicateOriginal")
+    val predicate = normalizePredicate(predicateOriginal)
+    if (predicate != predicateOriginal) {
+      trace(s"NORMALIZED PREDICATE : $predicateOriginal")
+    }
     debugPushLevel()
     // we are re-resolving with reification this time, so
     // already cached references might be stale
     resultCollector.referenceMap.clear
-    resolveReferences(predicate, resultCollector, true)
+    val resolutionResult =
+      resolveReferences(predicate, resultCollector, true)
+    if (resolutionResult.isFailure) {
+      return resolutionResult
+    }
     // FIXME analyze verb modifiers
     val result = predicate match {
       case SilStatePredicate(
@@ -67,7 +75,7 @@ class SmcPredicateEvaluator[
                 SilStatePredicate(subject, s), resultCollector))
             evaluateDeterminer(tries, determiner)
           }
-          case _ => evaluateNormalizedStatePredicate(
+          case _ => evaluateStatePredicate(
             subject, state, resultCollector)
         }
       }
@@ -176,7 +184,7 @@ class SmcPredicateEvaluator[
   private[mind] def resolveReferences(
     phrase : SilPhrase,
     resultCollector : ResultCollectorType,
-    full : Boolean = false)
+    full : Boolean = false) : Try[Trilean] =
   {
     val phraseQuerier = new SilPhraseRewriter
     // FIXME the cases below need special handling at any
@@ -201,7 +209,10 @@ class SmcPredicateEvaluator[
         case _ =>
       }
       val result = resolveReference(ref, context, resultCollector)
-      // in current usage, we always ignore failures
+      if (full) {
+        // this will throw if result.isFailure
+        result.get
+      }
       if (full && !cached) {
         result.foreach(_ => {
           ref match {
@@ -251,8 +262,15 @@ class SmcPredicateEvaluator[
       }
     }
     resultCollector.expandWildcards = false
-    phraseQuerier.query(rule, phrase, SilRewriteOptions(topDown = true))
+    try {
+      phraseQuerier.query(rule, phrase, SilRewriteOptions(topDown = true))
+    } catch {
+      case ex : Exception => {
+        return Failure(ex)
+      }
+    }
     resultCollector.expandWildcards = true
+    Success(Trilean.True)
   }
 
   private def relationshipComplementContext(
@@ -295,24 +313,20 @@ class SmcPredicateEvaluator[
     result
   }
 
-  private def evaluateNormalizedStatePredicate(
+  private def evaluateStatePredicate(
     subjectRef : SilReference,
-    originalState : SilState,
+    state : SilState,
     resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
-    val context = originalState match {
+    val context = state match {
       case _ : SilAdpositionalState => REF_ADPOSITION_SUBJ
       case _ => REF_SUBJECT
     }
     evaluatePredicateOverReference(subjectRef, context, resultCollector)
     {
       (entity, entityRef) => {
-        val normalizedState = cosmos.normalizeState(entity, originalState)
-        if (originalState != normalizedState) {
-          trace(s"NORMALIZED STATE : $normalizedState")
-        }
-        normalizedState match {
+        state match {
           case SilExistenceState() => {
             Success(Trilean.True)
           }
@@ -329,7 +343,7 @@ class SmcPredicateEvaluator[
               entity, adposition, objRef, resultCollector)
           }
           case _ => {
-            debug(s"UNEXPECTED STATE : $normalizedState")
+            debug(s"UNEXPECTED STATE : $state")
             fail(sentencePrinter.sb.respondCannotUnderstand)
           }
         }
@@ -515,7 +529,6 @@ class SmcPredicateEvaluator[
       : Try[Trilean] =
   {
     val referenceMap = resultCollector.referenceMap
-    // FIXME should maybe use normalizeState here, but it's a bit tricky
     reference match {
       case SilNounReference(noun, determiner, count) => {
         if (!resultCollector.expandWildcards) {
@@ -825,5 +838,10 @@ class SmcPredicateEvaluator[
     } else {
       collector.spawn
     }
+  }
+
+  protected def normalizePredicate(predicate : SilPredicate) =
+  {
+    predicate
   }
 }

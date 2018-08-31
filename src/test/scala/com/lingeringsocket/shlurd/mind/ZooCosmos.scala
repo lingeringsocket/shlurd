@@ -260,22 +260,4 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
         Success(Trilean.False)
     }
   }
-
-  override def normalizeState(
-    entity : SmcEntity,
-    state : SilState) : SilState =
-  {
-    state match {
-      case SilAdpositionalState(
-        SilAdposition.IN,
-        SilNounReference(
-          SilWord("dreamland", _),
-          DETERMINER_UNSPECIFIED,
-          COUNT_SINGULAR)) =>
-        {
-          SilPropertyState(SilWord("asleep"))
-        }
-      case _ => state
-    }
-  }
 }

@@ -144,7 +144,7 @@ sealed trait SilUnresolvedPhrase extends SilPhrase
 
 abstract class SilTransformedPhrase extends SilPhrase
 {
-  private var syntaxTreeOpt : Option[SprSyntaxTree] = None
+  protected var syntaxTreeOpt : Option[SprSyntaxTree] = None
 
   private[parser] def rememberSyntaxTree(syntaxTree : SprSyntaxTree)
   {
@@ -561,6 +561,13 @@ case class SilBasicVerbModifier(
   words : Seq[SilWord]
 ) extends SilTransformedPhrase with SilVerbModifier
 {
+}
+
+case class SilDanglingVerbModifier(
+  adposition : SilAdposition
+) extends SilTransformedPhrase with SilUnknownVerbModifier
+{
+  override def syntaxTree = syntaxTreeOpt.get
 }
 
 case class SilAdpositionalVerbModifier(

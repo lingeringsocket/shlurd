@@ -638,7 +638,8 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
             expectAdpositionalState(seq.last) match {
               case SilAdpositionalState(SilAdposition(words), ref) => {
                 SilAdpositionalState(
-                  SilAdposition(getWord(adpTree.firstChild) +: words),
+                  SilAdposition(
+                    getWord(requireLeaf(adpTree.children)) +: words),
                   ref)
               }
               case _ => {
@@ -813,12 +814,20 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
   override private[parser] def expectAdpositionalVerbModifier(
     tree : SprSyntaxTree) =
   {
-    expectAdpositionalState(tree) match {
-      case SilAdpositionalState(adposition, objRef) => {
-        SilAdpositionalVerbModifier(adposition, objRef)
+    tree match {
+      case SptPP(pt : SprSyntaxPreTerminal) => {
+        SilDanglingVerbModifier(
+          SilAdposition(Seq(getWord(pt.child))))
       }
       case _ => {
-        SilUnrecognizedVerbModifier(tree)
+        expectAdpositionalState(tree) match {
+          case SilAdpositionalState(adposition, objRef) => {
+            SilAdpositionalVerbModifier(adposition, objRef)
+          }
+          case _ => {
+            SilUnrecognizedVerbModifier(tree)
+          }
+        }
       }
     }
   }
@@ -994,7 +1003,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     }
   }
 
-  override private[parser] def getWord(leaf : SprSyntaxTree) =
+  override private[parser] def getWord(leaf : SprSyntaxLeaf) =
   {
     SilWord(leaf.foldedToken, leaf.lemma)
   }

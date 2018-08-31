@@ -26,6 +26,20 @@ case class SilRewriteOptions(
 {
 }
 
+class FixpointStrategy(s : Strategy) extends Strategy("fixpoint")
+{
+  override val body = {
+    input : Any => {
+      val output = s.apply(input)
+      if (Some(input) == output) {
+        None
+      } else {
+        output
+      }
+    }
+  }
+}
+
 class SilPhraseRewriter
 {
   type SilPhraseReplacement = PartialFunction[SilPhrase, SilPhrase]
@@ -98,7 +112,7 @@ class SilPhraseRewriter
         SyntaxPreservingRewriter.rewrite[PhraseType](
           SyntaxPreservingRewriter.repeat(
             "rewriteRepeat",
-            maybeLogging)) _
+            new FixpointStrategy(maybeLogging))) _
       } else {
         SyntaxPreservingRewriter.rewrite[PhraseType](maybeLogging) _
       }

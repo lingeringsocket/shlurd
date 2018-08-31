@@ -1216,6 +1216,16 @@ class SpcInterpreterSpec extends Specification
         "Sorry, I cannot understand what you said.")
     }
 
+    "reject unknown subject" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
+    {
+      interpretBelief(
+        "if a person destroys an object, then the object has no container")
+      interpretBelief("the football is an object")
+      interpret("Geoff destroys the football",
+        "Sorry, I don't know about any 'Geoff'.")
+    }
+
     "prevent action cycles" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
@@ -1332,7 +1342,7 @@ class SpcInterpreterSpec extends Specification
               throw new RuntimeException(s"unexpected sentence $sentence")
             }
           }
-          interpreter.deriveType(subjectRef, resultCollector).name must
+          interpreter.deriveType(subjectRef).name must
             be equalTo expectedType
         }
       }

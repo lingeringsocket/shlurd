@@ -21,11 +21,12 @@ private[parser] class SprNormalizationRewriter
 {
   def normalize(sentence : SilSentence) : SilSentence =
   {
-    rewrite(normalizeAllPhrases, sentence)
+    rewrite(normalizeAllPhrases, sentence, SilRewriteOptions(repeat = true))
   }
 
   private def normalizeAllPhrases = combineRules(
     normalizeEmphatic,
+    normalizeDanglingAdpositions,
     normalizeAdpositionalPhrases)
 
   private def normalizeEmphatic = replacementMatcher {
@@ -56,6 +57,35 @@ private[parser] class SprNormalizationRewriter
         tam.withModality(MODAL_NEUTRAL),
         formality
       )
+    }
+  }
+
+  private def normalizeDanglingAdpositions = replacementMatcher {
+    case SilPredicateQuery(
+      SilActionPredicate(subject, action, directObject, modifiers),
+      question,
+      INFLECT_ACCUSATIVE,
+      tam,
+      formality
+    ) if (modifiers.exists(isDanglingDative)) => {
+      SilPredicateQuery(
+        SilActionPredicate(
+          subject, action, directObject,
+          modifiers.filterNot(isDanglingDative)),
+        question,
+        INFLECT_DATIVE,
+        tam,
+        formality)
+    }
+  }
+
+  private def isDanglingDative(modifier : SilVerbModifier) =
+  {
+    modifier match {
+      case SilDanglingVerbModifier(
+        SilAdposition(Seq(SilWord(LEMMA_TO, LEMMA_TO)))
+      ) => true
+      case _ => false
     }
   }
 
