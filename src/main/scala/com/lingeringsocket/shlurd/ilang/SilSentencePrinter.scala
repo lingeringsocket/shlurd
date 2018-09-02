@@ -318,8 +318,8 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       ) => {
         assert(changeVerb.isEmpty)
         val action = relationship match {
-          case REL_IDENTITY => SilWord("", LEMMA_BE)
-          case REL_ASSOCIATION => SilWord("", LEMMA_HAVE)
+          case REL_IDENTITY => SilWord.uninflected(LEMMA_BE)
+          case REL_ASSOCIATION => SilWord.uninflected(LEMMA_HAVE)
         }
         sb.actionPredicate(
           "",
@@ -434,7 +434,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case REL_ASSOCIATION => LEMMA_HAVE
     }
     sb.delemmatizeVerb(
-      person, gender, count, tam, isExistential, SilWord("", verbLemma),
+      person, gender, count, tam, isExistential, SilWord.uninflected(verbLemma),
       answerInflection)
   }
 

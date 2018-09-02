@@ -230,7 +230,11 @@ class SprParserSpec extends Specification
     {
       val input = "whom does Franny give the mouse to"
       val expected = SilPredicateQuery(
-        predTransitiveAction(NOUN_FRANNY, ACTION_GIVE, NOUN_MOUSE),
+        predTransitiveAction(NOUN_FRANNY, ACTION_GIVE, NOUN_MOUSE).
+          withNewModifiers(Seq(SilAdpositionalVerbModifier(
+            SilAdposition.TO,
+            SilNounReference(SilWord(LEMMA_WHOM))
+          ))),
         QUESTION_WHO, INFLECT_DATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected

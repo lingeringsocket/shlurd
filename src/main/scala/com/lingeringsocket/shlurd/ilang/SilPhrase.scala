@@ -584,6 +584,8 @@ case class SilWord(
   def lemma = lemmaUnfolded.toLowerCase
 
   def isProper = lemmaUnfolded.head.isUpper
+
+  def uninflected = SilWord.uninflected(lemmaUnfolded)
 }
 
 object SilWord

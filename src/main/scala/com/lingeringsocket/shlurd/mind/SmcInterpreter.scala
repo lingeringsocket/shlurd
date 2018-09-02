@@ -327,6 +327,22 @@ class SmcInterpreter[
                   sentencePrinter.print(
                     state, tamResponse, SilConjoining.NONE)
                 }
+                case (
+                  INFLECT_DATIVE,
+                  SilActionPredicate(_, _, _, modifiers)
+                ) => {
+                  // FIXME generalize this to other adpositions
+                  val objRef = modifiers.flatMap(_ match {
+                    case SilAdpositionalVerbModifier(
+                      SilAdposition.TO, objRef
+                    ) => {
+                      Some(objRef)
+                    }
+                    case _ => None
+                  }).head
+                  sentencePrinter.print(
+                    objRef, INFLECT_DATIVE, SilConjoining.NONE)
+                }
                 case _ => {
                   // FIXME lots of other cases need to be handled
                   sentencePrinter.print(
@@ -533,6 +549,10 @@ class SmcInterpreter[
     if (!mind.hasNarrative) {
       return fail("No narrative in progress.")
     }
+    val isAction = predicate match {
+      case _ : SilActionPredicate => true
+      case _ => false
+    }
     val timeframes = predicate.getModifiers.map(_ match {
       case SilAdpositionalVerbModifier(
         adp @ (SilAdposition.BEFORE | SilAdposition.AFTER),
@@ -544,32 +564,68 @@ class SmcInterpreter[
     })
 
     val iTimeframe = timeframes.indexWhere(t => !t.isEmpty)
-    if (iTimeframe < 0) {
-      return fail("A timeframe must be specified.")
+    val (adp, boundPredicate, freePredicate, reducedModifiers) = {
+      if (iTimeframe < 0) {
+        if (!isAction) {
+          return fail("A timeframe must be specified.")
+        }
+        (SilAdposition.AFTER, predicate, predicate, predicate.getModifiers)
+      } else {
+        val (adp, objRef) = timeframes(iTimeframe).get
+        val reducedModifiers =
+          predicate.getModifiers.patch(iTimeframe, Seq.empty, 1)
+        val freePredicate =
+          predicate.withNewModifiers(reducedModifiers)
+        val boundPredicate =
+          inputRewriter.bindPredicateWildcard(freePredicate, objRef)
+        (adp, boundPredicate, freePredicate, reducedModifiers)
+      }
     }
 
-    val reducedModifiers = predicate.getModifiers.patch(
-      iTimeframe, Seq.empty, 1)
-    val (adp, objRef) = timeframes(iTimeframe).get
     val timeline = mind.getNarrative
-    var trueSeen = false
-    val freePredicate =
-      predicate.withNewModifiers(reducedModifiers)
-    val boundPredicate =
-      inputRewriter.bindPredicateWildcard(freePredicate, objRef)
+    var matchSeen = (iTimeframe < 0)
+    var success = false
     val iter = adp match {
       case SilAdposition.BEFORE => timeline.getEntries.reverseIterator
       case _ => timeline.getEntries.iterator
     }
-    iter.foreach(entry => {
+    iter.foreach(entry => if (isAction) {
+      val pastMatchTry = matchActions(
+        entry.predicate, boundPredicate,
+        entry.referenceMap, resultCollector, false)
+      if (pastMatchTry.isFailure) {
+        return pastMatchTry.map(_ => Trilean.Unknown)
+      }
+      val pastMatch = pastMatchTry.get
+      if (matchSeen) {
+        if (!pastMatch || (iTimeframe < 0)) {
+          val bindMatchTry = matchActions(
+            entry.predicate, freePredicate,
+            entry.referenceMap, resultCollector, true)
+          if (bindMatchTry.isFailure) {
+            return bindMatchTry.map(_ => Trilean.Unknown)
+          }
+          if (bindMatchTry.get) {
+            if (iTimeframe < 0) {
+              success = true
+            } else {
+              return Success(Trilean.True)
+            }
+          }
+        }
+      } else {
+        if (pastMatch) {
+          matchSeen = true
+        }
+      }
+    } else {
       val pastCollector = SmcResultCollector[EntityType]
       val pastMind = imagine(entry.updatedCosmos)
       val pastPredicateEvaluator = spawn(pastMind).predicateEvaluator
       val pastTruthTry = pastPredicateEvaluator.evaluatePredicate(
         boundPredicate, pastCollector)
-      val pastTruth =
-        pastTruthTry.getOrElse(return pastTruthTry).assumeFalse
-      if (trueSeen) {
+      val pastTruth = pastTruthTry.getOrElse(return pastTruthTry).assumeFalse
+      if (matchSeen) {
         if (!pastTruth) {
           // now re-evaluate the original predicate at that point in time
           return pastPredicateEvaluator.evaluatePredicate(
@@ -577,12 +633,106 @@ class SmcInterpreter[
         }
       } else {
         if (pastTruth) {
-          trueSeen = true
+          matchSeen = true
         }
       }
     })
-    fail("No such timeframe in narrative.")
+    if (success) {
+      Success(Trilean.True)
+    } else {
+      fail("No such timeframe and/or event in narrative.")
+    }
   }
+
+  protected def matchActions(
+    eventActionPredicate : SilPredicate,
+    queryActionPredicate : SilPredicate,
+    eventReferenceMap : Map[SilReference, Set[EntityType]],
+    resultCollector : ResultCollectorType,
+    applyBindings : Boolean) : Try[Boolean] =
+  Success({
+    val queryReferenceMap = resultCollector.referenceMap
+    (eventActionPredicate, queryActionPredicate) match {
+      case (
+        SilActionPredicate(eventSubject, eventAction,
+          eventDirectObject, eventModifiers),
+        SilActionPredicate(querySubject, queryAction,
+          queryDirectObject, queryModifiers)
+      ) if (eventAction.lemma == queryAction.lemma) => {
+        def isVariable(phrase : SilPhrase) = {
+          inputRewriter.containsWildcard(phrase, false)
+        }
+        val bindings = new mutable.ArrayBuffer[(SilReference, SilReference)]
+        def bindVariable(queryRef : SilReference, eventRef : SilReference) {
+          bindings += ((queryRef, eventRef))
+        }
+        def subjectMatch = {
+          if (isVariable(querySubject)) {
+            bindVariable(querySubject, eventSubject)
+            true
+          } else {
+            queryReferenceMap(querySubject) == eventReferenceMap(eventSubject)
+          }
+        }
+        def directObjectMatch = {
+          queryDirectObject.forall(qdo => {
+            if (isVariable(qdo)) {
+              eventDirectObject.foreach(edo => bindVariable(qdo, edo))
+              !eventDirectObject.isEmpty
+            } else {
+              eventDirectObject.map(edo => {
+                queryReferenceMap(qdo) == eventReferenceMap(edo)
+              }).getOrElse(false)
+            }
+          })
+        }
+        def modifiersMatch = {
+          val (variableModifiers, reducedModifiers) =
+            queryModifiers.partition(isVariable)
+          // FIXME support other kinds of variable patterns
+          val variableMatched = variableModifiers.forall(_ match {
+            case SilAdpositionalVerbModifier(queryAdposition, queryObj) => {
+              eventModifiers.exists(_ match {
+                case SilAdpositionalVerbModifier(
+                  eventAdposition, eventObj
+                ) if (eventAdposition == queryAdposition) => {
+                  bindVariable(queryObj, eventObj)
+                  true
+                }
+                case _ => false
+              })
+            }
+            case _ => false
+          })
+          // FIXME for comparing adpositional references in modifiers,
+          // we should be comparing referenceMap entity lookups instead
+          // of SilReferences
+          variableMatched &&
+          (reducedModifiers.toSet.subsetOf(eventModifiers.toSet))
+        }
+        if (subjectMatch && directObjectMatch && modifiersMatch) {
+          if (applyBindings) {
+            bindings.foreach({
+              case (queryRef, eventRef) => {
+                eventReferenceMap.get(eventRef).foreach(entities => {
+                  queryReferenceMap.put(
+                    queryRef,
+                    queryReferenceMap.get(queryRef).
+                      getOrElse(Set.empty) ++ entities)
+                  entities.foreach(entity =>
+                    resultCollector.entityMap.put(entity, Trilean.True))
+                })
+              }
+            })
+          }
+          true
+        } else {
+          false
+        }
+      }
+      case _ => false
+    }
+  })
 
   protected def imagine(alternateCosmos : CosmosType)
       : MindType =

@@ -165,6 +165,7 @@ class SmcResponseRewriter[
       rewrite1)
     val rewrite3 = rewrite(
       combineRules(
+        clearActionInflection,
         avoidTautologies(resultCollector.referenceMap),
         removeResolvedReferenceQualifiers),
       rewrite2)
@@ -551,6 +552,13 @@ class SmcResponseRewriter[
     case SilPropertyQueryState(_) => {
       assert(states.size == 1)
       SilPropertyState(states.head)
+    }
+  }
+
+  private def clearActionInflection = replacementMatcher {
+    case SilActionPredicate(subject, action, directObject, modifiers) => {
+      SilActionPredicate(
+        subject, action.uninflected, directObject, modifiers)
     }
   }
 

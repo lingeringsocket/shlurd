@@ -573,6 +573,53 @@ class SpcInterpreterSpec extends Specification
       interpretTerse("where is the bomb", "Curtis.")
     }
 
+    "understand past actions" in new
+      InterpreterContext(ACCEPT_NEW_BELIEFS)
+    {
+      mind.startNarrative
+      interpretBelief("a man is a kind of person")
+      interpretBelief("a woman is a kind of person")
+      interpretBelief("a man's gender must be masculine")
+      interpretBelief("a woman's gender must be feminine")
+      interpretBelief("Curtis is a man")
+      interpretBelief("Andrea is a woman")
+      interpretBelief("Thomas is a man")
+      interpretBelief("the bomb is an object")
+      interpretBelief("the wrench is an object")
+      interpretBelief("the screwdriver is an object")
+      interpretBelief("if a person receives an object, " +
+        "then the object is the person's containee")
+      interpretBelief("if a person gives an object to a recipient, " +
+        "then the recipient receives the object")
+      interpretBelief("if a person passes an object to a recipient, " +
+        "then the person gives the object to the recipient")
+      interpretBelief("Thomas passed the wrench to Andrea")
+      // FIXME we should be able to say "passed the bomb to HER" instead
+      interpretBelief("Curtis passed the bomb to Andrea")
+      interpretBelief("Curtis passed the screwdriver to Thomas")
+      // FIXME irregular forms
+      interpretMatrix(
+        "what did Curtis give to Andrea",
+        "He gived the bomb to her.",
+        "Curtis gived the bomb to Andrea.",
+        "The bomb.",
+        "The bomb.")
+      interpretTerse("what did Curtis give to Thomas", "The screwdriver.")
+      interpretTerse("what did Thomas give to Andrea", "The wrench.")
+      interpretMatrix(
+        "who did Curtis give the bomb to",
+        "He gived it to Andrea.",
+        "Curtis gived the bomb to Andrea.",
+        "Andrea.",
+        "Andrea.")
+      interpretMatrix(
+        "who received the bomb",
+        "Andrea received it.",
+        "Andrea received the bomb.",
+        "Andrea.",
+        "Andrea.")
+    }
+
     "understand genitives in beliefs" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
@@ -1011,9 +1058,9 @@ class SpcInterpreterSpec extends Specification
       interpretTerse("where was the key before the shoe", "The purse.")
       interpretTerse("where was the key after the pocket", "The purse.")
       interpretTerse("where was the key after the shoe",
-        "No such timeframe in narrative.")
+        "No such timeframe and/or event in narrative.")
       interpretTerse("where was the key before the pocket",
-        "No such timeframe in narrative.")
+        "No such timeframe and/or event in narrative.")
     }
 
     "understand relative timeframes" in new InterpreterContext(

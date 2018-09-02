@@ -71,7 +71,17 @@ private[parser] class SprNormalizationRewriter
       SilPredicateQuery(
         SilActionPredicate(
           subject, action, directObject,
-          modifiers.filterNot(isDanglingDative)),
+          modifiers.map(modifier => {
+            if (isDanglingDative(modifier)) {
+              SilAdpositionalVerbModifier(
+                SilAdposition.TO,
+                SilNounReference(SilWord(LEMMA_WHOM))
+              )
+            } else {
+              modifier
+            }
+          })
+        ),
         question,
         INFLECT_DATIVE,
         tam,

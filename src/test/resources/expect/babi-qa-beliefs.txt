@@ -44,7 +44,8 @@ If a person leaves an item, then the person drops the item.
 If a person discards an item, then the person drops the item.
 If a person puts down an item, then the person drops the item.
 If a person is carrying an item, then the item is the person's possession.
-If a person gives an item to a recipient, then the item is the recipient's possession.
+If a person receives an item, then the item is the person's possession.
+If a person gives an item to a recipient, then the recipient receives the item.
 If a person passes a recipient an item, then the person gives the item to the recipient.
 If a person hands an item to a recipient, then the person gives the item to the recipient.
 A coloration must be white, gray, yellow, or green.

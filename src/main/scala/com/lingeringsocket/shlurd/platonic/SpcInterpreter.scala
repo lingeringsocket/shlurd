@@ -39,7 +39,7 @@ class SpcInterpreter(
 {
   private val already = new mutable.HashSet[SilPredicate]
 
-  private var referenceMap : Option[Map[SilReference, Set[SpcEntity]]] = None
+  private var referenceMapOpt : Option[Map[SilReference, Set[SpcEntity]]] = None
 
   private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
@@ -56,13 +56,15 @@ class SpcInterpreter(
       predicate : SilActionPredicate,
       resultCollector : ResultCollectorType) : Try[Trilean] =
     {
-      if (checkCycle(predicate)) {
+      if (checkCycle(predicate, already)) {
         return fail(sentencePrinter.sb.circularAction)
       }
       mind.getCosmos.getTriggers.foreach(trigger => {
         // technically we should require iff for trigger instead of just if,
         // but let's not split hairs
-        matchTrigger(mind.getCosmos, trigger, predicate) match {
+        matchTrigger(mind.getCosmos, trigger, predicate,
+          referenceMapOpt.get) match
+        {
           case Some(newPredicate) => {
             return super.evaluatePredicate(newPredicate, resultCollector)
           }
@@ -99,7 +101,7 @@ class SpcInterpreter(
       attemptInterpret(sentence, resultCollector)
     } finally {
       already.clear
-      referenceMap = None
+      referenceMapOpt = None
       typeMemo.clear
     }
   }
@@ -168,7 +170,7 @@ class SpcInterpreter(
                   interval,
                   updatedCosmos,
                   predicate,
-                  referenceMap.get)
+                  referenceMapOpt.get)
               } catch {
                 case CausalityViolationExcn(cause) => {
                   return wrapResponseText(cause)
@@ -229,7 +231,7 @@ class SpcInterpreter(
     resultCollector : ResultCollectorType)
   {
     // FIXME what if reentrant invocation needs the references???
-    if (!referenceMap.isEmpty) {
+    if (!referenceMapOpt.isEmpty) {
       return
     }
 
@@ -241,7 +243,7 @@ class SpcInterpreter(
       sentence, resultCollector)
 
     mind.rememberSentenceAnalysis(resultCollector.referenceMap)
-    referenceMap = Some(resultCollector.referenceMap)
+    referenceMapOpt = Some(resultCollector.referenceMap)
   }
 
   override protected def freezeCosmos(mutableCosmos : SpcCosmos) =
@@ -354,9 +356,11 @@ class SpcInterpreter(
     predicate : SilPredicate)
       : Option[String] =
   {
-    matchTrigger(forkedCosmos, trigger, predicate) match {
+    matchTrigger(
+      forkedCosmos, trigger, predicate, referenceMapOpt.get) match
+    {
       case Some(newPredicate) => {
-        if (checkCycle(newPredicate)) {
+        if (checkCycle(newPredicate, already)) {
           return Some(sentencePrinter.sb.circularAction)
         }
         val newSentence = SilPredicateSentence(newPredicate)
@@ -376,13 +380,15 @@ class SpcInterpreter(
     }
   }
 
-  private def checkCycle(predicate : SilPredicate) : Boolean =
+  private def checkCycle(
+    predicate : SilPredicate,
+    seen : mutable.Set[SilPredicate]) : Boolean =
   {
     // FIXME make limit configurable and add test
-    if (already.contains(predicate) || (already.size > 100)) {
+    if (seen.contains(predicate) || (seen.size > 100)) {
       true
     } else {
-      already += predicate
+      seen += predicate
       false
     }
   }
@@ -390,7 +396,8 @@ class SpcInterpreter(
   private def matchTrigger(
     cosmos : SpcCosmos,
     trigger : SilConditionalSentence,
-    predicate : SilPredicate) : Option[SilPredicate] =
+    predicate : SilPredicate,
+    referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[SilPredicate] =
   {
     trace(s"ATTEMPT TRIGGER MATCH $trigger")
     val antecedent = trigger.antecedent
@@ -414,7 +421,7 @@ class SpcInterpreter(
           return None
         }
         if (!prepareReplacement(
-          cosmos, replacements, subject, statePredicate.subject))
+          cosmos, replacements, subject, statePredicate.subject, referenceMap))
         {
           return None
         }
@@ -434,7 +441,7 @@ class SpcInterpreter(
           return None
         }
         if (!prepareReplacement(
-          cosmos, replacements, subject, relPredicate.subject))
+          cosmos, replacements, subject, relPredicate.subject, referenceMap))
         {
           return None
         }
@@ -449,7 +456,8 @@ class SpcInterpreter(
           }
           case REL_ASSOCIATION => {
             if (!prepareReplacement(
-              cosmos, replacements, complement, relPredicate.complement))
+              cosmos, replacements, complement, relPredicate.complement,
+              referenceMap))
             {
               return None
             }
@@ -473,14 +481,17 @@ class SpcInterpreter(
         // FIXME detect colliding replacement nouns e.g.
         // "if an object hits an object"
         if (!prepareReplacement(
-          cosmos, replacements, subject, actionPredicate.subject))
+          cosmos, replacements, subject, actionPredicate.subject,
+          referenceMap))
         {
           return None
         }
         directObject.foreach(obj => {
           actionPredicate.directObject match {
             case Some(actualObj) => {
-              if (!prepareReplacement(cosmos, replacements, obj, actualObj)) {
+              if (!prepareReplacement(
+                cosmos, replacements, obj, actualObj, referenceMap))
+              {
                 return None
               }
             }
@@ -559,7 +570,8 @@ class SpcInterpreter(
     cosmos : SpcCosmos,
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
-    actualRef : SilReference) : Boolean =
+    actualRef : SilReference,
+    referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
     // FIXME support other reference patterns
     ref match {
@@ -587,7 +599,7 @@ class SpcInterpreter(
           case _ => actualRef
         }
         cosmos.resolveForm(noun.lemma).foreach(form => {
-          referenceMap.flatMap(_.get(candidateRef)) match {
+          referenceMap.get(candidateRef) match {
             case Some(entities) => {
               entities.foreach(entity => {
                 if (!cosmos.getGraph.isHyponym(entity.form, form)) {
@@ -718,5 +730,45 @@ class SpcInterpreter(
       }
       forms.map(Some(_)).reduce(lcaPair).getOrElse(unknownType)
     }
+  }
+
+  override protected def matchActions(
+    eventActionPredicate : SilPredicate,
+    queryActionPredicate : SilPredicate,
+    eventReferenceMap : Map[SilReference, Set[SpcEntity]],
+    resultCollector : ResultCollectorType,
+    applyBindings : Boolean) : Try[Boolean] =
+  {
+    val queue = new mutable.Queue[SilPredicate]
+    queue.enqueue(eventActionPredicate)
+    val seen = new mutable.HashSet[SilPredicate]
+    while (!queue.isEmpty) {
+      val predicate = queue.dequeue
+      if (checkCycle(predicate, seen)) {
+        return fail(sentencePrinter.sb.circularAction)
+      }
+      // FIXME need to attempt trigger rewrite in both directions
+      val superMatch = super.matchActions(
+        predicate, queryActionPredicate,
+        eventReferenceMap, resultCollector, applyBindings)
+      if (superMatch.isFailure) {
+        return superMatch
+      }
+      if (superMatch.get) {
+        return Success(true)
+      } else {
+        mind.getCosmos.getTriggers.foreach(trigger => {
+          matchTrigger(mind.getCosmos, trigger,
+            predicate, eventReferenceMap) match
+          {
+            case Some(newPredicate) => {
+              queue.enqueue(newPredicate)
+            }
+            case _ =>
+          }
+        })
+      }
+    }
+    Success(false)
   }
 }

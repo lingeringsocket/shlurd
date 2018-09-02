@@ -157,7 +157,7 @@ class SprEnglishVerbSpec extends Specification
           } else {
             SilActionPredicate(
               subject,
-              SilWord("", lemma),
+              SilWord.uninflected(lemma),
               rhs.map(expectReference),
               Seq.empty
             )

@@ -12,3 +12,5 @@ What color is Jack?	gray
 What color is Leo?	gray
 Julie picked up the milk.
 What is Julie carrying?	milk
+Mary gave the football to Jeff.
+What did Mary give to Jeff?	football
