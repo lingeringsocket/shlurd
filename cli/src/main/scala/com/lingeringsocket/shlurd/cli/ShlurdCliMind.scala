@@ -30,6 +30,13 @@ class ShlurdCliMind(cosmos : SpcCosmos) extends SpcMind(cosmos)
     cosmos.resolveQualifiedNoun(
       LEMMA_PERSON, REF_SUBJECT, Set("shlurd")))
 
+  override def spawn(newCosmos : SpcCosmos) =
+  {
+    val mind = new ShlurdCliMind(newCosmos)
+    mind.initFrom(this)
+    mind
+  }
+
   override def resolvePronoun(reference : SilPronounReference) =
   {
     if (reference.count == COUNT_SINGULAR) {

@@ -28,6 +28,13 @@ class SpcMind(cosmos : SpcCosmos)
 {
   override def getCosmos = cosmos
 
+  override def spawn(newCosmos : SpcCosmos) =
+  {
+    val mind = new SpcMind(newCosmos)
+    mind.initFrom(this)
+    mind
+  }
+
   override def equivalentReferences(
     entity : SpcEntity,
     determiner : SilDeterminer) =

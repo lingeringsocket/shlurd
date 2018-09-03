@@ -576,6 +576,7 @@ class SpcInterpreterSpec extends Specification
     "understand past actions" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
+      mind.startConversation
       mind.startNarrative
       interpretBelief("a man is a kind of person")
       interpretBelief("a woman is a kind of person")
@@ -594,8 +595,7 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("if a person passes an object to a recipient, " +
         "then the person gives the object to the recipient")
       interpretBelief("Thomas passed the wrench to Andrea")
-      // FIXME we should be able to say "passed the bomb to HER" instead
-      interpretBelief("Curtis passed the bomb to Andrea")
+      interpretBelief("Curtis passed the bomb to her")
       interpretBelief("Curtis passed the screwdriver to Thomas")
       // FIXME irregular forms
       interpretMatrix(

@@ -84,6 +84,19 @@ class SmcMind[
     conversation.get
   }
 
+  protected def initFrom(
+    mind : SmcMind[EntityType, PropertyType, CosmosType])
+  {
+    conversation = mind.conversation
+  }
+
+  def spawn(newCosmos : CosmosType) =
+  {
+    val mind = new SmcMind[EntityType, PropertyType, CosmosType](newCosmos)
+    mind.initFrom(this)
+    mind
+  }
+
   private def filterReferenceMap(
     referenceMap : Map[SilReference, Set[EntityType]]) =
   {

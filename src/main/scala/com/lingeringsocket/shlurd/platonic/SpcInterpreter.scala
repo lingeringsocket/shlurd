@@ -90,7 +90,7 @@ class SpcInterpreter(
   override protected def imagine(
     alternateCosmos : SpcCosmos) =
   {
-    new SpcMind(alternateCosmos.fork)
+    mind.spawn(alternateCosmos.fork)
   }
 
   override protected def interpretImpl(
@@ -578,13 +578,15 @@ class SpcInterpreter(
       case SilNounReference(
         noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
       ) => {
+        val resolvedForm = cosmos.resolveForm(noun.lemma)
         val patternRef = SilNounReference(
           noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
-        val candidateRef = actualRef match {
+        val (candidateRef, entities) = actualRef match {
           case pr : SilPronounReference => {
             mind.resolvePronoun(pr) match {
-              case Success(set) if (!set.isEmpty) => {
-                mind.getCosmos.specificReferences(set, DETERMINER_UNIQUE)
+              case Success(entities) if (!entities.isEmpty) => {
+                (mind.getCosmos.specificReferences(entities, DETERMINER_UNIQUE),
+                  entities)
               }
               case _ =>  {
                 trace(s"PRONOUN $pr UNRESOLVED")
@@ -596,23 +598,29 @@ class SpcInterpreter(
             trace(s"NONSPECIFIC REFERENCE $actualRef")
             return false
           }
-          case _ => actualRef
-        }
-        cosmos.resolveForm(noun.lemma).foreach(form => {
-          referenceMap.get(candidateRef) match {
-            case Some(entities) => {
-              entities.foreach(entity => {
-                if (!cosmos.getGraph.isHyponym(entity.form, form)) {
-                  trace(s"FORM ${entity.form} DOES NOT MATCH $form")
+          case _ => {
+            referenceMap.get(actualRef) match {
+              case Some(entities) => {
+                (actualRef, entities)
+              }
+              case _ => {
+                if (resolvedForm.isEmpty) {
+                  (actualRef, Set.empty[SpcEntity])
+                } else {
+                  trace(s"UNRESOLVED REFERENCE $actualRef")
                   return false
                 }
-              })
-            }
-            case _ => {
-              trace(s"UNRESOLVED REFERENCE $candidateRef")
-              return false
+              }
             }
           }
+        }
+        resolvedForm.foreach(form => {
+          entities.foreach(entity => {
+            if (!cosmos.getGraph.isHyponym(entity.form, form)) {
+              trace(s"FORM ${entity.form} DOES NOT MATCH $form")
+              return false
+            }
+          })
         })
         replacements.put(patternRef, candidateRef)
         true

@@ -704,11 +704,11 @@ class SmcInterpreter[
             }
             case _ => false
           })
-          // FIXME for comparing adpositional references in modifiers,
-          // we should be comparing referenceMap entity lookups instead
-          // of SilReferences
-          variableMatched &&
-          (reducedModifiers.toSet.subsetOf(eventModifiers.toSet))
+          val qmr = reducedModifiers.map(modifier =>
+            replaceReferencesWithEntities(modifier, queryReferenceMap)).toSet
+          val emr = eventModifiers.map(modifier =>
+            replaceReferencesWithEntities(modifier, eventReferenceMap)).toSet
+          variableMatched && qmr.subsetOf(emr)
         }
         if (subjectMatch && directObjectMatch && modifiersMatch) {
           if (applyBindings) {
@@ -762,5 +762,28 @@ class SmcInterpreter[
     val rewritten = queryRewriter.rewrite(
       queryRewriter.rewritePredicate, predicate)
     (rewritten, answerInflection)
+  }
+
+  private def replaceReferencesWithEntities(
+    phrase : SilPhrase,
+    referenceMap : Map[SilReference, Set[EntityType]]) : SilPhrase =
+  {
+    val rewriter = new SilPhraseRewriter
+    def replaceReferences = rewriter.replacementMatcher {
+      case ref : SilReference => {
+        referenceMap.get(ref) match {
+          case Some(entities) => {
+            SilConjunctiveReference(
+              DETERMINER_ALL,
+              entities.map(_.getUniqueIdentifier).toSeq.sorted.map(id =>
+                SilMappedReference(id, DETERMINER_UNSPECIFIED))
+              )
+          }
+          case _ => ref
+        }
+      }
+    }
+    rewriter.rewrite(
+      replaceReferences, phrase, SilRewriteOptions(topDown = true))
   }
 }
