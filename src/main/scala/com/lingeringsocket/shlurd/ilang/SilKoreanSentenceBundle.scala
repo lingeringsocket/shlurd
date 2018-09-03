@@ -374,8 +374,9 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
                 "를"
               }
             }
-            case INFLECT_DATIVE => {
-              // should take formality into account
+            case INFLECT_ADPOSITIONED => {
+              // FIXME this is only correct for SilAdposition.TO;
+              // also, should take formality into account
               "에게"
             }
             case INFLECT_GENITIVE => "의"
@@ -406,7 +407,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
         case INFLECT_NONE => ""
         case INFLECT_NOMINATIVE => "(nominative)"
         case INFLECT_ACCUSATIVE => "(accusative)"
-        case INFLECT_DATIVE => "(dative)"
+        case INFLECT_ADPOSITIONED => "(adpositioned)"
         case INFLECT_GENITIVE => "(genitive)"
         case INFLECT_COMPLEMENT => "(complement)"
       }

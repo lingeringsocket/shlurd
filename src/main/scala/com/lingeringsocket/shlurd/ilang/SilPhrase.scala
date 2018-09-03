@@ -292,6 +292,7 @@ case class SilUnresolvedActionPredicate(
   subject : SilReference,
   action : SilWord,
   directObject : Option[SilReference],
+  adpositionObject : Option[SilReference],
   modifiers : Seq[SilVerbModifier]
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
@@ -595,6 +596,7 @@ object SilWord
   def uninflected(s : String) = SilWord("", s)
 }
 
+// FIXME rename this to SilPhrase, or break it up
 object SilReference
 {
   def isCountCoercible(reference : SilReference) : Boolean =
@@ -695,6 +697,16 @@ object SilReference
         assert(false)
         Seq.empty
       }
+    }
+  }
+
+  def getDanglingAdposition(modifier : SilVerbModifier) =
+  {
+    modifier match {
+      case SilDanglingVerbModifier(adposition) => {
+        Some(adposition)
+      }
+      case _ => None
     }
   }
 }

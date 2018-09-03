@@ -31,6 +31,7 @@ object SprPennTreebankLabels
   val LABEL_PRT = "PRT"
   val LABEL_SQ = "SQ"
   val LABEL_WHNP = "WHNP"
+  val LABEL_WHPP = "WHPP"
   val LABEL_WHADJP = "WHADJP"
   val LABEL_WHADVP = "WHADVP"
   val LABEL_WDT = "WDT"
@@ -143,9 +144,12 @@ trait SprAbstractSyntaxTree
 
   def isNoun = label.startsWith(LABEL_NN)
 
-  def isQueryPhrase = isQueryNounPhrase || isQueryAdverbPhrase
+  def isQueryPhrase =
+    isQueryNounPhrase || isQueryAdverbPhrase || isQueryAdpositionPhrase
 
   def isQueryNounPhrase = hasLabel(LABEL_WHNP)
+
+  def isQueryAdpositionPhrase = hasLabel(LABEL_WHPP)
 
   def isQueryAdverbPhrase = hasLabel(LABEL_WHADVP)
 
@@ -453,6 +457,12 @@ case class SptWHNP(children : SprSyntaxTree*)
     extends SprSyntaxPhrase
 {
   override def label = LABEL_WHNP
+}
+
+case class SptWHPP(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
+{
+  override def label = LABEL_WHPP
 }
 
 case class SptWHADJP(children : SprSyntaxTree*)

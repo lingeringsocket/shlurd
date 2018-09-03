@@ -67,35 +67,27 @@ private[parser] class SprNormalizationRewriter
       INFLECT_ACCUSATIVE,
       tam,
       formality
-    ) if (modifiers.exists(isDanglingDative)) => {
+    ) if (modifiers.exists(
+      m => !SilReference.getDanglingAdposition(m).isEmpty)
+    ) => {
       SilPredicateQuery(
         SilActionPredicate(
           subject, action, directObject,
-          modifiers.map(modifier => {
-            if (isDanglingDative(modifier)) {
-              SilAdpositionalVerbModifier(
-                SilAdposition.TO,
-                SilNounReference(SilWord(LEMMA_WHOM))
-              )
-            } else {
-              modifier
+          modifiers.flatMap(modifier => {
+            SilReference.getDanglingAdposition(modifier) match {
+              case Some(adposition) => {
+                Seq.empty
+              }
+              case _ => {
+                Seq(modifier)
+              }
             }
           })
         ),
         question,
-        INFLECT_DATIVE,
+        INFLECT_ADPOSITIONED,
         tam,
         formality)
-    }
-  }
-
-  private def isDanglingDative(modifier : SilVerbModifier) =
-  {
-    modifier match {
-      case SilDanglingVerbModifier(
-        SilAdposition(Seq(SilWord(LEMMA_TO, LEMMA_TO)))
-      ) => true
-      case _ => false
     }
   }
 

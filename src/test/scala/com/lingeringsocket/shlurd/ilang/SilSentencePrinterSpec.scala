@@ -292,6 +292,23 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("did Ramona go to the library")
       expectStatement("Mortimer went to the beach yesterday")
       expectStatement("Mortimer went to the beach this morning")
+      expectQuestion("what did Curtis give to Andrea")
+      expectQuestion("who received the bomb")
+      expectNormalized("who did Curtis give the bomb to",
+        "to whom did Curtis give the bomb?")
+      expectQuestion("to whom did Curtis give the bomb")
+      expectQuestion("to which person did Curtis give the bomb")
+      expectQuestion("to how many people did Curtis give the bomb")
+      expectQuestion("for whom did Curtis detonate the bomb")
+      expectNormalized(
+        "who did Curtis detonate the bomb for",
+        "for whom did Curtis detonate the bomb?")
+      expectNormalized(
+        "which person did Curtis give the bomb to",
+        "to which person did Curtis give the bomb?")
+      expectNormalized(
+        "how many people did Curtis give the bomb to",
+        "to how many people did Curtis give the bomb?")
     }
   }
 }

@@ -140,7 +140,8 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     tree : SprSyntaxTree,
     children : Seq[SprSyntaxTree],
     specifiedState : SilState,
-    specifiedDirectObject : Option[SilReference] = None)
+    specifiedDirectObject : Option[SilReference] = None,
+    extraModifiers : Seq[SprSyntaxTree] = Seq.empty)
       : Option[(SilPredicate, SilTam)] =
   {
     val (tam, auxless, auxCount) = extractAux(children)
@@ -190,14 +191,14 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     if (verbHead.isRelationshipVerb && specifiedDirectObject.isEmpty) {
       val (negativeSub, predicate) =
         expectPredicate(tree, np, rhs, specifiedState,
-          relationshipFor(verbHead), verbModifiers)
+          relationshipFor(verbHead), verbModifiers ++ extraModifiers)
       val polarity = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
         tamTensed.withMood(MOOD_INTERROGATIVE).withPolarity(polarity)))
     } else {
       val (negativeSub, predicate) = analyzeActionPredicate(
-        tree, np, vp, specifiedDirectObject, Seq.empty)
+        tree, np, vp, specifiedDirectObject, extraModifiers)
       val polarity = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
@@ -233,10 +234,11 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         whpc
       }
     }
-    val question = maybeQuestionFor(seq.head) match {
-      case Some(q) => q
-      case _ => return SilUnrecognizedSentence(tree)
-    }
+    val (question, adpositionOpt, questionChildren) =
+      maybeQuestionFor(seq) match {
+        case Some((q, a, qc)) => (q, a, qc)
+        case _ => return SilUnrecognizedSentence(tree)
+      }
     val verbHead = secondSub.head
     if ((question == QUESTION_WHERE) && !verbHead.isBeingVerb) {
       return SilUnrecognizedSentence(tree)
@@ -247,12 +249,12 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       // FIXME for QUESTION_WHAT, there are two flavors (plain "what
       // do you want?" and also "what beer is most delicious?")
       case QUESTION_WHO | QUESTION_WHERE  | QUESTION_WHAT => {
-        SptNP(SptNN(requireLeaf(seq.head.children)))
+        SptNP(SptNN(requireLeaf(questionChildren)))
       }
       case _ => {
         // FIXME likewise, QUESTION_WHICH has two flavors "which do you want?"
         // and "which flavor do you want?"
-        SptNP(seq.tail:_*)
+        SptNP(questionChildren:_*)
       }
     }
     val (progressive, iVerb) = detectProgressive(secondSub)
@@ -292,9 +294,10 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       SilPredicateQuery(
         predicate, question, INFLECT_NOMINATIVE, tamTensed)
     } else {
-      // FIXME support dative and adpositional objects;
-      // and maybe use dependency info (plus WHO vs WHOM) too
-      val (specifiedDirectObject, answerInflection, sqChildren) = {
+      // maybe we should use dependency info (plus WHO vs WHOM) too
+      val (specifiedDirectObject, answerInflection,
+        sqChildren, extraModifiers) =
+      {
         val accusativePattern = {
           if (secondSub.size > 1) {
             !secondSub(1).isVerbNode
@@ -304,13 +307,24 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         }
         if ((verbHead.isModal || progressive) && accusativePattern) {
           // I think you mean "whom", Chief!
-          (Some(expectReference(np)), INFLECT_ACCUSATIVE, secondUnwrapped)
+          adpositionOpt match {
+            case Some(adposition) => {
+              (None, INFLECT_ADPOSITIONED, secondUnwrapped,
+                Seq(SptPP(adpositionOpt.get, np)))
+            }
+            case _ =>  {
+              (Some(expectReference(np)), INFLECT_ACCUSATIVE,
+                secondUnwrapped, Seq.empty)
+            }
+          }
         } else {
-          (None, INFLECT_NOMINATIVE, Seq(np) ++ secondUnwrapped)
+          assert(adpositionOpt.isEmpty)
+          (None, INFLECT_NOMINATIVE, Seq(np) ++ secondUnwrapped, Seq.empty)
         }
       }
       analyzeSubQueryChildren(
-        tree, sqChildren, specifiedState, specifiedDirectObject) match
+        tree, sqChildren, specifiedState,
+        specifiedDirectObject, extraModifiers) match
       {
         case Some((predicate, tam)) => {
           SilPredicateQuery(
@@ -559,10 +573,12 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     syntaxTree : SprSyntaxTree,
     subject : SilReference, action : SilWord,
     directObject : Option[SilReference],
+    adpositionObject : Option[SilReference],
     verbModifiers : Seq[SilVerbModifier]) =
   {
     SilUnresolvedActionPredicate(
-      syntaxTree, subject, action, directObject, verbModifiers)
+      syntaxTree, subject, action, directObject,
+      adpositionObject, verbModifiers)
   }
 
   private def expectRelationshipPredicate(
@@ -724,11 +740,18 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     val (directObject, extraModifiers) =
       expectVerbObjectsAndModifiers(seq.drop(1), specifiedDirectObject)
     val directObjects = Seq(directObject, specifiedDirectObject).flatten
-    assert(directObject.size < 2)
+    val adpositionObject = {
+      if (directObjects.size == 2) {
+        specifiedDirectObject
+      } else {
+        None
+      }
+    }
     val predicate = expectActionPredicate(
       syntaxTree,
       subject, action,
       directObjects.headOption,
+      adpositionObject,
       extraModifiers ++ verbModifiers.map(expectVerbModifier))
     (negative, predicate)
   }
@@ -1056,8 +1079,10 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   private def maybeQuestionFor(
-    tree : SprSyntaxTree) : Option[SilQuestion] =
+    seq : Seq[SprSyntaxTree])
+      : Option[(SilQuestion, Option[SprSyntaxTree], Seq[SprSyntaxTree])] =
   {
+    val tree = seq.head
     tree match {
       case SptWHADJP(how, many) => {
         if (how.hasTerminalLemma(LEMMA_HOW) &&
@@ -1065,28 +1090,50 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         {
           // FIXME for HOW_MANY, force the corresponding noun reference
           // to plural
-          Some(QUESTION_HOW_MANY)
+          Some((QUESTION_HOW_MANY, None, seq.tail))
         } else {
           None
         }
       }
       case SptWRB(where) => {
         where.lemma match {
-          case LEMMA_WHERE => Some(QUESTION_WHERE)
+          case LEMMA_WHERE =>
+            Some((QUESTION_WHERE, None, tree.children))
           case _ => None
         }
       }
       case SptWDT(wdt) => {
         wdt.lemma match {
-          case LEMMA_WHICH | LEMMA_WHAT => Some(QUESTION_WHICH)
+          case LEMMA_WHICH | LEMMA_WHAT =>
+            Some((QUESTION_WHICH, None, seq.tail))
           case _ => None
         }
       }
       case SptWP(wp) => {
         wp.lemma match {
-          case LEMMA_WHO | LEMMA_WHOM => Some(QUESTION_WHO)
-          case LEMMA_WHAT => Some(QUESTION_WHAT)
+          case LEMMA_WHO | LEMMA_WHOM =>
+            Some((QUESTION_WHO, None, tree.children))
+          case LEMMA_WHAT =>
+            Some((QUESTION_WHAT, None, tree.children))
           case _ => None
+        }
+      }
+      case adp : SprSyntaxAdposition => {
+        if (seq.size == 2) {
+          val whnp = seq.last
+          whnp match {
+            case _ : SptWHNP => {
+              maybeQuestionFor(whnp.children) match {
+                case Some((question, None, questionChildren)) => {
+                  Some((question, Some(adp), questionChildren))
+                }
+                case _ => None
+              }
+            }
+            case _ => None
+          }
+        } else {
+          None
         }
       }
       case _ => None

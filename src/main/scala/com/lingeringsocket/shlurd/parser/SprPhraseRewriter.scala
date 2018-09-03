@@ -164,7 +164,8 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
       {
         resolveStatePredicate(predicate)
       }
-    case predicate : SilUnresolvedActionPredicate =>
+    case predicate : SilUnresolvedActionPredicate
+        if (!predicate.hasUnresolved) =>
       {
         resolveActionPredicate(predicate)
       }
@@ -238,11 +239,44 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
   private def resolveActionPredicate(
     predicate : SilUnresolvedActionPredicate) =
   {
+    val modifiers = {
+      if (predicate.modifiers.exists(
+        m => !SilReference.getDanglingAdposition(m).isEmpty))
+      {
+        assert(!predicate.adpositionObject.isEmpty)
+        predicate.modifiers.flatMap(modifier => {
+          SilReference.getDanglingAdposition(modifier) match {
+            case Some(adposition) => {
+              val newModifier = SilAdpositionalVerbModifier(
+                adposition,
+                predicate.adpositionObject.get)
+              // FIXME clean this up
+              modifier.maybeSyntaxTree match {
+                case Some(syntaxTree) => {
+                  newModifier.rememberSyntaxTree(syntaxTree)
+                }
+                case _ =>
+              }
+              // FIXME this is gross--we leave the dangling adposition
+              // around just so that later we can rememmber to
+              // convert from INFLECT_ACCUSATIVE to INFLECT_ADPOSITIONED
+              Seq(newModifier, modifier)
+            }
+            case _ => {
+              Seq(modifier)
+            }
+          }
+        })
+      } else {
+        assert(predicate.adpositionObject.isEmpty)
+        predicate.modifiers
+      }
+    }
     SilActionPredicate(
       predicate.subject,
       predicate.action,
       predicate.directObject,
-      predicate.modifiers)
+      modifiers)
   }
 
   private def resolveStatePredicate(

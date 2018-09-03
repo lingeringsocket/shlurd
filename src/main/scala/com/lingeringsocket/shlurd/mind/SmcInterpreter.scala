@@ -328,20 +328,19 @@ class SmcInterpreter[
                     state, tamResponse, SilConjoining.NONE)
                 }
                 case (
-                  INFLECT_DATIVE,
+                  INFLECT_ADPOSITIONED,
                   SilActionPredicate(_, _, _, modifiers)
                 ) => {
-                  // FIXME generalize this to other adpositions
                   val objRef = modifiers.flatMap(_ match {
                     case SilAdpositionalVerbModifier(
-                      SilAdposition.TO, objRef
+                      _, objRef
                     ) => {
                       Some(objRef)
                     }
                     case _ => None
                   }).head
                   sentencePrinter.print(
-                    objRef, INFLECT_DATIVE, SilConjoining.NONE)
+                    objRef, INFLECT_ADPOSITIONED, SilConjoining.NONE)
                 }
                 case _ => {
                   // FIXME lots of other cases need to be handled

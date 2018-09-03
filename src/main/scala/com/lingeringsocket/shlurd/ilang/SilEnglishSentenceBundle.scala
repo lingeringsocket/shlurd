@@ -40,10 +40,16 @@ class SilEnglishSentenceBundle
     subject : String,
     verbSeq : Seq[String],
     directObject : Option[String],
-    modifiers : Seq[String],
+    modifiersOriginal : Seq[String],
     tam : SilTam,
     answerInflection : SilInflection) =
   {
+    val (adpositionPre, modifiers) = answerInflection match {
+      case INFLECT_ADPOSITIONED =>
+        (Some(modifiersOriginal.last), modifiersOriginal.dropRight(1))
+      case _ =>
+        (None, modifiersOriginal)
+    }
     val directObjectPost = answerInflection match {
       case INFLECT_ACCUSATIVE => None
       case _ => directObject
@@ -64,7 +70,7 @@ class SilEnglishSentenceBundle
       case INFLECT_ACCUSATIVE => {
         compose((directObject.toSeq ++ Seq(primary)):_*)
       }
-      case _ => primary
+      case _ => compose((adpositionPre.toSeq ++ Seq(primary)):_*)
     }
   }
 
@@ -479,7 +485,7 @@ class SilEnglishSentenceBundle
       case Some(QUESTION_WHO) => {
         // FIXME inflection for whose
         answerInflection match {
-          case INFLECT_ACCUSATIVE => {
+          case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => {
             compose(LEMMA_WHOM)
           }
           case _ => {
@@ -613,12 +619,12 @@ class SilEnglishSentenceBundle
       person match {
         case PERSON_FIRST => count match {
           case COUNT_SINGULAR => inflection match {
-            case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_ME
+            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_ME
             case INFLECT_GENITIVE => LEMMA_MY
             case _ => "I"
           }
           case COUNT_PLURAL => inflection match {
-            case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_US
+            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_US
             case INFLECT_GENITIVE => LEMMA_OUR
             case _ => LEMMA_WE
           }
@@ -630,13 +636,13 @@ class SilEnglishSentenceBundle
         case PERSON_THIRD => count match {
           case COUNT_SINGULAR => gender match {
             case GENDER_M => inflection match {
-              case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_HIM
+              case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_HIM
               case INFLECT_GENITIVE => LEMMA_HIS
               case _ => LEMMA_HE
             }
             case GENDER_F => inflection match {
               case INFLECT_ACCUSATIVE | INFLECT_GENITIVE |
-                  INFLECT_DATIVE => LEMMA_HER
+                  INFLECT_ADPOSITIONED => LEMMA_HER
               case _ => LEMMA_SHE
             }
             case GENDER_N => distance match {
@@ -652,7 +658,7 @@ class SilEnglishSentenceBundle
             case DISTANCE_HERE => LEMMA_THESE
             case DISTANCE_THERE => LEMMA_THOSE
             case DISTANCE_UNSPECIFIED => inflection match {
-              case INFLECT_ACCUSATIVE | INFLECT_DATIVE => LEMMA_THEM
+              case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_THEM
               case INFLECT_GENITIVE => LEMMA_THEIR
               case _ => LEMMA_THEY
             }

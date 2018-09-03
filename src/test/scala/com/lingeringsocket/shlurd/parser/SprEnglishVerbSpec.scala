@@ -267,7 +267,7 @@ class SprEnglishVerbSpec extends Specification
     // also test non-modifier version of QUESTION_WHICH
     // FIXME test ungrammatical "who" in accusative
     // FIXME rework representation for QUESTION_WHERE and test that
-    // FIXME test INFLECT_DATIVE and INFLECT_GENITIVE, plus
+    // FIXME test INFLECT_ADPOSITIONED and INFLECT_GENITIVE, plus
     // adpositional objects
     Seq(
       (SilNounReference(SilWord(LEMMA_WHO)),

@@ -91,7 +91,7 @@ sealed trait SilInflection
 case object INFLECT_NONE extends SilInflection
 case object INFLECT_NOMINATIVE extends SilInflection
 case object INFLECT_ACCUSATIVE extends SilInflection
-case object INFLECT_DATIVE extends SilInflection
+case object INFLECT_ADPOSITIONED extends SilInflection
 case object INFLECT_GENITIVE extends SilInflection
 case object INFLECT_COMPLEMENT extends SilInflection
 

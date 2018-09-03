@@ -358,7 +358,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     val plainSubject = print(
       predicate.getSubject, INFLECT_NOMINATIVE, SilConjoining.NONE)
     val subjectString = answerInflection match {
-      case INFLECT_ACCUSATIVE => plainSubject
+      case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => plainSubject
       case _ => sb.query(plainSubject, question, answerInflection)
     }
     predicate match {
@@ -388,12 +388,32 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           }
           case _ => plainDirectObject
         }
+        val modifierStrings = {
+          if (answerInflection == INFLECT_ADPOSITIONED) {
+            val lastModifier = modifiers.last
+            val lastRewritten = lastModifier match {
+              case SilAdpositionalVerbModifier(adposition, objRef) => {
+                val plainObj = print(
+                  objRef, INFLECT_ADPOSITIONED, SilConjoining.NONE)
+                sb.adpositionedNoun(
+                  sb.adpositionString(adposition),
+                  sb.query(plainObj, question, answerInflection),
+                  SilConjoining.NONE)
+              }
+              case _ => throw new RuntimeException(
+                s"unexpected modifier $lastModifier")
+            }
+            modifiers.dropRight(1).map(printVerbModifier) ++ Seq(lastRewritten)
+          } else {
+            modifiers.map(printVerbModifier)
+          }
+        }
         sb.actionPredicate(
           subjectString,
           getVerbSeq(subject, action, tam,
             predicate.getInflectedCount, answerInflection),
           directObjectString,
-          modifiers.map(printVerbModifier),
+          modifierStrings,
           tam,
           answerInflection)
       }
