@@ -129,7 +129,7 @@ class SpcBeliefRecognizer(
             }
             case _ => (ref, false)
           }
-          return interpretResolvedReference(sentence, rr, {
+          return interpretResolvedReference(sentence, rr, false, {
             entityRef => {
               if (!isGenitive) {
                 Seq(EntityPropertyBelief(
@@ -295,16 +295,21 @@ class SpcBeliefRecognizer(
   private def interpretResolvedReference(
     sentence : SilSentence,
     ref : SilReference,
+    epsilon : Boolean,
     interpretation : (SilReference) => Seq[SpcBelief])
       : Seq[SpcBelief] =
   {
     resultCollector.referenceMap.get(ref) match {
       case Some(set) => {
         if (set.isEmpty) {
-          // FIXME for single-valued associations, not sure we
-          // should be doing this if the association is already
-          // bound
-          return Seq(EpsilonBelief(sentence))
+          if (epsilon) {
+            // FIXME for single-valued associations, not sure we
+            // should be doing this if the association is already
+            // bound
+            return Seq(EpsilonBelief(sentence))
+          } else {
+            return Seq.empty
+          }
         }
         set.toSeq.flatMap(entity => {
           val entityRef = SilNounReference(SilWord(entity.name))
@@ -327,7 +332,7 @@ class SpcBeliefRecognizer(
     subjectRef : SilReference,
     relationship : SilRelationship) : Seq[SpcBelief] =
   {
-    interpretResolvedReference(sentence, subjectRef, {
+    interpretResolvedReference(sentence, subjectRef, true, {
       entityRef => {
         interpretEntityRelationship(
           sentence,
@@ -521,6 +526,7 @@ class SpcBeliefRecognizer(
         return interpretResolvedReference(
           sentence,
           sub,
+          false,
           {
             entityRef => {
               val flattenedComplement = SilGenitiveReference(

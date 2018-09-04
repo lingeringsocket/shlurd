@@ -761,6 +761,10 @@ class SpcCosmosSpec extends Specification
         throwA[IncomprehensibleBeliefExcn]
       addBelief("Daffy is Porky Pig's duck") must
         throwA[IncomprehensibleBeliefExcn]
+      addBelief("the wrench is an object")
+      addBelief("the screwdriver is an object")
+      addBelief("the screwdriver is proud of the wrench") must
+        throwA[IncomprehensibleBeliefExcn]
     }
 
     "reject beliefs it cannot implement" in new CosmosContext
