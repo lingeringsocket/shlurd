@@ -309,6 +309,7 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized(
         "how many people did Curtis give the bomb to",
         "to how many people did Curtis give the bomb?")
+      expectStatement("the kitchen is west of the garden")
     }
   }
 }

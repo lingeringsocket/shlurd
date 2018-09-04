@@ -60,9 +60,8 @@ abstract class SprSyntaxAnalyzer(guessedQuestion : Boolean)
       : SilVerbModifier
 
   private[parser] def expectPropertyComplementState(
-    seq : Seq[SprSyntaxTree])
+    tree : SprSyntaxTree)
       : SilState
-
 
   private[parser] def getCount(
     tree : SprSyntaxTree)

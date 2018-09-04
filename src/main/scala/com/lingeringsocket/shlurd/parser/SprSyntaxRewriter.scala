@@ -161,6 +161,15 @@ object SprSyntaxRewriter
     case np : SptNP if (np.containsIncomingDependency("tmod")) => {
       SptTMOD(np)
     }
+    case SptNP(
+      SptNP(nn : SptNN),
+      pp : SptPP
+    ) => {
+      SptADVP(
+        SptNP(nn),
+        pp
+      )
+    }
     case SptS(
       SptVP(
         SptSQ(

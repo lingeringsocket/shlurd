@@ -642,20 +642,25 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
   {
     val seq = tree.children
     val adpTree = seq.head.unwrapPhrase
-    if ((seq.size == 2) && (adpTree.isAdposition || adpTree.isAdverb)) {
+    if ((seq.size == 2) &&
+      (adpTree.isAdposition || adpTree.isAdverb || adpTree.isNounNode))
+    {
       extractAdposition(adpTree) match {
         // "in the car"
         case Some(adposition) => {
           SilAdpositionalState(adposition, expectReference(seq.last))
         }
         case _ => {
-          if (adpTree.isAdverb && seq.last.isAdpositionalPhrase) {
+          if ((adpTree.isAdverb || adpTree.isNounNode) &&
+            seq.last.isAdpositionalPhrase)
+          {
             // "south of the border"
             expectAdpositionalState(seq.last) match {
               case SilAdpositionalState(SilAdposition(words), ref) => {
                 SilAdpositionalState(
                   SilAdposition(
-                    getWord(requireLeaf(adpTree.children)) +: words),
+                    getWord(
+                      requireLeaf(adpTree.unwrapPhrase.children)) +: words),
                   ref)
               }
               case _ => {
@@ -952,16 +957,32 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
   }
 
   override private[parser] def expectPropertyComplementState(
-    seq : Seq[SprSyntaxTree]) : SilState =
+    tree : SprSyntaxTree) : SilState =
   {
-    val state = expectPropertyState(seq.head)
+    val seq = tree.children
+    def state = expectPropertyState(seq.head)
     if (seq.size == 1) {
       state
     } else {
-      SilConjunctiveState(
-        DETERMINER_UNSPECIFIED,
-        Seq(state) ++ seq.tail.map(
-          component => expectComplementState(component)))
+      // FIXME generalize this, but needs semantic analysis, e.g.
+      // "happy in the bathtub" is different from "west of the bathtub"
+      val compoundAdposition = seq.last match {
+        case SptPP(
+          SptIN(adp),
+          _
+        ) if (adp.lemma == LEMMA_OF) => {
+          Some(adp)
+        }
+        case _ => None
+      }
+      if ((seq.size == 2) && !compoundAdposition.isEmpty) {
+        expectAdpositionalState(tree)
+      } else {
+        SilConjunctiveState(
+          DETERMINER_UNSPECIFIED,
+          Seq(state) ++ seq.tail.map(
+            component => expectComplementState(component)))
+      }
     }
   }
 

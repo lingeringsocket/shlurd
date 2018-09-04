@@ -131,7 +131,7 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
       SilExistenceState()
     }
     case SilExpectedComplementState(adjp : SptADJP) => {
-      analyzer.expectPropertyComplementState(adjp.children)
+      analyzer.expectPropertyComplementState(adjp)
     }
     case SilExpectedComplementState(
       syntaxTree @ (_ : SptADVP | _ : SptPP)) =>
@@ -142,13 +142,13 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
       {
         SilExpectedAdpositionalState(syntaxTree)
       } else {
-        analyzer.expectPropertyComplementState(seq)
+        analyzer.expectPropertyComplementState(syntaxTree)
       }
     }
     case SilExpectedComplementState(vp : SptVP) => {
       // FIXME:  ambiguity for action (passive construction) vs
       // state (participial adjective)
-      analyzer.expectPropertyComplementState(vp.children)
+      analyzer.expectPropertyComplementState(vp)
     }
     case SilExpectedComplementState(syntaxTree : SptPRT) => {
       analyzer.expectPropertyState(requireUnique(syntaxTree.children))
