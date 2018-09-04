@@ -114,10 +114,6 @@ class SprTester
   protected def processOne(
     input : String, answer : String) : String =
   {
-    // FIXME
-    if (input.endsWith("of?")) {
-      return ""
-    }
     val sentence = SprParser(input).parseOne
     if (sentence.hasUnknown) {
       s"INCOMPLETE PARSE:  $sentence"

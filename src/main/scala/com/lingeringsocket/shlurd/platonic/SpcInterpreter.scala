@@ -86,6 +86,8 @@ class SpcInterpreter(
         }
         case _ => predicate
       }
+      // FIXME this could cause the predicate to become
+      // inconsisent with the answer inflection
       mind.getCosmos.getTriggers.foreach(trigger => {
         matchTrigger(mind.getCosmos, trigger, stateNormalized,
           referenceMap) match
