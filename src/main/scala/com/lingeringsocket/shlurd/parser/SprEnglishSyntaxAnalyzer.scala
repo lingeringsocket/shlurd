@@ -260,6 +260,10 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     val (progressive, iVerb) = detectProgressive(secondSub)
     assert(iVerb >= 0)
     if (verbHead.isRelationshipVerb && !progressive) {
+      // FIXME find a way to represent this
+      if (!adpositionOpt.isEmpty) {
+        return SilUnrecognizedSentence(tree)
+      }
       val complement = secondSub.tail
       val (combinedState, complementRemainder) = {
         if (specifiedState == SilNullState()) {
