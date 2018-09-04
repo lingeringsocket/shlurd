@@ -148,7 +148,7 @@ class SpcBeliefRecognizer(
           })
         }
         case _ => {
-          return Seq(UnimplementedBelief(sentence))
+          return Seq.empty
         }
       }
     }

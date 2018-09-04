@@ -63,3 +63,17 @@ If an animal is a lion, then the animal's color is Lion_color.
 If an animal is a rhino, then the animal's color is Rhino_color.
 If an animal is a swan, then the animal's color is Swan_color.
 If an animal is a frog, then the animal's color is Frog_color.
+A northern_neighbor must be a place.
+A southern_neighbor must be a place.
+An eastern_neighbor must be a place.
+A western_neighbor must be a place.
+A place may have a northern_neighbor.
+A place may have a southern_neighbor.
+A place may have an eastern_neighbor.
+A place may have a western_neighbor.
+A place with a northern_neighbor is a southern_neighbor.
+A place with an eastern_neighbor is a western_neighbor.
+If a place is west of a location, then the place is the location's western_neighbor.
+If a place is east of a location, then the place is the location's eastern_neighbor.
+If a place is north of a location, then the place is the location's northern_neighbor.
+If a place is south of a location, then the place is the location's southern_neighbor.

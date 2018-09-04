@@ -14,3 +14,6 @@ Julie picked up the milk.
 What is Julie carrying?	milk
 Mary gave the football to Jeff.
 What did Mary give to Jeff?	football
+The garden is west of the kitchen.
+What is west of the kitchen?	garden
+What is east of the garden?	kitchen

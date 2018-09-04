@@ -49,7 +49,9 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     trace(s"EVALUATE PREDICATE : $predicateOriginal")
-    val predicate = normalizePredicate(predicateOriginal)
+    val predicate = normalizePredicate(
+      predicateOriginal,
+      resultCollector.referenceMap)
     if (predicate != predicateOriginal) {
       trace(s"NORMALIZED PREDICATE : $predicateOriginal")
     }
@@ -840,7 +842,9 @@ class SmcPredicateEvaluator[
     }
   }
 
-  protected def normalizePredicate(predicate : SilPredicate) =
+  protected def normalizePredicate(
+    predicate : SilPredicate,
+    referenceMap : Map[SilReference, Set[EntityType]]) : SilPredicate =
   {
     predicate
   }

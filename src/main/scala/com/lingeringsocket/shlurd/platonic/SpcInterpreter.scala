@@ -74,9 +74,11 @@ class SpcInterpreter(
       super.evaluateActionPredicate(predicate, resultCollector)
     }
 
-    override protected def normalizePredicate(predicate : SilPredicate) =
+    override protected def normalizePredicate(
+      predicate : SilPredicate,
+      referenceMap : Map[SilReference, Set[SpcEntity]]) : SilPredicate =
     {
-      predicate match {
+      val stateNormalized = predicate match {
         case SilStatePredicate(subject, state, modifiers) => {
           val normalizedState = mind.getCosmos.normalizeHyperFormState(
             deriveType(subject), state)
@@ -84,6 +86,15 @@ class SpcInterpreter(
         }
         case _ => predicate
       }
+      mind.getCosmos.getTriggers.foreach(trigger => {
+        matchTrigger(mind.getCosmos, trigger, stateNormalized,
+          referenceMap) match
+        {
+          case Some(newPredicate) => return newPredicate
+          case _ =>
+        }
+      })
+      stateNormalized
     }
   }
 
@@ -414,11 +425,26 @@ class SpcInterpreter(
             return None
           }
         }
-        // FIXME allow this to be a variable
-        if (state != statePredicate.state) {
-          trace(s"STATE $state " +
-            s"DOES NOT MATCH ${statePredicate.state}")
-          return None
+        Tuple2(state, statePredicate.state) match {
+          // FIXME allow other variable patterns
+          case (
+            SilAdpositionalState(adp1, obj1),
+            SilAdpositionalState(adp2, obj2)
+          ) if (adp1 == adp2) => {
+            if (!prepareReplacement(
+              cosmos, replacements, obj1,
+              obj2, referenceMap))
+            {
+              return None
+            }
+          }
+          case _ => {
+            if (state != statePredicate.state) {
+              trace(s"STATE $state " +
+                s"DOES NOT MATCH ${statePredicate.state}")
+              return None
+            }
+          }
         }
         if (!prepareReplacement(
           cosmos, replacements, subject, statePredicate.subject, referenceMap))
@@ -581,6 +607,10 @@ class SpcInterpreter(
         val resolvedForm = cosmos.resolveForm(noun.lemma)
         val patternRef = SilNounReference(
           noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
+        if (inputRewriter.containsWildcard(actualRef)) {
+          replacements.put(patternRef, actualRef)
+          return true
+        }
         val (candidateRef, entities) = actualRef match {
           case pr : SilPronounReference => {
             mind.resolvePronoun(pr) match {

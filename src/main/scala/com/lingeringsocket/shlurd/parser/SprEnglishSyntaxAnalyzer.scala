@@ -642,18 +642,14 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
   {
     val seq = tree.children
     val adpTree = seq.head.unwrapPhrase
-    if ((seq.size == 2) &&
-      (adpTree.isAdposition || adpTree.isAdverb || adpTree.isNounNode))
-    {
+    if (seq.size == 2) {
       extractAdposition(adpTree) match {
         // "in the car"
         case Some(adposition) => {
           SilAdpositionalState(adposition, expectReference(seq.last))
         }
         case _ => {
-          if ((adpTree.isAdverb || adpTree.isNounNode) &&
-            seq.last.isAdpositionalPhrase)
-          {
+          if (seq.last.isAdpositionalPhrase) {
             // "south of the border"
             expectAdpositionalState(seq.last) match {
               case SilAdpositionalState(SilAdposition(words), ref) => {

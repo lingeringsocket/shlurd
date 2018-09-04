@@ -63,7 +63,9 @@ class SmcInterpreterSpec extends Specification
           }
         }
 
-        override protected def normalizePredicate(predicate : SilPredicate) =
+        override protected def normalizePredicate(
+          predicate : SilPredicate,
+          referenceMap : Map[SilReference, Set[SmcEntity]]) =
         {
           predicate match {
             case SilStatePredicate(subject, state, modifiers) => {

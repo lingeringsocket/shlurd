@@ -101,7 +101,7 @@ class SmcInterpreter[
 
   private def cosmos = mind.getCosmos
 
-  private val inputRewriter = new SmcInputRewriter(mind)
+  protected val inputRewriter = new SmcInputRewriter(mind)
 
   private val responseRewriter = new SmcResponseRewriter(mind)
 
