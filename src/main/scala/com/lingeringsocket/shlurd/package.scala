@@ -18,5 +18,5 @@ package object shlurd
 {
   // syntactic sugar to make it easier to spot where we are
   // constructing a tuple (and to make Emacs indentation happier)
-  def tupleN(tuple : Product) = tuple
+  def tupleN[TupleN <: Product](tuple : TupleN) = tuple
 }

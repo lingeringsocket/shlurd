@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import SprEnglishLemmas._
@@ -302,11 +303,11 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilStatePredicate(subject, state, modifiers) => {
         val (subjectString, verbString) = subject match {
           case SilPronounReference(PERSON_SECOND, _, _, _) => {
-            ("", printChangeStateVerb(state, Some(SilWord(LEMMA_BE))))
+            tupleN(("", printChangeStateVerb(state, Some(SilWord(LEMMA_BE)))))
           }
           case _ => {
-            (print(subject, INFLECT_ACCUSATIVE, SilConjoining.NONE),
-              printChangeStateVerb(state, changeVerb))
+            tupleN((print(subject, INFLECT_ACCUSATIVE, SilConjoining.NONE),
+              printChangeStateVerb(state, changeVerb)))
           }
         }
         sb.statePredicateCommand(
@@ -485,10 +486,10 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
   {
     subject match {
       case SilPronounReference(person, gender, count, _) => {
-        (person, gender, count)
+        tupleN((person, gender, count))
       }
       case SilNounReference(_, _, count) => {
-        (PERSON_THIRD, GENDER_N, count)
+        tupleN((PERSON_THIRD, GENDER_N, count))
       }
       case SilConjunctiveReference(determiner, references, _) => {
         val count = if (isExistential) {
@@ -503,7 +504,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         }
         // FIXME:  also derive person and gender from underlying references,
         // since it makes a difference in languages such as Spanish
-        (PERSON_THIRD, GENDER_N, count)
+        tupleN((PERSON_THIRD, GENDER_N, count))
       }
       case SilStateSpecifiedReference(reference, _) => {
         getSubjectAttributes(reference, isExistential)
@@ -512,14 +513,14 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         getSubjectAttributes(possessee, isExistential)
       }
       case _ : SilUnknownReference => {
-        (PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
+        tupleN((PERSON_THIRD, GENDER_N, COUNT_SINGULAR))
       }
     }
   }
 
   private def combineCounts(count1 : SilCount, count2 : SilCount) : SilCount =
   {
-    (count1, count2) match {
+    tupleN((count1, count2)) match {
       case (COUNT_SINGULAR, COUNT_SINGULAR) => COUNT_SINGULAR
       case _ => COUNT_PLURAL
     }

@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
+
 import scala.io._
 import scala.util._
 
@@ -104,7 +106,7 @@ class SprTester
       }
     }
     reportStatus
-    (successes, failures)
+    tupleN((successes, failures))
   }
 
   protected def restartSequence()

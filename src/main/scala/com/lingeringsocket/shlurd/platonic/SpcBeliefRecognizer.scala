@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
@@ -125,7 +126,7 @@ class SpcBeliefRecognizer(
           val (rr, isGenitive) = ref match {
             case SilGenitiveReference(possessor, _) => {
               assert(qualifiers.size == 1)
-              (possessor, true)
+              tupleN((possessor, true))
             }
             case _ => (ref, false)
           }
@@ -428,14 +429,14 @@ class SpcBeliefRecognizer(
               if (!qualifiers.isEmpty) {
                 return Seq(UnimplementedBelief(sentence))
               }
-              (complementNoun, count)
+              tupleN((complementNoun, count))
             })
-            (pairs.map(_._1), pairs.map(_._2).maxBy(
+            tupleN((pairs.map(_._1), pairs.map(_._2).maxBy(
               _ match {
                 case COUNT_SINGULAR => 1
                 case COUNT_PLURAL => 2
               })
-            )
+            ))
           }
           // "a dog has an owner"
           case ref => {
@@ -447,7 +448,7 @@ class SpcBeliefRecognizer(
             if (!qualifiers.isEmpty) {
               return Seq(UnimplementedBelief(sentence))
             }
-            (Seq(complementNoun), count)
+            tupleN((Seq(complementNoun), count))
           }
         }
         val upper = count match {
@@ -559,7 +560,7 @@ class SpcBeliefRecognizer(
 
     val (subjectNoun, subjectDeterminer) = subjectRef match {
       case SilNounReference(noun, determiner, _) => {
-        (noun, determiner)
+        tupleN((noun, determiner))
       }
       case _ => return Seq.empty
     }
@@ -703,12 +704,13 @@ class SpcBeliefRecognizer(
           DETERMINER_UNSPECIFIED),
         COUNT_SINGULAR
       ) => {
-        (noun, preQualifiers, COUNT_SINGULAR, determiner, false)
+        tupleN((noun, preQualifiers, COUNT_SINGULAR, determiner, false))
       }
       case SilNounReference(
         noun, DETERMINER_UNSPECIFIED, COUNT_PLURAL
       ) => {
-        (noun, preQualifiers, COUNT_PLURAL, DETERMINER_UNSPECIFIED, false)
+        tupleN((noun, preQualifiers, COUNT_PLURAL,
+          DETERMINER_UNSPECIFIED, false))
       }
       case SilStateSpecifiedReference(
         subRef, state
@@ -729,8 +731,8 @@ class SpcBeliefRecognizer(
           case DETERMINER_UNIQUE => false
           case _ => true
         }
-        (possession, Seq(possessor),
-          count, possessorDeterminer, failed || !allowGenitive)
+        tupleN((possession, Seq(possessor),
+          count, possessorDeterminer, failed || !allowGenitive))
       }
       case _ => failedResult
     }

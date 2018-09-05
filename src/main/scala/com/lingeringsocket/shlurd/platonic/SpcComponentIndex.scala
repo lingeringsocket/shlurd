@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
+
 import org.jgrapht._
 import org.jgrapht.event._
 
@@ -48,7 +50,7 @@ class SpcComponentIndex[KeyType, ComponentType](
       edge => {
         val component = graph.getEdgeTarget(edge)
         keyExtractor(component).map(key => {
-          (key, component.asInstanceOf[ComponentType])
+          tupleN((key, component.asInstanceOf[ComponentType]))
         })
       }
     )

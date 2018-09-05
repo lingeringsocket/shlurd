@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import scala.collection.JavaConverters._
@@ -196,9 +197,9 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     val isProperty = edge.isProperty
     val (count, determiner) = {
       if (constraint.upper == 1) {
-        (COUNT_SINGULAR, SilIntegerDeterminer(constraint.upper))
+        tupleN((COUNT_SINGULAR, SilIntegerDeterminer(constraint.upper)))
       } else {
-        (COUNT_PLURAL, DETERMINER_UNSPECIFIED)
+        tupleN((COUNT_PLURAL, DETERMINER_UNSPECIFIED))
       }
     }
     val possesseeNoun = nounReference(

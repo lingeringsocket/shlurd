@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
+
 import SprPennTreebankLabels._
 import SprEnglishLemmas._
 import SprUtils._
@@ -87,9 +89,9 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       }
       val (s, c) = extractAdpositionalState(unwrapped)
       if (c.size < 3) {
-        (SilNullState(), unwrapped)
+        tupleN((SilNullState(), unwrapped))
       } else {
-        (s, c)
+        tupleN((s, c))
       }
     }
     if (!forceSQ && isImperative(punctless)) {
@@ -113,11 +115,11 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
   {
     val iFirstVerb = seq.indexWhere(_.isVerbNode)
     if (iFirstVerb < 0) {
-      return (false, -1)
+      return tupleN((false, -1))
     }
     val iNextVerb = seq.indexWhere(_.isVerbNode, iFirstVerb + 1)
     if (iNextVerb < 0) {
-      return (false, iFirstVerb)
+      return tupleN((false, iFirstVerb))
     }
     val nextVerb = seq(iNextVerb) match {
       case vp : SptVP => {
@@ -131,9 +133,9 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     if (seq(iFirstVerb).unwrapPhrase.isRelationshipVerb &&
       nextVerb.unwrapPhrase.isProgressiveVerb)
     {
-      (true, iNextVerb)
+      tupleN((true, iNextVerb))
     } else {
-      (false, iFirstVerb)
+      tupleN((false, iFirstVerb))
     }
   }
 
@@ -163,9 +165,9 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         }
         val fromVerbSlice = seq.slice(iVerb, iVerb + expectedSize)
         val vp = SptVP(fromVerbSlice(0), fromVerbSlice(2))
-        (fromVerbSlice(0), fromVerbSlice(1), vp,
+        tupleN((fromVerbSlice(0), fromVerbSlice(1), vp,
           fromVerbSlice(2), negativeSuper,
-          seq.patch(iVerb, Seq.empty, expectedSize))
+          seq.patch(iVerb, Seq.empty, expectedSize)))
       } else {
         assert(iVerb > 0)
         // "(can) Larry [be [smart]]?"
@@ -181,9 +183,9 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
           case _ => SptVP(seq.drop(iNoun + 1):_*)
         }
         val (negativeSub, sub) = extractNegative(vp.children)
-        (sub.head, fromNounSlice(0), SptVP(sub:_*),
+        tupleN((sub.head, fromNounSlice(0), SptVP(sub:_*),
           sub.last, (negativeSub ^ negativeSuper),
-          seq.patch(iNoun, Seq.empty, expectedSize))
+          seq.patch(iNoun, Seq.empty, expectedSize)))
       }
     }
 
@@ -270,12 +272,12 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         if (specifiedState == SilNullState()) {
           val (s, r) = extractAdpositionalState(complement)
           if (r.isEmpty) {
-            (specifiedState, complement)
+            tupleN((specifiedState, complement))
           } else {
-            (s, r)
+            tupleN((s, r))
           }
         } else {
-          (specifiedState, complement)
+          tupleN((specifiedState, complement))
         }
       }
       val recomposedComplement = {
@@ -314,17 +316,18 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
           // I think you mean "whom", Chief!
           adpositionOpt match {
             case Some(adposition) => {
-              (None, INFLECT_ADPOSITIONED, secondUnwrapped,
-                Seq(SptPP(adpositionOpt.get, np)))
+              tupleN((None, INFLECT_ADPOSITIONED, secondUnwrapped,
+                Seq(SptPP(adpositionOpt.get, np))))
             }
             case _ =>  {
-              (Some(expectReference(np)), INFLECT_ACCUSATIVE,
-                secondUnwrapped, Seq.empty)
+              tupleN((Some(expectReference(np)), INFLECT_ACCUSATIVE,
+                secondUnwrapped, Seq.empty))
             }
           }
         } else {
           assert(adpositionOpt.isEmpty)
-          (None, INFLECT_NOMINATIVE, Seq(np) ++ secondUnwrapped, Seq.empty)
+          tupleN((None, INFLECT_NOMINATIVE,
+            Seq(np) ++ secondUnwrapped, Seq.empty))
         }
       }
       analyzeSubQueryChildren(
@@ -370,10 +373,10 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       val first = seq.head.unwrapPhrase
       first match {
         case pt @ (_ : SptDT | _ : SptCD) if (!pt.isDemonstrative) => {
-          (determinerFor(requireLeaf(pt.children)), seq.drop(1))
+          tupleN((determinerFor(requireLeaf(pt.children)), seq.drop(1)))
         }
         case _ => {
-          (DETERMINER_UNSPECIFIED, seq)
+          tupleN((DETERMINER_UNSPECIFIED, seq))
         }
       }
     }
@@ -445,9 +448,9 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         extractAdpositionalState(vpChildren)
       val (complement, specifiedState) = {
         if (vpRemainder.size > 1) {
-          (vpRemainder.last, maybeSpecifiedState)
+          tupleN((vpRemainder.last, maybeSpecifiedState))
         } else {
-          (vpChildren.last, SilNullState())
+          tupleN((vpChildren.last, SilNullState()))
         }
       }
       val extraModifiers = vpRemainder.filterNot(
@@ -506,11 +509,11 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       val (state, changeVerb) = particle match {
         // FIXME:  restrict verb pairing when particle is present
         case Some(preTerminal) => {
-          (expectPropertyState(preTerminal),
-            Some(getWord(requireLeaf(seq.head.children))))
+          tupleN((expectPropertyState(preTerminal),
+            Some(getWord(requireLeaf(seq.head.children)))))
         }
         case _ => {
-          (expectPropertyState(seq.head), None)
+          tupleN((expectPropertyState(seq.head), None))
         }
       }
       val subject = specifyReference(
@@ -629,11 +632,11 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     val (negative, seq) = extractNegative(vp.children)
     // FIXME should support "there goes the mailman"?
     if (np.isExistential) {
-      return (negative, SilUnrecognizedPredicate(syntaxTree))
+      return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
     }
     val subject = expectReference(np)
     if (seq.isEmpty) {
-      return (negative, SilUnrecognizedPredicate(syntaxTree))
+      return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
     }
     val verbHead = seq.head
     val action = verbHead match {
@@ -641,7 +644,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         getWord(verb.child)
       }
       case _ => {
-        return (negative, SilUnrecognizedPredicate(syntaxTree))
+        return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
       }
     }
     val (directObject, extraModifiers) =
@@ -660,7 +663,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       directObjects.headOption,
       adpositionObject,
       extraModifiers ++ verbModifiers.map(expectVerbModifier))
-    (negative, predicate)
+    tupleN((negative, predicate))
   }
 
   private def expectVerbObjectsAndModifiers(
@@ -702,8 +705,8 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       modifier
     })
     val modifiers = seq.filterNot(objTrees.contains)
-    (directObjTree.map(expectReference),
-      indirectAdposition.toSeq ++ modifiers.map(expectVerbModifier))
+    tupleN((directObjTree.map(expectReference),
+      indirectAdposition.toSeq ++ modifiers.map(expectVerbModifier)))
   }
 
   override protected[parser] def expectVerbModifierPhrase(
@@ -768,27 +771,27 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
           conjunctiveRef
         }
       }
-      (negative, expectStatePredicate(
+      tupleN((negative, expectStatePredicate(
         syntaxTree, subject, expectExistenceState(np), SilNullState(),
-        verbModifiers.map(expectVerbModifier)))
+        verbModifiers.map(expectVerbModifier))))
     } else if (complement.isExistential) {
-      (negative, expectStatePredicate(
+      tupleN((negative, expectStatePredicate(
         syntaxTree,
         specifyReference(
           expectReference(np), specifiedState),
         expectExistenceState(complement),
         SilNullState(),
-        verbModifiers.map(expectVerbModifier)))
+        verbModifiers.map(expectVerbModifier))))
     } else if (complement.isNounPhrase) {
       // FIXME this is quite arbitrary
       val (subjectRef, complementRef) = relationship match {
         case REL_IDENTITY => {
-          (specifyReference(expectReference(np), specifiedState),
-            expectReference(seq))
+          tupleN((specifyReference(expectReference(np), specifiedState),
+            expectReference(seq)))
         }
         case REL_ASSOCIATION => {
-          (expectReference(np),
-            specifyReference(expectReference(seq), specifiedState))
+          tupleN((expectReference(np),
+            specifyReference(expectReference(seq), specifiedState)))
         }
       }
       val relationshipPredicate = expectRelationshipPredicate(
@@ -797,7 +800,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         complementRef,
         relationship,
         verbModifiers.map(expectVerbModifier))
-      (negative, relationshipPredicate)
+      tupleN((negative, relationshipPredicate))
     } else {
       val (state, extraModifiers, refinedState) = {
         complement match {
@@ -805,7 +808,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
           // be handled, and that goes for the other predicate types above
           // too!
           case tmod : SptTMOD if (specifiedState != SilNullState()) => {
-            (specifiedState, Seq(tmod), SilNullState())
+            tupleN((specifiedState, Seq(tmod), SilNullState()))
           }
           case _ => {
             val seqState = splitCoordinatingConjunction(seq) match {
@@ -824,13 +827,13 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
                 conjunctiveState
               }
             }
-            (seqState, Seq.empty, specifiedState)
+            tupleN((seqState, Seq.empty, specifiedState))
           }
         }
       }
-      (negative, expectStatePredicate(
+      tupleN((negative, expectStatePredicate(
         syntaxTree, expectReference(np), state, refinedState,
-        (verbModifiers ++ extraModifiers).map(expectVerbModifier)))
+        (verbModifiers ++ extraModifiers).map(expectVerbModifier))))
     }
   }
 
@@ -1018,13 +1021,14 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       case -1 => {
         val pp = seq.last
         if (pp.isAdpositionalPhrase) {
-          (maybeRecognizeParticle(pp), seq.dropRight(1) ++ pp.children.drop(1))
+          tupleN((maybeRecognizeParticle(pp),
+            seq.dropRight(1) ++ pp.children.drop(1)))
         } else {
-          (None, seq)
+          tupleN((None, seq))
         }
       }
       case i => {
-        (maybeRecognizeParticle(seq(i)), seq.patch(i, Seq.empty, 1))
+        tupleN((maybeRecognizeParticle(seq(i)), seq.patch(i, Seq.empty, 1)))
       }
     }
   }
@@ -1045,15 +1049,15 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
           val rewrite = SprSyntaxRewriter.recompose(
             advp,
             Seq(advp.firstChild, np))
-          (SilNullState(), seq.dropRight(2) :+ rewrite)
+          tupleN((SilNullState(), seq.dropRight(2) :+ rewrite))
         }
         case _ => {
-          (SilNullState(), seq)
+          tupleN((SilNullState(), seq))
         }
       }
     } else {
-      (SilExpectedAdpositionalState(seq(i)),
-        seq.take(i) ++ seq.drop(i + 1))
+      tupleN((SilExpectedAdpositionalState(seq(i)),
+        seq.take(i) ++ seq.drop(i + 1)))
     }
   }
 
@@ -1070,17 +1074,17 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       if (iModal < 0) {
         val (progressive, iVerb) = detectProgressive(seq)
         if (!progressive) {
-          return (SilTam.indicative, seq, COUNT_SINGULAR)
+          return tupleN((SilTam.indicative, seq, COUNT_SINGULAR))
         } else {
           val iBeing = seq.indexWhere(_.isVerbNode)
           val being = seq(iBeing).unwrapPhrase
           assert(being.isRelationshipVerb)
           val nonBeing = seq.patch(iBeing, Seq.empty, 1)
-          (nonBeing, iBeing)
+          tupleN((nonBeing, iBeing))
         }
       } else {
         val nonModal = seq.patch(iModal, Seq.empty, 1)
-        (nonModal, iModal)
+        tupleN((nonModal, iModal))
       }
     }
 
@@ -1095,7 +1099,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     val leaf = requireLeaf(aux.children)
     val tam = tamForAux(leaf)
     val tamTensed = extractTense(aux, tam)
-    (tamTensed, remainder, getVerbCount(aux))
+    tupleN((tamTensed, remainder, getVerbCount(aux)))
   }
 
   private def extractNegative(
@@ -1105,9 +1109,9 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     // FIXME:  don't reduce to empty seq
     val pos = seq.indexWhere(isNegative)
     if (pos == -1) {
-      (false, seq)
+      tupleN((false, seq))
     } else {
-      (true, seq.patch(pos, Seq.empty, 1))
+      tupleN((true, seq.patch(pos, Seq.empty, 1)))
     }
   }
 
@@ -1138,18 +1142,18 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         case SEPARATOR_COMMA | SEPARATOR_OXFORD_COMMA => {
           splitCoordinatingConjunction(commaSplit.last) match {
             case (DETERMINER_UNSPECIFIED, _, _) => {
-              (DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, Seq.empty)
+              tupleN((DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, Seq.empty))
             }
             case (determiner, separator, subSplit) => {
               // FIXME:  deal with coordinating determiner in
               // first sub-phrase
               val seq = commaSplit.dropRight(1) ++ subSplit
-              (determiner, commaSeparator, seq)
+              tupleN((determiner, commaSeparator, seq))
             }
           }
         }
         case _ => {
-          (DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, Seq.empty)
+          tupleN((DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, Seq.empty))
         }
       }
     } else {
@@ -1173,7 +1177,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       val suffix = components.drop(pos + 1)
       splitCoordinatingConjunction(suffix) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {
-          (determiner, commaSeparator, commaSplit ++ Seq(suffix))
+          tupleN((determiner, commaSeparator, commaSplit ++ Seq(suffix)))
         }
         case (subDeterminer, _, subSplit) => {
           val seq = {
@@ -1183,7 +1187,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
               commaSplit ++ Seq(suffix)
             }
           }
-          (determiner, commaSeparator, seq.filterNot(_.isEmpty))
+          tupleN((determiner, commaSeparator, seq.filterNot(_.isEmpty)))
         }
       }
     }

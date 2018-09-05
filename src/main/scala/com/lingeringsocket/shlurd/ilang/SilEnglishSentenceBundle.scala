@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import org.atteo.evo.inflector.{English => EnglishPluralizer}
@@ -46,9 +47,9 @@ class SilEnglishSentenceBundle
   {
     val (adpositionPre, modifiers) = answerInflection match {
       case INFLECT_ADPOSITIONED =>
-        (Some(modifiersOriginal.last), modifiersOriginal.dropRight(1))
+        tupleN((Some(modifiersOriginal.last), modifiersOriginal.dropRight(1)))
       case _ =>
-        (None, modifiersOriginal)
+        tupleN((None, modifiersOriginal))
     }
     val directObjectPost = answerInflection match {
       case INFLECT_ACCUSATIVE => None

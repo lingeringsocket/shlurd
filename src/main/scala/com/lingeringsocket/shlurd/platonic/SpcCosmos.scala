@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
@@ -482,8 +483,8 @@ class SpcCosmos(
 
   protected[platonic] def getIdealSynonyms =
     graph.idealSynonyms.edgeSet.asScala.toSeq.map(edge =>
-      (graph.idealSynonyms.getEdgeSource(edge).name,
-        graph.idealSynonyms.getEdgeTarget(edge).name))
+      tupleN((graph.idealSynonyms.getEdgeSource(edge).name,
+        graph.idealSynonyms.getEdgeTarget(edge).name)))
 
   def getIdealTaxonomyGraph =
     unmodifiableGraph.idealTaxonomy
@@ -496,7 +497,7 @@ class SpcCosmos(
 
   def getInverseAssocEdges : Seq[(SpcFormAssocEdge, SpcFormAssocEdge)] =
     graph.inverseAssocs.vertexSet.asScala.toSeq.map(vertex =>
-      (vertex, getInverseAssocEdge(vertex).get))
+      tupleN((vertex, getInverseAssocEdge(vertex).get)))
 
   private def hasQualifiers(
     existing : SpcEntity,
@@ -525,14 +526,14 @@ class SpcCosmos(
         _, form, qualifiers, true)) match
       {
         case Some(entity) => {
-          return (entity, false)
+          return tupleN((entity, false))
         }
         case _ =>
       }
     } else {
       getEntityBySynonym(properName) match {
         case Some(entity) => {
-          return (entity, false)
+          return tupleN((entity, false))
         }
         case _ =>
       }
@@ -548,7 +549,7 @@ class SpcCosmos(
     }
     val entity = new SpcEntity(name, form, qualifiers, properName)
     createOrReplaceEntity(entity)
-    (entity, true)
+    tupleN((entity, true))
   }
 
   protected[platonic] def createOrReplaceEntity(entity : SpcEntity)
@@ -841,10 +842,10 @@ class SpcCosmos(
   {
     getIdealBySynonym(lemma) match {
       case Some(form : SpcForm) => {
-        (Some(form), None)
+        tupleN((Some(form), None))
       }
       case Some(role : SpcRole) => {
-        (None, Some(role))
+        tupleN((None, Some(role)))
       }
       case _ => (None, None)
     }
@@ -919,8 +920,8 @@ class SpcCosmos(
       resolveFormProperty(hyperForm, lemma) match {
         case Some((property, stateName)) => {
           return Some(
-            (findProperty(form, property.name).getOrElse(property),
-              stateName))
+            tupleN((findProperty(form, property.name).getOrElse(property),
+              stateName)))
         }
         case _ =>
       }
@@ -1144,9 +1145,9 @@ class SpcCosmos(
       findProperty(originalEntity.form, originalPropertyName) match {
         case Some(property) => {
           return Success(
-            (Some(property),
+            tupleN((Some(property),
               getEntityPropertyMap(originalEntity).
-                get(originalPropertyName).map( _.lemma)))
+                get(originalPropertyName).map( _.lemma))))
         }
         case _ => {
           return Success((None, None))

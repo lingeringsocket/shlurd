@@ -144,23 +144,24 @@ class SpcInterpreter(
           val iTemporal = temporalRefs.indexWhere(!_.isEmpty)
           val (interval, predicateOpt, baselineCosmos, temporal) = {
             if (iTemporal < 0) {
-              (SmcTimeInterval.NEXT_INSTANT, predicate, mind.getCosmos, false)
+              tupleN((SmcTimeInterval.NEXT_INSTANT,
+                predicate, mind.getCosmos, false))
             } else {
               val interval = Interval.point[SmcTimePoint](
                 SmcRelativeTimePoint(
                   temporalRefs(iTemporal).get))
               val temporalCosmos = mind.getTemporalCosmos(interval)
-              (interval,
+              tupleN((interval,
                 predicate.withNewModifiers(
                   predicate.getModifiers.patch(iTemporal, Seq.empty, 1)),
                 temporalCosmos,
-                true)
+                true))
             }
           }
-          (interval, Some(predicateOpt), baselineCosmos, temporal)
+          tupleN((interval, Some(predicateOpt), baselineCosmos, temporal))
         }
         case _ => {
-          (SmcTimeInterval.NEXT_INSTANT, None, mind.getCosmos, false)
+          tupleN((SmcTimeInterval.NEXT_INSTANT, None, mind.getCosmos, false))
         }
       }
 
@@ -229,13 +230,13 @@ class SpcInterpreter(
               SilPropertyQueryState(noun.lemma),
               modifiers
             )
-            return (statePredicate, INFLECT_COMPLEMENT)
+            return tupleN((statePredicate, INFLECT_COMPLEMENT))
           }
         }
         case _ =>
       }
     }
-    (rewritten, answerInflection)
+    tupleN((rewritten, answerInflection))
   }
 
   private def saveReferenceMap(
@@ -617,8 +618,10 @@ class SpcInterpreter(
           case pr : SilPronounReference => {
             mind.resolvePronoun(pr) match {
               case Success(entities) if (!entities.isEmpty) => {
-                (mind.getCosmos.specificReferences(entities, DETERMINER_UNIQUE),
-                  entities)
+                tupleN((
+                  mind.getCosmos.specificReferences(
+                    entities, DETERMINER_UNIQUE),
+                  entities))
               }
               case _ =>  {
                 trace(s"PRONOUN $pr UNRESOLVED")
@@ -633,11 +636,11 @@ class SpcInterpreter(
           case _ => {
             referenceMap.get(actualRef) match {
               case Some(entities) => {
-                (actualRef, entities)
+                tupleN((actualRef, entities))
               }
               case _ => {
                 if (resolvedForm.isEmpty) {
-                  (actualRef, Set.empty[SpcEntity])
+                  tupleN((actualRef, Set.empty[SpcEntity]))
                 } else {
                   trace(s"UNRESOLVED REFERENCE $actualRef")
                   return false

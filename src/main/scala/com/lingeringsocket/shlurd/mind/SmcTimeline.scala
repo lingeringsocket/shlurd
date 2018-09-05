@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
@@ -53,7 +54,7 @@ object SmcTimePointOrder extends Order[SmcTimePoint]
 
   override def compare(x : SmcTimePoint, y : SmcTimePoint) : Int =
   {
-    (x, y) match {
+    tupleN((x, y)) match {
       case (SmcRelativeTimePoint(r1, s1), SmcRelativeTimePoint(r2, s2)) => {
         val t1 = interpretTemporal(r1)
         val t2 = interpretTemporal(r2)

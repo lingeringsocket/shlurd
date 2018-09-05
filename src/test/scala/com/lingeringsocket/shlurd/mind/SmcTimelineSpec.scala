@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
@@ -103,7 +104,7 @@ class SmcTimelineSpec extends Specification
     val entry3 = timeline.addEntry(
       new TimelineEntry(TIME_AUTO, COSMOS_3, PRED_A, REF_MAP_1),
       nullCosmosMutator)
-    (entry1, entry2, entry3)
+    tupleN((entry1, entry2, entry3))
   }
 
   "SmcTimeline" should

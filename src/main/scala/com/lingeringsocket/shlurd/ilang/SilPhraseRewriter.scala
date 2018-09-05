@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
+
 import org.kiama.rewriting._
 import org.kiama.util._
 
@@ -88,7 +90,7 @@ class SilPhraseRewriter
     override def rewriting[PhraseType](
       oldPhrase : PhraseType, newPhrase : PhraseType) : PhraseType =
     {
-      (oldPhrase, newPhrase) match {
+      tupleN((oldPhrase, newPhrase)) match {
         case (oldTransformed : SilPhrase,
           newTransformed : SilTransformedPhrase) =>
           {
@@ -96,7 +98,7 @@ class SilPhraseRewriter
           }
         case _ =>
       }
-      (oldPhrase, newPhrase) match {
+      tupleN((oldPhrase, newPhrase)) match {
         case (oldPredicate : SilPredicate,
           newPredicate : SilPredicate) =>
           {

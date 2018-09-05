@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
@@ -279,10 +280,10 @@ class SmcPredicateEvaluator[
   {
     rel match {
       case REL_IDENTITY => {
-        (REF_COMPLEMENT, extractCategory(complementRef))
+        tupleN((REF_COMPLEMENT, extractCategory(complementRef)))
       }
       case REL_ASSOCIATION => {
-        (REF_SUBJECT, "")
+        tupleN((REF_SUBJECT, ""))
       }
     }
   }

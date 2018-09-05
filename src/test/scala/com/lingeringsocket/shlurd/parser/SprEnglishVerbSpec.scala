@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
@@ -403,7 +404,7 @@ class SprEnglishVerbSpec extends Specification
     inflection : SilInflection) : Boolean =
   {
     // FIXME corenlp doesn't seem to understand progressives in these contexts
-    (tam.polarity, tam.aspect, rhs, inflection) match {
+    tupleN((tam.polarity, tam.aspect, rhs, inflection)) match {
       case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE,
         _, INFLECT_ACCUSATIVE) => true
       case (POLARITY_NEGATIVE, ASPECT_PROGRESSIVE,

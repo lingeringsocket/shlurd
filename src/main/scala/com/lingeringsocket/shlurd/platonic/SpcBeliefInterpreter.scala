@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.parser._
 
@@ -105,7 +106,7 @@ class SpcBeliefInterpreter(
         val (entity, success) = cosmos.instantiateEntity(
           form, Seq.empty)
         assert(success)
-        (entity, success)
+        tupleN((entity, success))
       }
       case DETERMINER_UNSPECIFIED => {
         cosmos.getEntityBySynonym(noun.lemma) match {
@@ -117,7 +118,7 @@ class SpcBeliefInterpreter(
             val (entity, success) = cosmos.instantiateEntity(
               newForm, Seq(noun), noun.lemmaUnfolded)
             assert(success)
-            (entity, success)
+            tupleN((entity, success))
           }
         }
       }
@@ -291,7 +292,7 @@ class SpcBeliefInterpreter(
         }
       }
     }
-    (formAssocEdge, possessorIdeal, role)
+    tupleN((formAssocEdge, possessorIdeal, role))
   }
 
   private def instantiatePropertyStates(
@@ -489,7 +490,7 @@ class SpcBeliefInterpreter(
                     form, qualifiers, properName)
                 }
               }
-              (entity, isNewEntity, determiner)
+              tupleN((entity, isNewEntity, determiner))
             }
             case _ => {
               throw new IncomprehensibleBeliefExcn(sentence)
@@ -591,7 +592,7 @@ class SpcBeliefInterpreter(
       val (property, actualState) = propertyOpt.getOrElse({
         val p = instantiatePropertyStates(
           sentence, form, Seq(stateName), false, propertyName)
-        (p, stateName.lemma)
+        tupleN((p, stateName.lemma))
       })
       // FIXME need to honor allowUpdates
       cosmos.updateEntityProperty(entity, property, actualState)

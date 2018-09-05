@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.mind
 
 import scala.collection._
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import SprEnglishLemmas._
@@ -116,16 +117,16 @@ class SmcResponseRewriter[
           negateCollection = true
           val (responseDeterminer, responseNoun) = noun match {
             case SilWord(LEMMA_WHO, LEMMA_WHO) => {
-              (DETERMINER_NONE, SilWord(LEMMA_ONE))
+              tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
             }
             case SilWord(LEMMA_WHOM, LEMMA_WHOM) => {
-              (DETERMINER_NONE, SilWord(LEMMA_ONE))
+              tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
             }
             case SilWord(LEMMA_WHERE, LEMMA_WHERE) => {
-              (DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE))
+              tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE)))
             }
             case SilWord(LEMMA_WHAT, LEMMA_WHAT) => {
-              (DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOTHING))
+              tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOTHING)))
             }
             case _ => (DETERMINER_NONE, noun)
           }
@@ -200,7 +201,7 @@ class SmcResponseRewriter[
     val normalized = transformQuestionResponse(
       rewriteLast, params, question, negateCollection)
     SilPhraseValidator.validatePhrase(normalized)
-    (normalized, negateCollection)
+    tupleN((normalized, negateCollection))
   }
 
   def swapPronounsSpeakerListener(
@@ -265,7 +266,7 @@ class SmcResponseRewriter[
       }
       case _ =>
     }
-    (predicate, question) match {
+    tupleN((predicate, question)) match {
       case (rp @
           SilRelationshipPredicate(
             container,
@@ -314,7 +315,8 @@ class SmcResponseRewriter[
     referenceMap --= detector.ambiguousRefs
     predicate match {
       case SilRelationshipPredicate(subject, complement, REL_IDENTITY, _) => {
-        (referenceMap.get(subject), referenceMap.get(complement)) match {
+        tupleN((referenceMap.get(subject), referenceMap.get(complement))) match
+        {
           case (Some(subjectEntities), Some(complementEntities)) => {
             if (subjectEntities == complementEntities) {
               // prevent a tautology
@@ -667,7 +669,7 @@ class SmcResponseRewriter[
       (trueEntities.size == resultCollector.entityMap.size) &&
         !params.neverSummarize
     val existence = resultCollector.states.isEmpty
-    (if (trueEntities.isEmpty) {
+    if (trueEntities.isEmpty) {
       None
     } else if ((trueEntities.size == 1) && !params.alwaysSummarize) {
       Some(resolveReference(
@@ -680,7 +682,7 @@ class SmcResponseRewriter[
         trueEntities.map(
           resolveReference(_, entityDeterminer, resultCollector)).toSeq,
         separator))
-    })
+    }
   }
 
   private def normalizeConjunction(
@@ -696,21 +698,21 @@ class SmcResponseRewriter[
         !params.neverSummarize
     val existence = resultCollector.states.isEmpty
     if (falseEntities.isEmpty) {
-      (None, false)
+      tupleN((None, false))
     } else if ((falseEntities.size == 1) && !params.alwaysSummarize) {
-      (Some(resolveReference(
+      tupleN((Some(resolveReference(
         falseEntities.head, entityDeterminer, resultCollector)),
-        false)
+        false))
     } else if (exhaustive || (falseEntities.size > params.listLimit)) {
-      (summarizeList(falseEntities, exhaustive, existence, true),
-        exhaustive)
+      tupleN((summarizeList(falseEntities, exhaustive, existence, true),
+        exhaustive))
     } else {
-      (Some(SilConjunctiveReference(
+      tupleN((Some(SilConjunctiveReference(
         DETERMINER_NONE,
         falseEntities.map(
           resolveReference(_, entityDeterminer, resultCollector)).toSeq,
         separator)),
-        true)
+        true))
     }
   }
 

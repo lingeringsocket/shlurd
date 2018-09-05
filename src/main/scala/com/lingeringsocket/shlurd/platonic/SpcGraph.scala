@@ -14,6 +14,9 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
+
 import org.jgrapht._
 import org.jgrapht.graph._
 import org.jgrapht.alg._
@@ -26,8 +29,6 @@ import org.jgrapht.io._
 import java.io._
 
 import scala.collection.JavaConverters._
-
-import com.lingeringsocket.shlurd.parser._
 
 object SpcGraph
 {
@@ -115,8 +116,8 @@ object SpcGraph
           case sn : SpcStateNormalization => Some(sn.original)
           case _ => None
         })
-    (formPropertyIndex, entityPropertyIndex,
-      propertyStateIndex, stateNormalizationIndex)
+    tupleN((formPropertyIndex, entityPropertyIndex,
+      propertyStateIndex, stateNormalizationIndex))
   }
 }
 
@@ -391,9 +392,9 @@ class SpcGraph(
       }
     }
     val edgeTriples = graph.edgesOf(oldVertex).asScala.toSeq.map(edge =>
-      (edge,
+      tupleN((edge,
         replaceOld(graph.getEdgeSource(edge)),
-        replaceOld(graph.getEdgeTarget(edge))))
+        replaceOld(graph.getEdgeTarget(edge)))))
     graph.removeAllEdges(edgeTriples.map(_._1).asJava)
     edgeTriples.foreach(edgeTriple => {
       graph.addEdge(edgeTriple._2, edgeTriple._3, edgeTriple._1)
@@ -437,7 +438,7 @@ class SpcGraph(
       val subclass = getSubclassIdeal(taxonomyEdge)
       val superclass = getSuperclassIdeal(taxonomyEdge)
       assert(!(subclass.isForm && superclass.isRole),
-        (subclass, superclass).toString)
+        tupleN((subclass, superclass)).toString)
     })
     assert(!new CycleDetector(idealTaxonomy).detectCycles)
     assert(!new CycleDetector(idealSynonyms).detectCycles)
@@ -446,7 +447,7 @@ class SpcGraph(
     formAssocs.edgeSet.asScala.foreach(formEdge => {
       val role = getPossesseeRole(formEdge)
       assert(role.name == formEdge.getRoleName,
-        (role, formEdge).toString)
+        tupleN((role, formEdge)).toString)
       assert(!getFormsForRole(role).isEmpty, role.toString)
     })
     val inverseAssocsVertexSet = inverseAssocs.vertexSet.asScala
@@ -476,7 +477,7 @@ class SpcGraph(
       assert(isFormCompatibleWithIdeal(possessorEntity.form, possessorIdeal))
       val role = getPossesseeRole(formEdge)
       assert(isFormCompatibleWithRole(possesseeEntity.form, role),
-        (possesseeEntity.form, role).toString)
+        tupleN((possesseeEntity.form, role)).toString)
     })
     components.edgeSet.asScala.foreach(componentEdge => {
       val container = getContainer(componentEdge)

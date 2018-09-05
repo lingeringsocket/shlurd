@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
+
 import SprEnglishLemmas._
 
 private[parser] class SprNormalizationRewriter
@@ -154,7 +156,7 @@ private[parser] class SprNormalizationRewriter
         directObject match {
           case Some(obj) => {
             val (r, m) = extractVerbModifier(obj)
-            (Some(r), m)
+            tupleN((Some(r), m))
           }
           case _ => (None, Seq.empty)
         }
@@ -174,7 +176,7 @@ private[parser] class SprNormalizationRewriter
         sub,
         SilAdpositionalState(adposition, objRef)
       ) if (isAdverbialAdposition(sub, adposition, objRef)) => {
-        (sub, Seq(SilAdpositionalVerbModifier(adposition, objRef)))
+        tupleN((sub, Seq(SilAdpositionalVerbModifier(adposition, objRef))))
       }
       case _ => (ref, Seq.empty)
     }
