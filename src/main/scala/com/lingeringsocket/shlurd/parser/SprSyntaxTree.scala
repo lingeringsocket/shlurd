@@ -277,6 +277,8 @@ sealed trait SprSyntaxTree extends SprAbstractSyntaxTree
   }
 
   def isThen = unwrapPhrase.hasTerminalLemma(LEMMA_THEN)
+
+  def isEquivalently = unwrapPhrase.hasTerminalLemma(LEMMA_EQUIVALENTLY)
 }
 
 sealed trait SprSyntaxNonLeaf extends SprSyntaxTree

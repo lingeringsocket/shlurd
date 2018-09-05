@@ -27,6 +27,7 @@ private[parser] class SprNormalizationRewriter
   private def normalizeAllPhrases = combineRules(
     normalizeEmphatic,
     normalizeDanglingAdpositions,
+    normalizeCompoundAdpositions,
     normalizeAdpositionalPhrases)
 
   private def normalizeEmphatic = replacementMatcher {
@@ -88,6 +89,26 @@ private[parser] class SprNormalizationRewriter
         INFLECT_ADPOSITIONED,
         tam,
         formality)
+    }
+  }
+
+  // FIXME generalize this
+  private def normalizeCompoundAdpositions = replacementMatcher {
+    case SilAdpositionalState(
+      adp1 : SilAdposition,
+      SilStateSpecifiedReference(
+        SilNounReference(word, DETERMINER_UNIQUE, COUNT_SINGULAR),
+        SilAdpositionalState(
+          adp2 : SilAdposition,
+          objRef
+        )
+      )
+    ) if (word.lemma == LEMMA_LEFT) || (word.lemma == LEMMA_RIGHT) => {
+      SilAdpositionalState(
+        SilAdposition(
+          adp1.words ++ Seq(SilWord(LEMMA_THE), word) ++ adp2.words),
+        objRef
+      )
     }
   }
 

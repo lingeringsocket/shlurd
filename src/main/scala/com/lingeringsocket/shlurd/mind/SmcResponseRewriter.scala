@@ -146,12 +146,12 @@ class SmcResponseRewriter[
         resultCollector.isCategorization || !allowFlips)
       {
         rewrite(
-          swapPronounsSpeakerListener,
+          swapPronounsSpeakerListener(resultCollector.referenceMap),
           predicate)
       } else {
         rewrite(
           combineRules(
-            swapPronounsSpeakerListener,
+            swapPronounsSpeakerListener(resultCollector.referenceMap),
             flipPredicateQueries
           ),
           predicate)
@@ -203,14 +203,20 @@ class SmcResponseRewriter[
     (normalized, negateCollection)
   }
 
-  def swapPronounsSpeakerListener = replacementMatcher {
-    case SilPronounReference(person, gender, count, distance)=> {
+  def swapPronounsSpeakerListener(
+    referenceMap : mutable.Map[SilReference, Set[EntityType]]
+  ) = replacementMatcher {
+    case oldPronoun @ SilPronounReference(person, gender, count, distance)=> {
       val speakerListenerReversed = person match {
         case PERSON_FIRST => PERSON_SECOND
         case PERSON_SECOND => PERSON_FIRST
         case PERSON_THIRD => PERSON_THIRD
       }
-      SilPronounReference(speakerListenerReversed, gender, count, distance)
+      val newPronoun =
+        SilPronounReference(speakerListenerReversed, gender, count, distance)
+      referenceMap.get(oldPronoun).foreach(entities =>
+        referenceMap.put(newPronoun, entities))
+      newPronoun
     }
   }
 
@@ -372,7 +378,7 @@ class SmcResponseRewriter[
   }
 
   private def avoidTautologies(
-    referenceMap : Map[SilReference, Set[EntityType]]
+    referenceMap : mutable.Map[SilReference, Set[EntityType]]
   ) = replacementMatcher {
     case SilRelationshipPredicate(
       SilMappedReference(key, determiner),
@@ -382,7 +388,7 @@ class SmcResponseRewriter[
     ) => {
       val entity = entityMap(key)
       SilRelationshipPredicate(
-        chooseReference(entity, other, determiner),
+        chooseReference(referenceMap, entity, other, determiner),
         other,
         REL_IDENTITY)
     }
@@ -395,7 +401,7 @@ class SmcResponseRewriter[
       val entity = entityMap(key)
       SilRelationshipPredicate(
         other,
-        chooseReference(entity, other, determiner),
+        chooseReference(referenceMap, entity, other, determiner),
         REL_IDENTITY)
     }
   }
@@ -411,12 +417,13 @@ class SmcResponseRewriter[
   }
 
   private def chooseReference(
+    referenceMap : mutable.Map[SilReference, Set[EntityType]],
     entity : EntityType,
     other : SilReference,
     determiner : SilDeterminer) : SilReference =
   {
     val equivs = mind.equivalentReferences(entity, determiner).map(
-      ref => rewrite(swapPronounsSpeakerListener, ref))
+      ref => rewrite(swapPronounsSpeakerListener(referenceMap), ref))
     equivs.find(_ != other) match {
       case Some(ref) => ref
       case _ => equivs.head

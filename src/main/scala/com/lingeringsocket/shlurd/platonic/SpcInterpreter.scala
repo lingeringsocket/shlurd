@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
@@ -59,9 +60,7 @@ class SpcInterpreter(
       if (checkCycle(predicate, already)) {
         return fail(sentencePrinter.sb.circularAction)
       }
-      mind.getCosmos.getTriggers.foreach(trigger => {
-        // technically we should require iff for trigger instead of just if,
-        // but let's not split hairs
+      mind.getCosmos.getTriggers.filter(_.biconditional).foreach(trigger => {
         matchTrigger(mind.getCosmos, trigger, predicate,
           referenceMapOpt.get) match
         {
@@ -87,8 +86,9 @@ class SpcInterpreter(
         case _ => predicate
       }
       // FIXME this could cause the predicate to become
-      // inconsisent with the answer inflection
-      mind.getCosmos.getTriggers.foreach(trigger => {
+      // inconsisent with the answer inflection.  Also, when there
+      // are multiple matches, we should be conjoining them.
+      mind.getCosmos.getTriggers.filter(_.biconditional).foreach(trigger => {
         matchTrigger(mind.getCosmos, trigger, stateNormalized,
           referenceMap) match
         {
@@ -379,7 +379,7 @@ class SpcInterpreter(
         val newSentence = SilPredicateSentence(newPredicate)
         val resultCollector = SmcResultCollector[SpcEntity]()
         spawn(imagine(forkedCosmos)).resolveReferences(
-          newSentence, resultCollector)
+          newSentence, resultCollector, false, true)
         val result = interpretBeliefOrAction(
           forkedCosmos, newSentence, resultCollector)
         if (result.isEmpty) {
@@ -427,7 +427,7 @@ class SpcInterpreter(
             return None
           }
         }
-        Tuple2(state, statePredicate.state) match {
+        tupleN((state, statePredicate.state)) match {
           // FIXME allow other variable patterns
           case (
             SilAdpositionalState(adp1, obj1),

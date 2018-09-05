@@ -14,67 +14,67 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-abstract class SprSyntaxAnalyzer(guessedQuestion : Boolean)
+trait SprSyntaxAnalyzer
 {
-  private[parser] def analyzeSentence(
+  protected[parser] def analyzeSentence(
     tree : SptS)
       : SilSentence
 
-  private[parser] def analyzeSQ(
+  protected[parser] def analyzeSQ(
     tree : SprSyntaxTree, forceSQ : Boolean)
       : SilSentence
 
-  private[parser] def analyzeSBARQ(
+  protected[parser] def analyzeSBARQ(
     tree : SptSBARQ)
       : SilSentence
 
-  private[parser] def analyzeNounPhrase(
+  protected[parser] def analyzeNounPhrase(
     tree : SptNP)
       : SilReference
 
-  private[parser] def analyzePronounReference(
+  protected[parser] def analyzePronounReference(
     leaf : SprSyntaxLeaf)
       : SilPronounReference
 
-  private[parser] def expectPropertyState(
+  protected[parser] def expectPropertyState(
     syntaxTree : SprSyntaxTree) : SilExpectedPropertyState
 
-  private[parser] def expectAdpositionalState(
+  protected[parser] def expectAdpositionalState(
     tree : SprSyntaxTree)
     : SilState
 
-  private[parser] def expectTemporalVerbModifier(
+  protected[parser] def expectTemporalVerbModifier(
     tmod : SptTMOD)
       : SilVerbModifier
 
-  private[parser] def expectVerbModifierPhrase(
+  protected[parser] def expectVerbModifierPhrase(
     tree : SprSyntaxPhrase)
       : SilVerbModifier
 
-  private[parser] def expectBasicVerbModifier(
+  protected[parser] def expectBasicVerbModifier(
     preTerminal : SprSyntaxPreTerminal)
       : SilVerbModifier
 
-  private[parser] def expectAdpositionalVerbModifier(
+  protected[parser] def expectAdpositionalVerbModifier(
     tree : SprSyntaxTree)
       : SilVerbModifier
 
-  private[parser] def expectPropertyComplementState(
+  protected[parser] def expectPropertyComplementState(
     tree : SprSyntaxTree)
       : SilState
 
-  private[parser] def getCount(
+  protected[parser] def getCount(
     tree : SprSyntaxTree)
       : SilCount
 
-  private[parser] def getWord(
+  protected[parser] def getWord(
     leaf : SprSyntaxLeaf)
       : SilWord
 
-  private[parser] def isProhibitedPropertyState(
+  protected[parser] def isProhibitedPropertyState(
     preTerminal : SprSyntaxPreTerminal) : Boolean
 
-  private[parser] def specifyReference(
+  protected[parser] def specifyReference(
     ref : SilReference, specifiedState : SilState)
       : SilReference
 }

@@ -457,15 +457,26 @@ class SpcInterpreterSpec extends Specification
       interpret("is Everard a person?", "I don't know.")
       interpret("does Laura have a godmother", "Yes, she has a godmother.")
       interpret("who is Laura's godmother", "I don't know.")
-      interpret("Marion is Laura's godmother?", "I don't know.")
-      // FIXME we can rule this one out since a godmother must be a woman
-      interpret("Henry is Laura's godmother?", "I don't know.")
+      interpret("Marion is Laura's godmother?",
+        "No, she is not Laura's godmother.")
+      interpret("Fancy is Laura's godmother?",
+        "No, she is not Laura's godmother.")
+      interpret("Henry is Laura's godmother?",
+        "No, he is not her godmother.")
       interpret("does Laura have a godfather",
         "No, she does not have a godfather.")
       interpretBelief("Fancy is Laura's godmother")
       interpretBelief("Titus is Laura's godfather")
-      interpret("who is Laura's godmother", "Her godmother is Fancy.")
-      interpret("who is Laura's godfather", "Her godfather is Titus.")
+      interpret("who is Laura's godmother",
+        "Her godmother is Fancy.")
+      interpret("who is Laura's godfather",
+        "Her godfather is Titus.")
+      interpret("Marion is Laura's godmother?",
+        "No, she is not Laura's godmother.")
+      interpret("Fancy is Laura's godmother?",
+        "Yes, she is Laura's godmother.")
+      interpret("does Laura have a godfather",
+        "Yes, she has a godfather.")
 
       cosmos.sanityCheck must beTrue
     }
@@ -1100,12 +1111,11 @@ class SpcInterpreterSpec extends Specification
       ACCEPT_NEW_BELIEFS)
     {
       interpretBelief("If an item is filling an object, " +
-        "then the item is the object's containee.")
+        "equivalently the item is the object's containee.")
       interpretBelief("If an item is occupying an object, " +
-        "then the item is in the object.")
-
+        "equivalently the item is in the object.")
       interpretBelief("If an object is carrying an item, " +
-        "then the item is the object's containee.")
+        "equivalently the item is the object's containee.")
 
       // FIXME this belief should be equivalent
       /*

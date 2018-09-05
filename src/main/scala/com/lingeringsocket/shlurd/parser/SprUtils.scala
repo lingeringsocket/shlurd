@@ -65,6 +65,7 @@ object SprEnglishLemmas
   val LEMMA_IF = "if"
   val LEMMA_WHEN = "when"
   val LEMMA_THEN = "then"
+  val LEMMA_EQUIVALENTLY = "equivalently"
   val LEMMA_IT = "it"
   val LEMMA_ITS = "its"
   val LEMMA_I = "I"

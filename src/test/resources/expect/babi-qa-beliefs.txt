@@ -43,7 +43,7 @@ If a person drops an item, then the item has no possessor.
 If a person leaves an item, then the person drops the item.
 If a person discards an item, then the person drops the item.
 If a person puts down an item, then the person drops the item.
-If a person is carrying an item, then the item is the person's possession.
+If a person is carrying an item, equivalently the item is the person's possession.
 If a person receives an item, then the item is the person's possession.
 If a person gives an item to a recipient, then the recipient receives the item.
 If a person passes a recipient an item, then the person gives the item to the recipient.
@@ -73,7 +73,42 @@ A place may have an eastern_neighbor.
 A place may have a western_neighbor.
 A place with a northern_neighbor is a southern_neighbor.
 A place with an eastern_neighbor is a western_neighbor.
-If a place is west of a location, then the place is the location's western_neighbor.
-If a place is east of a location, then the place is the location's eastern_neighbor.
-If a place is north of a location, then the place is the location's northern_neighbor.
-If a place is south of a location, then the place is the location's southern_neighbor.
+If a place is west of a location, then equivalently the place is the location's western_neighbor.
+If a place is east of a location, then equivalently the place is the location's eastern_neighbor.
+If a place is north of a location, then equivalently the place is the location's northern_neighbor.
+If a place is south of a location, then equivalently the place is the location's southern_neighbor.
+A shape is a kind of object.
+A triangle is a kind of shape.
+A square is a kind of shape.
+A sphere is a kind of shape.
+A rectangle is a kind of shape.
+There is a triangle.
+There is a red sphere.
+There is a red square.
+There is a blue square.
+There is a yellow square.
+There is a pink rectangle.
+A row is a kind of object.
+A column is a kind of object.
+An abscissa must be a column.
+An ordinate must be a row.
+A shape must have an abscissa.
+A shape must have an ordinate.
+An above_neighbor must be a row.
+A below_neighbor must be a row.
+A left_neighbor must be a column.
+A right_neighbor must be a column.
+A row must have an above_neighbor.
+A row must have a below_neighbor.
+A column must have a left_neighbor.
+A column must have a right_neighbor.
+A row with an above_neighbor is a below_neighbor.
+A column with a left_neighbor is a right_neighbor.
+If a shape is above a neighbor, then the shape's abscissa is the neighbor's abscissa.
+If a shape is above a neighbor, then equivalently the shape's ordinate is the neighbor's ordinate's above_neighbor.
+If a shape is below a neighbor, then the shape's abscissa is the neighbor's abscissa.
+If a shape is below a neighbor, then equivalently the shape's ordinate is the neighbor's ordinate's below_neighbor.
+If a shape is to the left of a neighbor, then the shape's ordinate is the neighbor's ordinate.
+If a shape is to the left of a neighbor, then equivalently the shape's abscissa is the neighbor's abscissa's left_neighbor.
+If a shape is to the right of a neighbor, then the shape's ordinate is the neighbor's ordinate.
+If a shape is to the right of a neighbor, then equivalently the shape's abscissa is the neighbor's abscissa's right_neighbor.

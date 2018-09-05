@@ -19,6 +19,8 @@ import SprUtils._
 class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
   extends SilPhraseRewriter
 {
+  import SilPhraseRewriter._
+
   def parseSentence(sentenceSyntaxTree : SprSyntaxTree) : SilSentence =
   {
     val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
@@ -250,13 +252,7 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
               val newModifier = SilAdpositionalVerbModifier(
                 adposition,
                 predicate.adpositionObject.get)
-              // FIXME clean this up
-              modifier.maybeSyntaxTree match {
-                case Some(syntaxTree) => {
-                  newModifier.rememberSyntaxTree(syntaxTree)
-                }
-                case _ =>
-              }
+              onPhraseTransformation(modifier, newModifier)
               // FIXME this is gross--we leave the dangling adposition
               // around just so that later we can rememmber to
               // convert from INFLECT_ACCUSATIVE to INFLECT_ADPOSITIONED

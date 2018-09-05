@@ -136,6 +136,18 @@ object SprSyntaxRewriter
         )
       }
     }
+    case SptVP(
+      vbz @ SptVBZ(vb),
+      SptNP(
+        np : SptNP,
+        pp @ SptPP(
+          _ : SptTO,
+          _
+        )
+      )
+    ) if (vb.lemma == LEMMA_BE) => {
+      SptVP(vbz, np, pp)
+    }
     case vp @ SptVP(children @ _*) => {
       def pullUpNP(child : SprSyntaxTree) = {
         child match {

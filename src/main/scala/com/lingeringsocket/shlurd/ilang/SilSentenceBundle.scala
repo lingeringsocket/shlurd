@@ -140,7 +140,8 @@ abstract class SilSentenceBundle
 
   def conditional(
     antecedent : String,
-    consequent : String) : String
+    consequent : String,
+    biconditional : Boolean) : String
 
   def composeQualifiers(qualifiers : Seq[SilWord]) : String
 

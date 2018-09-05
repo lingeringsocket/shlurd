@@ -339,6 +339,7 @@ case class SilConditionalSentence(
   consequent : SilPredicate,
   tamAntecedent : SilTam,
   tamConsequent : SilTam,
+  biconditional : Boolean,
   formality : SilFormality = SilFormality.DEFAULT
 ) extends SilTransformedPhrase with SilSentence
 {

@@ -64,6 +64,12 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
     if (!expected.forall(e => response.toLowerCase.contains(e.toLowerCase))) {
       s"INCORRECT RESPONSE:  $response"
     } else {
+      if (false) {
+        new java.io.PrintWriter("/tmp/graph.txt") { write(
+          cosmos.getGraph.render(
+            cosmos.getGraph.entityAssocs, "Entity assocs")); close
+        }
+      }
       ""
     }
   }

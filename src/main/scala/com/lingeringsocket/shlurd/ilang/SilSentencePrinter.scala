@@ -76,14 +76,15 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         alternatives.map(s => printUnterminated(s, ellipsis)).mkString(" | ")
       }
       case SilConditionalSentence(
-        antecedent, consequent, tamAntecedent, tamConsequent, _
+        antecedent, consequent, tamAntecedent, tamConsequent, biconditional, _
       ) => {
         assert(!ellipsis)
         sb.conditional(
           printPredicateStatement(
             antecedent, tamAntecedent, ellipsis),
           printPredicateStatement(
-            consequent, tamConsequent, ellipsis))
+            consequent, tamConsequent, ellipsis),
+          biconditional)
       }
       case SilUnparsedSentence(text) => text
       case _ : SilUnknownSentence => {

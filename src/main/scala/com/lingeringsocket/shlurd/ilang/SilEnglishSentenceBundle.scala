@@ -465,9 +465,17 @@ class SilEnglishSentenceBundle
 
   override def conditional(
     antecedent : String,
-    consequent : String) =
+    consequent : String,
+    biconditional : Boolean) =
   {
-    compose(LEMMA_IF, concat(antecedent, ","), LEMMA_THEN, consequent)
+    val connective = {
+      if (biconditional) {
+        LEMMA_EQUIVALENTLY
+      } else {
+        LEMMA_THEN
+      }
+    }
+    compose(LEMMA_IF, concat(antecedent, ","), connective, consequent)
   }
 
   override def composeQualifiers(qualifiers : Seq[SilWord]) =

@@ -72,7 +72,23 @@ object SmcResultCollector
 {
   def apply[EntityType<:SmcEntity]() =
     new SmcResultCollector(
-      new mutable.LinkedHashMap[SilReference, Set[EntityType]])
+      // we use an identity hash map since the same expression (e.g.
+      // the pronoun "it") may appear in a phrase multiple times with
+      // different referents
+      new mutable.LinkedHashMap[SilReference, Set[EntityType]] {
+        override protected def elemEquals(
+          key1 : SilReference, key2 : SilReference) : Boolean =
+        {
+          key1 eq key2
+        }
+
+        override protected def elemHashCode(
+          key : SilReference) =
+        {
+          System.identityHashCode(key)
+        }
+      }
+    )
 }
 
 class SmcExecutor[EntityType<:SmcEntity]
@@ -155,9 +171,12 @@ class SmcInterpreter[
 
   def resolveReferences(
     phrase : SilPhrase,
-    resultCollector : ResultCollectorType)
+    resultCollector : ResultCollectorType,
+    throwFailures : Boolean = false,
+    reify : Boolean = false) : Try[Trilean] =
   {
-    predicateEvaluator.resolveReferences(phrase, resultCollector)
+    predicateEvaluator.resolveReferences(
+      phrase, resultCollector, throwFailures, reify)
   }
 
   protected def interpretImpl(
@@ -170,7 +189,9 @@ class SmcInterpreter[
     }
     if (normalizedInput.isUninterpretable) {
       val unrecognized = responseRewriter.rewrite(
-        responseRewriter.swapPronounsSpeakerListener, normalizedInput)
+        responseRewriter.swapPronounsSpeakerListener(
+          resultCollector.referenceMap),
+        normalizedInput)
       val responder = new SmcUnrecognizedResponder(sentencePrinter)
       return wrapResponseText(responder.respond(unrecognized))
     }

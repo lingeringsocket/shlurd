@@ -40,8 +40,43 @@ class FixpointStrategy(s : Strategy) extends Strategy("fixpoint")
   }
 }
 
+class TraceEmitter(logger : Logger) extends Emitter
+{
+  override def emit(any : Any)
+  {
+    logger.trace(any.toString)
+  }
+
+  override def emitln()
+  {
+    logger.trace("\n")
+  }
+
+  override def emitln(any : Any)
+  {
+    emit(any)
+    emitln
+  }
+}
+
+object SilPhraseRewriter
+{
+  def onPhraseTransformation(
+    oldPhrase : SilPhrase, newPhrase : SilTransformedPhrase)
+  {
+    oldPhrase.maybeSyntaxTree match {
+      case Some(syntaxTree) => {
+        newPhrase.rememberSyntaxTree(syntaxTree)
+      }
+      case _ =>
+    }
+  }
+}
+
 class SilPhraseRewriter
 {
+  import SilPhraseRewriter._
+
   type SilPhraseReplacement = PartialFunction[SilPhrase, SilPhrase]
 
   type SilPhraseQuery = PartialFunction[SilPhrase, Unit]
@@ -54,15 +89,10 @@ class SilPhraseRewriter
       oldPhrase : PhraseType, newPhrase : PhraseType) : PhraseType =
     {
       (oldPhrase, newPhrase) match {
-        case (oldMaybeTree : SilPhrase,
+        case (oldTransformed : SilPhrase,
           newTransformed : SilTransformedPhrase) =>
           {
-            oldMaybeTree.maybeSyntaxTree match {
-              case Some(syntaxTree) => {
-                rememberTransformation(syntaxTree, newTransformed)
-              }
-              case _ =>
-            }
+            onPhraseTransformation(oldTransformed, newTransformed)
           }
         case _ =>
       }
@@ -102,7 +132,7 @@ class SilPhraseRewriter
           "rewriteLog",
           strategy,
           "REWRITE ",
-          new ErrorEmitter)
+          new TraceEmitter(logger))
       } else {
         strategy
       }
@@ -151,18 +181,5 @@ class SilPhraseRewriter
       : SilPhraseReplacement =
   {
     rules.reduceLeft(_ orElse _)
-  }
-
-  private def rememberTransformation(
-    syntaxTree : SprSyntaxTree,
-    phrase : SilPhrase) =
-  {
-    phrase match {
-      case transformedPhrase : SilTransformedPhrase => {
-        transformedPhrase.rememberSyntaxTree(syntaxTree)
-      }
-      case _ => assert(phrase.isInstanceOf[SilUnknownPhrase])
-    }
-    phrase
   }
 }

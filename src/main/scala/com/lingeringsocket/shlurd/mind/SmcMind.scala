@@ -98,9 +98,20 @@ class SmcMind[
   }
 
   private def filterReferenceMap(
+    phrase : SilPhrase,
     referenceMap : Map[SilReference, Set[EntityType]]) =
   {
-    referenceMap.filterKeys(isRetainableReference)
+    val refSet = new mutable.HashSet[SilReference]
+    val phraseQuerier = new SilPhraseRewriter
+    val rule = phraseQuerier.queryMatcher {
+      case ref : SilReference => {
+        refSet += ref
+      }
+    }
+    phraseQuerier.query(rule, phrase)
+    referenceMap.filterKeys(ref => {
+      refSet.contains(ref) && isRetainableReference(ref)
+    })
   }
 
   private def isRetainableReference(ref : SilReference) : Boolean =
@@ -139,14 +150,15 @@ class SmcMind[
       }
     }
     conversation.foreach(_.addSpeakerSentence(
-      speakerName, sentence, text, filterReferenceMap(referenceMap)))
+      speakerName, sentence, text,
+      filterReferenceMap(sentence, referenceMap)))
   }
 
   def rememberSentenceAnalysis(
     referenceMap : Map[SilReference, Set[EntityType]])
   {
-    conversation.foreach(_.updateSentenceAnalysis(
-      filterReferenceMap(referenceMap)))
+    conversation.foreach(c => c.updateSentenceAnalysis(
+      filterReferenceMap(c.getUtterances.last.sentence, referenceMap)))
   }
 
   def getTemporalCosmos(interval : SmcTimeInterval) : CosmosType =

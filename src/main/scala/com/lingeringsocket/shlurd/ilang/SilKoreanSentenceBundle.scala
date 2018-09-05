@@ -167,9 +167,10 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def conditional(
     antecedent : String,
-    consequent : String) =
+    consequent : String,
+    biconditional : Boolean) =
   {
-    // FIXME proper conjugation
+    // FIXME proper conjugation, biconditional
     compose(concat(antecedent, "면"), consequent)
   }
 
