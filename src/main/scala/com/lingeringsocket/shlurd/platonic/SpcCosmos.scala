@@ -1436,7 +1436,7 @@ class SpcCosmos(
             hypernym => addIdealTaxonomy(form, hypernym))
           val (possessee, success) = instantiateEntity(
             form, Seq(SilWord(name)), name)
-          assert(success)
+          assert(success, tupleN((form, name)))
           addEntityAssoc(possessor, possessee, role)
         }
       }

@@ -680,7 +680,7 @@ class SmcInterpreter[
           queryDirectObject, queryModifiers)
       ) if (eventAction.lemma == queryAction.lemma) => {
         def isVariable(phrase : SilPhrase) = {
-          inputRewriter.containsWildcard(phrase, false)
+          inputRewriter.containsWildcard(phrase)
         }
         val bindings = new mutable.ArrayBuffer[(SilReference, SilReference)]
         def bindVariable(queryRef : SilReference, eventRef : SilReference) {

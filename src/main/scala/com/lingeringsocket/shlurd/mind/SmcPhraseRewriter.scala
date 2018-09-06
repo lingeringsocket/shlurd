@@ -24,7 +24,7 @@ class SmcPhraseRewriter extends SilPhraseRewriter
 
   def containsWildcard(
     phrase : SilPhrase,
-    includeConjunctions : Boolean = true) : Boolean =
+    includeConjunctions : Boolean = false) : Boolean =
   {
     var wildcard = false
     def matchWildcard = querier.queryMatcher {

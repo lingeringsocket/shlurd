@@ -78,5 +78,8 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
 object SpcInterpretTester extends App
 {
   val tester = new SpcInterpretTester(args.head)
-  tester.run(Source.stdin)
+  val (successes, failures) = tester.run(Source.stdin)
+  if (failures != 0) {
+    System.exit(1)
+  }
 }

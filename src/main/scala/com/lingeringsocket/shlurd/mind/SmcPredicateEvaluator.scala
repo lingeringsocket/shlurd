@@ -465,7 +465,7 @@ class SmcPredicateEvaluator[
       reference, SprUtils.orderedSet(entities))
     determiner match {
       case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
-        if (entities.isEmpty && (context != REF_COMPLEMENT)) {
+        if (entities.isEmpty && (context == REF_SUBJECT)) {
           fail(sentencePrinter.sb.respondNonexistent(noun))
         } else {
           count match {
@@ -863,7 +863,7 @@ class SmcPredicateEvaluator[
     phrase : SilPhrase,
     collector : ResultCollectorType) =
   {
-    if (wildcardQuerier.containsWildcard(phrase)) {
+    if (wildcardQuerier.containsWildcard(phrase, true)) {
       collector
     } else {
       collector.spawn

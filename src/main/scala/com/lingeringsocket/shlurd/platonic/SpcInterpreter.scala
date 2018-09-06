@@ -40,7 +40,8 @@ class SpcInterpreter(
 {
   private val already = new mutable.HashSet[SilPredicate]
 
-  private var referenceMapOpt : Option[Map[SilReference, Set[SpcEntity]]] = None
+  private var referenceMapOpt
+      : Option[mutable.Map[SilReference, Set[SpcEntity]]] = None
 
   private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
@@ -244,7 +245,6 @@ class SpcInterpreter(
     cosmos : SpcCosmos,
     resultCollector : ResultCollectorType)
   {
-    // FIXME what if reentrant invocation needs the references???
     if (!referenceMapOpt.isEmpty) {
       return
     }
@@ -370,6 +370,7 @@ class SpcInterpreter(
     predicate : SilPredicate)
       : Option[String] =
   {
+    val resultCollector = new SmcResultCollector[SpcEntity](referenceMapOpt.get)
     matchTrigger(
       forkedCosmos, trigger, predicate, referenceMapOpt.get) match
     {
@@ -378,7 +379,6 @@ class SpcInterpreter(
           return Some(sentencePrinter.sb.circularAction)
         }
         val newSentence = SilPredicateSentence(newPredicate)
-        val resultCollector = SmcResultCollector[SpcEntity]()
         spawn(imagine(forkedCosmos)).resolveReferences(
           newSentence, resultCollector, false, true)
         val result = interpretBeliefOrAction(
@@ -476,10 +476,10 @@ class SpcInterpreter(
         }
         relationship match {
           case REL_IDENTITY => {
-            // FIXME allow this to be a variable too?
-            if (complement != relPredicate.complement) {
-              trace(s"COMPLEMENT ${complement} " +
-                s"DOES NOT MATCH ${relPredicate.complement}")
+            if (!prepareReplacement(
+              cosmos, replacements, complement,
+              relPredicate.complement, referenceMap))
+            {
               return None
             }
           }
@@ -595,7 +595,35 @@ class SpcInterpreter(
     Some(newPredicate)
   }
 
+
   private def prepareReplacement(
+    cosmos : SpcCosmos,
+    replacements : mutable.Map[SilReference, SilReference],
+    ref : SilReference,
+    actualRef : SilReference,
+    referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
+  {
+    val patternMatched = prepareReplacementImpl(
+      cosmos,
+      replacements,
+      ref,
+      actualRef,
+      referenceMap)
+    if (patternMatched) {
+      true
+    } else {
+      // FIXME we should prefer entity comparisons instead, but for that
+      // we need two referenceMaps simultaneously
+      if (ref != actualRef) {
+        trace(s"PHRASE ${ref} DOES NOT MATCH ${actualRef}")
+        false
+      } else {
+        true
+      }
+    }
+  }
+
+  private def prepareReplacementImpl(
     cosmos : SpcCosmos,
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,

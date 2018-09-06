@@ -94,7 +94,8 @@ class SpcInterpreterSpec extends Specification
     protected def interpret(input : String, expected : String) =
     {
       val sentence = SprParser(input).parseOne
-      interpreter.interpret(sentence, input) must be equalTo(expected)
+      s"pass:  $input" ==> (
+        interpreter.interpret(sentence, input) === expected)
     }
 
     protected def interpretTerse(
@@ -102,8 +103,8 @@ class SpcInterpreterSpec extends Specification
       expected : String)
     {
       val sentence = SprParser(input).parseOne
-      interpreterTerse.interpret(
-        sentence, input) must be equalTo(expected)
+      s"pass:  $input" ==> (
+        interpreterTerse.interpret(sentence, input) === expected)
     }
 
     protected def interpretBelief(input : String) =
@@ -1332,6 +1333,66 @@ class SpcInterpreterSpec extends Specification
       interpretTerse("who is Bunter's lord", "Peter.")
 
       cosmos.sanityCheck must beTrue
+    }
+
+    "support transitive associations" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
+    {
+      interpretBelief("A parent must be a patriarch.")
+      interpretBelief("A child must be a patriarch.")
+      interpretBelief("An ancestor must be a patriarch.")
+      interpretBelief("A descendant must be a patriarch.")
+      interpretBelief("A patriarch may have a parent.")
+      interpretBelief("A patriarch may have children.")
+      interpretBelief("A patriarch with a child is a parent.")
+      interpretBelief("A patriarch may have ancestors.")
+      interpretBelief("A patriarch may have descendants.")
+      interpretBelief("A patriarch with a descendant is an ancestor.")
+      interpretBelief("If a patriarch begets a child, " +
+        "then the patriarch is the child's parent.")
+      interpretBelief("If a patriarch begets a child, " +
+        "then the patriarch is the child's ancestor.")
+      interpretBelief("If a patriarch begets a child, " +
+        "then the patriarch is the child's descendant's ancestor.")
+      interpretBelief("If a patriarch begets a child, " +
+        "then the patriarch's descendant's ancestors " +
+        "are the patriarch's ancestors.")
+      interpretBelief("Abraham is a patriarch.")
+      interpretBelief("Isaac is a patriarch.")
+      interpretBelief("Jacob is a patriarch.")
+      interpretBelief("Ishmael is a patriarch.")
+      interpretBelief("Joseph is a patriarch.")
+      interpretBelief("Abraham begets Isaac.")
+      interpretBelief("Abraham begets Ishmael.")
+      interpretBelief("Jacob begets Joseph.")
+      interpretBelief("Isaac begets Jacob.")
+      def answer(b : Boolean) = if (b) "Yes." else "No."
+      Seq(
+        ("Abraham", "Isaac", true, true),
+        ("Abraham", "Jacob", false, true),
+        ("Abraham", "Ishmael", true, true),
+        ("Abraham", "Joseph", false, true),
+        ("Isaac", "Jacob", true, true),
+        ("Isaac", "Joseph", false, true),
+        ("Jacob", "Joseph", true, true),
+        ("Abraham", "Abraham", false, false),
+        ("Isaac", "Ishmael", false, false),
+        ("Ishmael", "Jacob", false, false),
+        ("Ishmael", "Joseph", false, false)
+      ).foreach {
+        case (
+          p1, p2, isParent, isAncestor
+        ) => {
+          interpretTerse(s"Is ${p1} ${p2}'s parent?", answer(isParent))
+          interpretTerse(s"Is ${p1} ${p2}'s ancestor?", answer(isAncestor))
+          if (isParent) {
+            interpretTerse(s"Is ${p2} ${p1}'s child?", answer(true))
+          }
+          if (isAncestor) {
+            interpretTerse(s"Is ${p2} ${p1}'s descendant?", answer(true))
+          }
+        }
+      }
     }
 
     "validate constraints incrementally" in new InterpreterContext(

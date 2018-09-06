@@ -370,7 +370,7 @@ class SmcResponseRewriter[
       rhs,
       REL_IDENTITY,
       _
-    ) if (containsWildcard(lhs, false) && !containsWildcard(rhs, false)) =>
+    ) if (containsWildcard(lhs) && !containsWildcard(rhs)) =>
       {
         SilRelationshipPredicate(
           rhs,

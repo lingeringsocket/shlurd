@@ -128,5 +128,8 @@ class SprTester
 object SprTester extends App
 {
   val tester = new SprTester
-  tester.run(Source.stdin)
+  val (successes, failures) = tester.run(Source.stdin)
+  if (failures != 0) {
+    System.exit(1)
+  }
 }
