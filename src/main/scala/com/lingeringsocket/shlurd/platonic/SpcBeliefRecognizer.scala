@@ -455,6 +455,7 @@ class SpcBeliefRecognizer(
         }
         val newConstraint = sentence.tam.modality match {
           case MODAL_NEUTRAL | MODAL_MUST | MODAL_EMPHATIC =>
+            // FIXME honor plural here
             SpcCardinalityConstraint(1, 1)
           case MODAL_MAY | MODAL_POSSIBLE |
               MODAL_CAPABLE | MODAL_PERMITTED =>

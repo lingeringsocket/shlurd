@@ -94,21 +94,43 @@ An abscissa must be a column.
 An ordinate must be a row.
 A shape must have an abscissa.
 A shape must have an ordinate.
-An above_neighbor must be a row.
-A below_neighbor must be a row.
-A left_neighbor must be a column.
-A right_neighbor must be a column.
-A row must have an above_neighbor.
-A row must have a below_neighbor.
-A column must have a left_neighbor.
-A column must have a right_neighbor.
-A row with an above_neighbor is a below_neighbor.
-A column with a left_neighbor is a right_neighbor.
+An aboverow must be a row.
+A belowrow must be a row.
+A leftcolumn must be a column.
+A rightcolumn must be a column.
+A toprow must be a row.
+A bottomrow must be a row.
+A precolumn must be a column.
+A postcolumn must be a column.
+A row must have an aboverow.
+A row must have a belowrow.
+A column must have a leftcolumn.
+A column must have a rightcolumn.
+A row may have toprows.
+A row may have bottomrows.
+A column may have precolumns.
+A column may have postcolumns.
+A row with an aboverow is a belowrow.
+A column with a leftcolumn is a rightcolumn.
+A row with a toprow is a bottomrow.
+A column with a precolumn is a postcolumn.
 If a shape is above a neighbor, then the shape's abscissa is the neighbor's abscissa.
-If a shape is above a neighbor, then equivalently the shape's ordinate is the neighbor's ordinate's above_neighbor.
+If a shape is above a neighbor, then the shape's ordinate is the neighbor's ordinate's aboverow.
+If a shape is above a neighbor, equivalently the neighbor's ordinate's toprow is the shape's ordinate.
+If a shape is above a neighbor, then the shape's ordinate sits on the neighbor's ordinate.
+If a row sits on a neighbor, then the neighbor's bottomrow's toprow is the row.
+If a row sits on a neighbor, then the row's bottomrow's toprows are the row's toprows.
 If a shape is below a neighbor, then the shape's abscissa is the neighbor's abscissa.
-If a shape is below a neighbor, then equivalently the shape's ordinate is the neighbor's ordinate's below_neighbor.
+If a shape is below a neighbor, then the shape's ordinate is the neighbor's ordinate's belowrow.
+If a shape is below a neighbor, equivalently the neighbor's ordinate's bottomrow is the shape's ordinate.
+If a shape is below a neighbor, then the neighbor's ordinate sits on the shape's ordinate.
 If a shape is to the left of a neighbor, then the shape's ordinate is the neighbor's ordinate.
-If a shape is to the left of a neighbor, then equivalently the shape's abscissa is the neighbor's abscissa's left_neighbor.
+If a shape is to the left of a neighbor, then the shape's abscissa is the neighbor's abscissa's leftcolumn.
+If a shape is to the left of a neighbor, equivalently the neighbor's abscissa's precolumn is the shape's abscissa.
+If a shape is to the left of a neighbor, then the shape's abscissa precedes the neighbor's abscissa.
+If a column precedes a neighbor, then the neighbor's postcolumn's precolumn is the column.
+If a column precedes a neighbor, then the column's postcolumn's precolumns are the column's precolumns.
 If a shape is to the right of a neighbor, then the shape's ordinate is the neighbor's ordinate.
-If a shape is to the right of a neighbor, then equivalently the shape's abscissa is the neighbor's abscissa's right_neighbor.
+If a shape is to the right of a neighbor, then the neighbor's abscissa's rightcolumn is the shape's abscissa.
+If a shape is to the right of a neighbor, equivalently the neighbor's abscissa's postcolumn is the shape's abscissa.
+If a shape is to the right of a neighbor, then the neighbor's abscissa precedes the shape's abscissa.

@@ -455,7 +455,7 @@ class SpcCosmos(
     oldEntity : SpcEntity, newEntity : SpcEntity)
   {
     // FIXME verify that entities are role-compatible across all
-    // relevant form associations, constraints aren't violated, etc
+    // relevant form associations, etc
     if (oldEntity != newEntity) {
       // this happens again later, but we have to do it now
       // to make sure that newEntity doesn't end up with
@@ -463,6 +463,23 @@ class SpcCosmos(
       meta.entityExistence(oldEntity, false)
       graph.replaceVertex(graph.entityAssocs, oldEntity, newEntity)
       forgetEntity(oldEntity)
+      assert {
+        val outgoingAssocs =
+          getEntityAssocGraph.outgoingEdgesOf(newEntity).asScala.
+            toSeq.map(_.formEdge).distinct
+        outgoingAssocs.forall(formEdge => {
+          sanityCheckConstraint(newEntity, formEdge)
+        })
+      }
+      assert {
+        val incomingEdges =
+          getEntityAssocGraph.incomingEdgesOf(newEntity).asScala.toSeq
+        incomingEdges.forall(entityEdge => {
+          sanityCheckConstraint(
+            graph.getPossessorEntity(entityEdge),
+            entityEdge.formEdge)
+        })
+      }
       // FIXME we currently leave garbage lying around
       /*
       if (oldEntity.form.isTentative) {
@@ -777,10 +794,7 @@ class SpcCosmos(
         entitySet.filter(
           e => graph.isHyponym(e.form, ideal)).foreach(entity =>
           {
-            val entityEdges = getEntityAssocGraph.
-              outgoingEdgesOf(entity).asScala
-            val c = entityEdges.count(_.formEdge == formEdge)
-            assert(c <= constraint.upper, (formEdge, entity))
+            sanityCheckConstraint(entity, formEdge)
           }
         )
       }
@@ -818,6 +832,20 @@ class SpcCosmos(
       assert(getPropertyStateMap(property).keySet.size ==
         graph.components.outDegreeOf(property))
     })
+    true
+  }
+
+  private def sanityCheckConstraint(
+    possessor : SpcEntity,
+    formEdge : SpcFormAssocEdge) : Boolean =
+  {
+    val constraint = formEdge.constraint
+    if (constraint.upper < Int.MaxValue) {
+      val entityEdges = getEntityAssocGraph.
+        outgoingEdgesOf(possessor).asScala
+      val c = entityEdges.count(_.formEdge == formEdge)
+      assert(c <= constraint.upper, (formEdge, possessor))
+    }
     true
   }
 

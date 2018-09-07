@@ -623,14 +623,20 @@ class SpcBeliefInterpreter(
             originalBelief)
         }
 
-        // FIXME it may not be correct to assume same identity in the case
-        // of a multi-valued association
-        findTentativePossessee(possessor, formAssocEdge) match {
-          case Some(tentativePossessee) => {
-            cosmos.replaceEntity(tentativePossessee, possessee)
-          }
-          case _ => {
-            validateEdgeCardinality(sentence, formAssocEdge, possessor)
+        // FIXME there is ambiguity here; if I mention Marito's aunt,
+        // and then later in a different context mention that Julia is
+        // Marito's aunt, do I mean that Marito has two aunts or just one?
+        // Currently we assume two.
+        if (formAssocEdge.constraint.upper > 1) {
+          validateEdgeCardinality(sentence, formAssocEdge, possessor)
+        } else {
+          findTentativePossessee(possessor, formAssocEdge) match {
+            case Some(tentativePossessee) => {
+              cosmos.replaceEntity(tentativePossessee, possessee)
+            }
+            case _ => {
+              validateEdgeCardinality(sentence, formAssocEdge, possessor)
+            }
           }
         }
       }

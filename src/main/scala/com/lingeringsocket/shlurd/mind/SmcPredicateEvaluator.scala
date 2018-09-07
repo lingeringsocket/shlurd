@@ -108,7 +108,8 @@ class SmcPredicateEvaluator[
           tryComplement
         } else {
           evaluatePredicateOverReference(
-            subjectRef, REF_SUBJECT, subjectCollector)
+            subjectRef, relationshipSubjectContext(relationship),
+            subjectCollector)
           {
             (subjectEntity, entityRef) => {
               if (!categoryLabel.isEmpty) {
@@ -241,12 +242,12 @@ class SmcPredicateEvaluator[
 
     val rule = phraseQuerier.queryMatcher {
       case SilStatePredicate(subjectRef, state, modifiers) => {
-        resolveOne(subjectRef, REF_SUBJECT)
+        resolveOne(subjectRef, subjectStateContext(state))
       }
       case SilRelationshipPredicate(
         subjectRef, complementRef, relationship, modifiers
       ) => {
-        resolveOne(subjectRef, REF_SUBJECT)
+        resolveOne(subjectRef, relationshipSubjectContext(relationship))
         val (context, categoryLabel) =
           relationshipComplementContext(relationship, complementRef)
         if (categoryLabel.isEmpty) {
@@ -258,7 +259,6 @@ class SmcPredicateEvaluator[
         directObject.foreach(resolveOne(_, REF_DIRECT_OBJECT))
       }
       case ap : SilAdpositionalPhrase => {
-        // FIXME also need to use REF_ADPOSITION_SUBJ above?
         resolveOne(ap.objRef, REF_ADPOSITION_OBJ)
       }
     }
@@ -272,6 +272,24 @@ class SmcPredicateEvaluator[
     }
     resultCollector.expandWildcards = true
     Success(Trilean.True)
+  }
+
+  private def subjectStateContext(state : SilState) : SilReferenceContext =
+  {
+    state match {
+      // FIXME this is correct but causes headaches
+      // case _ : SilAdpositionalState => REF_ADPOSITION_SUBJ
+      case _ => REF_SUBJECT
+    }
+  }
+
+  private def relationshipSubjectContext(
+    rel : SilRelationship) : SilReferenceContext =
+  {
+    rel match {
+      case REL_IDENTITY => REF_COMPLEMENT
+      case REL_ASSOCIATION => REF_SUBJECT
+    }
   }
 
   private def relationshipComplementContext(
@@ -320,10 +338,7 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
-    val context = state match {
-      case _ : SilAdpositionalState => REF_ADPOSITION_SUBJ
-      case _ => REF_SUBJECT
-    }
+    val context = subjectStateContext(state)
     evaluatePredicateOverReference(subjectRef, context, resultCollector)
     {
       (entity, entityRef) => {
@@ -656,7 +671,7 @@ class SmcPredicateEvaluator[
             val state = SilAdpositionalState(
               SilAdposition.GENITIVE_OF, possessor)
             val result = evaluatePredicateOverState(
-              possessee, state, context, resultCollector,
+              possessee, state, REF_ADPOSITION_SUBJ, resultCollector,
               specifiedState, evaluator)
             referenceMap.get(possessee).foreach(
               entitySet => referenceMap.put(reference, entitySet))

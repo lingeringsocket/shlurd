@@ -17,6 +17,8 @@ What did Mary give to Jeff?	football
 The garden is west of the kitchen.
 What is west of the kitchen?	garden
 What is east of the garden?	kitchen
-The triangle is below the red square.
 The triangle is to the left of the blue square.
+The red square is above the triangle.
+The pink rectangle is below the triangle.
 Is the blue square below the red square?	yes
+Is the pink rectangle below the red square?	yes
