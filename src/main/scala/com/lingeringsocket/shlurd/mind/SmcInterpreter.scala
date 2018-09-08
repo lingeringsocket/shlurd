@@ -14,7 +14,6 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
-import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.util._

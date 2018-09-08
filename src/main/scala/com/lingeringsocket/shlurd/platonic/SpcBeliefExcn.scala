@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
-import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.ilang._
 
 sealed abstract class SpcBeliefExcn(
   cause : String) extends RuntimeException(cause)

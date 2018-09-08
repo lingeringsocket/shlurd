@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
+import com.lingeringsocket.shlurd.ilang._
 
 import scala.util._
 import scala.collection._

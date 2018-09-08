@@ -14,8 +14,6 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
-import com.lingeringsocket.shlurd.parser._
-
 case class SilConjoining(
   determiner : SilDeterminer,
   separator : SilSeparator,

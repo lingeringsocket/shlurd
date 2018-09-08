@@ -15,7 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
-import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.ilang._
 
 import org.jgrapht._
 import org.jgrapht.graph._

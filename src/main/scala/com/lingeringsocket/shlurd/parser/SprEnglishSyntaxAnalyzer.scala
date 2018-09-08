@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.ilang._
 
 import SprPennTreebankLabels._
 import SprEnglishLemmas._

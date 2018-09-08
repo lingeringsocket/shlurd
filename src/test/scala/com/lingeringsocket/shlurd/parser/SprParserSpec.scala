@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd.ilang._
+
 import org.specs2.mutable._
 
 import SprEnglishLemmas._

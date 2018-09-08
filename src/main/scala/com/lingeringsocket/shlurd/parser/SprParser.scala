@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd.ilang._
+
 import edu.stanford.nlp.simple._
 import edu.stanford.nlp.trees._
 import edu.stanford.nlp.ling._

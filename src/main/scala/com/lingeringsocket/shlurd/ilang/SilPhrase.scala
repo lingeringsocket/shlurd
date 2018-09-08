@@ -12,7 +12,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.ilang
+
+import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 
@@ -146,7 +148,7 @@ abstract class SilTransformedPhrase extends SilPhrase
 {
   protected var syntaxTreeOpt : Option[SprSyntaxTree] = None
 
-  private[parser] def rememberSyntaxTree(syntaxTree : SprSyntaxTree)
+  def rememberSyntaxTree(syntaxTree : SprSyntaxTree)
   {
     syntaxTreeOpt = Some(syntaxTree)
   }

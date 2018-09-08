@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd.ilang._
+
 abstract class SprAbstractSyntaxAnalyzer extends SprSyntaxAnalyzer
 {
   protected def stripPauses(tree : SprSyntaxTree)
