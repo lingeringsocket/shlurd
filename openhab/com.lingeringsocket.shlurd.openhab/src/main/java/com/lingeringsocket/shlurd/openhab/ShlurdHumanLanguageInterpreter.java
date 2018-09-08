@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.lingeringsocket.shlurd.parser.SprParser$;
-import com.lingeringsocket.shlurd.parser.SilSentence;
+import com.lingeringsocket.shlurd.ilang.SilSentence;
 import com.lingeringsocket.shlurd.mind.SmcExecutor;
 import com.lingeringsocket.shlurd.mind.SmcInterpreterParams;
 import com.lingeringsocket.shlurd.mind.SmcInterpreterParams$;

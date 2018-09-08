@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd.cli
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
+import com.lingeringsocket.shlurd.ilang._
 
 import SprEnglishLemmas._
 
