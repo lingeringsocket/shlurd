@@ -74,7 +74,6 @@ object SprPennTreebankLabels
 
 import SprPennTreebankLabels._
 import SprEnglishLemmas._
-import SprEnglishAffixes._
 import SprPrettyPrinter._
 
 trait SprAbstractSyntaxTree
@@ -114,7 +113,7 @@ trait SprAbstractSyntaxTree
   def hasTerminalLabel(label : String, terminalLabel : String) =
     isPreTerminal && hasLabel(label) && firstChild.hasLabel(terminalLabel)
 
-  def isNounNode = isNoun || isNounPhrase
+  def isNounNode = isNoun || isNounPhrase || isPronounOrDemonstrative
 
   def isNounPhrase = hasLabel(LABEL_NP)
 
@@ -188,9 +187,7 @@ trait SprAbstractSyntaxTree
 
   def isGerund = hasLabel(LABEL_VBG)
 
-  // FIXME this is English-specific
-  def isProgressiveVerb =
-    isGerund && firstChild.foldedToken.endsWith(SUFFIX_ING)
+  def isProgressiveVerb = isGerund
 
   def isExistential =
     (isNounPhrase && firstChild.hasLabel(LABEL_EX)) || isExistsVerb

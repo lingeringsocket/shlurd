@@ -16,8 +16,11 @@ package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd.ilang._
 
-abstract class SprAbstractSyntaxAnalyzer extends SprSyntaxAnalyzer
+abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
+    extends SprSyntaxAnalyzer
 {
+  def isStrict = strict
+
   protected def stripPauses(tree : SprSyntaxTree)
       : Seq[SprSyntaxTree] =
   {
@@ -174,7 +177,7 @@ abstract class SprAbstractSyntaxAnalyzer extends SprSyntaxAnalyzer
 
   protected def isSinglePhrase(seq : Seq[SprSyntaxTree]) =
   {
-    (seq.size == 1) && !seq.head.isPreTerminal
+    (seq.size == 1) && !seq.head.isPreTerminal && !seq.head.isLeaf
   }
 
   override protected[parser] def getCount(tree : SprSyntaxTree) : SilCount =
@@ -239,5 +242,23 @@ abstract class SprAbstractSyntaxAnalyzer extends SprSyntaxAnalyzer
     count : SilCount)
   {
     predicate.setInflectedCount(count)
+  }
+
+  override protected[parser] def isNounPhraseModifier(tree : SprSyntaxTree) : Boolean =
+  {
+    if (isStrict) {
+      tree.isAdjectival
+    } else {
+      tree.isNoun || tree.isAdjectival
+    }
+  }
+
+  override protected[parser] def isNounPhraseHead(tree : SprSyntaxTree) : Boolean =
+  {
+    if (isStrict) {
+      tree.isNoun || tree.isGerund
+    } else {
+      tree.isNoun || tree.isAdjectival
+    }
   }
 }

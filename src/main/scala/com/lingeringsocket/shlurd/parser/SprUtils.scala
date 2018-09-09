@@ -136,7 +136,7 @@ object SprUtils
 
   def requireUnique(seq : Seq[SprSyntaxTree]) : SprSyntaxTree =
   {
-    assert(seq.size == 1)
+    assert(seq.size == 1, seq)
     seq.head
   }
 

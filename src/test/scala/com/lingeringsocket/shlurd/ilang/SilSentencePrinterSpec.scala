@@ -100,6 +100,7 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("what is the cave south of")
       expectPreserved("does the mule kick the ball smugly at the vase?")
       expectQuestion("does the door close")
+      expectStatement("the king is running merrily through the woods")
     }
 
     "preserve sentences" in

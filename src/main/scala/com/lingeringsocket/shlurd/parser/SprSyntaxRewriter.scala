@@ -89,6 +89,13 @@ object SprSyntaxRewriter
     {
       return children.head
     }
+    recompose(label, children)
+  }
+
+  def recompose(
+    label : String,
+    children : Seq[SprSyntaxTree]) : SprSyntaxTree =
+  {
     preTerminalConstructors.get(label).foreach(
       constructor => return constructor(requireLeaf(children))
     )

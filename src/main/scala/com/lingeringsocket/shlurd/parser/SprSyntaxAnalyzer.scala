@@ -79,4 +79,8 @@ trait SprSyntaxAnalyzer
   protected[parser] def specifyReference(
     ref : SilReference, specifiedState : SilState)
       : SilReference
+
+  protected[parser] def isNounPhraseModifier(tree : SprSyntaxTree) : Boolean
+
+  protected[parser] def isNounPhraseHead(tree : SprSyntaxTree) : Boolean
 }

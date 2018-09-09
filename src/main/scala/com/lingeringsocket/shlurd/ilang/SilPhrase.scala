@@ -24,7 +24,9 @@ sealed trait SilPhrase
 
   def hasUnknown : Boolean = children.exists(_.hasUnknown)
 
-  def hasUnresolved : Boolean = children.exists(_.hasUnresolved)
+  def hasUnresolved : Boolean = hasUnresolvedChildren
+
+  def hasUnresolvedChildren : Boolean = children.exists(_.hasUnresolved)
 
   def isUninterpretable : Boolean =
     hasUnknown || children.exists(_.isUninterpretable)
@@ -397,7 +399,7 @@ case class SilAmbiguousSentence(
 
   override def formality = alternatives.head.formality
 
-  def isRipe = !hasUnresolved && !done
+  def isRipe = !hasUnresolvedChildren && !done
 }
 
 case class SilStatePredicate(
@@ -697,7 +699,7 @@ object SilReference
       case SilNullState() | SilAdpositionalState(_, _) |
           SilExistenceState() => Seq.empty
       case _ => {
-        assert(false)
+        assert(false, state)
         Seq.empty
       }
     }

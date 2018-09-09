@@ -47,7 +47,7 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
     }
   }
 
-  private def replaceAllPhrases = combineRules(
+  protected def replaceAllPhrases = combineRules(
     replaceExpectedSentence,
     replaceExpectedSBARQ,
     replaceExpectedSQ,
@@ -82,7 +82,7 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
     }
     case SilExpectedNounlikeReference(
       syntaxTree, nounlike : SprSyntaxPreTerminal, determiner)
-        if (nounlike.isNoun || nounlike.isAdjectival) =>
+        if (analyzer.isNounPhraseHead(nounlike)) =>
     {
       // we allow mislabeled adjectives to handle
       // cases like "roll up the blind"
@@ -164,16 +164,17 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
 
   private def replaceUnresolvedPredicate = replacementMatcher {
     case predicate : SilUnresolvedStatePredicate
-        if (!predicate.state.hasUnresolved) =>
+        if (!predicate.hasUnresolvedChildren) =>
       {
         resolveStatePredicate(predicate)
       }
     case predicate : SilUnresolvedActionPredicate
-        if (!predicate.hasUnresolved) =>
+        if (!predicate.hasUnresolvedChildren) =>
       {
         resolveActionPredicate(predicate)
       }
-    case predicate : SilUnresolvedRelationshipPredicate =>
+    case predicate : SilUnresolvedRelationshipPredicate
+        if (!predicate.hasUnresolvedChildren) =>
       {
         resolveRelationshipPredicate(predicate)
       }

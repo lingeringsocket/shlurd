@@ -21,8 +21,8 @@ import SprPennTreebankLabels._
 import SprEnglishLemmas._
 import SprUtils._
 
-class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
-    extends SprAbstractSyntaxAnalyzer
+class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean, strict : Boolean = false)
+    extends SprAbstractSyntaxAnalyzer(strict) with SprEnglishWordAnalyzer
 {
   override protected[parser] def analyzeSentence(tree : SptS)
       : SilSentence =
@@ -56,7 +56,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       val np = tail.head
       val vp = tail.last
       val verbModifiers = children.dropRight(2)
-      if (np.isNounPhrase && vp.isVerbPhrase &&
+      if (np.isNounNode && vp.isVerbPhrase &&
         verbModifiers.forall(_.isAdverbialPhrase))
       {
         val tam = if (isQuestion) {
@@ -285,6 +285,9 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         if (complement.isEmpty) {
           verbHead
         } else {
+          if (complement.head.isPreTerminal) {
+            return SilUnrecognizedSentence(tree)
+          }
           SprSyntaxRewriter.recompose(
             complement.head, complementRemainder)
         }
@@ -387,13 +390,19 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         tree, components.last, determiner)
       SilGenitiveReference(pronounReference, entityReference)
     } else if (components.last.isCompoundAdpositionalPhrase) {
-      SilStateSpecifiedReference(
-        expectReference(seqIn.dropRight(1)),
-        SilExpectedAdpositionalState(components.last))
+      if (!isStrict || (components.size == 2)) {
+        SilStateSpecifiedReference(
+          expectReference(seqIn.dropRight(1)),
+          SilExpectedAdpositionalState(components.last))
+      } else {
+        SilUnrecognizedReference(tree)
+      }
     } else if ((components.size == 2) && components.head.isNounPhrase) {
       val entityReference = expectReference(components.head)
       expectRelativeReference(tree, entityReference, components.last)
-    } else if (components.forall(c => c.isNoun || c.isAdjectival)) {
+    } else if (isNounPhraseHead(components.last) &&
+      components.dropRight(1).forall(isNounPhraseModifier))
+    {
       val entityReference = expectNounReference(
         tree, components.last, determiner)
       if (components.size > 1) {
@@ -432,10 +441,26 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     val tamTensed = extractTense(verbHead, tam)
     val (progressive, iVerb) = detectProgressive(vpChildren)
     if (verbHead.isModal || progressive) {
-      val vpSub = vpChildren.last
-      if ((vpChildren.size == 2) && vpSub.isVerbPhrase) {
+      val vSub = {
+        if (progressive) {
+          vpChildren(iVerb)
+        } else {
+          // FIXME we should be able to use something similar
+          // to progressive here
+          vpChildren.last
+        }
+      }
+      if ((vpChildren.size >= 2) && vSub.isVerbNode) {
+        val vpSub = {
+          if (vSub.isVerbPhrase) {
+            vSub
+          } else {
+            SptVP(vSub)
+          }
+        }
+        val extraModifiers = vpChildren.tail.filterNot(_ == vSub)
         expectPredicateSentence(
-          tree, np, vpSub, verbModifiers,
+          tree, np, vpSub, verbModifiers ++ extraModifiers,
           force,
           tamForAux(requireLeaf(verbHead.children)).withMood(tam.mood).
             withTense(tamTensed.tense),
@@ -756,7 +781,13 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
     verbModifiers : Seq[SprSyntaxTree] = Seq.empty)
       : (Boolean, SilPredicate) =
   {
-    val (negative, seq) = extractNegative(complement.children)
+    val (negative, seq) = {
+      if (complement.isPreTerminal) {
+        tupleN((false, Seq(complement)))
+      } else {
+        extractNegative(complement.children)
+      }
+    }
     if (np.isExistential) {
       val subject = splitCoordinatingConjunction(seq) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {
@@ -783,7 +814,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
         expectExistenceState(complement),
         SilNullState(),
         verbModifiers.map(expectVerbModifier))))
-    } else if (complement.isNounPhrase) {
+    } else if (complement.isNounNode) {
       // FIXME this is quite arbitrary
       val (subjectRef, complementRef) = relationship match {
         case REL_IDENTITY => {
@@ -814,8 +845,14 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
           case _ => {
             val seqState = splitCoordinatingConjunction(seq) match {
               case (DETERMINER_UNSPECIFIED, _, _) => {
-                expectComplementState(
-                  SprSyntaxRewriter.recompose(complement, seq))
+                val recomposed = {
+                  if (complement.isAdjective) {
+                    SptADJP(complement)
+                  } else {
+                    SprSyntaxRewriter.recompose(complement, seq)
+                  }
+                }
+                expectComplementState(recomposed)
               }
               case (determiner, separator, split) => {
                 val conjunctiveState = SilConjunctiveState(
@@ -1004,15 +1041,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
 
   private def determinerFor(leaf : SprSyntaxLeaf) : SilDeterminer =
   {
-    leaf.lemma match {
-      case LEMMA_NO | LEMMA_NEITHER | LEMMA_NOR => DETERMINER_NONE
-      case LEMMA_BOTH | LEMMA_AND | LEMMA_ALL | LEMMA_EVERY => DETERMINER_ALL
-      // FIXME LEMMA_ONE should really map to SilIntegerDeterminer
-      case LEMMA_ONE | LEMMA_A => DETERMINER_NONSPECIFIC
-      case LEMMA_THE | LEMMA_EITHER => DETERMINER_UNIQUE
-      case LEMMA_SOME => DETERMINER_SOME
-      case _ => DETERMINER_ANY
-    }
+    maybeDeterminerFor(leaf.lemma).getOrElse(DETERMINER_ANY)
   }
 
   private def extractParticle(seq : Seq[SprSyntaxTree])
@@ -1176,7 +1205,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       }
       val (commaSplit, commaSeparator) = splitCommas(prefix)
       val suffix = components.drop(pos + 1)
-      splitCoordinatingConjunction(suffix) match {
+      val tolerant = splitCoordinatingConjunction(suffix) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {
           tupleN((determiner, commaSeparator, commaSplit ++ Seq(suffix)))
         }
@@ -1190,6 +1219,15 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
           }
           tupleN((determiner, commaSeparator, seq.filterNot(_.isEmpty)))
         }
+      }
+      if (isStrict) {
+        if (tolerant._3.forall(_.size == 1)) {
+          tolerant
+        } else {
+          tupleN((DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, Seq.empty))
+        }
+      } else {
+        tolerant
       }
     }
   }
@@ -1254,6 +1292,7 @@ class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean)
       : SilPronounReference =
   {
     val lemma = leaf.lemma
+    assert(isPronounWord(lemma), lemma)
     val person = lemma match {
       case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY |
           LEMMA_OUR | LEMMA_MINE | LEMMA_OURS => PERSON_FIRST
