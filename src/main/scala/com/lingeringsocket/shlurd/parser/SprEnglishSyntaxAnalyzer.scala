@@ -156,7 +156,7 @@ class SprEnglishSyntaxAnalyzer(
       return None
     }
 
-    val (verbHead, np, vp, rhs, negative, verbModifiers) = {
+    val (verbHead, np, vp, rhs, negative, verbModifiers, rhsLoss) = {
       if (seq.head.unwrapPhrase.isRelationshipVerb &&
         (tam.modality == MODAL_NEUTRAL))
       {
@@ -169,12 +169,18 @@ class SprEnglishSyntaxAnalyzer(
         val vp = SptVP(fromVerbSlice(0), fromVerbSlice(2))
         tupleN((fromVerbSlice(0), fromVerbSlice(1), vp,
           fromVerbSlice(2), negativeSuper,
-          seq.patch(iVerb, Seq.empty, expectedSize)))
+          seq.patch(iVerb, Seq.empty, expectedSize), false))
       } else {
         assert(iVerb > 0)
         // "(can) Larry [be [smart]]?"
         val expectedSize = 2
         val iNoun = iVerb - 1
+        if (seq.view(0, iNoun).exists(
+          c => isNounPhraseHead(c) || isNounPhraseModifier(c) ||
+            c.isDeterminer))
+        {
+          return None
+        }
         if (seq.size < (iNoun + expectedSize)) {
           return None
         }
@@ -187,13 +193,14 @@ class SprEnglishSyntaxAnalyzer(
         val (negativeSub, sub) = extractNegative(vp.children)
         tupleN((sub.head, fromNounSlice(0), SptVP(sub:_*),
           sub.last, (negativeSub ^ negativeSuper),
-          seq.patch(iNoun, Seq.empty, expectedSize)))
+          seq.patch(iNoun, Seq.empty, expectedSize), (sub.size > 2)))
       }
     }
-
     val tamTensed = extractTense(verbHead, tam)
-
     if (verbHead.isRelationshipVerb && specifiedDirectObject.isEmpty) {
+      if (rhsLoss) {
+        return None
+      }
       val (negativeSub, predicate) =
         expectPredicate(tree, np, rhs, specifiedState,
           relationshipFor(verbHead), verbModifiers ++ extraModifiers)
@@ -245,6 +252,9 @@ class SprEnglishSyntaxAnalyzer(
         case _ => return SilUnrecognizedSentence(tree)
       }
     val verbHead = secondSub.head
+    if (!verbHead.isVerbNode && !verbHead.isModal) {
+      return SilUnrecognizedSentence(tree)
+    }
     if ((question == QUESTION_WHERE) && !verbHead.isBeingVerb) {
       return SilUnrecognizedSentence(tree)
     }
@@ -263,7 +273,7 @@ class SprEnglishSyntaxAnalyzer(
       }
     }
     val (progressive, iVerb) = detectProgressive(secondSub)
-    assert(iVerb >= 0)
+    assert(iVerb >= 0, secondSub)
     if (verbHead.isRelationshipVerb && !progressive) {
       // FIXME find a way to represent this
       if (!adpositionOpt.isEmpty) {
@@ -385,7 +395,11 @@ class SprEnglishSyntaxAnalyzer(
         }
       }
     }
-    if ((components.size == 2) && components.head.isPronounOrDemonstrative) {
+    if ((components.size == 2) &&
+      ((components.head.isPronoun &&
+        isPossessiveAdjective(components.head.firstChild.token)) ||
+        components.head.isDemonstrative))
+    {
       val pronounReference = expectReference(components.head)
       val entityReference = expectNounReference(
         tree, components.last, determiner)
@@ -790,6 +804,9 @@ class SprEnglishSyntaxAnalyzer(
       }
     }
     if (np.isExistential) {
+      if (relationship != REL_IDENTITY) {
+        return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
+      }
       val subject = splitCoordinatingConjunction(seq) match {
         case (DETERMINER_UNSPECIFIED, _, _) => {
           specifyReference(expectReference(seq), specifiedState)
@@ -808,6 +825,9 @@ class SprEnglishSyntaxAnalyzer(
         syntaxTree, subject, expectExistenceState(np), SilNullState(),
         verbModifiers.map(expectVerbModifier))))
     } else if (complement.isExistential) {
+      if (relationship != REL_IDENTITY) {
+        return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
+      }
       tupleN((negative, expectStatePredicate(
         syntaxTree,
         specifyReference(
@@ -835,6 +855,9 @@ class SprEnglishSyntaxAnalyzer(
         verbModifiers.map(expectVerbModifier))
       tupleN((negative, relationshipPredicate))
     } else {
+      if (relationship != REL_IDENTITY) {
+        return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
+      }
       val (state, extraModifiers, refinedState) = {
         complement match {
           // FIXME there are all kinds of other verb modifiers that need to
@@ -1258,7 +1281,7 @@ class SprEnglishSyntaxAnalyzer(
   {
     verb match {
       case _ : SptVBP => {
-        if (verb.firstChild.label == "am") {
+        if (verb.firstChild.token == "am") {
           COUNT_SINGULAR
         } else {
           COUNT_PLURAL

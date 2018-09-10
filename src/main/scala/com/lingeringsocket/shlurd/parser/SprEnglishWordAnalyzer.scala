@@ -42,6 +42,15 @@ trait SprEnglishWordAnalyzer
     }
   }
 
+  def isPossessiveAdjective(token : String) : Boolean =
+  {
+    token match {
+      case LEMMA_MY | LEMMA_OUR | LEMMA_YOUR |
+          LEMMA_ITS | LEMMA_THEIR | LEMMA_HIS | LEMMA_HER => true
+      case _ => false
+    }
+  }
+
   def isPronounWord(lemma : String) : Boolean =
   {
     lemma match {

@@ -582,6 +582,12 @@ case class SptDT(child : SprSyntaxLeaf)
   override def label = LABEL_DT
 }
 
+case class SptEX(child : SprSyntaxLeaf)
+    extends SprSyntaxPreTerminal
+{
+  override def label = LABEL_EX
+}
+
 case class SptPOS(child : SprSyntaxLeaf)
     extends SprSyntaxPossessive
 {

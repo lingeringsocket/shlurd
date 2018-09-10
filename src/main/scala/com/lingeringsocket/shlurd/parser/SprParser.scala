@@ -143,9 +143,14 @@ object SprParser
 
   type CacheValue = SprSyntaxTree
 
+  private val terminators = Set(
+    LABEL_DOT, LABEL_QUESTION_MARK, LABEL_EXCLAMATION_MARK)
+
   private var cache : Option[mutable.Map[CacheKey, CacheValue]] = None
 
-  private var cacheDirty = false
+  private var cacheOnly : Boolean = false
+
+  private var cacheDirty : Boolean = false
 
   private var cacheFile : Option[File] = None
 
@@ -167,9 +172,10 @@ object SprParser
       Some(new concurrent.TrieMap[CacheKey, CacheValue]))
   }
 
-  def getCache() : Option[Map[CacheKey, CacheValue]] =
+  def lockCache() : Map[CacheKey, CacheValue] =
   {
-    cache
+    cacheOnly = true
+    cache.get
   }
 
   private def loadCache(file : File) =
@@ -223,10 +229,15 @@ object SprParser
     })).getOrElse(parse())
   }
 
-  private def tokenize(input : String) : Seq[Sentence] =
+  def tokenize(input : String) : Seq[Sentence] =
   {
     val doc = new Document(input)
     doc.sentences.asScala
+  }
+
+  def isTerminator(token : String) : Boolean =
+  {
+    terminators.contains(token)
   }
 
   private def prepareOne(
@@ -234,9 +245,7 @@ object SprParser
   {
     val tokens = sentence.originalTexts.asScala
     val sentenceString = sentence.text
-    val punctuation = Set(
-      LABEL_DOT, LABEL_QUESTION_MARK, LABEL_EXCLAMATION_MARK)
-    if (punctuation.contains(tokens.last)) {
+    if (isTerminator(tokens.last)) {
       prepareFallbacks(
         sentenceString, tokens, false, dump, "PUNCTUATED")
     } else {
@@ -287,6 +296,10 @@ object SprParser
     dump : Boolean, dumpPrefix : String) =
   {
     def corenlpParse() : SprSyntaxTree = {
+      if (cacheOnly) {
+        val oops = "OOPS"
+        return SprSyntaxLeaf(oops, oops, oops)
+      }
       var deps : Seq[String] = Seq.empty
       val sentence = tokenize(sentenceString).head
       if (preDependencies) {

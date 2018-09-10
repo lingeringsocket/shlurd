@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
 
+// FIXME some of these, like LEMMA_HIS, are not real lemmas
 object SprEnglishLemmas
 {
   val LEMMA_THERE = "there"

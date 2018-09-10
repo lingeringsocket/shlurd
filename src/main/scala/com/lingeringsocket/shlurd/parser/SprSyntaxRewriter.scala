@@ -69,6 +69,7 @@ object SprSyntaxRewriter
     LABEL_RBS -> SptRBS,
     LABEL_CC -> SptCC,
     LABEL_DT -> SptDT,
+    LABEL_EX -> SptEX,
     LABEL_CD -> SptCD,
     LABEL_IN -> SptIN,
     LABEL_TO -> SptTO,
