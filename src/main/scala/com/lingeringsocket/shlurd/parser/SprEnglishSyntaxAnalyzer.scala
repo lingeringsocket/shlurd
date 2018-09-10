@@ -21,7 +21,8 @@ import SprPennTreebankLabels._
 import SprEnglishLemmas._
 import SprUtils._
 
-class SprEnglishSyntaxAnalyzer(guessedQuestion : Boolean, strict : Boolean = false)
+class SprEnglishSyntaxAnalyzer(
+  guessedQuestion : Boolean, strict : Boolean = false)
     extends SprAbstractSyntaxAnalyzer(strict) with SprEnglishWordAnalyzer
 {
   override protected[parser] def analyzeSentence(tree : SptS)

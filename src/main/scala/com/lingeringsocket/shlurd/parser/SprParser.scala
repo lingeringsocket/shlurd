@@ -167,6 +167,11 @@ object SprParser
       Some(new concurrent.TrieMap[CacheKey, CacheValue]))
   }
 
+  def getCache() : Option[Map[CacheKey, CacheValue]] =
+  {
+    cache
+  }
+
   private def loadCache(file : File) =
   {
     val fileIn = new FileInputStream(file)

@@ -244,7 +244,8 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     predicate.setInflectedCount(count)
   }
 
-  override protected[parser] def isNounPhraseModifier(tree : SprSyntaxTree) : Boolean =
+  override protected[parser] def isNounPhraseModifier(
+    tree : SprSyntaxTree) : Boolean =
   {
     if (isStrict) {
       tree.isAdjectival
@@ -253,7 +254,8 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     }
   }
 
-  override protected[parser] def isNounPhraseHead(tree : SprSyntaxTree) : Boolean =
+  override protected[parser] def isNounPhraseHead(
+    tree : SprSyntaxTree) : Boolean =
   {
     if (isStrict) {
       tree.isNoun || tree.isGerund
