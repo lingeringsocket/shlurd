@@ -122,7 +122,7 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     SilExpectedNounlikeReference(syntaxTree, preTerminal, determiner)
   }
 
-  override protected[parser] def expectPropertyState(
+  override def expectPropertyState(
     syntaxTree : SprSyntaxTree) =
   {
     SilExpectedPropertyState(syntaxTree)
@@ -133,7 +133,7 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     SilExpectedVerbModifier(tree)
   }
 
-  override protected[parser] def expectTemporalVerbModifier(tmod : SptTMOD)
+  override def expectTemporalVerbModifier(tmod : SptTMOD)
       : SilVerbModifier =
   {
     SilAdpositionalVerbModifier(
@@ -141,7 +141,7 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
       expectReference(tmod.child))
   }
 
-  override protected[parser] def expectBasicVerbModifier(
+  override def expectBasicVerbModifier(
     preTerminal : SprSyntaxPreTerminal)
       : SilVerbModifier =
   {
@@ -153,8 +153,8 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     SilExpectedExistenceState(syntaxTree)
   }
 
-  protected def expectComplementState(
-    tree : SprSyntaxTree) : SilState =
+  override def expectComplementState(
+    tree : SprSyntaxTree) : SilExpectedComplementState =
   {
     if (isSinglePhrase(tree.children)) {
       expectComplementState(tree.firstChild)
@@ -180,7 +180,7 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     (seq.size == 1) && !seq.head.isPreTerminal && !seq.head.isLeaf
   }
 
-  override protected[parser] def getCount(tree : SprSyntaxTree) : SilCount =
+  override def getCount(tree : SprSyntaxTree) : SilCount =
   {
     if (tree.label.endsWith("S")) {
       COUNT_PLURAL
@@ -189,7 +189,7 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     }
   }
 
-  override protected[parser] def getWord(leaf : SprSyntaxLeaf) =
+  override def getWord(leaf : SprSyntaxLeaf) =
   {
     SilWord(leaf.foldedToken, leaf.lemma)
   }
@@ -244,7 +244,7 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     predicate.setInflectedCount(count)
   }
 
-  override protected[parser] def isNounPhraseModifier(
+  override def isNounPhraseModifier(
     tree : SprSyntaxTree) : Boolean =
   {
     if (isStrict) {
@@ -254,7 +254,7 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     }
   }
 
-  override protected[parser] def isNounPhraseHead(
+  override def isNounPhraseHead(
     tree : SprSyntaxTree) : Boolean =
   {
     if (isStrict) {

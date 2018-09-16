@@ -22,10 +22,11 @@ import SprEnglishLemmas._
 import SprUtils._
 
 class SprEnglishSyntaxAnalyzer(
-  guessedQuestion : Boolean, strict : Boolean = false)
+  guessedQuestion : Boolean, strict : Boolean = false,
+  enforceTransitive : Boolean = true)
     extends SprAbstractSyntaxAnalyzer(strict) with SprEnglishWordAnalyzer
 {
-  override protected[parser] def analyzeSentence(tree : SptS)
+  override def analyzeSentence(tree : SptS)
       : SilSentence =
   {
     val hasQuestionMark =
@@ -76,7 +77,7 @@ class SprEnglishSyntaxAnalyzer(
     }
   }
 
-  override protected[parser] def analyzeSQ(
+  override def analyzeSQ(
     tree : SprSyntaxTree, forceSQ : Boolean)
       : SilSentence =
   {
@@ -171,7 +172,9 @@ class SprEnglishSyntaxAnalyzer(
           fromVerbSlice(2), negativeSuper,
           seq.patch(iVerb, Seq.empty, expectedSize), false))
       } else {
-        assert(iVerb > 0)
+        if (iVerb == 0) {
+          return None
+        }
         // "(can) Larry [be [smart]]?"
         val expectedSize = 2
         val iNoun = iVerb - 1
@@ -196,6 +199,9 @@ class SprEnglishSyntaxAnalyzer(
           seq.patch(iNoun, Seq.empty, expectedSize), (sub.size > 2)))
       }
     }
+    if (np.children.isEmpty) {
+      return None
+    }
     val tamTensed = extractTense(verbHead, tam)
     if (verbHead.isRelationshipVerb && specifiedDirectObject.isEmpty) {
       if (rhsLoss) {
@@ -218,7 +224,7 @@ class SprEnglishSyntaxAnalyzer(
     }
   }
 
-  override protected[parser] def analyzeSBARQ(tree : SptSBARQ)
+  override def analyzeSBARQ(tree : SptSBARQ)
       : SilSentence =
   {
     val children = stripPauses(tree)
@@ -269,6 +275,9 @@ class SprEnglishSyntaxAnalyzer(
       case _ => {
         // FIXME likewise, QUESTION_WHICH has two flavors "which do you want?"
         // and "which flavor do you want?"
+        if (questionChildren.isEmpty) {
+          return SilUnrecognizedSentence(tree)
+        }
         SptNP(questionChildren:_*)
       }
     }
@@ -360,7 +369,7 @@ class SprEnglishSyntaxAnalyzer(
     }
   }
 
-  override protected[parser] def analyzeNounPhrase(
+  override def analyzeNounPhrase(
     tree : SptNP) : SilReference =
   {
     val seqIn = tree.children
@@ -506,7 +515,8 @@ class SprEnglishSyntaxAnalyzer(
     } else {
       val (negativeVerb, predicate) = analyzeActionPredicate(
         tree, np, vp, None, verbModifiers)
-      val polarity = !(negative ^ negativeVerb)
+      assert(negativeVerb == negativeSub)
+      val polarity = !negative
       rememberPredicateCount(
         predicate, verbHead, tam, auxCount)
       SilPredicateSentence(
@@ -587,7 +597,7 @@ class SprEnglishSyntaxAnalyzer(
     }
   }
 
-  override protected[parser] def expectAdpositionalState(tree : SprSyntaxTree)
+  override def expectAdpositionalState(tree : SprSyntaxTree)
     : SilState =
   {
     val seq = tree.children
@@ -603,11 +613,16 @@ class SprEnglishSyntaxAnalyzer(
             // "south of the border"
             expectAdpositionalState(seq.last) match {
               case SilAdpositionalState(SilAdposition(words), ref) => {
-                SilAdpositionalState(
-                  SilAdposition(
-                    getWord(
-                      requireLeaf(adpTree.unwrapPhrase.children)) +: words),
-                  ref)
+                val unwrapped = adpTree.unwrapPhrase
+                if (unwrapped.children.size == 1) {
+                  SilAdpositionalState(
+                    SilAdposition(
+                      getWord(
+                        requireLeaf(unwrapped.children)) +: words),
+                    ref)
+                } else {
+                  SilUnrecognizedState(tree)
+                }
               }
               case _ => {
                 SilUnrecognizedState(tree)
@@ -750,7 +765,7 @@ class SprEnglishSyntaxAnalyzer(
       indirectAdposition.toSeq ++ modifiers.map(expectVerbModifier)))
   }
 
-  override protected[parser] def expectVerbModifierPhrase(
+  override def expectVerbModifierPhrase(
     tree : SprSyntaxPhrase)
       : SilVerbModifier =
   {
@@ -766,7 +781,7 @@ class SprEnglishSyntaxAnalyzer(
     SilBasicVerbModifier(words)
   }
 
-  override protected[parser] def expectAdpositionalVerbModifier(
+  override def expectAdpositionalVerbModifier(
     tree : SprSyntaxTree) =
   {
     tree match {
@@ -856,7 +871,14 @@ class SprEnglishSyntaxAnalyzer(
       tupleN((negative, relationshipPredicate))
     } else {
       if (relationship != REL_IDENTITY) {
-        return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
+        if (enforceTransitive) {
+          return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
+        } else {
+          return tupleN((negative, expectStatePredicate(
+            syntaxTree, expectReference(np),
+            SilExistenceState(), specifiedState,
+            verbModifiers.map(expectVerbModifier))))
+        }
       }
       val (state, extraModifiers, refinedState) = {
         complement match {
@@ -899,10 +921,31 @@ class SprEnglishSyntaxAnalyzer(
     }
   }
 
-  override protected[parser] def expectPropertyComplementState(
+  override def expectPropertyComplementState(
     tree : SprSyntaxTree) : SilState =
   {
     val seq = tree.children
+    if (isStrict) {
+      splitCoordinatingConjunction(seq) match {
+        case (DETERMINER_UNSPECIFIED, _, _) => {
+          analyzePropertyComplementState(tree, seq)
+        }
+        case (determiner, separator, split) => {
+          SilConjunctiveState(
+            determiner,
+            split.map(x => analyzePropertyComplementState(tree, x)),
+            separator)
+        }
+      }
+    } else {
+      analyzePropertyComplementState(tree, seq)
+    }
+  }
+
+  private def analyzePropertyComplementState(
+    tree : SprSyntaxTree,
+    seq : Seq[SprSyntaxTree]) : SilState =
+  {
     def state = expectPropertyState(seq.head)
     if (seq.size == 1) {
       state
@@ -1256,7 +1299,7 @@ class SprEnglishSyntaxAnalyzer(
     }
   }
 
-  override protected[parser] def specifyReference(
+  override def specifyReference(
     ref : SilReference, specifiedState : SilState) : SilReference =
   {
     if (specifiedState == SilNullState()) {
@@ -1311,7 +1354,7 @@ class SprEnglishSyntaxAnalyzer(
     }
   }
 
-  override protected[parser] def analyzePronounReference(
+  override def analyzePronounReference(
     leaf : SprSyntaxLeaf)
       : SilPronounReference =
   {
@@ -1341,9 +1384,18 @@ class SprEnglishSyntaxAnalyzer(
     SilPronounReference(person, gender, count, distance)
   }
 
-  override protected[parser] def isProhibitedPropertyState(
+  override def isProhibitedPropertyState(
     preTerminal : SprSyntaxPreTerminal) : Boolean =
   {
-    getWord(preTerminal.child).lemma == LEMMA_BE
+    getWord(preTerminal.child).lemma == LEMMA_BE || {
+      if (isStrict) {
+        preTerminal match {
+          case _ : SptVBG => true
+          case _ => false
+        }
+      } else {
+        false
+      }
+    }
   }
 }

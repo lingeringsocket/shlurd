@@ -285,7 +285,7 @@ case class SilUnresolvedStatePredicate(
 
   override def getModifiers = modifiers
 
-  override def children = Seq(subject, state) ++ modifiers
+  override def children = Seq(subject, state, specifiedState) ++ modifiers
 
   override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
     copy(modifiers = newModifiers)
@@ -305,7 +305,7 @@ case class SilUnresolvedActionPredicate(
   override def getModifiers = modifiers
 
   override def children =
-    Seq(subject) ++ directObject ++ modifiers
+    Seq(subject) ++ directObject ++ adpositionObject ++ modifiers
 
   override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
     copy(modifiers = newModifiers)

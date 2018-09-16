@@ -18,69 +18,72 @@ import com.lingeringsocket.shlurd.ilang._
 
 trait SprSyntaxAnalyzer
 {
-  protected[parser] def analyzeSentence(
+  def analyzeSentence(
     tree : SptS)
       : SilSentence
 
-  protected[parser] def analyzeSQ(
+  def analyzeSQ(
     tree : SprSyntaxTree, forceSQ : Boolean)
       : SilSentence
 
-  protected[parser] def analyzeSBARQ(
+  def analyzeSBARQ(
     tree : SptSBARQ)
       : SilSentence
 
-  protected[parser] def analyzeNounPhrase(
+  def analyzeNounPhrase(
     tree : SptNP)
       : SilReference
 
-  protected[parser] def analyzePronounReference(
+  def analyzePronounReference(
     leaf : SprSyntaxLeaf)
       : SilPronounReference
 
-  protected[parser] def expectPropertyState(
+  def expectComplementState(
+    tree : SprSyntaxTree) : SilExpectedComplementState
+
+  def expectPropertyState(
     syntaxTree : SprSyntaxTree) : SilExpectedPropertyState
 
-  protected[parser] def expectAdpositionalState(
+  def expectAdpositionalState(
     tree : SprSyntaxTree)
     : SilState
 
-  protected[parser] def expectTemporalVerbModifier(
+  def expectTemporalVerbModifier(
     tmod : SptTMOD)
       : SilVerbModifier
 
-  protected[parser] def expectVerbModifierPhrase(
+  def expectVerbModifierPhrase(
     tree : SprSyntaxPhrase)
       : SilVerbModifier
 
-  protected[parser] def expectBasicVerbModifier(
+  def expectBasicVerbModifier(
     preTerminal : SprSyntaxPreTerminal)
       : SilVerbModifier
 
-  protected[parser] def expectAdpositionalVerbModifier(
+  def expectAdpositionalVerbModifier(
     tree : SprSyntaxTree)
       : SilVerbModifier
 
-  protected[parser] def expectPropertyComplementState(
+  def expectPropertyComplementState(
     tree : SprSyntaxTree)
       : SilState
 
-  protected[parser] def getCount(
+  def getCount(
     tree : SprSyntaxTree)
       : SilCount
 
-  protected[parser] def getWord(
+  def getWord(
     leaf : SprSyntaxLeaf)
       : SilWord
 
-  protected[parser] def isProhibitedPropertyState(
+  def isProhibitedPropertyState(
     preTerminal : SprSyntaxPreTerminal) : Boolean
 
-  protected[parser] def specifyReference(
+  def specifyReference(
     ref : SilReference, specifiedState : SilState)
       : SilReference
 
-  protected[parser] def isNounPhraseModifier(tree : SprSyntaxTree) : Boolean
+  def isNounPhraseModifier(tree : SprSyntaxTree) : Boolean
 
-  protected[parser] def isNounPhraseHead(tree : SprSyntaxTree) : Boolean
+  def isNounPhraseHead(tree : SprSyntaxTree) : Boolean
 }

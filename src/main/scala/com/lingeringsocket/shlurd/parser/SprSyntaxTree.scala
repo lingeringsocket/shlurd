@@ -476,20 +476,20 @@ case class SptWHADVP(children : SprSyntaxTree*)
   override def label = LABEL_WHADVP
 }
 
-case class SptWDT(children : SprSyntaxTree*)
-    extends SprSyntaxPhrase
+case class SptWDT(child : SprSyntaxLeaf)
+    extends SprSyntaxPreTerminal
 {
   override def label = LABEL_WDT
 }
 
-case class SptWRB(children : SprSyntaxTree*)
-    extends SprSyntaxPhrase
+case class SptWRB(child : SprSyntaxLeaf)
+    extends SprSyntaxPreTerminal
 {
   override def label = LABEL_WRB
 }
 
-case class SptWP(children : SprSyntaxTree*)
-    extends SprSyntaxPhrase
+case class SptWP(child : SprSyntaxLeaf)
+    extends SprSyntaxPreTerminal
 {
   override def label = LABEL_WP
 }

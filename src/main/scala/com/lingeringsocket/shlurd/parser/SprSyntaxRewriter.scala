@@ -37,10 +37,7 @@ object SprSyntaxRewriter
     LABEL_WHNP -> SptWHNP.apply _,
     LABEL_WHPP -> SptWHPP.apply _,
     LABEL_WHADJP -> SptWHADJP.apply _,
-    LABEL_WHADVP -> SptWHADVP.apply _,
-    LABEL_WDT -> SptWDT.apply _,
-    LABEL_WRB -> SptWRB.apply _,
-    LABEL_WP -> SptWP.apply _
+    LABEL_WHADVP -> SptWHADVP.apply _
   )
 
   private val uniqueChildConstructors = Map(
@@ -75,6 +72,9 @@ object SprSyntaxRewriter
     LABEL_TO -> SptTO,
     LABEL_RP -> SptRP,
     LABEL_MD -> SptMD,
+    LABEL_WDT -> SptWDT,
+    LABEL_WRB -> SptWRB,
+    LABEL_WP -> SptWP,
     LABEL_POS -> SptPOS,
     LABEL_DOT -> SptDOT,
     LABEL_COMMA -> SptCOMMA

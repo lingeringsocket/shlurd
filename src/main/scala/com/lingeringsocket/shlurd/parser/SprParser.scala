@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import edu.stanford.nlp.simple._
@@ -70,7 +71,7 @@ class SprFallbackParser(
 }
 
 class SprSingleParser(
-  tree : SprSyntaxTree, guessedQuestion : Boolean)
+  tree : SprSyntaxTree, guessedQuestion : Boolean, strict : Boolean = false)
     extends SprParser
 {
   private def parseRoot(tree : SprSyntaxTree) =
@@ -78,7 +79,7 @@ class SprSingleParser(
     tree match {
       case SptROOT(sentenceSyntaxTree) => {
         val parsingRewriter = new SprPhraseRewriter(
-          new SprEnglishSyntaxAnalyzer(guessedQuestion))
+          new SprEnglishSyntaxAnalyzer(guessedQuestion, strict))
         val parsed = parsingRewriter.parseSentence(sentenceSyntaxTree)
         val normalizationRewriter = new SprNormalizationRewriter
         normalizationRewriter.normalize(parsed)
@@ -180,24 +181,7 @@ object SprParser
 
   private def loadCache(file : File) =
   {
-    val fileIn = new FileInputStream(file)
-    try {
-      // https://stackoverflow.com/a/22375260/2913158
-      val objIn = new ObjectInputStream(fileIn) {
-        override def resolveClass(
-          desc: java.io.ObjectStreamClass): Class[_] =
-        {
-          try {
-            Class.forName(desc.getName, false, getClass.getClassLoader)
-          } catch {
-            case ex : ClassNotFoundException => super.resolveClass(desc)
-          }
-        }
-      }
-      objIn.readObject.asInstanceOf[mutable.Map[CacheKey, CacheValue]]
-    } finally {
-      fileIn.close
-    }
+    SerializationUtils.deserialize[mutable.Map[CacheKey, CacheValue]](file)
   }
 
   def saveCache()
@@ -205,15 +189,8 @@ object SprParser
     if (cacheDirty) {
       cacheFile.foreach(file => {
         cache.foreach(c => {
-          val fileOut = new FileOutputStream(file)
-          try {
-            val objOut = new ObjectOutputStream(fileOut)
-            objOut.writeObject(c)
-            objOut.flush
-            cacheDirty = false
-          } finally {
-            fileOut.close
-          }
+          SerializationUtils.serialize(c, file)
+          cacheDirty = false
         })
       })
     }

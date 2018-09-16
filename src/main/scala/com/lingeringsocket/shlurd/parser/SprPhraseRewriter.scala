@@ -18,7 +18,7 @@ import com.lingeringsocket.shlurd.ilang._
 
 import SprUtils._
 
-class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
+class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
   extends SilPhraseRewriter
 {
   import SilPhraseRewriter._
@@ -282,7 +282,7 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
     predicate : SilUnresolvedStatePredicate) =
   {
     predicate.state match {
-      case SilConjunctiveState(DETERMINER_UNSPECIFIED, states, _) => {
+      case cs @ SilConjunctiveState(DETERMINER_UNSPECIFIED, states, _) => {
         val propertyState = states.head
         val fullySpecifiedState = {
           if (predicate.specifiedState == SilNullState()) {
@@ -295,6 +295,12 @@ class SprPhraseRewriter(analyzer : SprSyntaxAnalyzer)
             SilConjunctiveState(
               DETERMINER_ALL, Seq(predicate.specifiedState) ++ states.tail)
           }
+        }
+        fullySpecifiedState match {
+          case tp : SilTransformedPhrase => {
+            SilPhraseRewriter.onPhraseTransformation(cs, tp)
+          }
+          case _ =>
         }
         val specifiedSubject = analyzer.specifyReference(
           predicate.subject, fullySpecifiedState)
