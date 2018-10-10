@@ -18,8 +18,6 @@ import com.lingeringsocket.shlurd.ilang._
 
 import SprEnglishLemmas._
 
-import scala.io._
-
 object SprEnglishLexicon
 {
   val prepositions = readLexicon("/english/prepositions.txt")
@@ -30,7 +28,7 @@ object SprEnglishLexicon
 
   private def readLexicon(resource : String) : Set[String] =
   {
-    val words = Source.fromFile(SprParser.getResourcePath(resource)).getLines
+    val words = SprParser.getResourceSource(resource).getLines
     Set(words.toSeq:_*)
   }
 }

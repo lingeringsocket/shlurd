@@ -521,6 +521,10 @@ object SprParser
   def getResourceFile(resource : String) =
     new File(getResourcePath(resource))
 
+  def getResourceSource(resource : String) =
+    Source.fromInputStream(
+      getClass.getClassLoader.getResourceAsStream(resource.stripPrefix("/")))
+
   def readResource(resource : String) : String =
     Source.fromFile(getResourcePath(resource)).
       getLines.mkString("\n")
