@@ -11,6 +11,8 @@ maxErrors := 99
 traceLevel := 10
 
 libraryDependencies ++= Seq(
+  "net.sf.extjwnl" % "extjwnl" % "1.9.4",
+  "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1"
 )
 
@@ -18,10 +20,11 @@ publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath+"/.i
 
 assemblyExcludedJars in assembly := { 
   val cp = (fullClasspath in assembly).value
-  cp filter {!_.data.getName.startsWith("stanford-corenlp")}
+  cp filter {entry => (!entry.data.getName.startsWith("stanford-corenlp") && !entry.data.getName.startsWith("extjwnl"))}
 }
 
-def keepResource(s : String) : Boolean =
+def keepResource(s : String) : Boolean = true
+  /*
 {
   val preservedResources = Set(
     "edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger",
@@ -31,6 +34,7 @@ def keepResource(s : String) : Boolean =
     "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
   s.endsWith(".class") || s.endsWith(".properties") || preservedResources.contains(s)
 }
+   */
 
 assemblyMergeStrategy in assembly := {
   case s : String if (!keepResource(s)) => MergeStrategy.discard
