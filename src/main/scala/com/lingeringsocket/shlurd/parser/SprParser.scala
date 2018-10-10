@@ -306,7 +306,7 @@ object SprParser
           true, dump, "CORENLP")
       }
     } else {
-      prepareWordnet(sentence, dump, "WORDNET")
+      prepareWordnet(sentenceString, sentence, dump, "WORDNET")
     }
   }
 
@@ -324,14 +324,13 @@ object SprParser
     dump : Boolean, dumpDesc : String) : SprParser =
   {
     val sentence = tokenize(sentenceString).head
-    prepareWordnet(sentence, dump, dumpDesc)
+    prepareWordnet(sentenceString, sentence, dump, dumpDesc)
   }
 
   private def prepareWordnet(
-    sentence : Sentence,
+    sentenceString : String, sentence : Sentence,
     dump : Boolean, dumpDesc : String) : SprParser =
   {
-    // FIXME implement caching
     val dumpPrefix = dumpDesc
     val allWords = sentence.originalTexts.asScala
     val (words, terminator) = {
@@ -341,52 +340,62 @@ object SprParser
         tupleN((allWords, None))
       }
     }
-    val guessedQuestion = false
-    val wnp = new SprWordnetParser(
-      words, guessedQuestion, terminator)
-    val analysis = wnp.analyzeWords
-    if (dump) {
-      println
-      println("WORDNET LEXICAL")
-      println
-      words.zip(analysis).foreach {
-        case (word, preTerminals) => {
-          print(s"WORD:  " + word)
-          preTerminals.foreach(pt => {
-            print(pt)
-            print(" -> ")
-            print(pt.firstChild.lemma)
-          })
-          println
-          println
+    def wordnetParse() : SprSyntaxTree =
+    {
+      val guessedQuestion = false
+      val wnp = new SprWordnetParser(
+        words, guessedQuestion, terminator)
+      val analysis = wnp.analyzeWords
+      if (dump) {
+        println
+        println("WORDNET LEXICAL")
+        println
+        words.zip(analysis).foreach {
+          case (word, preTerminals) => {
+            print(s"WORD:  " + word)
+            preTerminals.foreach(pt => {
+              print(pt)
+              print(" -> ")
+              print(pt.firstChild.lemma)
+            })
+            println
+            println
+          }
         }
       }
-    }
-    val treeSet = new mutable.HashSet[SprSyntaxTree]
-    // FIXME handle TOO SLOW excn
-    wnp.buildAll(analysis).foreach(tree => {
-      if (!treeSet.contains(tree)) {
-        treeSet += tree
+      val treeSet = new mutable.HashSet[SprSyntaxTree]
+      // FIXME handle TOO SLOW excn
+      wnp.buildAll(analysis).foreach(tree => {
+        if (!treeSet.contains(tree)) {
+          treeSet += tree
+        }
+      })
+      if (dump) {
+        println("COST = " + wnp.getCost)
       }
-    })
-    if (dump) {
-      println("COST = " + wnp.getCost)
+      if (dump) {
+        println(dumpPrefix + " PARSE = " + treeSet)
+      }
+      if (treeSet.isEmpty) {
+        SptROOT(SptS(SprWordnetParser.npSomething))
+      } else if (treeSet.size == 1) {
+        SptROOT(treeSet.head)
+      } else {
+        SptAMBIGUOUS(treeSet.toSeq:_*)
+      }
     }
-    if (dump) {
-      println(dumpPrefix + " PARSE = " + treeSet)
-    }
-    val normalizedTrees = treeSet
-    if (normalizedTrees.isEmpty) {
-      new SprSingleWordnetParser(
-        SptS(SprWordnetParser.npSomething),
-        terminator)
-    } else if (normalizedTrees.size == 1) {
-      new SprSingleWordnetParser(
-        SptROOT(normalizedTrees.head),
-        terminator)
-    } else {
-      new SprAmbiguityParser(normalizedTrees.toSeq.map(tree =>
-        new SprSingleWordnetParser(SptROOT(tree), terminator)))
+    val root = cacheParse(
+      CacheKey(sentenceString, dumpPrefix), wordnetParse)
+    root match {
+      case SptAMBIGUOUS(trees @ _*) => {
+        new SprAmbiguityParser(trees.map(tree =>
+          new SprSingleWordnetParser(SptROOT(tree), terminator)))
+      }
+      case _ => {
+        new SprSingleWordnetParser(
+          root,
+          terminator)
+      }
     }
   }
 

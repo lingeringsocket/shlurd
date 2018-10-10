@@ -8,6 +8,8 @@ jdk:
 
 dist: trusty
 
+sbt_args: -J-Xss2M -Xms4G -Xmx4G
+
 script:
   - sbt ++$TRAVIS_SCALA_VERSION clean test scalastyle test:scalastyle
   - sbt ++$TRAVIS_SCALA_VERSION corenlp:test

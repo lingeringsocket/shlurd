@@ -19,6 +19,7 @@ import scala.collection._
 object SprPennTreebankLabels
 {
   val LABEL_ROOT = "ROOT"
+  val LABEL_AMBIGUOUS = "AMBIGUOUS"
   val LABEL_S = "S"
   val LABEL_SINV = "SINV"
   val LABEL_SBAR = "SBAR"
@@ -389,6 +390,13 @@ case class SptROOT(child : SprSyntaxTree)
     extends SprSyntaxUniqueChild
 {
   override def label = LABEL_ROOT
+}
+
+// this is a non-standard one we cons up to wrap ambiguous alternatives
+case class SptAMBIGUOUS(children : SprSyntaxTree*)
+    extends SprSyntaxPhrase
+{
+  override def label = LABEL_AMBIGUOUS
 }
 
 case class SptS(children : SprSyntaxTree*)

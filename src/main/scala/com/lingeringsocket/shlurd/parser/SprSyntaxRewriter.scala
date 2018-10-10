@@ -23,6 +23,7 @@ import SprEnglishLemmas._
 object SprSyntaxRewriter
 {
   private val phraseConstructors = Map(
+    LABEL_AMBIGUOUS -> SptAMBIGUOUS.apply _,
     LABEL_S -> SptS.apply _,
     LABEL_SINV -> SptSINV.apply _,
     LABEL_SBAR -> SptSBAR.apply _,
