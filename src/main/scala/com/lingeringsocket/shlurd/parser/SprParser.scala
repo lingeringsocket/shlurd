@@ -71,24 +71,84 @@ class SprFallbackParser(
 }
 
 class SprSingleParser(
-  tree : SprSyntaxTree, guessedQuestion : Boolean, strict : Boolean = false)
+  tree : SprSyntaxTree, guessedQuestion : Boolean)
     extends SprParser
 {
+  protected def normalize(sentence : SilSentence) : SilSentence =
+  {
+    val normalizationRewriter = new SprNormalizationRewriter
+    normalizationRewriter.normalize(sentence)
+  }
+
   private def parseRoot(tree : SprSyntaxTree) =
   {
     tree match {
       case SptROOT(sentenceSyntaxTree) => {
         val parsingRewriter = new SprPhraseRewriter(
-          new SprEnglishSyntaxAnalyzer(guessedQuestion, strict))
+          new SprEnglishSyntaxAnalyzer(guessedQuestion))
         val parsed = parsingRewriter.parseSentence(sentenceSyntaxTree)
-        val normalizationRewriter = new SprNormalizationRewriter
-        normalizationRewriter.normalize(parsed)
+        normalize(parsed)
       }
       case _ => SilUnrecognizedSentence(tree)
     }
   }
 
   override def parseOne() = parseRoot(tree)
+
+  override def parseFirst() = parseOne
+
+  override def parseAll() = Stream(parseOne)
+}
+
+class SprSingleWordnetParser(
+  tree : SprSyntaxTree, terminator : Option[String]
+) extends SprSingleParser(tree, false)
+{
+  override def parseOne() =
+  {
+    val sentence = super.parseOne
+    val (addInterrogative, addExclamation) = {
+      terminator match {
+        case Some(LABEL_QUESTION_MARK) => (true, false)
+        case Some(LABEL_EXCLAMATION_MARK) => (false, true)
+        case _ => (false, false)
+      }
+    }
+    val tam = {
+      if (addInterrogative) {
+        sentence match {
+          case _ : SilConditionalSentence => sentence.tam
+          case _ => {
+            sentence.tam.withMood(MOOD_INTERROGATIVE)
+          }
+        }
+      } else {
+        sentence.tam
+      }
+    }
+    val formality = {
+      if (addExclamation) {
+        sentence.formality.copy(force = FORCE_EXCLAMATION)
+      } else {
+        sentence.formality
+      }
+    }
+    val augmented = normalize(sentence.withNewTamFormality(tam, formality))
+    SprWordnetScorer.adjustScores(augmented)
+  }
+}
+
+class SprAmbiguityParser(
+  singles : Seq[SprParser])
+    extends SprParser
+{
+
+  override def parseOne() =
+  {
+    val alternatives = singles.map(_.parseOne)
+    val ambiguous = SilAmbiguousSentence(alternatives)
+    SprPhraseRewriter.resolveAmbiguousSentence(ambiguous)
+  }
 
   override def parseFirst() = parseOne
 
@@ -144,6 +204,8 @@ object SprParser
 
   type CacheValue = SprSyntaxTree
 
+  val ONCE_UPON_A_TIME = "once upon a time"
+
   private val terminators = Set(
     LABEL_DOT, LABEL_QUESTION_MARK, LABEL_EXCLAMATION_MARK)
 
@@ -155,6 +217,8 @@ object SprParser
 
   private var cacheFile : Option[File] = None
 
+  private var useCoreNLP : Boolean = false
+
   def getEmptyDocument() = new Document("")
 
   def debug(s : String)
@@ -164,6 +228,13 @@ object SprParser
       println("SHLURD = " + parser.parseOne)
     })
   }
+
+  def setCoreNLP(enabled : Boolean)
+  {
+    useCoreNLP = enabled
+  }
+
+  def isCoreNLP : Boolean = useCoreNLP
 
   def enableCache(file : Option[File] = None)
   {
@@ -218,22 +289,108 @@ object SprParser
   }
 
   private def prepareOne(
-    sentence : Sentence, dump : Boolean = false) : SprParser =
+    sentence : Sentence,
+    dump : Boolean = false,
+    corenlp : Boolean = useCoreNLP) : SprParser =
   {
     val tokens = sentence.originalTexts.asScala
     val sentenceString = sentence.text
-    if (isTerminator(tokens.last)) {
-      prepareFallbacks(
-        sentenceString, tokens, false, dump, "PUNCTUATED")
+    if (corenlp) {
+      if (isTerminator(tokens.last)) {
+        prepareFallbacks(
+          sentenceString, tokens, false, dump, "CORENLP")
+      } else {
+        val questionString = sentenceString + LABEL_QUESTION_MARK
+        prepareFallbacks(
+          questionString, tokens :+ LABEL_QUESTION_MARK,
+          true, dump, "CORENLP")
+      }
     } else {
-      val questionString = sentenceString + LABEL_QUESTION_MARK
-      prepareFallbacks(
-        questionString, tokens :+ LABEL_QUESTION_MARK,
-        true, dump, "GUESSED QUESTION")
+      prepareWordnet(sentence, dump, "WORDNET")
     }
   }
 
   private def prepareFallbacks(
+    sentenceString : String, tokens : Seq[String],
+    guessedQuestion : Boolean,
+    dump : Boolean, dumpPrefix : String) =
+  {
+    prepareCorenlpFallbacks(
+      sentenceString, tokens, guessedQuestion, dump, dumpPrefix)
+  }
+
+  private[parser] def prepareWordnet(
+    sentenceString : String,
+    dump : Boolean, dumpDesc : String) : SprParser =
+  {
+    val sentence = tokenize(sentenceString).head
+    prepareWordnet(sentence, dump, dumpDesc)
+  }
+
+  private def prepareWordnet(
+    sentence : Sentence,
+    dump : Boolean, dumpDesc : String) : SprParser =
+  {
+    // FIXME implement caching
+    val dumpPrefix = dumpDesc
+    val allWords = sentence.originalTexts.asScala
+    val (words, terminator) = {
+      if (isTerminator(allWords.last)) {
+        tupleN((allWords.dropRight(1), Some(allWords.last)))
+      } else {
+        tupleN((allWords, None))
+      }
+    }
+    val guessedQuestion = false
+    val wnp = new SprWordnetParser(
+      words, guessedQuestion, terminator)
+    val analysis = wnp.analyzeWords
+    if (dump) {
+      println
+      println("WORDNET LEXICAL")
+      println
+      words.zip(analysis).foreach {
+        case (word, preTerminals) => {
+          print(s"WORD:  " + word)
+          preTerminals.foreach(pt => {
+            print(pt)
+            print(" -> ")
+            print(pt.firstChild.lemma)
+          })
+          println
+          println
+        }
+      }
+    }
+    val treeSet = new mutable.HashSet[SprSyntaxTree]
+    // FIXME handle TOO SLOW excn
+    wnp.buildAll(analysis).foreach(tree => {
+      if (!treeSet.contains(tree)) {
+        treeSet += tree
+      }
+    })
+    if (dump) {
+      println("COST = " + wnp.getCost)
+    }
+    if (dump) {
+      println(dumpPrefix + " PARSE = " + treeSet)
+    }
+    val normalizedTrees = treeSet
+    if (normalizedTrees.isEmpty) {
+      new SprSingleWordnetParser(
+        SptS(SprWordnetParser.npSomething),
+        terminator)
+    } else if (normalizedTrees.size == 1) {
+      new SprSingleWordnetParser(
+        SptROOT(normalizedTrees.head),
+        terminator)
+    } else {
+      new SprAmbiguityParser(normalizedTrees.toSeq.map(tree =>
+        new SprSingleWordnetParser(SptROOT(tree), terminator)))
+    }
+  }
+
+  private def prepareCorenlpFallbacks(
     sentenceString : String, tokens : Seq[String],
     guessedQuestion : Boolean,
     dump : Boolean, dumpPrefix : String) =
@@ -251,23 +408,23 @@ object SprParser
       "parse.model",
       "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
     val capitalizedString = capitalize(sentenceString)
-    def main() = prepareParser(
+    def main() = prepareCorenlp(
       capitalizedString, tokens, props, true, guessedQuestion,
       dump, dumpPrefix + " RNN")
-    def fallbackSR() = prepareParser(
+    def fallbackSR() = prepareCorenlp(
       capitalizedString, tokens, propsSR, true, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR")
-    def fallbackPCFG() = prepareParser(
+    def fallbackPCFG() = prepareCorenlp(
       capitalizedString, tokens, propsPCFG, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK PCFG")
-    def fallbackSRCASELESS() = prepareParser(
+    def fallbackSRCASELESS() = prepareCorenlp(
       sentenceString, tokens, propsSR, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR CASELESS")
     new SprFallbackParser(Seq(
       main, fallbackSR, fallbackPCFG, fallbackSRCASELESS))
   }
 
-  private def prepareParser(
+  private def prepareCorenlp(
     sentenceString : String, tokens : Seq[String], props : Properties,
     preDependencies : Boolean, guessedQuestion : Boolean,
     dump : Boolean, dumpPrefix : String) =
@@ -318,6 +475,35 @@ object SprParser
       "depparse.model",
       "edu/stanford/nlp/models/parser/nndep/english_SD.gz")
     sentence.incomingDependencyLabels(props).asScala.map(_.orElse(""))
+  }
+
+  // FIXME Mickey Mouse
+  def interpretTemporal(ref : SilReference) : Int =
+  {
+    ref match {
+      case SilNounReference(word, DETERMINER_UNSPECIFIED, COUNT_SINGULAR) => {
+        word.lemma.toLowerCase match {
+          case ONCE_UPON_A_TIME => Int.MinValue
+          case "yesterday" => -1
+          case _ => throw new IllegalArgumentException
+        }
+      }
+      case SilGenitiveReference(
+        SilPronounReference(
+          PERSON_THIRD, GENDER_N, COUNT_SINGULAR, DISTANCE_HERE),
+        SilNounReference(word, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)
+      ) => {
+        word.lemma.toLowerCase match {
+          case "morning" => 1
+          case "afternoon" => 2
+          case "evening" => 3
+          case _ => throw new IllegalArgumentException
+        }
+      }
+      case _ => {
+        throw new IllegalArgumentException
+      }
+    }
   }
 
   def getResourcePath(resource : String) =

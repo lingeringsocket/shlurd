@@ -4,9 +4,9 @@ A vehicle must be moving or stopped.
 A vehicle may have an owner.
 A car is a kind of vehicle.
 A boat is a kind of vehicle.
-A boat must be floating or sinking.
+A boat must be cruising or sinking.
 A car's gender must be masculine.
 Herbie is a car.
-Titanic is a boat.
+Lusitania is a boat.
 Jim is a man.
 Jim is Herbie's owner.

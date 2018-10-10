@@ -90,17 +90,24 @@ class SilSentencePrinterSpec extends Specification
     "deal with problem cases" in
     {
       skipped("maybe one day")
-      expectQuestion("is neither franny nor zooey speaking")
-      expectStatement("a vehicle must be either moving or stopped")
       expectNormalized("a body generally has a tail",
         "a body has a tail generally.")
       expectStatement("a body has a tail generally")
       expectStatement("Salieri sends Mozart a letter angrily")
       expectQuestion("does Salieri send Mozart a letter angrily")
       expectQuestion("what is the cave south of")
+      expectStatement("the king is running merrily through the woods")
+    }
+
+    "deal with more problem cases" in
+    {
+      if (SprParser.isCoreNLP) {
+        skipped("Wordnet only")
+      }
+      expectQuestion("is neither franny nor zooey speaking")
+      expectStatement("a vehicle must be either moving or stopped")
       expectPreserved("does the mule kick the ball smugly at the vase?")
       expectQuestion("does the door close")
-      expectStatement("the king is running merrily through the woods")
     }
 
     "preserve sentences" in
@@ -293,6 +300,7 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("did Ramona go to the library")
       expectStatement("Mortimer went to the beach yesterday")
       expectStatement("Mortimer went to the beach this morning")
+      expectStatement("Mortimer went back to the beach this morning")
       expectQuestion("what did Curtis give to Andrea")
       expectQuestion("who received the bomb")
       expectNormalized("who did Curtis give the bomb to",

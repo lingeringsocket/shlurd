@@ -147,8 +147,12 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
   {
     entity match {
       case a : ZooAnimalEntity => {
-        if (sleepinessValues.contains(lemma)) {
-          Success((ZooAnimalSleepinessProperty, lemma))
+        val folded = lemma match {
+          case "sleep" => "asleep"
+          case _ => lemma
+        }
+        if (sleepinessValues.contains(folded)) {
+          Success((ZooAnimalSleepinessProperty, folded))
         } else {
           fail("I don't know about this state: " + lemma)
         }

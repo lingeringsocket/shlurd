@@ -31,6 +31,8 @@ sealed trait SilPhrase
   def isUninterpretable : Boolean =
     hasUnknown || children.exists(_.isUninterpretable)
 
+  def isConjunctive : Boolean = false
+
   override def toString = SprPrettyPrinter.prettyPrint(this)
 
   def maybeSyntaxTree : Option[SprSyntaxTree] = None
@@ -54,6 +56,9 @@ sealed trait SilSentence extends SilPhrase
   def tam : SilTam
 
   def formality : SilFormality
+
+  def withNewTamFormality(newTam : SilTam, newFormality : SilFormality)
+      : SilSentence
 }
 
 sealed trait SilPredicate extends SilPhrase
@@ -112,6 +117,9 @@ sealed trait SilUnknownSentence
   override def tam = SilTam.indicative
 
   override def formality = SilFormality.DEFAULT
+
+  override def withNewTamFormality(newTam : SilTam, newFormality : SilFormality)
+      : SilSentence = this
 }
 
 sealed trait SilUnknownPredicate
@@ -184,6 +192,9 @@ case class SilUnparsedSentence(
   override def tam = SilTam.indicative
 
   override def formality = SilFormality.DEFAULT
+
+  override def withNewTamFormality(newTam : SilTam, newFormality : SilFormality)
+      : SilSentence = this
 }
 
 case class SilUnrecognizedSentence(
@@ -250,7 +261,8 @@ case class SilExpectedComplementState(
 }
 
 case class SilExpectedAdpositionalState(
-  syntaxTree : SprSyntaxTree
+  syntaxTree : SprSyntaxTree,
+  extracted : Boolean
 ) extends SilUnknownState with SilUnresolvedPhrase
 {
 }
@@ -268,7 +280,8 @@ case class SilExpectedExistenceState(
 }
 
 case class SilExpectedVerbModifier(
-  syntaxTree : SprSyntaxTree
+  syntaxTree : SprSyntaxTree,
+  successor : Option[SprSyntaxTree]
 ) extends SilUnknownVerbModifier with SilUnresolvedPhrase
 {
 }
@@ -336,6 +349,12 @@ case class SilPredicateSentence(
 ) extends SilTransformedPhrase with SilSentence
 {
   override def children = Seq(predicate)
+
+  override def withNewTamFormality(
+    newTam : SilTam, newFormality : SilFormality) =
+  {
+    copy(tam = newTam, formality = newFormality)
+  }
 }
 
 case class SilConditionalSentence(
@@ -350,6 +369,12 @@ case class SilConditionalSentence(
   override def children = Seq(antecedent, consequent)
 
   override def tam = tamConsequent
+
+  override def withNewTamFormality(
+    newTam : SilTam, newFormality : SilFormality) =
+  {
+    copy(tamConsequent = newTam, formality = newFormality)
+  }
 }
 
 case class SilStateChangeCommand(
@@ -361,6 +386,12 @@ case class SilStateChangeCommand(
   override def children = Seq(predicate)
 
   override def tam = SilTam.imperative
+
+  override def withNewTamFormality(
+    newTam : SilTam, newFormality : SilFormality) =
+  {
+    copy(formality = newFormality)
+  }
 }
 
 case class SilPredicateQuery(
@@ -372,6 +403,12 @@ case class SilPredicateQuery(
 ) extends SilTransformedPhrase with SilSentence
 {
   override def children = Seq(predicate)
+
+  override def withNewTamFormality(
+    newTam : SilTam, newFormality : SilFormality) =
+  {
+    copy(tam = newTam, formality = newFormality)
+  }
 }
 
 case class SilConjunctiveSentence(
@@ -382,10 +419,18 @@ case class SilConjunctiveSentence(
 {
   override def children = sentences
 
+  override def isConjunctive : Boolean = true
+
   // not really sure there's any more meaningful implementation
   override def tam = sentences.head.tam
 
   override def formality = sentences.head.formality
+
+  override def withNewTamFormality(
+    newTam : SilTam, newFormality : SilFormality) =
+  {
+    copy(sentences = sentences.map(_.withNewTamFormality(newTam, newFormality)))
+  }
 }
 
 case class SilAmbiguousSentence(
@@ -400,6 +445,9 @@ case class SilAmbiguousSentence(
   override def formality = alternatives.head.formality
 
   def isRipe = !hasUnresolvedChildren && !done
+
+  override def withNewTamFormality(newTam : SilTam, newFormality : SilFormality)
+      : SilSentence = this
 }
 
 case class SilStatePredicate(
@@ -505,6 +553,8 @@ case class SilConjunctiveReference(
 {
   override def children = references
 
+  override def isConjunctive : Boolean = true
+
   override def acceptsSpecifiers = children.exists(_.acceptsSpecifiers)
 }
 
@@ -561,19 +611,21 @@ case class SilConjunctiveState(
 ) extends SilTransformedPhrase with SilState
 {
   override def children = states
+
+  override def isConjunctive : Boolean = true
 }
 
 case class SilBasicVerbModifier(
-  words : Seq[SilWord]
+  words : Seq[SilWord],
+  score : Int
 ) extends SilTransformedPhrase with SilVerbModifier
 {
 }
 
 case class SilDanglingVerbModifier(
   adposition : SilAdposition
-) extends SilTransformedPhrase with SilUnknownVerbModifier
+) extends SilTransformedPhrase with SilVerbModifier
 {
-  override def syntaxTree = syntaxTreeOpt.get
 }
 
 case class SilAdpositionalVerbModifier(

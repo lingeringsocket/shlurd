@@ -29,11 +29,11 @@ A possession must be an object.
 A person may have possessions.
 An object may have a possessor.
 A person with a possession is a possessor.
-If a person goes to a location, then the person is in the location.
-If a person goes to a location, then the person's possessions are in the location.
-If a person moves to a location, then the person goes to the location.
-If a person journeys to a location, then the person goes to the location.
-If a person travels to a location, then the person goes to the location.
+If a person moves to a location, then the person is in the location.
+If a person moves to a location, then the person's possessions are in the location.
+If a person goes to a location, then the person moves to the location.
+If a person journeys to a location, then the person moves to the location.
+If a person travels to a location, then the person moves to the location.
 If a person takes an item, then the item's possessor is the person.
 If a person grabs an item, then the person takes the item.
 If a person picks up an item, then the person takes the item.
@@ -51,32 +51,32 @@ If a person hands an item to a recipient, then the person gives the item to the 
 A coloration must be white, gray, yellow, or green.
 A color must be a coloration.
 An animal may have a color as a property.
-Lion_color is a coloration.
-Rhino_color is a coloration.
-Swan_color is a coloration.
-Frog_color is a coloration.
+Lioncolor is a coloration.
+Rhinocolor is a coloration.
+Swancolor is a coloration.
+Frogcolor is a coloration.
 A lion is a kind of animal.
 A rhino is a kind of animal.
 A swan is a kind of animal.
 A frog is a kind of animal.
-If an animal is a lion, then the animal's color is Lion_color.
-If an animal is a rhino, then the animal's color is Rhino_color.
-If an animal is a swan, then the animal's color is Swan_color.
-If an animal is a frog, then the animal's color is Frog_color.
-A northern_neighbor must be a place.
-A southern_neighbor must be a place.
-An eastern_neighbor must be a place.
-A western_neighbor must be a place.
-A place may have a northern_neighbor.
-A place may have a southern_neighbor.
-A place may have an eastern_neighbor.
-A place may have a western_neighbor.
-A place with a northern_neighbor is a southern_neighbor.
-A place with an eastern_neighbor is a western_neighbor.
-If a place is west of a location, then equivalently the place is the location's western_neighbor.
-If a place is east of a location, then equivalently the place is the location's eastern_neighbor.
-If a place is north of a location, then equivalently the place is the location's northern_neighbor.
-If a place is south of a location, then equivalently the place is the location's southern_neighbor.
+If an animal is a lion, then the animal's color is Lioncolor.
+If an animal is a rhino, then the animal's color is Rhinocolor.
+If an animal is a swan, then the animal's color is Swancolor.
+If an animal is a frog, then the animal's color is Frogcolor.
+A northern-neighbor must be a place.
+A southern-neighbor must be a place.
+An eastern-neighbor must be a place.
+A western-neighbor must be a place.
+A place may have a northern-neighbor.
+A place may have a southern-neighbor.
+A place may have an eastern-neighbor.
+A place may have a western-neighbor.
+A place with a northern-neighbor is a southern-neighbor.
+A place with an eastern-neighbor is a western-neighbor.
+If a place is west of a location, then equivalently the place is the location's western-neighbor.
+If a place is east of a location, then equivalently the place is the location's eastern-neighbor.
+If a place is north of a location, then equivalently the place is the location's northern-neighbor.
+If a place is south of a location, then equivalently the place is the location's southern-neighbor.
 A shape is a kind of object.
 A triangle is a kind of shape.
 A square is a kind of shape.
@@ -94,43 +94,43 @@ An abscissa must be a column.
 An ordinate must be a row.
 A shape must have an abscissa.
 A shape must have an ordinate.
-An aboverow must be a row.
-A belowrow must be a row.
-A leftcolumn must be a column.
-A rightcolumn must be a column.
-A toprow must be a row.
-A bottomrow must be a row.
-A precolumn must be a column.
-A postcolumn must be a column.
-A row must have an aboverow.
-A row must have a belowrow.
-A column must have a leftcolumn.
-A column must have a rightcolumn.
-A row may have toprows.
-A row may have bottomrows.
-A column may have precolumns.
-A column may have postcolumns.
-A row with an aboverow is a belowrow.
-A column with a leftcolumn is a rightcolumn.
-A row with a toprow is a bottomrow.
-A column with a precolumn is a postcolumn.
+An above-row must be a row.
+A below-row must be a row.
+A left-column must be a column.
+A right-column must be a column.
+A top-row must be a row.
+A bottom-row must be a row.
+A pre-column must be a column.
+A post-column must be a column.
+A row must have an above-row.
+A row must have a below-row.
+A column must have a left-column.
+A column must have a right-column.
+A row may have top-rows.
+A row may have bottom-rows.
+A column may have pre-columns.
+A column may have post-columns.
+A row with an above-row is a below-row.
+A column with a left-column is a right-column.
+A row with a top-row is a bottom-row.
+A column with a pre-column is a post-column.
 If a shape is above a neighbor, then the shape's abscissa is the neighbor's abscissa.
-If a shape is above a neighbor, then the shape's ordinate is the neighbor's ordinate's aboverow.
-If a shape is above a neighbor, equivalently the neighbor's ordinate's toprow is the shape's ordinate.
+If a shape is above a neighbor, then the shape's ordinate is the neighbor's ordinate's above-row.
+If a shape is above a neighbor, equivalently the neighbor's ordinate's top-row is the shape's ordinate.
 If a shape is above a neighbor, then the shape's ordinate sits on the neighbor's ordinate.
-If a row sits on a neighbor, then the neighbor's bottomrow's toprow is the row.
-If a row sits on a neighbor, then the row's bottomrow's toprows are the row's toprows.
+If a row sits on a neighbor, then the neighbor's bottom-row's top-row is the row.
+If a row sits on a neighbor, then the row's bottom-row's top-rows are the row's top-rows.
 If a shape is below a neighbor, then the shape's abscissa is the neighbor's abscissa.
-If a shape is below a neighbor, then the shape's ordinate is the neighbor's ordinate's belowrow.
-If a shape is below a neighbor, equivalently the neighbor's ordinate's bottomrow is the shape's ordinate.
+If a shape is below a neighbor, then the shape's ordinate is the neighbor's ordinate's below-row.
+If a shape is below a neighbor, equivalently the neighbor's ordinate's bottom-row is the shape's ordinate.
 If a shape is below a neighbor, then the neighbor's ordinate sits on the shape's ordinate.
 If a shape is to the left of a neighbor, then the shape's ordinate is the neighbor's ordinate.
-If a shape is to the left of a neighbor, then the shape's abscissa is the neighbor's abscissa's leftcolumn.
-If a shape is to the left of a neighbor, equivalently the neighbor's abscissa's precolumn is the shape's abscissa.
+If a shape is to the left of a neighbor, then the shape's abscissa is the neighbor's abscissa's left-column.
+If a shape is to the left of a neighbor, equivalently the neighbor's abscissa's pre-column is the shape's abscissa.
 If a shape is to the left of a neighbor, then the shape's abscissa precedes the neighbor's abscissa.
-If a column precedes a neighbor, then the neighbor's postcolumn's precolumn is the column.
-If a column precedes a neighbor, then the column's postcolumn's precolumns are the column's precolumns.
+If a column precedes a neighbor, then the neighbor's post-column's pre-column is the column.
+If a column precedes a neighbor, then the column's post-column's pre-columns are the column's pre-columns.
 If a shape is to the right of a neighbor, then the shape's ordinate is the neighbor's ordinate.
-If a shape is to the right of a neighbor, then the neighbor's abscissa's rightcolumn is the shape's abscissa.
-If a shape is to the right of a neighbor, equivalently the neighbor's abscissa's postcolumn is the shape's abscissa.
+If a shape is to the right of a neighbor, then the neighbor's abscissa's right-column is the shape's abscissa.
+If a shape is to the right of a neighbor, equivalently the neighbor's abscissa's post-column is the shape's abscissa.
 If a shape is to the right of a neighbor, then the neighbor's abscissa precedes the shape's abscissa.

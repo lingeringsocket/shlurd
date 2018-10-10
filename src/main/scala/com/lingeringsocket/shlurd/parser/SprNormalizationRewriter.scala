@@ -20,7 +20,7 @@ import com.lingeringsocket.shlurd.ilang._
 import SprEnglishLemmas._
 
 private[parser] class SprNormalizationRewriter
-  extends SilPhraseRewriter
+  extends SilPhraseRewriter with SprEnglishWordAnalyzer
 {
   def normalize(sentence : SilSentence) : SilSentence =
   {
@@ -28,10 +28,54 @@ private[parser] class SprNormalizationRewriter
   }
 
   private def normalizeAllPhrases = combineRules(
+    normalizeCompass,
     normalizeEmphatic,
+    normalizeGenitives,
+    normalizeCoordinatingDeterminers,
     normalizeDanglingAdpositions,
     normalizeCompoundAdpositions,
     normalizeAdpositionalPhrases)
+
+  private def normalizeGenitives = replacementMatcher {
+    case SilGenitiveReference(r1, SilGenitiveReference(r2, r3)) => {
+      SilGenitiveReference(SilGenitiveReference(r1, r2), r3)
+    }
+  }
+
+  private def normalizeCoordinatingDeterminers = replacementMatcher {
+    case SilStatePredicate(
+      subject,
+      SilConjunctiveState(
+        DETERMINER_ANY, states, separator),
+      verbModifiers
+    ) if (findCoordinatingDeterminer(verbModifiers).nonEmpty) => {
+      val (modifier, lemma) = findCoordinatingDeterminer(verbModifiers).get
+      val determiner = maybeDeterminerFor(lemma).get
+      SilStatePredicate(
+        subject,
+        SilConjunctiveState(
+          determiner, states, separator),
+        verbModifiers.filterNot(_ == modifier)
+      )
+    }
+    case SilRelationshipPredicate(
+      subject,
+      SilConjunctiveReference(
+        DETERMINER_ANY, references, separator),
+      relationship,
+      verbModifiers
+    ) if (findCoordinatingDeterminer(verbModifiers).nonEmpty) => {
+      val (modifier, lemma) = findCoordinatingDeterminer(verbModifiers).get
+      val determiner = maybeDeterminerFor(lemma).get
+      SilRelationshipPredicate(
+        subject,
+        SilConjunctiveReference(
+          determiner, references, separator),
+        relationship,
+        verbModifiers.filterNot(_ == modifier)
+      )
+    }
+  }
 
   private def normalizeEmphatic = replacementMatcher {
     case SilPredicateSentence(
@@ -111,6 +155,32 @@ private[parser] class SprNormalizationRewriter
         SilAdposition(
           adp1.words ++ Seq(SilWord(LEMMA_THE), word) ++ adp2.words),
         objRef
+      )
+    }
+  }
+
+  private def normalizeCompass = replacementMatcher {
+    case SilRelationshipPredicate(
+      subject,
+      SilStateSpecifiedReference(
+        SilNounReference(direction, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+        SilAdpositionalState(
+          adp,
+          landmark)
+      ),
+      REL_IDENTITY,
+      modifiers
+    ) if (
+      (adp == SilAdposition.OF) &&
+        Set("north", "south", "east", "west").contains(direction.lemma)
+    ) => {
+      SilStatePredicate(
+        subject,
+        SilAdpositionalState(
+          SilAdposition(direction +: adp.words),
+          landmark
+        ),
+        modifiers
       )
     }
   }
@@ -199,6 +269,22 @@ private[parser] class SprNormalizationRewriter
       }
       case _ => false
     }
+  }
+
+  private def findCoordinatingDeterminer(
+    verbModifiers : Seq[SilVerbModifier]) :
+      Option[(SilVerbModifier, String)] =
+  {
+    verbModifiers.toStream.flatMap(modifier => modifier match {
+      case SilBasicVerbModifier(Seq(word), _) => {
+        if (isCoordinatingDeterminer(word.lemma)) {
+          Some(tupleN((modifier, word.lemma)))
+        } else {
+          None
+        }
+      }
+      case _ => None
+    }).headOption
   }
 }
 

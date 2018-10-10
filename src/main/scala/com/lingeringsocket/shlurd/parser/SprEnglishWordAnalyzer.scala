@@ -18,6 +18,23 @@ import com.lingeringsocket.shlurd.ilang._
 
 import SprEnglishLemmas._
 
+import scala.io._
+
+object SprEnglishLexicon
+{
+  val prepositions = readLexicon("/english/prepositions.txt")
+
+  val subordinates = readLexicon("/english/subordinates.txt")
+
+  val proper = readLexicon("/english/proper.txt")
+
+  private def readLexicon(resource : String) : Set[String] =
+  {
+    val words = Source.fromFile(SprParser.getResourcePath(resource)).getLines
+    Set(words.toSeq:_*)
+  }
+}
+
 trait SprEnglishWordAnalyzer
 {
   def maybeDeterminerFor(lemma : String) : Option[SilDeterminer] =
@@ -32,6 +49,14 @@ trait SprEnglishWordAnalyzer
       case LEMMA_ANY => DETERMINER_ANY
     }
     matcher.lift(lemma)
+  }
+
+  def isCoordinatingDeterminer(lemma : String) : Boolean =
+  {
+    lemma match {
+      case LEMMA_EITHER | LEMMA_NEITHER | LEMMA_BOTH => true
+      case _ => false
+    }
   }
 
   def isCoordinatingConjunction(lemma : String) : Boolean =
@@ -51,6 +76,21 @@ trait SprEnglishWordAnalyzer
     }
   }
 
+  def isAdposition(lemma : String) : Boolean =
+  {
+    SprEnglishLexicon.prepositions.contains(lemma)
+  }
+
+  def isSubordinatingConjunction(lemma : String) : Boolean =
+  {
+    SprEnglishLexicon.subordinates.contains(lemma)
+  }
+
+  def isProper(lemma : String) : Boolean =
+  {
+    SprEnglishLexicon.proper.contains(lemma)
+  }
+
   def isPronounWord(lemma : String) : Boolean =
   {
     lemma match {
@@ -58,7 +98,7 @@ trait SprEnglishWordAnalyzer
           LEMMA_OUR | LEMMA_MINE | LEMMA_OURS |
           LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS |
           LEMMA_US | LEMMA_THEY | LEMMA_THESE | LEMMA_THOSE |
-          LEMMA_IT | LEMMA_ITS | LEMMA_THEIR |
+          LEMMA_IT | LEMMA_ITS | LEMMA_THEM | LEMMA_THEIR |
           LEMMA_HE | LEMMA_HIM | LEMMA_HIS |
           LEMMA_SHE | LEMMA_HER | LEMMA_HERS |
           LEMMA_THIS | LEMMA_THESE | LEMMA_THAT => true

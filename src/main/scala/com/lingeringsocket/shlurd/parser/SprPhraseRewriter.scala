@@ -14,21 +14,357 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import SprUtils._
+import SprEnglishLemmas._
+
+object SprPhraseRewriter extends SprEnglishWordAnalyzer
+{
+  def resolveAmbiguousSentence(ambiguous : SilAmbiguousSentence)
+      : SilSentence =
+  {
+    val alternatives = ambiguous.alternatives
+    assert(!alternatives.isEmpty)
+    val dedup = alternatives.distinct
+    if (dedup.size == 1) {
+      dedup.head
+    } else {
+      def leastUnknown = dedup.minBy(_.countUnknownSyntaxLeaves)
+      val clean = dedup.filterNot(_.hasUnknown)
+      if (clean.isEmpty) {
+        // if all alternatives still contain unknowns, then
+        // pick the one with the minimum number of unparsed leaves
+        leastUnknown
+      } else {
+        val scores = clean.map(computeScore)
+        val bestScore = {
+          if (scores.max <= -100) {
+            0
+          } else {
+            scores.max
+          }
+        }
+        val candidates =
+          clean.zip(scores).filter(_._2 == bestScore).map(_._1)
+        if (candidates.isEmpty) {
+          leastUnknown
+        } else if (candidates.size == 1) {
+          candidates.head
+        } else if (candidates.size < 20) {
+          resolveAmbiguousSeq(candidates)
+        } else {
+          SilAmbiguousSentence(candidates, true)
+        }
+      }
+    }
+  }
+
+  private def resolveAmbiguousSeq(seq : Seq[SilSentence]) : SilSentence =
+  {
+    assert(seq.nonEmpty)
+    if (seq.size == 1) {
+      seq.head
+    } else {
+      range(0 until seq.size).combinations(2).foreach(sub => {
+        val iFirst = sub.head
+        val iSecond = sub.last
+        val first = seq(iFirst)
+        val second = seq(iSecond)
+        resolveAmbiguousPair(first, second) match {
+          case Some(resolved) => {
+            return resolveAmbiguousSeq(
+              seq.patch(iFirst, Seq(resolved), 1).patch(iSecond, Seq.empty, 1))
+          }
+          case _ =>
+        }
+      })
+      SilAmbiguousSentence(seq, true)
+    }
+  }
+
+  private def resolveAmbiguousPair(
+    first : SilSentence, second : SilSentence) : Option[SilSentence] =
+  {
+    if (ambiguousEquivalent(first, second)) {
+      Some(first)
+    } else if (ambiguousEquivalent(second, first)) {
+      Some(second)
+    } else {
+      None
+    }
+  }
+
+  private def computeScore(s : SilSentence) : Int =
+  {
+    val querier = new SilPhraseRewriter
+    var negative = 0
+    var positive = 0
+    def examinePhrase = querier.queryMatcher {
+      case SilBasicVerbModifier(_, score) => {
+        if (score < 0) {
+          negative -= 1
+        } else if (score > 0) {
+          positive += 1
+        }
+      }
+      case SilActionPredicate(
+        _,
+        action,
+        Some(_),
+        _
+      ) if (!SprWordnetScorer.isTransitiveVerb(action)) => {
+        negative -= 100
+      }
+      case SilStateSpecifiedReference(
+        _,
+        SilPropertyState(word)
+      ) if (SprWordnetScorer.isPotentialAdverb(word.inflected)) => {
+        negative -= 1
+      }
+      case SilStateSpecifiedReference(
+        SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+        _ : SilAdpositionalState
+      ) if (SprWordnetScorer.isPotentialAdverb(noun.inflected)) => {
+        negative -= 1
+      }
+      case ap : SilAdpositionalPhrase if (ap.adposition.words.size > 1) => {
+        if (ap.adposition.words.forall(word => isAdposition(word.lemma))) {
+          negative -= 1
+        } else {
+          positive += 100
+        }
+      }
+      case SilRelationshipPredicate(
+        _,
+        SilNounReference(_, DETERMINER_UNSPECIFIED, COUNT_SINGULAR) |
+          SilStateSpecifiedReference(
+            SilNounReference(_, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+            _
+          ),
+        _,
+        _
+      ) => {
+        negative -= 1
+      }
+      case SilPropertyState(SilWord("longer", _)) => {
+        negative -= 100
+      }
+      case SilNounReference(
+        word : SilWord, _, _
+      ) if (SprWordnetScorer.isPotentialGerund(word.inflected)) => {
+        negative -= 1
+      }
+      case SilAdpositionalState(
+        _,
+        SilStateSpecifiedReference(
+          _,
+          _ : SilAdpositionalState)
+      ) => {
+        negative -= 100
+      }
+      case SilAdpositionalVerbModifier(
+        _,
+        SilStateSpecifiedReference(
+          _,
+          _ : SilAdpositionalState)
+      ) => {
+        negative -= 100
+      }
+      case SilConjunctiveReference(
+        _, refs, _
+      ) if (refs.exists(!_.isInstanceOf[SilNounReference])) => {
+        negative -= 1
+      }
+      case ap : SilAdpositionalPhrase => {
+        val words = ap.adposition.words
+        if ((words.size > 1) && words.exists(_.lemma == LEMMA_THERE)) {
+          negative -= 100
+        } else if (words.exists(_.inflected == LEMMA_ADVERBIAL_TMP)) {
+          positive += 1
+        }
+      }
+    }
+    querier.query(examinePhrase, s)
+    if (negative <= -100) {
+      -100
+    } else if (positive >= 100) {
+      100
+    } else if (negative < 0) {
+      -1
+    } else if (positive > 0) {
+      1
+    } else {
+      0
+    }
+  }
+
+  private def ambiguousEquivalent(
+    s1 : SilSentence, s2 : SilSentence) : Boolean =
+  {
+    val sn1 = normalizeCandidate(s1)
+    val sn2 = normalizeCandidate(s2)
+    tupleN((sn1, sn2)) match {
+      case (
+        SilPredicateSentence(p1, t1, f1),
+        SilPredicateSentence(p2, t2, f2)
+      ) if (f1 == f2) => {
+        ambiguousEquivalent(p1, t1, p2, t2)
+      }
+      case (
+        SilPredicateQuery(p1, q1, a1, t1, f1),
+        SilPredicateQuery(p2, q2, a2, t2, f2)
+      ) if (tupleN((q1, a1, f1)) == tupleN((q2, a2, f2))) => {
+        ambiguousEquivalent(p1, t1, p2, t2)
+      }
+      case (
+        SilConditionalSentence(a1, c1, ta1, tc1, b1, f1),
+        SilConditionalSentence(a2, c2, ta2, tc2, b2, f2)
+      ) => {
+        ambiguousEquivalent(a1, ta1, a2, ta2) &&
+          ambiguousEquivalent(c1, tc1, c2, tc2) &&
+          tupleN((b1, f1)) == tupleN((b2, f2))
+      }
+      case _ => {
+        (sn1 == sn2)
+      }
+    }
+  }
+
+  private def normalizeCandidate(s : SilSentence) : SilSentence =
+  {
+    val rewriter = new SilPhraseRewriter
+    def normalizePropertyState = rewriter.replacementMatcher {
+      case SilPropertyState(SilWord(inflected, lemma)) => {
+        SilPropertyState(SilWord(inflected, inflected))
+      }
+      case SilAdpositionalVerbModifier(SilAdposition(words), objRef) => {
+        SilAdpositionalVerbModifier(
+          SilAdposition(
+            words.map(word => SilWord(word.inflected, word.inflected))),
+          objRef
+        )
+      }
+      case SilNounReference(noun, determiner, count) => {
+        SilNounReference(
+          SilWord(noun.inflected.toLowerCase, noun.lemma), determiner, count)
+      }
+    }
+    rewriter.rewrite(normalizePropertyState, s)
+  }
+
+  private def ambiguousEquivalent(
+    p1 : SilPredicate, t1 : SilTam, p2 : SilPredicate, t2 : SilTam) : Boolean =
+  {
+    tupleN((p1, p2)) match {
+      case (
+        SilStatePredicate(
+          s1,
+          SilPropertyState(w1),
+          m1
+        ),
+        SilRelationshipPredicate(
+          s2,
+          SilNounReference(w2, DETERMINER_UNSPECIFIED, _),
+          REL_IDENTITY,
+          m2
+        )
+      ) => {
+        tupleN((t1, s1, m1)) == tupleN((t2, s2, m2)) &&
+          ((w1.lemma == w2.lemma) || (w1.inflected == w2.inflected))
+      }
+      // FIXME this is way too loose, and should be replace by disambiguation
+      // at the semantic level
+      case (
+        SilStatePredicate(
+          s1,
+          _ : SilConjunctiveState,
+          m1
+        ),
+        SilRelationshipPredicate(
+          s2,
+          _ : SilConjunctiveReference,
+          REL_IDENTITY,
+          m2
+        )
+      ) if (t1.modality != MODAL_NEUTRAL) => {
+        tupleN((t1, s1, m1)) == tupleN((t2, s2, m2))
+      }
+      case (
+        SilStatePredicate(
+          s1,
+          SilAdpositionalState(
+            SilAdposition(Seq(w1a, w1b)),
+            o1),
+          m1
+        ),
+        SilRelationshipPredicate(
+          s2,
+          SilStateSpecifiedReference(
+            SilNounReference(w2a, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+            SilAdpositionalState(
+              SilAdposition(Seq(w2b)),
+              o2)
+          ),
+          REL_IDENTITY,
+          m2
+        )
+      ) => {
+        tupleN((t1, s1, w1a, w1b, m1)) == tupleN((t2, s2, w2a, w2b, m2))
+      }
+      case (
+        SilStatePredicate(
+          SilStateSpecifiedReference(
+            s1,
+            a1 : SilAdpositionalState),
+          SilPropertyState(p1),
+          m1),
+        SilRelationshipPredicate(
+          s2,
+          SilStateSpecifiedReference(
+            SilNounReference(p2, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+            a2 : SilAdpositionalState),
+          REL_IDENTITY,
+          m2)
+      ) => {
+        tupleN((s1, a1, p1, m1)) == tupleN((s2, a2, p2, m2))
+      }
+      case (
+        SilStatePredicate(
+          s1,
+          SilPropertyState(w1),
+          m1
+        ),
+        SilActionPredicate(
+          s2,
+          w2,
+          None,
+          m2
+        )
+      ) => {
+        tupleN((s1, w1.inflected, m1)) == tupleN((s2, w2.inflected, m2)) &&
+        t2.isProgressive &&
+        t1.withAspect(ASPECT_PROGRESSIVE) == t2
+      }
+      case _ => {
+        tupleN((p1, t1)) == tupleN((p2, t2))
+      }
+    }
+  }
+}
 
 class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
   extends SilPhraseRewriter
 {
+  import SprPhraseRewriter._
   import SilPhraseRewriter._
 
   def parseSentence(sentenceSyntaxTree : SprSyntaxTree) : SilSentence =
   {
     val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
     val expected = SilExpectedSentence(sentenceSyntaxTree, forceSQ)
-    val transformed = rewrite[SilSentence](
-      replaceAllPhrases, expected, SilRewriteOptions(repeat = true))
+    val transformed = rewritePhrase(expected)
     val completed = rewrite(replaceUnresolvedWithUnrecognized, transformed)
     if (!completed.hasUnknown) {
       query(validateResult, completed)
@@ -37,6 +373,12 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
       case sentence : SilSentence => sentence
       case _ => SilUnrecognizedSentence(sentenceSyntaxTree)
     }
+  }
+
+  def rewritePhrase[PhraseType <: SilPhrase](phrase : PhraseType) : SilPhrase =
+  {
+    rewrite(
+      replaceAllPhrases, phrase, SilRewriteOptions(repeat = true))
   }
 
   private def validateResult = queryMatcher {
@@ -102,29 +444,29 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
   }
 
   private def replaceExpectedVerbModifier = replacementMatcher {
-    case SilExpectedVerbModifier(advp : SptADVP) => {
-      analyzer.expectVerbModifierPhrase(advp)
+    case SilExpectedVerbModifier(advp : SptADVP, successor) => {
+      analyzer.expectVerbModifierPhrase(advp, successor)
     }
-    case SilExpectedVerbModifier(prt : SptPRT) => {
-      analyzer.expectVerbModifierPhrase(prt)
+    case SilExpectedVerbModifier(prt : SptPRT, successor) => {
+      analyzer.expectVerbModifierPhrase(prt, successor)
     }
-    case SilExpectedVerbModifier(tmod : SptTMOD) => {
+    case SilExpectedVerbModifier(tmod : SptTMOD, _) => {
       analyzer.expectTemporalVerbModifier(tmod)
     }
-    case SilExpectedVerbModifier(adv : SprSyntaxAdverb) => {
-      analyzer.expectBasicVerbModifier(adv)
+    case SilExpectedVerbModifier(adv : SprSyntaxAdverb, successor) => {
+      analyzer.expectBasicVerbModifier(adv, successor)
     }
-    case SilExpectedVerbModifier(particle : SptRP) => {
-      analyzer.expectBasicVerbModifier(particle)
+    case SilExpectedVerbModifier(particle : SptRP, successor) => {
+      analyzer.expectBasicVerbModifier(particle, successor)
     }
-    case SilExpectedVerbModifier(pp : SptPP) => {
+    case SilExpectedVerbModifier(pp : SptPP, _) => {
       analyzer.expectAdpositionalVerbModifier(pp)
     }
   }
 
   private def replaceExpectedState = replacementMatcher {
-    case SilExpectedAdpositionalState(syntaxTree) => {
-      analyzer.expectAdpositionalState(syntaxTree)
+    case SilExpectedAdpositionalState(syntaxTree, extracted) => {
+      analyzer.expectAdpositionalState(syntaxTree, extracted)
     }
     case SilExpectedPropertyState(
       preTerminal : SprSyntaxPreTerminal
@@ -144,7 +486,7 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
       if ((seq.head.isAdposition || seq.head.isAdverb) && (seq.size > 1) &&
         ((seq.head.isAdverb || !seq.exists(_.isAdpositionalPhrase))))
       {
-        SilExpectedAdpositionalState(syntaxTree)
+        SilExpectedAdpositionalState(syntaxTree, false)
       } else {
         analyzer.expectPropertyComplementState(syntaxTree)
       }
@@ -154,7 +496,9 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
       // state (participial adjective)
       analyzer.expectPropertyComplementState(vp)
     }
-    case SilExpectedComplementState(syntaxTree : SptPRT) => {
+    case SilExpectedComplementState(syntaxTree : SptPRT) if (
+      syntaxTree.numChildren == 1
+    ) => {
       analyzer.expectPropertyState(requireUnique(syntaxTree.children))
     }
     case SilExpectedComplementState(SptNP(noun)) => {
@@ -197,25 +541,7 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
 
   private def replaceAmbiguousSentence = replacementMatcher {
     case ambiguous : SilAmbiguousSentence if (ambiguous.isRipe) => {
-      val alternatives = ambiguous.alternatives
-      assert(!alternatives.isEmpty)
-      val dedup = alternatives.distinct
-      if (dedup.size == 1) {
-        dedup.head
-      } else {
-        val clean = dedup.filterNot(_.hasUnknown)
-        if (clean.isEmpty) {
-          // if all alternatives still contain unknowns, then
-          // pick the one with the minimum number of unparsed leaves
-          dedup.minBy(_.countUnknownSyntaxLeaves)
-        } else {
-          if (clean.size == 1) {
-            clean.head
-          } else {
-            SilAmbiguousSentence(clean, true)
-          }
-        }
-      }
+      resolveAmbiguousSentence(ambiguous)
     }
   }
 
@@ -248,24 +574,30 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
       if (predicate.modifiers.exists(
         m => !SilReference.getDanglingAdposition(m).isEmpty))
       {
-        assert(!predicate.adpositionObject.isEmpty)
-        predicate.modifiers.flatMap(modifier => {
-          SilReference.getDanglingAdposition(modifier) match {
-            case Some(adposition) => {
-              val newModifier = SilAdpositionalVerbModifier(
-                adposition,
-                predicate.adpositionObject.get)
-              onPhraseTransformation(modifier, newModifier)
-              // FIXME this is gross--we leave the dangling adposition
-              // around just so that later we can rememmber to
-              // convert from INFLECT_ACCUSATIVE to INFLECT_ADPOSITIONED
-              Seq(newModifier, modifier)
-            }
-            case _ => {
-              Seq(modifier)
-            }
+        predicate.adpositionObject match {
+          case Some(adpositionObject) => {
+            predicate.modifiers.flatMap(modifier => {
+              SilReference.getDanglingAdposition(modifier) match {
+                case Some(adposition) => {
+                  val newModifier = SilAdpositionalVerbModifier(
+                    adposition,
+                    adpositionObject)
+                  onPhraseTransformation(modifier, newModifier)
+                  // FIXME this is gross--we leave the dangling adposition
+                  // around just so that later we can rememmber to
+                  // convert from INFLECT_ACCUSATIVE to INFLECT_ADPOSITIONED
+                  Seq(newModifier, modifier)
+                }
+                case _ => {
+                  Seq(modifier)
+                }
+              }
+            })
           }
-        })
+          case _ => {
+            predicate.modifiers
+          }
+        }
       } else {
         assert(predicate.adpositionObject.isEmpty)
         predicate.modifiers

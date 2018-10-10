@@ -553,7 +553,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
   def printVerbModifier(modifier : SilVerbModifier) : String =
   {
     modifier match {
-      case SilBasicVerbModifier(words) => {
+      case SilBasicVerbModifier(words, _) => {
         sb.composeQualifiers(words)
       }
       case SilDanglingVerbModifier(SilAdposition(words)) => {

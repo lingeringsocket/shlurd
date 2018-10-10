@@ -46,7 +46,6 @@ class SmcInterpreterSpec extends Specification
       new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
         mind, sentencePrinter, debugger)
       {
-
         private def normalizeState(
           state : SilState) : SilState =
         {
@@ -421,24 +420,28 @@ class SmcInterpreterSpec extends Specification
       interpret("awake the tiger") must be equalTo(
         "But the tiger is awake already.")
       interpretCommandExpected(
-        "asleep the tiger",
+        "sleep the tiger",
         SmcStateChangeInvocation(Set(ZooTiger), asleep))
-      interpret("asleep the goats") must be equalTo(
-        "But the goats are asleep already.")
-      interpret("asleep the lion") must be equalTo(
-        "But the lion is asleep already.")
-      interpret("asleep the lion and the goats") must be equalTo(
-        "But the lion and the goats are asleep already.")
+      // FIXME error message should normalize to "asleep" instead of "sleep"
+      interpret("sleep the goats") must be equalTo(
+        "But the goats are sleep already.")
+      interpret("sleep the lion") must be equalTo(
+        "But the lion is sleep already.")
+      interpret("sleep the lion and the goats") must be equalTo(
+        "But the lion and the goats are sleep already.")
       interpretCommandExpected(
         "awake the goat on the farm.",
         SmcStateChangeInvocation(Set(ZooDomesticGoat), awake))
       interpretCommandExpected(
-        "asleep the tiger in the big cage.",
+        "sleep the tiger in the big cage.",
         SmcStateChangeInvocation(Set(ZooTiger), asleep))
     }
 
     "respond to unrecognized phrases" in new InterpreterContext
     {
+      if (!SprParser.isCoreNLP) {
+        skipped("CoreNLP only")
+      }
       interpret("My squeaking door is open.") must be equalTo(
         "I think you are saying that some entity is open, but " +
           "I can't understand the phrase \"my squeaking door\"")

@@ -35,8 +35,8 @@ class SpcInterpreterSpec extends Specification
     "yodaphone presence presence_on_off" -> "off",
     "stove stove_on_off" -> "off",
     "stove stove_hot_cold" -> "hot",
-    "titanic boat boat_float_sink" -> "sink",
-    "titanic boat vehicle_move_stop" -> "move",
+    "lusitania boat boat_cruise_sink" -> "sink",
+    "lusitania boat vehicle_move_stop" -> "move",
     "herbie car vehicle_move_stop" -> "stop"
   )
 
@@ -516,18 +516,18 @@ class SpcInterpreterSpec extends Specification
     "understand inverse associations" in new
       InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
-      interpretBelief("a confessor must be a person")
-      interpretBelief("a confessee must be a person")
-      interpretBelief("a person may have confessees")
-      interpretBelief("a person may have a confessor")
-      interpretBelief("a person with a confessee is a confessor")
-      interpretBelief("Eugene is John's confessor")
-      interpretBelief("Eugene is Erik's confessor")
-      interpretBelief("Jerold is Erik's confessor")
-      interpretTerse("who are Eugene's confessees", "John.")
-      interpretBelief("John has no confessor")
-      interpretTerse("who is John's confessor", "No one.")
-      interpretTerse("who are Eugene's confessees", "No one.")
+      interpretBelief("a professor must be a person")
+      interpretBelief("a student must be a person")
+      interpretBelief("a person may have students")
+      interpretBelief("a person may have a professor")
+      interpretBelief("a person with a student is a professor")
+      interpretBelief("Eugene is John's professor")
+      interpretBelief("Eugene is Erik's professor")
+      interpretBelief("Jerold is Erik's professor")
+      interpretTerse("who are Eugene's students", "John.")
+      interpretBelief("John has no professor")
+      interpretTerse("who is John's professor", "No one.")
+      interpretTerse("who are Eugene's students", "No one.")
     }
 
     "understand actions" in new InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
@@ -572,7 +572,7 @@ class SpcInterpreterSpec extends Specification
       InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
       interpretBelief("if a person gives an object to a recipient, " +
-        "then the object is the recipient's containee")
+        "then the object is the recipient's contained-object")
       interpretBelief("if a person passes an object to a recipient, " +
         "then the person gives the object to the recipient")
 
@@ -602,7 +602,7 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("the wrench is an object")
       interpretBelief("the screwdriver is an object")
       interpretBelief("if a person receives an object, " +
-        "then the object is the person's containee")
+        "then the object is the person's contained-object")
       interpretBelief("if a person gives an object to a recipient, " +
         "then the recipient receives the object")
       interpretBelief("if a person passes an object to a recipient, " +
@@ -641,7 +641,7 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("the engine is an object")
       interpretBelief("the wrench is Mason's possession")
       interpretBelief("the screwdriver is Mason's possession")
-      interpretBelief("the engine's containees are Mason's possessions")
+      interpretBelief("the engine's contained-objects are Mason's possessions")
       interpretTerse("which objects are in the engine",
         "The wrench and the screwdriver.")
     }
@@ -652,7 +652,7 @@ class SpcInterpreterSpec extends Specification
       interpretBelief("a person may have possessions")
       interpretBelief("the engine is an object")
       interpretBelief("Mason is a person")
-      interpretBelief("the engine's containee is Mason's possession")
+      interpretBelief("the engine's contained-object is Mason's possession")
       interpretTerse("which objects are in the engine", "No objects.")
     }
 
@@ -722,15 +722,15 @@ class SpcInterpreterSpec extends Specification
         "Yes.",
         "Yes, he is.")
       interpretMatrix(
-        "is Titanic moving",
+        "is Lusitania moving",
         "Yes, it is moving.",
-        "Yes, Titanic is moving.",
+        "Yes, Lusitania is moving.",
         "Yes.",
         "Yes, it is.")
       interpretMatrix(
-        "is Titanic stopped",
+        "is Lusitania stopped",
         "No, it is not stopped.",
-        "No, Titanic is not stopped.",
+        "No, Lusitania is not stopped.",
         "No.",
         "No, it is not.")
       interpret(
@@ -738,31 +738,31 @@ class SpcInterpreterSpec extends Specification
         "No, no boat is stopped.")
       interpret(
         "is any boat moving",
-        "Yes, Titanic is moving.")
+        "Yes, Lusitania is moving.")
       interpret(
         "is any vehicle stopped",
         "Yes, Herbie is stopped.")
       interpret(
         "is any vehicle moving",
-        "Yes, Titanic is moving.")
+        "Yes, Lusitania is moving.")
       interpret(
-        "are both Herbie and Titanic moving",
+        "are both Herbie and Lusitania moving",
         "No, Herbie is not moving.")
       interpretMatrix(
-        "is Titanic floating",
-        "No, it is not floating.",
-        "No, Titanic is not floating.",
-        "No.",
-        "No, it is not.")
+        "is Lusitania sinking",
+        "Yes, it is sinking.",
+        "Yes, Lusitania is sinking.",
+        "Yes.",
+        "Yes, it is.")
       interpret(
-        "is Herbie floating",
-        "Sorry, I don't know what 'float' means for Herbie.")
+        "is Herbie cruising",
+        "Sorry, I don't know what 'cruise' means for Herbie.")
       interpret(
-        "is any car floating",
-        "Sorry, I don't know what 'float' means for a car.")
+        "is any car cruising",
+        "Sorry, I don't know what 'cruise' means for a car.")
       interpret(
-        "who is floating",
-        "Sorry, I don't know what 'float' means for a person.")
+        "who is cruising",
+        "Sorry, I don't know what 'cruise' means for a person.")
       interpretMatrix(
         "is Herbie a car",
         "Yes, he is a car.",
@@ -782,51 +782,51 @@ class SpcInterpreterSpec extends Specification
         "Yes.",
         "Yes, he is.")
       interpretMatrix(
-        "is Titanic a boat",
+        "is Lusitania a boat",
         "Yes, it is a boat.",
-        "Yes, Titanic is a boat.",
+        "Yes, Lusitania is a boat.",
         "Yes.",
         "Yes, it is.")
       interpretMatrix(
-        "is Titanic the boat",
+        "is Lusitania the boat",
         "Yes, it is the boat.",
-        "Yes, Titanic is the boat.",
+        "Yes, Lusitania is the boat.",
         "Yes.",
         "Yes, it is.")
       interpretMatrix(
-        "is Titanic a vehicle",
+        "is Lusitania a vehicle",
         "Yes, it is a vehicle.",
-        "Yes, Titanic is a vehicle.",
+        "Yes, Lusitania is a vehicle.",
         "Yes.",
         "Yes, it is.")
       interpretMatrix(
-        "is Titanic a car",
+        "is Lusitania a car",
         "No, it is not a car.",
-        "No, Titanic is not a car.",
+        "No, Lusitania is not a car.",
         "No.",
         "No, it is not.")
       interpret(
         "how many vehicles are there",
         "There are two of them.")
       interpretMatrix(
-        "Herbie and Titanic are vehicles?",
+        "Herbie and Lusitania are vehicles?",
         "Yes, they are vehicles.",
-        "Yes, Herbie and Titanic are vehicles.",
+        "Yes, Herbie and Lusitania are vehicles.",
         "Yes.",
         "Yes, they are.")
       // FIXME resolve number agreement
       interpret(
         "which vehicles are there",
-        "There is Herbie and Titanic.")
+        "There is Herbie and Lusitania.")
       interpretMatrix(
         "who is Herbie's owner",
         "His owner is Jim.",
         "Herbie's owner is Jim.",
         "Jim.")
       interpretMatrix(
-        "who is Titanic's owner",
+        "who is Lusitania's owner",
         "No one is its owner.",
-        "No one is Titanic's owner.",
+        "No one is Lusitania's owner.",
         "No one.")
     }
 
@@ -835,9 +835,9 @@ class SpcInterpreterSpec extends Specification
       skipped("maybe one day")
       loadBeliefs("/ontologies/vehicles.txt")
       interpretMatrix(
-        "are Herbie and Titanic vehicles",
+        "are Herbie and Lusitania vehicles",
         "Yes, they are vehicles.",
-        "Yes, Herbie and Titanic are vehicles.",
+        "Yes, Herbie and Lusitania are vehicles.",
         "Yes.",
         "Yes, they are.")
     }
@@ -975,11 +975,11 @@ class SpcInterpreterSpec extends Specification
         "Yes, she is.")
       interpret("is Jack on",
         "Sorry, I don't know what 'on' means for Jack.")
-      interpretMatrix("is Casper's haunting on",
-        "Yes, his haunting is on.",
-        "Yes, Casper's haunting is on.",
+      interpretMatrix("is Casper's apparition on",
+        "Yes, his apparition is on.",
+        "Yes, Casper's apparition is on.",
         "Yes.",
-        "Yes, his haunting is.")
+        "Yes, his apparition is.")
       interpret("is Casper present",
         "I don't know.")
       interpretMatrix("is Yoda's personal_presence on",
@@ -1113,11 +1113,11 @@ class SpcInterpreterSpec extends Specification
       ACCEPT_NEW_BELIEFS)
     {
       interpretBelief("If an item is filling an object, " +
-        "equivalently the item is the object's containee.")
+        "equivalently the item is the object's contained-object.")
       interpretBelief("If an item is occupying an object, " +
         "equivalently the item is in the object.")
       interpretBelief("If an object is carrying an item, " +
-        "equivalently the item is the object's containee.")
+        "equivalently the item is the object's contained-object.")
 
       // FIXME this belief should be equivalent
       /*
@@ -1137,10 +1137,10 @@ class SpcInterpreterSpec extends Specification
         "Two of them are in the wallet.")
       interpret("how many objects are in the pocket",
         "One of them is in the pocket.")
-      interpret("how many objects are the wallet's containee",
-        "Two of them are its containees.")
-      interpret("how many objects are the pocket's containees",
-        "One of them is its containee.")
+      interpret("how many objects are the wallet's contained-object",
+        "Two of them are its contained-objects.")
+      interpret("how many objects are the pocket's contained-objects",
+        "One of them is its contained-object.")
       interpretMatrix("how many objects are filling the wallet",
         "Two of them are filling it.",
         "Two of them are filling the wallet.",

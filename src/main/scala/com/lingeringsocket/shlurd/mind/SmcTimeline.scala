@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
@@ -47,17 +48,15 @@ case class SmcRelativeTimePoint(
 
 object SmcTimePointOrder extends Order[SmcTimePoint]
 {
-  val ONCE_UPON_A_TIME = "once upon a time"
-
   val ONCE_UPON_A_TIME_POINT = SmcRelativeTimePoint(
-    SilNounReference(SilWord(SmcTimePointOrder.ONCE_UPON_A_TIME)), 0)
+    SilNounReference(SilWord(SprParser.ONCE_UPON_A_TIME)), 0)
 
   override def compare(x : SmcTimePoint, y : SmcTimePoint) : Int =
   {
     tupleN((x, y)) match {
       case (SmcRelativeTimePoint(r1, s1), SmcRelativeTimePoint(r2, s2)) => {
-        val t1 = interpretTemporal(r1)
-        val t2 = interpretTemporal(r2)
+        val t1 = SprParser.interpretTemporal(r1)
+        val t2 = SprParser.interpretTemporal(r2)
         val c = int.IntAlgebra.compare(t1, t2)
         if (c == 0) {
           int.IntAlgebra.compare(s1, s2)
@@ -67,35 +66,6 @@ object SmcTimePointOrder extends Order[SmcTimePoint]
       }
       case _ => {
         throw new IllegalArgumentException(s"$x $y")
-      }
-    }
-  }
-
-  // FIXME Mickey Mouse
-  private def interpretTemporal(ref : SilReference) : Int =
-  {
-    ref match {
-      case SilNounReference(word, DETERMINER_UNSPECIFIED, COUNT_SINGULAR) => {
-        word.lemma match {
-          case ONCE_UPON_A_TIME => Int.MinValue
-          case "yesterday" => -1
-          case _ => throw new IllegalArgumentException
-        }
-      }
-      case SilGenitiveReference(
-        SilPronounReference(
-          PERSON_THIRD, GENDER_N, COUNT_SINGULAR, DISTANCE_HERE),
-        SilNounReference(word, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)
-      ) => {
-        word.lemma match {
-          case "morning" => 1
-          case "afternoon" => 2
-          case "evening" => 3
-          case _ => throw new IllegalArgumentException
-        }
-      }
-      case _ => {
-        throw new IllegalArgumentException
       }
     }
   }

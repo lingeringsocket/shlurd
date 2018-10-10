@@ -10,11 +10,11 @@ An spc-form with an spc-realization is an spc-type.
 An spc-attribute must be an spc-property.
 An spc-attributee must be an spc-form.
 An spc-property must have an spc-attributee.
-An spc-valueprop must be an spc-property.
-An spc-propvalue must be an spc-value.
-An spc-property may have spc-propvalues.
-An spc-value must have an spc-valueprop.
-An spc-property with an spc-propvalue is an spc-valueprop.
+An spc-valued-property must be an spc-property.
+An spc-property-value must be an spc-value.
+An spc-property may have spc-property-values.
+An spc-value must have an spc-valued-property.
+An spc-property with an spc-property-value is an spc-valued-property.
 An spc-form may have spc-attributes.
 An spc-form with an spc-attribute is an spc-attributee.
 An spc-superclass must be an spc-ideal.
@@ -25,7 +25,7 @@ An spc-ideal with an spc-superclass is an spc-subclass.
 A person's gender may be either masculine or feminine.
 A person is a kind of object.
 A container must be an object.
-A containee must be an object.
-An object may have containees.
+A contained-object must be an object.
+An object may have contained-objects.
 An object must have a container.
-An object with a containee is a container.
+An object with a contained-object is a container.

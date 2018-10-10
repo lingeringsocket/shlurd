@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Filters a list of personal names from
+#
+# https://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-national-level-data
+#
+# Usage:
+#
+#    filterNames /path/to/name/file
+
+set -e
+
+shopt -s failglob
+
+NAME_FILE=${1?"missing path to names file"}
+
+cat "${NAME_FILE}" | cut -d ',' -f 1,3 | tr ',' ' ' | while IFS=$' \r\n\t' read name freq; do
+    if [[ "$freq" -gt 10 ]] ; then
+       echo "${name,,}"
+    fi
+done

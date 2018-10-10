@@ -401,3 +401,7 @@ class SpcOpenhabDerivedCosmos(
     base.evaluateEntityProperty(entity, propertyName, specific)
   }
 }
+
+abstract class SpcOpenhabDefaultCosmos extends SpcOpenhabCosmos
+{
+}

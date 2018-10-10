@@ -16,10 +16,16 @@ package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd.ilang._
 
-abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
+sealed trait SprStrictness
+case object SPR_STRICTNESS_FULL extends SprStrictness
+case object SPR_STRICTNESS_MEDIUM extends SprStrictness
+case object SPR_STRICTNESS_LOOSE extends SprStrictness
+
+abstract class SprAbstractSyntaxAnalyzer(
+  strictness : SprStrictness = SPR_STRICTNESS_LOOSE)
     extends SprSyntaxAnalyzer
 {
-  def isStrict = strict
+  def isStrict = (strictness != SPR_STRICTNESS_LOOSE)
 
   protected def stripPauses(tree : SprSyntaxTree)
       : Seq[SprSyntaxTree] =
@@ -128,9 +134,10 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
     SilExpectedPropertyState(syntaxTree)
   }
 
-  protected def expectVerbModifier(tree : SprSyntaxTree) =
+  protected def expectVerbModifier(
+    tree : SprSyntaxTree, successor : Option[SprSyntaxTree]) =
   {
-    SilExpectedVerbModifier(tree)
+    SilExpectedVerbModifier(tree, successor)
   }
 
   override def expectTemporalVerbModifier(tmod : SptTMOD)
@@ -142,10 +149,11 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
   }
 
   override def expectBasicVerbModifier(
-    preTerminal : SprSyntaxPreTerminal)
+    preTerminal : SprSyntaxPreTerminal,
+    successor : Option[SprSyntaxTree])
       : SilVerbModifier =
   {
-    SilBasicVerbModifier(Seq(getWord(preTerminal.child)))
+    SilBasicVerbModifier(Seq(getWord(preTerminal.child)), 0)
   }
 
   protected def expectExistenceState(syntaxTree : SprSyntaxTree) =
@@ -247,20 +255,26 @@ abstract class SprAbstractSyntaxAnalyzer(strict : Boolean = false)
   override def isNounPhraseModifier(
     tree : SprSyntaxTree) : Boolean =
   {
-    if (isStrict) {
-      tree.isAdjectival
-    } else {
-      tree.isNoun || tree.isAdjectival
+    strictness match {
+      case SPR_STRICTNESS_FULL => {
+        tree.isAdjectival
+      }
+      case SPR_STRICTNESS_MEDIUM | SPR_STRICTNESS_LOOSE => {
+        tree.isNoun || tree.isAdjectival
+      }
     }
   }
 
   override def isNounPhraseHead(
     tree : SprSyntaxTree) : Boolean =
   {
-    if (isStrict) {
-      tree.isNoun || tree.isGerund
-    } else {
-      tree.isNoun || tree.isAdjectival
+    strictness match {
+      case SPR_STRICTNESS_FULL | SPR_STRICTNESS_MEDIUM => {
+        tree.isNoun || tree.isGerund
+      }
+      case SPR_STRICTNESS_LOOSE => {
+        tree.isNoun || tree.isAdjectival
+      }
     }
   }
 }

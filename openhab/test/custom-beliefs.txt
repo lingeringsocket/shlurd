@@ -7,4 +7,4 @@ A heater is a heating.
 A heat is a heating.
 A lamp is a light.
 A lamp that is lit is on.
-A lamp that is dark is off.
+A lamp that is extinguished is off.

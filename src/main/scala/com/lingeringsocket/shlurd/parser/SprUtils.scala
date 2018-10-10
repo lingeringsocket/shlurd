@@ -35,7 +35,7 @@ object SprEnglishLemmas
   val LEMMA_WHAT = "what"
   val LEMMA_OBJECT = "object"
   val LEMMA_CONTAINER = "container"
-  val LEMMA_CONTAINEE = "containee"
+  val LEMMA_CONTAINEE = "contained-object"
   val LEMMA_PERSON = "person"
   val LEMMA_PROPERTY = "property"
   val LEMMA_GENDER = "gender"

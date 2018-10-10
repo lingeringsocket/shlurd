@@ -57,13 +57,14 @@ class SpcMetaInterpreterSpec extends Specification
       interpretBelief("a property is an spc-property")
       interpretBelief("an attribute is an spc-attribute")
       interpretBelief("a value is an spc-value")
-      interpretBelief("a propvalue is an spc-propvalue")
+      interpretBelief("a property-value is an spc-property-value")
       interpretBelief("a pet's classification may be canine or feline")
       interpretBelief("Harry is a pet")
       interpretBelief("Harry's classification is canine")
       interpret("which properties are SPC-Form-pet's attributes",
         "SPC-Property-pet-classification.")
-      interpret("which values are SPC-Property-pet-classification's propvalues",
+      interpret(
+        "which values are SPC-Property-pet-classification's property-values",
         "SPC-Value-pet-classification-canine and " +
           "SPC-Value-pet-classification-feline.")
       interpret("which entities are SPC-Form-pet's realizations",

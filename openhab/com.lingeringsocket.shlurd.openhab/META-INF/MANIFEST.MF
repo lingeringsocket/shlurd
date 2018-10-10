@@ -20,6 +20,7 @@ Import-Package:
  com.lingeringsocket.shlurd.parser,
  com.lingeringsocket.shlurd.mind,
  com.lingeringsocket.shlurd.platonic,
+ com.lingeringsocket.shlurd.ilang,
  org.eclipse.jdt.annotation;resolution:=optional,
  org.eclipse.smarthome.config.core,
  org.eclipse.smarthome.core.common.registry,

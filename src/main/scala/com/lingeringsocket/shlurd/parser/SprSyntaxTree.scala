@@ -117,6 +117,8 @@ trait SprAbstractSyntaxTree
 
   def isNounPhrase = hasLabel(LABEL_NP)
 
+  def isAdjectivePhrase = hasLabel(LABEL_ADJP)
+
   def isVerbPhrase = hasLabel(LABEL_VP)
 
   def isVerbNode = isVerb || isVerbPhrase
@@ -272,6 +274,9 @@ sealed trait SprSyntaxTree extends SprAbstractSyntaxTree
       this
     }
   }
+
+  def isThenEquivalently = isThen || isEquivalently ||
+    (isAdverbPhrase && children.head.isThen && children.last.isEquivalently)
 
   def isThen = unwrapPhrase.hasTerminalLemma(LEMMA_THEN)
 

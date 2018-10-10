@@ -255,8 +255,8 @@ class SpcOpenhabCosmosSpec extends Specification
         "is the light in the living room lit",
         "Yes, it is lit.")
       interpret(
-        "is the living room light dark",
-        "No, it is not dark.")
+        "is the living room light extinguished",
+        "No, it is not extinguished.")
       interpret(
         "is the light in the living room on",
         "Yes, it is on.")

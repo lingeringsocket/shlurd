@@ -38,6 +38,11 @@ case object RESPONSE_TERSE extends SmcResponseVerbosity
 case object RESPONSE_ELLIPSIS extends SmcResponseVerbosity
 case object RESPONSE_COMPLETE extends SmcResponseVerbosity
 
+object SmcResponseParams
+{
+  def standard() = SmcResponseParams()
+}
+
 case class SmcResponseParams(
   listLimit : Int = 3,
   thirdPersonPronouns : Boolean = true,

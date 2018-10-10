@@ -45,7 +45,8 @@ trait SprSyntaxAnalyzer
     syntaxTree : SprSyntaxTree) : SilExpectedPropertyState
 
   def expectAdpositionalState(
-    tree : SprSyntaxTree)
+    tree : SprSyntaxTree,
+    extracted : Boolean)
     : SilState
 
   def expectTemporalVerbModifier(
@@ -53,11 +54,13 @@ trait SprSyntaxAnalyzer
       : SilVerbModifier
 
   def expectVerbModifierPhrase(
-    tree : SprSyntaxPhrase)
+    tree : SprSyntaxPhrase,
+    successor : Option[SprSyntaxTree])
       : SilVerbModifier
 
   def expectBasicVerbModifier(
-    preTerminal : SprSyntaxPreTerminal)
+    preTerminal : SprSyntaxPreTerminal,
+    successor : Option[SprSyntaxTree])
       : SilVerbModifier
 
   def expectAdpositionalVerbModifier(
@@ -83,7 +86,8 @@ trait SprSyntaxAnalyzer
     ref : SilReference, specifiedState : SilState)
       : SilReference
 
-  def isNounPhraseModifier(tree : SprSyntaxTree) : Boolean
+  def isNounPhraseModifier(
+    tree : SprSyntaxTree) : Boolean
 
   def isNounPhraseHead(tree : SprSyntaxTree) : Boolean
 }

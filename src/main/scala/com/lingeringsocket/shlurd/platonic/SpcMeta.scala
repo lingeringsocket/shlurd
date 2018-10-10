@@ -42,7 +42,7 @@ object SpcMeta
 
   val ATTRIBUTE_METAROLE_NAME = "spc-attribute"
 
-  val VALUE_METAROLE_NAME = "spc-propvalue"
+  val VALUE_METAROLE_NAME = "spc-property-value"
 
   def formMetaEntityName(form : SpcForm) =
     "SPC-Form-" + form.name
@@ -154,7 +154,7 @@ class SpcMeta(cosmos : SpcCosmos)
     enqueueBelief(
       EntityAssocBelief(
         SilUnparsedSentence(
-          s"$valueEntityName is $propertyEntityName's spc-propvalue"),
+          s"$valueEntityName is $propertyEntityName's spc-property-value"),
         SilNounReference(SilWord(propertyEntityName)),
         SilNounReference(SilWord(valueEntityName)),
         SilWord(VALUE_METAROLE_NAME),

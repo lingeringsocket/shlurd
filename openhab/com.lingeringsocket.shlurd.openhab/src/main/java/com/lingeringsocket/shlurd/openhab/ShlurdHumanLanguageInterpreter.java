@@ -43,19 +43,23 @@ import org.slf4j.LoggerFactory;
 import com.lingeringsocket.shlurd.parser.SprParser$;
 import com.lingeringsocket.shlurd.ilang.SilSentence;
 import com.lingeringsocket.shlurd.mind.SmcExecutor;
-import com.lingeringsocket.shlurd.mind.SmcInterpreterParams;
-import com.lingeringsocket.shlurd.mind.SmcInterpreterParams$;
+import com.lingeringsocket.shlurd.mind.SmcResponseParams;
+import com.lingeringsocket.shlurd.mind.SmcResponseParams$;
 import com.lingeringsocket.shlurd.mind.SmcStateChangeInvocation;
+import com.lingeringsocket.shlurd.platonic.SpcBeliefAcceptance;
 import com.lingeringsocket.shlurd.platonic.SpcOpenhabCosmos;
+import com.lingeringsocket.shlurd.platonic.SpcOpenhabDefaultCosmos;
 import com.lingeringsocket.shlurd.platonic.SpcEntity;
 import com.lingeringsocket.shlurd.platonic.SpcForm;
 import com.lingeringsocket.shlurd.platonic.SpcProperty;
 import com.lingeringsocket.shlurd.platonic.SpcInterpreter;
 import com.lingeringsocket.shlurd.platonic.SpcMind;
+import com.lingeringsocket.shlurd.platonic.ACCEPT_NO_BELIEFS$;
 
 import scala.collection.JavaConverters;
 import scala.io.Source$;
 import scala.Option;
+import scala.Tuple2;
 import scala.util.Try;
 import scala.util.Success;
 import scala.util.Failure;
@@ -105,9 +109,9 @@ public class ShlurdHumanLanguageInterpreter
     private void createCosmos()
     {
         logger.info("SHLURD recreating world...");
-        cosmos = new SpcOpenhabCosmos() {
+        cosmos = new SpcOpenhabDefaultCosmos() {
             @Override
-            public Try<Option<String>> evaluateEntityProperty(SpcEntity entity, SpcProperty property) {
+                public Try<Tuple2<Option<SpcProperty>, Option<String>>> evaluateEntityProperty(SpcEntity entity, String propertyName, boolean specific) {
                 try {
                     Item item = itemRegistry.getItem(entity.name());
                     State state;
@@ -118,9 +122,9 @@ public class ShlurdHumanLanguageInterpreter
                         state = item.getState();
                     }
                     if (state == null) {
-                        return new Success(Option.empty());
+                        return new Success(new Tuple2(Option.empty(), Option.empty()));
                     } else {
-                        return new Success(Option.apply(state.toString().toLowerCase()));
+                        return new Success(new Tuple2(Option.empty(), Option.apply(state.toString().toLowerCase())));
                     }
                 } catch (Exception ex) {
                     return new Failure(ex);
@@ -269,8 +273,8 @@ public class ShlurdHumanLanguageInterpreter
         }
         // FIXME: need to support non-string commands
         SilSentence sentence = SprParser$.MODULE$.apply(text).parseOne();
-        SmcInterpreterParams params = SmcInterpreterParams$.MODULE$.apply(3);
-        SmcExecutor<SpcEntity> executor = new SmcExecutor<SpcEntity> {
+        SmcResponseParams params = SmcResponseParams$.MODULE$.standard();
+        SmcExecutor<SpcEntity> executor = new SmcExecutor<SpcEntity>() {
             @Override
             public void executeInvocation(SmcStateChangeInvocation<SpcEntity> invocation) {
                 JavaConverters.setAsJavaSetConverter(invocation.entities()).asJava().forEach(entity -> {
@@ -291,8 +295,9 @@ public class ShlurdHumanLanguageInterpreter
             }
         };
 
-        SpcInterpreter interpreter = new SpcInterpreter(new SpcMind(cosmos), params, executor);
-        String result = interpreter.interpret(sentence);
+        SpcBeliefAcceptance beliefAcceptance = ACCEPT_NO_BELIEFS$.MODULE$;
+        SpcInterpreter interpreter = new SpcInterpreter(new SpcMind(cosmos), beliefAcceptance, params, executor);
+        String result = interpreter.interpret(sentence, text);
         return result;
     }
 
@@ -316,7 +321,7 @@ public class ShlurdHumanLanguageInterpreter
 
     private boolean isOnOff(SpcForm form)
     {
-        Set set1 = JavaConverters.setAsJavaSetConverter(form.getProperties().values().head().getStates().keySet())
+        Set set1 = JavaConverters.setAsJavaSetConverter(cosmos.getPropertyStateMap(cosmos.getFormPropertyMap(form).values().head()).keySet())
                 .asJava();
         Set set2 = new java.util.HashSet<>(Arrays.asList("on", "off"));
         return set1.equals(set2);

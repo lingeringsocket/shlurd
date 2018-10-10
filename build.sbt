@@ -14,7 +14,10 @@ maxErrors := Common.maxErrors
 
 traceLevel := Common.traceLevel
 
-lazy val rootProject = (project in file("."))
+lazy val Corenlp = config("corenlp") extend(Test)
+
+lazy val rootProject = (project in file(".")).configs(Corenlp).
+  settings(inConfig(Corenlp)(Defaults.testTasks):_*)
 
 lazy val cli = project.dependsOn(rootProject)
 
@@ -30,9 +33,11 @@ libraryDependencies ++= Seq(
   "org.jgrapht" % "jgrapht-core" % "1.2.0",
   "org.jgrapht" % "jgrapht-io" % "1.2.0",
   "org.atteo" % "evo-inflector" % "1.2.2",
+  "net.sf.extjwnl" % "extjwnl" % "1.9.4",
+  "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
-  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models",
-  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-english"
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" % "test" classifier "models",
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" % "test" classifier "models-english"
 )
 
 publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath+"/.ivy2/local/com.lingeringsocket.shlurd")))
@@ -48,6 +53,12 @@ testOptions in Test += Tests.Setup(
 
 testOptions in Test += Tests.Cleanup(
   (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.ShlurdTestCleanup").newInstance)
+
+testOptions in Corenlp += Tests.Setup(
+  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.CorenlpTestSetup").newInstance)
+
+testOptions in Corenlp += Tests.Cleanup(
+  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.CorenlpTestCleanup").newInstance)
 
 if (sys.env.get("xonly").getOrElse("true") != "false") {
   Seq(
