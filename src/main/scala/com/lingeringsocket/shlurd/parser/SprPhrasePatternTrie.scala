@@ -18,11 +18,12 @@ import com.lingeringsocket.shlurd._
 
 import scala.collection._
 
+import scala.io._
 import java.io._
 
 import SprPennTreebankLabels._
 
-class SprPhrasePatternTrie extends Serializable
+class SprPhrasePatternTrie
 {
   private val children = new mutable.LinkedHashMap[String, SprPhrasePatternTrie]
 
@@ -173,6 +174,33 @@ class SprPhrasePatternTrie extends Serializable
         child.dump(pw, level + 1)
       }
     })
+  }
+
+  def exportText(pw : PrintWriter, prefix : String = "")
+  {
+    labels.foreach(label => {
+      pw.println(s"$prefix -> $label")
+    })
+    children.foreach {
+      case (label, child) => {
+        child.exportText(pw, s"$prefix $label")
+      }
+    }
+  }
+
+  def importText(source : Source) : SprPhrasePatternTrie =
+  {
+    source.getLines.foreach(line => {
+      val components = line.trim.split(" ")
+      val iArrow = components.indexOf("->")
+      if ((iArrow < 0) || (iArrow != (components.size - 2))) {
+        throw new RuntimeException("invalid trie source")
+      }
+      val pattern = components.take(iArrow)
+      val label = components.last
+      addPattern(pattern, label)
+    })
+    this
   }
 
   override def toString =

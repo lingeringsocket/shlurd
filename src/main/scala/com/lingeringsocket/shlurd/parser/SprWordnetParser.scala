@@ -26,6 +26,7 @@ import net.sf.extjwnl.dictionary._
 import scala.collection._
 import scala.collection.JavaConverters._
 import scala.util._
+import scala.io._
 
 case class SprParseComplexityException()
     extends RuntimeException("Expression too complex")
@@ -38,6 +39,9 @@ object SprWordnetParser
   private val dictionary = Dictionary.getDefaultResourceInstance
   private val morphology = dictionary.getMorphologicalProcessor
 
+  private val leafSomething = makeLeaf("something")
+  private[parser] val npSomething = SptNP(SptNN(leafSomething))
+
   def maybeLowerCase(word : String) : String =
   {
     if (word == "I") {
@@ -47,9 +51,9 @@ object SprWordnetParser
     }
   }
 
-  private lazy val phrasePatternTrie =
-    SerializationUtils.deserialize[SprPhrasePatternTrie](
-      SprParser.getResourceFile("/english/phrase-trie.ser"))
+  private lazy val phrasePatternTrie = (new SprPhrasePatternTrie).importText(
+    Source.fromFile(
+      SprParser.getResourcePath("/english/phrase-structure.txt")))
 
   // adapted from
   // http://www.d.umn.edu/~tpederse/Group01/WordNet/wordnet-stoplist.html
@@ -75,9 +79,6 @@ object SprWordnetParser
   {
     makeLeaf(token, token, token)
   }
-
-  private val leafSomething = makeLeaf("something")
-  val npSomething = SptNP(SptNN(leafSomething))
 }
 
 class SprWordnetParser(words : Seq[String],

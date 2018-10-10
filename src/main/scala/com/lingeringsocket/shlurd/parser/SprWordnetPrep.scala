@@ -81,8 +81,14 @@ object SprWordnetPrep
       }
     })
     println("TRIE = " + trie)
-    SerializationUtils.serialize(
-      trie, new File("src/main/resources/english/phrase-trie.ser"))
+    val fw = new FileWriter("src/main/resources/english/phrase-structure.txt")
+    try {
+      val pw = new PrintWriter(fw)
+      trie.exportText(pw)
+      pw.close
+    } finally {
+      fw.close
+    }
   }
 
   def runAll(
