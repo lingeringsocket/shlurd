@@ -8,5 +8,5 @@ jdk:
 
 dist: trusty
 
-script: sbt ++$TRAVIS_SCALA_VERSION clean test scalastyle test:scalastyle \
-  corenlp:test
+script: sbt ++$TRAVIS_SCALA_VERSION clean test scalastyle test:scalastyle && \
+  sbt ++$TRAVIS_SCALA_VERSION corenlp:test
