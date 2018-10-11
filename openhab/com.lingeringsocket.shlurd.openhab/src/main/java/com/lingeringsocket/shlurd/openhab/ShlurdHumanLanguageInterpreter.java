@@ -57,6 +57,7 @@ import com.lingeringsocket.shlurd.platonic.SpcMind;
 import com.lingeringsocket.shlurd.platonic.ACCEPT_NO_BELIEFS$;
 
 import scala.collection.JavaConverters;
+import scala.io.Source;
 import scala.io.Source$;
 import scala.Option;
 import scala.Tuple2;
@@ -81,6 +82,10 @@ public class ShlurdHumanLanguageInterpreter
     private final Locale supportedLocale = Locale.ENGLISH;
 
     private SpcOpenhabCosmos cosmos = null;
+
+    private String beliefEncoding = "UTF-8";
+
+    private String beliefFile = null;
 
     private RegistryChangeListener<Item> registryChangeListener =
         new RegistryChangeListener<Item>()
@@ -131,6 +136,17 @@ public class ShlurdHumanLanguageInterpreter
                 }
             }
         };
+        Source beliefSource;
+        if (beliefFile == null) {
+            logger.info("SHLURD loading default beliefs...");
+            beliefSource = Source$.MODULE$.fromInputStream(
+                getClass().getResourceAsStream("/beliefs.txt"), beliefEncoding);
+        } else {
+            logger.info("SHLURD loading beliefs from " + beliefFile + "...");
+            beliefSource = Source$.MODULE$.fromFile(beliefFile, beliefEncoding);
+        }
+        cosmos.loadBeliefs(beliefSource);
+        readItems();
         logger.info("SHLURD world recreated");
     }
 
@@ -175,18 +191,8 @@ public class ShlurdHumanLanguageInterpreter
 
     protected void modified(Map<String, Object> config)
     {
+        beliefFile = (String) config.get(BELIEF_FILE_KEY);
         createCosmos();
-        String beliefFile = (String) config.get(BELIEF_FILE_KEY);
-        String encoding = "UTF-8";
-        if (beliefFile == null) {
-            logger.info("SHLURD loading default beliefs...");
-            cosmos.loadBeliefs(
-                    Source$.MODULE$.fromInputStream(getClass().getResourceAsStream("/beliefs.txt"), encoding));
-        } else {
-            logger.info("SHLURD loading beliefs from " + beliefFile + "...");
-            cosmos.loadBeliefs(Source$.MODULE$.fromFile(beliefFile, encoding));
-        }
-        logger.info("SHLURD beliefs loaded");
     }
 
     @Override
@@ -233,6 +239,9 @@ public class ShlurdHumanLanguageInterpreter
 
     private void readItems()
     {
+        if (itemRegistry == null) {
+            return;
+        }
         List<SortableItem> list = new ArrayList<SortableItem>();
         for (Item item : itemRegistry.getAll()) {
             String label = item.getLabel();
@@ -269,7 +278,6 @@ public class ShlurdHumanLanguageInterpreter
         }
         if (cosmos == null) {
             createCosmos();
-            readItems();
         }
         // FIXME: need to support non-string commands
         SilSentence sentence = SprParser$.MODULE$.apply(text).parseOne();
