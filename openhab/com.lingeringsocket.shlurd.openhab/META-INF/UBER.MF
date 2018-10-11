@@ -8,8 +8,8 @@ Bundle-ActivationPolicy: lazy
 Bundle-Vendor: openHAB
 Service-Component: OSGI-INF/*.xml
 Bundle-ClassPath: .,
- algebra_2.11-0.7.0.jar,
- cats-kernel_2.11-0.9.0.jar,
+ algebra_2.11-1.0.0.jar,
+ cats-kernel_2.11-1.0.1.jar,
  concurrentlinkedhashmap-lru-1.3.2.jar,
  dsinfo_2.11-0.4.0.jar,
  dsprofile_2.11-0.4.0.jar,
@@ -18,6 +18,7 @@ Bundle-ClassPath: .,
  javax.json-1.0.4.jar,
  joda-time-2.9.4.jar,
  jgrapht-core-1.2.0.jar,
+ jgrapht-io-1.2.0.jar,
  evo-inflector-1.2.2.jar,
  kiama_2.11-1.8.0.jar,
  protobuf-java-3.2.0.jar,
@@ -27,8 +28,7 @@ Bundle-ClassPath: .,
  scallop_2.11-0.9.5.jar,
  shlurd_2.11.jar,
  shlurd-corenlp-models_2.11-assembly.jar,
- shlurd-osgi.jdkext_1.0.0.201803152024.jar,
- spire_2.11-0.16.0.jar
+ spire_2.11-0.16.0.jar,
  spire-extras_2.11-0.16.0.jar
 Import-Package: org.eclipse.jdt.annotation;resolution:=optional,
  org.eclipse.smarthome.config.core,
