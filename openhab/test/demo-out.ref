@@ -14,7 +14,7 @@ is there a garden
 Yes, there is a garden.
 
 is there a gazebo
-Sorry, I don't know what you mean by gazebo.
+Sorry, I don't know about any 'gazebo'.
 
 is there a living room
 Yes, there is a living room.
@@ -44,10 +44,10 @@ is there any room in the garden
 No, there is no room in the garden.
 
 is there any room on the ground floor
-Yes, there are 4 of them.
+Yes, there are four of them.
 
 is there any room on the first floor
-Yes, there are 5 of them.
+Yes, there are five of them.
 
 is there a bedroom on the ground floor
 No, there is not a bedroom on the ground floor.
@@ -77,37 +77,37 @@ is there a heater on the ground floor
 Yes, there is a heater on the ground floor.
 
 is there any heater on the ground floor
-Yes, there are 4 of them.
+Yes, there are four of them.
 
 is there any window on the ground floor
-Yes, there are 3 of them.
+Yes, there are three of them.
 
 how many rooms are on the ground floor
-4 of them are on the ground floor.
+Four of them are on the ground floor.
 
 which rooms are on the ground floor
 The corridor, the kitchen, the living room, and the toilet are on the ground floor.
 
 how many windows are on the ground floor
-3 of them are on the ground floor.
+Three of them are on the ground floor.
 
 which windows are on the ground floor
 The kitchen window, the living room terrace door window, and the toilet window are on the ground floor.
 
 are there any lights
-Yes, there are 16 of them.
+Yes, there are sixteen of them.
 
 is there any light in the living room
 Yes, there is a living room table light.
 
 is there any light in the kitchen
-Yes, there are 2 of them.
+Yes, there are two of them.
 
 is the staircase light in the cellar
 Yes, the staircase light is in the cellar.
 
 how many lights are in the cellar
-2 of them are in the cellar.
+Two of them are in the cellar.
 
 which lights are in the cellar
 The cellar staircase light and the cellar workshop light are in the cellar.
@@ -116,7 +116,7 @@ how many lights are on
 No lights are on.
 
 how many lights are off
-All 16 of them are off.
+All sixteen of them are off.
 
 which lights are on
 No lights are on.
@@ -128,16 +128,16 @@ are all lights on
 No, none of them are on.
 
 are any lights off
-Yes, all 16 of them are off.
+Yes, all sixteen of them are off.
 
 are any lights on
 No, no lights are on.
 
 are all lights on the first floor on
-No, none of them are on.
+No, none of them on the first floor are on.
 
 are all lights on in the kitchen
-No, none of them are on.
+No, none of them in the kitchen are on.
 
 turn on all lights
 OK.
@@ -146,7 +146,7 @@ turn on all lights
 But all lights are on already.
 
 how many lights are on
-All 16 of them are on.
+All sixteen of them are on.
 
 how many lights are off
 No lights are off.
@@ -167,7 +167,7 @@ are any lights off
 No, no lights are off.
 
 are any lights on
-Yes, all 16 of them are on.
+Yes, all sixteen of them are on.
 
 are all lights on the first floor on
 Yes, all lights on the first floor are on.
@@ -179,10 +179,10 @@ is the kitchen light on
 Please be more specific about which light you mean.
 
 is the kitchen table light on
-Yes, the kitchen table light is on.
+Yes, it is on.
 
 is the kitchen ceiling light on
-Yes, the kitchen ceiling light is on.
+Yes, it is on.
 
 is the kitchen microwave light on
 But I don't know about any such light.
@@ -206,7 +206,7 @@ which lights in the kitchen are off
 The kitchen ceiling light is off.
 
 how many lights are on
-15 of them are on.
+Fifteen of them are on.
 
 is any kitchen light on
 Yes, the kitchen table light is on.
@@ -215,25 +215,25 @@ is any light on in the kitchen or the bedroom
 Yes, the bedroom ceiling light and the kitchen table light are on.
 
 is the bedroom light on
-Yes, the bedroom light is on.
+Yes, it is on.
 
 is the light in the bedroom on
-Yes, the light in the bedroom is on.
+Yes, it is on.
 
 turn off all lights in the bedroom
 OK.
 
 how many lights are on
-14 of them are on.
+Fourteen of them are on.
 
 which lights are off
 The bedroom ceiling light and the kitchen ceiling light are off.
 
 is the bedroom light on
-No, the bedroom light is not on.
+No, it is not on.
 
 are all lights off
-No, 14 of them are not off.
+No, fourteen of them are not off.
 
 are all lights on
 No, neither the bedroom ceiling light nor the kitchen ceiling light is on.
@@ -242,7 +242,7 @@ are any lights off
 Yes, the bedroom ceiling light and the kitchen ceiling light are off.
 
 are any lights on
-Yes, 14 of them are on.
+Yes, fourteen of them are on.
 
 are all lights on the first floor on
 No, the bedroom ceiling light is not on.
@@ -254,22 +254,22 @@ turn off all lights in the bathroom
 OK.
 
 how many lights are on
-12 of them are on.
+Twelve of them are on.
 
 are all lights on
-No, 4 of them are not on.
+No, four of them are not on.
 
 are any lights off
-Yes, 4 of them are off.
+Yes, four of them are off.
 
 are any lights on
-Yes, 12 of them are on.
+Yes, twelve of them are on.
 
 turn on the bathroom ceiling light
 OK.
 
 how many lights are on
-13 of them are on.
+Thirteen of them are on.
 
 are all lights on
 No, neither the bathroom mirror light, the bedroom ceiling light, nor the kitchen ceiling light is on.
@@ -278,7 +278,7 @@ are any lights off
 Yes, the bathroom mirror light, the bedroom ceiling light, and the kitchen ceiling light are off.
 
 are any lights on
-Yes, 13 of them are on.
+Yes, thirteen of them are on.
 
 are any bedroom lights on
 No, no bedroom lights are on.
@@ -290,28 +290,28 @@ turn off all lights on the ground floor
 OK.
 
 how many lights are on
-7 of them are on.
+Six of them are on.
 
 are any lights on
-Yes, 7 of them are on.
+Yes, six of them are on.
 
 turn off all lights on the first floor
 OK.
 
 how many lights are on
-4 of them are on.
+Four of them are on.
 
 which lights are on
 The cellar staircase light, the cellar workshop light, the garden garage light, and the garden terrace light are on.
 
 are any lights on
-Yes, 4 of them are on.
+Yes, four of them are on.
 
 turn off all lights in the garden
 OK.
 
 how many lights are on
-2 of them are on.
+Two of them are on.
 
 which lights are on
 The cellar staircase light and the cellar workshop light are on.
@@ -326,7 +326,7 @@ how many lights are on
 No lights are on.
 
 how many lights are off
-All 16 of them are off.
+All sixteen of them are off.
 
 are any lights on
 No, no lights are on.
@@ -341,8 +341,8 @@ are any heaters on
 Yes, the bedroom heating is on.
 
 is the heat on in the bedroom
-Yes, the heat in the bedroom is on.
+Yes, it is on.
 
 is the lamp in the bedroom lit
-No, the lamp in the bedroom is not lit.
+No, it is not lit.
 
