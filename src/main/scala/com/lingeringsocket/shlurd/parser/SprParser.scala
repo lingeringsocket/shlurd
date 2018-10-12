@@ -286,7 +286,8 @@ object SprParser
     }
   }
 
-  private def tokenizeCorenlp(input : String) : Seq[SprCorenlpTokenizedSentence] =
+  private def tokenizeCorenlp(input : String)
+      : Seq[SprCorenlpTokenizedSentence] =
   {
     val tokenizer = new SprCorenlpTokenizer
     tokenizer.tokenize(input)
