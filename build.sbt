@@ -35,6 +35,7 @@ libraryDependencies ++= Seq(
   "org.atteo" % "evo-inflector" % "1.2.2",
   "net.sf.extjwnl" % "extjwnl" % "1.9.4",
   "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
+  "eus.ixa" % "ixa-pipe-ml" % "0.0.7" exclude("net.sourceforge.argparse4j", "argparse4j") exclude("com.google.guava", "guava") exclude("org.jdom", "jdom2") exclude("org.carrot2", "morfologik-stemming") exclude("org.apache.opennlp", "opennlp-tools"),
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" % "test" classifier "models",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" % "test" classifier "models-english"

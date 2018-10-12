@@ -13,4 +13,4 @@ Note that stanford-corenlp is repackaged into the
 shlurd-corenlp-models_2.11-assembly.jar in order to select only the models
 required by SHLURD.
 
-FIXME:  add license for extjwnl
+FIXME:  add license/acknowledgements for extjwnl, ixa-pipe

@@ -44,7 +44,7 @@ abstract class SpcOpenhabCosmos(
 
   private val presenceFormName = "presence"
 
-  private val presenceRoleName = "personal_presence"
+  private val presenceRoleName = "ubiety"
 
   private val roomLemma = "room"
 

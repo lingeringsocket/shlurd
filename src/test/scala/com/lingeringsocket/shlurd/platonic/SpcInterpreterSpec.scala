@@ -923,11 +923,11 @@ class SpcInterpreterSpec extends Specification
       // FIXME:  in "is Jack home", interpret "home" as state instead of noun
       // FIXME:  "Jack's presence" should become "it"
       loadBeliefs("/ontologies/presence.txt")
-      interpretMatrix("is Jack's personal_presence on",
-        "Yes, his personal_presence is on.",
-        "Yes, Jack's personal_presence is on.",
+      interpretMatrix("is Jack's ubiety on",
+        "Yes, his ubiety is on.",
+        "Yes, Jack's ubiety is on.",
         "Yes.",
-        "Yes, his personal_presence is.")
+        "Yes, his ubiety is.")
       interpretMatrix("is Jack present",
         "Yes, he is present.",
         "Yes, Jack is present.",
@@ -948,11 +948,11 @@ class SpcInterpreterSpec extends Specification
         "No, Jack is not away.",
         "No.",
         "No, he is not.")
-      interpretMatrix("is Jill's personal_presence on",
-        "No, her personal_presence is not on.",
-        "No, Jill's personal_presence is not on.",
+      interpretMatrix("is Jill's ubiety on",
+        "No, her ubiety is not on.",
+        "No, Jill's ubiety is not on.",
         "No.",
-        "No, her personal_presence is not.")
+        "No, her ubiety is not.")
       interpretMatrix("is Jill present",
         "No, she is not present.",
         "No, Jill is not present.",
@@ -982,11 +982,11 @@ class SpcInterpreterSpec extends Specification
         "Yes, his apparition is.")
       interpret("is Casper present",
         "I don't know.")
-      interpretMatrix("is Yoda's personal_presence on",
-        "No, his personal_presence is not on.",
-        "No, Yoda's personal_presence is not on.",
+      interpretMatrix("is Yoda's ubiety on",
+        "No, his ubiety is not on.",
+        "No, Yoda's ubiety is not on.",
         "No.",
-        "No, his personal_presence is not.")
+        "No, his ubiety is not.")
       interpretMatrix("is Yoda present",
         "No, he is not present.",
         "No, Yoda is not present.",
@@ -1406,10 +1406,10 @@ class SpcInterpreterSpec extends Specification
           "is Rapunzel's owner.  So it does not add up when I hear that " +
           "Amanda is Rapunzel's owner.")
       interpret(
-        "Scott is RowdyThree's operative",
+        "Scott is ROWDYTHREE's operative",
         "Previously I was told that a person may have one employer and " +
           "BLACKWING is Scott's employer.  So it does not add up when I " +
-          "hear that Scott is RowdyThree's operative.")
+          "hear that Scott is ROWDYTHREE's operative.")
     }
 
     "validate constraints incrementally" in new InterpreterContext(
@@ -1418,8 +1418,8 @@ class SpcInterpreterSpec extends Specification
       loadBeliefs("/ontologies/people.txt")
       interpretBelief("Amanda is Rapunzel's owner")
       interpretTerse("who is Rapunzel's owner", "Amanda.")
-      interpretBelief("Scott is RowdyThree's operative")
-      interpretTerse("who is RowdyThree's operative", "Scott.")
+      interpretBelief("Scott is ROWDYTHREE's operative")
+      interpretTerse("who is ROWDYTHREE's operative", "Scott.")
     }
 
     "derive types" >> new InterpreterContext

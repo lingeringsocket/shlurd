@@ -24,7 +24,6 @@ import edu.stanford.nlp.simple.Document
 
 import scala.io._
 import scala.collection._
-import scala.collection.JavaConverters._
 
 import java.io._
 import java.util.Properties
@@ -277,10 +276,20 @@ object SprParser
     })).getOrElse(parse())
   }
 
-  def tokenize(input : String) : Seq[Sentence] =
+  private def tokenize(input : String) : Seq[SprTokenizedSentence] =
   {
-    val doc = new Document(input)
-    doc.sentences.asScala
+    if (useCoreNLP) {
+      tokenizeCorenlp(input)
+    } else {
+      val tokenizer = new SprIxaTokenizer
+      tokenizer.tokenize(input)
+    }
+  }
+
+  private def tokenizeCorenlp(input : String) : Seq[SprCorenlpTokenizedSentence] =
+  {
+    val tokenizer = new SprCorenlpTokenizer
+    tokenizer.tokenize(input)
   }
 
   def isTerminator(token : String) : Boolean =
@@ -289,11 +298,11 @@ object SprParser
   }
 
   private def prepareOne(
-    sentence : Sentence,
+    sentence : SprTokenizedSentence,
     dump : Boolean = false,
     corenlp : Boolean = useCoreNLP) : SprParser =
   {
-    val tokens = sentence.originalTexts.asScala
+    val tokens = sentence.tokens
     val sentenceString = sentence.text
     if (corenlp) {
       if (isTerminator(tokens.last)) {
@@ -306,7 +315,7 @@ object SprParser
           true, dump, "CORENLP")
       }
     } else {
-      prepareWordnet(sentenceString, sentence, dump, "WORDNET")
+      prepareWordnet(sentence, dump, "WORDNET")
     }
   }
 
@@ -324,15 +333,15 @@ object SprParser
     dump : Boolean, dumpDesc : String) : SprParser =
   {
     val sentence = tokenize(sentenceString).head
-    prepareWordnet(sentenceString, sentence, dump, dumpDesc)
+    prepareWordnet(sentence, dump, dumpDesc)
   }
 
   private def prepareWordnet(
-    sentenceString : String, sentence : Sentence,
+    sentence : SprTokenizedSentence,
     dump : Boolean, dumpDesc : String) : SprParser =
   {
     val dumpPrefix = dumpDesc
-    val allWords = sentence.originalTexts.asScala
+    val allWords = sentence.tokens
     val (words, terminator) = {
       if (isTerminator(allWords.last)) {
         tupleN((allWords.dropRight(1), Some(allWords.last)))
@@ -385,7 +394,7 @@ object SprParser
       }
     }
     val root = cacheParse(
-      CacheKey(sentenceString, dumpPrefix), wordnetParse)
+      CacheKey(sentence.text, dumpPrefix), wordnetParse)
     root match {
       case SptAMBIGUOUS(trees @ _*) => {
         new SprAmbiguityParser(trees.map(tree =>
@@ -444,28 +453,28 @@ object SprParser
         return SprSyntaxLeaf(oops, oops, oops)
       }
       var deps : Seq[String] = Seq.empty
-      val sentence = tokenize(sentenceString).head
+      val sentence = tokenizeCorenlp(sentenceString).head
       if (preDependencies) {
         // when preDependencies is requested, it's important to analyze
         // dependencies BEFORE parsing in order to get the best parse
-        deps = analyzeDependencies(sentence)
+        deps = sentence.incomingDeps
       }
-      val corenlp = sentence.parse(props)
+      val corenlpTree = sentence.corenlpSentence.parse(props)
       if (dump) {
-        println(dumpPrefix + " PARSE = " + corenlp)
+        println(dumpPrefix + " PARSE = " + corenlpTree)
       }
-      corenlp.indexLeaves(0, true)
+      corenlpTree.indexLeaves(0, true)
       if (!preDependencies) {
         // when preDependencies is not requested, it's important to analyze
         // dependencies AFTER parsing in order to get the best parse
-        deps = analyzeDependencies(sentence)
+        deps = sentence.incomingDeps
       }
-      val lemmas = sentence.lemmas.asScala
+      val lemmas = sentence.lemmas
       if (dump) {
         println(dumpPrefix + " DEPS = " + tokens.zip(deps))
       }
       SprSyntaxRewriter.rewriteAbstract(
-        new CorenlpTreeWrapper(corenlp, tokens, lemmas, deps))
+        new CorenlpTreeWrapper(corenlpTree, tokens, lemmas, deps))
     }
 
     val syntaxTree = cacheParse(
@@ -475,15 +484,6 @@ object SprParser
       println(dumpPrefix + " REWRITTEN SYNTAX = " + rewrittenTree)
     }
     new SprSingleParser(rewrittenTree, guessedQuestion)
-  }
-
-  private def analyzeDependencies(sentence : Sentence) : Seq[String] =
-  {
-    val props = new Properties
-    props.setProperty(
-      "depparse.model",
-      "edu/stanford/nlp/models/parser/nndep/english_SD.gz")
-    sentence.incomingDependencyLabels(props).asScala.map(_.orElse(""))
   }
 
   // FIXME Mickey Mouse
@@ -521,13 +521,14 @@ object SprParser
   def getResourceFile(resource : String) =
     new File(getResourcePath(resource))
 
+  def getResourceStream(resource : String) =
+      getClass.getClassLoader.getResourceAsStream(resource.stripPrefix("/"))
+
   def getResourceSource(resource : String) =
-    Source.fromInputStream(
-      getClass.getClassLoader.getResourceAsStream(resource.stripPrefix("/")))
+    Source.fromInputStream(getResourceStream(resource))
 
   def readResource(resource : String) : String =
-    Source.fromFile(getResourcePath(resource)).
-      getLines.mkString("\n")
+    getResourceSource(resource).getLines.mkString("\n")
 
   def apply(input : String) : SprParser =
   {
