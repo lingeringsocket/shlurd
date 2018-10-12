@@ -17,19 +17,12 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
-import edu.stanford.nlp.simple._
-import edu.stanford.nlp.trees._
-import edu.stanford.nlp.ling._
-import edu.stanford.nlp.simple.Document
-
 import scala.io._
 import scala.collection._
 
 import java.io._
-import java.util.Properties
 
 import SprPennTreebankLabels._
-import SprUtils._
 
 trait SprParser
 {
@@ -168,30 +161,27 @@ class SprMultipleParser(singles : Stream[SprParser])
   override def parseAll() = singles.map(_.parseOne)
 }
 
-class CorenlpTreeWrapper(
-  corenlp : Tree, tokens : Seq[String], lemmas : Seq[String],
-  incomingDeps : Seq[String])
-    extends SprAbstractSyntaxTree
+trait SprParsingStrategy
 {
-  private val wrappedChildren =
-    corenlp.children.map(
-      new CorenlpTreeWrapper(_, tokens, lemmas, incomingDeps))
+  def newTokenizer : SprTokenizer
 
-  override def label =
-    corenlp.label.value.split("-").head
+  def isCoreNLP : Boolean = false
 
-  override def tags =
-    corenlp.label.value.split("-").tail.toSet
+  def prepareParser(
+    sentence : SprTokenizedSentence,
+    dump : Boolean) : SprParser
+}
 
-  override def lemma =
-    lemmas(corenlp.label.asInstanceOf[HasIndex].index)
+object SprWordnetParsingStrategy extends SprParsingStrategy
+{
+  override def newTokenizer = new SprIxaTokenizer
 
-  override def token = tokens(corenlp.label.asInstanceOf[HasIndex].index)
-
-  override def incomingDep =
-    incomingDeps(corenlp.label.asInstanceOf[HasIndex].index)
-
-  override def children = wrappedChildren
+  override def prepareParser(
+    sentence : SprTokenizedSentence,
+    dump : Boolean) =
+  {
+    SprParser.prepareWordnet(sentence, dump, "WORDNET")
+  }
 }
 
 object SprParser
@@ -216,9 +206,7 @@ object SprParser
 
   private var cacheFile : Option[File] = None
 
-  private var useCoreNLP : Boolean = false
-
-  def getEmptyDocument() = new Document("")
+  private var strategy : SprParsingStrategy = SprWordnetParsingStrategy
 
   def debug(s : String)
   {
@@ -228,12 +216,12 @@ object SprParser
     })
   }
 
-  def setCoreNLP(enabled : Boolean)
+  def setStrategy(newStrategy : SprParsingStrategy)
   {
-    useCoreNLP = enabled
+    strategy = newStrategy
   }
 
-  def isCoreNLP : Boolean = useCoreNLP
+  def isCoreNLP : Boolean = strategy.isCoreNLP
 
   def enableCache(file : Option[File] = None)
   {
@@ -266,30 +254,24 @@ object SprParser
     }
   }
 
-  private def cacheParse(
+  def cacheParse(
     key : CacheKey,
     parse : () => CacheValue) : CacheValue =
   {
     cache.map(_.getOrElseUpdate(key, {
-      cacheDirty = true
-      parse()
+      if (cacheOnly) {
+        val oops = "OOPS"
+        SprSyntaxLeaf(oops, oops, oops)
+      } else {
+        cacheDirty = true
+        parse()
+      }
     })).getOrElse(parse())
   }
 
   private def tokenize(input : String) : Seq[SprTokenizedSentence] =
   {
-    if (useCoreNLP) {
-      tokenizeCorenlp(input)
-    } else {
-      val tokenizer = new SprIxaTokenizer
-      tokenizer.tokenize(input)
-    }
-  }
-
-  private def tokenizeCorenlp(input : String)
-      : Seq[SprCorenlpTokenizedSentence] =
-  {
-    val tokenizer = new SprCorenlpTokenizer
+    val tokenizer = strategy.newTokenizer
     tokenizer.tokenize(input)
   }
 
@@ -300,33 +282,9 @@ object SprParser
 
   private def prepareOne(
     sentence : SprTokenizedSentence,
-    dump : Boolean = false,
-    corenlp : Boolean = useCoreNLP) : SprParser =
+    dump : Boolean = false) : SprParser =
   {
-    val tokens = sentence.tokens
-    val sentenceString = sentence.text
-    if (corenlp) {
-      if (isTerminator(tokens.last)) {
-        prepareFallbacks(
-          sentenceString, tokens, false, dump, "CORENLP")
-      } else {
-        val questionString = sentenceString + LABEL_QUESTION_MARK
-        prepareFallbacks(
-          questionString, tokens :+ LABEL_QUESTION_MARK,
-          true, dump, "CORENLP")
-      }
-    } else {
-      prepareWordnet(sentence, dump, "WORDNET")
-    }
-  }
-
-  private def prepareFallbacks(
-    sentenceString : String, tokens : Seq[String],
-    guessedQuestion : Boolean,
-    dump : Boolean, dumpPrefix : String) =
-  {
-    prepareCorenlpFallbacks(
-      sentenceString, tokens, guessedQuestion, dump, dumpPrefix)
+    strategy.prepareParser(sentence, dump)
   }
 
   private[parser] def prepareWordnet(
@@ -337,7 +295,7 @@ object SprParser
     prepareWordnet(sentence, dump, dumpDesc)
   }
 
-  private def prepareWordnet(
+  private[parser] def prepareWordnet(
     sentence : SprTokenizedSentence,
     dump : Boolean, dumpDesc : String) : SprParser =
   {
@@ -407,84 +365,6 @@ object SprParser
           terminator)
       }
     }
-  }
-
-  private def prepareCorenlpFallbacks(
-    sentenceString : String, tokens : Seq[String],
-    guessedQuestion : Boolean,
-    dump : Boolean, dumpPrefix : String) =
-  {
-    val props = new Properties
-    props.setProperty(
-      "parse.model",
-      "edu/stanford/nlp/models/lexparser/englishRNN.ser.gz")
-    val propsSR = new Properties
-    propsSR.setProperty(
-      "parse.model",
-      "edu/stanford/nlp/models/srparser/englishSR.ser.gz")
-    val propsPCFG = new Properties
-    propsPCFG.setProperty(
-      "parse.model",
-      "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
-    val capitalizedString = capitalize(sentenceString)
-    def main() = prepareCorenlp(
-      capitalizedString, tokens, props, true, guessedQuestion,
-      dump, dumpPrefix + " RNN")
-    def fallbackSR() = prepareCorenlp(
-      capitalizedString, tokens, propsSR, true, guessedQuestion,
-      dump, dumpPrefix + " FALLBACK SR")
-    def fallbackPCFG() = prepareCorenlp(
-      capitalizedString, tokens, propsPCFG, false, guessedQuestion,
-      dump, dumpPrefix + " FALLBACK PCFG")
-    def fallbackSRCASELESS() = prepareCorenlp(
-      sentenceString, tokens, propsSR, false, guessedQuestion,
-      dump, dumpPrefix + " FALLBACK SR CASELESS")
-    new SprFallbackParser(Seq(
-      main, fallbackSR, fallbackPCFG, fallbackSRCASELESS))
-  }
-
-  private def prepareCorenlp(
-    sentenceString : String, tokens : Seq[String], props : Properties,
-    preDependencies : Boolean, guessedQuestion : Boolean,
-    dump : Boolean, dumpPrefix : String) =
-  {
-    def corenlpParse() : SprSyntaxTree = {
-      if (cacheOnly) {
-        val oops = "OOPS"
-        return SprSyntaxLeaf(oops, oops, oops)
-      }
-      var deps : Seq[String] = Seq.empty
-      val sentence = tokenizeCorenlp(sentenceString).head
-      if (preDependencies) {
-        // when preDependencies is requested, it's important to analyze
-        // dependencies BEFORE parsing in order to get the best parse
-        deps = sentence.incomingDeps
-      }
-      val corenlpTree = sentence.corenlpSentence.parse(props)
-      if (dump) {
-        println(dumpPrefix + " PARSE = " + corenlpTree)
-      }
-      corenlpTree.indexLeaves(0, true)
-      if (!preDependencies) {
-        // when preDependencies is not requested, it's important to analyze
-        // dependencies AFTER parsing in order to get the best parse
-        deps = sentence.incomingDeps
-      }
-      val lemmas = sentence.lemmas
-      if (dump) {
-        println(dumpPrefix + " DEPS = " + tokens.zip(deps))
-      }
-      SprSyntaxRewriter.rewriteAbstract(
-        new CorenlpTreeWrapper(corenlpTree, tokens, lemmas, deps))
-    }
-
-    val syntaxTree = cacheParse(
-      CacheKey(sentenceString, dumpPrefix), corenlpParse)
-    val rewrittenTree = SprSyntaxRewriter.rewriteWarts(syntaxTree)
-    if (dump) {
-      println(dumpPrefix + " REWRITTEN SYNTAX = " + rewrittenTree)
-    }
-    new SprSingleParser(rewrittenTree, guessedQuestion)
   }
 
   // FIXME Mickey Mouse

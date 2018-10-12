@@ -24,7 +24,9 @@ import java.io._
 
 object SprWordnetPrep
 {
-  SprParser.setCoreNLP(true)
+  // FIXME
+  // SprParser.setCoreNLP(true)
+
   SprParser.enableCache(Some(new File("run/test-parser-cache.dat")))
   private val parserCache = SprParser.lockCache
 
