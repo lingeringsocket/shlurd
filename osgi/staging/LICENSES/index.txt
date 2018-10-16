@@ -3,14 +3,12 @@ dependencies.  They are summarized below.
 
 dsinfo, dsprofile: LGPL v3
 algebra, cats, scallop, spire: MIT
-shlurd, joda-time, guava, ejml, evo-inflector: Apache 2
+shlurd, guava, evo-inflector, ixa-pipes: Apache 2
 jgrapht: LGPL v2.1 or EPL
 kiama: Mozilla 2
-scala, protobuf-java: 3-clause BSD
-stanford-corenlp: GPL v3
+scala, extjwnl: 3-clause BSD
+WordNet:  2-clause BSD
 
-Note that stanford-corenlp is repackaged into the
-shlurd-corenlp-models_2.11-assembly.jar in order to select only the models
-required by SHLURD.
-
-FIXME:  add license/acknowledgements for extjwnl, ixa-pipe
+Note that extjwnl (including all WordNet 3.1 data) is repackaged into
+shlurd-extjwnl-bundle_2.11.assembly.jar in order for resources to
+be correctly loadable via OSGi.
