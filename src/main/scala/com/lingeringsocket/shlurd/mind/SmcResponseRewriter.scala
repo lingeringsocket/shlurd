@@ -436,9 +436,15 @@ class SmcResponseRewriter[
   private def removeResolvedReferenceQualifiers = replacementMatcher {
     case SilStateSpecifiedReference(
       mr : SilMappedReference,
-      _ : SilState
+      _
     ) => {
       mr
+    }
+    case SilStateSpecifiedReference(
+      cr : SilConjunctiveReference,
+      _
+    ) => {
+      cr
     }
     case SilStateSpecifiedReference(
       sr @ SilStateSpecifiedReference(

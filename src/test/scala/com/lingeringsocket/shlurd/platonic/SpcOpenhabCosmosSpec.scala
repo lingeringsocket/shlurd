@@ -250,7 +250,7 @@ class SpcOpenhabCosmosSpec extends Specification
         "which lights on the first floor are on",
         "The family room light, " +
           "the living room mood light, " +
-          "and the guest bedroom ceiling light on the first floor are on.")
+          "and the guest bedroom ceiling light are on.")
       interpret(
         "is the light in the living room lit",
         "Yes, it is lit.")
@@ -302,6 +302,10 @@ class SpcOpenhabCosmosSpec extends Specification
       interpret(
         "how many garden lights are off",
         "Both of them are off.")
+      interpret(
+        "which bedroom lights are on",
+        "The guest bedroom light on the ground floor " +
+          "and the guest bedroom ceiling light are on.")
     }
   }
 }
