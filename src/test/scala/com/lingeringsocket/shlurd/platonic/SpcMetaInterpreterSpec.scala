@@ -14,7 +14,6 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
-import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
@@ -36,7 +35,7 @@ class SpcMetaInterpreterSpec extends Specification
 
     protected def interpret(input : String, expected : String) =
     {
-      val sentence = SprParser(input).parseOne
+      val sentence = interpreter.newParser(input).parseOne
       interpreter.interpret(sentence, input) must be equalTo(expected)
     }
 

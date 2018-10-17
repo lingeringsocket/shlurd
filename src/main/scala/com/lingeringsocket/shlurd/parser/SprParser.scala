@@ -168,6 +168,7 @@ trait SprParsingStrategy
   def isCoreNLP : Boolean = false
 
   def prepareParser(
+    context : SprContext,
     sentence : SprTokenizedSentence,
     dump : Boolean) : SprParser
 }
@@ -177,10 +178,11 @@ object SprWordnetParsingStrategy extends SprParsingStrategy
   override def newTokenizer = new SprIxaTokenizer
 
   override def prepareParser(
+    context : SprContext,
     sentence : SprTokenizedSentence,
     dump : Boolean) =
   {
-    SprParser.prepareWordnet(sentence, dump, "WORDNET")
+    SprParser.prepareWordnet(context, sentence, dump, "WORDNET")
   }
 }
 
@@ -211,7 +213,7 @@ object SprParser
   def debug(s : String)
   {
     tokenize(s).foreach(sentence => {
-      val parser = prepareOne(sentence, true)
+      val parser = prepareOne(SprContext(), sentence, true)
       println("SHLURD = " + parser.parseOne)
     })
   }
@@ -254,6 +256,7 @@ object SprParser
     }
   }
 
+  // FIXME should take SprContext into account
   def cacheParse(
     key : CacheKey,
     parse : () => CacheValue) : CacheValue =
@@ -281,21 +284,24 @@ object SprParser
   }
 
   private def prepareOne(
+    context : SprContext,
     sentence : SprTokenizedSentence,
     dump : Boolean = false) : SprParser =
   {
-    strategy.prepareParser(sentence, dump)
+    strategy.prepareParser(context, sentence, dump)
   }
 
   private[parser] def prepareWordnet(
+    context : SprContext,
     sentenceString : String,
     dump : Boolean, dumpDesc : String) : SprParser =
   {
     val sentence = tokenize(sentenceString).head
-    prepareWordnet(sentence, dump, dumpDesc)
+    prepareWordnet(context, sentence, dump, dumpDesc)
   }
 
   private[parser] def prepareWordnet(
+    context : SprContext,
     sentence : SprTokenizedSentence,
     dump : Boolean, dumpDesc : String) : SprParser =
   {
@@ -312,7 +318,7 @@ object SprParser
     {
       val guessedQuestion = false
       val wnp = new SprWordnetParser(
-        words, guessedQuestion, terminator)
+        context, words, guessedQuestion, terminator)
       val analysis = wnp.analyzeWords
       if (dump) {
         println
@@ -411,13 +417,15 @@ object SprParser
   def readResource(resource : String) : String =
     getResourceSource(resource).getLines.mkString("\n")
 
-  def apply(input : String) : SprParser =
+  def apply(
+    input : String,
+    context : SprContext = SprContext()) : SprParser =
   {
     val sentences = tokenize(input)
     if (sentences.size == 1) {
-      prepareOne(sentences.head)
+      prepareOne(context, sentences.head)
     } else {
-      new SprMultipleParser(sentences.toStream.map(prepareOne(_)))
+      new SprMultipleParser(sentences.toStream.map(prepareOne(context, _)))
     }
   }
 }

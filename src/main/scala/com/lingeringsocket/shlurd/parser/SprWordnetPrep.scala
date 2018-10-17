@@ -46,7 +46,8 @@ object SprWordnetPrep
         println("CORENLP SIL = " + sil)
         println
       }
-      val wnParser = SprParser.prepareWordnet(sentence, dumpAnalysis, "DEBUG")
+      val wnParser = SprParser.prepareWordnet(
+        SprContext(), sentence, dumpAnalysis, "DEBUG")
       Some(tupleN((wnParser.parseOne, sil)))
     } else {
       None

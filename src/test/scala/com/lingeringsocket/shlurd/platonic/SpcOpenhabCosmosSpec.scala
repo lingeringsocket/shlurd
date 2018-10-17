@@ -64,7 +64,7 @@ class SpcOpenhabCosmosSpec extends Specification
 
     protected def interpret(input : String, expected : String) =
     {
-      val sentence = SprParser(input).parseOne
+      val sentence = interpreter.newParser(input).parseOne
       interpreter.interpret(sentence, input) must be equalTo(expected)
     }
   }
@@ -306,6 +306,9 @@ class SpcOpenhabCosmosSpec extends Specification
         "which bedroom lights are on",
         "The guest bedroom light on the ground floor " +
           "and the guest bedroom ceiling light are on.")
+      interpret(
+        "is the garage light in the garden",
+        "No, it is not in the garden.")
     }
   }
 }

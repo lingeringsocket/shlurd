@@ -96,6 +96,7 @@ object CorenlpParsingStrategy extends SprParsingStrategy
   override def isCoreNLP : Boolean = true
 
   override def prepareParser(
+    context : SprContext,
     sentence : SprTokenizedSentence,
     dump : Boolean) =
   {

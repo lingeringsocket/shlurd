@@ -115,6 +115,8 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
     possessor : EntityType, roleName : String, onlyIfProven : Boolean)
   {
   }
+
+  def newParser(input : String) = SprParser(input, SprContext())
 }
 
 trait SmcNamedObject

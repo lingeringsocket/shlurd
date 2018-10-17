@@ -749,7 +749,7 @@ class SpcCosmos(
   def loadBeliefs(source : Source)
   {
     val beliefs = source.getLines.mkString("\n")
-    val sentences = SprParser(beliefs).parseAll
+    val sentences = newParser(beliefs).parseAll
     sentences.foreach(sentence => {
       val interpreter = new SpcBeliefInterpreter(this)
       interpreter.interpretBelief(sentence)

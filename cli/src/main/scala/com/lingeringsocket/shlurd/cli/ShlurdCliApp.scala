@@ -71,7 +71,7 @@ class ShlurdCliApp(
       if (input == null) {
         exit = true
       } else {
-        val sentences = SprParser(input).parseAll
+        val sentences = mind.newParser(input).parseAll
         sentences.foreach(sentence => {
           val output = interpreter.interpret(sentence)
           println

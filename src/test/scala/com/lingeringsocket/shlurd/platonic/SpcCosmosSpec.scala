@@ -37,7 +37,7 @@ class SpcCosmosSpec extends Specification
 
     protected def addBelief(input : String) =
     {
-      val sentence = SprParser(input).parseOne
+      val sentence = cosmos.newParser(input).parseOne
       val mind = new SpcMind(cosmos)
       val interpreter = new SpcInterpreter(
         mind, ACCEPT_NEW_BELIEFS,

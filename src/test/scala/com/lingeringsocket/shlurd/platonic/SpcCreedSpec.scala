@@ -35,7 +35,7 @@ class SpcCreedSpec extends Specification
 
     protected def addBelief(input : String) =
     {
-      val sentence = SprParser(input).parseOne
+      val sentence = cosmos.newParser(input).parseOne
       val interpreter = new SpcInterpreter(new SpcMind(cosmos))
       val resultCollector = SmcResultCollector[SpcEntity]()
       interpreter.resolveReferences(sentence, resultCollector)
@@ -58,7 +58,7 @@ class SpcCreedSpec extends Specification
       val beliefStrings = creed.allBeliefs.map(s => printer.print(s))
       beliefStrings.map(SprUtils.capitalize) must be equalTo expected
       beliefStrings.foreach(beliefString => {
-        val sentence = SprParser(beliefString).parseOne
+        val sentence = cosmos.newParser(beliefString).parseOne
         val refriedInterpreter =
           new SpcInterpreter(new SpcMind(refriedCosmos))
         val resultCollector = SmcResultCollector[SpcEntity]()

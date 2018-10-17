@@ -103,4 +103,22 @@ trait SprEnglishWordAnalyzer
       case _ => false
     }
   }
+
+  def makeLeaf(
+    label : String, token : String, lemma : String) : SprSyntaxLeaf =
+  {
+    SprSyntaxLeaf(label, lemma, token)
+  }
+
+  def makeLeaf(
+    label : String, token : String) : SprSyntaxLeaf =
+  {
+    SprSyntaxLeaf(label, token, token)
+  }
+
+  def makeLeaf(
+    token : String) : SprSyntaxLeaf =
+  {
+    makeLeaf(token, token, token)
+  }
 }

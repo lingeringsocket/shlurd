@@ -112,7 +112,7 @@ class SmcInterpreterSpec extends Specification
       val interpreter =
         new ZooInterpreter(mind, params, executor)
 
-      val sentence = SprParser(input).parseOne
+      val sentence = interpreter.newParser(input).parseOne
       interpreter.interpret(sentence, input)
     }
 
@@ -120,7 +120,6 @@ class SmcInterpreterSpec extends Specification
       input : String,
       invocation : StateChangeInvocation) =
     {
-      val sentence = SprParser(input).parseOne
       var actualInvocation : Option[StateChangeInvocation] = None
       val executor = new SmcExecutor[SmcEntity] {
         override def executeInvocation(
@@ -131,6 +130,7 @@ class SmcInterpreterSpec extends Specification
       }
       val interpreter =
         new ZooInterpreter(mind, responseParams, executor)
+      val sentence = interpreter.newParser(input).parseOne
       interpreter.interpret(sentence, input) must be equalTo("OK.")
       actualInvocation must be equalTo(Some(invocation))
     }

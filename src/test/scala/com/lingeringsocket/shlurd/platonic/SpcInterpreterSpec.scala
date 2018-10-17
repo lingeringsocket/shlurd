@@ -94,7 +94,7 @@ class SpcInterpreterSpec extends Specification
 
     protected def interpret(input : String, expected : String) =
     {
-      val sentence = SprParser(input).parseOne
+      val sentence = interpreter.newParser(input).parseOne
       s"pass:  $input" ==> (
         interpreter.interpret(sentence, input) === expected)
     }
@@ -103,7 +103,7 @@ class SpcInterpreterSpec extends Specification
       input : String,
       expected : String)
     {
-      val sentence = SprParser(input).parseOne
+      val sentence = interpreter.newParser(input).parseOne
       s"pass:  $input" ==> (
         interpreterTerse.interpret(sentence, input) === expected)
     }
@@ -120,7 +120,7 @@ class SpcInterpreterSpec extends Specification
       expectedTerse : String,
       expectedEllipsis : String = "") =
     {
-      val sentence = SprParser(input).parseOne
+      val sentence = interpreter.newParser(input).parseOne
       interpreter.interpret(sentence, input) must be equalTo(
         expectedWithPronouns)
       interpreterWithoutPronouns.interpret(
@@ -1443,7 +1443,7 @@ class SpcInterpreterSpec extends Specification
           subject, expectedType
         ) => {
           val input = s"$subject is hungry"
-          val sentence = SprParser(input).parseOne
+          val sentence = interpreter.newParser(input).parseOne
           val resultCollector = SmcResultCollector[SpcEntity]()
           interpreter.resolveReferences(sentence, resultCollector)
           val subjectRef = sentence match {

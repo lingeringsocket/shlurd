@@ -144,6 +144,8 @@ class SmcInterpreter[
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
       mind, sentencePrinter, debugger)
 
+  def newParser(input : String) = mind.newParser(input)
+
   def interpret(sentence : SilSentence, input : String = "") : String =
   {
     if (!input.isEmpty) {

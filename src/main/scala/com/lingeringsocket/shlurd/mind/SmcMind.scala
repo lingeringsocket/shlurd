@@ -44,6 +44,8 @@ class SmcMind[
 
   def getCosmos = cosmos
 
+  def newParser(input : String) = cosmos.newParser(input)
+
   def startConversation()
   {
     conversation = Some(new ConversationType)
