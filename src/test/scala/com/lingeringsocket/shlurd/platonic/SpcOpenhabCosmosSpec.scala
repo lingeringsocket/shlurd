@@ -299,6 +299,9 @@ class SpcOpenhabCosmosSpec extends Specification
       interpret(
         "is Larry absent",
         "I don't know.")
+      interpret(
+        "how many garden lights are off",
+        "Both of them are off.")
     }
   }
 }

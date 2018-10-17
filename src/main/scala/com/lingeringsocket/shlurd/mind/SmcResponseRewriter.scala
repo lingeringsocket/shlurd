@@ -440,6 +440,17 @@ class SmcResponseRewriter[
     ) => {
       mr
     }
+    case SilStateSpecifiedReference(
+      sr @ SilStateSpecifiedReference(
+        _,
+        SilAdpositionalState(
+          SilAdposition.OF,
+          SilPronounReference(
+            PERSON_THIRD, GENDER_N, COUNT_PLURAL, DISTANCE_UNSPECIFIED))),
+      _
+    ) => {
+      sr
+    }
   }
 
   private def replaceResolvedReferences(
