@@ -417,9 +417,13 @@ object SprParser
   def readResource(resource : String) : String =
     getResourceSource(resource).getLines.mkString("\n")
 
+  def apply(input : String) : SprParser =
+    apply(input, SprContext())
+
+
   def apply(
     input : String,
-    context : SprContext = SprContext()) : SprParser =
+    context : SprContext) : SprParser =
   {
     val sentences = tokenize(input)
     if (sentences.size == 1) {
