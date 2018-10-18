@@ -16,16 +16,22 @@ package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd.ilang._
 
+import SprEnglishAffixes._
+
 import net.sf.extjwnl.data._
 import net.sf.extjwnl.dictionary._
 
 import scala.collection.JavaConverters._
 
-import SprEnglishAffixes._
+import java.util.regex._
 
 object SprWordnetScorer extends SilPhraseRewriter
 {
   val dictionary = Dictionary.getDefaultResourceInstance
+
+  val morphology = dictionary.getMorphologicalProcessor
+
+  private val plainPattern = Pattern.compile("\\p{javaLowerCase}+")
 
   def adjustScores(sentence : SilSentence) : SilSentence =
   {
@@ -123,11 +129,27 @@ object SprWordnetScorer extends SilPhraseRewriter
     }
   }
 
+  def isPotentialPlural(noun : String) : Boolean =
+  {
+    val bases = morphology.lookupAllBaseForms(POS.NOUN, noun).asScala
+    return (bases.size > 1) || !bases.contains(noun)
+  }
+
   def isPlural(indexWord : IndexWord) : Boolean =
   {
-    // FIXME this doesn't work for stuff like "cattle", so need
-    // a better approach
-    indexWord.getSenses.asScala.exists(s => s.getGloss.startsWith("(plural) "))
+    val senses = indexWord.getSenses.asScala
+    senses.exists(s => {
+      val equivalents = s.getWords.asScala.
+        filter(w => isPlainWord(w.getLemma)).
+        filter(_.getLemma != indexWord.getLemma)
+      s.getGloss.startsWith("(plural) ") ||
+        (equivalents.count(w => isPotentialPlural(w.getLemma)) > 1)
+    })
+  }
+
+  def isPlainWord(word : String) : Boolean =
+  {
+    plainPattern.matcher(word).matches
   }
 
   def isAcronym(indexWord : IndexWord) : Boolean =

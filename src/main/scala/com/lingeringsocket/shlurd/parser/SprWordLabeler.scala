@@ -15,12 +15,12 @@
 package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd._
+
 import SprPennTreebankLabels._
 import SprEnglishLemmas._
 import SprEnglishAffixes._
 
 import net.sf.extjwnl.data._
-import net.sf.extjwnl.dictionary._
 
 import scala.collection._
 import scala.collection.JavaConverters._
@@ -50,9 +50,9 @@ object SprWordnetLabeler
 
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
 
-  private val dictionary = Dictionary.getDefaultResourceInstance
+  private val dictionary = SprWordnetScorer.dictionary
 
-  private val morphology = dictionary.getMorphologicalProcessor
+  private val morphology = SprWordnetScorer.morphology
 }
 
 class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
