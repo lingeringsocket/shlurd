@@ -1425,7 +1425,7 @@ class SprEnglishSyntaxAnalyzer(
     }
   }
 
-  private def getVerbCount(verb : SprSyntaxTree) : SilCount =
+  override protected def getVerbCount(verb : SprSyntaxTree) : SilCount =
   {
     verb match {
       case _ : SptVBP => {
@@ -1436,26 +1436,6 @@ class SprEnglishSyntaxAnalyzer(
         }
       }
       case _ => COUNT_SINGULAR
-    }
-  }
-
-  private def rememberPredicateCount(
-    predicate : SilPredicate,
-    verbHead : SprSyntaxTree)
-  {
-    rememberPredicateCount(predicate, getVerbCount(verbHead))
-  }
-
-  private def rememberPredicateCount(
-    predicate : SilPredicate,
-    verbHead : SprSyntaxTree,
-    tam : SilTam,
-    auxCount : SilCount)
-  {
-    if (tam.requiresAux) {
-      rememberPredicateCount(predicate, auxCount)
-    } else {
-      rememberPredicateCount(predicate, verbHead)
     }
   }
 

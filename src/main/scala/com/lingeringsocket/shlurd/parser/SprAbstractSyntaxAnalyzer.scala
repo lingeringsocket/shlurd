@@ -252,6 +252,28 @@ abstract class SprAbstractSyntaxAnalyzer(
     predicate.setInflectedCount(count)
   }
 
+  protected def rememberPredicateCount(
+    predicate : SilPredicate,
+    verbHead : SprSyntaxTree)
+  {
+    rememberPredicateCount(predicate, getVerbCount(verbHead))
+  }
+
+  protected def rememberPredicateCount(
+    predicate : SilPredicate,
+    verbHead : SprSyntaxTree,
+    tam : SilTam,
+    auxCount : SilCount)
+  {
+    if (tam.requiresAux) {
+      rememberPredicateCount(predicate, auxCount)
+    } else {
+      rememberPredicateCount(predicate, verbHead)
+    }
+  }
+
+  protected def getVerbCount(verb : SprSyntaxTree) : SilCount
+
   override def isNounPhraseModifier(
     tree : SprSyntaxTree) : Boolean =
   {
