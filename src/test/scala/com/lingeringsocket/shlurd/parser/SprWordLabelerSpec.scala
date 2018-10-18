@@ -29,6 +29,11 @@ class SprWordLabelerSpec extends Specification
     labeler.labelWord(token, token, 1).map(_.label)
   }
 
+  private def lemmatizeNoun(token : String) : String =
+  {
+    labeler.labelWord(token, token, 1).filter(_.isNoun).head.firstChild.lemma
+  }
+
   "SprWordnetLabeler" should
   {
     "label words correctly" in
@@ -41,6 +46,17 @@ class SprWordLabelerSpec extends Specification
       labelWord("agenda") must be equalTo Set(LABEL_NN)
       labelWord("cattle") must be equalTo Set(LABEL_NNS)
       labelWord("mice") must be equalTo Set(LABEL_NNS)
+    }
+
+    "lemmatize words correctly" in
+    {
+      // FIXME special rules needed for people/cattle/etc
+      lemmatizeNoun("cow") must be equalTo "cow"
+      lemmatizeNoun("cows") must be equalTo "cow"
+      lemmatizeNoun("ox") must be equalTo "ox"
+      lemmatizeNoun("oxen") must be equalTo "ox"
+      lemmatizeNoun("mice") must be equalTo "mouse"
+      lemmatizeNoun("agenda") must be equalTo "agenda"
     }
   }
 }
