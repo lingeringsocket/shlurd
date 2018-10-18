@@ -86,21 +86,35 @@ class SilEnglishSentenceBundle
     subject : String, verbSeq : Seq[String], state : String,
     isExistential : Boolean,
     question : Option[SilQuestion],
-    modifiers : Seq[String]) =
+    modifiersOriginal : Seq[String],
+    answerInflection : SilInflection) =
   {
-    if (!question.isEmpty) {
-      if (isExistential) {
-        compose((Seq(subject) ++ verbSeq.take(2).reverse ++
-          verbSeq.drop(2) ++ Seq(state) ++ modifiers):_*)
-      } else {
-        composePredicateStatement(subject, verbSeq, state, modifiers)
-      }
-    } else if (state.isEmpty) {
-      compose((verbSeq.take(2).reverse ++ verbSeq.drop(2) ++
-        Seq(subject) ++ modifiers):_*)
-    } else {
-      composePredicateQuestion(subject, verbSeq, state, modifiers)
+    val (adpositionPre, modifiers) = answerInflection match {
+      case INFLECT_ADPOSITIONED =>
+        tupleN((Some(modifiersOriginal.last), modifiersOriginal.dropRight(1)))
+      case _ =>
+        tupleN((None, modifiersOriginal))
     }
+    val primary = {
+      if (!question.isEmpty) {
+        if (isExistential) {
+          compose((Seq(subject) ++ verbSeq.take(2).reverse ++
+            verbSeq.drop(2) ++ Seq(state) ++ modifiers):_*)
+        } else {
+          if (answerInflection == INFLECT_NOMINATIVE) {
+            composePredicateStatement(subject, verbSeq, state, modifiers)
+          } else {
+            composePredicateQuestion(subject, verbSeq, state, modifiers)
+          }
+        }
+      } else if (state.isEmpty) {
+        compose((verbSeq.take(2).reverse ++ verbSeq.drop(2) ++
+          Seq(subject) ++ modifiers):_*)
+      } else {
+        composePredicateQuestion(subject, verbSeq, state, modifiers)
+      }
+    }
+    compose((adpositionPre.toSeq ++ Seq(primary)):_*)
   }
 
   override def relationshipPredicate(

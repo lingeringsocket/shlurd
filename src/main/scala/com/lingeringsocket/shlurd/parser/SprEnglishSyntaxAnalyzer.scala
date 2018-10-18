@@ -323,29 +323,51 @@ class SprEnglishSyntaxAnalyzer(
           tupleN((specifiedState, complement))
         }
       }
-      val recomposedComplement = {
+      val (subj, recomposedComplement, answerInflection, modifiers) = {
         if (complement.isEmpty) {
-          verbHead
+          tupleN((np, verbHead, INFLECT_NOMINATIVE, Seq.empty))
         } else {
           if (complement.head.isPreTerminal) {
             return SilUnrecognizedSentence(tree)
           }
-          SprSyntaxRewriter.recompose(
-            complement.head, complementRemainder)
+          complement.last match {
+            case SptPP(pt : SprSyntaxPreTerminal) => {
+              if (!isAdposition(pt.child.lemma) || (complement.size < 3)) {
+                return SilUnrecognizedSentence(tree)
+              }
+              tupleN((
+                complement.head,
+                SprSyntaxRewriter.recompose(
+                  complement(1),
+                  complement.drop(1).dropRight(1)),
+                INFLECT_ADPOSITIONED,
+                expectVerbModifiers(Seq(SptPP(pt, np)))
+              ))
+            }
+            case _ => {
+              tupleN((
+                np,
+                SprSyntaxRewriter.recompose(
+                  complement.head, complementRemainder),
+                INFLECT_NOMINATIVE,
+                Seq.empty))
+            }
+          }
         }
       }
       val (negativeSub, predicate) = expectPredicate(
         tree,
-        np,
+        subj,
         recomposedComplement,
         combinedState,
-        relationshipFor(verbHead))
+        relationshipFor(verbHead),
+        modifiers)
       rememberPredicateCount(predicate, verbHead)
       val tam = SilTam.interrogative.
         withPolarity(!(negativeSuper ^ negativeSub))
       val tamTensed = extractTense(verbHead, tam)
       SilPredicateQuery(
-        predicate, question, INFLECT_NOMINATIVE, tamTensed)
+        predicate, question, answerInflection, tamTensed)
     } else {
       // maybe we should use dependency info (plus WHO vs WHOM) too
       val (specifiedDirectObject, answerInflection,

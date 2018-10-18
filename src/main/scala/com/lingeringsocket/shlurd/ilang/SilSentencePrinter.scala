@@ -377,7 +377,8 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           print(state, tam, SilConjoining.NONE),
           isExistential,
           question,
-          modifiers.map(printVerbModifier))
+          modifiers.map(printVerbModifier),
+          answerInflection)
       }
       case SilActionPredicate(
         subject, action, directObject, modifiers

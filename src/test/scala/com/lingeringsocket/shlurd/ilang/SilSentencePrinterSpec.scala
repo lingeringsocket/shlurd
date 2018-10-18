@@ -95,11 +95,10 @@ class SilSentencePrinterSpec extends Specification
       expectStatement("a body has a tail generally")
       expectStatement("Salieri sends Mozart a letter angrily")
       expectQuestion("does Salieri send Mozart a letter angrily")
-      expectQuestion("what is the cave south of")
       expectStatement("the king is running merrily through the woods")
     }
 
-    "deal with more problem cases" in
+    "deal with cases which are problematic for CoreNLP" in
     {
       if (SprParser.isCoreNLP) {
         skipped("Wordnet only")
@@ -108,6 +107,10 @@ class SilSentencePrinterSpec extends Specification
       expectStatement("a vehicle must be either moving or stopped")
       expectPreserved("does the mule kick the ball smugly at the vase?")
       expectQuestion("does the door close")
+      expectNormalized("what is Brian afraid of",
+        "of what is Brian afraid?")
+      expectNormalized("what is the cave south of",
+        "of what is the cave south?")
     }
 
     "preserve sentences" in

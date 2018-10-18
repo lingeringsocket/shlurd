@@ -264,12 +264,24 @@ class SprWordnetParser(
     rewriter : SprPhraseRewriter,
     tree : SprSyntaxTree) : Boolean =
   {
-    if (acceptReplacement(rewriter, tree)) {
+    val replacement = attemptReplacement(rewriter, tree)
+    if (replacement.nonEmpty) {
       tree match {
         case _ : SptS => true
         case _ : SptSBARQ => true
         case _ : SptSINV => true
-        case _ : SptSQ => true
+        case _ : SptSQ => {
+          val sil = replacement.get._1
+          val querier = new SilPhraseRewriter
+          var accepted = true
+          def findDangling = querier.queryMatcher {
+            case _ : SilDanglingVerbModifier => {
+              accepted = false
+            }
+          }
+          querier.query(findDangling, sil)
+          accepted
+        }
         case _ => false
       }
     } else {

@@ -99,7 +99,8 @@ abstract class SilSentenceBundle
     state : String,
     isExistential : Boolean,
     question : Option[SilQuestion],
-    modifiers : Seq[String]) : String
+    modifiers : Seq[String],
+    answerInflection : SilInflection = INFLECT_NONE) : String
 
   def statePredicateCommand(
     subject : String,
