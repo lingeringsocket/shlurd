@@ -51,5 +51,22 @@ class SpcInterpretTesterSpec extends Specification
       successes must be equalTo 24
       failures must be equalTo 0
     }
+
+    "understand babi qa wordnet beliefs" in
+    {
+      if (SprParser.isCoreNLP) {
+        skipped("Wordnet only")
+      }
+      val beliefs = SprParser.getResourceFile(
+        "/expect/babi-qa-beliefs.txt")
+      val script = SprParser.getResourceFile(
+        "/expect/babi-qa-wordnet-script.txt")
+      val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
+      val (successes, failures) = tester.run(
+        Source.fromFile(script),
+        NullConsoleOutput)
+      successes must be equalTo 3
+      failures must be equalTo 0
+    }
   }
 }

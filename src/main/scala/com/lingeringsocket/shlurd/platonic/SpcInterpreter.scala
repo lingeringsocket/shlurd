@@ -90,15 +90,27 @@ class SpcInterpreter(
       // FIXME this could cause the predicate to become
       // inconsisent with the answer inflection.  Also, when there
       // are multiple matches, we should be conjoining them.
-      mind.getCosmos.getTriggers.filter(_.biconditional).foreach(trigger => {
-        matchTrigger(mind.getCosmos, trigger, stateNormalized,
-          referenceMap) match
-        {
-          case Some(newPredicate) => return newPredicate
-          case _ =>
+      val triggers = mind.getCosmos.getTriggers.filter(_.biconditional)
+      val replacements = triggers.flatMap(trigger => {
+        matchTrigger(mind.getCosmos, trigger, stateNormalized, referenceMap)
+      }).filter(acceptReplacement)
+      replacements.headOption.getOrElse(stateNormalized)
+    }
+
+    private def acceptReplacement(sil : SilPhrase) : Boolean =
+    {
+      var accepted = true
+      val querier = new SilPhraseRewriter
+      def checkPhrase = querier.queryMatcher {
+        case SilGenitiveReference(
+          SilNounReference(_, DETERMINER_ANY, _),
+          _
+        ) => {
+          accepted = false
         }
-      })
-      stateNormalized
+      }
+      querier.query(checkPhrase, sil)
+      accepted
     }
   }
 

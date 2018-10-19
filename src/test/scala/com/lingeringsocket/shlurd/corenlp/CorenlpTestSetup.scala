@@ -27,6 +27,7 @@ import java.util._
 
 import SprUtils._
 import SprPennTreebankLabels._
+import SprEnglishLemmas._
 
 class CorenlpTestSetup
 {
@@ -180,7 +181,7 @@ object CorenlpParsingStrategy extends SprParsingStrategy
 
     val syntaxTree = SprParser.cacheParse(
       SprParser.CacheKey(sentenceString, dumpPrefix), corenlpParse)
-    val rewrittenTree = SprSyntaxRewriter.rewriteWarts(syntaxTree)
+    val rewrittenTree = rewriteWarts(syntaxTree)
     if (dump) {
       println(dumpPrefix + " REWRITTEN SYNTAX = " + rewrittenTree)
     }
@@ -192,5 +193,95 @@ object CorenlpParsingStrategy extends SprParsingStrategy
   {
     val tokenizer = new CorenlpTokenizer
     tokenizer.tokenize(input)
+  }
+
+  def rewriteWarts = SprSyntaxRewriter.rewrite {
+    case np @ SptNP(children @ _*) if (children.count(_.isDeterminer) == 2)=> {
+      val iFirst = children.indexWhere(_.isDeterminer)
+      assert(iFirst >= 0)
+      val iSecond = children.indexWhere(_.isDeterminer, iFirst + 1)
+      assert(iSecond >= 0)
+      if (iSecond == iFirst + 1) {
+        np
+      } else {
+        SptNP(
+          SptNP(children.take(iSecond):_*),
+          SptNP(children.drop(iSecond):_*)
+        )
+      }
+    }
+    case SptVP(
+      vbz @ SptVBZ(vb),
+      SptNP(
+        np : SptNP,
+        pp @ SptPP(
+          _ : SptTO,
+          _
+        )
+      )
+    ) if (vb.lemma == LEMMA_BE) => {
+      SptVP(vbz, np, pp)
+    }
+    case vp @ SptVP(children @ _*) => {
+      def pullUpNP(child : SprSyntaxTree) = {
+        child match {
+          case SptNP(grand @ _*) if (grand.forall(_.isNounPhrase)) => {
+            grand
+          }
+          case _ => Seq(child)
+        }
+      }
+      SptVP(children.flatMap(pullUpNP):_*)
+    }
+    case SptNP(
+      SptNP(SptCC(dt), n1),
+      SptCC(cc),
+      n2
+    ) if (dt.hasLemma(LEMMA_EITHER)) => {
+      SptNP(
+        SptCC(dt),
+        n1,
+        SptCC(cc),
+        n2)
+    }
+    case np : SptNP if (np.containsIncomingDependency("tmod")) => {
+      SptTMOD(np)
+    }
+    case SptNP(
+      SptNP(nn : SptNN),
+      pp : SptPP
+    ) => {
+      SptADVP(
+        SptNP(nn),
+        pp
+      )
+    }
+    case SptS(
+      SptVP(
+        SptSQ(
+          vb : SprSyntaxVerb,
+          SptS(children @ _*)
+        )
+      ),
+      remainder @ _*
+    ) => {
+      SptSQ((Seq(vb) ++ children ++ remainder):_*)
+    }
+    case SptS(
+      SptVP(
+        SptVBG(vbg),
+        SptSBAR(
+          dem : SptIN,
+          SptS(children @ _*))
+      ),
+      remainder @ _*
+    ) if (dem.isDemonstrative) => {
+      SptS(
+        (Seq(SptPP(
+          SptIN(vbg),
+          SptDT(dem.child)
+        )) ++ children ++ remainder):_*
+      )
+    }
   }
 }

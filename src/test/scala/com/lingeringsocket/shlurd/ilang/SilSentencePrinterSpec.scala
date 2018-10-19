@@ -110,7 +110,7 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("what is Brian afraid of",
         "of what is Brian afraid?")
       expectNormalized("what is the cave south of",
-        "of what is the cave south?")
+        "south of what is the cave?")
     }
 
     "preserve sentences" in

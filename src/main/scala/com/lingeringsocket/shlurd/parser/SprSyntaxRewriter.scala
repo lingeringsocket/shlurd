@@ -18,7 +18,6 @@ import org.kiama.rewriting._
 
 import SprUtils._
 import SprPennTreebankLabels._
-import SprEnglishLemmas._
 
 object SprSyntaxRewriter
 {
@@ -127,96 +126,6 @@ object SprSyntaxRewriter
       val children = tree.children.map(
         c => rewriteAbstract(c, stripDependencies))
       recompose(tree, children)
-    }
-  }
-
-  def rewriteWarts = rewrite {
-    case np @ SptNP(children @ _*) if (children.count(_.isDeterminer) == 2)=> {
-      val iFirst = children.indexWhere(_.isDeterminer)
-      assert(iFirst >= 0)
-      val iSecond = children.indexWhere(_.isDeterminer, iFirst + 1)
-      assert(iSecond >= 0)
-      if (iSecond == iFirst + 1) {
-        np
-      } else {
-        SptNP(
-          SptNP(children.take(iSecond):_*),
-          SptNP(children.drop(iSecond):_*)
-        )
-      }
-    }
-    case SptVP(
-      vbz @ SptVBZ(vb),
-      SptNP(
-        np : SptNP,
-        pp @ SptPP(
-          _ : SptTO,
-          _
-        )
-      )
-    ) if (vb.lemma == LEMMA_BE) => {
-      SptVP(vbz, np, pp)
-    }
-    case vp @ SptVP(children @ _*) => {
-      def pullUpNP(child : SprSyntaxTree) = {
-        child match {
-          case SptNP(grand @ _*) if (grand.forall(_.isNounPhrase)) => {
-            grand
-          }
-          case _ => Seq(child)
-        }
-      }
-      SptVP(children.flatMap(pullUpNP):_*)
-    }
-    case SptNP(
-      SptNP(SptCC(dt), n1),
-      SptCC(cc),
-      n2
-    ) if (dt.hasLemma(LEMMA_EITHER)) => {
-      SptNP(
-        SptCC(dt),
-        n1,
-        SptCC(cc),
-        n2)
-    }
-    case np : SptNP if (np.containsIncomingDependency("tmod")) => {
-      SptTMOD(np)
-    }
-    case SptNP(
-      SptNP(nn : SptNN),
-      pp : SptPP
-    ) => {
-      SptADVP(
-        SptNP(nn),
-        pp
-      )
-    }
-    case SptS(
-      SptVP(
-        SptSQ(
-          vb : SprSyntaxVerb,
-          SptS(children @ _*)
-        )
-      ),
-      remainder @ _*
-    ) => {
-      SptSQ((Seq(vb) ++ children ++ remainder):_*)
-    }
-    case SptS(
-      SptVP(
-        SptVBG(vbg),
-        SptSBAR(
-          dem : SptIN,
-          SptS(children @ _*))
-      ),
-      remainder @ _*
-    ) if (dem.isDemonstrative) => {
-      SptS(
-        (Seq(SptPP(
-          SptIN(vbg),
-          SptDT(dem.child)
-        )) ++ children ++ remainder):_*
-      )
     }
   }
 

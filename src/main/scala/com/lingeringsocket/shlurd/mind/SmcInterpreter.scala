@@ -369,6 +369,15 @@ class SmcInterpreter[
                   sentencePrinter.print(
                     objRef, INFLECT_ADPOSITIONED, SilConjoining.NONE)
                 }
+                case (
+                  INFLECT_ADPOSITIONED,
+                  SilStatePredicate(_, SilAdpositionalState(_, objRef), _)
+                ) => {
+                  // FIXME need a way to automatically find the
+                  // wildcard in either the state or the modifiers
+                  sentencePrinter.print(
+                    objRef, INFLECT_ADPOSITIONED, SilConjoining.NONE)
+                }
                 case _ => {
                   // FIXME lots of other cases need to be handled
                   sentencePrinter.print(

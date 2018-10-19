@@ -77,6 +77,10 @@ If a place is west of a location, then equivalently the place is the location's 
 If a place is east of a location, then equivalently the place is the location's eastern-neighbor.
 If a place is north of a location, then equivalently the place is the location's northern-neighbor.
 If a place is south of a location, then equivalently the place is the location's southern-neighbor.
+If a place is west of a location, then equivalently the location is the place's eastern-neighbor.
+If a place is east of a location, then equivalently the location is the place's western-neighbor.
+If a place is north of a location, then equivalently the location is the place's southern-neighbor.
+If a place is south of a location, then equivalently the location is the place's northern-neighbor.
 A shape is a kind of object.
 A triangle is a kind of shape.
 A square is a kind of shape.
@@ -134,3 +138,7 @@ If a shape is to the right of a neighbor, then the shape's ordinate is the neigh
 If a shape is to the right of a neighbor, then the neighbor's abscissa's right-column is the shape's abscissa.
 If a shape is to the right of a neighbor, equivalently the neighbor's abscissa's post-column is the shape's abscissa.
 If a shape is to the right of a neighbor, then the neighbor's abscissa precedes the shape's abscissa.
+A wolf is a kind of animal.
+A mouse is a kind of animal.
+A cat is a kind of animal.
+A sheep is a kind of animal.

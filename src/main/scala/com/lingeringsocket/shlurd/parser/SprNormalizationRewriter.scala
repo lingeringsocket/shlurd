@@ -19,9 +19,16 @@ import com.lingeringsocket.shlurd.ilang._
 
 import SprEnglishLemmas._
 
+private[parser] object SprNormalizationRewriter
+{
+  private val compassRose = Set("north", "south", "east", "west")
+}
+
 private[parser] class SprNormalizationRewriter
   extends SilPhraseRewriter with SprEnglishWordAnalyzer
 {
+  import SprNormalizationRewriter._
+
   def normalize(sentence : SilSentence) : SilSentence =
   {
     rewrite(normalizeAllPhrases, sentence, SilRewriteOptions(repeat = true))
@@ -171,8 +178,7 @@ private[parser] class SprNormalizationRewriter
       REL_IDENTITY,
       modifiers
     ) if (
-      (adp == SilAdposition.OF) &&
-        Set("north", "south", "east", "west").contains(direction.lemma)
+      (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
     ) => {
       SilStatePredicate(
         subject,
@@ -182,6 +188,20 @@ private[parser] class SprNormalizationRewriter
         ),
         modifiers
       )
+    }
+    case SilStatePredicate(
+      subject,
+      SilPropertyState(direction),
+      Seq(SilAdpositionalVerbModifier(adp, landmark))
+    ) if (
+      (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
+    ) => {
+      SilStatePredicate(
+        subject,
+        SilAdpositionalState(
+          SilAdposition(direction +: adp.words),
+          landmark),
+        Seq.empty)
     }
   }
 

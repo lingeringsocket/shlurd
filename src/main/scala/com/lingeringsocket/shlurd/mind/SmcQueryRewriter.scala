@@ -34,7 +34,7 @@ class SmcQueryRewriter(question : SilQuestion) extends SilPhraseRewriter
     case SilStatePredicate(subject, state, modifiers) => {
       SilStatePredicate(
         rewrite(rewriteSpecifier, subject),
-        state,
+        rewrite(rewriteSpecifier, state),
         modifiers)
     }
     case SilRelationshipPredicate(subject, complement,

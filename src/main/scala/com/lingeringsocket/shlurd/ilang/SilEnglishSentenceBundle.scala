@@ -83,17 +83,29 @@ class SilEnglishSentenceBundle
   }
 
   override def statePredicateQuestion(
-    subject : String, verbSeq : Seq[String], state : String,
+    subject : String, verbSeq : Seq[String], stateOriginal : String,
     isExistential : Boolean,
     question : Option[SilQuestion],
     modifiersOriginal : Seq[String],
     answerInflection : SilInflection) =
   {
-    val (adpositionPre, modifiers) = answerInflection match {
+    val (adpositionPre, modifiers, state) = answerInflection match {
       case INFLECT_ADPOSITIONED =>
-        tupleN((Some(modifiersOriginal.last), modifiersOriginal.dropRight(1)))
+        // FIXME this is a mess from "south of what is the cave?"
+        if (modifiersOriginal.isEmpty) {
+          tupleN((
+            Some(stateOriginal),
+            modifiersOriginal,
+            ""
+          ))
+        } else {
+          tupleN((
+            Some(modifiersOriginal.last),
+            modifiersOriginal.dropRight(1),
+            stateOriginal))
+        }
       case _ =>
-        tupleN((None, modifiersOriginal))
+        tupleN((None, modifiersOriginal, stateOriginal))
     }
     val primary = {
       if (!question.isEmpty) {
