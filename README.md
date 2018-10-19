@@ -4,4 +4,7 @@ SHLURD is an attempt to support very limited natural language understanding for 
 
 (So far, SHLURD's understanding is nowhere near as powerful as that of SHRDLU.)
 
-The first supported small world domain is [OpenHAB home automation](openhab/README.md).
+The first practical supported small world domain is
+[OpenHAB home automation](openhab/README.md).
+
+We also use the [bAbI tasks from Facebook Research](src/test/qa/README.md) as a QA set.
