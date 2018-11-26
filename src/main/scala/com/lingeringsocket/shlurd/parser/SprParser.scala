@@ -239,6 +239,11 @@ object SprParser
     cache.get
   }
 
+  def getCache() : Map[CacheKey, CacheValue] =
+  {
+    cache.get
+  }
+
   private def loadCache(file : File) =
   {
     SerializationUtils.deserialize[mutable.Map[CacheKey, CacheValue]](file)

@@ -22,13 +22,14 @@ import scala.util._
 
 import java.io._
 
+// to compare CoreNLP against Wordnet:
+// sbt corenlp:console
+//   new com.lingeringsocket.shlurd.corenlp.CorenlpTestSetup
+//   SprWordnetPrep.runAll()
 object SprWordnetPrep
 {
-  // FIXME
-  // SprParser.setCoreNLP(true)
-
   SprParser.enableCache(Some(new File("run/test-parser-cache.dat")))
-  private val parserCache = SprParser.lockCache
+  private val parserCache = SprParser.getCache
 
   private def parseOne(
     sentence : String,
