@@ -82,9 +82,35 @@ class SprWordnetParser(
 
   private val successors = trie.generateSuccessors
 
+  private val graph = SprPhraseGraph()
+
   def getCost = cost
 
   def buildAll(seq : Seq[Set[SprSyntaxTree]]) : Stream[SprSyntaxTree] =
+  {
+    def explode(tree : SprSyntaxTree) : Set[SprSyntaxTree] =
+    {
+      Set(tree) ++ tree.children.flatMap(explode)
+    }
+
+    seq.foreach(set => {
+      val collapsedSet = updateGraph(set)
+      assert(set == collapsedSet)
+    })
+    val stream = buildAllImpl(seq).force
+
+    if (false) {
+      import scala.sys.process._
+      val dot = SprPhraseGraph.render(graph, stream.toSet.flatMap(explode))
+      val dotStream = new java.io.ByteArrayInputStream(dot.getBytes)
+        ("dotty -" #< dotStream).!!
+    }
+
+    stream
+  }
+
+  private def buildAllImpl(seq : Seq[Set[SprSyntaxTree]])
+      : Stream[SprSyntaxTree] =
   {
     val strictResult = buildNew(strictRewriter, seq).force
     if (allResultsUnknown(strictRewriter, strictResult)) {
@@ -209,7 +235,7 @@ class SprWordnetParser(
             overlaps(index) += 1
             newSeq(index) = Set.empty
           })
-          newSeq(range.start) = replacements
+          newSeq(range.start) = updateGraph(replacements)
         }
       }
     }
@@ -240,7 +266,8 @@ class SprWordnetParser(
               if (filteredSet.isEmpty) {
                 Stream.empty
               } else {
-                val patched = seq.patch(start, Seq(filteredSet), length)
+                val collapsedSet = updateGraph(filteredSet)
+                val patched = seq.patch(start, Seq(collapsedSet), length)
                 val more = buildViaTrie(rewriter, patched)
                 val current = {
                   if (patched.size == 1) {
@@ -258,6 +285,22 @@ class SprWordnetParser(
         })
       }
     }
+  }
+
+  private def updateGraph(replacements : Set[SprSyntaxTree])
+      : Set[SprSyntaxTree] =
+  {
+    replacements.foreach(updateGraphFor)
+    replacements
+  }
+
+  private def updateGraphFor(phrase : SprSyntaxTree)
+  {
+    graph.addVertex(phrase)
+    phrase.children.foreach(term => {
+      graph.addVertex(term)
+      graph.addEdge(phrase, term)
+    })
   }
 
   private def acceptTopLevel(
