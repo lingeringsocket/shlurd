@@ -18,6 +18,8 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
+import SprEnglishLemmas._
+
 import scala.io._
 
 import java.io._
@@ -44,8 +46,16 @@ object ShlurdCliApp extends App
       val beliefs = SprParser.getResourceFile("/ontologies/console.txt")
       val source = Source.fromFile(beliefs)
       cosmos.loadBeliefs(source)
+
+      val entityInterviewer = cosmos.uniqueEntity(
+        cosmos.resolveQualifiedNoun(
+          "interviewer", REF_SUBJECT, Set())).get
+      val entityShlurd = cosmos.uniqueEntity(
+        cosmos.resolveQualifiedNoun(
+          LEMMA_PERSON, REF_SUBJECT, Set("shlurd"))).get
+
       println("SHLURD> Hello, human!")
-      new ShlurdCliMind(cosmos)
+      new ShlurdCliMind(cosmos, entityInterviewer, entityShlurd)
     }
   }
 }

@@ -30,11 +30,11 @@ class SmcMind[
   type TimelineType = SmcTimeline[EntityType, PropertyType, CosmosType]
 
   private lazy val personFirst =
-    uniqueEntity(resolvePronoun(
+    cosmos.uniqueEntity(resolvePronoun(
       SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)))
 
   private lazy val personSecond =
-    uniqueEntity(resolvePronoun(
+    cosmos.uniqueEntity(resolvePronoun(
       SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)))
 
   private var conversation : Option[ConversationType] = None
@@ -235,17 +235,5 @@ class SmcMind[
       }
       case _ => Seq()
     }
-  }
-
-  protected def uniqueEntity(
-    result : Try[Set[EntityType]]) : Try[EntityType] =
-  {
-    result.flatMap(set => {
-      if (set.size == 1) {
-        Success(set.head)
-      } else {
-        cosmos.fail("unique entity expected")
-      }
-    })
   }
 }

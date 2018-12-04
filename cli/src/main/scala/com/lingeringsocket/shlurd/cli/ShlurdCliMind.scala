@@ -14,26 +14,20 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
-import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 import com.lingeringsocket.shlurd.ilang._
 
-import SprEnglishLemmas._
+import scala.collection._
+import scala.util._
 
-class ShlurdCliMind(cosmos : SpcCosmos) extends SpcMind(cosmos)
+class ShlurdCliMind(
+  cosmos : SpcCosmos,
+  entityFirst : SpcEntity,
+  entitySecond : SpcEntity) extends SpcMind(cosmos)
 {
-  private lazy val entityInterviewer = uniqueEntity(
-    cosmos.resolveQualifiedNoun(
-      "interviewer", REF_SUBJECT, Set()))
-
-  private lazy val entityShlurd = uniqueEntity(
-    cosmos.resolveQualifiedNoun(
-      LEMMA_PERSON, REF_SUBJECT, Set("shlurd")))
-
   override def spawn(newCosmos : SpcCosmos) =
   {
-    val mind = new ShlurdCliMind(newCosmos)
+    val mind = new ShlurdCliMind(newCosmos, entityFirst, entitySecond)
     mind.initFrom(this)
     mind
   }
@@ -42,8 +36,8 @@ class ShlurdCliMind(cosmos : SpcCosmos) extends SpcMind(cosmos)
   {
     if (reference.count == COUNT_SINGULAR) {
       reference.person match {
-        case PERSON_FIRST => entityInterviewer.map(Set(_))
-        case PERSON_SECOND => entityShlurd.map(Set(_))
+        case PERSON_FIRST => Success(Set(entityFirst))
+        case PERSON_SECOND => Success(Set(entitySecond))
         case _ => super.resolvePronoun(reference)
       }
     } else {

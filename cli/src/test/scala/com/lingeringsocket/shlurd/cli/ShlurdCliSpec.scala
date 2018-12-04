@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.platonic._
 
 import org.specs2.mutable._
 
+import scala.language.reflectiveCalls
+
 import java.io._
 
 class ShlurdCliSpec extends Specification
@@ -27,17 +29,24 @@ class ShlurdCliSpec extends Specification
   {
     "serialize and deserialize" in
     {
-      val cosmos = new SpcCosmos
+      val cosmos = new SpcCosmos {
+        def newSingletonEntity(form : SpcForm) =
+        {
+          instantiateEntity(form, Seq.empty)._1
+        }
+      }
       cosmos.getForms.size must be equalTo 0
-      cosmos.instantiateForm(SilWord("dog"))
+      val form = cosmos.instantiateForm(SilWord("dog"))
       cosmos.getForms.size must be greaterThan 0
-      val oldMind = new ShlurdCliMind(cosmos)
+      val entity = cosmos.newSingletonEntity(form)
+      val oldMind = new ShlurdCliMind(cosmos, entity, entity)
       val serializer = new ShlurdCliSerializer
       val file = File.createTempFile("testmind", ".kryo")
       try {
         serializer.save(oldMind, file)
         val newMind = serializer.load(file)
         newMind.getCosmos.getForms.size must be greaterThan 0
+        newMind.getCosmos.getEntities.size must be greaterThan 0
       } finally {
         file.delete
       }

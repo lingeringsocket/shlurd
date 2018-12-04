@@ -116,6 +116,18 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
   {
   }
 
+  def uniqueEntity(
+    result : Try[Set[EntityType]]) : Try[EntityType] =
+  {
+    result.flatMap(set => {
+      if (set.size == 1) {
+        Success(set.head)
+      } else {
+        fail("unique entity expected")
+      }
+    })
+  }
+
   def newParser(input : String) = SprParser(input, SprContext())
 }
 
