@@ -100,12 +100,8 @@ class SpcBeliefInterpreter(
     determiner match {
       case DETERMINER_UNIQUE => {
         val form = cosmos.instantiateForm(noun)
-        // if there was an existing match, it would already
-        // be cached
-        assert(cosmos.getFormHyponymRealizations(form).isEmpty)
         val (entity, success) = cosmos.instantiateEntity(
           form, Seq.empty)
-        assert(success)
         tupleN((entity, success))
       }
       case DETERMINER_UNSPECIFIED => {
