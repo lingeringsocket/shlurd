@@ -40,12 +40,6 @@ class SilSentencePrinterSpec extends Specification
           case _ => parsed
         }
       }
-      case SilStateChangeCommand(predicate, changeVerb, formality) => {
-        SilStateChangeCommand(
-          predicate,
-          changeVerb,
-          formality.copy(force = FORCE_EXCLAMATION))
-      }
       case _ : SilConditionalSentence => parsed
       case _ : SilPredicateQuery => parsed
       case SilAmbiguousSentence(alternatives, _) => {

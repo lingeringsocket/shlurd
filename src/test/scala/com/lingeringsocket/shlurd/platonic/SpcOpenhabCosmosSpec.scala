@@ -275,9 +275,11 @@ class SpcOpenhabCosmosSpec extends Specification
       interpret(
         "is the heat in the living room on",
         "Yes, it is on.")
-      interpret(
-        "turn on the heater in the living room",
-        "But it is on already.")
+      if (!SprParser.isCoreNLP) {
+        interpret(
+          "turn on the heater in the living room",
+          "But it is on already.")
+      }
       interpret(
         "is there any light in the garage",
         "Yes, there is a garage light.")

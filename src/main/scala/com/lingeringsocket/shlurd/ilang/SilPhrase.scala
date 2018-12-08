@@ -344,7 +344,7 @@ case class SilUnresolvedRelationshipPredicate(
 
 case class SilPredicateSentence(
   predicate : SilPredicate,
-  tam : SilTam = SilTam.indicative,
+  tam : SilTam  = SilTam.indicative,
   formality : SilFormality = SilFormality.DEFAULT
 ) extends SilTransformedPhrase with SilSentence
 {
@@ -374,23 +374,6 @@ case class SilConditionalSentence(
     newTam : SilTam, newFormality : SilFormality) =
   {
     copy(tamConsequent = newTam, formality = newFormality)
-  }
-}
-
-case class SilStateChangeCommand(
-  predicate : SilPredicate,
-  changeVerb : Option[SilWord] = None,
-  formality : SilFormality = SilFormality.DEFAULT
-) extends SilTransformedPhrase with SilSentence
-{
-  override def children = Seq(predicate)
-
-  override def tam = SilTam.imperative
-
-  override def withNewTamFormality(
-    newTam : SilTam, newFormality : SilFormality) =
-  {
-    copy(formality = newFormality)
   }
 }
 
@@ -653,7 +636,7 @@ object SilWord
   def uninflected(s : String) = SilWord("", s)
 }
 
-// FIXME rename this to SilPhrase, or break it up
+// FIXME move most of this to object SilPhrase
 object SilReference
 {
   def isCountCoercible(reference : SilReference) : Boolean =

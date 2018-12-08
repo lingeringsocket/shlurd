@@ -482,12 +482,6 @@ class SmcInterpreterSpec extends Specification
       interpret("There is my squeaking door.") must be equalTo(
         "I think you are saying that some entity exists, but " +
           "I can't understand the phrase \"my squeaking door\"")
-      interpret("Open my squeaking door.") must be equalTo(
-        "I think you are telling me to open some entity, but " +
-          "I can't understand the phrase \"my squeaking door\"")
-      interpret("Turn on my fracking light.") must be equalTo(
-        "I think you are telling me to turn on some entity, but " +
-          "I can't understand the phrase \"my fracking light\"")
       interpret("Which my squeaking door is open?") must be equalTo(
         "I think you are asking which entity is open, but " +
           "I can't understand the phrase \"my squeaking door\"")

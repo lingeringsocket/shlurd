@@ -231,6 +231,27 @@ abstract class SprAbstractSyntaxAnalyzer(
     }
   }
 
+  override def specifyReference(
+    ref : SilReference, specifiedState : SilState) : SilReference =
+  {
+    if (specifiedState == SilNullState()) {
+      ref
+    } else {
+      val specifiedReference = SilStateSpecifiedReference(
+        ref, specifiedState)
+      ref.maybeSyntaxTree.foreach(
+        refSyntaxTree => specifiedState.maybeSyntaxTree.foreach(
+          stateSyntaxTree => {
+            rememberSyntheticNP(
+              specifiedReference,
+              Seq(refSyntaxTree, stateSyntaxTree))
+          }
+        )
+      )
+      specifiedReference
+    }
+  }
+
   protected def rememberSyntheticNP(
     reference : SilTransformedPhrase,
     seq : Seq[SprSyntaxTree])

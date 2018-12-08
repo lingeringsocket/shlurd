@@ -80,18 +80,22 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     val verbLemma = verb.lemma
     val exists = isExistential || (verbLemma == LEMMA_HAVE)
     // FIXME:  use tam.modality
-    if (tam.isPositive) {
-      if (exists) {
-        Seq("있어요")
-      } else {
-        // FIXME:  use "예요" after vowel
-        Seq("이에요")
-      }
+    if (tam.isImperative) {
+      Seq(conjugateImperative(verb.lemma))
     } else {
-      if (exists) {
-        Seq("없어요")
+      if (tam.isPositive) {
+        if (exists) {
+          Seq("있어요")
+        } else {
+          // FIXME:  use "예요" after vowel
+          Seq("이에요")
+        }
       } else {
-        Seq("아니에요")
+        if (exists) {
+          Seq("없어요")
+        } else {
+          Seq("아니에요")
+        }
       }
     }
   }

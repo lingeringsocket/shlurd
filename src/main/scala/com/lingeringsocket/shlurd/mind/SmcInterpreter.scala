@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.util._
@@ -132,7 +133,6 @@ class SmcInterpreter[
   private def interpreterMatchers(
     resultCollector : ResultCollectorType
   ) = Seq(
-    interpretStateChangeCommand(resultCollector),
     interpretPredicateQuery(resultCollector),
     interpretPredicateSentence(resultCollector),
     interpretUnsupportedSentence(resultCollector)
@@ -248,45 +248,44 @@ class SmcInterpreter[
   private def sentenceInterpreter(f : SentenceInterpreter)
       : SentenceInterpreter = f
 
-  private def interpretStateChangeCommand(
-    resultCollector : ResultCollectorType) = sentenceInterpreter
+  private def interpretStateChange(
+    resultCollector : ResultCollectorType,
+    predicate : SilPredicate) =
   {
-    case SilStateChangeCommand(predicate, _, formality) => {
-      debug("STATE CHANGE COMMAND")
+    debug("STATE CHANGE COMMAND")
 
-      val result = predicateEvaluator.evaluatePredicate(
-        predicate, resultCollector)
-      mind.rememberSentenceAnalysis(resultCollector.referenceMap)
-      result match {
-        case Success(Trilean.True) => {
-          debug("COUNTERFACTUAL")
-          val (normalizedResponse, negateCollection) =
-            responseRewriter.normalizeResponse(
-              predicate, resultCollector, generalParams)
-          assert(!negateCollection)
-          val tamResponse = SilTam.indicative
-          val responseSentence = SilPredicateSentence(
-            normalizedResponse,
-            tamResponse)
-          (responseSentence,
-            sentencePrinter.sb.respondToCounterfactual(
-              sentencePrinter.print(responseSentence)))
-        }
-        case Success(_) => {
-          assert(resultCollector.states.size == 1)
-          val invocation =
-            SmcStateChangeInvocation(
-              resultCollector.entityMap.filterNot(
-                _._2.assumeFalse).keySet,
-              resultCollector.states.head)
-          debug(s"EXECUTE INVOCATION : $invocation")
-          executor.executeInvocation(invocation)
-          wrapResponseText(sentencePrinter.sb.respondCompliance)
-        }
-        case Failure(e) => {
-          debug("ERROR", e)
-          wrapResponseText(e.getMessage)
-        }
+    val result = predicateEvaluator.evaluatePredicate(
+      predicate, resultCollector)
+    mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+    result match {
+      case Success(Trilean.True) => {
+        debug("COUNTERFACTUAL")
+        val (normalizedResponse, negateCollection) =
+          responseRewriter.normalizeResponse(
+            predicate, resultCollector, generalParams)
+        assert(!negateCollection)
+        val tamResponse = SilTam.indicative
+        val responseSentence = SilPredicateSentence(
+          normalizedResponse,
+          tamResponse)
+        (responseSentence,
+          sentencePrinter.sb.respondToCounterfactual(
+            sentencePrinter.print(responseSentence)))
+      }
+      case Success(_) => {
+        assert(resultCollector.states.size == 1)
+        val invocation =
+          SmcStateChangeInvocation(
+            resultCollector.entityMap.filterNot(
+              _._2.assumeFalse).keySet,
+            resultCollector.states.head)
+        debug(s"EXECUTE INVOCATION : $invocation")
+        executor.executeInvocation(invocation)
+        wrapResponseText(sentencePrinter.sb.respondCompliance)
+      }
+      case Failure(e) => {
+        debug("ERROR", e)
+        wrapResponseText(e.getMessage)
       }
     }
   }
@@ -533,8 +532,30 @@ class SmcInterpreter[
           }
         }
         case MOOD_IMPERATIVE => {
-          debug(s"UNEXPECTED MOOD : $tam")
-          wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
+          predicate match {
+            case actionPredicate : SilActionPredicate => {
+              val (actionWord, modifiers) = actionPredicate.modifiers match {
+                case Seq(SilBasicVerbModifier(Seq(word), _)) => {
+                  tupleN((word, Seq.empty))
+                }
+                case _ => {
+                  tupleN((actionPredicate.action, actionPredicate.modifiers))
+                }
+              }
+              val pred = SilStatePredicate(
+                actionPredicate.directObject.get,
+                SilPropertyState(actionWord),
+                modifiers
+              )
+              interpretStateChange(
+                resultCollector,
+                pred)
+            }
+            case _ => {
+              debug(s"UNEXPECTED MOOD : $tam")
+              wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
+            }
+          }
         }
       }
     }

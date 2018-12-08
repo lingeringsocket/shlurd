@@ -41,7 +41,8 @@ private[parser] class SprNormalizationRewriter
     normalizeCoordinatingDeterminers,
     normalizeDanglingAdpositions,
     normalizeCompoundAdpositions,
-    normalizeAdpositionalPhrases)
+    normalizeAdpositionalPhrases,
+    normalizeCommands)
 
   private def normalizeGenitives = replacementMatcher {
     case SilGenitiveReference(r1, SilGenitiveReference(r2, r3)) => {
@@ -252,10 +253,42 @@ private[parser] class SprNormalizationRewriter
           case _ => (None, Seq.empty)
         }
       SilActionPredicate(
-        subject,
+        subjectExtracted,
         action,
         directObjectExtracted,
         subjectModifiers ++ directObjectModifiers ++ modifiers)
+    }
+  }
+
+  private def normalizeCommands = replacementMatcher {
+    case SilPredicateSentence(
+      actionPredicate : SilActionPredicate, tam, formality
+    ) if (actionPredicate.directObject.nonEmpty && tam.isImperative) => {
+      val (stateSpecifiers, verbModifiers) =
+        actionPredicate.modifiers.partition(
+          _ match {
+            case SilAdpositionalVerbModifier(adposition, objRef) => {
+              !isAdverbialAdposition(None, adposition, objRef)
+            }
+            case _ => {
+              false
+            }
+          }
+        )
+      val directObject = SilReference.qualifiedByProperties(
+        actionPredicate.directObject.get,
+        stateSpecifiers.map(_.asInstanceOf[SilAdpositionalVerbModifier]).map(
+          vm => SilAdpositionalState(vm.adposition, vm.objRef)))
+      SilPredicateSentence(
+        SilActionPredicate(
+          actionPredicate.subject,
+          actionPredicate.action,
+          Some(directObject),
+          verbModifiers
+        ),
+        tam,
+        formality
+      )
     }
   }
 
@@ -266,7 +299,7 @@ private[parser] class SprNormalizationRewriter
       case SilStateSpecifiedReference(
         sub,
         SilAdpositionalState(adposition, objRef)
-      ) if (isAdverbialAdposition(sub, adposition, objRef)) => {
+      ) if (isAdverbialAdposition(Some(sub), adposition, objRef)) => {
         tupleN((sub, Seq(SilAdpositionalVerbModifier(adposition, objRef))))
       }
       case _ => (ref, Seq.empty)
@@ -274,7 +307,7 @@ private[parser] class SprNormalizationRewriter
   }
 
   private def isAdverbialAdposition(
-    ref : SilReference, adposition : SilAdposition,
+    ref : Option[SilReference], adposition : SilAdposition,
     objRef : SilReference) : Boolean =
   {
     // FIXME the real thing has to be sophisticated enough to understand

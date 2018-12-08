@@ -57,11 +57,6 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           }
         }
       }
-      case SilStateChangeCommand(predicate, changeVerb, _) => {
-        // FIXME SilStateChangeCommand should support tam
-        // for polarity, emphatic
-        printPredicateCommand(predicate, SilTam.imperative, changeVerb)
-      }
       case SilPredicateQuery(
         predicate, question, answerInflection, tam, _
       ) => {
@@ -296,8 +291,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
   }
 
   def printPredicateCommand(
-    predicate : SilPredicate, tam : SilTam,
-    changeVerb : Option[SilWord] = None) =
+    predicate : SilPredicate, tam : SilTam) =
   {
     predicate match {
       case SilStatePredicate(subject, state, modifiers) => {
@@ -307,7 +301,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           }
           case _ => {
             tupleN((print(subject, INFLECT_ACCUSATIVE, SilConjoining.NONE),
-              printChangeStateVerb(state, changeVerb)))
+              printChangeStateVerb(state, None)))
           }
         }
         sb.statePredicateCommand(
@@ -318,7 +312,6 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilRelationshipPredicate(
         subject, complement, relationship, modifiers
       ) => {
-        assert(changeVerb.isEmpty)
         val action = relationship match {
           case REL_IDENTITY => SilWord.uninflected(LEMMA_BE)
           case REL_ASSOCIATION => SilWord.uninflected(LEMMA_HAVE)
@@ -333,7 +326,6 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           tam)
       }
       case SilActionPredicate(_, action, directObject, modifiers) => {
-        assert(changeVerb.isEmpty)
         sb.actionPredicate(
           "",
           sb.delemmatizeVerb(

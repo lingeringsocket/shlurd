@@ -504,7 +504,7 @@ class SprEnglishSyntaxAnalyzer(
   }
 
   private def expectPredicateSentence(
-    tree : SptS,
+    tree : SprSyntaxTree,
     np : SprSyntaxTree, vp : SprSyntaxTree,
     verbModifiers : Seq[SilExpectedVerbModifier],
     force : SilForce, tam : SilTam, auxCount : SilCount,
@@ -516,7 +516,7 @@ class SprEnglishSyntaxAnalyzer(
     val verbHead = vpChildren.head
     val tamTensed = extractTense(verbHead, tam)
     val (progressive, iVerb) = detectProgressive(vpChildren)
-    if (verbHead.isModal || progressive) {
+    if ((verbHead.isModal || progressive)) {
       val vSub = {
         if (progressive) {
           vpChildren(iVerb)
@@ -583,52 +583,14 @@ class SprEnglishSyntaxAnalyzer(
     tree : SprSyntaxTree,
     vp : SprSyntaxTree, formality : SilFormality) : SilSentence =
   {
-    val alternative1 = {
-      val (particle, unparticled) =
-        extractParticle(vp.children)
-      val (specifiedState, seq) =
-        extractAdpositionalState(unparticled)
-      expectCommand(tree, particle, specifiedState, seq, formality)
-    }
-
-    val alternative2 = {
-      val (specifiedState, unspecified) =
-        extractAdpositionalState(vp.children)
-      val (particle, seq) =
-        extractParticle(unspecified)
-      expectCommand(tree, particle, specifiedState, seq, formality)
-    }
-
-    SilAmbiguousSentence(Seq(alternative1, alternative2))
-  }
-
-  private def expectCommand(
-    tree : SprSyntaxTree,
-    particle : Option[SprSyntaxTree],
-    specifiedState : SilState,
-    seq : Seq[SprSyntaxTree],
-    formality : SilFormality) : SilSentence =
-  {
-    if (seq.size == 2) {
-      val (state, changeVerb) = particle match {
-        // FIXME:  restrict verb pairing when particle is present
-        case Some(preTerminal) => {
-          tupleN((expectPropertyState(preTerminal),
-            Some(getWord(requireLeaf(seq.head.children)))))
-        }
-        case _ => {
-          tupleN((expectPropertyState(seq.head), None))
-        }
-      }
-      val subject = specifyReference(
-        expectReference(seq.last), specifiedState)
-      SilStateChangeCommand(
-        expectStatePredicate(tree, subject, state),
-        changeVerb,
-        formality)
-    } else {
-      SilUnrecognizedSentence(tree)
-    }
+    val np = SptNP(SptPRP(makeLeaf(LEMMA_YOU)))
+    val (negativeVerb, predicate) = analyzeActionPredicate(
+      tree, np, vp, None, Seq.empty, true)
+    assert(!negativeVerb)
+    SilPredicateSentence(
+      predicate,
+      SilTam.imperative,
+      formality)
   }
 
   private def expectRelativeReference(
@@ -755,7 +717,8 @@ class SprEnglishSyntaxAnalyzer(
     np : SprSyntaxTree,
     vp : SprSyntaxTree,
     specifiedDirectObject : Option[SilReference],
-    verbModifiers : Seq[SilExpectedVerbModifier])
+    verbModifiers : Seq[SilExpectedVerbModifier],
+    imperative : Boolean = false)
       : (Boolean, SilPredicate) =
   {
     val (negative, seq) = extractNegative(vp.children)
@@ -769,7 +732,9 @@ class SprEnglishSyntaxAnalyzer(
     }
     val verbHead = seq.head
     val action = verbHead match {
-      case verb : SprSyntaxVerb => {
+      case verb : SprSyntaxVerb if (
+        !imperative || (!verbHead.isModal && !verbHead.isPossessionVerb)
+      ) => {
         getWord(verb.child)
       }
       case _ => {
@@ -1401,27 +1366,6 @@ class SprEnglishSyntaxAnalyzer(
           tupleN((determiner, commaSeparator, seq.filterNot(_.isEmpty)))
         }
       }
-    }
-  }
-
-  override def specifyReference(
-    ref : SilReference, specifiedState : SilState) : SilReference =
-  {
-    if (specifiedState == SilNullState()) {
-      ref
-    } else {
-      val specifiedReference = SilStateSpecifiedReference(
-        ref, specifiedState)
-      ref.maybeSyntaxTree.foreach(
-        refSyntaxTree => specifiedState.maybeSyntaxTree.foreach(
-          stateSyntaxTree => {
-            rememberSyntheticNP(
-              specifiedReference,
-              Seq(refSyntaxTree, stateSyntaxTree))
-          }
-        )
-      )
-      specifiedReference
     }
   }
 

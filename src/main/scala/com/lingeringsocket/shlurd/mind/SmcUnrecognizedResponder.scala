@@ -52,19 +52,6 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
           case _ =>
         }
       }
-      case SilStateChangeCommand(
-        predicate : SilStatePredicate, changeVerb, _) =>
-      {
-        val count = computeMaxCount(
-          predicate.subject,
-          predicate.getInflectedCount)
-        val response = respondToUnresolvedPredicate(
-          predicate.subject, predicate.state,
-          SilTam.imperative, count, None, predicate.modifiers, changeVerb)
-        if (!response.isEmpty) {
-          return response
-        }
-      }
       case SilPredicateQuery(
         predicate, question, answerInflection, tam, _
       ) => {
@@ -98,7 +85,6 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
         // FIXME:  divide and conquer if possible
       }
       case _ : SilConditionalSentence => ;
-      case _ : SilStateChangeCommand => ;
       case _ : SilAmbiguousSentence => ;
       case _ : SilUnknownSentence => ;
       case _ : SilUnparsedSentence => ;
