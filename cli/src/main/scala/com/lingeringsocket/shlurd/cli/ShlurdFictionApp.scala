@@ -74,7 +74,8 @@ class ShlurdFictionApp(
   {
     override def executeImperative(predicate : SilPredicate) : Boolean =
     {
-      def playerRef = SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+      def playerRef =
+        SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
       val newPredicate = predicate match {
         case ap : SilActionPredicate => ap.copy(subject = playerRef)
         case _ => predicate
