@@ -72,26 +72,37 @@ class ShlurdFictionApp(
 
   private val executor = new SmcExecutor[SpcEntity]
   {
+    override def executeImperative(predicate : SilPredicate) : Boolean =
+    {
+      def playerRef = SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+      val newPredicate = predicate match {
+        case ap : SilActionPredicate => ap.copy(subject = playerRef)
+        case _ => predicate
+      }
+      val sentence = SilPredicateSentence(newPredicate)
+      interpretReentrant(sentence)
+    }
+
     override def executeInvocation(
       invocation : SmcStateChangeInvocation[SpcEntity])
     {
-      executeStateChange(invocation)
+      val sentence = SilPredicateSentence(
+        SilStatePredicate(
+          mind.getCosmos.specificReferences(invocation.entities),
+          SilPropertyState(invocation.state)
+        )
+      )
+      interpretReentrant(sentence)
     }
   }
 
   private val interpreter = new SpcInterpreter(
     mind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private def executeStateChange(
-    invocation : SmcStateChangeInvocation[SpcEntity])
+  private def interpretReentrant(sentence : SilSentence) : Boolean =
   {
-    val sentence = SilPredicateSentence(
-      SilStatePredicate(
-        mind.getCosmos.specificReferences(invocation.entities),
-        SilPropertyState(invocation.state)
-      )
-    )
-    interpreter.interpret(sentence)
+    val result = interpreter.interpret(sentence)
+    result == interpreter.sentencePrinter.sb.respondCompliance
   }
 
   private def init()

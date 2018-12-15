@@ -1,7 +1,9 @@
 An interpreter is a kind of person.
 A player is a kind of person.
+A thief is a kind of person.
 There is an interpreter.
 There is a player.
+There is a thief.
 A place is a kind of object.
 A northern-neighbor must be a place.
 A southern-neighbor must be a place.
@@ -24,5 +26,16 @@ If a place is south of a location, then equivalently the location is the place's
 If a person moves to a location, then the person is in the location.
 If a person goes to a location, then the person moves to the location.
 If a person enters a location, then the person moves to the location.
+If a person kills a victim, then the victim is dead.
+If a person goes west, then the person moves to the person's container's western-neighbor.
+If a person goes east, then the person moves to the person's container's eastern-neighbor.
+If a person goes north, then the person moves to the person's container's northern-neighbor.
+If a person goes south, then the person moves to the person's container's southern-neighbor.
 A door is a kind of object.
 A door must be open or closed.
+A thief must be alive or dead.
+An axe is a kind of object.
+If a person throws an axe to a target, then the person kills the target.
+There is an axe.
+If a person gets an object, then the object is in the person.
+If a person drops an object, then the object is in the person's container.

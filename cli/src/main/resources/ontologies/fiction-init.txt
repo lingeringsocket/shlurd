@@ -2,5 +2,8 @@ The bedroom is a place.
 The bathroom is a place.
 The bedroom is west of the bathroom.
 The player is in the bedroom.
+The thief is in the bathroom.
 There is a bathroom door.
 The bathroom door is open.
+The thief is alive.
+The axe is in the bathroom.
