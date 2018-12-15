@@ -90,8 +90,7 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
     determiner : SilDeterminer) : SilReference
 
   def specificReferences(
-    entities : Set[EntityType],
-    determiner : SilDeterminer) : SilReference =
+    entities : Set[EntityType]) : SilReference =
   {
     assert(!entities.isEmpty)
     if (entities.size == 1) {

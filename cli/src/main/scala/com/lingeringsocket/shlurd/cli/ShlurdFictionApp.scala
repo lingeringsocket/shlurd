@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.cli
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
@@ -69,8 +70,29 @@ class ShlurdFictionApp(
 {
   private val params = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
 
+  private val executor = new SmcExecutor[SpcEntity]
+  {
+    override def executeInvocation(
+      invocation : SmcStateChangeInvocation[SpcEntity])
+    {
+      executeStateChange(invocation)
+    }
+  }
+
   private val interpreter = new SpcInterpreter(
-    mind, ACCEPT_MODIFIED_BELIEFS, params)
+    mind, ACCEPT_MODIFIED_BELIEFS, params, executor)
+
+  private def executeStateChange(
+    invocation : SmcStateChangeInvocation[SpcEntity])
+  {
+    val sentence = SilPredicateSentence(
+      SilStatePredicate(
+        mind.getCosmos.specificReferences(invocation.entities),
+        SilPropertyState(invocation.state)
+      )
+    )
+    interpreter.interpret(sentence)
+  }
 
   private def init()
   {

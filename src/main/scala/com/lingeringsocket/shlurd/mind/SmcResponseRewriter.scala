@@ -568,7 +568,7 @@ class SmcResponseRewriter[
   ) = replacementMatcher {
     case pr @ SilPronounReference(PERSON_THIRD, _, _, _) => {
       referenceMap.get(pr).map(
-        entities => cosmos.specificReferences(entities, DETERMINER_UNIQUE)
+        entities => cosmos.specificReferences(entities)
       ).getOrElse(pr)
     }
   }

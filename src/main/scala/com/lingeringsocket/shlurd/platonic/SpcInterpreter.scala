@@ -660,8 +660,7 @@ class SpcInterpreter(
             mind.resolvePronoun(pr) match {
               case Success(entities) if (!entities.isEmpty) => {
                 tupleN((
-                  mind.getCosmos.specificReferences(
-                    entities, DETERMINER_UNIQUE),
+                  mind.getCosmos.specificReferences(entities),
                   entities))
               }
               case _ =>  {
