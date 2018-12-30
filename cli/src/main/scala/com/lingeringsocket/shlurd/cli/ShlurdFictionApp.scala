@@ -26,24 +26,57 @@ import java.io._
 
 object ShlurdFictionApp extends App
 {
-  val serializer = new ShlurdCliSerializer
   val file = new File("run/shlurd-fiction.zip")
-  val (mind, init) = loadOrCreate(file)
-  val app = new ShlurdFictionApp(mind, file, serializer)
+  val (mind, init) = ShlurdFictionShell.loadOrCreate(file)
+  val shell = new ShlurdFictionShell(mind)
   if (init) {
-    app.init
+    shell.init
   }
-  app.run
+  shell.run
+}
 
-  private def loadOrCreate(file : File) : (ShlurdCliMind, Boolean) =
+class ShlurdFictionTerminal
+{
+  def emitPrompt()
   {
+    print("> ")
+  }
+
+  def emitControl(msg : String)
+  {
+    println(s"[SIF] $msg")
+  }
+
+  def emitNarrative(msg : String)
+  {
+    println(msg)
+  }
+
+  def readCommand() : Option[String] =
+  {
+    Option(StdIn.readLine)
+  }
+}
+
+object ShlurdFictionShell
+{
+  def loadOrCreate(file : File) : (ShlurdCliMind, Boolean) =
+  {
+    val terminal = new ShlurdFictionTerminal
     if (file.exists) {
-      println("[SIF] Reloading...")
+      terminal.emitControl("Reloading...")
+      val serializer = new ShlurdCliSerializer
       val oldMind = serializer.load(file)
-      println("[SIF] Reload complete.")
+      terminal.emitControl("Reload complete.")
       tupleN((oldMind, false))
     } else {
-      println("[SIF] Initializing...")
+      terminal.emitControl("Initializing...")
+      tupleN((newMind, true))
+    }
+  }
+
+  def newMind() : ShlurdCliMind =
+  {
       val cosmos = new SpcCosmos
       SpcPrimordial.initCosmos(cosmos)
       val beliefs = SprParser.getResourceFile("/ontologies/fiction-beliefs.txt")
@@ -57,16 +90,13 @@ object ShlurdFictionApp extends App
         cosmos.resolveQualifiedNoun(
           "interpreter", REF_SUBJECT, Set())).get
 
-      val newMind = new ShlurdCliMind(cosmos, entityPlayer, entityInterpreter)
-      tupleN((newMind, true))
-    }
+      new ShlurdCliMind(cosmos, entityPlayer, entityInterpreter)
   }
 }
 
-class ShlurdFictionApp(
+class ShlurdFictionShell(
   mind : ShlurdCliMind,
-  file : File,
-  serializer : ShlurdCliSerializer)
+  terminal : ShlurdFictionTerminal = new ShlurdFictionTerminal)
 {
   private val params = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
 
@@ -106,7 +136,7 @@ class ShlurdFictionApp(
     result == interpreter.sentencePrinter.sb.respondCompliance
   }
 
-  private def init()
+  def init()
   {
     val source = Source.fromFile(
       SprParser.getResourceFile("/ontologies/fiction-init.txt"))
@@ -115,34 +145,35 @@ class ShlurdFictionApp(
       val output = interpreter.interpret(sentence)
       assert(output == "OK.", output)
     })
-    println("[SIF] Initialization complete.")
+    terminal.emitControl("Initialization complete.")
   }
 
-  private def run()
+  def run()
   {
     mind.startConversation
     var exit = false
-    println
+    terminal.emitNarrative("")
     while (!exit) {
-      print("> ")
-      val input = StdIn.readLine
-      if (input == null) {
-        exit = true
-      } else {
-        val sentences = mind.newParser(input).parseAll
-        sentences.foreach(sentence => {
-          val output = interpreter.interpret(sentence)
-          println
-          println(output)
-          println
-        })
+      terminal.emitPrompt
+      terminal.readCommand match {
+        case Some(input) => {
+          val sentences = mind.newParser(input).parseAll
+          sentences.foreach(sentence => {
+            val output = interpreter.interpret(sentence)
+            terminal.emitNarrative("")
+            terminal.emitNarrative(output)
+            terminal.emitNarrative("")
+          })
+        }
+        case _ => {
+          exit = true
+        }
       }
     }
-    println
-    println("Saving...NOT!")
+    terminal.emitNarrative("")
+    terminal.emitControl("Saving...NOT!")
     // don't serialize conversation since that could be an extra source of
     // deserialization problems later
     mind.stopConversation
-    // serializer.save(mind, file)
   }
 }

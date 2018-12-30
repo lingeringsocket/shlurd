@@ -3,7 +3,6 @@ A player is a kind of person.
 A thief is a kind of person.
 There is an interpreter.
 There is a player.
-There is a thief.
 A place is a kind of object.
 A northern-neighbor must be a place.
 A southern-neighbor must be a place.
@@ -36,6 +35,5 @@ A door must be open or closed.
 A thief must be alive or dead.
 An axe is a kind of object.
 If a person throws an axe to a target, then the person kills the target.
-There is an axe.
 If a person gets an object, then the object is in the person.
 If a person drops an object, then the object is in the person's container.

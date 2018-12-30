@@ -1,0 +1,55 @@
+where am I
+
+You are in the bedroom.
+
+go east
+
+OK.
+
+where am I
+
+You are in the bathroom.
+
+what is in the bathroom
+
+The axe, the player, and the thief are in the bathroom.
+
+get the axe
+
+OK.
+
+what is in the player
+
+The axe is in the player.
+
+is the thief alive?
+
+Yes, it is alive.
+
+kill the thief
+
+OK.
+
+is the thief alive
+
+No, it is not alive.
+
+go west
+
+OK.
+
+where am I
+
+You are in the bedroom.
+
+drop the axe
+
+OK.
+
+where is the axe
+
+It is in the bedroom.
+
+what is in the bathroom
+
+The thief is in the bathroom.
