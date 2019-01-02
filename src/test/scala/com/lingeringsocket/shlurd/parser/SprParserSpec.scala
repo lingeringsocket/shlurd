@@ -55,6 +55,8 @@ class SprParserSpec extends Specification
 
   private val ACTION_OPEN = SilWord("open")
 
+  private val ACTION_SAYS = SilWord("says", "say")
+
   private val ACTION_GIVE = SilWord("give")
 
   private val ACTION_KILL = SilWord("kill")
@@ -193,6 +195,20 @@ class SprParserSpec extends Specification
       parse(input + "?") must be equalTo
         SilPredicateSentence(predIntransitiveAction(NOUN_DOOR),
           SilTam.interrogative)
+    }
+
+    "parse a quotation" in
+    {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
+      val input = "Franny says \"I love you\""
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            SilNounReference(NOUN_FRANNY),
+            ACTION_SAYS,
+            Some(SilQuotationReference("I love you"))))
     }
 
     "parse a negation" in

@@ -679,6 +679,10 @@ class SmcPredicateEvaluator[
           }
         }
       }
+      case _ : SilQuotationReference => {
+        debug("QUOTATION REFERENCE")
+        fail(sentencePrinter.sb.respondCannotUnderstand)
+      }
       case _ : SilUnknownReference => {
         debug("UNKNOWN REFERENCE")
         fail(sentencePrinter.sb.respondCannotUnderstand)

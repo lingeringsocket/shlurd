@@ -66,11 +66,14 @@ object SprPennTreebankLabels
   val LABEL_RP = "RP"
   val LABEL_CD = "CD"
   val LABEL_TMOD = "TMOD"
+  val LABEL_NNQ = "NNQ"
 
   val LABEL_COMMA = ","
   val LABEL_DOT = "."
   val LABEL_QUESTION_MARK = "?"
   val LABEL_EXCLAMATION_MARK = "!"
+  val LABEL_LQUOTE = "``"
+  val LABEL_RQUOTE = "''"
 }
 
 import SprPennTreebankLabels._
@@ -690,4 +693,11 @@ case class SptTMOD(child : SprSyntaxTree)
     extends SprSyntaxUniqueChild
 {
   override def label = LABEL_TMOD
+}
+
+// another non-standard one we cons up to wrap quotations
+case class SptNNQ(child : SprSyntaxLeaf)
+    extends SprSyntaxNoun
+{
+  override def label = LABEL_NNQ
 }

@@ -492,9 +492,18 @@ class SprWordnetParser(
 
   private[parser] def analyzeWords() : Seq[Set[SprSyntaxTree]] =
   {
+    val quote = "\""
     tokens.zip(words).zipWithIndex.map {
       case ((token, word), iToken) => {
-        context.wordLabeler.labelWord(token, word, iToken)
+        if (word.startsWith(quote) && word.endsWith(quote)
+          && (word.size > 1))
+        {
+          val tree : SprSyntaxTree = SptNNQ(makeLeaf(
+            word.stripPrefix(quote).stripSuffix(quote)))
+          Set(tree)
+        } else {
+          context.wordLabeler.labelWord(token, word, iToken)
+        }
       }
     }
   }

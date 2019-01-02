@@ -557,6 +557,12 @@ case class SilMappedReference(
   override def syntaxTree = SprSyntaxLeaf(key, key, key)
 }
 
+case class SilQuotationReference(
+  quotation : String
+) extends SilTransformedPhrase with SilReference
+{
+}
+
 case class SilExistenceState(
 ) extends SilTransformedPhrase with SilState
 {
@@ -657,6 +663,7 @@ object SilReference
       case SilStateSpecifiedReference(reference, _) =>
         isCountCoercible(reference)
       case _ : SilGenitiveReference => true
+      case _ : SilQuotationReference => true
       case _ : SilUnknownReference => false
     }
   }
@@ -679,6 +686,7 @@ object SilReference
         getCount(reference)
       case SilGenitiveReference(_, possessee) =>
         getCount(possessee)
+      case _ : SilQuotationReference => COUNT_SINGULAR
       case _ : SilUnknownReference => COUNT_SINGULAR
     }
   }

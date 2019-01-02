@@ -32,7 +32,7 @@ class SprPhrasePatternTrie
   def foldLabel(label : String) : String =
   {
     (label match {
-      case LABEL_NNS | LABEL_NNP | LABEL_NNPS => LABEL_NN
+      case LABEL_NNS | LABEL_NNP | LABEL_NNPS | LABEL_NNQ => LABEL_NN
       case LABEL_VBP | LABEL_VBD | LABEL_VBZ => LABEL_VB
       case LABEL_RP => LABEL_RB
       case "," => "COMMA"

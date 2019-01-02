@@ -76,6 +76,7 @@ object SprSyntaxRewriter
     LABEL_WRB -> SptWRB,
     LABEL_WP -> SptWP,
     LABEL_POS -> SptPOS,
+    LABEL_NNQ -> SptNNQ,
     LABEL_DOT -> SptDOT,
     LABEL_COMMA -> SptCOMMA
   )

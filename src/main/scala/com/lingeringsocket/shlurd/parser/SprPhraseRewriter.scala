@@ -416,6 +416,9 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
     case SilExpectedReference(np : SptNP) => {
       analyzer.analyzeNounPhrase(np)
     }
+    case SilExpectedReference(SptNNQ(quotation)) => {
+      SilQuotationReference(quotation.token)
+    }
     case SilExpectedReference(noun : SprSyntaxNoun) => {
       SilNounReference(
         analyzer.getWord(noun.child),

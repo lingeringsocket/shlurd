@@ -305,13 +305,32 @@ object SprParser
     prepareWordnet(context, sentence, dump, dumpDesc)
   }
 
+  private def collapseQuotations(tokens : Seq[String]) : Seq[String] =
+  {
+    // FIXME deal with nested quotations?
+    val left = tokens.indexOf(LABEL_LQUOTE)
+    if (left == -1) {
+      tokens
+    } else {
+      val right = tokens.indexOf(LABEL_RQUOTE, left + 1)
+      if (right == -1) {
+        tokens
+      } else {
+        // FIXME proper detokenization
+        val quotation = "\"" +
+          tokens.view(left + 1, right).mkString(" ") + "\""
+        tokens.take(left) ++ Seq(quotation) ++ tokens.drop(right + 1)
+      }
+    }
+  }
+
   private[parser] def prepareWordnet(
     context : SprContext,
     sentence : SprTokenizedSentence,
     dump : Boolean, dumpDesc : String) : SprParser =
   {
     val dumpPrefix = dumpDesc
-    val allWords = sentence.tokens
+    val allWords = collapseQuotations(sentence.tokens)
     val (words, terminator) = {
       if (isTerminator(allWords.last)) {
         tupleN((allWords.dropRight(1), Some(allWords.last)))
