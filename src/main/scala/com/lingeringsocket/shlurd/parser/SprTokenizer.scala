@@ -39,42 +39,27 @@ trait SprTokenizer
   def tokenize(input : String) : Seq[SprTokenizedSentence]
 }
 
-object SprIxaTokenizer
-{
-  val nullErr = new PrintStream(new OutputStream {
-    def write(b : Int) {}
-  })
-}
-
 class SprIxaTokenizer extends SprTokenizer
 {
-  import SprIxaTokenizer._
-
   override def tokenize(input : String) : Seq[SprTokenizedSentence] =
   {
-    val savedErr = System.err
-    System.setErr(nullErr)
-    try {
-      val properties = new java.util.Properties
-      properties.put("language", "en")
-      properties.put("untokenizable", "no")
-      properties.put("hardParagraph", "no")
-      val textSegment = RuleBasedSegmenter.readText(
-        new BufferedReader(new StringReader(input)))
-      val segmenter = new RuleBasedSegmenter(textSegment, properties)
-      val tokenizer = new RuleBasedTokenizer(textSegment, properties)
-      val sentences = segmenter.segmentSentence
-      val tokenizedSentences = tokenizer.tokenize(sentences)
-      assert(sentences.size == tokenizedSentences.size)
-      sentences.zip(tokenizedSentences.asScala).map {
-        case (sentence, tokenizedSentence) => {
-          SprPlainTokenizedSentence(
-            sentence.trim,
-            tokenizedSentence.asScala.map(_.getTokenValue.trim))
-        }
+    val properties = new java.util.Properties
+    properties.put("language", "en")
+    properties.put("untokenizable", "no")
+    properties.put("hardParagraph", "no")
+    val textSegment = RuleBasedSegmenter.readText(
+      new BufferedReader(new StringReader(input)))
+    val segmenter = new RuleBasedSegmenter(textSegment, properties)
+    val tokenizer = new RuleBasedTokenizer(textSegment, properties)
+    val sentences = segmenter.segmentSentence
+    val tokenizedSentences = tokenizer.tokenize(sentences)
+    assert(sentences.size == tokenizedSentences.size)
+    sentences.zip(tokenizedSentences.asScala).map {
+      case (sentence, tokenizedSentence) => {
+        SprPlainTokenizedSentence(
+          sentence.trim,
+          tokenizedSentence.asScala.map(_.getTokenValue.trim))
       }
-    } finally {
-      System.setErr(savedErr)
     }
   }
 }
