@@ -162,7 +162,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       }
       case SilQuotationReference(quotation) => {
         // FIXME delegate to sb
-        "\"" + quotation + "\""
+        SprParser.DQUOTE + quotation + SprParser.DQUOTE
       }
       case _ : SilUnknownReference => {
         sb.unknownReference

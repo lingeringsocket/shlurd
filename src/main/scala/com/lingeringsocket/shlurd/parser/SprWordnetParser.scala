@@ -492,7 +492,7 @@ class SprWordnetParser(
 
   private[parser] def analyzeWords() : Seq[Set[SprSyntaxTree]] =
   {
-    val quote = "\""
+    val quote = SprParser.DQUOTE
     tokens.zip(words).zipWithIndex.map {
       case ((token, word), iToken) => {
         if (word.startsWith(quote) && word.endsWith(quote)

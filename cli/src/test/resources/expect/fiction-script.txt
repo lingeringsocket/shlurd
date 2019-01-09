@@ -6,13 +6,15 @@ go east
 
 OK.
 
-where am I
-
 You are in the bathroom.
 
 what is in the bathroom
 
 The axe, the player, and the thief are in the bathroom.
+
+what is in my container
+
+The axe, the player, and the thief are in your container.
 
 get the axe
 
@@ -30,6 +32,8 @@ kill the thief
 
 OK.
 
+Blood splatters everywhere.
+
 is the thief alive
 
 No, it is not alive.
@@ -37,8 +41,6 @@ No, it is not alive.
 go west
 
 OK.
-
-where am I
 
 You are in the bedroom.
 

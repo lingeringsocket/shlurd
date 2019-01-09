@@ -39,7 +39,11 @@ class CorenlpTokenizedSentence(val corenlpSentence : Sentence)
 {
   override def text = corenlpSentence.text
 
-  override def tokens = corenlpSentence.originalTexts.asScala
+  override def tokens = corenlpSentence.tokens.asScala.map(t =>
+    SprToken(t.originalText, t.beginPosition, t.endPosition))
+
+  // FIXME
+  override def offsetText = text
 
   def lemmas = corenlpSentence.lemmas.asScala
 
@@ -103,13 +107,13 @@ object CorenlpParsingStrategy extends SprParsingStrategy
   {
     val tokens = sentence.tokens
     val sentenceString = sentence.text
-    if (SprParser.isTerminator(tokens.last)) {
+    if (SprParser.isTerminator(tokens.last.text)) {
       prepareCorenlpFallbacks(
-        sentenceString, tokens, false, dump, "CORENLP")
+        sentenceString, tokens.map(_.text), false, dump, "CORENLP")
     } else {
       val questionString = sentenceString + LABEL_QUESTION_MARK
       prepareCorenlpFallbacks(
-        questionString, tokens :+ LABEL_QUESTION_MARK,
+        questionString, tokens.map(_.text) :+ LABEL_QUESTION_MARK,
         true, dump, "CORENLP")
     }
   }

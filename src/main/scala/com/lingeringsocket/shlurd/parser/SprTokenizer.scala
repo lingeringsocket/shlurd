@@ -20,16 +20,25 @@ import scala.collection.JavaConverters._
 
 import java.io._
 
+case class SprToken(
+  text : String,
+  start : Int,
+  end : Int
+)
+
 trait SprTokenizedSentence
 {
   def text : String
 
-  def tokens : Seq[String]
+  def tokens : Seq[SprToken]
+
+  def offsetText : String
 }
 
 case class SprPlainTokenizedSentence(
   text : String,
-  tokens : Seq[String]
+  tokens : Seq[SprToken],
+  offsetText : String
 ) extends SprTokenizedSentence
 {
 }
@@ -58,7 +67,12 @@ class SprIxaTokenizer extends SprTokenizer
       case (sentence, tokenizedSentence) => {
         SprPlainTokenizedSentence(
           sentence.trim,
-          tokenizedSentence.asScala.map(_.getTokenValue.trim))
+          tokenizedSentence.asScala.map(
+            t => SprToken(
+              t.getTokenValue.trim,
+              t.startOffset,
+              t.startOffset + t.tokenLength)),
+          input)
       }
     }
   }

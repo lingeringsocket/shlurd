@@ -681,7 +681,7 @@ class SmcPredicateEvaluator[
       }
       case _ : SilQuotationReference => {
         debug("QUOTATION REFERENCE")
-        fail(sentencePrinter.sb.respondCannotUnderstand)
+        Success(Trilean.Unknown)
       }
       case _ : SilUnknownReference => {
         debug("UNKNOWN REFERENCE")

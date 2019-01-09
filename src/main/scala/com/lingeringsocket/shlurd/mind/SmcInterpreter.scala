@@ -98,9 +98,14 @@ object SmcResultCollector
 
 class SmcExecutor[EntityType<:SmcEntity]
 {
-  def executeImperative(predicate : SilPredicate) : Boolean =
+  def executeAction(predicate : SilActionPredicate) : Option[String] =
   {
-    false
+    None
+  }
+
+  def executeImperative(predicate : SilPredicate) : Option[String] =
+  {
+    None
   }
 
   def executeInvocation(
@@ -537,33 +542,37 @@ class SmcInterpreter[
           }
         }
         case MOOD_IMPERATIVE => {
-          if (executor.executeImperative(predicate)) {
-            wrapResponseText(sentencePrinter.sb.respondCompliance)
-          } else {
-            predicate match {
-              case actionPredicate : SilActionPredicate if (
-                actionPredicate.directObject.nonEmpty
-              ) => {
-                val (actionWord, modifiers) = actionPredicate.modifiers match {
-                  case Seq(SilBasicVerbModifier(Seq(word), _)) => {
-                    tupleN((word, Seq.empty))
+          executor.executeImperative(predicate) match {
+            case Some(imperativeResult) => {
+              wrapResponseText(imperativeResult)
+            }
+            case _ => {
+              predicate match {
+                case actionPredicate : SilActionPredicate if (
+                  actionPredicate.directObject.nonEmpty
+                ) => {
+                  val actionModifiers = actionPredicate.modifiers
+                  val (actionWord, modifiers) = actionModifiers match {
+                    case Seq(SilBasicVerbModifier(Seq(word), _)) => {
+                      tupleN((word, Seq.empty))
+                    }
+                    case _ => {
+                      tupleN((actionPredicate.action, actionModifiers))
+                    }
                   }
-                  case _ => {
-                    tupleN((actionPredicate.action, actionPredicate.modifiers))
-                  }
+                  val pred = SilStatePredicate(
+                    actionPredicate.directObject.get,
+                    SilPropertyState(actionWord),
+                    modifiers
+                  )
+                  interpretStateChange(
+                    resultCollector,
+                    pred)
                 }
-                val pred = SilStatePredicate(
-                  actionPredicate.directObject.get,
-                  SilPropertyState(actionWord),
-                  modifiers
-                )
-                interpretStateChange(
-                  resultCollector,
-                  pred)
-              }
-              case _ => {
-                debug(s"UNEXPECTED MOOD : $tam")
-                wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
+                case _ => {
+                  debug(s"UNEXPECTED MOOD : $tam")
+                  wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
+                }
               }
             }
           }
@@ -825,7 +834,7 @@ class SmcInterpreter[
     resultCollector : ResultCollectorType)
       : (SilPredicate, SilInflection) =
   {
-    val queryRewriter = new SmcQueryRewriter(question)
+    val queryRewriter = new SmcQueryRewriter(question, answerInflection)
     val rewritten = queryRewriter.rewrite(
       queryRewriter.rewritePredicate, predicate)
     (rewritten, answerInflection)

@@ -370,6 +370,15 @@ class SpcInterpreter(
         }
       })
     })
+    predicate match {
+      case ap : SilActionPredicate => {
+        val executorResponse = executor.executeAction(ap)
+        if (executorResponse.nonEmpty) {
+          return executorResponse
+        }
+      }
+      case _ =>
+    }
     if (matched) {
       Some(compliance)
     } else {

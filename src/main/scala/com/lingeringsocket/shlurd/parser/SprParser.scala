@@ -197,6 +197,8 @@ object SprParser
 
   val ONCE_UPON_A_TIME = "once upon a time"
 
+  val DQUOTE = "\""
+
   private val terminators = Set(
     LABEL_DOT, LABEL_QUESTION_MARK, LABEL_EXCLAMATION_MARK)
 
@@ -305,21 +307,26 @@ object SprParser
     prepareWordnet(context, sentence, dump, dumpDesc)
   }
 
-  private def collapseQuotations(tokens : Seq[String]) : Seq[String] =
+  private def collapseQuotations(
+    sentence : SprTokenizedSentence) : Seq[String] =
   {
     // FIXME deal with nested quotations?
-    val left = tokens.indexOf(LABEL_LQUOTE)
+    val tokens = sentence.tokens
+    val tokensText = tokens.map(_.text)
+    val left = tokensText.indexOf(LABEL_LQUOTE)
     if (left == -1) {
-      tokens
+      tokensText
     } else {
-      val right = tokens.indexOf(LABEL_RQUOTE, left + 1)
+      val right = tokensText.indexOf(LABEL_RQUOTE, left + 1)
       if (right == -1) {
-        tokens
+        tokensText
       } else {
-        // FIXME proper detokenization
-        val quotation = "\"" +
-          tokens.view(left + 1, right).mkString(" ") + "\""
-        tokens.take(left) ++ Seq(quotation) ++ tokens.drop(right + 1)
+        val quotation = DQUOTE +
+          sentence.offsetText.slice(tokens(left).end, tokens(right).start) +
+          DQUOTE
+        tokensText.take(left) ++
+          Seq(quotation) ++
+          tokensText.drop(right + 1)
       }
     }
   }
@@ -330,7 +337,7 @@ object SprParser
     dump : Boolean, dumpDesc : String) : SprParser =
   {
     val dumpPrefix = dumpDesc
-    val allWords = collapseQuotations(sentence.tokens)
+    val allWords = collapseQuotations(sentence)
     val (words, terminator) = {
       if (isTerminator(allWords.last)) {
         tupleN((allWords.dropRight(1), Some(allWords.last)))

@@ -27,7 +27,7 @@ class SprTokenizerSpec extends Specification
       sentences.size must be equalTo 1
       val sentence = sentences.head
       sentence.text must be equalTo input
-      sentence.tokens must be equalTo tokens
+      sentence.tokens.map(_.text) must be equalTo tokens
   }
 
   "SprTokenizer" should

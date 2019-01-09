@@ -37,3 +37,5 @@ An axe is a kind of object.
 If a person throws an axe to a target, then the person kills the target.
 If a person gets an object, then the object is in the person.
 If a person drops an object, then the object is in the person's container.
+If a player moves to a location, then the player asks "where am I".
+If a person kills the thief, then the interpreter says "Blood splatters everywhere.".

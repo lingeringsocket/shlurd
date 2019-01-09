@@ -19,22 +19,24 @@ import com.lingeringsocket.shlurd.parser._
 
 import SprEnglishLemmas._
 
-class SmcQueryRewriter(question : SilQuestion) extends SilPhraseRewriter
+class SmcQueryRewriter(
+  question : SilQuestion,
+  answerInflection : SilInflection)
+    extends SilPhraseRewriter
 {
   def rewriteSpecifier = replacementMatcher {
     case SilNounReference(
       noun, DETERMINER_UNSPECIFIED, count
-    ) if (!noun.isProper) =>
-      {
-        SilNounReference(noun, DETERMINER_ANY, count)
-      }
+    ) if (!noun.isProper) => {
+      SilNounReference(noun, DETERMINER_ANY, count)
+    }
   }
 
   def rewritePredicate = replacementMatcher {
     case SilStatePredicate(subject, state, modifiers) => {
       SilStatePredicate(
-        rewrite(rewriteSpecifier, subject),
-        rewrite(rewriteSpecifier, state),
+        scopedRewrite(subject, INFLECT_NOMINATIVE),
+        scopedRewrite(state, INFLECT_ADPOSITIONED),
         modifiers)
     }
     case SilRelationshipPredicate(subject, complement,
@@ -49,11 +51,27 @@ class SmcQueryRewriter(question : SilQuestion) extends SilPhraseRewriter
         case _ => complement
       }
       SilRelationshipPredicate(
-        rewrite(rewriteSpecifier, subject),
+        scopedRewrite(subject, INFLECT_NOMINATIVE),
         rewrittenComplement, relationship, modifiers)
     }
-    case ap : SilActionPredicate => {
-      rewrite(rewriteSpecifier, ap)
+    case SilActionPredicate(subject, action, directObject, modifiers) => {
+      SilActionPredicate(
+        scopedRewrite(subject, INFLECT_NOMINATIVE),
+        action,
+        directObject.map(scopedRewrite(_, INFLECT_ACCUSATIVE)),
+        modifiers.map(scopedRewrite(_, INFLECT_ADPOSITIONED))
+      )
+    }
+  }
+
+  private def scopedRewrite[PhraseType <: SilPhrase](
+    phrase : PhraseType,
+    requiredInflection : SilInflection) : PhraseType =
+  {
+    if (requiredInflection == answerInflection) {
+      rewrite(rewriteSpecifier, phrase)
+    } else {
+      phrase
     }
   }
 }

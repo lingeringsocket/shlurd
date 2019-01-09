@@ -21,6 +21,7 @@ import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
 import scala.io._
+import scala.collection._
 
 import java.io._
 
@@ -60,6 +61,10 @@ class ShlurdFictionTerminal
 
 object ShlurdFictionShell
 {
+  val PLAYER_WORD = "player"
+
+  val INTERPRETER_WORD = "interpreter"
+
   def loadOrCreate(file : File) : (ShlurdCliMind, Boolean) =
   {
     val terminal = new ShlurdFictionTerminal
@@ -77,20 +82,20 @@ object ShlurdFictionShell
 
   def newMind() : ShlurdCliMind =
   {
-      val cosmos = new SpcCosmos
-      SpcPrimordial.initCosmos(cosmos)
-      val beliefs = SprParser.getResourceFile("/ontologies/fiction-beliefs.txt")
-      val source = Source.fromFile(beliefs)
-      cosmos.loadBeliefs(source)
+    val cosmos = new SpcCosmos
+    SpcPrimordial.initCosmos(cosmos)
+    val beliefs = SprParser.getResourceFile("/ontologies/fiction-beliefs.txt")
+    val source = Source.fromFile(beliefs)
+    cosmos.loadBeliefs(source)
 
-      val entityPlayer = cosmos.uniqueEntity(
-        cosmos.resolveQualifiedNoun(
-          "player", REF_SUBJECT, Set())).get
-      val entityInterpreter = cosmos.uniqueEntity(
-        cosmos.resolveQualifiedNoun(
-          "interpreter", REF_SUBJECT, Set())).get
+    val entityPlayer = cosmos.uniqueEntity(
+      cosmos.resolveQualifiedNoun(
+        PLAYER_WORD, REF_SUBJECT, Set())).get
+    val entityInterpreter = cosmos.uniqueEntity(
+      cosmos.resolveQualifiedNoun(
+        INTERPRETER_WORD, REF_SUBJECT, Set())).get
 
-      new ShlurdCliMind(cosmos, entityPlayer, entityInterpreter)
+    new ShlurdCliMind(cosmos, entityPlayer, entityInterpreter)
   }
 }
 
@@ -98,11 +103,51 @@ class ShlurdFictionShell(
   mind : ShlurdCliMind,
   terminal : ShlurdFictionTerminal = new ShlurdFictionTerminal)
 {
+  import ShlurdFictionShell._
+
+  sealed trait Deferred {
+  }
+
+  case class DeferredTrigger(quotation : String) extends Deferred
+
+  case class DeferredReport(quotation : String) extends Deferred
+
   private val params = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
+
+  private val deferredQueue = new mutable.Queue[Deferred]
 
   private val executor = new SmcExecutor[SpcEntity]
   {
-    override def executeImperative(predicate : SilPredicate) : Boolean =
+    override def executeAction(ap : SilActionPredicate) : Option[String] =
+    {
+      // FIXME make sure that verb is ask/say/etc
+      ap.directObject match {
+        case Some(SilQuotationReference(quotation)) => {
+          ap.subject match {
+            case SilNounReference(
+              SilWord(inflected, _), DETERMINER_UNIQUE, COUNT_SINGULAR
+            ) => {
+              val ok = Some("OK.")
+              inflected match {
+                case PLAYER_WORD => {
+                  defer(DeferredTrigger(quotation))
+                  ok
+                }
+                case INTERPRETER_WORD => {
+                  defer(DeferredReport(quotation))
+                  ok
+                }
+                case _ => None
+              }
+            }
+            case _ => None
+          }
+        }
+        case _ => None
+      }
+    }
+
+    override def executeImperative(predicate : SilPredicate) : Option[String] =
     {
       def playerRef =
         SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
@@ -111,7 +156,7 @@ class ShlurdFictionShell(
         case _ => predicate
       }
       val sentence = SilPredicateSentence(newPredicate)
-      interpretReentrant(sentence)
+      Some(interpretReentrantFiat(sentence))
     }
 
     override def executeInvocation(
@@ -123,17 +168,27 @@ class ShlurdFictionShell(
           SilPropertyState(invocation.state)
         )
       )
-      interpretReentrant(sentence)
+      interpretReentrantFiat(sentence)
     }
   }
 
   private val interpreter = new SpcInterpreter(
     mind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private def interpretReentrant(sentence : SilSentence) : Boolean =
+  private def interpretReentrantFiat(sentence : SilSentence) : String =
   {
-    val result = interpreter.interpret(sentence)
-    result == interpreter.sentencePrinter.sb.respondCompliance
+    interpreter.interpret(sentence)
+  }
+
+  private def interpretReentrantQuery(query : String) : String =
+  {
+    val sentence = interpreter.newParser(query).parseOne
+    interpreter.interpret(sentence, query)
+  }
+
+  private def defer(deferred : Deferred)
+  {
+    deferredQueue += deferred
   }
 
   def init()
@@ -148,6 +203,26 @@ class ShlurdFictionShell(
     terminal.emitControl("Initialization complete.")
   }
 
+  private def processDeferred()
+  {
+    while (deferredQueue.nonEmpty) {
+      deferredQueue.dequeue match {
+        case DeferredTrigger(quotation) => {
+          val sentences = mind.newParser(quotation).parseAll
+          sentences.foreach(sentence => {
+            val output = interpreter.interpret(sentence)
+            terminal.emitNarrative("")
+            terminal.emitNarrative(output)
+          })
+        }
+        case DeferredReport(quotation) => {
+          terminal.emitNarrative("")
+          terminal.emitNarrative(quotation)
+        }
+      }
+    }
+  }
+
   def run()
   {
     mind.startConversation
@@ -157,13 +232,9 @@ class ShlurdFictionShell(
       terminal.emitPrompt
       terminal.readCommand match {
         case Some(input) => {
-          val sentences = mind.newParser(input).parseAll
-          sentences.foreach(sentence => {
-            val output = interpreter.interpret(sentence)
-            terminal.emitNarrative("")
-            terminal.emitNarrative(output)
-            terminal.emitNarrative("")
-          })
+          defer(DeferredTrigger(input))
+          processDeferred
+          terminal.emitNarrative("")
         }
         case _ => {
           exit = true
