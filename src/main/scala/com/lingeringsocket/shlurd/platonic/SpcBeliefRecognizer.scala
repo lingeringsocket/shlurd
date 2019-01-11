@@ -355,7 +355,9 @@ class SpcBeliefRecognizer(
         }
       }
     }
-    querier.query(validateReferences, consequent)
+    if (sentence.tamConsequent.modality == MODAL_NEUTRAL) {
+      querier.query(validateReferences, consequent)
+    }
     if (invalid) {
       Seq.empty
     } else {

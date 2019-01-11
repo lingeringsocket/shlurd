@@ -8,6 +8,10 @@ OK.
 
 You are in the bathroom.
 
+go east
+
+But the player's container does not have an eastern-neighbor.
+
 what is in the bathroom
 
 The axe, the player, and the thief are in the bathroom.

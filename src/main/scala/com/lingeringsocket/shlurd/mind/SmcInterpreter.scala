@@ -597,7 +597,7 @@ class SmcInterpreter[
     }
   }
 
-  private def evaluateTamPredicate(
+  protected def evaluateTamPredicate(
     predicate : SilPredicate,
     tam : SilTam,
     resultCollector : ResultCollectorType) : Try[Trilean] =

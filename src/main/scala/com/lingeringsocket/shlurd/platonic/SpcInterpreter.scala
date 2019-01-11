@@ -403,13 +403,29 @@ class SpcInterpreter(
         val newSentence = SilPredicateSentence(newPredicate)
         spawn(imagine(forkedCosmos)).resolveReferences(
           newSentence, resultCollector, false, true)
-        val result = interpretBeliefOrAction(
-          forkedCosmos, newSentence, resultCollector)
-        if (result.isEmpty) {
-          // FIXME i18n
-          Some("Invalid consequent")
+        if (trigger.tamConsequent.modality == MODAL_MUST) {
+          evaluateTamPredicate(
+            newPredicate, SilTam.indicative, resultCollector) match
+          {
+            case Success(Trilean.True) => {
+              None
+            }
+            // FIXME what about unknown or error?
+            case _ => {
+              // FIXME i18n
+              Some("But " + sentencePrinter.printPredicateStatement(
+                newPredicate, SilTam.indicative.negative) + ".")
+            }
+          }
         } else {
-          result
+          val result = interpretBeliefOrAction(
+            forkedCosmos, newSentence, resultCollector)
+          if (result.isEmpty) {
+            // FIXME i18n
+            Some("Invalid consequent")
+          } else {
+            result
+          }
         }
       }
       case _ => None
