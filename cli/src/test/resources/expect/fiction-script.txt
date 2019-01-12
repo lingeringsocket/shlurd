@@ -59,3 +59,7 @@ It is in the bedroom.
 what is in the bathroom
 
 The thief is in the bathroom.
+
+go to the kitchen
+
+But the kitchen is not the player's container's neighbor.

@@ -16,18 +16,15 @@ A place may have an eastern-neighbor.
 A place may have a western-neighbor.
 A place with a northern-neighbor is a southern-neighbor.
 A place with an eastern-neighbor is a western-neighbor.
+A place with a neighbor is a neighbor.
 If a place is west of a location, then equivalently the place is the location's western-neighbor.
 If a place is east of a location, then equivalently the place is the location's eastern-neighbor.
 If a place is north of a location, then equivalently the place is the location's northern-neighbor.
 If a place is south of a location, then equivalently the place is the location's southern-neighbor.
 If a place is west of a location, then the place is the location's neighbor.
-If a place is west of a location, then the location is the place's neighbor.
 If a place is east of a location, then the place is the location's neighbor.
-If a place is east of a location, then the location is the place's neighbor.
 If a place is north of a location, then the place is the location's neighbor.
-If a place is north of a location, then the location is the place's neighbor.
 If a place is south of a location, then the place is the location's neighbor.
-If a place is south of a location, then the location is the place's neighbor.
 If a place is west of a location, then equivalently the location is the place's eastern-neighbor.
 If a place is east of a location, then equivalently the location is the place's western-neighbor.
 If a place is north of a location, then equivalently the location is the place's southern-neighbor.
