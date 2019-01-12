@@ -1,5 +1,6 @@
 The bedroom is a place.
 The bathroom is a place.
+The kitchen is a place.
 The bedroom is west of the bathroom.
 The player is in the bedroom.
 There is a thief.

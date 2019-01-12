@@ -4,10 +4,12 @@ A thief is a kind of person.
 There is an interpreter.
 There is a player.
 A place is a kind of object.
+A neighbor must be a place.
 A northern-neighbor must be a place.
 A southern-neighbor must be a place.
 An eastern-neighbor must be a place.
 A western-neighbor must be a place.
+A place may have neighbors.
 A place may have a northern-neighbor.
 A place may have a southern-neighbor.
 A place may have an eastern-neighbor.
@@ -18,6 +20,14 @@ If a place is west of a location, then equivalently the place is the location's 
 If a place is east of a location, then equivalently the place is the location's eastern-neighbor.
 If a place is north of a location, then equivalently the place is the location's northern-neighbor.
 If a place is south of a location, then equivalently the place is the location's southern-neighbor.
+If a place is west of a location, then the place is the location's neighbor.
+If a place is west of a location, then the location is the place's neighbor.
+If a place is east of a location, then the place is the location's neighbor.
+If a place is east of a location, then the location is the place's neighbor.
+If a place is north of a location, then the place is the location's neighbor.
+If a place is north of a location, then the location is the place's neighbor.
+If a place is south of a location, then the place is the location's neighbor.
+If a place is south of a location, then the location is the place's neighbor.
 If a place is west of a location, then equivalently the location is the place's eastern-neighbor.
 If a place is east of a location, then equivalently the location is the place's western-neighbor.
 If a place is north of a location, then equivalently the location is the place's southern-neighbor.
@@ -45,5 +55,6 @@ If a person gets an object, then the object must be in the person's container.
 If a person gets an object, then the object is in the person.
 If a person drops an object, then the object must be in the person.
 If a person drops an object, then the object is in the person's container.
+If a player moves to a location, then the location must be the player's container's neighbor.
 If a player moves to a location, then the player asks "where am I".
 If a person kills the thief, then the interpreter says "Blood splatters everywhere.".
