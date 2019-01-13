@@ -2,11 +2,23 @@ where am I
 
 You are in the bedroom.
 
+is the door open
+
+Yes, it is open.
+
 go east
 
 OK.
 
 You are in the bathroom.
+
+close the door
+
+OK.
+
+is the door open
+
+No, it is not open.
 
 go east
 
