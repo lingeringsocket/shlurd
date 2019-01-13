@@ -45,8 +45,7 @@ A door is a kind of object.
 A door must be open or closed.
 A thief must be alive or dead.
 An axe is a kind of object.
-If a person throws an axe to a target, then the axe must be in the person.
-If a person throws an axe to a target, then the axe is in the person's container.
+If a person throws an axe to a target, then the person drops the axe.
 If a person throws an axe to a target, then the person kills the target.
 If a person gets an object, then the object must be in the person's container.
 If a person gets an object, then the object is in the person.

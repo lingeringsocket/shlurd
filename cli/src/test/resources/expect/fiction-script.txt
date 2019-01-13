@@ -32,7 +32,7 @@ is the thief alive?
 
 Yes, it is alive.
 
-kill the thief
+throw the axe to the thief
 
 OK.
 
@@ -48,17 +48,13 @@ OK.
 
 You are in the bedroom.
 
-drop the axe
-
-OK.
-
 where is the axe
 
-It is in the bedroom.
+It is in the bathroom.
 
 what is in the bathroom
 
-The thief is in the bathroom.
+The axe and the thief are in the bathroom.
 
 go to the kitchen
 
