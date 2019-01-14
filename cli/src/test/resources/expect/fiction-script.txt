@@ -62,6 +62,10 @@ is the thief alive
 
 No, it is not alive.
 
+go to the kitchen
+
+But the kitchen is not the player's container's neighbor.
+
 go west
 
 OK.
@@ -76,6 +80,8 @@ what is in the bathroom
 
 The axe and the thief are in the bathroom.
 
-go to the kitchen
+go west
 
-But the kitchen is not the player's container's neighbor.
+OK.
+
+You are in the kitchen.

@@ -410,7 +410,10 @@ class SpcInterpreter(
             case Success(Trilean.True) => {
               None
             }
-            // FIXME what about unknown or error?
+            case Failure(e) => {
+              // FIXME we should be pickier about the error
+              None
+            }
             case _ => {
               // FIXME i18n
               Some("But " + sentencePrinter.printPredicateStatement(

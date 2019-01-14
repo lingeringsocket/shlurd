@@ -79,7 +79,7 @@ A door is a kind of object.
 A door must be open or closed.
 If a person traverses a door, then the door must be open.
 
-A place may have a nothern-door.
+A place may have a northern-door.
 A place may have a southern-door.
 A place may have an eastern-door.
 A place may have a western-door.

@@ -650,6 +650,7 @@ class SpcInterpreterSpec extends Specification
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
       interpretBelief("a wire must be red or blue")
+      interpretBelief("there is an important wire")
       interpretBelief("the important wire is red")
       interpretBelief("if a person cuts a wire, then the wire must be blue")
       interpretBelief("MacGyver is a person")

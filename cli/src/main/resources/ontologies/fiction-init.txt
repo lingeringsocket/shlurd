@@ -3,6 +3,7 @@ The bathroom is a place.
 The kitchen is a place.
 
 The bedroom is west of the bathroom.
+The bedroom is east of the kitchen.
 
 The player is in the bedroom.
 

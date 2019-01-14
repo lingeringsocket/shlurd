@@ -65,6 +65,8 @@ object ShlurdFictionShell
 
   val INTERPRETER_WORD = "interpreter"
 
+  val OK = "OK."
+
   def loadOrCreate(file : File) : (ShlurdCliMind, Boolean) =
   {
     val terminal = new ShlurdFictionTerminal
@@ -127,7 +129,7 @@ class ShlurdFictionShell(
             case SilNounReference(
               SilWord(inflected, _), DETERMINER_UNIQUE, COUNT_SINGULAR
             ) => {
-              val ok = Some("OK.")
+              val ok = Some(OK)
               inflected match {
                 case PLAYER_WORD => {
                   defer(DeferredTrigger(quotation))
@@ -199,7 +201,7 @@ class ShlurdFictionShell(
       source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
     sentences.foreach(sentence => {
       val output = interpreter.interpret(sentence)
-      assert(output == "OK.", output)
+      assert(output == OK, output)
     })
     terminal.emitControl("Initialization complete.")
   }
@@ -217,7 +219,7 @@ class ShlurdFictionShell(
             terminal.emitNarrative(output)
             if (first) {
               first = false
-              if (output != "OK.") {
+              if (output != OK) {
                 deferredQueue.clear
               }
             }
