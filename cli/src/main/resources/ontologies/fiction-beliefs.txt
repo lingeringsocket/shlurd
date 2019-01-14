@@ -77,6 +77,21 @@ If a person kills the thief, then
 
 A door is a kind of object.
 A door must be open or closed.
+If a person traverses a door, then the door must be open.
+
+A place may have a nothern-door.
+A place may have a southern-door.
+A place may have an eastern-door.
+A place may have a western-door.
+
+If a person goes north, then
+ the person traverses the person's container's northern-door.
+If a person goes south, then
+ the person traverses the person's container's southern-door.
+If a person goes east, then
+ the person traverses the person's container's eastern-door.
+If a person goes west, then
+ the person traverses the person's container's western-door.
 
 An axe is a kind of object.
 If a person throws an axe to a target, then the person drops the axe.

@@ -10,8 +10,11 @@ There is a thief.
 The thief is in the bathroom.
 The thief is alive.
 
-There is a bathroom door.
-The bathroom door is open.
+There is a big door.
+The big door is open.
 
 There is an axe.
 The axe is in the bathroom.
+
+The big door is the bedroom's eastern-door.
+The big door is the bathroom's western-door.

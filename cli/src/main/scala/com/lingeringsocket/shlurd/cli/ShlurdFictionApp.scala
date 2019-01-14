@@ -206,6 +206,7 @@ class ShlurdFictionShell(
 
   private def processDeferred()
   {
+    var first = true
     while (deferredQueue.nonEmpty) {
       deferredQueue.dequeue match {
         case DeferredTrigger(quotation) => {
@@ -214,6 +215,12 @@ class ShlurdFictionShell(
             val output = interpreter.interpret(sentence)
             terminal.emitNarrative("")
             terminal.emitNarrative(output)
+            if (first) {
+              first = false
+              if (output != "OK.") {
+                deferredQueue.clear
+              }
+            }
           })
         }
         case DeferredReport(quotation) => {

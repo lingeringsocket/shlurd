@@ -20,6 +20,14 @@ is the door open
 
 No, it is not open.
 
+go west
+
+But the player's container's western-door is not open.
+
+open the door
+
+OK.
+
 go east
 
 But the player's container does not have an eastern-neighbor.

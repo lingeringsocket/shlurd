@@ -421,8 +421,7 @@ class SpcInterpreter(
           val result = interpretBeliefOrAction(
             forkedCosmos, newSentence, resultCollector)
           if (result.isEmpty) {
-            // FIXME i18n
-            Some("Invalid consequent")
+            Some(sentencePrinter.sb.respondCompliance)
           } else {
             result
           }
