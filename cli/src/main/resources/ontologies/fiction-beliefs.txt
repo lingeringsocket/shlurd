@@ -45,12 +45,12 @@ If a place is north of a location, then equivalently
 If a place is south of a location, then equivalently
  the location is the place's northern-neighbor.
 
-If a person moves to a location, then the person is in the location.
-If a person goes to a location, then the person moves to the location.
-If a person enters a location, then the person moves to the location.
-If a player moves to a location, then
- the location must be the player's container's neighbor.
-If a player moves to a location, then the player asks "where am I".
+If a person moves to a place, then the person is in the place.
+If a person goes to a place, then the person moves to the place.
+If a person enters a place, then the person moves to the place.
+If a player moves to a place, then
+ the place must be the player's container's neighbor.
+If a player moves to a place, then the player asks "where am I".
 
 If a person goes east, then
  the person's container must have an eastern-neighbor.
