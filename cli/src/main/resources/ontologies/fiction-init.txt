@@ -1,12 +1,17 @@
 The bedroom is a place.
 The bathroom is a place.
 The kitchen is a place.
+
 The bedroom is west of the bathroom.
+
 The player is in the bedroom.
+
 There is a thief.
 The thief is in the bathroom.
+The thief is alive.
+
 There is a bathroom door.
 The bathroom door is open.
-The thief is alive.
+
 There is an axe.
 The axe is in the bathroom.

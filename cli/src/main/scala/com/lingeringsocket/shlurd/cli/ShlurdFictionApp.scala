@@ -195,7 +195,8 @@ class ShlurdFictionShell(
   {
     val source = Source.fromFile(
       SprParser.getResourceFile("/ontologies/fiction-init.txt"))
-    val sentences = mind.newParser(source.getLines.mkString("\n")).parseAll
+    val sentences = mind.newParser(
+      source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
     sentences.foreach(sentence => {
       val output = interpreter.interpret(sentence)
       assert(output == "OK.", output)

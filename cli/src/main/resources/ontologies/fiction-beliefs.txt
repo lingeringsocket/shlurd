@@ -3,54 +3,68 @@ A player is a kind of person.
 A thief is a kind of person.
 There is an interpreter.
 There is a player.
+
 A place is a kind of object.
 A neighbor must be a place.
+A place may have neighbors.
+A place with a neighbor is a neighbor.
+
 A northern-neighbor must be a place.
 A southern-neighbor must be a place.
 An eastern-neighbor must be a place.
 A western-neighbor must be a place.
-A place may have neighbors.
+
 A place may have a northern-neighbor.
 A place may have a southern-neighbor.
 A place may have an eastern-neighbor.
 A place may have a western-neighbor.
+
 A place with a northern-neighbor is a southern-neighbor.
 A place with an eastern-neighbor is a western-neighbor.
-A place with a neighbor is a neighbor.
+
 If a place is west of a location, then equivalently the place is the location's western-neighbor.
 If a place is east of a location, then equivalently the place is the location's eastern-neighbor.
 If a place is north of a location, then equivalently the place is the location's northern-neighbor.
 If a place is south of a location, then equivalently the place is the location's southern-neighbor.
+
 If a place is west of a location, then the place is the location's neighbor.
 If a place is east of a location, then the place is the location's neighbor.
 If a place is north of a location, then the place is the location's neighbor.
 If a place is south of a location, then the place is the location's neighbor.
+
 If a place is west of a location, then equivalently the location is the place's eastern-neighbor.
 If a place is east of a location, then equivalently the location is the place's western-neighbor.
 If a place is north of a location, then equivalently the location is the place's southern-neighbor.
 If a place is south of a location, then equivalently the location is the place's northern-neighbor.
+
 If a person moves to a location, then the person is in the location.
 If a person goes to a location, then the person moves to the location.
 If a person enters a location, then the person moves to the location.
-If a person kills a victim, then the victim is dead.
+If a player moves to a location, then the location must be the player's container's neighbor.
+If a player moves to a location, then the player asks "where am I".
+
 If a person goes east, then the person's container must have an eastern-neighbor.
 If a person goes west, then the person's container must have a western-neighbor.
 If a person goes north, then the person's container must have a northern-neighbor.
 If a person goes south, then the person's container must have a southern-neighbor.
+
 If a person goes west, then the person moves to the person's container's western-neighbor.
 If a person goes east, then the person moves to the person's container's eastern-neighbor.
 If a person goes north, then the person moves to the person's container's northern-neighbor.
 If a person goes south, then the person moves to the person's container's southern-neighbor.
+
+If a person kills a victim, then the victim is dead.
+A thief must be alive or dead.
+If a person kills the thief, then the interpreter says "Blood splatters everywhere.".
+
 A door is a kind of object.
 A door must be open or closed.
-A thief must be alive or dead.
+
 An axe is a kind of object.
 If a person throws an axe to a target, then the person drops the axe.
 If a person throws an axe to a target, then the person kills the target.
+
 If a person gets an object, then the object must be in the person's container.
 If a person gets an object, then the object is in the person.
 If a person drops an object, then the object must be in the person.
 If a person drops an object, then the object is in the person's container.
-If a player moves to a location, then the location must be the player's container's neighbor.
-If a player moves to a location, then the player asks "where am I".
-If a person kills the thief, then the interpreter says "Blood splatters everywhere.".
