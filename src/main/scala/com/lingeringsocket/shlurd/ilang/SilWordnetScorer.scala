@@ -18,34 +18,47 @@ import com.lingeringsocket.shlurd._
 
 class SilWordnetScorer extends SilPhraseScorer
 {
+  type PhraseScorer = PartialFunction[SilPhrase, SilPhraseScore]
+
   private val dictionary = ShlurdWordnet.dictionary
 
   private val morphology = ShlurdWordnet.morphology
 
-  override def computeLocalScore(phrase : SilPhrase) =
-  {
-    phrase match {
-      case SilGenitiveReference(
-        _,
-        _ : SilPronounReference
-      ) => {
+  private def phraseScorer(s : PhraseScorer)
+      : PhraseScorer = s
+
+  private def phraseScorers() = Seq(
+    scoreGenitives,
+    scoreVerbTransitivity
+  )
+
+  private def scoreGenitives = phraseScorer {
+    case SilGenitiveReference(
+      _,
+      _ : SilPronounReference
+    ) => {
+      SilPhraseScore.conBig
+    }
+  }
+
+  private def scoreVerbTransitivity = phraseScorer {
+    case SilActionPredicate(
+      _,
+      action,
+      Some(_),
+      _
+    ) => {
+      if (ShlurdWordnet.isTransitiveVerb(action.lemma)) {
+        SilPhraseScore.proSmall
+      } else {
         SilPhraseScore.conBig
       }
-      case SilActionPredicate(
-        _,
-        action,
-        Some(_),
-        _
-      ) => {
-        if (ShlurdWordnet.isTransitiveVerb(action.lemma)) {
-          SilPhraseScore.proSmall
-        } else {
-          SilPhraseScore.conBig
-        }
-      }
-      case _ => {
-        SilPhraseScore.neutral
-      }
     }
+  }
+
+  override def computeLocalScore(phrase : SilPhrase) =
+  {
+    phraseScorers().map(_.lift(phrase).getOrElse(SilPhraseScore.neutral)).
+      reduceLeft(_ + _)
   }
 }

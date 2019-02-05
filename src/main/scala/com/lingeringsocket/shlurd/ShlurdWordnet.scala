@@ -19,11 +19,22 @@ import net.sf.extjwnl.dictionary._
 
 import scala.collection.JavaConverters._
 
+import java.util.regex._
+
+object ShlurdEnglishAffixes
+{
+  val SUFFIX_ING = "ing"
+}
+
 object ShlurdWordnet
 {
+  import ShlurdEnglishAffixes._
+
   val dictionary = Dictionary.getDefaultResourceInstance
 
   val morphology = dictionary.getMorphologicalProcessor
+
+  private val plainPattern = Pattern.compile("\\p{javaLowerCase}+")
 
   def isTransitiveVerb(lemma : String) : Boolean =
   {
@@ -44,5 +55,66 @@ object ShlurdWordnet
       }
       case _ => true
     }
+  }
+
+  def isPotentialAdverb(inflected : String) : Boolean =
+  {
+    Option(dictionary.getIndexWord(POS.ADVERB, inflected)) match {
+      case Some(indexWord) => true
+      case _ => false
+    }
+  }
+
+  def isPotentialNoun(inflected : String) : Boolean =
+  {
+    Option(dictionary.getIndexWord(POS.NOUN, inflected)) match {
+      case Some(indexWord) => true
+      case _ => false
+    }
+  }
+
+  def isPotentialGerund(inflected : String) : Boolean =
+  {
+    if (!inflected.endsWith(SUFFIX_ING)) {
+      false
+    } else {
+      Option(dictionary.getIndexWord(POS.ADJECTIVE, inflected)) match {
+        case Some(indexWord) => true
+        case _ => false
+      }
+    }
+  }
+
+  def isPotentialPlural(noun : String) : Boolean =
+  {
+    val bases = morphology.lookupAllBaseForms(POS.NOUN, noun).asScala
+    return (bases.size > 1) || !bases.contains(noun)
+  }
+
+  def isPlural(indexWord : IndexWord) : Boolean =
+  {
+    val senses = indexWord.getSenses.asScala
+    senses.exists(s => {
+      val equivalents = s.getWords.asScala.
+        filter(w => isPlainWord(w.getLemma)).
+        filter(_.getLemma != indexWord.getLemma)
+      s.getGloss.startsWith("(plural) ") ||
+        (equivalents.count(w => isPotentialPlural(w.getLemma)) > 1)
+    })
+  }
+
+  def isPlainWord(word : String) : Boolean =
+  {
+    plainPattern.matcher(word).matches
+  }
+
+  def isAcronym(indexWord : IndexWord) : Boolean =
+  {
+    indexWord.getSenses.asScala.forall(sense => {
+      sense.getWords.asScala.exists(word => {
+        (word.getLemma.forall(_.isUpper)) &&
+          (word.getLemma.toLowerCase == indexWord.getLemma)
+      })
+    })
   }
 }

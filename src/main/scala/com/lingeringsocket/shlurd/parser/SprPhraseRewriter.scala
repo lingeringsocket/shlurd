@@ -120,13 +120,13 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
       case SilStateSpecifiedReference(
         _,
         SilPropertyState(word)
-      ) if (SprWordnetScorer.isPotentialAdverb(word.inflected)) => {
+      ) if (ShlurdWordnet.isPotentialAdverb(word.inflected)) => {
         negative -= 1
       }
       case SilStateSpecifiedReference(
         SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
         _ : SilAdpositionalState
-      ) if (SprWordnetScorer.isPotentialAdverb(noun.inflected)) => {
+      ) if (ShlurdWordnet.isPotentialAdverb(noun.inflected)) => {
         negative -= 1
       }
       case ap : SilAdpositionalPhrase if (ap.adposition.words.size > 1) => {
@@ -153,7 +153,7 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
       }
       case SilNounReference(
         word : SilWord, _, _
-      ) if (SprWordnetScorer.isPotentialGerund(word.inflected)) => {
+      ) if (ShlurdWordnet.isPotentialGerund(word.inflected)) => {
         negative -= 1
       }
       case SilAdpositionalState(

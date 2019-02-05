@@ -17,21 +17,13 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
-import SprEnglishAffixes._
-
 import net.sf.extjwnl.data._
 
 import scala.collection.JavaConverters._
 
-import java.util.regex._
-
 object SprWordnetScorer extends SilPhraseRewriter
 {
-  val dictionary = ShlurdWordnet.dictionary
-
-  val morphology = ShlurdWordnet.morphology
-
-  private val plainPattern = Pattern.compile("\\p{javaLowerCase}+")
+  private val dictionary = ShlurdWordnet.dictionary
 
   def adjustScores(sentence : SilSentence) : SilSentence =
   {
@@ -78,66 +70,5 @@ object SprWordnetScorer extends SilPhraseRewriter
       }
       case _ => modifier
     }
-  }
-
-  def isPotentialAdverb(inflected : String) : Boolean =
-  {
-    Option(dictionary.getIndexWord(POS.ADVERB, inflected)) match {
-      case Some(indexWord) => true
-      case _ => false
-    }
-  }
-
-  def isPotentialNoun(inflected : String) : Boolean =
-  {
-    Option(dictionary.getIndexWord(POS.NOUN, inflected)) match {
-      case Some(indexWord) => true
-      case _ => false
-    }
-  }
-
-  def isPotentialGerund(inflected : String) : Boolean =
-  {
-    if (!inflected.endsWith(SUFFIX_ING)) {
-      false
-    } else {
-      Option(dictionary.getIndexWord(POS.ADJECTIVE, inflected)) match {
-        case Some(indexWord) => true
-        case _ => false
-      }
-    }
-  }
-
-  def isPotentialPlural(noun : String) : Boolean =
-  {
-    val bases = morphology.lookupAllBaseForms(POS.NOUN, noun).asScala
-    return (bases.size > 1) || !bases.contains(noun)
-  }
-
-  def isPlural(indexWord : IndexWord) : Boolean =
-  {
-    val senses = indexWord.getSenses.asScala
-    senses.exists(s => {
-      val equivalents = s.getWords.asScala.
-        filter(w => isPlainWord(w.getLemma)).
-        filter(_.getLemma != indexWord.getLemma)
-      s.getGloss.startsWith("(plural) ") ||
-        (equivalents.count(w => isPotentialPlural(w.getLemma)) > 1)
-    })
-  }
-
-  def isPlainWord(word : String) : Boolean =
-  {
-    plainPattern.matcher(word).matches
-  }
-
-  def isAcronym(indexWord : IndexWord) : Boolean =
-  {
-    indexWord.getSenses.asScala.forall(sense => {
-      sense.getWords.asScala.exists(word => {
-        (word.getLemma.forall(_.isUpper)) &&
-          (word.getLemma.toLowerCase == indexWord.getLemma)
-      })
-    })
   }
 }

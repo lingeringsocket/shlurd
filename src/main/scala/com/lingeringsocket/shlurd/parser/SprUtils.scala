@@ -123,11 +123,6 @@ object SprEnglishLemmas
   val LEMMA_ADVERBIAL_TMP = "_TEMPORAL_"
 }
 
-object SprEnglishAffixes
-{
-  val SUFFIX_ING = "ing"
-}
-
 object SprUtils
 {
   def capitalize(s : String) = s.head.toUpper + s.tail

@@ -21,7 +21,7 @@ import org.specs2.mutable._
 import org.specs2.specification.core._
 
 import SprEnglishLemmas._
-import SprEnglishAffixes._
+import ShlurdEnglishAffixes._
 
 // FIXME:  add coverage for various modifier types
 // LEMMA_EXIST, including "there is" form

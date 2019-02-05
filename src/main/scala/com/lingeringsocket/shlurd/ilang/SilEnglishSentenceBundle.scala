@@ -20,7 +20,7 @@ import com.lingeringsocket.shlurd.parser._
 import org.atteo.evo.inflector.{English => EnglishPluralizer}
 
 import SprEnglishLemmas._
-import SprEnglishAffixes._
+import ShlurdEnglishAffixes._
 
 class SilEnglishSentenceBundle
     extends SilSentenceBundle

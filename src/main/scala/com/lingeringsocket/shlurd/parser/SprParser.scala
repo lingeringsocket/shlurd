@@ -134,7 +134,6 @@ class SprAmbiguityParser(
   singles : Seq[SprParser])
     extends SprParser
 {
-
   override def parseOne() =
   {
     val alternatives = singles.map(_.parseOne)

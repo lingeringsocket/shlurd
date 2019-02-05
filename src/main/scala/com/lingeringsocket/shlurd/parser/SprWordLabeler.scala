@@ -18,7 +18,7 @@ import com.lingeringsocket.shlurd._
 
 import SprPennTreebankLabels._
 import SprEnglishLemmas._
-import SprEnglishAffixes._
+import ShlurdEnglishAffixes._
 
 import net.sf.extjwnl.data._
 
@@ -109,7 +109,7 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
                   (other.getLemma != tokenSuffix))))
           }
         }
-        filteredWords.filterNot(SprWordnetScorer.isAcronym).flatMap(
+        filteredWords.filterNot(ShlurdWordnet.isAcronym).flatMap(
           indexWord => makePreTerminals(
             word, token, tokenPrefix, tokenSuffix,
             indexWord, (iToken == 0), filteredWords))
@@ -235,7 +235,7 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
       case POS.ADJECTIVE => LABEL_JJ
       case POS.ADVERB => LABEL_RB
       case POS.NOUN => {
-        if ((tokenSuffix != lemma) || SprWordnetScorer.isPlural(indexWord)) {
+        if ((tokenSuffix != lemma) || ShlurdWordnet.isPlural(indexWord)) {
           LABEL_NNS
         } else {
           if (forceProper) {
@@ -282,14 +282,14 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
       val conformedLemma = {
         label match {
           case LABEL_VBN => {
-            if (SprWordnetScorer.isPotentialNoun(tokenSuffix)) {
+            if (ShlurdWordnet.isPotentialNoun(tokenSuffix)) {
               tokenSuffix
             } else {
               lemma
             }
           }
           case LABEL_JJ => {
-            if (SprWordnetScorer.isPotentialNoun(tokenSuffix)) {
+            if (ShlurdWordnet.isPotentialNoun(tokenSuffix)) {
               lemma
             } else {
               alternatives.find(v => (v.getPOS == POS.VERB)).
