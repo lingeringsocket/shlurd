@@ -41,9 +41,10 @@ class SilWordnetScorerSpec extends Specification
         DETERMINER_ALL,
         Seq(genitiveInvalid, genitiveInvalid))
       scorer.computeLocalScore(conjunction) must be equalTo
-        SilPhraseScore.neutral
+        SilPhraseScore.conSmall
       scorer.computeGlobalScore(conjunction) must be equalTo
-        (SilPhraseScore.conBig + SilPhraseScore.conBig)
+        (SilPhraseScore.conBig + SilPhraseScore.conBig +
+          SilPhraseScore.conSmall)
     }
 
     "score intransitive verbs" in

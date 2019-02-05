@@ -40,6 +40,11 @@ object SilPhraseScore
     SilPhraseScore(n, 0)
   }
 
+  def con(n : Int) = {
+    assert(n > 0)
+    SilPhraseScore(0, n)
+  }
+
   def proBig() = pro(100)
 
   def proSmall() = pro(1)
@@ -47,11 +52,6 @@ object SilPhraseScore
   def conBig() = con(100)
 
   def conSmall() = con(1)
-
-  def con(n : Int) = {
-    assert(n > 0)
-    SilPhraseScore(0, n)
-  }
 }
 
 trait SilPhraseScorer

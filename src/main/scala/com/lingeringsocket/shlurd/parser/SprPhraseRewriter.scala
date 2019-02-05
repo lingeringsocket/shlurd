@@ -18,7 +18,6 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import SprUtils._
-import SprEnglishLemmas._
 
 object SprPhraseRewriter extends SprEnglishWordAnalyzer
 {
@@ -38,12 +37,14 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
         // pick the one with the minimum number of unparsed leaves
         leastUnknown
       } else {
-        val scores = clean.map(computeScore)
+        val scorer = new SilWordnetScorer
+        val scores = clean.map(scorer.computeGlobalScore)
+        val maxScore = scores.max
         val bestScore = {
-          if (scores.max <= -100) {
-            0
+          if (maxScore <= SilPhraseScore.conBig) {
+            SilPhraseScore.neutral
           } else {
-            scores.max
+            maxScore
           }
         }
         val candidates =
@@ -93,110 +94,6 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
       Some(second)
     } else {
       None
-    }
-  }
-
-  private def computeScore(s : SilSentence) : Int =
-  {
-    val querier = new SilPhraseRewriter
-    var negative = 0
-    var positive = 0
-    def examinePhrase = querier.queryMatcher {
-      case SilBasicVerbModifier(_, score) => {
-        if (score < 0) {
-          negative -= 1
-        } else if (score > 0) {
-          positive += 1
-        }
-      }
-      case SilActionPredicate(
-        _,
-        action,
-        Some(_),
-        _
-      ) if (!ShlurdWordnet.isTransitiveVerb(action.lemma)) => {
-        negative -= 100
-      }
-      case SilStateSpecifiedReference(
-        _,
-        SilPropertyState(word)
-      ) if (ShlurdWordnet.isPotentialAdverb(word.inflected)) => {
-        negative -= 1
-      }
-      case SilStateSpecifiedReference(
-        SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-        _ : SilAdpositionalState
-      ) if (ShlurdWordnet.isPotentialAdverb(noun.inflected)) => {
-        negative -= 1
-      }
-      case ap : SilAdpositionalPhrase if (ap.adposition.words.size > 1) => {
-        if (ap.adposition.words.forall(word => isAdposition(word.lemma))) {
-          negative -= 1
-        } else {
-          positive += 100
-        }
-      }
-      case SilRelationshipPredicate(
-        _,
-        SilNounReference(_, DETERMINER_UNSPECIFIED, COUNT_SINGULAR) |
-          SilStateSpecifiedReference(
-            SilNounReference(_, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-            _
-          ),
-        _,
-        _
-      ) => {
-        negative -= 1
-      }
-      case SilPropertyState(SilWord("longer", _)) => {
-        negative -= 100
-      }
-      case SilNounReference(
-        word : SilWord, _, _
-      ) if (ShlurdWordnet.isPotentialGerund(word.inflected)) => {
-        negative -= 1
-      }
-      case SilAdpositionalState(
-        _,
-        SilStateSpecifiedReference(
-          _,
-          _ : SilAdpositionalState)
-      ) => {
-        negative -= 100
-      }
-      case SilAdpositionalVerbModifier(
-        _,
-        SilStateSpecifiedReference(
-          _,
-          _ : SilAdpositionalState)
-      ) => {
-        negative -= 100
-      }
-      case SilConjunctiveReference(
-        _, refs, _
-      ) if (refs.exists(!_.isInstanceOf[SilNounReference])) => {
-        negative -= 1
-      }
-      case ap : SilAdpositionalPhrase => {
-        val words = ap.adposition.words
-        if ((words.size > 1) && words.exists(_.lemma == LEMMA_THERE)) {
-          negative -= 100
-        } else if (words.exists(_.inflected == LEMMA_ADVERBIAL_TMP)) {
-          positive += 1
-        }
-      }
-    }
-    querier.query(examinePhrase, s)
-    if (negative <= -100) {
-      -100
-    } else if (positive >= 100) {
-      100
-    } else if (negative < 0) {
-      -1
-    } else if (positive > 0) {
-      1
-    } else {
-      0
     }
   }
 
