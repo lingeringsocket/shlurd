@@ -50,9 +50,9 @@ object SprWordnetLabeler
 
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
 
-  private val dictionary = SprWordnetScorer.dictionary
+  private val dictionary = ShlurdWordnet.dictionary
 
-  private val morphology = SprWordnetScorer.morphology
+  private val morphology = ShlurdWordnet.morphology
 }
 
 class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer

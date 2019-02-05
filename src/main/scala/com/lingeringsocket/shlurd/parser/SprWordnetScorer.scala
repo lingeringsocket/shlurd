@@ -14,12 +14,12 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import SprEnglishAffixes._
 
 import net.sf.extjwnl.data._
-import net.sf.extjwnl.dictionary._
 
 import scala.collection.JavaConverters._
 
@@ -27,9 +27,9 @@ import java.util.regex._
 
 object SprWordnetScorer extends SilPhraseRewriter
 {
-  val dictionary = Dictionary.getDefaultResourceInstance
+  val dictionary = ShlurdWordnet.dictionary
 
-  val morphology = dictionary.getMorphologicalProcessor
+  val morphology = ShlurdWordnet.morphology
 
   private val plainPattern = Pattern.compile("\\p{javaLowerCase}+")
 
