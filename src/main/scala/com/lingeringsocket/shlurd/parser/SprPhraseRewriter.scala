@@ -114,7 +114,7 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
         action,
         Some(_),
         _
-      ) if (!SprWordnetScorer.isTransitiveVerb(action)) => {
+      ) if (!ShlurdWordnet.isTransitiveVerb(action.lemma)) => {
         negative -= 100
       }
       case SilStateSpecifiedReference(

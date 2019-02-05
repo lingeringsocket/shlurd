@@ -18,9 +18,9 @@ import com.lingeringsocket.shlurd._
 
 class SilWordnetScorer extends SilPhraseScorer
 {
-  val dictionary = ShlurdWordnet.dictionary
+  private val dictionary = ShlurdWordnet.dictionary
 
-  val morphology = ShlurdWordnet.morphology
+  private val morphology = ShlurdWordnet.morphology
 
   override def computeLocalScore(phrase : SilPhrase) =
   {
@@ -30,6 +30,18 @@ class SilWordnetScorer extends SilPhraseScorer
         _ : SilPronounReference
       ) => {
         SilPhraseScore.conBig
+      }
+      case SilActionPredicate(
+        _,
+        action,
+        Some(_),
+        _
+      ) => {
+        if (ShlurdWordnet.isTransitiveVerb(action.lemma)) {
+          SilPhraseScore.proSmall
+        } else {
+          SilPhraseScore.conBig
+        }
       }
       case _ => {
         SilPhraseScore.neutral

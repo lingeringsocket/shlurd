@@ -80,27 +80,6 @@ object SprWordnetScorer extends SilPhraseRewriter
     }
   }
 
-  def isTransitiveVerb(word : SilWord) : Boolean =
-  {
-    if (word.lemma == "go") {
-      return false
-    }
-    Option(dictionary.getIndexWord(POS.VERB, word.lemma)) match {
-      case Some(indexWord) => {
-        // FIXME this is totally arbitrary; but to get this right, seems like
-        // we need to parse through the actual glosses since the verb frames
-        // don't distinguish adposition objects from direct objects
-        val senses = indexWord.getSenses.asScala.take(4)
-        senses.exists(sense => {
-          sense.getVerbFrames.exists(frame =>
-            frame.contains("----s some")
-          )
-        })
-      }
-      case _ => true
-    }
-  }
-
   def isPotentialAdverb(inflected : String) : Boolean =
   {
     Option(dictionary.getIndexWord(POS.ADVERB, inflected)) match {

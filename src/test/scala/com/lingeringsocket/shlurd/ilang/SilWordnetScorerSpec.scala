@@ -45,5 +45,27 @@ class SilWordnetScorerSpec extends Specification
       scorer.computeGlobalScore(conjunction) must be equalTo
         (SilPhraseScore.conBig + SilPhraseScore.conBig)
     }
+
+    "score intransitive verbs" in
+    {
+      val action = SilActionPredicate(
+        pronoun,
+        SilWord("chuckle"),
+        Some(pronoun)
+      )
+      scorer.computeLocalScore(action) must be equalTo
+        SilPhraseScore.conBig
+    }
+
+    "score transitive verbs" in
+    {
+      val action = SilActionPredicate(
+        pronoun,
+        SilWord("kill"),
+        Some(pronoun)
+      )
+      scorer.computeLocalScore(action) must be equalTo
+        SilPhraseScore.proSmall
+    }
   }
 }

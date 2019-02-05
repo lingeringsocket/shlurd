@@ -14,11 +14,35 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd
 
+import net.sf.extjwnl.data._
 import net.sf.extjwnl.dictionary._
+
+import scala.collection.JavaConverters._
 
 object ShlurdWordnet
 {
   val dictionary = Dictionary.getDefaultResourceInstance
 
   val morphology = dictionary.getMorphologicalProcessor
+
+  def isTransitiveVerb(lemma : String) : Boolean =
+  {
+    if (lemma == "go") {
+      return false
+    }
+    Option(dictionary.getIndexWord(POS.VERB, lemma)) match {
+      case Some(indexWord) => {
+        // FIXME this is totally arbitrary; but to get this right, seems like
+        // we need to parse through the actual glosses since the verb frames
+        // don't distinguish adposition objects from direct objects
+        val senses = indexWord.getSenses.asScala.take(4)
+        senses.exists(sense => {
+          sense.getVerbFrames.exists(frame =>
+            frame.contains("----s some")
+          )
+        })
+      }
+      case _ => true
+    }
+  }
 }
