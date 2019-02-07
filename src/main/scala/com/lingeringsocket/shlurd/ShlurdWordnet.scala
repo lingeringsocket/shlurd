@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd
 import net.sf.extjwnl.data._
 import net.sf.extjwnl.dictionary._
 
+import scala.collection._
 import scala.collection.JavaConverters._
 
 import java.util.regex._
@@ -41,20 +42,39 @@ object ShlurdWordnet
     if (lemma == "go") {
       return false
     }
+
+    // FIXME this is totally arbitrary; but to get this right, seems like
+    // we need to parse through the actual glosses since the verb frames
+    // don't distinguish adposition objects from direct objects
+    val senses = getVerbSenses(lemma)
+    if (senses.isEmpty) {
+      true
+    } else {
+      senses.take(4).exists(sense =>
+        sense.getVerbFrames.exists(frame =>
+          frame.contains("----s some")))
+    }
+  }
+
+  def getVerbSenses(lemma : String) : Seq[Synset] =
+  {
     Option(dictionary.getIndexWord(POS.VERB, lemma)) match {
       case Some(indexWord) => {
-        // FIXME this is totally arbitrary; but to get this right, seems like
-        // we need to parse through the actual glosses since the verb frames
-        // don't distinguish adposition objects from direct objects
-        val senses = indexWord.getSenses.asScala.take(4)
-        senses.exists(sense => {
-          sense.getVerbFrames.exists(frame =>
-            frame.contains("----s some")
-          )
-        })
+        indexWord.getSenses.asScala
       }
-      case _ => true
+      case _ => Seq.empty
     }
+  }
+
+  def getVerbFrames(lemma : String) : Seq[String] =
+  {
+    getVerbSenses(lemma).flatMap(_.getVerbFrames).distinct
+  }
+
+  def getVerbFrameFlags(lemma : String) : BitSet =
+  {
+    getVerbSenses(lemma).map(sense => BitSet(sense.getVerbFrameIndices:_*)).
+      reduceLeft(_ union _)
   }
 
   def isPotentialAdverb(inflected : String) : Boolean =

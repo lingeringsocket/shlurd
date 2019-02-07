@@ -103,6 +103,7 @@ object SprEnglishLemmas
   val LEMMA_NEAR = "near"
   val LEMMA_NEARBY = "nearby"
   val LEMMA_TO = "to"
+  val LEMMA_FROM = "from"
   val LEMMA_ON = "on"
   val LEMMA_BEFORE = "before"
   val LEMMA_AFTER = "after"

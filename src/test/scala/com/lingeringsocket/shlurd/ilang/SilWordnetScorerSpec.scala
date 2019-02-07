@@ -60,13 +60,30 @@ class SilWordnetScorerSpec extends Specification
 
     "score transitive verbs" in
     {
-      val action = SilActionPredicate(
+      val actionTransitive = SilActionPredicate(
         pronoun,
         SilWord("kill"),
         Some(pronoun)
       )
-      scorer.computeLocalScore(action) must be equalTo
-        SilPhraseScore.proSmall
+      val actionIntransitive = SilActionPredicate(
+        pronoun,
+        SilWord("kill")
+      )
+      scorer.computeLocalScore(actionTransitive) must be greaterThan
+      scorer.computeLocalScore(actionIntransitive)
+    }
+
+    "score verb frames" in
+    {
+      def score(adp : SilAdposition) = {
+        scorer.computeLocalScore(
+          SilActionPredicate(
+            pronoun,
+            SilWord("distinguish"),
+            Some(pronoun),
+            Seq(SilAdpositionalVerbModifier(adp, pronoun))))
+      }
+      score(SilAdposition.FROM) must be greaterThan score(SilAdposition.ON)
     }
   }
 }
