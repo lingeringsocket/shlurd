@@ -127,7 +127,7 @@ class ShlurdFictionShell(
         case Some(SilQuotationReference(quotation)) => {
           ap.subject match {
             case SilNounReference(
-              SilWord(inflected, _), DETERMINER_UNIQUE, COUNT_SINGULAR
+              SilWordInflected(inflected), DETERMINER_UNIQUE, COUNT_SINGULAR
             ) => {
               val ok = Some(OK)
               inflected match {

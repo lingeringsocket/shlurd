@@ -47,17 +47,6 @@ class SilWordnetScorerSpec extends Specification
           SilPhraseScore.conSmall)
     }
 
-    "score intransitive verbs" in
-    {
-      val action = SilActionPredicate(
-        pronoun,
-        SilWord("chuckle"),
-        Some(pronoun)
-      )
-      scorer.computeLocalScore(action) must be equalTo
-        SilPhraseScore.conBig
-    }
-
     "score transitive verbs" in
     {
       val actionTransitive = SilActionPredicate(
@@ -70,7 +59,7 @@ class SilWordnetScorerSpec extends Specification
         SilWord("kill")
       )
       scorer.computeLocalScore(actionTransitive) must be greaterThan
-      scorer.computeLocalScore(actionIntransitive)
+        scorer.computeLocalScore(actionIntransitive)
     }
 
     "score verb frames" in

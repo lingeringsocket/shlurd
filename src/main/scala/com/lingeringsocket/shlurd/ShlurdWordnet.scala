@@ -37,25 +37,6 @@ object ShlurdWordnet
 
   private val plainPattern = Pattern.compile("\\p{javaLowerCase}+")
 
-  def isTransitiveVerb(lemma : String) : Boolean =
-  {
-    if (lemma == "go") {
-      return false
-    }
-
-    // FIXME this is totally arbitrary; but to get this right, seems like
-    // we need to parse through the actual glosses since the verb frames
-    // don't distinguish adposition objects from direct objects
-    val senses = getVerbSenses(lemma)
-    if (senses.isEmpty) {
-      true
-    } else {
-      senses.take(4).exists(sense =>
-        sense.getVerbFrames.exists(frame =>
-          frame.contains("----s some")))
-    }
-  }
-
   def getVerbSenses(lemma : String) : Seq[Synset] =
   {
     Option(dictionary.getIndexWord(POS.VERB, lemma)) match {
@@ -136,5 +117,31 @@ object ShlurdWordnet
           (word.getLemma.toLowerCase == indexWord.getLemma)
       })
     })
+  }
+
+  def getSenseKey(synset : Synset) : String =
+  {
+    s"${synset.getPOS.getKey}:${synset.getOffset}"
+  }
+
+  def getSenseKey(synsets : Seq[Synset]) : String =
+  {
+    synsets.map(getSenseKey).mkString("|")
+  }
+
+  def findSense(senseKey : String) : Synset =
+  {
+    val components = senseKey.split(':')
+    val pos = POS.getPOSForKey(components.head)
+    dictionary.getSynsetAt(pos, components.last.toLong)
+  }
+
+  def findSenses(senseKey : String) : Seq[Synset] =
+  {
+    if (senseKey.isEmpty) {
+      Seq.empty
+    } else {
+      senseKey.split('|').map(findSense)
+    }
   }
 }

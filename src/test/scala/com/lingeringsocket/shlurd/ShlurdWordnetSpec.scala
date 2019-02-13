@@ -20,13 +20,6 @@ class ShlurdWordnetSpec extends Specification
 {
   "ShlurdWordnet" should
   {
-    "distinguish verb transitivity" in
-    {
-      ShlurdWordnet.isTransitiveVerb("go") must beFalse
-      ShlurdWordnet.isTransitiveVerb("kill") must beTrue
-      ShlurdWordnet.isTransitiveVerb("meditate") must beFalse
-    }
-
     "detect potential adverbs" in
     {
       ShlurdWordnet.isPotentialAdverb("quickly") must beTrue
@@ -84,6 +77,28 @@ class ShlurdWordnetSpec extends Specification
       flags(8) must beTrue
       flags(9) must beTrue
     }
+
+    "use simple sense keys" in
+    {
+      val senses = ShlurdWordnet.getVerbSenses("defenestrate")
+      senses.size must be equalTo 1
+      val sense = senses.head
+      val senseKey = ShlurdWordnet.getSenseKey(sense)
+      senseKey must be equalTo "v:1511516"
+      val found = ShlurdWordnet.findSense(senseKey)
+      found must be equalTo sense
+      ShlurdWordnet.findSenses(senseKey) must be equalTo Seq(sense)
+    }
+
+    "use compound sense keys" in
+    {
+      val senses = ShlurdWordnet.getVerbSenses("smile")
+      senses.size must be equalTo 2
+      val senseKey = ShlurdWordnet.getSenseKey(senses)
+      senseKey must be equalTo "v:28558|v:1069534"
+      val found = ShlurdWordnet.findSenses(senseKey)
+      found must be equalTo senses
+      ShlurdWordnet.findSenses("") must beEmpty
+    }
   }
 }
-
