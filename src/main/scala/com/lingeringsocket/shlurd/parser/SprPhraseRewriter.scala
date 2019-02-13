@@ -133,8 +133,8 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
   {
     val rewriter = new SilPhraseRewriter
     def normalizePropertyState = rewriter.replacementMatcher {
-      case SilPropertyState(SilWord(inflected, lemma, senseKey)) => {
-        SilPropertyState(SilWord(inflected, inflected, senseKey))
+      case SilPropertyState(SilWord(inflected, lemma, senseId)) => {
+        SilPropertyState(SilWord(inflected, inflected, senseId))
       }
       case SilAdpositionalVerbModifier(SilAdposition(words), objRef) => {
         SilAdpositionalVerbModifier(

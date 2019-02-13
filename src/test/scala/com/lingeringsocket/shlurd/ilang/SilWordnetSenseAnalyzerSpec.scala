@@ -28,7 +28,7 @@ class SilWordnetSenseAnalyzerSpec extends Specification
 
   private def analyze(action : SilActionPredicate) : String =
   {
-    analyzer.analyze(action).action.senseKey
+    analyzer.analyze(action).action.senseId
   }
 
   "SilWordnetSenseAnalyzer" should
@@ -36,15 +36,15 @@ class SilWordnetSenseAnalyzerSpec extends Specification
     "analyze simple action verb sense" in
     {
       val lemma = "snore"
-      val senseKey = "v:17024"
+      val senseId = "v:17024"
       val action = SilActionPredicate(
         pronounI,
         SilWord(lemma))
-      analyze(action) must be equalTo senseKey
+      analyze(action) must be equalTo senseId
       val actionWithSense = SilActionPredicate(
         pronounI,
-        SilWord.withSense(lemma, senseKey))
-      analyze(actionWithSense) must be equalTo senseKey
+        SilWord.withSense(lemma, senseId))
+      analyze(actionWithSense) must be equalTo senseId
       val actionTransitive = SilActionPredicate(
         pronounI,
         SilWord(lemma),
@@ -55,18 +55,18 @@ class SilWordnetSenseAnalyzerSpec extends Specification
     "analyze action verb transitivity sense" in
     {
       val lemma = "smoke"
-      val senseKeyIntransitive = "v:2773880"
-      val senseKeyTransitive = "v:1200739"
+      val senseIdIntransitive = "v:2773880"
+      val senseIdTransitive = "v:1200739"
       val actionIntransitive = SilActionPredicate(
         pronounI,
         SilWord(lemma))
       analyze(actionIntransitive).split('|').toSeq must
-        containTheSameElementsAs(Seq(senseKeyIntransitive, senseKeyTransitive))
+        containTheSameElementsAs(Seq(senseIdIntransitive, senseIdTransitive))
       val actionTransitive = SilActionPredicate(
         pronounI,
         SilWord(lemma),
         Some(pronounIt))
-      analyze(actionTransitive) must be equalTo senseKeyTransitive
+      analyze(actionTransitive) must be equalTo senseIdTransitive
     }
   }
 }

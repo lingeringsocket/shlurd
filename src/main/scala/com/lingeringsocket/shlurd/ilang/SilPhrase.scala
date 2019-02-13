@@ -627,7 +627,7 @@ case class SilAdpositionalVerbModifier(
 case class SilWord(
   inflected : String,
   lemmaUnfolded : String,
-  senseKey : String = "")
+  senseId : String = "")
 {
   def lemma = lemmaUnfolded.toLowerCase
 
@@ -635,8 +635,8 @@ case class SilWord(
 
   def uninflected = SilWord.uninflected(lemmaUnfolded)
 
-  def withSense(senseKey : String) =
-    SilWord(inflected, lemmaUnfolded, senseKey)
+  def withSense(senseId : String) =
+    SilWord(inflected, lemmaUnfolded, senseId)
 }
 
 object SilWord
@@ -645,8 +645,8 @@ object SilWord
 
   def uninflected(s : String) = SilWord("", s)
 
-  def withSense(s : String, senseKey : String) =
-    SilWord(s, s, senseKey)
+  def withSense(s : String, senseId : String) =
+    SilWord(s, s, senseId)
 }
 
 object SilWordLemma

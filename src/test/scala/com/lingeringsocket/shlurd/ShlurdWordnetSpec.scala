@@ -83,20 +83,20 @@ class ShlurdWordnetSpec extends Specification
       val senses = ShlurdWordnet.getVerbSenses("defenestrate")
       senses.size must be equalTo 1
       val sense = senses.head
-      val senseKey = ShlurdWordnet.getSenseKey(sense)
-      senseKey must be equalTo "v:1511516"
-      val found = ShlurdWordnet.findSense(senseKey)
+      val senseId = ShlurdWordnet.getSenseId(sense)
+      senseId must be equalTo "v:1511516"
+      val found = ShlurdWordnet.findSense(senseId)
       found must be equalTo sense
-      ShlurdWordnet.findSenses(senseKey) must be equalTo Seq(sense)
+      ShlurdWordnet.findSenses(senseId) must be equalTo Seq(sense)
     }
 
     "use compound sense keys" in
     {
       val senses = ShlurdWordnet.getVerbSenses("smile")
       senses.size must be equalTo 2
-      val senseKey = ShlurdWordnet.getSenseKey(senses)
-      senseKey must be equalTo "v:28558|v:1069534"
-      val found = ShlurdWordnet.findSenses(senseKey)
+      val senseId = ShlurdWordnet.getSenseId(senses)
+      senseId must be equalTo "v:28558|v:1069534"
+      val found = ShlurdWordnet.findSenses(senseId)
       found must be equalTo senses
       ShlurdWordnet.findSenses("") must beEmpty
     }

@@ -119,29 +119,29 @@ object ShlurdWordnet
     })
   }
 
-  def getSenseKey(synset : Synset) : String =
+  def getSenseId(synset : Synset) : String =
   {
     s"${synset.getPOS.getKey}:${synset.getOffset}"
   }
 
-  def getSenseKey(synsets : Seq[Synset]) : String =
+  def getSenseId(synsets : Seq[Synset]) : String =
   {
-    synsets.map(getSenseKey).mkString("|")
+    synsets.map(getSenseId).mkString("|")
   }
 
-  def findSense(senseKey : String) : Synset =
+  def findSense(senseId : String) : Synset =
   {
-    val components = senseKey.split(':')
+    val components = senseId.split(':')
     val pos = POS.getPOSForKey(components.head)
     dictionary.getSynsetAt(pos, components.last.toLong)
   }
 
-  def findSenses(senseKey : String) : Seq[Synset] =
+  def findSenses(senseId : String) : Seq[Synset] =
   {
-    if (senseKey.isEmpty) {
+    if (senseId.isEmpty) {
       Seq.empty
     } else {
-      senseKey.split('|').map(findSense)
+      senseId.split('|').map(findSense)
     }
   }
 }

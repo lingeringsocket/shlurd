@@ -26,7 +26,7 @@ class SilWordnetSenseAnalyzer extends SilPhraseRewriter
   {
     def matcher = replacementMatcher {
       case SilActionPredicate(subject, action, directObject, modifiers) => {
-        val inputSenses = ShlurdWordnet.findSenses(action.senseKey)
+        val inputSenses = ShlurdWordnet.findSenses(action.senseId)
         val candidateSenses = {
           if (inputSenses.isEmpty) {
             ShlurdWordnet.getVerbSenses(action.lemma)
@@ -36,10 +36,10 @@ class SilWordnetSenseAnalyzer extends SilPhraseRewriter
         }
         val filteredSenses = candidateSenses.filter(sense =>
           isCompatibleAction(sense, subject, directObject, modifiers))
-        val senseKey = ShlurdWordnet.getSenseKey(filteredSenses)
+        val senseId = ShlurdWordnet.getSenseId(filteredSenses)
         SilActionPredicate(
           subject,
-          action.withSense(senseKey),
+          action.withSense(senseId),
           directObject,
           modifiers)
       }
