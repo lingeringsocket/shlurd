@@ -642,6 +642,22 @@ object SilWord
   def uninflected(s : String) = SilWord("", s)
 }
 
+object SilWordLemma
+{
+  def unapply(w : SilWord) =
+  {
+    Some(w.lemma)
+  }
+}
+
+object SilWordInflected
+{
+  def unapply(w : SilWord) =
+  {
+    Some(w.inflected)
+  }
+}
+
 // FIXME move most of this to object SilPhrase
 object SilReference
 {

@@ -122,7 +122,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   }
 
   private def scoreLonger = phraseScorer {
-    case SilPropertyState(SilWord("longer", _)) => {
+    case SilPropertyState(SilWordInflected("longer")) => {
       SilPhraseScore.conBig
     }
   }

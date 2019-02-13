@@ -468,7 +468,7 @@ class SprWordnetParser(
       } else {
         sil match {
           case SilNounReference(
-            SilWord("longer", _), DETERMINER_NONE, _
+            SilWordInflected("longer"), DETERMINER_NONE, _
           ) => true
           case _ => false
         }

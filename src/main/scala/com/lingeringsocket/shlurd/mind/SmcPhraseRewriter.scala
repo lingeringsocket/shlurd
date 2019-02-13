@@ -46,10 +46,10 @@ class SmcPhraseRewriter extends SilPhraseRewriter
         wildcard = true
       }
       case SilNounReference(
-        SilWord(LEMMA_WHO, LEMMA_WHO) |
-          SilWord(LEMMA_WHOM, LEMMA_WHOM) |
-          SilWord(LEMMA_WHAT, LEMMA_WHAT) |
-          SilWord(LEMMA_WHERE, LEMMA_WHERE),
+        SilWordLemma(LEMMA_WHO) |
+          SilWordLemma(LEMMA_WHOM) |
+          SilWordLemma(LEMMA_WHAT) |
+          SilWordLemma(LEMMA_WHERE),
         _,
         _
       ) => {

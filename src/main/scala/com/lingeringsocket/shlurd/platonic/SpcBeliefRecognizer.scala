@@ -104,7 +104,8 @@ class SpcBeliefRecognizer(
           SilRelationshipPredicate(
             SilGenitiveReference(
               ref,
-              SilNounReference(SilWord(LEMMA_CONTAINER),
+              SilNounReference(
+                SilWord(LEMMA_CONTAINER),
                 DETERMINER_UNSPECIFIED,
                 COUNT_SINGULAR)),
             container,
@@ -655,7 +656,7 @@ class SpcBeliefRecognizer(
           // "A television has a volume as a property"
           objRef match {
             case SilNounReference(
-              SilWord(LEMMA_PROPERTY, LEMMA_PROPERTY),
+              SilWordLemma(LEMMA_PROPERTY),
               DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
               COUNT_SINGULAR) =>
               {

@@ -52,7 +52,7 @@ object SilAdposition
 {
   private def adposition(lemma : String) =
   {
-    SilAdposition(Seq(SilWord(lemma, lemma)))
+    SilAdposition(Seq(SilWord(lemma)))
   }
 
   val IN = adposition(LEMMA_IN)

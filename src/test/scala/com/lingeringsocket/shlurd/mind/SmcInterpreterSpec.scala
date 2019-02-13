@@ -53,7 +53,7 @@ class SmcInterpreterSpec extends Specification
             case SilAdpositionalState(
               SilAdposition.IN,
               SilNounReference(
-                SilWord("dreamland", _),
+                SilWordInflected("dreamland"),
                 DETERMINER_UNSPECIFIED,
                 COUNT_SINGULAR)) =>
               {
@@ -406,7 +406,7 @@ class SmcInterpreterSpec extends Specification
 
     "interpret commands" in new InterpreterContext
     {
-      val awake = SilWord("awake", "awake")
+      val awake = SilWord("awake")
       val asleep = SilWord("sleepify", "asleep")
       interpretCommandExpected(
         "awake the lion",
