@@ -46,9 +46,9 @@ class SpcWordnet(cosmos : SpcCosmos)
         words.foreach(word => {
           debug("LEMMA = " + word.getLemma)
         })
-        val form = cosmos.instantiateForm(SilWord(words.head.getLemma))
+        val form = cosmos.instantiateForm(SilWord(getIdealName(words.head)))
         words.tail.foreach(word => {
-          cosmos.addIdealSynonym(word.getLemma, form.name)
+          cosmos.addIdealSynonym(getIdealName(word), form.name)
         })
       } else {
         debug("UNUSABLE")
@@ -80,8 +80,13 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   def getSynsetForm(synset : Synset) : Option[SpcForm] =
   {
-    synset.getWords.asScala.toStream.map(_.getLemma).
+    synset.getWords.asScala.toStream.map(getIdealName).
       flatMap(cosmos.resolveForm).headOption
+  }
+
+  private def getIdealName(word : Word) : String =
+  {
+    s"wn-${word.getLemma}-${word.getSenseNumber}"
   }
 
   private def allSynsets() =
@@ -92,9 +97,6 @@ class SpcWordnet(cosmos : SpcCosmos)
   private def isUsableFormName(lemma : String) : Boolean =
   {
     // FIXME deal with multi-words, acronyms
-    // FIXME deal with sense collisions
-    ShlurdWordnet.isPlainWord(lemma) &&
-      cosmos.resolveForm(lemma).isEmpty &&
-      cosmos.resolveRole(lemma).isEmpty
+    ShlurdWordnet.isPlainWord(lemma)
   }
 }

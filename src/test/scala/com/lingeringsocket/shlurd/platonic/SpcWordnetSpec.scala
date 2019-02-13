@@ -28,21 +28,24 @@ class SpcWordnetSpec extends Specification
       val wordnet = new SpcWordnet(cosmos)
       cosmos.resolveForm("dog") must beEmpty
       wordnet.loadAll
-      val dogOpt = cosmos.resolveForm("dog")
+      val dogOpt = cosmos.resolveForm("wn-dog-1")
       dogOpt must beSome
       val dogForm = dogOpt.get
-      val manOpt = cosmos.resolveForm("man")
-      manOpt must beSome
-      val manForm = manOpt.get
-      cosmos.resolveForm("human") must beSome.which(_ == manForm)
-      cosmos.resolveForm("xyzzy") must beEmpty
-      val puppyOpt = cosmos.resolveForm("puppy")
+      val androsOpt = cosmos.resolveForm("wn-man-1")
+      androsOpt must beSome
+      val androsForm = androsOpt.get
+      val anthroposOpt = cosmos.resolveForm("wn-man-4")
+      anthroposOpt must beSome.which(_ != androsForm)
+      val anthroposForm = anthroposOpt.get
+      cosmos.resolveForm("wn-human-1") must beSome.which(_ == anthroposForm)
+      cosmos.resolveForm("wn-xyzzy-1") must beEmpty
+      val puppyOpt = cosmos.resolveForm("wn-puppy-1")
       puppyOpt must beSome
       val puppyForm = puppyOpt.get
       val graph = cosmos.getGraph
       graph.isHyponym(puppyForm, dogForm) must beTrue
       graph.isHyponym(dogForm, puppyForm) must beFalse
-      graph.isHyponym(puppyForm, manForm) must beFalse
+      graph.isHyponym(puppyForm, anthroposForm) must beFalse
     }
   }
 }
