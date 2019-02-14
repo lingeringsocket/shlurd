@@ -17,7 +17,7 @@ To run the tasks:
 1. Download the [QA tasks](http://www.thespermwhale.com/jaseweston/babi/tasks_1-20_v1-2.tar.gz)
 1. Unpack the archive, producing `/path/to/tasks_1-20_v1-2`
 1. `cd /your/clone/of/shlurd/src/test/qa`
-1. `babi.sh /path/to/tasks_1-20_v1-2`
+1. `babi.sh /path/to/tasks_1-20_v1-2/en-valid`
 
 This will run through all supported tasks, and should produce no errors.
 To run one particular task, supply the filename as an extra argument, e.g.
