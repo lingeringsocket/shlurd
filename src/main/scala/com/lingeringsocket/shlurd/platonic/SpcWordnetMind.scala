@@ -24,7 +24,7 @@ import scala.util._
 class SpcWordnetMind(cosmos : SpcCosmos)
     extends SpcMind(cosmos)
 {
-  private val wordnet = new SpcWordnet(cosmos)
+  private def getWordnet() = new SpcWordnet(cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {
@@ -44,14 +44,19 @@ class SpcWordnetMind(cosmos : SpcCosmos)
     context : SilReferenceContext,
     qualifiers : Set[String] = Set.empty) : Try[Set[SpcEntity]] =
   {
-    // FIXME try noun.lemma directly first
-    val senses = ShlurdWordnet.findSenses(noun.senseId)
-    senses.toStream.flatMap(wordnet.getSynsetForm).headOption match {
-      case Some(form) => {
-        cosmos.resolveQualifiedNoun(form.name, context, qualifiers)
-      }
-      case _ => {
-        super.resolveQualifiedNoun(noun, context, qualifiers)
+    val superResult = super.resolveQualifiedNoun(noun, context, qualifiers)
+    if (superResult.isSuccess) {
+      superResult
+    } else {
+      val senses = ShlurdWordnet.findSenses(noun.senseId)
+      val wordnet = getWordnet
+      senses.toStream.flatMap(wordnet.getSynsetForm).headOption match {
+        case Some(form) => {
+          cosmos.resolveQualifiedNoun(form.name, context, qualifiers)
+        }
+        case _ => {
+          superResult
+        }
       }
     }
   }
