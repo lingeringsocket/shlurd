@@ -1,3 +1,4 @@
+A person is an spc-person.
 An owner must be a person.
 A man is a kind of person.
 A vehicle must be moving or stopped.

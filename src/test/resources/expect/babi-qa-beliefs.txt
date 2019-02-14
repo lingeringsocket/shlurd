@@ -1,4 +1,5 @@
-A person's gender may be masculine or feminine.
+An object is an spc-object.
+A person is an spc-person.
 A man is a kind of person.
 A woman is a kind of person.
 A man's gender must be masculine.
@@ -38,7 +39,7 @@ If a person takes an item, then the item's possessor is the person.
 If a person grabs an item, then the person takes the item.
 If a person picks up an item, then the person takes the item.
 If a person gets an item, then the person takes the item.
-If a person drops an item, then the item is in the person's container.
+If a person drops an item, then the item is in the person's spc-container.
 If a person drops an item, then the item has no possessor.
 If a person leaves an item, then the person drops the item.
 If a person discards an item, then the person drops the item.

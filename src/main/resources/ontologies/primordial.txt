@@ -22,10 +22,10 @@ An spc-subclass must be an spc-ideal.
 An spc-ideal may have spc-superclasses.
 An spc-ideal may have spc-subclasses.
 An spc-ideal with an spc-superclass is an spc-subclass.
-A person's gender may be either masculine or feminine.
-A person is a kind of object.
-A container must be an object.
-A contained-object must be an object.
-An object may have contained-objects.
-An object must have a container.
-An object with a contained-object is a container.
+An spc-person is a kind of spc-object.
+An spc-person's gender may be either masculine or feminine.
+An spc-container must be an spc-object.
+An spc-contained-object must be an spc-object.
+An spc-object may have spc-contained-objects.
+An spc-object must have an spc-container.
+An spc-object with an spc-contained-object is an spc-container.

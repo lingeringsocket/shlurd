@@ -274,7 +274,7 @@ class SmcResponseRewriter[
             SilGenitiveReference(
               subject,
               SilNounReference(
-                SilWordLemma(LEMMA_CONTAINER),
+                SilWordLemma(SmcLemmas.LEMMA_CONTAINER),
                 DETERMINER_UNSPECIFIED,
                 COUNT_SINGULAR)),
             REL_IDENTITY,

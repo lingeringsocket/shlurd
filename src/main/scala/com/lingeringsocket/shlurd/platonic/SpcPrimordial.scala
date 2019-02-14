@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.parser._
 
 import SprEnglishLemmas._
@@ -22,10 +23,10 @@ object SpcPrimordial
 {
   // all the Whos down in Whoville
   private val synonyms = Map(
-    LEMMA_WHO -> LEMMA_PERSON,
-    LEMMA_WHOM -> LEMMA_PERSON,
+    LEMMA_WHO -> SmcLemmas.LEMMA_PERSON,
+    LEMMA_WHOM -> SmcLemmas.LEMMA_PERSON,
     LEMMA_WHAT -> SpcMeta.ENTITY_METAFORM_NAME,
-    LEMMA_WHERE -> LEMMA_CONTAINER
+    LEMMA_WHERE -> SmcLemmas.LEMMA_CONTAINER
   )
 
   private lazy val seedCosmos = initSeedCosmos()

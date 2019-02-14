@@ -18,8 +18,6 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
-import SprEnglishLemmas._
-
 import scala.io._
 
 import java.io._
@@ -52,7 +50,7 @@ object ShlurdCliApp extends App
           "interviewer", REF_SUBJECT, Set())).get
       val entityShlurd = cosmos.uniqueEntity(
         cosmos.resolveQualifiedNoun(
-          LEMMA_PERSON, REF_SUBJECT, Set("shlurd"))).get
+          SmcLemmas.LEMMA_PERSON, REF_SUBJECT, Set("shlurd"))).get
 
       println("SHLURD> Hello, human!")
       new ShlurdCliMind(cosmos, entityInterviewer, entityShlurd)

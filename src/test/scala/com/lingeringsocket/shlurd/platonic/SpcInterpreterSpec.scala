@@ -485,6 +485,7 @@ class SpcInterpreterSpec extends Specification
 
     "understand locations" in new InterpreterContext
     {
+      loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/location.txt")
 
       interpretMatrix(
@@ -516,6 +517,7 @@ class SpcInterpreterSpec extends Specification
     "understand inverse associations" in new
       InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
+      interpretBelief("a person is a kind of spc-person")
       interpretBelief("a professor must be a person")
       interpretBelief("a student must be a person")
       interpretBelief("a person may have students")
@@ -532,6 +534,7 @@ class SpcInterpreterSpec extends Specification
 
     "understand actions" in new InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("if an object moves to a location, " +
         "then the object is in the location")
       interpretBelief("if an object rolls into a location, " +
@@ -571,6 +574,7 @@ class SpcInterpreterSpec extends Specification
     "understand indirect objects" in new
       InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("if a person gives an object to a recipient, " +
         "then the object is the recipient's contained-object")
       interpretBelief("if a person passes an object to a recipient, " +
@@ -589,6 +593,7 @@ class SpcInterpreterSpec extends Specification
     "understand past actions" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       mind.startConversation
       mind.startNarrative
       interpretBelief("a man is a kind of person")
@@ -636,6 +641,7 @@ class SpcInterpreterSpec extends Specification
     "understand genitives in beliefs" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("the wrench is an object")
       interpretBelief("the screwdriver is an object")
       interpretBelief("the engine is an object")
@@ -662,6 +668,7 @@ class SpcInterpreterSpec extends Specification
     "understand epsilon beliefs" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("a person may have possessions")
       interpretBelief("the engine is an object")
       interpretBelief("Mason is a person")
@@ -672,6 +679,7 @@ class SpcInterpreterSpec extends Specification
     "understand compound subject references" in new
       InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("the engine is an object")
       interpretBelief("the wrench is an object")
       interpretBelief("the screwdriver is an object")
@@ -687,6 +695,7 @@ class SpcInterpreterSpec extends Specification
     "understand unique determiner in genitive" in new
       InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("the engine is an object")
       interpretBelief("the box is an object")
       interpretBelief("the box is in the engine")
@@ -699,6 +708,7 @@ class SpcInterpreterSpec extends Specification
     "understand negatives" in new
       InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("the wrench is an object")
       interpretBelief("the hammer is an object")
       interpretBelief("the screwdriver is an object")
@@ -775,7 +785,7 @@ class SpcInterpreterSpec extends Specification
         "Sorry, I don't know what 'cruise' means for a car.")
       interpret(
         "who is cruising",
-        "Sorry, I don't know what 'cruise' means for a person.")
+        "Sorry, I don't know what 'cruise' means for an spc-person.")
       interpretMatrix(
         "is Herbie a car",
         "Yes, he is a car.",
@@ -1050,6 +1060,7 @@ class SpcInterpreterSpec extends Specification
       ACCEPT_MODIFIED_BELIEFS,
       SmcResponseParams(thirdPersonPronouns = false))
     {
+      loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/people.txt")
       mind.startConversation
       interpret("is she a dog",
@@ -1066,6 +1077,7 @@ class SpcInterpreterSpec extends Specification
     "understand sequential timeframes" in new InterpreterContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("the key is an object")
       interpretBelief("the pocket is an object")
       interpretBelief("the purse is an object")
@@ -1092,6 +1104,7 @@ class SpcInterpreterSpec extends Specification
     "understand relative timeframes" in new InterpreterContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("the key is an object")
       interpretBelief("the pocket is an object")
       interpretBelief("the purse is an object")
@@ -1125,6 +1138,7 @@ class SpcInterpreterSpec extends Specification
     "understand progressive action predicates" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("If an item is filling an object, " +
         "equivalently the item is the object's contained-object.")
       interpretBelief("If an item is occupying an object, " +
@@ -1282,6 +1296,7 @@ class SpcInterpreterSpec extends Specification
     "reject unknown actions" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief("Superman is a person")
       interpretBelief("the kite is an object")
       interpret("Superman flies the kite",
@@ -1291,6 +1306,7 @@ class SpcInterpreterSpec extends Specification
     "reject unknown subject" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/containment.txt")
       interpretBelief(
         "if a person destroys an object, then the object has no container")
       interpretBelief("the football is an object")
@@ -1314,6 +1330,7 @@ class SpcInterpreterSpec extends Specification
 
     "reify unknown person" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
+      interpretBelief("a person is a kind of spc-person")
       interpretBelief("a person must have a lawyer")
       interpretBelief("Donald is a person")
       interpret("who is Donald's lawyer", "I don't know.")
@@ -1333,6 +1350,7 @@ class SpcInterpreterSpec extends Specification
     "support roles with multiple forms" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
+      interpretBelief("a person is a kind of spc-person")
       interpretBelief("a man is a kind of person")
       interpretBelief("a gentleman is a kind of man")
       interpretBelief("a footman must be a man")

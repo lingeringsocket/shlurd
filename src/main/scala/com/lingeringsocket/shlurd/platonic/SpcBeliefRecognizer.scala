@@ -105,7 +105,7 @@ class SpcBeliefRecognizer(
             SilGenitiveReference(
               ref,
               SilNounReference(
-                SilWord(LEMMA_CONTAINER),
+                SilWord(SmcLemmas.LEMMA_CONTAINER),
                 DETERMINER_UNSPECIFIED,
                 COUNT_SINGULAR)),
             container,

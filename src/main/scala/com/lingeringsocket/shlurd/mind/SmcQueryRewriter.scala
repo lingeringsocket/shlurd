@@ -15,9 +15,6 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd.ilang._
-import com.lingeringsocket.shlurd.parser._
-
-import SprEnglishLemmas._
 
 class SmcQueryRewriter(
   question : SilQuestion,
@@ -46,7 +43,7 @@ class SmcQueryRewriter(
         case QUESTION_WHERE => {
           SilGenitiveReference(
             complement,
-            SilNounReference(SilWord(LEMMA_CONTAINER)))
+            SilNounReference(SilWord(SmcLemmas.LEMMA_CONTAINER)))
         }
         case _ => complement
       }

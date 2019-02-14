@@ -111,7 +111,7 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
     qualifiers : Set[String]) =
   {
     if ((lemma == LEMMA_WHO) || (lemma == LEMMA_WHOM) ||
-      (lemma == LEMMA_PERSON))
+      (lemma == "person"))
     {
       Success(SprUtils.orderedSet(
         people.values))

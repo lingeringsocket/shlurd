@@ -76,9 +76,9 @@ class SpcCosmosSpec extends Specification
 
     protected def expectPerson(name : String) : SpcEntity =
     {
-      expectNamedForm(LEMMA_PERSON)
+      expectNamedForm("person")
       expectUnique(cosmos.resolveQualifiedNoun(
-        LEMMA_PERSON, REF_SUBJECT, Set(name)))
+        "person", REF_SUBJECT, Set(name)))
     }
 
     protected def expectProperName(name : String) : SpcEntity =
@@ -348,7 +348,7 @@ class SpcCosmosSpec extends Specification
       addBelief("a man is a kind of person")
       addBelief("a sibling must be a person")
       addBelief("a brother is a kind of sibling")
-      val person = resolveForm(LEMMA_PERSON)
+      val person = resolveForm("person")
       val man = resolveForm("man")
       val brother = resolveRole("brother")
       cosmos.getGraph.getFormsForRole(brother) must be equalTo Iterable(person)
@@ -411,7 +411,7 @@ class SpcCosmosSpec extends Specification
       addBelief("Joyce is Lonnie's ex-wife")
       cosmos.validateBeliefs
 
-      expectNamedForm(LEMMA_PERSON)
+      expectNamedForm("person")
       expectNamedRole("mom")
       expectNamedRole("dad")
       expectNamedRole("son")
@@ -420,16 +420,16 @@ class SpcCosmosSpec extends Specification
 
       val joyce = expectUnique(
         cosmos.resolveQualifiedNoun(
-          LEMMA_PERSON, REF_SUBJECT, Set("joyce")))
+          "person", REF_SUBJECT, Set("joyce")))
       val will = expectUnique(
         cosmos.resolveQualifiedNoun(
-          LEMMA_PERSON, REF_SUBJECT, Set("will")))
+          "person", REF_SUBJECT, Set("will")))
       val jonathan = expectUnique(
         cosmos.resolveQualifiedNoun(
-          LEMMA_PERSON, REF_SUBJECT, Set("jonathan")))
+          "person", REF_SUBJECT, Set("jonathan")))
       val lonnie = expectUnique(
         cosmos.resolveQualifiedNoun(
-          LEMMA_PERSON, REF_SUBJECT, Set("lonnie")))
+          "person", REF_SUBJECT, Set("lonnie")))
       Set(joyce, will, jonathan, lonnie).size must be equalTo 4
       resolveGenitive(will, "mom") must be equalTo Set(joyce)
       resolveGenitive(will, "dad") must be equalTo Set(lonnie)
@@ -575,7 +575,7 @@ class SpcCosmosSpec extends Specification
       addBelief("an owner must be a person")
 
       val timmy = expectProperName("Timmy")
-      val person = expectNamedForm(LEMMA_PERSON)
+      val person = expectNamedForm("person")
       cosmos.getGraph.isHyponym(timmy.form, person) must beTrue
 
       cosmos.sanityCheck must beTrue
@@ -656,8 +656,8 @@ class SpcCosmosSpec extends Specification
       SpcPrimordial.initCosmos(cosmos)
       cosmos.getForms.size must be greaterThan 0
       val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
-      val person = expectNamedForm(LEMMA_PERSON)
-      val obj = expectNamedForm(LEMMA_OBJECT)
+      val person = expectNamedForm(SmcLemmas.LEMMA_PERSON)
+      val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
       val propGender = expectSingleProperty(person)
       propGender.name must be equalTo LEMMA_GENDER
       propGender.isClosed must beFalse
@@ -666,7 +666,7 @@ class SpcCosmosSpec extends Specification
       genderValues must contain(LEMMA_MASCULINE -> LEMMA_MASCULINE)
       genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
       cosmos.resolveIdealSynonym(LEMMA_WHO) must
-        be equalTo LEMMA_PERSON
+        be equalTo SmcLemmas.LEMMA_PERSON
       val graph = cosmos.getGraph
       graph.getFormHypernyms(entity).toSeq must be equalTo(
         Seq(entity))
@@ -684,10 +684,10 @@ class SpcCosmosSpec extends Specification
     "elide redundant taxonomy edges" in new CosmosContext
     {
       SpcPrimordial.initCosmos(cosmos)
-      addBelief("a firefighter is a kind of person")
+      addBelief("a firefighter is a kind of spc-person")
       val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
-      val person = expectNamedForm(LEMMA_PERSON)
-      val obj = expectNamedForm(LEMMA_OBJECT)
+      val person = expectNamedForm(SmcLemmas.LEMMA_PERSON)
+      val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
       val firefighter = expectNamedForm("firefighter")
       val graph = cosmos.getGraph
       graph.getFormHypernyms(entity).toSeq must be equalTo(

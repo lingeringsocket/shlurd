@@ -30,8 +30,6 @@ import java.util.concurrent.atomic._
 
 import org.jgrapht._
 
-import SprEnglishLemmas._
-
 trait SpcContainmentVertex
 {
 }
@@ -1318,7 +1316,7 @@ class SpcCosmos(
         }
       }
       case SilAdposition.IN => {
-        LEMMA_CONTAINEE
+        SmcLemmas.LEMMA_CONTAINEE
       }
       case _ => {
         return Success(Trilean.Unknown)
