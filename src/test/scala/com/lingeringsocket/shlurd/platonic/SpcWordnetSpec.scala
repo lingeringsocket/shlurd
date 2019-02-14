@@ -14,7 +14,20 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd.mind._
+
 import org.specs2.mutable._
+
+object SpcWordnetSpec
+{
+  private val cosmos = new SpcCosmos
+  // FIXME:  speed this up
+  // SpcPrimordial.initCosmos(cosmos)
+  private val wordnet = new SpcWordnet(cosmos)
+  wordnet.loadAll
+
+  def getCosmos() = cosmos
+}
 
 class SpcWordnetSpec extends Specification
 {
@@ -22,12 +35,7 @@ class SpcWordnetSpec extends Specification
   {
     "load forms" in
     {
-      val cosmos = new SpcCosmos
-      // FIXME:  speed this up
-      // SpcPrimordial.initCosmos(cosmos)
-      val wordnet = new SpcWordnet(cosmos)
-      cosmos.resolveForm("dog") must beEmpty
-      wordnet.loadAll
+      val cosmos = SpcWordnetSpec.getCosmos
       val dogOpt = cosmos.resolveForm("wn-dog-1")
       dogOpt must beSome
       val dogForm = dogOpt.get
@@ -46,6 +54,19 @@ class SpcWordnetSpec extends Specification
       graph.isHyponym(puppyForm, dogForm) must beTrue
       graph.isHyponym(dogForm, puppyForm) must beFalse
       graph.isHyponym(puppyForm, anthroposForm) must beFalse
+    }
+
+    "provide ontology to parser" in
+    {
+      val cosmos = SpcWordnetSpec.getCosmos
+      val mind = new SpcWordnetMind(cosmos)
+      val interpreter =
+        new SpcInterpreter(
+          mind, ACCEPT_NEW_BELIEFS, SmcResponseParams())
+      val input = "which dogs are there"
+      val sentence = interpreter.newParser(input).parseOne
+      interpreter.interpret(sentence, input) must be equalTo
+        "There are no dogs."
     }
   }
 }

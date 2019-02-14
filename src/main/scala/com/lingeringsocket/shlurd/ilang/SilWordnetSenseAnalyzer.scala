@@ -43,6 +43,19 @@ class SilWordnetSenseAnalyzer extends SilPhraseRewriter
           directObject,
           modifiers)
       }
+      case SilNounReference(noun, determiner, count) => {
+        val inputSenses = ShlurdWordnet.findSenses(noun.senseId)
+        val candidateSenses = {
+          if (inputSenses.isEmpty) {
+            ShlurdWordnet.getNounSenses(noun.lemma)
+          } else {
+            inputSenses
+          }
+        }
+        val filteredSenses = candidateSenses
+        val senseId = ShlurdWordnet.getSenseId(filteredSenses)
+        SilNounReference(noun.withSense(senseId), determiner, count)
+      }
     }
     rewrite(matcher, phrase)
   }

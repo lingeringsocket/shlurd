@@ -574,8 +574,8 @@ class SmcPredicateEvaluator[
               cacheReference(
                 resultCollector,
                 reference,
-                () => cosmos.resolveQualifiedNoun(
-                  noun.lemma, context,
+                () => mind.resolveQualifiedNoun(
+                  noun, context,
                   cosmos.qualifierSet(
                     SilReference.extractQualifiers(specifiedState)))
               )

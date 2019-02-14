@@ -31,6 +31,15 @@ class SilWordnetSenseAnalyzerSpec extends Specification
     analyzer.analyze(action).action.senseId
   }
 
+  private def analyzeComplement(
+    relationship : SilRelationshipPredicate) : String =
+  {
+    analyzer.analyze(relationship).complement match {
+      case SilNounReference(noun, _, _) => noun.senseId
+      case _ => ""
+    }
+  }
+
   "SilWordnetSenseAnalyzer" should
   {
     "analyze simple action verb sense" in
@@ -67,6 +76,16 @@ class SilWordnetSenseAnalyzerSpec extends Specification
         SilWord(lemma),
         Some(pronounIt))
       analyze(actionTransitive) must be equalTo senseIdTransitive
+    }
+
+    "analyze ambiguous noun" in
+    {
+      val lemma = "whale"
+      val identity = SilRelationshipPredicate(
+        pronounI,
+        SilNounReference(SilWord(lemma), DETERMINER_NONSPECIFIC),
+        REL_IDENTITY)
+      analyzeComplement(identity) must be equalTo "n:10148670|n:2065397"
     }
   }
 }

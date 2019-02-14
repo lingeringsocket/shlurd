@@ -166,9 +166,10 @@ class SmcInterpreter[
       SmcConversation.SPEAKER_NAME_PERSON, sentence, input)
     SilPhraseValidator.validatePhrase(sentence)
     val resultCollector = SmcResultCollector[EntityType]
-    resolveReferences(sentence, resultCollector)
+    val analyzed = mind.analyzeSense(sentence)
+    resolveReferences(analyzed, resultCollector)
     val (responseSentence, responseText) =
-      interpretImpl(sentence, resultCollector)
+      interpretImpl(analyzed, resultCollector)
     debug(s"INTERPRETER RESPONSE TEXT : $responseText")
     debug(s"INTERPRETER RESPONSE SENTENCE : $responseSentence")
     if (mind.isConversing) {

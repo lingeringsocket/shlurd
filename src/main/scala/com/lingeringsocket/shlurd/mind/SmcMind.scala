@@ -46,6 +46,8 @@ class SmcMind[
 
   def newParser(input : String) = cosmos.newParser(input)
 
+  def analyzeSense(sentence : SilSentence) = sentence
+
   def startConversation()
   {
     conversation = Some(new ConversationType)
@@ -173,6 +175,14 @@ class SmcMind[
         getCosmos
       }
     }
+  }
+
+  def resolveQualifiedNoun(
+    noun : SilWord,
+    context : SilReferenceContext,
+    qualifiers : Set[String] = Set.empty) : Try[Set[EntityType]] =
+  {
+    cosmos.resolveQualifiedNoun(noun.lemma, context, qualifiers)
   }
 
   def resolvePronoun(

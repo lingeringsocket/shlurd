@@ -37,14 +37,24 @@ object ShlurdWordnet
 
   private val plainPattern = Pattern.compile("\\p{javaLowerCase}+")
 
-  def getVerbSenses(lemma : String) : Seq[Synset] =
+  def getWordSenses(pos : POS, lemma : String) : Seq[Synset] =
   {
-    Option(dictionary.getIndexWord(POS.VERB, lemma)) match {
+    Option(dictionary.getIndexWord(pos, lemma)) match {
       case Some(indexWord) => {
         indexWord.getSenses.asScala
       }
       case _ => Seq.empty
     }
+  }
+
+  def getVerbSenses(lemma : String) : Seq[Synset] =
+  {
+    getWordSenses(POS.VERB, lemma)
+  }
+
+  def getNounSenses(lemma : String) : Seq[Synset] =
+  {
+    getWordSenses(POS.NOUN, lemma)
   }
 
   def getVerbFrames(lemma : String) : Seq[String] =
