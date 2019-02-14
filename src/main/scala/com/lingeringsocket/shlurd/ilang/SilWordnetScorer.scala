@@ -227,19 +227,19 @@ object SilWordnetScorer extends SprEnglishWordAnalyzer
       }
       case 8 => {
         // Somebody ----s something
-        directObject.nonEmpty
+        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition.TO)
       }
       case 9 => {
         // Somebody ----s somebody
-        directObject.nonEmpty
+        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition.TO)
       }
       case 10 => {
         // Something ----s somebody
-        directObject.nonEmpty
+        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition.TO)
       }
       case 11 => {
         // Something ----s something
-        directObject.nonEmpty
+        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition.TO)
       }
       case 12 => {
         // Something ----s to somebody
@@ -275,10 +275,12 @@ object SilWordnetScorer extends SprEnglishWordAnalyzer
       }
       case 20 => {
         // Somebody ----s somebody PP
-        directObject.nonEmpty && hasAdposition(modifiers)
+        directObject.nonEmpty && hasAdposition(modifiers) &&
+        !hasAdposition(modifiers, SilAdposition.TO)
       }
       case 21 => {
-        // Somebody ----s something PP
+        // Somebody ----s something PP &&
+        !hasAdposition(modifiers, SilAdposition.TO)
         directObject.nonEmpty && hasAdposition(modifiers)
       }
       case 22 => {
