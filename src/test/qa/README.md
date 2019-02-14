@@ -23,7 +23,7 @@ This will run through all supported tasks, and should produce no errors.
 To run one particular task, supply the filename as an extra argument, e.g.
 
 ```
-babi.sh /path/to/tasks_1-20_v1-2 qa4_valid.txt
+babi.sh /path/to/tasks_1-20_v1-2/en-valid qa4_valid.txt
 ```
 
 The [babi.sh](babi.sh) script iterates over the task data files,
