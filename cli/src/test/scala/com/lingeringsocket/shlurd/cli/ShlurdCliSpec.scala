@@ -14,10 +14,13 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.platonic._
 
 import org.specs2.mutable._
+
+import scala.io._
 
 import java.io._
 
@@ -51,6 +54,59 @@ class ShlurdCliSpec extends Specification
       } finally {
         file.delete
       }
+    }
+  }
+
+  "ShlurdCliApp" should
+  {
+    "interpret script" in
+    {
+      val script = Source.fromFile(
+        SprParser.getResourceFile("/expect/cli-script.txt")).getLines
+      def nextScriptLine() : Option[String] = {
+        if (!script.hasNext) {
+          None
+        } else {
+          val s = script.next
+          if (s.isEmpty) {
+            nextScriptLine
+          } else {
+            Some(s)
+          }
+        }
+      }
+      val terminal = new ShlurdCliTerminal {
+        override def emitPrompt()
+        {
+        }
+
+        override def emitControl(msg : String)
+        {
+        }
+
+        override def emitResponse(msg : String)
+        {
+          if (!msg.isEmpty) {
+            nextScriptLine match {
+              case Some(expected) => {
+                msg must be equalTo expected
+              }
+              case _ => {
+                msg must be equalTo "EOF"
+              }
+            }
+          }
+        }
+
+        override def readCommand() : Option[String] =
+        {
+          nextScriptLine
+        }
+      }
+      val mind = ShlurdCliShell.newMind(terminal)
+      val shell = new ShlurdCliShell(mind, terminal)
+      shell.run
+      nextScriptLine must beEmpty
     }
   }
 }
