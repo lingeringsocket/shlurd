@@ -12,29 +12,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.platonic
+package com.lingeringsocket.shlurd.cli
 
 import com.lingeringsocket.shlurd.mind._
+import com.lingeringsocket.shlurd.platonic._
 
 import org.specs2.mutable._
 import org.specs2.specification._
 
-object SpcWordnetSpec
-{
-  private val cosmos = new SpcCosmos
-  // FIXME:  speed this up
-  // SpcPrimordial.initCosmos(cosmos)
-  private val wordnet = new SpcWordnet(cosmos)
-  wordnet.loadAll
-
-  def getCosmos() = cosmos
-}
-
-class SpcWordnetSpec extends Specification
+class ShlurdPrimordialWordnetSpec extends Specification
 {
   abstract class InterpreterContext extends Scope
   {
-    protected val cosmos = SpcWordnetSpec.getCosmos
+    protected val cosmos = ShlurdPrimordialWordnet.loadCosmos
     protected val mind = new SpcWordnetMind(cosmos)
     protected val interpreter =
       new SpcInterpreter(
@@ -53,11 +43,11 @@ class SpcWordnetSpec extends Specification
     }
   }
 
-  "SpcWordnet" should
+  "ShlurdPrimordialWordnet" should
   {
     "load forms" in
     {
-      val cosmos = SpcWordnetSpec.getCosmos
+      val cosmos = ShlurdPrimordialWordnet.loadCosmos
       val dogOpt = cosmos.resolveForm("wn-dog-1")
       dogOpt must beSome
       val dogForm = dogOpt.get

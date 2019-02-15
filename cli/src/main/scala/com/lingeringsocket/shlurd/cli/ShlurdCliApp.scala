@@ -34,7 +34,7 @@ object ShlurdCliApp extends App
   {
     if (file.exists) {
       println("SHLURD> Awaking from kryo...")
-      val oldMind = serializer.load(file)
+      val oldMind = serializer.loadMind(file)
       println("SHLURD> Hello again, human!")
       oldMind
     } else {
@@ -94,6 +94,6 @@ class ShlurdCliApp(
     // don't serialize conversation since that could be an extra source of
     // deserialization problems later
     mind.stopConversation
-    serializer.save(mind, file)
+    serializer.saveMind(mind, file)
   }
 }

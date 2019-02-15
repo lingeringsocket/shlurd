@@ -36,7 +36,30 @@ class ShlurdCliSerializer
   instantiator.setRegistrationRequired(false)
   private val kryo = instantiator.newKryo
 
-  def save(mind : ShlurdCliMind, file : File)
+  def saveCosmos(cosmos : SpcCosmos, file : File)
+  {
+    val fos = new FileOutputStream(file)
+    try {
+      val output = new Output(fos)
+      kryo.writeObject(output, cosmos)
+      output.flush
+    } finally {
+      fos.close
+    }
+  }
+
+  def loadCosmos(file : File) : SpcCosmos =
+  {
+    val fis = new FileInputStream(file)
+    try {
+      val input = new Input(fis)
+      kryo.readObject(input, classOf[SpcCosmos])
+    } finally {
+      fis.close
+    }
+  }
+
+  def saveMind(mind : ShlurdCliMind, file : File)
   {
     val zos = new ZipOutputStream(new FileOutputStream(file))
     try {
@@ -65,7 +88,7 @@ class ShlurdCliSerializer
     }
   }
 
-  def saveEntry(
+  private def saveEntry(
     zos : ZipOutputStream,
     entry : String)(writeEntry : OutputStream => Unit)
   {
@@ -74,7 +97,7 @@ class ShlurdCliSerializer
     zos.closeEntry
   }
 
-  def load(file : File) : ShlurdCliMind =
+  def loadMind(file : File) : ShlurdCliMind =
   {
     val zis = new ZipInputStream(new FileInputStream(file))
     try {

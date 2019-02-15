@@ -73,7 +73,7 @@ object ShlurdFictionShell
     if (file.exists) {
       terminal.emitControl("Reloading...")
       val serializer = new ShlurdCliSerializer
-      val oldMind = serializer.load(file)
+      val oldMind = serializer.loadMind(file)
       terminal.emitControl("Reload complete.")
       tupleN((oldMind, false))
     } else {
