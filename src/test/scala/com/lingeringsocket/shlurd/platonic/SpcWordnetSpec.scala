@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd.platonic
 import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 object SpcWordnetSpec
 {
@@ -31,6 +32,27 @@ object SpcWordnetSpec
 
 class SpcWordnetSpec extends Specification
 {
+  abstract class InterpreterContext extends Scope
+  {
+    protected val cosmos = SpcWordnetSpec.getCosmos
+    protected val mind = new SpcWordnetMind(cosmos)
+    protected val interpreter =
+      new SpcInterpreter(
+        mind, ACCEPT_NEW_BELIEFS, SmcResponseParams())
+
+    protected def interpretBelief(input : String) =
+    {
+      interpret(input, "OK.")
+    }
+
+    protected def interpret(input : String, expected : String) =
+    {
+      val sentence = interpreter.newParser(input).parseOne
+      s"pass:  $input" ==> (
+        interpreter.interpret(sentence, input) === expected)
+    }
+  }
+
   "SpcWordnet" should
   {
     "load forms" in
@@ -56,17 +78,19 @@ class SpcWordnetSpec extends Specification
       graph.isHyponym(puppyForm, anthroposForm) must beFalse
     }
 
-    "provide ontology to parser" in
+    "provide ontology to parser" in new InterpreterContext
     {
-      val cosmos = SpcWordnetSpec.getCosmos
-      val mind = new SpcWordnetMind(cosmos)
-      val interpreter =
-        new SpcInterpreter(
-          mind, ACCEPT_NEW_BELIEFS, SmcResponseParams())
-      val input = "which dogs are there"
-      val sentence = interpreter.newParser(input).parseOne
-      interpreter.interpret(sentence, input) must be equalTo
-        "There are no dogs."
+      interpret(
+        "which animals are there",
+        "There are no animals.")
+      interpretBelief("a pokemon is a kind of animal")
+      interpretBelief("Pikachu is a pokemon")
+      interpret(
+        "which animals are there",
+        "There is Pikachu.")
+      interpret(
+        "which organisms are there",
+        "There is Pikachu.")
     }
   }
 }

@@ -759,7 +759,9 @@ class SpcCosmos(
 
   def validateBeliefs()
   {
-    assert(sanityCheck)
+    if (graph.idealTaxonomy.vertexSet.size < 10000) {
+      assert(sanityCheck)
+    }
   }
 
   def sanityCheck() : Boolean =

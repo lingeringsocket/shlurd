@@ -775,7 +775,7 @@ class SpcInterpreter(
 
   private def unknownType() : SpcForm =
   {
-    mind.getCosmos.instantiateForm(SilWord(SpcMeta.ENTITY_METAFORM_NAME))
+    mind.instantiateForm(SilWord(SpcMeta.ENTITY_METAFORM_NAME))
   }
 
   private[platonic] def deriveType(

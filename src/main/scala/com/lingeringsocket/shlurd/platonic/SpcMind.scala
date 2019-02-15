@@ -125,4 +125,20 @@ class SpcMind(cosmos : SpcCosmos)
   {
     cosmos.resolveForm(noun.lemma)
   }
+
+  def instantiateForm(noun : SilWord) : SpcForm =
+  {
+    resolveForm(noun).getOrElse {
+      cosmos.instantiateForm(noun)
+    }
+  }
+
+  def instantiateIdeal(
+    noun : SilWord,
+    assumeRole : Boolean = false) : SpcIdeal =
+  {
+    resolveForm(noun).getOrElse {
+      cosmos.instantiateIdeal(noun, assumeRole)
+    }
+  }
 }
