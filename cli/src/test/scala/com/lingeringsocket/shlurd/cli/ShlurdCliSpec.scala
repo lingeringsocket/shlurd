@@ -40,7 +40,7 @@ class ShlurdCliSpec extends Specification
       val form = cosmos.instantiateForm(SilWord("dog"))
       cosmos.getForms.size must be greaterThan 0
       val entity = cosmos.newSingletonEntity(form)
-      val oldMind = new ShlurdCliMind(cosmos, entity, entity)
+      val oldMind = new ShlurdCliMind(cosmos, entity, entity, false)
       val serializer = new ShlurdCliSerializer
       val file = File.createTempFile("testmind", ".kryo")
       try {

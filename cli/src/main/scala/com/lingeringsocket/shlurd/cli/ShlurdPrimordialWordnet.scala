@@ -24,7 +24,7 @@ object ShlurdPrimordialWordnet
   {
     this.synchronized {
       val serializer = new ShlurdCliSerializer
-      val file = new File("run/primordial-wordnet.kryo")
+      val file = new File("run/primordial-wordnet.zip")
       if (file.exists) {
         serializer.loadCosmos(file)
       } else {

@@ -39,8 +39,7 @@ object ShlurdCliApp extends App
       oldMind
     } else {
       println("SHLURD> Loading initial beliefs...")
-      val cosmos = new SpcCosmos
-      SpcPrimordial.initCosmos(cosmos)
+      val cosmos = ShlurdPrimordialWordnet.loadCosmos
       val beliefs = SprParser.getResourceFile("/ontologies/console.txt")
       val source = Source.fromFile(beliefs)
       cosmos.loadBeliefs(source)
@@ -53,7 +52,7 @@ object ShlurdCliApp extends App
           SmcLemmas.LEMMA_PERSON, REF_SUBJECT, Set("shlurd"))).get
 
       println("SHLURD> Hello, human!")
-      new ShlurdCliMind(cosmos, entityInterviewer, entityShlurd)
+      new ShlurdCliMind(cosmos, entityInterviewer, entityShlurd, true)
     }
   }
 }

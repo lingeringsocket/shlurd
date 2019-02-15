@@ -38,24 +38,28 @@ class ShlurdCliSerializer
 
   def saveCosmos(cosmos : SpcCosmos, file : File)
   {
-    val fos = new FileOutputStream(file)
+    val zos = new ZipOutputStream(new FileOutputStream(file))
     try {
-      val output = new Output(fos)
-      kryo.writeObject(output, cosmos)
-      output.flush
+      saveEntry(zos, KRYO_ENTRY)(outputStream => {
+        val output = new Output(outputStream)
+        kryo.writeObject(output, cosmos)
+        output.flush
+      })
     } finally {
-      fos.close
+      zos.close
     }
   }
 
   def loadCosmos(file : File) : SpcCosmos =
   {
-    val fis = new FileInputStream(file)
+    val zis = new ZipInputStream(new FileInputStream(file))
     try {
-      val input = new Input(fis)
+      val nextEntry = zis.getNextEntry
+      assert(nextEntry.getName == KRYO_ENTRY)
+      val input = new Input(zis)
       kryo.readObject(input, classOf[SpcCosmos])
     } finally {
-      fis.close
+      zis.close
     }
   }
 

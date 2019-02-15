@@ -21,30 +21,38 @@ import com.lingeringsocket.shlurd.mind._
 import scala.collection._
 import scala.util._
 
-class SpcWordnetMind(cosmos : SpcCosmos)
+class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
     extends SpcMind(cosmos)
 {
   private def getWordnet() = new SpcWordnet(cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {
-    val mind = new SpcWordnetMind(newCosmos)
+    val mind = new SpcWordnetMind(newCosmos, wordnetActive)
     mind.initFrom(this)
     mind
   }
 
   override def analyzeSense(sentence : SilSentence) =
   {
-    val analyzer = new SilWordnetSenseAnalyzer
-    analyzer.analyze(sentence)
+    if (wordnetActive) {
+      val analyzer = new SilWordnetSenseAnalyzer
+      analyzer.analyze(sentence)
+    } else {
+      super.analyzeSense(sentence)
+    }
   }
 
   override def resolveForm(noun : SilWord) : Option[SpcForm] =
   {
     super.resolveForm(noun).orElse {
-      val senses = ShlurdWordnet.findSenses(noun.senseId)
-      val wordnet = getWordnet
-      senses.toStream.flatMap(wordnet.getSynsetForm).headOption
+      if (wordnetActive) {
+        val senses = ShlurdWordnet.findSenses(noun.senseId)
+        val wordnet = getWordnet
+        senses.toStream.flatMap(wordnet.getSynsetForm).headOption
+      } else {
+        None
+      }
     }
   }
 
@@ -54,7 +62,7 @@ class SpcWordnetMind(cosmos : SpcCosmos)
     qualifiers : Set[String] = Set.empty) : Try[Set[SpcEntity]] =
   {
     val superResult = super.resolveQualifiedNoun(noun, context, qualifiers)
-    if (superResult.isSuccess) {
+    if (superResult.isSuccess || !wordnetActive) {
       superResult
     } else {
       resolveForm(noun) match {

@@ -97,7 +97,7 @@ object ShlurdFictionShell
       cosmos.resolveQualifiedNoun(
         INTERPRETER_WORD, REF_SUBJECT, Set())).get
 
-    new ShlurdCliMind(cosmos, entityPlayer, entityInterpreter)
+    new ShlurdCliMind(cosmos, entityPlayer, entityInterpreter, false)
   }
 }
 
