@@ -748,8 +748,10 @@ class SpcCosmos(
   {
     val beliefs = source.getLines.filterNot(_.isEmpty).mkString("\n")
     val sentences = newParser(beliefs).parseAll
+    // FIXME we should move this entire method to SpcMind
+    val mind = new SpcMind(this)
     sentences.foreach(sentence => {
-      val interpreter = new SpcBeliefInterpreter(this, false)
+      val interpreter = new SpcBeliefInterpreter(mind, false)
       interpreter.interpretBelief(sentence)
     })
     validateBeliefs

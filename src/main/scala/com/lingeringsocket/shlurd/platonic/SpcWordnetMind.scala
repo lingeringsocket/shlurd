@@ -39,6 +39,15 @@ class SpcWordnetMind(cosmos : SpcCosmos)
     analyzer.analyze(sentence)
   }
 
+  override def resolveForm(noun : SilWord) : Option[SpcForm] =
+  {
+    super.resolveForm(noun).orElse {
+      val senses = ShlurdWordnet.findSenses(noun.senseId)
+      val wordnet = getWordnet
+      senses.toStream.flatMap(wordnet.getSynsetForm).headOption
+    }
+  }
+
   override def resolveQualifiedNoun(
     noun : SilWord,
     context : SilReferenceContext,
@@ -48,15 +57,11 @@ class SpcWordnetMind(cosmos : SpcCosmos)
     if (superResult.isSuccess) {
       superResult
     } else {
-      val senses = ShlurdWordnet.findSenses(noun.senseId)
-      val wordnet = getWordnet
-      senses.toStream.flatMap(wordnet.getSynsetForm).headOption match {
+      resolveForm(noun) match {
         case Some(form) => {
           cosmos.resolveQualifiedNoun(form.name, context, qualifiers)
         }
-        case _ => {
-          superResult
-        }
+        case _ => superResult
       }
     }
   }

@@ -24,10 +24,10 @@ import scala.collection.JavaConverters._
 import org.jgrapht.alg.shortestpath._
 
 class SpcBeliefInterpreter(
-  cosmos : SpcCosmos,
+  mind : SpcMind,
   allowUpdates : Boolean = false,
   resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
-    extends SpcBeliefRecognizer(cosmos, resultCollector)
+    extends SpcBeliefRecognizer(mind.getCosmos, resultCollector)
 {
   type BeliefApplier = PartialFunction[SpcBelief, Unit]
 
@@ -109,7 +109,7 @@ class SpcBeliefInterpreter(
           case Some(entity) => (entity, false)
           case _ => {
             val tentativeName = SpcForm.tentativeName(noun)
-            assert(cosmos.resolveForm(tentativeName.lemma).isEmpty)
+            assert(mind.resolveForm(tentativeName).isEmpty)
             val newForm = cosmos.instantiateForm(tentativeName)
             val (entity, success) = cosmos.instantiateEntity(
               newForm, Seq(noun), noun.lemmaUnfolded)

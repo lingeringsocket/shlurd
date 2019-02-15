@@ -120,4 +120,9 @@ class SpcMind(cosmos : SpcCosmos)
     }
     Some(SilPronounReference(PERSON_THIRD, gender, count))
   }
+
+  def resolveForm(noun : SilWord) : Option[SpcForm] =
+  {
+    cosmos.resolveForm(noun.lemma)
+  }
 }

@@ -26,17 +26,9 @@ class SilWordnetSenseAnalyzer extends SilPhraseRewriter
   {
     def matcher = replacementMatcher {
       case SilActionPredicate(subject, action, directObject, modifiers) => {
-        val inputSenses = ShlurdWordnet.findSenses(action.senseId)
-        val candidateSenses = {
-          if (inputSenses.isEmpty) {
-            ShlurdWordnet.getVerbSenses(action.lemma)
-          } else {
-            inputSenses
-          }
-        }
-        val filteredSenses = candidateSenses.filter(sense =>
-          isCompatibleAction(sense, subject, directObject, modifiers))
-        val senseId = ShlurdWordnet.getSenseId(filteredSenses)
+        val senseId = filterSenses(action, POS.VERB, sense => {
+          isCompatibleAction(sense, subject, directObject, modifiers)
+        })
         SilActionPredicate(
           subject,
           action.withSense(senseId),
@@ -44,20 +36,28 @@ class SilWordnetSenseAnalyzer extends SilPhraseRewriter
           modifiers)
       }
       case SilNounReference(noun, determiner, count) => {
-        val inputSenses = ShlurdWordnet.findSenses(noun.senseId)
-        val candidateSenses = {
-          if (inputSenses.isEmpty) {
-            ShlurdWordnet.getNounSenses(noun.lemma)
-          } else {
-            inputSenses
-          }
-        }
-        val filteredSenses = candidateSenses
-        val senseId = ShlurdWordnet.getSenseId(filteredSenses)
+        val senseId = filterSenses(noun, POS.NOUN, sense => true)
         SilNounReference(noun.withSense(senseId), determiner, count)
       }
     }
     rewrite(matcher, phrase)
+  }
+
+  private def filterSenses(
+    word : SilWord,
+    pos : POS,
+    filter : Synset => Boolean) : String =
+  {
+    val inputSenses = ShlurdWordnet.findSenses(word.senseId)
+    val candidateSenses = {
+      if (inputSenses.isEmpty) {
+        ShlurdWordnet.getWordSenses(pos, word.lemma)
+      } else {
+        inputSenses
+      }
+    }
+    val filteredSenses = candidateSenses.filter(filter)
+    ShlurdWordnet.getSenseId(filteredSenses)
   }
 
   private def isCompatibleAction(

@@ -291,7 +291,7 @@ class SpcInterpreter(
     val compliance = sentencePrinter.sb.respondCompliance
     val beliefInterpreter =
       new SpcBeliefInterpreter(
-        forkedCosmos,
+        mind.spawn(forkedCosmos),
         (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS),
         resultCollector)
     attemptAsBelief(beliefInterpreter, sentence).foreach(result => {
@@ -675,7 +675,7 @@ class SpcInterpreter(
       case SilNounReference(
         noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
       ) => {
-        val resolvedForm = cosmos.resolveForm(noun.lemma)
+        val resolvedForm = mind.resolveForm(noun)
         val patternRef = SilNounReference(
           noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
         if (inputRewriter.containsWildcard(actualRef)) {
@@ -803,7 +803,7 @@ class SpcInterpreter(
             cosmos.getEntityBySynonym(noun.lemma).map(_.form).
               getOrElse(unknownType)
           } else {
-            cosmos.resolveForm(noun.lemma).getOrElse(unknownType)
+            mind.resolveForm(noun).getOrElse(unknownType)
           }
         }
         case pr : SilPronounReference => {

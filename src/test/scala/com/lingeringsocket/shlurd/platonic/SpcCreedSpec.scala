@@ -36,11 +36,12 @@ class SpcCreedSpec extends Specification
     protected def addBelief(input : String) =
     {
       val sentence = cosmos.newParser(input).parseOne
-      val interpreter = new SpcInterpreter(new SpcMind(cosmos))
+      val mind = new SpcMind(cosmos)
+      val interpreter = new SpcInterpreter(mind)
       val resultCollector = SmcResultCollector[SpcEntity]()
       interpreter.resolveReferences(sentence, resultCollector)
       val beliefInterpreter = new SpcBeliefInterpreter(
-        cosmos, false, resultCollector)
+        mind, false, resultCollector)
       beliefInterpreter.interpretBelief(sentence)
     }
 
@@ -59,12 +60,13 @@ class SpcCreedSpec extends Specification
       beliefStrings.map(SprUtils.capitalize) must be equalTo expected
       beliefStrings.foreach(beliefString => {
         val sentence = cosmos.newParser(beliefString).parseOne
+        val refriedMind = new SpcMind(refriedCosmos)
         val refriedInterpreter =
-          new SpcInterpreter(new SpcMind(refriedCosmos))
+          new SpcInterpreter(refriedMind)
         val resultCollector = SmcResultCollector[SpcEntity]()
         refriedInterpreter.resolveReferences(sentence, resultCollector)
         val refriedBeliefInterpreter =
-          new SpcBeliefInterpreter(refriedCosmos, false, resultCollector)
+          new SpcBeliefInterpreter(refriedMind, false, resultCollector)
         val refriedBeliefs =
           refriedBeliefInterpreter.recognizeBeliefs(sentence)
         refriedBeliefs.foreach(belief => {
