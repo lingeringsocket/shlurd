@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
@@ -21,6 +22,8 @@ import com.lingeringsocket.shlurd.ilang._
 import scala.collection._
 import scala.collection.JavaConverters._
 import scala.util._
+
+import spire.math._
 
 import SprEnglishLemmas._
 
@@ -139,6 +142,53 @@ class SpcMind(cosmos : SpcCosmos)
   {
     resolveForm(noun).getOrElse {
       cosmos.instantiateIdeal(noun, assumeRole)
+    }
+  }
+
+  override def evaluateEntityCategoryPredicate(
+    entity : SpcEntity,
+    noun : SilWord,
+    qualifiers : Set[String]) : Try[Trilean] =
+  {
+    val (formOpt, roleOpt) = cosmos.resolveIdeal(noun.lemma) match {
+      case (None, None) => {
+        // FIXME
+        resolveForm(noun) match {
+          case Some(form) => tupleN((Some(form), None))
+          case _ => (None, None)
+        }
+      }
+      case x => x
+    }
+    val graph = cosmos.getGraph
+    roleOpt match {
+      case Some(role) => {
+        Success(Trilean(
+          graph.isFormCompatibleWithRole(entity.form, role) &&
+            cosmos.getEntityAssocGraph.incomingEdgesOf(entity).asScala.
+            exists(edge =>
+              graph.isHyponym(
+                role,
+                graph.getPossesseeRole(edge.formEdge)))))
+      }
+      case _ => {
+        formOpt match {
+          case Some(form) => {
+            if (graph.isHyponym(entity.form, form)) {
+              Success(Trilean.True)
+            } else {
+              if (entity.form.isTentative) {
+                Success(Trilean.Unknown)
+              } else {
+                Success(Trilean.False)
+              }
+            }
+          }
+          case _ => {
+            cosmos.fail(s"unknown ideal ${noun.lemma}")
+          }
+        }
+      }
     }
   }
 }

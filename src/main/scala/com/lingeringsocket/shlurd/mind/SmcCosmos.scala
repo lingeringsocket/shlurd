@@ -60,15 +60,6 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
     Failure(new UnsupportedOperationException)
   }
 
-  def evaluateEntityCategoryPredicate(
-    entity : EntityType,
-    lemma : String,
-    qualifiers : Set[String] = Set.empty) : Try[Trilean] =
-  {
-    resolveQualifiedNoun(lemma, REF_SUBJECT, qualifiers).map(
-      set => Trilean(set.contains(entity)))
-  }
-
   def evaluateEntityPropertyPredicate(
     entity : EntityType,
     property : PropertyType,

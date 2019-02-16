@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.ilang._
 import scala.collection._
 import scala.util._
 
+import spire.math._
+
 class SmcMind[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -175,6 +177,15 @@ class SmcMind[
         getCosmos
       }
     }
+  }
+
+  def evaluateEntityCategoryPredicate(
+    entity : EntityType,
+    noun : SilWord,
+    qualifiers : Set[String] = Set.empty) : Try[Trilean] =
+  {
+    resolveQualifiedNoun(noun, REF_SUBJECT, qualifiers).map(
+      set => Trilean(set.contains(entity)))
   }
 
   def resolveQualifiedNoun(

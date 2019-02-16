@@ -112,30 +112,33 @@ class SmcPredicateEvaluator[
             subjectCollector)
           {
             (subjectEntity, entityRef) => {
-              if (!categoryLabel.isEmpty) {
-                evaluateCategorization(subjectEntity, categoryLabel)
-              } else {
-                if (relationship == REL_ASSOCIATION) {
-                  val roleQualifiers = extractRoleQualifiers(complementRef)
-                  if (roleQualifiers.size == 1) {
-                    val roleName = roleQualifiers.head
-                    cosmos.reifyRole(subjectEntity, roleName, true)
-                    // invalidate any cached result for complementRef since
-                    // we just reified a new entity
-                    complementRef.descendantReferences.foreach(
-                      resultCollector.referenceMap.remove
-                    )
-                  }
+              categoryLabel match {
+                case Some(label) => {
+                  evaluateCategorization(subjectEntity, label)
                 }
-                evaluatePredicateOverReference(
-                  complementRef, context, complementCollector)
-                {
-                  (complementEntity, entityRef) => {
-                    evaluateRelationshipPredicate(
-                      subjectRef, subjectEntity,
-                      complementRef, complementEntity,
-                      relationship
-                    )
+                case _ => {
+                  if (relationship == REL_ASSOCIATION) {
+                    val roleQualifiers = extractRoleQualifiers(complementRef)
+                    if (roleQualifiers.size == 1) {
+                      val roleName = roleQualifiers.head
+                      cosmos.reifyRole(subjectEntity, roleName, true)
+                      // invalidate any cached result for complementRef since
+                      // we just reified a new entity
+                      complementRef.descendantReferences.foreach(
+                        resultCollector.referenceMap.remove
+                      )
+                    }
+                  }
+                  evaluatePredicateOverReference(
+                    complementRef, context, complementCollector)
+                  {
+                    (complementEntity, entityRef) => {
+                      evaluateRelationshipPredicate(
+                        subjectRef, subjectEntity,
+                        complementRef, complementEntity,
+                        relationship
+                      )
+                    }
                   }
                 }
               }
@@ -294,14 +297,14 @@ class SmcPredicateEvaluator[
 
   private def relationshipComplementContext(
     rel : SilRelationship,
-    complementRef : SilReference) : (SilReferenceContext, String) =
+    complementRef : SilReference) : (SilReferenceContext, Option[SilWord]) =
   {
     rel match {
       case REL_IDENTITY => {
         tupleN((REF_COMPLEMENT, extractCategory(complementRef)))
       }
       case REL_ASSOCIATION => {
-        tupleN((REF_SUBJECT, ""))
+        tupleN((REF_SUBJECT, None))
       }
     }
   }
@@ -785,13 +788,13 @@ class SmcPredicateEvaluator[
     }
   }
 
-  private def extractCategory(reference : SilReference) : String =
+  private def extractCategory(reference : SilReference) : Option[SilWord] =
   {
     // FIXME:  support qualifiers etc
     reference match {
       case SilNounReference(
-        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => noun.lemma
-      case _ => ""
+        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => Some(noun)
+      case _ => None
     }
   }
 
@@ -809,16 +812,16 @@ class SmcPredicateEvaluator[
 
   private def evaluateCategorization(
     entity : EntityType,
-    categoryLabel : String) : Try[Trilean] =
+    categoryLabel : SilWord) : Try[Trilean] =
   {
-    val result = cosmos.evaluateEntityCategoryPredicate(entity, categoryLabel)
+    val result = mind.evaluateEntityCategoryPredicate(entity, categoryLabel)
     trace("RESULT FOR " +
       s"$entity IN_CATEGORY " +
       s"$categoryLabel is $result")
     result match {
       case Failure(e) => {
         debug("ERROR", e)
-        fail(sentencePrinter.sb.respondUnknown(SilWord(categoryLabel)))
+        fail(sentencePrinter.sb.respondUnknown(SilWord(categoryLabel.lemma)))
       }
       case _ => result
     }

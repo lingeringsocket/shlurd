@@ -868,7 +868,7 @@ class SpcCosmos(
         graph.getPossesseeEntity))
   }
 
-  private def resolveIdeal(
+  private[platonic] def resolveIdeal(
     lemma : String) : (Option[SpcForm], Option[SpcRole]) =
   {
     getIdealBySynonym(lemma) match {
@@ -1332,43 +1332,6 @@ class SpcCosmos(
       }
       case _ => {
         Success(Trilean.Unknown)
-      }
-    }
-  }
-
-  override def evaluateEntityCategoryPredicate(
-    entity : SpcEntity,
-    lemma : String,
-    qualifiers : Set[String]) : Try[Trilean] =
-  {
-    val (formOpt, roleOpt) = resolveIdeal(lemma)
-    roleOpt match {
-      case Some(role) => {
-        Success(Trilean(
-          graph.isFormCompatibleWithRole(entity.form, role) &&
-            getEntityAssocGraph.incomingEdgesOf(entity).asScala.
-            exists(edge =>
-              graph.isHyponym(
-                role,
-                graph.getPossesseeRole(edge.formEdge)))))
-      }
-      case _ => {
-        formOpt match {
-          case Some(form) => {
-            if (graph.isHyponym(entity.form, form)) {
-              Success(Trilean.True)
-            } else {
-              if (entity.form.isTentative) {
-                Success(Trilean.Unknown)
-              } else {
-                Success(Trilean.False)
-              }
-            }
-          }
-          case _ => {
-            fail(s"unknown ideal $lemma")
-          }
-        }
       }
     }
   }
