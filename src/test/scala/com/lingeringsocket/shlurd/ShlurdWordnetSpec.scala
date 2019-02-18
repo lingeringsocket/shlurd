@@ -78,6 +78,39 @@ class ShlurdWordnetSpec extends Specification
       flags(9) must beTrue
     }
 
+    "get gloss definitions" in
+    {
+      ShlurdWordnet.getVerbSenses("pester").flatMap(
+        ShlurdWordnet.getGlossDefinitions
+      ) must be equalTo Seq(
+        "annoy persistently"
+      )
+      ShlurdWordnet.getNounSenses("gallop").flatMap(
+        ShlurdWordnet.getGlossDefinitions
+      ) must be equalTo Seq(
+        "a fast gait of a horse",
+        "a two-beat stride during which all four legs " +
+          "are off the ground simultaneously"
+      )
+    }
+
+    "get gloss examples" in
+    {
+      ShlurdWordnet.getVerbSenses("pester").flatMap(
+        ShlurdWordnet.getGlossExamples
+      ) must be equalTo Seq(
+        "The children teased the boy because of his stammer"
+      )
+      ShlurdWordnet.getNounSenses("pickle").flatMap(
+        ShlurdWordnet.getGlossExamples
+      ) must be equalTo Seq(
+        "he got into a terrible fix",
+        "he made a muddle of his marriage")
+      ShlurdWordnet.getVerbSenses("pickle").flatMap(
+        ShlurdWordnet.getGlossExamples
+      ) must be equalTo Seq()
+    }
+
     "use simple sense keys" in
     {
       val senses = ShlurdWordnet.getVerbSenses("defenestrate")

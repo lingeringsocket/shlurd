@@ -196,8 +196,6 @@ object SprParser
 
   val ONCE_UPON_A_TIME = "once upon a time"
 
-  val DQUOTE = "\""
-
   private val terminators = Set(
     LABEL_DOT, LABEL_QUESTION_MARK, LABEL_EXCLAMATION_MARK)
 

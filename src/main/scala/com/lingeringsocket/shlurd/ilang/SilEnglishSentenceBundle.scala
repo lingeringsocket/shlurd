@@ -813,7 +813,7 @@ class SilEnglishSentenceBundle
       prefix,
       concat(predicate, ","),
       "but I can't understand the phrase",
-      concat(SprParser.DQUOTE, errorPhrase, SprParser.DQUOTE))
+      concat(DQUOTE, errorPhrase, DQUOTE))
   }
 
   override def predicateUnrecognizedSubject(

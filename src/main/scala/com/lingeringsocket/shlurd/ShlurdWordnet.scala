@@ -57,6 +57,11 @@ object ShlurdWordnet
     getWordSenses(POS.NOUN, lemma)
   }
 
+  def allNounSenses() =
+  {
+    dictionary.getSynsetIterator(POS.NOUN).asScala
+  }
+
   def getVerbFrames(lemma : String) : Seq[String] =
   {
     getVerbSenses(lemma).flatMap(_.getVerbFrames).distinct
@@ -153,5 +158,20 @@ object ShlurdWordnet
     } else {
       senseId.split('|').map(findSense)
     }
+  }
+
+  def getGlossDefinitions(synset : Synset) : Seq[String] =
+  {
+    val quote = DQUOTE
+    val gloss = synset.getGloss
+    gloss.split(';').map(_.trim).filterNot(_.startsWith(quote))
+  }
+
+  def getGlossExamples(synset : Synset) : Seq[String] =
+  {
+    val quote = DQUOTE
+    val gloss = synset.getGloss
+    gloss.split(';').map(_.trim).filter(_.startsWith(quote)).map(
+      _.stripPrefix(quote).stripSuffix(quote))
   }
 }

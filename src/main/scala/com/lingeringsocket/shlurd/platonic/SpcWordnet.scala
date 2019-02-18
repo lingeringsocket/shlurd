@@ -38,7 +38,7 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   def loadForms()
   {
-    allSynsets.foreach(synset => {
+    ShlurdWordnet.allNounSenses.foreach(synset => {
       debug("SYNSET GLOSS = " + synset.getGloss)
       val words = synset.getWords.asScala.filter(
         word => isUsableFormName(word.getLemma))
@@ -59,7 +59,7 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   def loadTaxonomy()
   {
-    allSynsets.foreach(hyponymSynset => {
+    ShlurdWordnet.allNounSenses.foreach(hyponymSynset => {
       getSynsetForm(hyponymSynset) match {
         case Some(hyponymForm) => {
           val hypernyms = PointerUtils.getDirectHypernyms(hyponymSynset).asScala
@@ -87,11 +87,6 @@ class SpcWordnet(cosmos : SpcCosmos)
   private def getIdealName(word : Word) : String =
   {
     s"wn-${word.getLemma}-${word.getSenseNumber}"
-  }
-
-  private def allSynsets() =
-  {
-    dictionary.getSynsetIterator(POS.NOUN).asScala
   }
 
   private def isUsableFormName(lemma : String) : Boolean =

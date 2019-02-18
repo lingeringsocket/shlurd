@@ -16,6 +16,8 @@ package com.lingeringsocket
 
 package object shlurd
 {
+  val DQUOTE = "\""
+
   // syntactic sugar to make it easier to spot where we are
   // constructing a tuple (and to make Emacs indentation happier)
   def tupleN[TupleN <: Product](t : TupleN) = t
