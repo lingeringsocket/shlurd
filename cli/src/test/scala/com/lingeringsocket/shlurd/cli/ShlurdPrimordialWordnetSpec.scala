@@ -48,18 +48,18 @@ class ShlurdPrimordialWordnetSpec extends Specification
     "load forms" in
     {
       val cosmos = ShlurdPrimordialWordnet.loadCosmos
-      val dogOpt = cosmos.resolveForm("wn-dog-1")
+      val dogOpt = cosmos.resolveForm("wnf-dog-1")
       dogOpt must beSome
       val dogForm = dogOpt.get
-      val androsOpt = cosmos.resolveForm("wn-man-1")
+      val androsOpt = cosmos.resolveForm("wnf-man-1")
       androsOpt must beSome
       val androsForm = androsOpt.get
-      val anthroposOpt = cosmos.resolveForm("wn-man-4")
+      val anthroposOpt = cosmos.resolveForm("wnf-man-4")
       anthroposOpt must beSome.which(_ != androsForm)
       val anthroposForm = anthroposOpt.get
-      cosmos.resolveForm("wn-human-1") must beSome.which(_ == anthroposForm)
-      cosmos.resolveForm("wn-xyzzy-1") must beEmpty
-      val puppyOpt = cosmos.resolveForm("wn-puppy-1")
+      cosmos.resolveForm("wnf-human-1") must beSome.which(_ == anthroposForm)
+      cosmos.resolveForm("wnf-xyzzy-1") must beEmpty
+      val puppyOpt = cosmos.resolveForm("wnf-puppy-1")
       puppyOpt must beSome
       val puppyForm = puppyOpt.get
       val graph = cosmos.getGraph

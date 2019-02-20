@@ -16,6 +16,9 @@ package com.lingeringsocket.shlurd
 
 import org.specs2.mutable._
 
+import net.sf.extjwnl.data._
+import scala.collection.JavaConverters._
+
 class ShlurdWordnetSpec extends Specification
 {
   "ShlurdWordnet" should

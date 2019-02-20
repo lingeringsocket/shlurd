@@ -25,57 +25,87 @@ class SpcWordnet(cosmos : SpcCosmos)
 {
   private val dictionary = ShlurdWordnet.dictionary
 
-  private def debug(s : String)
-  {
-    // println(s)
-  }
-
   def loadAll()
   {
-    loadForms
-    loadTaxonomy
+    loadAllForms
+    loadAllTaxonomy
+    loadAllAssociations
   }
 
-  def loadForms()
+  def loadAllForms()
   {
-    ShlurdWordnet.allNounSenses.foreach(synset => {
-      debug("SYNSET GLOSS = " + synset.getGloss)
-      val words = synset.getWords.asScala.filter(
+    ShlurdWordnet.allNounSenses.foreach(loadForm)
+  }
+
+  def loadForm(sense : Synset) : Option[SpcForm] =
+  {
+    getSynsetForm(sense).orElse {
+      val words = sense.getWords.asScala.filter(
         word => isUsableFormName(word.getLemma))
       if (!words.isEmpty) {
-        words.foreach(word => {
-          debug("LEMMA = " + word.getLemma)
-        })
         val form = cosmos.instantiateForm(SilWord(getIdealName(words.head)))
         words.tail.foreach(word => {
           cosmos.addIdealSynonym(getIdealName(word), form.name)
         })
+        Some(form)
       } else {
-        debug("UNUSABLE")
+        None
       }
-      debug("")
-    })
+    }
   }
 
-  def loadTaxonomy()
+  def loadAllTaxonomy()
   {
-    ShlurdWordnet.allNounSenses.foreach(hyponymSynset => {
-      getSynsetForm(hyponymSynset) match {
-        case Some(hyponymForm) => {
-          val hypernyms = PointerUtils.getDirectHypernyms(hyponymSynset).asScala
-          hypernyms.foreach(hypernym => {
-            val hypernymSynset = hypernym.getSynset
-            getSynsetForm(hypernymSynset) match {
-              case Some(hypernymForm) => {
-                cosmos.addIdealTaxonomy(hyponymForm, hypernymForm)
-              }
-              case _ =>
+    ShlurdWordnet.allNounSenses.foreach(loadDirectHypernyms)
+  }
+
+  def loadAllAssociations()
+  {
+    ShlurdWordnet.allNounSenses.foreach(loadMeronyms)
+  }
+
+  def loadDirectHypernyms(hyponymSynset : Synset) : Seq[SpcForm] =
+  {
+    loadForm(hyponymSynset) match {
+      case Some(hyponymForm) => {
+        val hypernyms = PointerUtils.getDirectHypernyms(hyponymSynset).asScala
+        hypernyms.flatMap(hypernym => {
+          val hypernymSynset = hypernym.getSynset
+          loadForm(hypernymSynset) match {
+            case Some(hypernymForm) => {
+              cosmos.addIdealTaxonomy(hyponymForm, hypernymForm)
+              Some(hypernymForm)
             }
-          })
-        }
-        case _ =>
+            case _ => None
+          }
+        })
       }
-    })
+      case _ => Seq.empty
+    }
+  }
+
+  def loadMeronyms(sense : Synset) : Seq[SpcRole] =
+  {
+    loadForm(sense) match {
+      case Some(form) => {
+        val meronyms = PointerUtils.getMeronyms(sense).asScala
+        meronyms.flatMap(meronym => {
+          val meronymSynset = meronym.getSynset
+          loadForm(meronymSynset) match {
+            case Some(meronymForm) => {
+              val word = SilWord(
+                s"wnr-${form.name}-${meronymForm.name}")
+              val role = cosmos.instantiateRole(word)
+              cosmos.addIdealTaxonomy(role, meronymForm)
+              cosmos.addFormAssoc(form, role)
+              Some(role)
+            }
+            case _ => None
+          }
+        })
+      }
+      case _ => Seq.empty
+    }
   }
 
   def getSynsetForm(synset : Synset) : Option[SpcForm] =
@@ -86,7 +116,7 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   private def getIdealName(word : Word) : String =
   {
-    s"wn-${word.getLemma}-${word.getSenseNumber}"
+    s"wnf-${word.getLemma}-${word.getSenseNumber}"
   }
 
   private def isUsableFormName(lemma : String) : Boolean =
