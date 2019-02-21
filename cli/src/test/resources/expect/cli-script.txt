@@ -54,10 +54,26 @@ Hogwarts is a school.
 
 OK.
 
-Snape is Hogwarts's schoolteacher.
+Durmstrang is a school.
+
+OK.
+
+Snape is Hogwarts' schoolteacher.
+
+OK.
+
+Dumbledore is Hogwarts' schoolteacher.
 
 OK.
 
 what is Snape's school?
 
 Hogwarts.
+
+Snape is Durmstrang's schoolteacher.
+
+OK.
+
+what is Snape's school?
+
+Durmstrang.

@@ -103,8 +103,15 @@ class SpcWordnetSpec extends Specification
       val edgeOpt = graph.getFormAssocEdge(countryForm, role)
       edgeOpt must beSome
       val edge = edgeOpt.get
+      edge.isProperty must beFalse
+      edge.constraint must be equalTo
+        SpcCardinalityConstraint(0, Int.MaxValue)
       val inverseOpt = cosmos.getInverseAssocEdge(edge)
       inverseOpt must beSome
+      val inverseEdge = inverseOpt.get
+      inverseEdge.isProperty must beFalse
+      inverseEdge.constraint must be equalTo
+        SpcCardinalityConstraint(0, 1)
     }
   }
 }
