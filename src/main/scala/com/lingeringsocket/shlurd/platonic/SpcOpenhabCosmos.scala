@@ -275,22 +275,6 @@ abstract class SpcOpenhabCosmos(
     }
   }
 
-  override def evaluateEntityAdpositionPredicate(
-    entity : SpcEntity,
-    location : SpcEntity,
-    adposition : SilAdposition,
-    qualifiers : Set[String]) : Try[Trilean] =
-  {
-    if (adposition == SilAdposition.GENITIVE_OF) {
-      super.evaluateEntityAdpositionPredicate(
-        entity, location, adposition, qualifiers)
-    } else {
-      assert(qualifiers.isEmpty)
-      Success(Trilean(
-        evaluateAdpositionPredicate(entity, location, adposition)))
-    }
-  }
-
   def evaluateAdpositionPredicate(
     entity : SpcEntity,
     location : SpcEntity,
@@ -471,4 +455,31 @@ class SpcOpenhabDerivedCosmos(
 
 abstract class SpcOpenhabDefaultCosmos extends SpcOpenhabCosmos
 {
+}
+
+class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
+    extends SpcMind(cosmos)
+{
+  override def spawn(newCosmos : SpcCosmos) =
+  {
+    val mind = new SpcOpenhabMind(newCosmos.asInstanceOf[SpcOpenhabCosmos])
+    mind.initFrom(this)
+    mind
+  }
+
+  override def evaluateEntityAdpositionPredicate(
+    entity : SpcEntity,
+    location : SpcEntity,
+    adposition : SilAdposition,
+    qualifiers : Set[SilWord]) : Try[Trilean] =
+  {
+    if (adposition == SilAdposition.GENITIVE_OF) {
+      super.evaluateEntityAdpositionPredicate(
+        entity, location, adposition, qualifiers)
+    } else {
+      assert(qualifiers.isEmpty)
+      Success(Trilean(
+        cosmos.evaluateAdpositionPredicate(entity, location, adposition)))
+    }
+  }
 }

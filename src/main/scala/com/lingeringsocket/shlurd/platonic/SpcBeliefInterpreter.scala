@@ -252,7 +252,7 @@ class SpcBeliefInterpreter(
     sentence : SilSentence, possessor : SpcEntity, roleName : SilWord) =
   {
     val graph = cosmos.getGraph
-    val role = cosmos.resolveRole(roleName.lemma) match {
+    val role = mind.resolveRole(possessor.form, roleName) match {
       case Some(r) => r
       case _ => {
         cosmos.instantiateRole(roleName)

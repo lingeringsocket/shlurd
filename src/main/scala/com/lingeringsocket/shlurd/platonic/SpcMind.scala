@@ -124,9 +124,19 @@ class SpcMind(cosmos : SpcCosmos)
     Some(SilPronounReference(PERSON_THIRD, gender, count))
   }
 
+  def resolveFormCandidates(noun : SilWord) : Seq[SpcForm] =
+  {
+    cosmos.resolveForm(noun.lemma).toSeq
+  }
+
   def resolveForm(noun : SilWord) : Option[SpcForm] =
   {
-    cosmos.resolveForm(noun.lemma)
+    resolveFormCandidates(noun).headOption
+  }
+
+  def resolveRole(form : SpcForm, noun : SilWord) : Option[SpcRole] =
+  {
+    cosmos.resolveRole(noun.lemma)
   }
 
   def instantiateForm(noun : SilWord) : SpcForm =
@@ -145,20 +155,69 @@ class SpcMind(cosmos : SpcCosmos)
     }
   }
 
+  override def reifyRole(
+    possessor : SpcEntity,
+    roleName : SilWord,
+    onlyIfProven : Boolean)
+  {
+    resolveRole(possessor.form, roleName) match {
+      case Some(role) => {
+        cosmos.reifyRole(possessor, role, onlyIfProven)
+      }
+      // FIXME assert instead?
+      case _ =>
+    }
+  }
+
+  override def evaluateEntityAdpositionPredicate(
+    entity : SpcEntity,
+    objRef : SpcEntity,
+    adposition : SilAdposition,
+    qualifiers : Set[SilWord]) : Try[Trilean] =
+  {
+    val roleName = adposition match {
+      case SilAdposition.GENITIVE_OF => {
+        if (qualifiers.size != 1) {
+          return Success(Trilean.Unknown)
+        } else {
+          qualifiers.head
+        }
+      }
+      case SilAdposition.IN => {
+        SilWord(SmcLemmas.LEMMA_CONTAINEE)
+      }
+      case _ => {
+        return Success(Trilean.Unknown)
+      }
+    }
+    resolveRole(objRef.form, roleName) match {
+      case Some(role) => {
+        Success(Trilean(cosmos.isEntityAssoc(objRef, entity, role)))
+      }
+      case _ => {
+        Success(Trilean.Unknown)
+      }
+    }
+  }
+
   override def evaluateEntityCategoryPredicate(
     entity : SpcEntity,
     noun : SilWord,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    val (formOpt, roleOpt) = cosmos.resolveIdeal(noun.lemma) match {
+    val (formSeq, roleOpt) = cosmos.resolveIdeal(noun.lemma) match {
       case (None, None) => {
-        // FIXME
-        resolveForm(noun) match {
-          case Some(form) => tupleN((Some(form), None))
-          case _ => (None, None)
+        resolveFormCandidates(noun) match {
+          case Seq() => tupleN((Seq.empty, None))
+          case seq => tupleN((seq, None))
         }
       }
-      case x => x
+      case (Some(form), roleOpt) => {
+        tupleN((Seq(form), roleOpt))
+      }
+      case (None, roleOpt) => {
+        tupleN((Seq.empty, roleOpt))
+      }
     }
     val graph = cosmos.getGraph
     roleOpt match {
@@ -172,9 +231,12 @@ class SpcMind(cosmos : SpcCosmos)
                 graph.getPossesseeRole(edge.formEdge)))))
       }
       case _ => {
-        formOpt match {
-          case Some(form) => {
-            if (graph.isHyponym(entity.form, form)) {
+        formSeq match {
+          case Seq() => {
+            cosmos.fail(s"unknown ideal ${noun.lemma}")
+          }
+          case _ => {
+            if (formSeq.exists(form => graph.isHyponym(entity.form, form))) {
               Success(Trilean.True)
             } else {
               if (entity.form.isTentative) {
@@ -183,9 +245,6 @@ class SpcMind(cosmos : SpcCosmos)
                 Success(Trilean.False)
               }
             }
-          }
-          case _ => {
-            cosmos.fail(s"unknown ideal ${noun.lemma}")
           }
         }
       }

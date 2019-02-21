@@ -53,7 +53,7 @@ import com.lingeringsocket.shlurd.platonic.SpcEntity;
 import com.lingeringsocket.shlurd.platonic.SpcForm;
 import com.lingeringsocket.shlurd.platonic.SpcProperty;
 import com.lingeringsocket.shlurd.platonic.SpcInterpreter;
-import com.lingeringsocket.shlurd.platonic.SpcMind;
+import com.lingeringsocket.shlurd.platonic.SpcOpenhabMind;
 import com.lingeringsocket.shlurd.platonic.ACCEPT_NO_BELIEFS$;
 
 import scala.collection.JavaConverters;
@@ -304,7 +304,7 @@ public class ShlurdHumanLanguageInterpreter
         };
 
         SpcBeliefAcceptance beliefAcceptance = ACCEPT_NO_BELIEFS$.MODULE$;
-        SpcInterpreter interpreter = new SpcInterpreter(new SpcMind(cosmos), beliefAcceptance, params, executor);
+        SpcInterpreter interpreter = new SpcInterpreter(new SpcOpenhabMind(cosmos), beliefAcceptance, params, executor);
         String result = interpreter.interpret(sentence, text);
         return result;
     }

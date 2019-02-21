@@ -1305,37 +1305,6 @@ class SpcCosmos(
     postVisit(entity, propertyName, lemma)
   }
 
-  override def evaluateEntityAdpositionPredicate(
-    entity : SpcEntity,
-    objRef : SpcEntity,
-    adposition : SilAdposition,
-    qualifiers : Set[String]) : Try[Trilean] =
-  {
-    val roleName = adposition match {
-      case SilAdposition.GENITIVE_OF => {
-        if (qualifiers.size != 1) {
-          return Success(Trilean.Unknown)
-        } else {
-          qualifiers.head
-        }
-      }
-      case SilAdposition.IN => {
-        SmcLemmas.LEMMA_CONTAINEE
-      }
-      case _ => {
-        return Success(Trilean.Unknown)
-      }
-    }
-    resolveRole(roleName) match {
-      case Some(role) => {
-        Success(Trilean(isEntityAssoc(objRef, entity, role)))
-      }
-      case _ => {
-        Success(Trilean.Unknown)
-      }
-    }
-  }
-
   def resolveStateSynonym(form : SpcForm, lemma : String) : String =
   {
     normalizeFormState(form, SilPropertyState(SilWord(lemma))) match {
@@ -1403,16 +1372,11 @@ class SpcCosmos(
     }
   }
 
-  override def reifyRole(
+  def reifyRole(
     possessor : SpcEntity,
-    roleName : String,
+    role : SpcRole,
     onlyIfProven : Boolean)
   {
-    val role = resolveRole(roleName) match {
-      case Some(r) => r
-        // FIXME assert instead?
-      case _ => return
-    }
     graph.getFormAssocEdge(possessor.form, role) match {
       case Some(formEdge) => {
         if (onlyIfProven) {
@@ -1424,7 +1388,7 @@ class SpcCosmos(
         val existing = resolveGenitive(possessor, role)
         if (existing.isEmpty) {
           // make up possessee out of thin air
-          val name = possessor.name + "_" + roleName
+          val name = possessor.name + "_" + role.name
           val form = instantiateForm(SpcForm.tentativeName(SilWord(name)))
           graph.getFormsForRole(graph.getPossesseeRole(formEdge)).foreach(
             hypernym => addIdealTaxonomy(form, hypernym))

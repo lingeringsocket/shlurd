@@ -76,7 +76,19 @@ object DeltaGraph
       baseGraph,
       toJavaPredicate((v : V) => minusVertices.contains(v)),
       toJavaPredicate((e : E) => minusEdges.contains(e)))
-    val unionGraph = new AsGraphUnion(minusGraph, plusGraph)
+    // FIXME propagate this fix into JGraphT
+    val unionGraph = new AsGraphUnion(minusGraph, plusGraph) {
+      private lazy val vertexSetCache = super.vertexSet
+      private lazy val edgeSetCache = super.edgeSet
+      override def vertexSet =
+      {
+        vertexSetCache
+      }
+      override def edgeSet =
+      {
+        edgeSetCache
+      }
+    }
     new DeltaGraph(
       baseGraph, plusGraph, unionGraph, minusVertices, minusEdges)
   }

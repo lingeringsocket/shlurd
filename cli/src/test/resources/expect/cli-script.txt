@@ -25,3 +25,39 @@ Fido.
 is Fido a dog
 
 Yes, it is.
+
+is Fido a sausage
+
+No, it is not.
+
+Bootsie is Fido's paw.
+
+OK.
+
+is Bootsie a foot?
+
+Yes, it is.
+
+is Fido's paw a foot?
+
+Yes, its paw is.
+
+is Fido's paw a sausage?
+
+I don't know.
+
+Snape is a schoolteacher.
+
+OK.
+
+Hogwarts is a school.
+
+OK.
+
+Snape is Hogwarts's schoolteacher.
+
+OK.
+
+what is Snape's school?
+
+Hogwarts.

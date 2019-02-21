@@ -179,6 +179,15 @@ class SmcMind[
     }
   }
 
+  def evaluateEntityAdpositionPredicate(
+    entity : EntityType,
+    objEntity : EntityType,
+    adposition : SilAdposition,
+    qualifiers : Set[SilWord] = Set.empty) : Try[Trilean] =
+  {
+    Success(Trilean.Unknown)
+  }
+
   def evaluateEntityCategoryPredicate(
     entity : EntityType,
     noun : SilWord,
@@ -186,6 +195,11 @@ class SmcMind[
   {
     resolveQualifiedNoun(noun, REF_SUBJECT, qualifiers).map(
       set => Trilean(set.contains(entity)))
+  }
+
+  def reifyRole(
+    possessor : EntityType, roleName : SilWord, onlyIfProven : Boolean)
+  {
   }
 
   def resolveQualifiedNoun(

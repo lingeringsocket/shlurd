@@ -43,9 +43,9 @@ class SpcWordnet(cosmos : SpcCosmos)
       val words = sense.getWords.asScala.filter(
         word => isUsableFormName(word.getLemma))
       if (!words.isEmpty) {
-        val form = cosmos.instantiateForm(SilWord(getIdealName(words.head)))
+        val form = cosmos.instantiateForm(SilWord(getFormName(words.head)))
         words.tail.foreach(word => {
-          cosmos.addIdealSynonym(getIdealName(word), form.name)
+          cosmos.addIdealSynonym(getFormName(word), form.name)
         })
         Some(form)
       } else {
@@ -87,18 +87,22 @@ class SpcWordnet(cosmos : SpcCosmos)
   def loadMeronyms(sense : Synset) : Seq[SpcRole] =
   {
     loadForm(sense) match {
-      case Some(form) => {
+      case Some(holonymForm) => {
         val meronyms = PointerUtils.getMeronyms(sense).asScala
         meronyms.flatMap(meronym => {
           val meronymSynset = meronym.getSynset
           loadForm(meronymSynset) match {
             case Some(meronymForm) => {
-              val word = SilWord(
-                s"wnr-${form.name}-${meronymForm.name}")
-              val role = cosmos.instantiateRole(word)
-              cosmos.addIdealTaxonomy(role, meronymForm)
-              cosmos.addFormAssoc(form, role)
-              Some(role)
+              val meronymRole = cosmos.instantiateRole(
+                SilWord(getRoleName(holonymForm, meronymForm)))
+              cosmos.addIdealTaxonomy(meronymRole, meronymForm)
+              val edge = cosmos.addFormAssoc(holonymForm, meronymRole)
+              val holonymRole = cosmos.instantiateRole(
+                SilWord(getRoleName(meronymForm, holonymForm)))
+              cosmos.addIdealTaxonomy(holonymRole, holonymForm)
+              val inverseEdge = cosmos.addFormAssoc(meronymRole, holonymRole)
+              cosmos.connectInverseAssocEdges(edge, inverseEdge)
+              Some(meronymRole)
             }
             case _ => None
           }
@@ -110,13 +114,18 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   def getSynsetForm(synset : Synset) : Option[SpcForm] =
   {
-    synset.getWords.asScala.toStream.map(getIdealName).
+    synset.getWords.asScala.toStream.map(getFormName).
       flatMap(cosmos.resolveForm).headOption
   }
 
-  private def getIdealName(word : Word) : String =
+  def getFormName(word : Word) : String =
   {
     s"wnf-${word.getLemma}-${word.getSenseNumber}"
+  }
+
+  def getRoleName(form : SpcForm, meronymForm : SpcForm) : String =
+  {
+    s"wnr-${form.name}-${meronymForm.name}"
   }
 
   private def isUsableFormName(lemma : String) : Boolean =

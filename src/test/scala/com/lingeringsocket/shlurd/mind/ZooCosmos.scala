@@ -57,30 +57,30 @@ sealed case class ZooAnimalSleepiness(name : String) extends SmcNamedObject
 object ZooAnimalAwake extends ZooAnimalSleepiness("awake")
 object ZooAnimalAsleep extends ZooAnimalSleepiness("asleep")
 
-class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
+object ZooCosmos
 {
   private val LEMMA_ANIMAL = "animal"
 
   private def index[T <: SmcNamedObject](set : Set[T]) =
     Map(set.map(x => (x.name, x)).toSeq:_*)
 
-  private val animals =
+  val animals =
     index(Set(ZooLion, ZooTiger, ZooPolarBear,
       ZooGrizzlyBear, ZooSloth,
       ZooMountainGoat, ZooDomesticGoat, ZooSiberianGoat,
       ZooPeacock, ZooHippogriff, ZooSalamander))
 
-  private val locations =
+  val locations =
     index(Set(ZooFarm, ZooBigCage, ZooSmallCage))
 
-  private val people =
+  val people =
     index(Set(ZooKeeper, ZooVisitor))
 
-  private val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
+  val sleepinessValues = index(Set(ZooAnimalAwake, ZooAnimalAsleep))
 
   // if an animal doesn't appear here, we don't have one at the
   // zoo
-  private val asleep = Map(
+  val asleep = Map(
     ZooLion -> Trilean.True,
     ZooTiger -> Trilean.False,
     ZooPolarBear -> Trilean.True,
@@ -90,7 +90,7 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
     ZooSiberianGoat -> Trilean.True,
     ZooSloth -> Trilean.Unknown)
 
-  private val containment : Map[SmcEntity, ZooLocationEntity] =
+  val containment : Map[SmcEntity, ZooLocationEntity] =
     Map(
       ZooVisitor -> ZooFarm,
       ZooKeeper -> ZooBigCage,
@@ -100,10 +100,15 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
       ZooGrizzlyBear -> ZooFarm,
       ZooDomesticGoat -> ZooFarm)
 
-  private val ownership : Map[SmcEntity, ZooPersonEntity] =
+  val ownership : Map[SmcEntity, ZooPersonEntity] =
     Map(
       ZooLion -> ZooKeeper,
       ZooTiger -> ZooVisitor)
+}
+
+class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
+{
+  import ZooCosmos._
 
   override def resolveQualifiedNoun(
     lemma : String,
@@ -234,25 +239,36 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
         fail("I don't know about this entity: " + entity)
     }
   }
+}
+
+class ZooMind(cosmos : ZooCosmos)
+    extends SmcMind[SmcEntity, SmcProperty, ZooCosmos](cosmos)
+{
+  override def spawn(newCosmos : ZooCosmos) =
+  {
+    val mind = new ZooMind(newCosmos)
+    mind.initFrom(this)
+    mind
+  }
 
   override def evaluateEntityAdpositionPredicate(
     entity : SmcEntity,
     objEntity : SmcEntity,
     adposition : SilAdposition,
-    qualifiers : Set[String]) : Try[Trilean] =
+    qualifiers : Set[SilWord]) : Try[Trilean] =
   {
     val map = adposition match {
       case SilAdposition.GENITIVE_OF => {
         if (!objEntity.isInstanceOf[ZooPersonEntity]) {
           return Success(Trilean.False)
         }
-        ownership
+        ZooCosmos.ownership
       }
       case SilAdposition.IN | SilAdposition.ON => {
         if (!objEntity.isInstanceOf[ZooLocationEntity]) {
           return Success(Trilean.False)
         }
-        containment
+        ZooCosmos.containment
       }
       case _ => {
         return Success(Trilean.False)

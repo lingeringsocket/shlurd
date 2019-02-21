@@ -67,7 +67,7 @@ class SpcWordnetSpec extends Specification
       graph.isHyponym(kinswomanForm, auntForm) must beFalse
     }
 
-    "load meronyms" in new CosmosContext
+    "load meronym associations" in new CosmosContext
     {
       val sense = ShlurdWordnet.getNounSenses("fork").head
       val meronyms = wordnet.loadMeronyms(sense)
@@ -86,6 +86,25 @@ class SpcWordnetSpec extends Specification
       val tineRole = meronyms.last
       graph.getFormAssocEdge(forkForm, prongRole) must beSome
       graph.getFormAssocEdge(forkForm, tineRole) must beSome
+    }
+
+    "load bidirectional meronym associations" in new CosmosContext
+    {
+      val countrySense = ShlurdWordnet.getNounSenses("country").tail.head
+      val provinceSense = ShlurdWordnet.getNounSenses("province").head
+      val meronyms = wordnet.loadMeronyms(countrySense)
+      val countryForm = expectForm(wordnet.getSynsetForm(countrySense))
+      val provinceForm = expectForm(wordnet.getSynsetForm(provinceSense))
+      val roleOpt = meronyms.map(
+        role => tupleN(((role, graph.getFormsForRole(role))))).find(
+          _._2.exists(_ == provinceForm)).map(_._1).headOption
+      roleOpt must beSome
+      val role = roleOpt.get
+      val edgeOpt = graph.getFormAssocEdge(countryForm, role)
+      edgeOpt must beSome
+      val edge = edgeOpt.get
+      val inverseOpt = cosmos.getInverseAssocEdge(edge)
+      inverseOpt must beSome
     }
   }
 }

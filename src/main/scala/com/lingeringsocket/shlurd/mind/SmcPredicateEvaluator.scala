@@ -121,7 +121,7 @@ class SmcPredicateEvaluator[
                     val roleQualifiers = extractRoleQualifiers(complementRef)
                     if (roleQualifiers.size == 1) {
                       val roleName = roleQualifiers.head
-                      cosmos.reifyRole(subjectEntity, roleName, true)
+                      mind.reifyRole(subjectEntity, roleName, true)
                       // invalidate any cached result for complementRef since
                       // we just reified a new entity
                       complementRef.descendantReferences.foreach(
@@ -225,11 +225,10 @@ class SmcPredicateEvaluator[
               possessor,
               possessee @ SilNounReference(noun, _, _)
             ) => {
-              val roleName = noun.lemma
               resultCollector.referenceMap.get(possessor).
                 foreach(entities => {
                   entities.foreach(
-                    entity => cosmos.reifyRole(entity, roleName, true))
+                    entity => mind.reifyRole(entity, noun, true))
                 })
               // now clear cache and repeat to pick up the newly
               // reifed entities
@@ -395,7 +394,7 @@ class SmcPredicateEvaluator[
       }
       case REL_ASSOCIATION => {
         val roleQualifiers = extractRoleQualifiers(complementRef)
-        val result = cosmos.evaluateEntityAdpositionPredicate(
+        val result = mind.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,
           SilAdposition.GENITIVE_OF, roleQualifiers)
         trace("RESULT FOR " +
@@ -450,9 +449,9 @@ class SmcPredicateEvaluator[
         unfilteredEntities.filter(subjectEntity =>
           adpositionStates.forall(adp => {
             val adposition = adp.adposition
-            val qualifiers : Set[String] = {
+            val qualifiers : Set[SilWord] = {
               if (adposition == SilAdposition.GENITIVE_OF) {
-                Set(noun.lemma)
+                Set(noun)
               } else {
                 Set.empty
               }
@@ -462,7 +461,7 @@ class SmcPredicateEvaluator[
                 resultCollector.spawn)
             {
               (objEntity, entityRef) => {
-                val result = cosmos.evaluateEntityAdpositionPredicate(
+                val result = mind.evaluateEntityAdpositionPredicate(
                   subjectEntity, objEntity, adposition, qualifiers)
                 trace("RESULT FOR " +
                   s"$subjectEntity $adposition $objEntity " +
@@ -779,7 +778,7 @@ class SmcPredicateEvaluator[
       objRef, REF_ADPOSITION_OBJ, objCollector)
     {
       (objEntity, entityRef) => {
-        val result = cosmos.evaluateEntityAdpositionPredicate(
+        val result = mind.evaluateEntityAdpositionPredicate(
           subjectEntity, objEntity, adposition)
         trace("RESULT FOR " +
           s"$subjectEntity $adposition $objEntity is $result")
@@ -799,12 +798,12 @@ class SmcPredicateEvaluator[
   }
 
   private def extractRoleQualifiers(complementRef : SilReference)
-      : Set[String] =
+      : Set[SilWord] =
   {
     // FIXME:  do something less hacky
     complementRef match {
       case SilNounReference(noun, determiner, count) => {
-        Set(noun.lemma)
+        Set(noun)
       }
       case _ => Set.empty
     }

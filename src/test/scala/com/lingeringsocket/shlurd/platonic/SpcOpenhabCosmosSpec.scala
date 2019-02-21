@@ -60,7 +60,7 @@ class SpcOpenhabCosmosSpec extends Specification
     }
 
     protected val interpreter =
-      new SpcInterpreter(new SpcMind(cosmos))
+      new SpcInterpreter(new SpcOpenhabMind(cosmos))
 
     protected def interpret(input : String, expected : String) =
     {

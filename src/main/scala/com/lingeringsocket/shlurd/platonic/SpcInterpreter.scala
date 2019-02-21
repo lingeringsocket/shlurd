@@ -787,10 +787,9 @@ class SpcInterpreter(
         case SilConjunctiveReference(_, refs, _) => {
           lcaType(refs.map(deriveType).toSet)
         }
-        case SilGenitiveReference(_, SilNounReference(noun, _, _)) => {
-          // FIXME probably the possessor's type should be used for scoping
-          // here?  Also need to handle properties.
-          cosmos.resolveRole(noun.lemma) match {
+        case SilGenitiveReference(possessor, SilNounReference(noun, _, _)) => {
+          // FIXME need to handle properties
+          mind.resolveRole(deriveType(possessor), noun) match {
             case Some(role) => {
               lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
             }

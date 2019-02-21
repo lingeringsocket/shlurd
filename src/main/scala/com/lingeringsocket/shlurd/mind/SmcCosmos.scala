@@ -70,12 +70,6 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
     propertyName : String,
     specific : Boolean = false) : Try[(Option[PropertyType], Option[String])]
 
-  def evaluateEntityAdpositionPredicate(
-    entity : EntityType,
-    objEntity : EntityType,
-    adposition : SilAdposition,
-    qualifiers : Set[String] = Set.empty) : Try[Trilean]
-
   def specificReference(
     entity : EntityType,
     determiner : SilDeterminer) : SilReference
@@ -100,11 +94,6 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
 
   // lemma -> inflected
   def getPropertyStateMap(property : PropertyType) : Map[String, String]
-
-  def reifyRole(
-    possessor : EntityType, roleName : String, onlyIfProven : Boolean)
-  {
-  }
 
   def uniqueEntity(
     result : Try[Set[EntityType]]) : Try[EntityType] =

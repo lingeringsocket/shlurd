@@ -43,17 +43,47 @@ class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
     }
   }
 
-  override def resolveForm(noun : SilWord) : Option[SpcForm] =
+  override def resolveFormCandidates(noun : SilWord) : Seq[SpcForm] =
   {
-    super.resolveForm(noun).orElse {
+    val seq = super.resolveFormCandidates(noun)
+    if (!seq.isEmpty) {
+      seq
+    } else {
       if (wordnetActive) {
         val senses = ShlurdWordnet.findSenses(noun.senseId)
         val wordnet = getWordnet
-        senses.toStream.flatMap(wordnet.getSynsetForm).headOption
+        senses.toStream.flatMap(wordnet.getSynsetForm)
       } else {
-        None
+        Seq.empty
       }
     }
+  }
+
+  override def resolveRole(
+    possessorForm : SpcForm, noun : SilWord) : Option[SpcRole] =
+  {
+    val wordnetOpt = if (wordnetActive) {
+      val senses = ShlurdWordnet.findSenses(noun.senseId)
+      val wordnet = getWordnet
+      val graph = cosmos.getGraph
+      senses.toStream.flatMap(sense => {
+        wordnet.getSynsetForm(sense)
+      }).flatMap(possesseeForm => {
+        graph.getRolesForForm(possesseeForm).filter(
+          possesseeRole => {
+            graph.getFormAssocEdge(possessorForm, possesseeRole).nonEmpty ||
+            graph.getRolesForForm(possessorForm).exists(
+              possessorRole => {
+                graph.getFormAssocEdge(possessorRole, possesseeRole).nonEmpty
+              }
+            )
+          }
+        )
+      }).headOption
+    } else {
+      None
+    }
+    wordnetOpt.orElse(super.resolveRole(possessorForm, noun))
   }
 
   override def resolveQualifiedNoun(

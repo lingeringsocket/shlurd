@@ -23,6 +23,7 @@ import org.jgrapht.alg._
 import org.jgrapht.alg.cycle._
 import org.jgrapht.alg.cycle.CycleDetector
 import org.jgrapht.alg.shortestpath._
+import org.jgrapht.alg.lca._
 import org.jgrapht.traverse._
 import org.jgrapht.io._
 
@@ -345,16 +346,16 @@ class SpcGraph(
     // choose role which is lowest common ancestor for inputs;
     // forms cannot be hyponyms of roles, so any LCA must
     // be a role
-    val alg = new NaiveLcaFinder(idealTaxonomy)
-    Option(alg.findLca(role, form)).
+    val alg = new NaiveLCAFinder(idealTaxonomy)
+    Option(alg.getLCA(role, form)).
       map(_.asInstanceOf[SpcRole]).getOrElse(role)
   }
 
   def closestCommonHypernym(
     ideal1 : SpcIdeal, ideal2 : SpcIdeal) : Option[SpcIdeal] =
   {
-    val alg = new NaiveLcaFinder(new EdgeReversedGraph(idealTaxonomy))
-    Option(alg.findLca(ideal1, ideal2))
+    val alg = new NaiveLCAFinder(new EdgeReversedGraph(idealTaxonomy))
+    Option(alg.getLCA(ideal1, ideal2))
   }
 
   def render() : String =

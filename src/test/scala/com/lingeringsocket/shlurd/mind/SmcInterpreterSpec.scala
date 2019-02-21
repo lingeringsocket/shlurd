@@ -28,14 +28,14 @@ import SprEnglishLemmas._
 class SmcInterpreterSpec extends Specification
 {
   type CosmosType = ZooCosmos
-  type MindType = SmcMind[SmcEntity, SmcProperty, CosmosType]
+  type MindType = ZooMind
 
   private val cosmos = new ZooCosmos
 
   type StateChangeInvocation = SmcStateChangeInvocation[SmcEntity]
 
   class ZooInterpreter(
-    mind : SmcMind[SmcEntity, SmcProperty, CosmosType],
+    mind : ZooMind,
     params : SmcResponseParams,
     executor : SmcExecutor[SmcEntity]
   ) extends SmcInterpreter[
@@ -83,7 +83,7 @@ class SmcInterpreterSpec extends Specification
       SmcResponseParams(thirdPersonPronouns = false)
   ) extends Scope
   {
-    protected val mind = new MindType(cosmos) {
+    protected val mind = new ZooMind(cosmos) {
       override def resolvePronoun(
         reference : SilPronounReference) : Try[Set[SmcEntity]] =
       {
