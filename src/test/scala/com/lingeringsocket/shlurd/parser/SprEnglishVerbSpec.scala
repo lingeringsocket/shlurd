@@ -468,7 +468,9 @@ class SprEnglishVerbSpec extends Specification
           val input = generateInput(
             subject, rhs, lemma, tam, None)
           "in command: " + input >> {
-            skipped("not ready for prime time")
+            if (lemma != "execute") {
+              skipped("not ready for prime time")
+            }
             parse(input) must be equalTo ParsedVerb(
               subject, rhs, lemma, tam, None)
           }
