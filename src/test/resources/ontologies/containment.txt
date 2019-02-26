@@ -1,4 +1,4 @@
 An object is an spc-object.
 A container is an spc-container.
 A contained-object is an spc-contained-object.
-A person is an spc-person.
+A person is a kind of spc-person.

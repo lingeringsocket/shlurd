@@ -133,5 +133,11 @@ class ShlurdWordnetSpec extends Specification
       found must be equalTo senses
       ShlurdWordnet.findSenses("") must beEmpty
     }
+
+    "get lex file names" in
+    {
+      val senses = ShlurdWordnet.getNounSenses("firefighter")
+      senses.head.getLexFileName must be equalTo "noun.person"
+    }
   }
 }

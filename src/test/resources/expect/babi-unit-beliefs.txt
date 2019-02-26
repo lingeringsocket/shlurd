@@ -1,5 +1,5 @@
 An object is an spc-object.
-A person is an spc-person.
+A person is a kind of spc-person.
 Peter is a person.
 Lucy is a person.
 Susan is a person.
