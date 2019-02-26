@@ -657,9 +657,9 @@ class SpcCosmosSpec extends Specification
       SpcPrimordial.initCosmos(cosmos)
       cosmos.getForms.size must be greaterThan 0
       val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
-      val person = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
+      val someone = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
       val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
-      val propGender = expectSingleProperty(person)
+      val propGender = expectSingleProperty(entity)
       propGender.name must be equalTo LEMMA_GENDER
       propGender.isClosed must beFalse
       val genderValues = cosmos.getPropertyStateMap(propGender)
@@ -673,11 +673,11 @@ class SpcCosmosSpec extends Specification
         Seq(entity))
       graph.getFormHypernyms(obj).toSeq must be equalTo(
         Seq(obj, entity))
-      graph.getFormHypernyms(person).toSeq must be equalTo(
-        Seq(person, obj, entity))
-      graph.isHyponym(person, entity) must beTrue
-      graph.isHyponym(entity, person) must beFalse
-      graph.isHyponym(person, person) must beTrue
+      graph.getFormHypernyms(someone).toSeq must be equalTo(
+        Seq(someone, obj, entity))
+      graph.isHyponym(someone, entity) must beTrue
+      graph.isHyponym(entity, someone) must beFalse
+      graph.isHyponym(someone, someone) must beTrue
       graph.isHyponym(entity, entity) must beTrue
       // FIXME verify container/containee association
     }
@@ -687,22 +687,22 @@ class SpcCosmosSpec extends Specification
       SpcPrimordial.initCosmos(cosmos)
       addBelief("a firefighter is a kind of spc-someone")
       val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
-      val person = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
+      val someone = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
       val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
       val firefighter = expectNamedForm("firefighter")
       val graph = cosmos.getGraph
       graph.getFormHypernyms(entity).toSeq must be equalTo(
         Seq(entity))
-      graph.getFormHypernyms(person).toSeq must be equalTo(
-        Seq(person, obj, entity))
+      graph.getFormHypernyms(someone).toSeq must be equalTo(
+        Seq(someone, obj, entity))
       graph.getFormHypernyms(firefighter).toSeq must be equalTo(
-        Seq(firefighter, person, obj, entity))
-      graph.isHyponym(firefighter, person) must beTrue
+        Seq(firefighter, someone, obj, entity))
+      graph.isHyponym(firefighter, someone) must beTrue
       graph.isHyponym(firefighter, obj) must beTrue
-      graph.isHyponym(person, firefighter) must beFalse
+      graph.isHyponym(someone, firefighter) must beFalse
       graph.isHyponym(obj, firefighter) must beFalse
-      graph.isHyponym(person, obj) must beTrue
-      graph.isHyponym(person, entity) must beTrue
+      graph.isHyponym(someone, obj) must beTrue
+      graph.isHyponym(someone, entity) must beTrue
       graph.isHyponym(firefighter, entity) must beTrue
       cosmos.sanityCheck must beTrue
     }
