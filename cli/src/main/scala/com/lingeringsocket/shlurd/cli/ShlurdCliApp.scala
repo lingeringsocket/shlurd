@@ -89,7 +89,7 @@ object ShlurdCliShell
         "interviewer", REF_SUBJECT, Set())).get
     val entityShlurd = cosmos.uniqueEntity(
       cosmos.resolveQualifiedNoun(
-        SmcLemmas.LEMMA_PERSON, REF_SUBJECT, Set("shlurd"))).get
+        SmcLemmas.LEMMA_SOMEONE, REF_SUBJECT, Set("shlurd"))).get
 
     terminal.emitControl("Hello, human!")
     new ShlurdCliMind(cosmos, entityInterviewer, entityShlurd, true)

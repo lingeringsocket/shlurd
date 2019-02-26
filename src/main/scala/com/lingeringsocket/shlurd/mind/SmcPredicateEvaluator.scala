@@ -736,9 +736,9 @@ class SmcPredicateEvaluator[
           case SilNounReference(noun, determiner, count) => {
             val rephrased = noun match {
               case SilWordLemma(LEMMA_WHO) =>
-                SilWord(SmcLemmas.LEMMA_PERSON)
+                SilWord(SmcLemmas.LEMMA_SOMEONE)
               case SilWordLemma(LEMMA_WHOM) =>
-                SilWord(SmcLemmas.LEMMA_PERSON)
+                SilWord(SmcLemmas.LEMMA_SOMEONE)
               case SilWordLemma(LEMMA_WHAT) =>
                 SilWord(LEMMA_THAT)
               case SilWordLemma(LEMMA_WHERE) =>

@@ -59,7 +59,7 @@ class SpcWordnetSpec extends Specification
     {
       val auntSense = expectUniqueSense("aunt")
       val kinswomanSense = expectUniqueSense("kinswoman")
-      val hypernyms = wordnet.loadDirectHypernyms(auntSense)
+      val hypernyms = wordnet.loadDirectHypernyms(auntSense, false)
       val auntForm = expectForm(wordnet.getSynsetForm(auntSense))
       val kinswomanForm = expectForm(wordnet.getSynsetForm(kinswomanSense))
       hypernyms must be equalTo Seq(kinswomanForm)

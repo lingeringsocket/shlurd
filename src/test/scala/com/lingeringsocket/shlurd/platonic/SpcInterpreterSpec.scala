@@ -517,7 +517,7 @@ class SpcInterpreterSpec extends Specification
     "understand inverse associations" in new
       InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
     {
-      interpretBelief("a person is a kind of spc-person")
+      interpretBelief("a person is a kind of spc-someone")
       interpretBelief("a professor must be a person")
       interpretBelief("a student must be a person")
       interpretBelief("a person may have students")
@@ -785,7 +785,7 @@ class SpcInterpreterSpec extends Specification
         "Sorry, I don't know what 'cruise' means for a car.")
       interpret(
         "who is cruising",
-        "Sorry, I don't know what 'cruise' means for an spc-person.")
+        "Sorry, I don't know what 'cruise' means for an spc-someone.")
       interpretMatrix(
         "is Herbie a car",
         "Yes, he is a car.",
@@ -1330,7 +1330,7 @@ class SpcInterpreterSpec extends Specification
 
     "reify unknown person" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a person is a kind of spc-person")
+      interpretBelief("a person is a kind of spc-someone")
       interpretBelief("a person must have a lawyer")
       interpretBelief("Donald is a person")
       interpret("who is Donald's lawyer", "I don't know.")
@@ -1350,7 +1350,7 @@ class SpcInterpreterSpec extends Specification
     "support roles with multiple forms" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a person is a kind of spc-person")
+      interpretBelief("a person is a kind of spc-someone")
       interpretBelief("a man is a kind of person")
       interpretBelief("a gentleman is a kind of man")
       interpretBelief("a footman must be a man")

@@ -1,5 +1,5 @@
 An object is an spc-object.
-A person is a kind of spc-person.
+A person is a kind of spc-someone.
 A man is a kind of person.
 A woman is a kind of person.
 A man's gender must be masculine.

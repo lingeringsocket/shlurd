@@ -18,7 +18,7 @@ package com.lingeringsocket.shlurd.mind
 object SmcLemmas
 {
   val LEMMA_OBJECT = "spc-object"
-  val LEMMA_PERSON = "spc-person"
+  val LEMMA_SOMEONE = "spc-someone"
   val LEMMA_CONTAINER = "spc-container"
   val LEMMA_CONTAINEE = "spc-contained-object"
 }

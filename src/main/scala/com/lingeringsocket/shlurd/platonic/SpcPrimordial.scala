@@ -23,8 +23,8 @@ object SpcPrimordial
 {
   // all the Whos down in Whoville
   private val synonyms = Map(
-    LEMMA_WHO -> SmcLemmas.LEMMA_PERSON,
-    LEMMA_WHOM -> SmcLemmas.LEMMA_PERSON,
+    LEMMA_WHO -> SmcLemmas.LEMMA_SOMEONE,
+    LEMMA_WHOM -> SmcLemmas.LEMMA_SOMEONE,
     LEMMA_WHAT -> SpcMeta.ENTITY_METAFORM_NAME,
     LEMMA_WHERE -> SmcLemmas.LEMMA_CONTAINER
   )

@@ -1,6 +1,6 @@
 An object is a kind of spc-object.
 A container is an spc-container.
-A person is a kind of spc-person.
+A person is a kind of spc-someone.
 An interpreter is a kind of person.
 A player is a kind of person.
 A thief is a kind of person.

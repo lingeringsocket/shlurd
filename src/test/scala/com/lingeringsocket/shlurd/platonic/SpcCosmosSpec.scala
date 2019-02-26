@@ -656,7 +656,7 @@ class SpcCosmosSpec extends Specification
       SpcPrimordial.initCosmos(cosmos)
       cosmos.getForms.size must be greaterThan 0
       val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
-      val person = expectNamedForm(SmcLemmas.LEMMA_PERSON)
+      val person = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
       val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
       val propGender = expectSingleProperty(person)
       propGender.name must be equalTo LEMMA_GENDER
@@ -666,7 +666,7 @@ class SpcCosmosSpec extends Specification
       genderValues must contain(LEMMA_MASCULINE -> LEMMA_MASCULINE)
       genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
       cosmos.resolveIdealSynonym(LEMMA_WHO) must
-        be equalTo SmcLemmas.LEMMA_PERSON
+        be equalTo SmcLemmas.LEMMA_SOMEONE
       val graph = cosmos.getGraph
       graph.getFormHypernyms(entity).toSeq must be equalTo(
         Seq(entity))
@@ -684,9 +684,9 @@ class SpcCosmosSpec extends Specification
     "elide redundant taxonomy edges" in new CosmosContext
     {
       SpcPrimordial.initCosmos(cosmos)
-      addBelief("a firefighter is a kind of spc-person")
+      addBelief("a firefighter is a kind of spc-someone")
       val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
-      val person = expectNamedForm(SmcLemmas.LEMMA_PERSON)
+      val person = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
       val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
       val firefighter = expectNamedForm("firefighter")
       val graph = cosmos.getGraph

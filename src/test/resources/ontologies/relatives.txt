@@ -1,4 +1,4 @@
-A person is a kind of spc-person.
+A person is a kind of spc-someone.
 A person's gender may be masculine, or feminine.
 A man is a kind of person.
 A woman is a kind of person.

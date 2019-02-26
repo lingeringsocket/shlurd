@@ -142,8 +142,8 @@ class SpcCreedSpec extends Specification
     "An spc-role is a kind of an spc-ideal.",
     "An spc-property is a kind of an spc-entity.",
     "An spc-property must have one spc-attributee.",
-    "An spc-person's gender may be masculine or feminine.",
-    "An spc-person is a kind of an spc-object.",
+    "An spc-someone's gender may be masculine or feminine.",
+    "An spc-someone is a kind of an spc-object.",
     "An spc-object is a kind of an spc-entity.",
     "An spc-object may have spc-contained-objects.",
     "An spc-object must have one spc-container.",
@@ -178,7 +178,7 @@ class SpcCreedSpec extends Specification
     "SPC-Form-spc-form is SPC-Form-spc-form's spc-realization.",
     "SPC-Form-spc-role is SPC-Form-spc-form's spc-realization.",
     "SPC-Form-spc-property is SPC-Form-spc-form's spc-realization.",
-    "SPC-Form-spc-person is SPC-Form-spc-form's spc-realization.",
+    "SPC-Form-spc-someone is SPC-Form-spc-form's spc-realization.",
     "SPC-Form-spc-object is SPC-Form-spc-form's spc-realization.",
     "SPC-Form-spc-role is an spc-form.",
     "SPC-Form-spc-ideal is SPC-Form-spc-role's spc-superclass.",
@@ -213,12 +213,12 @@ class SpcCreedSpec extends Specification
     "SPC-Role-spc-subclass is an spc-role.",
     "SPC-Form-spc-ideal is SPC-Role-spc-subclass' spc-superclass.",
     "SPC-Form-spc-role is SPC-Role-spc-subclass' spc-type.",
-    "SPC-Form-spc-person is an spc-form.",
-    "SPC-Form-spc-object is SPC-Form-spc-person's spc-superclass.",
-    "SPC-Form-spc-form is SPC-Form-spc-person's spc-type.",
+    "SPC-Form-spc-someone is an spc-form.",
+    "SPC-Form-spc-object is SPC-Form-spc-someone's spc-superclass.",
+    "SPC-Form-spc-form is SPC-Form-spc-someone's spc-type.",
     "SPC-Form-spc-object is an spc-form.",
     "SPC-Form-spc-entity is SPC-Form-spc-object's spc-superclass.",
-    "SPC-Form-spc-person is SPC-Form-spc-object's spc-subclass.",
+    "SPC-Form-spc-someone is SPC-Form-spc-object's spc-subclass.",
     "SPC-Role-spc-container is SPC-Form-spc-object's spc-subclass.",
     "SPC-Role-spc-contained-object is SPC-Form-spc-object's spc-subclass.",
     "SPC-Form-spc-form is SPC-Form-spc-object's spc-type.",
@@ -228,12 +228,12 @@ class SpcCreedSpec extends Specification
     "SPC-Role-spc-contained-object is an spc-role.",
     "SPC-Form-spc-object is SPC-Role-spc-contained-object's spc-superclass.",
     "SPC-Form-spc-role is SPC-Role-spc-contained-object's spc-type.",
-    "SPC-Property-spc-person-gender is " +
+    "SPC-Property-spc-someone-gender is " +
       "SPC-Form-spc-property's spc-realization.",
-    "SPC-Property-spc-person-gender is an spc-property.",
-    "SPC-Form-spc-property is SPC-Property-spc-person-gender's spc-type.",
-    "SPC-Property-spc-person-gender is SPC-Form-spc-person's spc-attribute.",
-    "SPC-Form-spc-person is SPC-Property-spc-person-gender's spc-attributee.",
+    "SPC-Property-spc-someone-gender is an spc-property.",
+    "SPC-Form-spc-property is SPC-Property-spc-someone-gender's spc-type.",
+    "SPC-Property-spc-someone-gender is SPC-Form-spc-someone's spc-attribute.",
+    "SPC-Form-spc-someone is SPC-Property-spc-someone-gender's spc-attributee.",
     "An spc-valued-property must be an spc-property.",
     "An spc-property-value must be an spc-value.",
     "An spc-property may have spc-property-values.",
@@ -256,22 +256,22 @@ class SpcCreedSpec extends Specification
     "SPC-Role-spc-property-value is an spc-role.",
     "SPC-Form-spc-value is SPC-Role-spc-property-value's spc-superclass.",
     "SPC-Form-spc-role is SPC-Role-spc-property-value's spc-type.",
-    "SPC-Value-spc-person-gender-masculine is " +
+    "SPC-Value-spc-someone-gender-masculine is " +
       "SPC-Form-spc-value's spc-realization.",
-    "SPC-Value-spc-person-gender-feminine is " +
+    "SPC-Value-spc-someone-gender-feminine is " +
       "SPC-Form-spc-value's spc-realization.",
-    "SPC-Value-spc-person-gender-masculine is " +
-      "SPC-Property-spc-person-gender's spc-property-value.",
-    "SPC-Value-spc-person-gender-feminine is " +
-      "SPC-Property-spc-person-gender's spc-property-value.",
-    "SPC-Value-spc-person-gender-masculine is an spc-value.",
-    "SPC-Property-spc-person-gender is " +
-      "SPC-Value-spc-person-gender-masculine's spc-valued-property.",
-    "SPC-Form-spc-value is SPC-Value-spc-person-gender-masculine's spc-type.",
-    "SPC-Value-spc-person-gender-feminine is an spc-value.",
-    "SPC-Property-spc-person-gender is " +
-      "SPC-Value-spc-person-gender-feminine's spc-valued-property.",
-    "SPC-Form-spc-value is SPC-Value-spc-person-gender-feminine's spc-type."
+    "SPC-Value-spc-someone-gender-masculine is " +
+      "SPC-Property-spc-someone-gender's spc-property-value.",
+    "SPC-Value-spc-someone-gender-feminine is " +
+      "SPC-Property-spc-someone-gender's spc-property-value.",
+    "SPC-Value-spc-someone-gender-masculine is an spc-value.",
+    "SPC-Property-spc-someone-gender is " +
+      "SPC-Value-spc-someone-gender-masculine's spc-valued-property.",
+    "SPC-Form-spc-value is SPC-Value-spc-someone-gender-masculine's spc-type.",
+    "SPC-Value-spc-someone-gender-feminine is an spc-value.",
+    "SPC-Property-spc-someone-gender is " +
+      "SPC-Value-spc-someone-gender-feminine's spc-valued-property.",
+    "SPC-Form-spc-value is SPC-Value-spc-someone-gender-feminine's spc-type."
   )
 
   "SpcCreed" should

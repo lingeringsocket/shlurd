@@ -34,15 +34,15 @@ Bootsie is Fido's paw.
 
 OK.
 
-is Bootsie a foot?
+is Bootsie a foot
 
 Yes, it is.
 
-is Fido's paw a foot?
+is Fido's paw a foot
 
 Yes, its paw is.
 
-is Fido's paw a sausage?
+is Fido's paw a sausage
 
 I don't know.
 
@@ -66,7 +66,7 @@ Dumbledore is Hogwarts' schoolteacher.
 
 OK.
 
-what is Snape's school?
+what is Snape's school
 
 Hogwarts.
 
@@ -74,6 +74,6 @@ Snape is Durmstrang's schoolteacher.
 
 OK.
 
-what is Snape's school?
+what is Snape's school
 
 Durmstrang.

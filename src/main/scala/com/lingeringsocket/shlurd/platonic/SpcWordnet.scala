@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
 
 import net.sf.extjwnl.data._
@@ -24,6 +25,8 @@ import scala.collection.JavaConverters._
 class SpcWordnet(cosmos : SpcCosmos)
 {
   private val dictionary = ShlurdWordnet.dictionary
+
+  private val beingCategories = Set("noun.person", "noun.animal")
 
   def loadAll()
   {
@@ -56,7 +59,7 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   def loadAllTaxonomy()
   {
-    ShlurdWordnet.allNounSenses.foreach(loadDirectHypernyms)
+    ShlurdWordnet.allNounSenses.foreach(loadDirectHypernyms(_, true))
   }
 
   def loadAllAssociations()
@@ -64,10 +67,23 @@ class SpcWordnet(cosmos : SpcCosmos)
     ShlurdWordnet.allNounSenses.foreach(loadMeronyms)
   }
 
-  def loadDirectHypernyms(hyponymSynset : Synset) : Seq[SpcForm] =
+  def loadDirectHypernyms(
+    hyponymSynset : Synset, includeImplicit : Boolean) : Seq[SpcForm] =
   {
+    val beingForm = {
+      if (includeImplicit) {
+        cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE)
+      } else {
+        None
+      }
+    }
     loadForm(hyponymSynset) match {
       case Some(hyponymForm) => {
+        beingForm.foreach(hypernymForm => {
+          if (beingCategories.contains(hyponymSynset.getLexFileName)) {
+            cosmos.addIdealTaxonomy(hyponymForm, hypernymForm)
+          }
+        })
         val hypernyms = PointerUtils.getDirectHypernyms(hyponymSynset).asScala
         hypernyms.flatMap(hypernym => {
           val hypernymSynset = hypernym.getSynset
