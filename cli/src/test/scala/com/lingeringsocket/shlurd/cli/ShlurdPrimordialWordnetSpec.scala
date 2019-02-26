@@ -62,10 +62,17 @@ class ShlurdPrimordialWordnetSpec extends Specification
       val puppyOpt = cosmos.resolveForm("wnf-puppy-1")
       puppyOpt must beSome
       val puppyForm = puppyOpt.get
+      val someoneOpt = cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE)
+      someoneOpt must beSome
+      val someoneForm = someoneOpt.get
       val graph = cosmos.getGraph
       graph.isHyponym(puppyForm, dogForm) must beTrue
       graph.isHyponym(dogForm, puppyForm) must beFalse
       graph.isHyponym(puppyForm, anthroposForm) must beFalse
+      graph.isHyponym(puppyForm, someoneForm) must beTrue
+      graph.isHyponym(anthroposForm, someoneForm) must beTrue
+      graph.isHyponym(androsForm, someoneForm) must beTrue
+      graph.isHyponym(someoneForm, androsForm) must beFalse
     }
 
     "provide ontology to parser" in new InterpreterContext

@@ -1084,38 +1084,6 @@ class SpcCosmos(
 
   }
 
-  def properReference(entity : SpcEntity) =
-  {
-    SilNounReference(
-      SilWord(entity.properName), DETERMINER_UNSPECIFIED)
-  }
-
-  def qualifiedReference(
-    entity : SpcEntity,
-    determiner : SilDeterminer) =
-  {
-    val formName = entity.form.name
-    val nounRef = SilNounReference(
-      SilWord(formName), determiner)
-    if (entity.properName.isEmpty) {
-      SilReference.qualified(
-        nounRef, entity.qualifiers.map(q => SilWord(q)).toSeq)
-    } else {
-      nounRef
-    }
-  }
-
-  override def specificReference(
-    entity : SpcEntity,
-    determiner : SilDeterminer) =
-  {
-    if (!entity.properName.isEmpty) {
-      properReference(entity)
-    } else {
-      qualifiedReference(entity, determiner)
-    }
-  }
-
   // FIXME:  rewrite this entirely in terms of evaluateEntityProperty
   // and move it to SmcCosmos level
   override def evaluateEntityPropertyPredicate(

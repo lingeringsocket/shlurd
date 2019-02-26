@@ -141,9 +141,20 @@ class SpcWordnet(cosmos : SpcCosmos)
     s"wnf-${word.getLemma}-${word.getSenseNumber}"
   }
 
-  def getRoleName(form : SpcForm, meronymForm : SpcForm) : String =
+  def getNoun(form : SpcForm) : String =
   {
-    s"wnr-${form.name}-${meronymForm.name}"
+    form.name.split("wnf-").last.split('-').head
+  }
+
+  def getPossesseeNoun(role : SpcRole) : String =
+  {
+    role.name.split("-wnf-").last.split('-').head
+  }
+
+  def getRoleName(
+    possessorForm : SpcForm, possesseeForm : SpcForm) : String =
+  {
+    s"wnr-${possessorForm.name}-${possesseeForm.name}"
   }
 
   private def isUsableFormName(lemma : String) : Boolean =

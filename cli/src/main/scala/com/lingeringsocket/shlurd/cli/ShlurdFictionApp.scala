@@ -166,7 +166,7 @@ class ShlurdFictionShell(
     {
       val sentence = SilPredicateSentence(
         SilStatePredicate(
-          mind.getCosmos.specificReferences(invocation.entities),
+          mind.specificReferences(invocation.entities),
           SilPropertyState(invocation.state)
         )
       )

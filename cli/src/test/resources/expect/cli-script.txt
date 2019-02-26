@@ -30,7 +30,11 @@ is Fido a sausage
 
 No, it is not.
 
-Bootsie is Fido's paw.
+what is Fido
+
+A dog.
+
+Bootsie is Fido's paw
 
 OK.
 
@@ -77,3 +81,7 @@ OK.
 what is Snape's school
 
 Durmstrang.
+
+who is Snape
+
+Durmstrang's schoolteacher.

@@ -103,4 +103,22 @@ class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
       }
     }
   }
+
+  override protected def getFormName(form : SpcForm) : String =
+  {
+    if (wordnetActive) {
+      getWordnet.getNoun(form)
+    } else {
+      super.getFormName(form)
+    }
+  }
+
+  override protected def getPossesseeName(role : SpcRole) : String =
+  {
+    if (wordnetActive) {
+      getWordnet.getPossesseeNoun(role)
+    } else {
+      super.getPossesseeName(role)
+    }
+  }
 }

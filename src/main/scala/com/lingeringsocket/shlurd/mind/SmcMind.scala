@@ -245,7 +245,7 @@ class SmcMind[
   {
     pronounReference(entity, personFirst, PERSON_FIRST) ++
     pronounReference(entity, personSecond, PERSON_SECOND) ++
-    Seq(cosmos.specificReference(entity, determiner))
+    Seq(specificReference(entity, determiner))
   }
 
   def thirdPersonReference(entities : Set[EntityType]) : Option[SilReference] =
@@ -269,6 +269,28 @@ class SmcMind[
         Seq(SilPronounReference(person, GENDER_N, COUNT_SINGULAR))
       }
       case _ => Seq()
+    }
+  }
+
+  def specificReference(
+    entity : EntityType,
+    determiner : SilDeterminer) : SilReference =
+  {
+    SilMappedReference(entity.getUniqueIdentifier, determiner)
+  }
+
+  def specificReferences(
+    entities : Set[EntityType]) : SilReference =
+  {
+    assert(!entities.isEmpty)
+    if (entities.size == 1) {
+      specificReference(entities.head, DETERMINER_UNIQUE)
+    } else {
+      SilConjunctiveReference(
+        DETERMINER_ALL,
+        entities.toSeq.map(entity =>
+          specificReference(
+            entity, DETERMINER_UNIQUE)))
     }
   }
 }

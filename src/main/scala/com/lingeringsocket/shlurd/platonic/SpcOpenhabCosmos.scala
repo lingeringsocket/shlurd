@@ -33,6 +33,17 @@ class GroupMap extends mutable.LinkedHashMap[String, mutable.Set[String]]
   override protected def makeSet = new mutable.LinkedHashSet[String]
 }
 
+object SpcOpenhabCosmos
+{
+  val locationFormName = "location"
+
+  val presenceFormName = "presence"
+
+  val presenceRoleName = "ubiety"
+
+  val roomLemma = "room"
+}
+
 abstract class SpcOpenhabCosmos(
   graph : SpcGraph = SpcGraph(),
   val idGenerator : AtomicLong = new AtomicLong,
@@ -41,13 +52,7 @@ abstract class SpcOpenhabCosmos(
   forkLevel : Int = 0
 ) extends SpcCosmos(graph, idGenerator, forkLevel)
 {
-  private val locationFormName = "location"
-
-  private val presenceFormName = "presence"
-
-  private val presenceRoleName = "ubiety"
-
-  private val roomLemma = "room"
+  import SpcOpenhabCosmos._
 
   private var beliefsLoaded : Boolean = false
 
@@ -158,7 +163,7 @@ abstract class SpcOpenhabCosmos(
     }
   }
 
-  private def isAmbiguous(entity : SpcEntity) : Boolean =
+  def isAmbiguous(entity : SpcEntity) : Boolean =
   {
     resolveQualifiedNoun(
       entity.form.name, REF_SUBJECT, entity.qualifiers) match
@@ -170,7 +175,7 @@ abstract class SpcOpenhabCosmos(
     }
   }
 
-  private def getContainer(entity : SpcEntity)
+  def getContainer(entity : SpcEntity)
       : Option[SpcEntity] =
   {
     groupMap.get(entity.name) match {
@@ -190,78 +195,7 @@ abstract class SpcOpenhabCosmos(
     }
   }
 
-  override def specificReference(
-    entity : SpcEntity,
-    determiner : SilDeterminer) =
-  {
-    if (entity.form.name == locationFormName) {
-      val seq = entity.qualifiers.toSeq
-      val specialRoom = roomyRooms.contains(entity.name)
-      val realForm = {
-        if (specialRoom) {
-          roomLemma
-        } else {
-          seq.last
-        }
-      }
-      val ref = SilNounReference(
-        SilWord(realForm),
-        determiner)
-      if (specialRoom) {
-          SilReference.qualified(
-            ref, seq.map(x => SilWord(x)))
-      } else {
-        if (seq.size == 1) {
-          ref
-        } else {
-          SilReference.qualified(
-            ref, seq.dropRight(1).map(x => SilWord(x)))
-        }
-      }
-    } else {
-      val roomyEntity = {
-        val roomyQualifiers = getRoomyQualifiers(entity)
-        if (roomyQualifiers.isEmpty) {
-          entity
-        } else {
-          val seq = entity.qualifiers.toSeq
-          val i = seq.indexOfSlice(roomyQualifiers)
-          if (i == -1) {
-            entity
-          } else {
-            new SpcEntity(
-              entity.name, entity.form,
-              SprUtils.orderedSet(
-                seq.patch(i + roomyQualifiers.size, Seq(roomLemma), 0)))
-          }
-        }
-      }
-      val ref = super.specificReference(roomyEntity, determiner)
-      if (isAmbiguous(entity)) {
-        getContainer(entity) match {
-          case Some(containerEntity) => {
-            getContainer(containerEntity) match {
-              case Some(floorEntity) => {
-                val floorRef =
-                  specificReference(floorEntity, DETERMINER_UNIQUE)
-                SilStateSpecifiedReference(
-                  ref,
-                  SilAdpositionalState(
-                    SilAdposition.ON,
-                    floorRef))
-              }
-              case _ => ref
-            }
-          }
-          case _ => ref
-        }
-      } else {
-        ref
-      }
-    }
-  }
-
-  private def getRoomyQualifiers(entity : SpcEntity) : Seq[String] =
+  def getRoomyQualifiers(entity : SpcEntity) : Seq[String] =
   {
     getContainer(entity) match {
       case Some(containerEntity) => {
@@ -480,6 +414,78 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
       assert(qualifiers.isEmpty)
       Success(Trilean(
         cosmos.evaluateAdpositionPredicate(entity, location, adposition)))
+    }
+  }
+
+  override def specificReference(
+    entity : SpcEntity,
+    determiner : SilDeterminer) =
+  {
+    if (entity.form.name == SpcOpenhabCosmos.locationFormName) {
+      val seq = entity.qualifiers.toSeq
+      val specialRoom = cosmos.roomyRooms.contains(entity.name)
+      val realForm = {
+        if (specialRoom) {
+          SpcOpenhabCosmos.roomLemma
+        } else {
+          seq.last
+        }
+      }
+      val ref = SilNounReference(
+        SilWord(realForm),
+        determiner)
+      if (specialRoom) {
+          SilReference.qualified(
+            ref, seq.map(x => SilWord(x)))
+      } else {
+        if (seq.size == 1) {
+          ref
+        } else {
+          SilReference.qualified(
+            ref, seq.dropRight(1).map(x => SilWord(x)))
+        }
+      }
+    } else {
+      val roomyEntity = {
+        val roomyQualifiers = cosmos.getRoomyQualifiers(entity)
+        if (roomyQualifiers.isEmpty) {
+          entity
+        } else {
+          val seq = entity.qualifiers.toSeq
+          val i = seq.indexOfSlice(roomyQualifiers)
+          if (i == -1) {
+            entity
+          } else {
+            new SpcEntity(
+              entity.name, entity.form,
+              SprUtils.orderedSet(
+                seq.patch(i + roomyQualifiers.size,
+                  Seq(SpcOpenhabCosmos.roomLemma), 0)))
+          }
+        }
+      }
+      val ref = super.specificReference(roomyEntity, determiner)
+      if (cosmos.isAmbiguous(entity)) {
+        cosmos.getContainer(entity) match {
+          case Some(containerEntity) => {
+            cosmos.getContainer(containerEntity) match {
+              case Some(floorEntity) => {
+                val floorRef =
+                  specificReference(floorEntity, DETERMINER_UNIQUE)
+                SilStateSpecifiedReference(
+                  ref,
+                  SilAdpositionalState(
+                    SilAdposition.ON,
+                    floorRef))
+              }
+              case _ => ref
+            }
+          }
+          case _ => ref
+        }
+      } else {
+        ref
+      }
     }
   }
 }

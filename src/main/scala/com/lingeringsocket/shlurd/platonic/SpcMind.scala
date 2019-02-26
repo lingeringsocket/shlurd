@@ -69,15 +69,16 @@ class SpcMind(cosmos : SpcCosmos)
               SilAdpositionalState(
                 SilAdposition.OF,
                 SilGenitiveReference(
-                  cosmos.specificReference(possessor, determiner),
-                  SilNounReference(SilWord.uninflected(specializedRole.name),
+                  specificReference(possessor, determiner),
+                  SilNounReference(SilWord.uninflected(
+                    getPossesseeName(specializedRole)),
                     DETERMINER_UNSPECIFIED,
                     COUNT_PLURAL))))
           } else {
             // "Larry's father"
             SilGenitiveReference(
-              cosmos.specificReference(possessor, determiner),
-              SilNounReference(SilWord(specializedRole.name)))
+              specificReference(possessor, determiner),
+              SilNounReference(SilWord(getPossesseeName(specializedRole))))
           }
         }
         if (SpcMeta.isMetaEntity(possessor)) {
@@ -89,13 +90,23 @@ class SpcMind(cosmos : SpcCosmos)
     )
     val qualifiedSeq = {
       if (!entity.properName.isEmpty) {
-        Seq(cosmos.qualifiedReference(entity, DETERMINER_NONSPECIFIC))
+        Seq(qualifiedReference(entity, DETERMINER_NONSPECIFIC))
       } else {
         Seq.empty
       }
     }
     super.equivalentReferences(entity, determiner) ++
       genitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
+  }
+
+  protected def getFormName(form : SpcForm) : String =
+  {
+    form.name
+  }
+
+  protected def getPossesseeName(role : SpcRole) : String =
+  {
+    role.name
   }
 
   override def thirdPersonReference(entities : Set[SpcEntity])
@@ -122,6 +133,38 @@ class SpcMind(cosmos : SpcCosmos)
       }
     }
     Some(SilPronounReference(PERSON_THIRD, gender, count))
+  }
+
+  def properReference(entity : SpcEntity) =
+  {
+    SilNounReference(
+      SilWord(entity.properName), DETERMINER_UNSPECIFIED)
+  }
+
+  def qualifiedReference(
+    entity : SpcEntity,
+    determiner : SilDeterminer) =
+  {
+    val formName = getFormName(entity.form)
+    val nounRef = SilNounReference(
+      SilWord(formName), determiner)
+    if (entity.properName.isEmpty) {
+      SilReference.qualified(
+        nounRef, entity.qualifiers.map(q => SilWord(q)).toSeq)
+    } else {
+      nounRef
+    }
+  }
+
+  override def specificReference(
+    entity : SpcEntity,
+    determiner : SilDeterminer) =
+  {
+    if (!entity.properName.isEmpty) {
+      properReference(entity)
+    } else {
+      qualifiedReference(entity, determiner)
+    }
   }
 
   def resolveFormCandidates(noun : SilWord) : Seq[SpcForm] =

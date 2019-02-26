@@ -646,7 +646,8 @@ class SpcCosmosSpec extends Specification
       addBelief("Lana is a person")
       val entity = expectPerson("lana")
       val properRef = SilNounReference(SilWord("Lana"))
-      val specificRef = cosmos.specificReference(entity, DETERMINER_UNSPECIFIED)
+      val mind = new SpcMind(cosmos)
+      val specificRef = mind.specificReference(entity, DETERMINER_UNSPECIFIED)
       specificRef must be equalTo properRef
     }
 

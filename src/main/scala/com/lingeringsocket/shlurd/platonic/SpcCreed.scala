@@ -24,6 +24,8 @@ import SprEnglishLemmas._
 
 class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
 {
+  private val mind = new SpcMind(cosmos)
+
   def allBeliefs() : Iterable[SilSentence] =
   {
     cosmos.getIdealSynonyms.filterNot(
@@ -231,7 +233,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     entity : SpcEntity
   ) : SilSentence =
   {
-    val subject = cosmos.specificReference(entity, DETERMINER_NONSPECIFIC)
+    val subject = mind.specificReference(entity, DETERMINER_NONSPECIFIC)
     val predicate = entity.properName match {
       case "" => {
         SilStatePredicate(
@@ -253,7 +255,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     eps : SpcEntityPropertyState
   ) : SilSentence =
   {
-    val subject = cosmos.specificReference(entity, DETERMINER_UNIQUE)
+    val subject = mind.specificReference(entity, DETERMINER_UNIQUE)
     val property = cosmos.resolvePropertyName(entity, eps.propertyName).get
     val propertyStates = cosmos.getPropertyStateMap(property)
     // FIXME be specific about property
@@ -269,9 +271,9 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     edge : SpcEntityAssocEdge
   ) : SilSentence =
   {
-    val possessor = cosmos.specificReference(
+    val possessor = mind.specificReference(
       cosmos.getGraph.getPossessorEntity(edge), DETERMINER_UNIQUE)
-    val possessee = cosmos.specificReference(
+    val possessee = mind.specificReference(
       cosmos.getGraph.getPossesseeEntity(edge), DETERMINER_UNIQUE)
     val role = nounReference(
       edge.getRoleName, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)

@@ -70,25 +70,6 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
     propertyName : String,
     specific : Boolean = false) : Try[(Option[PropertyType], Option[String])]
 
-  def specificReference(
-    entity : EntityType,
-    determiner : SilDeterminer) : SilReference
-
-  def specificReferences(
-    entities : Set[EntityType]) : SilReference =
-  {
-    assert(!entities.isEmpty)
-    if (entities.size == 1) {
-      specificReference(entities.head, DETERMINER_UNIQUE)
-    } else {
-      SilConjunctiveReference(
-        DETERMINER_ALL,
-        entities.toSeq.map(entity =>
-          specificReference(
-            entity, DETERMINER_UNIQUE)))
-    }
-  }
-
   def qualifierSet(qualifiers : Seq[SilWord]) =
     SprUtils.orderedSet(qualifiers.map(_.lemma))
 

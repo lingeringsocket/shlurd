@@ -464,7 +464,7 @@ class SmcResponseRewriter[
   ) = replacementMatcher {
     case SilMappedReference(key, determiner) => {
       val entity = entityMap(key)
-      val ref = cosmos.specificReference(entity, determiner)
+      val ref = mind.specificReference(entity, determiner)
       referenceMap.remove(ref)
       ref
     }
@@ -568,7 +568,7 @@ class SmcResponseRewriter[
   ) = replacementMatcher {
     case pr @ SilPronounReference(PERSON_THIRD, _, _, _) => {
       referenceMap.get(pr).map(
-        entities => cosmos.specificReferences(entities)
+        entities => mind.specificReferences(entities)
       ).getOrElse(pr)
     }
   }

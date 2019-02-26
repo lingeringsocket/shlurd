@@ -179,34 +179,6 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
     }
   }
 
-  override def specificReference(
-    entity : SmcEntity,
-    determiner : SilDeterminer) =
-  {
-    entity match {
-      case animal : ZooAnimalEntity => {
-        val words = animal.name.split(" ")
-        val nounRef = SilNounReference(
-          SilWord(words.last), determiner)
-        if (words.size == 1) {
-          nounRef
-        } else {
-          SilReference.qualified(
-            nounRef, words.dropRight(1).map(
-              q => SilWord(q)))
-        }
-      }
-      case ZooPersonEntity(name) => {
-        SilNounReference(
-          SilWord(name), DETERMINER_UNSPECIFIED)
-      }
-      case ZooLocationEntity(name) => {
-        SilNounReference(
-          SilWord(name), DETERMINER_UNSPECIFIED)
-      }
-    }
-  }
-
   override def evaluateEntityProperty(
     entity : SmcEntity,
     propertyName : String,
@@ -249,6 +221,34 @@ class ZooMind(cosmos : ZooCosmos)
     val mind = new ZooMind(newCosmos)
     mind.initFrom(this)
     mind
+  }
+
+  override def specificReference(
+    entity : SmcEntity,
+    determiner : SilDeterminer) =
+  {
+    entity match {
+      case animal : ZooAnimalEntity => {
+        val words = animal.name.split(" ")
+        val nounRef = SilNounReference(
+          SilWord(words.last), determiner)
+        if (words.size == 1) {
+          nounRef
+        } else {
+          SilReference.qualified(
+            nounRef, words.dropRight(1).map(
+              q => SilWord(q)))
+        }
+      }
+      case ZooPersonEntity(name) => {
+        SilNounReference(
+          SilWord(name), DETERMINER_UNSPECIFIED)
+      }
+      case ZooLocationEntity(name) => {
+        SilNounReference(
+          SilWord(name), DETERMINER_UNSPECIFIED)
+      }
+    }
   }
 
   override def evaluateEntityAdpositionPredicate(

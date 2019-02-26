@@ -752,7 +752,7 @@ class SmcPredicateEvaluator[
             SilNounReference(rephrased, rephrasedDeterminer, count)
           }
           case _ => {
-            cosmos.specificReference(entity, DETERMINER_NONSPECIFIC)
+            mind.specificReference(entity, DETERMINER_NONSPECIFIC)
           }
         }
         fail(sentencePrinter.sb.respondUnknownState(
