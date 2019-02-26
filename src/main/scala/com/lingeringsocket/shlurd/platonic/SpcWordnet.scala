@@ -26,7 +26,7 @@ class SpcWordnet(cosmos : SpcCosmos)
 {
   private val dictionary = ShlurdWordnet.dictionary
 
-  private val beingCategories = Set("noun.person", "noun.animal")
+  private val beingCategories = Set("noun.person")
 
   def loadAll()
   {

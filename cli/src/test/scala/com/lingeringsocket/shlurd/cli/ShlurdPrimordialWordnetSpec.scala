@@ -69,8 +69,8 @@ class ShlurdPrimordialWordnetSpec extends Specification
       graph.isHyponym(puppyForm, dogForm) must beTrue
       graph.isHyponym(dogForm, puppyForm) must beFalse
       graph.isHyponym(puppyForm, anthroposForm) must beFalse
-      graph.isHyponym(puppyForm, someoneForm) must beTrue
-      graph.isHyponym(anthroposForm, someoneForm) must beTrue
+      graph.isHyponym(puppyForm, someoneForm) must beFalse
+      graph.isHyponym(anthroposForm, someoneForm) must beFalse
       graph.isHyponym(androsForm, someoneForm) must beTrue
       graph.isHyponym(someoneForm, androsForm) must beFalse
     }

@@ -50,7 +50,7 @@ The axe is in the player.
 
 is the thief alive?
 
-Yes, it is alive.
+Yes, he is alive.
 
 throw the axe to the thief
 
@@ -60,7 +60,7 @@ Blood splatters everywhere.
 
 is the thief alive
 
-No, it is not alive.
+No, he is not alive.
 
 go to the kitchen
 

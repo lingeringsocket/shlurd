@@ -118,7 +118,19 @@ class SpcMind(cosmos : SpcCosmos)
         cosmos.evaluateEntityProperty(entity, LEMMA_GENDER) match {
           case Success((_, Some(LEMMA_FEMININE))) => GENDER_F
           case Success((_, Some(LEMMA_MASCULINE))) => GENDER_M
-          case _ => GENDER_N
+          case _ => {
+            cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE) match {
+              case Some(someoneForm) => {
+                if (cosmos.getGraph.isHyponym(entity.form, someoneForm)) {
+                  // FIXME support "someone" gender
+                  GENDER_M
+                } else {
+                  GENDER_N
+                }
+              }
+              case _ => GENDER_N
+            }
+          }
         }
       } else {
         // FIXME:  for languages like Spanish, need to be macho
