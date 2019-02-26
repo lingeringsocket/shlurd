@@ -74,6 +74,10 @@ what is Snape's school
 
 Hogwarts.
 
+who are Hogwarts' schoolteachers
+
+Snape and Dumbledore.
+
 Snape is Durmstrang's schoolteacher.
 
 OK.
@@ -85,3 +89,7 @@ Durmstrang.
 who is Snape
 
 Durmstrang's schoolteacher.
+
+who are Hogwarts' schoolteachers
+
+Dumbledore.
