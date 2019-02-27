@@ -93,3 +93,19 @@ Durmstrang's schoolteacher.
 who are Hogwarts' schoolteachers
 
 Dumbledore.
+
+Angua is a woman
+
+OK.
+
+Discworld is an spc-object
+
+OK.
+
+Angua is in Discworld
+
+OK.
+
+is Angua in Discworld
+
+Yes, she is.

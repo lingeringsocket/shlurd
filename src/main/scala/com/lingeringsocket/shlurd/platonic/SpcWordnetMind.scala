@@ -26,6 +26,12 @@ class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
 {
   private def getWordnet() = new SpcWordnet(cosmos)
 
+  // FIXME add more
+  private lazy val feminineForms = {
+    val wordnet = getWordnet
+    ShlurdWordnet.getNounSenses("female").flatMap(wordnet.loadForm)
+  }
+
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new SpcWordnetMind(newCosmos, wordnetActive)
@@ -119,6 +125,17 @@ class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
       getWordnet.getPossesseeNoun(role)
     } else {
       super.getPossesseeName(role)
+    }
+  }
+
+  override protected def guessGender(entity : SpcEntity) : SilGender =
+  {
+    if (feminineForms.exists(
+      form => cosmos.getGraph.isHyponym(entity.form, form)
+    )) {
+      GENDER_F
+    } else {
+      super.guessGender(entity)
     }
   }
 }
