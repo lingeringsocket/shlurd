@@ -42,7 +42,7 @@ object SpcPrimordial
 
   private def initCosmosFromBeliefs(cosmos : SpcCosmos)
   {
-    cosmos.loadBeliefs(SprParser.getResourceSource(
+    new SpcMind(cosmos).loadBeliefs(SprParser.getResourceSource(
       "/ontologies/primordial.txt"))
     synonyms.foreach(e => cosmos.addIdealSynonym(e._1, e._2))
   }

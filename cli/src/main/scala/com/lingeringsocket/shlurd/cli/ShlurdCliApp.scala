@@ -82,11 +82,12 @@ object ShlurdCliShell
     val cosmos = ShlurdPrimordialWordnet.loadCosmos
     val beliefs = SprParser.getResourceFile("/ontologies/console.txt")
     val source = Source.fromFile(beliefs)
-    cosmos.loadBeliefs(source)
+    val bootMind = new SpcWordnetMind(cosmos, true)
+    bootMind.loadBeliefs(source)
 
     val entityInterviewer = cosmos.uniqueEntity(
       cosmos.resolveQualifiedNoun(
-        "interviewer", REF_SUBJECT, Set())).get
+        "wnf-interviewer-1", REF_SUBJECT, Set())).get
     val entityShlurd = cosmos.uniqueEntity(
       cosmos.resolveQualifiedNoun(
         SmcLemmas.LEMMA_SOMEONE, REF_SUBJECT, Set("shlurd"))).get

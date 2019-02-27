@@ -711,7 +711,7 @@ class SpcCosmosSpec extends Specification
     {
       val file = SprParser.getResourceFile("/ontologies/bit.txt")
       val source = Source.fromFile(file)
-      cosmos.loadBeliefs(source)
+      new SpcMind(cosmos).loadBeliefs(source)
       val form = expectNamedForm("bit")
       val property = expectSingleProperty(form)
       property.isClosed must beTrue

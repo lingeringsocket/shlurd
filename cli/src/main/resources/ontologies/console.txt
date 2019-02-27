@@ -1,5 +1,2 @@
-A person is a kind of spc-someone.
-A mindbot is a kind of person.
-An interviewer is a kind of person.
-SHLURD is a mindbot.
+SHLURD is a conversationalist.
 There is an interviewer.

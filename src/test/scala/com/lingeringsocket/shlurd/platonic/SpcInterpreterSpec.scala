@@ -89,7 +89,7 @@ class SpcInterpreterSpec extends Specification
     {
       val file = SprParser.getResourceFile(resource)
       val source = Source.fromFile(file)
-      cosmos.loadBeliefs(source)
+      mind.loadBeliefs(source)
     }
 
     protected def interpret(input : String, expected : String) =

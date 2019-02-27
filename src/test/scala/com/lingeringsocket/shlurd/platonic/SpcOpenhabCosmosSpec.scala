@@ -75,7 +75,7 @@ class SpcOpenhabCosmosSpec extends Specification
     {
       val file = SprParser.getResourceFile("/ontologies/home.txt")
       val source = Source.fromFile(file)
-      cosmos.loadBeliefs(source)
+      new SpcOpenhabMind(cosmos).loadBeliefs(source)
       cosmos.addItem("Home", "Our House", true, Seq.empty)
       cosmos.addItem("Phone", "Phone Presence", true, Seq("Home"))
       cosmos.addItem("Junk", "Just Junk", true, Seq.empty)

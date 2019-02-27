@@ -88,7 +88,7 @@ object ShlurdFictionShell
     SpcPrimordial.initCosmos(cosmos)
     val beliefs = SprParser.getResourceFile("/ontologies/fiction-beliefs.txt")
     val source = Source.fromFile(beliefs)
-    cosmos.loadBeliefs(source)
+    new SpcMind(cosmos).loadBeliefs(source)
 
     val entityPlayer = cosmos.uniqueEntity(
       cosmos.resolveQualifiedNoun(

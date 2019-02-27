@@ -98,7 +98,7 @@ Angua is a woman
 
 OK.
 
-Discworld is an spc-object
+Discworld is an object
 
 OK.
 
@@ -109,3 +109,7 @@ OK.
 is Angua in Discworld
 
 Yes, she is.
+
+what is Discworld
+
+Angua's container.

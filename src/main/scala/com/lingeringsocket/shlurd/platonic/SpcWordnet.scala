@@ -20,13 +20,22 @@ import com.lingeringsocket.shlurd.ilang._
 
 import net.sf.extjwnl.data._
 
+import scala.collection._
 import scala.collection.JavaConverters._
 
 class SpcWordnet(cosmos : SpcCosmos)
 {
   private val dictionary = ShlurdWordnet.dictionary
 
-  private val beingCategories = Set("noun.person")
+  private val someoneCategories = Seq(
+    "person"
+  )
+
+  private val objectCategories = Seq(
+    "animal", "artifact", "body", "food", "group",
+    "location", "object", "person", "plant",
+    "phenomenon", "possession", "shape", "substance"
+  )
 
   def loadAll()
   {
@@ -70,17 +79,28 @@ class SpcWordnet(cosmos : SpcCosmos)
   def loadDirectHypernyms(
     hyponymSynset : Synset, includeImplicit : Boolean) : Seq[SpcForm] =
   {
-    val beingForm = {
+    val (someoneForm, objectForm) = {
       if (includeImplicit) {
-        cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE)
+        tupleN((
+          cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE),
+          cosmos.resolveForm(SmcLemmas.LEMMA_OBJECT)))
       } else {
-        None
+        tupleN((None, None))
       }
     }
     loadForm(hyponymSynset) match {
       case Some(hyponymForm) => {
-        beingForm.foreach(hypernymForm => {
-          if (beingCategories.contains(hyponymSynset.getLexFileName)) {
+        someoneForm.foreach(hypernymForm => {
+          if (anyMatchingCategory(
+            hyponymForm, hyponymSynset, someoneCategories)
+          ) {
+            cosmos.addIdealTaxonomy(hyponymForm, hypernymForm)
+          }
+        })
+        objectForm.foreach(hypernymForm => {
+          if (anyMatchingCategory(
+            hyponymForm, hyponymSynset, objectCategories)
+          ) {
             cosmos.addIdealTaxonomy(hyponymForm, hypernymForm)
           }
         })
@@ -130,6 +150,27 @@ class SpcWordnet(cosmos : SpcCosmos)
     }
   }
 
+  def getFeminineForms() =
+  {
+    ShlurdWordnet.getNounSenses("female").flatMap(loadForm)
+  }
+
+  def anyMatchingHypernym(form : SpcForm, hypernyms : Seq[SpcForm]) : Boolean =
+  {
+    hypernyms.exists(
+      hypernym => cosmos.getGraph.isHyponym(form, hypernym))
+  }
+
+  def anyMatchingCategory(
+    form : SpcForm, sense : Synset, categories : Seq[String]) : Boolean =
+  {
+    categories.contains(sense.getLexFileName.stripPrefix("noun.")) ||
+      anyMatchingHypernym(
+        form, categories.flatMap(
+          category => ShlurdWordnet.getNounSenses(category).
+            take(1).flatMap(loadForm)))
+  }
+
   def getSynsetForm(synset : Synset) : Option[SpcForm] =
   {
     synset.getWords.asScala.toStream.map(getFormName).
@@ -143,12 +184,20 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   def getNoun(form : SpcForm) : String =
   {
-    form.name.split("wnf-").last.split('-').head
+    if (form.name.startsWith("wnf-")) {
+      form.name.split("wnf-").last.split('-').head
+    } else {
+      form.name.stripPrefix("spc-")
+    }
   }
 
   def getPossesseeNoun(role : SpcRole) : String =
   {
-    role.name.split("-wnf-").last.split('-').head
+    if (role.name.startsWith("wnr-")) {
+      role.name.split("-wnf-").last.split('-').head
+    } else {
+      role.name.stripPrefix("spc-")
+    }
   }
 
   def getRoleName(

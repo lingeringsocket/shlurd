@@ -54,7 +54,7 @@ abstract class SpcOpenhabCosmos(
 {
   import SpcOpenhabCosmos._
 
-  private var beliefsLoaded : Boolean = false
+  private[platonic] var beliefsLoaded : Boolean = false
 
   // FIXME move this logic up to the SpcCosmos level
   private val adjectives = new mutable.LinkedHashSet[String]
@@ -84,12 +84,6 @@ abstract class SpcOpenhabCosmos(
     val frozen = new SpcOpenhabDerivedCosmos(this, getGraph, forkLevel)
     frozen.meta.afterFork(meta)
     frozen
-  }
-
-  override def loadBeliefs(source : Source)
-  {
-    super.loadBeliefs(source)
-    beliefsLoaded = true
   }
 
   override def newParser(input : String) =
@@ -399,6 +393,12 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
     val mind = new SpcOpenhabMind(newCosmos.asInstanceOf[SpcOpenhabCosmos])
     mind.initFrom(this)
     mind
+  }
+
+  override def loadBeliefs(source : Source)
+  {
+    super.loadBeliefs(source)
+    cosmos.beliefsLoaded = true
   }
 
   override def evaluateEntityAdpositionPredicate(

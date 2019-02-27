@@ -21,6 +21,7 @@ import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
 import scala.collection.JavaConverters._
+import scala.io._
 import scala.util._
 
 import spire.math._
@@ -37,6 +38,18 @@ class SpcMind(cosmos : SpcCosmos)
     val mind = new SpcMind(newCosmos)
     mind.initFrom(this)
     mind
+  }
+
+  def loadBeliefs(source : Source)
+  {
+    val beliefs = source.getLines.filterNot(_.isEmpty).mkString("\n")
+    val sentences = cosmos.newParser(beliefs).parseAll
+    sentences.foreach(sentence => {
+      val interpreter = new SpcBeliefInterpreter(this, false)
+      val analyzed = analyzeSense(sentence)
+      interpreter.interpretBelief(analyzed)
+    })
+    cosmos.validateBeliefs
   }
 
   override def equivalentReferences(

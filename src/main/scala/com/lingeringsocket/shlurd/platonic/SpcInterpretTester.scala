@@ -28,7 +28,8 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
 {
   private val seedCosmos = new SpcCosmos
   SpcPrimordial.initCosmos(seedCosmos)
-  seedCosmos.loadBeliefs(Source.fromFile(beliefsFile))
+  private val seedMind = new SpcMind(seedCosmos)
+  seedMind.loadBeliefs(Source.fromFile(beliefsFile))
 
   private var cosmos = new SpcCosmos
   private var mind = new SpcMind(cosmos)

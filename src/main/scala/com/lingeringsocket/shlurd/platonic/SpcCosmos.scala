@@ -21,7 +21,6 @@ import com.lingeringsocket.shlurd.ilang._
 
 import spire.math._
 
-import scala.io._
 import scala.util._
 import scala.collection._
 import scala.collection.JavaConverters._
@@ -742,19 +741,6 @@ class SpcCosmos(
         graph.isHyponym(role, graph.getPossesseeRole(edge.formEdge))
       }
     )
-  }
-
-  def loadBeliefs(source : Source)
-  {
-    val beliefs = source.getLines.filterNot(_.isEmpty).mkString("\n")
-    val sentences = newParser(beliefs).parseAll
-    // FIXME we should move this entire method to SpcMind
-    val mind = new SpcMind(this)
-    sentences.foreach(sentence => {
-      val interpreter = new SpcBeliefInterpreter(mind, false)
-      interpreter.interpretBelief(sentence)
-    })
-    validateBeliefs
   }
 
   def validateBeliefs()
