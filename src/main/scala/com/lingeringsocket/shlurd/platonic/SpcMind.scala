@@ -294,7 +294,7 @@ class SpcMind(cosmos : SpcCosmos)
     roleOpt match {
       case Some(role) => {
         Success(Trilean(
-          graph.isFormCompatibleWithRole(entity.form, role) &&
+          cosmos.isFormCompatibleWithRole(entity.form, role) &&
             cosmos.getEntityAssocGraph.incomingEdgesOf(entity).asScala.
             exists(edge =>
               graph.isHyponym(

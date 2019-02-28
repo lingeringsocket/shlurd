@@ -135,10 +135,23 @@ case class SpcEntitySynonym(val name : String)
 {
 }
 
+class SpcCosmicPool
+{
+  val idGenerator = new AtomicLong
+
+  @transient var taxonomyTimestamp = 1
+
+  @transient val roleFormCache =
+    new mutable.HashMap[SpcRole, (Int, Seq[SpcForm])]
+
+  @transient val roleCompatibilityCache =
+    new mutable.HashMap[(SpcRole, SpcForm), (Int, Boolean)]
+}
+
 class SpcCosmos(
   graph : SpcGraph = SpcGraph(),
-  idGenerator : AtomicLong = new AtomicLong,
-  forkLevel : Int = 0
+  forkLevel : Int = 0,
+  pool : SpcCosmicPool = new SpcCosmicPool
 ) extends SmcCosmos[SpcEntity, SpcProperty] with DeltaModification
 {
   private val unmodifiableGraph = graph.asUnmodifiable
@@ -160,7 +173,9 @@ class SpcCosmos(
 
   def getGraph = unmodifiableGraph
 
-  private def getIdGenerator = idGenerator
+  def getPool = pool
+
+  private def getIdGenerator = pool.idGenerator
 
   protected[platonic] def annotateFormAssoc(
     edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint,
@@ -180,24 +195,24 @@ class SpcCosmos(
         SpcGraph.fork(graph)
       }
     }
-    val forked = new SpcCosmos(forkedGraph, idGenerator, forkLevel + 1)
+    val forked = new SpcCosmos(forkedGraph, forkLevel + 1, pool)
     forked.meta.afterFork(meta)
     forked
   }
 
   def asUnmodifiable() : SpcCosmos =
   {
-    val frozen = new SpcCosmos(unmodifiableGraph, idGenerator, forkLevel)
+    val frozen = new SpcCosmos(unmodifiableGraph, forkLevel, pool)
     frozen.meta.afterFork(meta)
     frozen
   }
 
   protected[platonic] def copyFrom(src : SpcCosmos)
   {
-    assert(idGenerator.get == 0)
+    assert(getIdGenerator.get == 0)
     val dstGraphs = graph.getGraphs
     dstGraphs.foreach(graph => assert(graph.vertexSet.isEmpty))
-    idGenerator.set(src.getIdGenerator.get)
+    getIdGenerator.set(src.getIdGenerator.get)
     dstGraphs.zip(src.getGraph.getGraphs).foreach({
       case (dstGraph, srcGraph) => {
         // FIXME find a way to do this without ugly casts
@@ -298,14 +313,26 @@ class SpcCosmos(
   def getRoleRealizations(role : SpcRole) : Seq[SpcEntity] =
   {
     if (meta.isFresh) {
-      graph.getIdealHypernyms(role).toSeq.filter(_.isForm).
-        map(_.asInstanceOf[SpcForm]).
-        flatMap(graph.getFormHyponyms).distinct.filter(form =>
-          graph.isFormCompatibleWithRole(form, role)).
-        flatMap(getFormRealizations)
+      val newTimestamp = pool.taxonomyTimestamp
+      val (oldTimestamp, oldForms) = pool.roleFormCache.getOrElse(
+        role,
+        tupleN((0, Seq.empty)))
+      val forms = {
+        if (oldTimestamp == newTimestamp) {
+          oldForms
+        } else {
+          val newForms = graph.getIdealHypernyms(role).toSeq.filter(_.isForm).
+            map(_.asInstanceOf[SpcForm]).
+            flatMap(graph.getFormHyponyms).distinct.filter(form =>
+              isFormCompatibleWithRole(form, role))
+          pool.roleFormCache.put(role, tupleN((newTimestamp, newForms)))
+          newForms
+        }
+      }
+      forms.flatMap(getFormRealizations)
     } else {
       getEntities.filter(
-        entity => graph.isFormCompatibleWithRole(entity.form, role))
+        entity => isFormCompatibleWithRole(entity.form, role))
     }
   }
 
@@ -443,6 +470,7 @@ class SpcCosmos(
 
   private[platonic] def replaceForm(oldForm : SpcForm, newForm : SpcForm)
   {
+    pool.taxonomyTimestamp += 1
     assert(oldForm.isTentative)
     assert(graph.components.degreeOf(oldForm) == 0)
     graph.replaceVertex(graph.formAssocs, oldForm, newForm)
@@ -514,6 +542,31 @@ class SpcCosmos(
     graph.inverseAssocs.vertexSet.asScala.toSeq.map(vertex =>
       tupleN((vertex, getInverseAssocEdge(vertex).get)))
 
+  def getRolesForForm(
+    form : SpcForm) : Iterable[SpcRole] =
+  {
+    graph.getIdealHyponyms(form).toSeq.filter(_.isRole).
+      map(_.asInstanceOf[SpcRole]).filter(
+        role => isFormCompatibleWithRole(form, role))
+  }
+
+  def isFormCompatibleWithRole(form : SpcForm, role : SpcRole) : Boolean =
+  {
+    val key = tupleN((role, form))
+    val (oldTimestamp, oldValue) =
+      pool.roleCompatibilityCache.getOrElse(
+        key,
+        tupleN((0, false)))
+    val newTimestamp = pool.taxonomyTimestamp
+    if (oldTimestamp == newTimestamp) {
+      oldValue
+    } else {
+      val newValue = graph.isFormCompatibleWithRole(form, role)
+      pool.roleCompatibilityCache.put(key, tupleN((newTimestamp, newValue)))
+      newValue
+    }
+  }
+
   private def hasQualifiers(
     existing : SpcEntity,
     form : SpcForm,
@@ -553,7 +606,7 @@ class SpcCosmos(
         case _ =>
       }
     }
-    val formId = idGenerator.getAndIncrement.toString
+    val formId = getIdGenerator.getAndIncrement.toString
     val name = {
       if (properName.isEmpty) {
         (qualifierString.map(_.lemma) ++
@@ -624,6 +677,7 @@ class SpcCosmos(
     hypernymIdeal : SpcIdeal)
   {
     if (!graph.isHyponym(hyponymIdeal, hypernymIdeal)) {
+      pool.taxonomyTimestamp += 1
       val idealTaxonomy = graph.idealTaxonomy
       val newHypernyms = graph.getIdealHypernyms(hypernymIdeal)
       val redundantEdges = idealTaxonomy.outgoingEdgesOf(hyponymIdeal).
@@ -663,7 +717,7 @@ class SpcCosmos(
     possessee : SpcEntity,
     role : SpcRole) : SpcEntityAssocEdge =
   {
-    assert(graph.isFormCompatibleWithRole(possessee.form, role))
+    assert(isFormCompatibleWithRole(possessee.form, role))
     graph.getFormAssocEdge(possessor.form, role) match {
       case Some(formAssocEdge) => {
         val edge = addEntityAssocEdge(
@@ -727,7 +781,7 @@ class SpcCosmos(
     role : SpcRole) : Boolean =
   {
     !getEntityAssocEdge(possessor, possessee, role).isEmpty &&
-      graph.isFormCompatibleWithRole(possessee.form, role)
+      isFormCompatibleWithRole(possessee.form, role)
   }
 
   def getEntityAssocEdge(
@@ -847,7 +901,7 @@ class SpcCosmos(
       asScala.toSeq.filter(
         edge => {
           graph.isHyponym(role, graph.getPossesseeRole(edge.formEdge)) &&
-            graph.isFormCompatibleWithRole(
+            isFormCompatibleWithRole(
               graph.getPossesseeEntity(edge).form, role)
         }
       ).map(

@@ -1,106 +1,103 @@
-An object is a kind of spc-object.
 A container is an spc-container.
-A person is a kind of spc-someone.
-An interpreter is a kind of person.
-A player is a kind of person.
-A thief is a kind of person.
-There is an interpreter.
-There is a player.
+A game-character is a kind of spc-someone.
+A game-interpreter is a kind of game-character.
+A player-character is a kind of game-character.
+A thief is a kind of game-character.
+There is a game-interpreter.
+There is a player-character.
 
-A place is a kind of object.
-A neighbor must be a place.
-A place may have neighbors.
-A place with a neighbor is a neighbor.
+A map-place is a kind of spc-object.
+A place-neighbor must be a map-place.
+A map-place may have place-neighbors.
+A map-place with a place-neighbor is a place-neighbor.
 
-A northern-neighbor must be a place.
-A southern-neighbor must be a place.
-An eastern-neighbor must be a place.
-A western-neighbor must be a place.
+A northern-neighbor must be a map-place.
+A southern-neighbor must be a map-place.
+An eastern-neighbor must be a map-place.
+A western-neighbor must be a map-place.
 
-A place may have a northern-neighbor.
-A place may have a southern-neighbor.
-A place may have an eastern-neighbor.
-A place may have a western-neighbor.
+A map-place may have a northern-neighbor.
+A map-place may have a southern-neighbor.
+A map-place may have an eastern-neighbor.
+A map-place may have a western-neighbor.
 
-A place with a northern-neighbor is a southern-neighbor.
-A place with an eastern-neighbor is a western-neighbor.
+A map-place with a northern-neighbor is a southern-neighbor.
+A map-place with an eastern-neighbor is a western-neighbor.
 
-If a place is west of a location, then equivalently
- the place is the location's western-neighbor.
-If a place is east of a location, then equivalently
- the place is the location's eastern-neighbor.
-If a place is north of a location, then equivalently
- the place is the location's northern-neighbor.
-If a place is south of a location, then equivalently
- the place is the location's southern-neighbor.
+If a map-place is west of a map-location, then equivalently
+ the map-place is the map-location's western-neighbor.
+If a map-place is east of a map-location, then equivalently
+ the map-place is the map-location's eastern-neighbor.
+If a map-place is north of a map-location, then equivalently
+ the map-place is the map-location's northern-neighbor.
+If a map-place is south of a map-location, then equivalently
+ the map-place is the map-location's southern-neighbor.
 
-If a place is west of a location, then the place is the location's neighbor.
-If a place is east of a location, then the place is the location's neighbor.
-If a place is north of a location, then the place is the location's neighbor.
-If a place is south of a location, then the place is the location's neighbor.
+If a map-place is west of a map-location, then the map-place is the map-location's place-neighbor.
+If a map-place is east of a map-location, then the map-place is the map-location's place-neighbor.
+If a map-place is north of a map-location, then the map-place is the map-location's place-neighbor.
+If a map-place is south of a map-location, then the map-place is the map-location's place-neighbor.
 
-If a place is west of a location, then equivalently
- the location is the place's eastern-neighbor.
-If a place is east of a location, then equivalently
- the location is the place's western-neighbor.
-If a place is north of a location, then equivalently
- the location is the place's southern-neighbor.
-If a place is south of a location, then equivalently
- the location is the place's northern-neighbor.
+If a map-place is west of a map-location, then equivalently
+ the map-location is the map-place's eastern-neighbor.
+If a map-place is east of a map-location, then equivalently
+ the map-location is the map-place's western-neighbor.
+If a map-place is north of a map-location, then equivalently
+ the map-location is the map-place's southern-neighbor.
+If a map-place is south of a map-location, then equivalently
+ the map-location is the map-place's northern-neighbor.
 
-If a person moves to a place, then the person is in the place.
-If a person goes to a place, then the person moves to the place.
-If a person enters a place, then the person moves to the place.
-If a player moves to a place, then
- the place must be the player's container's neighbor.
-If a player moves to a place, then the player asks "where am I".
+If a game-character moves to a map-place, then the game-character is in the map-place.
+If a game-character goes to a map-place, then the game-character moves to the map-place.
+If a game-character enters a map-place, then the game-character moves to the map-place.
+If a player-character moves to a map-place, then
+ the map-place must be the player-character's container's place-neighbor.
+If a player-character moves to a map-place, then the player-character asks "where am I".
 
-If a person goes east, then
- the person's container must have an eastern-neighbor.
-If a person goes west, then
- the person's container must have a western-neighbor.
-If a person goes north, then
- the person's container must have a northern-neighbor.
-If a person goes south, then
- the person's container must have a southern-neighbor.
+If a game-character goes east, then
+ the game-character's container must have an eastern-neighbor.
+If a game-character goes west, then
+ the game-character's container must have a western-neighbor.
+If a game-character goes north, then
+ the game-character's container must have a northern-neighbor.
+If a game-character goes south, then
+ the game-character's container must have a southern-neighbor.
 
-If a person goes west, then
- the person moves to the person's container's western-neighbor.
-If a person goes east, then
- the person moves to the person's container's eastern-neighbor.
-If a person goes north, then
- the person moves to the person's container's northern-neighbor.
-If a person goes south, then
- the person moves to the person's container's southern-neighbor.
+If a game-character goes west, then
+ the game-character moves to the game-character's container's western-neighbor.
+If a game-character goes east, then
+ the game-character moves to the game-character's container's eastern-neighbor.
+If a game-character goes north, then
+ the game-character moves to the game-character's container's northern-neighbor.
+If a game-character goes south, then
+ the game-character moves to the game-character's container's southern-neighbor.
 
-If a person kills a victim, then the victim is dead.
+If a game-character kills a kill-victim, then the kill-victim is dead.
 A thief must be alive or dead.
-If a person kills the thief, then
- the interpreter says "Blood splatters everywhere.".
+If a game-character kills the thief, then
+ the game-interpreter says "Blood splatters everywhere.".
 
-A door is a kind of object.
 A door must be open or closed.
-If a person traverses a door, then the door must be open.
+If a game-character traverses a door, then the door must be open.
 
-A place may have a northern-door.
-A place may have a southern-door.
-A place may have an eastern-door.
-A place may have a western-door.
+A map-place may have a northern-door.
+A map-place may have a southern-door.
+A map-place may have an eastern-door.
+A map-place may have a western-door.
 
-If a person goes north, then
- the person traverses the person's container's northern-door.
-If a person goes south, then
- the person traverses the person's container's southern-door.
-If a person goes east, then
- the person traverses the person's container's eastern-door.
-If a person goes west, then
- the person traverses the person's container's western-door.
+If a game-character goes north, then
+ the game-character traverses the game-character's container's northern-door.
+If a game-character goes south, then
+ the game-character traverses the game-character's container's southern-door.
+If a game-character goes east, then
+ the game-character traverses the game-character's container's eastern-door.
+If a game-character goes west, then
+ the game-character traverses the game-character's container's western-door.
 
-An axe is a kind of object.
-If a person throws an axe to a target, then the person drops the axe.
-If a person throws an axe to a target, then the person kills the target.
+If a game-character throws a game-weapon to a throw-target, then the game-character drops the game-weapon.
+If a game-character throws a game-weapon to a throw-target, then the game-character kills the throw-target.
 
-If a person gets an object, then the object must be in the person's container.
-If a person gets an object, then the object is in the person.
-If a person drops an object, then the object must be in the person.
-If a person drops an object, then the object is in the person's container.
+If a game-character gets a game-object, then the game-object must be in the game-character's container.
+If a game-character gets a game-object, then the game-object is in the game-character.
+If a game-character drops a game-object, then the game-object must be in the game-character.
+If a game-character drops a game-object, then the game-object is in the game-character's container.

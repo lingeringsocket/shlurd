@@ -259,7 +259,7 @@ class SpcBeliefInterpreter(
       }
     }
     val candidates =
-      Seq(possessor.form) ++ graph.getRolesForForm(possessor.form) ++ {
+      Seq(possessor.form) ++ cosmos.getRolesForForm(possessor.form) ++ {
         if (possessor.form.isTentative) {
           graph.formAssocs.incomingEdgesOf(role).asScala.
             toSeq.map(graph.getPossessorIdeal)
@@ -610,7 +610,7 @@ class SpcBeliefInterpreter(
           graph.getFormsForRole(role).foreach(form =>
             addIdealTaxonomy(sentence, possessee.form, form))
         }
-        if (!graph.isFormCompatibleWithRole(possessee.form, role)) {
+        if (!cosmos.isFormCompatibleWithRole(possessee.form, role)) {
           val originalBelief = conjunctiveBelief(
             creed.roleTaxonomyBeliefs(role).toSeq)
           throw new ContradictoryBeliefExcn(

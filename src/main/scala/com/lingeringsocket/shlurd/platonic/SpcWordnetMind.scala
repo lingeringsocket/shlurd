@@ -21,26 +21,22 @@ import com.lingeringsocket.shlurd.mind._
 import scala.collection._
 import scala.util._
 
-class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
+class SpcWordnetMind(cosmos : SpcCosmos)
     extends SpcMind(cosmos)
 {
   private def getWordnet() = new SpcWordnet(cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {
-    val mind = new SpcWordnetMind(newCosmos, wordnetActive)
+    val mind = new SpcWordnetMind(newCosmos)
     mind.initFrom(this)
     mind
   }
 
   override def analyzeSense(sentence : SilSentence) =
   {
-    if (wordnetActive) {
-      val analyzer = new SilWordnetSenseAnalyzer
-      analyzer.analyze(sentence)
-    } else {
-      super.analyzeSense(sentence)
-    }
+    val analyzer = new SilWordnetSenseAnalyzer
+    analyzer.analyze(sentence)
   }
 
   override def resolveFormCandidates(noun : SilWord) : Seq[SpcForm] =
@@ -49,30 +45,26 @@ class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
     if (!seq.isEmpty) {
       seq
     } else {
-      if (wordnetActive) {
-        val senses = ShlurdWordnet.findSenses(noun.senseId)
-        val wordnet = getWordnet
-        senses.toStream.flatMap(wordnet.getSynsetForm)
-      } else {
-        Seq.empty
-      }
+      val senses = ShlurdWordnet.findSenses(noun.senseId)
+      val wordnet = getWordnet
+      senses.toStream.flatMap(wordnet.getSynsetForm)
     }
   }
 
   override def resolveRole(
     possessorForm : SpcForm, noun : SilWord) : Option[SpcRole] =
   {
-    val wordnetOpt = if (wordnetActive) {
+    val wordnetOpt = {
       val senses = ShlurdWordnet.findSenses(noun.senseId)
       val wordnet = getWordnet
       val graph = cosmos.getGraph
       senses.toStream.flatMap(sense => {
         wordnet.getSynsetForm(sense)
       }).flatMap(possesseeForm => {
-        graph.getRolesForForm(possesseeForm).filter(
+        cosmos.getRolesForForm(possesseeForm).filter(
           possesseeRole => {
             graph.getFormAssocEdge(possessorForm, possesseeRole).nonEmpty ||
-            graph.getRolesForForm(possessorForm).exists(
+            cosmos.getRolesForForm(possessorForm).exists(
               possessorRole => {
                 graph.getFormAssocEdge(possessorRole, possesseeRole).nonEmpty
               }
@@ -80,8 +72,6 @@ class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
           }
         )
       }).headOption
-    } else {
-      None
     }
     wordnetOpt.orElse(super.resolveRole(possessorForm, noun))
   }
@@ -92,7 +82,7 @@ class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
     qualifiers : Set[String] = Set.empty) : Try[Set[SpcEntity]] =
   {
     val superResult = super.resolveQualifiedNoun(noun, context, qualifiers)
-    if (superResult.isSuccess || !wordnetActive) {
+    if (superResult.isSuccess) {
       superResult
     } else {
       resolveForm(noun) match {
@@ -106,20 +96,12 @@ class SpcWordnetMind(cosmos : SpcCosmos, wordnetActive : Boolean)
 
   override protected def getFormName(form : SpcForm) : String =
   {
-    if (wordnetActive) {
-      getWordnet.getNoun(form)
-    } else {
-      super.getFormName(form)
-    }
+    getWordnet.getNoun(form)
   }
 
   override protected def getPossesseeName(role : SpcRole) : String =
   {
-    if (wordnetActive) {
-      getWordnet.getPossesseeNoun(role)
-    } else {
-      super.getPossesseeName(role)
-    }
+    getWordnet.getPossesseeNoun(role)
   }
 
   override protected def guessGender(entity : SpcEntity) : SilGender =

@@ -23,8 +23,6 @@ import scala.collection.JavaConverters._
 import scala.util._
 import scala.io._
 
-import java.util.concurrent.atomic._
-
 import spire.math._
 
 class GroupMap extends mutable.LinkedHashMap[String, mutable.Set[String]]
@@ -46,11 +44,11 @@ object SpcOpenhabCosmos
 
 abstract class SpcOpenhabCosmos(
   graph : SpcGraph = SpcGraph(),
-  val idGenerator : AtomicLong = new AtomicLong,
   val groupMap : GroupMap = new GroupMap,
   val roomyRooms : mutable.Set[String] = new mutable.LinkedHashSet[String],
-  forkLevel : Int = 0
-) extends SpcCosmos(graph, idGenerator, forkLevel)
+  forkLevel : Int = 0,
+  pool : SpcCosmicPool = new SpcCosmicPool
+) extends SpcCosmos(graph, forkLevel, pool)
 {
   import SpcOpenhabCosmos._
 
@@ -366,8 +364,8 @@ abstract class SpcOpenhabCosmos(
 class SpcOpenhabDerivedCosmos(
   base : SpcOpenhabCosmos, graph : SpcGraph, forkLevel : Int)
     extends SpcOpenhabCosmos(
-  graph, base.idGenerator, base.groupMap, base.roomyRooms,
-      forkLevel
+  graph, base.groupMap, base.roomyRooms,
+      forkLevel, base.getPool
   )
 {
   override def evaluateEntityProperty(

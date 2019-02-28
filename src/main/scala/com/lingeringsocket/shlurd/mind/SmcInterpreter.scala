@@ -495,7 +495,7 @@ class SmcInterpreter[
           predicateTruth match {
             case Success(Trilean.Unknown) => {
               debug("TRUTH UNKNOWN")
-              wrapResponseText("Oh, really?  Thanks for letting me know.")
+              wrapResponseText(sentencePrinter.sb.respondCompliance)
             }
             case Success(truth) => {
               debug(s"KNOWN TRUTH : $truth")

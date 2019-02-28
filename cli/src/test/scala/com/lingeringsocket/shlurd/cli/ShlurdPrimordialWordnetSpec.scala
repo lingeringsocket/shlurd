@@ -25,7 +25,7 @@ class ShlurdPrimordialWordnetSpec extends Specification
   abstract class InterpreterContext extends Scope
   {
     protected val cosmos = ShlurdPrimordialWordnet.loadCosmos
-    protected val mind = new SpcWordnetMind(cosmos, true)
+    protected val mind = new SpcWordnetMind(cosmos)
     protected val interpreter =
       new SpcInterpreter(
         mind, ACCEPT_NEW_BELIEFS, SmcResponseParams())

@@ -22,7 +22,7 @@ No, it is not open.
 
 go west
 
-But the player's container's western-door is not open.
+But the player-character's container's western-door is not open.
 
 open the door
 
@@ -30,29 +30,29 @@ OK.
 
 go east
 
-But the player's container does not have an eastern-neighbor.
+But the player-character's container does not have an eastern-neighbor.
 
 what is in the bathroom
 
-The axe, the player, and the thief are in the bathroom.
+The ax, the thief, and the player-character are in the bathroom.
 
 what is in my container
 
-The axe, the player, and the thief are in your container.
+The ax, the thief, and the player-character are in your container.
 
-get the axe
+get the ax
 
 OK.
 
-what is in the player
+what is in the player-character
 
-The axe is in the player.
+The ax is in the player-character.
 
 is the thief alive?
 
 Yes, he is alive.
 
-throw the axe to the thief
+throw the ax to the thief
 
 OK.
 
@@ -64,7 +64,7 @@ No, he is not alive.
 
 go to the kitchen
 
-But the kitchen is not the player's container's neighbor.
+But the kitchen is not the player-character's container's place-neighbor.
 
 go west
 
@@ -72,13 +72,13 @@ OK.
 
 You are in the bedroom.
 
-where is the axe
+where is the ax
 
 It is in the bathroom.
 
 what is in the bathroom
 
-The axe and the thief are in the bathroom.
+The ax and the thief are in the bathroom.
 
 go west
 

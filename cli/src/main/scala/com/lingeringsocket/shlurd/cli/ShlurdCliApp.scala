@@ -82,7 +82,7 @@ object ShlurdCliShell
     val cosmos = ShlurdPrimordialWordnet.loadCosmos
     val beliefs = SprParser.getResourceFile("/ontologies/console.txt")
     val source = Source.fromFile(beliefs)
-    val bootMind = new SpcWordnetMind(cosmos, true)
+    val bootMind = new SpcWordnetMind(cosmos)
     bootMind.loadBeliefs(source)
 
     val entityInterviewer = cosmos.uniqueEntity(
@@ -93,7 +93,7 @@ object ShlurdCliShell
         SmcLemmas.LEMMA_SOMEONE, REF_SUBJECT, Set("shlurd"))).get
 
     terminal.emitControl("Hello, human!")
-    new ShlurdCliMind(cosmos, entityInterviewer, entityShlurd, true)
+    new ShlurdCliMind(cosmos, entityInterviewer, entityShlurd)
   }
 }
 

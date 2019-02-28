@@ -312,14 +312,6 @@ class SpcGraph(
       vertex => subgraph.inDegreeOf(vertex) == 0).map(_.asInstanceOf[SpcForm])
   }
 
-  def getRolesForForm(
-    form : SpcForm) : Iterable[SpcRole] =
-  {
-    getIdealHyponyms(form).toSeq.filter(_.isRole).
-      map(_.asInstanceOf[SpcRole]).filter(
-        role => isFormCompatibleWithRole(form, role))
-  }
-
   def isFormCompatibleWithRole(form : SpcForm, role : SpcRole) : Boolean =
   {
     getIdealHypernyms(role).filter(_.isForm).forall(hypernym =>

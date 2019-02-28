@@ -61,9 +61,9 @@ class ShlurdFictionTerminal
 
 object ShlurdFictionShell
 {
-  val PLAYER_WORD = "player"
+  val PLAYER_WORD = "player-character"
 
-  val INTERPRETER_WORD = "interpreter"
+  val INTERPRETER_WORD = "game-interpreter"
 
   val OK = "OK."
 
@@ -84,11 +84,11 @@ object ShlurdFictionShell
 
   def newMind() : ShlurdCliMind =
   {
-    val cosmos = new SpcCosmos
-    SpcPrimordial.initCosmos(cosmos)
+    val cosmos = ShlurdPrimordialWordnet.loadCosmos
     val beliefs = SprParser.getResourceFile("/ontologies/fiction-beliefs.txt")
     val source = Source.fromFile(beliefs)
-    new SpcMind(cosmos).loadBeliefs(source)
+    val bootMind = new SpcWordnetMind(cosmos)
+    bootMind.loadBeliefs(source)
 
     val entityPlayer = cosmos.uniqueEntity(
       cosmos.resolveQualifiedNoun(
@@ -97,7 +97,7 @@ object ShlurdFictionShell
       cosmos.resolveQualifiedNoun(
         INTERPRETER_WORD, REF_SUBJECT, Set())).get
 
-    new ShlurdCliMind(cosmos, entityPlayer, entityInterpreter, false)
+    new ShlurdCliMind(cosmos, entityPlayer, entityInterpreter)
   }
 }
 
@@ -200,7 +200,7 @@ class ShlurdFictionShell(
     val sentences = mind.newParser(
       source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
     sentences.foreach(sentence => {
-      val output = interpreter.interpret(sentence)
+      val output = interpreter.interpret(mind.analyzeSense(sentence))
       assert(output == OK, output)
     })
     terminal.emitControl("Initialization complete.")
@@ -214,7 +214,7 @@ class ShlurdFictionShell(
         case DeferredTrigger(quotation) => {
           val sentences = mind.newParser(quotation).parseAll
           sentences.foreach(sentence => {
-            val output = interpreter.interpret(sentence)
+            val output = interpreter.interpret(mind.analyzeSense(sentence))
             terminal.emitNarrative("")
             terminal.emitNarrative(output)
             if (first) {
