@@ -669,11 +669,11 @@ class SpcCosmosSpec extends Specification
       cosmos.resolveIdealSynonym(LEMMA_WHO) must
         be equalTo SmcLemmas.LEMMA_SOMEONE
       val graph = cosmos.getGraph
-      graph.getFormHypernyms(entity).toSeq must be equalTo(
+      cosmos.getFormHypernyms(entity) must be equalTo(
         Seq(entity))
-      graph.getFormHypernyms(obj).toSeq must be equalTo(
+      cosmos.getFormHypernyms(obj) must be equalTo(
         Seq(obj, entity))
-      graph.getFormHypernyms(someone).toSeq must be equalTo(
+      cosmos.getFormHypernyms(someone) must be equalTo(
         Seq(someone, obj, entity))
       graph.isHyponym(someone, entity) must beTrue
       graph.isHyponym(entity, someone) must beFalse
@@ -691,11 +691,11 @@ class SpcCosmosSpec extends Specification
       val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
       val firefighter = expectNamedForm("firefighter")
       val graph = cosmos.getGraph
-      graph.getFormHypernyms(entity).toSeq must be equalTo(
+      cosmos.getFormHypernyms(entity) must be equalTo(
         Seq(entity))
-      graph.getFormHypernyms(someone).toSeq must be equalTo(
+      cosmos.getFormHypernyms(someone) must be equalTo(
         Seq(someone, obj, entity))
-      graph.getFormHypernyms(firefighter).toSeq must be equalTo(
+      cosmos.getFormHypernyms(firefighter) must be equalTo(
         Seq(firefighter, someone, obj, entity))
       graph.isHyponym(firefighter, someone) must beTrue
       graph.isHyponym(firefighter, obj) must beTrue

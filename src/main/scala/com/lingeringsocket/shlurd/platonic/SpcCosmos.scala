@@ -141,11 +141,44 @@ class SpcCosmicPool
 
   @transient var taxonomyTimestamp = 1
 
+  @transient var entityTimestamp = 1
+
+  @transient val hypernymCache =
+    new mutable.HashMap[SpcIdeal, (Int, Seq[SpcForm])]
+
+  @transient val hyponymCache =
+    new mutable.HashMap[SpcIdeal, (Int, Seq[SpcForm])]
+
   @transient val roleFormCache =
     new mutable.HashMap[SpcRole, (Int, Seq[SpcForm])]
 
   @transient val roleCompatibilityCache =
     new mutable.HashMap[(SpcRole, SpcForm), (Int, Boolean)]
+
+  @transient val nounCache =
+    new mutable.HashMap[(String, Set[String]), (Int, Try[Set[SpcEntity]])]
+
+  def accessCache[K, V](
+    cache : mutable.Map[K, (Int, V)],
+    key : K,
+    newTimestamp : Int,
+    op : => V) =
+  {
+    val oldValueOpt = cache.get(key).flatMap {
+      case (oldTimestamp, value) => {
+        if (oldTimestamp == newTimestamp) {
+          Some(value)
+        } else {
+          None
+        }
+      }
+    }
+    oldValueOpt.getOrElse {
+      val newValue = op
+      cache.put(key, tupleN((newTimestamp, newValue)))
+      newValue
+    }
+  }
 }
 
 class SpcCosmos(
@@ -292,10 +325,31 @@ class SpcCosmos(
     }
   }
 
+  def getFormHypernyms(
+    form : SpcForm) : Seq[SpcForm] =
+  {
+    pool.accessCache(
+      pool.hypernymCache,
+      form,
+      pool.taxonomyTimestamp,
+      graph.getFormHypernyms(form).toSeq
+    )
+  }
+
+  def getFormHyponyms(form : SpcForm) : Seq[SpcForm] =
+  {
+    pool.accessCache(
+      pool.hyponymCache,
+      form,
+      pool.taxonomyTimestamp,
+      graph.getFormHyponyms(form).toSeq
+    )
+  }
+
   def getFormHyponymRealizations(form : SpcForm) : Seq[SpcEntity] =
   {
     if (meta.isFresh) {
-      graph.getFormHyponyms(form).toSeq.flatMap(getFormRealizations)
+      getFormHyponyms(form).flatMap(getFormRealizations)
     } else {
       getEntities.filter(entity => graph.isHyponym(entity.form, form))
     }
@@ -304,7 +358,7 @@ class SpcCosmos(
   def getFormHypernymRealizations(form : SpcForm) : Seq[SpcEntity] =
   {
     if (meta.isFresh) {
-      graph.getFormHypernyms(form).toSeq.flatMap(getFormRealizations)
+      getFormHypernyms(form).flatMap(getFormRealizations)
     } else {
       getEntities.filter(entity => graph.isHyponym(form, entity.form))
     }
@@ -313,22 +367,15 @@ class SpcCosmos(
   def getRoleRealizations(role : SpcRole) : Seq[SpcEntity] =
   {
     if (meta.isFresh) {
-      val newTimestamp = pool.taxonomyTimestamp
-      val (oldTimestamp, oldForms) = pool.roleFormCache.getOrElse(
+      val forms = pool.accessCache(
+        pool.roleFormCache,
         role,
-        tupleN((0, Seq.empty)))
-      val forms = {
-        if (oldTimestamp == newTimestamp) {
-          oldForms
-        } else {
-          val newForms = graph.getIdealHypernyms(role).toSeq.filter(_.isForm).
-            map(_.asInstanceOf[SpcForm]).
-            flatMap(graph.getFormHyponyms).distinct.filter(form =>
-              isFormCompatibleWithRole(form, role))
-          pool.roleFormCache.put(role, tupleN((newTimestamp, newForms)))
-          newForms
-        }
-      }
+        pool.taxonomyTimestamp,
+        graph.getIdealHypernyms(role).toSeq.filter(_.isForm).
+          map(_.asInstanceOf[SpcForm]).
+          flatMap(getFormHyponyms).distinct.filter(form =>
+            isFormCompatibleWithRole(form, role))
+      )
       forms.flatMap(getFormRealizations)
     } else {
       getEntities.filter(
@@ -404,6 +451,7 @@ class SpcCosmos(
 
   private[platonic] def forgetEntity(entity : SpcEntity)
   {
+    pool.entityTimestamp += 1
     meta.entityExistence(entity, false)
     assert(graph.entityAssocs.degreeOf(entity) == 0)
     if (getEntityBySynonym(entity.name) == Some(entity)) {
@@ -552,19 +600,12 @@ class SpcCosmos(
 
   def isFormCompatibleWithRole(form : SpcForm, role : SpcRole) : Boolean =
   {
-    val key = tupleN((role, form))
-    val (oldTimestamp, oldValue) =
-      pool.roleCompatibilityCache.getOrElse(
-        key,
-        tupleN((0, false)))
-    val newTimestamp = pool.taxonomyTimestamp
-    if (oldTimestamp == newTimestamp) {
-      oldValue
-    } else {
-      val newValue = graph.isFormCompatibleWithRole(form, role)
-      pool.roleCompatibilityCache.put(key, tupleN((newTimestamp, newValue)))
-      newValue
-    }
+    pool.accessCache(
+      pool.roleCompatibilityCache,
+      tupleN((role, form)),
+      pool.taxonomyTimestamp,
+      graph.isFormCompatibleWithRole(form, role)
+    )
   }
 
   private def hasQualifiers(
@@ -622,6 +663,7 @@ class SpcCosmos(
 
   protected[platonic] def createOrReplaceEntity(entity : SpcEntity)
   {
+    pool.entityTimestamp += 1
     graph.entityAssocs.addVertex(entity)
     graph.entitySynonyms.addVertex(entity)
     graph.components.addVertex(entity)
@@ -927,6 +969,15 @@ class SpcCosmos(
     context : SilReferenceContext,
     qualifiers : Set[String]) =
   {
+    pool.accessCache(
+      pool.nounCache,
+      tupleN((lemma, qualifiers)),
+      pool.entityTimestamp + pool.taxonomyTimestamp,
+      lookupNoun(lemma, qualifiers))
+  }
+
+  private def lookupNoun(lemma : String, qualifiers : Set[String]) =
+  {
     val (formOpt, roleOpt) = resolveIdeal(lemma)
     roleOpt match {
       case Some(role) => {
@@ -987,7 +1038,7 @@ class SpcCosmos(
     form : SpcForm,
     lemma : String) : Option[(SpcProperty, String)] =
   {
-    graph.getFormHypernyms(form).foreach(hyperForm => {
+    getFormHypernyms(form).foreach(hyperForm => {
       resolveFormProperty(hyperForm, lemma) match {
         case Some((property, stateName)) => {
           return Some(
@@ -1034,7 +1085,7 @@ class SpcCosmos(
   def findProperty(
     form : SpcForm, name : String) : Option[SpcProperty] =
   {
-    graph.getFormHypernyms(form).foreach(hyperForm => {
+    getFormHypernyms(form).foreach(hyperForm => {
       getFormPropertyMap(hyperForm).get(name) match {
         case Some(matchingProperty) => {
           return Some(matchingProperty)
@@ -1051,7 +1102,7 @@ class SpcCosmos(
     if (!findProperty(form, name).isEmpty) {
       return true
     }
-    val hypernymSet = graph.getFormHypernyms(form).toSet
+    val hypernymSet = getFormHypernyms(form).toSet
     val outgoingPropertyEdges = hypernymSet.flatMap { hypernym =>
       getFormAssocGraph.outgoingEdgesOf(hypernym).asScala.
         filter(_.isProperty).toSet
@@ -1197,7 +1248,7 @@ class SpcCosmos(
       form : SpcForm, propertyName : String, lemma : String)
         : Option[(SpcProperty, String)]=
     {
-      graph.getFormHypernyms(form).foreach(hyperForm => {
+      getFormHypernyms(form).foreach(hyperForm => {
         getFormPropertyMap(hyperForm).get(propertyName) match {
           case Some(property) => {
             return Some((property, ""))
@@ -1274,7 +1325,7 @@ class SpcCosmos(
       case Success(Trilean.Unknown) =>
       case preResult => return preResult
     }
-    val hypernymSet = graph.getFormHypernyms(entity.form).toSet
+    val hypernymSet = getFormHypernyms(entity.form).toSet
     val outgoingPropertyEdges = hypernymSet.flatMap { form =>
       getFormAssocGraph.outgoingEdgesOf(form).asScala.
         filter(_.isProperty).toSet
@@ -1373,7 +1424,7 @@ class SpcCosmos(
   private[platonic] def normalizeHyperFormState(
     form : SpcForm, originalState : SilState) =
   {
-    graph.getFormHypernyms(form).foldLeft(originalState) {
+    getFormHypernyms(form).foldLeft(originalState) {
       case (state, form) => {
         normalizeFormState(form, state)
       }
