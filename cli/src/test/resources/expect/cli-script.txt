@@ -1,115 +1,115 @@
-who am I
+> who am I
 
 The interviewer.
 
-who are you
+> who are you
 
 SHLURD.
 
-What dogs exist
+> what dogs exist
 
 No dogs.
 
-Fido is a dog
+> Fido is a dog
 
 OK.
 
-what dogs exist
+> what dogs exist
 
 Fido.
 
-what animals exist
+> what animals exist
 
 Fido.
 
-is Fido a dog
+> is Fido a dog
 
 Yes, it is.
 
-is Fido a sausage
+> is Fido a sausage
 
 No, it is not.
 
-what is Fido
+> what is Fido
 
 A dog.
 
-Bootsie is Fido's paw
+> Bootsie is Fido's paw
 
 OK.
 
-is Bootsie a foot
+> is Bootsie a foot
 
 Yes, it is.
 
-is Fido's paw a foot
+> is Fido's paw a foot
 
 Yes, its paw is.
 
-is Fido's paw a sausage
+> is Fido's paw a sausage
 
 I don't know.
 
-Snape is a schoolteacher.
+> Snape is a schoolteacher
 
 OK.
 
-Hogwarts is a school.
+> Hogwarts is a school
 
 OK.
 
-Durmstrang is a school.
+> Durmstrang is a school
 
 OK.
 
-Snape is Hogwarts' schoolteacher.
+> Snape is Hogwarts' schoolteacher
 
 OK.
 
-Dumbledore is Hogwarts' schoolteacher.
+> Dumbledore is Hogwarts' schoolteacher
 
 OK.
 
-what is Snape's school
+> what is Snape's school
 
 Hogwarts.
 
-who are Hogwarts' schoolteachers
+> who are Hogwarts' schoolteachers
 
 Snape and Dumbledore.
 
-Snape is Durmstrang's schoolteacher.
+> Snape is Durmstrang's schoolteacher
 
 OK.
 
-what is Snape's school
+> what is Snape's school
 
 Durmstrang.
 
-who is Snape
+> who is Snape
 
 Durmstrang's schoolteacher.
 
-who are Hogwarts' schoolteachers
+> who are Hogwarts' schoolteachers
 
 Dumbledore.
 
-Angua is a woman
+> Angua is a woman
 
 OK.
 
-Discworld is an object
+> Discworld is an object
 
 OK.
 
-Angua is in Discworld
+> Angua is in Discworld
 
 OK.
 
-is Angua in Discworld
+> is Angua in Discworld
 
 Yes, she is.
 
-what is Discworld
+> what is Discworld
 
 Angua's container.

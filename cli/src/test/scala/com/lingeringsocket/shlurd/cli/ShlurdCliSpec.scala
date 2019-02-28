@@ -100,7 +100,7 @@ class ShlurdCliSpec extends Specification
 
         override def readCommand() : Option[String] =
         {
-          nextScriptLine
+          nextScriptLine.map(_.stripPrefix("> "))
         }
       }
       val mind = ShlurdCliShell.newMind(terminal)

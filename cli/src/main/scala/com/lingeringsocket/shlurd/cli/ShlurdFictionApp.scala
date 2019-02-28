@@ -25,6 +25,41 @@ import scala.collection._
 
 import java.io._
 
+object ShlurdFictionAliases
+{
+  val map = Map(
+    "d" -> "go down",
+    "down" -> "go down",
+    "e" -> "go east",
+    "east" -> "go east",
+    "g" -> "again",
+    "i" -> "inventory",
+    "l" -> "look",
+    // FIXME this can instead be "no" in context
+    "n" -> "go north",
+    "north" -> "go north",
+    "ne" -> "go northeast",
+    "northeast" -> "go northeast",
+    "nw" -> "go northwest",
+    "northwest" -> "go northwest",
+    "o" -> "oops",
+    "q" -> "quit",
+    "s" -> "go south",
+    "south" -> "go south",
+    "se" -> "go southeast",
+    "southeast" -> "go southeast",
+    "sw" -> "go southwest",
+    "southwest" -> "go southwest",
+    "u" -> "go up",
+    "up" -> "go up",
+    "w" -> "go west",
+    "west" -> "go west",
+    "x" -> "examine",
+    "y" -> "yes",
+    "z" -> "wait"
+  )
+}
+
 object ShlurdFictionApp extends App
 {
   val file = new File("run/shlurd-fiction.zip")
@@ -211,8 +246,8 @@ class ShlurdFictionShell(
     var first = true
     while (deferredQueue.nonEmpty) {
       deferredQueue.dequeue match {
-        case DeferredTrigger(quotation) => {
-          val sentences = mind.newParser(quotation).parseAll
+        case DeferredTrigger(input) => {
+          val sentences = mind.newParser(preprocess(input)).parseAll
           sentences.foreach(sentence => {
             val output = interpreter.interpret(mind.analyzeSense(sentence))
             terminal.emitNarrative("")
@@ -225,9 +260,26 @@ class ShlurdFictionShell(
             }
           })
         }
-        case DeferredReport(quotation) => {
+        case DeferredReport(report) => {
           terminal.emitNarrative("")
-          terminal.emitNarrative(quotation)
+          terminal.emitNarrative(report)
+        }
+      }
+    }
+  }
+
+  private def preprocess(input : String) =
+  {
+    ShlurdFictionAliases.map.get(input.trim.toLowerCase) match {
+      case Some(replacement) => {
+        replacement
+      }
+      case _ => {
+        // special case for examine, which can take an object
+        if (input.startsWith("x ")) {
+          "examine "  + input.stripPrefix("x ")
+        } else {
+          input
         }
       }
     }

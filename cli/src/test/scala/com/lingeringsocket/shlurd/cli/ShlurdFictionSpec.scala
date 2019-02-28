@@ -66,8 +66,7 @@ class ShlurdFictionSpec extends Specification
 
         override def readCommand() : Option[String] =
         {
-          val command = nextScriptLine
-          command
+          nextScriptLine.map(_.stripPrefix("> "))
         }
       }
       val shell = new ShlurdFictionShell(mind, terminal)

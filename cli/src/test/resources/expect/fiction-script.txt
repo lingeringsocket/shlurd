@@ -1,86 +1,86 @@
-where am I
+> where am I
 
 You are in the bedroom.
 
-is the door open
+> is the door open
 
 Yes, it is open.
 
-go east
+> go east
 
 OK.
 
 You are in the bathroom.
 
-close the door
+> close the door
 
 OK.
 
-is the door open
+> is the door open
 
 No, it is not open.
 
-go west
+> go west
 
 But the player-character's container's western-door is not open.
 
-open the door
+> open the door
 
 OK.
 
-go east
+> e
 
 But the player-character's container does not have an eastern-neighbor.
 
-what is in the bathroom
+> what is in the bathroom
 
 The ax, the thief, and the player-character are in the bathroom.
 
-what is in my container
+> what is in my container
 
 The ax, the thief, and the player-character are in your container.
 
-get the ax
+> get the ax
 
 OK.
 
-what is in the player-character
+> what is in the player-character
 
 The ax is in the player-character.
 
-is the thief alive?
+> is the thief alive
 
 Yes, he is alive.
 
-throw the ax to the thief
+> throw the ax to the thief
 
 OK.
 
 Blood splatters everywhere.
 
-is the thief alive
+> is the thief alive
 
 No, he is not alive.
 
-go to the kitchen
+> go to the kitchen
 
 But the kitchen is not the player-character's container's place-neighbor.
 
-go west
+> go west
 
 OK.
 
 You are in the bedroom.
 
-where is the ax
+> where is the ax
 
 It is in the bathroom.
 
-what is in the bathroom
+> what is in the bathroom
 
 The ax and the thief are in the bathroom.
 
-go west
+> west
 
 OK.
 
