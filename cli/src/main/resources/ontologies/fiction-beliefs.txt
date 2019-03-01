@@ -1,15 +1,16 @@
 A container is an spc-container.
-A game-character is a kind of spc-someone.
-A game-interpreter is a kind of game-character.
+A game-character is a kind of person.
+A game-interpreter is a kind of person.
 A player-character is a kind of game-character.
-A thief is a kind of game-character.
+A non-player-character is a kind of game-character.
+A thief is a kind of non-player-character.
 There is a game-interpreter.
 There is a player-character.
 
-A map-place is a kind of spc-object.
-A place-neighbor must be a map-place.
-A map-place may have place-neighbors.
-A map-place with a place-neighbor is a place-neighbor.
+A map-place is a kind of location.
+A map-neighbor must be a map-place.
+A map-place may have map-neighbors.
+A map-place with a map-neighbor is a map-neighbor.
 
 A northern-neighbor must be a map-place.
 A southern-neighbor must be a map-place.
@@ -33,10 +34,10 @@ If a map-place is north of a map-location, then equivalently
 If a map-place is south of a map-location, then equivalently
  the map-place is the map-location's southern-neighbor.
 
-If a map-place is west of a map-location, then the map-place is the map-location's place-neighbor.
-If a map-place is east of a map-location, then the map-place is the map-location's place-neighbor.
-If a map-place is north of a map-location, then the map-place is the map-location's place-neighbor.
-If a map-place is south of a map-location, then the map-place is the map-location's place-neighbor.
+If a map-place is west of a map-location, then the map-place is the map-location's map-neighbor.
+If a map-place is east of a map-location, then the map-place is the map-location's map-neighbor.
+If a map-place is north of a map-location, then the map-place is the map-location's map-neighbor.
+If a map-place is south of a map-location, then the map-place is the map-location's map-neighbor.
 
 If a map-place is west of a map-location, then equivalently
  the map-location is the map-place's eastern-neighbor.
@@ -51,7 +52,7 @@ If a game-character moves to a map-place, then the game-character is in the map-
 If a game-character goes to a map-place, then the game-character moves to the map-place.
 If a game-character enters a map-place, then the game-character moves to the map-place.
 If a player-character moves to a map-place, then
- the map-place must be the player-character's container's place-neighbor.
+ the map-place must be the player-character's container's map-neighbor.
 If a player-character moves to a map-place, then the player-character asks "where am I".
 
 If a game-character goes east, then

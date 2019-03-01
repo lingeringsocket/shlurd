@@ -64,7 +64,7 @@ No, he is not alive.
 
 > go to the kitchen
 
-But the kitchen is not the player-character's container's place-neighbor.
+But the kitchen is not the player-character's container's map-neighbor.
 
 > go west
 
