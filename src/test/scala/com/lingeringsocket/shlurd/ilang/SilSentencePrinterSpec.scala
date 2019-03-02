@@ -106,6 +106,8 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("what is the cave south of",
         "south of what is the cave?")
       expectStatement("Franny says \"I love you\"")
+      expectStatement(
+        "John eats apples; Mary eats pears")
     }
 
     "preserve sentences" in
@@ -122,8 +124,6 @@ class SilSentencePrinterSpec extends Specification
 
     "normalize sentences" in
     {
-      expectStatement(
-        "John eats apples; Mary eats pears")
       expectNormalized(
         "Mary put down the milk",
         "Mary put the milk down.")
