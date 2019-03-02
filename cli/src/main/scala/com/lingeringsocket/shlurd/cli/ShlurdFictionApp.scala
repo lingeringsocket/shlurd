@@ -149,6 +149,8 @@ class ShlurdFictionShell(
 
   case class DeferredReport(quotation : String) extends Deferred
 
+  case class DeferredComplaint(quotation : String) extends Deferred
+
   private val params = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
 
   private val deferredQueue = new mutable.Queue[Deferred]
@@ -157,7 +159,7 @@ class ShlurdFictionShell(
   {
     override def executeAction(ap : SilActionPredicate) : Option[String] =
     {
-      // FIXME make sure that verb is ask/say/etc
+      val lemma = ap.action.lemma
       ap.directObject match {
         case Some(SilQuotationReference(quotation)) => {
           ap.subject match {
@@ -167,12 +169,25 @@ class ShlurdFictionShell(
               val ok = Some(OK)
               inflected match {
                 case PLAYER_WORD => {
-                  defer(DeferredTrigger(quotation))
-                  ok
+                  if (lemma == "ask") {
+                    defer(DeferredTrigger(quotation))
+                    ok
+                  } else {
+                    None
+                  }
                 }
                 case INTERPRETER_WORD => {
-                  defer(DeferredReport(quotation))
-                  ok
+                  lemma match {
+                    case "say" => {
+                      defer(DeferredReport(quotation))
+                      ok
+                    }
+                    case "complain" => {
+                      defer(DeferredComplaint(quotation))
+                      ok
+                    }
+                    case _ => None
+                  }
                 }
                 case _ => None
               }
@@ -249,20 +264,36 @@ class ShlurdFictionShell(
         case DeferredTrigger(input) => {
           val sentences = mind.newParser(preprocess(input)).parseAll
           sentences.foreach(sentence => {
-            val output = interpreter.interpret(mind.analyzeSense(sentence))
+            var output = interpreter.interpret(mind.analyzeSense(sentence))
             terminal.emitNarrative("")
-            terminal.emitNarrative(output)
             if (first) {
               first = false
               if (output != OK) {
+                val complaints = deferredQueue.flatMap(_ match {
+                  case c : DeferredComplaint => Some(c)
+                  case _ => None
+                })
                 deferredQueue.clear
+                complaints.foreach(complaint => {
+                  output = ""
+                  terminal.emitNarrative(complaint.quotation)
+                })
               }
+            }
+            if (output.nonEmpty) {
+              terminal.emitNarrative(output)
             }
           })
         }
         case DeferredReport(report) => {
           terminal.emitNarrative("")
           terminal.emitNarrative(report)
+        }
+        case DeferredComplaint(complaint) => {
+          terminal.emitNarrative("")
+          terminal.emitNarrative("OOPS")
+          terminal.emitNarrative("")
+          terminal.emitNarrative(complaint)
         }
       }
     }

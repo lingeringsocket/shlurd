@@ -79,7 +79,7 @@ object SpcGraph
       new SimpleDirectedGraph[SpcContainmentVertex, SpcComponentEdge](
         classOf[SpcComponentEdge]))
     val triggers =
-      new SimpleDirectedGraph[SilConditionalSentence, SpcEdge](
+      new SimpleDirectedGraph[SpcTrigger, SpcEdge](
         classOf[SpcEdge])
     val (formPropertyIndex, entityPropertyIndex,
       propertyStateIndex, stateNormalizationIndex) = createIndexes(components)
@@ -176,7 +176,7 @@ class SpcGraph(
   val entitySynonyms : Graph[SpcEntityVertex, SpcSynonymEdge],
   val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge],
   val components : Graph[SpcContainmentVertex, SpcComponentEdge],
-  val triggers : Graph[SilConditionalSentence, SpcEdge],
+  val triggers : Graph[SpcTrigger, SpcEdge],
   val formPropertyIndex : SpcComponentIndex[String, SpcProperty],
   val entityPropertyIndex :
       SpcComponentIndex[String, SpcEntityPropertyState],

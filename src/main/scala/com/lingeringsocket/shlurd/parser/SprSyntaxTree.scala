@@ -69,6 +69,7 @@ object SprPennTreebankLabels
   val LABEL_NNQ = "NNQ"
 
   val LABEL_COMMA = ","
+  val LABEL_SEMICOLON = ";"
   val LABEL_DOT = "."
   val LABEL_QUESTION_MARK = "?"
   val LABEL_EXCLAMATION_MARK = "!"
@@ -214,7 +215,9 @@ trait SprAbstractSyntaxTree
 
   def isComma = hasLabel(LABEL_COMMA)
 
-  def isPause = isComma || hasLabel(LABEL_DOT)
+  def isSemicolon = hasLabel(LABEL_SEMICOLON)
+
+  def isPause = isComma || isSemicolon || hasLabel(LABEL_DOT)
 
   override def toString = SprPrettyPrinter.prettyPrint(this)
 
@@ -686,6 +689,12 @@ case class SptCOMMA(child : SprSyntaxLeaf)
     extends SprSyntaxPunctuation
 {
   override def label = LABEL_COMMA
+}
+
+case class SptSEMICOLON(child : SprSyntaxLeaf)
+    extends SprSyntaxPunctuation
+{
+  override def label = LABEL_SEMICOLON
 }
 
 // this is a non-standard one we cons up to wrap tmod NP's as adverbial

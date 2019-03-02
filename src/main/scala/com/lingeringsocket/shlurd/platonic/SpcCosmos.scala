@@ -117,6 +117,25 @@ trait SpcEntityVertex extends SmcNamedObject
 {
 }
 
+case class SpcTrigger(
+  conditionalSentence : SilConditionalSentence,
+  alternative : Option[SilPredicateSentence]
+)
+{
+  def toSentence() : SilSentence =
+  {
+    alternative match {
+      case Some(alternativeSentence) => {
+        SilConjunctiveSentence(
+          DETERMINER_UNSPECIFIED,
+          Seq(conditionalSentence, alternativeSentence),
+          SEPARATOR_SEMICOLON)
+      }
+      case _ => conditionalSentence
+    }
+  }
+}
+
 case class SpcEntity(
   val name : String,
   val form : SpcForm,
@@ -1463,9 +1482,10 @@ class SpcCosmos(
     }
   }
 
-  def addTrigger(sentence : SilConditionalSentence)
+  def addTrigger(
+    trigger : SpcTrigger)
   {
-    graph.triggers.addVertex(sentence)
+    graph.triggers.addVertex(trigger)
   }
 
   override def applyModifications()

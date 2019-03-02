@@ -22,7 +22,7 @@ No, it is not open.
 
 > go west
 
-But the player-character's container's western-door is not open.
+But the door is not open.
 
 > open the door
 
@@ -30,7 +30,7 @@ OK.
 
 > e
 
-But the player-character's container does not have an eastern-neighbor.
+There is no way to the east.
 
 > what is in the bathroom
 
@@ -64,7 +64,7 @@ No, he is not alive.
 
 > go to the kitchen
 
-But the kitchen is not the player-character's container's map-neighbor.
+You can't get there from here.
 
 > go west
 

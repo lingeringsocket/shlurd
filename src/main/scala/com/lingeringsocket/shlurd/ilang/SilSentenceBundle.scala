@@ -45,8 +45,10 @@ abstract class SilSentenceBundle
 
   protected def separate(item : String, conjoining : SilConjoining) =
   {
-    if (conjoining.separator.needComma(conjoining.pos, conjoining.total)) {
-      concat(item, ",")
+    if (conjoining.separator.needPunctuationAt(
+      conjoining.pos, conjoining.total)
+    ) {
+      concat(item, conjoining.separator.punctuationMark)
     } else {
       item
     }

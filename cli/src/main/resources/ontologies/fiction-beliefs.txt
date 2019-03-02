@@ -52,17 +52,22 @@ If a game-character moves to a map-place, then the game-character is in the map-
 If a game-character goes to a map-place, then the game-character moves to the map-place.
 If a game-character enters a map-place, then the game-character moves to the map-place.
 If a player-character moves to a map-place, then
- the map-place must be the player-character's container's map-neighbor.
+ the map-place must be the player-character's container's map-neighbor;
+ otherwise the game-interpreter complains "You can't get there from here.".
 If a player-character moves to a map-place, then the player-character asks "where am I".
 
 If a game-character goes east, then
- the game-character's container must have an eastern-neighbor.
+ the game-character's container must have an eastern-neighbor;
+ otherwise the game-interpreter complains "There is no way to the east.".
 If a game-character goes west, then
- the game-character's container must have a western-neighbor.
+ the game-character's container must have a western-neighbor;
+ otherwise the game-interpreter complains "There is no way to the west.".
 If a game-character goes north, then
- the game-character's container must have a northern-neighbor.
+ the game-character's container must have a northern-neighbor;
+ otherwise the game-interpreter complains "There is no way to the north.".
 If a game-character goes south, then
- the game-character's container must have a southern-neighbor.
+ the game-character's container must have a southern-neighbor;
+ otherwise the game-interpreter complains "There is no way to the south.".
 
 If a game-character goes west, then
  the game-character moves to the game-character's container's western-neighbor.
@@ -79,7 +84,8 @@ If a game-character kills the thief, then
  the game-interpreter says "Blood splatters everywhere.".
 
 A door must be open or closed.
-If a game-character traverses a door, then the door must be open.
+If a game-character traverses a door, then the door must be open;
+ otherwise the game-interpreter complains "But the door is not open.".
 
 A map-place may have a northern-door.
 A map-place may have a southern-door.
@@ -95,10 +101,18 @@ If a game-character goes east, then
 If a game-character goes west, then
  the game-character traverses the game-character's container's western-door.
 
-If a game-character throws a game-weapon to a throw-target, then the game-character drops the game-weapon.
-If a game-character throws a game-weapon to a throw-target, then the game-character kills the throw-target.
+If a game-character throws a game-weapon to a throw-target, then
+ the game-character drops the game-weapon.
+If a game-character throws a game-weapon to a throw-target, then
+ the game-character kills the throw-target.
 
-If a game-character gets a game-object, then the game-object must be in the game-character's container.
-If a game-character gets a game-object, then the game-object is in the game-character.
-If a game-character drops a game-object, then the game-object must be in the game-character.
-If a game-character drops a game-object, then the game-object is in the game-character's container.
+If a game-character gets a game-object, then
+ the game-object must be in the game-character's container;
+ otherwise the game-interpreter complains "But there is no such object here.".
+If a game-character gets a game-object, then
+ the game-object is in the game-character.
+If a game-character drops a game-object, then
+ the game-object must be in the game-character;
+ otherwise the game-interpreter complains "But you have no such object.".
+If a game-character drops a game-object, then
+ the game-object is in the game-character's container.

@@ -85,6 +85,16 @@ class SpcBeliefRecognizer(
       case conditionalSentence : SilConditionalSentence => {
         return recognizeConsequenceBelief(conditionalSentence)
       }
+      case SilConjunctiveSentence(
+        DETERMINER_UNSPECIFIED,
+        Seq(
+          conditionalSentence : SilConditionalSentence,
+          alternative : SilPredicateSentence),
+        SEPARATOR_SEMICOLON
+      ) => {
+        return recognizeConsequenceBelief(
+          conditionalSentence, Some(alternative))
+      }
       case _ =>
     }
     Seq.empty
@@ -340,7 +350,9 @@ class SpcBeliefRecognizer(
     })
   }
 
-  private def recognizeConsequenceBelief(sentence : SilConditionalSentence)
+  private def recognizeConsequenceBelief(
+    sentence : SilConditionalSentence,
+    alternative : Option[SilPredicateSentence] = None)
       : Seq[SpcBelief] =
   {
     val consequent = sentence.consequent
@@ -359,10 +371,24 @@ class SpcBeliefRecognizer(
     if (sentence.tamConsequent.modality == MODAL_NEUTRAL) {
       querier.query(validateReferences, consequent)
     }
+    alternative.foreach(alternativeSentence => {
+      if (sentence.tamConsequent.modality == MODAL_NEUTRAL) {
+        invalid = true
+      }
+      if (!alternativeSentence.predicate.getModifiers.exists(
+        _ match {
+          case SilBasicVerbModifier(
+            Seq(SilWordLemma(LEMMA_OTHERWISE)), _) => true
+          case _ => false
+        }
+      )) {
+        invalid = true
+      }
+    })
     if (invalid) {
       Seq.empty
     } else {
-      Seq(ConsequenceBelief(sentence))
+      Seq(ConsequenceBelief(sentence, alternative))
     }
   }
 

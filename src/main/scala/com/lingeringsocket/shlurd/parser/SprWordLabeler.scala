@@ -199,6 +199,7 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
       def leaf = makeLeaf(word, token)
       val set : Set[SprSyntaxTree] = token match {
         case LABEL_COMMA => Set(SptCOMMA(leaf))
+        case LABEL_SEMICOLON => Set(SptSEMICOLON(leaf))
         case "'" | "'s" => Set(SptPOS(leaf))
         // FIXME proper handling for all contractions
         case "ca" => Set(SptMD(makeLeaf(token, token, LEMMA_CAN)))

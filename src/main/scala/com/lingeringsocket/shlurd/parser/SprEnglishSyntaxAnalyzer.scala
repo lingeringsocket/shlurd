@@ -42,6 +42,16 @@ class SprEnglishSyntaxAnalyzer(
         FORCE_NEUTRAL
       }
     }
+    val (semiSplits, semiSeparator) = splitSemicolons(tree.children)
+    if (semiSplits.size > 1) {
+      if (!semiSplits.forall(_.size == 1)) {
+        return SilUnrecognizedSentence(tree)
+      }
+      return SilConjunctiveSentence(
+        DETERMINER_UNSPECIFIED,
+        semiSplits.map(split => SilExpectedSentence(split.head)),
+        semiSeparator)
+    }
     val children = stripPauses(tree)
     val antecedent = extractAntecedent(children)
     if (!antecedent.isEmpty) {

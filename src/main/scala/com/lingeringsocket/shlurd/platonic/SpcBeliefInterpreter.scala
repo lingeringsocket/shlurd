@@ -696,9 +696,10 @@ class SpcBeliefInterpreter(
 
   beliefApplier {
     case ConsequenceBelief(
-      sentence
+      sentence,
+      alternative
     ) => {
-      cosmos.addTrigger(sentence)
+      cosmos.addTrigger(SpcTrigger(sentence, alternative))
     }
   }
 

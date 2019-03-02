@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
 
@@ -22,6 +23,8 @@ import scala.collection._
 import scala.util._
 
 import spire.math._
+
+import SprEnglishLemmas._
 
 sealed trait SpcBeliefAcceptance
 case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
@@ -62,16 +65,21 @@ class SpcInterpreter(
       if (checkCycle(predicate, already)) {
         return fail(sentencePrinter.sb.circularAction)
       }
-      mind.getCosmos.getTriggers.filter(_.biconditional).foreach(trigger => {
-        matchTrigger(mind.getCosmos, trigger, predicate,
-          referenceMapOpt.get) match
-        {
-          case Some(newPredicate) => {
-            return super.evaluatePredicate(newPredicate, resultCollector)
+      mind.getCosmos.getTriggers.filter(
+        _.conditionalSentence.biconditional).foreach(trigger => {
+          matchTrigger(
+            mind.getCosmos,
+            trigger.conditionalSentence,
+            predicate,
+            referenceMapOpt.get) match
+          {
+            case Some(newPredicate) => {
+              return super.evaluatePredicate(newPredicate, resultCollector)
+            }
+            case _ =>
           }
-          case _ =>
         }
-      })
+      )
       super.evaluateActionPredicate(predicate, resultCollector)
     }
 
@@ -90,9 +98,14 @@ class SpcInterpreter(
       // FIXME this could cause the predicate to become
       // inconsisent with the answer inflection.  Also, when there
       // are multiple matches, we should be conjoining them.
-      val triggers = mind.getCosmos.getTriggers.filter(_.biconditional)
+      val triggers = mind.getCosmos.getTriggers.filter(
+        _.conditionalSentence.biconditional)
       val replacements = triggers.flatMap(trigger => {
-        matchTrigger(mind.getCosmos, trigger, stateNormalized, referenceMap)
+        matchTrigger(
+          mind.getCosmos,
+          trigger.conditionalSentence,
+          stateNormalized,
+          referenceMap)
       }).filter(acceptReplacement)
       replacements.headOption.getOrElse(stateNormalized)
     }
@@ -388,13 +401,14 @@ class SpcInterpreter(
 
   private def applyTrigger(
     forkedCosmos : SpcCosmos,
-    trigger : SilConditionalSentence,
+    trigger : SpcTrigger,
     predicate : SilPredicate)
       : Option[String] =
   {
     val resultCollector = new SmcResultCollector[SpcEntity](referenceMapOpt.get)
+    val conditionalSentence = trigger.conditionalSentence
     matchTrigger(
-      forkedCosmos, trigger, predicate, referenceMapOpt.get) match
+      forkedCosmos, conditionalSentence, predicate, referenceMapOpt.get) match
     {
       case Some(newPredicate) => {
         if (checkCycle(newPredicate, already)) {
@@ -403,7 +417,7 @@ class SpcInterpreter(
         val newSentence = SilPredicateSentence(newPredicate)
         spawn(imagine(forkedCosmos)).resolveReferences(
           newSentence, resultCollector, false, true)
-        if (trigger.tamConsequent.modality == MODAL_MUST) {
+        if (conditionalSentence.tamConsequent.modality == MODAL_MUST) {
           evaluateTamPredicate(
             newPredicate, SilTam.indicative, resultCollector) match
           {
@@ -415,6 +429,21 @@ class SpcInterpreter(
               None
             }
             case _ => {
+              trigger.alternative.foreach(alternativeSentence => {
+                val recoverySentence = alternativeSentence.copy(
+                  predicate = alternativeSentence.predicate.withNewModifiers(
+                    alternativeSentence.predicate.getModifiers.filterNot(
+                      _ match {
+                        case SilBasicVerbModifier(
+                          Seq(SilWordLemma(LEMMA_OTHERWISE)), _) => true
+                        case _ => false
+                      })))
+                spawn(imagine(forkedCosmos)).resolveReferences(
+                  recoverySentence, resultCollector, false, true)
+                // FIXME use recoveryResult somehow
+                val recoveryResult = interpretBeliefOrAction(
+                  forkedCosmos, recoverySentence, resultCollector)
+              })
               // FIXME i18n
               Some("But " + sentencePrinter.printPredicateStatement(
                 newPredicate, SilTam.indicative.negative) + ".")
@@ -867,7 +896,7 @@ class SpcInterpreter(
         return Success(true)
       } else {
         mind.getCosmos.getTriggers.foreach(trigger => {
-          matchTrigger(mind.getCosmos, trigger,
+          matchTrigger(mind.getCosmos, trigger.conditionalSentence,
             predicate, eventReferenceMap) match
           {
             case Some(newPredicate) => {

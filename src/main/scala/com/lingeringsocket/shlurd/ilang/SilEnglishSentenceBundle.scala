@@ -470,6 +470,7 @@ class SilEnglishSentenceBundle
     val infix = determiner match {
       case DETERMINER_NONE => LEMMA_NOR
       case DETERMINER_ANY | DETERMINER_UNIQUE => LEMMA_OR
+      case DETERMINER_UNSPECIFIED => separator.punctuationMark
       case _ => LEMMA_AND
     }
 
@@ -481,7 +482,11 @@ class SilEnglishSentenceBundle
             if ((i + 2) < items.size) {
               Seq(n)
             } else {
-              Seq(n, infix)
+              if (determiner == DETERMINER_UNSPECIFIED) {
+                Seq(concat(n, infix))
+              } else {
+                Seq(n, infix)
+              }
             }
           }
         }

@@ -150,20 +150,30 @@ case object REL_ASSOCIATION extends SilRelationship
 
 sealed trait SilSeparator
 {
-  def needComma(pos : Int, total : Int) : Boolean
+  def needPunctuationAt(pos : Int, total : Int) : Boolean
+  def punctuationMark : String
 }
 case object SEPARATOR_CONJOINED extends SilSeparator
 {
-  override def needComma(pos : Int, total : Int) = false
+  override def needPunctuationAt(pos : Int, total : Int) = false
+  override def punctuationMark = ""
 }
 case object SEPARATOR_COMMA extends SilSeparator
 {
-  override def needComma(pos : Int, total : Int) = ((pos + 2) < total)
+  override def needPunctuationAt(pos : Int, total : Int) = ((pos + 2) < total)
+  override def punctuationMark = ","
 }
 case object SEPARATOR_OXFORD_COMMA extends SilSeparator
 {
-  override def needComma(pos : Int, total : Int) =
+  override def needPunctuationAt(pos : Int, total : Int) =
     (((pos + 1) < total) && (total > 2))
+  override def punctuationMark = ","
+}
+case object SEPARATOR_SEMICOLON extends SilSeparator
+{
+  override def needPunctuationAt(pos : Int, total : Int) =
+    (((pos + 1) < total) && (total > 2))
+  override def punctuationMark = ";"
 }
 
 sealed case class SilFormality(

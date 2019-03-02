@@ -231,6 +231,20 @@ abstract class SprAbstractSyntaxAnalyzer(
     }
   }
 
+  protected def splitSemicolons(components : Seq[SprSyntaxTree])
+      : (Seq[Seq[SprSyntaxTree]], SilSeparator) =
+  {
+    val pos = components.indexWhere(_.isSemicolon)
+    if (pos == -1) {
+      (Seq(components), SEPARATOR_CONJOINED)
+    } else {
+      val prefix = components.take(pos)
+      val suffix = components.drop(pos + 1)
+      val (subSplit, subSeparator) = splitSemicolons(suffix)
+      (Seq(prefix) ++ subSplit, SEPARATOR_SEMICOLON)
+    }
+  }
+
   override def specifyReference(
     ref : SilReference, specifiedState : SilState) : SilReference =
   {

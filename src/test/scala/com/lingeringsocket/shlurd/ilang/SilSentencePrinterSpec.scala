@@ -122,6 +122,8 @@ class SilSentencePrinterSpec extends Specification
 
     "normalize sentences" in
     {
+      expectStatement(
+        "John eats apples; Mary eats pears")
       expectNormalized(
         "Mary put down the milk",
         "Mary put the milk down.")
@@ -320,6 +322,9 @@ class SilSentencePrinterSpec extends Specification
         "how many people did Curtis give the bomb to",
         "to how many people did Curtis give the bomb?")
       expectStatement("the kitchen is west of the garden")
+      expectNormalized(
+        "otherwise the player burps",
+        "the player burps otherwise.")
     }
   }
 }
