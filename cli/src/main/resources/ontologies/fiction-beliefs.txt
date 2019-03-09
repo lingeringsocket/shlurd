@@ -49,7 +49,7 @@ If a map-place is south of a map-location, then equivalently
  the map-location is the map-place's northern-neighbor.
 
 If a game-character moves to a map-place, then the game-character is in the map-place.
-If a game-character enters a move-destination, then the game-character moves to the move-destination.
+If a game-character enters a map-location, then the game-character moves to the map-location.
 If a player-character moves to a map-place, then
  the map-place must be the player-character's container's map-neighbor;
  otherwise the game-interpreter complains "You can't get there from here.".
