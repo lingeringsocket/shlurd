@@ -572,7 +572,7 @@ class SpcInterpreter(
             return None
           }
         }
-        if (action.lemma != actionPredicate.action.lemma) {
+        if (!mind.isEquivalentVerb(action, actionPredicate.action)) {
           trace(s"ACTION ${actionPredicate.action.lemma} DOES NOT MATCH")
           return None
         }

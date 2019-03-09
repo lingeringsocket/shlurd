@@ -16,10 +16,22 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 import scala.collection._
 import scala.util._
+
+object SpcWordnetMind
+{
+  def debug(s : String)
+  {
+    val analyzer = new SilWordnetSenseAnalyzer
+    val sentence = SprParser(s).parseOne
+    val analyzed = analyzer.analyze(sentence)
+    println("ANALYSIS = " + analyzed)
+  }
+}
 
 class SpcWordnetMind(cosmos : SpcCosmos)
     extends SpcMind(cosmos)
@@ -93,6 +105,15 @@ class SpcWordnetMind(cosmos : SpcCosmos)
       }
     }
   }
+
+  override def isEquivalentVerb(
+    verb1 : SilWord, verb2 : SilWord) : Boolean =
+  {
+    super.isEquivalentVerb(verb1, verb2) ||
+      ShlurdWordnet.findSenses(verb1.senseId).intersect(
+        ShlurdWordnet.findSenses(verb2.senseId)).nonEmpty
+  }
+
 
   override protected def getFormName(form : SpcForm) : String =
   {

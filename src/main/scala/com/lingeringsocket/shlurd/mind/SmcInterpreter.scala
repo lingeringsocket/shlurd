@@ -267,6 +267,7 @@ class SmcInterpreter[
 
     val result = predicateEvaluator.evaluatePredicate(
       predicate, resultCollector)
+
     mind.rememberSentenceAnalysis(resultCollector.referenceMap)
     result match {
       case Success(Trilean.True) => {
@@ -739,7 +740,7 @@ class SmcInterpreter[
           eventDirectObject, eventModifiers),
         SilActionPredicate(querySubject, queryAction,
           queryDirectObject, queryModifiers)
-      ) if (eventAction.lemma == queryAction.lemma) => {
+      ) if (mind.isEquivalentVerb(eventAction, queryAction)) => {
         def isVariable(phrase : SilPhrase) = {
           inputRewriter.containsWildcard(phrase)
         }

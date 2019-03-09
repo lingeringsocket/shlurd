@@ -21,5 +21,8 @@ The big door is open.
 There is an ax.
 The ax is in the bathroom.
 
+There is a brass lantern.
+The lantern is in the kitchen.
+
 The big door is the bedroom's eastern-door.
 The big door is the bathroom's western-door.

@@ -85,3 +85,23 @@ The ax and the thief are in the bathroom.
 OK.
 
 You are in the kitchen.
+
+> what is in the kitchen
+
+The brass lantern and the player-character are in the kitchen.
+
+> acquire the lantern
+
+OK.
+
+> go to the bedroom
+
+OK.
+
+You are in the bedroom.
+
+> enter the bathroom
+
+OK.
+
+You are in the bathroom.

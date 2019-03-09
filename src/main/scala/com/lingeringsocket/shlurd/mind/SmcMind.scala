@@ -210,6 +210,12 @@ class SmcMind[
     cosmos.resolveQualifiedNoun(noun.lemma, context, qualifiers)
   }
 
+  def isEquivalentVerb(
+    verb1 : SilWord, verb2 : SilWord) : Boolean =
+  {
+    verb1.lemma == verb2.lemma
+  }
+
   def resolvePronoun(
     reference : SilPronounReference) : Try[Set[EntityType]] =
   {

@@ -448,7 +448,6 @@ object SprParser
   def apply(input : String) : SprParser =
     apply(input, SprContext())
 
-
   def apply(
     input : String,
     context : SprContext) : SprParser =
