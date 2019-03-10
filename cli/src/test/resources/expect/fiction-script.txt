@@ -2,6 +2,10 @@
 
 You are in the bedroom.
 
+> i
+
+You are holding nothing.
+
 > is the door open
 
 Yes, it is open.
@@ -43,6 +47,10 @@ The ax, the thief, and the player-character are in your container.
 > get the ax
 
 OK.
+
+> inventory
+
+You are holding the ax.
 
 > what is in the player-character
 
@@ -105,3 +113,24 @@ You are in the bedroom.
 OK.
 
 You are in the bathroom.
+
+> what am I holding
+
+You are holding the brass lantern.
+
+> I am holding the ax
+
+Oh, really?
+
+> I am holding the lantern
+
+Right, you are holding it.
+
+> I am in the bathroom.
+
+Right, you are in the bathroom.
+
+> I am in the kitchen.
+
+Oh, really?
+

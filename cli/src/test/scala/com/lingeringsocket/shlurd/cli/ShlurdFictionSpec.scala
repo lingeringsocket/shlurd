@@ -26,14 +26,16 @@ class ShlurdFictionSpec extends Specification
   {
     "interpret script" in
     {
+      val fileName = "fiction-script.txt"
       val script = Source.fromFile(
-        SprParser.getResourceFile("/expect/fiction-script.txt")).getLines
-      def nextScriptLine() : Option[String] = {
+        SprParser.getResourceFile(s"/expect/$fileName")).
+        getLines.zipWithIndex
+      def nextScriptLine() : Option[(String, Int)] = {
         if (!script.hasNext) {
           None
         } else {
           val s = script.next
-          if (s.isEmpty) {
+          if (s._1.isEmpty) {
             nextScriptLine
           } else {
             Some(s)
@@ -54,7 +56,13 @@ class ShlurdFictionSpec extends Specification
         {
           if (!msg.isEmpty) {
             nextScriptLine match {
-              case Some(expected) => {
+              case Some((expected, lineNo)) => {
+                // FIXME do this the proper specs2 way
+                if (msg != expected) {
+                  val lineNoOneBased = lineNo + 1
+                  println(
+                    s"ShlurdFictionSpec FAIL at $fileName:$lineNoOneBased")
+                }
                 msg must be equalTo expected
               }
               case _ => {
@@ -66,7 +74,7 @@ class ShlurdFictionSpec extends Specification
 
         override def readCommand() : Option[String] =
         {
-          nextScriptLine.map(_.stripPrefix("> "))
+          nextScriptLine.map(_._1.stripPrefix("> "))
         }
       }
       val shell = new ShlurdFictionShell(mind, terminal)

@@ -115,3 +115,7 @@ If a game-character drops a game-object, then
  otherwise the game-interpreter complains "But you have no such object.".
 If a game-character drops a game-object, then
  the game-object is in the game-character's container.
+
+If a game-character is holding a game-object, then equivalently
+ the game-object is in the game-character.
+

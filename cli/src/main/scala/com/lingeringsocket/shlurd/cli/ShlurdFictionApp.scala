@@ -34,6 +34,7 @@ object ShlurdFictionAliases
     "east" -> "go east",
     "g" -> "again",
     "i" -> "inventory",
+    "inventory" -> "what am I holding",
     "l" -> "look",
     // FIXME this can instead be "no" in context
     "n" -> "go north",
@@ -224,12 +225,21 @@ class ShlurdFictionShell(
     }
   }
 
-  private val interpreter = new SpcInterpreter(
+  private val beliefInterpreter = new SpcInterpreter(
     mind, ACCEPT_MODIFIED_BELIEFS, params, executor)
+
+  private val interpreter = new SpcInterpreter(
+    mind, ACCEPT_NO_BELIEFS, params, executor)
+  {
+    override protected def spawn(subMind : SpcMind) =
+    {
+      new SpcInterpreter(subMind, ACCEPT_MODIFIED_BELIEFS, params)
+    }
+  }
 
   private def interpretReentrantFiat(sentence : SilSentence) : String =
   {
-    interpreter.interpret(sentence)
+    beliefInterpreter.interpret(sentence)
   }
 
   private def interpretReentrantQuery(query : String) : String =
@@ -250,7 +260,7 @@ class ShlurdFictionShell(
     val sentences = mind.newParser(
       source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
     sentences.foreach(sentence => {
-      val output = interpreter.interpret(mind.analyzeSense(sentence))
+      val output = beliefInterpreter.interpret(mind.analyzeSense(sentence))
       assert(output == OK, output)
     })
     terminal.emitControl("Initialization complete.")
@@ -299,11 +309,11 @@ class ShlurdFictionShell(
     }
   }
 
-  private def preprocess(input : String) =
+  private def preprocess(input : String) : String =
   {
     ShlurdFictionAliases.map.get(input.trim.toLowerCase) match {
       case Some(replacement) => {
-        replacement
+        preprocess(replacement)
       }
       case _ => {
         // special case for examine, which can take an object
