@@ -1138,6 +1138,9 @@ class SpcInterpreterSpec extends Specification
     "understand equivalent queries" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
+      if (SprParser.isCoreNLP) {
+        skipped("Wordnet only")
+      }
       loadBeliefs("/ontologies/containment.txt")
       interpretBelief("A vapor is a kind of object.")
       interpretBelief("A solid is a kind of object.")
