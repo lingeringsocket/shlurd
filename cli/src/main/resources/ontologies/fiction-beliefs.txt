@@ -119,3 +119,5 @@ If a game-character drops a game-object, then
 If a game-character is holding a game-object, then equivalently
  the game-object is in the game-character.
 
+If a player-character sees a game-entity, then equivalently
+ the game-entity is in the player-character's container.

@@ -40,9 +40,9 @@ There is no way to the east.
 
 The ax, the thief, and the player-character are in the bathroom.
 
-> what is in my container
+> what do I see
 
-The ax, the thief, and the player-character are in your container.
+You see the ax, the thief, and the player-character.
 
 > get the ax
 
@@ -52,9 +52,9 @@ OK.
 
 You are holding the ax.
 
-> what is in the player-character
+> look
 
-The ax is in the player-character.
+You see the thief and the player-character.
 
 > is the thief alive
 
@@ -107,6 +107,10 @@ OK.
 OK.
 
 You are in the bedroom.
+
+> l
+
+You see the player-character.
 
 > enter the bathroom
 
