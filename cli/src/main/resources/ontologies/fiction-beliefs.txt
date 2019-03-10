@@ -1,11 +1,17 @@
+A visible-entity is a kind of object.
 A container is an spc-container.
 A game-character is a kind of person.
 A game-interpreter is a kind of person.
 A player-character is a kind of game-character.
 A non-player-character is a kind of game-character.
-A thief is a kind of non-player-character.
+A non-player-character is a kind of visible-entity.
 There is a game-interpreter.
 There is a player-character.
+A game-object is a kind of visible-entity.
+
+A thief is a kind of non-player-character.
+An ax is a kind of game-object.
+A lantern is a kind of game-object.
 
 A map-place is a kind of location.
 A map-neighbor must be a map-place.
@@ -119,5 +125,5 @@ If a game-character drops a game-object, then
 If a game-character is holding a game-object, then equivalently
  the game-object is in the game-character.
 
-If a player-character sees a game-entity, then equivalently
- the game-entity is in the player-character's container.
+If a player-character sees a visible-entity, then equivalently
+ the visible-entity is in the player-character's container.

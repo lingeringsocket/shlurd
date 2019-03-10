@@ -708,7 +708,28 @@ class SpcInterpreter(
         val patternRef = SilNounReference(
           noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
         if (inputRewriter.containsWildcard(actualRef)) {
-          replacements.put(patternRef, actualRef)
+          val wildcardRef = actualRef match {
+            // FIXME need the same treatment for other variables, but
+            // with intersectionality
+            case SilNounReference(
+              SilWordLemma(LEMMA_WHAT),
+              DETERMINER_ANY,
+              count
+            ) => {
+              resolvedForm match {
+                case Some(restrictedForm) => {
+                  SilNounReference(
+                    SilWord(restrictedForm.name),
+                    DETERMINER_ANY,
+                    count
+                  )
+                }
+                case _ => actualRef
+              }
+            }
+            case _ => actualRef
+          }
+          replacements.put(patternRef, wildcardRef)
           return true
         }
         val (candidateRef, entities) = actualRef match {

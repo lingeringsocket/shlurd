@@ -1135,6 +1135,26 @@ class SpcInterpreterSpec extends Specification
           "contradicts the belief that Hobbes is Calvin's pet.")
     }
 
+    "understand equivalent queries" in new InterpreterContext(
+      ACCEPT_NEW_BELIEFS)
+    {
+      loadBeliefs("/ontologies/containment.txt")
+      interpretBelief("A vapor is a kind of object.")
+      interpretBelief("A solid is a kind of object.")
+      interpretBelief("If a person sees a solid, " +
+        "then equivalently the solid is in the person's container.")
+      interpretBelief("Alcatraz is an object.")
+      interpretBelief("Clint is a person.")
+      interpretBelief("The gold is a solid.")
+      interpretBelief("The oxygen is a vapor.")
+      interpretBelief("The gold is in Alcatraz.")
+      interpretBelief("The oxygen is in Alcatraz.")
+      interpretBelief("Clint is in Alcatraz.")
+      interpretTerse(
+        "what does Clint see",
+        "The gold.")
+    }
+
     "understand progressive action predicates" in new InterpreterContext(
       ACCEPT_NEW_BELIEFS)
     {
