@@ -708,7 +708,7 @@ class SpcBeliefInterpreter(
       sentence,
       resourceName
     ) => {
-      mind.loadBeliefs(ResourceUtils.getResourceSource(resourceName))
+      mind.importBeliefs(resourceName)
     }
   }
 

@@ -1,4 +1,3 @@
-Import "/ontologies/containment.txt".
 A person is a kind of spc-someone.
 Ubuntu is an entity.
 A man is a kind of person.

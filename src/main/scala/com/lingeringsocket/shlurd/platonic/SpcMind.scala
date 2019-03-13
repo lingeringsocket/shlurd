@@ -31,6 +31,8 @@ import SprEnglishLemmas._
 class SpcMind(cosmos : SpcCosmos)
     extends SmcMind[SpcEntity, SpcProperty, SpcCosmos](cosmos)
 {
+  private val importedBeliefResources = new mutable.LinkedHashSet[String]
+
   override def getCosmos = cosmos
 
   override def spawn(newCosmos : SpcCosmos) =
@@ -38,6 +40,14 @@ class SpcMind(cosmos : SpcCosmos)
     val mind = new SpcMind(newCosmos)
     mind.initFrom(this)
     mind
+  }
+
+  def importBeliefs(resourceName : String)
+  {
+    if (!importedBeliefResources.contains(resourceName)) {
+      loadBeliefs(ResourceUtils.getResourceSource(resourceName))
+      importedBeliefResources += resourceName
+    }
   }
 
   def loadBeliefs(source : Source)

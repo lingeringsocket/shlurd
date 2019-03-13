@@ -1,0 +1,13 @@
+A visible-entity is a kind of object.
+A container is an spc-container.
+A game-character is a kind of person.
+A game-interpreter is a kind of person.
+A player-character is a kind of game-character.
+A non-player-character is a kind of game-character.
+A non-player-character is a kind of visible-entity.
+There is a game-interpreter.
+There is a player-character.
+A game-object is a kind of visible-entity.
+
+If a player-character sees a visible-entity, then equivalently
+ the visible-entity is in the player-character's container.

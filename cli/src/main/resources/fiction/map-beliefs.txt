@@ -1,0 +1,42 @@
+Import "/fiction/basic-beliefs.txt".
+
+A map-place is a kind of location.
+A map-neighbor must be a map-place.
+A map-place may have map-neighbors.
+A map-place with a map-neighbor is a map-neighbor.
+
+A northern-neighbor must be a map-place.
+A southern-neighbor must be a map-place.
+An eastern-neighbor must be a map-place.
+A western-neighbor must be a map-place.
+
+A map-place may have a northern-neighbor.
+A map-place may have a southern-neighbor.
+A map-place may have an eastern-neighbor.
+A map-place may have a western-neighbor.
+
+A map-place with a northern-neighbor is a southern-neighbor.
+A map-place with an eastern-neighbor is a western-neighbor.
+
+If a map-place is west of a map-location, then equivalently
+ the map-place is the map-location's western-neighbor.
+If a map-place is east of a map-location, then equivalently
+ the map-place is the map-location's eastern-neighbor.
+If a map-place is north of a map-location, then equivalently
+ the map-place is the map-location's northern-neighbor.
+If a map-place is south of a map-location, then equivalently
+ the map-place is the map-location's southern-neighbor.
+
+If a map-place is west of a map-location, then the map-place is the map-location's map-neighbor.
+If a map-place is east of a map-location, then the map-place is the map-location's map-neighbor.
+If a map-place is north of a map-location, then the map-place is the map-location's map-neighbor.
+If a map-place is south of a map-location, then the map-place is the map-location's map-neighbor.
+
+If a map-place is west of a map-location, then equivalently
+ the map-location is the map-place's eastern-neighbor.
+If a map-place is east of a map-location, then equivalently
+ the map-location is the map-place's western-neighbor.
+If a map-place is north of a map-location, then equivalently
+ the map-location is the map-place's southern-neighbor.
+If a map-place is south of a map-location, then equivalently
+ the map-location is the map-place's northern-neighbor.

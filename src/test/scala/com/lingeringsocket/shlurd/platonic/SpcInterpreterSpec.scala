@@ -486,6 +486,7 @@ class SpcInterpreterSpec extends Specification
 
     "understand locations" in new InterpreterContext
     {
+      loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/location.txt")
 
       interpretMatrix(

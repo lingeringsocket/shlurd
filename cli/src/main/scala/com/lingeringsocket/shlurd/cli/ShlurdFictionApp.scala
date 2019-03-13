@@ -122,7 +122,7 @@ object ShlurdFictionShell
   {
     val cosmos = ShlurdPrimordialWordnet.loadCosmos
     val beliefs = ResourceUtils.getResourceFile(
-      "/ontologies/fiction-beliefs.txt")
+      "/example-fiction/game-beliefs.txt")
     val source = Source.fromFile(beliefs)
     val bootMind = new SpcWordnetMind(cosmos)
     bootMind.loadBeliefs(source)
@@ -257,7 +257,7 @@ class ShlurdFictionShell(
   def init()
   {
     val source = Source.fromFile(
-      ResourceUtils.getResourceFile("/ontologies/fiction-init.txt"))
+      ResourceUtils.getResourceFile("/example-fiction/game-init.txt"))
     val sentences = mind.newParser(
       source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
     sentences.foreach(sentence => {

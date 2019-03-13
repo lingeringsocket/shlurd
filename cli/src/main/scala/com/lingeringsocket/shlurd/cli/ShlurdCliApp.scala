@@ -80,7 +80,7 @@ object ShlurdCliShell
   def newMind(terminal : ShlurdCliTerminal) =
   {
     val cosmos = ShlurdPrimordialWordnet.loadCosmos
-    val beliefs = ResourceUtils.getResourceFile("/ontologies/console.txt")
+    val beliefs = ResourceUtils.getResourceFile("/console/beliefs.txt")
     val source = Source.fromFile(beliefs)
     val bootMind = new SpcWordnetMind(cosmos)
     bootMind.loadBeliefs(source)
