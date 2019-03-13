@@ -1,9 +1,9 @@
 Import "/fiction/possession-beliefs.txt".
 
 A thief is a kind of non-player-character.
+A thief must be alive or dead.
 
 If a game-character kills a kill-victim, then the kill-victim is dead.
-A thief must be alive or dead.
 If a game-character kills the thief, then
  the game-interpreter says "Blood splatters everywhere.".
 

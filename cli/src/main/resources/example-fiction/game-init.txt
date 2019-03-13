@@ -1,7 +1,3 @@
-A bedroom is a kind of map-place.
-A bathroom is a kind of map-place.
-A kitchen is a kind of map-place.
-
 There is a bedroom.
 There is a bathroom.
 There is a kitchen.
