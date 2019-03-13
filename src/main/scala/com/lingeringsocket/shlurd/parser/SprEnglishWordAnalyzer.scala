@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import SprEnglishLemmas._
@@ -28,7 +29,7 @@ object SprEnglishLexicon
 
   private def readLexicon(resource : String) : Set[String] =
   {
-    val words = SprParser.getResourceSource(resource).getLines
+    val words = ResourceUtils.getResourceSource(resource).getLines
     Set(words.toSeq:_*)
   }
 }

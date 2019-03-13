@@ -61,6 +61,18 @@ class SpcBeliefRecognizer(
     if (sentence.hasUnknown) {
       return Seq.empty
     }
+    if (sentence.tam.isImperative) {
+      sentence match {
+        case SilPredicateSentence(
+          SilActionPredicate(
+            _, action, Some(SilQuotationReference(quotation)), _),
+          tam, formality
+        ) => {
+          return recognizeDirective(sentence, action, quotation)
+        }
+        case _ => return Seq.empty
+      }
+    }
     if (!sentence.tam.isIndicative) {
       // FIXME support interrogative
       return Seq.empty
@@ -389,6 +401,18 @@ class SpcBeliefRecognizer(
       Seq.empty
     } else {
       Seq(ConsequenceBelief(sentence, alternative))
+    }
+  }
+
+  private def recognizeDirective(
+    sentence : SilSentence,
+    action : SilWord,
+    argument : String) : Seq[SpcBelief] =
+  {
+    if (action.lemma == LEMMA_IMPORT) {
+      Seq(IndirectBelief(sentence, argument))
+    } else {
+      Seq.empty
     }
   }
 

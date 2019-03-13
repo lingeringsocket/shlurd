@@ -704,6 +704,15 @@ class SpcBeliefInterpreter(
   }
 
   beliefApplier {
+    case IndirectBelief(
+      sentence,
+      resourceName
+    ) => {
+      mind.loadBeliefs(ResourceUtils.getResourceSource(resourceName))
+    }
+  }
+
+  beliefApplier {
     case EpsilonBelief(
       sentence
     ) => {

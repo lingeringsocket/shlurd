@@ -133,6 +133,13 @@ case class ConsequenceBelief(
 {
 }
 
+case class IndirectBelief(
+  sentence : SilSentence,
+  resourceName : String
+) extends SpcBelief
+{
+}
+
 case class EpsilonBelief(
   sentence : SilSentence
 ) extends SpcBelief

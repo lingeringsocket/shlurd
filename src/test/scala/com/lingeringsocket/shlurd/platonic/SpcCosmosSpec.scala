@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
@@ -709,7 +710,7 @@ class SpcCosmosSpec extends Specification
 
     "load beliefs from a file" in new CosmosContext
     {
-      val file = SprParser.getResourceFile("/ontologies/bit.txt")
+      val file = ResourceUtils.getResourceFile("/ontologies/bit.txt")
       val source = Source.fromFile(file)
       new SpcMind(cosmos).loadBeliefs(source)
       val form = expectNamedForm("bit")

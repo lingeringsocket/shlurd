@@ -12,27 +12,26 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
-
-import com.lingeringsocket.shlurd._
-
-import org.specs2.mutable._
+package com.lingeringsocket.shlurd
 
 import scala.io._
 
-class SprTesterSpec extends Specification
+import java.io._
+
+object ResourceUtils
 {
-  "SprTester" should
-  {
-    "parse babi format" in
-    {
-      val script = ResourceUtils.getResourceFile("/expect/babi-unit-script.txt")
-      val tester = new SprTester
-      val (successes, failures) = tester.run(
-        Source.fromFile(script),
-        NullConsoleOutput)
-      successes must be equalTo 14
-      failures must be equalTo 0
-    }
-  }
+  def getResourcePath(resource : String) =
+    getClass.getResource(resource).getPath
+
+  def getResourceFile(resource : String) =
+    new File(getResourcePath(resource))
+
+  def getResourceStream(resource : String) =
+      getClass.getClassLoader.getResourceAsStream(resource.stripPrefix("/"))
+
+  def getResourceSource(resource : String) =
+    Source.fromInputStream(getResourceStream(resource))
+
+  def readResource(resource : String) : String =
+    getResourceSource(resource).getLines.mkString("\n")
 }

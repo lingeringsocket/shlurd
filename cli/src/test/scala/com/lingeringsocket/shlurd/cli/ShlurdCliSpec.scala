@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
-import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.platonic._
 
@@ -62,7 +62,7 @@ class ShlurdCliSpec extends Specification
     "interpret script" in
     {
       val script = Source.fromFile(
-        SprParser.getResourceFile("/expect/cli-script.txt")).getLines
+        ResourceUtils.getResourceFile("/expect/cli-script.txt")).getLines
       def nextScriptLine() : Option[String] = {
         if (!script.hasNext) {
           None

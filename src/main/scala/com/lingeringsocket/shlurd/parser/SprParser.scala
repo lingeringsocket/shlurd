@@ -17,7 +17,6 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
-import scala.io._
 import scala.collection._
 
 import java.io._
@@ -429,21 +428,6 @@ object SprParser
       }
     }
   }
-
-  def getResourcePath(resource : String) =
-    getClass.getResource(resource).getPath
-
-  def getResourceFile(resource : String) =
-    new File(getResourcePath(resource))
-
-  def getResourceStream(resource : String) =
-      getClass.getClassLoader.getResourceAsStream(resource.stripPrefix("/"))
-
-  def getResourceSource(resource : String) =
-    Source.fromInputStream(getResourceStream(resource))
-
-  def readResource(resource : String) : String =
-    getResourceSource(resource).getLines.mkString("\n")
 
   def apply(input : String) : SprParser =
     apply(input, SprContext())

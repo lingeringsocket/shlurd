@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
-import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd._
 
 import org.specs2.mutable._
 
@@ -28,7 +28,7 @@ class ShlurdFictionSpec extends Specification
     {
       val fileName = "fiction-script.txt"
       val script = Source.fromFile(
-        SprParser.getResourceFile(s"/expect/$fileName")).
+        ResourceUtils.getResourceFile(s"/expect/$fileName")).
         getLines.zipWithIndex
       def nextScriptLine() : Option[(String, Int)] = {
         if (!script.hasNext) {

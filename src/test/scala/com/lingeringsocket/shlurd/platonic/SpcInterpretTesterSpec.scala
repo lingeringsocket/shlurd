@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
@@ -26,9 +27,9 @@ class SpcInterpretTesterSpec extends Specification
   {
     "interpret babi format" in
     {
-      val beliefs = SprParser.getResourceFile(
+      val beliefs = ResourceUtils.getResourceFile(
         "/expect/babi-unit-beliefs.txt")
-      val script = SprParser.getResourceFile(
+      val script = ResourceUtils.getResourceFile(
         "/expect/babi-unit-script.txt")
       val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
       val (successes, failures) = tester.run(
@@ -40,9 +41,9 @@ class SpcInterpretTesterSpec extends Specification
 
     "understand babi qa beliefs" in
     {
-      val beliefs = SprParser.getResourceFile(
+      val beliefs = ResourceUtils.getResourceFile(
         "/expect/babi-qa-beliefs.txt")
-      val script = SprParser.getResourceFile(
+      val script = ResourceUtils.getResourceFile(
         "/expect/babi-qa-script.txt")
       val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
       val (successes, failures) = tester.run(
@@ -57,9 +58,9 @@ class SpcInterpretTesterSpec extends Specification
       if (SprParser.isCoreNLP) {
         skipped("Wordnet only")
       }
-      val beliefs = SprParser.getResourceFile(
+      val beliefs = ResourceUtils.getResourceFile(
         "/expect/babi-qa-beliefs.txt")
-      val script = SprParser.getResourceFile(
+      val script = ResourceUtils.getResourceFile(
         "/expect/babi-qa-wordnet-script.txt")
       val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
       val (successes, failures) = tester.run(

@@ -41,7 +41,7 @@ object SprWordnetParser extends SprEnglishWordAnalyzer
   }
 
   private lazy val phrasePatternTrie = (new SprPhrasePatternTrie).importText(
-    SprParser.getResourceSource(
+    ResourceUtils.getResourceSource(
       "/english/phrase-structure.txt"))
 }
 

@@ -15,7 +15,6 @@
 package com.lingeringsocket.shlurd.cli
 
 import com.lingeringsocket.shlurd._
-import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
@@ -122,7 +121,8 @@ object ShlurdFictionShell
   def newMind() : ShlurdCliMind =
   {
     val cosmos = ShlurdPrimordialWordnet.loadCosmos
-    val beliefs = SprParser.getResourceFile("/ontologies/fiction-beliefs.txt")
+    val beliefs = ResourceUtils.getResourceFile(
+      "/ontologies/fiction-beliefs.txt")
     val source = Source.fromFile(beliefs)
     val bootMind = new SpcWordnetMind(cosmos)
     bootMind.loadBeliefs(source)
@@ -257,7 +257,7 @@ class ShlurdFictionShell(
   def init()
   {
     val source = Source.fromFile(
-      SprParser.getResourceFile("/ontologies/fiction-init.txt"))
+      ResourceUtils.getResourceFile("/ontologies/fiction-init.txt"))
     val sentences = mind.newParser(
       source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
     sentences.foreach(sentence => {

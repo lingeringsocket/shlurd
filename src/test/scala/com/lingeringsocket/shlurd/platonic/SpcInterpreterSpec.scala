@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
@@ -87,7 +88,7 @@ class SpcInterpreterSpec extends Specification
 
     protected def loadBeliefs(resource : String)
     {
-      val file = SprParser.getResourceFile(resource)
+      val file = ResourceUtils.getResourceFile(resource)
       val source = Source.fromFile(file)
       mind.loadBeliefs(source)
     }
@@ -485,7 +486,6 @@ class SpcInterpreterSpec extends Specification
 
     "understand locations" in new InterpreterContext
     {
-      loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/location.txt")
 
       interpretMatrix(

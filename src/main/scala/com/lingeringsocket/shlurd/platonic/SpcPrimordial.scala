@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.parser._
 
@@ -42,7 +43,7 @@ object SpcPrimordial
 
   private def initCosmosFromBeliefs(cosmos : SpcCosmos)
   {
-    new SpcMind(cosmos).loadBeliefs(SprParser.getResourceSource(
+    new SpcMind(cosmos).loadBeliefs(ResourceUtils.getResourceSource(
       "/ontologies/primordial.txt"))
     synonyms.foreach(e => cosmos.addIdealSynonym(e._1, e._2))
   }

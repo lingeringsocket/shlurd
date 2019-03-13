@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
-import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
@@ -80,7 +80,7 @@ object ShlurdCliShell
   def newMind(terminal : ShlurdCliTerminal) =
   {
     val cosmos = ShlurdPrimordialWordnet.loadCosmos
-    val beliefs = SprParser.getResourceFile("/ontologies/console.txt")
+    val beliefs = ResourceUtils.getResourceFile("/ontologies/console.txt")
     val source = Source.fromFile(beliefs)
     val bootMind = new SpcWordnetMind(cosmos)
     bootMind.loadBeliefs(source)

@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
@@ -73,7 +74,7 @@ class SpcOpenhabCosmosSpec extends Specification
   {
     "understand items" in new CosmosContext
     {
-      val file = SprParser.getResourceFile("/ontologies/home.txt")
+      val file = ResourceUtils.getResourceFile("/ontologies/home.txt")
       val source = Source.fromFile(file)
       new SpcOpenhabMind(cosmos).loadBeliefs(source)
       cosmos.addItem("Home", "Our House", true, Seq.empty)
