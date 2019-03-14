@@ -7,7 +7,7 @@ If a game-character kills a kill-victim, then the kill-victim is dead.
 If a game-character kills the thief, then
  the game-interpreter says "Blood splatters everywhere.".
 
-If a game-character throws a game-weapon to a throw-target, then
+If a game-character throws a game-weapon, then
  the game-character drops the game-weapon.
-If a game-character throws a game-weapon to a throw-target, then
+If a game-character throws a game-weapon at a throw-target, then
  the game-character kills the throw-target.

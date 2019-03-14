@@ -318,6 +318,18 @@ private[parser] class SprNormalizationRewriter
     adposition.words match {
       case Seq(word) => word.lemma match {
         case LEMMA_BEFORE | LEMMA_AFTER | LEMMA_TO => true
+        case LEMMA_AT => {
+          objRef match {
+            case SilNounReference(
+              _, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+            ) => {
+              false
+            }
+            case _ => {
+              true
+            }
+          }
+        }
         case _ => false
       }
       case _ => false

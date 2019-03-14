@@ -109,11 +109,19 @@ class SpcWordnetMind(cosmos : SpcCosmos)
   override def isEquivalentVerb(
     verb1 : SilWord, verb2 : SilWord) : Boolean =
   {
-    super.isEquivalentVerb(verb1, verb2) ||
-      ShlurdWordnet.findSenses(verb1.senseId).intersect(
-        ShlurdWordnet.findSenses(verb2.senseId)).nonEmpty
+    if (super.isEquivalentVerb(verb1, verb2)) {
+      true
+    } else {
+      val sense1 = ShlurdWordnet.findSenses(verb1.senseId).headOption
+      val sense2 = ShlurdWordnet.findSenses(verb2.senseId).headOption
+      tupleN((sense1, sense2)) match {
+        case (Some(s1), Some(s2)) => {
+          s1 == s2
+        }
+        case _ => false
+      }
+    }
   }
-
 
   override protected def getFormName(form : SpcForm) : String =
   {

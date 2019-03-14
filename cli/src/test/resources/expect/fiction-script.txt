@@ -60,7 +60,7 @@ You see the thief.
 
 Yes, he is alive.
 
-> throw the ax to the thief
+> throw the ax at the thief
 
 OK.
 
