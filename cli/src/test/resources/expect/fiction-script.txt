@@ -48,6 +48,10 @@ You see the thief and the ax.
 
 OK.
 
+> where is the ax
+
+It is in you.
+
 > inventory
 
 You are holding the ax.
