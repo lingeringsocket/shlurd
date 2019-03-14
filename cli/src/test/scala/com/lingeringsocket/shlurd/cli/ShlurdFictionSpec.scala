@@ -44,16 +44,9 @@ class ShlurdFictionSpec extends Specification
       }
       val mind = ShlurdFictionShell.newMind
       val terminal = new ShlurdFictionTerminal {
-        override def emitPrompt()
-        {
-        }
-
-        override def emitControl(msg : String)
-        {
-        }
-
         override def emitNarrative(msg : String)
         {
+          super.emitNarrative(msg)
           if (!msg.isEmpty) {
             nextScriptLine match {
               case Some((expected, lineNo)) => {
@@ -72,7 +65,7 @@ class ShlurdFictionSpec extends Specification
           }
         }
 
-        override def readCommand() : Option[String] =
+        override def readInput() : Option[String] =
         {
           nextScriptLine.map(_._1.stripPrefix("> "))
         }

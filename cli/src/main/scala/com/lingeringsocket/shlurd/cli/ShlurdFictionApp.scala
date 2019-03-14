@@ -24,6 +24,8 @@ import scala.collection._
 
 import java.io._
 
+import org.slf4j._
+
 object ShlurdFictionAliases
 {
   val map = Map(
@@ -72,31 +74,12 @@ object ShlurdFictionApp extends App
   shell.run
 }
 
-class ShlurdFictionTerminal
-{
-  def emitPrompt()
-  {
-    print("> ")
-  }
-
-  def emitControl(msg : String)
-  {
-    println(s"[SIF] $msg")
-  }
-
-  def emitNarrative(msg : String)
-  {
-    println(msg)
-  }
-
-  def readCommand() : Option[String] =
-  {
-    Option(StdIn.readLine)
-  }
-}
-
 object ShlurdFictionShell
 {
+  val logger =
+    LoggerFactory.getLogger(
+      classOf[ShlurdFictionShell])
+
   val PLAYER_WORD = "player-character"
 
   val INTERPRETER_WORD = "game-interpreter"
@@ -105,7 +88,7 @@ object ShlurdFictionShell
 
   def loadOrCreate(file : File) : (ShlurdCliMind, Boolean) =
   {
-    val terminal = new ShlurdFictionTerminal
+    val terminal = new ShlurdFictionConsole
     if (file.exists) {
       terminal.emitControl("Reloading...")
       val serializer = new ShlurdCliSerializer
@@ -138,9 +121,42 @@ object ShlurdFictionShell
   }
 }
 
+class ShlurdFictionInterpreter(
+  mind : SpcMind,
+  beliefAcceptance : SpcBeliefAcceptance,
+  params : SmcResponseParams,
+  executor : SmcExecutor[SpcEntity])
+    extends SpcInterpreter(mind, beliefAcceptance, params, executor)
+{
+  import ShlurdFictionShell.logger
+
+  override protected def spawn(subMind : SpcMind) =
+  {
+    new ShlurdFictionInterpreter(
+      subMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
+  }
+
+  override protected def checkCycle(
+    predicate : SilPredicate,
+    seen : mutable.Set[SilPredicate],
+    isPrecondition : Boolean) : Boolean =
+  {
+    if (logger.isTraceEnabled) {
+      val printed = sentencePrinter.printPredicateStatement(
+        predicate, SilTam.indicative)
+      if (isPrecondition) {
+        logger.trace(s"VERIFY $printed")
+      } else {
+        logger.trace(s"TRIGGER $printed")
+      }
+    }
+    super.checkCycle(predicate, seen)
+  }
+}
+
 class ShlurdFictionShell(
   mind : ShlurdCliMind,
-  terminal : ShlurdFictionTerminal = new ShlurdFictionTerminal)
+  terminal : ShlurdFictionTerminal = new ShlurdFictionConsole)
 {
   import ShlurdFictionShell._
 
@@ -226,27 +242,21 @@ class ShlurdFictionShell(
     }
   }
 
-  private val beliefInterpreter = new SpcInterpreter(
+  private val sentencePrinter = new SilSentencePrinter
+
+  private val beliefInterpreter = new ShlurdFictionInterpreter(
     mind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private val interpreter = new SpcInterpreter(
+  private val interpreter = new ShlurdFictionInterpreter(
     mind, ACCEPT_NO_BELIEFS, params, executor)
-  {
-    override protected def spawn(subMind : SpcMind) =
-    {
-      new SpcInterpreter(subMind, ACCEPT_MODIFIED_BELIEFS, params)
-    }
-  }
 
   private def interpretReentrantFiat(sentence : SilSentence) : String =
   {
+    if (logger.isTraceEnabled) {
+      val printed = sentencePrinter.print(sentence)
+      logger.trace(s"FIAT $printed")
+    }
     beliefInterpreter.interpret(sentence)
-  }
-
-  private def interpretReentrantQuery(query : String) : String =
-  {
-    val sentence = interpreter.newParser(query).parseOne
-    interpreter.interpret(sentence, query)
   }
 
   private def defer(deferred : Deferred)
@@ -273,9 +283,11 @@ class ShlurdFictionShell(
     while (deferredQueue.nonEmpty) {
       deferredQueue.dequeue match {
         case DeferredTrigger(input) => {
+          logger.trace(s"INTERPRET $input")
           val sentences = mind.newParser(preprocess(input)).parseAll
           sentences.foreach(sentence => {
             var output = interpreter.interpret(mind.analyzeSense(sentence))
+            logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
             if (first) {
               first = false
@@ -350,5 +362,65 @@ class ShlurdFictionShell(
     // don't serialize conversation since that could be an extra source of
     // deserialization problems later
     mind.stopConversation
+  }
+}
+
+trait ShlurdFictionTerminal
+{
+  import ShlurdFictionShell.logger
+
+  def emitPrompt()
+  {
+    logger.trace("PROMPT")
+  }
+
+  def emitControl(msg : String)
+  {
+    logger.trace(s"CONTROL $msg")
+  }
+
+  def emitNarrative(msg : String)
+  {
+    if (!msg.isEmpty) {
+      logger.debug(s"NARRATIVE $msg")
+    }
+  }
+
+  def readCommand() : Option[String] =
+  {
+    val result = readInput
+    result.foreach(cmd => logger.debug(s"INPUT $cmd"))
+    result
+  }
+
+  def readInput() : Option[String] =
+  {
+    None
+  }
+}
+
+class ShlurdFictionConsole extends ShlurdFictionTerminal
+{
+  override def emitPrompt()
+  {
+    super.emitPrompt
+    print("> ")
+  }
+
+  override def emitControl(msg : String)
+  {
+    super.emitControl(msg)
+    println(s"[SIF] $msg")
+  }
+
+  override def emitNarrative(msg : String)
+  {
+    super.emitNarrative(msg)
+    println(msg)
+  }
+
+  override def readInput() : Option[String] =
+  {
+    Option(StdIn.readLine)
   }
 }

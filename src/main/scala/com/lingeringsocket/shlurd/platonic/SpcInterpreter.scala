@@ -411,13 +411,15 @@ class SpcInterpreter(
       forkedCosmos, conditionalSentence, predicate, referenceMapOpt.get) match
     {
       case Some(newPredicate) => {
-        if (checkCycle(newPredicate, already)) {
+        val isPrecondition =
+          (conditionalSentence.tamConsequent.modality == MODAL_MUST)
+        if (checkCycle(newPredicate, already, isPrecondition)) {
           return Some(sentencePrinter.sb.circularAction)
         }
         val newSentence = SilPredicateSentence(newPredicate)
         spawn(imagine(forkedCosmos)).resolveReferences(
           newSentence, resultCollector, false, true)
-        if (conditionalSentence.tamConsequent.modality == MODAL_MUST) {
+        if (isPrecondition) {
           evaluateTamPredicate(
             newPredicate, SilTam.indicative, resultCollector) match
           {
@@ -463,9 +465,10 @@ class SpcInterpreter(
     }
   }
 
-  private def checkCycle(
+  protected def checkCycle(
     predicate : SilPredicate,
-    seen : mutable.Set[SilPredicate]) : Boolean =
+    seen : mutable.Set[SilPredicate],
+    isPrecondition : Boolean = false) : Boolean =
   {
     // FIXME make limit configurable and add test
     if (seen.contains(predicate) || (seen.size > 100)) {
