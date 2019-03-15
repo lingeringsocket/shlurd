@@ -334,6 +334,10 @@ class SpcInterpreter(
     }
   }
 
+  protected def publishBelief(belief : SpcBelief)
+  {
+  }
+
   private def attemptAsBelief(
     beliefInterpreter : SpcBeliefInterpreter,
     sentence : SilSentence) : Option[String] =
@@ -342,6 +346,7 @@ class SpcInterpreter(
       case beliefs : Seq[SpcBelief] if (!beliefs.isEmpty) => {
         beliefs.foreach(belief => {
           debug(s"APPLYING NEW BELIEF : $belief")
+          publishBelief(belief)
           try {
             beliefInterpreter.applyBelief(belief)
           } catch {

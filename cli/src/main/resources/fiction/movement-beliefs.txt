@@ -3,9 +3,14 @@ Import "/fiction/map-beliefs.txt".
 If a player-character moves to a map-place, then
  the map-place must be the player-character's container's map-neighbor;
  otherwise the game-interpreter complains "You can't get there from here.".
-If a game-character moves to a map-place, then the game-character is in the map-place.
-If a game-character enters a map-location, then the game-character moves to the map-location.
-If a player-character moves to a map-place, then the player-character asks "where am I".
+If a game-character moves to a map-place, then
+ the game-character is in the map-place.
+If a game-character enters a map-location, then
+ the game-character moves to the map-location.
+If a player-character moves to a map-place, then
+ the player-character asks "where am I".
+If a player-character moves to a map-place, then
+ the player-character perceives "the player-character's container's spc-contained-objects".
 
 If a game-character goes east, then
  the game-character's container must have an eastern-neighbor;

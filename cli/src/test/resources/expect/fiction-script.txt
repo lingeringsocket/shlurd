@@ -6,6 +6,14 @@ You are in the bedroom.
 
 You are holding nothing.
 
+> is any thief alive
+
+No, no thief is alive.
+
+> what is east of the bedroom
+
+The bathroom is east of the bedroom.
+
 > is the door open
 
 Yes, it is open.
@@ -38,7 +46,7 @@ There is no way to the east.
 
 > what is in the bathroom
 
-The thief, the player-character, and the ax are in the bathroom.
+The player-character, the thief, and the ax are in the bathroom.
 
 > what do I see
 
@@ -100,7 +108,7 @@ You are in the kitchen.
 
 > what is in the kitchen
 
-The brass lantern and the player-character are in the kitchen.
+The player-character and the brass lantern are in the kitchen.
 
 > acquire the lantern
 

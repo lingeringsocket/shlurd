@@ -22,3 +22,6 @@ The lantern is in the kitchen.
 
 The big door is the bedroom's eastern-door.
 The big door is the bathroom's western-door.
+
+The player-character perceives "the bedroom".
+The player-character perceives "the big door".

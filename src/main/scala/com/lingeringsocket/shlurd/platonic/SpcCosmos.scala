@@ -225,9 +225,11 @@ class SpcCosmos(
 
   def getGraph = unmodifiableGraph
 
+  protected[platonic] def getModifiableGraph = graph
+
   def getPool = pool
 
-  private def getIdGenerator = pool.idGenerator
+  private[platonic] def getIdGenerator = pool.idGenerator
 
   protected[platonic] def annotateFormAssoc(
     edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint,
@@ -259,7 +261,7 @@ class SpcCosmos(
     frozen
   }
 
-  protected[platonic] def copyFrom(src : SpcCosmos)
+  def copyFrom(src : SpcCosmos)
   {
     assert(getIdGenerator.get == 0)
     val dstGraphs = graph.getGraphs

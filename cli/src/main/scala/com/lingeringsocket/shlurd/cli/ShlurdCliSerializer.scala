@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.platonic._
@@ -99,6 +100,21 @@ class ShlurdCliSerializer
     zos.putNextEntry(new ZipEntry(entry))
     writeEntry(zos)
     zos.closeEntry
+  }
+
+  def loadMindPair(file : File) : (ShlurdCliMind, ShlurdCliMind) =
+  {
+    val zis = new ZipInputStream(new FileInputStream(file))
+    try {
+      val nextEntry = zis.getNextEntry
+      assert(nextEntry.getName == KRYO_ENTRY)
+      val input = new Input(zis)
+      val mind1 = kryo.readObject(input, classOf[ShlurdCliMind])
+      val mind2 = kryo.readObject(input, classOf[ShlurdCliMind])
+      tupleN((mind1, mind2))
+    } finally {
+      zis.close
+    }
   }
 
   def loadMind(file : File) : ShlurdCliMind =

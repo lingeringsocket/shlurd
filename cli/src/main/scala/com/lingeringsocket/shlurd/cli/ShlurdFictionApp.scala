@@ -66,8 +66,9 @@ object ShlurdFictionAliases
 object ShlurdFictionApp extends App
 {
   val file = new File("run/shlurd-fiction.zip")
-  val (mind, init) = ShlurdFictionShell.loadOrCreate(file)
-  val shell = new ShlurdFictionShell(mind)
+  val (phenomenalMind, noumenalMind, init) =
+    ShlurdFictionShell.loadOrCreate(file)
+  val shell = new ShlurdFictionShell(phenomenalMind, noumenalMind)
   if (init) {
     shell.init
   }
@@ -86,42 +87,53 @@ object ShlurdFictionShell
 
   val OK = "OK."
 
-  def loadOrCreate(file : File) : (ShlurdCliMind, Boolean) =
+  def loadOrCreate(file : File) : (ShlurdCliMind, ShlurdCliMind, Boolean) =
   {
     val terminal = new ShlurdFictionConsole
     if (file.exists) {
       terminal.emitControl("Reloading...")
       val serializer = new ShlurdCliSerializer
-      val oldMind = serializer.loadMind(file)
+      val (oldPhenomenalMind, oldNoumenalMind) = serializer.loadMindPair(file)
       terminal.emitControl("Reload complete.")
-      tupleN((oldMind, false))
+      tupleN((oldPhenomenalMind, oldNoumenalMind, false))
     } else {
       terminal.emitControl("Initializing...")
-      tupleN((newMind, true))
+      val (newPhenomenalMind, newNoumenalMind) = createNewCosmos
+      tupleN((newPhenomenalMind, newNoumenalMind, true))
     }
   }
 
-  def newMind() : ShlurdCliMind =
+  def createNewCosmos() : (ShlurdCliMind, ShlurdCliMind) =
   {
-    val cosmos = ShlurdPrimordialWordnet.loadCosmos
+    val noumenalCosmos = ShlurdPrimordialWordnet.loadCosmos
     val beliefs = ResourceUtils.getResourceFile(
       "/example-fiction/game-beliefs.txt")
     val source = Source.fromFile(beliefs)
-    val bootMind = new SpcWordnetMind(cosmos)
+    val bootMind = new SpcWordnetMind(noumenalCosmos)
     bootMind.loadBeliefs(source)
 
-    val entityPlayer = cosmos.uniqueEntity(
-      cosmos.resolveQualifiedNoun(
+    val entityPlayer = noumenalCosmos.uniqueEntity(
+      noumenalCosmos.resolveQualifiedNoun(
         PLAYER_WORD, REF_SUBJECT, Set())).get
-    val entityInterpreter = cosmos.uniqueEntity(
-      cosmos.resolveQualifiedNoun(
+    val entityInterpreter = noumenalCosmos.uniqueEntity(
+      noumenalCosmos.resolveQualifiedNoun(
         INTERPRETER_WORD, REF_SUBJECT, Set())).get
 
-    new ShlurdCliMind(cosmos, entityPlayer, entityInterpreter)
+    val noumenalMind = new ShlurdCliMind(
+      noumenalCosmos, entityPlayer, entityInterpreter)
+
+    val phenomenalCosmos = new SpcCosmos
+    phenomenalCosmos.copyFrom(noumenalCosmos)
+    val phenomenalMind = new ShlurdCliMind(
+      phenomenalCosmos, entityPlayer, entityInterpreter)
+
+    tupleN((phenomenalMind, noumenalMind))
   }
 }
 
 class ShlurdFictionInterpreter(
+  shell : ShlurdFictionShell,
+  propagateBeliefs : Boolean,
   mind : SpcMind,
   beliefAcceptance : SpcBeliefAcceptance,
   params : SmcResponseParams,
@@ -130,10 +142,20 @@ class ShlurdFictionInterpreter(
 {
   import ShlurdFictionShell.logger
 
+  override protected def publishBelief(belief : SpcBelief)
+  {
+    val printed = sentencePrinter.print(belief.sentence)
+    logger.trace(s"BELIEF $printed")
+    if (propagateBeliefs) {
+      shell.deferPhenomenon(printed)
+    }
+  }
+
   override protected def spawn(subMind : SpcMind) =
   {
     new ShlurdFictionInterpreter(
-      subMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
+      shell, propagateBeliefs, subMind,
+      ACCEPT_MODIFIED_BELIEFS, params, executor)
   }
 
   override protected def checkCycle(
@@ -155,7 +177,8 @@ class ShlurdFictionInterpreter(
 }
 
 class ShlurdFictionShell(
-  mind : ShlurdCliMind,
+  phenomenalMind : ShlurdCliMind,
+  noumenalMind : ShlurdCliMind,
   terminal : ShlurdFictionTerminal = new ShlurdFictionConsole)
 {
   import ShlurdFictionShell._
@@ -163,11 +186,15 @@ class ShlurdFictionShell(
   sealed trait Deferred {
   }
 
-  case class DeferredTrigger(quotation : String) extends Deferred
+  case class DeferredCommand(quotation : String) extends Deferred
 
   case class DeferredReport(quotation : String) extends Deferred
 
   case class DeferredComplaint(quotation : String) extends Deferred
+
+  case class DeferredPerception(quotation : String) extends Deferred
+
+  case class DeferredPhenomenon(belief : String) extends Deferred
 
   private val params = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
 
@@ -187,11 +214,16 @@ class ShlurdFictionShell(
               val ok = Some(OK)
               inflected match {
                 case PLAYER_WORD => {
-                  if (lemma == "ask") {
-                    defer(DeferredTrigger(quotation))
-                    ok
-                  } else {
-                    None
+                  lemma match {
+                    case "ask" => {
+                      defer(DeferredCommand(quotation))
+                      ok
+                    }
+                    case "perceive" => {
+                      defer(DeferredPerception(quotation))
+                      ok
+                    }
+                    case _ => None
                   }
                 }
                 case INTERPRETER_WORD => {
@@ -226,7 +258,7 @@ class ShlurdFictionShell(
         case _ => predicate
       }
       val sentence = SilPredicateSentence(newPredicate)
-      Some(interpretReentrantFiat(sentence))
+      Some(interpretFiat(sentence))
     }
 
     override def executeInvocation(
@@ -234,47 +266,78 @@ class ShlurdFictionShell(
     {
       val sentence = SilPredicateSentence(
         SilStatePredicate(
-          mind.specificReferences(invocation.entities),
+          noumenalMind.specificReferences(invocation.entities),
           SilPropertyState(invocation.state)
         )
       )
-      interpretReentrantFiat(sentence)
+      interpretFiat(sentence)
     }
   }
 
   private val sentencePrinter = new SilSentencePrinter
 
-  private val beliefInterpreter = new ShlurdFictionInterpreter(
-    mind, ACCEPT_MODIFIED_BELIEFS, params, executor)
+  private val noumenalInitializer = new ShlurdFictionInterpreter(
+    this, false, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private val interpreter = new ShlurdFictionInterpreter(
-    mind, ACCEPT_NO_BELIEFS, params, executor)
+  private val noumenalUpdater = new ShlurdFictionInterpreter(
+    this, true, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private def interpretReentrantFiat(sentence : SilSentence) : String =
+  private val phenomenalInterpreter = new ShlurdFictionInterpreter(
+    this, false, phenomenalMind, ACCEPT_NO_BELIEFS, params, executor)
+
+  private val phenomenalUpdater = new ShlurdFictionInterpreter(
+    this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
+
+  private val perception = new SpcPerception(
+    noumenalMind.getCosmos,
+    phenomenalMind.getCosmos)
+
+  private def interpretFiat(sentence : SilSentence) : String =
   {
     if (logger.isTraceEnabled) {
       val printed = sentencePrinter.print(sentence)
       logger.trace(s"FIAT $printed")
     }
-    beliefInterpreter.interpret(sentence)
+    noumenalUpdater.interpret(sentence)
   }
 
-  private def defer(deferred : Deferred)
+  def defer(deferred : Deferred)
   {
     deferredQueue += deferred
   }
 
+  def deferPhenomenon(belief : String)
+  {
+    defer(DeferredPhenomenon(belief))
+  }
+
   def init()
   {
+    initMind(
+      noumenalMind,
+      noumenalInitializer,
+      "/example-fiction/game-init.txt")
+    initMind(
+      phenomenalMind,
+      phenomenalUpdater,
+      "/example-fiction/player-init.txt")
+    terminal.emitControl("Initialization complete.")
+  }
+
+  private def initMind(
+    mind : ShlurdCliMind,
+    interpreter : ShlurdFictionInterpreter,
+    resourceName : String)
+  {
     val source = Source.fromFile(
-      ResourceUtils.getResourceFile("/example-fiction/game-init.txt"))
+      ResourceUtils.getResourceFile(resourceName))
     val sentences = mind.newParser(
       source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
     sentences.foreach(sentence => {
-      val output = beliefInterpreter.interpret(mind.analyzeSense(sentence))
+      val output = interpreter.interpret(mind.analyzeSense(sentence))
       assert(output == OK, output)
+      processDeferred
     })
-    terminal.emitControl("Initialization complete.")
   }
 
   private def processDeferred()
@@ -282,11 +345,16 @@ class ShlurdFictionShell(
     var first = true
     while (deferredQueue.nonEmpty) {
       deferredQueue.dequeue match {
-        case DeferredTrigger(input) => {
+        case DeferredCommand(input) => {
           logger.trace(s"INTERPRET $input")
-          val sentences = mind.newParser(preprocess(input)).parseAll
+          val expanded = preprocess(input)
+          if (expanded != input) {
+            logger.trace(s"EXPANDED $expanded")
+          }
+          val sentences = phenomenalMind.newParser(expanded).parseAll
           sentences.foreach(sentence => {
-            var output = interpreter.interpret(mind.analyzeSense(sentence))
+            var output = phenomenalInterpreter.interpret(
+              phenomenalMind.analyzeSense(sentence))
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
             if (first) {
@@ -308,6 +376,15 @@ class ShlurdFictionShell(
             }
           })
         }
+        case DeferredPhenomenon(belief) => {
+          logger.trace(s"PHENOMENON $belief")
+          val sentences = phenomenalMind.newParser(preprocess(belief)).parseAll
+          sentences.foreach(sentence => {
+            var output = phenomenalUpdater.interpret(
+              phenomenalMind.analyzeSense(sentence))
+            assert(output == OK, output)
+          })
+        }
         case DeferredReport(report) => {
           terminal.emitNarrative("")
           terminal.emitNarrative(report)
@@ -317,6 +394,20 @@ class ShlurdFictionShell(
           terminal.emitNarrative("OOPS")
           terminal.emitNarrative("")
           terminal.emitNarrative(complaint)
+        }
+        case DeferredPerception(percepts) => {
+          logger.trace(s"PERCEIVE $percepts")
+          val sentence = noumenalMind.newParser(s"perceive $percepts").parseOne
+          val resultCollector = SmcResultCollector[SpcEntity]()
+          val result = noumenalUpdater.resolveReferences(
+            noumenalMind.analyzeSense(sentence),
+            resultCollector,
+            true).get
+          assert(result.isTrue)
+          resultCollector.referenceMap.values.flatten.foreach(entity => {
+            perception.perceiveEntityAssociations(entity)
+            perception.perceiveEntityProperties(entity)
+          })
         }
       }
     }
@@ -341,14 +432,14 @@ class ShlurdFictionShell(
 
   def run()
   {
-    mind.startConversation
+    phenomenalMind.startConversation
     var exit = false
     terminal.emitNarrative("")
     while (!exit) {
       terminal.emitPrompt
       terminal.readCommand match {
         case Some(input) => {
-          defer(DeferredTrigger(input))
+          defer(DeferredCommand(input))
           processDeferred
           terminal.emitNarrative("")
         }
@@ -361,7 +452,7 @@ class ShlurdFictionShell(
     terminal.emitControl("Saving...NOT!")
     // don't serialize conversation since that could be an extra source of
     // deserialization problems later
-    mind.stopConversation
+    phenomenalMind.stopConversation
   }
 }
 

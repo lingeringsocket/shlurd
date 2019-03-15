@@ -254,6 +254,10 @@ class SmcMind[
     Seq(specificReference(entity, determiner))
   }
 
+  def getFirstPerson = personFirst.get
+
+  def getSecondPerson = personSecond.get
+
   def thirdPersonReference(entities : Set[EntityType]) : Option[SilReference] =
   {
     if (entities.isEmpty) {

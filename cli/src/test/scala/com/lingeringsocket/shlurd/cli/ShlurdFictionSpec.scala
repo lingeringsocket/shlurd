@@ -42,7 +42,8 @@ class ShlurdFictionSpec extends Specification
           }
         }
       }
-      val mind = ShlurdFictionShell.newMind
+      val (phenomenalMind, noumenalMind) =
+        ShlurdFictionShell.createNewCosmos
       val terminal = new ShlurdFictionTerminal {
         override def emitNarrative(msg : String)
         {
@@ -70,7 +71,8 @@ class ShlurdFictionSpec extends Specification
           nextScriptLine.map(_._1.stripPrefix("> "))
         }
       }
-      val shell = new ShlurdFictionShell(mind, terminal)
+      val shell = new ShlurdFictionShell(
+        phenomenalMind, noumenalMind, terminal)
       shell.init
       shell.run
       nextScriptLine must beEmpty
