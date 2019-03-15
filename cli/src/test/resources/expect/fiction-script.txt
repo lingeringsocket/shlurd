@@ -6,9 +6,9 @@ You are in the bedroom.
 
 You are holding nothing.
 
-> is any thief alive
+> where is the ax
 
-No, no thief is alive.
+But I don't know about any such ax.
 
 > what is east of the bedroom
 
@@ -137,6 +137,10 @@ You are holding the brass lantern.
 > I am holding the ax
 
 Oh, really?
+
+> where is the ax
+
+It is in the bathroom.
 
 > I am holding the lantern
 

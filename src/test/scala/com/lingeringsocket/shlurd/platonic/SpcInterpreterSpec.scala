@@ -512,6 +512,12 @@ class SpcInterpreterSpec extends Specification
       interpretTerse("how many women are in Herbie", "No women.")
       interpretTerse("how many men are in Christine", "No men.")
       interpretTerse("how many women are in Christine", "Two of them.")
+      interpretMatrix(
+        "where is the helicopter",
+        "But I don't know about any such helicopter.",
+        "But I don't know about any such helicopter.",
+        "But I don't know about any such helicopter.",
+        "But I don't know about any such helicopter.")
       cosmos.sanityCheck must beTrue
     }
 

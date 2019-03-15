@@ -482,7 +482,9 @@ class SmcPredicateEvaluator[
       reference, SprUtils.orderedSet(entities))
     determiner match {
       case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
-        if (entities.isEmpty && (context == REF_SUBJECT)) {
+        if (entities.isEmpty &&
+          ((context == REF_SUBJECT) || (determiner == DETERMINER_UNIQUE))
+        ) {
           fail(sentencePrinter.sb.respondNonexistent(noun))
         } else {
           count match {
