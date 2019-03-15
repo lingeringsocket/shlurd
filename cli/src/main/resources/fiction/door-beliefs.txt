@@ -17,3 +17,12 @@ If a game-character goes east, then
  the game-character traverses the game-character's container's eastern-door.
 If a game-character goes west, then
  the game-character traverses the game-character's container's western-door.
+
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place's northern-door.
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place's southern-door.
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place's eastern-door.
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place's western-door.

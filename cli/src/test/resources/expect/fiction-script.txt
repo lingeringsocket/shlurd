@@ -46,11 +46,11 @@ There is no way to the east.
 
 > what is in the bathroom
 
-The player-character, the thief, and the ax are in the bathroom.
+The player-character, the ax, and the thief are in the bathroom.
 
 > what do I see
 
-You see the thief and the ax.
+You see the ax and the thief.
 
 > get the ax
 
@@ -98,7 +98,7 @@ It is in the bathroom.
 
 > what is in the bathroom
 
-The thief and the ax are in the bathroom.
+The ax and the thief are in the bathroom.
 
 > west
 

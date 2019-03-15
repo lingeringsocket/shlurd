@@ -172,7 +172,42 @@ class ShlurdFictionInterpreter(
         logger.trace(s"TRIGGER $printed")
       }
     }
-    super.checkCycle(predicate, seen)
+    if (!isPrecondition) {
+      predicate match {
+        case ap : SilActionPredicate => {
+          val lemma = ap.action.lemma
+          ap.subject match {
+            case SilNounReference(
+              SilWordInflected(inflected), DETERMINER_UNIQUE, COUNT_SINGULAR
+            ) => {
+              inflected match {
+                case ShlurdFictionShell.PLAYER_WORD => {
+                  lemma match {
+                    case "perceive" => {
+                      ap.directObject.foreach(ref => {
+                        val resultCollector = SmcResultCollector[SpcEntity]()
+                        val result = resolveReferences(
+                          SilStatePredicate(ref, SilExistenceState()),
+                          resultCollector,
+                          true).get
+                        assert(result.isTrue)
+                        shell.deferPerception(
+                          resultCollector.referenceMap(ref))
+                      })
+                    }
+                    case _ =>
+                  }
+                }
+                case _ =>
+              }
+            }
+            case _ =>
+          }
+        }
+        case _ =>
+      }
+    }
+    super.checkCycle(predicate, seen, isPrecondition)
   }
 }
 
@@ -192,7 +227,7 @@ class ShlurdFictionShell(
 
   case class DeferredComplaint(quotation : String) extends Deferred
 
-  case class DeferredPerception(quotation : String) extends Deferred
+  case class DeferredPerception(entities : Set[SpcEntity]) extends Deferred
 
   case class DeferredPhenomenon(belief : String) extends Deferred
 
@@ -217,10 +252,6 @@ class ShlurdFictionShell(
                   lemma match {
                     case "ask" => {
                       defer(DeferredCommand(quotation))
-                      ok
-                    }
-                    case "perceive" => {
-                      defer(DeferredPerception(quotation))
                       ok
                     }
                     case _ => None
@@ -311,6 +342,11 @@ class ShlurdFictionShell(
     defer(DeferredPhenomenon(belief))
   }
 
+  def deferPerception(entities : Set[SpcEntity])
+  {
+    defer(DeferredPerception(entities))
+  }
+
   def init()
   {
     initMind(
@@ -395,16 +431,9 @@ class ShlurdFictionShell(
           terminal.emitNarrative("")
           terminal.emitNarrative(complaint)
         }
-        case DeferredPerception(percepts) => {
-          logger.trace(s"PERCEIVE $percepts")
-          val sentence = noumenalMind.newParser(s"perceive $percepts").parseOne
-          val resultCollector = SmcResultCollector[SpcEntity]()
-          val result = noumenalUpdater.resolveReferences(
-            noumenalMind.analyzeSense(sentence),
-            resultCollector,
-            true).get
-          assert(result.isTrue)
-          resultCollector.referenceMap.values.flatten.foreach(entity => {
+        case DeferredPerception(entities) => {
+          logger.trace(s"PERCEIVE $entities")
+          entities.toSeq.sortBy(_.name).foreach(entity => {
             perception.perceiveEntityAssociations(entity)
             perception.perceiveEntityProperties(entity)
           })

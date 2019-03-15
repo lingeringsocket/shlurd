@@ -10,7 +10,10 @@ If a game-character enters a map-location, then
 If a player-character moves to a map-place, then
  the player-character asks "where am I".
 If a player-character moves to a map-place, then
- the player-character perceives "the player-character's container's spc-contained-objects".
+ the player-character surveys the map-place.
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place and
+  the map-place's spc-contained-objects.
 
 If a game-character goes east, then
  the game-character's container must have an eastern-neighbor;

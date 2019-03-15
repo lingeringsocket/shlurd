@@ -418,7 +418,9 @@ class SpcInterpreter(
       case Some(newPredicate) => {
         val isPrecondition =
           (conditionalSentence.tamConsequent.modality == MODAL_MUST)
-        if (checkCycle(newPredicate, already, isPrecondition)) {
+        if (checkCycle(
+          newPredicate, already, isPrecondition)
+        ) {
           return Some(sentencePrinter.sb.circularAction)
         }
         val newSentence = SilPredicateSentence(newPredicate)
