@@ -104,7 +104,7 @@ class ShlurdCliShell(
 {
   private val params = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
 
-  private val interpreter = new SpcInterpreter(
+  private val responder = new SpcResponder(
     mind, ACCEPT_MODIFIED_BELIEFS, params)
 
   def run()
@@ -118,7 +118,7 @@ class ShlurdCliShell(
         case Some(input) => {
           val sentences = mind.newParser(input).parseAll
           sentences.foreach(sentence => {
-            val output = interpreter.interpret(sentence)
+            val output = responder.process(sentence)
             terminal.emitControl("")
             terminal.emitResponse(output)
             terminal.emitControl("")

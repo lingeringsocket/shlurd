@@ -37,12 +37,12 @@ class SpcCreedSpec extends Specification
     {
       val sentence = cosmos.newParser(input).parseOne
       val mind = new SpcMind(cosmos)
-      val interpreter = new SpcInterpreter(mind)
+      val responder = new SpcResponder(mind)
       val resultCollector = SmcResultCollector[SpcEntity]()
-      interpreter.resolveReferences(sentence, resultCollector)
-      val beliefInterpreter = new SpcBeliefInterpreter(
+      responder.resolveReferences(sentence, resultCollector)
+      val beliefAccepter = new SpcBeliefAccepter(
         mind, false, resultCollector)
-      beliefInterpreter.interpretBelief(sentence)
+      beliefAccepter.processBelief(sentence)
     }
 
     protected def expectPreserved(
@@ -61,16 +61,16 @@ class SpcCreedSpec extends Specification
       beliefStrings.foreach(beliefString => {
         val sentence = cosmos.newParser(beliefString).parseOne
         val refriedMind = new SpcMind(refriedCosmos)
-        val refriedInterpreter =
-          new SpcInterpreter(refriedMind)
+        val refriedResponder =
+          new SpcResponder(refriedMind)
         val resultCollector = SmcResultCollector[SpcEntity]()
-        refriedInterpreter.resolveReferences(sentence, resultCollector)
-        val refriedBeliefInterpreter =
-          new SpcBeliefInterpreter(refriedMind, false, resultCollector)
+        refriedResponder.resolveReferences(sentence, resultCollector)
+        val refriedBeliefAccepter =
+          new SpcBeliefAccepter(refriedMind, false, resultCollector)
         val refriedBeliefs =
-          refriedBeliefInterpreter.recognizeBeliefs(sentence)
+          refriedBeliefAccepter.recognizeBeliefs(sentence)
         refriedBeliefs.foreach(belief => {
-          refriedBeliefInterpreter.applyBelief(belief)
+          refriedBeliefAccepter.applyBelief(belief)
         })
       })
       val refriedStrings = refriedCreed.allBeliefs.map(s => printer.print(s))

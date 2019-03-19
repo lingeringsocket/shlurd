@@ -23,7 +23,7 @@ import scala.collection.JavaConverters._
 
 import org.jgrapht.alg.shortestpath._
 
-class SpcBeliefInterpreter(
+class SpcBeliefAccepter(
   mind : SpcMind,
   allowUpdates : Boolean = false,
   resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
@@ -37,7 +37,7 @@ class SpcBeliefInterpreter(
 
   private var finished = false
 
-  def interpretBelief(sentence : SilSentence)
+  def processBelief(sentence : SilSentence)
   {
     assert(!finished)
     finished = true

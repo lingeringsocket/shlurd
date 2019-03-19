@@ -19,56 +19,56 @@ import com.lingeringsocket.shlurd.mind._
 import org.specs2.mutable._
 import org.specs2.specification._
 
-class SpcMetaInterpreterSpec extends Specification
+class SpcMetaReflectorSpec extends Specification
 {
-  class MetaInterpreterContext extends Scope
+  class MetaReflectorContext extends Scope
   {
     protected val cosmos = new SpcCosmos
     SpcPrimordial.initCosmos(cosmos)
 
     protected val mind = new SpcMind(cosmos)
 
-    protected val interpreter =
-      new SpcInterpreter(
+    protected val responder =
+      new SpcResponder(
         mind, ACCEPT_MODIFIED_BELIEFS,
         SmcResponseParams(verbosity = RESPONSE_TERSE))
 
-    protected def interpret(input : String, expected : String) =
+    protected def process(input : String, expected : String) =
     {
-      val sentence = interpreter.newParser(input).parseOne
-      interpreter.interpret(sentence, input) must be equalTo(expected)
+      val sentence = responder.newParser(input).parseOne
+      responder.process(sentence, input) must be equalTo(expected)
     }
 
-    protected def interpretBelief(input : String) =
+    protected def processBelief(input : String) =
     {
-      interpret(input, "OK.")
+      process(input, "OK.")
     }
   }
 
-  "SpcMetaInterpreter" should
+  "SpcMetaReflector" should
   {
-    "get all meta" in new MetaInterpreterContext
+    "get all meta" in new MetaReflectorContext
     {
-      interpretBelief("a form is an spc-form")
-      interpretBelief("an entity is an spc-entity")
-      interpretBelief("a type is an spc-type")
-      interpretBelief("a realization is an spc-realization")
-      interpretBelief("a property is an spc-property")
-      interpretBelief("an attribute is an spc-attribute")
-      interpretBelief("a value is an spc-value")
-      interpretBelief("a property-value is an spc-property-value")
-      interpretBelief("a pet's classification may be canine or feline")
-      interpretBelief("Harry is a pet")
-      interpretBelief("Harry's classification is canine")
-      interpret("which properties are SPC-Form-pet's attributes",
+      processBelief("a form is an spc-form")
+      processBelief("an entity is an spc-entity")
+      processBelief("a type is an spc-type")
+      processBelief("a realization is an spc-realization")
+      processBelief("a property is an spc-property")
+      processBelief("an attribute is an spc-attribute")
+      processBelief("a value is an spc-value")
+      processBelief("a property-value is an spc-property-value")
+      processBelief("a pet's classification may be canine or feline")
+      processBelief("Harry is a pet")
+      processBelief("Harry's classification is canine")
+      process("which properties are SPC-Form-pet's attributes",
         "SPC-Property-pet-classification.")
-      interpret(
+      process(
         "which values are SPC-Property-pet-classification's property-values",
         "SPC-Value-pet-classification-canine and " +
           "SPC-Value-pet-classification-feline.")
-      interpret("which entities are SPC-Form-pet's realizations",
+      process("which entities are SPC-Form-pet's realizations",
         "Harry.")
-      interpret("which form is Harry's type",
+      process("which form is Harry's type",
         "SPC-Form-pet.")
     }
   }

@@ -40,10 +40,10 @@ class SpcCosmosSpec extends Specification
     {
       val sentence = cosmos.newParser(input).parseOne
       val mind = new SpcMind(cosmos)
-      val interpreter = new SpcInterpreter(
+      val responder = new SpcResponder(
         mind, ACCEPT_NEW_BELIEFS,
         SmcResponseParams(throwRejectedBeliefs = true))
-      interpreter.interpret(sentence)
+      responder.process(sentence)
     }
 
     protected def expectNamedForm(name : String) =

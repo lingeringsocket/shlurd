@@ -30,31 +30,31 @@ class SpcPerceptionSpec extends Specification
     protected val perception =
       new SpcPerception(noumenalCosmos, phenomenalCosmos)
 
-    protected def interpret(input : String, cosmos : SpcCosmos) =
+    protected def process(input : String, cosmos : SpcCosmos) =
     {
       val sentence = cosmos.newParser(input).parseOne
       val mind = new SpcMind(cosmos)
-      val interpreter = new SpcInterpreter(
+      val responder = new SpcResponder(
         mind, ACCEPT_NEW_BELIEFS,
         SmcResponseParams(
           throwRejectedBeliefs = true,
           verbosity = RESPONSE_TERSE))
-      interpreter.interpret(sentence)
+      responder.process(sentence)
     }
 
-    protected def interpretNoumenal(input : String) =
+    protected def processNoumenal(input : String) =
     {
-      interpret(input, noumenalCosmos)
+      process(input, noumenalCosmos)
     }
 
-    protected def interpretPhenomenal(input : String) =
+    protected def processPhenomenal(input : String) =
     {
-      interpret(input, phenomenalCosmos)
+      process(input, phenomenalCosmos)
     }
 
-    protected def interpretBelief(input : String) =
+    protected def processBelief(input : String) =
     {
-      interpretNoumenal(input) must be equalTo "OK."
+      processNoumenal(input) must be equalTo "OK."
     }
 
     protected def expectProperName(name : String) : SpcEntity =
@@ -75,30 +75,30 @@ class SpcPerceptionSpec extends Specification
   {
     "perceive phenomena" in new PerceptionContext
     {
-      interpretBelief("a pet must be an animal")
-      interpretBelief("a person may have pets")
-      interpretBelief("a person with a pet is an owner")
-      interpretBelief("a girl is a kind of person")
-      interpretBelief("a pig is a kind of animal")
-      interpretBelief("Fern is a girl")
-      interpretBelief("a pig may be hungry or full")
+      processBelief("a pet must be an animal")
+      processBelief("a person may have pets")
+      processBelief("a person with a pet is an owner")
+      processBelief("a girl is a kind of person")
+      processBelief("a pig is a kind of animal")
+      processBelief("Fern is a girl")
+      processBelief("a pig may be hungry or full")
       phenomenalCosmos.copyFrom(noumenalCosmos)
-      interpretBelief("Wilbur is a pig")
-      interpretBelief("Wilbur is Fern's pet")
-      interpretBelief("Wilbur is hungry")
+      processBelief("Wilbur is a pig")
+      processBelief("Wilbur is Fern's pet")
+      processBelief("Wilbur is hungry")
 
       val wilbur = expectProperName("Wilbur")
       val fern = expectProperName("Fern")
 
-      interpretNoumenal("is there a pig") must be equalTo "Yes."
-      interpretNoumenal("is there a girl") must be equalTo "Yes."
-      interpretNoumenal("does Fern have a pet") must be equalTo "Yes."
-      interpretNoumenal("does Wilbur have an owner") must be equalTo "Yes."
-      interpretNoumenal("is Wilbur hungry") must be equalTo "Yes."
+      processNoumenal("is there a pig") must be equalTo "Yes."
+      processNoumenal("is there a girl") must be equalTo "Yes."
+      processNoumenal("does Fern have a pet") must be equalTo "Yes."
+      processNoumenal("does Wilbur have an owner") must be equalTo "Yes."
+      processNoumenal("is Wilbur hungry") must be equalTo "Yes."
 
-      interpretPhenomenal("is there a pig") must be equalTo "No."
-      interpretPhenomenal("is there a girl") must be equalTo "Yes."
-      interpretPhenomenal("does Fern have a pet") must be equalTo "No."
+      processPhenomenal("is there a pig") must be equalTo "No."
+      processPhenomenal("is there a girl") must be equalTo "Yes."
+      processPhenomenal("does Fern have a pet") must be equalTo "No."
 
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
@@ -108,29 +108,29 @@ class SpcPerceptionSpec extends Specification
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
 
-      interpretPhenomenal("is there a pig") must be equalTo "Yes."
-      interpretPhenomenal("is there a girl") must be equalTo "Yes."
-      interpretPhenomenal("does Fern have a pet") must be equalTo "No."
-      interpretPhenomenal("does Wilbur have an owner") must be equalTo "No."
-      interpretPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
+      processPhenomenal("is there a pig") must be equalTo "Yes."
+      processPhenomenal("is there a girl") must be equalTo "Yes."
+      processPhenomenal("does Fern have a pet") must be equalTo "No."
+      processPhenomenal("does Wilbur have an owner") must be equalTo "No."
+      processPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
 
       perception.perceiveEntityAssociations(fern)
 
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
 
-      interpretPhenomenal("is there a pig") must be equalTo "Yes."
-      interpretPhenomenal("is there a girl") must be equalTo "Yes."
-      interpretPhenomenal("does Fern have a pet") must be equalTo "Yes."
-      interpretPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
-      interpretPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
+      processPhenomenal("is there a pig") must be equalTo "Yes."
+      processPhenomenal("is there a girl") must be equalTo "Yes."
+      processPhenomenal("does Fern have a pet") must be equalTo "Yes."
+      processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
+      processPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
 
       perception.perceiveEntityProperties(wilbur)
 
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
 
-      interpretPhenomenal("is Wilbur hungry") must be equalTo "Yes."
+      processPhenomenal("is Wilbur hungry") must be equalTo "Yes."
     }
   }
 }

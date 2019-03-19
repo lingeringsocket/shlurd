@@ -31,12 +31,12 @@ case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_NEW_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_MODIFIED_BELIEFS extends SpcBeliefAcceptance
 
-class SpcInterpreter(
+class SpcResponder(
   mind : SpcMind,
   beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
   params : SmcResponseParams = SmcResponseParams(),
   executor : SmcExecutor[SpcEntity] = new SmcExecutor[SpcEntity]
-) extends SmcInterpreter[
+) extends SmcResponder[
   SpcEntity, SpcProperty, SpcCosmos, SpcMind
 ](
   mind, params, executor
@@ -51,7 +51,7 @@ class SpcInterpreter(
 
   override protected def spawn(subMind : SpcMind) =
   {
-    new SpcInterpreter(subMind, beliefAcceptance, params)
+    new SpcResponder(subMind, beliefAcceptance, params)
   }
 
   override protected def newPredicateEvaluator() =
@@ -133,12 +133,12 @@ class SpcInterpreter(
     mind.spawn(alternateCosmos.fork)
   }
 
-  override protected def interpretImpl(
+  override protected def processImpl(
     sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
     try {
-      attemptInterpret(sentence, resultCollector)
+      attemptResponse(sentence, resultCollector)
     } finally {
       already.clear
       referenceMapOpt = None
@@ -146,7 +146,7 @@ class SpcInterpreter(
     }
   }
 
-  private def attemptInterpret(
+  private def attemptResponse(
     sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
@@ -196,7 +196,7 @@ class SpcInterpreter(
       val inputSentence =
         predicateOpt.map(
           SilPredicateSentence(_, sentence.tam)).getOrElse(sentence)
-      interpretBeliefOrAction(
+      processBeliefOrAction(
         forkedCosmos, inputSentence, resultCollector
       ) match {
         case Some(result) => {
@@ -231,7 +231,7 @@ class SpcInterpreter(
     // in case we haven't done this already, need to do it now
     // in case evaluateActionPredicate is called by super
     saveReferenceMap(sentence, mind.getCosmos, resultCollector)
-    super.interpretImpl(sentence, resultCollector)
+    super.processImpl(sentence, resultCollector)
   }
 
   override protected def rewriteQuery(
@@ -294,7 +294,7 @@ class SpcInterpreter(
     frozenCosmos.asUnmodifiable
   }
 
-  private def interpretBeliefOrAction(
+  private def processBeliefOrAction(
     forkedCosmos : SpcCosmos,
     sentence : SilSentence,
     resultCollector : ResultCollectorType)
@@ -302,12 +302,12 @@ class SpcInterpreter(
   {
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
-    val beliefInterpreter =
-      new SpcBeliefInterpreter(
+    val beliefAccepter =
+      new SpcBeliefAccepter(
         mind.spawn(forkedCosmos),
         (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS),
         resultCollector)
-    attemptAsBelief(beliefInterpreter, sentence).foreach(result => {
+    attemptAsBelief(beliefAccepter, sentence).foreach(result => {
       if (result != compliance) {
         return Some(result)
       } else {
@@ -319,7 +319,7 @@ class SpcInterpreter(
     saveReferenceMap(sentence, forkedCosmos, resultCollector)
     sentence match {
       case SilPredicateSentence(predicate, _, _) => {
-        val result = interpretTriggerablePredicate(forkedCosmos, predicate)
+        val result = processTriggerablePredicate(forkedCosmos, predicate)
         if (!result.isEmpty) {
           return result
         }
@@ -339,16 +339,16 @@ class SpcInterpreter(
   }
 
   private def attemptAsBelief(
-    beliefInterpreter : SpcBeliefInterpreter,
+    beliefAccepter : SpcBeliefAccepter,
     sentence : SilSentence) : Option[String] =
   {
-    beliefInterpreter.recognizeBeliefs(sentence) match {
+    beliefAccepter.recognizeBeliefs(sentence) match {
       case beliefs : Seq[SpcBelief] if (!beliefs.isEmpty) => {
         beliefs.foreach(belief => {
           debug(s"APPLYING NEW BELIEF : $belief")
           publishBelief(belief)
           try {
-            beliefInterpreter.applyBelief(belief)
+            beliefAccepter.applyBelief(belief)
           } catch {
             case ex : RejectedBeliefExcn => {
               debug("NEW BELIEF REJECTED", ex)
@@ -371,7 +371,7 @@ class SpcInterpreter(
     }
   }
 
-  private def interpretTriggerablePredicate(
+  private def processTriggerablePredicate(
     forkedCosmos : SpcCosmos,
     predicate : SilPredicate) : Option[String] =
   {
@@ -450,7 +450,7 @@ class SpcInterpreter(
                 spawn(imagine(forkedCosmos)).resolveReferences(
                   recoverySentence, resultCollector, false, true)
                 // FIXME use recoveryResult somehow
-                val recoveryResult = interpretBeliefOrAction(
+                val recoveryResult = processBeliefOrAction(
                   forkedCosmos, recoverySentence, resultCollector)
               })
               // FIXME i18n
@@ -459,7 +459,7 @@ class SpcInterpreter(
             }
           }
         } else {
-          val result = interpretBeliefOrAction(
+          val result = processBeliefOrAction(
             forkedCosmos, newSentence, resultCollector)
           if (result.isEmpty) {
             Some(sentencePrinter.sb.respondCompliance)

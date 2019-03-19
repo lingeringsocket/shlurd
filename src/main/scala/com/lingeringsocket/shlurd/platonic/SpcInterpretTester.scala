@@ -46,13 +46,13 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
   override protected def processOne(
     input : String, answer : String) =
   {
-    val interpreter =
-      new SpcInterpreter(
+    val responder =
+      new SpcResponder(
         mind, ACCEPT_MODIFIED_BELIEFS,
         SmcResponseParams(verbosity = RESPONSE_TERSE))
 
-    val sentence = interpreter.newParser(input).parseOne
-    val response = interpreter.interpret(sentence, input)
+    val sentence = responder.newParser(input).parseOne
+    val response = responder.process(sentence, input)
     val expected = {
       if (answer.isEmpty) {
         Seq("OK.")

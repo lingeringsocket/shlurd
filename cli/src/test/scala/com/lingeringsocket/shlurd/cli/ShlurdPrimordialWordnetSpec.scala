@@ -22,24 +22,24 @@ import org.specs2.specification._
 
 class ShlurdPrimordialWordnetSpec extends Specification
 {
-  abstract class InterpreterContext extends Scope
+  abstract class ResponderContext extends Scope
   {
     protected val cosmos = ShlurdPrimordialWordnet.loadCosmos
     protected val mind = new SpcWordnetMind(cosmos)
-    protected val interpreter =
-      new SpcInterpreter(
+    protected val responder =
+      new SpcResponder(
         mind, ACCEPT_NEW_BELIEFS, SmcResponseParams())
 
-    protected def interpretBelief(input : String) =
+    protected def processBelief(input : String) =
     {
-      interpret(input, "OK.")
+      process(input, "OK.")
     }
 
-    protected def interpret(input : String, expected : String) =
+    protected def process(input : String, expected : String) =
     {
-      val sentence = interpreter.newParser(input).parseOne
+      val sentence = responder.newParser(input).parseOne
       s"pass:  $input" ==> (
-        interpreter.interpret(sentence, input) === expected)
+        responder.process(sentence, input) === expected)
     }
   }
 
@@ -75,17 +75,17 @@ class ShlurdPrimordialWordnetSpec extends Specification
       graph.isHyponym(someoneForm, androsForm) must beFalse
     }
 
-    "provide ontology to parser" in new InterpreterContext
+    "provide ontology to parser" in new ResponderContext
     {
-      interpret(
+      process(
         "which animals are there",
         "There are no animals.")
-      interpretBelief("a pokemon is a kind of animal")
-      interpretBelief("Pikachu is a pokemon")
-      interpret(
+      processBelief("a pokemon is a kind of animal")
+      processBelief("Pikachu is a pokemon")
+      process(
         "which animals are there",
         "There is Pikachu.")
-      interpret(
+      process(
         "which organisms are there",
         "There is Pikachu.")
     }

@@ -60,13 +60,13 @@ class SpcOpenhabCosmosSpec extends Specification
       }
     }
 
-    protected val interpreter =
-      new SpcInterpreter(new SpcOpenhabMind(cosmos))
+    protected val responder =
+      new SpcResponder(new SpcOpenhabMind(cosmos))
 
-    protected def interpret(input : String, expected : String) =
+    protected def process(input : String, expected : String) =
     {
-      val sentence = interpreter.newParser(input).parseOne
-      interpreter.interpret(sentence, input) must be equalTo(expected)
+      val sentence = responder.newParser(input).parseOne
+      responder.process(sentence, input) must be equalTo(expected)
     }
   }
 
@@ -149,169 +149,169 @@ class SpcOpenhabCosmosSpec extends Specification
         "Jill", false,
         Seq.empty)
 
-      interpret(
+      process(
         "is the door in the garage open",
         "Yes, it is open.")
-      interpret(
+      process(
         "is the garage door open",
         "Yes, it is open.")
-      interpret(
+      process(
         "is the garage door closed",
         "No, it is not closed.")
-      interpret(
+      process(
         "is the garden door open",
         "No, it is not open.")
-      interpret(
+      process(
         "is the garden door closed",
         "Yes, it is closed.")
-      interpret(
+      process(
         "is the guest bedroom door on the ground floor closed",
         "Yes, it is closed.")
-      interpret(
+      process(
         "is the guest bedroom door on the first floor closed",
         "No, it is not closed.")
-      interpret(
+      process(
         "is any door open on the ground floor",
         "Yes, the garage door is open.")
-      interpret(
+      process(
         "is any door open on the first floor",
         "Yes, the guest bedroom door on the first floor is open.")
-      interpret(
+      process(
         "is any bedroom door open",
         "Yes, the guest bedroom door on the first floor is open.")
-      interpret(
+      process(
         "is any bedroom light off",
         "Yes, the guest bedroom nightstand light is off.")
 
       // FIXME:  there should be no ambiguity here
-      interpret(
+      process(
         "is any light in the guest bedroom on the first floor off",
         "Please be more specific about which bedroom you mean.")
 
-      interpret(
+      process(
         "is any guest bedroom light on the first floor off",
         "Yes, the guest bedroom nightstand light is off.")
-      interpret(
+      process(
         "is any light in any bedroom off",
         "Yes, the guest bedroom nightstand light is off.")
-      interpret(
+      process(
         "is any light in the guest bedroom off",
         "Please be more specific about which bedroom you mean.")
-      interpret(
+      process(
         "is any printer on",
         "Sorry, I don't know about any 'printer'.")
-      interpret(
+      process(
         "is there a stable",
         "Sorry, I don't know about any 'stable'.")
-      interpret(
+      process(
         "is there a bedroom",
         "Yes, there is a bedroom.")
-      interpret(
+      process(
         "is there a bedroom on the first floor",
         "Yes, there is a bedroom on the first floor.")
-      interpret(
+      process(
         "is there a pink bedroom",
         "No, there is not a pink bedroom.")
-      interpret(
+      process(
         "is there a garage",
         "Yes, there is a garage.")
-      interpret(
+      process(
         "is there a garage on the ground floor",
         "Yes, there is a garage on the ground floor.")
-      interpret(
+      process(
         "is there a garage on the first floor",
         "No, there is not a garage on the first floor.")
-      interpret(
+      process(
         "is any light in the stable on",
         "Sorry, I don't know about any 'stable'.")
-      interpret(
+      process(
         "is the solar light on",
         "No, it is not on.")
-      interpret(
+      process(
         "is the solar light lit",
         "No, it is not lit.")
-      interpret(
+      process(
         "is there a living room",
         "Yes, there is a living room.")
-      interpret(
+      process(
         "is there a master bedroom",
         "Yes, there is a master bedroom.")
-      interpret(
+      process(
         "is the living room light on",
         "Yes, it is on.")
-      interpret(
+      process(
         "is the family room light on",
         "Yes, it is on.")
-      interpret(
+      process(
         "which rooms are on the first floor",
         "The family room, the living room, " +
           "the guest bedroom, and the bathroom " +
           "are on the first floor.")
       if (!SprParser.isCoreNLP) {
-        interpret(
+        process(
           "which lights on the first floor are on",
           "The family room light, " +
             "the living room mood light, " +
             "and the guest bedroom ceiling light are on.")
-        interpret(
+        process(
           "which bedroom lights are on",
           "The guest bedroom light on the ground floor " +
             "and the guest bedroom ceiling light are on.")
       }
-      interpret(
+      process(
         "is the light in the living room lit",
         "Yes, it is lit.")
-      interpret(
+      process(
         "is the living room light extinguished",
         "No, it is not extinguished.")
-      interpret(
+      process(
         "is the light in the living room on",
         "Yes, it is on.")
-      interpret(
+      process(
         "is the heating in the living room on",
         "Yes, it is on.")
-      interpret(
+      process(
         "is the heater in the living room on",
         "Yes, it is on.")
-      interpret(
+      process(
         "is the heat in the living room on",
         "Yes, it is on.")
       if (!SprParser.isCoreNLP) {
-        interpret(
+        process(
           "turn on the heater in the living room",
           "But it is on already.")
       }
-      interpret(
+      process(
         "is there any light in the garage",
         "Yes, there is a garage light.")
-      interpret(
+      process(
         "is there any light in the garden",
         "Yes, there are two of them.")
-      interpret(
+      process(
         "are any heaters off",
         "Yes, the bathroom heating is off.")
-      interpret(
+      process(
         "is Jack present",
         "Yes, he is present.")
-      interpret(
+      process(
         "is Jill present",
         "No, she is not present.")
-      interpret(
+      process(
         "is Larry present",
         "I don't know.")
-      interpret(
+      process(
         "is Jack absent",
         "No, he is not absent.")
-      interpret(
+      process(
         "is Jill absent",
         "Yes, she is absent.")
-      interpret(
+      process(
         "is Larry absent",
         "I don't know.")
-      interpret(
+      process(
         "how many garden lights are off",
         "Both of them are off.")
-      interpret(
+      process(
         "is the garage light in the garden",
         "No, it is not in the garden.")
     }

@@ -154,7 +154,7 @@ class SpcBeliefRecognizer(
             }
             case _ => (ref, false)
           }
-          return interpretResolvedReference(sentence, rr, {
+          return processResolvedReference(sentence, rr, {
             entityRef => {
               if (!isGenitive) {
                 Seq(EntityPropertyBelief(
@@ -244,7 +244,7 @@ class SpcBeliefRecognizer(
       case SilNounReference(
         subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
       ) => {
-        return interpretFormRelationship(
+        return processFormRelationship(
           sentence, subjectNoun, complementRef, relationship)
       }
       case _ : SilGenitiveReference => {
@@ -254,14 +254,14 @@ class SpcBeliefRecognizer(
             _, _, COUNT_SINGULAR
           ) => {
             // flip subject/complement to match "Lonnie is Will's dad"
-            return interpretEntityRelationship(
+            return processEntityRelationship(
               sentence, complementRef,
               subjectRef, relationship)
           }
           case _ : SilGenitiveReference => {
             // "Will's dad is Joyce's ex-husband": resolve "Joyce's ex-husband"
             // to "Lonnie" and then proceed flipping subject/complement
-            return interpretIndirectEntityRelationship(
+            return processIndirectEntityRelationship(
               sentence, subjectRef, complementRef, relationship)
           }
           case _ =>
@@ -309,7 +309,7 @@ class SpcBeliefRecognizer(
       }
       case _ => {
         // "Lonnie is Will's dad"
-        return interpretEntityRelationship(
+        return processEntityRelationship(
           sentence, subjectRef,
           complementRef, relationship)
       }
@@ -317,10 +317,10 @@ class SpcBeliefRecognizer(
     Seq.empty
   }
 
-  private def interpretResolvedReference(
+  private def processResolvedReference(
     sentence : SilSentence,
     ref : SilReference,
-    interpretation : (SilReference) => Seq[SpcBelief])
+    processor : (SilReference) => Seq[SpcBelief])
       : Seq[SpcBelief] =
   {
     resultCollector.referenceMap.get(ref) match {
@@ -333,7 +333,7 @@ class SpcBeliefRecognizer(
         }
         set.toSeq.flatMap(entity => {
           val entityRef = SilNounReference(SilWord(entity.name))
-          val seq = interpretation(entityRef)
+          val seq = processor(entityRef)
           if (seq.isEmpty) {
             return seq
           }
@@ -346,15 +346,15 @@ class SpcBeliefRecognizer(
     }
   }
 
-  private def interpretIndirectEntityRelationship(
+  private def processIndirectEntityRelationship(
     sentence : SilSentence,
     complementRef : SilReference,
     subjectRef : SilReference,
     relationship : SilRelationship) : Seq[SpcBelief] =
   {
-    interpretResolvedReference(sentence, subjectRef, {
+    processResolvedReference(sentence, subjectRef, {
       entityRef => {
-        interpretEntityRelationship(
+        processEntityRelationship(
           sentence,
           entityRef,
           complementRef, relationship)
@@ -416,7 +416,7 @@ class SpcBeliefRecognizer(
     }
   }
 
-  private def interpretFormRelationship(
+  private def processFormRelationship(
     sentence : SilSentence,
     subjectNoun : SilWord,
     complementRef : SilReference,
@@ -529,7 +529,7 @@ class SpcBeliefRecognizer(
     }
   }
 
-  private def interpretEntityRelationship(
+  private def processEntityRelationship(
     sentence : SilSentence,
     subjectRef : SilReference,
     complementRef : SilReference,
@@ -574,7 +574,7 @@ class SpcBeliefRecognizer(
         // or likewise for
         //
         // "Lurch is (Wednesday and Pugsley)'s butler
-        return interpretResolvedReference(
+        return processResolvedReference(
           sentence,
           sub,
           {
@@ -582,7 +582,7 @@ class SpcBeliefRecognizer(
               val flattenedComplement = SilGenitiveReference(
                 entityRef,
                 possessee)
-              interpretEntityRelationship(
+              processEntityRelationship(
                 sentence, subjectRef,
                 flattenedComplement,
                 relationship)

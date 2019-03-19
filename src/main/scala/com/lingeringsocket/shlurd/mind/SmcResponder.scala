@@ -115,7 +115,7 @@ class SmcExecutor[EntityType<:SmcEntity]
   }
 }
 
-class SmcInterpreter[
+class SmcResponder[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType],
@@ -128,7 +128,7 @@ class SmcInterpreter[
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
-  type SentenceInterpreter = PartialFunction[SilSentence, (SilSentence, String)]
+  type SentenceResponder = PartialFunction[SilSentence, (SilSentence, String)]
 
   private def cosmos = mind.getCosmos
 
@@ -140,12 +140,12 @@ class SmcInterpreter[
 
   lazy protected val predicateEvaluator = newPredicateEvaluator
 
-  private def interpreterMatchers(
+  private def responderMatchers(
     resultCollector : ResultCollectorType
   ) = Seq(
-    interpretPredicateQuery(resultCollector),
-    interpretPredicateSentence(resultCollector),
-    interpretUnsupportedSentence(resultCollector)
+    processPredicateQuery(resultCollector),
+    processPredicateSentence(resultCollector),
+    processUnsupportedSentence(resultCollector)
   ).reduceLeft(_ orElse _)
 
   def fail(msg : String) = cosmos.fail(msg)
@@ -156,7 +156,7 @@ class SmcInterpreter[
 
   def newParser(input : String) = mind.newParser(input)
 
-  def interpret(sentence : SilSentence, input : String = "") : String =
+  def process(sentence : SilSentence, input : String = "") : String =
   {
     if (!input.isEmpty) {
       debug(s"INTERPRETER INPUT TEXT : $input")
@@ -169,7 +169,7 @@ class SmcInterpreter[
     val analyzed = mind.analyzeSense(sentence)
     resolveReferences(analyzed, resultCollector)
     val (responseSentence, responseText) =
-      interpretImpl(analyzed, resultCollector)
+      processImpl(analyzed, resultCollector)
     debug(s"INTERPRETER RESPONSE TEXT : $responseText")
     debug(s"INTERPRETER RESPONSE SENTENCE : $responseSentence")
     if (mind.isConversing) {
@@ -196,7 +196,7 @@ class SmcInterpreter[
       phrase, resultCollector, throwFailures, reify)
   }
 
-  protected def interpretImpl(
+  protected def processImpl(
     sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
@@ -212,7 +212,7 @@ class SmcInterpreter[
       val responder = new SmcUnrecognizedResponder(sentencePrinter)
       return wrapResponseText(responder.respond(unrecognized))
     }
-    interpreterMatchers(resultCollector).applyOrElse(
+    responderMatchers(resultCollector).applyOrElse(
       normalizedInput,
       { s : SilSentence =>
         debug("UNKNOWN SENTENCE")
@@ -235,8 +235,8 @@ class SmcInterpreter[
       {
         val sentence = SilPredicateSentence(eventPredicate)
         val eventMind = imagine(eventCosmos)
-        val eventInterpreter = spawn(eventMind)
-        val result = eventInterpreter.interpret(sentence)
+        val eventResponder = spawn(eventMind)
+        val result = eventResponder.process(sentence)
         if (result != sentencePrinter.sb.respondCompliance) {
           throw new CausalityViolationExcn(result)
         }
@@ -256,10 +256,10 @@ class SmcInterpreter[
     (SilUnparsedSentence(text), text)
   }
 
-  private def sentenceInterpreter(f : SentenceInterpreter)
-      : SentenceInterpreter = f
+  private def sentenceResponder(f : SentenceResponder)
+      : SentenceResponder = f
 
-  private def interpretStateChange(
+  private def processStateChange(
     resultCollector : ResultCollectorType,
     predicate : SilPredicate) : Try[(SilSentence, String)] =
   {
@@ -299,8 +299,8 @@ class SmcInterpreter[
     }
   }
 
-  private def interpretPredicateQuery(
-    resultCollector : ResultCollectorType) = sentenceInterpreter
+  private def processPredicateQuery(
+    resultCollector : ResultCollectorType) = sentenceResponder
   {
     case sentence @ SilPredicateQuery(
       predicate, question, originalAnswerInflection, tam, formality
@@ -413,8 +413,8 @@ class SmcInterpreter[
     }
   }
 
-  private def interpretPredicateSentence(
-    resultCollector : ResultCollectorType) = sentenceInterpreter
+  private def processPredicateSentence(
+    resultCollector : ResultCollectorType) = sentenceResponder
   {
     case SilPredicateSentence(predicate, tam, formality) => {
       tam.mood match {
@@ -559,7 +559,7 @@ class SmcInterpreter[
                 SilPropertyState(actionWord),
                 modifiers
               )
-              interpretStateChange(
+              processStateChange(
                 resultCollector,
                 pred)
             }
@@ -587,8 +587,8 @@ class SmcInterpreter[
     }
   }
 
-  private def interpretUnsupportedSentence(
-    resultCollector : ResultCollectorType) = sentenceInterpreter
+  private def processUnsupportedSentence(
+    resultCollector : ResultCollectorType) = sentenceResponder
   {
     case SilConjunctiveSentence(determiner, sentences, _) => {
       // FIXME
@@ -829,7 +829,7 @@ class SmcInterpreter[
 
   protected def spawn(subMind : MindType) =
   {
-    new SmcInterpreter[EntityType, PropertyType, CosmosType, MindType](
+    new SmcResponder[EntityType, PropertyType, CosmosType, MindType](
       subMind, generalParams, executor)
   }
 

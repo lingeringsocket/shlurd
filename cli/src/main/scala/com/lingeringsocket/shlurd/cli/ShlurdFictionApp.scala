@@ -131,14 +131,14 @@ object ShlurdFictionShell
   }
 }
 
-class ShlurdFictionInterpreter(
+class ShlurdFictionResponder(
   shell : ShlurdFictionShell,
   propagateBeliefs : Boolean,
   mind : SpcMind,
   beliefAcceptance : SpcBeliefAcceptance,
   params : SmcResponseParams,
   executor : SmcExecutor[SpcEntity])
-    extends SpcInterpreter(mind, beliefAcceptance, params, executor)
+    extends SpcResponder(mind, beliefAcceptance, params, executor)
 {
   import ShlurdFictionShell.logger
 
@@ -153,7 +153,7 @@ class ShlurdFictionInterpreter(
 
   override protected def spawn(subMind : SpcMind) =
   {
-    new ShlurdFictionInterpreter(
+    new ShlurdFictionResponder(
       shell, propagateBeliefs, subMind,
       ACCEPT_MODIFIED_BELIEFS, params, executor)
   }
@@ -289,7 +289,7 @@ class ShlurdFictionShell(
         case _ => predicate
       }
       val sentence = SilPredicateSentence(newPredicate)
-      Some(interpretFiat(sentence))
+      Some(processFiat(sentence))
     }
 
     override def executeInvocation(
@@ -301,35 +301,35 @@ class ShlurdFictionShell(
           SilPropertyState(invocation.state)
         )
       )
-      interpretFiat(sentence)
+      processFiat(sentence)
     }
   }
 
   private val sentencePrinter = new SilSentencePrinter
 
-  private val noumenalInitializer = new ShlurdFictionInterpreter(
+  private val noumenalInitializer = new ShlurdFictionResponder(
     this, false, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private val noumenalUpdater = new ShlurdFictionInterpreter(
+  private val noumenalUpdater = new ShlurdFictionResponder(
     this, true, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private val phenomenalInterpreter = new ShlurdFictionInterpreter(
+  private val phenomenalResponder = new ShlurdFictionResponder(
     this, false, phenomenalMind, ACCEPT_NO_BELIEFS, params, executor)
 
-  private val phenomenalUpdater = new ShlurdFictionInterpreter(
+  private val phenomenalUpdater = new ShlurdFictionResponder(
     this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
   private val perception = new SpcPerception(
     noumenalMind.getCosmos,
     phenomenalMind.getCosmos)
 
-  private def interpretFiat(sentence : SilSentence) : String =
+  private def processFiat(sentence : SilSentence) : String =
   {
     if (logger.isTraceEnabled) {
       val printed = sentencePrinter.print(sentence)
       logger.trace(s"FIAT $printed")
     }
-    noumenalUpdater.interpret(sentence)
+    noumenalUpdater.process(sentence)
   }
 
   def defer(deferred : Deferred)
@@ -362,7 +362,7 @@ class ShlurdFictionShell(
 
   private def initMind(
     mind : ShlurdCliMind,
-    interpreter : ShlurdFictionInterpreter,
+    responder : ShlurdFictionResponder,
     resourceName : String)
   {
     val source = Source.fromFile(
@@ -370,7 +370,7 @@ class ShlurdFictionShell(
     val sentences = mind.newParser(
       source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
     sentences.foreach(sentence => {
-      val output = interpreter.interpret(mind.analyzeSense(sentence))
+      val output = responder.process(mind.analyzeSense(sentence))
       assert(output == OK, output)
       processDeferred
     })
@@ -389,7 +389,7 @@ class ShlurdFictionShell(
           }
           val sentences = phenomenalMind.newParser(expanded).parseAll
           sentences.foreach(sentence => {
-            var output = phenomenalInterpreter.interpret(
+            var output = phenomenalResponder.process(
               phenomenalMind.analyzeSense(sentence))
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
@@ -416,7 +416,7 @@ class ShlurdFictionShell(
           logger.trace(s"PHENOMENON $belief")
           val sentences = phenomenalMind.newParser(preprocess(belief)).parseAll
           sentences.foreach(sentence => {
-            var output = phenomenalUpdater.interpret(
+            var output = phenomenalUpdater.process(
               phenomenalMind.analyzeSense(sentence))
             assert(output == OK, output)
           })

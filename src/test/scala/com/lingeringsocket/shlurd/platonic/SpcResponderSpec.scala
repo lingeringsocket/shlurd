@@ -25,7 +25,7 @@ import org.specs2.specification._
 import scala.io._
 import scala.util._
 
-class SpcInterpreterSpec extends Specification
+class SpcResponderSpec extends Specification
 {
   private val states = Map(
     "alarm service service_on_off" -> "on",
@@ -41,7 +41,7 @@ class SpcInterpreterSpec extends Specification
     "herbie car vehicle_move_stop" -> "stop"
   )
 
-  abstract class InterpreterContext(
+  abstract class ResponderContext(
     beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
     params : SmcResponseParams = SmcResponseParams()
   ) extends Scope
@@ -67,22 +67,22 @@ class SpcInterpreterSpec extends Specification
 
     protected val mind = new SpcMind(cosmos)
 
-    protected val interpreter =
-      new SpcInterpreter(
+    protected val responder =
+      new SpcResponder(
         mind, beliefAcceptance, params)
 
-    protected val interpreterWithoutPronouns =
-      new SpcInterpreter(
+    protected val responderWithoutPronouns =
+      new SpcResponder(
         mind, beliefAcceptance, params.
           copy(thirdPersonPronouns = false))
 
-    protected val interpreterTerse =
-      new SpcInterpreter(
+    protected val responderTerse =
+      new SpcResponder(
         mind, beliefAcceptance, params.
           copy(verbosity = RESPONSE_TERSE))
 
-    protected val interpreterEllipsis =
-      new SpcInterpreter(
+    protected val responderEllipsis =
+      new SpcResponder(
         mind, beliefAcceptance, params.
           copy(verbosity = RESPONSE_ELLIPSIS))
 
@@ -93,426 +93,426 @@ class SpcInterpreterSpec extends Specification
       mind.loadBeliefs(source)
     }
 
-    protected def interpret(input : String, expected : String) =
+    protected def process(input : String, expected : String) =
     {
-      val sentence = interpreter.newParser(input).parseOne
+      val sentence = responder.newParser(input).parseOne
       s"pass:  $input" ==> (
-        interpreter.interpret(sentence, input) === expected)
+        responder.process(sentence, input) === expected)
     }
 
-    protected def interpretTerse(
+    protected def processTerse(
       input : String,
       expected : String)
     {
-      val sentence = interpreter.newParser(input).parseOne
+      val sentence = responder.newParser(input).parseOne
       s"pass:  $input" ==> (
-        interpreterTerse.interpret(sentence, input) === expected)
+        responderTerse.process(sentence, input) === expected)
     }
 
-    protected def interpretBelief(input : String) =
+    protected def processBelief(input : String) =
     {
-      interpret(input, "OK.")
+      process(input, "OK.")
     }
 
-    protected def interpretMatrix(
+    protected def processMatrix(
       input : String,
       expectedWithPronouns : String,
       expectedWithoutPronouns : String,
       expectedTerse : String,
       expectedEllipsis : String = "") =
     {
-      val sentence = interpreter.newParser(input).parseOne
-      interpreter.interpret(sentence, input) must be equalTo(
+      val sentence = responder.newParser(input).parseOne
+      responder.process(sentence, input) must be equalTo(
         expectedWithPronouns)
-      interpreterWithoutPronouns.interpret(
+      responderWithoutPronouns.process(
         sentence, input) must be equalTo(expectedWithoutPronouns)
-      interpreterTerse.interpret(
+      responderTerse.process(
         sentence, input) must be equalTo(expectedTerse)
       if (!expectedEllipsis.isEmpty) {
-        interpreterEllipsis.interpret(
+        responderEllipsis.process(
           sentence, input) must be equalTo(expectedEllipsis)
       }
     }
   }
 
-  "SpcInterpreter" should
+  "SpcResponder" should
   {
-    "understand people" in new InterpreterContext
+    "understand people" in new ResponderContext
     {
       loadBeliefs("/ontologies/people.txt")
-      interpretMatrix(
+      processMatrix(
         "is Todd Dirk's friend",
         "Yes, he is Dirk's friend.",
         "Yes, Todd is Dirk's friend.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix(
+      processMatrix(
         "is Dirk Todd's friend",
         "Yes, he is Todd's friend.",
         "Yes, Dirk is Todd's friend.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda Todd's sister",
         "Yes, she is his sister.",
         "Yes, Amanda is Todd's sister.",
         "Yes.",
         "Yes, she is.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda Todd's sibling",
         "Yes, she is his sibling.",
         "Yes, Amanda is Todd's sibling.",
         "Yes.",
         "Yes, she is.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda Todd's brother",
         "No, she is not his brother.",
         "No, Amanda is not Todd's brother.",
         "No.",
         "No, she is not.")
-      interpretMatrix(
+      processMatrix(
         "is Dirk Todd's sister",
         "No, he is not Todd's sister.",
         "No, Dirk is not Todd's sister.",
         "No.",
         "No, he is not.")
-      interpretMatrix(
+      processMatrix(
         "is Todd Amanda's brother",
         "Yes, he is her brother.",
         "Yes, Todd is Amanda's brother.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda Todd's friend",
         "No, she is not his friend.",
         "No, Amanda is not Todd's friend.",
         "No.",
         "No, she is not.")
       // FIXME:  should clarify that Dirk actually has more than one friend
-      interpretMatrix(
+      processMatrix(
         "does Dirk have a friend",
         "Yes, he has a friend.",
         "Yes, Dirk has a friend.",
         "Yes.",
         "Yes, he does.")
-      interpretMatrix(
+      processMatrix(
         "does Dirk have any friends",
         "Yes, he has two of them.",
         "Yes, Dirk has two of them.",
         "Yes.",
         "Yes, he does.")
-      interpretMatrix(
+      processMatrix(
         "does Todd have friends",
         "Yes, he has friends.",
         "Yes, Todd has friends.",
         "Yes.",
         "Yes, he does.")
-      interpretMatrix(
+      processMatrix(
         "does Todd have any friends",
         "Yes, he has one of them.",
         "Yes, Todd has one of them.",
         "Yes.",
         "Yes, he does.")
-      interpretMatrix(
+      processMatrix(
         "does Amanda have friends",
         "No, she does not have friends.",
         "No, Amanda does not have friends.",
         "No.",
         "No, she does not.")
-      interpretMatrix(
+      processMatrix(
         "does Amanda have a friend",
         "No, she does not have a friend.",
         "No, Amanda does not have a friend.",
         "No.",
         "No, she does not.")
-      interpretMatrix(
+      processMatrix(
         "does Amanda have any friends",
         "No, she has no friends.",
         "No, Amanda has no friends.",
         "No.",
         "No, she does not.")
-      interpretMatrix(
+      processMatrix(
         "who is Todd",
         "He is Amanda's brother.",
         "Todd is Amanda's brother.",
         "Amanda's brother.",
         "Amanda's brother.")
-      interpretMatrix(
+      processMatrix(
         "who is Bart",
         "She is Rapunzel's owner.",
         "Bart is Rapunzel's owner.",
         "Rapunzel's owner.")
-      interpretMatrix(
+      processMatrix(
         "who is Todd's friend",
         "His friend is Dirk.",
         "Todd's friend is Dirk.",
         "Dirk.")
-      interpretMatrix(
+      processMatrix(
         "who are Todd's friends",
         "His friend is Dirk.",
         "Todd's friend is Dirk.",
         "Dirk.")
-      interpretMatrix(
+      processMatrix(
         "which person is Todd's friend",
         "His friend is Dirk.",
         "Todd's friend is Dirk.",
         "Dirk.")
-      interpretMatrix(
+      processMatrix(
         "who is Dirk's friend",
         "His friends are Todd and Bart.",
         "Dirk's friends are Todd and Bart.",
         "Todd and Bart.")
-      interpretMatrix(
+      processMatrix(
         "who is Amanda's friend",
         "No one is her friend.",
         "No one is Amanda's friend.",
         "No one.")
-      interpretMatrix(
+      processMatrix(
         "who are Amanda's friends",
         "No one is her friend.",
         "No one is Amanda's friend.",
         "No one.")
-      interpret(
+      process(
         "who has Amanda's friend",
         "But I don't know about any such friend.")
-      interpret(
+      process(
         "is Ford Todd's friend",
         "Sorry, I don't know about any 'Ford'.")
-      interpret(
+      process(
         "is Todd Ford's friend",
         "Sorry, I don't know about any 'Ford'.")
       // FIXME:  should clarify that they are not necessarily
       // friends OF EACH OTHER
-      interpret(
+      process(
         "who is a friend",
         "Dirk, Todd, and Bart are friends.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda a friend",
         "No, she is not a friend.",
         "No, Amanda is not a friend.",
         "No.",
         "No, she is not.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda a brother",
         "No, she is not a brother.",
         "No, Amanda is not a brother.",
         "No.",
         "No, she is not.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda a dog",
         "No, she is not a dog.",
         "No, Amanda is not a dog.",
         "No.",
         "No, she is not.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda an owner",
         "No, she is not an owner.",
         "No, Amanda is not an owner.",
         "No.",
         "No, she is not.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda a groomer",
         "No, she is not a groomer.",
         "No, Amanda is not a groomer.",
         "No.",
         "No, she is not.")
-      interpretMatrix(
+      processMatrix(
         "is Rapunzel a dog",
         "Yes, it is a dog.",
         "Yes, Rapunzel is a dog.",
         "Yes.",
         "Yes, it is.")
-      interpretMatrix(
+      processMatrix(
         "is Bart an owner",
         "Yes, she is an owner.",
         "Yes, Bart is an owner.",
         "Yes.",
         "Yes, she is.")
-      interpret(
+      process(
         "is Amanda a robot",
         "Sorry, I don't know about any 'robot'.")
-      interpret(
+      process(
         "who is a person",
         "Scott, Dirk, Todd, Hugo, Arthur, Amanda, and Bart are persons.")
-      interpret(
+      process(
         "who is a man",
         "Dirk, Todd, Hugo, and Arthur are men.")
-      interpret(
+      process(
         "who is a brother",
         "Todd is a brother.")
       // FIXME have to use BLACKWING because Blackwing gets parsed
       // as -ing verb, heh
-      interpretMatrix(
+      processMatrix(
         "is BLACKWING an organization",
         "Yes, it is an organization.",
         "Yes, BLACKWING is an organization.",
         "Yes.",
         "Yes, it is.")
-      interpretMatrix(
+      processMatrix(
         "is BLACKWING a conspiracy",
         "No, it is not a conspiracy.",
         "No, BLACKWING is not a conspiracy.",
         "No.",
         "No, it is not.")
-      interpret(
+      process(
         "who has an uncle",
         "No one has an uncle.")
-      interpret(
+      process(
         "which person has an uncle",
         "No person has an uncle.")
-      interpret(
+      process(
         "who has a friend",
         "Dirk and Todd have a friend.")
-      interpret(
+      process(
         "who has friends",
         "Dirk and Todd have friends.")
-      interpret(
+      process(
         "who is Ford",
         "Sorry, I don't know about any 'Ford'.")
-      interpretMatrix(
+      processMatrix(
         "who is Hugo",
         "He is one of BLACKWING's operatives.",
         "Hugo is one of BLACKWING's operatives.",
         "One of BLACKWING's operatives.")
-      interpretMatrix(
+      processMatrix(
         "who is Arthur",
         "He is a man.",
         "Arthur is a man.",
         "A man.")
-      interpretMatrix(
+      processMatrix(
         "is Todd masculine",
         "Yes, he is masculine.",
         "Yes, Todd is masculine.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix(
+      processMatrix(
         "is Todd feminine",
         "No, he is not feminine.",
         "No, Todd is not feminine.",
         "No.",
         "No, he is not.")
-      interpretMatrix(
+      processMatrix(
         "is Todd fantastic",
         "No, he is not fantastic.",
         "No, Todd is not fantastic.",
         "No.",
         "No, he is not.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda feminine",
         "Yes, she is feminine.",
         "Yes, Amanda is feminine.",
         "Yes.",
         "Yes, she is.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda masculine",
         "No, she is not masculine.",
         "No, Amanda is not masculine.",
         "No.",
         "No, she is not.")
-      interpretMatrix(
+      processMatrix(
         "is Amanda fantastic",
         "No, she is not fantastic.",
         "No, Amanda is not fantastic.",
         "No.",
         "No, she is not.")
-      interpret(
+      process(
         "is Scott masculine",
         "I don't know.")
-      interpret(
+      process(
         "is Scott feminine",
         "I don't know.")
-      interpret(
+      process(
         "is Scott fantastic",
         "I don't know.")
-      interpretMatrix(
+      processMatrix(
         "is BLACKWING Hugo's employer",
         "Yes, it is his employer.",
         "Yes, BLACKWING is Hugo's employer.",
         "Yes.",
         "Yes, it is.")
-      interpretMatrix(
+      processMatrix(
         "which organization is Hugo's employer",
         "His employer is BLACKWING.",
         "Hugo's employer is BLACKWING.",
         "BLACKWING.")
-      interpretMatrix(
+      processMatrix(
         "is BLACKWING Todd's employer",
         "No, it is not his employer.",
         "No, BLACKWING is not Todd's employer.",
         "No.",
         "No, it is not.")
-      interpretMatrix(
+      processMatrix(
         "which organization is Todd's employer",
         "No organization is his employer.",
         "No organization is Todd's employer.",
         "No organization.")
     }
 
-    "understand relatives" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
+    "understand relatives" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/relatives.txt")
-      interpret("who is Henry", "He is Titus' uncle.")
-      interpret("who is Marion's aunt", "Her aunt is Laura.")
-      interpret("who is the aunt of Marion", "Her aunt is Laura.")
-      interpret("who is Marion's auntie", "Her auntie is Laura.")
-      interpret("who is Laura's niece", "Her nieces are Fancy and Marion.")
-      interpret("Fancy is Laura's nephew?", "No, she is not Laura's nephew.")
-      interpret("is Everard a person?", "I don't know.")
-      interpret("does Laura have a godmother", "Yes, she has a godmother.")
-      interpret("who is Laura's godmother", "I don't know.")
-      interpret("Marion is Laura's godmother?",
+      process("who is Henry", "He is Titus' uncle.")
+      process("who is Marion's aunt", "Her aunt is Laura.")
+      process("who is the aunt of Marion", "Her aunt is Laura.")
+      process("who is Marion's auntie", "Her auntie is Laura.")
+      process("who is Laura's niece", "Her nieces are Fancy and Marion.")
+      process("Fancy is Laura's nephew?", "No, she is not Laura's nephew.")
+      process("is Everard a person?", "I don't know.")
+      process("does Laura have a godmother", "Yes, she has a godmother.")
+      process("who is Laura's godmother", "I don't know.")
+      process("Marion is Laura's godmother?",
         "No, she is not Laura's godmother.")
-      interpret("Fancy is Laura's godmother?",
+      process("Fancy is Laura's godmother?",
         "No, she is not Laura's godmother.")
-      interpret("Henry is Laura's godmother?",
+      process("Henry is Laura's godmother?",
         "No, he is not her godmother.")
-      interpret("does Laura have a godfather",
+      process("does Laura have a godfather",
         "No, she does not have a godfather.")
-      interpretBelief("Fancy is Laura's godmother")
-      interpretBelief("Titus is Laura's godfather")
-      interpret("who is Laura's godmother",
+      processBelief("Fancy is Laura's godmother")
+      processBelief("Titus is Laura's godfather")
+      process("who is Laura's godmother",
         "Her godmother is Fancy.")
-      interpret("who is Laura's godfather",
+      process("who is Laura's godfather",
         "Her godfather is Titus.")
-      interpret("Marion is Laura's godmother?",
+      process("Marion is Laura's godmother?",
         "No, she is not Laura's godmother.")
-      interpret("Fancy is Laura's godmother?",
+      process("Fancy is Laura's godmother?",
         "Yes, she is Laura's godmother.")
-      interpret("does Laura have a godfather",
+      process("does Laura have a godfather",
         "Yes, she has a godfather.")
 
       cosmos.sanityCheck must beTrue
     }
 
-    "understand locations" in new InterpreterContext
+    "understand locations" in new ResponderContext
     {
       loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/location.txt")
 
-      interpretMatrix(
+      processMatrix(
         "where is Jack",
         "He is in Herbie.",
         "Jack is in Herbie.",
         "Herbie.",
         "Herbie.")
-      interpretTerse("where is Ubuntu", "Nowhere.")
-      interpretTerse("where is Herbie", "I don't know.")
-      interpretTerse("where is Christine", "I don't know.")
-      interpretTerse("where is Chrissy", "Christine.")
-      interpretTerse("where is Janet", "Christine.")
-      interpretTerse("is Jack in Herbie", "Yes.")
-      interpretTerse("is Jack in Christine", "No.")
-      interpretTerse("is Chrissy in Herbie", "No.")
-      interpretTerse("is Chrissy in Christine", "Yes.")
-      interpretTerse("is Janet in Herbie", "No.")
-      interpretTerse("is Janet in Christine", "Yes.")
-      interpretTerse("who is in Herbie", "Jack.")
-      interpretTerse("who is in Christine", "Chrissy and Janet.")
-      interpretTerse("how many men are in Herbie", "One of them.")
-      interpretTerse("how many women are in Herbie", "No women.")
-      interpretTerse("how many men are in Christine", "No men.")
-      interpretTerse("how many women are in Christine", "Two of them.")
-      interpretMatrix(
+      processTerse("where is Ubuntu", "Nowhere.")
+      processTerse("where is Herbie", "I don't know.")
+      processTerse("where is Christine", "I don't know.")
+      processTerse("where is Chrissy", "Christine.")
+      processTerse("where is Janet", "Christine.")
+      processTerse("is Jack in Herbie", "Yes.")
+      processTerse("is Jack in Christine", "No.")
+      processTerse("is Chrissy in Herbie", "No.")
+      processTerse("is Chrissy in Christine", "Yes.")
+      processTerse("is Janet in Herbie", "No.")
+      processTerse("is Janet in Christine", "Yes.")
+      processTerse("who is in Herbie", "Jack.")
+      processTerse("who is in Christine", "Chrissy and Janet.")
+      processTerse("how many men are in Herbie", "One of them.")
+      processTerse("how many women are in Herbie", "No women.")
+      processTerse("how many men are in Christine", "No men.")
+      processTerse("how many women are in Christine", "Two of them.")
+      processMatrix(
         "where is the helicopter",
         "But I don't know about any such helicopter.",
         "But I don't know about any such helicopter.",
@@ -522,122 +522,122 @@ class SpcInterpreterSpec extends Specification
     }
 
     "understand inverse associations" in new
-      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+      ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
-      interpretBelief("a person is a kind of spc-someone")
-      interpretBelief("a professor must be a person")
-      interpretBelief("a student must be a person")
-      interpretBelief("a person may have students")
-      interpretBelief("a person may have a professor")
-      interpretBelief("a person with a student is a professor")
-      interpretBelief("Eugene is John's professor")
-      interpretBelief("Eugene is Erik's professor")
-      interpretBelief("Jerold is Erik's professor")
-      interpretTerse("who are Eugene's students", "John.")
-      interpretBelief("John has no professor")
-      interpretTerse("who is John's professor", "No one.")
-      interpretTerse("who are Eugene's students", "No one.")
+      processBelief("a person is a kind of spc-someone")
+      processBelief("a professor must be a person")
+      processBelief("a student must be a person")
+      processBelief("a person may have students")
+      processBelief("a person may have a professor")
+      processBelief("a person with a student is a professor")
+      processBelief("Eugene is John's professor")
+      processBelief("Eugene is Erik's professor")
+      processBelief("Jerold is Erik's professor")
+      processTerse("who are Eugene's students", "John.")
+      processBelief("John has no professor")
+      processTerse("who is John's professor", "No one.")
+      processTerse("who are Eugene's students", "No one.")
     }
 
-    "understand actions" in new InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+    "understand actions" in new ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("if an object moves to a location, " +
+      processBelief("if an object moves to a location, " +
         "then the object is in the location")
-      interpretBelief("if an object rolls into a location, " +
+      processBelief("if an object rolls into a location, " +
         "then the object moves to the location")
-      interpretBelief("Percy is an object")
-      interpretBelief("Thomas is an object")
-      interpretBelief("Fuji is an object")
-      interpretBelief("Kilimanjaro is an object")
-      interpretBelief("Denali is an object")
-      interpretBelief("Percy moves to Fuji")
-      interpret("where is Percy", "It is in Fuji.")
-      interpretBelief("Percy rolls into Kilimanjaro")
-      interpret("where is Percy", "It is in Kilimanjaro.")
+      processBelief("Percy is an object")
+      processBelief("Thomas is an object")
+      processBelief("Fuji is an object")
+      processBelief("Kilimanjaro is an object")
+      processBelief("Denali is an object")
+      processBelief("Percy moves to Fuji")
+      process("where is Percy", "It is in Fuji.")
+      processBelief("Percy rolls into Kilimanjaro")
+      process("where is Percy", "It is in Kilimanjaro.")
 
-      interpret("Percy rolls to Denali",
+      process("Percy rolls to Denali",
         "Sorry, I cannot understand what you said.")
-      interpret("where is Percy", "It is in Kilimanjaro.")
+      process("where is Percy", "It is in Kilimanjaro.")
 
-      interpretBelief("Percy and Thomas move to Denali")
-      interpret("where is Percy", "It is in Denali.")
-      interpret("where is Thomas", "It is in Denali.")
+      processBelief("Percy and Thomas move to Denali")
+      process("where is Percy", "It is in Denali.")
+      process("where is Thomas", "It is in Denali.")
 
-      interpretBelief("if a person drops an object, " +
+      processBelief("if a person drops an object, " +
         "then the object is in the person's container")
-      interpretBelief("Curtis is a person")
-      interpretBelief("the boiler is an object")
-      interpretBelief("the engine is an object")
-      interpretBelief("the bomb is an object")
-      interpret("where is the bomb", "I don't know.")
-      interpretBelief("Curtis is in the boiler")
-      interpretBelief("Curtis drops the bomb")
-      interpretBelief("Curtis moves to the engine")
-      interpretTerse("where is Curtis", "The engine.")
-      interpret("where is the bomb", "It is in the boiler.")
+      processBelief("Curtis is a person")
+      processBelief("the boiler is an object")
+      processBelief("the engine is an object")
+      processBelief("the bomb is an object")
+      process("where is the bomb", "I don't know.")
+      processBelief("Curtis is in the boiler")
+      processBelief("Curtis drops the bomb")
+      processBelief("Curtis moves to the engine")
+      processTerse("where is Curtis", "The engine.")
+      process("where is the bomb", "It is in the boiler.")
     }
 
     "understand indirect objects" in new
-      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+      ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("if a person gives an object to a recipient, " +
+      processBelief("if a person gives an object to a recipient, " +
         "then the object is the recipient's contained-object")
-      interpretBelief("if a person passes an object to a recipient, " +
+      processBelief("if a person passes an object to a recipient, " +
         "then the person gives the object to the recipient")
 
-      interpretBelief("Curtis is a person")
-      interpretBelief("Andrew is a person")
-      interpretBelief("the bomb is an object")
-      interpret("where is the bomb", "I don't know.")
-      interpretBelief("Curtis gives Andrew the bomb")
-      interpretTerse("where is the bomb", "Andrew.")
-      interpretBelief("Andrew passes the bomb to Curtis")
-      interpretTerse("where is the bomb", "Curtis.")
+      processBelief("Curtis is a person")
+      processBelief("Andrew is a person")
+      processBelief("the bomb is an object")
+      process("where is the bomb", "I don't know.")
+      processBelief("Curtis gives Andrew the bomb")
+      processTerse("where is the bomb", "Andrew.")
+      processBelief("Andrew passes the bomb to Curtis")
+      processTerse("where is the bomb", "Curtis.")
     }
 
     "understand past actions" in new
-      InterpreterContext(ACCEPT_NEW_BELIEFS)
+      ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
       mind.startConversation
       mind.startNarrative
-      interpretBelief("a man is a kind of person")
-      interpretBelief("a woman is a kind of person")
-      interpretBelief("a man's gender must be masculine")
-      interpretBelief("a woman's gender must be feminine")
-      interpretBelief("Curtis is a man")
-      interpretBelief("Andrea is a woman")
-      interpretBelief("Thomas is a man")
-      interpretBelief("the bomb is an object")
-      interpretBelief("the wrench is an object")
-      interpretBelief("the screwdriver is an object")
-      interpretBelief("if a person receives an object, " +
+      processBelief("a man is a kind of person")
+      processBelief("a woman is a kind of person")
+      processBelief("a man's gender must be masculine")
+      processBelief("a woman's gender must be feminine")
+      processBelief("Curtis is a man")
+      processBelief("Andrea is a woman")
+      processBelief("Thomas is a man")
+      processBelief("the bomb is an object")
+      processBelief("the wrench is an object")
+      processBelief("the screwdriver is an object")
+      processBelief("if a person receives an object, " +
         "then the object is the person's contained-object")
-      interpretBelief("if a person gives an object to a recipient, " +
+      processBelief("if a person gives an object to a recipient, " +
         "then the recipient receives the object")
-      interpretBelief("if a person passes an object to a recipient, " +
+      processBelief("if a person passes an object to a recipient, " +
         "then the person gives the object to the recipient")
-      interpretBelief("Thomas passed the wrench to Andrea")
-      interpretBelief("Curtis passed the bomb to her")
-      interpretBelief("Curtis passed the screwdriver to Thomas")
+      processBelief("Thomas passed the wrench to Andrea")
+      processBelief("Curtis passed the bomb to her")
+      processBelief("Curtis passed the screwdriver to Thomas")
       // FIXME irregular forms
-      interpretMatrix(
+      processMatrix(
         "what did Curtis give to Andrea",
         "He gived the bomb to her.",
         "Curtis gived the bomb to Andrea.",
         "The bomb.",
         "The bomb.")
-      interpretTerse("what did Curtis give to Thomas", "The screwdriver.")
-      interpretTerse("what did Thomas give to Andrea", "The wrench.")
-      interpretMatrix(
+      processTerse("what did Curtis give to Thomas", "The screwdriver.")
+      processTerse("what did Thomas give to Andrea", "The wrench.")
+      processMatrix(
         "who did Curtis give the bomb to",
         "He gived it to Andrea.",
         "Curtis gived the bomb to Andrea.",
         "Andrea.",
         "Andrea.")
-      interpretMatrix(
+      processMatrix(
         "who received the bomb",
         "Andrea received it.",
         "Andrea received the bomb.",
@@ -646,225 +646,225 @@ class SpcInterpreterSpec extends Specification
     }
 
     "understand genitives in beliefs" in new
-      InterpreterContext(ACCEPT_NEW_BELIEFS)
+      ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("the wrench is an object")
-      interpretBelief("the screwdriver is an object")
-      interpretBelief("the engine is an object")
-      interpretBelief("the wrench is Mason's possession")
-      interpretBelief("the screwdriver is Mason's possession")
-      interpretBelief("the engine's contained-objects are Mason's possessions")
-      interpretTerse("which objects are in the engine",
+      processBelief("the wrench is an object")
+      processBelief("the screwdriver is an object")
+      processBelief("the engine is an object")
+      processBelief("the wrench is Mason's possession")
+      processBelief("the screwdriver is Mason's possession")
+      processBelief("the engine's contained-objects are Mason's possessions")
+      processTerse("which objects are in the engine",
         "The wrench and the screwdriver.")
     }
 
     "understand constraints in beliefs" in new
-      InterpreterContext(ACCEPT_NEW_BELIEFS)
+      ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a wire must be red or blue")
-      interpretBelief("there is an important wire")
-      interpretBelief("the important wire is red")
-      interpretBelief("if a person cuts a wire, then the wire must be blue")
-      interpretBelief("MacGyver is a person")
-      interpret(
+      processBelief("a wire must be red or blue")
+      processBelief("there is an important wire")
+      processBelief("the important wire is red")
+      processBelief("if a person cuts a wire, then the wire must be blue")
+      processBelief("MacGyver is a person")
+      process(
         "MacGyver cuts the important wire",
         "But the important wire is not blue.")
     }
 
     "understand epsilon beliefs" in new
-      InterpreterContext(ACCEPT_NEW_BELIEFS)
+      ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("a person may have possessions")
-      interpretBelief("the engine is an object")
-      interpretBelief("Mason is a person")
-      interpretBelief("the engine's contained-object is Mason's possession")
-      interpretTerse("which objects are in the engine", "No objects.")
+      processBelief("a person may have possessions")
+      processBelief("the engine is an object")
+      processBelief("Mason is a person")
+      processBelief("the engine's contained-object is Mason's possession")
+      processTerse("which objects are in the engine", "No objects.")
     }
 
     "understand compound subject references" in new
-      InterpreterContext(ACCEPT_NEW_BELIEFS)
+      ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("the engine is an object")
-      interpretBelief("the wrench is an object")
-      interpretBelief("the screwdriver is an object")
-      interpretBelief("the saw is an object")
-      interpretBelief("Edgar is a person")
-      interpretBelief("the wrench is Edgar's possession")
-      interpretBelief("the screwdriver is Edgar's possession")
-      interpretBelief("Edgar's possessions are in the engine")
-      interpretTerse("which objects are in the engine",
+      processBelief("the engine is an object")
+      processBelief("the wrench is an object")
+      processBelief("the screwdriver is an object")
+      processBelief("the saw is an object")
+      processBelief("Edgar is a person")
+      processBelief("the wrench is Edgar's possession")
+      processBelief("the screwdriver is Edgar's possession")
+      processBelief("Edgar's possessions are in the engine")
+      processTerse("which objects are in the engine",
         "The wrench and the screwdriver.")
     }
 
     "understand unique determiner in genitive" in new
-      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+      ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("the engine is an object")
-      interpretBelief("the box is an object")
-      interpretBelief("the box is in the engine")
-      interpretBelief("the wrench is an object")
-      interpretBelief("the wrench's container is the box's container")
-      interpretTerse("which objects are in the engine",
+      processBelief("the engine is an object")
+      processBelief("the box is an object")
+      processBelief("the box is in the engine")
+      processBelief("the wrench is an object")
+      processBelief("the wrench's container is the box's container")
+      processTerse("which objects are in the engine",
         "The box and the wrench.")
     }
 
     "understand negatives" in new
-      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+      ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("the wrench is an object")
-      interpretBelief("the hammer is an object")
-      interpretBelief("the screwdriver is an object")
-      interpretBelief("the box is an object")
-      interpretBelief("the wrench's container is the box")
-      interpretBelief("the hammer and the screwdriver are in the box")
-      interpretTerse("which objects are in the box",
+      processBelief("the wrench is an object")
+      processBelief("the hammer is an object")
+      processBelief("the screwdriver is an object")
+      processBelief("the box is an object")
+      processBelief("the wrench's container is the box")
+      processBelief("the hammer and the screwdriver are in the box")
+      processTerse("which objects are in the box",
         "The wrench, the hammer, and the screwdriver.")
-      interpretBelief("the wrench's container is not the box")
-      interpretTerse("which objects are in the box",
+      processBelief("the wrench's container is not the box")
+      processTerse("which objects are in the box",
         "The hammer and the screwdriver.")
-      interpretBelief("the hammer is no longer in the box")
-      interpretTerse("which objects are in the box", "The screwdriver.")
-      interpretBelief("the screwdriver is not in the box")
-      interpretTerse("which objects are in the box", "No objects.")
+      processBelief("the hammer is no longer in the box")
+      processTerse("which objects are in the box", "The screwdriver.")
+      processBelief("the screwdriver is not in the box")
+      processTerse("which objects are in the box", "No objects.")
     }
 
-    "understand taxonomy" in new InterpreterContext
+    "understand taxonomy" in new ResponderContext
     {
       loadBeliefs("/ontologies/vehicles.txt")
 
-      interpret("is Herbie moving", "No, he is not moving.")
+      process("is Herbie moving", "No, he is not moving.")
 
-      interpretMatrix(
+      processMatrix(
         "is Herbie moving",
         "No, he is not moving.",
         "No, Herbie is not moving.",
         "No.",
         "No, he is not.")
-      interpretMatrix(
+      processMatrix(
         "is Herbie stopped",
         "Yes, he is stopped.",
         "Yes, Herbie is stopped.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix(
+      processMatrix(
         "is Lusitania moving",
         "Yes, it is moving.",
         "Yes, Lusitania is moving.",
         "Yes.",
         "Yes, it is.")
-      interpretMatrix(
+      processMatrix(
         "is Lusitania stopped",
         "No, it is not stopped.",
         "No, Lusitania is not stopped.",
         "No.",
         "No, it is not.")
-      interpret(
+      process(
         "is any boat stopped",
         "No, no boat is stopped.")
-      interpret(
+      process(
         "is any boat moving",
         "Yes, Lusitania is moving.")
-      interpret(
+      process(
         "is any vehicle stopped",
         "Yes, Herbie is stopped.")
-      interpret(
+      process(
         "is any vehicle moving",
         "Yes, Lusitania is moving.")
-      interpret(
+      process(
         "are both Herbie and Lusitania moving",
         "No, Herbie is not moving.")
-      interpretMatrix(
+      processMatrix(
         "is Lusitania sinking",
         "Yes, it is sinking.",
         "Yes, Lusitania is sinking.",
         "Yes.",
         "Yes, it is.")
-      interpret(
+      process(
         "is Herbie cruising",
         "Sorry, I don't know what 'cruise' means for Herbie.")
-      interpret(
+      process(
         "is any car cruising",
         "Sorry, I don't know what 'cruise' means for a car.")
-      interpret(
+      process(
         "who is cruising",
         "Sorry, I don't know what 'cruise' means for an spc-someone.")
-      interpretMatrix(
+      processMatrix(
         "is Herbie a car",
         "Yes, he is a car.",
         "Yes, Herbie is a car.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix(
+      processMatrix(
         "is Herbie a boat",
         "No, he is not a boat.",
         "No, Herbie is not a boat.",
         "No.",
         "No, he is not.")
-      interpretMatrix(
+      processMatrix(
         "is Herbie a vehicle",
         "Yes, he is a vehicle.",
         "Yes, Herbie is a vehicle.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix(
+      processMatrix(
         "is Lusitania a boat",
         "Yes, it is a boat.",
         "Yes, Lusitania is a boat.",
         "Yes.",
         "Yes, it is.")
-      interpretMatrix(
+      processMatrix(
         "is Lusitania the boat",
         "Yes, it is the boat.",
         "Yes, Lusitania is the boat.",
         "Yes.",
         "Yes, it is.")
-      interpretMatrix(
+      processMatrix(
         "is Lusitania a vehicle",
         "Yes, it is a vehicle.",
         "Yes, Lusitania is a vehicle.",
         "Yes.",
         "Yes, it is.")
-      interpretMatrix(
+      processMatrix(
         "is Lusitania a car",
         "No, it is not a car.",
         "No, Lusitania is not a car.",
         "No.",
         "No, it is not.")
-      interpret(
+      process(
         "how many vehicles are there",
         "There are two of them.")
-      interpretMatrix(
+      processMatrix(
         "Herbie and Lusitania are vehicles?",
         "Yes, they are vehicles.",
         "Yes, Herbie and Lusitania are vehicles.",
         "Yes.",
         "Yes, they are.")
       // FIXME resolve number agreement
-      interpret(
+      process(
         "which vehicles are there",
         "There is Herbie and Lusitania.")
-      interpretMatrix(
+      processMatrix(
         "who is Herbie's owner",
         "His owner is Jim.",
         "Herbie's owner is Jim.",
         "Jim.")
-      interpretMatrix(
+      processMatrix(
         "who is Lusitania's owner",
         "No one is its owner.",
         "No one is Lusitania's owner.",
         "No one.")
     }
 
-    "deal with conjunctive plural noun" in new InterpreterContext
+    "deal with conjunctive plural noun" in new ResponderContext
     {
       skipped("maybe one day")
       loadBeliefs("/ontologies/vehicles.txt")
-      interpretMatrix(
+      processMatrix(
         "are Herbie and Lusitania vehicles",
         "Yes, they are vehicles.",
         "Yes, Herbie and Lusitania are vehicles.",
@@ -872,11 +872,11 @@ class SpcInterpreterSpec extends Specification
         "Yes, they are.")
     }
 
-    "respond correctly to disjunctive query" in new InterpreterContext
+    "respond correctly to disjunctive query" in new ResponderContext
     {
       skipped("maybe one day")
       loadBeliefs("/ontologies/people.txt")
-      interpretMatrix(
+      processMatrix(
         "is Rapunzel or Amanda a dog",
         "Yes, Rapunzel is a dog.",
         "Yes, Rapunzel is a dog.",
@@ -884,63 +884,63 @@ class SpcInterpreterSpec extends Specification
         "Yes, Rapunzel is.")
     }
 
-    "respond correctly when no person exists" in new InterpreterContext
+    "respond correctly when no person exists" in new ResponderContext
     {
-      interpret(
+      process(
         "who is Ford",
         "Sorry, I don't know about any 'Ford'.")
     }
 
-    "understand services" in new InterpreterContext
+    "understand services" in new ResponderContext
     {
       loadBeliefs("/ontologies/service.txt")
       loadBeliefs("/ontologies/miscServices.txt")
-      interpret(
+      process(
         "is there a multimedia service",
         "Yes, there is a multimedia service.")
-      interpret(
+      process(
         "is there an alarm service",
         "Yes, there is an alarm service.")
-      interpret(
+      process(
         "is there a laundry service",
         "No, there is not a laundry service.")
-      interpretMatrix(
+      processMatrix(
         "is the alarm service up",
         "Yes, it is up.",
         "Yes, the alarm service is up.",
         "Yes.",
         "Yes, it is.")
-      interpretMatrix(
+      processMatrix(
         "is the alarm service on",
         "Yes, it is on.",
         "Yes, the alarm service is on.",
         "Yes.",
         "Yes, it is.")
-      interpretMatrix(
+      processMatrix(
         "is the multimedia service up",
         "No, it is not up.",
         "No, the multimedia service is not up.",
         "No.",
         "No, it is not.")
-      interpret(
+      process(
         "is any service up",
         "Yes, the alarm service is up.")
-      interpret(
+      process(
         "are any services up",
         "Yes, the alarm service is up.")
-      interpret(
+      process(
         "is any service down",
         "Yes, the multimedia service is down.")
-      interpret(
+      process(
         "is any service off",
         "Yes, the multimedia service is off.")
-      interpret(
+      process(
         "are all services up",
         "No, the multimedia service is not up.")
-      interpret(
+      process(
         "are all services running",
         "No, the multimedia service is not running.")
-      interpretMatrix(
+      processMatrix(
         "is the multimedia server up",
         "No, it is not up.",
         "No, the multimedia server is not up.",
@@ -948,91 +948,91 @@ class SpcInterpreterSpec extends Specification
         "No, it is not.")
     }
 
-    "understand presence" in new InterpreterContext
+    "understand presence" in new ResponderContext
     {
       // FIXME:  in "is Jack home", interpret "home" as state instead of noun
       // FIXME:  "Jack's presence" should become "it"
       loadBeliefs("/ontologies/presence.txt")
-      interpretMatrix("is Jack's ubiety on",
+      processMatrix("is Jack's ubiety on",
         "Yes, his ubiety is on.",
         "Yes, Jack's ubiety is on.",
         "Yes.",
         "Yes, his ubiety is.")
-      interpretMatrix("is Jack present",
+      processMatrix("is Jack present",
         "Yes, he is present.",
         "Yes, Jack is present.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix("is Jack at home",
+      processMatrix("is Jack at home",
         "Yes, he is at home.",
         "Yes, Jack is at home.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix("is Jack absent",
+      processMatrix("is Jack absent",
         "No, he is not absent.",
         "No, Jack is not absent.",
         "No.",
         "No, he is not.")
-      interpretMatrix("is Jack away",
+      processMatrix("is Jack away",
         "No, he is not away.",
         "No, Jack is not away.",
         "No.",
         "No, he is not.")
-      interpretMatrix("is Jill's ubiety on",
+      processMatrix("is Jill's ubiety on",
         "No, her ubiety is not on.",
         "No, Jill's ubiety is not on.",
         "No.",
         "No, her ubiety is not.")
-      interpretMatrix("is Jill present",
+      processMatrix("is Jill present",
         "No, she is not present.",
         "No, Jill is not present.",
         "No.",
         "No, she is not.")
-      interpretMatrix("is Jill at home",
+      processMatrix("is Jill at home",
         "No, she is not at home.",
         "No, Jill is not at home.",
         "No.",
         "No, she is not.")
-      interpretMatrix("is Jill absent",
+      processMatrix("is Jill absent",
         "Yes, she is absent.",
         "Yes, Jill is absent.",
         "Yes.",
         "Yes, she is.")
-      interpretMatrix("is Jill away",
+      processMatrix("is Jill away",
         "Yes, she is away.",
         "Yes, Jill is away.",
         "Yes.",
         "Yes, she is.")
-      interpret("is Jack on",
+      process("is Jack on",
         "Sorry, I don't know what 'on' means for Jack.")
-      interpretMatrix("is Casper's apparition on",
+      processMatrix("is Casper's apparition on",
         "Yes, his apparition is on.",
         "Yes, Casper's apparition is on.",
         "Yes.",
         "Yes, his apparition is.")
-      interpret("is Casper present",
+      process("is Casper present",
         "I don't know.")
-      interpretMatrix("is Yoda's ubiety on",
+      processMatrix("is Yoda's ubiety on",
         "No, his ubiety is not on.",
         "No, Yoda's ubiety is not on.",
         "No.",
         "No, his ubiety is not.")
-      interpretMatrix("is Yoda present",
+      processMatrix("is Yoda present",
         "No, he is not present.",
         "No, Yoda is not present.",
         "No.",
         "No, he is not.")
-      interpretMatrix("is Yoda on",
+      processMatrix("is Yoda on",
         "No, he is not on.",
         "No, Yoda is not on.",
         "No.",
         "No, he is not.")
-      interpretMatrix("is Yoda off",
+      processMatrix("is Yoda off",
         "Yes, he is off.",
         "Yes, Yoda is off.",
         "Yes.",
         "Yes, he is.")
-      interpretMatrix(
+      processMatrix(
         "are Jill and Yoda absent",
         "Yes, they are absent.",
         "Yes, Jill and Yoda are absent.",
@@ -1040,233 +1040,233 @@ class SpcInterpreterSpec extends Specification
         "Yes, they are.")
     }
 
-    "understand multiple properties for same form" in new InterpreterContext
+    "understand multiple properties for same form" in new ResponderContext
     {
       loadBeliefs("/ontologies/stove.txt")
-      interpret("is there a stove?",
+      process("is there a stove?",
         "Yes, there is a stove.")
-      interpret("is the stove hot?",
+      process("is the stove hot?",
         "Yes, it is hot.")
-      interpretMatrix("is the stove on?",
+      processMatrix("is the stove on?",
         "No, it is not on.",
         "No, the stove is not on.",
         "No.",
         "No, it is not.")
     }
 
-    "allow pronouns to be avoided" in new InterpreterContext(
+    "allow pronouns to be avoided" in new ResponderContext(
       ACCEPT_NO_BELIEFS,
       SmcResponseParams(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/stove.txt")
-      interpret("is the stove hot?",
+      process("is the stove hot?",
         "Yes, the stove is hot.")
     }
 
-    "understand conversational pronoun references" in new InterpreterContext(
+    "understand conversational pronoun references" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS,
       SmcResponseParams(thirdPersonPronouns = false))
     {
       loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/people.txt")
       mind.startConversation
-      interpret("is she a dog",
+      process("is she a dog",
         "Sorry, when you say 'she' I don't know who or what you mean.")
-      interpret("who is Todd", "Todd is Amanda's brother.")
-      interpret("is she a dog", "No, Amanda is not a dog.")
-      interpret("is he Dirk's friend", "Yes, Todd is Dirk's friend.")
-      interpretBelief("the jail is an object")
-      interpretBelief("if a person teleports, then the person is in the jail")
-      interpretBelief("Todd and Dirk teleport")
-      interpret("are they in the jail", "Yes, Todd and Dirk are in the jail.")
+      process("who is Todd", "Todd is Amanda's brother.")
+      process("is she a dog", "No, Amanda is not a dog.")
+      process("is he Dirk's friend", "Yes, Todd is Dirk's friend.")
+      processBelief("the jail is an object")
+      processBelief("if a person teleports, then the person is in the jail")
+      processBelief("Todd and Dirk teleport")
+      process("are they in the jail", "Yes, Todd and Dirk are in the jail.")
     }
 
-    "understand sequential timeframes" in new InterpreterContext(
+    "understand sequential timeframes" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("the key is an object")
-      interpretBelief("the pocket is an object")
-      interpretBelief("the purse is an object")
-      interpretBelief("the shoe is an object")
-      interpretTerse("where was the key before the pocket",
+      processBelief("the key is an object")
+      processBelief("the pocket is an object")
+      processBelief("the purse is an object")
+      processBelief("the shoe is an object")
+      processTerse("where was the key before the pocket",
         "No narrative in progress.")
       mind.startNarrative
-      interpretBelief("the key was in the pocket")
-      interpretBelief("after that the key was in the purse")
-      interpretBelief("after that the key was in the shoe")
-      interpretTerse("where is the key", "The shoe.")
-      interpretTerse("where was the key",
+      processBelief("the key was in the pocket")
+      processBelief("after that the key was in the purse")
+      processBelief("after that the key was in the shoe")
+      processTerse("where is the key", "The shoe.")
+      processTerse("where was the key",
         "A timeframe must be specified.")
-      interpretTerse("where was the key before the purse", "The pocket.")
-      interpretTerse("where was the key after the purse", "The shoe.")
-      interpretTerse("where was the key before the shoe", "The purse.")
-      interpretTerse("where was the key after the pocket", "The purse.")
-      interpretTerse("where was the key after the shoe",
+      processTerse("where was the key before the purse", "The pocket.")
+      processTerse("where was the key after the purse", "The shoe.")
+      processTerse("where was the key before the shoe", "The purse.")
+      processTerse("where was the key after the pocket", "The purse.")
+      processTerse("where was the key after the shoe",
         "No such timeframe and/or event in narrative.")
-      interpretTerse("where was the key before the pocket",
+      processTerse("where was the key before the pocket",
         "No such timeframe and/or event in narrative.")
     }
 
-    "understand relative timeframes" in new InterpreterContext(
+    "understand relative timeframes" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("the key is an object")
-      interpretBelief("the pocket is an object")
-      interpretBelief("the purse is an object")
-      interpretBelief("the shoe is an object")
-      interpretBelief("the card is an object")
+      processBelief("the key is an object")
+      processBelief("the pocket is an object")
+      processBelief("the purse is an object")
+      processBelief("the shoe is an object")
+      processBelief("the card is an object")
       mind.startNarrative
-      interpretBelief("the key was in the pocket this afternoon")
-      interpretBelief("this morning, the card was in the purse")
-      interpretBelief("yesterday, the card was in the shoe")
-      interpretBelief("this evening, the key was in the shoe")
-      interpretBelief("this afternoon the card was in the shoe")
-      interpretTerse("where was the card before the shoe", "The purse.")
-      interpretTerse("where was the card before the purse", "The shoe.")
-      interpretTerse("where was the key before the shoe", "The pocket.")
+      processBelief("the key was in the pocket this afternoon")
+      processBelief("this morning, the card was in the purse")
+      processBelief("yesterday, the card was in the shoe")
+      processBelief("this evening, the key was in the shoe")
+      processBelief("this afternoon the card was in the shoe")
+      processTerse("where was the card before the shoe", "The purse.")
+      processTerse("where was the card before the purse", "The shoe.")
+      processTerse("where was the key before the shoe", "The pocket.")
     }
 
-    "detect causality violations" in  new InterpreterContext(
+    "detect causality violations" in  new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
       mind.startNarrative
-      interpretBelief("yesterday, Harvey was Elwood's pet")
-      interpret("this afternoon, Elwood had no pets",
+      processBelief("yesterday, Harvey was Elwood's pet")
+      process("this afternoon, Elwood had no pets",
         "The belief that Elwood had no pets " +
           "contradicts the belief that Harvey is Elwood's pet.")
-      interpretBelief("this afternoon, Calvin had no pets")
-      interpret("yesterday, Hobbes was Calvin's pet",
+      processBelief("this afternoon, Calvin had no pets")
+      process("yesterday, Hobbes was Calvin's pet",
         "The belief that Calvin has no pets " +
           "contradicts the belief that Hobbes is Calvin's pet.")
     }
 
-    "understand equivalent queries" in new InterpreterContext(
+    "understand equivalent queries" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
       if (SprParser.isCoreNLP) {
         skipped("Wordnet only")
       }
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("A vapor is a kind of object.")
-      interpretBelief("A solid is a kind of object.")
-      interpretBelief("If a person sees a solid, " +
+      processBelief("A vapor is a kind of object.")
+      processBelief("A solid is a kind of object.")
+      processBelief("If a person sees a solid, " +
         "then equivalently the solid is in the person's container.")
-      interpretBelief("Alcatraz is an object.")
-      interpretBelief("Clint is a person.")
-      interpretBelief("The gold is a solid.")
-      interpretBelief("The oxygen is a vapor.")
-      interpretBelief("The gold is in Alcatraz.")
-      interpretBelief("The oxygen is in Alcatraz.")
-      interpretBelief("Clint is in Alcatraz.")
-      interpretTerse(
+      processBelief("Alcatraz is an object.")
+      processBelief("Clint is a person.")
+      processBelief("The gold is a solid.")
+      processBelief("The oxygen is a vapor.")
+      processBelief("The gold is in Alcatraz.")
+      processBelief("The oxygen is in Alcatraz.")
+      processBelief("Clint is in Alcatraz.")
+      processTerse(
         "what does Clint see",
         "The gold.")
     }
 
-    "understand progressive action predicates" in new InterpreterContext(
+    "understand progressive action predicates" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("If an item is filling an object, " +
+      processBelief("If an item is filling an object, " +
         "equivalently the item is the object's contained-object.")
-      interpretBelief("If an item is occupying an object, " +
+      processBelief("If an item is occupying an object, " +
         "equivalently the item is in the object.")
-      interpretBelief("If an object is carrying an item, " +
+      processBelief("If an object is carrying an item, " +
         "equivalently the item is the object's contained-object.")
 
       // FIXME this belief should be equivalent
       /*
-      interpretBelief("If an object is carrying an item, " +
+      processBelief("If an object is carrying an item, " +
         "then the object is the item's container.")
        */
 
-      interpretBelief("The wallet is an object.")
-      interpretBelief("The pocket is an object.")
-      interpretBelief("The money is an object.")
-      interpretBelief("The card is an object.")
-      interpretBelief("The key is an object.")
-      interpretBelief("The money is in the wallet.")
-      interpretBelief("The card is in the wallet.")
-      interpretBelief("The key is in the pocket.")
-      interpret("how many objects are in the wallet",
+      processBelief("The wallet is an object.")
+      processBelief("The pocket is an object.")
+      processBelief("The money is an object.")
+      processBelief("The card is an object.")
+      processBelief("The key is an object.")
+      processBelief("The money is in the wallet.")
+      processBelief("The card is in the wallet.")
+      processBelief("The key is in the pocket.")
+      process("how many objects are in the wallet",
         "Two of them are in the wallet.")
-      interpret("how many objects are in the pocket",
+      process("how many objects are in the pocket",
         "One of them is in the pocket.")
-      interpret("how many objects are the wallet's contained-object",
+      process("how many objects are the wallet's contained-object",
         "Two of them are its contained-objects.")
-      interpret("how many objects are the pocket's contained-objects",
+      process("how many objects are the pocket's contained-objects",
         "One of them is its contained-object.")
-      interpretMatrix("how many objects are filling the wallet",
+      processMatrix("how many objects are filling the wallet",
         "Two of them are filling it.",
         "Two of them are filling the wallet.",
         "Two of them.",
         "Two of them.")
-      interpretMatrix("how many objects is the wallet carrying",
+      processMatrix("how many objects is the wallet carrying",
         "It is carrying two of them.",
         "The wallet is carrying two of them.",
         "Two of them.",
         "Two of them.")
-      interpretMatrix("which objects is the wallet carrying",
+      processMatrix("which objects is the wallet carrying",
         "It is carrying the money and the card.",
         "The wallet is carrying the money and the card.",
         "The money and the card.",
         "The money and the card.")
-      interpretMatrix("what is the wallet carrying",
+      processMatrix("what is the wallet carrying",
         "It is carrying the money and the card.",
         "The wallet is carrying the money and the card.",
         "The money and the card.",
         "The money and the card.")
-      interpretMatrix("how many objects are occupying the pocket",
+      processMatrix("how many objects are occupying the pocket",
         "One of them is occupying it.",
         "One of them is occupying the pocket.",
         "One of them.",
         "One of them.")
-      interpretMatrix("which objects are filling the wallet",
+      processMatrix("which objects are filling the wallet",
         "The money and the card are filling it.",
         "The money and the card are filling the wallet.",
         "The money and the card.",
         "The money and the card.")
-      interpretMatrix("which objects are occupying the pocket",
+      processMatrix("which objects are occupying the pocket",
         "The key is occupying it.",
         "The key is occupying the pocket.",
         "The key.",
         "The key.")
     }
 
-    "understand state queries" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
+    "understand state queries" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       skipped("very soon now")
-      interpretBelief(
+      processBelief(
         "an animal's color must be white, gray, yellow, or green")
-      interpretBelief("Leo is an animal.")
-      interpretBelief("Leo is yellow.")
-      interpretTerse("what color is Leo", "yellow")
+      processBelief("Leo is an animal.")
+      processBelief("Leo is yellow.")
+      processTerse("what color is Leo", "yellow")
     }
 
-    "prevent new beliefs" in new InterpreterContext
+    "prevent new beliefs" in new ResponderContext
     {
-      interpret("There is a front door",
+      process("There is a front door",
         "Sorry, I don't know about any 'door'.")
     }
 
-    "accept new beliefs" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
+    "accept new beliefs" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a door may be either open or closed")
-      interpretBelief("there is a front door")
-      interpret("is the front door open",
+      processBelief("a door may be either open or closed")
+      processBelief("there is a front door")
+      process("is the front door open",
         "I don't know.")
     }
 
     "understand property queries" in new
-      InterpreterContext(ACCEPT_NEW_BELIEFS)
+      ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a sheep's color may be white or black")
-      interpretBelief("Dolly is a sheep")
-      interpret("what color is Dolly", "I don't know.")
-      interpretBelief("Dolly is black")
-      interpretMatrix(
+      processBelief("a sheep's color may be white or black")
+      processBelief("Dolly is a sheep")
+      process("what color is Dolly", "I don't know.")
+      processBelief("Dolly is black")
+      processMatrix(
         "what color is Dolly",
         "It is black.",
         "Dolly is black.",
@@ -1275,159 +1275,159 @@ class SpcInterpreterSpec extends Specification
     }
 
     "understand property updates" in new
-      InterpreterContext(ACCEPT_MODIFIED_BELIEFS)
+      ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
-      interpretBelief("a door may be open or closed")
-      interpretBelief("there is a door")
-      interpretTerse("is the door open", "I don't know.")
-      interpretBelief("the door is open")
-      interpretTerse("is the door open", "Yes.")
-      interpretTerse("is the door closed", "No.")
-      interpretBelief("the door is closed")
-      interpretTerse("is the door open", "No.")
-      interpretTerse("is the door closed", "Yes.")
+      processBelief("a door may be open or closed")
+      processBelief("there is a door")
+      processTerse("is the door open", "I don't know.")
+      processBelief("the door is open")
+      processTerse("is the door open", "Yes.")
+      processTerse("is the door closed", "No.")
+      processBelief("the door is closed")
+      processTerse("is the door open", "No.")
+      processTerse("is the door closed", "Yes.")
 
       cosmos.sanityCheck must beTrue
     }
 
-    "reject invalid new beliefs" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
+    "reject invalid new beliefs" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("there is a front door")
-      interpret("there is a big front door",
+      processBelief("there is a front door")
+      process("there is a big front door",
         "Previously I was told that there is a front door.  " +
           "So there is an ambiguous reference in the belief that " +
           "there is a big front door.")
     }
 
-    "reject cyclic taxonomy belief" in new InterpreterContext(
+    "reject cyclic taxonomy belief" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a bird is a kind of animal")
-      interpretBelief("a duck is a kind of bird")
-      interpret("an animal is a kind of duck",
+      processBelief("a bird is a kind of animal")
+      processBelief("a duck is a kind of bird")
+      process("an animal is a kind of duck",
         "The belief that an animal is a kind of duck contradicts " +
           "the belief that a duck is a kind of a bird and " +
           "a bird is a kind of an animal.")
     }
 
-    "reject incompatible form for role" in new InterpreterContext(
+    "reject incompatible form for role" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a person must have a lawyer")
-      interpretBelief("a lawyer must be a weasel")
-      interpretBelief("Michael is a snake")
-      interpret("Michael is Donald's lawyer",
+      processBelief("a person must have a lawyer")
+      processBelief("a lawyer must be a weasel")
+      processBelief("Michael is a snake")
+      process("Michael is Donald's lawyer",
         "The belief that Michael is Donald's lawyer contradicts " +
           "the belief that a lawyer must be a weasel.")
 
       cosmos.sanityCheck must beTrue
     }
 
-    "reject unknown actions" in new InterpreterContext(
+    "reject unknown actions" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief("Superman is a person")
-      interpretBelief("the kite is an object")
-      interpret("Superman flies the kite",
+      processBelief("Superman is a person")
+      processBelief("the kite is an object")
+      process("Superman flies the kite",
         "Sorry, I cannot understand what you said.")
     }
 
-    "reject unknown subject" in new InterpreterContext(
+    "reject unknown subject" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      interpretBelief(
+      processBelief(
         "if a person destroys an object, then the object has no container")
-      interpretBelief("the football is an object")
-      interpret("Geoff destroys the football",
+      processBelief("the football is an object")
+      process("Geoff destroys the football",
         "Sorry, I don't know about any 'Geoff'.")
     }
 
-    "prevent action cycles" in new InterpreterContext(
+    "prevent action cycles" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("if a person sends a recipient a message, " +
+      processBelief("if a person sends a recipient a message, " +
         "then the person conveys the recipient the message")
-      interpretBelief("if a person conveys a recipient a message, " +
+      processBelief("if a person conveys a recipient a message, " +
         "then the person sends the recipient the message")
-      interpretBelief("Curtis is a person")
-      interpretBelief("Andrew is a person")
-      interpretBelief("the signal is a message")
-      interpret("Curtis sends Andrew the signal",
+      processBelief("Curtis is a person")
+      processBelief("Andrew is a person")
+      processBelief("the signal is a message")
+      process("Curtis sends Andrew the signal",
         "Action beliefs are circular.")
     }
 
-    "reify unknown person" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
+    "reify unknown person" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a person is a kind of spc-someone")
-      interpretBelief("a person must have a lawyer")
-      interpretBelief("Donald is a person")
-      interpret("who is Donald's lawyer", "I don't know.")
+      processBelief("a person is a kind of spc-someone")
+      processBelief("a person must have a lawyer")
+      processBelief("Donald is a person")
+      process("who is Donald's lawyer", "I don't know.")
 
       cosmos.sanityCheck must beTrue
     }
 
-    "infer form from role" in new InterpreterContext(ACCEPT_NEW_BELIEFS)
+    "infer form from role" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a lawyer must be a weasel")
-      interpretBelief("Michael is Donald's lawyer")
-      interpretTerse("is Michael a weasel", "Yes.")
+      processBelief("a lawyer must be a weasel")
+      processBelief("Michael is Donald's lawyer")
+      processTerse("is Michael a weasel", "Yes.")
 
       cosmos.sanityCheck must beTrue
     }
 
-    "support roles with multiple forms" in new InterpreterContext(
+    "support roles with multiple forms" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("a person is a kind of spc-someone")
-      interpretBelief("a man is a kind of person")
-      interpretBelief("a gentleman is a kind of man")
-      interpretBelief("a footman must be a man")
-      interpretBelief("a footman must be a plebeian")
-      interpretBelief("a gentleman with a footman is a lord")
-      interpretBelief("Bunter is Peter's footman")
-      interpretTerse("is Bunter a footman", "Yes.")
-      interpretTerse("is Bunter a man", "Yes.")
-      interpretTerse("is Bunter a plebeian", "Yes.")
-      interpretTerse("is Peter a gentleman", "Yes.")
-      interpretTerse("who is Peter's footman", "Bunter.")
-      interpretTerse("who is Bunter's lord", "Peter.")
+      processBelief("a person is a kind of spc-someone")
+      processBelief("a man is a kind of person")
+      processBelief("a gentleman is a kind of man")
+      processBelief("a footman must be a man")
+      processBelief("a footman must be a plebeian")
+      processBelief("a gentleman with a footman is a lord")
+      processBelief("Bunter is Peter's footman")
+      processTerse("is Bunter a footman", "Yes.")
+      processTerse("is Bunter a man", "Yes.")
+      processTerse("is Bunter a plebeian", "Yes.")
+      processTerse("is Peter a gentleman", "Yes.")
+      processTerse("who is Peter's footman", "Bunter.")
+      processTerse("who is Bunter's lord", "Peter.")
 
       cosmos.sanityCheck must beTrue
     }
 
-    "support transitive associations" in new InterpreterContext(
+    "support transitive associations" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      interpretBelief("A parent must be a patriarch.")
-      interpretBelief("A child must be a patriarch.")
-      interpretBelief("An ancestor must be a patriarch.")
-      interpretBelief("A descendant must be a patriarch.")
-      interpretBelief("A patriarch may have a parent.")
-      interpretBelief("A patriarch may have children.")
-      interpretBelief("A patriarch with a child is a parent.")
-      interpretBelief("A patriarch may have ancestors.")
-      interpretBelief("A patriarch may have descendants.")
-      interpretBelief("A patriarch with a descendant is an ancestor.")
-      interpretBelief("If a patriarch begets a child, " +
+      processBelief("A parent must be a patriarch.")
+      processBelief("A child must be a patriarch.")
+      processBelief("An ancestor must be a patriarch.")
+      processBelief("A descendant must be a patriarch.")
+      processBelief("A patriarch may have a parent.")
+      processBelief("A patriarch may have children.")
+      processBelief("A patriarch with a child is a parent.")
+      processBelief("A patriarch may have ancestors.")
+      processBelief("A patriarch may have descendants.")
+      processBelief("A patriarch with a descendant is an ancestor.")
+      processBelief("If a patriarch begets a child, " +
         "then the patriarch is the child's parent.")
-      interpretBelief("If a patriarch begets a child, " +
+      processBelief("If a patriarch begets a child, " +
         "then the patriarch is the child's ancestor.")
-      interpretBelief("If a patriarch begets a child, " +
+      processBelief("If a patriarch begets a child, " +
         "then the patriarch is the child's descendant's ancestor.")
-      interpretBelief("If a patriarch begets a child, " +
+      processBelief("If a patriarch begets a child, " +
         "then the patriarch's descendant's ancestors " +
         "are the patriarch's ancestors.")
-      interpretBelief("Abraham is a patriarch.")
-      interpretBelief("Isaac is a patriarch.")
-      interpretBelief("Jacob is a patriarch.")
-      interpretBelief("Ishmael is a patriarch.")
-      interpretBelief("Joseph is a patriarch.")
-      interpretBelief("Abraham begets Isaac.")
-      interpretBelief("Abraham begets Ishmael.")
-      interpretBelief("Jacob begets Joseph.")
-      interpretBelief("Isaac begets Jacob.")
+      processBelief("Abraham is a patriarch.")
+      processBelief("Isaac is a patriarch.")
+      processBelief("Jacob is a patriarch.")
+      processBelief("Ishmael is a patriarch.")
+      processBelief("Joseph is a patriarch.")
+      processBelief("Abraham begets Isaac.")
+      processBelief("Abraham begets Ishmael.")
+      processBelief("Jacob begets Joseph.")
+      processBelief("Isaac begets Jacob.")
       def answer(b : Boolean) = if (b) "Yes." else "No."
       Seq(
         ("Abraham", "Isaac", true, true),
@@ -1445,45 +1445,45 @@ class SpcInterpreterSpec extends Specification
         case (
           p1, p2, isParent, isAncestor
         ) => {
-          interpretTerse(s"Is ${p1} ${p2}'s parent?", answer(isParent))
-          interpretTerse(s"Is ${p1} ${p2}'s ancestor?", answer(isAncestor))
+          processTerse(s"Is ${p1} ${p2}'s parent?", answer(isParent))
+          processTerse(s"Is ${p1} ${p2}'s ancestor?", answer(isAncestor))
           if (isParent) {
-            interpretTerse(s"Is ${p2} ${p1}'s child?", answer(true))
+            processTerse(s"Is ${p2} ${p1}'s child?", answer(true))
           }
           if (isAncestor) {
-            interpretTerse(s"Is ${p2} ${p1}'s descendant?", answer(true))
+            processTerse(s"Is ${p2} ${p1}'s descendant?", answer(true))
           }
         }
       }
     }
 
-    "validate constraints incrementally" in new InterpreterContext(
+    "validate constraints incrementally" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/people.txt")
-      interpret(
+      process(
         "Amanda is Rapunzel's owner",
         "Previously I was told that a dog may have one owner and Bart " +
           "is Rapunzel's owner.  So it does not add up when I hear that " +
           "Amanda is Rapunzel's owner.")
-      interpret(
+      process(
         "Scott is ROWDYTHREE's operative",
         "Previously I was told that a person may have one employer and " +
           "BLACKWING is Scott's employer.  So it does not add up when I " +
           "hear that Scott is ROWDYTHREE's operative.")
     }
 
-    "validate constraints incrementally" in new InterpreterContext(
+    "validate constraints incrementally" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/people.txt")
-      interpretBelief("Amanda is Rapunzel's owner")
-      interpretTerse("who is Rapunzel's owner", "Amanda.")
-      interpretBelief("Scott is ROWDYTHREE's operative")
-      interpretTerse("who is ROWDYTHREE's operative", "Scott.")
+      processBelief("Amanda is Rapunzel's owner")
+      processTerse("who is Rapunzel's owner", "Amanda.")
+      processBelief("Scott is ROWDYTHREE's operative")
+      processTerse("who is ROWDYTHREE's operative", "Scott.")
     }
 
-    "derive types" >> new InterpreterContext
+    "derive types" >> new ResponderContext
     {
       loadBeliefs("/ontologies/people.txt")
       Seq(
@@ -1504,9 +1504,9 @@ class SpcInterpreterSpec extends Specification
           subject, expectedType
         ) => {
           val input = s"$subject is hungry"
-          val sentence = interpreter.newParser(input).parseOne
+          val sentence = responder.newParser(input).parseOne
           val resultCollector = SmcResultCollector[SpcEntity]()
-          interpreter.resolveReferences(sentence, resultCollector)
+          responder.resolveReferences(sentence, resultCollector)
           val subjectRef = sentence match {
             case SilPredicateSentence(
               SilStatePredicate(
@@ -1522,7 +1522,7 @@ class SpcInterpreterSpec extends Specification
               throw new RuntimeException(s"unexpected sentence $sentence")
             }
           }
-          interpreter.deriveType(subjectRef).name must
+          responder.deriveType(subjectRef).name must
             be equalTo expectedType
         }
       }

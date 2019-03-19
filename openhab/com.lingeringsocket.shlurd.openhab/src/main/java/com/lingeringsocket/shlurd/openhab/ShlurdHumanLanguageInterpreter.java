@@ -52,7 +52,7 @@ import com.lingeringsocket.shlurd.platonic.SpcOpenhabDefaultCosmos;
 import com.lingeringsocket.shlurd.platonic.SpcEntity;
 import com.lingeringsocket.shlurd.platonic.SpcForm;
 import com.lingeringsocket.shlurd.platonic.SpcProperty;
-import com.lingeringsocket.shlurd.platonic.SpcInterpreter;
+import com.lingeringsocket.shlurd.platonic.SpcResponder;
 import com.lingeringsocket.shlurd.platonic.SpcOpenhabMind;
 import com.lingeringsocket.shlurd.platonic.ACCEPT_NO_BELIEFS$;
 
@@ -304,8 +304,8 @@ public class ShlurdHumanLanguageInterpreter
         };
 
         SpcBeliefAcceptance beliefAcceptance = ACCEPT_NO_BELIEFS$.MODULE$;
-        SpcInterpreter interpreter = new SpcInterpreter(new SpcOpenhabMind(cosmos), beliefAcceptance, params, executor);
-        String result = interpreter.interpret(sentence, text);
+        SpcResponder responder = new SpcResponder(new SpcOpenhabMind(cosmos), beliefAcceptance, params, executor);
+        String result = responder.process(sentence, text);
         return result;
     }
 
