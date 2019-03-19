@@ -314,7 +314,8 @@ class ShlurdFictionShell(
     this, true, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
   private val phenomenalResponder = new ShlurdFictionResponder(
-    this, false, phenomenalMind, ACCEPT_NO_BELIEFS, params, executor)
+    this, false, phenomenalMind, ACCEPT_NO_BELIEFS,
+    params.copy(existenceAssumption = EXISTENCE_ASSUME_UNKNOWN), executor)
 
   private val phenomenalUpdater = new ShlurdFictionResponder(
     this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)

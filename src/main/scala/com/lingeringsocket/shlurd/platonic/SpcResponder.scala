@@ -56,7 +56,7 @@ class SpcResponder(
 
   override protected def newPredicateEvaluator() =
     new SmcPredicateEvaluator[SpcEntity, SpcProperty, SpcCosmos, SpcMind](
-      mind, sentencePrinter, debugger)
+      mind, sentencePrinter, params.existenceAssumption, debugger)
   {
     override protected def evaluateActionPredicate(
       predicate : SilActionPredicate,

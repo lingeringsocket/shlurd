@@ -39,6 +39,10 @@ case object RESPONSE_TERSE extends SmcResponseVerbosity
 case object RESPONSE_ELLIPSIS extends SmcResponseVerbosity
 case object RESPONSE_COMPLETE extends SmcResponseVerbosity
 
+sealed trait SmcExistenceAssumption
+case object EXISTENCE_ASSUME_NOTHING extends SmcExistenceAssumption
+case object EXISTENCE_ASSUME_UNKNOWN extends SmcExistenceAssumption
+
 object SmcResponseParams
 {
   def standard() = SmcResponseParams()
@@ -48,6 +52,7 @@ case class SmcResponseParams(
   listLimit : Int = 3,
   thirdPersonPronouns : Boolean = true,
   verbosity : SmcResponseVerbosity = RESPONSE_COMPLETE,
+  existenceAssumption : SmcExistenceAssumption = EXISTENCE_ASSUME_NOTHING,
   throwRejectedBeliefs : Boolean = false
 )
 {
@@ -152,7 +157,7 @@ class SmcResponder[
 
   protected def newPredicateEvaluator() =
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
-      mind, sentencePrinter, debugger)
+      mind, sentencePrinter, generalParams.existenceAssumption, debugger)
 
   def newParser(input : String) = mind.newParser(input)
 

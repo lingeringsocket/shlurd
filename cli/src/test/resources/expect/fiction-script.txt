@@ -6,6 +6,14 @@ You are in the bedroom.
 
 You are holding nothing.
 
+> is there an ax
+
+I don't know.
+
+> do I have a mentor
+
+I don't know.
+
 > where is the ax
 
 But I don't know about any such ax.
@@ -137,6 +145,10 @@ You are holding the brass lantern.
 > I am holding the ax
 
 Oh, really?
+
+> is there an ax
+
+Yes, there is an ax.
 
 > where is the ax
 

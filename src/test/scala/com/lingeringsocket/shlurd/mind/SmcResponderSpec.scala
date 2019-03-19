@@ -44,7 +44,7 @@ class SmcResponderSpec extends Specification
     override protected def newPredicateEvaluator() =
     {
       new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
-        mind, sentencePrinter, debugger)
+        mind, sentencePrinter, params.existenceAssumption, debugger)
       {
         private def normalizeState(
           state : SilState) : SilState =
@@ -577,6 +577,17 @@ class SmcResponderSpec extends Specification
       // split the pronoun reference somehow when evaluating it
       process("are they awake") must be equalTo(
         "No, the lion and the tiger are not awake.")
+    }
+
+    "allow for unknown existence" in new
+      ResponderContext(SmcResponseParams(
+        thirdPersonPronouns = false,
+        existenceAssumption = EXISTENCE_ASSUME_UNKNOWN))
+    {
+      process("is there a peacock") must be equalTo(
+        "I don't know.")
+      process("do you have a tiger") must be equalTo(
+        "I don't know.")
     }
   }
 }

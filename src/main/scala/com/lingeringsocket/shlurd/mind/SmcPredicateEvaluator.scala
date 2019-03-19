@@ -34,6 +34,7 @@ class SmcPredicateEvaluator[
 ](
   mind : MindType,
   sentencePrinter : SilSentencePrinter,
+  existenceAssumption : SmcExistenceAssumption,
   debugger : Option[SmcDebugger])
     extends SmcDebuggable(debugger)
 {
@@ -129,7 +130,7 @@ class SmcPredicateEvaluator[
                       )
                     }
                   }
-                  evaluatePredicateOverReference(
+                  val unassumed = evaluatePredicateOverReference(
                     complementRef, context, complementCollector)
                   {
                     (complementEntity, entityRef) => {
@@ -140,6 +141,9 @@ class SmcPredicateEvaluator[
                       )
                     }
                   }
+                  assumeExistence(
+                    unassumed,
+                    relationship == REL_ASSOCIATION)
                 }
               }
             }
@@ -341,31 +345,65 @@ class SmcPredicateEvaluator[
       : Try[Trilean] =
   {
     val context = subjectStateContext(state)
-    evaluatePredicateOverReference(subjectRef, context, resultCollector)
-    {
-      (entity, entityRef) => {
-        state match {
-          case SilExistenceState() => {
-            Success(Trilean.True)
-          }
-          case SilPropertyState(word) => {
-            evaluatePropertyStatePredicate(
-              entity, entityRef, word, resultCollector)
-          }
-          case SilPropertyQueryState(propertyName) => {
-            evaluatePropertyStateQuery(
-              entity, entityRef, propertyName, resultCollector)
-          }
-          case SilAdpositionalState(adposition, objRef) => {
-            evaluateAdpositionStatePredicate(
-              entity, adposition, objRef, resultCollector)
-          }
-          case _ => {
-            debug(s"UNEXPECTED STATE : $state")
-            fail(sentencePrinter.sb.respondCannotUnderstand)
+    val unassumed =
+      evaluatePredicateOverReference(
+        subjectRef, context, resultCollector
+      ) {
+        (entity, entityRef) => {
+          state match {
+            case SilExistenceState() => {
+              Success(Trilean.True)
+            }
+            case SilPropertyState(word) => {
+              evaluatePropertyStatePredicate(
+                entity, entityRef, word, resultCollector)
+            }
+            case SilPropertyQueryState(propertyName) => {
+              evaluatePropertyStateQuery(
+                entity, entityRef, propertyName, resultCollector)
+            }
+            case SilAdpositionalState(adposition, objRef) => {
+              evaluateAdpositionStatePredicate(
+                entity, adposition, objRef, resultCollector)
+            }
+            case _ => {
+              debug(s"UNEXPECTED STATE : $state")
+              fail(sentencePrinter.sb.respondCannotUnderstand)
+            }
           }
         }
       }
+    assumeExistence(
+      unassumed,
+      state match {
+        case SilExistenceState() | SilAdpositionalState(
+          SilAdposition.GENITIVE_OF, _
+        ) => true
+        case _ => false
+      }
+    )
+  }
+
+  private def assumeExistence(
+    unassumed : Try[Trilean],
+    applicable : Boolean) =
+  {
+    if (applicable) {
+      existenceAssumption match {
+        case EXISTENCE_ASSUME_NOTHING => {
+          unassumed
+        }
+        case EXISTENCE_ASSUME_UNKNOWN => {
+          unassumed match {
+            case Success(Trilean.False) => {
+              Success(Trilean.Unknown)
+            }
+            case _ => unassumed
+          }
+        }
+      }
+    } else {
+      unassumed
     }
   }
 
