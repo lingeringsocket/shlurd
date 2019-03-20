@@ -67,7 +67,8 @@ class SpcMind(cosmos : SpcCosmos)
     determiner : SilDeterminer) =
   {
     val assocGraph = cosmos.getEntityAssocGraph
-    val genitives = assocGraph.incomingEdgesOf(entity).asScala.toSeq.flatMap(
+    val edges = assocGraph.incomingEdgesOf(entity).asScala.toSeq
+    val rankedGenitives = edges.flatMap(
       edge => {
         val graph = cosmos.getGraph
         val possessor = graph.getPossessorEntity(edge)
@@ -84,30 +85,33 @@ class SpcMind(cosmos : SpcCosmos)
               specializedRole,
               graph.getPossesseeEntity(edge2).form)
           })
-        val genitive = {
-          if (cardinality > 1) {
-            // "one of Pete's uncles"
-            SilStateSpecifiedReference(
-              SilNounReference(SilWord(LEMMA_ONE)),
-              SilAdpositionalState(
-                SilAdposition.OF,
-                SilGenitiveReference(
-                  specificReference(possessor, determiner),
-                  SilNounReference(SilWord.uninflected(
-                    getPossesseeName(specializedRole)),
-                    DETERMINER_UNSPECIFIED,
-                    COUNT_PLURAL))))
-          } else {
-            // "Larry's father"
-            SilGenitiveReference(
-              specificReference(possessor, determiner),
-              SilNounReference(SilWord(getPossesseeName(specializedRole))))
+        val equivs = super.equivalentReferences(possessor, determiner)
+        val genitives = equivs.map(
+          possessorEquiv => {
+            if (cardinality > 1) {
+              // "one of Pete's uncles"
+              SilStateSpecifiedReference(
+                SilNounReference(SilWord(LEMMA_ONE)),
+                SilAdpositionalState(
+                  SilAdposition.OF,
+                  SilGenitiveReference(
+                    possessorEquiv,
+                    SilNounReference(SilWord.uninflected(
+                      getPossesseeName(specializedRole)),
+                      DETERMINER_UNSPECIFIED,
+                      COUNT_PLURAL))))
+            } else {
+              // "Larry's father"
+              SilGenitiveReference(
+                possessorEquiv,
+                SilNounReference(SilWord(getPossesseeName(specializedRole))))
+            }
           }
-        }
+        )
         if (SpcMeta.isMetaEntity(possessor)) {
           None
         } else {
-          Some((genitive, cardinality))
+          genitives.map(g => tupleN((g, cardinality)))
         }
       }
     )
@@ -119,7 +123,7 @@ class SpcMind(cosmos : SpcCosmos)
       }
     }
     super.equivalentReferences(entity, determiner) ++
-      genitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
+      rankedGenitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
   }
 
   protected def getFormName(form : SpcForm) : String =

@@ -75,6 +75,37 @@ object ShlurdFictionApp extends App
   shell.run
 }
 
+class ShlurdFictionMind(
+  cosmos : SpcCosmos,
+  entityFirst : SpcEntity,
+  entitySecond : SpcEntity
+) extends ShlurdCliMind(cosmos, entityFirst, entitySecond)
+{
+  override def spawn(newCosmos : SpcCosmos) =
+  {
+    val mind = new ShlurdFictionMind(
+      newCosmos, entityFirst, entitySecond)
+    mind.initFrom(this)
+    mind
+  }
+
+  override def equivalentReferences(
+    entity : SpcEntity,
+    determiner : SilDeterminer)
+      : Seq[SilReference] =
+  {
+    val references = super.equivalentReferences(entity, determiner)
+    if (entity.form.name == "player-stuffle") {
+      val (nouns, others) =
+        references.partition(_.isInstanceOf[SilNounReference])
+      // prefer "the player's stuff" over "the player-character-stuff"
+      others ++ nouns
+    } else {
+      references
+    }
+  }
+}
+
 object ShlurdFictionShell
 {
   val logger =
@@ -119,12 +150,12 @@ object ShlurdFictionShell
       noumenalCosmos.resolveQualifiedNoun(
         INTERPRETER_WORD, REF_SUBJECT, Set())).get
 
-    val noumenalMind = new ShlurdCliMind(
+    val noumenalMind = new ShlurdFictionMind(
       noumenalCosmos, entityPlayer, entityInterpreter)
 
     val phenomenalCosmos = new SpcCosmos
     phenomenalCosmos.copyFrom(noumenalCosmos)
-    val phenomenalMind = new ShlurdCliMind(
+    val phenomenalMind = new ShlurdFictionMind(
       phenomenalCosmos, entityPlayer, entityInterpreter)
 
     tupleN((phenomenalMind, noumenalMind))
