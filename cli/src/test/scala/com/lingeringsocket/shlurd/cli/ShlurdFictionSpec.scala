@@ -51,11 +51,8 @@ class ShlurdFictionSpec extends Specification
           if (!msg.isEmpty) {
             nextScriptLine match {
               case Some((expected, lineNo)) => {
-                // FIXME do this the proper specs2 way
                 if (msg != expected) {
-                  val lineNoOneBased = lineNo + 1
-                  println(
-                    s"ShlurdFictionSpec FAIL at $fileName:$lineNoOneBased")
+                  reportErrorLocation(lineNo)
                 }
                 msg must be equalTo expected
               }
@@ -66,9 +63,26 @@ class ShlurdFictionSpec extends Specification
           }
         }
 
+        // FIXME do this the proper specs2 way
+        private def reportErrorLocation(lineNo : Int)
+        {
+          val lineNoOneBased = lineNo + 1
+          println(
+            s"ShlurdFictionSpec FAIL at $fileName:$lineNoOneBased")
+        }
+
         override def readInput() : Option[String] =
         {
-          nextScriptLine.map(_._1.stripPrefix("> "))
+          nextScriptLine match {
+            case Some((cmd, lineNo)) => {
+              if (!cmd.startsWith("> ")) {
+                reportErrorLocation(lineNo)
+              }
+              cmd must startWith("> ")
+              Some(cmd.stripPrefix("> "))
+            }
+            case _ => None
+          }
         }
       }
       val shell = new ShlurdFictionShell(
