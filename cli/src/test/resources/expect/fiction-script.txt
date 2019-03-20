@@ -66,7 +66,7 @@ OK.
 
 > where is the ax
 
-It is in your stuffle.
+It is in your stuff.
 
 > inventory
 

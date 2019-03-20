@@ -95,13 +95,34 @@ class ShlurdFictionMind(
       : Seq[SilReference] =
   {
     val references = super.equivalentReferences(entity, determiner)
-    if (entity.form.name == "player-stuffle") {
+    if (entity.form.name == "player-inventory") {
       val (nouns, others) =
         references.partition(_.isInstanceOf[SilNounReference])
-      // prefer "the player's stuff" over "the player-character-stuff"
+      // prefer "the player's stuff" over "the player-inventory"
       others ++ nouns
     } else {
       references
+    }
+  }
+
+  override protected def getFormName(form : SpcForm) : String =
+  {
+    synonymize(form, super.getFormName(form))
+  }
+
+  override protected def getPossesseeName(role : SpcRole) : String =
+  {
+    synonymize(role, super.getPossesseeName(role))
+  }
+
+  private def synonymize(ideal : SpcIdeal, name : String) : String =
+  {
+    def isHyphenized(s : String) = s.contains('-')
+    if (isHyphenized(name)) {
+      val synonyms = cosmos.getSynonymsForIdeal(ideal)
+      synonyms.map(_.name).filterNot(isHyphenized).headOption.getOrElse(name)
+    } else {
+      name
     }
   }
 }

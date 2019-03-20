@@ -1,20 +1,21 @@
 Import "/fiction/basic-beliefs.txt".
 
-A stuffle must be a repository.
-A game-character may have a stuffle.
-The player-stuffle is a repository.
-The player-stuffle is the player-character's stuffle.
+A character-inventory must be a repository.
+A stuff is a character-inventory.
+A game-character must have a stuff.
+The player-inventory is a repository.
+The player-inventory is the player-character's stuff.
 
 If a game-character gets a game-object, then
  the game-object must be in the game-character's container;
  otherwise the game-interpreter complains "But there is no such object here.".
 If a game-character gets a game-object, then
- the game-object is in the game-character's stuffle.
+ the game-object is in the game-character's stuff.
 If a game-character drops a game-object, then
- the game-object must be in the game-character's stuffle;
+ the game-object must be in the game-character's stuff;
  otherwise the game-interpreter complains "But you have no such object.".
 If a game-character drops a game-object, then
  the game-object is in the game-character's container.
 
 If a game-character is holding a game-object, then equivalently
- the game-object is in the game-character's stuffle.
+ the game-object is in the game-character's stuff.

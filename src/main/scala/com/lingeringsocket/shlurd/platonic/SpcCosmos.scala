@@ -323,6 +323,13 @@ class SpcCosmos(
     role
   }
 
+  def getSynonymsForIdeal(ideal : SpcIdeal) : Seq[SpcIdealSynonym] =
+  {
+    Graphs.predecessorListOf(
+      getGraph.idealSynonyms,
+      ideal).asScala.map(_.asInstanceOf[SpcIdealSynonym])
+  }
+
   private def getIdealBySynonym(name : String) : Option[SpcIdeal] =
   {
     val synonym = SpcIdealSynonym(name)
