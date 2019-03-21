@@ -1358,6 +1358,36 @@ class SpcResponderSpec extends Specification
         "Action beliefs are circular.")
     }
 
+    "handle missing objects" in new ResponderContext(
+      ACCEPT_NEW_BELIEFS)
+    {
+      skipped("not working yet")
+      
+      processBelief("a tomato is a kind of vegetable")
+      processBelief("an apple is a kind of vegetable")
+      processBelief("an apple is a kind of poison")
+      processBelief("Pippin is an apple")
+      processBelief("EarlyGirl is a tomato")
+      processBelief("Kenrokuen is a garden")
+      processBelief("Eden is a garden")
+      processBelief("Filoli is a garden")
+      processBelief("a result must be a vegetable")
+      processBelief("a garden may have results")
+      processBelief("Pippin is Eden's result")
+      processBelief("EarlyGirl is Filoli's result")
+      processBelief("a person must be alive or dead")
+      processBelief("Adam is a person")
+      processBelief("if a person moves to a garden, then the person eats the garden's results")
+      processBelief("if a person eats a poison, then the person is dead")
+      processBelief("Adam is alive")
+      processBelief("Adam moves to Kenrokuen")
+      processTerse("is Adam dead", "No.")
+      processBelief("Adam moves to Filoli")
+      processTerse("is Adam dead", "No.")
+      processBelief("Adam moves to Eden")
+      processTerse("is Adam dead", "Yes.")
+    }
+
     "reify unknown person" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       processBelief("a person is a kind of spc-someone")
