@@ -1377,7 +1377,8 @@ class SpcResponderSpec extends Specification
       processBelief("EarlyGirl is Filoli's result")
       processBelief("a person must be alive or dead")
       processBelief("Adam is a person")
-      processBelief("if a person moves to a garden, then the person eats the garden's results")
+      processBelief("if a person moves to a garden," +
+        " then the person eats the garden's results")
       processBelief("if a person eats a poison, then the person is dead")
       processBelief("Adam is alive")
       processBelief("Adam moves to Kenrokuen")
