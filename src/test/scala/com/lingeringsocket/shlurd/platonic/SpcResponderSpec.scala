@@ -672,6 +672,25 @@ class SpcResponderSpec extends Specification
         "But the important wire is not blue.")
     }
 
+    "understand nested triggers" in new
+      ResponderContext(ACCEPT_NEW_BELIEFS)
+    {
+      loadBeliefs("/ontologies/containment.txt")
+      processBelief("a manager is a kind of person")
+      processBelief("a worker is a kind of person")
+      processBelief("a minion must be a worker")
+      processBelief("a manager may have minions")
+      processBelief("Scrooge is a manager")
+      processBelief("Cratchit is a worker")
+      processBelief("Cratchit is Scrooge's minion")
+      processBelief("a person may be angry or sad")
+      processBelief("if a manager is angry," +
+        " then the manager strikes the manager's minions")
+      processBelief("if a bully strikes a person, then the person is sad")
+      processBelief("Scrooge is angry")
+      processTerse("is Cratchit sad", "Yes.")
+    }
+
     "understand epsilon beliefs" in new
       ResponderContext(ACCEPT_NEW_BELIEFS)
     {

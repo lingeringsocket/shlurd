@@ -149,8 +149,12 @@ class SpcBeliefRecognizer(
         case SilPropertyState(stateName) => {
           val (rr, isGenitive) = ref match {
             case SilGenitiveReference(possessor, _) => {
-              assert(qualifiers.size == 1)
-              tupleN((possessor, true))
+              resultCollector.referenceMap.get(ref) match {
+                // interpret as association, e.g. "the boss's minions"
+                case Some(entities) => tupleN((ref, false))
+                // interpret as property, e.g. "the boss's mood"
+                case _ => tupleN((possessor, true))
+              }
             }
             case _ => (ref, false)
           }

@@ -415,7 +415,7 @@ class SpcResponder(
     beliefAccepter.recognizeBeliefs(sentence) match {
       case beliefs : Seq[SpcBelief] if (!beliefs.isEmpty) => {
         beliefs.foreach(belief => {
-          debug(s"ATTEMPTING TO ACCEPT NEW BELIEF : $belief")
+          debug(s"TRYING TO BELIEVE : $belief")
           publishBelief(belief)
           try {
             beliefAccepter.applyBelief(belief)
