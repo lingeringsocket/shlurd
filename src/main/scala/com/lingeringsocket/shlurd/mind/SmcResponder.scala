@@ -23,6 +23,8 @@ import spire.math._
 
 import scala.collection._
 
+import org.slf4j._
+
 case class SmcStateChangeInvocation[EntityType<:SmcEntity](
   entities : Set[EntityType],
   state : SilWord)
@@ -120,6 +122,13 @@ class SmcExecutor[EntityType<:SmcEntity]
   }
 }
 
+object SmcResponder
+{
+  private val logger =
+    LoggerFactory.getLogger(
+      classOf[SmcResponder[_, _, _, _]])
+}
+
 class SmcResponder[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -129,7 +138,7 @@ class SmcResponder[
   mind : MindType,
   generalParams : SmcResponseParams = SmcResponseParams(),
   executor : SmcExecutor[EntityType] = new SmcExecutor[EntityType])
-    extends SmcDebuggable(SmcDebugger.maybe)
+    extends SmcDebuggable(SmcDebugger.maybe(SmcResponder.logger))
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
@@ -164,9 +173,9 @@ class SmcResponder[
   def process(sentence : SilSentence, input : String = "") : String =
   {
     if (!input.isEmpty) {
-      debug(s"INTERPRETER INPUT TEXT : $input")
+      debug(s"INPUT TEXT : $input")
     }
-    debug(s"INTERPRETER INPUT SENTENCE : $sentence")
+    debug(s"INPUT SENTENCE : $sentence")
     mind.rememberSpeakerSentence(
       SmcConversation.SPEAKER_NAME_PERSON, sentence, input)
     SilPhraseValidator.validatePhrase(sentence)
@@ -175,8 +184,8 @@ class SmcResponder[
     resolveReferences(analyzed, resultCollector)
     val (responseSentence, responseText) =
       processImpl(analyzed, resultCollector)
-    debug(s"INTERPRETER RESPONSE TEXT : $responseText")
-    debug(s"INTERPRETER RESPONSE SENTENCE : $responseSentence")
+    debug(s"RESPONSE TEXT : $responseText")
+    debug(s"RESPONSE SENTENCE : $responseSentence")
     if (mind.isConversing) {
       // perhaps we should synthesize referenceMap as we go instead
       // of attempting to reconstruct it here

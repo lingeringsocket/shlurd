@@ -18,24 +18,18 @@ import org.slf4j._
 
 object SmcDebugger
 {
-  private val logger =
-    LoggerFactory.getLogger(
-      classOf[SmcDebugger])
-
-  def maybe() : Option[SmcDebugger] =
+  def maybe(logger : Logger) : Option[SmcDebugger] =
   {
     if (logger.isDebugEnabled) {
-      Some(new SmcDebugger)
+      Some(new SmcDebugger(logger))
     } else {
       None
     }
   }
 }
 
-class SmcDebugger
+class SmcDebugger(logger : Logger)
 {
-  import SmcDebugger._
-
   private var debugDepth = 0
 
   @inline final def debug(msg : => String)
@@ -50,10 +44,16 @@ class SmcDebugger
     logger.trace(prefix + msg)
   }
 
+  final def trace(msg : => String, t : Throwable)
+  {
+    val prefix = "*" * debugDepth
+    logger.trace(prefix + msg, t)
+  }
+
   final def debug(msg : => String, t : Throwable)
   {
     val prefix = "*" * debugDepth
-    logger.error(prefix + msg, t)
+    logger.debug(prefix + msg, t)
   }
 
   @inline final def pushLevel()
@@ -64,6 +64,11 @@ class SmcDebugger
   @inline final def popLevel()
   {
     debugDepth -= 1
+  }
+
+  @inline final def isTraceEnabled() : Boolean =
+  {
+    logger.isTraceEnabled
   }
 }
 
@@ -84,6 +89,11 @@ abstract class SmcDebuggable(protected val debugger : Option[SmcDebugger])
     debugger.foreach(_.debug(msg, t))
   }
 
+  protected final def trace(msg : => String, t : Throwable)
+  {
+    debugger.foreach(_.trace(msg, t))
+  }
+
   @inline protected final def debugPushLevel()
   {
     debugger.foreach(_.pushLevel)
@@ -92,5 +102,10 @@ abstract class SmcDebuggable(protected val debugger : Option[SmcDebugger])
   @inline protected final def debugPopLevel()
   {
     debugger.foreach(_.popLevel)
+  }
+
+  @inline protected final def isTraceEnabled() : Boolean =
+  {
+    debugger.map(_.isTraceEnabled).getOrElse(false)
   }
 }

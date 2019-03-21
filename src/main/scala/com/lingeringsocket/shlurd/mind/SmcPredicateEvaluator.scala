@@ -638,7 +638,7 @@ class SmcPredicateEvaluator[
               evaluator)
           }
           case Failure(e) => {
-            debug("ERROR", e)
+            trace("ERROR", e)
             fail(sentencePrinter.sb.respondUnknown(noun))
           }
         }
@@ -670,7 +670,7 @@ class SmcPredicateEvaluator[
               DETERMINER_ALL)
           }
           case Failure(e) => {
-            debug("ERROR", e)
+            trace("ERROR", e)
             fail(sentencePrinter.sb.respondUnknownPronoun(
               sentencePrinter.print(
                 reference, INFLECT_NOMINATIVE, SilConjoining.NONE)))

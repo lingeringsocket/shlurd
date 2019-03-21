@@ -95,7 +95,7 @@ class ShlurdFictionMind(
       : Seq[SilReference] =
   {
     val references = super.equivalentReferences(entity, determiner)
-    if (entity.form.name == "player-inventory") {
+    if (entity.form.name == ShlurdFictionShell.INVENTORY_WORD) {
       val (nouns, others) =
         references.partition(_.isInstanceOf[SilNounReference])
       // prefer "the player's stuff" over "the player-inventory"
@@ -136,6 +136,8 @@ object ShlurdFictionShell
   val PLAYER_WORD = "player-character"
 
   val INTERPRETER_WORD = "game-interpreter"
+
+  val INVENTORY_WORD = "player-inventory"
 
   val OK = "OK."
 

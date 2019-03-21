@@ -1237,12 +1237,11 @@ class SpcResponderSpec extends Specification
 
     "understand state queries" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      skipped("very soon now")
       processBelief(
         "an animal's color must be white, gray, yellow, or green")
       processBelief("Leo is an animal.")
       processBelief("Leo is yellow.")
-      processTerse("what color is Leo", "yellow")
+      processTerse("what color is Leo", "Yellow.")
     }
 
     "prevent new beliefs" in new ResponderContext

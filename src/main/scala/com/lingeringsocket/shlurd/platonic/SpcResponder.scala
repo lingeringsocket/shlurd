@@ -49,6 +49,8 @@ class SpcResponder(
 
   private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
+  private val triggerExecutor = new SpcTriggerExecutor(mind, inputRewriter)
+
   override protected def spawn(subMind : SpcMind) =
   {
     new SpcResponder(subMind, beliefAcceptance, params)
@@ -67,7 +69,7 @@ class SpcResponder(
       }
       mind.getCosmos.getTriggers.filter(
         _.conditionalSentence.biconditional).foreach(trigger => {
-          matchTrigger(
+          triggerExecutor.matchTrigger(
             mind.getCosmos,
             trigger.conditionalSentence,
             predicate,
@@ -101,7 +103,7 @@ class SpcResponder(
       val triggers = mind.getCosmos.getTriggers.filter(
         _.conditionalSentence.biconditional)
       val replacements = triggers.flatMap(trigger => {
-        matchTrigger(
+        triggerExecutor.matchTrigger(
           mind.getCosmos,
           trigger.conditionalSentence,
           stateNormalized,
@@ -234,6 +236,74 @@ class SpcResponder(
     super.processImpl(sentence, resultCollector)
   }
 
+  private def applyTrigger(
+    forkedCosmos : SpcCosmos,
+    trigger : SpcTrigger,
+    predicate : SilPredicate)
+      : Option[String] =
+  {
+    val resultCollector = new SmcResultCollector[SpcEntity](referenceMapOpt.get)
+    val conditionalSentence = trigger.conditionalSentence
+    triggerExecutor.matchTrigger(
+      forkedCosmos, conditionalSentence, predicate, referenceMapOpt.get) match
+    {
+      case Some(newPredicate) => {
+        val isPrecondition =
+          (conditionalSentence.tamConsequent.modality == MODAL_MUST)
+        if (checkCycle(
+          newPredicate, already, isPrecondition)
+        ) {
+          return Some(sentencePrinter.sb.circularAction)
+        }
+        val newSentence = SilPredicateSentence(newPredicate)
+        spawn(imagine(forkedCosmos)).resolveReferences(
+          newSentence, resultCollector, false, true)
+        if (isPrecondition) {
+          evaluateTamPredicate(
+            newPredicate, SilTam.indicative, resultCollector) match
+          {
+            case Success(Trilean.True) => {
+              None
+            }
+            case Failure(e) => {
+              // FIXME we should be pickier about the error
+              None
+            }
+            case _ => {
+              trigger.alternative.foreach(alternativeSentence => {
+                val recoverySentence = alternativeSentence.copy(
+                  predicate = alternativeSentence.predicate.withNewModifiers(
+                    alternativeSentence.predicate.getModifiers.filterNot(
+                      _ match {
+                        case SilBasicVerbModifier(
+                          Seq(SilWordLemma(LEMMA_OTHERWISE)), _) => true
+                        case _ => false
+                      })))
+                spawn(imagine(forkedCosmos)).resolveReferences(
+                  recoverySentence, resultCollector, false, true)
+                // FIXME use recoveryResult somehow
+                val recoveryResult = processBeliefOrAction(
+                  forkedCosmos, recoverySentence, resultCollector)
+              })
+              // FIXME i18n
+              Some("But " + sentencePrinter.printPredicateStatement(
+                newPredicate, SilTam.indicative.negative) + ".")
+            }
+          }
+        } else {
+          val result = processBeliefOrAction(
+            forkedCosmos, newSentence, resultCollector)
+          if (result.isEmpty) {
+            Some(sentencePrinter.sb.respondCompliance)
+          } else {
+            result
+          }
+        }
+      }
+      case _ => None
+    }
+  }
+
   override protected def rewriteQuery(
     predicate : SilPredicate, question : SilQuestion,
     originalAnswerInflection : SilInflection,
@@ -345,7 +415,7 @@ class SpcResponder(
     beliefAccepter.recognizeBeliefs(sentence) match {
       case beliefs : Seq[SpcBelief] if (!beliefs.isEmpty) => {
         beliefs.foreach(belief => {
-          debug(s"APPLYING NEW BELIEF : $belief")
+          debug(s"ATTEMPTING TO ACCEPT NEW BELIEF : $belief")
           publishBelief(belief)
           try {
             beliefAccepter.applyBelief(belief)
@@ -404,74 +474,6 @@ class SpcResponder(
     }
   }
 
-  private def applyTrigger(
-    forkedCosmos : SpcCosmos,
-    trigger : SpcTrigger,
-    predicate : SilPredicate)
-      : Option[String] =
-  {
-    val resultCollector = new SmcResultCollector[SpcEntity](referenceMapOpt.get)
-    val conditionalSentence = trigger.conditionalSentence
-    matchTrigger(
-      forkedCosmos, conditionalSentence, predicate, referenceMapOpt.get) match
-    {
-      case Some(newPredicate) => {
-        val isPrecondition =
-          (conditionalSentence.tamConsequent.modality == MODAL_MUST)
-        if (checkCycle(
-          newPredicate, already, isPrecondition)
-        ) {
-          return Some(sentencePrinter.sb.circularAction)
-        }
-        val newSentence = SilPredicateSentence(newPredicate)
-        spawn(imagine(forkedCosmos)).resolveReferences(
-          newSentence, resultCollector, false, true)
-        if (isPrecondition) {
-          evaluateTamPredicate(
-            newPredicate, SilTam.indicative, resultCollector) match
-          {
-            case Success(Trilean.True) => {
-              None
-            }
-            case Failure(e) => {
-              // FIXME we should be pickier about the error
-              None
-            }
-            case _ => {
-              trigger.alternative.foreach(alternativeSentence => {
-                val recoverySentence = alternativeSentence.copy(
-                  predicate = alternativeSentence.predicate.withNewModifiers(
-                    alternativeSentence.predicate.getModifiers.filterNot(
-                      _ match {
-                        case SilBasicVerbModifier(
-                          Seq(SilWordLemma(LEMMA_OTHERWISE)), _) => true
-                        case _ => false
-                      })))
-                spawn(imagine(forkedCosmos)).resolveReferences(
-                  recoverySentence, resultCollector, false, true)
-                // FIXME use recoveryResult somehow
-                val recoveryResult = processBeliefOrAction(
-                  forkedCosmos, recoverySentence, resultCollector)
-              })
-              // FIXME i18n
-              Some("But " + sentencePrinter.printPredicateStatement(
-                newPredicate, SilTam.indicative.negative) + ".")
-            }
-          }
-        } else {
-          val result = processBeliefOrAction(
-            forkedCosmos, newSentence, resultCollector)
-          if (result.isEmpty) {
-            Some(sentencePrinter.sb.respondCompliance)
-          } else {
-            result
-          }
-        }
-      }
-      case _ => None
-    }
-  }
-
   protected def checkCycle(
     predicate : SilPredicate,
     seen : mutable.Set[SilPredicate],
@@ -483,314 +485,6 @@ class SpcResponder(
     } else {
       seen += predicate
       false
-    }
-  }
-
-  private def matchTrigger(
-    cosmos : SpcCosmos,
-    trigger : SilConditionalSentence,
-    predicate : SilPredicate,
-    referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[SilPredicate] =
-  {
-    trace(s"ATTEMPT TRIGGER MATCH $trigger")
-    val antecedent = trigger.antecedent
-    val consequent = trigger.consequent
-    val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
-    antecedent match {
-      case SilStatePredicate(
-        subject, state, modifiers
-      ) => {
-        val statePredicate = predicate match {
-          case sp : SilStatePredicate => sp
-          case _ => {
-            trace(s"PREDICATE $predicate IS NOT A STATE")
-            return None
-          }
-        }
-        tupleN((state, statePredicate.state)) match {
-          // FIXME allow other variable patterns
-          case (
-            SilAdpositionalState(adp1, obj1),
-            SilAdpositionalState(adp2, obj2)
-          ) if (adp1 == adp2) => {
-            if (!prepareReplacement(
-              cosmos, replacements, obj1,
-              obj2, referenceMap))
-            {
-              return None
-            }
-          }
-          case _ => {
-            if (state != statePredicate.state) {
-              trace(s"STATE $state " +
-                s"DOES NOT MATCH ${statePredicate.state}")
-              return None
-            }
-          }
-        }
-        if (!prepareReplacement(
-          cosmos, replacements, subject, statePredicate.subject, referenceMap))
-        {
-          return None
-        }
-      }
-      case SilRelationshipPredicate(
-        subject, complement, relationship, modifiers
-      ) => {
-        val relPredicate = predicate match {
-          case rp : SilRelationshipPredicate => rp
-          case _ => {
-            trace(s"PREDICATE ${predicate} IS NOT A RELATIONSHIP")
-            return None
-          }
-        }
-        if (relationship != relPredicate.relationship) {
-          trace(s"RELATIONSHIP ${relPredicate.relationship} DOES NOT MATCH")
-          return None
-        }
-        if (!prepareReplacement(
-          cosmos, replacements, subject, relPredicate.subject, referenceMap))
-        {
-          return None
-        }
-        relationship match {
-          case REL_IDENTITY => {
-            if (!prepareReplacement(
-              cosmos, replacements, complement,
-              relPredicate.complement, referenceMap))
-            {
-              return None
-            }
-          }
-          case REL_ASSOCIATION => {
-            if (!prepareReplacement(
-              cosmos, replacements, complement, relPredicate.complement,
-              referenceMap))
-            {
-              return None
-            }
-          }
-        }
-      }
-      case SilActionPredicate(
-        subject, action, directObject, modifiers
-      ) => {
-        val actionPredicate = predicate match {
-          case ap : SilActionPredicate => ap
-          case _ => {
-            trace(s"PREDICATE ${predicate} IS NOT AN ACTION")
-            return None
-          }
-        }
-        if (!mind.isEquivalentVerb(action, actionPredicate.action)) {
-          trace(s"ACTION ${actionPredicate.action.lemma} DOES NOT MATCH")
-          return None
-        }
-        // FIXME detect colliding replacement nouns e.g.
-        // "if an object hits an object"
-        if (!prepareReplacement(
-          cosmos, replacements, subject, actionPredicate.subject,
-          referenceMap))
-        {
-          return None
-        }
-        directObject.foreach(obj => {
-          actionPredicate.directObject match {
-            case Some(actualObj) => {
-              if (!prepareReplacement(
-                cosmos, replacements, obj, actualObj, referenceMap))
-              {
-                return None
-              }
-            }
-            case _ => {
-              trace(s"DIRECT OBJECT MISSING")
-              return None
-            }
-          }
-        })
-        // FIXME support multiple modifiers and other patterns
-        val filteredModifiers = modifiers.filterNot(_ match {
-          case bm : SilBasicVerbModifier => {
-            if (actionPredicate.modifiers.contains(bm)) {
-              // matched:  discard
-              true
-            } else {
-              trace(s"BASIC VERB MODIFIER $bm MISSING")
-              return None
-            }
-          }
-          // keep
-          case _ => false
-        })
-        filteredModifiers match {
-          case Seq(SilAdpositionalVerbModifier(
-            adposition, SilNounReference(
-              objNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR))
-          ) => {
-            // FIXME some modifiers (e.g. "never") might
-            // negate the match
-            val actualRefs = actionPredicate.modifiers.flatMap(_ match {
-              case SilAdpositionalVerbModifier(
-                actualAdposition, actualRef
-              ) if (adposition.words.toSet.subsetOf(
-                // FIXME this is to allow "goes back to" to subsume "goes to"
-                // but it's kinda dicey
-                actualAdposition.words.toSet)
-              ) => {
-                // FIXME verify that actualRef matches objPattern
-                Some(actualRef)
-              }
-              case _ => None
-            })
-            if (actualRefs.size != 1) {
-              trace("VERB MODIFIER PATTERN DOES NOT MATCH")
-              return None
-            }
-            val objPattern = SilNounReference(
-              objNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
-            replacements.put(objPattern, actualRefs.head)
-          }
-          case Seq() => {
-          }
-          case _ => {
-            trace("VERB MODIFIER PATTERN UNSUPPORTED")
-            return None
-          }
-        }
-      }
-      case _ => {
-        trace("ANTECEDENT PATTERN UNSUPPORTED")
-        return None
-      }
-    }
-    val rewriter = new SilPhraseRewriter
-    def replaceReferences = rewriter.replacementMatcher {
-      case ref : SilReference => {
-        replacements.get(ref).getOrElse(ref)
-      }
-    }
-    val newPredicate = rewriter.rewrite(replaceReferences, consequent)
-    Some(newPredicate)
-  }
-
-
-  private def prepareReplacement(
-    cosmos : SpcCosmos,
-    replacements : mutable.Map[SilReference, SilReference],
-    ref : SilReference,
-    actualRef : SilReference,
-    referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
-  {
-    val patternMatched = prepareReplacementImpl(
-      cosmos,
-      replacements,
-      ref,
-      actualRef,
-      referenceMap)
-    if (patternMatched) {
-      true
-    } else {
-      // FIXME we should prefer entity comparisons instead, but for that
-      // we need two referenceMaps simultaneously
-      if (ref != actualRef) {
-        trace(s"PHRASE ${ref} DOES NOT MATCH ${actualRef}")
-        false
-      } else {
-        true
-      }
-    }
-  }
-
-  private def prepareReplacementImpl(
-    cosmos : SpcCosmos,
-    replacements : mutable.Map[SilReference, SilReference],
-    ref : SilReference,
-    actualRef : SilReference,
-    referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
-  {
-    // FIXME support other reference patterns
-    ref match {
-      case SilNounReference(
-        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-      ) => {
-        val resolvedForm = mind.resolveForm(noun)
-        val patternRef = SilNounReference(
-          noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
-        if (inputRewriter.containsWildcard(actualRef)) {
-          val wildcardRef = actualRef match {
-            // FIXME need the same treatment for other variables, but
-            // with intersectionality
-            case SilNounReference(
-              SilWordLemma(LEMMA_WHAT),
-              DETERMINER_ANY,
-              count
-            ) => {
-              resolvedForm match {
-                case Some(restrictedForm) => {
-                  SilNounReference(
-                    SilWord(restrictedForm.name),
-                    DETERMINER_ANY,
-                    count
-                  )
-                }
-                case _ => actualRef
-              }
-            }
-            case _ => actualRef
-          }
-          replacements.put(patternRef, wildcardRef)
-          return true
-        }
-        val (candidateRef, entities) = actualRef match {
-          case pr : SilPronounReference => {
-            mind.resolvePronoun(pr) match {
-              case Success(entities) if (!entities.isEmpty) => {
-                tupleN((
-                  mind.specificReferences(entities),
-                  entities))
-              }
-              case _ =>  {
-                trace(s"PRONOUN $pr UNRESOLVED")
-                return false
-              }
-            }
-          }
-          case SilNounReference(_, DETERMINER_NONSPECIFIC, _) => {
-            trace(s"NONSPECIFIC REFERENCE $actualRef")
-            return false
-          }
-          case _ => {
-            referenceMap.get(actualRef) match {
-              case Some(entities) => {
-                tupleN((actualRef, entities))
-              }
-              case _ => {
-                if (resolvedForm.isEmpty) {
-                  tupleN((actualRef, Set.empty[SpcEntity]))
-                } else {
-                  trace(s"UNRESOLVED REFERENCE $actualRef")
-                  return false
-                }
-              }
-            }
-          }
-        }
-        resolvedForm.foreach(form => {
-          entities.foreach(entity => {
-            if (!cosmos.getGraph.isHyponym(entity.form, form)) {
-              trace(s"FORM ${entity.form} DOES NOT MATCH $form")
-              return false
-            }
-          })
-        })
-        replacements.put(patternRef, candidateRef)
-        true
-      }
-      case _ => {
-        trace(s"REFERENCE PATTERN $ref UNSUPPORTED")
-        false
-      }
     }
   }
 
@@ -927,9 +621,10 @@ class SpcResponder(
         return Success(true)
       } else {
         mind.getCosmos.getTriggers.foreach(trigger => {
-          matchTrigger(mind.getCosmos, trigger.conditionalSentence,
-            predicate, eventReferenceMap) match
-          {
+          triggerExecutor.matchTrigger(
+            mind.getCosmos, trigger.conditionalSentence,
+            predicate, eventReferenceMap
+          ) match {
             case Some(newPredicate) => {
               queue.enqueue(newPredicate)
             }
