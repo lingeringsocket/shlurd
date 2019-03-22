@@ -14,13 +14,13 @@ If a game-character goes south, then
  otherwise the game-interpreter complains "There is no way to the south.".
 
 If a game-character goes north, then
- the game-character traverses the game-character's container's northern-door.
+ the game-character traverses the game-character's container's northern-exit.
 If a game-character goes south, then
- the game-character traverses the game-character's container's southern-door.
+ the game-character traverses the game-character's container's southern-exit.
 If a game-character goes east, then
- the game-character traverses the game-character's container's eastern-door.
+ the game-character traverses the game-character's container's eastern-exit.
 If a game-character goes west, then
- the game-character traverses the game-character's container's western-door.
+ the game-character traverses the game-character's container's western-exit.
 
 If a game-character traverses a door, then the door must be open;
  otherwise the game-interpreter complains "But the door is not open.".
@@ -50,13 +50,13 @@ If a player-character surveys a map-place, then
  the player-character perceives the map-place and
   the map-place's spc-contained-objects.
 If a player-character surveys a map-place, then
- the player-character perceives the map-place's northern-door.
+ the player-character perceives the map-place's northern-exit.
 If a player-character surveys a map-place, then
- the player-character perceives the map-place's southern-door.
+ the player-character perceives the map-place's southern-exit.
 If a player-character surveys a map-place, then
- the player-character perceives the map-place's eastern-door.
+ the player-character perceives the map-place's eastern-exit.
 If a player-character surveys a map-place, then
- the player-character perceives the map-place's western-door.
+ the player-character perceives the map-place's western-exit.
 
 If a player-character moves to a map-place, then
  the player-character observes the map-place's spc-contained-objects.

@@ -15,6 +15,16 @@ A map-place may have a southern-neighbor.
 A map-place may have an eastern-neighbor.
 A map-place may have a western-neighbor.
 
+A northern-exit must be a map-place-exit.
+A southern-exit must be a map-place-exit.
+A eastern-exit must be a map-place-exit.
+A western-exit must be a map-place-exit.
+
+A map-place may have a northern-exit.
+A map-place may have a southern-exit.
+A map-place may have an eastern-exit.
+A map-place may have a western-exit.
+
 A map-place with a northern-neighbor is a southern-neighbor.
 A map-place with an eastern-neighbor is a western-neighbor.
 
@@ -41,9 +51,5 @@ If a map-place is north of a map-location, then equivalently
 If a map-place is south of a map-location, then equivalently
  the map-location is the map-place's northern-neighbor.
 
+A door is a kind of map-place-exit.
 A door must be open or closed.
-
-A map-place may have a northern-door.
-A map-place may have a southern-door.
-A map-place may have an eastern-door.
-A map-place may have a western-door.
