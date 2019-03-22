@@ -32,6 +32,8 @@ OK.
 
 You are in the bathroom.
 
+You see the ax and the thief.
+
 > close the door
 
 OK.
@@ -114,6 +116,8 @@ OK.
 
 You are in the kitchen.
 
+You see the brass lantern.
+
 > what is in the kitchen
 
 The player-character and the brass lantern are in the kitchen.
@@ -137,6 +141,8 @@ You see nothing.
 OK.
 
 You are in the bathroom.
+
+You see the ax and the thief.
 
 > what am I holding
 

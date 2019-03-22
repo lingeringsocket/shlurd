@@ -57,3 +57,8 @@ If a player-character surveys a map-place, then
  the player-character perceives the map-place's eastern-door.
 If a player-character surveys a map-place, then
  the player-character perceives the map-place's western-door.
+
+If a player-character moves to a map-place, then
+ the player-character observes the map-place's spc-contained-objects.
+If a player-character observes a visible-entity, then
+ the player-character asks "what do I see".
