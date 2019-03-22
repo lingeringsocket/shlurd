@@ -81,6 +81,15 @@ class ShlurdFictionMind(
   entitySecond : SpcEntity
 ) extends ShlurdCliMind(cosmos, entityFirst, entitySecond)
 {
+  private var timestamp = SpcTimestamp.ZERO
+
+  def getTimestamp() = timestamp
+
+  def startNewTurn()
+  {
+    timestamp = timestamp.successor
+  }
+
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new ShlurdFictionMind(
@@ -141,7 +150,8 @@ object ShlurdFictionShell
 
   val OK = "OK."
 
-  def loadOrCreate(file : File) : (ShlurdCliMind, ShlurdCliMind, Boolean) =
+  def loadOrCreate(file : File)
+      : (ShlurdFictionMind, ShlurdFictionMind, Boolean) =
   {
     val terminal = new ShlurdFictionConsole
     if (file.exists) {
@@ -157,7 +167,7 @@ object ShlurdFictionShell
     }
   }
 
-  def createNewCosmos() : (ShlurdCliMind, ShlurdCliMind) =
+  def createNewCosmos() : (ShlurdFictionMind, ShlurdFictionMind) =
   {
     val noumenalCosmos = ShlurdPrimordialWordnet.loadCosmos
     val beliefs = ResourceUtils.getResourceFile(
@@ -266,8 +276,8 @@ class ShlurdFictionResponder(
 }
 
 class ShlurdFictionShell(
-  phenomenalMind : ShlurdCliMind,
-  noumenalMind : ShlurdCliMind,
+  phenomenalMind : ShlurdFictionMind,
+  noumenalMind : ShlurdFictionMind,
   terminal : ShlurdFictionTerminal = new ShlurdFictionConsole)
 {
   import ShlurdFictionShell._
@@ -276,6 +286,8 @@ class ShlurdFictionShell(
   }
 
   case class DeferredCommand(quotation : String) extends Deferred
+
+  case class DeferredDirective(quotation : String) extends Deferred
 
   case class DeferredReport(quotation : String) extends Deferred
 
@@ -288,6 +300,8 @@ class ShlurdFictionShell(
   private val params = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
 
   private val deferredQueue = new mutable.Queue[Deferred]
+
+  private var gameTurnTimestamp = SpcTimestamp.ZERO
 
   private val executor = new SmcExecutor[SpcEntity]
   {
@@ -374,6 +388,8 @@ class ShlurdFictionShell(
   private val phenomenalUpdater = new ShlurdFictionResponder(
     this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
+  // FIXME this should be part of the serialization graph
+  // so that we save timestamp history
   private val perception = new SpcPerception(
     noumenalMind.getCosmos,
     phenomenalMind.getCosmos)
@@ -436,6 +452,15 @@ class ShlurdFictionShell(
     var first = true
     while (deferredQueue.nonEmpty) {
       deferredQueue.dequeue match {
+        case DeferredDirective(input) => {
+          logger.trace(s"DIRECTIVE $input")
+          val sentences = noumenalMind.newParser(input).parseAll
+          sentences.foreach(sentence => {
+            val output = noumenalUpdater.process(
+              noumenalMind.analyzeSense(sentence))
+            assert(output == OK)
+          })
+        }
         case DeferredCommand(input) => {
           logger.trace(s"INTERPRET $input")
           val expanded = preprocess(input)
@@ -448,6 +473,7 @@ class ShlurdFictionShell(
               phenomenalMind.analyzeSense(sentence))
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
+            var assumption = ""
             if (first) {
               first = false
               if (output != OK) {
@@ -461,9 +487,25 @@ class ShlurdFictionShell(
                   terminal.emitNarrative(complaint.quotation)
                 })
               }
+              if (sentence.tam.isInterrogative) {
+                val entities =
+                  phenomenalMind.getConversation.getUtterances.
+                    takeRight(2).flatMap(
+                      _.referenceMap.values.flatten)
+                if (entities.exists(entity => {
+                  val timestamp = perception.getEntityTimestamp(entity)
+                  timestamp.map(_.isBefore(gameTurnTimestamp)).getOrElse(false)
+                })) {
+                  assumption = "(At least I assume that's still the case.)"
+                }
+              }
             }
             if (output.nonEmpty) {
               terminal.emitNarrative(output)
+            }
+            if (assumption.nonEmpty) {
+              terminal.emitNarrative("")
+              terminal.emitNarrative(assumption)
             }
           })
         }
@@ -488,9 +530,12 @@ class ShlurdFictionShell(
         }
         case DeferredPerception(entities) => {
           logger.trace(s"PERCEIVE $entities")
+          val timestamp = noumenalMind.getTimestamp
           entities.toSeq.sortBy(_.name).foreach(entity => {
-            perception.perceiveEntityAssociations(entity)
-            perception.perceiveEntityProperties(entity)
+            perception.perceiveEntityAssociations(
+              entity, timestamp)
+            perception.perceiveEntityProperties(
+              entity, timestamp)
           })
         }
       }
@@ -520,9 +565,13 @@ class ShlurdFictionShell(
     var exit = false
     terminal.emitNarrative("")
     while (!exit) {
+      noumenalMind.startNewTurn
+      gameTurnTimestamp = noumenalMind.getTimestamp
       terminal.emitPrompt
       terminal.readCommand match {
         case Some(input) => {
+          defer(DeferredDirective("the game-turn advances"))
+          processDeferred
           defer(DeferredCommand(input))
           processDeferred
           terminal.emitNarrative("")

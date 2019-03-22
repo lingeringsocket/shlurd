@@ -18,7 +18,28 @@ import com.lingeringsocket.shlurd._
 
 import org.jgrapht._
 
+import scala.collection._
 import scala.collection.JavaConverters._
+
+object SpcTimestamp
+{
+  val ZERO = SpcTimestamp(0)
+}
+
+case class SpcTimestamp(when : Long)
+{
+  def successor() = SpcTimestamp(when + 1)
+
+  def isBefore(another : SpcTimestamp) : Boolean =
+  {
+    when < another.when
+  }
+
+  def isAfter(another : SpcTimestamp) : Boolean =
+  {
+    when > another.when
+  }
+}
 
 class SpcPerception(
   noumenalCosmos : SpcCosmos, phenomenalCosmos : SpcCosmos)
@@ -27,7 +48,14 @@ class SpcPerception(
 
   private val phenomenalGraph = phenomenalCosmos.getModifiableGraph
 
-  def perceiveEntity(entity : SpcEntity)
+  private val timestampMap = new mutable.LinkedHashMap[SpcEntity, SpcTimestamp]
+
+  private def touchTimestamp(entity : SpcEntity, timestamp : SpcTimestamp)
+  {
+    timestampMap.put(entity, timestamp)
+  }
+
+  def perceiveEntity(entity : SpcEntity, timestamp : SpcTimestamp)
   {
     assert(noumenalGraph.entitySynonyms.containsVertex(entity))
 
@@ -35,22 +63,24 @@ class SpcPerception(
       phenomenalCosmos.createOrReplaceEntity(entity)
     }
 
+    touchTimestamp(entity, timestamp)
+
     phenomenalCosmos.getIdGenerator.set(
       math.max(
         phenomenalCosmos.getIdGenerator.get,
         noumenalCosmos.getIdGenerator.get))
   }
 
-  def perceiveEntityAssociations(entity : SpcEntity)
+  def perceiveEntityAssociations(entity : SpcEntity, timestamp : SpcTimestamp)
   {
-    perceiveEntity(entity)
+    perceiveEntity(entity, timestamp)
 
     noumenalGraph.entityAssocs.edgesOf(entity).asScala.foreach(edge => {
       val opposite = Graphs.getOppositeVertex(
         noumenalGraph.entityAssocs,
         edge,
         entity)
-      perceiveEntity(opposite)
+      perceiveEntity(opposite, timestamp)
       val (possessor, possessee) = {
         if (entity == noumenalGraph.getPossessorEntity(edge)) {
           tupleN((entity, opposite))
@@ -65,9 +95,9 @@ class SpcPerception(
     })
   }
 
-  def perceiveEntityProperties(entity : SpcEntity)
+  def perceiveEntityProperties(entity : SpcEntity, timestamp : SpcTimestamp)
   {
-    perceiveEntity(entity)
+    perceiveEntity(entity, timestamp)
 
     val map = noumenalCosmos.getEntityPropertyMap(entity)
     map.values.foreach(ps => {
@@ -75,5 +105,10 @@ class SpcPerception(
         phenomenalCosmos.resolvePropertyName(entity, ps.propertyName).get
       phenomenalCosmos.updateEntityProperty(entity, property, ps.lemma)
     })
+  }
+
+  def getEntityTimestamp(entity : SpcEntity) : Option[SpcTimestamp] =
+  {
+    timestampMap.get(entity)
   }
 }

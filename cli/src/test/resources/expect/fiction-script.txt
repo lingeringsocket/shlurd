@@ -106,9 +106,13 @@ You are in the bedroom.
 
 It is in the bathroom.
 
+(At least I assume that's still the case.)
+
 > what is in the bathroom
 
 The ax and the thief are in the bathroom.
+
+(At least I assume that's still the case.)
 
 > west
 
@@ -135,6 +139,12 @@ You are in the bedroom.
 > l
 
 You see nothing.
+
+> where is the ax
+
+It is in the bathroom.
+
+(At least I assume that's still the case.)
 
 > enter the bathroom
 

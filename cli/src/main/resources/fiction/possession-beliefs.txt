@@ -19,3 +19,6 @@ If a game-character drops a game-object, then
 
 If a game-character is holding a game-object, then equivalently
  the game-object is in the game-character's stuff.
+
+If the game-turn advances, then
+ the player-character perceives the player-inventory's spc-contained-objects.

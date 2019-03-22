@@ -75,6 +75,8 @@ class SpcPerceptionSpec extends Specification
   {
     "perceive phenomena" in new PerceptionContext
     {
+      val timestamp = SpcTimestamp.ZERO
+
       processBelief("a pet must be an animal")
       processBelief("a person may have pets")
       processBelief("a person with a pet is an owner")
@@ -103,7 +105,7 @@ class SpcPerceptionSpec extends Specification
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
 
-      perception.perceiveEntity(wilbur)
+      perception.perceiveEntity(wilbur, timestamp)
 
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
@@ -114,7 +116,7 @@ class SpcPerceptionSpec extends Specification
       processPhenomenal("does Wilbur have an owner") must be equalTo "No."
       processPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
 
-      perception.perceiveEntityAssociations(fern)
+      perception.perceiveEntityAssociations(fern, timestamp)
 
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
@@ -125,12 +127,45 @@ class SpcPerceptionSpec extends Specification
       processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
       processPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
 
-      perception.perceiveEntityProperties(wilbur)
+      perception.perceiveEntityProperties(wilbur, timestamp)
 
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
 
       processPhenomenal("is Wilbur hungry") must be equalTo "Yes."
+    }
+
+    "remember timestamps" in new PerceptionContext
+    {
+      val timestampZero = SpcTimestamp.ZERO
+      val timestampOne = timestampZero.successor
+
+      timestampZero must not be equalTo(timestampOne)
+      timestampZero.isBefore(timestampOne) must beTrue
+      timestampZero.isAfter(timestampOne) must beFalse
+      timestampOne.isBefore(timestampZero) must beFalse
+      timestampOne.isAfter(timestampZero) must beTrue
+
+      processBelief("a pig is a kind of animal")
+      phenomenalCosmos.copyFrom(noumenalCosmos)
+      processBelief("Wilbur is a pig")
+      processBelief("Babe is a pig")
+
+      val wilbur = expectProperName("Wilbur")
+      val babe = expectProperName("Babe")
+
+      perception.perceiveEntity(wilbur, timestampZero)
+
+      perception.getEntityTimestamp(wilbur) must beSome(timestampZero)
+      perception.getEntityTimestamp(babe) must beNone
+
+      perception.perceiveEntity(babe, timestampOne)
+
+      perception.getEntityTimestamp(babe) must beSome(timestampOne)
+
+      perception.perceiveEntity(wilbur, timestampOne)
+
+      perception.getEntityTimestamp(wilbur) must beSome(timestampOne)
     }
   }
 }

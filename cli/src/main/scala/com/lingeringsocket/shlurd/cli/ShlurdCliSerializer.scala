@@ -102,15 +102,15 @@ class ShlurdCliSerializer
     zos.closeEntry
   }
 
-  def loadMindPair(file : File) : (ShlurdCliMind, ShlurdCliMind) =
+  def loadMindPair(file : File) : (ShlurdFictionMind, ShlurdFictionMind) =
   {
     val zis = new ZipInputStream(new FileInputStream(file))
     try {
       val nextEntry = zis.getNextEntry
       assert(nextEntry.getName == KRYO_ENTRY)
       val input = new Input(zis)
-      val mind1 = kryo.readObject(input, classOf[ShlurdCliMind])
-      val mind2 = kryo.readObject(input, classOf[ShlurdCliMind])
+      val mind1 = kryo.readObject(input, classOf[ShlurdFictionMind])
+      val mind2 = kryo.readObject(input, classOf[ShlurdFictionMind])
       tupleN((mind1, mind2))
     } finally {
       zis.close
