@@ -102,12 +102,14 @@ class SpcResponder(
       // are multiple matches, we should be conjoining them.
       val triggers = mind.getCosmos.getTriggers.filter(
         _.conditionalSentence.biconditional)
+      val modifiableReferenceMap =
+        SmcResultCollector.modifiableReferenceMap(referenceMap)
       val replacements = triggers.flatMap(trigger => {
         triggerExecutor.matchTrigger(
           mind.getCosmos,
           trigger.conditionalSentence,
           stateNormalized,
-          referenceMap)
+          modifiableReferenceMap)
       }).filter(acceptReplacement)
       replacements.headOption.getOrElse(stateNormalized)
     }
@@ -243,6 +245,8 @@ class SpcResponder(
       : Option[String] =
   {
     val resultCollector = new SmcResultCollector[SpcEntity](referenceMapOpt.get)
+    spawn(imagine(forkedCosmos)).resolveReferences(
+      predicate, resultCollector, false, true)
     val conditionalSentence = trigger.conditionalSentence
     triggerExecutor.matchTrigger(
       forkedCosmos, conditionalSentence, predicate, referenceMapOpt.get) match
@@ -602,6 +606,8 @@ class SpcResponder(
     resultCollector : ResultCollectorType,
     applyBindings : Boolean) : Try[Boolean] =
   {
+    val modifiableReferenceMap =
+      SmcResultCollector.modifiableReferenceMap(eventReferenceMap)
     val queue = new mutable.Queue[SilPredicate]
     queue.enqueue(eventActionPredicate)
     val seen = new mutable.HashSet[SilPredicate]
@@ -613,7 +619,7 @@ class SpcResponder(
       // FIXME need to attempt trigger rewrite in both directions
       val superMatch = super.matchActions(
         predicate, queryActionPredicate,
-        eventReferenceMap, resultCollector, applyBindings)
+        modifiableReferenceMap, resultCollector, applyBindings)
       if (superMatch.isFailure) {
         return superMatch
       }
@@ -623,7 +629,7 @@ class SpcResponder(
         mind.getCosmos.getTriggers.foreach(trigger => {
           triggerExecutor.matchTrigger(
             mind.getCosmos, trigger.conditionalSentence,
-            predicate, eventReferenceMap
+            predicate, modifiableReferenceMap
           ) match {
             case Some(newPredicate) => {
               queue.enqueue(newPredicate)

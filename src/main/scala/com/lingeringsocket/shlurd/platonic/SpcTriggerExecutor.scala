@@ -42,7 +42,8 @@ class SpcTriggerExecutor(
     cosmos : SpcCosmos,
     trigger : SilConditionalSentence,
     predicate : SilPredicate,
-    referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[SilPredicate] =
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]
+  ) : Option[SilPredicate] =
   {
     trace(s"ATTEMPT TRIGGER MATCH $trigger")
     val antecedent = trigger.antecedent
@@ -237,7 +238,7 @@ class SpcTriggerExecutor(
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
     actualRef : SilReference,
-    referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
     val patternMatched = prepareReplacementImpl(
       cosmos,
@@ -264,7 +265,7 @@ class SpcTriggerExecutor(
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
     actualRef : SilReference,
-    referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
     // FIXME support other reference patterns
     ref match {
@@ -333,15 +334,36 @@ class SpcTriggerExecutor(
             }
           }
         }
-        resolvedForm.foreach(form => {
-          entities.foreach(entity => {
-            if (!cosmos.getGraph.isHyponym(entity.form, form)) {
-              trace(s"FORM ${entity.form} DOES NOT MATCH $form")
+        val replacementRef = resolvedForm match {
+          case Some(form) => {
+            val filtered = entities.filter(entity => {
+              cosmos.getGraph.isHyponym(entity.form, form)
+            })
+            if (filtered.isEmpty) {
+              trace(s"NO FORM ${entities.map(_.form)} MATCHES $form")
               return false
             }
-          })
-        })
-        replacements.put(patternRef, candidateRef)
+            val conjunction = {
+              if (filtered.size == 1) {
+                mind.specificReference(filtered.head, DETERMINER_UNIQUE)
+              } else {
+                SilConjunctiveReference(
+                  DETERMINER_ALL,
+                  filtered.toSeq.map(entity => {
+                    val entityRef = mind.specificReference(
+                      entity, DETERMINER_UNIQUE)
+                    referenceMap.put(entityRef, Set(entity))
+                    entityRef
+                  })
+                )
+              }
+            }
+            referenceMap.put(conjunction, filtered)
+            conjunction
+          }
+          case _ => candidateRef
+        }
+        replacements.put(patternRef, replacementRef)
         true
       }
       case _ => {

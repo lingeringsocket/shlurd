@@ -51,6 +51,15 @@ class SpcWordnetMind(cosmos : SpcCosmos)
     analyzer.analyze(sentence)
   }
 
+  override def specificReference(
+    entity : SpcEntity,
+    determiner : SilDeterminer) : SilReference =
+  {
+    val ref = super.specificReference(entity, determiner)
+    val analyzer = new SilWordnetSenseAnalyzer
+    analyzer.analyze(ref)
+  }
+
   override def resolveFormCandidates(noun : SilWord) : Seq[SpcForm] =
   {
     val seq = super.resolveFormCandidates(noun)

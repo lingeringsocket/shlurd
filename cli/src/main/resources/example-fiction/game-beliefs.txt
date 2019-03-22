@@ -1,6 +1,5 @@
 Import "/fiction/basic-beliefs.txt".
 Import "/fiction/movement-beliefs.txt".
-Import "/fiction/door-beliefs.txt".
 
 Import "/example-fiction/thief-beliefs.txt".
 

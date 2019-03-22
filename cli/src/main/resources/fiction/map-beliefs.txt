@@ -40,3 +40,10 @@ If a map-place is north of a map-location, then equivalently
  the map-location is the map-place's southern-neighbor.
 If a map-place is south of a map-location, then equivalently
  the map-location is the map-place's northern-neighbor.
+
+A door must be open or closed.
+
+A map-place may have a northern-door.
+A map-place may have a southern-door.
+A map-place may have an eastern-door.
+A map-place may have a western-door.

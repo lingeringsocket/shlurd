@@ -83,24 +83,35 @@ class SmcResultCollector[EntityType<:SmcEntity](
 object SmcResultCollector
 {
   def apply[EntityType<:SmcEntity]() =
-    new SmcResultCollector(
-      // we use an identity hash map since the same expression (e.g.
-      // the pronoun "it") may appear in a phrase multiple times with
-      // different referents
-      new mutable.LinkedHashMap[SilReference, Set[EntityType]] {
-        override protected def elemEquals(
-          key1 : SilReference, key2 : SilReference) : Boolean =
-        {
-          key1 eq key2
-        }
+    new SmcResultCollector(newReferenceMap[EntityType])
 
-        override protected def elemHashCode(
-          key : SilReference) =
-        {
-          System.identityHashCode(key)
-        }
+  // we use an identity hash map since the same expression (e.g.
+  // the pronoun "it") may appear in a phrase multiple times with
+  // different referents
+  def newReferenceMap[EntityType<:SmcEntity]() =
+  {
+    new mutable.LinkedHashMap[SilReference, Set[EntityType]] {
+      override protected def elemEquals(
+        key1 : SilReference, key2 : SilReference) : Boolean =
+      {
+        key1 eq key2
       }
-    )
+
+      override protected def elemHashCode(
+        key : SilReference) =
+      {
+        System.identityHashCode(key)
+      }
+    }
+  }
+
+  def modifiableReferenceMap[EntityType<:SmcEntity](
+    map : Map[SilReference, Set[EntityType]]) =
+  {
+    val newMap = newReferenceMap[EntityType]
+    newMap ++= map
+    newMap
+  }
 }
 
 class SmcExecutor[EntityType<:SmcEntity]

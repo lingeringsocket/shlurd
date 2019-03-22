@@ -151,9 +151,13 @@ class SpcBeliefRecognizer(
             case SilGenitiveReference(possessor, _) => {
               resultCollector.referenceMap.get(ref) match {
                 // interpret as association, e.g. "the boss's minions"
-                case Some(entities) => tupleN((ref, false))
+                case Some(entities) => {
+                  tupleN((ref, false))
+                }
                 // interpret as property, e.g. "the boss's mood"
-                case _ => tupleN((possessor, true))
+                case _ => {
+                  tupleN((possessor, true))
+                }
               }
             }
             case _ => (ref, false)

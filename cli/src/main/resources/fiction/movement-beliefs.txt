@@ -1,20 +1,5 @@
 Import "/fiction/map-beliefs.txt".
 
-If a player-character moves to a map-place, then
- the map-place must be the player-character's container's map-neighbor;
- otherwise the game-interpreter complains "You can't get there from here.".
-If a game-character moves to a map-place, then
- the game-character is in the map-place.
-If a game-character enters a map-location, then
- the game-character moves to the map-location.
-If a player-character moves to a map-place, then
- the player-character asks "where am I".
-If a player-character moves to a map-place, then
- the player-character surveys the map-place.
-If a player-character surveys a map-place, then
- the player-character perceives the map-place and
-  the map-place's spc-contained-objects.
-
 If a game-character goes east, then
  the game-character's container must have an eastern-neighbor;
  otherwise the game-interpreter complains "There is no way to the east.".
@@ -28,6 +13,18 @@ If a game-character goes south, then
  the game-character's container must have a southern-neighbor;
  otherwise the game-interpreter complains "There is no way to the south.".
 
+If a game-character goes north, then
+ the game-character traverses the game-character's container's northern-door.
+If a game-character goes south, then
+ the game-character traverses the game-character's container's southern-door.
+If a game-character goes east, then
+ the game-character traverses the game-character's container's eastern-door.
+If a game-character goes west, then
+ the game-character traverses the game-character's container's western-door.
+
+If a game-character traverses a door, then the door must be open;
+ otherwise the game-interpreter complains "But the door is not open.".
+
 If a game-character goes west, then
  the game-character moves to the game-character's container's western-neighbor.
 If a game-character goes east, then
@@ -37,3 +34,26 @@ If a game-character goes north, then
 If a game-character goes south, then
  the game-character moves to the game-character's container's southern-neighbor.
 
+If a player-character moves to a map-place, then
+ the map-place must be the player-character's container's map-neighbor;
+ otherwise the game-interpreter complains "You can't get there from here.".
+If a game-character moves to a map-place, then
+ the game-character is in the map-place.
+If a game-character enters a map-location, then
+ the game-character moves to the map-location.
+If a player-character moves to a map-place, then
+ the player-character asks "where am I".
+
+If a player-character moves to a map-place, then
+ the player-character surveys the map-place.
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place and
+  the map-place's spc-contained-objects.
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place's northern-door.
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place's southern-door.
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place's eastern-door.
+If a player-character surveys a map-place, then
+ the player-character perceives the map-place's western-door.
