@@ -1399,8 +1399,6 @@ class SpcResponderSpec extends Specification
     "handle missing objects" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      skipped("not working yet")
-
       processBelief("a tomato is a kind of vegetable")
       processBelief("an apple is a kind of vegetable")
       processBelief("an apple is a kind of poison")

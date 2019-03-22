@@ -476,8 +476,6 @@ class SpcCosmosSpec extends Specification
 
     "support inverse associations with tentative forms" in new CosmosContext
     {
-      skipped("maybe one day")
-
       SpcPrimordial.initCosmos(cosmos)
 
       addBelief("Edison's invention is Byron")
