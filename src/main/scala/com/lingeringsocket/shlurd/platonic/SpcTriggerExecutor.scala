@@ -318,6 +318,9 @@ class SpcTriggerExecutor(
             trace(s"NONSPECIFIC REFERENCE $actualRef")
             return false
           }
+          case SilQuotationReference(_) => {
+            tupleN((actualRef, Set.empty[SpcEntity]))
+          }
           case _ => {
             referenceMap.get(actualRef) match {
               case Some(entities) => {

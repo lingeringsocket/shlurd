@@ -174,11 +174,26 @@ It is in the bathroom.
 
 Right, you are holding the lantern.
 
-> I am in the bathroom.
+> I am in the bathroom
 
 Right, you are in the bathroom.
 
-> I am in the kitchen.
+> I am in the kitchen
 
 Oh, really?
 
+> save
+
+OK.
+
+> drop lantern
+
+OK.
+
+> restore
+
+OK.
+
+> i
+
+You are holding the brass lantern.

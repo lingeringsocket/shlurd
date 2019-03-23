@@ -14,13 +14,15 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
-import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.platonic._
 
 import com.twitter.chill.ScalaKryoInstantiator
+import com.twitter.chill.TraversableSerializer
 import com.esotericsoftware.kryo.io._
+
+import scala.collection._
 
 import java.io._
 import java.util.zip._
@@ -36,6 +38,10 @@ class ShlurdCliSerializer
   private val instantiator = new ScalaKryoInstantiator
   instantiator.setRegistrationRequired(false)
   private val kryo = instantiator.newKryo
+
+  // stackoverflow.com/questions/37869812/serialize-linked-hash-map-kryo
+  kryo.register(classOf[mutable.LinkedHashMap[Any, Any]],
+    new TraversableSerializer[(Any, Any), mutable.LinkedHashMap[Any, Any]](true))
 
   def saveCosmos(cosmos : SpcCosmos, file : File)
   {
@@ -93,6 +99,21 @@ class ShlurdCliSerializer
     }
   }
 
+  def saveSnapshot(
+    snapshot : ShlurdFictionSnapshot, file : File)
+  {
+    val zos = new ZipOutputStream(new FileOutputStream(file))
+      saveEntry(zos, KRYO_ENTRY)(outputStream => {
+        val output = new Output(outputStream)
+        kryo.writeObject(output, snapshot)
+        output.flush
+      })
+    try {
+    } finally {
+      zos.close
+    }
+  }
+
   private def saveEntry(
     zos : ZipOutputStream,
     entry : String)(writeEntry : OutputStream => Unit)
@@ -102,16 +123,14 @@ class ShlurdCliSerializer
     zos.closeEntry
   }
 
-  def loadMindPair(file : File) : (ShlurdFictionMind, ShlurdFictionMind) =
+  def loadSnapshot(file : File) : ShlurdFictionSnapshot =
   {
     val zis = new ZipInputStream(new FileInputStream(file))
     try {
       val nextEntry = zis.getNextEntry
       assert(nextEntry.getName == KRYO_ENTRY)
       val input = new Input(zis)
-      val mind1 = kryo.readObject(input, classOf[ShlurdFictionMind])
-      val mind2 = kryo.readObject(input, classOf[ShlurdFictionMind])
-      tupleN((mind1, mind2))
+      kryo.readObject(input, classOf[ShlurdFictionSnapshot])
     } finally {
       zis.close
     }

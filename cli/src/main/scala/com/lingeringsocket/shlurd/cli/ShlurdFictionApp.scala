@@ -65,14 +65,14 @@ object ShlurdFictionAliases
 
 object ShlurdFictionApp extends App
 {
-  val file = new File("run/shlurd-fiction.zip")
-  val (phenomenalMind, noumenalMind, init) =
+  val file = new File("run/fiction-save.zip")
+  val (snapshot, init) =
     ShlurdFictionShell.loadOrCreate(file)
-  val shell = new ShlurdFictionShell(phenomenalMind, noumenalMind)
+  val shell = new ShlurdFictionShell(snapshot)
   if (init) {
     shell.init
   }
-  shell.run
+  ShlurdFictionShell.run(shell)
 }
 
 class ShlurdFictionMind(
@@ -150,21 +150,42 @@ object ShlurdFictionShell
 
   val OK = "OK."
 
+  def run(
+    firstShell : ShlurdFictionShell)
+  {
+    var shellOpt : Option[ShlurdFictionShell] = Some(firstShell)
+    while (shellOpt.nonEmpty) {
+      val shell = shellOpt.get
+      shellOpt = shell.run
+    }
+  }
+
   def loadOrCreate(file : File)
-      : (ShlurdFictionMind, ShlurdFictionMind, Boolean) =
+      : (ShlurdFictionSnapshot, Boolean) =
   {
     val terminal = new ShlurdFictionConsole
     if (file.exists) {
-      terminal.emitControl("Reloading...")
-      val serializer = new ShlurdCliSerializer
-      val (oldPhenomenalMind, oldNoumenalMind) = serializer.loadMindPair(file)
-      terminal.emitControl("Reload complete.")
-      tupleN((oldPhenomenalMind, oldNoumenalMind, false))
+      tupleN((restore(file, terminal), false))
     } else {
       terminal.emitControl("Initializing...")
       val (newPhenomenalMind, newNoumenalMind) = createNewCosmos
-      tupleN((newPhenomenalMind, newNoumenalMind, true))
+      tupleN((
+        ShlurdFictionSnapshot(
+          newPhenomenalMind,
+          newNoumenalMind
+        ),
+        true))
     }
+  }
+
+  def restore(file : File, terminal : ShlurdFictionTerminal)
+      : ShlurdFictionSnapshot =
+  {
+    terminal.emitControl(s"Restoring from $file...")
+    val serializer = new ShlurdCliSerializer
+    val snapshot = serializer.loadSnapshot(file)
+    terminal.emitControl("Restore complete.")
+    snapshot
   }
 
   def createNewCosmos() : (ShlurdFictionMind, ShlurdFictionMind) =
@@ -275,9 +296,31 @@ class ShlurdFictionResponder(
   }
 }
 
-class ShlurdFictionShell(
+object ShlurdFictionSnapshot
+{
+  def apply(
+    phenomenalMind : ShlurdFictionMind,
+    noumenalMind : ShlurdFictionMind) : ShlurdFictionSnapshot =
+  {
+    ShlurdFictionSnapshot(
+      phenomenalMind,
+      noumenalMind,
+      new SpcPerception(
+        noumenalMind.getCosmos,
+        phenomenalMind.getCosmos
+      )
+    )
+  }
+}
+
+case class ShlurdFictionSnapshot(
   phenomenalMind : ShlurdFictionMind,
   noumenalMind : ShlurdFictionMind,
+  perception : SpcPerception
+)
+
+class ShlurdFictionShell(
+  snapshot : ShlurdFictionSnapshot,
   terminal : ShlurdFictionTerminal = new ShlurdFictionConsole)
 {
   import ShlurdFictionShell._
@@ -297,11 +340,19 @@ class ShlurdFictionShell(
 
   case class DeferredPhenomenon(belief : String) extends Deferred
 
+  private val phenomenalMind = snapshot.phenomenalMind
+
+  private val noumenalMind = snapshot.noumenalMind
+
+  private val perception = snapshot.perception
+
   private val params = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
 
   private val deferredQueue = new mutable.Queue[Deferred]
 
   private var gameTurnTimestamp = SpcTimestamp.ZERO
+
+  private var restoreFile : Option[File] = None
 
   private val executor = new SmcExecutor[SpcEntity]
   {
@@ -335,6 +386,24 @@ class ShlurdFictionShell(
                       defer(DeferredComplaint(quotation))
                       ok
                     }
+                    case "save" => {
+                      val file = getSaveFile(quotation)
+                      terminal.emitControl(s"Saving $file...")
+                      val serializer = new ShlurdCliSerializer
+                      phenomenalMind.stopConversation
+                      serializer.saveSnapshot(
+                        ShlurdFictionSnapshot(
+                          phenomenalMind,
+                          noumenalMind,
+                          perception),
+                        file)
+                      phenomenalMind.startConversation
+                      ok
+                    }
+                    case "restore" => {
+                      restoreFile = Some(getSaveFile(quotation))
+                      ok
+                    }
                     case _ => None
                   }
                 }
@@ -346,6 +415,19 @@ class ShlurdFictionShell(
         }
         case _ => None
       }
+    }
+
+    private def getSaveFile(quotation : String) : File =
+    {
+      val fileName = {
+        if (quotation == ".zip") {
+          terminal.getDefaultSaveFile
+        } else {
+          quotation
+        }
+      }
+      val sanitized = fileName.replaceAll("[:\\\\/*\"?|<>']", "_")
+      new File(s"run/$sanitized")
     }
 
     override def executeImperative(predicate : SilPredicate) : Option[String] =
@@ -387,12 +469,6 @@ class ShlurdFictionShell(
 
   private val phenomenalUpdater = new ShlurdFictionResponder(
     this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
-
-  // FIXME this should be part of the serialization graph
-  // so that we save timestamp history
-  private val perception = new SpcPerception(
-    noumenalMind.getCosmos,
-    phenomenalMind.getCosmos)
 
   private def processFiat(sentence : SilSentence) : String =
   {
@@ -559,7 +635,7 @@ class ShlurdFictionShell(
     }
   }
 
-  def run()
+  def run() : Option[ShlurdFictionShell] =
   {
     phenomenalMind.startConversation
     var exit = false
@@ -580,12 +656,21 @@ class ShlurdFictionShell(
           exit = true
         }
       }
+      if (restoreFile.nonEmpty) {
+        exit = true
+      }
     }
-    terminal.emitNarrative("")
-    terminal.emitControl("Saving...NOT!")
-    // don't serialize conversation since that could be an extra source of
-    // deserialization problems later
-    phenomenalMind.stopConversation
+    restoreFile match {
+      case Some(file) => {
+        val snapshot = ShlurdFictionShell.restore(file, terminal)
+        Some(new ShlurdFictionShell(snapshot, terminal))
+      }
+      case _ => {
+        terminal.emitNarrative("")
+        terminal.emitControl("Shutting down...")
+        None
+      }
+    }
   }
 }
 
@@ -620,6 +705,11 @@ trait ShlurdFictionTerminal
   def readInput() : Option[String] =
   {
     None
+  }
+
+  def getDefaultSaveFile() : String =
+  {
+    "fiction-save.zip"
   }
 }
 

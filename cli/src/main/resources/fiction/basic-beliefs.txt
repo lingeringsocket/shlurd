@@ -15,3 +15,9 @@ If a player-character sees a visible-entity, then equivalently
 
 If the game-turn advances, then
  the player-character surveys the player-character's container.
+
+If a player-character saves, then
+ the game-interpreter saves ".zip".
+
+If a player-character restores, then
+ the game-interpreter restores ".zip".

@@ -83,12 +83,20 @@ class ShlurdFictionSpec extends Specification
             }
             case _ => None
           }
+
+        }
+
+        override def getDefaultSaveFile() =
+        {
+          "fiction-test-save.zip"
         }
       }
+      val snapshot = ShlurdFictionSnapshot(
+        phenomenalMind, noumenalMind)
       val shell = new ShlurdFictionShell(
-        phenomenalMind, noumenalMind, terminal)
+        snapshot, terminal)
       shell.init
-      shell.run
+      ShlurdFictionShell.run(shell)
       nextScriptLine must beEmpty
     }
   }
