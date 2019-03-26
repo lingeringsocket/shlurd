@@ -49,15 +49,24 @@ case object COMPOUND_OPEN extends SilCompoundStyle
 case object COMPOUND_CLOSED extends SilCompoundStyle
 case object COMPOUND_HYPHENATED extends SilCompoundStyle
 
-case class SilAdposition(words : Seq[SilWord])
+case class SilAdposition(word : SilWord)
 {
 }
 
 object SilAdposition
 {
+  def apply(words : Seq[SilSimpleWord]) : SilAdposition =
+  {
+    if (words.size == 1) {
+      SilAdposition(words.head)
+    } else {
+      SilAdposition(SilCompoundWord(words))
+    }
+  }
+
   private def adposition(lemma : String) =
   {
-    SilAdposition(Seq(SilWord(lemma)))
+    SilAdposition(SilWord(lemma))
   }
 
   val IN = adposition(LEMMA_IN)

@@ -187,10 +187,10 @@ class SpcTriggerExecutor(
             val actualRefs = actionPredicate.modifiers.flatMap(_ match {
               case SilAdpositionalVerbModifier(
                 actualAdposition, actualRef
-              ) if (adposition.words.toSet.subsetOf(
+              ) if (adposition.word.decomposed.toSet.subsetOf(
                 // FIXME this is to allow "goes back to" to subsume "goes to"
                 // but it's kinda dicey
-                actualAdposition.words.toSet)
+                actualAdposition.word.decomposed.toSet)
               ) => {
                 // FIXME verify that actualRef matches objPattern
                 Some(actualRef)

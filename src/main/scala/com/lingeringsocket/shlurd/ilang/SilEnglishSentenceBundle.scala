@@ -351,7 +351,7 @@ class SilEnglishSentenceBundle
 
   override def adpositionString(adposition : SilAdposition) =
   {
-    compose(adposition.words.map(delemmatizeWord):_*)
+    delemmatizeWord(adposition.word)
   }
 
   override def actionVerb(

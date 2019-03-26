@@ -84,8 +84,10 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   }
 
   private def scoreCompoundAdpositions = phraseScorer {
-    case ap : SilAdpositionalPhrase if (ap.adposition.words.size > 1) => {
-      if (ap.adposition.words.flatMap(_.decomposed).forall(
+    case ap : SilAdpositionalPhrase if (
+      ap.adposition.word.decomposed.size > 1
+    ) => {
+      if (ap.adposition.word.decomposed.forall(
         word => isAdposition(word.lemma))) {
         SilPhraseScore.conSmall
       } else {
@@ -152,7 +154,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
 
   private def scoreSpecialAdpositions = phraseScorer {
     case ap : SilAdpositionalPhrase => {
-      val words = ap.adposition.words.flatMap(_.decomposed)
+      val words = ap.adposition.word.decomposed
       if ((words.size > 1) && words.exists(
         _.lemma == LEMMA_THERE)
       ) {

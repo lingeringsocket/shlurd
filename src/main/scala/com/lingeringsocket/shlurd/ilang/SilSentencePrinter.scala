@@ -556,8 +556,8 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilBasicVerbModifier(word, _) => {
         sb.composeQualifiers(Seq(word))
       }
-      case SilDanglingVerbModifier(SilAdposition(words)) => {
-        sb.composeQualifiers(words)
+      case SilDanglingVerbModifier(SilAdposition(word)) => {
+        sb.composeQualifiers(Seq(word))
       }
       case adpositionalPhrase : SilAdpositionalVerbModifier => {
         printAdpositionalPhrase(adpositionalPhrase, SilConjoining.NONE)

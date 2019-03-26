@@ -542,7 +542,7 @@ class SprParserSpec extends Specification
             SilNounReference(NOUN_MOUSE, DETERMINER_UNIQUE),
             REL_IDENTITY,
             Seq(SilAdpositionalVerbModifier(
-              SilAdposition(Seq(SilWord("before"))),
+              SilAdposition(SilWord("before")),
               SilNounReference(NOUN_BATHROOM, DETERMINER_UNIQUE)
             ))
           ),

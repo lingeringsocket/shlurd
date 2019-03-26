@@ -654,7 +654,7 @@ class SprEnglishSyntaxAnalyzer(
           if (seq.last.isAdpositionalPhrase) {
             // "south of the border"
             expectAdpositionalState(seq.last, false) match {
-              case SilAdpositionalState(SilAdposition(words), ref) => {
+              case SilAdpositionalState(SilAdposition(word), ref) => {
                 val unwrapped = adpTree.unwrapPhrase
                 if ((unwrapped.children.size == 1) &&
                   (unwrapped.isNounNode || !isStrict))
@@ -662,7 +662,7 @@ class SprEnglishSyntaxAnalyzer(
                   SilAdpositionalState(
                     SilAdposition(
                       getWord(
-                        requireLeaf(unwrapped.children)) +: words),
+                        requireLeaf(unwrapped.children)) +: word.decomposed),
                     ref)
                 } else {
                   SilUnrecognizedState(tree)
@@ -692,7 +692,7 @@ class SprEnglishSyntaxAnalyzer(
       case adp : SprSyntaxAdposition => {
         val leaf = adp.child
         if (isAdposition(getWord(leaf).inflected)) {
-          Some(SilAdposition(Seq(getWord(adp.child))))
+          Some(SilAdposition(getWord(adp.child)))
         } else {
           None
         }
@@ -850,7 +850,7 @@ class SprEnglishSyntaxAnalyzer(
       case SptPP(pt : SprSyntaxPreTerminal) => {
         if (isAdposition(pt.child.lemma)) {
           SilDanglingVerbModifier(
-            SilAdposition(Seq(getWord(pt.child))))
+            SilAdposition(getWord(pt.child)))
         } else {
           SilUnrecognizedVerbModifier(tree)
         }

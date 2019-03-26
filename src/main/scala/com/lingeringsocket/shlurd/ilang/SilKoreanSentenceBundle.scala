@@ -103,7 +103,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
   override def adpositionString(adposition : SilAdposition) =
   {
     // FIXME find significant word in phrase such as "to the right of"
-    val pos = adposition.words.flatMap(_.decomposed).head.lemma match {
+    val pos = adposition.word.decomposed.head.lemma match {
       case LEMMA_IN | LEMMA_WITHIN | LEMMA_INSIDE => "안"
       case LEMMA_OUTSIDE => "밖"
       case LEMMA_AT => ""
@@ -120,7 +120,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
       // FIXME:  context-dependent
       case LEMMA_WITH => "하고"
       // FIXME:  OF etc
-      case _ => compose(adposition.words.flatMap(_.decomposed).map(_.lemma):_*)
+      case _ => compose(adposition.word.decomposed.map(_.lemma):_*)
     }
     // later need to distinguish 에 from 에서
     compose(concat(pos, "에"), "있어요")

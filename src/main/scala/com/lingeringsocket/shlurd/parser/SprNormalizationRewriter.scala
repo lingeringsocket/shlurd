@@ -162,7 +162,8 @@ private[parser] class SprNormalizationRewriter
     ) if (word.lemma == LEMMA_LEFT) || (word.lemma == LEMMA_RIGHT) => {
       SilAdpositionalState(
         SilAdposition(
-          adp1.words ++ Seq(SilWord(LEMMA_THE), word) ++ adp2.words),
+          adp1.word.decomposed ++ Seq(SilWord(LEMMA_THE), word) ++
+            adp2.word.decomposed),
         objRef
       )
     }
@@ -186,7 +187,7 @@ private[parser] class SprNormalizationRewriter
       SilStatePredicate(
         subject,
         SilAdpositionalState(
-          SilAdposition(direction +: adp.words),
+          SilAdposition(direction +: adp.word.decomposed),
           landmark
         ),
         modifiers
@@ -202,7 +203,7 @@ private[parser] class SprNormalizationRewriter
       SilStatePredicate(
         subject,
         SilAdpositionalState(
-          SilAdposition(direction +: adp.words),
+          SilAdposition(direction +: adp.word.decomposed),
           landmark),
         Seq.empty)
     }
@@ -317,22 +318,19 @@ private[parser] class SprNormalizationRewriter
     // whereas "where was the football before the kitchen" and
     // "bow before the throne" involve adverbial phrases.  And in some cases,
     // we should leave it ambiguous and try it both ways.
-    adposition.words match {
-      case Seq(word) => word.toLemma match {
-        case LEMMA_BEFORE | LEMMA_AFTER | LEMMA_TO => true
-        case LEMMA_AT => {
-          objRef match {
-            case SilNounReference(
-              _, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
-            ) => {
-              false
-            }
-            case _ => {
-              true
-            }
+    adposition.word.toLemma match {
+      case LEMMA_BEFORE | LEMMA_AFTER | LEMMA_TO => true
+      case LEMMA_AT => {
+        objRef match {
+          case SilNounReference(
+            _, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+          ) => {
+            false
+          }
+          case _ => {
+            true
           }
         }
-        case _ => false
       }
       case _ => false
     }
