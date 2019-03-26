@@ -605,7 +605,7 @@ case class SilConjunctiveState(
 }
 
 case class SilBasicVerbModifier(
-  words : Seq[SilWord],
+  word : SilWord,
   score : Int
 ) extends SilTransformedPhrase with SilVerbModifier
 {

@@ -153,7 +153,7 @@ abstract class SprAbstractSyntaxAnalyzer(
     successor : Option[SprSyntaxTree])
       : SilVerbModifier =
   {
-    SilBasicVerbModifier(Seq(getWord(preTerminal.child)), 0)
+    SilBasicVerbModifier(getWord(preTerminal.child), 0)
   }
 
   protected def expectExistenceState(syntaxTree : SprSyntaxTree) =

@@ -839,7 +839,7 @@ class SprEnglishSyntaxAnalyzer(
         }
         case _ => return expectAdpositionalVerbModifier(tree)
       })
-      SilBasicVerbModifier(words, 0)
+      SilBasicVerbModifier(SilCompoundWord(words), 0)
     }
   }
 
@@ -1447,6 +1447,6 @@ class SprEnglishSyntaxAnalyzer(
       ) => -1
       case _ => 0
     }
-    SilBasicVerbModifier(Seq(getWord(preTerminal.child)), score)
+    SilBasicVerbModifier(getWord(preTerminal.child), score)
   }
 }

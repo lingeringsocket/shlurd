@@ -398,7 +398,7 @@ class SpcBeliefRecognizer(
       if (!alternativeSentence.predicate.getModifiers.exists(
         _ match {
           case SilBasicVerbModifier(
-            Seq(SilWordLemma(LEMMA_OTHERWISE)), _) => true
+            SilWordLemma(LEMMA_OTHERWISE), _) => true
           case _ => false
         }
       )) {

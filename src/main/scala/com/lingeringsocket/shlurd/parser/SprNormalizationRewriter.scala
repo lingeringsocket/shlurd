@@ -343,9 +343,10 @@ private[parser] class SprNormalizationRewriter
       Option[(SilVerbModifier, String)] =
   {
     verbModifiers.toStream.flatMap(modifier => modifier match {
-      case SilBasicVerbModifier(Seq(word : SilSimpleWord), _) => {
-        if (isCoordinatingDeterminer(word.lemma)) {
-          Some(tupleN((modifier, word.lemma)))
+      case SilBasicVerbModifier(word, _) => {
+        val lemma = word.toLemma
+        if (isCoordinatingDeterminer(lemma)) {
+          Some(tupleN((modifier, lemma)))
         } else {
           None
         }

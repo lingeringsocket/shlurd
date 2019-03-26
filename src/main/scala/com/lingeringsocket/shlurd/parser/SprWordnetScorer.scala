@@ -61,9 +61,9 @@ object SprWordnetScorer extends SilPhraseRewriter
     modifier : SilVerbModifier, senses : Set[Seq[String]]) : SilVerbModifier =
   {
     modifier match {
-      case SilBasicVerbModifier(words, score) => {
-        if (senses.contains(words.map(_.toLemma))) {
-          SilBasicVerbModifier(words, 1)
+      case SilBasicVerbModifier(word, score) => {
+        if (senses.contains(word.decomposed.map(_.lemma))) {
+          SilBasicVerbModifier(word, 1)
         } else {
           modifier
         }

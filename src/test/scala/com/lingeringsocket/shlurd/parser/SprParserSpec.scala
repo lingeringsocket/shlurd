@@ -133,7 +133,7 @@ class SprParserSpec extends Specification
     val (verbWord, modifiers) = changeVerb match {
       case Some(word) => {
         tupleN((word,
-          pred.modifiers :+ SilBasicVerbModifier(Seq(stateWord), 1)))
+          pred.modifiers :+ SilBasicVerbModifier(stateWord, 1)))
       }
       case _ => {
         tupleN((stateWord, pred.modifiers))

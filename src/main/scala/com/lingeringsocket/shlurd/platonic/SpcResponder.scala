@@ -280,7 +280,7 @@ class SpcResponder(
                     alternativeSentence.predicate.getModifiers.filterNot(
                       _ match {
                         case SilBasicVerbModifier(
-                          Seq(SilWordLemma(LEMMA_OTHERWISE)), _) => true
+                          SilWordLemma(LEMMA_OTHERWISE), _) => true
                         case _ => false
                       })))
                 spawn(imagine(forkedCosmos)).resolveReferences(
