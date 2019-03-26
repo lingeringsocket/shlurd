@@ -41,7 +41,9 @@ class ShlurdCliSerializer
 
   // stackoverflow.com/questions/37869812/serialize-linked-hash-map-kryo
   kryo.register(classOf[mutable.LinkedHashMap[Any, Any]],
-    new TraversableSerializer[(Any, Any), mutable.LinkedHashMap[Any, Any]](true))
+    new TraversableSerializer[
+      (Any, Any),
+      mutable.LinkedHashMap[Any, Any]](true))
 
   def saveCosmos(cosmos : SpcCosmos, file : File)
   {

@@ -136,7 +136,8 @@ class SpcTriggerExecutor(
           }
         }
         if (!mind.isEquivalentVerb(action, actionPredicate.action)) {
-          trace(s"ACTION ${actionPredicate.action.lemma} DOES NOT MATCH")
+          def lemma = actionPredicate.action.toLemma
+          trace(s"ACTION $lemma DOES NOT MATCH")
           return None
         }
         // FIXME detect colliding replacement nouns e.g.

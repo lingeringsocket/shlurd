@@ -44,6 +44,11 @@ case object DISTANCE_HERE extends SilDistance
 case object DISTANCE_THERE extends SilDistance
 case object DISTANCE_UNSPECIFIED extends SilDistance
 
+sealed trait SilCompoundStyle
+case object COMPOUND_OPEN extends SilCompoundStyle
+case object COMPOUND_CLOSED extends SilCompoundStyle
+case object COMPOUND_HYPHENATED extends SilCompoundStyle
+
 case class SilAdposition(words : Seq[SilWord])
 {
 }

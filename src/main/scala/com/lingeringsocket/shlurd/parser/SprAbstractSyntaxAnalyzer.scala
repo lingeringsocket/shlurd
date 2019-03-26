@@ -199,7 +199,7 @@ abstract class SprAbstractSyntaxAnalyzer(
 
   override def getWord(leaf : SprSyntaxLeaf) =
   {
-    SilWord(leaf.foldedToken, leaf.lemma)
+    SilSimpleWord(leaf.foldedToken, leaf.lemma)
   }
 
   protected def extractTense(verbHead : SprSyntaxTree, tam : SilTam) : SilTam =

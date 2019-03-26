@@ -70,21 +70,23 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   private def scoreAdverbStates = phraseScorer {
     case SilStateSpecifiedReference(
       _,
-      SilPropertyState(word)
-    ) if (ShlurdWordnet.isPotentialAdverb(word.inflected)) => {
+      SilPropertyState(SilWordInflected(inflected))
+    ) if (ShlurdWordnet.isPotentialAdverb(inflected)) => {
       SilPhraseScore.conSmall
     }
     case SilStateSpecifiedReference(
-      SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+      SilNounReference(
+        SilWordInflected(inflected), DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
       _ : SilAdpositionalState
-    ) if (ShlurdWordnet.isPotentialAdverb(noun.inflected)) => {
+    ) if (ShlurdWordnet.isPotentialAdverb(inflected)) => {
       SilPhraseScore.conSmall
     }
   }
 
   private def scoreCompoundAdpositions = phraseScorer {
     case ap : SilAdpositionalPhrase if (ap.adposition.words.size > 1) => {
-      if (ap.adposition.words.forall(word => isAdposition(word.lemma))) {
+      if (ap.adposition.words.flatMap(_.decomposed).forall(
+        word => isAdposition(word.lemma))) {
         SilPhraseScore.conSmall
       } else {
         SilPhraseScore.proBig
@@ -115,8 +117,8 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
 
   private def scoreGerundNouns = phraseScorer {
     case SilNounReference(
-      word : SilWord, _, _
-    ) if (ShlurdWordnet.isPotentialGerund(word.inflected)) => {
+      SilWordInflected(inflected), _, _
+    ) if (ShlurdWordnet.isPotentialGerund(inflected)) => {
       SilPhraseScore.conSmall
     }
   }
@@ -150,8 +152,10 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
 
   private def scoreSpecialAdpositions = phraseScorer {
     case ap : SilAdpositionalPhrase => {
-      val words = ap.adposition.words
-      if ((words.size > 1) && words.exists(_.lemma == LEMMA_THERE)) {
+      val words = ap.adposition.words.flatMap(_.decomposed)
+      if ((words.size > 1) && words.exists(
+        _.lemma == LEMMA_THERE)
+      ) {
         SilPhraseScore.conBig
       } else if (words.exists(_.inflected == LEMMA_ADVERBIAL_TMP)) {
         SilPhraseScore.proSmall
@@ -164,11 +168,11 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   private def scoreVerbFrames = phraseScorer {
     case SilActionPredicate(
       subject,
-      action,
+      SilWordLemma(lemma),
       directObject,
       modifiers
     ) => {
-      val frameFlags = ShlurdWordnet.getVerbFrameFlags(action.lemma)
+      val frameFlags = ShlurdWordnet.getVerbFrameFlags(lemma)
       val matched = SilWordnetScorer.matchAction(
         frameFlags, subject, directObject, modifiers)
       if (matched > 0) {

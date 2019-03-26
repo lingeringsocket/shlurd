@@ -77,7 +77,7 @@ trait SprSyntaxAnalyzer
 
   def getWord(
     leaf : SprSyntaxLeaf)
-      : SilWord
+      : SilSimpleWord
 
   def isProhibitedPropertyState(
     preTerminal : SprSyntaxPreTerminal) : Boolean

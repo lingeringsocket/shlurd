@@ -71,7 +71,12 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
     specific : Boolean = false) : Try[(Option[PropertyType], Option[String])]
 
   def qualifierSet(qualifiers : Seq[SilWord]) =
-    SprUtils.orderedSet(qualifiers.map(_.lemma))
+    SprUtils.orderedSet(qualifiers.flatMap(_.decomposed).map(_.lemma))
+
+  def deriveName(word : SilWord) : String =
+  {
+    word.toLemma.replaceAllLiterally(" ", "_")
+  }
 
   // lemma -> inflected
   def getPropertyStateMap(property : PropertyType) : Map[String, String]

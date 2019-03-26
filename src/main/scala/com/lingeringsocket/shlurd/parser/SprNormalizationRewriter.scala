@@ -152,7 +152,8 @@ private[parser] class SprNormalizationRewriter
     case SilAdpositionalState(
       adp1 : SilAdposition,
       SilStateSpecifiedReference(
-        SilNounReference(word, DETERMINER_UNIQUE, COUNT_SINGULAR),
+        SilNounReference(
+          word : SilSimpleWord, DETERMINER_UNIQUE, COUNT_SINGULAR),
         SilAdpositionalState(
           adp2 : SilAdposition,
           objRef
@@ -171,7 +172,8 @@ private[parser] class SprNormalizationRewriter
     case SilRelationshipPredicate(
       subject,
       SilStateSpecifiedReference(
-        SilNounReference(direction, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+        SilNounReference(
+          direction : SilSimpleWord, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
         SilAdpositionalState(
           adp,
           landmark)
@@ -192,7 +194,7 @@ private[parser] class SprNormalizationRewriter
     }
     case SilStatePredicate(
       subject,
-      SilPropertyState(direction),
+      SilPropertyState(direction : SilSimpleWord),
       Seq(SilAdpositionalVerbModifier(adp, landmark))
     ) if (
       (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
@@ -316,7 +318,7 @@ private[parser] class SprNormalizationRewriter
     // "bow before the throne" involve adverbial phrases.  And in some cases,
     // we should leave it ambiguous and try it both ways.
     adposition.words match {
-      case Seq(word) => word.lemma match {
+      case Seq(word) => word.toLemma match {
         case LEMMA_BEFORE | LEMMA_AFTER | LEMMA_TO => true
         case LEMMA_AT => {
           objRef match {
@@ -341,7 +343,7 @@ private[parser] class SprNormalizationRewriter
       Option[(SilVerbModifier, String)] =
   {
     verbModifiers.toStream.flatMap(modifier => modifier match {
-      case SilBasicVerbModifier(Seq(word), _) => {
+      case SilBasicVerbModifier(Seq(word : SilSimpleWord), _) => {
         if (isCoordinatingDeterminer(word.lemma)) {
           Some(tupleN((modifier, word.lemma)))
         } else {

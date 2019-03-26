@@ -404,8 +404,10 @@ object SprParser
   def interpretTemporal(ref : SilReference) : Int =
   {
     ref match {
-      case SilNounReference(word, DETERMINER_UNSPECIFIED, COUNT_SINGULAR) => {
-        word.lemma.toLowerCase match {
+      case SilNounReference(
+        SilWordLemma(lemma), DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+      ) => {
+        lemma.toLowerCase match {
           case ONCE_UPON_A_TIME => Int.MinValue
           case "yesterday" => -1
           case _ => throw new IllegalArgumentException
@@ -414,9 +416,10 @@ object SprParser
       case SilGenitiveReference(
         SilPronounReference(
           PERSON_THIRD, GENDER_N, COUNT_SINGULAR, DISTANCE_HERE),
-        SilNounReference(word, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)
+        SilNounReference(
+          SilWordLemma(lemma), DETERMINER_UNSPECIFIED, COUNT_SINGULAR)
       ) => {
-        word.lemma.toLowerCase match {
+        lemma.toLowerCase match {
           case "morning" => 1
           case "afternoon" => 2
           case "evening" => 3

@@ -144,6 +144,7 @@ class SilSentencePrinterSpec extends Specification
         "the door can't be closed?", "can the door not be closed?")
       expectCommand("close the door")
       expectStatement("the chickens are fat")
+      expectStatement("a young man goes west")
       expectStatement("I am hungry")
       expectStatement("we are hungry")
       expectStatement("you are hungry")
@@ -326,5 +327,25 @@ class SilSentencePrinterSpec extends Specification
         "otherwise the player burps",
         "the player burps otherwise.")
     }
+  }
+
+  "print compound words" in
+  {
+    def print(style : SilCompoundStyle) =
+    {
+      val ref = SilNounReference(
+        SilCompoundWord(
+          Seq(
+            SilWord("tea"),
+            SilWord("shop")
+          ),
+          style
+        )
+      )
+      printer.print(ref, INFLECT_NONE, SilConjoining.NONE)
+    }
+    print(COMPOUND_OPEN) must be equalTo "tea shop"
+    print(COMPOUND_CLOSED) must be equalTo "teashop"
+    print(COMPOUND_HYPHENATED) must be equalTo "tea-shop"
   }
 }

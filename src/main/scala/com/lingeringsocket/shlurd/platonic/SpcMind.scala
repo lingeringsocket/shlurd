@@ -211,7 +211,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   def resolveFormCandidates(noun : SilWord) : Seq[SpcForm] =
   {
-    cosmos.resolveForm(noun.lemma).toSeq
+    cosmos.resolveForm(cosmos.deriveName(noun)).toSeq
   }
 
   def resolveForm(noun : SilWord) : Option[SpcForm] =
@@ -221,7 +221,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   def resolveRole(form : SpcForm, noun : SilWord) : Option[SpcRole] =
   {
-    cosmos.resolveRole(noun.lemma)
+    cosmos.resolveRole(cosmos.deriveName(noun))
   }
 
   def instantiateForm(noun : SilWord) : SpcForm =
@@ -290,7 +290,9 @@ class SpcMind(cosmos : SpcCosmos)
     noun : SilWord,
     qualifiers : Set[String]) : Try[Trilean] =
   {
-    val (formSeq, roleOpt) = cosmos.resolveIdeal(noun.lemma) match {
+    val (formSeq, roleOpt) = cosmos.resolveIdeal(
+      cosmos.deriveName(noun)
+    ) match {
       case (None, None) => {
         resolveFormCandidates(noun) match {
           case Seq() => tupleN((Seq.empty, None))
@@ -318,7 +320,7 @@ class SpcMind(cosmos : SpcCosmos)
       case _ => {
         formSeq match {
           case Seq() => {
-            cosmos.fail(s"unknown ideal ${noun.lemma}")
+            cosmos.fail(s"unknown ideal ${cosmos.deriveName(noun)}")
           }
           case _ => {
             if (formSeq.exists(form => graph.isHyponym(entity.form, form))) {

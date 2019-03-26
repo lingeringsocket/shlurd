@@ -70,7 +70,8 @@ object ShlurdWordnet
   def getVerbFrameFlags(lemma : String) : BitSet =
   {
     getVerbSenses(lemma).map(sense => BitSet(sense.getVerbFrameIndices:_*)).
-      reduceLeft(_ union _)
+      reduceLeftOption(_ union _).getOrElse(
+        BitSet.empty)
   }
 
   def isPotentialAdverb(inflected : String) : Boolean =

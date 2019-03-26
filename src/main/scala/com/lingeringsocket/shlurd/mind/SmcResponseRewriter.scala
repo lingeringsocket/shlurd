@@ -583,9 +583,11 @@ class SmcResponseRewriter[
   }
 
   private def clearActionInflection = replacementMatcher {
-    case SilActionPredicate(subject, action, directObject, modifiers) => {
+    case SilActionPredicate(
+      subject, action, directObject, modifiers
+    ) => {
       SilActionPredicate(
-        subject, action.uninflected, directObject, modifiers)
+        subject, action.toUninflected, directObject, modifiers)
     }
   }
 
@@ -653,7 +655,7 @@ class SmcResponseRewriter[
             }
           }
           SilNounReference(
-            SilWord.uninflected(nounRef.noun.lemma),
+            nounRef.noun.toUninflected,
             newDeterminer, agreedCount)
         }
       }

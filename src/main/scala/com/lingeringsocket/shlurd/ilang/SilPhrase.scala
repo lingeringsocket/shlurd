@@ -496,8 +496,8 @@ case class SilStateSpecifiedReference(
     state match {
       case SilAdpositionalState(SilAdposition.OF, pn : SilPronounReference) => {
         reference match {
-          case SilNounReference(word, _, _) => {
-            if (word.lemma.forall(Character.isDigit)) {
+          case SilNounReference(SilWordLemma(lemma), _, _) => {
+            if (lemma.forall(Character.isDigit)) {
               return false
             }
           }
@@ -624,34 +624,122 @@ case class SilAdpositionalVerbModifier(
 {
 }
 
-case class SilWord(
+trait SilWord
+{
+  def senseId : String = ""
+
+  def isProper : Boolean
+
+  def withSense(senseId : String) : SilWord
+
+  def decomposed : Seq[SilSimpleWord]
+
+  def recompose(seq : Seq[String]) : String
+
+  def toLemma : String
+
+  def toUnfoldedLemma : String
+
+  def toUninflected : SilWord
+}
+
+case class SilSimpleWord(
   inflected : String,
   lemmaUnfolded : String,
-  senseId : String = "")
+  override val senseId : String = ""
+) extends SilWord
 {
   def lemma = lemmaUnfolded.toLowerCase
 
-  def isProper = lemmaUnfolded.head.isUpper
+  override def toUnfoldedLemma = lemmaUnfolded
 
-  def uninflected = SilWord.uninflected(lemmaUnfolded)
+  override def isProper = lemmaUnfolded.head.isUpper
 
-  def withSense(senseId : String) =
-    SilWord(inflected, lemmaUnfolded, senseId)
+  def uninflected = SilSimpleWord("", lemmaUnfolded, senseId)
+
+  override def withSense(senseId : String) =
+    SilSimpleWord(inflected, lemmaUnfolded, senseId)
+
+  override def decomposed = Seq(this)
+
+  override def toLemma = lemma
+
+  override def toUninflected =
+  {
+    SilWord.uninflected(lemma).withSense(senseId)
+  }
+
+  override def recompose(seq : Seq[String]) =
+  {
+    seq.mkString(" ")
+  }
+}
+
+case class SilCompoundWord(
+  components : Seq[SilSimpleWord],
+  style : SilCompoundStyle = COMPOUND_OPEN,
+  override val senseId : String = ""
+) extends SilWord
+{
+  override def isProper = components.exists(_.isProper)
+
+  override def withSense(senseId : String) =
+    SilCompoundWord(components, style, senseId)
+
+  override def decomposed = components
+
+  override def toLemma =
+    recompose(components.dropRight(1).map(_.inflected) :+
+      components.last.lemma)
+
+  override def toUninflected =
+  {
+    SilCompoundWord(
+      components.dropRight(1) :+
+        SilWord.uninflected(components.last.lemma),
+      style,
+      senseId)
+  }
+
+  override def toUnfoldedLemma =
+    recompose(components.map(_.lemmaUnfolded))
+
+  override def recompose(seq : Seq[String]) =
+  {
+    seq.mkString(separator)
+  }
+
+  def separator : String =
+  {
+    style match {
+      case COMPOUND_OPEN => " "
+      case COMPOUND_CLOSED => ""
+      case COMPOUND_HYPHENATED => "-"
+    }
+  }
 }
 
 object SilWord
 {
-  def apply(s : String) : SilWord = SilWord(s, s)
+  def apply(s : String) : SilSimpleWord = SilSimpleWord(s, s)
 
-  def uninflected(s : String) = SilWord("", s)
+  def apply(
+    inflected : String,
+    lemmaUnfolded : String,
+    senseId : String = "") : SilSimpleWord =
+  {
+    SilSimpleWord(inflected, lemmaUnfolded, senseId)
+  }
+
+  def uninflected(s : String) = SilSimpleWord("", s)
 
   def withSense(s : String, senseId : String) =
-    SilWord(s, s, senseId)
+    SilSimpleWord(s, s, senseId)
 }
 
 object SilWordLemma
 {
-  def unapply(w : SilWord) =
+  def unapply(w : SilSimpleWord) =
   {
     Some(w.lemma)
   }
@@ -659,7 +747,7 @@ object SilWordLemma
 
 object SilWordInflected
 {
-  def unapply(w : SilWord) =
+  def unapply(w : SilSimpleWord) =
   {
     Some(w.inflected)
   }

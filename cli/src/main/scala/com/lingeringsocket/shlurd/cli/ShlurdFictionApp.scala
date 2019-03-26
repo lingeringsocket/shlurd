@@ -260,7 +260,7 @@ class ShlurdFictionResponder(
     if (!isPrecondition) {
       predicate match {
         case ap : SilActionPredicate => {
-          val lemma = ap.action.lemma
+          val lemma = ap.action.toLemma
           ap.subject match {
             case SilNounReference(
               SilWordInflected(inflected), DETERMINER_UNIQUE, COUNT_SINGULAR
@@ -358,7 +358,7 @@ class ShlurdFictionShell(
   {
     override def executeAction(ap : SilActionPredicate) : Option[String] =
     {
-      val lemma = ap.action.lemma
+      val lemma = ap.action.toLemma
       ap.directObject match {
         case Some(SilQuotationReference(quotation)) => {
           ap.subject match {

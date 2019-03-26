@@ -44,10 +44,10 @@ object SprWordnetScorer extends SilPhraseRewriter
       // FIXME there's got to be a better way; if not, we should at least
       // cache
       val senses = dictionary.getIndexWordIterator(
-        POS.VERB, action.lemma).asScala.flatMap(indexWord => {
+        POS.VERB, action.toLemma).asScala.flatMap(indexWord => {
           indexWord.getSenses.asScala.flatMap(
             _.getWords.asScala.map(_.getLemma).filter(
-              _.startsWith(s"${action.lemma} ")).
+              _.startsWith(s"${action.toLemma} ")).
               map(_.split(" ").tail.toSeq))
         }
       ).toStream.force.toSet
@@ -62,7 +62,7 @@ object SprWordnetScorer extends SilPhraseRewriter
   {
     modifier match {
       case SilBasicVerbModifier(words, score) => {
-        if (senses.contains(words.map(_.lemma))) {
+        if (senses.contains(words.map(_.toLemma))) {
           SilBasicVerbModifier(words, 1)
         } else {
           modifier

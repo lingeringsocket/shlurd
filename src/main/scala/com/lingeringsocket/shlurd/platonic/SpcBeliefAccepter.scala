@@ -105,14 +105,14 @@ class SpcBeliefAccepter(
         tupleN((entity, success))
       }
       case DETERMINER_UNSPECIFIED => {
-        cosmos.getEntityBySynonym(noun.lemma) match {
+        cosmos.getEntityBySynonym(cosmos.deriveName(noun)) match {
           case Some(entity) => (entity, false)
           case _ => {
             val tentativeName = SpcForm.tentativeName(noun)
             assert(mind.resolveForm(tentativeName).isEmpty)
             val newForm = mind.instantiateForm(tentativeName)
             val (entity, success) = cosmos.instantiateEntity(
-              newForm, Seq(noun), noun.lemmaUnfolded)
+              newForm, Seq(noun), noun.toUnfoldedLemma)
             assert(success)
             tupleN((entity, success))
           }
@@ -303,14 +303,15 @@ class SpcBeliefAccepter(
         cosmos.instantiateProperty(form, propertyName)
       }
       case _ => {
-        val properties = newStates.flatMap(
-          w => cosmos.resolveFormProperty(form, w.lemma).map(_._1).toSeq)
+        val properties = newStates.flatMap(_.decomposed).flatMap(
+          w => cosmos.resolveFormProperty(
+            form, w.lemma).map(_._1).toSeq)
         properties match {
           case Seq() => {
             cosmos.instantiateProperty(
               form,
               SilWord(form.name + "_" +
-                newStates.map(_.lemma).mkString("_")))
+                newStates.flatMap(_.decomposed).map(_.lemma).mkString("_")))
           }
           case Seq(p) => {
             // FIXME:  if we add more states to an existing property,
@@ -326,11 +327,12 @@ class SpcBeliefAccepter(
     }
     val baselineProperty = propertyNameOpt match {
       case Some(propertyName) => {
-        cosmos.findProperty(form, propertyName.lemma).getOrElse(property)
+        cosmos.findProperty(
+          form, cosmos.deriveName(propertyName)).getOrElse(property)
       }
       case _ => {
         val hyperProperties = newStates.flatMap(
-          w => cosmos.resolveHypernymPropertyState(form, w.lemma).
+          w => cosmos.resolveHypernymPropertyState(form, cosmos.deriveName(w)).
             map(_._1).toSeq)
         hyperProperties match {
           case Seq() => property
@@ -342,7 +344,7 @@ class SpcBeliefAccepter(
       }
     }
     if (baselineProperty.isClosed) {
-      if (!newStates.map(_.lemma).toSet.subsetOf(
+      if (!newStates.flatMap(_.decomposed).map(_.lemma).toSet.subsetOf(
         cosmos.getPropertyStateMap(baselineProperty).keySet))
       {
         throw new ContradictoryBeliefExcn(
@@ -352,7 +354,7 @@ class SpcBeliefAccepter(
     }
     val existingStates = cosmos.getPropertyStateMap(property)
     val statesToAdd = newStates.filterNot(
-      word => existingStates.contains(word.lemma))
+      word => existingStates.contains(cosmos.deriveName(word)))
     statesToAdd.foreach(cosmos.instantiatePropertyState(property, _))
     if (isClosed || baselineProperty.isClosed) {
       cosmos.closePropertyStates(property)
@@ -387,7 +389,7 @@ class SpcBeliefAccepter(
       sentence, synonym, idealName
     ) => {
       val ideal = mind.instantiateIdeal(idealName)
-      cosmos.addIdealSynonym(synonym.lemma, ideal.name)
+      cosmos.addIdealSynonym(cosmos.deriveName(synonym), ideal.name)
     }
   }
 
@@ -567,12 +569,12 @@ class SpcBeliefAccepter(
       val form = entity.form
       val propertyOpt = propertyName match {
         case Some(word) => {
-          cosmos.findProperty(form, word.lemma) match {
+          cosmos.findProperty(form, cosmos.deriveName(word)) match {
             case Some(property) => {
               if (cosmos.getPropertyStateObjMap(property).
-                contains(stateName.lemma))
+                contains(cosmos.deriveName(stateName)))
               {
-                Some((property, stateName.lemma))
+                Some((property, cosmos.deriveName(stateName)))
               } else {
                 None
               }
@@ -581,13 +583,14 @@ class SpcBeliefAccepter(
           }
         }
         case _ => {
-          cosmos.resolveHypernymPropertyState(form, stateName.lemma)
+          cosmos.resolveHypernymPropertyState(
+            form, cosmos.deriveName(stateName))
         }
       }
       val (property, actualState) = propertyOpt.getOrElse({
         val p = instantiatePropertyStates(
           sentence, form, Seq(stateName), false, propertyName)
-        tupleN((p, stateName.lemma))
+        tupleN((p, cosmos.deriveName(stateName)))
       })
       // FIXME need to honor allowUpdates
       cosmos.updateEntityProperty(entity, property, actualState)

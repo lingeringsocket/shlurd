@@ -51,7 +51,7 @@ class SilWordnetSenseAnalyzer extends SilPhraseRewriter
     val inputSenses = ShlurdWordnet.findSenses(word.senseId)
     val candidateSenses = {
       if (inputSenses.isEmpty) {
-        ShlurdWordnet.getWordSenses(pos, word.lemma)
+        ShlurdWordnet.getWordSenses(pos, word.toLemma)
       } else {
         inputSenses
       }

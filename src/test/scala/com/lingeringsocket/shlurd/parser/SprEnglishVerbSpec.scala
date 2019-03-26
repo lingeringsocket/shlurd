@@ -65,10 +65,10 @@ class SprEnglishVerbSpec extends Specification
     val sentence = SprParser(input).parseOne
     sentence match {
       case SilPredicateSentence(
-        SilActionPredicate(subject, action, rhs, Seq()),
+        SilActionPredicate(subject, SilWordLemma(lemma), rhs, Seq()),
         tam, _
       ) => {
-        ParsedVerb(subject, rhs, action.lemma, tam, None)
+        ParsedVerb(subject, rhs, lemma, tam, None)
       }
       case SilPredicateSentence(
         SilRelationshipPredicate(subject, complement, rel, Seq()),
@@ -77,7 +77,8 @@ class SprEnglishVerbSpec extends Specification
         ParsedVerb(subject, Some(complement), lemmaFor(rel), tam, None)
       }
       case SilPredicateSentence(
-        SilStatePredicate(subject, rhs @ SilPropertyState(state), Seq()),
+        SilStatePredicate(subject,
+          rhs @ SilPropertyState(state : SilSimpleWord), Seq()),
         tam, _
       ) => {
         if (state.inflected.endsWith(SUFFIX_ING)) {
@@ -89,11 +90,11 @@ class SprEnglishVerbSpec extends Specification
         }
       }
       case SilPredicateQuery(
-        SilActionPredicate(subject, action, rhs, Seq()),
+        SilActionPredicate(subject, SilWordLemma(lemma), rhs, Seq()),
         question, answerInflection, tam, _
       ) => {
         ParsedVerb(
-          subject, rhs, action.lemma, tam,
+          subject, rhs, lemma, tam,
           Some((question, answerInflection)))
       }
       case SilPredicateQuery(
@@ -105,7 +106,8 @@ class SprEnglishVerbSpec extends Specification
           Some((question, answerInflection)))
       }
       case SilPredicateQuery(
-        SilStatePredicate(subject, rhs @ SilPropertyState(state), Seq()),
+        SilStatePredicate(
+          subject, rhs @ SilPropertyState(state : SilSimpleWord), Seq()),
         question, answerInflection, tam, _
       ) => {
         if (state.inflected.endsWith(SUFFIX_ING)) {

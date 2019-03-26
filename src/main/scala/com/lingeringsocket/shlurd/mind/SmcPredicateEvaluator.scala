@@ -595,12 +595,13 @@ class SmcPredicateEvaluator[
     reference match {
       case SilNounReference(noun, determiner, count) => {
         if (!resultCollector.expandWildcards) {
+          val lemma = noun.toLemma
           val bail = determiner match {
             case DETERMINER_UNIQUE => false
             // FIXME this is silly
             case DETERMINER_UNSPECIFIED =>
-              (noun.lemma == LEMMA_WHO) || (noun.lemma == LEMMA_WHAT) ||
-              (noun.lemma == LEMMA_WHERE)
+              (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
+              (lemma == LEMMA_WHERE)
             case _ => true
           }
           if (bail) {
@@ -762,7 +763,9 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
-    val result = cosmos.resolvePropertyState(entity, state.lemma) match {
+    val result = cosmos.resolvePropertyState(
+      entity, cosmos.deriveName(state)
+    ) match {
       case Success((property, stateName)) => {
         resultCollector.states += SilWord(
           cosmos.getPropertyStateMap(property).get(stateName).
@@ -860,7 +863,8 @@ class SmcPredicateEvaluator[
     result match {
       case Failure(e) => {
         debug("ERROR", e)
-        fail(sentencePrinter.sb.respondUnknown(SilWord(categoryLabel.lemma)))
+        fail(sentencePrinter.sb.respondUnknown(
+          SilWord(categoryLabel.toLemma)))
       }
       case _ => result
     }

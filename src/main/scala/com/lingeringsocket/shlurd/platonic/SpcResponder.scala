@@ -319,16 +319,16 @@ class SpcResponder(
     if (question == QUESTION_WHICH) {
       rewritten match {
         case SilRelationshipPredicate(
-          SilNounReference(noun, DETERMINER_ANY, count),
+          SilNounReference(SilWordLemma(lemma), DETERMINER_ANY, count),
           complement,
           REL_IDENTITY,
           modifiers
         ) => {
           val form = deriveType(complement)
-          if (mind.getCosmos.formHasProperty(form, noun.lemma)) {
+          if (mind.getCosmos.formHasProperty(form, lemma)) {
             val statePredicate = SilStatePredicate(
               complement,
-              SilPropertyQueryState(noun.lemma),
+              SilPropertyQueryState(lemma),
               modifiers
             )
             return tupleN((statePredicate, INFLECT_COMPLEMENT))
@@ -557,7 +557,7 @@ class SpcResponder(
         case SilNounReference(noun, _, _) => {
           // FIXME resolve roles as well?
           if (noun.isProper) {
-            cosmos.getEntityBySynonym(noun.lemma).map(_.form).
+            cosmos.getEntityBySynonym(cosmos.deriveName(noun)).map(_.form).
               getOrElse(unknownType)
           } else {
             mind.resolveForm(noun).getOrElse(unknownType)

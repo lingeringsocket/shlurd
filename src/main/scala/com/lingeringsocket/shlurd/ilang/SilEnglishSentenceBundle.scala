@@ -185,7 +185,7 @@ class SilEnglishSentenceBundle
     tam : SilTam, verb : SilWord,
     person : SilPerson, gender : SilGender, count : SilCount) =
   {
-    val verbLemma = verb.lemma
+    val verbLemma = verb.toLemma
     val modality = {
       verbLemma match {
         case LEMMA_BE => tam.modality
@@ -244,10 +244,18 @@ class SilEnglishSentenceBundle
 
   private def delemmatizeModelessVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
-    verb : SilWord, tam : SilTam
+    word : SilWord, tam : SilTam
   ) : String =
   {
-    val verbLemma = verb.lemma
+    val verb = word match {
+      case sw : SilSimpleWord => {
+        sw
+      }
+      case _ => {
+        return word.toLemma
+      }
+    }
+    val verbLemma = verb.toLemma
     if (tam.isImperative) {
       return verbLemma
     }
@@ -314,7 +322,8 @@ class SilEnglishSentenceBundle
   )
       : Seq[String] =
   {
-    if ((verb.lemma != LEMMA_BE) && (verb.lemma != LEMMA_EXIST) &&
+    val verbLemma = verb.toLemma
+    if ((verbLemma != LEMMA_BE) && (verbLemma != LEMMA_EXIST) &&
       (tam.isNegative ||
         (tam.isInterrogative && (answerInflection != INFLECT_NOMINATIVE))))
     {
@@ -354,14 +363,17 @@ class SilEnglishSentenceBundle
   override def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) =
   {
-    compose(changeVerb.map(_.lemmaUnfolded).getOrElse(""), state.lemmaUnfolded)
+    compose(
+      (changeVerb.toSeq :+ state).flatMap(_.decomposed).map(_.lemmaUnfolded):_*)
   }
 
   override def delemmatizeNoun(
-    noun : SilWord, count : SilCount,
+    word : SilWord, count : SilCount,
     inflection : SilInflection,
     conjoining : SilConjoining) =
   {
+    val decomposed = word.decomposed
+    val noun = decomposed.last
     val unseparated = {
       if (noun.inflected.isEmpty || (inflection == INFLECT_GENITIVE)) {
         val lemma = inflection match {
@@ -401,29 +413,37 @@ class SilEnglishSentenceBundle
         noun.inflected
       }
     }
-    separate(unseparated, conjoining)
+    val seq = decomposed.dropRight(1).map(_.inflected) :+ unseparated
+    separate(word.recompose(seq), conjoining)
   }
 
-  private def delemmatizeProgressive(verb : SilWord) : String =
+  private def delemmatizeProgressive(word : SilWord) : String =
   {
-    if (verb.inflected.isEmpty) {
-      // FIXME sometimes we need more morphing on the lemma first...
-      val base = {
-        if (verb.lemma == LEMMA_BE) {
-          verb.lemma
-        } else {
-          verb.lemma.stripSuffix("e")
+    val decomposed = word.decomposed
+    val verb = decomposed.last
+    val delemmatized = {
+      if (verb.inflected.isEmpty) {
+        // FIXME sometimes we need more morphing on the lemma first...
+        val base = {
+          if (verb.lemma == LEMMA_BE) {
+            verb.lemma
+          } else {
+            verb.lemma.stripSuffix("e")
+          }
         }
+        concat(base, SUFFIX_ING)
+      } else {
+        verb.inflected
       }
-      concat(base, SUFFIX_ING)
-    } else {
-      verb.inflected
     }
+    word.recompose(decomposed.dropRight(1).map(_.inflected) :+ delemmatized)
   }
 
   override def delemmatizeState(
-    state : SilWord, tam : SilTam, conjoining : SilConjoining) =
+    word : SilWord, tam : SilTam, conjoining : SilConjoining) =
   {
+    val decomposed = word.decomposed
+    val state = decomposed.last
     val unseparated = {
       if (state.inflected.isEmpty) {
         val lemma = state.lemmaUnfolded
@@ -438,16 +458,19 @@ class SilEnglishSentenceBundle
         state.inflected
       }
     }
-    separate(unseparated, conjoining)
+    val seq = decomposed.dropRight(1).map(_.inflected) :+ unseparated
+    separate(word.recompose(seq), conjoining)
   }
 
   private def delemmatizeWord(word : SilWord) =
   {
-    if (word.inflected.isEmpty) {
-      word.lemmaUnfolded
-    } else {
-      word.inflected
-    }
+    word.recompose(word.decomposed.map(sw => {
+      if (sw.inflected.isEmpty) {
+        sw.lemmaUnfolded
+      } else {
+        sw.inflected
+      }
+    }))
   }
 
   override def delemmatizeQualifier(qualifier : SilWord) =
@@ -761,20 +784,22 @@ class SilEnglishSentenceBundle
 
   override def respondAmbiguous(noun : SilWord) =
   {
-    compose("Please be more specific about which",
-      noun.lemmaUnfolded, "you mean.")
+    compose(
+      "Please be more specific about which",
+      noun.toUnfoldedLemma,
+      "you mean.")
   }
 
   override def respondUnknown(word : SilWord) =
   {
     compose("Sorry, I don't know about any",
-      concat("'", word.lemmaUnfolded, "'."))
+      concat("'", word.toUnfoldedLemma, "'."))
   }
 
   override def respondUnknownState(subject : String, state : SilWord) =
   {
     compose("Sorry, I don't know what",
-      concat("'", state.lemmaUnfolded, "'"),
+      concat("'", state.toUnfoldedLemma, "'"),
       "means for", concat(subject, "."))
   }
 
@@ -787,7 +812,7 @@ class SilEnglishSentenceBundle
   override def respondNonexistent(noun : SilWord) =
   {
     compose("But I don't know about any such",
-      concat(noun.lemmaUnfolded, "."))
+      concat(noun.toUnfoldedLemma, "."))
   }
 
   override def respondCannotUnderstand() =
@@ -859,7 +884,9 @@ class SilEnglishSentenceBundle
       }
       case MOOD_IMPERATIVE => {
         compose(
-          changeVerb.map(_.lemmaUnfolded).getOrElse(""), complement, something)
+          changeVerb.map(_.toUnfoldedLemma).getOrElse(""),
+          complement,
+          something)
       }
     }
   }

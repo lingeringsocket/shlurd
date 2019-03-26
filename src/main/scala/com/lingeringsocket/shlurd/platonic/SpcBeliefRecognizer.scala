@@ -417,7 +417,7 @@ class SpcBeliefRecognizer(
     action : SilWord,
     argument : String) : Seq[SpcBelief] =
   {
-    if (action.lemma == LEMMA_IMPORT) {
+    if (action.toLemma == LEMMA_IMPORT) {
       Seq(IndirectBelief(sentence, argument))
     } else {
       Seq.empty
@@ -444,7 +444,7 @@ class SpcBeliefRecognizer(
         if (count != COUNT_SINGULAR) {
           return Seq(UnimplementedBelief(sentence))
         }
-        if (complementNoun.lemma == LEMMA_KIND) {
+        if (complementNoun.toLemma == LEMMA_KIND) {
           // "a dog is a kind of canine"
           complementRef match {
             case SilStateSpecifiedReference(
@@ -646,7 +646,7 @@ class SpcBeliefRecognizer(
           sentence,
           subjectRef,
           complementNoun,
-          Seq(subjectNoun), subjectNoun.lemmaUnfolded))
+          Seq(subjectNoun), subjectNoun.toUnfoldedLemma))
       }
       case DETERMINER_UNIQUE => {
         // "The boss is a werewolf"

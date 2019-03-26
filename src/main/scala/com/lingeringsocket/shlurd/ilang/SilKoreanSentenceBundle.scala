@@ -77,11 +77,11 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     verb : SilWord, answerInflection : SilInflection) =
   {
     // FIXME arbitrary lemmas
-    val verbLemma = verb.lemma
+    val verbLemma = verb.toLemma
     val exists = isExistential || (verbLemma == LEMMA_HAVE)
     // FIXME:  use tam.modality
     if (tam.isImperative) {
-      Seq(conjugateImperative(verb.lemma))
+      Seq(conjugateImperative(verbLemma))
     } else {
       if (tam.isPositive) {
         if (exists) {
@@ -103,7 +103,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
   override def adpositionString(adposition : SilAdposition) =
   {
     // FIXME find significant word in phrase such as "to the right of"
-    val pos = adposition.words.head.lemma match {
+    val pos = adposition.words.flatMap(_.decomposed).head.lemma match {
       case LEMMA_IN | LEMMA_WITHIN | LEMMA_INSIDE => "안"
       case LEMMA_OUTSIDE => "밖"
       case LEMMA_AT => ""
@@ -120,7 +120,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
       // FIXME:  context-dependent
       case LEMMA_WITH => "하고"
       // FIXME:  OF etc
-      case _ => compose(adposition.words.map(_.lemma):_*)
+      case _ => compose(adposition.words.flatMap(_.decomposed).map(_.lemma):_*)
     }
     // later need to distinguish 에 from 에서
     compose(concat(pos, "에"), "있어요")
@@ -129,14 +129,14 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
   override def actionVerb(
     action : SilWord) =
   {
-    conjugateAction(action.lemma)
+    conjugateAction(action.toLemma)
   }
 
   override def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) =
   {
     // FIXME:  use changeVerb
-    conjugateImperative(state.lemma)
+    conjugateImperative(state.toLemma)
   }
 
   override def delemmatizeNoun(
@@ -145,19 +145,19 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     inflection : SilInflection,
     conjoining : SilConjoining) =
   {
-    inflectNoun(noun.lemma, count, inflection, conjoining)
+    inflectNoun(noun.toLemma, count, inflection, conjoining)
   }
 
   override def delemmatizeState(
     state : SilWord, tam : SilTam, conjoining : SilConjoining) =
   {
     // FIXME:  conjoining
-    conjugateAdjective(state.lemma, tam)
+    conjugateAdjective(state.toLemma, tam)
   }
 
   override def delemmatizeQualifier(qualifier : SilWord) =
   {
-    qualifyAdjective(qualifier.lemma)
+    qualifyAdjective(qualifier.toLemma)
   }
 
   override def conjoin(
@@ -454,7 +454,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def respondAmbiguous(noun : SilWord) =
   {
-    compose("무슨", noun.lemma, "?")
+    compose("무슨", noun.toLemma, "?")
   }
 
   override def respondUnknown(word : SilWord) =
@@ -474,7 +474,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def respondNonexistent(noun : SilWord) =
   {
-    compose(noun.lemma, "없어요")
+    compose(noun.toLemma, "없어요")
   }
 
   override def respondCannotUnderstand() =

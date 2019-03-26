@@ -133,19 +133,21 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
   {
     val rewriter = new SilPhraseRewriter
     def normalizePropertyState = rewriter.replacementMatcher {
-      case SilPropertyState(SilWord(inflected, lemma, senseId)) => {
-        SilPropertyState(SilWord(inflected, inflected, senseId))
+      case SilPropertyState(SilSimpleWord(inflected, lemma, senseId)) => {
+        SilPropertyState(SilSimpleWord(inflected, inflected, senseId))
       }
       case SilAdpositionalVerbModifier(SilAdposition(words), objRef) => {
         SilAdpositionalVerbModifier(
           SilAdposition(
-            words.map(word => SilWord(word.inflected, word.inflected))),
+            words.flatMap(_.decomposed).map(
+              word => SilWord(word.inflected, word.inflected))),
           objRef
         )
       }
-      case SilNounReference(noun, determiner, count) => {
+      case SilNounReference(noun : SilSimpleWord, determiner, count) => {
         SilNounReference(
-          SilWord(noun.inflected.toLowerCase, noun.lemma), determiner, count)
+          SilSimpleWord(
+            noun.inflected.toLowerCase, noun.lemma), determiner, count)
       }
     }
     rewriter.rewrite(normalizePropertyState, s)
@@ -158,12 +160,12 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
       case (
         SilStatePredicate(
           s1,
-          SilPropertyState(w1),
+          SilPropertyState(w1 : SilSimpleWord),
           m1
         ),
         SilRelationshipPredicate(
           s2,
-          SilNounReference(w2, DETERMINER_UNSPECIFIED, _),
+          SilNounReference(w2 : SilSimpleWord, DETERMINER_UNSPECIFIED, _),
           REL_IDENTITY,
           m2
         )
@@ -230,12 +232,12 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
       case (
         SilStatePredicate(
           s1,
-          SilPropertyState(w1),
+          SilPropertyState(w1 : SilSimpleWord),
           m1
         ),
         SilActionPredicate(
           s2,
-          w2,
+          w2 : SilSimpleWord,
           None,
           m2
         )

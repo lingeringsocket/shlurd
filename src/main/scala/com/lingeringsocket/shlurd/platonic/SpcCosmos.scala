@@ -90,7 +90,10 @@ object SpcForm
 {
   private val TENTATIVE_SUFFIX = "_form"
 
-  def tentativeName(word : SilWord) = SilWord(word.lemma + TENTATIVE_SUFFIX)
+  def tentativeName(word : SilWord) =
+  {
+    SilWord(word.decomposed.map(_.lemma).mkString("_") + TENTATIVE_SUFFIX)
+  }
 }
 
 class SpcForm(name : String)
@@ -430,7 +433,7 @@ class SpcCosmos(
 
   def instantiateIdeal(word : SilWord, assumeRole : Boolean = false) =
   {
-    getIdealBySynonym(word.lemma).getOrElse({
+    getIdealBySynonym(deriveName(word)).getOrElse({
       if (assumeRole) {
         instantiateRole(word)
       } else {
@@ -445,7 +448,7 @@ class SpcCosmos(
 
   def instantiateForm(word : SilWord) =
   {
-    val name = word.lemma
+    val name = deriveName(word)
     val ideal = getIdealBySynonym(name).getOrElse(
       registerForm(new SpcForm(name)))
     assert(ideal.isForm)
@@ -454,7 +457,7 @@ class SpcCosmos(
 
   def instantiateRole(word : SilWord) =
   {
-    val name = word.lemma
+    val name = deriveName(word)
     val ideal = getIdealBySynonym(name).getOrElse(
       registerRole(new SpcRole(name)))
     assert(ideal.isRole)
@@ -678,7 +681,7 @@ class SpcCosmos(
     val formId = getIdGenerator.getAndIncrement.toString
     val name = {
       if (properName.isEmpty) {
-        (qualifierString.map(_.lemma) ++
+        (qualifierString.flatMap(_.decomposed).map(_.lemma) ++
           Seq(form.name, formId)).mkString("_")
       } else {
         properName
@@ -1140,7 +1143,7 @@ class SpcCosmos(
 
   def instantiateProperty(form : SpcForm, name : SilWord) : SpcProperty =
   {
-    val propertyName = name.lemma
+    val propertyName = deriveName(name)
     getFormPropertyMap(form).get(propertyName) match {
       case Some(property) => property
       case _ => {
@@ -1167,8 +1170,10 @@ class SpcCosmos(
   def instantiatePropertyState(
     property : SpcProperty, word : SilWord)
   {
-    val propertyState = new SpcPropertyState(word.lemma, word.inflected)
-    assert(!getPropertyStateMap(property).contains(propertyState.lemma))
+    val name = deriveName(word)
+    assert(!getPropertyStateMap(property).contains(name))
+    val propertyState = new SpcPropertyState(
+      name, word.recompose(word.decomposed.map(_.inflected)))
     meta.propertyValueExistence(
       getPropertyForm(property), property, propertyState)
     graph.addComponent(property, propertyState)
@@ -1395,7 +1400,7 @@ class SpcCosmos(
   def resolveStateSynonym(form : SpcForm, lemma : String) : String =
   {
     normalizeFormState(form, SilPropertyState(SilWord(lemma))) match {
-      case SilPropertyState(word) => word.lemma
+      case SilPropertyState(word) => deriveName(word)
       case _ => lemma
     }
   }
@@ -1438,7 +1443,7 @@ class SpcCosmos(
     // FIXME:  should fold compound states as well
     state match {
       case SilPropertyState(word) =>
-        SilPropertyState(SilWord(word.lemma))
+        SilPropertyState(SilWord(deriveName(word)))
       case _ => state
     }
   }
