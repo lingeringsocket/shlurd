@@ -254,6 +254,14 @@ case class SilExpectedNounlikeReference(
 {
 }
 
+case class SilExpectedCompoundNounReference(
+  syntaxTree : SprSyntaxTree,
+  components : Seq[SprSyntaxPreTerminal],
+  determiner : SilDeterminer
+) extends SilUnknownReference with SilUnresolvedPhrase
+{
+}
+
 case class SilExpectedComplementState(
   syntaxTree : SprSyntaxTree
 ) extends SilUnknownState with SilUnresolvedPhrase

@@ -206,25 +206,25 @@ class SmcResponderSpec extends Specification
         "Yes, there is no peacock.")
       process("is there a lion and a peacock") must be equalTo(
         "No, there is not a lion and a peacock.")
-      process("is there a bengal tiger") must be equalTo(
-        "No, there is not a bengal tiger.")
+      process("is there a siberian tiger") must be equalTo(
+        "No, there is not a siberian tiger.")
       process("is there a bear") must be equalTo(
         "Yes, there is a bear.")
       process("is there a grizzly bear") must be equalTo(
         "Yes, there is a grizzly bear.")
       process("is there a polar bear") must be equalTo(
         "Yes, there is a polar bear.")
-      process("is there a kodiak bear") must be equalTo(
-        "No, there is not a kodiak bear.")
+      process("is there a fuzzy bear") must be equalTo(
+        "No, there is not a fuzzy bear.")
       process("is the polar bear asleep") must be equalTo(
         "Yes, the polar bear is asleep.")
       process("is the grizzly bear asleep") must be equalTo(
         "No, the grizzly bear is not asleep.")
       process("is grizzly bear asleep") must be equalTo(
         "No, grizzly bear is not asleep.")
-      process("is the kodiak bear asleep") must be equalTo(
+      process("is the fuzzy bear asleep") must be equalTo(
         "But I don't know about any such bear.")
-      process("is kodiak bear asleep") must be equalTo(
+      process("is fuzzy bear asleep") must be equalTo(
         "But I don't know about any such bear.")
       process("is the bear asleep") must be equalTo(
         "Please be more specific about which bear you mean.")

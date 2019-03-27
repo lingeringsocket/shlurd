@@ -335,6 +335,19 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
         determiner,
         analyzer.getCount(nounlike))
     }
+    case SilExpectedCompoundNounReference(
+      syntaxTree,
+      preTerminals,
+      determiner
+    ) => {
+      val simpleWords = preTerminals.map(
+        pt => analyzer.getWord(pt.child))
+      val compound = SilCompoundWord(simpleWords)
+      SilNounReference(
+        compound,
+        determiner,
+        analyzer.getCount(preTerminals.last))
+    }
     case SilExpectedReference(pronoun : SprSyntaxPronoun) => {
       analyzer.analyzePronounReference(pronoun.child)
     }

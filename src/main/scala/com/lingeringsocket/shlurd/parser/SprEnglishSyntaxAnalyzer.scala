@@ -485,6 +485,9 @@ class SprEnglishSyntaxAnalyzer(
     } else if ((components.size == 2) && components.head.isNounPhrase) {
       val entityReference = expectReference(components.head)
       expectRelativeReference(tree, entityReference, components.last)
+    } else if (isCompoundNoun(components)) {
+      expectCompoundNounReference(
+        tree, components.map(_.asInstanceOf[SprSyntaxPreTerminal]), determiner)
     } else if (isNounPhraseHead(components.last) &&
       components.dropRight(1).forall(
         c => isNounPhraseModifier(c)))

@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 sealed trait SprStrictness
@@ -128,6 +129,14 @@ abstract class SprAbstractSyntaxAnalyzer(
     SilExpectedNounlikeReference(syntaxTree, preTerminal, determiner)
   }
 
+  protected def expectCompoundNounReference(
+    syntaxTree : SprSyntaxTree,
+    components : Seq[SprSyntaxPreTerminal],
+    determiner : SilDeterminer) =
+  {
+    SilExpectedCompoundNounReference(syntaxTree, components, determiner)
+  }
+
   override def expectPropertyState(
     syntaxTree : SprSyntaxTree) =
   {
@@ -186,6 +195,17 @@ abstract class SprAbstractSyntaxAnalyzer(
   protected def isSinglePhrase(seq : Seq[SprSyntaxTree]) =
   {
     (seq.size == 1) && !seq.head.isPreTerminal && !seq.head.isLeaf
+  }
+
+  protected def isCompoundNoun(seq : Seq[SprSyntaxTree]) : Boolean =
+  {
+    if (seq.size < 2 || !seq.forall(_.isPreTerminal)) {
+      false
+    } else {
+      val spaced = (seq.dropRight(1).map(_.firstChild.foldedToken) :+
+        seq.last.firstChild.lemma).mkString(" ")
+      ShlurdWordnet.isPotentialNoun(spaced)
+    }
   }
 
   override def getCount(tree : SprSyntaxTree) : SilCount =

@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
@@ -96,10 +97,18 @@ abstract class SpcOpenhabCosmos(
   }
 
   override def resolveQualifiedNoun(
-    lemma : String,
+    lemmaOrig : String,
     context : SilReferenceContext,
-    qualifiers : Set[String]) : Try[Set[SpcEntity]] =
+    qualifiersOrig : Set[String]) : Try[Set[SpcEntity]] =
   {
+    val (lemma, qualifiers) = {
+      val split = lemmaOrig.split(" ")
+      if (split.size == 1) {
+        tupleN((lemmaOrig, qualifiersOrig))
+      } else {
+        tupleN((split.last, qualifiersOrig ++ split.dropRight(1)))
+      }
+    }
     val rewrittenLemma = {
       if (lemma == roomLemma) {
         Set.empty[String]

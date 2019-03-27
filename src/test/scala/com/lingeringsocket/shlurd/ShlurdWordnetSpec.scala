@@ -32,6 +32,7 @@ class ShlurdWordnetSpec extends Specification
       ShlurdWordnet.isPotentialNoun("defenestrate") must beFalse
       ShlurdWordnet.isPotentialNoun("kill") must beTrue
       ShlurdWordnet.isPotentialNoun("smile") must beTrue
+      ShlurdWordnet.isPotentialNoun("steak knife") must beTrue
     }
 
     "detect potential gerunds" in

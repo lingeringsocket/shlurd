@@ -169,29 +169,29 @@ class SpcCosmosSpec extends Specification
     {
       SpcPrimordial.initCosmos(cosmos)
       addBelief("a door must be open or closed")
-      addBelief("there is a front door")
-      addBelief("there is a back door")
-      addBelief("the front door is open")
-      addBelief("the back door is closed")
+      addBelief("there is a big door")
+      addBelief("there is a small door")
+      addBelief("the big door is open")
+      addBelief("the small door is closed")
       addBelief("Usher is a house")
-      addBelief("the front door is Usher's entrance")
+      addBelief("the big door is Usher's entrance")
       val door = expectNamedForm("door")
       val house = expectProperName("Usher")
       val property = expectSingleProperty(door)
-      val frontDoorTry = cosmos.resolveQualifiedNoun(
-        "door", REF_SUBJECT, Set("front"))
-      frontDoorTry must beSuccessfulTry.which(_.size == 1)
-      val backDoorTry = cosmos.resolveQualifiedNoun(
-        "door", REF_SUBJECT, Set("back"))
-      backDoorTry must beSuccessfulTry.which(_.size == 1)
-      val frontDoor = frontDoorTry.get.head
-      val backDoor = backDoorTry.get.head
-      frontDoor must not be equalTo(backDoor)
-      cosmos.evaluateEntityProperty(frontDoor, property.name) must be equalTo
+      val bigDoorTry = cosmos.resolveQualifiedNoun(
+        "door", REF_SUBJECT, Set("big"))
+      bigDoorTry must beSuccessfulTry.which(_.size == 1)
+      val smallDoorTry = cosmos.resolveQualifiedNoun(
+        "door", REF_SUBJECT, Set("small"))
+      smallDoorTry must beSuccessfulTry.which(_.size == 1)
+      val bigDoor = bigDoorTry.get.head
+      val smallDoor = smallDoorTry.get.head
+      bigDoor must not be equalTo(smallDoor)
+      cosmos.evaluateEntityProperty(bigDoor, property.name) must be equalTo
         Success((Some(property), Some("open")))
-      cosmos.evaluateEntityProperty(backDoor, property.name) must be equalTo
+      cosmos.evaluateEntityProperty(smallDoor, property.name) must be equalTo
         Success((Some(property), Some("close")))
-      resolveGenitive(house, "entrance") must be equalTo Set(frontDoor)
+      resolveGenitive(house, "entrance") must be equalTo Set(bigDoor)
     }
 
     "understand specific references" in new CosmosContext
@@ -487,14 +487,14 @@ class SpcCosmosSpec extends Specification
 
     "accept synonyms" in new CosmosContext
     {
-      addBelief("there is a front door")
+      addBelief("there is a big door")
       addBelief("a portal is a door")
       cosmos.resolveIdealSynonym("door") must be equalTo "door"
       cosmos.resolveIdealSynonym("portal") must be equalTo "door"
       cosmos.resolveIdealSynonym("gateway") must be equalTo "gateway"
-      val frontDoor = cosmos.resolveQualifiedNoun(
-        "portal", REF_SUBJECT, Set("front"))
-      frontDoor must beSuccessfulTry.which(_.size == 1)
+      val bigDoor = cosmos.resolveQualifiedNoun(
+        "portal", REF_SUBJECT, Set("big"))
+      bigDoor must beSuccessfulTry.which(_.size == 1)
     }
 
     "accept override belief" in new CosmosContext
@@ -737,7 +737,7 @@ class SpcCosmosSpec extends Specification
 
     "reject ambiguous belief" in new CosmosContext
     {
-      addBelief("there is a front door")
+      addBelief("there is a big door")
       addBelief("there is a door") must
         throwA[AmbiguousBeliefExcn]
 
@@ -750,7 +750,7 @@ class SpcCosmosSpec extends Specification
     "reject another ambiguous belief" in new CosmosContext
     {
       addBelief("there is a door")
-      addBelief("there is a front door") must
+      addBelief("there is a big door") must
         throwA[AmbiguousBeliefExcn]
     }
 

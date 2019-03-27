@@ -1285,15 +1285,15 @@ class SpcResponderSpec extends Specification
 
     "prevent new beliefs" in new ResponderContext
     {
-      process("There is a front door",
+      process("There is a big door",
         "Sorry, I don't know about any 'door'.")
     }
 
     "accept new beliefs" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       processBelief("a door may be either open or closed")
-      processBelief("there is a front door")
-      process("is the front door open",
+      processBelief("there is a big door")
+      process("is the big door open",
         "I don't know.")
     }
 
@@ -1330,11 +1330,11 @@ class SpcResponderSpec extends Specification
 
     "reject invalid new beliefs" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      processBelief("there is a front door")
-      process("there is a big front door",
-        "Previously I was told that there is a front door.  " +
+      processBelief("there is a white door")
+      process("there is a big white door",
+        "Previously I was told that there is a white door.  " +
           "So there is an ambiguous reference in the belief that " +
-          "there is a big front door.")
+          "there is a big white door.")
     }
 
     "reject cyclic taxonomy belief" in new ResponderContext(

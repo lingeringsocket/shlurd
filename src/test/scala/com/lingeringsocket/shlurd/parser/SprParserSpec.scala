@@ -49,6 +49,9 @@ class SprParserSpec extends Specification
 
   private val NOUN_SISTER = SilWord("sister")
 
+  private val NOUN_STEAK_KNIFE = SilCompoundWord(
+    Seq(SilWord("steak"), SilWord("knife")))
+
   private val STATE_OPEN = SilWord("open")
 
   private val ACTION_OPENS = SilWord("opens", "open")
@@ -77,7 +80,7 @@ class SprParserSpec extends Specification
 
   private val STATE_OFF = SilWord("off")
 
-  private val QUALIFIER_FRONT = SilWord("front")
+  private val QUALIFIER_BIG = SilWord("big")
 
   private val VERB_TURN = SilWord("turn")
 
@@ -219,6 +222,16 @@ class SprParserSpec extends Specification
       val contracted = "the door isn't open"
       parse(input) must be equalTo
         SilPredicateSentence(predStateDoor(), SilTam.indicative.negative)
+    }
+
+    "parse compound words" in
+    {
+      val input = "there is a steak knife"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilNounReference(NOUN_STEAK_KNIFE, DETERMINER_NONSPECIFIC),
+            SilExistenceState()))
     }
 
     "parse a state predicate question" in
@@ -483,13 +496,13 @@ class SprParserSpec extends Specification
 
     "parse qualifiers" in
     {
-      val inputFront = "open the front door"
+      val inputFront = "open the big door"
       parse(inputFront) must be equalTo
         stateCommandAction(
           SilStatePredicate(
             SilReference.qualified(
               SilNounReference(NOUN_DOOR, DETERMINER_UNIQUE),
-              Seq(QUALIFIER_FRONT)),
+              Seq(QUALIFIER_BIG)),
             SilPropertyState(STATE_OPEN)))
     }
 
@@ -709,12 +722,12 @@ class SprParserSpec extends Specification
           doorExistencePred,
           SilTam.interrogative.withModality(MODAL_MUST)))
 
-      parse("There is a front door") must be equalTo(
+      parse("There is a big door") must be equalTo(
         SilPredicateSentence(
           SilStatePredicate(
             SilReference.qualified(
               SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
-              Seq(QUALIFIER_FRONT)),
+              Seq(QUALIFIER_BIG)),
             SilExistenceState())))
 
       val doorPlusWindow = Seq(
