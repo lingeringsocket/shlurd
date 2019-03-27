@@ -681,6 +681,12 @@ class SpcCosmosSpec extends Specification
       // FIXME verify container/containee association
     }
 
+    "support compound nouns" in new CosmosContext
+    {
+      addBelief("there is a steak knife")
+      val form = expectNamedForm(cosmos.deriveName("steak knife"))
+    }
+
     "elide redundant taxonomy edges" in new CosmosContext
     {
       SpcPrimordial.initCosmos(cosmos)

@@ -1328,6 +1328,13 @@ class SpcResponderSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
+    "understand compound nouns" in new
+      ResponderContext(ACCEPT_NEW_BELIEFS)
+    {
+      processBelief("there is a steak knife")
+      processTerse("are there any steak knives", "Yes.")
+    }
+
     "reject invalid new beliefs" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       processBelief("there is a white door")

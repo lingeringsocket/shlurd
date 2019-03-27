@@ -442,9 +442,9 @@ class SpcCosmos(
     })
   }
 
-  def resolveForm(name : String) = resolveIdeal(name)._1
+  def resolveForm(lemma : String) = resolveIdeal(lemma)._1
 
-  def resolveRole(name : String) = resolveIdeal(name)._2
+  def resolveRole(lemma : String) = resolveIdeal(lemma)._2
 
   def instantiateForm(word : SilWord) =
   {
@@ -984,7 +984,8 @@ class SpcCosmos(
   private[platonic] def resolveIdeal(
     lemma : String) : (Option[SpcForm], Option[SpcRole]) =
   {
-    getIdealBySynonym(lemma) match {
+    val name = deriveName(lemma)
+    getIdealBySynonym(name) match {
       case Some(form : SpcForm) => {
         tupleN((Some(form), None))
       }
