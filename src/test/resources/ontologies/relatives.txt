@@ -11,13 +11,15 @@ A niece must be a woman.
 A nephew must be a man.
 A son must be a man.
 A daughter must be a woman.
+A cleaning lady is a daughter.
 A man with an uncle or aunt is a nephew.
 A woman with uncles or aunts is a niece.
 A person may have sons or daughters.
-A godfather must be a man.
+A wise guy must be a man.
 A godmother must be a woman.
 A person must have a godmother.
-A person may have a godfather.
+A person may have a wise guy.
+A godfather is a wise guy.
 Henry is a man.
 James is a man.
 Laura is a woman.

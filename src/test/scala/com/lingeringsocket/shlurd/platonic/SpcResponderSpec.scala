@@ -469,7 +469,7 @@ class SpcResponderSpec extends Specification
       process("does Laura have a godfather",
         "No, she does not have a godfather.")
       processBelief("Fancy is Laura's godmother")
-      processBelief("Titus is Laura's godfather")
+      processBelief("Titus is Laura's wise guy")
       process("who is Laura's godmother",
         "Her godmother is Fancy.")
       process("who is Laura's godfather",
@@ -478,8 +478,10 @@ class SpcResponderSpec extends Specification
         "No, she is not Laura's godmother.")
       process("Fancy is Laura's godmother?",
         "Yes, she is Laura's godmother.")
-      process("does Laura have a godfather",
-        "Yes, she has a godfather.")
+      process("does Laura have a wise guy",
+        "Yes, she has a wise guy.")
+      process("who is Henry's cleaning lady",
+        "His cleaning ladies are Fancy and Marion.")
 
       cosmos.sanityCheck must beTrue
     }
