@@ -128,12 +128,12 @@ class SpcMind(cosmos : SpcCosmos)
 
   protected def getFormName(form : SpcForm) : String =
   {
-    form.name
+    cosmos.decodeName(form.name)
   }
 
   protected def getPossesseeName(role : SpcRole) : String =
   {
-    role.name
+    cosmos.decodeName(role.name)
   }
 
   override def thirdPersonReference(entities : Set[SpcEntity])
@@ -211,7 +211,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   def resolveFormCandidates(noun : SilWord) : Seq[SpcForm] =
   {
-    cosmos.resolveForm(cosmos.deriveName(noun)).toSeq
+    cosmos.resolveForm(cosmos.encodeName(noun)).toSeq
   }
 
   def resolveForm(noun : SilWord) : Option[SpcForm] =
@@ -221,7 +221,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   def resolveRole(form : SpcForm, noun : SilWord) : Option[SpcRole] =
   {
-    cosmos.resolveRole(cosmos.deriveName(noun))
+    cosmos.resolveRole(cosmos.encodeName(noun))
   }
 
   def instantiateForm(noun : SilWord) : SpcForm =
@@ -291,7 +291,7 @@ class SpcMind(cosmos : SpcCosmos)
     qualifiers : Set[String]) : Try[Trilean] =
   {
     val (formSeq, roleOpt) = cosmos.resolveIdeal(
-      cosmos.deriveName(noun)
+      cosmos.encodeName(noun)
     ) match {
       case (None, None) => {
         resolveFormCandidates(noun) match {
@@ -320,7 +320,7 @@ class SpcMind(cosmos : SpcCosmos)
       case _ => {
         formSeq match {
           case Seq() => {
-            cosmos.fail(s"unknown ideal ${cosmos.deriveName(noun)}")
+            cosmos.fail(s"unknown ideal ${cosmos.encodeName(noun)}")
           }
           case _ => {
             if (formSeq.exists(form => graph.isHyponym(entity.form, form))) {

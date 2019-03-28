@@ -23,6 +23,13 @@ import net.sf.extjwnl.data._
 import scala.collection._
 import scala.collection.JavaConverters._
 
+import java.util.regex._
+
+object SpcWordnet
+{
+  private val usablePattern = Pattern.compile("[ \\p{javaLowerCase}]+")
+}
+
 class SpcWordnet(cosmos : SpcCosmos)
 {
   private val dictionary = ShlurdWordnet.dictionary
@@ -179,7 +186,8 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   def getFormName(word : Word) : String =
   {
-    s"wnf-${word.getLemma}-${word.getSenseNumber}"
+    val encoded = cosmos.encodeName(word.getLemma)
+    s"wnf-${encoded}-${word.getSenseNumber}"
   }
 
   def getNoun(form : SpcForm) : String =
@@ -208,7 +216,7 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   private def isUsableFormName(lemma : String) : Boolean =
   {
-    // FIXME deal with multi-words, acronyms
-    ShlurdWordnet.isPlainWord(lemma)
+    // FIXME deal with acronyms etc
+    SpcWordnet.usablePattern.matcher(lemma).matches
   }
 }

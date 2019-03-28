@@ -1331,8 +1331,14 @@ class SpcResponderSpec extends Specification
     "understand compound nouns" in new
       ResponderContext(ACCEPT_NEW_BELIEFS)
     {
+      processBelief("a butter knife is a kind of utensil")
       processBelief("there is a steak knife")
-      processTerse("are there any steak knives", "Yes.")
+      process(
+        "are there any butter knives",
+        "No, there are no butter knives.")
+      process(
+        "are there any steak knives",
+        "Yes, there is a steak knife.")
     }
 
     "reject invalid new beliefs" in new ResponderContext(ACCEPT_NEW_BELIEFS)

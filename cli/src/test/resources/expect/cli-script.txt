@@ -113,3 +113,15 @@ Yes, she is.
 > what is Discworld
 
 Angua's container.
+
+> there is a steak knife
+
+OK.
+
+> are there any knives
+
+Yes, there is a steak knife.
+
+> are there any eating utensils
+
+Yes, there is a steak knife.

@@ -134,12 +134,12 @@ class SpcWordnetMind(cosmos : SpcCosmos)
 
   override protected def getFormName(form : SpcForm) : String =
   {
-    getWordnet.getNoun(form)
+    cosmos.decodeName(getWordnet.getNoun(form))
   }
 
   override protected def getPossesseeName(role : SpcRole) : String =
   {
-    getWordnet.getPossesseeNoun(role)
+    cosmos.decodeName(getWordnet.getPossesseeNoun(role))
   }
 
   override protected def guessGender(entity : SpcEntity) : SilGender =

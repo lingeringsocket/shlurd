@@ -223,7 +223,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilStatePredicate(subject, state, modifiers) => {
         val tam = tamOriginal
         val rhs = {
-          if (ellipsis) {
+          if (ellipsis && (state != SilExistenceState())) {
             ELLIPSIS_MARKER
           } else {
             print(state, tam, SilConjoining.NONE)

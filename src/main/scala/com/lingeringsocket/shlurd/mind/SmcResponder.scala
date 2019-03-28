@@ -468,7 +468,16 @@ class SmcResponder[
                   query, resultCollector, params)
               trace(s"NORMALIZED RESPONSE : $normalizedResponse")
               val responseTruth = params.verbosity match {
-                case RESPONSE_ELLIPSIS => truthBoolean
+                case RESPONSE_ELLIPSIS => {
+                  query match {
+                    case SilStatePredicate(_, SilExistenceState(), _) => {
+                      truthBoolean || negateCollection
+                    }
+                    case _ => {
+                      truthBoolean
+                    }
+                  }
+                }
                 case _ => truthBoolean || negateCollection
               }
               val responseSentence = SilPredicateSentence(

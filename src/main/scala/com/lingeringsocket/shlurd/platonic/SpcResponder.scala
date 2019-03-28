@@ -557,7 +557,7 @@ class SpcResponder(
         case SilNounReference(noun, _, _) => {
           // FIXME resolve roles as well?
           if (noun.isProper) {
-            cosmos.getEntityBySynonym(cosmos.deriveName(noun)).map(_.form).
+            cosmos.getEntityBySynonym(cosmos.encodeName(noun)).map(_.form).
               getOrElse(unknownType)
           } else {
             mind.resolveForm(noun).getOrElse(unknownType)

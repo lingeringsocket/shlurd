@@ -163,6 +163,7 @@ class SmcResponderSpec extends Specification
     "process questions" in new ResponderContext
     {
       val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
+      val ellipsis = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
       process("is the lion asleep") must be equalTo(
         "Yes, the lion is asleep.")
       process("is the lion asleep", terse) must be equalTo(
@@ -196,6 +197,16 @@ class SmcResponderSpec extends Specification
         "Yes, there is a lion.")
       process("is there a peacock") must be equalTo(
         "No, there is not a peacock.")
+      process("is there a peacock", ellipsis) must be equalTo(
+        "No, there is not a peacock.")
+      process("is there any peacock") must be equalTo(
+        "No, there is no peacock.")
+      process("is there any peacock", ellipsis) must be equalTo(
+        "No, there is no peacock.")
+      process("are there any peacocks") must be equalTo(
+        "No, there are no peacocks.")
+      process("are there any peacocks", ellipsis) must be equalTo(
+        "No, there are no peacocks.")
       process("is there a hippogriff or a peacock") must be equalTo(
         "No, there is neither a hippogriff nor a peacock.")
       process("is there a hippogriff, a peacock, or a salamander") must

@@ -684,7 +684,7 @@ class SpcCosmosSpec extends Specification
     "support compound nouns" in new CosmosContext
     {
       addBelief("there is a steak knife")
-      val form = expectNamedForm(cosmos.deriveName("steak knife"))
+      val form = expectNamedForm(cosmos.encodeName("steak knife"))
     }
 
     "elide redundant taxonomy edges" in new CosmosContext

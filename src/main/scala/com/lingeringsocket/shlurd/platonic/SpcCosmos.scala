@@ -425,7 +425,7 @@ class SpcCosmos(
 
   def resolveIdealSynonym(name : String) : String =
   {
-    getIdealBySynonym(name) match {
+    getIdealBySynonym(encodeName(name)) match {
       case Some(ideal) => ideal.name
       case _ => name
     }
@@ -433,7 +433,7 @@ class SpcCosmos(
 
   def instantiateIdeal(word : SilWord, assumeRole : Boolean = false) =
   {
-    getIdealBySynonym(deriveName(word)).getOrElse({
+    getIdealBySynonym(encodeName(word)).getOrElse({
       if (assumeRole) {
         instantiateRole(word)
       } else {
@@ -448,7 +448,7 @@ class SpcCosmos(
 
   def instantiateForm(word : SilWord) =
   {
-    val name = deriveName(word)
+    val name = encodeName(word)
     val ideal = getIdealBySynonym(name).getOrElse(
       registerForm(new SpcForm(name)))
     assert(ideal.isForm)
@@ -457,7 +457,7 @@ class SpcCosmos(
 
   def instantiateRole(word : SilWord) =
   {
-    val name = deriveName(word)
+    val name = encodeName(word)
     val ideal = getIdealBySynonym(name).getOrElse(
       registerRole(new SpcRole(name)))
     assert(ideal.isRole)
@@ -596,7 +596,7 @@ class SpcCosmos(
 
   def addIdealSynonym(synonymName : String, fundamentalName : String)
   {
-    val synonym = SpcIdealSynonym(synonymName)
+    val synonym = SpcIdealSynonym(encodeName(synonymName))
     assert(!graph.idealSynonyms.containsVertex(synonym))
     graph.idealSynonyms.addVertex(synonym)
     val ideal = getIdealBySynonym(fundamentalName).get
@@ -646,7 +646,7 @@ class SpcCosmos(
     overlap : Boolean) : Boolean =
   {
     if (overlap) {
-      graph.isHyponym(form, existing.form) &&
+      (form == existing.form) &&
         (qualifiers.subsetOf(existing.qualifiers) ||
           existing.qualifiers.subsetOf(qualifiers))
     } else {
@@ -984,7 +984,7 @@ class SpcCosmos(
   private[platonic] def resolveIdeal(
     lemma : String) : (Option[SpcForm], Option[SpcRole]) =
   {
-    val name = deriveName(lemma)
+    val name = encodeName(lemma)
     getIdealBySynonym(name) match {
       case Some(form : SpcForm) => {
         tupleN((Some(form), None))
@@ -1144,7 +1144,7 @@ class SpcCosmos(
 
   def instantiateProperty(form : SpcForm, name : SilWord) : SpcProperty =
   {
-    val propertyName = deriveName(name)
+    val propertyName = encodeName(name)
     getFormPropertyMap(form).get(propertyName) match {
       case Some(property) => property
       case _ => {
@@ -1171,7 +1171,7 @@ class SpcCosmos(
   def instantiatePropertyState(
     property : SpcProperty, word : SilWord)
   {
-    val name = deriveName(word)
+    val name = encodeName(word)
     assert(!getPropertyStateMap(property).contains(name))
     val propertyState = new SpcPropertyState(
       name, word.recompose(word.decomposed.map(_.inflected)))
@@ -1401,7 +1401,7 @@ class SpcCosmos(
   def resolveStateSynonym(form : SpcForm, lemma : String) : String =
   {
     normalizeFormState(form, SilPropertyState(SilWord(lemma))) match {
-      case SilPropertyState(word) => deriveName(word)
+      case SilPropertyState(word) => encodeName(word)
       case _ => lemma
     }
   }
@@ -1444,7 +1444,7 @@ class SpcCosmos(
     // FIXME:  should fold compound states as well
     state match {
       case SilPropertyState(word) =>
-        SilPropertyState(SilWord(deriveName(word)))
+        SilPropertyState(SilWord(encodeName(word)))
       case _ => state
     }
   }
