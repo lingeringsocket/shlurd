@@ -19,6 +19,10 @@ case class SilPhraseScore(pro : Int, con : Int) extends Ordered[SilPhraseScore]
   def +(that : SilPhraseScore) =
     SilPhraseScore(this.pro + that.pro, this.con + that.con)
 
+  def combine(that : SilPhraseScore) =
+    SilPhraseScore(
+      Math.max(this.pro, that.pro), Math.max(this.con, that.con))
+
   override def compare(that : SilPhraseScore) =
   {
     if (this == that) {
@@ -70,4 +74,10 @@ trait SilPhraseScorer
     querier.query(scorer, phrase)
     score
   }
+}
+
+object SilNeutralPhraseScorer extends SilPhraseScorer
+{
+  override def computeLocalScore(phrase : SilPhrase) =
+    SilPhraseScore.neutral
 }

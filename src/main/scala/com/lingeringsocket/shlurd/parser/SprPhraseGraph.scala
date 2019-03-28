@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import scala.collection._
 import scala.collection.JavaConverters._
 
 import org.jgrapht._

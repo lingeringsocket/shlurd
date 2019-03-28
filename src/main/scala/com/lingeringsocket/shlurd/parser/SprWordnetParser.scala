@@ -21,6 +21,8 @@ import SprEnglishLemmas._
 import scala.collection._
 import scala.util._
 
+import scala.sys.process._
+
 case class SprParseComplexityException()
     extends RuntimeException("Expression too complex")
 {
@@ -28,8 +30,8 @@ case class SprParseComplexityException()
 
 object SprWordnetParser extends SprEnglishWordAnalyzer
 {
-  private val leafSomething = makeLeaf("something")
-  private[parser] val npSomething = SptNP(SptNN(leafSomething))
+  val leafSomething = makeLeaf("something")
+  val npSomething = SptNP(SptNN(leafSomething))
 
   def maybeLowerCase(word : String) : String =
   {
@@ -40,12 +42,12 @@ object SprWordnetParser extends SprEnglishWordAnalyzer
     }
   }
 
-  private lazy val phrasePatternTrie = (new SprPhrasePatternTrie).importText(
+  lazy val phrasePatternTrie = (new SprPhrasePatternTrie).importText(
     ResourceUtils.getResourceSource(
       "/english/phrase-structure.txt"))
 }
 
-class SprWordnetParser(
+class SprAbstractWordnetParser(
   context : SprContext,
   words : Seq[String],
   guessedQuestion : Boolean,
@@ -54,10 +56,250 @@ class SprWordnetParser(
 {
   import SprWordnetParser._
 
-  private val strictRewriter = new SprPhraseRewriter(
+  protected val tokens = words.map(maybeLowerCase)
+
+  protected val trie = phrasePatternTrie
+
+  protected val graph = SprPhraseGraph()
+
+  protected var cost = 0
+
+  protected val strictRewriter = new SprPhraseRewriter(
     new SprEnglishSyntaxAnalyzer(
       guessedQuestion, SPR_STRICTNESS_FULL, false))
 
+  protected val silMemo =
+    new mutable.HashMap[SprSyntaxTree, Option[(SilPhrase, SprSyntaxTree)]]
+
+  protected val seenMemo =
+    new mutable.HashSet[Seq[Set[SprSyntaxTree]]]
+
+  def getCost = cost
+
+  protected[parser] def analyzeWords() : Seq[Set[SprSyntaxTree]] =
+  {
+    val quote = DQUOTE
+    tokens.zip(words).zipWithIndex.map {
+      case ((token, word), iToken) => {
+        if (word.startsWith(quote) && word.endsWith(quote)
+          && (word.size > 1))
+        {
+          val tree : SprSyntaxTree = SptNNQ(makeLeaf(
+            word.stripPrefix(quote).stripSuffix(quote)))
+          Set(tree)
+        } else {
+          context.wordLabeler.labelWord(token, word, iToken)
+        }
+      }
+    }
+  }
+
+  protected def updateGraph(replacements : Set[SprSyntaxTree])
+      : Set[SprSyntaxTree] =
+  {
+    replacements.foreach(updateGraphFor)
+    replacements
+  }
+
+  protected def updateGraphFor(phrase : SprSyntaxTree)
+  {
+    graph.addVertex(phrase)
+    phrase.children.foreach(term => {
+      graph.addVertex(term)
+      graph.addEdge(phrase, term)
+    })
+  }
+
+  protected[parser] def displayGraph(
+    accepted : => Set[SprPhraseGraph.SprPhraseVertex])
+  {
+    val dot = SprPhraseGraph.render(graph, accepted)
+    val dotStream = new java.io.ByteArrayInputStream(dot.getBytes)
+      ("dotty -" #< dotStream).!!
+  }
+
+  protected def acceptReplacement(
+    rewriter : SprPhraseRewriter,
+    tree : SprSyntaxTree,
+    allowConjunctive : Boolean = true) : Boolean =
+  {
+    attemptReplacement(rewriter, tree, allowConjunctive).nonEmpty
+  }
+
+  protected def acceptTopLevel(
+    rewriter : SprPhraseRewriter,
+    tree : SprSyntaxTree) : Boolean =
+  {
+    val replacement = attemptReplacement(rewriter, tree)
+    if (replacement.nonEmpty) {
+      tree match {
+        case _ : SptS => true
+        case _ : SptSBARQ => true
+        case _ : SptSINV => true
+        case _ : SptSQ => {
+          val sil = replacement.get._1
+          val querier = new SilPhraseRewriter
+          var accepted = true
+          def findDangling = querier.queryMatcher {
+            case _ : SilDanglingVerbModifier => {
+              accepted = false
+            }
+          }
+          querier.query(findDangling, sil)
+          accepted
+        }
+        case _ => false
+      }
+    } else {
+      false
+    }
+  }
+
+  private def attemptReplacement(
+    rewriter : SprPhraseRewriter,
+    tree : SprSyntaxTree,
+    allowConjunctive : Boolean = true) : Option[(SilPhrase, SprSyntaxTree)] =
+  {
+    cost += 1
+    if (cost > 1000000) {
+      throw SprParseComplexityException()
+    }
+    def tryRewrite(phrase : SilUnknownPhrase) =
+    {
+      tryPhrase(rewriter, phrase, allowConjunctive)
+    }
+    silMemo.getOrElseUpdate(tree, {
+      tree match {
+        case SptS(vp : SptVP) => {
+          tryRewrite(
+            SilExpectedSentence(
+              SptS(npSomething, vp)))
+        }
+        case s : SptS => {
+          tryRewrite(
+            SilExpectedSentence(s))
+        }
+        case sbarq : SptSBARQ => {
+          tryRewrite(
+            SilExpectedSentence(sbarq))
+        }
+        case sinv : SptSINV => {
+          tryRewrite(
+            SilExpectedSentence(sinv))
+        }
+        case sq @ SptSQ(vp : SptVP) => {
+          tryRewrite(
+            SilExpectedSentence(
+              SptS(npSomething, vp)))
+        }
+        case sq : SptSQ => {
+          tryRewrite(
+            SilExpectedSentence(sq))
+        }
+        // FIXME required because we currently only accept "does" as auxiliary
+        case SptVP(SptVBZ(leaf)) if (leaf.lemma == LEMMA_DO) => {
+          tryRewrite(
+            SilExpectedSentence(
+              SptS(npSomething, SptVP(SptVB(makeLeaf(LEMMA_HAVE))))))
+        }
+        case vp : SptVP => {
+          tryRewrite(
+            SilExpectedSentence(
+              SptS(npSomething, vp)))
+        }
+        case np : SptNP => {
+          val dispossessed = {
+            if (np.children.last.isPossessive) {
+              SptNP(np.children.dropRight(1):_*)
+            } else {
+              np
+            }
+          }
+          tryRewrite(
+            SilExpectedReference(dispossessed))
+        }
+        case advp : SptADVP => {
+          tryRewrite(
+            SilExpectedVerbModifier(advp, None))
+        }
+        case adjp : SptADJP => {
+          tryRewrite(
+            SilExpectedComplementState(adjp))
+        }
+        case pp : SptPP => {
+          tryRewrite(
+            SilExpectedVerbModifier(pp, None))
+        }
+        case tmod : SptTMOD => {
+          val result = tryPhrase(
+            rewriter, SilExpectedVerbModifier(tmod, None),
+            allowConjunctive)
+          result.map(_._1) match {
+            case Some(SilAdpositionalVerbModifier(
+              SilAdposition.ADVERBIAL_TMP, ref)
+            ) => {
+              // FIXME discriminate excns
+              if (Try(SprParser.interpretTemporal(ref)).isSuccess) {
+                result
+              } else {
+                None
+              }
+            }
+            case _ => None
+          }
+        }
+        case _ => {
+          Some(tupleN((SilUnrecognizedReference(tree), tree)))
+        }
+      }
+    })
+  }
+
+  protected def tryPhrase(
+    rewriter : SprPhraseRewriter,
+    phrase : SilUnknownPhrase,
+    allowConjunctive : Boolean) : Option[(SilPhrase, SprSyntaxTree)] =
+  {
+    def rejectResult(sil : SilPhrase) : Boolean =
+    {
+      if (sil.hasUnknown) {
+        true
+      } else if (sil.isConjunctive && !allowConjunctive) {
+        true
+      } else {
+        sil match {
+          case SilNounReference(
+            SilWordInflected("longer"), DETERMINER_NONE, _
+          ) => true
+          case _ => false
+        }
+      }
+    }
+
+    val syntaxTree = phrase.syntaxTree
+    if ((syntaxTree.children.size == 1) &&
+      syntaxTree.label == syntaxTree.firstChild.label)
+    {
+      None
+    } else {
+      val transformed = rewriter.rewritePhrase(phrase)
+      if (rejectResult(transformed)) {
+        None
+      } else {
+        Some(tupleN((transformed, syntaxTree)))
+      }
+    }
+  }
+}
+
+class SprWordnetParser(
+  context : SprContext,
+  words : Seq[String],
+  guessedQuestion : Boolean,
+  terminator : Option[String] = None)
+    extends
+    SprAbstractWordnetParser(context, words, guessedQuestion, terminator)
+{
   private val looseRewriter = new SprPhraseRewriter(
     new SprEnglishSyntaxAnalyzer(
       guessedQuestion, SPR_STRICTNESS_LOOSE, false))
@@ -66,25 +308,9 @@ class SprWordnetParser(
     new SprEnglishSyntaxAnalyzer(
       guessedQuestion, SPR_STRICTNESS_MEDIUM, false))
 
-  private var cost = 0
-
-  private val tokens = words.map(maybeLowerCase)
-
-  private val screen =
-    new mutable.HashMap[SprSyntaxTree, Option[(SilPhrase, SprSyntaxTree)]]
-
-  private val memo =
-    new mutable.HashSet[Seq[Set[SprSyntaxTree]]]
-
-  private val trie = phrasePatternTrie
-
   private val expansions = trie.generateExpansions
 
   private val successors = trie.generateSuccessors
-
-  private val graph = SprPhraseGraph()
-
-  def getCost = cost
 
   def buildAll(seq : Seq[Set[SprSyntaxTree]]) : Stream[SprSyntaxTree] =
   {
@@ -100,10 +326,7 @@ class SprWordnetParser(
     val stream = buildAllImpl(seq).force
 
     if (false) {
-      import scala.sys.process._
-      val dot = SprPhraseGraph.render(graph, stream.toSet.flatMap(explode))
-      val dotStream = new java.io.ByteArrayInputStream(dot.getBytes)
-        ("dotty -" #< dotStream).!!
+      displayGraph(stream.toSet.flatMap(explode))
     }
 
     stream
@@ -140,8 +363,8 @@ class SprWordnetParser(
 
   private def clear()
   {
-    screen.clear
-    memo.clear
+    silMemo.clear
+    seenMemo.clear
     cost = 0
   }
 
@@ -248,10 +471,10 @@ class SprWordnetParser(
     rewriter : SprPhraseRewriter,
     seqIn : Seq[Set[SprSyntaxTree]]) : Stream[SprSyntaxTree] =
   {
-    if (memo.contains(seqIn)) {
+    if (seenMemo.contains(seqIn)) {
       Stream.empty
     } else {
-      memo += seqIn
+      seenMemo += seqIn
       // FIXME rehabilitate filter?
       // val seq = filterSeq(seqIn)
       val seq = seqIn
@@ -287,59 +510,6 @@ class SprWordnetParser(
     }
   }
 
-  private def updateGraph(replacements : Set[SprSyntaxTree])
-      : Set[SprSyntaxTree] =
-  {
-    replacements.foreach(updateGraphFor)
-    replacements
-  }
-
-  private def updateGraphFor(phrase : SprSyntaxTree)
-  {
-    graph.addVertex(phrase)
-    phrase.children.foreach(term => {
-      graph.addVertex(term)
-      graph.addEdge(phrase, term)
-    })
-  }
-
-  private def acceptTopLevel(
-    rewriter : SprPhraseRewriter,
-    tree : SprSyntaxTree) : Boolean =
-  {
-    val replacement = attemptReplacement(rewriter, tree)
-    if (replacement.nonEmpty) {
-      tree match {
-        case _ : SptS => true
-        case _ : SptSBARQ => true
-        case _ : SptSINV => true
-        case _ : SptSQ => {
-          val sil = replacement.get._1
-          val querier = new SilPhraseRewriter
-          var accepted = true
-          def findDangling = querier.queryMatcher {
-            case _ : SilDanglingVerbModifier => {
-              accepted = false
-            }
-          }
-          querier.query(findDangling, sil)
-          accepted
-        }
-        case _ => false
-      }
-    } else {
-      false
-    }
-  }
-
-  private def acceptReplacement(
-    rewriter : SprPhraseRewriter,
-    tree : SprSyntaxTree,
-    allowConjunctive : Boolean = true) : Boolean =
-  {
-    attemptReplacement(rewriter, tree, allowConjunctive).nonEmpty
-  }
-
   private def allResultsUnknown(
     rewriter : SprPhraseRewriter,
     stream : Stream[SprSyntaxTree]) : Boolean =
@@ -352,159 +522,5 @@ class SprWordnetParser(
         case _ => true
       }
     })
-  }
-
-  private def attemptReplacement(
-    rewriter : SprPhraseRewriter,
-    tree : SprSyntaxTree,
-    allowConjunctive : Boolean = true) : Option[(SilPhrase, SprSyntaxTree)] =
-  {
-    cost += 1
-    if (cost > 1000000) {
-      throw SprParseComplexityException()
-    }
-    def tryRewrite(phrase : SilUnknownPhrase) =
-    {
-      tryPhrase(rewriter, phrase, allowConjunctive)
-    }
-    screen.getOrElseUpdate(tree, {
-      tree match {
-        case SptS(vp : SptVP) => {
-          tryRewrite(
-            SilExpectedSentence(
-              SptS(npSomething, vp)))
-        }
-        case s : SptS => {
-          tryRewrite(
-            SilExpectedSentence(s))
-        }
-        case sbarq : SptSBARQ => {
-          tryRewrite(
-            SilExpectedSentence(sbarq))
-        }
-        case sinv : SptSINV => {
-          tryRewrite(
-            SilExpectedSentence(sinv))
-        }
-        case sq @ SptSQ(vp : SptVP) => {
-          tryRewrite(
-            SilExpectedSentence(
-              SptS(npSomething, vp)))
-        }
-        case sq : SptSQ => {
-          tryRewrite(
-            SilExpectedSentence(sq))
-        }
-        // FIXME required because we currently only accept "does" as auxiliary
-        case SptVP(SptVBZ(leaf)) if (leaf.lemma == LEMMA_DO) => {
-          tryRewrite(
-            SilExpectedSentence(
-              SptS(npSomething, SptVP(SptVB(makeLeaf(LEMMA_HAVE))))))
-        }
-        case vp : SptVP => {
-          tryRewrite(
-            SilExpectedSentence(
-              SptS(npSomething, vp)))
-        }
-        case np : SptNP => {
-          val dispossessed = {
-            if (np.children.last.isPossessive) {
-              SptNP(np.children.dropRight(1):_*)
-            } else {
-              np
-            }
-          }
-          tryRewrite(
-            SilExpectedReference(dispossessed))
-        }
-        case advp : SptADVP => {
-          tryRewrite(
-            SilExpectedVerbModifier(advp, None))
-        }
-        case adjp : SptADJP => {
-          tryRewrite(
-            SilExpectedComplementState(adjp))
-        }
-        case pp : SptPP => {
-          tryRewrite(
-            SilExpectedVerbModifier(pp, None))
-        }
-        case tmod : SptTMOD => {
-          val result = tryPhrase(
-            rewriter, SilExpectedVerbModifier(tmod, None),
-            allowConjunctive)
-          result.map(_._1) match {
-            case Some(SilAdpositionalVerbModifier(
-              SilAdposition.ADVERBIAL_TMP, ref)
-            ) => {
-              // FIXME discriminate excns
-              if (Try(SprParser.interpretTemporal(ref)).isSuccess) {
-                result
-              } else {
-                None
-              }
-            }
-            case _ => None
-          }
-        }
-        case _ => {
-          Some(tupleN((SilUnrecognizedReference(tree), tree)))
-        }
-      }
-    })
-  }
-
-  private def tryPhrase(
-    rewriter : SprPhraseRewriter,
-    phrase : SilUnknownPhrase,
-    allowConjunctive : Boolean) : Option[(SilPhrase, SprSyntaxTree)] =
-  {
-    def rejectResult(sil : SilPhrase) : Boolean =
-    {
-      if (sil.hasUnknown) {
-        true
-      } else if (sil.isConjunctive && !allowConjunctive) {
-        true
-      } else {
-        sil match {
-          case SilNounReference(
-            SilWordInflected("longer"), DETERMINER_NONE, _
-          ) => true
-          case _ => false
-        }
-      }
-    }
-
-    val syntaxTree = phrase.syntaxTree
-    if ((syntaxTree.children.size == 1) &&
-      syntaxTree.label == syntaxTree.firstChild.label)
-    {
-      None
-    } else {
-      val transformed = rewriter.rewritePhrase(phrase)
-      if (rejectResult(transformed)) {
-        None
-      } else {
-        Some(tupleN((transformed, syntaxTree)))
-      }
-    }
-  }
-
-  private[parser] def analyzeWords() : Seq[Set[SprSyntaxTree]] =
-  {
-    val quote = DQUOTE
-    tokens.zip(words).zipWithIndex.map {
-      case ((token, word), iToken) => {
-        if (word.startsWith(quote) && word.endsWith(quote)
-          && (word.size > 1))
-        {
-          val tree : SprSyntaxTree = SptNNQ(makeLeaf(
-            word.stripPrefix(quote).stripSuffix(quote)))
-          Set(tree)
-        } else {
-          context.wordLabeler.labelWord(token, word, iToken)
-        }
-      }
-    }
   }
 }
