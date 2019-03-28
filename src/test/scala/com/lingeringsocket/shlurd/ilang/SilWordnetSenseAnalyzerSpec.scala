@@ -87,5 +87,17 @@ class SilWordnetSenseAnalyzerSpec extends Specification
         REL_IDENTITY)
       analyzeComplement(identity) must be equalTo "n:10148670|n:2065397"
     }
+
+    "analyze compound noun" in
+    {
+      val word = SilCompoundWord(Seq(
+        SilWord("wise"),
+        SilWord("guy")))
+      val identity = SilRelationshipPredicate(
+        pronounI,
+        SilNounReference(word, DETERMINER_NONSPECIFIC),
+        REL_IDENTITY)
+      analyzeComplement(identity) must be equalTo "n:10803789"
+    }
   }
 }
