@@ -18,5 +18,7 @@ import com.lingeringsocket.shlurd.parser._
 
 class ShlurdTestCleanup
 {
-  SprParser.saveCache
+  Runtime.getRuntime.synchronized {
+    SprParser.saveCache
+  }
 }

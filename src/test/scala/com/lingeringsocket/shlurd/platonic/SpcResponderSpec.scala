@@ -978,15 +978,17 @@ class SpcResponderSpec extends Specification
       process(
         "are all services up",
         "No, the multimedia service is not up.")
-      process(
-        "are all services running",
-        "No, the multimedia service is not running.")
       processMatrix(
         "is the multimedia server up",
         "No, it is not up.",
         "No, the multimedia server is not up.",
         "No.",
         "No, it is not.")
+
+      skipped("ambiguous progressive")
+      process(
+        "are all services running",
+        "No, the multimedia service is not running.")
     }
 
     "understand presence" in new ResponderContext
@@ -1187,7 +1189,7 @@ class SpcResponderSpec extends Specification
       ACCEPT_NEW_BELIEFS)
     {
       if (SprParser.isCoreNLP) {
-        skipped("Wordnet only")
+        skipped("CoreNLP not working")
       }
       loadBeliefs("/ontologies/containment.txt")
       processBelief("A vapor is a kind of object.")

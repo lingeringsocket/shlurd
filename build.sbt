@@ -19,7 +19,7 @@ lazy val Corenlp = config("corenlp") extend(Test)
 lazy val rootProject = (project in file(".")).configs(Corenlp).
   settings(inConfig(Corenlp)(Defaults.testTasks):_*)
 
-lazy val cli = project.dependsOn(rootProject)
+lazy val cli = project.dependsOn(rootProject % "test->test;compile->compile")
 
 lazy val root = rootProject.aggregate(cli)
 
@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   "org.jgrapht" % "jgrapht-core" % "1.3.0",
   "org.jgrapht" % "jgrapht-io" % "1.3.0",
   "org.atteo" % "evo-inflector" % "1.2.2",
-  "net.sf.extjwnl" % "extjwnl" % "1.9.4",
+  "net.sf.extjwnl" % "extjwnl" % "2.0.2",
   "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
   "eus.ixa" % "ixa-pipe-ml" % "0.0.8" exclude("net.sourceforge.argparse4j", "argparse4j") exclude("com.google.guava", "guava") exclude("org.jdom", "jdom2") exclude("org.carrot2", "morfologik-stemming") exclude("org.apache.opennlp", "opennlp-tools"),
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" % "test",

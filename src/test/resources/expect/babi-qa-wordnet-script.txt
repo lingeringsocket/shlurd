@@ -1,3 +1,10 @@
+Yesterday Bill travelled to the kitchen.
+Fred went back to the bedroom yesterday.
+Bill moved to the bedroom this afternoon.
+Bill moved to the cinema this morning.
+Where was Bill before the cinema? 	kitchen
+Fred went to the cinema this morning.
+Where was Fred before the cinema? 	bedroom
 The kitchen is west of the garden.
 The hallway is west of the kitchen.
 What is the garden east of?	kitchen

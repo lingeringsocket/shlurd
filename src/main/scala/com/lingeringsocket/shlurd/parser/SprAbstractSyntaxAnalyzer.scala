@@ -18,15 +18,14 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 sealed trait SprStrictness
-case object SPR_STRICTNESS_FULL extends SprStrictness
-case object SPR_STRICTNESS_MEDIUM extends SprStrictness
+case object SPR_STRICTNESS_TIGHT extends SprStrictness
 case object SPR_STRICTNESS_LOOSE extends SprStrictness
 
 abstract class SprAbstractSyntaxAnalyzer(
   strictness : SprStrictness = SPR_STRICTNESS_LOOSE)
     extends SprSyntaxAnalyzer
 {
-  def isStrict = (strictness != SPR_STRICTNESS_LOOSE)
+  def isStrict = (strictness == SPR_STRICTNESS_TIGHT)
 
   protected def stripPauses(tree : SprSyntaxTree)
       : Seq[SprSyntaxTree] =
@@ -202,9 +201,17 @@ abstract class SprAbstractSyntaxAnalyzer(
     if (seq.size < 2 || !seq.forall(_.isPreTerminal)) {
       false
     } else {
-      val spaced = (seq.dropRight(1).map(_.firstChild.foldedToken) :+
-        seq.last.firstChild.lemma).mkString(" ")
-      ShlurdWordnet.isPotentialNoun(spaced)
+      def isProperNoun(tree : SprSyntaxTree) = tree match {
+        case noun : SprSyntaxNoun => noun.isProper
+        case _ => false
+      }
+      if (seq.forall(isProperNoun)) {
+        true
+      } else {
+        val spaced = (seq.dropRight(1).map(_.firstChild.foldedToken) :+
+          seq.last.firstChild.lemma).mkString(" ")
+        ShlurdWordnet.isPotentialNoun(spaced)
+      }
     }
   }
 
@@ -330,15 +337,19 @@ abstract class SprAbstractSyntaxAnalyzer(
   protected def getVerbCount(verb : SprSyntaxTree) : SilCount
 
   override def isNounPhraseModifier(
-    tree : SprSyntaxTree) : Boolean =
+    tree : SprSyntaxTree, head : SprSyntaxTree) : Boolean =
   {
-    strictness match {
-      case SPR_STRICTNESS_FULL => {
-        tree.isAdjectival
+    if (tree.isAdjectival) {
+      true
+    } else if (tree.isNoun) {
+      tupleN((tree, head)) match {
+        case (n1 : SprSyntaxNoun, n2 : SprSyntaxNoun) => {
+          n1.isProper == n2.isProper
+        }
+        case _ => true
       }
-      case SPR_STRICTNESS_MEDIUM | SPR_STRICTNESS_LOOSE => {
-        tree.isNoun || tree.isAdjectival
-      }
+    } else {
+      false
     }
   }
 
@@ -346,7 +357,7 @@ abstract class SprAbstractSyntaxAnalyzer(
     tree : SprSyntaxTree) : Boolean =
   {
     strictness match {
-      case SPR_STRICTNESS_FULL | SPR_STRICTNESS_MEDIUM => {
+      case SPR_STRICTNESS_TIGHT => {
         tree.isNoun || tree.isGerund
       }
       case SPR_STRICTNESS_LOOSE => {

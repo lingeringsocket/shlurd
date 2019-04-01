@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd
 
+import net.sf.extjwnl.data._
+
 import org.specs2.mutable._
 
 class ShlurdWordnetSpec extends Specification
@@ -139,6 +141,21 @@ class ShlurdWordnetSpec extends Specification
     {
       val senses = ShlurdWordnet.getNounSenses("firefighter")
       senses.head.getLexFileName must be equalTo "noun.person"
+    }
+
+    "compute usage scores" in
+    {
+      ShlurdWordnet.getUsageScore("small", POS.ADJECTIVE) must be equalTo 42
+      ShlurdWordnet.getUsageScore("small", POS.NOUN) must be equalTo 0
+      ShlurdWordnet.getUsageScore("small", POS.ADVERB) must be equalTo 0
+      ShlurdWordnet.getUsageScore("small", POS.VERB) must be equalTo -1
+      ShlurdWordnet.getUsageScore("red", POS.ADJECTIVE) must be equalTo 8
+      ShlurdWordnet.getUsageScore("red", POS.NOUN) must be equalTo 1
+      ShlurdWordnet.getUsageScore("young", POS.NOUN) must be equalTo 1
+      ShlurdWordnet.getUsageScore("young", POS.ADJECTIVE) must be equalTo 21
+      ShlurdWordnet.getUsageScore("man", POS.NOUN) must be equalTo 149
+      ShlurdWordnet.getUsageScore("man", POS.VERB) must be equalTo 0
+      ShlurdWordnet.getUsageScore("back", POS.ADVERB) must be equalTo 18
     }
   }
 }

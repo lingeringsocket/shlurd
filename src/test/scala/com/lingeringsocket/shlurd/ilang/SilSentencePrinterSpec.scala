@@ -95,7 +95,7 @@ class SilSentencePrinterSpec extends Specification
     "deal with cases which are problematic for CoreNLP" in
     {
       if (SprParser.isCoreNLP) {
-        skipped("Wordnet only")
+        skipped("CoreNLP not working")
       }
       expectQuestion("is neither franny nor zooey speaking")
       expectStatement("a vehicle must be either moving or stopped")

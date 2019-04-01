@@ -18,5 +18,5 @@ import com.lingeringsocket.shlurd.parser._
 
 class CorenlpTestCleanup
 {
-  SprParser.setStrategy(SprWordnetParsingStrategy)
+  SprParser.setStrategy(SprHeuristicParsingStrategy)
 }

@@ -66,7 +66,7 @@ class SpcInterpretTesterSpec extends Specification
       val (successes, failures) = tester.run(
         Source.fromFile(script),
         NullConsoleOutput)
-      successes must be equalTo 3
+      successes must be equalTo 10
       failures must be equalTo 0
     }
   }

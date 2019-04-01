@@ -55,9 +55,6 @@ abstract class SpcOpenhabCosmos(
 
   private[platonic] var beliefsLoaded : Boolean = false
 
-  // FIXME move this logic up to the SpcCosmos level
-  private val adjectives = new mutable.LinkedHashSet[String]
-
   if (forkLevel == 0) {
     SpcPrimordial.initCosmos(this)
     instantiateForm(SilWord(locationFormName))
@@ -83,17 +80,6 @@ abstract class SpcOpenhabCosmos(
     val frozen = new SpcOpenhabDerivedCosmos(this, getGraph, forkLevel)
     frozen.meta.afterFork(meta)
     frozen
-  }
-
-  override def newParser(input : String) =
-  {
-    if (beliefsLoaded) {
-      SprParser(
-        input,
-        SprContext(KnownWordLabeler))
-    } else {
-      super.newParser(input)
-    }
   }
 
   override def resolveQualifiedNoun(
@@ -319,53 +305,11 @@ abstract class SpcOpenhabCosmos(
             case _ => warning = true
           }
         } else {
-          adjectives ++= qualifiers
           val entity = new SpcEntity(itemName, form, qualifiers)
           createOrReplaceEntity(entity)
         }
       }
       case _ =>
-    }
-  }
-
-  object KnownWordLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
-  {
-    private val wordnetLabeler = new SprWordnetLabeler
-
-    override def labelWord(
-      token : String, word : String, iToken : Int) =
-    {
-      val wordnetTrees = wordnetLabeler.labelWord(token, word, iToken)
-      val trees = {
-        if (wordnetTrees.size < 2) {
-          wordnetTrees
-        } else {
-          wordnetTrees.filter(
-            tree => {
-              tree match {
-                case SptNN(leaf) => {
-                  resolveForm(leaf.lemma).nonEmpty ||
-                    (leaf.lemma == roomLemma) ||
-                    (leaf.lemma == locationFormName) ||
-                    (leaf.lemma == presenceFormName) ||
-                    adjectives.contains(leaf.lemma)
-                }
-                case _ => {
-                  true
-                }
-              }
-            }
-          )
-        }
-      }
-      val extraAdjectiveTrees = {
-        if (adjectives.contains(token)) {
-          Set(SptJJ(makeLeaf(word, token)))
-        } else {
-          Set.empty
-        }
-      }
-      extraAdjectiveTrees ++ trees
     }
   }
 }

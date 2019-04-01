@@ -11,7 +11,7 @@ maxErrors := 99
 traceLevel := 10
 
 libraryDependencies ++= Seq(
-  "net.sf.extjwnl" % "extjwnl" % "1.9.4",
+  "net.sf.extjwnl" % "extjwnl" % "2.0.2",
   "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2"
 )
 

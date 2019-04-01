@@ -20,5 +20,7 @@ import java.io._
 
 class ShlurdTestSetup
 {
-  SprParser.enableCache(Some(new File("run/test-parser-cache.dat")))
+  Runtime.getRuntime.synchronized {
+    SprParser.enableCache(Some(new File("run/test-parser-cache.dat")))
+  }
 }

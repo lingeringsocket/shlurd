@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.parser._
 
 import SprEnglishLemmas._
 
+import net.sf.extjwnl.data._
+
 import scala.collection._
 
 class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
@@ -35,16 +37,25 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   private def phraseScorers() = Seq(
     scoreGenitives,
     scoreVerbModifiers,
-    scoreAdverbStates,
+    scoreUsage,
+    scoreCompoundNouns,
     scoreCompoundAdpositions,
     scoreNounStates,
     scoreLonger,
-    scoreGerundNouns,
     scoreNestedAdpositions,
     scoreConjunctiveNouns,
     scoreSpecialAdpositions,
+    scoreModal,
     scoreVerbFrames
   )
+
+  private def scoreModal = phraseScorer {
+    case s : SilSentence if (
+      s.tam.modality != MODAL_NEUTRAL
+    ) => {
+      SilPhraseScore.proSmall
+    }
+  }
 
   private def scoreGenitives = phraseScorer {
     case SilGenitiveReference(
@@ -56,30 +67,68 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   }
 
   private def scoreVerbModifiers = phraseScorer {
-    case SilBasicVerbModifier(_, score) => {
+    case SilBasicVerbModifier(word, score) => {
       if (score < 0) {
         SilPhraseScore.conSmall
       } else if (score > 0) {
         SilPhraseScore.proSmall
       } else {
-        SilPhraseScore.neutral
+        if (word.toLemma == LEMMA_NO) {
+          SilPhraseScore.conBig
+        } else {
+          SilPhraseScore.neutral
+        }
       }
     }
   }
 
-  private def scoreAdverbStates = phraseScorer {
-    case SilStateSpecifiedReference(
-      _,
-      SilPropertyState(SilWordInflected(inflected))
-    ) if (ShlurdWordnet.isPotentialAdverb(inflected)) => {
-      SilPhraseScore.conSmall
+  private def usageScore(lemma : String, pos : POS) : SilPhraseScore =
+  {
+    val score = ShlurdWordnet.getUsageScore(lemma, pos)
+    if (score == 0) {
+      SilPhraseScore.neutral
+    } else if (score < 0) {
+      if (pos == POS.ADJECTIVE) {
+        SilPhraseScore.neutral
+      } else {
+        SilPhraseScore.con(-score)
+      }
+    } else {
+      SilPhraseScore.pro(score)
     }
-    case SilStateSpecifiedReference(
-      SilNounReference(
-        SilWordInflected(inflected), DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-      _ : SilAdpositionalState
-    ) if (ShlurdWordnet.isPotentialAdverb(inflected)) => {
-      SilPhraseScore.conSmall
+  }
+
+  private def scoreUsage = phraseScorer {
+    case SilNounReference(noun, _, _) => {
+      usageScore(noun.toLemma, POS.NOUN)
+    }
+    case SilPropertyState(sw : SilSimpleWord) => {
+      usageScore(sw.toLemma, POS.ADJECTIVE)
+    }
+    case SilActionPredicate(_, sw : SilSimpleWord, _, _) => {
+      usageScore(sw.toLemma, POS.VERB)
+    }
+    case SilBasicVerbModifier(sw : SilSimpleWord, _) => {
+      val lemma = sw.toLemma
+      if (lemma.toLowerCase == "yesterday") {
+        SilPhraseScore.pro(10)
+      } else {
+        usageScore(lemma, POS.ADVERB)
+      }
+    }
+  }
+
+  private def scoreCompoundNouns = phraseScorer {
+    case SilNounReference(
+      noun, _, _
+    ) if (noun.decomposed.size > 1) => {
+      val matchCount = noun.decomposed.count(
+        word => (word.inflected == word.lemma))
+      if (matchCount > 0) {
+        SilPhraseScore.proSmall + SilPhraseScore.pro(matchCount)
+      } else {
+        SilPhraseScore.proSmall
+      }
     }
   }
 
@@ -87,11 +136,13 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     case ap : SilAdpositionalPhrase if (
       ap.adposition.word.decomposed.size > 1
     ) => {
-      if (ap.adposition.word.decomposed.forall(
-        word => isAdposition(word.lemma))) {
-        SilPhraseScore.conSmall
-      } else {
+      val decomposed = ap.adposition.word.decomposed
+      if ((decomposed.last.lemma == LEMMA_OF) ||
+        (decomposed.last.lemma == LEMMA_TO))
+      {
         SilPhraseScore.proBig
+      } else {
+        SilPhraseScore.conSmall
       }
     }
   }
@@ -114,14 +165,6 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   private def scoreLonger = phraseScorer {
     case SilPropertyState(SilWordInflected("longer")) => {
       SilPhraseScore.conBig
-    }
-  }
-
-  private def scoreGerundNouns = phraseScorer {
-    case SilNounReference(
-      SilWordInflected(inflected), _, _
-    ) if (ShlurdWordnet.isPotentialGerund(inflected)) => {
-      SilPhraseScore.conSmall
     }
   }
 

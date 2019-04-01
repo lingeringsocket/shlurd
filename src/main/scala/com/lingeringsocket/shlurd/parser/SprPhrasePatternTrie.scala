@@ -14,8 +14,6 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import com.lingeringsocket.shlurd._
-
 import scala.collection._
 
 import scala.io._
@@ -29,6 +27,8 @@ class SprPhrasePatternTrie
 
   private val labels = new mutable.LinkedHashSet[String]
 
+  private var maxPatternLength : Int = 1
+
   def foldLabel(label : String) : String =
   {
     (label match {
@@ -41,96 +41,47 @@ class SprPhrasePatternTrie
     }).intern
   }
 
-  def generateSuccessors() : Map[String, Set[String]] =
+  def getMaxPatternLength() : Int =
   {
-    val map = new mutable.HashMap[String, mutable.Set[String]]
-    generateSuccessorsOne(map)
-    children.values.foreach(_.generateSuccessorsOne(map))
-    map
+    maxPatternLength
   }
 
-  def generateSuccessorsOne(map : mutable.Map[String, mutable.Set[String]])
-  {
-    val newMap = children.mapValues(_.children.keySet)
-    newMap.foreach {
-      case (label, set) => {
-        if (!map.contains(label)) {
-          val newSet = new mutable.LinkedHashSet[String]
-          newSet ++= set
-          map.put(label, newSet)
-        }
-      }
-    }
-    map.foreach {
-      case (label, set) => {
-        if (!set.isEmpty && newMap.contains(label)) {
-          val newSet = newMap(label)
-          if (newSet.isEmpty) {
-            set.clear
-          } else {
-            set ++= newSet
-          }
-        }
-      }
-    }
-  }
-
-  def generateExpansions() : Map[String, Set[String]] =
-  {
-    var prev = children.map {
-      case (label, child) => {
-        tupleN((label, child.getAllReductions))
-      }
-    }
-    while (true) {
-      val next = new mutable.LinkedHashMap[String, Set[String]]
-      prev.foreach {
-        case (label, set) => {
-          val expansion = set.flatMap(prev.get(_).getOrElse(Set.empty))
-          next.put(label, set ++ expansion)
-        }
-      }
-      if (next == prev) {
-        return next
-      }
-      prev = next
-    }
-    return prev
-  }
-
-  def getAllReductions() : Set[String] =
-  {
-    labels ++ children.values.flatMap(_.getAllReductions)
-  }
-
-  def matchPatterns(seq : Seq[Set[SprSyntaxTree]], start : Int)
+  def matchPatterns(
+    seq : Seq[Set[SprSyntaxTree]], start : Int, minLength : Int = 1)
       : Map[Int, Set[SprSyntaxTree]] =
   {
-    val map = new mutable.HashMap[Int, mutable.Set[SprSyntaxTree]]
-    matchPatternsSub(seq, start, map, Seq.empty)
-    map
+    if (maxPatternLength >= minLength) {
+      val map = new mutable.HashMap[Int, mutable.Set[SprSyntaxTree]]
+      matchPatternsSub(seq, start, map, Seq.empty, minLength)
+      map
+    } else {
+      Map.empty
+    }
   }
 
   private def matchPatternsSub(
     seq : Seq[Set[SprSyntaxTree]],
     start : Int,
     map : mutable.Map[Int, mutable.Set[SprSyntaxTree]],
-    prefix : Seq[SprSyntaxTree]
+    prefix : Seq[SprSyntaxTree],
+    minLength : Int
   )
   {
     labels.foreach(label => {
-      val newTree = SprSyntaxRewriter.recompose(label, prefix)
-      map.getOrElseUpdate(
-        prefix.size,
-        new mutable.HashSet[SprSyntaxTree]
-      ) += newTree
+      if (prefix.size >= minLength) {
+        val newTree = SprSyntaxRewriter.recompose(label, prefix)
+        map.getOrElseUpdate(
+          prefix.size,
+          new mutable.HashSet[SprSyntaxTree]
+        ) += newTree
+      }
     })
     if ((start < seq.size) && children.nonEmpty) {
       seq(start).foreach(syntaxTree => {
         val label = foldLabel(syntaxTree.label)
         children.get(label).foreach(child => {
           child.matchPatternsSub(
-            seq, start + 1, map, prefix :+ syntaxTree)
+            seq, start + 1, map, prefix :+ syntaxTree, minLength)
         })
       })
     }
@@ -160,6 +111,13 @@ class SprPhrasePatternTrie
         new SprPhrasePatternTrie
       })
       child.addPattern(pattern.tail, label)
+    }
+    maxPatternLength = {
+      if (children.isEmpty) {
+        1
+      } else {
+        1 + children.values.map(_.getMaxPatternLength).max
+      }
     }
   }
 

@@ -18,34 +18,34 @@ import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
 
-class SprBlackboardParserSpec extends Specification with SprEnglishWordAnalyzer
+class SprHeuristicSynthesizerSpec
+    extends Specification with SprEnglishWordAnalyzer
 {
   private def parse(
     input : String,
     scorer : SilPhraseScorer = SilNeutralPhraseScorer,
     requireTopLevel : Boolean = true) : Seq[SprSyntaxTree] =
   {
-    val tokenizer = SprWordnetParsingStrategy.newTokenizer
+    val tokenizer = SprHeuristicParsingStrategy.newTokenizer
 
     val sentences = tokenizer.tokenize(input)
     assert(sentences.size == 1)
     val sentence = sentences.head
 
-    val parser = new SprBlackboardParser(
+    val synthesizer = new SprHeuristicSynthesizer(
       SprContext(),
       scorer,
       requireTopLevel,
-      sentence.tokens.map(_.text),
-      false
+      sentence.tokens.map(_.text)
     )
-    val result = parser.buildAll(parser.analyzeWords).toList
+    val result = synthesizer.synthesize(synthesizer.analyzeWords).toList
     if (false) {
-      parser.displayGraph(result.toSet)
+      synthesizer.displayGraph(result.toSet)
     }
     result
   }
 
-  "SprBlackboardParser" should
+  "SprHeuristicSynthesizer" should
   {
     "parse a noun phrase" in
     {

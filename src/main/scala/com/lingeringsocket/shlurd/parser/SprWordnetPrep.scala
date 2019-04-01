@@ -42,12 +42,12 @@ object SprWordnetPrep
       println("SENTENCE = " + sentence)
       println
       if (dumpAnalysis) {
-        println("CORENLP TREE = " + sil.maybeSyntaxTree)
+        println("BASELINE TREE = " + sil.maybeSyntaxTree)
         println
-        println("CORENLP SIL = " + sil)
+        println("BASELINE SIL = " + sil)
         println
       }
-      val wnParser = SprParser.prepareWordnet(
+      val wnParser = SprParser.prepareHeuristic(
         SprContext(), sentence, dumpAnalysis, "DEBUG")
       Some(tupleN((wnParser.parseOne, sil)))
     } else {
@@ -135,7 +135,7 @@ object SprWordnetPrep
               {
                 case _ : SilAmbiguousSentence => {
                   println("MISMATCHED PARSE")
-                  println("CORENLP = " + silCorenlp)
+                  println("BASELINE = " + silCorenlp)
                   println("WN = " + silWordnet)
                   mismatched += 1
                 }
@@ -156,7 +156,7 @@ object SprWordnetPrep
         }
         case _ => {
           if (dumpAnalysis) {
-            println("CORENLP PARSE FAILED")
+            println("BASELINE PARSE FAILED")
           }
         }
       }
@@ -166,7 +166,7 @@ object SprWordnetPrep
 
   def runOne()
   {
-    val sentence = "A rhino is a kind of animal."
+    val sentence = "is there a multimedia service"
     runAll(Seq(sentence), true)
   }
 }

@@ -87,7 +87,8 @@ trait SprSyntaxAnalyzer
       : SilReference
 
   def isNounPhraseModifier(
-    tree : SprSyntaxTree) : Boolean
+    tree : SprSyntaxTree,
+    head : SprSyntaxTree) : Boolean
 
   def isNounPhraseHead(tree : SprSyntaxTree) : Boolean
 }

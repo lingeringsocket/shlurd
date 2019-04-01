@@ -74,6 +74,34 @@ object ShlurdWordnet
         BitSet.empty)
   }
 
+  def getUsageScore(lemma : String, pos : POS) : Int =
+  {
+    Option(dictionary.getIndexWord(pos, lemma)) match {
+      case Some(indexWord) => {
+        val senseIter = indexWord.getSenses.iterator
+        if (senseIter.hasNext) {
+          val wordIter = senseIter.next.getWords.iterator
+          if (wordIter.hasNext) {
+            wordIter.next.getUseCount / 5
+          } else {
+            -1
+          }
+        } else {
+          -1
+        }
+      }
+      case _ => -1
+    }
+  }
+
+  def isPotentialAdjective(inflected : String) : Boolean =
+  {
+    Option(dictionary.getIndexWord(POS.ADJECTIVE, inflected)) match {
+      case Some(indexWord) => true
+      case _ => false
+    }
+  }
+
   def isPotentialAdverb(inflected : String) : Boolean =
   {
     Option(dictionary.getIndexWord(POS.ADVERB, inflected)) match {

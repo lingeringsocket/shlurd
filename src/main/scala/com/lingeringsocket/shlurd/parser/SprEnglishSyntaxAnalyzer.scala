@@ -210,7 +210,7 @@ class SprEnglishSyntaxAnalyzer(
         val expectedSize = 2
         val iNoun = iVerb - 1
         if (seq.view(0, iNoun).exists(
-          c => isNounPhraseHead(c) || isNounPhraseModifier(c) ||
+          c => isNounPhraseHead(c) || isNounPhraseModifier(c, c) ||
             c.isDeterminer))
         {
           return None
@@ -475,13 +475,9 @@ class SprEnglishSyntaxAnalyzer(
         tree, components.last, determiner)
       SilGenitiveReference(pronounReference, entityReference)
     } else if (components.last.isCompoundAdpositionalPhrase) {
-      if (!isStrict || (components.size == 2)) {
-        SilStateSpecifiedReference(
-          expectReference(seqIn.dropRight(1)),
-          SilExpectedAdpositionalState(components.last, false))
-      } else {
-        SilUnrecognizedReference(tree)
-      }
+      SilStateSpecifiedReference(
+        expectReference(seqIn.dropRight(1)),
+        SilExpectedAdpositionalState(components.last, false))
     } else if ((components.size == 2) && components.head.isNounPhrase) {
       val entityReference = expectReference(components.head)
       expectRelativeReference(tree, entityReference, components.last)
@@ -490,7 +486,7 @@ class SprEnglishSyntaxAnalyzer(
         tree, components.map(_.asInstanceOf[SprSyntaxPreTerminal]), determiner)
     } else if (isNounPhraseHead(components.last) &&
       components.dropRight(1).forall(
-        c => isNounPhraseModifier(c)))
+        c => isNounPhraseModifier(c, components.last)))
     {
       val entityReference = expectNounReference(
         tree, components.last, determiner)
@@ -659,8 +655,7 @@ class SprEnglishSyntaxAnalyzer(
             expectAdpositionalState(seq.last, false) match {
               case SilAdpositionalState(SilAdposition(word), ref) => {
                 val unwrapped = adpTree.unwrapPhrase
-                if ((unwrapped.children.size == 1) &&
-                  (unwrapped.isNounNode || !isStrict))
+                if (unwrapped.children.size == 1)
                 {
                   SilAdpositionalState(
                     SilAdposition(

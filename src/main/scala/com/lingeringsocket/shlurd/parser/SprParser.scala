@@ -91,7 +91,7 @@ class SprSingleParser(
   override def parseAll() = Stream(parseOne)
 }
 
-class SprSingleWordnetParser(
+class SprSingleHeuristicParser(
   tree : SprSyntaxTree, terminator : Option[String]
 ) extends SprSingleParser(tree, false)
 {
@@ -171,7 +171,7 @@ trait SprParsingStrategy
     dump : Boolean) : SprParser
 }
 
-object SprWordnetParsingStrategy extends SprParsingStrategy
+object SprHeuristicParsingStrategy extends SprParsingStrategy
 {
   override def newTokenizer = new SprIxaTokenizer
 
@@ -180,7 +180,7 @@ object SprWordnetParsingStrategy extends SprParsingStrategy
     sentence : SprTokenizedSentence,
     dump : Boolean) =
   {
-    SprParser.prepareWordnet(context, sentence, dump, "WORDNET")
+    SprParser.prepareHeuristic(context, sentence, dump, "HEURISTIC")
   }
 }
 
@@ -206,7 +206,7 @@ object SprParser
 
   private var cacheFile : Option[File] = None
 
-  private var strategy : SprParsingStrategy = SprWordnetParsingStrategy
+  private var strategy : SprParsingStrategy = SprHeuristicParsingStrategy
 
   def debug(s : String)
   {
@@ -225,10 +225,14 @@ object SprParser
 
   def enableCache(file : Option[File] = None)
   {
-    cacheFile = file
-    cacheDirty = false
-    cache = file.filter(_.exists).map(loadCache).orElse(
-      Some(new concurrent.TrieMap[CacheKey, CacheValue]))
+    this.synchronized {
+      if (cache.isEmpty) {
+        cacheFile = file
+        cacheDirty = false
+        cache = file.filter(_.exists).map(loadCache).orElse(
+          Some(new concurrent.TrieMap[CacheKey, CacheValue]))
+      }
+    }
   }
 
   def lockCache() : Map[CacheKey, CacheValue] =
@@ -249,13 +253,19 @@ object SprParser
 
   def saveCache()
   {
-    if (cacheDirty) {
-      cacheFile.foreach(file => {
-        cache.foreach(c => {
-          SerializationUtils.serialize(c, file)
-          cacheDirty = false
+    this.synchronized {
+      if (cacheDirty) {
+        cacheFile.foreach(file => {
+          cache.foreach(c => {
+            if (file.exists) {
+              val oldCache = loadCache(file)
+              c ++= oldCache
+            }
+            SerializationUtils.serialize(c, file)
+            cacheDirty = false
+          })
         })
-      })
+      }
     }
   }
 
@@ -294,13 +304,13 @@ object SprParser
     strategy.prepareParser(context, sentence, dump)
   }
 
-  private[parser] def prepareWordnet(
+  private[parser] def prepareHeuristic(
     context : SprContext,
     sentenceString : String,
     dump : Boolean, dumpDesc : String) : SprParser =
   {
     val sentence = tokenize(sentenceString).head
-    prepareWordnet(context, sentence, dump, dumpDesc)
+    prepareHeuristic(context, sentence, dump, dumpDesc)
   }
 
   private def collapseQuotations(
@@ -327,7 +337,7 @@ object SprParser
     }
   }
 
-  private[parser] def prepareWordnet(
+  private[parser] def prepareHeuristic(
     context : SprContext,
     sentence : SprTokenizedSentence,
     dump : Boolean, dumpDesc : String) : SprParser =
@@ -341,15 +351,17 @@ object SprParser
         tupleN((allWords, None))
       }
     }
-    def wordnetParse() : SprSyntaxTree =
+    def heuristicParse() : SprSyntaxTree =
     {
-      val guessedQuestion = false
-      val wnp = new SprWordnetParser(
-        context, words, guessedQuestion, terminator)
-      val analysis = wnp.analyzeWords
+      val synthesizer = {
+        new SprHeuristicSynthesizer(
+          context, SilNeutralPhraseScorer,
+          true, words)
+      }
+      val analysis = synthesizer.analyzeWords
       if (dump) {
         println
-        println("WORDNET LEXICAL")
+        println("LEXICAL ANALYSIS")
         println
         words.zip(analysis).foreach {
           case (word, preTerminals) => {
@@ -366,19 +378,19 @@ object SprParser
       }
       val treeSet = new mutable.HashSet[SprSyntaxTree]
       // FIXME handle TOO SLOW excn
-      wnp.buildAll(analysis).foreach(tree => {
+      synthesizer.synthesize(analysis).foreach(tree => {
         if (!treeSet.contains(tree)) {
           treeSet += tree
         }
       })
       if (dump) {
-        println("COST = " + wnp.getCost)
+        println("COST = " + synthesizer.getCost)
       }
       if (dump) {
         println(dumpPrefix + " PARSE = " + treeSet)
       }
       if (treeSet.isEmpty) {
-        SptROOT(SptS(SprWordnetParser.npSomething))
+        SptROOT(SptS(SprHeuristicSynthesizer.npSomething))
       } else if (treeSet.size == 1) {
         SptROOT(treeSet.head)
       } else {
@@ -386,14 +398,14 @@ object SprParser
       }
     }
     val root = cacheParse(
-      CacheKey(sentence.text, dumpPrefix), wordnetParse)
+      CacheKey(sentence.text, dumpPrefix), heuristicParse)
     root match {
       case SptAMBIGUOUS(trees @ _*) => {
         new SprAmbiguityParser(trees.map(tree =>
-          new SprSingleWordnetParser(SptROOT(tree), terminator)))
+          new SprSingleHeuristicParser(SptROOT(tree), terminator)))
       }
       case _ => {
-        new SprSingleWordnetParser(
+        new SprSingleHeuristicParser(
           root,
           terminator)
       }

@@ -45,7 +45,7 @@ object SprWordnetLabeler
   private val stopList = Set(
     "I", "an", "as", "at", "by", "he", "it", "do", "at", "off",
     "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",
-    "does", "have"
+    "does", "have", "my"
   )
 
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
