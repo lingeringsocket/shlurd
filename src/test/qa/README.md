@@ -6,7 +6,7 @@ capabilities, we make use of the
 Research.  Currently, we test with the QA tasks.  Out of the 20 tasks provided, we currently produce 100% correct results for 15 of them:
 
 * qa1-9
-* qa11-4
+* qa11-14
 * qa16-17
 
 The remaining tasks (qa10, qa15, qa18, qa19, qa20) are not yet understood
