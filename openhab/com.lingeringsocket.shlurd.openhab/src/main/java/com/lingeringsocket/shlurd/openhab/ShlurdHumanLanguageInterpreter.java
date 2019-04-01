@@ -16,8 +16,8 @@
  */
 package com.lingeringsocket.shlurd.openhab;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -40,39 +40,38 @@ import org.eclipse.smarthome.core.voice.text.InterpretationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.lingeringsocket.shlurd.parser.SprParser$;
 import com.lingeringsocket.shlurd.ilang.SilSentence;
+import com.lingeringsocket.shlurd.ilang.SilSimpleWord;
 import com.lingeringsocket.shlurd.mind.SmcExecutor;
 import com.lingeringsocket.shlurd.mind.SmcResponseParams;
 import com.lingeringsocket.shlurd.mind.SmcResponseParams$;
 import com.lingeringsocket.shlurd.mind.SmcStateChangeInvocation;
+import com.lingeringsocket.shlurd.parser.SprParser$;
+import com.lingeringsocket.shlurd.platonic.ACCEPT_NO_BELIEFS$;
 import com.lingeringsocket.shlurd.platonic.SpcBeliefAcceptance;
-import com.lingeringsocket.shlurd.platonic.SpcOpenhabCosmos;
-import com.lingeringsocket.shlurd.platonic.SpcOpenhabDefaultCosmos;
 import com.lingeringsocket.shlurd.platonic.SpcEntity;
 import com.lingeringsocket.shlurd.platonic.SpcForm;
+import com.lingeringsocket.shlurd.platonic.SpcOpenhabCosmos;
+import com.lingeringsocket.shlurd.platonic.SpcOpenhabDefaultCosmos;
+import com.lingeringsocket.shlurd.platonic.SpcOpenhabMind;
 import com.lingeringsocket.shlurd.platonic.SpcProperty;
 import com.lingeringsocket.shlurd.platonic.SpcResponder;
-import com.lingeringsocket.shlurd.platonic.SpcOpenhabMind;
-import com.lingeringsocket.shlurd.platonic.ACCEPT_NO_BELIEFS$;
 
+import scala.Option;
+import scala.Tuple2;
 import scala.collection.JavaConverters;
 import scala.io.Source;
 import scala.io.Source$;
-import scala.Option;
-import scala.Tuple2;
-import scala.util.Try;
-import scala.util.Success;
 import scala.util.Failure;
+import scala.util.Success;
+import scala.util.Try;
 
 /**
  * A human language command interpretation service based on SHLURD.
  *
  * @author John Sichi
  */
-public class ShlurdHumanLanguageInterpreter
-    implements HumanLanguageInterpreter
-{
+public class ShlurdHumanLanguageInterpreter implements HumanLanguageInterpreter {
     private final Logger logger = LoggerFactory.getLogger(ShlurdHumanLanguageInterpreter.class);
 
     private ItemRegistry itemRegistry;
@@ -87,36 +86,33 @@ public class ShlurdHumanLanguageInterpreter
 
     private String beliefFile = null;
 
-    private RegistryChangeListener<Item> registryChangeListener =
-        new RegistryChangeListener<Item>()
-        {
-            @Override
-            public void added(Item element) {
-                invalidate();
-            }
+    private RegistryChangeListener<Item> registryChangeListener = new RegistryChangeListener<Item>() {
+        @Override
+        public void added(Item element) {
+            invalidate();
+        }
 
-            @Override
-            public void removed(Item element) {
-                invalidate();
-            }
+        @Override
+        public void removed(Item element) {
+            invalidate();
+        }
 
-            @Override
-            public void updated(Item oldElement, Item element) {
-                invalidate();
-            }
-        };
+        @Override
+        public void updated(Item oldElement, Item element) {
+            invalidate();
+        }
+    };
 
-    private void invalidate()
-    {
+    private void invalidate() {
         cosmos = null;
     }
 
-    private void createCosmos()
-    {
+    private void createCosmos() {
         logger.info("SHLURD recreating world...");
         cosmos = new SpcOpenhabDefaultCosmos() {
             @Override
-                public Try<Tuple2<Option<SpcProperty>, Option<String>>> evaluateEntityProperty(SpcEntity entity, String propertyName, boolean specific) {
+            public Try<Tuple2<Option<SpcProperty>, Option<String>>> evaluateEntityProperty(SpcEntity entity,
+                    String propertyName, boolean specific) {
                 try {
                     Item item = itemRegistry.getItem(entity.name());
                     State state;
@@ -139,19 +135,18 @@ public class ShlurdHumanLanguageInterpreter
         Source beliefSource;
         if (beliefFile == null) {
             logger.info("SHLURD loading default beliefs...");
-            beliefSource = Source$.MODULE$.fromInputStream(
-                getClass().getResourceAsStream("/beliefs.txt"), beliefEncoding);
+            beliefSource = Source$.MODULE$.fromInputStream(getClass().getResourceAsStream("/beliefs.txt"),
+                    beliefEncoding);
         } else {
             logger.info("SHLURD loading beliefs from " + beliefFile + "...");
             beliefSource = Source$.MODULE$.fromFile(beliefFile, beliefEncoding);
         }
-        cosmos.loadBeliefs(beliefSource);
+        new SpcOpenhabMind(cosmos).loadBeliefs(beliefSource);
         readItems();
         logger.info("SHLURD world recreated");
     }
 
-    public void setItemRegistry(ItemRegistry itemRegistry)
-    {
+    public void setItemRegistry(ItemRegistry itemRegistry) {
         if (this.itemRegistry == null) {
             this.itemRegistry = itemRegistry;
             this.itemRegistry.addRegistryChangeListener(registryChangeListener);
@@ -159,23 +154,20 @@ public class ShlurdHumanLanguageInterpreter
 
     }
 
-    public void unsetItemRegistry(ItemRegistry itemRegistry)
-    {
+    public void unsetItemRegistry(ItemRegistry itemRegistry) {
         if (itemRegistry == this.itemRegistry) {
             this.itemRegistry.removeRegistryChangeListener(registryChangeListener);
             this.itemRegistry = null;
         }
     }
 
-    public void setEventPublisher(EventPublisher eventPublisher)
-    {
+    public void setEventPublisher(EventPublisher eventPublisher) {
         if (this.eventPublisher == null) {
             this.eventPublisher = eventPublisher;
         }
     }
 
-    public void unsetEventPublisher(EventPublisher eventPublisher)
-    {
+    public void unsetEventPublisher(EventPublisher eventPublisher) {
         if (eventPublisher == this.eventPublisher) {
             this.eventPublisher = null;
         }
@@ -184,38 +176,32 @@ public class ShlurdHumanLanguageInterpreter
     // TODO conventions
     private static final String BELIEF_FILE_KEY = "beliefFile";
 
-    protected void activate(Map<String, Object> config)
-    {
+    protected void activate(Map<String, Object> config) {
         modified(config);
     }
 
-    protected void modified(Map<String, Object> config)
-    {
+    protected void modified(Map<String, Object> config) {
         beliefFile = (String) config.get(BELIEF_FILE_KEY);
         createCosmos();
     }
 
     @Override
-    public String getId()
-    {
+    public String getId() {
         return "shlurdhli";
     }
 
     @Override
-    public String getLabel(Locale locale)
-    {
+    public String getLabel(Locale locale) {
         return "SHLURD-based Interpreter";
     }
 
-    private static class SortableItem implements Comparable<SortableItem>
-    {
+    private static class SortableItem implements Comparable<SortableItem> {
         String name;
         String label;
         Boolean isGroup;
         List<String> groupNames;
 
-        private String getGroupName()
-        {
+        private String getGroupName() {
             if (name.startsWith("g")) {
                 return name.substring(1);
             } else {
@@ -223,8 +209,8 @@ public class ShlurdHumanLanguageInterpreter
             }
         }
 
-        public int compareTo(SortableItem other)
-        {
+        @Override
+        public int compareTo(SortableItem other) {
             if (isGroup && other.isGroup) {
                 return getGroupName().compareTo(other.getGroupName());
             } else if (isGroup) {
@@ -237,8 +223,7 @@ public class ShlurdHumanLanguageInterpreter
         }
     }
 
-    private void readItems()
-    {
+    private void readItems() {
         if (itemRegistry == null) {
             return;
         }
@@ -265,13 +250,12 @@ public class ShlurdHumanLanguageInterpreter
         Collections.sort(list);
         for (SortableItem sortable : list) {
             cosmos.addItem(sortable.name, sortable.label, sortable.isGroup,
-                JavaConverters.iterableAsScalaIterableConverter(sortable.groupNames).asScala());
+                    JavaConverters.iterableAsScalaIterableConverter(sortable.groupNames).asScala());
         }
     }
 
     @Override
-    public String interpret(Locale locale, String text) throws InterpretationException
-    {
+    public String interpret(Locale locale, String text) throws InterpretationException {
         if (!supportedLocale.getLanguage().equals(locale.getLanguage())) {
             throw new InterpretationException(
                     locale.getDisplayLanguage(Locale.ENGLISH) + " is not supported at the moment.");
@@ -288,7 +272,7 @@ public class ShlurdHumanLanguageInterpreter
                 JavaConverters.setAsJavaSetConverter(invocation.entities()).asJava().forEach(entity -> {
                     try {
                         Item item = itemRegistry.getItem(entity.name());
-                        String upper = invocation.state().inflected().toUpperCase();
+                        String upper = ((SilSimpleWord) invocation.state()).inflected().toUpperCase();
                         Command command;
                         if (isOnOff(entity.form())) {
                             command = OnOffType.valueOf(upper);
@@ -310,27 +294,23 @@ public class ShlurdHumanLanguageInterpreter
     }
 
     @Override
-    public String getGrammar(Locale locale, String format)
-    {
+    public String getGrammar(Locale locale, String format) {
         return null;
     }
 
     @Override
-    public Set<Locale> getSupportedLocales()
-    {
+    public Set<Locale> getSupportedLocales() {
         return Collections.singleton(supportedLocale);
     }
 
     @Override
-    public Set<String> getSupportedGrammarFormats()
-    {
+    public Set<String> getSupportedGrammarFormats() {
         return Collections.emptySet();
     }
 
-    private boolean isOnOff(SpcForm form)
-    {
-        Set set1 = JavaConverters.setAsJavaSetConverter(cosmos.getPropertyStateMap(cosmos.getFormPropertyMap(form).values().head()).keySet())
-                .asJava();
+    private boolean isOnOff(SpcForm form) {
+        Set set1 = JavaConverters.setAsJavaSetConverter(
+                cosmos.getPropertyStateMap(cosmos.getFormPropertyMap(form).values().head()).keySet()).asJava();
         Set set2 = new java.util.HashSet<>(Arrays.asList("on", "off"));
         return set1.equals(set2);
     }
