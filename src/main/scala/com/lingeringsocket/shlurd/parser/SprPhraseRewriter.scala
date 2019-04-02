@@ -128,19 +128,6 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
       case SilPropertyState(SilSimpleWord(inflected, lemma, senseId)) => {
         SilPropertyState(SilSimpleWord(inflected, inflected, senseId))
       }
-      case SilAdpositionalVerbModifier(SilAdposition(word), objRef) => {
-        SilAdpositionalVerbModifier(
-          SilAdposition(
-            word.decomposed.map(
-              w => SilWord(w.inflected, w.inflected))),
-          objRef
-        )
-      }
-      case SilNounReference(noun : SilSimpleWord, determiner, count) => {
-        SilNounReference(
-          SilSimpleWord(
-            noun.inflected.toLowerCase, noun.lemma), determiner, count)
-      }
     }
     rewriter.rewrite(normalizePropertyState, s)
   }
