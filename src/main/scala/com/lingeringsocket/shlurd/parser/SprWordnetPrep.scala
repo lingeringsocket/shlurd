@@ -166,7 +166,8 @@ object SprWordnetPrep
 
   def runOne()
   {
-    val sentence = "is there a multimedia service"
+    val sentence = "if a person is an object's possessor, " +
+      "then the person is carrying the object"
     runAll(Seq(sentence), true)
   }
 }

@@ -17,7 +17,6 @@ package com.lingeringsocket.shlurd.parser
 import scala.collection._
 import scala.collection.JavaConverters._
 
-import org.jgrapht._
 import org.jgrapht.graph._
 import org.jgrapht.io._
 
@@ -25,20 +24,65 @@ import java.io._
 
 object SprPhraseGraph
 {
-  type SprPhraseVertex = SprSyntaxTree
+  class SprPhraseVertex(val tree : SprSyntaxTree)
+  {
+  }
 
   type SprPhraseEdge = DefaultEdge
 
-  type SprPhraseGraph = Graph[SprPhraseVertex, SprPhraseEdge]
-
   def apply() : SprPhraseGraph =
   {
-    new SimpleDirectedGraph[SprPhraseVertex, SprPhraseEdge](
-      classOf[SprPhraseEdge]
-    )
+    new SprPhraseGraph()
+  }
+}
+
+class SprPhraseGraph
+    extends
+    SimpleDirectedGraph[SprPhraseGraph.SprPhraseVertex,
+      SprPhraseGraph.SprPhraseEdge](
+  classOf[SprPhraseGraph.SprPhraseEdge])
+{
+  import SprPhraseGraph._
+
+  private val map = new mutable.HashMap[SprSyntaxTree, SprPhraseVertex] {
+    override protected def elemEquals(
+      key1 : SprSyntaxTree, key2 : SprSyntaxTree) : Boolean =
+    {
+      (key1 eq key2) ||
+        ((key1 == key2) && !key1.isLeaf && !key1.isPreTerminal)
+    }
+
+    override protected def elemHashCode(
+      key : SprSyntaxTree) =
+    {
+      if (key.isLeaf || key.isPreTerminal) {
+        System.identityHashCode(key)
+      } else {
+        key.hashCode
+      }
+    }
   }
 
-  def render(graph : SprPhraseGraph, accepted : Set[SprPhraseVertex]) =
+  def vertexFor(tree : SprSyntaxTree) : SprPhraseVertex =
+  {
+    map.getOrElseUpdate(tree, {
+      val vertex = new SprPhraseVertex(tree)
+      addVertex(vertex)
+      vertex
+    })
+  }
+
+  def addPhrase(tree : SprSyntaxTree)
+  {
+    val newVertex = vertexFor(tree)
+    tree.children.foreach(term => {
+      val termVertex = vertexFor(term)
+      addEdge(newVertex, termVertex)
+    })
+  }
+
+
+  def render(accepted : Set[SprSyntaxTree]) =
   {
     val bold : Attribute =
       new DefaultAttribute[String]("bold", AttributeType.STRING)
@@ -46,14 +90,14 @@ object SprPhraseGraph
       new IntegerComponentNameProvider,
       new ComponentNameProvider[SprPhraseVertex]{
         override def getName(vertex : SprPhraseVertex) = {
-          vertex.label
+          vertex.tree.label
         }
       },
       null,
       new ComponentAttributeProvider[SprPhraseVertex]{
         override def getComponentAttributes(vertex : SprPhraseVertex) =
         {
-          if (accepted.contains(vertex)) {
+          if (accepted.contains(vertex.tree)) {
             Map("style" -> bold)
           } else {
             Map[String, Attribute]()
@@ -62,7 +106,8 @@ object SprPhraseGraph
       },
       null)
     val sw = new StringWriter
-    exporter.exportGraph(graph, sw)
+    exporter.putGraphAttribute("ordering", "out")
+    exporter.exportGraph(this, sw)
     sw.toString
   }
 }

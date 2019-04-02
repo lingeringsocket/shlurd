@@ -87,10 +87,57 @@ object SprHeuristicSynthesizer extends SprEnglishWordAnalyzer
   }
 }
 
+trait SprHeuristicFilter
+{
+  def accept(
+    tree : SprSyntaxTree,
+    replacement : SilPhrase) : Boolean
+}
+
+object SprHeuristicAcceptAll extends SprHeuristicFilter
+{
+  override def accept(
+    tree : SprSyntaxTree,
+    replacement : SilPhrase) : Boolean =
+  {
+    true
+  }
+}
+
+object SprHeuristicAcceptCompleteSentence extends SprHeuristicFilter
+{
+  override def accept(
+    tree : SprSyntaxTree, replacement : SilPhrase) : Boolean =
+  {
+    if (replacement.hasUnknown) {
+      false
+    } else {
+      tree match {
+        case _ : SptS => true
+        case _ : SptSBARQ => true
+        case _ : SptSINV => true
+        case _ : SptSQ => {
+          val querier = new SilPhraseRewriter
+          var accepted = true
+          def findDangling = querier.queryMatcher {
+            case _ : SilDanglingVerbModifier => {
+              accepted = false
+            }
+          }
+          querier.query(findDangling, replacement)
+          accepted
+        }
+        case _ => false
+      }
+    }
+  }
+}
+
 class SprHeuristicSynthesizer(
   context : SprContext,
   scorer : SilPhraseScorer,
-  requireTopLevel : Boolean,
+  filter : SprHeuristicFilter,
+  stopAfterFirst : Boolean,
   words : Seq[String])
     extends SprEnglishWordAnalyzer
 {
@@ -145,6 +192,11 @@ class SprHeuristicSynthesizer(
 
   def getCost = cost
 
+  private def stopEarly() : Boolean =
+  {
+    stopAfterFirst && produced.nonEmpty
+  }
+
   private def scoreTree(tree : SprSyntaxTree) : SilPhraseScore =
   {
     scorer.computeGlobalScore(silMemo(tree).get._1)
@@ -162,7 +214,7 @@ class SprHeuristicSynthesizer(
 
   private def pump()
   {
-    while (pending.isEmpty && queue.nonEmpty) {
+    while (pending.isEmpty && queue.nonEmpty && !stopEarly) {
       val entry = queue.dequeue
       process(entry)
     }
@@ -175,10 +227,9 @@ class SprHeuristicSynthesizer(
 
   private def accept(tree : SprSyntaxTree) : Boolean =
   {
-    if (requireTopLevel) {
-      acceptTopLevel(rewriter, tree)
-    } else {
-      acceptReplacement(rewriter, tree)
+    attemptReplacement(tree) match {
+      case Some((replacement, _)) => filter.accept(tree, replacement)
+      case _ => false
     }
   }
 
@@ -240,13 +291,12 @@ class SprHeuristicSynthesizer(
   {
     val setSeq = seq.map(_.set)
     val activeSpan = entry.choice.span
-    val startUpperBound = seq.takeWhile(_.span.start <= activeSpan.start).size
-    val startLowerBound =
-      seq.size -
-        seq.dropWhile(_.span.start + maxPatternLength < activeSpan.start).size
+    val iActive = seq.indexWhere(_.span.start == activeSpan.start)
+    assert(iActive > -1)
+    val startLowerBound = math.max(0, (iActive - (maxPatternLength - 1)))
+    val startUpperBound = iActive + 1
     range(startLowerBound until startUpperBound).foreach(start => {
-      val minLength = seq.view(start, seq.size).takeWhile(
-        _.span.start < activeSpan.start).size
+      val minLength = startUpperBound - start
       trie.matchPatterns(setSeq, start, minLength).foreach({
         case (length, replacementSet) => {
           assert(length >= minLength)
@@ -272,7 +322,7 @@ class SprHeuristicSynthesizer(
   )
   {
     val filteredSet = choice.set.filter(
-      tree => acceptReplacement(rewriter, tree))
+      tree => acceptReplacement(tree))
     if (filteredSet.nonEmpty) {
       updatePhraseGraph(filteredSet)
       val scoredGroups = filteredSet.groupBy(scoreTree)
@@ -323,70 +373,30 @@ class SprHeuristicSynthesizer(
 
   private def updatePhraseGraph(replacements : Set[SprSyntaxTree])
   {
-    replacements.foreach(updatePhraseGraphFor)
-  }
-
-  private def updatePhraseGraphFor(phrase : SprSyntaxTree)
-  {
-    phraseGraph.addVertex(phrase)
-    phrase.children.foreach(term => {
-      phraseGraph.addVertex(term)
-      phraseGraph.addEdge(phrase, term)
-    })
+    replacements.foreach(phraseGraph.addPhrase)
   }
 
   private def displayDotty(dot : String)
   {
     val dotStream = new java.io.ByteArrayInputStream(dot.getBytes)
-      ("dotty -" #< dotStream).!!
+      ("xdot -" #< dotStream).!!
   }
 
   private[parser] def displayGraph(
-    accepted : => Set[SprPhraseGraph.SprPhraseVertex])
+    accepted : => Set[SprSyntaxTree])
   {
-    val dot = SprPhraseGraph.render(phraseGraph, accepted)
+    val dot = phraseGraph.render(accepted)
     displayDotty(dot)
   }
 
   private def acceptReplacement(
-    rewriter : SprPhraseRewriter,
     tree : SprSyntaxTree,
     allowConjunctive : Boolean = true) : Boolean =
   {
-    attemptReplacement(rewriter, tree, allowConjunctive).nonEmpty
-  }
-
-  private def acceptTopLevel(
-    rewriter : SprPhraseRewriter,
-    tree : SprSyntaxTree) : Boolean =
-  {
-    val replacement = attemptReplacement(rewriter, tree)
-    if (replacement.nonEmpty) {
-      tree match {
-        case _ : SptS => true
-        case _ : SptSBARQ => true
-        case _ : SptSINV => true
-        case _ : SptSQ => {
-          val sil = replacement.get._1
-          val querier = new SilPhraseRewriter
-          var accepted = true
-          def findDangling = querier.queryMatcher {
-            case _ : SilDanglingVerbModifier => {
-              accepted = false
-            }
-          }
-          querier.query(findDangling, sil)
-          accepted
-        }
-        case _ => false
-      }
-    } else {
-      false
-    }
+    attemptReplacement(tree, allowConjunctive).nonEmpty
   }
 
   private def attemptReplacement(
-    rewriter : SprPhraseRewriter,
     tree : SprSyntaxTree,
     allowConjunctive : Boolean = true) : Option[(SilPhrase, SprSyntaxTree)] =
   {
@@ -396,7 +406,7 @@ class SprHeuristicSynthesizer(
     }
     def tryRewrite(phrase : SilUnknownPhrase) =
     {
-      tryPhrase(rewriter, phrase, allowConjunctive)
+      tryPhrase(phrase, allowConjunctive)
     }
     silMemo.getOrElseUpdate(tree, {
       tree match {
@@ -462,7 +472,7 @@ class SprHeuristicSynthesizer(
         }
         case tmod : SptTMOD => {
           val result = tryPhrase(
-            rewriter, SilExpectedVerbModifier(tmod, None),
+            SilExpectedVerbModifier(tmod, None),
             allowConjunctive)
           result.map(_._1) match {
             case Some(SilAdpositionalVerbModifier(
@@ -486,7 +496,6 @@ class SprHeuristicSynthesizer(
   }
 
   private def tryPhrase(
-    rewriter : SprPhraseRewriter,
     phrase : SilUnknownPhrase,
     allowConjunctive : Boolean) : Option[(SilPhrase, SprSyntaxTree)] =
   {

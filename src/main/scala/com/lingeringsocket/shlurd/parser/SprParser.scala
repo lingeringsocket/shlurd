@@ -353,10 +353,11 @@ object SprParser
     }
     def heuristicParse() : SprSyntaxTree =
     {
+      val scorer = new SilWordnetScorer
       val synthesizer = {
         new SprHeuristicSynthesizer(
-          context, SilNeutralPhraseScorer,
-          true, words)
+          context, scorer,
+          SprHeuristicAcceptCompleteSentence, false, words)
       }
       val analysis = synthesizer.analyzeWords
       if (dump) {
@@ -383,6 +384,9 @@ object SprParser
           treeSet += tree
         }
       })
+      if (false) {
+        synthesizer.displayGraph(treeSet)
+      }
       if (dump) {
         println("COST = " + synthesizer.getCost)
       }

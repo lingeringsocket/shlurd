@@ -24,7 +24,8 @@ class SprHeuristicSynthesizerSpec
   private def parse(
     input : String,
     scorer : SilPhraseScorer = SilNeutralPhraseScorer,
-    requireTopLevel : Boolean = true) : Seq[SprSyntaxTree] =
+    filter : SprHeuristicFilter = SprHeuristicAcceptCompleteSentence,
+    stopAfterFirst : Boolean = false) : Seq[SprSyntaxTree] =
   {
     val tokenizer = SprHeuristicParsingStrategy.newTokenizer
 
@@ -35,7 +36,8 @@ class SprHeuristicSynthesizerSpec
     val synthesizer = new SprHeuristicSynthesizer(
       SprContext(),
       scorer,
-      requireTopLevel,
+      filter,
+      stopAfterFirst,
       sentence.tokens.map(_.text)
     )
     val result = synthesizer.synthesize(synthesizer.analyzeWords).toList
@@ -50,7 +52,8 @@ class SprHeuristicSynthesizerSpec
     "parse a noun phrase" in
     {
       val input = "a plover"
-      parse(input, SilNeutralPhraseScorer, false) must be equalTo
+      parse(input, SilNeutralPhraseScorer, SprHeuristicAcceptAll, false) must
+      be equalTo
         Seq(SptNP(
           SptDT(makeLeaf("a")),
           SptNN(makeLeaf("plover"))))
@@ -106,8 +109,22 @@ class SprHeuristicSynthesizerSpec
                   SptDT(makeLeaf("the")),
                   SptNN(makeLeaf("ax")))))))
 
+      val rejectSQ = new SprHeuristicFilter
+      {
+        override def accept(
+          tree : SprSyntaxTree,
+          replacement : SilPhrase) : Boolean =
+        {
+          tree match {
+            case _ : SptSQ => false
+            case _ => SprHeuristicAcceptCompleteSentence.accept(
+              tree, replacement)
+          }
+        }
+      }
+
       // order is non-deterministic
-      parse(input).filterNot(_.isInstanceOf[SptSQ]) must
+      parse(input, SilNeutralPhraseScorer, rejectSQ) must
         containTheSameElementsAs(Seq(instrumental, qualified))
 
       val preferInstrumental = new SilPhraseScorer {
@@ -138,13 +155,17 @@ class SprHeuristicSynthesizerSpec
         }
       }
 
-      parse(input, preferInstrumental).
-        filterNot(_.isInstanceOf[SptSQ]) must be equalTo(
+      parse(input, preferInstrumental, rejectSQ) must
+        be equalTo(
           Seq(instrumental, qualified))
 
-      parse(input, preferQualified).
-        filterNot(_.isInstanceOf[SptSQ]) must be equalTo(
-          Seq(qualified, instrumental))
+      parse(input, preferInstrumental, rejectSQ, true) must
+        be equalTo(
+          Seq(instrumental))
+
+      parse(input, preferQualified, rejectSQ, true) must
+        be equalTo(
+          Seq(qualified))
     }
   }
 }
