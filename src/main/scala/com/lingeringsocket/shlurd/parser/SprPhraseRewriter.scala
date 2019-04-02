@@ -115,14 +115,6 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
       ) if (tupleN((q1, a1, f1)) == tupleN((q2, a2, f2))) => {
         ambiguousEquivalent(p1, t1, p2, t2)
       }
-      case (
-        SilConditionalSentence(a1, c1, ta1, tc1, b1, f1),
-        SilConditionalSentence(a2, c2, ta2, tc2, b2, f2)
-      ) => {
-        ambiguousEquivalent(a1, ta1, a2, ta2) &&
-          ambiguousEquivalent(c1, tc1, c2, tc2) &&
-          tupleN((b1, f1)) == tupleN((b2, f2))
-      }
       case _ => {
         (sn1 == sn2)
       }
@@ -157,22 +149,6 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
     p1 : SilPredicate, t1 : SilTam, p2 : SilPredicate, t2 : SilTam) : Boolean =
   {
     tupleN((p1, p2)) match {
-      case (
-        SilStatePredicate(
-          s1,
-          SilPropertyState(w1 : SilSimpleWord),
-          m1
-        ),
-        SilRelationshipPredicate(
-          s2,
-          SilNounReference(w2 : SilSimpleWord, DETERMINER_UNSPECIFIED, _),
-          REL_IDENTITY,
-          m2
-        )
-      ) => {
-        tupleN((t1, s1, m1)) == tupleN((t2, s2, m2)) &&
-          ((w1.lemma == w2.lemma) || (w1.inflected == w2.inflected))
-      }
       // FIXME this is way too loose, and should be replace by disambiguation
       // at the semantic level
       case (
@@ -189,45 +165,6 @@ object SprPhraseRewriter extends SprEnglishWordAnalyzer
         )
       ) if (t1.modality != MODAL_NEUTRAL) => {
         tupleN((t1, s1, m1)) == tupleN((t2, s2, m2))
-      }
-      case (
-        SilStatePredicate(
-          s1,
-          SilAdpositionalState(
-            SilAdposition(Seq(w1a, w1b)),
-            o1),
-          m1
-        ),
-        SilRelationshipPredicate(
-          s2,
-          SilStateSpecifiedReference(
-            SilNounReference(w2a, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-            SilAdpositionalState(
-              SilAdposition(w2b),
-              o2)
-          ),
-          REL_IDENTITY,
-          m2
-        )
-      ) => {
-        tupleN((t1, s1, w1a, w1b, m1)) == tupleN((t2, s2, w2a, w2b, m2))
-      }
-      case (
-        SilStatePredicate(
-          SilStateSpecifiedReference(
-            s1,
-            a1 : SilAdpositionalState),
-          SilPropertyState(p1),
-          m1),
-        SilRelationshipPredicate(
-          s2,
-          SilStateSpecifiedReference(
-            SilNounReference(p2, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-            a2 : SilAdpositionalState),
-          REL_IDENTITY,
-          m2)
-      ) => {
-        tupleN((s1, a1, p1, m1)) == tupleN((s2, a2, p2, m2))
       }
       case (
         SilStatePredicate(
