@@ -133,11 +133,17 @@ object SprHeuristicAcceptCompleteSentence extends SprHeuristicFilter
   }
 }
 
+sealed trait SprHeuristicStamina
+case object HEURISTIC_STAMINA_COMPLETE
+    extends SprHeuristicStamina
+case object HEURISTIC_STAMINA_STOP_AFTER_FIRST
+    extends SprHeuristicStamina
+
 class SprHeuristicSynthesizer(
   context : SprContext,
   scorer : SilPhraseScorer,
   filter : SprHeuristicFilter,
-  stopAfterFirst : Boolean,
+  stamina : SprHeuristicStamina,
   words : Seq[String])
     extends SprEnglishWordAnalyzer
 {
@@ -147,9 +153,13 @@ class SprHeuristicSynthesizer(
 
   private val pending = new mutable.Queue[SprSyntaxTree]
 
-  private val rewriter = new SprPhraseRewriter(
+  private val rewriterIntermediate = new SprPhraseRewriter(
     new SprEnglishSyntaxAnalyzer(
       false, SPR_STRICTNESS_TIGHT, false))
+
+  private val rewriterFinal = new SprPhraseRewriter(
+    new SprEnglishSyntaxAnalyzer(
+      false, SPR_STRICTNESS_TIGHT))
 
   private val spanGraph = new SimpleDirectedGraph[Int, SpanEdge](
       classOf[SpanEdge])
@@ -194,7 +204,12 @@ class SprHeuristicSynthesizer(
 
   private def stopEarly() : Boolean =
   {
-    stopAfterFirst && produced.nonEmpty
+    stamina match {
+      case HEURISTIC_STAMINA_COMPLETE => false
+      case HEURISTIC_STAMINA_STOP_AFTER_FIRST => {
+        produced.nonEmpty
+      }
+    }
   }
 
   private def scoreTree(tree : SprSyntaxTree) : SilPhraseScore =
@@ -227,7 +242,9 @@ class SprHeuristicSynthesizer(
 
   private def accept(tree : SprSyntaxTree) : Boolean =
   {
-    attemptReplacement(tree) match {
+    silMemo.remove(tree)
+    val attempted = attemptReplacement(rewriterFinal, tree)
+    attempted match {
       case Some((replacement, _)) => filter.accept(tree, replacement)
       case _ => false
     }
@@ -239,7 +256,7 @@ class SprHeuristicSynthesizer(
       case pe : PartialEntry => {
         processPartialEntry(pe)
       }
-      case CompleteEntry(tree, _) => {
+      case CompleteEntry(tree, score) => {
         if (!produced.contains(tree)) {
           pending += tree
           produced += tree
@@ -344,6 +361,7 @@ class SprHeuristicSynthesizer(
                   if (accept(tree)) {
                     enqueue(CompleteEntry(tree, scoreTree(tree)))
                   }
+                  silMemo.remove(tree)
                 }
               )
             }
@@ -393,10 +411,11 @@ class SprHeuristicSynthesizer(
     tree : SprSyntaxTree,
     allowConjunctive : Boolean = true) : Boolean =
   {
-    attemptReplacement(tree, allowConjunctive).nonEmpty
+    attemptReplacement(rewriterIntermediate, tree, allowConjunctive).nonEmpty
   }
 
   private def attemptReplacement(
+    rewriter : SprPhraseRewriter,
     tree : SprSyntaxTree,
     allowConjunctive : Boolean = true) : Option[(SilPhrase, SprSyntaxTree)] =
   {
@@ -406,7 +425,7 @@ class SprHeuristicSynthesizer(
     }
     def tryRewrite(phrase : SilUnknownPhrase) =
     {
-      tryPhrase(phrase, allowConjunctive)
+      tryPhrase(rewriter, phrase, allowConjunctive)
     }
     silMemo.getOrElseUpdate(tree, {
       tree match {
@@ -472,6 +491,7 @@ class SprHeuristicSynthesizer(
         }
         case tmod : SptTMOD => {
           val result = tryPhrase(
+            rewriter,
             SilExpectedVerbModifier(tmod, None),
             allowConjunctive)
           result.map(_._1) match {
@@ -496,6 +516,7 @@ class SprHeuristicSynthesizer(
   }
 
   private def tryPhrase(
+    rewriter : SprPhraseRewriter,
     phrase : SilUnknownPhrase,
     allowConjunctive : Boolean) : Option[(SilPhrase, SprSyntaxTree)] =
   {

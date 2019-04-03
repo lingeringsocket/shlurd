@@ -357,7 +357,8 @@ object SprParser
       val synthesizer = {
         new SprHeuristicSynthesizer(
           context, scorer,
-          SprHeuristicAcceptCompleteSentence, false, words)
+          SprHeuristicAcceptCompleteSentence,
+          HEURISTIC_STAMINA_COMPLETE, words)
       }
       val analysis = synthesizer.analyzeWords
       if (dump) {

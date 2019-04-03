@@ -25,7 +25,8 @@ class SprHeuristicSynthesizerSpec
     input : String,
     scorer : SilPhraseScorer = SilNeutralPhraseScorer,
     filter : SprHeuristicFilter = SprHeuristicAcceptCompleteSentence,
-    stopAfterFirst : Boolean = false) : Seq[SprSyntaxTree] =
+    stamina : SprHeuristicStamina = HEURISTIC_STAMINA_COMPLETE)
+      : Seq[SprSyntaxTree] =
   {
     val tokenizer = SprHeuristicParsingStrategy.newTokenizer
 
@@ -37,7 +38,7 @@ class SprHeuristicSynthesizerSpec
       SprContext(),
       scorer,
       filter,
-      stopAfterFirst,
+      stamina,
       sentence.tokens.map(_.text)
     )
     val result = synthesizer.synthesize(synthesizer.analyzeWords).toList
@@ -52,7 +53,7 @@ class SprHeuristicSynthesizerSpec
     "parse a noun phrase" in
     {
       val input = "a plover"
-      parse(input, SilNeutralPhraseScorer, SprHeuristicAcceptAll, false) must
+      parse(input, SilNeutralPhraseScorer, SprHeuristicAcceptAll) must
       be equalTo
         Seq(SptNP(
           SptDT(makeLeaf("a")),
@@ -159,12 +160,13 @@ class SprHeuristicSynthesizerSpec
         be equalTo(
           Seq(instrumental, qualified))
 
-      parse(input, preferInstrumental, rejectSQ, true) must
-        be equalTo(
+      parse(
+        input, preferInstrumental,
+        rejectSQ, HEURISTIC_STAMINA_STOP_AFTER_FIRST) must be equalTo(
           Seq(instrumental))
 
-      parse(input, preferQualified, rejectSQ, true) must
-        be equalTo(
+      parse(input, preferQualified,
+        rejectSQ, HEURISTIC_STAMINA_STOP_AFTER_FIRST) must be equalTo(
           Seq(qualified))
     }
   }
