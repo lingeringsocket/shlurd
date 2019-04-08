@@ -118,6 +118,14 @@ object ShlurdWordnet
     }
   }
 
+  def isPotentialVerb(inflected : String) : Boolean =
+  {
+    Option(dictionary.getIndexWord(POS.VERB, inflected)) match {
+      case Some(indexWord) => true
+      case _ => false
+    }
+  }
+
   def isPotentialGerund(inflected : String) : Boolean =
   {
     if (!inflected.endsWith(SUFFIX_ING)) {

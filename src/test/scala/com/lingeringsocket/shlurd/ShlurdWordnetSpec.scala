@@ -29,6 +29,15 @@ class ShlurdWordnetSpec extends Specification
       ShlurdWordnet.isPotentialAdverb("smile") must beFalse
     }
 
+    "detect potential verbs" in
+    {
+      ShlurdWordnet.isPotentialVerb("run") must beTrue
+      ShlurdWordnet.isPotentialVerb("stir fry") must beTrue
+      ShlurdWordnet.isPotentialVerb("frogmarch") must beTrue
+      ShlurdWordnet.isPotentialVerb("bump off") must beTrue
+      ShlurdWordnet.isPotentialVerb("highchair") must beFalse
+    }
+
     "detect potential nouns" in
     {
       ShlurdWordnet.isPotentialNoun("defenestrate") must beFalse
