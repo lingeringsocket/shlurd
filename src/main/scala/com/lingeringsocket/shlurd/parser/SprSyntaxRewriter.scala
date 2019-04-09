@@ -34,6 +34,8 @@ object SprSyntaxRewriter
     LABEL_PP -> SptPP.apply _,
     LABEL_PRT -> SptPRT.apply _,
     LABEL_SQ -> SptSQ.apply _,
+    LABEL_NNC -> SptNNC.apply _,
+    LABEL_RBC -> SptRBC.apply _,
     LABEL_WHNP -> SptWHNP.apply _,
     LABEL_WHPP -> SptWHPP.apply _,
     LABEL_WHADJP -> SptWHADJP.apply _,

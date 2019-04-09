@@ -128,14 +128,6 @@ abstract class SprAbstractSyntaxAnalyzer(
     SilExpectedNounlikeReference(syntaxTree, preTerminal, determiner)
   }
 
-  protected def expectCompoundNounReference(
-    syntaxTree : SprSyntaxTree,
-    components : Seq[SprSyntaxPreTerminal],
-    determiner : SilDeterminer) =
-  {
-    SilExpectedCompoundNounReference(syntaxTree, components, determiner)
-  }
-
   override def expectPropertyState(
     syntaxTree : SprSyntaxTree) =
   {
@@ -162,6 +154,21 @@ abstract class SprAbstractSyntaxAnalyzer(
       : SilVerbModifier =
   {
     SilBasicVerbModifier(getWord(preTerminal.child), 0)
+  }
+
+  override def expectBasicVerbModifier(
+    compound : SptRBC)
+      : SilVerbModifier =
+  {
+    SilBasicVerbModifier(getCompoundWord(compound), 0)
+  }
+
+  override def getCompoundWord(tree : SprSyntaxTree) : SilCompoundWord =
+  {
+    val preTerminals = tree.children.map(_.asInstanceOf[SprSyntaxPreTerminal])
+    val simpleWords = preTerminals.map(
+      pt => getWord(pt.child))
+    SilCompoundWord(simpleWords)
   }
 
   protected def expectExistenceState(syntaxTree : SprSyntaxTree) =
@@ -194,25 +201,6 @@ abstract class SprAbstractSyntaxAnalyzer(
   protected def isSinglePhrase(seq : Seq[SprSyntaxTree]) =
   {
     (seq.size == 1) && !seq.head.isPreTerminal && !seq.head.isLeaf
-  }
-
-  protected def isCompoundNoun(seq : Seq[SprSyntaxTree]) : Boolean =
-  {
-    if (seq.size < 2 || !seq.forall(_.isPreTerminal)) {
-      false
-    } else {
-      def isProperNoun(tree : SprSyntaxTree) = tree match {
-        case noun : SprSyntaxNoun => noun.isProper
-        case _ => false
-      }
-      if (seq.forall(isProperNoun)) {
-        true
-      } else {
-        val spaced = (seq.dropRight(1).map(_.firstChild.foldedToken) :+
-          seq.last.firstChild.lemma).mkString(" ")
-        ShlurdWordnet.isPotentialNoun(spaced)
-      }
-    }
   }
 
   protected def isCompoundVerb(seq : Seq[SprSyntaxTree]) : Boolean =

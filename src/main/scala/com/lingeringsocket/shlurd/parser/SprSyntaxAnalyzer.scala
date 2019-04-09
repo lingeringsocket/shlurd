@@ -63,6 +63,10 @@ trait SprSyntaxAnalyzer
     successor : Option[SprSyntaxTree])
       : SilVerbModifier
 
+  def expectBasicVerbModifier(
+    compound : SptRBC)
+      : SilVerbModifier
+
   def expectAdpositionalVerbModifier(
     tree : SprSyntaxTree)
       : SilVerbModifier
@@ -78,6 +82,8 @@ trait SprSyntaxAnalyzer
   def getWord(
     leaf : SprSyntaxLeaf)
       : SilSimpleWord
+
+  def getCompoundWord(tree : SprSyntaxTree) : SilCompoundWord
 
   def isProhibitedPropertyState(
     preTerminal : SprSyntaxPreTerminal) : Boolean

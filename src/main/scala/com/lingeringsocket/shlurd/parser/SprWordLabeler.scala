@@ -36,6 +36,10 @@ trait SprWordLabeler
 {
   def labelWord(
     token : String, word : String, iToken : Int) : Set[SprSyntaxTree]
+
+  def isCompoundNoun(seq : Seq[SprSyntaxTree]) : Boolean = false
+
+  def isCompoundAdverb(seq : Seq[SprSyntaxTree]) : Boolean = false
 }
 
 object SprWordnetLabeler
@@ -221,6 +225,37 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
         }
       }
       set
+    }
+  }
+
+  override def isCompoundNoun(seq : Seq[SprSyntaxTree]) : Boolean =
+  {
+    if (seq.size < 2 || !seq.forall(_.isPreTerminal)) {
+      false
+    } else {
+      def isProperNoun(tree : SprSyntaxTree) = tree match {
+        case noun : SprSyntaxNoun => noun.isProper
+        case _ => false
+      }
+      if (!seq.last.isNoun) {
+        false
+      } else if (seq.forall(isProperNoun)) {
+        true
+      } else {
+        val spaced = (seq.dropRight(1).map(_.firstChild.foldedToken) :+
+          seq.last.firstChild.lemma).mkString(" ")
+        ShlurdWordnet.isPotentialNoun(spaced)
+      }
+    }
+  }
+
+  override def isCompoundAdverb(seq : Seq[SprSyntaxTree]) : Boolean =
+  {
+    if (seq.size < 2 || !seq.forall(_.isAdverb)) {
+      false
+    } else {
+      val spaced = seq.map(_.firstChild.foldedToken).mkString(" ")
+      ShlurdWordnet.isPotentialAdverb(spaced)
     }
   }
 

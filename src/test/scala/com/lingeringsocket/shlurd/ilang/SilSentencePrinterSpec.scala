@@ -125,6 +125,9 @@ class SilSentencePrinterSpec extends Specification
     "normalize sentences" in
     {
       expectNormalized(
+        "Sandra is no longer in the hallway",
+        "Sandra is not in the hallway.")
+      expectNormalized(
         "Mary put down the milk",
         "Mary put the milk down.")
       expectNormalized("the mule kicks the ball smugly at the vase?",

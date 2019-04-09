@@ -41,17 +41,16 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     scoreCompoundNouns,
     scoreCompoundAdpositions,
     scoreNounStates,
-    scoreLonger,
     scoreNestedAdpositions,
     scoreConjunctiveNouns,
     scoreSpecialAdpositions,
-    scoreModal,
+    scoreTam,
     scoreVerbFrames
   )
 
-  private def scoreModal = phraseScorer {
+  private def scoreTam = phraseScorer {
     case s : SilSentence if (
-      s.tam.modality != MODAL_NEUTRAL
+      (s.tam.modality != MODAL_NEUTRAL) || s.tam.isNegative
     ) => {
       SilPhraseScore.proSmall
     }
@@ -125,9 +124,9 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
       val matchCount = noun.decomposed.count(
         word => (word.inflected == word.lemma))
       if (matchCount > 0) {
-        SilPhraseScore.proSmall + SilPhraseScore.pro(matchCount)
+        SilPhraseScore.proBig + SilPhraseScore.pro(matchCount)
       } else {
-        SilPhraseScore.proSmall
+        SilPhraseScore.proBig
       }
     }
   }
@@ -147,6 +146,14 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     }
   }
 
+  private def scoreCompoundAdverbs = phraseScorer {
+    case SilBasicVerbModifier(word, _) if (
+      word.decomposed.size > 1
+    ) => {
+      SilPhraseScore.proBig
+    }
+  }
+
   private def scoreNounStates = phraseScorer {
     case SilRelationshipPredicate(
       _,
@@ -159,12 +166,6 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
       _
     ) => {
       SilPhraseScore.conSmall
-    }
-  }
-
-  private def scoreLonger = phraseScorer {
-    case SilPropertyState(SilWordInflected("longer")) => {
-      SilPhraseScore.conBig
     }
   }
 

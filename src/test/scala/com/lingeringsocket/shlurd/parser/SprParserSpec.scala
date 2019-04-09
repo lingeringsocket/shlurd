@@ -52,6 +52,12 @@ class SprParserSpec extends Specification
   private val NOUN_STEAK_KNIFE = SilCompoundWord(
     Seq(SilWord("steak"), SilWord("knife")))
 
+  private val NOUN_BIG_TOP = SilCompoundWord(
+    Seq(SilWord("big"), SilWord("top")))
+
+  private val NOUN_LEMON_MERINGUE_PIE = SilCompoundWord(
+    Seq(SilWord("lemon"), SilWord("meringue"), SilWord("pie")))
+
   private val STATE_OPEN = SilWord("open")
 
   private val ACTION_OPENS = SilWord("opens", "open")
@@ -226,11 +232,25 @@ class SprParserSpec extends Specification
 
     "parse compound words" in
     {
+      if (SprParser.isCoreNLP) {
+        skipped("Wordnet only")
+      }
+
       val input = "there is a steak knife"
-      parse(input) must be equalTo
+      parse("there is a steak knife") must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
             SilNounReference(NOUN_STEAK_KNIFE, DETERMINER_NONSPECIFIC),
+            SilExistenceState()))
+      parse("there is a big top") must be equalTo
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilNounReference(NOUN_BIG_TOP, DETERMINER_NONSPECIFIC),
+            SilExistenceState()))
+      parse("there is a lemon meringue pie") must be equalTo
+        SilPredicateSentence(
+          SilStatePredicate(
+            SilNounReference(NOUN_LEMON_MERINGUE_PIE, DETERMINER_NONSPECIFIC),
             SilExistenceState()))
     }
 

@@ -683,6 +683,10 @@ class SpcCosmosSpec extends Specification
 
     "support compound nouns" in new CosmosContext
     {
+      if (SprParser.isCoreNLP) {
+        skipped("Wordnet only")
+      }
+
       addBelief("there is a steak knife")
       val form = expectNamedForm(cosmos.encodeName("steak knife"))
     }

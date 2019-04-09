@@ -181,23 +181,76 @@ class SprHeuristicSynthesizer(
 
   def synthesize(seq : Seq[Set[SprSyntaxTree]]) : Stream[SprSyntaxTree] =
   {
-    seq.foreach(updatePhraseGraph)
+    seq.foreach(set => {
+      updatePhraseGraph(set)
+      // FIXME should do this recursively
+      set.foreach(p => updatePhraseGraph(p.children))
+    })
 
     seq.zipWithIndex.foreach({
       case (set, index) => {
         val rangeStart = index
         val rangeEnd = index + 1
-        val span = range(rangeStart until rangeEnd)
-        val choice = SpanChoice(set, span)
-        enqueue(PartialEntry(choice, SilPhraseScore.neutral))
-        spanGraph.addVertex(rangeStart)
-        spanGraph.addVertex(rangeEnd)
-        val edge = spanGraph.addEdge(rangeStart, rangeEnd)
-        edge.set ++= set
+        seedChoice(rangeStart, rangeEnd, set)
       }
     })
 
+    range(2 until seq.size).foreach(length => {
+      seq.indices.sliding(length).filter(_.size == length).foreach(indices => {
+        val rangeStart = indices.head
+        val rangeEnd = indices.last + 1
+        val subSeq = seq.slice(rangeStart, rangeEnd)
+        val set = detectCompoundNoun(subSeq) ++ detectCompoundAdverb(subSeq)
+        if (set.nonEmpty) {
+          updatePhraseGraph(set)
+          seedChoice(rangeStart, rangeEnd, set)
+        }
+      })
+    })
+
     produceMore
+  }
+
+  private def detectCompoundNoun(seq : Seq[Set[SprSyntaxTree]])
+      : Set[SprSyntaxTree] =
+  {
+    val components = seq.map(
+      alternatives => {
+        alternatives.find(_.isNoun).getOrElse(alternatives.head)
+      }
+    )
+    if (context.wordLabeler.isCompoundNoun(components)) {
+      Set(SptNNC(components:_*))
+    } else {
+      Set.empty
+    }
+  }
+
+  private def detectCompoundAdverb(seq : Seq[Set[SprSyntaxTree]])
+      : Set[SprSyntaxTree] =
+  {
+    val components = seq.map(
+      alternatives => {
+        alternatives.find(_.isAdverb).getOrElse(alternatives.head)
+      }
+    )
+    if (context.wordLabeler.isCompoundAdverb(components)) {
+      Set(SptRBC(components:_*))
+    } else {
+      Set.empty
+    }
+  }
+
+  private def seedChoice(
+    rangeStart : Int, rangeEnd : Int, set : Set[SprSyntaxTree])
+  {
+    val span = range(rangeStart until rangeEnd)
+    val choice = SpanChoice(set, span)
+    enqueue(PartialEntry(choice, SilPhraseScore.neutral))
+    spanGraph.addVertex(rangeStart)
+    spanGraph.addVertex(rangeEnd)
+    val edge = spanGraph.addEdge(rangeStart, rangeEnd)
+    edge.set ++= set
   }
 
   def getCost = cost
@@ -389,7 +442,7 @@ class SprHeuristicSynthesizer(
     }
   }
 
-  private def updatePhraseGraph(replacements : Set[SprSyntaxTree])
+  private def updatePhraseGraph(replacements : Iterable[SprSyntaxTree])
   {
     replacements.foreach(phraseGraph.addPhrase)
   }
@@ -527,12 +580,7 @@ class SprHeuristicSynthesizer(
       } else if (sil.isConjunctive && !allowConjunctive) {
         true
       } else {
-        sil match {
-          case SilNounReference(
-            SilWordInflected("longer"), DETERMINER_NONE, _
-          ) => true
-          case _ => false
-        }
+        false
       }
     }
 

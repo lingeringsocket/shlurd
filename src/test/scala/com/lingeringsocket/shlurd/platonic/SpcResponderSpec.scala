@@ -450,6 +450,9 @@ class SpcResponderSpec extends Specification
 
     "understand relatives" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
+      if (SprParser.isCoreNLP) {
+        skipped("Wordnet only")
+      }
       loadBeliefs("/ontologies/relatives.txt")
       process("who is Henry", "He is Titus' uncle.")
       process("who is Marion's aunt", "Her aunt is Laura.")
@@ -1335,6 +1338,10 @@ class SpcResponderSpec extends Specification
     "understand compound nouns" in new
       ResponderContext(ACCEPT_NEW_BELIEFS)
     {
+      if (SprParser.isCoreNLP) {
+        skipped("Wordnet only")
+      }
+
       processBelief("a butter knife is a kind of utensil")
       processBelief("there is a steak knife")
       process(

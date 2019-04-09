@@ -242,11 +242,8 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
     case SilExpectedReference(SptNNQ(quotation)) => {
       SilQuotationReference(quotation.token)
     }
-    case SilExpectedReference(noun : SprSyntaxNoun) => {
-      SilNounReference(
-        analyzer.getWord(noun.child),
-        DETERMINER_UNSPECIFIED,
-        analyzer.getCount(noun))
+    case SilExpectedReference(noun : SprSyntaxSimpleNoun) => {
+      createNounReference(noun, DETERMINER_UNSPECIFIED)
     }
     case SilExpectedNounlikeReference(
       syntaxTree, nounlike : SprSyntaxPreTerminal, determiner)
@@ -254,23 +251,15 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
     {
       // we allow mislabeled adjectives to handle
       // cases like "roll up the blind"
-      SilNounReference(
-        analyzer.getWord(nounlike.child),
-        determiner,
-        analyzer.getCount(nounlike))
+      createNounReference(nounlike, determiner)
     }
-    case SilExpectedCompoundNounReference(
-      syntaxTree,
-      preTerminals,
-      determiner
+    case SilExpectedNounlikeReference(
+      syntaxTree, noun : SptNNC, determiner
     ) => {
-      val simpleWords = preTerminals.map(
-        pt => analyzer.getWord(pt.child))
-      val compound = SilCompoundWord(simpleWords)
-      SilNounReference(
-        compound,
-        determiner,
-        analyzer.getCount(preTerminals.last))
+      createNounReference(noun, determiner)
+    }
+    case SilExpectedReference(noun : SptNNC) => {
+      createNounReference(noun, DETERMINER_UNSPECIFIED)
     }
     case SilExpectedReference(pronoun : SprSyntaxPronoun) => {
       analyzer.analyzePronounReference(pronoun.child)
@@ -280,6 +269,26 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
     ) if (determiner.isDemonstrative) => {
       analyzer.analyzePronounReference(determiner.child)
     }
+  }
+
+  private def createNounReference(
+    nounlike : SprSyntaxPreTerminal,
+    determiner : SilDeterminer) =
+  {
+    SilNounReference(
+      analyzer.getWord(nounlike.child),
+      determiner,
+      analyzer.getCount(nounlike))
+  }
+
+  private def createNounReference(
+    compound : SptNNC,
+    determiner : SilDeterminer) =
+  {
+    SilNounReference(
+      analyzer.getCompoundWord(compound),
+      determiner,
+      analyzer.getCount(compound.children.last))
   }
 
   private def replaceExpectedVerbModifier = replacementMatcher {
@@ -292,8 +301,11 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
     case SilExpectedVerbModifier(tmod : SptTMOD, _) => {
       analyzer.expectTemporalVerbModifier(tmod)
     }
-    case SilExpectedVerbModifier(adv : SprSyntaxAdverb, successor) => {
+    case SilExpectedVerbModifier(adv : SprSyntaxSimpleAdverb, successor) => {
       analyzer.expectBasicVerbModifier(adv, successor)
+    }
+    case SilExpectedVerbModifier(compound : SptRBC, _) => {
+      analyzer.expectBasicVerbModifier(compound)
     }
     case SilExpectedVerbModifier(particle : SptRP, successor) => {
       analyzer.expectBasicVerbModifier(particle, successor)

@@ -481,9 +481,6 @@ class SprEnglishSyntaxAnalyzer(
     } else if ((components.size == 2) && components.head.isNounPhrase) {
       val entityReference = expectReference(components.head)
       expectRelativeReference(tree, entityReference, components.last)
-    } else if (isCompoundNoun(components)) {
-      expectCompoundNounReference(
-        tree, components.map(_.asInstanceOf[SprSyntaxPreTerminal]), determiner)
     } else if (isNounPhraseHead(components.last) &&
       components.dropRight(1).forall(
         c => isNounPhraseModifier(c, components.last)))
@@ -655,7 +652,8 @@ class SprEnglishSyntaxAnalyzer(
             expectAdpositionalState(seq.last, false) match {
               case SilAdpositionalState(SilAdposition(word), ref) => {
                 val unwrapped = adpTree.unwrapPhrase
-                if (unwrapped.children.size == 1)
+                if ((unwrapped.children.size == 1) &&
+                  unwrapped.children.head.isLeaf)
                 {
                   SilAdpositionalState(
                     SilAdposition(
@@ -828,12 +826,15 @@ class SprEnglishSyntaxAnalyzer(
     if (tree.children.size == 1) {
       expectVerbModifier(tree.firstChild, successor)
     } else {
-      val words = tree.children.map(_ match {
-        case adverb : SprSyntaxAdverb => {
-          getWord(adverb.child)
+      val words = tree.children.flatMap(_ match {
+        case adverb : SprSyntaxSimpleAdverb => {
+          Seq(getWord(adverb.child))
         }
         case particle : SptRP => {
-          getWord(particle.child)
+          Seq(getWord(particle.child))
+        }
+        case rbc : SptRBC => {
+          getCompoundWord(rbc).components
         }
         case _ => return expectAdpositionalVerbModifier(tree)
       })

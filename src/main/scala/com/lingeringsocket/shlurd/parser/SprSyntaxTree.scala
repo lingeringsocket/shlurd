@@ -67,6 +67,8 @@ object SprPennTreebankLabels
   val LABEL_CD = "CD"
   val LABEL_TMOD = "TMOD"
   val LABEL_NNQ = "NNQ"
+  val LABEL_NNC = "NNC"
+  val LABEL_RBC = "RBC"
 
   val LABEL_COMMA = ","
   val LABEL_SEMICOLON = ";"
@@ -334,9 +336,14 @@ sealed trait SprSyntaxPhrase extends SprSyntaxNonLeaf
 {
 }
 
-sealed trait SprSyntaxNoun extends SprSyntaxPreTerminal
+sealed trait SprSyntaxNoun extends SprSyntaxNonLeaf
 {
   def isProper : Boolean = false
+}
+
+sealed trait SprSyntaxSimpleNoun extends SprSyntaxPreTerminal
+    with SprSyntaxNoun
+{
 }
 
 sealed trait SprSyntaxVerb extends SprSyntaxPreTerminal
@@ -351,7 +358,12 @@ sealed trait SprSyntaxAdjective extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait SprSyntaxAdverb extends SprSyntaxPreTerminal
+sealed trait SprSyntaxAdverb extends SprSyntaxNonLeaf
+{
+}
+
+sealed trait SprSyntaxSimpleAdverb extends SprSyntaxPreTerminal
+    with SprSyntaxAdverb
 {
 }
 
@@ -514,19 +526,19 @@ case class SptWP(child : SprSyntaxLeaf)
 }
 
 case class SptNN(child : SprSyntaxLeaf)
-    extends SprSyntaxNoun
+    extends SprSyntaxSimpleNoun
 {
   override def label = LABEL_NN
 }
 
 case class SptNNS(child : SprSyntaxLeaf)
-    extends SprSyntaxNoun
+    extends SprSyntaxSimpleNoun
 {
   override def label = LABEL_NNS
 }
 
 case class SptNNP(child : SprSyntaxLeaf)
-    extends SprSyntaxNoun
+    extends SprSyntaxSimpleNoun
 {
   override def label = LABEL_NNP
 
@@ -534,7 +546,7 @@ case class SptNNP(child : SprSyntaxLeaf)
 }
 
 case class SptNNPS(child : SprSyntaxLeaf)
-    extends SprSyntaxNoun
+    extends SprSyntaxSimpleNoun
 {
   override def label = LABEL_NNPS
 
@@ -644,19 +656,19 @@ case class SptJJS(child : SprSyntaxLeaf)
 }
 
 case class SptRB(child : SprSyntaxLeaf)
-    extends SprSyntaxAdverb
+    extends SprSyntaxSimpleAdverb
 {
   override def label = LABEL_RB
 }
 
 case class SptRBR(child : SprSyntaxLeaf)
-    extends SprSyntaxAdverb
+    extends SprSyntaxSimpleAdverb
 {
   override def label = LABEL_RBR
 }
 
 case class SptRBS(child : SprSyntaxLeaf)
-    extends SprSyntaxAdverb
+    extends SprSyntaxSimpleAdverb
 {
   override def label = LABEL_RBS
 }
@@ -706,7 +718,26 @@ case class SptTMOD(child : SprSyntaxTree)
 
 // another non-standard one we cons up to wrap quotations
 case class SptNNQ(child : SprSyntaxLeaf)
-    extends SprSyntaxNoun
+    extends SprSyntaxSimpleNoun
 {
   override def label = LABEL_NNQ
+}
+
+// another non-standard one we cons up for compound nouns
+case class SptNNC(children : SprSyntaxTree*)
+    extends SprSyntaxNoun
+{
+  override def label = LABEL_NNC
+
+  override def isProper = children.exists(_ match {
+    case noun : SprSyntaxNoun => noun.isProper
+    case _ => false
+  })
+}
+
+// another non-standard one we cons up for compound adverbs
+case class SptRBC(children : SprSyntaxTree*)
+    extends SprSyntaxAdverb
+{
+  override def label = LABEL_RBC
 }
