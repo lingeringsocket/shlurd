@@ -145,7 +145,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     inflection : SilInflection,
     conjoining : SilConjoining) =
   {
-    inflectNoun(noun.toLemma, count, inflection, conjoining)
+    inflectNoun(noun.toNounLemma, count, inflection, conjoining)
   }
 
   override def delemmatizeState(
@@ -454,7 +454,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def respondAmbiguous(noun : SilWord) =
   {
-    compose("무슨", noun.toLemma, "?")
+    compose("무슨", noun.toNounLemma, "?")
   }
 
   override def respondUnknown(word : SilWord) =
@@ -474,7 +474,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def respondNonexistent(noun : SilWord) =
   {
-    compose(noun.toLemma, "없어요")
+    compose(noun.toNounLemma, "없어요")
   }
 
   override def respondCannotUnderstand() =

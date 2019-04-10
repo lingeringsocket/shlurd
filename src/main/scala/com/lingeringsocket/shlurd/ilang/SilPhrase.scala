@@ -638,9 +638,13 @@ trait SilWord
 
   def toLemma : String
 
+  def toNounLemma : String = toLemma
+
   def toUnfoldedLemma : String
 
   def toUninflected : SilWord
+
+  def toNounUninflected = toUninflected
 }
 
 case class SilSimpleWord(
@@ -688,15 +692,26 @@ case class SilCompoundWord(
 
   override def decomposed = components
 
-  override def toLemma =
+  override def toNounLemma =
     recompose(components.dropRight(1).map(_.inflected) :+
       components.last.lemma)
 
-  override def toUninflected =
+  override def toLemma =
+    recompose(components.map(_.lemma))
+
+  override def toNounUninflected =
   {
     SilCompoundWord(
       components.dropRight(1) :+
         SilWord.uninflected(components.last.lemma),
+      style,
+      senseId)
+  }
+
+  override def toUninflected =
+  {
+    SilCompoundWord(
+      components.map(c => SilWord.uninflected(c.lemma)),
       style,
       senseId)
   }

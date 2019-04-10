@@ -90,6 +90,9 @@ class SprParserSpec extends Specification
 
   private val VERB_TURN = SilWord("turn")
 
+  private val VERB_BUMPS_OFF = SilCompoundWord(
+    Seq(SilWord("bumps", "bump"), SilWord("off")))
+
   private def predTransitiveAction(
     subject : SilWord,
     action : SilWord = ACTION_OPENS,
@@ -136,13 +139,20 @@ class SprParserSpec extends Specification
   private def stateCommandAction(
     pred : SilStatePredicate,
     changeVerb : Option[SilWord] = None,
+    compound : Boolean = false,
     formality : SilFormality = SilFormality.DEFAULT) =
   {
     val stateWord = pred.state.asInstanceOf[SilPropertyState].state
     val (verbWord, modifiers) = changeVerb match {
-      case Some(word) => {
-        tupleN((word,
-          pred.modifiers :+ SilBasicVerbModifier(stateWord, 1)))
+      case Some(word : SilSimpleWord) => {
+        if (compound) {
+          tupleN((SilCompoundWord(
+            Seq(word, stateWord.asInstanceOf[SilSimpleWord])),
+            pred.modifiers))
+        } else {
+          tupleN((word,
+            pred.modifiers :+ SilBasicVerbModifier(stateWord, 1)))
+        }
       }
       case _ => {
         tupleN((stateWord, pred.modifiers))
@@ -236,7 +246,6 @@ class SprParserSpec extends Specification
         skipped("Wordnet only")
       }
 
-      val input = "there is a steak knife"
       parse("there is a steak knife") must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
@@ -252,6 +261,13 @@ class SprParserSpec extends Specification
           SilStatePredicate(
             SilNounReference(NOUN_LEMON_MERINGUE_PIE, DETERMINER_NONSPECIFIC),
             SilExistenceState()))
+      parse("Franny bumps off Zooey") must be equalTo
+        SilPredicateSentence(
+          predTransitiveAction(
+            NOUN_FRANNY,
+            VERB_BUMPS_OFF,
+            NOUN_ZOOEY,
+            DETERMINER_UNSPECIFIED))
     }
 
     "parse a state predicate question" in
@@ -380,6 +396,7 @@ class SprParserSpec extends Specification
       parse(input + "!") must be equalTo
         stateCommandAction(predStateDoor(),
           None,
+          false,
           SilFormality(FORCE_EXCLAMATION))
     }
 
@@ -429,11 +446,11 @@ class SprParserSpec extends Specification
       parse("turn the door on") must be equalTo
         stateCommandAction(predStateDoor(STATE_ON), Some(VERB_TURN))
       parse("turn on the door") must be equalTo
-        stateCommandAction(predStateDoor(STATE_ON), Some(VERB_TURN))
+        stateCommandAction(predStateDoor(STATE_ON), Some(VERB_TURN), true)
       parse("turn the door off") must be equalTo
         stateCommandAction(predStateDoor(STATE_OFF), Some(VERB_TURN))
       parse("turn off the door") must be equalTo
-        stateCommandAction(predStateDoor(STATE_OFF), Some(VERB_TURN))
+        stateCommandAction(predStateDoor(STATE_OFF), Some(VERB_TURN), true)
     }
 
     "parse adverbial state" in

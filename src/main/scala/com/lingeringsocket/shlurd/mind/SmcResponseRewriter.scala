@@ -655,7 +655,7 @@ class SmcResponseRewriter[
             }
           }
           SilNounReference(
-            nounRef.noun.toUninflected,
+            nounRef.noun.toNounUninflected,
             newDeterminer, agreedCount)
         }
       }

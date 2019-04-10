@@ -741,7 +741,7 @@ class SprEnglishSyntaxAnalyzer(
       case verb : SprSyntaxVerb if (
         !imperative || (!verbHead.isModal && !verbHead.isPossessionVerb)
       ) => {
-        getWord(verb.child)
+        getTreeWord(verb)
       }
       case _ => {
         return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))

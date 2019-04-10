@@ -40,6 +40,8 @@ trait SprWordLabeler
   def isCompoundNoun(seq : Seq[SprSyntaxTree]) : Boolean = false
 
   def isCompoundAdverb(seq : Seq[SprSyntaxTree]) : Boolean = false
+
+  def isCompoundVerb(seq : Seq[SprSyntaxTree]) : Boolean = false
 }
 
 object SprWordnetLabeler
@@ -256,6 +258,24 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
     } else {
       val spaced = seq.map(_.firstChild.foldedToken).mkString(" ")
       ShlurdWordnet.isPotentialAdverb(spaced)
+    }
+  }
+
+  override def isCompoundVerb(seq : Seq[SprSyntaxTree]) : Boolean =
+  {
+    if (seq.size < 2 || !seq.forall(_.isPreTerminal)) {
+      false
+    } else {
+      // this handles "stir fry" and "bump off", but there are
+      // other cases that need refinement
+      val lemmas = seq.map(_.firstChild.lemma)
+      // meh
+      if (lemmas.contains(LEMMA_BE) || lemmas.contains(LEMMA_TO)) {
+        false
+      } else {
+        val spaced = lemmas.mkString(" ")
+        ShlurdWordnet.isPotentialVerb(spaced)
+      }
     }
   }
 

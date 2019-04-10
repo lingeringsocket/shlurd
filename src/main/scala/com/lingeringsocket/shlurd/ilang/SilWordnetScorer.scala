@@ -40,6 +40,8 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     scoreUsage,
     scoreCompoundNouns,
     scoreCompoundAdpositions,
+    scoreCompoundVerbs,
+    scoreCompoundAdverbs,
     scoreNounStates,
     scoreNestedAdpositions,
     scoreConjunctiveNouns,
@@ -99,7 +101,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
 
   private def scoreUsage = phraseScorer {
     case SilNounReference(noun, _, _) => {
-      usageScore(noun.toLemma, POS.NOUN)
+      usageScore(noun.toNounLemma, POS.NOUN)
     }
     case SilPropertyState(sw : SilSimpleWord) => {
       usageScore(sw.toLemma, POS.ADJECTIVE)
@@ -148,6 +150,14 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
 
   private def scoreCompoundAdverbs = phraseScorer {
     case SilBasicVerbModifier(word, _) if (
+      word.decomposed.size > 1
+    ) => {
+      SilPhraseScore.proBig
+    }
+  }
+
+  private def scoreCompoundVerbs = phraseScorer {
+    case SilActionPredicate(_, word, _, _) if (
       word.decomposed.size > 1
     ) => {
       SilPhraseScore.proBig

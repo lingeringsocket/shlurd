@@ -200,7 +200,8 @@ class SprHeuristicSynthesizer(
         val rangeStart = indices.head
         val rangeEnd = indices.last + 1
         val subSeq = seq.slice(rangeStart, rangeEnd)
-        val set = detectCompoundNoun(subSeq) ++ detectCompoundAdverb(subSeq)
+        val set = detectCompoundNoun(subSeq) ++
+          detectCompoundAdverb(subSeq) ++ detectCompoundVerb(subSeq)
         if (set.nonEmpty) {
           updatePhraseGraph(set)
           seedChoice(rangeStart, rangeEnd, set)
@@ -236,6 +237,21 @@ class SprHeuristicSynthesizer(
     )
     if (context.wordLabeler.isCompoundAdverb(components)) {
       Set(SptRBC(components:_*))
+    } else {
+      Set.empty
+    }
+  }
+
+  private def detectCompoundVerb(seq : Seq[Set[SprSyntaxTree]])
+      : Set[SprSyntaxTree] =
+  {
+    val components = seq.map(
+      alternatives => {
+        alternatives.find(_.isVerb).getOrElse(alternatives.head)
+      }
+    )
+    if (context.wordLabeler.isCompoundVerb(components)) {
+      Set(SptVBC(components:_*))
     } else {
       Set.empty
     }

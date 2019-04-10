@@ -251,8 +251,10 @@ class SilEnglishSentenceBundle
       case sw : SilSimpleWord => {
         sw
       }
-      case _ => {
-        return word.toLemma
+      case SilCompoundWord(components, style, _) => {
+        return word.recompose(
+          components.map(c =>
+            delemmatizeModelessVerb(person, gender, count, c, tam)))
       }
     }
     val verbLemma = verb.toLemma

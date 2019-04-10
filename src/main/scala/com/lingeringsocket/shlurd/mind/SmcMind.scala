@@ -207,7 +207,7 @@ class SmcMind[
     context : SilReferenceContext,
     qualifiers : Set[String] = Set.empty) : Try[Set[EntityType]] =
   {
-    cosmos.resolveQualifiedNoun(noun.toLemma, context, qualifiers)
+    cosmos.resolveQualifiedNoun(noun.toNounLemma, context, qualifiers)
   }
 
   def isEquivalentVerb(

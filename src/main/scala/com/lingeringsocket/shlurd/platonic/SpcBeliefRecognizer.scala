@@ -444,7 +444,7 @@ class SpcBeliefRecognizer(
         if (count != COUNT_SINGULAR) {
           return Seq(UnimplementedBelief(sentence))
         }
-        if (complementNoun.toLemma == LEMMA_KIND) {
+        if (complementNoun.toNounLemma == LEMMA_KIND) {
           // "a dog is a kind of canine"
           complementRef match {
             case SilStateSpecifiedReference(

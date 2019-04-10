@@ -203,18 +203,6 @@ abstract class SprAbstractSyntaxAnalyzer(
     (seq.size == 1) && !seq.head.isPreTerminal && !seq.head.isLeaf
   }
 
-  protected def isCompoundVerb(seq : Seq[SprSyntaxTree]) : Boolean =
-  {
-    if (seq.size < 2 || !seq.forall(_.isPreTerminal)) {
-      false
-    } else {
-      // this handles "stir fry" and "bump off", but there are
-      // other cases that need refinement
-      val spaced = seq.map(_.firstChild.lemma).mkString(" ")
-      ShlurdWordnet.isPotentialVerb(spaced)
-    }
-  }
-
   override def getCount(tree : SprSyntaxTree) : SilCount =
   {
     if (tree.label.endsWith("S")) {

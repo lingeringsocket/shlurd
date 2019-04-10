@@ -127,9 +127,18 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized(
         "Sandra is no longer in the hallway",
         "Sandra is not in the hallway.")
-      expectNormalized(
-        "Mary put down the milk",
-        "Mary put the milk down.")
+      if (SprParser.isCoreNLP) {
+        expectNormalized(
+          "Merry picked up the apple there",
+          "Merry picked the apple up there.")
+        expectNormalized(
+          "Mary put down the milk",
+          "Mary put the milk down.")
+      } else {
+        expectStatement("Merry picked up the apple there")
+        expectStatement(
+          "Mary put down the milk")
+      }
       expectNormalized("the mule kicks the ball smugly at the vase?",
         "does the mule kick the ball smugly at the vase?")
       expectNormalized("the mule has the ball?",
@@ -289,8 +298,6 @@ class SilSentencePrinterSpec extends Specification
         "if an object moves to a location, " +
           "then the location is the object's container."
       )
-      expectNormalized("Merry picked up the apple there",
-        "Merry picked the apple up there.")
       expectQuestion("what is south of the cave")
       expectNormalized("after that he travelled to the lake",
         "he travelled to the lake after that.")

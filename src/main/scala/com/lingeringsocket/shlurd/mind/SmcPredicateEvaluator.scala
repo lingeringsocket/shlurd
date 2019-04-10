@@ -595,7 +595,7 @@ class SmcPredicateEvaluator[
     reference match {
       case SilNounReference(noun, determiner, count) => {
         if (!resultCollector.expandWildcards) {
-          val lemma = noun.toLemma
+          val lemma = noun.toNounLemma
           val bail = determiner match {
             case DETERMINER_UNIQUE => false
             // FIXME this is silly
@@ -864,7 +864,7 @@ class SmcPredicateEvaluator[
       case Failure(e) => {
         debug("ERROR", e)
         fail(sentencePrinter.sb.respondUnknown(
-          SilWord(categoryLabel.toLemma)))
+          SilWord(categoryLabel.toNounLemma)))
       }
       case _ => result
     }

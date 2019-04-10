@@ -585,7 +585,8 @@ class SmcResponder[
                   tupleN((word, Seq.empty))
                 }
                 case _ => {
-                  tupleN((actionPredicate.action, actionModifiers))
+                  tupleN((actionPredicate.action.decomposed.last,
+                    actionModifiers))
                 }
               }
               val pred = SilStatePredicate(

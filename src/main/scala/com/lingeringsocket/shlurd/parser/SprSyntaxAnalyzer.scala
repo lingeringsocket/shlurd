@@ -79,6 +79,15 @@ trait SprSyntaxAnalyzer
     tree : SprSyntaxTree)
       : SilCount
 
+  def getTreeWord(tree : SprSyntaxTree) : SilWord =
+  {
+    tree match {
+      case leaf : SprSyntaxLeaf => getWord(leaf)
+      case pt : SprSyntaxPreTerminal => getWord(pt.child)
+      case _ => getCompoundWord(tree)
+    }
+  }
+
   def getWord(
     leaf : SprSyntaxLeaf)
       : SilSimpleWord

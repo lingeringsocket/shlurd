@@ -85,7 +85,7 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
 
   def encodeName(word : SilWord) : String =
   {
-    encodeName(word.toLemma)
+    encodeName(word.toNounLemma)
   }
 
   // lemma -> inflected

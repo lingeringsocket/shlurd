@@ -69,6 +69,7 @@ object SprPennTreebankLabels
   val LABEL_NNQ = "NNQ"
   val LABEL_NNC = "NNC"
   val LABEL_RBC = "RBC"
+  val LABEL_VBC = "VBC"
 
   val LABEL_COMMA = ","
   val LABEL_SEMICOLON = ";"
@@ -346,7 +347,12 @@ sealed trait SprSyntaxSimpleNoun extends SprSyntaxPreTerminal
 {
 }
 
-sealed trait SprSyntaxVerb extends SprSyntaxPreTerminal
+sealed trait SprSyntaxVerb extends SprSyntaxNonLeaf
+{
+}
+
+sealed trait SprSyntaxSimpleVerb extends SprSyntaxPreTerminal
+    with SprSyntaxVerb
 {
 }
 
@@ -566,37 +572,37 @@ case class SptPRP_POS(child : SprSyntaxLeaf)
 }
 
 case class SptVB(child : SprSyntaxLeaf)
-    extends SprSyntaxVerb
+    extends SprSyntaxSimpleVerb
 {
   override def label = LABEL_VB
 }
 
 case class SptVBZ(child : SprSyntaxLeaf)
-    extends SprSyntaxVerb
+    extends SprSyntaxSimpleVerb
 {
   override def label = LABEL_VBZ
 }
 
 case class SptVBP(child : SprSyntaxLeaf)
-    extends SprSyntaxVerb
+    extends SprSyntaxSimpleVerb
 {
   override def label = LABEL_VBP
 }
 
 case class SptVBD(child : SprSyntaxLeaf)
-    extends SprSyntaxVerb
+    extends SprSyntaxSimpleVerb
 {
   override def label = LABEL_VBD
 }
 
 case class SptVBN(child : SprSyntaxLeaf)
-    extends SprSyntaxVerb
+    extends SprSyntaxSimpleVerb
 {
   override def label = LABEL_VBN
 }
 
 case class SptVBG(child : SprSyntaxLeaf)
-    extends SprSyntaxVerb
+    extends SprSyntaxSimpleVerb
 {
   override def label = LABEL_VBG
 }
@@ -740,4 +746,13 @@ case class SptRBC(children : SprSyntaxTree*)
     extends SprSyntaxAdverb
 {
   override def label = LABEL_RBC
+}
+
+// another non-standard one we cons up for compound verbs
+case class SptVBC(children : SprSyntaxTree*)
+    extends SprSyntaxVerb
+{
+  override def label = LABEL_VBC
+
+  override def isVerbPastTense = children.exists(_.isVerbPastTense)
 }
