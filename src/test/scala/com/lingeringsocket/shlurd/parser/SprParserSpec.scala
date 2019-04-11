@@ -243,7 +243,7 @@ class SprParserSpec extends Specification
     "parse compound words" in
     {
       if (SprParser.isCoreNLP) {
-        skipped("Wordnet only")
+        skipped("CoreNLP not supported")
       }
 
       parse("there is a steak knife") must be equalTo

@@ -43,16 +43,16 @@ object SpcGraph
     val entityAssocs = DeltaGraph(base.entityAssocs)
     val componentsDelta = DeltaGraph(base.components)
     val components = new DefaultListenableGraph(componentsDelta)
-    val triggers = DeltaGraph(base.triggers)
+    val assertions = DeltaGraph(base.assertions)
     val (formPropertyIndex, entityPropertyIndex, propertyStateIndex,
       stateNormalizationIndex) = createIndexes(components)
     new SpcGraph(
       idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
-      entitySynonyms, entityAssocs, components, triggers,
+      entitySynonyms, entityAssocs, components, assertions,
       formPropertyIndex, entityPropertyIndex,
       propertyStateIndex, stateNormalizationIndex,
       Seq(idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
-        entitySynonyms, entityAssocs, componentsDelta, triggers))
+        entitySynonyms, entityAssocs, componentsDelta, assertions))
   }
 
   def apply() : SpcGraph =
@@ -78,14 +78,14 @@ object SpcGraph
     val components = new DefaultListenableGraph(
       new SimpleDirectedGraph[SpcContainmentVertex, SpcComponentEdge](
         classOf[SpcComponentEdge]))
-    val triggers =
-      new SimpleDirectedGraph[SpcTrigger, SpcEdge](
+    val assertions =
+      new SimpleDirectedGraph[SpcAssertion, SpcEdge](
         classOf[SpcEdge])
     val (formPropertyIndex, entityPropertyIndex,
       propertyStateIndex, stateNormalizationIndex) = createIndexes(components)
     new SpcGraph(
       idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
-      entitySynonyms, entityAssocs, components, triggers,
+      entitySynonyms, entityAssocs, components, assertions,
       formPropertyIndex, entityPropertyIndex,
       propertyStateIndex, stateNormalizationIndex)
   }
@@ -176,7 +176,7 @@ class SpcGraph(
   val entitySynonyms : Graph[SpcEntityVertex, SpcSynonymEdge],
   val entityAssocs : Graph[SpcEntity, SpcEntityAssocEdge],
   val components : Graph[SpcContainmentVertex, SpcComponentEdge],
-  val triggers : Graph[SpcTrigger, SpcEdge],
+  val assertions : Graph[SpcAssertion, SpcEdge],
   val formPropertyIndex : SpcComponentIndex[String, SpcProperty],
   val entityPropertyIndex :
       SpcComponentIndex[String, SpcEntityPropertyState],
@@ -197,7 +197,7 @@ class SpcGraph(
         new AsUnmodifiableGraph(entitySynonyms),
         new AsUnmodifiableGraph(entityAssocs),
         new AsUnmodifiableGraph(components),
-        new AsUnmodifiableGraph(triggers),
+        new AsUnmodifiableGraph(assertions),
         formPropertyIndex,
         entityPropertyIndex,
         propertyStateIndex,
@@ -211,7 +211,7 @@ class SpcGraph(
   def getGraphs() : Seq[Graph[_, _]] =
   {
     Seq(idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs, entitySynonyms,
-      entityAssocs, components, triggers)
+      entityAssocs, components, assertions)
   }
 
   def getContainer(edge : SpcComponentEdge) =
@@ -359,7 +359,7 @@ class SpcGraph(
     render(components, "Components") + "\n" +
     render(entitySynonyms, "Entity synonyms") + "\n" +
     render(entityAssocs, "Entity associations") + "\n" +
-    render(triggers, "Triggers")
+    render(assertions, "Assertions")
   }
 
   def render[V, E](graph : Graph[V, E], title : String) : String =
@@ -492,7 +492,7 @@ class SpcGraph(
     val taxonomyCountBeforeReduction = idealTaxonomy.edgeSet.size
     TransitiveReduction.INSTANCE.reduce(idealTaxonomy)
     assert(idealTaxonomy.edgeSet.size == taxonomyCountBeforeReduction)
-    assert(triggers.edgeSet.size == 0)
+    assert(assertions.edgeSet.size == 0)
     true
   }
 

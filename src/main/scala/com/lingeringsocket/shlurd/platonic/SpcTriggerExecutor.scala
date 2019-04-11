@@ -42,7 +42,8 @@ class SpcTriggerExecutor(
     cosmos : SpcCosmos,
     trigger : SilConditionalSentence,
     predicate : SilPredicate,
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
+    strict : Boolean = true
   ) : Option[SilPredicate] =
   {
     trace(s"ATTEMPT TRIGGER MATCH $trigger")
@@ -158,8 +159,10 @@ class SpcTriggerExecutor(
               }
             }
             case _ => {
-              trace(s"DIRECT OBJECT MISSING")
-              return None
+              if (strict) {
+                trace(s"DIRECT OBJECT MISSING")
+                return None
+              }
             }
           }
         })
@@ -170,8 +173,12 @@ class SpcTriggerExecutor(
               // matched:  discard
               true
             } else {
-              trace(s"BASIC VERB MODIFIER $bm MISSING")
-              return None
+              if (strict) {
+                trace(s"BASIC VERB MODIFIER $bm MISSING")
+                return None
+              } else {
+                false
+              }
             }
           }
           // keep
@@ -198,12 +205,15 @@ class SpcTriggerExecutor(
               case _ => None
             })
             if (actualRefs.size != 1) {
-              trace("VERB MODIFIER PATTERN DOES NOT MATCH")
-              return None
+              if (strict) {
+                trace("VERB MODIFIER PATTERN DOES NOT MATCH")
+                return None
+              }
+            } else {
+              val objPattern = SilNounReference(
+                objNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
+              replacements.put(objPattern, actualRefs.head)
             }
-            val objPattern = SilNounReference(
-              objNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
-            replacements.put(objPattern, actualRefs.head)
           }
           case Seq() => {
           }

@@ -412,7 +412,8 @@ case class SilConjunctiveSentence(
   override def withNewTamFormality(
     newTam : SilTam, newFormality : SilFormality) =
   {
-    copy(sentences = sentences.map(_.withNewTamFormality(newTam, newFormality)))
+    copy(sentences = sentences.headOption.map(
+      _.withNewTamFormality(newTam, newFormality)).toSeq ++ sentences.tail)
   }
 }
 

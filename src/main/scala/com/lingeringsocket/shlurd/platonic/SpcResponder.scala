@@ -31,6 +31,19 @@ case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_NEW_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_MODIFIED_BELIEFS extends SpcBeliefAcceptance
 
+sealed trait SpcAssertionResultStrength
+case object ASSERTION_PASS extends SpcAssertionResultStrength
+case object ASSERTION_INAPPLICABLE extends SpcAssertionResultStrength
+case object ASSERTION_STRONG_FAILURE extends SpcAssertionResultStrength
+case object ASSERTION_WEAK_FAILURE extends SpcAssertionResultStrength
+
+case class SpcAssertionResult(
+  predicate : Option[SilPredicate],
+  message : String,
+  strength : SpcAssertionResultStrength)
+{
+}
+
 class SpcResponder(
   mind : SpcMind,
   beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
@@ -238,15 +251,104 @@ class SpcResponder(
     super.processImpl(sentence, resultCollector)
   }
 
+  private def applyAssertion(
+    forkedCosmos : SpcCosmos,
+    assertion : SpcAssertion,
+    predicate : SilPredicate,
+    enforceAssertions : Boolean,
+    flagIrrelevant : Boolean)
+      : SpcAssertionResult =
+  {
+    val referenceMap = referenceMapOpt.get
+
+    val resultCollector = new SmcResultCollector[SpcEntity](referenceMap)
+    spawn(imagine(forkedCosmos)).resolveReferences(
+      predicate, resultCollector, false, true)
+
+    def inapplicable = SpcAssertionResult(None, "", ASSERTION_INAPPLICABLE)
+
+    assertion.asTrigger match {
+      case Some(trigger) => {
+        applyTrigger(forkedCosmos, trigger, predicate, resultCollector) match {
+          case Some(message) => {
+            val strength = {
+              if (message == sentencePrinter.sb.respondCompliance) {
+                ASSERTION_PASS
+              } else {
+                ASSERTION_STRONG_FAILURE
+              }
+            }
+            SpcAssertionResult(None, message, strength)
+          }
+          case _ => inapplicable
+        }
+      }
+      case _ if (enforceAssertions) => {
+        val assertionPredicate = assertion.sentence match {
+          case ps : SilPredicateSentence => {
+            ps.tam.modality match {
+              case MODAL_MAY | MODAL_POSSIBLE |
+                  MODAL_CAPABLE | MODAL_PERMITTED => ps.predicate
+              case _ => return inapplicable
+            }
+          }
+          case _ => return inapplicable
+        }
+        def isGenerally(m : SilVerbModifier) : Boolean = {
+          m match {
+            case SilBasicVerbModifier(
+              SilWordLemma(LEMMA_GENERALLY),
+              _
+            ) => true
+            case _ => false
+          }
+        }
+        val (generally, requirement) = {
+          if (assertionPredicate.getModifiers.exists(isGenerally)) {
+            tupleN((true,
+              assertionPredicate.withNewModifiers(
+                assertionPredicate.getModifiers.filterNot(isGenerally))))
+          } else {
+            tupleN((false, assertionPredicate))
+          }
+        }
+        if (isSubsumption(forkedCosmos, requirement, predicate)) {
+          if (assertion.sentence.tam.isPositive) {
+            SpcAssertionResult(
+              Some(requirement),
+              sentencePrinter.sb.respondCompliance,
+              ASSERTION_PASS)
+          } else {
+            if (generally) {
+              val action = sentencePrinter.printPredicateCommand(
+                requirement, SilTam.imperative)
+              SpcAssertionResult(
+                Some(requirement),
+                sentencePrinter.sb.respondUnable(action),
+                ASSERTION_WEAK_FAILURE)
+            } else {
+              SpcAssertionResult(
+                None,
+                SprUtils.capitalize(
+                  sentencePrinter.print(assertion.sentence)),
+                ASSERTION_STRONG_FAILURE)
+            }
+          }
+        } else {
+          inapplicable
+        }
+      }
+      case _ => inapplicable
+    }
+  }
+
   private def applyTrigger(
     forkedCosmos : SpcCosmos,
     trigger : SpcTrigger,
-    predicate : SilPredicate)
+    predicate : SilPredicate,
+    resultCollector : ResultCollectorType)
       : Option[String] =
   {
-    val resultCollector = new SmcResultCollector[SpcEntity](referenceMapOpt.get)
-    spawn(imagine(forkedCosmos)).resolveReferences(
-      predicate, resultCollector, false, true)
     val conditionalSentence = trigger.conditionalSentence
     triggerExecutor.matchTrigger(
       forkedCosmos, conditionalSentence, predicate, referenceMapOpt.get) match
@@ -263,8 +365,10 @@ class SpcResponder(
         spawn(imagine(forkedCosmos)).resolveReferences(
           newSentence, resultCollector, false, true)
         if (isPrecondition) {
+          val newTam = SilTam.indicative.withPolarity(
+            conditionalSentence.tamConsequent.polarity)
           evaluateTamPredicate(
-            newPredicate, SilTam.indicative, resultCollector) match
+            newPredicate, newTam, resultCollector) match
           {
             case Success(Trilean.True) => {
               None
@@ -287,7 +391,7 @@ class SpcResponder(
                   recoverySentence, resultCollector, false, true)
                 // FIXME use recoveryResult somehow
                 val recoveryResult = processBeliefOrAction(
-                  forkedCosmos, recoverySentence, resultCollector)
+                  forkedCosmos, recoverySentence, resultCollector, false)
               })
               // FIXME i18n
               Some("But " + sentencePrinter.printPredicateStatement(
@@ -296,7 +400,7 @@ class SpcResponder(
           }
         } else {
           val result = processBeliefOrAction(
-            forkedCosmos, newSentence, resultCollector)
+            forkedCosmos, newSentence, resultCollector, false)
           if (result.isEmpty) {
             Some(sentencePrinter.sb.respondCompliance)
           } else {
@@ -371,7 +475,8 @@ class SpcResponder(
   private def processBeliefOrAction(
     forkedCosmos : SpcCosmos,
     sentence : SilSentence,
-    resultCollector : ResultCollectorType)
+    resultCollector : ResultCollectorType,
+    flagIrrelevant : Boolean = true)
       : Option[String] =
   {
     var matched = false
@@ -393,7 +498,8 @@ class SpcResponder(
     saveReferenceMap(sentence, forkedCosmos, resultCollector)
     sentence match {
       case SilPredicateSentence(predicate, _, _) => {
-        val result = processTriggerablePredicate(forkedCosmos, predicate)
+        val result = processTriggerablePredicate(
+          forkedCosmos, predicate, !matched, flagIrrelevant && !matched)
         if (!result.isEmpty) {
           return result
         }
@@ -445,23 +551,79 @@ class SpcResponder(
     }
   }
 
+  private def isSubsumption(
+    forkedCosmos : SpcCosmos,
+    generalOpt : Option[SilPredicate],
+    specificOpt : Option[SilPredicate]) : Boolean =
+  {
+    // maybe we should maintain this relationship in the graph
+    // for efficiency?
+
+    tupleN((generalOpt, specificOpt)) match {
+      case (Some(general), Some(specific)) => {
+        isSubsumption(forkedCosmos, general, specific)
+      }
+      case _ => false
+    }
+  }
+
+  private def isSubsumption(
+    forkedCosmos : SpcCosmos,
+    general : SilPredicate,
+    specific : SilPredicate) : Boolean =
+  {
+    val conditionalSentence =
+      SilConditionalSentence(
+        general,
+        SilStatePredicate(general.getSubject, SilExistenceState()),
+        SilTam.indicative,
+        SilTam.indicative,
+        false)
+
+    triggerExecutor.matchTrigger(
+      forkedCosmos, conditionalSentence,
+      specific, referenceMapOpt.get) match
+    {
+      case Some(_) => {
+        true
+      }
+      case _ => {
+        false
+      }
+    }
+  }
+
   private def processTriggerablePredicate(
     forkedCosmos : SpcCosmos,
-    predicate : SilPredicate) : Option[String] =
+    predicate : SilPredicate,
+    enforceAssertions : Boolean,
+    flagIrrelevant : Boolean) : Option[String] =
   {
-    var matched = false
-    val compliance = sentencePrinter.sb.respondCompliance
-    mind.getCosmos.getTriggers.foreach(trigger => {
-      applyTrigger(
-        forkedCosmos, trigger, predicate
-      ).foreach(result => {
-        if (result != compliance) {
-          return Some(result)
-        } else {
-          matched = true
-        }
-      })
+    val results = mind.getCosmos.getAssertions.map(assertion => {
+      val result = applyAssertion(
+        forkedCosmos, assertion, predicate,
+        enforceAssertions, flagIrrelevant
+      )
+      if (result.strength == ASSERTION_STRONG_FAILURE) {
+        return Some(result.message)
+      }
+      result
     })
+
+    val grouped = results.groupBy(_.strength)
+    val weakFailures = grouped.getOrElse(ASSERTION_WEAK_FAILURE, Seq.empty)
+    val passes = grouped.getOrElse(ASSERTION_PASS, Seq.empty)
+
+    weakFailures.find(
+      w => !passes.exists(
+        p => isSubsumption(forkedCosmos, w.predicate, p.predicate))) match
+    {
+      case Some(result) => {
+        return Some(result.message)
+      }
+      case _ =>
+    }
+
     predicate match {
       case ap : SilActionPredicate => {
         val executorResponse = executor.executeAction(ap)
@@ -471,10 +633,15 @@ class SpcResponder(
       }
       case _ =>
     }
-    if (matched) {
-      Some(compliance)
+
+    if (passes.nonEmpty) {
+      Some(sentencePrinter.sb.respondCompliance)
     } else {
-      None
+      if (flagIrrelevant) {
+        Some(sentencePrinter.sb.respondIrrelevant)
+      } else {
+        None
+      }
     }
   }
 

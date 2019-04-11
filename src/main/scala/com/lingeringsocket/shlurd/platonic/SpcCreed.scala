@@ -46,7 +46,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
         filterNot(e => SpcMeta.isMetaEntity(e) && !includeMeta).
         flatMap(entityBeliefs)
     ) ++ (
-      cosmos.getTriggers.map(_.toSentence)
+      cosmos.getAssertions.map(_.toSentence)
     )
   }
 

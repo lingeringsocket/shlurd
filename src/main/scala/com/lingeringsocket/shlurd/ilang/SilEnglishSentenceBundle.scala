@@ -848,6 +848,16 @@ class SilEnglishSentenceBundle
       concat(DQUOTE, errorPhrase, DQUOTE))
   }
 
+  override def respondUnable(action : String) =
+  {
+    compose("One does not simply", concat(action, "."))
+  }
+
+  override def respondIrrelevant() =
+  {
+    "I'm not sure how to interpret that."
+  }
+
   override def predicateUnrecognizedSubject(
     tam : SilTam, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],

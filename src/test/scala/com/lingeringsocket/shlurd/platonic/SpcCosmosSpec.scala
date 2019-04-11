@@ -526,11 +526,22 @@ class SpcCosmosSpec extends Specification
       )
     }
 
+    "accept assertions" in new CosmosContext
+    {
+      cosmos.getTriggers must beEmpty
+      cosmos.getAssertions must beEmpty
+      addBelief("a tailor can't kill a giant")
+      cosmos.getAssertions.size must be equalTo(1)
+      cosmos.getTriggers must beEmpty
+    }
+
     "accept triggers" in new CosmosContext
     {
       cosmos.getTriggers must beEmpty
+      cosmos.getAssertions must beEmpty
       addBelief("if a person is an object's possessor, " +
         "then the person is carrying the object")
+      cosmos.getAssertions.size must be equalTo(1)
       cosmos.getTriggers.size must be equalTo(1)
     }
 
@@ -684,7 +695,7 @@ class SpcCosmosSpec extends Specification
     "support compound nouns" in new CosmosContext
     {
       if (SprParser.isCoreNLP) {
-        skipped("Wordnet only")
+        skipped("CoreNLP not supported")
       }
 
       addBelief("there is a steak knife")

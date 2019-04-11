@@ -37,7 +37,7 @@ class SpcBeliefRecognizer(
     val beliefs = recognizeBeliefsImpl(sentence)
     if (sentence.tam.isNegative) {
       if (beliefs.forall(_ match {
-        case _ : EntityAssocBelief => {
+        case (_ : EntityAssocBelief | _ : AssertionBelief) => {
           true
         }
         case _ => {
@@ -79,37 +79,35 @@ class SpcBeliefRecognizer(
     }
     sentence match {
       case SilPredicateSentence(predicate, tam, formality) => {
-        if (!predicate.getModifiers.filterNot(isIgnorableModifier).isEmpty) {
-          return Seq.empty
-        }
-        predicate match {
-          case statePredicate : SilStatePredicate => {
-            return recognizeStatePredicateBelief(
-              sentence, statePredicate, tam)
+        if (predicate.getModifiers.filterNot(isIgnorableModifier).isEmpty) {
+          predicate match {
+            case statePredicate : SilStatePredicate => {
+              return recognizeStatePredicateBelief(
+                sentence, statePredicate, tam)
+            }
+            case relationshipPredicate : SilRelationshipPredicate => {
+              return recognizeRelationshipPredicateBelief(
+                sentence, relationshipPredicate, tam)
+            }
+            case _ =>
           }
-          case relationshipPredicate : SilRelationshipPredicate => {
-            return recognizeRelationshipPredicateBelief(
-              sentence, relationshipPredicate, tam)
-          }
-          case _ =>
         }
-      }
-      case conditionalSentence : SilConditionalSentence => {
-        return recognizeConsequenceBelief(conditionalSentence)
+        recognizeAssertionBelief(sentence)
       }
       case SilConjunctiveSentence(
         DETERMINER_UNSPECIFIED,
         Seq(
-          conditionalSentence : SilConditionalSentence,
+          assertionSentence : SilConditionalSentence,
           alternative : SilPredicateSentence),
         SEPARATOR_SEMICOLON
       ) => {
-        return recognizeConsequenceBelief(
-          conditionalSentence, Some(alternative))
+        recognizeAssertionBelief(
+          assertionSentence, Some(alternative))
       }
-      case _ =>
+      case _ => {
+        recognizeAssertionBelief(sentence)
+      }
     }
-    Seq.empty
   }
 
   private def recognizeStatePredicateBelief(
@@ -370,45 +368,63 @@ class SpcBeliefRecognizer(
     })
   }
 
-  private def recognizeConsequenceBelief(
-    sentence : SilConditionalSentence,
+  private def recognizeAssertionBelief(
+    assertionSentence : SilSentence,
     alternative : Option[SilPredicateSentence] = None)
       : Seq[SpcBelief] =
   {
-    val consequent = sentence.consequent
     var invalid = false
-    val querier = new SilPhraseRewriter
-    def validateReferences = querier.queryMatcher {
-      case SilNounReference(_, determiner, _) => {
-        determiner match {
-          case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED | DETERMINER_NONE =>
+    assertionSentence match {
+      case conditional : SilConditionalSentence => {
+        val consequent = conditional.consequent
+        val querier = new SilPhraseRewriter
+        def validateReferences = querier.queryMatcher {
+          case SilNounReference(_, determiner, _) => {
+            determiner match {
+              case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
+                  DETERMINER_NONE =>
+              case _ => {
+                invalid = true
+              }
+            }
+          }
+        }
+        if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
+          querier.query(validateReferences, consequent)
+        }
+        alternative.foreach(alternativeSentence => {
+          if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
+            invalid = true
+          }
+          if (!alternativeSentence.predicate.getModifiers.exists(
+            _ match {
+              case SilBasicVerbModifier(
+                SilWordLemma(LEMMA_OTHERWISE), _) => true
+              case _ => false
+            }
+          )) {
+            invalid = true
+          }
+        })
+      }
+      case SilPredicateSentence(_ : SilActionPredicate, tam, _) => {
+        tam.modality match {
+          case MODAL_MAY | MODAL_POSSIBLE | MODAL_CAPABLE | MODAL_PERMITTED => {
+            invalid = false
+          }
           case _ => {
             invalid = true
           }
         }
       }
-    }
-    if (sentence.tamConsequent.modality == MODAL_NEUTRAL) {
-      querier.query(validateReferences, consequent)
-    }
-    alternative.foreach(alternativeSentence => {
-      if (sentence.tamConsequent.modality == MODAL_NEUTRAL) {
+      case _ => {
         invalid = true
       }
-      if (!alternativeSentence.predicate.getModifiers.exists(
-        _ match {
-          case SilBasicVerbModifier(
-            SilWordLemma(LEMMA_OTHERWISE), _) => true
-          case _ => false
-        }
-      )) {
-        invalid = true
-      }
-    })
+    }
     if (invalid) {
       Seq.empty
     } else {
-      Seq(ConsequenceBelief(sentence, alternative))
+      Seq(AssertionBelief(assertionSentence, alternative))
     }
   }
 

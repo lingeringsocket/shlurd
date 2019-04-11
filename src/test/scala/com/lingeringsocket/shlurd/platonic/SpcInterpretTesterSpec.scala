@@ -56,7 +56,7 @@ class SpcInterpretTesterSpec extends Specification
     "understand babi qa wordnet beliefs" in
     {
       if (SprParser.isCoreNLP) {
-        skipped("Wordnet only")
+        skipped("CoreNLP not supported")
       }
       val beliefs = ResourceUtils.getResourceFile(
         "/expect/babi-qa-beliefs.txt")

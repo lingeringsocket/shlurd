@@ -698,11 +698,11 @@ class SpcBeliefAccepter(
   }
 
   beliefApplier {
-    case ConsequenceBelief(
+    case AssertionBelief(
       sentence,
       alternative
     ) => {
-      cosmos.addTrigger(SpcTrigger(sentence, alternative))
+      cosmos.addAssertion(SpcAssertion(sentence, alternative))
     }
   }
 

@@ -179,6 +179,10 @@ abstract class SilSentenceBundle
   def respondNotUnderstood(
     tam : SilTam, predicate : String, errorPhrase : String) : String
 
+  def respondUnable(action : String) : String
+
+  def respondIrrelevant() : String
+
   def predicateUnrecognizedSubject(
     tam : SilTam, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],

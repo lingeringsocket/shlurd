@@ -120,23 +120,54 @@ trait SpcEntityVertex extends SmcNamedObject
 {
 }
 
-case class SpcTrigger(
-  conditionalSentence : SilConditionalSentence,
-  alternative : Option[SilPredicateSentence]
-)
+trait SpcSentential
 {
+  def getAssertion() : SilSentence
+
+  def getAlternative() : Option[SilSentence]
+
   def toSentence() : SilSentence =
   {
-    alternative match {
+    getAlternative match {
       case Some(alternativeSentence) => {
         SilConjunctiveSentence(
           DETERMINER_UNSPECIFIED,
-          Seq(conditionalSentence, alternativeSentence),
+          Seq(getAssertion, alternativeSentence),
           SEPARATOR_SEMICOLON)
       }
-      case _ => conditionalSentence
+      case _ => getAssertion
     }
   }
+}
+
+case class SpcAssertion(
+  sentence : SilSentence,
+  alternative : Option[SilPredicateSentence]
+) extends SpcSentential
+{
+  override def getAssertion() = sentence
+
+  override def getAlternative() = alternative
+
+  def asTrigger() : Option[SpcTrigger] =
+  {
+    sentence match {
+      case cs : SilConditionalSentence => {
+        Some(SpcTrigger(cs, alternative))
+      }
+      case _ => None
+    }
+  }
+}
+
+case class SpcTrigger(
+  conditionalSentence : SilConditionalSentence,
+  alternative : Option[SilPredicateSentence]
+) extends SpcSentential
+{
+  override def getAssertion() = conditionalSentence
+
+  override def getAlternative() = alternative
 }
 
 case class SpcEntity(
@@ -223,8 +254,11 @@ class SpcCosmos(
     graph.entitySynonyms.vertexSet.asScala.toSeq.
       filter(_.isInstanceOf[SpcEntity]).map(_.asInstanceOf[SpcEntity])
 
+  def getAssertions =
+    graph.assertions.vertexSet.asScala.toSeq
+
   def getTriggers =
-    graph.triggers.vertexSet.asScala.toSeq
+    graph.assertions.vertexSet.asScala.toSeq.flatMap(_.asTrigger)
 
   def getGraph = unmodifiableGraph
 
@@ -1497,10 +1531,10 @@ class SpcCosmos(
     }
   }
 
-  def addTrigger(
-    trigger : SpcTrigger)
+  def addAssertion(
+    assertion : SpcAssertion)
   {
-    graph.triggers.addVertex(trigger)
+    graph.assertions.addVertex(assertion)
   }
 
   override def applyModifications()

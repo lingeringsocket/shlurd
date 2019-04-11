@@ -126,8 +126,8 @@ case class EntityPropertyBelief(
 {
 }
 
-case class ConsequenceBelief(
-  sentence : SilConditionalSentence,
+case class AssertionBelief(
+  sentence : SilSentence,
   alternative : Option[SilPredicateSentence] = None
 ) extends SpcBelief
 {

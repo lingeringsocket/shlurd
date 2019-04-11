@@ -121,6 +121,14 @@ class SpcCreedSpec extends Specification
   private val childrenDaughters = "A person may have daughters."
   private val moveTrigger = "If an spc-object moves to a location, " +
     "then the location is the object's spc-container."
+  private val positiveConstraintTrigger = "If the Cubs win the World Series, " +
+    "then the moon must be blue."
+  private val negativeConstraintTrigger = "If the Cubs win the World Series, " +
+    "then the fat lady must not sing."
+  private val alternativeTrigger = "If a person eats candy, " +
+    "then the candy must be small; the person chokes otherwise."
+  private val positiveAssertion = "A person can kill a thief."
+  private val negativeAssertion = "A person can not kill a thief."
 
   private val primordial = Seq(
     "An spc-class is an spc-form.",
@@ -397,7 +405,16 @@ class SpcCreedSpec extends Specification
 
     "preserve triggers" in new CosmosContext
     {
-      expectPreserved(Seq(moveTrigger))
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
+      expectPreserved(Seq(moveTrigger, positiveConstraintTrigger,
+        negativeConstraintTrigger, alternativeTrigger))
+    }
+
+    "preserve assertions" in new CosmosContext
+    {
+      expectPreserved(Seq(positiveAssertion, negativeAssertion))
     }
 
     "recite primordial beliefs" in

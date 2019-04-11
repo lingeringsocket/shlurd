@@ -462,6 +462,11 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     "FIXME"
   }
 
+  override def respondIrrelevant() =
+  {
+    "그래요?"
+  }
+
   override def respondUnknownState(subject : String, word : SilWord) =
   {
     "FIXME"
@@ -499,6 +504,11 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def respondNotUnderstood(
     tam : SilTam, predicate : String, errorPhrase : String) =
+  {
+    "FIXME"
+  }
+
+  override def respondUnable(action : String) =
   {
     "FIXME"
   }
