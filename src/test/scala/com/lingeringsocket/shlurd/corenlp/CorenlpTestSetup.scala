@@ -109,16 +109,19 @@ object CorenlpParsingStrategy extends SprParsingStrategy
     val sentenceString = sentence.text
     if (SprParser.isTerminator(tokens.last.text)) {
       prepareCorenlpFallbacks(
+        context,
         sentenceString, tokens.map(_.text), false, dump, "CORENLP")
     } else {
       val questionString = sentenceString + LABEL_QUESTION_MARK
       prepareCorenlpFallbacks(
+        context,
         questionString, tokens.map(_.text) :+ LABEL_QUESTION_MARK,
         true, dump, "CORENLP")
     }
   }
 
   private def prepareCorenlpFallbacks(
+    context : SprContext,
     sentenceString : String, tokens : Seq[String],
     guessedQuestion : Boolean,
     dump : Boolean, dumpPrefix : String) =
@@ -137,15 +140,19 @@ object CorenlpParsingStrategy extends SprParsingStrategy
       "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
     val capitalizedString = capitalize(sentenceString)
     def main() = prepareCorenlp(
+      context,
       capitalizedString, tokens, props, true, guessedQuestion,
       dump, dumpPrefix + " RNN")
     def fallbackSR() = prepareCorenlp(
+      context,
       capitalizedString, tokens, propsSR, true, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR")
     def fallbackPCFG() = prepareCorenlp(
+      context,
       capitalizedString, tokens, propsPCFG, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK PCFG")
     def fallbackSRCASELESS() = prepareCorenlp(
+      context,
       sentenceString, tokens, propsSR, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR CASELESS")
     new SprFallbackParser(Seq(
@@ -153,6 +160,7 @@ object CorenlpParsingStrategy extends SprParsingStrategy
   }
 
   private def prepareCorenlp(
+    context : SprContext,
     sentenceString : String, tokens : Seq[String], props : Properties,
     preDependencies : Boolean, guessedQuestion : Boolean,
     dump : Boolean, dumpPrefix : String) =
@@ -189,7 +197,7 @@ object CorenlpParsingStrategy extends SprParsingStrategy
     if (dump) {
       println(dumpPrefix + " REWRITTEN SYNTAX = " + rewrittenTree)
     }
-    new SprSingleParser(rewrittenTree, guessedQuestion)
+    new SprSingleParser(context, rewrittenTree, guessedQuestion)
   }
 
   private def tokenizeCorenlp(input : String)

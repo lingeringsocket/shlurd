@@ -19,168 +19,11 @@ import com.lingeringsocket.shlurd.ilang._
 
 import SprUtils._
 
-object SprPhraseRewriter extends SprEnglishWordAnalyzer
-{
-  def resolveAmbiguousSentence(ambiguous : SilAmbiguousSentence)
-      : SilSentence =
-  {
-    val alternatives = ambiguous.alternatives
-    assert(!alternatives.isEmpty)
-    val dedup = alternatives.distinct
-    if (dedup.size == 1) {
-      dedup.head
-    } else {
-      def leastUnknown = dedup.minBy(_.countUnknownSyntaxLeaves)
-      val clean = dedup.filterNot(_.hasUnknown)
-      if (clean.isEmpty) {
-        // if all alternatives still contain unknowns, then
-        // pick the one with the minimum number of unparsed leaves
-        leastUnknown
-      } else {
-        val scorer = new SilWordnetScorer
-        val scores = clean.map(scorer.computeGlobalScore)
-        val maxScore = scores.max
-        val bestScore = {
-          if (maxScore <= SilPhraseScore.conBig) {
-            SilPhraseScore.neutral
-          } else {
-            maxScore
-          }
-        }
-        val candidates =
-          clean.zip(scores).filter(_._2 == bestScore).map(_._1)
-        if (candidates.isEmpty) {
-          leastUnknown
-        } else if (candidates.size == 1) {
-          candidates.head
-        } else if (candidates.size < 20) {
-          resolveAmbiguousSeq(candidates)
-        } else {
-          SilAmbiguousSentence(candidates, true)
-        }
-      }
-    }
-  }
-
-  private def resolveAmbiguousSeq(seq : Seq[SilSentence]) : SilSentence =
-  {
-    assert(seq.nonEmpty)
-    if (seq.size == 1) {
-      seq.head
-    } else {
-      range(0 until seq.size).combinations(2).foreach(sub => {
-        val iFirst = sub.head
-        val iSecond = sub.last
-        val first = seq(iFirst)
-        val second = seq(iSecond)
-        resolveAmbiguousPair(first, second) match {
-          case Some(resolved) => {
-            return resolveAmbiguousSeq(
-              seq.patch(iFirst, Seq(resolved), 1).patch(iSecond, Seq.empty, 1))
-          }
-          case _ =>
-        }
-      })
-      SilAmbiguousSentence(seq, true)
-    }
-  }
-
-  private def resolveAmbiguousPair(
-    first : SilSentence, second : SilSentence) : Option[SilSentence] =
-  {
-    if (ambiguousEquivalent(first, second)) {
-      Some(first)
-    } else if (ambiguousEquivalent(second, first)) {
-      Some(second)
-    } else {
-      None
-    }
-  }
-
-  private def ambiguousEquivalent(
-    s1 : SilSentence, s2 : SilSentence) : Boolean =
-  {
-    val sn1 = normalizeCandidate(s1)
-    val sn2 = normalizeCandidate(s2)
-    tupleN((sn1, sn2)) match {
-      case (
-        SilPredicateSentence(p1, t1, f1),
-        SilPredicateSentence(p2, t2, f2)
-      ) if (f1 == f2) => {
-        ambiguousEquivalent(p1, t1, p2, t2)
-      }
-      case (
-        SilPredicateQuery(p1, q1, a1, t1, f1),
-        SilPredicateQuery(p2, q2, a2, t2, f2)
-      ) if (tupleN((q1, a1, f1)) == tupleN((q2, a2, f2))) => {
-        ambiguousEquivalent(p1, t1, p2, t2)
-      }
-      case _ => {
-        (sn1 == sn2)
-      }
-    }
-  }
-
-  private def normalizeCandidate(s : SilSentence) : SilSentence =
-  {
-    val rewriter = new SilPhraseRewriter
-    def normalizePropertyState = rewriter.replacementMatcher {
-      case SilPropertyState(SilSimpleWord(inflected, lemma, senseId)) => {
-        SilPropertyState(SilSimpleWord(inflected, inflected, senseId))
-      }
-    }
-    rewriter.rewrite(normalizePropertyState, s)
-  }
-
-  private def ambiguousEquivalent(
-    p1 : SilPredicate, t1 : SilTam, p2 : SilPredicate, t2 : SilTam) : Boolean =
-  {
-    tupleN((p1, p2)) match {
-      // FIXME this is way too loose, and should be replace by disambiguation
-      // at the semantic level
-      case (
-        SilStatePredicate(
-          s1,
-          _ : SilConjunctiveState,
-          m1
-        ),
-        SilRelationshipPredicate(
-          s2,
-          _ : SilConjunctiveReference,
-          REL_IDENTITY,
-          m2
-        )
-      ) if (t1.modality != MODAL_NEUTRAL) => {
-        tupleN((t1, s1, m1)) == tupleN((t2, s2, m2))
-      }
-      case (
-        SilStatePredicate(
-          s1,
-          SilPropertyState(w1 : SilSimpleWord),
-          m1
-        ),
-        SilActionPredicate(
-          s2,
-          w2 : SilSimpleWord,
-          None,
-          m2
-        )
-      ) => {
-        tupleN((s1, w1.inflected, m1)) == tupleN((s2, w2.inflected, m2)) &&
-        t2.isProgressive &&
-        t1.withAspect(ASPECT_PROGRESSIVE) == t2
-      }
-      case _ => {
-        tupleN((p1, t1)) == tupleN((p2, t2))
-      }
-    }
-  }
-}
-
-class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
+class SprPhraseRewriter(
+  context : SprContext,
+  val analyzer : SprSyntaxAnalyzer)
   extends SilPhraseRewriter
 {
-  import SprPhraseRewriter._
   import SilPhraseRewriter._
 
   def parseSentence(sentenceSyntaxTree : SprSyntaxTree) : SilSentence =
@@ -392,7 +235,8 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
 
   private def replaceAmbiguousSentence = replacementMatcher {
     case ambiguous : SilAmbiguousSentence if (ambiguous.isRipe) => {
-      resolveAmbiguousSentence(ambiguous)
+      val resolver = new SprAmbiguityResolver(context)
+      resolver.resolveAmbiguousSentence(ambiguous)
     }
   }
 
@@ -494,6 +338,164 @@ class SprPhraseRewriter(val analyzer : SprSyntaxAnalyzer)
           predicate.subject, predicate.specifiedState)
         SilStatePredicate(
           specifiedSubject, predicate.state, predicate.modifiers)
+      }
+    }
+  }
+}
+
+class SprAmbiguityResolver(context : SprContext)
+    extends SprEnglishWordAnalyzer
+{
+  def resolveAmbiguousSentence(ambiguous : SilAmbiguousSentence)
+      : SilSentence =
+  {
+    val alternatives = ambiguous.alternatives
+    assert(!alternatives.isEmpty)
+    val dedup = alternatives.distinct
+    if (dedup.size == 1) {
+      dedup.head
+    } else {
+      def leastUnknown = dedup.minBy(_.countUnknownSyntaxLeaves)
+      val clean = dedup.filterNot(_.hasUnknown)
+      if (clean.isEmpty) {
+        // if all alternatives still contain unknowns, then
+        // pick the one with the minimum number of unparsed leaves
+        leastUnknown
+      } else {
+        val scores = clean.map(context.scorer.computeGlobalScore)
+        val maxScore = scores.max
+        val bestScore = {
+          if (maxScore <= SilPhraseScore.conBig) {
+            SilPhraseScore.neutral
+          } else {
+            maxScore
+          }
+        }
+        val candidates =
+          clean.zip(scores).filter(_._2 == bestScore).map(_._1)
+        if (candidates.isEmpty) {
+          leastUnknown
+        } else if (candidates.size == 1) {
+          candidates.head
+        } else if (candidates.size < 20) {
+          resolveAmbiguousSeq(candidates)
+        } else {
+          SilAmbiguousSentence(candidates, true)
+        }
+      }
+    }
+  }
+
+  private def resolveAmbiguousSeq(seq : Seq[SilSentence]) : SilSentence =
+  {
+    assert(seq.nonEmpty)
+    if (seq.size == 1) {
+      seq.head
+    } else {
+      range(0 until seq.size).combinations(2).foreach(sub => {
+        val iFirst = sub.head
+        val iSecond = sub.last
+        val first = seq(iFirst)
+        val second = seq(iSecond)
+        resolveAmbiguousPair(first, second) match {
+          case Some(resolved) => {
+            return resolveAmbiguousSeq(
+              seq.patch(iFirst, Seq(resolved), 1).patch(iSecond, Seq.empty, 1))
+          }
+          case _ =>
+        }
+      })
+      SilAmbiguousSentence(seq, true)
+    }
+  }
+
+  private def resolveAmbiguousPair(
+    first : SilSentence, second : SilSentence) : Option[SilSentence] =
+  {
+    if (ambiguousEquivalent(first, second)) {
+      Some(first)
+    } else if (ambiguousEquivalent(second, first)) {
+      Some(second)
+    } else {
+      None
+    }
+  }
+
+  private def ambiguousEquivalent(
+    s1 : SilSentence, s2 : SilSentence) : Boolean =
+  {
+    val sn1 = normalizeCandidate(s1)
+    val sn2 = normalizeCandidate(s2)
+    tupleN((sn1, sn2)) match {
+      case (
+        SilPredicateSentence(p1, t1, f1),
+        SilPredicateSentence(p2, t2, f2)
+      ) if (f1 == f2) => {
+        ambiguousEquivalent(p1, t1, p2, t2)
+      }
+      case (
+        SilPredicateQuery(p1, q1, a1, t1, f1),
+        SilPredicateQuery(p2, q2, a2, t2, f2)
+      ) if (tupleN((q1, a1, f1)) == tupleN((q2, a2, f2))) => {
+        ambiguousEquivalent(p1, t1, p2, t2)
+      }
+      case _ => {
+        (sn1 == sn2)
+      }
+    }
+  }
+
+  private def normalizeCandidate(s : SilSentence) : SilSentence =
+  {
+    val rewriter = new SilPhraseRewriter
+    def normalizePropertyState = rewriter.replacementMatcher {
+      case SilPropertyState(SilSimpleWord(inflected, lemma, senseId)) => {
+        SilPropertyState(SilSimpleWord(inflected, inflected, senseId))
+      }
+    }
+    rewriter.rewrite(normalizePropertyState, s)
+  }
+
+  private def ambiguousEquivalent(
+    p1 : SilPredicate, t1 : SilTam, p2 : SilPredicate, t2 : SilTam) : Boolean =
+  {
+    tupleN((p1, p2)) match {
+      // FIXME this is way too loose, and should be replace by disambiguation
+      // at the semantic level
+      case (
+        SilStatePredicate(
+          s1,
+          _ : SilConjunctiveState,
+          m1
+        ),
+        SilRelationshipPredicate(
+          s2,
+          _ : SilConjunctiveReference,
+          REL_IDENTITY,
+          m2
+        )
+      ) if (t1.modality != MODAL_NEUTRAL) => {
+        tupleN((t1, s1, m1)) == tupleN((t2, s2, m2))
+      }
+      case (
+        SilStatePredicate(
+          s1,
+          SilPropertyState(w1 : SilSimpleWord),
+          m1
+        ),
+        SilActionPredicate(
+          s2,
+          w2 : SilSimpleWord,
+          None,
+          m2
+        )
+      ) => {
+        tupleN((s1, w1.inflected, m1)) == tupleN((s2, w2.inflected, m2)) &&
+        t2.isProgressive &&
+        t1.withAspect(ASPECT_PROGRESSIVE) == t2
+      }
+      case _ => {
+        tupleN((p1, t1)) == tupleN((p2, t2))
       }
     }
   }

@@ -141,7 +141,6 @@ case object HEURISTIC_STAMINA_STOP_AFTER_FIRST
 
 class SprHeuristicSynthesizer(
   context : SprContext,
-  scorer : SilPhraseScorer,
   filter : SprHeuristicFilter,
   stamina : SprHeuristicStamina,
   words : Seq[String])
@@ -154,10 +153,12 @@ class SprHeuristicSynthesizer(
   private val pending = new mutable.Queue[SprSyntaxTree]
 
   private val rewriterIntermediate = new SprPhraseRewriter(
+    context,
     new SprEnglishSyntaxAnalyzer(
       false, SPR_STRICTNESS_TIGHT, false))
 
   private val rewriterFinal = new SprPhraseRewriter(
+    context,
     new SprEnglishSyntaxAnalyzer(
       false, SPR_STRICTNESS_TIGHT))
 
@@ -283,7 +284,7 @@ class SprHeuristicSynthesizer(
 
   private def scoreTree(tree : SprSyntaxTree) : SilPhraseScore =
   {
-    scorer.computeGlobalScore(silMemo(tree).get._1)
+    context.scorer.computeGlobalScore(silMemo(tree).get._1)
   }
 
   private def produceMore() : Stream[SprSyntaxTree] =

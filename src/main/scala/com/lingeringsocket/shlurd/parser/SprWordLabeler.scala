@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.ilang._
 
 import SprPennTreebankLabels._
 import SprEnglishLemmas._
@@ -26,7 +27,8 @@ import scala.collection._
 import scala.collection.JavaConverters._
 
 case class SprContext(
-  wordLabeler : SprWordLabeler = new SprWordnetLabeler
+  wordLabeler : SprWordLabeler = new SprWordnetLabeler,
+  scorer : SilPhraseScorer = new SilWordnetScorer
 )
 {
   def newParser(input : String) = SprParser(input, this)

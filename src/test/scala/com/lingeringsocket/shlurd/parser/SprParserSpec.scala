@@ -151,7 +151,7 @@ class SprParserSpec extends Specification
             pred.modifiers))
         } else {
           tupleN((word,
-            pred.modifiers :+ SilBasicVerbModifier(stateWord, 1)))
+            pred.modifiers :+ SilBasicVerbModifier(stateWord, 0)))
         }
       }
       case _ => {

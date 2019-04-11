@@ -35,8 +35,7 @@ class SprHeuristicSynthesizerSpec
     val sentence = sentences.head
 
     val synthesizer = new SprHeuristicSynthesizer(
-      SprContext(),
-      scorer,
+      SprContext(scorer = scorer),
       filter,
       stamina,
       sentence.tokens.map(_.text)

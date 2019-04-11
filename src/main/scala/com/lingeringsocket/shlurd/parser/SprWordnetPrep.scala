@@ -31,6 +31,8 @@ object SprWordnetPrep
   SprParser.enableCache(Some(new File("run/test-parser-cache.dat")))
   private val parserCache = SprParser.getCache
 
+  private val context = SprContext()
+
   private def parseOne(
     sentence : String,
     dumpAnalysis : Boolean = false)
@@ -48,7 +50,7 @@ object SprWordnetPrep
         println
       }
       val wnParser = SprParser.prepareHeuristic(
-        SprContext(), sentence, dumpAnalysis, "DEBUG")
+        context, sentence, dumpAnalysis, "DEBUG")
       Some(tupleN((wnParser.parseOne, sil)))
     } else {
       None
@@ -130,7 +132,8 @@ object SprWordnetPrep
               ambiguous += 1
             }
             case _ => {
-              SprPhraseRewriter.resolveAmbiguousSentence(
+              val resolver = new SprAmbiguityResolver(context)
+              resolver.resolveAmbiguousSentence(
                 SilAmbiguousSentence(Seq(silCorenlp, silWordnet))) match
               {
                 case _ : SilAmbiguousSentence => {

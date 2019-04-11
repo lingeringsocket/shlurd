@@ -62,6 +62,7 @@ class SprFallbackParser(
 }
 
 class SprSingleParser(
+  context : SprContext,
   tree : SprSyntaxTree, guessedQuestion : Boolean)
     extends SprParser
 {
@@ -76,6 +77,7 @@ class SprSingleParser(
     tree match {
       case SptROOT(sentenceSyntaxTree) => {
         val parsingRewriter = new SprPhraseRewriter(
+          context,
           new SprEnglishSyntaxAnalyzer(guessedQuestion))
         val parsed = parsingRewriter.parseSentence(sentenceSyntaxTree)
         normalize(parsed)
@@ -92,8 +94,9 @@ class SprSingleParser(
 }
 
 class SprSingleHeuristicParser(
+  context : SprContext,
   tree : SprSyntaxTree, terminator : Option[String]
-) extends SprSingleParser(tree, false)
+) extends SprSingleParser(context, tree, false)
 {
   override def parseOne() =
   {
@@ -124,12 +127,12 @@ class SprSingleHeuristicParser(
         sentence.formality
       }
     }
-    val augmented = normalize(sentence.withNewTamFormality(tam, formality))
-    SprWordnetScorer.adjustScores(augmented)
+    normalize(sentence.withNewTamFormality(tam, formality))
   }
 }
 
 class SprAmbiguityParser(
+  context : SprContext,
   singles : Seq[SprParser])
     extends SprParser
 {
@@ -137,7 +140,8 @@ class SprAmbiguityParser(
   {
     val alternatives = singles.map(_.parseOne)
     val ambiguous = SilAmbiguousSentence(alternatives)
-    SprPhraseRewriter.resolveAmbiguousSentence(ambiguous)
+    val resolver = new SprAmbiguityResolver(context)
+    resolver.resolveAmbiguousSentence(ambiguous)
   }
 
   override def parseFirst() = parseOne
@@ -368,10 +372,9 @@ object SprParser
     }
     def heuristicParse() : SprSyntaxTree =
     {
-      val scorer = new SilWordnetScorer
       val synthesizer = {
         new SprHeuristicSynthesizer(
-          context, scorer,
+          context,
           SprHeuristicAcceptCompleteSentence,
           HEURISTIC_STAMINA_COMPLETE, words)
       }
@@ -421,11 +424,13 @@ object SprParser
       CacheKey(sentence.text, dumpPrefix), heuristicParse)
     root match {
       case SptAMBIGUOUS(trees @ _*) => {
-        new SprAmbiguityParser(trees.map(tree =>
-          new SprSingleHeuristicParser(SptROOT(tree), terminator)))
+        new SprAmbiguityParser(context,
+          trees.map(tree =>
+            new SprSingleHeuristicParser(context, SptROOT(tree), terminator)))
       }
       case _ => {
         new SprSingleHeuristicParser(
+          context,
           root,
           terminator)
       }
