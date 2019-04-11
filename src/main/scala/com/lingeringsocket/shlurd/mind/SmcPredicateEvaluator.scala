@@ -645,7 +645,11 @@ class SmcPredicateEvaluator[
         }
       }
       case prOriginal : SilPronounReference => {
-        assert(specifiedState == SilNullState())
+        // FIXME should support phrasing like
+        // "hand it to her in the blue dress"
+        if (specifiedState != SilNullState()) {
+          return Success(Trilean.Unknown)
+        }
         val pr = {
           if (resultCollector.swapSpeakerListener) {
             val rewriter = new SmcResponseRewriter(mind)

@@ -255,8 +255,7 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     assertion : SpcAssertion,
     predicate : SilPredicate,
-    enforceAssertions : Boolean,
-    flagIrrelevant : Boolean)
+    enforceAssertions : Boolean)
       : SpcAssertionResult =
   {
     val referenceMap = referenceMapOpt.get
@@ -476,7 +475,7 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     sentence : SilSentence,
     resultCollector : ResultCollectorType,
-    flagIrrelevant : Boolean = true)
+    flagErrors : Boolean = true)
       : Option[String] =
   {
     var matched = false
@@ -498,8 +497,21 @@ class SpcResponder(
     saveReferenceMap(sentence, forkedCosmos, resultCollector)
     sentence match {
       case SilPredicateSentence(predicate, _, _) => {
+        if (flagErrors && predicate.isInstanceOf[SilActionPredicate]) {
+          resultCollector.referenceMap.clear
+          val resolutionResult =
+            spawn(imagine(forkedCosmos)).resolveReferences(
+              predicate, resultCollector,
+              true, false)
+          resolutionResult match {
+            case Failure(ex) => {
+              return Some(ex.getMessage)
+            }
+            case _ =>
+          }
+        }
         val result = processTriggerablePredicate(
-          forkedCosmos, predicate, !matched, flagIrrelevant && !matched)
+          forkedCosmos, predicate, !matched, flagErrors && !matched)
         if (!result.isEmpty) {
           return result
         }
@@ -597,12 +609,12 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     predicate : SilPredicate,
     enforceAssertions : Boolean,
-    flagIrrelevant : Boolean) : Option[String] =
+    flagErrors : Boolean) : Option[String] =
   {
     val results = mind.getCosmos.getAssertions.map(assertion => {
       val result = applyAssertion(
         forkedCosmos, assertion, predicate,
-        enforceAssertions, flagIrrelevant
+        enforceAssertions
       )
       if (result.strength == ASSERTION_STRONG_FAILURE) {
         return Some(result.message)
@@ -637,7 +649,7 @@ class SpcResponder(
     if (passes.nonEmpty) {
       Some(sentencePrinter.sb.respondCompliance)
     } else {
-      if (flagIrrelevant) {
+      if (flagErrors) {
         Some(sentencePrinter.sb.respondIrrelevant)
       } else {
         None

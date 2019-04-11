@@ -22,6 +22,9 @@ class SilPhraseScorerSpec extends Specification
   {
     "compare scores" in
     {
+      SilPhraseScore.pro(1) must be equalTo SilPhraseScore.numeric(1)
+      SilPhraseScore.con(1) must be equalTo SilPhraseScore.numeric(-1)
+      SilPhraseScore.neutral must be equalTo SilPhraseScore.numeric(0)
       SilPhraseScore.pro(1) must be greaterThan SilPhraseScore.neutral
       SilPhraseScore.pro(2) must be greaterThan SilPhraseScore.pro(1)
       SilPhraseScore.pro(1) must be greaterThan SilPhraseScore.con(1)

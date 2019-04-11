@@ -49,6 +49,16 @@ object SilPhraseScore
     SilPhraseScore(0, n)
   }
 
+  def numeric(n : Int) = {
+    if (n < 0) {
+      con(-n)
+    } else if (n > 0) {
+      pro(n)
+    } else {
+      neutral
+    }
+  }
+
   def proBig() = pro(100)
 
   def proSmall() = pro(1)
@@ -72,6 +82,11 @@ trait SilPhraseScorer
       }
     }
     querier.query(scorer, phrase)
+    if (false) {
+      println("PHRASE = " + phrase)
+      println("SCORE = " + score)
+      println
+    }
     score
   }
 }

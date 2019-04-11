@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.util._
@@ -179,7 +180,32 @@ class SmcResponder[
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
       mind, sentencePrinter, generalParams.existenceAssumption, debugger)
 
-  def newParser(input : String) = mind.newParser(input)
+  class ContextualScorer extends SilWordnetScorer
+  {
+    override def computeGlobalScore(phrase : SilPhrase) : SilPhraseScore =
+    {
+      val boost = phrase match {
+        case sentence : SilSentence => {
+          val analyzed = mind.analyzeSense(sentence)
+          val resultCollector = SmcResultCollector[EntityType]
+          val result = resolveReferences(analyzed, resultCollector)
+          if (result.isFailure) {
+            return SilPhraseScore.conBig
+          }
+          SilPhraseScore.numeric(
+            resultCollector.referenceMap.values.count(_.nonEmpty))
+        }
+        case _ => SilPhraseScore.neutral
+      }
+      super.computeGlobalScore(phrase) + boost
+    }
+  }
+
+  def newParser(input : String) =
+  {
+    val context = SprContext(scorer = new ContextualScorer)
+    SprParser(input, context)
+  }
 
   def process(sentence : SilSentence, input : String = "") : String =
   {

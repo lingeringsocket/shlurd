@@ -53,7 +53,7 @@ object SprWordnetLabeler
   private val stopList = Set(
     "I", "an", "as", "at", "by", "he", "it", "do", "at", "off",
     "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",
-    "does", "have", "my", "can"
+    "does", "have", "my"
   )
 
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
@@ -210,7 +210,7 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
         case LABEL_SEMICOLON => Set(SptSEMICOLON(leaf))
         case "'" | "'s" => Set(SptPOS(leaf))
         // FIXME proper handling for all contractions
-        case "ca" | "can" => Set(SptMD(makeLeaf(token, token, LEMMA_CAN)))
+        case "ca" => Set(SptMD(makeLeaf(token, token, LEMMA_CAN)))
         case "n't" => Set(SptRB(makeLeaf(token, token, LEMMA_NOT)))
         case LEMMA_TO => Set(SptTO(leaf))
         case _ => {

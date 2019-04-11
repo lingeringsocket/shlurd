@@ -1498,6 +1498,35 @@ class SpcResponderSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
+    "disambiguate based on context" in new
+      ResponderContext(ACCEPT_MODIFIED_BELIEFS)
+    {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not supported")
+      }
+      loadBeliefs("/ontologies/containment.txt")
+      processBelief("Daniel is a person")
+      processBelief("a lion is a kind of object")
+      processBelief("a lion may be sad or angry")
+      processBelief("there is a big lion")
+      processBelief("a stomach is a kind of object")
+      processBelief("there is a stomach")
+      processBelief("the lion is sad")
+      processBelief("if a person kicks a lion, then the lion is angry")
+      processTerse("Daniel kicks the lion in the stomach", "OK.")
+      processTerse("is the lion angry", "Yes.")
+      processBelief("there is a small lion")
+      processBelief("the small lion is sad")
+      processBelief("the big lion is sad")
+      processTerse("Daniel kicks the lion in the stomach",
+        "Please be more specific about which lion you mean.")
+      processBelief("the small lion is in the stomach")
+      processTerse("which lion is in the stomach", "The small lion.")
+      processTerse("Daniel kicks the lion in the stomach", "OK.")
+      processTerse("is the small lion angry", "Yes.")
+      processTerse("is the big lion angry", "No.")
+    }
+
     "support roles with multiple forms" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {

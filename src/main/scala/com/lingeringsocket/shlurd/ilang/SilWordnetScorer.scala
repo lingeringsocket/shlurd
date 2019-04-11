@@ -54,7 +54,9 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     case s : SilSentence if (
       (s.tam.modality != MODAL_NEUTRAL) || s.tam.isNegative
     ) => {
-      SilPhraseScore.proSmall
+      val tests = Seq((s.tam.modality != MODAL_NEUTRAL), s.tam.isNegative)
+      val boost = tests.count(truth => truth)
+      SilPhraseScore.numeric(boost * SilPhraseScore.proBig.pro)
     }
   }
 
@@ -85,17 +87,16 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
 
   private def usageScore(lemma : String, pos : POS) : SilPhraseScore =
   {
+    if (lemma.contains('-')) {
+      return SilPhraseScore.neutral
+    }
     val score = ShlurdWordnet.getUsageScore(lemma, pos)
     if (score == 0) {
-      SilPhraseScore.neutral
+      SilPhraseScore.proSmall
     } else if (score < 0) {
-      if (pos == POS.ADJECTIVE) {
-        SilPhraseScore.neutral
-      } else {
-        SilPhraseScore.con(-score)
-      }
+      SilPhraseScore.neutral
     } else {
-      SilPhraseScore.pro(score)
+      SilPhraseScore.pro(1 + score)
     }
   }
 
