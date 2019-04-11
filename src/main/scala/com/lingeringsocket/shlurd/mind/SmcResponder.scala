@@ -141,6 +141,42 @@ object SmcResponder
       classOf[SmcResponder[_, _, _, _]])
 }
 
+class SmcContextualScorer[
+  EntityType<:SmcEntity,
+  PropertyType<:SmcProperty,
+  CosmosType<:SmcCosmos[EntityType, PropertyType],
+  MindType<:SmcMind[EntityType, PropertyType, CosmosType]
+](responder : SmcResponder[EntityType, PropertyType, CosmosType, MindType])
+    extends SilWordnetScorer
+{
+  type ResultCollectorType = SmcResultCollector[EntityType]
+
+  protected def computeBoost(
+    sentence : SilSentence,
+    resultCollector : ResultCollectorType) : SilPhraseScore =
+  {
+    SilPhraseScore.numeric(
+      resultCollector.referenceMap.values.count(_.nonEmpty))
+  }
+
+  override def computeGlobalScore(phrase : SilPhrase) : SilPhraseScore =
+  {
+    val boost = phrase match {
+      case sentence : SilSentence => {
+        val analyzed = responder.getMind.analyzeSense(sentence)
+        val resultCollector = SmcResultCollector[EntityType]
+        val result = responder.resolveReferences(analyzed, resultCollector)
+        if (result.isFailure) {
+          return SilPhraseScore.conBig
+        }
+        computeBoost(analyzed, resultCollector)
+      }
+      case _ => SilPhraseScore.neutral
+    }
+    super.computeGlobalScore(phrase) + boost
+  }
+}
+
 class SmcResponder[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -176,34 +212,15 @@ class SmcResponder[
 
   def fail(msg : String) = cosmos.fail(msg)
 
+  def getMind = mind
+
   protected def newPredicateEvaluator() =
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
       mind, sentencePrinter, generalParams.existenceAssumption, debugger)
 
-  class ContextualScorer extends SilWordnetScorer
-  {
-    override def computeGlobalScore(phrase : SilPhrase) : SilPhraseScore =
-    {
-      val boost = phrase match {
-        case sentence : SilSentence => {
-          val analyzed = mind.analyzeSense(sentence)
-          val resultCollector = SmcResultCollector[EntityType]
-          val result = resolveReferences(analyzed, resultCollector)
-          if (result.isFailure) {
-            return SilPhraseScore.conBig
-          }
-          SilPhraseScore.numeric(
-            resultCollector.referenceMap.values.count(_.nonEmpty))
-        }
-        case _ => SilPhraseScore.neutral
-      }
-      super.computeGlobalScore(phrase) + boost
-    }
-  }
-
   def newParser(input : String) =
   {
-    val context = SprContext(scorer = new ContextualScorer)
+    val context = SprContext(scorer = new SmcContextualScorer(this))
     SprParser(input, context)
   }
 

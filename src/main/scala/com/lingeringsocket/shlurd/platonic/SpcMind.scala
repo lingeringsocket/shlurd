@@ -53,7 +53,8 @@ class SpcMind(cosmos : SpcCosmos)
   def loadBeliefs(source : Source)
   {
     val beliefs = source.getLines.filterNot(_.isEmpty).mkString("\n")
-    val sentences = cosmos.newParser(beliefs).parseAll
+    val responder = new SpcResponder(this, ACCEPT_NEW_BELIEFS)
+    val sentences = responder.newParser(beliefs).parseAll
     sentences.foreach(sentence => {
       val accepter = new SpcBeliefAccepter(this, false)
       val analyzed = analyzeSense(sentence)

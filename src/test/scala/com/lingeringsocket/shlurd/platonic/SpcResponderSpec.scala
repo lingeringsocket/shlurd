@@ -1470,13 +1470,13 @@ class SpcResponderSpec extends Specification
 
       processBelief("a hobbit cannot kill a dragon")
       processBelief("generally a dwarf can't kill a dragon")
-      processBelief("a dwarf can kill a dragon easily with a sword")
+      processBelief("a dwarf can kill a dragon with a sword")
 
       process("Bilbo kills Smaug", "A hobbit can not kill a dragon.")
-      process("Bilbo kills Smaug easily with Glamdring",
+      process("Bilbo kills Smaug with Glamdring",
         "A hobbit can not kill a dragon.")
       process("Gimli kills Smaug", "One does not simply kill a dragon.")
-      process("Gimli kills Smaug easily with Glamdring", "OK.")
+      process("Gimli kills Smaug with Glamdring", "OK.")
     }
 
     "reify unknown person" in new ResponderContext(ACCEPT_NEW_BELIEFS)

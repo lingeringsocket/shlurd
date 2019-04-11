@@ -374,11 +374,14 @@ class SpcBeliefRecognizer(
       : Seq[SpcBelief] =
   {
     var invalid = false
+    val querier = new SilPhraseRewriter
     assertionSentence match {
       case conditional : SilConditionalSentence => {
         val consequent = conditional.consequent
-        val querier = new SilPhraseRewriter
-        def validateReferences = querier.queryMatcher {
+        def validateConsequent = querier.queryMatcher {
+          case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
+            invalid = true
+          }
           case SilNounReference(_, determiner, _) => {
             determiner match {
               case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
@@ -390,7 +393,7 @@ class SpcBeliefRecognizer(
           }
         }
         if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
-          querier.query(validateReferences, consequent)
+          querier.query(validateConsequent, consequent)
         }
         alternative.foreach(alternativeSentence => {
           if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
@@ -407,15 +410,20 @@ class SpcBeliefRecognizer(
           }
         })
       }
-      case SilPredicateSentence(_ : SilActionPredicate, tam, _) => {
+      case SilPredicateSentence(predicate : SilActionPredicate, tam, _) => {
+        def validateAssertion = querier.queryMatcher {
+          case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
+            invalid = true
+          }
+        }
         tam.modality match {
           case MODAL_MAY | MODAL_POSSIBLE | MODAL_CAPABLE | MODAL_PERMITTED => {
-            invalid = false
           }
           case _ => {
             invalid = true
           }
         }
+        querier.query(validateAssertion, predicate)
       }
       case _ => {
         invalid = true

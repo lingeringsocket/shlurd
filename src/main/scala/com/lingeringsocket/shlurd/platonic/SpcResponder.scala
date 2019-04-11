@@ -44,6 +44,25 @@ case class SpcAssertionResult(
 {
 }
 
+class SpcContextualScorer(responder : SpcResponder)
+    extends SmcContextualScorer(responder)
+{
+  override protected def computeBoost(
+    sentence : SilSentence,
+    resultCollector : ResultCollectorType) : SilPhraseScore =
+  {
+    val recognizer = new SpcBeliefRecognizer(
+      responder.getMind.getCosmos,
+      resultCollector)
+    val beliefs = recognizer.recognizeBeliefs(sentence)
+    val boost = beliefs match {
+      case Seq() => SilPhraseScore.neutral
+      case _ => SilPhraseScore.proBig
+    }
+    super.computeBoost(sentence, resultCollector) + boost
+  }
+}
+
 class SpcResponder(
   mind : SpcMind,
   beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
@@ -67,6 +86,12 @@ class SpcResponder(
   override protected def spawn(subMind : SpcMind) =
   {
     new SpcResponder(subMind, beliefAcceptance, params)
+  }
+
+  override def newParser(input : String) =
+  {
+    val context = SprContext(scorer = new SpcContextualScorer(this))
+    SprParser(input, context)
   }
 
   override protected def newPredicateEvaluator() =
