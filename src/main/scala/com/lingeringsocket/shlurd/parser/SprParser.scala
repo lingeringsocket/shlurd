@@ -337,13 +337,28 @@ object SprParser
     }
   }
 
+  private def refineTokens(sentence : SprTokenizedSentence) : Seq[String] =
+  {
+    val seq = collapseQuotations(sentence)
+    seq.flatMap(word => word.toLowerCase match {
+      case "cannot" => {
+        if (word.head.isUpper) {
+          Seq("Can", "not")
+        } else {
+          Seq("can", "not")
+        }
+      }
+      case _ => Seq(word)
+    })
+  }
+
   private[parser] def prepareHeuristic(
     context : SprContext,
     sentence : SprTokenizedSentence,
     dump : Boolean, dumpDesc : String) : SprParser =
   {
     val dumpPrefix = dumpDesc
-    val allWords = collapseQuotations(sentence)
+    val allWords = refineTokens(sentence)
     val (words, terminator) = {
       if (isTerminator(allWords.last)) {
         tupleN((allWords.dropRight(1), Some(allWords.last)))

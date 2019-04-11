@@ -1468,7 +1468,7 @@ class SpcResponderSpec extends Specification
       processBelief("if a person kills a dragon, then the dragon is dead")
       process("Sigurd kills Fafnir", "OK.")
 
-      processBelief("a hobbit can't kill a dragon")
+      processBelief("a hobbit cannot kill a dragon")
       processBelief("generally a dwarf can't kill a dragon")
       processBelief("a dwarf can kill a dragon easily with a sword")
 
