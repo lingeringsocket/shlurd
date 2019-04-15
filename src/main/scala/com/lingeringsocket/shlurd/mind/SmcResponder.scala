@@ -117,7 +117,9 @@ object SmcResultCollector
 
 class SmcExecutor[EntityType<:SmcEntity]
 {
-  def executeAction(predicate : SilActionPredicate) : Option[String] =
+  def executeAction(
+    predicate : SilActionPredicate,
+    referenceMap : Map[SilReference, Set[EntityType]]) : Option[String] =
   {
     None
   }
@@ -929,20 +931,22 @@ class SmcResponder[
     referenceMap : Map[SilReference, Set[EntityType]]) : SilPhrase =
   {
     val rewriter = new SilPhraseRewriter
-    def replaceReferences = rewriter.replacementMatcher {
-      case ref : SilReference => {
-        referenceMap.get(ref) match {
-          case Some(entities) => {
-            SilConjunctiveReference(
-              DETERMINER_ALL,
-              entities.map(_.getUniqueIdentifier).toSeq.sorted.map(id =>
-                SilMappedReference(id, DETERMINER_UNSPECIFIED))
+    def replaceReferences = rewriter.replacementMatcher(
+      "replaceReferencesWithEntities", {
+        case ref : SilReference => {
+          referenceMap.get(ref) match {
+            case Some(entities) => {
+              SilConjunctiveReference(
+                DETERMINER_ALL,
+                entities.map(_.getUniqueIdentifier).toSeq.sorted.map(id =>
+                  SilMappedReference(id, DETERMINER_UNSPECIFIED))
               )
+            }
+            case _ => ref
           }
-          case _ => ref
         }
       }
-    }
+    )
     rewriter.rewrite(
       replaceReferences, phrase, SilRewriteOptions(topDown = true))
   }

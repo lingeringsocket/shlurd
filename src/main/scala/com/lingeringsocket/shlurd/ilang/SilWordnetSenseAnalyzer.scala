@@ -24,22 +24,24 @@ class SilWordnetSenseAnalyzer extends SilPhraseRewriter
 {
   def analyze[PhraseType <: SilPhrase](phrase : PhraseType) : PhraseType =
   {
-    def matcher = replacementMatcher {
-      case SilActionPredicate(subject, action, directObject, modifiers) => {
-        val senseId = filterSenses(action, POS.VERB, sense => {
-          isCompatibleAction(sense, subject, directObject, modifiers)
-        })
-        SilActionPredicate(
-          subject,
-          action.withSense(senseId),
-          directObject,
-          modifiers)
+    def matcher = replacementMatcher(
+      "SilWordnetSenseAnalyzer", {
+        case SilActionPredicate(subject, action, directObject, modifiers) => {
+          val senseId = filterSenses(action, POS.VERB, sense => {
+            isCompatibleAction(sense, subject, directObject, modifiers)
+          })
+          SilActionPredicate(
+            subject,
+            action.withSense(senseId),
+            directObject,
+            modifiers)
+        }
+        case SilNounReference(noun, determiner, count) => {
+          val senseId = filterSenses(noun, POS.NOUN, sense => true)
+          SilNounReference(noun.withSense(senseId), determiner, count)
+        }
       }
-      case SilNounReference(noun, determiner, count) => {
-        val senseId = filterSenses(noun, POS.NOUN, sense => true)
-        SilNounReference(noun.withSense(senseId), determiner, count)
-      }
-    }
+    )
     rewrite(matcher, phrase)
   }
 

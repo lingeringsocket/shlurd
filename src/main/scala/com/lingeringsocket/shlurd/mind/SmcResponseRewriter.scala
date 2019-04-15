@@ -79,69 +79,71 @@ class SmcResponseRewriter[
       rr.getOrElse(allRef)
     }
 
-    def replaceReferences = replacementMatcher {
-      case SilStateSpecifiedReference(
-        ref, _
-      ) if (!ref.acceptsSpecifiers) => {
-        ref
-      }
-      case SilConjunctiveReference(determiner, references, separator) => {
-        determiner match {
-          case DETERMINER_ANY => {
-            normalizeDisjunction(
-              resultCollector, entityDeterminer,
-              separator, params).getOrElse
-            {
-              negateCollection = true
-              SilConjunctiveReference(
-                DETERMINER_NONE, references, separator)
+    def replaceReferences = replacementMatcher(
+      "replaceReferences", {
+        case SilStateSpecifiedReference(
+          ref, _
+        ) if (!ref.acceptsSpecifiers) => {
+          ref
+        }
+        case SilConjunctiveReference(determiner, references, separator) => {
+          determiner match {
+            case DETERMINER_ANY => {
+              normalizeDisjunction(
+                resultCollector, entityDeterminer,
+                separator, params).getOrElse
+              {
+                negateCollection = true
+                SilConjunctiveReference(
+                  DETERMINER_NONE, references, separator)
+              }
             }
-          }
-          case DETERMINER_ALL => {
-            normalizeConjunctionWrapper(
-              separator,
-              SilConjunctiveReference(
-                DETERMINER_ALL, references, separator))
-          }
-          case _ => {
-            SilConjunctiveReference(determiner, references, separator)
+            case DETERMINER_ALL => {
+              normalizeConjunctionWrapper(
+                separator,
+                SilConjunctiveReference(
+                  DETERMINER_ALL, references, separator))
+            }
+            case _ => {
+              SilConjunctiveReference(determiner, references, separator)
+            }
           }
         }
-      }
-      case SilNounReference(
-        noun, DETERMINER_ANY | DETERMINER_SOME, count
-      ) => {
-        normalizeDisjunction(
-          resultCollector, entityDeterminer,
-          SEPARATOR_OXFORD_COMMA, params).getOrElse
-        {
-          negateCollection = true
-          val (responseDeterminer, responseNoun) = noun match {
-            case SilWordLemma(LEMMA_WHO) => {
-              tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
+        case SilNounReference(
+          noun, DETERMINER_ANY | DETERMINER_SOME, count
+        ) => {
+          normalizeDisjunction(
+            resultCollector, entityDeterminer,
+            SEPARATOR_OXFORD_COMMA, params).getOrElse
+          {
+            negateCollection = true
+            val (responseDeterminer, responseNoun) = noun match {
+              case SilWordLemma(LEMMA_WHO) => {
+                tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
+              }
+              case SilWordLemma(LEMMA_WHOM) => {
+                tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
+              }
+              case SilWordLemma(LEMMA_WHERE) => {
+                tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE)))
+              }
+              case SilWordLemma(LEMMA_WHAT) => {
+                tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOTHING)))
+              }
+              case _ => (DETERMINER_NONE, noun)
             }
-            case SilWordLemma(LEMMA_WHOM) => {
-              tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
-            }
-            case SilWordLemma(LEMMA_WHERE) => {
-              tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE)))
-            }
-            case SilWordLemma(LEMMA_WHAT) => {
-              tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOTHING)))
-            }
-            case _ => (DETERMINER_NONE, noun)
+            SilNounReference(responseNoun, responseDeterminer, count)
           }
-          SilNounReference(responseNoun, responseDeterminer, count)
+        }
+        case SilNounReference(
+          noun, DETERMINER_ALL, count
+        ) => {
+          normalizeConjunctionWrapper(
+            SEPARATOR_OXFORD_COMMA,
+            SilNounReference(noun, DETERMINER_ALL, count))
         }
       }
-      case SilNounReference(
-        noun, DETERMINER_ALL, count
-      ) => {
-        normalizeConjunctionWrapper(
-          SEPARATOR_OXFORD_COMMA,
-          SilNounReference(noun, DETERMINER_ALL, count))
-      }
-    }
+    )
 
     val rewrite1 = {
       if (getTrueEntities(resultCollector).isEmpty ||
@@ -207,20 +209,22 @@ class SmcResponseRewriter[
 
   def swapPronounsSpeakerListener(
     referenceMap : mutable.Map[SilReference, Set[EntityType]]
-  ) = replacementMatcher {
-    case oldPronoun @ SilPronounReference(person, gender, count, distance)=> {
-      val speakerListenerReversed = person match {
-        case PERSON_FIRST => PERSON_SECOND
-        case PERSON_SECOND => PERSON_FIRST
-        case PERSON_THIRD => PERSON_THIRD
+  ) = replacementMatcher(
+    "swapPronounSpeakerListener", {
+      case oldPronoun @ SilPronounReference(person, gender, count, distance)=> {
+        val speakerListenerReversed = person match {
+          case PERSON_FIRST => PERSON_SECOND
+          case PERSON_SECOND => PERSON_FIRST
+          case PERSON_THIRD => PERSON_THIRD
+        }
+        val newPronoun =
+          SilPronounReference(speakerListenerReversed, gender, count, distance)
+        referenceMap.get(oldPronoun).foreach(entities =>
+          referenceMap.put(newPronoun, entities))
+        newPronoun
       }
-      val newPronoun =
-        SilPronounReference(speakerListenerReversed, gender, count, distance)
-      referenceMap.get(oldPronoun).foreach(entities =>
-        referenceMap.put(newPronoun, entities))
-      newPronoun
     }
-  }
+  )
 
   class AmbiguousRefDetector(
     val referenceMap : mutable.Map[SilReference, Set[EntityType]])
@@ -338,76 +342,83 @@ class SmcResponseRewriter[
   }
 
   // "Groot is I" becomes "I am Groot"
-  private def flipPronouns = replacementMatcher {
-    case SilRelationshipPredicate(
-      lhs,
-      rhs : SilPronounReference,
-      REL_IDENTITY,
-      _
-    ) => {
-      SilRelationshipPredicate(
-        rhs,
+  private def flipPronouns = replacementMatcher(
+    "flipPronouns", {
+      case SilRelationshipPredicate(
         lhs,
-        REL_IDENTITY)
-    }
-    case SilRelationshipPredicate(
-      lhs,
-      rhs @ SilConjunctiveReference(_, references, _),
-      REL_IDENTITY,
-      _
-    ) if (references.exists(_.isInstanceOf[SilPronounReference])) => {
-      SilRelationshipPredicate(
-        rhs,
-        lhs,
-        REL_IDENTITY)
-    }
-  }
-
-  // "Who is Slothrop?" becomes "Slothrop is who" so that the response
-  // comes out more naturally as "Slothrop is a lieutenant"
-  private def flipPredicateQueries = replacementMatcher {
-    case SilRelationshipPredicate(
-      lhs,
-      rhs,
-      REL_IDENTITY,
-      _
-    ) if (containsWildcard(lhs) && !containsWildcard(rhs)) =>
-      {
+        rhs : SilPronounReference,
+        REL_IDENTITY,
+        _
+      ) => {
         SilRelationshipPredicate(
           rhs,
           lhs,
           REL_IDENTITY)
       }
-  }
+      case SilRelationshipPredicate(
+        lhs,
+        rhs @ SilConjunctiveReference(_, references, _),
+        REL_IDENTITY,
+        _
+      ) if (references.exists(_.isInstanceOf[SilPronounReference])) => {
+        SilRelationshipPredicate(
+          rhs,
+          lhs,
+          REL_IDENTITY)
+      }
+    }
+  )
+
+  // "Who is Slothrop?" becomes "Slothrop is who" so that the response
+  // comes out more naturally as "Slothrop is a lieutenant"
+  private def flipPredicateQueries = replacementMatcher(
+    "flipPredicateQueries",
+    {
+      case SilRelationshipPredicate(
+        lhs,
+        rhs,
+        REL_IDENTITY,
+        _
+      ) if (containsWildcard(lhs) && !containsWildcard(rhs)) =>
+        {
+          SilRelationshipPredicate(
+            rhs,
+            lhs,
+            REL_IDENTITY)
+        }
+    }
+  )
 
   private def avoidTautologies(
     referenceMap : mutable.Map[SilReference, Set[EntityType]]
-  ) = replacementMatcher {
-    case SilRelationshipPredicate(
-      SilMappedReference(key, determiner),
-      other : SilReference,
-      REL_IDENTITY,
-      _
-    ) => {
-      val entity = entityMap(key)
-      SilRelationshipPredicate(
-        chooseReference(referenceMap, entity, other, determiner),
-        other,
-        REL_IDENTITY)
+  ) = replacementMatcher(
+    "avoidTautologies", {
+      case SilRelationshipPredicate(
+        SilMappedReference(key, determiner),
+        other : SilReference,
+        REL_IDENTITY,
+        _
+      ) => {
+        val entity = entityMap(key)
+        SilRelationshipPredicate(
+          chooseReference(referenceMap, entity, other, determiner),
+          other,
+          REL_IDENTITY)
+      }
+      case SilRelationshipPredicate(
+        other : SilReference,
+        SilMappedReference(key, determiner),
+        REL_IDENTITY,
+        _
+      ) => {
+        val entity = entityMap(key)
+        SilRelationshipPredicate(
+          other,
+          chooseReference(referenceMap, entity, other, determiner),
+          REL_IDENTITY)
+      }
     }
-    case SilRelationshipPredicate(
-      other : SilReference,
-      SilMappedReference(key, determiner),
-      REL_IDENTITY,
-      _
-    ) => {
-      val entity = entityMap(key)
-      SilRelationshipPredicate(
-        other,
-        chooseReference(referenceMap, entity, other, determiner),
-        REL_IDENTITY)
-    }
-  }
+  )
 
   private def resolveReference(
     entity : EntityType,
@@ -433,42 +444,46 @@ class SmcResponseRewriter[
     }
   }
 
-  private def removeResolvedReferenceQualifiers = replacementMatcher {
-    case SilStateSpecifiedReference(
-      mr : SilMappedReference,
-      _
-    ) => {
-      mr
+  private def removeResolvedReferenceQualifiers = replacementMatcher(
+    "removeResolvedReferenceQualifiers", {
+      case SilStateSpecifiedReference(
+        mr : SilMappedReference,
+        _
+      ) => {
+        mr
+      }
+      case SilStateSpecifiedReference(
+        cr : SilConjunctiveReference,
+        _
+      ) => {
+        cr
+      }
+      case SilStateSpecifiedReference(
+        sr @ SilStateSpecifiedReference(
+          _,
+          SilAdpositionalState(
+            SilAdposition.OF,
+            SilPronounReference(
+              PERSON_THIRD, GENDER_N, COUNT_PLURAL, DISTANCE_UNSPECIFIED))),
+        _
+      ) => {
+        sr
+      }
     }
-    case SilStateSpecifiedReference(
-      cr : SilConjunctiveReference,
-      _
-    ) => {
-      cr
-    }
-    case SilStateSpecifiedReference(
-      sr @ SilStateSpecifiedReference(
-        _,
-        SilAdpositionalState(
-          SilAdposition.OF,
-          SilPronounReference(
-            PERSON_THIRD, GENDER_N, COUNT_PLURAL, DISTANCE_UNSPECIFIED))),
-      _
-    ) => {
-      sr
-    }
-  }
+  )
 
   private def replaceResolvedReferences(
     referenceMap : mutable.Map[SilReference, Set[EntityType]]
-  ) = replacementMatcher {
-    case SilMappedReference(key, determiner) => {
-      val entity = entityMap(key)
-      val ref = mind.specificReference(entity, determiner)
-      referenceMap.remove(ref)
-      ref
+  ) = replacementMatcher(
+    "replaceResolvedReferences", {
+      case SilMappedReference(key, determiner) => {
+        val entity = entityMap(key)
+        val ref = mind.specificReference(entity, determiner)
+        referenceMap.remove(ref)
+        ref
+      }
     }
-  }
+  )
 
   private def clearInflectedCounts = querier.queryMatcher {
     case predicate : SilPredicate => {
@@ -548,84 +563,94 @@ class SmcResponseRewriter[
 
   private def replaceThirdPersonReferences(
     referenceMap : Map[SilReference, Set[EntityType]]
-  ) = replacementMatcher {
-    case ref : SilReference => {
-      ref match {
-        case SilNounReference(_, _, _) |
-            SilStateSpecifiedReference(_, _) |
-            SilConjunctiveReference(_, _, _) =>
-          {
-            referenceMap.get(ref).flatMap(
-              entities => mind.thirdPersonReference(entities)).getOrElse(ref)
-          }
-        case _ => ref
+  ) = replacementMatcher(
+    "replaceThirdPersonReferences", {
+      case ref : SilReference => {
+        ref match {
+          case SilNounReference(_, _, _) |
+              SilStateSpecifiedReference(_, _) |
+              SilConjunctiveReference(_, _, _) =>
+            {
+              referenceMap.get(ref).flatMap(
+                entities => mind.thirdPersonReference(entities)).getOrElse(ref)
+            }
+          case _ => ref
+        }
       }
     }
-  }
+  )
 
   private def replaceThirdPersonPronouns(
     referenceMap : Map[SilReference, Set[EntityType]]
-  ) = replacementMatcher {
-    case pr @ SilPronounReference(PERSON_THIRD, _, _, _) => {
-      referenceMap.get(pr).map(
-        entities => mind.specificReferences(entities)
-      ).getOrElse(pr)
+  ) = replacementMatcher(
+    "replaceThirdPersonPronouns", {
+      case pr @ SilPronounReference(PERSON_THIRD, _, _, _) => {
+        referenceMap.get(pr).map(
+          entities => mind.specificReferences(entities)
+        ).getOrElse(pr)
+      }
     }
-  }
+  )
 
   private def answerPropertyQueries(
     states : Set[SilWord]
-  )= replacementMatcher {
-    case SilPropertyQueryState(_) => {
-      assert(states.size == 1)
-      SilPropertyState(states.head)
-    }
-  }
-
-  private def clearActionInflection = replacementMatcher {
-    case SilActionPredicate(
-      subject, action, directObject, modifiers
-    ) => {
-      SilActionPredicate(
-        subject, action.toUninflected, directObject, modifiers)
-    }
-  }
-
-  private def coerceCountAgreement = replacementMatcher {
-    case SilRelationshipPredicate(subject, complement, REL_IDENTITY, _) => {
-      val subjectCount = SilReference.getCount(subject)
-      val complementCount = SilReference.getCount(complement)
-      if (subjectCount != complementCount) {
-        val subjectCoercible =
-          SilReference.isCountCoercible(subject)
-        val complementCoercible =
-          SilReference.isCountCoercible(complement)
-        val agreedCount = {
-          if (subjectCoercible && complementCoercible) {
-            COUNT_PLURAL
-          } else if (subjectCoercible) {
-            complementCount
-          } else {
-            subjectCount
-          }
-        }
-        def coerceIfNeeded(reference : SilReference, count : SilCount) =
-        {
-          if (count == agreedCount) {
-            reference
-          } else {
-            coerceCount(reference, agreedCount)
-          }
-        }
-        SilRelationshipPredicate(
-          coerceIfNeeded(subject, subjectCount),
-          coerceIfNeeded(complement, complementCount),
-          REL_IDENTITY)
-      } else {
-        SilRelationshipPredicate(subject, complement, REL_IDENTITY)
+  ) = replacementMatcher(
+    "answerPropertyQueries", {
+      case SilPropertyQueryState(_) => {
+        assert(states.size == 1)
+        SilPropertyState(states.head)
       }
     }
-  }
+  )
+
+  private def clearActionInflection = replacementMatcher(
+    "clearActionInflection", {
+      case SilActionPredicate(
+        subject, action, directObject, modifiers
+      ) => {
+        SilActionPredicate(
+          subject, action.toUninflected, directObject, modifiers)
+      }
+    }
+  )
+
+  private def coerceCountAgreement = replacementMatcher(
+    "coerceCountAgreement", {
+      case SilRelationshipPredicate(subject, complement, REL_IDENTITY, _) => {
+        val subjectCount = SilReference.getCount(subject)
+        val complementCount = SilReference.getCount(complement)
+        if (subjectCount != complementCount) {
+          val subjectCoercible =
+            SilReference.isCountCoercible(subject)
+          val complementCoercible =
+            SilReference.isCountCoercible(complement)
+          val agreedCount = {
+            if (subjectCoercible && complementCoercible) {
+              COUNT_PLURAL
+            } else if (subjectCoercible) {
+              complementCount
+            } else {
+              subjectCount
+            }
+          }
+          def coerceIfNeeded(reference : SilReference, count : SilCount) =
+          {
+            if (count == agreedCount) {
+              reference
+            } else {
+              coerceCount(reference, agreedCount)
+            }
+          }
+          SilRelationshipPredicate(
+            coerceIfNeeded(subject, subjectCount),
+            coerceIfNeeded(complement, complementCount),
+            REL_IDENTITY)
+        } else {
+          SilRelationshipPredicate(subject, complement, REL_IDENTITY)
+        }
+      }
+    }
+  )
 
   private def coerceCount(
     reference : SilReference, agreedCount : SilCount) : SilReference =

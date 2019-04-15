@@ -77,8 +77,8 @@ object ShlurdFictionApp extends App
 
 class ShlurdFictionMind(
   cosmos : SpcCosmos,
-  entityFirst : SpcEntity,
-  entitySecond : SpcEntity
+  val entityFirst : SpcEntity,
+  val entitySecond : SpcEntity
 ) extends ShlurdCliMind(cosmos, entityFirst, entitySecond)
 {
   private var timestamp = SpcTimestamp.ZERO
@@ -168,12 +168,9 @@ object ShlurdFictionShell
       tupleN((restore(file, terminal), false))
     } else {
       terminal.emitControl("Initializing...")
-      val (newPhenomenalMind, newNoumenalMind) = createNewCosmos
+      val snapshot = createNewCosmos
       tupleN((
-        ShlurdFictionSnapshot(
-          newPhenomenalMind,
-          newNoumenalMind
-        ),
+        snapshot,
         true))
     }
   }
@@ -188,7 +185,7 @@ object ShlurdFictionShell
     snapshot
   }
 
-  def createNewCosmos() : (ShlurdFictionMind, ShlurdFictionMind) =
+  def createNewCosmos() : ShlurdFictionSnapshot =
   {
     val noumenalCosmos = ShlurdPrimordialWordnet.loadCosmos
     val beliefs = ResourceUtils.getResourceFile(
@@ -212,7 +209,12 @@ object ShlurdFictionShell
     val phenomenalMind = new ShlurdFictionMind(
       phenomenalCosmos, entityPlayer, entityInterpreter)
 
-    tupleN((phenomenalMind, noumenalMind))
+    val mindMap = new mutable.LinkedHashMap[String, ShlurdFictionMind]
+    mindMap.put(ShlurdFictionSnapshot.PLAYER_PHENOMENAL, phenomenalMind)
+    mindMap.put(entityPlayer.name, phenomenalMind)
+    mindMap.put(ShlurdFictionSnapshot.NOUMENAL, noumenalMind)
+
+    ShlurdFictionSnapshot(mindMap)
   }
 }
 
@@ -298,26 +300,41 @@ class ShlurdFictionResponder(
 
 object ShlurdFictionSnapshot
 {
+  val PLAYER_PHENOMENAL = "player_phenomenal"
+
+  val NOUMENAL = "noumenal"
+
   def apply(
-    phenomenalMind : ShlurdFictionMind,
-    noumenalMind : ShlurdFictionMind) : ShlurdFictionSnapshot =
+    mindMap : mutable.Map[String, ShlurdFictionMind]) : ShlurdFictionSnapshot =
   {
-    ShlurdFictionSnapshot(
-      phenomenalMind,
-      noumenalMind,
+    apply(
+      mindMap,
       new SpcPerception(
-        noumenalMind.getCosmos,
-        phenomenalMind.getCosmos
+        getMindByName(mindMap, NOUMENAL).getCosmos,
+        getMindByName(mindMap, PLAYER_PHENOMENAL).getCosmos
       )
     )
+  }
+
+  def getMindByName(
+    mindMap : Map[String, ShlurdFictionMind],
+    name : String) : ShlurdFictionMind =
+  {
+    mindMap(name)
   }
 }
 
 case class ShlurdFictionSnapshot(
-  phenomenalMind : ShlurdFictionMind,
-  noumenalMind : ShlurdFictionMind,
+  mindMap : mutable.Map[String, ShlurdFictionMind],
   perception : SpcPerception
 )
+{
+  import ShlurdFictionSnapshot._
+
+  def getNoumenalMind = getMindByName(mindMap, NOUMENAL)
+
+  def getPhenomenalMind = getMindByName(mindMap, PLAYER_PHENOMENAL)
+}
 
 class ShlurdFictionShell(
   snapshot : ShlurdFictionSnapshot,
@@ -340,9 +357,13 @@ class ShlurdFictionShell(
 
   case class DeferredPhenomenon(belief : String) extends Deferred
 
-  private val phenomenalMind = snapshot.phenomenalMind
+  private val phenomenalMind = snapshot.getPhenomenalMind
 
-  private val noumenalMind = snapshot.noumenalMind
+  private val noumenalMind = snapshot.getNoumenalMind
+
+  private val playerEntity = phenomenalMind.entityFirst
+
+  private val interpreterEntity = phenomenalMind.entitySecond
 
   private val perception = snapshot.perception
 
@@ -356,61 +377,76 @@ class ShlurdFictionShell(
 
   private val executor = new SmcExecutor[SpcEntity]
   {
-    override def executeAction(ap : SilActionPredicate) : Option[String] =
+    override def executeAction(
+      ap : SilActionPredicate,
+      referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[String] =
     {
       val lemma = ap.action.toLemma
       ap.directObject match {
         case Some(SilQuotationReference(quotation)) => {
-          ap.subject match {
-            case SilNounReference(
-              SilWordInflected(inflected), DETERMINER_UNIQUE, COUNT_SINGULAR
-            ) => {
-              val ok = Some(OK)
-              inflected match {
-                case PLAYER_WORD => {
-                  lemma match {
-                    case "ask" => {
-                      defer(DeferredCommand(quotation))
-                      ok
-                    }
-                    case _ => None
-                  }
-                }
-                case INTERPRETER_WORD => {
-                  lemma match {
-                    case "say" => {
-                      defer(DeferredReport(quotation))
-                      ok
-                    }
-                    case "complain" => {
-                      defer(DeferredComplaint(quotation))
-                      ok
-                    }
-                    case "save" => {
-                      val file = getSaveFile(quotation)
-                      terminal.emitControl(s"Saving $file...")
-                      val serializer = new ShlurdCliSerializer
-                      phenomenalMind.stopConversation
-                      serializer.saveSnapshot(
-                        ShlurdFictionSnapshot(
-                          phenomenalMind,
-                          noumenalMind,
-                          perception),
-                        file)
-                      phenomenalMind.startConversation
-                      ok
-                    }
-                    case "restore" => {
-                      restoreFile = Some(getSaveFile(quotation))
-                      ok
-                    }
-                    case _ => None
-                  }
-                }
-                case _ => None
-              }
+          val subjectEntity = referenceMap.get(ap.subject) match {
+            case Some(entities) if (entities.size == 1) => {
+              Some(entities.head)
             }
             case _ => None
+          }
+          val ok = Some(OK)
+          if (subjectEntity == Some(playerEntity)) {
+            lemma match {
+              case "ask" => {
+                defer(DeferredCommand(quotation))
+                ok
+              }
+              case _ => None
+            }
+          } else if (subjectEntity == Some(interpreterEntity)) {
+            lemma match {
+              case "say" => {
+                defer(DeferredReport(quotation))
+                ok
+              }
+              case "complain" => {
+                defer(DeferredComplaint(quotation))
+                ok
+              }
+              case "save" => {
+                val file = getSaveFile(quotation)
+                terminal.emitControl(s"Saving $file...")
+                val serializer = new ShlurdCliSerializer
+                phenomenalMind.stopConversation
+                serializer.saveSnapshot(
+                  snapshot,
+                  file)
+                phenomenalMind.startConversation
+                ok
+              }
+              case "restore" => {
+                restoreFile = Some(getSaveFile(quotation))
+                ok
+              }
+              case _ => None
+            }
+          } else if (subjectEntity.nonEmpty) {
+            lemma match {
+              // FIXME make sure this can't be invoked directly
+              // by player
+              case "believe" => {
+                subjectEntity match {
+                  case Some(entity) => {
+                    // FIXME if quotation does not start with slash,
+                    // then interpret inline
+                    importEntityBeliefs(
+                      entity,
+                      quotation)
+                    ok
+                  }
+                  case _ => None
+                }
+              }
+              case _ => None
+            }
+          } else {
+            None
           }
         }
         case _ => None
@@ -518,9 +554,32 @@ class ShlurdFictionShell(
       source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
     sentences.foreach(sentence => {
       val output = responder.process(mind.analyzeSense(sentence))
-      assert(output == OK, output)
+      assert(output == OK, tupleN((sentence, output)))
       processDeferred
     })
+  }
+
+  private def importEntityBeliefs(
+    entity : SpcEntity,
+    resourceName : String)
+  {
+    val mind = {
+      if (snapshot.mindMap.contains(entity.name)) {
+        ShlurdFictionSnapshot.getMindByName(
+          snapshot.mindMap, entity.name)
+      } else {
+        val newCosmos = new SpcCosmos
+        newCosmos.copyFrom(noumenalMind.getCosmos)
+        val newMind = new ShlurdFictionMind(
+          newCosmos, entity, playerEntity)
+        snapshot.mindMap.put(entity.name, newMind)
+        newMind
+      }
+    }
+    val responder = new ShlurdFictionResponder(
+      this, false, mind, ACCEPT_MODIFIED_BELIEFS,
+      SmcResponseParams(), executor)
+    initMind(mind, responder, resourceName)
   }
 
   private def processDeferred()

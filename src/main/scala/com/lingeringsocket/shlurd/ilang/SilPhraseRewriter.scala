@@ -75,6 +75,25 @@ object SilPhraseRewriter
   }
 }
 
+case class SilPhraseReplacementMatcher(
+  name : String,
+  replacement : PartialFunction[SilPhrase, SilPhrase])
+    extends PartialFunction[SilPhrase, SilPhrase]
+{
+  private val logger = LoggerFactory.getLogger(classOf[SilPhraseRewriter])
+
+  override def isDefinedAt(phrase : SilPhrase) : Boolean =
+  {
+    val r = replacement.isDefinedAt(phrase)
+    if (r && logger.isTraceEnabled) {
+      logger.trace(s"match succeeded on $name : $phrase")
+    }
+    r
+  }
+
+  override def apply(phrase : SilPhrase) = replacement.apply(phrase)
+}
+
 class SilPhraseRewriter
 {
   import SilPhraseRewriter._
@@ -133,7 +152,7 @@ class SilPhraseRewriter
         SyntaxPreservingRewriter.log(
           "rewriteLog",
           strategy,
-          "REWRITE ",
+          s"REWRITE",
           new TraceEmitter(logger))
       } else {
         strategy
@@ -173,8 +192,8 @@ class SilPhraseRewriter
     Rewriter.rewrite(strategy)(phrase)
   }
 
-  def replacementMatcher(f : SilPhraseReplacement)
-      : SilPhraseReplacement = f
+  def replacementMatcher(name : String, f : SilPhraseReplacement)
+      : SilPhraseReplacement = SilPhraseReplacementMatcher(name, f)
 
   def queryMatcher(f : SilPhraseQuery)
       : SilPhraseQuery = f

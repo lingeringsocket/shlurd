@@ -663,7 +663,7 @@ class SpcResponder(
 
     predicate match {
       case ap : SilActionPredicate => {
-        val executorResponse = executor.executeAction(ap)
+        val executorResponse = executor.executeAction(ap, referenceMapOpt.get)
         if (executorResponse.nonEmpty) {
           return executorResponse
         }

@@ -42,8 +42,7 @@ class ShlurdFictionSpec extends Specification
           }
         }
       }
-      val (phenomenalMind, noumenalMind) =
-        ShlurdFictionShell.createNewCosmos
+      val snapshot = ShlurdFictionShell.createNewCosmos
       val terminal = new ShlurdFictionTerminal {
         override def emitNarrative(msg : String)
         {
@@ -91,8 +90,6 @@ class ShlurdFictionSpec extends Specification
           "fiction-test-save.zip"
         }
       }
-      val snapshot = ShlurdFictionSnapshot(
-        phenomenalMind, noumenalMind)
       val shell = new ShlurdFictionShell(
         snapshot, terminal)
       shell.init

@@ -42,258 +42,275 @@ private[parser] class SprNormalizationRewriter
     normalizeDanglingAdpositions,
     normalizeCompoundAdpositions,
     normalizeAdpositionalPhrases,
-    normalizeCommands)
+    normalizeCommands
+  )
 
-  private def normalizeGenitives = replacementMatcher {
-    case SilGenitiveReference(r1, SilGenitiveReference(r2, r3)) => {
-      SilGenitiveReference(SilGenitiveReference(r1, r2), r3)
+  private def normalizeGenitives = replacementMatcher(
+    "normalizeGenitives", {
+      case SilGenitiveReference(r1, SilGenitiveReference(r2, r3)) => {
+        SilGenitiveReference(SilGenitiveReference(r1, r2), r3)
+      }
     }
-  }
+  )
 
-  private def normalizeCoordinatingDeterminers = replacementMatcher {
-    case SilStatePredicate(
-      subject,
-      SilConjunctiveState(
-        DETERMINER_ANY, states, separator),
-      verbModifiers
-    ) if (findCoordinatingDeterminer(verbModifiers).nonEmpty) => {
-      val (modifier, lemma) = findCoordinatingDeterminer(verbModifiers).get
-      val determiner = maybeDeterminerFor(lemma).get
-      SilStatePredicate(
+  private def normalizeCoordinatingDeterminers = replacementMatcher(
+    "normalizeCoordinatingDeterminers", {
+      case SilStatePredicate(
         subject,
         SilConjunctiveState(
-          determiner, states, separator),
-        verbModifiers.filterNot(_ == modifier)
-      )
-    }
-    case SilRelationshipPredicate(
-      subject,
-      SilConjunctiveReference(
-        DETERMINER_ANY, references, separator),
-      relationship,
-      verbModifiers
-    ) if (findCoordinatingDeterminer(verbModifiers).nonEmpty) => {
-      val (modifier, lemma) = findCoordinatingDeterminer(verbModifiers).get
-      val determiner = maybeDeterminerFor(lemma).get
-      SilRelationshipPredicate(
+          DETERMINER_ANY, states, separator),
+        verbModifiers
+      ) if (findCoordinatingDeterminer(verbModifiers).nonEmpty) => {
+        val (modifier, lemma) = findCoordinatingDeterminer(verbModifiers).get
+        val determiner = maybeDeterminerFor(lemma).get
+        SilStatePredicate(
+          subject,
+          SilConjunctiveState(
+            determiner, states, separator),
+          verbModifiers.filterNot(_ == modifier)
+        )
+      }
+      case SilRelationshipPredicate(
         subject,
         SilConjunctiveReference(
-          determiner, references, separator),
+          DETERMINER_ANY, references, separator),
         relationship,
-        verbModifiers.filterNot(_ == modifier)
-      )
+        verbModifiers
+      ) if (findCoordinatingDeterminer(verbModifiers).nonEmpty) => {
+        val (modifier, lemma) = findCoordinatingDeterminer(verbModifiers).get
+        val determiner = maybeDeterminerFor(lemma).get
+        SilRelationshipPredicate(
+          subject,
+          SilConjunctiveReference(
+            determiner, references, separator),
+          relationship,
+          verbModifiers.filterNot(_ == modifier)
+        )
+      }
     }
-  }
+  )
 
-  private def normalizeEmphatic = replacementMatcher {
-    case SilPredicateSentence(
-      predicate,
-      tam,
-      formality
-    ) if (
-      (tam.isInterrogative || tam.isNegative) &&
-        (tam.modality == MODAL_EMPHATIC)
-    ) => {
-      SilPredicateSentence(
+  private def normalizeEmphatic = replacementMatcher(
+    "normalizeEmphatic", {
+      case SilPredicateSentence(
         predicate,
-        tam.withModality(MODAL_NEUTRAL),
-        formality)
-    }
-    case SilPredicateQuery(
-      predicate,
-      question,
-      answerInflection,
-      tam,
-      formality
-    ) if (tam.modality == MODAL_EMPHATIC) => {
-      SilPredicateQuery(
+        tam,
+        formality
+      ) if (
+        (tam.isInterrogative || tam.isNegative) &&
+          (tam.modality == MODAL_EMPHATIC)
+      ) => {
+        SilPredicateSentence(
+          predicate,
+          tam.withModality(MODAL_NEUTRAL),
+          formality)
+      }
+      case SilPredicateQuery(
         predicate,
         question,
         answerInflection,
-        tam.withModality(MODAL_NEUTRAL),
-        formality
-      )
-    }
-  }
-
-  private def normalizeDanglingAdpositions = replacementMatcher {
-    case SilPredicateQuery(
-      SilActionPredicate(subject, action, directObject, modifiers),
-      question,
-      INFLECT_ACCUSATIVE,
-      tam,
-      formality
-    ) if (modifiers.exists(
-      m => !SilReference.getDanglingAdposition(m).isEmpty)
-    ) => {
-      SilPredicateQuery(
-        SilActionPredicate(
-          subject, action, directObject,
-          modifiers.flatMap(modifier => {
-            SilReference.getDanglingAdposition(modifier) match {
-              case Some(adposition) => {
-                Seq.empty
-              }
-              case _ => {
-                Seq(modifier)
-              }
-            }
-          })
-        ),
-        question,
-        INFLECT_ADPOSITIONED,
         tam,
-        formality)
+        formality
+      ) if (tam.modality == MODAL_EMPHATIC) => {
+        SilPredicateQuery(
+          predicate,
+          question,
+          answerInflection,
+          tam.withModality(MODAL_NEUTRAL),
+          formality
+        )
+      }
     }
-  }
+  )
+
+  private def normalizeDanglingAdpositions = replacementMatcher(
+    "normalizeDanglingAdposition", {
+      case SilPredicateQuery(
+        SilActionPredicate(subject, action, directObject, modifiers),
+        question,
+        INFLECT_ACCUSATIVE,
+        tam,
+        formality
+      ) if (modifiers.exists(
+        m => !SilReference.getDanglingAdposition(m).isEmpty)
+      ) => {
+        SilPredicateQuery(
+          SilActionPredicate(
+            subject, action, directObject,
+            modifiers.flatMap(modifier => {
+              SilReference.getDanglingAdposition(modifier) match {
+                case Some(adposition) => {
+                  Seq.empty
+                }
+                case _ => {
+                  Seq(modifier)
+                }
+              }
+            })
+          ),
+          question,
+          INFLECT_ADPOSITIONED,
+          tam,
+          formality)
+      }
+    }
+  )
 
   // FIXME generalize this
-  private def normalizeCompoundAdpositions = replacementMatcher {
-    case SilAdpositionalState(
-      adp1 : SilAdposition,
-      SilStateSpecifiedReference(
-        SilNounReference(
-          word : SilSimpleWord, DETERMINER_UNIQUE, COUNT_SINGULAR),
+  private def normalizeCompoundAdpositions = replacementMatcher(
+    "normalizeCompoundAdpositions", {
+      case SilAdpositionalState(
+        adp1 : SilAdposition,
+        SilStateSpecifiedReference(
+          SilNounReference(
+            word : SilSimpleWord, DETERMINER_UNIQUE, COUNT_SINGULAR),
+          SilAdpositionalState(
+            adp2 : SilAdposition,
+            objRef
+          )
+        )
+      ) if (word.lemma == LEMMA_LEFT) || (word.lemma == LEMMA_RIGHT) => {
         SilAdpositionalState(
-          adp2 : SilAdposition,
+          SilAdposition(
+            adp1.word.decomposed ++ Seq(SilWord(LEMMA_THE), word) ++
+              adp2.word.decomposed),
           objRef
         )
-      )
-    ) if (word.lemma == LEMMA_LEFT) || (word.lemma == LEMMA_RIGHT) => {
-      SilAdpositionalState(
-        SilAdposition(
-          adp1.word.decomposed ++ Seq(SilWord(LEMMA_THE), word) ++
-            adp2.word.decomposed),
-        objRef
-      )
+      }
     }
-  }
+  )
 
-  private def normalizeCompass = replacementMatcher {
-    case SilRelationshipPredicate(
-      subject,
-      SilStateSpecifiedReference(
-        SilNounReference(
-          direction : SilSimpleWord, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-        SilAdpositionalState(
-          adp,
-          landmark)
-      ),
-      REL_IDENTITY,
-      modifiers
-    ) if (
-      (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
-    ) => {
-      SilStatePredicate(
+  private def normalizeCompass = replacementMatcher(
+    "normalizeCompass", {
+      case SilRelationshipPredicate(
         subject,
-        SilAdpositionalState(
-          SilAdposition(direction +: adp.word.decomposed),
-          landmark
+        SilStateSpecifiedReference(
+          SilNounReference(
+            direction : SilSimpleWord, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+          SilAdpositionalState(
+            adp,
+            landmark)
         ),
+        REL_IDENTITY,
         modifiers
-      )
-    }
-    case SilStatePredicate(
-      subject,
-      SilPropertyState(direction : SilSimpleWord),
-      Seq(SilAdpositionalVerbModifier(adp, landmark))
-    ) if (
-      (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
-    ) => {
-      SilStatePredicate(
-        subject,
-        SilAdpositionalState(
-          SilAdposition(direction +: adp.word.decomposed),
-          landmark),
-        Seq.empty)
-    }
-  }
-
-  private def normalizeAdpositionalPhrases = replacementMatcher {
-    case SilStatePredicate(
-      subject,
-      state,
-      modifiers
-    ) => {
-      val (subjectExtracted, subjectModifiers) =
-        extractVerbModifier(subject)
-      SilStatePredicate(
-        subjectExtracted,
-        state,
-        subjectModifiers ++ modifiers
-      )
-    }
-    case SilRelationshipPredicate(
-      subject,
-      complement,
-      relationship,
-      modifiers
-    ) => {
-      val (subjectExtracted, subjectModifiers) =
-        extractVerbModifier(subject)
-      val (complementExtracted, complementModifiers) =
-        extractVerbModifier(complement)
-      SilRelationshipPredicate(
-        subjectExtracted,
-        complementExtracted,
-        relationship,
-        subjectModifiers ++ complementModifiers ++ modifiers)
-    }
-    case SilActionPredicate(
-      subject,
-      action,
-      directObject,
-      modifiers
-    ) => {
-      val (subjectExtracted, subjectModifiers) =
-        extractVerbModifier(subject)
-      val (directObjectExtracted, directObjectModifiers) =
-        directObject match {
-          case Some(obj) => {
-            val (r, m) = extractVerbModifier(obj)
-            tupleN((Some(r), m))
-          }
-          case _ => (None, Seq.empty)
-        }
-      SilActionPredicate(
-        subjectExtracted,
-        action,
-        directObjectExtracted,
-        subjectModifiers ++ directObjectModifiers ++ modifiers)
-    }
-  }
-
-  private def normalizeCommands = replacementMatcher {
-    case SilPredicateSentence(
-      actionPredicate : SilActionPredicate, tam, formality
-    ) if (actionPredicate.directObject.nonEmpty && tam.isImperative) => {
-      val (stateSpecifiers, verbModifiers) =
-        actionPredicate.modifiers.partition(
-          _ match {
-            case SilAdpositionalVerbModifier(adposition, objRef) => {
-              !isAdverbialAdposition(None, adposition, objRef)
-            }
-            case _ => {
-              false
-            }
-          }
+      ) if (
+        (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
+      ) => {
+        SilStatePredicate(
+          subject,
+          SilAdpositionalState(
+            SilAdposition(direction +: adp.word.decomposed),
+            landmark
+          ),
+          modifiers
         )
-      val directObject = SilReference.qualifiedByProperties(
-        actionPredicate.directObject.get,
-        stateSpecifiers.map(_.asInstanceOf[SilAdpositionalVerbModifier]).map(
-          vm => SilAdpositionalState(vm.adposition, vm.objRef)))
-      SilPredicateSentence(
-        SilActionPredicate(
-          actionPredicate.subject,
-          actionPredicate.action,
-          Some(directObject),
-          verbModifiers
-        ),
-        tam,
-        formality
-      )
+      }
+      case SilStatePredicate(
+        subject,
+        SilPropertyState(direction : SilSimpleWord),
+        Seq(SilAdpositionalVerbModifier(adp, landmark))
+      ) if (
+        (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
+      ) => {
+        SilStatePredicate(
+          subject,
+          SilAdpositionalState(
+            SilAdposition(direction +: adp.word.decomposed),
+            landmark),
+          Seq.empty)
+      }
     }
-  }
+  )
+
+  private def normalizeAdpositionalPhrases = replacementMatcher(
+    "normalizeAdpositionalPhrases", {
+      case SilStatePredicate(
+        subject,
+        state,
+        modifiers
+      ) => {
+        val (subjectExtracted, subjectModifiers) =
+          extractVerbModifier(subject)
+        SilStatePredicate(
+          subjectExtracted,
+          state,
+          subjectModifiers ++ modifiers
+        )
+      }
+      case SilRelationshipPredicate(
+        subject,
+        complement,
+        relationship,
+        modifiers
+      ) => {
+        val (subjectExtracted, subjectModifiers) =
+          extractVerbModifier(subject)
+        val (complementExtracted, complementModifiers) =
+          extractVerbModifier(complement)
+        SilRelationshipPredicate(
+          subjectExtracted,
+          complementExtracted,
+          relationship,
+          subjectModifiers ++ complementModifiers ++ modifiers)
+      }
+      case SilActionPredicate(
+        subject,
+        action,
+        directObject,
+        modifiers
+      ) => {
+        val (subjectExtracted, subjectModifiers) =
+          extractVerbModifier(subject)
+        val (directObjectExtracted, directObjectModifiers) =
+          directObject match {
+            case Some(obj) => {
+              val (r, m) = extractVerbModifier(obj)
+              tupleN((Some(r), m))
+            }
+            case _ => (None, Seq.empty)
+          }
+        SilActionPredicate(
+          subjectExtracted,
+          action,
+          directObjectExtracted,
+          subjectModifiers ++ directObjectModifiers ++ modifiers)
+      }
+    }
+  )
+
+  private def normalizeCommands = replacementMatcher(
+    "normalizeCommands", {
+      case SilPredicateSentence(
+        actionPredicate : SilActionPredicate, tam, formality
+      ) if (actionPredicate.directObject.nonEmpty && tam.isImperative) => {
+        val (stateSpecifiers, verbModifiers) =
+          actionPredicate.modifiers.partition(
+            _ match {
+              case SilAdpositionalVerbModifier(adposition, objRef) => {
+                !isAdverbialAdposition(None, adposition, objRef)
+              }
+              case _ => {
+                false
+              }
+            }
+          )
+        val directObject = SilReference.qualifiedByProperties(
+          actionPredicate.directObject.get,
+          stateSpecifiers.map(_.asInstanceOf[SilAdpositionalVerbModifier]).map(
+            vm => SilAdpositionalState(vm.adposition, vm.objRef)))
+        SilPredicateSentence(
+          SilActionPredicate(
+            actionPredicate.subject,
+            actionPredicate.action,
+            Some(directObject),
+            verbModifiers
+          ),
+          tam,
+          formality
+        )
+      }
+    }
+  )
 
   private def extractVerbModifier(ref : SilReference)
       : (SilReference, Seq[SilVerbModifier]) =

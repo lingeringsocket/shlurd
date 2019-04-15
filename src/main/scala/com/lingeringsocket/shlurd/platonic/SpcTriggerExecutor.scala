@@ -229,11 +229,13 @@ class SpcTriggerExecutor(
       }
     }
     val rewriter = new SilPhraseRewriter
-    def replaceReferences = rewriter.replacementMatcher {
-      case ref : SilReference => {
-        replacements.get(ref).getOrElse(ref)
+    def replaceReferences = rewriter.replacementMatcher(
+      "replaceReferences", {
+        case ref : SilReference => {
+          replacements.get(ref).getOrElse(ref)
+        }
       }
-    }
+    )
     val newPredicate = rewriter.rewrite(replaceReferences, consequent)
     if (isTraceEnabled) {
       debug(s"TRIGGER MATCH SUCCESSFUL")

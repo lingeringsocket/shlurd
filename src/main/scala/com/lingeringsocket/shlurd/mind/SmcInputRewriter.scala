@@ -35,44 +35,48 @@ class SmcInputRewriter[
   // FIXME this should be context-sensitive, and should be able to
   // handle more complicated constructs such as
   // "the first cousin of Elizabeth"
-  private def convertGenitiveOf = replacementMatcher {
-    case SilStateSpecifiedReference(
-      SilNounReference(noun, _, count),
-      SilAdpositionalState(
-        SilAdposition.OF,
-        possessor
-      )
-    ) => {
-      SilGenitiveReference(
-        possessor,
-        SilNounReference(noun, DETERMINER_UNSPECIFIED, count))
+  private def convertGenitiveOf = replacementMatcher(
+    "convertGenitiveOf", {
+      case SilStateSpecifiedReference(
+        SilNounReference(noun, _, count),
+        SilAdpositionalState(
+          SilAdposition.OF,
+          possessor
+        )
+      ) => {
+        SilGenitiveReference(
+          possessor,
+          SilNounReference(noun, DETERMINER_UNSPECIFIED, count))
+      }
     }
-  }
+  )
 
   // FIXME this rewrite is just a hack to keep tests passing for the moment
-  private def convertProgressive = replacementMatcher {
-    case SilPredicateSentence(
-      SilActionPredicate(
-        subject, action, None, modifiers),
-      tam, formality
-    ) if (tam.isProgressive) => {
-      SilPredicateSentence(
-        SilStatePredicate(
-          subject, SilPropertyState(action), modifiers),
-        tam.withAspect(ASPECT_SIMPLE), formality)
+  private def convertProgressive = replacementMatcher(
+    "convertProgressive", {
+      case SilPredicateSentence(
+        SilActionPredicate(
+          subject, action, None, modifiers),
+        tam, formality
+      ) if (tam.isProgressive) => {
+        SilPredicateSentence(
+          SilStatePredicate(
+            subject, SilPropertyState(action), modifiers),
+          tam.withAspect(ASPECT_SIMPLE), formality)
+      }
+      case SilPredicateQuery(
+        SilActionPredicate(
+          subject, action, None, modifiers),
+        question, answerInflection, tam, formality
+      ) if (tam.isProgressive) => {
+        SilPredicateQuery(
+          SilStatePredicate(
+            subject, SilPropertyState(action), modifiers),
+          question, answerInflection,
+          tam.withMood(MOOD_INTERROGATIVE), formality)
+      }
     }
-    case SilPredicateQuery(
-      SilActionPredicate(
-        subject, action, None, modifiers),
-      question, answerInflection, tam, formality
-    ) if (tam.isProgressive) => {
-      SilPredicateQuery(
-        SilStatePredicate(
-          subject, SilPropertyState(action), modifiers),
-        question, answerInflection,
-        tam.withMood(MOOD_INTERROGATIVE), formality)
-    }
-  }
+  )
 
   def bindPredicateWildcard(predicate : SilPredicate, objRef : SilReference)
       : SilPredicate =
@@ -83,10 +87,11 @@ class SmcInputRewriter[
   }
 
   private def replacePredicateWildcard(
-    objRef : SilReference) = replacementMatcher
-  {
-    case ref : SilNounReference if containsWildcard(ref) => {
-      objRef
+    objRef : SilReference) = replacementMatcher(
+    "replacePredicateWildcard", {
+      case ref : SilNounReference if containsWildcard(ref) => {
+        objRef
+      }
     }
-  }
+  )
 }

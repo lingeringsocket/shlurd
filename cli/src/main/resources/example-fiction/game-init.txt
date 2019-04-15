@@ -22,3 +22,5 @@ The lantern is in the kitchen.
 
 The big door is the bedroom's eastern-exit.
 The big door is the bathroom's western-exit.
+
+The thief believes "/example-fiction/thief-init.txt".

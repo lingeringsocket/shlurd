@@ -21,45 +21,49 @@ class SmcQueryRewriter(
   answerInflection : SilInflection)
     extends SilPhraseRewriter
 {
-  def rewriteSpecifier = replacementMatcher {
-    case SilNounReference(
-      noun, DETERMINER_UNSPECIFIED, count
-    ) if (!noun.isProper) => {
-      SilNounReference(noun, DETERMINER_ANY, count)
-    }
-  }
-
-  def rewritePredicate = replacementMatcher {
-    case SilStatePredicate(subject, state, modifiers) => {
-      SilStatePredicate(
-        scopedRewrite(subject, INFLECT_NOMINATIVE),
-        scopedRewrite(state, INFLECT_ADPOSITIONED),
-        modifiers)
-    }
-    case SilRelationshipPredicate(subject, complement,
-      relationship, modifiers
-    ) => {
-      val rewrittenComplement = question match {
-        case QUESTION_WHERE => {
-          SilGenitiveReference(
-            complement,
-            SilNounReference(SilWord(SmcLemmas.LEMMA_CONTAINER)))
-        }
-        case _ => complement
+  def rewriteSpecifier = replacementMatcher(
+    "rewriteSpecifier", {
+      case SilNounReference(
+        noun, DETERMINER_UNSPECIFIED, count
+      ) if (!noun.isProper) => {
+        SilNounReference(noun, DETERMINER_ANY, count)
       }
-      SilRelationshipPredicate(
-        scopedRewrite(subject, INFLECT_NOMINATIVE),
-        rewrittenComplement, relationship, modifiers)
     }
-    case SilActionPredicate(subject, action, directObject, modifiers) => {
-      SilActionPredicate(
-        scopedRewrite(subject, INFLECT_NOMINATIVE),
-        action,
-        directObject.map(scopedRewrite(_, INFLECT_ACCUSATIVE)),
-        modifiers.map(scopedRewrite(_, INFLECT_ADPOSITIONED))
-      )
+  )
+
+  def rewritePredicate = replacementMatcher(
+    "rewritePredicate", {
+      case SilStatePredicate(subject, state, modifiers) => {
+        SilStatePredicate(
+          scopedRewrite(subject, INFLECT_NOMINATIVE),
+          scopedRewrite(state, INFLECT_ADPOSITIONED),
+          modifiers)
+      }
+      case SilRelationshipPredicate(subject, complement,
+        relationship, modifiers
+      ) => {
+        val rewrittenComplement = question match {
+          case QUESTION_WHERE => {
+            SilGenitiveReference(
+              complement,
+              SilNounReference(SilWord(SmcLemmas.LEMMA_CONTAINER)))
+          }
+          case _ => complement
+        }
+        SilRelationshipPredicate(
+          scopedRewrite(subject, INFLECT_NOMINATIVE),
+          rewrittenComplement, relationship, modifiers)
+      }
+      case SilActionPredicate(subject, action, directObject, modifiers) => {
+        SilActionPredicate(
+          scopedRewrite(subject, INFLECT_NOMINATIVE),
+          action,
+          directObject.map(scopedRewrite(_, INFLECT_ACCUSATIVE)),
+          modifiers.map(scopedRewrite(_, INFLECT_ADPOSITIONED))
+        )
+      }
     }
-  }
+  )
 
   private def scopedRewrite[PhraseType <: SilPhrase](
     phrase : PhraseType,

@@ -653,7 +653,8 @@ class SprEnglishSyntaxAnalyzer(
               case SilAdpositionalState(SilAdposition(word), ref) => {
                 val unwrapped = adpTree.unwrapPhrase
                 if ((unwrapped.children.size == 1) &&
-                  unwrapped.children.head.isLeaf)
+                  unwrapped.children.head.isLeaf &&
+                  !unwrapped.isInstanceOf[SptNNQ])
                 {
                   SilAdpositionalState(
                     SilAdposition(
