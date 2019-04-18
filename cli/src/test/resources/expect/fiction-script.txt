@@ -38,6 +38,16 @@ You are in the bathroom.
 
 You see the ax and the thief.
 
+> is the thief suave
+
+I don't know.
+
+> say "are you suave" to the thief
+
+OK.
+
+The thief responds, "Yes, I am suave."
+
 > close the door
 
 OK.

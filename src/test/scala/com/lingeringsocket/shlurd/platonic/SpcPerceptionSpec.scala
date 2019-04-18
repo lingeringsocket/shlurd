@@ -35,7 +35,7 @@ class SpcPerceptionSpec extends Specification
       val sentence = cosmos.newParser(input).parseOne
       val mind = new SpcMind(cosmos)
       val responder = new SpcResponder(
-        mind, ACCEPT_NEW_BELIEFS,
+        mind, ACCEPT_MODIFIED_BELIEFS,
         SmcResponseParams(
           throwRejectedBeliefs = true,
           verbosity = RESPONSE_TERSE))
@@ -78,11 +78,15 @@ class SpcPerceptionSpec extends Specification
       val timestamp = SpcTimestamp.ZERO
 
       processBelief("a pet must be an animal")
+      processBelief("an owner must be a person")
       processBelief("a person may have pets")
+      processBelief("a pet may have an owner")
       processBelief("a person with a pet is an owner")
       processBelief("a girl is a kind of person")
+      processBelief("a boy is a kind of person")
       processBelief("a pig is a kind of animal")
       processBelief("Fern is a girl")
+      processBelief("Avery is a boy")
       processBelief("a pig may be hungry or full")
       phenomenalCosmos.copyFrom(noumenalCosmos)
       processBelief("Wilbur is a pig")
@@ -91,6 +95,7 @@ class SpcPerceptionSpec extends Specification
 
       val wilbur = expectProperName("Wilbur")
       val fern = expectProperName("Fern")
+      val avery = expectProperName("Avery")
 
       processNoumenal("is there a pig") must be equalTo "Yes."
       processNoumenal("is there a girl") must be equalTo "Yes."
@@ -125,6 +130,8 @@ class SpcPerceptionSpec extends Specification
       processPhenomenal("is there a girl") must be equalTo "Yes."
       processPhenomenal("does Fern have a pet") must be equalTo "Yes."
       processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
+      processPhenomenal("Fern is Wilbur's owner?") must be equalTo "Yes."
+      processPhenomenal("Avery is Wilbur's owner?") must be equalTo "No."
       processPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
 
       perception.perceiveEntityProperties(wilbur, timestamp)
@@ -133,6 +140,16 @@ class SpcPerceptionSpec extends Specification
       phenomenalCosmos.sanityCheck must beTrue
 
       processPhenomenal("is Wilbur hungry") must be equalTo "Yes."
+
+      processBelief("Wilbur is Avery's pet")
+      processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
+      processPhenomenal("Fern is Wilbur's owner?") must be equalTo "Yes."
+      processPhenomenal("Avery is Wilbur's owner?") must be equalTo "No."
+
+      perception.perceiveEntityAssociations(wilbur, timestamp)
+      processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
+      processPhenomenal("Avery is Wilbur's owner?") must be equalTo "Yes."
+      processPhenomenal("Fern is Wilbur's owner?") must be equalTo "No."
     }
 
     "remember timestamps" in new PerceptionContext

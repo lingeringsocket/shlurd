@@ -1,0 +1,51 @@
+> e
+
+OK.
+
+You are in the bathroom.
+
+You see the ax and the thief.
+
+> say "what are you made of" to the ax
+
+OK.
+
+The ax does not respond.
+
+> say "who are you" to the thief
+
+OK.
+
+The thief responds, "I am the thief."
+
+> say "where am I" to the thief
+
+OK.
+
+The thief responds, "You are in the bathroom."
+
+> say "where is the lantern" to the thief
+
+OK.
+
+The thief responds, "I don't know."
+
+> w
+
+OK.
+
+You are in the bedroom.
+
+> n
+
+OK.
+
+You are in the cupboard.
+
+You see the prophet.
+
+> say "where is the lantern" to the prophet
+
+OK.
+
+The prophet responds, "It is in the kitchen."

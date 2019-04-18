@@ -44,21 +44,21 @@ If a game-character enters a map-location, then
 If a player-character moves to a map-place, then
  the player-character asks "where am I".
 
-If a player-character moves to a map-place, then
- the player-character surveys the map-place.
-If a player-character surveys a map-place, then
- the player-character perceives the map-place and
+If a game-character moves to a map-place, then
+ the game-character surveys the map-place.
+If a game-character surveys a map-place, then
+ the game-character perceives the map-place and
   the map-place's spc-contained-objects.
-If a player-character surveys a map-place, then
- the player-character perceives the map-place's northern-exit.
-If a player-character surveys a map-place, then
- the player-character perceives the map-place's southern-exit.
-If a player-character surveys a map-place, then
- the player-character perceives the map-place's eastern-exit.
-If a player-character surveys a map-place, then
- the player-character perceives the map-place's western-exit.
+If a game-character surveys a map-place, then
+ the game-character perceives the map-place's northern-exit.
+If a game-character surveys a map-place, then
+ the game-character perceives the map-place's southern-exit.
+If a game-character surveys a map-place, then
+ the game-character perceives the map-place's eastern-exit.
+If a game-character surveys a map-place, then
+ the game-character perceives the map-place's western-exit.
 
-If a player-character moves to a map-place, then
- the player-character observes the map-place's spc-contained-objects.
+If a game-character moves to a map-place, then
+ the game-character observes the map-place's spc-contained-objects.
 If a player-character observes a visible-entity, then
  the player-character asks "what do I see".

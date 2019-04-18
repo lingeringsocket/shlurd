@@ -10,8 +10,11 @@ There is a player-character.
 A game-object is a kind of visible-entity.
 There is a game-turn.
 
-If a player-character sees a visible-entity, then equivalently
- the visible-entity is in the player-character's container.
+A non-player-character's awareness must be
+ mindless, unperceptive, perceptive, or omniscient.
+
+If a game-character sees a visible-entity, then equivalently
+ the visible-entity is in the game-character's container.
 
 If the game-turn advances, then
  the player-character surveys the player-character's container.

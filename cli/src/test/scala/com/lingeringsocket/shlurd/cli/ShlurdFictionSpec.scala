@@ -22,79 +22,92 @@ import scala.io._
 
 class ShlurdFictionSpec extends Specification
 {
+  // make sure initialization happens only once
+  sequential
+
   "ShlurdFictionApp" should
   {
     "interpret script" in
     {
-      val fileName = "fiction-script.txt"
-      val script = Source.fromFile(
-        ResourceUtils.getResourceFile(s"/expect/$fileName")).
-        getLines.zipWithIndex
-      def nextScriptLine() : Option[(String, Int)] = {
-        if (!script.hasNext) {
-          None
+      testScript("fiction-script.txt")
+    }
+
+    "interpret conversational commands" in
+    {
+      testScript("fiction-convo-command-script.txt")
+    }
+  }
+
+  private def testScript(fileName : String) =
+  {
+    val terminal = new ShlurdFictionTestTerminal(fileName)
+    ShlurdFictionShell.run(terminal)
+    terminal.nextScriptLine must beEmpty
+  }
+
+  class ShlurdFictionTestTerminal(fileName : String)
+      extends ShlurdFictionTerminal
+  {
+    private val script = Source.fromFile(
+      ResourceUtils.getResourceFile(s"/expect/$fileName")).
+      getLines.zipWithIndex
+
+    override def emitNarrative(msg : String)
+    {
+      super.emitNarrative(msg)
+      if (!msg.isEmpty) {
+        nextScriptLine match {
+          case Some((expected, lineNo)) => {
+            if (msg != expected) {
+              reportErrorLocation(lineNo)
+            }
+            msg must be equalTo expected
+          }
+          case _ => {
+            msg must be equalTo "EOF"
+          }
+        }
+      }
+    }
+
+    // FIXME do this the proper specs2 way
+    private def reportErrorLocation(lineNo : Int)
+    {
+      val lineNoOneBased = lineNo + 1
+      println(
+        s"ShlurdFictionSpec FAIL at $fileName:$lineNoOneBased")
+    }
+
+    override def readInput() : Option[String] =
+    {
+      nextScriptLine match {
+        case Some((cmd, lineNo)) => {
+          if (!cmd.startsWith("> ")) {
+            reportErrorLocation(lineNo)
+          }
+          cmd must startWith("> ")
+          Some(cmd.stripPrefix("> "))
+        }
+        case _ => None
+      }
+    }
+
+    override def getDefaultSaveFile() =
+    {
+      "fiction-test-save.zip"
+    }
+
+    def nextScriptLine() : Option[(String, Int)] = {
+      if (!script.hasNext) {
+        None
+      } else {
+        val s = script.next
+        if (s._1.isEmpty) {
+          nextScriptLine
         } else {
-          val s = script.next
-          if (s._1.isEmpty) {
-            nextScriptLine
-          } else {
-            Some(s)
-          }
+          Some(s)
         }
       }
-      val snapshot = ShlurdFictionShell.createNewCosmos
-      val terminal = new ShlurdFictionTerminal {
-        override def emitNarrative(msg : String)
-        {
-          super.emitNarrative(msg)
-          if (!msg.isEmpty) {
-            nextScriptLine match {
-              case Some((expected, lineNo)) => {
-                if (msg != expected) {
-                  reportErrorLocation(lineNo)
-                }
-                msg must be equalTo expected
-              }
-              case _ => {
-                msg must be equalTo "EOF"
-              }
-            }
-          }
-        }
-
-        // FIXME do this the proper specs2 way
-        private def reportErrorLocation(lineNo : Int)
-        {
-          val lineNoOneBased = lineNo + 1
-          println(
-            s"ShlurdFictionSpec FAIL at $fileName:$lineNoOneBased")
-        }
-
-        override def readInput() : Option[String] =
-        {
-          nextScriptLine match {
-            case Some((cmd, lineNo)) => {
-              if (!cmd.startsWith("> ")) {
-                reportErrorLocation(lineNo)
-              }
-              cmd must startWith("> ")
-              Some(cmd.stripPrefix("> "))
-            }
-            case _ => None
-          }
-
-        }
-
-        override def getDefaultSaveFile() =
-        {
-          "fiction-test-save.zip"
-        }
-      }
-      val shell = new ShlurdFictionShell(
-        snapshot, terminal)
-      shell.init
-      ShlurdFictionShell.run(shell)
-      nextScriptLine must beEmpty
     }
   }
 }

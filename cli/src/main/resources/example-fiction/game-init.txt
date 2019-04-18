@@ -1,9 +1,11 @@
 There is a bedroom.
 There is a bathroom.
 There is a kitchen.
+There is a cupboard.
 
 The bedroom is west of the bathroom.
 The bedroom is east of the kitchen.
+The cupboard is north of the bedroom.
 
 The player-character is in the bedroom.
 
@@ -18,9 +20,15 @@ There is an ax.
 The ax is in the bathroom.
 
 There is a brass lantern.
-The lantern is in the kitchen.
 
 The big door is the bedroom's eastern-exit.
 The big door is the bathroom's western-exit.
 
+The thief is perceptive.
 The thief believes "/example-fiction/thief-init.txt".
+
+The lantern is in the kitchen.
+
+There is a prophet.
+The prophet is omniscient.
+The prophet is in the cupboard.

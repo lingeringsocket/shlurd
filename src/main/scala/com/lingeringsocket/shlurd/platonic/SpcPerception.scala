@@ -75,7 +75,14 @@ class SpcPerception(
   {
     perceiveEntity(entity, timestamp)
 
-    noumenalGraph.entityAssocs.edgesOf(entity).asScala.foreach(edge => {
+    val noumenalEdges = noumenalGraph.entityAssocs.edgesOf(entity).asScala
+    val phenomenalEdges = phenomenalGraph.entityAssocs.edgesOf(entity).asScala
+
+    phenomenalEdges.foreach(edge => {
+      phenomenalCosmos.removeEntityAssocEdge(edge)
+    })
+
+    noumenalEdges.foreach(edge => {
       val opposite = Graphs.getOppositeVertex(
         noumenalGraph.entityAssocs,
         edge,
@@ -101,9 +108,10 @@ class SpcPerception(
 
     val map = noumenalCosmos.getEntityPropertyMap(entity)
     map.values.foreach(ps => {
-      val property =
-        phenomenalCosmos.resolvePropertyName(entity, ps.propertyName).get
-      phenomenalCosmos.updateEntityProperty(entity, property, ps.lemma)
+      phenomenalCosmos.resolvePropertyName(entity, ps.propertyName).foreach(
+        property => {
+          phenomenalCosmos.updateEntityProperty(entity, property, ps.lemma)
+        })
     })
   }
 

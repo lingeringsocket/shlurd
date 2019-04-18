@@ -9,3 +9,6 @@ A lantern is a kind of game-object.
 A bedroom is a kind of map-place.
 A bathroom is a kind of map-place.
 A kitchen is a kind of map-place.
+A cupboard is a kind of map-place.
+
+A prophet is a kind of non-player-character.

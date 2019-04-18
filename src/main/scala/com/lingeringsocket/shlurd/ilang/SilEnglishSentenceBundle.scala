@@ -57,14 +57,21 @@ class SilEnglishSentenceBundle
     }
     val complement = compose(directObjectPost.toSeq:_*)
     val primary = {
+      val verbMaybeComma = {
+        if (!tam.isImperative && complement.startsWith(DQUOTE)) {
+          verbSeq.dropRight(1) :+ concat(verbSeq.last, ",")
+        } else {
+          verbSeq
+        }
+      }
       if (!tam.isInterrogative ||
         (answerInflection == INFLECT_NOMINATIVE))
       {
         composePredicateStatement(
-          subject, verbSeq, complement, modifiers)
+          subject, verbMaybeComma, complement, modifiers)
       } else {
         composePredicateQuestion(
-          subject, verbSeq, complement, modifiers)
+          subject, verbMaybeComma, complement, modifiers)
       }
     }
     answerInflection match {

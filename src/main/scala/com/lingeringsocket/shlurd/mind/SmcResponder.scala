@@ -622,7 +622,11 @@ class SmcResponder[
         case MOOD_IMPERATIVE => {
           val stateChangeAttempt = predicate match {
             case actionPredicate : SilActionPredicate if (
-              actionPredicate.directObject.nonEmpty
+              actionPredicate.directObject match {
+                case Some(_ : SilQuotationReference) => false
+                case Some(_) => true
+                case _ => false
+              }
             ) => {
               val actionModifiers = actionPredicate.modifiers
               val (actionWord, modifiers) = actionModifiers match {
