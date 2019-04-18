@@ -492,6 +492,11 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     "내, 알겠습니다."
   }
 
+  override def respondNoncommittal() =
+  {
+    "아, 그래요?"
+  }
+
   override def circularAction() =
   {
     "Oopsie."

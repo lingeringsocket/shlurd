@@ -575,7 +575,7 @@ class SmcResponder[
           predicateTruth match {
             case Success(Trilean.Unknown) => {
               debug("TRUTH UNKNOWN")
-              wrapResponseText(sentencePrinter.sb.respondCompliance)
+              wrapResponseText(sentencePrinter.sb.respondNoncommittal)
             }
             case Success(truth) => {
               debug(s"KNOWN TRUTH : $truth")
@@ -609,7 +609,7 @@ class SmcResponder[
               } else {
                 // FIXME:  add details on inconsistency, and maybe try
                 // to update state?
-                wrapResponseText("Oh, really?")
+                wrapResponseText(sentencePrinter.sb.respondNoncommittal)
               }
             }
             case Failure(e) => {

@@ -33,8 +33,10 @@ class SnavigResponder(
 
   override protected def publishBelief(belief : SpcBelief)
   {
-    val printed = sentencePrinter.print(belief.sentence)
-    logger.trace(s"BELIEF $printed")
+    lazy val printed = sentencePrinter.print(belief.sentence)
+    if (logger.isTraceEnabled) {
+      logger.trace(s"BELIEF $printed")
+    }
     if (propagateBeliefs) {
       shell.deferPhenomenon(printed)
     }

@@ -943,6 +943,11 @@ class SilEnglishSentenceBundle
     "OK."
   }
 
+  override def respondNoncommittal() =
+  {
+    "Oh, really?"
+  }
+
   override def circularAction() =
   {
     "Action beliefs are circular."

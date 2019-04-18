@@ -196,6 +196,8 @@ abstract class SilSentenceBundle
 
   def respondCompliance() : String
 
+  def respondNoncommittal() : String
+
   def respondToAssumption(
     assumption : SilAssumption, truth : Boolean,
     sentence : String, strength : Boolean)
