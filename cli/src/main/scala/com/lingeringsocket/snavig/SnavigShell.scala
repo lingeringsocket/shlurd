@@ -261,8 +261,6 @@ class SnavigShell(
             }
           } else if (subjectEntity.nonEmpty) {
             lemma match {
-              // FIXME make sure this can't be invoked directly
-              // by player
               case "believe" => {
                 subjectEntity match {
                   case Some(entity) => {

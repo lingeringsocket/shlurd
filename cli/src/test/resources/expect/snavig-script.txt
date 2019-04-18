@@ -176,6 +176,10 @@ You are in the bathroom.
 
 You see the ax and the thief.
 
+> the thief believes "the moon is made of green cheese"
+
+Oh, really?
+
 > what am I holding
 
 You are holding the brass lantern.

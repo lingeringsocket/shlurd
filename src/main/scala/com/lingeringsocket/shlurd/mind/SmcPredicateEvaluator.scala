@@ -170,7 +170,7 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     debug("ACTION PREDICATES UNSUPPORTED")
-    fail(sentencePrinter.sb.respondCannotUnderstand)
+    fail(sentencePrinter.sb.respondNoncommittal)
   }
 
   private def resolveReference(
@@ -727,7 +727,7 @@ class SmcPredicateEvaluator[
         }
       }
       case _ : SilQuotationReference => {
-        debug("QUOTATION REFERENCE")
+        trace("QUOTATION REFERENCE")
         Success(Trilean.Unknown)
       }
       case _ : SilUnknownReference => {
