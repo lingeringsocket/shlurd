@@ -327,7 +327,9 @@ abstract class SprAbstractSyntaxAnalyzer(
   override def isNounPhraseModifier(
     tree : SprSyntaxTree, head : SprSyntaxTree) : Boolean =
   {
-    if (tree.isAdjectival) {
+    if (head.isInstanceOf[SptNNQ]) {
+      false
+    } else if (tree.isAdjectival) {
       true
     } else if (tree.isNoun) {
       tupleN((tree, head)) match {

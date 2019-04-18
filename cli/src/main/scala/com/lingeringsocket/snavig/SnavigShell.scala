@@ -203,20 +203,35 @@ class SnavigShell(
           val subjectEntity = singletonLookup(referenceMap, ap.subject)
           val ok = Some(OK)
           if (subjectEntity == Some(playerEntity)) {
+            val targetRefOpt = ap.modifiers.flatMap(_ match {
+              case SilAdpositionalVerbModifier(
+                SilAdposition.TO,
+                ref) => Some(ref)
+              case _ => None
+            }).headOption
+            val targetEntityOpt = targetRefOpt.flatMap(
+              ref => singletonLookup(referenceMap, ref))
             lemma match {
               case "ask" => {
-                defer(DeferredCommand(quotation))
-                ok
+                targetEntityOpt match {
+                  case Some(targetEntity) => {
+                    if (targetEntity == interpreterEntity) {
+                      defer(DeferredCommand(quotation))
+                    } else {
+                      defer(DeferredCommunication(
+                        playerEntity,
+                        targetEntity,
+                        quotation))
+                    }
+                    ok
+                  }
+                  case _ => {
+                    defer(DeferredCommand(quotation))
+                    ok
+                  }
+                }
               }
-              case "say" => {
-                val targetRefOpt = ap.modifiers.flatMap(_ match {
-                  case SilAdpositionalVerbModifier(
-                    SilAdposition.TO,
-                    ref) => Some(ref)
-                  case _ => None
-                }).headOption
-                val targetEntityOpt = targetRefOpt.flatMap(
-                  ref => singletonLookup(referenceMap, ref))
+              case "say" | "tell" => {
                 targetEntityOpt match {
                   case Some(targetEntity) => {
                     defer(DeferredCommunication(

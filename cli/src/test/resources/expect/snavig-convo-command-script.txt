@@ -6,19 +6,19 @@ You are in the bathroom.
 
 You see the ax and the thief.
 
-> say "what are you made of" to the ax
+> ask the ax "what are you made of"
 
 OK.
 
 The ax does not respond.
 
-> say "who are you" to the thief
+> ask the thief "who are you"
 
 OK.
 
 The thief responds, "I am the thief."
 
-> say "where am I" to the thief
+> ask the thief "where am I"
 
 OK.
 
@@ -29,6 +29,12 @@ The thief responds, "You are in the bathroom."
 OK.
 
 The thief responds, "I don't know."
+
+> tell the thief "I am holding the lantern"
+
+OK.
+
+The thief responds, "Oh, really?"
 
 > w
 
@@ -44,7 +50,7 @@ You are in the cupboard.
 
 You see the prophet.
 
-> say "where is the lantern" to the prophet
+> ask the prophet "where is the lantern"
 
 OK.
 

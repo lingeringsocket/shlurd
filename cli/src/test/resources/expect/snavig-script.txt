@@ -42,7 +42,7 @@ You see the ax and the thief.
 
 I don't know.
 
-> say "are you suave" to the thief
+> ask the thief "are you suave"
 
 OK.
 
