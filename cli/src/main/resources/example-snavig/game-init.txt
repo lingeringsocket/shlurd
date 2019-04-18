@@ -25,7 +25,7 @@ The big door is the bedroom's eastern-exit.
 The big door is the bathroom's western-exit.
 
 The thief is perceptive.
-The thief believes "/example-fiction/thief-init.txt".
+The thief believes "/example-snavig/thief-init.txt".
 
 The lantern is in the kitchen.
 

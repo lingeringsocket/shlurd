@@ -12,13 +12,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cli
+package com.lingeringsocket.snavig
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
+import com.lingeringsocket.shlurd.cli._
 
 import scala.io._
 import scala.collection._
@@ -28,50 +29,104 @@ import java.io._
 
 import org.slf4j._
 
-object ShlurdFictionAliases
+object SnavigShell
 {
-  val map = Map(
-    "d" -> "go down",
-    "down" -> "go down",
-    "e" -> "go east",
-    "east" -> "go east",
-    "g" -> "again",
-    "i" -> "inventory",
-    "inventory" -> "what am I holding",
-    "l" -> "look",
-    "look" -> "what do I see",
-    // FIXME this can instead be "no" in context
-    "n" -> "go north",
-    "north" -> "go north",
-    "ne" -> "go northeast",
-    "northeast" -> "go northeast",
-    "nw" -> "go northwest",
-    "northwest" -> "go northwest",
-    "o" -> "oops",
-    "q" -> "quit",
-    "s" -> "go south",
-    "south" -> "go south",
-    "se" -> "go southeast",
-    "southeast" -> "go southeast",
-    "sw" -> "go southwest",
-    "southwest" -> "go southwest",
-    "u" -> "go up",
-    "up" -> "go up",
-    "w" -> "go west",
-    "west" -> "go west",
-    "x" -> "examine",
-    "y" -> "yes",
-    "z" -> "wait"
-  )
-}
+  val logger =
+    LoggerFactory.getLogger(
+      classOf[SnavigShell])
 
-object ShlurdFictionApp extends App
-{
-  ShlurdFictionShell.run()
-}
+  val PLAYER_WORD = "player-character"
 
-object ShlurdFictionUtils
-{
+  val INTERPRETER_WORD = "game-interpreter"
+
+  val INVENTORY_WORD = "player-inventory"
+
+  val OK = "OK."
+
+  def run(terminal : SnavigTerminal = new SnavigConsole)
+  {
+    val newShell = this.synchronized {
+      val file = new File("run/snavig-init-save.zip")
+      val (snapshot, init) =
+        SnavigShell.loadOrCreate(file, terminal)
+      val shell = new SnavigShell(snapshot, terminal)
+      if (init) {
+        shell.init
+        val serializer = new SnavigSerializer
+        serializer.saveSnapshot(snapshot, file)
+      }
+      shell
+    }
+    SnavigShell.run(newShell)
+  }
+
+  def run(
+    firstShell : SnavigShell)
+  {
+    var shellOpt : Option[SnavigShell] = Some(firstShell)
+    while (shellOpt.nonEmpty) {
+      val shell = shellOpt.get
+      shellOpt = shell.run
+    }
+  }
+
+  def loadOrCreate(file : File, terminal : SnavigTerminal)
+      : (SnavigSnapshot, Boolean) =
+  {
+    if (file.exists) {
+      tupleN((restore(file, terminal), false))
+    } else {
+      terminal.emitControl("Initializing...")
+      val snapshot = createNewCosmos
+      tupleN((
+        snapshot,
+        true))
+    }
+  }
+
+  def restore(file : File, terminal : SnavigTerminal)
+      : SnavigSnapshot =
+  {
+    terminal.emitControl(s"Restoring from $file...")
+    val serializer = new SnavigSerializer
+    val snapshot = serializer.loadSnapshot(file)
+    terminal.emitControl("Restore complete.")
+    snapshot
+  }
+
+  def createNewCosmos() : SnavigSnapshot =
+  {
+    val noumenalCosmos = ShlurdPrimordialWordnet.loadCosmos
+    val beliefs = ResourceUtils.getResourceFile(
+      "/example-snavig/game-beliefs.txt")
+    val source = Source.fromFile(beliefs)
+    val bootMind = new SpcWordnetMind(noumenalCosmos)
+    bootMind.loadBeliefs(source)
+
+    val entityPlayer = noumenalCosmos.uniqueEntity(
+      noumenalCosmos.resolveQualifiedNoun(
+        PLAYER_WORD, REF_SUBJECT, Set())).get
+    val entityInterpreter = noumenalCosmos.uniqueEntity(
+      noumenalCosmos.resolveQualifiedNoun(
+        INTERPRETER_WORD, REF_SUBJECT, Set())).get
+
+    val noumenalMind = new SnavigMind(
+      noumenalCosmos, entityPlayer, entityInterpreter, None)
+
+    val phenomenalCosmos = new SpcCosmos
+    phenomenalCosmos.copyFrom(noumenalCosmos)
+    val perception = new SpcPerception(noumenalCosmos, phenomenalCosmos)
+    val phenomenalMind = new SnavigMind(
+      phenomenalCosmos, entityPlayer, entityInterpreter, Some(perception))
+
+    val mindMap = new mutable.LinkedHashMap[String, SnavigMind]
+    mindMap.put(SnavigSnapshot.PLAYER_PHENOMENAL, phenomenalMind)
+    mindMap.put(entityPlayer.name, phenomenalMind)
+    mindMap.put(SnavigSnapshot.NOUMENAL, noumenalMind)
+
+    SnavigSnapshot(mindMap)
+  }
+
   def singletonLookup(
     referenceMap : Map[SilReference, Set[SpcEntity]],
     ref : SilReference) : Option[SpcEntity] =
@@ -89,262 +144,12 @@ object ShlurdFictionUtils
   }
 }
 
-class ShlurdFictionMind(
-  cosmos : SpcCosmos,
-  val entityFirst : SpcEntity,
-  val entitySecond : SpcEntity,
-  val perception : Option[SpcPerception]
-) extends ShlurdCliMind(cosmos, entityFirst, entitySecond)
+
+class SnavigShell(
+  snapshot : SnavigSnapshot,
+  terminal : SnavigTerminal = new SnavigConsole)
 {
-  private var timestamp = SpcTimestamp.ZERO
-
-  def getTimestamp() = timestamp
-
-  def startNewTurn()
-  {
-    timestamp = timestamp.successor
-  }
-
-  override def spawn(newCosmos : SpcCosmos) =
-  {
-    val mind = new ShlurdFictionMind(
-      newCosmos, entityFirst, entitySecond, perception)
-    mind.initFrom(this)
-    mind
-  }
-
-  override def equivalentReferences(
-    entity : SpcEntity,
-    determiner : SilDeterminer)
-      : Seq[SilReference] =
-  {
-    val references = super.equivalentReferences(entity, determiner)
-    if (entity.form.name == ShlurdFictionShell.INVENTORY_WORD) {
-      val (nouns, others) =
-        references.partition(_.isInstanceOf[SilNounReference])
-      // prefer "the player's stuff" over "the player-inventory"
-      others ++ nouns
-    } else {
-      references
-    }
-  }
-
-  override protected def getFormName(form : SpcForm) : String =
-  {
-    synonymize(form, super.getFormName(form))
-  }
-
-  override protected def getPossesseeName(role : SpcRole) : String =
-  {
-    synonymize(role, super.getPossesseeName(role))
-  }
-
-  private def synonymize(ideal : SpcIdeal, name : String) : String =
-  {
-    def isHyphenized(s : String) = s.contains('-')
-    if (isHyphenized(name)) {
-      val synonyms = cosmos.getSynonymsForIdeal(ideal)
-      synonyms.map(_.name).filterNot(isHyphenized).headOption.getOrElse(name)
-    } else {
-      name
-    }
-  }
-}
-
-object ShlurdFictionShell
-{
-  val logger =
-    LoggerFactory.getLogger(
-      classOf[ShlurdFictionShell])
-
-  val PLAYER_WORD = "player-character"
-
-  val INTERPRETER_WORD = "game-interpreter"
-
-  val INVENTORY_WORD = "player-inventory"
-
-  val OK = "OK."
-
-  def run(terminal : ShlurdFictionTerminal = new ShlurdFictionConsole)
-  {
-    val file = new File("run/fiction-init-save.zip")
-    val (snapshot, init) =
-      ShlurdFictionShell.loadOrCreate(file, terminal)
-    val shell = new ShlurdFictionShell(snapshot, terminal)
-    if (init) {
-      shell.init
-      val serializer = new ShlurdCliSerializer
-      serializer.saveSnapshot(snapshot, file)
-    }
-    ShlurdFictionShell.run(shell)
-  }
-
-  def run(
-    firstShell : ShlurdFictionShell)
-  {
-    var shellOpt : Option[ShlurdFictionShell] = Some(firstShell)
-    while (shellOpt.nonEmpty) {
-      val shell = shellOpt.get
-      shellOpt = shell.run
-    }
-  }
-
-  def loadOrCreate(file : File, terminal : ShlurdFictionTerminal)
-      : (ShlurdFictionSnapshot, Boolean) =
-  {
-    if (file.exists) {
-      tupleN((restore(file, terminal), false))
-    } else {
-      terminal.emitControl("Initializing...")
-      val snapshot = createNewCosmos
-      tupleN((
-        snapshot,
-        true))
-    }
-  }
-
-  def restore(file : File, terminal : ShlurdFictionTerminal)
-      : ShlurdFictionSnapshot =
-  {
-    terminal.emitControl(s"Restoring from $file...")
-    val serializer = new ShlurdCliSerializer
-    val snapshot = serializer.loadSnapshot(file)
-    terminal.emitControl("Restore complete.")
-    snapshot
-  }
-
-  def createNewCosmos() : ShlurdFictionSnapshot =
-  {
-    val noumenalCosmos = ShlurdPrimordialWordnet.loadCosmos
-    val beliefs = ResourceUtils.getResourceFile(
-      "/example-fiction/game-beliefs.txt")
-    val source = Source.fromFile(beliefs)
-    val bootMind = new SpcWordnetMind(noumenalCosmos)
-    bootMind.loadBeliefs(source)
-
-    val entityPlayer = noumenalCosmos.uniqueEntity(
-      noumenalCosmos.resolveQualifiedNoun(
-        PLAYER_WORD, REF_SUBJECT, Set())).get
-    val entityInterpreter = noumenalCosmos.uniqueEntity(
-      noumenalCosmos.resolveQualifiedNoun(
-        INTERPRETER_WORD, REF_SUBJECT, Set())).get
-
-    val noumenalMind = new ShlurdFictionMind(
-      noumenalCosmos, entityPlayer, entityInterpreter, None)
-
-    val phenomenalCosmos = new SpcCosmos
-    phenomenalCosmos.copyFrom(noumenalCosmos)
-    val perception = new SpcPerception(noumenalCosmos, phenomenalCosmos)
-    val phenomenalMind = new ShlurdFictionMind(
-      phenomenalCosmos, entityPlayer, entityInterpreter, Some(perception))
-
-    val mindMap = new mutable.LinkedHashMap[String, ShlurdFictionMind]
-    mindMap.put(ShlurdFictionSnapshot.PLAYER_PHENOMENAL, phenomenalMind)
-    mindMap.put(entityPlayer.name, phenomenalMind)
-    mindMap.put(ShlurdFictionSnapshot.NOUMENAL, noumenalMind)
-
-    ShlurdFictionSnapshot(mindMap)
-  }
-}
-
-class ShlurdFictionResponder(
-  shell : ShlurdFictionShell,
-  propagateBeliefs : Boolean,
-  mind : ShlurdFictionMind,
-  beliefAcceptance : SpcBeliefAcceptance,
-  params : SmcResponseParams,
-  executor : SmcExecutor[SpcEntity])
-    extends SpcResponder(mind, beliefAcceptance, params, executor)
-{
-  import ShlurdFictionShell.logger
-  import ShlurdFictionUtils._
-
-  override protected def publishBelief(belief : SpcBelief)
-  {
-    val printed = sentencePrinter.print(belief.sentence)
-    logger.trace(s"BELIEF $printed")
-    if (propagateBeliefs) {
-      shell.deferPhenomenon(printed)
-    }
-  }
-
-  override protected def spawn(subMind : SpcMind) =
-  {
-    new ShlurdFictionResponder(
-      shell, propagateBeliefs, subMind.asInstanceOf[ShlurdFictionMind],
-      ACCEPT_MODIFIED_BELIEFS, params, executor)
-  }
-
-  override protected def checkCycle(
-    predicate : SilPredicate,
-    seen : mutable.Set[SilPredicate],
-    isPrecondition : Boolean) : Boolean =
-  {
-    if (logger.isTraceEnabled) {
-      val printed = sentencePrinter.printPredicateStatement(
-        predicate, SilTam.indicative)
-      if (isPrecondition) {
-        logger.trace(s"VERIFY $printed")
-      } else {
-        logger.trace(s"TRIGGER $printed")
-      }
-    }
-    if (!isPrecondition) {
-      predicate match {
-        case ap : SilActionPredicate => {
-          val lemma = ap.action.toLemma
-          lemma match {
-            case "perceive" => {
-              val resultCollector = SmcResultCollector[SpcEntity]()
-              val result = resolveReferences(
-                ap,
-                resultCollector,
-                true).get
-              assert(result.isTrue)
-              singletonLookup(
-                resultCollector.referenceMap, ap.subject
-              ).foreach(perceiver => {
-                ap.directObject.foreach(directObjectRef => {
-                  shell.deferPerception(
-                    perceiver,
-                    resultCollector.referenceMap(directObjectRef))
-                })
-              })
-            }
-            case _ =>
-          }
-        }
-        case _ =>
-      }
-    }
-    super.checkCycle(predicate, seen, isPrecondition)
-  }
-}
-
-object ShlurdFictionSnapshot
-{
-  val PLAYER_PHENOMENAL = "player_phenomenal"
-
-  val NOUMENAL = "noumenal"
-}
-
-case class ShlurdFictionSnapshot(
-  mindMap : mutable.Map[String, ShlurdFictionMind]
-)
-{
-  import ShlurdFictionSnapshot._
-
-  def getNoumenalMind = mindMap(NOUMENAL)
-
-  def getPhenomenalMind = mindMap(PLAYER_PHENOMENAL)
-}
-
-class ShlurdFictionShell(
-  snapshot : ShlurdFictionSnapshot,
-  terminal : ShlurdFictionTerminal = new ShlurdFictionConsole)
-{
-  import ShlurdFictionShell._
-  import ShlurdFictionUtils._
+  import SnavigShell._
 
   sealed trait Deferred {
   }
@@ -440,7 +245,7 @@ class ShlurdFictionShell(
               case "save" => {
                 val file = getSaveFile(quotation)
                 terminal.emitControl(s"Saving $file...")
-                val serializer = new ShlurdCliSerializer
+                val serializer = new SnavigSerializer
                 phenomenalMind.stopConversation
                 serializer.saveSnapshot(
                   snapshot,
@@ -521,17 +326,17 @@ class ShlurdFictionShell(
 
   private val sentencePrinter = new SilSentencePrinter
 
-  private val noumenalInitializer = new ShlurdFictionResponder(
+  private val noumenalInitializer = new SnavigResponder(
     this, false, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private val noumenalUpdater = new ShlurdFictionResponder(
+  private val noumenalUpdater = new SnavigResponder(
     this, true, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private val phenomenalResponder = new ShlurdFictionResponder(
+  private val phenomenalResponder = new SnavigResponder(
     this, false, phenomenalMind, ACCEPT_NO_BELIEFS,
     params.copy(existenceAssumption = EXISTENCE_ASSUME_UNKNOWN), executor)
 
-  private val phenomenalUpdater = new ShlurdFictionResponder(
+  private val phenomenalUpdater = new SnavigResponder(
     this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
   private def processFiat(sentence : SilSentence) : String =
@@ -564,17 +369,17 @@ class ShlurdFictionShell(
     initMind(
       noumenalMind,
       noumenalInitializer,
-      "/example-fiction/game-init.txt")
+      "/example-snavig/game-init.txt")
     initMind(
       phenomenalMind,
       phenomenalUpdater,
-      "/example-fiction/player-init.txt")
+      "/example-snavig/player-init.txt")
     terminal.emitControl("Initialization complete.")
   }
 
   private def initMind(
     mind : ShlurdCliMind,
-    responder : ShlurdFictionResponder,
+    responder : SnavigResponder,
     resourceName : String)
   {
     val source = Source.fromFile(
@@ -588,7 +393,7 @@ class ShlurdFictionShell(
     })
   }
 
-  private def accessEntityMind(entity : SpcEntity) : Option[ShlurdFictionMind] =
+  private def accessEntityMind(entity : SpcEntity) : Option[SnavigMind] =
   {
     if (snapshot.mindMap.contains(entity.name)) {
       snapshot.mindMap.get(entity.name)
@@ -630,7 +435,7 @@ class ShlurdFictionShell(
           return None
         }
       }
-      val newMind = new ShlurdFictionMind(
+      val newMind = new SnavigMind(
         cosmos, playerEntity, entity, perception)
       snapshot.mindMap.put(entity.name, newMind)
       Some(newMind)
@@ -643,7 +448,7 @@ class ShlurdFictionShell(
   {
     accessEntityMind(entity) match {
       case Some(mind) => {
-        val responder = new ShlurdFictionResponder(
+        val responder = new SnavigResponder(
           this, false, mind, ACCEPT_MODIFIED_BELIEFS,
           SmcResponseParams(), executor)
         initMind(mind, responder, resourceName)
@@ -744,7 +549,7 @@ class ShlurdFictionShell(
           val actionRespond = SilWord("responds", "respond")
           val reply = accessEntityMind(listener) match {
             case Some(entityMind) => {
-              val entityResponder = new ShlurdFictionResponder(
+              val entityResponder = new SnavigResponder(
                 this, false, entityMind, ACCEPT_NO_BELIEFS,
                 SmcResponseParams(), executor)
               val sentence = entityMind.newParser(quotation).parseOne
@@ -790,7 +595,7 @@ class ShlurdFictionShell(
 
   private def preprocess(input : String) : String =
   {
-    ShlurdFictionAliases.map.get(input.trim.toLowerCase) match {
+    SnavigAliases.map.get(input.trim.toLowerCase) match {
       case Some(replacement) => {
         preprocess(replacement)
       }
@@ -805,7 +610,7 @@ class ShlurdFictionShell(
     }
   }
 
-  def run() : Option[ShlurdFictionShell] =
+  def run() : Option[SnavigShell] =
   {
     phenomenalMind.startConversation
     var exit = false
@@ -832,8 +637,8 @@ class ShlurdFictionShell(
     }
     restoreFile match {
       case Some(file) => {
-        val snapshot = ShlurdFictionShell.restore(file, terminal)
-        Some(new ShlurdFictionShell(snapshot, terminal))
+        val snapshot = SnavigShell.restore(file, terminal)
+        Some(new SnavigShell(snapshot, terminal))
       }
       case _ => {
         terminal.emitNarrative("")
@@ -841,70 +646,5 @@ class ShlurdFictionShell(
         None
       }
     }
-  }
-}
-
-trait ShlurdFictionTerminal
-{
-  import ShlurdFictionShell.logger
-
-  def emitPrompt()
-  {
-    logger.trace("PROMPT")
-  }
-
-  def emitControl(msg : String)
-  {
-    logger.trace(s"CONTROL $msg")
-  }
-
-  def emitNarrative(msg : String)
-  {
-    if (!msg.isEmpty) {
-      logger.debug(s"NARRATIVE $msg")
-    }
-  }
-
-  def readCommand() : Option[String] =
-  {
-    val result = readInput
-    result.foreach(cmd => logger.debug(s"INPUT $cmd"))
-    result
-  }
-
-  def readInput() : Option[String] =
-  {
-    None
-  }
-
-  def getDefaultSaveFile() : String =
-  {
-    "fiction-save.zip"
-  }
-}
-
-class ShlurdFictionConsole extends ShlurdFictionTerminal
-{
-  override def emitPrompt()
-  {
-    super.emitPrompt
-    print("> ")
-  }
-
-  override def emitControl(msg : String)
-  {
-    super.emitControl(msg)
-    println(s"[SIF] $msg")
-  }
-
-  override def emitNarrative(msg : String)
-  {
-    super.emitNarrative(msg)
-    println(msg)
-  }
-
-  override def readInput() : Option[String] =
-  {
-    Option(StdIn.readLine)
   }
 }

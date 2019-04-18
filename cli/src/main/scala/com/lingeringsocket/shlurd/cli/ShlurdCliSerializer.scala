@@ -27,17 +27,23 @@ import scala.collection._
 import java.io._
 import java.util.zip._
 
+object ShlurdCliSerializer
+{
+  val KRYO_ENTRY = "mind.kryo"
+
+  val BELIEF_ENTRY = "beliefs.txt"
+
+  val GML_ENTRY = "graphs.gml"
+}
+
 class ShlurdCliSerializer
 {
-  private val KRYO_ENTRY = "mind.kryo"
-
-  private val BELIEF_ENTRY = "beliefs.txt"
-
-  private val GML_ENTRY = "graphs.gml"
+  import ShlurdCliSerializer._
 
   private val instantiator = new ScalaKryoInstantiator
   instantiator.setRegistrationRequired(false)
-  private val kryo = instantiator.newKryo
+
+  protected val kryo = instantiator.newKryo
 
   // stackoverflow.com/questions/37869812/serialize-linked-hash-map-kryo
   kryo.register(classOf[mutable.LinkedHashMap[Any, Any]],
@@ -101,41 +107,13 @@ class ShlurdCliSerializer
     }
   }
 
-  def saveSnapshot(
-    snapshot : ShlurdFictionSnapshot, file : File)
-  {
-    val zos = new ZipOutputStream(new FileOutputStream(file))
-      saveEntry(zos, KRYO_ENTRY)(outputStream => {
-        val output = new Output(outputStream)
-        kryo.writeObject(output, snapshot)
-        output.flush
-      })
-    try {
-    } finally {
-      zos.close
-    }
-  }
-
-  private def saveEntry(
+  protected def saveEntry(
     zos : ZipOutputStream,
     entry : String)(writeEntry : OutputStream => Unit)
   {
     zos.putNextEntry(new ZipEntry(entry))
     writeEntry(zos)
     zos.closeEntry
-  }
-
-  def loadSnapshot(file : File) : ShlurdFictionSnapshot =
-  {
-    val zis = new ZipInputStream(new FileInputStream(file))
-    try {
-      val nextEntry = zis.getNextEntry
-      assert(nextEntry.getName == KRYO_ENTRY)
-      val input = new Input(zis)
-      kryo.readObject(input, classOf[ShlurdFictionSnapshot])
-    } finally {
-      zis.close
-    }
   }
 
   def loadMind(file : File) : ShlurdCliMind =

@@ -1,4 +1,4 @@
-Import "/fiction/possession-beliefs.txt".
+Import "/snavig/possession-beliefs.txt".
 
 A thief is a kind of non-player-character.
 A thief must be alive or dead.

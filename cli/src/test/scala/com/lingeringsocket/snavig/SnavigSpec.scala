@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cli
+package com.lingeringsocket.snavig
 
 import com.lingeringsocket.shlurd._
 
@@ -20,33 +20,30 @@ import org.specs2.mutable._
 
 import scala.io._
 
-class ShlurdFictionSpec extends Specification
+class SnavigSpec extends Specification
 {
-  // make sure initialization happens only once
-  sequential
-
-  "ShlurdFictionApp" should
+  "SnavigApp" should
   {
     "interpret script" in
     {
-      testScript("fiction-script.txt")
+      testScript("snavig-script.txt")
     }
 
     "interpret conversational commands" in
     {
-      testScript("fiction-convo-command-script.txt")
+      testScript("snavig-convo-command-script.txt")
     }
   }
 
   private def testScript(fileName : String) =
   {
-    val terminal = new ShlurdFictionTestTerminal(fileName)
-    ShlurdFictionShell.run(terminal)
+    val terminal = new SnavigTestTerminal(fileName)
+    SnavigShell.run(terminal)
     terminal.nextScriptLine must beEmpty
   }
 
-  class ShlurdFictionTestTerminal(fileName : String)
-      extends ShlurdFictionTerminal
+  class SnavigTestTerminal(fileName : String)
+      extends SnavigTerminal
   {
     private val script = Source.fromFile(
       ResourceUtils.getResourceFile(s"/expect/$fileName")).
@@ -75,7 +72,7 @@ class ShlurdFictionSpec extends Specification
     {
       val lineNoOneBased = lineNo + 1
       println(
-        s"ShlurdFictionSpec FAIL at $fileName:$lineNoOneBased")
+        s"SnavigSpec FAIL at $fileName:$lineNoOneBased")
     }
 
     override def readInput() : Option[String] =
@@ -94,7 +91,7 @@ class ShlurdFictionSpec extends Specification
 
     override def getDefaultSaveFile() =
     {
-      "fiction-test-save.zip"
+      "snavig-test-save.zip"
     }
 
     def nextScriptLine() : Option[(String, Int)] = {

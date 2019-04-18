@@ -1,4 +1,4 @@
-Import "/fiction/basic-beliefs.txt".
+Import "/snavig/basic-beliefs.txt".
 
 A character-inventory must be a repository.
 A stuff is a character-inventory.

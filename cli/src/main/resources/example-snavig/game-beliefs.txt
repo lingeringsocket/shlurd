@@ -1,7 +1,7 @@
-Import "/fiction/basic-beliefs.txt".
-Import "/fiction/movement-beliefs.txt".
+Import "/snavig/basic-beliefs.txt".
+Import "/snavig/movement-beliefs.txt".
 
-Import "/example-fiction/thief-beliefs.txt".
+Import "/example-snavig/thief-beliefs.txt".
 
 An ax is a kind of game-object.
 A lantern is a kind of game-object.
