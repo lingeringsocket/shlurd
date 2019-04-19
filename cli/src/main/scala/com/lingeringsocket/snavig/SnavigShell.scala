@@ -43,6 +43,8 @@ object SnavigShell
 
   val OK = "OK."
 
+  private val actionRespond = SilWord("responds", "respond")
+
   def run(terminal : SnavigTerminal = new SnavigConsole)
   {
     val newShell = this.synchronized {
@@ -167,6 +169,10 @@ class SnavigShell(
     listener : SpcEntity,
     quotation : String) extends Deferred
 
+  case class DeferredUtterance(
+    listenerMind : SnavigMind,
+    quotation : String) extends Deferred
+
   case class DeferredPerception(
     perceiver : SpcEntity,
     perceived : Set[SpcEntity]) extends Deferred
@@ -191,6 +197,8 @@ class SnavigShell(
 
   private var restoreFile : Option[File] = None
 
+  private var listenerMind : Option[SnavigMind] = None
+
   private val executor = new SmcExecutor[SpcEntity]
   {
     override def executeAction(
@@ -198,19 +206,19 @@ class SnavigShell(
       referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[String] =
     {
       val lemma = ap.action.toLemma
+      val subjectEntity = singletonLookup(referenceMap, ap.subject)
+      val targetRefOpt = ap.modifiers.flatMap(_ match {
+        case SilAdpositionalVerbModifier(
+          SilAdposition.TO,
+          ref) => Some(ref)
+        case _ => None
+      }).headOption
+      val targetEntityOpt = targetRefOpt.flatMap(
+        ref => singletonLookup(referenceMap, ref))
+      val ok = Some(OK)
       ap.directObject match {
         case Some(SilQuotationReference(quotation)) => {
-          val subjectEntity = singletonLookup(referenceMap, ap.subject)
-          val ok = Some(OK)
           if (subjectEntity == Some(playerEntity)) {
-            val targetRefOpt = ap.modifiers.flatMap(_ match {
-              case SilAdpositionalVerbModifier(
-                SilAdposition.TO,
-                ref) => Some(ref)
-              case _ => None
-            }).headOption
-            val targetEntityOpt = targetRefOpt.flatMap(
-              ref => singletonLookup(referenceMap, ref))
             lemma match {
               case "ask" => {
                 targetEntityOpt match {
@@ -295,7 +303,37 @@ class SnavigShell(
             None
           }
         }
-        case _ => None
+        case _ => {
+          lemma match {
+            case "talk" => {
+              targetEntityOpt match {
+                case Some(targetEntity) => {
+                  if (targetEntity == playerEntity) {
+                    talkToSelf
+                  } else {
+                    accessEntityMind(targetEntity) match {
+                      case Some(entityMind) => {
+                        listenerMind = Some(entityMind)
+                        defer(DeferredReport(
+                          "(You are now in conversation.  Say TTYL to stop.)"))
+                      }
+                      case _ => {
+                        defer(DeferredReport(
+                          SprUtils.capitalize(
+                            noResponse(targetRefOpt.get))))
+                      }
+                    }
+                  }
+                  ok
+                }
+                case _ => {
+                  None
+                }
+              }
+            }
+            case _ => None
+          }
+        }
       }
     }
 
@@ -487,8 +525,30 @@ class SnavigShell(
             assert(output == OK)
           })
         }
+        case DeferredUtterance(_, "TTYL" | "ttyl") => {
+          listenerMind = None
+          defer(DeferredReport(
+            "(You are no longer in conversation.)"))
+        }
+        case DeferredUtterance(targetMind, input) => {
+          logger.trace(s"UTTERANCE $input")
+          val responder = new SnavigResponder(
+            this, false, targetMind, ACCEPT_NO_BELIEFS,
+            SmcResponseParams(), executor)
+          val sentences = targetMind.newParser(input).parseAll
+          sentences.foreach(sentence => {
+            val output = processUtterance(
+              responder,
+              targetMind.analyzeSense(sentence))
+            logger.trace(s"RESULT $output")
+            terminal.emitNarrative("")
+            // FIXME allow side effects of conversation
+            assert(deferredQueue.isEmpty)
+            terminal.emitNarrative(output)
+          })
+        }
         case DeferredCommand(input) => {
-          logger.trace(s"INTERPRET $input")
+          logger.trace(s"COMMAND $input")
           val expanded = preprocess(input)
           if (expanded != input) {
             logger.trace(s"EXPANDED $expanded")
@@ -557,37 +617,37 @@ class SnavigShell(
         case DeferredCommunication(speaker, listener, quotation) => {
           // FIXME handle arbitrary speaker/listener combinations,
           // parameters, etc
-          val listenerReference = phenomenalMind.specificReference(
-            listener, DETERMINER_UNIQUE)
-          val actionRespond = SilWord("responds", "respond")
-          val reply = accessEntityMind(listener) match {
-            case Some(entityMind) => {
-              val entityResponder = new SnavigResponder(
-                this, false, entityMind, ACCEPT_NO_BELIEFS,
-                SmcResponseParams(), executor)
-              val sentence = entityMind.newParser(quotation).parseOne
-              val response = entityResponder.process(sentence, quotation)
-              val responseSentence = SilPredicateSentence(
-                SilActionPredicate(
-                  listenerReference,
-                  actionRespond,
-                  Some(SilQuotationReference(response))
+          if (speaker == listener) {
+            talkToSelf
+          } else {
+            val listenerReference = phenomenalMind.specificReference(
+              listener, DETERMINER_UNIQUE)
+            val reply = accessEntityMind(listener) match {
+              case Some(entityMind) => {
+                val entityResponder = new SnavigResponder(
+                  this, false, entityMind, ACCEPT_NO_BELIEFS,
+                  SmcResponseParams(), executor)
+                // FIXME use parseAll instead
+                val sentence = entityMind.newParser(quotation).parseOne
+                val response = processUtterance(
+                  entityResponder,
+                  entityMind.analyzeSense(sentence))
+                val responseSentence = SilPredicateSentence(
+                  SilActionPredicate(
+                    listenerReference,
+                    actionRespond,
+                    Some(SilQuotationReference(response))
+                  )
                 )
-              )
-              sentencePrinter.printUnterminated(responseSentence)
+                sentencePrinter.printUnterminated(responseSentence)
+              }
+              case _ => {
+                noResponse(listenerReference)
+              }
             }
-            case _ => {
-              val responseSentence = SilPredicateSentence(
-                SilActionPredicate(
-                  listenerReference,
-                  actionRespond
-                ),
-                SilTam.indicative.negative
-              )
-              sentencePrinter.print(responseSentence)
-            }
+            terminal.emitNarrative("")
+            terminal.emitNarrative(SprUtils.capitalize(reply))
           }
-          terminal.emitNarrative(SprUtils.capitalize(reply))
         }
         case DeferredPerception(perceiver, perceived) => {
           logger.trace(s"PERCEIVE $perceiver $perceived")
@@ -603,6 +663,35 @@ class SnavigShell(
           })
         }
       }
+    }
+  }
+
+  private def talkToSelf()
+  {
+    defer(DeferredReport(
+      "Only crazy people talk to themselves."))
+  }
+
+  private def noResponse(listenerReference : SilReference) : String =
+  {
+    val responseSentence = SilPredicateSentence(
+      SilActionPredicate(
+        listenerReference,
+        actionRespond
+      ),
+      SilTam.indicative.negative
+    )
+    sentencePrinter.print(responseSentence)
+  }
+
+  private def processUtterance(
+    responder : SnavigResponder, sentence : SilSentence) : String =
+  {
+    if (sentence.tam.isImperative) {
+      // FIXME support imperatives
+      sentencePrinter.sb.contradictAssumption("", false)
+    } else {
+      responder.process(sentence)
     }
   }
 
@@ -636,7 +725,14 @@ class SnavigShell(
         case Some(input) => {
           defer(DeferredDirective("the game-turn advances"))
           processDeferred
-          defer(DeferredCommand(input))
+          listenerMind match {
+            case Some(targetMind) => {
+              defer(DeferredUtterance(targetMind, input))
+            }
+            case _ => {
+              defer(DeferredCommand(input))
+            }
+          }
           processDeferred
           terminal.emitNarrative("")
         }

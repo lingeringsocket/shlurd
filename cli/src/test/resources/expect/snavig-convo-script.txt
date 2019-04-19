@@ -6,6 +6,18 @@ You are in the bathroom.
 
 You see the ax and the thief.
 
+> talk to me
+
+OK.
+
+Only crazy people talk to themselves.
+
+> say "hi" to me
+
+OK.
+
+Only crazy people talk to themselves.
+
 > ask the ax "what are you made of"
 
 OK.
@@ -35,6 +47,40 @@ The thief responds, "I don't know."
 OK.
 
 The thief responds, "Oh, really?"
+
+> say "get the ax" to the thief
+
+OK.
+
+The thief responds, "No."
+
+> talk to the thief
+
+OK.
+
+(You are now in conversation.  Say TTYL to stop.)
+
+> who are you
+
+I am the thief.
+
+> where is the lantern
+
+I don't know.
+
+> get the ax
+
+No.
+
+> TTYL
+
+(You are no longer in conversation.)
+
+> talk to the ax
+
+OK.
+
+The ax does not respond.
 
 > w
 

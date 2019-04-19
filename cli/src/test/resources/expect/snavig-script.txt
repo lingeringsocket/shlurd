@@ -104,6 +104,24 @@ A person can not spy on a thief.
 
 One does not simply kill.
 
+> w
+
+OK.
+
+You are in the bedroom.
+
+> throw the ax at the thief
+
+But there is no such person here.
+
+> e
+
+OK.
+
+You are in the bathroom.
+
+You see the thief.
+
 > throw the ax at the thief
 
 OK.

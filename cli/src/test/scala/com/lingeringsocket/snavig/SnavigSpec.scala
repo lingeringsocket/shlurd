@@ -29,9 +29,9 @@ class SnavigSpec extends Specification
       testScript("snavig-script.txt")
     }
 
-    "interpret conversational commands" in
+    "interpret conversations" in
     {
-      testScript("snavig-convo-command-script.txt")
+      testScript("snavig-convo-script.txt")
     }
   }
 
