@@ -443,7 +443,7 @@ class SnavigShell(
     initMind(
       phenomenalMind,
       phenomenalUpdater,
-      "/example-snavig/player-init.txt")
+      "/example-snavig/player-mind-init.txt")
     terminal.emitControl("Initialization complete.")
   }
 
