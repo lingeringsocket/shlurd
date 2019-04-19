@@ -112,7 +112,7 @@ You are in the bedroom.
 
 > throw the ax at the thief
 
-But there is no such person here.
+You can only interact with what's nearby.
 
 > e
 
@@ -134,7 +134,7 @@ No, he is not alive.
 
 > go to the kitchen
 
-You can't get there from here.
+You can only interact with what's nearby.
 
 > go west
 
@@ -164,7 +164,15 @@ You see the brass lantern.
 
 > what is in the kitchen
 
-The player-character and the brass lantern are in the kitchen.
+The player-character, the cupboard, and the brass lantern are in the kitchen.
+
+> go to the cupboard
+
+You can't get there from here.
+
+> close the door
+
+You can only interact with what's nearby.
 
 > acquire the lantern
 

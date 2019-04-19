@@ -107,14 +107,7 @@ class SmcMind[
     phrase : SilPhrase,
     referenceMap : Map[SilReference, Set[EntityType]]) =
   {
-    val refSet = new mutable.HashSet[SilReference]
-    val phraseQuerier = new SilPhraseRewriter
-    val rule = phraseQuerier.queryMatcher {
-      case ref : SilReference => {
-        refSet += ref
-      }
-    }
-    phraseQuerier.query(rule, phrase)
+    val refSet = SilUtils.collectReferences(phrase)
     referenceMap.filterKeys(ref => {
       refSet.contains(ref) && isRetainableReference(ref)
     })

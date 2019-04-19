@@ -124,15 +124,18 @@ class SmcExecutor[EntityType<:SmcEntity]
     None
   }
 
-  def executeImperative(predicate : SilPredicate) : Option[String] =
+  def executeImperative(
+    predicate : SilPredicate,
+    referenceMap : Map[SilReference, Set[EntityType]]) : Option[String] =
   {
     None
   }
 
   def executeInvocation(
-    invocation : SmcStateChangeInvocation[EntityType])
+    invocation : SmcStateChangeInvocation[EntityType],
+    referenceMap : Map[SilReference, Set[EntityType]]) : Option[String] =
   {
-    throw new UnsupportedOperationException
+    None
   }
 }
 
@@ -362,8 +365,16 @@ class SmcResponder[
               _._2.assumeFalse).keySet,
             resultCollector.states.head)
         debug(s"EXECUTE INVOCATION : $invocation")
-        executor.executeInvocation(invocation)
-        Success(wrapResponseText(sentencePrinter.sb.respondCompliance))
+        executor.executeInvocation(
+          invocation, resultCollector.referenceMap) match
+        {
+          case Some(result) => {
+            Success(wrapResponseText(result))
+          }
+          case _ => {
+            Failure(new UnsupportedOperationException)
+          }
+        }
       }
       case Failure(e) => Failure(e)
     }
@@ -655,7 +666,9 @@ class SmcResponder[
           stateChangeAttempt match {
             case Success(result) => result
             case Failure(e) => {
-              executor.executeImperative(predicate) match {
+              executor.executeImperative(
+                predicate, resultCollector.referenceMap) match
+              {
                 case Some(imperativeResult) => {
                   wrapResponseText(imperativeResult)
                 }

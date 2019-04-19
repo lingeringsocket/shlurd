@@ -769,7 +769,7 @@ object SilWordInflected
   }
 }
 
-// FIXME move most of this to object SilPhrase
+// FIXME move most of this to SilUtils
 object SilReference
 {
   def isCountCoercible(reference : SilReference) : Boolean =

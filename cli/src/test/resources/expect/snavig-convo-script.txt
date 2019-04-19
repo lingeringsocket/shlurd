@@ -101,3 +101,7 @@ You see the prophet.
 OK.
 
 The prophet responds, "It is in the kitchen."
+
+> talk to the thief
+
+You can only interact with what's nearby.

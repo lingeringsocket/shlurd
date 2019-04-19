@@ -104,7 +104,8 @@ class SmcResponderSpec extends Specification
     {
       val executor = new SmcExecutor[SmcEntity] {
         override def executeInvocation(
-          invocation : StateChangeInvocation)
+          invocation : StateChangeInvocation,
+          referenceMap : Map[SilReference, Set[SmcEntity]]) =
         {
           throw new RuntimeException("unexpected invocation")
         }
@@ -120,18 +121,21 @@ class SmcResponderSpec extends Specification
       input : String,
       invocation : StateChangeInvocation) =
     {
+      val ok = "OK."
       var actualInvocation : Option[StateChangeInvocation] = None
       val executor = new SmcExecutor[SmcEntity] {
         override def executeInvocation(
-          invocation : StateChangeInvocation)
+          invocation : StateChangeInvocation,
+          referenceMap : Map[SilReference, Set[SmcEntity]]) =
         {
           actualInvocation = Some(invocation)
+          Some(ok)
         }
       }
       val responder =
         new ZooResponder(mind, responseParams, executor)
       val sentence = responder.newParser(input).parseOne
-      responder.process(sentence, input) must be equalTo("OK.")
+      responder.process(sentence, input) must be equalTo(ok)
       actualInvocation must be equalTo(Some(invocation))
     }
   }

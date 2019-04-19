@@ -350,7 +350,10 @@ class SnavigShell(
       new File(s"run/$sanitized")
     }
 
-    override def executeImperative(predicate : SilPredicate) : Option[String] =
+    override def executeImperative(
+      predicate : SilPredicate,
+      referenceMap : Map[SilReference, Set[SpcEntity]])
+        : Option[String] =
     {
       def playerRef =
         SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
@@ -359,11 +362,15 @@ class SnavigShell(
         case _ => predicate
       }
       val sentence = SilPredicateSentence(newPredicate)
-      Some(processFiat(sentence))
+      val entities = SilUtils.collectReferences(sentence).flatMap(
+        referenceMap.get(_).getOrElse(Set.empty))
+      processFiat(sentence, entities)
     }
 
     override def executeInvocation(
-      invocation : SmcStateChangeInvocation[SpcEntity])
+      invocation : SmcStateChangeInvocation[SpcEntity],
+      referenceMap : Map[SilReference, Set[SpcEntity]])
+        : Option[String] =
     {
       val sentence = SilPredicateSentence(
         SilStatePredicate(
@@ -371,7 +378,7 @@ class SnavigShell(
           SilPropertyState(invocation.state)
         )
       )
-      processFiat(sentence)
+      processFiat(sentence, invocation.entities)
     }
   }
 
@@ -390,13 +397,25 @@ class SnavigShell(
   private val phenomenalUpdater = new SnavigResponder(
     this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
 
-  private def processFiat(sentence : SilSentence) : String =
+  private def processFiat(
+    sentence : SilSentence,
+    entities : Iterable[SpcEntity])
+      : Option[String] =
   {
     if (logger.isTraceEnabled) {
       val printed = sentencePrinter.print(sentence)
       logger.trace(s"FIAT $printed")
     }
-    noumenalUpdater.process(sentence)
+    val staleEntities = findStale(entities)
+    if (staleEntities.nonEmpty) {
+      // FIXME move this to the scripting level, and discriminate
+      // seeing, hearing, touching, reaching, etc
+      val complaint = "You can only interact with what's nearby."
+      defer(DeferredComplaint(complaint))
+      Some(complaint)
+    } else {
+      Some(noumenalUpdater.process(sentence))
+    }
   }
 
   def defer(deferred : Deferred)
@@ -578,10 +597,7 @@ class SnavigShell(
                   phenomenalMind.getConversation.getUtterances.
                     takeRight(2).flatMap(
                       _.referenceMap.values.flatten)
-                if (entities.exists(entity => {
-                  val timestamp = playerPerception.getEntityTimestamp(entity)
-                  timestamp.map(_.isBefore(gameTurnTimestamp)).getOrElse(false)
-                })) {
+                if (findStale(entities).nonEmpty) {
                   assumption = "(At least I assume that's still the case.)"
                 }
               }
@@ -664,6 +680,14 @@ class SnavigShell(
         }
       }
     }
+  }
+
+  private def findStale(entities : Iterable[SpcEntity]) : Iterable[SpcEntity] =
+  {
+    entities.filter(entity => {
+      val timestamp = playerPerception.getEntityTimestamp(entity)
+      timestamp.map(_.isBefore(gameTurnTimestamp)).getOrElse(false)
+    })
   }
 
   private def talkToSelf()

@@ -12,9 +12,6 @@ A game-character can kill a kill-victim with a game-weapon.
 If a game-character kills a kill-victim, then the kill-victim is dead.
 If a game-character kills the thief, then
  the game-interpreter says "Blood splatters everywhere.".
-If a game-character kills a kill-victim, then
- the kill-victim must be in the game-character's container;
- otherwise the game-interpreter complains "But there is no such person here.".
 
 If a game-character throws a game-weapon, then
  the game-character drops the game-weapon.

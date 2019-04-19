@@ -28,6 +28,7 @@ The thief is perceptive.
 The thief believes "/example-snavig/thief-init.txt".
 
 The lantern is in the kitchen.
+The cupboard is in the kitchen.
 
 There is a prophet.
 The prophet is omniscient.
