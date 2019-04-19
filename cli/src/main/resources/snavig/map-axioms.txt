@@ -1,4 +1,4 @@
-Import "/snavig/basic-beliefs.txt".
+Import "/snavig/basic-axioms.txt".
 
 A map-place is a kind of location.
 A map-neighbor must be a map-place.

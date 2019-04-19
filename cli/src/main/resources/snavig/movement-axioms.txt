@@ -1,4 +1,4 @@
-Import "/snavig/map-beliefs.txt".
+Import "/snavig/map-axioms.txt".
 
 If a game-character goes east, then
  the game-character's container must have an eastern-neighbor;

@@ -100,7 +100,7 @@ object SnavigShell
   {
     val noumenalCosmos = ShlurdPrimordialWordnet.loadCosmos
     val beliefs = ResourceUtils.getResourceFile(
-      "/example-snavig/game-beliefs.txt")
+      "/example-snavig/game-axioms.txt")
     val source = Source.fromFile(beliefs)
     val bootMind = new SpcWordnetMind(noumenalCosmos)
     bootMind.loadBeliefs(source)
