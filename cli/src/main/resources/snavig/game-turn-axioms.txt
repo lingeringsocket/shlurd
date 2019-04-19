@@ -1,0 +1,6 @@
+Import "/snavig/character-axioms.txt".
+
+There is a game-turn.
+
+If the game-turn advances, then
+ the player-character surveys the player-character's container.

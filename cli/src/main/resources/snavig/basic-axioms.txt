@@ -1,26 +1,3 @@
 A visible-entity is a kind of object.
-A container is an spc-container.
-A game-character is a kind of person.
-A game-interpreter is a kind of person.
-A player-character is a kind of game-character.
-A non-player-character is a kind of game-character.
-A non-player-character is a kind of visible-entity.
-There is a game-interpreter.
-There is a player-character.
 A game-object is a kind of visible-entity.
-There is a game-turn.
-
-A non-player-character's awareness must be
- mindless, unperceptive, perceptive, or omniscient.
-
-If a game-character sees a visible-entity, then equivalently
- the visible-entity is in the game-character's container.
-
-If the game-turn advances, then
- the player-character surveys the player-character's container.
-
-If a player-character saves, then
- the game-interpreter saves ".zip".
-
-If a player-character restores, then
- the game-interpreter restores ".zip".
+A container is an spc-container.

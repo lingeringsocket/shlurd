@@ -1,0 +1,8 @@
+Import "/snavig/character-axioms.txt".
+Import "/snavig/interpreter-axioms.txt".
+
+If a player-character saves, then
+ the game-interpreter saves ".zip".
+
+If a player-character restores, then
+ the game-interpreter restores ".zip".

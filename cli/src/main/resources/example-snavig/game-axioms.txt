@@ -1,5 +1,4 @@
-Import "/snavig/basic-axioms.txt".
-Import "/snavig/movement-axioms.txt".
+Import "/snavig/default-axioms.txt".
 
 Import "/example-snavig/thief-axioms.txt".
 

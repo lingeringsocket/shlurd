@@ -1,0 +1,14 @@
+Import "/snavig/basic-axioms.txt".
+
+A game-character is a kind of person.
+A player-character is a kind of game-character.
+A non-player-character is a kind of game-character.
+A non-player-character is a kind of visible-entity.
+
+A non-player-character's awareness must be
+ mindless, unperceptive, perceptive, or omniscient.
+
+If a game-character sees a visible-entity, then equivalently
+ the visible-entity is in the game-character's container.
+
+There is a player-character.
