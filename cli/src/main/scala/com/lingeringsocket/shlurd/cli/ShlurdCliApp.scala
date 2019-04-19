@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
+import scala.collection._
 import scala.io._
 
 import java.io._
@@ -82,7 +83,8 @@ object ShlurdCliShell
     val cosmos = ShlurdPrimordialWordnet.loadCosmos
     val beliefs = ResourceUtils.getResourceFile("/console/beliefs.txt")
     val source = Source.fromFile(beliefs)
-    val bootMind = new SpcWordnetMind(cosmos)
+    val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
+    val bootMind = new SpcWordnetMind(cosmos, preferredSynonyms)
     bootMind.loadBeliefs(source)
 
     val entityInterviewer = cosmos.uniqueEntity(
@@ -93,7 +95,8 @@ object ShlurdCliShell
         SmcLemmas.LEMMA_SOMEONE, REF_SUBJECT, Set("shlurd"))).get
 
     terminal.emitControl("Hello, human!")
-    new ShlurdCliMind(cosmos, entityInterviewer, entityShlurd)
+    new ShlurdCliMind(
+      cosmos, entityInterviewer, entityShlurd, preferredSynonyms)
   }
 }
 

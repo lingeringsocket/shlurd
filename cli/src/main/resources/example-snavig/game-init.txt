@@ -16,7 +16,7 @@ The thief is alive.
 There is a big door.
 The big door is open.
 
-There is an ax.
+There is an axe.
 The ax is in the bathroom.
 
 There is a brass lantern.
@@ -30,6 +30,6 @@ The thief believes "/example-snavig/thief-mind-init.txt".
 The lantern is in the kitchen.
 The cupboard is in the kitchen.
 
-There is a prophet.
-The prophet is omniscient.
-The prophet is in the cupboard.
+There is an oracle.
+The oracle is omniscient.
+The oracle is in the cupboard.

@@ -4,7 +4,7 @@ OK.
 
 You are in the bathroom.
 
-You see the ax and the thief.
+You see the axe and the thief.
 
 > talk to me
 
@@ -18,11 +18,11 @@ OK.
 
 Only crazy people talk to themselves.
 
-> ask the ax "what are you made of"
+> ask the axe "what are you made of"
 
 OK.
 
-The ax does not respond.
+The axe does not respond.
 
 > ask the thief "who are you"
 
@@ -68,7 +68,7 @@ I am the thief.
 
 I don't know.
 
-> get the ax
+> get the axe
 
 No.
 
@@ -76,11 +76,11 @@ No.
 
 (You are no longer in conversation.)
 
-> talk to the ax
+> talk to the axe
 
 OK.
 
-The ax does not respond.
+The axe does not respond.
 
 > w
 
@@ -94,13 +94,13 @@ OK.
 
 You are in the cupboard.
 
-You see the prophet.
+You see the oracle.
 
-> ask the prophet "where is the lantern"
+> ask the oracle "where is the lantern"
 
 OK.
 
-The prophet responds, "It is in the kitchen."
+The oracle responds, "It is in the kitchen."
 
 > talk to the thief
 

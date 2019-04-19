@@ -33,14 +33,16 @@ object SpcWordnetMind
   }
 }
 
-class SpcWordnetMind(cosmos : SpcCosmos)
+class SpcWordnetMind(
+  cosmos : SpcCosmos,
+  preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
     extends SpcMind(cosmos)
 {
   private def getWordnet() = new SpcWordnet(cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {
-    val mind = new SpcWordnetMind(newCosmos)
+    val mind = new SpcWordnetMind(newCosmos, preferredSynonyms)
     mind.initFrom(this)
     mind
   }
@@ -134,12 +136,16 @@ class SpcWordnetMind(cosmos : SpcCosmos)
 
   override protected def getFormName(form : SpcForm) : String =
   {
-    cosmos.decodeName(getWordnet.getNoun(form))
+    preferredSynonyms.getOrElse(
+      form,
+      cosmos.decodeName(getWordnet.getNoun(form)))
   }
 
   override protected def getPossesseeName(role : SpcRole) : String =
   {
-    cosmos.decodeName(getWordnet.getPossesseeNoun(role))
+    preferredSynonyms.getOrElse(
+      role,
+      cosmos.decodeName(getWordnet.getPossesseeNoun(role)))
   }
 
   override protected def guessGender(entity : SpcEntity) : SilGender =

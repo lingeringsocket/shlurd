@@ -24,8 +24,9 @@ class SnavigMind(
   cosmos : SpcCosmos,
   val entityFirst : SpcEntity,
   val entitySecond : SpcEntity,
-  val perception : Option[SpcPerception]
-) extends ShlurdCliMind(cosmos, entityFirst, entitySecond)
+  val perception : Option[SpcPerception],
+  val preferredSynonyms : mutable.Map[SpcIdeal, String]
+) extends ShlurdCliMind(cosmos, entityFirst, entitySecond, preferredSynonyms)
 {
   private var timestamp = SpcTimestamp.ZERO
 
@@ -39,7 +40,7 @@ class SnavigMind(
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new SnavigMind(
-      newCosmos, entityFirst, entitySecond, perception)
+      newCosmos, entityFirst, entitySecond, perception, preferredSynonyms)
     mind.initFrom(this)
     mind
   }
@@ -58,6 +59,37 @@ class SnavigMind(
     } else {
       references
     }
+  }
+
+  override def resolveFormCandidates(noun : SilWord) : Seq[SpcForm] =
+  {
+    val seq = super.resolveFormCandidates(noun)
+    considerPreferredSynonym(seq, noun)
+    seq
+  }
+
+  override def resolveForm(noun : SilWord) : Option[SpcForm] =
+  {
+    val opt = super.resolveForm(noun)
+    considerPreferredSynonym(opt, noun)
+    opt
+  }
+
+  override def resolveRole(form : SpcForm, noun : SilWord) : Option[SpcRole] =
+  {
+    val opt = super.resolveRole(form, noun)
+    considerPreferredSynonym(opt, noun)
+    opt
+  }
+
+  private def considerPreferredSynonym(
+    ideals : Iterable[SpcIdeal], noun : SilWord)
+  {
+    ideals.foreach(ideal => {
+      if (!preferredSynonyms.contains(ideal)) {
+        preferredSynonyms.put(ideal, noun.toNounLemma)
+      }
+    })
   }
 
   override protected def getFormName(form : SpcForm) : String =

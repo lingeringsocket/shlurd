@@ -102,7 +102,8 @@ object SnavigShell
     val beliefs = ResourceUtils.getResourceFile(
       "/example-snavig/game-axioms.txt")
     val source = Source.fromFile(beliefs)
-    val bootMind = new SpcWordnetMind(noumenalCosmos)
+    val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
+    val bootMind = new SpcWordnetMind(noumenalCosmos, preferredSynonyms)
     bootMind.loadBeliefs(source)
 
     val entityPlayer = noumenalCosmos.uniqueEntity(
@@ -113,13 +114,14 @@ object SnavigShell
         INTERPRETER_WORD, REF_SUBJECT, Set())).get
 
     val noumenalMind = new SnavigMind(
-      noumenalCosmos, entityPlayer, entityInterpreter, None)
+      noumenalCosmos, entityPlayer, entityInterpreter, None, preferredSynonyms)
 
     val phenomenalCosmos = new SpcCosmos
     phenomenalCosmos.copyFrom(noumenalCosmos)
     val perception = new SpcPerception(noumenalCosmos, phenomenalCosmos)
     val phenomenalMind = new SnavigMind(
-      phenomenalCosmos, entityPlayer, entityInterpreter, Some(perception))
+      phenomenalCosmos, entityPlayer, entityInterpreter,
+      Some(perception), preferredSynonyms)
 
     val mindMap = new mutable.LinkedHashMap[String, SnavigMind]
     mindMap.put(SnavigSnapshot.PLAYER_PHENOMENAL, phenomenalMind)
@@ -506,7 +508,8 @@ class SnavigShell(
         }
       }
       val newMind = new SnavigMind(
-        cosmos, playerEntity, entity, perception)
+        cosmos, playerEntity, entity,
+        perception, noumenalMind.preferredSynonyms)
       snapshot.mindMap.put(entity.name, newMind)
       Some(newMind)
     }

@@ -18,9 +18,9 @@ I don't know.
 
 I'm not sure how to interpret that.
 
-> where is the ax
+> where is the axe
 
-But I don't know about any such ax.
+But I don't know about any such axe.
 
 > what is east of the bedroom
 
@@ -36,7 +36,7 @@ OK.
 
 You are in the bathroom.
 
-You see the ax and the thief.
+You see the axe and the thief.
 
 > is the thief suave
 
@@ -70,23 +70,23 @@ There is no way to the east.
 
 > what is in the bathroom
 
-The player-character, the ax, and the thief are in the bathroom.
+The player-character, the axe, and the thief are in the bathroom.
 
 > what do I see
 
-You see the ax and the thief.
+You see the axe and the thief.
 
-> get the ax
+> get the axe
 
 OK.
 
-> where is the ax
+> where is the axe
 
 It is in your stuff.
 
 > inventory
 
-You are holding the ax.
+You are holding the axe.
 
 > look
 
@@ -110,7 +110,7 @@ OK.
 
 You are in the bedroom.
 
-> throw the ax at the thief
+> throw the axe at the thief
 
 You can only interact with what's nearby.
 
@@ -122,7 +122,7 @@ You are in the bathroom.
 
 You see the thief.
 
-> throw the ax at the thief
+> throw the axe at the thief
 
 OK.
 
@@ -142,7 +142,7 @@ OK.
 
 You are in the bedroom.
 
-> where is the ax
+> where is the axe
 
 It is in the bathroom.
 
@@ -150,7 +150,7 @@ It is in the bathroom.
 
 > what is in the bathroom
 
-The ax and the thief are in the bathroom.
+The axe and the thief are in the bathroom.
 
 (At least I assume that's still the case.)
 
@@ -188,7 +188,7 @@ You are in the bedroom.
 
 You see nothing.
 
-> where is the ax
+> where is the axe
 
 It is in the bathroom.
 
@@ -200,7 +200,7 @@ OK.
 
 You are in the bathroom.
 
-You see the ax and the thief.
+You see the axe and the thief.
 
 > the thief believes "the moon is made of green cheese"
 
@@ -210,7 +210,7 @@ Oh, really?
 
 You are holding the brass lantern.
 
-> I am holding the ax
+> I am holding the axe
 
 Oh, really?
 
@@ -218,7 +218,7 @@ Oh, really?
 
 Yes, there is an ax.
 
-> where is the ax
+> where is the axe
 
 It is in the bathroom.
 

@@ -23,12 +23,14 @@ import scala.util._
 class ShlurdCliMind(
   cosmos : SpcCosmos,
   entityFirst : SpcEntity,
-  entitySecond : SpcEntity) extends SpcWordnetMind(cosmos)
+  entitySecond : SpcEntity,
+  preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
+    extends SpcWordnetMind(cosmos, preferredSynonyms)
 {
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new ShlurdCliMind(
-      newCosmos, entityFirst, entitySecond)
+      newCosmos, entityFirst, entitySecond, preferredSynonyms)
     mind.initFrom(this)
     mind
   }
