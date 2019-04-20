@@ -35,6 +35,7 @@ class SmcPredicateEvaluator[
   mind : MindType,
   sentencePrinter : SilSentencePrinter,
   existenceAssumption : SmcExistenceAssumption,
+  communicationContext : SmcCommunicationContext[EntityType],
   debugger : Option[SmcDebugger])
     extends SmcDebuggable(debugger)
 {
@@ -652,7 +653,7 @@ class SmcPredicateEvaluator[
         }
         val pr = {
           if (resultCollector.swapSpeakerListener) {
-            val rewriter = new SmcResponseRewriter(mind)
+            val rewriter = new SmcResponseRewriter(mind, communicationContext)
             rewriter.rewrite(
               rewriter.swapPronounsSpeakerListener(referenceMap), prOriginal)
           } else {
@@ -662,7 +663,7 @@ class SmcPredicateEvaluator[
         val entitiesTry = cacheReference(
           resultCollector,
           reference,
-          () => mind.resolvePronoun(pr).map(entities => {
+          () => mind.resolvePronoun(communicationContext, pr).map(entities => {
             referenceMap.put(reference, entities)
             entities
           }))

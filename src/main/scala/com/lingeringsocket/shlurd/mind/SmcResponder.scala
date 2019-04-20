@@ -182,6 +182,11 @@ class SmcContextualScorer[
   }
 }
 
+case class SmcCommunicationContext[EntityType<:SmcEntity](
+  speakerEntity : Option[EntityType] = None,
+  listenerEntity : Option[EntityType] = None
+)
+
 class SmcResponder[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -190,8 +195,10 @@ class SmcResponder[
 ](
   mind : MindType,
   generalParams : SmcResponseParams = SmcResponseParams(),
-  executor : SmcExecutor[EntityType] = new SmcExecutor[EntityType])
-    extends SmcDebuggable(SmcDebugger.maybe(SmcResponder.logger))
+  executor : SmcExecutor[EntityType] = new SmcExecutor[EntityType],
+  communicationContext : SmcCommunicationContext[EntityType] =
+    SmcCommunicationContext()
+) extends SmcDebuggable(SmcDebugger.maybe(SmcResponder.logger))
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
@@ -201,7 +208,8 @@ class SmcResponder[
 
   protected val inputRewriter = new SmcInputRewriter(mind)
 
-  private val responseRewriter = new SmcResponseRewriter(mind)
+  private val responseRewriter =
+    new SmcResponseRewriter(mind, communicationContext)
 
   val sentencePrinter = new SilSentencePrinter
 
@@ -221,7 +229,8 @@ class SmcResponder[
 
   protected def newPredicateEvaluator() =
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
-      mind, sentencePrinter, generalParams.existenceAssumption, debugger)
+      mind, sentencePrinter, generalParams.existenceAssumption,
+      communicationContext, debugger)
 
   def newParser(input : String) =
   {
@@ -927,7 +936,7 @@ class SmcResponder[
   protected def spawn(subMind : MindType) =
   {
     new SmcResponder[EntityType, PropertyType, CosmosType, MindType](
-      subMind, generalParams, executor)
+      subMind, generalParams, executor, communicationContext)
   }
 
   protected def rewriteQuery(

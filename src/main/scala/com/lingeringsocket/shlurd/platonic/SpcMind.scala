@@ -64,6 +64,7 @@ class SpcMind(cosmos : SpcCosmos)
   }
 
   override def equivalentReferences(
+    communicationContext : SmcCommunicationContext[SpcEntity],
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {
@@ -86,7 +87,8 @@ class SpcMind(cosmos : SpcCosmos)
               specializedRole,
               graph.getPossesseeEntity(edge2).form)
           })
-        val equivs = super.equivalentReferences(possessor, determiner)
+        val equivs = super.equivalentReferences(
+          communicationContext, possessor, determiner)
         val genitives = equivs.map(
           possessorEquiv => {
             if (cardinality > 1) {
@@ -123,7 +125,7 @@ class SpcMind(cosmos : SpcCosmos)
         Seq.empty
       }
     }
-    super.equivalentReferences(entity, determiner) ++
+    super.equivalentReferences(communicationContext, entity, determiner) ++
       rankedGenitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
   }
 

@@ -35,6 +35,7 @@ object SpcTriggerExecutor
 
 class SpcTriggerExecutor(
   mind : SpcMind,
+  communicationContext : SmcCommunicationContext[SpcEntity],
   inputRewriter : SmcInputRewriter[SpcEntity, SpcProperty, SpcCosmos])
     extends SmcDebuggable(SmcDebugger.maybe(SpcTriggerExecutor.logger))
 {
@@ -315,7 +316,7 @@ class SpcTriggerExecutor(
         }
         val (candidateRef, entities) = actualRef match {
           case pr : SilPronounReference => {
-            mind.resolvePronoun(pr) match {
+            mind.resolvePronoun(communicationContext, pr) match {
               case Success(entities) if (!entities.isEmpty) => {
                 tupleN((
                   mind.specificReferences(entities),

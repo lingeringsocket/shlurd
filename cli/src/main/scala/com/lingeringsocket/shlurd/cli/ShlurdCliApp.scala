@@ -87,16 +87,8 @@ object ShlurdCliShell
     val bootMind = new SpcWordnetMind(cosmos, preferredSynonyms)
     bootMind.loadBeliefs(source)
 
-    val entityInterviewer = cosmos.uniqueEntity(
-      cosmos.resolveQualifiedNoun(
-        "wnf-interviewer-1", REF_SUBJECT, Set())).get
-    val entityShlurd = cosmos.uniqueEntity(
-      cosmos.resolveQualifiedNoun(
-        SmcLemmas.LEMMA_SOMEONE, REF_SUBJECT, Set("shlurd"))).get
-
     terminal.emitControl("Hello, human!")
-    new ShlurdCliMind(
-      cosmos, entityInterviewer, entityShlurd, preferredSynonyms)
+    new ShlurdCliMind(cosmos, preferredSynonyms)
   }
 }
 
@@ -105,10 +97,25 @@ class ShlurdCliShell(
   terminal : ShlurdCliTerminal
 )
 {
+  private val cosmos = mind.getCosmos
+
+  private val entityInterviewer = cosmos.uniqueEntity(
+    cosmos.resolveQualifiedNoun(
+      "wnf-interviewer-1", REF_SUBJECT, Set())).get
+
+  private val entityShlurd = cosmos.uniqueEntity(
+    cosmos.resolveQualifiedNoun(
+      SmcLemmas.LEMMA_SOMEONE, REF_SUBJECT, Set("shlurd"))).get
+
   private val params = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
 
   private val responder = new SpcResponder(
-    mind, ACCEPT_MODIFIED_BELIEFS, params)
+    mind, ACCEPT_MODIFIED_BELIEFS, params,
+    communicationContext = SmcCommunicationContext(
+      Some(entityInterviewer),
+      Some(entityShlurd)
+    )
+  )
 
   def run()
   {

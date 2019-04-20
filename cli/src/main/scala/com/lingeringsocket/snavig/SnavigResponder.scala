@@ -26,8 +26,10 @@ class SnavigResponder(
   mind : SnavigMind,
   beliefAcceptance : SpcBeliefAcceptance,
   params : SmcResponseParams,
-  executor : SmcExecutor[SpcEntity])
-    extends SpcResponder(mind, beliefAcceptance, params, executor)
+  executor : SmcExecutor[SpcEntity],
+  communicationContext : SmcCommunicationContext[SpcEntity])
+    extends SpcResponder(mind, beliefAcceptance, params,
+      executor, communicationContext)
 {
   import SnavigShell._
 
@@ -46,7 +48,7 @@ class SnavigResponder(
   {
     new SnavigResponder(
       shell, propagateBeliefs, subMind.asInstanceOf[SnavigMind],
-      ACCEPT_MODIFIED_BELIEFS, params, executor)
+      ACCEPT_MODIFIED_BELIEFS, params, executor, communicationContext)
   }
 
   override protected def checkCycle(

@@ -31,14 +31,6 @@ class SmcMind[
   type ConversationType = SmcConversation[EntityType]
   type TimelineType = SmcTimeline[EntityType, PropertyType, CosmosType]
 
-  private lazy val personFirst =
-    cosmos.uniqueEntity(resolvePronoun(
-      SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)))
-
-  private lazy val personSecond =
-    cosmos.uniqueEntity(resolvePronoun(
-      SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)))
-
   private var conversation : Option[ConversationType] = None
 
   private var timeline
@@ -210,22 +202,42 @@ class SmcMind[
   }
 
   def resolvePronoun(
+    communicationContext : SmcCommunicationContext[EntityType],
     reference : SilPronounReference) : Try[Set[EntityType]] =
   {
-    // FIXME proper coreference resolution, including within current sentence;
-    // also, there should probably be some limit on how far back to search.
-    // Note that for the moment we exclude the current sentence completely.
-    conversation.foreach(
-      _.getUtterances.reverseIterator.drop(1).foreach(
-        utterance => {
-          findMatchingPronounReference(utterance, reference) match {
-            case Some(set) => return Success(set)
-            case _ =>
-          }
+    val entityOpt = {
+      if (reference.count == COUNT_SINGULAR) {
+        reference.person match {
+          case PERSON_FIRST => communicationContext.speakerEntity
+          case PERSON_SECOND => communicationContext.listenerEntity
+          case _ => None
         }
-      )
-    )
-    cosmos.fail("pronoun cannot be resolved")
+      } else {
+        None
+      }
+    }
+    entityOpt match {
+      case Some(entity) => {
+        Success(Set(entity))
+      }
+      case _ => {
+        // FIXME proper coreference resolution, including within
+        // current sentence; also, there should probably be some limit
+        // on how far back to search.  Note that for the moment we
+        // exclude the current sentence completely.
+        conversation.foreach(
+          _.getUtterances.reverseIterator.drop(1).foreach(
+            utterance => {
+              findMatchingPronounReference(utterance, reference) match {
+                case Some(set) => return Success(set)
+                case _ =>
+              }
+            }
+          )
+        )
+        cosmos.fail("pronoun cannot be resolved")
+      }
+    }
   }
 
   private def findMatchingPronounReference(
@@ -238,18 +250,17 @@ class SmcMind[
   }
 
   def equivalentReferences(
+    communicationContext : SmcCommunicationContext[EntityType],
     entity : EntityType,
     determiner : SilDeterminer)
       : Seq[SilReference] =
   {
-    pronounReference(entity, personFirst, PERSON_FIRST) ++
-    pronounReference(entity, personSecond, PERSON_SECOND) ++
+    pronounReference(
+      entity, communicationContext.speakerEntity, PERSON_FIRST) ++
+    pronounReference(
+      entity, communicationContext.listenerEntity, PERSON_SECOND) ++
     Seq(specificReference(entity, determiner))
   }
-
-  def getFirstPerson = personFirst.get
-
-  def getSecondPerson = personSecond.get
 
   def thirdPersonReference(entities : Set[EntityType]) : Option[SilReference] =
   {
@@ -263,12 +274,13 @@ class SmcMind[
   }
 
   private def pronounReference(
-    entity : EntityType, pronounEntity : Try[EntityType],
+    entity : EntityType,
+    pronounEntity : Option[EntityType],
     person : SilPerson)
       : Seq[SilReference] =
   {
     pronounEntity match {
-      case Success(x) if (x == entity) => {
+      case Some(x) if (x == entity) => {
         Seq(SilPronounReference(person, GENDER_N, COUNT_SINGULAR))
       }
       case _ => Seq()

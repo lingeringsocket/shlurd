@@ -27,7 +27,8 @@ class SmcResponseRewriter[
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType]
 ](
-  mind : SmcMind[EntityType, PropertyType, CosmosType]
+  mind : SmcMind[EntityType, PropertyType, CosmosType],
+  communicationContext : SmcCommunicationContext[EntityType]
 ) extends SmcPhraseRewriter
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
@@ -436,8 +437,9 @@ class SmcResponseRewriter[
     other : SilReference,
     determiner : SilDeterminer) : SilReference =
   {
-    val equivs = mind.equivalentReferences(entity, determiner).map(
-      ref => rewrite(swapPronounsSpeakerListener(referenceMap), ref))
+    val equivs = mind.equivalentReferences(
+      communicationContext, entity, determiner).map(ref =>
+      rewrite(swapPronounsSpeakerListener(referenceMap), ref))
     equivs.find(_ != other) match {
       case Some(ref) => ref
       case _ => equivs.head

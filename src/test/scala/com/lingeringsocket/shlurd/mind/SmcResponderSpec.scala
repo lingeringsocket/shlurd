@@ -21,7 +21,6 @@ import org.specs2.mutable._
 import org.specs2.specification._
 
 import scala.collection._
-import scala.util._
 
 import SprEnglishLemmas._
 
@@ -37,14 +36,17 @@ class SmcResponderSpec extends Specification
   class ZooResponder(
     mind : ZooMind,
     params : SmcResponseParams,
-    executor : SmcExecutor[SmcEntity]
+    executor : SmcExecutor[SmcEntity],
+    communicationContext : SmcCommunicationContext[SmcEntity]
   ) extends SmcResponder[
-    SmcEntity, SmcProperty, CosmosType, MindType](mind, params, executor)
+    SmcEntity, SmcProperty, CosmosType, MindType](
+    mind, params, executor, communicationContext)
   {
     override protected def newPredicateEvaluator() =
     {
       new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
-        mind, sentencePrinter, params.existenceAssumption, debugger)
+        mind, sentencePrinter, params.existenceAssumption,
+        communicationContext, debugger)
       {
         private def normalizeState(
           state : SilState) : SilState =
@@ -83,20 +85,12 @@ class SmcResponderSpec extends Specification
       SmcResponseParams(thirdPersonPronouns = false)
   ) extends Scope
   {
-    protected val mind = new ZooMind(cosmos) {
-      override def resolvePronoun(
-        reference : SilPronounReference) : Try[Set[SmcEntity]] =
-      {
-        if (reference.count == COUNT_SINGULAR) {
-          reference.person match {
-            case PERSON_FIRST => return Success(Set(ZooVisitor))
-            case PERSON_SECOND => return Success(Set(ZooKeeper))
-            case _ =>
-          }
-        }
-        super.resolvePronoun(reference)
-      }
-    }
+    protected val mind = new ZooMind(cosmos)
+
+    protected val communicationContext = SmcCommunicationContext[SmcEntity](
+      Some(ZooVisitor),
+      Some(ZooKeeper)
+    )
 
     protected def process(
       input : String,
@@ -111,7 +105,7 @@ class SmcResponderSpec extends Specification
         }
       }
       val responder =
-        new ZooResponder(mind, params, executor)
+        new ZooResponder(mind, params, executor, communicationContext)
 
       val sentence = responder.newParser(input).parseOne
       responder.process(sentence, input)
@@ -133,7 +127,9 @@ class SmcResponderSpec extends Specification
         }
       }
       val responder =
-        new ZooResponder(mind, responseParams, executor)
+        new ZooResponder(
+          mind, responseParams, executor,
+          communicationContext)
       val sentence = responder.newParser(input).parseOne
       responder.process(sentence, input) must be equalTo(ok)
       actualInvocation must be equalTo(Some(invocation))

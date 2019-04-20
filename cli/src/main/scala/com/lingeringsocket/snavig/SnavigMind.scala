@@ -15,6 +15,7 @@
 package com.lingeringsocket.snavig
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 import com.lingeringsocket.shlurd.cli._
 
@@ -22,11 +23,9 @@ import scala.collection._
 
 class SnavigMind(
   cosmos : SpcCosmos,
-  val entityFirst : SpcEntity,
-  val entitySecond : SpcEntity,
   val perception : Option[SpcPerception],
   val preferredSynonyms : mutable.Map[SpcIdeal, String]
-) extends ShlurdCliMind(cosmos, entityFirst, entitySecond, preferredSynonyms)
+) extends ShlurdCliMind(cosmos, preferredSynonyms)
 {
   private var timestamp = SpcTimestamp.ZERO
 
@@ -40,17 +39,19 @@ class SnavigMind(
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new SnavigMind(
-      newCosmos, entityFirst, entitySecond, perception, preferredSynonyms)
+      newCosmos, perception, preferredSynonyms)
     mind.initFrom(this)
     mind
   }
 
   override def equivalentReferences(
+    communicationContext : SmcCommunicationContext[SpcEntity],
     entity : SpcEntity,
     determiner : SilDeterminer)
       : Seq[SilReference] =
   {
-    val references = super.equivalentReferences(entity, determiner)
+    val references = super.equivalentReferences(
+      communicationContext, entity, determiner)
     if (entity.form.name == SnavigShell.INVENTORY_WORD) {
       val (nouns, others) =
         references.partition(_.isInstanceOf[SilNounReference])

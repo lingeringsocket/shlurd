@@ -106,26 +106,20 @@ object SnavigShell
     val bootMind = new SpcWordnetMind(noumenalCosmos, preferredSynonyms)
     bootMind.loadBeliefs(source)
 
-    val entityPlayer = noumenalCosmos.uniqueEntity(
-      noumenalCosmos.resolveQualifiedNoun(
-        PLAYER_WORD, REF_SUBJECT, Set())).get
-    val entityInterpreter = noumenalCosmos.uniqueEntity(
-      noumenalCosmos.resolveQualifiedNoun(
-        INTERPRETER_WORD, REF_SUBJECT, Set())).get
-
+    val playerEntity = bootstrapLookup(noumenalCosmos, PLAYER_WORD)
     val noumenalMind = new SnavigMind(
-      noumenalCosmos, entityPlayer, entityInterpreter, None, preferredSynonyms)
+      noumenalCosmos, None, preferredSynonyms)
 
     val phenomenalCosmos = new SpcCosmos
     phenomenalCosmos.copyFrom(noumenalCosmos)
     val perception = new SpcPerception(noumenalCosmos, phenomenalCosmos)
     val phenomenalMind = new SnavigMind(
-      phenomenalCosmos, entityPlayer, entityInterpreter,
+      phenomenalCosmos,
       Some(perception), preferredSynonyms)
 
     val mindMap = new mutable.LinkedHashMap[String, SnavigMind]
     mindMap.put(SnavigSnapshot.PLAYER_PHENOMENAL, phenomenalMind)
-    mindMap.put(entityPlayer.name, phenomenalMind)
+    mindMap.put(playerEntity.name, phenomenalMind)
     mindMap.put(SnavigSnapshot.NOUMENAL, noumenalMind)
 
     SnavigSnapshot(mindMap)
@@ -145,6 +139,14 @@ object SnavigShell
       }
       case _ => None
     }
+  }
+
+  private def bootstrapLookup(
+    cosmos : SpcCosmos, word : String) : SpcEntity =
+  {
+    cosmos.uniqueEntity(
+      cosmos.resolveQualifiedNoun(
+        word, REF_SUBJECT, Set())).get
   }
 }
 
@@ -172,6 +174,7 @@ class SnavigShell(
     quotation : String) extends Deferred
 
   case class DeferredUtterance(
+    listener : SpcEntity,
     listenerMind : SnavigMind,
     quotation : String) extends Deferred
 
@@ -185,9 +188,13 @@ class SnavigShell(
 
   private val noumenalMind = snapshot.getNoumenalMind
 
-  private val playerEntity = phenomenalMind.entityFirst
+  private val noumenalCosmos = noumenalMind.getCosmos
 
-  private val interpreterEntity = phenomenalMind.entitySecond
+  private val playerEntity =
+    bootstrapLookup(noumenalCosmos, PLAYER_WORD)
+
+  private val interpreterEntity =
+    bootstrapLookup(noumenalCosmos, INTERPRETER_WORD)
 
   private val playerPerception = phenomenalMind.perception.get
 
@@ -199,7 +206,7 @@ class SnavigShell(
 
   private var restoreFile : Option[File] = None
 
-  private var listenerMind : Option[SnavigMind] = None
+  private var listenerMind : Option[(SpcEntity, SnavigMind)] = None
 
   private val executor = new SmcExecutor[SpcEntity]
   {
@@ -315,7 +322,7 @@ class SnavigShell(
                   } else {
                     accessEntityMind(targetEntity) match {
                       case Some(entityMind) => {
-                        listenerMind = Some(entityMind)
+                        listenerMind = Some(tupleN((targetEntity, entityMind)))
                         defer(DeferredReport(
                           "(You are now in conversation.  Say TTYL to stop.)"))
                       }
@@ -386,18 +393,27 @@ class SnavigShell(
 
   private val sentencePrinter = new SilSentencePrinter
 
+  private val playerToInterpreter = SmcCommunicationContext(
+    Some(playerEntity),
+    Some(interpreterEntity)
+  )
+
   private val noumenalInitializer = new SnavigResponder(
-    this, false, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
+    this, false, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params,
+    executor, playerToInterpreter)
 
   private val noumenalUpdater = new SnavigResponder(
-    this, true, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
+    this, true, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params,
+    executor, playerToInterpreter)
 
   private val phenomenalResponder = new SnavigResponder(
     this, false, phenomenalMind, ACCEPT_NO_BELIEFS,
-    params.copy(existenceAssumption = EXISTENCE_ASSUME_UNKNOWN), executor)
+    params.copy(existenceAssumption = EXISTENCE_ASSUME_UNKNOWN),
+    executor, playerToInterpreter)
 
   private val phenomenalUpdater = new SnavigResponder(
-    this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params, executor)
+    this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params,
+    executor, playerToInterpreter)
 
   private def processFiat(
     sentence : SilSentence,
@@ -470,7 +486,6 @@ class SnavigShell(
     if (snapshot.mindMap.contains(entity.name)) {
       snapshot.mindMap.get(entity.name)
     } else {
-      val noumenalCosmos = noumenalMind.getCosmos
       lazy val newCosmos = {
         val cosmos = new SpcCosmos
         cosmos.copyFrom(noumenalCosmos)
@@ -508,7 +523,7 @@ class SnavigShell(
         }
       }
       val newMind = new SnavigMind(
-        cosmos, playerEntity, entity,
+        cosmos,
         perception, noumenalMind.preferredSynonyms)
       snapshot.mindMap.put(entity.name, newMind)
       Some(newMind)
@@ -521,9 +536,13 @@ class SnavigShell(
   {
     accessEntityMind(entity) match {
       case Some(mind) => {
+        val communicationContext = SmcCommunicationContext(
+          Some(entity),
+          Some(playerEntity)
+        )
         val responder = new SnavigResponder(
           this, false, mind, ACCEPT_MODIFIED_BELIEFS,
-          SmcResponseParams(), executor)
+          SmcResponseParams(), executor, communicationContext)
         initMind(mind, responder, resourceName)
       }
       case _ => {
@@ -547,16 +566,20 @@ class SnavigShell(
             assert(output == OK)
           })
         }
-        case DeferredUtterance(_, "TTYL" | "ttyl") => {
+        case DeferredUtterance(_, _, "TTYL" | "ttyl") => {
           listenerMind = None
           defer(DeferredReport(
             "(You are no longer in conversation.)"))
         }
-        case DeferredUtterance(targetMind, input) => {
+        case DeferredUtterance(targetEntity, targetMind, input) => {
           logger.trace(s"UTTERANCE $input")
+          val communicationContext = SmcCommunicationContext(
+            Some(playerEntity),
+            Some(targetEntity)
+          )
           val responder = new SnavigResponder(
             this, false, targetMind, ACCEPT_NO_BELIEFS,
-            SmcResponseParams(), executor)
+            SmcResponseParams(), executor, communicationContext)
           val sentences = targetMind.newParser(input).parseAll
           sentences.foreach(sentence => {
             val output = processUtterance(
@@ -634,8 +657,6 @@ class SnavigShell(
           terminal.emitNarrative(complaint)
         }
         case DeferredCommunication(speaker, listener, quotation) => {
-          // FIXME handle arbitrary speaker/listener combinations,
-          // parameters, etc
           if (speaker == listener) {
             talkToSelf
           } else {
@@ -643,9 +664,13 @@ class SnavigShell(
               listener, DETERMINER_UNIQUE)
             val reply = accessEntityMind(listener) match {
               case Some(entityMind) => {
+                val communicationContext = SmcCommunicationContext(
+                  Some(speaker),
+                  Some(listener)
+                )
                 val entityResponder = new SnavigResponder(
                   this, false, entityMind, ACCEPT_NO_BELIEFS,
-                  SmcResponseParams(), executor)
+                  SmcResponseParams(), executor, communicationContext)
                 // FIXME use parseAll instead
                 val sentence = entityMind.newParser(quotation).parseOne
                 val response = processUtterance(
@@ -753,8 +778,8 @@ class SnavigShell(
           defer(DeferredDirective("the game-turn advances"))
           processDeferred
           listenerMind match {
-            case Some(targetMind) => {
-              defer(DeferredUtterance(targetMind, input))
+            case Some((targetEntity, targetMind)) => {
+              defer(DeferredUtterance(targetEntity, targetMind, input))
             }
             case _ => {
               defer(DeferredCommand(input))

@@ -15,36 +15,19 @@
 package com.lingeringsocket.shlurd.cli
 
 import com.lingeringsocket.shlurd.platonic._
-import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
-import scala.util._
 
 class ShlurdCliMind(
   cosmos : SpcCosmos,
-  entityFirst : SpcEntity,
-  entitySecond : SpcEntity,
   preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
     extends SpcWordnetMind(cosmos, preferredSynonyms)
 {
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new ShlurdCliMind(
-      newCosmos, entityFirst, entitySecond, preferredSynonyms)
+      newCosmos, preferredSynonyms)
     mind.initFrom(this)
     mind
-  }
-
-  override def resolvePronoun(reference : SilPronounReference) =
-  {
-    if (reference.count == COUNT_SINGULAR) {
-      reference.person match {
-        case PERSON_FIRST => Success(Set(entityFirst))
-        case PERSON_SECOND => Success(Set(entitySecond))
-        case _ => super.resolvePronoun(reference)
-      }
-    } else {
-      super.resolvePronoun(reference)
-    }
   }
 }

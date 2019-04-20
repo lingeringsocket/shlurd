@@ -67,11 +67,13 @@ class SpcResponder(
   mind : SpcMind,
   beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
   params : SmcResponseParams = SmcResponseParams(),
-  executor : SmcExecutor[SpcEntity] = new SmcExecutor[SpcEntity]
+  executor : SmcExecutor[SpcEntity] = new SmcExecutor[SpcEntity],
+  communicationContext : SmcCommunicationContext[SpcEntity] =
+    SmcCommunicationContext()
 ) extends SmcResponder[
   SpcEntity, SpcProperty, SpcCosmos, SpcMind
 ](
-  mind, params, executor
+  mind, params, executor, communicationContext
 )
 {
   private val already = new mutable.HashSet[SilPredicate]
@@ -81,11 +83,13 @@ class SpcResponder(
 
   private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
-  private val triggerExecutor = new SpcTriggerExecutor(mind, inputRewriter)
+  private val triggerExecutor = new SpcTriggerExecutor(
+    mind, communicationContext, inputRewriter)
 
   override protected def spawn(subMind : SpcMind) =
   {
-    new SpcResponder(subMind, beliefAcceptance, params)
+    new SpcResponder(subMind, beliefAcceptance, params,
+      executor, communicationContext)
   }
 
   override def newParser(input : String) =
@@ -96,7 +100,8 @@ class SpcResponder(
 
   override protected def newPredicateEvaluator() =
     new SmcPredicateEvaluator[SpcEntity, SpcProperty, SpcCosmos, SpcMind](
-      mind, sentencePrinter, params.existenceAssumption, debugger)
+      mind, sentencePrinter, params.existenceAssumption,
+      communicationContext, debugger)
   {
     override protected def evaluateActionPredicate(
       predicate : SilActionPredicate,
@@ -768,7 +773,7 @@ class SpcResponder(
           }
         }
         case pr : SilPronounReference => {
-          mind.resolvePronoun(pr) match {
+          mind.resolvePronoun(communicationContext, pr) match {
             case Success(entities) => {
               lcaType(entities.map(_.form))
             }
