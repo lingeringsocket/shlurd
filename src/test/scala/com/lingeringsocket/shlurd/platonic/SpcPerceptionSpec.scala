@@ -25,10 +25,7 @@ class SpcPerceptionSpec extends Specification
   {
     protected val noumenalCosmos = new SpcCosmos
 
-    protected val phenomenalCosmos = new SpcCosmos
-
-    protected val perception =
-      new SpcPerception(noumenalCosmos, phenomenalCosmos)
+    protected var phenomenalCosmos = noumenalCosmos
 
     protected def process(input : String, cosmos : SpcCosmos) =
     {
@@ -88,7 +85,9 @@ class SpcPerceptionSpec extends Specification
       processBelief("Fern is a girl")
       processBelief("Avery is a boy")
       processBelief("a pig may be hungry or full")
-      phenomenalCosmos.copyFrom(noumenalCosmos)
+
+      phenomenalCosmos = noumenalCosmos.newClone
+
       processBelief("Wilbur is a pig")
       processBelief("Wilbur is Fern's pet")
       processBelief("Wilbur is hungry")
@@ -110,6 +109,7 @@ class SpcPerceptionSpec extends Specification
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
 
+      val perception = new SpcPerception(noumenalCosmos, phenomenalCosmos)
       perception.perceiveEntity(wilbur, timestamp)
 
       noumenalCosmos.sanityCheck must beTrue
@@ -164,13 +164,16 @@ class SpcPerceptionSpec extends Specification
       timestampOne.isAfter(timestampZero) must beTrue
 
       processBelief("a pig is a kind of animal")
-      phenomenalCosmos.copyFrom(noumenalCosmos)
+
+      phenomenalCosmos = noumenalCosmos.newClone
+
       processBelief("Wilbur is a pig")
       processBelief("Babe is a pig")
 
       val wilbur = expectProperName("Wilbur")
       val babe = expectProperName("Babe")
 
+      val perception = new SpcPerception(noumenalCosmos, phenomenalCosmos)
       perception.perceiveEntity(wilbur, timestampZero)
 
       perception.getEntityTimestamp(wilbur) must beSome(timestampZero)

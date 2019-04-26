@@ -36,8 +36,7 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
 
   override protected def restartSequence()
   {
-    cosmos = new SpcCosmos
-    cosmos.copyFrom(seedCosmos)
+    cosmos = seedCosmos.newClone
     mind = new SpcMind(cosmos)
     mind.startConversation
     mind.startNarrative

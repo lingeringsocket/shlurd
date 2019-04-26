@@ -23,6 +23,8 @@ lazy val cli = project.dependsOn(rootProject % "test->test;compile->compile")
 
 lazy val root = rootProject.aggregate(cli)
 
+resolvers ++= Common.resolvers
+
 libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
@@ -30,8 +32,8 @@ libraryDependencies ++= Seq(
   "com.googlecode.kiama" %% "kiama" % "1.8.0",
   "org.typelevel" %% "spire" % "0.16.0",
   "org.typelevel" %% "spire-extras" % "0.16.0",
-  "org.jgrapht" % "jgrapht-core" % "1.3.0",
-  "org.jgrapht" % "jgrapht-io" % "1.3.0",
+  "org.jgrapht" % "jgrapht-core" % "1.3.1-SNAPSHOT",
+  "org.jgrapht" % "jgrapht-io" % "1.3.1-SNAPSHOT",
   "org.atteo" % "evo-inflector" % "1.2.2",
   "net.sf.extjwnl" % "extjwnl" % "2.0.2",
   "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
@@ -76,4 +78,5 @@ import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
+import com.lingeringsocket.shlurd.jgrapht._
 """

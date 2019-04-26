@@ -129,11 +129,14 @@ class SpcBeliefAccepter(
     formAssocEdge : SpcFormAssocEdge,
     possessor : SpcEntity)
   {
+    if (cosmos.isBulkLoad) {
+      return
+    }
     val constraint = formAssocEdge.constraint
     val entityAssocGraph = cosmos.getEntityAssocGraph
     val edges = entityAssocGraph.
       outgoingEdgesOf(possessor).asScala.toSeq.
-      filter(_.formEdge == formAssocEdge)
+      filter(_.formEdge.getRoleName == formAssocEdge.getRoleName)
 
     val edgeCount = edges.size
     if (edgeCount >= constraint.upper) {
@@ -240,7 +243,7 @@ class SpcBeliefAccepter(
       case Some(inverseAssocEdge) => {
         val inverseEdges = entityAssocGraph.
           incomingEdgesOf(possessor).asScala.
-          filter(_.formEdge == inverseAssocEdge)
+          filter(_.formEdge.getRoleName == inverseAssocEdge.getRoleName)
         inverseEdges.foreach(cosmos.removeEntityAssocEdge)
       }
       case _ =>
@@ -547,7 +550,7 @@ class SpcBeliefAccepter(
       val entityAssocGraph = cosmos.getEntityAssocGraph
       val edges = entityAssocGraph.
         outgoingEdgesOf(possessor).asScala.toSeq.
-        filter(_.formEdge == formAssocEdge)
+        filter(_.formEdge.getRoleName == formAssocEdge.getRoleName)
       if (!edges.isEmpty && !allowUpdates) {
         // FIXME also, in the !allowUpdates case, henceforth we should
         // reject any attempt to add a matching edge

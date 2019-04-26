@@ -42,6 +42,9 @@ class SnavigSerializer extends ShlurdCliSerializer
 
   def loadSnapshot(file : File) : SnavigSnapshot =
   {
+    // this MUST be preloaded
+    ShlurdPrimordialWordnet.frozenCosmos
+
     val zis = new ZipInputStream(new FileInputStream(file))
     try {
       val nextEntry = zis.getNextEntry

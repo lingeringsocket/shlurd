@@ -177,7 +177,7 @@ class SpcResponder(
   override protected def imagine(
     alternateCosmos : SpcCosmos) =
   {
-    mind.spawn(alternateCosmos.fork)
+    mind.spawn(alternateCosmos.fork())
   }
 
   override protected def processImpl(
@@ -239,7 +239,7 @@ class SpcResponder(
         }
       }
 
-      val forkedCosmos = baselineCosmos.fork
+      val forkedCosmos = baselineCosmos.fork()
       val inputSentence =
         predicateOpt.map(
           SilPredicateSentence(_, sentence.tam)).getOrElse(sentence)
@@ -495,10 +495,8 @@ class SpcResponder(
 
   override protected def freezeCosmos(mutableCosmos : SpcCosmos) =
   {
-    // FIXME use smart deltas instead of wholesale copy
-    val frozenCosmos = new SpcCosmos
-    frozenCosmos.copyFrom(mutableCosmos)
-    frozenCosmos.asUnmodifiable
+    // FIXME use smart deltas instead of wholesale clone
+    mutableCosmos.newClone.asUnmodifiable
   }
 
   private def processBeliefOrAction(

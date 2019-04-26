@@ -24,7 +24,7 @@ class ShlurdPrimordialWordnetSpec extends Specification
 {
   abstract class ResponderContext extends Scope
   {
-    protected val cosmos = ShlurdPrimordialWordnet.loadCosmos
+    protected val cosmos = ShlurdPrimordialWordnet.newMutableCosmos
     protected val mind = new SpcWordnetMind(cosmos)
     protected val responder =
       new SpcResponder(
@@ -47,7 +47,7 @@ class ShlurdPrimordialWordnetSpec extends Specification
   {
     "load forms" in
     {
-      val cosmos = ShlurdPrimordialWordnet.loadCosmos
+      val cosmos = ShlurdPrimordialWordnet.frozenCosmos
       val dogOpt = cosmos.resolveForm("wnf-dog-1")
       dogOpt must beSome
       val dogForm = dogOpt.get

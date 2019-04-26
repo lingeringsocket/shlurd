@@ -12,14 +12,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.platonic
+package com.lingeringsocket.shlurd.jgrapht
 
 import org.jgrapht._
 import org.jgrapht.graph._
 import org.jgrapht.graph.builder._
+import org.jgrapht.util._
 
 import scala.collection._
 import scala.collection.mutable._
+import scala.collection.Set
 import scala.collection.JavaConverters._
 
 trait DeltaModification
@@ -29,10 +31,11 @@ trait DeltaModification
 
 object DeltaGraph
 {
-  private def toJavaPredicate[A](f: Function1[A, Boolean]) =
+  private def setToPredicate[A](set : Set[A])
+      : java.util.function.Predicate[A] with Serializable =
   {
-    new java.util.function.Predicate[A] {
-      override def test(a: A): Boolean = f(a)
+    new java.util.function.Predicate[A] with Serializable {
+      override def test(a: A): Boolean = set.contains(a)
     }
   }
 
@@ -44,14 +47,16 @@ object DeltaGraph
         edgeSupplier(baseGraph.getEdgeSupplier).
         vertexSupplier(baseGraph.getVertexSupplier).
         buildGraph
-    apply(baseGraph, plusGraph)
+    apply(baseGraph, plusGraph, new LinkedHashSet[V], new LinkedHashSet[E])
   }
 
-  def apply[V, E](baseGraph : Graph[V, E], plusGraph : Graph[V, E])
+  def apply[V, E](
+    baseGraph : Graph[V, E],
+    plusGraph : Graph[V, E],
+    minusVertices : mutable.Set[V],
+    minusEdges : mutable.Set[E])
       : DeltaGraph[V, E] =
   {
-    assert(plusGraph.vertexSet.isEmpty)
-
     val baseType = baseGraph.getType
     val plusType = plusGraph.getType
     assert(plusType.isModifiable)
@@ -69,37 +74,60 @@ object DeltaGraph
     assert(baseType.isAllowingMultipleEdges == plusType.isAllowingMultipleEdges)
     assert(baseType.isAllowingSelfLoops == plusType.isAllowingSelfLoops)
 
-    val minusVertices = new LinkedHashSet[V]
-    val minusEdges = new LinkedHashSet[E]
+    val baseTransient = TransientGraphDelegator(baseGraph)
 
-    val minusGraph = new MaskSubgraph(
-      baseGraph,
-      toJavaPredicate((v : V) => minusVertices.contains(v)),
-      toJavaPredicate((e : E) => minusEdges.contains(e)))
-    // FIXME propagate this fix into JGraphT
-    val unionGraph = new AsGraphUnion(minusGraph, plusGraph) {
-      private lazy val vertexSetCache = super.vertexSet
-      private lazy val edgeSetCache = super.edgeSet
-      override def vertexSet =
-      {
-        vertexSetCache
-      }
-      override def edgeSet =
-      {
-        edgeSetCache
-      }
-    }
+    val minusGraph = TransientGraphDelegator(
+      new TweakedMaskSubgraph(
+        baseTransient,
+        minusVertices,
+        minusEdges))
+
+    val unionGraph = new TweakedGraphUnion(minusGraph, plusGraph)
     new DeltaGraph(
-      baseGraph, plusGraph, unionGraph, minusVertices, minusEdges)
+      baseTransient, unionGraph, plusGraph, minusVertices, minusEdges)
+  }
+
+  object SerializableWeightCombiner extends WeightCombiner with Serializable
+  {
+    override def combine(a : Double, b : Double) =
+      WeightCombiner.SUM.combine(a, b)
+  }
+
+  class TweakedGraphUnion[V, E](
+    minusGraph : Graph[V, E],
+    plusGraph : Graph[V, E]
+  ) extends AsGraphUnion[V, E](
+    minusGraph, plusGraph, SerializableWeightCombiner)
+  {
+    override def getVertexSupplier = plusGraph.getVertexSupplier
+    override def getEdgeSupplier = plusGraph.getEdgeSupplier
+  }
+
+  class TweakedMaskSubgraph[V,E](
+    base : Graph[V, E],
+    minusVertices : Set[V],
+    minusEdges : Set[E]
+  ) extends MaskSubgraph(
+    base, setToPredicate(minusVertices), setToPredicate(minusEdges)
+  )
+  {
+    private val maskedVertices = new TweakedMaskVertexSet(
+      base.vertexSet, vertexMask, minusVertices)
+
+    private val maskedEdges = new TweakedMaskEdgeSet(
+      base, base.edgeSet, vertexMask, edgeMask, minusEdges)
+
+    override def edgeSet = maskedEdges
+    override def vertexSet = maskedVertices
   }
 }
 
 class DeltaGraph[V, E](
-  baseGraph : Graph[V, E],
-  plusGraph : Graph[V, E],
-  unionGraph : Graph[V, E],
-  minusVertices : mutable.Set[V],
-  minusEdges : mutable.Set[E]
+  val baseGraph : Graph[V, E],
+  val unionGraph : Graph[V, E],
+  val plusGraph : Graph[V, E],
+  val minusVertices : mutable.Set[V],
+  val minusEdges : mutable.Set[E]
 ) extends GraphDelegator[V, E](unionGraph) with DeltaModification
 {
   private def preAddEdge(sourceVertex : V, targetVertex : V) : Boolean =
@@ -215,5 +243,10 @@ class DeltaGraph[V, E](
     Graphs.addGraph(baseGraph, plusGraph)
     baseGraph.removeAllVertices(minusVertices.asJava)
     plusGraph.removeAllVertices(plusVertices.asJava)
+  }
+
+  def swapBase(newBase : Graph[V, E]) : DeltaGraph[V, E] =
+  {
+    DeltaGraph(newBase, plusGraph, minusVertices, minusEdges)
   }
 }

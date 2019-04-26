@@ -45,16 +45,17 @@ object SnavigShell
 
   private val actionRespond = SilWord("responds", "respond")
 
+  private val serializer = new SnavigSerializer
+
   def run(terminal : SnavigTerminal = new SnavigConsole)
   {
     val newShell = this.synchronized {
       val file = new File("run/snavig-init-save.zip")
       val (snapshot, init) =
-        SnavigShell.loadOrCreate(file, terminal)
+        loadOrCreate(file, terminal)
       val shell = new SnavigShell(snapshot, terminal)
       if (init) {
         shell.init
-        val serializer = new SnavigSerializer
         serializer.saveSnapshot(snapshot, file)
       }
       shell
@@ -90,7 +91,6 @@ object SnavigShell
       : SnavigSnapshot =
   {
     terminal.emitControl(s"Restoring from $file...")
-    val serializer = new SnavigSerializer
     val snapshot = serializer.loadSnapshot(file)
     terminal.emitControl("Restore complete.")
     snapshot
@@ -98,7 +98,7 @@ object SnavigShell
 
   def createNewCosmos() : SnavigSnapshot =
   {
-    val noumenalCosmos = ShlurdPrimordialWordnet.loadCosmos
+    val noumenalCosmos = ShlurdPrimordialWordnet.newMutableCosmos
     val beliefs = ResourceUtils.getResourceFile(
       "/example-snavig/game-axioms.txt")
     val source = Source.fromFile(beliefs)
@@ -110,8 +110,7 @@ object SnavigShell
     val noumenalMind = new SnavigMind(
       noumenalCosmos, None, preferredSynonyms)
 
-    val phenomenalCosmos = new SpcCosmos
-    phenomenalCosmos.copyFrom(noumenalCosmos)
+    val phenomenalCosmos = noumenalCosmos.newClone
     val perception = new SpcPerception(noumenalCosmos, phenomenalCosmos)
     val phenomenalMind = new SnavigMind(
       phenomenalCosmos,
@@ -277,7 +276,6 @@ class SnavigShell(
               case "save" => {
                 val file = getSaveFile(quotation)
                 terminal.emitControl(s"Saving $file...")
-                val serializer = new SnavigSerializer
                 phenomenalMind.stopConversation
                 serializer.saveSnapshot(
                   snapshot,
@@ -486,11 +484,7 @@ class SnavigShell(
     if (snapshot.mindMap.contains(entity.name)) {
       snapshot.mindMap.get(entity.name)
     } else {
-      lazy val newCosmos = {
-        val cosmos = new SpcCosmos
-        cosmos.copyFrom(noumenalCosmos)
-        cosmos
-      }
+      lazy val newCosmos = noumenalCosmos.newClone
       val (cosmos, perception) = noumenalCosmos.evaluateEntityProperty(
         entity, "awareness"
       ) match {

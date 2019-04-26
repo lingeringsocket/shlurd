@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.jgrapht._
 
 import spire.math._
 
@@ -39,12 +40,12 @@ class SpcPropertyState(val lemma : String, val inflected : String)
   override def toString = s"SpcPropertyState($lemma -> $inflected)"
 }
 
-class SpcProperty(val name : String, val isClosed : Boolean)
+case class SpcProperty(form : SpcForm, name : String, isClosed : Boolean)
     extends SmcProperty with SmcNamedObject with SpcContainmentVertex
 {
   def isSynthetic = name.contains('_')
 
-  override def toString = s"SpcProperty($name)"
+  override def toString = s"SpcProperty(${form.name}, $name, $isClosed)"
 }
 
 class SpcEntityPropertyState(val propertyName : String, val lemma : String)
@@ -72,7 +73,7 @@ case class SpcIdealSynonym(name : String)
   override def isSynonym = true
 }
 
-sealed abstract class SpcIdeal(val name : String)
+sealed abstract class SpcIdeal(name : String)
     extends SpcNym
 {
   override def isIdeal : Boolean = true
@@ -96,7 +97,7 @@ object SpcForm
   }
 }
 
-class SpcForm(name : String)
+case class SpcForm(name : String)
     extends SpcIdeal(name) with SpcContainmentVertex
 {
   import SpcForm._
@@ -108,7 +109,7 @@ class SpcForm(name : String)
   override def toString = s"SpcForm($name)"
 }
 
-class SpcRole(name : String)
+case class SpcRole(name : String)
     extends SpcIdeal(name)
 {
   override def isRole = true
@@ -192,6 +193,8 @@ class SpcCosmicPool
 {
   val idGenerator = new AtomicLong
 
+  @transient private var bulkLoad = false
+
   @transient var taxonomyTimestamp = 1
 
   @transient var entityTimestamp = 1
@@ -232,6 +235,16 @@ class SpcCosmicPool
       newValue
     }
   }
+
+  def isBulkLoad() : Boolean =
+  {
+    bulkLoad
+  }
+
+  def enableBulkLoad()
+  {
+    bulkLoad = true
+  }
 }
 
 class SpcCosmos(
@@ -240,7 +253,7 @@ class SpcCosmos(
   pool : SpcCosmicPool = new SpcCosmicPool
 ) extends SmcCosmos[SpcEntity, SpcProperty] with DeltaModification
 {
-  private val unmodifiableGraph = graph.asUnmodifiable
+  @transient private lazy val unmodifiableGraph = graph.asUnmodifiable
 
   private[platonic] val meta = new SpcMeta(this)
 
@@ -276,17 +289,27 @@ class SpcCosmos(
     edge.isProperty = isProperty
   }
 
-  def fork() : SpcCosmos =
+  def fork(detached : Boolean = false) : SpcCosmos =
   {
     // we don't currently support true nested forks
     val forkedGraph = {
       if (forkLevel > 0) {
+        assert(!detached)
         graph
       } else {
         SpcGraph.fork(graph)
       }
     }
-    val forked = new SpcCosmos(forkedGraph, forkLevel + 1, pool)
+    val (forkPool, newForkLevel) = {
+      if (detached) {
+        val newPool = new SpcCosmicPool
+        newPool.idGenerator.set(pool.idGenerator.get)
+        tupleN((newPool, 0))
+      } else {
+        tupleN((pool, forkLevel + 1))
+      }
+    }
+    val forked = new SpcCosmos(forkedGraph, newForkLevel, forkPool)
     forked.meta.afterFork(meta)
     forked
   }
@@ -303,7 +326,7 @@ class SpcCosmos(
     assert(getIdGenerator.get == 0)
     val dstGraphs = graph.getGraphs
     dstGraphs.foreach(graph => assert(graph.vertexSet.isEmpty))
-    getIdGenerator.set(src.getIdGenerator.get)
+    syncGenerator(src)
     dstGraphs.zip(src.getGraph.getGraphs).foreach({
       case (dstGraph, srcGraph) => {
         // FIXME find a way to do this without ugly casts
@@ -312,6 +335,24 @@ class SpcCosmos(
         Graphs.addGraph(dstGraphUp, srcGraphUp)
       }
     })
+  }
+
+  def newClone() : SpcCosmos =
+  {
+    val newCosmos = new SpcCosmos(graph.newClone)
+    newCosmos.syncGenerator(this)
+    newCosmos.meta.afterFork(meta)
+    newCosmos
+  }
+
+  private def syncGenerator(src : SpcCosmos)
+  {
+    getIdGenerator.set(src.getIdGenerator.get)
+  }
+
+  def isBulkLoad() : Boolean =
+  {
+    pool.isBulkLoad
   }
 
   private def registerIdeal(ideal : SpcIdeal) =
@@ -551,7 +592,8 @@ class SpcCosmos(
     val constraint = newEdge.constraint
     if (constraint.upper < Int.MaxValue) {
       val oldEntityEdges =
-        entityAssocs.edgeSet.asScala.filter(_.formEdge == oldEdge)
+        entityAssocs.edgeSet.asScala.filter(
+          _.formEdge.getRoleName == oldEdge.getRoleName)
       oldEntityEdges.groupBy(graph.getPossessorEntity).
         filter(_._2.size > constraint.upper).isEmpty
     } else {
@@ -568,7 +610,8 @@ class SpcCosmos(
     val formAssocs = graph.formAssocs
     val entityAssocs = graph.entityAssocs
     val oldEntityEdges =
-      entityAssocs.edgeSet.asScala.filter(_.formEdge == oldEdge)
+      entityAssocs.edgeSet.asScala.filter(
+        _.formEdge.getRoleName == oldEdge.getRoleName)
     oldEntityEdges.foreach(
       entityEdge => {
         entityAssocs.addEdge(
@@ -689,7 +732,7 @@ class SpcCosmos(
     }
   }
 
-  protected[platonic] def instantiateEntity(
+  def instantiateEntity(
     form : SpcForm,
     qualifierString : Seq[SilWord],
     properName : String = "") : (SpcEntity, Boolean) =
@@ -766,7 +809,7 @@ class SpcCosmos(
     val inverseAssocs = graph.inverseAssocs
     getInverseAssocEdge(edge1) match {
       case Some(existing) => {
-        if (existing == edge2) {
+        if (existing.getRoleName == edge2.getRoleName) {
           return
         }
       }
@@ -779,7 +822,7 @@ class SpcCosmos(
     inverseAssocs.addEdge(edge1, edge2)
   }
 
-  protected[platonic] def addIdealTaxonomy(
+  def addIdealTaxonomy(
     hyponymIdeal : SpcIdeal,
     hypernymIdeal : SpcIdeal)
   {
@@ -805,21 +848,21 @@ class SpcCosmos(
     }
   }
 
-  protected[platonic] def addFormAssoc(
+  def addFormAssoc(
     possessor : SpcIdeal,
     role : SpcRole) : SpcFormAssocEdge =
   {
     graph.getFormAssocEdge(possessor, role) match {
       case Some(edge) => edge
       case _ => {
-        val edge = new SpcFormAssocEdge(role.name)
+        val edge = new SpcFormAssocEdge(possessor, role.name)
         graph.formAssocs.addEdge(possessor, role, edge)
         edge
       }
     }
   }
 
-  protected[platonic] def addEntityAssoc(
+  def addEntityAssoc(
     possessor : SpcEntity,
     possessee : SpcEntity,
     role : SpcRole) : SpcEntityAssocEdge =
@@ -852,7 +895,7 @@ class SpcCosmos(
     val role = graph.getPossesseeRole(formAssocEdge)
     getEntityAssocEdge(possessor, possessee, role) match {
       case Some(edge) => {
-        assert(edge.formEdge == formAssocEdge)
+        assert(edge.formEdge.getRoleName == formAssocEdge.getRoleName)
         edge
       }
       case _ => {
@@ -906,18 +949,24 @@ class SpcCosmos(
 
   def validateBeliefs()
   {
-    if (graph.idealTaxonomy.vertexSet.size < 10000) {
+    if (!isBulkLoad && (getIdGenerator.get < 10000)) {
       assert(sanityCheck)
     }
+  }
+
+  private def safeSet[T](set : java.util.Set[T]) : Set[T] =
+  {
+    val a = set.asScala.toSeq
+    Set(a:_*)
   }
 
   def sanityCheck() : Boolean =
   {
     assert(graph.sanityCheck)
-    val idealSet = graph.idealSynonyms.vertexSet.asScala.filter(_.isIdeal).
+    val idealSet = safeSet(graph.idealSynonyms.vertexSet).filter(_.isIdeal).
       map(_.asInstanceOf[SpcIdeal])
-    assert(idealSet == graph.idealTaxonomy.vertexSet.asScala)
-    assert(idealSet == graph.formAssocs.vertexSet.asScala)
+    assert(idealSet == safeSet(graph.idealTaxonomy.vertexSet))
+    assert(idealSet == safeSet(graph.formAssocs.vertexSet))
     val formAssocs = graph.formAssocs
     idealSet.foreach(ideal => {
       assert((formAssocs.outDegreeOf(ideal) ==
@@ -962,8 +1011,8 @@ class SpcCosmos(
         getPropertyStateObjMap(propertyOpt.get).contains(entityProperty.lemma)
       })
     })
-    assert(entitySet == graph.entityAssocs.vertexSet.asScala)
-    val componentSet = graph.components.vertexSet.asScala
+    assert(entitySet == safeSet(graph.entityAssocs.vertexSet))
+    val componentSet = safeSet(graph.components.vertexSet)
     val propertySet = formSet.flatMap(getFormPropertyMap(_).values).toSet
     val propertyStateSet =
       propertySet.flatMap(getPropertyStateObjMap(_).values).toSet
@@ -993,7 +1042,7 @@ class SpcCosmos(
     if (constraint.upper < Int.MaxValue) {
       val entityEdges = getEntityAssocGraph.
         outgoingEdgesOf(possessor).asScala
-      val c = entityEdges.count(_.formEdge == formEdge)
+      val c = entityEdges.count(_.formEdge.getRoleName == formEdge.getRoleName)
       assert(c <= constraint.upper, (formEdge, possessor))
     }
     true
@@ -1182,7 +1231,7 @@ class SpcCosmos(
     getFormPropertyMap(form).get(propertyName) match {
       case Some(property) => property
       case _ => {
-        val property = new SpcProperty(propertyName, false)
+        val property = new SpcProperty(form, propertyName, false)
         assert(!getFormPropertyMap(form).contains(property.name))
         meta.propertyExistence(form, property)
         graph.addComponent(form, property)
@@ -1194,7 +1243,7 @@ class SpcCosmos(
   def closePropertyStates(property : SpcProperty)
   {
     if (!property.isClosed) {
-      val closedProperty = new SpcProperty(property.name, true)
+      val closedProperty = new SpcProperty(property.form, property.name, true)
       graph.components.addVertex(closedProperty)
       graph.replaceVertex(graph.components, property, closedProperty)
       assert(graph.components.degreeOf(property) == 0)

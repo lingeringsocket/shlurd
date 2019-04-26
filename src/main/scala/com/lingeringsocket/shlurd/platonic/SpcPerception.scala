@@ -42,13 +42,14 @@ case class SpcTimestamp(when : Long)
 }
 
 class SpcPerception(
-  noumenalCosmos : SpcCosmos, phenomenalCosmos : SpcCosmos)
+  val noumenalCosmos : SpcCosmos,
+  val phenomenalCosmos : SpcCosmos,
+  val timestampMap : mutable.Map[SpcEntity, SpcTimestamp] =
+    new mutable.LinkedHashMap[SpcEntity, SpcTimestamp])
 {
-  private val noumenalGraph = noumenalCosmos.getGraph
+  private def noumenalGraph = noumenalCosmos.getGraph
 
-  private val phenomenalGraph = phenomenalCosmos.getModifiableGraph
-
-  private val timestampMap = new mutable.LinkedHashMap[SpcEntity, SpcTimestamp]
+  private def phenomenalGraph = phenomenalCosmos.getModifiableGraph
 
   private def touchTimestamp(entity : SpcEntity, timestamp : SpcTimestamp)
   {

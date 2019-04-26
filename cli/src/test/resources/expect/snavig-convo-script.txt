@@ -1,3 +1,7 @@
+> where am I
+
+You are in the bedroom.
+
 > e
 
 OK.

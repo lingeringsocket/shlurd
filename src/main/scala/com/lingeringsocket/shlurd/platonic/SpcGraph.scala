@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.jgrapht._
 import com.lingeringsocket.shlurd.ilang._
 
 import org.jgrapht._
@@ -33,6 +34,21 @@ import scala.collection.JavaConverters._
 
 object SpcGraph
 {
+  class ExposedListenableGraph[V, E](
+    delegate : Graph[V, E]
+  ) extends DefaultListenableGraph[V, E](delegate)
+  {
+    def getExposedDelegate() = delegate
+  }
+
+  class ExposedUnmodifiableGraph[V, E](
+    delegate : Graph[V, E],
+    val isFrozen : Boolean
+  ) extends AsUnmodifiableGraph[V, E](delegate)
+  {
+    def getExposedDelegate() = delegate
+  }
+
   def fork(base : SpcGraph) : SpcGraph =
   {
     val idealSynonyms = DeltaGraph(base.idealSynonyms)
@@ -42,20 +58,123 @@ object SpcGraph
     val entitySynonyms = DeltaGraph(base.entitySynonyms)
     val entityAssocs = DeltaGraph(base.entityAssocs)
     val componentsDelta = DeltaGraph(base.components)
-    val components = new DefaultListenableGraph(componentsDelta)
+    val components = new ExposedListenableGraph(componentsDelta)
     val assertions = DeltaGraph(base.assertions)
     val (formPropertyIndex, entityPropertyIndex, propertyStateIndex,
       stateNormalizationIndex) = createIndexes(components)
     new SpcGraph(
+      None,
+      base.name,
       idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
       entitySynonyms, entityAssocs, components, assertions,
       formPropertyIndex, entityPropertyIndex,
-      propertyStateIndex, stateNormalizationIndex,
-      Seq(idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
-        entitySynonyms, entityAssocs, componentsDelta, assertions))
+      propertyStateIndex, stateNormalizationIndex)
   }
 
-  def apply() : SpcGraph =
+  private def extractDelta(graph : Graph[_, _]) : Option[DeltaModification] =
+  {
+    graph match {
+      case listenable : ExposedListenableGraph[_, _] => {
+        extractDelta(listenable.getExposedDelegate)
+      }
+      case delta : DeltaModification => {
+        Some(delta)
+      }
+      case _ => None
+    }
+  }
+
+  private def cloneSub[V, E](
+    graph : Graph[V, E]) : Graph[V, E] =
+  {
+    graph match {
+      case listenable : ExposedListenableGraph[V, E] => {
+        new ExposedListenableGraph(
+          cloneSub(listenable.getExposedDelegate))
+      }
+      case unmodifiable : ExposedUnmodifiableGraph[V, E] => {
+        if (unmodifiable.isFrozen) {
+          unmodifiable
+        } else {
+          cloneSub(unmodifiable.getExposedDelegate)
+        }
+      }
+      case transient : TransientGraphDelegator[V, E] => {
+        cloneSub(transient.getDelegate)
+      }
+      case delta : DeltaGraph[V, E] => {
+        DeltaGraph(
+          cloneSub(delta.baseGraph),
+          cloneSub(delta.plusGraph),
+          delta.minusVertices.clone,
+          delta.minusEdges.clone)
+      }
+      case _ => {
+        graph.asInstanceOf[AbstractBaseGraph[V, E]].clone.
+          asInstanceOf[Graph[V, E]]
+      }
+    }
+  }
+
+  private def swapBase[V, E](base : Graph[V, E], forked : Graph[V, E])
+      : Graph[V, E] =
+  {
+    val (modifiable, unmodifiable, isFrozen) = {
+      forked match {
+        case exposed : ExposedUnmodifiableGraph[V, E] => {
+        tupleN((
+          exposed.getExposedDelegate,
+          true,
+          exposed.isFrozen))
+        }
+        case _ => {
+          tupleN((
+            forked,
+            false,
+            false))
+        }
+      }
+    }
+    val (underlying, listenable) = {
+      modifiable match {
+        case exposed : ExposedListenableGraph[V, E] => {
+        tupleN((
+          exposed.getExposedDelegate,
+          true))
+        }
+        case _ => {
+          tupleN((
+            modifiable,
+            false))
+        }
+      }
+    }
+    if (underlying.isInstanceOf[DeltaGraph[V, E]]) {
+      val delta = underlying.asInstanceOf[DeltaGraph[V, E]]
+      val swapped = delta.swapBase(base)
+      val swappedListenable = {
+        if (listenable) {
+          new ExposedListenableGraph(swapped)
+        } else {
+          swapped
+        }
+      }
+      if (unmodifiable) {
+        new ExposedUnmodifiableGraph(swappedListenable, isFrozen)
+      } else {
+        swappedListenable
+      }
+    } else {
+      forked
+    }
+  }
+
+  def apply(name : String) : SpcGraph =
+  {
+    apply(Some(name))
+  }
+
+  def apply(name : Option[String] = None) : SpcGraph =
   {
     val idealSynonyms =
       new SimpleDirectedGraph[SpcNym, SpcSynonymEdge](
@@ -75,7 +194,7 @@ object SpcGraph
     val entityAssocs =
       new DirectedPseudograph[SpcEntity, SpcEntityAssocEdge](
         classOf[SpcEntityAssocEdge])
-    val components = new DefaultListenableGraph(
+    val components = new ExposedListenableGraph(
       new SimpleDirectedGraph[SpcContainmentVertex, SpcComponentEdge](
         classOf[SpcComponentEdge]))
     val assertions =
@@ -84,6 +203,8 @@ object SpcGraph
     val (formPropertyIndex, entityPropertyIndex,
       propertyStateIndex, stateNormalizationIndex) = createIndexes(components)
     new SpcGraph(
+      name,
+      None,
       idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
       entitySynonyms, entityAssocs, components, assertions,
       formPropertyIndex, entityPropertyIndex,
@@ -91,8 +212,10 @@ object SpcGraph
   }
 
   private def createIndexes(
-    components : ListenableGraph[SpcContainmentVertex, SpcComponentEdge]) =
+    componentsIn : Graph[SpcContainmentVertex, SpcComponentEdge]) =
   {
+    val components = componentsIn.asInstanceOf[
+      ListenableGraph[SpcContainmentVertex, SpcComponentEdge]]
     val formPropertyIndex =
       new SpcComponentIndex[String, SpcProperty](
         components, _ match {
@@ -134,13 +257,16 @@ class SpcLabeledEdge(
   override def toString = super.toString + " : " + label
 }
 
-class SpcFormAssocEdge(
-  roleName : String,
-  var isProperty : Boolean = false,
-  var constraint : SpcCardinalityConstraint =
-    SpcCardinalityConstraint(0, Int.MaxValue)
+case class SpcFormAssocEdge(
+  possessor : SpcIdeal,
+  roleName : String
 ) extends SpcLabeledEdge(roleName)
 {
+  var isProperty : Boolean = false
+
+  var constraint : SpcCardinalityConstraint =
+    SpcCardinalityConstraint(0, Int.MaxValue)
+
   def getRoleName = label
 }
 
@@ -169,6 +295,8 @@ class SpcComponentEdge extends SpcEdge
 }
 
 class SpcGraph(
+  val name : Option[String],
+  val baseName : Option[String],
   val idealSynonyms : Graph[SpcNym, SpcSynonymEdge],
   val idealTaxonomy : Graph[SpcIdeal, SpcTaxonomyEdge],
   val formAssocs : Graph[SpcIdeal, SpcFormAssocEdge],
@@ -182,22 +310,31 @@ class SpcGraph(
       SpcComponentIndex[String, SpcEntityPropertyState],
   val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState],
   val stateNormalizationIndex :
-      SpcComponentIndex[SilState, SpcStateNormalization],
-  deltas : Iterable[DeltaModification] = Iterable.empty
+      SpcComponentIndex[SilState, SpcStateNormalization]
 ) extends DeltaModification
 {
+  import SpcGraph._
+
+  private val deltas =
+    Seq(idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
+      entitySynonyms, entityAssocs, components, assertions).flatMap(
+      extractDelta)
+
   def asUnmodifiable() =
   {
     if (getGraphs().exists(_.getType.isModifiable)) {
+      val isFrozen = name.nonEmpty
       new SpcGraph(
-        new AsUnmodifiableGraph(idealSynonyms),
-        new AsUnmodifiableGraph(idealTaxonomy),
-        new AsUnmodifiableGraph(formAssocs),
-        new AsUnmodifiableGraph(inverseAssocs),
-        new AsUnmodifiableGraph(entitySynonyms),
-        new AsUnmodifiableGraph(entityAssocs),
-        new AsUnmodifiableGraph(components),
-        new AsUnmodifiableGraph(assertions),
+        name,
+        baseName,
+        new ExposedUnmodifiableGraph(idealSynonyms, isFrozen),
+        new ExposedUnmodifiableGraph(idealTaxonomy, isFrozen),
+        new ExposedUnmodifiableGraph(formAssocs, isFrozen),
+        new ExposedUnmodifiableGraph(inverseAssocs, isFrozen),
+        new ExposedUnmodifiableGraph(entitySynonyms, isFrozen),
+        new ExposedUnmodifiableGraph(entityAssocs, isFrozen),
+        new ExposedUnmodifiableGraph(components, isFrozen),
+        new ExposedUnmodifiableGraph(assertions, isFrozen),
         formPropertyIndex,
         entityPropertyIndex,
         propertyStateIndex,
@@ -206,6 +343,53 @@ class SpcGraph(
     } else {
       this
     }
+  }
+
+  def rebase(base : SpcGraph) : SpcGraph =
+  {
+    val componentsSwapped = swapBase(base.components, components)
+    val (formPropertyIndexSwapped, entityPropertyIndexSwapped,
+      propertyStateIndexSwapped, stateNormalizationIndexSwapped) =
+      createIndexes(componentsSwapped)
+    new SpcGraph(
+      name,
+      baseName,
+      swapBase(base.idealSynonyms, idealSynonyms),
+      swapBase(base.idealTaxonomy, idealTaxonomy),
+      swapBase(base.formAssocs, formAssocs),
+      swapBase(base.inverseAssocs, inverseAssocs),
+      swapBase(base.entitySynonyms, entitySynonyms),
+      swapBase(base.entityAssocs, entityAssocs),
+      componentsSwapped,
+      swapBase(base.assertions, assertions),
+      formPropertyIndexSwapped,
+      entityPropertyIndexSwapped,
+      propertyStateIndexSwapped,
+      stateNormalizationIndexSwapped
+    )
+  }
+
+  def newClone() : SpcGraph =
+  {
+    val componentsCloned = cloneSub(components)
+    val (formPropertyIndexCloned, entityPropertyIndexCloned,
+      propertyStateIndexCloned, stateNormalizationIndexCloned) =
+      createIndexes(componentsCloned)
+    new SpcGraph(
+      name,
+      baseName,
+      cloneSub(idealSynonyms),
+      cloneSub(idealTaxonomy),
+      cloneSub(formAssocs),
+      cloneSub(inverseAssocs),
+      cloneSub(entitySynonyms),
+      cloneSub(entityAssocs),
+      componentsCloned,
+      cloneSub(assertions),
+      formPropertyIndexCloned,
+      entityPropertyIndexCloned,
+      propertyStateIndexCloned,
+      stateNormalizationIndexCloned)
   }
 
   def getGraphs() : Seq[Graph[_, _]] =

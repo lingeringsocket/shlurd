@@ -16,10 +16,12 @@ maxErrors := Common.maxErrors
 
 traceLevel := Common.traceLevel
 
+resolvers ++= Common.resolvers
+
 libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
-  "com.twitter" %% "chill" % "0.9.2"
+  "com.twitter" %% "chill" % "0.9.3"
 )
 
 testOptions in Test += Tests.Setup(

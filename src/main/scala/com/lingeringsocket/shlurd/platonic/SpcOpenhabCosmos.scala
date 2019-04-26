@@ -61,8 +61,9 @@ abstract class SpcOpenhabCosmos(
     instantiateForm(SilWord(presenceFormName))
   }
 
-  override def fork() : SpcOpenhabCosmos =
+  override def fork(detached : Boolean = false) : SpcOpenhabCosmos =
   {
+    assert(!detached)
     val forkedGraph = {
       if (forkLevel > 0) {
         graph

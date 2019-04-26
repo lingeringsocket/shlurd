@@ -20,6 +20,7 @@ import com.lingeringsocket.shlurd.platonic._
 
 import com.twitter.chill.ScalaKryoInstantiator
 import com.twitter.chill.TraversableSerializer
+import com.esotericsoftware.kryo._
 import com.esotericsoftware.kryo.io._
 
 import scala.collection._
@@ -34,6 +35,22 @@ object ShlurdCliSerializer
   val BELIEF_ENTRY = "beliefs.txt"
 
   val GML_ENTRY = "graphs.gml"
+
+  private val graphMap = new mutable.LinkedHashMap[String, SpcGraph]
+
+  private def saveGraph(name : String, graph : SpcGraph)
+  {
+    this.synchronized {
+      graphMap.put(name, graph)
+    }
+  }
+
+  private def accessGraph(name : String) : SpcGraph =
+  {
+    this.synchronized {
+      graphMap(name)
+    }
+  }
 }
 
 class ShlurdCliSerializer
@@ -45,11 +62,42 @@ class ShlurdCliSerializer
 
   protected val kryo = instantiator.newKryo
 
+  private val graphSerializer = kryo.newDefaultSerializer(classOf[SpcGraph]).
+    asInstanceOf[Serializer[SpcGraph]]
+
   // stackoverflow.com/questions/37869812/serialize-linked-hash-map-kryo
-  kryo.register(classOf[mutable.LinkedHashMap[Any, Any]],
+  kryo.register(
+    classOf[mutable.LinkedHashMap[Any, Any]],
     new TraversableSerializer[
       (Any, Any),
       mutable.LinkedHashMap[Any, Any]](true))
+
+  kryo.register(
+    classOf[SpcGraph],
+    new Serializer[SpcGraph]
+      {
+        def write(kser : Kryo, out : Output, graph : SpcGraph)
+        {
+          graph.name.foreach(graphName => {
+            saveGraph(graphName, graph)
+          })
+          graphSerializer.write(kser, out, graph)
+        }
+
+        def read(kser : Kryo, in : Input, cls : Class[SpcGraph]) : SpcGraph =
+        {
+          val orig = graphSerializer.read(kser, in, cls)
+          val graph = orig.baseName.map(baseName => {
+            val base = accessGraph(baseName)
+            orig.rebase(base)
+          }).getOrElse(orig)
+          graph.name.foreach(graphName => {
+            saveGraph(graphName, graph)
+          })
+          graph
+        }
+      }
+  )
 
   def saveCosmos(cosmos : SpcCosmos, file : File)
   {

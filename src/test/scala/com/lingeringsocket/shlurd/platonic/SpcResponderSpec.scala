@@ -1139,7 +1139,9 @@ class SpcResponderSpec extends Specification
         "No narrative in progress.")
       mind.startNarrative
       processBelief("the key was in the pocket")
+      processTerse("where is the key", "The pocket.")
       processBelief("after that the key was in the purse")
+      processTerse("where is the key", "The purse.")
       processBelief("after that the key was in the shoe")
       processTerse("where is the key", "The shoe.")
       processTerse("where was the key",

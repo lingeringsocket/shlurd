@@ -20,21 +20,36 @@ import java.io._
 
 object ShlurdPrimordialWordnet
 {
-  def loadCosmos() : SpcCosmos =
+  private var frozen : Option[SpcCosmos] = None
+
+  def frozenCosmos() : SpcCosmos =
   {
     this.synchronized {
-      val serializer = new ShlurdCliSerializer
-      val file = new File("run/primordial-wordnet.zip")
-      if (file.exists) {
-        serializer.loadCosmos(file)
-      } else {
-        val cosmos = new SpcCosmos
-        SpcPrimordial.initCosmos(cosmos)
-        val wordnet = new SpcWordnet(cosmos)
-        wordnet.loadAll
-        serializer.saveCosmos(cosmos, file)
+      frozen.getOrElse {
+        val file = new File("run/primordial-wordnet.zip")
+        val serializer = new ShlurdCliSerializer
+        val cosmos = {
+          if (file.exists) {
+            serializer.loadCosmos(file)
+          } else {
+            val newCosmos = new SpcCosmos(SpcGraph("primordial-wordnet"))
+            newCosmos.getPool.enableBulkLoad
+            SpcPrimordial.initCosmos(newCosmos)
+            val wordnet = new SpcWordnet(newCosmos)
+            wordnet.loadAll
+            serializer.saveCosmos(newCosmos, file)
+            newCosmos
+          }
+        }.asUnmodifiable
+        frozen = Some(cosmos)
         cosmos
       }
     }
+  }
+
+  def newMutableCosmos() : SpcCosmos =
+  {
+    val frozen = frozenCosmos
+    frozen.fork(true)
   }
 }

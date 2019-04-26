@@ -80,7 +80,7 @@ object ShlurdCliShell
 {
   def newMind(terminal : ShlurdCliTerminal) =
   {
-    val cosmos = ShlurdPrimordialWordnet.loadCosmos
+    val cosmos = ShlurdPrimordialWordnet.newMutableCosmos
     val beliefs = ResourceUtils.getResourceFile("/console/beliefs.txt")
     val source = Source.fromFile(beliefs)
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
