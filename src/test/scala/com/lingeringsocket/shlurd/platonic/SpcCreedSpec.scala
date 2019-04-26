@@ -82,7 +82,8 @@ class SpcCreedSpec extends Specification
   private val stateMay = "A window may be open or closed."
   private val stateAlias = "A lit light is on."
   private val stateNormalization = "A person at home is present."
-  private val stateProperty = "A parakeet's mood may be happy or sad."
+  private val propertyStateEnum = "A parakeet's mood may be happy or sad."
+  private val propertyQuotation = "A parakeet's phrase must be a quotation."
   private val formTaxonomy = "A duck is a kind of a bird."
   private val formSynonym = "An automobile is a car."
   private val formRole = "A mentor must be a person."
@@ -95,6 +96,8 @@ class SpcCreedSpec extends Specification
   private val assocMayProperty = "A person may have one presence as a property."
   private val entityExists = "There is a parakeet."
   private val entityState = "The parakeet is happy."
+  private val entityQuotation =
+    "The parakeet's phrase is \"Polly wanna crack 'er?\"."
   private val namedEntityExists = "Rapunzel is a dog."
   private val entityQualifiedExists = "There is an angry cat."
   private val personExists = "Yoda is a person."
@@ -301,7 +304,12 @@ class SpcCreedSpec extends Specification
 
     "preserve state property" in new CosmosContext
     {
-      expectPreserved(Seq(stateProperty))
+      expectPreserved(Seq(propertyStateEnum))
+    }
+
+    "preserve quotation property" in new CosmosContext
+    {
+      expectPreserved(Seq(propertyQuotation))
     }
 
     "preserve form synonyms" in new CosmosContext
@@ -340,7 +348,13 @@ class SpcCreedSpec extends Specification
     "preserve entity state" in new CosmosContext
     {
       expectPreserved(Seq(
-        stateProperty, entityExists, entityState))
+        propertyStateEnum, entityExists, entityState))
+    }
+
+    "preserve entity quotation" in new CosmosContext
+    {
+      expectPreserved(Seq(
+        propertyQuotation, entityExists, entityQuotation))
     }
 
     "preserve entity associations" in new CosmosContext

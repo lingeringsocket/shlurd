@@ -157,23 +157,36 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
             property.name, COUNT_SINGULAR, DETERMINER_UNSPECIFIED))
       }
     }
-    SilPredicateSentence(
-      SilStatePredicate(
-        noun,
-        {
-          val propertyStates = cosmos.getPropertyStateMap(property)
-          if (propertyStates.size == 1) {
-            propertyState(propertyStates.head)
-          } else {
-            SilConjunctiveState(
-              DETERMINER_ANY,
-              propertyStates.map(propertyState).toSeq,
-              SEPARATOR_CONJOINED)
+    val predicate = property.domain match {
+      case PROPERTY_OPEN_ENUM | PROPERTY_CLOSED_ENUM => {
+        SilStatePredicate(
+          noun,
+          {
+            val propertyStates = cosmos.getPropertyStateMap(property)
+            if (propertyStates.size == 1) {
+              propertyState(propertyStates.head)
+            } else {
+              SilConjunctiveState(
+                DETERMINER_ANY,
+                propertyStates.map(propertyState).toSeq,
+                SEPARATOR_CONJOINED)
+            }
           }
-        }
-      ),
+        )
+      }
+      case _ => {
+        SilRelationshipPredicate(
+          noun,
+          SilNounReference(
+            SilWord(property.domain.name), DETERMINER_NONSPECIFIC),
+          REL_IDENTITY
+        )
+      }
+    }
+    SilPredicateSentence(
+      predicate,
       SilTam.indicative.withModality(
-        if (property.isClosed) MODAL_MUST else MODAL_MAY)
+        if (property.domain == PROPERTY_OPEN_ENUM) MODAL_MAY else MODAL_MUST)
     )
   }
 
@@ -258,13 +271,24 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     val subject = mind.specificReference(entity, DETERMINER_UNIQUE)
     val property = cosmos.resolvePropertyName(entity, eps.propertyName).get
     val propertyStates = cosmos.getPropertyStateMap(property)
-    // FIXME be specific about property
-    SilPredicateSentence(
-      SilStatePredicate(
-        subject,
-        propertyState((eps.lemma, propertyStates(eps.lemma)))
-      )
-    )
+    val predicate = property.domain match {
+      case PROPERTY_OPEN_ENUM | PROPERTY_CLOSED_ENUM => {
+        // FIXME be specific about property
+        SilStatePredicate(
+          subject,
+          propertyState((eps.lemma, propertyStates(eps.lemma)))
+        )
+      }
+      case _ => {
+        SilRelationshipPredicate(
+          SilGenitiveReference(
+            subject,
+            SilNounReference(SilWord(eps.propertyName))),
+          SilQuotationReference(eps.lemma),
+          REL_IDENTITY)
+      }
+    }
+    SilPredicateSentence(predicate)
   }
 
   def entityAssociationBelief(

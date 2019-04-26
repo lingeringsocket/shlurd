@@ -40,12 +40,39 @@ class SpcPropertyState(val lemma : String, val inflected : String)
   override def toString = s"SpcPropertyState($lemma -> $inflected)"
 }
 
-case class SpcProperty(form : SpcForm, name : String, isClosed : Boolean)
+sealed trait SpcPropertyDomain extends SmcNamedObject
+case object PROPERTY_OPEN_ENUM extends SpcPropertyDomain
+{
+  override def name = "open enumeration"
+}
+case object PROPERTY_CLOSED_ENUM extends SpcPropertyDomain
+{
+  override def name = "closed enumeration"
+}
+case object PROPERTY_TYPE_STRING extends SpcPropertyDomain
+{
+  override def name = "quotation"
+}
+object SpcPropertyDomain
+{
+  val all = Seq(
+    PROPERTY_OPEN_ENUM,
+    PROPERTY_CLOSED_ENUM,
+    PROPERTY_TYPE_STRING)
+
+  def apply(name : String) : Option[SpcPropertyDomain] =
+  {
+    all.find(_.name == name)
+  }
+}
+
+case class SpcProperty(
+  form : SpcForm, name : String, domain : SpcPropertyDomain)
     extends SmcProperty with SmcNamedObject with SpcContainmentVertex
 {
   def isSynthetic = name.contains('_')
 
-  override def toString = s"SpcProperty(${form.name}, $name, $isClosed)"
+  override def toString = s"SpcProperty(${form.name}, $name, $domain)"
 }
 
 class SpcEntityPropertyState(val propertyName : String, val lemma : String)
@@ -1225,13 +1252,15 @@ class SpcCosmos(
     outgoingPropertyEdges.map(_.getRoleName).contains(name)
   }
 
-  def instantiateProperty(form : SpcForm, name : SilWord) : SpcProperty =
+  def instantiateProperty(
+    form : SpcForm, name : SilWord,
+    domain : SpcPropertyDomain = PROPERTY_OPEN_ENUM) : SpcProperty =
   {
     val propertyName = encodeName(name)
     getFormPropertyMap(form).get(propertyName) match {
       case Some(property) => property
       case _ => {
-        val property = new SpcProperty(form, propertyName, false)
+        val property = new SpcProperty(form, propertyName, domain)
         assert(!getFormPropertyMap(form).contains(property.name))
         meta.propertyExistence(form, property)
         graph.addComponent(form, property)
@@ -1242,8 +1271,9 @@ class SpcCosmos(
 
   def closePropertyStates(property : SpcProperty)
   {
-    if (!property.isClosed) {
-      val closedProperty = new SpcProperty(property.form, property.name, true)
+    if (property.domain == PROPERTY_OPEN_ENUM) {
+      val closedProperty = new SpcProperty(
+        property.form, property.name, PROPERTY_CLOSED_ENUM)
       graph.components.addVertex(closedProperty)
       graph.replaceVertex(graph.components, property, closedProperty)
       assert(graph.components.degreeOf(property) == 0)
@@ -1324,7 +1354,7 @@ class SpcCosmos(
   {
     findProperty(entity.form, propertyName) match {
       case Some(property) => {
-        if (property.isClosed) {
+        if (property.domain == PROPERTY_CLOSED_ENUM) {
           val propertyStates = getPropertyStateMap(property)
           if (propertyStates.size == 1) {
             Success(Trilean(lemma == propertyStates.keySet.head))
@@ -1381,7 +1411,7 @@ class SpcCosmos(
       findProperty(entity.form, propertyName) match {
         case Some(property) => {
           resultProp = Some(property)
-          if (property.isClosed) {
+          if (property.domain == PROPERTY_CLOSED_ENUM) {
             val propertyStates = getPropertyStateMap(property)
             if (propertyStates.size == 1) {
               resultVal = Some(propertyStates.keySet.head)

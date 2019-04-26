@@ -131,7 +131,7 @@ class SpcCosmosSpec extends Specification
       addBelief("a door must be either open or closed")
       val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
-      property.isClosed must beTrue
+      property.domain must be equalTo PROPERTY_CLOSED_ENUM
       val states = cosmos.getPropertyStateMap(property)
       states.size must be equalTo 2
       states must contain("open" -> "open")
@@ -146,7 +146,7 @@ class SpcCosmosSpec extends Specification
       addBelief("a door may be either open or ajar")
       val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
-      property.isClosed must beFalse
+      property.domain must be equalTo PROPERTY_OPEN_ENUM
       val states = cosmos.getPropertyStateMap(property)
       states.size must be equalTo 3
       states must contain("open" -> "open")
@@ -159,7 +159,7 @@ class SpcCosmosSpec extends Specification
       addBelief("a door must be closed")
       val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
-      property.isClosed must beTrue
+      property.domain must be equalTo PROPERTY_CLOSED_ENUM
       val states = cosmos.getPropertyStateMap(property)
       states.size must be equalTo 1
       states must contain("close" -> "closed")
@@ -293,7 +293,7 @@ class SpcCosmosSpec extends Specification
         propertyTry must beSuccessfulTry
         val (property, stateName) = propertyTry.get
         stateName must be equalTo "happy"
-        property.isClosed must beTrue
+        property.domain must be equalTo PROPERTY_CLOSED_ENUM
         val states = cosmos.getPropertyStateMap(property)
         states.size must be equalTo 2
         states must contain("happy" -> "happy")
@@ -504,7 +504,7 @@ class SpcCosmosSpec extends Specification
       addBelief("a door must be open")
       val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
-      property.isClosed must beTrue
+      property.domain must be equalTo PROPERTY_CLOSED_ENUM
       val states = cosmos.getPropertyStateMap(property)
       states.size must be equalTo 1
       states must contain("open" -> "open")
@@ -671,7 +671,7 @@ class SpcCosmosSpec extends Specification
       val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
       val propGender = expectSingleProperty(entity)
       propGender.name must be equalTo LEMMA_GENDER
-      propGender.isClosed must beFalse
+      propGender.domain must be equalTo PROPERTY_OPEN_ENUM
       val genderValues = cosmos.getPropertyStateMap(propGender)
       genderValues.size must be equalTo 2
       genderValues must contain(LEMMA_MASCULINE -> LEMMA_MASCULINE)
@@ -734,7 +734,7 @@ class SpcCosmosSpec extends Specification
       new SpcMind(cosmos).loadBeliefs(source)
       val form = expectNamedForm("bit")
       val property = expectSingleProperty(form)
-      property.isClosed must beTrue
+      property.domain must be equalTo PROPERTY_CLOSED_ENUM
       val states = cosmos.getPropertyStateMap(property)
       states.size must be equalTo 2
       states must contain("on" -> "on")

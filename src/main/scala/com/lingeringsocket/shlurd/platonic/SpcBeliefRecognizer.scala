@@ -145,7 +145,7 @@ class SpcBeliefRecognizer(
     if (determiner != DETERMINER_NONSPECIFIC) {
       state match {
         case SilPropertyState(stateName) => {
-          val (rr, isGenitive) = ref match {
+          val (rr, isPropertyName) = ref match {
             case SilGenitiveReference(possessor, _) => {
               resultCollector.referenceMap.get(ref) match {
                 // interpret as association, e.g. "the boss's minions"
@@ -162,17 +162,17 @@ class SpcBeliefRecognizer(
           }
           return processResolvedReference(sentence, rr, {
             entityRef => {
-              if (!isGenitive) {
+              if (!isPropertyName) {
                 Seq(EntityPropertyBelief(
                   sentence,
                   entityRef,
-                  None, stateName
+                  None, Left(stateName)
                 ))
               } else {
                 Seq(EntityPropertyBelief(
                   sentence,
                   entityRef,
-                  Some(noun), stateName
+                  Some(noun), Left(stateName)
                 ))
               }
             }
@@ -227,12 +227,12 @@ class SpcBeliefRecognizer(
             return Seq(UnimplementedBelief(sentence))
           } else {
             // "a cat's voracity must be carnivore"
-            return definePropertyBelief(
+            return defineEnumPropertyBelief(
               sentence, qualifiers.head, Some(noun), state, tam)
           }
         }
         // "a lifeform may be either animal or vegetable"
-        definePropertyBelief(
+        defineEnumPropertyBelief(
           sentence, noun, None, state, tam)
       }
     }
@@ -253,22 +253,49 @@ class SpcBeliefRecognizer(
         return processFormRelationship(
           sentence, subjectNoun, complementRef, relationship)
       }
-      case _ : SilGenitiveReference => {
+      case SilGenitiveReference(possessor, possessee) => {
         complementRef match {
           // "Will's dad is Lonnie"
           case SilNounReference(
-            _, _, COUNT_SINGULAR
+            complementNoun, determiner, COUNT_SINGULAR
           ) => {
-            // flip subject/complement to match "Lonnie is Will's dad"
-            return processEntityRelationship(
-              sentence, complementRef,
-              subjectRef, relationship)
+            if (determiner == DETERMINER_NONSPECIFIC) {
+              val formNoun = possessor match {
+                case SilNounReference(
+                  noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+                ) => noun
+                case _ => return Seq.empty
+              }
+              val propertyNoun = possessee match {
+                case SilNounReference(
+                  noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+                ) => noun
+                case _ => return Seq.empty
+              }
+              // "a thermometer's reading must be a number"
+              return defineTypedPropertyBelief(
+                sentence,
+                formNoun,
+                propertyNoun,
+                complementNoun,
+                tam)
+            } else {
+              // flip subject/complement to match "Lonnie is Will's dad"
+              return processEntityRelationship(
+                sentence, complementRef,
+                subjectRef, relationship)
+            }
           }
           case _ : SilGenitiveReference => {
             // "Will's dad is Joyce's ex-husband": resolve "Joyce's ex-husband"
             // to "Lonnie" and then proceed flipping subject/complement
             return processIndirectEntityRelationship(
               sentence, subjectRef, complementRef, relationship)
+          }
+          case SilQuotationReference(quotation) => {
+            // "Arnie's catchphrase is <<I'll be back>>"
+            return processQuotation(
+              sentence, possessor, possessee, quotation, relationship)
           }
           case _ =>
         }
@@ -366,6 +393,30 @@ class SpcBeliefRecognizer(
           complementRef, relationship)
       }
     })
+  }
+
+  private def processQuotation(
+    sentence : SilSentence,
+    entityRef : SilReference,
+    propertyRef : SilReference,
+    quotation : String,
+    relationship : SilRelationship
+  ) : Seq[SpcBelief] =
+  {
+    if (relationship != REL_IDENTITY) {
+      return Seq.empty
+    }
+    propertyRef match {
+      case SilNounReference(
+        propertyName, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+      ) => {
+        Seq(EntityPropertyBelief(
+          sentence, entityRef, Some(propertyName), Right(quotation)))
+      }
+      case _ => {
+        Seq.empty
+      }
+    }
   }
 
   private def recognizeAssertionBelief(
@@ -687,13 +738,29 @@ class SpcBeliefRecognizer(
     }
   }
 
-  private def definePropertyBelief(
+  private def defineTypedPropertyBelief(
+    sentence : SilSentence,
+    formName : SilWord,
+    propertyName : SilWord,
+    domainName : SilWord,
+    tam : SilTam) : Seq[SpcBelief] =
+  {
+    if (tam.modality != MODAL_MUST) {
+      return Seq.empty
+    }
+    val domain = SpcPropertyDomain(domainName.toNounLemma).getOrElse {
+      return Seq(UnimplementedBelief(sentence))
+    }
+    Seq(FormTypedPropertyBelief(
+      sentence, formName, propertyName, domain))
+  }
+
+  private def defineEnumPropertyBelief(
     sentence : SilSentence,
     formName : SilWord,
     propertyName : Option[SilWord],
     state : SilState,
-    tam : SilTam)
-      : Seq[SpcBelief] =
+    tam : SilTam) : Seq[SpcBelief] =
   {
     // "a light may be on or off"
     if (sentence.tam.modality == MODAL_NEUTRAL) {
@@ -719,7 +786,7 @@ class SpcBeliefRecognizer(
       }
     }
     val isClosed = (tam.modality == MODAL_MUST)
-    Seq(FormPropertyBelief(
+    Seq(FormEnumPropertyBelief(
       sentence, formName, newStates, isClosed, propertyName))
   }
 

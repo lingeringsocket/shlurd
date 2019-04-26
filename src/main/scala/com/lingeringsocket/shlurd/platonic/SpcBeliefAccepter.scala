@@ -346,20 +346,24 @@ class SpcBeliefAccepter(
         }
       }
     }
-    if (baselineProperty.isClosed) {
-      if (!newStates.flatMap(_.decomposed).map(_.lemma).toSet.subsetOf(
-        cosmos.getPropertyStateMap(baselineProperty).keySet))
-      {
-        throw new ContradictoryBeliefExcn(
-          sentence,
-          creed.formPropertyBelief(form, baselineProperty))
+    val contradiction = baselineProperty.domain match {
+      case PROPERTY_OPEN_ENUM => false
+      case PROPERTY_CLOSED_ENUM => {
+        !newStates.flatMap(_.decomposed).map(_.lemma).toSet.subsetOf(
+          cosmos.getPropertyStateMap(baselineProperty).keySet)
       }
+      case _ => true
+    }
+    if (contradiction) {
+      throw new ContradictoryBeliefExcn(
+        sentence,
+        creed.formPropertyBelief(form, baselineProperty))
     }
     val existingStates = cosmos.getPropertyStateMap(property)
     val statesToAdd = newStates.filterNot(
       word => existingStates.contains(cosmos.encodeName(word)))
     statesToAdd.foreach(cosmos.instantiatePropertyState(property, _))
-    if (isClosed || baselineProperty.isClosed) {
+    if (isClosed || baselineProperty.domain == PROPERTY_CLOSED_ENUM) {
       cosmos.closePropertyStates(property)
     }
     property
@@ -566,7 +570,7 @@ class SpcBeliefAccepter(
 
   beliefApplier {
     case EntityPropertyBelief(
-      sentence, reference, propertyName, stateName
+      sentence, reference, propertyName, Left(stateName)
     ) => {
       val entity = resolveReference(sentence, reference)
       val form = entity.form
@@ -597,6 +601,23 @@ class SpcBeliefAccepter(
       })
       // FIXME need to honor allowUpdates
       cosmos.updateEntityProperty(entity, property, actualState)
+    }
+  }
+
+  beliefApplier {
+    case EntityPropertyBelief(
+      sentence, reference, Some(propertyName), Right(propertyValue)
+    ) => {
+      // FIXME need to honor allowUpdates
+      val entity = resolveReference(sentence, reference)
+      val form = entity.form
+      val property = cosmos.findProperty(
+        form, cosmos.encodeName(propertyName)).getOrElse
+      {
+        // FIXME more specific excn
+        throw new IncomprehensibleBeliefExcn(sentence)
+      }
+      cosmos.updateEntityProperty(entity, property, propertyValue)
     }
   }
 
@@ -691,12 +712,26 @@ class SpcBeliefAccepter(
   }
 
   beliefApplier {
-    case FormPropertyBelief(
+    case FormEnumPropertyBelief(
       sentence, formName, newStates, isClosed, propertyNameOpt
     ) => {
       val form = mind.instantiateForm(formName)
       instantiatePropertyStates(
         sentence, form, newStates, isClosed, propertyNameOpt)
+    }
+  }
+
+  beliefApplier {
+    case FormTypedPropertyBelief(
+      sentence, formName, propertyName, domain
+    ) => {
+      val form = mind.instantiateForm(formName)
+      val property = cosmos.instantiateProperty(form, propertyName, domain)
+      if (property.domain != domain) {
+        throw new ContradictoryBeliefExcn(
+          sentence,
+          creed.formPropertyBelief(form, property))
+      }
     }
   }
 

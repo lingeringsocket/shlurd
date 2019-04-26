@@ -107,7 +107,7 @@ case class EntityNoAssocBelief(
 {
 }
 
-case class FormPropertyBelief(
+case class FormEnumPropertyBelief(
   sentence : SilSentence,
   formName : SilWord,
   states : Seq[SilWord],
@@ -117,11 +117,20 @@ case class FormPropertyBelief(
 {
 }
 
+case class FormTypedPropertyBelief(
+  sentence : SilSentence,
+  formName : SilWord,
+  propertyName : SilWord,
+  domain : SpcPropertyDomain
+) extends SpcBelief
+{
+}
+
 case class EntityPropertyBelief(
   sentence : SilSentence,
   reference : SilReference,
   propertyName : Option[SilWord],
-  stateName : SilWord
+  propertyValue : Either[SilWord, String]
 ) extends SpcBelief
 {
 }
