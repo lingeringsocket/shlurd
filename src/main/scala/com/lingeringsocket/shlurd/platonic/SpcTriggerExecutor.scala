@@ -47,7 +47,22 @@ class SpcTriggerExecutor(
     strict : Boolean = true
   ) : Option[SilPredicate] =
   {
+    matchTriggerPlusAlternative(
+      cosmos, trigger, predicate, None,
+      referenceMap, strict)._1
+  }
+
+  private[platonic] def matchTriggerPlusAlternative(
+    cosmos : SpcCosmos,
+    trigger : SilConditionalSentence,
+    predicate : SilPredicate,
+    alternative : Option[SilPredicateSentence],
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
+    strict : Boolean = true
+  ) : (Option[SilPredicate], Option[SilPredicateSentence]) =
+  {
     trace(s"ATTEMPT TRIGGER MATCH $trigger")
+    def unmatched() = tupleN((None, None))
     val antecedent = trigger.antecedent
     val consequent = trigger.consequent
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
@@ -59,7 +74,7 @@ class SpcTriggerExecutor(
           case sp : SilStatePredicate => sp
           case _ => {
             trace(s"PREDICATE $predicate IS NOT A STATE")
-            return None
+            return unmatched
           }
         }
         tupleN((state, statePredicate.state)) match {
@@ -72,21 +87,21 @@ class SpcTriggerExecutor(
               cosmos, replacements, obj1,
               obj2, referenceMap))
             {
-              return None
+              return unmatched
             }
           }
           case _ => {
             if (state != statePredicate.state) {
               trace(s"STATE $state " +
                 s"DOES NOT MATCH ${statePredicate.state}")
-              return None
+              return unmatched
             }
           }
         }
         if (!prepareReplacement(
           cosmos, replacements, subject, statePredicate.subject, referenceMap))
         {
-          return None
+          return unmatched
         }
       }
       case SilRelationshipPredicate(
@@ -96,17 +111,17 @@ class SpcTriggerExecutor(
           case rp : SilRelationshipPredicate => rp
           case _ => {
             trace(s"PREDICATE ${predicate} IS NOT A RELATIONSHIP")
-            return None
+            return unmatched
           }
         }
         if (relationship != relPredicate.relationship) {
           trace(s"RELATIONSHIP ${relPredicate.relationship} DOES NOT MATCH")
-          return None
+          return unmatched
         }
         if (!prepareReplacement(
           cosmos, replacements, subject, relPredicate.subject, referenceMap))
         {
-          return None
+          return unmatched
         }
         relationship match {
           case REL_IDENTITY => {
@@ -114,7 +129,7 @@ class SpcTriggerExecutor(
               cosmos, replacements, complement,
               relPredicate.complement, referenceMap))
             {
-              return None
+              return unmatched
             }
           }
           case REL_ASSOCIATION => {
@@ -122,7 +137,7 @@ class SpcTriggerExecutor(
               cosmos, replacements, complement, relPredicate.complement,
               referenceMap))
             {
-              return None
+              return unmatched
             }
           }
         }
@@ -134,13 +149,13 @@ class SpcTriggerExecutor(
           case ap : SilActionPredicate => ap
           case _ => {
             trace(s"PREDICATE ${predicate} IS NOT AN ACTION")
-            return None
+            return unmatched
           }
         }
         if (!mind.isEquivalentVerb(action, actionPredicate.action)) {
           def lemma = actionPredicate.action.toLemma
           trace(s"ACTION $lemma DOES NOT MATCH")
-          return None
+          return unmatched
         }
         // FIXME detect colliding replacement nouns e.g.
         // "if an object hits an object"
@@ -148,7 +163,7 @@ class SpcTriggerExecutor(
           cosmos, replacements, subject, actionPredicate.subject,
           referenceMap))
         {
-          return None
+          return unmatched
         }
         directObject.foreach(obj => {
           actionPredicate.directObject match {
@@ -156,13 +171,13 @@ class SpcTriggerExecutor(
               if (!prepareReplacement(
                 cosmos, replacements, obj, actualObj, referenceMap))
               {
-                return None
+                return unmatched
               }
             }
             case _ => {
               if (strict) {
                 trace(s"DIRECT OBJECT MISSING")
-                return None
+                return unmatched
               }
             }
           }
@@ -176,7 +191,7 @@ class SpcTriggerExecutor(
             } else {
               if (strict) {
                 trace(s"BASIC VERB MODIFIER $bm MISSING")
-                return None
+                return unmatched
               } else {
                 false
               }
@@ -208,7 +223,7 @@ class SpcTriggerExecutor(
             if (actualRefs.size != 1) {
               if (strict) {
                 trace("VERB MODIFIER PATTERN DOES NOT MATCH")
-                return None
+                return unmatched
               }
             } else {
               val objPattern = SilNounReference(
@@ -220,13 +235,13 @@ class SpcTriggerExecutor(
           }
           case _ => {
             trace("VERB MODIFIER PATTERN UNSUPPORTED")
-            return None
+            return unmatched
           }
         }
       }
       case _ => {
         trace("ANTECEDENT PATTERN UNSUPPORTED")
-        return None
+        return unmatched
       }
     }
     val rewriter = new SilPhraseRewriter
@@ -237,14 +252,20 @@ class SpcTriggerExecutor(
         }
       }
     )
-    val newPredicate = rewriter.rewrite(replaceReferences, consequent)
     if (isTraceEnabled) {
       debug(s"TRIGGER MATCH SUCCESSFUL")
     } else {
       debug(s"TRIGGER MATCH SUCESSFUL ${trigger}")
     }
+    val newPredicate = rewriter.rewrite(replaceReferences, consequent)
     debug(s"TRIGGER ON ${predicate}\nPRODUCES ${newPredicate}")
-    Some(newPredicate)
+    val newAlternative = alternative.map(sentence => {
+      rewriter.rewrite(replaceReferences, sentence)
+    })
+    newAlternative.foreach(sentence => {
+      debug(s"WITH ALTERNATIVE $sentence")
+    })
+    tupleN((Some(newPredicate), newAlternative))
   }
 
   private def prepareReplacement(

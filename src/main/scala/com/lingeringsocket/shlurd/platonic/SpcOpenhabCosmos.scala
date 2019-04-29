@@ -275,7 +275,7 @@ abstract class SpcOpenhabCosmos(
         // save up as warnings which can be nagged about
         var warning = false
         if (formName == presenceFormName) {
-          val entity = new SpcEntity(itemName, form, Set.empty)
+          val entity = SpcPersistentEntity(itemName, form, Set.empty)
           createOrReplaceEntity(entity)
           qualifiers.lastOption match {
             case Some(personName) => {
@@ -306,7 +306,7 @@ abstract class SpcOpenhabCosmos(
             case _ => warning = true
           }
         } else {
-          val entity = new SpcEntity(itemName, form, qualifiers)
+          val entity = SpcPersistentEntity(itemName, form, qualifiers)
           createOrReplaceEntity(entity)
         }
       }
@@ -408,7 +408,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
           if (i == -1) {
             entity
           } else {
-            new SpcEntity(
+            SpcPersistentEntity(
               entity.name, entity.form,
               SprUtils.orderedSet(
                 seq.patch(i + roomyQualifiers.size,

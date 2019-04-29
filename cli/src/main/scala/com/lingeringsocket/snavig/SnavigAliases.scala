@@ -27,7 +27,6 @@ object SnavigAliases
     "i" -> "inventory",
     "inventory" -> "what am I holding",
     "l" -> "look",
-    "look" -> "what do I see",
     // FIXME this can instead be "no" in context
     "n" -> "go north",
     "north" -> "go north",

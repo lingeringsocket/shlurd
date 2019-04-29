@@ -1,7 +1,15 @@
 There is a bedroom.
+The bedroom's place-description is "Grubby articles of alien underwear lie scattered about.".
+
 There is a bathroom.
+The bathroom's place-description is "Someone has written 'clean me!' on the mirror.".
+
 There is a kitchen.
+The kitchen's place-description is "It's yer basic scullery.".
+
 There is a cupboard.
+The cupboard's description is "Oddly, the cupboard lacks doors.".
+The cupboard's place-description is "I hope you don't have claustrophobia.".
 
 The bedroom is west of the bathroom.
 The bedroom is east of the kitchen.
@@ -10,6 +18,7 @@ The cupboard is north of the bedroom.
 The player-character is in the bedroom.
 
 There is a thief.
+The thief's description is "He wields a wicked-looking stiletto.".
 The thief is in the bathroom.
 The thief is alive.
 
@@ -18,6 +27,7 @@ The big door is open.
 
 There is an axe.
 The ax is in the bathroom.
+The ax's description is "The perfect weapon, assuming you are a dwarf.".
 
 There is a brass lantern.
 

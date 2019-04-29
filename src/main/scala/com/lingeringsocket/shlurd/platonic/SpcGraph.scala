@@ -638,7 +638,7 @@ class SpcGraph(
       val synonym = entitySynonyms.getEdgeSource(synonymEdge)
       val entity = entitySynonyms.getEdgeTarget(synonymEdge)
       assert(synonym.isInstanceOf[SpcEntitySynonym])
-      assert(entity.isInstanceOf[SpcEntity])
+      assert(entity.isInstanceOf[SpcPersistentEntity])
       assert(entitySynonyms.inDegreeOf(synonym) == 0)
       assert(entitySynonyms.outDegreeOf(synonym) == 1)
       assert(entitySynonyms.inDegreeOf(entity) == 1)

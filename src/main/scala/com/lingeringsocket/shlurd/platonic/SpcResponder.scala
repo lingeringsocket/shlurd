@@ -379,27 +379,37 @@ class SpcResponder(
       : Option[String] =
   {
     val conditionalSentence = trigger.conditionalSentence
-    triggerExecutor.matchTrigger(
-      forkedCosmos, conditionalSentence, predicate, referenceMapOpt.get) match
+    triggerExecutor.matchTriggerPlusAlternative(
+      forkedCosmos, conditionalSentence, predicate,
+      trigger.alternative,
+      referenceMapOpt.get) match
     {
-      case Some(newPredicate) => {
-        val isPrecondition =
-          (conditionalSentence.tamConsequent.modality == MODAL_MUST)
+      case (Some(newPredicate), newAlternative) => {
+        val (isTest, isPrecondition) =
+          conditionalSentence.tamConsequent.modality match
+          {
+            case MODAL_MAY | MODAL_POSSIBLE => tupleN((true, false))
+            case MODAL_MUST | MODAL_SHOULD => tupleN((false, true))
+            case _ => tupleN((false, false))
+          }
         if (checkCycle(
-          newPredicate, already, isPrecondition)
+          newPredicate, already, isPrecondition || isTest)
         ) {
           return Some(sentencePrinter.sb.circularAction)
         }
         val newSentence = SilPredicateSentence(newPredicate)
         spawn(imagine(forkedCosmos)).resolveReferences(
           newSentence, resultCollector, false, true)
-        if (isPrecondition) {
+        if (isPrecondition || isTest) {
           val newTam = SilTam.indicative.withPolarity(
             conditionalSentence.tamConsequent.polarity)
           evaluateTamPredicate(
             newPredicate, newTam, resultCollector) match
           {
-            case Success(Trilean.True) => {
+            case Success(Trilean.True) if (newTam.isPositive) => {
+              None
+            }
+            case Success(Trilean.False) if (newTam.isNegative) => {
               None
             }
             case Failure(e) => {
@@ -407,7 +417,7 @@ class SpcResponder(
               None
             }
             case _ => {
-              trigger.alternative.foreach(alternativeSentence => {
+              newAlternative.foreach(alternativeSentence => {
                 val recoverySentence = alternativeSentence.copy(
                   predicate = alternativeSentence.predicate.withNewModifiers(
                     alternativeSentence.predicate.getModifiers.filterNot(
@@ -416,6 +426,9 @@ class SpcResponder(
                           SilWordLemma(LEMMA_OTHERWISE), _) => true
                         case _ => false
                       })))
+                if (checkCycle(recoverySentence.predicate, already, false)) {
+                  return Some(sentencePrinter.sb.circularAction)
+                }
                 spawn(imagine(forkedCosmos)).resolveReferences(
                   recoverySentence, resultCollector, false, true)
                 // FIXME use recoveryResult somehow
@@ -423,8 +436,12 @@ class SpcResponder(
                   forkedCosmos, recoverySentence, resultCollector, false)
               })
               // FIXME i18n
-              Some("But " + sentencePrinter.printPredicateStatement(
-                newPredicate, SilTam.indicative.negative) + ".")
+              if (isPrecondition) {
+                Some("But " + sentencePrinter.printPredicateStatement(
+                  newPredicate, SilTam.indicative.negative) + ".")
+              } else {
+                None
+              }
             }
           }
         } else {
@@ -753,12 +770,22 @@ class SpcResponder(
           lcaType(refs.map(deriveType).toSet)
         }
         case SilGenitiveReference(possessor, SilNounReference(noun, _, _)) => {
-          // FIXME need to handle properties
-          mind.resolveRole(deriveType(possessor), noun) match {
+          val possessorType = deriveType(possessor)
+          mind.resolveRole(possessorType, noun) match {
             case Some(role) => {
               lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
             }
-            case _ => unknownType
+            case _ => {
+              cosmos.findProperty(
+                possessorType, cosmos.encodeName(noun.toLemma)) match
+              {
+                case Some(property) => {
+                  mind.resolveForm(
+                    SilWord(property.domain.name)).getOrElse(unknownType)
+                }
+                case _ => unknownType
+              }
+            }
           }
         }
         case SilNounReference(noun, _, _) => {

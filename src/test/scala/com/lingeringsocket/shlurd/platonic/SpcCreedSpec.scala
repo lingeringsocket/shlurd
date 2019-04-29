@@ -95,7 +95,10 @@ class SpcCreedSpec extends Specification
   private val assocMayPlural = "A person may have pets."
   private val assocMayProperty = "A person may have one presence as a property."
   private val entityExists = "There is a parakeet."
+  private val entityExists2 = "There is a door."
+  private val entityPropertyState = "The parakeet's mood is happy."
   private val entityState = "The parakeet is happy."
+  private val entityState2 = "The door is closed."
   private val entityQuotation =
     "The parakeet's phrase is \"Polly wanna crack 'er?\"."
   private val namedEntityExists = "Rapunzel is a dog."
@@ -128,6 +131,10 @@ class SpcCreedSpec extends Specification
     "then the moon must be blue."
   private val negativeConstraintTrigger = "If the Cubs win the World Series, " +
     "then the fat lady must not sing."
+  private val positiveTestTrigger = "If the Cubs win the World Series, " +
+    "then the moon might be blue."
+  private val negativeTestTrigger = "If the Cubs win the World Series, " +
+    "then the fat lady might not sing."
   private val alternativeTrigger = "If a person eats candy, " +
     "then the candy must be small; the person chokes otherwise."
   private val positiveAssertion = "A person can kill a thief."
@@ -347,12 +354,28 @@ class SpcCreedSpec extends Specification
 
     "preserve entity state" in new CosmosContext
     {
+      expectPreserved(
+        Seq(stateMust, entityExists2, entityState2))
+    }
+
+    "normalize entity state" in new CosmosContext
+    {
+      expectNormalized(
+        Seq(propertyStateEnum, entityExists, entityState),
+        Seq(propertyStateEnum, entityExists, entityPropertyState))
+    }
+
+    "preserve entity property state" in new CosmosContext
+    {
       expectPreserved(Seq(
-        propertyStateEnum, entityExists, entityState))
+        propertyStateEnum, entityExists, entityPropertyState))
     }
 
     "preserve entity quotation" in new CosmosContext
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
       expectPreserved(Seq(
         propertyQuotation, entityExists, entityQuotation))
     }
@@ -423,7 +446,8 @@ class SpcCreedSpec extends Specification
         skipped("CoreNLP not working")
       }
       expectPreserved(Seq(moveTrigger, positiveConstraintTrigger,
-        negativeConstraintTrigger, alternativeTrigger))
+        negativeConstraintTrigger, positiveTestTrigger,
+        negativeTestTrigger, alternativeTrigger))
     }
 
     "preserve assertions" in new CosmosContext

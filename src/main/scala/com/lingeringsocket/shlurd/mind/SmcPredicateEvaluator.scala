@@ -109,45 +109,44 @@ class SmcPredicateEvaluator[
         if (tryComplement.isFailure) {
           tryComplement
         } else {
-          evaluatePredicateOverReference(
-            subjectRef, relationshipSubjectContext(relationship),
-            subjectCollector)
-          {
-            (subjectEntity, entityRef) => {
-              categoryLabel match {
-                case Some(label) => {
-                  evaluateCategorization(subjectEntity, label)
-                }
-                case _ => {
-                  if (relationship == REL_ASSOCIATION) {
-                    val roleQualifiers = extractRoleQualifiers(complementRef)
-                    if (roleQualifiers.size == 1) {
-                      val roleName = roleQualifiers.head
-                      mind.reifyRole(subjectEntity, roleName, true)
-                      // invalidate any cached result for complementRef since
-                      // we just reified a new entity
-                      complementRef.descendantReferences.foreach(
-                        resultCollector.referenceMap.remove
-                      )
-                    }
+          if (wildcardQuerier.containsWildcard(subjectRef, false) &&
+            (relationship == REL_IDENTITY) && categoryLabel.isEmpty
+          ) {
+            // FIXME for some cases, need to restrict by form,
+            // e.g. "which robot is Abraham Lincoln?"
+            resultCollector.referenceMap.get(complementRef) match {
+              case Some(entities) => {
+                resultCollector.referenceMap.put(subjectRef, entities)
+                val results = entities.map(entity => {
+                  val result = if (entity.isTentative) {
+                    Trilean.Unknown
+                  } else {
+                    Trilean.True
                   }
-                  val unassumed = evaluatePredicateOverReference(
-                    complementRef, context, complementCollector)
-                  {
-                    (complementEntity, entityRef) => {
-                      evaluateRelationshipPredicate(
-                        subjectRef, subjectEntity,
-                        complementRef, complementEntity,
-                        relationship
-                      )
-                    }
-                  }
-                  assumeExistence(
-                    unassumed,
-                    relationship == REL_ASSOCIATION)
+                  resultCollector.entityMap.put(entity, result)
+                  result
+                })
+                if (results.contains(Trilean.Unknown)) {
+                  Success(Trilean.Unknown)
+                } else {
+                  Success(Trilean.True)
                 }
               }
+              case _ => {
+                Success(Trilean.Unknown)
+              }
             }
+          } else {
+            evaluateRelationshipPredicateExpandWildcard(
+              subjectRef,
+              subjectCollector,
+              categoryLabel,
+              complementRef,
+              complementCollector,
+              context,
+              resultCollector,
+              relationship
+            )
           }
         }
       }
@@ -164,6 +163,59 @@ class SmcPredicateEvaluator[
     debugPopLevel()
     trace(s"PREDICATE TRUTH : $result")
     result
+  }
+
+  private def evaluateRelationshipPredicateExpandWildcard(
+    subjectRef : SilReference,
+    subjectCollector : ResultCollectorType,
+    categoryLabel : Option[SilWord],
+    complementRef : SilReference,
+    complementCollector : ResultCollectorType,
+    context : SilReferenceContext,
+    resultCollector : ResultCollectorType,
+    relationship : SilRelationship
+  ) : Try[Trilean] =
+  {
+    evaluatePredicateOverReference(
+      subjectRef, relationshipSubjectContext(relationship),
+      subjectCollector)
+    {
+      (subjectEntity, entityRef) => {
+        categoryLabel match {
+          case Some(label) => {
+            evaluateCategorization(subjectEntity, label)
+          }
+          case _ => {
+            if (relationship == REL_ASSOCIATION) {
+              val roleQualifiers = extractRoleQualifiers(complementRef)
+              if (roleQualifiers.size == 1) {
+                val roleName = roleQualifiers.head
+                mind.reifyRole(subjectEntity, roleName, true)
+                // invalidate any cached result for complementRef since
+                // we just reified a new entity
+                complementRef.descendantReferences.foreach(
+                  resultCollector.referenceMap.remove
+                )
+              }
+            }
+            val unassumed = evaluatePredicateOverReference(
+              complementRef, context, complementCollector)
+            {
+              (complementEntity, entityRef) => {
+                evaluateRelationshipPredicate(
+                  subjectRef, subjectEntity,
+                  complementRef, complementEntity,
+                  relationship
+                )
+              }
+            }
+            assumeExistence(
+              unassumed,
+              relationship == REL_ASSOCIATION)
+          }
+        }
+      }
+    }
   }
 
   protected def evaluateActionPredicate(
@@ -269,15 +321,16 @@ class SmcPredicateEvaluator[
         resolveOne(ap.objRef, REF_ADPOSITION_OBJ)
       }
     }
-    resultCollector.expandWildcards = false
+    resultCollector.suppressWildcardExpansion += 1
     try {
       phraseQuerier.query(rule, phrase, SilRewriteOptions(topDown = true))
     } catch {
       case ex : Exception => {
         return Failure(ex)
       }
+    } finally {
+      resultCollector.suppressWildcardExpansion -= 1
     }
-    resultCollector.expandWildcards = true
     Success(Trilean.True)
   }
 
@@ -595,14 +648,14 @@ class SmcPredicateEvaluator[
     val referenceMap = resultCollector.referenceMap
     reference match {
       case SilNounReference(noun, determiner, count) => {
-        if (!resultCollector.expandWildcards) {
+        if (resultCollector.suppressWildcardExpansion > 0) {
           val lemma = noun.toNounLemma
           val bail = determiner match {
             case DETERMINER_UNIQUE => false
             // FIXME this is silly
             case DETERMINER_UNSPECIFIED =>
               (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
-              (lemma == LEMMA_WHERE)
+                (lemma == LEMMA_WHERE)
             case _ => true
           }
           if (bail) {
@@ -716,6 +769,46 @@ class SmcPredicateEvaluator[
             )
           }
           case _ => {
+            possessee match {
+              case SilNounReference(
+                noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+              ) => {
+                val resolved = resultCollector.referenceMap.get(possessor).
+                  foreach(entities => {
+                    // FIXME handle multiple entities
+                    if (entities.size == 1) {
+                      val entity = entities.head
+                      cosmos.evaluateEntityProperty(
+                        entity, noun.toLemma, true) match
+                      {
+                        case Success((Some(property), Some(value))) => {
+                          val resolved = cosmos.resolvePropertyValueEntity(
+                            property, value) match
+                          {
+                            case Success(valueEntity) => {
+                              Set(valueEntity)
+                            }
+                            case Failure(e) => {
+                              debug("ERROR", e)
+                              return Failure(e)
+                            }
+                          }
+                          resultCollector.referenceMap.put(
+                            reference, resolved)
+                          resultCollector.referenceMap.put(
+                            possessee, resolved)
+                          return Success(Trilean.True)
+                        }
+                        case Success((Some(property), None)) => {
+                          return Success(Trilean.Unknown)
+                        }
+                        case _ =>
+                      }
+                    }
+                  })
+              }
+              case _ =>
+            }
             val state = SilAdpositionalState(
               SilAdposition.GENITIVE_OF, possessor)
             val result = evaluatePredicateOverState(

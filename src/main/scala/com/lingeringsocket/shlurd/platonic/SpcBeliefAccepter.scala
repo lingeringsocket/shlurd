@@ -168,7 +168,7 @@ class SpcBeliefAccepter(
   {
     // we are changing the form of an existing entity
     val oldForm = entity.form
-    val newEntity = SpcEntity(
+    val newEntity = SpcPersistentEntity(
       entity.name, newForm, entity.qualifiers, entity.properName)
     val graph = cosmos.getGraph
     if (oldForm.isTentative) {

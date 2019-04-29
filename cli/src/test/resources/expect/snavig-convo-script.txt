@@ -1,12 +1,14 @@
-> where am I
-
 You are in the bedroom.
+
+Grubby articles of alien underwear lie scattered about.
 
 > e
 
 OK.
 
 You are in the bathroom.
+
+Someone has written 'clean me!' on the mirror.
 
 You see the axe and the thief.
 
@@ -97,6 +99,8 @@ You are in the bedroom.
 OK.
 
 You are in the cupboard.
+
+I hope you don't have claustrophobia.
 
 You see the oracle.
 

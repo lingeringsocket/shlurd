@@ -65,7 +65,9 @@ class SnavigResponder(
         logger.trace(s"TRIGGER $printed")
       }
     }
-    if (!isPrecondition) {
+    if (isPrecondition) {
+      false
+    } else {
       predicate match {
         case ap : SilActionPredicate => {
           val lemma = ap.action.toLemma
@@ -92,7 +94,7 @@ class SnavigResponder(
         }
         case _ =>
       }
+      super.checkCycle(predicate, seen, isPrecondition)
     }
-    super.checkCycle(predicate, seen, isPrecondition)
   }
 }

@@ -592,7 +592,9 @@ class SprEnglishSyntaxAnalyzer(
     val np = SptNP(SptPRP(makeLeaf(LEMMA_YOU)))
     val (negativeVerb, predicate) = analyzeActionPredicate(
       tree, np, vp, None, Seq.empty, true)
-    assert(!negativeVerb)
+    if (negativeVerb) {
+      return SilUnrecognizedSentence(tree)
+    }
     SilPredicateSentence(
       predicate,
       SilTam.imperative,

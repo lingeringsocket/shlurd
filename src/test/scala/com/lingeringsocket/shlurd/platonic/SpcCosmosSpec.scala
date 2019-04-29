@@ -165,6 +165,16 @@ class SpcCosmosSpec extends Specification
       states must contain("close" -> "closed")
     }
 
+    "understand string property" in new CosmosContext
+    {
+      addBelief("a door's label must be a quotation")
+      val form = expectNamedForm("door")
+      val property = expectSingleProperty(form)
+      property.domain must be equalTo PROPERTY_TYPE_STRING
+      val states = cosmos.getPropertyStateMap(property)
+      states must beEmpty
+    }
+
     "understand qualified references" in new CosmosContext
     {
       SpcPrimordial.initCosmos(cosmos)
@@ -557,7 +567,7 @@ class SpcCosmosSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
-    "update entity properties" in new CosmosContext
+    "update entity enum properties" in new CosmosContext
     {
       addBelief("a door may be open or closed")
       val form = expectNamedForm("door")
@@ -575,6 +585,21 @@ class SpcCosmosSpec extends Specification
         be equalTo Success(Trilean.False)
       cosmos.evaluateEntityProperty(entity, property.name) must
         be equalTo Success((Some(property), Some("close")))
+    }
+
+    "update entity string properties" in new CosmosContext
+    {
+      addBelief("a door's label must be a quotation")
+      val form = expectNamedForm("door")
+      val property = expectSingleProperty(form)
+      addBelief("there is a door")
+      val entity = expectFormSingleton(form)
+      cosmos.evaluateEntityProperty(entity, property.name) must
+        be equalTo Success((Some(property), None))
+      val epigram = "lasciate ogni speranza, voi ch'entrate"
+      addBelief("the door's label is \"" + epigram + "\"")
+      cosmos.evaluateEntityProperty(entity, property.name) must
+        be equalTo Success((Some(property), Some(epigram)))
     }
 
     "infer role for tentative form" in new CosmosContext

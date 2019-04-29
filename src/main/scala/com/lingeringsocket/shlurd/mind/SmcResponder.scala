@@ -70,12 +70,12 @@ class SmcResultCollector[EntityType<:SmcEntity](
   val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
   val states = new mutable.LinkedHashSet[SilWord]
   var isCategorization = false
-  var expandWildcards = true
+  var suppressWildcardExpansion = 0
   var swapSpeakerListener = false
 
   def spawn() = {
     val newCollector = new SmcResultCollector[EntityType](referenceMap)
-    newCollector.expandWildcards = expandWildcards
+    newCollector.suppressWildcardExpansion = suppressWildcardExpansion
     newCollector.swapSpeakerListener = swapSpeakerListener
     newCollector
   }

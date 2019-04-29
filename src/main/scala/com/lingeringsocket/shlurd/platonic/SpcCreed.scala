@@ -273,9 +273,18 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     val propertyStates = cosmos.getPropertyStateMap(property)
     val predicate = property.domain match {
       case PROPERTY_OPEN_ENUM | PROPERTY_CLOSED_ENUM => {
-        // FIXME be specific about property
+        val subjectRef = {
+          if (property.name.contains('_')) {
+            subject
+          } else {
+            SilGenitiveReference(
+              subject,
+              SilNounReference(SilWord(eps.propertyName))
+            )
+          }
+        }
         SilStatePredicate(
-          subject,
+          subjectRef,
           propertyState((eps.lemma, propertyStates(eps.lemma)))
         )
       }

@@ -224,8 +224,24 @@ class SnavigShell(
       val targetEntityOpt = targetRefOpt.flatMap(
         ref => singletonLookup(referenceMap, ref))
       val ok = Some(OK)
-      ap.directObject match {
-        case Some(SilQuotationReference(quotation)) => {
+      val quotationOpt = ap.directObject match {
+        case Some(SilQuotationReference(quotation)) => Some(quotation)
+        case Some(ref) => {
+          singletonLookup(referenceMap, ref) match {
+            case Some(entity) => {
+              entity match {
+                // FIXME type check
+                case SpcTransientEntity(_, value) => Some(value)
+                case _ => None
+              }
+            }
+            case _ => None
+          }
+        }
+        case _ => None
+      }
+      quotationOpt match {
+        case Some(quotation) => {
           if (subjectEntity == Some(playerEntity)) {
             lemma match {
               case "ask" => {
@@ -265,7 +281,7 @@ class SnavigShell(
             }
           } else if (subjectEntity == Some(interpreterEntity)) {
             lemma match {
-              case "say" => {
+              case "say" | "recite" => {
                 defer(DeferredReport(quotation))
                 ok
               }
@@ -606,7 +622,9 @@ class SnavigShell(
                   case c : DeferredComplaint => Some(c)
                   case _ => None
                 })
-                deferredQueue.clear
+                if (complaints.nonEmpty || sentence.tam.isImperative) {
+                  deferredQueue.clear
+                }
                 complaints.foreach(complaint => {
                   output = ""
                   terminal.emitNarrative(complaint.quotation)
@@ -763,6 +781,11 @@ class SnavigShell(
     phenomenalMind.startConversation
     var exit = false
     terminal.emitNarrative("")
+
+    gameTurnTimestamp = noumenalMind.getTimestamp
+    defer(DeferredDirective("the game-turn debuts"))
+    processDeferred
+
     while (!exit) {
       noumenalMind.startNewTurn
       gameTurnTimestamp = noumenalMind.getTimestamp

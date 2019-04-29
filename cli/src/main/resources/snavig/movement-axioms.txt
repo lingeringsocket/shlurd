@@ -1,4 +1,8 @@
 Import "/snavig/map-axioms.txt".
+Import "/snavig/character-axioms.txt".
+
+A place-discoverer must be a player-character.
+A map-place may have place-discoverers.
 
 If a game-character goes east, then
  the game-character's container must have an eastern-neighbor;
@@ -41,8 +45,6 @@ If a game-character moves to a map-place, then
  the game-character is in the map-place.
 If a game-character enters a map-location, then
  the game-character moves to the map-location.
-If a player-character moves to a map-place, then
- the player-character asks "where am I".
 
 If a game-character moves to a map-place, then
  the game-character surveys the map-place.
@@ -58,7 +60,9 @@ If a game-character surveys a map-place, then
 If a game-character surveys a map-place, then
  the game-character perceives the map-place's western-exit.
 
-If a game-character moves to a map-place, then
- the game-character observes the map-place's spc-contained-objects.
-If a player-character observes a visible-entity, then
- the player-character asks "what do I see".
+If a player-character moves to a map-place, then
+ the player-character might be the map-place's place-discoverer;
+ otherwise the player-character discovers the map-place.
+If a player-character moves to a map-place, then
+ the player-character might not be the map-place's place-discoverer;
+ otherwise the player-character rediscovers the map-place.

@@ -1,6 +1,7 @@
 Import "/snavig/basic-axioms.txt".
 
 A game-character is a kind of person.
+A game-character is a kind of describable-entity.
 A player-character is a kind of game-character.
 A non-player-character is a kind of game-character.
 A non-player-character is a kind of visible-entity.

@@ -1306,12 +1306,13 @@ class SpcResponderSpec extends Specification
         "I don't know.")
     }
 
-    "understand property queries" in new
+    "understand enum property queries" in new
       ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       processBelief("a sheep's color may be white or black")
       processBelief("Dolly is a sheep")
       process("what color is Dolly", "I don't know.")
+      process("what is Dolly's color", "I don't know.")
       processBelief("Dolly is black")
       processMatrix(
         "what color is Dolly",
@@ -1319,6 +1320,22 @@ class SpcResponderSpec extends Specification
         "Dolly is black.",
         "Black.",
         "Black.")
+      processMatrix(
+        "what is Dolly's color",
+        "Its color is black.",
+        "Dolly's color is black.",
+        "Black.",
+        "Black.")
+    }
+
+    "understand string property queries" in new
+      ResponderContext(ACCEPT_NEW_BELIEFS)
+    {
+      val epigram = DQUOTE + "Lasciate ogni speranza, voi ch'entrate" + DQUOTE
+      processBelief("a door's label must be a quotation")
+      processBelief("there is a door")
+      processBelief("the door's label is " + epigram)
+      processTerse("what is the door's label", epigram + ".")
     }
 
     "understand property updates" in new

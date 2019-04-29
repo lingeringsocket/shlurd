@@ -53,7 +53,7 @@ object SprWordnetLabeler
   private val stopList = Set(
     "I", "an", "as", "at", "by", "he", "it", "do", "at", "off",
     "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",
-    "does", "have", "my"
+    "does", "have", "my", "might"
   )
 
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
@@ -144,7 +144,7 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
       def leaf = makeLeaf(word, token)
       token match {
         case (
-          LEMMA_MUST | LEMMA_MAY |
+          LEMMA_MUST | LEMMA_MAY | LEMMA_MIGHT |
             LEMMA_COULD | LEMMA_SHOULD | LEMMA_CAN
         )=> {
           Set(SptMD(leaf))

@@ -1,6 +1,8 @@
 Import "/snavig/basic-axioms.txt".
 
 A map-place is a kind of location.
+A map-place's place-description must be a quotation.
+A map-place-exit is a kind of describable-entity.
 A map-neighbor must be a map-place.
 A map-place may have map-neighbors.
 A map-place with a map-neighbor is a map-neighbor.

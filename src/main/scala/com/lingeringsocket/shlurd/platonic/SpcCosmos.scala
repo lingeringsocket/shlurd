@@ -43,11 +43,11 @@ class SpcPropertyState(val lemma : String, val inflected : String)
 sealed trait SpcPropertyDomain extends SmcNamedObject
 case object PROPERTY_OPEN_ENUM extends SpcPropertyDomain
 {
-  override def name = "open enumeration"
+  override def name = "assortment"
 }
 case object PROPERTY_CLOSED_ENUM extends SpcPropertyDomain
 {
-  override def name = "closed enumeration"
+  override def name = "catalog"
 }
 case object PROPERTY_TYPE_STRING extends SpcPropertyDomain
 {
@@ -198,17 +198,44 @@ case class SpcTrigger(
   override def getAlternative() = alternative
 }
 
-case class SpcEntity(
-  val name : String,
-  val form : SpcForm,
-  val qualifiers : Set[String],
-  val properName : String = "")
-    extends SmcEntity with SpcEntityVertex with SpcContainmentVertex
+trait SpcEntity extends SmcEntity with SpcEntityVertex with SpcContainmentVertex
+{
+  def name : String
+
+  def form : SpcForm
+
+  def qualifiers : Set[String]
+
+  def properName : String
+}
+
+case class SpcPersistentEntity(
+  name : String,
+  form : SpcForm,
+  qualifiers : Set[String],
+  properName : String = "")
+    extends SpcEntity
 {
   override def isTentative =
     properName.contains("_") && !SpcMeta.isMetaEntity(this)
 
   override def getUniqueIdentifier = name
+}
+
+case class SpcTransientEntity(
+  form : SpcForm,
+  value : String
+) extends SpcEntity
+{
+  override def name = getUniqueIdentifier
+
+  override def qualifiers = Set(value)
+
+  override def properName = value
+
+  override def isTentative = false
+
+  override def getUniqueIdentifier = form.name + ":" + value
 }
 
 case class SpcEntitySynonym(val name : String)
@@ -791,7 +818,7 @@ class SpcCosmos(
         properName
       }
     }
-    val entity = new SpcEntity(name, form, qualifiers, properName)
+    val entity = SpcPersistentEntity(name, form, qualifiers, properName)
     createOrReplaceEntity(entity)
     tupleN((entity, true))
   }
@@ -1224,6 +1251,18 @@ class SpcCosmos(
     }
   }
 
+  override def resolvePropertyValueEntity(
+    property : SpcProperty,
+    value : String) : Try[SpcEntity] =
+  {
+    // FIXME for enums, use the correct meta entity
+    Success(
+      SpcTransientEntity(
+        com.lingeringsocket.shlurd.platonic.SpcForm(property.domain.name),
+        value)
+    )
+  }
+
   def findProperty(
     form : SpcForm, name : String) : Option[SpcProperty] =
   {
@@ -1384,7 +1423,7 @@ class SpcCosmos(
           return Success(
             tupleN((Some(property),
               getEntityPropertyMap(originalEntity).
-                get(originalPropertyName).map( _.lemma))))
+                get(originalPropertyName).map(_.lemma))))
         }
         case _ => {
           return Success((None, None))

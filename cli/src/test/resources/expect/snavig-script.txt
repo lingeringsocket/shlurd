@@ -1,3 +1,7 @@
+You are in the bedroom.
+
+Grubby articles of alien underwear lie scattered about.
+
 > where am I
 
 You are in the bedroom.
@@ -36,7 +40,21 @@ OK.
 
 You are in the bathroom.
 
+Someone has written 'clean me!' on the mirror.
+
 You see the axe and the thief.
+
+> look at the axe
+
+OK.
+
+The perfect weapon, assuming you are a dwarf.
+
+> examine the thief
+
+OK.
+
+He wields a wicked-looking stiletto.
 
 > is the thief suave
 
@@ -89,6 +107,12 @@ It is in your stuff.
 You are holding the axe.
 
 > look
+
+OK.
+
+You are in the bathroom.
+
+Someone has written 'clean me!' on the mirror.
 
 You see the thief.
 
@@ -160,11 +184,19 @@ OK.
 
 You are in the kitchen.
 
-You see the brass lantern.
+It's yer basic scullery.
+
+You see the cupboard and the brass lantern.
 
 > what is in the kitchen
 
 The cupboard, the brass lantern, and the player-character are in the kitchen.
+
+> x cupboard
+
+OK.
+
+Oddly, the cupboard lacks doors.
 
 > go to the cupboard
 
@@ -186,7 +218,11 @@ You are in the bedroom.
 
 > l
 
-You see nothing.
+OK.
+
+You are in the bedroom.
+
+Grubby articles of alien underwear lie scattered about.
 
 > where is the axe
 
@@ -245,6 +281,12 @@ OK.
 > restore
 
 OK.
+
+You are in the bathroom.
+
+Someone has written 'clean me!' on the mirror.
+
+You see the axe and the thief.
 
 > i
 

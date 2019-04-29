@@ -1,0 +1,29 @@
+Import "/snavig/character-axioms.txt".
+Import "/snavig/interpreter-axioms.txt".
+
+If a player-character examines a describable-entity, then
+ the game-interpreter recites the describable-entity's description.
+
+If a player-character looks, then
+ the player-character appraises the player-character's container.
+
+If a player-character discovers a map-place, then
+ the player-character appraises the map-place.
+
+If a player-character appraises a map-place, then
+ the player-character asks "where am I".
+If a player-character appraises a map-place, then
+ the game-interpreter recites the map-place's place-description.
+If a player-character appraises a map-place, then
+ the player-character discerns the map-place's spc-contained-objects.
+
+If a player-character rediscovers a map-place, then
+ the player-character asks "where am I".
+If a player-character rediscovers a map-place, then
+ the player-character discerns the map-place's spc-contained-objects.
+
+If a player-character discerns a visible-entity, then
+ the player-character asks "what do I see".
+
+If a player-character looks at a describable-entity, then
+ the game-interpreter recites the describable-entity's description.

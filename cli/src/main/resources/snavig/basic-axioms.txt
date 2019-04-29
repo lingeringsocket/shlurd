@@ -1,3 +1,5 @@
-A visible-entity is a kind of object.
+A describable-entity is a kind of object.
+A describable-entity's description must be a quotation.
+A visible-entity is a kind of describable-entity.
 A game-object is a kind of visible-entity.
 A container is an spc-container.

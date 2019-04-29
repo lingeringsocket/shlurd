@@ -66,8 +66,18 @@ class SpcMind(cosmos : SpcCosmos)
   override def equivalentReferences(
     communicationContext : SmcCommunicationContext[SpcEntity],
     entity : SpcEntity,
-    determiner : SilDeterminer) =
+    determiner : SilDeterminer) : Seq[SilReference] =
   {
+    entity match {
+      case SpcTransientEntity(form, value) => {
+        if (entity.form.name == PROPERTY_TYPE_STRING.name) {
+          return Seq(SilQuotationReference(value))
+        } else {
+          return Seq(SilNounReference(SilWord(value)))
+        }
+      }
+      case _ =>
+    }
     val assocGraph = cosmos.getEntityAssocGraph
     val edges = assocGraph.incomingEdgesOf(entity).asScala.toSeq
     val rankedGenitives = edges.flatMap(

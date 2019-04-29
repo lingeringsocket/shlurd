@@ -107,7 +107,7 @@
  </check>
  <check level="error" class="org.scalastyle.scalariform.NumberOfMethodsInTypeChecker" enabled="true">
   <parameters>
-   <parameter name="maxMethods"><![CDATA[100]]></parameter>
+   <parameter name="maxMethods"><![CDATA[200]]></parameter>
   </parameters>
  </check>
  <check level="error" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="false"></check>
