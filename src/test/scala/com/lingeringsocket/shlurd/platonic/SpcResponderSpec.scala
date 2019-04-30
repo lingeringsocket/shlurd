@@ -1331,6 +1331,9 @@ class SpcResponderSpec extends Specification
     "understand string property queries" in new
       ResponderContext(ACCEPT_NEW_BELIEFS)
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not supported")
+      }
       val epigram = DQUOTE + "Lasciate ogni speranza, voi ch'entrate" + DQUOTE
       processBelief("a door's label must be a quotation")
       processBelief("there is a door")

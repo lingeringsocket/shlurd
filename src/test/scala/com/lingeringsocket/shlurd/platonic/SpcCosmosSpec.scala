@@ -589,6 +589,9 @@ class SpcCosmosSpec extends Specification
 
     "update entity string properties" in new CosmosContext
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not supported")
+      }
       addBelief("a door's label must be a quotation")
       val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
