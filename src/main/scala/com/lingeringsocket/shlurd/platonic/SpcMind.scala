@@ -237,6 +237,23 @@ class SpcMind(cosmos : SpcCosmos)
     cosmos.resolveRole(cosmos.encodeName(noun))
   }
 
+  override def resolvePropertyValueEntity(
+    property : SpcProperty,
+    value : String) : Try[SpcEntity] =
+  {
+    // FIXME for enums, use the correct meta entity
+    val domainName = property.domain.name
+    val analyzedNoun =
+      analyzeSense(SilNounReference(SilWord(domainName))).noun
+    val form = resolveForm(analyzedNoun).getOrElse(SpcForm(domainName))
+    Success(
+      SpcTransientEntity(
+        form,
+        value
+      )
+    )
+  }
+
   def instantiateForm(noun : SilWord) : SpcForm =
   {
     resolveForm(noun).getOrElse {

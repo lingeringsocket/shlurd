@@ -40,7 +40,7 @@ class SmcMind[
 
   def newParser(input : String) = cosmos.newParser(input)
 
-  def analyzeSense(sentence : SilSentence) = sentence
+  def analyzeSense[PhraseType <: SilPhrase](phrase : PhraseType) = phrase
 
   def startConversation()
   {
@@ -185,6 +185,13 @@ class SmcMind[
   def reifyRole(
     possessor : EntityType, roleName : SilWord, onlyIfProven : Boolean)
   {
+  }
+
+  def resolvePropertyValueEntity(
+    property : PropertyType,
+    value : String) : Try[EntityType] =
+  {
+    Failure(new UnsupportedOperationException)
   }
 
   def resolveQualifiedNoun(

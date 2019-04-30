@@ -60,13 +60,6 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
     Failure(new UnsupportedOperationException)
   }
 
-  def resolvePropertyValueEntity(
-    property : PropertyType,
-    value : String) : Try[EntityType] =
-  {
-    Failure(new UnsupportedOperationException)
-  }
-
   def evaluateEntityPropertyPredicate(
     entity : EntityType,
     property : PropertyType,

@@ -782,7 +782,7 @@ class SmcPredicateEvaluator[
                         entity, noun.toLemma, true) match
                       {
                         case Success((Some(property), Some(value))) => {
-                          val resolved = cosmos.resolvePropertyValueEntity(
+                          val resolved = mind.resolvePropertyValueEntity(
                             property, value) match
                           {
                             case Success(valueEntity) => {

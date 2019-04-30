@@ -56,6 +56,10 @@ OK.
 
 The perfect weapon, assuming you are a dwarf.
 
+> is the ax's description a quotation
+
+Yes, its description is a quotation.
+
 > examine the thief
 
 OK.

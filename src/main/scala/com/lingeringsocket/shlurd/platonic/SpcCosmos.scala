@@ -1251,18 +1251,6 @@ class SpcCosmos(
     }
   }
 
-  override def resolvePropertyValueEntity(
-    property : SpcProperty,
-    value : String) : Try[SpcEntity] =
-  {
-    // FIXME for enums, use the correct meta entity
-    Success(
-      SpcTransientEntity(
-        com.lingeringsocket.shlurd.platonic.SpcForm(property.domain.name),
-        value)
-    )
-  }
-
   def findProperty(
     form : SpcForm, name : String) : Option[SpcProperty] =
   {
