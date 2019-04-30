@@ -1,8 +1,8 @@
 Import "/snavig/character-axioms.txt".
 Import "/snavig/interpreter-axioms.txt".
 
-If a player-character examines a describable-entity, then
- the game-interpreter recites the describable-entity's description.
+If a player-character looks at a describable-entity, then
+ the player-character examines the describable-entity.
 
 If a player-character looks, then
  the player-character appraises the player-character's container.
@@ -25,5 +25,8 @@ If a player-character rediscovers a map-place, then
 If a player-character discerns a visible-entity, then
  the player-character asks "what do I see".
 
-If a player-character looks at a describable-entity, then
+If a player-character examines a describable-entity, then
+ the describable-entity's description might exist;
+ otherwise the game-interpreter says "It's about what you'd expect.".
+If a player-character examines a describable-entity, then
  the game-interpreter recites the describable-entity's description.

@@ -34,6 +34,12 @@ The bathroom is east of the bedroom.
 
 Yes, it is open.
 
+> x door
+
+OK.
+
+It's about what you'd expect.
+
 > go east
 
 OK.
