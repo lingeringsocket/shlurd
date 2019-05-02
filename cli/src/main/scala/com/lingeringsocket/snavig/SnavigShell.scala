@@ -99,12 +99,9 @@ object SnavigShell
   def createNewCosmos() : SnavigSnapshot =
   {
     val noumenalCosmos = ShlurdPrimordialWordnet.newMutableCosmos
-    val beliefs = ResourceUtils.getResourceFile(
-      "/example-snavig/game-axioms.txt")
-    val source = Source.fromFile(beliefs)
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
     val bootMind = new SpcWordnetMind(noumenalCosmos, preferredSynonyms)
-    bootMind.loadBeliefs(source)
+    bootMind.importBeliefs("/example-snavig/game-axioms.txt")
 
     val playerEntity = bootstrapLookup(noumenalCosmos, PLAYER_WORD)
     val noumenalMind = new SnavigMind(
@@ -484,6 +481,9 @@ class SnavigShell(
     responder : SnavigResponder,
     resourceName : String)
   {
+    val dup = mind.getCosmos.isDuplicateBeliefResource(resourceName)
+    assert(!dup)
+
     val source = Source.fromFile(
       ResourceUtils.getResourceFile(resourceName))
     val sentences = mind.newParser(
