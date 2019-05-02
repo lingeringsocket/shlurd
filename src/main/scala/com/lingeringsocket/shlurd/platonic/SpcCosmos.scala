@@ -309,6 +309,12 @@ class SpcCosmos(
 {
   @transient private lazy val unmodifiableGraph = graph.asUnmodifiable
 
+  // FIXME we use Map instead of Set due to kryo limitation
+  private val importedBeliefResources =
+    new mutable.LinkedHashMap[String, Boolean]
+
+  private var parent : Option[SpcCosmos] = None
+
   private[platonic] val meta = new SpcMeta(this)
 
   def getForms = graph.idealSynonyms.vertexSet.asScala.toSeq.
@@ -365,6 +371,10 @@ class SpcCosmos(
     }
     val forked = new SpcCosmos(forkedGraph, newForkLevel, forkPool)
     forked.meta.afterFork(meta)
+    forked.inheritBeliefResources(this)
+    if (!detached) {
+      forked.parent = Some(this)
+    }
     forked
   }
 
@@ -372,6 +382,8 @@ class SpcCosmos(
   {
     val frozen = new SpcCosmos(unmodifiableGraph, forkLevel, pool)
     frozen.meta.afterFork(meta)
+    frozen.inheritBeliefResources(this)
+    frozen.parent = Some(this)
     frozen
   }
 
@@ -389,6 +401,7 @@ class SpcCosmos(
         Graphs.addGraph(dstGraphUp, srcGraphUp)
       }
     })
+    this.inheritBeliefResources(src)
   }
 
   def newClone() : SpcCosmos =
@@ -396,12 +409,28 @@ class SpcCosmos(
     val newCosmos = new SpcCosmos(graph.newClone)
     newCosmos.syncGenerator(this)
     newCosmos.meta.afterFork(meta)
+    newCosmos.inheritBeliefResources(this)
     newCosmos
   }
 
   private def syncGenerator(src : SpcCosmos)
   {
     getIdGenerator.set(src.getIdGenerator.get)
+  }
+
+  private def inheritBeliefResources(src : SpcCosmos)
+  {
+    importedBeliefResources ++= src.importedBeliefResources
+  }
+
+  def isDuplicateBeliefResource(resourceName : String) : Boolean =
+  {
+    if (importedBeliefResources.contains(resourceName)) {
+      true
+    } else {
+      importedBeliefResources.put(resourceName, true)
+      false
+    }
   }
 
   def isBulkLoad() : Boolean =
@@ -728,7 +757,7 @@ class SpcCosmos(
   def addIdealSynonym(synonymName : String, fundamentalName : String)
   {
     val synonym = SpcIdealSynonym(encodeName(synonymName))
-    assert(!graph.idealSynonyms.containsVertex(synonym))
+    assert(!graph.idealSynonyms.containsVertex(synonym), synonym)
     graph.idealSynonyms.addVertex(synonym)
     val ideal = getIdealBySynonym(fundamentalName).get
     graph.idealSynonyms.addEdge(synonym, ideal)
@@ -1649,6 +1678,7 @@ class SpcCosmos(
     assert(forkLevel != 0)
     if (forkLevel == 1) {
       graph.applyModifications
+      parent.foreach(cosmos => cosmos.inheritBeliefResources(this))
       validateBeliefs
     }
   }

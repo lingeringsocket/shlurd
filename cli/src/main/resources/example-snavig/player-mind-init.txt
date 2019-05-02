@@ -1,1 +1,3 @@
+Import "/snavig/character-axioms.txt".
+
 The player-character is online.

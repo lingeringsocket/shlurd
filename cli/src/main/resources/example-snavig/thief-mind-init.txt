@@ -1,1 +1,3 @@
+Import "/example-snavig/thief-axioms.txt".
+
 The thief is suave.
