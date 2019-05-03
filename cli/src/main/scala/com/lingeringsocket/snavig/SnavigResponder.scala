@@ -21,8 +21,7 @@ import com.lingeringsocket.shlurd.platonic._
 import scala.collection._
 
 class SnavigResponder(
-  shell : SnavigShell,
-  propagateBeliefs : Boolean,
+  propagationShell : Option[SnavigShell],
   mind : SnavigMind,
   beliefAcceptance : SpcBeliefAcceptance,
   params : SmcResponseParams,
@@ -39,15 +38,13 @@ class SnavigResponder(
     if (logger.isTraceEnabled) {
       logger.trace(s"BELIEF $printed")
     }
-    if (propagateBeliefs) {
-      shell.deferPhenomenon(printed)
-    }
+    propagationShell.foreach(_.deferPhenomenon(printed))
   }
 
   override protected def spawn(subMind : SpcMind) =
   {
     new SnavigResponder(
-      shell, propagateBeliefs, subMind.asInstanceOf[SnavigMind],
+      propagationShell, subMind.asInstanceOf[SnavigMind],
       ACCEPT_MODIFIED_BELIEFS, params, executor, communicationContext)
   }
 
@@ -68,32 +65,6 @@ class SnavigResponder(
     if (isPrecondition) {
       false
     } else {
-      predicate match {
-        case ap : SilActionPredicate => {
-          val lemma = ap.action.toLemma
-          lemma match {
-            case "perceive" => {
-              val resultCollector = SmcResultCollector[SpcEntity]()
-              val result = resolveReferences(
-                ap,
-                resultCollector,
-                true).get
-              assert(result.isTrue)
-              singletonLookup(
-                resultCollector.referenceMap, ap.subject
-              ).foreach(perceiver => {
-                ap.directObject.foreach(directObjectRef => {
-                  shell.deferPerception(
-                    perceiver,
-                    resultCollector.referenceMap(directObjectRef))
-                })
-              })
-            }
-            case _ =>
-          }
-        }
-        case _ =>
-      }
       super.checkCycle(predicate, seen, isPrecondition)
     }
   }

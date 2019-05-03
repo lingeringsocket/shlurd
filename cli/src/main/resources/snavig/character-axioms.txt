@@ -6,7 +6,7 @@ A player-character is a kind of game-character.
 A non-player-character is a kind of game-character.
 A non-player-character is a kind of visible-entity.
 
-A non-player-character's awareness must be
+A game-character's awareness must be
  mindless, unperceptive, perceptive, or omniscient.
 
 If a game-character sees a visible-entity, then equivalently

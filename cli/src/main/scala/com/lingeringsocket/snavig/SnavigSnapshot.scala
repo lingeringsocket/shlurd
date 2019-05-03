@@ -21,6 +21,8 @@ object SnavigSnapshot
   val PLAYER_PHENOMENAL = "player_phenomenal"
 
   val NOUMENAL = "noumenal"
+
+  val BOOTSTRAP = "bootstrap"
 }
 
 case class SnavigSnapshot(
@@ -28,6 +30,8 @@ case class SnavigSnapshot(
 )
 {
   import SnavigSnapshot._
+
+  def getBootstrapMind = mindMap(BOOTSTRAP)
 
   def getNoumenalMind = mindMap(NOUMENAL)
 

@@ -47,6 +47,10 @@ object SnavigShell
 
   private val serializer = new SnavigSerializer
 
+  private val responderParams = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
+
+  def ok = Some(OK)
+
   def run(terminal : SnavigTerminal = new SnavigConsole)
   {
     val newShell = this.synchronized {
@@ -55,7 +59,6 @@ object SnavigShell
         loadOrCreate(file, terminal)
       val shell = new SnavigShell(snapshot, terminal)
       if (init) {
-        shell.init
         serializer.saveSnapshot(snapshot, file)
       }
       shell
@@ -80,7 +83,8 @@ object SnavigShell
       tupleN((restore(file, terminal), false))
     } else {
       terminal.emitControl("Initializing...")
-      val snapshot = createNewCosmos
+      val snapshot = createNewCosmos(terminal)
+      terminal.emitControl("Initialization complete.")
       tupleN((
         snapshot,
         true))
@@ -96,29 +100,203 @@ object SnavigShell
     snapshot
   }
 
-  def createNewCosmos() : SnavigSnapshot =
+  def createNewCosmos(terminal : SnavigTerminal) : SnavigSnapshot =
   {
-    val noumenalCosmos = ShlurdPrimordialWordnet.newMutableCosmos
+    val bootCosmos = ShlurdPrimordialWordnet.newMutableCosmos
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
-    val bootMind = new SpcWordnetMind(noumenalCosmos, preferredSynonyms)
+    val bootMind = new SnavigMind(bootCosmos, None, preferredSynonyms)
     bootMind.importBeliefs("/example-snavig/game-axioms.txt")
 
-    val playerEntity = bootstrapLookup(noumenalCosmos, PLAYER_WORD)
+    val noumenalCosmos = bootCosmos.newClone
     val noumenalMind = new SnavigMind(
       noumenalCosmos, None, preferredSynonyms)
 
-    val phenomenalCosmos = noumenalCosmos.newClone
-    val perception = new SpcPerception(noumenalCosmos, phenomenalCosmos)
-    val phenomenalMind = new SnavigMind(
-      phenomenalCosmos,
-      Some(perception), preferredSynonyms)
+    val playerEntity =
+      bootstrapLookup(noumenalCosmos, PLAYER_WORD)
 
     val mindMap = new mutable.LinkedHashMap[String, SnavigMind]
-    mindMap.put(SnavigSnapshot.PLAYER_PHENOMENAL, phenomenalMind)
-    mindMap.put(playerEntity.name, phenomenalMind)
+    mindMap.put(SnavigSnapshot.BOOTSTRAP, bootMind)
     mindMap.put(SnavigSnapshot.NOUMENAL, noumenalMind)
+    val snapshot = SnavigSnapshot(mindMap)
 
-    SnavigSnapshot(mindMap)
+    lazy val executor = new SnavigExecutor(noumenalMind)
+    {
+      override protected def processFiat(
+        sentence : SilSentence,
+        entities : Iterable[SpcEntity])
+          : Option[String] =
+      {
+        Some(noumenalInitializer.process(sentence))
+      }
+
+      override protected def executeActionImpl(
+        ap : SilActionPredicate,
+        referenceMap : Map[SilReference, Set[SpcEntity]],
+        subjectEntityOpt : Option[SpcEntity],
+        quotationOpt : Option[String]
+      ) : Option[String] =
+      {
+        val lemma = ap.action.toLemma
+        quotationOpt match {
+          case Some(quotation) => {
+            subjectEntityOpt match {
+              case Some(subjectEntity) => {
+                lemma match {
+                  case "believe" => {
+                    // FIXME if quotation does not start with slash,
+                    // then interpret inline
+                    importEntityBeliefs(
+                      terminal,
+                      this,
+                      snapshot,
+                      subjectEntity,
+                      quotation)
+                    ok
+                  }
+                  case _ => None
+                }
+              }
+              case _ => None
+            }
+          }
+          case _ => {
+            lemma match {
+              case "perceive" => {
+                processPerception(snapshot, ap, referenceMap, subjectEntityOpt)
+                ok
+              }
+              case _ => None
+            }
+          }
+        }
+      }
+    }
+
+    lazy val noumenalInitializer : SnavigResponder = new SnavigResponder(
+      None, noumenalMind, ACCEPT_MODIFIED_BELIEFS, responderParams,
+      executor, SmcCommunicationContext(Some(playerEntity), Some(playerEntity)))
+    initMind(
+      noumenalMind,
+      noumenalInitializer,
+      "/example-snavig/game-init.txt")
+
+    val playerMindOpt = accessEntityMind(
+      snapshot,
+      playerEntity)
+    playerMindOpt.foreach(playerMind => {
+      snapshot.mindMap.put(SnavigSnapshot.PLAYER_PHENOMENAL, playerMind)
+    })
+
+    snapshot
+  }
+
+  private def initMind(
+    mind : ShlurdCliMind,
+    responder : SnavigResponder,
+    resourceName : String)
+  {
+    val dup = mind.getCosmos.isDuplicateBeliefResource(resourceName)
+    assert(!dup)
+
+    val source = Source.fromFile(
+      ResourceUtils.getResourceFile(resourceName))
+    val sentences = mind.newParser(
+      source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
+    sentences.foreach(sentence => {
+      val output = responder.process(mind.analyzeSense(sentence))
+      assert(output == OK, tupleN((sentence, output)))
+    })
+  }
+
+  private def importEntityBeliefs(
+    terminal : SnavigTerminal,
+    executor : SnavigExecutor,
+    snapshot : SnavigSnapshot,
+    entity : SpcEntity,
+    resourceName : String)
+  {
+    accessEntityMind(snapshot, entity) match {
+      case Some(mind) => {
+        val responder = new SnavigResponder(
+          None, mind, ACCEPT_MODIFIED_BELIEFS,
+          SmcResponseParams(), executor,
+          SmcCommunicationContext(Some(entity), Some(entity)))
+        initMind(mind, responder, resourceName)
+      }
+      case _ => {
+        terminal.emitControl(
+          s"Beliefs ignored for mindless entity $entity.")
+      }
+    }
+  }
+
+  private[snavig] def executePerception(
+    snapshot : SnavigSnapshot,
+    perceiver : SpcEntity,
+    perceived : Set[SpcEntity])
+  {
+    logger.trace(s"PERCEIVE $perceiver $perceived")
+    val entityMind = accessEntityMind(snapshot, perceiver)
+    val noumenalMind = snapshot.getNoumenalMind
+    entityMind.flatMap(_.perception).foreach(perception => {
+      val timestamp = noumenalMind.getTimestamp
+      perceived.toSeq.sortBy(_.name).foreach(entity => {
+        perception.perceiveEntityAssociations(
+          entity, timestamp)
+        perception.perceiveEntityProperties(
+          entity, timestamp)
+      })
+    })
+  }
+
+  private def accessEntityMind(
+    snapshot : SnavigSnapshot,
+    entity : SpcEntity) : Option[SnavigMind] =
+  {
+    val bootCosmos = snapshot.getBootstrapMind.getCosmos
+    val noumenalMind = snapshot.getNoumenalMind
+    val noumenalCosmos = noumenalMind.getCosmos
+    if (snapshot.mindMap.contains(entity.name)) {
+      snapshot.mindMap.get(entity.name)
+    } else {
+      lazy val newCosmos = bootCosmos.newClone
+      val (cosmos, perception) = noumenalCosmos.evaluateEntityProperty(
+        entity, "awareness"
+      ) match {
+        case Failure(ex) => {
+          throw ex
+        }
+        case Success((_, Some(awareness))) => {
+          awareness match {
+            case "mindless" => {
+              return None
+            }
+            case "unperceptive" => {
+              tupleN((newCosmos, None))
+            }
+            case "perceptive" => {
+              val cosmos = newCosmos
+              tupleN((
+                cosmos, Some(new SpcPerception(noumenalCosmos, cosmos))))
+            }
+            case "omniscient" => {
+              tupleN((noumenalCosmos, None))
+            }
+            case _ => {
+              return None
+            }
+          }
+        }
+        case _ => {
+          return None
+        }
+      }
+      val newMind = new SnavigMind(
+        cosmos,
+        perception, noumenalMind.preferredSynonyms)
+      snapshot.mindMap.put(entity.name, newMind)
+      Some(newMind)
+    }
   }
 
   def singletonLookup(
@@ -174,11 +352,11 @@ class SnavigShell(
     listenerMind : SnavigMind,
     quotation : String) extends Deferred
 
-  case class DeferredPerception(
-    perceiver : SpcEntity,
-    perceived : Set[SpcEntity]) extends Deferred
-
   case class DeferredPhenomenon(belief : String) extends Deferred
+
+  private val bootMind = snapshot.getBootstrapMind
+
+  private val bootCosmos = bootMind.getCosmos
 
   private val phenomenalMind = snapshot.getPhenomenalMind
 
@@ -194,8 +372,6 @@ class SnavigShell(
 
   private val playerPerception = phenomenalMind.perception.get
 
-  private val params = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
-
   private val deferredQueue = new mutable.Queue[Deferred]
 
   private var gameTurnTimestamp = SpcTimestamp.ZERO
@@ -204,14 +380,37 @@ class SnavigShell(
 
   private var listenerMind : Option[(SpcEntity, SnavigMind)] = None
 
-  private val executor = new SmcExecutor[SpcEntity]
+  private val executor = new SnavigExecutor(noumenalMind)
   {
-    override def executeAction(
+    override protected def processFiat(
+      sentence : SilSentence,
+      entities : Iterable[SpcEntity])
+        : Option[String] =
+    {
+      if (logger.isTraceEnabled) {
+        val printed = sentencePrinter.print(sentence)
+        logger.trace(s"FIAT $printed")
+      }
+      val staleEntities = findStale(entities)
+      if (staleEntities.nonEmpty) {
+        // FIXME move this to the scripting level, and discriminate
+        // seeing, hearing, touching, reaching, etc
+        val complaint = "You can only interact with what's nearby."
+        defer(DeferredComplaint(complaint))
+        Some(complaint)
+      } else {
+        Some(noumenalUpdater.process(sentence))
+      }
+    }
+
+    override protected def executeActionImpl(
       ap : SilActionPredicate,
-      referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[String] =
+      referenceMap : Map[SilReference, Set[SpcEntity]],
+      subjectEntityOpt : Option[SpcEntity],
+      quotationOpt : Option[String]
+    ) : Option[String] =
     {
       val lemma = ap.action.toLemma
-      val subjectEntity = singletonLookup(referenceMap, ap.subject)
       val targetRefOpt = ap.modifiers.flatMap(_ match {
         case SilAdpositionalVerbModifier(
           SilAdposition.TO,
@@ -220,26 +419,9 @@ class SnavigShell(
       }).headOption
       val targetEntityOpt = targetRefOpt.flatMap(
         ref => singletonLookup(referenceMap, ref))
-      val ok = Some(OK)
-      val quotationOpt = ap.directObject match {
-        case Some(SilQuotationReference(quotation)) => Some(quotation)
-        case Some(ref) => {
-          singletonLookup(referenceMap, ref) match {
-            case Some(entity) => {
-              entity match {
-                // FIXME type check
-                case SpcTransientEntity(_, value) => Some(value)
-                case _ => None
-              }
-            }
-            case _ => None
-          }
-        }
-        case _ => None
-      }
       quotationOpt match {
         case Some(quotation) => {
-          if (subjectEntity == Some(playerEntity)) {
+          if (subjectEntityOpt == Some(playerEntity)) {
             lemma match {
               case "ask" => {
                 targetEntityOpt match {
@@ -276,7 +458,7 @@ class SnavigShell(
               }
               case _ => None
             }
-          } else if (subjectEntity == Some(interpreterEntity)) {
+          } else if (subjectEntityOpt == Some(interpreterEntity)) {
             lemma match {
               case "say" | "recite" => {
                 defer(DeferredReport(quotation))
@@ -302,29 +484,16 @@ class SnavigShell(
               }
               case _ => None
             }
-          } else if (subjectEntity.nonEmpty) {
-            lemma match {
-              case "believe" => {
-                subjectEntity match {
-                  case Some(entity) => {
-                    // FIXME if quotation does not start with slash,
-                    // then interpret inline
-                    importEntityBeliefs(
-                      entity,
-                      quotation)
-                    ok
-                  }
-                  case _ => None
-                }
-              }
-              case _ => None
-            }
           } else {
             None
           }
         }
         case _ => {
           lemma match {
+            case "perceive" => {
+              processPerception(snapshot, ap, referenceMap, subjectEntityOpt)
+              ok
+            }
             case "talk" => {
               targetEntityOpt match {
                 case Some(targetEntity) => {
@@ -386,20 +555,6 @@ class SnavigShell(
         referenceMap.get(_).getOrElse(Set.empty))
       processFiat(sentence, entities)
     }
-
-    override def executeInvocation(
-      invocation : SmcStateChangeInvocation[SpcEntity],
-      referenceMap : Map[SilReference, Set[SpcEntity]])
-        : Option[String] =
-    {
-      val sentence = SilPredicateSentence(
-        SilStatePredicate(
-          noumenalMind.specificReferences(invocation.entities),
-          SilPropertyState(invocation.state)
-        )
-      )
-      processFiat(sentence, invocation.entities)
-    }
   }
 
   private val sentencePrinter = new SilSentencePrinter
@@ -409,43 +564,18 @@ class SnavigShell(
     Some(interpreterEntity)
   )
 
-  private val noumenalInitializer = new SnavigResponder(
-    this, false, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params,
-    executor, playerToInterpreter)
-
-  private val noumenalUpdater = new SnavigResponder(
-    this, true, noumenalMind, ACCEPT_MODIFIED_BELIEFS, params,
+  private val noumenalUpdater : SnavigResponder = new SnavigResponder(
+    Some(this), noumenalMind, ACCEPT_MODIFIED_BELIEFS, responderParams,
     executor, playerToInterpreter)
 
   private val phenomenalResponder = new SnavigResponder(
-    this, false, phenomenalMind, ACCEPT_NO_BELIEFS,
-    params.copy(existenceAssumption = EXISTENCE_ASSUME_UNKNOWN),
+    None, phenomenalMind, ACCEPT_NO_BELIEFS,
+    responderParams.copy(existenceAssumption = EXISTENCE_ASSUME_UNKNOWN),
     executor, playerToInterpreter)
 
   private val phenomenalUpdater = new SnavigResponder(
-    this, false, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, params,
+    None, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, responderParams,
     executor, playerToInterpreter)
-
-  private def processFiat(
-    sentence : SilSentence,
-    entities : Iterable[SpcEntity])
-      : Option[String] =
-  {
-    if (logger.isTraceEnabled) {
-      val printed = sentencePrinter.print(sentence)
-      logger.trace(s"FIAT $printed")
-    }
-    val staleEntities = findStale(entities)
-    if (staleEntities.nonEmpty) {
-      // FIXME move this to the scripting level, and discriminate
-      // seeing, hearing, touching, reaching, etc
-      val complaint = "You can only interact with what's nearby."
-      defer(DeferredComplaint(complaint))
-      Some(complaint)
-    } else {
-      Some(noumenalUpdater.process(sentence))
-    }
-  }
 
   def defer(deferred : Deferred)
   {
@@ -457,109 +587,10 @@ class SnavigShell(
     defer(DeferredPhenomenon(belief))
   }
 
-  def deferPerception(
-    perceiver : SpcEntity, perceived : Set[SpcEntity])
+  private def accessEntityMind(
+    entity : SpcEntity) : Option[SnavigMind] =
   {
-    defer(DeferredPerception(perceiver, perceived))
-  }
-
-  def init()
-  {
-    initMind(
-      noumenalMind,
-      noumenalInitializer,
-      "/example-snavig/game-init.txt")
-    initMind(
-      phenomenalMind,
-      phenomenalUpdater,
-      "/example-snavig/player-mind-init.txt")
-    terminal.emitControl("Initialization complete.")
-  }
-
-  private def initMind(
-    mind : ShlurdCliMind,
-    responder : SnavigResponder,
-    resourceName : String)
-  {
-    val dup = mind.getCosmos.isDuplicateBeliefResource(resourceName)
-    assert(!dup)
-
-    val source = Source.fromFile(
-      ResourceUtils.getResourceFile(resourceName))
-    val sentences = mind.newParser(
-      source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
-    sentences.foreach(sentence => {
-      val output = responder.process(mind.analyzeSense(sentence))
-      assert(output == OK, tupleN((sentence, output)))
-      processDeferred
-    })
-  }
-
-  private def accessEntityMind(entity : SpcEntity) : Option[SnavigMind] =
-  {
-    if (snapshot.mindMap.contains(entity.name)) {
-      snapshot.mindMap.get(entity.name)
-    } else {
-      lazy val newCosmos = noumenalCosmos.newClone
-      val (cosmos, perception) = noumenalCosmos.evaluateEntityProperty(
-        entity, "awareness"
-      ) match {
-        case Failure(ex) => {
-          throw ex
-        }
-        case Success((_, Some(awareness))) => {
-          awareness match {
-            case "mindless" => {
-              return None
-            }
-            case "unperceptive" => {
-              tupleN((newCosmos, None))
-            }
-            case "perceptive" => {
-              val cosmos = newCosmos
-              tupleN((
-                cosmos, Some(new SpcPerception(noumenalCosmos, cosmos))))
-            }
-            case "omniscient" => {
-              tupleN((noumenalCosmos, None))
-            }
-            case _ => {
-              return None
-            }
-          }
-        }
-        case unexpected => {
-          return None
-        }
-      }
-      val newMind = new SnavigMind(
-        cosmos,
-        perception, noumenalMind.preferredSynonyms)
-      snapshot.mindMap.put(entity.name, newMind)
-      Some(newMind)
-    }
-  }
-
-  private def importEntityBeliefs(
-    entity : SpcEntity,
-    resourceName : String)
-  {
-    accessEntityMind(entity) match {
-      case Some(mind) => {
-        val communicationContext = SmcCommunicationContext(
-          Some(entity),
-          Some(playerEntity)
-        )
-        val responder = new SnavigResponder(
-          this, false, mind, ACCEPT_MODIFIED_BELIEFS,
-          SmcResponseParams(), executor, communicationContext)
-        initMind(mind, responder, resourceName)
-      }
-      case _ => {
-        terminal.emitControl(
-          s"Beliefs ignored for mindless entity $entity.")
-      }
-    }
+    SnavigShell.accessEntityMind(snapshot, entity)
   }
 
   private def processDeferred()
@@ -588,7 +619,7 @@ class SnavigShell(
             Some(targetEntity)
           )
           val responder = new SnavigResponder(
-            this, false, targetMind, ACCEPT_NO_BELIEFS,
+            None, targetMind, ACCEPT_NO_BELIEFS,
             SmcResponseParams(), executor, communicationContext)
           val sentences = targetMind.newParser(input).parseAll
           sentences.foreach(sentence => {
@@ -681,7 +712,7 @@ class SnavigShell(
                   Some(listener)
                 )
                 val entityResponder = new SnavigResponder(
-                  this, false, entityMind, ACCEPT_NO_BELIEFS,
+                  None, entityMind, ACCEPT_NO_BELIEFS,
                   SmcResponseParams(), executor, communicationContext)
                 // FIXME use parseAll instead
                 val sentence = entityMind.newParser(quotation).parseOne
@@ -704,19 +735,6 @@ class SnavigShell(
             terminal.emitNarrative("")
             terminal.emitNarrative(SprUtils.capitalize(reply))
           }
-        }
-        case DeferredPerception(perceiver, perceived) => {
-          logger.trace(s"PERCEIVE $perceiver $perceived")
-          val entityMind = snapshot.mindMap.get(perceiver.name)
-          entityMind.flatMap(_.perception).foreach(perception => {
-            val timestamp = noumenalMind.getTimestamp
-            perceived.toSeq.sortBy(_.name).foreach(entity => {
-              perception.perceiveEntityAssociations(
-                entity, timestamp)
-              perception.perceiveEntityProperties(
-                entity, timestamp)
-            })
-          })
         }
       }
     }
@@ -823,6 +841,87 @@ class SnavigShell(
         terminal.emitControl("Shutting down...")
         None
       }
+    }
+  }
+}
+
+abstract class SnavigExecutor(noumenalMind : SnavigMind)
+    extends SmcExecutor[SpcEntity]
+{
+  import SnavigShell._
+
+  override def executeAction(
+    ap : SilActionPredicate,
+    referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[String] =
+  {
+    val lemma = ap.action.toLemma
+    val subjectEntityOpt = singletonLookup(referenceMap, ap.subject)
+    val quotationOpt = ap.directObject match {
+      case Some(SilQuotationReference(quotation)) => Some(quotation)
+      case Some(ref) => {
+        singletonLookup(referenceMap, ref) match {
+          case Some(entity) => {
+            entity match {
+              // FIXME type check
+              case SpcTransientEntity(_, value) => Some(value)
+              case _ => None
+            }
+          }
+          case _ => None
+        }
+      }
+      case _ => None
+    }
+    executeActionImpl(
+      ap,
+      referenceMap,
+      subjectEntityOpt,
+      quotationOpt)
+  }
+
+  protected def executeActionImpl(
+    ap : SilActionPredicate,
+    referenceMap : Map[SilReference, Set[SpcEntity]],
+    subjectEntityOpt : Option[SpcEntity],
+    quotationOpt : Option[String]
+  ) : Option[String]
+
+  override def executeInvocation(
+    invocation : SmcStateChangeInvocation[SpcEntity],
+    referenceMap : Map[SilReference, Set[SpcEntity]])
+      : Option[String] =
+  {
+    val sentence = SilPredicateSentence(
+      SilStatePredicate(
+        noumenalMind.specificReferences(invocation.entities),
+        SilPropertyState(invocation.state)
+      )
+    )
+    processFiat(sentence, invocation.entities)
+  }
+
+  protected def processFiat(
+    sentence : SilSentence,
+    entities : Iterable[SpcEntity])
+      : Option[String]
+
+  protected def processPerception(
+    snapshot : SnavigSnapshot,
+    ap : SilActionPredicate,
+    referenceMap : Map[SilReference, Set[SpcEntity]],
+    subjectEntityOpt : Option[SpcEntity])
+  {
+    subjectEntityOpt match {
+      case Some(subjectEntity) => {
+        ap.directObject.foreach(directObjectRef => {
+          executePerception(
+            snapshot,
+            subjectEntity,
+            referenceMap(directObjectRef))
+        })
+        ok
+      }
+      case _ => None
     }
   }
 }

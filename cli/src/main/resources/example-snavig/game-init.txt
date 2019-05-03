@@ -37,7 +37,13 @@ The big door is the bedroom's eastern-exit.
 The big door is the bathroom's western-exit.
 
 The thief is perceptive.
+The thief surveys the bedroom.
+The thief surveys the bathroom.
+The thief perceives the lantern.
 The thief believes "/example-snavig/thief-mind-init.txt".
+
+The player-character is perceptive.
+The player-character believes "/example-snavig/player-mind-init.txt".
 
 The lantern is in the kitchen.
 The cupboard is in the kitchen.
