@@ -61,17 +61,15 @@ class SpcBeliefRecognizer(
     if (sentence.hasUnknown) {
       return Seq.empty
     }
-    if (sentence.tam.isImperative) {
-      sentence match {
-        case SilPredicateSentence(
-          SilActionPredicate(
-            _, action, Some(SilQuotationReference(quotation)), _),
-          tam, formality
-        ) => {
-          return recognizeDirective(sentence, action, quotation)
-        }
-        case _ => return Seq.empty
+    sentence match {
+      case SilPredicateSentence(
+        SilActionPredicate(
+          _, action, Some(SilQuotationReference(quotation)), _),
+        tam, formality
+      ) => {
+        return recognizeDirective(sentence, action, quotation)
       }
+      case _ =>
     }
     if (!sentence.tam.isIndicative) {
       // FIXME support interrogative

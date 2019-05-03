@@ -1,4 +1,4 @@
-Import "/snavig/basic-axioms.txt".
+I import "/snavig/basic-axioms.txt".
 
 A game-interpreter is a kind of person.
 There is a game-interpreter.

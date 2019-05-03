@@ -1,4 +1,4 @@
-Import "/snavig/character-axioms.txt".
+I import "/snavig/character-axioms.txt".
 
 There is a game-turn.
 

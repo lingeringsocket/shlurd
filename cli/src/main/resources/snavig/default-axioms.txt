@@ -1,4 +1,4 @@
-Import "/snavig/movement-axioms.txt".
-Import "/snavig/game-turn-axioms.txt".
-Import "/snavig/persistence-axioms.txt".
-Import "/snavig/action-axioms.txt".
+I import "/snavig/movement-axioms.txt".
+I import "/snavig/game-turn-axioms.txt".
+I import "/snavig/persistence-axioms.txt".
+I import "/snavig/action-axioms.txt".

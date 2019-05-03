@@ -1,6 +1,6 @@
-Import "/snavig/default-axioms.txt".
+I import "/snavig/default-axioms.txt".
 
-Import "/example-snavig/thief-axioms.txt".
+I import "/example-snavig/thief-axioms.txt".
 
 An axe is a kind of game-object.
 A lantern is a kind of game-object.

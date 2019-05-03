@@ -1,4 +1,4 @@
-Import "/example-snavig/game-axioms.txt".
+I import "/example-snavig/game-axioms.txt".
 
 There is a bedroom.
 The bedroom's place-description is "Grubby articles of alien underwear lie scattered about.".

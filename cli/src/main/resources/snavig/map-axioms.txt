@@ -1,4 +1,4 @@
-Import "/snavig/basic-axioms.txt".
+I import "/snavig/basic-axioms.txt".
 
 A map-place is a kind of location.
 A map-place's place-description must be a quotation.

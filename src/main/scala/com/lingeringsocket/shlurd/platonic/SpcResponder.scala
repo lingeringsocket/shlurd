@@ -198,7 +198,7 @@ class SpcResponder(
       : (SilSentence, String) =
   {
     if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
-      !sentence.tam.isInterrogative)
+      sentence.tam.isIndicative)
     {
       val (interval, predicateOpt, baselineCosmos, temporal) = sentence match {
         case SilPredicateSentence(predicate, _, _) => {

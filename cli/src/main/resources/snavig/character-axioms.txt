@@ -1,4 +1,4 @@
-Import "/snavig/basic-axioms.txt".
+I import "/snavig/basic-axioms.txt".
 
 A game-character is a kind of person.
 A game-character is a kind of describable-entity.

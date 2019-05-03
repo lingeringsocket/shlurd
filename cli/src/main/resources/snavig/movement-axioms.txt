@@ -1,5 +1,5 @@
-Import "/snavig/map-axioms.txt".
-Import "/snavig/character-axioms.txt".
+I import "/snavig/map-axioms.txt".
+I import "/snavig/character-axioms.txt".
 
 A place-discoverer must be a player-character.
 A map-place may have place-discoverers.
