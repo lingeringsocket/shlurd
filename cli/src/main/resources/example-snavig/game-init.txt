@@ -1,4 +1,4 @@
-I import "/example-snavig/game-axioms.txt".
+"Resource" import "/example-snavig/game-axioms.txt".
 
 There is a bedroom.
 The bedroom's place-description is "Grubby articles of alien underwear lie scattered about.".
@@ -19,11 +19,6 @@ The cupboard is north of the bedroom.
 
 The player-character is in the bedroom.
 
-There is a thief.
-The thief's description is "He wields a wicked-looking stiletto.".
-The thief is in the bathroom.
-The thief is alive.
-
 There is a big door.
 The big door is open.
 
@@ -36,11 +31,7 @@ There is a brass lantern.
 The big door is the bedroom's eastern-exit.
 The big door is the bathroom's western-exit.
 
-The thief is perceptive.
-The thief surveys the bedroom.
-The thief surveys the bathroom.
-The thief perceives the lantern.
-The thief believes "/example-snavig/thief-mind-init.txt".
+"Resource" import "/example-snavig/thief-init.txt".
 
 The player-character is perceptive.
 The player-character believes "/example-snavig/player-mind-init.txt".

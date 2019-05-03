@@ -347,9 +347,9 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
     mind
   }
 
-  override def loadBeliefs(source : Source)
+  override def loadBeliefs(source : Source, responder : SpcResponder)
   {
-    super.loadBeliefs(source)
+    super.loadBeliefs(source, responder)
     cosmos.beliefsLoaded = true
   }
 

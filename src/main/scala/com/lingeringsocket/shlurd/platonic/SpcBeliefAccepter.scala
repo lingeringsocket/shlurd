@@ -23,13 +23,37 @@ import scala.collection.JavaConverters._
 
 import org.jgrapht.alg.shortestpath._
 
+object SpcBeliefAccepter
+{
+  def apply(
+    mind : SpcMind,
+    allowUpdates : Boolean = false,
+    resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
+      : SpcBeliefAccepter =
+  {
+    val acceptance = {
+      if (allowUpdates) {
+        ACCEPT_MODIFIED_BELIEFS
+      } else {
+        ACCEPT_NEW_BELIEFS
+      }
+    }
+    new SpcBeliefAccepter(
+      new SpcResponder(mind, acceptance),
+      allowUpdates,
+      resultCollector)
+  }
+}
+
 class SpcBeliefAccepter(
-  mind : SpcMind,
+  responder : SpcResponder,
   allowUpdates : Boolean = false,
   resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
-    extends SpcBeliefRecognizer(mind.getCosmos, resultCollector)
+    extends SpcBeliefRecognizer(responder.getMind.getCosmos, resultCollector)
 {
   type BeliefApplier = PartialFunction[SpcBelief, Unit]
+
+  private val mind = responder.getMind
 
   private val beliefAppliers = new mutable.ArrayBuffer[BeliefApplier]
 
@@ -749,7 +773,7 @@ class SpcBeliefAccepter(
       sentence,
       resourceName
     ) => {
-      mind.importBeliefs(resourceName)
+      mind.importBeliefs(resourceName, responder)
     }
   }
 

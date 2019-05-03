@@ -527,7 +527,7 @@ class SpcResponder(
     val compliance = sentencePrinter.sb.respondCompliance
     val beliefAccepter =
       new SpcBeliefAccepter(
-        mind.spawn(forkedCosmos),
+        spawn(mind.spawn(forkedCosmos)),
         (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS),
         resultCollector)
     attemptAsBelief(beliefAccepter, sentence).foreach(result => {

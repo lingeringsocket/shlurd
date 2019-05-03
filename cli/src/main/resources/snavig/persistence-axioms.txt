@@ -1,5 +1,5 @@
-I import "/snavig/character-axioms.txt".
-I import "/snavig/interpreter-axioms.txt".
+"Resource" import "/snavig/character-axioms.txt".
+"Resource" import "/snavig/interpreter-axioms.txt".
 
 If a player-character saves, then
  the game-interpreter saves ".zip".

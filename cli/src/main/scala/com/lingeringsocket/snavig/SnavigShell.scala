@@ -21,7 +21,6 @@ import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 import com.lingeringsocket.shlurd.cli._
 
-import scala.io._
 import scala.collection._
 import scala.util._
 
@@ -175,10 +174,9 @@ object SnavigShell
     lazy val noumenalInitializer : SnavigResponder = new SnavigResponder(
       None, noumenalMind, ACCEPT_MODIFIED_BELIEFS, responderParams,
       executor, SmcCommunicationContext(Some(playerEntity), Some(playerEntity)))
-    initMind(
-      noumenalMind,
-      noumenalInitializer,
-      "/example-snavig/game-init.txt")
+    noumenalMind.importBeliefs(
+      "/example-snavig/game-init.txt",
+      noumenalInitializer)
 
     val playerMindOpt = accessEntityMind(
       snapshot,
@@ -188,24 +186,6 @@ object SnavigShell
     })
 
     snapshot
-  }
-
-  private def initMind(
-    mind : ShlurdCliMind,
-    responder : SnavigResponder,
-    resourceName : String)
-  {
-    val dup = mind.getCosmos.isDuplicateBeliefResource(resourceName)
-    assert(!dup)
-
-    val source = Source.fromFile(
-      ResourceUtils.getResourceFile(resourceName))
-    val sentences = mind.newParser(
-      source.getLines.filterNot(_.isEmpty).mkString("\n")).parseAll
-    sentences.foreach(sentence => {
-      val output = responder.process(mind.analyzeSense(sentence))
-      assert(output == OK, tupleN((sentence, output)))
-    })
   }
 
   private def importEntityBeliefs(
@@ -221,7 +201,7 @@ object SnavigShell
           None, mind, ACCEPT_MODIFIED_BELIEFS,
           SmcResponseParams(), executor,
           SmcCommunicationContext(Some(entity), Some(entity)))
-        initMind(mind, responder, resourceName)
+        mind.importBeliefs(resourceName, responder)
       }
       case _ => {
         terminal.emitControl(

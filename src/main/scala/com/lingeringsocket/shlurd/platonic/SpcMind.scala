@@ -40,22 +40,34 @@ class SpcMind(cosmos : SpcCosmos)
     mind
   }
 
-  def importBeliefs(resourceName : String)
+  def importBeliefs(
+    resourceName : String,
+    responder : SpcResponder = new SpcResponder(this, ACCEPT_NEW_BELIEFS))
   {
     if (!cosmos.isDuplicateBeliefResource(resourceName)) {
-      loadBeliefs(ResourceUtils.getResourceSource(resourceName))
+      loadBeliefs(ResourceUtils.getResourceSource(resourceName), responder)
     }
   }
 
-  def loadBeliefs(source : Source)
+  def loadBeliefs(
+    source : Source,
+    responder : SpcResponder = new SpcResponder(this, ACCEPT_NEW_BELIEFS))
   {
     val beliefs = source.getLines.filterNot(_.isEmpty).mkString("\n")
-    val responder = new SpcResponder(this, ACCEPT_NEW_BELIEFS)
     val sentences = responder.newParser(beliefs).parseAll
+    val ok = responder.sentencePrinter.sb.respondCompliance
     sentences.foreach(sentence => {
-      val accepter = new SpcBeliefAccepter(this, false)
       val analyzed = analyzeSense(sentence)
-      accepter.processBelief(analyzed)
+      val accepter = new SpcBeliefAccepter(responder)
+      accepter.recognizeBeliefs(analyzed) match {
+        case Seq(ib : IndirectBelief) => {
+          accepter.applyBelief(ib)
+        }
+        case _ => {
+          val output = responder.process(analyzed)
+          assert(output == ok, tupleN((sentence, output)))
+        }
+      }
     })
     cosmos.validateBeliefs
   }

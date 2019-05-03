@@ -1,4 +1,4 @@
-I import "/snavig/possession-axioms.txt".
+"Resource" import "/snavig/possession-axioms.txt".
 
 A thief is a kind of non-player-character.
 A thief must be alive or dead.

@@ -1,4 +1,4 @@
-I import "/snavig/basic-axioms.txt".
+"Resource" import "/snavig/basic-axioms.txt".
 
 A character-inventory must be a repository.
 A stuff is a character-inventory.

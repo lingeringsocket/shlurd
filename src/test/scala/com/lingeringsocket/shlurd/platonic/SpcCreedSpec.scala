@@ -41,7 +41,7 @@ class SpcCreedSpec extends Specification
       val resultCollector = SmcResultCollector[SpcEntity]()
       responder.resolveReferences(sentence, resultCollector)
       val beliefAccepter = new SpcBeliefAccepter(
-        mind, false, resultCollector)
+        responder, false, resultCollector)
       beliefAccepter.processBelief(sentence)
     }
 
@@ -66,7 +66,7 @@ class SpcCreedSpec extends Specification
         val resultCollector = SmcResultCollector[SpcEntity]()
         refriedResponder.resolveReferences(sentence, resultCollector)
         val refriedBeliefAccepter =
-          new SpcBeliefAccepter(refriedMind, false, resultCollector)
+          new SpcBeliefAccepter(refriedResponder, false, resultCollector)
         val refriedBeliefs =
           refriedBeliefAccepter.recognizeBeliefs(sentence)
         refriedBeliefs.foreach(belief => {

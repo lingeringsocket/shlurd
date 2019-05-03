@@ -320,8 +320,14 @@ object SprParser
   private def collapseQuotations(
     sentence : SprTokenizedSentence) : Seq[String] =
   {
+    collapseQuotations(sentence, sentence.tokens)
+  }
+
+  private def collapseQuotations(
+    sentence : SprTokenizedSentence,
+    tokens : Seq[SprToken]) : Seq[String] =
+  {
     // FIXME deal with nested quotations?
-    val tokens = sentence.tokens
     val tokensText = tokens.map(_.text)
     val left = tokensText.indexOf(LABEL_LQUOTE)
     if (left == -1) {
@@ -336,7 +342,7 @@ object SprParser
           DQUOTE
         tokensText.take(left) ++
           Seq(quotation) ++
-          tokensText.drop(right + 1)
+          collapseQuotations(sentence, tokens.drop(right + 1))
       }
     }
   }
