@@ -65,14 +65,13 @@ class ShlurdPrimordialWordnetSpec extends Specification
       val someoneOpt = cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE)
       someoneOpt must beSome
       val someoneForm = someoneOpt.get
-      val graph = cosmos.getGraph
-      graph.isHyponym(puppyForm, dogForm) must beTrue
-      graph.isHyponym(dogForm, puppyForm) must beFalse
-      graph.isHyponym(puppyForm, anthroposForm) must beFalse
-      graph.isHyponym(puppyForm, someoneForm) must beFalse
-      graph.isHyponym(anthroposForm, someoneForm) must beFalse
-      graph.isHyponym(androsForm, someoneForm) must beTrue
-      graph.isHyponym(someoneForm, androsForm) must beFalse
+      cosmos.isHyponym(puppyForm, dogForm) must beTrue
+      cosmos.isHyponym(dogForm, puppyForm) must beFalse
+      cosmos.isHyponym(puppyForm, anthroposForm) must beFalse
+      cosmos.isHyponym(puppyForm, someoneForm) must beFalse
+      cosmos.isHyponym(anthroposForm, someoneForm) must beFalse
+      cosmos.isHyponym(androsForm, someoneForm) must beTrue
+      cosmos.isHyponym(someoneForm, androsForm) must beFalse
     }
 
     "provide ontology to parser" in new ResponderContext

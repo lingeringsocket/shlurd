@@ -375,7 +375,7 @@ class SpcTriggerExecutor(
         val replacementRef = resolvedForm match {
           case Some(form) => {
             val filtered = entities.filter(entity => {
-              cosmos.getGraph.isHyponym(entity.form, form)
+              cosmos.isHyponym(entity.form, form)
             })
             if (filtered.isEmpty) {
               trace(s"NO FORM ${entities.map(_.form)} MATCHES $form")

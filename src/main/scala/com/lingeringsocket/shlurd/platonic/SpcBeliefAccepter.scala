@@ -194,7 +194,6 @@ class SpcBeliefAccepter(
     val oldForm = entity.form
     val newEntity = SpcPersistentEntity(
       entity.name, newForm, entity.qualifiers, entity.properName)
-    val graph = cosmos.getGraph
     if (oldForm.isTentative) {
       val matchedAssocs = cosmos.matchAssocs(oldForm, newForm)
       matchedAssocs.foreach(pair => {
@@ -213,7 +212,7 @@ class SpcBeliefAccepter(
       cosmos.replaceForm(oldForm, newForm)
     } else {
       // the only form change allowed is a refinement
-      assert(graph.isHyponym(newForm, oldForm))
+      assert(cosmos.isHyponym(newForm, oldForm))
       cosmos.createOrReplaceEntity(newEntity)
     }
   }
@@ -453,7 +452,7 @@ class SpcBeliefAccepter(
             if (possesseeRole == hyponymIdeal) {
               val possesseeEntity =
                 cosmos.getGraph.getPossesseeEntity(entityEdge)
-              if (!cosmos.getGraph.isHyponym(
+              if (!cosmos.isHyponym(
                 possesseeEntity.form, hypernymIdeal))
               {
                 if (possesseeEntity.form.isTentative) {
@@ -526,16 +525,15 @@ class SpcBeliefAccepter(
           }
         )
       if (!isNewEntity) {
-        val graph = cosmos.getGraph
         if (form == entity.form) {
           if (properName.isEmpty) {
             throw new AmbiguousBeliefExcn(
               sentence, creed.entityFormBelief(entity))
           }
-        } else if (graph.isHyponym(entity.form, form)) {
+        } else if (cosmos.isHyponym(entity.form, form)) {
           // from "Bessie is a cow" to "Bessie is an animal"
           // so nothing to do
-        } else if (graph.isHyponym(form, entity.form)) {
+        } else if (cosmos.isHyponym(form, entity.form)) {
           // from "Bessie is an animal" to "Bessie is a cow"
           // so need to replace with refinement
           transmogrify(sentence, entity, form)

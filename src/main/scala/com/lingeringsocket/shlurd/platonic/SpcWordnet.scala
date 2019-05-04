@@ -165,7 +165,7 @@ class SpcWordnet(cosmos : SpcCosmos)
   def anyMatchingHypernym(form : SpcForm, hypernyms : Seq[SpcForm]) : Boolean =
   {
     hypernyms.exists(
-      hypernym => cosmos.getGraph.isHyponym(form, hypernym))
+      hypernym => cosmos.isHyponym(form, hypernym))
   }
 
   def anyMatchingCategory(

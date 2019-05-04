@@ -235,22 +235,21 @@ class SpcCosmosSpec extends Specification
       val duck = expectNamedForm("duck")
       val mallard = expectNamedForm("mallard")
       val canvasback = expectNamedForm("canvasback")
-      val graph = cosmos.getGraph
-      graph.isHyponym(dog, canine) must beTrue
-      graph.isHyponym(canine, dog) must beFalse
-      graph.isHyponym(duck, bird) must beTrue
-      graph.isHyponym(bird, duck) must beFalse
-      graph.isHyponym(mallard, duck) must beTrue
-      graph.isHyponym(mallard, bird) must beTrue
-      graph.isHyponym(duck, mallard) must beFalse
-      graph.isHyponym(bird, mallard) must beFalse
-      graph.isHyponym(canvasback, duck) must beTrue
-      graph.isHyponym(canvasback, bird) must beTrue
-      graph.isHyponym(canvasback, mallard) must beFalse
-      graph.isHyponym(mallard, canvasback) must beFalse
-      graph.isHyponym(canine, bird) must beFalse
-      graph.isHyponym(bird, canine) must beFalse
-      graph.isHyponym(dog, duck) must beFalse
+      cosmos.isHyponym(dog, canine) must beTrue
+      cosmos.isHyponym(canine, dog) must beFalse
+      cosmos.isHyponym(duck, bird) must beTrue
+      cosmos.isHyponym(bird, duck) must beFalse
+      cosmos.isHyponym(mallard, duck) must beTrue
+      cosmos.isHyponym(mallard, bird) must beTrue
+      cosmos.isHyponym(duck, mallard) must beFalse
+      cosmos.isHyponym(bird, mallard) must beFalse
+      cosmos.isHyponym(canvasback, duck) must beTrue
+      cosmos.isHyponym(canvasback, bird) must beTrue
+      cosmos.isHyponym(canvasback, mallard) must beFalse
+      cosmos.isHyponym(mallard, canvasback) must beFalse
+      cosmos.isHyponym(canine, bird) must beFalse
+      cosmos.isHyponym(bird, canine) must beFalse
+      cosmos.isHyponym(dog, duck) must beFalse
     }
 
     "understand unique entity existence" in new CosmosContext
@@ -259,11 +258,10 @@ class SpcCosmosSpec extends Specification
       val dog = expectNamedForm("dog")
       val werewolf = expectNamedForm("werewolf")
       val anonDog = expectFormSingleton(dog)
-      val graph = cosmos.getGraph
       // FIXME this should hold
-      // graph.isHyponym(dog, werewolf) must beFalse
-      graph.isHyponym(anonDog.form, werewolf) must beTrue
-      graph.isHyponym(anonDog.form, dog) must beTrue
+      // cosmos.isHyponym(dog, werewolf) must beFalse
+      cosmos.isHyponym(anonDog.form, werewolf) must beTrue
+      cosmos.isHyponym(anonDog.form, dog) must beTrue
       cosmos.sanityCheck must beTrue
     }
 
@@ -614,7 +612,7 @@ class SpcCosmosSpec extends Specification
 
       val timmy = expectProperName("Timmy")
       val person = expectNamedForm("person")
-      cosmos.getGraph.isHyponym(timmy.form, person) must beTrue
+      cosmos.isHyponym(timmy.form, person) must beTrue
 
       cosmos.sanityCheck must beTrue
     }
@@ -706,17 +704,16 @@ class SpcCosmosSpec extends Specification
       genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
       cosmos.resolveIdealSynonym(LEMMA_WHO) must
         be equalTo SmcLemmas.LEMMA_SOMEONE
-      val graph = cosmos.getGraph
       cosmos.getFormHypernyms(entity) must be equalTo(
         Seq(entity))
       cosmos.getFormHypernyms(obj) must be equalTo(
         Seq(obj, entity))
       cosmos.getFormHypernyms(someone) must be equalTo(
         Seq(someone, obj, entity))
-      graph.isHyponym(someone, entity) must beTrue
-      graph.isHyponym(entity, someone) must beFalse
-      graph.isHyponym(someone, someone) must beTrue
-      graph.isHyponym(entity, entity) must beTrue
+      cosmos.isHyponym(someone, entity) must beTrue
+      cosmos.isHyponym(entity, someone) must beFalse
+      cosmos.isHyponym(someone, someone) must beTrue
+      cosmos.isHyponym(entity, entity) must beTrue
       // FIXME verify container/containee association
     }
 
@@ -738,20 +735,19 @@ class SpcCosmosSpec extends Specification
       val someone = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
       val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
       val firefighter = expectNamedForm("firefighter")
-      val graph = cosmos.getGraph
       cosmos.getFormHypernyms(entity) must be equalTo(
         Seq(entity))
       cosmos.getFormHypernyms(someone) must be equalTo(
         Seq(someone, obj, entity))
       cosmos.getFormHypernyms(firefighter) must be equalTo(
         Seq(firefighter, someone, obj, entity))
-      graph.isHyponym(firefighter, someone) must beTrue
-      graph.isHyponym(firefighter, obj) must beTrue
-      graph.isHyponym(someone, firefighter) must beFalse
-      graph.isHyponym(obj, firefighter) must beFalse
-      graph.isHyponym(someone, obj) must beTrue
-      graph.isHyponym(someone, entity) must beTrue
-      graph.isHyponym(firefighter, entity) must beTrue
+      cosmos.isHyponym(firefighter, someone) must beTrue
+      cosmos.isHyponym(firefighter, obj) must beTrue
+      cosmos.isHyponym(someone, firefighter) must beFalse
+      cosmos.isHyponym(obj, firefighter) must beFalse
+      cosmos.isHyponym(someone, obj) must beTrue
+      cosmos.isHyponym(someone, entity) must beTrue
+      cosmos.isHyponym(firefighter, entity) must beTrue
       cosmos.sanityCheck must beTrue
     }
 

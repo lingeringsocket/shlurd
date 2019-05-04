@@ -537,12 +537,26 @@ class SpcCosmos(
     )
   }
 
+  def isHyponym(
+    hyponymIdeal : SpcIdeal,
+    hypernymIdealOpt : Option[SpcIdeal]) : Boolean =
+  {
+    graph.isHyponym(hyponymIdeal, hypernymIdealOpt)
+  }
+
+  def isHyponym(
+    hyponymIdeal : SpcIdeal,
+    hypernymIdeal : SpcIdeal) : Boolean =
+  {
+    graph.isHyponym(hyponymIdeal, hypernymIdeal)
+  }
+
   def getFormHyponymRealizations(form : SpcForm) : Seq[SpcEntity] =
   {
     if (meta.isFresh) {
       getFormHyponyms(form).flatMap(getFormRealizations)
     } else {
-      getEntities.filter(entity => graph.isHyponym(entity.form, form))
+      getEntities.filter(entity => isHyponym(entity.form, form))
     }
   }
 
@@ -551,7 +565,7 @@ class SpcCosmos(
     if (meta.isFresh) {
       getFormHypernyms(form).flatMap(getFormRealizations)
     } else {
-      getEntities.filter(entity => graph.isHyponym(form, entity.form))
+      getEntities.filter(entity => isHyponym(form, entity.form))
     }
   }
 
@@ -812,7 +826,7 @@ class SpcCosmos(
         (qualifiers.subsetOf(existing.qualifiers) ||
           existing.qualifiers.subsetOf(qualifiers))
     } else {
-      graph.isHyponym(existing.form, form) &&
+      isHyponym(existing.form, form) &&
         qualifiers.subsetOf(existing.qualifiers)
     }
   }
@@ -911,7 +925,7 @@ class SpcCosmos(
     hyponymIdeal : SpcIdeal,
     hypernymIdeal : SpcIdeal)
   {
-    if (!graph.isHyponym(hyponymIdeal, hypernymIdeal)) {
+    if (!isHyponym(hyponymIdeal, hypernymIdeal)) {
       pool.taxonomyTimestamp += 1
       val idealTaxonomy = graph.idealTaxonomy
       val newHypernyms = graph.getIdealHypernyms(hypernymIdeal)
@@ -1027,7 +1041,7 @@ class SpcCosmos(
   {
     graph.entityAssocs.getAllEdges(
       possessor, possessee).asScala.find(edge => {
-        graph.isHyponym(role, graph.getPossesseeRole(edge.formEdge))
+        isHyponym(role, graph.getPossesseeRole(edge.formEdge))
       }
     )
   }
@@ -1076,7 +1090,7 @@ class SpcCosmos(
       if (constraint.upper < Int.MaxValue) {
         val ideal = graph.getPossessorIdeal(formEdge)
         entitySet.filter(
-          e => graph.isHyponym(e.form, ideal)).foreach(entity =>
+          e => isHyponym(e.form, ideal)).foreach(entity =>
           {
             sanityCheckConstraint(entity, formEdge)
           }
@@ -1141,7 +1155,7 @@ class SpcCosmos(
     SprUtils.orderedSet(getEntityAssocGraph.outgoingEdgesOf(possessor).
       asScala.toSeq.filter(
         edge => {
-          graph.isHyponym(role, graph.getPossesseeRole(edge.formEdge)) &&
+          isHyponym(role, graph.getPossesseeRole(edge.formEdge)) &&
             isFormCompatibleWithRole(
               graph.getPossesseeEntity(edge).form, role)
         }

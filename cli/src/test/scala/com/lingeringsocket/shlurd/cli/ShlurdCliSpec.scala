@@ -109,7 +109,7 @@ class ShlurdCliSpec extends Specification
       newDelta.getEntities.size must be equalTo 4
       newDelta.getRoles.size must be equalTo 1
 
-      newDelta.getGraph.isHyponym(ownerRole, humanForm) must beTrue
+      newDelta.isHyponym(ownerRole, humanForm) must beTrue
       newDelta.isEntityAssoc(dog1, human, ownerRole) must beTrue
     }
   }

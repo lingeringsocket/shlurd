@@ -102,7 +102,7 @@ class SpcMind(cosmos : SpcCosmos)
         val cardinality = assocGraph.outgoingEdgesOf(possessor).asScala.
           count(edge2 => {
             (edge2.getRoleName == edge.getRoleName) &&
-            (role == specializedRole) || graph.isHyponym(
+            (role == specializedRole) || cosmos.isHyponym(
               specializedRole,
               graph.getPossesseeEntity(edge2).form)
           })
@@ -188,7 +188,7 @@ class SpcMind(cosmos : SpcCosmos)
   {
     cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE) match {
       case Some(someoneForm) => {
-        if (cosmos.getGraph.isHyponym(entity.form, someoneForm)) {
+        if (cosmos.isHyponym(entity.form, someoneForm)) {
           // FIXME support "someone" gender
           GENDER_M
         } else {
@@ -352,7 +352,7 @@ class SpcMind(cosmos : SpcCosmos)
           cosmos.isFormCompatibleWithRole(entity.form, role) &&
             cosmos.getEntityAssocGraph.incomingEdgesOf(entity).asScala.
             exists(edge =>
-              graph.isHyponym(
+              cosmos.isHyponym(
                 role,
                 graph.getPossesseeRole(edge.formEdge)))))
       }
@@ -362,7 +362,7 @@ class SpcMind(cosmos : SpcCosmos)
             cosmos.fail(s"unknown ideal ${cosmos.encodeName(noun)}")
           }
           case _ => {
-            if (formSeq.exists(form => graph.isHyponym(entity.form, form))) {
+            if (formSeq.exists(form => cosmos.isHyponym(entity.form, form))) {
               Success(Trilean.True)
             } else {
               if (entity.form.isTentative) {

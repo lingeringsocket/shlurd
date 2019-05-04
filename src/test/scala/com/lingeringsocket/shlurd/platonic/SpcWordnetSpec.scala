@@ -63,8 +63,8 @@ class SpcWordnetSpec extends Specification
       val auntForm = expectForm(wordnet.getSynsetForm(auntSense))
       val kinswomanForm = expectForm(wordnet.getSynsetForm(kinswomanSense))
       hypernyms must be equalTo Seq(kinswomanForm)
-      graph.isHyponym(auntForm, kinswomanForm) must beTrue
-      graph.isHyponym(kinswomanForm, auntForm) must beFalse
+      cosmos.isHyponym(auntForm, kinswomanForm) must beTrue
+      cosmos.isHyponym(kinswomanForm, auntForm) must beFalse
     }
 
     "load meronym associations" in new CosmosContext
