@@ -576,10 +576,35 @@ class SpcCosmos(
         pool.roleFormCache,
         role,
         pool.taxonomyTimestamp,
-        graph.getIdealHypernyms(role).toSeq.filter(_.isForm).
-          map(_.asInstanceOf[SpcForm]).
-          flatMap(getFormHyponyms).distinct.filter(form =>
-            isFormCompatibleWithRole(form, role))
+        {
+          val parents = graph.getFormsForRole(role)
+          if (parents.isEmpty) {
+            Seq.empty
+          } else {
+            val first = parents.head
+            val rest = parents.tail
+            val children = {
+              if (rest.isEmpty) {
+                Seq(first)
+              } else {
+                graph.idealTaxonomy.incomingEdgesOf(first).asScala.
+                  toSeq.flatMap(edge => {
+                    val ideal = graph.getSubclassIdeal(edge)
+                    if (ideal.isForm) {
+                      if (rest.forall(parent => isHyponym(ideal, parent))) {
+                        Some(ideal.asInstanceOf[SpcForm])
+                      } else {
+                        None
+                      }
+                    } else {
+                      None
+                    }
+                  })
+              }
+            }
+            children.flatMap(getFormHyponyms).distinct
+          }
+        }
       )
       forms.flatMap(getFormRealizations)
     } else {
@@ -1192,8 +1217,9 @@ class SpcCosmos(
 
   private def lookupNoun(lemma : String, qualifiers : Set[String]) =
   {
+    val startTime = System.nanoTime
     val (formOpt, roleOpt) = resolveIdeal(lemma)
-    roleOpt match {
+    val rc = roleOpt match {
       case Some(role) => {
         Success(SprUtils.orderedSet(
           getRoleRealizations(role).filter(entity =>
@@ -1221,6 +1247,8 @@ class SpcCosmos(
         }
       }
     }
+    val endTime = System.nanoTime
+    rc
   }
 
   def getPropertyForm(property : SpcProperty) : SpcForm =
