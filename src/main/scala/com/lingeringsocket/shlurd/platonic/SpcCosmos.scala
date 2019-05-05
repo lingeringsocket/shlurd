@@ -1217,9 +1217,8 @@ class SpcCosmos(
 
   private def lookupNoun(lemma : String, qualifiers : Set[String]) =
   {
-    val startTime = System.nanoTime
     val (formOpt, roleOpt) = resolveIdeal(lemma)
-    val rc = roleOpt match {
+    roleOpt match {
       case Some(role) => {
         Success(SprUtils.orderedSet(
           getRoleRealizations(role).filter(entity =>
@@ -1247,8 +1246,6 @@ class SpcCosmos(
         }
       }
     }
-    val endTime = System.nanoTime
-    rc
   }
 
   def getPropertyForm(property : SpcProperty) : SpcForm =
