@@ -429,8 +429,6 @@ class SpcCosmos(
       true
     } else {
       importedBeliefResources.put(resourceName, true)
-      // FIXME this ought to be undone in case of rollback...
-      parent.foreach(cosmos => cosmos.isDuplicateBeliefResource(resourceName))
       false
     }
   }
@@ -1719,6 +1717,7 @@ class SpcCosmos(
     assert(forkLevel != 0)
     if (forkLevel == 1) {
       graph.applyModifications
+      parent.foreach(cosmos => cosmos.inheritBeliefResources(this))
       validateBeliefs
     }
   }
