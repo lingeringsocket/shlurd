@@ -71,10 +71,14 @@ If a map-place is east of a map-location, then equivalently
 If a map-place is east of a map-location, then equivalently
  the map-place is the map-location's eastern-exit's eastern-place.
 
-If a map-place is west of a map-location, then the map-place is the map-location's map-neighbor.
-If a map-place is east of a map-location, then the map-place is the map-location's map-neighbor.
-If a map-place is north of a map-location, then the map-place is the map-location's map-neighbor.
-If a map-place is south of a map-location, then the map-place is the map-location's map-neighbor.
+If a map-place is west of a map-location, then
+ the map-place is the map-location's map-neighbor.
+If a map-place is east of a map-location, then
+ the map-place is the map-location's map-neighbor.
+If a map-place is north of a map-location, then
+ the map-place is the map-location's map-neighbor.
+If a map-place is south of a map-location, then
+ the map-place is the map-location's map-neighbor.
 
 A door is a kind of map-connection.
 A door must be open or closed.
