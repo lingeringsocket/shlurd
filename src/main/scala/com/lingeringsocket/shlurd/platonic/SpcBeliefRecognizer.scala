@@ -253,16 +253,21 @@ class SpcBeliefRecognizer(
       }
       case SilGenitiveReference(possessor, possessee) => {
         complementRef match {
-          // "Will's dad is Lonnie"
           case SilNounReference(
             complementNoun, determiner, COUNT_SINGULAR
           ) => {
             if (determiner == DETERMINER_NONSPECIFIC) {
               val formNoun = possessor match {
+                // "a thermometer's reading must be a number"
                 case SilNounReference(
                   noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
                 ) => noun
-                case _ => return Seq.empty
+                case _ => {
+                  // "Mary's cat is a pest"
+                  return Seq(EntityExistenceBelief(
+                    sentence, subjectRef, complementNoun,
+                    Seq.empty, ""))
+                }
               }
               val propertyNoun = possessee match {
                 case SilNounReference(
@@ -270,7 +275,6 @@ class SpcBeliefRecognizer(
                 ) => noun
                 case _ => return Seq.empty
               }
-              // "a thermometer's reading must be a number"
               return defineTypedPropertyBelief(
                 sentence,
                 formNoun,
@@ -278,6 +282,7 @@ class SpcBeliefRecognizer(
                 complementNoun,
                 tam)
             } else {
+              // "Will's dad is Lonnie"
               // flip subject/complement to match "Lonnie is Will's dad"
               return processEntityRelationship(
                 sentence, complementRef,
@@ -434,7 +439,7 @@ class SpcBeliefRecognizer(
           case SilNounReference(_, determiner, _) => {
             determiner match {
               case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
-                  DETERMINER_NONE =>
+                  DETERMINER_NONE | DETERMINER_NONSPECIFIC =>
               case _ => {
                 invalid = true
               }
@@ -635,8 +640,22 @@ class SpcBeliefRecognizer(
               roleNoun
             ))
           }
-          case _ => {
+          case SilNounReference(
+            roleNoun,
+            DETERMINER_NONSPECIFIC,
+            _
+          ) => {
             // FIXME "Larry has a dog"
+            return Seq(EntityAssocBelief(
+              sentence,
+              subjectRef,
+              None,
+              roleNoun
+            ))
+          }
+          case _ => {
+            // FIXME other interesting cases such as
+            // "Larry has dogs", "Larry has the dogs"
             return Seq(UnimplementedBelief(sentence))
           }
         }
@@ -681,7 +700,7 @@ class SpcBeliefRecognizer(
         return Seq(EntityAssocBelief(
           sentence,
           possessorRef,
-          subjectRef,
+          Some(subjectRef),
           roleNoun,
           sentence.tam.isPositive))
       }

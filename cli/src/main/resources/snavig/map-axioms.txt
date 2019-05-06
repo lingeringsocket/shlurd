@@ -2,56 +2,79 @@
 
 A map-place is a kind of location.
 A map-place's place-description must be a quotation.
-A map-place-exit is a kind of describable-entity.
+A map-connection is a kind of describable-entity.
 A map-neighbor must be a map-place.
 A map-place may have map-neighbors.
 A map-place with a map-neighbor is a map-neighbor.
 
-A northern-neighbor must be a map-place.
-A southern-neighbor must be a map-place.
-An eastern-neighbor must be a map-place.
-A western-neighbor must be a map-place.
+A north-south-passage is a kind of map-connection.
+An east-west-passage is a kind of map-connection.
 
-A map-place may have a northern-neighbor.
-A map-place may have a southern-neighbor.
-A map-place may have an eastern-neighbor.
-A map-place may have a western-neighbor.
+A northern-place must be a map-place.
+A southern-place must be a map-place.
+An eastern-place must be a map-place.
+A western-place must be a map-place.
 
-A northern-exit must be a map-place-exit.
-A southern-exit must be a map-place-exit.
-A eastern-exit must be a map-place-exit.
-A western-exit must be a map-place-exit.
+A northern-exit must be a map-connection.
+A southern-exit must be a map-connection.
+A eastern-exit must be a map-connection.
+A western-exit must be a map-connection.
 
 A map-place may have a northern-exit.
 A map-place may have a southern-exit.
 A map-place may have an eastern-exit.
 A map-place may have a western-exit.
 
-A map-place with a northern-neighbor is a southern-neighbor.
-A map-place with an eastern-neighbor is a western-neighbor.
+A map-connection may have a northern-place.
+A map-connection may have a southern-place.
+A map-connection may have an eastern-place.
+A map-connection may have a western-place.
 
-If a map-place is west of a map-location, then equivalently
- the map-place is the map-location's western-neighbor.
-If a map-place is east of a map-location, then equivalently
- the map-place is the map-location's eastern-neighbor.
+A map-place with a northern-exit is a southern-place.
+A map-place with a southern-exit is a northern-place.
+A map-place with an eastern-exit is a western-place.
+A map-place with a western-exit is an eastern-place.
+
+If a map-place is north of a map-location, then
+ the map-place has a southern-exit.
+If a map-place is north of a map-location, then
+ the map-place's southern-exit is a north-south-passage.
 If a map-place is north of a map-location, then equivalently
- the map-place is the map-location's northern-neighbor.
+ the map-location is the map-place's southern-exit's southern-place.
+If a map-place is north of a map-location, then equivalently
+ the map-place is the map-location's northern-exit's northern-place.
+
+If a map-place is south of a map-location, then
+ the map-place has a northern-exit.
+If a map-place is south of a map-location, then
+ the map-place's northern-exit is a north-south-passage.
 If a map-place is south of a map-location, then equivalently
- the map-place is the map-location's southern-neighbor.
+ the map-location is the map-place's northern-exit's northern-place.
+If a map-place is south of a map-location, then equivalently
+ the map-place is the map-location's southern-exit's southern-place.
+
+If a map-place is west of a map-location, then
+ the map-place has an eastern-exit.
+If a map-place is west of a map-location, then
+ the map-place's eastern-exit is an east-west-passage.
+If a map-place is west of a map-location, then equivalently
+ the map-location is the map-place's eastern-exit's eastern-place.
+If a map-place is west of a map-location, then equivalently
+ the map-place is the map-location's western-exit's western-place.
+
+If a map-place is east of a map-location, then
+ the map-place has a western-exit.
+If a map-place is east of a map-location, then
+ the map-place's western-exit is an east-west-passage.
+If a map-place is east of a map-location, then equivalently
+ the map-location is the map-place's western-exit's western-place.
+If a map-place is east of a map-location, then equivalently
+ the map-place is the map-location's eastern-exit's eastern-place.
 
 If a map-place is west of a map-location, then the map-place is the map-location's map-neighbor.
 If a map-place is east of a map-location, then the map-place is the map-location's map-neighbor.
 If a map-place is north of a map-location, then the map-place is the map-location's map-neighbor.
 If a map-place is south of a map-location, then the map-place is the map-location's map-neighbor.
 
-If a map-place is west of a map-location, then equivalently
- the map-location is the map-place's eastern-neighbor.
-If a map-place is east of a map-location, then equivalently
- the map-location is the map-place's western-neighbor.
-If a map-place is north of a map-location, then equivalently
- the map-location is the map-place's southern-neighbor.
-If a map-place is south of a map-location, then equivalently
- the map-location is the map-place's northern-neighbor.
-
-A door is a kind of map-place-exit.
+A door is a kind of map-connection.
 A door must be open or closed.

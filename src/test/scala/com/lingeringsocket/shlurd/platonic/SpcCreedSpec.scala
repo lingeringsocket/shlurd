@@ -85,6 +85,7 @@ class SpcCreedSpec extends Specification
   private val propertyStateEnum = "A parakeet's mood may be happy or sad."
   private val propertyQuotation = "A parakeet's phrase must be a quotation."
   private val formTaxonomy = "A duck is a kind of a bird."
+  private val formTaxonomy2 = "A monk is a kind of a person."
   private val formSynonym = "An automobile is a car."
   private val formRole = "A mentor must be a person."
   private val formRole2 = "An owner must be a person."
@@ -105,8 +106,11 @@ class SpcCreedSpec extends Specification
   private val entityQualifiedExists = "There is an angry cat."
   private val personExists = "Yoda is a person."
   private val personExists2 = "Luke is a person."
+  private val personExists3 = "Yoda is a monk."
   private val personAssoc = "Yoda is Luke's mentor."
   private val personAssocFlipped = "Luke's mentor is Yoda."
+  private val personAssocExists = "Luke has a mentor."
+  private val personAssocForm = "Luke's mentor is a monk."
   private val mentorRole = "A mentor must be a monk."
   private val apprenticeRole = "An apprentice must be a monk."
   private val mentorApprentice = "A mentor may have apprentices."
@@ -396,6 +400,31 @@ class SpcCreedSpec extends Specification
         Seq(
           formRole, assocMay,
           personExists, personExists2, personAssoc))
+    }
+
+    "normalize association existence" in new CosmosContext
+    {
+      expectNormalized(
+        Seq(
+          formRole, assocMay, formTaxonomy2, personExists2, personExists3,
+          personAssocExists, personAssocForm, personAssoc),
+        Seq(
+          formRole, assocMay, formTaxonomy2, personExists2, personAssoc,
+          personExists3)
+      )
+    }
+
+    "normalize association form" in new CosmosContext
+    {
+      skipped("not working yet")
+      expectNormalized(
+        Seq(
+          formRole, assocMay, formTaxonomy2, personExists2, personExists3,
+          personAssocForm, personAssoc),
+        Seq(
+          formRole, assocMay, formTaxonomy2, personExists2, personAssoc,
+          personExists3)
+      )
     }
 
     "preserve inverse associations" in new CosmosContext

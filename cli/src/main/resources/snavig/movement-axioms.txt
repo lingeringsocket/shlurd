@@ -5,16 +5,16 @@ A place-discoverer must be a player-character.
 A map-place may have place-discoverers.
 
 If a game-character goes east, then
- the game-character's container must have an eastern-neighbor;
+ the game-character's container must have an eastern-exit;
  otherwise the game-interpreter complains "There is no way to the east.".
 If a game-character goes west, then
- the game-character's container must have a western-neighbor;
+ the game-character's container must have a western-exit;
  otherwise the game-interpreter complains "There is no way to the west.".
 If a game-character goes north, then
- the game-character's container must have a northern-neighbor;
+ the game-character's container must have a northern-exit;
  otherwise the game-interpreter complains "There is no way to the north.".
 If a game-character goes south, then
- the game-character's container must have a southern-neighbor;
+ the game-character's container must have a southern-exit;
  otherwise the game-interpreter complains "There is no way to the south.".
 
 If a game-character goes north, then
@@ -29,14 +29,14 @@ If a game-character goes west, then
 If a game-character traverses a door, then the door must be open;
  otherwise the game-interpreter complains "But the door is not open.".
 
-If a game-character goes west, then
- the game-character moves to the game-character's container's western-neighbor.
-If a game-character goes east, then
- the game-character moves to the game-character's container's eastern-neighbor.
 If a game-character goes north, then
- the game-character moves to the game-character's container's northern-neighbor.
+ the game-character moves to the game-character's container's northern-exit's northern-place.
 If a game-character goes south, then
- the game-character moves to the game-character's container's southern-neighbor.
+ the game-character moves to the game-character's container's southern-exit's southern-place.
+If a game-character goes east, then
+ the game-character moves to the game-character's container's eastern-exit's eastern-place.
+If a game-character goes west, then
+ the game-character moves to the game-character's container's western-exit's western-place.
 
 If a player-character moves to a map-place, then
  the map-place must be the player-character's container's map-neighbor;

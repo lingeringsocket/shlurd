@@ -645,14 +645,18 @@ class SpcBeliefAccepter(
 
   beliefApplier {
     case EntityAssocBelief(
-      sentence, possessorRef, possesseeRef, roleName, positive
+      sentence, possessorRef, possesseeRefOpt, roleName, positive
     ) => {
       val possessor = resolveReference(
         sentence, possessorRef)
-      val possessee = resolveReference(
-        sentence, possesseeRef)
+      val possesseeOpt = possesseeRefOpt.map(ref => resolveReference(
+        sentence, ref))
       val (formAssocEdge, possessorIdeal, role) =
         analyzeAssoc(sentence, possessor, roleName)
+      val possessee = possesseeOpt.getOrElse {
+        cosmos.reifyRole(possessor, role, false)
+        getUniqueEntity(sentence, cosmos.resolveGenitive(possessor, role)).get
+      }
       val graph = cosmos.getGraph
       if (positive) {
         if (possessee.form.isTentative) {

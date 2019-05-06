@@ -92,7 +92,7 @@ case class EntityExistenceBelief(
 case class EntityAssocBelief(
   sentence : SilSentence,
   possessorRef : SilReference,
-  possesseeRef : SilReference,
+  possesseeRef : Option[SilReference],
   roleName : SilWord,
   positive : Boolean = true
 ) extends SpcBelief
