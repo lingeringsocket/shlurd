@@ -1691,8 +1691,10 @@ class SpcCosmos(
           // make up possessee out of thin air
           val name = possessor.name + "_" + role.name
           val form = instantiateForm(SpcForm.tentativeName(SilWord(name)))
-          graph.getFormsForRole(graph.getPossesseeRole(formEdge)).foreach(
-            hypernym => addIdealTaxonomy(form, hypernym))
+          graph.getFormsForRole(role).foreach(
+            hypernym => {
+              addIdealTaxonomy(form, hypernym)
+            })
           val (possessee, success) = instantiateEntity(
             form, Seq(SilWord(name)), name)
           assert(success, tupleN((form, name)))

@@ -26,17 +26,11 @@ If a game-character goes east, then
 If a game-character goes west, then
  the game-character traverses the game-character's container's western-exit.
 
-If a game-character traverses a door, then the door must be open;
+If a game-character traverses a map-exit, then the map-exit's exit-door must be open;
  otherwise the game-interpreter complains "But the door is not open.".
 
-If a game-character goes north, then
- the game-character moves to the game-character's container's northern-exit's northern-place.
-If a game-character goes south, then
- the game-character moves to the game-character's container's southern-exit's southern-place.
-If a game-character goes east, then
- the game-character moves to the game-character's container's eastern-exit's eastern-place.
-If a game-character goes west, then
- the game-character moves to the game-character's container's western-exit's western-place.
+If a game-character traverses a map-exit, then
+ the game-character moves to the map-exit's target-place.
 
 If a player-character moves to a map-place, then
  the map-place must be the player-character's container's map-neighbor;
@@ -52,13 +46,11 @@ If a game-character surveys a map-place, then
  the game-character perceives the map-place and
   the map-place's spc-contained-objects.
 If a game-character surveys a map-place, then
- the game-character perceives the map-place's northern-exit.
+ the game-character perceives the map-place's place-exits.
 If a game-character surveys a map-place, then
- the game-character perceives the map-place's southern-exit.
+ the game-character perceives the map-place's place-exit's exit-doors.
 If a game-character surveys a map-place, then
- the game-character perceives the map-place's eastern-exit.
-If a game-character surveys a map-place, then
- the game-character perceives the map-place's western-exit.
+ the game-character perceives the map-place's place-entrances.
 
 If a player-character moves to a map-place, then
  the player-character might be the map-place's place-discoverer;
