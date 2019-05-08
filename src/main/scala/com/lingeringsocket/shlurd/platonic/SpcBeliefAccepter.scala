@@ -530,7 +530,9 @@ class SpcBeliefAccepter(
             throw new AmbiguousBeliefExcn(
               sentence, creed.entityFormBelief(entity))
           }
-        } else if (cosmos.isHyponym(entity.form, form)) {
+        } else if (!entity.form.isTentative &&
+          cosmos.isHyponym(entity.form, form))
+        {
           // from "Bessie is a cow" to "Bessie is an animal"
           // so nothing to do
         } else if (cosmos.isHyponym(form, entity.form)) {

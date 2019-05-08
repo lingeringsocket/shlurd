@@ -7,15 +7,10 @@ A map-neighbor must be a map-place.
 A map-place may have map-neighbors.
 A map-place with a map-neighbor is a map-neighbor.
 
-A north-south-connection is a kind of map-connection.
-A south-north-connection is a kind of map-connection.
-An east-west-connection is a kind of map-connection.
-A west-east-connection is a kind of map-connection.
-
-A north-south-passage is a kind of north-south-connection.
-A south-north-passage is a kind of south-north-connection.
-An east-west-passage is a kind of east-west-connection.
-A west-east-passage is a kind of west-east-connection.
+A southward-passage is a kind of map-connection.
+A northward-passage is a kind of map-connection.
+A westward-passage is a kind of map-connection.
+An eastward-passage is a kind of map-connection.
 
 A source-place must be a map-place.
 A target-place must be a map-place.
@@ -24,13 +19,13 @@ A place-exit must be a map-connection.
 A place-entrance must be a map-connection.
 
 A northern-exit is a kind of place-exit.
-A northern-exit must be a south-north-connection.
+A northern-exit must be a northward-passage.
 A southern-exit is a kind of place-exit.
-A southern-exit must be a north-south-connection.
+A southern-exit must be a southward-passage.
 An eastern-exit is a kind of place-exit.
-An eastern-exit must be a west-east-connection.
+An eastern-exit must be an eastward-passage.
 A western-exit is a kind of place-exit.
-A western-exit must be an east-west-connection.
+A western-exit must be a westward-passage.
 
 A map-place may have place-exits.
 A map-place may have place-entrances.
@@ -46,13 +41,13 @@ A map-place with a place-entrance is a target-place.
 If a map-place north-abuts a map-location, then
  the map-place has a southern-exit.
 If a map-place north-abuts a map-location, then
- the map-place's southern-exit is a north-south-passage.
+ the map-place's southern-exit is a southward-passage.
 If a map-place north-abuts a map-location, then
  the map-place is the map-location's map-neighbor.
 If a map-place north-abuts a map-location, then
  the map-location has a northern-exit.
 If a map-place north-abuts a map-location, then
- the map-location's northern-exit is a south-north-passage.
+ the map-location's northern-exit is a northward-passage.
 
 If a map-place is north of a map-location, then
  the map-place north-abuts the map-location.
@@ -71,13 +66,13 @@ If a map-place is south of a map-location, then equivalently
 If a map-place west-abuts a map-location, then
  the map-place has an eastern-exit.
 If a map-place west-abuts a map-location, then
- the map-place's eastern-exit is a west-east-passage.
+ the map-place's eastern-exit is an eastward-passage.
 If a map-place west-abuts a map-location, then
  the map-place is the map-location's map-neighbor.
 If a map-place west-abuts a map-location, then
  the map-location has a western-exit.
 If a map-place west-abuts a map-location, then
- the map-location's western-exit is an east-west-passage.
+ the map-location's western-exit is a westward-passage.
  
 If a map-place is west of a map-location, then
  the map-place west-abuts the map-location.
