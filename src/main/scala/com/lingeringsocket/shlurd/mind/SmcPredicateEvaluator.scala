@@ -237,8 +237,10 @@ class SmcPredicateEvaluator[
     resultCollector.referenceMap.get(ref) match {
       case Some(entities) => Success(entities)
       case _ => {
+        val newCollector = resultCollector.spawn
+        newCollector.resolvingReferences = true
         evaluatePredicateOverReference(
-          ref, context, resultCollector.spawn, SilNullState())
+          ref, context, newCollector, SilNullState())
         {
           (entity, entityRef) => {
             Success(Trilean.Unknown)
@@ -548,8 +550,25 @@ class SmcPredicateEvaluator[
                 Set.empty
               }
             }
+            val objRef = adp.objRef match {
+              case SilConjunctiveReference(
+                DETERMINER_ALL,
+                references,
+                separator
+              ) if (resultCollector.resolvingReferences) => {
+                // for the purpose of reference resolution,
+                // interpret "the guides of Mason and Dixon" as
+                // "Mason's guides and Dixon's guides",
+                // i.e. "the guides of Mason and/or Dixon"
+                SilConjunctiveReference(
+                  DETERMINER_ANY,
+                  references,
+                  separator)
+              }
+              case other => other
+            }
             val evaluation = evaluatePredicateOverReference(
-              adp.objRef, REF_ADPOSITION_OBJ,
+              objRef, REF_ADPOSITION_OBJ,
                 resultCollector.spawn)
             {
               (objEntity, entityRef) => {

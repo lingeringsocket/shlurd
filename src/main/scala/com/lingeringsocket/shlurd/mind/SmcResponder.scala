@@ -72,11 +72,13 @@ class SmcResultCollector[EntityType<:SmcEntity](
   var isCategorization = false
   var suppressWildcardExpansion = 0
   var swapSpeakerListener = false
+  var resolvingReferences = false
 
   def spawn() = {
     val newCollector = new SmcResultCollector[EntityType](referenceMap)
     newCollector.suppressWildcardExpansion = suppressWildcardExpansion
     newCollector.swapSpeakerListener = swapSpeakerListener
+    newCollector.resolvingReferences = resolvingReferences
     newCollector
   }
 }
