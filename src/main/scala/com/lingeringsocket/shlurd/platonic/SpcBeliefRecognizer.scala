@@ -462,7 +462,13 @@ class SpcBeliefRecognizer(
           if (isOtherwise && isAlso) {
             invalid = true
           } else if (isOtherwise) {
+            if (conditional.biconditional) {
+              invalid = true
+            }
             if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
+              invalid = true
+            }
+            if (additionalConsequents.nonEmpty) {
               invalid = true
             }
             if (alternative.nonEmpty) {
@@ -471,6 +477,15 @@ class SpcBeliefRecognizer(
               alternative = Some(additionalSentence)
             }
           } else if (isAlso) {
+            if (conditional.biconditional) {
+              invalid = true
+            }
+            if (alternative.nonEmpty) {
+              invalid = true
+            }
+            if (additionalSentence.tam.modality != MODAL_NEUTRAL) {
+              invalid = true
+            }
             additionalConsequents += additionalSentence
           } else {
             invalid = true

@@ -1572,6 +1572,9 @@ class SpcResponderSpec extends Specification
     "support transitive associations" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not supported")
+      }
       processBelief("A parent must be a patriarch.")
       processBelief("A child must be a patriarch.")
       processBelief("An ancestor must be a patriarch.")
