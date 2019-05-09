@@ -149,6 +149,27 @@ class SprAmbiguityParser(
   override def parseAll() = Stream(parseOne)
 }
 
+class SprDelimitedParser(
+  context : SprContext,
+  singles : Seq[SprParser],
+  determiner : SilDeterminer,
+  separator : SilSeparator)
+    extends SprParser
+{
+  override def parseOne() =
+  {
+    val sentences = singles.map(_.parseOne)
+    SilConjunctiveSentence(
+      determiner,
+      sentences,
+      separator)
+  }
+
+  override def parseFirst() = parseOne
+
+  override def parseAll() = Stream(parseOne)
+}
+
 class SprMultipleParser(singles : Stream[SprParser])
     extends SprParser
 {
@@ -188,7 +209,7 @@ object SprHeuristicParsingStrategy extends SprParsingStrategy
   }
 }
 
-object SprParser
+object SprParser extends SprEnglishWordAnalyzer
 {
   case class CacheKey(
     sentence : String,
@@ -369,14 +390,14 @@ object SprParser
   {
     val dumpPrefix = dumpDesc
     val allWords = refineTokens(sentence)
-    val (words, terminator) = {
+    val (unterminatedWords, terminator) = {
       if (isTerminator(allWords.last)) {
         tupleN((allWords.dropRight(1), Some(allWords.last)))
       } else {
         tupleN((allWords, None))
       }
     }
-    def heuristicParse() : SprSyntaxTree =
+    def heuristicParseOne(words : Seq[String]) : SprSyntaxTree =
     {
       val synthesizer = {
         new SprHeuristicSynthesizer(
@@ -426,21 +447,68 @@ object SprParser
         SptAMBIGUOUS(treeSet.toSeq:_*)
       }
     }
-    val root = cacheParse(
-      CacheKey(sentence.text, dumpPrefix), heuristicParse)
-    root match {
-      case SptAMBIGUOUS(trees @ _*) => {
-        new SprAmbiguityParser(context,
-          trees.map(tree =>
-            new SprSingleHeuristicParser(context, SptROOT(tree), terminator)))
-      }
-      case _ => {
-        new SprSingleHeuristicParser(
-          context,
-          root,
-          terminator)
+    def heuristicParse() : SprSyntaxTree =
+    {
+      val splitters = unterminatedWords.indices.filter(
+        i => unterminatedWords(i) == ";")
+      if (splitters.isEmpty) {
+        heuristicParseOne(unterminatedWords)
+      } else {
+        val brackets = (Seq(-1) ++ splitters ++ Seq(unterminatedWords.size))
+        val trees = brackets.sliding(2).map {
+          case Seq(iBefore, iAfter) => {
+            val sub = unterminatedWords.slice(iBefore + 1, iAfter)
+            heuristicParseOne(sub)
+          }
+        }
+        val semi = SptSEMICOLON(makeLeaf(";"))
+        val delimited = trees.toSeq.flatMap(tree => {
+          val unwrapped = tree match {
+            case SptROOT(s) => s
+            case _ => tree
+          }
+          Seq(unwrapped, semi)
+        }).dropRight(1)
+        SptROOT(SptS(delimited:_*))
       }
     }
+    val cachedRoot = cacheParse(
+      CacheKey(sentence.text, dumpPrefix), heuristicParse)
+    def createParser(root : SprSyntaxTree) : SprParser =
+    {
+      root match {
+        case SptAMBIGUOUS(trees @ _*) => {
+          new SprAmbiguityParser(context,
+            trees.map(tree =>
+              new SprSingleHeuristicParser(context, SptROOT(tree), terminator)))
+        }
+        case SptROOT(
+          SptS(trees @ _*)
+        ) if (trees.exists(_.isInstanceOf[SptAMBIGUOUS])) => {
+          val singles = trees.filterNot(_.isInstanceOf[SptSEMICOLON]).map(
+            tree => createParser(tree)
+          )
+          new SprDelimitedParser(
+            context,
+            singles,
+            DETERMINER_UNSPECIFIED,
+            SEPARATOR_SEMICOLON)
+        }
+        case _ : SptROOT => {
+          new SprSingleHeuristicParser(
+            context,
+            root,
+            terminator)
+        }
+        case other => {
+          new SprSingleHeuristicParser(
+            context,
+            SptROOT(other),
+            terminator)
+        }
+      }
+    }
+    createParser(cachedRoot)
   }
 
   // FIXME Mickey Mouse

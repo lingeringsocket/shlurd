@@ -152,28 +152,32 @@ trait SpcSentential
 {
   def getAssertion() : SilSentence
 
+  def getAdditional() : Seq[SilSentence]
+
   def getAlternative() : Option[SilSentence]
 
   def toSentence() : SilSentence =
   {
-    getAlternative match {
-      case Some(alternativeSentence) => {
-        SilConjunctiveSentence(
-          DETERMINER_UNSPECIFIED,
-          Seq(getAssertion, alternativeSentence),
-          SEPARATOR_SEMICOLON)
-      }
-      case _ => getAssertion
+    if (getAlternative.nonEmpty || getAdditional.nonEmpty) {
+      SilConjunctiveSentence(
+        DETERMINER_UNSPECIFIED,
+        Seq(getAssertion) ++ getAdditional ++ getAlternative.toSeq,
+        SEPARATOR_SEMICOLON)
+    } else {
+      getAssertion
     }
   }
 }
 
 case class SpcAssertion(
   sentence : SilSentence,
+  additionalConsequents : Seq[SilPredicateSentence],
   alternative : Option[SilPredicateSentence]
 ) extends SpcSentential
 {
   override def getAssertion() = sentence
+
+  override def getAdditional() = additionalConsequents
 
   override def getAlternative() = alternative
 
@@ -181,7 +185,7 @@ case class SpcAssertion(
   {
     sentence match {
       case cs : SilConditionalSentence => {
-        Some(SpcTrigger(cs, alternative))
+        Some(SpcTrigger(cs, additionalConsequents, alternative))
       }
       case _ => None
     }
@@ -190,10 +194,13 @@ case class SpcAssertion(
 
 case class SpcTrigger(
   conditionalSentence : SilConditionalSentence,
+  additionalConsequents : Seq[SilPredicateSentence],
   alternative : Option[SilPredicateSentence]
 ) extends SpcSentential
 {
   override def getAssertion() = conditionalSentence
+
+  override def getAdditional() = additionalConsequents
 
   override def getAlternative() = alternative
 }

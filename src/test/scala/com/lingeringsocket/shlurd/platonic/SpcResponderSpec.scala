@@ -1583,13 +1583,10 @@ class SpcResponderSpec extends Specification
       processBelief("A patriarch may have descendants.")
       processBelief("A patriarch with a descendant is an ancestor.")
       processBelief("If a patriarch begets a child, " +
-        "then the patriarch is the child's parent.")
-      processBelief("If a patriarch begets a child, " +
-        "then the patriarch is the child's ancestor.")
-      processBelief("If a patriarch begets a child, " +
-        "then the patriarch is the child's descendant's ancestor.")
-      processBelief("If a patriarch begets a child, " +
-        "then the patriarch's descendant's ancestors " +
+        "then the patriarch is the child's parent; " +
+        "also the patriarch is the child's ancestor; " +
+        "also the patriarch is the child's descendant's ancestor; " +
+        "also the patriarch's descendant's ancestors " +
         "are the patriarch's ancestors.")
       processBelief("Abraham is a patriarch.")
       processBelief("Isaac is a patriarch.")

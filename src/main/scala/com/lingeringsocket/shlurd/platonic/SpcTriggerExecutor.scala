@@ -48,7 +48,7 @@ class SpcTriggerExecutor(
   ) : Option[SilPredicate] =
   {
     matchTriggerPlusAlternative(
-      cosmos, trigger, predicate, None,
+      cosmos, trigger, predicate, Seq.empty, None,
       referenceMap, strict)._1
   }
 
@@ -56,13 +56,17 @@ class SpcTriggerExecutor(
     cosmos : SpcCosmos,
     trigger : SilConditionalSentence,
     predicate : SilPredicate,
+    additionalConsequents : Seq[SilPredicateSentence],
     alternative : Option[SilPredicateSentence],
     referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
     strict : Boolean = true
-  ) : (Option[SilPredicate], Option[SilPredicateSentence]) =
+  ) : (
+    Option[SilPredicate],
+    Seq[SilPredicateSentence],
+    Option[SilPredicateSentence]) =
   {
     trace(s"ATTEMPT TRIGGER MATCH $trigger")
-    def unmatched() = tupleN((None, None))
+    def unmatched() = tupleN((None, Seq.empty, None))
     val antecedent = trigger.antecedent
     val consequent = trigger.consequent
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
@@ -259,13 +263,19 @@ class SpcTriggerExecutor(
     }
     val newPredicate = rewriter.rewrite(replaceReferences, consequent)
     debug(s"TRIGGER ON ${predicate}\nPRODUCES ${newPredicate}")
+    val newAdditional = additionalConsequents.map(sentence => {
+      rewriter.rewrite(replaceReferences, sentence)
+    })
+    newAdditional.foreach(sentence => {
+      debug(s"WITH ADDITIONAL CONSEQUENT $sentence")
+    })
     val newAlternative = alternative.map(sentence => {
       rewriter.rewrite(replaceReferences, sentence)
     })
     newAlternative.foreach(sentence => {
       debug(s"WITH ALTERNATIVE $sentence")
     })
-    tupleN((Some(newPredicate), newAlternative))
+    tupleN((Some(newPredicate), newAdditional, newAlternative))
   }
 
   private def prepareReplacement(

@@ -137,6 +137,7 @@ case class EntityPropertyBelief(
 
 case class AssertionBelief(
   sentence : SilSentence,
+  additionalConsequents : Seq[SilPredicateSentence] = Seq.empty,
   alternative : Option[SilPredicateSentence] = None
 ) extends SpcBelief
 {

@@ -766,9 +766,11 @@ class SpcBeliefAccepter(
   beliefApplier {
     case AssertionBelief(
       sentence,
+      additionalConsequents,
       alternative
     ) => {
-      cosmos.addAssertion(SpcAssertion(sentence, alternative))
+      cosmos.addAssertion(
+        SpcAssertion(sentence, additionalConsequents, alternative))
     }
   }
 

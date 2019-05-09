@@ -141,6 +141,8 @@ class SpcCreedSpec extends Specification
     "then the fat lady might not sing."
   private val alternativeTrigger = "If a person eats candy, " +
     "then the candy must be small; the person chokes otherwise."
+  private val additionalTrigger = "If a person eats candy, " +
+    "then the candy must be small; the candy must crunch also."
   private val positiveAssertion = "A person can kill a thief."
   private val negativeAssertion = "A person can not kill a thief."
 
@@ -476,7 +478,7 @@ class SpcCreedSpec extends Specification
       }
       expectPreserved(Seq(moveTrigger, positiveConstraintTrigger,
         negativeConstraintTrigger, positiveTestTrigger,
-        negativeTestTrigger, alternativeTrigger))
+        negativeTestTrigger, alternativeTrigger, additionalTrigger))
     }
 
     "preserve assertions" in new CosmosContext

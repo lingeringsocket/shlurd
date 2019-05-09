@@ -94,13 +94,11 @@ class SpcBeliefRecognizer(
       }
       case SilConjunctiveSentence(
         DETERMINER_UNSPECIFIED,
-        Seq(
-          assertionSentence : SilConditionalSentence,
-          alternative : SilPredicateSentence),
+        Seq(conditional : SilConditionalSentence, additional @ _*),
         SEPARATOR_SEMICOLON
-      ) => {
+      ) if (additional.forall(_.isInstanceOf[SilPredicateSentence])) => {
         recognizeAssertionBelief(
-          assertionSentence, Some(alternative))
+          conditional, additional.map(_.asInstanceOf[SilPredicateSentence]))
       }
       case _ => {
         recognizeAssertionBelief(sentence)
@@ -424,11 +422,13 @@ class SpcBeliefRecognizer(
 
   private def recognizeAssertionBelief(
     assertionSentence : SilSentence,
-    alternative : Option[SilPredicateSentence] = None)
+    additionalSentences : Seq[SilPredicateSentence] = Seq.empty)
       : Seq[SpcBelief] =
   {
     var invalid = false
     val querier = new SilPhraseRewriter
+    val additionalConsequents = new mutable.ArrayBuffer[SilPredicateSentence]
+    var alternative : Option[SilPredicateSentence] = None
     assertionSentence match {
       case conditional : SilConditionalSentence => {
         val consequent = conditional.consequent
@@ -449,22 +449,38 @@ class SpcBeliefRecognizer(
         if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
           querier.query(validateConsequent, consequent)
         }
-        alternative.foreach(alternativeSentence => {
-          if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
-            invalid = true
-          }
-          if (!alternativeSentence.predicate.getModifiers.exists(
+        additionalSentences.foreach(additionalSentence => {
+          val modifiers = additionalSentence.predicate.getModifiers.flatMap(
             _ match {
               case SilBasicVerbModifier(
-                SilWordLemma(LEMMA_OTHERWISE), _) => true
-              case _ => false
+                SilWordLemma(lemma), _) => Some(lemma)
+              case _ => None
             }
-          )) {
+          )
+          val isOtherwise = modifiers.contains(LEMMA_OTHERWISE)
+          val isAlso = modifiers.contains(LEMMA_ALSO)
+          if (isOtherwise && isAlso) {
+            invalid = true
+          } else if (isOtherwise) {
+            if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
+              invalid = true
+            }
+            if (alternative.nonEmpty) {
+              invalid = true
+            } else {
+              alternative = Some(additionalSentence)
+            }
+          } else if (isAlso) {
+            additionalConsequents += additionalSentence
+          } else {
             invalid = true
           }
         })
       }
       case SilPredicateSentence(predicate : SilActionPredicate, tam, _) => {
+        if (additionalSentences.nonEmpty) {
+          invalid = true
+        }
         def validateAssertion = querier.queryMatcher {
           case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
             invalid = true
@@ -486,7 +502,8 @@ class SpcBeliefRecognizer(
     if (invalid) {
       Seq.empty
     } else {
-      Seq(AssertionBelief(assertionSentence, alternative))
+      Seq(AssertionBelief(
+        assertionSentence, additionalConsequents, alternative))
     }
   }
 

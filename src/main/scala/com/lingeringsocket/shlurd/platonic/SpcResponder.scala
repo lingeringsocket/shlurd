@@ -381,10 +381,10 @@ class SpcResponder(
     val conditionalSentence = trigger.conditionalSentence
     triggerExecutor.matchTriggerPlusAlternative(
       forkedCosmos, conditionalSentence, predicate,
-      trigger.alternative,
+      trigger.additionalConsequents, trigger.alternative,
       referenceMapOpt.get) match
     {
-      case (Some(newPredicate), newAlternative) => {
+      case (Some(newPredicate), newAdditionalConsequents, newAlternative) => {
         val (isTest, isPrecondition) =
           conditionalSentence.tamConsequent.modality match
           {
@@ -392,15 +392,22 @@ class SpcResponder(
             case MODAL_MUST | MODAL_SHOULD => tupleN((false, true))
             case _ => tupleN((false, false))
           }
-        if (checkCycle(
-          newPredicate, already, isPrecondition || isTest)
-        ) {
-          return Some(sentencePrinter.sb.circularAction)
-        }
-        val newSentence = SilPredicateSentence(newPredicate)
-        spawn(imagine(forkedCosmos)).resolveReferences(
-          newSentence, resultCollector, false, true)
+        val newConsequents = Seq(SilPredicateSentence(newPredicate)) ++
+          newAdditionalConsequents.map(removeBasicVerbModifier(_, LEMMA_ALSO))
+        newConsequents.foreach(sentence => {
+          if (checkCycle(
+            sentence.predicate, already, isPrecondition || isTest)
+          ) {
+            return Some(sentencePrinter.sb.circularAction)
+          }
+        })
         if (isPrecondition || isTest) {
+          // FIXME
+          assert(newAdditionalConsequents.isEmpty)
+
+          spawn(imagine(forkedCosmos)).resolveReferences(
+            newConsequents.head, resultCollector, false, true)
+
           val newTam = SilTam.indicative.withPolarity(
             conditionalSentence.tamConsequent.polarity)
           evaluateTamPredicate(
@@ -418,14 +425,8 @@ class SpcResponder(
             }
             case _ => {
               newAlternative.foreach(alternativeSentence => {
-                val recoverySentence = alternativeSentence.copy(
-                  predicate = alternativeSentence.predicate.withNewModifiers(
-                    alternativeSentence.predicate.getModifiers.filterNot(
-                      _ match {
-                        case SilBasicVerbModifier(
-                          SilWordLemma(LEMMA_OTHERWISE), _) => true
-                        case _ => false
-                      })))
+                val recoverySentence = removeBasicVerbModifier(
+                  alternativeSentence, LEMMA_OTHERWISE)
                 if (checkCycle(recoverySentence.predicate, already, false)) {
                   return Some(sentencePrinter.sb.circularAction)
                 }
@@ -445,17 +446,34 @@ class SpcResponder(
             }
           }
         } else {
-          val result = processBeliefOrAction(
-            forkedCosmos, newSentence, resultCollector, false)
-          if (result.isEmpty) {
+          val results = newConsequents.flatMap(newSentence => {
+            spawn(imagine(forkedCosmos)).resolveReferences(
+              newSentence, resultCollector, false, true)
+            processBeliefOrAction(
+              forkedCosmos, newSentence, resultCollector, false)
+          })
+          if (results.isEmpty) {
             Some(sentencePrinter.sb.respondCompliance)
           } else {
-            result
+            results.headOption
           }
         }
       }
       case _ => None
     }
+  }
+
+  private def removeBasicVerbModifier(
+    sentence : SilPredicateSentence, lemma : String) =
+  {
+    sentence.copy(
+      predicate = sentence.predicate.withNewModifiers(
+        sentence.predicate.getModifiers.filterNot(
+          _ match {
+            case SilBasicVerbModifier(
+              SilWordLemma(lemma), _) => true
+            case _ => false
+          })))
   }
 
   override protected def rewriteQuery(
