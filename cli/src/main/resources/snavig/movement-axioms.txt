@@ -42,18 +42,16 @@ If a game-character enters a map-location, then
 
 If a game-character moves to a map-place, then
  the game-character surveys the map-place.
+
 If a game-character surveys a map-place, then
  the game-character perceives the map-place and
-  the map-place's spc-contained-objects.
-If a game-character surveys a map-place, then
- the game-character surveys the map-place's place-exits.
-If a game-character surveys a map-place, then
- the game-character surveys the map-place's place-entrances.
+  the map-place's spc-contained-objects;
+ also the game-character surveys the map-place's place-exits;
+ also the game-character surveys the map-place's place-entrances.
 
 If a game-character surveys a map-connection, then
- the game-character perceives the map-connection.
-If a game-character surveys a map-connection, then
- the game-character perceives the map-connection's exit-doors.
+ the game-character perceives the map-connection;
+ also the game-character perceives the map-connection's exit-doors.
 
 If a player-character moves to a map-place, then
  the player-character might be the map-place's place-discoverer;

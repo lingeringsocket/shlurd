@@ -3,11 +3,9 @@
 There is a game-turn.
 
 If the game-turn advances, then
- the player-character surveys the player-character's container.
-If the game-turn advances, then
- the player-character is the player-character's container's place-discoverer.
+ the player-character surveys the player-character's container;
+ also the player-character is the player-character's container's place-discoverer.
 
 If the game-turn debuts, then
- the game-turn advances.
-If the game-turn debuts, then
- the player-character looks.
+ the game-turn advances;
+ also the player-character looks.
