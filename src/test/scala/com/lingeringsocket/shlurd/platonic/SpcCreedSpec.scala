@@ -27,11 +27,11 @@ class SpcCreedSpec extends Specification
   {
     protected val cosmos = new SpcCosmos
 
-    private val refriedCosmos = new SpcCosmos
+    protected val refriedCosmos = new SpcCosmos
 
     protected val creed = new SpcCreed(cosmos)
 
-    private val refriedCreed = new SpcCreed(refriedCosmos)
+    protected val refriedCreed = new SpcCreed(refriedCosmos)
 
     protected def addBelief(input : String) =
     {
@@ -80,6 +80,7 @@ class SpcCreedSpec extends Specification
 
   private val stateMust = "A door must be open or closed."
   private val stateMay = "A window may be open or closed."
+  private val stateMay2 = "A person may be smart or stupid."
   private val stateAlias = "A lit light is on."
   private val stateNormalization = "A person at home is present."
   private val propertyStateEnum = "A parakeet's mood may be happy or sad."
@@ -107,9 +108,11 @@ class SpcCreedSpec extends Specification
   private val personExists = "Yoda is a person."
   private val personExists2 = "Luke is a person."
   private val personExists3 = "Yoda is a monk."
+  private val personState = "Yoda is smart."
   private val personAssoc = "Yoda is Luke's mentor."
   private val personAssocFlipped = "Luke's mentor is Yoda."
   private val personAssocExists = "Luke has a mentor."
+  private val personAssocQualifiedExists = "Luke has a smart mentor."
   private val personAssocForm = "Luke's mentor is a monk."
   private val mentorRole = "A mentor must be a monk."
   private val apprenticeRole = "An apprentice must be a monk."
@@ -413,6 +416,20 @@ class SpcCreedSpec extends Specification
         Seq(
           formRole, assocMay, formTaxonomy2, personExists2, personAssoc,
           personExists3)
+      )
+    }
+
+    "normalize qualified association existence" in new CosmosContext
+    {
+      expectNormalized(
+        Seq(
+          formRole, stateMay2, assocMay, formTaxonomy2,
+          personExists2, personExists3,
+          personAssocQualifiedExists, personAssocForm, personAssoc),
+        Seq(
+          formRole, stateMay2, assocMay, formTaxonomy2,
+          personExists2, personAssoc, personExists3,
+          personState)
       )
     }
 

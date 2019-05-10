@@ -655,7 +655,7 @@ class SpcCosmos(
     val name = encodeName(word)
     val ideal = getIdealBySynonym(name).getOrElse(
       registerForm(new SpcForm(name)))
-    assert(ideal.isForm)
+    assert(ideal.isForm, ideal)
     ideal.asInstanceOf[SpcForm]
   }
 
@@ -773,6 +773,7 @@ class SpcCosmos(
       // multiple types
       meta.entityExistence(oldEntity, false)
       graph.replaceVertex(graph.entityAssocs, oldEntity, newEntity)
+      graph.replaceVertex(graph.components, oldEntity, newEntity)
       forgetEntity(oldEntity)
       assert {
         val outgoingAssocs =
@@ -1322,7 +1323,7 @@ class SpcCosmos(
   {
     findProperty(entity.form, propertyName) match {
       case Some(property) => Success(property)
-      case _ => Failure(new IllegalArgumentException)
+      case _ => Failure(new IllegalArgumentException(propertyName))
     }
   }
 
@@ -1683,18 +1684,27 @@ class SpcCosmos(
   def reifyRole(
     possessor : SpcEntity,
     role : SpcRole,
-    onlyIfProven : Boolean)
+    onlyIfProven : Boolean,
+    assumeNew : Boolean = false) : Set[SpcEntity] =
   {
     graph.getFormAssocEdge(possessor.form, role) match {
       case Some(formEdge) => {
         if (onlyIfProven) {
           val constraint = formEdge.constraint
           if (constraint.lower == 0) {
-            return
+            return Set.empty
           }
         }
-        val existing = resolveGenitive(possessor, role)
-        if (existing.isEmpty) {
+        val existing : Set[SpcEntity] = {
+          if (assumeNew) {
+            Set.empty
+          } else {
+            resolveGenitive(possessor, role)
+          }
+        }
+        if (existing.nonEmpty) {
+          existing
+        } else {
           // make up possessee out of thin air
           val name = possessor.name + "_" + role.name
           val form = instantiateForm(SpcForm.tentativeName(SilWord(name)))
@@ -1706,10 +1716,12 @@ class SpcCosmos(
             form, Seq(SilWord(name)), name)
           assert(success, tupleN((form, name)))
           addEntityAssoc(possessor, possessee, role)
+          Set(possessee)
         }
       }
       case _ => {
         // FIXME make up role out of thin air?
+        Set.empty
       }
     }
   }

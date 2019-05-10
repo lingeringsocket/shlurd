@@ -647,17 +647,41 @@ class SpcBeliefAccepter(
 
   beliefApplier {
     case EntityAssocBelief(
-      sentence, possessorRef, possesseeRefOpt, roleName, positive
+      sentence, possessorRef, possesseeRef, indefinite, roleName, positive
     ) => {
       val possessor = resolveReference(
         sentence, possessorRef)
-      val possesseeOpt = possesseeRefOpt.map(ref => resolveReference(
-        sentence, ref))
+
+      var newEntityRef = possesseeRef
+
+      // FIXME for indefinite, we should check whether an existing
+      // entity satisfies the state rather than assuming that it
+      // specifies a new entity
+      val (possesseeOpt, stateOpt) = {
+        if (indefinite) {
+          possesseeRef match {
+            case SilStateSpecifiedReference(ref, SilExistenceState()) => {
+              newEntityRef = ref
+              tupleN((None, None))
+            }
+            case SilStateSpecifiedReference(ref, state) => {
+              newEntityRef = ref
+              tupleN((None, Some(state)))
+            }
+            case ref => {
+              tupleN((Some(resolveReference(sentence, ref)), None))
+            }
+          }
+        } else {
+          tupleN((Some(resolveReference(sentence, possesseeRef)), None))
+        }
+      }
       val (formAssocEdge, possessorIdeal, role) =
         analyzeAssoc(sentence, possessor, roleName)
       val possessee = possesseeOpt.getOrElse {
-        cosmos.reifyRole(possessor, role, false)
-        getUniqueEntity(sentence, cosmos.resolveGenitive(possessor, role)).get
+        getUniqueEntity(
+          sentence,
+          cosmos.reifyRole(possessor, role, false, stateOpt.nonEmpty)).get
       }
       val graph = cosmos.getGraph
       if (positive) {
@@ -718,6 +742,17 @@ class SpcBeliefAccepter(
           }
         }
       }
+      stateOpt.foreach(state => {
+        resultCollector.referenceMap.put(newEntityRef, Set(possessee))
+        val statePredicate = SilStatePredicate(newEntityRef, state)
+        val stateBeliefs = recognizeStatePredicateBelief(
+          sentence,
+          statePredicate,
+          SilTam.indicative
+        )
+        assert(stateBeliefs.nonEmpty)
+        stateBeliefs.foreach(applyBelief)
+      })
     }
   }
 

@@ -106,7 +106,7 @@ class SpcBeliefRecognizer(
     }
   }
 
-  private def recognizeStatePredicateBelief(
+  protected def recognizeStatePredicateBelief(
     sentence : SilSentence,
     predicate : SilStatePredicate,
     tam : SilTam) : Seq[SpcBelief] =
@@ -672,18 +672,30 @@ class SpcBeliefRecognizer(
               roleNoun
             ))
           }
+          case SilStateSpecifiedReference(
+            SilNounReference(
+              roleNoun,
+              DETERMINER_NONSPECIFIC,
+              _
+            ),
+            state
+          ) => {
+            // "Larry has a dirty dog"
+            return indefiniteEntityAssocBelief(
+              sentence, subjectRef,
+              state,
+              roleNoun)
+          }
           case SilNounReference(
             roleNoun,
             DETERMINER_NONSPECIFIC,
             _
           ) => {
-            // FIXME "Larry has a dog"
-            return Seq(EntityAssocBelief(
-              sentence,
-              subjectRef,
-              None,
-              roleNoun
-            ))
+            // "Larry has a dog"
+            return indefiniteEntityAssocBelief(
+              sentence, subjectRef,
+              SilExistenceState(),
+              roleNoun)
           }
           case _ => {
             // FIXME other interesting cases such as
@@ -732,7 +744,8 @@ class SpcBeliefRecognizer(
         return Seq(EntityAssocBelief(
           sentence,
           possessorRef,
-          Some(subjectRef),
+          subjectRef,
+          false,
           roleNoun,
           sentence.tam.isPositive))
       }
@@ -785,6 +798,23 @@ class SpcBeliefRecognizer(
         return Seq(UnimplementedBelief(sentence))
       }
     }
+  }
+
+  private def indefiniteEntityAssocBelief(
+    sentence : SilSentence,
+    subjectRef : SilReference,
+    state : SilState,
+    roleNoun : SilWord) =
+  {
+    Seq(EntityAssocBelief(
+      sentence,
+      subjectRef,
+      SilStateSpecifiedReference(
+        SilNounReference(roleNoun, DETERMINER_UNIQUE),
+        state),
+      true,
+      roleNoun
+    ))
   }
 
   private def defineTypedPropertyBelief(

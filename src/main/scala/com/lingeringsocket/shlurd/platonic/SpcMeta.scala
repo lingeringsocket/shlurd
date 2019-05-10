@@ -130,7 +130,8 @@ class SpcMeta(cosmos : SpcCosmos)
         SilUnparsedSentence(
           s"$propertyEntityName is $formEntityName's spc-attribute"),
         SilNounReference(SilWord(formEntityName)),
-        Some(SilNounReference(SilWord(propertyEntityName))),
+        SilNounReference(SilWord(propertyEntityName)),
+        false,
         SilWord(ATTRIBUTE_METAROLE_NAME),
         true)
     )
@@ -156,7 +157,8 @@ class SpcMeta(cosmos : SpcCosmos)
         SilUnparsedSentence(
           s"$valueEntityName is $propertyEntityName's spc-property-value"),
         SilNounReference(SilWord(propertyEntityName)),
-        Some(SilNounReference(SilWord(valueEntityName))),
+        SilNounReference(SilWord(valueEntityName)),
+        false,
         SilWord(VALUE_METAROLE_NAME),
         true)
     )
@@ -180,7 +182,8 @@ class SpcMeta(cosmos : SpcCosmos)
           s"$superclassEntityName is $modifier $subclassEntityName's "
             + "spc-superclass"),
         SilNounReference(SilWord(subclassEntityName)),
-        Some(SilNounReference(SilWord(superclassEntityName))),
+        SilNounReference(SilWord(superclassEntityName)),
+        false,
         SilWord(SUPERCLASS_METAROLE_NAME),
         positive))
   }
@@ -207,7 +210,8 @@ class SpcMeta(cosmos : SpcCosmos)
         SilUnparsedSentence(
           s"$formEntityName is $modifier $entityName's spc-type"),
         SilNounReference(SilWord(entityName)),
-        Some(SilNounReference(SilWord(formEntityName))),
+        SilNounReference(SilWord(formEntityName)),
+        false,
         SilWord(TYPE_METAROLE_NAME),
         positive))
   }
