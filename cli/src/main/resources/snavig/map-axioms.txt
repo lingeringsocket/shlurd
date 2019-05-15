@@ -1,22 +1,22 @@
 "Resource" import "/snavig/basic-axioms.txt".
 
 A map-direction is a kind of object.
-A map-north is a kind of map-direction.
-A map-south is a kind of map-direction.
-A map-east is a kind of map-direction.
-A map-west is a kind of map-direction.
+A north is a kind of map-direction.
+A south is a kind of map-direction.
+A east is a kind of map-direction.
+A west is a kind of map-direction.
 
 An opposite-direction must be a map-direction.
 A map-direction must have an opposite-direction.
 A map-direction with an opposite-direction is an opposite-direction.
 
-There is a map-north.
-There is a map-south.
-The map-north is the map-south's opposite-direction.
+There is a north.
+There is a south.
+The north is the south's opposite-direction.
 
-There is a map-east.
-There is a map-west.
-The map-east is the map-west's opposite-direction.
+There is a east.
+There is a west.
+The east is the west's opposite-direction.
 
 A map-place is a kind of location.
 A map-place's place-description must be a quotation.
@@ -66,32 +66,32 @@ If a map-connection targets a map-place, then equivalently
  the map-connection's target-place is the map-place.
 
 If a map-place is north of a southern-place, then
- the southern-place faces the map-place to the map-north.
+ the southern-place faces the map-place to the north.
 If a map-place is north of a southern-place, then equivalently
- the southern-place's place-exit in the map-north targets the map-place.
+ the southern-place's place-exit in the north targets the map-place.
 If a map-place is north of a southern-place, then equivalently
- the map-place's place-exit in the map-south targets the southern-place.
+ the map-place's place-exit in the south targets the southern-place.
 
 If a map-place is south of a northern-place, then
- the northern-place faces the map-place to the map-south.
+ the northern-place faces the map-place to the south.
 If a map-place is south of a northern-place, then equivalently
- the northern-place's place-exit in the map-south targets the map-place.
+ the northern-place's place-exit in the south targets the map-place.
 If a map-place is south of a northern-place, then equivalently
- the map-place's place-exit in the map-north targets the northern-place.
+ the map-place's place-exit in the north targets the northern-place.
 
 If a map-place is east of a western-place, then
- the western-place faces the map-place to the map-east.
+ the western-place faces the map-place to the east.
 If a map-place is east of a western-place, then equivalently
- the western-place's place-exit in the map-east targets the map-place.
+ the western-place's place-exit in the east targets the map-place.
 If a map-place is east of a western-place, then equivalently
- the map-place's place-exit in the map-west targets the western-place.
+ the map-place's place-exit in the west targets the western-place.
 
 If a map-place is west of an eastern-place, then
- the eastern-place faces the map-place to the map-west.
+ the eastern-place faces the map-place to the west.
 If a map-place is west of an eastern-place, then equivalently
- the eastern-place's place-exit in the map-west targets the map-place.
+ the eastern-place's place-exit in the west targets the map-place.
 If a map-place is west of an eastern-place, then equivalently
- the map-place's place-exit in the map-east targets the eastern-place.
+ the map-place's place-exit in the east targets the eastern-place.
 
 A door is a kind of describable-entity.
 An exit-door must be a door.
