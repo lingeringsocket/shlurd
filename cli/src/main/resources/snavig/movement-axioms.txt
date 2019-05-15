@@ -8,17 +8,8 @@ If a game-character goes a map-direction, then
  the game-character's container's place-exit must be in the map-direction;
  otherwise the game-interpreter complains "There is no way to go in that direction.".
 
-If a game-character goes north, then
- the game-character's container's place-exit in the north
-  transports the game-character.
-If a game-character goes south, then
- the game-character's container's place-exit in the south
-  transports the game-character.
-If a game-character goes east, then
- the game-character's container's place-exit in the east
-  transports the game-character.
-If a game-character goes west, then
- the game-character's container's place-exit in the west
+If a game-character goes a map-direction, then
+ the game-character's container's place-exit in the map-direction
   transports the game-character.
 
 If a map-connection transports a game-character, then the map-connection's exit-door must be open;
