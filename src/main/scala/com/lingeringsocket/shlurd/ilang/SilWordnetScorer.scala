@@ -63,7 +63,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   private def scoreGenitives = phraseScorer {
     case SilGenitiveReference(
       _,
-      _ : SilPronounReference
+      _ : SilPronounReference | _ : SilStateSpecifiedReference
     ) => {
       SilPhraseScore.conBig
     }
@@ -177,6 +177,9 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
       _
     ) => {
       SilPhraseScore.conSmall
+    }
+    case _ : SilAdpositionalVerbModifier => {
+      SilPhraseScore.proSmall
     }
   }
 

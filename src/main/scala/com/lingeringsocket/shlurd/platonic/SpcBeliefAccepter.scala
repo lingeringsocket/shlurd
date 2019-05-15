@@ -151,7 +151,8 @@ class SpcBeliefAccepter(
   private def validateEdgeCardinality(
     sentence : SilSentence,
     formAssocEdge : SpcFormAssocEdge,
-    possessor : SpcEntity)
+    possessor : SpcEntity,
+    possessee : SpcEntity)
   {
     if (cosmos.isBulkLoad) {
       return
@@ -162,7 +163,8 @@ class SpcBeliefAccepter(
       outgoingEdgesOf(possessor).asScala.toSeq.
       filter(_.formEdge.getRoleName == formAssocEdge.getRoleName)
 
-    val edgeCount = edges.size
+    val edgeCount = edges.count(edge =>
+      (cosmos.getGraph.getPossesseeEntity(edge) != possessee))
     if (edgeCount >= constraint.upper) {
       if ((constraint.upper == 1) && allowUpdates) {
         // FIXME if the existence of this edge supports other beliefs
@@ -702,14 +704,16 @@ class SpcBeliefAccepter(
         // Marito's aunt, do I mean that Marito has two aunts or just one?
         // Currently we assume two.
         if (formAssocEdge.constraint.upper > 1) {
-          validateEdgeCardinality(sentence, formAssocEdge, possessor)
+          validateEdgeCardinality(
+            sentence, formAssocEdge, possessor, possessee)
         } else {
           findTentativePossessee(possessor, formAssocEdge) match {
             case Some(tentativePossessee) => {
               cosmos.replaceEntity(tentativePossessee, possessee)
             }
             case _ => {
-              validateEdgeCardinality(sentence, formAssocEdge, possessor)
+              validateEdgeCardinality(
+                sentence, formAssocEdge, possessor, possessee)
             }
           }
         }
@@ -720,7 +724,8 @@ class SpcBeliefAccepter(
       cosmos.getInverseAssocEdge(formAssocEdge) match {
         case Some(inverseAssocEdge) => {
           if (positive) {
-            validateEdgeCardinality(sentence, inverseAssocEdge, possessee)
+            validateEdgeCardinality(
+              sentence, inverseAssocEdge, possessee, possessor)
             cosmos.addEntityAssocEdge(
               possessor, possessee, formAssocEdge)
             cosmos.addEntityAssocEdge(

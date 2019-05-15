@@ -56,8 +56,10 @@ class SprIxaTokenizer extends SprTokenizer
     properties.put("language", "en")
     properties.put("untokenizable", "no")
     properties.put("hardParagraph", "no")
+    // ugh
+    val folded = input.replace('_', '#')
     val textSegment = RuleBasedSegmenter.readText(
-      new BufferedReader(new StringReader(input)))
+      new BufferedReader(new StringReader(folded)))
     val segmenter = new RuleBasedSegmenter(textSegment, properties)
     val tokenizer = new RuleBasedTokenizer(textSegment, properties)
     val sentences = segmenter.segmentSentence
@@ -66,10 +68,10 @@ class SprIxaTokenizer extends SprTokenizer
     sentences.zip(tokenizedSentences.asScala).map {
       case (sentence, tokenizedSentence) => {
         SprPlainTokenizedSentence(
-          sentence.trim,
+          sentence.trim.replace('#', '_'),
           tokenizedSentence.asScala.map(
             t => SprToken(
-              t.getTokenValue.trim,
+              t.getTokenValue.trim.replace('#', '_'),
               t.startOffset,
               t.startOffset + t.tokenLength)),
           input)

@@ -5,32 +5,32 @@ A place-discoverer must be a player-character.
 A map-place may have place-discoverers.
 
 If a game-character goes east, then
- the game-character's container must have an eastern-exit;
+ the game-character's container's place-exit must be in the map-east;
  otherwise the game-interpreter complains "There is no way to the east.".
 If a game-character goes west, then
- the game-character's container must have a western-exit;
+ the game-character's container's place-exit must be in the map-west;
  otherwise the game-interpreter complains "There is no way to the west.".
 If a game-character goes north, then
- the game-character's container must have a northern-exit;
+ the game-character's container's place-exit must be in the map-north;
  otherwise the game-interpreter complains "There is no way to the north.".
 If a game-character goes south, then
- the game-character's container must have a southern-exit;
+ the game-character's container's place-exit must be in the map-south;
  otherwise the game-interpreter complains "There is no way to the south.".
 
 If a game-character goes north, then
- the game-character traverses the game-character's container's northern-exit.
+ the game-character's container's place-exit in the map-north transports the game-character.
 If a game-character goes south, then
- the game-character traverses the game-character's container's southern-exit.
+ the game-character's container's place-exit in the map-south transports the game-character.
 If a game-character goes east, then
- the game-character traverses the game-character's container's eastern-exit.
+ the game-character's container's place-exit in the map-east transports the game-character.
 If a game-character goes west, then
- the game-character traverses the game-character's container's western-exit.
+ the game-character's container's place-exit in the map-west transports the game-character.
 
-If a game-character traverses a map-exit, then the map-exit's exit-door must be open;
+If a map-connection transports a game-character, then the map-connection's exit-door must be open;
  otherwise the game-interpreter complains "But the door is not open.".
 
-If a game-character traverses a map-exit, then
- the game-character moves to the map-exit's target-place.
+If a map-connection transports a game-character, then
+ the game-character moves to the map-connection's target-place.
 
 If a player-character moves to a map-place, then
  the map-place must be the player-character's container's map-neighbor;
@@ -46,8 +46,7 @@ If a game-character moves to a map-place, then
 If a game-character surveys a map-place, then
  the game-character perceives the map-place and
   the map-place's spc-contained-objects;
- also the game-character surveys the map-place's place-exits;
- also the game-character surveys the map-place's place-entrances.
+ also the game-character surveys the map-place's place-exits.
 
 If a game-character surveys a map-connection, then
  the game-character perceives the map-connection;

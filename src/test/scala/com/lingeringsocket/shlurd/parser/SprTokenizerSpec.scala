@@ -39,6 +39,13 @@ class SprTokenizerSpec extends Specification
         Seq("Seven", "ate", "9", "."))
     }
 
+    "tokenize underscores" in
+    {
+      tokenize(
+        "I am so_not_doing_this.",
+        Seq("I", "am", "so_not_doing_this", "."))
+    }
+
     "tokenize quotation" in
     {
       tokenize(

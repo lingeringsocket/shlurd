@@ -1706,7 +1706,8 @@ class SpcCosmos(
           existing
         } else {
           // make up possessee out of thin air
-          val name = possessor.name + "_" + role.name
+          val name = possessor.name + "_" + role.name + "_" +
+            getIdGenerator.getAndIncrement
           val form = instantiateForm(SpcForm.tentativeName(SilWord(name)))
           graph.getFormsForRole(role).foreach(
             hypernym => {

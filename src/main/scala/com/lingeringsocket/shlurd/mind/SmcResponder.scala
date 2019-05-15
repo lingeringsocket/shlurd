@@ -163,7 +163,7 @@ class SmcContextualScorer[
     resultCollector : ResultCollectorType) : SilPhraseScore =
   {
     SilPhraseScore.numeric(
-      resultCollector.referenceMap.values.count(_.nonEmpty))
+      3*resultCollector.referenceMap.values.count(_.nonEmpty))
   }
 
   override def computeGlobalScore(phrase : SilPhrase) : SilPhraseScore =

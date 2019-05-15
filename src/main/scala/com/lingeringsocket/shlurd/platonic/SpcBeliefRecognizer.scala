@@ -342,10 +342,23 @@ class SpcBeliefRecognizer(
         }
       }
       case _ => {
-        // "Lonnie is Will's dad"
-        return processEntityRelationship(
-          sentence, subjectRef,
-          complementRef, relationship)
+        complementRef match {
+          case SilNounReference(
+            complementNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+          ) if (subjectRef.isInstanceOf[SilStateSpecifiedReference]) => {
+            // "The cat in the hat is a pest"
+            // FIXME more constraints ont the subjectRef
+            return Seq(EntityExistenceBelief(
+              sentence, subjectRef, complementNoun,
+              Seq.empty, ""))
+          }
+          case _ => {
+            // "Lonnie is Will's dad"
+            return processEntityRelationship(
+              sentence, subjectRef,
+              complementRef, relationship)
+          }
+        }
       }
     }
     Seq.empty
@@ -433,9 +446,6 @@ class SpcBeliefRecognizer(
       case conditional : SilConditionalSentence => {
         val consequent = conditional.consequent
         def validateConsequent = querier.queryMatcher {
-          case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
-            invalid = true
-          }
           case SilNounReference(_, determiner, _) => {
             determiner match {
               case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
@@ -447,6 +457,8 @@ class SpcBeliefRecognizer(
           }
         }
         if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
+          // FIXME probably we should be applying validateConsequent
+          // to additionalSentences as well?
           querier.query(validateConsequent, consequent)
         }
         additionalSentences.foreach(additionalSentence => {
