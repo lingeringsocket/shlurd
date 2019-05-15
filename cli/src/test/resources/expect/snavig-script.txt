@@ -94,7 +94,7 @@ OK.
 
 > e
 
-There is no way to the east.
+There is no way to go in that direction.
 
 > what is in the bathroom
 
