@@ -6,13 +6,15 @@ A map-place may have place-discoverers.
 
 If a game-character goes a map-direction, then
  the game-character's container's place-exit must be in the map-direction;
- otherwise the game-interpreter complains "There is no way to go in that direction.".
+ otherwise the game-interpreter complains
+  "There is no way to go in that direction.".
 
 If a game-character goes a map-direction, then
  the game-character's container's place-exit in the map-direction
   transports the game-character.
 
-If a map-connection transports a game-character, then the map-connection's exit-door must be open;
+If a map-connection transports a game-character, then
+ the map-connection's exit-door must be open;
  otherwise the game-interpreter complains "But the door is not open.".
 
 If a map-connection transports a game-character, then
@@ -36,8 +38,8 @@ If a game-character surveys a map-place, then
  also the game-character surveys the map-place's place-entrances.
 
 If a game-character surveys a map-connection, then
- the game-character perceives the map-connection;
- also the game-character perceives the map-connection's exit-doors.
+ the game-character perceives the map-connection and
+  the map-connection's exit-doors.
 
 If a player-character moves to a map-place, then
  the player-character might be the map-place's place-discoverer;
