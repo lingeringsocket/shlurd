@@ -18,13 +18,17 @@ If a game-character goes south, then
  otherwise the game-interpreter complains "There is no way to the south.".
 
 If a game-character goes north, then
- the game-character's container's place-exit in the map-north transports the game-character.
+ the game-character's container's place-exit in the map-north
+  transports the game-character.
 If a game-character goes south, then
- the game-character's container's place-exit in the map-south transports the game-character.
+ the game-character's container's place-exit in the map-south
+  transports the game-character.
 If a game-character goes east, then
- the game-character's container's place-exit in the map-east transports the game-character.
+ the game-character's container's place-exit in the map-east
+  transports the game-character.
 If a game-character goes west, then
- the game-character's container's place-exit in the map-west transports the game-character.
+ the game-character's container's place-exit in the map-west
+  transports the game-character.
 
 If a map-connection transports a game-character, then the map-connection's exit-door must be open;
  otherwise the game-interpreter complains "But the door is not open.".
@@ -46,7 +50,8 @@ If a game-character moves to a map-place, then
 If a game-character surveys a map-place, then
  the game-character perceives the map-place and
   the map-place's spc-contained-objects;
- also the game-character surveys the map-place's place-exits.
+ also the game-character surveys the map-place's place-exits;
+ also the game-character surveys the map-place's place-entrances.
 
 If a game-character surveys a map-connection, then
  the game-character perceives the map-connection;

@@ -31,26 +31,39 @@ A source-place must be a map-place.
 A target-place must be a map-place.
 
 A place-exit must be a map-connection.
+A place-entrance must be a map-connection.
 
 A map-place may have place-exits.
+A map-place may have place-entrances.
 
 A map-connection must have a source-place.
 A map-connection must have a target-place.
 
+An opposite-connection must be a map-connection.
+A map-connection may have an opposite-connection.
+A map-connection with an opposite-connection is an opposite-connection.
+
 A source-place must be a map-place.
 A target-place must be a map-place.
 A map-place with a place-exit is a source-place.
+A map-place with a place-entrance is a target-place.
+
+If a map-connection opposes a map-place to a map-direction, then
+ the map-place's place-exit in the map-direction is
+  the map-connection's opposite-connection.
 
 If a map-place faces a destination-place to a map-direction, then
  the map-place has a place-exit in the map-direction;
  also the destination-place has a place-exit in the map-direction's opposite-direction;
- also the map-place is the destination-place's map-neighbor;
  also the map-place's place-exit in the map-direction is a straight-connection;
  also the destination-place's place-exit in the map-direction's opposite-direction is
-  a straight-connection.
+  a straight-connection;
+ also the map-place's place-exit in the map-direction opposes
+  the destination-place to the map-direction's opposite-direction;
+ also the map-place is the destination-place's map-neighbor.
 
 If a map-connection targets a map-place, then equivalently
- the map-place is the map-connection's target-place.
+ the map-connection's target-place is the map-place.
 
 If a map-place is north of a southern-place, then
  the southern-place faces the map-place to the map-north.
