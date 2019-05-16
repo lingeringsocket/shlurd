@@ -19,8 +19,8 @@ import scala.collection._
 object SnavigAliases
 {
   val map = Map(
-    "d" -> "go down",
-    "down" -> "go down",
+    "d" -> "go downward",
+    "down" -> "go downward",
     "e" -> "go east",
     "east" -> "go east",
     "g" -> "again",
@@ -42,8 +42,8 @@ object SnavigAliases
     "southeast" -> "go southeast",
     "sw" -> "go southwest",
     "southwest" -> "go southwest",
-    "u" -> "go up",
-    "up" -> "go up",
+    "u" -> "go upward",
+    "up" -> "go upward",
     "w" -> "go west",
     "west" -> "go west",
     "x" -> "examine",

@@ -4,14 +4,23 @@
 A place-discoverer must be a player-character.
 A map-place may have place-discoverers.
 
-If a game-character goes a map-direction, then
+If a game-character relocates to a map-direction, then
  the game-character's container's place-exit must be in the map-direction;
  otherwise the game-interpreter complains
   "There is no way to go in that direction.".
 
-If a game-character goes a map-direction, then
+If a game-character relocates to a map-direction, then
  the game-character traverses
   (the game-character's container's place-exit in the map-direction).
+
+If a game-character goes a map-direction, then
+ the game-character relocates to the map-direction.
+
+If a game-character goes upward, then
+ the game-character relocates to the zenith.
+
+If a game-character goes downward, then
+ the game-character relocates to the nadir.
 
 If a game-character traverses a map-connection, then
  the map-connection's exit-door must be open;

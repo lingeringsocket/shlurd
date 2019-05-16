@@ -11,6 +11,9 @@ A northeast is a kind of map-direction.
 A southwest is a kind of map-direction.
 A southeast is a kind of map-direction.
 
+A zenith is a kind of map-direction.
+A nadir is a kind of map-direction.
+
 An opposite-direction must be a map-direction.
 A map-direction must have an opposite-direction.
 A map-direction with an opposite-direction is an opposite-direction.
@@ -30,6 +33,10 @@ The northwest is the southeast's opposite-direction.
 There is a northeast.
 There is a southwest.
 The southwest is the northeast's opposite-direction.
+
+There is a zenith.
+There is a nadir.
+The zenith is the nadir's opposite-direction.
 
 A map-place is a kind of location.
 A map-place's place-description must be a quotation.
@@ -99,6 +106,11 @@ If a map-place is southeast of a neighbor-place, then equivalently
  the neighbor-place faces the map-place to the southeast.
 If a map-place is southwest of a neighbor-place, then equivalently
  the neighbor-place faces the map-place to the southwest.
+
+If a map-place is above a neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the zenith.
+If a map-place is below a neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the nadir.
 
 A door is a kind of describable-entity.
 An exit-door must be a door.

@@ -13,9 +13,13 @@ There is a cupboard.
 The cupboard's description is "Oddly, the cupboard lacks doors.".
 The cupboard's place-description is "I hope you don't have claustrophobia.".
 
+There is a loft.
+The loft's place-description is "Hardly more than a garret, really.".
+
 The bedroom is west of the bathroom.
 The bedroom is east of the kitchen.
 The cupboard is north of the bedroom.
+The loft is above the bedroom.
 
 The player-character is in the bedroom.
 

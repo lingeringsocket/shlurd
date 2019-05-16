@@ -38,6 +38,10 @@ The bedroom is west of the bathroom.
 
 Nothing is south of the bedroom.
 
+> what is above the bedroom
+
+The loft is above the bedroom.
+
 > is the door open
 
 Yes, it is open.
@@ -247,6 +251,20 @@ Grubby articles of alien underwear lie scattered about.
 It is in the bathroom.
 
 (At least I assume that's still the case.)
+
+> u
+
+OK.
+
+You are in the loft.
+
+Hardly more than a garret, really.
+
+> down
+
+OK.
+
+You are in the bedroom.
 
 > enter the bathroom
 
