@@ -90,7 +90,8 @@ class SprIxaTokenizer extends SprTokenizer
     if (seq.isEmpty) {
       seq
     } else if (prefix.map(_.text) == pattern) {
-      SprToken("'s", prefix.head.start, prefix.last.end) +: fixPossessives(seq.drop(2))
+      SprToken("'s", prefix.head.start, prefix.last.end) +:
+        fixPossessives(seq.drop(2))
     } else {
       seq.head +: fixPossessives(seq.tail)
     }

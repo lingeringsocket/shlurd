@@ -159,7 +159,8 @@ abstract class SilSentenceBundle
     position : String, noun : String, conjoining : SilConjoining) : String
 
   def parenthetical(
-    inside : String, inflection : SilInflection, conjoining : SilConjoining) : String =
+    inside : String, inflection : SilInflection,
+    conjoining : SilConjoining) : String =
   {
     val outside = concat("(", separate(inside, conjoining), ")")
     inflection match {
