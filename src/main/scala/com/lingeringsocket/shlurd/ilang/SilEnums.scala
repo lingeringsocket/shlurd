@@ -69,6 +69,7 @@ object SilAdposition
     SilAdposition(SilWord(lemma))
   }
 
+  val AMONG = adposition(LEMMA_AMONG)
   val IN = adposition(LEMMA_IN)
   val INSIDE = adposition(LEMMA_INSIDE)
   val WITHIN = adposition(LEMMA_WITHIN)

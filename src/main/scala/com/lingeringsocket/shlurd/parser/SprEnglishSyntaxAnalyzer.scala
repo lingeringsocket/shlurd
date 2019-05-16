@@ -707,6 +707,7 @@ class SprEnglishSyntaxAnalyzer(
         case LEMMA_OUTSIDE => Some(SilAdposition.OUTSIDE)
         case LEMMA_AT => Some(SilAdposition.AT)
         case LEMMA_WITH => Some(SilAdposition.WITH)
+        case LEMMA_AMONG => Some(SilAdposition.AMONG)
         case LEMMA_AS => Some(SilAdposition.AS)
         case LEMMA_NEAR => Some(SilAdposition.NEAR)
         case LEMMA_NEARBY => Some(SilAdposition.NEARBY)

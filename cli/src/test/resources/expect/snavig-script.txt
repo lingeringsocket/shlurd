@@ -100,6 +100,10 @@ No, it is not open.
 
 But the door is not open.
 
+> go to the bedroom
+
+But the door is not open.
+
 > open the door
 
 OK.
@@ -221,6 +225,10 @@ OK.
 Oddly, the cupboard lacks doors.
 
 > go to the cupboard
+
+You can't get there from here.
+
+> move to the cupboard
 
 You can't get there from here.
 

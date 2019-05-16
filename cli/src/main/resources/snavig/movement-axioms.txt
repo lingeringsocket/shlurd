@@ -4,40 +4,46 @@
 A place-discoverer must be a player-character.
 A map-place may have place-discoverers.
 
-If a game-character relocates to a map-direction, then
+If a game-character heads to a map-direction, then
  the game-character's container's place-exit must be in the map-direction;
  otherwise the game-interpreter complains
   "There is no way to go in that direction.".
 
-If a game-character relocates to a map-direction, then
+If a game-character heads to a map-direction, then
  the game-character traverses
   (the game-character's container's place-exit in the map-direction).
 
 If a game-character goes a map-direction, then
- the game-character relocates to the map-direction.
+ the game-character heads to the map-direction.
 
 If a game-character goes upward, then
- the game-character relocates to the zenith.
+ the game-character heads to the zenith.
 
 If a game-character goes downward, then
- the game-character relocates to the nadir.
+ the game-character heads to the nadir.
 
 If a game-character traverses a map-connection, then
  the map-connection's exit-door must be open;
  otherwise the game-interpreter complains "But the door is not open.".
 
 If a game-character traverses a map-connection, then
- the game-character moves to the map-connection's target-place.
+ the game-character relocates to the map-connection's target-place.
 
 If a player-character moves to a map-place, then
  the map-place must be the player-character's container's map-neighbor;
  otherwise the game-interpreter complains "You can't get there from here.".
+
 If a game-character moves to a map-place, then
+ the game-character traverses (the map-place's place-entrances
+  among the player-character's container's place-exits).
+
+If a game-character relocates to a map-place, then
  the game-character is in the map-place.
+
 If a game-character enters a map-location, then
  the game-character moves to the map-location.
 
-If a game-character moves to a map-place, then
+If a game-character relocates to a map-place, then
  the game-character surveys the map-place.
 
 If a game-character surveys a map-place, then
@@ -50,9 +56,9 @@ If a game-character surveys a map-connection, then
  the game-character perceives the map-connection and
   the map-connection's exit-doors.
 
-If a player-character moves to a map-place, then
+If a player-character relocates to a map-place, then
  the player-character might be the map-place's place-discoverer;
  otherwise the player-character discovers the map-place.
-If a player-character moves to a map-place, then
+If a player-character relocates to a map-place, then
  the player-character might not be the map-place's place-discoverer;
  otherwise the player-character rediscovers the map-place.

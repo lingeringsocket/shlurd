@@ -296,7 +296,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   override def evaluateEntityAdpositionPredicate(
     entity : SpcEntity,
-    objRef : SpcEntity,
+    objEntity : SpcEntity,
     adposition : SilAdposition,
     qualifiers : Set[SilWord]) : Try[Trilean] =
   {
@@ -311,13 +311,16 @@ class SpcMind(cosmos : SpcCosmos)
       case SilAdposition.IN => {
         SilWord(SmcLemmas.LEMMA_CONTAINEE)
       }
+      case SilAdposition.AMONG => {
+        return Success(Trilean(entity == objEntity))
+      }
       case _ => {
         return Success(Trilean.Unknown)
       }
     }
-    resolveRole(objRef.form, roleName) match {
+    resolveRole(objEntity.form, roleName) match {
       case Some(role) => {
-        Success(Trilean(cosmos.isEntityAssoc(objRef, entity, role)))
+        Success(Trilean(cosmos.isEntityAssoc(objEntity, entity, role)))
       }
       case _ => {
         Success(Trilean.Unknown)

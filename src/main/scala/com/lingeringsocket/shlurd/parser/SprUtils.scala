@@ -93,6 +93,7 @@ object SprEnglishLemmas
   val LEMMA_THAT = "that"
   val LEMMA_THESE = "these"
   val LEMMA_THOSE = "those"
+  val LEMMA_AMONG = "among"
   val LEMMA_IN = "in"
   val LEMMA_INSIDE = "inside"
   val LEMMA_WITHIN = "within"
