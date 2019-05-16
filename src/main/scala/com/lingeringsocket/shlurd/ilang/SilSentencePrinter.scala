@@ -113,6 +113,13 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           }
         )
       }
+      case SilParenthesizedReference(sub) => {
+        val inside = inflection match {
+          case INFLECT_GENITIVE => print(sub, INFLECT_NONE, SilConjoining.NONE)
+          case _ => print(sub, inflection, SilConjoining.NONE)
+        }
+        sb.parenthetical(inside, inflection, conjoining)
+      }
       case SilStateSpecifiedReference(sub, state) => {
         state match {
           case adpositionalState : SilAdpositionalState => {
@@ -502,6 +509,9 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         // FIXME:  also derive person and gender from underlying references,
         // since it makes a difference in languages such as Spanish
         tupleN((PERSON_THIRD, GENDER_N, count))
+      }
+      case SilParenthesizedReference(reference) => {
+        getSubjectAttributes(reference, isExistential)
       }
       case SilStateSpecifiedReference(reference, _) => {
         getSubjectAttributes(reference, isExistential)

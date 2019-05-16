@@ -158,6 +158,18 @@ abstract class SilSentenceBundle
   def adpositionedNoun(
     position : String, noun : String, conjoining : SilConjoining) : String
 
+  def parenthetical(
+    inside : String, inflection : SilInflection, conjoining : SilConjoining) : String =
+  {
+    val outside = concat("(", separate(inside, conjoining), ")")
+    inflection match {
+      // FIXME we should make this language-specific, but regardless of what
+      // we do, it's still "unnatural language"
+      case INFLECT_GENITIVE => concat(outside, "'s")
+      case _ => outside
+    }
+  }
+
   def respondToQuery(sentence : String) : String
 
   def respondToCounterfactual(sentence : String) : String

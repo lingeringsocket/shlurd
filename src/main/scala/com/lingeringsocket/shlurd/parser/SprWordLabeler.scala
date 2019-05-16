@@ -53,7 +53,8 @@ object SprWordnetLabeler
   private val stopList = Set(
     "I", "an", "as", "at", "by", "he", "it", "do", "at", "off",
     "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",
-    "does", "have", "my", "might"
+    "does", "have", "my", "might",
+    LABEL_LPAREN, LABEL_RPAREN
   )
 
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
@@ -72,7 +73,7 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
   {
     val (tokenPrefix, tokenSuffix) = {
       val iHyphen = token.lastIndexOf('-')
-      if (iHyphen < 0) {
+      if ((iHyphen < 1) || (iHyphen == (token.size - 1))) {
         tupleN(("", token))
       } else {
         tupleN((token.take(iHyphen + 1), token.drop(iHyphen + 1)))
@@ -208,6 +209,8 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
       val set : Set[SprSyntaxTree] = token match {
         case LABEL_COMMA => Set(SptCOMMA(leaf))
         case LABEL_SEMICOLON => Set(SptSEMICOLON(leaf))
+        case LABEL_LPAREN => Set(SptLRB(leaf))
+        case LABEL_RPAREN => Set(SptRRB(leaf))
         case "'" | "'s" => Set(SptPOS(leaf))
         // FIXME proper handling for all contractions
         case "ca" => Set(SptMD(makeLeaf(token, token, LEMMA_CAN)))

@@ -38,6 +38,8 @@ class SprPhrasePatternTrie
       case LABEL_RP |LABEL_RBC => LABEL_RB
       case "," => "COMMA"
       case ";" => "SEMICOLON"
+      case "(" => LABEL_LPAREN
+      case ")" => LABEL_RPAREN
       case _ => label
     }).intern
   }

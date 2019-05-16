@@ -485,6 +485,15 @@ case class SilActionPredicate(
     copy(modifiers = newModifiers)
 }
 
+case class SilParenthesizedReference(
+  reference : SilReference
+) extends SilTransformedPhrase with SilReference
+{
+  override def children = Seq(reference)
+
+  override def acceptsSpecifiers = reference.acceptsSpecifiers
+}
+
 case class SilStateSpecifiedReference(
   reference : SilReference,
   state : SilState
@@ -789,6 +798,8 @@ object SilReference
         false
       case SilStateSpecifiedReference(reference, _) =>
         isCountCoercible(reference)
+      case SilParenthesizedReference(reference) =>
+        isCountCoercible(reference)
       case _ : SilGenitiveReference => true
       case _ : SilQuotationReference => true
       case _ : SilUnknownReference => false
@@ -809,6 +820,8 @@ object SilReference
           case _ => COUNT_SINGULAR
         }
       }
+      case SilParenthesizedReference(reference) =>
+        getCount(reference)
       case SilStateSpecifiedReference(reference, _) =>
         getCount(reference)
       case SilGenitiveReference(_, possessee) =>

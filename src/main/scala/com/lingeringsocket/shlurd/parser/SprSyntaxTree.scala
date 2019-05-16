@@ -78,6 +78,8 @@ object SprPennTreebankLabels
   val LABEL_EXCLAMATION_MARK = "!"
   val LABEL_LQUOTE = "``"
   val LABEL_RQUOTE = "''"
+  val LABEL_LPAREN = "-LRB-"
+  val LABEL_RPAREN = "-RRB-"
 }
 
 import SprPennTreebankLabels._
@@ -713,6 +715,18 @@ case class SptSEMICOLON(child : SprSyntaxLeaf)
     extends SprSyntaxPunctuation
 {
   override def label = LABEL_SEMICOLON
+}
+
+case class SptLRB(child : SprSyntaxLeaf)
+    extends SprSyntaxPunctuation
+{
+  override def label = LABEL_LPAREN
+}
+
+case class SptRRB(child : SprSyntaxLeaf)
+    extends SprSyntaxPunctuation
+{
+  override def label = LABEL_RPAREN
 }
 
 // this is a non-standard one we cons up to wrap tmod NP's as adverbial

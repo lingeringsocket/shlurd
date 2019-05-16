@@ -46,6 +46,14 @@ class SprTokenizerSpec extends Specification
         Seq("I", "am", "so_not_doing_this", "."))
     }
 
+    "tokenize parentheses" in
+    {
+      tokenize(
+        "the (gray vehicle)'s engine is broken",
+        Seq("the", LABEL_LPAREN, "gray", "vehicle", LABEL_RPAREN,
+          "'s", "engine", "is", "broken"))
+    }
+
     "tokenize quotation" in
     {
       tokenize(

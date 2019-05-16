@@ -434,6 +434,10 @@ class SprEnglishSyntaxAnalyzer(
     if (seq.size == 1) {
       return expectReference(seq.head)
     }
+    if (seq.head.hasLabel(LABEL_LPAREN) && seq.last.hasLabel(LABEL_RPAREN)) {
+      return SilParenthesizedReference(
+        expectReference(seq.dropRight(1).drop(1)))
+    }
     if (seq.head.lastChild.isPossessive) {
       return SilGenitiveReference(
         expectReference(seq.head.children.dropRight(1)),

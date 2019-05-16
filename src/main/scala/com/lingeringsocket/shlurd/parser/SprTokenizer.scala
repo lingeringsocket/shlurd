@@ -20,6 +20,8 @@ import scala.collection.JavaConverters._
 
 import java.io._
 
+import SprPennTreebankLabels._
+
 case class SprToken(
   text : String,
   start : Int,
@@ -69,13 +71,28 @@ class SprIxaTokenizer extends SprTokenizer
       case (sentence, tokenizedSentence) => {
         SprPlainTokenizedSentence(
           sentence.trim.replace('#', '_'),
-          tokenizedSentence.asScala.map(
-            t => SprToken(
-              t.getTokenValue.trim.replace('#', '_'),
-              t.startOffset,
-              t.startOffset + t.tokenLength)),
+          fixPossessives(
+            tokenizedSentence.asScala.map(
+              t => SprToken(
+                t.getTokenValue.trim.replace('#', '_').
+                  replace("(", LABEL_LPAREN).replace(")", LABEL_RPAREN),
+                t.startOffset,
+                t.startOffset + t.tokenLength))),
           input)
       }
+    }
+  }
+
+  private def fixPossessives(seq : Seq[SprToken]) : Seq[SprToken] =
+  {
+    val pattern = Seq("'", "s")
+    val prefix = seq.take(2)
+    if (seq.isEmpty) {
+      seq
+    } else if (prefix.map(_.text) == pattern) {
+      SprToken("'s", prefix.head.start, prefix.last.end) +: fixPossessives(seq.drop(2))
+    } else {
+      seq.head +: fixPossessives(seq.tail)
     }
   }
 }

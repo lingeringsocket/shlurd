@@ -139,6 +139,9 @@ class SilSentencePrinterSpec extends Specification
         expectStatement("Merry picked up the apple there")
         expectStatement(
           "Mary put down the milk")
+        expectStatement(
+          "(the gray vehicle)'s engine is broken"
+        )
       }
       expectNormalized("the mule kicks the ball smugly at the vase?",
         "does the mule kick the ball smugly at the vase?")

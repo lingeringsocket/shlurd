@@ -768,6 +768,13 @@ class SmcPredicateEvaluator[
         referenceMap.put(reference, combinedEntities.toSet)
         evaluateDeterminer(results, determiner)
       }
+      case SilParenthesizedReference(sub) => {
+        val result = evaluatePredicateOverReferenceImpl(
+          sub, context, resultCollector, specifiedState, specifiedEntities, evaluator)
+        referenceMap.get(sub).foreach(
+          entitySet => referenceMap.put(reference, entitySet))
+        result
+      }
       case SilStateSpecifiedReference(sub, subState) => {
         val result = evaluatePredicateOverState(
           sub, subState, context, resultCollector, specifiedState, evaluator)

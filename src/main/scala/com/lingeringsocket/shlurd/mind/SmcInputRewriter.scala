@@ -28,7 +28,7 @@ class SmcInputRewriter[
     sentence : SilSentence) : SilSentence =
   {
     rewrite(
-      combineRules(convertProgressive, convertGenitiveOf),
+      combineRules(convertProgressive, convertGenitiveOf, deparenthesize),
       sentence)
   }
 
@@ -78,6 +78,15 @@ class SmcInputRewriter[
     }
   )
 
+  private def deparenthesize = replacementMatcher(
+    "deparenthesize", {
+      case SilParenthesizedReference(
+        reference
+      ) => {
+        reference
+      }
+    }
+  )
   def bindPredicateWildcard(predicate : SilPredicate, objRef : SilReference)
       : SilPredicate =
   {

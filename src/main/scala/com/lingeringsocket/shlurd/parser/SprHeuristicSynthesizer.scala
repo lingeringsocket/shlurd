@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import SprEnglishLemmas._
+import SprPennTreebankLabels._
 
 import scala.collection._
 import scala.collection.JavaConverters._
@@ -73,13 +74,15 @@ object SprHeuristicSynthesizer extends SprEnglishWordAnalyzer
   val leafSomething = makeLeaf("something")
   val npSomething = SptNP(SptNN(leafSomething))
 
+  val specialCasing = Set("I", LABEL_LPAREN, LABEL_RPAREN)
+
   lazy val phrasePatternTrie = (new SprPhrasePatternTrie).importText(
     ResourceUtils.getResourceSource(
       "/english/phrase-structure.txt"))
 
   def maybeLowerCase(word : String) : String =
   {
-    if (word == "I") {
+    if (specialCasing.contains(word)) {
       word
     } else {
       word.toLowerCase
