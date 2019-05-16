@@ -30,6 +30,14 @@ But I don't know about any such axe.
 
 The bathroom is east of the bedroom.
 
+> what is west of the bathroom
+
+The bedroom is west of the bathroom.
+
+> what is south of the bedroom
+
+Nothing is south of the bedroom.
+
 > is the door open
 
 Yes, it is open.

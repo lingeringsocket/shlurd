@@ -720,8 +720,8 @@ class SpcBeliefRecognizer(
     }
     complementRef match {
       case SilGenitiveReference(
-        sub @ (_ : SilGenitiveReference
-          | SilConjunctiveReference(DETERMINER_ALL, _, _)),
+        sub @ (_ : SilStateSpecifiedReference | _ : SilGenitiveReference |
+          SilConjunctiveReference(DETERMINER_ALL, _, _)),
         possessee
       ) => {
         // "Lurch is Morticia's children's butler" =>

@@ -10,14 +10,14 @@ If a game-character goes a map-direction, then
   "There is no way to go in that direction.".
 
 If a game-character goes a map-direction, then
- the game-character's container's place-exit in the map-direction
-  transports the game-character.
+ the game-character traverses
+  (the game-character's container's place-exit in the map-direction).
 
-If a map-connection transports a game-character, then
+If a game-character traverses a map-connection, then
  the map-connection's exit-door must be open;
  otherwise the game-interpreter complains "But the door is not open.".
 
-If a map-connection transports a game-character, then
+If a game-character traverses a map-connection, then
  the game-character moves to the map-connection's target-place.
 
 If a player-character moves to a map-place, then

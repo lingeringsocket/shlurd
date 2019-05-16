@@ -56,8 +56,9 @@ class SpcMind(cosmos : SpcCosmos)
     val beliefs = source.getLines.filterNot(_.isEmpty).mkString("\n")
     val sentences = responder.newParser(beliefs).parseAll
     val ok = responder.sentencePrinter.sb.respondCompliance
+    val inputRewriter = new SmcInputRewriter(this)
     sentences.foreach(sentence => {
-      val analyzed = analyzeSense(sentence)
+      val analyzed = inputRewriter.normalizeInput(analyzeSense(sentence))
       val accepter = new SpcBeliefAccepter(responder)
       accepter.recognizeBeliefs(analyzed) match {
         case Seq(ib : IndirectBelief) => {

@@ -6,6 +6,11 @@ A south is a kind of map-direction.
 A east is a kind of map-direction.
 A west is a kind of map-direction.
 
+A northwest is a kind of map-direction.
+A northeast is a kind of map-direction.
+A southwest is a kind of map-direction.
+A southeast is a kind of map-direction.
+
 An opposite-direction must be a map-direction.
 A map-direction must have an opposite-direction.
 A map-direction with an opposite-direction is an opposite-direction.
@@ -17,6 +22,14 @@ The north is the south's opposite-direction.
 There is a east.
 There is a west.
 The east is the west's opposite-direction.
+
+There is a northwest.
+There is a southeast.
+The northwest is the southeast's opposite-direction.
+
+There is a northeast.
+There is a southwest.
+The southwest is the northeast's opposite-direction.
 
 A map-place is a kind of location.
 A map-place's place-description must be a quotation.
@@ -62,36 +75,30 @@ If a map-place faces a destination-place to a map-direction, then
   the destination-place to the map-direction's opposite-direction;
  also the map-place is the destination-place's map-neighbor.
 
-If a map-connection targets a map-place, then equivalently
- the map-connection's target-place is the map-place.
+If a map-place faces a destination-place to a map-direction, then equivalently
+ (the map-place's place-exit in the map-direction)'s
+  target-place is the destination-place.
+If a map-place faces a destination-place to a map-direction, then equivalently
+ (the destination-place's place-exit in the map-direction's opposite-direction)'s
+  target-place is the map-place.
 
-If a map-place is north of a southern-place, then
- the southern-place faces the map-place to the north.
-If a map-place is north of a southern-place, then equivalently
- the southern-place's place-exit in the north targets the map-place.
-If a map-place is north of a southern-place, then equivalently
- the map-place's place-exit in the south targets the southern-place.
+If a map-place is north of a neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the north.
+If a map-place is south of a neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the south.
+If a map-place is east of a neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the east.
+If a map-place is west of an neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the west.
 
-If a map-place is south of a northern-place, then
- the northern-place faces the map-place to the south.
-If a map-place is south of a northern-place, then equivalently
- the northern-place's place-exit in the south targets the map-place.
-If a map-place is south of a northern-place, then equivalently
- the map-place's place-exit in the north targets the northern-place.
-
-If a map-place is east of a western-place, then
- the western-place faces the map-place to the east.
-If a map-place is east of a western-place, then equivalently
- the western-place's place-exit in the east targets the map-place.
-If a map-place is east of a western-place, then equivalently
- the map-place's place-exit in the west targets the western-place.
-
-If a map-place is west of an eastern-place, then
- the eastern-place faces the map-place to the west.
-If a map-place is west of an eastern-place, then equivalently
- the eastern-place's place-exit in the west targets the map-place.
-If a map-place is west of an eastern-place, then equivalently
- the map-place's place-exit in the east targets the eastern-place.
+If a map-place is northeast of a neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the northeast.
+If a map-place is northwest of a neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the northwest.
+If a map-place is southeast of a neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the southeast.
+If a map-place is southwest of a neighbor-place, then equivalently
+ the neighbor-place faces the map-place to the southwest.
 
 A door is a kind of describable-entity.
 An exit-door must be a door.
