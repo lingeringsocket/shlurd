@@ -20,7 +20,6 @@ import org.jgrapht.graph.builder._
 import org.jgrapht.util._
 
 import scala.collection._
-import scala.collection.mutable._
 import scala.collection.Set
 import scala.collection.JavaConverters._
 
@@ -47,7 +46,8 @@ object DeltaGraph
         edgeSupplier(baseGraph.getEdgeSupplier).
         vertexSupplier(baseGraph.getVertexSupplier).
         buildGraph
-    apply(baseGraph, plusGraph, new LinkedHashSet[V], new LinkedHashSet[E])
+    apply(baseGraph, plusGraph,
+      new mutable.LinkedHashSet[V], new mutable.LinkedHashSet[E])
   }
 
   def apply[V, E](
