@@ -348,6 +348,8 @@ class SpcCosmos(
 
   private[platonic] def getIdGenerator = pool.idGenerator
 
+  private def generateId = getIdGenerator.getAndIncrement
+
   protected[platonic] def annotateFormAssoc(
     edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint,
     isProperty : Boolean)
@@ -454,7 +456,7 @@ class SpcCosmos(
     assert(!graph.idealSynonyms.containsVertex(synonym))
     graph.idealSynonyms.addVertex(synonym)
     graph.idealSynonyms.addVertex(ideal)
-    graph.idealSynonyms.addEdge(synonym, ideal)
+    addIdealSynonymEdge(synonym, ideal)
     graph.idealTaxonomy.addVertex(ideal)
     graph.formAssocs.addVertex(ideal)
     getIdealBySynonym(SpcMeta.ENTITY_METAFORM_NAME) match {
@@ -464,6 +466,18 @@ class SpcCosmos(
       case _ =>
     }
     ideal
+  }
+
+  private def addIdealSynonymEdge(
+    synonym : SpcIdealSynonym, ideal : SpcNym)
+  {
+    graph.idealSynonyms.addEdge(synonym, ideal, SpcSynonymEdge(generateId))
+  }
+
+  private def addEntitySynonymEdge(
+    synonym : SpcEntitySynonym, entity : SpcEntity)
+  {
+    graph.entitySynonyms.addEdge(synonym, entity, SpcSynonymEdge(generateId))
   }
 
   private def forgetIdeal(ideal : SpcIdeal)
@@ -746,7 +760,7 @@ class SpcCosmos(
         entityAssocs.addEdge(
           graph.getPossessorEntity(entityEdge),
           graph.getPossesseeEntity(entityEdge),
-          new SpcEntityAssocEdge(newEdge))
+          SpcEntityAssocEdge(generateId, newEdge))
         entityAssocs.removeEdge(entityEdge)
       }
     )
@@ -807,7 +821,7 @@ class SpcCosmos(
     assert(!graph.idealSynonyms.containsVertex(synonym), synonym)
     graph.idealSynonyms.addVertex(synonym)
     val ideal = getIdealBySynonym(fundamentalName).get
-    graph.idealSynonyms.addEdge(synonym, ideal)
+    addIdealSynonymEdge(synonym, ideal)
   }
 
   protected[platonic] def getIdealSynonyms =
@@ -885,7 +899,7 @@ class SpcCosmos(
         case _ =>
       }
     }
-    val formId = getIdGenerator.getAndIncrement.toString
+    val formId = generateId.toString
     val name = {
       if (properName.isEmpty) {
         (qualifierString.flatMap(_.decomposed).map(_.lemma) ++
@@ -910,12 +924,12 @@ class SpcCosmos(
       case Some(old) => {
         assert(old != entity)
         graph.entitySynonyms.removeEdge(synonym, old)
-        graph.entitySynonyms.addEdge(synonym, entity)
+        addEntitySynonymEdge(synonym, entity)
         replaceEntity(old, entity)
       }
       case _ => {
         graph.entitySynonyms.addVertex(synonym)
-        graph.entitySynonyms.addEdge(synonym, entity)
+        addEntitySynonymEdge(synonym, entity)
       }
     }
     meta.entityExistence(entity, true)
@@ -949,7 +963,7 @@ class SpcCosmos(
     inverseAssocs.removeVertex(edge2)
     inverseAssocs.addVertex(edge1)
     inverseAssocs.addVertex(edge2)
-    inverseAssocs.addEdge(edge1, edge2)
+    inverseAssocs.addEdge(edge1, edge2, SpcInverseAssocEdge(generateId))
   }
 
   def addIdealTaxonomy(
@@ -963,7 +977,7 @@ class SpcCosmos(
       val redundantEdges = idealTaxonomy.outgoingEdgesOf(hyponymIdeal).
         asScala.filter(
           edge => newHypernyms.contains(graph.getSuperclassIdeal(edge)))
-      val newEdge = new SpcTaxonomyEdge()
+      val newEdge = SpcTaxonomyEdge(generateId)
       val added = idealTaxonomy.addEdge(hyponymIdeal, hypernymIdeal, newEdge)
       // since we already checked for an existing relationship and there
       // was none, the new edge should not have been redundant
@@ -985,7 +999,7 @@ class SpcCosmos(
     graph.getFormAssocEdge(possessor, role) match {
       case Some(edge) => edge
       case _ => {
-        val edge = new SpcFormAssocEdge(possessor, role.name)
+        val edge = SpcFormAssocEdge(possessor, role.name)
         graph.formAssocs.addEdge(possessor, role, edge)
         edge
       }
@@ -1029,7 +1043,8 @@ class SpcCosmos(
         edge
       }
       case _ => {
-        val edge = new SpcEntityAssocEdge(formAssocEdge)
+        val edge = SpcEntityAssocEdge(
+          generateId, formAssocEdge)
         graph.entityAssocs.addEdge(
           possessor, possessee, edge)
         edge
@@ -1355,6 +1370,12 @@ class SpcCosmos(
     outgoingPropertyEdges.map(_.getRoleName).contains(name)
   }
 
+  private def addComponent(
+    container : SpcContainmentVertex, component : SpcContainmentVertex)
+  {
+    graph.addComponent(container, component, generateId)
+  }
+
   def instantiateProperty(
     form : SpcForm, name : SilWord,
     domain : SpcPropertyDomain = PROPERTY_OPEN_ENUM) : SpcProperty =
@@ -1366,7 +1387,7 @@ class SpcCosmos(
         val property = new SpcProperty(form, propertyName, domain)
         assert(!getFormPropertyMap(form).contains(property.name))
         meta.propertyExistence(form, property)
-        graph.addComponent(form, property)
+        addComponent(form, property)
         property
       }
     }
@@ -1393,7 +1414,7 @@ class SpcCosmos(
       name, word.recompose(word.decomposed.map(_.inflected)))
     meta.propertyValueExistence(
       getPropertyForm(property), property, propertyState)
-    graph.addComponent(property, propertyState)
+    addComponent(property, propertyState)
   }
 
   def updateEntityProperty(
@@ -1417,7 +1438,7 @@ class SpcCosmos(
             case _ =>
           }
           val ps = new SpcEntityPropertyState(propertyName, lemma)
-          graph.addComponent(entity, ps)
+          addComponent(entity, ps)
           Success(Trilean.True)
         }
       }
@@ -1638,12 +1659,12 @@ class SpcCosmos(
     val uninflected =
       new SpcStateNormalization(foldState(state), normalized, false)
     if (!map.contains(inflected.original)) {
-      graph.addComponent(form, inflected)
+      addComponent(form, inflected)
     }
     if ((uninflected.original != inflected.original) &&
       !map.contains(uninflected.original))
     {
-      graph.addComponent(form, uninflected)
+      addComponent(form, uninflected)
     }
   }
 
@@ -1707,7 +1728,7 @@ class SpcCosmos(
         } else {
           // make up possessee out of thin air
           val name = possessor.name + "_" + role.name + "_" +
-            getIdGenerator.getAndIncrement
+            generateId
           val form = instantiateForm(SpcForm.tentativeName(SilWord(name)))
           graph.getFormsForRole(role).foreach(
             hypernym => {

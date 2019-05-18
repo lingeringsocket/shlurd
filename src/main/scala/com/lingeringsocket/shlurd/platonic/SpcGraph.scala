@@ -270,27 +270,33 @@ case class SpcFormAssocEdge(
   def getRoleName = label
 }
 
-class SpcInverseAssocEdge extends SpcEdge
+abstract class SpcAnonymousEdge extends SpcEdge
+{
+  def id : Long
+}
+
+case class SpcInverseAssocEdge(id : Long) extends SpcAnonymousEdge
 {
 }
 
-class SpcTaxonomyEdge extends SpcEdge
+case class SpcTaxonomyEdge(id : Long) extends SpcAnonymousEdge
 {
 }
 
-class SpcSynonymEdge extends SpcEdge
+case class SpcSynonymEdge(id : Long) extends SpcAnonymousEdge
 {
 }
 
-class SpcEntityAssocEdge(
-  val formEdge : SpcFormAssocEdge) extends SpcEdge
+case class SpcEntityAssocEdge(
+  id : Long,
+  formEdge : SpcFormAssocEdge) extends SpcAnonymousEdge
 {
   def getRoleName = formEdge.getRoleName
 
   override def toString = super.toString + " : " + getRoleName
 }
 
-class SpcComponentEdge extends SpcEdge
+case class SpcComponentEdge(id : Long) extends SpcAnonymousEdge
 {
 }
 
@@ -586,10 +592,11 @@ class SpcGraph(
   }
 
   def addComponent(
-    container : SpcContainmentVertex, component : SpcContainmentVertex)
+    container : SpcContainmentVertex, component : SpcContainmentVertex,
+    edgeId : Long)
   {
     components.addVertex(component)
-    components.addEdge(container, component)
+    components.addEdge(container, component, SpcComponentEdge(edgeId))
   }
 
   def removeComponent(
