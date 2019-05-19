@@ -32,8 +32,7 @@ The ax's description is "The perfect weapon, assuming you are a dwarf.".
 
 There is a brass lantern.
 
-The big door mediates the bedroom's place-exit in the east.
-The big door mediates the bathroom's place-exit in the west.
+The big door connects the bedroom to the bathroom.
 
 "Resource" import "/example-snavig/thief-init.txt".
 

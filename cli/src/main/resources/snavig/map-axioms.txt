@@ -121,4 +121,9 @@ A map-connection with an exit-door is a door-exit.
 A door must be open or closed.
 
 If a door mediates a map-connection, then
- the door is the map-connection's exit-door.
+ the door is the map-connection's exit-door;
+ also the door is the map-connection's opposite-connection's exit-door.
+
+If a door connects a map-place to a neighbor-place, then
+ the door mediates (the map-place's place-entrances
+  among the neighbor-place's place-exits).
