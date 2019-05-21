@@ -200,7 +200,7 @@ class SmcResponder[
   executor : SmcExecutor[EntityType] = new SmcExecutor[EntityType],
   communicationContext : SmcCommunicationContext[EntityType] =
     SmcCommunicationContext()
-) extends SmcDebuggable(SmcDebugger.maybe(SmcResponder.logger))
+) extends SmcDebuggable(new SmcDebugger(SmcResponder.logger))
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
@@ -245,6 +245,7 @@ class SmcResponder[
     if (!input.isEmpty) {
       debug(s"INPUT TEXT : $input")
     }
+    debugger.setContext(s"$input\n$sentence")
     debug(s"INPUT SENTENCE : $sentence")
     mind.rememberSpeakerSentence(
       SmcConversation.SPEAKER_NAME_PERSON, sentence, input)
@@ -948,10 +949,17 @@ class SmcResponder[
     resultCollector : ResultCollectorType)
       : (SilPredicate, SilInflection) =
   {
-    val queryRewriter = new SmcQueryRewriter(question, answerInflection)
+    val queryRewriter = newQueryRewriter(question, answerInflection)
     val rewritten = queryRewriter.rewrite(
       queryRewriter.rewritePredicate, predicate)
     (rewritten, answerInflection)
+  }
+
+  protected def newQueryRewriter(
+    question : SilQuestion,
+    answerInflection : SilInflection) =
+  {
+    new SmcQueryRewriter(question, answerInflection)
   }
 
   private def replaceReferencesWithEntities(

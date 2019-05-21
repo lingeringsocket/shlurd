@@ -31,29 +31,34 @@ class SmcQueryRewriter(
     }
   )
 
-  def rewritePredicate = replacementMatcher(
-    "rewritePredicate", {
+  def rewritePredicate = combineRules(
+    rewriteStatePredicate, rewriteRelationshipPredicate, rewriteActionPredicate)
+
+  def rewriteStatePredicate = replacementMatcher(
+    "rewriteStatePredicate", {
       case SilStatePredicate(subject, state, modifiers) => {
         SilStatePredicate(
           scopedRewrite(subject, INFLECT_NOMINATIVE),
           scopedRewrite(state, INFLECT_ADPOSITIONED),
           modifiers)
       }
+    }
+  )
+
+  def rewriteRelationshipPredicate = replacementMatcher(
+    "rewriteRelationshipPredicate", {
       case SilRelationshipPredicate(subject, complement,
         relationship, modifiers
       ) => {
-        val rewrittenComplement = question match {
-          case QUESTION_WHERE => {
-            SilGenitiveReference(
-              complement,
-              SilNounReference(SilWord(SmcLemmas.LEMMA_CONTAINER)))
-          }
-          case _ => complement
-        }
         SilRelationshipPredicate(
           scopedRewrite(subject, INFLECT_NOMINATIVE),
-          rewrittenComplement, relationship, modifiers)
+          complement, relationship, modifiers)
       }
+    }
+  )
+
+  def rewriteActionPredicate = replacementMatcher(
+    "rewriteActionPredicate", {
       case SilActionPredicate(subject, action, directObject, modifiers) => {
         SilActionPredicate(
           scopedRewrite(subject, INFLECT_NOMINATIVE),
@@ -65,7 +70,7 @@ class SmcQueryRewriter(
     }
   )
 
-  private def scopedRewrite[PhraseType <: SilPhrase](
+  protected def scopedRewrite[PhraseType <: SilPhrase](
     phrase : PhraseType,
     requiredInflection : SilInflection) : PhraseType =
   {

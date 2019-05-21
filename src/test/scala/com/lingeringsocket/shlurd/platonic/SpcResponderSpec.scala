@@ -517,12 +517,27 @@ class SpcResponderSpec extends Specification
       processTerse("how many women are in Herbie", "No women.")
       processTerse("how many men are in Christine", "No men.")
       processTerse("how many women are in Christine", "Two of them.")
+      processTerse(
+        "how many men are Furley's tenants",
+        "Two of them.")
+      processTerse(
+        "how many men in Herbie are Furley's tenants",
+        "One of them.")
+      processTerse(
+        "how many women in Herbie are Furley's tenants",
+        "No women in Herbie.")
       processMatrix(
         "where is the helicopter",
         "But I don't know about any such helicopter.",
         "But I don't know about any such helicopter.",
         "But I don't know about any such helicopter.",
         "But I don't know about any such helicopter.")
+      processMatrix(
+        "who is in Kit",
+        "No one is in it.",
+        "No one is in Kit.",
+        "No one.",
+        "No one.")
       cosmos.sanityCheck must beTrue
     }
 
@@ -1239,9 +1254,9 @@ class SpcResponderSpec extends Specification
       processBelief("The card is in the wallet.")
       processBelief("The key is in the pocket.")
       process("how many objects are in the wallet",
-        "Two of them are in the wallet.")
+        "Two of them are in it.")
       process("how many objects are in the pocket",
-        "One of them is in the pocket.")
+        "One of them is in it.")
       process("how many objects are the wallet's contained-object",
         "Two of them are its contained-objects.")
       process("how many objects are the pocket's contained-objects",

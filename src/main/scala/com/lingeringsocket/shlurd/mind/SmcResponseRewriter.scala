@@ -53,7 +53,24 @@ class SmcResponseRewriter[
         question match {
           case Some(QUESTION_WHERE) => false
           case Some(QUESTION_HOW_MANY) => false
-          case _ => true
+          case _ => {
+            predicate match {
+              case SilRelationshipPredicate(
+                _,
+                SilGenitiveReference(
+                  _,
+                  SilNounReference(
+                    SilWordLemma(SmcLemmas.LEMMA_CONTAINEE),
+                    DETERMINER_UNSPECIFIED,
+                    _)),
+                REL_IDENTITY,
+                _
+              ) => {
+                false
+              }
+              case _ => true
+            }
+          }
         }
       }
       case _ => false
@@ -277,11 +294,11 @@ class SmcResponseRewriter[
           SilRelationshipPredicate(
             container,
             SilGenitiveReference(
-              subject,
+              containee,
               SilNounReference(
                 SilWordLemma(SmcLemmas.LEMMA_CONTAINER),
                 DETERMINER_UNSPECIFIED,
-                COUNT_SINGULAR)),
+                _)),
             REL_IDENTITY,
             verbModifiers
           ),
@@ -291,18 +308,39 @@ class SmcResponseRewriter[
           // FIXME this isn't right--I guess "nowhere" should really
           // be an adverb in this context?
           SilRelationshipPredicate(
-            subject,
+            containee,
             container,
             REL_IDENTITY,
             verbModifiers)
         } else {
           SilStatePredicate(
-            subject,
+            containee,
             SilAdpositionalState(
               SilAdposition.IN,
               container),
             verbModifiers)
         }
+      }
+      case (rp @
+          SilRelationshipPredicate(
+            containee,
+            SilGenitiveReference(
+              container,
+              SilNounReference(
+                SilWordLemma(SmcLemmas.LEMMA_CONTAINEE),
+                DETERMINER_UNSPECIFIED,
+                _)),
+            REL_IDENTITY,
+            verbModifiers
+          ),
+        _
+      ) => {
+        SilStatePredicate(
+          containee,
+          SilAdpositionalState(
+            SilAdposition.IN,
+            container),
+          verbModifiers)
       }
       case _ => {
         predicate

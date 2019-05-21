@@ -37,7 +37,7 @@ class SpcTriggerExecutor(
   mind : SpcMind,
   communicationContext : SmcCommunicationContext[SpcEntity],
   inputRewriter : SmcInputRewriter[SpcEntity, SpcProperty, SpcCosmos])
-    extends SmcDebuggable(SmcDebugger.maybe(SpcTriggerExecutor.logger))
+    extends SmcDebuggable(new SmcDebugger(SpcTriggerExecutor.logger))
 {
   private[platonic] def matchTrigger(
     cosmos : SpcCosmos,

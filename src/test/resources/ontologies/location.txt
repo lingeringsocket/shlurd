@@ -10,7 +10,15 @@ Herbie is a car.
 Christine is a car.
 Chrissy is a woman.
 Jack is a man.
+Larry is a man.
 Janet is a woman.
 Jack is in Herbie.
 Chrissy's container is Christine.
 Janet is in Christine.
+Furley is a man.
+A person may have tenants.
+Jack is Furley's tenant.
+Janet is Furley's tenant.
+Chrissy is Furley's tenant.
+Larry is Furley's tenant.
+Kit is a car.

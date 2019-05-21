@@ -508,6 +508,13 @@ class SpcResponder(
     tupleN((rewritten, answerInflection))
   }
 
+  override protected def newQueryRewriter(
+    question : SilQuestion,
+    answerInflection : SilInflection) =
+  {
+    new SpcQueryRewriter(question, answerInflection)
+  }
+
   private def saveReferenceMap(
     sentence : SilSentence,
     cosmos : SpcCosmos,

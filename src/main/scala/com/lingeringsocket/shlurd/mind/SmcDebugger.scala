@@ -16,26 +16,37 @@ package com.lingeringsocket.shlurd.mind
 
 import org.slf4j._
 
-object SmcDebugger
+class SmcDebugger(val logger : Logger)
 {
-  def maybe(logger : Logger) : Option[SmcDebugger] =
-  {
-    if (logger.isDebugEnabled) {
-      Some(new SmcDebugger(logger))
-    } else {
-      None
-    }
-  }
-}
+  private var contextInitializer : Option[() => String] = None
 
-class SmcDebugger(logger : Logger)
-{
+  private var context = freshContext
+
   private var debugDepth = 0
+
+  private def freshContext() =
+  {
+    Stream.cons(
+      "GLOBAL",
+      contextInitializer.map(_()).toStream)
+  }
+
+  def setContext(newContext : => String)
+  {
+    context = freshContext
+    contextInitializer = Some(() => newContext)
+  }
 
   @inline final def debug(msg : => String)
   {
     val prefix = "*" * debugDepth
     logger.debug(prefix + msg)
+  }
+
+  def warn(msg : String)
+  {
+    val prefix = "*" * debugDepth
+    logger.warn(prefix + s"$msg in ${context.last}")
   }
 
   @inline final def trace(msg : => String)
@@ -72,40 +83,53 @@ class SmcDebugger(logger : Logger)
   }
 }
 
-abstract class SmcDebuggable(protected val debugger : Option[SmcDebugger])
+abstract class SmcDebuggable(protected val debugger : SmcDebugger)
 {
+  protected val debuggerOpt = {
+    if (debugger.logger.isDebugEnabled) {
+      Some(debugger)
+    } else {
+      None
+    }
+  }
+
   @inline protected final def debug(msg : => String)
   {
-    debugger.foreach(_.debug(msg))
+    debuggerOpt.foreach(_.debug(msg))
   }
 
   @inline protected final def trace(msg : => String)
   {
-    debugger.foreach(_.trace(msg))
+    debuggerOpt.foreach(_.trace(msg))
+  }
+
+  protected final def warn(msg : => String)
+  {
+    debugger.warn(msg)
   }
 
   protected final def debug(msg : => String, t : Throwable)
   {
-    debugger.foreach(_.debug(msg, t))
+    debuggerOpt.foreach(_.debug(msg, t))
   }
 
   protected final def trace(msg : => String, t : Throwable)
   {
-    debugger.foreach(_.trace(msg, t))
+    debuggerOpt.foreach(_.trace(msg, t))
   }
 
   @inline protected final def debugPushLevel()
   {
-    debugger.foreach(_.pushLevel)
+    debuggerOpt.foreach(_.pushLevel)
   }
 
   @inline protected final def debugPopLevel()
   {
-    debugger.foreach(_.popLevel)
+    debuggerOpt.foreach(_.popLevel)
   }
 
   @inline protected final def isTraceEnabled() : Boolean =
   {
-    debugger.map(_.isTraceEnabled).getOrElse(false)
+    debugger.isTraceEnabled
   }
 }

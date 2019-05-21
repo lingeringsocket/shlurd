@@ -36,7 +36,7 @@ class SmcPredicateEvaluator[
   sentencePrinter : SilSentencePrinter,
   existenceAssumption : SmcExistenceAssumption,
   communicationContext : SmcCommunicationContext[EntityType],
-  debugger : Option[SmcDebugger])
+  debugger : SmcDebugger)
     extends SmcDebuggable(debugger)
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
@@ -112,25 +112,44 @@ class SmcPredicateEvaluator[
           if (wildcardQuerier.containsWildcard(subjectRef, false) &&
             (relationship == REL_IDENTITY) && categoryLabel.isEmpty
           ) {
-            // FIXME for some cases, need to restrict by form,
-            // e.g. "which robot is Abraham Lincoln?"
             resultCollector.referenceMap.get(complementRef) match {
               case Some(entities) => {
-                resultCollector.referenceMap.put(subjectRef, entities)
-                val results = entities.map(entity => {
-                  val result = if (entity.isTentative) {
-                    Trilean.Unknown
-                  } else {
-                    Trilean.True
+                evaluatePredicateOverReferenceImpl(
+                  subjectRef,
+                  REF_SUBJECT,
+                  resultCollector,
+                  SilNullState(),
+                  Some(entities),
+                  {
+                    (objEntity, entityRef) => {
+                      if (objEntity.isTentative) {
+                        Success(Trilean.Unknown)
+                      } else {
+                        entityRef match {
+                          case SilNounReference(
+                            noun,
+                            DETERMINER_ANY | DETERMINER_UNSPECIFIED,
+                            _) => {
+                            noun.toNounLemma match {
+                              case LEMMA_WHO | LEMMA_WHAT => {
+                                Success(Trilean.True)
+                              }
+                              case _ => {
+                                evaluateCategorization(objEntity, noun)
+                              }
+                            }
+                          }
+                          case _ => {
+                            val message =
+                              s"$objEntity UNEXPECTED REF : $entityRef"
+                            debug(message)
+                            fail(message)
+                          }
+                        }
+                      }
+                    }
                   }
-                  resultCollector.entityMap.put(entity, result)
-                  result
-                })
-                if (results.contains(Trilean.Unknown)) {
-                  Success(Trilean.Unknown)
-                } else {
-                  Success(Trilean.True)
-                }
+                )
               }
               case _ => {
                 Success(Trilean.Unknown)
@@ -532,6 +551,10 @@ class SmcPredicateEvaluator[
       : Try[Trilean] =
   {
     trace(s"CANDIDATE ENTITIES : $unfilteredEntities")
+    val nUnfiltered = unfilteredEntities.size
+    if (nUnfiltered > 100) {
+      warn(s"OVERSIZE LOAD $nUnfiltered")
+    }
     // probably we should be pushing filters down into
     // resolveQualifiedNoun for efficiency
     val adpositionStates =
