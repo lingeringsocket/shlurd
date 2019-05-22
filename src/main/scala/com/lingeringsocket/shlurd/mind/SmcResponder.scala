@@ -245,7 +245,13 @@ class SmcResponder[
     if (!input.isEmpty) {
       debug(s"INPUT TEXT : $input")
     }
-    debugger.setContext(s"$input\n$sentence")
+    debugger.setContext({
+      if (input.nonEmpty) {
+        input
+      } else {
+        sentence.toString
+      }
+    })
     debug(s"INPUT SENTENCE : $sentence")
     mind.rememberSpeakerSentence(
       SmcConversation.SPEAKER_NAME_PERSON, sentence, input)

@@ -1024,6 +1024,7 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType,
     evaluator : EntityPredicateEvaluator) : Try[Trilean] =
   {
+    debugger.slowIncrement
     val result = evaluator(entity, entityRef)
     result.foreach(resultCollector.entityMap.put(entity, _))
     result

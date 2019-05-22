@@ -24,6 +24,8 @@ class SmcDebugger(val logger : Logger)
 
   private var debugDepth = 0
 
+  private var slowCount = 0
+
   private def freshContext() =
   {
     Stream.cons(
@@ -35,6 +37,7 @@ class SmcDebugger(val logger : Logger)
   {
     context = freshContext
     contextInitializer = Some(() => newContext)
+    slowCount = 0
   }
 
   @inline final def debug(msg : => String)
@@ -80,6 +83,14 @@ class SmcDebugger(val logger : Logger)
   @inline final def isTraceEnabled() : Boolean =
   {
     logger.isTraceEnabled
+  }
+
+  def slowIncrement()
+  {
+    slowCount += 1
+    if (slowCount == 1000) {
+      warn("SLOW")
+    }
   }
 }
 
