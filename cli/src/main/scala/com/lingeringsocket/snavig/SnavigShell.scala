@@ -582,8 +582,7 @@ class SnavigShell(
           logger.trace(s"DIRECTIVE $input")
           val sentences = noumenalUpdater.newParser(input).parseAll
           sentences.foreach(sentence => {
-            val output = noumenalUpdater.process(
-              noumenalMind.analyzeSense(sentence))
+            val output = noumenalUpdater.process(sentence)
             assert(output == OK)
           })
         }
@@ -603,9 +602,7 @@ class SnavigShell(
             SmcResponseParams(), executor, communicationContext)
           val sentences = responder.newParser(input).parseAll
           sentences.foreach(sentence => {
-            val output = processUtterance(
-              responder,
-              targetMind.analyzeSense(sentence))
+            val output = processUtterance(responder, sentence)
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
             // FIXME allow side effects of conversation
@@ -621,8 +618,7 @@ class SnavigShell(
           }
           val sentences = phenomenalResponder.newParser(expanded).parseAll
           sentences.foreach(sentence => {
-            var output = phenomenalResponder.process(
-              phenomenalMind.analyzeSense(sentence))
+            var output = phenomenalResponder.process(sentence)
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
             var assumption = ""
@@ -664,8 +660,7 @@ class SnavigShell(
           logger.trace(s"PHENOMENON $belief")
           val sentences = phenomenalUpdater.newParser(preprocess(belief)).parseAll
           sentences.foreach(sentence => {
-            var output = phenomenalUpdater.process(
-              phenomenalMind.analyzeSense(sentence))
+            var output = phenomenalUpdater.process(sentence)
             assert(output == OK, output)
           })
         }
@@ -697,8 +692,7 @@ class SnavigShell(
                 // FIXME use parseAll instead
                 val sentence = entityResponder.newParser(quotation).parseOne
                 val response = processUtterance(
-                  entityResponder,
-                  entityMind.analyzeSense(sentence))
+                  entityResponder, sentence)
                 val responseSentence = SilPredicateSentence(
                   SilActionPredicate(
                     listenerReference,

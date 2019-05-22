@@ -253,11 +253,11 @@ class SmcResponder[
       }
     })
     debug(s"INPUT SENTENCE : $sentence")
-    mind.rememberSpeakerSentence(
-      SmcConversation.SPEAKER_NAME_PERSON, sentence, input)
     SilPhraseValidator.validatePhrase(sentence)
-    val resultCollector = SmcResultCollector[EntityType]
     val analyzed = mind.analyzeSense(sentence)
+    mind.rememberSpeakerSentence(
+      SmcConversation.SPEAKER_NAME_PERSON, analyzed, input)
+    val resultCollector = SmcResultCollector[EntityType]
     resolveReferences(analyzed, resultCollector)
     val (responseSentence, responseText) =
       processImpl(analyzed, resultCollector)
