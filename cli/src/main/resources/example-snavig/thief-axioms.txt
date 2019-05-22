@@ -4,11 +4,6 @@ A thief is a kind of non-player-character.
 A thief must be alive or dead.
 A thief must be boorish or suave.
 
-A person can't spy on a thief.
-
-Generally a game-character can't kill.
-A game-character can kill a kill-victim with a game-weapon.
-
 If a game-character kills a kill-victim, then the kill-victim is dead.
 If a game-character kills the thief, then
  the game-interpreter says "Blood splatters everywhere.".

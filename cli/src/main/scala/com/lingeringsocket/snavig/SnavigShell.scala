@@ -239,7 +239,6 @@ object SnavigShell
     if (snapshot.mindMap.contains(entity.name)) {
       snapshot.mindMap.get(entity.name)
     } else {
-      lazy val newCosmos = bootCosmos.newClone
       val (cosmos, perception) = noumenalCosmos.evaluateEntityProperty(
         entity, "awareness"
       ) match {
@@ -252,10 +251,10 @@ object SnavigShell
               return None
             }
             case "unperceptive" => {
-              tupleN((newCosmos, None))
+              tupleN((bootCosmos.newClone, None))
             }
             case "perceptive" => {
-              val cosmos = newCosmos
+              val cosmos = bootCosmos.newClone
               tupleN((
                 cosmos, Some(new SpcPerception(noumenalCosmos, cosmos))))
             }
@@ -339,6 +338,8 @@ class SnavigShell(
   private val bootCosmos = bootMind.getCosmos
 
   private val phenomenalMind = snapshot.getPhenomenalMind
+
+  private val phenomenalCosmos = phenomenalMind.getCosmos
 
   private val noumenalMind = snapshot.getNoumenalMind
 
@@ -533,7 +534,9 @@ class SnavigShell(
       val sentence = SilPredicateSentence(newPredicate)
       val entities = SilUtils.collectReferences(sentence).flatMap(
         referenceMap.get(_).getOrElse(Set.empty))
-      processFiat(sentence, entities)
+      validateFiat(newPredicate).orElse(
+        processFiat(sentence, entities)
+      )
     }
   }
 
@@ -565,6 +568,19 @@ class SnavigShell(
   def deferPhenomenon(belief : String)
   {
     defer(DeferredPhenomenon(belief))
+  }
+
+  private def validateFiat(
+    predicate : SilPredicate)
+      : Option[String] =
+  {
+    val result = phenomenalResponder.processTriggerablePredicate(
+      phenomenalCosmos, predicate, APPLY_CONSTRAINTS_ONLY, true)
+    if (result == ok) {
+      None
+    } else {
+      result
+    }
   }
 
   private def accessEntityMind(

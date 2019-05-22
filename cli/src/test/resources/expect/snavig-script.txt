@@ -2,6 +2,18 @@ You are in the bedroom.
 
 Grubby articles of alien underwear lie scattered about.
 
+> examine
+
+I'm not sure how to interpret that.
+
+> go
+
+I'm not sure how to interpret that.
+
+> survey the bedroom
+
+I'm not sure how to interpret that.
+
 > where am I
 
 You are in the bedroom.

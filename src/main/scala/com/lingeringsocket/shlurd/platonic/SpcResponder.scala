@@ -31,6 +31,11 @@ case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_NEW_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_MODIFIED_BELIEFS extends SpcBeliefAcceptance
 
+sealed trait SpcAssertionApplicability
+case object APPLY_CONSTRAINTS_ONLY extends SpcAssertionApplicability
+case object APPLY_TRIGGERS_ONLY extends SpcAssertionApplicability
+case object APPLY_ALL_ASSERTIONS extends SpcAssertionApplicability
+
 sealed trait SpcAssertionResultStrength
 case object ASSERTION_PASS extends SpcAssertionResultStrength
 case object ASSERTION_INAPPLICABLE extends SpcAssertionResultStrength
@@ -285,7 +290,7 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     assertion : SpcAssertion,
     predicate : SilPredicate,
-    enforceAssertions : Boolean)
+    applicability : SpcAssertionApplicability)
       : SpcAssertionResult =
   {
     val referenceMap = referenceMapOpt.get
@@ -298,21 +303,27 @@ class SpcResponder(
 
     assertion.asTrigger match {
       case Some(trigger) => {
-        applyTrigger(forkedCosmos, trigger, predicate, resultCollector) match {
-          case Some(message) => {
-            val strength = {
-              if (message == sentencePrinter.sb.respondCompliance) {
-                ASSERTION_PASS
-              } else {
-                ASSERTION_STRONG_FAILURE
+        if (applicability == APPLY_CONSTRAINTS_ONLY) {
+          inapplicable
+        } else {
+          applyTrigger(
+            forkedCosmos, trigger, predicate, resultCollector
+          ) match {
+            case Some(message) => {
+              val strength = {
+                if (message == sentencePrinter.sb.respondCompliance) {
+                  ASSERTION_PASS
+                } else {
+                  ASSERTION_STRONG_FAILURE
+                }
               }
+              SpcAssertionResult(None, message, strength)
             }
-            SpcAssertionResult(None, message, strength)
+            case _ => inapplicable
           }
-          case _ => inapplicable
         }
       }
-      case _ if (enforceAssertions) => {
+      case _ if (applicability != APPLY_TRIGGERS_ONLY) => {
         val assertionPredicate = assertion.sentence match {
           case ps : SilPredicateSentence => {
             ps.tam.modality match {
@@ -580,8 +591,15 @@ class SpcResponder(
             case _ =>
           }
         }
+        val applicability = {
+          if (matched) {
+            APPLY_TRIGGERS_ONLY
+          } else {
+            APPLY_ALL_ASSERTIONS
+          }
+        }
         val result = processTriggerablePredicate(
-          forkedCosmos, predicate, !matched, flagErrors && !matched)
+          forkedCosmos, predicate, applicability, flagErrors && !matched)
         if (!result.isEmpty) {
           return result
         }
@@ -675,16 +693,16 @@ class SpcResponder(
     }
   }
 
-  private def processTriggerablePredicate(
-    forkedCosmos : SpcCosmos,
+  def processTriggerablePredicate(
+    viewedCosmos : SpcCosmos,
     predicate : SilPredicate,
-    enforceAssertions : Boolean,
+    applicability : SpcAssertionApplicability,
     flagErrors : Boolean) : Option[String] =
   {
     val results = mind.getCosmos.getAssertions.map(assertion => {
       val result = applyAssertion(
-        forkedCosmos, assertion, predicate,
-        enforceAssertions
+        viewedCosmos, assertion, predicate,
+        applicability
       )
       if (result.strength == ASSERTION_STRONG_FAILURE) {
         return Some(result.message)
@@ -698,7 +716,7 @@ class SpcResponder(
 
     weakFailures.find(
       w => !passes.exists(
-        p => isSubsumption(forkedCosmos, w.predicate, p.predicate))) match
+        p => isSubsumption(viewedCosmos, w.predicate, p.predicate))) match
     {
       case Some(result) => {
         return Some(result.message)
@@ -706,14 +724,16 @@ class SpcResponder(
       case _ =>
     }
 
-    predicate match {
-      case ap : SilActionPredicate => {
-        val executorResponse = executor.executeAction(ap, referenceMapOpt.get)
-        if (executorResponse.nonEmpty) {
-          return executorResponse
+    if (applicability != APPLY_CONSTRAINTS_ONLY) {
+      predicate match {
+        case ap : SilActionPredicate => {
+          val executorResponse = executor.executeAction(ap, referenceMapOpt.get)
+          if (executorResponse.nonEmpty) {
+            return executorResponse
+          }
         }
+        case _ =>
       }
-      case _ =>
     }
 
     if (passes.nonEmpty) {

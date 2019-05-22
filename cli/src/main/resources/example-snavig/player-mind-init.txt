@@ -1,3 +1,5 @@
 "Resource" import "/snavig/character-axioms.txt".
 
 The player-character is online.
+
+"Resource" import "/example-snavig/capability-axioms.txt".
