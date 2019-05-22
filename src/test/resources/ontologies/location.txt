@@ -21,4 +21,4 @@ Jack is Furley's tenant.
 Janet is Furley's tenant.
 Chrissy is Furley's tenant.
 Larry is Furley's tenant.
-Kit is a car.
+KITT is a car.

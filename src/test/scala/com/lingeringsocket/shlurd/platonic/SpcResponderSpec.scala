@@ -533,9 +533,9 @@ class SpcResponderSpec extends Specification
         "But I don't know about any such helicopter.",
         "But I don't know about any such helicopter.")
       processMatrix(
-        "who is in Kit",
+        "who is in KITT",
         "No one is in it.",
-        "No one is in Kit.",
+        "No one is in KITT.",
         "No one.",
         "No one.")
       cosmos.sanityCheck must beTrue
