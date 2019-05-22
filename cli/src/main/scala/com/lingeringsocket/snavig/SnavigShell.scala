@@ -580,7 +580,7 @@ class SnavigShell(
       deferredQueue.dequeue match {
         case DeferredDirective(input) => {
           logger.trace(s"DIRECTIVE $input")
-          val sentences = noumenalMind.newParser(input).parseAll
+          val sentences = noumenalUpdater.newParser(input).parseAll
           sentences.foreach(sentence => {
             val output = noumenalUpdater.process(
               noumenalMind.analyzeSense(sentence))
@@ -601,7 +601,7 @@ class SnavigShell(
           val responder = new SnavigResponder(
             None, targetMind, ACCEPT_NO_BELIEFS,
             SmcResponseParams(), executor, communicationContext)
-          val sentences = targetMind.newParser(input).parseAll
+          val sentences = responder.newParser(input).parseAll
           sentences.foreach(sentence => {
             val output = processUtterance(
               responder,
@@ -619,7 +619,7 @@ class SnavigShell(
           if (expanded != input) {
             logger.trace(s"EXPANDED $expanded")
           }
-          val sentences = phenomenalMind.newParser(expanded).parseAll
+          val sentences = phenomenalResponder.newParser(expanded).parseAll
           sentences.foreach(sentence => {
             var output = phenomenalResponder.process(
               phenomenalMind.analyzeSense(sentence))
@@ -662,7 +662,7 @@ class SnavigShell(
         }
         case DeferredPhenomenon(belief) => {
           logger.trace(s"PHENOMENON $belief")
-          val sentences = phenomenalMind.newParser(preprocess(belief)).parseAll
+          val sentences = phenomenalUpdater.newParser(preprocess(belief)).parseAll
           sentences.foreach(sentence => {
             var output = phenomenalUpdater.process(
               phenomenalMind.analyzeSense(sentence))
@@ -695,7 +695,7 @@ class SnavigShell(
                   None, entityMind, ACCEPT_NO_BELIEFS,
                   SmcResponseParams(), executor, communicationContext)
                 // FIXME use parseAll instead
-                val sentence = entityMind.newParser(quotation).parseOne
+                val sentence = entityResponder.newParser(quotation).parseOne
                 val response = processUtterance(
                   entityResponder,
                   entityMind.analyzeSense(sentence))
