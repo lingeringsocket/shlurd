@@ -658,7 +658,8 @@ class SnavigShell(
         }
         case DeferredPhenomenon(belief) => {
           logger.trace(s"PHENOMENON $belief")
-          val sentences = phenomenalUpdater.newParser(preprocess(belief)).parseAll
+          val sentences =
+            phenomenalUpdater.newParser(preprocess(belief)).parseAll
           sentences.foreach(sentence => {
             var output = phenomenalUpdater.process(sentence)
             assert(output == OK, output)

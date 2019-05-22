@@ -95,7 +95,8 @@ class SpcWordnetMind(
                 graph.getFormAssocEdge(possessorForm, possesseeRole).nonEmpty ||
                 cosmos.getRolesForForm(possessorForm).exists(
                   possessorRole => {
-                    graph.getFormAssocEdge(possessorRole, possesseeRole).nonEmpty
+                    graph.getFormAssocEdge(
+                      possessorRole, possesseeRole).nonEmpty
                   }
                 )
               }
