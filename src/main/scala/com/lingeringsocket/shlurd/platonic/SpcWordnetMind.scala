@@ -77,26 +77,33 @@ class SpcWordnetMind(
   override def resolveRole(
     possessorForm : SpcForm, noun : SilWord) : Option[SpcRole] =
   {
-    val wordnetOpt = {
-      val senses = ShlurdWordnet.findSenses(noun.senseId)
-      val wordnet = getWordnet
-      val graph = cosmos.getGraph
-      senses.toStream.flatMap(sense => {
-        wordnet.getSynsetForm(sense)
-      }).flatMap(possesseeForm => {
-        cosmos.getRolesForForm(possesseeForm).filter(
-          possesseeRole => {
-            graph.getFormAssocEdge(possessorForm, possesseeRole).nonEmpty ||
-            cosmos.getRolesForForm(possessorForm).exists(
-              possessorRole => {
-                graph.getFormAssocEdge(possessorRole, possesseeRole).nonEmpty
+    val pool = cosmos.getPool
+    pool.accessCache(
+      pool.roleCache,
+      tupleN((possessorForm, noun)),
+      pool.taxonomyTimestamp,
+      {
+        val wordnetOpt = {
+          val senses = ShlurdWordnet.findSenses(noun.senseId)
+          val wordnet = getWordnet
+          val graph = cosmos.getGraph
+          senses.toStream.flatMap(sense => {
+            wordnet.getSynsetForm(sense)
+          }).flatMap(possesseeForm => {
+            cosmos.getRolesForForm(possesseeForm).filter(
+              possesseeRole => {
+                graph.getFormAssocEdge(possessorForm, possesseeRole).nonEmpty ||
+                cosmos.getRolesForForm(possessorForm).exists(
+                  possessorRole => {
+                    graph.getFormAssocEdge(possessorRole, possesseeRole).nonEmpty
+                  }
+                )
               }
             )
-          }
-        )
-      }).headOption
-    }
-    wordnetOpt.orElse(super.resolveRole(possessorForm, noun))
+          }).headOption
+        }
+        wordnetOpt.orElse(super.resolveRole(possessorForm, noun))
+      })
   }
 
   override def resolveQualifiedNoun(

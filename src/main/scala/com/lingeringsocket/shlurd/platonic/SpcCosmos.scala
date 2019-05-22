@@ -266,6 +266,9 @@ class SpcCosmicPool
   @transient val hyponymCache =
     new mutable.HashMap[SpcIdeal, (Int, Seq[SpcForm])]
 
+  @transient val roleCache =
+    new mutable.HashMap[(SpcForm, SilWord), (Int, Option[SpcRole])]
+
   @transient val roleFormCache =
     new mutable.HashMap[SpcRole, (Int, Seq[SpcForm])]
 
