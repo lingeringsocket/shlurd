@@ -241,6 +241,12 @@ object SprParser extends SprEnglishWordAnalyzer
     })
   }
 
+  def isIgnorableLine(line : String) : Boolean =
+  {
+    val trimmed = line.trim
+    trimmed.isEmpty || trimmed.startsWith("//")
+  }
+
   def setStrategy(newStrategy : SprParsingStrategy)
   {
     strategy = newStrategy

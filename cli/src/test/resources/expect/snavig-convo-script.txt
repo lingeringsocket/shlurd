@@ -12,6 +12,7 @@ Someone has written 'clean me!' on the mirror.
 
 You see the axe and the thief.
 
+// FIXME this should really be "talk to myself"
 > talk to me
 
 OK.
@@ -24,6 +25,7 @@ OK.
 
 Only crazy people talk to themselves.
 
+// a non-person target
 > ask the axe "what are you made of"
 
 OK.

@@ -53,7 +53,8 @@ class SpcMind(cosmos : SpcCosmos)
     source : Source,
     responder : SpcResponder = new SpcResponder(this, ACCEPT_NEW_BELIEFS))
   {
-    val beliefs = source.getLines.filterNot(_.isEmpty).mkString("\n")
+    val beliefs = source.getLines.
+      filterNot(SprParser.isIgnorableLine).mkString("\n")
     val sentences = responder.newParser(beliefs).parseAll
     val ok = responder.sentencePrinter.sb.respondCompliance
     val inputRewriter = new SmcInputRewriter(this)

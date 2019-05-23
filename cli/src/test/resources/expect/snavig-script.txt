@@ -1,7 +1,10 @@
+// Introduction
+
 You are in the bedroom.
 
 Grubby articles of alien underwear lie scattered about.
 
+// examine is a valid verb, but requires an object
 > examine
 
 I'm not sure how to interpret that.
@@ -10,6 +13,8 @@ I'm not sure how to interpret that.
 
 I'm not sure how to interpret that.
 
+// although this is a valid internal command, we don't allow the
+// player to invoke it directly
 > survey the bedroom
 
 I'm not sure how to interpret that.
@@ -22,6 +27,7 @@ You are in the bedroom.
 
 You are holding nothing.
 
+// something we haven't seen yet
 > is there an ax
 
 I don't know.
@@ -30,6 +36,7 @@ I don't know.
 
 I don't know.
 
+// a completely undefined verb
 > sing with a falsetto
 
 I'm not sure how to interpret that.
@@ -54,10 +61,12 @@ Nothing is south of the bedroom.
 
 The loft is above the bedroom.
 
+// FIXME:  the door should already have been mentioned
 > is the door open
 
 Yes, it is open.
 
+// an object without an explicit description
 > x door
 
 OK.
@@ -90,10 +99,12 @@ OK.
 
 He wields a wicked-looking stiletto.
 
+// with respect to the player's knowledge
 > is the thief suave
 
 I don't know.
 
+// with respect to the thief's knowledge
 > ask the thief "are you suave"
 
 OK.
@@ -124,6 +135,7 @@ OK.
 
 There is no way to go in that direction.
 
+// FIXME should refer to "you" instead of player-character
 > what is in the bathroom
 
 The thief, the axe, and the player-character are in it.
@@ -158,10 +170,12 @@ You see the thief.
 
 Yes, he is alive.
 
+// an explicitly prohibited verb
 > spy on the thief
 
 A person can not spy on a thief.
 
+// a valid action, but without all required modifiers supplied
 > kill the thief
 
 One does not simply kill.
@@ -172,6 +186,7 @@ OK.
 
 You are in the bedroom.
 
+// reference to something in another room
 > throw the axe at the thief
 
 You can only interact with what's nearby.
@@ -204,6 +219,7 @@ OK.
 
 You are in the bedroom.
 
+// query about something in another room
 > where is the axe
 
 It is in the bathroom.
@@ -236,6 +252,7 @@ OK.
 
 Oddly, the cupboard lacks doors.
 
+// no map connection from here
 > go to the cupboard
 
 You can't get there from here.
@@ -248,6 +265,7 @@ You can't get there from here.
 
 You can only interact with what's nearby.
 
+// try a synonym
 > acquire the lantern
 
 OK.
@@ -294,6 +312,7 @@ You are in the bathroom.
 
 You see the axe and the thief.
 
+// make sure beliefs can only be injected via internal commands
 > the thief believes "the moon is made of green cheese"
 
 Oh, really?
@@ -302,6 +321,7 @@ Oh, really?
 
 You are holding the brass lantern.
 
+// counterfactual
 > I am holding the axe
 
 Oh, really?

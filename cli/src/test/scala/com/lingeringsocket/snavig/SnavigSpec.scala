@@ -15,6 +15,7 @@
 package com.lingeringsocket.snavig
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 
@@ -99,7 +100,7 @@ class SnavigSpec extends Specification
         None
       } else {
         val s = script.next
-        if (s._1.isEmpty) {
+        if (SprParser.isIgnorableLine(s._1)) {
           nextScriptLine
         } else {
           Some(s)
