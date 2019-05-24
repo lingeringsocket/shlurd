@@ -121,7 +121,7 @@ class SpcResponder(
             mind.getCosmos,
             trigger.conditionalSentence,
             predicate,
-            referenceMapOpt.get) match
+            resultCollector.referenceMap) match
           {
             case Some(newPredicate) => {
               return super.evaluatePredicate(newPredicate, resultCollector)
@@ -271,7 +271,7 @@ class SpcResponder(
                   interval,
                   updatedCosmos,
                   predicate,
-                  referenceMapOpt.get)
+                  resultCollector.referenceMap)
               } catch {
                 case CausalityViolationExcn(cause) => {
                   return Some(wrapResponseText(cause))
@@ -298,12 +298,11 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     assertion : SpcAssertion,
     predicate : SilPredicate,
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
     applicability : SpcAssertionApplicability,
     triggerDepth : Int)
       : SpcAssertionResult =
   {
-    val referenceMap = referenceMapOpt.get
-
     val resultCollector = new SmcResultCollector[SpcEntity](referenceMap)
     spawn(imagine(forkedCosmos)).resolveReferences(
       predicate, resultCollector, false, true)
@@ -361,7 +360,9 @@ class SpcResponder(
             tupleN((false, assertionPredicate))
           }
         }
-        if (isSubsumption(forkedCosmos, requirement, predicate)) {
+        if (isSubsumption(
+          forkedCosmos, requirement, predicate, referenceMap)
+        ) {
           if (assertion.sentence.tam.isPositive) {
             SpcAssertionResult(
               Some(requirement),
@@ -403,7 +404,7 @@ class SpcResponder(
     triggerExecutor.matchTriggerPlusAlternative(
       forkedCosmos, conditionalSentence, predicate,
       trigger.additionalConsequents, trigger.alternative,
-      referenceMapOpt.get, triggerDepth) match
+      resultCollector.referenceMap, triggerDepth) match
     {
       case (Some(newPredicate), newAdditionalConsequents, newAlternative) => {
         val (isTest, isPrecondition) =
@@ -615,7 +616,8 @@ class SpcResponder(
         }
         val result = processTriggerablePredicate(
           forkedCosmos, predicate, applicability,
-          triggerDepth, flagErrors && !matched)
+          triggerDepth, flagErrors && !matched,
+          Some(resultCollector.referenceMap))
         if (!result.isEmpty) {
           return result
         }
@@ -671,14 +673,15 @@ class SpcResponder(
   private def isSubsumption(
     forkedCosmos : SpcCosmos,
     generalOpt : Option[SilPredicate],
-    specificOpt : Option[SilPredicate]) : Boolean =
+    specificOpt : Option[SilPredicate],
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
     // maybe we should maintain this relationship in the graph
     // for efficiency?
 
     tupleN((generalOpt, specificOpt)) match {
       case (Some(general), Some(specific)) => {
-        isSubsumption(forkedCosmos, general, specific)
+        isSubsumption(forkedCosmos, general, specific, referenceMap)
       }
       case _ => false
     }
@@ -687,7 +690,8 @@ class SpcResponder(
   private def isSubsumption(
     forkedCosmos : SpcCosmos,
     general : SilPredicate,
-    specific : SilPredicate) : Boolean =
+    specific : SilPredicate,
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
     val conditionalSentence =
       SilConditionalSentence(
@@ -699,7 +703,7 @@ class SpcResponder(
 
     triggerExecutor.matchTrigger(
       forkedCosmos, conditionalSentence,
-      specific, referenceMapOpt.get) match
+      specific, referenceMap) match
     {
       case Some(_) => {
         true
@@ -715,12 +719,14 @@ class SpcResponder(
     predicate : SilPredicate,
     applicability : SpcAssertionApplicability,
     triggerDepth : Int,
-    flagErrors : Boolean)
+    flagErrors : Boolean,
+    referenceMapIn : Option[mutable.Map[SilReference, Set[SpcEntity]]] = None)
       : Option[String] =
   {
+    val referenceMap = referenceMapIn.orElse(referenceMapOpt).get
     val results = mind.getCosmos.getAssertions.map(assertion => {
       val result = applyAssertion(
-        viewedCosmos, assertion, predicate,
+        viewedCosmos, assertion, predicate, referenceMap,
         applicability, triggerDepth
       )
       if (result.strength == ASSERTION_STRONG_FAILURE) {
@@ -735,7 +741,8 @@ class SpcResponder(
 
     weakFailures.find(
       w => !passes.exists(
-        p => isSubsumption(viewedCosmos, w.predicate, p.predicate))) match
+        p => isSubsumption(
+          viewedCosmos, w.predicate, p.predicate, referenceMap))) match
     {
       case Some(result) => {
         return Some(result.message)
@@ -746,7 +753,7 @@ class SpcResponder(
     if (applicability != APPLY_CONSTRAINTS_ONLY) {
       predicate match {
         case ap : SilActionPredicate => {
-          val executorResponse = executor.executeAction(ap, referenceMapOpt.get)
+          val executorResponse = executor.executeAction(ap, referenceMap)
           if (executorResponse.nonEmpty) {
             return executorResponse
           }
