@@ -288,7 +288,6 @@ class SpcResponder(
     }
     already.clear
     // in case we haven't done this already, need to do it now
-    // in case evaluateActionPredicate is called by super
     saveReferenceMap(sentence, mind.getCosmos, resultCollector)
     None
   }
