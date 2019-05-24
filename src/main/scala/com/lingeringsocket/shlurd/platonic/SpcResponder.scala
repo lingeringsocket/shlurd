@@ -185,12 +185,20 @@ class SpcResponder(
     mind.spawn(alternateCosmos.fork())
   }
 
+  override protected def responderMatchers(
+    resultCollector : ResultCollectorType
+  ) =
+  {
+    (attemptResponse(resultCollector) _) #::
+      super.responderMatchers(resultCollector)
+  }
+
   override protected def processImpl(
     sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
     try {
-      attemptResponse(sentence, resultCollector)
+      super.processImpl(sentence, resultCollector)
     } finally {
       already.clear
       referenceMapOpt = None
@@ -199,8 +207,8 @@ class SpcResponder(
   }
 
   private def attemptResponse(
-    sentence : SilSentence, resultCollector : ResultCollectorType)
-      : (SilSentence, String) =
+    resultCollector : ResultCollectorType)(sentence : SilSentence)
+      : Option[(SilSentence, String)] =
   {
     if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
       sentence.tam.isIndicative)
@@ -253,7 +261,7 @@ class SpcResponder(
       ) match {
         case Some(result) => {
           if (result != sentencePrinter.sb.respondCompliance) {
-            return wrapResponseText(result)
+            return Some(wrapResponseText(result))
           }
           if (mind.hasNarrative) {
             predicateOpt.foreach(predicate => {
@@ -266,7 +274,7 @@ class SpcResponder(
                   referenceMapOpt.get)
               } catch {
                 case CausalityViolationExcn(cause) => {
-                  return wrapResponseText(cause)
+                  return Some(wrapResponseText(cause))
                 }
               }
             })
@@ -274,7 +282,7 @@ class SpcResponder(
           if (!temporal) {
             forkedCosmos.applyModifications
           }
-          return wrapResponseText(result)
+          return Some(wrapResponseText(result))
         }
         case _ =>
       }
@@ -283,7 +291,7 @@ class SpcResponder(
     // in case we haven't done this already, need to do it now
     // in case evaluateActionPredicate is called by super
     saveReferenceMap(sentence, mind.getCosmos, resultCollector)
-    super.processImpl(sentence, resultCollector)
+    None
   }
 
   private def applyAssertion(

@@ -204,7 +204,9 @@ class SmcResponder[
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
-  type SentenceResponder = PartialFunction[SilSentence, (SilSentence, String)]
+  type PartialSentenceResponder =
+    PartialFunction[SilSentence, (SilSentence, String)]
+  type SentenceResponder = (SilSentence) => Option[(SilSentence, String)]
 
   private def cosmos = mind.getCosmos
 
@@ -217,13 +219,13 @@ class SmcResponder[
 
   lazy protected val predicateEvaluator = newPredicateEvaluator
 
-  private def responderMatchers(
+  protected def responderMatchers(
     resultCollector : ResultCollectorType
-  ) = Seq(
+  ) = Stream(
     processPredicateQuery(resultCollector),
     processPredicateSentence(resultCollector),
     processUnsupportedSentence(resultCollector)
-  ).reduceLeft(_ orElse _)
+  )
 
   def fail(msg : String) = cosmos.fail(msg)
 
@@ -311,13 +313,11 @@ class SmcResponder[
     sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
-    responderMatchers(resultCollector).applyOrElse(
-      sentence,
-      { s : SilSentence =>
+    responderMatchers(resultCollector).flatMap(_(sentence)).
+      headOption.getOrElse {
         debug("UNKNOWN SENTENCE")
         wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
       }
-    )
   }
 
   protected def updateNarrative(
@@ -355,8 +355,8 @@ class SmcResponder[
     (SilUnparsedSentence(text), text)
   }
 
-  private def sentenceResponder(f : SentenceResponder)
-      : SentenceResponder = f
+  private def sentenceResponder(f : PartialSentenceResponder)
+      : SentenceResponder = f.lift
 
   private def processStateChange(
     resultCollector : ResultCollectorType,
