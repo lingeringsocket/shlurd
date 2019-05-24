@@ -83,8 +83,6 @@ class SpcResponder(
 {
   private val already = new mutable.HashSet[SilPredicate]
 
-  private var referencesSaved = false
-
   private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
   private val triggerExecutor = new SpcTriggerExecutor(
@@ -200,7 +198,6 @@ class SpcResponder(
       super.processImpl(sentence, resultCollector)
     } finally {
       already.clear
-      referencesSaved = false
       typeMemo.clear
     }
   }
@@ -287,8 +284,6 @@ class SpcResponder(
       }
     }
     already.clear
-    // in case we haven't done this already, need to do it now
-    saveReferenceMap(sentence, mind.getCosmos, resultCollector)
     None
   }
 
@@ -537,22 +532,18 @@ class SpcResponder(
     new SpcQueryRewriter(question, answerInflection)
   }
 
-  private def saveReferenceMap(
+  private def updateReferenceMap(
     sentence : SilSentence,
     cosmos : SpcCosmos,
     resultCollector : ResultCollectorType)
   {
-    if (!referencesSaved) {
-      // we may have modified cosmos (e.g. with new entities) by this
-      // point, so run another full reference resolution pass to pick
-      // them up
-      resultCollector.referenceMap.clear
-      spawn(imagine(cosmos)).resolveReferences(
-        sentence, resultCollector)
-
-      mind.rememberSentenceAnalysis(resultCollector.referenceMap)
-      referencesSaved = true
-    }
+    // we may have modified cosmos (e.g. with new entities) by this
+    // point, so run another full reference resolution pass to pick
+    // them up
+    resultCollector.referenceMap.clear
+    spawn(imagine(cosmos)).resolveReferences(
+      sentence, resultCollector)
+    rememberSentenceAnalysis(resultCollector)
   }
 
   override protected def freezeCosmos(mutableCosmos : SpcCosmos) =
@@ -588,7 +579,7 @@ class SpcResponder(
     // defer until this point so that any newly created entities etc will
     // already have taken effect
     if (triggerDepth == 0) {
-      saveReferenceMap(sentence, forkedCosmos, resultCollector)
+      updateReferenceMap(sentence, forkedCosmos, resultCollector)
     }
     sentence match {
       case SilPredicateSentence(predicate, _, _) => {

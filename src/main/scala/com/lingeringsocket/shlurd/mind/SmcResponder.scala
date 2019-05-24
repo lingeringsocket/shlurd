@@ -261,6 +261,7 @@ class SmcResponder[
       SmcConversation.SPEAKER_NAME_PERSON, analyzed, input)
     val resultCollector = SmcResultCollector[EntityType]
     resolveReferences(analyzed, resultCollector)
+    rememberSentenceAnalysis(resultCollector)
     val (responseSentence, responseText) =
       processResolved(analyzed, resultCollector)
     debug(s"RESPONSE TEXT : $responseText")
@@ -358,6 +359,11 @@ class SmcResponder[
   private def sentenceResponder(f : PartialSentenceResponder)
       : SentenceResponder = f.lift
 
+  protected def rememberSentenceAnalysis(resultCollector : ResultCollectorType)
+  {
+    mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+  }
+
   private def processStateChange(
     resultCollector : ResultCollectorType,
     predicate : SilPredicate) : Try[(SilSentence, String)] =
@@ -367,7 +373,6 @@ class SmcResponder[
     val result = predicateEvaluator.evaluatePredicate(
       predicate, resultCollector)
 
-    mind.rememberSentenceAnalysis(resultCollector.referenceMap)
     result match {
       case Success(Trilean.True) => {
         debug("COUNTERFACTUAL")
@@ -422,7 +427,6 @@ class SmcResponder[
 
       val result = evaluateTamPredicate(
         rewrittenPredicate, tam, resultCollector)
-      mind.rememberSentenceAnalysis(resultCollector.referenceMap)
       result match {
         case Success(Trilean.Unknown) => {
           debug("ANSWER UNKNOWN")
@@ -530,7 +534,6 @@ class SmcResponder[
           trace("PREDICATE QUERY SENTENCE")
           val query = predicate
           val result = evaluateTamPredicate(query, tam, resultCollector)
-          mind.rememberSentenceAnalysis(resultCollector.referenceMap)
           result match {
             case Success(Trilean.Unknown) => {
               debug("ANSWER UNKNOWN")
@@ -597,7 +600,6 @@ class SmcResponder[
           trace(s"POSITIVITY : $positivity")
           val predicateTruth = evaluateTamPredicate(
             predicate, tam, resultCollector)
-          mind.rememberSentenceAnalysis(resultCollector.referenceMap)
           val tamResponse = {
             predicateTruth match {
               case Success(Trilean.False) => {

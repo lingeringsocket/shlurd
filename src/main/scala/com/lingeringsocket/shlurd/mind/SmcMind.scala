@@ -109,9 +109,14 @@ class SmcMind[
   {
     ref match {
       case SilNounReference(
-        _, DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED, _
+        _, DETERMINER_UNIQUE, _
       ) => {
         true
+      }
+      case SilNounReference(
+        noun, DETERMINER_UNSPECIFIED, _
+      ) => {
+        noun.isProper
       }
       case _ : SilPronounReference => true
       case SilConjunctiveReference(_, references, _) => {
