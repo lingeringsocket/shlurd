@@ -575,8 +575,8 @@ class SnavigShell(
     referenceMapIn : Map[SilReference, Set[SpcEntity]])
       : Option[String] =
   {
-    val referenceMap = new mutable.LinkedHashMap[SilReference, Set[SpcEntity]]
-    referenceMap ++= referenceMapIn
+    val referenceMap =
+      SmcResultCollector.modifiableReferenceMap(referenceMapIn)
     val result = phenomenalResponder.processTriggerablePredicate(
       phenomenalCosmos, predicate, referenceMap,
       APPLY_CONSTRAINTS_ONLY, 0, true)
