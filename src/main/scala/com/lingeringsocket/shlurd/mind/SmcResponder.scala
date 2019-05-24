@@ -260,7 +260,7 @@ class SmcResponder[
     val resultCollector = SmcResultCollector[EntityType]
     resolveReferences(analyzed, resultCollector)
     val (responseSentence, responseText) =
-      processImpl(analyzed, resultCollector)
+      processResolved(analyzed, resultCollector)
     debug(s"RESPONSE TEXT : $responseText")
     debug(s"RESPONSE SENTENCE : $responseSentence")
     if (mind.isConversing) {
@@ -287,7 +287,7 @@ class SmcResponder[
       phrase, resultCollector, throwFailures, reify)
   }
 
-  protected def processImpl(
+  private def processResolved(
     sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
@@ -301,10 +301,18 @@ class SmcResponder[
           resultCollector.referenceMap),
         normalizedInput)
       val responder = new SmcUnrecognizedResponder(sentencePrinter)
-      return wrapResponseText(responder.respond(unrecognized))
+      wrapResponseText(responder.respond(unrecognized))
+    } else {
+      processImpl(normalizedInput, resultCollector)
     }
+  }
+
+  protected def processImpl(
+    sentence : SilSentence, resultCollector : ResultCollectorType)
+      : (SilSentence, String) =
+  {
     responderMatchers(resultCollector).applyOrElse(
-      normalizedInput,
+      sentence,
       { s : SilSentence =>
         debug("UNKNOWN SENTENCE")
         wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
