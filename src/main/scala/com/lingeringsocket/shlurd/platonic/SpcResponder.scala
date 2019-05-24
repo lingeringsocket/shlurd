@@ -587,7 +587,9 @@ class SpcResponder(
     )
     // defer until this point so that any newly created entities etc will
     // already have taken effect
-    saveReferenceMap(sentence, forkedCosmos, resultCollector)
+    if (triggerDepth == 0) {
+      saveReferenceMap(sentence, forkedCosmos, resultCollector)
+    }
     sentence match {
       case SilPredicateSentence(predicate, _, _) => {
         if (flagErrors && predicate.isInstanceOf[SilActionPredicate]) {
