@@ -534,7 +534,7 @@ class SnavigShell(
       val sentence = SilPredicateSentence(newPredicate)
       val entities = SilUtils.collectReferences(sentence).flatMap(
         referenceMap.get(_).getOrElse(Set.empty))
-      validateFiat(newPredicate).orElse(
+      validateFiat(newPredicate, referenceMap).orElse(
         processFiat(sentence, entities)
       )
     }
@@ -571,11 +571,15 @@ class SnavigShell(
   }
 
   private def validateFiat(
-    predicate : SilPredicate)
+    predicate : SilPredicate,
+    referenceMapIn : Map[SilReference, Set[SpcEntity]])
       : Option[String] =
   {
+    val referenceMap = new mutable.LinkedHashMap[SilReference, Set[SpcEntity]]
+    referenceMap ++= referenceMapIn
     val result = phenomenalResponder.processTriggerablePredicate(
-      phenomenalCosmos, predicate, APPLY_CONSTRAINTS_ONLY, 0, true)
+      phenomenalCosmos, predicate, referenceMap,
+      APPLY_CONSTRAINTS_ONLY, 0, true)
     if (result == ok) {
       None
     } else {

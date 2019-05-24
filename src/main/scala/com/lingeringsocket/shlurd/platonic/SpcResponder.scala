@@ -83,8 +83,7 @@ class SpcResponder(
 {
   private val already = new mutable.HashSet[SilPredicate]
 
-  private var referenceMapOpt
-      : Option[mutable.Map[SilReference, Set[SpcEntity]]] = None
+  private var referencesSaved = false
 
   private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
@@ -201,7 +200,7 @@ class SpcResponder(
       super.processImpl(sentence, resultCollector)
     } finally {
       already.clear
-      referenceMapOpt = None
+      referencesSaved = false
       typeMemo.clear
     }
   }
@@ -544,19 +543,17 @@ class SpcResponder(
     cosmos : SpcCosmos,
     resultCollector : ResultCollectorType)
   {
-    if (!referenceMapOpt.isEmpty) {
-      return
+    if (!referencesSaved) {
+      // we may have modified cosmos (e.g. with new entities) by this
+      // point, so run another full reference resolution pass to pick
+      // them up
+      resultCollector.referenceMap.clear
+      spawn(imagine(cosmos)).resolveReferences(
+        sentence, resultCollector)
+
+      mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+      referencesSaved = true
     }
-
-    // we may have modified cosmos (e.g. with new entities) by this
-    // point, so run another full reference resolution pass to pick
-    // them up
-    resultCollector.referenceMap.clear
-    spawn(imagine(cosmos)).resolveReferences(
-      sentence, resultCollector)
-
-    mind.rememberSentenceAnalysis(resultCollector.referenceMap)
-    referenceMapOpt = Some(resultCollector.referenceMap)
   }
 
   override protected def freezeCosmos(mutableCosmos : SpcCosmos) =
@@ -615,9 +612,9 @@ class SpcResponder(
           }
         }
         val result = processTriggerablePredicate(
-          forkedCosmos, predicate, applicability,
-          triggerDepth, flagErrors && !matched,
-          Some(resultCollector.referenceMap))
+          forkedCosmos, predicate,
+          resultCollector.referenceMap, applicability,
+          triggerDepth, flagErrors && !matched)
         if (!result.isEmpty) {
           return result
         }
@@ -717,13 +714,12 @@ class SpcResponder(
   def processTriggerablePredicate(
     viewedCosmos : SpcCosmos,
     predicate : SilPredicate,
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
     applicability : SpcAssertionApplicability,
     triggerDepth : Int,
-    flagErrors : Boolean,
-    referenceMapIn : Option[mutable.Map[SilReference, Set[SpcEntity]]] = None)
+    flagErrors : Boolean)
       : Option[String] =
   {
-    val referenceMap = referenceMapIn.orElse(referenceMapOpt).get
     val results = mind.getCosmos.getAssertions.map(assertion => {
       val result = applyAssertion(
         viewedCosmos, assertion, predicate, referenceMap,
