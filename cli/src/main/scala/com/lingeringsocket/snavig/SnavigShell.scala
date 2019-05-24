@@ -575,7 +575,7 @@ class SnavigShell(
       : Option[String] =
   {
     val result = phenomenalResponder.processTriggerablePredicate(
-      phenomenalCosmos, predicate, APPLY_CONSTRAINTS_ONLY, true)
+      phenomenalCosmos, predicate, APPLY_CONSTRAINTS_ONLY, 0, true)
     if (result == ok) {
       None
     } else {

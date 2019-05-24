@@ -249,7 +249,7 @@ class SpcResponder(
         predicateOpt.map(
           SilPredicateSentence(_, sentence.tam)).getOrElse(sentence)
       processBeliefOrAction(
-        forkedCosmos, inputSentence, resultCollector
+        forkedCosmos, inputSentence, resultCollector, 0
       ) match {
         case Some(result) => {
           if (result != sentencePrinter.sb.respondCompliance) {
@@ -290,7 +290,8 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     assertion : SpcAssertion,
     predicate : SilPredicate,
-    applicability : SpcAssertionApplicability)
+    applicability : SpcAssertionApplicability,
+    triggerDepth : Int)
       : SpcAssertionResult =
   {
     val referenceMap = referenceMapOpt.get
@@ -307,7 +308,7 @@ class SpcResponder(
           inapplicable
         } else {
           applyTrigger(
-            forkedCosmos, trigger, predicate, resultCollector
+            forkedCosmos, trigger, predicate, resultCollector, triggerDepth
           ) match {
             case Some(message) => {
               val strength = {
@@ -386,14 +387,15 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     trigger : SpcTrigger,
     predicate : SilPredicate,
-    resultCollector : ResultCollectorType)
+    resultCollector : ResultCollectorType,
+    triggerDepth : Int)
       : Option[String] =
   {
     val conditionalSentence = trigger.conditionalSentence
     triggerExecutor.matchTriggerPlusAlternative(
       forkedCosmos, conditionalSentence, predicate,
       trigger.additionalConsequents, trigger.alternative,
-      referenceMapOpt.get) match
+      referenceMapOpt.get, triggerDepth) match
     {
       case (Some(newPredicate), newAdditionalConsequents, newAlternative) => {
         val (isTest, isPrecondition) =
@@ -445,7 +447,8 @@ class SpcResponder(
                   recoverySentence, resultCollector, false, true)
                 // FIXME use recoveryResult somehow
                 val recoveryResult = processBeliefOrAction(
-                  forkedCosmos, recoverySentence, resultCollector, false)
+                  forkedCosmos, recoverySentence, resultCollector,
+                  triggerDepth + 1, false)
               })
               // FIXME i18n
               if (isPrecondition) {
@@ -461,7 +464,8 @@ class SpcResponder(
             spawn(imagine(forkedCosmos)).resolveReferences(
               newSentence, resultCollector, false, true)
             processBeliefOrAction(
-              forkedCosmos, newSentence, resultCollector, false)
+              forkedCosmos, newSentence, resultCollector,
+              triggerDepth + 1, false)
           })
           if (results.isEmpty) {
             Some(sentencePrinter.sb.respondCompliance)
@@ -556,6 +560,7 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     sentence : SilSentence,
     resultCollector : ResultCollectorType,
+    triggerDepth : Int,
     flagErrors : Boolean = true)
       : Option[String] =
   {
@@ -566,13 +571,15 @@ class SpcResponder(
         spawn(mind.spawn(forkedCosmos)),
         (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS),
         resultCollector)
-    attemptAsBelief(beliefAccepter, sentence).foreach(result => {
-      if (result != compliance) {
-        return Some(result)
-      } else {
-        matched = true
+    attemptAsBelief(beliefAccepter, sentence, triggerDepth).foreach(
+      result => {
+        if (result != compliance) {
+          return Some(result)
+        } else {
+          matched = true
+        }
       }
-    })
+    )
     // defer until this point so that any newly created entities etc will
     // already have taken effect
     saveReferenceMap(sentence, forkedCosmos, resultCollector)
@@ -599,7 +606,8 @@ class SpcResponder(
           }
         }
         val result = processTriggerablePredicate(
-          forkedCosmos, predicate, applicability, flagErrors && !matched)
+          forkedCosmos, predicate, applicability,
+          triggerDepth, flagErrors && !matched)
         if (!result.isEmpty) {
           return result
         }
@@ -620,7 +628,8 @@ class SpcResponder(
 
   private def attemptAsBelief(
     beliefAccepter : SpcBeliefAccepter,
-    sentence : SilSentence) : Option[String] =
+    sentence : SilSentence,
+    triggerDepth : Int) : Option[String] =
   {
     beliefAccepter.recognizeBeliefs(sentence) match {
       case beliefs : Seq[SpcBelief] if (!beliefs.isEmpty) => {
@@ -697,12 +706,14 @@ class SpcResponder(
     viewedCosmos : SpcCosmos,
     predicate : SilPredicate,
     applicability : SpcAssertionApplicability,
-    flagErrors : Boolean) : Option[String] =
+    triggerDepth : Int,
+    flagErrors : Boolean)
+      : Option[String] =
   {
     val results = mind.getCosmos.getAssertions.map(assertion => {
       val result = applyAssertion(
         viewedCosmos, assertion, predicate,
-        applicability
+        applicability, triggerDepth
       )
       if (result.strength == ASSERTION_STRONG_FAILURE) {
         return Some(result.message)

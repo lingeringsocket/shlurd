@@ -13,3 +13,13 @@ A cupboard is a kind of visible-entity.
 A loft is a kind of map-place.
 
 An oracle is a kind of non-player-character.
+
+If a player-character beseeches an oracle, then
+ the game-interpreter says "Answer me these questions three.".
+
+// Wordnet has adjure and beseech as synonyms.  We want to verify that
+// from the user level, they are synonymous; whereas for triggering purposes,
+// they are distinct.
+If a player-character ululates, then
+ the player-character adjures the oracle;
+ also the game-interpreter says "Blood is trickling from my ears.".

@@ -115,3 +115,21 @@ The oracle responds, "It is in the kitchen."
 > talk to the thief
 
 You can only interact with what's nearby.
+
+> beseech the oracle
+
+OK.
+
+Answer me these questions three.
+
+> adjure the oracle
+
+OK.
+
+Answer me these questions three.
+
+> ululate
+
+OK.
+
+Blood is trickling from my ears.

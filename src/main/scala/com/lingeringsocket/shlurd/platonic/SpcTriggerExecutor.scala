@@ -43,13 +43,12 @@ class SpcTriggerExecutor(
     cosmos : SpcCosmos,
     trigger : SilConditionalSentence,
     predicate : SilPredicate,
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
-    strict : Boolean = true
+    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]
   ) : Option[SilPredicate] =
   {
     matchTriggerPlusAlternative(
       cosmos, trigger, predicate, Seq.empty, None,
-      referenceMap, strict)._1
+      referenceMap, 0)._1
   }
 
   private[platonic] def matchTriggerPlusAlternative(
@@ -59,7 +58,7 @@ class SpcTriggerExecutor(
     additionalConsequents : Seq[SilPredicateSentence],
     alternative : Option[SilPredicateSentence],
     referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
-    strict : Boolean = true
+    triggerDepth : Int
   ) : (
     Option[SilPredicate],
     Seq[SilPredicateSentence],
@@ -156,7 +155,7 @@ class SpcTriggerExecutor(
             return unmatched
           }
         }
-        if (!mind.isEquivalentVerb(action, actionPredicate.action)) {
+        if (!isEquivalentVerb(action, actionPredicate.action, triggerDepth)) {
           def lemma = actionPredicate.action.toLemma
           trace(s"ACTION $lemma DOES NOT MATCH")
           return unmatched
@@ -179,10 +178,8 @@ class SpcTriggerExecutor(
               }
             }
             case _ => {
-              if (strict) {
-                trace(s"DIRECT OBJECT MISSING")
-                return unmatched
-              }
+              trace(s"DIRECT OBJECT MISSING")
+              return unmatched
             }
           }
         })
@@ -193,12 +190,8 @@ class SpcTriggerExecutor(
               // matched:  discard
               true
             } else {
-              if (strict) {
-                trace(s"BASIC VERB MODIFIER $bm MISSING")
-                return unmatched
-              } else {
-                false
-              }
+              trace(s"BASIC VERB MODIFIER $bm MISSING")
+              return unmatched
             }
           }
           // keep
@@ -225,10 +218,8 @@ class SpcTriggerExecutor(
               case _ => None
             })
             if (actualRefs.size != 1) {
-              if (strict) {
-                trace("VERB MODIFIER PATTERN DOES NOT MATCH")
-                return unmatched
-              }
+              trace("VERB MODIFIER PATTERN DOES NOT MATCH")
+              return unmatched
             } else {
               val objPattern = SilNounReference(
                 objNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
@@ -276,6 +267,16 @@ class SpcTriggerExecutor(
       debug(s"WITH ALTERNATIVE $sentence")
     })
     tupleN((Some(newPredicate), newAdditional, newAlternative))
+  }
+
+  private def isEquivalentVerb(
+    verb1 : SilWord, verb2 : SilWord, triggerDepth : Int) : Boolean =
+  {
+    if (triggerDepth > 0) {
+      verb1.toLemma == verb2.toLemma
+    } else {
+      mind.isEquivalentVerb(verb1, verb2)
+    }
   }
 
   private def prepareReplacement(

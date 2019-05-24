@@ -7,4 +7,6 @@ A person can't spy on a thief.
 Generally a player-character can't kill.
 A player-character can kill a kill-victim with a game-weapon.
 
-A player-character can throw.
+A player-character can throw a throw-object.
+A player-character can beseech an oracle.
+A player-character can ululate.
