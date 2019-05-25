@@ -43,12 +43,13 @@ class SpcTriggerExecutor(
     cosmos : SpcCosmos,
     trigger : SilConditionalSentence,
     predicate : SilPredicate,
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]
+    referenceMapIn : Map[SilReference, Set[SpcEntity]],
+    referenceMapOut : mutable.Map[SilReference, Set[SpcEntity]]
   ) : Option[SilPredicate] =
   {
     matchTriggerPlusAlternative(
       cosmos, trigger, predicate, Seq.empty, None,
-      referenceMap, 0)._1
+      referenceMapIn, referenceMapOut, 0)._1
   }
 
   private[platonic] def matchTriggerPlusAlternative(
@@ -57,7 +58,8 @@ class SpcTriggerExecutor(
     predicate : SilPredicate,
     additionalConsequents : Seq[SilPredicateSentence],
     alternative : Option[SilPredicateSentence],
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
+    referenceMapIn : Map[SilReference, Set[SpcEntity]],
+    referenceMapOut : mutable.Map[SilReference, Set[SpcEntity]],
     triggerDepth : Int
   ) : (
     Option[SilPredicate],
@@ -88,7 +90,7 @@ class SpcTriggerExecutor(
           ) if (adp1 == adp2) => {
             if (!prepareReplacement(
               cosmos, replacements, obj1,
-              obj2, referenceMap))
+              obj2, referenceMapIn, referenceMapOut))
             {
               return unmatched
             }
@@ -102,7 +104,8 @@ class SpcTriggerExecutor(
           }
         }
         if (!prepareReplacement(
-          cosmos, replacements, subject, statePredicate.subject, referenceMap))
+          cosmos, replacements, subject, statePredicate.subject,
+          referenceMapIn, referenceMapOut))
         {
           return unmatched
         }
@@ -122,7 +125,8 @@ class SpcTriggerExecutor(
           return unmatched
         }
         if (!prepareReplacement(
-          cosmos, replacements, subject, relPredicate.subject, referenceMap))
+          cosmos, replacements, subject, relPredicate.subject,
+          referenceMapIn, referenceMapOut))
         {
           return unmatched
         }
@@ -130,7 +134,8 @@ class SpcTriggerExecutor(
           case REL_IDENTITY => {
             if (!prepareReplacement(
               cosmos, replacements, complement,
-              relPredicate.complement, referenceMap))
+              relPredicate.complement,
+              referenceMapIn, referenceMapOut))
             {
               return unmatched
             }
@@ -138,7 +143,7 @@ class SpcTriggerExecutor(
           case REL_ASSOCIATION => {
             if (!prepareReplacement(
               cosmos, replacements, complement, relPredicate.complement,
-              referenceMap))
+              referenceMapIn, referenceMapOut))
             {
               return unmatched
             }
@@ -164,7 +169,7 @@ class SpcTriggerExecutor(
         // "if an object hits an object"
         if (!prepareReplacement(
           cosmos, replacements, subject, actionPredicate.subject,
-          referenceMap))
+          referenceMapIn, referenceMapOut))
         {
           return unmatched
         }
@@ -172,7 +177,8 @@ class SpcTriggerExecutor(
           actionPredicate.directObject match {
             case Some(actualObj) => {
               if (!prepareReplacement(
-                cosmos, replacements, obj, actualObj, referenceMap))
+                cosmos, replacements, obj, actualObj,
+                referenceMapIn, referenceMapOut))
               {
                 return unmatched
               }
@@ -284,14 +290,16 @@ class SpcTriggerExecutor(
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
     actualRef : SilReference,
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
+    referenceMapIn : Map[SilReference, Set[SpcEntity]],
+    referenceMapOut : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
     val patternMatched = prepareReplacementImpl(
       cosmos,
       replacements,
       ref,
       actualRef,
-      referenceMap)
+      referenceMapIn,
+      referenceMapOut)
     if (patternMatched) {
       true
     } else {
@@ -311,7 +319,8 @@ class SpcTriggerExecutor(
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
     actualRef : SilReference,
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
+    referenceMapIn : Map[SilReference, Set[SpcEntity]],
+    referenceMapOut : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
     // FIXME support other reference patterns
     ref match {
@@ -368,7 +377,7 @@ class SpcTriggerExecutor(
             tupleN((actualRef, Set.empty[SpcEntity]))
           }
           case _ => {
-            referenceMap.get(actualRef) match {
+            referenceMapIn.get(actualRef) match {
               case Some(entities) => {
                 tupleN((actualRef, entities))
               }
@@ -401,13 +410,13 @@ class SpcTriggerExecutor(
                   filtered.toSeq.map(entity => {
                     val entityRef = mind.specificReference(
                       entity, DETERMINER_UNIQUE)
-                    referenceMap.put(entityRef, Set(entity))
+                    referenceMapOut.put(entityRef, Set(entity))
                     entityRef
                   })
                 )
               }
             }
-            referenceMap.put(conjunction, filtered)
+            referenceMapOut.put(conjunction, filtered)
             conjunction
           }
           case _ => candidateRef

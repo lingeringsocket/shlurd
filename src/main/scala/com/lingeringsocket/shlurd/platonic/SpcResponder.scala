@@ -118,6 +118,7 @@ class SpcResponder(
             mind.getCosmos,
             trigger.conditionalSentence,
             predicate,
+            resultCollector.referenceMap,
             resultCollector.referenceMap) match
           {
             case Some(newPredicate) => {
@@ -154,6 +155,7 @@ class SpcResponder(
           mind.getCosmos,
           trigger.conditionalSentence,
           stateNormalized,
+          referenceMap,
           modifiableReferenceMap)
       }).filter(acceptReplacement)
       replacements.headOption.getOrElse(stateNormalized)
@@ -397,7 +399,9 @@ class SpcResponder(
     triggerExecutor.matchTriggerPlusAlternative(
       forkedCosmos, conditionalSentence, predicate,
       trigger.additionalConsequents, trigger.alternative,
-      resultCollector.referenceMap, triggerDepth) match
+      resultCollector.referenceMap,
+      resultCollector.referenceMap,
+      triggerDepth) match
     {
       case (Some(newPredicate), newAdditionalConsequents, newAlternative) => {
         val (isTest, isPrecondition) =
@@ -663,7 +667,7 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     generalOpt : Option[SilPredicate],
     specificOpt : Option[SilPredicate],
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
+    referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
     // maybe we should maintain this relationship in the graph
     // for efficiency?
@@ -680,7 +684,7 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     general : SilPredicate,
     specific : SilPredicate,
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
+    referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
     val conditionalSentence =
       SilConditionalSentence(
@@ -692,7 +696,9 @@ class SpcResponder(
 
     triggerExecutor.matchTrigger(
       forkedCosmos, conditionalSentence,
-      specific, referenceMap) match
+      specific,
+      referenceMap,
+      SmcResultCollector.modifiableReferenceMap(referenceMap)) match
     {
       case Some(_) => {
         true
@@ -922,7 +928,9 @@ class SpcResponder(
         mind.getCosmos.getTriggers.foreach(trigger => {
           triggerExecutor.matchTrigger(
             mind.getCosmos, trigger.conditionalSentence,
-            predicate, modifiableReferenceMap
+            predicate,
+            modifiableReferenceMap,
+            modifiableReferenceMap
           ) match {
             case Some(newPredicate) => {
               queue.enqueue(newPredicate)

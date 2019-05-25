@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
@@ -82,6 +83,9 @@ class SpcReferenceAnalysisSpec extends Specification
   {
     "analyze references" in new AnalysisContext
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not supported")
+      }
       val ivan = "Ivan"
       val boris = "Boris"
       val ivanRef = SilNounReference(SilWord(ivan))
