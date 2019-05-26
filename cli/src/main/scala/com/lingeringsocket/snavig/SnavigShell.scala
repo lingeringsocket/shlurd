@@ -572,11 +572,9 @@ class SnavigShell(
 
   private def validateFiat(
     predicate : SilPredicate,
-    referenceMapIn : Map[SilReference, Set[SpcEntity]])
+    referenceMap : Map[SilReference, Set[SpcEntity]])
       : Option[String] =
   {
-    val referenceMap =
-      SmcResultCollector.modifiableReferenceMap(referenceMapIn)
     val result = phenomenalResponder.processTriggerablePredicate(
       phenomenalCosmos, predicate, referenceMap,
       APPLY_CONSTRAINTS_ONLY, 0, true)

@@ -293,12 +293,13 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     assertion : SpcAssertion,
     predicate : SilPredicate,
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
+    referenceMap : Map[SilReference, Set[SpcEntity]],
     applicability : SpcAssertionApplicability,
     triggerDepth : Int)
       : SpcAssertionResult =
   {
-    val resultCollector = new SmcResultCollector[SpcEntity](referenceMap)
+    val resultCollector = new SmcResultCollector[SpcEntity](
+      SmcResultCollector.modifiableReferenceMap(referenceMap))
     spawn(imagine(forkedCosmos)).resolveReferences(
       predicate, resultCollector, false, true)
 
@@ -712,7 +713,7 @@ class SpcResponder(
   def processTriggerablePredicate(
     viewedCosmos : SpcCosmos,
     predicate : SilPredicate,
-    referenceMap : mutable.Map[SilReference, Set[SpcEntity]],
+    referenceMap : Map[SilReference, Set[SpcEntity]],
     applicability : SpcAssertionApplicability,
     triggerDepth : Int,
     flagErrors : Boolean)
