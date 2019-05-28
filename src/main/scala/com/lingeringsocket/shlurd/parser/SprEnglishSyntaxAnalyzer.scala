@@ -53,39 +53,44 @@ class SprEnglishSyntaxAnalyzer(
         semiSeparator)
     }
     val children = stripPauses(tree)
-    val antecedent = extractAntecedent(children)
-    if (!antecedent.isEmpty) {
-      expectConditionalSentence(
-        tree,
-        antecedent.get,
-        SptS(children.tail.filterNot(c => (c.isThenEquivalently)):_*),
-        children.tail.exists(c =>
-          (c.isEquivalently || c.children.exists(_.isEquivalently))),
-        SilFormality(force))
-    } else  if (isImperative(children)) {
-      expectCommand(tree, children.head, SilFormality(force))
-    } else if (children.size >= 2) {
-      val tail = children.takeRight(2)
-      val np = tail.head
-      val vp = tail.last
-      val verbModifiers = children.dropRight(2)
-      if (np.isNounNode && vp.isVerbPhrase &&
-        verbModifiers.forall(_.isAdverbialPhrase))
-      {
-        val tam = if (isQuestion) {
-          SilTam.interrogative
+    extractAntecedent(children) match {
+      case Some((conjunction, antecedent)) => {
+        expectConditionalSentence(
+          tree,
+          conjunction,
+          antecedent,
+          SptS(children.tail.filterNot(c => (c.isThenEquivalently)):_*),
+          children.tail.exists(c =>
+            (c.isEquivalently || c.children.exists(_.isEquivalently))),
+          SilFormality(force))
+      }
+      case _ if (isImperative(children)) => {
+        expectCommand(tree, children.head, SilFormality(force))
+      }
+      case _ if (children.size >= 2) => {
+        val tail = children.takeRight(2)
+        val np = tail.head
+        val vp = tail.last
+        val verbModifiers = children.dropRight(2)
+        if (np.isNounNode && vp.isVerbPhrase &&
+          verbModifiers.forall(_.isAdverbialPhrase))
+        {
+          val tam = if (isQuestion) {
+            SilTam.interrogative
+          } else {
+            SilTam.indicative
+          }
+          expectPredicateSentence(
+            tree, np, vp,
+            expectVerbModifiers(verbModifiers :+ np).dropRight(1),
+            force, tam, COUNT_SINGULAR, false)
         } else {
-          SilTam.indicative
+          SilUnrecognizedSentence(tree)
         }
-        expectPredicateSentence(
-          tree, np, vp,
-          expectVerbModifiers(verbModifiers :+ np).dropRight(1),
-          force, tam, COUNT_SINGULAR, false)
-      } else {
+      }
+      case _ => {
         SilUnrecognizedSentence(tree)
       }
-    } else {
-      SilUnrecognizedSentence(tree)
     }
   }
 
@@ -1074,18 +1079,20 @@ class SprEnglishSyntaxAnalyzer(
   }
 
   private def extractAntecedent(children : Seq[SprSyntaxTree])
-      : Option[SptS] =
+      : Option[(SilWord, SptS)] =
   {
     children.headOption match {
       case Some(SptSBAR(SptIN(leaf), antecedent : SptS)) => {
         leaf.lemma match {
-          case LEMMA_IF | LEMMA_WHEN => Some(antecedent)
-          case _ => None
+          case LEMMA_IF | LEMMA_WHEN =>
+            Some(tupleN((getWord(leaf), antecedent)))
+          case _ =>
+            None
         }
       }
       case Some(SptSBAR(SptWHADVP(SptWRB(leaf)), antecedent : SptS)) => {
         leaf.lemma match {
-          case LEMMA_WHEN => Some(antecedent)
+          case LEMMA_WHEN => Some(tupleN((getWord(leaf), antecedent)))
           case _ => None
         }
       }

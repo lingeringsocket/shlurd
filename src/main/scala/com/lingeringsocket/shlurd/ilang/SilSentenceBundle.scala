@@ -140,6 +140,7 @@ abstract class SilSentenceBundle
     items : Seq[String]) : String
 
   def conditional(
+    conjunction : SilWord,
     antecedent : String,
     consequent : String,
     biconditional : Boolean) : String

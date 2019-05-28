@@ -358,6 +358,7 @@ case class SilPredicateSentence(
 }
 
 case class SilConditionalSentence(
+  conjunction : SilWord,
   antecedent : SilPredicate,
   consequent : SilPredicate,
   tamAntecedent : SilTam,

@@ -528,6 +528,7 @@ class SilEnglishSentenceBundle
   }
 
   override def conditional(
+    conjunction : SilWord,
     antecedent : String,
     consequent : String,
     biconditional : Boolean) =
@@ -539,7 +540,9 @@ class SilEnglishSentenceBundle
         LEMMA_THEN
       }
     }
-    compose(LEMMA_IF, concat(antecedent, ","), connective, consequent)
+    compose(
+      delemmatizeWord(conjunction),
+      concat(antecedent, ","), connective, consequent)
   }
 
   override def composeQualifiers(qualifiers : Seq[SilWord]) =

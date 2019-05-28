@@ -689,6 +689,7 @@ class SpcResponder(
   {
     val conditionalSentence =
       SilConditionalSentence(
+        SilWord(LEMMA_IF),
         general,
         SilStatePredicate(general.getSubject, SilExistenceState()),
         SilTam.indicative,

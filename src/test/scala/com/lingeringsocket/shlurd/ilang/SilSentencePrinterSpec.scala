@@ -299,7 +299,7 @@ class SilSentencePrinterSpec extends Specification
         "then the location is the object's container")
       expectNormalized("when an object moves to a location, " +
         "the location is the object's container",
-        "if an object moves to a location, " +
+        "when an object moves to a location, " +
           "then the location is the object's container."
       )
       expectQuestion("what is south of the cave")

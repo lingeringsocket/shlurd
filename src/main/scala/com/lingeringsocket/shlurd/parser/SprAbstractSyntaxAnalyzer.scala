@@ -35,6 +35,7 @@ abstract class SprAbstractSyntaxAnalyzer(
 
   protected def expectConditionalSentence(
     tree : SprSyntaxTree,
+    conjunction : SilWord,
     antecedent : SptS,
     consequent : SptS,
     biconditional : Boolean,
@@ -66,6 +67,7 @@ abstract class SprAbstractSyntaxAnalyzer(
       }
     }
     SilConditionalSentence(
+      conjunction,
       antecedentPredicate,
       consequentPredicate,
       antecedentSentence.tam,
