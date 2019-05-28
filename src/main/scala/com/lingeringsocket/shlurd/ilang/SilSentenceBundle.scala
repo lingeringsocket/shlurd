@@ -117,7 +117,7 @@ abstract class SilSentenceBundle
   def adpositionString(adposition : SilAdposition) : String
 
   def actionVerb(
-    action : SilWord) : String
+    verb : SilWord) : String
 
   def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) : String
@@ -256,8 +256,6 @@ abstract class SilSentenceBundle
   def unknownState() : String
 
   def unknownVerbModifier() : String
-
-  def unknownCopula() : String
 
   def unknownPredicateStatement() : String
 

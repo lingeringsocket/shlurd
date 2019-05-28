@@ -135,7 +135,7 @@ object SnavigShell
         quotationOpt : Option[String]
       ) : Option[String] =
       {
-        val lemma = ap.action.toLemma
+        val lemma = ap.verb.toLemma
         quotationOpt match {
           case Some(quotation) => {
             subjectEntityOpt match {
@@ -391,7 +391,7 @@ class SnavigShell(
       quotationOpt : Option[String]
     ) : Option[String] =
     {
-      val lemma = ap.action.toLemma
+      val lemma = ap.verb.toLemma
       val targetRefOpt = ap.modifiers.flatMap(_ match {
         case SilAdpositionalVerbModifier(
           SilAdposition.TO,
@@ -847,7 +847,7 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
     ap : SilActionPredicate,
     referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[String] =
   {
-    val lemma = ap.action.toLemma
+    val lemma = ap.verb.toLemma
     val subjectEntityOpt = singletonLookup(referenceMap, ap.subject)
     val quotationOpt = ap.directObject match {
       case Some(SilQuotationReference(quotation)) => Some(quotation)

@@ -364,9 +364,9 @@ class SilEnglishSentenceBundle
   }
 
   override def actionVerb(
-    action : SilWord) =
+    verb : SilWord) =
   {
-    delemmatizeWord(action)
+    delemmatizeWord(verb)
   }
 
   override def changeStateVerb(
@@ -762,11 +762,6 @@ class SilEnglishSentenceBundle
   override def unknownVerbModifier() =
   {
     "mimsily"
-  }
-
-  override def unknownCopula() =
-  {
-    LEMMA_BE
   }
 
   override def unknownPredicateStatement() =

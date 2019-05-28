@@ -59,10 +59,10 @@ class SmcQueryRewriter(
 
   def rewriteActionPredicate = replacementMatcher(
     "rewriteActionPredicate", {
-      case SilActionPredicate(subject, action, directObject, modifiers) => {
+      case SilActionPredicate(subject, verb, directObject, modifiers) => {
         SilActionPredicate(
           scopedRewrite(subject, INFLECT_NOMINATIVE),
-          action,
+          verb,
           directObject.map(scopedRewrite(_, INFLECT_ACCUSATIVE)),
           modifiers.map(scopedRewrite(_, INFLECT_ADPOSITIONED))
         )

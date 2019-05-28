@@ -28,7 +28,7 @@ class SilWordnetSenseAnalyzerSpec extends Specification
 
   private def analyze(action : SilActionPredicate) : String =
   {
-    analyzer.analyze(action).action.senseId
+    analyzer.analyze(action).verb.senseId
   }
 
   private def analyzeComplement(

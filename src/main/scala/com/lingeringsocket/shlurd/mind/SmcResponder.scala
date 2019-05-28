@@ -673,7 +673,7 @@ class SmcResponder[
                   tupleN((word, Seq.empty))
                 }
                 case _ => {
-                  tupleN((actionPredicate.action.decomposed.last,
+                  tupleN((actionPredicate.verb.decomposed.last,
                     actionModifiers))
                 }
               }

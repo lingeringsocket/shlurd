@@ -89,13 +89,13 @@ abstract class SprAbstractSyntaxAnalyzer(
 
   protected def expectActionPredicate(
     syntaxTree : SprSyntaxTree,
-    subject : SilReference, action : SilWord,
+    subject : SilReference, verb : SilWord,
     directObject : Option[SilReference],
     adpositionObject : Option[SilReference],
     verbModifiers : Seq[SilVerbModifier]) =
   {
     SilUnresolvedActionPredicate(
-      syntaxTree, subject, action, directObject,
+      syntaxTree, subject, verb, directObject,
       adpositionObject, verbModifiers)
   }
 

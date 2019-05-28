@@ -334,7 +334,7 @@ class SmcPredicateEvaluator[
           resolveOne(complementRef, context)
         }
       }
-      case SilActionPredicate(subject, action, directObject, modifiers) => {
+      case SilActionPredicate(subject, verb, directObject, modifiers) => {
         resolveOne(subject, REF_SUBJECT)
         directObject.foreach(resolveOne(_, REF_DIRECT_OBJECT))
       }

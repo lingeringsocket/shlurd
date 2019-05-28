@@ -151,7 +151,7 @@ class SpcTriggerExecutor(
         }
       }
       case SilActionPredicate(
-        subject, action, directObject, modifiers
+        subject, verb, directObject, modifiers
       ) => {
         val actionPredicate = predicate match {
           case ap : SilActionPredicate => ap
@@ -160,8 +160,8 @@ class SpcTriggerExecutor(
             return unmatched
           }
         }
-        if (!isEquivalentVerb(action, actionPredicate.action, triggerDepth)) {
-          def lemma = actionPredicate.action.toLemma
+        if (!isEquivalentVerb(verb, actionPredicate.verb, triggerDepth)) {
+          def lemma = actionPredicate.verb.toLemma
           trace(s"ACTION $lemma DOES NOT MATCH")
           return unmatched
         }

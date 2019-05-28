@@ -307,7 +307,7 @@ case class SilUnresolvedStatePredicate(
 case class SilUnresolvedActionPredicate(
   syntaxTree : SprSyntaxTree,
   subject : SilReference,
-  action : SilWord,
+  verb : SilWord,
   directObject : Option[SilReference],
   adpositionObject : Option[SilReference],
   modifiers : Seq[SilVerbModifier]
@@ -470,7 +470,7 @@ case class SilRelationshipPredicate(
 
 case class SilActionPredicate(
   subject : SilReference,
-  action : SilWord,
+  verb : SilWord,
   directObject : Option[SilReference] = None,
   modifiers : Seq[SilVerbModifier] = Seq.empty
 ) extends SilTransformedPhrase with SilPredicate

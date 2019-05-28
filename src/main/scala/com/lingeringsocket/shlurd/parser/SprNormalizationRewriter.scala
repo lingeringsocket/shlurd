@@ -126,7 +126,7 @@ private[parser] class SprNormalizationRewriter
   private def normalizeDanglingAdpositions = replacementMatcher(
     "normalizeDanglingAdposition", {
       case SilPredicateQuery(
-        SilActionPredicate(subject, action, directObject, modifiers),
+        SilActionPredicate(subject, verb, directObject, modifiers),
         question,
         INFLECT_ACCUSATIVE,
         tam,
@@ -136,7 +136,7 @@ private[parser] class SprNormalizationRewriter
       ) => {
         SilPredicateQuery(
           SilActionPredicate(
-            subject, action, directObject,
+            subject, verb, directObject,
             modifiers.flatMap(modifier => {
               SilReference.getDanglingAdposition(modifier) match {
                 case Some(adposition) => {
@@ -255,7 +255,7 @@ private[parser] class SprNormalizationRewriter
       }
       case SilActionPredicate(
         subject,
-        action,
+        verb,
         directObject,
         modifiers
       ) => {
@@ -271,7 +271,7 @@ private[parser] class SprNormalizationRewriter
           }
         SilActionPredicate(
           subjectExtracted,
-          action,
+          verb,
           directObjectExtracted,
           subjectModifiers ++ directObjectModifiers ++ modifiers)
       }
@@ -301,7 +301,7 @@ private[parser] class SprNormalizationRewriter
         SilPredicateSentence(
           SilActionPredicate(
             actionPredicate.subject,
-            actionPredicate.action,
+            actionPredicate.verb,
             Some(directObject),
             verbModifiers
           ),

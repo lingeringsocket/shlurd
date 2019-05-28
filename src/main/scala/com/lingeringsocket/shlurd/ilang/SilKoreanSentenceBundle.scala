@@ -127,9 +127,9 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
   }
 
   override def actionVerb(
-    action : SilWord) =
+    verb : SilWord) =
   {
-    conjugateAction(action.toLemma)
+    conjugateAction(verb.toLemma)
   }
 
   override def changeStateVerb(
@@ -319,11 +319,6 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
   override def unknownVerbModifier() =
   {
     "뭐뭐뭐게"
-  }
-
-  override def unknownCopula() =
-  {
-    "뭐뭐뭐요"
   }
 
   override def unknownPredicateStatement() =

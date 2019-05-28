@@ -59,22 +59,22 @@ class SmcInputRewriter[
     "convertProgressive", {
       case SilPredicateSentence(
         SilActionPredicate(
-          subject, action, None, modifiers),
+          subject, verb, None, modifiers),
         tam, formality
       ) if (tam.isProgressive) => {
         SilPredicateSentence(
           SilStatePredicate(
-            subject, SilPropertyState(action), modifiers),
+            subject, SilPropertyState(verb), modifiers),
           tam.withAspect(ASPECT_SIMPLE), formality)
       }
       case SilPredicateQuery(
         SilActionPredicate(
-          subject, action, None, modifiers),
+          subject, verb, None, modifiers),
         question, answerInflection, tam, formality
       ) if (tam.isProgressive) => {
         SilPredicateQuery(
           SilStatePredicate(
-            subject, SilPropertyState(action), modifiers),
+            subject, SilPropertyState(verb), modifiers),
           question, answerInflection,
           tam.withMood(MOOD_INTERROGATIVE), formality)
       }

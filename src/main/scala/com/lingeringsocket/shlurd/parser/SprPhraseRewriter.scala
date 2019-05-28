@@ -318,7 +318,7 @@ class SprPhraseRewriter(
     }
     SilActionPredicate(
       predicate.subject,
-      predicate.action,
+      predicate.verb,
       predicate.directObject,
       modifiers)
   }

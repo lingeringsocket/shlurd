@@ -750,11 +750,11 @@ class SprEnglishSyntaxAnalyzer(
       return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
     }
     val verbHead = seq.head
-    val action = verbHead match {
-      case verb : SprSyntaxVerb if (
+    val verb = verbHead match {
+      case vb : SprSyntaxVerb if (
         !imperative || (!verbHead.isModal && !verbHead.isPossessionVerb)
       ) => {
-        getTreeWord(verb)
+        getTreeWord(vb)
       }
       case _ => {
         return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
@@ -772,7 +772,7 @@ class SprEnglishSyntaxAnalyzer(
     }
     val predicate = expectActionPredicate(
       syntaxTree,
-      subject, action,
+      subject, verb,
       directObjects.headOption,
       adpositionObject,
       extraModifiers ++ verbModifiers)

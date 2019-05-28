@@ -95,26 +95,26 @@ class SprParserSpec extends Specification
 
   private def predTransitiveAction(
     subject : SilWord,
-    action : SilWord = ACTION_OPENS,
+    verb : SilWord = ACTION_OPENS,
     directObject : SilWord = NOUN_DOOR,
     determiner : SilDeterminer = DETERMINER_UNIQUE,
     count : SilCount = COUNT_SINGULAR) =
   {
     SilActionPredicate(
       SilNounReference(subject),
-      action,
+      verb,
       Some(SilNounReference(directObject, determiner, count)))
   }
 
   private def predIntransitiveAction(
     subject : SilWord,
-    action : SilWord = ACTION_OPENS,
+    verb : SilWord = ACTION_OPENS,
     determiner : SilDeterminer = DETERMINER_UNIQUE,
     count : SilCount = COUNT_SINGULAR) =
   {
     SilActionPredicate(
       SilNounReference(subject, determiner, count),
-      action)
+      verb)
   }
 
   private def predState(

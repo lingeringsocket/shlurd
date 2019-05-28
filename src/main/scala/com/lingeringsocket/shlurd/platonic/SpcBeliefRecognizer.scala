@@ -64,10 +64,10 @@ class SpcBeliefRecognizer(
     sentence match {
       case SilPredicateSentence(
         SilActionPredicate(
-          _, action, Some(SilQuotationReference(quotation)), _),
+          _, verb, Some(SilQuotationReference(quotation)), _),
         tam, formality
       ) => {
-        return recognizeDirective(sentence, action, quotation)
+        return recognizeDirective(sentence, verb, quotation)
       }
       case _ =>
     }
@@ -536,10 +536,10 @@ class SpcBeliefRecognizer(
 
   private def recognizeDirective(
     sentence : SilSentence,
-    action : SilWord,
+    verb : SilWord,
     argument : String) : Seq[SpcBelief] =
   {
-    if (action.toLemma == LEMMA_IMPORT) {
+    if (verb.toLemma == LEMMA_IMPORT) {
       Seq(IndirectBelief(sentence, argument))
     } else {
       Seq.empty

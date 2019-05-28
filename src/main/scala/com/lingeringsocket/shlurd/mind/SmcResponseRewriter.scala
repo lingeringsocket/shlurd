@@ -646,10 +646,10 @@ class SmcResponseRewriter[
   private def clearActionInflection = replacementMatcher(
     "clearActionInflection", {
       case SilActionPredicate(
-        subject, action, directObject, modifiers
+        subject, verb, directObject, modifiers
       ) => {
         SilActionPredicate(
-          subject, action.toUninflected, directObject, modifiers)
+          subject, verb.toUninflected, directObject, modifiers)
       }
     }
   )
