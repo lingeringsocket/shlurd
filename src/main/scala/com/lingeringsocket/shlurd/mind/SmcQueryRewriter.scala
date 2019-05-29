@@ -48,11 +48,11 @@ class SmcQueryRewriter(
   def rewriteRelationshipPredicate = replacementMatcher(
     "rewriteRelationshipPredicate", {
       case SilRelationshipPredicate(subject, complement,
-        relationship, modifiers
+        verb, modifiers
       ) => {
         SilRelationshipPredicate(
           scopedRewrite(subject, INFLECT_NOMINATIVE),
-          complement, relationship, modifiers)
+          complement, verb, modifiers)
       }
     }
   )

@@ -46,7 +46,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def relationshipPredicate(
     subject : String, verbSeq : Seq[String], complement : String,
-    relationship : SilRelationship,
+    verb : SilWord,
     question : Option[SilQuestion],
     tam : SilTam,
     modifiers : Seq[String]) =

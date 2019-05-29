@@ -246,7 +246,7 @@ class SprEnglishSyntaxAnalyzer(
       }
       val (negativeSub, predicate) =
         expectPredicate(tree, np, rhs, specifiedState,
-          relationshipFor(verbHead), verbModifiers ++ extraModifiers)
+          relationshipVerb(verbHead), verbModifiers ++ extraModifiers)
       val polarity = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
@@ -375,7 +375,7 @@ class SprEnglishSyntaxAnalyzer(
         subj,
         recomposedComplement,
         combinedState,
-        relationshipFor(verbHead),
+        relationshipVerb(verbHead),
         modifiers)
       rememberPredicateCount(predicate, verbHead)
       val tam = SilTam.interrogative.
@@ -575,7 +575,7 @@ class SprEnglishSyntaxAnalyzer(
         vm => Seq(verbHead, complement).contains(vm.syntaxTree))
       val (negativeComplement, predicate) = expectPredicate(
         tree, np, complement, specifiedState,
-        relationshipFor(verbHead), verbModifiers ++ extraModifiers)
+        relationshipVerb(verbHead), verbModifiers ++ extraModifiers)
       val polarity = !(negative ^ negativeComplement)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       SilPredicateSentence(
@@ -885,7 +885,7 @@ class SprEnglishSyntaxAnalyzer(
     np : SprSyntaxTree,
     complement : SprSyntaxTree,
     specifiedState : SilState,
-    relationship : SilRelationship,
+    verb : SilWord,
     verbModifiers : Seq[SilExpectedVerbModifier] = Seq.empty)
       : (Boolean, SilPredicate) =
   {
@@ -897,7 +897,7 @@ class SprEnglishSyntaxAnalyzer(
       }
     }
     if (np.isExistential) {
-      if (relationship != REL_IDENTITY) {
+      if (SilRelationship(verb) != REL_IDENTITY) {
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }
       val subject = splitCoordinatingConjunction(seq) match {
@@ -918,7 +918,7 @@ class SprEnglishSyntaxAnalyzer(
         syntaxTree, subject, expectExistenceState(np), SilNullState(),
         verbModifiers)))
     } else if (complement.isExistential) {
-      if (relationship != REL_IDENTITY) {
+      if (SilRelationship(verb) != REL_IDENTITY) {
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }
       tupleN((negative, expectStatePredicate(
@@ -930,7 +930,7 @@ class SprEnglishSyntaxAnalyzer(
         verbModifiers)))
     } else if (complement.isNounNode) {
       // FIXME this is quite arbitrary
-      val (subjectRef, complementRef) = relationship match {
+      val (subjectRef, complementRef) = SilRelationship(verb) match {
         case REL_IDENTITY => {
           tupleN((specifyReference(expectReference(np), specifiedState),
             expectReference(seq)))
@@ -944,11 +944,11 @@ class SprEnglishSyntaxAnalyzer(
         syntaxTree,
         subjectRef,
         complementRef,
-        relationship,
+        verb,
         verbModifiers)
       tupleN((negative, relationshipPredicate))
     } else {
-      if (relationship != REL_IDENTITY) {
+      if (SilRelationship(verb) != REL_IDENTITY) {
         if (enforceTransitive) {
           return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
         } else {
@@ -1136,15 +1136,10 @@ class SprEnglishSyntaxAnalyzer(
     }
   }
 
-  private def relationshipFor(
-    verbHead : SprSyntaxTree) : SilRelationship =
+  private def relationshipVerb(
+    verbHead : SprSyntaxTree) : SilWord =
   {
-    if (verbHead.isPossessionVerb) {
-      REL_ASSOCIATION
-    } else {
-      assert(verbHead.isBeingVerb)
-      REL_IDENTITY
-    }
+    getWord(verbHead.asInstanceOf[SprSyntaxPreTerminal].child)
   }
 
   private def maybeQuestionFor(

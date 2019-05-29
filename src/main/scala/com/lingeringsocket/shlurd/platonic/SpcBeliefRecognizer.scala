@@ -125,7 +125,7 @@ class SpcBeliefRecognizer(
                 DETERMINER_UNSPECIFIED,
                 COUNT_SINGULAR)),
             container,
-            REL_IDENTITY
+            REL_IDENTITY.toVerb
           ),
           sentence.tam)
       }
@@ -241,13 +241,13 @@ class SpcBeliefRecognizer(
   {
     val subjectRef = predicate.subject
     val complementRef = predicate.complement
-    val relationship = predicate.relationship
+    val verb = predicate.verb
     subjectRef match {
       case SilNounReference(
         subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
       ) => {
         return processFormRelationship(
-          sentence, subjectNoun, complementRef, relationship)
+          sentence, subjectNoun, complementRef, verb)
       }
       case SilGenitiveReference(possessor, possessee) => {
         complementRef match {
@@ -284,19 +284,19 @@ class SpcBeliefRecognizer(
               // flip subject/complement to match "Lonnie is Will's dad"
               return processEntityRelationship(
                 sentence, complementRef,
-                subjectRef, relationship)
+                subjectRef, verb)
             }
           }
           case _ : SilGenitiveReference => {
             // "Will's dad is Joyce's ex-husband": resolve "Joyce's ex-husband"
             // to "Lonnie" and then proceed flipping subject/complement
             return processIndirectEntityRelationship(
-              sentence, subjectRef, complementRef, relationship)
+              sentence, subjectRef, complementRef, verb)
           }
           case SilQuotationReference(quotation) => {
             // "Arnie's catchphrase is <<I'll be back>>"
             return processQuotation(
-              sentence, possessor, possessee, quotation, relationship)
+              sentence, possessor, possessee, quotation, verb)
           }
           case _ =>
         }
@@ -356,7 +356,7 @@ class SpcBeliefRecognizer(
             // "Lonnie is Will's dad"
             return processEntityRelationship(
               sentence, subjectRef,
-              complementRef, relationship)
+              complementRef, verb)
           }
         }
       }
@@ -397,14 +397,14 @@ class SpcBeliefRecognizer(
     sentence : SilSentence,
     complementRef : SilReference,
     subjectRef : SilReference,
-    relationship : SilRelationship) : Seq[SpcBelief] =
+    verb : SilWord) : Seq[SpcBelief] =
   {
     processResolvedReference(sentence, subjectRef, {
       entityRef => {
         processEntityRelationship(
           sentence,
           entityRef,
-          complementRef, relationship)
+          complementRef, verb)
       }
     })
   }
@@ -414,10 +414,10 @@ class SpcBeliefRecognizer(
     entityRef : SilReference,
     propertyRef : SilReference,
     quotation : String,
-    relationship : SilRelationship
+    verb : SilWord
   ) : Seq[SpcBelief] =
   {
-    if (relationship != REL_IDENTITY) {
+    if (SilRelationship(verb) != REL_IDENTITY) {
       return Seq.empty
     }
     propertyRef match {
@@ -550,10 +550,10 @@ class SpcBeliefRecognizer(
     sentence : SilSentence,
     subjectNoun : SilWord,
     complementRef : SilReference,
-    relationship : SilRelationship)
+    verb : SilWord)
       : Seq[SpcBelief] =
   {
-    relationship match {
+    SilRelationship(verb) match {
       case REL_IDENTITY => {
         val (complementNoun, qualifiers, count, determiner, failed) =
           extractQualifiedNoun(sentence, complementRef, Seq.empty)
@@ -647,7 +647,7 @@ class SpcBeliefRecognizer(
           case MODAL_SHOULD | MODAL_ELLIPTICAL =>
             return Seq(UnimplementedBelief(sentence))
         }
-        isPropertyAssoc(sentence, complementRef, relationship).map(
+        isPropertyAssoc(sentence, complementRef, verb).map(
           isProperty => {
             FormAssocBelief(
               sentence,
@@ -663,13 +663,13 @@ class SpcBeliefRecognizer(
     sentence : SilSentence,
     subjectRef : SilReference,
     complementRef : SilReference,
-    relationship : SilRelationship)
+    verb : SilWord)
       : Seq[SpcBelief] =
   {
     if (sentence.tam.modality != MODAL_NEUTRAL) {
       return Seq(UnimplementedBelief(sentence))
     }
-    relationship match {
+    SilRelationship(verb) match {
       case REL_ASSOCIATION => {
         complementRef match {
           case SilNounReference(
@@ -716,7 +716,7 @@ class SpcBeliefRecognizer(
           }
         }
       }
-      case REL_IDENTITY =>
+      case _ =>
     }
     complementRef match {
       case SilGenitiveReference(
@@ -741,7 +741,7 @@ class SpcBeliefRecognizer(
               processEntityRelationship(
                 sentence, subjectRef,
                 flattenedComplement,
-                relationship)
+                verb)
             }
           })
       }
@@ -883,7 +883,7 @@ class SpcBeliefRecognizer(
 
   private def isPropertyAssoc(
     sentence : SilSentence, complementRef : SilReference,
-    relationship : SilRelationship) : Option[Boolean] =
+    verb : SilWord) : Option[Boolean] =
   {
     complementRef match {
       case SilStateSpecifiedReference(
@@ -900,7 +900,7 @@ class SpcBeliefRecognizer(
               DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
               COUNT_SINGULAR) =>
               {
-                if (relationship == REL_ASSOCIATION) {
+                if (SilRelationship(verb) == REL_ASSOCIATION) {
                   Some(true)
                 } else {
                   None

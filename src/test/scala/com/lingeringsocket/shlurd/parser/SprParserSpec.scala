@@ -88,6 +88,10 @@ class SprParserSpec extends Specification
 
   private val QUALIFIER_BIG = SilWord("big")
 
+  private val VERB_WAS = SilWord("was", "be")
+
+  private val VERB_IS = SilWord("is", "be")
+
   private val VERB_TURN = SilWord("turn")
 
   private val VERB_BUMPS_OFF = SilCompoundWord(
@@ -422,7 +426,7 @@ class SprParserSpec extends Specification
               NOUN_PORTAL, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
             SilNounReference(
               NOUN_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
-            REL_IDENTITY
+            VERB_IS
           )
         )
     }
@@ -590,7 +594,7 @@ class SprParserSpec extends Specification
           SilRelationshipPredicate(
             SilNounReference(SilWord(LEMMA_WHERE)),
             SilNounReference(NOUN_MOUSE, DETERMINER_UNIQUE),
-            REL_IDENTITY,
+            VERB_WAS,
             Seq(SilAdpositionalVerbModifier(
               SilAdposition(SilWord("before")),
               SilNounReference(NOUN_BATHROOM, DETERMINER_UNIQUE)
@@ -649,7 +653,7 @@ class SprParserSpec extends Specification
             SilGenitiveReference(
               SilNounReference(NOUN_ZOOEY),
               SilNounReference(NOUN_SISTER)),
-            REL_IDENTITY
+            VERB_IS
           ),
           SilTam.indicative)
     }

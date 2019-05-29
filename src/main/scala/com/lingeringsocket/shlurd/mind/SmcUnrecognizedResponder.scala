@@ -40,11 +40,11 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
             }
           }
           case SilRelationshipPredicate(
-            subject, complement, rel, modifiers
+            subject, complement, verb, modifiers
           ) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
-              subject, complement, tam, count, Some(rel), modifiers)
+              subject, complement, tam, count, Some(verb), modifiers)
             if (!response.isEmpty) {
               return response
             }
@@ -68,12 +68,12 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
             }
           }
           case SilRelationshipPredicate(
-            subject, complement, rel, modifiers
+            subject, complement, verb, modifiers
           ) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
               subject, complement, tam, count,
-              Some(rel), modifiers, None, Some(question))
+              Some(verb), modifiers, None, Some(question))
             if (!response.isEmpty) {
               return response
             }
@@ -97,7 +97,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     complement : SilPhrase,
     tam : SilTam,
     count : SilCount,
-    rel : Option[SilRelationship],
+    relationshipVerb : Option[SilWord],
     modifiers : Seq[SilVerbModifier],
     changeVerb : Option[SilWord] = None,
     question : Option[SilQuestion] = None) : String =
@@ -114,10 +114,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
           LEMMA_EXIST
         }
         case _ => {
-          rel match {
-            case Some(REL_ASSOCIATION) => LEMMA_HAVE
-            case _ => LEMMA_BE
-          }
+          relationshipVerb.map(_.toLemma).getOrElse(LEMMA_BE)
         }
       }
     }
@@ -134,7 +131,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
             subject,
             if (question.isEmpty) INFLECT_ACCUSATIVE else INFLECT_NOMINATIVE,
             SilConjoining.NONE),
-          verbSeq, question, !rel.isEmpty),
+          verbSeq, question, !relationshipVerb.isEmpty),
         complement.toWordString)
     } else if (!complement.hasUnknown) {
       assert(subject.hasUnknown)

@@ -111,7 +111,7 @@ class SpcTriggerExecutor(
         }
       }
       case SilRelationshipPredicate(
-        subject, complement, relationship, modifiers
+        subject, complement, verb, modifiers
       ) => {
         val relPredicate = predicate match {
           case rp : SilRelationshipPredicate => rp
@@ -120,8 +120,8 @@ class SpcTriggerExecutor(
             return unmatched
           }
         }
-        if (relationship != relPredicate.relationship) {
-          trace(s"RELATIONSHIP ${relPredicate.relationship} DOES NOT MATCH")
+        if (verb != relPredicate.verb) {
+          trace(s"RELATIONSHIP ${relPredicate.verb} DOES NOT MATCH")
           return unmatched
         }
         if (!prepareReplacement(
@@ -130,7 +130,7 @@ class SpcTriggerExecutor(
         {
           return unmatched
         }
-        relationship match {
+        SilRelationship(verb) match {
           case REL_IDENTITY => {
             if (!prepareReplacement(
               cosmos, replacements, complement,

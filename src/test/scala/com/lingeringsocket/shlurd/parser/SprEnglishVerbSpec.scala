@@ -43,23 +43,6 @@ class SprEnglishVerbSpec extends Specification
     }
   }
 
-  private def relationshipFor(lemma : String) =
-  {
-    lemma match {
-      case LEMMA_BE => REL_IDENTITY
-      case LEMMA_HAVE => REL_ASSOCIATION
-      case _ => throw new RuntimeException(s"unexpected lemma $lemma")
-    }
-  }
-
-  private def lemmaFor(rel : SilRelationship) =
-  {
-    rel match {
-      case REL_IDENTITY => LEMMA_BE
-      case REL_ASSOCIATION => LEMMA_HAVE
-    }
-  }
-
   private def parse(input : String) : ParsedVerb =
   {
     val sentence = SprParser(input).parseOne
@@ -71,10 +54,10 @@ class SprEnglishVerbSpec extends Specification
         ParsedVerb(subject, rhs, lemma, tam, None)
       }
       case SilPredicateSentence(
-        SilRelationshipPredicate(subject, complement, rel, Seq()),
+        SilRelationshipPredicate(subject, complement, verb, Seq()),
         tam, _
       ) => {
-        ParsedVerb(subject, Some(complement), lemmaFor(rel), tam, None)
+        ParsedVerb(subject, Some(complement), verb.toLemma, tam, None)
       }
       case SilPredicateSentence(
         SilStatePredicate(subject,
@@ -98,11 +81,11 @@ class SprEnglishVerbSpec extends Specification
           Some((question, answerInflection)))
       }
       case SilPredicateQuery(
-        SilRelationshipPredicate(subject, complement, rel, Seq()),
+        SilRelationshipPredicate(subject, complement, verb, Seq()),
         question, answerInflection, tam, _
       ) => {
         ParsedVerb(
-          subject, Some(complement), lemmaFor(rel), tam,
+          subject, Some(complement), verb.toLemma, tam,
           Some((question, answerInflection)))
       }
       case SilPredicateQuery(
@@ -155,7 +138,7 @@ class SprEnglishVerbSpec extends Specification
             SilRelationshipPredicate(
               subject,
               rhs.map(expectReference).get,
-              relationshipFor(lemma)
+              SilWord(lemma)
             )
           } else {
             SilActionPredicate(

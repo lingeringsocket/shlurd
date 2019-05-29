@@ -90,7 +90,7 @@ abstract class SilSentenceBundle
     firstRef : String,
     verbSeq : Seq[String],
     secondRef : String,
-    relationship : SilRelationship,
+    verb : SilWord,
     question : Option[SilQuestion],
     tam : SilTam,
     modifiers : Seq[String]) : String

@@ -138,13 +138,13 @@ class SilEnglishSentenceBundle
 
   override def relationshipPredicate(
     subject : String, verbSeq : Seq[String], complement : String,
-    relationship : SilRelationship,
+    verb : SilWord,
     question : Option[SilQuestion],
     tam : SilTam,
     modifiers : Seq[String]) =
   {
     if (tam.isInterrogative && question.isEmpty) {
-      relationship match {
+      SilRelationship(verb) match {
         case REL_IDENTITY => {
           composePredicateQuestion(subject, verbSeq, complement, modifiers)
         }

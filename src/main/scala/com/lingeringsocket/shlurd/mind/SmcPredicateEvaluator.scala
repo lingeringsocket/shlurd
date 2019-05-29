@@ -87,14 +87,14 @@ class SmcPredicateEvaluator[
         }
       }
       case SilRelationshipPredicate(
-        subjectRef, complementRef, relationship, modifiers
+        subjectRef, complementRef, verb, modifiers
       ) => {
         val subjectCollector = chooseResultCollector(
           subjectRef, resultCollector)
         val complementCollector = chooseResultCollector(
           complementRef, resultCollector)
         val (context, categoryLabel) =
-          relationshipComplementContext(relationship, complementRef)
+          relationshipComplementContext(verb, complementRef)
         val tryComplement = {
           if (!categoryLabel.isEmpty) {
             resultCollector.isCategorization = true
@@ -110,7 +110,7 @@ class SmcPredicateEvaluator[
           tryComplement
         } else {
           if (wildcardQuerier.containsWildcard(subjectRef, false) &&
-            (relationship == REL_IDENTITY) && categoryLabel.isEmpty
+            (SilRelationship(verb) == REL_IDENTITY) && categoryLabel.isEmpty
           ) {
             resultCollector.referenceMap.get(complementRef) match {
               case Some(entities) => {
@@ -164,7 +164,7 @@ class SmcPredicateEvaluator[
               complementCollector,
               context,
               resultCollector,
-              relationship
+              verb
             )
           }
         }
@@ -192,11 +192,11 @@ class SmcPredicateEvaluator[
     complementCollector : ResultCollectorType,
     context : SilReferenceContext,
     resultCollector : ResultCollectorType,
-    relationship : SilRelationship
+    verb : SilWord
   ) : Try[Trilean] =
   {
     evaluatePredicateOverReference(
-      subjectRef, relationshipSubjectContext(relationship),
+      subjectRef, relationshipSubjectContext(verb),
       subjectCollector)
     {
       (subjectEntity, entityRef) => {
@@ -205,7 +205,7 @@ class SmcPredicateEvaluator[
             evaluateCategorization(subjectEntity, label)
           }
           case _ => {
-            if (relationship == REL_ASSOCIATION) {
+            if (SilRelationship(verb) == REL_ASSOCIATION) {
               val roleQualifiers = extractRoleQualifiers(complementRef)
               if (roleQualifiers.size == 1) {
                 val roleName = roleQualifiers.head
@@ -224,13 +224,13 @@ class SmcPredicateEvaluator[
                 evaluateRelationshipPredicate(
                   subjectRef, subjectEntity,
                   complementRef, complementEntity,
-                  relationship
+                  verb
                 )
               }
             }
             assumeExistence(
               unassumed,
-              relationship == REL_ASSOCIATION)
+              SilRelationship(verb) == REL_ASSOCIATION)
           }
         }
       }
@@ -325,11 +325,11 @@ class SmcPredicateEvaluator[
         resolveOne(subjectRef, subjectStateContext(state))
       }
       case SilRelationshipPredicate(
-        subjectRef, complementRef, relationship, modifiers
+        subjectRef, complementRef, verb, modifiers
       ) => {
-        resolveOne(subjectRef, relationshipSubjectContext(relationship))
+        resolveOne(subjectRef, relationshipSubjectContext(verb))
         val (context, categoryLabel) =
-          relationshipComplementContext(relationship, complementRef)
+          relationshipComplementContext(verb, complementRef)
         if (categoryLabel.isEmpty) {
           resolveOne(complementRef, context)
         }
@@ -365,19 +365,19 @@ class SmcPredicateEvaluator[
   }
 
   private def relationshipSubjectContext(
-    rel : SilRelationship) : SilReferenceContext =
+    verb : SilWord) : SilReferenceContext =
   {
-    rel match {
+    SilRelationship(verb) match {
       case REL_IDENTITY => REF_COMPLEMENT
       case REL_ASSOCIATION => REF_SUBJECT
     }
   }
 
   private def relationshipComplementContext(
-    rel : SilRelationship,
+    verb : SilWord,
     complementRef : SilReference) : (SilReferenceContext, Option[SilWord]) =
   {
-    rel match {
+    SilRelationship(verb) match {
       case REL_IDENTITY => {
         tupleN((REF_COMPLEMENT, extractCategory(complementRef)))
       }
@@ -487,9 +487,9 @@ class SmcPredicateEvaluator[
     subjectEntity : EntityType,
     complementRef : SilReference,
     complementEntity : EntityType,
-    relationship : SilRelationship) : Try[Trilean] =
+    verb : SilWord) : Try[Trilean] =
   {
-    relationship match {
+    SilRelationship(verb) match {
       case REL_IDENTITY => {
         val result = {
           if ((wildcardQuerier.containsWildcard(subjectRef) ||

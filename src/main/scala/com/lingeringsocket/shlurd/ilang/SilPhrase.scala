@@ -328,7 +328,7 @@ case class SilUnresolvedRelationshipPredicate(
   syntaxTree : SprSyntaxTree,
   subject : SilReference,
   complement : SilReference,
-  relationship : SilRelationship,
+  verb : SilWord,
   modifiers : Seq[SilVerbModifier]
 ) extends SilUnknownPredicate with SilUnresolvedPhrase
 {
@@ -454,7 +454,7 @@ case class SilStatePredicate(
 case class SilRelationshipPredicate(
   subject : SilReference,
   complement : SilReference,
-  relationship : SilRelationship,
+  verb : SilWord,
   modifiers : Seq[SilVerbModifier] = Seq.empty
 ) extends SilTransformedPhrase with SilPredicate
 {
@@ -776,6 +776,14 @@ object SilWordInflected
   def unapply(w : SilSimpleWord) =
   {
     Some(w.inflected)
+  }
+}
+
+object SilWordRelationship
+{
+  def unapply(w : SilSimpleWord) =
+  {
+    Some(SilRelationship(w))
   }
 }
 

@@ -160,8 +160,31 @@ case object ASPECT_SIMPLE extends SilAspect
 case object ASPECT_PROGRESSIVE extends SilAspect
 
 sealed trait SilRelationship
+{
+  def toLemma : String
+  def toVerb = SilWord(toLemma)
+}
 case object REL_IDENTITY extends SilRelationship
+{
+  override def toLemma = LEMMA_BE
+}
 case object REL_ASSOCIATION extends SilRelationship
+{
+  override def toLemma = LEMMA_HAVE
+}
+
+object SilRelationship
+{
+  def apply(word : SilWord) =
+  {
+    word.toLemma match {
+      case LEMMA_BE | LEMMA_EXIST => REL_IDENTITY
+      case LEMMA_HAVE => REL_ASSOCIATION
+      case _ => throw new IllegalArgumentException(
+        "Non-relationship verb " + word)
+    }
+  }
+}
 
 sealed trait SilSeparator
 {

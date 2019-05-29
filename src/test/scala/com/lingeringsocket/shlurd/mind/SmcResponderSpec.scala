@@ -543,7 +543,7 @@ class SmcResponderSpec extends Specification
             SilRelationshipPredicate(
               SilNounReference(SilWord(LEMMA_WHO)),
               SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
-              REL_IDENTITY
+              SilWord("are", LEMMA_BE)
             ),
             QUESTION_WHO,
             INFLECT_NOMINATIVE,
@@ -559,7 +559,8 @@ class SmcResponderSpec extends Specification
             SilRelationshipPredicate(
               SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
               SilNounReference(SilWord("Muldoon")),
-              REL_IDENTITY),
+              SilWord.uninflected(LEMMA_BE)
+            ),
             SilTam.indicative,
             SilFormality(FORCE_NEUTRAL)),
           "I am Muldoon.",

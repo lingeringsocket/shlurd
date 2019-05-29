@@ -241,21 +241,21 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         sb.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
-            subject, state, tam, REL_IDENTITY,
+            subject, state, tam, REL_IDENTITY.toVerb,
             predicate.getInflectedCount, INFLECT_NONE),
           rhs,
           modifiers.map(printVerbModifier)
         )
       }
       case SilRelationshipPredicate(
-        subject, complement, relationship, modifiers
+        subject, complement, verb, modifiers
       ) => {
-        val complementInflection = relationship match {
+        val complementInflection = SilRelationship(verb) match {
           case REL_IDENTITY => INFLECT_NOMINATIVE
           case REL_ASSOCIATION => INFLECT_ACCUSATIVE
         }
         val tam = {
-          if (ellipsis && (relationship == REL_ASSOCIATION)) {
+          if (ellipsis && (SilRelationship(verb) == REL_ASSOCIATION)) {
             if (tamOriginal.isIndicative) {
               tamOriginal.withModality(MODAL_ELLIPTICAL)
             } else {
@@ -275,10 +275,10 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         sb.relationshipPredicate(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
-            subject, SilNullState(), tam, relationship,
+            subject, SilNullState(), tam, verb,
             predicate.getInflectedCount, INFLECT_NONE),
           rhs,
-          relationship,
+          verb,
           None,
           tam,
           modifiers.map(printVerbModifier))
@@ -323,27 +323,24 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           modifiers.map(printVerbModifier))
       }
       case SilRelationshipPredicate(
-        subject, complement, relationship, modifiers
+        subject, complement, verb, modifiers
       ) => {
-        val verb = relationship match {
-          case REL_IDENTITY => SilWord.uninflected(LEMMA_BE)
-          case REL_ASSOCIATION => SilWord.uninflected(LEMMA_HAVE)
-        }
+        val uninflectedVerb = verb.toUninflected
         sb.actionPredicate(
           "",
           sb.delemmatizeVerb(
             PERSON_SECOND, GENDER_N, COUNT_SINGULAR,
-            tam, false, verb, INFLECT_NONE),
+            tam, false, uninflectedVerb, INFLECT_NONE),
           Some(print(complement, INFLECT_NONE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier),
           tam)
       }
-      case SilActionPredicate(_, verb, directObject, modifiers) => {
+      case SilActionPredicate(_, uninflectedVerb, directObject, modifiers) => {
         sb.actionPredicate(
           "",
           sb.delemmatizeVerb(
             PERSON_SECOND, GENDER_N, COUNT_SINGULAR,
-            tam, false, verb, INFLECT_NONE),
+            tam, false, uninflectedVerb, INFLECT_NONE),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier),
@@ -377,7 +374,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         sb.statePredicateQuestion(
           subjectString,
           getVerbSeq(
-            subject, state, tam, REL_IDENTITY,
+            subject, state, tam, REL_IDENTITY.toVerb,
             predicate.getInflectedCount, answerInflection),
           print(state, tam, SilConjoining.NONE),
           isExistential,
@@ -426,15 +423,15 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           answerInflection)
       }
       case SilRelationshipPredicate(
-        subject, complement, relationship, modifiers
+        subject, complement, verb, modifiers
       ) => {
         sb.relationshipPredicate(
           subjectString,
           getVerbSeq(
-            subject, SilNullState(), tam, relationship,
+            subject, SilNullState(), tam, verb,
             predicate.getInflectedCount, answerInflection),
           print(complement, INFLECT_NOMINATIVE, SilConjoining.NONE),
-          relationship,
+          verb,
           question,
           tam,
           modifiers.map(printVerbModifier))
@@ -448,21 +445,18 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
   private def getVerbSeq(
     person : SilPerson, gender : SilGender, count : SilCount,
     tam : SilTam, isExistential : Boolean,
-    relationship : SilRelationship,
+    verb : SilWord,
     answerInflection : SilInflection) : Seq[String] =
   {
-    val verbLemma = relationship match {
-      case REL_IDENTITY => {
-        if (isExistential && (tam.modality == MODAL_EMPHATIC)) {
-          LEMMA_EXIST
-        } else {
-          LEMMA_BE
-        }
+    val uninflectedVerb = {
+      if (isExistential && (tam.modality == MODAL_EMPHATIC)) {
+        SilWord.uninflected(LEMMA_EXIST)
+      } else {
+        verb.toUninflected
       }
-      case REL_ASSOCIATION => LEMMA_HAVE
     }
     sb.delemmatizeVerb(
-      person, gender, count, tam, isExistential, SilWord.uninflected(verbLemma),
+      person, gender, count, tam, isExistential, uninflectedVerb,
       answerInflection)
   }
 
@@ -533,7 +527,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
 
   private def getVerbSeq(
     subject : SilReference, state : SilState, tam : SilTam,
-    relationship : SilRelationship, predicateCount : SilCount,
+    verb : SilWord, predicateCount : SilCount,
     answerInflection : SilInflection)
       : Seq[String] =
   {
@@ -545,7 +539,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       getSubjectAttributes(subject, isExistential)
     getVerbSeq(
       person, gender, combineCounts(count, predicateCount),
-      tam, isExistential, relationship, answerInflection)
+      tam, isExistential, verb, answerInflection)
   }
 
   def printVerbModifier(modifier : SilVerbModifier) : String =

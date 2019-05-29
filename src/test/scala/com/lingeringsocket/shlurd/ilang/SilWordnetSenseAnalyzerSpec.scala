@@ -32,9 +32,9 @@ class SilWordnetSenseAnalyzerSpec extends Specification
   }
 
   private def analyzeComplement(
-    relationship : SilRelationshipPredicate) : String =
+    verb : SilRelationshipPredicate) : String =
   {
-    analyzer.analyze(relationship).complement match {
+    analyzer.analyze(verb).complement match {
       case SilNounReference(noun, _, _) => noun.senseId
       case _ => ""
     }
@@ -84,7 +84,7 @@ class SilWordnetSenseAnalyzerSpec extends Specification
       val identity = SilRelationshipPredicate(
         pronounI,
         SilNounReference(SilWord(lemma), DETERMINER_NONSPECIFIC),
-        REL_IDENTITY)
+        REL_IDENTITY.toVerb)
       analyzeComplement(identity) must be equalTo "n:10148670|n:2065397"
     }
 
@@ -96,7 +96,7 @@ class SilWordnetSenseAnalyzerSpec extends Specification
       val identity = SilRelationshipPredicate(
         pronounI,
         SilNounReference(word, DETERMINER_NONSPECIFIC),
-        REL_IDENTITY)
+        REL_IDENTITY.toVerb)
       analyzeComplement(identity) must be equalTo "n:10803789"
     }
   }

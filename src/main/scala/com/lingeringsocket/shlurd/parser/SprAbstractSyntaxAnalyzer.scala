@@ -103,11 +103,11 @@ abstract class SprAbstractSyntaxAnalyzer(
     syntaxTree : SprSyntaxTree,
     subject : SilReference,
     complement : SilReference,
-    relationship : SilRelationship,
+    verb : SilWord,
     verbModifiers : Seq[SilVerbModifier]) =
   {
     SilUnresolvedRelationshipPredicate(
-      syntaxTree, subject, complement, relationship, verbModifiers)
+      syntaxTree, subject, complement, verb, verbModifiers)
   }
 
   protected def expectReference(
