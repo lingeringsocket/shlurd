@@ -749,7 +749,8 @@ class SpcBeliefAccepter(
       }
       stateOpt.foreach(state => {
         resultCollector.referenceMap.put(newEntityRef, Set(possessee))
-        val statePredicate = SilStatePredicate(newEntityRef, state)
+        val statePredicate = SilStatePredicate(
+          newEntityRef, STATE_PREDEF_BE.toVerb, state)
         val stateBeliefs = recognizeStatePredicateBelief(
           sentence,
           statePredicate,

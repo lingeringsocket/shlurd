@@ -29,7 +29,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     unrecognized match {
       case SilPredicateSentence(predicate, tam, _) => {
         predicate match {
-          case SilStatePredicate(subject, state, modifiers) => {
+          case SilStatePredicate(subject, verb, state, modifiers) => {
             val count = computeMaxCount(
               subject,
               predicate.getInflectedCount)
@@ -56,7 +56,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
         predicate, question, answerInflection, tam, _
       ) => {
         predicate match {
-          case SilStatePredicate(subject, state, modifiers) => {
+          case SilStatePredicate(subject, verb, state, modifiers) => {
             val count = computeMaxCount(
               subject,
               predicate.getInflectedCount)

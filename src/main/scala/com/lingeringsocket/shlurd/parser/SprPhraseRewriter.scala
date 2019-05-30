@@ -349,13 +349,15 @@ class SprPhraseRewriter(
         }
         val specifiedSubject = analyzer.specifyReference(
           predicate.subject, fullySpecifiedState)
-        SilStatePredicate(specifiedSubject, propertyState, predicate.modifiers)
+        SilStatePredicate(
+          specifiedSubject, predicate.verb, propertyState, predicate.modifiers)
       }
       case _ => {
         val specifiedSubject = analyzer.specifyReference(
           predicate.subject, predicate.specifiedState)
         SilStatePredicate(
-          specifiedSubject, predicate.state, predicate.modifiers)
+          specifiedSubject, predicate.verb,
+          predicate.state, predicate.modifiers)
       }
     }
   }
@@ -466,14 +468,19 @@ class SprAmbiguityResolver(context : SprContext)
   private def normalizeCandidate(s : SilSentence) : SilSentence =
   {
     val rewriter = new SilPhraseRewriter
-    def normalizePropertyState = rewriter.replacementMatcher(
-      "normalizePropertyState", {
+    def normalizer = rewriter.replacementMatcher(
+      "normalizeAmbiguousCandidate", {
         case SilPropertyState(SilSimpleWord(inflected, lemma, senseId)) => {
           SilPropertyState(SilSimpleWord(inflected, inflected, senseId))
         }
+        case SilStatePredicate(
+          subject, SilStatePredefVerb(STATE_PREDEF_BE), state, modifiers
+        ) => {
+          SilStatePredicate(subject, STATE_PREDEF_BE.toVerb, state, modifiers)
+        }
       }
     )
-    rewriter.rewrite(normalizePropertyState, s)
+    rewriter.rewrite(normalizer, s)
   }
 
   private def ambiguousEquivalent(
@@ -485,12 +492,13 @@ class SprAmbiguityResolver(context : SprContext)
       case (
         SilStatePredicate(
           s1,
+          SilStatePredefVerb(STATE_PREDEF_BE),
           _ : SilConjunctiveState,
           m1
         ),
         SilRelationshipPredicate(
           s2,
-          SilRelationshipVerb(REL_IDENTITY),
+          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           _ : SilConjunctiveReference,
           m2
         )
@@ -500,6 +508,7 @@ class SprAmbiguityResolver(context : SprContext)
       case (
         SilStatePredicate(
           s1,
+          SilStatePredefVerb(STATE_PREDEF_BE),
           SilPropertyState(w1 : SilSimpleWord),
           m1
         ),

@@ -60,7 +60,7 @@ class SprEnglishVerbSpec extends Specification
         ParsedVerb(subject, Some(complement), verb.toLemma, tam, None)
       }
       case SilPredicateSentence(
-        SilStatePredicate(subject,
+        SilStatePredicate(subject, SilStatePredefVerb(STATE_PREDEF_BE),
           rhs @ SilPropertyState(state : SilSimpleWord), Seq()),
         tam, _
       ) => {
@@ -90,7 +90,8 @@ class SprEnglishVerbSpec extends Specification
       }
       case SilPredicateQuery(
         SilStatePredicate(
-          subject, rhs @ SilPropertyState(state : SilSimpleWord), Seq()),
+          subject, SilStatePredefVerb(STATE_PREDEF_BE),
+          rhs @ SilPropertyState(state : SilSimpleWord), Seq()),
         question, answerInflection, tam, _
       ) => {
         if (state.inflected.endsWith(SUFFIX_ING)) {
@@ -127,6 +128,7 @@ class SprEnglishVerbSpec extends Specification
         case Some(state : SilState) => {
           SilStatePredicate(
             subject,
+            STATE_PREDEF_BE.toVerb,
             state
           )
         }

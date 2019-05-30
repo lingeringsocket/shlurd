@@ -36,9 +36,10 @@ class SmcQueryRewriter(
 
   def rewriteStatePredicate = replacementMatcher(
     "rewriteStatePredicate", {
-      case SilStatePredicate(subject, state, modifiers) => {
+      case SilStatePredicate(subject, verb, state, modifiers) => {
         SilStatePredicate(
           scopedRewrite(subject, INFLECT_NOMINATIVE),
+          verb,
           scopedRewrite(state, INFLECT_ADPOSITIONED),
           modifiers)
       }

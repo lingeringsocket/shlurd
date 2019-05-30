@@ -1699,6 +1699,7 @@ class SpcResponderSpec extends Specification
               SilStatePredicate(
                 subject,
                 _,
+                _,
                 _),
               _,
               _

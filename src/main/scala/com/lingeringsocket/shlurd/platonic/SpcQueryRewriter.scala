@@ -27,16 +27,17 @@ class SpcQueryRewriter(
 
   def rewriteContainmentPredicate = replacementMatcher(
     "rewriteContainmentPredicate", {
-      case SilStatePredicate(subject, state, modifiers) => {
+      case SilStatePredicate(subject, verb, state, modifiers) => {
         val specified = SilStatePredicate(
           scopedRewrite(subject, INFLECT_NOMINATIVE),
+          verb,
           scopedRewrite(state, INFLECT_ADPOSITIONED),
           modifiers)
         specified.state match {
           case SilAdpositionalState(SilAdposition.IN, container) => {
             SilRelationshipPredicate(
               specified.subject,
-              REL_IDENTITY.toVerb,
+              REL_PREDEF_IDENTITY.toVerb,
               SilGenitiveReference(
                 container,
                 SilNounReference(SilWord(SmcLemmas.LEMMA_CONTAINEE))),

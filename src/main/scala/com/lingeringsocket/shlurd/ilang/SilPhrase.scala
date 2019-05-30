@@ -65,6 +65,8 @@ sealed trait SilPredicate extends SilPhrase
 {
   def getSubject : SilReference
 
+  def getVerb : SilWord
+
   private var inflectedCount : SilCount = COUNT_SINGULAR
 
   def getInflectedCount = inflectedCount
@@ -126,6 +128,8 @@ sealed trait SilUnknownPredicate
     extends SilPredicate with SilUnknownPhrase
 {
   override def getSubject : SilReference = SilUnrecognizedReference(syntaxTree)
+
+  override def getVerb = SilWord("<UNKNOWN>")
 
   override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) = this
 }
@@ -289,6 +293,7 @@ case class SilExpectedVerbModifier(
 case class SilUnresolvedStatePredicate(
   syntaxTree : SprSyntaxTree,
   subject : SilReference,
+  verb : SilWord,
   state : SilState,
   specifiedState : SilState,
   modifiers : Seq[SilVerbModifier]
@@ -437,11 +442,14 @@ case class SilAmbiguousSentence(
 
 case class SilStatePredicate(
   subject : SilReference,
+  verb : SilWord,
   state : SilState,
   modifiers : Seq[SilVerbModifier] = Seq.empty
 ) extends SilTransformedPhrase with SilPredicate
 {
   override def getSubject = subject
+
+  override def getVerb = verb
 
   override def getModifiers = modifiers
 
@@ -460,6 +468,8 @@ case class SilRelationshipPredicate(
 {
   override def getSubject = subject
 
+  override def getVerb = verb
+
   override def getModifiers = modifiers
 
   override def children = Seq(subject, complement) ++ modifiers
@@ -476,6 +486,8 @@ case class SilActionPredicate(
 ) extends SilTransformedPhrase with SilPredicate
 {
   override def getSubject = subject
+
+  override def getVerb = verb
 
   override def getModifiers = modifiers
 
@@ -776,14 +788,6 @@ object SilWordInflected
   def unapply(w : SilSimpleWord) =
   {
     Some(w.inflected)
-  }
-}
-
-object SilRelationshipVerb
-{
-  def unapply(w : SilSimpleWord) =
-  {
-    Some(SilRelationship(w))
   }
 }
 

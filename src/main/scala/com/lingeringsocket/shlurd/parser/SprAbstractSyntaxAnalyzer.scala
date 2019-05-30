@@ -79,12 +79,12 @@ abstract class SprAbstractSyntaxAnalyzer(
 
   protected def expectStatePredicate(
     syntaxTree : SprSyntaxTree,
-    subject : SilReference, state : SilState,
+    subject : SilReference, verb : SilWord, state : SilState,
     specifiedState : SilState = SilNullState(),
     verbModifiers : Seq[SilVerbModifier] = Seq.empty) =
   {
     SilUnresolvedStatePredicate(
-      syntaxTree, subject, state, specifiedState, verbModifiers)
+      syntaxTree, subject, verb, state, specifiedState, verbModifiers)
   }
 
   protected def expectActionPredicate(

@@ -64,7 +64,7 @@ class SmcInputRewriter[
       ) if (tam.isProgressive) => {
         SilPredicateSentence(
           SilStatePredicate(
-            subject, SilPropertyState(verb), modifiers),
+            subject, STATE_PREDEF_BE.toVerb, SilPropertyState(verb), modifiers),
           tam.withAspect(ASPECT_SIMPLE), formality)
       }
       case SilPredicateQuery(
@@ -74,7 +74,7 @@ class SmcInputRewriter[
       ) if (tam.isProgressive) => {
         SilPredicateQuery(
           SilStatePredicate(
-            subject, SilPropertyState(verb), modifiers),
+            subject, STATE_PREDEF_BE.toVerb, SilPropertyState(verb), modifiers),
           question, answerInflection,
           tam.withMood(MOOD_INTERROGATIVE), formality)
       }

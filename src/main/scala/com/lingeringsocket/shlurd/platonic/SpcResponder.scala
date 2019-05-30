@@ -136,10 +136,10 @@ class SpcResponder(
       referenceMap : Map[SilReference, Set[SpcEntity]]) : SilPredicate =
     {
       val stateNormalized = predicate match {
-        case SilStatePredicate(subject, state, modifiers) => {
+        case SilStatePredicate(subject, verb, state, modifiers) => {
           val normalizedState = mind.getCosmos.normalizeHyperFormState(
             deriveType(subject), state)
-          SilStatePredicate(subject, normalizedState, modifiers)
+          SilStatePredicate(subject, verb, normalizedState, modifiers)
         }
         case _ => predicate
       }
@@ -510,7 +510,7 @@ class SpcResponder(
       rewritten match {
         case SilRelationshipPredicate(
           SilNounReference(SilWordLemma(lemma), DETERMINER_ANY, count),
-          SilRelationshipVerb(REL_IDENTITY),
+          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           complement,
           modifiers
         ) => {
@@ -518,6 +518,7 @@ class SpcResponder(
           if (mind.getCosmos.formHasProperty(form, lemma)) {
             val statePredicate = SilStatePredicate(
               complement,
+              STATE_PREDEF_BE.toVerb,
               SilPropertyQueryState(lemma),
               modifiers
             )
@@ -691,7 +692,8 @@ class SpcResponder(
       SilConditionalSentence(
         SilWord(LEMMA_IF),
         general,
-        SilStatePredicate(general.getSubject, SilExistenceState()),
+        SilStatePredicate(
+          general.getSubject, STATE_PREDEF_BE.toVerb, SilExistenceState()),
         SilTam.indicative,
         SilTam.indicative,
         false)

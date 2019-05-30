@@ -144,16 +144,13 @@ class SilEnglishSentenceBundle
     modifiers : Seq[String]) =
   {
     if (tam.isInterrogative && question.isEmpty) {
-      SilRelationship(verb) match {
-        case REL_IDENTITY => {
+      if (isBeingVerb(verb)) {
+        composePredicateQuestion(subject, verbSeq, complement, modifiers)
+      } else {
+        if (tam.isIndicative && !tam.requiresAux) {
+          composePredicateStatement(subject, verbSeq, complement, modifiers)
+        } else {
           composePredicateQuestion(subject, verbSeq, complement, modifiers)
-        }
-        case REL_ASSOCIATION => {
-          if (tam.isIndicative && !tam.requiresAux) {
-            composePredicateStatement(subject, verbSeq, complement, modifiers)
-          } else {
-            composePredicateQuestion(subject, verbSeq, complement, modifiers)
-          }
         }
       }
     } else {

@@ -124,7 +124,7 @@ class SpcBeliefRecognizer(
                 SilWord(SmcLemmas.LEMMA_CONTAINER),
                 DETERMINER_UNSPECIFIED,
                 COUNT_SINGULAR)),
-            REL_IDENTITY.toVerb,
+            REL_PREDEF_IDENTITY.toVerb,
             container
           ),
           sentence.tam)
@@ -417,7 +417,7 @@ class SpcBeliefRecognizer(
     verb : SilWord
   ) : Seq[SpcBelief] =
   {
-    if (SilRelationship(verb) != REL_IDENTITY) {
+    if (SilRelationshipPredef(verb) != REL_PREDEF_IDENTITY) {
       return Seq.empty
     }
     propertyRef match {
@@ -553,8 +553,8 @@ class SpcBeliefRecognizer(
     verb : SilWord)
       : Seq[SpcBelief] =
   {
-    SilRelationship(verb) match {
-      case REL_IDENTITY => {
+    SilRelationshipPredef(verb) match {
+      case REL_PREDEF_IDENTITY => {
         val (complementNoun, qualifiers, count, determiner, failed) =
           extractQualifiedNoun(sentence, complementRef, Seq.empty)
         if (failed) {
@@ -595,7 +595,7 @@ class SpcBeliefRecognizer(
           }
         }
       }
-      case REL_ASSOCIATION => {
+      case REL_PREDEF_ASSOC => {
         val (complementNouns, count) = complementRef match {
           // "a dog may have an owner and a groomer"
           case SilConjunctiveReference(_, refs, _) => {
@@ -669,8 +669,8 @@ class SpcBeliefRecognizer(
     if (sentence.tam.modality != MODAL_NEUTRAL) {
       return Seq(UnimplementedBelief(sentence))
     }
-    SilRelationship(verb) match {
-      case REL_ASSOCIATION => {
+    SilRelationshipPredef(verb) match {
+      case REL_PREDEF_ASSOC => {
         complementRef match {
           case SilNounReference(
             roleNoun,
@@ -900,7 +900,7 @@ class SpcBeliefRecognizer(
               DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
               COUNT_SINGULAR) =>
               {
-                if (SilRelationship(verb) == REL_ASSOCIATION) {
+                if (SilRelationshipPredef(verb) == REL_PREDEF_ASSOC) {
                   Some(true)
                 } else {
                   None

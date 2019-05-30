@@ -41,6 +41,7 @@ private[parser] class SprNormalizationRewriter
     normalizeCoordinatingDeterminers,
     normalizeDanglingAdpositions,
     normalizeCompoundAdpositions,
+    normalizeExists,
     normalizeAdpositionalPhrases,
     normalizeCommands
   )
@@ -57,6 +58,7 @@ private[parser] class SprNormalizationRewriter
     "normalizeCoordinatingDeterminers", {
       case SilStatePredicate(
         subject,
+        verb,
         SilConjunctiveState(
           DETERMINER_ANY, states, separator),
         verbModifiers
@@ -65,6 +67,7 @@ private[parser] class SprNormalizationRewriter
         val determiner = maybeDeterminerFor(lemma).get
         SilStatePredicate(
           subject,
+          verb,
           SilConjunctiveState(
             determiner, states, separator),
           verbModifiers.filterNot(_ == modifier)
@@ -184,7 +187,7 @@ private[parser] class SprNormalizationRewriter
     "normalizeCompass", {
       case SilRelationshipPredicate(
         subject,
-        SilRelationshipVerb(REL_IDENTITY),
+        SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         SilStateSpecifiedReference(
           SilNounReference(
             direction : SilSimpleWord, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
@@ -198,6 +201,7 @@ private[parser] class SprNormalizationRewriter
       ) => {
         SilStatePredicate(
           subject,
+          STATE_PREDEF_BE.toVerb,
           SilAdpositionalState(
             SilAdposition(direction +: adp.word.decomposed),
             landmark
@@ -207,6 +211,7 @@ private[parser] class SprNormalizationRewriter
       }
       case SilStatePredicate(
         subject,
+        verb,
         SilPropertyState(direction : SilSimpleWord),
         Seq(SilAdpositionalVerbModifier(adp, landmark))
       ) if (
@@ -214,6 +219,7 @@ private[parser] class SprNormalizationRewriter
       ) => {
         SilStatePredicate(
           subject,
+          verb,
           SilAdpositionalState(
             SilAdposition(direction +: adp.word.decomposed),
             landmark),
@@ -226,6 +232,7 @@ private[parser] class SprNormalizationRewriter
     "normalizeAdpositionalPhrases", {
       case SilStatePredicate(
         subject,
+        verb,
         state,
         modifiers
       ) => {
@@ -233,6 +240,7 @@ private[parser] class SprNormalizationRewriter
           extractVerbModifier(subject)
         SilStatePredicate(
           subjectExtracted,
+          verb,
           state,
           subjectModifiers ++ modifiers
         )
@@ -307,6 +315,26 @@ private[parser] class SprNormalizationRewriter
           ),
           tam,
           formality
+        )
+      }
+    }
+  )
+
+  // FIXME remove this once we are able to correctly differentiate
+  // "there is an X" from "an X exists"
+  private def normalizeExists = replacementMatcher(
+    "normalizeExists", {
+      case sp @ SilStatePredicate(
+        subject,
+        verb,
+        state,
+        modifiers
+      ) if (verb.toLemma == LEMMA_EXIST) => {
+        SilStatePredicate(
+          subject,
+          STATE_PREDEF_BE.toVerb,
+          state,
+          modifiers
         )
       }
     }

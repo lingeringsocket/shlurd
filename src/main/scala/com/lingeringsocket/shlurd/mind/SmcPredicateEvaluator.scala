@@ -69,17 +69,17 @@ class SmcPredicateEvaluator[
     if (resolutionResult.isFailure) {
       return resolutionResult
     }
-    // FIXME analyze verb modifiers
+    // FIXME analyze verb, modifiers
     val result = predicate match {
       case SilStatePredicate(
-        subject, state, modifiers
+        subject, verb, state, modifiers
       ) => {
         state match {
           case SilConjunctiveState(determiner, states, _) => {
             // FIXME:  how to write to resultCollector.entityMap in this case?
             val tries = states.map(
               s => evaluatePredicate(
-                SilStatePredicate(subject, s), resultCollector))
+                SilStatePredicate(subject, verb, s), resultCollector))
             evaluateDeterminer(tries, determiner)
           }
           case _ => evaluateStatePredicate(
@@ -110,7 +110,8 @@ class SmcPredicateEvaluator[
           tryComplement
         } else {
           if (wildcardQuerier.containsWildcard(subjectRef, false) &&
-            (SilRelationship(verb) == REL_IDENTITY) && categoryLabel.isEmpty
+            (SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) &&
+            categoryLabel.isEmpty
           ) {
             resultCollector.referenceMap.get(complementRef) match {
               case Some(entities) => {
@@ -205,7 +206,7 @@ class SmcPredicateEvaluator[
             evaluateCategorization(subjectEntity, label)
           }
           case _ => {
-            if (SilRelationship(verb) == REL_ASSOCIATION) {
+            if (SilRelationshipPredef(verb) == REL_PREDEF_ASSOC) {
               val roleQualifiers = extractRoleQualifiers(complementRef)
               if (roleQualifiers.size == 1) {
                 val roleName = roleQualifiers.head
@@ -230,7 +231,7 @@ class SmcPredicateEvaluator[
             }
             assumeExistence(
               unassumed,
-              SilRelationship(verb) == REL_ASSOCIATION)
+              SilRelationshipPredef(verb) == REL_PREDEF_ASSOC)
           }
         }
       }
@@ -321,7 +322,7 @@ class SmcPredicateEvaluator[
     }
 
     val rule = phraseQuerier.queryMatcher {
-      case SilStatePredicate(subjectRef, state, modifiers) => {
+      case SilStatePredicate(subjectRef, verb, state, modifiers) => {
         resolveOne(subjectRef, subjectStateContext(state))
       }
       case SilRelationshipPredicate(
@@ -367,9 +368,9 @@ class SmcPredicateEvaluator[
   private def relationshipSubjectContext(
     verb : SilWord) : SilReferenceContext =
   {
-    SilRelationship(verb) match {
-      case REL_IDENTITY => REF_COMPLEMENT
-      case REL_ASSOCIATION => REF_SUBJECT
+    SilRelationshipPredef(verb) match {
+      case REL_PREDEF_IDENTITY => REF_COMPLEMENT
+      case REL_PREDEF_ASSOC => REF_SUBJECT
     }
   }
 
@@ -377,11 +378,11 @@ class SmcPredicateEvaluator[
     verb : SilWord,
     complementRef : SilReference) : (SilReferenceContext, Option[SilWord]) =
   {
-    SilRelationship(verb) match {
-      case REL_IDENTITY => {
+    SilRelationshipPredef(verb) match {
+      case REL_PREDEF_IDENTITY => {
         tupleN((REF_COMPLEMENT, extractCategory(complementRef)))
       }
-      case REL_ASSOCIATION => {
+      case REL_PREDEF_ASSOC => {
         tupleN((REF_SUBJECT, None))
       }
     }
@@ -489,8 +490,8 @@ class SmcPredicateEvaluator[
     complementEntity : EntityType,
     verb : SilWord) : Try[Trilean] =
   {
-    SilRelationship(verb) match {
-      case REL_IDENTITY => {
+    SilRelationshipPredef(verb) match {
+      case REL_PREDEF_IDENTITY => {
         val result = {
           if ((wildcardQuerier.containsWildcard(subjectRef) ||
             wildcardQuerier.containsWildcard(complementRef)) &&
@@ -505,7 +506,7 @@ class SmcPredicateEvaluator[
           s"$subjectEntity == $complementEntity is $result")
         result
       }
-      case REL_ASSOCIATION => {
+      case REL_PREDEF_ASSOC => {
         val roleQualifiers = extractRoleQualifiers(complementRef)
         val result = mind.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,

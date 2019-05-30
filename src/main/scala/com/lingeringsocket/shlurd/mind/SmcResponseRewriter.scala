@@ -57,7 +57,7 @@ class SmcResponseRewriter[
             predicate match {
               case SilRelationshipPredicate(
                 _,
-                SilRelationshipVerb(REL_IDENTITY),
+                SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
                 SilGenitiveReference(
                   _,
                   SilNounReference(
@@ -78,7 +78,7 @@ class SmcResponseRewriter[
     }
     var negateCollection = false
     val entityDeterminer = predicate match {
-      case SilStatePredicate(subject, SilExistenceState(), _) => {
+      case SilStatePredicate(subject, _, SilExistenceState(), _) => {
         DETERMINER_NONSPECIFIC
       }
       case _ => {
@@ -197,7 +197,7 @@ class SmcResponseRewriter[
       rewrite3)
     val rewrite5 = {
       val useThirdPersonPronouns = predicate match {
-        case SilStatePredicate(_, SilExistenceState(), _) => false
+        case SilStatePredicate(_, _, SilExistenceState(), _) => false
         case _ => params.thirdPersonPronouns
       }
       if (useThirdPersonPronouns) {
@@ -294,7 +294,7 @@ class SmcResponseRewriter[
       case (rp @
           SilRelationshipPredicate(
             container,
-            verb @ SilRelationshipVerb(REL_IDENTITY),
+            verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
             SilGenitiveReference(
               containee,
               SilNounReference(
@@ -316,6 +316,7 @@ class SmcResponseRewriter[
         } else {
           SilStatePredicate(
             containee,
+            verb.toUninflected,
             SilAdpositionalState(
               SilAdposition.IN,
               container),
@@ -325,7 +326,7 @@ class SmcResponseRewriter[
       case (rp @
           SilRelationshipPredicate(
             containee,
-            SilRelationshipVerb(REL_IDENTITY),
+            SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
             SilGenitiveReference(
               container,
               SilNounReference(
@@ -338,6 +339,7 @@ class SmcResponseRewriter[
       ) => {
         SilStatePredicate(
           containee,
+          STATE_PREDEF_BE.toVerb,
           SilAdpositionalState(
             SilAdposition.IN,
             container),
@@ -360,7 +362,7 @@ class SmcResponseRewriter[
     referenceMap --= detector.ambiguousRefs
     predicate match {
       case SilRelationshipPredicate(
-        subject, SilRelationshipVerb(REL_IDENTITY), complement, _
+        subject, SilRelationshipPredefVerb(REL_PREDEF_IDENTITY), complement, _
       ) => {
         tupleN((referenceMap.get(subject), referenceMap.get(complement))) match
         {
@@ -388,7 +390,7 @@ class SmcResponseRewriter[
     "flipPronouns", {
       case SilRelationshipPredicate(
         lhs,
-        verb @ SilRelationshipVerb(REL_IDENTITY),
+        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         rhs : SilPronounReference,
         modifiers
       ) => {
@@ -400,7 +402,7 @@ class SmcResponseRewriter[
       }
       case SilRelationshipPredicate(
         lhs,
-        verb @ SilRelationshipVerb(REL_IDENTITY),
+        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         rhs @ SilConjunctiveReference(_, references, _),
         modifiers
       ) if (references.exists(_.isInstanceOf[SilPronounReference])) => {
@@ -420,7 +422,7 @@ class SmcResponseRewriter[
     {
       case SilRelationshipPredicate(
         lhs,
-        verb @ SilRelationshipVerb(REL_IDENTITY),
+        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         rhs,
         verbModifiers
       ) if (containsWildcard(lhs) && !containsWildcard(rhs)) =>
@@ -440,7 +442,7 @@ class SmcResponseRewriter[
     "avoidTautologies", {
       case SilRelationshipPredicate(
         SilMappedReference(key, determiner),
-        verb @ SilRelationshipVerb(REL_IDENTITY),
+        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         other : SilReference,
         verbModifiers
       ) => {
@@ -453,7 +455,7 @@ class SmcResponseRewriter[
       }
       case SilRelationshipPredicate(
         other : SilReference,
-        verb @ SilRelationshipVerb(REL_IDENTITY),
+        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         SilMappedReference(key, determiner),
         verbModifiers
       ) => {
@@ -666,7 +668,7 @@ class SmcResponseRewriter[
     "coerceCountAgreement", {
       case SilRelationshipPredicate(
         subject,
-        verb @ SilRelationshipVerb(REL_IDENTITY),
+        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         complement, verbModifiers
       ) => {
         val subjectCount = SilReference.getCount(subject)

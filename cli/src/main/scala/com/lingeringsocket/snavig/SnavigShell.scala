@@ -887,6 +887,7 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
     val sentence = SilPredicateSentence(
       SilStatePredicate(
         noumenalMind.specificReferences(invocation.entities),
+        STATE_PREDEF_BE.toVerb,
         SilPropertyState(invocation.state)
       )
     )

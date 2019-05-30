@@ -897,7 +897,7 @@ class SprEnglishSyntaxAnalyzer(
       }
     }
     if (np.isExistential) {
-      if (SilRelationship(verb) != REL_IDENTITY) {
+      if (!isBeingVerb(verb)) {
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }
       val subject = splitCoordinatingConjunction(seq) match {
@@ -915,27 +915,28 @@ class SprEnglishSyntaxAnalyzer(
         }
       }
       tupleN((negative, expectStatePredicate(
-        syntaxTree, subject, expectExistenceState(np), SilNullState(),
+        syntaxTree, subject, verb,
+        expectExistenceState(np), SilNullState(),
         verbModifiers)))
     } else if (complement.isExistential) {
-      if (SilRelationship(verb) != REL_IDENTITY) {
+      if (!isBeingVerb(verb)) {
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }
       tupleN((negative, expectStatePredicate(
         syntaxTree,
         specifyReference(
           expectReference(np), specifiedState),
+        verb,
         expectExistenceState(complement),
         SilNullState(),
         verbModifiers)))
     } else if (complement.isNounNode) {
       // FIXME this is quite arbitrary
-      val (subjectRef, complementRef) = SilRelationship(verb) match {
-        case REL_IDENTITY => {
+      val (subjectRef, complementRef) = {
+        if (isBeingVerb(verb)) {
           tupleN((specifyReference(expectReference(np), specifiedState),
             expectReference(seq)))
-        }
-        case REL_ASSOCIATION => {
+        } else {
           tupleN((expectReference(np),
             specifyReference(expectReference(seq), specifiedState)))
         }
@@ -948,12 +949,13 @@ class SprEnglishSyntaxAnalyzer(
         verbModifiers)
       tupleN((negative, relationshipPredicate))
     } else {
-      if (SilRelationship(verb) != REL_IDENTITY) {
+      if (!isBeingVerb(verb)) {
         if (enforceTransitive) {
           return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
         } else {
           return tupleN((negative, expectStatePredicate(
             syntaxTree, expectReference(np),
+            verb,
             SilExistenceState(), specifiedState,
             verbModifiers)))
         }
@@ -994,7 +996,7 @@ class SprEnglishSyntaxAnalyzer(
         }
       }
       tupleN((negative, expectStatePredicate(
-        syntaxTree, expectReference(np), state, refinedState,
+        syntaxTree, expectReference(np), verb, state, refinedState,
         verbModifiers ++ expectVerbModifiers(extraModifiers))))
     }
   }

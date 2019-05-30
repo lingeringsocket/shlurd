@@ -260,7 +260,7 @@ class SmcResponder[
     mind.rememberSpeakerSentence(
       SmcConversation.SPEAKER_NAME_PERSON, analyzed, input)
     val resultCollector = SmcResultCollector[EntityType]
-    resolveReferences(analyzed, resultCollector)
+    resolveReferencesImpl(analyzed, resultCollector)
     rememberSentenceAnalysis(resultCollector)
     val (responseSentence, responseText) =
       processResolved(analyzed, resultCollector)
@@ -281,6 +281,16 @@ class SmcResponder[
   }
 
   def resolveReferences(
+    phrase : SilPhrase,
+    resultCollector : ResultCollectorType,
+    throwFailures : Boolean = false,
+    reify : Boolean = false) : Try[Trilean] =
+  {
+    debugger.setContext(phrase.toString)
+    resolveReferencesImpl(phrase, resultCollector, throwFailures, reify)
+  }
+
+  private def resolveReferencesImpl(
     phrase : SilPhrase,
     resultCollector : ResultCollectorType,
     throwFailures : Boolean = false,
@@ -468,7 +478,7 @@ class SmcResponder[
                 }
                 case (
                   INFLECT_COMPLEMENT,
-                  SilStatePredicate(_, state, _)
+                  SilStatePredicate(_, _, state, _)
                 ) => {
                   sentencePrinter.print(
                     state, tamResponse, SilConjoining.NONE)
@@ -490,7 +500,7 @@ class SmcResponder[
                 }
                 case (
                   INFLECT_ADPOSITIONED,
-                  SilStatePredicate(_, SilAdpositionalState(_, objRef), _)
+                  SilStatePredicate(_, _, SilAdpositionalState(_, objRef), _)
                 ) => {
                   // FIXME need a way to automatically find the
                   // wildcard in either the state or the modifiers
@@ -555,7 +565,7 @@ class SmcResponder[
               val responseTruth = params.verbosity match {
                 case RESPONSE_ELLIPSIS => {
                   query match {
-                    case SilStatePredicate(_, SilExistenceState(), _) => {
+                    case SilStatePredicate(_, _, SilExistenceState(), _) => {
                       truthBoolean || negateCollection
                     }
                     case _ => {
@@ -679,6 +689,7 @@ class SmcResponder[
               }
               val pred = SilStatePredicate(
                 actionPredicate.directObject.get,
+                STATE_PREDEF_BE.toVerb,
                 SilPropertyState(actionWord),
                 modifiers
               )

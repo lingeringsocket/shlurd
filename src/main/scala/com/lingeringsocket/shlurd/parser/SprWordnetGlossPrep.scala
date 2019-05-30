@@ -58,6 +58,7 @@ object SprWordnetGlossPrep
       case SilPredicateSentence(
         SilStatePredicate(
           subject,
+          SilStatePredefVerb(STATE_PREDEF_BE),
           SilExistenceState(),
           Seq()
         ),

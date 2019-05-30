@@ -88,9 +88,15 @@ class SprParserSpec extends Specification
 
   private val QUALIFIER_BIG = SilWord("big")
 
+  private val VERB_BE = SilWord("be", "be")
+
+  private val VERB_AM = SilWord("am", "be")
+
   private val VERB_WAS = SilWord("was", "be")
 
   private val VERB_IS = SilWord("is", "be")
+
+  private val VERB_ARE = SilWord("are", "be")
 
   private val VERB_TURN = SilWord("turn")
 
@@ -123,21 +129,24 @@ class SprParserSpec extends Specification
 
   private def predState(
     subject : SilWord,
+    verb : SilWord = VERB_IS,
     state : SilWord = STATE_OPEN,
     determiner : SilDeterminer = DETERMINER_UNIQUE,
     count : SilCount = COUNT_SINGULAR) =
   {
     SilStatePredicate(
       SilNounReference(subject, determiner, count),
+      verb,
       SilPropertyState(state))
   }
 
   private def predStateDoor(
+    verb : SilWord = VERB_IS,
     state : SilWord = STATE_OPEN,
     determiner : SilDeterminer = DETERMINER_UNIQUE,
     count : SilCount = COUNT_SINGULAR) =
   {
-    predState(NOUN_DOOR, state, determiner, count)
+    predState(NOUN_DOOR, verb, state, determiner, count)
   }
 
   private def stateCommandAction(
@@ -254,16 +263,19 @@ class SprParserSpec extends Specification
         SilPredicateSentence(
           SilStatePredicate(
             SilNounReference(NOUN_STEAK_KNIFE, DETERMINER_NONSPECIFIC),
+            VERB_IS,
             SilExistenceState()))
       parse("there is a big top") must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
             SilNounReference(NOUN_BIG_TOP, DETERMINER_NONSPECIFIC),
+            VERB_IS,
             SilExistenceState()))
       parse("there is a lemon meringue pie") must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
             SilNounReference(NOUN_LEMON_MERINGUE_PIE, DETERMINER_NONSPECIFIC),
+            VERB_IS,
             SilExistenceState()))
       parse("Franny bumps off Zooey") must be equalTo
         SilPredicateSentence(
@@ -287,7 +299,8 @@ class SprParserSpec extends Specification
     {
       val input = "which door is open"
       val expected = SilPredicateQuery(
-        predStateDoor(STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+        predStateDoor(
+          VERB_IS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
         QUESTION_WHICH, INFLECT_NOMINATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
@@ -311,6 +324,7 @@ class SprParserSpec extends Specification
       val expected = SilPredicateQuery(
         SilStatePredicate(
           SilNounReference(NOUN_WHO),
+          VERB_IS,
           SilAdpositionalState(
             SilAdposition.AT,
             SilNounReference(NOUN_HOME))),
@@ -347,7 +361,9 @@ class SprParserSpec extends Specification
     {
       val input = "how many doors are open"
       val expected = SilPredicateQuery(
-        predState(NOUN_DOORS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_PLURAL),
+        predState(
+          NOUN_DOORS, VERB_ARE, STATE_OPEN,
+          DETERMINER_UNSPECIFIED, COUNT_PLURAL),
         QUESTION_HOW_MANY, INFLECT_NOMINATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
@@ -435,11 +451,11 @@ class SprParserSpec extends Specification
     {
       val command = "close the door"
       parse(command) must be equalTo
-        stateCommandAction(predStateDoor(STATE_CLOSE))
+        stateCommandAction(predStateDoor(VERB_BE, STATE_CLOSE))
       val question = "is the door closed"
       parse(question) must be equalTo
         SilPredicateSentence(
-          predStateDoor(STATE_CLOSED), SilTam.interrogative)
+          predStateDoor(VERB_IS, STATE_CLOSED), SilTam.interrogative)
     }
 
     "parse adpositional verbs" in
@@ -448,13 +464,16 @@ class SprParserSpec extends Specification
         skipped("CoreNLP not working")
       }
       parse("turn the door on") must be equalTo
-        stateCommandAction(predStateDoor(STATE_ON), Some(VERB_TURN))
+        stateCommandAction(predStateDoor(VERB_BE, STATE_ON), Some(VERB_TURN))
       parse("turn on the door") must be equalTo
-        stateCommandAction(predStateDoor(STATE_ON), Some(VERB_TURN), true)
+        stateCommandAction(
+          predStateDoor(VERB_BE, STATE_ON), Some(VERB_TURN), true)
       parse("turn the door off") must be equalTo
-        stateCommandAction(predStateDoor(STATE_OFF), Some(VERB_TURN))
+        stateCommandAction(
+          predStateDoor(VERB_BE, STATE_OFF), Some(VERB_TURN))
       parse("turn off the door") must be equalTo
-        stateCommandAction(predStateDoor(STATE_OFF), Some(VERB_TURN), true)
+        stateCommandAction(
+          predStateDoor(VERB_BE, STATE_OFF), Some(VERB_TURN), true)
     }
 
     "parse adverbial state" in
@@ -462,7 +481,7 @@ class SprParserSpec extends Specification
       val question = "is the door sideways"
       parse(question) must be equalTo
       SilPredicateSentence(
-        predStateDoor(STATE_SIDEWAYS), SilTam.interrogative)
+        predStateDoor(VERB_IS, STATE_SIDEWAYS), SilTam.interrogative)
     }
 
     "parse conjunctive state" in
@@ -473,6 +492,7 @@ class SprParserSpec extends Specification
           SilStatePredicate(
             SilNounReference(
               NOUN_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
+            VERB_IS,
             SilConjunctiveState(
               DETERMINER_ALL,
               Seq(
@@ -485,6 +505,7 @@ class SprParserSpec extends Specification
           SilStatePredicate(
             SilNounReference(
               NOUN_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
+            VERB_IS,
             SilConjunctiveState(
               DETERMINER_UNIQUE,
               Seq(
@@ -498,40 +519,45 @@ class SprParserSpec extends Specification
       skipped("maybe later")
       val inputEither = "open either door"
       parse(inputEither) must be equalTo
-        stateCommandAction(predStateDoor(STATE_OPEN, DETERMINER_UNIQUE))
+        stateCommandAction(predStateDoor(
+          VERB_BE, STATE_OPEN, DETERMINER_UNIQUE))
     }
 
     "parse determiners" in
     {
       val inputThe = "open the door"
       parse(inputThe) must be equalTo
-        stateCommandAction(predStateDoor(STATE_OPEN, DETERMINER_UNIQUE))
+        stateCommandAction(predStateDoor(
+          VERB_BE, STATE_OPEN, DETERMINER_UNIQUE))
       val inputAny = "open any door"
       parse(inputAny) must be equalTo
-        stateCommandAction(predStateDoor(STATE_OPEN, DETERMINER_ANY))
+        stateCommandAction(predStateDoor(VERB_BE, STATE_OPEN, DETERMINER_ANY))
       val inputA = "open a door"
       parse(inputA) must be equalTo
-        stateCommandAction(predStateDoor(STATE_OPEN, DETERMINER_NONSPECIFIC))
+        stateCommandAction(predStateDoor(
+          VERB_BE, STATE_OPEN, DETERMINER_NONSPECIFIC))
       val inputSome = "open some door"
       parse(inputSome) must be equalTo
-        stateCommandAction(predStateDoor(STATE_OPEN, DETERMINER_SOME))
+        stateCommandAction(predStateDoor(VERB_BE, STATE_OPEN, DETERMINER_SOME))
       val inputAll = "open all doors"
       parse(inputAll) must be equalTo
         stateCommandAction(
-          predState(NOUN_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL))
+          predState(NOUN_DOORS, VERB_BE, STATE_OPEN,
+            DETERMINER_ALL, COUNT_PLURAL))
       val inputNone = "open no door"
       parse(inputNone) must be equalTo
-        stateCommandAction(predStateDoor(STATE_OPEN, DETERMINER_NONE))
+        stateCommandAction(predStateDoor(VERB_BE, STATE_OPEN, DETERMINER_NONE))
 
       val inputAnyQ = "is any door open"
       parse(inputAnyQ) must be equalTo
         SilPredicateSentence(
-          predStateDoor(STATE_OPEN, DETERMINER_ANY),
+          predStateDoor(VERB_IS, STATE_OPEN, DETERMINER_ANY),
           SilTam.interrogative)
       val inputAllQ = "are all doors open"
       parse(inputAllQ) must be equalTo
         SilPredicateSentence(
-          predState(NOUN_DOORS, STATE_OPEN, DETERMINER_ALL, COUNT_PLURAL),
+          predState(NOUN_DOORS, VERB_ARE, STATE_OPEN,
+            DETERMINER_ALL, COUNT_PLURAL),
           SilTam.interrogative)
     }
 
@@ -544,6 +570,7 @@ class SprParserSpec extends Specification
             SilReference.qualified(
               SilNounReference(NOUN_DOOR, DETERMINER_UNIQUE),
               Seq(QUALIFIER_BIG)),
+            VERB_BE,
             SilPropertyState(STATE_OPEN)))
     }
 
@@ -554,6 +581,7 @@ class SprParserSpec extends Specification
         SilPredicateSentence(
           SilStatePredicate(
             SilNounReference(NOUN_FRANNY),
+            VERB_IS,
             SilAdpositionalState(
               SilAdposition.AT,
               SilNounReference(NOUN_HOME))),
@@ -562,29 +590,28 @@ class SprParserSpec extends Specification
 
     "parse adposition specifiers" in
     {
-      val pred = SilStatePredicate(
+      def pred(verb : SilWord = VERB_IS) = SilStatePredicate(
         SilStateSpecifiedReference(
           SilNounReference(
             NOUN_WINDOW, DETERMINER_UNIQUE, COUNT_SINGULAR),
           SilAdpositionalState(
             SilAdposition.IN,
             SilNounReference(
-              NOUN_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR)
-          )
-        ),
+              NOUN_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR))),
+        verb,
         SilPropertyState(STATE_OPEN)
       )
       parse("the window in the bathroom is open") must be equalTo
         SilPredicateSentence(
-          pred,
+          pred(),
           SilTam.indicative)
       parse("is the window in the bathroom open") must be equalTo
         SilPredicateSentence(
-          pred,
+          pred(),
           SilTam.interrogative)
       parse("open the window in the bathroom") must be equalTo
         stateCommandAction(
-          pred)
+          pred(VERB_BE))
     }
 
     "parse verb modifiers" in
@@ -612,6 +639,7 @@ class SprParserSpec extends Specification
         SilPredicateSentence(
           SilStatePredicate(
             SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+            VERB_AM,
             SilPropertyState(STATE_HUNGRY)))
     }
 
@@ -624,6 +652,7 @@ class SprParserSpec extends Specification
             SilGenitiveReference(
               SilPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
               SilNounReference(NOUN_GRANDDAUGHTER)),
+            VERB_IS,
             SilAdpositionalState(
               SilAdposition.AT,
               SilNounReference(NOUN_HOME))),
@@ -639,6 +668,7 @@ class SprParserSpec extends Specification
             SilGenitiveReference(
               SilNounReference(NOUN_FRANNY),
               SilNounReference(NOUN_MOUSE)),
+            VERB_IS,
             SilPropertyState(STATE_HUNGRY)),
           SilTam.interrogative)
     }
@@ -669,6 +699,7 @@ class SprParserSpec extends Specification
               Seq(
                 SilNounReference(NOUN_FRANNY),
                 SilNounReference(NOUN_ZOOEY))),
+            VERB_ARE,
             SilPropertyState(STATE_HUNGRY)))
       val inputNegative = "neither Franny nor Zooey is hungry"
       parse(inputNegative) must be equalTo
@@ -679,6 +710,7 @@ class SprParserSpec extends Specification
               Seq(
                 SilNounReference(NOUN_FRANNY),
                 SilNounReference(NOUN_ZOOEY))),
+            VERB_IS,
             SilPropertyState(STATE_HUNGRY)))
     }
 
@@ -695,6 +727,7 @@ class SprParserSpec extends Specification
               Seq(
                 SilNounReference(NOUN_FRANNY),
                 SilNounReference(NOUN_ZOOEY))),
+            VERB_IS,
             SilPropertyState(STATE_HUNGRY)))
 
       // FIXME:  in this context, should really be DETERMINER_ANY
@@ -708,6 +741,7 @@ class SprParserSpec extends Specification
               Seq(
                 SilNounReference(NOUN_FRANNY),
                 SilNounReference(NOUN_ZOOEY))),
+            VERB_IS,
             SilPropertyState(STATE_HUNGRY)))
     }
 
@@ -715,52 +749,56 @@ class SprParserSpec extends Specification
     {
       parse("The door must be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(), SilTam.indicative.withModality(MODAL_MUST)))
+          predStateDoor(VERB_BE),
+          SilTam.indicative.withModality(MODAL_MUST)))
       parse("Must the door be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(), SilTam.interrogative.withModality(MODAL_MUST)))
+          predStateDoor(VERB_BE),
+          SilTam.interrogative.withModality(MODAL_MUST)))
       parse("The door may be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(), SilTam.indicative.withModality(MODAL_MAY)))
+          predStateDoor(VERB_BE),
+          SilTam.indicative.withModality(MODAL_MAY)))
       parse("The door must not be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(),
+          predStateDoor(VERB_BE),
           SilTam.indicative.negative.withModality(MODAL_MUST)))
       parse("Mustn't the door be open") must be equalTo(
         SilPredicateSentence(
-          predStateDoor(),
+          predStateDoor(VERB_BE),
           SilTam.interrogative.negative.withModality(MODAL_MUST)))
     }
 
     "parse existence" in
     {
-      val doorExistencePred = SilStatePredicate(
+      def doorExistencePred(verb : SilWord = VERB_IS) = SilStatePredicate(
         SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
+        verb,
         SilExistenceState())
 
       parse("There is a door") must be equalTo(
-        SilPredicateSentence(doorExistencePred))
+        SilPredicateSentence(doorExistencePred()))
       parse("There exists a door") must be equalTo(
-        SilPredicateSentence(doorExistencePred))
+        SilPredicateSentence(doorExistencePred(VERB_BE)))
       parse("There is not a door") must be equalTo(
         SilPredicateSentence(
-          doorExistencePred,
+          doorExistencePred(),
           SilTam.indicative.negative))
       parse("There must be a door") must be equalTo(
         SilPredicateSentence(
-          doorExistencePred,
+          doorExistencePred(VERB_BE),
           SilTam.indicative.withModality(MODAL_MUST)))
       parse("There is a door?") must be equalTo(
         SilPredicateSentence(
-          doorExistencePred,
+          doorExistencePred(),
           SilTam.interrogative))
       parse("Is there a door") must be equalTo(
         SilPredicateSentence(
-          doorExistencePred,
+          doorExistencePred(),
           SilTam.interrogative))
       parse("Must there be a door") must be equalTo(
         SilPredicateSentence(
-          doorExistencePred,
+          doorExistencePred(VERB_BE),
           SilTam.interrogative.withModality(MODAL_MUST)))
 
       parse("There is a big door") must be equalTo(
@@ -769,6 +807,7 @@ class SprParserSpec extends Specification
             SilReference.qualified(
               SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
               Seq(QUALIFIER_BIG)),
+            VERB_IS,
             SilExistenceState())))
 
       val doorPlusWindow = Seq(
@@ -780,6 +819,7 @@ class SprParserSpec extends Specification
             SilConjunctiveReference(
               DETERMINER_ALL,
               doorPlusWindow),
+            VERB_IS,
             SilExistenceState())))
       parse("Is there a door or a window") must be equalTo(
         SilPredicateSentence(
@@ -787,6 +827,7 @@ class SprParserSpec extends Specification
             SilConjunctiveReference(
               DETERMINER_ANY,
               doorPlusWindow),
+            VERB_IS,
             SilExistenceState()),
           SilTam.interrogative))
     }
@@ -799,6 +840,7 @@ class SprParserSpec extends Specification
             SilReference.qualified(
               SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
               Seq(STATE_SHUT)),
+            VERB_IS,
             SilPropertyState(STATE_CLOSED))))
     }
 
@@ -821,6 +863,7 @@ class SprParserSpec extends Specification
         case SilPredicateSentence(
           SilStatePredicate(
             SilUnrecognizedReference(syntaxTree),
+            SilStatePredefVerb(STATE_PREDEF_BE),
             SilPropertyState(STATE_OPEN),
             Seq()),
           tam,

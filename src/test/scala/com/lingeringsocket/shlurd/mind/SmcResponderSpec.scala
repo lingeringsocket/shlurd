@@ -70,8 +70,8 @@ class SmcResponderSpec extends Specification
           referenceMap : Map[SilReference, Set[SmcEntity]]) =
         {
           predicate match {
-            case SilStatePredicate(subject, state, modifiers) => {
-              SilStatePredicate(subject, normalizeState(state), modifiers)
+            case SilStatePredicate(subject, verb, state, modifiers) => {
+              SilStatePredicate(subject, verb, normalizeState(state), modifiers)
             }
             case _ => predicate
           }

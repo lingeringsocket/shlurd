@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 // FIXME
@@ -159,30 +160,71 @@ sealed trait SilAspect
 case object ASPECT_SIMPLE extends SilAspect
 case object ASPECT_PROGRESSIVE extends SilAspect
 
-sealed trait SilRelationship
+sealed trait SilRelationshipPredef
 {
   def toLemma : String
   def toVerb = SilWord(toLemma)
 }
-case object REL_IDENTITY extends SilRelationship
+case object REL_PREDEF_IDENTITY extends SilRelationshipPredef
 {
   override def toLemma = LEMMA_BE
 }
-case object REL_ASSOCIATION extends SilRelationship
+case object REL_PREDEF_ASSOC extends SilRelationshipPredef
 {
   override def toLemma = LEMMA_HAVE
 }
 
-object SilRelationship
+object SilRelationshipPredef
+{
+  val enumeration = Seq(REL_PREDEF_IDENTITY, REL_PREDEF_ASSOC)
+
+  val lemmaMap = Map(enumeration.map(rel => tupleN((rel.toLemma, rel))):_*)
+
+  def apply(word : SilWord) =
+  {
+    lemmaMap.get(word.toLemma).getOrElse {
+      throw new IllegalArgumentException(
+        "Non-common relationship verb " + word)
+    }
+  }
+}
+
+object SilRelationshipPredefVerb
+{
+  def unapply(w : SilSimpleWord) =
+  {
+    Some(SilRelationshipPredef(w))
+  }
+}
+
+sealed trait SilStatePredef
+{
+  def toLemma : String
+  def toVerb = SilWord(toLemma)
+}
+
+case object STATE_PREDEF_BE extends SilStatePredef
+{
+  override def toLemma = LEMMA_BE
+}
+
+object SilStatePredef
 {
   def apply(word : SilWord) =
   {
     word.toLemma match {
-      case LEMMA_BE | LEMMA_EXIST => REL_IDENTITY
-      case LEMMA_HAVE => REL_ASSOCIATION
+      case LEMMA_EXIST | LEMMA_BE => STATE_PREDEF_BE
       case _ => throw new IllegalArgumentException(
-        "Non-relationship verb " + word)
+        "Non-common state verb " + word)
     }
+  }
+}
+
+object SilStatePredefVerb
+{
+  def unapply(w : SilSimpleWord) =
+  {
+    Some(SilStatePredef(w))
   }
 }
 
