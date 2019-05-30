@@ -87,7 +87,7 @@ class SmcPredicateEvaluator[
         }
       }
       case SilRelationshipPredicate(
-        subjectRef, complementRef, verb, modifiers
+        subjectRef, verb, complementRef, modifiers
       ) => {
         val subjectCollector = chooseResultCollector(
           subjectRef, resultCollector)
@@ -325,7 +325,7 @@ class SmcPredicateEvaluator[
         resolveOne(subjectRef, subjectStateContext(state))
       }
       case SilRelationshipPredicate(
-        subjectRef, complementRef, verb, modifiers
+        subjectRef, verb, complementRef, modifiers
       ) => {
         resolveOne(subjectRef, relationshipSubjectContext(verb))
         val (context, categoryLabel) =

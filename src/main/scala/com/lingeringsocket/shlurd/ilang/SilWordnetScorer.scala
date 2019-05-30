@@ -168,12 +168,12 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   private def scoreNounStates = phraseScorer {
     case SilRelationshipPredicate(
       _,
+      _,
       SilNounReference(_, DETERMINER_UNSPECIFIED, COUNT_SINGULAR) |
         SilStateSpecifiedReference(
           SilNounReference(_, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
           _
         ),
-      _,
       _
     ) => {
       SilPhraseScore.conSmall

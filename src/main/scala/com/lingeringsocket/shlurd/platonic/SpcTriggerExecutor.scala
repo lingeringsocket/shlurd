@@ -111,7 +111,7 @@ class SpcTriggerExecutor(
         }
       }
       case SilRelationshipPredicate(
-        subject, complement, verb, modifiers
+        subject, verb, complement, modifiers
       ) => {
         val relPredicate = predicate match {
           case rp : SilRelationshipPredicate => rp

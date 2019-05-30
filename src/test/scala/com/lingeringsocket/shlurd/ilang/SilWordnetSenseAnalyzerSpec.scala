@@ -83,8 +83,9 @@ class SilWordnetSenseAnalyzerSpec extends Specification
       val lemma = "whale"
       val identity = SilRelationshipPredicate(
         pronounI,
-        SilNounReference(SilWord(lemma), DETERMINER_NONSPECIFIC),
-        REL_IDENTITY.toVerb)
+        REL_IDENTITY.toVerb,
+        SilNounReference(SilWord(lemma), DETERMINER_NONSPECIFIC)
+      )
       analyzeComplement(identity) must be equalTo "n:10148670|n:2065397"
     }
 
@@ -95,8 +96,9 @@ class SilWordnetSenseAnalyzerSpec extends Specification
         SilWord("guy")))
       val identity = SilRelationshipPredicate(
         pronounI,
-        SilNounReference(word, DETERMINER_NONSPECIFIC),
-        REL_IDENTITY.toVerb)
+        REL_IDENTITY.toVerb,
+        SilNounReference(word, DETERMINER_NONSPECIFIC)
+      )
       analyzeComplement(identity) must be equalTo "n:10803789"
     }
   }

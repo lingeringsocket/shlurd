@@ -54,7 +54,7 @@ class SprEnglishVerbSpec extends Specification
         ParsedVerb(subject, rhs, lemma, tam, None)
       }
       case SilPredicateSentence(
-        SilRelationshipPredicate(subject, complement, verb, Seq()),
+        SilRelationshipPredicate(subject, verb, complement, Seq()),
         tam, _
       ) => {
         ParsedVerb(subject, Some(complement), verb.toLemma, tam, None)
@@ -81,7 +81,7 @@ class SprEnglishVerbSpec extends Specification
           Some((question, answerInflection)))
       }
       case SilPredicateQuery(
-        SilRelationshipPredicate(subject, complement, verb, Seq()),
+        SilRelationshipPredicate(subject, verb, complement, Seq()),
         question, answerInflection, tam, _
       ) => {
         ParsedVerb(
@@ -137,8 +137,8 @@ class SprEnglishVerbSpec extends Specification
           {
             SilRelationshipPredicate(
               subject,
-              rhs.map(expectReference).get,
-              SilWord(lemma)
+              SilWord(lemma),
+              rhs.map(expectReference).get
             )
           } else {
             SilActionPredicate(

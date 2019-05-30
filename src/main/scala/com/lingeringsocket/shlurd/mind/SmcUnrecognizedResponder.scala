@@ -40,7 +40,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
             }
           }
           case SilRelationshipPredicate(
-            subject, complement, verb, modifiers
+            subject, verb, complement, modifiers
           ) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(
@@ -68,7 +68,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
             }
           }
           case SilRelationshipPredicate(
-            subject, complement, verb, modifiers
+            subject, verb, complement, modifiers
           ) => {
             val count = findKnownCount(subject, complement)
             val response = respondToUnresolvedPredicate(

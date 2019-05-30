@@ -453,8 +453,8 @@ case class SilStatePredicate(
 
 case class SilRelationshipPredicate(
   subject : SilReference,
-  complement : SilReference,
   verb : SilWord,
+  complement : SilReference,
   modifiers : Seq[SilVerbModifier] = Seq.empty
 ) extends SilTransformedPhrase with SilPredicate
 {
@@ -779,7 +779,7 @@ object SilWordInflected
   }
 }
 
-object SilWordRelationship
+object SilRelationshipVerb
 {
   def unapply(w : SilSimpleWord) =
   {

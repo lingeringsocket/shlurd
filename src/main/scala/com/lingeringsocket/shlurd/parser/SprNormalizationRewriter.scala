@@ -72,18 +72,18 @@ private[parser] class SprNormalizationRewriter
       }
       case SilRelationshipPredicate(
         subject,
+        verb,
         SilConjunctiveReference(
           DETERMINER_ANY, references, separator),
-        verb,
         verbModifiers
       ) if (findCoordinatingDeterminer(verbModifiers).nonEmpty) => {
         val (modifier, lemma) = findCoordinatingDeterminer(verbModifiers).get
         val determiner = maybeDeterminerFor(lemma).get
         SilRelationshipPredicate(
           subject,
+          verb,
           SilConjunctiveReference(
             determiner, references, separator),
-          verb,
           verbModifiers.filterNot(_ == modifier)
         )
       }
@@ -184,6 +184,7 @@ private[parser] class SprNormalizationRewriter
     "normalizeCompass", {
       case SilRelationshipPredicate(
         subject,
+        SilRelationshipVerb(REL_IDENTITY),
         SilStateSpecifiedReference(
           SilNounReference(
             direction : SilSimpleWord, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
@@ -191,7 +192,6 @@ private[parser] class SprNormalizationRewriter
             adp,
             landmark)
         ),
-        SilWordRelationship(REL_IDENTITY),
         modifiers
       ) if (
         (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
@@ -239,8 +239,8 @@ private[parser] class SprNormalizationRewriter
       }
       case SilRelationshipPredicate(
         subject,
-        complement,
         verb,
+        complement,
         modifiers
       ) => {
         val (subjectExtracted, subjectModifiers) =
@@ -249,8 +249,8 @@ private[parser] class SprNormalizationRewriter
           extractVerbModifier(complement)
         SilRelationshipPredicate(
           subjectExtracted,
-          complementExtracted,
           verb,
+          complementExtracted,
           subjectModifiers ++ complementModifiers ++ modifiers)
       }
       case SilActionPredicate(

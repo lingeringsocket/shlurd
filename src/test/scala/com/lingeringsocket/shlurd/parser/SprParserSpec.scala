@@ -424,9 +424,9 @@ class SprParserSpec extends Specification
           SilRelationshipPredicate(
             SilNounReference(
               NOUN_PORTAL, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            VERB_IS,
             SilNounReference(
-              NOUN_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
-            VERB_IS
+              NOUN_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
           )
         )
     }
@@ -593,8 +593,8 @@ class SprParserSpec extends Specification
         SilPredicateQuery(
           SilRelationshipPredicate(
             SilNounReference(SilWord(LEMMA_WHERE)),
-            SilNounReference(NOUN_MOUSE, DETERMINER_UNIQUE),
             VERB_WAS,
+            SilNounReference(NOUN_MOUSE, DETERMINER_UNIQUE),
             Seq(SilAdpositionalVerbModifier(
               SilAdposition(SilWord("before")),
               SilNounReference(NOUN_BATHROOM, DETERMINER_UNIQUE)
@@ -650,10 +650,10 @@ class SprParserSpec extends Specification
         SilPredicateSentence(
           SilRelationshipPredicate(
             SilNounReference(NOUN_FRANNY),
+            VERB_IS,
             SilGenitiveReference(
               SilNounReference(NOUN_ZOOEY),
-              SilNounReference(NOUN_SISTER)),
-            VERB_IS
+              SilNounReference(NOUN_SISTER))
           ),
           SilTam.indicative)
     }

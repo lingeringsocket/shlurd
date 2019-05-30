@@ -57,13 +57,14 @@ class SmcResponseRewriter[
             predicate match {
               case SilRelationshipPredicate(
                 _,
+                SilRelationshipVerb(REL_IDENTITY),
                 SilGenitiveReference(
                   _,
                   SilNounReference(
                     SilWordLemma(SmcLemmas.LEMMA_CONTAINEE),
                     DETERMINER_UNSPECIFIED,
-                    _)),
-                SilWordRelationship(REL_IDENTITY),
+                    _)
+                ),
                 _
               ) => {
                 false
@@ -293,13 +294,13 @@ class SmcResponseRewriter[
       case (rp @
           SilRelationshipPredicate(
             container,
+            verb @ SilRelationshipVerb(REL_IDENTITY),
             SilGenitiveReference(
               containee,
               SilNounReference(
                 SilWordLemma(SmcLemmas.LEMMA_CONTAINER),
                 DETERMINER_UNSPECIFIED,
                 _)),
-            verb @ SilWordRelationship(REL_IDENTITY),
             verbModifiers
           ),
         Some(QUESTION_WHERE)
@@ -309,8 +310,8 @@ class SmcResponseRewriter[
           // be an adverb in this context?
           SilRelationshipPredicate(
             containee,
-            container,
             verb.toUninflected,
+            container,
             verbModifiers)
         } else {
           SilStatePredicate(
@@ -324,13 +325,13 @@ class SmcResponseRewriter[
       case (rp @
           SilRelationshipPredicate(
             containee,
+            SilRelationshipVerb(REL_IDENTITY),
             SilGenitiveReference(
               container,
               SilNounReference(
                 SilWordLemma(SmcLemmas.LEMMA_CONTAINEE),
                 DETERMINER_UNSPECIFIED,
                 _)),
-            SilWordRelationship(REL_IDENTITY),
             verbModifiers
           ),
         _
@@ -359,7 +360,7 @@ class SmcResponseRewriter[
     referenceMap --= detector.ambiguousRefs
     predicate match {
       case SilRelationshipPredicate(
-        subject, complement, SilWordRelationship(REL_IDENTITY), _
+        subject, SilRelationshipVerb(REL_IDENTITY), complement, _
       ) => {
         tupleN((referenceMap.get(subject), referenceMap.get(complement))) match
         {
@@ -387,26 +388,26 @@ class SmcResponseRewriter[
     "flipPronouns", {
       case SilRelationshipPredicate(
         lhs,
+        verb @ SilRelationshipVerb(REL_IDENTITY),
         rhs : SilPronounReference,
-        verb @ SilWordRelationship(REL_IDENTITY),
         modifiers
       ) => {
         SilRelationshipPredicate(
           rhs,
-          lhs,
           verb.toUninflected,
+          lhs,
           modifiers)
       }
       case SilRelationshipPredicate(
         lhs,
+        verb @ SilRelationshipVerb(REL_IDENTITY),
         rhs @ SilConjunctiveReference(_, references, _),
-        verb @ SilWordRelationship(REL_IDENTITY),
         modifiers
       ) if (references.exists(_.isInstanceOf[SilPronounReference])) => {
         SilRelationshipPredicate(
           rhs,
-          lhs,
           verb.toUninflected,
+          lhs,
           modifiers)
       }
     }
@@ -419,15 +420,15 @@ class SmcResponseRewriter[
     {
       case SilRelationshipPredicate(
         lhs,
+        verb @ SilRelationshipVerb(REL_IDENTITY),
         rhs,
-        verb @ SilWordRelationship(REL_IDENTITY),
         verbModifiers
       ) if (containsWildcard(lhs) && !containsWildcard(rhs)) =>
         {
           SilRelationshipPredicate(
             rhs,
-            lhs,
             verb.toUninflected,
+            lhs,
             verbModifiers)
         }
     }
@@ -439,28 +440,28 @@ class SmcResponseRewriter[
     "avoidTautologies", {
       case SilRelationshipPredicate(
         SilMappedReference(key, determiner),
+        verb @ SilRelationshipVerb(REL_IDENTITY),
         other : SilReference,
-        verb @ SilWordRelationship(REL_IDENTITY),
         verbModifiers
       ) => {
         val entity = entityMap(key)
         SilRelationshipPredicate(
           chooseReference(referenceMap, entity, other, determiner),
-          other,
           verb.toUninflected,
+          other,
           verbModifiers)
       }
       case SilRelationshipPredicate(
         other : SilReference,
+        verb @ SilRelationshipVerb(REL_IDENTITY),
         SilMappedReference(key, determiner),
-        verb @ SilWordRelationship(REL_IDENTITY),
         verbModifiers
       ) => {
         val entity = entityMap(key)
         SilRelationshipPredicate(
           other,
-          chooseReference(referenceMap, entity, other, determiner),
           verb.toUninflected,
+          chooseReference(referenceMap, entity, other, determiner),
           verbModifiers)
       }
     }
@@ -664,8 +665,9 @@ class SmcResponseRewriter[
   private def coerceCountAgreement = replacementMatcher(
     "coerceCountAgreement", {
       case SilRelationshipPredicate(
-        subject, complement,
-        verb @ SilWordRelationship(REL_IDENTITY), verbModifiers
+        subject,
+        verb @ SilRelationshipVerb(REL_IDENTITY),
+        complement, verbModifiers
       ) => {
         val subjectCount = SilReference.getCount(subject)
         val complementCount = SilReference.getCount(complement)
@@ -693,12 +695,12 @@ class SmcResponseRewriter[
           }
           SilRelationshipPredicate(
             coerceIfNeeded(subject, subjectCount),
-            coerceIfNeeded(complement, complementCount),
             verb.toUninflected,
+            coerceIfNeeded(complement, complementCount),
             verbModifiers)
         } else {
           SilRelationshipPredicate(
-            subject, complement, verb.toUninflected, verbModifiers)
+            subject, verb.toUninflected, complement, verbModifiers)
         }
       }
     }

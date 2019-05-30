@@ -275,8 +275,8 @@ class SprPhraseRewriter(
   {
     SilRelationshipPredicate(
       predicate.subject,
-      predicate.complement,
       predicate.verb,
+      predicate.complement,
       predicate.modifiers)
   }
 
@@ -490,8 +490,8 @@ class SprAmbiguityResolver(context : SprContext)
         ),
         SilRelationshipPredicate(
           s2,
+          SilRelationshipVerb(REL_IDENTITY),
           _ : SilConjunctiveReference,
-          SilWordRelationship(REL_IDENTITY),
           m2
         )
       ) if (t1.modality != MODAL_NEUTRAL) => {

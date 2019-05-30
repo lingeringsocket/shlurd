@@ -510,8 +510,8 @@ class SpcResponder(
       rewritten match {
         case SilRelationshipPredicate(
           SilNounReference(SilWordLemma(lemma), DETERMINER_ANY, count),
+          SilRelationshipVerb(REL_IDENTITY),
           complement,
-          SilWordRelationship(REL_IDENTITY),
           modifiers
         ) => {
           val form = deriveType(complement)

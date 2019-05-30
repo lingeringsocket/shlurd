@@ -248,7 +248,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         )
       }
       case SilRelationshipPredicate(
-        subject, complement, verb, modifiers
+        subject, verb, complement, modifiers
       ) => {
         val complementInflection = SilRelationship(verb) match {
           case REL_IDENTITY => INFLECT_NOMINATIVE
@@ -323,7 +323,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           modifiers.map(printVerbModifier))
       }
       case SilRelationshipPredicate(
-        subject, complement, verb, modifiers
+        subject, verb, complement, modifiers
       ) => {
         val uninflectedVerb = verb.toUninflected
         sb.actionPredicate(
@@ -423,7 +423,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           answerInflection)
       }
       case SilRelationshipPredicate(
-        subject, complement, verb, modifiers
+        subject, verb, complement, modifiers
       ) => {
         sb.relationshipPredicate(
           subjectString,

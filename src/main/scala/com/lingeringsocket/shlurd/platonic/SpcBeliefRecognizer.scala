@@ -124,8 +124,8 @@ class SpcBeliefRecognizer(
                 SilWord(SmcLemmas.LEMMA_CONTAINER),
                 DETERMINER_UNSPECIFIED,
                 COUNT_SINGULAR)),
-            container,
-            REL_IDENTITY.toVerb
+            REL_IDENTITY.toVerb,
+            container
           ),
           sentence.tam)
       }
