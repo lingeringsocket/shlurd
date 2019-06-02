@@ -88,6 +88,8 @@ class SprParserSpec extends Specification
 
   private val QUALIFIER_BIG = SilWord("big")
 
+  private val VERB_EXISTS = SilWord("exists", "exist")
+
   private val VERB_BE = SilWord("be", "be")
 
   private val VERB_AM = SilWord("am", "be")
@@ -102,6 +104,8 @@ class SprParserSpec extends Specification
 
   private val VERB_BUMPS_OFF = SilCompoundWord(
     Seq(SilWord("bumps", "bump"), SilWord("off")))
+
+  private val EXISTENTIAL_THERE = Some(SilWord("there"))
 
   private def predTransitiveAction(
     subject : SilWord,
@@ -264,19 +268,19 @@ class SprParserSpec extends Specification
           SilStatePredicate(
             SilNounReference(NOUN_STEAK_KNIFE, DETERMINER_NONSPECIFIC),
             VERB_IS,
-            SilExistenceState()))
+            SilExistenceState(EXISTENTIAL_THERE)))
       parse("there is a big top") must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
             SilNounReference(NOUN_BIG_TOP, DETERMINER_NONSPECIFIC),
             VERB_IS,
-            SilExistenceState()))
+            SilExistenceState(EXISTENTIAL_THERE)))
       parse("there is a lemon meringue pie") must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
             SilNounReference(NOUN_LEMON_MERINGUE_PIE, DETERMINER_NONSPECIFIC),
             VERB_IS,
-            SilExistenceState()))
+            SilExistenceState(EXISTENTIAL_THERE)))
       parse("Franny bumps off Zooey") must be equalTo
         SilPredicateSentence(
           predTransitiveAction(
@@ -774,12 +778,12 @@ class SprParserSpec extends Specification
       def doorExistencePred(verb : SilWord = VERB_IS) = SilStatePredicate(
         SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
         verb,
-        SilExistenceState())
+        SilExistenceState(EXISTENTIAL_THERE))
 
       parse("There is a door") must be equalTo(
         SilPredicateSentence(doorExistencePred()))
       parse("There exists a door") must be equalTo(
-        SilPredicateSentence(doorExistencePred(VERB_BE)))
+        SilPredicateSentence(doorExistencePred(VERB_EXISTS)))
       parse("There is not a door") must be equalTo(
         SilPredicateSentence(
           doorExistencePred(),
@@ -808,7 +812,7 @@ class SprParserSpec extends Specification
               SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
               Seq(QUALIFIER_BIG)),
             VERB_IS,
-            SilExistenceState())))
+            SilExistenceState(EXISTENTIAL_THERE))))
 
       val doorPlusWindow = Seq(
         SilNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
@@ -820,7 +824,7 @@ class SprParserSpec extends Specification
               DETERMINER_ALL,
               doorPlusWindow),
             VERB_IS,
-            SilExistenceState())))
+            SilExistenceState(EXISTENTIAL_THERE))))
       parse("Is there a door or a window") must be equalTo(
         SilPredicateSentence(
           SilStatePredicate(
@@ -828,7 +832,7 @@ class SprParserSpec extends Specification
               DETERMINER_ANY,
               doorPlusWindow),
             VERB_IS,
-            SilExistenceState()),
+            SilExistenceState(EXISTENTIAL_THERE)),
           SilTam.interrogative))
     }
 

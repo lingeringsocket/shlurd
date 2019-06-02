@@ -23,6 +23,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 {
   override def statePredicateStatement(
     subject : String, verbSeq : Seq[String], state : String,
+    existentialPronoun : Option[SilWord],
     modifiers : Seq[String]) =
   {
     if (state.isEmpty) {
@@ -57,12 +58,13 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def statePredicateQuestion(
     subject : String, verbSeq : Seq[String], state : String,
-    isExistential : Boolean, question : Option[SilQuestion],
+    existentialPronoun : Option[SilWord], question : Option[SilQuestion],
     modifiers : Seq[String],
     answerInflection : SilInflection) =
   {
     // FIXME:  only holds for "요" politeness
-    statePredicateStatement(subject, verbSeq, state, modifiers)
+    statePredicateStatement(
+      subject, verbSeq, state, existentialPronoun, modifiers)
   }
 
   override def statePredicateCommand(subject : String, state : String,
@@ -73,12 +75,12 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
-    tam : SilTam, isExistential : Boolean,
+    tam : SilTam, existentialPronoun : Option[SilWord],
     verb : SilWord, answerInflection : SilInflection) =
   {
     // FIXME arbitrary lemmas
     val verbLemma = verb.toLemma
-    val exists = isExistential || (verbLemma == LEMMA_HAVE)
+    val exists = existentialPronoun.nonEmpty || (verbLemma == LEMMA_HAVE)
     // FIXME:  use tam.modality
     if (tam.isImperative) {
       Seq(conjugateImperative(verbLemma))

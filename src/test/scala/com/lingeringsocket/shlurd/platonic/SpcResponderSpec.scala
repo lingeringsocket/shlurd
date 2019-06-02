@@ -1393,7 +1393,7 @@ class SpcResponderSpec extends Specification
     {
       processBelief("there is a white door")
       process("there is a big white door",
-        "Previously I was told that there is a white door.  " +
+        "Previously I was told that a white door exists.  " +
           "So there is an ambiguous reference in the belief that " +
           "there is a big white door.")
     }

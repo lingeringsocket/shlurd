@@ -184,7 +184,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       : String =
   {
     state match {
-      case SilExistenceState() => {
+      case SilExistenceState(_) => {
         ""
       }
       case SilPropertyState(state) => {
@@ -232,18 +232,20 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilStatePredicate(subject, verb, state, modifiers) => {
         val tam = tamOriginal
         val rhs = {
-          if (ellipsis && (state != SilExistenceState())) {
+          if (ellipsis && (!state.isInstanceOf[SilExistenceState])) {
             ELLIPSIS_MARKER
           } else {
             print(state, tam, SilConjoining.NONE)
           }
         }
+        val existentialPronoun = getExistentialPronoun(state)
         sb.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
             subject, state, tam, verb,
             predicate.getInflectedCount, INFLECT_NONE),
           rhs,
+          existentialPronoun,
           modifiers.map(printVerbModifier)
         )
       }
@@ -333,7 +335,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           "",
           sb.delemmatizeVerb(
             PERSON_SECOND, GENDER_N, COUNT_SINGULAR,
-            tam, false, uninflectedVerb, INFLECT_NONE),
+            tam, None, uninflectedVerb, INFLECT_NONE),
           Some(print(complement, INFLECT_NONE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier),
           tam)
@@ -343,7 +345,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           "",
           sb.delemmatizeVerb(
             PERSON_SECOND, GENDER_N, COUNT_SINGULAR,
-            tam, false, uninflectedVerb, INFLECT_NONE),
+            tam, None, uninflectedVerb, INFLECT_NONE),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier),
@@ -370,17 +372,25 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     }
     predicate match {
       case SilStatePredicate(subject, verb, state, modifiers) => {
-        val isExistential = state match {
-          case SilExistenceState() => true
-          case _ => false
+        val existentialPronoun = getExistentialPronoun(state)
+        val stateString = print(state, tam, SilConjoining.NONE)
+        val tamModified = {
+          if (question.isEmpty && stateString.isEmpty &&
+            existentialPronoun.isEmpty)
+          {
+            // "does God exist?"
+            tam.withModality(MODAL_EMPHATIC)
+          } else {
+            tam
+          }
         }
         sb.statePredicateQuestion(
           subjectString,
           getVerbSeq(
-            subject, state, tam, verb,
+            subject, state, tamModified, verb,
             predicate.getInflectedCount, answerInflection),
-          print(state, tam, SilConjoining.NONE),
-          isExistential,
+          stateString,
+          existentialPronoun,
           question,
           modifiers.map(printVerbModifier),
           answerInflection)
@@ -447,19 +457,19 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
 
   private def getVerbSeq(
     person : SilPerson, gender : SilGender, count : SilCount,
-    tam : SilTam, isExistential : Boolean,
+    tam : SilTam, existentialPronoun : Option[SilWord],
     verb : SilWord,
     answerInflection : SilInflection) : Seq[String] =
   {
     val uninflectedVerb = {
-      if (isExistential && (tam.modality == MODAL_EMPHATIC)) {
+      if (existentialPronoun.nonEmpty && (tam.modality == MODAL_EMPHATIC)) {
         SilWord.uninflected(LEMMA_EXIST)
       } else {
         verb.toUninflected
       }
     }
     sb.delemmatizeVerb(
-      person, gender, count, tam, isExistential, uninflectedVerb,
+      person, gender, count, tam, existentialPronoun, uninflectedVerb,
       answerInflection)
   }
 
@@ -473,11 +483,11 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     val (person, gender, count) = getSubjectAttributes(subject)
     sb.delemmatizeVerb(
       person, gender, combineCounts(count, predicateCount),
-      tam, false, verb, answerInflection)
+      tam, None, verb, answerInflection)
   }
 
   private def getSubjectAttributes(
-    subject : SilReference, isExistential : Boolean = false)
+    subject : SilReference, existentialPronoun : Option[SilWord] = None)
       : (SilPerson, SilGender, SilCount) =
   {
     subject match {
@@ -488,7 +498,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         tupleN((PERSON_THIRD, GENDER_N, count))
       }
       case SilConjunctiveReference(determiner, references, _) => {
-        val count = if (isExistential) {
+        val count = if (existentialPronoun.nonEmpty) {
           // FIXME:  this is probably English-specific
           SilReference.getCount(references.head)
         } else {
@@ -503,13 +513,13 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         tupleN((PERSON_THIRD, GENDER_N, count))
       }
       case SilParenthesizedReference(reference) => {
-        getSubjectAttributes(reference, isExistential)
+        getSubjectAttributes(reference, existentialPronoun)
       }
       case SilStateSpecifiedReference(reference, _) => {
-        getSubjectAttributes(reference, isExistential)
+        getSubjectAttributes(reference, existentialPronoun)
       }
       case SilGenitiveReference(possessor, possessee) => {
-        getSubjectAttributes(possessee, isExistential)
+        getSubjectAttributes(possessee, existentialPronoun)
       }
       case _ : SilQuotationReference => {
         tupleN((PERSON_THIRD, GENDER_N, COUNT_SINGULAR))
@@ -534,15 +544,20 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     answerInflection : SilInflection)
       : Seq[String] =
   {
-    val isExistential = state match {
-      case SilExistenceState() => true
-      case _ => false
-    }
+    val existentialPronoun = getExistentialPronoun(state)
     val (person, gender, count) =
-      getSubjectAttributes(subject, isExistential)
+      getSubjectAttributes(subject, existentialPronoun)
     getVerbSeq(
       person, gender, combineCounts(count, predicateCount),
-      tam, isExistential, verb, answerInflection)
+      tam, existentialPronoun, verb, answerInflection)
+  }
+
+  private def getExistentialPronoun(state : SilState) =
+  {
+    state match {
+      case SilExistenceState(existentialPronoun) => existentialPronoun
+      case _ => None
+    }
   }
 
   def printVerbModifier(modifier : SilVerbModifier) : String =

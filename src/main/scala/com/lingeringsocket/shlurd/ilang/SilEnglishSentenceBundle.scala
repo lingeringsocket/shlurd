@@ -27,13 +27,19 @@ class SilEnglishSentenceBundle
 {
   override def statePredicateStatement(
     subject : String, verbSeq : Seq[String], state : String,
+    existentialPronoun : Option[SilWord],
     modifiers : Seq[String]) =
   {
     if (state.isEmpty) {
-      // existential
-      compose((verbSeq ++ Seq(subject) ++ modifiers):_*)
+      if (existentialPronoun.nonEmpty) {
+        // "there is ..."
+        compose((verbSeq ++ Seq(subject) ++ modifiers):_*)
+      } else {
+        // "... exists"
+        composePredicateStatement(subject, verbSeq, Seq.empty, modifiers)
+      }
     } else {
-      composePredicateStatement(subject, verbSeq, state, modifiers)
+      composePredicateStatement(subject, verbSeq, Seq(state), modifiers)
     }
   }
 
@@ -68,10 +74,10 @@ class SilEnglishSentenceBundle
         (answerInflection == INFLECT_NOMINATIVE))
       {
         composePredicateStatement(
-          subject, verbMaybeComma, complement, modifiers)
+          subject, verbMaybeComma, Seq(complement), modifiers)
       } else {
         composePredicateQuestion(
-          subject, verbMaybeComma, complement, modifiers)
+          subject, verbMaybeComma, Seq(complement), modifiers)
       }
     }
     answerInflection match {
@@ -83,15 +89,15 @@ class SilEnglishSentenceBundle
   }
 
   private def composePredicateStatement(
-    subject : String, verbSeq : Seq[String], complement : String,
+    subject : String, verbSeq : Seq[String], complement : Seq[String],
     modifiers : Seq[String] = Seq.empty) =
   {
-    compose((Seq(subject) ++ verbSeq ++ Seq(complement) ++ modifiers):_*)
+    compose((Seq(subject) ++ verbSeq ++ complement ++ modifiers):_*)
   }
 
   override def statePredicateQuestion(
     subject : String, verbSeq : Seq[String], stateOriginal : String,
-    isExistential : Boolean,
+    existentialPronoun : Option[SilWord],
     question : Option[SilQuestion],
     modifiersOriginal : Seq[String],
     answerInflection : SilInflection) =
@@ -116,21 +122,28 @@ class SilEnglishSentenceBundle
     }
     val primary = {
       if (!question.isEmpty) {
-        if (isExistential) {
+        if (existentialPronoun.nonEmpty) {
           compose((Seq(subject) ++ verbSeq.take(2).reverse ++
             verbSeq.drop(2) ++ Seq(state) ++ modifiers):_*)
         } else {
           if (answerInflection == INFLECT_NOMINATIVE) {
-            composePredicateStatement(subject, verbSeq, state, modifiers)
+            composePredicateStatement(subject, verbSeq, Seq(state), modifiers)
           } else {
-            composePredicateQuestion(subject, verbSeq, state, modifiers)
+            composePredicateQuestion(subject, verbSeq, Seq(state), modifiers)
           }
         }
       } else if (state.isEmpty) {
-        compose((verbSeq.take(2).reverse ++ verbSeq.drop(2) ++
-          Seq(subject) ++ modifiers):_*)
+        if (existentialPronoun.nonEmpty) {
+          compose((verbSeq.take(2).reverse ++ verbSeq.drop(2) ++
+            Seq(subject) ++ modifiers):_*)
+        } else {
+          actionPredicate(
+            subject, verbSeq, None, modifiers,
+            SilTam.interrogative,
+            answerInflection)
+        }
       } else {
-        composePredicateQuestion(subject, verbSeq, state, modifiers)
+        composePredicateQuestion(subject, verbSeq, Seq(state), modifiers)
       }
     }
     compose((adpositionPre.toSeq ++ Seq(primary)):_*)
@@ -145,37 +158,44 @@ class SilEnglishSentenceBundle
   {
     if (tam.isInterrogative && question.isEmpty) {
       if (isBeingVerb(verb)) {
-        composePredicateQuestion(subject, verbSeq, complement, modifiers)
+        composePredicateQuestion(
+          subject, verbSeq, Seq(complement), modifiers)
       } else {
         if (tam.isIndicative && !tam.requiresAux) {
-          composePredicateStatement(subject, verbSeq, complement, modifiers)
+          composePredicateStatement(
+            subject, verbSeq, Seq(complement), modifiers)
         } else {
-          composePredicateQuestion(subject, verbSeq, complement, modifiers)
+          composePredicateQuestion(
+            subject, verbSeq, Seq(complement), modifiers)
         }
       }
     } else {
-      composePredicateStatement(subject, verbSeq, complement, modifiers)
+      composePredicateStatement(
+        subject, verbSeq, Seq(complement), modifiers)
     }
   }
 
   private def composePredicateQuestion(
-    subject : String, verbSeq : Seq[String], complement : String,
+    subject : String, verbSeq : Seq[String], complement : Seq[String],
     modifiers : Seq[String] = Seq.empty) =
   {
-    val headSeq = Seq(verbSeq.head)
-    val tailSeq = verbSeq.drop(1)
-    verbSeq.size match {
-      // "is Larry clumsy?"
-      case 1 =>
-        compose((headSeq ++ Seq(subject, complement) ++ modifiers):_*)
-      // "is Larry not clumsy?" or "must Larry be clumsy?"
-      case 2 =>
-        compose((headSeq ++ Seq(subject) ++ tailSeq ++
-          Seq(complement) ++ modifiers):_*)
-      // "must Larry not be clumsy?"
-      case _ =>
-        compose((headSeq ++ Seq(subject) ++ tailSeq ++
-          Seq(complement) ++ modifiers):_*)
+    if (complement.isEmpty) {
+      compose((Seq(subject) ++ verbSeq ++ modifiers):_*)
+    } else {
+      val (headSeq, tailSeq) = verbSeq.splitAt(1)
+      verbSeq.size match {
+        // "is Larry clumsy?"
+        case 1 =>
+          compose((headSeq ++ Seq(subject) ++ complement ++ modifiers):_*)
+        // "is Larry not clumsy?" or "must Larry be clumsy?"
+        case 2 =>
+          compose((headSeq ++ Seq(subject) ++ tailSeq ++
+            complement ++ modifiers):_*)
+        // "must Larry not be clumsy?"
+        case _ =>
+          compose((headSeq ++ Seq(subject) ++ tailSeq ++
+            complement ++ modifiers):_*)
+      }
     }
   }
 
@@ -322,7 +342,7 @@ class SilEnglishSentenceBundle
 
   override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
-    tam : SilTam, isExistential : Boolean,
+    tam : SilTam, existentialPronoun : Option[SilWord],
     verb : SilWord,
     answerInflection : SilInflection
   )
@@ -348,11 +368,7 @@ class SilEnglishSentenceBundle
         }
       }
     }
-    if (isExistential) {
-      Seq(LEMMA_THERE) ++ seq
-    } else {
-      seq
-    }
+    existentialPronoun.map(_.toLemma).toSeq ++ seq
   }
 
   override def adpositionString(adposition : SilAdposition) =
@@ -883,7 +899,7 @@ class SilEnglishSentenceBundle
     tam.mood match {
       case MOOD_INDICATIVE => {
         compose("that",
-          composePredicateStatement(something, verbSeq, complement))
+          composePredicateStatement(something, verbSeq, Seq(complement)))
       }
       case MOOD_INTERROGATIVE => {
         val whord = {
@@ -894,7 +910,7 @@ class SilEnglishSentenceBundle
           }
         }
         compose(whord,
-          composePredicateStatement(something, verbSeq, complement))
+          composePredicateStatement(something, verbSeq, Seq(complement)))
       }
       case MOOD_IMPERATIVE => {
         compose(
@@ -927,7 +943,7 @@ class SilEnglishSentenceBundle
             }
           }
           composePredicateStatement(
-            query(subject, question), verbSeq, complement)
+            query(subject, question), verbSeq, Seq(complement))
         }
       }
     }

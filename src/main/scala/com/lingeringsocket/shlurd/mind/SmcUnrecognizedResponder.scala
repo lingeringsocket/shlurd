@@ -110,7 +110,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     }
     val verbLemma = {
       complement match {
-        case SilExistenceState() => {
+        case SilExistenceState(_) => {
           LEMMA_EXIST
         }
         case _ => {
@@ -120,7 +120,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     }
     val verbSeq = sb.delemmatizeVerb(
       PERSON_THIRD, GENDER_N, count,
-      tam, false, SilWord.uninflected(verbLemma), INFLECT_NONE)
+      tam, None, SilWord.uninflected(verbLemma), INFLECT_NONE)
     if (!subject.hasUnknown) {
       assert(complement.hasUnknown)
       sb.respondNotUnderstood(

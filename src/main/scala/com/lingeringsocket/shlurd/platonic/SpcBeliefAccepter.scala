@@ -662,7 +662,7 @@ class SpcBeliefAccepter(
       val (possesseeOpt, stateOpt) = {
         if (indefinite) {
           possesseeRef match {
-            case SilStateSpecifiedReference(ref, SilExistenceState()) => {
+            case SilStateSpecifiedReference(ref, SilExistenceState(_)) => {
               newEntityRef = ref
               tupleN((None, None))
             }

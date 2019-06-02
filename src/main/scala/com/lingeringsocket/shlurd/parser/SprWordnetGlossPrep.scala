@@ -59,7 +59,7 @@ object SprWordnetGlossPrep
         SilStatePredicate(
           subject,
           SilStatePredefVerb(STATE_PREDEF_BE),
-          SilExistenceState(),
+          SilExistenceState(_),
           Seq()
         ),
         tam,

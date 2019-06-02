@@ -174,6 +174,9 @@ class SprPhraseRewriter(
       ) if (!analyzer.isProhibitedPropertyState(preTerminal)) => {
         SilPropertyState(analyzer.getWord(preTerminal.child))
       }
+      case SilExpectedExistenceState(SptNP(SptEX(leaf))) => {
+        SilExistenceState(Some(analyzer.getWord(leaf)))
+      }
       case SilExpectedExistenceState(_) => {
         SilExistenceState()
       }

@@ -565,7 +565,7 @@ class SmcResponder[
               val responseTruth = params.verbosity match {
                 case RESPONSE_ELLIPSIS => {
                   query match {
-                    case SilStatePredicate(_, _, SilExistenceState(), _) => {
+                    case SilStatePredicate(_, _, SilExistenceState(_), _) => {
                       truthBoolean || negateCollection
                     }
                     case _ => {

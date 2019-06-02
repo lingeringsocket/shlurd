@@ -78,7 +78,7 @@ class SmcResponseRewriter[
     }
     var negateCollection = false
     val entityDeterminer = predicate match {
-      case SilStatePredicate(subject, _, SilExistenceState(), _) => {
+      case SilStatePredicate(subject, _, SilExistenceState(_), _) => {
         DETERMINER_NONSPECIFIC
       }
       case _ => {
@@ -197,7 +197,7 @@ class SmcResponseRewriter[
       rewrite3)
     val rewrite5 = {
       val useThirdPersonPronouns = predicate match {
-        case SilStatePredicate(_, _, SilExistenceState(), _) => false
+        case SilStatePredicate(_, _, SilExistenceState(_), _) => false
         case _ => params.thirdPersonPronouns
       }
       if (useThirdPersonPronouns) {

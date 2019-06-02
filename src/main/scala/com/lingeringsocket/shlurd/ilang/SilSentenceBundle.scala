@@ -76,6 +76,7 @@ abstract class SilSentenceBundle
     subject : String,
     verbSeq : Seq[String],
     state : String,
+    existentialPronoun : Option[SilWord],
     modifiers : Seq[String]) : String
 
   def actionPredicate(
@@ -99,7 +100,7 @@ abstract class SilSentenceBundle
     subject : String,
     verbSeq : Seq[String],
     state : String,
-    isExistential : Boolean,
+    existentialPronoun : Option[SilWord],
     question : Option[SilQuestion],
     modifiers : Seq[String],
     answerInflection : SilInflection = INFLECT_NONE) : String
@@ -111,7 +112,7 @@ abstract class SilSentenceBundle
 
   def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
-    tam : SilTam, isExistential : Boolean,
+    tam : SilTam, existentialPronoun : Option[SilWord],
     verb : SilWord, answerInflection : SilInflection) : Seq[String]
 
   def adpositionString(adposition : SilAdposition) : String

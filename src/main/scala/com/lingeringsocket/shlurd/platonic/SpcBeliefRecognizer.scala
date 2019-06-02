@@ -196,7 +196,7 @@ class SpcBeliefRecognizer(
             return Seq(StateEquivalenceBelief(
               sentence, noun, specifiedState, state))
           }
-          case SilExistenceState() =>
+          case SilExistenceState(_) =>
           case _ => {
             return Seq(UnimplementedBelief(sentence))
           }
@@ -205,7 +205,7 @@ class SpcBeliefRecognizer(
       case _ =>
     }
     state match {
-      case SilExistenceState() => {
+      case SilExistenceState(_) => {
         // "there is a television"
         // FIXME:  interpret tam
         Seq(EntityExistenceBelief(

@@ -956,7 +956,8 @@ class SprEnglishSyntaxAnalyzer(
           return tupleN((negative, expectStatePredicate(
             syntaxTree, expectReference(np),
             verb,
-            SilExistenceState(), specifiedState,
+            SilExistenceState(),
+            specifiedState,
             verbModifiers)))
         }
       }

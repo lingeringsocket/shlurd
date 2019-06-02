@@ -259,7 +259,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
       case "" => {
         SilStatePredicate(
           subject,
-          STATE_PREDEF_BE.toVerb,
+          SilWord.uninflected(LEMMA_EXIST),
           SilExistenceState())
       }
       case _ => {

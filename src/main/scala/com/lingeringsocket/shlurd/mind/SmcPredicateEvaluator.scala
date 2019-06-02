@@ -427,7 +427,7 @@ class SmcPredicateEvaluator[
       ) {
         (entity, entityRef) => {
           state match {
-            case SilExistenceState() => {
+            case SilExistenceState(_) => {
               Success(Trilean.True)
             }
             case SilPropertyState(word) => {
@@ -452,7 +452,7 @@ class SmcPredicateEvaluator[
     assumeExistence(
       unassumed,
       state match {
-        case SilExistenceState() | SilAdpositionalState(
+        case SilExistenceState(_) | SilAdpositionalState(
           SilAdposition.GENITIVE_OF, _
         ) => true
         case _ => false

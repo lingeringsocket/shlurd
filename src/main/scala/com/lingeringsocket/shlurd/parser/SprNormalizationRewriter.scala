@@ -41,7 +41,6 @@ private[parser] class SprNormalizationRewriter
     normalizeCoordinatingDeterminers,
     normalizeDanglingAdpositions,
     normalizeCompoundAdpositions,
-    normalizeExists,
     normalizeAdpositionalPhrases,
     normalizeCommands
   )
@@ -315,26 +314,6 @@ private[parser] class SprNormalizationRewriter
           ),
           tam,
           formality
-        )
-      }
-    }
-  )
-
-  // FIXME remove this once we are able to correctly differentiate
-  // "there is an X" from "an X exists"
-  private def normalizeExists = replacementMatcher(
-    "normalizeExists", {
-      case sp @ SilStatePredicate(
-        subject,
-        verb,
-        state,
-        modifiers
-      ) if (verb.toLemma == LEMMA_EXIST) => {
-        SilStatePredicate(
-          subject,
-          STATE_PREDEF_BE.toVerb,
-          state,
-          modifiers
         )
       }
     }

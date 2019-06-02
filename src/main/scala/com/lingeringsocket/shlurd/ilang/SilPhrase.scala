@@ -587,6 +587,7 @@ case class SilQuotationReference(
 }
 
 case class SilExistenceState(
+  existentialPronoun : Option[SilWord] = None
 ) extends SilTransformedPhrase with SilState
 {
 }
@@ -878,7 +879,7 @@ object SilReference
         states.flatMap(extractAdpositionSpecifiers)
       case adp : SilAdpositionalState => Seq(adp)
       case SilNullState() | SilPropertyState(_) |
-          SilExistenceState() => Seq.empty
+          SilExistenceState(_) => Seq.empty
       case _ => {
         assert(false)
         Seq.empty
@@ -893,7 +894,7 @@ object SilReference
         states.flatMap(extractQualifiers)
       case SilPropertyState(state) => Seq(state)
       case SilNullState() | SilAdpositionalState(_, _) |
-          SilExistenceState() => Seq.empty
+          SilExistenceState(_) => Seq.empty
       case _ => {
         assert(false, state)
         Seq.empty
