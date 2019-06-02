@@ -554,8 +554,8 @@ class SpcResponder(
 
   override protected def freezeCosmos(mutableCosmos : SpcCosmos) =
   {
-    // FIXME use smart deltas instead of wholesale clone
-    mutableCosmos.newClone.asUnmodifiable
+    // FIXME use smart deltas instead of blindly flattening
+    mutableCosmos.newClone(true).asUnmodifiable
   }
 
   private def processBeliefOrAction(

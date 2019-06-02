@@ -86,7 +86,7 @@ class SpcPerceptionSpec extends Specification
       processBelief("Avery is a boy")
       processBelief("a pig may be hungry or full")
 
-      phenomenalCosmos = noumenalCosmos.newClone
+      phenomenalCosmos = noumenalCosmos.newClone()
 
       processBelief("Wilbur is a pig")
       processBelief("Wilbur is Fern's pet")
@@ -165,7 +165,7 @@ class SpcPerceptionSpec extends Specification
 
       processBelief("a pig is a kind of animal")
 
-      phenomenalCosmos = noumenalCosmos.newClone
+      phenomenalCosmos = noumenalCosmos.newClone()
 
       processBelief("Wilbur is a pig")
       processBelief("Babe is a pig")

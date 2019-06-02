@@ -416,9 +416,9 @@ class SpcCosmos(
     this.inheritBeliefResources(src)
   }
 
-  def newClone() : SpcCosmos =
+  def newClone(flattenDeltas : Boolean = false) : SpcCosmos =
   {
-    val newCosmos = new SpcCosmos(graph.newClone)
+    val newCosmos = new SpcCosmos(graph.newClone(flattenDeltas))
     newCosmos.syncGenerator(this)
     newCosmos.meta.afterFork(meta)
     newCosmos.inheritBeliefResources(this)
@@ -853,6 +853,19 @@ class SpcCosmos(
         role => isFormCompatibleWithRole(form, role))
   }
 
+  def isFormCompatibleWithIdeal(
+    form : SpcForm, possessorIdeal : SpcIdeal) : Boolean =
+  {
+    possessorIdeal match {
+      case possessorForm : SpcForm => {
+        isHyponym(form, possessorForm)
+      }
+      case role : SpcRole => {
+        isFormCompatibleWithRole(form, role)
+      }
+    }
+  }
+
   def isFormCompatibleWithRole(form : SpcForm, role : SpcRole) : Boolean =
   {
     pool.accessCache(
@@ -1178,6 +1191,18 @@ class SpcCosmos(
     propertySet.foreach(property => {
       assert(getPropertyStateMap(property).keySet.size ==
         graph.components.outDegreeOf(property))
+    })
+    graph.entityAssocs.edgeSet.asScala.foreach(entityEdge => {
+      val formEdge = entityEdge.formEdge
+      assert(graph.formAssocs.containsEdge(formEdge),
+        entityEdge.toString)
+      val possessorIdeal = graph.getPossessorIdeal(formEdge)
+      val possessorEntity = graph.getPossessorEntity(entityEdge)
+      val possesseeEntity = graph.getPossesseeEntity(entityEdge)
+      assert(isFormCompatibleWithIdeal(possessorEntity.form, possessorIdeal))
+      val role = graph.getPossesseeRole(formEdge)
+      assert(isFormCompatibleWithRole(possesseeEntity.form, role),
+        tupleN((possesseeEntity.form, role)).toString)
     })
     true
   }

@@ -106,7 +106,7 @@ object SnavigShell
     val bootMind = new SnavigMind(bootCosmos, None, preferredSynonyms)
     bootMind.importBeliefs("/example-snavig/game-axioms.txt")
 
-    val noumenalCosmos = bootCosmos.newClone
+    val noumenalCosmos = bootCosmos.newClone()
     val noumenalMind = new SnavigMind(
       noumenalCosmos, None, preferredSynonyms)
 
@@ -251,10 +251,10 @@ object SnavigShell
               return None
             }
             case "unperceptive" => {
-              tupleN((bootCosmos.newClone, None))
+              tupleN((bootCosmos.newClone(), None))
             }
             case "perceptive" => {
-              val cosmos = bootCosmos.newClone
+              val cosmos = bootCosmos.newClone()
               tupleN((
                 cosmos, Some(new SpcPerception(noumenalCosmos, cosmos))))
             }

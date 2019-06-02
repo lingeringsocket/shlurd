@@ -22,3 +22,18 @@ The red square is above the triangle.
 The pink rectangle is below the triangle.
 Is the blue square below the red square?	yes
 Is the pink rectangle below the red square?	yes
+Julie went to the park this morning.
+Julie moved to the kitchen yesterday.
+Where was Julie before the park? 	kitchen
+Julie moved to the bedroom this afternoon.
+Mary journeyed to the school yesterday.
+Where was Julie before the bedroom? 	park
+This morning Bill moved to the park.
+Yesterday Bill travelled to the kitchen.
+Where was Julie before the park? 	kitchen
+This morning Mary moved to the office.
+This evening Julie journeyed to the kitchen.
+Where was Julie before the kitchen? 	bedroom
+This afternoon Mary moved to the cinema.
+This afternoon Bill travelled to the kitchen.
+Where was Bill before the kitchen? 	park

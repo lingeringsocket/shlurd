@@ -85,33 +85,58 @@ object SpcGraph
   }
 
   private def cloneSub[V, E](
-    graph : Graph[V, E]) : Graph[V, E] =
+    graph : Graph[V, E],
+    flattenDeltas : Boolean) : Graph[V, E] =
+  {
+    cloneSubImpl(graph, flattenDeltas)._1
+  }
+
+  private def cloneSubImpl[V, E](
+    graph : Graph[V, E],
+    flattenDeltas : Boolean) : (Graph[V, E], Boolean) =
   {
     graph match {
       case listenable : ExposedListenableGraph[V, E] => {
-        new ExposedListenableGraph(
-          cloneSub(listenable.getExposedDelegate))
+        val (subClone, subDelta) =
+          cloneSubImpl(listenable.getExposedDelegate, flattenDeltas)
+        subClone match {
+          case _ : ExposedListenableGraph[V,E] => {
+            tupleN((subClone, subDelta))
+          }
+          case _ => {
+            tupleN((new ExposedListenableGraph(subClone), subDelta))
+          }
+        }
       }
       case unmodifiable : ExposedUnmodifiableGraph[V, E] => {
         if (unmodifiable.isFrozen) {
-          unmodifiable
+          tupleN((unmodifiable, false))
         } else {
-          cloneSub(unmodifiable.getExposedDelegate)
+          cloneSubImpl(unmodifiable.getExposedDelegate, flattenDeltas)
         }
       }
       case transient : TransientGraphDelegator[V, E] => {
-        cloneSub(transient.getDelegate)
+        cloneSubImpl(transient.getDelegate, flattenDeltas)
       }
       case delta : DeltaGraph[V, E] => {
-        DeltaGraph(
-          cloneSub(delta.baseGraph),
-          cloneSub(delta.plusGraph),
+        val (baseClone, baseDelta) =
+          cloneSubImpl(delta.baseGraph, flattenDeltas)
+        val newDelta = DeltaGraph(
+          baseClone,
+          cloneSub(delta.plusGraph, flattenDeltas),
           delta.minusVertices.clone,
           delta.minusEdges.clone)
+        if (flattenDeltas && baseDelta) {
+          newDelta.applyModifications
+          tupleN((newDelta.baseGraph, false))
+        } else {
+          tupleN((newDelta, true))
+        }
       }
       case _ => {
-        graph.asInstanceOf[AbstractBaseGraph[V, E]].clone.
+        val cloned = graph.asInstanceOf[AbstractBaseGraph[V, E]].clone.
           asInstanceOf[Graph[V, E]]
+        tupleN((cloned, false))
       }
     }
   }
@@ -375,23 +400,23 @@ class SpcGraph(
     )
   }
 
-  def newClone() : SpcGraph =
+  def newClone(flattenDeltas : Boolean = false) : SpcGraph =
   {
-    val componentsCloned = cloneSub(components)
+    val componentsCloned = cloneSub(components, flattenDeltas)
     val (formPropertyIndexCloned, entityPropertyIndexCloned,
       propertyStateIndexCloned, stateNormalizationIndexCloned) =
       createIndexes(componentsCloned)
     new SpcGraph(
       name,
       baseName,
-      cloneSub(idealSynonyms),
-      cloneSub(idealTaxonomy),
-      cloneSub(formAssocs),
-      cloneSub(inverseAssocs),
-      cloneSub(entitySynonyms),
-      cloneSub(entityAssocs),
+      cloneSub(idealSynonyms, flattenDeltas),
+      cloneSub(idealTaxonomy, flattenDeltas),
+      cloneSub(formAssocs, flattenDeltas),
+      cloneSub(inverseAssocs, flattenDeltas),
+      cloneSub(entitySynonyms, flattenDeltas),
+      cloneSub(entityAssocs, flattenDeltas),
       componentsCloned,
-      cloneSub(assertions),
+      cloneSub(assertions, flattenDeltas),
       formPropertyIndexCloned,
       entityPropertyIndexCloned,
       propertyStateIndexCloned,
@@ -506,19 +531,6 @@ class SpcGraph(
   {
     getIdealHypernyms(role).filter(_.isForm).forall(hypernym =>
       isHyponym(form, hypernym))
-  }
-
-  def isFormCompatibleWithIdeal(
-    form : SpcForm, possessorIdeal : SpcIdeal) : Boolean =
-  {
-    possessorIdeal match {
-      case possessorForm : SpcForm => {
-        isHyponym(form, possessorForm)
-      }
-      case role : SpcRole => {
-        isFormCompatibleWithRole(form, role)
-      }
-    }
   }
 
   def specializeRoleForForm(
@@ -650,18 +662,6 @@ class SpcGraph(
       assert(entitySynonyms.outDegreeOf(synonym) == 1)
       assert(entitySynonyms.inDegreeOf(entity) == 1)
       assert(entitySynonyms.outDegreeOf(entity) == 0)
-    })
-    entityAssocs.edgeSet.asScala.foreach(entityEdge => {
-      val formEdge = entityEdge.formEdge
-      assert(formAssocs.containsEdge(formEdge),
-        entityEdge.toString)
-      val possessorIdeal = getPossessorIdeal(formEdge)
-      val possessorEntity = getPossessorEntity(entityEdge)
-      val possesseeEntity = getPossesseeEntity(entityEdge)
-      assert(isFormCompatibleWithIdeal(possessorEntity.form, possessorIdeal))
-      val role = getPossesseeRole(formEdge)
-      assert(isFormCompatibleWithRole(possesseeEntity.form, role),
-        tupleN((possesseeEntity.form, role)).toString)
     })
     components.edgeSet.asScala.foreach(componentEdge => {
       val container = getContainer(componentEdge)

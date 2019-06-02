@@ -304,7 +304,7 @@ class SpcBeliefAccepter(
         }
       }
     val possessorIdeal = graph.getPossessorIdeal(formAssocEdge)
-    if (!graph.isFormCompatibleWithIdeal(possessor.form, possessorIdeal)) {
+    if (!cosmos.isFormCompatibleWithIdeal(possessor.form, possessorIdeal)) {
       assert(possessor.form.isTentative)
       possessorIdeal match {
         case possessorForm : SpcForm => {
