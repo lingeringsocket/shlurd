@@ -416,8 +416,18 @@ class SprEnglishVerbSpec extends Specification
             if (notYetWorking(tam, rhs, INFLECT_NONE)) {
               skipped("not working yet")
             }
+            val tamExpected = {
+              if ((tam.isInterrogative || tam.isNegative) &&
+                (lemma != LEMMA_BE) &&
+                !tam.isProgressive && (tam.modality == MODAL_NEUTRAL))
+              {
+                tam.withModality(MODAL_EMPHATIC)
+              } else {
+                tam
+              }
+            }
             parse(input) must be equalTo ParsedVerb(
-              subject, rhs, lemma, tam, None)
+              subject, rhs, lemma, tamExpected, None)
           }
         }
       }
@@ -434,11 +444,22 @@ class SprEnglishVerbSpec extends Specification
           val input = generateInput(
             subject, rhs, lemma, tam, Some(question))
           "in query: " + input >> {
-            if (notYetWorking(tam, rhs, question._2)) {
+            val answerInflection = question._2
+            if (notYetWorking(tam, rhs, answerInflection)) {
               skipped("not working yet")
             }
+            val tamExpected = {
+              if ((lemma != LEMMA_BE) && !tam.isProgressive &&
+                (tam.modality == MODAL_NEUTRAL) &&
+                (tam.isNegative || (answerInflection != INFLECT_NOMINATIVE)))
+              {
+                tam.withModality(MODAL_EMPHATIC)
+              } else {
+                tam
+              }
+            }
             parse(input) must be equalTo ParsedVerb(
-              subject, rhs, lemma, tam, Some(question))
+              subject, rhs, lemma, tamExpected, Some(question))
           }
         }
       }

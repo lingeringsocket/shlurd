@@ -36,7 +36,6 @@ private[parser] class SprNormalizationRewriter
 
   private def normalizeAllPhrases = combineRules(
     normalizeCompass,
-    normalizeEmphatic,
     normalizeGenitives,
     normalizeCoordinatingDeterminers,
     normalizeDanglingAdpositions,
@@ -87,39 +86,6 @@ private[parser] class SprNormalizationRewriter
           SilConjunctiveReference(
             determiner, references, separator),
           verbModifiers.filterNot(_ == modifier)
-        )
-      }
-    }
-  )
-
-  private def normalizeEmphatic = replacementMatcher(
-    "normalizeEmphatic", {
-      case SilPredicateSentence(
-        predicate,
-        tam,
-        formality
-      ) if (
-        (tam.isInterrogative || tam.isNegative) &&
-          (tam.modality == MODAL_EMPHATIC)
-      ) => {
-        SilPredicateSentence(
-          predicate,
-          tam.withModality(MODAL_NEUTRAL),
-          formality)
-      }
-      case SilPredicateQuery(
-        predicate,
-        question,
-        answerInflection,
-        tam,
-        formality
-      ) if (tam.modality == MODAL_EMPHATIC) => {
-        SilPredicateQuery(
-          predicate,
-          question,
-          answerInflection,
-          tam.withModality(MODAL_NEUTRAL),
-          formality
         )
       }
     }

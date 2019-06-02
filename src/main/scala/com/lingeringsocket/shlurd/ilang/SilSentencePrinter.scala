@@ -374,20 +374,10 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilStatePredicate(subject, verb, state, modifiers) => {
         val existentialPronoun = getExistentialPronoun(state)
         val stateString = print(state, tam, SilConjoining.NONE)
-        val tamModified = {
-          if (question.isEmpty && stateString.isEmpty &&
-            existentialPronoun.isEmpty)
-          {
-            // "does God exist?"
-            tam.withModality(MODAL_EMPHATIC)
-          } else {
-            tam
-          }
-        }
         sb.statePredicateQuestion(
           subjectString,
           getVerbSeq(
-            subject, state, tamModified, verb,
+            subject, state, tam, verb,
             predicate.getInflectedCount, answerInflection),
           stateString,
           existentialPronoun,

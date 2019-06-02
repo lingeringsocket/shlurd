@@ -356,7 +356,8 @@ class SprParserSpec extends Specification
             SilAdposition.TO,
             SilNounReference(SilWord(LEMMA_WHOM))
           ))),
-        QUESTION_WHO, INFLECT_ADPOSITIONED, SilTam.interrogative)
+        QUESTION_WHO, INFLECT_ADPOSITIONED,
+        SilTam.interrogative.withModality(MODAL_EMPHATIC))
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
     }

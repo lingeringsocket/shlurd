@@ -328,6 +328,14 @@ sealed trait SilTam
       }
     }
   }
+
+  def unemphaticModality =
+  {
+    modality match {
+      case MODAL_EMPHATIC => MODAL_NEUTRAL
+      case _ => modality
+    }
+  }
 }
 
 case class SilTamImmutable(

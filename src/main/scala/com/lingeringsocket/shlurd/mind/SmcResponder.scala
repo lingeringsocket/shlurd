@@ -458,7 +458,8 @@ class SmcResponder[
               Some(question))
           trace(s"NORMALIZED RESPONSE : $normalizedResponse")
           val tamResponse = tam.withMood(MOOD_INDICATIVE).withPolarity(
-            truthBoolean || negateCollection)
+            truthBoolean || negateCollection).
+            withModality(tam.unemphaticModality)
           val responseSentence = SilPredicateSentence(
             normalizedResponse,
             tamResponse)
@@ -575,9 +576,11 @@ class SmcResponder[
                 }
                 case _ => truthBoolean || negateCollection
               }
+              val tamResponse = tam.withMood(MOOD_INDICATIVE).
+                withPolarity(responseTruth).withModality(tam.unemphaticModality)
               val responseSentence = SilPredicateSentence(
                 normalizedResponse,
-                tam.withMood(MOOD_INDICATIVE).withPolarity(responseTruth))
+                tamResponse)
               val printedSentence = {
                 params.verbosity match {
                   case RESPONSE_TERSE => {
@@ -620,7 +623,7 @@ class SmcResponder[
                 tam.withMood(MOOD_INDICATIVE)
               }
             }
-          }
+          }.withModality(tam.unemphaticModality)
           predicateTruth match {
             case Success(Trilean.Unknown) => {
               debug("TRUTH UNKNOWN")
@@ -744,7 +747,7 @@ class SmcResponder[
     tam : SilTam,
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
-    assert(tam.modality == MODAL_NEUTRAL)
+    assert(tam.unemphaticModality == MODAL_NEUTRAL)
     tam.tense match {
       case TENSE_PAST => {
         evaluatePastPredicate(predicate, resultCollector)
