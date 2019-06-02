@@ -233,6 +233,10 @@ class SmcMind[
         Success(Set(entity))
       }
       case _ => {
+        if (reference.distance != DISTANCE_UNSPECIFIED) {
+          // FIXME proper resolution for this/that
+          return Success(Set.empty)
+        }
         // FIXME proper coreference resolution, including within
         // current sentence; also, there should probably be some limit
         // on how far back to search.  Note that for the moment we

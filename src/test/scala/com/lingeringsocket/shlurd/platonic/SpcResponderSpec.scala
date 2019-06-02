@@ -1146,6 +1146,8 @@ class SpcResponderSpec extends Specification
       ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
+      processBelief("if an object moves to a location, " +
+        "then the object is in the location")
       processBelief("the key is an object")
       processBelief("the pocket is an object")
       processBelief("the purse is an object")
@@ -1155,7 +1157,7 @@ class SpcResponderSpec extends Specification
       mind.startNarrative
       processBelief("the key was in the pocket")
       processTerse("where is the key", "The pocket.")
-      processBelief("after that the key was in the purse")
+      processBelief("after that the key moved to the purse")
       processTerse("where is the key", "The purse.")
       processBelief("after that the key was in the shoe")
       processTerse("where is the key", "The shoe.")
