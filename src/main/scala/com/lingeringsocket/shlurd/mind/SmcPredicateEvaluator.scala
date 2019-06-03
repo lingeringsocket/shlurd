@@ -369,7 +369,7 @@ class SmcPredicateEvaluator[
     verb : SilWord) : SilReferenceContext =
   {
     SilRelationshipPredef(verb) match {
-      case REL_PREDEF_IDENTITY => REF_COMPLEMENT
+      case REL_PREDEF_IDENTITY | REL_PREDEF_BECOME => REF_COMPLEMENT
       case REL_PREDEF_ASSOC => REF_SUBJECT
     }
   }
@@ -379,7 +379,7 @@ class SmcPredicateEvaluator[
     complementRef : SilReference) : (SilReferenceContext, Option[SilWord]) =
   {
     SilRelationshipPredef(verb) match {
-      case REL_PREDEF_IDENTITY => {
+      case REL_PREDEF_IDENTITY | REL_PREDEF_BECOME => {
         tupleN((REF_COMPLEMENT, extractCategory(complementRef)))
       }
       case REL_PREDEF_ASSOC => {
@@ -491,7 +491,7 @@ class SmcPredicateEvaluator[
     verb : SilWord) : Try[Trilean] =
   {
     SilRelationshipPredef(verb) match {
-      case REL_PREDEF_IDENTITY => {
+      case REL_PREDEF_IDENTITY  => {
         val result = {
           if ((wildcardQuerier.containsWildcard(subjectRef) ||
             wildcardQuerier.containsWildcard(complementRef)) &&
@@ -505,6 +505,11 @@ class SmcPredicateEvaluator[
         trace("RESULT FOR " +
           s"$subjectEntity == $complementEntity is $result")
         result
+      }
+      case REL_PREDEF_BECOME => {
+        // maybe we could answer in the case of
+        // "did Peter become a superhero?"
+        Success(Trilean.Unknown)
       }
       case REL_PREDEF_ASSOC => {
         val roleQualifiers = extractRoleQualifiers(complementRef)

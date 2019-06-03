@@ -72,7 +72,8 @@ class SpcTriggerExecutor(
     val consequent = trigger.consequent
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
     antecedent match {
-      // FIXME match on verb
+      // FIXME match on verb; e.g. "is" implies "is" and "becomes" implies "is",
+      // but "is" may not imply "becomes"
       case SilStatePredicate(
         subject, _, state, modifiers
       ) => {
@@ -131,24 +132,12 @@ class SpcTriggerExecutor(
         {
           return unmatched
         }
-        SilRelationshipPredef(verb) match {
-          case REL_PREDEF_IDENTITY => {
-            if (!prepareReplacement(
-              cosmos, replacements, complement,
-              relPredicate.complement,
-              referenceMapIn, referenceMapOut))
-            {
-              return unmatched
-            }
-          }
-          case REL_PREDEF_ASSOC => {
-            if (!prepareReplacement(
-              cosmos, replacements, complement, relPredicate.complement,
-              referenceMapIn, referenceMapOut))
-            {
-              return unmatched
-            }
-          }
+        if (!prepareReplacement(
+          cosmos, replacements, complement,
+          relPredicate.complement,
+          referenceMapIn, referenceMapOut))
+        {
+          return unmatched
         }
       }
       case SilActionPredicate(

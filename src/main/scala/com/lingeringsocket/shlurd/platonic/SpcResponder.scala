@@ -412,8 +412,11 @@ class SpcResponder(
             case MODAL_MUST | MODAL_SHOULD => tupleN((false, true))
             case _ => tupleN((false, false))
           }
-        val newConsequents = Seq(SilPredicateSentence(newPredicate)) ++
-          newAdditionalConsequents.map(removeBasicVerbModifier(_, LEMMA_ALSO))
+        val newConsequents = (
+          SilPredicateSentence(newPredicate) +: newAdditionalConsequents
+        ).map(
+          removeBasicVerbModifier(_, Set(LEMMA_ALSO, LEMMA_SUBSEQUENTLY))
+        )
         newConsequents.foreach(sentence => {
           if (checkCycle(
             sentence.predicate, already, isPrecondition || isTest)
@@ -446,7 +449,8 @@ class SpcResponder(
             case _ => {
               newAlternative.foreach(alternativeSentence => {
                 val recoverySentence = removeBasicVerbModifier(
-                  alternativeSentence, LEMMA_OTHERWISE)
+                  alternativeSentence,
+                  Set(LEMMA_OTHERWISE, LEMMA_SUBSEQUENTLY))
                 if (checkCycle(recoverySentence.predicate, already, false)) {
                   return Some(sentencePrinter.sb.circularAction)
                 }
@@ -486,14 +490,14 @@ class SpcResponder(
   }
 
   private def removeBasicVerbModifier(
-    sentence : SilPredicateSentence, lemma : String) =
+    sentence : SilPredicateSentence, lemmas : Set[String]) =
   {
     sentence.copy(
       predicate = sentence.predicate.withNewModifiers(
         sentence.predicate.getModifiers.filterNot(
           _ match {
             case SilBasicVerbModifier(
-              SilWordLemma(lemma), _) => true
+              SilWordLemma(lemma), _) if (lemmas.contains(lemma)) => true
             case _ => false
           })))
   }
@@ -582,11 +586,7 @@ class SpcResponder(
         }
       }
     )
-    // defer until this point so that any newly created entities etc will
-    // already have taken effect
-    if (triggerDepth == 0) {
-      updateReferenceMap(sentence, forkedCosmos, resultCollector)
-    }
+    var earlyReturn : Option[String] = None
     sentence match {
       case SilPredicateSentence(predicate, _, _) => {
         if (flagErrors && predicate.isInstanceOf[SilActionPredicate]) {
@@ -597,33 +597,42 @@ class SpcResponder(
               true, false)
           resolutionResult match {
             case Failure(ex) => {
-              return Some(ex.getMessage)
+              earlyReturn = Some(ex.getMessage)
             }
             case _ =>
           }
         }
-        val applicability = {
-          if (matched) {
-            APPLY_TRIGGERS_ONLY
-          } else {
-            APPLY_ALL_ASSERTIONS
+        if (earlyReturn.isEmpty) {
+          val applicability = {
+            if (matched) {
+              APPLY_TRIGGERS_ONLY
+            } else {
+              APPLY_ALL_ASSERTIONS
+            }
           }
-        }
-        val result = processTriggerablePredicate(
-          forkedCosmos, predicate,
-          resultCollector.referenceMap, applicability,
-          triggerDepth, flagErrors && !matched)
-        if (!result.isEmpty) {
-          return result
+          val result = processTriggerablePredicate(
+            forkedCosmos, predicate,
+            resultCollector.referenceMap, applicability,
+            triggerDepth, flagErrors && !matched)
+          if (!result.isEmpty) {
+            earlyReturn = result
+          }
         }
       }
       case _ => {
       }
     }
-    if (matched) {
-      Some(compliance)
-    } else {
-      None
+    // defer until this point so that any newly created entities etc will
+    // already have taken effect
+    if (triggerDepth == 0) {
+      updateReferenceMap(sentence, forkedCosmos, resultCollector)
+    }
+    earlyReturn.orElse {
+      if (matched) {
+        Some(compliance)
+      } else {
+        None
+      }
     }
   }
 
@@ -756,7 +765,8 @@ class SpcResponder(
             return executorResponse
           }
         }
-        case _ =>
+        case _ => {
+        }
       }
     }
 
@@ -792,6 +802,9 @@ class SpcResponder(
     ex match {
       case UnimplementedBeliefExcn(belief) => {
         s"I am not yet capable of processing the belief that ${beliefString}."
+      }
+      case InvalidBeliefExcn(belief) => {
+        s"The belief that ${beliefString} is not valid in the given context."
       }
       case IncomprehensibleBeliefExcn(belief) => {
         s"I am unable to understand the belief that ${beliefString}."

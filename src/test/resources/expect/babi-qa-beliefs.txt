@@ -30,22 +30,23 @@ A possession must be an object.
 A person may have possessions.
 An object may have a possessor.
 A person with a possession is a possessor.
-If a person moves to a location, then the person is in the location.
-If a person moves to a location, then the person's possessions are in the location.
+If a person moves to a location, then subsequently the person is in the location;
+ also the person's possessions are in the location.
 If a person goes to a location, then the person moves to the location.
+If a person goes back to a location, then the person moves to the location.
 If a person journeys to a location, then the person moves to the location.
 If a person travels to a location, then the person moves to the location.
-If a person takes an item, then the item's possessor is the person.
+If a person takes an item, then the person becomes the item's possessor.
 If a person grabs an item, then the person takes the item.
 If a person picks up an item, then the person takes the item.
 If a person gets an item, then the person takes the item.
-If a person drops an item, then the item is in the person's spc-container.
+If a person drops an item, then subsequently the item is in the person's spc-container.
 If a person drops an item, then the item has no possessor.
 If a person leaves an item, then the person drops the item.
 If a person discards an item, then the person drops the item.
 If a person puts down an item, then the person drops the item.
 If a person is carrying an item, equivalently the item is the person's possession.
-If a person receives an item, then the item is the person's possession.
+If a person receives an item, then the item becomes the person's possession.
 If a person gives an item to a recipient, then the recipient receives the item.
 If a person passes a recipient an item, then the person gives the item to the recipient.
 If a person hands an item to a recipient, then the person gives the item to the recipient.
@@ -123,8 +124,8 @@ If a shape is above a neighbor, then the shape's abscissa is the neighbor's absc
 If a shape is above a neighbor, then the shape's ordinate is the neighbor's ordinate's above-row.
 If a shape is above a neighbor, equivalently the neighbor's ordinate's top-row is the shape's ordinate.
 If a shape is above a neighbor, then the shape's ordinate sits on the neighbor's ordinate.
-If a row sits on a neighbor, then the neighbor's bottom-row's top-row is the row.
-If a row sits on a neighbor, then the row's bottom-row's top-rows are the row's top-rows.
+If a row sits on a neighbor, then subsequently the neighbor's bottom-row's top-row is the row.
+If a row sits on a neighbor, then subsequently the row's bottom-row's top-rows are the row's top-rows.
 If a shape is below a neighbor, then the shape's abscissa is the neighbor's abscissa.
 If a shape is below a neighbor, then the shape's ordinate is the neighbor's ordinate's below-row.
 If a shape is below a neighbor, equivalently the neighbor's ordinate's bottom-row is the shape's ordinate.
@@ -133,8 +134,8 @@ If a shape is to the left of a neighbor, then the shape's ordinate is the neighb
 If a shape is to the left of a neighbor, then the shape's abscissa is the neighbor's abscissa's left-column.
 If a shape is to the left of a neighbor, equivalently the neighbor's abscissa's pre-column is the shape's abscissa.
 If a shape is to the left of a neighbor, then the shape's abscissa precedes the neighbor's abscissa.
-If a column precedes a neighbor, then the neighbor's post-column's pre-column is the column.
-If a column precedes a neighbor, then the column's post-column's pre-columns are the column's pre-columns.
+If a column precedes a neighbor, then subsequently the neighbor's post-column's pre-column is the column.
+If a column precedes a neighbor, then subsequently the column's post-column's pre-columns are the column's pre-columns.
 If a shape is to the right of a neighbor, then the shape's ordinate is the neighbor's ordinate.
 If a shape is to the right of a neighbor, then the neighbor's abscissa's right-column is the shape's abscissa.
 If a shape is to the right of a neighbor, equivalently the neighbor's abscissa's post-column is the shape's abscissa.

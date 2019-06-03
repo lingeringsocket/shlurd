@@ -68,19 +68,19 @@ A target-place must be a map-place.
 A map-place with a place-exit is a source-place.
 A map-place with a place-entrance is a target-place.
 
-If a map-connection opposes a map-place to a map-direction, then
+If a map-connection opposes a map-place to a map-direction, then equivalently
  the map-place's place-exit in the map-direction is
   the map-connection's opposite-connection.
 
 If a map-place faces a destination-place to a map-direction, then
  the map-place has a place-exit in the map-direction;
  also the destination-place has a place-exit in the map-direction's opposite-direction;
- also the map-place's place-exit in the map-direction is a straight-connection;
- also the destination-place's place-exit in the map-direction's opposite-direction is
-  a straight-connection;
+ also the map-place's place-exit in the map-direction becomes a straight-connection;
+ also the destination-place's place-exit in the map-direction's opposite-direction
+  becomes a straight-connection;
  also the map-place's place-exit in the map-direction opposes
   the destination-place to the map-direction's opposite-direction;
- also the map-place is the destination-place's map-neighbor.
+ also the map-place becomes the destination-place's map-neighbor.
 
 If a map-place faces a destination-place to a map-direction, then equivalently
  (the map-place's place-exit in the map-direction)'s
@@ -121,8 +121,8 @@ A map-connection with an exit-door is a door-exit.
 A door must be open or closed.
 
 If a door mediates a map-connection, then
- the door is the map-connection's exit-door;
- also the door is the map-connection's opposite-connection's exit-door.
+ the door becomes the map-connection's exit-door;
+ also the door becomes the map-connection's opposite-connection's exit-door.
 
 If a door connects a map-place to a neighbor-place, then
  the door mediates (the map-place's place-entrances

@@ -33,6 +33,12 @@ case class UnimplementedBelief(
 {
 }
 
+case class InvalidBelief(
+  sentence : SilSentence
+) extends SpcBelief
+{
+}
+
 case class StateEquivalenceBelief(
   sentence : SilSentence,
   formName : SilWord,

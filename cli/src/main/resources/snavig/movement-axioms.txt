@@ -37,7 +37,7 @@ If a game-character moves to a map-place, then
  the game-character traverses (the map-place's place-entrances
   among the player-character's container's place-exits).
 
-If a game-character relocates to a map-place, then
+If a game-character relocates to a map-place, then subsequently
  the game-character is in the map-place.
 
 If a game-character enters a map-location, then

@@ -23,6 +23,7 @@ object SprEnglishLemmas
 {
   val LEMMA_THERE = "there"
   val LEMMA_BE = "be"
+  val LEMMA_BECOME = "become"
   val LEMMA_EXIST = "exist"
   val LEMMA_HAVE = "have"
   val LEMMA_WHO = "who"
@@ -42,6 +43,7 @@ object SprEnglishLemmas
   val LEMMA_OTHERWISE = "otherwise"
   val LEMMA_ALSO = "also"
   val LEMMA_GENERALLY = "generally"
+  val LEMMA_SUBSEQUENTLY = "subsequently"
   val LEMMA_NO = "no"
   val LEMMA_NOT = "not"
   val LEMMA_NOR = "nor"
@@ -126,10 +128,13 @@ object SprEnglishLemmas
   val LEMMA_GENITIVE_OF = "_of_"
   val LEMMA_ADVERBIAL_TMP = "_TEMPORAL_"
 
-  def isBeingVerb(verb : SilWord) : Boolean =
+  def isBeingLemma(verb : SilWord) : Boolean =
+    isBeingLemma(verb.toLemma)
+
+  def isBeingLemma(lemma : String) : Boolean =
   {
-    verb.toLemma match {
-      case LEMMA_BE | LEMMA_EXIST => true
+    lemma match {
+      case LEMMA_BE | LEMMA_EXIST | LEMMA_BECOME => true
       case _ => false
     }
   }

@@ -823,5 +823,21 @@ class SpcCosmosSpec extends Specification
       addBelief("a green door must be either open or closed") must
         throwA[UnimplementedBeliefExcn]
     }
+
+    "reject invalid beliefs" in new CosmosContext
+    {
+      addBelief(
+        "if a person eats a pickle, " +
+          "then the pickle is sandy"
+      ) must throwA[InvalidBeliefExcn]
+      addBelief(
+        "if a person eats a pickle, " +
+          "then equivalently the pickle becomes sandy"
+      ) must throwA[InvalidBeliefExcn]
+      addBelief(
+        "if a person eats a pickle, " +
+          "then equivalently the pickle is subsequently sandy"
+      ) must throwA[InvalidBeliefExcn]
+    }
   }
 }

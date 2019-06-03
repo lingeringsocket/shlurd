@@ -59,7 +59,7 @@ class SprEnglishSyntaxAnalyzer(
           tree,
           conjunction,
           antecedent,
-          SptS(children.tail.filterNot(c => (c.isThenEquivalently)):_*),
+          SptS(children.tail.filterNot(c => (c.isThen || c.isEquivalently)):_*),
           children.tail.exists(c =>
             (c.isEquivalently || c.children.exists(_.isEquivalently))),
           SilFormality(force))
@@ -839,19 +839,33 @@ class SprEnglishSyntaxAnalyzer(
     if (tree.children.size == 1) {
       expectVerbModifier(tree.firstChild, successor)
     } else {
-      val words = tree.children.flatMap(_ match {
-        case adverb : SprSyntaxSimpleAdverb => {
-          Seq(getWord(adverb.child))
+      val qualified = tree.firstChild match {
+        case s : SprSyntaxSimpleAdverb => {
+          // FIXME full list of qualifying adverbs
+          s.child.lemma match {
+            case LEMMA_NO | "very" => true
+            case _ => false
+          }
         }
-        case particle : SptRP => {
-          Seq(getWord(particle.child))
-        }
-        case rbc : SptRBC => {
-          getCompoundWord(rbc).components
-        }
-        case _ => return expectAdpositionalVerbModifier(tree)
-      })
-      SilBasicVerbModifier(SilCompoundWord(words), 0)
+        case _ => false
+      }
+      if (!qualified) {
+        SilUnrecognizedVerbModifier(tree)
+      } else {
+        val words = tree.children.flatMap(_ match {
+          case adverb : SprSyntaxSimpleAdverb => {
+            Seq(getWord(adverb.child))
+          }
+          case particle : SptRP => {
+            Seq(getWord(particle.child))
+          }
+          case rbc : SptRBC => {
+            getCompoundWord(rbc).components
+          }
+          case _ => return expectAdpositionalVerbModifier(tree)
+        })
+        SilBasicVerbModifier(SilCompoundWord(words), 0)
+      }
     }
   }
 
@@ -897,7 +911,7 @@ class SprEnglishSyntaxAnalyzer(
       }
     }
     if (np.isExistential) {
-      if (!isBeingVerb(verb)) {
+      if (!isBeingLemma(verb)) {
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }
       val subject = splitCoordinatingConjunction(seq) match {
@@ -919,7 +933,7 @@ class SprEnglishSyntaxAnalyzer(
         expectExistenceState(np), SilNullState(),
         verbModifiers)))
     } else if (complement.isExistential) {
-      if (!isBeingVerb(verb)) {
+      if (!isBeingLemma(verb)) {
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }
       tupleN((negative, expectStatePredicate(
@@ -933,7 +947,7 @@ class SprEnglishSyntaxAnalyzer(
     } else if (complement.isNounNode) {
       // FIXME this is quite arbitrary
       val (subjectRef, complementRef) = {
-        if (isBeingVerb(verb)) {
+        if (isBeingLemma(verb)) {
           tupleN((specifyReference(expectReference(np), specifiedState),
             expectReference(seq)))
         } else {
@@ -949,13 +963,13 @@ class SprEnglishSyntaxAnalyzer(
         verbModifiers)
       tupleN((negative, relationshipPredicate))
     } else {
-      if (!isBeingVerb(verb)) {
+      if (!isBeingLemma(verb)) {
         if (enforceTransitive) {
           return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
         } else {
           return tupleN((negative, expectStatePredicate(
             syntaxTree, expectReference(np),
-            verb,
+            STATE_PREDEF_BE.toVerb,
             SilExistenceState(),
             specifiedState,
             verbModifiers)))

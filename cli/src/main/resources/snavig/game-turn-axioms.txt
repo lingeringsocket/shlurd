@@ -4,7 +4,7 @@ There is a game-turn.
 
 If the game-turn advances, then
  the player-character surveys the player-character's container;
- also the player-character is the player-character's container's place-discoverer.
+ also the player-character becomes the player-character's container's place-discoverer.
 
 If the game-turn debuts, then
  the game-turn advances;

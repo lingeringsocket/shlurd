@@ -253,14 +253,14 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         subject, verb, complement, modifiers
       ) => {
         val complementInflection = {
-          if (isBeingVerb(verb)) {
+          if (isBeingLemma(verb)) {
             INFLECT_NOMINATIVE
           } else {
             INFLECT_ACCUSATIVE
           }
         }
         val tam = {
-          if (ellipsis && !isBeingVerb(verb)) {
+          if (ellipsis && !isBeingLemma(verb)) {
             if (tamOriginal.isIndicative) {
               tamOriginal.withModality(MODAL_ELLIPTICAL)
             } else {

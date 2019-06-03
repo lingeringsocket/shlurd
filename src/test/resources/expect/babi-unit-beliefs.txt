@@ -9,7 +9,8 @@ The island is a place.
 The forest is a place.
 The castle is a place.
 The swamp is a place.
-If an object goes to a location, then the object is in the location.
-If an object moves to a location, then the object goes to the location.
-If an object journeys to a location, then the object goes to the location.
-If an object travels to a location, then the object goes to the location.
+If an object moves to a location, then subsequently the object is in the location.
+If an object goes to a location, then the object moves to the location.
+If an object goes back to a location, then the object moves to the location.
+If an object journeys to a location, then the object moves to the location.
+If an object travels to a location, then the object moves to the location.

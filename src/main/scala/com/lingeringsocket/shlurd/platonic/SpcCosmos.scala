@@ -1101,11 +1101,10 @@ class SpcCosmos(
     role : SpcRole
   ) : Option[SpcEntityAssocEdge] =
   {
-    graph.entityAssocs.getAllEdges(
-      possessor, possessee).asScala.find(edge => {
-        isHyponym(role, graph.getPossesseeRole(edge.formEdge))
-      }
-    )
+    val edges = graph.entityAssocs.getAllEdges(possessor, possessee)
+    edges.asScala.find(edge => {
+      isHyponym(role, graph.getPossesseeRole(edge.formEdge))
+    })
   }
 
   def validateBeliefs()

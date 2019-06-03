@@ -205,7 +205,13 @@ trait SprAbstractSyntaxTree
     (isNounPhrase && firstChild.hasLabel(LABEL_EX)) || isExistsVerb
 
   def isBeingVerb =
-    isVerb && (hasTerminalLemma(LEMMA_BE) || hasTerminalLemma(LEMMA_EXIST))
+  {
+    if (isVerb && isPreTerminal) {
+      isBeingLemma(firstChild.lemma)
+    } else {
+      false
+    }
+  }
 
   def isPossessionVerb =
     isVerb && hasTerminalLemma(LEMMA_HAVE)
@@ -286,9 +292,6 @@ sealed trait SprSyntaxTree extends SprAbstractSyntaxTree
       this
     }
   }
-
-  def isThenEquivalently = isThen || isEquivalently ||
-    (isAdverbPhrase && children.head.isThen && children.last.isEquivalently)
 
   def isThen = unwrapPhrase.hasTerminalLemma(LEMMA_THEN)
 

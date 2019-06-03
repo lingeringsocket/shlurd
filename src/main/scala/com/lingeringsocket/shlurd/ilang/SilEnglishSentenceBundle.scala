@@ -157,7 +157,7 @@ class SilEnglishSentenceBundle
     modifiers : Seq[String]) =
   {
     if (tam.isInterrogative && question.isEmpty) {
-      if (isBeingVerb(verb)) {
+      if (isBeingLemma(verb)) {
         composePredicateQuestion(
           subject, verbSeq, Seq(complement), modifiers)
       } else {

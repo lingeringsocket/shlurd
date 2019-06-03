@@ -159,12 +159,14 @@ class SpcBeliefRecognizer(
           return processResolvedReference(sentence, rr, {
             entityRef => {
               if (!isPropertyName) {
+                // "the cat is angry "
                 Seq(EntityPropertyBelief(
                   sentence,
                   entityRef,
                   None, Left(stateName)
                 ))
               } else {
+                // "the cat's mood is angry "
                 Seq(EntityPropertyBelief(
                   sentence,
                   entityRef,
@@ -433,19 +435,36 @@ class SpcBeliefRecognizer(
     }
   }
 
+  private def extractBasicModifierLemmas(
+    predicate : SilPredicate) : Seq[String] =
+  {
+    predicate.getModifiers.flatMap(
+      _ match {
+        case SilBasicVerbModifier(
+          SilWordLemma(lemma), _) => Some(lemma)
+        case _ => None
+      }
+    )
+  }
+
   private def recognizeAssertionBelief(
     assertionSentence : SilSentence,
     additionalSentences : Seq[SilPredicateSentence] = Seq.empty)
       : Seq[SpcBelief] =
   {
     var invalid = false
+    var ignored = false
     val querier = new SilPhraseRewriter
     val additionalConsequents = new mutable.ArrayBuffer[SilPredicateSentence]
     var alternative : Option[SilPredicateSentence] = None
     assertionSentence match {
       case conditional : SilConditionalSentence => {
+        val antecedentAction =
+          conditional.antecedent.isInstanceOf[SilActionPredicate]
         val consequent = conditional.consequent
-        def validateConsequent = querier.queryMatcher {
+        def validateConsequent(
+          isSubsequently : Boolean
+        ) = querier.queryMatcher {
           case SilNounReference(_, determiner, _) => {
             determiner match {
               case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
@@ -455,22 +474,51 @@ class SpcBeliefRecognizer(
               }
             }
           }
+          case sp : SilStatePredicate => {
+            val predef = SilStatePredef(sp.verb)
+            if (conditional.biconditional) {
+              if ((predef == STATE_PREDEF_BECOME) || isSubsequently) {
+                invalid = true
+              }
+            } else {
+              if (antecedentAction &&
+                (predef != STATE_PREDEF_BECOME) && !isSubsequently)
+              {
+                invalid = true
+              }
+            }
+          }
+          case rp : SilRelationshipPredicate => {
+            val predef = SilRelationshipPredef(rp.verb)
+            if (conditional.biconditional) {
+              if ((predef == REL_PREDEF_BECOME) || isSubsequently) {
+                invalid = true
+              }
+            } else {
+              if (antecedentAction &&
+                (predef == REL_PREDEF_IDENTITY) && !isSubsequently)
+              {
+                invalid = true
+              }
+            }
+          }
         }
+        val isConsequentSubsequently = extractBasicModifierLemmas(consequent).
+          contains(LEMMA_SUBSEQUENTLY)
         if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
-          // FIXME probably we should be applying validateConsequent
-          // to additionalSentences as well?
-          querier.query(validateConsequent, consequent)
+          querier.query(
+            validateConsequent(isConsequentSubsequently),
+            consequent)
         }
         additionalSentences.foreach(additionalSentence => {
-          val modifiers = additionalSentence.predicate.getModifiers.flatMap(
-            _ match {
-              case SilBasicVerbModifier(
-                SilWordLemma(lemma), _) => Some(lemma)
-              case _ => None
-            }
-          )
+          val modifiers = extractBasicModifierLemmas(
+            additionalSentence.predicate)
           val isOtherwise = modifiers.contains(LEMMA_OTHERWISE)
           val isAlso = modifiers.contains(LEMMA_ALSO)
+          val isSubsequently = modifiers.contains(LEMMA_SUBSEQUENTLY)
+          querier.query(
+            validateConsequent(isSubsequently || isConsequentSubsequently),
+            additionalSentence)
           if (isOtherwise && isAlso) {
             invalid = true
           } else if (isOtherwise) {
@@ -510,23 +558,25 @@ class SpcBeliefRecognizer(
         }
         def validateAssertion = querier.queryMatcher {
           case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
-            invalid = true
+            ignored = true
           }
         }
+        querier.query(validateAssertion, predicate)
         tam.modality match {
           case MODAL_MAY | MODAL_POSSIBLE | MODAL_CAPABLE | MODAL_PERMITTED => {
           }
           case _ => {
-            invalid = true
+            ignored = true
           }
         }
-        querier.query(validateAssertion, predicate)
       }
       case _ => {
         invalid = true
       }
     }
     if (invalid) {
+      Seq(InvalidBelief(assertionSentence))
+    } else if (ignored) {
       Seq.empty
     } else {
       Seq(AssertionBelief(
@@ -594,6 +644,9 @@ class SpcBeliefRecognizer(
               sentence, subjectNoun, complementNoun, true))
           }
         }
+      }
+      case REL_PREDEF_BECOME => {
+        Seq.empty
       }
       case REL_PREDEF_ASSOC => {
         val (complementNouns, count) = complementRef match {

@@ -408,6 +408,14 @@ class SpcBeliefAccepter(
   }
 
   beliefApplier {
+    case InvalidBelief(
+      sentence
+    ) => {
+      throw new InvalidBeliefExcn(sentence)
+    }
+  }
+
+  beliefApplier {
     case StateEquivalenceBelief(
       sentence, formName, state1, state2
     ) => {

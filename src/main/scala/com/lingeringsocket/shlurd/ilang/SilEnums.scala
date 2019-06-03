@@ -169,6 +169,10 @@ case object REL_PREDEF_IDENTITY extends SilRelationshipPredef
 {
   override def toLemma = LEMMA_BE
 }
+case object REL_PREDEF_BECOME extends SilRelationshipPredef
+{
+  override def toLemma = LEMMA_BECOME
+}
 case object REL_PREDEF_ASSOC extends SilRelationshipPredef
 {
   override def toLemma = LEMMA_HAVE
@@ -176,7 +180,8 @@ case object REL_PREDEF_ASSOC extends SilRelationshipPredef
 
 object SilRelationshipPredef
 {
-  val enumeration = Seq(REL_PREDEF_IDENTITY, REL_PREDEF_ASSOC)
+  val enumeration = Seq(
+    REL_PREDEF_IDENTITY, REL_PREDEF_BECOME, REL_PREDEF_ASSOC)
 
   val lemmaMap = Map(enumeration.map(rel => tupleN((rel.toLemma, rel))):_*)
 
@@ -184,7 +189,7 @@ object SilRelationshipPredef
   {
     lemmaMap.get(word.toLemma).getOrElse {
       throw new IllegalArgumentException(
-        "Non-common relationship verb " + word)
+        "Non-predef relationship verb " + word)
     }
   }
 }
@@ -208,14 +213,20 @@ case object STATE_PREDEF_BE extends SilStatePredef
   override def toLemma = LEMMA_BE
 }
 
+case object STATE_PREDEF_BECOME extends SilStatePredef
+{
+  override def toLemma = LEMMA_BECOME
+}
+
 object SilStatePredef
 {
   def apply(word : SilWord) =
   {
     word.toLemma match {
       case LEMMA_EXIST | LEMMA_BE => STATE_PREDEF_BE
+      case LEMMA_BECOME => STATE_PREDEF_BECOME
       case _ => throw new IllegalArgumentException(
-        "Non-common state verb " + word)
+        "Non-predef state verb " + word)
     }
   }
 }

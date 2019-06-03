@@ -563,7 +563,7 @@ class SpcResponderSpec extends Specification
     {
       loadBeliefs("/ontologies/containment.txt")
       processBelief("if an object moves to a location, " +
-        "then the object is in the location")
+        "then subsequently the object is in the location")
       processBelief("if an object rolls into a location, " +
         "then the object moves to the location")
       processBelief("Percy is an object")
@@ -585,7 +585,7 @@ class SpcResponderSpec extends Specification
       process("where is Thomas", "It is in Denali.")
 
       processBelief("if a person drops an object, " +
-        "then the object is in the person's container")
+        "then subsequently the object is in the person's container")
       processBelief("Curtis is a person")
       processBelief("the boiler is an object")
       processBelief("the engine is an object")
@@ -603,7 +603,7 @@ class SpcResponderSpec extends Specification
     {
       loadBeliefs("/ontologies/containment.txt")
       processBelief("if a person gives an object to a recipient, " +
-        "then the object is the recipient's contained-object")
+        "then the object becomes the recipient's contained-object")
       processBelief("if a person passes an object to a recipient, " +
         "then the person gives the object to the recipient")
 
@@ -634,7 +634,7 @@ class SpcResponderSpec extends Specification
       processBelief("the wrench is an object")
       processBelief("the screwdriver is an object")
       processBelief("if a person receives an object, " +
-        "then the object is the person's contained-object")
+        "then the object becomes the person's contained-object")
       processBelief("if a person gives an object to a recipient, " +
         "then the recipient receives the object")
       processBelief("if a person passes an object to a recipient, " +
@@ -706,9 +706,16 @@ class SpcResponderSpec extends Specification
       processBelief("a person may be angry or sad")
       processBelief("if a manager is angry," +
         " then the manager strikes the manager's minions")
-      processBelief("if a bully strikes a person, then the person is sad")
+      processBelief("if a bully strikes a person, then the person becomes sad")
       processBelief("Scrooge is angry")
+      processTerse("is Scrooge angry", "Yes.")
       processTerse("is Cratchit sad", "Yes.")
+      processBelief("Cratchit becomes angry")
+      processTerse("is Cratchit angry", "Yes.")
+      processBelief("Scrooge becomes sad")
+      processTerse("is Scrooge angry", "No.")
+      processBelief("Scrooge becomes angry")
+      processTerse("is Cratchit angry", "No.")
     }
 
     "understand subset matches" in new
@@ -719,7 +726,7 @@ class SpcResponderSpec extends Specification
       processBelief("a fruit must be green or red")
       processBelief("an apple is a kind of fruit")
       processBelief("a tomato is a kind of fruit")
-      processBelief("if a person sees an apple, then the apple is red")
+      processBelief("if a person sees an apple, then the apple becomes red")
       processBelief("Pippin is an apple")
       processBelief("EarlyGirl is a tomato")
       processBelief("Merry is a person")
@@ -1137,7 +1144,8 @@ class SpcResponderSpec extends Specification
       process("is she a dog", "No, Amanda is not a dog.")
       process("is he Dirk's friend", "Yes, Todd is Dirk's friend.")
       processBelief("the jail is an object")
-      processBelief("if a person teleports, then the person is in the jail")
+      processBelief("if a person teleports, " +
+        "then subsequently the person is in the jail")
       processBelief("Todd and Dirk teleport")
       process("are they in the jail", "Yes, Todd and Dirk are in the jail.")
     }
@@ -1147,7 +1155,7 @@ class SpcResponderSpec extends Specification
     {
       loadBeliefs("/ontologies/containment.txt")
       processBelief("if an object moves to a location, " +
-        "then the object is in the location")
+        "then subsequently the object is in the location")
       processBelief("the key is an object")
       processBelief("the pocket is an object")
       processBelief("the purse is an object")
@@ -1478,9 +1486,10 @@ class SpcResponderSpec extends Specification
       processBelief("EarlyGirl is Filoli's result")
       processBelief("a person must be alive or dead")
       processBelief("Adam is a person")
-      processBelief("if a person moves to a garden," +
-        " then the person eats the garden's results")
-      processBelief("if a person eats a poison, then the person is dead")
+      processBelief("if a person moves to a garden, " +
+        "then the person eats the garden's results")
+      processBelief("if a person eats a poison, " +
+        "then the person is subsequently dead")
       processBelief("Adam is alive")
       processBelief("Adam moves to Kenrokuen")
       processTerse("is Adam dead", "No.")
@@ -1504,7 +1513,8 @@ class SpcResponderSpec extends Specification
       processBelief("Glamdring is a sword")
 
       process("Sigurd kills Fafnir", "I'm not sure how to interpret that.")
-      processBelief("if a person kills a dragon, then the dragon is dead")
+      processBelief("if a person kills a dragon, " +
+        "then subsequently the dragon is dead")
       process("Sigurd kills Fafnir", "OK.")
 
       processBelief("a hobbit cannot kill a dragon")
@@ -1551,7 +1561,7 @@ class SpcResponderSpec extends Specification
       processBelief("a stomach is a kind of object")
       processBelief("there is a stomach")
       processBelief("the lion is sad")
-      processBelief("if a person kicks a lion, then the lion is angry")
+      processBelief("if a person kicks a lion, then the lion becomes angry")
       processTerse("Daniel kicks the lion in the stomach", "OK.")
       processTerse("is the lion angry", "Yes.")
       processBelief("there is a small lion")
@@ -1603,11 +1613,11 @@ class SpcResponderSpec extends Specification
       processBelief("A patriarch may have descendants.")
       processBelief("A patriarch with a descendant is an ancestor.")
       processBelief("If a patriarch begets a child, " +
-        "then the patriarch is the child's parent; " +
-        "also the patriarch is the child's ancestor; " +
-        "also the patriarch is the child's descendant's ancestor; " +
+        "then the patriarch becomes the child's parent; " +
+        "also the patriarch becomes the child's ancestor; " +
+        "also the patriarch becomes the child's descendant's ancestor; " +
         "also the patriarch's descendant's ancestors " +
-        "are the patriarch's ancestors.")
+        "become the patriarch's ancestors.")
       processBelief("Abraham is a patriarch.")
       processBelief("Isaac is a patriarch.")
       processBelief("Jacob is a patriarch.")
