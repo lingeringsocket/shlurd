@@ -15,67 +15,54 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.ilang._
-import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
-
-import org.specs2.mutable._
-import org.specs2.specification._
+import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 
-class SpcReferenceAnalysisSpec extends Specification
+class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
 {
-  trait AnalysisContext extends Scope
+  trait AnalysisContext extends ProcessingContext
   {
-    protected val cosmos = new SpcCosmos
-
-    protected def process(input : String, response : String) =
+    protected def analyze(input : String, response : String) =
     {
-      val mind = new SpcMind(cosmos)
       mind.startConversation
       mind.startNarrative
-      val responder = new SpcResponder(
-        mind, ACCEPT_MODIFIED_BELIEFS,
-        SmcResponseParams(
-          verbosity = RESPONSE_TERSE),
-        new SmcExecutor[SpcEntity] {
-          override def executeAction(
-            predicate : SilActionPredicate,
-            referenceMap : Map[SilReference, Set[SpcEntity]]
-          ) : Option[String] =
-          {
-            Some("OK.")
-          }
-
-          override def executeImperative(
-            predicate : SilPredicate,
-            referenceMap : Map[SilReference, Set[SpcEntity]]
-          ) : Option[String] =
-          {
-            Some("OK.")
-          }
-        })
-      val sentence = responder.newParser(input).parseOne
-      responder.process(sentence) must be equalTo response
-      mind.getConversation.getUtterances.head.referenceMap
+      process(
+        input,
+        ACCEPT_MODIFIED_BELIEFS,
+        SmcResponseParams(verbosity = RESPONSE_TERSE),
+        okExecutor) must be equalTo response
+      val result = mind.getConversation.getUtterances.head.referenceMap
+      mind.stopNarrative
+      mind.stopConversation
+      result
     }
 
-    protected def processBelief(input : String) =
+    protected def analyzeBelief(input : String) =
     {
-      process(input, "OK.")
+      analyze(input, "OK.")
     }
 
-    protected def expectUnique(
-      entities : Iterable[SpcEntity]) : SpcEntity =
+    protected def okExecutor() =
     {
-      entities.size must be equalTo(1)
-      entities.head
-    }
+      new SmcExecutor[SpcEntity] {
+        override def executeAction(
+          predicate : SilActionPredicate,
+          referenceMap : Map[SilReference, Set[SpcEntity]]
+        ) : Option[String] =
+        {
+          Some("OK.")
+        }
 
-    protected def expectProperName(name : String) : SpcEntity =
-    {
-      expectUnique(
-        cosmos.getEntities.filter(_.properName == name))
+        override def executeImperative(
+          predicate : SilPredicate,
+          referenceMap : Map[SilReference, Set[SpcEntity]]
+        ) : Option[String] =
+        {
+          Some("OK.")
+        }
+      }
     }
   }
 
@@ -90,35 +77,35 @@ class SpcReferenceAnalysisSpec extends Specification
       val boris = "Boris"
       val ivanRef = SilNounReference(SilWord(ivan))
       val borisRef = SilNounReference(SilWord(boris))
-      processBelief("a mule is a kind of animal") must beEmpty
-      processBelief("a mule may be grumpy or happy") must beEmpty
-      processBelief("if a mule kicks a kick-target, " +
+      analyzeBelief("a mule is a kind of animal") must beEmpty
+      analyzeBelief("a mule may be grumpy or happy") must beEmpty
+      analyzeBelief("if a mule kicks a kick-target, " +
         "then equivalently the mule is grumpy")
-      val isaResult = processBelief(s"$ivan is a mule")
+      val isaResult = analyzeBelief(s"$ivan is a mule")
       val ivanEntity = expectProperName(ivan)
       val ivanSet = Set(ivanEntity)
       isaResult must be equalTo Map(
         ivanRef -> ivanSet
       )
-      processBelief("if a mule is happy, " +
+      analyzeBelief("if a mule is happy, " +
         s"then the mule kicks $ivan")
-      processBelief(s"$boris is a mule")
+      analyzeBelief(s"$boris is a mule")
       val borisEntity = expectProperName(boris)
       val borisSet = Set(borisEntity)
-      processBelief(s"$ivan is grumpy") must be equalTo Map(
+      analyzeBelief(s"$ivan is grumpy") must be equalTo Map(
         ivanRef -> ivanSet
       )
-      process(s"is $ivan a mule", "Yes.") must be equalTo Map(
+      analyze(s"is $ivan a mule", "Yes.") must be equalTo Map(
         ivanRef -> ivanSet
       )
-      process(s"does $ivan kick $boris", "Yes.") must be equalTo Map(
+      analyze(s"does $ivan kick $boris", "Yes.") must be equalTo Map(
         ivanRef -> ivanSet,
         borisRef -> borisSet
       )
-      process(s"shout at $boris", "OK.") must be equalTo Map(
+      analyze(s"shout at $boris", "OK.") must be equalTo Map(
         borisRef -> borisSet
       )
-      process(s"$boris is happy", "OK.") must be equalTo Map(
+      analyze(s"$boris is happy", "OK.") must be equalTo Map(
         borisRef -> borisSet
       )
     }

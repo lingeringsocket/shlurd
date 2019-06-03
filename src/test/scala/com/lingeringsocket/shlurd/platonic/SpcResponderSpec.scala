@@ -1135,6 +1135,9 @@ class SpcResponderSpec extends Specification
       ACCEPT_MODIFIED_BELIEFS,
       SmcResponseParams(thirdPersonPronouns = false))
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
       loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/people.txt")
       mind.startConversation

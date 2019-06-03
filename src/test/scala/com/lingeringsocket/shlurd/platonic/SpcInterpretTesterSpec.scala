@@ -27,6 +27,9 @@ class SpcInterpretTesterSpec extends Specification
   {
     "interpret babi format" in
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not supported")
+      }
       val beliefs = ResourceUtils.getResourceFile(
         "/expect/babi-unit-beliefs.txt")
       val script = ResourceUtils.getResourceFile(
@@ -41,6 +44,9 @@ class SpcInterpretTesterSpec extends Specification
 
     "understand babi qa beliefs" in
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not supported")
+      }
       val beliefs = ResourceUtils.getResourceFile(
         "/expect/babi-qa-beliefs.txt")
       val script = ResourceUtils.getResourceFile(

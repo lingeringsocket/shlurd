@@ -19,8 +19,6 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 
-import org.specs2.mutable._
-import org.specs2.specification._
 
 import spire.math._
 
@@ -30,97 +28,17 @@ import scala.util._
 
 import SprEnglishLemmas._
 
-class SpcCosmosSpec extends Specification
+class SpcCosmosSpec extends SpcProcessingSpecification
 {
-  trait CosmosContext extends Scope
+  trait CosmosContext extends ProcessingContext
   {
-    protected val cosmos = new SpcCosmos
-
     protected def addBelief(input : String) =
     {
-      val sentence = cosmos.newParser(input).parseOne
-      val mind = new SpcMind(cosmos)
-      val responder = new SpcResponder(
-        mind, ACCEPT_NEW_BELIEFS,
+      val result = process(
+        input,
+        ACCEPT_NEW_BELIEFS,
         SmcResponseParams(throwRejectedBeliefs = true))
-      responder.process(sentence)
-    }
-
-    protected def expectNamedForm(name : String) =
-    {
-      val formOpt = cosmos.resolveForm(name)
-      formOpt must beSome.which(_.name == name)
-      formOpt.get
-    }
-
-    protected def expectNamedRole(name : String) =
-    {
-      val roleOpt = cosmos.resolveRole(name)
-      roleOpt must beSome.which(_.name == name)
-      roleOpt.get
-    }
-
-    protected def expectSingleProperty(form : SpcForm)
-        : SpcProperty =
-    {
-      val properties = cosmos.getFormPropertyMap(form)
-      properties.size must be equalTo 1
-      properties.head._2
-    }
-
-    protected def expectFormSingleton(form : SpcForm) : SpcEntity =
-    {
-      expectUnique(
-        cosmos.resolveQualifiedNoun(
-          form.name, REF_SUBJECT, Set()))
-    }
-
-    protected def expectPerson(name : String) : SpcEntity =
-    {
-      expectNamedForm("person")
-      expectUnique(cosmos.resolveQualifiedNoun(
-        "person", REF_SUBJECT, Set(name)))
-    }
-
-    protected def expectProperName(name : String) : SpcEntity =
-    {
-      expectUnique(
-        cosmos.getEntities.filter(_.properName == name))
-    }
-
-    protected def expectUnique(
-      entities : Iterable[SpcEntity]) : SpcEntity =
-    {
-      entities.size must be equalTo(1)
-      entities.head
-    }
-
-    protected def expectUnique(
-      entities : Try[Iterable[SpcEntity]]) : SpcEntity =
-    {
-      entities must beSuccessfulTry.which(_.size == 1)
-      entities.get.head
-    }
-
-    protected def resolveForm(name : String) : SpcForm =
-    {
-      cosmos.resolveForm(name).get
-    }
-
-    protected def resolveRole(name : String) : SpcRole =
-    {
-      cosmos.resolveRole(name).get
-    }
-
-    protected def resolveGenitive(possessor : SpcEntity, roleName : String)
-        : Set[SpcEntity] =
-    {
-      cosmos.resolveRole(roleName) match {
-        case Some(role) => {
-          cosmos.resolveGenitive(possessor, role)
-        }
-        case _ => Set.empty
-      }
+      result must be equalTo "OK."
     }
   }
 
@@ -682,7 +600,6 @@ class SpcCosmosSpec extends Specification
       addBelief("Lana is a person")
       val entity = expectPerson("lana")
       val properRef = SilNounReference(SilWord("Lana"))
-      val mind = new SpcMind(cosmos)
       val specificRef = mind.specificReference(entity, DETERMINER_UNSPECIFIED)
       specificRef must be equalTo properRef
     }
@@ -826,6 +743,9 @@ class SpcCosmosSpec extends Specification
 
     "reject invalid beliefs" in new CosmosContext
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not supported")
+      }
       addBelief(
         "if a person eats a pickle, " +
           "then the pickle is sandy"
