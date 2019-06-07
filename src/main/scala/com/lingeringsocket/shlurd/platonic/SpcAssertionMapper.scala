@@ -26,17 +26,17 @@ import SprEnglishLemmas._
 
 import org.slf4j._
 
-object SpcTriggerExecutor
+object SpcAssertionMapper
 {
   private val logger =
-    LoggerFactory.getLogger(classOf[SpcTriggerExecutor])
+    LoggerFactory.getLogger(classOf[SpcAssertionMapper])
 }
 
-class SpcTriggerExecutor(
+class SpcAssertionMapper(
   mind : SpcMind,
   communicationContext : SmcCommunicationContext[SpcEntity],
   inputRewriter : SmcInputRewriter[SpcEntity, SpcProperty, SpcCosmos])
-    extends SmcDebuggable(new SmcDebugger(SpcTriggerExecutor.logger))
+    extends SmcDebuggable(new SmcDebugger(SpcAssertionMapper.logger))
 {
   private[platonic] def matchTrigger(
     cosmos : SpcCosmos,

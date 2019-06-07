@@ -85,7 +85,7 @@ class SpcResponder(
 
   private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
-  private val triggerExecutor = new SpcTriggerExecutor(
+  private val assertionMapper = new SpcAssertionMapper(
     mind, communicationContext, inputRewriter)
 
   override protected def spawn(subMind : SpcMind) =
@@ -119,7 +119,7 @@ class SpcResponder(
         case _ =>
       }
       getBiconditionalImplications.foreach(conditionalSentence => {
-        triggerExecutor.matchTrigger(
+        assertionMapper.matchTrigger(
           mind.getCosmos,
           conditionalSentence,
           predicate,
@@ -161,7 +161,7 @@ class SpcResponder(
         SmcResultCollector.modifiableReferenceMap(referenceMap)
       val replacements = getBiconditionalImplications.flatMap(
         conditionalSentence => {
-          triggerExecutor.matchTrigger(
+          assertionMapper.matchTrigger(
             mind.getCosmos,
             conditionalSentence,
             stateNormalizedPredicate,
@@ -503,7 +503,7 @@ class SpcResponder(
     triggerDepth : Int)
       : Option[String] =
   {
-    triggerExecutor.matchTriggerPlusAlternative(
+    assertionMapper.matchTriggerPlusAlternative(
       forkedCosmos, conditionalSentence, predicate,
       trigger.additionalConsequents, trigger.alternative,
       resultCollector.referenceMap,
@@ -843,7 +843,7 @@ class SpcResponder(
         SilTam.indicative,
         false)
 
-    triggerExecutor.matchTrigger(
+    assertionMapper.matchTrigger(
       forkedCosmos, conditionalSentence,
       specific,
       referenceMap,
@@ -1110,7 +1110,7 @@ class SpcResponder(
         return Success(true)
       } else {
         mind.getCosmos.getTriggers.foreach(trigger => {
-          triggerExecutor.matchTrigger(
+          assertionMapper.matchTrigger(
             mind.getCosmos, trigger.conditionalSentence,
             predicate,
             modifiableReferenceMap,
