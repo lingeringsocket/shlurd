@@ -197,7 +197,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       if (SprParser.isCoreNLP) {
         skipped("CoreNLP not supported")
       }
-      
+
       SpcPrimordial.initCosmos(cosmos)
       loadBeliefs("/ontologies/containment.txt")
 
