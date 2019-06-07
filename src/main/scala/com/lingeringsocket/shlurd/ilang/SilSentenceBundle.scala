@@ -198,6 +198,8 @@ abstract class SilSentenceBundle
 
   def respondIrrelevant() : String
 
+  def respondTriggerLimit() : String
+
   def predicateUnrecognizedSubject(
     tam : SilTam, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],
@@ -263,6 +265,4 @@ abstract class SilSentenceBundle
   def unknownPredicateCommand() : String
 
   def unknownPredicateQuestion() : String
-
-  def circularAction() : String
 }

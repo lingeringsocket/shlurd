@@ -3,7 +3,7 @@
 A map-direction is a kind of object.
 A north is a kind of map-direction.
 A south is a kind of map-direction.
-A east is a kind of map-direction.
+An east is a kind of map-direction.
 A west is a kind of map-direction.
 
 A northwest is a kind of map-direction.
@@ -22,7 +22,7 @@ There is a north.
 There is a south.
 The north is the south's opposite-direction.
 
-There is a east.
+There is an east.
 There is a west.
 The east is the west's opposite-direction.
 

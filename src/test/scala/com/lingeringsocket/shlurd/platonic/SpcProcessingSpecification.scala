@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
@@ -21,6 +22,7 @@ import org.specs2.specification._
 
 import scala.collection._
 import scala.util._
+import scala.io._
 
 class SpcProcessingSpecification extends Specification
 {
@@ -122,6 +124,13 @@ class SpcProcessingSpecification extends Specification
         }
         case _ => Set.empty
       }
+    }
+
+    protected def loadBeliefs(resource : String)
+    {
+      val file = ResourceUtils.getResourceFile(resource)
+      val source = Source.fromFile(file)
+      mind.loadBeliefs(source)
     }
   }
 }

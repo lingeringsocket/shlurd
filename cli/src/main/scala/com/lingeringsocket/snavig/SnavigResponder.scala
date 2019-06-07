@@ -19,6 +19,7 @@ import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
 import scala.collection._
+import scala.util._
 
 class SnavigResponder(
   propagationShell : Option[SnavigShell],
@@ -51,7 +52,8 @@ class SnavigResponder(
   override protected def checkCycle(
     predicate : SilPredicate,
     seen : mutable.Set[SilPredicate],
-    isPrecondition : Boolean) : Boolean =
+    referenceMap : Map[SilReference, Set[SpcEntity]],
+    isPrecondition : Boolean) : Try[Boolean] =
   {
     if (logger.isTraceEnabled) {
       val printed = sentencePrinter.printPredicateStatement(
@@ -63,9 +65,9 @@ class SnavigResponder(
       }
     }
     if (isPrecondition) {
-      false
+      Success(false)
     } else {
-      super.checkCycle(predicate, seen, isPrecondition)
+      super.checkCycle(predicate, seen, referenceMap, isPrecondition)
     }
   }
 }

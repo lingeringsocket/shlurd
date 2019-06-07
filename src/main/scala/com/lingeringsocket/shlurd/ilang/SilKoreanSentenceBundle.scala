@@ -465,6 +465,11 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     "그래요?"
   }
 
+  override def respondTriggerLimit() =
+  {
+    "대박!"
+  }
+
   override def respondUnknownState(subject : String, word : SilWord) =
   {
     "FIXME"
@@ -493,11 +498,6 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
   override def respondNoncommittal() =
   {
     "아, 그래요?"
-  }
-
-  override def circularAction() =
-  {
-    "Oopsie."
   }
 
   override def respondDontKnow() =

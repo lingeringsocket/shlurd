@@ -1458,7 +1458,7 @@ class SpcResponderSpec extends Specification
         "Sorry, I don't know about any 'Geoff'.")
     }
 
-    "prevent action cycles" in new ResponderContext(
+    "ignore action cycles" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
       processBelief("if a person sends a recipient a message, " +
@@ -1468,8 +1468,7 @@ class SpcResponderSpec extends Specification
       processBelief("Curtis is a person")
       processBelief("Andrew is a person")
       processBelief("the signal is a message")
-      process("Curtis sends Andrew the signal",
-        "Action beliefs are circular.")
+      process("Curtis sends Andrew the signal", "OK.")
     }
 
     "handle missing objects" in new ResponderContext(

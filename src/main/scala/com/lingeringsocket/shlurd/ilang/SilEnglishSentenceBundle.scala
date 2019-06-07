@@ -876,6 +876,11 @@ class SilEnglishSentenceBundle
     "I'm not sure how to interpret that."
   }
 
+  override def respondTriggerLimit() =
+  {
+    "Trigger limit exceeded."
+  }
+
   override def predicateUnrecognizedSubject(
     tam : SilTam, complement : String, verbSeq : Seq[String],
     count : SilCount, changeVerb : Option[SilWord],
@@ -957,11 +962,6 @@ class SilEnglishSentenceBundle
   override def respondNoncommittal() =
   {
     "Oh, really?"
-  }
-
-  override def circularAction() =
-  {
-    "Action beliefs are circular."
   }
 
   override def affirmAssumption(sentence : String, strength : Boolean) =

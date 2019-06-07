@@ -1309,7 +1309,7 @@ class SpcCosmos(
   {
     resolveHypernymPropertyState(entity.form, lemma) match {
       case Some((property, stateName)) => Success((property, stateName))
-      case _ => fail(s"unknown property $lemma")
+      case _ => fail(s"unknown state $lemma for $entity")
     }
   }
 

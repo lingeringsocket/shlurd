@@ -21,11 +21,20 @@ import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
 
+import org.slf4j._
+
 import SprEnglishLemmas._
+
+object SpcBeliefRecognizer
+{
+  private val logger =
+    LoggerFactory.getLogger(classOf[SpcBeliefRecognizer])
+}
 
 class SpcBeliefRecognizer(
   val cosmos : SpcCosmos,
   resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
+    extends SmcDebuggable(new SmcDebugger(SpcBeliefRecognizer.logger))
 {
   protected val creed = new SpcCreed(cosmos)
 
@@ -470,6 +479,7 @@ class SpcBeliefRecognizer(
               case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
                   DETERMINER_NONE | DETERMINER_NONSPECIFIC =>
               case _ => {
+                trace(s"UNSUPPORTED DETERMINER $determiner")
                 invalid = true
               }
             }
@@ -478,12 +488,14 @@ class SpcBeliefRecognizer(
             val predef = SilStatePredef(sp.verb)
             if (conditional.biconditional) {
               if ((predef == STATE_PREDEF_BECOME) || isSubsequently) {
+                trace("CONDITION EXPECTED")
                 invalid = true
               }
             } else {
               if (antecedentAction &&
                 (predef != STATE_PREDEF_BECOME) && !isSubsequently)
               {
+                trace("EVENT EXPECTED")
                 invalid = true
               }
             }
@@ -492,12 +504,14 @@ class SpcBeliefRecognizer(
             val predef = SilRelationshipPredef(rp.verb)
             if (conditional.biconditional) {
               if ((predef == REL_PREDEF_BECOME) || isSubsequently) {
+                trace("CONDITION EXPECTED")
                 invalid = true
               }
             } else {
               if (antecedentAction &&
                 (predef == REL_PREDEF_IDENTITY) && !isSubsequently)
               {
+                trace("EVENT EXPECTED")
                 invalid = true
               }
             }
@@ -509,6 +523,11 @@ class SpcBeliefRecognizer(
           querier.query(
             validateConsequent(isConsequentSubsequently),
             consequent)
+        } else {
+          if (conditional.biconditional) {
+            trace("MODAL PROHIBITED")
+            invalid = true
+          }
         }
         additionalSentences.foreach(additionalSentence => {
           val modifiers = extractBasicModifierLemmas(
@@ -520,40 +539,50 @@ class SpcBeliefRecognizer(
             validateConsequent(isSubsequently || isConsequentSubsequently),
             additionalSentence)
           if (isOtherwise && isAlso) {
+            trace("OTHERWISE INCOMPATIBLE WITH ALSO")
             invalid = true
           } else if (isOtherwise) {
             if (conditional.biconditional) {
+              trace("OTHERWISE INCOMPATIBLE WITH EQUIVALENTLY")
               invalid = true
             }
-            if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
+            if (conditional.tamConsequent.unemphaticModality == MODAL_NEUTRAL) {
+              trace("MODAL REQUIRED")
               invalid = true
             }
             if (additionalConsequents.nonEmpty) {
+              trace("OTHERWISE MUST BE LAST")
               invalid = true
             }
             if (alternative.nonEmpty) {
+              trace("ONLY ONE OTHERWISE ALLOWED")
               invalid = true
             } else {
               alternative = Some(additionalSentence)
             }
           } else if (isAlso) {
             if (conditional.biconditional) {
+              trace("ALSO INCOMPATIBLE WITH EQUIVALENTLY")
               invalid = true
             }
             if (alternative.nonEmpty) {
+              trace("OTHERWISE MUST BE LAST")
               invalid = true
             }
-            if (additionalSentence.tam.modality != MODAL_NEUTRAL) {
+            if (additionalSentence.tam.unemphaticModality != MODAL_NEUTRAL) {
+              trace("MODAL PROHIBITED")
               invalid = true
             }
             additionalConsequents += additionalSentence
           } else {
+            trace("OTHERWISE OR ALSO EXPECTED")
             invalid = true
           }
         })
       }
       case SilPredicateSentence(predicate : SilActionPredicate, tam, _) => {
         if (additionalSentences.nonEmpty) {
+          trace("ALSO INCOMPATIBLE WITH CONSTRAINT")
           invalid = true
         }
         def validateAssertion = querier.queryMatcher {
@@ -571,6 +600,7 @@ class SpcBeliefRecognizer(
         }
       }
       case _ => {
+        trace(s"UNRECOGNIZED ASSERTION $assertionSentence")
         invalid = true
       }
     }

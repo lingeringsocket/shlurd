@@ -29,8 +29,7 @@ import org.slf4j._
 object SpcTriggerExecutor
 {
   private val logger =
-    LoggerFactory.getLogger(
-      classOf[SpcTriggerExecutor])
+    LoggerFactory.getLogger(classOf[SpcTriggerExecutor])
 }
 
 class SpcTriggerExecutor(
@@ -181,12 +180,19 @@ class SpcTriggerExecutor(
         })
         // FIXME support multiple modifiers and other patterns
         val filteredModifiers = modifiers.filterNot(_ match {
-          case bm : SilBasicVerbModifier => {
-            if (actionPredicate.modifiers.contains(bm)) {
+          case staticModifier @ (
+            _ : SilBasicVerbModifier |
+              // FIXME should be using reference resolution for matching
+              // instead
+              SilAdpositionalVerbModifier(
+                _, SilNounReference(_, DETERMINER_UNIQUE, _)
+              )
+          ) => {
+            if (actionPredicate.modifiers.contains(staticModifier)) {
               // matched:  discard
               true
             } else {
-              trace(s"BASIC VERB MODIFIER $bm MISSING")
+              trace(s"VERB MODIFIER $staticModifier MISSING")
               return unmatched
             }
           }
@@ -202,11 +208,7 @@ class SpcTriggerExecutor(
             // negate the match
             val actualRefs = actionPredicate.modifiers.flatMap(_ match {
               case SilAdpositionalVerbModifier(
-                actualAdposition, actualRef
-              ) if (adposition.word.decomposed.toSet.subsetOf(
-                // FIXME this is to allow "goes back to" to subsume "goes to"
-                // but it's kinda dicey
-                actualAdposition.word.decomposed.toSet)
+                SilAdposition(adposition.word), actualRef
               ) => {
                 // FIXME verify that actualRef matches objPattern
                 Some(actualRef)

@@ -26,6 +26,11 @@ import scala.collection._
 
 import SprEnglishLemmas._
 
+// FIXME this is a trigger kludge
+class NonExistentException(msg : String) extends RuntimeException(msg)
+{
+}
+
 class SmcPredicateEvaluator[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -625,7 +630,8 @@ class SmcPredicateEvaluator[
         if (entities.isEmpty &&
           ((context == REF_SUBJECT) || (determiner == DETERMINER_UNIQUE))
         ) {
-          fail(sentencePrinter.sb.respondNonexistent(noun))
+          Failure(new NonExistentException(
+            sentencePrinter.sb.respondNonexistent(noun)))
         } else {
           count match {
             case COUNT_SINGULAR => {
@@ -910,7 +916,7 @@ class SmcPredicateEvaluator[
       reference, context, resultCollector, combinedState)(evaluator)
   }
 
-  private def evaluatePropertyStatePredicate(
+  protected def evaluatePropertyStatePredicate(
     entity : EntityType,
     entityRef : SilReference,
     state : SilWord,
