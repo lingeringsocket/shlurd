@@ -119,12 +119,13 @@ class SpcResponder(
         case _ =>
       }
       getBiconditionalImplications.foreach(conditionalSentence => {
-        assertionMapper.matchTrigger(
+        assertionMapper.matchImplication(
+          "IMPLIES",
           mind.getCosmos,
           conditionalSentence,
           predicate,
           resultCollector.referenceMap,
-          resultCollector.referenceMap) match
+          Some(resultCollector.referenceMap)) match
         {
           case Some(newPredicate) => {
             return super.evaluatePredicate(newPredicate, resultCollector)
@@ -157,16 +158,15 @@ class SpcResponder(
       // are multiple matches, we should be conjoining them.
       val triggers = mind.getCosmos.getTriggers.filter(
         _.conditionalSentence.biconditional)
-      val modifiableReferenceMap =
-        SmcResultCollector.modifiableReferenceMap(referenceMap)
       val replacements = getBiconditionalImplications.flatMap(
         conditionalSentence => {
-          assertionMapper.matchTrigger(
+          assertionMapper.matchImplication(
+            "IMPLIES",
             mind.getCosmos,
             conditionalSentence,
             stateNormalizedPredicate,
             referenceMap,
-            modifiableReferenceMap)
+            None)
         }
       ).filter(acceptReplacement)
       replacements.headOption.getOrElse(stateNormalizedPredicate)
@@ -503,21 +503,32 @@ class SpcResponder(
     triggerDepth : Int)
       : Option[String] =
   {
-    assertionMapper.matchTriggerPlusAlternative(
-      forkedCosmos, conditionalSentence, predicate,
+    val (isTest, isPrecondition) =
+      conditionalSentence.tamConsequent.modality match
+      {
+        case MODAL_MAY | MODAL_POSSIBLE => tupleN((true, false))
+        case MODAL_MUST | MODAL_SHOULD => tupleN((false, true))
+        case _ => tupleN((false, false))
+      }
+    val operator = {
+      if (isPrecondition) {
+        "REQUIRES"
+      } else if (isTest) {
+        "CHECKS"
+      } else {
+        "TRIGGERS"
+      }
+    }
+    assertionMapper.matchImplicationPlusAlternative(
+      operator,
+      forkedCosmos, conditionalSentence.antecedent,
+      conditionalSentence.consequent, predicate,
       trigger.additionalConsequents, trigger.alternative,
       resultCollector.referenceMap,
-      resultCollector.referenceMap,
+      Some(resultCollector.referenceMap),
       triggerDepth) match
     {
       case (Some(newPredicate), newAdditionalConsequents, newAlternative) => {
-        val (isTest, isPrecondition) =
-          conditionalSentence.tamConsequent.modality match
-          {
-            case MODAL_MAY | MODAL_POSSIBLE => tupleN((true, false))
-            case MODAL_MUST | MODAL_SHOULD => tupleN((false, true))
-            case _ => tupleN((false, false))
-          }
         val newConsequents = (
           SilPredicateSentence(newPredicate) +: newAdditionalConsequents
         ).map(
@@ -833,29 +844,11 @@ class SpcResponder(
     specific : SilPredicate,
     referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
   {
-    val conditionalSentence =
-      SilConditionalSentence(
-        SilWord(LEMMA_IF),
-        general,
-        SilStatePredicate(
-          general.getSubject, STATE_PREDEF_BE.toVerb, SilExistenceState()),
-        SilTam.indicative,
-        SilTam.indicative,
-        false)
-
-    assertionMapper.matchTrigger(
-      forkedCosmos, conditionalSentence,
+    assertionMapper.matchSubsumption(
+      forkedCosmos,
+      general,
       specific,
-      referenceMap,
-      SmcResultCollector.modifiableReferenceMap(referenceMap)) match
-    {
-      case Some(_) => {
-        true
-      }
-      case _ => {
-        false
-      }
-    }
+      referenceMap)
   }
 
   def processTriggerablePredicate(
@@ -1110,11 +1103,12 @@ class SpcResponder(
         return Success(true)
       } else {
         mind.getCosmos.getTriggers.foreach(trigger => {
-          assertionMapper.matchTrigger(
+          assertionMapper.matchImplication(
+            "IMPLIES",
             mind.getCosmos, trigger.conditionalSentence,
             predicate,
             modifiableReferenceMap,
-            modifiableReferenceMap
+            Some(modifiableReferenceMap)
           ) match {
             case Some(newPredicate) => {
               queue.enqueue(newPredicate)

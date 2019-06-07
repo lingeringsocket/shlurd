@@ -244,6 +244,7 @@ class SmcResponder[
 
   def process(sentence : SilSentence, input : String = "") : String =
   {
+    debug("-----------------------------")
     if (!input.isEmpty) {
       debug(s"INPUT TEXT : $input")
     }

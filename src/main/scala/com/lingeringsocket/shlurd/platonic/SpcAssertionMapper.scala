@@ -38,48 +38,278 @@ class SpcAssertionMapper(
   inputRewriter : SmcInputRewriter[SpcEntity, SpcProperty, SpcCosmos])
     extends SmcDebuggable(new SmcDebugger(SpcAssertionMapper.logger))
 {
-  private[platonic] def matchTrigger(
+  private[platonic] def matchSubsumption(
     cosmos : SpcCosmos,
-    trigger : SilConditionalSentence,
+    general : SilPredicate,
+    specific : SilPredicate,
+    referenceMap : Map[SilReference, Set[SpcEntity]]
+  ) : Boolean =
+  {
+    val operator = "SUBSUMES"
+    trace(s"ATTEMPT MATCH $general $operator $specific")
+    val matched = matchGeneralization(
+      cosmos, general, specific,
+      referenceMap,
+      None,
+      0
+    )._1
+    if (matched && !isTraceEnabled) {
+      debug(s"MATCH SUCCESSFUL $general $operator $specific}")
+    }
+    matched
+  }
+
+  private[platonic] def matchImplication(
+    operator : String,
+    cosmos : SpcCosmos,
+    implication : SilConditionalSentence,
     predicate : SilPredicate,
     referenceMapIn : Map[SilReference, Set[SpcEntity]],
-    referenceMapOut : mutable.Map[SilReference, Set[SpcEntity]]
+    referenceMapOut : Option[mutable.Map[SilReference, Set[SpcEntity]]]
   ) : Option[SilPredicate] =
   {
-    matchTriggerPlusAlternative(
-      cosmos, trigger, predicate, Seq.empty, None,
+    matchImplicationPlusAlternative(
+      operator,
+      cosmos, implication.antecedent, implication.consequent,
+      predicate, Seq.empty, None,
       referenceMapIn, referenceMapOut, 0)._1
   }
 
-  private[platonic] def matchTriggerPlusAlternative(
+  private[platonic] def matchImplicationPlusAlternative(
+    operator : String,
     cosmos : SpcCosmos,
-    trigger : SilConditionalSentence,
+    antecedent : SilPredicate,
+    consequent : SilPredicate,
     predicate : SilPredicate,
     additionalConsequents : Seq[SilPredicateSentence],
     alternative : Option[SilPredicateSentence],
     referenceMapIn : Map[SilReference, Set[SpcEntity]],
-    referenceMapOut : mutable.Map[SilReference, Set[SpcEntity]],
+    referenceMapOut : Option[mutable.Map[SilReference, Set[SpcEntity]]],
     triggerDepth : Int
   ) : (
     Option[SilPredicate],
     Seq[SilPredicateSentence],
     Option[SilPredicateSentence]) =
   {
-    trace(s"ATTEMPT TRIGGER MATCH $trigger")
-    def unmatched() = tupleN((None, Seq.empty, None))
-    val antecedent = trigger.antecedent
-    val consequent = trigger.consequent
+    trace(s"ATTEMPT MATCH $antecedent $operator $consequent")
+    val (matched, replacements) = matchGeneralization(
+      cosmos,
+      antecedent,
+      predicate,
+      referenceMapIn,
+      referenceMapOut,
+      triggerDepth)
+    if (matched) {
+      if (!isTraceEnabled) {
+        debug(s"MATCH SUCCESSFUL $antecedent $operator $consequent}")
+      }
+      val rewriter = new SilPhraseRewriter
+      def replaceReferences = rewriter.replacementMatcher(
+        "replaceReferences", {
+          case ref : SilReference => {
+            replacements.get(ref).getOrElse(ref)
+          }
+        }
+      )
+      val newPredicate = rewriter.rewrite(replaceReferences, consequent)
+      debug(s"MATCH FROM ${predicate}\nPRODUCES $newPredicate")
+      val newAdditional = additionalConsequents.map(sentence => {
+        rewriter.rewrite(replaceReferences, sentence)
+      })
+      newAdditional.foreach(sentence => {
+        debug(s"WITH ADDITIONAL CONSEQUENT $sentence")
+      })
+      val newAlternative = alternative.map(sentence => {
+        rewriter.rewrite(replaceReferences, sentence)
+      })
+      newAlternative.foreach(sentence => {
+        debug(s"WITH ALTERNATIVE $sentence")
+      })
+      tupleN((Some(newPredicate), newAdditional, newAlternative))
+    } else {
+      tupleN((None, Seq.empty, None))
+    }
+  }
+
+  private def isEquivalentVerb(
+    verb1 : SilWord, verb2 : SilWord, triggerDepth : Int) : Boolean =
+  {
+    if (triggerDepth > 0) {
+      verb1.toLemma == verb2.toLemma
+    } else {
+      mind.isEquivalentVerb(verb1, verb2)
+    }
+  }
+
+  private def prepareReplacement(
+    cosmos : SpcCosmos,
+    replacements : mutable.Map[SilReference, SilReference],
+    ref : SilReference,
+    actualRef : SilReference,
+    referenceMapIn : Map[SilReference, Set[SpcEntity]],
+    referenceMapOut : Option[mutable.Map[SilReference, Set[SpcEntity]]]
+  ) : Boolean =
+  {
+    val patternMatched = prepareReplacementImpl(
+      cosmos,
+      replacements,
+      ref,
+      actualRef,
+      referenceMapIn,
+      referenceMapOut)
+    if (patternMatched) {
+      true
+    } else {
+      // FIXME we should prefer entity comparisons instead, but for that
+      // we need two referenceMaps simultaneously
+      if (ref != actualRef) {
+        trace(s"PHRASE $ref DOES NOT MATCH $actualRef")
+        false
+      } else {
+        true
+      }
+    }
+  }
+
+  private def prepareReplacementImpl(
+    cosmos : SpcCosmos,
+    replacements : mutable.Map[SilReference, SilReference],
+    ref : SilReference,
+    actualRef : SilReference,
+    referenceMapIn : Map[SilReference, Set[SpcEntity]],
+    referenceMapOut : Option[mutable.Map[SilReference, Set[SpcEntity]]]
+  ) : Boolean =
+  {
+    // FIXME support other reference patterns
+    ref match {
+      case SilNounReference(
+        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+      ) => {
+        val resolvedForm = mind.resolveForm(noun)
+        val patternRef = SilNounReference(
+          noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
+        if (inputRewriter.containsWildcard(actualRef)) {
+          val wildcardRef = actualRef match {
+            // FIXME need the same treatment for other variables, but
+            // with intersectionality
+            case SilNounReference(
+              SilWordLemma(LEMMA_WHAT),
+              DETERMINER_ANY,
+              count
+            ) => {
+              resolvedForm match {
+                case Some(restrictedForm) => {
+                  SilNounReference(
+                    SilWord(restrictedForm.name),
+                    DETERMINER_ANY,
+                    count
+                  )
+                }
+                case _ => actualRef
+              }
+            }
+            case _ => actualRef
+          }
+          replacements.put(patternRef, wildcardRef)
+          return true
+        }
+        val (candidateRef, entities) = actualRef match {
+          case pr : SilPronounReference => {
+            mind.resolvePronoun(communicationContext, pr) match {
+              case Success(entities) if (!entities.isEmpty) => {
+                tupleN((
+                  mind.specificReferences(entities),
+                  entities))
+              }
+              case _ =>  {
+                trace(s"PRONOUN $pr UNRESOLVED")
+                return false
+              }
+            }
+          }
+          case SilNounReference(_, DETERMINER_NONSPECIFIC, _) => {
+            trace(s"NONSPECIFIC REFERENCE $actualRef")
+            return false
+          }
+          case SilQuotationReference(_) => {
+            tupleN((actualRef, Set.empty[SpcEntity]))
+          }
+          case _ => {
+            referenceMapIn.get(actualRef) match {
+              case Some(entities) => {
+                tupleN((actualRef, entities))
+              }
+              case _ => {
+                if (resolvedForm.isEmpty) {
+                  tupleN((actualRef, Set.empty[SpcEntity]))
+                } else {
+                  trace(s"UNRESOLVED REFERENCE $actualRef")
+                  return false
+                }
+              }
+            }
+          }
+        }
+        val replacementRef = resolvedForm match {
+          case Some(form) => {
+            val filtered = entities.filter(entity => {
+              cosmos.isHyponym(entity.form, form)
+            })
+            if (filtered.isEmpty) {
+              trace(s"NO FORM ${entities.map(_.form)} MATCHES $form")
+              return false
+            }
+            val conjunction = {
+              if (filtered.size == 1) {
+                mind.specificReference(filtered.head, DETERMINER_UNIQUE)
+              } else {
+                SilConjunctiveReference(
+                  DETERMINER_ALL,
+                  filtered.toSeq.map(entity => {
+                    val entityRef = mind.specificReference(
+                      entity, DETERMINER_UNIQUE)
+                    referenceMapOut.foreach(_.put(entityRef, Set(entity)))
+                    entityRef
+                  })
+                )
+              }
+            }
+            referenceMapOut.foreach(_.put(conjunction, filtered))
+            conjunction
+          }
+          case _ => candidateRef
+        }
+        replacements.put(patternRef, replacementRef)
+        true
+      }
+      case _ => {
+        trace(s"REFERENCE PATTERN $ref UNSUPPORTED")
+        false
+      }
+    }
+  }
+
+  private[platonic] def matchGeneralization(
+    cosmos : SpcCosmos,
+    general : SilPredicate,
+    specific : SilPredicate,
+    referenceMapIn : Map[SilReference, Set[SpcEntity]],
+    referenceMapOut : Option[mutable.Map[SilReference, Set[SpcEntity]]],
+    triggerDepth : Int
+  ) : (Boolean, Map[SilReference, SilReference]) =
+  {
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
-    antecedent match {
+    def unmatched() = tupleN((false, replacements))
+    general match {
       // FIXME match on verb; e.g. "is" implies "is" and "becomes" implies "is",
       // but "is" may not imply "becomes"
       case SilStatePredicate(
         subject, _, state, modifiers
       ) => {
-        val statePredicate = predicate match {
+        val statePredicate = specific match {
           case sp : SilStatePredicate => sp
           case _ => {
-            trace(s"PREDICATE $predicate IS NOT A STATE")
+            trace(s"PREDICATE $specific IS NOT A STATE")
             return unmatched
           }
         }
@@ -114,10 +344,10 @@ class SpcAssertionMapper(
       case SilRelationshipPredicate(
         subject, verb, complement, modifiers
       ) => {
-        val relPredicate = predicate match {
+        val relPredicate = specific match {
           case rp : SilRelationshipPredicate => rp
           case _ => {
-            trace(s"PREDICATE ${predicate} IS NOT A RELATIONSHIP")
+            trace(s"PREDICATE $specific IS NOT A RELATIONSHIP")
             return unmatched
           }
         }
@@ -142,10 +372,10 @@ class SpcAssertionMapper(
       case SilActionPredicate(
         subject, verb, directObject, modifiers
       ) => {
-        val actionPredicate = predicate match {
+        val actionPredicate = specific match {
           case ap : SilActionPredicate => ap
           case _ => {
-            trace(s"PREDICATE ${predicate} IS NOT AN ACTION")
+            trace(s"PREDICATE $specific IS NOT AN ACTION")
             return unmatched
           }
         }
@@ -237,189 +467,9 @@ class SpcAssertionMapper(
         return unmatched
       }
     }
-    val rewriter = new SilPhraseRewriter
-    def replaceReferences = rewriter.replacementMatcher(
-      "replaceReferences", {
-        case ref : SilReference => {
-          replacements.get(ref).getOrElse(ref)
-        }
-      }
-    )
     if (isTraceEnabled) {
-      debug(s"TRIGGER MATCH SUCCESSFUL")
-    } else {
-      debug(s"TRIGGER MATCH SUCESSFUL ${trigger}")
+      debug("MATCH SUCCESSFUL")
     }
-    val newPredicate = rewriter.rewrite(replaceReferences, consequent)
-    debug(s"TRIGGER ON ${predicate}\nPRODUCES ${newPredicate}")
-    val newAdditional = additionalConsequents.map(sentence => {
-      rewriter.rewrite(replaceReferences, sentence)
-    })
-    newAdditional.foreach(sentence => {
-      debug(s"WITH ADDITIONAL CONSEQUENT $sentence")
-    })
-    val newAlternative = alternative.map(sentence => {
-      rewriter.rewrite(replaceReferences, sentence)
-    })
-    newAlternative.foreach(sentence => {
-      debug(s"WITH ALTERNATIVE $sentence")
-    })
-    tupleN((Some(newPredicate), newAdditional, newAlternative))
-  }
-
-  private def isEquivalentVerb(
-    verb1 : SilWord, verb2 : SilWord, triggerDepth : Int) : Boolean =
-  {
-    if (triggerDepth > 0) {
-      verb1.toLemma == verb2.toLemma
-    } else {
-      mind.isEquivalentVerb(verb1, verb2)
-    }
-  }
-
-  private def prepareReplacement(
-    cosmos : SpcCosmos,
-    replacements : mutable.Map[SilReference, SilReference],
-    ref : SilReference,
-    actualRef : SilReference,
-    referenceMapIn : Map[SilReference, Set[SpcEntity]],
-    referenceMapOut : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
-  {
-    val patternMatched = prepareReplacementImpl(
-      cosmos,
-      replacements,
-      ref,
-      actualRef,
-      referenceMapIn,
-      referenceMapOut)
-    if (patternMatched) {
-      true
-    } else {
-      // FIXME we should prefer entity comparisons instead, but for that
-      // we need two referenceMaps simultaneously
-      if (ref != actualRef) {
-        trace(s"PHRASE ${ref} DOES NOT MATCH ${actualRef}")
-        false
-      } else {
-        true
-      }
-    }
-  }
-
-  private def prepareReplacementImpl(
-    cosmos : SpcCosmos,
-    replacements : mutable.Map[SilReference, SilReference],
-    ref : SilReference,
-    actualRef : SilReference,
-    referenceMapIn : Map[SilReference, Set[SpcEntity]],
-    referenceMapOut : mutable.Map[SilReference, Set[SpcEntity]]) : Boolean =
-  {
-    // FIXME support other reference patterns
-    ref match {
-      case SilNounReference(
-        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-      ) => {
-        val resolvedForm = mind.resolveForm(noun)
-        val patternRef = SilNounReference(
-          noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
-        if (inputRewriter.containsWildcard(actualRef)) {
-          val wildcardRef = actualRef match {
-            // FIXME need the same treatment for other variables, but
-            // with intersectionality
-            case SilNounReference(
-              SilWordLemma(LEMMA_WHAT),
-              DETERMINER_ANY,
-              count
-            ) => {
-              resolvedForm match {
-                case Some(restrictedForm) => {
-                  SilNounReference(
-                    SilWord(restrictedForm.name),
-                    DETERMINER_ANY,
-                    count
-                  )
-                }
-                case _ => actualRef
-              }
-            }
-            case _ => actualRef
-          }
-          replacements.put(patternRef, wildcardRef)
-          return true
-        }
-        val (candidateRef, entities) = actualRef match {
-          case pr : SilPronounReference => {
-            mind.resolvePronoun(communicationContext, pr) match {
-              case Success(entities) if (!entities.isEmpty) => {
-                tupleN((
-                  mind.specificReferences(entities),
-                  entities))
-              }
-              case _ =>  {
-                trace(s"PRONOUN $pr UNRESOLVED")
-                return false
-              }
-            }
-          }
-          case SilNounReference(_, DETERMINER_NONSPECIFIC, _) => {
-            trace(s"NONSPECIFIC REFERENCE $actualRef")
-            return false
-          }
-          case SilQuotationReference(_) => {
-            tupleN((actualRef, Set.empty[SpcEntity]))
-          }
-          case _ => {
-            referenceMapIn.get(actualRef) match {
-              case Some(entities) => {
-                tupleN((actualRef, entities))
-              }
-              case _ => {
-                if (resolvedForm.isEmpty) {
-                  tupleN((actualRef, Set.empty[SpcEntity]))
-                } else {
-                  trace(s"UNRESOLVED REFERENCE $actualRef")
-                  return false
-                }
-              }
-            }
-          }
-        }
-        val replacementRef = resolvedForm match {
-          case Some(form) => {
-            val filtered = entities.filter(entity => {
-              cosmos.isHyponym(entity.form, form)
-            })
-            if (filtered.isEmpty) {
-              trace(s"NO FORM ${entities.map(_.form)} MATCHES $form")
-              return false
-            }
-            val conjunction = {
-              if (filtered.size == 1) {
-                mind.specificReference(filtered.head, DETERMINER_UNIQUE)
-              } else {
-                SilConjunctiveReference(
-                  DETERMINER_ALL,
-                  filtered.toSeq.map(entity => {
-                    val entityRef = mind.specificReference(
-                      entity, DETERMINER_UNIQUE)
-                    referenceMapOut.put(entityRef, Set(entity))
-                    entityRef
-                  })
-                )
-              }
-            }
-            referenceMapOut.put(conjunction, filtered)
-            conjunction
-          }
-          case _ => candidateRef
-        }
-        replacements.put(patternRef, replacementRef)
-        true
-      }
-      case _ => {
-        trace(s"REFERENCE PATTERN $ref UNSUPPORTED")
-        false
-      }
-    }
+    tupleN((true, replacements))
   }
 }
