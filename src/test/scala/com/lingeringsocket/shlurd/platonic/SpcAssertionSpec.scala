@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 class SpcAssertionSpec extends SpcProcessingSpecification
@@ -193,6 +194,10 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     protected def defineToasterSlice()
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not supported")
+      }
+      
       SpcPrimordial.initCosmos(cosmos)
       loadBeliefs("/ontologies/containment.txt")
 
