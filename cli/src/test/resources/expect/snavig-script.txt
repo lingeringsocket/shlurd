@@ -89,9 +89,9 @@ OK.
 
 The perfect weapon, assuming you are a dwarf.
 
-> is the ax's description a quotation
+> is the ax's description an spc-string
 
-Yes, its description is a quotation.
+Yes, its description is an spc-string.
 
 > examine the thief
 

@@ -200,9 +200,6 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       SpcPrimordial.initCosmos(cosmos)
       loadBeliefs("/ontologies/containment.txt")
 
-      // FIXME make this part of spc primordial
-      verifyOK(fiatForm("assortment"))
-
       defineToaster
       defineSlice
       definePumpernickel

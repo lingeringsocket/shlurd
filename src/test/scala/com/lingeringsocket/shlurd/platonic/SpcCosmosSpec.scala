@@ -85,7 +85,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "understand string property" in new CosmosContext
     {
-      addBelief("a door's label must be a quotation")
+      addBelief("a door's label must be an spc-string")
       val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
       property.domain must be equalTo PROPERTY_TYPE_STRING
@@ -508,7 +508,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       if (SprParser.isCoreNLP) {
         skipped("CoreNLP not supported")
       }
-      addBelief("a door's label must be a quotation")
+      addBelief("a door's label must be an spc-string")
       val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
       addBelief("there is a door")

@@ -39,7 +39,7 @@ There is a nadir.
 The zenith is the nadir's opposite-direction.
 
 A map-place is a kind of location.
-A map-place's place-description must be a quotation.
+A map-place's place-description must be an spc-string.
 A map-connection is a kind of describable-entity.
 A straight-connection is a kind of map-connection.
 

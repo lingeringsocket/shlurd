@@ -84,7 +84,7 @@ class SpcCreedSpec extends Specification
   private val stateAlias = "A lit light is on."
   private val stateNormalization = "A person at home is present."
   private val propertyStateEnum = "A parakeet's mood may be happy or sad."
-  private val propertyQuotation = "A parakeet's phrase must be a quotation."
+  private val propertyQuotation = "A parakeet's phrase must be an spc-string."
   private val formTaxonomy = "A duck is a kind of a bird."
   private val formTaxonomy2 = "A monk is a kind of a person."
   private val formSynonym = "An automobile is a car."
@@ -298,7 +298,25 @@ class SpcCreedSpec extends Specification
     "SPC-Value-spc-entity-gender-feminine is an spc-value.",
     "SPC-Property-spc-entity-gender is " +
       "SPC-Value-spc-entity-gender-feminine's spc-valued-property.",
-    "SPC-Form-spc-value is SPC-Value-spc-entity-gender-feminine's spc-type."
+    "SPC-Form-spc-value is SPC-Value-spc-entity-gender-feminine's spc-type.",
+    "An spc-open-enum is a kind of an spc-entity.",
+    "An spc-closed-enum is a kind of an spc-entity.",
+    "An spc-string is a kind of an spc-entity.",
+    "SPC-Form-spc-open-enum is SPC-Form-spc-entity's spc-subclass.",
+    "SPC-Form-spc-closed-enum is SPC-Form-spc-entity's spc-subclass.",
+    "SPC-Form-spc-string is SPC-Form-spc-entity's spc-subclass.",
+    "SPC-Form-spc-open-enum is SPC-Form-spc-form's spc-realization.",
+    "SPC-Form-spc-closed-enum is SPC-Form-spc-form's spc-realization.",
+    "SPC-Form-spc-string is SPC-Form-spc-form's spc-realization.",
+    "SPC-Form-spc-open-enum is an spc-form.",
+    "SPC-Form-spc-entity is SPC-Form-spc-open-enum's spc-superclass.",
+    "SPC-Form-spc-form is SPC-Form-spc-open-enum's spc-type.",
+    "SPC-Form-spc-closed-enum is an spc-form.",
+    "SPC-Form-spc-entity is SPC-Form-spc-closed-enum's spc-superclass.",
+    "SPC-Form-spc-form is SPC-Form-spc-closed-enum's spc-type.",
+    "SPC-Form-spc-string is an spc-form.",
+    "SPC-Form-spc-entity is SPC-Form-spc-string's spc-superclass.",
+    "SPC-Form-spc-form is SPC-Form-spc-string's spc-type."
   )
 
   "SpcCreed" should

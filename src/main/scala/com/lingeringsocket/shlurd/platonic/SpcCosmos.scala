@@ -43,15 +43,15 @@ class SpcPropertyState(val lemma : String, val inflected : String)
 sealed trait SpcPropertyDomain extends SmcNamedObject
 case object PROPERTY_OPEN_ENUM extends SpcPropertyDomain
 {
-  override def name = "assortment"
+  override def name = "spc-open-enum"
 }
 case object PROPERTY_CLOSED_ENUM extends SpcPropertyDomain
 {
-  override def name = "catalog"
+  override def name = "spc-closed-enum"
 }
 case object PROPERTY_TYPE_STRING extends SpcPropertyDomain
 {
-  override def name = "quotation"
+  override def name = "spc-string"
 }
 object SpcPropertyDomain
 {

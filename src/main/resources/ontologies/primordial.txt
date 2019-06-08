@@ -29,3 +29,6 @@ An spc-contained-object must be an spc-object.
 An spc-object may have spc-contained-objects.
 An spc-object must have an spc-container.
 An spc-object with an spc-contained-object is an spc-container.
+An spc-open-enum is a kind of spc-entity.
+An spc-closed-enum is a kind of spc-entity.
+An spc-string is a kind of spc-entity.

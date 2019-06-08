@@ -1363,7 +1363,7 @@ class SpcResponderSpec extends Specification
         skipped("CoreNLP not supported")
       }
       val epigram = DQUOTE + "Lasciate ogni speranza, voi ch'entrate" + DQUOTE
-      processBelief("a door's label must be a quotation")
+      processBelief("a door's label must be an spc-string")
       processBelief("there is a door")
       processBelief("the door's label is " + epigram)
       processTerse("what is the door's label", epigram + ".")
