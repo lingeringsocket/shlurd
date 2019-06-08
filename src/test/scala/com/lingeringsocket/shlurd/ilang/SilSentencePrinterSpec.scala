@@ -109,6 +109,12 @@ class SilSentencePrinterSpec extends Specification
         "Franny says, \"I love you\".")
       expectStatement(
         "John eats apples; Mary eats pears")
+      expectNormalized(
+        "whenever an object moves to a location, " +
+          "the location becomes the object's container",
+        "whenever an object moves to a location, " +
+          "then the location becomes the object's container."
+      )
     }
 
     "preserve sentences" in
@@ -301,12 +307,6 @@ class SilSentencePrinterSpec extends Specification
         "when an object moves to a location, " +
           "the location becomes the object's container",
         "when an object moves to a location, " +
-          "then the location becomes the object's container."
-      )
-      expectNormalized(
-        "whenever an object moves to a location, " +
-          "the location becomes the object's container",
-        "whenever an object moves to a location, " +
           "then the location becomes the object's container."
       )
       expectNormalized(
