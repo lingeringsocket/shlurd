@@ -43,10 +43,9 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   // keep it unbound in beliefs
 
   // FIXME would like to be able to use the state "toasting" but that
-  // gets interpreted as a progressive; likewise "Done" but that gets
-  // lemmatized to "Do"
+  // gets interpreted as a progressive
   private val fiatToasterStates =
-    "a toaster's state may be empty, active, or complete"
+    "a toaster's state may be empty, active, or done"
 
   private val fiatSliceStates =
     "a slice may be cold, toasted, or burnt"
@@ -91,7 +90,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
   private val triggerToasterCompletion =
     "after the toaster cooks, " +
-      "the toaster is complete"
+      "the toaster is done"
 
   private val failedPrereqToasterNotEmpty =
     "But the toaster is not empty."
@@ -130,7 +129,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
     "Active."
 
   private val responseStateComplete =
-    "Complete."
+    "Done."
 
   private val responseYes =
     "Yes."

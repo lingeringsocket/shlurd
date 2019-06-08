@@ -400,7 +400,9 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType)
       : Try[Trilean] =
   {
-    val result = cosmos.evaluateEntityProperty(entity, propertyName) match {
+    val result = cosmos.evaluateEntityProperty(
+      entity, propertyName
+    ) match {
       case Success((Some(actualProperty), Some(stateName))) => {
         resultCollector.states += SilWord(
           cosmos.getPropertyStateMap(actualProperty).get(stateName).

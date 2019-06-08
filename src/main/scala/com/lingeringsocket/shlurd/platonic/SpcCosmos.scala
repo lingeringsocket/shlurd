@@ -231,7 +231,8 @@ case class SpcPersistentEntity(
 
 case class SpcTransientEntity(
   form : SpcForm,
-  value : String
+  value : String,
+  inflected : String
 ) extends SpcEntity
 {
   override def name = getUniqueIdentifier

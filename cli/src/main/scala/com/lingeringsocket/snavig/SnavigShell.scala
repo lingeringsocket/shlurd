@@ -856,7 +856,7 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
           case Some(entity) => {
             entity match {
               // FIXME type check
-              case SpcTransientEntity(_, value) => Some(value)
+              case SpcTransientEntity(_, value, _) => Some(value)
               case _ => None
             }
           }

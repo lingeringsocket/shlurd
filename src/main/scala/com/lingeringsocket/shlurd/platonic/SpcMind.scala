@@ -80,11 +80,11 @@ class SpcMind(cosmos : SpcCosmos)
     determiner : SilDeterminer) : Seq[SilReference] =
   {
     entity match {
-      case SpcTransientEntity(form, value) => {
+      case SpcTransientEntity(form, value, inflected) => {
         if (entity.form.name == PROPERTY_TYPE_STRING.name) {
           return Seq(SilQuotationReference(value))
         } else {
-          return Seq(SilNounReference(SilWord(value)))
+          return Seq(SilNounReference(SilWord(inflected, value)))
         }
       }
       case _ =>
@@ -257,10 +257,13 @@ class SpcMind(cosmos : SpcCosmos)
     val analyzedNoun =
       analyzeSense(SilNounReference(SilWord(domainName))).noun
     val form = resolveForm(analyzedNoun).getOrElse(SpcForm(domainName))
+    val inflected = cosmos.getPropertyStateMap(property).
+      get(value).getOrElse(value)
     Success(
       SpcTransientEntity(
         form,
-        value
+        value,
+        inflected
       )
     )
   }

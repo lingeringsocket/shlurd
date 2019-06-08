@@ -196,7 +196,7 @@ class SpcResponder(
         : Try[Trilean] =
     {
       entity match {
-        case SpcTransientEntity(_, value) => {
+        case SpcTransientEntity(_, value, _) => {
           // maybe we need some type-checking here too?
           resultCollector.states += state
           Success(Trilean(state.toLemma == value))
