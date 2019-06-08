@@ -56,15 +56,42 @@ class SpcContextualScorer(responder : SpcResponder)
     sentence : SilSentence,
     resultCollector : ResultCollectorType) : SilPhraseScore =
   {
+    val cosmos = responder.getMind.getCosmos
     val recognizer = new SpcBeliefRecognizer(
-      responder.getMind.getCosmos,
+      cosmos,
       resultCollector)
     val beliefs = recognizer.recognizeBeliefs(sentence)
-    val boost = beliefs match {
+    val beliefBoost = beliefs match {
       case Seq() => SilPhraseScore.neutral
       case _ => SilPhraseScore.proBig
     }
-    super.computeBoost(sentence, resultCollector) + boost
+    var propBoost = SilPhraseScore.neutral
+    val querier = new SilPhraseRewriter
+    def detectBoosts = querier.queryMatcher {
+      case SilStatePredicate(
+        subject,
+        _,
+        SilPropertyState(SilWordLemma(lemma)),
+        _
+      ) => {
+        val detected = resultCollector.referenceMap.get(subject) match {
+          case Some(entities) => {
+            entities.exists(entity => {
+              cosmos.resolvePropertyState(entity, lemma).isSuccess
+            })
+          }
+          case _ => {
+            val form = responder.deriveType(subject)
+            cosmos.resolveHypernymPropertyState(form, lemma).nonEmpty
+          }
+        }
+        if (detected) {
+          propBoost = SilPhraseScore.proBig
+        }
+      }
+    }
+    querier.query(detectBoosts, sentence)
+    super.computeBoost(sentence, resultCollector) + beliefBoost + propBoost
   }
 }
 

@@ -42,10 +42,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   // cases because we resolve to the transient object where we should
   // keep it unbound in beliefs
 
-  // FIXME would like to be able to use the state "toasting" but that
-  // gets interpreted as a progressive
   private val fiatToasterStates =
-    "a toaster's state may be empty, active, or done"
+    "a toaster's state may be empty, toasting, or done"
 
   private val fiatSliceStates =
     "a slice may be cold, toasted, or burnt"
@@ -71,7 +69,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
   private val triggerToasterActivation =
     "whenever a person puts a slice into a toaster, " +
-      "subsequently the toaster is active"
+      "subsequently the toaster is toasting"
 
   private val actionToasterCooks =
     "the toaster cooks"
@@ -81,12 +79,12 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
   // FIXME why do we have to use "the toaster's state" here??
   private val conditionalClockToasterCooks =
-    "when a clock ticks, the toaster's state might not be active; " +
+    "when a clock ticks, the toaster's state might not be toasting; " +
       "otherwise the toaster cooks"
 
-  private val constraintToasterMustBeActive =
+  private val constraintToasterMustBeToasting =
     "before the toaster cooks, " +
-      "the toaster must be active"
+      "the toaster must be toasting"
 
   private val triggerToasterCompletion =
     "after the toaster cooks, " +
@@ -95,8 +93,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   private val failedPrereqToasterNotEmpty =
     "But the toaster is not empty."
 
-  private val failedPrereqToasterNotActive =
-    "But the toaster is not active."
+  private val failedPrereqToasterNotToasting =
+    "But the toaster is not toasting."
 
   private val fiatWallace =
     "Wallace is a person"
@@ -125,8 +123,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   private val responseStateEmpty =
     "Empty."
 
-  private val responseStateActive =
-    "Active."
+  private val responseStateToasting =
+    "Toasting."
 
   private val responseStateComplete =
     "Done."
@@ -140,11 +138,11 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   private val responseDunno =
     "I don't know."
 
-  private val equivalenceGlowActive =
+  private val equivalenceGlowToasting =
     "if a toaster glows, " +
-      "then equivalently the toaster is active"
-  private val equivalenceGlowActiveConverse =
-    "if a toaster is active, " +
+      "then equivalently the toaster is toasting"
+  private val equivalenceGlowToastingConverse =
+    "if a toaster is toasting, " +
       "then equivalently the toaster glows"
 
   trait AssertionContext extends ProcessingContext
@@ -206,7 +204,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       defineRye
 
       verifyOK(constraintToasterMustBeEmpty)
-      verifyOK(constraintToasterMustBeActive)
+      verifyOK(constraintToasterMustBeToasting)
 
       verifyOK(triggerToasterCompletion)
     }
@@ -263,7 +261,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       // now declare an actual effect of putting in a slice
       verifyOK(triggerToasterActivation)
       verifyOK(actionWallacePutsPumpernickel)
-      verify(queryState, responseStateActive)
+      verify(queryState, responseStateToasting)
       verify(queryGlow, responseYes)
 
       // now that the toaster is actually full, should
@@ -277,7 +275,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
       // switch it back on by fiat
       verifyOK(actionGlow)
-      verify(queryState, responseStateActive)
+      verify(queryState, responseStateToasting)
       verify(queryGlow, responseYes)
     }
   }
@@ -286,12 +284,12 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   {
     "process with clock using glow equivalence" in new AssertionContext
     {
-      processWithClock(equivalenceGlowActive)
+      processWithClock(equivalenceGlowToasting)
     }
 
     "process with clock using glow equivalence converse" in new AssertionContext
     {
-      processWithClock(equivalenceGlowActiveConverse)
+      processWithClock(equivalenceGlowToastingConverse)
     }
 
     "process without clock" in new AssertionContext
@@ -304,10 +302,10 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(triggerToasterActivation)
 
       verifyOK(triggerToasterCompletion)
-      verify(actionToasterCooks, failedPrereqToasterNotActive)
+      verify(actionToasterCooks, failedPrereqToasterNotToasting)
 
       verifyOK(actionWallacePutsPumpernickel)
-      verify(queryState, responseStateActive)
+      verify(queryState, responseStateToasting)
       verifyOK(actionToasterCooks)
       verify(queryState, responseStateComplete)
     }
@@ -321,7 +319,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(fiatState(formToaster, stateEmpty))
 
       verifyOK(triggerClockToasterCooks)
-      verify(actionClockTicks, failedPrereqToasterNotActive)
+      verify(actionClockTicks, failedPrereqToasterNotToasting)
     }
 
     "prevent disabled actions" in new AssertionContext
@@ -342,23 +340,23 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       defineClock
 
       verifyInvalid("if a slice becomes cold, " +
-        "equivalently the toaster must be active")
+        "equivalently the toaster must be done")
       verifyInvalid("before a slice becomes cold, " +
-        "then the toaster becomes active")
+        "then the toaster becomes done")
       verifyInvalid("before a slice is cold, " +
-        "equivalently the toaster is active")
+        "equivalently the toaster is done")
       verifyInvalid("after a slice is cold, " +
-        "equivalently the toaster is active")
+        "equivalently the toaster is done")
       verifyInvalid("whenever a slice is cold, " +
-        "equivalently the toaster is active")
+        "equivalently the toaster is done")
       verifyInvalid("after a slice becomes cold, " +
-        "then the toaster must be active")
+        "then the toaster must be done")
       verify(
         "before a slice becomes cold, " +
-          "subsequently the toaster must be active",
+          "subsequently the toaster must be done",
         errorInvalid(
           "before a slice becomes cold, " +
-            "then the toaster must be active subsequently"))
+            "then the toaster must be done subsequently"))
     }
 
     "prevent runaway triggers" in new AssertionContext

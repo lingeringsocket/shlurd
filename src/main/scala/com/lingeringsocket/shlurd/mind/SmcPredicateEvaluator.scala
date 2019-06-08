@@ -248,7 +248,7 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     debug("ACTION PREDICATES UNSUPPORTED")
-    fail(sentencePrinter.sb.respondNoncommittal)
+    Success(Trilean.Unknown)
   }
 
   private def resolveReference(

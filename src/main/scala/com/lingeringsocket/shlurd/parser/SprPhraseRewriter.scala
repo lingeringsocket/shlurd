@@ -508,24 +508,6 @@ class SprAmbiguityResolver(context : SprContext)
       ) if (t1.modality != MODAL_NEUTRAL) => {
         tupleN((t1, s1, m1)) == tupleN((t2, s2, m2))
       }
-      case (
-        SilStatePredicate(
-          s1,
-          SilStatePredefVerb(STATE_PREDEF_BE),
-          SilPropertyState(w1 : SilSimpleWord),
-          m1
-        ),
-        SilActionPredicate(
-          s2,
-          w2 : SilSimpleWord,
-          None,
-          m2
-        )
-      ) => {
-        tupleN((s1, w1.inflected, m1)) == tupleN((s2, w2.inflected, m2)) &&
-        t2.isProgressive &&
-        t1.withAspect(ASPECT_PROGRESSIVE) == t2
-      }
       case _ => {
         tupleN((p1, t1)) == tupleN((p2, t2))
       }

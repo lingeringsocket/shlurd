@@ -801,6 +801,9 @@ class SpcResponderSpec extends Specification
 
     "understand taxonomy" in new ResponderContext
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
       loadBeliefs("/ontologies/vehicles.txt")
 
       process("is Herbie moving", "No, he is not moving.")
@@ -852,13 +855,16 @@ class SpcResponderSpec extends Specification
         "Yes, it is.")
       process(
         "is Herbie cruising",
-        "Sorry, I don't know what 'cruise' means for Herbie.")
+        "I don't know.")
       process(
-        "is any car cruising",
-        "Sorry, I don't know what 'cruise' means for a car.")
+        "is Herbie pink",
+        "Sorry, I don't know what 'pink' means for Herbie.")
       process(
-        "who is cruising",
-        "Sorry, I don't know what 'cruise' means for an spc-someone.")
+        "is any car pink",
+        "Sorry, I don't know what 'pink' means for a car.")
+      process(
+        "who is pink",
+        "Sorry, I don't know what 'pink' means for an spc-someone.")
       processMatrix(
         "is Herbie a car",
         "Yes, he is a car.",

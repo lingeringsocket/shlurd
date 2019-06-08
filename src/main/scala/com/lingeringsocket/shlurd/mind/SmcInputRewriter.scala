@@ -31,7 +31,7 @@ class SmcInputRewriter[
     sentence : SilSentence) : SilSentence =
   {
     rewrite(
-      combineRules(convertProgressive, convertGenitiveOf, deparenthesize),
+      combineRules(convertGenitiveOf, deparenthesize),
       sentence)
   }
 
@@ -54,33 +54,6 @@ class SmcInputRewriter[
     }
   )
 
-  // FIXME this rewrite is just a hack to keep tests passing for the moment
-  private def convertProgressive = replacementMatcher(
-    "convertProgressive", {
-      case SilPredicateSentence(
-        SilActionPredicate(
-          subject, verb, None, modifiers),
-        tam, formality
-      ) if (tam.isProgressive) => {
-        SilPredicateSentence(
-          SilStatePredicate(
-            subject, STATE_PREDEF_BE.toVerb, SilPropertyState(verb), modifiers),
-          tam.withAspect(ASPECT_SIMPLE), formality)
-      }
-      case SilPredicateQuery(
-        SilActionPredicate(
-          subject, verb, None, modifiers),
-        question, answerInflection, tam, formality
-      ) if (tam.isProgressive) => {
-        SilPredicateQuery(
-          SilStatePredicate(
-            subject, STATE_PREDEF_BE.toVerb, SilPropertyState(verb), modifiers),
-          question, answerInflection,
-          tam.withMood(MOOD_INTERROGATIVE), formality)
-      }
-    }
-  )
-
   private def deparenthesize = replacementMatcher(
     "deparenthesize", {
       case SilParenthesizedReference(
@@ -90,6 +63,7 @@ class SmcInputRewriter[
       }
     }
   )
+
   def bindPredicateWildcard(predicate : SilPredicate, objRef : SilReference)
       : SilPredicate =
   {
