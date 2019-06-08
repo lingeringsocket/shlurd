@@ -2,10 +2,10 @@
 
 There is a game-turn.
 
-If the game-turn advances, then
+Whenever the game-turn advances,
  the player-character surveys the player-character's container;
  also the player-character becomes the player-character's container's place-discoverer.
 
-If the game-turn debuts, then
+When the game-turn debuts,
  the game-turn advances;
  also the player-character looks.

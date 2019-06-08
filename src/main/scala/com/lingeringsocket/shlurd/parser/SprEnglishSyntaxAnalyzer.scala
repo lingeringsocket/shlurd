@@ -1101,7 +1101,8 @@ class SprEnglishSyntaxAnalyzer(
     children.headOption match {
       case Some(SptSBAR(SptIN(leaf), antecedent : SptS)) => {
         leaf.lemma match {
-          case LEMMA_IF | LEMMA_WHEN =>
+          case LEMMA_IF | LEMMA_WHEN | LEMMA_WHENEVER |
+              LEMMA_BEFORE | LEMMA_AFTER =>
             Some(tupleN((getWord(leaf), antecedent)))
           case _ =>
             None
@@ -1109,7 +1110,8 @@ class SprEnglishSyntaxAnalyzer(
       }
       case Some(SptSBAR(SptWHADVP(SptWRB(leaf)), antecedent : SptS)) => {
         leaf.lemma match {
-          case LEMMA_WHEN => Some(tupleN((getWord(leaf), antecedent)))
+          case LEMMA_WHEN | LEMMA_WHENEVER =>
+            Some(tupleN((getWord(leaf), antecedent)))
           case _ => None
         }
       }

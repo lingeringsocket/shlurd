@@ -456,6 +456,70 @@ class SpcBeliefRecognizer(
     )
   }
 
+  private def isConsequentValid(
+    isBefore : Boolean,
+    isSubsequently : Boolean,
+    consequent : SilPredicate,
+    biconditional : Boolean,
+    antecedentAction : Boolean,
+    checkPatterns : Boolean = true) : Boolean =
+  {
+    val querier = new SilPhraseRewriter
+    var invalid = false
+    if (isBefore && isSubsequently) {
+      trace("BEFORE INCOMPATIBLE WITH SUBSEQUENTLY")
+      invalid = true
+    }
+    def validateConsequent() = querier.queryMatcher {
+      case SilNounReference(_, determiner, _) => {
+        determiner match {
+          case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
+              DETERMINER_NONE | DETERMINER_NONSPECIFIC =>
+          case _ => {
+            trace(s"UNSUPPORTED DETERMINER $determiner")
+            invalid = true
+          }
+        }
+      }
+      case sp : SilStatePredicate => {
+        val predef = SilStatePredef(sp.verb)
+        if (biconditional) {
+          if ((predef == STATE_PREDEF_BECOME) || isSubsequently) {
+            trace("CONDITION EXPECTED")
+            invalid = true
+          }
+        } else {
+          if (antecedentAction &&
+            (predef != STATE_PREDEF_BECOME) && !isSubsequently)
+          {
+            trace("EVENT EXPECTED")
+            invalid = true
+          }
+        }
+      }
+      case rp : SilRelationshipPredicate => {
+        val predef = SilRelationshipPredef(rp.verb)
+        if (biconditional) {
+          if ((predef == REL_PREDEF_BECOME) || isSubsequently) {
+            trace("CONDITION EXPECTED")
+            invalid = true
+          }
+        } else {
+          if (antecedentAction &&
+            (predef == REL_PREDEF_IDENTITY) && !isSubsequently)
+          {
+            trace("EVENT EXPECTED")
+            invalid = true
+          }
+        }
+      }
+    }
+    if (checkPatterns) {
+      querier.query(validateConsequent, consequent)
+    }
+    !invalid
+  }
+
   private def recognizeAssertionBelief(
     assertionSentence : SilSentence,
     additionalSentences : Seq[SilPredicateSentence] = Seq.empty)
@@ -463,7 +527,6 @@ class SpcBeliefRecognizer(
   {
     var invalid = false
     var ignored = false
-    val querier = new SilPhraseRewriter
     val additionalConsequents = new mutable.ArrayBuffer[SilPredicateSentence]
     var alternative : Option[SilPredicateSentence] = None
     assertionSentence match {
@@ -471,63 +534,44 @@ class SpcBeliefRecognizer(
         val antecedentAction =
           conditional.antecedent.isInstanceOf[SilActionPredicate]
         val consequent = conditional.consequent
-        def validateConsequent(
-          isSubsequently : Boolean
-        ) = querier.queryMatcher {
-          case SilNounReference(_, determiner, _) => {
-            determiner match {
-              case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
-                  DETERMINER_NONE | DETERMINER_NONSPECIFIC =>
-              case _ => {
-                trace(s"UNSUPPORTED DETERMINER $determiner")
-                invalid = true
-              }
-            }
+        val isAfter = (conditional.conjunction.toLemma == LEMMA_AFTER)
+        val isBefore = (conditional.conjunction.toLemma == LEMMA_BEFORE)
+        val isConsequentSubsequently = isAfter ||
+          extractBasicModifierLemmas(consequent).
+            contains(LEMMA_SUBSEQUENTLY)
+        val consequentNonModal =
+          (conditional.tamConsequent.unemphaticModality == MODAL_NEUTRAL)
+        if (consequentNonModal) {
+          if (isBefore) {
+            trace("BEFORE REQUIRES CONSTRAINT")
+            invalid = true
           }
-          case sp : SilStatePredicate => {
-            val predef = SilStatePredef(sp.verb)
+          if (conditional.conjunction.toLemma != LEMMA_IF) {
             if (conditional.biconditional) {
-              if ((predef == STATE_PREDEF_BECOME) || isSubsequently) {
-                trace("CONDITION EXPECTED")
-                invalid = true
-              }
-            } else {
-              if (antecedentAction &&
-                (predef != STATE_PREDEF_BECOME) && !isSubsequently)
-              {
-                trace("EVENT EXPECTED")
-                invalid = true
-              }
+              trace("EQUIVALENTLY REQUIRES IF")
+              invalid = true
             }
           }
-          case rp : SilRelationshipPredicate => {
-            val predef = SilRelationshipPredef(rp.verb)
-            if (conditional.biconditional) {
-              if ((predef == REL_PREDEF_BECOME) || isSubsequently) {
-                trace("CONDITION EXPECTED")
-                invalid = true
-              }
-            } else {
-              if (antecedentAction &&
-                (predef == REL_PREDEF_IDENTITY) && !isSubsequently)
-              {
-                trace("EVENT EXPECTED")
-                invalid = true
-              }
-            }
-          }
-        }
-        val isConsequentSubsequently = extractBasicModifierLemmas(consequent).
-          contains(LEMMA_SUBSEQUENTLY)
-        if (conditional.tamConsequent.modality == MODAL_NEUTRAL) {
-          querier.query(
-            validateConsequent(isConsequentSubsequently),
-            consequent)
         } else {
+          if (isAfter) {
+            // FIXME implement this as a postcondition
+            trace("AFTER INCOMPATIBLE WITH MODAL")
+            invalid = true
+          }
           if (conditional.biconditional) {
             trace("MODAL PROHIBITED")
             invalid = true
           }
+        }
+        if (!isConsequentValid(
+          isBefore,
+          isConsequentSubsequently,
+          consequent,
+          conditional.biconditional,
+          antecedentAction,
+          consequentNonModal
+        )) {
+          invalid = true
         }
         additionalSentences.foreach(additionalSentence => {
           val modifiers = extractBasicModifierLemmas(
@@ -535,9 +579,15 @@ class SpcBeliefRecognizer(
           val isOtherwise = modifiers.contains(LEMMA_OTHERWISE)
           val isAlso = modifiers.contains(LEMMA_ALSO)
           val isSubsequently = modifiers.contains(LEMMA_SUBSEQUENTLY)
-          querier.query(
-            validateConsequent(isSubsequently || isConsequentSubsequently),
-            additionalSentence)
+          if (!isConsequentValid(
+            isBefore,
+            isSubsequently || isConsequentSubsequently,
+            additionalSentence.predicate,
+            conditional.biconditional,
+            antecedentAction
+          )) {
+            invalid = true
+          }
           if (isOtherwise && isAlso) {
             trace("OTHERWISE INCOMPATIBLE WITH ALSO")
             invalid = true
@@ -585,6 +635,7 @@ class SpcBeliefRecognizer(
           trace("ALSO INCOMPATIBLE WITH CONSTRAINT")
           invalid = true
         }
+        val querier = new SilPhraseRewriter
         def validateAssertion = querier.queryMatcher {
           case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
             ignored = true

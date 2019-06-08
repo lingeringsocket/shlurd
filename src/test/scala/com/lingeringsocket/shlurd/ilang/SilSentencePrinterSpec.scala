@@ -296,11 +296,30 @@ class SilSentencePrinterSpec extends Specification
         "a bulb is lit usually.")
       expectStatement("a person may have an ubiety as a property")
       expectStatement("if an object moves to a location, " +
-        "then the location is the object's container")
-      expectNormalized("when an object moves to a location, " +
-        "the location is the object's container",
+        "then the location becomes the object's container")
+      expectNormalized(
         "when an object moves to a location, " +
-          "then the location is the object's container."
+          "the location becomes the object's container",
+        "when an object moves to a location, " +
+          "then the location becomes the object's container."
+      )
+      expectNormalized(
+        "whenever an object moves to a location, " +
+          "the location becomes the object's container",
+        "whenever an object moves to a location, " +
+          "then the location becomes the object's container."
+      )
+      expectNormalized(
+        "after an object moves to a location, " +
+          "the location becomes the object's container",
+        "after an object moves to a location, " +
+          "then the location becomes the object's container."
+      )
+      expectNormalized(
+        "before an object moves to a location, " +
+          "the location must not be the object's container",
+        "before an object moves to a location, " +
+          "then the location must not be the object's container."
       )
       expectQuestion("what is south of the cave")
       expectNormalized("after that he travelled to the lake",

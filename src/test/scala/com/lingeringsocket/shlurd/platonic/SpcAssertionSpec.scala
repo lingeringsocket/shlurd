@@ -67,31 +67,31 @@ class SpcAssertionSpec extends SpcProcessingSpecification
     "the clock ticks"
 
   private val constraintToasterMustBeEmpty =
-    "if a person puts a slice into a toaster, " +
-      "then the toaster must be empty"
+    "before a person puts a slice into a toaster, " +
+      "the toaster must be empty"
 
   private val triggerToasterActivation =
-    "if a person puts a slice into a toaster, " +
-      "then subsequently the toaster is active"
+    "whenever a person puts a slice into a toaster, " +
+      "subsequently the toaster is active"
 
   private val actionToasterCooks =
     "the toaster cooks"
 
   private val triggerClockToasterCooks =
-    "if a clock ticks, then the toaster cooks"
+    "when a clock ticks, the toaster cooks"
 
   // FIXME why do we have to use "the toaster's state" here??
   private val conditionalClockToasterCooks =
-    "if a clock ticks, then the toaster's state might not be active; " +
+    "when a clock ticks, the toaster's state might not be active; " +
       "otherwise the toaster cooks"
 
   private val constraintToasterMustBeActive =
-    "if the toaster cooks, " +
-      "then the toaster must be active"
+    "before the toaster cooks, " +
+      "the toaster must be active"
 
   private val triggerToasterCompletion =
-    "if the toaster cooks, " +
-      "then subsequently the toaster is complete"
+    "after the toaster cooks, " +
+      "the toaster is complete"
 
   private val failedPrereqToasterNotEmpty =
     "But the toaster is not empty."
@@ -227,6 +227,11 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(abilityClockCanTick)
     }
 
+    protected def verifyInvalid(assertion : String) =
+    {
+      verify(assertion, errorInvalid(assertion))
+    }
+
     protected def processWithClock(equivalenceGlow : String)
     {
       defineToasterSlice
@@ -335,14 +340,29 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify(actionWallacePutsPumpernickel, abilityPersonCannotPut)
     }
 
-    "prevent invalid equivalences" in new AssertionContext
+    "prevent invalid assertions" in new AssertionContext
     {
       defineToasterSlice
       defineClock
 
-      val conditional = "if a slice becomes cold, " +
-        "equivalently the toaster must be active"
-      verify(conditional, errorInvalid(conditional))
+      verifyInvalid("if a slice becomes cold, " +
+        "equivalently the toaster must be active")
+      verifyInvalid("before a slice becomes cold, " +
+        "then the toaster becomes active")
+      verifyInvalid("before a slice is cold, " +
+        "equivalently the toaster is active")
+      verifyInvalid("after a slice is cold, " +
+        "equivalently the toaster is active")
+      verifyInvalid("whenever a slice is cold, " +
+        "equivalently the toaster is active")
+      verifyInvalid("after a slice becomes cold, " +
+        "then the toaster must be active")
+      verify(
+        "before a slice becomes cold, " +
+          "subsequently the toaster must be active",
+        errorInvalid(
+          "before a slice becomes cold, " +
+            "then the toaster must be active subsequently"))
     }
 
     "prevent runaway triggers" in new AssertionContext
@@ -353,8 +373,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(fiatForm("heel", "slice"))
       verifyOK("a predecessor must be a slice")
       verifyOK("a slice may have a predecessor")
-      verifyOK("if a person cuts a slice, " +
-        "then the slice has a predecessor; " +
+      verifyOK("after a person cuts a slice, " +
+        "the slice has a predecessor; " +
         "also the slice's predecessor becomes a heel; " +
         "also the person cuts the slice's predecessor")
 

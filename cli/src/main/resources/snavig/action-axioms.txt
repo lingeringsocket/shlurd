@@ -1,30 +1,30 @@
 "Resource" import "/snavig/character-axioms.txt".
 "Resource" import "/snavig/interpreter-axioms.txt".
 
-If a player-character looks at a describable-entity, then
+When a player-character looks at a describable-entity,
  the player-character examines the describable-entity.
 
-If a player-character looks, then
+When a player-character looks,
  the player-character appraises the player-character's container.
 
-If a player-character discovers a map-place, then
+When a player-character discovers a map-place,
  the player-character appraises the map-place.
 
-If a player-character appraises a map-place, then
+When a player-character appraises a map-place,
  the player-character asks "where am I";
  also the game-interpreter recites the map-place's place-description;
  also the player-character discerns the map-place's spc-contained-objects.
 
-If a player-character rediscovers a map-place, then
+When a player-character rediscovers a map-place,
  the player-character asks "where am I";
  also the player-character discerns the map-place's spc-contained-objects.
 
-// this applies only if at least once visible-entity is discerned
-If a player-character discerns a visible-entity, then
+// this applies only if at least one visible-entity is discerned
+When a player-character discerns a visible-entity,
  the player-character asks "what do I see".
 
-If a player-character examines a describable-entity, then
+When a player-character examines a describable-entity,
  the describable-entity's description might exist;
  otherwise the game-interpreter says "It's about what you'd expect.".
-If a player-character examines a describable-entity, then
+When a player-character examines a describable-entity,
  the game-interpreter recites the describable-entity's description.

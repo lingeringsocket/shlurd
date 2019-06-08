@@ -68,6 +68,7 @@ object SprEnglishLemmas
   val LEMMA_DO = "do"
   val LEMMA_IF = "if"
   val LEMMA_WHEN = "when"
+  val LEMMA_WHENEVER = "whenever"
   val LEMMA_THEN = "then"
   val LEMMA_EQUIVALENTLY = "equivalently"
   val LEMMA_IMPORT = "import"

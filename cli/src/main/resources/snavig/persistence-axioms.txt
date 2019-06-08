@@ -1,8 +1,8 @@
 "Resource" import "/snavig/character-axioms.txt".
 "Resource" import "/snavig/interpreter-axioms.txt".
 
-If a player-character saves, then
+When a player-character saves,
  the game-interpreter saves ".zip".
 
-If a player-character restores, then
+When a player-character restores,
  the game-interpreter restores ".zip".
