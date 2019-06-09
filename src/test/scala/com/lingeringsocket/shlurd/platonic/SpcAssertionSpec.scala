@@ -77,9 +77,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   private val triggerClockToasterCooks =
     "when a clock ticks, the toaster cooks"
 
-  // FIXME why do we have to use "the toaster's state" here??
   private val conditionalClockToasterCooks =
-    "when a clock ticks, the toaster's state might not be toasting; " +
+    "when a clock ticks, the toaster might not be toasting; " +
       "otherwise the toaster cooks"
 
   private val constraintToasterMustBeToasting =
