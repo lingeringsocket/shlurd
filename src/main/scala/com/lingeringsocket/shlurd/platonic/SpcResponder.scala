@@ -77,7 +77,8 @@ class SpcContextualScorer(responder : SpcResponder)
         val detected = resultCollector.referenceMap.get(subject) match {
           case Some(entities) => {
             entities.exists(entity => {
-              cosmos.resolvePropertyState(entity, lemma).isSuccess
+              entity.isInstanceOf[SpcTransientEntity] ||
+                cosmos.resolvePropertyState(entity, lemma).isSuccess
             })
           }
           case _ => {

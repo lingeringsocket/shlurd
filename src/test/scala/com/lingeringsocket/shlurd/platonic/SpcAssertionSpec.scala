@@ -34,13 +34,9 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   private val formRye = "rye"
 
   private val stateEmpty = "empty"
+  private val stateToasting = "toasting"
   private val stateCold = "cold"
   private val stateBurnt = "burnt"
-
-  // FIXME should also be able to use explicit reference to "the
-  // toaster's state" everywhere, but that currently has bugs in some
-  // cases because we resolve to the transient object where we should
-  // keep it unbound in beliefs
 
   private val fiatToasterStates =
     "a toaster's state may be empty, toasting, or done"
@@ -319,6 +315,19 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
       verifyOK(triggerClockToasterCooks)
       verify(actionClockTicks, failedPrereqToasterNotToasting)
+    }
+
+    "allow genitive property as subject" in new AssertionContext
+    {
+      defineToasterSlice
+      defineWallace
+
+      verifyOK(fiatState(formToaster, stateEmpty))
+      verifyOK(abilityPersonCanPut)
+      verifyOK("whenever a person puts a slice into a toaster, " +
+        "subsequently the toaster's state is toasting")
+      verifyOK(actionWallacePutsPumpernickel)
+      verify(queryState, responseStateToasting)
     }
 
     "prevent disabled actions" in new AssertionContext
