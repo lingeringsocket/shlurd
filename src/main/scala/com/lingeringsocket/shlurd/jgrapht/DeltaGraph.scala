@@ -77,12 +77,15 @@ object DeltaGraph
     val baseTransient = TransientGraphDelegator(baseGraph)
 
     val minusGraph = TransientGraphDelegator(
-      new TweakedMaskSubgraph(
+      new MaskSubgraph(
         baseTransient,
-        minusVertices,
-        minusEdges))
+        setToPredicate(minusVertices),
+        setToPredicate(minusEdges)))
 
-    val unionGraph = new TweakedGraphUnion(minusGraph, plusGraph)
+    val unionGraph = new AsGraphUnion(minusGraph, plusGraph, SerializableWeightCombiner) {
+      override def getVertexSupplier = plusGraph.getVertexSupplier
+      override def getEdgeSupplier = plusGraph.getEdgeSupplier
+    }
     new DeltaGraph(
       baseTransient, unionGraph, plusGraph, minusVertices, minusEdges)
   }
@@ -91,34 +94,6 @@ object DeltaGraph
   {
     override def combine(a : Double, b : Double) =
       WeightCombiner.SUM.combine(a, b)
-  }
-
-  class TweakedGraphUnion[V, E](
-    minusGraph : Graph[V, E],
-    plusGraph : Graph[V, E]
-  ) extends AsGraphUnion[V, E](
-    minusGraph, plusGraph, SerializableWeightCombiner)
-  {
-    override def getVertexSupplier = plusGraph.getVertexSupplier
-    override def getEdgeSupplier = plusGraph.getEdgeSupplier
-  }
-
-  class TweakedMaskSubgraph[V,E](
-    base : Graph[V, E],
-    minusVertices : Set[V],
-    minusEdges : Set[E]
-  ) extends MaskSubgraph(
-    base, setToPredicate(minusVertices), setToPredicate(minusEdges)
-  )
-  {
-    private val maskedVertices = new TweakedMaskVertexSet(
-      base.vertexSet, vertexMask, minusVertices)
-
-    private val maskedEdges = new TweakedMaskEdgeSet(
-      base, base.edgeSet, vertexMask, edgeMask, minusEdges)
-
-    override def edgeSet = maskedEdges
-    override def vertexSet = maskedVertices
   }
 }
 
