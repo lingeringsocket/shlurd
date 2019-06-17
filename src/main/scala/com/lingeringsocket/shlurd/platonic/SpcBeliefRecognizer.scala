@@ -152,7 +152,7 @@ class SpcBeliefRecognizer(
         case SilPropertyState(stateName) => {
           val (rr, isPropertyName) = ref match {
             case SilGenitiveReference(possessor, _) => {
-              resultCollector.referenceMap.get(ref) match {
+              resultCollector.lookup(ref) match {
                 // interpret as association, e.g. "the boss's minions"
                 case Some(entities) if (
                   !entities.exists(_.isInstanceOf[SpcTransientEntity])
@@ -383,7 +383,7 @@ class SpcBeliefRecognizer(
     processor : (SilReference) => Seq[SpcBelief])
       : Seq[SpcBelief] =
   {
-    resultCollector.referenceMap.get(ref) match {
+    resultCollector.lookup(ref) match {
       case Some(set) => {
         if (set.isEmpty) {
           // FIXME for single-valued associations, not sure we

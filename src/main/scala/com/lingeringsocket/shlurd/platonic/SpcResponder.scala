@@ -74,7 +74,7 @@ class SpcContextualScorer(responder : SpcResponder)
         SilPropertyState(SilWordLemma(lemma)),
         _
       ) => {
-        val detected = resultCollector.referenceMap.get(subject) match {
+        val detected = resultCollector.lookup(subject) match {
           case Some(entities) => {
             entities.exists(entity => {
               entity.isInstanceOf[SpcTransientEntity] ||

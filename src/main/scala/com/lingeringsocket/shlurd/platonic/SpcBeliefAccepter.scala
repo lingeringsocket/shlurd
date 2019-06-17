@@ -101,7 +101,7 @@ class SpcBeliefAccepter(
     sentence : SilSentence,
     ref : SilReference) : SpcEntity =
   {
-    resultCollector.referenceMap.get(ref).map(entities =>
+    resultCollector.lookup(ref).map(entities =>
       getUniqueEntity(sentence, entities).getOrElse(
         throw new IncomprehensibleBeliefExcn(sentence))).getOrElse(
       ref match {
@@ -509,7 +509,7 @@ class SpcBeliefAccepter(
     ) => {
       val form = mind.instantiateForm(formName)
       val (entity, isNewEntity, determiner) =
-        resultCollector.referenceMap.get(entityRef).map(entities =>
+        resultCollector.lookup(entityRef).map(entities =>
           getUniqueEntity(sentence, entities).map(
             entity => (entity, false, DETERMINER_UNIQUE)
           ).getOrElse(

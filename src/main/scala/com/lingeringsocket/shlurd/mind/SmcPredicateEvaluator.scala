@@ -120,7 +120,7 @@ class SmcPredicateEvaluator[
             (SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) &&
             categoryLabel.isEmpty
           ) {
-            resultCollector.referenceMap.get(complementRef) match {
+            resultCollector.lookup(complementRef) match {
               case Some(entities) => {
                 evaluatePredicateOverReferenceImpl(
                   subjectRef,
@@ -262,7 +262,7 @@ class SmcPredicateEvaluator[
     // FIXME for a cache hit, we should assert that the result is
     // the same as what we would have gotten from re-evaluation;
     // however, this isn't currently true due to postprocessing
-    resultCollector.referenceMap.get(ref) match {
+    resultCollector.lookup(ref) match {
       case Some(entities) => Success(entities)
       case _ => {
         val chosenCollector = {
@@ -322,7 +322,7 @@ class SmcPredicateEvaluator[
               possessor,
               possessee @ SilNounReference(noun, _, _)
             ) => {
-              resultCollector.referenceMap.get(possessor).
+              resultCollector.lookup(possessor).
                 foreach(entities => {
                   entities.foreach(
                     entity => mind.reifyRole(entity, noun, true))
@@ -702,7 +702,7 @@ class SmcPredicateEvaluator[
     ref : SilReference,
     evaluator : () => Try[Set[EntityType]]) =
   {
-    resultCollector.referenceMap.get(ref) match {
+    resultCollector.lookup(ref) match {
       case Some(entities) => {
         Success(entities)
       }
@@ -857,7 +857,7 @@ class SmcPredicateEvaluator[
               case SilNounReference(
                 noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
               ) => {
-                val resolved = resultCollector.referenceMap.get(possessor).
+                val resolved = resultCollector.lookup(possessor).
                   foreach(entities => {
                     // FIXME handle multiple entities
                     if (entities.size == 1) {
