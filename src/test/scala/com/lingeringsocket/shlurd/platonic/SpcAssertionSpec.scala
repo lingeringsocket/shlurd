@@ -385,6 +385,29 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         "Trigger limit exceeded.")
     }
 
+    "map genitives in equivalences" in new AssertionContext
+    {
+      defineToasterSlice
+      defineWallace
+      if (true) {
+        verifyOK("a devourer must be a person")
+        verifyOK("a slice may have a devourer")
+        verifyOK("if a person eats a slice, " +
+          "equivalently the person is the slice's devourer")
+      } else {
+        verifyOK("a devouree must be a slice")
+        verifyOK("a person may have devourees")
+        verifyOK("if a person eats a slice, " +
+          "equivalently the slice is the person's devouree")
+      }
+      verifyOK("Wallace eats the pumpernickel")
+      verify("which slice's devourer is Wallace",
+        "The pumpernickel's devourer.")
+      if (false) {
+        verify("what does Wallace eat", "The pumpernickel.")
+      }
+    }
+
     "preserve singletons in equivalences" in new AssertionContext
     {
       defineToasterSlice

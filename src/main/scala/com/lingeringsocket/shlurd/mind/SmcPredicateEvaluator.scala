@@ -613,6 +613,7 @@ class SmcPredicateEvaluator[
                 trace("RESULT FOR " +
                   s"$subjectEntity $adposition $objEntity " +
                   s"with $qualifiers is $result")
+                result.foreach(resultCollector.entityMap.put(objEntity, _))
                 result
               }
             }

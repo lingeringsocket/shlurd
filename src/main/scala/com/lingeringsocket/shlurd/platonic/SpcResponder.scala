@@ -182,7 +182,7 @@ class SpcResponder(
         case _ => predicate
       }
       // FIXME this could cause the predicate to become
-      // inconsisent with the answer inflection.  Also, when there
+      // inconsistent with the answer inflection.  Also, when there
       // are multiple matches, we should be conjoining them.
       val triggers = mind.getCosmos.getTriggers.filter(
         _.conditionalSentence.biconditional)

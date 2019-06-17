@@ -286,7 +286,7 @@ class SpcOpenhabCosmosSpec extends Specification
         "Yes, there is a garage light.")
       process(
         "is there any light in the garden",
-        "Yes, there are two of them.")
+        "Yes, there is a garden solar light and a garden terrace light.")
       process(
         "are any heaters off",
         "Yes, the bathroom heating is off.")

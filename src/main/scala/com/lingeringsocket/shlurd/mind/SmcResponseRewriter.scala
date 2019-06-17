@@ -98,6 +98,20 @@ class SmcResponseRewriter[
       rr.getOrElse(allRef)
     }
 
+    def neutralizePossesseeWildcard = replacementMatcher(
+      "neutralizePossesseeWildcard", {
+        case SilGenitiveReference(
+          possessor,
+          SilNounReference(noun, DETERMINER_ANY, count)
+        ) => {
+          SilGenitiveReference(
+            possessor,
+            SilNounReference(noun, DETERMINER_UNSPECIFIED, count)
+          )
+        }
+      }
+    )
+
     def replaceReferences = replacementMatcher(
       "replaceReferences", {
         case SilStateSpecifiedReference(
@@ -105,11 +119,13 @@ class SmcResponseRewriter[
         ) if (!ref.acceptsSpecifiers) => {
           ref
         }
-        case SilConjunctiveReference(determiner, references, separator) => {
+        case cr @ SilConjunctiveReference(
+          determiner, references, separator
+        ) => {
           determiner match {
             case DETERMINER_ANY => {
               normalizeDisjunction(
-                resultCollector, entityDeterminer,
+                cr, resultCollector, entityDeterminer,
                 separator, params).getOrElse
               {
                 negateCollection = true
@@ -128,11 +144,11 @@ class SmcResponseRewriter[
             }
           }
         }
-        case SilNounReference(
+        case nr @ SilNounReference(
           noun, DETERMINER_ANY | DETERMINER_SOME, count
         ) => {
           normalizeDisjunction(
-            resultCollector, entityDeterminer,
+            nr, resultCollector, entityDeterminer,
             SEPARATOR_OXFORD_COMMA, params).getOrElse
           {
             negateCollection = true
@@ -165,15 +181,19 @@ class SmcResponseRewriter[
     )
 
     val rewrite1 = {
-      if (getTrueEntities(resultCollector).isEmpty ||
+      if (resultCollector.entityMap.filter(_._2.assumeFalse).isEmpty ||
         resultCollector.isCategorization || !allowFlips)
       {
         rewrite(
-          swapPronounsSpeakerListener(resultCollector.referenceMap),
+          combineRules(
+            neutralizePossesseeWildcard,
+            swapPronounsSpeakerListener(resultCollector.referenceMap)
+          ),
           predicate)
       } else {
         rewrite(
           combineRules(
+            neutralizePossesseeWildcard,
             swapPronounsSpeakerListener(resultCollector.referenceMap),
             flipPredicateQueries
           ),
@@ -744,11 +764,24 @@ class SmcResponseRewriter[
     }
   }
 
-  private def getTrueEntities(resultCollector : ResultCollectorType) =
+  private def getTrueEntities(
+    resultCollector : ResultCollectorType,
+    ref : SilReference) : Set[EntityType] =
   {
-    SprUtils.orderedSet(
-      resultCollector.entityMap.filter(
-        _._2.assumeFalse).keySet)
+    resultCollector.referenceMap.get(ref) match {
+      case Some(entities) => {
+        SprUtils.orderedSet(
+          entities.filter(e =>
+            resultCollector.entityMap.get(e).map(_.assumeFalse).getOrElse(false)
+          )
+        )
+      }
+      case _ => {
+        SprUtils.orderedSet(
+          resultCollector.entityMap.filter(
+            _._2.assumeFalse).keySet)
+      }
+    }
   }
 
   private def getFalseEntities(resultCollector : ResultCollectorType) =
@@ -759,13 +792,14 @@ class SmcResponseRewriter[
   }
 
   private def normalizeDisjunction(
+    ref : SilReference,
     resultCollector : ResultCollectorType,
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
     params : SmcResponseParams)
       : Option[SilReference] =
   {
-    val trueEntities = getTrueEntities(resultCollector)
+    val trueEntities = getTrueEntities(resultCollector, ref)
     val exhaustive =
       (trueEntities.size == resultCollector.entityMap.size) &&
         !params.neverSummarize

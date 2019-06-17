@@ -333,7 +333,7 @@ class SpcResponderSpec extends Specification
         "Sorry, I don't know about any 'robot'.")
       process(
         "who is a person",
-        "Scott, Dirk, Todd, Hugo, Arthur, Amanda, and Bart are persons.")
+        "Scott, Arthur, Dirk, Bart, Amanda, Hugo, and Todd are persons.")
       process(
         "who is a man",
         "Dirk, Todd, Hugo, and Arthur are men.")
@@ -1261,7 +1261,7 @@ class SpcResponderSpec extends Specification
       // FIXME this belief should be equivalent
       /*
       processBelief("If an object is carrying an item, " +
-        "then the object is the item's container.")
+        "then equivalently the object is the item's container.")
        */
 
       processBelief("The wallet is an object.")
