@@ -403,9 +403,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK("Wallace eats the pumpernickel")
       verify("which slice's devourer is Wallace",
         "The pumpernickel's devourer.")
-      if (false) {
-        verify("what does Wallace eat", "The pumpernickel.")
-      }
+      verify("what does Wallace eat", "The pumpernickel.")
     }
 
     "preserve singletons in equivalences" in new AssertionContext

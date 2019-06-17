@@ -768,7 +768,7 @@ class SmcResponseRewriter[
     resultCollector : ResultCollectorType,
     ref : SilReference) : Set[EntityType] =
   {
-    resultCollector.referenceMap.get(ref) match {
+    resultCollector.lookup(ref) match {
       case Some(entities) => {
         SprUtils.orderedSet(
           entities.filter(e =>

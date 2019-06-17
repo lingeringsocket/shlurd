@@ -82,7 +82,9 @@ object DeltaGraph
         setToPredicate(minusVertices),
         setToPredicate(minusEdges)))
 
-    val unionGraph = new AsGraphUnion(minusGraph, plusGraph, SerializableWeightCombiner) {
+    val unionGraph = new AsGraphUnion(
+      minusGraph, plusGraph, SerializableWeightCombiner
+    ) {
       override def getVertexSupplier = plusGraph.getVertexSupplier
       override def getEdgeSupplier = plusGraph.getEdgeSupplier
     }

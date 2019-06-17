@@ -61,7 +61,8 @@ class SmcPredicateEvaluator[
     trace(s"EVALUATE PREDICATE : $predicateOriginal")
     val predicate = normalizePredicate(
       predicateOriginal,
-      resultCollector.referenceMap)
+      resultCollector.referenceMap,
+      resultCollector.refEquivalence)
     if (predicate != predicateOriginal) {
       trace(s"NORMALIZED PREDICATE : $predicate")
     }
@@ -107,8 +108,9 @@ class SmcPredicateEvaluator[
           } else {
             // just in case we skip evaluating complementRef, force
             // it now for any side effects such as error detection
-            resolveReference(complementRef, context, resultCollector).map(
-              _ => Trilean.Unknown)
+            resolveReference(
+              complementRef, context, resultCollector, false
+            ).map(_ => Trilean.Unknown)
           }
         }
         if (tryComplement.isFailure) {
@@ -254,7 +256,8 @@ class SmcPredicateEvaluator[
   private def resolveReference(
     ref : SilReference,
     context : SilReferenceContext,
-    resultCollector : ResultCollectorType) =
+    resultCollector : ResultCollectorType,
+    spawnCollector : Boolean = true) =
   {
     // FIXME for a cache hit, we should assert that the result is
     // the same as what we would have gotten from re-evaluation;
@@ -262,14 +265,24 @@ class SmcPredicateEvaluator[
     resultCollector.referenceMap.get(ref) match {
       case Some(entities) => Success(entities)
       case _ => {
-        val newCollector = resultCollector.spawn
-        newCollector.resolvingReferences = true
-        evaluatePredicateOverReference(
-          ref, context, newCollector, SilNullState())
-        {
-          (entity, entityRef) => {
-            Success(Trilean.Unknown)
+        val chosenCollector = {
+          if (spawnCollector) {
+            resultCollector.spawn
+          } else {
+            resultCollector
           }
+        }
+        chosenCollector.resolvingReferences = true
+        try {
+          evaluatePredicateOverReference(
+            ref, context, chosenCollector, SilNullState())
+          {
+            (entity, entityRef) => {
+              Success(Trilean.Unknown)
+            }
+          }
+        } finally {
+          chosenCollector.resolvingReferences = false
         }
       }
     }
@@ -603,9 +616,10 @@ class SmcPredicateEvaluator[
               }
               case other => other
             }
+            val objCollector = resultCollector.spawn
             val evaluation = evaluatePredicateOverReference(
               objRef, REF_ADPOSITION_OBJ,
-                resultCollector.spawn)
+                objCollector)
             {
               (objEntity, entityRef) => {
                 val result = mind.evaluateEntityAdpositionPredicate(
@@ -613,7 +627,12 @@ class SmcPredicateEvaluator[
                 trace("RESULT FOR " +
                   s"$subjectEntity $adposition $objEntity " +
                   s"with $qualifiers is $result")
-                result.foreach(resultCollector.entityMap.put(objEntity, _))
+                result.foreach(newTrilean => {
+                  val oldTrilean = resultCollector.entityMap.get(objEntity).
+                    getOrElse(Trilean.Unknown)
+                  resultCollector.entityMap.put(
+                    objEntity, oldTrilean || newTrilean)
+                })
                 result
               }
             }
@@ -1101,7 +1120,9 @@ class SmcPredicateEvaluator[
 
   protected def normalizePredicate(
     predicate : SilPredicate,
-    referenceMap : Map[SilReference, Set[EntityType]]) : SilPredicate =
+    referenceMap : Map[SilReference, Set[EntityType]],
+    refEquivalence : mutable.Map[SilReference, SilReference]
+  ) : SilPredicate =
   {
     predicate
   }

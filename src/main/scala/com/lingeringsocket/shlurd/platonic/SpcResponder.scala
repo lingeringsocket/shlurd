@@ -152,8 +152,9 @@ class SpcResponder(
           mind.getCosmos,
           conditionalSentence,
           predicate,
-          resultCollector.referenceMap,
-          Some(resultCollector.referenceMap)) match
+          SpcAssertionBinding(
+            resultCollector.referenceMap,
+            Some(resultCollector.referenceMap))) match
         {
           case Some(newPredicate) => {
             return super.evaluatePredicate(newPredicate, resultCollector)
@@ -166,7 +167,9 @@ class SpcResponder(
 
     override protected def normalizePredicate(
       predicate : SilPredicate,
-      referenceMap : Map[SilReference, Set[SpcEntity]]) : SilPredicate =
+      referenceMap : Map[SilReference, Set[SpcEntity]],
+      refEquivalence : mutable.Map[SilReference, SilReference]
+    ) : SilPredicate =
     {
       val stateNormalizedPredicate = predicate match {
         case SilStatePredicate(subject, verb, state, modifiers) => {
@@ -193,27 +196,35 @@ class SpcResponder(
             mind.getCosmos,
             conditionalSentence,
             stateNormalizedPredicate,
-            referenceMap,
-            None)
+            SpcAssertionBinding(
+              referenceMap,
+              None,
+              Some(refEquivalence)))
         }
-      ).filter(acceptReplacement)
-      replacements.headOption.getOrElse(stateNormalizedPredicate)
+      ).map(rewriteReplacement)
+      replacements.sortBy(_._2).map(_._1).headOption.getOrElse(
+        stateNormalizedPredicate)
     }
 
-    private def acceptReplacement(sil : SilPhrase) : Boolean =
+    private def rewriteReplacement(sil : SilPredicate) : (SilPredicate, Int) =
     {
-      var accepted = true
-      val querier = new SilPhraseRewriter
-      def checkPhrase = querier.queryMatcher {
-        case SilGenitiveReference(
-          SilNounReference(_, DETERMINER_ANY, _),
-          _
-        ) => {
-          accepted = false
+      val rewriter = new SilPhraseRewriter
+      var score = 0
+      def rewriteGenitives = rewriter.replacementMatcher(
+        "rewriteGenitives", {
+          case SilGenitiveReference(
+            possessor @ SilNounReference(_, DETERMINER_ANY, _),
+            possessee @ SilNounReference(_, DETERMINER_UNSPECIFIED, _)
+          ) => {
+            score = 1
+            SilGenitiveReference(
+              possessor,
+              possessee.copy(determiner = DETERMINER_ANY)
+            )
+          }
         }
-      }
-      querier.query(checkPhrase, sil)
-      accepted
+      )
+      tupleN((rewriter.rewrite(rewriteGenitives, sil), score))
     }
 
     override protected def evaluatePropertyStatePredicate(
@@ -552,8 +563,9 @@ class SpcResponder(
       forkedCosmos, conditionalSentence.antecedent,
       conditionalSentence.consequent, predicate,
       trigger.additionalConsequents, trigger.alternative,
-      resultCollector.referenceMap,
-      Some(resultCollector.referenceMap),
+      SpcAssertionBinding(
+        resultCollector.referenceMap,
+        Some(resultCollector.referenceMap)),
       triggerDepth) match
     {
       case (Some(newPredicate), newAdditionalConsequents, newAlternative) => {
@@ -1135,8 +1147,9 @@ class SpcResponder(
             "IMPLIES",
             mind.getCosmos, trigger.conditionalSentence,
             predicate,
-            modifiableReferenceMap,
-            Some(modifiableReferenceMap)
+            SpcAssertionBinding(
+              modifiableReferenceMap,
+              Some(modifiableReferenceMap))
           ) match {
             case Some(newPredicate) => {
               queue.enqueue(newPredicate)

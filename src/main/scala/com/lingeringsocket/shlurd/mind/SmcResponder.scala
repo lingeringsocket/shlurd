@@ -74,12 +74,23 @@ class SmcResultCollector[EntityType<:SmcEntity](
   var swapSpeakerListener = false
   var resolvingReferences = false
 
+  val refEquivalence =
+    new IdentityLinkedHashMap[SilReference, SilReference]
+
   def spawn() = {
     val newCollector = new SmcResultCollector[EntityType](referenceMap)
     newCollector.suppressWildcardExpansion = suppressWildcardExpansion
     newCollector.swapSpeakerListener = swapSpeakerListener
     newCollector.resolvingReferences = resolvingReferences
     newCollector
+  }
+
+  def lookup(ref : SilReference) : Option[Set[EntityType]] =
+  {
+    val entitiesOpt = referenceMap.get(ref)
+    entitiesOpt.orElse {
+      refEquivalence.get(ref).flatMap(lookup)
+    }
   }
 }
 
@@ -93,19 +104,7 @@ object SmcResultCollector
   // different referents
   def newReferenceMap[EntityType<:SmcEntity]() =
   {
-    new mutable.LinkedHashMap[SilReference, Set[EntityType]] {
-      override protected def elemEquals(
-        key1 : SilReference, key2 : SilReference) : Boolean =
-      {
-        key1 eq key2
-      }
-
-      override protected def elemHashCode(
-        key : SilReference) =
-      {
-        System.identityHashCode(key)
-      }
-    }
+    new IdentityLinkedHashMap[SilReference, Set[EntityType]]
   }
 
   def modifiableReferenceMap[EntityType<:SmcEntity](

@@ -67,8 +67,10 @@ class SmcResponderSpec extends Specification
 
         override protected def normalizePredicate(
           predicate : SilPredicate,
-          referenceMap : Map[SilReference, Set[SmcEntity]]) =
-        {
+          referenceMap : Map[SilReference, Set[SmcEntity]],
+          refEquivalence :
+              collection.mutable.Map[SilReference, SilReference]
+        ) = {
           predicate match {
             case SilStatePredicate(subject, verb, state, modifiers) => {
               SilStatePredicate(subject, verb, normalizeState(state), modifiers)
