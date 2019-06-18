@@ -364,11 +364,26 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
   {
     // FIXME when subject is a SilStateSpecifiedReference, the
     // state gets lost for questions such as QUESTION_WHAT
-    val plainSubject = print(
-      predicate.getSubject, INFLECT_NOMINATIVE, SilConjoining.NONE)
-    val subjectString = answerInflection match {
+    val (plainSubject, subjectInflection) = predicate.getSubject match {
+      case SilGenitiveReference(
+        SilNounReference(SilWordLemma(LEMMA_WHO), _, _),
+        possessee
+      ) => {
+        tupleN((
+          print(
+            possessee, INFLECT_NOMINATIVE, SilConjoining.NONE),
+          INFLECT_GENITIVE))
+      }
+      case subject => {
+        tupleN((
+          print(
+            subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
+          answerInflection))
+      }
+    }
+    val subjectString = subjectInflection match {
       case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => plainSubject
-      case _ => sb.query(plainSubject, question, answerInflection)
+      case _ => sb.query(plainSubject, question, subjectInflection)
     }
     predicate match {
       case SilStatePredicate(subject, verb, state, modifiers) => {

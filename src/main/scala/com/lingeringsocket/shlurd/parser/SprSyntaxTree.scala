@@ -37,6 +37,7 @@ object SprPennTreebankLabels
   val LABEL_WHADVP = "WHADVP"
   val LABEL_WDT = "WDT"
   val LABEL_WP = "WP"
+  val LABEL_WP_POS = "WP$"
   val LABEL_WRB = "WRB"
   val LABEL_NN = "NN"
   val LABEL_NNS = "NNS"
@@ -178,7 +179,7 @@ trait SprAbstractSyntaxTree
 
   def isAdjectival = isAdjective || isParticipleOrGerund
 
-  def isPossessive = hasLabel(LABEL_POS)
+  def isPossessiveClitic = hasLabel(LABEL_POS)
 
   def isCoordinatingConjunction = hasLabel(LABEL_CC)
 
@@ -534,6 +535,12 @@ case class SptWP(child : SprSyntaxLeaf)
     extends SprSyntaxPreTerminal
 {
   override def label = LABEL_WP
+}
+
+case class SptWP_POS(child : SprSyntaxLeaf)
+    extends SprSyntaxPreTerminal
+{
+  override def label = LABEL_WP_POS
 }
 
 case class SptNN(child : SprSyntaxLeaf)

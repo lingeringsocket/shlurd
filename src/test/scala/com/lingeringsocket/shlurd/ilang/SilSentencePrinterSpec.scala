@@ -355,6 +355,7 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized(
         "how many people did Curtis give the bomb to",
         "to how many people did Curtis give the bomb?")
+      expectQuestion("whose godmother is Laura")
       expectStatement("the kitchen is west of the garden")
       expectNormalized(
         "otherwise the player burps",

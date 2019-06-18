@@ -571,10 +571,12 @@ class SilEnglishSentenceBundle
         compose(LEMMA_WHICH, noun)
       }
       case Some(QUESTION_WHO) => {
-        // FIXME inflection for whose
         answerInflection match {
           case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => {
             compose(LEMMA_WHOM)
+          }
+          case INFLECT_GENITIVE => {
+            compose(LEMMA_WHOSE, noun)
           }
           case _ => {
             compose(LEMMA_WHO)

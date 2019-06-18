@@ -485,6 +485,10 @@ class SpcResponderSpec extends Specification
         "Yes, she has a wise guy.")
       process("who is Henry's cleaning lady",
         "His cleaning ladies are Fancy and Marion.")
+      process("which person's godmother is Fancy",
+        "She is Laura's godmother.")
+      process("whose godmother is Fancy",
+        "She is Laura's godmother.")
 
       cosmos.sanityCheck must beTrue
     }

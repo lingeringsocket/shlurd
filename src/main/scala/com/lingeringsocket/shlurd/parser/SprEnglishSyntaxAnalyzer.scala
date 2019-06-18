@@ -301,20 +301,28 @@ class SprEnglishSyntaxAnalyzer(
     if ((question == QUESTION_WHERE) && !verbHead.isBeingVerb) {
       return SilUnrecognizedSentence(tree)
     }
+    if (questionChildren.isEmpty) {
+      return SilUnrecognizedSentence(tree)
+    }
     // FIXME for QUESTION_WHERE, it shouldn't be a noun phrase at all;
     // it should be either a state or verb modifier
     val np = question match {
       // FIXME for QUESTION_WHAT, there are two flavors (plain "what
       // do you want?" and also "what beer is most delicious?")
-      case QUESTION_WHO | QUESTION_WHERE  | QUESTION_WHAT => {
+      case QUESTION_WHERE  | QUESTION_WHAT => {
         SptNP(SptNN(requireLeaf(questionChildren)))
       }
-      case _ => {
-        // FIXME likewise, QUESTION_WHICH has two flavors "which do you want?"
-        // and "which flavor do you want?"
-        if (questionChildren.isEmpty) {
-          return SilUnrecognizedSentence(tree)
+      case QUESTION_WHO => {
+        if ((questionChildren.size == 1) && questionChildren.head.isLeaf) {
+          SptNP(SptNN(requireLeaf(questionChildren)))
+        } else {
+          SptNP(questionChildren:_*)
         }
+      }
+      case QUESTION_WHICH | QUESTION_HOW_MANY => {
+        // FIXME likewise, these have two flavors "which do you want?"
+        // and "which flavor do you want?"; "how many trees are there"
+        // and "how many are still alive"
         SptNP(questionChildren:_*)
       }
     }
@@ -443,7 +451,7 @@ class SprEnglishSyntaxAnalyzer(
       return SilParenthesizedReference(
         expectReference(seq.dropRight(1).drop(1)))
     }
-    if (seq.head.lastChild.isPossessive) {
+    if (seq.head.lastChild.isPossessiveClitic) {
       return SilGenitiveReference(
         expectReference(seq.head.children.dropRight(1)),
         expectReference(seq.tail))
@@ -1191,6 +1199,12 @@ class SprEnglishSyntaxAnalyzer(
             Some((QUESTION_WHICH, None, seq.tail))
           case _ => None
         }
+      }
+      case SptWP_POS(wpp) => {
+        Some((QUESTION_WHO, None,
+          Seq(SptNP(
+            (SptNP(SptNN(makeLeaf(LEMMA_WHO)), SptPOS(makeLeaf("'s"))) +:
+              seq.tail):_*))))
       }
       case SptWP(wp) => {
         wp.lemma match {

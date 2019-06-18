@@ -158,6 +158,7 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
             SptWDT(leaf))
         }
         case LEMMA_WHO | LEMMA_WHOM => Set(SptWP(leaf))
+        case LEMMA_WHOSE => Set(SptWP_POS(leaf))
         case LEMMA_HOW | LEMMA_WHERE => {
           Set(SptWRB(leaf))
         }

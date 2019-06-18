@@ -541,7 +541,7 @@ class SprHeuristicSynthesizer(
         }
         case np : SptNP => {
           val dispossessed = {
-            if (np.children.last.isPossessive) {
+            if (np.children.last.isPossessiveClitic) {
               SptNP(np.children.dropRight(1):_*)
             } else {
               np
