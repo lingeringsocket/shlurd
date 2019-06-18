@@ -101,80 +101,67 @@ class SmcPredicateEvaluator[
           complementRef, resultCollector)
         val (context, categoryLabel) =
           relationshipComplementContext(verb, complementRef)
-        val tryComplement = {
-          if (!categoryLabel.isEmpty) {
-            resultCollector.isCategorization = true
-            Success(Trilean.Unknown)
-          } else {
-            // just in case we skip evaluating complementRef, force
-            // it now for any side effects such as error detection
-            resolveReference(
-              complementRef, context, resultCollector, false
-            ).map(_ => Trilean.Unknown)
-          }
+        if (!categoryLabel.isEmpty) {
+          resultCollector.isCategorization = true
         }
-        if (tryComplement.isFailure) {
-          tryComplement
-        } else {
-          if (wildcardQuerier.containsWildcard(subjectRef, false) &&
-            (SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) &&
-            categoryLabel.isEmpty
-          ) {
-            resultCollector.lookup(complementRef) match {
-              case Some(entities) => {
-                evaluatePredicateOverReferenceImpl(
-                  subjectRef,
-                  REF_SUBJECT,
-                  resultCollector,
-                  SilNullState(),
-                  Some(entities),
-                  {
-                    (objEntity, entityRef) => {
-                      if (objEntity.isTentative) {
-                        Success(Trilean.Unknown)
-                      } else {
-                        entityRef match {
-                          case SilNounReference(
-                            noun,
-                            DETERMINER_ANY | DETERMINER_UNSPECIFIED,
-                            _) => {
-                            noun.toNounLemma match {
-                              case LEMMA_WHO | LEMMA_WHAT => {
-                                Success(Trilean.True)
-                              }
-                              case _ => {
-                                evaluateCategorization(objEntity, noun)
-                              }
+        if (wildcardQuerier.containsWildcard(subjectRef, false, true) &&
+          (SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) &&
+          categoryLabel.isEmpty
+        ) {
+          resultCollector.lookup(complementRef) match {
+            case Some(entities) => {
+              evaluatePredicateOverReferenceImpl(
+                subjectRef,
+                REF_SUBJECT,
+                resultCollector,
+                SilNullState(),
+                Some(entities),
+                {
+                  (objEntity, entityRef) => {
+                    if (objEntity.isTentative) {
+                      Success(Trilean.Unknown)
+                    } else {
+                      entityRef match {
+                        case SilNounReference(
+                          noun,
+                          DETERMINER_ANY | DETERMINER_UNSPECIFIED,
+                          _) => {
+                          noun.toNounLemma match {
+                            case LEMMA_WHO | LEMMA_WHAT => {
+                              Success(Trilean.True)
+                            }
+                            case _ => {
+                              evaluateCategorization(objEntity, noun)
                             }
                           }
-                          case _ => {
-                            val message =
-                              s"$objEntity UNEXPECTED REF : $entityRef"
-                            debug(message)
-                            fail(message)
-                          }
+                        }
+                        case _ => {
+                          val message =
+                            s"$objEntity UNEXPECTED REF : $entityRef"
+                          debug(message)
+                          fail(message)
                         }
                       }
                     }
                   }
-                )
-              }
-              case _ => {
-                Success(Trilean.Unknown)
-              }
+                }
+              )
             }
-          } else {
-            evaluateRelationshipPredicateExpandWildcard(
-              subjectRef,
-              subjectCollector,
-              categoryLabel,
-              complementRef,
-              complementCollector,
-              context,
-              resultCollector,
-              verb
-            )
+            case _ => {
+              Success(Trilean.Unknown)
+            }
           }
+        } else {
+          evaluateRelationshipPredicateExpandWildcard(
+            subjectRef,
+            subjectCollector,
+            categoryLabel,
+            complementRef,
+            complementCollector,
+            context,
+            resultCollector,
+            verb
+          )
         }
       }
       case ap : SilActionPredicate => {
@@ -585,6 +572,8 @@ class SmcPredicateEvaluator[
     // resolveQualifiedNoun for efficiency
     val adpositionStates =
       SilReference.extractAdpositionSpecifiers(specifiedState)
+    val crossResults =
+      new mutable.LinkedHashMap[(EntityType, EntityType), Trilean]
     val entities = {
       if (adpositionStates.isEmpty) {
         unfilteredEntities
@@ -619,7 +608,7 @@ class SmcPredicateEvaluator[
             val objCollector = resultCollector.spawn
             val evaluation = evaluatePredicateOverReference(
               objRef, REF_ADPOSITION_OBJ,
-                objCollector)
+              objCollector)
             {
               (objEntity, entityRef) => {
                 val result = mind.evaluateEntityAdpositionPredicate(
@@ -627,11 +616,8 @@ class SmcPredicateEvaluator[
                 trace("RESULT FOR " +
                   s"$subjectEntity $adposition $objEntity " +
                   s"with $qualifiers is $result")
-                result.foreach(newTrilean => {
-                  val oldTrilean = resultCollector.entityMap.get(objEntity).
-                    getOrElse(Trilean.Unknown)
-                  resultCollector.entityMap.put(
-                    objEntity, oldTrilean || newTrilean)
+                result.foreach(trilean => {
+                  crossResults.put((subjectEntity, objEntity), trilean)
                 })
                 result
               }
@@ -647,7 +633,7 @@ class SmcPredicateEvaluator[
     }
     resultCollector.referenceMap.put(
       reference, SprUtils.orderedSet(entities))
-    determiner match {
+    val result = determiner match {
       case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
         if (entities.isEmpty &&
           ((context == REF_SUBJECT) || (determiner == DETERMINER_UNIQUE))
@@ -695,6 +681,20 @@ class SmcPredicateEvaluator[
           determiner)
       }
     }
+    val combinedResults = crossResults.toSeq.map {
+      case ((subjectEntity, objectEntity), crossTrilean) => {
+        val subjectTrilean = resultCollector.entityMap.get(subjectEntity).
+          getOrElse(Trilean.Unknown)
+        tupleN((objectEntity, crossTrilean && subjectTrilean))
+      }
+    }
+    combinedResults.groupBy(_._1).foreach {
+      case (objectEntity, results) => {
+        resultCollector.entityMap.put(
+          objectEntity, results.map(_._2).reduceLeft(_ || _))
+      }
+    }
+    result
   }
 
   private def cacheReference(

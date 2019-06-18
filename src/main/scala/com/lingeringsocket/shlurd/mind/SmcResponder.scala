@@ -376,7 +376,7 @@ class SmcResponder[
 
   private def processStateChange(
     resultCollector : ResultCollectorType,
-    predicate : SilPredicate) : Try[(SilSentence, String)] =
+    predicate : SilStatePredicate) : Try[(SilSentence, String)] =
   {
     debug("STATE CHANGE COMMAND")
 
@@ -400,10 +400,15 @@ class SmcResponder[
       }
       case Success(_) => {
         assert(resultCollector.states.size == 1)
+        val entities =
+          resultCollector.lookup(predicate.subject).
+            getOrElse(Set.empty).filterNot(entity => {
+              resultCollector.entityMap.get(entity).
+                getOrElse(Trilean.Unknown).assumeFalse
+            })
         val invocation =
           SmcStateChangeInvocation(
-            resultCollector.entityMap.filterNot(
-              _._2.assumeFalse).keySet,
+            entities,
             resultCollector.states.head)
         debug(s"EXECUTE INVOCATION : $invocation")
         executor.executeInvocation(

@@ -25,10 +25,17 @@ class SmcPhraseRewriter extends SilPhraseRewriter
 
   def containsWildcard(
     phrase : SilPhrase,
-    includeConjunctions : Boolean = false) : Boolean =
+    includeConjunctions : Boolean = false,
+    rejectGenitives : Boolean = false) : Boolean =
   {
     var wildcard = false
+    var rejected = false
     def matchWildcard = querier.queryMatcher {
+      case _ : SilGenitiveReference if (rejectGenitives) => {
+        // FIXME this should probably apply to
+        // adpositional references as well
+        rejected = true
+      }
       case SilConjunctiveReference(
         DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL,
         _,
@@ -57,6 +64,9 @@ class SmcPhraseRewriter extends SilPhraseRewriter
       }
     }
     querier.query(matchWildcard, phrase)
+    if (rejected) {
+      wildcard = false
+    }
     wildcard
   }
 }

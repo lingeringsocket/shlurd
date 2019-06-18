@@ -410,9 +410,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
           "equivalently the slice is the person's devouree")
       }
       verifyOK("Wallace eats the pumpernickel")
-      if (false) {
-        verifyOK("Gromit eats the rye")
-      }
+      verifyOK("Gromit eats the rye")
       verify("which slice's devourer is Wallace",
         "The pumpernickel's devourer.")
       verify("what does Wallace eat", "The pumpernickel.")
