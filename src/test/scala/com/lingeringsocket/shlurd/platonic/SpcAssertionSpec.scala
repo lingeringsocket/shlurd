@@ -94,6 +94,9 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   private val fiatWallace =
     "Wallace is a person"
 
+  private val fiatGromit =
+    "Gromit is a person"
+
   private val actionWallacePutsPumpernickel =
     "Wallace puts the pumpernickel into the toaster"
 
@@ -207,6 +210,11 @@ class SpcAssertionSpec extends SpcProcessingSpecification
     protected def defineWallace()
     {
       verifyOK(fiatWallace)
+    }
+
+    protected def defineGromit()
+    {
+      verifyOK(fiatGromit)
     }
 
     protected def defineClock()
@@ -389,6 +397,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
     {
       defineToasterSlice
       defineWallace
+      defineGromit
       if (true) {
         verifyOK("a devourer must be a person")
         verifyOK("a slice may have a devourer")
@@ -401,6 +410,9 @@ class SpcAssertionSpec extends SpcProcessingSpecification
           "equivalently the slice is the person's devouree")
       }
       verifyOK("Wallace eats the pumpernickel")
+      if (false) {
+        verifyOK("Gromit eats the rye")
+      }
       verify("which slice's devourer is Wallace",
         "The pumpernickel's devourer.")
       verify("what does Wallace eat", "The pumpernickel.")
