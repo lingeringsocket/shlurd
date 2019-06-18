@@ -29,6 +29,8 @@ class SprPhrasePatternTrie
 
   private var maxPatternLength : Int = 1
 
+  private val symbols = new mutable.LinkedHashMap[String, Seq[String]]
+
   def foldLabel(label : String) : String =
   {
     (label match {
@@ -124,6 +126,18 @@ class SprPhrasePatternTrie
     }
   }
 
+  private def addSymbol(symbol : String, pattern : Seq[String])
+  {
+    symbols.put(symbol, pattern)
+  }
+
+  private def expandSymbols(pattern : Seq[String]) : Seq[String] =
+  {
+    pattern.flatMap(component => {
+      symbols.get(component).getOrElse(Seq(component))
+    })
+  }
+
   private def dump(pw : PrintWriter, level : Int)
   {
     val prefix = "  " * level
@@ -154,13 +168,23 @@ class SprPhrasePatternTrie
   {
     source.getLines.foreach(line => {
       val components = line.trim.split(" ")
+      val iDef = components.indexOf(":=")
       val iArrow = components.indexOf("->")
-      if ((iArrow < 0) || (iArrow != (components.size - 2))) {
-        throw new RuntimeException("invalid trie source")
+      if (iDef < 0) {
+        if ((iArrow < 0) || (iArrow != (components.size - 2))) {
+          throw new RuntimeException("invalid trie source")
+        }
+        val lhs = components.take(iArrow)
+        val rhs = components.last
+        addPattern(expandSymbols(lhs), rhs)
+      } else {
+        if (iDef != 1) {
+          throw new RuntimeException("invalid trie source")
+        }
+        val lhs = components.head
+        val rhs = components.drop(2)
+        addSymbol(lhs, expandSymbols(rhs))
       }
-      val pattern = components.take(iArrow)
-      val label = components.last
-      addPattern(pattern, label)
     })
     this
   }
