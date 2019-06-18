@@ -1256,13 +1256,7 @@ class SpcResponderSpec extends Specification
       processBelief("If an item is occupying an object, " +
         "equivalently the item is in the object.")
       processBelief("If an object is carrying an item, " +
-        "equivalently the item is the object's contained-object.")
-
-      // FIXME this belief should be equivalent
-      /*
-      processBelief("If an object is carrying an item, " +
         "then equivalently the object is the item's container.")
-       */
 
       processBelief("The wallet is an object.")
       processBelief("The pocket is an object.")

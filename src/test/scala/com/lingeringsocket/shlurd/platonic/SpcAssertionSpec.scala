@@ -398,17 +398,10 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       defineToasterSlice
       defineWallace
       defineGromit
-      if (true) {
-        verifyOK("a devourer must be a person")
-        verifyOK("a slice may have a devourer")
-        verifyOK("if a person eats a slice, " +
-          "equivalently the person is the slice's devourer")
-      } else {
-        verifyOK("a devouree must be a slice")
-        verifyOK("a person may have devourees")
-        verifyOK("if a person eats a slice, " +
-          "equivalently the slice is the person's devouree")
-      }
+      verifyOK("a devourer must be a person")
+      verifyOK("a slice may have a devourer")
+      verifyOK("if a person eats a slice, " +
+        "equivalently the person is the slice's devourer")
       verifyOK("Wallace eats the pumpernickel")
       verifyOK("Gromit eats the rye")
       verify("which slice's devourer is Wallace",
