@@ -186,9 +186,7 @@ class SilSentencePrinterSpec extends Specification
       expectStatement("your friend, Stalin, and I are hungry")
       expectStatement("the red pig, Stalin, and I are hungry")
       expectStatement("the horse is healthy, strong, and hungry")
-      expectNormalized(
-        "the horse is healthy, and strong",
-        "the horse is healthy and strong.")
+      expectStatement("the horse is healthy and strong")
       expectStatement("the door must be open")
       expectStatement("the door may be open")
       expectStatement("the door must not be open")

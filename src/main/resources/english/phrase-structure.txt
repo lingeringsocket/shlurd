@@ -82,12 +82,10 @@
  NN NN -> NP
  NN NN POS -> NP
  JJ -> ADJP
- JJ -> PP
  JJ CC VBN -> ADJP
  JJ CC JJ -> ADJP
  JJ NN -> NP
  JJ PP -> ADJP
- JJ COMMA CC JJ -> ADJP
  RB -> PRT
  RB -> ADVP
  ADVP JJ -> ADJP
