@@ -32,6 +32,7 @@ libraryDependencies ++= Seq(
   "com.googlecode.kiama" %% "kiama" % "1.8.0",
   "org.typelevel" %% "spire" % "0.16.0",
   "org.typelevel" %% "spire-extras" % "0.16.0",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2",
   "org.jgrapht" % "jgrapht-core" % "1.3.1",
   "org.jgrapht" % "jgrapht-io" % "1.3.1",
   "org.atteo" % "evo-inflector" % "1.2.2",
@@ -45,7 +46,7 @@ libraryDependencies ++= Seq(
 
 publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath+"/.ivy2/local/com.lingeringsocket.shlurd")))
 
-mainClass in Compile := Some("com.lingeringsocket.shlurd.cli.ShlurdCliApp")
+mainClass in Compile := Some("com.lingeringsocket.shlurd.parser.SprGrammar")
 
 fullClasspath in Runtime ++= (fullClasspath in cli in Runtime).value
 

@@ -16,7 +16,6 @@ package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
 
-import scala.io._
 import java.io._
 
 import SprPennTreebankLabels._
@@ -40,8 +39,10 @@ class SprPhrasePatternTrie
       case LABEL_RP | LABEL_RBC => LABEL_RB
       case "," => "COMMA"
       case ";" => "SEMICOLON"
-      case "(" => LABEL_LPAREN
-      case ")" => LABEL_RPAREN
+      case "PRP_POS" => LABEL_PRP_POS
+      case "WP_POS" => LABEL_WP_POS
+      case "LPAREN" | "(" => LABEL_LPAREN
+      case "RPAREN" | ")" => LABEL_RPAREN
       case _ => label
     }).intern
   }
@@ -102,12 +103,17 @@ class SprPhrasePatternTrie
         children
       }
     }
-    addPattern(
+    addPatternImpl(
       pattern,
       foldLabel(syntaxTree.label))
   }
 
-  private def addPattern(pattern : Seq[String], label : String)
+  def addPattern(pattern : Seq[String], label : String)
+  {
+    addPatternImpl(expandSymbols(pattern.map(foldLabel)), foldLabel(label))
+  }
+
+  private[parser] def addPatternImpl(pattern : Seq[String], label : String)
   {
     if (pattern.isEmpty) {
       labels += label
@@ -115,7 +121,7 @@ class SprPhrasePatternTrie
       val child = children.getOrElseUpdate(pattern.head, {
         new SprPhrasePatternTrie
       })
-      child.addPattern(pattern.tail, label)
+      child.addPatternImpl(pattern.tail, label)
     }
     maxPatternLength = {
       if (children.isEmpty) {
@@ -162,31 +168,6 @@ class SprPhrasePatternTrie
         child.exportText(pw, s"$prefix $label")
       }
     }
-  }
-
-  def importText(source : Source) : SprPhrasePatternTrie =
-  {
-    source.getLines.foreach(line => {
-      val components = line.trim.split(" ")
-      val iDef = components.indexOf(":=")
-      val iArrow = components.indexOf("->")
-      if (iDef < 0) {
-        if ((iArrow < 0) || (iArrow != (components.size - 2))) {
-          throw new RuntimeException("invalid trie source")
-        }
-        val lhs = components.take(iArrow)
-        val rhs = components.last
-        addPattern(expandSymbols(lhs), rhs)
-      } else {
-        if (iDef != 1) {
-          throw new RuntimeException("invalid trie source")
-        }
-        val lhs = components.head
-        val rhs = components.drop(2)
-        addSymbol(lhs, expandSymbols(rhs))
-      }
-    })
-    this
   }
 
   override def toString =

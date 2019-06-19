@@ -76,9 +76,16 @@ object SprHeuristicSynthesizer extends SprEnglishWordAnalyzer
 
   val specialCasing = Set("I", LABEL_LPAREN, LABEL_RPAREN)
 
-  lazy val phrasePatternTrie = (new SprPhrasePatternTrie).importText(
-    ResourceUtils.getResourceSource(
-      "/english/phrase-structure.txt"))
+  lazy val phrasePatternTrie = loadTrie
+
+  private def loadTrie() =
+  {
+    val trie = new SprPhrasePatternTrie
+    val source = ResourceUtils.getResourceSource(
+      "/english/phrase-structure.txt")
+    SprGrammar.buildTrie(source, trie)
+    trie
+  }
 
   def maybeLowerCase(word : String) : String =
   {
