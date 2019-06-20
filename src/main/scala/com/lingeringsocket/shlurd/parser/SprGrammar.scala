@@ -33,26 +33,33 @@ object SprGrammar extends StandardTokenParsers
 
   def bar = "|"
 
+  def lparen = "("
+
+  def rparen = ")"
+
   def grammar = rep1(rule)
 
   def rule = phraseRule | alternativeRule
 
   def phraseRule = label ~ arrow ~ alternatives ~ semicolon ^^
-  { case l ~ _ ~ a ~ _ => PhraseRule(l, a) }
+    { case l ~ _ ~ a ~ _ => PhraseRule(l, a) }
 
   def alternativeRule = symbol ~ assignment ~ alternatives ~ semicolon ^^
-  { case s ~ _ ~ a ~ _ => SymbolRule(s, a) }
+    { case s ~ _ ~ a ~ _ => SymbolRule(s, a) }
 
-  def pattern = rep1(label)
+  def pattern = rep1(component) ^^ { case s => s.flatten }
 
   def alternatives = rep1sep(pattern, bar)
+
+  def component = label ^^ { case l => Seq(l) } |
+    (lparen ~ label ~ rparen ^^ { case _ ~ l ~ _ => Seq(l, "?") })
 
   def label = ident
 
   def symbol = ident
 
   override val lexical = new StdLexical {
-    delimiters ++= Seq(arrow, semicolon, assignment, bar)
+    delimiters ++= Seq(arrow, semicolon, assignment, bar, lparen, rparen)
   }
 
   def buildTrie(source : Source, trie : SprPhrasePatternTrie)

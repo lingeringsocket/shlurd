@@ -18,47 +18,60 @@ preposition :=
   TO;
 
 SBARQ ->
+  // "which dog bit me?"
   WHNP SQ |
+  // "through which door did you go?"
   WHPP SQ |
+  // "when did you eat?"
   WHADVP SQ;
 
 SBAR ->
+  // "[the dog] that is hungry"
   WHNP S |
+  // "if the dog bites the woman"
   IN S;
 
 WHNP ->
+  // "which apple in the basket"
   WHNP PP |
+  // "who"
   WP |
+  // "how many red cats"
   WHADJP NP |
+  // "which"
   WDT |
+  // "which cat"
   WDT NP |
+  // "whose"
   WP_POS |
+  // "whose umbrella"
   WP_POS NP;
 
 WHADVP ->
+  // "why"
   WRB;
 
 WHADJP ->
+  // "how tall"
   WRB JJ;
 
 WHPP ->
+  // "by whose authority"
   preposition WHNP;
 
 SQ ->
+  // "go home"
   VP |
-  MD ADVP NP VP |
-  MD NP VP |
-  MD NP ADVP VP |
-  VB NP PP |
-  VB NP PP ADJP |
-  VB NP ADJP |
-  VB NP NP |
-  VB NP VP |
-  VB NP ADVP VP |
-  VB NP ADVP NP |
-  VB NP ADVP ADJP |
-  VB NP ADJP PP |
-  VB ADVP NP ADJP;
+  // "must (not) the werewolf (by the light of the moon) drink blood"
+  MD (ADVP) NP (ADVP) VP |
+  // "is (not) the werewolf (now) (in the cage) (alive)"
+  VB (ADVP) NP (ADVP) (PP) (ADJP) |
+  // "is (not) the werewolf (thirstily) drinking blood"
+  VB (ADVP) NP (ADVP) VP |
+  // "is (not) the werewolf (really) Dan"
+  VB (ADVP) NP (ADVP) NP |
+  // "is (not) the werewolf (now) happy in the cage"
+  VB (ADVP) NP (ADVP) ADJP PP;
 
 plainS :=
   VP |
@@ -158,8 +171,7 @@ TMOD -> NP;
 
 PP ->
   preposition |
-  preposition NP |
-  IN NN;
+  preposition NP;
 
 ADVP ->
   IN |

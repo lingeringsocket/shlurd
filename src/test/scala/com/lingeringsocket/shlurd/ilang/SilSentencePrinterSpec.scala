@@ -358,6 +358,9 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized(
         "otherwise the player burps",
         "the player burps otherwise.")
+      expectNormalized(
+        "can not the door be closed",
+        "can the door not be closed?")
     }
   }
 

@@ -104,17 +104,32 @@ class SprPhrasePatternTrie(
         children
       }
     }
-    addPatternImpl(
+    addFoldedPattern(
       pattern,
       foldLabel(syntaxTree.label))
   }
 
   def addPattern(pattern : Seq[String], label : String)
   {
-    addPatternImpl(pattern.map(foldLabel), foldLabel(label))
+    addFoldedPattern(pattern.map(foldLabel), foldLabel(label))
   }
 
-  private[parser] def addPatternImpl(pattern : Seq[String], label : String)
+  private[parser] def addFoldedPattern(pattern : Seq[String], label : String)
+  {
+    val iMarker = pattern.indexOf("?")
+    if (iMarker == -1) {
+      addUnrolledPattern(pattern, label)
+    } else {
+      addFoldedPattern(
+        pattern.take(iMarker) ++ pattern.drop(iMarker + 1),
+        label)
+      addFoldedPattern(
+        pattern.take(iMarker - 1) ++ pattern.drop(iMarker + 1),
+        label)
+    }
+  }
+
+  private[parser] def addUnrolledPattern(pattern : Seq[String], label : String)
   {
     if (pattern.isEmpty) {
       labels += label
@@ -123,12 +138,12 @@ class SprPhrasePatternTrie(
       val alternatives = symbols.get(symbol).getOrElse(Seq(Seq(symbol)))
       alternatives.foreach(alternative => {
         if (symbols.contains(alternative.head)) {
-          addPatternImpl(alternative ++ pattern.tail, label)
+          addFoldedPattern(alternative ++ pattern.tail, label)
         } else {
           val child = children.getOrElseUpdate(alternative.head, {
             new SprPhrasePatternTrie(symbols)
           })
-          child.addPatternImpl(alternative.tail ++ pattern.tail, label)
+          child.addFoldedPattern(alternative.tail ++ pattern.tail, label)
         }
       })
     }
