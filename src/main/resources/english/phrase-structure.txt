@@ -17,16 +17,16 @@ preposition :=
   IN |
   TO;
 
-phraseSBARQ :=
+SBARQ ->
   WHNP SQ |
   WHPP SQ |
   WHADVP SQ;
 
-phraseSBAR :=
+SBAR ->
   WHNP S |
   IN S;
 
-phraseWHNP :=
+WHNP ->
   WHNP PP |
   WP |
   WHADJP NP |
@@ -35,16 +35,16 @@ phraseWHNP :=
   WP_POS |
   WP_POS NP;
 
-phraseWHADVP :=
+WHADVP ->
   WRB;
 
-phraseWHADJP :=
- WRB JJ;
+WHADJP ->
+  WRB JJ;
 
-phraseWHPP :=
+WHPP ->
   preposition WHNP;
 
-phraseSQ :=
+SQ ->
   VP |
   MD ADVP NP VP |
   MD NP VP |
@@ -60,22 +60,24 @@ phraseSQ :=
   VB NP ADJP PP |
   VB ADVP NP ADJP;
 
-phraseS :=
+plainS :=
   VP |
   NP VP |
   ADVP NP VP |
-  SBAR COMMA ADVP NP VP |
-  SBAR COMMA ADVP ADVP NP VP |
-  SBAR COMMA NP VP |
-  TMOD COMMA NP VP |
-  TMOD NP VP |
+  ADVP ADVP NP VP |
   PP NP VP;
 
-phraseSINV :=
+S ->
+  plainS |
+  SBAR COMMA plainS |
+  TMOD COMMA plainS |
+  TMOD plainS;
+
+SINV ->
   ADVP VB NP VP |
   PP VP NP VP;
 
-phraseVP :=
+VP ->
   MD VP |
   MD ADVP VP |
   VB |
@@ -106,7 +108,7 @@ phraseVP :=
   ADVP VBG NP |
   VBN;
 
-phraseADJP :=
+ADJP ->
   VB |
   DT JJ CC JJ |
   VBG |
@@ -120,7 +122,7 @@ phraseADJP :=
   ADJP COMMA ADJP COMMA CC ADJP |
   ADJP COMMA ADJP COMMA ADJP COMMA CC ADJP;
 
-phraseNP :=
+NP ->
   DT NN |
   DT NN POS |
   DT NN NN |
@@ -152,46 +154,18 @@ phraseNP :=
   LPAREN NP RPAREN |
   LPAREN NP RPAREN POS;
 
-phrasePP :=
+TMOD -> NP;
+
+PP ->
   preposition |
   preposition NP |
   IN NN;
 
-phraseADVP :=
+ADVP ->
   IN |
   RB |
   RB RB |
   ADVP PP |
   RB CC RB;
-
-SBARQ -> phraseSBARQ;
-
-SBAR -> phraseSBAR;
-
-WHNP -> phraseWHNP;
-
-WHADVP -> phraseWHADVP;
-
-WHADJP -> phraseWHADJP;
-
-WHPP -> phraseWHPP;
-
-SQ -> phraseSQ;
-
-S -> phraseS;
-
-SINV -> phraseSINV;
-
-VP -> phraseVP;
-
-ADJP -> phraseADJP;
-
-NP -> phraseNP;
-
-TMOD -> NP;
-
-PP -> phrasePP;
-
-ADVP -> phraseADVP;
 
 PRT -> RB;

@@ -20,15 +20,16 @@ import java.io._
 
 import SprPennTreebankLabels._
 
-class SprPhrasePatternTrie
+class SprPhrasePatternTrie(
+  symbols : mutable.Map[String, Seq[Seq[String]]] =
+    new mutable.LinkedHashMap[String, Seq[Seq[String]]]
+)
 {
   private val children = new mutable.LinkedHashMap[String, SprPhrasePatternTrie]
 
   private val labels = new mutable.LinkedHashSet[String]
 
   private var maxPatternLength : Int = 1
-
-  private val symbols = new mutable.LinkedHashMap[String, Seq[Seq[String]]]
 
   def foldLabel(label : String) : String =
   {
@@ -125,7 +126,7 @@ class SprPhrasePatternTrie
           addPatternImpl(alternative ++ pattern.tail, label)
         } else {
           val child = children.getOrElseUpdate(alternative.head, {
-            new SprPhrasePatternTrie
+            new SprPhrasePatternTrie(symbols)
           })
           child.addPatternImpl(alternative.tail ++ pattern.tail, label)
         }
