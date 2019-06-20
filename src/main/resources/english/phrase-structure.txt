@@ -1,127 +1,197 @@
-WHNP SQ -> SBARQ
-WHPP SQ -> SBARQ
-WHADVP SQ -> SBARQ
-WHNP S -> SBAR
-IN S -> SBAR
-WHNP PP -> WHNP
-WP -> WHNP
-WHADJP NN -> WHNP
-WHADJP NN NN -> WHNP
-WHADJP NP -> WHNP
-WDT -> WHNP
-WDT NN -> WHNP
-WDT NP -> WHNP
-WP_POS -> WHNP
-WP_POS NP -> WHNP
-WRB -> WHADVP
-WRB JJ -> WHADJP
-IN WHNP -> WHPP
-TO WHNP -> WHPP
-VP -> SQ
-MD ADVP NP VP -> SQ
-MD NP VP -> SQ
-MD NP ADVP VP -> SQ
-VB NP PP -> SQ
-VB NP PP ADJP -> SQ
-VB NP ADJP -> SQ
-VB NP NP -> SQ
-VB NP VP -> SQ
-VB NP ADVP VP -> SQ
-VB NP ADVP NP -> SQ
-VB NP ADVP ADJP -> SQ
-VB NP ADJP PP -> SQ
-VB ADVP NP ADJP -> SQ
-VP -> S
-NP VP -> S
-ADVP NP VP -> S
-SBAR COMMA ADVP NP VP -> S
-SBAR COMMA ADVP ADVP NP VP -> S
-SBAR COMMA NP VP -> S
-TMOD COMMA NP VP -> S
-TMOD NP VP -> S
-PP NP VP -> S
-ADVP VB NP VP -> SINV
-PP VP NP VP -> SINV
-MD VP -> VP
-MD ADVP VP -> VP
-VB -> VP
-VB NP -> VP
-VB NP PP -> VP
-VB NP NP -> VP
-VB NP PRT -> VP
-VB NP PRT PP -> VP
-VB NP ADVP -> VP
-VB NP ADVP PP -> VP
-VB ADVP VP -> VP
-VB ADVP NP -> VP
-VB ADVP ADJP -> VP
-VB ADVP PP -> VP
-VB VP -> VP
-VB PP -> VP
-VB PP TMOD -> VP
-VB PRT NP -> VP
-VB PRT NP ADVP -> VP
-VB ADJP -> VP
-VB ADVP -> VP
-VBG -> VP
-VBG NP -> VP
-VBG ADJP -> VP
-ADVP VB -> VP
-ADVP VB NP -> VP
-ADVP VBG -> VP
-ADVP VBG NP -> VP
-VBN -> VP
-VB -> ADJP
-DT JJ CC JJ -> ADJP
-VBG -> ADJP
-JJ -> ADJP
-JJ CC VBN -> ADJP
-JJ CC JJ -> ADJP
-JJ PP -> ADJP
-ADVP JJ -> ADJP
-VBN -> ADJP
-ADJP CC ADJP -> ADJP
-ADJP COMMA ADJP COMMA CC ADJP -> ADJP
-ADJP COMMA ADJP COMMA ADJP COMMA CC ADJP -> ADJP
-DT NN -> NP
-DT NN POS -> NP
-DT NN NN -> NP
-DT NN NN NN -> NP
-DT NN CC NN -> NP
-DT JJ NN -> NP
-DT JJ NN NN -> NP
-DT JJ JJ NN -> NP
-DT VBN NN -> NP
-NP PP -> NP
-NP PP PP -> NP
-NP NN -> NP
-NP NN POS -> NP
-NP CC NP -> NP
-NP SBAR -> NP
-NP NP -> NP
-NP COMMA NP -> NP
-NP COMMA NP COMMA CC NP -> NP
-PRP -> NP
-NN -> NP
-NN POS -> NP
-NN CC NN -> NP
-NN NN -> NP
-NN NN POS -> NP
-JJ NN -> NP
-PRP_POS -> NP
-PRP_POS NN -> NP
-ADJP NN -> NP
-LPAREN NP RPAREN -> NP
-LPAREN NP RPAREN POS -> NP
-NP -> TMOD
-IN -> PP
-IN NP -> PP
-IN NN -> PP
-TO -> PP
-TO NP -> PP
-IN -> ADVP
-RB -> ADVP
-RB RB -> ADVP
-ADVP PP -> ADVP
-RB CC RB -> ADVP
-RB -> PRT
+// shlurd:  a limited understanding of small worlds
+// Copyright 2017-2018 John V. Sichi
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+preposition :=
+  IN |
+  TO;
+
+phraseSBARQ :=
+  WHNP SQ |
+  WHPP SQ |
+  WHADVP SQ;
+
+phraseSBAR :=
+  WHNP S |
+  IN S;
+
+phraseWHNP :=
+  WHNP PP |
+  WP |
+  WHADJP NP |
+  WDT |
+  WDT NP |
+  WP_POS |
+  WP_POS NP;
+
+phraseWHADVP :=
+  WRB;
+
+phraseWHADJP :=
+ WRB JJ;
+
+phraseWHPP :=
+  preposition WHNP;
+
+phraseSQ :=
+  VP |
+  MD ADVP NP VP |
+  MD NP VP |
+  MD NP ADVP VP |
+  VB NP PP |
+  VB NP PP ADJP |
+  VB NP ADJP |
+  VB NP NP |
+  VB NP VP |
+  VB NP ADVP VP |
+  VB NP ADVP NP |
+  VB NP ADVP ADJP |
+  VB NP ADJP PP |
+  VB ADVP NP ADJP;
+
+phraseS :=
+  VP |
+  NP VP |
+  ADVP NP VP |
+  SBAR COMMA ADVP NP VP |
+  SBAR COMMA ADVP ADVP NP VP |
+  SBAR COMMA NP VP |
+  TMOD COMMA NP VP |
+  TMOD NP VP |
+  PP NP VP;
+
+phraseSINV :=
+  ADVP VB NP VP |
+  PP VP NP VP;
+
+phraseVP :=
+  MD VP |
+  MD ADVP VP |
+  VB |
+  VB NP |
+  VB NP PP |
+  VB NP NP |
+  VB NP PRT |
+  VB NP PRT PP |
+  VB NP ADVP |
+  VB NP ADVP PP |
+  VB ADVP VP |
+  VB ADVP NP |
+  VB ADVP ADJP |
+  VB ADVP PP |
+  VB VP |
+  VB PP |
+  VB PP TMOD |
+  VB PRT NP |
+  VB PRT NP ADVP |
+  VB ADJP |
+  VB ADVP |
+  VBG |
+  VBG NP |
+  VBG ADJP |
+  ADVP VB |
+  ADVP VB NP |
+  ADVP VBG |
+  ADVP VBG NP |
+  VBN;
+
+phraseADJP :=
+  VB |
+  DT JJ CC JJ |
+  VBG |
+  JJ |
+  JJ CC VBN |
+  JJ CC JJ |
+  JJ PP |
+  ADVP JJ |
+  VBN |
+  ADJP CC ADJP |
+  ADJP COMMA ADJP COMMA CC ADJP |
+  ADJP COMMA ADJP COMMA ADJP COMMA CC ADJP;
+
+phraseNP :=
+  DT NN |
+  DT NN POS |
+  DT NN NN |
+  DT NN NN NN |
+  DT NN CC NN |
+  DT JJ NN |
+  DT JJ NN NN |
+  DT JJ JJ NN |
+  DT VBN NN |
+  NP PP |
+  NP PP PP |
+  NP NN |
+  NP NN POS |
+  NP CC NP |
+  NP SBAR |
+  NP NP |
+  NP COMMA NP |
+  NP COMMA NP COMMA CC NP |
+  PRP |
+  NN |
+  NN POS |
+  NN CC NN |
+  NN NN |
+  NN NN POS |
+  JJ NN |
+  PRP_POS |
+  PRP_POS NN |
+  ADJP NN |
+  LPAREN NP RPAREN |
+  LPAREN NP RPAREN POS;
+
+phrasePP :=
+  preposition |
+  preposition NP |
+  IN NN;
+
+phraseADVP :=
+  IN |
+  RB |
+  RB RB |
+  ADVP PP |
+  RB CC RB;
+
+SBARQ -> phraseSBARQ;
+
+SBAR -> phraseSBAR;
+
+WHNP -> phraseWHNP;
+
+WHADVP -> phraseWHADVP;
+
+WHADJP -> phraseWHADJP;
+
+WHPP -> phraseWHPP;
+
+SQ -> phraseSQ;
+
+S -> phraseS;
+
+SINV -> phraseSINV;
+
+VP -> phraseVP;
+
+ADJP -> phraseADJP;
+
+NP -> phraseNP;
+
+TMOD -> NP;
+
+PP -> phrasePP;
+
+ADVP -> phraseADVP;
+
+PRT -> RB;

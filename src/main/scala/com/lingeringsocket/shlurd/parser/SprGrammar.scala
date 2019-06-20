@@ -21,28 +21,58 @@ import scala.io._
 
 object SprGrammar extends StandardTokenParsers
 {
-  case class PhraseRule(pattern : Seq[String], label : String)
+  case class PhraseRule(label : String, pattern : Seq[String])
+
+  case class SymbolRule(symbol : String, alternatives : Seq[Seq[String]])
 
   def arrow = "->"
 
-  def grammar = rule . +
+  def semicolon = ";"
 
-  def rule = pattern ~ arrow ~ label ^^ { case p ~ _ ~ l => PhraseRule(p, l) }
+  def assignment = ":="
 
-  def pattern = label . +
+  def bar = "|"
+
+  def grammar = rep1(rule)
+
+  def rule = phraseRule | alternativeRule
+
+  def phraseRule = label ~ arrow ~ pattern ~ semicolon ^^
+  { case l ~ _ ~ p ~ _ => PhraseRule(l, p) }
+
+  def alternativeRule = symbol ~ assignment ~ alternatives ~ semicolon ^^
+  { case s ~ _ ~ a ~ _ => SymbolRule(s, a) }
+
+  def pattern = rep1(label)
+
+  def alternatives = rep1sep(rep1(label), bar)
 
   def label = ident
 
+  def symbol = ident
+
   override val lexical = new StdLexical {
-    delimiters += arrow
+    delimiters ++= Seq(arrow, semicolon, assignment, bar)
   }
 
   def buildTrie(source : Source, trie : SprPhrasePatternTrie)
   {
     val input = source.getLines.mkString("\n")
-    val rules = phrase(grammar)(new lexical.Scanner(input)).get
-    rules.foreach(rule => {
-      trie.addPattern(rule.pattern, rule.label)
-    })
+    val result = phrase(grammar)(new lexical.Scanner(input))
+    result match {
+      case Success(rules, _) => {
+        rules.foreach {
+          case PhraseRule(label, pattern) => {
+            trie.addPattern(pattern, label)
+          }
+          case SymbolRule(symbol, patterns) => {
+            trie.addSymbol(symbol, patterns)
+          }
+        }
+      }
+      case ns : NoSuccess => {
+        throw new RuntimeException(ns.msg)
+      }
+    }
   }
 }

@@ -28,7 +28,7 @@ class SprPhrasePatternTrie
 
   private var maxPatternLength : Int = 1
 
-  private val symbols = new mutable.LinkedHashMap[String, Seq[String]]
+  private val symbols = new mutable.LinkedHashMap[String, Seq[Seq[String]]]
 
   def foldLabel(label : String) : String =
   {
@@ -110,7 +110,7 @@ class SprPhrasePatternTrie
 
   def addPattern(pattern : Seq[String], label : String)
   {
-    addPatternImpl(expandSymbols(pattern.map(foldLabel)), foldLabel(label))
+    addPatternImpl(pattern.map(foldLabel), foldLabel(label))
   }
 
   private[parser] def addPatternImpl(pattern : Seq[String], label : String)
@@ -118,10 +118,18 @@ class SprPhrasePatternTrie
     if (pattern.isEmpty) {
       labels += label
     } else {
-      val child = children.getOrElseUpdate(pattern.head, {
-        new SprPhrasePatternTrie
+      val symbol = pattern.head
+      val alternatives = symbols.get(symbol).getOrElse(Seq(Seq(symbol)))
+      alternatives.foreach(alternative => {
+        if (symbols.contains(alternative.head)) {
+          addPatternImpl(alternative ++ pattern.tail, label)
+        } else {
+          val child = children.getOrElseUpdate(alternative.head, {
+            new SprPhrasePatternTrie
+          })
+          child.addPatternImpl(alternative.tail ++ pattern.tail, label)
+        }
       })
-      child.addPatternImpl(pattern.tail, label)
     }
     maxPatternLength = {
       if (children.isEmpty) {
@@ -132,16 +140,9 @@ class SprPhrasePatternTrie
     }
   }
 
-  private def addSymbol(symbol : String, pattern : Seq[String])
+  def addSymbol(symbol : String, patterns : Seq[Seq[String]])
   {
-    symbols.put(symbol, pattern)
-  }
-
-  private def expandSymbols(pattern : Seq[String]) : Seq[String] =
-  {
-    pattern.flatMap(component => {
-      symbols.get(component).getOrElse(Seq(component))
-    })
+    symbols.put(symbol, patterns.map(_.map(foldLabel)))
   }
 
   private def dump(pw : PrintWriter, level : Int)
@@ -161,7 +162,7 @@ class SprPhrasePatternTrie
   def exportText(pw : PrintWriter, prefix : String = "")
   {
     labels.foreach(label => {
-      pw.println(s"$prefix -> $label")
+      pw.println(s"$label -> $prefix")
     })
     children.foreach {
       case (label, child) => {
@@ -174,7 +175,7 @@ class SprPhrasePatternTrie
   {
     val sw = new StringWriter
     val pw = new PrintWriter(sw)
-    dump(pw, 0)
+    exportText(pw)
     pw.close
     sw.toString
   }
