@@ -74,21 +74,23 @@ class SprPhrasePatternTrie(
     minLength : Int
   )
   {
-    labels.foreach(label => {
-      if (prefix.size >= minLength) {
+    if (prefix.size >= minLength) {
+      labels.foreach(label => {
         val newTree = SprSyntaxRewriter.recompose(label, prefix)
         map.getOrElseUpdate(
           prefix.size,
           new mutable.HashSet[SprSyntaxTree]
         ) += newTree
-      }
-    })
+      })
+    }
     if ((start < seq.size) && children.nonEmpty) {
       seq(start).foreach(syntaxTree => {
         val label = foldLabel(syntaxTree.label)
         children.get(label).foreach(child => {
-          child.matchPatternsSub(
-            seq, start + 1, map, prefix :+ syntaxTree, minLength)
+          if ((prefix.size + 1 + child.maxPatternLength) >= minLength) {
+            child.matchPatternsSub(
+              seq, start + 1, map, prefix :+ syntaxTree, minLength)
+          }
         })
       })
     }
