@@ -55,7 +55,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
       (s.tam.modality != MODAL_NEUTRAL) || s.tam.isNegative
     ) => {
       val tests = Seq((s.tam.modality != MODAL_NEUTRAL), s.tam.isNegative)
-      val boost = tests.count(truth => truth)
+      val boost = 2 * tests.count(truth => truth)
       SilPhraseScore.numeric(boost * SilPhraseScore.proBig.pro)
     }
   }
@@ -114,6 +114,8 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
       val lemma = sw.toLemma
       if (lemma.toLowerCase == "yesterday") {
         SilPhraseScore.pro(10)
+      } else if (lemma == LEMMA_THERE) {
+        SilPhraseScore.conSmall
       } else {
         usageScore(lemma, POS.ADVERB)
       }
@@ -213,9 +215,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   private def scoreSpecialAdpositions = phraseScorer {
     case ap : SilAdpositionalPhrase => {
       val words = ap.adposition.word.decomposed
-      if ((words.size > 1) && words.exists(
-        _.lemma == LEMMA_THERE)
-      ) {
+      if ((words.size > 1) && words.exists(_.lemma == LEMMA_THERE)) {
         SilPhraseScore.conBig
       } else if (words.exists(_.inflected == LEMMA_ADVERBIAL_TMP)) {
         SilPhraseScore.proBig

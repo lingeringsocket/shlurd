@@ -75,7 +75,7 @@ SQ ->
   VP |
   // "must (not) the werewolf (by the light of the moon) drink blood"
   MD (verbmod) NP (verbmod) VP |
-  // "is (not) the werewolf (now) (in the cage) (alive)"
+  // "is (not) the werewolf (now) (in the cage) (alive) (with fury)"
   VB (verbmod) NP (verbmod) (ADJP) (danglable) |
   // "is (not) the werewolf (thirstily) drinking blood"
   VB (verbmod) NP (verbmod) VP |

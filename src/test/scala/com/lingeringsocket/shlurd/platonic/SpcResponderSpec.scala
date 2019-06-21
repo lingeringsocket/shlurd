@@ -1168,7 +1168,7 @@ class SpcResponderSpec extends Specification
     {
       loadBeliefs("/ontologies/containment.txt")
       processBelief("if an object moves to a location, " +
-        "then subsequently the object is in the location")
+        "then the object is subsequently in the location")
       processBelief("the key is an object")
       processBelief("the pocket is an object")
       processBelief("the purse is an object")

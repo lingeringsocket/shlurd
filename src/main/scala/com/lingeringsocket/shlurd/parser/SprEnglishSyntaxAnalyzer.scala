@@ -988,8 +988,10 @@ class SprEnglishSyntaxAnalyzer(
           // FIXME there are all kinds of other verb modifiers that need to
           // be handled, and that goes for the other predicate types above
           // too!
-          case tmod : SptTMOD if (specifiedState != SilNullState()) => {
-            tupleN((specifiedState, Seq(tmod), SilNullState()))
+          case advp @ (_ : SptTMOD | _ : SptADVP) if (
+            specifiedState != SilNullState()
+          ) => {
+            tupleN((specifiedState, Seq(advp), SilNullState()))
           }
           case _ => {
             val seqState = splitCoordinatingConjunction(seq) match {
