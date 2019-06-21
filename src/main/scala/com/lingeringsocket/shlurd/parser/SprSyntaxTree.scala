@@ -66,6 +66,7 @@ object SprPennTreebankLabels
   val LABEL_MD = "MD"
   val LABEL_RP = "RP"
   val LABEL_CD = "CD"
+  val LABEL_DPP = "DPP"
   val LABEL_TMOD = "TMOD"
   val LABEL_NNQ = "NNQ"
   val LABEL_NNC = "NNC"
@@ -138,7 +139,7 @@ trait SprAbstractSyntaxTree
 
   def isAdverbNode = isAdverbPhrase || isAdverb
 
-  def isAdpositionalPhrase = hasLabel(LABEL_PP)
+  def isAdpositionalPhrase = hasLabel(LABEL_PP) || hasLabel(LABEL_DPP)
 
   def isAdverbialPhrase =
     isAdpositionalPhrase || isAdverbNode || hasLabel(LABEL_TMOD)
@@ -480,7 +481,14 @@ case class SptADVP(children : SprSyntaxTree*)
 case class SptPP(children : SprSyntaxTree*)
     extends SprSyntaxPhrase
 {
-  override def label = LABEL_PP
+  override def label =
+  {
+    if (children.size == 1) {
+      LABEL_DPP
+    } else {
+      LABEL_PP
+    }
+  }
 }
 
 case class SptPRT(children : SprSyntaxTree*)

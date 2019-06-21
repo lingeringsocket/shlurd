@@ -218,7 +218,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
       ) {
         SilPhraseScore.conBig
       } else if (words.exists(_.inflected == LEMMA_ADVERBIAL_TMP)) {
-        SilPhraseScore.proSmall
+        SilPhraseScore.proBig
       } else {
         SilPhraseScore.neutral
       }

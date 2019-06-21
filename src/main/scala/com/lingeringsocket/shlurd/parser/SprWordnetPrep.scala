@@ -169,7 +169,7 @@ object SprWordnetPrep
 
   def runOne()
   {
-    val sentence = "Say \"hello there\" to the thief"
+    val sentence = "Bill  moved to the bedroom this afternoon."
     runAll(Seq(sentence), true)
   }
 }

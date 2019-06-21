@@ -17,6 +17,17 @@ preposition :=
   IN |
   TO;
 
+verbmod :=
+  PP |
+  ADVP;
+
+// DPP is a label we magically synthesize for PP's with one child
+
+danglable :=
+  PP |
+  DPP |
+  ADVP;
+
 SBARQ ->
   // "which dog bit me?"
   WHNP SQ |
@@ -63,22 +74,18 @@ SQ ->
   // "go home"
   VP |
   // "must (not) the werewolf (by the light of the moon) drink blood"
-  MD (ADVP) NP (ADVP) VP |
+  MD (verbmod) NP (verbmod) VP |
   // "is (not) the werewolf (now) (in the cage) (alive)"
-  VB (ADVP) NP (ADVP) (PP) (ADJP) |
+  VB (verbmod) NP (verbmod) (ADJP) (danglable) |
   // "is (not) the werewolf (thirstily) drinking blood"
-  VB (ADVP) NP (ADVP) VP |
+  VB (verbmod) NP (verbmod) VP |
   // "is (not) the werewolf (really) Dan"
-  VB (ADVP) NP (ADVP) NP |
-  // "is (not) the werewolf (now) happy in the cage"
-  VB (ADVP) NP (ADVP) ADJP PP;
+  VB (verbmod) NP (verbmod) NP;
 
 plainS :=
   VP |
-  NP VP |
-  ADVP NP VP |
-  ADVP ADVP NP VP |
-  PP NP VP;
+  (verbmod) NP VP |
+  verbmod verbmod NP VP;
 
 S ->
   plainS |
@@ -91,34 +98,19 @@ SINV ->
   PP VP NP VP;
 
 VP ->
-  MD VP |
-  MD ADVP VP |
-  VB |
-  VB NP |
-  VB NP PP |
+  MD (verbmod) VP |
+  (verbmod) VB (ADVP) (NP) |
+  (verbmod) VB danglable |
   VB NP NP |
-  VB NP PRT |
-  VB NP PRT PP |
-  VB NP ADVP |
-  VB NP ADVP PP |
-  VB ADVP VP |
-  VB ADVP NP |
-  VB ADVP ADJP |
-  VB ADVP PP |
-  VB VP |
-  VB PP |
+  VB NP PRT (dangable) |
+  VB NP danglable (danglable) |
+  VB (verbmod) ADJP |
+  VB verbmod danglable |
+  VB (verbmod) VP |
   VB PP TMOD |
-  VB PRT NP |
-  VB PRT NP ADVP |
-  VB ADJP |
-  VB ADVP |
-  VBG |
-  VBG NP |
+  VB PRT NP (danglable) |
   VBG ADJP |
-  ADVP VB |
-  ADVP VB NP |
-  ADVP VBG |
-  ADVP VBG NP |
+  (verbmod) VBG (NP) |
   VBN;
 
 ADJP ->
@@ -167,17 +159,18 @@ NP ->
   LPAREN NP RPAREN |
   LPAREN NP RPAREN POS;
 
-TMOD -> NP;
+TMOD ->
+  NP;
 
 PP ->
   preposition |
   preposition NP;
 
 ADVP ->
-  IN |
   RB |
   RB RB |
   ADVP PP |
   RB CC RB;
 
-PRT -> RB;
+PRT ->
+  RB;
