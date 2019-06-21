@@ -21,10 +21,12 @@ verbmod :=
   PP |
   ADVP;
 
-// DPP is a label we magically synthesize for PP's with one child
-
-danglable :=
+// verb modifiers that can appear in final position (hence including
+// dangling prepositions)
+verbmodFinal :=
   PP |
+  // DPP is a label we magically synthesize for PP's with a single child
+  // (representing dangling prepositions)
   DPP |
   ADVP;
 
@@ -76,7 +78,7 @@ SQ ->
   // "must (not) the werewolf (by the light of the moon) drink blood"
   MD (verbmod) NP (verbmod) VP |
   // "is (not) the werewolf (now) (in the cage) (alive) (with fury)"
-  VB (verbmod) NP (verbmod) (ADJP) (danglable) |
+  VB (verbmod) NP (verbmod) (ADJP) (verbmodFinal) |
   // "is (not) the werewolf (thirstily) drinking blood"
   VB (verbmod) NP (verbmod) VP |
   // "is (not) the werewolf (really) Dan"
@@ -100,15 +102,15 @@ SINV ->
 VP ->
   MD (verbmod) VP |
   (verbmod) VB (ADVP) (NP) |
-  (verbmod) VB danglable |
+  (verbmod) VB verbmodFinal |
   VB NP NP |
-  VB NP PRT (dangable) |
-  VB NP danglable (danglable) |
+  VB NP PRT (verbmodFinal) |
+  VB NP verbmodFinal (verbmodFinal) |
   VB (verbmod) ADJP |
-  VB verbmod danglable |
+  VB verbmod verbmodFinal |
   VB (verbmod) VP |
   VB PP TMOD |
-  VB PRT NP (danglable) |
+  VB PRT NP (verbmodFinal) |
   VBG ADJP |
   (verbmod) VBG (NP) |
   VBN;
