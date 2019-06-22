@@ -116,21 +116,18 @@ VP ->
   VBN;
 
 adjSimple :=
-  VB |
   VBG |
+  VBN |
   JJ |
-  JJ PP |
-  ADVP JJ |
-  VBN;
+  JJ PP;
 
 adjListElem :=
   adjSimple COMMA;
 
 ADJP ->
   adjSimple |
-  DT JJ CC JJ |
-  adjSimple CC adjSimple |
-  adjListElem (adjListElem)+ CC adjSimple;
+  (DT) adjSimple CC adjSimple |
+  (DT) adjListElem (adjListElem)+ CC adjSimple;
 
 NP ->
   DT NN |
