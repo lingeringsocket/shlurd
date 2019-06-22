@@ -14,20 +14,40 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
+
 import scala.collection._
 
 import java.io._
 
 import SprPennTreebankLabels._
 
+object SprPhrasePatternTrie
+{
+  val CYCLE_INFINITY = 100000
+
+  case class CycleLinker(
+    trie : SprPhrasePatternTrie,
+    firstTrie : Option[SprPhrasePatternTrie]
+  )
+  {
+  }
+}
+
 class SprPhrasePatternTrie(
   symbols : mutable.Map[String, Seq[Seq[String]]] =
     new mutable.LinkedHashMap[String, Seq[Seq[String]]]
 )
 {
+  import SprPhrasePatternTrie._
+
   private val children = new mutable.LinkedHashMap[String, SprPhrasePatternTrie]
 
   private val labels = new mutable.LinkedHashSet[String]
+
+  private var cycleStart : Boolean = false
+
+  private val cycleLinks = new mutable.HashSet[SprPhrasePatternTrie]
 
   private var maxPatternLength : Int = 1
 
@@ -92,6 +112,10 @@ class SprPhrasePatternTrie(
               seq, start + 1, map, prefix :+ syntaxTree, minLength)
           }
         })
+        children.get("+").foreach(child => {
+          child.matchPatternsSub(
+            seq, start, map, prefix, minLength)
+        })
       })
     }
   }
@@ -108,52 +132,101 @@ class SprPhrasePatternTrie(
     }
     addFoldedPattern(
       pattern,
-      foldLabel(syntaxTree.label))
+      foldLabel(syntaxTree.label),
+      None)
   }
 
   def addPattern(pattern : Seq[String], label : String)
   {
-    addFoldedPattern(pattern.map(foldLabel), foldLabel(label))
+    addFoldedPattern(pattern.map(foldLabel), foldLabel(label), None)
   }
 
-  private[parser] def addFoldedPattern(pattern : Seq[String], label : String)
+  private[parser] def addFoldedPattern(
+    pattern : Seq[String],
+    label : String,
+    cycleLinker : Option[CycleLinker])
   {
-    val iMarker = pattern.indexOf("?")
-    if (iMarker == -1) {
-      addUnrolledPattern(pattern, label)
+    val iOptional = pattern.indexOf("?")
+    if (iOptional == -1) {
+      addUnrolledPattern(pattern, label, cycleLinker)
     } else {
       addFoldedPattern(
-        pattern.take(iMarker) ++ pattern.drop(iMarker + 1),
-        label)
+        pattern.take(iOptional) ++ pattern.drop(iOptional + 1),
+        label,
+        cycleLinker)
       addFoldedPattern(
-        pattern.take(iMarker - 1) ++ pattern.drop(iMarker + 1),
-        label)
+        pattern.take(iOptional - 1) ++ pattern.drop(iOptional + 1),
+        label,
+        cycleLinker)
     }
-  }
+}
 
-  private[parser] def addUnrolledPattern(pattern : Seq[String], label : String)
+  private[parser] def addUnrolledPattern(
+    pattern : Seq[String],
+    label : String,
+    cycleLinker : Option[CycleLinker])
   {
     if (pattern.isEmpty) {
       labels += label
     } else {
       val symbol = pattern.head
-      val alternatives = symbols.get(symbol).getOrElse(Seq(Seq(symbol)))
-      alternatives.foreach(alternative => {
-        if (symbols.contains(alternative.head)) {
-          addFoldedPattern(alternative ++ pattern.tail, label)
-        } else {
-          val child = children.getOrElseUpdate(alternative.head, {
-            new SprPhrasePatternTrie(symbols)
-          })
-          child.addFoldedPattern(alternative.tail ++ pattern.tail, label)
+      val patternTail = pattern.tail
+      if (symbol == "-") {
+        assert(cycleLinker.nonEmpty)
+        val cycleTrie = cycleLinker.get.trie
+        assert(!children.contains("+"))
+        cycleTrie.cycleLinks += this
+        children.put("+", cycleTrie)
+        addUnrolledPattern(patternTail, label, None)
+      } else {
+        val (remainder, newLinker, insert) = patternTail.headOption match {
+          case Some("+") => {
+            assert(cycleLinker.isEmpty)
+            val cycleTrie = new SprPhrasePatternTrie(symbols)
+            tupleN((patternTail.tail,
+              Some(CycleLinker(cycleTrie, Some(cycleTrie))), Seq("-")))
+          }
+          case _ => {
+            tupleN((patternTail, cycleLinker, Seq.empty))
+          }
         }
-      })
+        val alternatives = symbols.get(symbol).getOrElse(Seq(Seq(symbol)))
+        alternatives.foreach(alternative => {
+          if (symbols.contains(alternative.head) || alternative.contains("+")) {
+            addFoldedPattern(
+              alternative ++ insert ++ remainder, label, newLinker)
+          } else {
+            val child = children.getOrElseUpdate(alternative.head, {
+              new SprPhrasePatternTrie(symbols)
+            })
+            val childLinker = newLinker match {
+              case Some(CycleLinker(trie, Some(firstTrie))) => {
+                child.cycleStart = true
+                firstTrie.children.put(alternative.head, child)
+                Some(CycleLinker(trie, None))
+              }
+              case _ => newLinker
+            }
+            child.addFoldedPattern(
+              alternative.tail ++ insert ++ remainder, label, childLinker)
+          }
+        })
+      }
     }
     maxPatternLength = {
-      if (children.isEmpty) {
-        1
+      if (cycleLinker.nonEmpty) {
+        CYCLE_INFINITY
       } else {
-        1 + children.values.map(_.getMaxPatternLength).max
+        if (children.isEmpty) {
+          1
+        } else {
+          val childMax = children.values.map(_.getMaxPatternLength).max
+          if (childMax == CYCLE_INFINITY) {
+            CYCLE_INFINITY
+          } else {
+            1 + childMax
+          }
+        }
       }
     }
   }
@@ -168,13 +241,19 @@ class SprPhrasePatternTrie(
     val prefix = "  " * level
     pw.print(prefix)
     pw.println(s"LABELS:  $labels")
-    children.foreach({
-      case (label, child) => {
-        pw.print(prefix)
-        pw.println(s"CHILD:  $label")
-        child.dump(pw, level + 1)
-      }
-    })
+    if (cycleLinks.isEmpty) {
+      children.foreach({
+        case (label, child) => {
+          pw.print(prefix)
+          if (child.cycleLinks.contains(this)) {
+            pw.println(s"CYCLE:  " + child.children.keys)
+          } else {
+            pw.println(s"CHILD:  $label")
+            child.dump(pw, level + 1)
+          }
+        }
+      })
+    }
   }
 
   def exportText(pw : PrintWriter, prefix : String = "")
@@ -182,9 +261,18 @@ class SprPhrasePatternTrie(
     labels.foreach(label => {
       pw.println(s"$label -> $prefix")
     })
+    val anyCycle = children.keySet.contains("+")
     children.foreach {
       case (label, child) => {
-        child.exportText(pw, s"$prefix $label")
+        if (!child.cycleLinks.contains(this)) {
+          if (child.cycleStart) {
+            child.exportText(pw, s"$prefix ($label")
+          } else if (anyCycle) {
+            child.exportText(pw, s"$prefix)+ $label")
+          } else {
+            child.exportText(pw, s"$prefix $label")
+          }
+        }
       }
     }
   }

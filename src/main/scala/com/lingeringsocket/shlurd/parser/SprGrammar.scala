@@ -37,6 +37,8 @@ object SprGrammar extends StandardTokenParsers
 
   def rparen = ")"
 
+  def plus = "+"
+
   def grammar = rep1(rule)
 
   def rule = phraseRule | alternativeRule
@@ -52,6 +54,7 @@ object SprGrammar extends StandardTokenParsers
   def alternatives = rep1sep(pattern, bar)
 
   def component = label ^^ { case l => Seq(l) } |
+    (lparen ~ label ~ rparen ~ plus ^^ { case _ ~ l ~ _ ~ _=> Seq(l, "+") }) |
     (lparen ~ label ~ rparen ^^ { case _ ~ l ~ _ => Seq(l, "?") })
 
   def label = ident
@@ -59,7 +62,8 @@ object SprGrammar extends StandardTokenParsers
   def symbol = ident
 
   override val lexical = new StdLexical {
-    delimiters ++= Seq(arrow, semicolon, assignment, bar, lparen, rparen)
+    delimiters ++= Seq(
+      arrow, semicolon, assignment, bar, lparen, rparen, plus)
   }
 
   def buildTrie(source : Source, trie : SprPhrasePatternTrie)

@@ -188,9 +188,11 @@ class SpcOpenhabCosmosSpec extends Specification
         "is any light in the guest bedroom on the first floor off",
         "Please be more specific about which bedroom you mean.")
 
-      process(
-        "is any guest bedroom light on the first floor off",
-        "Yes, the guest bedroom nightstand light is off.")
+      if (!SprParser.isCoreNLP) {
+        process(
+          "is any guest bedroom light on the first floor off",
+          "Yes, the guest bedroom nightstand light is off.")
+      }
       process(
         "is any light in any bedroom off",
         "Yes, the guest bedroom nightstand light is off.")

@@ -115,19 +115,22 @@ VP ->
   (verbmod) VBG (NP) |
   VBN;
 
-ADJP ->
+adjSimple :=
   VB |
-  DT JJ CC JJ |
   VBG |
   JJ |
-  JJ CC VBN |
-  JJ CC JJ |
   JJ PP |
   ADVP JJ |
-  VBN |
-  ADJP CC ADJP |
-  ADJP COMMA ADJP COMMA CC ADJP |
-  ADJP COMMA ADJP COMMA ADJP COMMA CC ADJP;
+  VBN;
+
+adjListElem :=
+  adjSimple COMMA;
+
+ADJP ->
+  adjSimple |
+  DT JJ CC JJ |
+  adjSimple CC adjSimple |
+  adjListElem (adjListElem)+ CC adjSimple;
 
 NP ->
   DT NN |

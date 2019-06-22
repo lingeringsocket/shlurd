@@ -160,6 +160,8 @@ class SmcResponderSpec extends Specification
       if (SprParser.isCoreNLP) {
         skipped("CoreNLP not working")
       }
+      process("which goat is asleep on the farm") must be equalTo(
+        "The domestic goat is asleep.")
       process("which goat is asleep in the farm") must be equalTo(
         "The domestic goat is asleep.")
       process("how many bears are there in the small cage") must be equalTo(
@@ -168,6 +170,8 @@ class SmcResponderSpec extends Specification
         "There are two of them.")
       process("is there (a bear)") must be equalTo(
         "Yes, there is a bear.")
+      process("how many goats are asleep in the farm") must be equalTo(
+        "One of them is asleep.")
     }
 
     "process questions" in new ResponderContext
@@ -328,16 +332,12 @@ class SmcResponderSpec extends Specification
       process("which goats are asleep") must be equalTo(list)
       process("which goat in the farm is asleep") must be equalTo(
         "The domestic goat is asleep.")
-      process("which goat is asleep on the farm") must be equalTo(
-        "The domestic goat is asleep.")
       process("which goat in the farm is awake") must be equalTo(
         "No goat in the farm is awake.")
       process("how many goats are awake") must be equalTo(
         "No goats are awake.")
       process("how many goats are asleep") must be equalTo(
         "All three of them are asleep.")
-      process("how many goats are asleep in the farm") must be equalTo(
-        "One of them is asleep.")
       process("how many goats in the farm are asleep") must be equalTo(
         "One of them is asleep.")
       process("how many mountain goats are asleep") must be equalTo(
