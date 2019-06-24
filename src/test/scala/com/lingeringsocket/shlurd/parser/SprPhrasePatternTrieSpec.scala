@@ -146,5 +146,17 @@ class SprPhrasePatternTrieSpec extends Specification
         1 -> Set(SptS(vp))
       ))
     }
+
+    "prevent unknown labels" in
+    {
+      val unknown = "unknown"
+      val trie = new SprPhrasePatternTrie
+      trie.addPattern(Seq(unknown), S) must
+        throwA[IllegalArgumentException]
+      trie.addPattern(Seq(NP, VP), unknown) must
+        throwA[IllegalArgumentException]
+      trie.addSymbol(sentence, Seq(Seq(unknown))) must
+        throwA[IllegalArgumentException]
+    }
   }
 }

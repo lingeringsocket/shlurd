@@ -18,70 +18,80 @@ import scala.collection._
 
 object SprPennTreebankLabels
 {
-  val LABEL_ROOT = "ROOT"
-  val LABEL_AMBIGUOUS = "AMBIGUOUS"
-  val LABEL_S = "S"
-  val LABEL_SINV = "SINV"
-  val LABEL_SBAR = "SBAR"
-  val LABEL_SBARQ = "SBARQ"
-  val LABEL_NP = "NP"
-  val LABEL_VP = "VP"
-  val LABEL_ADJP = "ADJP"
-  val LABEL_ADVP = "ADVP"
-  val LABEL_PP = "PP"
-  val LABEL_PRT = "PRT"
-  val LABEL_SQ = "SQ"
-  val LABEL_WHNP = "WHNP"
-  val LABEL_WHPP = "WHPP"
-  val LABEL_WHADJP = "WHADJP"
-  val LABEL_WHADVP = "WHADVP"
-  val LABEL_WDT = "WDT"
-  val LABEL_WP = "WP"
-  val LABEL_WP_POS = "WP$"
-  val LABEL_WRB = "WRB"
-  val LABEL_NN = "NN"
-  val LABEL_NNS = "NNS"
-  val LABEL_NNP = "NNP"
-  val LABEL_NNPS = "NNPS"
-  val LABEL_VB = "VB"
-  val LABEL_VBZ = "VBZ"
-  val LABEL_VBP = "VBP"
-  val LABEL_VBD = "VBD"
-  val LABEL_VBG = "VBG"
-  val LABEL_VBN = "VBN"
-  val LABEL_EX = "EX"
-  val LABEL_DT = "DT"
-  val LABEL_CC = "CC"
-  val LABEL_PRP = "PRP"
-  val LABEL_PRP_POS = "PRP$"
-  val LABEL_JJ = "JJ"
-  val LABEL_JJR = "JJR"
-  val LABEL_JJS = "JJS"
-  val LABEL_RB = "RB"
-  val LABEL_RBR = "RBR"
-  val LABEL_RBS = "RBS"
-  val LABEL_IN = "IN"
-  val LABEL_TO = "TO"
-  val LABEL_POS = "POS"
-  val LABEL_MD = "MD"
-  val LABEL_RP = "RP"
-  val LABEL_CD = "CD"
-  val LABEL_DPP = "DPP"
-  val LABEL_TMOD = "TMOD"
-  val LABEL_NNQ = "NNQ"
-  val LABEL_NNC = "NNC"
-  val LABEL_RBC = "RBC"
-  val LABEL_VBC = "VBC"
+  private val all = new mutable.LinkedHashSet[String]
 
-  val LABEL_COMMA = ","
-  val LABEL_SEMICOLON = ";"
-  val LABEL_DOT = "."
-  val LABEL_QUESTION_MARK = "?"
-  val LABEL_EXCLAMATION_MARK = "!"
-  val LABEL_LQUOTE = "``"
-  val LABEL_RQUOTE = "''"
-  val LABEL_LPAREN = "-LRB-"
-  val LABEL_RPAREN = "-RRB-"
+  private def label(s : String) : String =
+  {
+    all += s
+    s
+  }
+
+  def getAll : Set[String] = all
+
+  val LABEL_ROOT = label("ROOT")
+  val LABEL_AMBIGUOUS = label("AMBIGUOUS")
+  val LABEL_S = label("S")
+  val LABEL_SINV = label("SINV")
+  val LABEL_SBAR = label("SBAR")
+  val LABEL_SBARQ = label("SBARQ")
+  val LABEL_NP = label("NP")
+  val LABEL_VP = label("VP")
+  val LABEL_ADJP = label("ADJP")
+  val LABEL_ADVP = label("ADVP")
+  val LABEL_PP = label("PP")
+  val LABEL_PRT = label("PRT")
+  val LABEL_SQ = label("SQ")
+  val LABEL_WHNP = label("WHNP")
+  val LABEL_WHPP = label("WHPP")
+  val LABEL_WHADJP = label("WHADJP")
+  val LABEL_WHADVP = label("WHADVP")
+  val LABEL_WDT = label("WDT")
+  val LABEL_WP = label("WP")
+  val LABEL_WP_POS = label("WP$")
+  val LABEL_WRB = label("WRB")
+  val LABEL_NN = label("NN")
+  val LABEL_NNS = label("NNS")
+  val LABEL_NNP = label("NNP")
+  val LABEL_NNPS = label("NNPS")
+  val LABEL_VB = label("VB")
+  val LABEL_VBZ = label("VBZ")
+  val LABEL_VBP = label("VBP")
+  val LABEL_VBD = label("VBD")
+  val LABEL_VBG = label("VBG")
+  val LABEL_VBN = label("VBN")
+  val LABEL_EX = label("EX")
+  val LABEL_DT = label("DT")
+  val LABEL_CC = label("CC")
+  val LABEL_PRP = label("PRP")
+  val LABEL_PRP_POS = label("PRP$")
+  val LABEL_JJ = label("JJ")
+  val LABEL_JJR = label("JJR")
+  val LABEL_JJS = label("JJS")
+  val LABEL_RB = label("RB")
+  val LABEL_RBR = label("RBR")
+  val LABEL_RBS = label("RBS")
+  val LABEL_IN = label("IN")
+  val LABEL_TO = label("TO")
+  val LABEL_POS = label("POS")
+  val LABEL_MD = label("MD")
+  val LABEL_RP = label("RP")
+  val LABEL_CD = label("CD")
+  val LABEL_DPP = label("DPP")
+  val LABEL_TMOD = label("TMOD")
+  val LABEL_NNQ = label("NNQ")
+  val LABEL_NNC = label("NNC")
+  val LABEL_RBC = label("RBC")
+  val LABEL_VBC = label("VBC")
+
+  val LABEL_COMMA = label(",")
+  val LABEL_SEMICOLON = label(";")
+  val LABEL_DOT = label(".")
+  val LABEL_QUESTION_MARK = label("?")
+  val LABEL_EXCLAMATION_MARK = label("!")
+  val LABEL_LQUOTE = label("``")
+  val LABEL_RQUOTE = label("''")
+  val LABEL_LPAREN = label("-LRB-")
+  val LABEL_RPAREN = label("-RRB-")
 }
 
 import SprPennTreebankLabels._

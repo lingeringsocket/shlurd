@@ -21,6 +21,8 @@ import scala.io._
 
 object SprGrammar extends StandardTokenParsers
 {
+  import SprPhrasePatternTrie._
+
   case class PhraseRule(label : String, alternatives : Seq[Seq[String]])
 
   case class SymbolRule(symbol : String, alternatives : Seq[Seq[String]])
@@ -37,7 +39,11 @@ object SprGrammar extends StandardTokenParsers
 
   def rparen = ")"
 
-  def plus = "+"
+  def plus = ONE_OR_MORE
+
+  def star = ZERO_OR_MORE
+
+  def optional = ZERO_OR_ONE
 
   def grammar = rep1(rule)
 
@@ -54,8 +60,12 @@ object SprGrammar extends StandardTokenParsers
   def alternatives = rep1sep(pattern, bar)
 
   def component = label ^^ { case l => Seq(l) } |
-    (lparen ~ label ~ rparen ~ plus ^^ { case _ ~ l ~ _ ~ _=> Seq(l, "+") }) |
-    (lparen ~ label ~ rparen ^^ { case _ ~ l ~ _ => Seq(l, "?") })
+    (lparen ~ label ~ rparen ~ quantifier ^^
+      { case _ ~ l ~ _ ~ q => Seq(l, q) }) |
+    (lparen ~ label ~ rparen ^^
+      { case _ ~ l ~ _ => Seq(l, optional) })
+
+  def quantifier = plus | star
 
   def label = ident
 
@@ -63,7 +73,7 @@ object SprGrammar extends StandardTokenParsers
 
   override val lexical = new StdLexical {
     delimiters ++= Seq(
-      arrow, semicolon, assignment, bar, lparen, rparen, plus)
+      arrow, semicolon, assignment, bar, lparen, rparen, plus, star, optional)
   }
 
   def buildTrie(source : Source, trie : SprPhrasePatternTrie)
