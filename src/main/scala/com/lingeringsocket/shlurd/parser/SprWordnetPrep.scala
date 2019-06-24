@@ -62,17 +62,17 @@ object SprWordnetPrep
     parserCache.keys.map(_.sentence).toSet
   }
 
-  def buildTrie()
+  def buildMatcher()
   {
-    val trie = new SprPhrasePatternTrie
-    def addToTrie(syntaxTree : SprSyntaxTree)
+    val matcher = new SprPhrasePatternMatcher
+    def addToMatcher(syntaxTree : SprSyntaxTree)
     {
       syntaxTree match {
         case _ : SprSyntaxLeaf  =>
         case _ : SprSyntaxPreTerminal =>
         case _ => {
-          trie.addPattern(syntaxTree)
-          syntaxTree.children.foreach(addToTrie)
+          matcher.addPattern(syntaxTree)
+          syntaxTree.children.foreach(addToMatcher)
         }
       }
     }
@@ -82,15 +82,15 @@ object SprWordnetPrep
       val sil = parser.parseOne
       if (!sil.hasUnknown) {
         sil.maybeSyntaxTree.foreach(syntaxTree => {
-          addToTrie(syntaxTree)
+          addToMatcher(syntaxTree)
         })
       }
     })
-    println("TRIE = " + trie)
+    println("PATTERN MATCHER = " + matcher)
     val fw = new FileWriter("src/main/resources/english/phrase-structure.txt")
     try {
       val pw = new PrintWriter(fw)
-      trie.exportText(pw)
+      matcher.exportText(pw)
       pw.close
     } finally {
       fw.close

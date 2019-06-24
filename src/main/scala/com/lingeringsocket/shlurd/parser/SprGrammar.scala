@@ -21,7 +21,7 @@ import scala.io._
 
 object SprGrammar extends StandardTokenParsers
 {
-  import SprPhrasePatternTrie._
+  import SprPhrasePatternMatcher._
 
   case class PhraseRule(label : String, alternatives : Seq[Seq[String]])
 
@@ -76,7 +76,7 @@ object SprGrammar extends StandardTokenParsers
       arrow, semicolon, assignment, bar, lparen, rparen, plus, star, optional)
   }
 
-  def buildTrie(source : Source, trie : SprPhrasePatternTrie)
+  def buildMatcher(source : Source, matcher : SprPhrasePatternMatcher)
   {
     val input = source.getLines.mkString("\n")
     val result = phrase(grammar)(new lexical.Scanner(input))
@@ -85,11 +85,11 @@ object SprGrammar extends StandardTokenParsers
         rules.foreach {
           case PhraseRule(label, alternatives) => {
             alternatives.foreach(alternative => {
-              trie.addPattern(alternative, label)
+              matcher.addPattern(alternative, label)
             })
           }
           case SymbolRule(symbol, patterns) => {
-            trie.addSymbol(symbol, patterns)
+            matcher.addSymbol(symbol, patterns)
           }
         }
       }

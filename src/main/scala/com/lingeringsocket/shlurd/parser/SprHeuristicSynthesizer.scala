@@ -76,15 +76,15 @@ object SprHeuristicSynthesizer extends SprEnglishWordAnalyzer
 
   val specialCasing = Set("I", LABEL_LPAREN, LABEL_RPAREN)
 
-  lazy val phrasePatternTrie = loadTrie
+  lazy val phrasePatternMatcher = loadMatcher
 
-  private def loadTrie() =
+  private def loadMatcher() =
   {
-    val trie = new SprPhrasePatternTrie
+    val matcher = new SprPhrasePatternMatcher
     val source = ResourceUtils.getResourceSource(
       "/english/phrase-structure.txt")
-    SprGrammar.buildTrie(source, trie)
-    trie
+    SprGrammar.buildMatcher(source, matcher)
+    matcher
   }
 
   def maybeLowerCase(word : String) : String =
@@ -179,9 +179,9 @@ class SprHeuristicSynthesizer(
 
   private val tokens = words.map(maybeLowerCase)
 
-  private val trie = phrasePatternTrie
+  private val patternMatcher = phrasePatternMatcher
 
-  private val maxPatternLength = trie.getMaxPatternLength
+  private val maxPatternLength = patternMatcher.getMaxPatternLength
 
   private val phraseGraph = SprPhraseGraph()
 
@@ -394,7 +394,7 @@ class SprHeuristicSynthesizer(
     val startUpperBound = iActive + 1
     range(startLowerBound until startUpperBound).foreach(start => {
       val minLength = startUpperBound - start
-      trie.matchPatterns(setSeq, start, minLength).foreach({
+      patternMatcher.matchPatterns(setSeq, start, minLength).foreach({
         case (length, replacementSet) => {
           assert(length >= minLength)
           val span = range(

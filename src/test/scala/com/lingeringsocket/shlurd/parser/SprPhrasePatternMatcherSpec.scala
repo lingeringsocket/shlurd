@@ -18,7 +18,7 @@ import org.specs2.mutable._
 
 import scala.collection._
 
-object SprPhrasePatternTrieSpec
+object SprPhrasePatternMatcherSpec
 {
   val leaf = SprSyntaxLeaf("", "", "")
   val jj = SptJJ(leaf)
@@ -49,100 +49,100 @@ object SprPhrasePatternTrieSpec
   val sentence = "sentence"
 }
 
-class SprPhrasePatternTrieSpec extends Specification
+class SprPhrasePatternMatcherSpec extends Specification
 {
-  import SprPhrasePatternTrieSpec._
+  import SprPhrasePatternMatcherSpec._
 
   private def simpleSeq(trees : SprSyntaxTree*) : Seq[Set[SprSyntaxTree]] =
   {
     trees.map(Set(_))
   }
 
-  "SprPhrasePatternTrie" should
+  "SprPhrasePatternMatcher" should
   {
     "match simple patterns" in
     {
-      val trie = new SprPhrasePatternTrie
-      trie.addPattern(Seq(NP, VP), S)
-      trie.addPattern(Seq(VP, NP), SINV)
-      trie.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addPattern(Seq(NP, VP), S)
+      matcher.addPattern(Seq(VP, NP), SINV)
+      matcher.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
         2 -> Set(sNpVp)
       ))
-      trie.matchPatterns(simpleSeq(np, np), 0) must beEmpty
-      trie.matchPatterns(simpleSeq(vp, np), 0) must be equalTo(Map(
+      matcher.matchPatterns(simpleSeq(np, np), 0) must beEmpty
+      matcher.matchPatterns(simpleSeq(vp, np), 0) must be equalTo(Map(
         2 -> Set(sinv)
       ))
     }
 
     "match middle of pattern" in
     {
-      val trie = new SprPhrasePatternTrie
-      trie.addPattern(Seq(NP, VP), S)
-      trie.matchPatterns(simpleSeq(tmod, np, vp), 1) must be equalTo(Map(
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addPattern(Seq(NP, VP), S)
+      matcher.matchPatterns(simpleSeq(tmod, np, vp), 1) must be equalTo(Map(
         2 -> Set(sNpVp)
       ))
     }
 
     "match ambiguous patterns" in
     {
-      val trie = new SprPhrasePatternTrie
-      trie.addPattern(Seq(NP, VP), S)
-      trie.addPattern(Seq(NP, VP), SINV)
-      trie.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addPattern(Seq(NP, VP), S)
+      matcher.addPattern(Seq(NP, VP), SINV)
+      matcher.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
         2 -> Set(sNpVp, SptSINV(np, vp))
       ))
     }
 
     "match patterns with optional constituents" in
     {
-      val trie = new SprPhrasePatternTrie
-      trie.addPattern(Seq(TMOD, OPTIONAL, NP, VP), S)
-      trie.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addPattern(Seq(TMOD, OPTIONAL, NP, VP), S)
+      matcher.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
         2 -> Set(sNpVp)
       ))
-      trie.matchPatterns(simpleSeq(tmod, np, vp), 0) must be equalTo(Map(
+      matcher.matchPatterns(simpleSeq(tmod, np, vp), 0) must be equalTo(Map(
         3 -> Set(sTmodNpVp)
       ))
-      trie.matchPatterns(simpleSeq(tmod, tmod, np, vp), 0) must be beEmpty
+      matcher.matchPatterns(simpleSeq(tmod, tmod, np, vp), 0) must be beEmpty
     }
 
     "match patterns with Kleene star" in
     {
-      val trie = new SprPhrasePatternTrie
-      trie.addPattern(Seq(JJ, KLEENE, NN), NP)
-      trie.matchPatterns(simpleSeq(nn), 0) must be equalTo(Map(
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addPattern(Seq(JJ, KLEENE, NN), NP)
+      matcher.matchPatterns(simpleSeq(nn), 0) must be equalTo(Map(
         1 -> Set(SptNP(nn))
       ))
-      trie.matchPatterns(simpleSeq(jj, nn), 0) must be equalTo(Map(
+      matcher.matchPatterns(simpleSeq(jj, nn), 0) must be equalTo(Map(
         2 -> Set(np)
       ))
-      trie.matchPatterns(simpleSeq(jj, jj, nn), 0) must be equalTo(Map(
+      matcher.matchPatterns(simpleSeq(jj, jj, nn), 0) must be equalTo(Map(
         3 -> Set(SptNP(jj, jj, nn))
       ))
     }
 
     "match patterns with repeat constituents" in
     {
-      val trie = new SprPhrasePatternTrie
-      trie.addPattern(Seq(JJ, REPEAT, NN), NP)
-      trie.matchPatterns(simpleSeq(nn), 0) must beEmpty
-      trie.matchPatterns(simpleSeq(jj, nn), 0) must be equalTo(Map(
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addPattern(Seq(JJ, REPEAT, NN), NP)
+      matcher.matchPatterns(simpleSeq(nn), 0) must beEmpty
+      matcher.matchPatterns(simpleSeq(jj, nn), 0) must be equalTo(Map(
         2 -> Set(np)
       ))
-      trie.matchPatterns(simpleSeq(jj, jj, nn), 0) must be equalTo(Map(
+      matcher.matchPatterns(simpleSeq(jj, jj, nn), 0) must be equalTo(Map(
         3 -> Set(SptNP(jj, jj, nn))
       ))
     }
 
     "match patterns defined via symbols" in
     {
-      val trie = new SprPhrasePatternTrie
-      trie.addSymbol(sentence, Seq(Seq(NP, VP), Seq(VP)))
-      trie.addPattern(Seq(sentence), S)
-      trie.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addSymbol(sentence, Seq(Seq(NP, VP), Seq(VP)))
+      matcher.addPattern(Seq(sentence), S)
+      matcher.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
         2 -> Set(sNpVp)
       ))
-      trie.matchPatterns(simpleSeq(vp), 0) must be equalTo(Map(
+      matcher.matchPatterns(simpleSeq(vp), 0) must be equalTo(Map(
         1 -> Set(SptS(vp))
       ))
     }
@@ -150,12 +150,12 @@ class SprPhrasePatternTrieSpec extends Specification
     "prevent unknown labels" in
     {
       val unknown = "unknown"
-      val trie = new SprPhrasePatternTrie
-      trie.addPattern(Seq(unknown), S) must
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addPattern(Seq(unknown), S) must
         throwA[IllegalArgumentException]
-      trie.addPattern(Seq(NP, VP), unknown) must
+      matcher.addPattern(Seq(NP, VP), unknown) must
         throwA[IllegalArgumentException]
-      trie.addSymbol(sentence, Seq(Seq(unknown))) must
+      matcher.addSymbol(sentence, Seq(Seq(unknown))) must
         throwA[IllegalArgumentException]
     }
   }
