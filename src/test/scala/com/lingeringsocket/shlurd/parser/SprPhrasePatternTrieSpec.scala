@@ -44,6 +44,7 @@ object SprPhrasePatternTrieSpec
 
   val OPTIONAL = "?"
   val REPEAT = "+"
+  val KLEENE = "*"
 
   val sentence = "sentence"
 }
@@ -92,7 +93,7 @@ class SprPhrasePatternTrieSpec extends Specification
       ))
     }
 
-    "match optional constituents" in
+    "match patterns with optional constituents" in
     {
       val trie = new SprPhrasePatternTrie
       trie.addPattern(Seq(TMOD, OPTIONAL, NP, VP), S)
@@ -105,7 +106,22 @@ class SprPhrasePatternTrieSpec extends Specification
       trie.matchPatterns(simpleSeq(tmod, tmod, np, vp), 0) must be beEmpty
     }
 
-    "match repeat constituents" in
+    "match patterns with Kleene star" in
+    {
+      val trie = new SprPhrasePatternTrie
+      trie.addPattern(Seq(JJ, KLEENE, NN), NP)
+      trie.matchPatterns(simpleSeq(nn), 0) must be equalTo(Map(
+        1 -> Set(SptNP(nn))
+      ))
+      trie.matchPatterns(simpleSeq(jj, nn), 0) must be equalTo(Map(
+        2 -> Set(np)
+      ))
+      trie.matchPatterns(simpleSeq(jj, jj, nn), 0) must be equalTo(Map(
+        3 -> Set(SptNP(jj, jj, nn))
+      ))
+    }
+
+    "match patterns with repeat constituents" in
     {
       val trie = new SprPhrasePatternTrie
       trie.addPattern(Seq(JJ, REPEAT, NN), NP)

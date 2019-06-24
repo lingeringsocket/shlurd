@@ -146,12 +146,20 @@ class SprPhrasePatternTrie(
     label : String,
     cycleLinker : Option[CycleLinker])
   {
-    val iOptional = pattern.indexOf("?")
+    val iOptional = pattern.indexWhere(Seq("?", "*").contains)
     if (iOptional == -1) {
       addUnrolledPattern(pattern, label, cycleLinker)
     } else {
+      val isStar = pattern(iOptional) == "*"
+      val infix = {
+        if (isStar) {
+          Seq("+")
+        } else {
+          Seq.empty
+        }
+      }
       addFoldedPattern(
-        pattern.take(iOptional) ++ pattern.drop(iOptional + 1),
+        pattern.take(iOptional) ++ infix ++ pattern.drop(iOptional + 1),
         label,
         cycleLinker)
       addFoldedPattern(
