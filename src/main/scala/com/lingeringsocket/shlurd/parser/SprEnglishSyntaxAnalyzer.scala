@@ -537,6 +537,9 @@ class SprEnglishSyntaxAnalyzer(
     // FIXME:  representation for double negatives?
     val negative = negativeSuper ^ negativeSub
     val verbHead = vpChildren.head
+    if (!verbHead.isVerbNode && !verbHead.isModal) {
+      return SilUnrecognizedSentence(tree)
+    }
     val tamTensed = extractTense(verbHead, tam)
     val (progressive, iVerb) = detectProgressive(vpChildren)
     if ((verbHead.isModal || progressive)) {

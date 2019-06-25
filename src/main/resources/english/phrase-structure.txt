@@ -13,22 +13,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-preposition :=
-  IN |
-  TO;
-
 verbmod :=
+  // "in the morning"
   PP |
+  // "swiftly and efficiently"
   ADVP;
 
-// verb modifiers that can appear in final position (hence including
-// dangling prepositions)
+// DPP is a label we magically synthesize for PP's with a single child
+// (representing dangling prepositions)
 verbmodFinal :=
-  PP |
-  // DPP is a label we magically synthesize for PP's with a single child
-  // (representing dangling prepositions)
-  DPP |
-  ADVP;
+  (verbmod) (DPP) |
+  DPP;
+
+plainS :=
+  // "go"
+  VP |
+  // "he goes"
+  (verbmod)* NP VP;
+
+S ->
+  plainS |
+  // "he that laughs last laughs best"
+  SBAR COMMA plainS |
+  // "yesterday, he died"
+  TMOD COMMA plainS |
+  // "yesterday he died"
+  TMOD plainS;
+
+SINV ->
+  (verbmod)* VP NP VP;
 
 SBARQ ->
   // "which dog bit me?"
@@ -43,6 +56,142 @@ SBAR ->
   WHNP S |
   // "if the dog bites the woman"
   IN S;
+
+SQ ->
+  // "go home"
+  VP |
+  // "must (not) the werewolf (by the light of the moon) drink blood"
+  MD (verbmod)* NP (verbmod) VP |
+  // "is (not) the werewolf (now) (in the cage) (alive) (with fury)"
+  VB (verbmod) NP (verbmod) (ADJP) (verbmodFinal) |
+  // "is (not) the werewolf (thirstily) drinking blood"
+  VB (verbmod) NP (verbmod) VP |
+  // "is (not) the werewolf (really) Dan"
+  VB (verbmod) NP (verbmod) NP (verbmodFinal);
+
+nounModifier :=
+  // "red"
+  JJ |
+  // "eaten"
+  VBN |
+  // "elevator"
+  NN;
+
+npSimple :=
+  // "(the) big elevator button ('s)"
+  (DT) (nounModifier)* NN (POS) |
+  // "me"
+  PRP |
+  // "mine"
+  PRP_POS |
+  // "my pig"
+  PRP_POS NN;
+
+npListElem :=
+  NP COMMA;
+
+NP ->
+  // "the dog"
+  npSimple |
+  // "the dog's meaty bone"
+  NP NP |
+  // "green eggs and ham in a box with a fox"
+  NP (PP)+ |
+  // "the man who would be king"
+  NP SBAR |
+  // "big and strong blacksmith"
+  ADJP NP |
+  // "(the other one) ('s)"
+  LPAREN NP RPAREN (POS) |
+  // "(either) the fox or the hen"
+  (DT) NP CC NP |
+  // "(either) the fox, the hen or the pigeon"
+  (DT) (npListElem)+ NP CC NP |
+  // "(either) the fox, the hen, or the pigeon"
+  (DT) npListElem (npListElem)+ CC NP;
+
+VP ->
+  // "must go to bed"
+  MD (verbmod) VP |
+  // "kill the thief"
+  (verbmod) VB (ADVP) (NP) (verbmodFinal) |
+  // "give the thief a pickle"
+  (verbmod) VB NP NP (verbmodFinal) |
+  // "roll the blind up"
+  (verbmod) VB NP (verbmod) PRT (verbmodFinal) |
+  // "is red"
+  (verbmod) VB (verbmod) ADJP |
+  // "is going to the store"
+  (verbmod) VB (verbmod) VP |
+  // "arrive yesterday"
+  (verbmod) VB (verbmod) TMOD |
+  // "roll up the blind"
+  (verbmod) VB (verbmod) PRT NP (verbmodFinal) |
+  // "turning red"
+  VBG ADJP |
+  // "becoming (king)"
+  (verbmod) VBG (NP) |
+  // "eaten"
+  VBN;
+
+adjSimple :=
+  // "running"
+  VBG |
+  // "eaten"
+  VBN |
+  // "red"
+  JJ |
+  // "red with shame"
+  JJ PP;
+
+adjListElem :=
+  adjSimple COMMA;
+
+ADJP ->
+  // "red"
+  adjSimple |
+  // "(either) red or blue"
+  (DT) adjSimple CC adjSimple |
+  // "(either) red, blue or yellow"
+  (DT) (adjListElem)+ adjSimple CC adjSimple |
+  // "(either) red, blue, or yellow"
+  (DT) adjListElem (adjListElem)+ CC adjSimple;
+
+preposition :=
+  IN |
+  TO;
+
+PP ->
+  // (dangling)
+  preposition |
+  // "in the middle"
+  preposition NP;
+
+advSimple :=
+  // "quite amazingly quickly"
+  (RB)+ |
+  // "quickly for a change"
+  ADVP PP;
+
+advListElem :=
+  advSimple COMMA;
+
+ADVP ->
+  // "very quickly"
+  advSimple |
+  // "stealthily and very quickly"
+  advSimple CC advSimple |
+  // "stealthily, very quickly and quite obviously"
+  (advListElem)+ advSimple CC advSimple |
+  // "stealthily, very quickly, and quite obviously"
+  advListElem (advListElem)+ CC advSimple;
+
+TMOD ->
+  // "yesterday evening"
+  NP;
+
+PRT ->
+  RB;
 
 WHNP ->
   // "which apple in the basket"
@@ -71,102 +220,3 @@ WHADJP ->
 WHPP ->
   // "by whose authority"
   preposition WHNP;
-
-SQ ->
-  // "go home"
-  VP |
-  // "must (not) the werewolf (by the light of the moon) drink blood"
-  MD (verbmod) NP (verbmod) VP |
-  // "is (not) the werewolf (now) (in the cage) (alive) (with fury)"
-  VB (verbmod) NP (verbmod) (ADJP) (verbmodFinal) |
-  // "is (not) the werewolf (thirstily) drinking blood"
-  VB (verbmod) NP (verbmod) VP |
-  // "is (not) the werewolf (really) Dan"
-  VB (verbmod) NP (verbmod) NP;
-
-plainS :=
-  VP |
-  (verbmod) NP VP |
-  verbmod verbmod NP VP;
-
-S ->
-  plainS |
-  SBAR COMMA plainS |
-  TMOD COMMA plainS |
-  TMOD plainS;
-
-SINV ->
-  ADVP VB NP VP |
-  PP VP NP VP;
-
-VP ->
-  MD (verbmod) VP |
-  (verbmod) VB (ADVP) (NP) |
-  (verbmod) VB verbmodFinal |
-  VB NP NP |
-  VB NP PRT (verbmodFinal) |
-  VB NP verbmodFinal (verbmodFinal) |
-  VB (verbmod) ADJP |
-  VB verbmod verbmodFinal |
-  VB (verbmod) VP |
-  VB PP TMOD |
-  VB PRT NP (verbmodFinal) |
-  VBG ADJP |
-  (verbmod) VBG (NP) |
-  VBN;
-
-adjSimple :=
-  VBG |
-  VBN |
-  JJ |
-  JJ PP;
-
-adjListElem :=
-  adjSimple COMMA;
-
-ADJP ->
-  adjSimple |
-  (DT) adjSimple CC adjSimple |
-  (DT) (adjListElem)+ adjSimple CC adjSimple |
-  (DT) adjListElem (adjListElem)+ CC adjSimple;
-
-nounModifier :=
-  JJ |
-  VBN |
-  NN;
-
-npSimple :=
-  (DT) (nounModifier)* NN (POS) |
-  PRP |
-  PRP_POS |
-  PRP_POS NN;
-
-npListElem :=
-  NP COMMA;
-
-NP ->
-  npSimple |
-  NP NP |
-  NP (PP)+ |
-  NP SBAR |
-  ADJP NP |
-  LPAREN NP RPAREN (POS) |
-  (DT) NP CC NP |
-  (DT) (npListElem)+ NP CC NP |
-  (DT) npListElem (npListElem)+ CC NP;
-
-TMOD ->
-  NP;
-
-PP ->
-  preposition |
-  preposition NP;
-
-ADVP ->
-  RB |
-  RB RB |
-  ADVP PP |
-  RB CC RB;
-
-PRT ->
-  RB;
