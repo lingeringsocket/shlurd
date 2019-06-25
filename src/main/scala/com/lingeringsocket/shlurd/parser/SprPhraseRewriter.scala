@@ -288,12 +288,12 @@ class SprPhraseRewriter(
   {
     val modifiers = {
       if (predicate.modifiers.exists(
-        m => !SilReference.getDanglingAdposition(m).isEmpty))
+        m => !SilUtils.getDanglingAdposition(m).isEmpty))
       {
         predicate.adpositionObject match {
           case Some(adpositionObject) => {
             predicate.modifiers.flatMap(modifier => {
-              SilReference.getDanglingAdposition(modifier) match {
+              SilUtils.getDanglingAdposition(modifier) match {
                 case Some(adposition) => {
                   val newModifier = SilAdpositionalVerbModifier(
                     adposition,

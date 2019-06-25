@@ -1091,7 +1091,7 @@ class SpcBeliefRecognizer(
       ) => {
         extractQualifiedNoun(
           sentence, subRef,
-          preQualifiers ++ SilReference.extractQualifiers(state))
+          preQualifiers ++ SilUtils.extractQualifiers(state))
       }
       case SilGenitiveReference(
         SilNounReference(

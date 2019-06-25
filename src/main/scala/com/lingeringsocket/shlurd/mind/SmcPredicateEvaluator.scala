@@ -571,7 +571,7 @@ class SmcPredicateEvaluator[
     // probably we should be pushing filters down into
     // resolveQualifiedNoun for efficiency
     val adpositionStates =
-      SilReference.extractAdpositionSpecifiers(specifiedState)
+      SilUtils.extractAdpositionSpecifiers(specifiedState)
     val crossResults =
       new mutable.LinkedHashMap[(EntityType, EntityType), Trilean]
     val entities = {
@@ -750,7 +750,7 @@ class SmcPredicateEvaluator[
                 () => mind.resolveQualifiedNoun(
                   noun, context,
                   cosmos.qualifierSet(
-                    SilReference.extractQualifiers(specifiedState)))
+                    SilUtils.extractQualifiers(specifiedState)))
               )
             }
           }

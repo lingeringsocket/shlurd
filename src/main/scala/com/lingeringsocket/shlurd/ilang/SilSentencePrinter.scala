@@ -138,7 +138,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           case _ : SilUnknownState => sb.unknownState
           case _ =>  {
             sb.composeQualifiers(
-              SilReference.extractQualifiers(state))
+              SilUtils.extractQualifiers(state))
           }
         }
         sub match {
@@ -291,7 +291,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilActionPredicate(
         subject, verb, directObject, modifiers
       ) => {
-        val count = SilReference.getCount(subject)
+        val count = SilUtils.getCount(subject)
         sb.actionPredicate(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
@@ -505,7 +505,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilConjunctiveReference(determiner, references, _) => {
         val count = if (existentialPronoun.nonEmpty) {
           // FIXME:  this is probably English-specific
-          SilReference.getCount(references.head)
+          SilUtils.getCount(references.head)
         } else {
           determiner match {
             case DETERMINER_ALL => COUNT_PLURAL

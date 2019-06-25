@@ -691,13 +691,13 @@ class SmcResponseRewriter[
         verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         complement, verbModifiers
       ) => {
-        val subjectCount = SilReference.getCount(subject)
-        val complementCount = SilReference.getCount(complement)
+        val subjectCount = SilUtils.getCount(subject)
+        val complementCount = SilUtils.getCount(complement)
         if (subjectCount != complementCount) {
           val subjectCoercible =
-            SilReference.isCountCoercible(subject)
+            SilUtils.isCountCoercible(subject)
           val complementCoercible =
-            SilReference.isCountCoercible(complement)
+            SilUtils.isCountCoercible(complement)
           val agreedCount = {
             if (subjectCoercible && complementCoercible) {
               COUNT_PLURAL

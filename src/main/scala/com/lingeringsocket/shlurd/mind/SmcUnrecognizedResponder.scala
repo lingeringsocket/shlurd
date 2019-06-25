@@ -164,16 +164,16 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     ref1 : SilReference, ref2 : SilReference) : SilCount =
   {
     if (ref1.hasUnknown) {
-      SilReference.getCount(ref2)
+      SilUtils.getCount(ref2)
     } else {
-      SilReference.getCount(ref1)
+      SilUtils.getCount(ref1)
     }
   }
 
   private def computeMaxCount(
     ref : SilReference, count : SilCount) : SilCount =
   {
-    if (SilReference.getCount(ref) == COUNT_PLURAL) {
+    if (SilUtils.getCount(ref) == COUNT_PLURAL) {
       COUNT_PLURAL
     } else if (count == COUNT_PLURAL) {
       COUNT_PLURAL

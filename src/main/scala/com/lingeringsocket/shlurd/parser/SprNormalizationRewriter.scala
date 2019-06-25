@@ -100,13 +100,13 @@ private[parser] class SprNormalizationRewriter
         tam,
         formality
       ) if (modifiers.exists(
-        m => !SilReference.getDanglingAdposition(m).isEmpty)
+        m => !SilUtils.getDanglingAdposition(m).isEmpty)
       ) => {
         SilPredicateQuery(
           SilActionPredicate(
             subject, verb, directObject,
             modifiers.flatMap(modifier => {
-              SilReference.getDanglingAdposition(modifier) match {
+              SilUtils.getDanglingAdposition(modifier) match {
                 case Some(adposition) => {
                   Seq.empty
                 }
