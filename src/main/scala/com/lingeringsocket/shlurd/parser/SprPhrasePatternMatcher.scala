@@ -143,10 +143,6 @@ class SprPhrasePatternMatcher
 
     private val labels = new mutable.LinkedHashMap[String, Boolean]
 
-    private var cycleStart : Int = 0
-
-    private val cycleLinks = new mutable.HashSet[PatternVertex]
-
     private var maxPatternLength : Int = 1
 
     def getMaxPatternLength() : Int =
@@ -260,7 +256,6 @@ class SprPhrasePatternMatcher
           assert(cycleLinkerStack.nonEmpty)
           val cycleVertex = cycleLinkerStack.head.vertex
           cycleChildren += cycleVertex
-          cycleVertex.cycleLinks += this
           addUnrolledPattern(
             patternTail, label, cycleLinkerStack.tail,
             cycle || cycleLinkerStack.nonEmpty)
@@ -296,7 +291,6 @@ class SprPhrasePatternMatcher
               val childLinkerStack = newLinkerStack.map(linker => {
                 linker match {
                   case CycleLinker(vertex, Some(firstVertex)) => {
-                    child.cycleStart += 1
                     firstVertex.children.put(alternative.head, child)
                     CycleLinker(vertex, None)
                   }
@@ -334,19 +328,17 @@ class SprPhrasePatternMatcher
       val prefix = "  " * level
       pw.print(prefix)
       pw.println(s"LABELS:  $labels")
-      if (cycleLinks.isEmpty) {
-        cycleChildren.foreach(child => {
+      cycleChildren.foreach(child => {
+        pw.print(prefix)
+        pw.println(s"CYCLE:  " + child.children.keys)
+      })
+      children.foreach({
+        case (label, child) => {
           pw.print(prefix)
-          pw.println(s"CYCLE:  " + child.children.keys)
-        })
-        children.foreach({
-          case (label, child) => {
-            pw.print(prefix)
-            pw.println(s"CHILD:  $label")
-            child.dump(pw, level + 1)
-          }
-        })
-      }
+          pw.println(s"CHILD:  $label")
+          child.dump(pw, level + 1)
+        }
+      })
     }
   }
 }
