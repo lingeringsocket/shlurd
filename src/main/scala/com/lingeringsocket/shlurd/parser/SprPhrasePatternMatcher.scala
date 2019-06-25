@@ -137,11 +137,24 @@ class SprPhrasePatternMatcher
 
   class PatternVertex
   {
+    // NP -> DT NN
+    //
+    // [root]---->[]---->[NP=>false]
+    //        DT     NN
     private val children = new mutable.LinkedHashMap[String, PatternVertex]
 
+    // NP -> DT (JJ)* NN
+    // XP -> DT JJ
+    //
+    //              []<--CYCLE
+    //             JJ\    |
+    //                \   |
+    //                 ->[XP=>false]---->[NP=>true]
+    // [root]---->[]--/              NN
+    //        DT     JJ
     private val cycleChildren = new mutable.HashSet[PatternVertex]
 
-    private val labels = new mutable.LinkedHashMap[String, Boolean]
+    private val reductions = new mutable.LinkedHashMap[String, Boolean]
 
     private var maxPatternLength : Int = 1
 
@@ -173,7 +186,7 @@ class SprPhrasePatternMatcher
     )
     {
       if (prefix.size >= minLength) {
-        labels.foreach {
+        reductions.foreach {
           case (label, allowCycle) => {
             if (allowCycle || !cycle) {
               val newTree = SprSyntaxRewriter.recompose(label, prefix)
@@ -243,10 +256,10 @@ class SprPhrasePatternMatcher
     {
       if (pattern.isEmpty) {
         assert(cycleLinkerStack.isEmpty)
-        labels.get(label) match {
+        reductions.get(label) match {
           case Some(true) => {}
           case _ => {
-            labels.put(label, cycle)
+            reductions.put(label, cycle)
           }
         }
       } else {
@@ -327,7 +340,7 @@ class SprPhrasePatternMatcher
     {
       val prefix = "  " * level
       pw.print(prefix)
-      pw.println(s"LABELS:  $labels")
+      pw.println(s"REDUCTIONS:  $reductions")
       cycleChildren.foreach(child => {
         pw.print(prefix)
         pw.println(s"CYCLE:  " + child.children.keys)
