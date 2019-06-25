@@ -687,7 +687,7 @@ class SmcResponder[
             ) => {
               val actionModifiers = actionPredicate.modifiers
               val (actionWord, modifiers) = actionModifiers match {
-                case Seq(SilBasicVerbModifier(word, _)) => {
+                case Seq(SilBasicVerbModifier(word)) => {
                   tupleN((word, Seq.empty))
                 }
                 case _ => {

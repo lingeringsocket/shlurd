@@ -140,25 +140,25 @@ class SprPhraseRewriter(
 
   private def replaceExpectedVerbModifier = replacementMatcher(
     "replaceExpectedVerbModifier", {
-      case SilExpectedVerbModifier(advp : SptADVP, successor) => {
-        analyzer.expectVerbModifierPhrase(advp, successor)
+      case SilExpectedVerbModifier(advp : SptADVP) => {
+        analyzer.expectVerbModifierPhrase(advp)
       }
-      case SilExpectedVerbModifier(prt : SptPRT, successor) => {
-        analyzer.expectVerbModifierPhrase(prt, successor)
+      case SilExpectedVerbModifier(prt : SptPRT) => {
+        analyzer.expectVerbModifierPhrase(prt)
       }
-      case SilExpectedVerbModifier(tmod : SptTMOD, _) => {
+      case SilExpectedVerbModifier(tmod : SptTMOD) => {
         analyzer.expectTemporalVerbModifier(tmod)
       }
-      case SilExpectedVerbModifier(adv : SprSyntaxSimpleAdverb, successor) => {
-        analyzer.expectBasicVerbModifier(adv, successor)
+      case SilExpectedVerbModifier(adv : SprSyntaxSimpleAdverb) => {
+        analyzer.expectBasicVerbModifier(adv)
       }
-      case SilExpectedVerbModifier(compound : SptRBC, _) => {
+      case SilExpectedVerbModifier(compound : SptRBC) => {
         analyzer.expectBasicVerbModifier(compound)
       }
-      case SilExpectedVerbModifier(particle : SptRP, successor) => {
-        analyzer.expectBasicVerbModifier(particle, successor)
+      case SilExpectedVerbModifier(particle : SptRP) => {
+        analyzer.expectBasicVerbModifier(particle)
       }
-      case SilExpectedVerbModifier(pp : SptPP, _) => {
+      case SilExpectedVerbModifier(pp : SptPP) => {
         analyzer.expectAdpositionalVerbModifier(pp)
       }
     }

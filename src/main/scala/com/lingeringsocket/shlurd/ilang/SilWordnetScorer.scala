@@ -70,17 +70,11 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   }
 
   private def scoreVerbModifiers = phraseScorer {
-    case SilBasicVerbModifier(word, score) => {
-      if (score < 0) {
-        SilPhraseScore.conSmall
-      } else if (score > 0) {
-        SilPhraseScore.proSmall
+    case SilBasicVerbModifier(word) => {
+      if (word.toLemma == LEMMA_NO) {
+        SilPhraseScore.conBig
       } else {
-        if (word.toLemma == LEMMA_NO) {
-          SilPhraseScore.conBig
-        } else {
-          SilPhraseScore.neutral
-        }
+        SilPhraseScore.neutral
       }
     }
   }
@@ -110,7 +104,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     case SilActionPredicate(_, sw : SilSimpleWord, _, _) => {
       usageScore(sw.toLemma, POS.VERB)
     }
-    case SilBasicVerbModifier(sw : SilSimpleWord, _) => {
+    case SilBasicVerbModifier(sw : SilSimpleWord) => {
       val lemma = sw.toLemma
       if (lemma.toLowerCase == "yesterday") {
         SilPhraseScore.pro(10)
@@ -152,7 +146,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   }
 
   private def scoreCompoundAdverbs = phraseScorer {
-    case SilBasicVerbModifier(word, _) if (
+    case SilBasicVerbModifier(word) if (
       word.decomposed.size > 1
     ) => {
       SilPhraseScore.proBig
@@ -219,6 +213,10 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
         SilPhraseScore.conBig
       } else if (words.exists(_.inflected == LEMMA_ADVERBIAL_TMP)) {
         SilPhraseScore.proBig
+      } else if (ap.adposition != SilAdposition.TO) {
+        // in a phrase like "he went up the steps", we boost the
+        // interpretation of "up" as an adposition vs adverb
+        SilPhraseScore.pro(20)
       } else {
         SilPhraseScore.neutral
       }

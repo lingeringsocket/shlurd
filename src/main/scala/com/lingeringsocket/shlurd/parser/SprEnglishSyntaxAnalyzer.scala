@@ -96,20 +96,7 @@ class SprEnglishSyntaxAnalyzer(
 
   private def expectVerbModifiers(seq : Seq[SprSyntaxTree]) =
   {
-    if (seq.isEmpty) {
-      Seq.empty
-    } else {
-      val prefix = {
-        if (seq.size > 1) {
-          seq.sliding(2).toSeq.map(pair => {
-            expectVerbModifier(pair.head, Some(pair.last))
-          })
-        } else {
-          Seq.empty
-        }
-      }
-      prefix :+ expectVerbModifier(seq.last, None)
-    }
+    seq.map(expectVerbModifier)
   }
 
   override def analyzeSQ(
@@ -843,12 +830,11 @@ class SprEnglishSyntaxAnalyzer(
   }
 
   override def expectVerbModifierPhrase(
-    tree : SprSyntaxPhrase,
-    successor : Option[SprSyntaxTree])
+    tree : SprSyntaxPhrase)
       : SilVerbModifier =
   {
     if (tree.children.size == 1) {
-      expectVerbModifier(tree.firstChild, successor)
+      expectVerbModifier(tree.firstChild)
     } else {
       val qualified = tree.firstChild match {
         case s : SprSyntaxSimpleAdverb => {
@@ -875,7 +861,7 @@ class SprEnglishSyntaxAnalyzer(
           }
           case _ => return expectAdpositionalVerbModifier(tree)
         })
-        SilBasicVerbModifier(SilCompoundWord(words), 0)
+        SilBasicVerbModifier(SilCompoundWord(words))
       }
     }
   }
@@ -1484,16 +1470,9 @@ class SprEnglishSyntaxAnalyzer(
   }
 
   override def expectBasicVerbModifier(
-    preTerminal : SprSyntaxPreTerminal,
-    successor : Option[SprSyntaxTree])
+    preTerminal : SprSyntaxPreTerminal)
       : SilVerbModifier =
   {
-    val score = successor match {
-      case Some(np) if (
-        np.isNounNode && isAdposition(preTerminal.child.lemma)
-      ) => -1
-      case _ => 0
-    }
-    SilBasicVerbModifier(getWord(preTerminal.child), score)
+    SilBasicVerbModifier(getWord(preTerminal.child))
   }
 }

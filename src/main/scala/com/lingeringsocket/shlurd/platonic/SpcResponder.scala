@@ -61,9 +61,20 @@ class SpcContextualScorer(responder : SpcResponder)
       cosmos,
       resultCollector)
     val beliefs = recognizer.recognizeBeliefs(sentence)
-    val beliefBoost = beliefs match {
-      case Seq() => SilPhraseScore.neutral
-      case _ => SilPhraseScore.proBig
+    val beliefBoost = {
+      if (beliefs.isEmpty) {
+        SilPhraseScore.neutral
+      } else {
+        if (beliefs.exists(_ match {
+          case _ : InvalidBelief => true
+          case _ : UnimplementedBelief => true
+          case _ => false
+        })) {
+          SilPhraseScore.conSmall
+        } else {
+          SilPhraseScore.proBig
+        }
+      }
     }
     var propBoost = SilPhraseScore.neutral
     val querier = new SilPhraseRewriter
@@ -470,10 +481,7 @@ class SpcResponder(
         }
         def isGenerally(m : SilVerbModifier) : Boolean = {
           m match {
-            case SilBasicVerbModifier(
-              SilWordLemma(LEMMA_GENERALLY),
-              _
-            ) => true
+            case SilBasicVerbModifier(SilWordLemma(LEMMA_GENERALLY)) => true
             case _ => false
           }
         }
@@ -682,7 +690,7 @@ class SpcResponder(
         sentence.predicate.getModifiers.filterNot(
           _ match {
             case SilBasicVerbModifier(
-              SilWordLemma(lemma), _) if (lemmas.contains(lemma)) => true
+              SilWordLemma(lemma)) if (lemmas.contains(lemma)) => true
             case _ => false
           })))
   }

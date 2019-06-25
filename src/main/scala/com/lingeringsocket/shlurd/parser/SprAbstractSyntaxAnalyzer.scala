@@ -137,9 +137,9 @@ abstract class SprAbstractSyntaxAnalyzer(
   }
 
   protected def expectVerbModifier(
-    tree : SprSyntaxTree, successor : Option[SprSyntaxTree]) =
+    tree : SprSyntaxTree) =
   {
-    SilExpectedVerbModifier(tree, successor)
+    SilExpectedVerbModifier(tree)
   }
 
   override def expectTemporalVerbModifier(tmod : SptTMOD)
@@ -151,18 +151,17 @@ abstract class SprAbstractSyntaxAnalyzer(
   }
 
   override def expectBasicVerbModifier(
-    preTerminal : SprSyntaxPreTerminal,
-    successor : Option[SprSyntaxTree])
+    preTerminal : SprSyntaxPreTerminal)
       : SilVerbModifier =
   {
-    SilBasicVerbModifier(getWord(preTerminal.child), 0)
+    SilBasicVerbModifier(getWord(preTerminal.child))
   }
 
   override def expectBasicVerbModifier(
     compound : SptRBC)
       : SilVerbModifier =
   {
-    SilBasicVerbModifier(getCompoundWord(compound), 0)
+    SilBasicVerbModifier(getCompoundWord(compound))
   }
 
   override def getCompoundWord(tree : SprSyntaxTree) : SilCompoundWord =

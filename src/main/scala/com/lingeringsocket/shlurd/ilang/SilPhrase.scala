@@ -284,8 +284,7 @@ case class SilExpectedExistenceState(
 }
 
 case class SilExpectedVerbModifier(
-  syntaxTree : SprSyntaxTree,
-  successor : Option[SprSyntaxTree]
+  syntaxTree : SprSyntaxTree
 ) extends SilUnknownVerbModifier with SilUnresolvedPhrase
 {
 }
@@ -629,8 +628,7 @@ case class SilConjunctiveState(
 }
 
 case class SilBasicVerbModifier(
-  word : SilWord,
-  score : Int
+  word : SilWord
 ) extends SilTransformedPhrase with SilVerbModifier
 {
 }

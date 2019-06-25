@@ -54,13 +54,11 @@ trait SprSyntaxAnalyzer
       : SilVerbModifier
 
   def expectVerbModifierPhrase(
-    tree : SprSyntaxPhrase,
-    successor : Option[SprSyntaxTree])
+    tree : SprSyntaxPhrase)
       : SilVerbModifier
 
   def expectBasicVerbModifier(
-    preTerminal : SprSyntaxPreTerminal,
-    successor : Option[SprSyntaxTree])
+    preTerminal : SprSyntaxPreTerminal)
       : SilVerbModifier
 
   def expectBasicVerbModifier(

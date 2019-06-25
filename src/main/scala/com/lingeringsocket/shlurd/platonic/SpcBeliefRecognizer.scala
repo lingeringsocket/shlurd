@@ -451,8 +451,7 @@ class SpcBeliefRecognizer(
   {
     predicate.getModifiers.flatMap(
       _ match {
-        case SilBasicVerbModifier(
-          SilWordLemma(lemma), _) => Some(lemma)
+        case SilBasicVerbModifier(SilWordLemma(lemma)) => Some(lemma)
         case _ => None
       }
     )

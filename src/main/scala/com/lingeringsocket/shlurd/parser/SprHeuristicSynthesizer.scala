@@ -559,7 +559,7 @@ class SprHeuristicSynthesizer(
         }
         case advp : SptADVP => {
           tryRewrite(
-            SilExpectedVerbModifier(advp, None))
+            SilExpectedVerbModifier(advp))
         }
         case adjp : SptADJP => {
           tryRewrite(
@@ -567,12 +567,12 @@ class SprHeuristicSynthesizer(
         }
         case pp : SptPP => {
           tryRewrite(
-            SilExpectedVerbModifier(pp, None))
+            SilExpectedVerbModifier(pp))
         }
         case tmod : SptTMOD => {
           val result = tryPhrase(
             rewriter,
-            SilExpectedVerbModifier(tmod, None),
+            SilExpectedVerbModifier(tmod),
             allowConjunctive)
           result.map(_._1) match {
             case Some(SilAdpositionalVerbModifier(
