@@ -127,39 +127,33 @@ adjListElem :=
 ADJP ->
   adjSimple |
   (DT) adjSimple CC adjSimple |
+  (DT) (adjListElem)+ adjSimple CC adjSimple |
   (DT) adjListElem (adjListElem)+ CC adjSimple;
 
-NP ->
-  DT NN |
-  DT NN POS |
-  DT NN NN |
-  DT NN NN NN |
-  DT NN CC NN |
-  DT JJ NN |
-  DT JJ NN NN |
-  DT JJ JJ NN |
-  DT VBN NN |
-  NP PP |
-  NP PP PP |
-  NP NN |
-  NP NN POS |
-  NP CC NP |
-  NP SBAR |
-  NP NP |
-  NP COMMA NP |
-  NP COMMA NP COMMA CC NP |
+nounModifier :=
+  JJ |
+  VBN |
+  NN;
+
+npSimple :=
+  (DT) (nounModifier)* NN (POS) |
   PRP |
-  NN |
-  NN POS |
-  NN CC NN |
-  NN NN |
-  NN NN POS |
-  JJ NN |
   PRP_POS |
-  PRP_POS NN |
-  ADJP NN |
-  LPAREN NP RPAREN |
-  LPAREN NP RPAREN POS;
+  PRP_POS NN;
+
+npListElem :=
+  NP COMMA;
+
+NP ->
+  npSimple |
+  NP NP |
+  NP (PP)+ |
+  NP SBAR |
+  ADJP NP |
+  LPAREN NP RPAREN (POS) |
+  (DT) NP CC NP |
+  (DT) (npListElem)+ NP CC NP |
+  (DT) npListElem (npListElem)+ CC NP;
 
 TMOD ->
   NP;

@@ -71,7 +71,7 @@ object SprWordnetPrep
         case _ : SprSyntaxLeaf  =>
         case _ : SprSyntaxPreTerminal =>
         case _ => {
-          matcher.addPattern(syntaxTree)
+          matcher.addRule(syntaxTree)
           syntaxTree.children.foreach(addToMatcher)
         }
       }
@@ -87,14 +87,6 @@ object SprWordnetPrep
       }
     })
     println("PATTERN MATCHER = " + matcher)
-    val fw = new FileWriter("src/main/resources/english/phrase-structure.txt")
-    try {
-      val pw = new PrintWriter(fw)
-      matcher.exportText(pw)
-      pw.close
-    } finally {
-      fw.close
-    }
   }
 
   def runAll(

@@ -23,6 +23,8 @@ object SprPhrasePatternMatcherSpec
   val leaf = SprSyntaxLeaf("", "", "")
   val jj = SptJJ(leaf)
   val nn = SptNN(leaf)
+  val cc = SptCC(leaf)
+  val comma = SptCOMMA(leaf)
 
   val np = SptNP(jj, nn)
   val vp = SptVP()
@@ -34,6 +36,8 @@ object SprPhrasePatternMatcherSpec
 
   val JJ = jj.label
   val NN = nn.label
+  val CC = cc.label
+  val COMMA = comma.label
 
   val NP = np.label
   val VP = vp.label
@@ -63,8 +67,8 @@ class SprPhrasePatternMatcherSpec extends Specification
     "match simple patterns" in
     {
       val matcher = new SprPhrasePatternMatcher
-      matcher.addPattern(Seq(NP, VP), S)
-      matcher.addPattern(Seq(VP, NP), SINV)
+      matcher.addRule(S, Seq(NP, VP))
+      matcher.addRule(SINV, Seq(VP, NP))
       matcher.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
         2 -> Set(sNpVp)
       ))
@@ -77,7 +81,7 @@ class SprPhrasePatternMatcherSpec extends Specification
     "match middle of pattern" in
     {
       val matcher = new SprPhrasePatternMatcher
-      matcher.addPattern(Seq(NP, VP), S)
+      matcher.addRule(S, Seq(NP, VP))
       matcher.matchPatterns(simpleSeq(tmod, np, vp), 1) must be equalTo(Map(
         2 -> Set(sNpVp)
       ))
@@ -86,8 +90,8 @@ class SprPhrasePatternMatcherSpec extends Specification
     "match ambiguous patterns" in
     {
       val matcher = new SprPhrasePatternMatcher
-      matcher.addPattern(Seq(NP, VP), S)
-      matcher.addPattern(Seq(NP, VP), SINV)
+      matcher.addRule(S, Seq(NP, VP))
+      matcher.addRule(SINV, Seq(NP, VP))
       matcher.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
         2 -> Set(sNpVp, SptSINV(np, vp))
       ))
@@ -96,7 +100,7 @@ class SprPhrasePatternMatcherSpec extends Specification
     "match patterns with optional constituents" in
     {
       val matcher = new SprPhrasePatternMatcher
-      matcher.addPattern(Seq(TMOD, OPTIONAL, NP, VP), S)
+      matcher.addRule(S, Seq(TMOD, OPTIONAL, NP, VP))
       matcher.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
         2 -> Set(sNpVp)
       ))
@@ -109,7 +113,7 @@ class SprPhrasePatternMatcherSpec extends Specification
     "match patterns with Kleene star" in
     {
       val matcher = new SprPhrasePatternMatcher
-      matcher.addPattern(Seq(JJ, KLEENE, NN), NP)
+      matcher.addRule(NP, Seq(JJ, KLEENE, NN))
       matcher.matchPatterns(simpleSeq(nn), 0) must be equalTo(Map(
         1 -> Set(SptNP(nn))
       ))
@@ -121,10 +125,10 @@ class SprPhrasePatternMatcherSpec extends Specification
       ))
     }
 
-    "match patterns with repeat constituents" in
+    "match patterns with repeat elements" in
     {
       val matcher = new SprPhrasePatternMatcher
-      matcher.addPattern(Seq(JJ, REPEAT, NN), NP)
+      matcher.addRule(NP, Seq(JJ, REPEAT, NN))
       matcher.matchPatterns(simpleSeq(nn), 0) must beEmpty
       matcher.matchPatterns(simpleSeq(jj, nn), 0) must be equalTo(Map(
         2 -> Set(np)
@@ -138,7 +142,7 @@ class SprPhrasePatternMatcherSpec extends Specification
     {
       val matcher = new SprPhrasePatternMatcher
       matcher.addSymbol(sentence, Seq(Seq(NP, VP), Seq(VP)))
-      matcher.addPattern(Seq(sentence), S)
+      matcher.addRule(S, Seq(sentence))
       matcher.matchPatterns(simpleSeq(np, vp), 0) must be equalTo(Map(
         2 -> Set(sNpVp)
       ))
@@ -147,13 +151,68 @@ class SprPhrasePatternMatcherSpec extends Specification
       ))
     }
 
+    "match patterns with nested repeats" in
+    {
+      val modifiedNoun = "modifiedNoun"
+      val listElement = "listElement"
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addSymbol(modifiedNoun, Seq(Seq(JJ, REPEAT, NN)))
+      matcher.addSymbol(listElement, Seq(Seq(modifiedNoun, COMMA)))
+      matcher.addRule(
+        NP, Seq(listElement, listElement, REPEAT, CC, modifiedNoun))
+      matcher.matchPatterns(
+        simpleSeq(jj, nn, comma, jj, nn, comma,
+          jj, jj, jj, nn, comma, cc, jj, jj, nn),
+        0
+      ) must be equalTo(Map(
+        15 -> Set(SptNP(jj, nn, comma, jj, nn, comma,
+          jj, jj, jj, nn, comma, cc, jj, jj, nn))
+      ))
+    }
+
+    "match patterns with overlapping repeats" in
+    {
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addRule(NP, Seq(JJ, REPEAT, NN))
+      matcher.addRule(VP, Seq(JJ, REPEAT, CC))
+      matcher.matchPatterns(simpleSeq(jj, jj, nn), 0) must be equalTo(Map(
+        3 -> Set(SptNP(jj, jj, nn))
+      ))
+      matcher.matchPatterns(simpleSeq(jj, cc), 0) must be equalTo(Map(
+        2 -> Set(SptVP(jj, cc))
+      ))
+    }
+
+    "match patterns with optionals in symbols" in
+    {
+      val npSimple = "npSimple"
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addSymbol(npSimple, Seq(Seq(JJ, OPTIONAL, NN)))
+      matcher.addRule(NP, Seq(npSimple))
+      matcher.matchPatterns(simpleSeq(nn), 0) must be equalTo(Map(
+        1 -> Set(SptNP(nn))
+      ))
+    }
+
+    "do not match cycles spuriously" in
+    {
+      val matcher = new SprPhrasePatternMatcher
+      matcher.addRule(S, Seq(NP, REPEAT))
+      matcher.addRule(TMOD, Seq(NP))
+      matcher.matchPatterns(simpleSeq(np, np, np), 0) must be equalTo(Map(
+        1 -> Set(tmod, SptS(np)),
+        2 -> Set(SptS(np, np)),
+        3 -> Set(SptS(np, np, np))
+      ))
+    }
+
     "prevent unknown labels" in
     {
       val unknown = "unknown"
       val matcher = new SprPhrasePatternMatcher
-      matcher.addPattern(Seq(unknown), S) must
+      matcher.addRule(S, Seq(unknown)) must
         throwA[IllegalArgumentException]
-      matcher.addPattern(Seq(NP, VP), unknown) must
+      matcher.addRule(unknown, Seq(NP, VP)) must
         throwA[IllegalArgumentException]
       matcher.addSymbol(sentence, Seq(Seq(unknown))) must
         throwA[IllegalArgumentException]

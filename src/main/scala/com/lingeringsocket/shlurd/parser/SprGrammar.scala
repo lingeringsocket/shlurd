@@ -85,7 +85,7 @@ object SprGrammar extends StandardTokenParsers
         rules.foreach {
           case PhraseRule(label, alternatives) => {
             alternatives.foreach(alternative => {
-              matcher.addPattern(alternative, label)
+              matcher.addRule(label, alternative)
             })
           }
           case SymbolRule(symbol, patterns) => {

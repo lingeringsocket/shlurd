@@ -80,7 +80,7 @@ class SprPhrasePatternMatcher
     root.matchPatterns(seq, start, minLength)
   }
 
-  def addPattern(syntaxTree : SprSyntaxTree)
+  def addRule(syntaxTree : SprSyntaxTree)
   {
     val children = syntaxTree.children.map(
       child => foldAndValidateLabel(child.label))
@@ -94,13 +94,15 @@ class SprPhrasePatternMatcher
     root.addFoldedPattern(
       pattern,
       foldAndValidateLabel(syntaxTree.label),
-      None)
+      List.empty)
   }
 
-  def addPattern(pattern : Seq[String], label : String)
+  def addRule(label : String, pattern : Seq[String])
   {
     root.addFoldedPattern(
-      pattern.map(foldAndValidateLabel), foldAndValidateLabel(label), None)
+      pattern.map(foldAndValidateLabel),
+      foldAndValidateLabel(label),
+      List.empty)
   }
 
   def addSymbol(symbol : String, patterns : Seq[Seq[String]])
@@ -108,16 +110,11 @@ class SprPhrasePatternMatcher
     symbols.put(symbol, patterns.map(_.map(foldAndValidateLabel)))
   }
 
-  def exportText(pw : PrintWriter)
-  {
-    root.exportText(pw)
-  }
-
   override def toString =
   {
     val sw = new StringWriter
     val pw = new PrintWriter(sw)
-    exportText(pw)
+    root.dump(pw, 0)
     pw.close
     sw.toString
   }
@@ -142,9 +139,11 @@ class SprPhrasePatternMatcher
   {
     private val children = new mutable.LinkedHashMap[String, PatternVertex]
 
-    private val labels = new mutable.LinkedHashSet[String]
+    private val cycleChildren = new mutable.HashSet[PatternVertex]
 
-    private var cycleStart : Boolean = false
+    private val labels = new mutable.LinkedHashMap[String, Boolean]
+
+    private var cycleStart : Int = 0
 
     private val cycleLinks = new mutable.HashSet[PatternVertex]
 
@@ -161,7 +160,7 @@ class SprPhrasePatternMatcher
     {
       if (maxPatternLength >= minLength) {
         val map = new mutable.HashMap[Int, mutable.Set[SprSyntaxTree]]
-        matchPatternsSub(seq, start, map, Seq.empty, minLength)
+        matchPatternsSub(seq, start, map, Seq.empty, minLength, false)
         map
       } else {
         Map.empty
@@ -173,30 +172,35 @@ class SprPhrasePatternMatcher
       start : Int,
       map : mutable.Map[Int, mutable.Set[SprSyntaxTree]],
       prefix : Seq[SprSyntaxTree],
-      minLength : Int
+      minLength : Int,
+      cycle : Boolean
     )
     {
       if (prefix.size >= minLength) {
-        labels.foreach(label => {
-          val newTree = SprSyntaxRewriter.recompose(label, prefix)
-          map.getOrElseUpdate(
-            prefix.size,
-            new mutable.HashSet[SprSyntaxTree]
-          ) += newTree
-        })
+        labels.foreach {
+          case (label, allowCycle) => {
+            if (allowCycle || !cycle) {
+              val newTree = SprSyntaxRewriter.recompose(label, prefix)
+              map.getOrElseUpdate(
+                prefix.size,
+                new mutable.HashSet[SprSyntaxTree]
+              ) += newTree
+            }
+          }
+        }
       }
-      if ((start < seq.size) && children.nonEmpty) {
+      if ((start < seq.size) && (children.nonEmpty || cycleChildren.nonEmpty)) {
         seq(start).foreach(syntaxTree => {
           val label = foldLabel(syntaxTree.label)
           children.get(label).foreach(child => {
             if ((prefix.size + 1 + child.maxPatternLength) >= minLength) {
               child.matchPatternsSub(
-                seq, start + 1, map, prefix :+ syntaxTree, minLength)
+                seq, start + 1, map, prefix :+ syntaxTree, minLength, cycle)
             }
           })
-          children.get(ONE_OR_MORE).foreach(child => {
+          cycleChildren.foreach(child => {
             child.matchPatternsSub(
-              seq, start, map, prefix, minLength)
+              seq, start, map, prefix, minLength, true)
           })
         })
       }
@@ -205,12 +209,14 @@ class SprPhrasePatternMatcher
     private[parser] def addFoldedPattern(
       pattern : Seq[String],
       label : String,
-      cycleLinker : Option[CycleLinker])
+      cycleLinkerStack : List[CycleLinker],
+      cycle : Boolean = false)
     {
       val iOptional = pattern.indexWhere(
         Seq(ZERO_OR_ONE, ZERO_OR_MORE).contains)
       if (iOptional == -1) {
-        addUnrolledPattern(pattern, label, cycleLinker)
+        addUnrolledPattern(pattern, label, cycleLinkerStack,
+          cycle || cycleLinkerStack.nonEmpty)
       } else {
         val isStar = pattern(iOptional) == ZERO_OR_MORE
         val infix = {
@@ -223,71 +229,90 @@ class SprPhrasePatternMatcher
         addFoldedPattern(
           pattern.take(iOptional) ++ infix ++ pattern.drop(iOptional + 1),
           label,
-          cycleLinker)
+          cycleLinkerStack,
+          cycle)
         addFoldedPattern(
           pattern.take(iOptional - 1) ++ pattern.drop(iOptional + 1),
           label,
-          cycleLinker)
+          cycleLinkerStack,
+          cycle)
       }
     }
 
     private def addUnrolledPattern(
       pattern : Seq[String],
       label : String,
-      cycleLinker : Option[CycleLinker])
+      cycleLinkerStack : List[CycleLinker],
+      cycle : Boolean = false)
     {
       if (pattern.isEmpty) {
-        labels += label
+        assert(cycleLinkerStack.isEmpty)
+        labels.get(label) match {
+          case Some(true) => {}
+          case _ => {
+            labels.put(label, cycle)
+          }
+        }
       } else {
         val symbol = pattern.head
         val patternTail = pattern.tail
         if (symbol == CYCLE_END) {
-          assert(cycleLinker.nonEmpty)
-          val cycleVertex = cycleLinker.get.vertex
-          assert(!children.contains(ONE_OR_MORE))
+          assert(cycleLinkerStack.nonEmpty)
+          val cycleVertex = cycleLinkerStack.head.vertex
+          cycleChildren += cycleVertex
           cycleVertex.cycleLinks += this
-          children.put(ONE_OR_MORE, cycleVertex)
-          addUnrolledPattern(patternTail, label, None)
+          addUnrolledPattern(
+            patternTail, label, cycleLinkerStack.tail,
+            cycle || cycleLinkerStack.nonEmpty)
         } else {
-          val (remainder, newLinker, insert) = patternTail.headOption match {
-            case Some(ONE_OR_MORE) => {
-              assert(cycleLinker.isEmpty)
-              val cycleVertex = new PatternVertex
-              tupleN((patternTail.tail,
-                Some(CycleLinker(cycleVertex, Some(cycleVertex))),
-                Seq(CYCLE_END)))
-            }
-            case _ => {
-              tupleN((patternTail, cycleLinker, Seq.empty))
+          val (remainder, newLinkerStack, insert) = {
+            patternTail.headOption match {
+              case Some(ONE_OR_MORE) => {
+                val cycleVertex = new PatternVertex
+                tupleN((patternTail.tail,
+                  CycleLinker(cycleVertex, Some(cycleVertex)) ::
+                    cycleLinkerStack,
+                  Seq(CYCLE_END)))
+              }
+              case _ => {
+                tupleN((patternTail, cycleLinkerStack, Seq.empty))
+              }
             }
           }
           val alternatives = symbols.get(symbol).getOrElse(Seq(Seq(symbol)))
           alternatives.foreach(alternative => {
             if (symbols.contains(alternative.head) ||
-              alternative.contains(ONE_OR_MORE)
+              alternative.contains(ONE_OR_MORE) ||
+              alternative.contains(ZERO_OR_MORE) ||
+              alternative.contains(ZERO_OR_ONE)
             ) {
               addFoldedPattern(
-                alternative ++ insert ++ remainder, label, newLinker)
+                alternative ++ insert ++ remainder, label, newLinkerStack,
+                cycle || newLinkerStack.nonEmpty)
             } else {
               val child = children.getOrElseUpdate(alternative.head, {
                 new PatternVertex
               })
-              val childLinker = newLinker match {
-                case Some(CycleLinker(vertex, Some(firstVertex))) => {
-                  child.cycleStart = true
-                  firstVertex.children.put(alternative.head, child)
-                  Some(CycleLinker(vertex, None))
+              val childLinkerStack = newLinkerStack.map(linker => {
+                linker match {
+                  case CycleLinker(vertex, Some(firstVertex)) => {
+                    child.cycleStart += 1
+                    firstVertex.children.put(alternative.head, child)
+                    CycleLinker(vertex, None)
+                  }
+                  case _ => linker
                 }
-                case _ => newLinker
-              }
+              })
               child.addFoldedPattern(
-                alternative.tail ++ insert ++ remainder, label, childLinker)
+                alternative.tail ++ insert ++ remainder,
+                label, childLinkerStack,
+                cycle || childLinkerStack.nonEmpty)
             }
           })
         }
       }
       maxPatternLength = {
-        if (cycleLinker.nonEmpty) {
+        if (cycleLinkerStack.nonEmpty || cycleChildren.nonEmpty) {
           CYCLE_INFINITY
         } else {
           if (children.isEmpty) {
@@ -304,44 +329,23 @@ class SprPhrasePatternMatcher
       }
     }
 
-    private def dump(pw : PrintWriter, level : Int)
+    private[parser] def dump(pw : PrintWriter, level : Int)
     {
       val prefix = "  " * level
       pw.print(prefix)
       pw.println(s"LABELS:  $labels")
       if (cycleLinks.isEmpty) {
+        cycleChildren.foreach(child => {
+          pw.print(prefix)
+          pw.println(s"CYCLE:  " + child.children.keys)
+        })
         children.foreach({
           case (label, child) => {
             pw.print(prefix)
-            if (child.cycleLinks.contains(this)) {
-              pw.println(s"CYCLE:  " + child.children.keys)
-            } else {
-              pw.println(s"CHILD:  $label")
-              child.dump(pw, level + 1)
-            }
+            pw.println(s"CHILD:  $label")
+            child.dump(pw, level + 1)
           }
         })
-      }
-    }
-
-    def exportText(pw : PrintWriter, prefix : String = "")
-    {
-      labels.foreach(label => {
-        pw.println(s"$label -> $prefix")
-      })
-      val anyCycle = children.keySet.contains(ONE_OR_MORE)
-      children.foreach {
-        case (label, child) => {
-          if (!child.cycleLinks.contains(this)) {
-            if (child.cycleStart) {
-              child.exportText(pw, s"$prefix ($label")
-            } else if (anyCycle) {
-              child.exportText(pw, s"$prefix)+ $label")
-            } else {
-              child.exportText(pw, s"$prefix $label")
-            }
-          }
-        }
       }
     }
   }
