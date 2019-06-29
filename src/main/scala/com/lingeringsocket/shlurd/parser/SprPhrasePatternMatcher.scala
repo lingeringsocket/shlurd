@@ -74,10 +74,10 @@ class SprPhrasePatternMatcher
   }
 
   def matchPatterns(
-    seq : Seq[Set[SprSyntaxTree]], start : Int, minLength : Int = 1)
+    stream : Stream[Set[SprSyntaxTree]], minLength : Int = 1)
       : Map[Int, Set[SprSyntaxTree]] =
   {
-    root.matchPatterns(seq, start, minLength)
+    root.matchPatterns(stream, minLength)
   }
 
   def addRule(syntaxTree : SprSyntaxTree)
@@ -164,55 +164,72 @@ class SprPhrasePatternMatcher
     }
 
     def matchPatterns(
-      seq : Seq[Set[SprSyntaxTree]], start : Int, minLength : Int = 1)
+      stream : Stream[Set[SprSyntaxTree]], minLength : Int = 1)
         : Map[Int, Set[SprSyntaxTree]] =
     {
       if (maxPatternLength >= minLength) {
         val map = new mutable.HashMap[Int, mutable.Set[SprSyntaxTree]]
-        matchPatternsSub(seq, start, map, Seq.empty, minLength, false)
-        map
+        val longest = matchPatternsSub(
+          stream, map, Seq.empty, minLength, false)
+        if (map.isEmpty) {
+          Map(longest -> Set.empty)
+        } else {
+          map
+        }
       } else {
-        Map.empty
+        Map(0 -> Set.empty)
       }
     }
 
     private def matchPatternsSub(
-      seq : Seq[Set[SprSyntaxTree]],
-      start : Int,
+      stream : Stream[Set[SprSyntaxTree]],
       map : mutable.Map[Int, mutable.Set[SprSyntaxTree]],
       prefix : Seq[SprSyntaxTree],
       minLength : Int,
       cycle : Boolean
-    )
+    ) : Int =
     {
-      if (prefix.size >= minLength) {
-        reductions.foreach {
-          case (label, allowCycle) => {
-            if (allowCycle || !cycle) {
-              val newTree = SprSyntaxRewriter.recompose(label, prefix)
-              map.getOrElseUpdate(
-                prefix.size,
-                new mutable.HashSet[SprSyntaxTree]
-              ) += newTree
+      var longest = {
+        if (prefix.size >= minLength) {
+          reductions.foreach {
+            case (label, allowCycle) => {
+              if (allowCycle || !cycle) {
+                val newTree = SprSyntaxRewriter.recompose(label, prefix)
+                val resultSet = map.getOrElseUpdate(
+                  prefix.size,
+                  new mutable.HashSet[SprSyntaxTree]
+                )
+                resultSet += newTree
+              }
             }
           }
+          prefix.size
+        } else {
+          0
         }
       }
-      if ((start < seq.size) && (children.nonEmpty || cycleChildren.nonEmpty)) {
-        seq(start).foreach(syntaxTree => {
+      if (stream.nonEmpty && (children.nonEmpty || cycleChildren.nonEmpty)) {
+        stream.head.map(syntaxTree => {
           val label = foldLabel(syntaxTree.label)
           children.get(label).foreach(child => {
             if ((prefix.size + 1 + child.maxPatternLength) >= minLength) {
-              child.matchPatternsSub(
-                seq, start + 1, map, prefix :+ syntaxTree, minLength, cycle)
+              val childLongest = child.matchPatternsSub(
+                stream.tail, map, prefix :+ syntaxTree, minLength, cycle)
+              if (childLongest > longest) {
+                longest = childLongest
+              }
             }
           })
           cycleChildren.foreach(child => {
-            child.matchPatternsSub(
-              seq, start, map, prefix, minLength, true)
+            val cycleLongest = child.matchPatternsSub(
+              stream, map, prefix, minLength, true)
+            if (cycleLongest > longest) {
+              longest = cycleLongest
+            }
           })
         })
       }
+      longest
     }
 
     private[parser] def addFoldedPattern(

@@ -16,16 +16,17 @@ package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.jgrapht._
+
 import SprEnglishLemmas._
 import SprPennTreebankLabels._
 
 import scala.collection._
-import scala.collection.JavaConverters._
 import scala.util._
 import scala.sys.process._
 
+import org.jgrapht._
 import org.jgrapht.graph._
-import org.jgrapht.alg.shortestpath._
 
 case class SprParseComplexityException()
     extends RuntimeException("Expression too complex")
@@ -173,7 +174,7 @@ class SprHeuristicSynthesizer(
       false, SPR_STRICTNESS_TIGHT))
 
   private val spanGraph = new SimpleDirectedGraph[Int, SpanEdge](
-      classOf[SpanEdge])
+    classOf[SpanEdge])
 
   private val produced = new mutable.HashSet[SprSyntaxTree]
 
@@ -345,22 +346,32 @@ class SprHeuristicSynthesizer(
     }
   }
 
-  private def enumeratePaths(span : Range) : Set[Seq[SpanChoice]] =
+  private def edgeToChoice(edge : SpanEdge) : SpanChoice =
+  {
+    val edgeStart = spanGraph.getEdgeSource(edge)
+    val edgeEnd = spanGraph.getEdgeTarget(edge)
+    SpanChoice(
+      edge.set,
+      range(edgeStart until edgeEnd))
+  }
+
+  private def pathStream(span : Range) : Stream[Stream[SpanChoice]] =
   {
     if (span.isEmpty) {
-      Set(Seq.empty)
+      Stream(Stream.empty)
     } else {
-      val alg = new AllDirectedPaths(spanGraph)
-      alg.getAllPaths(span.start, span.end, true, null).asScala.map(
-        path => {
-          path.getEdgeList.asScala.map(edge => {
-            SpanChoice(
-              edge.set,
-              range(spanGraph.getEdgeSource(edge) until
-                spanGraph.getEdgeTarget(edge)))
-          })
-        }
-      ).toSet
+      new SpanPathStreamer(span).pathStream.map(_.map(edgeToChoice))
+    }
+  }
+
+  class SpanPathStreamer(span : Range)
+      extends GraphPathStreamer[Int, SpanEdge](spanGraph, span.start)
+  {
+    private val terminator = span.end + 1
+
+    override protected def isExcluded(v : Int) : Boolean =
+    {
+      v >= terminator
     }
   }
 
@@ -368,54 +379,88 @@ class SprHeuristicSynthesizer(
   {
     val leftSpan = range(0 until entry.choice.span.start)
     val rightSpan = range(entry.choice.span.end until words.size)
-    val leftSeqs = enumeratePaths(leftSpan)
-    val rightSeqs = enumeratePaths(rightSpan)
+    val leftSeqs = pathStream(leftSpan)
 
     val seen = new mutable.HashSet[SpanChoice]
+    val deltaGraph = DeltaGraph(spanGraph)
 
     leftSeqs.foreach(leftSeq => {
+      val leftPlus = leftSeq :+ entry.choice
+      val rightSeqs = pathStream(rightSpan)
+      val skips = new mutable.BitSet
+      var lowerBound = 0
       rightSeqs.foreach(rightSeq => {
-        val seq = leftSeq ++ Seq(entry.choice) ++ rightSeq
-        processPath(entry, seq, seen)
+        val concatenated = leftPlus #::: rightSeq
+        val newLowerBound = processPath(
+          entry, concatenated, seen, lowerBound, deltaGraph, skips)
+        if (lowerBound > 0) {
+          assert(newLowerBound == lowerBound)
+        }
+        lowerBound = newLowerBound
       })
     })
+
+    deltaGraph.applyModifications
   }
 
   private def processPath(
     entry : PartialEntry,
-    seq : Seq[SpanChoice],
-    seen : mutable.HashSet[SpanChoice])
+    stream : Stream[SpanChoice],
+    seen : mutable.HashSet[SpanChoice],
+    oldLowerBound : Int,
+    deltaGraph : Graph[Int, SpanEdge],
+    skips : mutable.BitSet) : Int =
   {
-    val setSeq = seq.map(_.set)
+    val setStream = stream.map(_.set)
     val activeSpan = entry.choice.span
-    val iActive = seq.indexWhere(_.span.start == activeSpan.start)
+    val iActive = stream.indexWhere(_.span.start == activeSpan.start)
     assert(iActive > -1)
-    val startLowerBound = math.max(0, (iActive - (maxPatternLength - 1)))
+    val startLowerBound = math.max(
+      oldLowerBound, (iActive - (maxPatternLength - 1)))
     val startUpperBound = iActive + 1
+    var newLowerBound = oldLowerBound
+    var curr = setStream.drop(startLowerBound)
     range(startLowerBound until startUpperBound).foreach(start => {
-      val minLength = startUpperBound - start
-      patternMatcher.matchPatterns(setSeq, start, minLength).foreach({
-        case (length, replacementSet) => {
-          assert(length >= minLength)
-          val span = range(
-            seq(start).span.start until
-              seq(start + length - 1).span.end)
-          val newChoice = SpanChoice(replacementSet, span)
-          if (!seen.contains(newChoice)) {
-            seen += newChoice
-            processReplacement(entry, seq, start, length, newChoice)
+      if (!skips.contains(start)) {
+        val minLength = startUpperBound - start
+        cost += 1
+        val results = patternMatcher.matchPatterns(curr, minLength)
+        results.foreach({
+          case (length, replacementSet) => {
+            if (replacementSet.isEmpty) {
+              if ((start + length) <= iActive) {
+                skips += start
+                if (start == newLowerBound) {
+                  newLowerBound += 1
+                }
+              }
+            } else {
+              assert(length >= minLength)
+              val span = range(
+                stream(start).span.start until
+                  stream(start + length - 1).span.end)
+              val newChoice = SpanChoice(replacementSet, span)
+              if (!seen.contains(newChoice)) {
+                seen += newChoice
+                processReplacement(
+                  entry, stream, start, length, newChoice, deltaGraph)
+              }
+            }
           }
-        }
-      })
+        })
+      }
+      curr = curr.tail
     })
+    newLowerBound
   }
 
   private def processReplacement(
     entry : PartialEntry,
-    seq : Seq[SpanChoice],
+    stream : Stream[SpanChoice],
     start : Int,
     length : Int,
-    choice : SpanChoice
+    choice : SpanChoice,
+    deltaGraph : Graph[Int, SpanEdge]
   )
   {
     val filteredSet = choice.set.filter(
@@ -427,15 +472,15 @@ class SprHeuristicSynthesizer(
         case (score, set) => {
           val newScore = score.combine(entry.score)
           val edge = Option(
-            spanGraph.getEdge(choice.span.start, choice.span.end)).
-            getOrElse(spanGraph.addEdge(choice.span.start, choice.span.end))
+            deltaGraph.getEdge(choice.span.start, choice.span.end)).
+            getOrElse(deltaGraph.addEdge(choice.span.start, choice.span.end))
           val newSet = set -- edge.set
           if (newSet.nonEmpty) {
             edge.set ++= newSet
             val newEntry = PartialEntry(
               SpanChoice(newSet, choice.span), newScore)
             enqueue(newEntry)
-            if ((start == 0) && (length == seq.size)) {
+            if ((start == 0) && (length == stream.size)) {
               newSet.foreach(
                 tree => {
                   if (accept(tree)) {
