@@ -116,7 +116,6 @@ A door is a kind of describable-entity.
 An exit-door must be a door.
 A door-exit must be a map-connection.
 A map-connection may have an exit-door.
-A door may have door-exits.
 A map-connection with an exit-door is a door-exit.
 A door must be open or closed.
 
