@@ -46,7 +46,7 @@ libraryDependencies ++= Seq(
 
 publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath+"/.ivy2/local/com.lingeringsocket.shlurd")))
 
-mainClass in Compile := Some("com.lingeringsocket.shlurd.parser.SprGrammar")
+mainClass in Compile := Some("com.lingeringsocket.shlurd.cli.ShlurdCliApp")
 
 fullClasspath in Runtime ++= (fullClasspath in cli in Runtime).value
 

@@ -49,6 +49,16 @@ object SpcGraphVisualizer
     includeFormAssocs = true, includeEntityAssocs = true
   )
 
+  val entityFullOptions = SpcGraphVisualizationOptions(
+    includeEntities = true, includeRealizations = true,
+    includeEntityAssocs = true
+  )
+
+  val entityAssocOptions = SpcGraphVisualizationOptions(
+    includeEntities = true,
+    includeEntityAssocs = true
+  )
+
   val arrowEmpty =
     new DefaultAttribute[String]("empty", AttributeType.STRING)
 
@@ -81,6 +91,18 @@ object SpcGraphVisualizer
     val visualizer = new SpcGraphVisualizer(graph, fullOptions)
     visualizer.display
   }
+
+  def displayEntities(graph : SpcGraph)
+  {
+    val visualizer = new SpcGraphVisualizer(graph, entityFullOptions)
+    visualizer.display
+  }
+
+  def displayEntityAssociations(graph : SpcGraph)
+  {
+    val visualizer = new SpcGraphVisualizer(graph, entityAssocOptions)
+    visualizer.display
+  }
 }
 
 class SpcGraphVisualizer(
@@ -92,7 +114,9 @@ class SpcGraphVisualizer(
 
   private val idGenerator = new IntegerComponentNameProvider[CombinedVertex]
 
-  private val combinedGraph = combineGraphs
+  private val combinedGraph = new DefaultDirectedGraph[CombinedVertex, CombinedEdge](
+    classOf[CombinedEdge])
+  combineGraphs
 
   def display()
   {
@@ -153,14 +177,20 @@ class SpcGraphVisualizer(
       })
   }
 
+  private def addCombinedVertex(v : CombinedVertex) : CombinedVertex =
+  {
+    combinedGraph.addVertex(v)
+    v
+  }
+
   private def combineVertex(nym : SpcNym) : CombinedVertex =
   {
-    CombinedVertex(nym.toString)
+    addCombinedVertex(CombinedVertex(nym.toString))
   }
 
   private def combineVertex(entity : SpcEntity) : CombinedVertex =
   {
-    CombinedVertex(s"SpcEntity(${entity.name})")
+    addCombinedVertex(CombinedVertex(s"SpcEntity(${entity.name})"))
   }
 
   private def combineEdge(edge : SpcTaxonomyEdge) : CombinedEdge =
@@ -197,14 +227,9 @@ class SpcGraphVisualizer(
     }
   }
 
-  private def combineGraphs() : CombinedGraph =
+  private def combineGraphs()
   {
-    val combinedGraph =
-      new DefaultDirectedGraph[CombinedVertex, CombinedEdge](
-        classOf[CombinedEdge])
-    if (options.includeIdeals || options.includeTaxonomy ||
-      options.includeRealizations || options.includeFormAssocs)
-    {
+    if (options.includeIdeals) {
       graph.idealSynonyms.vertexSet.asScala.toSeq.
         filter(_.isInstanceOf[SpcIdeal]).map(_.asInstanceOf[SpcIdeal]).foreach(
           v => if (includeIdeal(v)) {
@@ -224,9 +249,7 @@ class SpcGraphVisualizer(
         }
       })
     }
-    if (options.includeEntities || options.includeEntityAssocs ||
-      options.includeRealizations)
-    {
+    if (options.includeEntities || options.includeRealizations) {
       graph.entitySynonyms.vertexSet.asScala.toSeq.
         filter(_.isInstanceOf[SpcEntity]).map(_.asInstanceOf[SpcEntity]).
         foreach(v => if (includeEntity(v)) {
@@ -267,6 +290,5 @@ class SpcGraphVisualizer(
         }
       })
     }
-    combinedGraph
   }
 }

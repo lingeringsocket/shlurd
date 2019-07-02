@@ -102,9 +102,9 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
-          1 [ label="SpcForm(girl)" ];
-          2 [ label="SpcForm(powerpuff)" ];
-          2->1 $taxonomyAttributes;
+          1 [ label="SpcForm(powerpuff)" ];
+          2 [ label="SpcForm(girl)" ];
+          1->2 $taxonomyAttributes;
         }
       """).ignoreSpace
     }
@@ -129,12 +129,11 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
-          1 [ label="SpcForm(girl)" ];
+          1 [ label="SpcEntity(Bubblossom)" ];
           2 [ label="SpcForm(powerpuff)" ];
-          3 [ label="SpcEntity(Bubblossom)" ];
-          4 [ label="SpcEntity(Buttercup)" ];
+          3 [ label="SpcEntity(Buttercup)" ];
+          1->2 $realizationAttributes;
           3->2 $realizationAttributes;
-          4->2 $realizationAttributes;
         }
       """).ignoreSpace
     }
@@ -147,13 +146,13 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
-          1 [ label="SpcForm(girl)" ];
-          2 [ label="SpcForm(powerpuff)" ];
+          1 [ label="SpcForm(powerpuff)" ];
+          2 [ label="SpcForm(girl)" ];
           3 [ label="SpcEntity(Bubblossom)" ];
           4 [ label="SpcEntity(Buttercup)" ];
-          2->1 $taxonomyAttributes;
-          3->2 $realizationAttributes;
-          4->2 $realizationAttributes;
+          1->2 $taxonomyAttributes;
+          3->1 $realizationAttributes;
+          4->1 $realizationAttributes;
         }
       """).ignoreSpace
     }
@@ -168,12 +167,9 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       renderToString must beEqualTo("""
         strict digraph G {
           rankdir=LR;
-          1 [ label="SpcForm(girl)" ];
-          2 [ label="SpcForm(powerpuff)" ];
-          3 [ label="SpcForm(boy)" ];
-          4 [ label="SpcForm(professor)" ];
-          5 [ label="SpcRole(teacher)" ];
-          2->5 [ label="teacher" ];
+          1 [ label="SpcForm(powerpuff)" ];
+          2 [ label="SpcRole(teacher)" ];
+          1->2 [ label="teacher" ];
         }
       """).ignoreSpace
     }
@@ -188,15 +184,15 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
-          1 [ label="SpcForm(girl)" ];
-          2 [ label="SpcForm(powerpuff)" ];
-          3 [ label="SpcForm(boy)" ];
-          4 [ label="SpcForm(professor)" ];
+          1 [ label="SpcForm(powerpuff)" ];
+          2 [ label="SpcForm(girl)" ];
+          3 [ label="SpcForm(professor)" ];
+          4 [ label="SpcForm(boy)" ];
           5 [ label="SpcRole(teacher)" ];
-          2->1 $taxonomyAttributes;
-          4->3 $taxonomyAttributes;
-          5->4 $taxonomyAttributes;
-          2->5 [ label="teacher" ];
+          1->2 $taxonomyAttributes;
+          3->4 $taxonomyAttributes;
+          5->3 $taxonomyAttributes;
+          1->5 [ label="teacher" ];
         }
       """).ignoreSpace
     }

@@ -82,7 +82,8 @@ class SnavigConsole extends SnavigTerminal
   override def readInput() : Option[String] =
   {
     try {
-      Some(reader.readLine("> "))
+      // FIXME what is going on with empty input?
+      Option(reader.readLine("> "))
     } catch {
       case ex : EndOfFileException => {
         None
