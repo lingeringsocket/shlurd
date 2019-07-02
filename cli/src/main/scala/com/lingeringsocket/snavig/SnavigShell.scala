@@ -797,6 +797,8 @@ class SnavigShell(
     defer(DeferredDirective("the game-turn debuts"))
     processDeferred
 
+    terminal.emitNarrative("")
+
     while (!exit) {
       noumenalMind.startNewTurn
       gameTurnTimestamp = noumenalMind.getTimestamp

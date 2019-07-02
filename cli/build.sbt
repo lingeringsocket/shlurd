@@ -21,6 +21,7 @@ resolvers ++= Common.resolvers
 libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
+  "org.jline" % "jline" % "3.11.0",
   "com.twitter" %% "chill" % "0.9.3"
 )
 

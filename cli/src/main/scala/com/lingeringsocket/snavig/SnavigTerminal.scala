@@ -14,7 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.snavig
 
-import scala.io._
+import org.jline.terminal._
+import org.jline.reader._
 
 trait SnavigTerminal
 {
@@ -57,26 +58,35 @@ trait SnavigTerminal
 
 class SnavigConsole extends SnavigTerminal
 {
+  val jlineTerminal = TerminalBuilder.builder.build
+  val reader = LineReaderBuilder.builder.terminal(jlineTerminal).build
+  val out = jlineTerminal.writer
+
   override def emitPrompt()
   {
     super.emitPrompt
-    print("> ")
   }
 
   override def emitControl(msg : String)
   {
     super.emitControl(msg)
-    println(s"[Snavig] $msg")
+    out.println(s"[Snavig] $msg")
   }
 
   override def emitNarrative(msg : String)
   {
     super.emitNarrative(msg)
-    println(msg)
+    out.println(msg)
   }
 
   override def readInput() : Option[String] =
   {
-    Option(StdIn.readLine)
+    try {
+      Some(reader.readLine("> "))
+    } catch {
+      case ex : EndOfFileException => {
+        None
+      }
+    }
   }
 }
