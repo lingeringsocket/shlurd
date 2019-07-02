@@ -114,8 +114,9 @@ class SpcGraphVisualizer(
 
   private val idGenerator = new IntegerComponentNameProvider[CombinedVertex]
 
-  private val combinedGraph = new DefaultDirectedGraph[CombinedVertex, CombinedEdge](
-    classOf[CombinedEdge])
+  private val combinedGraph =
+    new DefaultDirectedGraph[CombinedVertex, CombinedEdge](
+      classOf[CombinedEdge])
   combineGraphs
 
   def display()
