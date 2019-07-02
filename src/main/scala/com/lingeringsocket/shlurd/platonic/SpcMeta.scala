@@ -67,6 +67,9 @@ object SpcMeta
     }
   }
 
+  def isMetaIdeal(ideal : SpcIdeal) =
+    ideal.name.startsWith("spc-")
+
   def isMetaEntity(entity : SpcEntity) =
     entity.properName.startsWith("SPC-")
 }

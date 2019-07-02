@@ -117,6 +117,7 @@ class SpcCreedSpec extends Specification
   private val mentorRole = "A mentor must be a monk."
   private val apprenticeRole = "An apprentice must be a monk."
   private val mentorApprentice = "A mentor may have apprentices."
+  private val monkApprentice = "A monk may have apprentices."
   private val apprenticeMentor = "An apprentice may have one mentor."
   private val assocInverse1 = "A monk with an apprentice is a mentor."
   private val assocInverse2 = "A monk with a mentor is an apprentice."
@@ -124,11 +125,15 @@ class SpcCreedSpec extends Specification
   private val nephew = "A man with an uncle or aunt is a nephew."
   private val auntNephews = "An aunt may have nephews."
   private val uncleNephews = "An uncle may have nephews."
-  private val nephewAunts = "A nephew may have aunts."
+  private val manAunts = "A man may have aunts."
   private val manAuntNephew = "A man with an aunt is a nephew."
-  private val nephewUncles = "A nephew may have uncles."
+  private val manUncles = "A man may have uncles."
   private val manUncleNephew = "A man with an uncle is a nephew."
+  private val manNephewUncle = "A man with a nephew is an uncle."
+  private val womanNephewAunt = "A woman with a nephew is an aunt."
   private val nephewMan = "A nephew must be a man."
+  private val uncleMan = "An uncle must be a man."
+  private val auntWoman = "An aunt must be a woman."
   private val children = "A person may have sons or daughters."
   private val childrenSons = "A person may have sons."
   private val childrenDaughters = "A person may have daughters."
@@ -480,15 +485,16 @@ class SpcCreedSpec extends Specification
           apprenticeMentor, assocInverse1),
         Seq(
           mentorRole, apprenticeRole,
-          mentorApprentice, apprenticeMentor,
+          apprenticeMentor, monkApprentice,
           assocInverse1, assocInverse2))
     }
 
     "normalize inverse associations with implied roles" in new CosmosContext
     {
       expectNormalized(
-        Seq(assocInverse1),
-        Seq(mentorRole, mentorApprentice, apprenticeMentors, assocInverse1))
+        Seq(apprenticeRole, assocInverse1),
+        Seq(apprenticeRole, mentorRole, apprenticeMentors, monkApprentice,
+          assocInverse1, assocInverse2))
     }
 
     "normalize associations with multiple roles" in new CosmosContext
@@ -501,9 +507,10 @@ class SpcCreedSpec extends Specification
     "normalize inverse associations with multiple roles" in new CosmosContext
     {
       expectNormalized(
-        Seq(nephew),
-        Seq(nephewMan, nephewUncles, nephewAunts, uncleNephews,
-          auntNephews, manUncleNephew, manAuntNephew))
+        Seq(nephewMan, uncleMan, auntWoman, nephew),
+        Seq(nephewMan, uncleMan, auntWoman,
+          uncleNephews, auntNephews, manUncles, manAunts,
+          manUncleNephew, manNephewUncle, manAuntNephew, womanNephewAunt))
     }
 
     "preserve triggers" in new CosmosContext

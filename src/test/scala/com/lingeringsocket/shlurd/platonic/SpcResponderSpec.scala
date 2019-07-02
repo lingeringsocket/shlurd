@@ -563,6 +563,24 @@ class SpcResponderSpec extends Specification
       processTerse("who are Eugene's students", "No one.")
     }
 
+    "understand implicit inverse associations" in new ResponderContext(
+      ACCEPT_MODIFIED_BELIEFS)
+    {
+      processBelief("A map-place is a kind of object.")
+      processBelief("A map-neighbor must be a map-place.")
+      processBelief("A map-place with a map-neighbor is a map-neighbor.")
+      processBelief("A bedroom is a kind of map-place.")
+      processBelief("There is a bedroom.")
+      processBelief("A bathroom is a kind of map-place.")
+      processBelief("There is a bathroom.")
+      processBelief("The bedroom is the bathroom's map-neighbor.")
+
+      processTerse("What is the bathroom's map-neighbor?", "The bedroom.")
+      processTerse("What is the bedroom's map-neighbor?", "The bathroom.")
+
+      cosmos.sanityCheck must beTrue
+    }
+
     "understand actions" in new ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")

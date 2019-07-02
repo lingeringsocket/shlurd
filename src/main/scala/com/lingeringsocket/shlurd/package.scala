@@ -23,4 +23,6 @@ package object shlurd
   def tupleN[TupleN <: Product](t : TupleN) = t
 
   def range(r : Range) = r
+
+  def shellCommand(pb : scala.sys.process.ProcessBuilder) = pb
 }

@@ -682,7 +682,7 @@ class SpcCosmos(
     val name = encodeName(word)
     val ideal = getIdealBySynonym(name).getOrElse(
       registerRole(new SpcRole(name)))
-    assert(ideal.isRole)
+    assert(ideal.isRole, ideal)
     ideal.asInstanceOf[SpcRole]
   }
 

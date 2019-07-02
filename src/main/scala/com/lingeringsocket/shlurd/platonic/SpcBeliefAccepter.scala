@@ -778,7 +778,16 @@ class SpcBeliefAccepter(
       val possessorRole = cosmos.instantiateRole(possessorRoleName)
       addIdealTaxonomy(sentence, possessorRole, possessorForm)
       possesseeRoleNames.foreach(possesseeRoleName => {
+        val newRole = mind.resolveRole(
+          possessorForm, possesseeRoleName).isEmpty
+        assert(!newRole, possesseeRoleName)
         val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
+        if (cosmos.getGraph.getFormAssocEdge(
+          possessorRole, possesseeRole).isEmpty)
+        {
+          cosmos.addFormAssoc(
+            possessorForm, possesseeRole)
+        }
         val edge = cosmos.addFormAssoc(
           possessorRole, possesseeRole)
         val inverseEdge = cosmos.addFormAssoc(

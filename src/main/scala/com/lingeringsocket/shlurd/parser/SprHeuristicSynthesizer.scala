@@ -522,7 +522,7 @@ class SprHeuristicSynthesizer(
   private def displayDotty(dot : String)
   {
     val dotStream = new java.io.ByteArrayInputStream(dot.getBytes)
-      ("xdot -" #< dotStream).!!
+    shellCommand("xdot -" #< dotStream).!!
   }
 
   private[parser] def displayGraph(

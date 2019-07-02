@@ -44,7 +44,6 @@ A map-connection is a kind of describable-entity.
 A straight-connection is a kind of map-connection.
 
 A map-neighbor must be a map-place.
-A map-place may have map-neighbors.
 A map-place with a map-neighbor is a map-neighbor.
 
 A source-place must be a map-place.
@@ -52,9 +51,6 @@ A target-place must be a map-place.
 
 A place-exit must be a map-connection.
 A place-entrance must be a map-connection.
-
-A map-place may have place-exits.
-A map-place may have place-entrances.
 
 A map-connection must have a source-place.
 A map-connection must have a target-place.

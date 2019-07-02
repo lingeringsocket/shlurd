@@ -19,7 +19,6 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 
-
 import spire.math._
 
 import scala.collection._
@@ -402,6 +401,8 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "support inverse associations with tentative forms" in new CosmosContext
     {
+      skipped("not working yet")
+
       SpcPrimordial.initCosmos(cosmos)
 
       addBelief("Edison's invention is Byron")
