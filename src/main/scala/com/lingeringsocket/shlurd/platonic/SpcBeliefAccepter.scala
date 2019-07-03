@@ -290,7 +290,7 @@ class SpcBeliefAccepter(
       Seq(possessor.form) ++ cosmos.getRolesForForm(possessor.form) ++ {
         if (possessor.form.isTentative) {
           graph.formAssocs.incomingEdgesOf(role).asScala.
-            toSeq.map(graph.getPossessorIdeal)
+            toSeq.map(graph.getPossessorForm)
         } else {
           Seq.empty
         }
@@ -303,20 +303,12 @@ class SpcBeliefAccepter(
           cosmos.addFormAssoc(possessor.form, role)
         }
       }
-    val possessorIdeal = graph.getPossessorIdeal(formAssocEdge)
-    if (!cosmos.isFormCompatibleWithIdeal(possessor.form, possessorIdeal)) {
+    val possessorForm = graph.getPossessorForm(formAssocEdge)
+    if (!cosmos.isFormCompatibleWithIdeal(possessor.form, possessorForm)) {
       assert(possessor.form.isTentative)
-      possessorIdeal match {
-        case possessorForm : SpcForm => {
-          addIdealTaxonomy(sentence, possessor.form, possessorForm)
-        }
-        case possessorRole : SpcRole => {
-          graph.getFormsForRole(possessorRole).foreach(possessorForm =>
-            addIdealTaxonomy(sentence, possessor.form, possessorForm))
-        }
-      }
+      addIdealTaxonomy(sentence, possessor.form, possessorForm)
     }
-    tupleN((formAssocEdge, possessorIdeal, role))
+    tupleN((formAssocEdge, possessorForm, role))
   }
 
   private def instantiatePropertyStates(
@@ -486,14 +478,17 @@ class SpcBeliefAccepter(
 
   beliefApplier {
     case FormAssocBelief(
-      sentence, possessorIdealName, possesseeRoleNames,
+      sentence, possessorFormName, possesseeRoleNames,
       newConstraint, isProperty
     ) => {
-      val possessorIdeal = mind.instantiateIdeal(possessorIdealName)
+      if (mind.instantiateIdeal(possessorFormName).isRole) {
+        throw new IncomprehensibleBeliefExcn(sentence)
+      }
+      val possessorForm = mind.instantiateForm(possessorFormName)
       possesseeRoleNames.foreach(possesseeRoleName => {
         val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
         val edge = cosmos.addFormAssoc(
-          possessorIdeal, possesseeRole)
+          possessorForm, possesseeRole)
         val oldConstraint = edge.constraint
         val constraint = SpcCardinalityConstraint(
           Math.max(oldConstraint.lower, newConstraint.lower),
@@ -779,9 +774,6 @@ class SpcBeliefAccepter(
       val possessorForm = mind.instantiateForm(possessorFormName)
       val possessorRole = cosmos.instantiateRole(possessorRoleName)
       addIdealTaxonomy(sentence, possessorRole, possessorForm)
-      val newPossesseeRole = mind.resolveRole(
-        possessorForm, possesseeRoleName).isEmpty
-      assert(!newPossesseeRole, possesseeRoleName)
       val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
       val possesseeForm = mind.instantiateForm(possesseeFormName)
       addIdealTaxonomy(sentence, possesseeRole, possesseeForm)

@@ -685,6 +685,14 @@ class SpcCosmosSpec extends SpcProcessingSpecification
         throwA[ContradictoryBeliefExcn]
     }
 
+    "reject roles as possessors" in new CosmosContext
+    {
+      addBelief("an owner must be a person")
+      addBelief("a possession must be an item")
+      addBelief("an owner may have possessions") must
+        throwA[IncomprehensibleBeliefExcn]
+    }
+
     "reject ambiguous belief" in new CosmosContext
     {
       addBelief("there is a big door")

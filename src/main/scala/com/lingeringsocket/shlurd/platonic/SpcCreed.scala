@@ -241,7 +241,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     }
     SilPredicateSentence(
       SilRelationshipPredicate(
-        idealNoun(cosmos.getGraph.getPossessorIdeal(edge)),
+        idealNoun(cosmos.getGraph.getPossessorForm(edge)),
         REL_PREDEF_ASSOC.toVerb,
         possessee
       ),
@@ -351,10 +351,8 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     edge2 : SpcFormAssocEdge
   ) : Option[SilSentence] =
   {
-    val possessorForm =
-      cosmos.getGraph.getPossessorIdeal(edge1).asInstanceOf[SpcForm]
-    val possesseeForm =
-      cosmos.getGraph.getPossessorIdeal(edge2).asInstanceOf[SpcForm]
+    val possessorForm = cosmos.getGraph.getPossessorForm(edge1)
+    val possesseeForm = cosmos.getGraph.getPossessorForm(edge2)
     val (
         antecedentSubject, antecedentComplement,
         consequentSubject, consequentComplement

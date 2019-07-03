@@ -269,7 +269,7 @@ class SpcGraphVisualizer(
     }
     if (options.includeFormAssocs) {
       graph.formAssocs.edgeSet.asScala.toSeq.foreach(e => {
-        val possessor = graph.getPossessorIdeal(e)
+        val possessor = graph.getPossessorForm(e)
         val possessee = graph.getPossesseeRole(e)
         if (includeIdeal(possessor) && includeIdeal(possessee)) {
           combinedGraph.addEdge(

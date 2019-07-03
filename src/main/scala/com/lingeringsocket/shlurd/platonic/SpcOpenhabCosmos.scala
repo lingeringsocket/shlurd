@@ -284,9 +284,9 @@ abstract class SpcOpenhabCosmos(
                   && edge.isProperty) match
               {
                 case Some(edge) => {
-                  val personIdeal = getGraph.getPossessorIdeal(edge)
+                  val personForm = getGraph.getPossessorForm(edge)
                   resolveQualifiedNoun(
-                    personIdeal.name, REF_SUBJECT,
+                    personForm.name, REF_SUBJECT,
                     qualifiers.takeRight(1)) match
                   {
                     case Success(set) => {

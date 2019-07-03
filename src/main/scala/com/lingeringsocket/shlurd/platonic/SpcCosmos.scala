@@ -1012,7 +1012,7 @@ class SpcCosmos(
   }
 
   def addFormAssoc(
-    possessor : SpcIdeal,
+    possessor : SpcForm,
     role : SpcRole) : SpcFormAssocEdge =
   {
     graph.getFormAssocEdge(possessor, role) match {
@@ -1152,9 +1152,9 @@ class SpcCosmos(
     formAssocs.edgeSet.asScala.foreach(formEdge => {
       val constraint = formEdge.constraint
       if (constraint.upper < Int.MaxValue) {
-        val ideal = graph.getPossessorIdeal(formEdge)
+        val possessorForm = graph.getPossessorForm(formEdge)
         entitySet.filter(
-          e => isHyponym(e.form, ideal)).foreach(entity =>
+          e => isHyponym(e.form, possessorForm)).foreach(entity =>
           {
             sanityCheckConstraint(entity, formEdge)
           }
@@ -1198,10 +1198,10 @@ class SpcCosmos(
       val formEdge = entityEdge.formEdge
       assert(graph.formAssocs.containsEdge(formEdge),
         entityEdge.toString)
-      val possessorIdeal = graph.getPossessorIdeal(formEdge)
+      val possessorForm = graph.getPossessorForm(formEdge)
       val possessorEntity = graph.getPossessorEntity(entityEdge)
       val possesseeEntity = graph.getPossesseeEntity(entityEdge)
-      assert(isFormCompatibleWithIdeal(possessorEntity.form, possessorIdeal))
+      assert(isFormCompatibleWithIdeal(possessorEntity.form, possessorForm))
       val role = graph.getPossesseeRole(formEdge)
       assert(isFormCompatibleWithRole(possesseeEntity.form, role),
         tupleN((possesseeEntity.form, role)).toString)

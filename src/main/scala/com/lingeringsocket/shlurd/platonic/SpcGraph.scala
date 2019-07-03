@@ -283,7 +283,7 @@ class SpcLabeledEdge(
 }
 
 case class SpcFormAssocEdge(
-  possessor : SpcIdeal,
+  possessor : SpcForm,
   roleName : String
 ) extends SpcLabeledEdge(roleName)
 {
@@ -441,14 +441,14 @@ class SpcGraph(
   def getSuperclassIdeal(edge : SpcTaxonomyEdge) =
     idealTaxonomy.getEdgeTarget(edge)
 
-  def getPossessorIdeal(edge : SpcFormAssocEdge) =
-    formAssocs.getEdgeSource(edge)
-
-  def getPossessorEntity(edge : SpcEntityAssocEdge) =
-    entityAssocs.getEdgeSource(edge)
+  def getPossessorForm(edge : SpcFormAssocEdge) =
+    formAssocs.getEdgeSource(edge).asInstanceOf[SpcForm]
 
   def getPossesseeRole(edge : SpcFormAssocEdge) =
     formAssocs.getEdgeTarget(edge).asInstanceOf[SpcRole]
+
+  def getPossessorEntity(edge : SpcEntityAssocEdge) =
+    entityAssocs.getEdgeSource(edge)
 
   def getPossesseeEntity(edge : SpcEntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
@@ -641,6 +641,7 @@ class SpcGraph(
     assert(!new CycleDetector(entitySynonyms).detectCycles)
     assert(!new CycleDetector(components).detectCycles)
     formAssocs.edgeSet.asScala.foreach(formEdge => {
+      assert(formAssocs.getEdgeSource(formEdge).isInstanceOf[SpcForm], formEdge)
       val role = getPossesseeRole(formEdge)
       assert(role.name == formEdge.getRoleName,
         tupleN((role, formEdge)).toString)
