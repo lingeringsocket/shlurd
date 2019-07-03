@@ -959,7 +959,9 @@ class SpcCosmos(
     if (!inverseAssocs.containsVertex(edge)) {
       None
     } else {
-      Some(Graphs.neighborListOf(inverseAssocs, edge).get(0))
+      val neighbors = Graphs.neighborListOf(inverseAssocs, edge)
+      assert(!neighbors.isEmpty)
+      Some(neighbors.get(0))
     }
   }
 
@@ -976,8 +978,8 @@ class SpcCosmos(
       }
       case _ =>
     }
-    inverseAssocs.removeVertex(edge1)
-    inverseAssocs.removeVertex(edge2)
+    assert(!inverseAssocs.containsVertex(edge1), edge1)
+    assert(!inverseAssocs.containsVertex(edge2), edge2)
     inverseAssocs.addVertex(edge1)
     inverseAssocs.addVertex(edge2)
     inverseAssocs.addEdge(edge1, edge2, SpcInverseAssocEdge(generateId))

@@ -26,8 +26,10 @@ An organization may have operatives.
 A conspiracy is a kind of organization.
 An employer must be an organization.
 A person may have an employer.
-An organization with an operative is an employer.
-A person with a sibling is a sibling.
+If a person is an organization's operative, then equivalently
+ the organization is the person's employer.
+If a person is another person's sibling, then equivalently
+ the second person is the first person's sibling.
 Todd is Amanda's brother.
 Dirk is Todd's friend.
 Todd is Dirk's friend.

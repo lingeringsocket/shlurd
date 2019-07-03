@@ -143,7 +143,7 @@ class SpcWordnet(cosmos : SpcCosmos)
               val holonymRole = cosmos.instantiateRole(
                 SilWord(getRoleName(meronymForm, holonymForm)))
               cosmos.addIdealTaxonomy(holonymRole, holonymForm)
-              val inverseEdge = cosmos.addFormAssoc(meronymRole, holonymRole)
+              val inverseEdge = cosmos.addFormAssoc(meronymForm, holonymRole)
               val constraint = SpcCardinalityConstraint(0, 1)
               cosmos.annotateFormAssoc(inverseEdge, constraint, false)
               cosmos.connectInverseAssocEdges(edge, inverseEdge)

@@ -16,7 +16,8 @@ A nadir is a kind of map-direction.
 
 An opposite-direction must be a map-direction.
 A map-direction must have an opposite-direction.
-A map-direction with an opposite-direction is an opposite-direction.
+If a map-direction is another map-direction's opposite-direction, then equivalently
+ the second map-direction is the first map-direction's opposite-direction.
 
 There is a north.
 There is a south.
@@ -44,7 +45,8 @@ A map-connection is a kind of describable-entity.
 A straight-connection is a kind of map-connection.
 
 A map-neighbor must be a map-place.
-A map-place with a map-neighbor is a map-neighbor.
+If a map-place is another map-place's map-neighbor, then equivalently
+ the second map-place is the first map-place's map-neighbor.
 
 A source-place must be a map-place.
 A target-place must be a map-place.
@@ -57,12 +59,16 @@ A map-connection must have a target-place.
 
 An opposite-connection must be a map-connection.
 A map-connection may have an opposite-connection.
-A map-connection with an opposite-connection is an opposite-connection.
+If a map-connection is another map-connection's opposite-connection, then equivalently
+ the second map-connection is the first map-connection's opposite-connection.
 
 A source-place must be a map-place.
 A target-place must be a map-place.
-A map-place with a place-exit is a source-place.
-A map-place with a place-entrance is a target-place.
+
+If a map-place is a map-connection's source-place, then equivalently
+ the map-connection is the map-place's place-exit.
+If a map-place is a map-connection's target-place, then equivalently
+ the map-connection is the map-place's place-entrance.
 
 If a map-connection opposes a map-place to a map-direction, then equivalently
  the map-place's place-exit in the map-direction is
@@ -112,7 +118,8 @@ A door is a kind of describable-entity.
 An exit-door must be a door.
 A door-exit must be a map-connection.
 A map-connection may have an exit-door.
-A map-connection with an exit-door is a door-exit.
+If a door is a map-connection's exit-door, then equivalently
+ the map-connection is the door's door-exit.
 A door must be open or closed.
 
 When a door mediates a map-connection,

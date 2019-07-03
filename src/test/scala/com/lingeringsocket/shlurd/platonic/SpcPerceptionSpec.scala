@@ -77,8 +77,9 @@ class SpcPerceptionSpec extends Specification
       processBelief("a pet must be an animal")
       processBelief("an owner must be a person")
       processBelief("a person may have pets")
-      processBelief("a pet may have an owner")
-      processBelief("a person with a pet is an owner")
+      processBelief("an animal may have an owner")
+      processBelief("if an animal is a person's pet, " +
+        "then equivalently the animal's owner is the person")
       processBelief("a girl is a kind of person")
       processBelief("a boy is a kind of person")
       processBelief("a pig is a kind of animal")

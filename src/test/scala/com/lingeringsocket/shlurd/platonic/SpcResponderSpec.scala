@@ -553,7 +553,9 @@ class SpcResponderSpec extends Specification
       processBelief("a student must be a person")
       processBelief("a person may have students")
       processBelief("a person may have a professor")
-      processBelief("a person with a student is a professor")
+
+      processBelief("if a person is another person's student, " +
+        "then equivalently the second person is the first person's professor")
       processBelief("Eugene is John's professor")
       processBelief("Eugene is Erik's professor")
       processBelief("Jerold is Erik's professor")
@@ -568,7 +570,9 @@ class SpcResponderSpec extends Specification
     {
       processBelief("A map-place is a kind of object.")
       processBelief("A map-neighbor must be a map-place.")
-      processBelief("A map-place with a map-neighbor is a map-neighbor.")
+      processBelief("If a map-place is another map-place's map-neighbor, " +
+        "then equivalently the second map-place is " +
+        "the first map-place's map-neighbor.")
       processBelief("A bedroom is a kind of map-place.")
       processBelief("There is a bedroom.")
       processBelief("A bathroom is a kind of map-place.")
@@ -1608,7 +1612,9 @@ class SpcResponderSpec extends Specification
       processBelief("a gentleman is a kind of man")
       processBelief("a footman must be a man")
       processBelief("a footman must be a plebeian")
-      processBelief("a gentleman with a footman is a lord")
+      processBelief("a lord must be a gentleman")
+      processBelief("if a gentleman is a man's lord, " +
+        "then the man is the gentleman's footman")
       processBelief("Bunter is Peter's footman")
       processTerse("is Bunter a footman", "Yes.")
       processTerse("is Bunter a man", "Yes.")
@@ -1632,10 +1638,14 @@ class SpcResponderSpec extends Specification
       processBelief("A descendant must be a patriarch.")
       processBelief("A patriarch may have a parent.")
       processBelief("A patriarch may have children.")
-      processBelief("A patriarch with a child is a parent.")
+      processBelief("If a patriarch is another patriarch's child, " +
+        "then equivalently the second patriarch is " +
+        "the first patriarch's parent.")
       processBelief("A patriarch may have ancestors.")
       processBelief("A patriarch may have descendants.")
-      processBelief("A patriarch with a descendant is an ancestor.")
+      processBelief("If a patriarch is another patriarch's descendant, " +
+        "then equivalently the second patriarch is " +
+        "the first patriarch's ancestor.")
       processBelief("If a patriarch begets a child, " +
         "then the patriarch becomes the child's parent; " +
         "also the patriarch becomes the child's ancestor; " +

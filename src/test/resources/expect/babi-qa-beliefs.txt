@@ -29,7 +29,8 @@ A possessor must be a person.
 A possession must be an object.
 A person may have possessions.
 An object may have a possessor.
-A person with a possession is a possessor.
+If an object is a person's possession, then equivalently
+ the person is the object's possessor.
 If a person moves to a location, then subsequently the person is in the location;
  also the person's possessions are in the location.
 If a person goes to a location, then the person moves to the location.
@@ -73,8 +74,10 @@ A place may have a northern-neighbor.
 A place may have a southern-neighbor.
 A place may have an eastern-neighbor.
 A place may have a western-neighbor.
-A place with a northern-neighbor is a southern-neighbor.
-A place with an eastern-neighbor is a western-neighbor.
+If a place is another place's northern-neighbor, then equivalently
+ the second place is the first place's southern-neighbor.
+If a place is another place's eastern-neighbor, then equivalently
+ the second place is the first place's western-neighbor.
 If a place is west of a location, then equivalently the place is the location's western-neighbor.
 If a place is east of a location, then equivalently the place is the location's eastern-neighbor.
 If a place is north of a location, then equivalently the place is the location's northern-neighbor.
@@ -116,10 +119,14 @@ A row may have top-rows.
 A row may have bottom-rows.
 A column may have pre-columns.
 A column may have post-columns.
-A row with an above-row is a below-row.
-A column with a left-column is a right-column.
-A row with a top-row is a bottom-row.
-A column with a pre-column is a post-column.
+If a row is another row's above-row, then equivalently
+ the second row is the first row's below-row.
+If a column is another column's left-column, then equivalently
+ the second column is the first column's right-column.
+If a row is another row's top-row, then equivalently
+ the second row is the first row's bottom-row.
+If a column is another column's pre-column, then equivalently
+ the second column is the first column's post-column.
 If a shape is above a neighbor, then the shape's abscissa is the neighbor's abscissa.
 If a shape is above a neighbor, then the shape's ordinate is the neighbor's ordinate's above-row.
 If a shape is above a neighbor, equivalently the neighbor's ordinate's top-row is the shape's ordinate.

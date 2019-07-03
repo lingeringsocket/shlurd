@@ -351,37 +351,67 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     edge2 : SpcFormAssocEdge
   ) : Option[SilSentence] =
   {
-    val possessorIdeal = cosmos.getGraph.getPossessorIdeal(edge1) match {
-      case form : SpcForm => form
-      case role : SpcRole => {
-        val candidates = cosmos.getGraph.getFormsForRole(role)
-        val forms = {
-          if (candidates.size > 1) {
-            candidates.filterNot(_.name == SpcMeta.ENTITY_METAFORM_NAME)
-          } else {
-            candidates
-          }
-        }
-        assert(forms.size < 2, (role, forms))
-        if (forms.isEmpty) {
-          return None
-        } else {
-          forms.head
-        }
+    val possessorForm =
+      cosmos.getGraph.getPossessorIdeal(edge1).asInstanceOf[SpcForm]
+    val possesseeForm =
+      cosmos.getGraph.getPossessorIdeal(edge2).asInstanceOf[SpcForm]
+    val (
+        antecedentSubject, antecedentComplement,
+        consequentSubject, consequentComplement
+    ) = {
+      if (possessorForm == possesseeForm) {
+        tupleN((
+          idealNoun(possesseeForm),
+          SilGenitiveReference(
+            SilStateSpecifiedReference(
+              plainNoun(possessorForm),
+              SilPropertyState(SilWord(LEMMA_ANOTHER))
+            ),
+            plainNoun(edge1.getRoleName)
+          ),
+          SilStateSpecifiedReference(
+            idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
+            SilPropertyState(SilWord(LEMMA_SECOND))
+          ),
+          SilGenitiveReference(
+            SilStateSpecifiedReference(
+              idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
+              SilPropertyState(SilWord(LEMMA_FIRST))
+            ),
+            plainNoun(edge2.getRoleName)
+          )
+        ))
+      } else {
+        tupleN((
+          idealNoun(possesseeForm),
+          SilGenitiveReference(
+            idealNoun(possessorForm),
+            plainNoun(edge1.getRoleName)
+          ),
+          idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
+          SilGenitiveReference(
+            idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
+            plainNoun(edge2.getRoleName)
+          )
+        ))
       }
     }
-    val sentence =
-      SilPredicateSentence(
-        SilRelationshipPredicate(
-          SilStateSpecifiedReference(
-            idealNoun(possessorIdeal),
-            SilAdpositionalState(
-              SilAdposition.WITH,
-              nounReference(edge1.getRoleName))),
-          REL_PREDEF_IDENTITY.toVerb,
-          nounReference(edge2.getRoleName)
-        )
-      )
+    val sentence = SilConditionalSentence(
+      SilWord(LEMMA_IF),
+      SilRelationshipPredicate(
+        antecedentSubject,
+        REL_PREDEF_IDENTITY.toVerb,
+        antecedentComplement
+      ),
+      SilRelationshipPredicate(
+        consequentSubject,
+        REL_PREDEF_IDENTITY.toVerb,
+        consequentComplement
+      ),
+      SilTam.indicative,
+      SilTam.indicative,
+      true
+    )
     Some(sentence)
   }
 
@@ -401,9 +431,22 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   }
 
   private def idealNoun(
-    ideal : SpcIdeal, count : SilCount = COUNT_SINGULAR) =
+    ideal : SpcIdeal, count : SilCount = COUNT_SINGULAR,
+    determiner : SilDeterminer = DETERMINER_NONSPECIFIC) =
   {
-    nounReference(ideal.name, count)
+    nounReference(ideal.name, count, determiner)
+  }
+
+  private def plainNoun(
+    ideal : SpcIdeal) : SilReference =
+  {
+    plainNoun(ideal.name)
+  }
+
+  private def plainNoun(
+    name : String) : SilReference =
+  {
+    nounReference(name, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)
   }
 
   private def propertyState(entry : (String, String)) =

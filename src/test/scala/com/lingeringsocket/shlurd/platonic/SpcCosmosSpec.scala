@@ -399,19 +399,6 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       cosmos.sanityCheck must beTrue
     }
 
-    "support inverse associations with tentative forms" in new CosmosContext
-    {
-      skipped("not working yet")
-
-      SpcPrimordial.initCosmos(cosmos)
-
-      addBelief("Edison's invention is Byron")
-      addBelief("a person with an invention is an inventor")
-      addBelief("Edison is a person")
-
-      cosmos.sanityCheck must beTrue
-    }
-
     "accept synonyms" in new CosmosContext
     {
       addBelief("there is a big door")

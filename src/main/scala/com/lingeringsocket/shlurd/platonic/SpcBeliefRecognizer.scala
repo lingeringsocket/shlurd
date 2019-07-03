@@ -109,9 +109,200 @@ class SpcBeliefRecognizer(
         recognizeAssertionBelief(
           conditional, additional.map(_.asInstanceOf[SilPredicateSentence]))
       }
+      // "If a map-place is a map-connection's target-place,
+      //   then equivalently the map-connection is
+      //   the map-place's place-entrance."
+      case SilConditionalSentence(
+        SilWordLemma(LEMMA_IF),
+        SilRelationshipPredicate(
+          antecedentSubject,
+          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+          antecedentComplement,
+          Seq()),
+        SilRelationshipPredicate(
+          consequentSubject,
+          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+          consequentComplement,
+          verbModifiers),
+        tam1,
+        tam2,
+        biconditional,
+        _
+      ) if (
+        verbModifiers.isEmpty &&
+          tam1 == SilTam.indicative &&
+          tam2 == SilTam.indicative &&
+          matchAssocInverse(
+            antecedentSubject,
+            antecedentComplement,
+            consequentSubject,
+            consequentComplement
+          ).nonEmpty
+      ) => {
+        val (
+          possesseeForm, possessorForm,
+          possesseeRole, possessorRole
+        ) = matchAssocInverse(
+          antecedentSubject,
+          antecedentComplement,
+          consequentSubject,
+          consequentComplement
+        ).get
+        Seq(InverseAssocBelief(
+          sentence, possessorForm, possessorRole,
+          possesseeForm, possesseeRole))
+      }
       case _ => {
         recognizeAssertionBelief(sentence)
       }
+    }
+  }
+
+  private def matchAssocInverse(
+    antecedentSubject : SilReference,
+    antecedentComplement : SilReference,
+    complementSubject : SilReference,
+    consequentComplement : SilReference
+  ) : Option[(SilWord, SilWord, SilWord, SilWord)] =
+  {
+    val antecedent = matchAssocIdentity(
+      antecedentSubject,
+      antecedentComplement,
+      DETERMINER_NONSPECIFIC)
+    val consequent = matchAssocIdentity(
+      complementSubject,
+      consequentComplement,
+      DETERMINER_UNIQUE)
+    // FIXME also need to verify that FIRST/SECOND line up correctly
+    tupleN((antecedent, consequent)) match {
+      case (
+        Some((af1, af2, ar)),
+        Some((cf1, cf2, cr))) => {
+        if ((af1 == cf2) && (af2 == cf1)) {
+          Some(tupleN((af1, af2, ar, cr)))
+        } else {
+          None
+        }
+      }
+      case _ => None
+    }
+  }
+
+  private def matchAssocIdentity(
+    r1 : SilReference,
+    r2 : SilReference,
+    expectedDeterminer : SilDeterminer,
+    flipped : Boolean = false
+  ) : Option[(SilWord, SilWord, SilWord)] =
+  {
+    tupleN((
+      matchNoun(r1, expectedDeterminer, flipped),
+      matchGenitive(r2, expectedDeterminer, !flipped)
+    )) match {
+      case (Some(w1), Some((w2, w3))) => {
+        Some(tupleN((w1, w2, w3)))
+      }
+      case _ => {
+        if (!flipped) {
+          matchAssocIdentity(r2, r1, expectedDeterminer, true)
+        } else {
+          None
+        }
+      }
+    }
+  }
+
+  private def matchNoun(
+    ref : SilReference, expectedDeterminer : SilDeterminer,
+    isComplement : Boolean
+  ) : Option[SilWord] =
+  {
+    ref match {
+      case SilNounReference(
+        noun, determiner, COUNT_SINGULAR
+      ) if (
+        determiner == expectedDeterminer
+      )  => {
+        Some(noun)
+      }
+      case SilStateSpecifiedReference(
+        SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+        SilPropertyState(
+          SilWordLemma(LEMMA_ANOTHER)
+        )
+      ) if (
+        isComplement &&
+          (expectedDeterminer == DETERMINER_NONSPECIFIC)
+      ) => {
+        Some(noun)
+      }
+      case SilStateSpecifiedReference(
+        SilNounReference(noun, DETERMINER_UNIQUE, COUNT_SINGULAR),
+        SilPropertyState(
+          SilWordLemma(LEMMA_FIRST) |
+            SilWordLemma(LEMMA_SECOND)
+        )
+      ) if (
+        expectedDeterminer == DETERMINER_UNIQUE
+      ) => {
+        Some(noun)
+      }
+      case _ => None
+    }
+  }
+
+  private def matchGenitive(
+    ref : SilReference, expectedDeterminer : SilDeterminer,
+    isComplement : Boolean
+  ) : Option[(SilWord, SilWord)] =
+  {
+    val intermediate = ref match {
+      case SilGenitiveReference(
+        SilNounReference(possessor, determiner, COUNT_SINGULAR),
+        possessee
+      ) if (
+        determiner == expectedDeterminer
+      ) => {
+        Some(tupleN((possessor, possessee)))
+      }
+      case SilGenitiveReference(
+        SilStateSpecifiedReference(
+          SilNounReference(possessor, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+          SilPropertyState(
+            SilWordLemma(LEMMA_ANOTHER)
+          )
+        ),
+        possessee
+      ) if (
+        isComplement &&
+          (expectedDeterminer == DETERMINER_NONSPECIFIC)
+      ) => {
+        Some(tupleN((possessor, possessee)))
+      }
+      case SilGenitiveReference(
+        SilStateSpecifiedReference(
+          SilNounReference(possessor, DETERMINER_UNIQUE, COUNT_SINGULAR),
+          SilPropertyState(
+            SilWordLemma(LEMMA_FIRST) |
+              SilWordLemma(LEMMA_SECOND)
+          )
+        ),
+        possessee
+      ) if (
+        expectedDeterminer == DETERMINER_UNIQUE
+      ) => {
+        Some(tupleN((possessor, possessee)))
+      }
+      case _ => None
+    }
+    intermediate.flatMap {
+      case (
+        possessor,
+        SilNounReference(possessee, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)
+      ) => {
+        Some(tupleN((possessor, possessee)))
+      }
+      case _ => None
     }
   }
 
@@ -310,46 +501,6 @@ class SpcBeliefRecognizer(
             // "Arnie's catchphrase is <<I'll be back>>"
             return processQuotation(
               sentence, possessor, possessee, quotation, verb)
-          }
-          case _ =>
-        }
-      }
-      case SilStateSpecifiedReference(
-        SilNounReference(
-          possessorFormName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
-        SilAdpositionalState(
-          SilAdposition.WITH,
-          possesseeRef
-        )
-      ) => {
-        // "a person with a child is a parent"
-        if (tam.modality != MODAL_NEUTRAL) {
-          return Seq(UnimplementedBelief(sentence))
-        }
-        val possesseeRoleNames = possesseeRef match {
-          case SilNounReference(
-            possesseeRoleName, _, _
-          ) => {
-            Seq(possesseeRoleName)
-          }
-          case SilConjunctiveReference(_, references, _) => {
-            references.map({
-              case SilNounReference(possesseeRoleName, _, _) => {
-                possesseeRoleName
-              }
-              case _ => return Seq(UnimplementedBelief(sentence))
-            })
-          }
-          case _ => return Seq(UnimplementedBelief(sentence))
-        }
-        complementRef match {
-          case SilNounReference(
-            possessorRoleName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-          ) => {
-            return Seq(InverseAssocBelief(
-              sentence,
-              possessorFormName, possessorRoleName,
-              possesseeRoleNames))
           }
           case _ =>
         }

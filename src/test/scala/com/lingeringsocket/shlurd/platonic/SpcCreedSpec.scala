@@ -116,21 +116,27 @@ class SpcCreedSpec extends Specification
   private val personAssocForm = "Luke's mentor is a monk."
   private val mentorRole = "A mentor must be a monk."
   private val apprenticeRole = "An apprentice must be a monk."
-  private val mentorApprentice = "A mentor may have apprentices."
   private val monkApprentice = "A monk may have apprentices."
-  private val apprenticeMentor = "An apprentice may have one mentor."
-  private val assocInverse1 = "A monk with an apprentice is a mentor."
-  private val assocInverse2 = "A monk with a mentor is an apprentice."
-  private val apprenticeMentors = "An apprentice may have mentors."
-  private val nephew = "A man with an uncle or aunt is a nephew."
-  private val auntNephews = "An aunt may have nephews."
-  private val uncleNephews = "An uncle may have nephews."
+  private val assocInverse1 = "If a monk is another monk's apprentice, " +
+    "equivalently the second monk is the first monk's mentor."
+  private val assocInverse2 = "If a monk is another monk's mentor, " +
+    "equivalently the second monk is the first monk's apprentice."
+  private val monkMentor = "A monk may have one mentor."
+  private val monkMentors = "A monk may have mentors."
+  private val manPerson = "A man is a kind of a person."
+  private val womanPerson = "A woman is a kind of a person."
+  private val womanNephews = "A woman may have nephews."
+  private val manNephews = "A man may have nephews."
   private val manAunts = "A man may have aunts."
-  private val manAuntNephew = "A man with an aunt is a nephew."
+  private val manAuntNephew = "If a woman is a man's aunt, " +
+    "equivalently the man is the woman's nephew."
   private val manUncles = "A man may have uncles."
-  private val manUncleNephew = "A man with an uncle is a nephew."
-  private val manNephewUncle = "A man with a nephew is an uncle."
-  private val womanNephewAunt = "A woman with a nephew is an aunt."
+  private val manUncleNephew = "If a man is another man's uncle, " +
+    "equivalently the second man is the first man's nephew."
+  private val manNephewUncle = "If a man is another man's nephew, " +
+    "equivalently the second man is the first man's uncle."
+  private val womanNephewAunt = "If a man is a woman's nephew, " +
+    "equivalently the woman is the man's aunt."
   private val nephewMan = "A nephew must be a man."
   private val uncleMan = "An uncle must be a man."
   private val auntWoman = "An aunt must be a woman."
@@ -179,14 +185,10 @@ class SpcCreedSpec extends Specification
     "An spc-object is a kind of an spc-entity.",
     "An spc-object may have spc-contained-objects.",
     "An spc-object must have one spc-container.",
-    "An spc-form with an spc-realization is an spc-type.",
-    "An spc-entity with an spc-type is an spc-realization.",
-    "An spc-form with an spc-attribute is an spc-attributee.",
-    "An spc-property with an spc-attributee is an spc-attribute.",
-    "An spc-ideal with an spc-superclass is an spc-subclass.",
-    "An spc-ideal with an spc-subclass is an spc-superclass.",
-    "An spc-object with an spc-contained-object is an spc-container.",
-    "An spc-object with an spc-container is an spc-contained-object.",
+    "If an spc-form is an spc-entity's spc-type, " +
+      "equivalently the spc-entity is the spc-form's spc-realization.",
+    "If an spc-entity is an spc-form's spc-realization, " +
+      "equivalently the spc-form is the spc-entity's spc-type.",
     "SPC-Form-spc-entity is an spc-form.",
     "SPC-Form-spc-ideal is SPC-Form-spc-entity's spc-subclass.",
     "SPC-Role-spc-realization is SPC-Form-spc-entity's spc-subclass.",
@@ -271,8 +273,6 @@ class SpcCreedSpec extends Specification
     "An spc-property may have spc-property-values.",
     "An spc-value is a kind of an spc-entity.",
     "An spc-value must have one spc-valued-property.",
-    "An spc-property with an spc-property-value is an spc-valued-property.",
-    "An spc-value with an spc-valued-property is an spc-property-value.",
     "SPC-Form-spc-value is SPC-Form-spc-entity's spc-subclass.",
     "SPC-Form-spc-value is SPC-Form-spc-form's spc-realization.",
     "SPC-Role-spc-valued-property is SPC-Form-spc-role's spc-realization.",
@@ -473,7 +473,7 @@ class SpcCreedSpec extends Specification
     {
       expectPreserved(Seq(
         mentorRole, apprenticeRole,
-        mentorApprentice, apprenticeMentor,
+        monkApprentice, monkMentor,
         assocInverse1, assocInverse2))
     }
 
@@ -482,10 +482,10 @@ class SpcCreedSpec extends Specification
       expectNormalized(
         Seq(
           mentorRole, apprenticeRole,
-          apprenticeMentor, assocInverse1),
+          monkMentor, assocInverse1),
         Seq(
           mentorRole, apprenticeRole,
-          apprenticeMentor, monkApprentice,
+          monkMentor, monkApprentice,
           assocInverse1, assocInverse2))
     }
 
@@ -493,7 +493,7 @@ class SpcCreedSpec extends Specification
     {
       expectNormalized(
         Seq(apprenticeRole, assocInverse1),
-        Seq(apprenticeRole, mentorRole, apprenticeMentors, monkApprentice,
+        Seq(apprenticeRole, mentorRole, monkApprentice, monkMentors,
           assocInverse1, assocInverse2))
     }
 
@@ -504,13 +504,13 @@ class SpcCreedSpec extends Specification
         Seq(childrenSons, childrenDaughters))
     }
 
-    "normalize inverse associations with multiple roles" in new CosmosContext
+    "preserve inverse associations with multiple roles" in new CosmosContext
     {
-      expectNormalized(
-        Seq(nephewMan, uncleMan, auntWoman, nephew),
+      expectPreserved(
         Seq(nephewMan, uncleMan, auntWoman,
-          uncleNephews, auntNephews, manUncles, manAunts,
-          manUncleNephew, manNephewUncle, manAuntNephew, womanNephewAunt))
+          manPerson, manUncles, manAunts, manNephews, womanPerson,
+          womanNephews, manUncleNephew, manNephewUncle,
+          manAuntNephew, womanNephewAunt))
     }
 
     "preserve triggers" in new CosmosContext
@@ -535,8 +535,9 @@ class SpcCreedSpec extends Specification
       val creed = new SpcCreed(cosmos, true)
       val printer = new SilSentencePrinter
       val beliefStrings = creed.allBeliefs.map(s => printer.print(s) + "\n")
+      beliefStrings.size must be equalTo 160
       beliefStrings.map(s => SprUtils.capitalize(s)) must
-        containTheSameElementsAs(primordial.map(_ + "\n"))
+        contain(allOf(primordial.map(_ + "\n"):_*))
     }
   }
 }
