@@ -12,10 +12,14 @@ A nephew must be a man.
 A son must be a man.
 A daughter must be a woman.
 A cleaning lady is a daughter.
-If a man is another man's uncle, then the second man is the first man's nephew.
-If a woman is a man's aunt, then the man is the woman's nephew.
-If a man is a woman's uncle, then the woman is the man's niece.
-If a woman is another woman's aunt, then the second woman is the first woman's niece.
+If a man is another man's uncle,
+ then equivalently the second man is the first man's nephew.
+If a woman is a man's aunt,
+ then equivalently the man is the woman's nephew.
+If a man is a woman's uncle,
+ then equivalently the woman is the man's niece.
+If a woman is another woman's aunt,
+ then equivalently the second woman is the first woman's niece.
 A person may have sons or daughters.
 A wise guy must be a man.
 A godmother must be a woman.

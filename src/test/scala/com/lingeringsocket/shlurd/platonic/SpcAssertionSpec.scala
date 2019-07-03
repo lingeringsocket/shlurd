@@ -375,6 +375,25 @@ class SpcAssertionSpec extends SpcProcessingSpecification
             "then the toaster must be done subsequently"))
     }
 
+    "prevent invalid inverse associations" in new AssertionContext
+    {
+      verifyInvalid("if a map-place is another map-place's map-neighbor, " +
+        "equivalently the first map-place is " +
+        "the second map-place's map-neighbor")
+      verifyInvalid("if a map-place is a map-place's map-neighbor, " +
+        "equivalently the second map-place is " +
+        "the first map-place's map-neighbor")
+      verifyInvalid("if another map-place is a map-place's map-neighbor, " +
+        "equivalently the second map-place is " +
+        "the first map-place's map-neighbor")
+      verifyInvalid("if a map-place is another map-place's map-neighbor, " +
+        "equivalently the second map-place is " +
+        "the map-place's map-neighbor")
+      verifyInvalid("if a map-place is another map-place's map-neighbor, " +
+        "then the second map-place is " +
+        "the first map-place's map-neighbor")
+    }
+
     "prevent runaway triggers" in new AssertionContext
     {
       defineToasterSlice

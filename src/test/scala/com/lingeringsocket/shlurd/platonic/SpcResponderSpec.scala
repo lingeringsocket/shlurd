@@ -1614,7 +1614,7 @@ class SpcResponderSpec extends Specification
       processBelief("a footman must be a plebeian")
       processBelief("a lord must be a gentleman")
       processBelief("if a gentleman is a man's lord, " +
-        "then the man is the gentleman's footman")
+        "then equivalently the man is the gentleman's footman")
       processBelief("Bunter is Peter's footman")
       processTerse("is Bunter a footman", "Yes.")
       processTerse("is Bunter a man", "Yes.")

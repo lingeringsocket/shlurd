@@ -129,6 +129,7 @@ class SpcBeliefRecognizer(
         biconditional,
         _
       ) if (
+        biconditional &&
         verbModifiers.isEmpty &&
           tam1 == SilTam.indicative &&
           tam2 == SilTam.indicative &&
@@ -168,16 +169,18 @@ class SpcBeliefRecognizer(
     val antecedent = matchAssocIdentity(
       antecedentSubject,
       antecedentComplement,
-      DETERMINER_NONSPECIFIC)
+      DETERMINER_NONSPECIFIC,
+      false)
     val consequent = matchAssocIdentity(
       complementSubject,
       consequentComplement,
-      DETERMINER_UNIQUE)
+      DETERMINER_UNIQUE,
+      antecedent.map(_._4).getOrElse(false))
     // FIXME also need to verify that FIRST/SECOND line up correctly
     tupleN((antecedent, consequent)) match {
       case (
-        Some((af1, af2, ar)),
-        Some((cf1, cf2, cr))) => {
+        Some((af1, af2, ar, _)),
+        Some((cf1, cf2, cr, _))) => {
         if ((af1 == cf2) && (af2 == cf1)) {
           Some(tupleN((af1, af2, ar, cr)))
         } else {
@@ -192,19 +195,57 @@ class SpcBeliefRecognizer(
     r1 : SilReference,
     r2 : SilReference,
     expectedDeterminer : SilDeterminer,
+    otherFlipped : Boolean,
     flipped : Boolean = false
-  ) : Option[(SilWord, SilWord, SilWord)] =
+  ) : Option[(SilWord, SilWord, SilWord, Boolean)] =
   {
     tupleN((
       matchNoun(r1, expectedDeterminer, flipped),
       matchGenitive(r2, expectedDeterminer, !flipped)
     )) match {
-      case (Some(w1), Some((w2, w3))) => {
-        Some(tupleN((w1, w2, w3)))
+      case (Some((w1, q1)), Some((w2, w3, q2))) => {
+        val valid = {
+          expectedDeterminer match {
+            case DETERMINER_NONSPECIFIC => {
+              val qualifiers = Seq(q1, q2).flatten
+              if (w1.toLemma == w2.toLemma) {
+                if ((flipped && q2.nonEmpty) || (!flipped && q1.nonEmpty)) {
+                  false
+                } else {
+                  (qualifiers.size == 1) &&
+                    (qualifiers.head.toLemma == LEMMA_ANOTHER)
+                }
+              } else {
+                qualifiers.isEmpty
+              }
+            }
+            case DETERMINER_UNIQUE => {
+              val qualifiers = Seq(q1, q2).flatten
+              if (w1.toLemma == w2.toLemma) {
+                val requiredOrder = {
+                  if (flipped != otherFlipped) {
+                    Seq(LEMMA_FIRST, LEMMA_SECOND)
+                  } else {
+                    Seq(LEMMA_SECOND, LEMMA_FIRST)
+                  }
+                }
+                qualifiers.map(_.toLemma).sameElements(requiredOrder)
+              } else {
+                qualifiers.isEmpty
+              }
+            }
+            case _ => false
+          }
+        }
+        if (valid) {
+          Some(tupleN((w1, w2, w3, flipped)))
+        } else {
+          None
+        }
       }
       case _ => {
         if (!flipped) {
-          matchAssocIdentity(r2, r1, expectedDeterminer, true)
+          matchAssocIdentity(r2, r1, expectedDeterminer, otherFlipped, true)
         } else {
           None
         }
@@ -215,7 +256,7 @@ class SpcBeliefRecognizer(
   private def matchNoun(
     ref : SilReference, expectedDeterminer : SilDeterminer,
     isComplement : Boolean
-  ) : Option[SilWord] =
+  ) : Option[(SilWord, Option[SilWord])] =
   {
     ref match {
       case SilNounReference(
@@ -223,29 +264,31 @@ class SpcBeliefRecognizer(
       ) if (
         determiner == expectedDeterminer
       )  => {
-        Some(noun)
+        Some((noun, None))
       }
       case SilStateSpecifiedReference(
         SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
         SilPropertyState(
-          SilWordLemma(LEMMA_ANOTHER)
+          qualifier @ SilWordLemma(LEMMA_ANOTHER)
         )
       ) if (
         isComplement &&
           (expectedDeterminer == DETERMINER_NONSPECIFIC)
       ) => {
-        Some(noun)
+        Some((noun, Some(qualifier)))
       }
       case SilStateSpecifiedReference(
         SilNounReference(noun, DETERMINER_UNIQUE, COUNT_SINGULAR),
         SilPropertyState(
-          SilWordLemma(LEMMA_FIRST) |
-            SilWordLemma(LEMMA_SECOND)
+          qualifier @ (
+            SilWordLemma(LEMMA_FIRST) |
+              SilWordLemma(LEMMA_SECOND)
+          )
         )
       ) if (
         expectedDeterminer == DETERMINER_UNIQUE
       ) => {
-        Some(noun)
+        Some((noun, Some(qualifier)))
       }
       case _ => None
     }
@@ -254,7 +297,7 @@ class SpcBeliefRecognizer(
   private def matchGenitive(
     ref : SilReference, expectedDeterminer : SilDeterminer,
     isComplement : Boolean
-  ) : Option[(SilWord, SilWord)] =
+  ) : Option[(SilWord, SilWord, Option[SilWord])] =
   {
     val intermediate = ref match {
       case SilGenitiveReference(
@@ -263,13 +306,13 @@ class SpcBeliefRecognizer(
       ) if (
         determiner == expectedDeterminer
       ) => {
-        Some(tupleN((possessor, possessee)))
+        Some(tupleN((possessor, possessee, None)))
       }
       case SilGenitiveReference(
         SilStateSpecifiedReference(
           SilNounReference(possessor, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
           SilPropertyState(
-            SilWordLemma(LEMMA_ANOTHER)
+            qualifier @ SilWordLemma(LEMMA_ANOTHER)
           )
         ),
         possessee
@@ -277,30 +320,33 @@ class SpcBeliefRecognizer(
         isComplement &&
           (expectedDeterminer == DETERMINER_NONSPECIFIC)
       ) => {
-        Some(tupleN((possessor, possessee)))
+        Some(tupleN((possessor, possessee, Some(qualifier))))
       }
       case SilGenitiveReference(
         SilStateSpecifiedReference(
           SilNounReference(possessor, DETERMINER_UNIQUE, COUNT_SINGULAR),
           SilPropertyState(
-            SilWordLemma(LEMMA_FIRST) |
-              SilWordLemma(LEMMA_SECOND)
+            qualifier @ (
+              SilWordLemma(LEMMA_FIRST) |
+                SilWordLemma(LEMMA_SECOND)
+            )
           )
         ),
         possessee
       ) if (
         expectedDeterminer == DETERMINER_UNIQUE
       ) => {
-        Some(tupleN((possessor, possessee)))
+        Some(tupleN((possessor, possessee, Some(qualifier))))
       }
       case _ => None
     }
     intermediate.flatMap {
       case (
         possessor,
-        SilNounReference(possessee, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)
+        SilNounReference(possessee, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+        qualifier
       ) => {
-        Some(tupleN((possessor, possessee)))
+        Some(tupleN((possessor, possessee, qualifier)))
       }
       case _ => None
     }
@@ -694,6 +740,31 @@ class SpcBeliefRecognizer(
         val consequentNonModal =
           (conditional.tamConsequent.unemphaticModality == MODAL_NEUTRAL)
         if (consequentNonModal) {
+          def isGenitiveRelationship(predicate : SilPredicate) : Boolean =
+          {
+            predicate match {
+              case rel : SilRelationshipPredicate => {
+                if (rel.subject.isInstanceOf[SilGenitiveReference]
+                  || rel.complement.isInstanceOf[SilGenitiveReference])
+                {
+                  (rel.verb.toLemma == REL_PREDEF_IDENTITY.toLemma) &&
+                    rel.modifiers.isEmpty
+                } else {
+                  false
+                }
+              }
+              case _ => false
+            }
+          }
+          if (
+            (conditional.conjunction.toLemma == LEMMA_IF) &&
+            isGenitiveRelationship(conditional.antecedent) &&
+              isGenitiveRelationship(conditional.consequent)
+          )
+          {
+            trace("LOOKS TOO MUCH LIKE AN ASSOCIATION")
+            invalid = true
+          }
           if (isBefore) {
             trace("BEFORE REQUIRES CONSTRAINT")
             invalid = true
