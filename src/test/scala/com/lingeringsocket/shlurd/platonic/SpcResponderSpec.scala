@@ -15,7 +15,6 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
-import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
 
@@ -450,9 +449,6 @@ class SpcResponderSpec extends Specification
 
     "understand relatives" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not supported")
-      }
       loadBeliefs("/ontologies/relatives.txt")
       process("who is Henry", "He is Titus' uncle.")
       process("who is Marion's aunt", "Her aunt is Laura.")
@@ -827,9 +823,6 @@ class SpcResponderSpec extends Specification
 
     "understand taxonomy" in new ResponderContext
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not working")
-      }
       loadBeliefs("/ontologies/vehicles.txt")
 
       process("is Herbie moving", "No, he is not moving.")
@@ -1167,9 +1160,6 @@ class SpcResponderSpec extends Specification
       ACCEPT_MODIFIED_BELIEFS,
       SmcResponseParams(thirdPersonPronouns = false))
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not working")
-      }
       loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/people.txt")
       mind.startConversation
@@ -1253,9 +1243,6 @@ class SpcResponderSpec extends Specification
     "understand equivalent queries" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not working")
-      }
       loadBeliefs("/ontologies/containment.txt")
       processBelief("A vapor is a kind of object.")
       processBelief("A solid is a kind of object.")
@@ -1385,9 +1372,6 @@ class SpcResponderSpec extends Specification
     "understand string property queries" in new
       ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not supported")
-      }
       val epigram = DQUOTE + "Lasciate ogni speranza, voi ch'entrate" + DQUOTE
       processBelief("a door's label must be an spc-string")
       processBelief("there is a door")
@@ -1414,10 +1398,6 @@ class SpcResponderSpec extends Specification
     "understand compound nouns" in new
       ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not supported")
-      }
-
       processBelief("a butter knife is a kind of utensil")
       processBelief("there is a steak knife")
       process(
@@ -1578,9 +1558,6 @@ class SpcResponderSpec extends Specification
     "disambiguate based on context" in new
       ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not supported")
-      }
       loadBeliefs("/ontologies/containment.txt")
       processBelief("Daniel is a person")
       processBelief("a lion is a kind of object")
@@ -1629,9 +1606,6 @@ class SpcResponderSpec extends Specification
     "support transitive associations" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not supported")
-      }
       processBelief("A parent must be a patriarch.")
       processBelief("A child must be a patriarch.")
       processBelief("An ancestor must be a patriarch.")

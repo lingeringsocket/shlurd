@@ -405,9 +405,6 @@ class SpcCreedSpec extends Specification
 
     "preserve entity quotation" in new CosmosContext
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not working")
-      }
       expectPreserved(Seq(
         propertyQuotation, entityExists, entityQuotation))
     }
@@ -515,9 +512,6 @@ class SpcCreedSpec extends Specification
 
     "preserve triggers" in new CosmosContext
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not working")
-      }
       expectPreserved(Seq(moveTrigger, positiveConstraintTrigger,
         negativeConstraintTrigger, positiveTestTrigger,
         negativeTestTrigger, alternativeTrigger, additionalTrigger))

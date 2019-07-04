@@ -23,7 +23,7 @@ import scala.util._
 import java.io._
 
 // to compare CoreNLP against Wordnet:
-// sbt corenlp:console
+// sbt corenlp/console
 //   new com.lingeringsocket.shlurd.corenlp.CorenlpTestSetup
 //   SprWordnetPrep.runAll()
 object SprWordnetPrep

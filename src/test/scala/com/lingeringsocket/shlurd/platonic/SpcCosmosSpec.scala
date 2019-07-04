@@ -493,9 +493,6 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "update entity string properties" in new CosmosContext
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not supported")
-      }
       addBelief("a door's label must be an spc-string")
       val form = expectNamedForm("door")
       val property = expectSingleProperty(form)
@@ -624,10 +621,6 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "support compound nouns" in new CosmosContext
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not supported")
-      }
-
       addBelief("there is a steak knife")
       val form = expectNamedForm(cosmos.encodeName("steak knife"))
     }
@@ -739,9 +732,6 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "reject invalid beliefs" in new CosmosContext
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not supported")
-      }
       addBelief(
         "if a person eats a pickle, " +
           "then the pickle is sandy"

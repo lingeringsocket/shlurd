@@ -15,7 +15,6 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
-import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 import org.specs2.specification._
@@ -188,11 +187,9 @@ class SpcOpenhabCosmosSpec extends Specification
         "is any light in the guest bedroom on the first floor off",
         "Please be more specific about which bedroom you mean.")
 
-      if (!SprParser.isCoreNLP) {
-        process(
-          "is any guest bedroom light on the first floor off",
-          "Yes, the guest bedroom nightstand light is off.")
-      }
+      process(
+        "is any guest bedroom light on the first floor off",
+        "Yes, the guest bedroom nightstand light is off.")
       process(
         "is any light in any bedroom off",
         "Yes, the guest bedroom nightstand light is off.")
@@ -249,17 +246,15 @@ class SpcOpenhabCosmosSpec extends Specification
         "The family room, the living room, " +
           "the guest bedroom, and the bathroom " +
           "are on the first floor.")
-      if (!SprParser.isCoreNLP) {
-        process(
-          "which lights on the first floor are on",
-          "The family room light, " +
-            "the living room mood light, " +
-            "and the guest bedroom ceiling light are on.")
-        process(
-          "which bedroom lights are on",
-          "The guest bedroom light on the ground floor " +
-            "and the guest bedroom ceiling light are on.")
-      }
+      process(
+        "which lights on the first floor are on",
+        "The family room light, " +
+          "the living room mood light, " +
+          "and the guest bedroom ceiling light are on.")
+      process(
+        "which bedroom lights are on",
+        "The guest bedroom light on the ground floor " +
+          "and the guest bedroom ceiling light are on.")
       process(
         "is the light in the living room lit",
         "Yes, it is lit.")
@@ -278,11 +273,9 @@ class SpcOpenhabCosmosSpec extends Specification
       process(
         "is the heat in the living room on",
         "Yes, it is on.")
-      if (!SprParser.isCoreNLP) {
-        process(
-          "turn on the heater in the living room",
-          "But it is on already.")
-      }
+      process(
+        "turn on the heater in the living room",
+        "But it is on already.")
       process(
         "is there any light in the garage",
         "Yes, there is a garage light.")

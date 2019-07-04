@@ -14,12 +14,11 @@ maxErrors := Common.maxErrors
 
 traceLevel := Common.traceLevel
 
-lazy val Corenlp = config("corenlp") extend(Test)
-
-lazy val rootProject = (project in file(".")).configs(Corenlp).
-  settings(inConfig(Corenlp)(Defaults.testTasks):_*)
+lazy val rootProject = (project in file("."))
 
 lazy val cli = project.dependsOn(rootProject % "test->test;compile->compile")
+
+lazy val corenlp = project.dependsOn(rootProject % "test->test;compile->compile")
 
 lazy val root = rootProject.aggregate(cli)
 
@@ -38,10 +37,7 @@ libraryDependencies ++= Seq(
   "org.atteo" % "evo-inflector" % "1.2.2",
   "net.sf.extjwnl" % "extjwnl" % "2.0.2",
   "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
-  "eus.ixa" % "ixa-pipe-ml" % "0.0.8" exclude("net.sourceforge.argparse4j", "argparse4j") exclude("com.google.guava", "guava") exclude("org.jdom", "jdom2") exclude("org.carrot2", "morfologik-stemming") exclude("org.apache.opennlp", "opennlp-tools"),
-  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" % "test",
-  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" % "test" classifier "models",
-  "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" % "test" classifier "models-english"
+  "eus.ixa" % "ixa-pipe-ml" % "0.0.8" exclude("net.sourceforge.argparse4j", "argparse4j") exclude("com.google.guava", "guava") exclude("org.jdom", "jdom2") exclude("org.carrot2", "morfologik-stemming") exclude("org.apache.opennlp", "opennlp-tools")
 )
 
 publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath+"/.ivy2/local/com.lingeringsocket.shlurd")))
@@ -59,12 +55,6 @@ testOptions in Test += Tests.Setup(
 
 testOptions in Test += Tests.Cleanup(
   (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.ShlurdTestCleanup").newInstance)
-
-testOptions in Corenlp += Tests.Setup(
-  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.corenlp.CorenlpTestSetup").newInstance)
-
-testOptions in Corenlp += Tests.Cleanup(
-  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.corenlp.CorenlpTestCleanup").newInstance)
 
 if (sys.env.get("xonly").getOrElse("true") != "false") {
   Seq(
