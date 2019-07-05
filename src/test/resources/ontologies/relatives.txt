@@ -4,13 +4,13 @@ A man is a kind of person.
 A woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
-An aunt must be a woman.
+A person's aunt must be a woman.
 An auntie is an aunt.
-An uncle must be a man.
-A niece must be a woman.
-A nephew must be a man.
-A son must be a man.
-A daughter must be a woman.
+A person's uncle must be a man.
+A person's niece must be a woman.
+A person's nephew must be a man.
+A person's son must be a man.
+A person's daughter must be a woman.
 A cleaning lady is a daughter.
 If a man is another man's uncle,
  then equivalently the second man is the first man's nephew.
@@ -21,8 +21,8 @@ If a man is a woman's uncle,
 If a woman is another woman's aunt,
  then equivalently the second woman is the first woman's niece.
 A person may have sons or daughters.
-A wise guy must be a man.
-A godmother must be a woman.
+A person's wise guy must be a man.
+A person's godmother must be a woman.
 A person must have a godmother.
 A person may have a wise guy.
 A godfather is a wise guy.

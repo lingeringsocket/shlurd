@@ -425,53 +425,61 @@ class SpcBeliefAccepter(
     }
   }
 
+  // FIXME deal with role inheritance
   beliefApplier {
-    case IdealTaxonomyBelief(
-      sentence, hyponymIdealName, hypernymIdealName, hyponymIsRole
+    case FormTaxonomyBelief(
+      sentence, hyponymFormName, hypernymFormName
     ) => {
       // FIXME need to make sure all hypernyms are (and remain) compatible
       // FIXME also need to allow existing form to be refined
-      val hypernymIdeal = mind.instantiateIdeal(hypernymIdealName)
-      val hypernymIsRole = hypernymIdeal.isRole
-      val hyponymIdeal = mind.instantiateIdeal(
-        hyponymIdealName, hyponymIsRole || hypernymIsRole)
-      if (hyponymIsRole || hypernymIsRole) {
-        hyponymIdeal match {
-          case form : SpcForm => {
-            // FIXME:  thow a ContradictoryBeliefExcn pinpointing the reason
-            // we believe hyponym to be a form, not a role
-            throw new IncomprehensibleBeliefExcn(sentence)
-          }
-          case _ =>
-        }
+      val hypernymIdeal = mind.instantiateIdeal(hypernymFormName)
+      val hyponymIdeal = mind.instantiateIdeal(hyponymFormName)
+      if (hypernymIdeal.isRole && hyponymIdeal.isForm) {
+        // FIXME:  thow a ContradictoryBeliefExcn pinpointing the reason
+        // we believe ideal to be a role, not a form
+        throw new IncomprehensibleBeliefExcn(sentence)
       }
-      if (hyponymIsRole) {
-        val entityAssocs = cosmos.getEntityAssocGraph
-        entityAssocs.edgeSet.asScala.foreach(
-          entityEdge => {
-            val formEdge = entityEdge.formEdge
-            val possesseeRole = cosmos.getGraph.getPossesseeRole(formEdge)
-            if (possesseeRole == hyponymIdeal) {
-              val possesseeEntity =
-                cosmos.getGraph.getPossesseeEntity(entityEdge)
-              if (!cosmos.isHyponym(
-                possesseeEntity.form, hypernymIdeal))
-              {
-                if (possesseeEntity.form.isTentative) {
-                  addIdealTaxonomy(
-                    sentence, possesseeEntity.form, hypernymIdeal)
-                } else {
-                  val formBelief = creed.entityFormBelief(possesseeEntity)
-                  val assocBelief = creed.entityAssociationBelief(entityEdge)
-                  throw new ContradictoryBeliefExcn(
-                    sentence,
-                    conjunctiveBelief(Seq(formBelief, assocBelief)))
-                }
+      addIdealTaxonomy(sentence, hyponymIdeal, hypernymIdeal)
+    }
+  }
+
+  beliefApplier {
+    case RoleTaxonomyBelief(
+      sentence, possessorFormName, hyponymRoleName, hypernymIdealName
+    ) => {
+      // FIXME need to make sure all hypernyms are (and remain) compatible
+      // FIXME also need to allow existing role to be refined
+      val hypernymIdeal = mind.instantiateIdeal(hypernymIdealName)
+      val hyponymIdeal = mind.instantiateIdeal(hyponymRoleName, true)
+      if (hyponymIdeal.isForm) {
+        // FIXME:  thow a ContradictoryBeliefExcn pinpointing the reason
+        throw new IncomprehensibleBeliefExcn(sentence)
+      }
+      val entityAssocs = cosmos.getEntityAssocGraph
+      entityAssocs.edgeSet.asScala.foreach(
+        entityEdge => {
+          val formEdge = entityEdge.formEdge
+          val possesseeRole = cosmos.getGraph.getPossesseeRole(formEdge)
+          if (possesseeRole == hyponymIdeal) {
+            val possesseeEntity =
+              cosmos.getGraph.getPossesseeEntity(entityEdge)
+            if (!cosmos.isHyponym(
+              possesseeEntity.form, hypernymIdeal))
+            {
+              if (possesseeEntity.form.isTentative) {
+                addIdealTaxonomy(
+                  sentence, possesseeEntity.form, hypernymIdeal)
+              } else {
+                val formBelief = creed.entityFormBelief(possesseeEntity)
+                val assocBelief = creed.entityAssociationBelief(entityEdge)
+                throw new ContradictoryBeliefExcn(
+                  sentence,
+                  conjunctiveBelief(Seq(formBelief, assocBelief)))
               }
             }
           }
-        )
-      }
+        }
+      )
       addIdealTaxonomy(sentence, hyponymIdeal, hypernymIdeal)
     }
   }

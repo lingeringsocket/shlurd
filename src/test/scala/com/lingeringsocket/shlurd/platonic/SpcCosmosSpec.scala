@@ -272,13 +272,13 @@ class SpcCosmosSpec extends SpcProcessingSpecification
     "understand role inheritance" in new CosmosContext
     {
       addBelief("a man is a kind of person")
-      addBelief("a sibling must be a person")
-      addBelief("a brother is a kind of sibling")
+      addBelief("a person's sibling must be a person")
+      addBelief("a person's brother is a kind of sibling")
       val person = resolveForm("person")
       val man = resolveForm("man")
       val brother = resolveRole("brother")
       cosmos.getGraph.getFormsForRole(brother) must be equalTo Iterable(person)
-      addBelief("a brother must be a man")
+      addBelief("a person's brother must be a man")
       cosmos.getGraph.getFormsForRole(brother) must be equalTo Iterable(man)
     }
 
@@ -287,9 +287,9 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("a duck is a kind of bird")
       addBelief("a bird is a kind of duck") must
         throwA[ContradictoryBeliefExcn]
-      addBelief("a sibling must be a person")
-      addBelief("a brother is a kind of sibling")
-      addBelief("a sibling is a kind of brother") must
+      addBelief("a person's sibling must be a person")
+      addBelief("a person's brother is a kind of sibling")
+      addBelief("a person's sibling is a kind of brother") must
         throwA[ContradictoryBeliefExcn]
     }
 
@@ -300,12 +300,12 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("a buffoon is a kind of person")
       addBelief("a groomsman is a kind of man")
       // minion is a role
-      addBelief("a minion must be a person")
+      addBelief("a person's minion must be a person")
       // should not be able to make an existing form a hyponym for a role
       addBelief("a groomsman is a kind of minion") must
         throwA[IncomprehensibleBeliefExcn]
       // should not be able to change an existing form into a role
-      addBelief("a groomsman must be a buffoon") must
+      addBelief("a man's groomsman must be a buffoon") must
         throwA[IncomprehensibleBeliefExcn]
     }
 
@@ -315,15 +315,15 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("Will is a person")
       addBelief("Jonathan is a person")
       addBelief("Lonnie is a person")
-      addBelief("A mom must be a person")
+      addBelief("A person's mom must be a person")
       addBelief("A person may have a mom")
-      addBelief("A dad must be a person")
+      addBelief("A person's dad must be a person")
       addBelief("A person may have a dad")
-      addBelief("A son must be a person")
+      addBelief("A person's son must be a person")
       addBelief("A person may have sons")
-      addBelief("An ex-husband must be a person")
+      addBelief("A woman's ex-husband must be a person")
       addBelief("A person may have an ex-husband")
-      addBelief("An ex-wife must be a person")
+      addBelief("A man's ex-wife must be a person")
       addBelief("A person may have an ex-wife")
       addBelief("Joyce is Will's mom")
       addBelief("Joyce is Jonathan's mom")
@@ -381,7 +381,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("Will is a person")
       addBelief("Joyce is a person")
       addBelief("Elle is a person")
-      addBelief("A mom must be a person")
+      addBelief("A person's mom must be a person")
       addBelief("A person must have a mom")
       addBelief("Joyce is Will's mom")
       addBelief("Elle is Will's mom") must
@@ -465,7 +465,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("a pet may have an owner")
       addBelief("Timmy is a freak")
       addBelief("Timmy is Lassie's owner")
-      addBelief("an owner must be a person") must
+      addBelief("a pet's owner must be a person") must
         throwA[ContradictoryBeliefExcn]
 
       cosmos.sanityCheck must beTrue
@@ -511,7 +511,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       SpcPrimordial.initCosmos(cosmos)
       addBelief("a pet may have an owner")
       addBelief("Timmy is Lassie's owner")
-      addBelief("an owner must be a person")
+      addBelief("a pet's owner must be a person")
 
       val timmy = expectProperName("Timmy")
       val person = expectNamedForm("person")
@@ -535,7 +535,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("a cow is a kind of animal")
       addBelief("a dog is a kind of animal")
       addBelief("a cow may have an owner")
-      addBelief("an owner must be a person")
+      addBelief("an animal's owner must be a person")
 
       // replace tentative form
       addBelief("Bessie is a cow")
@@ -680,8 +680,8 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "reject roles as possessors" in new CosmosContext
     {
-      addBelief("an owner must be a person")
-      addBelief("a possession must be an item")
+      addBelief("an item's owner must be a person")
+      addBelief("a person's possession must be an item")
       addBelief("an owner may have possessions") must
         throwA[IncomprehensibleBeliefExcn]
     }

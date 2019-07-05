@@ -57,7 +57,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
 
     protected def defineTeacher()
     {
-      addBelief("a teacher must be a professor")
+      addBelief("a powerpuff's teacher must be a professor")
       addBelief("a powerpuff must have a teacher")
     }
 

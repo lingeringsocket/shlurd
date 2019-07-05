@@ -1,6 +1,6 @@
 "Resource" import "/snavig/basic-axioms.txt".
 
-A character-inventory must be a repository.
+A game-character's character-inventory must be a repository.
 A stuff is a character-inventory.
 A game-character must have a stuff.
 The player-inventory is a repository.

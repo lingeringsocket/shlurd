@@ -8,23 +8,23 @@ Dirk is a man.
 Todd is a man.
 Amanda is a woman.
 Bart is a woman.
-A sibling must be a person.
-A brother is a kind of sibling.
-A sister is a kind of sibling.
-A brother must be a man.
-A sister must be a woman.
-A friend must be a person.
-An uncle must be a man.
+A person's sibling must be a person.
+A person's brother is a kind of sibling.
+A person's sister is a kind of sibling.
+A person's brother must be a man.
+A person's sister must be a woman.
+A person's friend must be a person.
+A person's uncle must be a man.
 A person may have siblings.
 A person may have friends.
 A person may have uncles.
-An owner must be a person.
+A dog's owner must be a person.
 A dog may have an owner.
-A groomer must be a person.
-An operative must be a person.
+A dog's groomer must be a person.
+An organization's operative must be a person.
 An organization may have operatives.
 A conspiracy is a kind of organization.
-An employer must be an organization.
+A person's employer must be an organization.
 A person may have an employer.
 If a person is an organization's operative, then equivalently
  the organization is the person's employer.

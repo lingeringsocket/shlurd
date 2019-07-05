@@ -6,13 +6,13 @@ A woman's gender must be feminine.
 A presence must be either on or off.
 A presence that is present is on.
 A presence that is absent is off.
-A ubiety must be a presence.
+A person's ubiety must be a presence.
 A person may have a ubiety as a property.
 A person must be either present or absent.
 A person that is away is absent.
 A person that is home is present.
 A person that is at home is present.
-An apparition must be a ubiety.
+A ghost's apparition is a kind of ubiety.
 A ghost may have an apparition.
 A ghost must be either present or absent.
 A hologram may have a ubiety as a property.

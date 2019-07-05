@@ -74,8 +74,8 @@ class SpcPerceptionSpec extends Specification
     {
       val timestamp = SpcTimestamp.ZERO
 
-      processBelief("a pet must be an animal")
-      processBelief("an owner must be a person")
+      processBelief("a person's pet must be an animal")
+      processBelief("an animal's owner must be a person")
       processBelief("a person may have pets")
       processBelief("an animal may have an owner")
       processBelief("if an animal is a person's pet, " +

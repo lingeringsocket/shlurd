@@ -492,11 +492,43 @@ class SpcBeliefRecognizer(
     val subjectRef = predicate.subject
     val complementRef = predicate.complement
     val verb = predicate.verb
+    complementRef matchPartial {
+      case SilStateSpecifiedReference(
+        SilNounReference(
+          SilWordLemma(LEMMA_KIND), DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+        SilAdpositionalState(
+          SilAdposition.OF,
+          SilNounReference(
+            hypernymIdealName,
+            DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
+            COUNT_SINGULAR))
+      ) if (SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) => {
+        subjectRef matchPartial {
+          // "a dog is a kind of canine"
+          case SilNounReference(
+            subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+          ) => {
+            return Seq(FormTaxonomyBelief(
+              sentence, subjectNoun, hypernymIdealName))
+          }
+          // "a person's brother is a kind of sibling"
+          case SilGenitiveReference(
+            SilNounReference(
+              possessorNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            SilNounReference(
+              roleNoun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)
+          ) => {
+            return Seq(RoleTaxonomyBelief(
+              sentence, possessorNoun, roleNoun, hypernymIdealName))
+          }
+        }
+      }
+    }
     subjectRef match {
       case SilNounReference(
         subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
       ) => {
-        return processFormRelationship(
+        return processIdealRelationship(
           sentence, subjectNoun, complementRef, verb)
       }
       case SilGenitiveReference(possessor, possessee) => {
@@ -506,7 +538,6 @@ class SpcBeliefRecognizer(
           ) => {
             if (determiner == DETERMINER_NONSPECIFIC) {
               val formNoun = possessor match {
-                // "a thermometer's reading must be a number"
                 case SilNounReference(
                   noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
                 ) => noun
@@ -517,18 +548,30 @@ class SpcBeliefRecognizer(
                     Seq.empty, ""))
                 }
               }
-              val propertyNoun = possessee match {
+              val possesseeNoun = possessee match {
                 case SilNounReference(
                   noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
                 ) => noun
                 case _ => return Seq.empty
               }
-              return defineTypedPropertyBelief(
-                sentence,
-                formNoun,
-                propertyNoun,
-                complementNoun,
-                tam)
+              if (SpcPropertyDomain(complementNoun.toNounLemma).nonEmpty) {
+                // "a thermometer's reading must be a number"
+                return defineTypedPropertyBelief(
+                  sentence,
+                  formNoun,
+                  possesseeNoun,
+                  complementNoun,
+                  tam)
+              } else {
+                // "an informant's handler must be a spy"
+                return processRoleTaxonomy(
+                  sentence,
+                  formNoun,
+                  possesseeNoun,
+                  complementNoun,
+                  verb
+                )
+              }
             } else {
               // "Will's dad is Lonnie"
               // flip subject/complement to match "Lonnie is Will's dad"
@@ -900,7 +943,26 @@ class SpcBeliefRecognizer(
     }
   }
 
-  private def processFormRelationship(
+  private def processRoleTaxonomy(
+    sentence : SilSentence,
+    formNoun : SilWord,
+    roleNoun : SilWord,
+    complementNoun : SilWord,
+    verb : SilWord)
+      : Seq[SpcBelief] =
+  {
+    SilRelationshipPredef(verb) match {
+      case REL_PREDEF_IDENTITY if (sentence.tam.modality == MODAL_MUST) => {
+        Seq(RoleTaxonomyBelief(
+          sentence, formNoun, roleNoun, complementNoun))
+      }
+      case _ => {
+        Seq.empty
+      }
+    }
+  }
+
+  private def processIdealRelationship(
     sentence : SilSentence,
     subjectNoun : SilWord,
     complementRef : SilReference,
@@ -920,33 +982,12 @@ class SpcBeliefRecognizer(
         if (count != COUNT_SINGULAR) {
           return Seq(UnimplementedBelief(sentence))
         }
-        if (complementNoun.toNounLemma == LEMMA_KIND) {
-          // "a dog is a kind of canine"
-          complementRef match {
-            case SilStateSpecifiedReference(
-              _,
-              SilAdpositionalState(
-                SilAdposition.OF,
-                SilNounReference(
-                  hypernymIdealName,
-                  DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
-                  COUNT_SINGULAR))
-            ) => {
-              Seq(IdealTaxonomyBelief(
-                sentence, subjectNoun, hypernymIdealName, false))
-            }
-            case _ => Seq.empty
-          }
+        if (sentence.tam.modality == MODAL_NEUTRAL) {
+          // "a fridge is a refrigerator"
+          Seq(IdealAliasBelief(
+            sentence, subjectNoun, complementNoun))
         } else {
-          if (sentence.tam.modality == MODAL_NEUTRAL) {
-            // "a fridge is a refrigerator"
-            Seq(IdealAliasBelief(
-              sentence, subjectNoun, complementNoun))
-          } else {
-            // "an owner must be a person"
-            Seq(IdealTaxonomyBelief(
-              sentence, subjectNoun, complementNoun, true))
-          }
+          Seq.empty
         }
       }
       case REL_PREDEF_BECOME => {

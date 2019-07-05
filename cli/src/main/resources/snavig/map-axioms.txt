@@ -14,7 +14,7 @@ A southeast is a kind of map-direction.
 A zenith is a kind of map-direction.
 A nadir is a kind of map-direction.
 
-An opposite-direction must be a map-direction.
+A map-direction's opposite-direction must be a map-direction.
 A map-direction must have an opposite-direction.
 If a map-direction is another map-direction's opposite-direction, then equivalently
  the second map-direction is the first map-direction's opposite-direction.
@@ -44,26 +44,23 @@ A map-place's place-description must be an spc-string.
 A map-connection is a kind of describable-entity.
 A straight-connection is a kind of map-connection.
 
-A map-neighbor must be a map-place.
+A map-place's map-neighbor must be a map-place.
 If a map-place is another map-place's map-neighbor, then equivalently
  the second map-place is the first map-place's map-neighbor.
 
-A source-place must be a map-place.
-A target-place must be a map-place.
+A map-connection's source-place must be a map-place.
+A map-connection's target-place must be a map-place.
 
-A place-exit must be a map-connection.
-A place-entrance must be a map-connection.
+A map-place's place-exit must be a map-connection.
+A map-place's place-entrance must be a map-connection.
 
 A map-connection must have a source-place.
 A map-connection must have a target-place.
 
-An opposite-connection must be a map-connection.
+A map-connection's opposite-connection must be a map-connection.
 A map-connection may have an opposite-connection.
 If a map-connection is another map-connection's opposite-connection, then equivalently
  the second map-connection is the first map-connection's opposite-connection.
-
-A source-place must be a map-place.
-A target-place must be a map-place.
 
 If a map-place is a map-connection's source-place, then equivalently
  the map-connection is the map-place's place-exit.
@@ -115,8 +112,8 @@ If a map-place is below a neighbor-place, then equivalently
  the neighbor-place faces the map-place to the nadir.
 
 A door is a kind of describable-entity.
-An exit-door must be a door.
-A door-exit must be a map-connection.
+A map-connection's exit-door must be a door.
+A door's door-exit must be a map-connection.
 A map-connection may have an exit-door.
 If a door is a map-connection's exit-door, then equivalently
  the map-connection is the door's door-exit.

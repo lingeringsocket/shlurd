@@ -12,7 +12,7 @@ A heat is a heating.
 A presence must be either on or off.
 A presence that is present is on.
 A presence that is absent is off.
-A ubiety must be a presence.
+A person's ubiety must be a presence.
 A person may have a ubiety as a property.
 A person must be either present or absent.
 Jack is a man.

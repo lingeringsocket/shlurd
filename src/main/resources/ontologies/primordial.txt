@@ -2,17 +2,17 @@ An spc-ideal is a kind of spc-entity.
 An spc-class is an spc-form.
 An spc-form is a kind of spc-ideal.
 An spc-role is a kind of spc-ideal.
-An spc-type must be an spc-form.
-An spc-realization must be an spc-entity.
+An spc-entity's spc-type must be an spc-form.
+An spc-form's spc-realization must be an spc-entity.
 An spc-entity must have an spc-type.
 An spc-form may have spc-realizations.
 If an spc-entity is an spc-form's spc-realization,
  then equivalently the spc-entity's spc-type is the spc-form.
-An spc-attribute must be an spc-property.
-An spc-attributee must be an spc-form.
+An spc-form's spc-attribute must be an spc-property.
+An spc-property's spc-attributee must be an spc-form.
 An spc-property must have an spc-attributee.
-An spc-valued-property must be an spc-property.
-An spc-property-value must be an spc-value.
+An spc-value's spc-valued-property must be an spc-property.
+An spc-property's spc-property-value must be an spc-value.
 An spc-property may have spc-property-values.
 An spc-value must have an spc-valued-property.
 If an spc-value is an spc-property's spc-property-value,
@@ -20,16 +20,16 @@ If an spc-value is an spc-property's spc-property-value,
 An spc-form may have spc-attributes.
 If an spc-property is an spc-form's spc-attribute,
  then equivalently the spc-property's spc-attributee is the spc-form.
-An spc-superclass must be an spc-ideal.
-An spc-subclass must be an spc-ideal.
+An spc-ideal's spc-superclass must be an spc-ideal.
+An spc-ideal's spc-subclass must be an spc-ideal.
 An spc-ideal may have spc-superclasses.
 An spc-ideal may have spc-subclasses.
 If an spc-ideal is another spc-ideal's spc-superclass,
  then equivalently the second spc-ideal is the first spc-ideal's spc-subclass.
 An spc-someone is a kind of spc-object.
 An spc-entity's gender may be either masculine or feminine.
-An spc-container must be an spc-object.
-An spc-contained-object must be an spc-object.
+An spc-object's spc-container must be an spc-object.
+An spc-object's spc-contained-object must be an spc-object.
 An spc-object may have spc-contained-objects.
 An spc-object must have an spc-container.
 If an spc-object is another spc-object's spc-contained-object,

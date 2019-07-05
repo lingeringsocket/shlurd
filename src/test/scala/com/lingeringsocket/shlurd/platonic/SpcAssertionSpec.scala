@@ -395,7 +395,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       defineWallace
 
       verifyOK(fiatForm("heel", "slice"))
-      verifyOK("a predecessor must be a slice")
+      verifyOK("a slice's predecessor must be a slice")
       verifyOK("a slice may have a predecessor")
       verifyOK("after a person cuts a slice, " +
         "the slice has a predecessor; " +
@@ -412,7 +412,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       defineToasterSlice
       defineWallace
       defineGromit
-      verifyOK("a devourer must be a person")
+      verifyOK("a slice's devourer must be a person")
       verifyOK("a slice may have a devourer")
       verifyOK("if a person eats a slice, " +
         "equivalently the person is the slice's devourer")

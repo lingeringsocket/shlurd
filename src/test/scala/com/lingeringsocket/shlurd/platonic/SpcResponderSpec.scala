@@ -545,8 +545,8 @@ class SpcResponderSpec extends Specification
       ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
       processBelief("a person is a kind of spc-someone")
-      processBelief("a professor must be a person")
-      processBelief("a student must be a person")
+      processBelief("a person's professor must be a person")
+      processBelief("a person's student must be a person")
       processBelief("a person may have students")
       processBelief("a person may have a professor")
 
@@ -565,7 +565,7 @@ class SpcResponderSpec extends Specification
       ACCEPT_MODIFIED_BELIEFS)
     {
       processBelief("A map-place is a kind of object.")
-      processBelief("A map-neighbor must be a map-place.")
+      processBelief("A map-place's map-neighbor must be a map-place.")
       processBelief("If a map-place is another map-place's map-neighbor, " +
         "then equivalently the second map-place is " +
         "the first map-place's map-neighbor.")
@@ -720,7 +720,7 @@ class SpcResponderSpec extends Specification
       loadBeliefs("/ontologies/containment.txt")
       processBelief("a manager is a kind of person")
       processBelief("a worker is a kind of person")
-      processBelief("a minion must be a worker")
+      processBelief("a person's minion must be a worker")
       processBelief("a manager may have minions")
       processBelief("Scrooge is a manager")
       processBelief("Cratchit is a worker")
@@ -1432,11 +1432,11 @@ class SpcResponderSpec extends Specification
       ACCEPT_NEW_BELIEFS)
     {
       processBelief("a person must have a lawyer")
-      processBelief("a lawyer must be a weasel")
+      processBelief("a person's lawyer must be a weasel")
       processBelief("Michael is a snake")
       process("Michael is Donald's lawyer",
         "The belief that Michael is Donald's lawyer contradicts " +
-          "the belief that a lawyer must be a weasel.")
+          "the belief that a person's lawyer must be a weasel.")
 
       cosmos.sanityCheck must beTrue
     }
@@ -1488,7 +1488,7 @@ class SpcResponderSpec extends Specification
       processBelief("Kenrokuen is a garden")
       processBelief("Eden is a garden")
       processBelief("Filoli is a garden")
-      processBelief("a result must be a vegetable")
+      processBelief("a garden's result must be a vegetable")
       processBelief("a garden may have results")
       processBelief("Pippin is Eden's result")
       processBelief("EarlyGirl is Filoli's result")
@@ -1548,7 +1548,7 @@ class SpcResponderSpec extends Specification
 
     "infer form from role" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
-      processBelief("a lawyer must be a weasel")
+      processBelief("a person's lawyer must be a weasel")
       processBelief("Michael is Donald's lawyer")
       processTerse("is Michael a weasel", "Yes.")
 
@@ -1587,9 +1587,9 @@ class SpcResponderSpec extends Specification
       processBelief("a person is a kind of spc-someone")
       processBelief("a man is a kind of person")
       processBelief("a gentleman is a kind of man")
-      processBelief("a footman must be a man")
-      processBelief("a footman must be a plebeian")
-      processBelief("a lord must be a gentleman")
+      processBelief("a gentleman's footman must be a man")
+      processBelief("a gentleman's footman must be a plebeian")
+      processBelief("a person's lord must be a gentleman")
       processBelief("if a gentleman is a man's lord, " +
         "then equivalently the man is the gentleman's footman")
       processBelief("Bunter is Peter's footman")
@@ -1606,10 +1606,10 @@ class SpcResponderSpec extends Specification
     "support transitive associations" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      processBelief("A parent must be a patriarch.")
-      processBelief("A child must be a patriarch.")
-      processBelief("An ancestor must be a patriarch.")
-      processBelief("A descendant must be a patriarch.")
+      processBelief("A patriarch's parent must be a patriarch.")
+      processBelief("A patriarch's child must be a patriarch.")
+      processBelief("A patriarch's ancestor must be a patriarch.")
+      processBelief("A patriarch's descendant must be a patriarch.")
       processBelief("A patriarch may have a parent.")
       processBelief("A patriarch may have children.")
       processBelief("If a patriarch is another patriarch's child, " +

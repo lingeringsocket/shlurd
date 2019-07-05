@@ -88,9 +88,9 @@ class SpcCreedSpec extends Specification
   private val formTaxonomy = "A duck is a kind of a bird."
   private val formTaxonomy2 = "A monk is a kind of a person."
   private val formSynonym = "An automobile is a car."
-  private val formRole = "A mentor must be a person."
-  private val formRole2 = "An owner must be a person."
-  private val formRole3 = "A pet must be an animal."
+  private val formRole = "A person's mentor must be a person."
+  private val formRole2 = "An animal's owner must be a person."
+  private val formRole3 = "A person's pet must be an animal."
   private val assocHas = "A dog has an owner."
   private val assocMust = "A dog must have one owner."
   private val assocMay = "A person may have one mentor."
@@ -114,8 +114,8 @@ class SpcCreedSpec extends Specification
   private val personAssocExists = "Luke has a mentor."
   private val personAssocQualifiedExists = "Luke has a smart mentor."
   private val personAssocForm = "Luke's mentor is a monk."
-  private val mentorRole = "A mentor must be a monk."
-  private val apprenticeRole = "An apprentice must be a monk."
+  private val mentorRole = "A monk's mentor must be a monk."
+  private val apprenticeRole = "A monk's apprentice must be a monk."
   private val monkApprentice = "A monk may have apprentices."
   private val assocInverse1 = "If a monk is another monk's apprentice, " +
     "equivalently the second monk is the first monk's mentor."
@@ -137,9 +137,9 @@ class SpcCreedSpec extends Specification
     "equivalently the second man is the first man's uncle."
   private val womanNephewAunt = "If a man is a woman's nephew, " +
     "equivalently the woman is the man's aunt."
-  private val nephewMan = "A nephew must be a man."
-  private val uncleMan = "An uncle must be a man."
-  private val auntWoman = "An aunt must be a woman."
+  private val nephewMan = "A person's nephew must be a man."
+  private val uncleMan = "A person's uncle must be a man."
+  private val auntWoman = "A person's aunt must be a woman."
   private val children = "A person may have sons or daughters."
   private val childrenSons = "A person may have sons."
   private val childrenDaughters = "A person may have daughters."
@@ -162,14 +162,14 @@ class SpcCreedSpec extends Specification
 
   private val primordial = Seq(
     "An spc-class is an spc-form.",
-    "An spc-type must be an spc-form.",
-    "An spc-realization must be an spc-entity.",
-    "An spc-attribute must be an spc-property.",
-    "An spc-attributee must be an spc-form.",
-    "An spc-superclass must be an spc-ideal.",
-    "An spc-subclass must be an spc-ideal.",
-    "An spc-container must be an spc-object.",
-    "An spc-contained-object must be an spc-object.",
+    "An spc-entity's spc-type must be an spc-form.",
+    "An spc-form's spc-realization must be an spc-entity.",
+    "An spc-form's spc-attribute must be an spc-property.",
+    "An spc-property's spc-attributee must be an spc-form.",
+    "An spc-ideal's spc-superclass must be an spc-ideal.",
+    "An spc-ideal's spc-subclass must be an spc-ideal.",
+    "An spc-object's spc-container must be an spc-object.",
+    "An spc-object's spc-contained-object must be an spc-object.",
     "An spc-entity must have one spc-type.",
     "An spc-ideal is a kind of an spc-entity.",
     "An spc-ideal may have spc-superclasses.",
@@ -268,8 +268,8 @@ class SpcCreedSpec extends Specification
     "SPC-Form-spc-property is SPC-Property-spc-entity-gender's spc-type.",
     "SPC-Property-spc-entity-gender is SPC-Form-spc-entity's spc-attribute.",
     "SPC-Form-spc-entity is SPC-Property-spc-entity-gender's spc-attributee.",
-    "An spc-valued-property must be an spc-property.",
-    "An spc-property-value must be an spc-value.",
+    "An spc-value's spc-valued-property must be an spc-property.",
+    "An spc-property's spc-property-value must be an spc-value.",
     "An spc-property may have spc-property-values.",
     "An spc-value is a kind of an spc-entity.",
     "An spc-value must have one spc-valued-property.",

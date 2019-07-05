@@ -25,8 +25,8 @@ The school is a place.
 The football is an object.
 The apple is an object.
 The milk is an object.
-A possessor must be a person.
-A possession must be an object.
+An object's possessor must be a person.
+A person's possession must be an object.
 A person may have possessions.
 An object may have a possessor.
 If an object is a person's possession, then equivalently
@@ -52,7 +52,7 @@ If a person gives an item to a recipient, then the recipient receives the item.
 If a person passes a recipient an item, then the person gives the item to the recipient.
 If a person hands an item to a recipient, then the person gives the item to the recipient.
 A coloration must be white, gray, yellow, or green.
-A color must be a coloration.
+An animal's color must be a coloration.
 An animal may have a color as a property.
 Lioncolor is a coloration.
 Rhinocolor is a coloration.
@@ -66,10 +66,10 @@ If an animal is a lion, then the animal's color is Lioncolor.
 If an animal is a rhino, then the animal's color is Rhinocolor.
 If an animal is a swan, then the animal's color is Swancolor.
 If an animal is a frog, then the animal's color is Frogcolor.
-A northern-neighbor must be a place.
-A southern-neighbor must be a place.
-An eastern-neighbor must be a place.
-A western-neighbor must be a place.
+A place's northern-neighbor must be a place.
+A place's southern-neighbor must be a place.
+A place's eastern-neighbor must be a place.
+A place's western-neighbor must be a place.
 A place may have a northern-neighbor.
 A place may have a southern-neighbor.
 A place may have an eastern-neighbor.
@@ -99,18 +99,18 @@ There is a yellow square.
 There is a pink rectangle.
 A row is a kind of object.
 A column is a kind of object.
-An abscissa must be a column.
-An ordinate must be a row.
+A shape's abscissa must be a column.
+A shape's ordinate must be a row.
 A shape must have an abscissa.
 A shape must have an ordinate.
-An above-row must be a row.
-A below-row must be a row.
-A left-column must be a column.
-A right-column must be a column.
-A top-row must be a row.
-A bottom-row must be a row.
-A pre-column must be a column.
-A post-column must be a column.
+A row's above-row must be a row.
+A row's below-row must be a row.
+A column's left-column must be a column.
+A column's right-column must be a column.
+A row's top-row must be a row.
+A row's bottom-row must be a row.
+A column's pre-column must be a column.
+A column's post-column must be a column.
 A row must have an above-row.
 A row must have a below-row.
 A column must have a left-column.

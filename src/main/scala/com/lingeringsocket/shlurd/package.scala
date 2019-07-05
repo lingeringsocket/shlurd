@@ -25,4 +25,16 @@ package object shlurd
   def range(r : Range) = r
 
   def shellCommand(pb : scala.sys.process.ProcessBuilder) = pb
+
+  // avoid the need for a do-nothing catch-all on match statements
+  // that don't produce a result
+  implicit class MatchPartial[T](x : T)
+  {
+    def matchPartial(f : PartialFunction[T, Unit])
+    {
+      if (f.isDefinedAt(x)) {
+        f(x)
+      }
+    }
+  }
 }
