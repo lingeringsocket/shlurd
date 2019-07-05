@@ -231,15 +231,12 @@ abstract class SpcOpenhabCosmos(
       {
         trimmed = trimmed.replaceAllLiterally(groupName.stripPrefix("g"), "")
       }
-      getEntityBySynonym(groupName) match {
-        case Some(groupEntity) => {
-          groupMap.addBinding(itemName, groupName)
-          if (!isGroup) {
-            qualifiers ++= groupEntity.qualifiers
-          }
+      getEntityBySynonym(groupName).foreach(groupEntity => {
+        groupMap.addBinding(itemName, groupName)
+        if (!isGroup) {
+          qualifiers ++= groupEntity.qualifiers
         }
-        case _ =>
-      }
+      })
       trimmed = trimmed.stripPrefix("_").stripSuffix("_")
     })
     if (trimmed.contains('_')) {
@@ -269,49 +266,46 @@ abstract class SpcOpenhabCosmos(
       s => (s == roomLemma) || (s == formName) ||
         ((s + roomLemma) == lastQualifier))
 
-    resolveForm(formName) match {
-      case Some(form) => {
-        // for now we silently ignore mismatches...should probably
-        // save up as warnings which can be nagged about
-        var warning = false
-        if (formName == presenceFormName) {
-          val entity = SpcPersistentEntity(itemName, form, Set.empty)
-          createOrReplaceEntity(entity)
-          qualifiers.lastOption match {
-            case Some(personName) => {
-              getGraph.formAssocs.edgeSet.asScala.find(
-                edge => (edge.getRoleName == presenceRoleName)
-                  && edge.isProperty) match
-              {
-                case Some(edge) => {
-                  val personForm = getGraph.getPossessorForm(edge)
-                  resolveQualifiedNoun(
-                    personForm.name, REF_SUBJECT,
-                    qualifiers.takeRight(1)) match
-                  {
-                    case Success(set) => {
-                      if (set.size == 1) {
-                        addEntityAssoc(
-                          set.head, entity, resolveRole(presenceRoleName).get)
-                      } else {
-                        warning = true
-                      }
+    resolveForm(formName).foreach(form => {
+      // for now we silently ignore mismatches...should probably
+      // save up as warnings which can be nagged about
+      var warning = false
+      if (formName == presenceFormName) {
+        val entity = SpcPersistentEntity(itemName, form, Set.empty)
+        createOrReplaceEntity(entity)
+        qualifiers.lastOption match {
+          case Some(personName) => {
+            getGraph.formAssocs.edgeSet.asScala.find(
+              edge => (edge.getRoleName == presenceRoleName)
+                && edge.isProperty) match
+            {
+              case Some(edge) => {
+                val personForm = getGraph.getPossessorForm(edge)
+                resolveQualifiedNoun(
+                  personForm.name, REF_SUBJECT,
+                  qualifiers.takeRight(1)) match
+                {
+                  case Success(set) => {
+                    if (set.size == 1) {
+                      addEntityAssoc(
+                        set.head, entity, resolveRole(presenceRoleName).get)
+                    } else {
+                      warning = true
                     }
-                    case _ => warning = true
                   }
+                  case _ => warning = true
                 }
-                case _ => warning = true
               }
+              case _ => warning = true
             }
-            case _ => warning = true
           }
-        } else {
-          val entity = SpcPersistentEntity(itemName, form, qualifiers)
-          createOrReplaceEntity(entity)
+          case _ => warning = true
         }
+      } else {
+        val entity = SpcPersistentEntity(itemName, form, qualifiers)
+        createOrReplaceEntity(entity)
       }
-      case _ =>
-    }
+    })
   }
 }
 

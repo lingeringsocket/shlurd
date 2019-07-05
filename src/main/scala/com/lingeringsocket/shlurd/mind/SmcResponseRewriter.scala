@@ -276,23 +276,20 @@ class SmcResponseRewriter[
     def analyze(originalRef : SilReference)
     {
       val newEntitySet = referenceMap(originalRef)
-      mind.thirdPersonReference(newEntitySet) match {
-        case Some(replacedRef) => {
-          replacedRefMap.get(replacedRef) match {
-            case Some(existingEntitySet) => {
-              if (existingEntitySet != newEntitySet) {
-                // FIXME be a little smarter and choose the "best"
-                // entity to preserve instead of the first one
-                ambiguousRefs += originalRef
-              }
-            }
-            case _ => {
-              replacedRefMap.put(replacedRef, newEntitySet)
+      mind.thirdPersonReference(newEntitySet).foreach(replacedRef => {
+        replacedRefMap.get(replacedRef) match {
+          case Some(existingEntitySet) => {
+            if (existingEntitySet != newEntitySet) {
+              // FIXME be a little smarter and choose the "best"
+              // entity to preserve instead of the first one
+              ambiguousRefs += originalRef
             }
           }
+          case _ => {
+            replacedRefMap.put(replacedRef, newEntitySet)
+          }
         }
-        case _ =>
-      }
+      })
     }
   }
 
@@ -302,13 +299,12 @@ class SmcResponseRewriter[
     question : Option[SilQuestion],
     negateCollection : Boolean) : SilPredicate =
   {
-    params.verbosity match {
+    params.verbosity matchPartial {
       case RESPONSE_TERSE | RESPONSE_ELLIPSIS => {
         // in this case we just want to keep the container as the
         // subject for easy extraction, so don't transform back
         return predicate
       }
-      case _ =>
     }
     tupleN((predicate, question)) match {
       case (rp @
@@ -380,22 +376,22 @@ class SmcResponseRewriter[
     querier.query(disqualifyThirdPersonReferences(referenceMap), predicate)
     querier.query(disambiguateThirdPersonReferences(detector), predicate)
     referenceMap --= detector.ambiguousRefs
-    predicate match {
+    predicate matchPartial {
       case SilRelationshipPredicate(
         subject, SilRelationshipPredefVerb(REL_PREDEF_IDENTITY), complement, _
       ) => {
-        tupleN((referenceMap.get(subject), referenceMap.get(complement))) match
-        {
+        tupleN(
+          (referenceMap.get(subject),
+            referenceMap.get(complement))
+        ) matchPartial {
           case (Some(subjectEntities), Some(complementEntities)) => {
             if (subjectEntities == complementEntities) {
               // prevent a tautology
               referenceMap -= complement
             }
           }
-          case _ =>
         }
       }
-      case _ =>
     }
     // use top down rewrite so that replacement of leaf references
     // does not mess up replacement of containing references
@@ -610,7 +606,7 @@ class SmcResponseRewriter[
     detector : AmbiguousRefDetector
   ) = querier.queryMatcher {
     case ref : SilReference if (detector.referenceMap.contains(ref)) => {
-      ref match {
+      ref matchPartial {
         case SilNounReference(_, DETERMINER_UNIQUE, _) |
             SilStateSpecifiedReference(_, _) |
             SilConjunctiveReference(_, _, _) =>
@@ -626,7 +622,6 @@ class SmcResponseRewriter[
           {
             detector.analyze(ref)
           }
-        case _ =>
       }
     }
   }

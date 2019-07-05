@@ -244,10 +244,11 @@ class SmcMind[
         conversation.foreach(
           _.getUtterances.reverseIterator.drop(1).foreach(
             utterance => {
-              findMatchingPronounReference(utterance, reference) match {
-                case Some(set) => return Success(set)
-                case _ =>
-              }
+              findMatchingPronounReference(
+                utterance, reference
+              ).foreach(set => {
+                return Success(set)
+              })
             }
           )
         )

@@ -463,11 +463,10 @@ class SpcCosmos(
     addIdealSynonymEdge(synonym, ideal)
     graph.idealTaxonomy.addVertex(ideal)
     graph.formAssocs.addVertex(ideal)
-    getIdealBySynonym(SpcMeta.ENTITY_METAFORM_NAME) match {
+    getIdealBySynonym(SpcMeta.ENTITY_METAFORM_NAME) matchPartial {
       case Some(entityForm) => {
         addIdealTaxonomy(ideal, entityForm)
       }
-      case _ =>
     }
     ideal
   }
@@ -901,20 +900,14 @@ class SpcCosmos(
     val qualifiers = qualifierSet(qualifierString)
     if (properName.isEmpty) {
       getFormHypernymRealizations(form).find(hasQualifiers(
-        _, form, qualifiers, true)) match
-      {
-        case Some(entity) => {
-          return tupleN((entity, false))
-        }
-        case _ =>
-      }
+        _, form, qualifiers, true)
+      ).foreach(entity => {
+        return tupleN((entity, false))
+      })
     } else {
-      getEntityBySynonym(properName) match {
-        case Some(entity) => {
-          return tupleN((entity, false))
-        }
-        case _ =>
-      }
+      getEntityBySynonym(properName).foreach(entity => {
+        return tupleN((entity, false))
+      })
     }
     val formId = generateId.toString
     val name = {
@@ -970,14 +963,11 @@ class SpcCosmos(
     edge2 : SpcFormAssocEdge)
   {
     val inverseAssocs = graph.inverseAssocs
-    getInverseAssocEdge(edge1) match {
-      case Some(existing) => {
-        if (existing.getRoleName == edge2.getRoleName) {
-          return
-        }
+    getInverseAssocEdge(edge1).foreach(existing => {
+      if (existing.getRoleName == edge2.getRoleName) {
+        return
       }
-      case _ =>
-    }
+    })
     assert(!inverseAssocs.containsVertex(edge1), edge1)
     assert(!inverseAssocs.containsVertex(edge2), edge2)
     inverseAssocs.addVertex(edge1)
@@ -1035,13 +1025,10 @@ class SpcCosmos(
       case Some(formAssocEdge) => {
         val edge = addEntityAssocEdge(
           possessor, possessee, formAssocEdge)
-        getInverseAssocEdge(formAssocEdge) match {
-          case Some(inverseAssocEdge) => {
-            addEntityAssocEdge(
-              possessee, possessor, inverseAssocEdge)
-          }
-          case _ =>
-        }
+        getInverseAssocEdge(formAssocEdge).foreach(inverseAssocEdge => {
+          addEntityAssocEdge(
+            possessee, possessor, inverseAssocEdge)
+        })
         edge
       }
       case _ => {
@@ -1137,7 +1124,7 @@ class SpcCosmos(
         asScala.map(_.getRoleName).toSet.size),
         ideal.toString)
       assert(getIdealBySynonym(ideal.name) == Some(ideal))
-      ideal match {
+      ideal matchPartial {
         case form : SpcForm => {
           assert(graph.components.inDegreeOf(form) == 0)
           assert(
@@ -1145,7 +1132,6 @@ class SpcCosmos(
               getStateNormalizationMap(form).size ==
               graph.components.outDegreeOf(form))
         }
-        case _ =>
       }
     })
     val entitySet = getEntities.toSet
@@ -1329,13 +1315,12 @@ class SpcCosmos(
     lemma : String) : Option[(SpcProperty, String)] =
   {
     getFormHypernyms(form).foreach(hyperForm => {
-      resolveFormProperty(hyperForm, lemma) match {
+      resolveFormProperty(hyperForm, lemma) matchPartial {
         case Some((property, stateName)) => {
           return Some(
             tupleN((findProperty(form, property.name).getOrElse(property),
               stateName)))
         }
-        case _ =>
       }
     })
     None
@@ -1376,12 +1361,9 @@ class SpcCosmos(
     form : SpcForm, name : String) : Option[SpcProperty] =
   {
     getFormHypernyms(form).foreach(hyperForm => {
-      getFormPropertyMap(hyperForm).get(name) match {
-        case Some(matchingProperty) => {
-          return Some(matchingProperty)
-        }
-        case _ =>
-      }
+      getFormPropertyMap(hyperForm).get(name).foreach(matchingProperty => {
+        return Some(matchingProperty)
+      })
     })
 
     None
@@ -1461,12 +1443,9 @@ class SpcCosmos(
         }
       }, {
         (entity, propertyName, lemma) => {
-          getEntityPropertyMap(entity).get(propertyName) match {
-            case Some(old) => {
-              graph.removeComponent(old)
-            }
-            case _ =>
-          }
+          getEntityPropertyMap(entity).get(propertyName).foreach(old => {
+            graph.removeComponent(old)
+          })
           val ps = new SpcEntityPropertyState(propertyName, lemma)
           addComponent(entity, ps)
           Success(Trilean.True)
@@ -1550,12 +1529,9 @@ class SpcCosmos(
         : Option[(SpcProperty, String)]=
     {
       getFormHypernyms(form).foreach(hyperForm => {
-        getFormPropertyMap(hyperForm).get(propertyName) match {
-          case Some(property) => {
-            return Some((property, ""))
-          }
-          case _ =>
-        }
+        getFormPropertyMap(hyperForm).get(propertyName).foreach(property => {
+          return Some((property, ""))
+        })
       })
       None
     }
@@ -1648,7 +1624,7 @@ class SpcCosmos(
             postVisit)
         }
         resolveHypernymProperty(
-          propertyEntity.form, propertyName, lemma) match
+          propertyEntity.form, propertyName, lemma) matchPartial
         {
           case Some((underlyingProperty, stateName)) => {
             return visitEntityProperty(
@@ -1659,7 +1635,6 @@ class SpcCosmos(
               preVisit,
               postVisit)
           }
-          case _ =>
         }
       })
     postVisit(entity, propertyName, lemma)

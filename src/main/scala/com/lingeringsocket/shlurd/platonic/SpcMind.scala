@@ -79,7 +79,7 @@ class SpcMind(cosmos : SpcCosmos)
     entity : SpcEntity,
     determiner : SilDeterminer) : Seq[SilReference] =
   {
-    entity match {
+    entity matchPartial {
       case SpcTransientEntity(form, value, inflected) => {
         if (entity.form.name == PROPERTY_TYPE_STRING.name) {
           return Seq(SilQuotationReference(value))
@@ -87,7 +87,6 @@ class SpcMind(cosmos : SpcCosmos)
           return Seq(SilNounReference(SilWord(inflected, value)))
         }
       }
-      case _ =>
     }
     val assocGraph = cosmos.getEntityAssocGraph
     val edges = assocGraph.incomingEdgesOf(entity).asScala.toSeq

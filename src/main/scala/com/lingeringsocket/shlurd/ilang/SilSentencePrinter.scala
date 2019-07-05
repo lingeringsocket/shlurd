@@ -123,15 +123,12 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         sb.parenthetical(inside, inflection, conjoining)
       }
       case SilStateSpecifiedReference(sub, state) => {
-        state match {
+        state matchPartial {
           case adpositionalState : SilAdpositionalState => {
             val specified = print(sub, inflection, SilConjoining.NONE)
             val specifier = printAdpositionalPhrase(
               adpositionalState, conjoining)
             return sb.specifiedNoun(specifier, specified)
-          }
-          case _ => {
-
           }
         }
         val qualifierString = state match {

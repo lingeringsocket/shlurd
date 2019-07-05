@@ -515,18 +515,16 @@ case class SilStateSpecifiedReference(
 
   override def acceptsSpecifiers : Boolean = {
     // FIXME:  weird special case for "3 of them"
-    state match {
+    state matchPartial {
       case SilAdpositionalState(SilAdposition.OF, pn : SilPronounReference) => {
-        reference match {
+        reference matchPartial {
           case SilNounReference(SilWordLemma(lemma), _, _) => {
             if (lemma.forall(Character.isDigit)) {
               return false
             }
           }
-          case _ =>
         }
       }
-      case _ =>
     }
     reference.acceptsSpecifiers
   }

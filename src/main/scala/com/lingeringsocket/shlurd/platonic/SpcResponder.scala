@@ -148,14 +148,15 @@ class SpcResponder(
       predicate : SilActionPredicate,
       resultCollector : ResultCollectorType) : Try[Trilean] =
     {
-      checkCycle(predicate, already, resultCollector.referenceMap) match {
+      checkCycle(
+        predicate, already, resultCollector.referenceMap
+      ) matchPartial {
         case f @ Failure(err) => {
           return f.map(Trilean(_))
         }
         case Success(true) => {
           return Success(Trilean.Unknown)
         }
-        case _ =>
       }
       getBiconditionalImplications.foreach(conditionalSentence => {
         assertionMapper.matchImplication(
@@ -165,12 +166,11 @@ class SpcResponder(
           predicate,
           SpcAssertionBinding(
             resultCollector.referenceMap,
-            Some(resultCollector.referenceMap))) match
+            Some(resultCollector.referenceMap))) matchPartial
         {
           case Some(newPredicate) => {
             return super.evaluatePredicate(newPredicate, resultCollector)
           }
-          case _ =>
         }
       })
       super.evaluateActionPredicate(predicate, resultCollector)
@@ -397,7 +397,7 @@ class SpcResponder(
           SilPredicateSentence(_, sentence.tam)).getOrElse(sentence)
       processBeliefOrAction(
         forkedCosmos, inputSentence, resultCollector, 0
-      ) match {
+      ) matchPartial {
         case Some(result) => {
           if (result != sentencePrinter.sb.respondCompliance) {
             return Some(wrapResponseText(result))
@@ -423,7 +423,6 @@ class SpcResponder(
           }
           return Some(wrapResponseText(result))
         }
-        case _ =>
       }
     }
     already.clear
@@ -586,14 +585,13 @@ class SpcResponder(
           checkCycle(
             sentence.predicate, already,
             resultCollector.referenceMap, isPrecondition || isTest
-          ) match {
+          ) matchPartial {
             case Failure(err) => {
               return Some(err.getMessage)
             }
             case Success(true) => {
               return None
             }
-            case _ =>
           }
         })
         if (isPrecondition || isTest) {
@@ -632,14 +630,13 @@ class SpcResponder(
                   Set(LEMMA_OTHERWISE, LEMMA_SUBSEQUENTLY))
                 checkCycle(recoverySentence.predicate,
                   already, resultCollector.referenceMap
-                ) match {
+                ) matchPartial {
                   case Failure(err) => {
                     return Some(err.getMessage)
                   }
                   case Success(true) => {
                     return None
                   }
-                  case _ =>
                 }
                 spawn(imagine(forkedCosmos)).resolveReferences(
                   recoverySentence, resultCollector, false, true)
@@ -704,7 +701,7 @@ class SpcResponder(
     val (rewritten, answerInflection) = super.rewriteQuery(
       predicate, question, originalAnswerInflection, resultCollector)
     if (question == QUESTION_WHICH) {
-      rewritten match {
+      rewritten matchPartial {
         case SilRelationshipPredicate(
           SilNounReference(SilWordLemma(lemma), DETERMINER_ANY, count),
           SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
@@ -722,7 +719,6 @@ class SpcResponder(
             return tupleN((statePredicate, INFLECT_COMPLEMENT))
           }
         }
-        case _ =>
       }
     }
     tupleN((rewritten, answerInflection))
@@ -781,7 +777,7 @@ class SpcResponder(
     )
     var earlyReturn : Option[String] = None
     if (sentence.tam.unemphaticModality == MODAL_NEUTRAL) {
-      sentence match {
+      sentence matchPartial {
         case SilPredicateSentence(predicate, _, _) => {
           if (flagErrors && predicate.isInstanceOf[SilActionPredicate]) {
             resultCollector.referenceMap.clear
@@ -789,11 +785,10 @@ class SpcResponder(
               spawn(imagine(forkedCosmos)).resolveReferences(
                 predicate, resultCollector,
                 true, false)
-            resolutionResult match {
+            resolutionResult matchPartial {
               case Failure(ex) => {
                 earlyReturn = Some(ex.getMessage)
               }
-              case _ =>
             }
           }
           if (earlyReturn.isEmpty) {
@@ -812,8 +807,6 @@ class SpcResponder(
               earlyReturn = result
             }
           }
-        }
-        case _ => {
         }
       }
     }
@@ -926,23 +919,20 @@ class SpcResponder(
     weakFailures.find(
       w => !passes.exists(
         p => isSubsumption(
-          viewedCosmos, w.predicate, p.predicate, referenceMap))) match
+          viewedCosmos, w.predicate, p.predicate, referenceMap))) matchPartial
     {
       case Some(result) => {
         return Some(result.message)
       }
-      case _ =>
     }
 
     if (applicability != APPLY_CONSTRAINTS_ONLY) {
-      predicate match {
+      predicate matchPartial {
         case ap : SilActionPredicate => {
           val executorResponse = executor.executeAction(ap, referenceMap)
           if (executorResponse.nonEmpty) {
             return executorResponse
           }
-        }
-        case _ => {
         }
       }
     }
@@ -1131,14 +1121,13 @@ class SpcResponder(
     val seen = new mutable.HashSet[SilPredicate]
     while (!queue.isEmpty) {
       val predicate = queue.dequeue
-      checkCycle(predicate, seen, resultCollector.referenceMap) match {
+      checkCycle(predicate, seen, resultCollector.referenceMap) matchPartial {
         case f @ Failure(err) => {
           return f
         }
         case Success(true) => {
           return Success(false)
         }
-        case _ =>
       }
       // FIXME need to attempt trigger rewrite in both directions
       val superMatch = super.matchActions(
@@ -1158,12 +1147,7 @@ class SpcResponder(
             SpcAssertionBinding(
               modifiableReferenceMap,
               Some(modifiableReferenceMap))
-          ) match {
-            case Some(newPredicate) => {
-              queue.enqueue(newPredicate)
-            }
-            case _ =>
-          }
+          ).foreach(newPredicate => queue.enqueue(newPredicate))
         })
       }
     }

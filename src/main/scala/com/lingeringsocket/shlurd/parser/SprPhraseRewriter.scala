@@ -344,11 +344,10 @@ class SprPhraseRewriter(
               DETERMINER_ALL, Seq(predicate.specifiedState) ++ states.tail)
           }
         }
-        fullySpecifiedState match {
+        fullySpecifiedState matchPartial {
           case tp : SilTransformedPhrase => {
             SilPhraseRewriter.onPhraseTransformation(cs, tp)
           }
-          case _ =>
         }
         val specifiedSubject = analyzer.specifyReference(
           predicate.subject, fullySpecifiedState)
@@ -420,13 +419,10 @@ class SprAmbiguityResolver(context : SprContext)
         val iSecond = sub.last
         val first = seq(iFirst)
         val second = seq(iSecond)
-        resolveAmbiguousPair(first, second) match {
-          case Some(resolved) => {
-            return resolveAmbiguousSeq(
-              seq.patch(iFirst, Seq(resolved), 1).patch(iSecond, Seq.empty, 1))
-          }
-          case _ =>
-        }
+        resolveAmbiguousPair(first, second).foreach(resolved => {
+          return resolveAmbiguousSeq(
+            seq.patch(iFirst, Seq(resolved), 1).patch(iSecond, Seq.empty, 1))
+        })
       })
       SilAmbiguousSentence(seq, true)
     }

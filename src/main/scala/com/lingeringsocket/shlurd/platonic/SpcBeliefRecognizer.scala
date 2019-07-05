@@ -70,7 +70,7 @@ class SpcBeliefRecognizer(
     if (sentence.hasUnknown) {
       return Seq.empty
     }
-    sentence match {
+    sentence matchPartial {
       case SilPredicateSentence(
         SilActionPredicate(
           _, verb, Some(SilQuotationReference(quotation)), _),
@@ -78,7 +78,6 @@ class SpcBeliefRecognizer(
       ) => {
         return recognizeDirective(sentence, verb, quotation)
       }
-      case _ =>
     }
     if (!sentence.tam.isIndicative) {
       // FIXME support interrogative
@@ -87,7 +86,7 @@ class SpcBeliefRecognizer(
     sentence match {
       case SilPredicateSentence(predicate, tam, formality) => {
         if (predicate.getModifiers.filterNot(isIgnorableModifier).isEmpty) {
-          predicate match {
+          predicate matchPartial {
             case statePredicate : SilStatePredicate => {
               return recognizeStatePredicateBelief(
                 sentence, statePredicate, tam)
@@ -96,7 +95,6 @@ class SpcBeliefRecognizer(
               return recognizeRelationshipPredicateBelief(
                 sentence, relationshipPredicate, tam)
             }
-            case _ =>
           }
         }
         recognizeAssertionBelief(sentence)
@@ -359,7 +357,7 @@ class SpcBeliefRecognizer(
   {
     val ref = predicate.subject
     val state = predicate.state
-    state match {
+    state matchPartial {
       case SilAdpositionalState(SilAdposition.IN, container) => {
         return recognizeRelationshipPredicateBelief(
           sentence,
@@ -375,7 +373,6 @@ class SpcBeliefRecognizer(
           ),
           sentence.tam)
       }
-      case _ =>
     }
     // FIXME we should not be allowing genitives here except
     // in certain cases
@@ -429,7 +426,7 @@ class SpcBeliefRecognizer(
         }
       }
     }
-    ref match {
+    ref matchPartial {
       case SilStateSpecifiedReference(
         _, specifiedState @
           (_ : SilAdpositionalState | _ : SilPropertyState)
@@ -452,7 +449,6 @@ class SpcBeliefRecognizer(
           }
         }
       }
-      case _ =>
     }
     state match {
       case SilExistenceState(_) => {
@@ -532,7 +528,7 @@ class SpcBeliefRecognizer(
           sentence, subjectNoun, complementRef, verb)
       }
       case SilGenitiveReference(possessor, possessee) => {
-        complementRef match {
+        complementRef matchPartial {
           case SilNounReference(
             complementNoun, determiner, COUNT_SINGULAR
           ) => {
@@ -591,7 +587,6 @@ class SpcBeliefRecognizer(
             return processQuotation(
               sentence, possessor, possessee, quotation, verb)
           }
-          case _ =>
         }
       }
       case _ => {
@@ -1067,7 +1062,7 @@ class SpcBeliefRecognizer(
     if (sentence.tam.modality != MODAL_NEUTRAL) {
       return Seq(UnimplementedBelief(sentence))
     }
-    SilRelationshipPredef(verb) match {
+    SilRelationshipPredef(verb) matchPartial {
       case REL_PREDEF_ASSOC => {
         complementRef match {
           case SilNounReference(
@@ -1114,9 +1109,8 @@ class SpcBeliefRecognizer(
           }
         }
       }
-      case _ =>
     }
-    complementRef match {
+    complementRef matchPartial {
       case SilGenitiveReference(
         sub @ (_ : SilStateSpecifiedReference | _ : SilGenitiveReference |
           SilConjunctiveReference(DETERMINER_ALL, _, _)),
@@ -1143,10 +1137,9 @@ class SpcBeliefRecognizer(
             }
           })
       }
-      case _ =>
     }
 
-    complementRef match {
+    complementRef matchPartial {
       case SilGenitiveReference(
         possessorRef, SilNounReference(roleNoun, DETERMINER_UNSPECIFIED, _)
       ) => {
@@ -1159,7 +1152,6 @@ class SpcBeliefRecognizer(
           roleNoun,
           sentence.tam.isPositive))
       }
-      case _ =>
     }
 
     val (subjectNoun, subjectDeterminer) = subjectRef match {

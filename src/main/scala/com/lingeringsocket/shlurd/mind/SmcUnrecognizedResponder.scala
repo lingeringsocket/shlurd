@@ -28,7 +28,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     assert(unrecognized.isUninterpretable)
     unrecognized match {
       case SilPredicateSentence(predicate, tam, _) => {
-        predicate match {
+        predicate matchPartial {
           case SilStatePredicate(subject, verb, state, modifiers) => {
             val count = computeMaxCount(
               subject,
@@ -49,13 +49,12 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
               return response
             }
           }
-          case _ =>
         }
       }
       case SilPredicateQuery(
         predicate, question, answerInflection, tam, _
       ) => {
-        predicate match {
+        predicate matchPartial {
           case SilStatePredicate(subject, verb, state, modifiers) => {
             val count = computeMaxCount(
               subject,
@@ -78,7 +77,6 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
               return response
             }
           }
-          case _ =>
         }
       }
       case SilConjunctiveSentence(determiner, sentences, _) => {

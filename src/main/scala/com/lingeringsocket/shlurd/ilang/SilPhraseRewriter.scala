@@ -66,12 +66,9 @@ object SilPhraseRewriter
   def onPhraseTransformation(
     oldPhrase : SilPhrase, newPhrase : SilTransformedPhrase)
   {
-    oldPhrase.maybeSyntaxTree match {
-      case Some(syntaxTree) => {
-        newPhrase.rememberSyntaxTree(syntaxTree)
-      }
-      case _ =>
-    }
+    oldPhrase.maybeSyntaxTree.foreach(syntaxTree => {
+      newPhrase.rememberSyntaxTree(syntaxTree)
+    })
   }
 }
 
@@ -109,21 +106,21 @@ class SilPhraseRewriter
     override def rewriting[PhraseType](
       oldPhrase : PhraseType, newPhrase : PhraseType) : PhraseType =
     {
-      tupleN((oldPhrase, newPhrase)) match {
-        case (oldTransformed : SilPhrase,
-          newTransformed : SilTransformedPhrase) =>
-          {
-            onPhraseTransformation(oldTransformed, newTransformed)
-          }
-        case _ =>
+      tupleN((oldPhrase, newPhrase)) matchPartial {
+        case (
+          oldTransformed : SilPhrase,
+          newTransformed : SilTransformedPhrase
+        ) => {
+          onPhraseTransformation(oldTransformed, newTransformed)
+        }
       }
-      tupleN((oldPhrase, newPhrase)) match {
-        case (oldPredicate : SilPredicate,
-          newPredicate : SilPredicate) =>
-          {
-            newPredicate.setInflectedCount(oldPredicate.getInflectedCount)
-          }
-        case _ =>
+      tupleN((oldPhrase, newPhrase)) matchPartial {
+        case (
+          oldPredicate : SilPredicate,
+          newPredicate : SilPredicate
+        ) => {
+          newPredicate.setInflectedCount(oldPredicate.getInflectedCount)
+        }
       }
       newPhrase
     }

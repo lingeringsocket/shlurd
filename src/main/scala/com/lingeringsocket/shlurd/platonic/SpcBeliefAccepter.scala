@@ -264,14 +264,13 @@ class SpcBeliefAccepter(
     edges : Seq[SpcEntityAssocEdge])
   {
     val entityAssocGraph = cosmos.getEntityAssocGraph
-    cosmos.getInverseAssocEdge(formAssocEdge) match {
+    cosmos.getInverseAssocEdge(formAssocEdge) matchPartial {
       case Some(inverseAssocEdge) => {
         val inverseEdges = entityAssocGraph.
           incomingEdgesOf(possessor).asScala.
           filter(_.formEdge.getRoleName == inverseAssocEdge.getRoleName)
         inverseEdges.foreach(cosmos.removeEntityAssocEdge)
       }
-      case _ =>
     }
     edges.foreach(cosmos.removeEntityAssocEdge)
   }

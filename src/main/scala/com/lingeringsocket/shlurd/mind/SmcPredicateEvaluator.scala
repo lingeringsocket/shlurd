@@ -289,13 +289,12 @@ class SmcPredicateEvaluator[
       context : SilReferenceContext)
     {
       val cached = resultCollector.referenceMap.contains(ref)
-      ref match {
+      ref matchPartial {
         case SilGenitiveReference(possessor, possessee) => {
           // regardless of resolution for possessee, make
           // sure possessor gets resolved
           resolveOne(possessor, context)
         }
-        case _ =>
       }
       val result = resolveReference(ref, context, resultCollector)
       if (throwFailures) {
@@ -304,7 +303,7 @@ class SmcPredicateEvaluator[
       }
       if (reify && !cached) {
         result.foreach(_ => {
-          ref match {
+          ref matchPartial {
             case SilGenitiveReference(
               possessor,
               possessee @ SilNounReference(noun, _, _)
@@ -320,7 +319,6 @@ class SmcPredicateEvaluator[
               resultCollector.referenceMap.remove(possessee)
               resolveReference(ref, context, resultCollector)
             }
-            case _ =>
           }
         })
       }
@@ -853,7 +851,7 @@ class SmcPredicateEvaluator[
             )
           }
           case _ => {
-            possessee match {
+            possessee matchPartial {
               case SilNounReference(
                 noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
               ) => {
@@ -863,7 +861,7 @@ class SmcPredicateEvaluator[
                     if (entities.size == 1) {
                       val entity = entities.head
                       cosmos.evaluateEntityProperty(
-                        entity, noun.toLemma, true) match
+                        entity, noun.toLemma, true) matchPartial
                       {
                         case Success((Some(property), Some(value))) => {
                           val resolved = mind.resolvePropertyValueEntity(
@@ -886,12 +884,10 @@ class SmcPredicateEvaluator[
                         case Success((Some(property), None)) => {
                           return Success(Trilean.Unknown)
                         }
-                        case _ =>
                       }
                     }
                   })
               }
-              case _ =>
             }
             val state = SilAdpositionalState(
               SilAdposition.GENITIVE_OF, possessor)

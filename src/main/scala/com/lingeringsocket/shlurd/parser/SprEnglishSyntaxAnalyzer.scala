@@ -496,13 +496,12 @@ class SprEnglishSyntaxAnalyzer(
         val qualifiedReference = SilReference.qualifiedByProperties(
           entityReference,
           adjComponents.map(expectPropertyState))
-        qualifiedReference match {
+        qualifiedReference matchPartial {
           case SilStateSpecifiedReference(
-            _, state : SilConjunctiveState) =>
-            {
-              rememberSyntheticADJP(state, adjComponents)
-            }
-          case _ =>
+            _, state : SilConjunctiveState
+          ) => {
+            rememberSyntheticADJP(state, adjComponents)
+          }
         }
         qualifiedReference
       } else {
