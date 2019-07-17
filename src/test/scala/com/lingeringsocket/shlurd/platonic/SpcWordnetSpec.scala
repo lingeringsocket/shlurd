@@ -78,8 +78,8 @@ class SpcWordnetSpec extends Specification
         expectUniqueSense("tine")))
       meronyms.map(_.name) must be equalTo(
         Seq(
-          "wnr-wnf-fork-1-wnf-prong-1",
-          "wnr-wnf-fork-1-wnf-tine-1"))
+          "wnr-prong-1",
+          "wnr-tine-1"))
       meronyms.map(graph.getFormsForRole) must be equalTo(
         Seq(Seq(prongForm), Seq(tineForm)))
       val prongRole = meronyms.head

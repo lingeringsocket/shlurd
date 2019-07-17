@@ -138,12 +138,12 @@ class SpcWordnet(cosmos : SpcCosmos)
             case Some(meronymForm) => {
               val meronymRole = cosmos.instantiateRole(
                 holonymForm,
-                SilWord(getRoleName(holonymForm, meronymForm)))
+                SilWord(getRoleName(meronymForm)))
               cosmos.addIdealTaxonomy(meronymRole, meronymForm)
               val edge = cosmos.addFormAssoc(holonymForm, meronymRole)
               val holonymRole = cosmos.instantiateRole(
                 meronymForm,
-                SilWord(getRoleName(meronymForm, holonymForm)))
+                SilWord(getRoleName(holonymForm)))
               cosmos.addIdealTaxonomy(holonymRole, holonymForm)
               val inverseEdge = cosmos.addFormAssoc(meronymForm, holonymRole)
               val constraint = SpcCardinalityConstraint(0, 1)
@@ -204,16 +204,17 @@ class SpcWordnet(cosmos : SpcCosmos)
   def getPossesseeNoun(role : SpcRole) : String =
   {
     if (role.name.startsWith("wnr-")) {
-      role.name.split("-wnf-").last.split('-').head
+      role.name.stripPrefix("wnr-").split('-').head
     } else {
       role.name.stripPrefix("spc-")
     }
   }
 
   def getRoleName(
-    possessorForm : SpcForm, possesseeForm : SpcForm) : String =
+    possesseeForm : SpcForm) : String =
   {
-    s"wnr-${possessorForm.name}-${possesseeForm.name}"
+    val stripped = possesseeForm.name.stripPrefix("wnf-")
+    s"wnr-${stripped}"
   }
 
   private def isUsableFormName(lemma : String) : Boolean =
