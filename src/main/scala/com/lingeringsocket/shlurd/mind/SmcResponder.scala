@@ -46,11 +46,6 @@ sealed trait SmcExistenceAssumption
 case object EXISTENCE_ASSUME_NOTHING extends SmcExistenceAssumption
 case object EXISTENCE_ASSUME_UNKNOWN extends SmcExistenceAssumption
 
-object SmcResponseParams
-{
-  def standard() = SmcResponseParams()
-}
-
 case class SmcResponseParams(
   listLimit : Int = 3,
   thirdPersonPronouns : Boolean = true,

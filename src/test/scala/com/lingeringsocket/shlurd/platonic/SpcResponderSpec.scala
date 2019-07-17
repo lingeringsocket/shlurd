@@ -68,21 +68,21 @@ class SpcResponderSpec extends Specification
 
     protected val responder =
       new SpcResponder(
-        mind, beliefAcceptance, params)
+        mind, SpcBeliefParams(beliefAcceptance), params)
 
     protected val responderWithoutPronouns =
       new SpcResponder(
-        mind, beliefAcceptance, params.
+        mind, SpcBeliefParams(beliefAcceptance), params.
           copy(thirdPersonPronouns = false))
 
     protected val responderTerse =
       new SpcResponder(
-        mind, beliefAcceptance, params.
+        mind, SpcBeliefParams(beliefAcceptance), params.
           copy(verbosity = RESPONSE_TERSE))
 
     protected val responderEllipsis =
       new SpcResponder(
-        mind, beliefAcceptance, params.
+        mind, SpcBeliefParams(beliefAcceptance), params.
           copy(verbosity = RESPONSE_ELLIPSIS))
 
     protected def loadBeliefs(resource : String)

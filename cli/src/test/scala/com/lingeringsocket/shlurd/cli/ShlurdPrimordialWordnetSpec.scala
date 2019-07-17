@@ -28,7 +28,7 @@ class ShlurdPrimordialWordnetSpec extends Specification
     protected val mind = new SpcWordnetMind(cosmos)
     protected val responder =
       new SpcResponder(
-        mind, ACCEPT_NEW_BELIEFS, SmcResponseParams())
+        mind, SpcBeliefParams(ACCEPT_NEW_BELIEFS), SmcResponseParams())
 
     protected def processBelief(input : String) =
     {

@@ -30,7 +30,7 @@ class SpcMetaReflectorSpec extends Specification
 
     protected val responder =
       new SpcResponder(
-        mind, ACCEPT_MODIFIED_BELIEFS,
+        mind, SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
         SmcResponseParams(verbosity = RESPONSE_TERSE))
 
     protected def process(input : String, expected : String) =

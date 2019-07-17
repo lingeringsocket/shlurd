@@ -272,7 +272,7 @@ class SpcMeta(cosmos : SpcCosmos)
   private def applyBelief(belief : SpcBelief)
   {
     if (enabled) {
-      val beliefAccepter = SpcBeliefAccepter(new SpcMind(cosmos))
+      val beliefAccepter = SpcBeliefAccepter.forMind(new SpcMind(cosmos))
       beliefAccepter.applyBelief(belief)
     }
   }

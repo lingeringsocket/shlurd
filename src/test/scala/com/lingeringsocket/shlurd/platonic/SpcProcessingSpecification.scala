@@ -42,7 +42,7 @@ class SpcProcessingSpecification extends Specification
     {
       val responder = new SpcResponder(
         mind,
-        beliefAcceptance,
+        SpcBeliefParams(beliefAcceptance),
         params,
         executor)
       val sentence = responder.newParser(input).parseOne

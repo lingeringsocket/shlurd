@@ -110,7 +110,7 @@ class ShlurdCliShell(
   private val params = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
 
   private val responder = new SpcResponder(
-    mind, ACCEPT_MODIFIED_BELIEFS, params,
+    mind, SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS), params,
     communicationContext = SmcCommunicationContext(
       Some(entityInterviewer),
       Some(entityShlurd)

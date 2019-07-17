@@ -32,7 +32,8 @@ class SpcPerceptionSpec extends Specification
       val sentence = cosmos.newParser(input).parseOne
       val mind = new SpcMind(cosmos)
       val responder = new SpcResponder(
-        mind, ACCEPT_MODIFIED_BELIEFS,
+        mind,
+        SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
         SmcResponseParams(
           throwRejectedBeliefs = true,
           verbosity = RESPONSE_TERSE))

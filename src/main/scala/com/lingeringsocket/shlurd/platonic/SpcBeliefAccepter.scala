@@ -25,29 +25,48 @@ import org.jgrapht.alg.shortestpath._
 
 object SpcBeliefAccepter
 {
-  def apply(
-    mind : SpcMind,
-    allowUpdates : Boolean = false,
+  def forResponder(
+    responder : SpcResponder,
+    params : SpcBeliefParams = SpcBeliefParams(),
     resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
       : SpcBeliefAccepter =
   {
-    val acceptance = {
-      if (allowUpdates) {
-        ACCEPT_MODIFIED_BELIEFS
-      } else {
-        ACCEPT_NEW_BELIEFS
-      }
-    }
     new SpcBeliefAccepter(
-      new SpcResponder(mind, acceptance),
-      allowUpdates,
+      responder,
+      params,
+      resultCollector)
+  }
+
+  def forMind(
+    mind : SpcMind,
+    params : SpcBeliefParams = SpcBeliefParams(),
+    resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
+      : SpcBeliefAccepter =
+  {
+    new SpcBeliefAccepter(
+      new SpcResponder(mind, params),
+      params,
       resultCollector)
   }
 }
 
-class SpcBeliefAccepter(
+sealed trait SpcBeliefAcceptance
+case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
+case object ACCEPT_NEW_BELIEFS extends SpcBeliefAcceptance
+case object ACCEPT_MODIFIED_BELIEFS extends SpcBeliefAcceptance
+
+case class SpcBeliefParams(
+  acceptance : SpcBeliefAcceptance = ACCEPT_NEW_BELIEFS,
+  createImplicitIdeals : Boolean = true,
+  createTentativeIdeals : Boolean = true,
+  createTentativeEntities : Boolean = true
+)
+{
+}
+
+class SpcBeliefAccepter private(
   responder : SpcResponder,
-  allowUpdates : Boolean = false,
+  params : SpcBeliefParams = SpcBeliefParams(),
   resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
     extends SpcBeliefRecognizer(responder.getMind.getCosmos, resultCollector)
 {
@@ -77,6 +96,9 @@ class SpcBeliefAccepter(
 
   def applyBelief(belief : SpcBelief)
   {
+    if (params.acceptance == ACCEPT_NO_BELIEFS) {
+      throw new InvalidBeliefExcn(belief.sentence)
+    }
     allBeliefApplier.apply(belief)
   }
 
@@ -147,6 +169,9 @@ class SpcBeliefAccepter(
       }
     }
   }
+
+  def allowUpdates() : Boolean =
+    (params.acceptance == ACCEPT_MODIFIED_BELIEFS)
 
   private def validateEdgeCardinality(
     sentence : SilSentence,

@@ -44,7 +44,9 @@ class SpcMind(cosmos : SpcCosmos)
 
   def importBeliefs(
     resourceName : String,
-    responder : SpcResponder = new SpcResponder(this, ACCEPT_NEW_BELIEFS))
+    responder : SpcResponder = new SpcResponder(
+      this,
+      SpcBeliefParams(ACCEPT_NEW_BELIEFS)))
   {
     if (!cosmos.isDuplicateBeliefResource(resourceName)) {
       loadBeliefs(ResourceUtils.getResourceSource(resourceName), responder)
@@ -53,7 +55,8 @@ class SpcMind(cosmos : SpcCosmos)
 
   def loadBeliefs(
     source : Source,
-    responder : SpcResponder = new SpcResponder(this, ACCEPT_NEW_BELIEFS))
+    responder : SpcResponder = new SpcResponder(
+      this, SpcBeliefParams(ACCEPT_NEW_BELIEFS)))
   {
     val beliefs = source.getLines.
       filterNot(SprParser.isIgnorableLine).mkString("\n")
@@ -62,7 +65,7 @@ class SpcMind(cosmos : SpcCosmos)
     val inputRewriter = new SmcInputRewriter(this)
     sentences.foreach(sentence => {
       val analyzed = inputRewriter.normalizeInput(analyzeSense(sentence))
-      val accepter = new SpcBeliefAccepter(responder)
+      val accepter = SpcBeliefAccepter.forResponder(responder)
       accepter.recognizeBeliefs(analyzed) match {
         case Seq(ib : IndirectBelief) => {
           accepter.applyBelief(ib)

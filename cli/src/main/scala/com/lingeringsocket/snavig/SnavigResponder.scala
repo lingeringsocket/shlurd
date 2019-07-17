@@ -28,7 +28,7 @@ class SnavigResponder(
   params : SmcResponseParams,
   executor : SmcExecutor[SpcEntity],
   communicationContext : SmcCommunicationContext[SpcEntity])
-    extends SpcResponder(mind, beliefAcceptance, params,
+    extends SpcResponder(mind, SpcBeliefParams(beliefAcceptance), params,
       executor, communicationContext)
 {
   import SnavigShell._

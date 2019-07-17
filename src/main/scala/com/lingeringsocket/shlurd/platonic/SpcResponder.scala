@@ -26,11 +26,6 @@ import spire.math._
 
 import SprEnglishLemmas._
 
-sealed trait SpcBeliefAcceptance
-case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
-case object ACCEPT_NEW_BELIEFS extends SpcBeliefAcceptance
-case object ACCEPT_MODIFIED_BELIEFS extends SpcBeliefAcceptance
-
 sealed trait SpcAssertionApplicability
 case object APPLY_CONSTRAINTS_ONLY extends SpcAssertionApplicability
 case object APPLY_TRIGGERS_ONLY extends SpcAssertionApplicability
@@ -109,7 +104,8 @@ class SpcContextualScorer(responder : SpcResponder)
 
 class SpcResponder(
   mind : SpcMind,
-  beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
+  beliefParams : SpcBeliefParams =
+    SpcBeliefParams(ACCEPT_NO_BELIEFS),
   params : SmcResponseParams = SmcResponseParams(),
   executor : SmcExecutor[SpcEntity] = new SmcExecutor[SpcEntity],
   communicationContext : SmcCommunicationContext[SpcEntity] =
@@ -129,7 +125,7 @@ class SpcResponder(
 
   override protected def spawn(subMind : SpcMind) =
   {
-    new SpcResponder(subMind, beliefAcceptance, params,
+    new SpcResponder(subMind, beliefParams, params,
       executor, communicationContext)
   }
 
@@ -349,7 +345,7 @@ class SpcResponder(
     resultCollector : ResultCollectorType)(sentence : SilSentence)
       : Option[(SilSentence, String)] =
   {
-    if ((beliefAcceptance != ACCEPT_NO_BELIEFS) &&
+    if ((beliefParams.acceptance != ACCEPT_NO_BELIEFS) &&
       sentence.tam.isIndicative)
     {
       val (interval, predicateOpt, baselineCosmos, temporal) = sentence match {
@@ -762,9 +758,9 @@ class SpcResponder(
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
     val beliefAccepter =
-      new SpcBeliefAccepter(
+      SpcBeliefAccepter.forResponder(
         spawn(mind.spawn(forkedCosmos)),
-        (beliefAcceptance == ACCEPT_MODIFIED_BELIEFS),
+        beliefParams,
         resultCollector)
     attemptAsBelief(beliefAccepter, sentence, triggerDepth).foreach(
       result => {
