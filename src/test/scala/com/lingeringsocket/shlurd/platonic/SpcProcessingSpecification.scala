@@ -40,9 +40,21 @@ class SpcProcessingSpecification extends Specification
       executor : SmcExecutor[SpcEntity] =
         new SmcExecutor[SpcEntity]) =
     {
+      processBelief(
+        input, SpcBeliefParams(beliefAcceptance), params, executor)
+    }
+
+    protected def processBelief(
+      input : String,
+      beliefParams : SpcBeliefParams,
+      params : SmcResponseParams =
+        SmcResponseParams(verbosity = RESPONSE_TERSE),
+      executor : SmcExecutor[SpcEntity] =
+        new SmcExecutor[SpcEntity]) =
+    {
       val responder = new SpcResponder(
         mind,
-        SpcBeliefParams(beliefAcceptance),
+        beliefParams,
         params,
         executor)
       val sentence = responder.newParser(input).parseOne

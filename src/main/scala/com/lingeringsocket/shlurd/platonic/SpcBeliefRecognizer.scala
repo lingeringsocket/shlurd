@@ -421,6 +421,15 @@ class SpcBeliefRecognizer(
             }
           })
         }
+        case SilExistenceState(_) => {
+          // "Beelzebub exists"
+          return Seq(EntityExistenceBelief(
+            sentence,
+            ref,
+            SpcForm.tentativeName(noun),
+            Seq(noun),
+            noun.toUnfoldedLemma))
+        }
         case _ => {
           return Seq.empty
         }

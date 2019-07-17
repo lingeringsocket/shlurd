@@ -179,6 +179,13 @@ class SmcPredicateEvaluator[
     result
   }
 
+  protected def reifyRole(
+    possessor : EntityType, roleName : SilWord, onlyIfProven : Boolean)
+      : Set[EntityType] =
+  {
+    mind.reifyRole(possessor, roleName, onlyIfProven)
+  }
+
   private def evaluateRelationshipPredicateExpandWildcard(
     subjectRef : SilReference,
     subjectCollector : ResultCollectorType,
@@ -204,7 +211,7 @@ class SmcPredicateEvaluator[
               val roleQualifiers = extractRoleQualifiers(complementRef)
               if (roleQualifiers.size == 1) {
                 val roleName = roleQualifiers.head
-                mind.reifyRole(subjectEntity, roleName, true)
+                reifyRole(subjectEntity, roleName, true)
                 // invalidate any cached result for complementRef since
                 // we just reified a new entity
                 complementRef.descendantReferences.foreach(
@@ -320,7 +327,7 @@ class SmcPredicateEvaluator[
                   resultCollector.lookup(possessor).
                     foreach(entities => {
                       entities.foreach(
-                        entity => mind.reifyRole(entity, noun, true))
+                        entity => reifyRole(entity, noun, true))
                     })
                   // now clear cache and repeat to pick up the newly
                   // reifed entities

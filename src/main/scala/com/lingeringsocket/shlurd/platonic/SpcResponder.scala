@@ -140,6 +140,18 @@ class SpcResponder(
       mind, sentencePrinter, params.existenceAssumption,
       communicationContext, debugger)
   {
+    override protected def reifyRole(
+      possessor : SpcEntity, roleName : SilWord, onlyIfProven : Boolean)
+        : Set[SpcEntity] =
+    {
+      if (beliefParams.createTentativeEntities) {
+        super.reifyRole(
+          possessor, roleName, onlyIfProven)
+      } else {
+        mind.resolveGenitive(possessor, roleName).get
+      }
+    }
+
     override protected def evaluateActionPredicate(
       predicate : SilActionPredicate,
       resultCollector : ResultCollectorType) : Try[Trilean] =
@@ -993,6 +1005,9 @@ class SpcResponder(
       }
       case InvalidBeliefExcn(belief) => {
         s"The belief that ${beliefString} is not valid in the given context."
+      }
+      case ProhibitedBeliefExcn(belief) => {
+        s"The belief that ${beliefString} is prohibited in the given context."
       }
       case IncomprehensibleBeliefExcn(belief) => {
         s"I am unable to understand the belief that ${beliefString}."

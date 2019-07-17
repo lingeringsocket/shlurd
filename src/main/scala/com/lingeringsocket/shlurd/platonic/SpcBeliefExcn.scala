@@ -43,6 +43,12 @@ case class InvalidBeliefExcn(belief : SilSentence)
 {
 }
 
+case class ProhibitedBeliefExcn(belief : SilSentence)
+    extends RejectedBeliefExcn("New belief:  " +
+      belief.toWordString)
+{
+}
+
 case class ContradictoryBeliefExcn(
   belief : SilSentence, originalBelief : SilSentence)
     extends RejectedBeliefExcn("New belief:  " +

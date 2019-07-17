@@ -31,11 +31,13 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 {
   trait CosmosContext extends ProcessingContext
   {
-    protected def addBelief(input : String) =
+    protected def addBelief(
+      input : String,
+      beliefParams : SpcBeliefParams = SpcBeliefParams(ACCEPT_NEW_BELIEFS)) =
     {
-      val result = process(
+      val result = processBelief(
         input,
-        ACCEPT_NEW_BELIEFS,
+        beliefParams,
         SmcResponseParams(throwRejectedBeliefs = true))
       result must be equalTo "OK."
     }
@@ -752,6 +754,35 @@ class SpcCosmosSpec extends SpcProcessingSpecification
         "if a person eats a pickle, " +
           "then equivalently the pickle is subsequently sandy"
       ) must throwA[InvalidBeliefExcn]
+    }
+
+    "allow tentative entities to be prevented" in new CosmosContext
+    {
+      addBelief("a person's uncle must be a person")
+      addBelief("Milton is a person")
+      addBelief("Donne is a person")
+      addBelief("Milton has an uncle")
+      val params = SpcBeliefParams(createTentativeEntities = false)
+      addBelief("Donne has an uncle", params) must
+        throwA[ProhibitedBeliefExcn]
+    }
+
+    "allow tentative forms to be prevented" in new CosmosContext
+    {
+      addBelief("Hobbes exists")
+      addBelief("Russell is a philosopher")
+      val params = SpcBeliefParams(createTentativeIdeals = false)
+      addBelief("There is a theologian", params)
+      addBelief("Descartes exists", params) must
+        throwA[ProhibitedBeliefExcn]
+    }
+
+    "allow implicit forms to be prevented" in new CosmosContext
+    {
+      addBelief("There is a philosopher")
+      val params = SpcBeliefParams(createImplicitIdeals = false)
+      addBelief("There is a theologian", params) must
+        throwA[ProhibitedBeliefExcn]
     }
   }
 }

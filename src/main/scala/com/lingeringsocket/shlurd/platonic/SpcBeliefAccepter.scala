@@ -97,7 +97,7 @@ class SpcBeliefAccepter private(
   def applyBelief(belief : SpcBelief)
   {
     if (params.acceptance == ACCEPT_NO_BELIEFS) {
-      throw new InvalidBeliefExcn(belief.sentence)
+      throw new ProhibitedBeliefExcn(belief.sentence)
     }
     allBeliefApplier.apply(belief)
   }
@@ -420,7 +420,16 @@ class SpcBeliefAccepter private(
         throw new IncomprehensibleBeliefExcn(sentence)
       }
       case Some(form : SpcForm) => form
-      case _ => mind.instantiateForm(word)
+      case _ => {
+        if (!params.createImplicitIdeals) {
+          throw new ProhibitedBeliefExcn(sentence)
+        }
+        val newForm = mind.instantiateForm(word)
+        if (newForm.isTentative && !params.createTentativeIdeals) {
+          throw new ProhibitedBeliefExcn(sentence)
+        }
+        newForm
+      }
     }
 
   }
@@ -753,6 +762,9 @@ class SpcBeliefAccepter private(
         getUniqueEntity(
           sentence,
           cosmos.reifyRole(possessor, role, false, stateOpt.nonEmpty)).get
+      }
+      if (!params.createTentativeEntities && possessee.isTentative) {
+        throw new ProhibitedBeliefExcn(sentence)
       }
       val graph = cosmos.getGraph
       if (positive) {
