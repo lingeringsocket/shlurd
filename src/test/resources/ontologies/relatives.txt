@@ -4,9 +4,12 @@ A man is a kind of person.
 A woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
-A person's aunt must be a woman.
-An auntie is an aunt.
-A person's uncle must be a man.
+A man's aunt must be a woman.
+A woman's aunt must be a woman.
+A man's uncle must be a man.
+A woman's uncle must be a man.
+A man's auntie is an aunt.
+A woman's auntie is an aunt.
 A person's niece must be a woman.
 A person's nephew must be a man.
 A person's son must be a man.

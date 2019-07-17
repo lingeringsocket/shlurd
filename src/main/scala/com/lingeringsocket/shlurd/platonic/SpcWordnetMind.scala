@@ -104,7 +104,8 @@ class SpcWordnetMind(
           }).headOption
         }
         wordnetOpt.orElse(super.resolveRole(possessorForm, noun))
-      })
+      }
+    )
   }
 
   override def resolveQualifiedNoun(

@@ -123,7 +123,7 @@ class SpcBeliefAccepter(
   {
     determiner match {
       case DETERMINER_UNIQUE => {
-        val form = mind.instantiateForm(noun)
+        val form = instantiateForm(sentence, noun)
         val (entity, success) = cosmos.instantiateEntity(
           form, Seq.empty)
         tupleN((entity, success))
@@ -134,7 +134,7 @@ class SpcBeliefAccepter(
           case _ => {
             val tentativeName = SpcForm.tentativeName(noun)
             assert(mind.resolveForm(tentativeName).isEmpty)
-            val newForm = mind.instantiateForm(tentativeName)
+            val newForm = instantiateForm(sentence, tentativeName)
             val (entity, success) = cosmos.instantiateEntity(
               newForm, Seq(noun), noun.toUnfoldedLemma)
             assert(success)
@@ -282,7 +282,7 @@ class SpcBeliefAccepter(
     val role = mind.resolveRole(possessor.form, roleName) match {
       case Some(r) => r
       case _ => {
-        cosmos.instantiateRole(roleName)
+        cosmos.instantiateRole(possessor.form, roleName)
       }
     }
     val candidates =
@@ -385,6 +385,21 @@ class SpcBeliefAccepter(
     property
   }
 
+  private def instantiateForm(
+    sentence : SilSentence, word : SilWord) : SpcForm =
+  {
+    // FIXME pinpoint cause
+    val name = cosmos.encodeName(word)
+    cosmos.getIdealBySynonym(name) match {
+      case Some(role : SpcRole) => {
+        throw new IncomprehensibleBeliefExcn(sentence)
+      }
+      case Some(form : SpcForm) => form
+      case _ => mind.instantiateForm(word)
+    }
+
+  }
+
   private def beliefApplier(applier : BeliefApplier)
   {
     beliefAppliers += applier
@@ -410,56 +425,76 @@ class SpcBeliefAccepter(
     case StateEquivalenceBelief(
       sentence, formName, state1, state2
     ) => {
-      val form = mind.instantiateForm(formName)
+      val form = instantiateForm(sentence, formName)
       cosmos.addStateNormalization(form, state1, state2)
     }
   }
 
   beliefApplier {
     case IdealAliasBelief(
-      sentence, synonym, idealName
+      sentence, synonym, idealName, possessorOpt
     ) => {
-      val ideal = mind.instantiateIdeal(idealName)
-      cosmos.addIdealSynonym(cosmos.encodeName(synonym), ideal.name)
+      possessorOpt match {
+        case Some(possessorFormName) => {
+          val possessorForm = mind.instantiateForm(possessorFormName)
+          val ideal = mind.instantiateRole(possessorForm, idealName)
+          cosmos.addIdealSynonym(
+            cosmos.synthesizeRoleSynonym(
+              possessorForm, cosmos.encodeName(synonym)),
+            ideal)
+        }
+        case _ => {
+          val ideal = cosmos.getIdealBySynonym(
+            cosmos.encodeName(idealName)
+          ).getOrElse {
+            mind.instantiateForm(idealName)
+          }
+          cosmos.addIdealSynonym(cosmos.encodeName(synonym), ideal)
+        }
+      }
     }
   }
 
-  // FIXME deal with role inheritance
   beliefApplier {
     case FormTaxonomyBelief(
       sentence, hyponymFormName, hypernymFormName
     ) => {
       // FIXME need to make sure all hypernyms are (and remain) compatible
       // FIXME also need to allow existing form to be refined
-      val hypernymIdeal = mind.instantiateIdeal(hypernymFormName)
-      val hyponymIdeal = mind.instantiateIdeal(hyponymFormName)
-      if (hypernymIdeal.isRole && hyponymIdeal.isForm) {
-        // FIXME:  thow a ContradictoryBeliefExcn pinpointing the reason
-        // we believe ideal to be a role, not a form
-        throw new IncomprehensibleBeliefExcn(sentence)
-      }
-      addIdealTaxonomy(sentence, hyponymIdeal, hypernymIdeal)
+      val hypernymForm = instantiateForm(sentence, hypernymFormName)
+      val hyponymForm = instantiateForm(sentence, hyponymFormName)
+      addIdealTaxonomy(sentence, hyponymForm, hypernymForm)
     }
   }
 
   beliefApplier {
     case RoleTaxonomyBelief(
-      sentence, possessorFormName, hyponymRoleName, hypernymIdealName
+      sentence, possessorFormName, hyponymRoleName, hypernymIdealName,
+      isRefinement
     ) => {
       // FIXME need to make sure all hypernyms are (and remain) compatible
       // FIXME also need to allow existing role to be refined
-      val hypernymIdeal = mind.instantiateIdeal(hypernymIdealName)
-      val hyponymIdeal = mind.instantiateIdeal(hyponymRoleName, true)
-      if (hyponymIdeal.isForm) {
-        // FIXME:  thow a ContradictoryBeliefExcn pinpointing the reason
+      val possessorForm = instantiateForm(sentence, possessorFormName)
+      val hypernymIdeal = {
+        if (isRefinement) {
+          mind.resolveRole(possessorForm, hypernymIdealName).getOrElse {
+            throw new IncomprehensibleBeliefExcn(sentence)
+          }
+        } else {
+          instantiateForm(sentence, hypernymIdealName)
+        }
+      }
+      if (mind.resolveForm(hyponymRoleName).nonEmpty) {
         throw new IncomprehensibleBeliefExcn(sentence)
       }
+      val hyponymRole = mind.instantiateRole(possessorForm, hyponymRoleName)
       val entityAssocs = cosmos.getEntityAssocGraph
+      // FIXME avoid iterating over all entity assocs!
       entityAssocs.edgeSet.asScala.foreach(
         entityEdge => {
           val formEdge = entityEdge.formEdge
           val possesseeRole = cosmos.getGraph.getPossesseeRole(formEdge)
-          if (possesseeRole == hyponymIdeal) {
+          if (possesseeRole == hyponymRole) {
             val possesseeEntity =
               cosmos.getGraph.getPossesseeEntity(entityEdge)
             if (!cosmos.isHyponym(
@@ -479,7 +514,8 @@ class SpcBeliefAccepter(
           }
         }
       )
-      addIdealTaxonomy(sentence, hyponymIdeal, hypernymIdeal)
+      addIdealTaxonomy(sentence, hyponymRole, hypernymIdeal)
+      cosmos.addFormAssoc(possessorForm, hyponymRole)
     }
   }
 
@@ -488,12 +524,10 @@ class SpcBeliefAccepter(
       sentence, possessorFormName, possesseeRoleNames,
       newConstraint, isProperty
     ) => {
-      if (mind.instantiateIdeal(possessorFormName).isRole) {
-        throw new IncomprehensibleBeliefExcn(sentence)
-      }
-      val possessorForm = mind.instantiateForm(possessorFormName)
+      val possessorForm = instantiateForm(sentence, possessorFormName)
       possesseeRoleNames.foreach(possesseeRoleName => {
-        val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
+        val possesseeRole = cosmos.instantiateRole(
+          possessorForm, possesseeRoleName)
         val edge = cosmos.addFormAssoc(
           possessorForm, possesseeRole)
         val oldConstraint = edge.constraint
@@ -509,7 +543,7 @@ class SpcBeliefAccepter(
     case EntityExistenceBelief(
       sentence, entityRef, formName, qualifiers, properName, true
     ) => {
-      val form = mind.instantiateForm(formName)
+      val form = instantiateForm(sentence, formName)
       val (entity, isNewEntity, determiner) =
         resultCollector.lookup(entityRef).map(entities =>
           getUniqueEntity(sentence, entities).map(
@@ -778,11 +812,13 @@ class SpcBeliefAccepter(
       possessorFormName, possessorRoleName,
       possesseeFormName, possesseeRoleName
     ) => {
-      val possessorForm = mind.instantiateForm(possessorFormName)
-      val possessorRole = cosmos.instantiateRole(possessorRoleName)
+      val possessorForm = instantiateForm(sentence, possessorFormName)
+      val possesseeForm = instantiateForm(sentence, possesseeFormName)
+      val possessorRole = cosmos.instantiateRole(
+        possesseeForm, possessorRoleName)
+      val possesseeRole = cosmos.instantiateRole(
+        possessorForm, possesseeRoleName)
       addIdealTaxonomy(sentence, possessorRole, possessorForm)
-      val possesseeRole = cosmos.instantiateRole(possesseeRoleName)
-      val possesseeForm = mind.instantiateForm(possesseeFormName)
       addIdealTaxonomy(sentence, possesseeRole, possesseeForm)
       val edge = cosmos.addFormAssoc(
         possessorForm, possesseeRole)
@@ -796,7 +832,7 @@ class SpcBeliefAccepter(
     case FormEnumPropertyBelief(
       sentence, formName, newStates, isClosed, propertyNameOpt
     ) => {
-      val form = mind.instantiateForm(formName)
+      val form = instantiateForm(sentence, formName)
       instantiatePropertyStates(
         sentence, form, newStates, isClosed, propertyNameOpt)
     }
@@ -806,7 +842,7 @@ class SpcBeliefAccepter(
     case FormTypedPropertyBelief(
       sentence, formName, propertyName, domain
     ) => {
-      val form = mind.instantiateForm(formName)
+      val form = instantiateForm(sentence, formName)
       val property = cosmos.instantiateProperty(form, propertyName, domain)
       if (property.domain != domain) {
         throw new ContradictoryBeliefExcn(

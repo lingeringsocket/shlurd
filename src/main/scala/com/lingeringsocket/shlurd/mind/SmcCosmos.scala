@@ -28,6 +28,8 @@ case object REF_COMPLEMENT extends SilReferenceContext
 case object REF_DIRECT_OBJECT extends SilReferenceContext
 case object REF_ADPOSITION_OBJ extends SilReferenceContext
 case object REF_ADPOSITION_SUBJ extends SilReferenceContext
+case object REF_GENITIVE_POSSESSOR extends SilReferenceContext
+case object REF_SPECIFIED extends SilReferenceContext
 
 trait SmcEntity
 {

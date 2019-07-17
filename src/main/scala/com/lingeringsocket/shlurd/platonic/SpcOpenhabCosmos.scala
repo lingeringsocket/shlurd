@@ -288,7 +288,8 @@ abstract class SpcOpenhabCosmos(
                   case Success(set) => {
                     if (set.size == 1) {
                       addEntityAssoc(
-                        set.head, entity, resolveRole(presenceRoleName).get)
+                        set.head, entity,
+                        resolveRole(personForm, presenceRoleName).get)
                     } else {
                       warning = true
                     }

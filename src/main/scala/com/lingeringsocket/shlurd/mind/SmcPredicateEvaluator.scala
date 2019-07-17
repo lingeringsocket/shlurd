@@ -210,6 +210,15 @@ class SmcPredicateEvaluator[
                 complementRef.descendantReferences.foreach(
                   resultCollector.referenceMap.remove
                 )
+                // and now stash away the new result
+                val resolved = mind.resolveGenitive(subjectEntity, roleName)
+                resolved match {
+                  case Failure(_ : UnsupportedOperationException) => ;
+                  case Failure(err) => return Failure(err)
+                  case Success(entities) => {
+                    resultCollector.referenceMap.put(complementRef, entities)
+                  }
+                }
               }
             }
             val unassumed = evaluatePredicateOverReference(
@@ -281,21 +290,15 @@ class SmcPredicateEvaluator[
     throwFailures : Boolean = false,
     reify : Boolean = false) : Try[Trilean] =
   {
+    val contextMap =
+      new IdentityLinkedHashMap[SilReference, SilReferenceContext]
     val phraseQuerier = new SilPhraseRewriter
-    // FIXME the cases below need special handling at any
-    // level (not just root of reference subtree)
+
     def resolveOne(
       ref : SilReference,
       context : SilReferenceContext)
     {
       val cached = resultCollector.referenceMap.contains(ref)
-      ref matchPartial {
-        case SilGenitiveReference(possessor, possessee) => {
-          // regardless of resolution for possessee, make
-          // sure possessor gets resolved
-          resolveOne(possessor, context)
-        }
-      }
       val result = resolveReference(ref, context, resultCollector)
       if (throwFailures) {
         // this will throw if result.isFailure
@@ -308,47 +311,86 @@ class SmcPredicateEvaluator[
               possessor,
               possessee @ SilNounReference(noun, _, _)
             ) => {
-              resultCollector.lookup(possessor).
-                foreach(entities => {
-                  entities.foreach(
-                    entity => mind.reifyRole(entity, noun, true))
-                })
-              // now clear cache and repeat to pick up the newly
-              // reifed entities
-              resultCollector.referenceMap.remove(ref)
-              resultCollector.referenceMap.remove(possessee)
-              resolveReference(ref, context, resultCollector)
+              possessor match {
+                case SilNounReference(_, DETERMINER_ANY, _) => {
+                  // force correlated evaluation after reference resolution
+                  resultCollector.referenceMap.remove(ref)
+                }
+                case _ => {
+                  resultCollector.lookup(possessor).
+                    foreach(entities => {
+                      entities.foreach(
+                        entity => mind.reifyRole(entity, noun, true))
+                    })
+                  // now clear cache and repeat to pick up the newly
+                  // reifed entities
+                  resultCollector.referenceMap.remove(ref)
+                  resultCollector.referenceMap.remove(possessee)
+                  resolveReference(ref, context, resultCollector)
+                }
+              }
             }
           }
         })
       }
     }
 
-    val rule = phraseQuerier.queryMatcher {
+    val contextAnalyzer = phraseQuerier.queryMatcher {
       case SilStatePredicate(subjectRef, verb, state, modifiers) => {
-        resolveOne(subjectRef, subjectStateContext(state))
+        contextMap.put(subjectRef, subjectStateContext(state))
       }
       case SilRelationshipPredicate(
         subjectRef, verb, complementRef, modifiers
       ) => {
-        resolveOne(subjectRef, relationshipSubjectContext(verb))
+        contextMap.put(subjectRef, relationshipSubjectContext(verb))
         val (context, categoryLabel) =
           relationshipComplementContext(verb, complementRef)
-        if (categoryLabel.isEmpty) {
-          resolveOne(complementRef, context)
+        if (SilRelationshipPredef(verb) == REL_PREDEF_ASSOC) {
+          if (extractRoleQualifiers(complementRef).size != 1) {
+            contextMap.put(complementRef, context)
+          }
+        } else {
+          if (categoryLabel.isEmpty) {
+            contextMap.put(complementRef, context)
+          }
         }
       }
       case SilActionPredicate(subject, verb, directObject, modifiers) => {
-        resolveOne(subject, REF_SUBJECT)
-        directObject.foreach(resolveOne(_, REF_DIRECT_OBJECT))
+        contextMap.put(subject, REF_SUBJECT)
+        directObject.foreach(contextMap.put(_, REF_DIRECT_OBJECT))
       }
       case ap : SilAdpositionalPhrase => {
-        resolveOne(ap.objRef, REF_ADPOSITION_OBJ)
+        contextMap.put(ap.objRef, REF_ADPOSITION_OBJ)
+      }
+      case SilGenitiveReference(possessor, possessee) => {
+        contextMap.put(possessor, REF_GENITIVE_POSSESSOR)
+      }
+      case SilStateSpecifiedReference(sub, _) => {
+        contextMap.put(sub, REF_SPECIFIED)
+      }
+      case ref : SilReference => {
+        contextMap.get(ref).foreach(context => {
+          ref.childReferences.foreach(child => contextMap.put(child, context))
+        })
+      }
+    }
+    val referenceResolver = phraseQuerier.queryMatcher {
+      case ref : SilReference => {
+        contextMap.get(ref).foreach(context => {
+          if (context != REF_SPECIFIED) {
+            resolveOne(ref, context)
+          }
+        })
       }
     }
     resultCollector.suppressWildcardExpansion += 1
     try {
-      phraseQuerier.query(rule, phrase, SilRewriteOptions(topDown = true))
+      // first pass top-down to determine contexts
+      phraseQuerier.query(
+        contextAnalyzer, phrase, SilRewriteOptions(topDown = true))
+      // then again bottom up to resolve references in contexts
+      phraseQuerier.query(
+        referenceResolver, phrase)
     } catch {
       case ex : Exception => {
         return Failure(ex)
@@ -634,6 +676,7 @@ class SmcPredicateEvaluator[
     val result = determiner match {
       case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
         if (entities.isEmpty &&
+          ((count == COUNT_SINGULAR) || (determiner == DETERMINER_UNIQUE)) &&
           ((context == REF_SUBJECT) || (determiner == DETERMINER_UNIQUE))
         ) {
           Failure(new NonExistentException(
@@ -726,6 +769,12 @@ class SmcPredicateEvaluator[
           val lemma = noun.toNounLemma
           val bail = determiner match {
             case DETERMINER_UNIQUE => false
+            case DETERMINER_ANY => {
+              context match {
+                case REF_GENITIVE_POSSESSOR => false
+                case _ => true
+              }
+            }
             // FIXME this is silly
             case DETERMINER_UNSPECIFIED =>
               (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
@@ -887,6 +936,46 @@ class SmcPredicateEvaluator[
                       }
                     }
                   })
+              }
+            }
+            if (resultCollector.resolvingReferences) {
+              possessee matchPartial {
+                case SilNounReference(
+                  noun, DETERMINER_UNSPECIFIED | DETERMINER_ANY, _
+                ) => {
+                  resultCollector.lookup(possessor).foreach(
+                    possessorEntities => {
+                      var supported = true
+                      val possesseeEntities =
+                        possessorEntities.flatMap(possessorEntity => {
+                          mind.resolveGenitive(possessorEntity, noun) match {
+                            case Success(entities) => entities
+                            case Failure(_ : UnsupportedOperationException) => {
+                              supported = false
+                              Seq.empty
+                            }
+                            case Failure(error) => return Failure(error)
+                          }
+                        })
+                      if (supported) {
+                        val result = evaluatePredicateOverEntities(
+                          possesseeEntities,
+                          possessee,
+                          context,
+                          resultCollector,
+                          specifiedState,
+                          DETERMINER_NONSPECIFIC,
+                          COUNT_PLURAL,
+                          noun,
+                          evaluator)
+                        referenceMap.get(possessee).foreach(filtered => {
+                          referenceMap.put(reference, filtered)
+                        })
+                        result
+                      }
+                    }
+                  )
+                }
               }
             }
             val state = SilAdpositionalState(

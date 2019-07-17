@@ -49,6 +49,12 @@ sealed trait SilPhrase
   {
     children.map(_.countUnknownSyntaxLeaves).sum
   }
+
+  def childReferences : Seq[SilReference] =
+  {
+    children.filter(_.isInstanceOf[SilReference]).
+      map(_.asInstanceOf[SilReference])
+  }
 }
 
 sealed trait SilSentence extends SilPhrase
@@ -86,8 +92,7 @@ sealed trait SilReference extends SilPhrase
   def acceptsSpecifiers : Boolean = true
 
   def descendantReferences : Set[SilReference] = {
-    Set(this) ++ children.filter(_.isInstanceOf[SilReference]).
-      map(_.asInstanceOf[SilReference]).flatMap(_.descendantReferences)
+    Set(this) ++ childReferences.flatMap(_.descendantReferences)
   }
 }
 

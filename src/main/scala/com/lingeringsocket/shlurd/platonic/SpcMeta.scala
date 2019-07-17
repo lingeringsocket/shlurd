@@ -48,7 +48,7 @@ object SpcMeta
     "SPC-Form-" + form.name
 
   def roleMetaEntityName(role : SpcRole) =
-    "SPC-Role-" + role.name
+    "SPC-Role-" + role.possessor.name + "-" + role.name
 
   def propertyMetaEntityName(form : SpcForm, property : SpcProperty) =
     "SPC-Property-" + form.name + "-" + property.name

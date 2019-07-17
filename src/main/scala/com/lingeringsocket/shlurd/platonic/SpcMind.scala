@@ -26,6 +26,8 @@ import scala.util._
 
 import spire.math._
 
+import org.jgrapht._
+
 import SprEnglishLemmas._
 
 class SpcMind(cosmos : SpcCosmos)
@@ -244,7 +246,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   def resolveRole(form : SpcForm, noun : SilWord) : Option[SpcRole] =
   {
-    cosmos.resolveRole(cosmos.encodeName(noun))
+    cosmos.resolveRole(form, cosmos.encodeName(noun))
   }
 
   override def resolvePropertyValueEntity(
@@ -274,26 +276,34 @@ class SpcMind(cosmos : SpcCosmos)
     }
   }
 
-  def instantiateIdeal(
-    noun : SilWord,
-    assumeRole : Boolean = false) : SpcIdeal =
+  def instantiateRole(
+    possessor : SpcForm, noun : SilWord) : SpcRole =
   {
-    resolveForm(noun).getOrElse {
-      cosmos.instantiateIdeal(noun, assumeRole)
+    cosmos.instantiateRole(possessor, noun)
+  }
+
+  override def resolveGenitive(
+    possessor : SpcEntity, roleName : SilWord) : Try[Set[SpcEntity]] =
+  {
+    resolveRole(possessor.form, roleName) match {
+      case Some(role) => {
+        Success(cosmos.resolveGenitive(possessor, role))
+      }
+      case _ => Success(Set.empty)
     }
   }
 
   override def reifyRole(
     possessor : SpcEntity,
     roleName : SilWord,
-    onlyIfProven : Boolean)
+    onlyIfProven : Boolean) =
   {
     resolveRole(possessor.form, roleName) match {
       case Some(role) => {
         cosmos.reifyRole(possessor, role, onlyIfProven)
       }
       // FIXME assert instead?
-      case _ =>
+      case _ => Set.empty
     }
   }
 
@@ -336,12 +346,33 @@ class SpcMind(cosmos : SpcCosmos)
     noun : SilWord,
     qualifiers : Set[String]) : Try[Trilean] =
   {
+    val categoryName = cosmos.encodeName(noun)
     val (formSeq, roleOpt) = cosmos.resolveIdeal(
-      cosmos.encodeName(noun)
+      categoryName
     ) match {
       case (None, None) => {
         resolveFormCandidates(noun) match {
-          case Seq() => tupleN((Seq.empty, None))
+          case Seq() => {
+            val graph = cosmos.getGraph
+            val roles = cosmos.getFormHypernyms(entity.form).flatMap(
+              hypernym => {
+                val immediateRoles = Graphs.predecessorListOf(
+                  graph.idealTaxonomy,
+                  hypernym).asScala.filter(_.isRole)
+                immediateRoles.flatMap(role =>
+                  graph.getIdealHyponyms(role).map(_.asInstanceOf[SpcRole]))
+              }
+            )
+            roles.find(role =>
+              cosmos.getSynonymsForIdeal(role).contains(
+                cosmos.synthesizeRoleSynonym(role.possessor, categoryName)
+              )
+            ).map(role =>
+              tupleN((Seq.empty, Some(role)))
+            ).getOrElse {
+              tupleN((Seq.empty, None))
+            }
+          }
           case seq => tupleN((seq, None))
         }
       }
@@ -358,10 +389,12 @@ class SpcMind(cosmos : SpcCosmos)
         Success(Trilean(
           cosmos.isFormCompatibleWithRole(entity.form, role) &&
             cosmos.getEntityAssocGraph.incomingEdgesOf(entity).asScala.
-            exists(edge =>
+            exists(edge => {
               cosmos.isHyponym(
                 role,
-                graph.getPossesseeRole(edge.formEdge)))))
+                graph.getPossesseeRole(edge.formEdge))
+            })
+        ))
       }
       case _ => {
         formSeq match {

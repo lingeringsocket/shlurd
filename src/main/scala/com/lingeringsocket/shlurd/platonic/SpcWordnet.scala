@@ -137,10 +137,12 @@ class SpcWordnet(cosmos : SpcCosmos)
           loadForm(meronymSynset) match {
             case Some(meronymForm) => {
               val meronymRole = cosmos.instantiateRole(
+                holonymForm,
                 SilWord(getRoleName(holonymForm, meronymForm)))
               cosmos.addIdealTaxonomy(meronymRole, meronymForm)
               val edge = cosmos.addFormAssoc(holonymForm, meronymRole)
               val holonymRole = cosmos.instantiateRole(
+                meronymForm,
                 SilWord(getRoleName(meronymForm, holonymForm)))
               cosmos.addIdealTaxonomy(holonymRole, holonymForm)
               val inverseEdge = cosmos.addFormAssoc(meronymForm, holonymRole)

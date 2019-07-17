@@ -454,6 +454,8 @@ class SpcResponderSpec extends Specification
       process("who is Marion's aunt", "Her aunt is Laura.")
       process("who is the aunt of Marion", "Her aunt is Laura.")
       process("who is Marion's auntie", "Her auntie is Laura.")
+      process("is Laura an aunt", "Yes, she is an aunt.")
+      process("is Laura an auntie", "Yes, she is an auntie.")
       process("who is Laura's niece", "Her nieces are Fancy and Marion.")
       process("Fancy is Laura's nephew?", "No, she is not Laura's nephew.")
       process("is Everard a person?", "I don't know.")
@@ -480,7 +482,7 @@ class SpcResponderSpec extends Specification
       process("does Laura have a wise guy",
         "Yes, she has a wise guy.")
       process("who is Henry's cleaning lady",
-        "His cleaning ladies are Fancy and Marion.")
+        "His cleaning ladies are Marion and Fancy.")
       process("which person's godmother is Fancy",
         "She is Laura's godmother.")
       process("whose godmother is Fancy",
@@ -552,6 +554,10 @@ class SpcResponderSpec extends Specification
 
       processBelief("if a person is another person's student, " +
         "then equivalently the second person is the first person's professor")
+      processBelief("Eugene is a person")
+      processBelief("Jerold is a person")
+      processBelief("John is a person")
+      processBelief("Erik is a person")
       processBelief("Eugene is John's professor")
       processBelief("Eugene is Erik's professor")
       processBelief("Jerold is Erik's professor")
@@ -618,6 +624,33 @@ class SpcResponderSpec extends Specification
       processBelief("Curtis moves to the engine")
       processTerse("where is Curtis", "The engine.")
       process("where is the bomb", "It is in the boiler.")
+    }
+
+    "understand state specified genitives" in new
+      ResponderContext(ACCEPT_MODIFIED_BELIEFS)
+    {
+      loadBeliefs("/ontologies/containment.txt")
+      processBelief("a person's cousin must be a person")
+      processBelief("Curtis is a person")
+      processBelief("Andrew is a person")
+      processBelief("Andrea is a person")
+      processBelief("Andrew is Curtis' cousin")
+      processBelief("Andrea is Curtis' cousin")
+      processBelief("the house is an object")
+      processBelief("the garden is an object")
+      processBelief("the gazebo is an object")
+      processBelief("the gazebo is in the garden")
+      processBelief("Andrew is in the house")
+      processBelief("Andrea is in the garden")
+      processTerse(
+        "who is (Curtis' cousin in the house)",
+        "Andrew.")
+      processTerse(
+        "who is (Curtis' cousin in the gazebo's container)",
+        "Andrea.")
+      processTerse(
+        "who are (Curtis' cousins in the gazebo's containers)",
+        "Andrea.")
     }
 
     "understand indirect objects" in new
@@ -1433,6 +1466,7 @@ class SpcResponderSpec extends Specification
     {
       processBelief("a person must have a lawyer")
       processBelief("a person's lawyer must be a weasel")
+      processBelief("Donald is a person")
       processBelief("Michael is a snake")
       process("Michael is Donald's lawyer",
         "The belief that Michael is Donald's lawyer contradicts " +
@@ -1549,6 +1583,7 @@ class SpcResponderSpec extends Specification
     "infer form from role" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       processBelief("a person's lawyer must be a weasel")
+      processBelief("Donald is a person")
       processBelief("Michael is Donald's lawyer")
       processTerse("is Michael a weasel", "Yes.")
 
@@ -1592,6 +1627,7 @@ class SpcResponderSpec extends Specification
       processBelief("a person's lord must be a gentleman")
       processBelief("if a gentleman is a man's lord, " +
         "then equivalently the man is the gentleman's footman")
+      processBelief("Peter is a gentleman")
       processBelief("Bunter is Peter's footman")
       processTerse("is Bunter a footman", "Yes.")
       processTerse("is Bunter a man", "Yes.")

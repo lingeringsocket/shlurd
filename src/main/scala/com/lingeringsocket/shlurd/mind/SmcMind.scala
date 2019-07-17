@@ -187,9 +187,17 @@ class SmcMind[
       set => Trilean(set.contains(entity)))
   }
 
+  def resolveGenitive(
+    possessor : EntityType, roleName : SilWord) : Try[Set[EntityType]] =
+  {
+    Failure(new UnsupportedOperationException)
+  }
+
   def reifyRole(
     possessor : EntityType, roleName : SilWord, onlyIfProven : Boolean)
+      : Set[EntityType] =
   {
+    Set.empty
   }
 
   def resolvePropertyValueEntity(

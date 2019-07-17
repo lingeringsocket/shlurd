@@ -110,7 +110,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   {
     SilPredicateSentence(
       SilRelationshipPredicate(
-        idealNoun(cosmos.getGraph.getSubclassIdeal(edge)),
+        idealReference(cosmos.getGraph.getSubclassIdeal(edge)),
         REL_PREDEF_IDENTITY.toVerb,
         SilStateSpecifiedReference(
           nounReference(LEMMA_KIND),
@@ -127,9 +127,9 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   {
     SilPredicateSentence(
       SilRelationshipPredicate(
-        idealNoun(cosmos.getGraph.getSubclassIdeal(edge)),
+        idealReference(cosmos.getGraph.getSubclassIdeal(edge)),
         REL_PREDEF_IDENTITY.toVerb,
-        idealNoun(cosmos.getGraph.getSuperclassIdeal(edge))
+        idealReference(cosmos.getGraph.getSuperclassIdeal(edge))
       ),
       SilTam.indicative.withModality(MODAL_MUST))
   }
@@ -154,10 +154,10 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   {
     val noun = {
       if (property.isSynthetic) {
-        idealNoun(form)
+        idealReference(form)
       } else {
         SilGenitiveReference(
-          idealNoun(form),
+          idealReference(form),
           nounReference(
             property.name, COUNT_SINGULAR, DETERMINER_UNSPECIFIED))
       }
@@ -204,7 +204,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     SilPredicateSentence(
       SilStatePredicate(
         SilStateSpecifiedReference(
-          idealNoun(form),
+          idealReference(form),
           entry._1),
         STATE_PREDEF_BE.toVerb,
         entry._2
@@ -241,7 +241,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     }
     SilPredicateSentence(
       SilRelationshipPredicate(
-        idealNoun(cosmos.getGraph.getPossessorForm(edge)),
+        idealReference(cosmos.getGraph.getPossessorForm(edge)),
         REL_PREDEF_ASSOC.toVerb,
         possessee
       ),
@@ -266,7 +266,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
         SilRelationshipPredicate(
           subject,
           REL_PREDEF_IDENTITY.toVerb,
-          idealNoun(entity.form)
+          idealReference(entity.form)
         )
       }
     }
@@ -333,6 +333,20 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     )
   }
 
+  private def idealReference(ideal : SpcIdeal) : SilReference =
+  {
+    ideal match {
+      case form : SpcForm => {
+        idealNoun(ideal)
+      }
+      case role : SpcRole => {
+        SilGenitiveReference(
+          idealNoun(role.possessor),
+          plainNoun(ideal))
+      }
+    }
+  }
+
   private def isTrivialTaxonomy(
     edge : SpcTaxonomyEdge) =
   {
@@ -343,7 +357,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   private def isTrivialSynonym(
     pair : (String, String)) =
   {
-    pair._1 == pair._2
+    pair._1.split(":").last == pair._2
   }
 
   def inverseAssocBelief(
@@ -359,7 +373,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     ) = {
       if (possessorForm == possesseeForm) {
         tupleN((
-          idealNoun(possesseeForm),
+          idealReference(possesseeForm),
           SilGenitiveReference(
             SilStateSpecifiedReference(
               plainNoun(possessorForm),
@@ -381,9 +395,9 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
         ))
       } else {
         tupleN((
-          idealNoun(possesseeForm),
+          idealReference(possesseeForm),
           SilGenitiveReference(
-            idealNoun(possessorForm),
+            idealReference(possessorForm),
             plainNoun(edge1.getRoleName)
           ),
           idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_UNIQUE),

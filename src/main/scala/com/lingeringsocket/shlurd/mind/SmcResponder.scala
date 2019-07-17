@@ -259,11 +259,15 @@ class SmcResponder[
     val analyzed = mind.analyzeSense(sentence)
     mind.rememberSpeakerSentence(
       SmcConversation.SPEAKER_NAME_PERSON, analyzed, input)
+    val normalizedInput = inputRewriter.normalizeInput(analyzed)
+    if (normalizedInput != analyzed) {
+      trace(s"REWRITTEN INPUT : $normalizedInput")
+    }
     val resultCollector = SmcResultCollector[EntityType]
-    resolveReferencesImpl(analyzed, resultCollector)
+    resolveReferencesImpl(normalizedInput, resultCollector)
     rememberSentenceAnalysis(resultCollector)
     val (responseSentence, responseText) =
-      processResolved(analyzed, resultCollector)
+      processResolved(normalizedInput, resultCollector)
     debug(s"RESPONSE TEXT : $responseText")
     debug(s"RESPONSE SENTENCE : $responseSentence")
     if (mind.isConversing) {
@@ -304,19 +308,15 @@ class SmcResponder[
     sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
-    val normalizedInput = inputRewriter.normalizeInput(sentence)
-    if (normalizedInput != sentence) {
-      trace(s"REWRITTEN INPUT : $normalizedInput")
-    }
-    if (normalizedInput.isUninterpretable) {
+    if (sentence.isUninterpretable) {
       val unrecognized = responseRewriter.rewrite(
         responseRewriter.swapPronounsSpeakerListener(
           resultCollector.referenceMap),
-        normalizedInput)
+        sentence)
       val responder = new SmcUnrecognizedResponder(sentencePrinter)
       wrapResponseText(responder.respond(unrecognized))
     } else {
-      processImpl(normalizedInput, resultCollector)
+      processImpl(sentence, resultCollector)
     }
   }
 

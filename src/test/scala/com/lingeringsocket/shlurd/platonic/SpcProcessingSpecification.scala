@@ -69,9 +69,9 @@ class SpcProcessingSpecification extends Specification
       formOpt.get
     }
 
-    protected def expectNamedRole(name : String) =
+    protected def expectNamedRole(form : SpcForm, name : String) =
     {
-      val roleOpt = cosmos.resolveRole(name)
+      val roleOpt = cosmos.resolveRole(form, name)
       roleOpt must beSome.which(_.name == name)
       roleOpt.get
     }
@@ -110,15 +110,15 @@ class SpcProcessingSpecification extends Specification
       cosmos.resolveForm(name).get
     }
 
-    protected def resolveRole(name : String) : SpcRole =
+    protected def resolveRole(form : SpcForm, name : String) : SpcRole =
     {
-      cosmos.resolveRole(name).get
+      cosmos.resolveRole(form, name).get
     }
 
     protected def resolveGenitive(possessor : SpcEntity, roleName : String)
         : Set[SpcEntity] =
     {
-      cosmos.resolveRole(roleName) match {
+      cosmos.resolveRole(possessor.form, roleName) match {
         case Some(role) => {
           cosmos.resolveGenitive(possessor, role)
         }

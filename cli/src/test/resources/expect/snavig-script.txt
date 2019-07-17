@@ -138,7 +138,7 @@ There is no way to go in that direction.
 // FIXME should refer to "you" instead of player-character
 > what is in the bathroom
 
-The thief, the axe, and the player-character are in it.
+The axe, the player-character, and the thief are in it.
 
 > what do I see
 
@@ -228,7 +228,7 @@ It is in the bathroom.
 
 > what is in the bathroom
 
-The thief and the axe are in it.
+The axe and the thief are in it.
 
 (At least I assume that's still the case.)
 

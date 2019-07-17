@@ -136,12 +136,12 @@ case class SpcForm(name : String)
   override def toString = s"SpcForm($name)"
 }
 
-case class SpcRole(name : String)
+case class SpcRole(possessor : SpcForm, name : String)
     extends SpcIdeal(name)
 {
   override def isRole = true
 
-  override def toString = s"SpcRole($name)"
+  override def toString = s"SpcRole(${possessor.name}:$name)"
 }
 
 trait SpcEntityVertex extends SmcNamedObject
@@ -269,9 +269,6 @@ class SpcCosmicPool
 
   @transient val roleCache =
     new mutable.HashMap[(SpcForm, SilWord), (Int, Option[SpcRole])]
-
-  @transient val roleFormCache =
-    new mutable.HashMap[SpcRole, (Int, Seq[SpcForm])]
 
   @transient val roleCompatibilityCache =
     new mutable.HashMap[(SpcRole, SpcForm), (Int, Boolean)]
@@ -451,13 +448,32 @@ class SpcCosmos(
     pool.isBulkLoad
   }
 
+  private[platonic] def synthesizeRoleSynonym(
+    possessor : SpcForm,
+    name : String) : SpcIdealSynonym =
+  {
+    SpcIdealSynonym(encodeName(possessor.name + ":" + name))
+  }
+
+  private def synthesizeSynonym(ideal : SpcIdeal) : SpcIdealSynonym =
+  {
+    ideal match {
+      case form : SpcForm => {
+        SpcIdealSynonym(encodeName(form.name))
+      }
+      case role : SpcRole => {
+        synthesizeRoleSynonym(role.possessor, role.name)
+      }
+    }
+  }
+
   private def registerIdeal(ideal : SpcIdeal) =
   {
     // FIXME we should validate the form name to make sure it doesn't
     // intrude on system conventions, e.g. spc- prefix.  Likewise
     // for entity names, role names, etc.
-    val synonym = SpcIdealSynonym(ideal.name)
-    assert(!graph.idealSynonyms.containsVertex(synonym))
+    val synonym = synthesizeSynonym(ideal)
+    assert(!graph.idealSynonyms.containsVertex(synonym), synonym)
     graph.idealSynonyms.addVertex(synonym)
     graph.idealSynonyms.addVertex(ideal)
     addIdealSynonymEdge(synonym, ideal)
@@ -515,9 +531,14 @@ class SpcCosmos(
       ideal).asScala.map(_.asInstanceOf[SpcIdealSynonym])
   }
 
-  private def getIdealBySynonym(name : String) : Option[SpcIdeal] =
+  private[platonic] def getIdealBySynonym(name : String) : Option[SpcIdeal] =
   {
-    val synonym = SpcIdealSynonym(name)
+    getIdealBySynonym(SpcIdealSynonym(encodeName(name)))
+  }
+
+  private[platonic] def getIdealBySynonym(
+    synonym : SpcIdealSynonym) : Option[SpcIdeal] =
+  {
     if (graph.idealSynonyms.containsVertex(synonym)) {
       Some(Graphs.successorListOf(
         graph.idealSynonyms, synonym).iterator.next.asInstanceOf[SpcIdeal])
@@ -591,50 +612,6 @@ class SpcCosmos(
     }
   }
 
-  def getRoleRealizations(role : SpcRole) : Seq[SpcEntity] =
-  {
-    if (meta.isFresh) {
-      val forms = pool.accessCache(
-        pool.roleFormCache,
-        role,
-        pool.taxonomyTimestamp,
-        {
-          val parents = graph.getFormsForRole(role)
-          if (parents.isEmpty) {
-            Seq.empty
-          } else {
-            val first = parents.head
-            val rest = parents.tail
-            val children = {
-              if (rest.isEmpty) {
-                Seq(first)
-              } else {
-                graph.idealTaxonomy.incomingEdgesOf(first).asScala.
-                  toSeq.flatMap(edge => {
-                    val ideal = graph.getSubclassIdeal(edge)
-                    if (ideal.isForm) {
-                      if (rest.forall(parent => isHyponym(ideal, parent))) {
-                        Some(ideal.asInstanceOf[SpcForm])
-                      } else {
-                        None
-                      }
-                    } else {
-                      None
-                    }
-                  })
-              }
-            }
-            children.flatMap(getFormHyponyms).distinct
-          }
-        }
-      )
-      forms.flatMap(getFormRealizations)
-    } else {
-      getEntities.filter(
-        entity => isFormCompatibleWithRole(entity.form, role))
-    }
-  }
-
   def getFormRealizations(form : SpcForm) : Seq[SpcEntity] =
   {
     val formEntityName = SpcMeta.formMetaEntityName(form)
@@ -652,20 +629,29 @@ class SpcCosmos(
     }
   }
 
-  def instantiateIdeal(word : SilWord, assumeRole : Boolean = false) =
-  {
-    getIdealBySynonym(encodeName(word)).getOrElse({
-      if (assumeRole) {
-        instantiateRole(word)
-      } else {
-        instantiateForm(word)
-      }
-    })
-  }
-
   def resolveForm(lemma : String) = resolveIdeal(lemma)._1
 
-  def resolveRole(lemma : String) = resolveIdeal(lemma)._2
+  def resolveRole(form : SpcForm, lemma : String) : Option[SpcRole] =
+  {
+    val name = graph.getFormHypernyms(form).flatMap(hypernym => {
+      getIdealBySynonym(
+        synthesizeRoleSynonym(hypernym, lemma)).map(_.name)
+    }).find(_ => true).getOrElse {
+      getIdealBySynonym(SpcIdealSynonym(encodeName(lemma))).
+        map(_.name).getOrElse(lemma)
+    }
+    graph.getFormHypernyms(form).foreach(hypernym => {
+      graph.formAssocs.outgoingEdgesOf(hypernym).asScala.foreach(edge => {
+        val role = graph.getPossesseeRole(edge)
+        graph.getIdealHyponyms(role).foreach(hyponym => {
+          if (hyponym.name == name) {
+            return Some(hyponym.asInstanceOf[SpcRole])
+          }
+        })
+      })
+    })
+    None
+  }
 
   def instantiateForm(word : SilWord) =
   {
@@ -676,11 +662,14 @@ class SpcCosmos(
     ideal.asInstanceOf[SpcForm]
   }
 
-  def instantiateRole(word : SilWord) =
+  def instantiateRole(possessor : SpcForm, word : SilWord) =
   {
     val name = encodeName(word)
-    val ideal = getIdealBySynonym(name).getOrElse(
-      registerRole(new SpcRole(name)))
+    val ideal = getIdealBySynonym(
+      synthesizeRoleSynonym(possessor, name)
+    ).getOrElse(
+      registerRole(new SpcRole(possessor, name))
+    )
     assert(ideal.isRole, ideal)
     ideal.asInstanceOf[SpcRole]
   }
@@ -820,10 +809,20 @@ class SpcCosmos(
 
   def addIdealSynonym(synonymName : String, fundamentalName : String)
   {
+    val ideal = getIdealBySynonym(fundamentalName).get
+    addIdealSynonym(synonymName, ideal)
+  }
+
+  def addIdealSynonym(synonymName : String, ideal : SpcIdeal)
+  {
     val synonym = SpcIdealSynonym(encodeName(synonymName))
+    addIdealSynonym(synonym, ideal)
+  }
+
+  def addIdealSynonym(synonym : SpcIdealSynonym, ideal : SpcIdeal)
+  {
     assert(!graph.idealSynonyms.containsVertex(synonym), synonym)
     graph.idealSynonyms.addVertex(synonym)
-    val ideal = getIdealBySynonym(fundamentalName).get
     addIdealSynonymEdge(synonym, ideal)
   }
 
@@ -1123,7 +1122,7 @@ class SpcCosmos(
         formAssocs.outgoingEdgesOf(ideal).
         asScala.map(_.getRoleName).toSet.size),
         ideal.toString)
-      assert(getIdealBySynonym(ideal.name) == Some(ideal))
+      assert(getIdealBySynonym(synthesizeSynonym(ideal)) == Some(ideal))
       ideal matchPartial {
         case form : SpcForm => {
           assert(graph.components.inDegreeOf(form) == 0)
@@ -1254,32 +1253,19 @@ class SpcCosmos(
 
   private def lookupNoun(lemma : String, qualifiers : Set[String]) =
   {
-    val (formOpt, roleOpt) = resolveIdeal(lemma)
-    roleOpt match {
-      case Some(role) => {
-        Success(SprUtils.orderedSet(
-          getRoleRealizations(role).filter(entity =>
-              hasQualifiers(entity, entity.form, qualifiers, false))))
-      }
-      case _ => {
-        formOpt match {
-          case Some(form) => {
-            Success(SprUtils.orderedSet(
-              getFormHyponymRealizations(form).filter(
-                hasQualifiers(_, form, qualifiers, false))))
-          }
-          case _ => {
-            getEntityBySynonym(lemma) match {
-              case Some(entity) if (hasQualifiers(
-                entity, entity.form, qualifiers + lemma, false)
-              ) => {
-                Success(Set(entity))
-              }
-              case _ => {
-                fail(s"unknown ideal $lemma")
-              }
-            }
-          }
+    resolveForm(lemma).map(form => {
+      Success(SprUtils.orderedSet(
+        getFormHyponymRealizations(form).filter(
+          hasQualifiers(_, form, qualifiers, false))))
+    }).getOrElse {
+      getEntityBySynonym(lemma) match {
+        case Some(entity) if (hasQualifiers(
+          entity, entity.form, qualifiers + lemma, false)
+        ) => {
+          Success(Set(entity))
+        }
+        case _ => {
+          fail(s"unknown ideal $lemma")
         }
       }
     }

@@ -168,7 +168,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         strict digraph G {
           rankdir=LR;
           1 [ label="SpcForm(powerpuff)" ];
-          2 [ label="SpcRole(teacher)" ];
+          2 [ label="SpcRole(powerpuff:teacher)" ];
           1->2 [ label="teacher" ];
         }
       """).ignoreSpace
@@ -188,7 +188,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
           2 [ label="SpcForm(girl)" ];
           3 [ label="SpcForm(professor)" ];
           4 [ label="SpcForm(boy)" ];
-          5 [ label="SpcRole(teacher)" ];
+          5 [ label="SpcRole(powerpuff:teacher)" ];
           1->2 $taxonomyAttributes;
           3->4 $taxonomyAttributes;
           5->3 $taxonomyAttributes;
@@ -211,7 +211,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       defineTeacher
       defineStudents
       val renderedString = renderToString
-      renderedString.size must be equalTo 729
+      renderedString.size must be equalTo 739
       renderedString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
@@ -219,7 +219,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
           2 [ label="SpcForm(powerpuff)" ];
           3 [ label="SpcForm(boy)" ];
           4 [ label="SpcForm(professor)" ];
-          5 [ label="SpcRole(teacher)" ];
+          5 [ label="SpcRole(powerpuff:teacher)" ];
           6 [ label="SpcEntity(Bubblossom)" ];
           7 [ label="SpcEntity(Buttercup)" ];
           8 [ label="SpcEntity(Utonium)" ];
@@ -249,7 +249,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       defineTeacher
       defineStudents
       val renderedString = renderToString
-      renderedString.size must be equalTo 10692
+      renderedString.size must be equalTo 10926
     }
   }
 }

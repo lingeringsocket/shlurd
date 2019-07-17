@@ -66,7 +66,7 @@ class ShlurdCliSpec extends Specification
       val humanForm = cosmos.instantiateForm(SilWord("human"))
       cosmos.getForms.size must be equalTo 2
 
-      val ownerRole = cosmos.instantiateRole(SilWord("owner"))
+      val ownerRole = cosmos.instantiateRole(dogForm, SilWord("owner"))
       cosmos.addIdealTaxonomy(ownerRole, humanForm)
       cosmos.getRoles.size must be equalTo 1
 

@@ -488,34 +488,61 @@ class SpcBeliefRecognizer(
     val subjectRef = predicate.subject
     val complementRef = predicate.complement
     val verb = predicate.verb
-    complementRef matchPartial {
-      case SilStateSpecifiedReference(
-        SilNounReference(
-          SilWordLemma(LEMMA_KIND), DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
-        SilAdpositionalState(
-          SilAdposition.OF,
+    if ((SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) &&
+      sentence.tam.unemphaticModality == MODAL_NEUTRAL
+    ) {
+      val (kindOpt, aliasOpt) = complementRef match {
+        case SilStateSpecifiedReference(
           SilNounReference(
-            hypernymIdealName,
-            DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
-            COUNT_SINGULAR))
-      ) if (SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) => {
+            SilWordLemma(LEMMA_KIND), DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+          SilAdpositionalState(
+            SilAdposition.OF,
+            SilNounReference(
+              hypernymIdealName,
+              DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
+              COUNT_SINGULAR))
+        ) => {
+          tupleN((Some(hypernymIdealName), None))
+        }
+        case SilNounReference(
+          idealName, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+        ) => {
+          tupleN((None, Some(idealName)))
+        }
+        case _ => tupleN((None, None))
+      }
+      if (kindOpt.nonEmpty || aliasOpt.nonEmpty) {
         subjectRef matchPartial {
-          // "a dog is a kind of canine"
           case SilNounReference(
             subjectNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
           ) => {
-            return Seq(FormTaxonomyBelief(
-              sentence, subjectNoun, hypernymIdealName))
+            kindOpt.foreach(hypernymIdealName => {
+              // "a dog is a kind of canine"
+              return Seq(FormTaxonomyBelief(
+                sentence, subjectNoun, hypernymIdealName))
+            })
+            aliasOpt.foreach(idealName => {
+              // "a fridge is a refrigerator"
+              return Seq(IdealAliasBelief(
+                sentence, subjectNoun, idealName))
+            })
           }
-          // "a person's brother is a kind of sibling"
           case SilGenitiveReference(
             SilNounReference(
               possessorNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
             SilNounReference(
               roleNoun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR)
           ) => {
-            return Seq(RoleTaxonomyBelief(
-              sentence, possessorNoun, roleNoun, hypernymIdealName))
+            kindOpt.foreach(hypernymIdealName => {
+              // "a person's brother is a kind of sibling"
+              return Seq(RoleTaxonomyBelief(
+                sentence, possessorNoun, roleNoun, hypernymIdealName, true))
+            })
+            aliasOpt.foreach(idealName => {
+              // "a person's auntie is an aunt"
+              return Seq(IdealAliasBelief(
+                sentence, roleNoun, idealName, Some(possessorNoun)))
+            })
           }
         }
       }
@@ -949,7 +976,7 @@ class SpcBeliefRecognizer(
     SilRelationshipPredef(verb) match {
       case REL_PREDEF_IDENTITY if (sentence.tam.modality == MODAL_MUST) => {
         Seq(RoleTaxonomyBelief(
-          sentence, formNoun, roleNoun, complementNoun))
+          sentence, formNoun, roleNoun, complementNoun, false))
       }
       case _ => {
         Seq.empty
@@ -965,27 +992,7 @@ class SpcBeliefRecognizer(
       : Seq[SpcBelief] =
   {
     SilRelationshipPredef(verb) match {
-      case REL_PREDEF_IDENTITY => {
-        val (complementNoun, qualifiers, count, determiner, failed) =
-          extractQualifiedNoun(sentence, complementRef, Seq.empty)
-        if (failed) {
-          return Seq.empty
-        }
-        if (!qualifiers.isEmpty) {
-          return Seq(UnimplementedBelief(sentence))
-        }
-        if (count != COUNT_SINGULAR) {
-          return Seq(UnimplementedBelief(sentence))
-        }
-        if (sentence.tam.modality == MODAL_NEUTRAL) {
-          // "a fridge is a refrigerator"
-          Seq(IdealAliasBelief(
-            sentence, subjectNoun, complementNoun))
-        } else {
-          Seq.empty
-        }
-      }
-      case REL_PREDEF_BECOME => {
+      case REL_PREDEF_BECOME | REL_PREDEF_IDENTITY => {
         Seq.empty
       }
       case REL_PREDEF_ASSOC => {

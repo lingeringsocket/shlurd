@@ -60,7 +60,8 @@ case class RoleTaxonomyBelief(
   sentence : SilSentence,
   possessorFormName : SilWord,
   hyponymRoleName : SilWord,
-  hypernymIdealName : SilWord
+  hypernymIdealName : SilWord,
+  isRefinement : Boolean
 ) extends SpcBelief
 {
 }
@@ -68,7 +69,8 @@ case class RoleTaxonomyBelief(
 case class IdealAliasBelief(
   sentence : SilSentence,
   synonym : SilWord,
-  idealName : SilWord
+  idealName : SilWord,
+  possessorOpt : Option[SilWord] = None
 ) extends SpcBelief
 {
 }
