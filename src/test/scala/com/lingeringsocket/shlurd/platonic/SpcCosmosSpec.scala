@@ -779,9 +779,11 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "allow implicit forms to be prevented" in new CosmosContext
     {
-      addBelief("There is a philosopher")
+      SpcPrimordial.initCosmos(cosmos)
+      addBelief("A dilettante is a kind of philosopher")
       val params = SpcBeliefParams(createImplicitIdeals = false)
-      addBelief("There is a theologian", params) must
+      addBelief("A grammarian is a kind of spc-someone", params)
+      addBelief("A cultist is a kind of theologian", params) must
         throwA[ProhibitedBeliefExcn]
     }
   }

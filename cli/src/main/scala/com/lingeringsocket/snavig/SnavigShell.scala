@@ -48,6 +48,10 @@ object SnavigShell
 
   private val responderParams = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
 
+  private val beliefParams = SpcBeliefParams(
+    createImplicitIdeals = false,
+    createTentativeIdeals = false)
+
   def ok = Some(OK)
 
   def run(terminal : SnavigTerminal = new SnavigConsole)
@@ -104,7 +108,11 @@ object SnavigShell
     val bootCosmos = ShlurdPrimordialWordnet.newMutableCosmos
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
     val bootMind = new SnavigMind(bootCosmos, None, preferredSynonyms)
-    bootMind.importBeliefs("/example-snavig/game-axioms.txt")
+    bootMind.importBeliefs(
+      "/example-snavig/game-axioms.txt",
+      new SpcResponder(
+        bootMind,
+        beliefParams))
 
     val noumenalCosmos = bootCosmos.newClone()
     val noumenalMind = new SnavigMind(
@@ -172,7 +180,9 @@ object SnavigShell
     }
 
     lazy val noumenalInitializer : SnavigResponder = new SnavigResponder(
-      None, noumenalMind, ACCEPT_MODIFIED_BELIEFS, responderParams,
+      None, noumenalMind,
+      beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
+      responderParams,
       executor, SmcCommunicationContext(Some(playerEntity), Some(playerEntity)))
     noumenalMind.importBeliefs(
       "/example-snavig/game-init.txt",
@@ -198,7 +208,7 @@ object SnavigShell
     accessEntityMind(snapshot, entity) match {
       case Some(mind) => {
         val responder = new SnavigResponder(
-          None, mind, ACCEPT_MODIFIED_BELIEFS,
+          None, mind, beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
           SmcResponseParams(), executor,
           SmcCommunicationContext(Some(entity), Some(entity)))
         mind.importBeliefs(resourceName, responder)
@@ -548,16 +558,21 @@ class SnavigShell(
   )
 
   private val noumenalUpdater : SnavigResponder = new SnavigResponder(
-    Some(this), noumenalMind, ACCEPT_MODIFIED_BELIEFS, responderParams,
+    Some(this), noumenalMind,
+    beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
+    responderParams,
     executor, playerToInterpreter)
 
   private val phenomenalResponder = new SnavigResponder(
-    None, phenomenalMind, ACCEPT_NO_BELIEFS,
+    None, phenomenalMind,
+    beliefParams.copy(acceptance = ACCEPT_NO_BELIEFS),
     responderParams.copy(existenceAssumption = EXISTENCE_ASSUME_UNKNOWN),
     executor, playerToInterpreter)
 
   private val phenomenalUpdater = new SnavigResponder(
-    None, phenomenalMind, ACCEPT_MODIFIED_BELIEFS, responderParams,
+    None, phenomenalMind,
+    beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
+    responderParams,
     executor, playerToInterpreter)
 
   def defer(deferred : Deferred)
@@ -616,7 +631,8 @@ class SnavigShell(
             Some(targetEntity)
           )
           val responder = new SnavigResponder(
-            None, targetMind, ACCEPT_NO_BELIEFS,
+            None, targetMind,
+            beliefParams.copy(acceptance = ACCEPT_NO_BELIEFS),
             SmcResponseParams(), executor, communicationContext)
           val sentences = responder.newParser(input).parseAll
           sentences.foreach(sentence => {
@@ -706,7 +722,8 @@ class SnavigShell(
                   Some(listener)
                 )
                 val entityResponder = new SnavigResponder(
-                  None, entityMind, ACCEPT_NO_BELIEFS,
+                  None, entityMind,
+                  beliefParams.copy(acceptance = ACCEPT_NO_BELIEFS),
                   SmcResponseParams(), executor, communicationContext)
                 // FIXME use parseAll instead
                 val sentence = entityResponder.newParser(quotation).parseOne

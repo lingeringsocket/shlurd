@@ -1,9 +1,10 @@
-"Resource" import "/snavig/basic-axioms.txt".
+"Resource" import "/snavig/game-turn-axioms.txt".
 
 A game-character's character-inventory must be a repository.
 A game-character's stuff is a character-inventory.
 A game-character must have a stuff.
-The player-inventory is a repository.
+A player-inventory is a kind of repository.
+There is a player-inventory.
 The player-inventory is the player-character's stuff.
 
 Before a game-character gets a game-object,

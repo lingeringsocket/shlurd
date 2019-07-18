@@ -411,17 +411,14 @@ class SpcBeliefAccepter private(
   }
 
   private def instantiateForm(
-    sentence : SilSentence, word : SilWord) : SpcForm =
+    sentence : SilSentence, word : SilWord,
+    isImplicit : Boolean = true) : SpcForm =
   {
     // FIXME pinpoint cause
-    val name = cosmos.encodeName(word)
-    cosmos.getIdealBySynonym(name) match {
-      case Some(role : SpcRole) => {
-        throw new IncomprehensibleBeliefExcn(sentence)
-      }
+    mind.resolveForm(word) match {
       case Some(form : SpcForm) => form
       case _ => {
-        if (!params.createImplicitIdeals) {
+        if (isImplicit && !params.createImplicitIdeals) {
           throw new ProhibitedBeliefExcn(sentence)
         }
         val newForm = mind.instantiateForm(word)
@@ -478,8 +475,8 @@ class SpcBeliefAccepter private(
             ideal)
         }
         case _ => {
-          val ideal = cosmos.getIdealBySynonym(
-            cosmos.encodeName(idealName)
+          val ideal = mind.resolveForm(
+            idealName
           ).getOrElse {
             mind.instantiateForm(idealName)
           }
@@ -496,7 +493,7 @@ class SpcBeliefAccepter private(
       // FIXME need to make sure all hypernyms are (and remain) compatible
       // FIXME also need to allow existing form to be refined
       val hypernymForm = instantiateForm(sentence, hypernymFormName)
-      val hyponymForm = instantiateForm(sentence, hyponymFormName)
+      val hyponymForm = instantiateForm(sentence, hyponymFormName, false)
       addIdealTaxonomy(sentence, hyponymForm, hypernymForm)
     }
   }
@@ -577,7 +574,7 @@ class SpcBeliefAccepter private(
     case EntityExistenceBelief(
       sentence, entityRef, formName, qualifiers, properName, true
     ) => {
-      val form = instantiateForm(sentence, formName)
+      val form = instantiateForm(sentence, formName, false)
       val (entity, isNewEntity, determiner) =
         resultCollector.lookup(entityRef).map(entities =>
           getUniqueEntity(sentence, entities).map(

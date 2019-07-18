@@ -24,11 +24,11 @@ import scala.util._
 class SnavigResponder(
   propagationShell : Option[SnavigShell],
   mind : SnavigMind,
-  beliefAcceptance : SpcBeliefAcceptance,
+  beliefParams : SpcBeliefParams,
   params : SmcResponseParams,
   executor : SmcExecutor[SpcEntity],
   communicationContext : SmcCommunicationContext[SpcEntity])
-    extends SpcResponder(mind, SpcBeliefParams(beliefAcceptance), params,
+    extends SpcResponder(mind, beliefParams, params,
       executor, communicationContext)
 {
   import SnavigShell._
@@ -46,7 +46,8 @@ class SnavigResponder(
   {
     new SnavigResponder(
       propagationShell, subMind.asInstanceOf[SnavigMind],
-      ACCEPT_MODIFIED_BELIEFS, params, executor, communicationContext)
+      beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
+      params, executor, communicationContext)
   }
 
   override protected def checkCycle(

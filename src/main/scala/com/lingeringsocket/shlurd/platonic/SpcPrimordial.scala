@@ -43,8 +43,16 @@ object SpcPrimordial
 
   private def initCosmosFromBeliefs(cosmos : SpcCosmos)
   {
-    new SpcMind(cosmos).loadBeliefs(ResourceUtils.getResourceSource(
-      "/ontologies/primordial.txt"))
+    val mind = new SpcMind(cosmos)
+    mind.loadBeliefs(
+      ResourceUtils.getResourceSource(
+        "/ontologies/primordial.txt"),
+      new SpcResponder(
+        mind,
+        SpcBeliefParams(
+          createTentativeIdeals = false,
+          createTentativeEntities = false))
+    )
     synonyms.foreach(e => cosmos.addIdealSynonym(e._1, e._2))
   }
 
