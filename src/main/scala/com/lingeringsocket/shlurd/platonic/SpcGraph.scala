@@ -513,7 +513,7 @@ class SpcGraph(
   def getFormHyponyms(
     form : SpcForm) : Iterator[SpcForm] =
   {
-    getIdealHyponyms(form).filter(_.isInstanceOf[SpcForm]).
+    getIdealHyponyms(form).filter(_.isForm).
       map(_.asInstanceOf[SpcForm])
   }
 
@@ -641,7 +641,7 @@ class SpcGraph(
     assert(!new CycleDetector(entitySynonyms).detectCycles)
     assert(!new CycleDetector(components).detectCycles)
     formAssocs.edgeSet.asScala.foreach(formEdge => {
-      assert(formAssocs.getEdgeSource(formEdge).isInstanceOf[SpcForm], formEdge)
+      assert(formAssocs.getEdgeSource(formEdge).isForm, formEdge)
       val role = getPossesseeRole(formEdge)
       assert(role.name == formEdge.getRoleName,
         tupleN((role, formEdge)).toString)

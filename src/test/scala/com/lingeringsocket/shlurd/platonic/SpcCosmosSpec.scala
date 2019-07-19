@@ -786,5 +786,16 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("A cultist is a kind of theologian", params) must
         throwA[ProhibitedBeliefExcn]
     }
+
+    "allow implicit roles to be prevented" in new CosmosContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+      addBelief("Rick is a person")
+      addBelief("Morty is a person")
+      addBelief("Rick is Morty's mentor")
+      val params = SpcBeliefParams(createImplicitIdeals = false)
+      addBelief("Morty is Rick's protege", params) must
+        throwA[ProhibitedBeliefExcn]
+    }
   }
 }

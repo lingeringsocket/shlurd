@@ -76,9 +76,12 @@ class SnavigMind(
     opt
   }
 
-  override def resolveRole(form : SpcForm, noun : SilWord) : Option[SpcRole] =
+  override def resolveRole(
+    form : SpcForm,
+    noun : SilWord,
+    includeHypernyms : Boolean = true) : Option[SpcRole] =
   {
-    val opt = super.resolveRole(form, noun)
+    val opt = super.resolveRole(form, noun, includeHypernyms)
     considerPreferredSynonym(opt, noun)
     opt
   }
@@ -108,7 +111,8 @@ class SnavigMind(
     def isHyphenized(s : String) = s.contains('-')
     if (isHyphenized(name)) {
       val synonyms = cosmos.getSynonymsForIdeal(ideal)
-      synonyms.map(_.name).filterNot(isHyphenized).headOption.getOrElse(name)
+      synonyms.map(_.name.split(":").last).
+        filterNot(isHyphenized).headOption.getOrElse(name)
     } else {
       name
     }

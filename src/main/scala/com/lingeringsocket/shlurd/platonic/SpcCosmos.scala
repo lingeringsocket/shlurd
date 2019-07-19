@@ -268,7 +268,7 @@ class SpcCosmicPool
     new mutable.HashMap[SpcIdeal, (Int, Seq[SpcForm])]
 
   @transient val roleCache =
-    new mutable.HashMap[(SpcForm, SilWord), (Int, Option[SpcRole])]
+    new mutable.HashMap[(SpcForm, SilWord, Boolean), (Int, Option[SpcRole])]
 
   @transient val roleCompatibilityCache =
     new mutable.HashMap[(SpcRole, SpcForm), (Int, Boolean)]
@@ -631,16 +631,26 @@ class SpcCosmos(
 
   def resolveForm(lemma : String) = resolveIdeal(lemma)._1
 
-  def resolveRole(form : SpcForm, lemma : String) : Option[SpcRole] =
+  def resolveRole(
+    form : SpcForm,
+    lemma : String,
+    includeHypernyms : Boolean = true) : Option[SpcRole] =
   {
-    val name = graph.getFormHypernyms(form).flatMap(hypernym => {
+    val hypernyms = {
+      if (includeHypernyms) {
+        getFormHypernyms(form)
+      } else {
+        Seq(form)
+      }
+    }
+    val name = hypernyms.flatMap(hypernym => {
       getIdealBySynonym(
         synthesizeRoleSynonym(hypernym, lemma)).map(_.name)
     }).find(_ => true).getOrElse {
       getIdealBySynonym(SpcIdealSynonym(encodeName(lemma))).
         map(_.name).getOrElse(lemma)
     }
-    graph.getFormHypernyms(form).foreach(hypernym => {
+    hypernyms.foreach(hypernym => {
       graph.formAssocs.outgoingEdgesOf(hypernym).asScala.foreach(edge => {
         val role = graph.getPossesseeRole(edge)
         graph.getIdealHyponyms(role).foreach(hyponym => {

@@ -304,12 +304,7 @@ class SpcBeliefAccepter private(
     sentence : SilSentence, possessor : SpcEntity, roleName : SilWord) =
   {
     val graph = cosmos.getGraph
-    val role = mind.resolveRole(possessor.form, roleName) match {
-      case Some(r) => r
-      case _ => {
-        cosmos.instantiateRole(possessor.form, roleName)
-      }
-    }
+    val role = instantiateRole(sentence, possessor.form, roleName, true)
     val candidates =
       Seq(possessor.form) ++ cosmos.getRolesForForm(possessor.form) ++ {
         if (possessor.form.isTentative) {
@@ -410,6 +405,24 @@ class SpcBeliefAccepter private(
     property
   }
 
+  private def instantiateRole(
+    sentence : SilSentence,
+    possessorForm : SpcForm,
+    idealName : SilWord,
+    includeHypernyms : Boolean = false,
+    isImplicit : Boolean = true) : SpcRole =
+  {
+    mind.resolveRole(possessorForm, idealName, includeHypernyms) match {
+      case Some(r) => r
+      case _ => {
+        if (isImplicit && !params.createImplicitIdeals) {
+          throw new ProhibitedBeliefExcn(sentence)
+        }
+        mind.instantiateRole(possessorForm, idealName)
+      }
+    }
+  }
+
   private def instantiateForm(
     sentence : SilSentence, word : SilWord,
     isImplicit : Boolean = true) : SpcForm =
@@ -468,19 +481,19 @@ class SpcBeliefAccepter private(
       possessorOpt match {
         case Some(possessorFormName) => {
           val possessorForm = mind.instantiateForm(possessorFormName)
-          val ideal = mind.instantiateRole(possessorForm, idealName)
+          val role = instantiateRole(sentence, possessorForm, idealName, true)
           cosmos.addIdealSynonym(
             cosmos.synthesizeRoleSynonym(
               possessorForm, cosmos.encodeName(synonym)),
-            ideal)
+            role)
         }
         case _ => {
-          val ideal = mind.resolveForm(
+          val form = mind.resolveForm(
             idealName
           ).getOrElse {
             mind.instantiateForm(idealName)
           }
-          cosmos.addIdealSynonym(cosmos.encodeName(synonym), ideal)
+          cosmos.addIdealSynonym(cosmos.encodeName(synonym), form)
         }
       }
     }
@@ -518,7 +531,8 @@ class SpcBeliefAccepter private(
       if (mind.resolveForm(hyponymRoleName).nonEmpty) {
         throw new IncomprehensibleBeliefExcn(sentence)
       }
-      val hyponymRole = mind.instantiateRole(possessorForm, hyponymRoleName)
+      val hyponymRole = instantiateRole(
+        sentence, possessorForm, hyponymRoleName, false, false)
       val entityAssocs = cosmos.getEntityAssocGraph
       // FIXME avoid iterating over all entity assocs!
       entityAssocs.edgeSet.asScala.foreach(
@@ -557,8 +571,8 @@ class SpcBeliefAccepter private(
     ) => {
       val possessorForm = instantiateForm(sentence, possessorFormName)
       possesseeRoleNames.foreach(possesseeRoleName => {
-        val possesseeRole = cosmos.instantiateRole(
-          possessorForm, possesseeRoleName)
+        val possesseeRole = instantiateRole(
+          sentence, possessorForm, possesseeRoleName)
         val edge = cosmos.addFormAssoc(
           possessorForm, possesseeRole)
         val oldConstraint = edge.constraint
@@ -848,10 +862,10 @@ class SpcBeliefAccepter private(
     ) => {
       val possessorForm = instantiateForm(sentence, possessorFormName)
       val possesseeForm = instantiateForm(sentence, possesseeFormName)
-      val possessorRole = cosmos.instantiateRole(
-        possesseeForm, possessorRoleName)
-      val possesseeRole = cosmos.instantiateRole(
-        possessorForm, possesseeRoleName)
+      val possessorRole = instantiateRole(
+        sentence, possesseeForm, possessorRoleName)
+      val possesseeRole = instantiateRole(
+        sentence, possessorForm, possesseeRoleName)
       addIdealTaxonomy(sentence, possessorRole, possessorForm)
       addIdealTaxonomy(sentence, possesseeRole, possesseeForm)
       val edge = cosmos.addFormAssoc(

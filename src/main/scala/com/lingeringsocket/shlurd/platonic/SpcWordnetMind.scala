@@ -75,12 +75,14 @@ class SpcWordnetMind(
   }
 
   override def resolveRole(
-    possessorForm : SpcForm, noun : SilWord) : Option[SpcRole] =
+    possessorForm : SpcForm,
+    noun : SilWord,
+    includeHypernyms : Boolean = true) : Option[SpcRole] =
   {
     val pool = cosmos.getPool
     pool.accessCache(
       pool.roleCache,
-      tupleN((possessorForm, noun)),
+      tupleN((possessorForm, noun, includeHypernyms)),
       pool.taxonomyTimestamp,
       {
         val wordnetOpt = {
@@ -103,7 +105,8 @@ class SpcWordnetMind(
             )
           }).headOption
         }
-        wordnetOpt.orElse(super.resolveRole(possessorForm, noun))
+        wordnetOpt.orElse(super.resolveRole(
+          possessorForm, noun, includeHypernyms))
       }
     )
   }

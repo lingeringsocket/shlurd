@@ -247,9 +247,11 @@ class SpcMind(cosmos : SpcCosmos)
     resolveFormCandidates(noun).headOption
   }
 
-  def resolveRole(form : SpcForm, noun : SilWord) : Option[SpcRole] =
+  def resolveRole(
+    form : SpcForm, noun : SilWord,
+    includeHypernyms : Boolean = true) : Option[SpcRole] =
   {
-    cosmos.resolveRole(form, cosmos.encodeName(noun))
+    cosmos.resolveRole(form, cosmos.encodeName(noun), includeHypernyms)
   }
 
   override def resolvePropertyValueEntity(
