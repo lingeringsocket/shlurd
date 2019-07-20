@@ -8,10 +8,9 @@ set -e
 rm -f ${TARGET_DIR}/*.jar
 pushd ${SRC_DIR}
 
-sbt clean publish-local
-cd wordnet-bundle
-sbt clean publish-local
-cd ../osgi
+sbt clean publishLocal
+sbt wordnet-bundle/clean wordnet-bundle/publishLocal
+cd osgi
 sbt clean deployLauncher:package
 cd target
 cp bundles/* ${TARGET_DIR}

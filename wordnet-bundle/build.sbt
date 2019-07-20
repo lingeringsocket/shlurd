@@ -1,14 +1,14 @@
-organization := "com.lingeringsocket.shlurd"
+organization := Common.organization
 
 name := "shlurd-wordnet-bundle"
 
-version := "0.1-SNAPSHOT"
+version := Common.version
 
-scalaVersion := "2.11.8"
+scalaVersion := Common.scalaVersion
 
-maxErrors := 99
+maxErrors := Common.maxErrors
 
-traceLevel := 10
+traceLevel := Common.traceLevel
 
 libraryDependencies ++= Seq(
   "net.sf.extjwnl" % "extjwnl" % "2.0.2",
@@ -24,7 +24,7 @@ assemblyExcludedJars in assembly := {
 
 artifact in (Compile, assembly) := {
   val art = (artifact in (Compile, assembly)).value
-  art.copy(`classifier` = Some("assembly"))
+  art.withClassifier(Some("assembly"))
 }
 
 addArtifact(artifact in (Compile, assembly), assembly)

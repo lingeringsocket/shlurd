@@ -22,6 +22,8 @@ lazy val corenlp = project.dependsOn(rootProject % "test->test;compile->compile"
 
 lazy val mdocProject = (project in file ("mdoc")).dependsOn(rootProject)
 
+lazy val `wordnet-bundle` = project.dependsOn(rootProject)
+
 lazy val root = rootProject.aggregate(cli)
 
 lazy val docs = project.in(file("generated-docs")).settings(
