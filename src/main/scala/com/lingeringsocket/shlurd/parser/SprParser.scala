@@ -51,6 +51,7 @@ class SprFallbackParser(
       val count = sentence.countUnknownSyntaxLeaves
       if (count < bestCount) {
         best = Some(sentence)
+        bestCount = count
       }
     })
     best.get
@@ -479,7 +480,7 @@ object SprParser extends SprEnglishWordAnalyzer
       }
     }
     val cachedRoot = cacheParse(
-      CacheKey(sentence.text, dumpPrefix), heuristicParse)
+      CacheKey(sentence.text, dumpPrefix), () => heuristicParse)
     def createParser(root : SprSyntaxTree) : SprParser =
     {
       root match {

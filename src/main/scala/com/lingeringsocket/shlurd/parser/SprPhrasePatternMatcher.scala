@@ -269,7 +269,7 @@ class SprPhrasePatternMatcher
       pattern : Seq[String],
       label : String,
       cycleLinkerStack : List[CycleLinker],
-      cycle : Boolean = false)
+      cycle : Boolean)
     {
       if (pattern.isEmpty) {
         assert(cycleLinkerStack.isEmpty)

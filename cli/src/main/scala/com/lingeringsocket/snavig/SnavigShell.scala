@@ -343,10 +343,6 @@ class SnavigShell(
 
   case class DeferredPhenomenon(belief : String) extends Deferred
 
-  private val bootMind = snapshot.getBootstrapMind
-
-  private val bootCosmos = bootMind.getCosmos
-
   private val phenomenalMind = snapshot.getPhenomenalMind
 
   private val phenomenalCosmos = phenomenalMind.getCosmos
@@ -695,7 +691,7 @@ class SnavigShell(
           val sentences =
             phenomenalUpdater.newParser(preprocess(belief)).parseAll
           sentences.foreach(sentence => {
-            var output = phenomenalUpdater.process(sentence)
+            val output = phenomenalUpdater.process(sentence)
             assert(output == OK, output)
           })
         }
@@ -866,7 +862,6 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
     ap : SilActionPredicate,
     referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[String] =
   {
-    val lemma = ap.verb.toLemma
     val subjectEntityOpt = singletonLookup(referenceMap, ap.subject)
     val quotationOpt = ap.directObject match {
       case Some(SilQuotationReference(quotation)) => Some(quotation)

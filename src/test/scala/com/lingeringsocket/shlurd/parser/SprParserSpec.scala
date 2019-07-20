@@ -133,10 +133,10 @@ class SprParserSpec extends Specification
 
   private def predState(
     subject : SilWord,
-    verb : SilWord = VERB_IS,
-    state : SilWord = STATE_OPEN,
-    determiner : SilDeterminer = DETERMINER_UNIQUE,
-    count : SilCount = COUNT_SINGULAR) =
+    verb : SilWord,
+    state : SilWord,
+    determiner : SilDeterminer,
+    count : SilCount) =
   {
     SilStatePredicate(
       SilNounReference(subject, determiner, count),
@@ -253,7 +253,7 @@ class SprParserSpec extends Specification
       parse(input) must be equalTo
         SilPredicateSentence(predStateDoor(), SilTam.indicative.negative)
       val contracted = "the door isn't open"
-      parse(input) must be equalTo
+      parse(contracted) must be equalTo
         SilPredicateSentence(predStateDoor(), SilTam.indicative.negative)
     }
 

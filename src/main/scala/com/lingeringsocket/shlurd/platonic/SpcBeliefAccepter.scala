@@ -66,8 +66,8 @@ case class SpcBeliefParams(
 
 class SpcBeliefAccepter private(
   responder : SpcResponder,
-  params : SpcBeliefParams = SpcBeliefParams(),
-  resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
+  params : SpcBeliefParams,
+  resultCollector : SmcResultCollector[SpcEntity])
     extends SpcBeliefRecognizer(responder.getMind.getCosmos, resultCollector)
 {
   type BeliefApplier = PartialFunction[SpcBelief, Unit]
@@ -140,7 +140,7 @@ class SpcBeliefAccepter private(
   private def resolveUniqueNameAndExistence(
     sentence : SilSentence,
     noun : SilWord,
-    determiner : SilDeterminer = DETERMINER_UNSPECIFIED)
+    determiner : SilDeterminer)
       : (SpcEntity, Boolean) =
   {
     determiner match {

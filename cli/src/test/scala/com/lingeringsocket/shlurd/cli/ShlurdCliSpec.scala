@@ -45,7 +45,7 @@ class ShlurdCliSpec extends Specification
       cosmos.getForms.size must be equalTo 0
       val form = cosmos.instantiateForm(SilWord("dog"))
       cosmos.getForms.size must be greaterThan 0
-      val entity = instantiateEntity(cosmos, form)
+      instantiateEntity(cosmos, form)
       val oldMind = new ShlurdCliMind(cosmos)
       val serializer = new ShlurdCliSerializer
       val file = File.createTempFile("testmind", ".kryo")
@@ -70,7 +70,7 @@ class ShlurdCliSpec extends Specification
       cosmos.addIdealTaxonomy(ownerRole, humanForm)
       cosmos.getRoles.size must be equalTo 1
 
-      val formEdge = cosmos.addFormAssoc(dogForm, ownerRole)
+      cosmos.addFormAssoc(dogForm, ownerRole)
 
       val dog1 = instantiateEntity(cosmos, dogForm, "dog1")
       cosmos.getEntities.size must be equalTo 1
@@ -81,8 +81,8 @@ class ShlurdCliSpec extends Specification
       forkedCosmos.getRoles.size must be equalTo 1
       val catForm = forkedCosmos.instantiateForm(SilWord("cat"))
       forkedCosmos.getForms.size must be equalTo 3
-      val dog2 = instantiateEntity(forkedCosmos, dogForm, "dog2")
-      val cat1 = instantiateEntity(forkedCosmos, catForm)
+      instantiateEntity(forkedCosmos, dogForm, "dog2")
+      instantiateEntity(forkedCosmos, catForm)
       forkedCosmos.getEntities.size must be equalTo 3
 
       val human = instantiateEntity(forkedCosmos, humanForm)

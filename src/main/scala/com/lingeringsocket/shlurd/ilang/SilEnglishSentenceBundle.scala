@@ -177,7 +177,7 @@ class SilEnglishSentenceBundle
 
   private def composePredicateQuestion(
     subject : String, verbSeq : Seq[String], complement : Seq[String],
-    modifiers : Seq[String] = Seq.empty) =
+    modifiers : Seq[String]) =
   {
     if (complement.isEmpty) {
       compose((Seq(subject) ++ verbSeq ++ modifiers):_*)

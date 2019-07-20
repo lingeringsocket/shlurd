@@ -21,7 +21,7 @@ object Common
 
   def version = "0.1-SNAPSHOT"
 
-  def scalaVersion = "2.11.12"
+  def scalaVersion = "2.12.8"
 
   def scalacCommonOptions = Seq(
     "-unchecked", "-feature", "-Xlint",

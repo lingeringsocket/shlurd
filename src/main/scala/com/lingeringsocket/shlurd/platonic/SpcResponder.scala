@@ -206,8 +206,6 @@ class SpcResponder(
       // FIXME this could cause the predicate to become
       // inconsistent with the answer inflection.  Also, when there
       // are multiple matches, we should be conjoining them.
-      val triggers = mind.getCosmos.getTriggers.filter(
-        _.conditionalSentence.biconditional)
       val replacements = getBiconditionalImplications.flatMap(
         conditionalSentence => {
           assertionMapper.matchImplication(
@@ -648,8 +646,8 @@ class SpcResponder(
                 }
                 spawn(imagine(forkedCosmos)).resolveReferences(
                   recoverySentence, resultCollector, false, true)
-                // FIXME use recoveryResult somehow
-                val recoveryResult = processBeliefOrAction(
+                // FIXME use return value of this invocation somehow
+                processBeliefOrAction(
                   forkedCosmos, recoverySentence, resultCollector,
                   triggerDepth + 1, false)
               })

@@ -896,7 +896,7 @@ class SprEnglishSyntaxAnalyzer(
     complement : SprSyntaxTree,
     specifiedState : SilState,
     verb : SilWord,
-    verbModifiers : Seq[SilExpectedVerbModifier] = Seq.empty)
+    verbModifiers : Seq[SilExpectedVerbModifier])
       : (Boolean, SilPredicate) =
   {
     val (negative, seq) = {
@@ -1230,25 +1230,6 @@ class SprEnglishSyntaxAnalyzer(
   private def determinerFor(leaf : SprSyntaxLeaf) : SilDeterminer =
   {
     maybeDeterminerFor(leaf.lemma).getOrElse(DETERMINER_ANY)
-  }
-
-  private def extractParticle(seq : Seq[SprSyntaxTree])
-      : (Option[SprSyntaxTree], Seq[SprSyntaxTree]) =
-  {
-    seq.indexWhere(_.isParticleNode) match {
-      case -1 => {
-        val pp = seq.last
-        if (pp.isAdpositionalPhrase) {
-          tupleN((maybeRecognizeParticle(pp),
-            seq.dropRight(1) ++ pp.children.drop(1)))
-        } else {
-          tupleN((None, seq))
-        }
-      }
-      case i => {
-        tupleN((maybeRecognizeParticle(seq(i)), seq.patch(i, Seq.empty, 1)))
-      }
-    }
   }
 
   private def extractAdpositionalState(seq : Seq[SprSyntaxTree])

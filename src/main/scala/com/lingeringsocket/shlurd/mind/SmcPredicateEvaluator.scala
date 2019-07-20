@@ -911,7 +911,7 @@ class SmcPredicateEvaluator[
               case SilNounReference(
                 noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
               ) => {
-                val resolved = resultCollector.lookup(possessor).
+                resultCollector.lookup(possessor).
                   foreach(entities => {
                     // FIXME handle multiple entities
                     if (entities.size == 1) {

@@ -27,10 +27,6 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
 {
   type PhraseScorer = PartialFunction[SilPhrase, SilPhraseScore]
 
-  private val dictionary = ShlurdWordnet.dictionary
-
-  private val morphology = ShlurdWordnet.morphology
-
   private def phraseScorer(s : PhraseScorer)
       : PhraseScorer = s
 

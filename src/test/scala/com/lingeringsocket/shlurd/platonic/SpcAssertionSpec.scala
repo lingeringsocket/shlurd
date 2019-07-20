@@ -33,9 +33,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   private val formRye = "rye"
 
   private val stateEmpty = "empty"
-  private val stateToasting = "toasting"
   private val stateCold = "cold"
-  private val stateBurnt = "burnt"
 
   private val fiatToasterStates =
     "a toaster's state may be empty, toasting, or done"

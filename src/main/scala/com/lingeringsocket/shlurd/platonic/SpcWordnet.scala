@@ -32,8 +32,6 @@ object SpcWordnet
 
 class SpcWordnet(cosmos : SpcCosmos)
 {
-  private val dictionary = ShlurdWordnet.dictionary
-
   private val someoneCategories = Seq(
     "person"
   )

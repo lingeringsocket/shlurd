@@ -179,7 +179,6 @@ class SmcTimeline[
     cosmosMutator : CosmosMutator)
   {
     val iter = newIntervals.intervalIterator
-    var found = false
     while (iter.next != eventInterval) {}
     var prevCosmos = eventCosmos
     val updated = new mutable.HashMap[SmcTimeInterval, EntryType]

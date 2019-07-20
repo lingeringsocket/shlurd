@@ -332,7 +332,7 @@ class SpcResponderSpec extends Specification
         "Sorry, I don't know about any 'robot'.")
       process(
         "who is a person",
-        "Scott, Arthur, Dirk, Bart, Amanda, Hugo, and Todd are persons.")
+        "Scott, Dirk, Todd, Hugo, Arthur, Amanda, and Bart are persons.")
       process(
         "who is a man",
         "Dirk, Todd, Hugo, and Arthur are men.")

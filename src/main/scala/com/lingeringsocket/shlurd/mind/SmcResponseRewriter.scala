@@ -33,8 +33,6 @@ class SmcResponseRewriter[
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
-  private val cosmos = mind.getCosmos
-
   private val entityMap =
     new mutable.LinkedHashMap[String, EntityType]
 

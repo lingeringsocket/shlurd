@@ -20,18 +20,26 @@ lazy val cli = project.dependsOn(rootProject % "test->test;compile->compile")
 
 lazy val corenlp = project.dependsOn(rootProject % "test->test;compile->compile")
 
+lazy val mdocProject = (project in file ("mdoc")).dependsOn(rootProject)
+
 lazy val root = rootProject.aggregate(cli)
+
+lazy val docs = project.in(file("generated-docs")).settings(
+  mdoc := run.in(Compile).evaluated,
+  mainClass in (Compile, run) := Some("com.lingeringsocket.shlurd.mdoc.MdocMain")
+).dependsOn(mdocProject).enablePlugins(MdocPlugin)
+
 
 resolvers ++= Common.resolvers
 
 libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
-  "org.slf4j" % "slf4j-simple" % "1.7.25",
+  "org.slf4j" % "slf4j-simple" % "1.7.26",
   "com.googlecode.kiama" %% "kiama" % "1.8.0",
   "org.typelevel" %% "spire" % "0.16.0",
   "org.typelevel" %% "spire-extras" % "0.16.0",
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "org.jgrapht" % "jgrapht-core" % "1.3.1",
   "org.jgrapht" % "jgrapht-io" % "1.3.1",
   "org.atteo" % "evo-inflector" % "1.2.2",

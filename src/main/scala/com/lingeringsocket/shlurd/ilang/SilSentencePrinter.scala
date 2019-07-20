@@ -288,7 +288,6 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilActionPredicate(
         subject, verb, directObject, modifiers
       ) => {
-        val count = SilUtils.getCount(subject)
         sb.actionPredicate(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(

@@ -146,7 +146,7 @@ class SmcMind[
       }
     }
     conversation.foreach(_.addSpeakerSentence(
-      speakerName, sentence, text,
+      speakerName, sentence, savedText,
       filterReferenceMap(sentence, referenceMap)))
   }
 

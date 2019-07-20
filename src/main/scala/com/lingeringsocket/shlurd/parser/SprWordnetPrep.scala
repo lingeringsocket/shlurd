@@ -35,7 +35,7 @@ object SprWordnetPrep
 
   private def parseOne(
     sentence : String,
-    dumpAnalysis : Boolean = false)
+    dumpAnalysis : Boolean)
       : Option[(SilSentence, SilSentence)] =
   {
     val parser = SprParser(sentence)

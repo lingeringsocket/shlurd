@@ -143,6 +143,13 @@ class SpcGraphVisualizer(
     fw.close
   }
 
+  def renderToImageFile(file : File)
+  {
+    val dot = renderToString()
+    val dotStream = new ByteArrayInputStream(dot.getBytes)
+    shellCommand(("dot -Tpng" #> file) #< dotStream).!!
+  }
+
   def renderToWriter(
     writer : Writer,
     exporter : DOTExporter[CombinedVertex, CombinedEdge] = createDotExporter)

@@ -1,6 +1,7 @@
 TAGS
 *.class
 run/*
+generated-docs/
 
 # sbt specific
 .cache
