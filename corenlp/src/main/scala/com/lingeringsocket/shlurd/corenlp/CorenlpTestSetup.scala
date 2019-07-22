@@ -156,7 +156,8 @@ object CorenlpParsingStrategy extends SprParsingStrategy
       sentenceString, tokens, propsSR, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR CASELESS")
     new SprFallbackParser(Seq(
-      main, fallbackSR, fallbackPCFG, fallbackSRCASELESS))
+      () => main, () => fallbackSR, () => fallbackPCFG,
+      () => fallbackSRCASELESS))
   }
 
   private def prepareCorenlp(
@@ -192,7 +193,7 @@ object CorenlpParsingStrategy extends SprParsingStrategy
     }
 
     val syntaxTree = SprParser.cacheParse(
-      SprParser.CacheKey(sentenceString, dumpPrefix), corenlpParse)
+      SprParser.CacheKey(sentenceString, dumpPrefix), () => corenlpParse)
     val rewrittenTree = rewriteWarts(syntaxTree)
     if (dump) {
       println(dumpPrefix + " REWRITTEN SYNTAX = " + rewrittenTree)
