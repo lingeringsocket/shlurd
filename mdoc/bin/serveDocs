@@ -1,0 +1,12 @@
+#!/bin/bash
+
+SRC_DIR=`dirname "$BASH_SOURCE"`/../..
+
+set -e
+
+${SRC_DIR}/mdoc/bin/buildDocs
+
+pushd ${SRC_DIR}/generated-docs/target/mdoc
+bundle exec jekyll serve
+
+popd

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+SRC_DIR=`dirname "$BASH_SOURCE"`/../..
+
+set -e
+
+pushd ${SRC_DIR}
+sbt docs/mdoc
+popd
