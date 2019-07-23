@@ -28,11 +28,6 @@ import java.nio.file._
 
 object BeliefRenderer
 {
-  private val cosmos = new SpcCosmos
-  SpcPrimordial.initCosmos(cosmos)
-
-  private val mind = new SpcMind(cosmos)
-
   private[mdoc] var dir : Option[Path] = None
 }
 
@@ -48,6 +43,11 @@ class BeliefRenderer extends StringModifier
     reporter : Reporter) : String =
   {
     val input = code.text
+
+    val cosmos = new SpcCosmos
+    SpcPrimordial.initCosmos(cosmos)
+
+    val mind = new SpcMind(cosmos)
 
     /*
     val responder =

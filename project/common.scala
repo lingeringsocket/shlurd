@@ -29,6 +29,8 @@ object Common
 
   def scalacOptions = scalacCommonOptions :+ "-Ywarn-unused-import"
 
+  def consoleOptions = Seq("-Yrepl-sync","-Ywarn-unused:-imports")
+
   def maxErrors = 99
 
   def traceLevel = 10

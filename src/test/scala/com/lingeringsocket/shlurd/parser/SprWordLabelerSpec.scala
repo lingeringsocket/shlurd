@@ -46,6 +46,7 @@ class SprWordLabelerSpec extends Specification
       labelWord("agenda") must be equalTo Set(LABEL_NN)
       labelWord("cattle") must be equalTo Set(LABEL_NNS)
       labelWord("mice") must be equalTo Set(LABEL_NNS)
+      labelWord("boss") must be equalTo Set(LABEL_NN, LABEL_VBP, LABEL_JJ)
     }
 
     "lemmatize words correctly" in
@@ -57,6 +58,7 @@ class SprWordLabelerSpec extends Specification
       lemmatizeNoun("oxen") must be equalTo "ox"
       lemmatizeNoun("mice") must be equalTo "mouse"
       lemmatizeNoun("agenda") must be equalTo "agenda"
+      lemmatizeNoun("boss") must be equalTo "boss"
     }
   }
 }

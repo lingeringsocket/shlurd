@@ -63,6 +63,7 @@ class ShlurdWordnetSpec extends Specification
     "detect plain words" in
     {
       ShlurdWordnet.isPlainWord("mouse") must beTrue
+      ShlurdWordnet.isPlainWord("boss") must beTrue
       ShlurdWordnet.isPlainWord("NYC") must beFalse
     }
 

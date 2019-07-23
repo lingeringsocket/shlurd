@@ -56,9 +56,9 @@ mainClass in Compile := Some("com.lingeringsocket.shlurd.cli.ShlurdCliApp")
 
 fullClasspath in Runtime ++= (fullClasspath in cli in Runtime).value
 
-scalacOptions in (Compile, console) := Common.scalacCommonOptions :+ "-Yrepl-sync"
+scalacOptions in (Compile, console) := Common.scalacCommonOptions ++ Common.consoleOptions
 
-scalacOptions in (Test, console) := Common.scalacCommonOptions :+ "-Yrepl-sync"
+scalacOptions in (Test, console) := Common.scalacCommonOptions ++ Common.consoleOptions
 
 testOptions in Test += Tests.Setup(
   (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.ShlurdTestSetup").newInstance)

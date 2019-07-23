@@ -18,11 +18,29 @@ import com.lingeringsocket.shlurd.mind._
 
 object SpcGraphVisualizerSpec
 {
+  def formAttributes(name : String) =
+    s"""[ label="$name" shape="box" ]"""
+
+  def roleAttributes(name : String) =
+    s"""[ label="$name" shape="hexagon" ]"""
+
+  def entityAttributes(name : String) =
+    s"""[ label="$name" shape="ellipse" ]"""
+
   val taxonomyAttributes =
     """[ label="isKindOf" arrowhead="empty" ]"""
 
+  val roleTaxonomyAttributes =
+    """[ label="mustBeA" arrowhead="empty" ]"""
+
   val realizationAttributes =
     """[ label="isA" arrowhead="empty" style="dashed" ]"""
+
+  val formAssocAttributes =
+    s"""[ label="has (1)" arrowhead="open" ]"""
+
+  def entityAssocAttributes(roleName : String) =
+    s"""[ label="$roleName" arrowhead="open" ]"""
 }
 
 class SpcGraphVisualizerSpec extends SpcProcessingSpecification
@@ -86,11 +104,11 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       SpcGraphVisualizationOptions(includeIdeals = true)
     ) {
       definePowerpuffs
-      renderToString must beEqualTo("""
+      renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
-          1 [ label="SpcForm(girl)" ];
-          2 [ label="SpcForm(powerpuff)" ];
+          1 ${formAttributes("girl")};
+          2 ${formAttributes("powerpuff")};
         }
       """).ignoreSpace
     }
@@ -102,8 +120,8 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
-          1 [ label="SpcForm(powerpuff)" ];
-          2 [ label="SpcForm(girl)" ];
+          1 ${formAttributes("powerpuff")};
+          2 ${formAttributes("girl")};
           1->2 $taxonomyAttributes;
         }
       """).ignoreSpace
@@ -113,11 +131,11 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       SpcGraphVisualizationOptions(includeEntities = true)
     ) {
       definePowerpuffs
-      renderToString must beEqualTo("""
+      renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
-          1 [ label="SpcEntity(Bubblossom)" ];
-          2 [ label="SpcEntity(Buttercup)" ];
+          1 ${entityAttributes("Bubblossom")};
+          2 ${entityAttributes("Buttercup")};
         }
       """).ignoreSpace
     }
@@ -129,9 +147,9 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
-          1 [ label="SpcEntity(Bubblossom)" ];
-          2 [ label="SpcForm(powerpuff)" ];
-          3 [ label="SpcEntity(Buttercup)" ];
+          1 ${entityAttributes("Bubblossom")};
+          2 ${formAttributes("powerpuff")};
+          3 ${entityAttributes("Buttercup")};
           1->2 $realizationAttributes;
           3->2 $realizationAttributes;
         }
@@ -146,10 +164,10 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
-          1 [ label="SpcForm(powerpuff)" ];
-          2 [ label="SpcForm(girl)" ];
-          3 [ label="SpcEntity(Bubblossom)" ];
-          4 [ label="SpcEntity(Buttercup)" ];
+          1 ${formAttributes("powerpuff")};
+          2 ${formAttributes("girl")};
+          3 ${entityAttributes("Bubblossom")};
+          4 ${entityAttributes("Buttercup")};
           1->2 $taxonomyAttributes;
           3->1 $realizationAttributes;
           4->1 $realizationAttributes;
@@ -164,12 +182,12 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       definePowerpuffs
       defineProfessor
       defineTeacher
-      renderToString must beEqualTo("""
+      renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
-          1 [ label="SpcForm(powerpuff)" ];
-          2 [ label="SpcRole(powerpuff:teacher)" ];
-          1->2 [ label="teacher" ];
+          1 ${formAttributes("powerpuff")};
+          2 ${roleAttributes("teacher")};
+          1->2 $formAssocAttributes;
         }
       """).ignoreSpace
     }
@@ -184,15 +202,15 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
-          1 [ label="SpcForm(powerpuff)" ];
-          2 [ label="SpcForm(girl)" ];
-          3 [ label="SpcForm(professor)" ];
-          4 [ label="SpcForm(boy)" ];
-          5 [ label="SpcRole(powerpuff:teacher)" ];
+          1 ${formAttributes("powerpuff")};
+          2 ${formAttributes("girl")};
+          3 ${formAttributes("professor")};
+          4 ${formAttributes("boy")};
+          5 ${roleAttributes("teacher")};
           1->2 $taxonomyAttributes;
           3->4 $taxonomyAttributes;
-          5->3 $taxonomyAttributes;
-          1->5 [ label="teacher" ];
+          5->3 $roleTaxonomyAttributes;
+          1->5 $formAssocAttributes;
         }
       """).ignoreSpace
     }
@@ -211,27 +229,27 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       defineTeacher
       defineStudents
       val renderedString = renderToString
-      renderedString.size must be equalTo 739
+      renderedString.size must be equalTo 813
       renderedString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
-          1 [ label="SpcForm(girl)" ];
-          2 [ label="SpcForm(powerpuff)" ];
-          3 [ label="SpcForm(boy)" ];
-          4 [ label="SpcForm(professor)" ];
-          5 [ label="SpcRole(powerpuff:teacher)" ];
-          6 [ label="SpcEntity(Bubblossom)" ];
-          7 [ label="SpcEntity(Buttercup)" ];
-          8 [ label="SpcEntity(Utonium)" ];
+          1 ${formAttributes("girl")};
+          2 ${formAttributes("powerpuff")};
+          3 ${formAttributes("boy")};
+          4 ${formAttributes("professor")};
+          5 ${roleAttributes("teacher")};
+          6 ${entityAttributes("Bubblossom")};
+          7 ${entityAttributes("Buttercup")};
+          8 ${entityAttributes("Utonium")};
           2->1 $taxonomyAttributes;
           4->3 $taxonomyAttributes;
-          5->4 $taxonomyAttributes;
+          5->4 $roleTaxonomyAttributes;
           6->2 $realizationAttributes;
           7->2 $realizationAttributes;
           8->4 $realizationAttributes;
-          2->5 [ label="teacher" ];
-          6->8 [ label="teacher" ];
-          7->8 [ label="teacher" ];
+          2->5 $formAssocAttributes;
+          6->8 ${entityAssocAttributes("teacher")};
+          7->8 ${entityAssocAttributes("teacher")};
         }
       """).ignoreSpace
     }
@@ -249,7 +267,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       defineTeacher
       defineStudents
       val renderedString = renderToString
-      renderedString.size must be equalTo 10926
+      renderedString.size must be equalTo 13232
     }
   }
 }

@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.mind._
 
 import org.jgrapht._
 import org.jgrapht.graph._
@@ -33,6 +34,8 @@ case class SpcGraphVisualizationOptions(
   includeTaxonomy : Boolean = false,
   includeRealizations : Boolean = false,
   includeFormAssocs : Boolean = false,
+  // FIXME test this
+  includeInverses : Boolean = false,
   includeEntityAssocs : Boolean = false,
   // FIXME implement this
   includeSynonyms : Boolean = false,
@@ -46,7 +49,8 @@ object SpcGraphVisualizer
   val fullOptions = SpcGraphVisualizationOptions(
     includeIdeals = true, includeEntities = true,
     includeTaxonomy = true, includeRealizations = true,
-    includeFormAssocs = true, includeEntityAssocs = true
+    includeFormAssocs = true, includeEntityAssocs = true,
+    includeInverses = true
   )
 
   val entityFullOptions = SpcGraphVisualizationOptions(
@@ -59,11 +63,35 @@ object SpcGraphVisualizer
     includeEntityAssocs = true
   )
 
+  val shapeBox : Attribute =
+    new DefaultAttribute[String]("box", AttributeType.STRING)
+
+  val shapeEllipse : Attribute =
+    new DefaultAttribute[String]("ellipse", AttributeType.STRING)
+
+  val shapeTrapezium : Attribute =
+    new DefaultAttribute[String]("hexagon", AttributeType.STRING)
+
   val arrowEmpty =
     new DefaultAttribute[String]("empty", AttributeType.STRING)
 
+  val arrowOpen =
+    new DefaultAttribute[String]("open", AttributeType.STRING)
+
   val lineDashed =
     new DefaultAttribute[String]("dashed", AttributeType.STRING)
+
+  val formVertexAttributes = Map(
+    "shape" -> shapeBox
+  )
+
+  val roleVertexAttributes = Map(
+    "shape" -> shapeTrapezium
+  )
+
+  val entityVertexAttributes = Map(
+    "shape" -> shapeEllipse
+  )
 
   val taxonomyEdgeAttributes = Map(
     "arrowhead" -> arrowEmpty
@@ -74,7 +102,17 @@ object SpcGraphVisualizer
     "style" -> lineDashed
   )
 
-  case class CombinedVertex(label : String)
+  val assocEdgeAttributes = Map(
+    "arrowhead" -> arrowOpen
+  )
+
+  val inverseEdgeAttributes = Map(
+    "arrowhead" -> arrowOpen,
+    "arrowtail" -> arrowOpen
+  )
+
+  case class CombinedVertex(
+    obj : SmcNamedObject)
   {
   }
 
@@ -168,7 +206,7 @@ class SpcGraphVisualizer(
       idGenerator,
       new ComponentNameProvider[CombinedVertex]{
         override def getName(vertex : CombinedVertex) = {
-          vertex.label
+          vertex.obj.name
         }
       },
       new ComponentNameProvider[CombinedEdge]{
@@ -176,7 +214,17 @@ class SpcGraphVisualizer(
           edge.label
         }
       },
-      null,
+      new ComponentAttributeProvider[CombinedVertex]{
+        override def getComponentAttributes(vertex : CombinedVertex) =
+        {
+          val attrMap = vertex.obj match {
+            case _ : SpcEntity => entityVertexAttributes
+            case _ : SpcRole => roleVertexAttributes
+            case _ => formVertexAttributes
+          }
+          attrMap.asJava
+        }
+      },
       new ComponentAttributeProvider[CombinedEdge]{
         override def getComponentAttributes(edge : CombinedEdge) =
         {
@@ -185,36 +233,42 @@ class SpcGraphVisualizer(
       })
   }
 
-  private def addCombinedVertex(v : CombinedVertex) : CombinedVertex =
+  private def combineVertex(obj : SmcNamedObject) : CombinedVertex =
   {
+    val v = CombinedVertex(obj)
     combinedGraph.addVertex(v)
     v
   }
 
-  private def combineVertex(nym : SpcNym) : CombinedVertex =
+  private def combineEdge(
+    edge : SpcTaxonomyEdge, label : String) : CombinedEdge =
   {
-    addCombinedVertex(CombinedVertex(nym.toString))
-  }
-
-  private def combineVertex(entity : SpcEntity) : CombinedVertex =
-  {
-    addCombinedVertex(CombinedVertex(s"SpcEntity(${entity.name})"))
-  }
-
-  private def combineEdge(edge : SpcTaxonomyEdge) : CombinedEdge =
-  {
-    new CombinedEdge("isKindOf", taxonomyEdgeAttributes)
+    new CombinedEdge(label, taxonomyEdgeAttributes)
   }
 
   private def combineEdge(edge : SpcFormAssocEdge) : CombinedEdge =
   {
-    // FIXME render isProperty/constraint
-    new CombinedEdge(edge.getRoleName)
+    // FIXME render isProperty
+    val constraintLabel = edge.constraint match {
+      case SpcCardinalityConstraint(0, Int.MaxValue) => "0..*"
+      case SpcCardinalityConstraint(0, upper) => s"0..$upper"
+      case SpcCardinalityConstraint(lower, Int.MaxValue) => s"$lower..*"
+      case SpcCardinalityConstraint(lower, upper) => {
+        if (lower == upper) {
+          s"$lower"
+        } else {
+          s"$lower..$upper"
+        }
+      }
+    }
+    new CombinedEdge(
+      s"has ($constraintLabel)",
+      assocEdgeAttributes)
   }
 
   private def combineEdge(edge : SpcEntityAssocEdge) : CombinedEdge =
   {
-    new CombinedEdge(edge.getRoleName)
+    new CombinedEdge(edge.getRoleName, assocEdgeAttributes)
   }
 
   private def includeIdeal(ideal : SpcIdeal) : Boolean =
@@ -250,10 +304,15 @@ class SpcGraphVisualizer(
         val subclass = graph.getSubclassIdeal(e)
         val superclass = graph.getSuperclassIdeal(e)
         if (includeIdeal(subclass) && includeIdeal(superclass)) {
+          val label = tupleN((superclass, subclass)) match {
+            case (_ : SpcForm, _ : SpcRole) => "mustBeA"
+            case (_ : SpcRole, _ : SpcRole) => "refines"
+            case _ => "isKindOf"
+          }
           combinedGraph.addEdge(
             combineVertex(subclass),
             combineVertex(superclass),
-            combineEdge(e))
+            combineEdge(e, label))
         }
       })
     }
@@ -283,6 +342,14 @@ class SpcGraphVisualizer(
             combineVertex(possessor),
             combineVertex(possessee),
             combineEdge(e))
+          if (options.includeInverses) {
+            graph.getInverseAssocEdge(e).forall(inverse => {
+              combinedGraph.addEdge(
+                combineVertex(possessee),
+                combineVertex(graph.getPossesseeRole(inverse)),
+                new CombinedEdge("isInverseOf", inverseEdgeAttributes))
+            })
+          }
         }
       })
     }

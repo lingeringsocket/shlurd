@@ -957,14 +957,7 @@ class SpcCosmos(
   def getInverseAssocEdge(edge : SpcFormAssocEdge)
       : Option[SpcFormAssocEdge] =
   {
-    val inverseAssocs = graph.inverseAssocs
-    if (!inverseAssocs.containsVertex(edge)) {
-      None
-    } else {
-      val neighbors = Graphs.neighborListOf(inverseAssocs, edge)
-      assert(!neighbors.isEmpty)
-      Some(neighbors.get(0))
-    }
+    graph.getInverseAssocEdge(edge)
   }
 
   protected[platonic] def connectInverseAssocEdges(

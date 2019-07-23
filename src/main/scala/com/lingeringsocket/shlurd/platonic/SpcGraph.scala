@@ -467,6 +467,18 @@ class SpcGraph(
     None
   }
 
+  def getInverseAssocEdge(edge : SpcFormAssocEdge)
+      : Option[SpcFormAssocEdge] =
+  {
+    if (!inverseAssocs.containsVertex(edge)) {
+      None
+    } else {
+      val neighbors = Graphs.neighborListOf(inverseAssocs, edge)
+      assert(!neighbors.isEmpty)
+      Some(neighbors.get(0))
+    }
+  }
+
   def isHyponym(
     hyponymIdeal : SpcIdeal,
     hypernymIdealOpt : Option[SpcIdeal]) : Boolean =

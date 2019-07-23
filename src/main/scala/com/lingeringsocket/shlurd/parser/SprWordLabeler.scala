@@ -111,6 +111,9 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
             rawWords.filterNot(_.getPOS == POS.NOUN)
           } else if (token == LEMMA_OR) {
             rawWords.filterNot(_.getLemma == LEMMA_OR)
+          } else if (tokenSuffix == "boss") {
+            // FIXME ugh
+            rawWords.filterNot(_.getLemma == "bos")
           } else {
             rawWords.filterNot(raw => (raw.getLemma == tokenSuffix) &&
               rawWords.exists(other =>
@@ -245,7 +248,9 @@ class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
         case noun : SprSyntaxNoun => noun.isProper
         case _ => false
       }
-      if (!seq.last.isNoun) {
+      if (seq.head.hasTerminalLemma(LEMMA_A)) {
+        false
+      } else if (!seq.last.isNoun) {
         false
       } else if (seq.forall(isProperNoun)) {
         true
