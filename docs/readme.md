@@ -1,6 +1,6 @@
 # Ontology
 
-You can teach me what kinds of things may exist, and how they are
+I am eager to find out what kinds of things may exist, and how they are
 related, and their attributes.
 
 ## Taxonomy
@@ -49,6 +49,27 @@ A big crossbow exists.
 Anonymous instances may be qualified (like the big crossbow), but I'm
 not yet capable of understanding named objects which are qualified
 (e.g. ```Orcrist is an elvish sword```).
+
+Now I can answer questions about what exists:
+
+```scala mdoc:processConversation
+> what weapons exist
+
+Glamdring, Orcrist, a halberd, and a big crossbow.
+
+> how many swords are there
+
+Two of them.
+
+> is Orcrist a crossbow
+
+No.
+
+> what is Glamdring
+
+A sword.
+```
+
 
 ## Associations
 
@@ -100,9 +121,34 @@ Quebec is Canada's province.
 Saskatchewan is Canada's province.
 ```
 
+Now I can answer questions about how things are connected:
+
+```scala mdoc:processConversation
+> what is Canada's capital
+
+Ottawa.
+
+> is Ottawa Greece's capital
+
+No.
+
+> which territories are Canada's provinces
+
+Quebec and Saskatchewan.
+
+> what is Athens
+
+Greece's capital.
+
+> what is Greece
+
+A nation.
+```
+
+
 ## Inverses
 
-You can tell me that one association is the inverse of another.
+You can tell me that one association is the inverse of another:
 
 ```scala mdoc:renderBelief:assets/inverses.png
 A student's mentor must be a professor.
@@ -116,5 +162,45 @@ Alexander is a student.
 Aristotle is Alexander's mentor.
 ```
 
-After learning that Aristotle is Alexander's mentor, I was able to
-automatically infer that Alexander is Aristotle's protege.
+After learning that Aristotle is Alexander's mentor, I am able to
+infer automatically that Alexander is Aristotle's protege.
+
+## Refinements
+
+You can tell me how associations may be refined.  For example,
+motherhood is a refinement of being a parent.  Here's a complete example:
+
+```scala mdoc:renderBelief:assets/refinement.png
+A celebrity is a kind of performer.
+A movie's actor must be a performer.
+// FIXME order of next two should not matter
+A movie's star is a kind of actor.
+A movie's star must be a celebrity.
+// FIXME we should preserve refined role on edge association
+A movie's extra is a kind of actor.
+Thor is a movie.
+Hemsworth is a celebrity.
+Pingle is a performer.
+Hemsworth is Thor's star.
+Pingle is Thor's extra.
+```
+
+Now I know how to group together actors generically, or discriminate
+them as stars or extras:
+
+```scala mdoc:processConversation
+> who are Thor's actors
+
+Hemsworth and Pingle.
+
+> who are Thor's stars
+
+Hemsworth.
+
+// FIXME:  wrong!
+
+> who are Thor's extras
+
+Hemsworth and Pingle.
+
+```
