@@ -34,7 +34,6 @@ case class SpcGraphVisualizationOptions(
   includeTaxonomy : Boolean = false,
   includeRealizations : Boolean = false,
   includeFormAssocs : Boolean = false,
-  // FIXME test this
   includeInverses : Boolean = false,
   includeEntityAssocs : Boolean = false,
   // FIXME implement this
@@ -69,7 +68,7 @@ object SpcGraphVisualizer
   val shapeEllipse : Attribute =
     new DefaultAttribute[String]("ellipse", AttributeType.STRING)
 
-  val shapeTrapezium : Attribute =
+  val shapeHexagon : Attribute =
     new DefaultAttribute[String]("hexagon", AttributeType.STRING)
 
   val arrowEmpty =
@@ -81,12 +80,18 @@ object SpcGraphVisualizer
   val lineDashed =
     new DefaultAttribute[String]("dashed", AttributeType.STRING)
 
+  val lineBold =
+    new DefaultAttribute[String]("bold", AttributeType.STRING)
+
+  val dirBoth =
+    new DefaultAttribute[String]("both", AttributeType.STRING)
+
   val formVertexAttributes = Map(
     "shape" -> shapeBox
   )
 
   val roleVertexAttributes = Map(
-    "shape" -> shapeTrapezium
+    "shape" -> shapeHexagon
   )
 
   val entityVertexAttributes = Map(
@@ -94,6 +99,11 @@ object SpcGraphVisualizer
   )
 
   val taxonomyEdgeAttributes = Map(
+    "arrowhead" -> arrowEmpty,
+    "style" -> lineBold
+  )
+
+  val roleTaxonomyEdgeAttributes = Map(
     "arrowhead" -> arrowEmpty
   )
 
@@ -103,12 +113,12 @@ object SpcGraphVisualizer
   )
 
   val assocEdgeAttributes = Map(
-    "arrowhead" -> arrowOpen
+    "arrowhead" -> arrowOpen,
+    "style" -> lineBold
   )
 
   val inverseEdgeAttributes = Map(
-    "arrowhead" -> arrowOpen,
-    "arrowtail" -> arrowOpen
+    "dir" -> dirBoth
   )
 
   case class CombinedVertex(
@@ -243,7 +253,14 @@ class SpcGraphVisualizer(
   private def combineEdge(
     edge : SpcTaxonomyEdge, label : String) : CombinedEdge =
   {
-    new CombinedEdge(label, taxonomyEdgeAttributes)
+    val attrMap = {
+      if (label == "mustBeA") {
+        roleTaxonomyEdgeAttributes
+      } else {
+        taxonomyEdgeAttributes
+      }
+    }
+    new CombinedEdge(label, attrMap)
   }
 
   private def combineEdge(edge : SpcFormAssocEdge) : CombinedEdge =
@@ -338,18 +355,20 @@ class SpcGraphVisualizer(
         val possessor = graph.getPossessorForm(e)
         val possessee = graph.getPossesseeRole(e)
         if (includeIdeal(possessor) && includeIdeal(possessee)) {
+          if (options.includeInverses) {
+            graph.getInverseAssocEdge(e).foreach(inverse => {
+              if (e.hashCode <= inverse.hashCode) {
+                combinedGraph.addEdge(
+                  combineVertex(possessee),
+                  combineVertex(graph.getPossesseeRole(inverse)),
+                  new CombinedEdge("isInverseOf", inverseEdgeAttributes))
+              }
+            })
+          }
           combinedGraph.addEdge(
             combineVertex(possessor),
             combineVertex(possessee),
             combineEdge(e))
-          if (options.includeInverses) {
-            graph.getInverseAssocEdge(e).forall(inverse => {
-              combinedGraph.addEdge(
-                combineVertex(possessee),
-                combineVertex(graph.getPossesseeRole(inverse)),
-                new CombinedEdge("isInverseOf", inverseEdgeAttributes))
-            })
-          }
         }
       })
     }

@@ -28,7 +28,7 @@ object SpcGraphVisualizerSpec
     s"""[ label="$name" shape="ellipse" ]"""
 
   val taxonomyAttributes =
-    """[ label="isKindOf" arrowhead="empty" ]"""
+    """[ label="isKindOf" arrowhead="empty" style="bold" ]"""
 
   val roleTaxonomyAttributes =
     """[ label="mustBeA" arrowhead="empty" ]"""
@@ -36,11 +36,14 @@ object SpcGraphVisualizerSpec
   val realizationAttributes =
     """[ label="isA" arrowhead="empty" style="dashed" ]"""
 
-  val formAssocAttributes =
-    s"""[ label="has (1)" arrowhead="open" ]"""
+  def formAssocAttributes(constraint : String) =
+    s"""[ label="has ($constraint)" arrowhead="open" style="bold" ]"""
+
+  val inverseAssocAttributes =
+    s"""[ label="isInverseOf" dir="both" ]"""
 
   def entityAssocAttributes(roleName : String) =
-    s"""[ label="$roleName" arrowhead="open" ]"""
+    s"""[ label="$roleName" arrowhead="open" style="bold" ]"""
 }
 
 class SpcGraphVisualizerSpec extends SpcProcessingSpecification
@@ -77,6 +80,13 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
     {
       addBelief("a powerpuff's teacher must be a professor")
       addBelief("a powerpuff must have a teacher")
+    }
+
+    protected def defineInverse()
+    {
+      addBelief("a professor's student must be a powerpuff")
+      addBelief("if a professor is a powerpuff's teacher, then equivalently " +
+        "the powerpuff is the professor's student")
     }
 
     protected def defineStudents()
@@ -187,7 +197,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
           rankdir=LR;
           1 ${formAttributes("powerpuff")};
           2 ${roleAttributes("teacher")};
-          1->2 $formAssocAttributes;
+          1->2 ${formAssocAttributes("1")};
         }
       """).ignoreSpace
     }
@@ -210,7 +220,28 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
           1->2 $taxonomyAttributes;
           3->4 $taxonomyAttributes;
           5->3 $roleTaxonomyAttributes;
-          1->5 $formAssocAttributes;
+          1->5 ${formAssocAttributes("1")};
+        }
+      """).ignoreSpace
+    }
+
+    "visualize inverse associations" in new VisualizationContext(
+      SpcGraphVisualizationOptions(
+        includeFormAssocs = true,
+        includeInverses = true)
+    ) {
+      defineTeacher
+      defineInverse
+      renderToString must beEqualTo(s"""
+        strict digraph G {
+          rankdir=LR;
+          1 ${roleAttributes("teacher")};
+          2 ${roleAttributes("student")};
+          3 ${formAttributes("powerpuff")};
+          4 ${formAttributes("professor")};
+          1->2 $inverseAssocAttributes;
+          3->1 ${formAssocAttributes("1")};
+          4->2 ${formAssocAttributes("0..*")};
         }
       """).ignoreSpace
     }
@@ -229,7 +260,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       defineTeacher
       defineStudents
       val renderedString = renderToString
-      renderedString.size must be equalTo 813
+      renderedString.size must be equalTo 878
       renderedString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
@@ -247,7 +278,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
           6->2 $realizationAttributes;
           7->2 $realizationAttributes;
           8->4 $realizationAttributes;
-          2->5 $formAssocAttributes;
+          2->5 ${formAssocAttributes("1")};
           6->8 ${entityAssocAttributes("teacher")};
           7->8 ${entityAssocAttributes("teacher")};
         }
@@ -267,7 +298,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       defineTeacher
       defineStudents
       val renderedString = renderToString
-      renderedString.size must be equalTo 13232
+      renderedString.size must be equalTo 15104
     }
   }
 }
