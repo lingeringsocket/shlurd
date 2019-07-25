@@ -255,7 +255,8 @@ class SpcGraphVisualizer(
                 val propertyMap =
                   graph.entityPropertyIndex.accessComponentMap(entity)
                 "{" + simpleName(entity) + "|" +
-                    propertyMap.map(ps => ps._1 + "=" + ps._2.lemma).mkString("|") + "}"
+                    propertyMap.map(ps => ps._1 + "=" +
+                      ps._2.lemma).mkString("|") + "}"
               } else {
                 simpleName(entity)
               }
@@ -366,7 +367,7 @@ class SpcGraphVisualizer(
               if (options.includeProperties) {
                 ideal matchPartial {
                   case form : SpcForm => {
-                    val propertyMap = 
+                    val propertyMap =
                       graph.formPropertyIndex.accessComponentMap(form)
                     propertyMap.values foreach(property => {
                       val propertyVertex = combineVertex(property)
