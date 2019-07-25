@@ -19,37 +19,37 @@ import com.lingeringsocket.shlurd.mind._
 object SpcGraphVisualizerSpec
 {
   def formAttributes(name : String) =
-    s"""[ label="$name" shape="box" ]"""
+    s"""[ label="$name" shape="box" style="bold" ]"""
 
   def roleAttributes(name : String) =
-    s"""[ label="$name" shape="hexagon" ]"""
+    s"""[ label="$name" shape="hexagon" style="bold" ]"""
 
   def entityAttributes(name : String) =
     s"""[ label="$name" shape="ellipse" ]"""
 
   def synonymAttributes(name : String) =
-    s"""[ label="$name" shape="pentagon" ]"""
+    s"""[ label="$name" shape="pentagon" style="bold" ]"""
 
   val taxonomyAttributes =
     """[ label="isKindOf" arrowhead="empty" style="bold" ]"""
 
   val roleTaxonomyAttributes =
-    """[ label="mustBeA" arrowhead="empty" ]"""
+    """[ label="mustBeA" arrowhead="empty" style="bold" ]"""
 
   val realizationAttributes =
     """[ label="isA" arrowhead="empty" style="dashed" ]"""
 
   val synonymEdgeAttributes =
-    """[ label="isSynonymFor" arrowhead="open" ]"""
+    """[ label="isSynonymFor" arrowhead="open" style="bold" ]"""
 
   def formAssocAttributes(constraint : String) =
     s"""[ label="has ($constraint)" arrowhead="open" style="bold" ]"""
 
   val inverseAssocAttributes =
-    s"""[ label="isInverseOf" dir="both" ]"""
+    s"""[ label="isInverseOf" dir="both" style="bold" ]"""
 
   def entityAssocAttributes(roleName : String) =
-    s"""[ label="$roleName" arrowhead="open" style="bold" ]"""
+    s"""[ label="$roleName" arrowhead="open" ]"""
 }
 
 class SpcGraphVisualizerSpec extends SpcProcessingSpecification
@@ -287,7 +287,6 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       defineTeacher
       defineStudents
       val renderedString = renderToString
-      renderedString.size must be equalTo 878
       renderedString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
@@ -310,6 +309,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
           7->8 ${entityAssocAttributes("teacher")};
         }
       """).ignoreSpace
+      renderedString.size must be equalTo 930
     }
 
     "include meta"  in new VisualizationContext(
@@ -325,7 +325,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       defineTeacher
       defineStudents
       val renderedString = renderToString
-      renderedString.size must be equalTo 15104
+      renderedString.size must be equalTo 14038
     }
   }
 }

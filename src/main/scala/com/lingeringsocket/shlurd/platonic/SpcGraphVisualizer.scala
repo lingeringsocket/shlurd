@@ -61,43 +61,32 @@ object SpcGraphVisualizer
     includeEntityAssocs = true
   )
 
-  val shapeBox : Attribute =
-    new DefaultAttribute[String]("box", AttributeType.STRING)
+  val shapeBox = stringAttribute("box")
+  val shapeEllipse = stringAttribute("ellipse")
+  val shapeHexagon = stringAttribute("hexagon")
+  val shapePentagon = stringAttribute("pentagon")
 
-  val shapeEllipse : Attribute =
-    new DefaultAttribute[String]("ellipse", AttributeType.STRING)
+  val arrowEmpty = stringAttribute("empty")
+  val arrowOpen = stringAttribute("open")
 
-  val shapeHexagon : Attribute =
-    new DefaultAttribute[String]("hexagon", AttributeType.STRING)
+  val styleDashed = stringAttribute("dashed")
+  val styleBold = stringAttribute("bold")
 
-  val shapePentagon : Attribute =
-    new DefaultAttribute[String]("pentagon", AttributeType.STRING)
-
-  val arrowEmpty =
-    new DefaultAttribute[String]("empty", AttributeType.STRING)
-
-  val arrowOpen =
-    new DefaultAttribute[String]("open", AttributeType.STRING)
-
-  val lineDashed =
-    new DefaultAttribute[String]("dashed", AttributeType.STRING)
-
-  val lineBold =
-    new DefaultAttribute[String]("bold", AttributeType.STRING)
-
-  val dirBoth =
-    new DefaultAttribute[String]("both", AttributeType.STRING)
+  val dirBoth = stringAttribute("both")
 
   val formVertexAttributes = Map(
-    "shape" -> shapeBox
+    "shape" -> shapeBox,
+    "style" -> styleBold
   )
 
   val roleVertexAttributes = Map(
-    "shape" -> shapeHexagon
+    "shape" -> shapeHexagon,
+    "style" -> styleBold
   )
 
   val synonymVertexAttributes = Map(
-    "shape" -> shapePentagon
+    "shape" -> shapePentagon,
+    "style" -> styleBold
   )
 
   val entityVertexAttributes = Map(
@@ -106,29 +95,36 @@ object SpcGraphVisualizer
 
   val taxonomyEdgeAttributes = Map(
     "arrowhead" -> arrowEmpty,
-    "style" -> lineBold
+    "style" -> styleBold
   )
 
   val roleTaxonomyEdgeAttributes = Map(
-    "arrowhead" -> arrowEmpty
+    "arrowhead" -> arrowEmpty,
+    "style" -> styleBold
   )
 
   val realizationEdgeAttributes = Map(
     "arrowhead" -> arrowEmpty,
-    "style" -> lineDashed
+    "style" -> styleDashed
   )
 
-  val assocEdgeAttributes = Map(
+  val formAssocEdgeAttributes = Map(
     "arrowhead" -> arrowOpen,
-    "style" -> lineBold
+    "style" -> styleBold
+  )
+
+  val entityAssocEdgeAttributes = Map(
+    "arrowhead" -> arrowOpen
   )
 
   val inverseEdgeAttributes = Map(
-    "dir" -> dirBoth
+    "dir" -> dirBoth,
+    "style" -> styleBold
   )
 
   val synonymEdgeAttributes = Map(
-    "arrowhead" -> arrowOpen
+    "arrowhead" -> arrowOpen,
+    "style" -> styleBold
   )
 
   case class CombinedVertex(
@@ -143,6 +139,11 @@ object SpcGraphVisualizer
   }
 
   type CombinedGraph = Graph[CombinedVertex, CombinedEdge]
+
+  private def stringAttribute(value : String) : Attribute =
+  {
+    new DefaultAttribute[String](value, AttributeType.STRING)
+  }
 
   def displayFull(graph : SpcGraph)
   {
@@ -296,12 +297,12 @@ class SpcGraphVisualizer(
     }
     new CombinedEdge(
       s"has ($constraintLabel)",
-      assocEdgeAttributes)
+      formAssocEdgeAttributes)
   }
 
   private def combineEdge(edge : SpcEntityAssocEdge) : CombinedEdge =
   {
-    new CombinedEdge(edge.getRoleName, assocEdgeAttributes)
+    new CombinedEdge(edge.getRoleName, entityAssocEdgeAttributes)
   }
 
   private def includeIdeal(ideal : SpcIdeal) : Boolean =

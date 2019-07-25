@@ -106,15 +106,15 @@ You can connect particular instances of forms via their associations:
 
 ```scala mdoc:renderBelief:assets/assocInstantiation.png
 A nation's capital must be a city.
-A nation's province must be a territory.
+A nation's province must be a region.
 A nation may have provinces.
 A nation must have a capital.
 Canada is a nation.
 Greece is a nation.
 Ottawa is a city.
 Athens is a city.
-Quebec is a territory.
-Saskatchewan is a territory.
+Quebec is a region.
+Saskatchewan is a region.
 Ottawa is Canada's capital.
 Athens is Greece's capital.
 Quebec is Canada's province.
@@ -132,7 +132,7 @@ Ottawa.
 
 No.
 
-> which territories are Canada's provinces
+> which regions are Canada's provinces
 
 Quebec and Saskatchewan.
 
