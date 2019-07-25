@@ -37,8 +37,7 @@ case class SpcGraphVisualizationOptions(
   includeInverses : Boolean = false,
   includeEntityAssocs : Boolean = false,
   includeSynonyms : Boolean = false,
-  // FIXME implement this
-  includeComponents : Boolean = false,
+  includeProperties : Boolean = false,
   includeMeta : Boolean = false
 )
 
@@ -48,12 +47,13 @@ object SpcGraphVisualizer
     includeIdeals = true, includeEntities = true,
     includeTaxonomy = true, includeRealizations = true,
     includeFormAssocs = true, includeEntityAssocs = true,
-    includeInverses = true, includeSynonyms = true
+    includeInverses = true, includeSynonyms = true,
+    includeProperties = true
   )
 
   val entityFullOptions = SpcGraphVisualizationOptions(
     includeEntities = true, includeRealizations = true,
-    includeEntityAssocs = true
+    includeEntityAssocs = true, includeProperties = true
   )
 
   val entityAssocOptions = SpcGraphVisualizationOptions(
@@ -62,6 +62,8 @@ object SpcGraphVisualizer
   )
 
   val shapeBox = stringAttribute("box")
+  val shapeRecord = stringAttribute("record")
+  val shapeMRecord = stringAttribute("Mrecord")
   val shapeEllipse = stringAttribute("ellipse")
   val shapeHexagon = stringAttribute("hexagon")
   val shapePentagon = stringAttribute("pentagon")
@@ -89,8 +91,13 @@ object SpcGraphVisualizer
     "style" -> styleBold
   )
 
+  val formPropertyVertexAttributes = Map(
+    "shape" -> shapeRecord,
+    "style" -> styleBold
+  )
+
   val entityVertexAttributes = Map(
-    "shape" -> shapeEllipse
+    "shape" -> shapeMRecord
   )
 
   val taxonomyEdgeAttributes = Map(
@@ -110,6 +117,11 @@ object SpcGraphVisualizer
 
   val formAssocEdgeAttributes = Map(
     "arrowhead" -> arrowOpen,
+    "style" -> styleBold
+  )
+
+  val formPropertyEdgeAttributes = Map(
+    "arrowhead" -> shapeBox,
     "style" -> styleBold
   )
 
@@ -232,7 +244,26 @@ class SpcGraphVisualizer(
       idGenerator,
       new ComponentNameProvider[CombinedVertex]{
         override def getName(vertex : CombinedVertex) = {
-          simpleName(vertex.obj)
+          vertex.obj match {
+            case property : SpcProperty => {
+              val values = graph.propertyStateIndex.
+                accessComponentMap(property).values.map(_.inflected)
+              "{" + simpleName(property) + "|{" + values.mkString("|") + "}}"
+            }
+            case entity : SpcEntity => {
+              if (options.includeProperties) {
+                val propertyMap =
+                  graph.entityPropertyIndex.accessComponentMap(entity)
+                "{" + simpleName(entity) + "|" +
+                    propertyMap.map(ps => ps._1 + "=" + ps._2.lemma).mkString("|") + "}"
+              } else {
+                simpleName(entity)
+              }
+            }
+            case obj => {
+              simpleName(obj)
+            }
+          }
         }
       },
       new ComponentNameProvider[CombinedEdge]{
@@ -247,6 +278,7 @@ class SpcGraphVisualizer(
             case _ : SpcEntity => entityVertexAttributes
             case _ : SpcRole => roleVertexAttributes
             case _ : SpcIdealSynonym => synonymVertexAttributes
+            case _ : SpcProperty => formPropertyVertexAttributes
             case _ => formVertexAttributes
           }
           attrMap.asJava
@@ -330,7 +362,23 @@ class SpcGraphVisualizer(
         nym matchPartial {
           case ideal : SpcIdeal => {
             if (includeIdeal(ideal)) {
-              combineVertex(ideal)
+              val idealVertex = combineVertex(ideal)
+              if (options.includeProperties) {
+                ideal matchPartial {
+                  case form : SpcForm => {
+                    val propertyMap = 
+                      graph.formPropertyIndex.accessComponentMap(form)
+                    propertyMap.values foreach(property => {
+                      val propertyVertex = combineVertex(property)
+                      combinedGraph.addEdge(
+                        idealVertex,
+                        propertyVertex,
+                        new CombinedEdge(
+                          "hasProperty", formPropertyEdgeAttributes))
+                    })
+                  }
+                }
+              }
             }
           }
           case synonym : SpcIdealSynonym => {
@@ -369,12 +417,12 @@ class SpcGraphVisualizer(
     if (options.includeEntities || options.includeRealizations) {
       graph.entitySynonyms.vertexSet.asScala.toSeq.
         filter(_.isInstanceOf[SpcEntity]).map(_.asInstanceOf[SpcEntity]).
-        foreach(v => if (includeEntity(v)) {
-          combineVertex(v)
+        foreach(entity => if (includeEntity(entity)) {
+          val entityVertex = combineVertex(entity)
           if (options.includeRealizations) {
             combinedGraph.addEdge(
-              combineVertex(v),
-              combineVertex(v.form),
+              entityVertex,
+              combineVertex(entity.form),
               new CombinedEdge(
                 "isA",
                 realizationEdgeAttributes

@@ -221,6 +221,7 @@ Felix is a cat.
 Oscar is a person.
 Fido is Oscar's pet.
 ```
+
 Then you can use them interchangeably:
 
 ```scala mdoc:processConversation
@@ -236,4 +237,19 @@ Felix.
 
 Fido.
 
+```
+
+## Properties
+
+You can tell me about the properties of objects:
+
+```scala mdoc:renderBelief:assets/properties.png
+A beverage's size must be small, medium, or large.
+A cappuccino is a kind of beverage.
+A cappuccino's size must be small or large.
+A customer may have orders.
+Luigi is a customer.
+There is a cappuccino.
+The cappuccino is Luigi's order.
+The cappuccino is large.
 ```

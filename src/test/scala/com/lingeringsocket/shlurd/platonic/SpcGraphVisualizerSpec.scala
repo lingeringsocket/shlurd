@@ -21,11 +21,14 @@ object SpcGraphVisualizerSpec
   def formAttributes(name : String) =
     s"""[ label="$name" shape="box" style="bold" ]"""
 
+  def formPropertyAttributes(name : String) =
+    s"""[ label="$name" shape="record" style="bold" ]"""
+
   def roleAttributes(name : String) =
     s"""[ label="$name" shape="hexagon" style="bold" ]"""
 
   def entityAttributes(name : String) =
-    s"""[ label="$name" shape="ellipse" ]"""
+    s"""[ label="$name" shape="Mrecord" ]"""
 
   def synonymAttributes(name : String) =
     s"""[ label="$name" shape="pentagon" style="bold" ]"""
@@ -41,6 +44,9 @@ object SpcGraphVisualizerSpec
 
   val synonymEdgeAttributes =
     """[ label="isSynonymFor" arrowhead="open" style="bold" ]"""
+
+  val formPropertyEdgeAttributes =
+    """[ label="hasProperty" arrowhead="box" style="bold" ]"""
 
   def formAssocAttributes(constraint : String) =
     s"""[ label="has ($constraint)" arrowhead="open" style="bold" ]"""
@@ -74,6 +80,15 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       addBelief("a powerpuff is a kind of girl")
       addBelief("Bubblossom is a powerpuff")
       addBelief("Buttercup is a powerpuff")
+    }
+
+    protected def defineProperties()
+    {
+      addBelief("a girl's demeanor may be feisty or demure")
+      addBelief("a powerpuff's demeanor must be feisty")
+      addBelief("a powerpuff's awakeness may be asleep or awake")
+      addBelief("Bubblossom is awake")
+      addBelief("Buttercup is asleep")
     }
 
     protected def defineProfessor()
@@ -269,6 +284,33 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
           1->2 $inverseAssocAttributes;
           3->1 ${formAssocAttributes("1")};
           4->2 ${formAssocAttributes("0..*")};
+        }
+      """).ignoreSpace
+    }
+
+    "visualize properties" in new VisualizationContext(
+      SpcGraphVisualizationOptions(
+        includeIdeals = true, includeTaxonomy = true,
+        includeRealizations = true, includeProperties = true)
+    ) {
+      definePowerpuffs
+      defineProperties
+      renderToString must beEqualTo(s"""
+        strict digraph G {
+          rankdir=BT;
+          1 ${formAttributes("girl")};
+          2 ${formPropertyAttributes("{demeanor|{feisty|demure}}")};
+          3 ${formAttributes("powerpuff")};
+          4 ${formPropertyAttributes("{demeanor|{feisty}}")};
+          5 ${formPropertyAttributes("{awakeness|{asleep|awake}}")};
+          6 ${entityAttributes("{Bubblossom|awakeness=awake}")};
+          7 ${entityAttributes("{Buttercup|awakeness=asleep}")};
+          1->2 $formPropertyEdgeAttributes;
+          3->4 $formPropertyEdgeAttributes;
+          3->5 $formPropertyEdgeAttributes;
+          3->1 $taxonomyAttributes;
+          6->3 $realizationAttributes;
+          7->3 $realizationAttributes;
         }
       """).ignoreSpace
     }
