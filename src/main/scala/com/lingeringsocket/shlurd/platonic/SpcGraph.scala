@@ -453,6 +453,13 @@ class SpcGraph(
   def getPossesseeEntity(edge : SpcEntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
 
+  def getIdealBySynonym(
+    synonym : SpcIdealSynonym) : SpcIdeal =
+  {
+    Graphs.successorListOf(
+      idealSynonyms, synonym).iterator.next.asInstanceOf[SpcIdeal]
+  }
+
   def getFormAssocEdge(
     possessor : SpcIdeal,
     role : SpcRole) : Option[SpcFormAssocEdge] =

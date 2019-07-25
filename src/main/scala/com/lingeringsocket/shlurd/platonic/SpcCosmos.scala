@@ -540,8 +540,7 @@ class SpcCosmos(
     synonym : SpcIdealSynonym) : Option[SpcIdeal] =
   {
     if (graph.idealSynonyms.containsVertex(synonym)) {
-      Some(Graphs.successorListOf(
-        graph.idealSynonyms, synonym).iterator.next.asInstanceOf[SpcIdeal])
+      Some(graph.getIdealBySynonym(synonym))
     } else {
       None
     }

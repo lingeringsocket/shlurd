@@ -27,6 +27,9 @@ object SpcGraphVisualizerSpec
   def entityAttributes(name : String) =
     s"""[ label="$name" shape="ellipse" ]"""
 
+  def synonymAttributes(name : String) =
+    s"""[ label="$name" shape="pentagon" ]"""
+
   val taxonomyAttributes =
     """[ label="isKindOf" arrowhead="empty" style="bold" ]"""
 
@@ -35,6 +38,9 @@ object SpcGraphVisualizerSpec
 
   val realizationAttributes =
     """[ label="isA" arrowhead="empty" style="dashed" ]"""
+
+  val synonymEdgeAttributes =
+    """[ label="isSynonymFor" arrowhead="open" ]"""
 
   def formAssocAttributes(constraint : String) =
     s"""[ label="has ($constraint)" arrowhead="open" style="bold" ]"""
@@ -95,6 +101,11 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       addBelief("Utonium is Buttercup's teacher")
     }
 
+    protected def defineSynonyms()
+    {
+      addBelief("a heroine is a powerpuff")
+    }
+
     protected def renderToString() : String =
     {
       val visualizer = new SpcGraphVisualizer(cosmos.getGraph, options)
@@ -119,6 +130,22 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
           rankdir=LR;
           1 ${formAttributes("girl")};
           2 ${formAttributes("powerpuff")};
+        }
+      """).ignoreSpace
+    }
+
+    "visualize synonyms" in new VisualizationContext(
+      SpcGraphVisualizationOptions(includeIdeals = true, includeSynonyms = true)
+    ) {
+      definePowerpuffs
+      defineSynonyms
+      renderToString must beEqualTo(s"""
+        strict digraph G {
+          rankdir=LR;
+          1 ${formAttributes("girl")};
+          2 ${formAttributes("powerpuff")};
+          3 ${synonymAttributes("heroine")};
+          3->2 $synonymEdgeAttributes;
         }
       """).ignoreSpace
     }

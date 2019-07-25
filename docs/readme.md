@@ -204,3 +204,36 @@ Hemsworth.
 Hemsworth and Pingle.
 
 ```
+
+## Synonyms
+
+You can tell me alternate names for things:
+
+```scala mdoc:renderBelief:assets/synonyms.png
+A dog is a kind of animal.
+A cat is a kind of animal.
+A person's pet must be an animal.
+A person's companion is a pet.
+A doggie is a dog.
+A kitty is a cat.
+Fido is a doggie.
+Felix is a cat.
+Oscar is a person.
+Fido is Oscar's pet.
+```
+Then you can use them interchangeably:
+
+```scala mdoc:processConversation
+> Is Fido a dog?
+
+Yes.
+
+> Which kitties exist?
+
+Felix.
+
+> What is Oscar's companion?
+
+Fido.
+
+```

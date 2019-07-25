@@ -36,7 +36,6 @@ case class SpcGraphVisualizationOptions(
   includeFormAssocs : Boolean = false,
   includeInverses : Boolean = false,
   includeEntityAssocs : Boolean = false,
-  // FIXME implement this
   includeSynonyms : Boolean = false,
   // FIXME implement this
   includeComponents : Boolean = false,
@@ -49,7 +48,7 @@ object SpcGraphVisualizer
     includeIdeals = true, includeEntities = true,
     includeTaxonomy = true, includeRealizations = true,
     includeFormAssocs = true, includeEntityAssocs = true,
-    includeInverses = true
+    includeInverses = true, includeSynonyms = true
   )
 
   val entityFullOptions = SpcGraphVisualizationOptions(
@@ -70,6 +69,9 @@ object SpcGraphVisualizer
 
   val shapeHexagon : Attribute =
     new DefaultAttribute[String]("hexagon", AttributeType.STRING)
+
+  val shapePentagon : Attribute =
+    new DefaultAttribute[String]("pentagon", AttributeType.STRING)
 
   val arrowEmpty =
     new DefaultAttribute[String]("empty", AttributeType.STRING)
@@ -92,6 +94,10 @@ object SpcGraphVisualizer
 
   val roleVertexAttributes = Map(
     "shape" -> shapeHexagon
+  )
+
+  val synonymVertexAttributes = Map(
+    "shape" -> shapePentagon
   )
 
   val entityVertexAttributes = Map(
@@ -119,6 +125,10 @@ object SpcGraphVisualizer
 
   val inverseEdgeAttributes = Map(
     "dir" -> dirBoth
+  )
+
+  val synonymEdgeAttributes = Map(
+    "arrowhead" -> arrowOpen
   )
 
   case class CombinedVertex(
@@ -210,13 +220,18 @@ class SpcGraphVisualizer(
     exporter.exportGraph(combinedGraph, writer)
   }
 
+  private def simpleName(obj : SmcNamedObject) : String =
+  {
+    obj.name.split(":").last
+  }
+
   private def createDotExporter() =
   {
     new DOTExporter[CombinedVertex, CombinedEdge](
       idGenerator,
       new ComponentNameProvider[CombinedVertex]{
         override def getName(vertex : CombinedVertex) = {
-          vertex.obj.name
+          simpleName(vertex.obj)
         }
       },
       new ComponentNameProvider[CombinedEdge]{
@@ -230,6 +245,7 @@ class SpcGraphVisualizer(
           val attrMap = vertex.obj match {
             case _ : SpcEntity => entityVertexAttributes
             case _ : SpcRole => roleVertexAttributes
+            case _ : SpcIdealSynonym => synonymVertexAttributes
             case _ => formVertexAttributes
           }
           attrMap.asJava
@@ -309,12 +325,28 @@ class SpcGraphVisualizer(
   private def combineGraphs()
   {
     if (options.includeIdeals) {
-      graph.idealSynonyms.vertexSet.asScala.toSeq.
-        filter(_.isInstanceOf[SpcIdeal]).map(_.asInstanceOf[SpcIdeal]).foreach(
-          v => if (includeIdeal(v)) {
-            combinedGraph.addVertex(combineVertex(v))
+      graph.idealSynonyms.vertexSet.asScala.toSeq.foreach(nym => {
+        nym matchPartial {
+          case ideal : SpcIdeal => {
+            if (includeIdeal(ideal)) {
+              combineVertex(ideal)
+            }
           }
-        )
+          case synonym : SpcIdealSynonym => {
+            if (options.includeSynonyms) {
+              val ideal = graph.getIdealBySynonym(synonym)
+              if ((ideal.name != simpleName(synonym)) &&
+                includeIdeal(ideal))
+              {
+                combinedGraph.addEdge(
+                  combineVertex(synonym),
+                  combineVertex(ideal),
+                  new CombinedEdge("isSynonymFor", synonymEdgeAttributes))
+              }
+            }
+          }
+        }
+      })
     }
     if (options.includeTaxonomy) {
       graph.idealTaxonomy.edgeSet.asScala.toSeq.foreach(e => {
@@ -337,7 +369,7 @@ class SpcGraphVisualizer(
       graph.entitySynonyms.vertexSet.asScala.toSeq.
         filter(_.isInstanceOf[SpcEntity]).map(_.asInstanceOf[SpcEntity]).
         foreach(v => if (includeEntity(v)) {
-          combinedGraph.addVertex(combineVertex(v))
+          combineVertex(v)
           if (options.includeRealizations) {
             combinedGraph.addEdge(
               combineVertex(v),
