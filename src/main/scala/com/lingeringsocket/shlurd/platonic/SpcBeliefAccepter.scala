@@ -709,7 +709,7 @@ class SpcBeliefAccepter private(
       }
 
       val (property, actualState) = propertyOptFiltered.getOrElse({
-        if (propertyName.isEmpty && !params.createImplicitProperties) {
+        if (propertyOpt.isEmpty && !params.createImplicitProperties) {
           throw new ProhibitedBeliefExcn(sentence)
         }
         val p = instantiatePropertyStates(

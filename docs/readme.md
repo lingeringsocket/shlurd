@@ -246,6 +246,7 @@ You can tell me about the properties of objects:
 ```scala mdoc:renderBelief:assets/properties.png
 A beverage's size may be small, medium, or large.
 A customer's order must be a beverage.
+A customer's catchphrase must be an spc-string.
 
 A cappuccino is a kind of beverage.
 A cappuccino's size must be small or large.
@@ -254,11 +255,13 @@ A latte is a kind of beverage.
 A latte's size may be huge.
 
 Luigi is a customer.
+Luigi's catchphrase is "Letsa go!"
 There is a cappuccino.
 The cappuccino is Luigi's order.
 The cappuccino is large.
 
 Mario is a customer.
+Mario's catchphrase is "Itsa me, Mario!"
 There is a latte.
 The latte is Mario's order.
 The latte is huge.
@@ -283,5 +286,9 @@ The belief that the cappuccino is medium contradicts the belief that a cappuccin
 > What is the latte's size?
 
 Huge.
+
+> What is Mario's catchphrase?
+
+"Itsa me, Mario!".
 
 ```

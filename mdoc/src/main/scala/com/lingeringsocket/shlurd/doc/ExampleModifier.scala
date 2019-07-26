@@ -66,7 +66,11 @@ class ConversationRenderer extends StringModifier
     val responder =
       new SpcResponder(
         mind,
-        SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
+        SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS,
+        createImplicitIdeals = false,
+        createTentativeIdeals = false,
+        createTentativeEntities = false,
+        createImplicitProperties = false),
         SmcResponseParams(verbosity = RESPONSE_TERSE))
     val exchanges = {
       try {
