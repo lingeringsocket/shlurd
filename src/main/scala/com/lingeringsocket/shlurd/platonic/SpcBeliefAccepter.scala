@@ -518,7 +518,6 @@ class SpcBeliefAccepter private(
       isRefinement
     ) => {
       // FIXME need to make sure all hypernyms are (and remain) compatible
-      // FIXME also need to allow existing role to be refined
       val possessorForm = instantiateForm(sentence, possessorFormName)
       val hypernymIdeal = {
         if (isRefinement) {
@@ -531,6 +530,12 @@ class SpcBeliefAccepter private(
       }
       if (mind.resolveForm(hyponymRoleName).nonEmpty) {
         throw new IncomprehensibleBeliefExcn(sentence)
+      }
+      if (isRefinement) {
+        if (mind.resolveRole(possessorForm, hyponymRoleName, false).nonEmpty) {
+          // FIXME instead of failing, merge the associations
+          throw new IncomprehensibleBeliefExcn(sentence)
+        }
       }
       val hyponymRole = instantiateRole(
         sentence, possessorForm, hyponymRoleName, false, false)

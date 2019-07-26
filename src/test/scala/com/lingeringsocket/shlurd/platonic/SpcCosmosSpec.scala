@@ -322,6 +322,15 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       cosmos.getGraph.getFormsForRole(brother) must be equalTo Iterable(man)
     }
 
+    "prevent inheritance into existing role" in new CosmosContext
+    {
+      addBelief("a man is a kind of person")
+      addBelief("a person's sibling must be a person")
+      addBelief("a person's brother must be a man")
+      addBelief("a person's brother is a kind of sibling") must
+        throwA[IncomprehensibleBeliefExcn]
+    }
+
     "prevent taxonomy cycles" in new CosmosContext
     {
       addBelief("a duck is a kind of bird")
@@ -330,7 +339,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("a person's sibling must be a person")
       addBelief("a person's brother is a kind of sibling")
       addBelief("a person's sibling is a kind of brother") must
-        throwA[ContradictoryBeliefExcn]
+        throwA[IncomprehensibleBeliefExcn]
     }
 
     "understand genitives" in new CosmosContext

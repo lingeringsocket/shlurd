@@ -173,7 +173,6 @@ motherhood is a refinement of being a parent.  Here's a complete example:
 ```scala mdoc:renderBelief:assets/refinement.png
 A celebrity is a kind of performer.
 A movie's actor must be a performer.
-// FIXME order of next two should not matter
 A movie's star is a kind of actor.
 A movie's star must be a celebrity.
 // FIXME we should preserve refined role on edge association
