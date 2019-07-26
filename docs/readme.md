@@ -100,7 +100,7 @@ A level may have rewards.
 A level may have a guide.
 ```
 
-## Association Instantiation
+### Association Instantiation
 
 You can connect particular instances of forms via their associations:
 
@@ -146,7 +146,7 @@ A nation.
 ```
 
 
-## Inverses
+### Inverses
 
 You can tell me that one association is the inverse of another:
 
@@ -165,7 +165,7 @@ Aristotle is Alexander's mentor.
 After learning that Aristotle is Alexander's mentor, I am able to
 infer automatically that Alexander is Aristotle's protege.
 
-## Refinements
+### Refinements
 
 You can tell me how associations may be refined.  For example,
 motherhood is a refinement of being a parent.  Here's a complete example:
@@ -203,6 +203,24 @@ Hemsworth.
 
 Hemsworth and Pingle.
 
+```
+
+## Scoping
+
+I can distinguish the same role name used in different association contexts:
+
+```scala mdoc:renderBelief:assets/scoping.png
+A sailor is a kind of person.
+A ship's mate must be a sailor.
+A person's mate must be a person.
+If a person's mate is another person, then equivalently
+ the first person is the second person's mate.
+Gilligan is a sailor.
+Minnow is a ship.
+Gilligan is Minnow's mate.
+Adam is a person.
+Eve is a person.
+Adam is Eve's mate.
 ```
 
 ## Synonyms

@@ -251,7 +251,7 @@ class SpcGraphVisualizer(
               val valuesExtended = property.domain match {
                 case PROPERTY_OPEN_ENUM => values :+ "..."
                 case PROPERTY_CLOSED_ENUM => values
-                case PROPERTY_TYPE_STRING => Seq("{string}")
+                case PROPERTY_TYPE_STRING => Seq("::string::")
               }
               "{" + simpleName(property) + "|{" +
                 valuesExtended.mkString("|") + "}}"
