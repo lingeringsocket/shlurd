@@ -247,8 +247,14 @@ class SpcGraphVisualizer(
           vertex.obj match {
             case property : SpcProperty => {
               val values = graph.propertyStateIndex.
-                accessComponentMap(property).values.map(_.inflected)
-              "{" + simpleName(property) + "|{" + values.mkString("|") + "}}"
+                accessComponentMap(property).values.map(_.inflected).toSeq
+              val valuesExtended = property.domain match {
+                case PROPERTY_OPEN_ENUM => values :+ "..."
+                case PROPERTY_CLOSED_ENUM => values
+                case PROPERTY_TYPE_STRING => Seq("{string}")
+              }
+              "{" + simpleName(property) + "|{" +
+                valuesExtended.mkString("|") + "}}"
             }
             case entity : SpcEntity => {
               if (options.includeProperties) {

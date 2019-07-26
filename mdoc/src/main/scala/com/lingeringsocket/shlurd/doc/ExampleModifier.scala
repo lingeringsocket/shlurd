@@ -183,8 +183,42 @@ class BeliefRenderer extends StringModifier
     lastCosmos = Some(cosmos)
     SpcPrimordial.initCosmos(cosmos)
     val mind = new SpcMind(cosmos)
+    val responder = new SpcResponder(
+      mind,
+      SpcBeliefParams(
+        ACCEPT_NEW_BELIEFS,
+        createImplicitIdeals = true,
+        createTentativeIdeals = false,
+        createTentativeEntities = false,
+        createImplicitProperties = false)
+    )
 
-    mind.loadBeliefs(Source.fromString(input))
+    val source = Source.fromString(input)
+    val beliefs = source.getLines.
+      filterNot(SprParser.isIgnorableLine).mkString("\n")
+    val sentences = responder.newParser(beliefs).parseAllPositional
+    val ok = responder.sentencePrinter.sb.respondCompliance
+    sentences.foreach {
+      case(sentence, start, end) => {
+        val output = try {
+          responder.process(sentence)
+        } catch {
+          case ex : Throwable => {
+            ex.printStackTrace
+            ex.toString
+          }
+        }
+        if (output != ok) {
+          // FIXME this isn't quite right since whenever
+          // we stripped ignorable lines above
+          val position = Position.Range(code, end, end)
+          reporter.error(
+            position,
+            s"\nERROR:\n\n$output\n\nAT:\n")
+        }
+      }
+    }
+    cosmos.validateBeliefs
 
     val visualizer = new SpcGraphVisualizer(
       cosmos.getGraph,

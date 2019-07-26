@@ -59,7 +59,8 @@ case class SpcBeliefParams(
   acceptance : SpcBeliefAcceptance = ACCEPT_NEW_BELIEFS,
   createImplicitIdeals : Boolean = true,
   createTentativeIdeals : Boolean = true,
-  createTentativeEntities : Boolean = true
+  createTentativeEntities : Boolean = true,
+  createImplicitProperties : Boolean = true
 )
 {
 }
@@ -689,30 +690,31 @@ class SpcBeliefAccepter private(
     ) => {
       val entity = resolveReference(sentence, reference)
       val form = entity.form
+      val encodedStateName = cosmos.encodeName(stateName)
       val propertyOpt = propertyName match {
         case Some(word) => {
-          cosmos.findProperty(form, cosmos.encodeName(word)) match {
-            case Some(property) => {
-              if (cosmos.getPropertyStateObjMap(property).
-                contains(cosmos.encodeName(stateName)))
-              {
-                Some((property, cosmos.encodeName(stateName)))
-              } else {
-                None
-              }
-            }
-            case _ => None
-          }
+          cosmos.findProperty(form, cosmos.encodeName(word)).map(
+            property => tupleN((property, encodedStateName))
+          )
         }
         case _ => {
           cosmos.resolveHypernymPropertyState(
-            form, cosmos.encodeName(stateName))
+            form, encodedStateName)
         }
       }
-      val (property, actualState) = propertyOpt.getOrElse({
+      val propertyOptFiltered = propertyOpt.filter {
+        case (property, stateName) => {
+          cosmos.getPropertyStateObjMap(property).contains(stateName)
+        }
+      }
+
+      val (property, actualState) = propertyOptFiltered.getOrElse({
+        if (propertyName.isEmpty && !params.createImplicitProperties) {
+          throw new ProhibitedBeliefExcn(sentence)
+        }
         val p = instantiatePropertyStates(
           sentence, form, Seq(stateName), false, propertyName)
-        tupleN((p, cosmos.encodeName(stateName)))
+        tupleN((p, encodedStateName))
       })
       // FIXME need to honor allowUpdates
       cosmos.updateEntityProperty(entity, property, actualState)

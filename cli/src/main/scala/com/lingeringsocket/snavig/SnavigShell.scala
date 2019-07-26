@@ -50,7 +50,9 @@ object SnavigShell
 
   private val beliefParams = SpcBeliefParams(
     createImplicitIdeals = false,
-    createTentativeIdeals = false)
+    createTentativeIdeals = false,
+    createTentativeEntities = true,
+    createImplicitProperties = false)
 
   def ok = Some(OK)
 

@@ -194,10 +194,15 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("Woodstock is a bird")
       addBelief("Daffy is happy")
       addBelief("Woodstock is sad")
+      addBelief("a penguin is a kind of bird")
+      addBelief("a penguin's mood must be happy")
+      addBelief("Penelope is a penguin")
       cosmos.validateBeliefs
 
       val bird = resolveForm("bird")
       val duck = resolveForm("duck")
+      val penguin = resolveForm("penguin")
+
       val daffy = expectUnique(
         cosmos.resolveQualifiedNoun(
           "duck", REF_SUBJECT, Set("daffy")))
@@ -207,8 +212,12 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       val woodstock = expectUnique(
         cosmos.resolveQualifiedNoun(
           "bird", REF_SUBJECT, Set("woodstock")))
+      val penelope = expectUnique(
+        cosmos.resolveQualifiedNoun(
+          "penguin", REF_SUBJECT, Set("penelope")))
+
       cosmos.getFormHyponymRealizations(bird) must be equalTo
-        Seq(woodstock, daffy, daisy)
+        Seq(woodstock, daffy, daisy, penelope)
       cosmos.getFormHypernymRealizations(bird) must be equalTo
         Seq(woodstock)
       cosmos.getFormHyponymRealizations(duck) must be equalTo
@@ -269,6 +278,12 @@ class SpcCosmosSpec extends SpcProcessingSpecification
         daffy, duckProperty, "happy") must be equalTo Success(Trilean.Unknown)
       cosmos.evaluateEntityProperty(woodstock, duckProperty.name) must
         be equalTo Success((None, None))
+
+      val penguinMood = expectSingleProperty(penguin)
+      cosmos.evaluateEntityProperty(penelope, penguinMood.name) must be equalTo
+        Success((Some(penguinMood), Some("happy")))
+      cosmos.evaluateEntityPropertyPredicate(
+        penelope, penguinMood, "sad") must be equalTo Success(Trilean.False)
     }
 
     "discriminate roles by possessor" in new CosmosContext
@@ -795,6 +810,17 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("Rick is Morty's mentor")
       val params = SpcBeliefParams(createImplicitIdeals = false)
       addBelief("Morty is Rick's protege", params) must
+        throwA[ProhibitedBeliefExcn]
+    }
+
+    "allow implicit properties to be prevented" in new CosmosContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+      addBelief("There is a dog")
+      addBelief("There is a cat")
+      addBelief("The dog is hungry")
+      val params = SpcBeliefParams(createImplicitProperties = false)
+      addBelief("The cat is hungry", params) must
         throwA[ProhibitedBeliefExcn]
     }
   }

@@ -29,7 +29,11 @@ trait SprParser
 
   def parseFirst() : SilSentence
 
-  def parseAll() : Stream[SilSentence]
+  def parseAll() : Stream[SilSentence] = parseAllPositional.map(_._1)
+
+  def parseAllPositional() : Stream[(SilSentence, Int, Int)]
+
+  def parseOnePositional() = Stream(tupleN((parseOne, 0, 0)))
 }
 
 class SprFallbackParser(
@@ -59,7 +63,7 @@ class SprFallbackParser(
 
   override def parseFirst() = parseOne
 
-  override def parseAll() = Stream(parseOne)
+  override def parseAllPositional() = parseOnePositional()
 }
 
 class SprSingleParser(
@@ -91,7 +95,7 @@ class SprSingleParser(
 
   override def parseFirst() = parseOne
 
-  override def parseAll() = Stream(parseOne)
+  override def parseAllPositional() = parseOnePositional()
 }
 
 class SprSingleHeuristicParser(
@@ -147,7 +151,7 @@ class SprAmbiguityParser(
 
   override def parseFirst() = parseOne
 
-  override def parseAll() = Stream(parseOne)
+  override def parseAllPositional() = parseOnePositional()
 }
 
 class SprDelimitedParser(
@@ -168,10 +172,10 @@ class SprDelimitedParser(
 
   override def parseFirst() = parseOne
 
-  override def parseAll() = Stream(parseOne)
+  override def parseAllPositional() = parseOnePositional()
 }
 
-class SprMultipleParser(singles : Stream[SprParser])
+class SprMultipleParser(singles : Stream[(SprParser, Int, Int)])
     extends SprParser
 {
   override def parseOne() : SilSentence =
@@ -180,9 +184,11 @@ class SprMultipleParser(singles : Stream[SprParser])
     parseFirst
   }
 
-  override def parseFirst() = singles.head.parseOne
+  override def parseFirst() = singles.head._1.parseOne
 
-  override def parseAll() = singles.map(_.parseOne)
+  override def parseAllPositional() = {
+    singles.map(single => tupleN((single._1.parseOne, single._2, single._3)))
+  }
 }
 
 trait SprParsingStrategy
@@ -561,7 +567,11 @@ object SprParser extends SprEnglishWordAnalyzer
     if (sentences.size == 1) {
       prepareOne(context, sentences.head)
     } else {
-      new SprMultipleParser(sentences.toStream.map(prepareOne(context, _)))
+      new SprMultipleParser(sentences.toStream.map(tokenizedSentence => {
+        val start = tokenizedSentence.tokens.head.start
+        val end = tokenizedSentence.tokens.last.end
+        tupleN((prepareOne(context, tokenizedSentence), start, end))
+      }))
     }
   }
 }

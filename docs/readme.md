@@ -244,12 +244,44 @@ Fido.
 You can tell me about the properties of objects:
 
 ```scala mdoc:renderBelief:assets/properties.png
-A beverage's size must be small, medium, or large.
+A beverage's size may be small, medium, or large.
+A customer's order must be a beverage.
+
 A cappuccino is a kind of beverage.
 A cappuccino's size must be small or large.
-A customer may have orders.
+
+A latte is a kind of beverage.
+A latte's size may be huge.
+
 Luigi is a customer.
 There is a cappuccino.
 The cappuccino is Luigi's order.
 The cappuccino is large.
+
+Mario is a customer.
+There is a latte.
+The latte is Mario's order.
+The latte is huge.
+```
+
+Then I can answer questions about them:
+
+```scala mdoc:processConversation
+// FIXME:  allow for "Which size is Luigi's order"
+> What is Luigi's order's size?
+
+Large.
+
+> Is the cappuccino small?
+
+No.
+
+> The cappuccino is medium.
+
+The belief that the cappuccino is medium contradicts the belief that a cappuccino's size must be small or large.
+
+> What is the latte's size?
+
+Huge.
+
 ```

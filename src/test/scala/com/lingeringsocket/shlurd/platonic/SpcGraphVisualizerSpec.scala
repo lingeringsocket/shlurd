@@ -299,10 +299,10 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         strict digraph G {
           rankdir=BT;
           1 ${formAttributes("girl")};
-          2 ${formPropertyAttributes("{demeanor|{feisty|demure}}")};
+          2 ${formPropertyAttributes("{demeanor|{feisty|demure|...}}")};
           3 ${formAttributes("powerpuff")};
           4 ${formPropertyAttributes("{demeanor|{feisty}}")};
-          5 ${formPropertyAttributes("{awakeness|{asleep|awake}}")};
+          5 ${formPropertyAttributes("{awakeness|{asleep|awake|...}}")};
           6 ${entityAttributes("{Bubblossom|awakeness=awake}")};
           7 ${entityAttributes("{Buttercup|awakeness=asleep}")};
           1->2 $formPropertyEdgeAttributes;
