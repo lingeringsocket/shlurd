@@ -187,7 +187,7 @@ class SpcBeliefAccepter private(
     val entityAssocGraph = cosmos.getEntityAssocGraph
     val edges = entityAssocGraph.
       outgoingEdgesOf(possessor).asScala.toSeq.
-      filter(_.formEdge.getRoleName == formAssocEdge.getRoleName)
+      filter(_.getRoleName == formAssocEdge.getRoleName)
 
     val edgeCount = edges.count(edge =>
       (cosmos.getGraph.getPossesseeEntity(edge) != possessee))
@@ -294,7 +294,7 @@ class SpcBeliefAccepter private(
       case Some(inverseAssocEdge) => {
         val inverseEdges = entityAssocGraph.
           incomingEdgesOf(possessor).asScala.
-          filter(_.formEdge.getRoleName == inverseAssocEdge.getRoleName)
+          filter(_.getRoleName == inverseAssocEdge.getRoleName)
         inverseEdges.foreach(cosmos.removeEntityAssocEdge)
       }
     }
@@ -543,8 +543,7 @@ class SpcBeliefAccepter private(
       // FIXME avoid iterating over all entity assocs!
       entityAssocs.edgeSet.asScala.foreach(
         entityEdge => {
-          val formEdge = entityEdge.formEdge
-          val possesseeRole = cosmos.getGraph.getPossesseeRole(formEdge)
+          val possesseeRole = cosmos.getPossesseeRole(entityEdge)
           if (possesseeRole == hyponymRole) {
             val possesseeEntity =
               cosmos.getGraph.getPossesseeEntity(entityEdge)
@@ -675,7 +674,7 @@ class SpcBeliefAccepter private(
       val entityAssocGraph = cosmos.getEntityAssocGraph
       val edges = entityAssocGraph.
         outgoingEdgesOf(possessor).asScala.toSeq.
-        filter(_.formEdge.getRoleName == formAssocEdge.getRoleName)
+        filter(_.getRoleName == formAssocEdge.getRoleName)
       if (!edges.isEmpty && !allowUpdates) {
         // FIXME also, in the !allowUpdates case, henceforth we should
         // reject any attempt to add a matching edge
@@ -826,7 +825,9 @@ class SpcBeliefAccepter private(
             validateEdgeCardinality(
               sentence, inverseAssocEdge, possessee, possessor)
             cosmos.addEntityAssocEdge(
-              possessor, possessee, formAssocEdge)
+              possessor, possessee, role)
+            // FIXME should do this by role instead of edge in order
+            // to correctly handle refinements
             cosmos.addEntityAssocEdge(
               possessee, possessor, inverseAssocEdge)
           } else {
@@ -839,7 +840,7 @@ class SpcBeliefAccepter private(
         case _ => {
           if (positive) {
             cosmos.addEntityAssocEdge(
-              possessor, possessee, formAssocEdge)
+              possessor, possessee, role)
           } else {
             cosmos.removeEntityAssociation(
               possessor, possessee, formAssocEdge)

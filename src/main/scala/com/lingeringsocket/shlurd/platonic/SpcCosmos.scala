@@ -662,6 +662,11 @@ class SpcCosmos(
     None
   }
 
+  def getPossesseeRole(edge : SpcEntityAssocEdge) : SpcRole =
+  {
+    resolveRole(graph.getPossessorEntity(edge).form, edge.getRoleName).get
+  }
+
   def instantiateForm(word : SilWord) =
   {
     val name = encodeName(word)
@@ -737,7 +742,7 @@ class SpcCosmos(
     if (constraint.upper < Int.MaxValue) {
       val oldEntityEdges =
         entityAssocs.edgeSet.asScala.filter(
-          _.formEdge.getRoleName == oldEdge.getRoleName)
+          _.getRoleName == oldEdge.getRoleName)
       oldEntityEdges.groupBy(graph.getPossessorEntity).
         filter(_._2.size > constraint.upper).isEmpty
     } else {
@@ -755,13 +760,13 @@ class SpcCosmos(
     val entityAssocs = graph.entityAssocs
     val oldEntityEdges =
       entityAssocs.edgeSet.asScala.filter(
-        _.formEdge.getRoleName == oldEdge.getRoleName)
+        _.getRoleName == oldEdge.getRoleName)
     oldEntityEdges.foreach(
       entityEdge => {
         entityAssocs.addEdge(
           graph.getPossessorEntity(entityEdge),
           graph.getPossesseeEntity(entityEdge),
-          SpcEntityAssocEdge(generateId, newEdge))
+          SpcEntityAssocEdge(generateId, newEdge.getRoleName))
         entityAssocs.removeEdge(entityEdge)
       }
     )
@@ -793,9 +798,9 @@ class SpcCosmos(
       assert {
         val outgoingAssocs =
           getEntityAssocGraph.outgoingEdgesOf(newEntity).asScala.
-            toSeq.map(_.formEdge).distinct
-        outgoingAssocs.forall(formEdge => {
-          sanityCheckConstraint(newEntity, formEdge)
+            toSeq.map(_.getRoleName).distinct
+        outgoingAssocs.forall(roleName => {
+          sanityCheckConstraint(newEntity, roleName)
         })
       }
       assert {
@@ -804,7 +809,7 @@ class SpcCosmos(
         incomingEdges.forall(entityEdge => {
           sanityCheckConstraint(
             graph.getPossessorEntity(entityEdge),
-            entityEdge.formEdge)
+            entityEdge.getRoleName)
         })
       }
       // FIXME we currently leave garbage lying around
@@ -1025,7 +1030,7 @@ class SpcCosmos(
     graph.getFormAssocEdge(possessor.form, role) match {
       case Some(formAssocEdge) => {
         val edge = addEntityAssocEdge(
-          possessor, possessee, formAssocEdge)
+          possessor, possessee, role)
         getInverseAssocEdge(formAssocEdge).foreach(inverseAssocEdge => {
           addEntityAssocEdge(
             possessee, possessor, inverseAssocEdge)
@@ -1044,14 +1049,22 @@ class SpcCosmos(
     formAssocEdge : SpcFormAssocEdge) : SpcEntityAssocEdge =
   {
     val role = graph.getPossesseeRole(formAssocEdge)
+    addEntityAssocEdge(possessor, possessee, role)
+  }
+
+  protected[platonic] def addEntityAssocEdge(
+    possessor : SpcEntity,
+    possessee : SpcEntity,
+    role : SpcRole) : SpcEntityAssocEdge =
+  {
     getEntityAssocEdge(possessor, possessee, role) match {
       case Some(edge) => {
-        assert(edge.formEdge.getRoleName == formAssocEdge.getRoleName)
+        assert(edge.getRoleName == role.name)
         edge
       }
       case _ => {
         val edge = SpcEntityAssocEdge(
-          generateId, formAssocEdge)
+          generateId, role.name)
         graph.entityAssocs.addEdge(
           possessor, possessee, edge)
         edge
@@ -1094,7 +1107,8 @@ class SpcCosmos(
   {
     val edges = graph.entityAssocs.getAllEdges(possessor, possessee)
     edges.asScala.find(edge => {
-      isHyponym(role, graph.getPossesseeRole(edge.formEdge))
+      val possesseeRole = getPossesseeRole(edge)
+      isHyponym(possesseeRole, role) || isHyponym(role, possesseeRole)
     })
   }
 
@@ -1143,7 +1157,7 @@ class SpcCosmos(
         entitySet.filter(
           e => isHyponym(e.form, possessorForm)).foreach(entity =>
           {
-            sanityCheckConstraint(entity, formEdge)
+            sanityCheckConstraint(entity, formEdge.getRoleName)
           }
         )
       }
@@ -1182,9 +1196,8 @@ class SpcCosmos(
         graph.components.outDegreeOf(property))
     })
     graph.entityAssocs.edgeSet.asScala.foreach(entityEdge => {
-      val formEdge = entityEdge.formEdge
-      assert(graph.formAssocs.containsEdge(formEdge),
-        entityEdge.toString)
+      val possesseeRole = getPossesseeRole(entityEdge)
+      val formEdge = getFormAssocForRole(possesseeRole)
       val possessorForm = graph.getPossessorForm(formEdge)
       val possessorEntity = graph.getPossessorEntity(entityEdge)
       val possesseeEntity = graph.getPossesseeEntity(entityEdge)
@@ -1196,15 +1209,31 @@ class SpcCosmos(
     true
   }
 
+  def getFormAssocForRole(role : SpcRole) : SpcFormAssocEdge =
+  {
+    graph.getIdealHypernyms(role).filter(_.isRole).foreach(hypernym => {
+      graph.formAssocs.incomingEdgesOf(hypernym).
+        asScala.toSeq.headOption.foreach(edge => {
+          return edge
+        })
+    })
+    throw new AssertionError("eek")
+  }
+
   private def sanityCheckConstraint(
     possessor : SpcEntity,
-    formEdge : SpcFormAssocEdge) : Boolean =
+    roleName : String) : Boolean =
   {
+    val role = resolveRole(possessor.form, roleName).get
+    val formEdge = getFormAssocForRole(role)
     val constraint = formEdge.constraint
     if (constraint.upper < Int.MaxValue) {
       val entityEdges = getEntityAssocGraph.
         outgoingEdgesOf(possessor).asScala
-      val c = entityEdges.count(_.formEdge.getRoleName == formEdge.getRoleName)
+      val c = entityEdges.count(edge => {
+        val possesseeRole = getPossesseeRole(edge)
+        isHyponym(role, possesseeRole) || isHyponym(possesseeRole, role)
+      })
       assert(c <= constraint.upper, (formEdge, possessor))
     }
     true
@@ -1218,7 +1247,10 @@ class SpcCosmos(
     SprUtils.orderedSet(getEntityAssocGraph.outgoingEdgesOf(possessor).
       asScala.toSeq.filter(
         edge => {
-          isHyponym(role, graph.getPossesseeRole(edge.formEdge)) &&
+          val possesseeRole = getPossesseeRole(edge)
+          (isHyponym(possesseeRole, role) ||
+            (isHyponym(role, possesseeRole))
+          ) &&
             isFormCompatibleWithRole(
               graph.getPossesseeEntity(edge).form, role)
         }
@@ -1593,10 +1625,10 @@ class SpcCosmos(
     val hypernymSet = getFormHypernyms(entity.form).toSet
     val outgoingPropertyEdges = hypernymSet.flatMap { form =>
       getFormAssocGraph.outgoingEdgesOf(form).asScala.
-        filter(_.isProperty).toSet
+        filter(_.isProperty).map(_.getRoleName).toSet
     }
     getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
-      filter(edge => outgoingPropertyEdges.contains(edge.formEdge)).
+      filter(edge => outgoingPropertyEdges.contains(edge.getRoleName)).
       foreach(edge => {
         val propertyEntity = graph.getPossesseeEntity(edge)
         val map = getFormPropertyMap(propertyEntity.form)

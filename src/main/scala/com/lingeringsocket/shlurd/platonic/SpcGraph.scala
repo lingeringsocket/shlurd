@@ -314,9 +314,9 @@ case class SpcSynonymEdge(id : Long) extends SpcAnonymousEdge
 
 case class SpcEntityAssocEdge(
   id : Long,
-  formEdge : SpcFormAssocEdge) extends SpcAnonymousEdge
+  roleName : String) extends SpcAnonymousEdge
 {
-  def getRoleName = formEdge.getRoleName
+  def getRoleName = roleName
 
   override def toString = super.toString + " : " + getRoleName
 }

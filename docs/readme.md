@@ -175,7 +175,6 @@ A celebrity is a kind of performer.
 A movie's actor must be a performer.
 A movie's star is a kind of actor.
 A movie's star must be a celebrity.
-// FIXME we should preserve refined role on edge association
 A movie's extra is a kind of actor.
 Thor is a movie.
 Hemsworth is a celebrity.
@@ -196,11 +195,9 @@ Hemsworth and Pingle.
 
 Hemsworth.
 
-// FIXME:  wrong!
-
 > who are Thor's extras
 
-Hemsworth and Pingle.
+Pingle.
 
 ```
 

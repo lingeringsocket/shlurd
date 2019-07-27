@@ -139,6 +139,18 @@ class SpcResponderSpec extends Specification
     "understand people" in new ResponderContext
     {
       loadBeliefs("/ontologies/people.txt")
+      processTerse(
+        "who is Amanda's sibling",
+        "Todd.")
+      processTerse(
+        "who is Amanda's brother",
+        "Todd.")
+      processTerse(
+        "who is Todd's sister",
+        "Amanda.")
+      processTerse(
+        "who is Todd's sibling",
+        "Amanda.")
       processMatrix(
         "is Todd Dirk's friend",
         "Yes, he is Dirk's friend.",

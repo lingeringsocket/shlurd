@@ -96,10 +96,11 @@ class SpcPerception(
           tupleN((opposite, entity))
         }
       }
+      val role = noumenalCosmos.getPossesseeRole(edge)
       phenomenalCosmos.addEntityAssocEdge(
         possessor,
         possessee,
-        edge.formEdge)
+        role)
     })
   }
 

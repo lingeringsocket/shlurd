@@ -99,7 +99,7 @@ class SpcMind(cosmos : SpcCosmos)
       edge => {
         val graph = cosmos.getGraph
         val possessor = graph.getPossessorEntity(edge)
-        val role = graph.getPossesseeRole(edge.formEdge)
+        val role = cosmos.getPossesseeRole(edge)
         val specializedRole = graph.specializeRoleForForm(
           role,
           entity.form)
@@ -388,7 +388,6 @@ class SpcMind(cosmos : SpcCosmos)
         tupleN((Seq.empty, roleOpt))
       }
     }
-    val graph = cosmos.getGraph
     roleOpt match {
       case Some(role) => {
         Success(Trilean(
@@ -397,7 +396,7 @@ class SpcMind(cosmos : SpcCosmos)
             exists(edge => {
               cosmos.isHyponym(
                 role,
-                graph.getPossesseeRole(edge.formEdge))
+                cosmos.getPossesseeRole(edge))
             })
         ))
       }
