@@ -52,8 +52,6 @@ class SmcPredicateEvaluator[
 
   private def cosmos = mind.getCosmos
 
-  private def fail(msg : String) = cosmos.fail(msg)
-
   protected[mind] def evaluatePredicate(
     predicateOriginal : SilPredicate,
     resultCollector : ResultCollectorType) : Try[Trilean] =
@@ -139,7 +137,9 @@ class SmcPredicateEvaluator[
                           val message =
                             s"$objEntity UNEXPECTED REF : $entityRef"
                           debug(message)
-                          fail(message)
+                          cosmos.fail(
+                            ShlurdExceptionCode.FailedParse,
+                            message)
                         }
                       }
                     }
@@ -171,7 +171,9 @@ class SmcPredicateEvaluator[
       }
       case _ => {
         debug("UNEXPECTED PREDICATE TYPE")
-        fail(sentencePrinter.sb.respondCannotUnderstand)
+        cosmos.fail(
+          ShlurdExceptionCode.FailedParse,
+          sentencePrinter.sb.respondCannotUnderstand)
       }
     }
     debugPopLevel()
@@ -498,7 +500,9 @@ class SmcPredicateEvaluator[
             }
             case _ => {
               debug(s"UNEXPECTED STATE : $state")
-              fail(sentencePrinter.sb.respondCannotUnderstand)
+              cosmos.fail(
+                ShlurdExceptionCode.FailedParse,
+                sentencePrinter.sb.respondCannotUnderstand)
             }
           }
         }
@@ -695,8 +699,9 @@ class SmcPredicateEvaluator[
                 Success(Trilean.False)
               } else if (entities.size > 1) {
                 if (determiner == DETERMINER_UNIQUE) {
-                  fail(sentencePrinter.sb.respondAmbiguous(
-                    noun))
+                  cosmos.fail(
+                    ShlurdExceptionCode.NotUnique,
+                    sentencePrinter.sb.respondAmbiguous(noun))
                 } else {
                   evaluateDeterminer(
                     entities.map(
@@ -824,7 +829,9 @@ class SmcPredicateEvaluator[
           }
           case Failure(e) => {
             trace("ERROR", e)
-            fail(sentencePrinter.sb.respondUnknown(noun))
+            cosmos.fail(
+              ShlurdExceptionCode.UnknownForm,
+              sentencePrinter.sb.respondUnknown(noun))
           }
         }
       }
@@ -860,9 +867,11 @@ class SmcPredicateEvaluator[
           }
           case Failure(e) => {
             trace("ERROR", e)
-            fail(sentencePrinter.sb.respondUnknownPronoun(
-              sentencePrinter.print(
-                reference, INFLECT_NOMINATIVE, SilConjoining.NONE)))
+            cosmos.fail(
+              ShlurdExceptionCode.UnresolvedPronoun,
+              sentencePrinter.sb.respondUnresolvedPronoun(
+                sentencePrinter.print(
+                  reference, INFLECT_NOMINATIVE, SilConjoining.NONE)))
           }
         }
       }
@@ -1002,7 +1011,9 @@ class SmcPredicateEvaluator[
       }
       case _ : SilUnknownReference => {
         debug("UNKNOWN REFERENCE")
-        fail(sentencePrinter.sb.respondCannotUnderstand)
+        cosmos.fail(
+          ShlurdExceptionCode.FailedParse,
+          sentencePrinter.sb.respondCannotUnderstand)
       }
     }
   }
@@ -1072,12 +1083,14 @@ class SmcPredicateEvaluator[
             mind.specificReference(entity, DETERMINER_NONSPECIFIC)
           }
         }
-        fail(sentencePrinter.sb.respondUnknownState(
-          sentencePrinter.print(
-            errorRef,
-            INFLECT_NOMINATIVE,
-            SilConjoining.NONE),
-          state))
+        cosmos.fail(
+          ShlurdExceptionCode.UnknownState,
+          sentencePrinter.sb.respondUnknownState(
+            sentencePrinter.print(
+              errorRef,
+              INFLECT_NOMINATIVE,
+              SilConjoining.NONE),
+            state))
       }
     }
     trace(s"RESULT FOR $entity is $result")
@@ -1137,8 +1150,10 @@ class SmcPredicateEvaluator[
     result match {
       case Failure(e) => {
         debug("ERROR", e)
-        fail(sentencePrinter.sb.respondUnknown(
-          SilWord(categoryLabel.toNounLemma)))
+        cosmos.fail(
+          ShlurdExceptionCode.UnknownForm,
+          sentencePrinter.sb.respondUnknown(
+            SilWord(categoryLabel.toNounLemma)))
       }
       case _ => result
     }
@@ -1193,7 +1208,9 @@ class SmcPredicateEvaluator[
           case DETERMINER_ANY | DETERMINER_SOME | DETERMINER_NONSPECIFIC => {
             Success(results.fold(Trilean.False)(_|_))
           }
-          case _ => fail(sentencePrinter.sb.respondCannotUnderstand)
+          case _ => cosmos.fail(
+            ShlurdExceptionCode.FailedParse,
+            sentencePrinter.sb.respondCannotUnderstand)
         }
       }
     }

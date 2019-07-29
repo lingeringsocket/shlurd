@@ -161,6 +161,13 @@ case class AssertionBelief(
 {
 }
 
+case class UniquenessBelief(
+  sentence : SilSentence,
+  ref : SilReference
+) extends SpcBelief
+{
+}
+
 case class IndirectBelief(
   sentence : SilSentence,
   resourceName : String

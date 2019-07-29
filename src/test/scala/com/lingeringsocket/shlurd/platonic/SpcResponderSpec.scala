@@ -85,6 +85,11 @@ class SpcResponderSpec extends Specification
         mind, SpcBeliefParams(beliefAcceptance), params.
           copy(verbosity = RESPONSE_ELLIPSIS))
 
+    protected val responderReportExceptionCodes =
+      new SpcResponder(
+        mind, SpcBeliefParams(beliefAcceptance),
+        params.copy(reportExceptionCodes = true))
+
     protected def loadBeliefs(resource : String)
     {
       val file = ResourceUtils.getResourceFile(resource)
@@ -97,6 +102,17 @@ class SpcResponderSpec extends Specification
       val sentence = responder.newParser(input).parseOne
       s"pass:  $input" ==> (
         responder.process(sentence, input) === expected)
+    }
+
+    protected def processExceptionExpected(
+      input : String,
+      message : String,
+      code : ShlurdExceptionCode) =
+    {
+      val sentence = responder.newParser(input).parseOne
+      val expected = s"$message\n\nFor more information see ${code.getUrl}"
+      responderReportExceptionCodes.process(
+        sentence, input) must be equalTo(expected)
     }
 
     protected def processTerse(
@@ -920,9 +936,10 @@ class SpcResponderSpec extends Specification
       process(
         "is Herbie cruising",
         "I don't know.")
-      process(
+      processExceptionExpected(
         "is Herbie pink",
-        "Sorry, I don't know what 'pink' means for Herbie.")
+        "Sorry, I don't know what 'pink' means for Herbie.",
+        ShlurdExceptionCode.UnknownState)
       process(
         "is any car pink",
         "Sorry, I don't know what 'pink' means for a car.")
@@ -1208,8 +1225,10 @@ class SpcResponderSpec extends Specification
       loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/people.txt")
       mind.startConversation
-      process("is she a dog",
-        "Sorry, when you say 'she' I don't know who or what you mean.")
+      processExceptionExpected(
+        "is she a dog",
+        "Sorry, when you say 'she' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
       process("who is Todd", "Todd is Amanda's brother.")
       process("is she a dog", "No, Amanda is not a dog.")
       process("is he Dirk's friend", "Yes, Todd is Dirk's friend.")

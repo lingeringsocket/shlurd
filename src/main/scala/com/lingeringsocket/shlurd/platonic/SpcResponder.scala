@@ -962,7 +962,7 @@ class SpcResponder(
   {
     val boundPredicate = bindPredicate(predicate, referenceMap)
     if (seen.size > 100) {
-      fail(sentencePrinter.sb.respondTriggerLimit)
+      mind.getCosmos.fail(sentencePrinter.sb.respondTriggerLimit)
     } else if (seen.contains(boundPredicate)) {
       Success(true)
     } else {

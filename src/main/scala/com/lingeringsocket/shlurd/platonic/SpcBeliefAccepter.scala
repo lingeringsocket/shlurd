@@ -920,6 +920,15 @@ class SpcBeliefAccepter private(
   }
 
   beliefApplier {
+    case UniquenessBelief(
+      sentence,
+      ref
+    ) => {
+      resolveReference(sentence, ref)
+    }
+  }
+
+  beliefApplier {
     case IndirectBelief(
       sentence,
       resourceName

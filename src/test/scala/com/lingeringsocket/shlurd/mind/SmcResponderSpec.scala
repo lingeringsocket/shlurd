@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
@@ -111,6 +112,16 @@ class SmcResponderSpec extends Specification
 
       val sentence = responder.newParser(input).parseOne
       responder.process(sentence, input)
+    }
+
+    protected def processExceptionExpected(
+      input : String,
+      message : String,
+      code : ShlurdExceptionCode) =
+    {
+      val reportExceptionCodes = SmcResponseParams(reportExceptionCodes = true)
+      process(input, reportExceptionCodes) must be equalTo(
+        s"$message\n\nFor more information see ${code.getUrl}")
     }
 
     protected def processCommandExpected(
@@ -253,6 +264,16 @@ class SmcResponderSpec extends Specification
         "But I don't know about any such bear.")
       process("is the bear asleep") must be equalTo(
         "Please be more specific about which bear you mean.")
+      ShlurdExceptionCode.NotUnique.getUrl must be equalTo
+        "https://undefined.com/exceptionCodes#NotUnique"
+      processExceptionExpected(
+        "is the bear asleep",
+        "Please be more specific about which bear you mean.",
+        ShlurdExceptionCode.NotUnique)
+      processExceptionExpected(
+        "orange the soccer field",
+        "Sorry, I cannot understand what you said.",
+        ShlurdExceptionCode.FailedParse)
       process("is any bear asleep") must be equalTo(
         "Yes, the polar bear is asleep.")
       process("is any polar bear asleep") must be equalTo(
@@ -276,8 +297,11 @@ class SmcResponderSpec extends Specification
         "No, no goats are awake.")
       process("are all goats awake") must be equalTo(
         "No, none of them are awake.")
-      process("is there an aardvark") must be equalTo(
-        "Sorry, I don't know about any 'aardvark'.")
+      processExceptionExpected(
+        "is there an aardvark",
+        "Sorry, I don't know about any 'aardvark'.",
+        ShlurdExceptionCode.UnknownForm
+      )
       process("is the sloth awake") must be equalTo(
         "I don't know.")
       process("is the sloth or the tiger awake") must be equalTo(

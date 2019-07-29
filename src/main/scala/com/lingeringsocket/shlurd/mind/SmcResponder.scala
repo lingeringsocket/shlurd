@@ -51,6 +51,7 @@ case class SmcResponseParams(
   thirdPersonPronouns : Boolean = true,
   verbosity : SmcResponseVerbosity = RESPONSE_COMPLETE,
   existenceAssumption : SmcExistenceAssumption = EXISTENCE_ASSUME_NOTHING,
+  reportExceptionCodes : Boolean = false,
   throwRejectedBeliefs : Boolean = false
 )
 {
@@ -221,8 +222,6 @@ class SmcResponder[
     processUnsupportedSentence(resultCollector)
   )
 
-  def fail(msg : String) = cosmos.fail(msg)
-
   def getMind = mind
 
   protected def newPredicateEvaluator() =
@@ -309,7 +308,9 @@ class SmcResponder[
           resultCollector.referenceMap),
         sentence)
       val responder = new SmcUnrecognizedResponder(sentencePrinter)
-      wrapResponseText(responder.respond(unrecognized))
+      wrapResponseText(
+        ShlurdExceptionCode.FailedParse,
+        responder.respond(unrecognized))
     } else {
       processImpl(sentence, resultCollector)
     }
@@ -322,7 +323,9 @@ class SmcResponder[
     responderMatchers(resultCollector).flatMap(_(sentence)).
       headOption.getOrElse {
         debug("UNKNOWN SENTENCE")
-        wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
+        wrapResponseText(
+          ShlurdExceptionCode.FailedParse,
+          sentencePrinter.sb.respondCannotUnderstand)
       }
   }
 
@@ -355,10 +358,35 @@ class SmcResponder[
     }
   }
 
+  protected def wrapResponseText(ex : Throwable)
+      : (SilSentence, String) =
+  {
+    debug("ERROR", ex)
+    ex match {
+      case ShlurdException(code, msg) => {
+        wrapResponseText(code, msg)
+      }
+      case _ => {
+        wrapResponseText(ex.getMessage)
+      }
+    }
+  }
+
   protected def wrapResponseText(text : String)
       : (SilSentence, String) =
   {
     (SilUnparsedSentence(text), text)
+  }
+
+  protected def wrapResponseText(code : ShlurdExceptionCode, text : String)
+      : (SilSentence, String) =
+  {
+    if (generalParams.reportExceptionCodes) {
+      val embellished = s"$text\n\nFor more information see ${code.getUrl}"
+      (SilUnparsedSentence(embellished), embellished)
+    } else {
+      wrapResponseText(text)
+    }
   }
 
   private def sentenceResponder(f : PartialSentenceResponder)
@@ -528,8 +556,7 @@ class SmcResponder[
             sentencePrinter.sb.respondToQuery(adjustedResponse))
         }
         case Failure(e) => {
-          debug("ERROR", e)
-          wrapResponseText(e.getMessage)
+          wrapResponseText(e)
         }
       }
     }
@@ -602,8 +629,7 @@ class SmcResponder[
                   ASSUMED_TRUE, truthBoolean, printedSentence, false))
             }
             case Failure(e) => {
-              debug("ERROR", e)
-              wrapResponseText(e.getMessage)
+              wrapResponseText(e)
             }
           }
         }
@@ -666,8 +692,7 @@ class SmcResponder[
             }
             case Failure(e) => {
               // FIXME:  try to update state?
-              debug("ERROR", e)
-              wrapResponseText(e.getMessage)
+              wrapResponseText(e)
             }
           }
         }
@@ -701,8 +726,9 @@ class SmcResponder[
                 pred)
             }
             case _ => {
-              Failure(new RuntimeException(
-                sentencePrinter.sb.respondCannotUnderstand))
+              cosmos.fail(
+                ShlurdExceptionCode.FailedParse,
+                sentencePrinter.sb.respondCannotUnderstand)
             }
           }
           stateChangeAttempt match {
@@ -715,8 +741,7 @@ class SmcResponder[
                   wrapResponseText(imperativeResult)
                 }
                 case _ => {
-                  debug("ERROR", e)
-                  wrapResponseText(e.getMessage)
+                  wrapResponseText(e)
                 }
               }
             }
@@ -732,13 +757,17 @@ class SmcResponder[
     case SilConjunctiveSentence(determiner, sentences, _) => {
       // FIXME
       trace("CONJUNCTIVE SENTENCE")
-      wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
+      wrapResponseText(
+        ShlurdExceptionCode.FailedParse,
+        sentencePrinter.sb.respondCannotUnderstand)
     }
     case SilAmbiguousSentence(alternatives, _) => {
       debug("AMBIGUOUS SENTENCE")
       // FIXME:  try each in turn and use first
       // that does not result in an error
-      wrapResponseText(sentencePrinter.sb.respondCannotUnderstand)
+      wrapResponseText(
+        ShlurdExceptionCode.FailedParse,
+        sentencePrinter.sb.respondCannotUnderstand)
     }
   }
 
@@ -757,7 +786,7 @@ class SmcResponder[
       }
       case TENSE_FUTURE => {
         // FIXME i18n
-        fail("Future tense not supported yet.")
+        cosmos.fail("Future tense not supported yet.")
       }
     }
   }
@@ -768,7 +797,7 @@ class SmcResponder[
   {
     // FIXME i18n
     if (!mind.hasNarrative) {
-      return fail("No narrative in progress.")
+      return cosmos.fail("No narrative in progress.")
     }
     val isAction = predicate match {
       case _ : SilActionPredicate => true
@@ -788,7 +817,7 @@ class SmcResponder[
     val (adp, boundPredicate, freePredicate, reducedModifiers) = {
       if (iTimeframe < 0) {
         if (!isAction) {
-          return fail("A timeframe must be specified.")
+          return cosmos.fail("A timeframe must be specified.")
         }
         (SilAdposition.AFTER, predicate, predicate, predicate.getModifiers)
       } else {
@@ -861,7 +890,7 @@ class SmcResponder[
     if (success) {
       Success(Trilean.True)
     } else {
-      fail("No such timeframe and/or event in narrative.")
+      cosmos.fail("No such timeframe and/or event in narrative.")
     }
   }
 

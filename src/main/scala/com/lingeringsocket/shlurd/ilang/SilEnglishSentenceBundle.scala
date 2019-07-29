@@ -825,7 +825,7 @@ class SilEnglishSentenceBundle
       "means for", concat(subject, "."))
   }
 
-  override def respondUnknownPronoun(pronoun : String) =
+  override def respondUnresolvedPronoun(pronoun : String) =
   {
     compose("Sorry, when you say",
       concat("'", pronoun, "'"), "I don't know who or what you mean.")

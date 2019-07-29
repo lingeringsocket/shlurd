@@ -107,7 +107,7 @@ class ConversationRenderer extends StringModifier
               "(response ended prematurely)"
             }
           }
-          val position = Position.Range(code, startLine, 0, startLine + 1, 0)
+          val position = Position.Range(code, startLine, 0, startLine, 0)
           reporter.error(
             position,
             s"\nMISMATCH:\n\n$actual\n\nEXPECTED:\n")

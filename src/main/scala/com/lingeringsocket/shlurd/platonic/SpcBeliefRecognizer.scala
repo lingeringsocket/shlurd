@@ -401,7 +401,16 @@ class SpcBeliefRecognizer(
             }
             case _ => (ref, false)
           }
-          return processResolvedReference(sentence, rr, {
+          val prechecks = {
+            if ((determiner == DETERMINER_UNIQUE) &&
+              (count == COUNT_SINGULAR))
+            {
+              Seq(UniquenessBelief(sentence, rr))
+            } else {
+              Seq.empty
+            }
+          }
+          return prechecks ++ processResolvedReference(sentence, rr, {
             entityRef => {
               if (!isPropertyName) {
                 // "the cat is angry "

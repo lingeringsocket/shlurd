@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
@@ -45,6 +46,9 @@ trait SmcProperty
 trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
 {
   def fail(msg : String) = Failure(new RuntimeException(msg))
+
+  def fail(code : ShlurdExceptionCode, msg : String) =
+    Failure(ShlurdException(code, msg))
 
   def resolveQualifiedNoun(
     lemma : String,

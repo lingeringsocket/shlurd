@@ -475,7 +475,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     "FIXME"
   }
 
-  override def respondUnknownPronoun(pronoun : String) =
+  override def respondUnresolvedPronoun(pronoun : String) =
   {
     "FIXME"
   }

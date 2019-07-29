@@ -726,9 +726,12 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("there is a door") must
         throwA[AmbiguousBeliefExcn]
 
+      addBelief("a pig must be dirty or clean")
       addBelief("there is a red pig")
       addBelief("there is a green pig")
       addBelief("the pig is Charlotte's pet") must
+        throwA[AmbiguousBeliefExcn]
+      addBelief("the pig is dirty") must
         throwA[AmbiguousBeliefExcn]
     }
 
