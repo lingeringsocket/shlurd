@@ -418,8 +418,9 @@ class SpcResponder(
                   predicate,
                   resultCollector.referenceMap)
               } catch {
-                case CausalityViolationExcn(cause) => {
-                  return Some(wrapResponseText(cause))
+                case e @ ShlurdException(
+                  ShlurdExceptionCode.CausalityViolation, _) => {
+                  return Some(wrapResponseText(e))
                 }
               }
             })
@@ -962,7 +963,9 @@ class SpcResponder(
   {
     val boundPredicate = bindPredicate(predicate, referenceMap)
     if (seen.size > 100) {
-      mind.getCosmos.fail(sentencePrinter.sb.respondTriggerLimit)
+      mind.getCosmos.fail(
+        ShlurdExceptionCode.TriggerLimit,
+        sentencePrinter.sb.respondTriggerLimit)
     } else if (seen.contains(boundPredicate)) {
       Success(true)
     } else {

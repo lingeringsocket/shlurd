@@ -84,7 +84,9 @@ class SmcTimelineSpec extends Specification
     eventCosmos : CosmosType) : CosmosType =
   {
     if (eventCosmos == COSMOS_2) {
-      throw new CausalityViolationExcn("You've kill your own grandfather")
+      throw ShlurdException(
+        ShlurdExceptionCode.CausalityViolation,
+        "You've kill your own grandfather")
     } else {
       COSMOS_2
     }
@@ -165,7 +167,12 @@ class SmcTimelineSpec extends Specification
         new TimelineEntry(
           Interval.point(SmcTimePointOrder.ONCE_UPON_A_TIME_POINT),
           COSMOS_1, PRED_A, REF_MAP_1),
-        failCosmosMutator) must throwA[CausalityViolationExcn]
+        failCosmosMutator
+      ) must throwA[ShlurdException].like {
+        case ShlurdException(code, msg) => {
+          code must be equalTo ShlurdExceptionCode.CausalityViolation
+        }
+      }
 
       // nothing should be modified
       timeline.getEntries must be equalTo Seq(entry1, entry2, entry3)

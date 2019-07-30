@@ -29,6 +29,9 @@ object ShlurdExceptionCode
   case object UnknownState extends ShlurdExceptionCode
   case object NotUnique extends ShlurdExceptionCode
   case object UnresolvedPronoun extends ShlurdExceptionCode
+  case object TriggerLimit extends ShlurdExceptionCode
+  case object CausalityViolation extends ShlurdExceptionCode
+  case object NotYetImplemented extends ShlurdExceptionCode
 }
 
 case class ShlurdException(

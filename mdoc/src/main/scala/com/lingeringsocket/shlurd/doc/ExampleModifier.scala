@@ -69,7 +69,7 @@ class ConversationRenderer extends StringModifier
         SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS,
         createImplicitIdeals = false,
         createTentativeIdeals = false,
-        createTentativeEntities = false,
+        createTentativeEntities = true,
         createImplicitProperties = false),
         SmcResponseParams(verbosity = RESPONSE_TERSE))
     val exchanges = {

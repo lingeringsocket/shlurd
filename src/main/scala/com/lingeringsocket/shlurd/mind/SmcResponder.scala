@@ -32,11 +32,6 @@ case class SmcStateChangeInvocation[EntityType<:SmcEntity](
 {
 }
 
-case class CausalityViolationExcn(cause : String)
-    extends RuntimeException(cause)
-{
-}
-
 sealed trait SmcResponseVerbosity
 case object RESPONSE_TERSE extends SmcResponseVerbosity
 case object RESPONSE_ELLIPSIS extends SmcResponseVerbosity
@@ -346,7 +341,8 @@ class SmcResponder[
         val eventResponder = spawn(eventMind)
         val result = eventResponder.process(sentence)
         if (result != sentencePrinter.sb.respondCompliance) {
-          throw new CausalityViolationExcn(result)
+          throw ShlurdException(
+            ShlurdExceptionCode.CausalityViolation, result)
         }
         freezeCosmos(eventMind.getCosmos)
       }
@@ -785,8 +781,9 @@ class SmcResponder[
         predicateEvaluator.evaluatePredicate(predicate, resultCollector)
       }
       case TENSE_FUTURE => {
-        // FIXME i18n
-        cosmos.fail("Future tense not supported yet.")
+        cosmos.fail(
+          ShlurdExceptionCode.NotYetImplemented,
+          "Future tense not supported yet.")
       }
     }
   }
@@ -795,9 +792,10 @@ class SmcResponder[
     predicate : SilPredicate,
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
-    // FIXME i18n
     if (!mind.hasNarrative) {
-      return cosmos.fail("No narrative in progress.")
+      return cosmos.fail(
+        ShlurdExceptionCode.NotYetImplemented,
+        "No narrative in progress.")
     }
     val isAction = predicate match {
       case _ : SilActionPredicate => true
@@ -817,7 +815,9 @@ class SmcResponder[
     val (adp, boundPredicate, freePredicate, reducedModifiers) = {
       if (iTimeframe < 0) {
         if (!isAction) {
-          return cosmos.fail("A timeframe must be specified.")
+          return cosmos.fail(
+            ShlurdExceptionCode.NotYetImplemented,
+            "A timeframe must be specified.")
         }
         (SilAdposition.AFTER, predicate, predicate, predicate.getModifiers)
       } else {
@@ -890,7 +890,9 @@ class SmcResponder[
     if (success) {
       Success(Trilean.True)
     } else {
-      cosmos.fail("No such timeframe and/or event in narrative.")
+      cosmos.fail(
+        ShlurdExceptionCode.NotYetImplemented,
+        "No such timeframe and/or event in narrative.")
     }
   }
 
