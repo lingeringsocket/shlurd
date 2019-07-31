@@ -563,7 +563,7 @@ class SnavigShell(
 
   private val phenomenalResponder = new SnavigResponder(
     None, phenomenalMind,
-    beliefParams.copy(acceptance = ACCEPT_NO_BELIEFS),
+    beliefParams.copy(acceptance = IGNORE_BELIEFS),
     responderParams.copy(existenceAssumption = EXISTENCE_ASSUME_UNKNOWN),
     executor, playerToInterpreter)
 
@@ -630,7 +630,7 @@ class SnavigShell(
           )
           val responder = new SnavigResponder(
             None, targetMind,
-            beliefParams.copy(acceptance = ACCEPT_NO_BELIEFS),
+            beliefParams.copy(acceptance = IGNORE_BELIEFS),
             SmcResponseParams(), executor, communicationContext)
           val sentences = responder.newParser(input).parseAll
           sentences.foreach(sentence => {
@@ -721,7 +721,7 @@ class SnavigShell(
                 )
                 val entityResponder = new SnavigResponder(
                   None, entityMind,
-                  beliefParams.copy(acceptance = ACCEPT_NO_BELIEFS),
+                  beliefParams.copy(acceptance = IGNORE_BELIEFS),
                   SmcResponseParams(), executor, communicationContext)
                 // FIXME use parseAll instead
                 val sentence = entityResponder.newParser(quotation).parseOne

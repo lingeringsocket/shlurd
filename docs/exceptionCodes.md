@@ -36,6 +36,14 @@ Sorry, I don't know about any 'jubjub'.
 Sorry, I don't know what 'arrogant' means for Jupiter.
 ```
 
+## NonExistent
+
+```scala mdoc:processConversation
+> is the mysterious investigator confused
+
+But I don't know about any such investigator.
+```
+
 ## NotUnique
 
 ```scala mdoc:processConversation

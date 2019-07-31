@@ -14,58 +14,78 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 sealed abstract class SpcBeliefExcn(
+  code : ShlurdExceptionCode,
   cause : String) extends RuntimeException(cause)
+{
+  def getCode : ShlurdExceptionCode = code
+}
 
 sealed abstract class RejectedBeliefExcn(
-  cause : String) extends SpcBeliefExcn(cause)
+  code : ShlurdExceptionCode,
+  cause : String) extends SpcBeliefExcn(code, cause)
 {
   def belief : SilSentence
 }
 
-case class IncomprehensibleBeliefExcn(belief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
+case class IncomprehensibleBeliefExcn(
+  code : ShlurdExceptionCode,
+  belief : SilSentence)
+    extends RejectedBeliefExcn(code, "New belief:  " +
       belief.toWordString)
 {
 }
 
-case class UnimplementedBeliefExcn(belief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
+case class UnimplementedBeliefExcn(
+  code : ShlurdExceptionCode,
+  belief : SilSentence)
+    extends RejectedBeliefExcn(code, "New belief:  " +
       belief.toWordString)
 {
 }
 
-case class InvalidBeliefExcn(belief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
+case class InvalidBeliefExcn(
+  code : ShlurdExceptionCode,
+  belief : SilSentence)
+    extends RejectedBeliefExcn(code, "New belief:  " +
       belief.toWordString)
 {
 }
 
-case class ProhibitedBeliefExcn(belief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
+case class ProhibitedBeliefExcn(
+  code : ShlurdExceptionCode,
+  belief : SilSentence)
+    extends RejectedBeliefExcn(code, "New belief:  " +
       belief.toWordString)
 {
 }
 
 case class ContradictoryBeliefExcn(
-  belief : SilSentence, originalBelief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
+  code : ShlurdExceptionCode,
+  belief : SilSentence,
+  originalBelief : SilSentence)
+    extends RejectedBeliefExcn(code, "New belief:  " +
       belief.toWordString + " vs original:  " + originalBelief.toWordString)
 {
 }
 
 case class AmbiguousBeliefExcn(
-  belief : SilSentence, originalBelief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
+  code : ShlurdExceptionCode,
+  belief : SilSentence,
+  originalBelief : SilSentence)
+    extends RejectedBeliefExcn(code, "New belief:  " +
       belief.toWordString + " vs original:  " + originalBelief.toWordString)
 {
 }
 
 case class IncrementalCardinalityExcn(
-  belief : SilSentence, originalBelief : SilSentence)
-    extends RejectedBeliefExcn("New belief:  " +
+  code : ShlurdExceptionCode,
+  belief : SilSentence,
+  originalBelief : SilSentence)
+    extends RejectedBeliefExcn(code, "New belief:  " +
       belief.toWordString + " vs original:  " + originalBelief.toWordString)
 {
 }

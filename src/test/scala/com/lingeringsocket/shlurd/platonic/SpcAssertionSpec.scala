@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 
 class SpcAssertionSpec extends SpcProcessingSpecification
@@ -147,7 +148,9 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       process(
         input,
         ACCEPT_MODIFIED_BELIEFS,
-        SmcResponseParams(verbosity = RESPONSE_TERSE)
+        SmcResponseParams(
+          verbosity = RESPONSE_TERSE,
+          reportExceptionCodes = true)
       ) must be equalTo response
     }
 
@@ -219,7 +222,24 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     protected def verifyInvalid(assertion : String) =
     {
-      verify(assertion, errorInvalid(assertion))
+      // FIXME enforce specific codes
+      val code = ShlurdExceptionCode.InvalidBelief
+      val message = errorInvalid(assertion)
+      verifyError(
+        assertion,
+        message,
+        code)
+    }
+
+    protected def verifyError(
+      sentence : String,
+      message : String,
+      code : ShlurdExceptionCode) =
+    {
+      val expected = s"$message\n\nFor more information see ${code.getUrl}"
+      verify(
+        sentence,
+        expected)
     }
 
     protected def processWithClock(equivalenceGlow : String)
@@ -360,12 +380,6 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         "equivalently the toaster is done")
       verifyInvalid("after a slice becomes cold, " +
         "then the toaster must be done")
-      verify(
-        "before a slice becomes cold, " +
-          "subsequently the toaster must be done",
-        errorInvalid(
-          "before a slice becomes cold, " +
-            "then the toaster must be done subsequently"))
     }
 
     "prevent invalid inverse associations" in new AssertionContext
@@ -400,9 +414,10 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         "also the slice's predecessor becomes a heel; " +
         "also the person cuts the slice's predecessor")
 
-      verify(
+      verifyError(
         "Wallace cuts the pumpernickel",
-        "Trigger limit exceeded.")
+        "Trigger limit exceeded.",
+        ShlurdExceptionCode.TriggerLimit)
     }
 
     "map genitives in equivalences" in new AssertionContext

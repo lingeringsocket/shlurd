@@ -27,11 +27,45 @@ object ShlurdExceptionCode
   case object FailedParse extends ShlurdExceptionCode
   case object UnknownForm extends ShlurdExceptionCode
   case object UnknownState extends ShlurdExceptionCode
+  case object NonExistent extends ShlurdExceptionCode
   case object NotUnique extends ShlurdExceptionCode
   case object UnresolvedPronoun extends ShlurdExceptionCode
   case object TriggerLimit extends ShlurdExceptionCode
   case object CausalityViolation extends ShlurdExceptionCode
   case object NotYetImplemented extends ShlurdExceptionCode
+
+  case object IncomprehensibleBelief extends ShlurdExceptionCode
+  case object InvalidBelief extends ShlurdExceptionCode
+  case object BeliefNotYetImplemented extends ShlurdExceptionCode
+  case object ReferenceNotYetImplemented extends ShlurdExceptionCode
+  case object NewBeliefsProhibited extends ShlurdExceptionCode
+  case object ImplicitIdealsProhibited extends ShlurdExceptionCode
+  case object ImplicitPropertiesProhibited extends ShlurdExceptionCode
+  case object TentativeIdealsProhibited extends ShlurdExceptionCode
+  case object TentativeEntitiesProhibited extends ShlurdExceptionCode
+  case object AmbiguousInterpretation extends ShlurdExceptionCode
+  case object CardinalityConstraint extends ShlurdExceptionCode
+  case object TaxonomyCycle extends ShlurdExceptionCode
+
+  // FIXME need test
+  case object OverlappingProperties extends ShlurdExceptionCode
+
+  case object PropertyAlreadyClosed extends ShlurdExceptionCode
+
+  // FIXME need test
+  case object RoleHypernymNonExistent extends ShlurdExceptionCode
+  // FIXME need test
+  case object RoleHyponymConflictsWithForm extends ShlurdExceptionCode
+  // FIXME need test
+  case object RoleHyponymAlreadyExists extends ShlurdExceptionCode
+  // FIXME need test
+  case object RoleTaxonomyIncompatible extends ShlurdExceptionCode
+  // FIXME need test
+  case object FormTaxonomyIncompatible extends ShlurdExceptionCode
+
+  case object FormRoleIncompatible extends ShlurdExceptionCode
+  case object PropertyDomainIncompatible extends ShlurdExceptionCode
+  case object AbsenceConstraint extends ShlurdExceptionCode
 }
 
 case class ShlurdException(

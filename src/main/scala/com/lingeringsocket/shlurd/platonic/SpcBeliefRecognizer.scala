@@ -389,7 +389,8 @@ class SpcBeliefRecognizer(
               resultCollector.lookup(ref) match {
                 // interpret as association, e.g. "the boss's minions"
                 case Some(entities) if (
-                  !entities.exists(_.isInstanceOf[SpcTransientEntity])
+                  entities.nonEmpty &&
+                    !entities.exists(_.isInstanceOf[SpcTransientEntity])
                 ) => {
                   tupleN((ref, false))
                 }

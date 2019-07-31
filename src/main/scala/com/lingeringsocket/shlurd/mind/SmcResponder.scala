@@ -363,6 +363,7 @@ class SmcResponder[
         wrapResponseText(code, msg)
       }
       case _ => {
+        warn("NON-CODED THROWABLE:  " + ex)
         wrapResponseText(ex.getMessage)
       }
     }

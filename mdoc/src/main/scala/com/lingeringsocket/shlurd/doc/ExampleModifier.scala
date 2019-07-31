@@ -48,7 +48,9 @@ object ExampleModifier
   var lastCosmos : Option[SpcCosmos] = None
 }
 
-class ConversationRenderer extends StringModifier
+
+
+class ConversationProcessor extends StringModifier
 {
   import ExampleModifier._
 

@@ -51,6 +51,7 @@ object SpcBeliefAccepter
 }
 
 sealed trait SpcBeliefAcceptance
+case object IGNORE_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_NO_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_NEW_BELIEFS extends SpcBeliefAcceptance
 case object ACCEPT_MODIFIED_BELIEFS extends SpcBeliefAcceptance
@@ -90,7 +91,9 @@ class SpcBeliefAccepter private(
         beliefs.foreach(applyBelief)
       }
       case _ => {
-        throw new IncomprehensibleBeliefExcn(sentence)
+        throw new IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.IncomprehensibleBelief,
+          sentence)
       }
     }
   }
@@ -98,7 +101,9 @@ class SpcBeliefAccepter private(
   def applyBelief(belief : SpcBelief)
   {
     if (params.acceptance == ACCEPT_NO_BELIEFS) {
-      throw new ProhibitedBeliefExcn(belief.sentence)
+      throw new ProhibitedBeliefExcn(
+        ShlurdExceptionCode.NewBeliefsProhibited,
+        belief.sentence)
     }
     allBeliefApplier.apply(belief)
   }
@@ -114,7 +119,12 @@ class SpcBeliefAccepter private(
         entities.toSeq.map(creed.entityFormBelief))
       // FIXME this conjunction may come out way too long, and may
       // also be phrased confusingly depending on what objects exist.
-      throw new AmbiguousBeliefExcn(sentence, originalBelief)
+
+      // FIXME better to use the same phrasing as normal responder
+
+      throw new AmbiguousBeliefExcn(
+        ShlurdExceptionCode.NotUnique,
+        sentence, originalBelief)
     } else {
       None
     }
@@ -126,13 +136,17 @@ class SpcBeliefAccepter private(
   {
     resultCollector.lookup(ref).map(entities =>
       getUniqueEntity(sentence, entities).getOrElse(
-        throw new IncomprehensibleBeliefExcn(sentence))).getOrElse(
+        throw new IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.NonExistent,
+          sentence))).getOrElse(
       ref match {
         case SilNounReference(noun, determiner, _) => {
           resolveUniqueNameAndExistence(sentence, noun, determiner)._1
         }
         case _ => {
-          throw new IncomprehensibleBeliefExcn(sentence)
+          throw new IncomprehensibleBeliefExcn(
+            ShlurdExceptionCode.ReferenceNotYetImplemented,
+            sentence)
         }
       }
     )
@@ -166,7 +180,9 @@ class SpcBeliefAccepter private(
         }
       }
       case _ => {
-        throw new IncomprehensibleBeliefExcn(sentence)
+        throw new IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.ReferenceNotYetImplemented,
+          sentence)
       }
     }
   }
@@ -201,6 +217,7 @@ class SpcBeliefAccepter private(
           Seq(creed.idealAssociationBelief(formAssocEdge)) ++
             edges.map(creed.entityAssociationBelief))
         throw new IncrementalCardinalityExcn(
+          ShlurdExceptionCode.CardinalityConstraint,
           sentence, originalBelief)
       }
     }
@@ -229,6 +246,7 @@ class SpcBeliefAccepter private(
         // isn't terribly helpful
         if (!cosmos.isValidMergeAssoc(pair._1, pair._2)) {
           throw new IncrementalCardinalityExcn(
+            ShlurdExceptionCode.CardinalityConstraint,
             sentence,
             creed.idealAssociationBelief(pair._2))
         }
@@ -279,6 +297,7 @@ class SpcBeliefAccepter private(
       val originalBelief = conjunctiveBelief(
         path.getEdgeList.asScala.toSeq.map(creed.idealTaxonomyBelief))
       throw new ContradictoryBeliefExcn(
+        ShlurdExceptionCode.TaxonomyCycle,
         sentence,
         originalBelief)
     }
@@ -360,7 +379,9 @@ class SpcBeliefAccepter private(
           }
           case _ => {
             // maybe unify multiple properties??
-            throw new UnimplementedBeliefExcn(sentence)
+            throw new UnimplementedBeliefExcn(
+              ShlurdExceptionCode.OverlappingProperties,
+              sentence)
           }
         }
       }
@@ -378,7 +399,9 @@ class SpcBeliefAccepter private(
           case Seq() => property
           case Seq(hyperProperty) => hyperProperty
           case _ => {
-            throw new UnimplementedBeliefExcn(sentence)
+            throw new UnimplementedBeliefExcn(
+              ShlurdExceptionCode.OverlappingProperties,
+              sentence)
           }
         }
       }
@@ -393,6 +416,7 @@ class SpcBeliefAccepter private(
     }
     if (contradiction) {
       throw new ContradictoryBeliefExcn(
+        ShlurdExceptionCode.PropertyAlreadyClosed,
         sentence,
         creed.formPropertyBelief(form, baselineProperty))
     }
@@ -417,7 +441,9 @@ class SpcBeliefAccepter private(
       case Some(r) => r
       case _ => {
         if (isImplicit && !params.createImplicitIdeals) {
-          throw new ProhibitedBeliefExcn(sentence)
+          throw new ProhibitedBeliefExcn(
+            ShlurdExceptionCode.ImplicitIdealsProhibited,
+            sentence)
         }
         mind.instantiateRole(possessorForm, idealName)
       }
@@ -433,11 +459,15 @@ class SpcBeliefAccepter private(
       case Some(form : SpcForm) => form
       case _ => {
         if (isImplicit && !params.createImplicitIdeals) {
-          throw new ProhibitedBeliefExcn(sentence)
+          throw new ProhibitedBeliefExcn(
+            ShlurdExceptionCode.ImplicitIdealsProhibited,
+            sentence)
         }
         val newForm = mind.instantiateForm(word)
         if (newForm.isTentative && !params.createTentativeIdeals) {
-          throw new ProhibitedBeliefExcn(sentence)
+          throw new ProhibitedBeliefExcn(
+            ShlurdExceptionCode.TentativeIdealsProhibited,
+            sentence)
         }
         newForm
       }
@@ -454,7 +484,9 @@ class SpcBeliefAccepter private(
     case UnimplementedBelief(
       sentence
     ) => {
-      throw new UnimplementedBeliefExcn(sentence)
+      throw new UnimplementedBeliefExcn(
+        ShlurdExceptionCode.BeliefNotYetImplemented,
+        sentence)
     }
   }
 
@@ -462,7 +494,9 @@ class SpcBeliefAccepter private(
     case InvalidBelief(
       sentence
     ) => {
-      throw new InvalidBeliefExcn(sentence)
+      throw new InvalidBeliefExcn(
+        ShlurdExceptionCode.InvalidBelief,
+        sentence)
     }
   }
 
@@ -522,19 +556,25 @@ class SpcBeliefAccepter private(
       val hypernymIdeal = {
         if (isRefinement) {
           mind.resolveRole(possessorForm, hypernymIdealName).getOrElse {
-            throw new IncomprehensibleBeliefExcn(sentence)
+            throw new IncomprehensibleBeliefExcn(
+              ShlurdExceptionCode.RoleHypernymNonExistent,
+              sentence)
           }
         } else {
           instantiateForm(sentence, hypernymIdealName)
         }
       }
       if (mind.resolveForm(hyponymRoleName).nonEmpty) {
-        throw new IncomprehensibleBeliefExcn(sentence)
+        throw new IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.RoleHyponymConflictsWithForm,
+          sentence)
       }
       if (isRefinement) {
         if (mind.resolveRole(possessorForm, hyponymRoleName, false).nonEmpty) {
           // FIXME instead of failing, merge the associations
-          throw new IncomprehensibleBeliefExcn(sentence)
+          throw new IncomprehensibleBeliefExcn(
+            ShlurdExceptionCode.RoleHyponymAlreadyExists,
+            sentence)
         }
       }
       val hyponymRole = instantiateRole(
@@ -557,6 +597,7 @@ class SpcBeliefAccepter private(
                 val formBelief = creed.entityFormBelief(possesseeEntity)
                 val assocBelief = creed.entityAssociationBelief(entityEdge)
                 throw new ContradictoryBeliefExcn(
+                  ShlurdExceptionCode.RoleTaxonomyIncompatible,
                   sentence,
                   conjunctiveBelief(Seq(formBelief, assocBelief)))
               }
@@ -599,7 +640,9 @@ class SpcBeliefAccepter private(
           getUniqueEntity(sentence, entities).map(
             entity => (entity, false, DETERMINER_UNIQUE)
           ).getOrElse(
-            throw new IncomprehensibleBeliefExcn(sentence))
+            throw new IncomprehensibleBeliefExcn(
+              ShlurdExceptionCode.AmbiguousInterpretation,
+              sentence))
         ).getOrElse(
           entityRef match {
             case SilNounReference(noun, determiner, count) => {
@@ -616,7 +659,9 @@ class SpcBeliefAccepter private(
               tupleN((entity, isNewEntity, determiner))
             }
             case _ => {
-              throw new IncomprehensibleBeliefExcn(sentence)
+              throw new IncomprehensibleBeliefExcn(
+                ShlurdExceptionCode.ReferenceNotYetImplemented,
+                sentence)
             }
           }
         )
@@ -624,6 +669,7 @@ class SpcBeliefAccepter private(
         if (form == entity.form) {
           if (properName.isEmpty) {
             throw new AmbiguousBeliefExcn(
+              ShlurdExceptionCode.AmbiguousInterpretation,
               sentence, creed.entityFormBelief(entity))
           }
         } else if (!entity.form.isTentative &&
@@ -643,6 +689,7 @@ class SpcBeliefAccepter private(
           // FIXME:  initiate dialog with user to sort it out,
           // e.g. "is a dog a kind of cow?"
           throw new ContradictoryBeliefExcn(
+            ShlurdExceptionCode.FormTaxonomyIncompatible,
             sentence, creed.entityFormBelief(entity))
         }
       } else if (determiner == DETERMINER_UNIQUE) {
@@ -681,6 +728,7 @@ class SpcBeliefAccepter private(
         val originalBelief = conjunctiveBelief(
           edges.map(creed.entityAssociationBelief))
         throw new ContradictoryBeliefExcn(
+          ShlurdExceptionCode.AbsenceConstraint,
           sentence,
           originalBelief)
       }
@@ -714,7 +762,9 @@ class SpcBeliefAccepter private(
 
       val (property, actualState) = propertyOptFiltered.getOrElse({
         if (propertyOpt.isEmpty && !params.createImplicitProperties) {
-          throw new ProhibitedBeliefExcn(sentence)
+          throw new ProhibitedBeliefExcn(
+            ShlurdExceptionCode.ImplicitPropertiesProhibited,
+            sentence)
         }
         val p = instantiatePropertyStates(
           sentence, form, Seq(stateName), false, propertyName)
@@ -735,9 +785,12 @@ class SpcBeliefAccepter private(
       val property = cosmos.findProperty(
         form, cosmos.encodeName(propertyName)).getOrElse
       {
-        // FIXME more specific excn
-        throw new IncomprehensibleBeliefExcn(sentence)
+        // FIXME if allowed, create implicit property
+        throw new ProhibitedBeliefExcn(
+          ShlurdExceptionCode.ImplicitPropertiesProhibited,
+          sentence)
       }
+      // FIXME verify that propertyValue matches property's domain
       cosmos.updateEntityProperty(entity, property, propertyValue)
     }
   }
@@ -781,7 +834,9 @@ class SpcBeliefAccepter private(
           cosmos.reifyRole(possessor, role, false, stateOpt.nonEmpty)).get
       }
       if (!params.createTentativeEntities && possessee.isTentative) {
-        throw new ProhibitedBeliefExcn(sentence)
+        throw new ProhibitedBeliefExcn(
+          ShlurdExceptionCode.TentativeEntitiesProhibited,
+          sentence)
       }
       val graph = cosmos.getGraph
       if (positive) {
@@ -793,6 +848,7 @@ class SpcBeliefAccepter private(
           val originalBelief = conjunctiveBelief(
             creed.roleTaxonomyBeliefs(role).toSeq)
           throw new ContradictoryBeliefExcn(
+            ShlurdExceptionCode.FormRoleIncompatible,
             sentence,
             originalBelief)
         }
@@ -902,6 +958,7 @@ class SpcBeliefAccepter private(
       val property = cosmos.instantiateProperty(form, propertyName, domain)
       if (property.domain != domain) {
         throw new ContradictoryBeliefExcn(
+          ShlurdExceptionCode.PropertyDomainIncompatible,
           sentence,
           creed.formPropertyBelief(form, property))
       }

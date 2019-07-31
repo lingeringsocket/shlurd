@@ -355,8 +355,8 @@ class SpcResponder(
     resultCollector : ResultCollectorType)(sentence : SilSentence)
       : Option[(SilSentence, String)] =
   {
-    if ((beliefParams.acceptance != ACCEPT_NO_BELIEFS) &&
-      sentence.tam.isIndicative)
+    if (sentence.tam.isIndicative &&
+      (beliefParams.acceptance != IGNORE_BELIEFS))
     {
       val (interval, predicateOpt, baselineCosmos, temporal) = sentence match {
         case SilPredicateSentence(predicate, _, _) => {
@@ -419,8 +419,8 @@ class SpcResponder(
                   resultCollector.referenceMap)
               } catch {
                 case e @ ShlurdException(
-                  ShlurdExceptionCode.CausalityViolation, _) => {
-                  return Some(wrapResponseText(e))
+                  ShlurdExceptionCode.CausalityViolation, message) => {
+                  return Some(wrapResponseText(message))
                 }
               }
             })
@@ -594,7 +594,7 @@ class SpcResponder(
             resultCollector.referenceMap, isPrecondition || isTest
           ) matchPartial {
             case Failure(err) => {
-              return Some(err.getMessage)
+              return Some(wrapResponseMessage(err))
             }
             case Success(true) => {
               return None
@@ -621,7 +621,7 @@ class SpcResponder(
             }
             case Failure(e) => {
               e match {
-                case _ : NonExistentException => {
+                case ShlurdException(ShlurdExceptionCode.NonExistent, _) => {
                   None
                 }
                 case _ => {
@@ -639,7 +639,7 @@ class SpcResponder(
                   already, resultCollector.referenceMap
                 ) matchPartial {
                   case Failure(err) => {
-                    return Some(err.getMessage)
+                    return Some(wrapResponseMessage(err))
                   }
                   case Success(true) => {
                     return None
@@ -794,7 +794,7 @@ class SpcResponder(
                 true, false)
             resolutionResult matchPartial {
               case Failure(ex) => {
-                earlyReturn = Some(ex.getMessage)
+                earlyReturn = Some(wrapResponseMessage(ex))
               }
             }
           }
@@ -862,7 +862,9 @@ class SpcResponder(
       }
       case _ => {
         if (params.throwRejectedBeliefs) {
-          throw new IncomprehensibleBeliefExcn(sentence)
+          throw new IncomprehensibleBeliefExcn(
+            ShlurdExceptionCode.IncomprehensibleBelief,
+            sentence)
         }
         None
       }
@@ -996,39 +998,45 @@ class SpcResponder(
     rewriter.rewrite(replaceReferences, predicate)
   }
 
+  private def wrapResponseMessage(ex : Throwable) : String =
+  {
+    wrapResponseText(ex)._2
+  }
+
   // FIXME:  i18n
   private def respondRejection(ex : RejectedBeliefExcn) : String =
   {
     val beliefString = printBelief(ex.belief)
-    ex match {
-      case UnimplementedBeliefExcn(belief) => {
+    val msg = ex match {
+      case UnimplementedBeliefExcn(code, belief) => {
         s"I am not yet capable of processing the belief that ${beliefString}."
       }
-      case InvalidBeliefExcn(belief) => {
+      case InvalidBeliefExcn(code, belief) => {
         s"The belief that ${beliefString} is not valid in the given context."
       }
-      case ProhibitedBeliefExcn(belief) => {
+      case ProhibitedBeliefExcn(code, belief) => {
         s"The belief that ${beliefString} is prohibited in the given context."
       }
-      case IncomprehensibleBeliefExcn(belief) => {
+      case IncomprehensibleBeliefExcn(code, belief) => {
         s"I am unable to understand the belief that ${beliefString}."
       }
-      case ContradictoryBeliefExcn(belief, originalBelief) => {
+      case ContradictoryBeliefExcn(code, belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)
         s"The belief that ${beliefString} contradicts " +
         s"the belief that ${originalBeliefString}."
       }
-      case AmbiguousBeliefExcn(belief, originalBelief) => {
+      case AmbiguousBeliefExcn(code, belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)
         s"Previously I was told that ${originalBeliefString}.  So there is" +
           s" an ambiguous reference in the belief that ${beliefString}."
       }
-      case IncrementalCardinalityExcn(belief, originalBelief) => {
+      case IncrementalCardinalityExcn(code, belief, originalBelief) => {
         val originalBeliefString = printBelief(originalBelief)
         s"Previously I was told that ${originalBeliefString}." +
           s"  So it does not add up when I hear that ${beliefString}."
       }
     }
+    wrapResponseText(ex.getCode, msg)._2
   }
 
   private def printBelief(belief : SilSentence) : String =

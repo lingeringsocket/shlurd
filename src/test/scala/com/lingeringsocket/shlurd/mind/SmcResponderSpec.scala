@@ -85,7 +85,9 @@ class SmcResponderSpec extends Specification
 
   abstract class ResponderContext(
     responseParams : SmcResponseParams =
-      SmcResponseParams(thirdPersonPronouns = false)
+      SmcResponseParams(
+        thirdPersonPronouns = false,
+        reportExceptionCodes = true)
   ) extends Scope
   {
     protected val mind = new ZooMind(cosmos)
@@ -119,8 +121,7 @@ class SmcResponderSpec extends Specification
       message : String,
       code : ShlurdExceptionCode) =
     {
-      val reportExceptionCodes = SmcResponseParams(reportExceptionCodes = true)
-      process(input, reportExceptionCodes) must be equalTo(
+      process(input) must be equalTo(
         s"$message\n\nFor more information see ${code.getUrl}")
     }
 
@@ -183,6 +184,15 @@ class SmcResponderSpec extends Specification
         "Yes, there is a bear.")
       process("how many goats are asleep in the farm") must be equalTo(
         "One of them is asleep.")
+    }
+
+    "suppress exception codes" in new ResponderContext(
+      responseParams = SmcResponseParams())
+    {
+      ShlurdExceptionCode.NotUnique.getUrl must be equalTo
+        "https://undefined.com/exceptionCodes#NotUnique"
+      process("is the bear asleep") must be equalTo(
+        "Please be more specific about which bear you mean.")
     }
 
     "process questions" in new ResponderContext
@@ -258,14 +268,10 @@ class SmcResponderSpec extends Specification
         "No, the grizzly bear is not asleep.")
       process("is grizzly bear asleep") must be equalTo(
         "No, grizzly bear is not asleep.")
-      process("is the fuzzy bear asleep") must be equalTo(
-        "But I don't know about any such bear.")
-      process("is fuzzy bear asleep") must be equalTo(
-        "But I don't know about any such bear.")
-      process("is the bear asleep") must be equalTo(
-        "Please be more specific about which bear you mean.")
-      ShlurdExceptionCode.NotUnique.getUrl must be equalTo
-        "https://undefined.com/exceptionCodes#NotUnique"
+      processExceptionExpected(
+        "is the fuzzy bear asleep",
+        "But I don't know about any such bear.",
+        ShlurdExceptionCode.NonExistent)
       processExceptionExpected(
         "is the bear asleep",
         "Please be more specific about which bear you mean.",
@@ -328,8 +334,10 @@ class SmcResponderSpec extends Specification
         "No, the tiger is not asleep.")
       process("is the grizzly bear in any cage") must be equalTo(
         "No, the grizzly bear is in no cage.")
-      process("is the tiger in the cage") must be equalTo(
-        "Please be more specific about which cage you mean.")
+      processExceptionExpected(
+        "is the tiger in the cage",
+        "Please be more specific about which cage you mean.",
+        ShlurdExceptionCode.NotUnique)
       process("is the tiger in the big cage") must be equalTo(
         "Yes, the tiger is in the big cage.")
       process("is there a tiger in the big cage") must be equalTo(
@@ -340,8 +348,10 @@ class SmcResponderSpec extends Specification
         "No, there is not a tiger in the small cage.")
       process("is the tiger in the big cage awake") must be equalTo(
         "Yes, the tiger in the big cage is awake.")
-      process("is the tiger in the small cage awake") must be equalTo(
-        "But I don't know about any such tiger.")
+      processExceptionExpected(
+        "is the tiger in the small cage awake",
+        "But I don't know about any such tiger.",
+        ShlurdExceptionCode.NonExistent)
       process("is the goat on the farm awake") must be equalTo(
         "No, the goat on the farm is not awake.")
       process("which goat is awake") must be equalTo(
@@ -372,20 +382,32 @@ class SmcResponderSpec extends Specification
         "No, you are not in the big cage.")
       process("are you in the big cage") must be equalTo(
         "Yes, I am in the big cage.")
-      process("is he in the big cage") must be equalTo(
-        "Sorry, when you say 'he' I don't know who or what you mean.")
-      process("is his tiger in the big cage") must be equalTo(
-        "Sorry, when you say 'he' I don't know who or what you mean.")
-      process("are we in the big cage") must be equalTo(
-        "Sorry, when you say 'we' I don't know who or what you mean.")
-      process("are they in the big cage") must be equalTo(
-        "Sorry, when you say 'they' I don't know who or what you mean.")
+      processExceptionExpected(
+        "is he in the big cage",
+        "Sorry, when you say 'he' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      processExceptionExpected(
+        "is his tiger in the big cage",
+        "Sorry, when you say 'he' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      processExceptionExpected(
+        "are we in the big cage",
+        "Sorry, when you say 'we' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      processExceptionExpected(
+        "are they in the big cage",
+        "Sorry, when you say 'they' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
       process("is my tiger in the big cage") must be equalTo(
         "Yes, your tiger is in the big cage.")
-      process("is your tiger in the big cage") must be equalTo(
-        "But I don't know about any such tiger.")
-      process("is my lion in the big cage") must be equalTo(
-        "But I don't know about any such lion.")
+      processExceptionExpected(
+        "is your tiger in the big cage",
+        "But I don't know about any such tiger.",
+        ShlurdExceptionCode.NonExistent)
+      processExceptionExpected(
+        "is my lion in the big cage",
+        "But I don't know about any such lion.",
+        ShlurdExceptionCode.NonExistent)
       process("is your lion in the big cage") must be equalTo(
         "Yes, my lion is in the big cage.")
       process("who is in the big cage") must be equalTo(
@@ -603,8 +625,10 @@ class SmcResponderSpec extends Specification
       ResponderContext
     {
       mind.startConversation
-      process("is it asleep") must be equalTo(
-        "Sorry, when you say 'it' I don't know who or what you mean.")
+      processExceptionExpected(
+        "is it asleep",
+        "Sorry, when you say 'it' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
       process("is the tiger asleep") must be equalTo(
         "No, the tiger is not asleep.")
       process("is it awake") must be equalTo(
@@ -615,8 +639,10 @@ class SmcResponderSpec extends Specification
       ResponderContext
     {
       mind.startConversation
-      process("are they asleep") must be equalTo(
-        "Sorry, when you say 'they' I don't know who or what you mean.")
+      processExceptionExpected(
+        "are they asleep",
+        "Sorry, when you say 'they' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
       process("are the lion and the tiger asleep") must be equalTo(
         "No, the tiger is not asleep.")
       // FIXME:  the answer should be "No, the lion is not awake."; need to

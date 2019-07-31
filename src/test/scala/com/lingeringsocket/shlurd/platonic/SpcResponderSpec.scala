@@ -42,7 +42,7 @@ class SpcResponderSpec extends Specification
 
   abstract class ResponderContext(
     beliefAcceptance : SpcBeliefAcceptance = ACCEPT_NO_BELIEFS,
-    params : SmcResponseParams = SmcResponseParams()
+    params : SmcResponseParams = SmcResponseParams(reportExceptionCodes = true)
   ) extends Scope
   {
     protected val cosmos = new SpcCosmos {
@@ -85,11 +85,6 @@ class SpcResponderSpec extends Specification
         mind, SpcBeliefParams(beliefAcceptance), params.
           copy(verbosity = RESPONSE_ELLIPSIS))
 
-    protected val responderReportExceptionCodes =
-      new SpcResponder(
-        mind, SpcBeliefParams(beliefAcceptance),
-        params.copy(reportExceptionCodes = true))
-
     protected def loadBeliefs(resource : String)
     {
       val file = ResourceUtils.getResourceFile(resource)
@@ -109,10 +104,8 @@ class SpcResponderSpec extends Specification
       message : String,
       code : ShlurdExceptionCode) =
     {
-      val sentence = responder.newParser(input).parseOne
       val expected = s"$message\n\nFor more information see ${code.getUrl}"
-      responderReportExceptionCodes.process(
-        sentence, input) must be equalTo(expected)
+      process(input, expected)
     }
 
     protected def processTerse(
@@ -299,15 +292,18 @@ class SpcResponderSpec extends Specification
         "No one is her friend.",
         "No one is Amanda's friend.",
         "No one.")
-      process(
+      processExceptionExpected(
         "who has Amanda's friend",
-        "But I don't know about any such friend.")
-      process(
+        "But I don't know about any such friend.",
+        ShlurdExceptionCode.NonExistent)
+      processExceptionExpected(
         "is Ford Todd's friend",
-        "Sorry, I don't know about any 'Ford'.")
-      process(
+        "Sorry, I don't know about any 'Ford'.",
+        ShlurdExceptionCode.UnknownForm)
+      processExceptionExpected(
         "is Todd Ford's friend",
-        "Sorry, I don't know about any 'Ford'.")
+        "Sorry, I don't know about any 'Ford'.",
+        ShlurdExceptionCode.UnknownForm)
       // FIXME:  should clarify that they are not necessarily
       // friends OF EACH OTHER
       process(
@@ -355,9 +351,10 @@ class SpcResponderSpec extends Specification
         "Yes, Bart is an owner.",
         "Yes.",
         "Yes, she is.")
-      process(
+      processExceptionExpected(
         "is Amanda a robot",
-        "Sorry, I don't know about any 'robot'.")
+        "Sorry, I don't know about any 'robot'.",
+        ShlurdExceptionCode.UnknownForm)
       process(
         "who is a person",
         "Scott, Dirk, Todd, Hugo, Arthur, Amanda, and Bart are persons.")
@@ -393,9 +390,10 @@ class SpcResponderSpec extends Specification
       process(
         "who has friends",
         "Dirk and Todd have friends.")
-      process(
+      processExceptionExpected(
         "who is Ford",
-        "Sorry, I don't know about any 'Ford'.")
+        "Sorry, I don't know about any 'Ford'.",
+        ShlurdExceptionCode.UnknownForm)
       processMatrix(
         "who is Hugo",
         "He is one of BLACKWING's operatives.",
@@ -556,12 +554,10 @@ class SpcResponderSpec extends Specification
       processTerse(
         "how many women in Herbie are Furley's tenants",
         "No women in Herbie.")
-      processMatrix(
+      processExceptionExpected(
         "where is the helicopter",
         "But I don't know about any such helicopter.",
-        "But I don't know about any such helicopter.",
-        "But I don't know about any such helicopter.",
-        "But I don't know about any such helicopter.")
+        ShlurdExceptionCode.NonExistent)
       processMatrix(
         "who is in KITT",
         "No one is in it.",
@@ -940,12 +936,14 @@ class SpcResponderSpec extends Specification
         "is Herbie pink",
         "Sorry, I don't know what 'pink' means for Herbie.",
         ShlurdExceptionCode.UnknownState)
-      process(
+      processExceptionExpected(
         "is any car pink",
-        "Sorry, I don't know what 'pink' means for a car.")
-      process(
+        "Sorry, I don't know what 'pink' means for a car.",
+        ShlurdExceptionCode.UnknownState)
+      processExceptionExpected(
         "who is pink",
-        "Sorry, I don't know what 'pink' means for an spc-someone.")
+        "Sorry, I don't know what 'pink' means for an spc-someone.",
+        ShlurdExceptionCode.UnknownState)
       processMatrix(
         "is Herbie a car",
         "Yes, he is a car.",
@@ -1039,9 +1037,10 @@ class SpcResponderSpec extends Specification
 
     "respond correctly when no person exists" in new ResponderContext
     {
-      process(
+      processExceptionExpected(
         "who is Ford",
-        "Sorry, I don't know about any 'Ford'.")
+        "Sorry, I don't know about any 'Ford'.",
+        ShlurdExceptionCode.UnknownForm)
     }
 
     "understand services" in new ResponderContext
@@ -1158,8 +1157,10 @@ class SpcResponderSpec extends Specification
         "Yes, Jill is away.",
         "Yes.",
         "Yes, she is.")
-      process("is Jack on",
-        "Sorry, I don't know what 'on' means for Jack.")
+      processExceptionExpected(
+        "is Jack on",
+        "Sorry, I don't know what 'on' means for Jack.",
+        ShlurdExceptionCode.UnknownState)
       processMatrix("is Casper's apparition on",
         "Yes, his apparition is on.",
         "Yes, Casper's apparition is on.",
@@ -1220,7 +1221,9 @@ class SpcResponderSpec extends Specification
 
     "understand conversational pronoun references" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS,
-      SmcResponseParams(thirdPersonPronouns = false))
+      SmcResponseParams(
+        thirdPersonPronouns = false,
+        reportExceptionCodes = true))
     {
       loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/people.txt")
@@ -1249,8 +1252,10 @@ class SpcResponderSpec extends Specification
       processBelief("the pocket is an object")
       processBelief("the purse is an object")
       processBelief("the shoe is an object")
-      processTerse("where was the key before the pocket",
-        "No narrative in progress.")
+      processExceptionExpected(
+        "where was the key before the pocket",
+        "No narrative in progress.",
+        ShlurdExceptionCode.NotYetImplemented)
       mind.startNarrative
       processBelief("the key was in the pocket")
       processTerse("where is the key", "The pocket.")
@@ -1258,16 +1263,22 @@ class SpcResponderSpec extends Specification
       processTerse("where is the key", "The purse.")
       processBelief("after that the key was in the shoe")
       processTerse("where is the key", "The shoe.")
-      processTerse("where was the key",
-        "A timeframe must be specified.")
+      processExceptionExpected(
+        "where was the key",
+        "A timeframe must be specified.",
+        ShlurdExceptionCode.NotYetImplemented)
       processTerse("where was the key before the purse", "The pocket.")
       processTerse("where was the key after the purse", "The shoe.")
       processTerse("where was the key before the shoe", "The purse.")
       processTerse("where was the key after the pocket", "The purse.")
-      processTerse("where was the key after the shoe",
-        "No such timeframe and/or event in narrative.")
-      processTerse("where was the key before the pocket",
-        "No such timeframe and/or event in narrative.")
+      processExceptionExpected(
+        "where was the key after the shoe",
+        "No such timeframe and/or event in narrative.",
+        ShlurdExceptionCode.NotYetImplemented)
+      processExceptionExpected(
+        "where was the key before the pocket",
+        "No such timeframe and/or event in narrative.",
+        ShlurdExceptionCode.NotYetImplemented)
     }
 
     "understand relative timeframes" in new ResponderContext(
@@ -1295,13 +1306,17 @@ class SpcResponderSpec extends Specification
     {
       mind.startNarrative
       processBelief("yesterday, Harvey was Elwood's pet")
-      process("this afternoon, Elwood had no pets",
+      processExceptionExpected(
+        "this afternoon, Elwood had no pets",
         "The belief that Elwood had no pets " +
-          "contradicts the belief that Harvey is Elwood's pet.")
+          "contradicts the belief that Harvey is Elwood's pet.",
+        ShlurdExceptionCode.AbsenceConstraint)
       processBelief("this afternoon, Calvin had no pets")
-      process("yesterday, Hobbes was Calvin's pet",
+      processExceptionExpected(
+        "yesterday, Hobbes was Calvin's pet",
         "The belief that Calvin has no pets " +
-          "contradicts the belief that Hobbes is Calvin's pet.")
+          "contradicts the belief that Hobbes is Calvin's pet.",
+        ShlurdExceptionCode.AbsenceConstraint)
     }
 
     "understand equivalent queries" in new ResponderContext(
@@ -1397,10 +1412,21 @@ class SpcResponderSpec extends Specification
       processTerse("what color is Leo", "Yellow.")
     }
 
-    "prevent new beliefs" in new ResponderContext
+    "ignore new beliefs" in new ResponderContext(IGNORE_BELIEFS)
     {
-      process("There is a big door",
-        "Sorry, I don't know about any 'door'.")
+      processExceptionExpected(
+        "There is a big door",
+        "Sorry, I don't know about any 'door'.",
+        ShlurdExceptionCode.UnknownForm)
+    }
+
+    "prevent new beliefs" in new ResponderContext(ACCEPT_NO_BELIEFS)
+    {
+      processExceptionExpected(
+        "There is a big door",
+        "The belief that there is a big door " +
+          "is prohibited in the given context.",
+        ShlurdExceptionCode.NewBeliefsProhibited)
     }
 
     "accept new beliefs" in new ResponderContext(ACCEPT_NEW_BELIEFS)
@@ -1475,10 +1501,12 @@ class SpcResponderSpec extends Specification
     "reject invalid new beliefs" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
       processBelief("there is a white door")
-      process("there is a big white door",
+      processExceptionExpected(
+        "there is a big white door",
         "Previously I was told that a white door exists.  " +
           "So there is an ambiguous reference in the belief that " +
-          "there is a big white door.")
+          "there is a big white door.",
+        ShlurdExceptionCode.AmbiguousInterpretation)
     }
 
     "reject cyclic taxonomy belief" in new ResponderContext(
@@ -1486,10 +1514,12 @@ class SpcResponderSpec extends Specification
     {
       processBelief("a bird is a kind of animal")
       processBelief("a duck is a kind of bird")
-      process("an animal is a kind of duck",
+      processExceptionExpected(
+        "an animal is a kind of duck",
         "The belief that an animal is a kind of duck contradicts " +
           "the belief that a duck is a kind of a bird and " +
-          "a bird is a kind of an animal.")
+          "a bird is a kind of an animal.",
+        ShlurdExceptionCode.TaxonomyCycle)
     }
 
     "reject incompatible form for role" in new ResponderContext(
@@ -1499,9 +1529,11 @@ class SpcResponderSpec extends Specification
       processBelief("a person's lawyer must be a weasel")
       processBelief("Donald is a person")
       processBelief("Michael is a snake")
-      process("Michael is Donald's lawyer",
+      processExceptionExpected(
+        "Michael is Donald's lawyer",
         "The belief that Michael is Donald's lawyer contradicts " +
-          "the belief that a person's lawyer must be a weasel.")
+          "the belief that a person's lawyer must be a weasel.",
+        ShlurdExceptionCode.FormRoleIncompatible)
 
       cosmos.sanityCheck must beTrue
     }
@@ -1638,8 +1670,10 @@ class SpcResponderSpec extends Specification
       processBelief("there is a small lion")
       processBelief("the small lion is sad")
       processBelief("the big lion is sad")
-      processTerse("Daniel kicks the lion in the stomach",
-        "Please be more specific about which lion you mean.")
+      processExceptionExpected(
+        "Daniel kicks the lion in the stomach",
+        "Please be more specific about which lion you mean.",
+        ShlurdExceptionCode.NotUnique)
       processBelief("the small lion is in the stomach")
       processTerse("which lion is in the stomach", "The small lion.")
       processTerse("Daniel kicks the lion in the stomach", "OK.")
@@ -1735,19 +1769,21 @@ class SpcResponderSpec extends Specification
       ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/people.txt")
-      process(
+      processExceptionExpected(
         "Amanda is Rapunzel's owner",
         "Previously I was told that a dog may have one owner and Bart " +
           "is Rapunzel's owner.  So it does not add up when I hear that " +
-          "Amanda is Rapunzel's owner.")
-      process(
+          "Amanda is Rapunzel's owner.",
+        ShlurdExceptionCode.CardinalityConstraint)
+      processExceptionExpected(
         "Scott is ROWDYTHREE's operative",
         "Previously I was told that a person may have one employer and " +
           "BLACKWING is Scott's employer.  So it does not add up when I " +
-          "hear that Scott is ROWDYTHREE's operative.")
+          "hear that Scott is ROWDYTHREE's operative.",
+        ShlurdExceptionCode.CardinalityConstraint)
     }
 
-    "validate constraints incrementally" in new ResponderContext(
+    "accept updates with constraints" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/people.txt")

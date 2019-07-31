@@ -169,7 +169,7 @@ class SmcTimelineSpec extends Specification
           COSMOS_1, PRED_A, REF_MAP_1),
         failCosmosMutator
       ) must throwA[ShlurdException].like {
-        case ShlurdException(code, msg) => {
+        case ShlurdException(code, _) => {
           code must be equalTo ShlurdExceptionCode.CausalityViolation
         }
       }

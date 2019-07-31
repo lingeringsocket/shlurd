@@ -24,11 +24,14 @@ import spire.math._
 import scala.collection._
 import scala.io._
 import scala.util._
+import scala.reflect._
 
 import SprEnglishLemmas._
 
 class SpcCosmosSpec extends SpcProcessingSpecification
 {
+  val unusedSentence = SilUnparsedSentence("")
+
   trait CosmosContext extends ProcessingContext
   {
     protected def addBelief(
@@ -40,6 +43,18 @@ class SpcCosmosSpec extends SpcProcessingSpecification
         beliefParams,
         SmcResponseParams(throwRejectedBeliefs = true))
       result must be equalTo "OK."
+    }
+
+    protected def expectErrorBelief[ExpectedClass <: SpcBeliefExcn : ClassTag](
+      input : String,
+      expectedExcn : ExpectedClass,
+      beliefParams : SpcBeliefParams = SpcBeliefParams(ACCEPT_NEW_BELIEFS)) =
+    {
+      addBelief(input, beliefParams) must throwA[ExpectedClass].like {
+        case ex : ExpectedClass => {
+          ex.getCode must be equalTo expectedExcn.getCode
+        }
+      }
     }
   }
 
@@ -708,79 +723,158 @@ class SpcCosmosSpec extends SpcProcessingSpecification
     "reject contradictory belief" in new CosmosContext
     {
       addBelief("a door must be open or closed")
-      addBelief("a door may be open or ajar") must
-        throwA[ContradictoryBeliefExcn]
+      expectErrorBelief(
+        "a door may be open or ajar",
+        ContradictoryBeliefExcn(
+          ShlurdExceptionCode.PropertyAlreadyClosed,
+          unusedSentence,
+          unusedSentence))
     }
 
     "reject contradictory override belief" in new CosmosContext
     {
       addBelief("a portal must be open or closed")
       addBelief("a door is a kind of portal")
-      addBelief("a door may be open or ajar") must
-        throwA[ContradictoryBeliefExcn]
+      expectErrorBelief(
+        "a door may be open or ajar",
+        ContradictoryBeliefExcn(
+          ShlurdExceptionCode.PropertyAlreadyClosed,
+          unusedSentence,
+          unusedSentence))
     }
 
     "reject ambiguous belief" in new CosmosContext
     {
       addBelief("there is a big door")
-      addBelief("there is a door") must
-        throwA[AmbiguousBeliefExcn]
+      expectErrorBelief(
+        "there is a door",
+        AmbiguousBeliefExcn(
+          ShlurdExceptionCode.AmbiguousInterpretation,
+          unusedSentence,
+          unusedSentence))
 
       addBelief("a pig must be dirty or clean")
       addBelief("there is a red pig")
       addBelief("there is a green pig")
-      addBelief("the pig is Charlotte's pet") must
-        throwA[AmbiguousBeliefExcn]
-      addBelief("the pig is dirty") must
-        throwA[AmbiguousBeliefExcn]
+      expectErrorBelief(
+        "the pig is Charlotte's pet",
+        AmbiguousBeliefExcn(
+          ShlurdExceptionCode.NotUnique,
+          unusedSentence,
+          unusedSentence))
+      expectErrorBelief(
+        "the pig is dirty",
+        AmbiguousBeliefExcn(
+          ShlurdExceptionCode.NotUnique,
+          unusedSentence,
+          unusedSentence))
     }
 
     "reject another ambiguous belief" in new CosmosContext
     {
       addBelief("there is a door")
-      addBelief("there is a big door") must
-        throwA[AmbiguousBeliefExcn]
+      expectErrorBelief(
+        "there is a big door",
+        AmbiguousBeliefExcn(
+          ShlurdExceptionCode.AmbiguousInterpretation,
+          unusedSentence,
+          unusedSentence))
     }
 
     "reject beliefs it cannot understand" in new CosmosContext
     {
-      addBelief("he may be either open or closed") must
-        throwA[IncomprehensibleBeliefExcn]
-      addBelief("Daffy is a pig's duck") must
-        throwA[IncomprehensibleBeliefExcn]
+      SpcPrimordial.initCosmos(cosmos)
+
+      expectErrorBelief(
+        "he may be either open or closed",
+        IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.IncomprehensibleBelief,
+          unusedSentence)
+      )
+
+      expectErrorBelief(
+        "Daffy is a pig's duck",
+        IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.ReferenceNotYetImplemented,
+          unusedSentence)
+      )
+
       addBelief("the wrench is an object")
       addBelief("the screwdriver is an object")
-      addBelief("the screwdriver is proud of the wrench") must
-        throwA[IncomprehensibleBeliefExcn]
+      expectErrorBelief(
+        "the screwdriver is proud of the wrench",
+        IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.IncomprehensibleBelief,
+          unusedSentence)
+      )
+
+      addBelief("there is a door")
+      expectErrorBelief(
+        "the door's password is \"open sesame\"",
+        ProhibitedBeliefExcn(
+          ShlurdExceptionCode.ImplicitPropertiesProhibited,
+          unusedSentence),
+        SpcBeliefParams(createImplicitProperties = false))
+
+      addBelief("a door's state may be either open or closed")
+      expectErrorBelief(
+        "a door's state must be an spc-string",
+        ContradictoryBeliefExcn(
+          ShlurdExceptionCode.PropertyDomainIncompatible,
+          unusedSentence,
+          unusedSentence))
     }
 
     "understand proper compound nouns" in new CosmosContext
     {
       skipped("not working yet")
-      addBelief("Daffy is Porky Pig's duck") must
-        throwA[IncomprehensibleBeliefExcn]
+      expectErrorBelief(
+        "Daffy is Porky Pig's duck",
+        IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.IncomprehensibleBelief,
+          unusedSentence))
     }
 
     "reject beliefs it cannot implement" in new CosmosContext
     {
-      addBelief("a green door must be either open or closed") must
-        throwA[UnimplementedBeliefExcn]
+      expectErrorBelief(
+        "a green door must be either open or closed",
+        UnimplementedBeliefExcn(
+          ShlurdExceptionCode.BeliefNotYetImplemented,
+          unusedSentence))
     }
 
     "reject invalid beliefs" in new CosmosContext
     {
-      addBelief(
+      expectErrorBelief(
         "if a person eats a pickle, " +
-          "then the pickle is sandy"
-      ) must throwA[InvalidBeliefExcn]
-      addBelief(
+          "then the pickle is sandy",
+        InvalidBeliefExcn(
+          ShlurdExceptionCode.InvalidBelief,
+          unusedSentence))
+      expectErrorBelief(
         "if a person eats a pickle, " +
-          "then equivalently the pickle becomes sandy"
-      ) must throwA[InvalidBeliefExcn]
-      addBelief(
+          "then equivalently the pickle becomes sandy",
+        InvalidBeliefExcn(
+          ShlurdExceptionCode.InvalidBelief,
+          unusedSentence))
+      expectErrorBelief(
         "if a person eats a pickle, " +
-          "then equivalently the pickle is subsequently sandy"
-      ) must throwA[InvalidBeliefExcn]
+          "then equivalently the pickle is subsequently sandy",
+        InvalidBeliefExcn(
+          ShlurdExceptionCode.InvalidBelief,
+          unusedSentence))
+    }
+
+    "allow new beliefs to be prevented" in new CosmosContext
+    {
+      expectErrorBelief(
+        "A thief is a kind of person",
+        ProhibitedBeliefExcn(
+          ShlurdExceptionCode.NewBeliefsProhibited,
+          unusedSentence
+        ),
+        SpcBeliefParams(ACCEPT_NO_BELIEFS))
     }
 
     "allow tentative entities to be prevented" in new CosmosContext
@@ -789,9 +883,13 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("Milton is a person")
       addBelief("Donne is a person")
       addBelief("Milton has an uncle")
-      val params = SpcBeliefParams(createTentativeEntities = false)
-      addBelief("Donne has an uncle", params) must
-        throwA[ProhibitedBeliefExcn]
+      expectErrorBelief(
+        "Donne has an uncle",
+        ProhibitedBeliefExcn(
+          ShlurdExceptionCode.TentativeEntitiesProhibited,
+          unusedSentence
+        ),
+        SpcBeliefParams(createTentativeEntities = false))
     }
 
     "allow tentative forms to be prevented" in new CosmosContext
@@ -800,8 +898,13 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("Russell is a philosopher")
       val params = SpcBeliefParams(createTentativeIdeals = false)
       addBelief("There is a theologian", params)
-      addBelief("Descartes exists", params) must
-        throwA[ProhibitedBeliefExcn]
+      expectErrorBelief(
+        "Descartes exists",
+        ProhibitedBeliefExcn(
+          ShlurdExceptionCode.TentativeIdealsProhibited,
+          unusedSentence
+        ),
+        params)
     }
 
     "allow implicit forms to be prevented" in new CosmosContext
@@ -810,8 +913,13 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("A dilettante is a kind of philosopher")
       val params = SpcBeliefParams(createImplicitIdeals = false)
       addBelief("A grammarian is a kind of spc-someone", params)
-      addBelief("A cultist is a kind of theologian", params) must
-        throwA[ProhibitedBeliefExcn]
+      expectErrorBelief(
+        "A cultist is a kind of theologian",
+        ProhibitedBeliefExcn(
+          ShlurdExceptionCode.ImplicitIdealsProhibited,
+          unusedSentence
+        ),
+        params)
     }
 
     "allow implicit roles to be prevented" in new CosmosContext
@@ -820,9 +928,13 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("Rick is a person")
       addBelief("Morty is a person")
       addBelief("Rick is Morty's mentor")
-      val params = SpcBeliefParams(createImplicitIdeals = false)
-      addBelief("Morty is Rick's protege", params) must
-        throwA[ProhibitedBeliefExcn]
+      expectErrorBelief(
+        "Morty is Rick's protege",
+        ProhibitedBeliefExcn(
+          ShlurdExceptionCode.ImplicitIdealsProhibited,
+          unusedSentence
+        ),
+        SpcBeliefParams(createImplicitIdeals = false))
     }
 
     "allow implicit properties to be prevented" in new CosmosContext
@@ -831,9 +943,13 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("There is a dog")
       addBelief("There is a cat")
       addBelief("The dog is hungry")
-      val params = SpcBeliefParams(createImplicitProperties = false)
-      addBelief("The cat is hungry", params) must
-        throwA[ProhibitedBeliefExcn]
+      expectErrorBelief(
+        "The cat is hungry",
+        ProhibitedBeliefExcn(
+          ShlurdExceptionCode.ImplicitPropertiesProhibited,
+          unusedSentence
+        ),
+        SpcBeliefParams(createImplicitProperties = false))
     }
   }
 }
