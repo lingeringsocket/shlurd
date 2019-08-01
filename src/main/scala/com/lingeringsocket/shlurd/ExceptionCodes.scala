@@ -33,7 +33,6 @@ object ShlurdExceptionCode
   case object TriggerLimit extends ShlurdExceptionCode
   case object CausalityViolation extends ShlurdExceptionCode
   case object NotYetImplemented extends ShlurdExceptionCode
-
   case object IncomprehensibleBelief extends ShlurdExceptionCode
   case object InvalidBelief extends ShlurdExceptionCode
   case object BeliefNotYetImplemented extends ShlurdExceptionCode
@@ -46,23 +45,13 @@ object ShlurdExceptionCode
   case object AmbiguousInterpretation extends ShlurdExceptionCode
   case object CardinalityConstraint extends ShlurdExceptionCode
   case object TaxonomyCycle extends ShlurdExceptionCode
-
-  // FIXME need test
   case object OverlappingProperties extends ShlurdExceptionCode
-
   case object PropertyAlreadyClosed extends ShlurdExceptionCode
-
-  // FIXME need test
   case object RoleHypernymNonExistent extends ShlurdExceptionCode
-  // FIXME need test
   case object RoleHyponymConflictsWithForm extends ShlurdExceptionCode
-  // FIXME need test
   case object RoleHyponymAlreadyExists extends ShlurdExceptionCode
-  // FIXME need test
   case object RoleTaxonomyIncompatible extends ShlurdExceptionCode
-  // FIXME need test
   case object FormTaxonomyIncompatible extends ShlurdExceptionCode
-
   case object FormRoleIncompatible extends ShlurdExceptionCode
   case object PropertyDomainIncompatible extends ShlurdExceptionCode
   case object AbsenceConstraint extends ShlurdExceptionCode

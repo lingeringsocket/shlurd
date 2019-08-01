@@ -844,6 +844,17 @@ class SpcCosmosSpec extends SpcProcessingSpecification
           unusedSentence))
     }
 
+    "reject overlapping properties" in new CosmosContext
+    {
+      addBelief("a peg may be round or square")
+      addBelief("a peg may be red or blue")
+      expectErrorBelief(
+        "a peg may be red or round",
+        UnimplementedBeliefExcn(
+          ShlurdExceptionCode.OverlappingProperties,
+          unusedSentence))
+    }
+
     "reject invalid beliefs" in new CosmosContext
     {
       expectErrorBelief(
@@ -863,6 +874,45 @@ class SpcCosmosSpec extends SpcProcessingSpecification
           "then equivalently the pickle is subsequently sandy",
         InvalidBeliefExcn(
           ShlurdExceptionCode.InvalidBelief,
+          unusedSentence))
+    }
+
+    "reject more invalid beliefs" in new CosmosContext
+    {
+      expectErrorBelief(
+        "a noble's serf is a kind of peon",
+        IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.RoleHypernymNonExistent,
+          unusedSentence))
+      addBelief("a noble's peon must be a person")
+      addBelief("a serf is a kind of person")
+      expectErrorBelief(
+        "a noble's serf is a kind of peon",
+        IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.RoleHyponymConflictsWithForm,
+          unusedSentence))
+      addBelief("a noble's vassal is a kind of peon")
+      expectErrorBelief(
+        "a noble's vassal is a kind of peon",
+        IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.RoleHyponymAlreadyExists,
+          unusedSentence))
+      addBelief("a butler is a kind of domestic")
+      addBelief("Lurch is a butler")
+      addBelief("Charles is a person")
+      addBelief("a person's servant must be a domestic")
+      addBelief("Lurch is Charles' servant")
+      expectErrorBelief(
+        "a person's servant must be a minion",
+        ContradictoryBeliefExcn(
+          ShlurdExceptionCode.RoleTaxonomyIncompatible,
+          unusedSentence,
+          unusedSentence))
+      expectErrorBelief(
+        "Charles is a monster",
+        ContradictoryBeliefExcn(
+          ShlurdExceptionCode.FormTaxonomyIncompatible,
+          unusedSentence,
           unusedSentence))
     }
 
