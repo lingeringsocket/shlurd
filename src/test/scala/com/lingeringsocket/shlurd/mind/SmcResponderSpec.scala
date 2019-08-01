@@ -504,7 +504,9 @@ class SmcResponderSpec extends Specification
         SmcStateChangeInvocation(Set(ZooTiger), asleep))
     }
 
-    "respond to unrecognized phrases" in new ResponderContext
+    "respond to unrecognized phrases" in new ResponderContext(
+      SmcResponseParams()
+    )
     {
       if (!SprParser.isCoreNLP) {
         skipped("CoreNLP only")
