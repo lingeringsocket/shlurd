@@ -176,28 +176,28 @@ A movie's actor must be a performer.
 A movie's star is a kind of actor.
 A movie's star must be a celebrity.
 A movie's extra is a kind of actor.
-Thor is a movie.
-Hemsworth is a celebrity.
-Pingle is a performer.
-Hemsworth is Thor's star.
-Pingle is Thor's extra.
+Deadpool is a movie.
+Ryan Reynolds is a celebrity.
+Chad Riley is a performer.
+Ryan Reynolds is Deadpool's star.
+Chad Riley is Deadpool's extra.
 ```
 
 Now I know how to group together actors generically, or discriminate
 them as stars or extras:
 
 ```scala mdoc:processConversation
-> who are Thor's actors
+> who are Deadpool's actors
 
-Hemsworth and Pingle.
+Ryan Reynolds and Chad Riley.
 
-> who are Thor's stars
+> who are Deadpool's stars
 
-Hemsworth.
+Ryan Reynolds.
 
-> who are Thor's extras
+> who are Deadpool's extras
 
-Pingle.
+Chad Riley.
 
 ```
 

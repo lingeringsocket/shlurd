@@ -88,7 +88,7 @@ class SilSentencePrinterSpec extends Specification
         "a body has a tail generally.")
       expectStatement("a body has a tail generally")
       expectStatement("Salieri sends Mozart a letter angrily")
-      expectQuestion("does Salieri send Mozart a letter angrily")
+      expectQuestion("does Antonio Salieri send Mozart a letter angrily")
       expectStatement("the king is running merrily through the woods")
     }
 
@@ -115,6 +115,16 @@ class SilSentencePrinterSpec extends Specification
         "whenever an object moves to a location, " +
           "then the location becomes the object's container."
       )
+      expectNormalized(
+        "Antonio Salieri sends Mozart a letter",
+        "Antonio Salieri sends a letter to Mozart.")
+      expectNormalized(
+        "in the morning Antonio Salieri sends Mozart a letter",
+        "Antonio Salieri sends a letter to Mozart in the morning.")
+      expectNormalized("angrily Antonio Salieri sends Mozart a letter",
+        "Antonio Salieri sends a letter to Mozart angrily.")
+      expectNormalized("angrily Antonio Salieri sends Mozart a letter?",
+        "does Antonio Salieri send a letter to Mozart angrily?")
     }
 
     "preserve sentences" in
@@ -261,12 +271,6 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("does the door open")
       expectQuestion("do my parents open the door")
       expectQuestion("does Marina open the door")
-      expectNormalized(
-        "Salieri sends Mozart a letter",
-        "Salieri sends a letter to Mozart.")
-      expectNormalized(
-        "in the morning Salieri sends Mozart a letter",
-        "Salieri sends a letter to Mozart in the morning.")
       expectStatement("the mule kicks the ball smugly at the vase")
       expectQuestion("does the mule eat the grass very smugly in the field")
       expectStatement("Fred is in the cinema")
@@ -286,10 +290,6 @@ class SilSentencePrinterSpec extends Specification
         "a body is a hadron generally.")
       expectNormalized("generally a body has a tail",
         "a body has a tail generally.")
-      expectNormalized("angrily Salieri sends Mozart a letter",
-        "Salieri sends a letter to Mozart angrily.")
-      expectNormalized("angrily Salieri sends Mozart a letter?",
-        "does Salieri send a letter to Mozart angrily?")
       expectNormalized("usually a bulb is lit?",
         "is a bulb lit usually?")
       expectNormalized("a bulb is usually lit?",

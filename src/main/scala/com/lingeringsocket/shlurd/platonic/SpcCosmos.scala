@@ -116,7 +116,9 @@ class SpcStateNormalization(
 
 object SpcForm
 {
-  private val TENTATIVE_SUFFIX = "_form"
+  val TENTATIVE_INFIX = "__"
+
+  val TENTATIVE_SUFFIX = s"${TENTATIVE_INFIX}form"
 
   def tentativeName(word : SilWord) =
   {
@@ -224,7 +226,7 @@ case class SpcPersistentEntity(
     extends SpcEntity
 {
   override def isTentative =
-    properName.contains("_") && !SpcMeta.isMetaEntity(this)
+    properName.contains(SpcForm.TENTATIVE_INFIX) && !SpcMeta.isMetaEntity(this)
 
   override def getUniqueIdentifier = name
 }
@@ -549,7 +551,7 @@ class SpcCosmos(
   protected[platonic] def getEntityBySynonym(name : String)
       : Option[SpcEntity] =
   {
-    val synonym = SpcEntitySynonym(name.toLowerCase)
+    val synonym = SpcEntitySynonym(encodeName(name.toLowerCase))
     if (graph.entitySynonyms.containsVertex(synonym)) {
       Some(Graphs.successorListOf(
         graph.entitySynonyms, synonym).iterator.next.asInstanceOf[SpcEntity])
@@ -928,7 +930,7 @@ class SpcCosmos(
         (qualifierString.flatMap(_.decomposed).map(_.lemma) ++
           Seq(form.name, formId)).mkString("_")
       } else {
-        properName
+        encodeName(properName)
       }
     }
     val entity = SpcPersistentEntity(name, form, qualifiers, properName)
@@ -1294,7 +1296,9 @@ class SpcCosmos(
     }).getOrElse {
       getEntityBySynonym(lemma) match {
         case Some(entity) if (hasQualifiers(
-          entity, entity.form, qualifiers + lemma, false)
+          entity, entity.form,
+          qualifiers ++ lemma.split(" ").map(_.toLowerCase),
+          false)
         ) => {
           Success(Set(entity))
         }
@@ -1752,8 +1756,8 @@ class SpcCosmos(
           existing
         } else {
           // make up possessee out of thin air
-          val name = possessor.name + "_" + role.name + "_" +
-            generateId
+          val name = possessor.name + "_" + role.name +
+            SpcForm.TENTATIVE_INFIX + generateId
           val form = instantiateForm(SpcForm.tentativeName(SilWord(name)))
           graph.getFormsForRole(role).foreach(
             hypernym => {

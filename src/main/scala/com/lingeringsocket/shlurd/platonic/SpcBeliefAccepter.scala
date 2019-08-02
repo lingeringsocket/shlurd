@@ -166,7 +166,7 @@ class SpcBeliefAccepter private(
         tupleN((entity, success))
       }
       case DETERMINER_UNSPECIFIED => {
-        cosmos.getEntityBySynonym(cosmos.encodeName(noun)) match {
+        cosmos.getEntityBySynonym(noun.toNounLemma) match {
           case Some(entity) => (entity, false)
           case _ => {
             val tentativeName = SpcForm.tentativeName(noun)

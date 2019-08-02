@@ -49,6 +49,8 @@ class SprParserSpec extends Specification
 
   private val NOUN_SISTER = SilWord("sister")
 
+  private val NOUN_PERSON = SilWord("person")
+
   private val NOUN_STEAK_KNIFE = SilCompoundWord(
     Seq(SilWord("steak"), SilWord("knife")))
 
@@ -57,6 +59,9 @@ class SprParserSpec extends Specification
 
   private val NOUN_LEMON_MERINGUE_PIE = SilCompoundWord(
     Seq(SilWord("lemon"), SilWord("meringue"), SilWord("pie")))
+
+  private val NOUN_SOLOMON_GRUNDY = SilCompoundWord(
+    Seq(SilWord("Solomon"), SilWord("Grundy")))
 
   private val STATE_OPEN = SilWord("open")
 
@@ -448,6 +453,24 @@ class SprParserSpec extends Specification
             VERB_IS,
             SilNounReference(
               NOUN_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+          )
+        )
+    }
+
+    "parse a compound proper noun" in
+    {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
+      val input = "Solomon Grundy is a person"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilRelationshipPredicate(
+            SilNounReference(
+              NOUN_SOLOMON_GRUNDY, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+            VERB_IS,
+            SilNounReference(
+              NOUN_PERSON, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
           )
         )
     }

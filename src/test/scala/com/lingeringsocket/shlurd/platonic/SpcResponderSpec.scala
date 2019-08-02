@@ -1704,6 +1704,30 @@ class SpcResponderSpec extends Specification
       cosmos.sanityCheck must beTrue
     }
 
+    "understand compound names" in new ResponderContext(
+      ACCEPT_NEW_BELIEFS)
+    {
+      processBelief("a professor is a kind of person")
+      processBelief("a cop is a kind of person")
+      processBelief("Harry Haller is a professor")
+      processBelief("Harry Callahan is a cop")
+      processTerse("is Harry Haller a professor", "Yes.")
+      processTerse("is Harry Haller a cop", "No.")
+      processTerse("which person is a professor", "Harry Haller.")
+      processTerse("is Harry Callahan a professor", "No.")
+      processTerse("is Harry Callahan a cop", "Yes.")
+      processTerse("which person is a cop", "Harry Callahan.")
+
+      // FIXME not working yet
+      /*
+       processBelief("Dirty Harry is a cop")
+       processExceptionExpected(
+         "is Harry a cop",
+         "Please be more specific about which Harry you mean.",
+         ShlurdExceptionCode.NotUnique)
+       */
+    }
+
     "support transitive associations" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
