@@ -46,6 +46,8 @@ object ExampleModifier
   var dir : Option[Path] = None
 
   var lastCosmos : Option[SpcCosmos] = None
+
+  var beliefParams : Option[SpcBeliefParams] = None
 }
 
 
@@ -63,16 +65,29 @@ class ConversationProcessor extends StringModifier
   {
     val lines = Source.fromString(code.text).getLines.toSeq.zipWithIndex
 
-    val cosmos = lastCosmos.get
+    val cosmos = lastCosmos.get.fork(true)
     val mind = new SpcMind(cosmos)
+    val allowImplicits = info.contains("allowImplicits")
+    val preventImplicits = info.contains("preventImplicits")
+    def chooseImplicit(defaultSetting : Boolean) =
+    {
+      if (allowImplicits) {
+        true
+      } else if (preventImplicits) {
+        false
+      } else {
+        defaultSetting
+      }
+    }
     val responder =
       new SpcResponder(
         mind,
-        SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS,
-        createImplicitIdeals = false,
-        createTentativeIdeals = false,
-        createTentativeEntities = true,
-        createImplicitProperties = false),
+        SpcBeliefParams(
+          ACCEPT_NEW_BELIEFS,
+          createImplicitIdeals = chooseImplicit(false),
+          createTentativeIdeals = chooseImplicit(false),
+          createTentativeEntities = chooseImplicit(true),
+          createImplicitProperties = chooseImplicit(false)),
         SmcResponseParams(verbosity = RESPONSE_TERSE))
     val exchanges = {
       try {

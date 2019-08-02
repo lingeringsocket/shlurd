@@ -773,18 +773,23 @@ class SmcResponder[
     tam : SilTam,
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
-    assert(tam.unemphaticModality == MODAL_NEUTRAL)
-    tam.tense match {
-      case TENSE_PAST => {
-        evaluatePastPredicate(predicate, resultCollector)
-      }
-      case TENSE_PRESENT => {
-        predicateEvaluator.evaluatePredicate(predicate, resultCollector)
-      }
-      case TENSE_FUTURE => {
-        cosmos.fail(
-          ShlurdExceptionCode.NotYetImplemented,
-          "Future tense not supported yet.")
+    if (tam.unemphaticModality != MODAL_NEUTRAL) {
+      cosmos.fail(
+        ShlurdExceptionCode.NotYetImplemented,
+        "Modals not supported yet.")
+    } else {
+      tam.tense match {
+        case TENSE_PAST => {
+          evaluatePastPredicate(predicate, resultCollector)
+        }
+        case TENSE_PRESENT => {
+          predicateEvaluator.evaluatePredicate(predicate, resultCollector)
+        }
+        case TENSE_FUTURE => {
+          cosmos.fail(
+            ShlurdExceptionCode.NotYetImplemented,
+            "Future tense not supported yet.")
+        }
       }
     }
   }
