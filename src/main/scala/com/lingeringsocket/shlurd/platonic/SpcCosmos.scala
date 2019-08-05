@@ -469,6 +469,11 @@ class SpcCosmos(
     }
   }
 
+  def synthesizeEntitySynonym(name : String) : SpcEntitySynonym =
+  {
+    SpcEntitySynonym(encodeName(name.toLowerCase))
+  }
+
   private def registerIdeal(ideal : SpcIdeal) =
   {
     // FIXME we should validate the form name to make sure it doesn't
@@ -551,12 +556,20 @@ class SpcCosmos(
   protected[platonic] def getEntityBySynonym(name : String)
       : Option[SpcEntity] =
   {
-    val synonym = SpcEntitySynonym(encodeName(name.toLowerCase))
+    val synonym = synthesizeEntitySynonym(name)
+    getEntitiesBySynonym(synonym).find(
+      e => (synthesizeEntitySynonym(e.name) == synonym))
+  }
+
+  protected[platonic] def getEntitiesBySynonym(synonym : SpcEntitySynonym)
+      : Seq[SpcEntity] =
+  {
     if (graph.entitySynonyms.containsVertex(synonym)) {
-      Some(Graphs.successorListOf(
-        graph.entitySynonyms, synonym).iterator.next.asInstanceOf[SpcEntity])
+      Graphs.successorListOf(
+        graph.entitySynonyms, synonym
+      ).asScala.toSeq.map(_.asInstanceOf[SpcEntity])
     } else {
-      None
+      Seq.empty
     }
   }
 
@@ -711,14 +724,20 @@ class SpcCosmos(
     pool.entityTimestamp += 1
     meta.entityExistence(entity, false)
     assert(graph.entityAssocs.degreeOf(entity) == 0)
+    val entitySynonyms = graph.entitySynonyms
     if (getEntityBySynonym(entity.name) == Some(entity)) {
-      val synonymEdges = graph.entitySynonyms.
+      val synonymEdges = entitySynonyms.
         incomingEdgesOf(entity).asScala.toSeq
-      synonymEdges.foreach(edge => graph.entitySynonyms.removeVertex(
-        graph.entitySynonyms.getEdgeSource(edge)))
+      synonymEdges.foreach(edge => {
+        val synonym = entitySynonyms.getEdgeSource(edge)
+        entitySynonyms.removeEdge(edge)
+        if (entitySynonyms.outDegreeOf(synonym) == 0) {
+          entitySynonyms.removeVertex(synonym)
+        }
+      })
     }
-    assert(graph.entitySynonyms.degreeOf(entity) == 0)
-    graph.entitySynonyms.removeVertex(entity)
+    assert(entitySynonyms.degreeOf(entity) == 0)
+    entitySynonyms.removeVertex(entity)
     graph.entityAssocs.removeVertex(entity)
     graph.removeContainer(entity)
   }
@@ -938,6 +957,19 @@ class SpcCosmos(
     tupleN((entity, true))
   }
 
+  private def addPartialEntitySynonyms(entity : SpcEntity)
+  {
+    // FIXME filter out stopwords
+    val components = entity.properName.split(" ")
+    if (components.size > 1) {
+      components.foreach(component => {
+        val synonym = SpcEntitySynonym(component.toLowerCase)
+        graph.entitySynonyms.addVertex(synonym)
+        addEntitySynonymEdge(synonym, entity)
+      })
+    }
+  }
+
   protected[platonic] def createOrReplaceEntity(entity : SpcEntity)
   {
     pool.entityTimestamp += 1
@@ -957,6 +989,7 @@ class SpcCosmos(
         addEntitySynonymEdge(synonym, entity)
       }
     }
+    addPartialEntitySynonyms(entity)
     meta.entityExistence(entity, true)
   }
 
@@ -1294,13 +1327,14 @@ class SpcCosmos(
         getFormHyponymRealizations(form).filter(
           hasQualifiers(_, form, qualifiers, false))))
     }).getOrElse {
-      getEntityBySynonym(lemma) match {
-        case Some(entity) if (hasQualifiers(
+      getEntitiesBySynonym(synthesizeEntitySynonym(lemma)).filter(entity =>
+        hasQualifiers(
           entity, entity.form,
           qualifiers ++ lemma.split(" ").map(_.toLowerCase),
           false)
-        ) => {
-          Success(Set(entity))
+      ) match {
+        case seq if (seq.nonEmpty) => {
+          Success(SprUtils.orderedSet(seq))
         }
         case _ => {
           fail(s"unknown ideal $lemma")

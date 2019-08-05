@@ -166,15 +166,21 @@ class SpcBeliefAccepter private(
         tupleN((entity, success))
       }
       case DETERMINER_UNSPECIFIED => {
-        cosmos.getEntityBySynonym(noun.toNounLemma) match {
-          case Some(entity) => (entity, false)
+        getUniqueEntity(
+          sentence,
+          cosmos.getEntitiesBySynonym(
+            cosmos.synthesizeEntitySynonym(noun.toNounLemma))
+        ) match {
+          case Some(entity) => {
+            tupleN((entity, false))
+          }
           case _ => {
             val tentativeName = SpcForm.tentativeName(noun)
             assert(mind.resolveForm(tentativeName).isEmpty)
             val newForm = instantiateForm(sentence, tentativeName)
             val (entity, success) = cosmos.instantiateEntity(
               newForm, Seq(noun), noun.toUnfoldedLemma)
-            assert(success)
+            assert(success, tupleN((noun, entity)))
             tupleN((entity, success))
           }
         }

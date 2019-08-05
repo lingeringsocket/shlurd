@@ -1717,14 +1717,16 @@ class SpcResponderSpec extends Specification
       processTerse("is Harry Callahan a professor", "No.")
       processTerse("is Harry Callahan a cop", "Yes.")
       processTerse("which person is a cop", "Harry Callahan.")
+      processTerse("is Callahan a cop", "Yes.")
+      processTerse("is Haller a cop", "No.")
+      processExceptionExpected(
+         "is Harry a cop",
+         "Please be more specific about which Harry you mean.",
+         ShlurdExceptionCode.NotUnique)
 
       // FIXME not working yet
       /*
        processBelief("Dirty Harry is a cop")
-       processExceptionExpected(
-         "is Harry a cop",
-         "Please be more specific about which Harry you mean.",
-         ShlurdExceptionCode.NotUnique)
        */
     }
 

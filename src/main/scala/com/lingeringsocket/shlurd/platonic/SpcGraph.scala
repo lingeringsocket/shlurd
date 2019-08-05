@@ -679,8 +679,8 @@ class SpcGraph(
       assert(synonym.isInstanceOf[SpcEntitySynonym])
       assert(entity.isInstanceOf[SpcPersistentEntity])
       assert(entitySynonyms.inDegreeOf(synonym) == 0)
-      assert(entitySynonyms.outDegreeOf(synonym) == 1)
-      assert(entitySynonyms.inDegreeOf(entity) == 1)
+      assert(entitySynonyms.outDegreeOf(synonym) >= 1)
+      assert(entitySynonyms.inDegreeOf(entity) >= 1)
       assert(entitySynonyms.outDegreeOf(entity) == 0)
     })
     components.edgeSet.asScala.foreach(componentEdge => {

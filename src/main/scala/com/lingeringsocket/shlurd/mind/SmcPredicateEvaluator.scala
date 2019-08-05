@@ -694,7 +694,9 @@ class SmcPredicateEvaluator[
               if (entities.isEmpty) {
                 Success(Trilean.False)
               } else if (entities.size > 1) {
-                if (determiner == DETERMINER_UNIQUE) {
+                if ((determiner == DETERMINER_UNIQUE) ||
+                  (noun.isProper && (determiner == DETERMINER_UNSPECIFIED)))
+                {
                   cosmos.fail(
                     ShlurdExceptionCode.NotUnique,
                     sentencePrinter.sb.respondAmbiguous(noun))
