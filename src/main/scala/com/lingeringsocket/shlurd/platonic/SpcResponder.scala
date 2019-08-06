@@ -131,7 +131,9 @@ class SpcResponder(
 
   override def newParser(input : String) =
   {
-    val context = SprContext(scorer = new SpcContextualScorer(this))
+    val context = SprContext(
+      mind.getCosmos.getWordLabeler,
+      scorer = new SpcContextualScorer(this))
     SprParser(input, context)
   }
 

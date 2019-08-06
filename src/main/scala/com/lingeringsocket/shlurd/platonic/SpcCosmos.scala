@@ -319,6 +319,9 @@ class SpcCosmos(
 {
   @transient private lazy val unmodifiableGraph = graph.asUnmodifiable
 
+  // FIXME
+  @transient private var wordLabeler : SprWordnetLabeler = null
+
   // FIXME we use Map instead of Set due to kryo limitation
   private val importedBeliefResources =
     new mutable.LinkedHashMap[String, Boolean]
@@ -425,6 +428,21 @@ class SpcCosmos(
     newCosmos
   }
 
+  def getWordLabeler() : SprWordnetLabeler =
+  {
+    if (Option(wordLabeler).isEmpty) {
+      val newLabeler = new SprWordnetLabeler
+      val recognizer = new SpcBeliefRecognizer(this)
+      getAssertions.flatMap(assertion =>
+        recognizer.recognizeWordRule(assertion.sentence)
+      ).foreach(rule => {
+        newLabeler.addRule(rule)
+      })
+      wordLabeler = newLabeler
+    }
+    wordLabeler
+  }
+
   private def syncGenerator(src : SpcCosmos)
   {
     getIdGenerator.set(src.getIdGenerator.get)
@@ -433,6 +451,10 @@ class SpcCosmos(
   private def inheritBeliefResources(src : SpcCosmos)
   {
     importedBeliefResources ++= src.importedBeliefResources
+    Option(src.wordLabeler).foreach(labeler => {
+      wordLabeler = new SprWordnetLabeler(
+        labeler.maxPrefix, labeler.rules.clone)
+    })
   }
 
   def isDuplicateBeliefResource(resourceName : String) : Boolean =
@@ -959,13 +981,19 @@ class SpcCosmos(
 
   private def addPartialEntitySynonyms(entity : SpcEntity)
   {
-    // FIXME filter out stopwords
     val components = entity.properName.split(" ")
     if (components.size > 1) {
+      val anyUpper = components.exists(_.head.isUpper)
       components.foreach(component => {
-        val synonym = SpcEntitySynonym(component.toLowerCase)
-        graph.entitySynonyms.addVertex(synonym)
-        addEntitySynonymEdge(synonym, entity)
+        // FIXME language-dependent stopword filtering and name/title
+        // handling like "Conan the Barbarian", "Ponce de Leon"
+        val ignore = (component.size == 1) ||
+          (component.head.isLower && anyUpper)
+        if (!ignore) {
+          val synonym = SpcEntitySynonym(component.toLowerCase)
+          graph.entitySynonyms.addVertex(synonym)
+          addEntitySynonymEdge(synonym, entity)
+        }
       })
     }
   }
@@ -1815,6 +1843,12 @@ class SpcCosmos(
     assertion : SpcAssertion)
   {
     graph.assertions.addVertex(assertion)
+    Option(wordLabeler).foreach(labeler => {
+      val recognizer = new SpcBeliefRecognizer(this)
+      recognizer.recognizeWordRule(assertion.sentence).foreach(rule => {
+        labeler.addRule(rule)
+      })
+    })
   }
 
   override def applyModifications()

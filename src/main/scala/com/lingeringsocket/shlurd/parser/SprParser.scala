@@ -323,7 +323,7 @@ object SprParser extends SprEnglishWordAnalyzer
     })).getOrElse(parse())
   }
 
-  private def tokenize(input : String) : Seq[SprTokenizedSentence] =
+  def tokenize(input : String) : Seq[SprTokenizedSentence] =
   {
     val tokenizer = strategy.newTokenizer
     tokenizer.tokenize(input)

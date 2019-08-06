@@ -34,10 +34,20 @@ case class SprContext(
   def newParser(input : String) = SprParser(input, this)
 }
 
+case class SprWordRule(
+  phrase : Seq[String],
+  labels : Seq[String],
+  isClosed : Boolean
+)
+{
+}
+
 trait SprWordLabeler
 {
-  def labelWord(
-    token : String, word : String, iToken : Int) : Set[SprSyntaxTree]
+  def labelWords(
+    // (token, word, iToken)
+    entries : Seq[(String, String, Int)]
+  ) : Seq[Set[SprSyntaxTree]]
 
   def isCompoundNoun(seq : Seq[SprSyntaxTree]) : Boolean = false
 
@@ -62,14 +72,93 @@ object SprWordnetLabeler
   private val dictionary = ShlurdWordnet.dictionary
 
   private val morphology = ShlurdWordnet.morphology
+
+  private val quote = DQUOTE
 }
 
-class SprWordnetLabeler extends SprWordLabeler with SprEnglishWordAnalyzer
+class SprWordnetLabeler(
+  var maxPrefix : Int = 0,
+  val rules : mutable.HashMap[Seq[String], SprWordRule] =
+    new mutable.HashMap[Seq[String], SprWordRule]
+) extends SprWordLabeler with SprEnglishWordAnalyzer
 {
   import SprWordnetLabeler._
 
-  override def labelWord(
-    token : String, word : String, iToken : Int) =
+  def addRule(rule : SprWordRule)
+  {
+    rules.put(rule.phrase.map(_.toLowerCase), rule)
+    if (rule.phrase.size > maxPrefix) {
+      maxPrefix = rule.phrase.size
+    }
+  }
+
+  override def labelWords(
+    entries : Seq[(String, String, Int)]) : Seq[Set[SprSyntaxTree]] =
+  {
+    val indexedEntries = entries.toIndexedSeq
+    val results = indexedEntries.map(
+      entry => new mutable.LinkedHashSet[SprSyntaxTree])
+    var index = 0
+    while (index < entries.size) {
+      index = labelWordsAt(indexedEntries, results, index)
+    }
+    results
+  }
+
+  def labelWordsAt(
+    entries : IndexedSeq[(String, String, Int)],
+    results : IndexedSeq[mutable.Set[SprSyntaxTree]],
+    iStart : Int) : Int =
+  {
+    // ought to reimplement this using a trie
+    val limit = Math.min(maxPrefix, entries.size - iStart)
+    range(1 to limit).foreach(length => {
+      val slice = entries.slice(iStart, iStart + length)
+      rules.get(slice.map(_._1.toLowerCase)).foreach(rule => {
+        val labels = rule.labels
+        range(iStart until (iStart + length)).foreach(iComponent => {
+          val (token, word, iToken) = entries(iComponent)
+          results(iComponent) ++= labelWordFromRule(token, word, labels)
+        })
+        if (rule.isClosed) {
+          return (iStart + length)
+        }
+      })
+    })
+    val (token, word, iToken) = entries(iStart)
+    val set = {
+      if (word.startsWith(quote) && word.endsWith(quote)
+        && (word.size > 1))
+      {
+        val tree : SprSyntaxTree = SptNNQ(makeLeaf(
+          word.stripPrefix(quote).stripSuffix(quote)))
+        Set(tree)
+      } else {
+        labelWordFromDict(token, word, iToken)
+      }
+    }
+    results(iStart) ++= set
+    iStart + 1
+  }
+
+  private def labelWordFromRule(
+    token : String,
+    word : String,
+    labels : Seq[String]) : Set[SprSyntaxTree] =
+  {
+    SprUtils.orderedSet(labels.map(label => {
+      if (label == LABEL_NNP) {
+        val leaf = makeLeaf(word, word, word)
+        SptNNP(leaf)
+      } else {
+        val leaf = makeLeaf(word, token)
+        SprSyntaxRewriter.recompose(label, Seq(leaf))
+      }
+    }))
+  }
+
+  private def labelWordFromDict(
+    token : String, word : String, iToken : Int) : Set[SprSyntaxTree] =
   {
     val (tokenPrefix, tokenSuffix) = {
       val iHyphen = token.lastIndexOf('-')

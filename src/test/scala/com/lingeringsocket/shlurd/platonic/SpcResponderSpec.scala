@@ -1710,24 +1710,36 @@ class SpcResponderSpec extends Specification
       processBelief("a professor is a kind of person")
       processBelief("a cop is a kind of person")
       processBelief("Harry Haller is a professor")
-      processBelief("Harry Callahan is a cop")
+      processBelief("\"Dirty Harry\" must be a proper noun")
+      processBelief("\"e e cummings\" must be a proper noun")
+      processBelief("Dirty Harry is a cop")
+      processBelief("e e cummings is a professor")
       processTerse("is Harry Haller a professor", "Yes.")
+      processTerse("is cummings a professor", "Yes.")
+      processTerse("is Cummings a professor", "Yes.")
       processTerse("is Harry Haller a cop", "No.")
-      processTerse("which person is a professor", "Harry Haller.")
-      processTerse("is Harry Callahan a professor", "No.")
-      processTerse("is Harry Callahan a cop", "Yes.")
-      processTerse("which person is a cop", "Harry Callahan.")
-      processTerse("is Callahan a cop", "Yes.")
+      processTerse("which person is a professor",
+        "Harry Haller and e e cummings.")
+      processTerse("is Dirty Harry a professor", "No.")
+      processTerse("is Dirty Harry a cop", "Yes.")
+      processTerse("which person is a cop", "Dirty Harry.")
+      processTerse("is Dirty a cop", "Yes.")
       processTerse("is Haller a cop", "No.")
+      processTerse("is haller a cop", "No.")
+      processExceptionExpected("is dirty a cop",
+        "Sorry, I cannot understand what you said.",
+        ShlurdExceptionCode.FailedParse)
+      processExceptionExpected("is e a cop",
+        "Sorry, I don't know about any 'e'.",
+        ShlurdExceptionCode.UnknownForm)
+      processExceptionExpected("is E a cop",
+        "Sorry, I don't know about any 'E'.",
+        ShlurdExceptionCode.UnknownForm)
+      processTerse("is dirty harry a cop", "Yes.")
       processExceptionExpected(
          "is Harry a cop",
          "Please be more specific about which Harry you mean.",
          ShlurdExceptionCode.NotUnique)
-
-      // FIXME not working yet
-      /*
-       processBelief("Dirty Harry is a cop")
-       */
     }
 
     "support transitive associations" in new ResponderContext(

@@ -161,6 +161,7 @@ class SpcCreedSpec extends Specification
     "then the candy becomes small; the candy crunches also."
   private val positiveAssertion = "A person can kill a thief."
   private val negativeAssertion = "A person can not kill a thief."
+  private val wordRule = "\"Happy\" may be a proper noun."
 
   private val primordial = Seq(
     "An spc-class is an spc-form.",
@@ -502,7 +503,7 @@ class SpcCreedSpec extends Specification
 
     "preserve assertions" in new CosmosContext
     {
-      expectPreserved(Seq(positiveAssertion, negativeAssertion))
+      expectPreserved(Seq(positiveAssertion, negativeAssertion, wordRule))
     }
 
     "recite primordial beliefs" in

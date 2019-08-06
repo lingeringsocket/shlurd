@@ -498,20 +498,12 @@ class SprHeuristicSynthesizer(
 
   private[parser] def analyzeWords() : Seq[Set[SprSyntaxTree]] =
   {
-    val quote = DQUOTE
-    tokens.zip(words).zipWithIndex.map {
+    val entries = tokens.zip(words).zipWithIndex.map {
       case ((token, word), iToken) => {
-        if (word.startsWith(quote) && word.endsWith(quote)
-          && (word.size > 1))
-        {
-          val tree : SprSyntaxTree = SptNNQ(makeLeaf(
-            word.stripPrefix(quote).stripSuffix(quote)))
-          Set(tree)
-        } else {
-          context.wordLabeler.labelWord(token, word, iToken)
-        }
+        tupleN((token, word, iToken))
       }
     }
+    context.wordLabeler.labelWords(entries)
   }
 
   private def updatePhraseGraph(replacements : Iterable[SprSyntaxTree])

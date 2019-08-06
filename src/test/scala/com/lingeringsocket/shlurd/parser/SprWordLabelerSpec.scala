@@ -14,29 +14,36 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
+
 import SprPennTreebankLabels._
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 import scala.collection._
 
 class SprWordLabelerSpec extends Specification
 {
-  private val labeler = new SprWordnetLabeler
-
-  private def labelWord(token : String) : Set[String] =
+  trait LabelingContext extends Scope
   {
-    labeler.labelWord(token, token, 1).map(_.label)
-  }
+    protected val labeler = new SprWordnetLabeler
 
-  private def lemmatizeNoun(token : String) : String =
-  {
-    labeler.labelWord(token, token, 1).filter(_.isNoun).head.firstChild.lemma
+    protected def labelWord(token : String) : Set[String] =
+    {
+      labeler.labelWords(Seq(tupleN((token, token, 1)))).head.map(_.label)
+    }
+
+    protected def lemmatizeNoun(token : String) : String =
+    {
+      labeler.labelWords(Seq(tupleN((token, token, 1)))).head.
+        filter(_.isNoun).head.firstChild.lemma
+    }
   }
 
   "SprWordnetLabeler" should
   {
-    "label words correctly" in
+    "label words correctly" in new LabelingContext
     {
       labelWord("cow") must be equalTo Set(LABEL_NN, LABEL_VBP)
       labelWord("cows") must be equalTo Set(LABEL_NNS, LABEL_VBZ)
@@ -47,9 +54,15 @@ class SprWordLabelerSpec extends Specification
       labelWord("cattle") must be equalTo Set(LABEL_NNS)
       labelWord("mice") must be equalTo Set(LABEL_NNS)
       labelWord("boss") must be equalTo Set(LABEL_NN, LABEL_VBP, LABEL_JJ)
+      labelWord("bully") must be equalTo Set(LABEL_NN, LABEL_VBP, LABEL_JJ)
     }
 
-    "lemmatize words correctly" in
+    "label quotations correctly" in new LabelingContext
+    {
+      labelWord("\"what the actual f\"") must be equalTo Set(LABEL_NNQ)
+    }
+
+    "lemmatize words correctly" in new LabelingContext
     {
       // FIXME special rules needed for people/cattle/etc
       lemmatizeNoun("cow") must be equalTo "cow"
@@ -59,6 +72,27 @@ class SprWordLabelerSpec extends Specification
       lemmatizeNoun("mice") must be equalTo "mouse"
       lemmatizeNoun("agenda") must be equalTo "agenda"
       lemmatizeNoun("boss") must be equalTo "boss"
+    }
+
+    "allow open rules to be added" in new LabelingContext
+    {
+      labeler.addRule(SprWordRule(
+        Seq("bully"),
+        Seq(LABEL_RB),
+        false
+      ))
+      labelWord("bully") must be equalTo Set(
+        LABEL_NN, LABEL_VBP, LABEL_JJ, LABEL_RB)
+    }
+
+    "allow closed rules to be added" in new LabelingContext
+    {
+      labeler.addRule(SprWordRule(
+        Seq("bully"),
+        Seq(LABEL_RB),
+        true
+      ))
+      labelWord("bully") must be equalTo Set(LABEL_RB)
     }
   }
 }

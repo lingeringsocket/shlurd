@@ -24,6 +24,7 @@ import scala.collection._
 import org.slf4j._
 
 import SprEnglishLemmas._
+import SprPennTreebankLabels._
 
 object SpcBeliefRecognizer
 {
@@ -92,8 +93,10 @@ class SpcBeliefRecognizer(
                 sentence, statePredicate, tam)
             }
             case relationshipPredicate : SilRelationshipPredicate => {
-              return recognizeRelationshipPredicateBelief(
-                sentence, relationshipPredicate, tam)
+              if (recognizeWordRule(sentence).isEmpty) {
+                return recognizeRelationshipPredicateBelief(
+                  sentence, relationshipPredicate, tam)
+              }
             }
           }
         }
@@ -958,8 +961,10 @@ class SpcBeliefRecognizer(
         }
       }
       case _ => {
-        trace(s"UNRECOGNIZED ASSERTION $assertionSentence")
-        invalid = true
+        if (recognizeWordRule(assertionSentence).isEmpty) {
+          trace(s"UNRECOGNIZED ASSERTION $assertionSentence")
+          invalid = true
+        }
       }
     }
     if (invalid) {
@@ -969,6 +974,111 @@ class SpcBeliefRecognizer(
     } else {
       Seq(AssertionBelief(
         assertionSentence, additionalConsequents, alternative))
+    }
+  }
+
+  def recognizeWordRule(
+    sentence : SilSentence
+  ) : Option[SprWordRule] =
+  {
+    sentence match {
+      case SilPredicateSentence(
+        SilRelationshipPredicate(
+          quotation : SilQuotationReference,
+          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+          interpretation,
+          Seq()
+        ),
+        tam,
+        _
+      ) => {
+        if (
+          tam.isNegative || !tam.isIndicative || !tam.isPresent ||
+          (tam.aspect != ASPECT_SIMPLE)
+        ) {
+          None
+        } else {
+          val labels = recognizeWordLabels(interpretation)
+          if (labels.nonEmpty) {
+            val isClosed = tam.modality match {
+              case MODAL_MUST => true
+              case _ => false
+            }
+            Some(SprWordRule(
+              tokenizeQuotation(quotation),
+              labels, isClosed))
+          } else {
+            None
+          }
+        }
+      }
+      case _ => None
+    }
+  }
+
+  private def tokenizeQuotation(quotation : SilQuotationReference)
+      : Seq[String] =
+  {
+    val tokenizedSentences = SprParser.tokenize(quotation.quotation)
+    if (tokenizedSentences.size != 1) {
+      Seq.empty
+    } else {
+      tokenizedSentences.head.tokens.map(_.text)
+    }
+  }
+
+  private def recognizeWordLabels(
+    interpretation : SilReference
+  ) : Seq[String] =
+  {
+    interpretation match {
+      case SilNounReference(
+        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+      ) => {
+        recognizeWordLabel(Seq(noun)).toSeq
+      }
+      case SilStateSpecifiedReference(
+        SilNounReference(
+          noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+        ),
+        SilPropertyState(qualifier)
+      ) => {
+        recognizeWordLabel(Seq(qualifier, noun)).toSeq
+      }
+      case SilConjunctiveReference(
+        DETERMINER_ANY,
+        references,
+        _
+      ) => {
+        val subs = references.map(ref =>
+          recognizeWordLabels(ref)
+        )
+        if (subs.exists(_.isEmpty)) {
+          Seq.empty
+        } else {
+          subs.flatten
+        }
+      }
+      case _ => Seq.empty
+    }
+  }
+
+  private def recognizeWordLabel(
+    words : Seq[SilWord]) : Option[String] =
+  {
+    words.flatMap(_.decomposed) match {
+      case Seq(SilWordLemma("noun")) => Some(LABEL_NN)
+      case Seq(SilWordLemma("common"), SilWordLemma("noun")) => Some(LABEL_NN)
+      case Seq(SilWordLemma("proper"), SilWordLemma("noun")) => Some(LABEL_NNP)
+      case Seq(SilWordLemma("verb")) => Some(LABEL_VB)
+      case Seq(SilWordLemma("adjective")) => Some(LABEL_JJ)
+      case Seq(SilWordLemma("adverb")) => Some(LABEL_RB)
+      case Seq(SilWordLemma("pronoun")) => Some(LABEL_PRP)
+      case Seq(SilWordLemma("possessive"), SilWordLemma("pronoun")) =>
+        Some(LABEL_PRP_POS)
+      case Seq(SilWordLemma("conjunction")) => Some(LABEL_CC)
+      case Seq(SilWordLemma("preposition")) => Some(LABEL_IN)
+      case _ => None
     }
   }
 

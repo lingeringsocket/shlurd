@@ -1001,5 +1001,11 @@ class SpcCosmosSpec extends SpcProcessingSpecification
         ),
         SpcBeliefParams(createImplicitProperties = false))
     }
+
+    "allow word rules to be defined" in new CosmosContext
+    {
+      addBelief("\"Happy\" may be a proper noun")
+      addBelief("Happy is a unicorn")
+    }
   }
 }
