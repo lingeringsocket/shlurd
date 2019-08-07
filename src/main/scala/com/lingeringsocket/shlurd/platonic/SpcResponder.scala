@@ -588,7 +588,9 @@ class SpcResponder(
         val newConsequents = (
           SilPredicateSentence(newPredicate) +: newAdditionalConsequents
         ).map(
-          removeBasicVerbModifier(_, Set(LEMMA_ALSO, LEMMA_SUBSEQUENTLY))
+          removeBasicVerbModifier(
+            _, Set(LEMMA_ALSO, LEMMA_SUBSEQUENTLY, LEMMA_CONSEQUENTLY)
+          )
         )
         newConsequents.foreach(sentence => {
           checkCycle(
@@ -636,7 +638,7 @@ class SpcResponder(
               newAlternative.foreach(alternativeSentence => {
                 val recoverySentence = removeBasicVerbModifier(
                   alternativeSentence,
-                  Set(LEMMA_OTHERWISE, LEMMA_SUBSEQUENTLY))
+                  Set(LEMMA_OTHERWISE, LEMMA_SUBSEQUENTLY, LEMMA_CONSEQUENTLY))
                 checkCycle(recoverySentence.predicate,
                   already, resultCollector.referenceMap
                 ) matchPartial {
@@ -1014,7 +1016,7 @@ class SpcResponder(
         s"I am not yet capable of processing the belief that ${beliefString}."
       }
       case InvalidBeliefExcn(code, belief) => {
-        s"The belief that ${beliefString} is not valid in the given context."
+        s"I am unable to validate the belief that ${beliefString}."
       }
       case ProhibitedBeliefExcn(code, belief) => {
         s"The belief that ${beliefString} is prohibited in the given context."

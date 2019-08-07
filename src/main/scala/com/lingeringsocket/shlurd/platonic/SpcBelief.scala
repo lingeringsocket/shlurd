@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.platonic
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
@@ -34,7 +35,8 @@ case class UnimplementedBelief(
 }
 
 case class InvalidBelief(
-  sentence : SilSentence
+  sentence : SilSentence,
+  exceptionCode : ShlurdExceptionCode
 ) extends SpcBelief
 {
 }

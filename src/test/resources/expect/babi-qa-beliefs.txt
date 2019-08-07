@@ -62,10 +62,10 @@ A lion is a kind of animal.
 A rhino is a kind of animal.
 A swan is a kind of animal.
 A frog is a kind of animal.
-If an animal is a lion, then the animal's color is Lioncolor.
-If an animal is a rhino, then the animal's color is Rhinocolor.
-If an animal is a swan, then the animal's color is Swancolor.
-If an animal is a frog, then the animal's color is Frogcolor.
+If an animal is a lion, consequently the animal's color is Lioncolor.
+If an animal is a rhino, consequently the animal's color is Rhinocolor.
+If an animal is a swan, consequently the animal's color is Swancolor.
+If an animal is a frog, consequently the animal's color is Frogcolor.
 A place's northern-neighbor must be a place.
 A place's southern-neighbor must be a place.
 A place's eastern-neighbor must be a place.
@@ -127,26 +127,26 @@ If a row is another row's top-row, then equivalently
  the second row is the first row's bottom-row.
 If a column is another column's pre-column, then equivalently
  the second column is the first column's post-column.
-If a shape is above a neighbor, then the shape's abscissa is the neighbor's abscissa.
-If a shape is above a neighbor, then the shape's ordinate is the neighbor's ordinate's above-row.
+If a shape is above a neighbor, consequently the shape's abscissa is the neighbor's abscissa.
+If a shape is above a neighbor, consequently the shape's ordinate is the neighbor's ordinate's above-row.
 If a shape is above a neighbor, equivalently the neighbor's ordinate's top-row is the shape's ordinate.
-If a shape is above a neighbor, then the shape's ordinate sits on the neighbor's ordinate.
-If a row sits on a neighbor, then subsequently the neighbor's bottom-row's top-row is the row.
-If a row sits on a neighbor, then subsequently the row's bottom-row's top-rows are the row's top-rows.
-If a shape is below a neighbor, then the shape's abscissa is the neighbor's abscissa.
-If a shape is below a neighbor, then the shape's ordinate is the neighbor's ordinate's below-row.
+If a shape is above a neighbor, consequently the shape's ordinate sits on the neighbor's ordinate.
+If a row sits on a neighbor, then consequently the neighbor's bottom-row's top-row is the row.
+If a row sits on a neighbor, then consequently the row's bottom-row's top-rows are the row's top-rows.
+If a shape is below a neighbor, consequently the shape's abscissa is the neighbor's abscissa.
+If a shape is below a neighbor, consequently the shape's ordinate is the neighbor's ordinate's below-row.
 If a shape is below a neighbor, equivalently the neighbor's ordinate's bottom-row is the shape's ordinate.
-If a shape is below a neighbor, then the neighbor's ordinate sits on the shape's ordinate.
-If a shape is to the left of a neighbor, then the shape's ordinate is the neighbor's ordinate.
-If a shape is to the left of a neighbor, then the shape's abscissa is the neighbor's abscissa's left-column.
+If a shape is below a neighbor, consequently the neighbor's ordinate sits on the shape's ordinate.
+If a shape is to the left of a neighbor, consequently the shape's ordinate is the neighbor's ordinate.
+If a shape is to the left of a neighbor, consequently the shape's abscissa is the neighbor's abscissa's left-column.
 If a shape is to the left of a neighbor, equivalently the neighbor's abscissa's pre-column is the shape's abscissa.
-If a shape is to the left of a neighbor, then the shape's abscissa precedes the neighbor's abscissa.
-If a column precedes a neighbor, then subsequently the neighbor's post-column's pre-column is the column.
-If a column precedes a neighbor, then subsequently the column's post-column's pre-columns are the column's pre-columns.
-If a shape is to the right of a neighbor, then the shape's ordinate is the neighbor's ordinate.
-If a shape is to the right of a neighbor, then the neighbor's abscissa's right-column is the shape's abscissa.
+If a shape is to the left of a neighbor, consequently the shape's abscissa precedes the neighbor's abscissa.
+If a column precedes a neighbor, consequently the neighbor's post-column's pre-column is the column.
+If a column precedes a neighbor, consequently the column's post-column's pre-columns are the column's pre-columns.
+If a shape is to the right of a neighbor, consequently the shape's ordinate is the neighbor's ordinate.
+If a shape is to the right of a neighbor, consequently the neighbor's abscissa's right-column is the shape's abscissa.
 If a shape is to the right of a neighbor, equivalently the neighbor's abscissa's post-column is the shape's abscissa.
-If a shape is to the right of a neighbor, then the neighbor's abscissa precedes the shape's abscissa.
+If a shape is to the right of a neighbor, consequently the neighbor's abscissa precedes the shape's abscissa.
 A wolf is a kind of animal.
 A mouse is a kind of animal.
 A cat is a kind of animal.

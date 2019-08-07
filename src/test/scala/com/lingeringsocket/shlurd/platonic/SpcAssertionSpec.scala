@@ -17,6 +17,8 @@ package com.lingeringsocket.shlurd.platonic
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 
+import ShlurdExceptionCode._
+
 class SpcAssertionSpec extends SpcProcessingSpecification
 {
   private def fiatForm(form : String, hypernym : String = "object") =
@@ -108,7 +110,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
     "I'm not sure how to interpret that."
 
   private def errorInvalid(belief : String) =
-    s"The belief that $belief is not valid in the given context."
+    s"I am unable to validate the belief that $belief."
 
   private val queryState =
     "what is the toaster's state"
@@ -220,10 +222,10 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(abilityClockCanTick)
     }
 
-    protected def verifyInvalid(assertion : String) =
+    protected def verifyInvalid(
+      assertion : String,
+      code : ShlurdExceptionCode) =
     {
-      // FIXME enforce specific codes
-      val code = ShlurdExceptionCode.InvalidBelief
       val message = errorInvalid(assertion)
       verifyError(
         assertion,
@@ -363,42 +365,71 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify(actionWallacePutsPumpernickel, abilityPersonCannotPut)
     }
 
+    "prevent invalid references" in new AssertionContext
+    {
+      skipped("not working yet")
+      defineToasterSlice
+
+      // FIXME need proper scope resolution
+      verifyInvalid(
+        "if a slice becomes cold, the slick spreads",
+        UnknownForm)
+    }
+
     "prevent invalid assertions" in new AssertionContext
     {
       defineToasterSlice
       defineClock
 
+      verifyError(
+        "before a person puts a slice into a toaster, " +
+          "subsequently the toaster's state must be toasting",
+        errorInvalid("before a person puts a slice into a toaster, " +
+          "then the toaster's state must be toasting subsequently"),
+        AssertionModifiersIncompatible)
+      verifyError("if a slice becomes cold, " +
+        "otherwise also the toaster becomes done",
+        errorInvalid("if a slice becomes cold, " +
+          "then the toaster becomes done otherwise also"),
+        AssertionModifierSequence)
       verifyInvalid("if a slice becomes cold, " +
-        "equivalently the toaster must be done")
+        "equivalently the toaster must be done",
+        AssertionModalProhibited)
       verifyInvalid("before a slice becomes cold, " +
-        "then the toaster becomes done")
-      verifyInvalid("before a slice is cold, " +
-        "equivalently the toaster is done")
-      verifyInvalid("after a slice is cold, " +
-        "equivalently the toaster is done")
-      verifyInvalid("whenever a slice is cold, " +
-        "equivalently the toaster is done")
+        "then the toaster becomes done",
+        ConsequentConstraintExpected)
+      verifyInvalid("before a slice becomes cold, " +
+        "equivalently the toaster must be done",
+        AssertionModalProhibited)
       verifyInvalid("after a slice becomes cold, " +
-        "then the toaster must be done")
+        "equivalently the toaster becomes done",
+        EquivalenceIfExpected)
+      verifyInvalid("whenever a slice is cold, " +
+        "equivalently the toaster is done",
+        EquivalenceIfExpected)
+      verifyInvalid("after a slice becomes cold, " +
+        "then the toaster must be done",
+        PostConstraintNotYetImplemented)
     }
 
     "prevent invalid inverse associations" in new AssertionContext
     {
       verifyInvalid("if a map-place is another map-place's map-neighbor, " +
         "equivalently the first map-place is " +
-        "the second map-place's map-neighbor")
+        "the second map-place's map-neighbor",
+        AssertionInvalidAssociation)
       verifyInvalid("if a map-place is a map-place's map-neighbor, " +
         "equivalently the second map-place is " +
-        "the first map-place's map-neighbor")
+        "the first map-place's map-neighbor",
+        AssertionInvalidAssociation)
       verifyInvalid("if another map-place is a map-place's map-neighbor, " +
         "equivalently the second map-place is " +
-        "the first map-place's map-neighbor")
+        "the first map-place's map-neighbor",
+        AssertionInvalidAssociation)
       verifyInvalid("if a map-place is another map-place's map-neighbor, " +
         "equivalently the second map-place is " +
-        "the map-place's map-neighbor")
-      verifyInvalid("if a map-place is another map-place's map-neighbor, " +
-        "then the second map-place is " +
-        "the first map-place's map-neighbor")
+        "the map-place's map-neighbor",
+        AssertionInvalidAssociation)
     }
 
     "prevent runaway triggers" in new AssertionContext
@@ -417,7 +448,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyError(
         "Wallace cuts the pumpernickel",
         "Trigger limit exceeded.",
-        ShlurdExceptionCode.TriggerLimit)
+        TriggerLimit)
     }
 
     "map genitives in equivalences" in new AssertionContext
@@ -457,6 +488,23 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK("the rye belongs in the trash")
       verify("is the pumpernickel cold", responseYes)
       verify("is the rye burnt", responseYes)
+    }
+
+    "unify genitives" in new AssertionContext
+    {
+      skipped("not working yet")
+
+      verifyOK("A balloon's state must be empty, full, or broken.")
+      verifyOK("A person's state must be energetic or tired.")
+      verifyOK("A balloon's owner must be a person.")
+      verifyOK("A balloon must have an owner.")
+      verifyOK("If a balloon's owner is tired, " +
+        "consequently the balloon is broken.")
+      verifyOK("Pinkie is a person.")
+      verifyOK("There is a red balloon.")
+      verifyOK("Pinkie is the red balloon's owner.")
+      verifyOK("Pinkie is tired.")
+      verify("Is the red balloon broken?", "Yes.")
     }
   }
 }

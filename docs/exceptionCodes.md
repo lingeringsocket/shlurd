@@ -77,7 +77,7 @@ FIXME
 ```scala mdoc:processConversation
 > if an investigator fires a gun, then the gun is broken
 
-The belief that if an investigator fires a gun, then the gun is broken is not valid in the given context.
+I am unable to validate the belief that if an investigator fires a gun, then the gun is broken.
 ```
 
 ## BeliefNotYetImplemented
@@ -334,4 +334,120 @@ OK.
 > Jupiter has no pets
 
 The belief that Jupiter has no pets contradicts the belief that McGruff is Jupiter's pet.
+```
+
+## AssertionModifiersIncompatible
+
+* BEFORE+SUBSEQUENTLY
+* CONSEQUENTLY+SUBSEQUENTLY
+* OTHERWISE+ALSO
+* OTHERWISE+EQUIVALENTLY
+* ALSO+EQUIVALENTLY
+* ALSO on "x can do y"
+
+```scala mdoc:processConversation
+> If a tribble eats, equivalently the tribble is subsequently fat.
+
+I am unable to validate the belief that if a tribble eats, equivalently the tribble is fat subsequently.
+```
+
+## AssertionModifierSequence
+
+* OTHERWISE/ALSO prohibited on main consequent
+* OTHERWISE must be last
+* only one OTHERWISE allowed
+* OTHERWISE/ALSO required on subsequent consequents
+
+```scala mdoc:processConversation
+> After a tribble eats, also the tribble becomes fat.
+
+I am unable to validate the belief that after a tribble eats, then the tribble becomes fat also.
+```
+
+## QuantifierNotYetImplemented
+
+```scala mdoc:processConversation
+> After a tribble eats, some tribble becomes fat.
+
+I am unable to validate the belief that after a tribble eats, then some tribble becomes fat.
+```
+
+## PostConstraintNotYetImplemented
+
+```scala mdoc:processConversation
+> After a tribble eats, the tribble must be alone.
+
+I am unable to validate the belief that after a tribble eats, then the tribble must be alone.
+```
+
+## AntecedentEventExpected
+
+* not equivalently/consequently
+
+```scala mdoc:processConversation
+> After a tribble is happy, the tribble eats.
+
+I am unable to validate the belief that after a tribble is happy, then the tribble eats.
+```
+
+## ConsequentConditionExpected
+
+equivalence plus
+
+* become
+* action verb
+* subsequently or consequently
+
+```scala mdoc:processConversation
+> If a tribble eats, equivalently the tribble becomes happy.
+
+I am unable to validate the belief that if a tribble eats, equivalently the tribble becomes happy.
+```
+
+## ConsequentEventExpected
+
+antecedent event plus
+* stative without subsequently/consequently/equivalently
+
+```scala mdoc:processConversation
+> When a tribble eats, the tribble is happy.
+
+I am unable to validate the belief that when a tribble eats, then the tribble is happy.
+```
+
+## ConsequentConstraintExpected
+
+* BEFORE/OTHERWISE
+
+```scala mdoc:processConversation
+> Before a tribble eats, the tribble is happy.
+
+I am unable to validate the belief that before a tribble eats, then the tribble is happy.
+```
+
+## AssertionInvalidAssociation
+
+```scala mdoc:processConversation
+> If a tribble is another tribble's baby, then the tribble's parent is the tribble.
+
+I am unable to validate the belief that if a tribble is another tribble's baby, then the tribble's parent is the tribble.
+```
+
+## EquivalenceIfExpected
+
+```scala mdoc:processConversation
+> After a tribble eats, equivalently the tribble is happy.
+
+I am unable to validate the belief that after a tribble eats, equivalently the tribble is happy.
+```
+
+## AssertionModalProhibited
+
+* EQUIVALENTLY
+* ALSO
+
+```scala mdoc:processConversation
+> If a tribble eats, equivalently the tribble must be happy.
+
+I am unable to validate the belief that if a tribble eats, equivalently the tribble must be happy.
 ```

@@ -505,7 +505,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       cosmos.getTriggers must beEmpty
       cosmos.getAssertions must beEmpty
       addBelief("if a person is an object's possessor, " +
-        "then the person is carrying the object")
+        "then equivalently the person is carrying the object")
       cosmos.getAssertions.size must be equalTo(1)
       cosmos.getTriggers.size must be equalTo(1)
     }
@@ -825,14 +825,11 @@ class SpcCosmosSpec extends SpcProcessingSpecification
           unusedSentence))
     }
 
-    "understand proper compound nouns" in new CosmosContext
+    "understand qualified genitives" in new CosmosContext
     {
-      skipped("not working yet")
-      expectErrorBelief(
-        "Daffy is Porky Pig's duck",
-        IncomprehensibleBeliefExcn(
-          ShlurdExceptionCode.IncomprehensibleBelief,
-          unusedSentence))
+      addBelief("a balloon's state must be empty or full")
+      addBelief("there is a red balloon")
+      addBelief("the red balloon's state is full")
     }
 
     "reject beliefs it cannot implement" in new CosmosContext
@@ -861,19 +858,19 @@ class SpcCosmosSpec extends SpcProcessingSpecification
         "if a person eats a pickle, " +
           "then the pickle is sandy",
         InvalidBeliefExcn(
-          ShlurdExceptionCode.InvalidBelief,
+          ShlurdExceptionCode.ConsequentEventExpected,
           unusedSentence))
       expectErrorBelief(
         "if a person eats a pickle, " +
           "then equivalently the pickle becomes sandy",
         InvalidBeliefExcn(
-          ShlurdExceptionCode.InvalidBelief,
+          ShlurdExceptionCode.ConsequentConditionExpected,
           unusedSentence))
       expectErrorBelief(
         "if a person eats a pickle, " +
           "then equivalently the pickle is subsequently sandy",
         InvalidBeliefExcn(
-          ShlurdExceptionCode.InvalidBelief,
+          ShlurdExceptionCode.ConsequentConditionExpected,
           unusedSentence))
     }
 

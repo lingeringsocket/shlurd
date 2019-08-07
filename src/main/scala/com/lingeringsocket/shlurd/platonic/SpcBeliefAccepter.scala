@@ -498,10 +498,11 @@ class SpcBeliefAccepter private(
 
   beliefApplier {
     case InvalidBelief(
-      sentence
+      sentence,
+      exceptionCode
     ) => {
       throw new InvalidBeliefExcn(
-        ShlurdExceptionCode.InvalidBelief,
+        exceptionCode,
         sentence)
     }
   }

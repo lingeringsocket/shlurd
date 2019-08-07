@@ -83,7 +83,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       isaResult must be equalTo Map(
         ivanRef -> ivanSet
       )
-      analyzeBelief("if a mule is happy, " +
+      analyzeBelief("if a mule becomes happy, " +
         s"then the mule kicks $ivan")
       analyzeBelief(s"$boris is a mule")
       val borisEntity = expectProperName(boris)

@@ -55,6 +55,17 @@ object ShlurdExceptionCode
   case object FormRoleIncompatible extends ShlurdExceptionCode
   case object PropertyDomainIncompatible extends ShlurdExceptionCode
   case object AbsenceConstraint extends ShlurdExceptionCode
+  case object AssertionModifiersIncompatible extends ShlurdExceptionCode
+  case object AssertionModifierSequence extends ShlurdExceptionCode
+  case object QuantifierNotYetImplemented extends ShlurdExceptionCode
+  case object PostConstraintNotYetImplemented extends ShlurdExceptionCode
+  case object AntecedentEventExpected extends ShlurdExceptionCode
+  case object ConsequentConditionExpected extends ShlurdExceptionCode
+  case object ConsequentEventExpected extends ShlurdExceptionCode
+  case object ConsequentConstraintExpected extends ShlurdExceptionCode
+  case object AssertionInvalidAssociation extends ShlurdExceptionCode
+  case object EquivalenceIfExpected extends ShlurdExceptionCode
+  case object AssertionModalProhibited extends ShlurdExceptionCode
 }
 
 case class ShlurdException(

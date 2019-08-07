@@ -783,7 +783,7 @@ class SpcResponderSpec extends Specification
       processBelief("Cratchit is a worker")
       processBelief("Cratchit is Scrooge's minion")
       processBelief("a person may be angry or sad")
-      processBelief("if a manager is angry," +
+      processBelief("if a manager becomes angry," +
         " then the manager strikes the manager's minions")
       processBelief("if a bully strikes a person, then the person becomes sad")
       processBelief("Scrooge is angry")
@@ -1760,11 +1760,11 @@ class SpcResponderSpec extends Specification
         "then equivalently the second patriarch is " +
         "the first patriarch's ancestor.")
       processBelief("If a patriarch begets a child, " +
-        "then the patriarch becomes the child's parent; " +
-        "also the patriarch becomes the child's ancestor; " +
-        "also the patriarch becomes the child's descendant's ancestor; " +
+        "then consequently the patriarch is the child's parent; " +
+        "also the patriarch is the child's ancestor; " +
+        "also the patriarch is the child's descendant's ancestor; " +
         "also the patriarch's descendant's ancestors " +
-        "become the patriarch's ancestors.")
+        "are the patriarch's ancestors.")
       processBelief("Abraham is a patriarch.")
       processBelief("Isaac is a patriarch.")
       processBelief("Jacob is a patriarch.")

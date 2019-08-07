@@ -25,6 +25,7 @@ import org.slf4j._
 
 import SprEnglishLemmas._
 import SprPennTreebankLabels._
+import ShlurdExceptionCode._
 
 object SpcBeliefRecognizer
 {
@@ -741,68 +742,69 @@ class SpcBeliefRecognizer(
     )
   }
 
-  private def isConsequentValid(
+  private def validateConsequent(
     isBefore : Boolean,
-    isSubsequently : Boolean,
+    isUnidirectional : Boolean,
     consequent : SilPredicate,
     biconditional : Boolean,
-    antecedentAction : Boolean,
-    checkPatterns : Boolean = true) : Boolean =
+    antecedentEvent : Boolean,
+    checkPatterns : Boolean = true) : Option[ShlurdExceptionCode] =
   {
     val querier = new SilPhraseRewriter
-    var invalid = false
-    if (isBefore && isSubsequently) {
-      trace("BEFORE INCOMPATIBLE WITH SUBSEQUENTLY")
-      invalid = true
+    var exceptionCode : Option[ShlurdExceptionCode] = None
+    def reportException(code : ShlurdExceptionCode)
+    {
+      trace(s"INVALID ASSERTION:  $code")
+      if (exceptionCode.isEmpty) {
+        exceptionCode = Some(code)
+      }
     }
-    def validateConsequent() = querier.queryMatcher {
+    if (isBefore && isUnidirectional) {
+      reportException(AssertionModifiersIncompatible)
+    }
+    def visitConsequent() = querier.queryMatcher {
       case SilNounReference(_, determiner, _) => {
         determiner match {
           case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
               DETERMINER_NONE | DETERMINER_NONSPECIFIC =>
           case _ => {
-            trace(s"UNSUPPORTED DETERMINER $determiner")
-            invalid = true
+            reportException(QuantifierNotYetImplemented)
           }
         }
       }
       case sp : SilStatePredicate => {
         val predef = SilStatePredef(sp.verb)
         if (biconditional) {
-          if ((predef == STATE_PREDEF_BECOME) || isSubsequently) {
-            trace("CONDITION EXPECTED")
-            invalid = true
+          if ((predef == STATE_PREDEF_BECOME) || isUnidirectional) {
+            reportException(ConsequentConditionExpected)
           }
         } else {
-          if (antecedentAction &&
-            (predef != STATE_PREDEF_BECOME) && !isSubsequently)
+          if (antecedentEvent &&
+            (predef != STATE_PREDEF_BECOME) && !isUnidirectional)
           {
-            trace("EVENT EXPECTED")
-            invalid = true
+            reportException(ConsequentEventExpected)
           }
         }
       }
       case rp : SilRelationshipPredicate => {
         val predef = SilRelationshipPredef(rp.verb)
         if (biconditional) {
-          if ((predef == REL_PREDEF_BECOME) || isSubsequently) {
-            trace("CONDITION EXPECTED")
-            invalid = true
+          if ((predef == REL_PREDEF_BECOME) || isUnidirectional) {
+            reportException(ConsequentConditionExpected)
           }
         } else {
-          if (antecedentAction &&
-            (predef == REL_PREDEF_IDENTITY) && !isSubsequently)
+          if (antecedentEvent &&
+            (predef == REL_PREDEF_IDENTITY) && !isUnidirectional)
           {
-            trace("EVENT EXPECTED")
-            invalid = true
+            reportException(ConsequentEventExpected)
           }
         }
       }
     }
     if (checkPatterns) {
-      querier.query(validateConsequent, consequent)
+      querier.query(visitConsequent, consequent)
     }
-    !invalid
+    exceptionCode
   }
 
   private def recognizeAssertionBelief(
@@ -810,20 +812,51 @@ class SpcBeliefRecognizer(
     additionalSentences : Seq[SilPredicateSentence] = Seq.empty)
       : Seq[SpcBelief] =
   {
-    var invalid = false
+    var exceptionCode : Option[ShlurdExceptionCode] = None
+    def reportException(code : ShlurdExceptionCode)
+    {
+      trace(s"INVALID ASSERTION:  $code")
+      if (exceptionCode.isEmpty) {
+        exceptionCode = Some(code)
+      }
+    }
     var ignored = false
     val additionalConsequents = new mutable.ArrayBuffer[SilPredicateSentence]
     var alternative : Option[SilPredicateSentence] = None
     assertionSentence match {
       case conditional : SilConditionalSentence => {
-        val antecedentAction =
-          conditional.antecedent.isInstanceOf[SilActionPredicate]
+        val antecedentEvent = conditional.antecedent match {
+          case _ : SilActionPredicate => true
+          case rp : SilRelationshipPredicate if (
+            SilRelationshipPredef(rp.verb) == REL_PREDEF_BECOME
+          ) => true
+          case sp : SilStatePredicate if (
+            SilStatePredef(sp.verb) == STATE_PREDEF_BECOME
+          ) => true
+          case _ => false
+        }
         val consequent = conditional.consequent
         val isAfter = (conditional.conjunction.toLemma == LEMMA_AFTER)
         val isBefore = (conditional.conjunction.toLemma == LEMMA_BEFORE)
+        val consequentModifiers = extractBasicModifierLemmas(consequent)
+        val isConsequentOtherwise =
+          consequentModifiers.contains(LEMMA_OTHERWISE)
+        val isConsequentAlso = consequentModifiers.contains(LEMMA_ALSO)
         val isConsequentSubsequently = isAfter ||
-          extractBasicModifierLemmas(consequent).
-            contains(LEMMA_SUBSEQUENTLY)
+          consequentModifiers.contains(LEMMA_SUBSEQUENTLY)
+        val isConsequentImplication =
+          consequentModifiers.contains(LEMMA_CONSEQUENTLY)
+        if (!antecedentEvent && !conditional.biconditional &&
+          !isConsequentImplication)
+        {
+          reportException(AntecedentEventExpected)
+        }
+        if (isConsequentOtherwise || isConsequentAlso) {
+          reportException(AssertionModifierSequence)
+        }
+        if (isConsequentImplication && isConsequentSubsequently) {
+          reportException(AssertionModifiersIncompatible)
+        }
         val consequentNonModal =
           (conditional.tamConsequent.unemphaticModality == MODAL_NEUTRAL)
         if (consequentNonModal) {
@@ -849,101 +882,87 @@ class SpcBeliefRecognizer(
               isGenitiveRelationship(conditional.consequent)
           )
           {
-            trace("LOOKS TOO MUCH LIKE AN ASSOCIATION")
-            invalid = true
+            reportException(AssertionInvalidAssociation)
           }
           if (isBefore) {
-            trace("BEFORE REQUIRES CONSTRAINT")
-            invalid = true
+            reportException(ConsequentConstraintExpected)
           }
           if (conditional.conjunction.toLemma != LEMMA_IF) {
             if (conditional.biconditional) {
-              trace("EQUIVALENTLY REQUIRES IF")
-              invalid = true
+              reportException(EquivalenceIfExpected)
             }
           }
         } else {
           if (isAfter) {
             // FIXME implement this as a postcondition
-            trace("AFTER INCOMPATIBLE WITH MODAL")
-            invalid = true
+            reportException(PostConstraintNotYetImplemented)
           }
           if (conditional.biconditional) {
-            trace("MODAL PROHIBITED")
-            invalid = true
+            reportException(AssertionModalProhibited)
           }
         }
-        if (!isConsequentValid(
+        validateConsequent(
           isBefore,
-          isConsequentSubsequently,
+          isConsequentSubsequently || isConsequentImplication,
           consequent,
           conditional.biconditional,
-          antecedentAction,
+          antecedentEvent,
           consequentNonModal
-        )) {
-          invalid = true
-        }
+        ).foreach(code => reportException(code))
         additionalSentences.foreach(additionalSentence => {
           val modifiers = extractBasicModifierLemmas(
             additionalSentence.predicate)
           val isOtherwise = modifiers.contains(LEMMA_OTHERWISE)
           val isAlso = modifiers.contains(LEMMA_ALSO)
           val isSubsequently = modifiers.contains(LEMMA_SUBSEQUENTLY)
-          if (!isConsequentValid(
+          val isImplication = modifiers.contains(LEMMA_CONSEQUENTLY)
+          if (isSubsequently && isImplication) {
+            reportException(AssertionModifiersIncompatible)
+          }
+          validateConsequent(
             isBefore,
-            isSubsequently || isConsequentSubsequently,
+            isSubsequently || isConsequentSubsequently ||
+              isConsequentImplication || isImplication,
             additionalSentence.predicate,
             conditional.biconditional,
-            antecedentAction
-          )) {
-            invalid = true
-          }
+            antecedentEvent
+          ).foreach(code => reportException(code))
           if (isOtherwise && isAlso) {
-            trace("OTHERWISE INCOMPATIBLE WITH ALSO")
-            invalid = true
+            reportException(AssertionModifiersIncompatible)
           } else if (isOtherwise) {
             if (conditional.biconditional) {
-              trace("OTHERWISE INCOMPATIBLE WITH EQUIVALENTLY")
-              invalid = true
+              reportException(AssertionModifiersIncompatible)
             }
             if (conditional.tamConsequent.unemphaticModality == MODAL_NEUTRAL) {
-              trace("MODAL REQUIRED")
-              invalid = true
+              reportException(ConsequentConstraintExpected)
             }
             if (additionalConsequents.nonEmpty) {
-              trace("OTHERWISE MUST BE LAST")
-              invalid = true
+              reportException(AssertionModifierSequence)
             }
             if (alternative.nonEmpty) {
-              trace("ONLY ONE OTHERWISE ALLOWED")
-              invalid = true
+              reportException(AssertionModifierSequence)
             } else {
               alternative = Some(additionalSentence)
             }
           } else if (isAlso) {
             if (conditional.biconditional) {
-              trace("ALSO INCOMPATIBLE WITH EQUIVALENTLY")
-              invalid = true
+              reportException(AssertionModifiersIncompatible)
             }
             if (alternative.nonEmpty) {
-              trace("OTHERWISE MUST BE LAST")
-              invalid = true
+              reportException(AssertionModifierSequence)
             }
             if (additionalSentence.tam.unemphaticModality != MODAL_NEUTRAL) {
-              trace("MODAL PROHIBITED")
-              invalid = true
+              reportException(AssertionModalProhibited)
             }
             additionalConsequents += additionalSentence
           } else {
-            trace("OTHERWISE OR ALSO EXPECTED")
-            invalid = true
+            reportException(AssertionModifierSequence)
           }
         })
       }
       case SilPredicateSentence(predicate : SilActionPredicate, tam, _) => {
         if (additionalSentences.nonEmpty) {
-          trace("ALSO INCOMPATIBLE WITH CONSTRAINT")
-          invalid = true
+          reportException(AssertionModifiersIncompatible)
         }
         val querier = new SilPhraseRewriter
         def validateAssertion = querier.queryMatcher {
@@ -963,12 +982,12 @@ class SpcBeliefRecognizer(
       case _ => {
         if (recognizeWordRule(assertionSentence).isEmpty) {
           trace(s"UNRECOGNIZED ASSERTION $assertionSentence")
-          invalid = true
+          reportException(ShlurdExceptionCode.InvalidBelief)
         }
       }
     }
-    if (invalid) {
-      Seq(InvalidBelief(assertionSentence))
+    if (exceptionCode.nonEmpty) {
+      Seq(InvalidBelief(assertionSentence, exceptionCode.get))
     } else if (ignored) {
       Seq.empty
     } else {
@@ -1484,6 +1503,18 @@ class SpcBeliefRecognizer(
           preQualifiers ++ SilUtils.extractQualifiers(state))
       }
       case SilGenitiveReference(
+        SilStateSpecifiedReference(
+          sub,
+          state),
+        possessee
+      ) => {
+        extractQualifiedNoun(
+          sentence,
+          SilGenitiveReference(sub, possessee),
+          preQualifiers ++ SilUtils.extractQualifiers(state),
+          allowGenitive)
+      }
+      case SilGenitiveReference(
         SilNounReference(
           possessor, possessorDeterminer, COUNT_SINGULAR),
         SilNounReference(
@@ -1495,7 +1526,7 @@ class SpcBeliefRecognizer(
           case DETERMINER_UNIQUE => false
           case _ => true
         }
-        tupleN((possession, Seq(possessor),
+        tupleN((possession, preQualifiers :+ possessor,
           count, possessorDeterminer, failed || !allowGenitive))
       }
       case _ => failedResult
