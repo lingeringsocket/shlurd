@@ -584,34 +584,46 @@ class SpcBeliefAccepter private(
             sentence)
         }
       }
-      val hyponymRole = instantiateRole(
-        sentence, possessorForm, hyponymRoleName, false, false)
-      val entityAssocs = cosmos.getEntityAssocGraph
-      // FIXME avoid iterating over all entity assocs!
-      entityAssocs.edgeSet.asScala.foreach(
-        entityEdge => {
-          val possesseeRole = cosmos.getPossesseeRole(entityEdge)
-          if (possesseeRole == hyponymRole) {
-            val possesseeEntity =
-              cosmos.getGraph.getPossesseeEntity(entityEdge)
-            if (!cosmos.isHyponym(
-              possesseeEntity.form, hypernymIdeal))
-            {
-              if (possesseeEntity.form.isTentative) {
-                addIdealTaxonomy(
-                  sentence, possesseeEntity.form, hypernymIdeal)
-              } else {
-                val formBelief = creed.entityFormBelief(possesseeEntity)
-                val assocBelief = creed.entityAssociationBelief(entityEdge)
-                throw new ContradictoryBeliefExcn(
-                  ShlurdExceptionCode.RoleTaxonomyIncompatible,
-                  sentence,
-                  conjunctiveBelief(Seq(formBelief, assocBelief)))
+      val (hyponymRole, existingRole) = mind.resolveRole(
+        possessorForm, hyponymRoleName, false
+      ) match {
+        case Some(r) => tupleN((r, true))
+        case _ => tupleN((
+          mind.instantiateRole(possessorForm, hyponymRoleName),
+          false))
+      }
+      if (existingRole) {
+        val entityAssocs = cosmos.getEntityAssocGraph
+        // FIXME avoid iterating over all entity assocs!
+        val entityAssocEdges = entityAssocs.edgeSet.asScala
+        if (entityAssocEdges.size > 1000) {
+          warn("BOOM:  " + entityAssocEdges.size)
+        }
+        entityAssocEdges.foreach(
+          entityEdge => {
+            val possesseeRole = cosmos.getPossesseeRole(entityEdge)
+            if (possesseeRole == hyponymRole) {
+              val possesseeEntity =
+                cosmos.getGraph.getPossesseeEntity(entityEdge)
+              if (!cosmos.isHyponym(
+                possesseeEntity.form, hypernymIdeal))
+              {
+                if (possesseeEntity.form.isTentative) {
+                  addIdealTaxonomy(
+                    sentence, possesseeEntity.form, hypernymIdeal)
+                } else {
+                  val formBelief = creed.entityFormBelief(possesseeEntity)
+                  val assocBelief = creed.entityAssociationBelief(entityEdge)
+                  throw new ContradictoryBeliefExcn(
+                    ShlurdExceptionCode.RoleTaxonomyIncompatible,
+                    sentence,
+                    conjunctiveBelief(Seq(formBelief, assocBelief)))
+                }
               }
             }
           }
-        }
-      )
+        )
+      }
       addIdealTaxonomy(sentence, hyponymRole, hypernymIdeal)
       cosmos.addFormAssoc(possessorForm, hyponymRole)
     }
