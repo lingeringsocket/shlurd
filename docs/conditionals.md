@@ -19,13 +19,9 @@ A balloon's owner must be a person.
 
 A balloon must have an owner.
 
-Pinkie is a person.
+Pinkie and Brain are persons.
 
-Brain is a person.
-
-There is a red balloon.
-
-There is a blue balloon.
+There is a red balloon and a blue balloon.
 
 Pinkie is energetic.
 
@@ -108,11 +104,7 @@ OK.
 
 OK.
 
-> The red balloon is full.
-
-OK.
-
-> The blue balloon is full.
+> The red balloon and the blue balloon are full.
 
 OK.
 

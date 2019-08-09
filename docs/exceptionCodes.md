@@ -3,8 +3,7 @@
 ```scala mdoc:renderBelief:assets/exceptions.png
 An investigator is a kind of person.
 An investigator's mindset may be confident or confused.
-Jupiter is an investigator.
-Pete is an investigator.
+Jupiter and Pete are investigators.
 A tribble's baby must be a tribble.
 After a tribble eats,
  the tribble has a baby;

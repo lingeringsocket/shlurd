@@ -19,29 +19,31 @@ The structure may be a vast web rather than a simple tree:
 
 ```scala mdoc:renderBelief:assets/hypernyms.png
 A mammal is a kind of animal.
-A canine is a kind of mammal.
-A feline is a kind of mammal.
-A predator is a kind of animal.
-A scavenger is a kind of animal.
-A dog is a kind of canine.
-A wolf is a kind of canine.
-A housecat is a kind of feline.
-A lion is a kind of feline.
-A wolf is a kind of predator.
-A lion is a kind of predator.
+A canine or a feline is a kind of mammal.
+Predators and scavengers are kinds of animal.
+Dogs and wolves are kinds of canine.
+A housecat or a lion is a kind of feline.
+A wolf or a lion is a kind of predator.
 A dog is a kind of scavenger.
 ```
+
+As seen above with "a canine or a feline", you can combine your
+assertions using conjunctions in cases where it makes sense.  And you
+can use equivalent phrasing, so I would understand "canines and
+felines are kinds of mammals" as well.  However, I will reject nonsensical
+or ambiguous phrasing (e.g. "a canine and a feline is a kind of
+animal").  I may also reject phrasing that is too complicated for
+me to understand, in which case you can try breaking it down into
+multiple simpler thoughts.
+
 
 ## Form Instantiation
 
 You can tell me about particular instances of forms, either named or anonymous:
 
 ```scala mdoc:renderBelief:assets/formInstantiation.png
-A sword is a kind of weapon.
-A halberd is a kind of weapon.
-A crossbow is a kind of weapon.
-Glamdring is a sword.
-Orcrist is a sword.
+Swords, halberds, and crossbows are kinds of weapon.
+Glamdring and Orcrist are swords.
 There is a halberd.
 A big crossbow exists.
 ```
@@ -78,8 +80,7 @@ those associations like this:
 
 ```scala mdoc:renderBelief:assets/assoc.png
 A team's member must be a player.
-A seeker is a kind of player.
-A keeper is a kind of player.
+Seekers and keepers are kinds of player.
 ```
 
 (Notice that I use different arrow styles to distinguish taxonomy from
@@ -109,12 +110,9 @@ A nation's capital must be a city.
 A nation's province must be a region.
 A nation may have provinces.
 A nation must have a capital.
-Canada is a nation.
-Greece is a nation.
-Ottawa is a city.
-Athens is a city.
-Quebec is a region.
-Saskatchewan is a region.
+Canada and Greece are nations.
+Ottawa and Athens are cities.
+Quebec and Saskatchewan are regions.
 Ottawa is Canada's capital.
 Athens is Greece's capital.
 Quebec is Canada's province.
@@ -214,8 +212,7 @@ If a person's mate is another person, then equivalently
 Gilligan is a sailor.
 Minnow is a ship.
 Gilligan is Minnow's mate.
-Adam is a person.
-Eve is a person.
+Adam and Eve are persons.
 Adam is Eve's mate.
 ```
 
@@ -224,8 +221,7 @@ Adam is Eve's mate.
 You can tell me alternate names for things:
 
 ```scala mdoc:renderBelief:assets/synonyms.png
-A dog is a kind of animal.
-A cat is a kind of animal.
+Dogs and cats are kinds of animal.
 A person's pet must be an animal.
 A person's companion is a pet.
 A doggie is a dog.
@@ -262,21 +258,19 @@ A beverage's size may be small, medium, or large.
 A customer's order must be a beverage.
 A customer's catchphrase must be an spc-string.
 
-A cappuccino is a kind of beverage.
+A cappuccino or a latte is a kind of beverage.
 A cappuccino's size must be small or large.
-
-A latte is a kind of beverage.
 A latte's size may be huge.
 
-Luigi is a customer.
+There is a cappuccino and a latte.
+
+Luigi and Mario are customers.
 Luigi's catchphrase is "Letsa go!"
-There is a cappuccino.
+Mario's catchphrase is "Itsa me, Mario!"
+
 The cappuccino is Luigi's order.
 The cappuccino is large.
 
-Mario is a customer.
-Mario's catchphrase is "Itsa me, Mario!"
-There is a latte.
 The latte is Mario's order.
 The latte is huge.
 ```
