@@ -1,7 +1,6 @@
 A person is a kind of spc-someone.
 A person's gender may be masculine or feminine.
-A man is a kind of person.
-A woman is a kind of person.
+A man or a woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
 A man's aunt must be a woman.
@@ -29,17 +28,12 @@ A person's godmother must be a woman.
 A person must have a godmother.
 A person may have a wise guy.
 A godfather is a wise guy.
-Henry is a man.
-James is a man.
-Laura is a woman.
-Fancy is a woman.
-Marion is a woman.
-Titus is a man.
+Henry, James, and Titus are men.
+Laura, Fancy, and Marion are women.
 Henry is Titus' uncle.
 Laura is Fancy's auntie.
 Titus is Laura's nephew.
 Marion is Laura's niece.
-Marion is Henry's daughter.
-Fancy is Henry's daughter.
+Marion and Fancy are Henry's daughters.
 Titus is James' son.
 Everard is Lolly's father.

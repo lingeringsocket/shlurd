@@ -109,6 +109,80 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       states must beEmpty
     }
 
+    "understand conjunctive subjects" in new CosmosContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+
+      // form taxonomy
+      addBelief("almonds and cashews are kinds of nuts")
+      val nut = expectNamedForm("nut")
+      val almond = expectNamedForm("almond")
+      val cashew = expectNamedForm("cashew")
+      cosmos.isHyponym(almond, nut) must beTrue
+      cosmos.isHyponym(cashew, nut) must beTrue
+
+      // anonymous entity existence
+      addBelief("a dog and a cat exist")
+      val dog = expectNamedForm("dog")
+      val theDog = expectFormSingleton(dog)
+      val cat = expectNamedForm("cat")
+      val theCat = expectFormSingleton(cat)
+      addBelief("there is a tree, a rock, and a cloud")
+      expectFormSingleton(expectNamedForm("tree"))
+      expectFormSingleton(expectNamedForm("rock"))
+      expectFormSingleton(expectNamedForm("cloud"))
+
+      // named entity existence
+      addBelief("Krieger and Archer are spies")
+      val spy = expectNamedForm("spy")
+      val krieger = expectProperName("Krieger")
+      krieger.form must be equalTo(spy)
+      val archer = expectProperName("Archer")
+      archer.form must be equalTo(spy)
+
+      // form associations
+      addBelief("a dog or a cat may have owners")
+      cosmos.resolveRole(dog, "owner") must beSome
+      cosmos.resolveRole(cat, "owner") must beSome
+
+      // role taxonomy
+      if (false) {
+        // FIXME this one is trickier because the conjunction is
+        // inside the genitive; also, it would be better phrased as
+        // "the owner of a dog or a cat must be a spy"
+        addBelief("(a dog or a cat)'s owner must be a spy")
+      }
+
+      // entity associations
+      addBelief("Krieger and Archer are the dog's owners")
+      resolveGenitive(theDog, "owner") must be equalTo Set(krieger, archer)
+      resolveGenitive(theCat, "owner") must beEmpty
+
+      // form properties
+      addBelief("a dog or a cat may be hungry or sleepy")
+      val dogProperty = expectSingleProperty(dog)
+      val catProperty = expectSingleProperty(cat)
+
+      // entity properties
+      addBelief("the dog and the cat are hungry")
+      cosmos.evaluateEntityProperty(theDog, dogProperty.name) must be equalTo
+        Success((Some(dogProperty), Some("hungry")))
+      cosmos.evaluateEntityProperty(theCat, catProperty.name) must be equalTo
+        Success((Some(catProperty), Some("hungry")))
+
+      if (false) {
+        // FIXME we should flip this one around so we can support it
+        // for symmetry
+        addBelief("the cat's owners are Krieger and Archer")
+        resolveGenitive(theCat, "owner") must be equalTo Set(krieger, archer)
+      }
+
+      // FIXME:  test synonyms
+
+      addBelief("a dog or a cat exists") must
+        throwA[IncomprehensibleBeliefExcn]
+    }
+
     "understand qualified references" in new CosmosContext
     {
       SpcPrimordial.initCosmos(cosmos)
@@ -876,6 +950,11 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "reject more invalid beliefs" in new CosmosContext
     {
+      expectErrorBelief(
+        "almonds are a morsel of joy",
+        IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.IncomprehensibleBelief,
+          unusedSentence))
       expectErrorBelief(
         "a noble's serf is a kind of peon",
         IncomprehensibleBeliefExcn(

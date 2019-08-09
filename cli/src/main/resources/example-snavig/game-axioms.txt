@@ -2,15 +2,10 @@
 
 "Resource" import "/example-snavig/thief-axioms.txt".
 
-An axe is a kind of game-object.
-A lantern is a kind of game-object.
+An axe or a lantern is a kind of game-object.
 
-A bedroom is a kind of map-place.
-A bathroom is a kind of map-place.
-A kitchen is a kind of map-place.
-A cupboard is a kind of map-place.
+Bedrooms, bathrooms, kitchens, cupboards, and lofts are kinds of map-place.
 A cupboard is a kind of visible-entity.
-A loft is a kind of map-place.
 
 An oracle is a kind of non-player-character.
 

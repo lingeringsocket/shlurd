@@ -1,42 +1,29 @@
 "Resource" import "/snavig/basic-axioms.txt".
 
 A map-direction is a kind of object.
-A north is a kind of map-direction.
-A south is a kind of map-direction.
-An east is a kind of map-direction.
-A west is a kind of map-direction.
+A north, a south, an east, or a west is a kind of map-direction.
+A northwest, a northeast, a southwest, or a southeast is a kind of map-direction.
 
-A northwest is a kind of map-direction.
-A northeast is a kind of map-direction.
-A southwest is a kind of map-direction.
-A southeast is a kind of map-direction.
-
-A zenith is a kind of map-direction.
-A nadir is a kind of map-direction.
+A zenith or a nadir is a kind of map-direction.
 
 A map-direction's opposite-direction must be a map-direction.
 A map-direction must have an opposite-direction.
 If a map-direction is another map-direction's opposite-direction, then equivalently
  the second map-direction is the first map-direction's opposite-direction.
 
-There is a north.
-There is a south.
+There is a north and a south.
 The north is the south's opposite-direction.
 
-There is an east.
-There is a west.
+There is an east and a west.
 The east is the west's opposite-direction.
 
-There is a northwest.
-There is a southeast.
+There is a northwest and a southeast.
 The northwest is the southeast's opposite-direction.
 
-There is a northeast.
-There is a southwest.
+There is a northeast and a southwest.
 The southwest is the northeast's opposite-direction.
 
-There is a zenith.
-There is a nadir.
+There is a zenith and a nadir.
 The zenith is the nadir's opposite-direction.
 
 A map-place is a kind of location.

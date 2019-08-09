@@ -2,8 +2,7 @@
 
 A game-character is a kind of person.
 A game-character is a kind of describable-entity.
-A player-character is a kind of game-character.
-A non-player-character is a kind of game-character.
+Player-characters and non-player-characters are kinds of game-character.
 A non-player-character is a kind of visible-entity.
 
 A game-character's awareness must be

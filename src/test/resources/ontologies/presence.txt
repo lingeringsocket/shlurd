@@ -1,6 +1,5 @@
 A person's gender must be masculine or feminine.
-A man is a kind of person.
-A woman is a kind of person.
+A man or a woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
 A presence must be either on or off.
@@ -21,10 +20,7 @@ A hologram that is present is on.
 A hologram that is absent is off.
 A ghost's gender must be masculine.
 A hologram's gender must be masculine.
-JackPhone is a presence.
-JillPhone is a presence.
-CasperPhone is a presence.
-YodaPhone is a presence.
+JackPhone, JillPhone, CasperPhone, and YodaPhone are presences.
 Jack is a man.
 Jill is a woman.
 Casper is a ghost.

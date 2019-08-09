@@ -41,12 +41,19 @@ class SmcInputRewriter[
   private def convertGenitiveOf = replacementMatcher(
     "convertGenitiveOf", {
       case SilStateSpecifiedReference(
-        SilNounReference(noun, _, count),
+        SilNounReference(noun, determiner, count),
         SilAdpositionalState(
           SilAdposition.OF,
           possessor
         )
-      ) if (noun.toNounLemma != LEMMA_KIND) => {
+      ) if (
+        (noun.toNounLemma != LEMMA_KIND) &&
+          (determiner match {
+            case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE |
+                DETERMINER_SOME | DETERMINER_ANY => true
+            case _ => false
+          })
+      ) => {
         SilGenitiveReference(
           possessor,
           SilNounReference(noun, DETERMINER_UNSPECIFIED, count))

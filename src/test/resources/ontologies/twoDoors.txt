@@ -1,2 +1,1 @@
-There is a front door.
-There is a back door.
+There is a front door and a back door.

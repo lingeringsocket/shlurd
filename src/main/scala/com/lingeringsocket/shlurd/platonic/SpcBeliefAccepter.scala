@@ -914,10 +914,14 @@ class SpcBeliefAccepter private(
         resultCollector.referenceMap.put(newEntityRef, Set(possessee))
         val statePredicate = SilStatePredicate(
           newEntityRef, STATE_PREDEF_BE.toVerb, state)
-        val stateBeliefs = recognizeStatePredicateBelief(
-          sentence,
-          statePredicate,
-          SilTam.indicative
+        val subjectConjunction = new SubjectConjunction(DETERMINER_UNSPECIFIED)
+        val stateBeliefs = subjectConjunction.checkFinal(
+          recognizeStatePredicateBelief(
+            sentence,
+            statePredicate,
+            SilTam.indicative,
+            subjectConjunction
+          )
         )
         assert(stateBeliefs.nonEmpty)
         stateBeliefs.foreach(applyBelief)

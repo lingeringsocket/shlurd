@@ -1,30 +1,14 @@
 An object is an spc-object.
 A person is a kind of spc-someone.
-A man is a kind of person.
-A woman is a kind of person.
+A man or a woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
-Daniel is a man.
-Sandra is a woman.
-John is a man.
-Mary is a woman.
-Bill is a man.
-Julie is a woman.
-Fred is a man.
-Jeff is a man.
+Daniel, John, Bill, Fred, and Jeff are men.
+Sandra, Mary, and Julie are women.
 A place is a kind of object.
-The kitchen is a place.
-The garden is a place.
-The office is a place.
-The hallway is a place.
-The bathroom is a place.
-The bedroom is a place.
-The park is a place.
-The cinema is a place.
-The school is a place.
-The football is an object.
-The apple is an object.
-The milk is an object.
+The kitchen, the garden, the office, the hallway, the bathroom,
+ the bedroom, the park, the cinema, and the school are places.
+The football, the apple, and the milk are objects.
 An object's possessor must be a person.
 A person's possession must be an object.
 A person may have possessions.
@@ -54,14 +38,8 @@ If a person hands an item to a recipient, then the person gives the item to the 
 A coloration must be white, gray, yellow, or green.
 An animal's color must be a coloration.
 An animal may have a color as a property.
-Lioncolor is a coloration.
-Rhinocolor is a coloration.
-Swancolor is a coloration.
-Frogcolor is a coloration.
-A lion is a kind of animal.
-A rhino is a kind of animal.
-A swan is a kind of animal.
-A frog is a kind of animal.
+Lioncolor, Rhinocolor, Swancolor, and Frogcolor are colorations.
+Lions, rhinos, swans, and frogs are kinds of animal.
 If an animal is a lion, consequently the animal's color is Lioncolor.
 If an animal is a rhino, consequently the animal's color is Rhinocolor.
 If an animal is a swan, consequently the animal's color is Swancolor.
@@ -87,18 +65,10 @@ If a place is east of a location, then equivalently the location is the place's 
 If a place is north of a location, then equivalently the location is the place's southern-neighbor.
 If a place is south of a location, then equivalently the location is the place's northern-neighbor.
 A shape is a kind of object.
-A triangle is a kind of shape.
-A square is a kind of shape.
-A sphere is a kind of shape.
-A rectangle is a kind of shape.
-There is a triangle.
-There is a red sphere.
-There is a red square.
-There is a blue square.
-There is a yellow square.
-There is a pink rectangle.
-A row is a kind of object.
-A column is a kind of object.
+Triangles, squares, spheres, and rectangles are kinds of shape.
+There is a triangle, a red sphere, a red square, a blue square,
+ a yellow square, and a pink rectangle.
+Rows and columns are kinds of object.
 A shape's abscissa must be a column.
 A shape's ordinate must be a row.
 A shape must have an abscissa.
@@ -147,7 +117,4 @@ If a shape is to the right of a neighbor, consequently the shape's ordinate is t
 If a shape is to the right of a neighbor, consequently the neighbor's abscissa's right-column is the shape's abscissa.
 If a shape is to the right of a neighbor, equivalently the neighbor's abscissa's post-column is the shape's abscissa.
 If a shape is to the right of a neighbor, consequently the neighbor's abscissa precedes the shape's abscissa.
-A wolf is a kind of animal.
-A mouse is a kind of animal.
-A cat is a kind of animal.
-A sheep is a kind of animal.
+Wolves, mice, cats, and sheep are kinds of animal.

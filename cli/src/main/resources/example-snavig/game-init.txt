@@ -1,19 +1,11 @@
 "Resource" import "/example-snavig/game-axioms.txt".
 
-There is a bedroom.
+There is a bedroom, a bathroom, a kitchen, a cupboard, and a loft.
 The bedroom's place-description is "Grubby articles of alien underwear lie scattered about.".
-
-There is a bathroom.
 The bathroom's place-description is "Someone has written 'clean me!' on the mirror.".
-
-There is a kitchen.
 The kitchen's place-description is "It's yer basic scullery.".
-
-There is a cupboard.
 The cupboard's description is "Oddly, the cupboard lacks doors.".
 The cupboard's place-description is "I hope you don't have claustrophobia.".
-
-There is a loft.
 The loft's place-description is "Hardly more than a garret, really.".
 
 The bedroom is west of the bathroom.
@@ -39,8 +31,7 @@ The big door connects the bedroom to the bathroom.
 The player-character is perceptive.
 The player-character believes "/example-snavig/player-mind-init.txt".
 
-The lantern is in the kitchen.
-The cupboard is in the kitchen.
+The lantern and the cupboard are in the kitchen.
 
 There is an oracle.
 The oracle is omniscient.

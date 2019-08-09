@@ -3,8 +3,7 @@ A vehicle's owner must be a person.
 A man is a kind of person.
 A vehicle must be moving or stopped.
 A vehicle may have an owner.
-A car is a kind of vehicle.
-A boat is a kind of vehicle.
+Cars and boats are kinds of vehicle.
 A boat must be cruising or sinking.
 A car's gender must be masculine.
 Herbie is a car.

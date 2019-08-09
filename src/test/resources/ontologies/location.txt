@@ -1,24 +1,14 @@
 A person is a kind of spc-someone.
 Ubuntu is an entity.
-A man is a kind of person.
-A woman is a kind of person.
+A man or a woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
-A car is a kind of object.
-A helicopter is a kind of object.
-Herbie is a car.
-Christine is a car.
-Chrissy is a woman.
-Jack is a man.
-Larry is a man.
-Janet is a woman.
+Cars and helicopters are kinds of object.
+Herbie, Christine, and KITT are cars.
+Chrissy and Janet are women.
+Jack, Larry, and Furley are men.
 Jack is in Herbie.
 Chrissy's container is Christine.
 Janet is in Christine.
-Furley is a man.
 A person may have tenants.
-Jack is Furley's tenant.
-Janet is Furley's tenant.
-Chrissy is Furley's tenant.
-Larry is Furley's tenant.
-KITT is a car.
+Jack, Janet, Chrissy, and Larry are Furley's tenant.

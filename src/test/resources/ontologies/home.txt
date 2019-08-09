@@ -1,5 +1,4 @@
-A man is a kind of person.
-A woman is a kind of person.
+A man or a woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
 A door must be either open or closed.
@@ -15,6 +14,5 @@ A presence that is absent is off.
 A person's ubiety must be a presence.
 A person may have a ubiety as a property.
 A person must be either present or absent.
-Jack is a man.
+Jack and Larry are men.
 Jill is a woman.
-Larry is a man.

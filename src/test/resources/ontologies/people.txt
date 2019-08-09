@@ -1,13 +1,10 @@
 A person is a kind of spc-someone.
 A person's gender may be masculine, feminine, or fantastic.
-A man is a kind of person.
-A woman is a kind of person.
+A man or a woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
-Dirk is a man.
-Todd is a man.
-Amanda is a woman.
-Bart is a woman.
+Dirk, Todd, Hugo, and Arthur are men.
+Amanda and Bart are women.
 A person's sibling must be a person.
 A person's brother is a kind of sibling.
 A person's sister is a kind of sibling.
@@ -32,14 +29,9 @@ If a person is another person's sibling, then equivalently
  the second person is the first person's sibling.
 Todd is Amanda's brother.
 Dirk is Todd's friend.
-Todd is Dirk's friend.
-Bart is Dirk's friend.
+Todd and Bart are Dirk's friend.
 Rapunzel is a dog.
 Bart is Rapunzel's owner.
-BLACKWING is an organization.
-ROWDYTHREE is an organization.
-Hugo is a man.
+BLACKWING and ROWDYTHREE are organizations.
 Scott is a person.
-Hugo is BLACKWING's operative.
-Scott is BLACKWING's operative.
-Arthur is a man.
+Hugo and Scott are BLACKWING's operative.

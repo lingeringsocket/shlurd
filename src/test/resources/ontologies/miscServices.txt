@@ -1,2 +1,1 @@
-There is a multimedia service.
-There is an alarm service.
+There is a multimedia service and an alarm service.

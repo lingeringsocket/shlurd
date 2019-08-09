@@ -333,6 +333,9 @@ OK.
 
 ```
 
+You may also need to do this in cases where you use a name that I haven't
+heard of before.
+
 If you tell me that something **may** be a proper noun, then I will preserve
 its original meaning and try to disambiguate based on context:
 

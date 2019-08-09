@@ -84,6 +84,8 @@ sealed trait SilPredicate extends SilPhrase
 
   def getModifiers : Seq[SilVerbModifier] = Seq.empty
 
+  def withNewSubject(ref : SilReference) : SilPredicate
+
   def withNewModifiers(newModifiers : Seq[SilVerbModifier]) : SilPredicate
 }
 
@@ -135,6 +137,8 @@ sealed trait SilUnknownPredicate
   override def getSubject : SilReference = SilUnrecognizedReference(syntaxTree)
 
   override def getVerb = SilWord("<UNKNOWN>")
+
+  override def withNewSubject(reference : SilReference) = this
 
   override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) = this
 }
@@ -309,6 +313,9 @@ case class SilUnresolvedStatePredicate(
 
   override def children = Seq(subject, state, specifiedState) ++ modifiers
 
+  override def withNewSubject(reference : SilReference) =
+    copy(subject = reference)
+
   override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
     copy(modifiers = newModifiers)
 }
@@ -328,6 +335,9 @@ case class SilUnresolvedActionPredicate(
 
   override def children =
     Seq(subject) ++ directObject ++ adpositionObject ++ modifiers
+
+  override def withNewSubject(reference : SilReference) =
+    copy(subject = reference)
 
   override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
     copy(modifiers = newModifiers)
@@ -459,6 +469,11 @@ case class SilStatePredicate(
 
   override def children = Seq(subject, state) ++ modifiers
 
+  override def withNewSubject(reference : SilReference) =
+  {
+    copy(subject = reference)
+  }
+
   override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
     copy(modifiers = newModifiers)
 }
@@ -477,6 +492,11 @@ case class SilRelationshipPredicate(
   override def getModifiers = modifiers
 
   override def children = Seq(subject, complement) ++ modifiers
+
+  override def withNewSubject(reference : SilReference) =
+  {
+    copy(subject = reference)
+  }
 
   override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
     copy(modifiers = newModifiers)
@@ -497,6 +517,9 @@ case class SilActionPredicate(
 
   override def children =
     Seq(subject) ++ directObject ++ modifiers
+
+  override def withNewSubject(reference : SilReference) =
+    copy(subject = reference)
 
   override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
     copy(modifiers = newModifiers)
