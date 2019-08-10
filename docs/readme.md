@@ -223,9 +223,9 @@ You can tell me alternate names for things:
 ```scala mdoc:renderBelief:assets/synonyms.png
 Dogs and cats are kinds of animal.
 A person's pet must be an animal.
-A person's companion is a pet.
-A doggie is a dog.
-A kitty is a cat.
+A person's companion is the same as a pet.
+A doggie or a doggy is the same as a dog.
+A kitty is the same as a cat.
 Fido is a doggie.
 Felix is a cat.
 Oscar is a person.

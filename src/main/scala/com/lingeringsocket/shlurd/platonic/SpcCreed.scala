@@ -22,6 +22,7 @@ import scala.collection.JavaConverters._
 
 import SprEnglishLemmas._
 
+// FIXME add role alias support
 class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
 {
   private val mind = new SpcMind(cosmos)
@@ -142,8 +143,11 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
       SilRelationshipPredicate(
         nounReference(entry._1),
         REL_PREDEF_IDENTITY.toVerb,
-        nounReference(entry._2)
-      )
+        SilStateSpecifiedReference(
+          nounReference(LEMMA_SAME, COUNT_SINGULAR, DETERMINER_UNIQUE),
+          SilAdpositionalState(
+            SilAdposition.AS,
+            nounReference(entry._2))))
     )
   }
 

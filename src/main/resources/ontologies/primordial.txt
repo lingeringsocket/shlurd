@@ -1,5 +1,5 @@
 An spc-ideal is a kind of spc-entity.
-An spc-class is an spc-form.
+An spc-class is the same as an spc-form.
 An spc-form is a kind of spc-ideal.
 An spc-role is a kind of spc-ideal.
 An spc-entity's spc-type must be an spc-form.

@@ -177,7 +177,13 @@ class SpcCosmosSpec extends SpcProcessingSpecification
         resolveGenitive(theCat, "owner") must be equalTo Set(krieger, archer)
       }
 
-      // FIXME:  test synonyms
+      // aliases
+      addBelief("a doggie or a doggy is the same as a dog")
+      cosmos.resolveIdealSynonym("doggie") must be equalTo "dog"
+      cosmos.resolveIdealSynonym("doggy") must be equalTo "dog"
+      addBelief("kitties and pusses are the same as cats")
+      cosmos.resolveIdealSynonym("kitty") must be equalTo "cat"
+      cosmos.resolveIdealSynonym("puss") must be equalTo "cat"
 
       addBelief("a dog or a cat exists") must
         throwA[IncomprehensibleBeliefExcn]
@@ -527,7 +533,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
     "accept synonyms" in new CosmosContext
     {
       addBelief("there is a big door")
-      addBelief("a portal is a door")
+      addBelief("a portal is the same as a door")
       cosmos.resolveIdealSynonym("door") must be equalTo "door"
       cosmos.resolveIdealSynonym("portal") must be equalTo "door"
       cosmos.resolveIdealSynonym("gateway") must be equalTo "gateway"

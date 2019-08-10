@@ -1,4 +1,4 @@
-An object is an spc-object.
+An object is the same as an spc-object.
 A person is a kind of spc-someone.
 Peter, Lucy, Susan, and Edmund are persons.
 A place is a kind of object.

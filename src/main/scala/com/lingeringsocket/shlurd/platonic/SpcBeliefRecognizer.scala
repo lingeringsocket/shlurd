@@ -623,8 +623,16 @@ class SpcBeliefRecognizer(
         ) => {
           tupleN((Some(hypernymIdealName), None))
         }
-        case SilNounReference(
-          idealName, determiner, count
+        case SilStateSpecifiedReference(
+          SilNounReference(
+            SilWordLemma(LEMMA_SAME),
+            DETERMINER_UNIQUE, COUNT_SINGULAR),
+          SilAdpositionalState(
+            SilAdposition.AS,
+            SilNounReference(
+              idealName,
+              determiner,
+              count))
         ) if (compatibleDeterminerAndCount(determiner, count)) => {
           tupleN((None, Some(idealName)))
         }
@@ -635,14 +643,14 @@ class SpcBeliefRecognizer(
           case nr : SilNounReference if (
             compatibleDeterminerAndCount(nr.determiner, nr.count)
           ) => {
+            subjectConjunction.checkAndPluralOrSingular(nr.count)
             kindOpt.foreach(hypernymIdealName => {
               // "a dog is a kind of canine"
-              subjectConjunction.checkAndPluralOrSingular(nr.count)
               return Seq(FormTaxonomyBelief(
                 sentence, nr.noun, hypernymIdealName))
             })
             aliasOpt.foreach(idealName => {
-              // "a fridge is a refrigerator"
+              // "a fridge is the same as a refrigerator"
               return Seq(IdealAliasBelief(
                 sentence, nr.noun, idealName))
             })
@@ -659,7 +667,8 @@ class SpcBeliefRecognizer(
                 sentence, possessorNoun, roleNoun, hypernymIdealName, true))
             })
             aliasOpt.foreach(idealName => {
-              // "a person's auntie is an aunt"
+              // "a person's auntie is the same as an aunt"
+              // FIXME we should support "his/her/its aunt" also
               return Seq(IdealAliasBelief(
                 sentence, roleNoun, idealName, Some(possessorNoun)))
             })

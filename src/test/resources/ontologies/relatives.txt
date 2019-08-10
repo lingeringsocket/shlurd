@@ -7,13 +7,13 @@ A man's aunt must be a woman.
 A woman's aunt must be a woman.
 A man's uncle must be a man.
 A woman's uncle must be a man.
-A man's auntie is an aunt.
-A woman's auntie is an aunt.
+A man's auntie is the same as an aunt.
+A woman's auntie is the same as an aunt.
 A person's niece must be a woman.
 A person's nephew must be a man.
 A person's son must be a man.
 A person's daughter must be a woman.
-A cleaning lady is a daughter.
+A cleaning lady is the same as a daughter.
 If a man is another man's uncle,
  then equivalently the second man is the first man's nephew.
 If a woman is a man's aunt,
@@ -27,7 +27,7 @@ A person's wise guy must be a man.
 A person's godmother must be a woman.
 A person must have a godmother.
 A person may have a wise guy.
-A godfather is a wise guy.
+A godfather is the same as a wise guy.
 Henry, James, and Titus are men.
 Laura, Fancy, and Marion are women.
 Henry is Titus' uncle.

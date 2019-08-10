@@ -49,14 +49,15 @@ class SpcMetaReflectorSpec extends Specification
   {
     "get all meta" in new MetaReflectorContext
     {
-      processBelief("a form is an spc-form")
-      processBelief("an entity is an spc-entity")
-      processBelief("a type is an spc-type")
-      processBelief("a form's realization is an spc-realization")
-      processBelief("a property is an spc-property")
-      processBelief("an spc-form's attribute is an spc-attribute")
-      processBelief("a value is an spc-value")
-      processBelief("an spc-property's property-value is an spc-property-value")
+      processBelief("a form is the same as an spc-form")
+      processBelief("an entity is the same as an spc-entity")
+      processBelief("a type is the same as an spc-type")
+      processBelief("a form's realization is the same as an spc-realization")
+      processBelief("a property is the same as an spc-property")
+      processBelief("an spc-form's attribute is the same as an spc-attribute")
+      processBelief("a value is the same as an spc-value")
+      processBelief(
+        "an spc-property's property-value is the same as an spc-property-value")
       processBelief("a pet's classification may be canine or feline")
       processBelief("Harry is a pet")
       processBelief("Harry's classification is canine")

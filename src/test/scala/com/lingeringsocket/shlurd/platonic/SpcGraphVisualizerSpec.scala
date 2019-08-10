@@ -118,7 +118,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
 
     protected def defineSynonyms()
     {
-      addBelief("a heroine is a powerpuff")
+      addBelief("a heroine is the same as a powerpuff")
     }
 
     protected def renderToString() : String =

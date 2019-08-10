@@ -129,6 +129,7 @@ object SprEnglishLemmas
   val LEMMA_BENEATH = "beneath"
   val LEMMA_UNDERNEATH = "underneath"
   val LEMMA_BEHIND = "behind"
+  val LEMMA_SAME = "same"
   val LEMMA_KIND = "kind"
   val LEMMA_OF = "of"
   val LEMMA_GENITIVE_OF = "_of_"
