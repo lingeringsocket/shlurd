@@ -91,8 +91,10 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   def roleTaxonomyBeliefs(role : SpcRole) : Iterable[SilSentence] =
   {
     cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(role).asScala.toSeq.
-      filterNot(isTrivialTaxonomy).map(
-        roleTaxonomyBelief)
+      filter(edge =>
+        !isTrivialTaxonomy(edge) &&
+          includeIdeal(cosmos.getGraph.getSuperclassIdeal(edge))
+      ).map(roleTaxonomyBelief)
   }
 
   def entityBeliefs(entity : SpcEntity) : Iterable[SilSentence] =
