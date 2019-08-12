@@ -125,6 +125,7 @@ class SilSentencePrinterSpec extends Specification
         "Antonio Salieri sends a letter to Mozart angrily.")
       expectNormalized("angrily Antonio Salieri sends Mozart a letter?",
         "does Antonio Salieri send a letter to Mozart angrily?")
+      expectStatement("Gallant is good and Goofus is naughty")
     }
 
     "preserve sentences" in

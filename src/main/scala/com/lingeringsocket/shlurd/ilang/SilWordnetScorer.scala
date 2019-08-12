@@ -41,6 +41,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     scoreNounStates,
     scoreNestedAdpositions,
     scoreConjunctiveNouns,
+    scoreConjunctiveSentences,
     scoreSpecialAdpositions,
     scoreTam,
     scoreVerbFrames
@@ -198,6 +199,14 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     case SilConjunctiveReference(
       _, refs, _
     ) if (refs.exists(!_.isInstanceOf[SilNounReference])) => {
+      SilPhraseScore.conSmall
+    }
+  }
+
+  private def scoreConjunctiveSentences = phraseScorer {
+    case SilConjunctiveSentence(
+      _, subs, separator
+    ) if (separator != SEPARATOR_SEMICOLON) => {
       SilPhraseScore.conSmall
     }
   }

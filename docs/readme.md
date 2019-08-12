@@ -23,8 +23,7 @@ A canine or a feline is a kind of mammal.
 Predators and scavengers are kinds of animal.
 Dogs and wolves are kinds of canine.
 A housecat or a lion is a kind of feline.
-A wolf or a lion is a kind of predator.
-A dog is a kind of scavenger.
+A wolf or a lion is a kind of predator, and a dog is a kind of scavenger.
 ```
 
 As seen above with "a canine or a feline", you can combine your
@@ -95,10 +94,8 @@ A level's enemy must be a creature.
 A level's boss must be a creature.
 A level's guide must be a creature.
 A level's reward must be an item.
-A level must have enemies.
-A level must have a boss.
-A level may have rewards.
-A level may have a guide.
+A level must have enemies and a level must have a boss.
+A level may have rewards and a level may have a guide.
 ```
 
 ### Association Instantiation
@@ -155,8 +152,7 @@ A student may have a mentor.
 A professor may have proteges.
 If a professor is a student's mentor, then equivalently
  the student is the professor's protege.
-Aristotle is a professor.
-Alexander is a student.
+Aristotle is a professor and Alexander is a student.
 Aristotle is Alexander's mentor.
 ```
 
@@ -175,10 +171,8 @@ A movie's star is a kind of actor.
 A movie's star must be a celebrity.
 A movie's extra is a kind of actor.
 Deadpool is a movie.
-Ryan Reynolds is a celebrity.
-Chad Riley is a performer.
-Ryan Reynolds is Deadpool's star.
-Chad Riley is Deadpool's extra.
+Ryan Reynolds is a celebrity and Chad Riley is a performer.
+Ryan Reynolds is Deadpool's star and Chad Riley is Deadpool's extra.
 ```
 
 Now I know how to group together actors generically, or discriminate
@@ -209,11 +203,9 @@ A ship's mate must be a sailor.
 A person's mate must be a person.
 If a person's mate is another person, then equivalently
  the first person is the second person's mate.
-Gilligan is a sailor.
-Minnow is a ship.
+Gilligan is a sailor and Minnow is a ship.
 Gilligan is Minnow's mate.
-Adam and Eve are persons.
-Adam is Eve's mate.
+Adam and Eve are persons and Adam is Eve's mate.
 ```
 
 ## Synonyms
@@ -226,9 +218,7 @@ A person's pet must be an animal.
 A person's companion is the same as a pet.
 A doggie or a doggy is the same as a dog.
 A kitty is the same as a cat.
-Fido is a doggie.
-Felix is a cat.
-Oscar is a person.
+Fido is a doggie, Felix is a cat, and Oscar is a person.
 Fido is Oscar's pet.
 ```
 
@@ -265,8 +255,7 @@ A latte's size may be huge.
 There is a cappuccino and a latte.
 
 Luigi and Mario are customers.
-Luigi's catchphrase is "Letsa go!"
-Mario's catchphrase is "Itsa me, Mario!"
+Luigi's catchphrase is "Letsa go!" and Mario's catchphrase is "Itsa me, Mario!"
 
 The cappuccino is Luigi's order.
 The cappuccino is large.

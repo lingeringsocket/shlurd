@@ -95,6 +95,8 @@ class SpcBeliefRecognizer(
   def recognizeBeliefs(sentence : SilSentence)
       : Seq[SpcBelief] =
   {
+    assert(!finished)
+    finished = true
     val beliefs = recognizeBeliefsImpl(sentence)
     if (sentence.tam.isNegative) {
       if (beliefs.forall(_ match {
@@ -117,8 +119,6 @@ class SpcBeliefRecognizer(
   private def recognizeBeliefsImpl(sentence : SilSentence)
       : Seq[SpcBelief] =
   {
-    assert(!finished)
-    finished = true
     if (sentence.hasUnknown) {
       return Seq.empty
     }
@@ -172,6 +172,13 @@ class SpcBeliefRecognizer(
       ) if (additional.forall(_.isInstanceOf[SilPredicateSentence])) => {
         recognizeAssertionBelief(
           conditional, additional.map(_.asInstanceOf[SilPredicateSentence]))
+      }
+      case SilConjunctiveSentence(
+        DETERMINER_ALL,
+        sentences,
+        _
+      ) => {
+        sentences.flatMap(recognizeBeliefsImpl)
       }
       // "If a map-place is a map-connection's target-place,
       //   then equivalently the map-connection is

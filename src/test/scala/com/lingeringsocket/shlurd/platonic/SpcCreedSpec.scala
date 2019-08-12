@@ -162,6 +162,8 @@ class SpcCreedSpec extends Specification
   private val positiveAssertion = "A person can kill a thief."
   private val negativeAssertion = "A person can not kill a thief."
   private val wordRule = "\"Happy\" may be a proper noun."
+  private val conjunctiveBelief =
+    "A duck is a kind of a bird and a monk is a kind of a person."
 
   private val primordial = Seq(
     "An spc-class is the same as an spc-form.",
@@ -320,10 +322,7 @@ class SpcCreedSpec extends Specification
 
     "preserve state normalizations" in new CosmosContext
     {
-      // FIXME wtf is going on with this one?
-      expectNormalized(
-        Seq(stateNormalization),
-        Seq(stateNormalization, "A person is a kind of an spc-entity."))
+      expectPreserved(Seq(stateNormalization))
     }
 
     "preserve state property" in new CosmosContext
@@ -507,6 +506,13 @@ class SpcCreedSpec extends Specification
     "preserve assertions" in new CosmosContext
     {
       expectPreserved(Seq(positiveAssertion, negativeAssertion, wordRule))
+    }
+
+    "preserve conjunctive beliefs" in new CosmosContext
+    {
+      expectNormalized(
+        Seq(conjunctiveBelief),
+        Seq(formTaxonomy, formTaxonomy2))
     }
 
     "recite primordial beliefs" in

@@ -27,6 +27,15 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
 {
   private val mind = new SpcMind(cosmos)
 
+  private def includeIdeal(ideal : SpcIdeal) : Boolean =
+  {
+    if (includeMeta) {
+      true
+    } else {
+      !SpcMeta.isMetaIdeal(ideal)
+    }
+  }
+
   def allBeliefs() : Iterable[SilSentence] =
   {
     cosmos.getIdealSynonyms.filterNot(
@@ -38,13 +47,13 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     ) ++ (
       cosmos.getRoles.flatMap(idealAssociationBeliefs)
     ) ++ (
-      cosmos.getForms.flatMap(formBeliefs)
+      cosmos.getForms.filter(includeIdeal).flatMap(formBeliefs)
     ) ++ (
       cosmos.getInverseAssocEdges.flatMap(
         entry => inverseAssocBelief(entry._1, entry._2))
     ) ++ (
       cosmos.getEntities.
-        filterNot(e => SpcMeta.isMetaEntity(e) && !includeMeta).
+        filterNot(e => !includeMeta && SpcMeta.isMetaEntity(e)).
         flatMap(entityBeliefs)
     ) ++ (
       cosmos.getAssertions.map(_.toSentence)
@@ -59,8 +68,10 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     cosmos.getInflectedStateNormalizations(form).map(
       formStateNormalizationBelief(form, _)
     ) ++ {
-      cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.map(
-        formTaxonomyBelief)
+      cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.
+        filter(edge =>
+          includeIdeal(cosmos.getGraph.getSuperclassIdeal(edge))
+        ).map(formTaxonomyBelief)
     } ++ {
       idealAssociationBeliefs(form)
     }

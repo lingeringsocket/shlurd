@@ -52,6 +52,23 @@ class SprEnglishSyntaxAnalyzer(
         semiSplits.map(split => SilExpectedSentence(split.head)),
         semiSeparator)
     }
+    splitCoordinatingConjunction(tree.children) match {
+      case (DETERMINER_UNSPECIFIED, _, _) => ;
+      case (determiner, separator, splits) => {
+        val subs = splits.map(split => {
+          split match {
+            case Seq(s : SptS) => Some(s)
+            case _ => None
+          }
+        })
+        if (subs.forall(_.nonEmpty)) {
+          return SilConjunctiveSentence(
+            determiner,
+            subs.flatten.map(s => SilExpectedSentence(s)),
+            separator)
+        }
+      }
+    }
     val children = stripPauses(tree)
     extractAntecedent(children) match {
       case Some((conjunction, antecedent)) => {
