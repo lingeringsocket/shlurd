@@ -555,22 +555,6 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       states must contain("open" -> "open")
     }
 
-    "accept alternative phrasing" in new CosmosContext
-    {
-      addBelief("A person must be either present or absent")
-      addBelief("A person that is at home is present")
-      addBelief("Lana is a person")
-      val entity = expectPerson("lana")
-      cosmos.normalizeHyperFormState(
-        entity.form,
-        SilAdpositionalState(
-          SilAdposition.AT,
-          SilNounReference(SilWord("home")))
-      ) must be equalTo(
-        SilPropertyState(SilWord("present"))
-      )
-    }
-
     "accept assertions" in new CosmosContext
     {
       cosmos.getTriggers must beEmpty

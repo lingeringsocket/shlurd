@@ -82,8 +82,6 @@ class SpcCreedSpec extends Specification
   private val stateMust = "A door must be open or closed."
   private val stateMay = "A window may be open or closed."
   private val stateMay2 = "A person may be smart or stupid."
-  private val stateAlias = "A lit light is on."
-  private val stateNormalization = "A person at home is present."
   private val propertyStateEnum = "A parakeet's mood may be happy or sad."
   private val propertyQuotation = "A parakeet's phrase must be an spc-string."
   private val formTaxonomy = "A duck is a kind of a bird."
@@ -313,16 +311,6 @@ class SpcCreedSpec extends Specification
     "preserve states" in new CosmosContext
     {
       expectPreserved(Seq(stateMust, stateMay))
-    }
-
-    "preserve state alias" in new CosmosContext
-    {
-      expectPreserved(Seq(stateAlias))
-    }
-
-    "preserve state normalizations" in new CosmosContext
-    {
-      expectPreserved(Seq(stateNormalization))
     }
 
     "preserve state property" in new CosmosContext

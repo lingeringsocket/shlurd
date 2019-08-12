@@ -3,21 +3,22 @@ A man or a woman is a kind of person.
 A man's gender must be masculine.
 A woman's gender must be feminine.
 A presence must be either on or off.
-A presence that is present is on.
-A presence that is absent is off.
+If a presence is present, then equivalently the presence is on.
+If a presence is absent, then equivalently the presence is off.
 A person's ubiety must be a presence.
 A person may have a ubiety as a property.
-A person must be either present or absent.
-A person that is away is absent.
-A person that is home is present.
-A person that is at home is present.
+If a person is present, then equivalently the person's ubiety is on.
+If a person is absent, then equivalently the person's ubiety is off.
+If a person is away, then equivalently the person's ubiety is off.
+If a person is home, then equivalently the person's ubiety is on.
+If a person is at home, then equivalently the person's ubiety is on.
 A ghost's apparition must be a presence.
 A ghost may have an apparition.
 A ghost must be either present or absent.
 A hologram may have a ubiety as a property.
 A hologram must be either on or off.
-A hologram that is present is on.
-A hologram that is absent is off.
+If a hologram is present, then equivalently the hologram is on.
+If a hologram is absent, then equivalently the hologram is off.
 A ghost's gender must be masculine.
 A hologram's gender must be masculine.
 JackPhone, JillPhone, CasperPhone, and YodaPhone are presences.

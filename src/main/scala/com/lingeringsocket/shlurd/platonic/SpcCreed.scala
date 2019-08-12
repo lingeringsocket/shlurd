@@ -64,9 +64,6 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   {
     cosmos.getFormPropertyMap(form).values.map(
       formPropertyBelief(form, _)
-    ) ++
-    cosmos.getInflectedStateNormalizations(form).map(
-      formStateNormalizationBelief(form, _)
     ) ++ {
       cosmos.getIdealTaxonomyGraph.outgoingEdgesOf(form).asScala.toSeq.
         filter(edge =>
@@ -210,22 +207,6 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
       predicate,
       SilTam.indicative.withModality(
         if (property.domain == PROPERTY_OPEN_ENUM) MODAL_MAY else MODAL_MUST)
-    )
-  }
-
-  def formStateNormalizationBelief(
-    form : SpcForm,
-    entry : (SilState, SilState)
-  ) : SilSentence =
-  {
-    SilPredicateSentence(
-      SilStatePredicate(
-        SilStateSpecifiedReference(
-          idealReference(form),
-          entry._1),
-        STATE_PREDEF_BE.toVerb,
-        entry._2
-      )
     )
   }
 

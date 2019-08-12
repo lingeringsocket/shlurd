@@ -41,15 +41,6 @@ case class InvalidBelief(
 {
 }
 
-case class StateEquivalenceBelief(
-  sentence : SilSentence,
-  formName : SilWord,
-  state1 : SilState,
-  state2 : SilState
-) extends SpcBelief
-{
-}
-
 case class FormTaxonomyBelief(
   sentence : SilSentence,
   hyponymFormName : SilWord,

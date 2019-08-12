@@ -394,7 +394,7 @@ class SmcResponseRewriter[
     // use top down rewrite so that replacement of leaf references
     // does not mess up replacement of containing references
     rewrite(
-      replaceThirdPersonReferences(referenceMap),
+      replaceThirdPersonReferences(resultCollector),
       predicate,
       SilRewriteOptions(topDown = true))
   }
@@ -625,7 +625,7 @@ class SmcResponseRewriter[
   }
 
   private def replaceThirdPersonReferences(
-    referenceMap : Map[SilReference, Set[EntityType]]
+    resultCollector : ResultCollectorType
   ) = replacementMatcher(
     "replaceThirdPersonReferences", {
       case ref : SilReference => {
@@ -634,7 +634,7 @@ class SmcResponseRewriter[
               SilStateSpecifiedReference(_, _) |
               SilConjunctiveReference(_, _, _) =>
             {
-              referenceMap.get(ref).flatMap(
+              resultCollector.lookup(ref).flatMap(
                 entities => mind.thirdPersonReference(entities)).getOrElse(ref)
             }
           case _ => ref

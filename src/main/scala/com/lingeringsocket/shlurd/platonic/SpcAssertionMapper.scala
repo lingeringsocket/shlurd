@@ -280,6 +280,8 @@ class SpcAssertionMapper(
               }
             }
             binding.referenceMapOut.foreach(_.put(conjunction, filtered))
+            binding.refEquivalence.foreach(
+              _.put(actualRef, conjunction))
             conjunction
           }
           case _ => candidateRef

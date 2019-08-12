@@ -508,15 +508,6 @@ class SpcBeliefAccepter private(
   }
 
   beliefApplier {
-    case StateEquivalenceBelief(
-      sentence, formName, state1, state2
-    ) => {
-      val form = instantiateForm(sentence, formName)
-      cosmos.addStateNormalization(form, state1, state2)
-    }
-  }
-
-  beliefApplier {
     case IdealAliasBelief(
       sentence, synonym, idealName, possessorOpt
     ) => {

@@ -336,7 +336,7 @@ It is in the bathroom.
 
 > I am holding the lantern
 
-Right, you are holding the lantern.
+Right, you are holding it.
 
 > I am in the bathroom
 

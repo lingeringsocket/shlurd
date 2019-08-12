@@ -250,8 +250,8 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("how many lights are there")
       expectQuestion("how many lights on the first floor are there")
       expectQuestion("how many lights are on the first floor")
-      expectNormalized("a person that is at home is present",
-        "a person at home is present.")
+      expectStatement("if a person is at home, " +
+        "equivalently the person is present")
       expectStatement("a jackrabbit is a kind of animal")
       expectQuestion("does a vehicle exist")
       expectStatement("a vehicle exists")

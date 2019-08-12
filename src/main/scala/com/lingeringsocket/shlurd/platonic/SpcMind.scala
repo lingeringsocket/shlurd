@@ -230,7 +230,7 @@ class SpcMind(cosmos : SpcCosmos)
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {
-    if (!entity.properName.isEmpty) {
+    if (entity.properName.nonEmpty) {
       properReference(entity)
     } else {
       qualifiedReference(entity, determiner)

@@ -1104,8 +1104,6 @@ class SpcResponderSpec extends Specification
 
     "understand presence" in new ResponderContext
     {
-      // FIXME:  in "is Jack home", interpret "home" as state instead of noun
-      // FIXME:  "Jack's presence" should become "it"
       loadBeliefs("/ontologies/presence.txt")
       processMatrix("is Jack's ubiety on",
         "Yes, his ubiety is on.",
@@ -1120,6 +1118,11 @@ class SpcResponderSpec extends Specification
       processMatrix("is Jack at home",
         "Yes, he is at home.",
         "Yes, Jack is at home.",
+        "Yes.",
+        "Yes, he is.")
+      processMatrix("is Jack home",
+        "Yes, he is home.",
+        "Yes, Jack is home.",
         "Yes.",
         "Yes, he is.")
       processMatrix("is Jack absent",
@@ -1188,12 +1191,13 @@ class SpcResponderSpec extends Specification
         "Yes, Yoda is off.",
         "Yes.",
         "Yes, he is.")
+      // FIXME should be "Yes, they are absent."
       processMatrix(
         "are Jill and Yoda absent",
-        "Yes, they are absent.",
+        "Yes, Jill and Yoda are absent.",
         "Yes, Jill and Yoda are absent.",
         "Yes.",
-        "Yes, they are.")
+        "Yes, Jill and Yoda are.")
     }
 
     "understand multiple properties for same form" in new ResponderContext
@@ -1367,37 +1371,37 @@ class SpcResponderSpec extends Specification
       process("how many objects are the pocket's contained-objects",
         "One of them is its contained-object.")
       processMatrix("how many objects are filling the wallet",
-        "Two of them are filling the wallet.",
+        "Two of them are filling it.",
         "Two of them are filling the wallet.",
         "Two of them.",
         "Two of them.")
       processMatrix("how many objects is the wallet carrying",
-        "The wallet is carrying two of them.",
+        "It is carrying two of them.",
         "The wallet is carrying two of them.",
         "Two of them.",
         "Two of them.")
       processMatrix("which objects is the wallet carrying",
-        "The wallet is carrying the money and the card.",
+        "It is carrying the money and the card.",
         "The wallet is carrying the money and the card.",
         "The money and the card.",
         "The money and the card.")
       processMatrix("what is the wallet carrying",
-        "The wallet is carrying the money and the card.",
+        "It is carrying the money and the card.",
         "The wallet is carrying the money and the card.",
         "The money and the card.",
         "The money and the card.")
       processMatrix("how many objects are occupying the pocket",
-        "One of them is occupying the pocket.",
+        "One of them is occupying it.",
         "One of them is occupying the pocket.",
         "One of them.",
         "One of them.")
       processMatrix("which objects are filling the wallet",
-        "The money and the card are filling the wallet.",
+        "The money and the card are filling it.",
         "The money and the card are filling the wallet.",
         "The money and the card.",
         "The money and the card.")
       processMatrix("which objects are occupying the pocket",
-        "The key is occupying the pocket.",
+        "The key is occupying it.",
         "The key is occupying the pocket.",
         "The key.",
         "The key.")

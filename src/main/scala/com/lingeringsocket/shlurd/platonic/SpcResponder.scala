@@ -192,18 +192,10 @@ class SpcResponder(
       refEquivalence : mutable.Map[SilReference, SilReference]
     ) : SilPredicate =
     {
-      val stateNormalizedPredicate = predicate match {
-        case SilStatePredicate(subject, verb, state, modifiers) => {
-          val normalizedState = mind.getCosmos.normalizeHyperFormState(
-            deriveType(subject), state)
-          val normalized = SilStatePredicate(
-            subject, verb, normalizedState, modifiers)
-          if (normalizedState.isInstanceOf[SilPropertyState]) {
-            return normalized
-          }
-          normalized
-        }
-        case _ => predicate
+      if (scoreEquivalentPredicate(predicate) == 1) {
+        // the original predicate is something that we want to
+        // keep no matter what
+        return predicate
       }
       // FIXME this could cause the predicate to become
       // inconsistent with the answer inflection.  Also, when there
@@ -214,28 +206,51 @@ class SpcResponder(
             "IMPLIES",
             mind.getCosmos,
             conditionalSentence,
-            stateNormalizedPredicate,
+            predicate,
             SpcAssertionBinding(
               referenceMap,
               None,
               Some(refEquivalence)))
         }
-      ).map(rewriteReplacement)
-      replacements.sortBy(_._2).map(_._1).headOption.getOrElse(
-        stateNormalizedPredicate)
+      ).map(optimizeEquivalentPredicate)
+      replacements.filter(_._2 >= 0).sortBy(_._2).map(_._1).headOption.
+        getOrElse(predicate)
     }
 
-    private def rewriteReplacement(sil : SilPredicate) : (SilPredicate, Int) =
+    private def scoreEquivalentPredicate(predicate : SilPredicate) : Int =
+    {
+      predicate match {
+        case SilStatePredicate(
+          subject, _, SilPropertyState(SilWordLemma(lemma)), _
+        ) => {
+          val form = deriveType(subject)
+          mind.getCosmos.resolveHypernymPropertyState(
+            form, lemma).map(_ => 1).getOrElse(-1)
+        }
+        case _ => 0
+      }
+    }
+
+    private def optimizeEquivalentPredicate(
+      sil : SilPredicate) : (SilPredicate, Int) =
     {
       val rewriter = new SilPhraseRewriter
       var score = 0
-      def rewriteGenitives = rewriter.replacementMatcher(
-        "rewriteGenitives", {
+      def optimizePredicate = rewriter.replacementMatcher(
+        "optimizePredicate", {
+          case sp : SilStatePredicate => {
+            if (scoreEquivalentPredicate(sp) == -1) {
+              score = -1
+            }
+            sp
+          }
           case SilGenitiveReference(
             possessor @ SilNounReference(_, DETERMINER_ANY, _),
             possessee @ SilNounReference(_, DETERMINER_UNSPECIFIED, _)
           ) => {
-            score = 1
+            if (score == 0) {
+              score = 1
+            }
             SilGenitiveReference(
               possessor,
               possessee.copy(determiner = DETERMINER_ANY)
@@ -243,7 +258,7 @@ class SpcResponder(
           }
         }
       )
-      tupleN((rewriter.rewrite(rewriteGenitives, sil), score))
+      tupleN((rewriter.rewrite(optimizePredicate, sil), score))
     }
 
     override protected def evaluatePropertyStatePredicate(

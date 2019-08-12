@@ -106,14 +106,6 @@ sealed abstract class SpcIdeal(name : String)
   override def isIdeal : Boolean = true
 }
 
-class SpcStateNormalization(
-  val original : SilState,
-  val normalized : SilState,
-  val isInflected : Boolean)
-    extends SpcContainmentVertex
-{
-}
-
 object SpcForm
 {
   val TENTATIVE_INFIX = "__"
@@ -1206,8 +1198,7 @@ class SpcCosmos(
         case form : SpcForm => {
           assert(graph.components.inDegreeOf(form) == 0)
           assert(
-            getFormPropertyMap(form).size +
-              getStateNormalizationMap(form).size ==
+            getFormPropertyMap(form).size ==
               graph.components.outDegreeOf(form))
         }
       }
@@ -1243,14 +1234,12 @@ class SpcCosmos(
     val propertySet = formSet.flatMap(getFormPropertyMap(_).values).toSet
     val propertyStateSet =
       propertySet.flatMap(getPropertyStateObjMap(_).values).toSet
-    val stateNormalizationSet =
-      formSet.flatMap(getStateNormalizationMap(_).values).toSet
     val entityPropertyStateSet = entitySet.flatMap(
       getEntityPropertyMap(_).values).toSet
     assert(
       (
         formSet ++ propertySet ++ propertyStateSet ++
-          stateNormalizationSet ++ entitySet ++
+          entitySet ++
           entityPropertyStateSet
       ) == componentSet
     )
@@ -1391,7 +1380,7 @@ class SpcCosmos(
   def resolveFormProperty(form : SpcForm, lemma : String)
       : Option[(SpcProperty, String)] =
   {
-    val stateName = resolveStateSynonym(form, lemma)
+    val stateName = lemma
     getFormPropertyMap(form).values.find(
       p => getPropertyStateMap(p).contains(stateName)).map((_, stateName))
   }
@@ -1724,73 +1713,6 @@ class SpcCosmos(
         }
       })
     postVisit(entity, propertyName, lemma)
-  }
-
-  def resolveStateSynonym(form : SpcForm, lemma : String) : String =
-  {
-    normalizeFormState(form, SilPropertyState(SilWord(lemma))) match {
-      case SilPropertyState(word) => encodeName(word)
-      case _ => lemma
-    }
-  }
-
-  private def getStateNormalizationMap(form : SpcForm)
-      : Map[SilState, SpcStateNormalization] =
-  {
-    graph.stateNormalizationIndex.accessComponentMap(form)
-  }
-
-  private[platonic] def addStateNormalization(
-    form : SpcForm, state : SilState, transformed : SilState)
-  {
-    val normalized = normalizeFormState(form, transformed)
-    val map = getStateNormalizationMap(form)
-    val inflected =
-      new SpcStateNormalization(state, normalized, true)
-    val uninflected =
-      new SpcStateNormalization(foldState(state), normalized, false)
-    if (!map.contains(inflected.original)) {
-      addComponent(form, inflected)
-    }
-    if ((uninflected.original != inflected.original) &&
-      !map.contains(uninflected.original))
-    {
-      addComponent(form, uninflected)
-    }
-  }
-
-  private def normalizeFormState(form : SpcForm, state : SilState) : SilState =
-  {
-    val map = getStateNormalizationMap(form)
-    map.get(state).map(_.normalized).getOrElse(
-        map.get(foldState(state)).map(_.normalized).getOrElse(
-          state))
-  }
-
-  private def foldState(state : SilState) : SilState =
-  {
-    // FIXME:  should fold compound states as well
-    state match {
-      case SilPropertyState(word) =>
-        SilPropertyState(SilWord(encodeName(word)))
-      case _ => state
-    }
-  }
-
-  def getInflectedStateNormalizations(form : SpcForm) =
-  {
-    getStateNormalizationMap(form).values.filter(_.isInflected).map(
-      sn => (sn.original, sn.normalized))
-  }
-
-  private[platonic] def normalizeHyperFormState(
-    form : SpcForm, originalState : SilState) =
-  {
-    getFormHypernyms(form).foldLeft(originalState) {
-      case (state, form) => {
-        normalizeFormState(form, state)
-      }
-    }
   }
 
   def reifyRole(

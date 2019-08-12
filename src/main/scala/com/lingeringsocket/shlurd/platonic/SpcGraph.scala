@@ -16,7 +16,6 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.jgrapht._
-import com.lingeringsocket.shlurd.ilang._
 
 import org.jgrapht._
 import org.jgrapht.graph._
@@ -60,15 +59,18 @@ object SpcGraph
     val componentsDelta = DeltaGraph(base.components)
     val components = new ExposedListenableGraph(componentsDelta)
     val assertions = DeltaGraph(base.assertions)
-    val (formPropertyIndex, entityPropertyIndex, propertyStateIndex,
-      stateNormalizationIndex) = createIndexes(components)
+    val (
+      formPropertyIndex,
+      entityPropertyIndex,
+      propertyStateIndex
+    ) = createIndexes(components)
     new SpcGraph(
       None,
       base.name,
       idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
       entitySynonyms, entityAssocs, components, assertions,
       formPropertyIndex, entityPropertyIndex,
-      propertyStateIndex, stateNormalizationIndex)
+      propertyStateIndex)
   }
 
   private def extractDelta(graph : Graph[_, _]) : Option[DeltaModification] =
@@ -226,14 +228,14 @@ object SpcGraph
       new SimpleDirectedGraph[SpcAssertion, SpcEdge](
         classOf[SpcEdge])
     val (formPropertyIndex, entityPropertyIndex,
-      propertyStateIndex, stateNormalizationIndex) = createIndexes(components)
+      propertyStateIndex) = createIndexes(components)
     new SpcGraph(
       name,
       None,
       idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs,
       entitySynonyms, entityAssocs, components, assertions,
       formPropertyIndex, entityPropertyIndex,
-      propertyStateIndex, stateNormalizationIndex)
+      propertyStateIndex)
   }
 
   private def createIndexes(
@@ -259,14 +261,8 @@ object SpcGraph
           case ps : SpcPropertyState => Some(ps.lemma)
           case _ => None
         })
-    val stateNormalizationIndex =
-      new SpcComponentIndex[SilState, SpcStateNormalization](
-        components, _ match {
-          case sn : SpcStateNormalization => Some(sn.original)
-          case _ => None
-        })
     tupleN((formPropertyIndex, entityPropertyIndex,
-      propertyStateIndex, stateNormalizationIndex))
+      propertyStateIndex))
   }
 }
 
@@ -339,9 +335,7 @@ class SpcGraph(
   val formPropertyIndex : SpcComponentIndex[String, SpcProperty],
   val entityPropertyIndex :
       SpcComponentIndex[String, SpcEntityPropertyState],
-  val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState],
-  val stateNormalizationIndex :
-      SpcComponentIndex[SilState, SpcStateNormalization]
+  val propertyStateIndex : SpcComponentIndex[String, SpcPropertyState]
 ) extends DeltaModification
 {
   import SpcGraph._
@@ -368,8 +362,7 @@ class SpcGraph(
         new ExposedUnmodifiableGraph(assertions, isFrozen),
         formPropertyIndex,
         entityPropertyIndex,
-        propertyStateIndex,
-        stateNormalizationIndex
+        propertyStateIndex
       )
     } else {
       this
@@ -380,7 +373,7 @@ class SpcGraph(
   {
     val componentsSwapped = swapBase(base.components, components)
     val (formPropertyIndexSwapped, entityPropertyIndexSwapped,
-      propertyStateIndexSwapped, stateNormalizationIndexSwapped) =
+      propertyStateIndexSwapped) =
       createIndexes(componentsSwapped)
     new SpcGraph(
       name,
@@ -395,8 +388,7 @@ class SpcGraph(
       swapBase(base.assertions, assertions),
       formPropertyIndexSwapped,
       entityPropertyIndexSwapped,
-      propertyStateIndexSwapped,
-      stateNormalizationIndexSwapped
+      propertyStateIndexSwapped
     )
   }
 
@@ -404,7 +396,7 @@ class SpcGraph(
   {
     val componentsCloned = cloneSub(components, flattenDeltas)
     val (formPropertyIndexCloned, entityPropertyIndexCloned,
-      propertyStateIndexCloned, stateNormalizationIndexCloned) =
+      propertyStateIndexCloned) =
       createIndexes(componentsCloned)
     new SpcGraph(
       name,
@@ -419,8 +411,7 @@ class SpcGraph(
       cloneSub(assertions, flattenDeltas),
       formPropertyIndexCloned,
       entityPropertyIndexCloned,
-      propertyStateIndexCloned,
-      stateNormalizationIndexCloned)
+      propertyStateIndexCloned)
   }
 
   def getGraphs() : Seq[Graph[_, _]] =
@@ -690,8 +681,6 @@ class SpcGraph(
       val pair = (container, component)
       pair match {
         case (form : SpcForm, property : SpcProperty) => {
-        }
-        case (form : SpcForm, normalization : SpcStateNormalization) => {
         }
         case (property : SpcProperty, state : SpcPropertyState) => {
         }

@@ -558,10 +558,6 @@ class SpcBeliefRecognizer(
       }
       // FIXME assert something about qualifiers here
       state match {
-        case ps : SilPropertyState => {
-          return Seq(StateEquivalenceBelief(
-            sentence, noun, specifiedState, state))
-        }
         case SilExistenceState(_) =>
         case _ => {
           return Seq(UnimplementedBelief(sentence))
