@@ -321,7 +321,6 @@ class SpcGraphVisualizer(
 
   private def combineEdge(edge : SpcFormAssocEdge) : CombinedEdge =
   {
-    // FIXME render isProperty
     val constraintLabel = edge.constraint match {
       case SpcCardinalityConstraint(0, Int.MaxValue) => "0..*"
       case SpcCardinalityConstraint(0, upper) => s"0..$upper"

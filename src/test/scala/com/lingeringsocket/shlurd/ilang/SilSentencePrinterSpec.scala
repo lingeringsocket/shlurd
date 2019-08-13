@@ -299,7 +299,6 @@ class SilSentencePrinterSpec extends Specification
         "a bulb is lit usually.")
       expectNormalized("a bulb is usually lit",
         "a bulb is lit usually.")
-      expectStatement("a person may have an ubiety as a property")
       expectStatement("if an object moves to a location, " +
         "then the location becomes the object's container")
       expectNormalized(

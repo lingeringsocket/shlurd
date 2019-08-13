@@ -3,8 +3,8 @@ A window must be either open or closed.
 A light must be either on or off.
 A switch must be either on or off.
 A heating must be either on or off.
-A heater is a heating.
-A heat is a heating.
-A lamp is a light.
-A lamp that is lit is on.
-A lamp that is extinguished is off.
+A heater is the same as a heating.
+A heat is the same as a heating.
+A lamp is the same as a light.
+If a lamp is lit, then equivalently the lamp is on.
+If a lamp is extinguished, then equivalently the lamp is off.

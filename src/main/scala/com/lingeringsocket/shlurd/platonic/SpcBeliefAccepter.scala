@@ -623,7 +623,7 @@ class SpcBeliefAccepter private(
   beliefApplier {
     case FormAssocBelief(
       sentence, possessorFormName, possesseeRoleNames,
-      newConstraint, isProperty
+      newConstraint
     ) => {
       val possessorForm = instantiateForm(sentence, possessorFormName)
       possesseeRoleNames.foreach(possesseeRoleName => {
@@ -635,7 +635,7 @@ class SpcBeliefAccepter private(
         val constraint = SpcCardinalityConstraint(
           Math.max(oldConstraint.lower, newConstraint.lower),
           Math.min(oldConstraint.upper, newConstraint.upper))
-        cosmos.annotateFormAssoc(edge, constraint, isProperty)
+        cosmos.annotateFormAssoc(edge, constraint)
       })
     }
   }

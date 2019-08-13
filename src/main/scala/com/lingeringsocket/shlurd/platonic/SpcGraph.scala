@@ -283,8 +283,6 @@ case class SpcFormAssocEdge(
   roleName : String
 ) extends SpcLabeledEdge(roleName)
 {
-  var isProperty : Boolean = false
-
   var constraint : SpcCardinalityConstraint =
     SpcCardinalityConstraint(0, Int.MaxValue)
 

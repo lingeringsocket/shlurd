@@ -96,7 +96,6 @@ class SpcCreedSpec extends Specification
   private val assocMustPlural = "A shark must have teeth."
   private val assocMay = "A person may have one mentor."
   private val assocMayPlural = "A person may have pets."
-  private val assocMayProperty = "A person may have one presence as a property."
   private val entityExists = "A parakeet exists."
   private val entityExists2 = "A door exists."
   private val entityPropertyState = "The parakeet's mood is happy."
@@ -337,7 +336,7 @@ class SpcCreedSpec extends Specification
     {
       expectPreserved(Seq(
         formRole, formRole2, formRole3, assocMay, assocMayPlural,
-        assocMayProperty, animalOwners, assocMust, assocMustPlural))
+        animalOwners, assocMust, assocMustPlural))
     }
 
     "normalize form associations" in new CosmosContext

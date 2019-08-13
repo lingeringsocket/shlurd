@@ -1269,15 +1269,13 @@ class SpcBeliefRecognizer(
       }
       case REL_PREDEF_ASSOC => {
         subjectConjunction.checkAndPluralOrSingular(subjectCount)
-        val propertyAssocOpt = isPropertyAssoc(sentence, complementRef, verb)
-        val allowAdpositions = propertyAssocOpt.map(b => b).getOrElse(false)
         val (complementNouns, count) = complementRef match {
           // "a dog may have an owner and a groomer"
           case SilConjunctiveReference(_, refs, _) => {
             val pairs = refs.map(ref => {
               val (complementNoun, qualifiers, count, determiner, failed) =
                 extractQualifiedNoun(sentence, ref, Seq.empty,
-                  false, allowAdpositions)
+                  false, false)
               if (failed) {
                 return Seq.empty
               }
@@ -1297,7 +1295,7 @@ class SpcBeliefRecognizer(
           case ref => {
             val (complementNoun, qualifiers, count, determiner, failed) =
               extractQualifiedNoun(
-                sentence, ref, Seq.empty, false, allowAdpositions)
+                sentence, ref, Seq.empty, false, false)
             if (failed) {
               return Seq.empty
             }
@@ -1323,14 +1321,11 @@ class SpcBeliefRecognizer(
           case MODAL_SHOULD | MODAL_ELLIPTICAL =>
             return Seq(UnimplementedBelief(sentence))
         }
-        propertyAssocOpt.map(
-          isProperty => {
-            FormAssocBelief(
-              sentence,
-              subjectNoun, complementNouns, newConstraint,
-              isProperty)
-          }
-        ).toSeq
+        Seq(
+          FormAssocBelief(
+            sentence,
+            subjectNoun, complementNouns, newConstraint)
+        )
       }
     }
   }
@@ -1572,38 +1567,6 @@ class SpcBeliefRecognizer(
     val isClosed = (tam.modality == MODAL_MUST)
     Seq(FormEnumPropertyBelief(
       sentence, formName, newStates, isClosed, propertyName))
-  }
-
-  private def isPropertyAssoc(
-    sentence : SilSentence, complementRef : SilReference,
-    verb : SilWord) : Option[Boolean] =
-  {
-    complementRef match {
-      case SilStateSpecifiedReference(
-        _,
-        SilAdpositionalState(adposition, objRef)) =>
-        {
-          if (adposition != SilAdposition.AS) {
-            return None
-          }
-          // "A television has a volume as a property"
-          objRef match {
-            case SilNounReference(
-              SilWordLemma(LEMMA_PROPERTY),
-              DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
-              COUNT_SINGULAR) =>
-              {
-                if (SilRelationshipPredef(verb) == REL_PREDEF_ASSOC) {
-                  Some(true)
-                } else {
-                  None
-                }
-              }
-            case _ => None
-          }
-        }
-      case _ => Some(false)
-    }
   }
 
   private def isIgnorableModifier(modifier : SilVerbModifier) : Boolean =

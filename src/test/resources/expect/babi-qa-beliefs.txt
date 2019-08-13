@@ -35,15 +35,35 @@ If a person receives an item, then the item becomes the person's possession.
 If a person gives an item to a recipient, then the recipient receives the item.
 If a person passes a recipient an item, then the person gives the item to the recipient.
 If a person hands an item to a recipient, then the person gives the item to the recipient.
-A coloration must be white, gray, yellow, or green.
-An animal's color must be a coloration.
-An animal may have a color as a property.
-Lioncolor, Rhinocolor, Swancolor, and Frogcolor are colorations.
+A colored-object's color must be white, gray, yellow, or green.
+A species-coloration is a kind of colored-object.
+An animal is a kind of colored-object.
+An animal's coloration must be a species-coloration.
+An animal may have a coloration.
+A species-coloration's adopter must be an animal.
+If a species-coloration is an animal's coloration,
+ then equivalently the animal is the species-coloration's adopter.
+Lioncolor, Rhinocolor, Swancolor, and Frogcolor are species-colorations.
 Lions, rhinos, swans, and frogs are kinds of animal.
-If an animal is a lion, consequently the animal's color is Lioncolor.
-If an animal is a rhino, consequently the animal's color is Rhinocolor.
-If an animal is a swan, consequently the animal's color is Swancolor.
-If an animal is a frog, consequently the animal's color is Frogcolor.
+When an animal adopts a species-coloration,
+ then the animal's coloration becomes the species-coloration;
+ also the animal's color becomes the species-coloration's color.
+If an animal is a lion, consequently the animal adopts Lioncolor.
+If an animal is a rhino, consequently the animal adopts Rhinocolor.
+If an animal is a swan, consequently the animal adopts Swancolor.
+If an animal is a frog, consequently the animal adopts Frogcolor.
+If an animal is white, consequently the animal's coloration is white.
+If an animal is gray, consequently the animal's coloration is gray.
+If an animal is yellow, consequently the animal's coloration is yellow.
+If an animal is green, consequently the animal's coloration is green.
+After a species-coloration becomes white,
+ the species-coloration's adopters become white.
+After a species-coloration becomes gray,
+ the species-coloration's adopters become gray.
+After a species-coloration becomes yellow,
+ the species-coloration's adopters become yellow.
+After a species-coloration becomes green,
+ the species-coloration's adopters become green.
 A place's northern-neighbor must be a place.
 A place's southern-neighbor must be a place.
 A place's eastern-neighbor must be a place.

@@ -215,7 +215,6 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   ) : SilSentence =
   {
     val constraint = edge.constraint
-    val isProperty = edge.isProperty
     val (count, determiner) = {
       if (constraint.upper == 1) {
         tupleN((COUNT_SINGULAR, SilIntegerDeterminer(constraint.upper)))
@@ -225,23 +224,11 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     }
     val possesseeNoun = nounReference(
       edge.getRoleName, count, determiner)
-    val possessee = {
-      if (isProperty) {
-        SilStateSpecifiedReference(
-          possesseeNoun,
-          SilAdpositionalState(
-            SilAdposition.AS,
-            nounReference(LEMMA_PROPERTY))
-        )
-      } else {
-        possesseeNoun
-      }
-    }
     SilPredicateSentence(
       SilRelationshipPredicate(
         idealReference(cosmos.getGraph.getPossessorForm(edge)),
         REL_PREDEF_ASSOC.toVerb,
-        possessee
+        possesseeNoun
       ),
       SilTam.indicative.withModality(
         if (constraint.lower == 0) MODAL_MAY else MODAL_MUST)

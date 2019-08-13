@@ -72,8 +72,7 @@ case class FormAssocBelief(
   sentence : SilSentence,
   possessorFormName : SilWord,
   possesseeRoleNames : Seq[SilWord],
-  constraint : SpcCardinalityConstraint,
-  isProperty : Boolean
+  constraint : SpcCardinalityConstraint
 ) extends SpcBelief
 {
 }

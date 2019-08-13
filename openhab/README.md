@@ -79,12 +79,12 @@ You can write a custom belief file like this:
 
     A service must be either on or off.
     A server is a service.
-    A service that is up is on.
-    A service that is down is off.
-    A service that is available is on.
-    A service that is unavailable is off.
-    A service that is running is on.
-    A service that is stopped is off.
+    If a service is up, then equivalently the service is on.
+    If a service is down, then equivalently the service is off.
+    If a service is available, then equivalently the service is on.
+    If a service is unavailable, then equivalently the service  is off.
+    If a service is running, then equivalently the service is on.
+    If a service is stopped, then equivalently the service is off.
 
 This will allow you to ask questions such as `is the media service up?` or `are all servers running?`
 

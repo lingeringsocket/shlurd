@@ -277,8 +277,7 @@ abstract class SpcOpenhabCosmos(
           case Some(personName) => {
             getGraph.formAssocs.edgeSet.asScala.find(
               edge => (edge.getRoleName == presenceRoleName)
-                && edge.isProperty) match
-            {
+            ) match {
               case Some(edge) => {
                 val personForm = getGraph.getPossessorForm(edge)
                 resolveQualifiedNoun(

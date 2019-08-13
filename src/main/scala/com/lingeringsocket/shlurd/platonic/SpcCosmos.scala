@@ -349,11 +349,9 @@ class SpcCosmos(
   private def generateId = getIdGenerator.getAndIncrement
 
   protected[platonic] def annotateFormAssoc(
-    edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint,
-    isProperty : Boolean)
+    edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint)
   {
     edge.constraint = constraint
-    edge.isProperty = isProperty
   }
 
   def fork(detached : Boolean = false) : SpcCosmos =
@@ -1444,19 +1442,6 @@ class SpcCosmos(
     None
   }
 
-  def formHasProperty(form : SpcForm, name : String) : Boolean =
-  {
-    if (!findProperty(form, name).isEmpty) {
-      return true
-    }
-    val hypernymSet = getFormHypernyms(form).toSet
-    val outgoingPropertyEdges = hypernymSet.flatMap { hypernym =>
-      getFormAssocGraph.outgoingEdgesOf(hypernym).asScala.
-        filter(_.isProperty).toSet
-    }
-    outgoingPropertyEdges.map(_.getRoleName).contains(name)
-  }
-
   private def addComponent(
     container : SpcContainmentVertex, component : SpcContainmentVertex)
   {
@@ -1511,8 +1496,6 @@ class SpcCosmos(
     visitEntityProperty(
       originalEntity, originalProperty.name, originalLemma,
       {
-        (form, _, lemma) => resolveHypernymPropertyState(form, lemma)
-      }, {
         (_, _, _) => {
           Success(Trilean.Unknown)
         }
@@ -1540,8 +1523,6 @@ class SpcCosmos(
     visitEntityProperty(
       originalEntity, originalProperty.name, originalLemma,
       {
-        (form, _, lemma) => resolveHypernymPropertyState(form, lemma)
-      }, {
         (entity, propertyName, lemma) => {
           checkEntityProperty(entity, propertyName, lemma)
         }
@@ -1599,17 +1580,6 @@ class SpcCosmos(
         }
       }
     }
-    def resolveHypernymProperty(
-      form : SpcForm, propertyName : String, lemma : String)
-        : Option[(SpcProperty, String)]=
-    {
-      getFormHypernyms(form).foreach(hyperForm => {
-        getFormPropertyMap(hyperForm).get(propertyName).foreach(property => {
-          return Some((property, ""))
-        })
-      })
-      None
-    }
     var resultVal : Option[String] = None
     var resultProp : Option[SpcProperty] = None
     def preVisit(entity : SpcEntity, propertyName : String, lemma : String) = {
@@ -1656,7 +1626,6 @@ class SpcCosmos(
       originalEntity,
       originalPropertyName,
       "",
-      resolveHypernymProperty,
       preVisit,
       postVisit
     )
@@ -1667,8 +1636,6 @@ class SpcCosmos(
     entity : SpcEntity,
     propertyName : String,
     lemma : String,
-    resolveHypernymProperty :
-        (SpcForm, String, String) => Option[(SpcProperty, String)],
     preVisit : (SpcEntity, String, String) => Try[Trilean],
     postVisit : (SpcEntity, String, String) => Try[Trilean])
       : Try[Trilean] =
@@ -1677,41 +1644,6 @@ class SpcCosmos(
       case Success(Trilean.Unknown) =>
       case preResult => return preResult
     }
-    val hypernymSet = getFormHypernyms(entity.form).toSet
-    val outgoingPropertyEdges = hypernymSet.flatMap { form =>
-      getFormAssocGraph.outgoingEdgesOf(form).asScala.
-        filter(_.isProperty).map(_.getRoleName).toSet
-    }
-    getEntityAssocGraph.outgoingEdgesOf(entity).asScala.
-      filter(edge => outgoingPropertyEdges.contains(edge.getRoleName)).
-      foreach(edge => {
-        val propertyEntity = graph.getPossesseeEntity(edge)
-        val map = getFormPropertyMap(propertyEntity.form)
-        // FIXME we should prevent violations elsewhere as well
-        assert(map.size == 1)
-        if (edge.getRoleName == propertyName) {
-          return visitEntityProperty(
-            propertyEntity,
-            map.values.head.name,
-            lemma,
-            resolveHypernymProperty,
-            preVisit,
-            postVisit)
-        }
-        resolveHypernymProperty(
-          propertyEntity.form, propertyName, lemma) matchPartial
-        {
-          case Some((underlyingProperty, stateName)) => {
-            return visitEntityProperty(
-              propertyEntity,
-              underlyingProperty.name,
-              stateName,
-              resolveHypernymProperty,
-              preVisit,
-              postVisit)
-          }
-        }
-      })
     postVisit(entity, propertyName, lemma)
   }
 

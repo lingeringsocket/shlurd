@@ -12,7 +12,7 @@ A presence must be either on or off.
 If a presence is present, then equivalently the presence is on.
 If a presence is absent, then equivalently the presence is off.
 A person's ubiety must be a presence.
-A person must have a ubiety as a property.
+A person must have a ubiety.
 If a person is present, then equivalently the person's ubiety is on.
 If a person is absent, then equivalently the person's ubiety is off.
 Jack and Larry are men.

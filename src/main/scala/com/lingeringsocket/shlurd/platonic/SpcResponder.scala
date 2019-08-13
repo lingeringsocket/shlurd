@@ -735,7 +735,7 @@ class SpcResponder(
           modifiers
         ) => {
           val form = deriveType(complement)
-          if (mind.getCosmos.formHasProperty(form, lemma)) {
+          if (mind.getCosmos.findProperty(form, lemma).nonEmpty) {
             val statePredicate = SilStatePredicate(
               complement,
               STATE_PREDEF_BE.toVerb,
