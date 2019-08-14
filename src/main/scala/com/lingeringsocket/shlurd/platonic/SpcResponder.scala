@@ -1113,8 +1113,11 @@ class SpcResponder(
           }
         }
         case pr : SilPronounReference => {
-          mind.resolvePronoun(communicationContext, pr) match {
-            case Success(entities) => {
+          // FIXME use SmcPhraseScope, and in case no entities are
+          // resolved, try prior reference instead
+          val scope = new MindScopeType(mind)
+          scope.resolvePronoun(communicationContext, pr) match {
+            case Success(SmcScopeOutput(_, entities)) => {
               lcaType(entities.map(_.form))
             }
             case _ => unknownType

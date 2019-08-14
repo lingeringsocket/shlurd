@@ -37,4 +37,18 @@ package object shlurd
       }
     }
   }
+
+  // catch-all as None
+  implicit class MatchMaybe[T, U](x : T)
+  {
+    def matchMaybe(f : PartialFunction[T, U])
+    {
+      f.lift(x)
+    }
+
+    def matchOption(f : PartialFunction[T, Option[U]])
+    {
+      f.lift(x).flatten
+    }
+  }
 }

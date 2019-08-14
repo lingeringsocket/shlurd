@@ -44,6 +44,10 @@ class SpcAssertionMapper(
   inputRewriter : SmcInputRewriter[SpcEntity, SpcProperty, SpcCosmos])
     extends SmcDebuggable(new SmcDebugger(SpcAssertionMapper.logger))
 {
+  type MindScopeType = SmcMindScope[
+    SpcEntity, SpcProperty, SpcCosmos, SpcMind
+  ]
+
   private[platonic] def matchSubsumption(
     cosmos : SpcCosmos,
     general : SilPredicate,
@@ -219,8 +223,13 @@ class SpcAssertionMapper(
         }
         val (candidateRef, entities) = actualRef match {
           case pr : SilPronounReference => {
-            mind.resolvePronoun(communicationContext, pr) match {
-              case Success(entities) if (!entities.isEmpty) => {
+            // FIXME use SmcPhraseScope, and make use
+            // of prior reference too
+            val scope = new MindScopeType(mind)
+            scope.resolvePronoun(communicationContext, pr) match {
+              case Success(SmcScopeOutput(_, entities)) if (
+                !entities.isEmpty
+              ) => {
                 tupleN((
                   mind.specificReferences(entities),
                   entities))

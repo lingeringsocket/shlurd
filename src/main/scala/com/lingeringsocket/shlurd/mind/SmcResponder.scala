@@ -194,8 +194,13 @@ class SmcResponder[
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
+  type MindScopeType = SmcMindScope[
+    EntityType, PropertyType, CosmosType, MindType
+  ]
+
   type PartialSentenceResponder =
     PartialFunction[SilSentence, (SilSentence, String)]
+
   type SentenceResponder = (SilSentence) => Option[(SilSentence, String)]
 
   private def cosmos = mind.getCosmos

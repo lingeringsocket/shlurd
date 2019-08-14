@@ -41,6 +41,10 @@ class SmcPredicateEvaluator[
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
+  type MindScopeType = SmcMindScope[
+    EntityType, PropertyType, CosmosType, MindType
+  ]
+
   type EntityPredicateEvaluator = (EntityType, SilReference) => Try[Trilean]
 
   private val wildcardQuerier = new SmcPhraseRewriter
@@ -851,10 +855,17 @@ class SmcPredicateEvaluator[
         val entitiesTry = cacheReference(
           resultCollector,
           reference,
-          () => mind.resolvePronoun(communicationContext, pr).map(entities => {
-            referenceMap.put(reference, entities)
-            entities
-          }))
+          () => {
+            val mindScope = new MindScopeType(mind)
+            val scope = new SmcPhraseScope(
+              resultCollector.referenceMap, mindScope)
+            scope.resolvePronoun(communicationContext, pr).map(out => {
+              val entities = out.entities
+              referenceMap.put(reference, entities)
+              entities
+            })
+          }
+        )
         entitiesTry match {
           case Success(entities) => {
             trace(s"CANDIDATE ENTITIES : $entities")

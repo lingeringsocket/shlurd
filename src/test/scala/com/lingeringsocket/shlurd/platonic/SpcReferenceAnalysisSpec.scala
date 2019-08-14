@@ -23,22 +23,42 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
 {
   trait AnalysisContext extends ProcessingContext
   {
-    protected def analyze(input : String, response : String) =
+    protected def startSequence()
     {
       mind.startConversation
       mind.startNarrative
+    }
+
+    protected def stopSequence()
+    {
+      mind.stopNarrative
+      mind.stopConversation
+    }
+
+    protected def analyze(
+      input : String, response : String)
+        : Map[SilReference, Set[SpcEntity]] =
+    {
+      val isolated = !mind.isConversing
+      if (isolated) {
+        startSequence
+      }
       process(
         input,
         ACCEPT_MODIFIED_BELIEFS,
         SmcResponseParams(verbosity = RESPONSE_TERSE),
-        okExecutor) must be equalTo response
-      val result = mind.getConversation.getUtterances.head.referenceMap
-      mind.stopNarrative
-      mind.stopConversation
+        okExecutor
+      ) must be equalTo response
+      val result = mind.getConversation.getUtterances.
+        dropRight(1).last.referenceMap
+      if (isolated) {
+        stopSequence
+      }
       result
     }
 
-    protected def analyzeBelief(input : String) =
+    protected def analyze(input : String)
+        : Map[SilReference, Set[SpcEntity]] =
     {
       analyze(input, "OK.")
     }
@@ -69,26 +89,39 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
   {
     "analyze references" in new AnalysisContext
     {
+      SpcPrimordial.initCosmos(cosmos)
       val ivan = "Ivan"
       val boris = "Boris"
+      val natasha = "Natasha"
       val ivanRef = SilNounReference(SilWord(ivan))
       val borisRef = SilNounReference(SilWord(boris))
-      analyzeBelief("a mule is a kind of animal") must beEmpty
-      analyzeBelief("a mule may be grumpy or happy") must beEmpty
-      analyzeBelief("if a mule kicks a kick-target, " +
+      val natashaRef = SilNounReference(SilWord(natasha))
+      val sheRef = SilPronounReference(PERSON_THIRD, GENDER_F, COUNT_SINGULAR)
+      val heRef = SilPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR)
+      val beastRef = SilNounReference(SilWord("beast"))
+      val ownerRef = SilNounReference(SilWord("owner"))
+      analyze("a woman's gender must be feminine")
+      analyze(s"$natasha is a woman")
+      val natashaEntity = expectProperName(natasha)
+      val natashaSet = Set(natashaEntity)
+      analyze("a mule is a kind of animal") must beEmpty
+      analyze("a mule's gender must be masculine")
+      analyze("a mule may be grumpy or happy") must beEmpty
+      analyze("if a mule kicks a kick-target, " +
         "then equivalently the mule is grumpy")
-      val isaResult = analyzeBelief(s"$ivan is a mule")
+      analyze("a woman's beast must be a mule")
+      val isaResult = analyze(s"$ivan is a mule")
       val ivanEntity = expectProperName(ivan)
       val ivanSet = Set(ivanEntity)
       isaResult must be equalTo Map(
         ivanRef -> ivanSet
       )
-      analyzeBelief("if a mule becomes happy, " +
+      analyze("if a mule becomes happy, " +
         s"then the mule kicks $ivan")
-      analyzeBelief(s"$boris is a mule")
+      analyze(s"$boris is a mule")
       val borisEntity = expectProperName(boris)
       val borisSet = Set(borisEntity)
-      analyzeBelief(s"$ivan is grumpy") must be equalTo Map(
+      analyze(s"$ivan is grumpy") must be equalTo Map(
         ivanRef -> ivanSet
       )
       analyze(s"is $ivan a mule", "Yes.") must be equalTo Map(
@@ -98,12 +131,38 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
         ivanRef -> ivanSet,
         borisRef -> borisSet
       )
-      analyze(s"shout at $boris", "OK.") must be equalTo Map(
+      analyze(s"shout at $boris") must be equalTo Map(
         borisRef -> borisSet
       )
-      analyze(s"$boris is happy", "OK.") must be equalTo Map(
+      analyze(s"$boris is happy") must be equalTo Map(
         borisRef -> borisSet
       )
+      analyze(s"${natasha}'s beast kicks her") must be equalTo Map(
+        natashaRef -> natashaSet,
+        sheRef -> natashaSet,
+        SilGenitiveReference(natashaRef, beastRef) -> Set()
+      )
+
+      startSequence
+      analyze(s"$boris is happy") must be equalTo Map(
+        borisRef -> borisSet
+      )
+      analyze(s"he loves $natasha") must be equalTo Map(
+        natashaRef -> natashaSet,
+        heRef -> borisSet
+      )
+      stopSequence
+
+      startSequence
+      analyze(s"$boris is happy") must be equalTo Map(
+        borisRef -> borisSet
+      )
+      analyze(s"$ivan loves his owner") must be equalTo Map(
+        ivanRef -> ivanSet,
+        heRef -> ivanSet,
+        SilGenitiveReference(heRef, ownerRef) -> Set()
+      )
+      stopSequence
     }
   }
 }

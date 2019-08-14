@@ -221,59 +221,6 @@ class SmcMind[
     verb1.toLemma == verb2.toLemma
   }
 
-  def resolvePronoun(
-    communicationContext : SmcCommunicationContext[EntityType],
-    reference : SilPronounReference) : Try[Set[EntityType]] =
-  {
-    val entityOpt = {
-      if (reference.count == COUNT_SINGULAR) {
-        reference.person match {
-          case PERSON_FIRST => communicationContext.speakerEntity
-          case PERSON_SECOND => communicationContext.listenerEntity
-          case _ => None
-        }
-      } else {
-        None
-      }
-    }
-    entityOpt match {
-      case Some(entity) => {
-        Success(Set(entity))
-      }
-      case _ => {
-        if (reference.distance != DISTANCE_UNSPECIFIED) {
-          // FIXME proper resolution for this/that
-          return Success(Set.empty)
-        }
-        // FIXME proper coreference resolution, including within
-        // current sentence; also, there should probably be some limit
-        // on how far back to search.  Note that for the moment we
-        // exclude the current sentence completely.
-        conversation.foreach(
-          _.getUtterances.reverseIterator.drop(1).foreach(
-            utterance => {
-              findMatchingPronounReference(
-                utterance, reference
-              ).foreach(set => {
-                return Success(set)
-              })
-            }
-          )
-        )
-        cosmos.fail("pronoun cannot be resolved")
-      }
-    }
-  }
-
-  private def findMatchingPronounReference(
-    utterance : SpeakerUtterance[EntityType],
-    reference : SilPronounReference) : Option[Set[EntityType]] =
-  {
-    utterance.referenceMap.values.find(set => {
-      thirdPersonReference(set) == Some(reference)
-    })
-  }
-
   def equivalentReferences(
     communicationContext : SmcCommunicationContext[EntityType],
     entity : EntityType,
