@@ -1231,6 +1231,7 @@ class SpcResponderSpec extends Specification
     {
       loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/people.txt")
+
       mind.startConversation
       processExceptionExpected(
         "is she a dog",
@@ -1244,6 +1245,17 @@ class SpcResponderSpec extends Specification
         "then subsequently the person is in the jail")
       processBelief("Todd and Dirk teleport")
       process("are they in the jail", "Yes, Todd and Dirk are in the jail.")
+
+      processBelief("a person may have a lover")
+      processBelief("a person may have a muse")
+      processBelief("Camille is a woman")
+      processBelief("Auguste is a man")
+      processBelief("She is his lover")
+      mind.stopConversation
+
+      mind.startConversation
+      processBelief("Auguste's muse is his lover")
+      processTerse("who is his muse", "Camille.")
     }
 
     "understand sequential timeframes" in new ResponderContext(
