@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
@@ -29,7 +30,21 @@ class SmcScopeSpec extends Specification
 
   private val cosmos = new ZooCosmos
 
-  private val unresolvedMsg = "pronoun cannot be resolved"
+  private val firstPersonSingular =
+    SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+
+  private val thirdPersonSingular =
+    SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
+
+  private val nigelRef = SilNounReference(SilWord("Nigel"))
+
+  private val cliveRef = SilNounReference(SilWord("Clive"))
+
+  private val unresolvedMsg =
+    "Sorry, when you say 'it' I don't know who or what you mean."
+
+  private val ambiguousMsg =
+    "Sorry, when you say 'it', it's ambiguous."
 
   abstract class ScopeContext extends Scope
   {
@@ -40,26 +55,31 @@ class SmcScopeSpec extends Specification
         Some(ZooVisitor),
         Some(ZooKeeper))
     protected val mindScope = new SmcMindScope[
-      SmcEntity, SmcProperty, ZooCosmos, ZooMind](mind)
+      SmcEntity, SmcProperty, ZooCosmos, ZooMind](
+      mind, new SilSentencePrinter
+    )
   }
 
   "SmcScope" should
   {
-    "resolve pronouns" in new ScopeContext
+    "resolve pronouns at mind scope" in new ScopeContext
     {
-      val firstPersonSingular =
-        SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
-      val thirdPersonSingular =
-        SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
       mindScope.resolvePronoun(
         communicationContext,
         firstPersonSingular
       ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooVisitor)))
+    }
+
+    "fail to resolve pronoun without antecedent" in new ScopeContext
+    {
       mindScope.resolvePronoun(
         communicationContext,
         thirdPersonSingular
-      ) must beFailedTry.withThrowable[RuntimeException](unresolvedMsg)
-      val nigelRef = SilNounReference(SilWord("Nigel"))
+      ) must beFailedTry.withThrowable[ShlurdException](unresolvedMsg)
+    }
+
+    "resolve pronouns at phrase scope" in new ScopeContext
+    {
       val referenceMap = Map[SilReference, Set[SmcEntity]](
         nigelRef -> Set(ZooKeeper)
       )
@@ -71,6 +91,18 @@ class SmcScopeSpec extends Specification
         SmcScopeOutput(Some(nigelRef), Set(ZooKeeper))
       )
     }
+
+    "fail to resolve ambiguous pronoun" in new ScopeContext
+    {
+      val referenceMap = Map[SilReference, Set[SmcEntity]](
+        nigelRef -> Set(ZooKeeper),
+        cliveRef -> Set(ZooVisitor)
+      )
+      val phraseScope = new SmcPhraseScope(referenceMap, mindScope)
+      phraseScope.resolvePronoun(
+        communicationContext,
+        thirdPersonSingular
+      ) must beFailedTry.withThrowable[ShlurdException](ambiguousMsg)
+    }
   }
 }
-

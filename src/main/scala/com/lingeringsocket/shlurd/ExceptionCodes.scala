@@ -30,6 +30,7 @@ object ShlurdExceptionCode
   case object NonExistent extends ShlurdExceptionCode
   case object NotUnique extends ShlurdExceptionCode
   case object UnresolvedPronoun extends ShlurdExceptionCode
+  case object AmbiguousPronoun extends ShlurdExceptionCode
   case object TriggerLimit extends ShlurdExceptionCode
   case object CausalityViolation extends ShlurdExceptionCode
   case object NotYetImplemented extends ShlurdExceptionCode

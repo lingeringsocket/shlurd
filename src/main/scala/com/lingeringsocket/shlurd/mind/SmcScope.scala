@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
@@ -34,6 +35,8 @@ trait SmcScope[
 ]{
   def getMind : MindType
 
+  def getSentencePrinter : SilSentencePrinter
+
   def resolvePronoun(
     communicationContext : SmcCommunicationContext[EntityType],
     ref : SilPronounReference
@@ -41,14 +44,59 @@ trait SmcScope[
 
   protected def findMatchingPronounReference(
     referenceMap : Map[SilReference, Set[EntityType]],
-    reference : SilPronounReference) : Option[SmcScopeOutput[EntityType]] =
+    reference : SilPronounReference) : Seq[SmcScopeOutput[EntityType]] =
   {
-    referenceMap.find {
-      case (_, set) => {
-        getMind.thirdPersonReference(set) == Some(reference)
+    var skip = false
+    referenceMap.filter {
+      case (prior, set) => {
+        if (skip) {
+          false
+        } else {
+          // maybe this should be eq instead of ==
+          if (prior == reference) {
+            skip = true
+            false
+          } else {
+            getMind.thirdPersonReference(set) == Some(reference)
+          }
+        }
       }
-    }.map {
+    }.toSeq.map {
       case (prior, set) => SmcScopeOutput(Some(prior), set)
+    }
+  }
+
+  protected def resolveOutput(
+    reference : SilReference,
+    outputs : Seq[SmcScopeOutput[EntityType]])
+      : Try[SmcScopeOutput[EntityType]] =
+  {
+    val sentencePrinter = getSentencePrinter
+    outputs match {
+      case Seq() => {
+        getMind.getCosmos.fail(
+          ShlurdExceptionCode.UnresolvedPronoun,
+          sentencePrinter.sb.respondUnresolvedPronoun(
+            sentencePrinter.print(
+              reference, INFLECT_NOMINATIVE, SilConjoining.NONE)))
+      }
+      case Seq(output) => {
+        Success(output)
+      }
+      case _ => {
+        if (outputs.map(_.entities).distinct.size == 1) {
+          // no ambiguity since they are all coreferences; pick one
+          // arbitrarily
+          Success(outputs.head)
+        } else {
+          // FIXME report ambiguous possibilities in error
+          getMind.getCosmos.fail(
+            ShlurdExceptionCode.AmbiguousPronoun,
+            sentencePrinter.sb.respondAmbiguousPronoun(
+              sentencePrinter.print(
+                reference, INFLECT_NOMINATIVE, SilConjoining.NONE)))
+        }
+      }
     }
   }
 }
@@ -59,10 +107,13 @@ class SmcMindScope[
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
-  mind : MindType
+  mind : MindType,
+  sentencePrinter : SilSentencePrinter
 ) extends SmcScope[EntityType, PropertyType, CosmosType, MindType]
 {
   override def getMind = mind
+
+  override def getSentencePrinter = sentencePrinter
 
   override def resolvePronoun(
     communicationContext : SmcCommunicationContext[EntityType],
@@ -80,32 +131,33 @@ class SmcMindScope[
         None
       }
     }
-    val outputOpt = entityOpt.map(
-      entity => SmcScopeOutput(None, Set(entity))
-    ).orElse {
-      if (reference.distance != DISTANCE_UNSPECIFIED) {
-        // FIXME proper resolution for this/that
-        Some(SmcScopeOutput(None, Set.empty[EntityType]))
-      } else {
-        // FIXME heavy-duty coreference resolution, including current
-        // sentence; also, there should probably be some limit on how
-        // far back to search.
-        if (mind.isConversing) {
-          mind.getConversation.getUtterances.reverseIterator.drop(1).flatMap(
-            utterance => {
-              findMatchingPronounReference(
-                utterance.referenceMap, reference
-              )
-            }
-          ).find(_ => true)
+    val outputs = entityOpt match {
+      case Some(entity) => {
+        Seq(SmcScopeOutput(None, Set(entity)))
+      }
+      case _ => {
+        if (reference.distance != DISTANCE_UNSPECIFIED) {
+          // FIXME proper resolution for this/that
+          Seq(SmcScopeOutput(None, Set.empty[EntityType]))
         } else {
-          None
+          // FIXME heavy-duty coreference resolution, including current
+          // sentence; also, there should probably be some limit on how
+          // far back to search.
+          if (mind.isConversing) {
+            mind.getConversation.getUtterances.reverseIterator.drop(1).map(
+              utterance => {
+                findMatchingPronounReference(
+                  utterance.referenceMap, reference
+                )
+              }
+            ).find(_.nonEmpty).getOrElse(Seq.empty)
+          } else {
+            Seq.empty
+          }
         }
       }
     }
-    outputOpt.map(Success(_)).getOrElse(
-      mind.getCosmos.fail("pronoun cannot be resolved")
-    )
+    resolveOutput(reference, outputs)
   }
 }
 
@@ -121,19 +173,23 @@ class SmcPhraseScope[
 {
   override def getMind = parent.getMind
 
+  override def getSentencePrinter = parent.getSentencePrinter
+
   override def resolvePronoun(
     communicationContext : SmcCommunicationContext[EntityType],
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]] =
   {
-    val outputOpt = ref match {
+    val outputs = ref match {
       case SilPronounReference(PERSON_THIRD, _, _, DISTANCE_UNSPECIFIED) => {
         findMatchingPronounReference(referenceMap, ref)
       }
-      case _ => None
+      case _ => Seq.empty
     }
-    outputOpt.map(Success(_)).getOrElse(
+    if (outputs.isEmpty) {
       parent.resolvePronoun(communicationContext, ref)
-    )
+    } else {
+      resolveOutput(ref, outputs)
+    }
   }
 }

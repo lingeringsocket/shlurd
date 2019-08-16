@@ -1237,6 +1237,11 @@ class SpcResponderSpec extends Specification
         "is she a dog",
         "Sorry, when you say 'she' I don't know who or what you mean.",
         ShlurdExceptionCode.UnresolvedPronoun)
+      process("is Todd or Dirk a dog", "No, neither Todd nor Dirk is a dog.")
+      processExceptionExpected(
+        "is he a cat",
+        "Sorry, when you say 'he', it's ambiguous.",
+        ShlurdExceptionCode.AmbiguousPronoun)
       process("who is Todd", "Todd is Amanda's brother.")
       process("is she a dog", "No, Amanda is not a dog.")
       process("is he Dirk's friend", "Yes, Todd is Dirk's friend.")

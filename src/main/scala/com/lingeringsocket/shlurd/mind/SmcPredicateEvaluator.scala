@@ -856,7 +856,7 @@ class SmcPredicateEvaluator[
           resultCollector,
           reference,
           () => {
-            val mindScope = new MindScopeType(mind)
+            val mindScope = new MindScopeType(mind, sentencePrinter)
             val scope = new SmcPhraseScope(
               resultCollector.referenceMap, mindScope)
             scope.resolvePronoun(communicationContext, pr).map(out => {
@@ -866,23 +866,16 @@ class SmcPredicateEvaluator[
             })
           }
         )
-        entitiesTry match {
-          case Success(entities) => {
-            trace(s"CANDIDATE ENTITIES : $entities")
-            evaluateDeterminer(
-              entities.map(
-                invokeEvaluator(_, reference, resultCollector, evaluator)),
-              DETERMINER_ALL)
-          }
-          case Failure(e) => {
-            trace("ERROR", e)
-            cosmos.fail(
-              ShlurdExceptionCode.UnresolvedPronoun,
-              sentencePrinter.sb.respondUnresolvedPronoun(
-                sentencePrinter.print(
-                  reference, INFLECT_NOMINATIVE, SilConjoining.NONE)))
-          }
-        }
+        entitiesTry.transform(entities => {
+          trace(s"CANDIDATE ENTITIES : $entities")
+          evaluateDeterminer(
+            entities.map(
+              invokeEvaluator(_, reference, resultCollector, evaluator)),
+            DETERMINER_ALL)
+        }, e => {
+          trace("ERROR", e)
+          Failure(e)
+        })
       }
       case SilConjunctiveReference(determiner, references, separator) => {
         val results = references.map(

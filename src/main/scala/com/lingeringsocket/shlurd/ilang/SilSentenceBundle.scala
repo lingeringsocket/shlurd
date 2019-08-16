@@ -185,6 +185,8 @@ abstract class SilSentenceBundle
 
   def respondUnresolvedPronoun(pronoun : String) : String
 
+  def respondAmbiguousPronoun(pronoun : String) : String
+
   def respondNonexistent(entity : SilWord) : String
 
   def respondCannotUnderstand() : String

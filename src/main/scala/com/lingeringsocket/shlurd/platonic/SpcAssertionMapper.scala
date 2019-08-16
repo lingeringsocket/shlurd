@@ -41,7 +41,8 @@ object SpcAssertionMapper
 class SpcAssertionMapper(
   mind : SpcMind,
   communicationContext : SmcCommunicationContext[SpcEntity],
-  inputRewriter : SmcInputRewriter[SpcEntity, SpcProperty, SpcCosmos])
+  inputRewriter : SmcInputRewriter[SpcEntity, SpcProperty, SpcCosmos],
+  sentencePrinter : SilSentencePrinter)
     extends SmcDebuggable(new SmcDebugger(SpcAssertionMapper.logger))
 {
   type MindScopeType = SmcMindScope[
@@ -225,7 +226,7 @@ class SpcAssertionMapper(
           case pr : SilPronounReference => {
             // FIXME use SmcPhraseScope, and make use
             // of prior reference too
-            val scope = new MindScopeType(mind)
+            val scope = new MindScopeType(mind, sentencePrinter)
             scope.resolvePronoun(communicationContext, pr) match {
               case Success(SmcScopeOutput(_, entities)) if (
                 !entities.isEmpty

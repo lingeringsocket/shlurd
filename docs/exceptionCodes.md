@@ -9,6 +9,7 @@ After a tribble eats,
  the tribble has a baby;
  also the tribble's baby eats.
 Terence is a tribble.
+Trevor is a tribble.
 ```
 
 ## FailedParse
@@ -57,6 +58,14 @@ Please be more specific about which investigator you mean.
 > who is he
 
 Sorry, when you say 'he' I don't know who or what you mean.
+```
+
+## AmbiguousPronoun
+
+```scala mdoc:processConversation
+> are Terence and Trevor its baby
+
+Sorry, when you say 'it', it's ambiguous.
 ```
 
 ## TriggerLimit
@@ -114,9 +123,9 @@ The belief that an ewok is a kind of animal is prohibited in the given context.
 ## ImplicitPropertiesProhibited
 
 ```scala mdoc:processConversation:preventImplicits
-> the tribble is hungry
+> Trevor is hungry
 
-The belief that the tribble is hungry is prohibited in the given context.
+The belief that Trevor is hungry is prohibited in the given context.
 ```
 
 ## TentativeIdealsProhibited

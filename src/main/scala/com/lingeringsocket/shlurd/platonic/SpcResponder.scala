@@ -122,7 +122,7 @@ class SpcResponder(
   private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
   private val assertionMapper = new SpcAssertionMapper(
-    mind, communicationContext, inputRewriter)
+    mind, communicationContext, inputRewriter, sentencePrinter)
 
   override protected def spawn(subMind : SpcMind) =
   {
@@ -1121,7 +1121,7 @@ class SpcResponder(
         case pr : SilPronounReference => {
           // FIXME in case no entities are resolved, try prior
           // reference instead
-          val mindScope = new MindScopeType(mind)
+          val mindScope = new MindScopeType(mind, sentencePrinter)
           val scope = new SmcPhraseScope(
             referenceMap, mindScope)
           scope.resolvePronoun(communicationContext, pr) match {

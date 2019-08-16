@@ -831,6 +831,12 @@ class SilEnglishSentenceBundle
       concat("'", pronoun, "'"), "I don't know who or what you mean.")
   }
 
+  override def respondAmbiguousPronoun(pronoun : String) =
+  {
+    compose("Sorry, when you say",
+      concat("'", pronoun, "',"), "it's ambiguous.")
+  }
+
   override def respondNonexistent(noun : SilWord) =
   {
     compose("But I don't know about any such",
