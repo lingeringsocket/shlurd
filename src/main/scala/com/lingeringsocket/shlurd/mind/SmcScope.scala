@@ -41,11 +41,15 @@ trait SmcScope[
 
   protected def findMatchingPronounReference(
     referenceMap : Map[SilReference, Set[EntityType]],
-    reference : SilPronounReference) : Option[Set[EntityType]] =
+    reference : SilPronounReference) : Option[SmcScopeOutput[EntityType]] =
   {
-    referenceMap.values.find(set => {
-      getMind.thirdPersonReference(set) == Some(reference)
-    })
+    referenceMap.find {
+      case (_, set) => {
+        getMind.thirdPersonReference(set) == Some(reference)
+      }
+    }.map {
+      case (prior, set) => SmcScopeOutput(Some(prior), set)
+    }
   }
 }
 
@@ -76,12 +80,14 @@ class SmcMindScope[
         None
       }
     }
-    val entitiesOpt = entityOpt.map(entity => Set(entity)).orElse {
+    val outputOpt = entityOpt.map(
+      entity => SmcScopeOutput(None, Set(entity))
+    ).orElse {
       if (reference.distance != DISTANCE_UNSPECIFIED) {
         // FIXME proper resolution for this/that
-        Some(Set.empty[EntityType])
+        Some(SmcScopeOutput(None, Set.empty[EntityType]))
       } else {
-        // FIXME proper coreference resolution, including current
+        // FIXME heavy-duty coreference resolution, including current
         // sentence; also, there should probably be some limit on how
         // far back to search.
         if (mind.isConversing) {
@@ -97,14 +103,9 @@ class SmcMindScope[
         }
       }
     }
-    entitiesOpt match {
-      case Some(entities) => {
-        Success(SmcScopeOutput(None, entities))
-      }
-      case _ => {
-        mind.getCosmos.fail("pronoun cannot be resolved")
-      }
-    }
+    outputOpt.map(Success(_)).getOrElse(
+      mind.getCosmos.fail("pronoun cannot be resolved")
+    )
   }
 }
 
@@ -125,19 +126,14 @@ class SmcPhraseScope[
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]] =
   {
-    val entitiesOpt = ref match {
+    val outputOpt = ref match {
       case SilPronounReference(PERSON_THIRD, _, _, DISTANCE_UNSPECIFIED) => {
         findMatchingPronounReference(referenceMap, ref)
       }
       case _ => None
     }
-    entitiesOpt match {
-      case Some(entities) => {
-        Success(SmcScopeOutput(None, entities))
-      }
-      case _ => {
-        parent.resolvePronoun(communicationContext, ref)
-      }
-    }
+    outputOpt.map(Success(_)).getOrElse(
+      parent.resolvePronoun(communicationContext, ref)
+    )
   }
 }
