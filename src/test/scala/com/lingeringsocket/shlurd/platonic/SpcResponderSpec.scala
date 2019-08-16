@@ -1862,6 +1862,7 @@ class SpcResponderSpec extends Specification
         ("Amanda and Todd", "person"),
         ("Amanda and BLACKWING", "spc-entity"),
         ("Todd's sister", "woman"),
+        ("Todd and his sister", "person"),
         ("Rapunzel's owner", "person")
       ).foreach {
         case (
@@ -1887,8 +1888,9 @@ class SpcResponderSpec extends Specification
               throw new RuntimeException(s"unexpected sentence $sentence")
             }
           }
-          responder.deriveType(subjectRef).name must
-            be equalTo expectedType
+          responder.deriveType(
+            subjectRef, resultCollector.referenceMap
+          ).name must be equalTo expectedType
         }
       }
     }

@@ -88,7 +88,8 @@ class SpcContextualScorer(responder : SpcResponder)
             })
           }
           case _ => {
-            val form = responder.deriveType(subject)
+            val form = responder.deriveType(
+              subject, resultCollector.referenceMap)
             cosmos.resolveHypernymPropertyState(form, lemma).nonEmpty
           }
         }
@@ -192,7 +193,7 @@ class SpcResponder(
       refEquivalence : mutable.Map[SilReference, SilReference]
     ) : SilPredicate =
     {
-      if (scoreEquivalentPredicate(predicate) == 1) {
+      if (scoreEquivalentPredicate(predicate, referenceMap) == 1) {
         // the original predicate is something that we want to
         // keep no matter what
         return predicate
@@ -212,18 +213,20 @@ class SpcResponder(
               None,
               Some(refEquivalence)))
         }
-      ).map(optimizeEquivalentPredicate)
+      ).map(p => optimizeEquivalentPredicate(p, referenceMap))
       replacements.filter(_._2 >= 0).sortBy(_._2).map(_._1).headOption.
         getOrElse(predicate)
     }
 
-    private def scoreEquivalentPredicate(predicate : SilPredicate) : Int =
+    private def scoreEquivalentPredicate(
+      predicate : SilPredicate,
+      referenceMap : Map[SilReference, Set[SpcEntity]]) : Int =
     {
       predicate match {
         case SilStatePredicate(
           subject, _, SilPropertyState(SilWordLemma(lemma)), _
         ) => {
-          val form = deriveType(subject)
+          val form = deriveType(subject, referenceMap)
           mind.getCosmos.resolveHypernymPropertyState(
             form, lemma).map(_ => 1).getOrElse(-1)
         }
@@ -232,14 +235,16 @@ class SpcResponder(
     }
 
     private def optimizeEquivalentPredicate(
-      sil : SilPredicate) : (SilPredicate, Int) =
+      sil : SilPredicate,
+      referenceMap : Map[SilReference, Set[SpcEntity]]
+    ) : (SilPredicate, Int) =
     {
       val rewriter = new SilPhraseRewriter
       var score = 0
       def optimizePredicate = rewriter.replacementMatcher(
         "optimizePredicate", {
           case sp : SilStatePredicate => {
-            if (scoreEquivalentPredicate(sp) == -1) {
+            if (scoreEquivalentPredicate(sp, referenceMap) == -1) {
               score = -1
             }
             sp
@@ -734,7 +739,7 @@ class SpcResponder(
           complement,
           modifiers
         ) => {
-          val form = deriveType(complement)
+          val form = deriveType(complement, resultCollector.referenceMap)
           if (mind.getCosmos.findProperty(form, lemma).nonEmpty) {
             val statePredicate = SilStatePredicate(
               complement,
@@ -1074,16 +1079,17 @@ class SpcResponder(
   }
 
   private[platonic] def deriveType(
-    ref : SilReference) : SpcForm =
+    ref : SilReference,
+    referenceMap : Map[SilReference, Set[SpcEntity]]) : SpcForm =
   {
     def cosmos = mind.getCosmos
     typeMemo.getOrElseUpdate(ref, {
       ref match {
         case SilConjunctiveReference(_, refs, _) => {
-          lcaType(refs.map(deriveType).toSet)
+          lcaType(refs.map(r => deriveType(r, referenceMap)).toSet)
         }
         case SilGenitiveReference(possessor, SilNounReference(noun, _, _)) => {
-          val possessorType = deriveType(possessor)
+          val possessorType = deriveType(possessor, referenceMap)
           mind.resolveRole(possessorType, noun) match {
             case Some(role) => {
               lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
@@ -1113,9 +1119,11 @@ class SpcResponder(
           }
         }
         case pr : SilPronounReference => {
-          // FIXME use SmcPhraseScope, and in case no entities are
-          // resolved, try prior reference instead
-          val scope = new MindScopeType(mind)
+          // FIXME in case no entities are resolved, try prior
+          // reference instead
+          val mindScope = new MindScopeType(mind)
+          val scope = new SmcPhraseScope(
+            referenceMap, mindScope)
           scope.resolvePronoun(communicationContext, pr) match {
             case Success(SmcScopeOutput(_, entities)) => {
               lcaType(entities.map(_.form))
@@ -1124,7 +1132,7 @@ class SpcResponder(
           }
         }
         case SilStateSpecifiedReference(sub, state) => {
-          deriveType(sub)
+          deriveType(sub, referenceMap)
         }
         case _ => unknownType
       }
