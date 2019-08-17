@@ -442,6 +442,26 @@ class SpcGraph(
   def getPossesseeEntity(edge : SpcEntityAssocEdge) =
     entityAssocs.getEdgeTarget(edge)
 
+  def getOutgoingEntityAssocEdges(entity : SpcEntity) =
+  {
+    entity match {
+      case _ : SpcPersistentEntity => {
+        entityAssocs.outgoingEdgesOf(entity).asScala.toSeq
+      }
+      case _ => Seq.empty
+    }
+  }
+
+  def getIncomingEntityAssocEdges(entity : SpcEntity) =
+  {
+    entity match {
+      case _ : SpcPersistentEntity => {
+        entityAssocs.incomingEdgesOf(entity).asScala.toSeq
+      }
+      case _ => Seq.empty
+    }
+  }
+
   def getIdealBySynonym(
     synonym : SpcIdealSynonym) : SpcIdeal =
   {

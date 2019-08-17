@@ -566,6 +566,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "accept triggers" in new CosmosContext
     {
+      addBelief("an object's possessor must be a person")
       cosmos.getTriggers must beEmpty
       cosmos.getAssertions must beEmpty
       addBelief("if a person is an object's possessor, " +

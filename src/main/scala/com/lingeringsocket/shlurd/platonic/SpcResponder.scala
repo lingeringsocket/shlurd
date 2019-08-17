@@ -138,9 +138,9 @@ class SpcResponder(
     SprParser(input, context)
   }
 
-  override protected def newPredicateEvaluator() =
+  override protected def newPredicateEvaluator(scope : ScopeType = mindScope) =
     new SmcPredicateEvaluator[SpcEntity, SpcProperty, SpcCosmos, SpcMind](
-      mind, sentencePrinter, params.existenceAssumption,
+      scope, params.existenceAssumption,
       communicationContext, debugger)
   {
     override protected def reifyRole(
@@ -1038,6 +1038,9 @@ class SpcResponder(
       case InvalidBeliefExcn(code, belief) => {
         s"I am unable to validate the belief that ${beliefString}."
       }
+      case UnacceptableBeliefExcn(code, cause, belief) => {
+        cause
+      }
       case ProhibitedBeliefExcn(code, belief) => {
         s"The belief that ${beliefString} is prohibited in the given context."
       }
@@ -1121,7 +1124,6 @@ class SpcResponder(
         case pr : SilPronounReference => {
           // FIXME in case no entities are resolved, try prior
           // reference instead
-          val mindScope = new MindScopeType(mind, sentencePrinter)
           val scope = new SmcPhraseScope(
             referenceMap, mindScope)
           scope.resolvePronoun(communicationContext, pr) match {

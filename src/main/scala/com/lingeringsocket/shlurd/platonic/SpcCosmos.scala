@@ -268,7 +268,10 @@ class SpcCosmicPool
     new mutable.HashMap[(SpcRole, SpcForm), (Int, Boolean)]
 
   @transient val nounCache =
-    new mutable.HashMap[(String, Set[String]), (Int, Try[Set[SpcEntity]])]
+    new mutable.HashMap[
+      (String, SilReferenceContext, Set[String]),
+      (Int, Try[Set[SpcEntity]])
+    ]
 
   def accessCache[K, V](
     cache : mutable.Map[K, (Int, V)],
@@ -830,15 +833,14 @@ class SpcCosmos(
       forgetEntity(oldEntity)
       assert {
         val outgoingAssocs =
-          getEntityAssocGraph.outgoingEdgesOf(newEntity).asScala.
-            toSeq.map(_.getRoleName).distinct
+          graph.getOutgoingEntityAssocEdges(newEntity).
+            map(_.getRoleName).distinct
         outgoingAssocs.forall(roleName => {
           sanityCheckConstraint(newEntity, roleName)
         })
       }
       assert {
-        val incomingEdges =
-          getEntityAssocGraph.incomingEdgesOf(newEntity).asScala.toSeq
+        val incomingEdges = graph.getIncomingEntityAssocEdges(newEntity)
         incomingEdges.forall(entityEdge => {
           sanityCheckConstraint(
             graph.getPossessorEntity(entityEdge),
@@ -1278,8 +1280,7 @@ class SpcCosmos(
     val formEdge = getFormAssocForRole(role)
     val constraint = formEdge.constraint
     if (constraint.upper < Int.MaxValue) {
-      val entityEdges = getEntityAssocGraph.
-        outgoingEdgesOf(possessor).asScala
+      val entityEdges = graph.getOutgoingEntityAssocEdges(possessor)
       val c = entityEdges.count(edge => {
         val possesseeRole = getPossesseeRole(edge)
         isHyponym(role, possesseeRole) || isHyponym(possesseeRole, role)
@@ -1294,18 +1295,18 @@ class SpcCosmos(
     role : SpcRole)
       : Set[SpcEntity] =
   {
-    SprUtils.orderedSet(getEntityAssocGraph.outgoingEdgesOf(possessor).
-      asScala.toSeq.filter(
-        edge => {
-          val possesseeRole = getPossesseeRole(edge)
-          (isHyponym(possesseeRole, role) ||
-            (isHyponym(role, possesseeRole))
-          ) &&
-            isFormCompatibleWithRole(
-              graph.getPossesseeEntity(edge).form, role)
-        }
-      ).map(
-        graph.getPossesseeEntity))
+    SprUtils.orderedSet(graph.getOutgoingEntityAssocEdges(possessor).filter(
+      edge => {
+        val possesseeRole = getPossesseeRole(edge)
+        (isHyponym(possesseeRole, role) ||
+          (isHyponym(role, possesseeRole))
+        ) &&
+        isFormCompatibleWithRole(
+          graph.getPossesseeEntity(edge).form, role)
+      }
+    ).map(
+      graph.getPossesseeEntity
+    ))
   }
 
   private[platonic] def resolveIdeal(
@@ -1330,12 +1331,15 @@ class SpcCosmos(
   {
     pool.accessCache(
       pool.nounCache,
-      tupleN((lemma, qualifiers)),
+      tupleN((lemma, context, qualifiers)),
       pool.entityTimestamp + pool.taxonomyTimestamp,
-      lookupNoun(lemma, qualifiers))
+      lookupNoun(lemma, context, qualifiers))
   }
 
-  private def lookupNoun(lemma : String, qualifiers : Set[String]) =
+  private def lookupNoun(
+    lemma : String,
+    context : SilReferenceContext,
+    qualifiers : Set[String]) =
   {
     resolveForm(lemma).map(form => {
       Success(SprUtils.orderedSet(
@@ -1351,8 +1355,12 @@ class SpcCosmos(
         case seq if (seq.nonEmpty) => {
           Success(SprUtils.orderedSet(seq))
         }
-        case _ => {
-          fail(s"unknown ideal $lemma")
+        case empty => {
+          if (context == REF_GENITIVE_POSSESSEE) {
+            Success(empty.toSet)
+          } else {
+            fail(s"unknown ideal $lemma")
+          }
         }
       }
     }
@@ -1417,7 +1425,14 @@ class SpcCosmos(
   def getEntityPropertyMap(entity : SpcEntity)
       : Map[String, SpcEntityPropertyState] =
   {
-    graph.entityPropertyIndex.accessComponentMap(entity)
+    entity match {
+      case _ : SpcPersistentEntity => {
+        graph.entityPropertyIndex.accessComponentMap(entity)
+      }
+      case _ => {
+        Map.empty
+      }
+    }
   }
 
   override def resolvePropertyName(

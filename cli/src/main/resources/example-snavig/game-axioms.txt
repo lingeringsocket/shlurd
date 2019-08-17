@@ -8,6 +8,7 @@ Bedrooms, bathrooms, kitchens, cupboards, and lofts are kinds of map-place.
 A cupboard is a kind of visible-entity.
 
 An oracle is a kind of non-player-character.
+There is an oracle.
 
 After a player-character beseeches an oracle,
  the game-interpreter says "Answer me these questions three.".

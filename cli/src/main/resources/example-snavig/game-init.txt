@@ -33,6 +33,5 @@ The player-character believes "/example-snavig/player-mind-init.txt".
 
 The lantern and the cupboard are in the kitchen.
 
-There is an oracle.
 The oracle is omniscient.
 The oracle is in the cupboard.

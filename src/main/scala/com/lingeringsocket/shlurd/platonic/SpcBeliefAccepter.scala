@@ -20,6 +20,7 @@ import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
 import scala.collection.JavaConverters._
+import scala.util._
 
 import org.jgrapht.alg.shortestpath._
 
@@ -985,9 +986,55 @@ class SpcBeliefAccepter private(
       additionalConsequents,
       alternative
     ) => {
+      sentence matchPartial {
+        case conditional : SilConditionalSentence => {
+          val antecedentRefs = validateAssertionPredicate(
+            sentence, conditional.antecedent)
+          validateAssertionPredicate(
+            sentence, conditional.consequent, antecedentRefs)
+          additionalConsequents.foreach(ac => {
+            validateAssertionPredicate(sentence, ac.predicate, antecedentRefs)
+          })
+        }
+        case ps : SilPredicateSentence => {
+          validateAssertionPredicate(sentence, ps.predicate)
+        }
+      }
       cosmos.addAssertion(
         SpcAssertion(sentence, additionalConsequents, alternative))
     }
+  }
+
+  private def validateAssertionPredicate(
+    belief : SilSentence,
+    predicate : SilPredicate,
+    antecedentRefs : Map[SilReference, Set[SpcEntity]] = Map.empty)
+      : Map[SilReference, Set[SpcEntity]] =
+  {
+    val resultCollector = SmcResultCollector[SpcEntity]()
+    val scope = new SmcPhraseScope(
+      antecedentRefs,
+      responder.mindScope
+    )
+    responder.resolveReferences(
+      predicate, resultCollector, true, false, scope
+    ) matchPartial {
+      case Failure(ShlurdException(code, msg)) => {
+        throw UnacceptableBeliefExcn(code, msg, belief)
+      }
+      case Failure(e) => {
+        throw e
+      }
+    }
+    val refs = SilUtils.collectReferences(predicate)
+    refs.flatMap(_ match {
+      case nr @ SilNounReference(_, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => {
+        val form = responder.deriveType(nr, resultCollector.referenceMap)
+        val placeholder : SpcEntity = SpcTransientEntity(form, "", "")
+        Some((nr, Set(placeholder)))
+      }
+      case _ => None
+    }).toMap
   }
 
   beliefApplier {

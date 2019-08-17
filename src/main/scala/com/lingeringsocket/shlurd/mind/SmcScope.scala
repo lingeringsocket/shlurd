@@ -37,6 +37,11 @@ trait SmcScope[
 
   def getSentencePrinter : SilSentencePrinter
 
+  def resolveQualifiedNoun(
+    noun : SilWord,
+    context : SilReferenceContext,
+    qualifiers : Set[String] = Set.empty) : Try[SmcScopeOutput[EntityType]]
+
   def resolvePronoun(
     communicationContext : SmcCommunicationContext[EntityType],
     ref : SilPronounReference
@@ -115,6 +120,16 @@ class SmcMindScope[
 
   override def getSentencePrinter = sentencePrinter
 
+  override def resolveQualifiedNoun(
+    noun : SilWord,
+    context : SilReferenceContext,
+    qualifiers : Set[String] = Set.empty) =
+  {
+    mind.resolveQualifiedNoun(noun, context, qualifiers).map(entities => {
+      SmcScopeOutput(None, entities)
+    })
+  }
+
   override def resolvePronoun(
     communicationContext : SmcCommunicationContext[EntityType],
     reference : SilPronounReference
@@ -174,6 +189,40 @@ class SmcPhraseScope[
   override def getMind = parent.getMind
 
   override def getSentencePrinter = parent.getSentencePrinter
+
+  override def resolveQualifiedNoun(
+    noun : SilWord,
+    context : SilReferenceContext,
+    qualifiers : Set[String] = Set.empty) =
+  {
+    val outputs = {
+      if (qualifiers.isEmpty && !noun.isProper) {
+        val nounLemma = noun.toNounLemma
+        referenceMap.filter {
+          case (prior, set) => {
+            prior match {
+              case SilNounReference(
+                SilWordLemma(lemma), DETERMINER_NONSPECIFIC, _
+              ) if (lemma == nounLemma) => {
+                true
+              }
+              case _ => false
+            }
+          }
+        }.toSeq.map {
+          case (prior, set) => SmcScopeOutput(Some(prior), set)
+        }
+      } else {
+        Seq.empty
+      }
+    }
+    if (outputs.isEmpty) {
+      parent.resolveQualifiedNoun(noun, context, qualifiers)
+    } else {
+      // FIXME
+      Success(outputs.head)
+    }
+  }
 
   override def resolvePronoun(
     communicationContext : SmcCommunicationContext[EntityType],

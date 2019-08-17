@@ -6,7 +6,7 @@ A thief must be boorish or suave.
 
 After a game-character kills a kill-victim,
  the kill-victim is dead.
-After a game-character kills the thief,
+After a game-character kills a thief,
  the game-interpreter says "Blood splatters everywhere.".
 
 When a game-character throws a game-weapon,
@@ -14,5 +14,6 @@ When a game-character throws a game-weapon,
 When a game-character throws a game-weapon at a throw-target,
  the game-character kills the throw-target with the game-weapon.
 
+There is a thief.
 Whenever the game-turn advances,
  the thief surveys the thief's container.

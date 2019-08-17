@@ -865,21 +865,18 @@ class SpcBeliefRecognizer(
   }
 
   private def validateConsequent(
+    exceptionReporter : ExceptionReporter,
     isBefore : Boolean,
     isUnidirectional : Boolean,
     consequent : SilPredicate,
     biconditional : Boolean,
     antecedentEvent : Boolean,
-    checkPatterns : Boolean = true) : Option[ShlurdExceptionCode] =
+    checkPatterns : Boolean = true)
   {
     val querier = new SilPhraseRewriter
-    var exceptionCode : Option[ShlurdExceptionCode] = None
     def reportException(code : ShlurdExceptionCode)
     {
-      trace(s"INVALID ASSERTION:  $code")
-      if (exceptionCode.isEmpty) {
-        exceptionCode = Some(code)
-      }
+      exceptionReporter.reportException(code)
     }
     if (isBefore && isUnidirectional) {
       reportException(AssertionModifiersIncompatible)
@@ -926,7 +923,6 @@ class SpcBeliefRecognizer(
     if (checkPatterns) {
       querier.query(visitConsequent, consequent)
     }
-    exceptionCode
   }
 
   private def recognizeAssertionBelief(
@@ -934,13 +930,10 @@ class SpcBeliefRecognizer(
     additionalSentences : Seq[SilPredicateSentence] = Seq.empty)
       : Seq[SpcBelief] =
   {
-    var exceptionCode : Option[ShlurdExceptionCode] = None
+    val exceptionReporter = new ExceptionReporter
     def reportException(code : ShlurdExceptionCode)
     {
-      trace(s"INVALID ASSERTION:  $code")
-      if (exceptionCode.isEmpty) {
-        exceptionCode = Some(code)
-      }
+      exceptionReporter.reportException(code)
     }
     var ignored = false
     val additionalConsequents = new mutable.ArrayBuffer[SilPredicateSentence]
@@ -1024,13 +1017,14 @@ class SpcBeliefRecognizer(
           }
         }
         validateConsequent(
+          exceptionReporter,
           isBefore,
           isConsequentSubsequently || isConsequentImplication,
           consequent,
           conditional.biconditional,
           antecedentEvent,
           consequentNonModal
-        ).foreach(code => reportException(code))
+        )
         additionalSentences.foreach(additionalSentence => {
           val modifiers = extractBasicModifierLemmas(
             additionalSentence.predicate)
@@ -1042,13 +1036,14 @@ class SpcBeliefRecognizer(
             reportException(AssertionModifiersIncompatible)
           }
           validateConsequent(
+            exceptionReporter,
             isBefore,
             isSubsequently || isConsequentSubsequently ||
               isConsequentImplication || isImplication,
             additionalSentence.predicate,
             conditional.biconditional,
             antecedentEvent
-          ).foreach(code => reportException(code))
+          )
           if (isOtherwise && isAlso) {
             reportException(AssertionModifiersIncompatible)
           } else if (isOtherwise) {
@@ -1087,12 +1082,12 @@ class SpcBeliefRecognizer(
           reportException(AssertionModifiersIncompatible)
         }
         val querier = new SilPhraseRewriter
-        def validateAssertion = querier.queryMatcher {
+        def validateCapability = querier.queryMatcher {
           case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
             ignored = true
           }
         }
-        querier.query(validateAssertion, predicate)
+        querier.query(validateCapability, predicate)
         tam.modality match {
           case MODAL_MAY | MODAL_POSSIBLE | MODAL_CAPABLE | MODAL_PERMITTED => {
           }
@@ -1108,10 +1103,11 @@ class SpcBeliefRecognizer(
         }
       }
     }
-    if (exceptionCode.nonEmpty) {
-      Seq(InvalidBelief(assertionSentence, exceptionCode.get))
-    } else if (ignored) {
+    val exceptionCode = exceptionReporter.getCode
+    if (ignored) {
       Seq.empty
+    } else if (exceptionCode.nonEmpty) {
+      Seq(InvalidBelief(assertionSentence, exceptionCode.get))
     } else {
       Seq(AssertionBelief(
         assertionSentence, additionalConsequents, alternative))
@@ -1644,5 +1640,20 @@ class SpcBeliefRecognizer(
       }
       case _ => failedResult
     }
+  }
+
+  class ExceptionReporter()
+  {
+    private var exceptionCode : Option[ShlurdExceptionCode] = None
+
+    def reportException(code : ShlurdExceptionCode)
+    {
+      trace(s"INVALID ASSERTION:  $code")
+      if (exceptionCode.isEmpty) {
+        exceptionCode = Some(code)
+      }
+    }
+
+    def getCode() = exceptionCode
   }
 }

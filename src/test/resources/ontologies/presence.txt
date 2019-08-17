@@ -11,6 +11,7 @@ If a person is present, then equivalently the person's ubiety is on.
 If a person is absent, then equivalently the person's ubiety is off.
 If a person is away, then equivalently the person's ubiety is off.
 If a person is home, then equivalently the person's ubiety is on.
+There is a home.
 If a person is at home, then equivalently the person's ubiety is on.
 A ghost's apparition must be a presence.
 A ghost must have an apparition.

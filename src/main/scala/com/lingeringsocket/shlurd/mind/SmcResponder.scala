@@ -194,9 +194,10 @@ class SmcResponder[
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
-  type MindScopeType = SmcMindScope[
-    EntityType, PropertyType, CosmosType, MindType
-  ]
+  type ScopeType = SmcScope[EntityType, PropertyType, CosmosType, MindType]
+
+  type MindScopeType =
+    SmcMindScope[EntityType, PropertyType, CosmosType, MindType]
 
   type PartialSentenceResponder =
     PartialFunction[SilSentence, (SilSentence, String)]
@@ -212,7 +213,7 @@ class SmcResponder[
 
   val sentencePrinter = new SilSentencePrinter
 
-  lazy protected val predicateEvaluator = newPredicateEvaluator
+  val mindScope = new MindScopeType(mind, sentencePrinter)
 
   protected def responderMatchers(
     resultCollector : ResultCollectorType
@@ -224,9 +225,9 @@ class SmcResponder[
 
   def getMind = mind
 
-  protected def newPredicateEvaluator() =
+  protected def newPredicateEvaluator(scope : ScopeType = mindScope) =
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
-      mind, sentencePrinter, generalParams.existenceAssumption,
+      scope, generalParams.existenceAssumption,
       communicationContext, debugger)
 
   def newParser(input : String) =
@@ -282,19 +283,22 @@ class SmcResponder[
     phrase : SilPhrase,
     resultCollector : ResultCollectorType,
     throwFailures : Boolean = false,
-    reify : Boolean = false) : Try[Trilean] =
+    reify : Boolean = false,
+    scope : ScopeType = mindScope
+  ) : Try[Trilean] =
   {
     debugger.setContext(phrase.toString)
-    resolveReferencesImpl(phrase, resultCollector, throwFailures, reify)
+    resolveReferencesImpl(phrase, resultCollector, throwFailures, reify, scope)
   }
 
   private def resolveReferencesImpl(
     phrase : SilPhrase,
     resultCollector : ResultCollectorType,
     throwFailures : Boolean = false,
-    reify : Boolean = false) : Try[Trilean] =
+    reify : Boolean = false,
+    scope : ScopeType = mindScope) : Try[Trilean] =
   {
-    predicateEvaluator.resolveReferences(
+    newPredicateEvaluator(scope).resolveReferences(
       phrase, resultCollector, throwFailures, reify)
   }
 
@@ -405,7 +409,7 @@ class SmcResponder[
   {
     debug("STATE CHANGE COMMAND")
 
-    val result = predicateEvaluator.evaluatePredicate(
+    val result = newPredicateEvaluator().evaluatePredicate(
       predicate, resultCollector)
 
     result match {
@@ -788,7 +792,7 @@ class SmcResponder[
           evaluatePastPredicate(predicate, resultCollector)
         }
         case TENSE_PRESENT => {
-          predicateEvaluator.evaluatePredicate(predicate, resultCollector)
+          newPredicateEvaluator().evaluatePredicate(predicate, resultCollector)
         }
         case TENSE_FUTURE => {
           cosmos.fail(
@@ -882,7 +886,7 @@ class SmcResponder[
     } else {
       val pastCollector = SmcResultCollector[EntityType]
       val pastMind = imagine(entry.updatedCosmos)
-      val pastPredicateEvaluator = spawn(pastMind).predicateEvaluator
+      val pastPredicateEvaluator = spawn(pastMind).newPredicateEvaluator()
       val pastTruthTry = pastPredicateEvaluator.evaluatePredicate(
         boundPredicate, pastCollector)
       val pastTruth = pastTruthTry.getOrElse(return pastTruthTry).assumeFalse

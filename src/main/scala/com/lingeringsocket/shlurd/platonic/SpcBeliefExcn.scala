@@ -89,3 +89,11 @@ case class IncrementalCardinalityExcn(
       belief.toWordString + " vs original:  " + originalBelief.toWordString)
 {
 }
+
+case class UnacceptableBeliefExcn(
+  code : ShlurdExceptionCode,
+  cause : String,
+  belief : SilSentence
+) extends RejectedBeliefExcn(code, cause)
+{
+}

@@ -32,8 +32,7 @@ class SmcPredicateEvaluator[
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
-  mind : MindType,
-  sentencePrinter : SilSentencePrinter,
+  scope : SmcScope[EntityType, PropertyType, CosmosType, MindType],
   existenceAssumption : SmcExistenceAssumption,
   communicationContext : SmcCommunicationContext[EntityType],
   debugger : SmcDebugger)
@@ -41,13 +40,13 @@ class SmcPredicateEvaluator[
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
-  type MindScopeType = SmcMindScope[
-    EntityType, PropertyType, CosmosType, MindType
-  ]
-
   type EntityPredicateEvaluator = (EntityType, SilReference) => Try[Trilean]
 
   private val wildcardQuerier = new SmcPhraseRewriter
+
+  private val mind = scope.getMind
+
+  private val sentencePrinter = scope.getSentencePrinter
 
   private def cosmos = mind.getCosmos
 
@@ -790,9 +789,10 @@ class SmcPredicateEvaluator[
               }
             }
             // FIXME this is silly
-            case DETERMINER_UNSPECIFIED =>
+            case DETERMINER_UNSPECIFIED => {
               (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
-                (lemma == LEMMA_WHERE)
+              (lemma == LEMMA_WHERE)
+            }
             case _ => true
           }
           if (bail) {
@@ -808,10 +808,10 @@ class SmcPredicateEvaluator[
               cacheReference(
                 resultCollector,
                 reference,
-                () => mind.resolveQualifiedNoun(
+                () => scope.resolveQualifiedNoun(
                   noun, context,
                   cosmos.qualifierSet(
-                    SilUtils.extractQualifiers(specifiedState)))
+                    SilUtils.extractQualifiers(specifiedState))).map(_.entities)
               )
             }
           }
@@ -856,10 +856,9 @@ class SmcPredicateEvaluator[
           resultCollector,
           reference,
           () => {
-            val mindScope = new MindScopeType(mind, sentencePrinter)
-            val scope = new SmcPhraseScope(
-              resultCollector.referenceMap, mindScope)
-            scope.resolvePronoun(communicationContext, pr).map(out => {
+            val phraseScope = new SmcPhraseScope(
+              resultCollector.referenceMap, scope)
+            phraseScope.resolvePronoun(communicationContext, pr).map(out => {
               val entities = out.entities
               referenceMap.put(reference, entities)
               entities
@@ -999,7 +998,7 @@ class SmcPredicateEvaluator[
             val state = SilAdpositionalState(
               SilAdposition.GENITIVE_OF, possessor)
             val result = evaluatePredicateOverState(
-              possessee, state, REF_ADPOSITION_SUBJ, resultCollector,
+              possessee, state, REF_GENITIVE_POSSESSEE, resultCollector,
               specifiedState, evaluator)
             referenceMap.get(possessee).foreach(
               entitySet => referenceMap.put(reference, entitySet))

@@ -367,12 +367,12 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "prevent invalid references" in new AssertionContext
     {
-      skipped("not working yet")
       defineToasterSlice
 
-      // FIXME need proper scope resolution
-      verifyInvalid(
+      // FIXME error should include the original belief
+      verifyError(
         "if a slice becomes cold, the slick spreads",
+        "Sorry, I don't know about any 'slick'.",
         UnknownForm)
     }
 

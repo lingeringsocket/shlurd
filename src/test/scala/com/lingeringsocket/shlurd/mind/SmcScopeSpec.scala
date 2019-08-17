@@ -30,15 +30,18 @@ class SmcScopeSpec extends Specification
 
   private val cosmos = new ZooCosmos
 
-  private val firstPersonSingular =
+  private val firstPersonRef =
     SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
 
-  private val thirdPersonSingular =
+  private val thirdPersonRef =
     SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
 
   private val nigelRef = SilNounReference(SilWord("Nigel"))
 
   private val cliveRef = SilNounReference(SilWord("Clive"))
+
+  private val tigerRef =
+    SilNounReference(SilWord("tiger"), DETERMINER_NONSPECIFIC)
 
   private val unresolvedMsg =
     "Sorry, when you say 'it' I don't know who or what you mean."
@@ -62,11 +65,55 @@ class SmcScopeSpec extends Specification
 
   "SmcScope" should
   {
+    "resolve nouns at mind scope"  in new ScopeContext
+    {
+      mindScope.resolveQualifiedNoun(
+        SilWord("tiger"),
+        REF_SUBJECT,
+        Set.empty
+      ) must beSuccessfulTry.withValue(
+        SmcScopeOutput(None, Set(ZooTiger))
+      )
+      mindScope.resolveQualifiedNoun(
+        SilWord("bear"),
+        REF_SUBJECT,
+        Set.empty
+      ) must beSuccessfulTry.withValue(
+        SmcScopeOutput(None, Set(ZooPolarBear, ZooGrizzlyBear))
+      )
+    }
+
+    "fail to resolve unknown noun"  in new ScopeContext
+    {
+      mindScope.resolveQualifiedNoun(
+        SilWord("quagga"),
+        REF_SUBJECT,
+        Set.empty
+      ) must beFailedTry.withThrowable[RuntimeException](
+        "I don't know about this name: quagga"
+      )
+    }
+
+    "resolve nouns at phrase scope" in new ScopeContext
+    {
+      val referenceMap = Map[SilReference, Set[SmcEntity]](
+        tigerRef -> Set()
+      )
+      val phraseScope = new SmcPhraseScope(referenceMap, mindScope)
+      phraseScope.resolveQualifiedNoun(
+        SilWord("tiger"),
+        REF_SUBJECT,
+        Set.empty
+      ) must beSuccessfulTry.withValue(
+        SmcScopeOutput(Some(tigerRef), Set[SmcEntity]())
+      )
+    }
+
     "resolve pronouns at mind scope" in new ScopeContext
     {
       mindScope.resolvePronoun(
         communicationContext,
-        firstPersonSingular
+        firstPersonRef
       ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooVisitor)))
     }
 
@@ -74,7 +121,7 @@ class SmcScopeSpec extends Specification
     {
       mindScope.resolvePronoun(
         communicationContext,
-        thirdPersonSingular
+        thirdPersonRef
       ) must beFailedTry.withThrowable[ShlurdException](unresolvedMsg)
     }
 
@@ -86,7 +133,7 @@ class SmcScopeSpec extends Specification
       val phraseScope = new SmcPhraseScope(referenceMap, mindScope)
       phraseScope.resolvePronoun(
         communicationContext,
-        thirdPersonSingular
+        thirdPersonRef
       ) must beSuccessfulTry.withValue(
         SmcScopeOutput(Some(nigelRef), Set(ZooKeeper))
       )
@@ -101,7 +148,7 @@ class SmcScopeSpec extends Specification
       val phraseScope = new SmcPhraseScope(referenceMap, mindScope)
       phraseScope.resolvePronoun(
         communicationContext,
-        thirdPersonSingular
+        thirdPersonRef
       ) must beFailedTry.withThrowable[ShlurdException](ambiguousMsg)
     }
   }

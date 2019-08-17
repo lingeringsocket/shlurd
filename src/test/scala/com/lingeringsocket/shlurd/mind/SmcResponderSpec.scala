@@ -43,10 +43,10 @@ class SmcResponderSpec extends Specification
     SmcEntity, SmcProperty, CosmosType, MindType](
     mind, params, executor, communicationContext)
   {
-    override protected def newPredicateEvaluator() =
+    override protected def newPredicateEvaluator(scope : ScopeType) =
     {
       new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
-        mind, sentencePrinter, params.existenceAssumption,
+        scope, params.existenceAssumption,
         communicationContext, debugger)
       {
         private def normalizeState(

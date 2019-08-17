@@ -143,18 +143,18 @@ class SpcCreedSpec extends Specification
   private val childrenSons = "A person may have sons."
   private val childrenDaughters = "A person may have daughters."
   private val moveTrigger = "If an spc-object moves to a location, " +
-    "then the location becomes the object's spc-container."
-  private val positiveConstraintTrigger = "If the Cubs win the World Series, " +
-    "then the moon must be blue."
-  private val negativeConstraintTrigger = "If the Cubs win the World Series, " +
-    "then the fat lady must not sing."
-  private val positiveTestTrigger = "If the Cubs win the World Series, " +
-    "then the moon might be blue."
-  private val negativeTestTrigger = "If the Cubs win the World Series, " +
-    "then the fat lady might not sing."
-  private val alternativeTrigger = "If a person eats candy, " +
+    "then the location becomes the spc-object's spc-container."
+  private val positiveConstraintTrigger = "If a team wins a trophy, " +
+    "then the team must be awesome."
+  private val negativeConstraintTrigger = "If a team wins a trophy, " +
+    "then the team must not drink."
+  private val positiveTestTrigger = "If a team wins a medal, " +
+    "then the team might be awesome."
+  private val negativeTestTrigger = "If a team wins a medal, " +
+    "then the team might not drink."
+  private val alternativeTrigger = "If a person eats a candy, " +
     "then the candy must be small; the person chokes otherwise."
-  private val additionalTrigger = "If a person eats candy, " +
+  private val additionalTrigger = "If a person eats a candy, " +
     "then the candy becomes small; the candy crunches also."
   private val positiveAssertion = "A person can kill a thief."
   private val negativeAssertion = "A person can not kill a thief."
