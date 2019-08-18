@@ -45,6 +45,8 @@ class SpcAssertionMapper(
   sentencePrinter : SilSentencePrinter)
     extends SmcDebuggable(new SmcDebugger(SpcAssertionMapper.logger))
 {
+  import SpcImplicationMapper._
+
   type MindScopeType = SmcMindScope[
     SpcEntity, SpcProperty, SpcCosmos, SpcMind
   ]
@@ -63,6 +65,7 @@ class SpcAssertionMapper(
       SpcAssertionBinding(
         referenceMap,
         None),
+      None,
       0
     )._1
     if (matched && !isTraceEnabled) {
@@ -81,7 +84,7 @@ class SpcAssertionMapper(
   {
     matchImplicationPlusAlternative(
       operator,
-      cosmos, implication.antecedent, implication.consequent,
+      cosmos, implication,
       predicate, Seq.empty, None,
       binding, 0)._1
   }
@@ -89,8 +92,7 @@ class SpcAssertionMapper(
   private[platonic] def matchImplicationPlusAlternative(
     operator : String,
     cosmos : SpcCosmos,
-    antecedent : SilPredicate,
-    consequent : SilPredicate,
+    conditional : SilConditionalSentence,
     predicate : SilPredicate,
     additionalConsequents : Seq[SilPredicateSentence],
     alternative : Option[SilPredicateSentence],
@@ -101,12 +103,28 @@ class SpcAssertionMapper(
     Seq[SilPredicateSentence],
     Option[SilPredicateSentence]) =
   {
+    val antecedent = conditional.antecedent
+    val consequent = conditional.consequent
     trace(s"ATTEMPT MATCH $antecedent $operator $consequent")
+
+    val placeholderReferenceMap = {
+      if (conditional.biconditional) {
+        None
+      } else {
+        // FIXME spawn calling responder instead?
+        val implicationMapper =
+          new SpcImplicationMapper(new SpcResponder(mind))
+        Some(
+          implicationMapper.validateImplication(
+            conditional, additionalConsequents))
+      }
+    }
     val (matched, replacements) = matchGeneralization(
       cosmos,
       antecedent,
       predicate,
       binding,
+      placeholderReferenceMap,
       triggerDepth)
     if (matched) {
       if (!isTraceEnabled) {
@@ -155,7 +173,8 @@ class SpcAssertionMapper(
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
     actualRef : SilReference,
-    binding : SpcAssertionBinding
+    binding : SpcAssertionBinding,
+    placeholderReferenceMap : Option[Map[SilReference, Set[SpcEntity]]]
   ) : Boolean =
   {
     val patternMatched = prepareReplacementImpl(
@@ -163,7 +182,8 @@ class SpcAssertionMapper(
       replacements,
       ref,
       actualRef,
-      binding)
+      binding,
+      placeholderReferenceMap)
     if (patternMatched) {
       true
     } else {
@@ -178,22 +198,65 @@ class SpcAssertionMapper(
     }
   }
 
+  private def findPlaceholderCorrespondence(
+    ref : SilReference,
+    placeholderReferenceMap : Option[Map[SilReference, Set[SpcEntity]]]
+  ) : (Boolean, Set[SilReference]) =
+  {
+    placeholderReferenceMap match {
+      case Some(referenceMap) => {
+        val placeholder = extractPlaceholder(ref, referenceMap)
+        if (placeholder.nonEmpty) {
+          tupleN((
+            true,
+            referenceMap.keySet.filter(other => {
+              (ref != other) &&
+              (extractPlaceholder(other, referenceMap) == placeholder)
+            })
+          ))
+        } else {
+          tupleN((
+            false,
+            Set.empty
+          ))
+        }
+      }
+      case _ => {
+        ref match {
+          case SilNounReference(
+            noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+          ) => {
+            tupleN((
+              true,
+              Set(SilNounReference(
+                noun, DETERMINER_UNIQUE, COUNT_SINGULAR))))
+          }
+          case _ => {
+            tupleN((
+              false,
+              Set.empty
+            ))
+          }
+        }
+      }
+    }
+  }
+
   private def prepareReplacementImpl(
     cosmos : SpcCosmos,
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
     actualRef : SilReference,
-    binding : SpcAssertionBinding
+    binding : SpcAssertionBinding,
+    placeholderReferenceMap : Option[Map[SilReference, Set[SpcEntity]]]
   ) : Boolean =
   {
-    // FIXME support other reference patterns
-    ref match {
-      case SilNounReference(
-        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-      ) => {
+    tupleN((
+      findPlaceholderCorrespondence(ref, placeholderReferenceMap),
+      extractNoun(ref)
+    )) match {
+      case ((true, patternRefSet), Some(noun)) => {
         val resolvedForm = mind.resolveForm(noun)
-        val patternRef = SilNounReference(
-          noun, DETERMINER_UNIQUE, COUNT_SINGULAR)
         if (inputRewriter.containsWildcard(actualRef)) {
           val wildcardRef = actualRef match {
             // FIXME need the same treatment for other variables, but
@@ -219,7 +282,9 @@ class SpcAssertionMapper(
             }
             case _ => actualRef
           }
-          replacements.put(patternRef, wildcardRef)
+          patternRefSet.foreach(patternRef => {
+            replacements.put(patternRef, wildcardRef)
+          })
           return true
         }
         val (candidateRef, entities) = actualRef match {
@@ -296,7 +361,9 @@ class SpcAssertionMapper(
           }
           case _ => candidateRef
         }
-        replacements.put(patternRef, replacementRef)
+        patternRefSet.foreach(patternRef => {
+          replacements.put(patternRef, replacementRef)
+        })
         true
       }
       case _ => {
@@ -311,6 +378,7 @@ class SpcAssertionMapper(
     general : SilPredicate,
     specific : SilPredicate,
     binding : SpcAssertionBinding,
+    placeholderReferenceMap : Option[Map[SilReference, Set[SpcEntity]]],
     triggerDepth : Int
   ) : (Boolean, Map[SilReference, SilReference]) =
   {
@@ -337,7 +405,7 @@ class SpcAssertionMapper(
           ) if (adp1 == adp2) => {
             if (!prepareReplacement(
               cosmos, replacements, obj1,
-              obj2, binding))
+              obj2, binding, placeholderReferenceMap))
             {
               return unmatched
             }
@@ -352,7 +420,7 @@ class SpcAssertionMapper(
         }
         if (!prepareReplacement(
           cosmos, replacements, subject, statePredicate.subject,
-          binding))
+          binding, placeholderReferenceMap))
         {
           return unmatched
         }
@@ -373,14 +441,14 @@ class SpcAssertionMapper(
         }
         if (!prepareReplacement(
           cosmos, replacements, subject, relPredicate.subject,
-          binding))
+          binding, placeholderReferenceMap))
         {
           return unmatched
         }
         if (!prepareReplacement(
           cosmos, replacements, complement,
           relPredicate.complement,
-          binding))
+          binding, placeholderReferenceMap))
         {
           return unmatched
         }
@@ -400,11 +468,9 @@ class SpcAssertionMapper(
           trace(s"ACTION $lemma DOES NOT MATCH")
           return unmatched
         }
-        // FIXME detect colliding replacement nouns e.g.
-        // "if an object hits an object"
         if (!prepareReplacement(
           cosmos, replacements, subject, actionPredicate.subject,
-          binding))
+          binding, placeholderReferenceMap))
         {
           return unmatched
         }
@@ -413,7 +479,7 @@ class SpcAssertionMapper(
             case Some(actualObj) => {
               if (!prepareReplacement(
                 cosmos, replacements, obj, actualObj,
-                binding))
+                binding, placeholderReferenceMap))
               {
                 return unmatched
               }

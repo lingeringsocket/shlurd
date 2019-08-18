@@ -493,6 +493,15 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify("what does Wallace eat", "The pumpernickel.")
     }
 
+    "support pronouns in assertions" in new AssertionContext
+    {
+      defineToasterSlice
+
+      verifyOK("if a slice explodes, then it becomes burnt")
+      verifyOK("the rye explodes")
+      verify("is the rye burnt", responseYes)
+    }
+
     "preserve singletons in equivalences" in new AssertionContext
     {
       defineToasterSlice

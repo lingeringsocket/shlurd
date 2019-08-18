@@ -596,8 +596,8 @@ class SpcResponder(
     }
     assertionMapper.matchImplicationPlusAlternative(
       operator,
-      forkedCosmos, conditionalSentence.antecedent,
-      conditionalSentence.consequent, predicate,
+      forkedCosmos, conditionalSentence,
+      predicate,
       trigger.additionalConsequents, trigger.alternative,
       SpcAssertionBinding(
         resultCollector.referenceMap,

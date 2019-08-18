@@ -990,18 +990,12 @@ class SpcBeliefAccepter private(
       alternative
     ) => {
       var vanilla = true
+      val implicationMapper = new SpcImplicationMapper(responder)
       sentence matchPartial {
         case conditional : SilConditionalSentence => {
-          val antecedentRefs = validateAssertionPredicate(
-            sentence, conditional.antecedent)
-          val consequentRefs = validateAssertionPredicate(
-            sentence, conditional.consequent, Some(antecedentRefs))
-          additionalConsequents.foreach(ac => {
-            validateAssertionPredicate(
-              sentence, ac.predicate, Some(antecedentRefs))
-          })
-          val referenceMap = antecedentRefs ++ consequentRefs
-          if (acceptSpecialAssertion(conditional, referenceMap)) {
+          val placeholderReferenceMap = implicationMapper.validateImplication(
+            conditional, additionalConsequents)
+          if (acceptSpecialAssertion(conditional, placeholderReferenceMap)) {
             vanilla = false
           } else {
             if (
@@ -1016,7 +1010,7 @@ class SpcBeliefAccepter private(
           }
         }
         case ps : SilPredicateSentence => {
-          validateAssertionPredicate(sentence, ps.predicate)
+          implicationMapper.validateAssertionPredicate(sentence, ps.predicate)
         }
       }
       if (vanilla) {
@@ -1096,7 +1090,6 @@ class SpcBeliefAccepter private(
     }
   }
 
-
   private def matchAssocInverse(
     antecedentSubject : SilReference,
     antecedentComplement : SilReference,
@@ -1109,53 +1102,25 @@ class SpcBeliefAccepter private(
       matchAssocIdentity(antecedentSubject, antecedentComplement)
     val consequentIdentity =
       matchAssocIdentity(consequentSubject, consequentComplement)
-    def extractRef(r : SilReference) : Option[SpcTransientEntity] =
+    def samePlaceholders(ar : SilReference, cr : SilReference) : Boolean =
     {
-      referenceMap.get(r) match {
-        case Some(s : Set[SpcEntity]) if (s.size == 1) => {
-          s.head match {
-            case e : SpcTransientEntity => Some(e)
-            case _ => None
-          }
-        }
-        case _ => None
-      }
-    }
-    def sameRefs(ar : SilReference, cr : SilReference) : Boolean =
-    {
-      val ae = extractRef(ar)
-      val ce = extractRef(cr)
+      val ae = SpcImplicationMapper.extractPlaceholder(ar, referenceMap)
+      val ce = SpcImplicationMapper.extractPlaceholder(cr, referenceMap)
       if (ae.nonEmpty) {
         ae == ce
       } else {
         false
       }
     }
-    def extractNoun(ref : SilReference) : Option[SilWord] =
-    {
-      ref match {
-        case SilNounReference(
-          noun, _, _
-        ) => {
-          Some(noun)
-        }
-        case SilStateSpecifiedReference(
-          SilNounReference(noun, _, _),
-          _ : SilPropertyState
-        ) => {
-          Some(noun)
-        }
-        case _ => {
-          None
-        }
-      }
-    }
     tupleN((antecedentIdentity, consequentIdentity)) match {
       case (Some((ar1, ar2, aw)), Some((cr1, cr2, cw))) => {
-        if (sameRefs(ar1, cr2) &&
-          sameRefs(ar2, cr1)
+        if (samePlaceholders(ar1, cr2) &&
+          samePlaceholders(ar2, cr1)
         ) {
-          tupleN((extractNoun(ar1), extractNoun(ar2))) match {
+          tupleN((
+            SpcImplicationMapper.extractNoun(ar1),
+            SpcImplicationMapper.extractNoun(ar2))
+          ) match {
             case (Some(n1), Some(n2)) => {
               Some(tupleN((n1, n2, aw, cw)))
             }
@@ -1192,73 +1157,6 @@ class SpcBeliefAccepter private(
         }
       }
     }
-  }
-
-  private def validateAssertionPredicate(
-    belief : SilSentence,
-    predicate : SilPredicate,
-    antecedentRefs : Option[Map[SilReference, Set[SpcEntity]]] = None)
-      : Map[SilReference, Set[SpcEntity]] =
-  {
-    val resultCollector = SmcResultCollector[SpcEntity]()
-    val scope = new SmcPhraseScope(
-      antecedentRefs.getOrElse(Map.empty),
-      responder.mindScope
-    )
-    responder.resolveReferences(
-      predicate, resultCollector, true, false, scope
-    ) matchPartial {
-      case Failure(ShlurdException(code, msg)) => {
-        throw UnacceptableBeliefExcn(code, msg, belief)
-      }
-      case Failure(e) => {
-        throw e
-      }
-    }
-    if (antecedentRefs.isEmpty) {
-      val refs = SilUtils.collectReferences(predicate)
-      val variableCounters = new mutable.HashMap[SilWord, Int]
-      val pairs = refs.flatMap(_ match {
-        case nr @ SilNounReference(
-          noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-        ) => {
-          if (variableCounters.contains(noun)) {
-            throw InvalidBeliefExcn(
-              ShlurdExceptionCode.AssertionInvalidVariable, belief)
-          }
-          val form = responder.deriveType(nr, resultCollector.referenceMap)
-          val placeholder = makePlaceholder(form, noun, variableCounters)
-          Some((nr, Set(placeholder)))
-        }
-        case sr @ SilStateSpecifiedReference(
-          snr @ SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-          SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
-        ) => {
-          val form = responder.deriveType(snr, resultCollector.referenceMap)
-          if (variableCounters.getOrElse(noun, 0) != 1) {
-            throw InvalidBeliefExcn(
-              ShlurdExceptionCode.AssertionInvalidVariable, belief)
-          }
-          val placeholder = makePlaceholder(form, noun, variableCounters)
-          Some((sr, Set(placeholder)))
-        }
-        case _ => None
-      })
-      pairs.toMap
-    } else {
-      resultCollector.referenceMap
-    }
-  }
-
-  private def makePlaceholder(
-    form : SpcForm,
-    noun : SilWord,
-    variableCounters : mutable.Map[SilWord, Int]) : SpcEntity =
-  {
-    val number = variableCounters.getOrElse(noun, 0)
-    variableCounters.put(noun, number + 1)
-    val name = noun.toNounLemma + "-" + number.toString
-    SpcTransientEntity(form, name, name)
   }
 
   beliefApplier {
