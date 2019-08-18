@@ -540,8 +540,9 @@ class SnavigShell(
         case _ => predicate
       }
       val sentence = SilPredicateSentence(newPredicate)
-      val entities = SilUtils.collectReferences(sentence).flatMap(
-        referenceMap.get(_).getOrElse(Set.empty))
+      val refSet = SilUtils.collectReferences(sentence).toSet
+      val entities = refSet.flatMap(ref =>
+        referenceMap.get(ref).getOrElse(Set.empty))
       validateFiat(newPredicate, referenceMap).orElse(
         processFiat(sentence, entities)
       )

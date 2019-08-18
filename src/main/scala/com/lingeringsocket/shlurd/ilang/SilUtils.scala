@@ -18,17 +18,17 @@ import scala.collection._
 
 object SilUtils
 {
-  def collectReferences(phrase : SilPhrase) : Set[SilReference] =
+  def collectReferences(phrase : SilPhrase) : Seq[SilReference] =
   {
-    val refSet = new mutable.HashSet[SilReference]
+    val refs = new mutable.ArrayBuffer[SilReference]
     val phraseQuerier = new SilPhraseRewriter
     val rule = phraseQuerier.queryMatcher {
       case ref : SilReference => {
-        refSet += ref
+        refs += ref
       }
     }
     phraseQuerier.query(rule, phrase)
-    refSet
+    refs
   }
 
   def isCountCoercible(reference : SilReference) : Boolean =

@@ -15,10 +15,13 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
 import scala.util._
+
+import SprEnglishLemmas._
 
 case class SmcScopeOutput[
   EntityType<:SmcEntity
@@ -193,24 +196,81 @@ class SmcPhraseScope[
   override def resolveQualifiedNoun(
     noun : SilWord,
     context : SilReferenceContext,
-    qualifiers : Set[String] = Set.empty) =
+    qualifiers : Set[String] = Set.empty) : Try[SmcScopeOutput[EntityType]] =
   {
     val outputs = {
-      if (qualifiers.isEmpty && !noun.isProper) {
+      if (!noun.isProper) {
         val nounLemma = noun.toNounLemma
-        referenceMap.filter {
+        val ordered = referenceMap.toSeq.flatMap {
           case (prior, set) => {
             prior match {
               case SilNounReference(
                 SilWordLemma(lemma), DETERMINER_NONSPECIFIC, _
               ) if (lemma == nounLemma) => {
-                true
+                Some(tupleN((prior, set, 1)))
               }
-              case _ => false
+              case SilStateSpecifiedReference(
+                SilNounReference(
+                  SilWordLemma(lemma),
+                  DETERMINER_UNSPECIFIED,
+                  COUNT_SINGULAR),
+                SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
+              ) if (lemma == nounLemma) => {
+                Some(tupleN((prior, set, 2)))
+              }
+              case _ => None
             }
           }
-        }.toSeq.map {
-          case (prior, set) => SmcScopeOutput(Some(prior), set)
+        }
+        val selected = {
+          if (qualifiers.isEmpty) {
+            if (ordered.size <= 1) {
+              ordered
+            } else {
+              return getMind.getCosmos.fail(
+                ShlurdExceptionCode.MisqualifiedNoun,
+                getSentencePrinter.sb.respondMisqualifiedNoun(
+                  noun, qualifiers.toSeq)
+              )
+            }
+          } else if (qualifiers == Set(LEMMA_FIRST)) {
+            val filtered = {
+              if (ordered.size > 1) {
+                ordered.filter(_._3 == 1)
+              } else {
+                Seq.empty
+              }
+            }
+            if (filtered.isEmpty) {
+              return getMind.getCosmos.fail(
+                ShlurdExceptionCode.MisqualifiedNoun,
+                getSentencePrinter.sb.respondMisqualifiedNoun(
+                  noun, qualifiers.toSeq)
+              )
+            }
+            filtered
+          } else if (qualifiers == Set(LEMMA_SECOND)) {
+            val filtered = {
+              if (ordered.size > 1) {
+                ordered.filter(_._3 == 2)
+              } else {
+                Seq.empty
+              }
+            }
+            if (filtered.isEmpty) {
+              return getMind.getCosmos.fail(
+                ShlurdExceptionCode.MisqualifiedNoun,
+                getSentencePrinter.sb.respondMisqualifiedNoun(
+                  noun, qualifiers.toSeq)
+              )
+            }
+            filtered
+          } else {
+            Seq.empty
+          }
+        }
+        selected.map {
+          case ((prior, set, _)) => SmcScopeOutput(Some(prior), set)
         }
       } else {
         Seq.empty
@@ -219,7 +279,7 @@ class SmcPhraseScope[
     if (outputs.isEmpty) {
       parent.resolveQualifiedNoun(noun, context, qualifiers)
     } else {
-      // FIXME
+      assert(outputs.size == 1)
       Success(outputs.head)
     }
   }

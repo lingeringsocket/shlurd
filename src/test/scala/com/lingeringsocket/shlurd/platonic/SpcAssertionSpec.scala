@@ -365,7 +365,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify(actionWallacePutsPumpernickel, abilityPersonCannotPut)
     }
 
-    "prevent invalid references" in new AssertionContext
+    "prevent invalid variables in assertions" in new AssertionContext
     {
       defineToasterSlice
 
@@ -374,6 +374,28 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         "if a slice becomes cold, the slick spreads",
         "Sorry, I don't know about any 'slick'.",
         UnknownForm)
+      verifyError(
+        "if a slice becomes burnt, then the first slice becomes cold",
+        "Sorry, when you say 'first slice', I don't know which you mean.",
+        MisqualifiedNoun)
+      verifyError(
+        "if a slice becomes burnt, then the second slice becomes cold",
+        "Sorry, when you say 'second slice', I don't know which you mean.",
+        MisqualifiedNoun)
+
+      verifyInvalid(
+        "if a slice touches a slice, then the slice becomes cold",
+        AssertionInvalidVariable)
+      verifyInvalid(
+        "if another slice becomes burnt, then the slice becomes cold",
+        AssertionInvalidVariable)
+      verifyInvalid(
+        "if another slice touches a slice, then the slice becomes cold",
+        AssertionInvalidVariable)
+      verifyInvalid(
+        "if a slice extends from another slice to another slice, " +
+          "then the slice becomes cold",
+        AssertionInvalidVariable)
     }
 
     "prevent invalid assertions" in new AssertionContext
@@ -414,6 +436,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "prevent invalid inverse associations" in new AssertionContext
     {
+      verifyOK(fiatForm("map-place"))
       verifyInvalid("if a map-place is another map-place's map-neighbor, " +
         "equivalently the first map-place is " +
         "the second map-place's map-neighbor",
@@ -421,15 +444,18 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyInvalid("if a map-place is a map-place's map-neighbor, " +
         "equivalently the second map-place is " +
         "the first map-place's map-neighbor",
-        AssertionInvalidAssociation)
+        AssertionInvalidVariable)
       verifyInvalid("if another map-place is a map-place's map-neighbor, " +
         "equivalently the second map-place is " +
         "the first map-place's map-neighbor",
-        AssertionInvalidAssociation)
-      verifyInvalid("if a map-place is another map-place's map-neighbor, " +
+        AssertionInvalidVariable)
+
+      // FIXME error should include the original belief
+      verifyError("if a map-place is another map-place's map-neighbor, " +
         "equivalently the second map-place is " +
         "the map-place's map-neighbor",
-        AssertionInvalidAssociation)
+        "Sorry, when you say 'map-place', I don't know which you mean.",
+        MisqualifiedNoun)
     }
 
     "prevent runaway triggers" in new AssertionContext

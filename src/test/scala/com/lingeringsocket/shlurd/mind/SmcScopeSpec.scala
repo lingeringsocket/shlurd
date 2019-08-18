@@ -15,12 +15,15 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
 import org.specs2.specification._
 
 import scala.collection._
+
+import SprEnglishLemmas._
 
 class SmcScopeSpec extends Specification
 {
@@ -42,6 +45,13 @@ class SmcScopeSpec extends Specification
 
   private val tigerRef =
     SilNounReference(SilWord("tiger"), DETERMINER_NONSPECIFIC)
+
+  private val anotherTigerRef =
+    SilStateSpecifiedReference(
+      SilNounReference(SilWord("tiger"), DETERMINER_UNSPECIFIED),
+      SilPropertyState(SilWord(LEMMA_ANOTHER)))
+
+  private val noEntities = Set[SmcEntity]()
 
   private val unresolvedMsg =
     "Sorry, when you say 'it' I don't know who or what you mean."
@@ -81,6 +91,20 @@ class SmcScopeSpec extends Specification
       ) must beSuccessfulTry.withValue(
         SmcScopeOutput(None, Set(ZooPolarBear, ZooGrizzlyBear))
       )
+      mindScope.resolveQualifiedNoun(
+        SilWord("bear"),
+        REF_SUBJECT,
+        Set("polar")
+      ) must beSuccessfulTry.withValue(
+        SmcScopeOutput(None, Set(ZooPolarBear))
+      )
+      mindScope.resolveQualifiedNoun(
+        SilWord("bear"),
+        REF_SUBJECT,
+        Set(LEMMA_FIRST)
+      ) must beSuccessfulTry.withValue(
+        SmcScopeOutput(None, noEntities)
+      )
     }
 
     "fail to resolve unknown noun"  in new ScopeContext
@@ -96,16 +120,56 @@ class SmcScopeSpec extends Specification
 
     "resolve nouns at phrase scope" in new ScopeContext
     {
-      val referenceMap = Map[SilReference, Set[SmcEntity]](
+      val oneReferenceMap = Map[SilReference, Set[SmcEntity]](
         tigerRef -> Set()
       )
-      val phraseScope = new SmcPhraseScope(referenceMap, mindScope)
-      phraseScope.resolveQualifiedNoun(
+      val twoReferenceMap = Map[SilReference, Set[SmcEntity]](
+        tigerRef -> Set(),
+        anotherTigerRef -> Set()
+      )
+      val phraseScope1 = new SmcPhraseScope(oneReferenceMap, mindScope)
+      val phraseScope2 = new SmcPhraseScope(twoReferenceMap, mindScope)
+      phraseScope1.resolveQualifiedNoun(
         SilWord("tiger"),
         REF_SUBJECT,
         Set.empty
       ) must beSuccessfulTry.withValue(
-        SmcScopeOutput(Some(tigerRef), Set[SmcEntity]())
+        SmcScopeOutput(Some(tigerRef), noEntities)
+      )
+      phraseScope2.resolveQualifiedNoun(
+        SilWord("tiger"),
+        REF_SUBJECT,
+        Set.empty
+      ) must beFailedTry.withThrowable[ShlurdException](
+        "Sorry, when you say 'tiger', I don't know which you mean."
+      )
+      phraseScope2.resolveQualifiedNoun(
+        SilWord("tiger"),
+        REF_SUBJECT,
+        Set(LEMMA_FIRST)
+      ) must beSuccessfulTry.withValue(
+        SmcScopeOutput(Some(tigerRef), noEntities)
+      )
+      phraseScope2.resolveQualifiedNoun(
+        SilWord("tiger"),
+        REF_SUBJECT,
+        Set(LEMMA_SECOND)
+      ) must beSuccessfulTry.withValue(
+        SmcScopeOutput(Some(anotherTigerRef), noEntities)
+      )
+      phraseScope1.resolveQualifiedNoun(
+        SilWord("tiger"),
+        REF_SUBJECT,
+        Set(LEMMA_FIRST)
+      ) must beFailedTry.withThrowable[ShlurdException](
+        "Sorry, when you say 'first tiger', I don't know which you mean."
+      )
+      phraseScope1.resolveQualifiedNoun(
+        SilWord("tiger"),
+        REF_SUBJECT,
+        Set(LEMMA_SECOND)
+      ) must beFailedTry.withThrowable[ShlurdException](
+        "Sorry, when you say 'second tiger', I don't know which you mean."
       )
     }
 

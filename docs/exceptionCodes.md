@@ -68,6 +68,14 @@ Sorry, when you say 'he' I don't know who or what you mean.
 Sorry, when you say 'it', it's ambiguous.
 ```
 
+## MisqualifiedNoun
+
+```scala mdoc:processConversation
+> After a tribble eats, the second tribble is sad.
+
+Sorry, when you say 'second tribble', I don't know which you mean.
+```
+
 ## TriggerLimit
 
 ```scala mdoc:processConversation
@@ -431,6 +439,14 @@ I am unable to validate the belief that when a tribble eats, then the tribble is
 > Before a tribble eats, the tribble is happy.
 
 I am unable to validate the belief that before a tribble eats, then the tribble is happy.
+```
+
+## AssertionInvalidVariable
+
+```scala mdoc:processConversation
+> If a tribble is a tribble's baby, then the tribble eats.
+
+I am unable to validate the belief that if a tribble is a tribble's baby, then the tribble eats.
 ```
 
 ## AssertionInvalidAssociation

@@ -776,6 +776,8 @@ class SmcPredicateEvaluator[
       : Try[Trilean] =
   {
     val referenceMap = resultCollector.referenceMap
+    val qualifiers = cosmos.qualifierSet(
+      SilUtils.extractQualifiers(specifiedState))
     reference match {
       case SilNounReference(noun, determiner, count) => {
         if (resultCollector.suppressWildcardExpansion > 0) {
@@ -791,7 +793,7 @@ class SmcPredicateEvaluator[
             // FIXME this is silly
             case DETERMINER_UNSPECIFIED => {
               (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
-              (lemma == LEMMA_WHERE)
+              (lemma == LEMMA_WHERE) || (qualifiers.contains(LEMMA_ANOTHER))
             }
             case _ => true
           }
@@ -810,8 +812,7 @@ class SmcPredicateEvaluator[
                 reference,
                 () => scope.resolveQualifiedNoun(
                   noun, context,
-                  cosmos.qualifierSet(
-                    SilUtils.extractQualifiers(specifiedState))).map(_.entities)
+                  qualifiers).map(_.entities)
               )
             }
           }
@@ -828,6 +829,10 @@ class SmcPredicateEvaluator[
               count,
               noun,
               evaluator)
+          }
+          case Failure(e : ShlurdException) => {
+            trace("ERROR", e)
+            Failure(e)
           }
           case Failure(e) => {
             trace("ERROR", e)

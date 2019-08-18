@@ -455,6 +455,12 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     compose("무슨", noun.toNounLemma, "?")
   }
 
+  override def respondMisqualifiedNoun(
+    noun : SilWord, qualifiers : Seq[String]) : String =
+  {
+    "FIXME"
+  }
+
   override def respondUnknown(word : SilWord) =
   {
     "FIXME"

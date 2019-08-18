@@ -837,6 +837,16 @@ class SilEnglishSentenceBundle
       concat("'", pronoun, "',"), "it's ambiguous.")
   }
 
+  override def respondMisqualifiedNoun(
+    noun : SilWord, qualifiers : Seq[String]) : String =
+  {
+    compose("Sorry, when you say",
+      concat("'",
+        compose((qualifiers :+ noun.toUnfoldedLemma):_*),
+        "',"),
+      "I don't know which you mean.")
+  }
+
   override def respondNonexistent(noun : SilWord) =
   {
     compose("But I don't know about any such",

@@ -99,7 +99,7 @@ class SmcMind[
     phrase : SilPhrase,
     referenceMap : Map[SilReference, Set[EntityType]]) =
   {
-    val refSet = SilUtils.collectReferences(phrase)
+    val refSet = SilUtils.collectReferences(phrase).toSet
     referenceMap.filterKeys(ref => {
       refSet.contains(ref) && isRetainableReference(ref)
     })

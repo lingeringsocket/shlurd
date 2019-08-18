@@ -29,6 +29,7 @@ object ShlurdExceptionCode
   case object UnknownState extends ShlurdExceptionCode
   case object NonExistent extends ShlurdExceptionCode
   case object NotUnique extends ShlurdExceptionCode
+  case object MisqualifiedNoun extends ShlurdExceptionCode
   case object UnresolvedPronoun extends ShlurdExceptionCode
   case object AmbiguousPronoun extends ShlurdExceptionCode
   case object TriggerLimit extends ShlurdExceptionCode
@@ -64,6 +65,7 @@ object ShlurdExceptionCode
   case object ConsequentConditionExpected extends ShlurdExceptionCode
   case object ConsequentEventExpected extends ShlurdExceptionCode
   case object ConsequentConstraintExpected extends ShlurdExceptionCode
+  case object AssertionInvalidVariable extends ShlurdExceptionCode
   case object AssertionInvalidAssociation extends ShlurdExceptionCode
   case object EquivalenceIfExpected extends ShlurdExceptionCode
   case object AssertionModalProhibited extends ShlurdExceptionCode
