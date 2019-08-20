@@ -55,7 +55,7 @@ OK.
 
 OK.
 
-> Whenever a balloon bursts, the balloon becomes broken.
+> Whenever a balloon bursts, it becomes broken.
 
 OK.
 ```
@@ -96,7 +96,7 @@ OK.
 
 OK.
 
-> When a balloon pops, the balloon becomes broken; also the balloon's neighbor pops.
+> When a balloon pops, it becomes broken; also its neighbor pops.
 
 OK.
 
@@ -127,7 +127,7 @@ Yes.
 I can recognize either actions or changes as causes:
 
 ```scala mdoc:processConversation
-> When a balloon becomes full, the balloon's owner becomes tired.
+> When a balloon becomes full, its owner becomes tired.
 
 OK.
 
@@ -135,7 +135,7 @@ OK.
 
 OK.
 
-> When a balloon pops, the balloon's owner becomes tired.
+> When a balloon pops, its owner becomes tired.
 
 OK.
 ```
@@ -143,9 +143,9 @@ OK.
 But I do not recognize static conditions as causes.
 
 ```scala mdoc:processConversation
-> When a balloon is full, the balloon's owner becomes tired.
+> When a balloon is full, its owner becomes tired.
 
-I am unable to validate the belief that when a balloon is full, then the balloon's owner becomes tired.
+I am unable to validate the belief that when a balloon is full, then its owner becomes tired.
 
 ```
 
@@ -153,7 +153,7 @@ Instead, you can either restate it as a change in state ("the balloon becomes fu
 or you can use the **consequently** modifier:
 
 ```scala mdoc:processConversation
-> If a balloon is full, consequently the balloon's owner is tired.
+> If a balloon is full, consequently its owner is tired.
 
 OK.
 
@@ -168,11 +168,11 @@ implemented yet!)
 Likewise, I expect effects to be either actions or state changes:
 
 ```scala mdoc:processConversation
-> When a balloon becomes full, Pinkie pops the balloon.
+> When a balloon becomes full, Pinkie pops it.
 
 OK.
 
-> Whenever a balloon becomes full, the balloon's owner becomes tired.
+> Whenever a balloon becomes full, its owner becomes tired.
 
 OK.
 ```
@@ -181,15 +181,15 @@ I only allow static conditions as effects when you add the **subsequently** modi
 or when you use the **after** conditional:
 
 ```scala mdoc:processConversation
-> When a balloon becomes full, then the balloon's owner is tired.
+> When a balloon becomes full, then its owner is tired.
 
-I am unable to validate the belief that when a balloon becomes full, then the balloon's owner is tired.
+I am unable to validate the belief that when a balloon becomes full, then its owner is tired.
 
-> After a balloon becomes full, the balloon's owner is tired.
+> After a balloon becomes full, its owner is tired.
 
 OK.
 
-> When a balloon becomes full, the balloon's owner is subsequently tired.
+> When a balloon becomes full, its owner is subsequently tired.
 
 OK.
 ```
