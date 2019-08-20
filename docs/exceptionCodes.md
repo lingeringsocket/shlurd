@@ -6,7 +6,7 @@ An investigator's mindset may be confident or confused.
 Jupiter and Pete are investigators.
 A tribble's baby must be a tribble.
 After a tribble eats,
- the tribble has a baby;
+ it has a baby;
  also the tribble's baby eats.
 Terence is a tribble.
 Trevor is a tribble.
@@ -362,9 +362,9 @@ The belief that Jupiter has no pets contradicts the belief that McGruff is Jupit
 * ALSO on "x can do y"
 
 ```scala mdoc:processConversation
-> If a tribble eats, equivalently the tribble is subsequently fat.
+> If a tribble eats, equivalently it is subsequently fat.
 
-I am unable to validate the belief that if a tribble eats, equivalently the tribble is fat subsequently.
+I am unable to validate the belief that if a tribble eats, equivalently it is fat subsequently.
 ```
 
 ## AssertionModifierSequence
@@ -375,9 +375,9 @@ I am unable to validate the belief that if a tribble eats, equivalently the trib
 * OTHERWISE/ALSO required on subsequent consequents
 
 ```scala mdoc:processConversation
-> After a tribble eats, also the tribble becomes fat.
+> After a tribble eats, also it becomes fat.
 
-I am unable to validate the belief that after a tribble eats, then the tribble becomes fat also.
+I am unable to validate the belief that after a tribble eats, then it becomes fat also.
 ```
 
 ## QuantifierNotYetImplemented
@@ -391,9 +391,9 @@ I am unable to validate the belief that after a tribble eats, then some tribble 
 ## PostConstraintNotYetImplemented
 
 ```scala mdoc:processConversation
-> After a tribble eats, the tribble must be alone.
+> After a tribble eats, it must be alone.
 
-I am unable to validate the belief that after a tribble eats, then the tribble must be alone.
+I am unable to validate the belief that after a tribble eats, then it must be alone.
 ```
 
 ## AntecedentEventExpected
@@ -401,9 +401,9 @@ I am unable to validate the belief that after a tribble eats, then the tribble m
 * not equivalently/consequently
 
 ```scala mdoc:processConversation
-> After a tribble is happy, the tribble eats.
+> After a tribble is happy, it eats.
 
-I am unable to validate the belief that after a tribble is happy, then the tribble eats.
+I am unable to validate the belief that after a tribble is happy, then it eats.
 ```
 
 ## ConsequentConditionExpected
@@ -415,9 +415,9 @@ equivalence plus
 * subsequently or consequently
 
 ```scala mdoc:processConversation
-> If a tribble eats, equivalently the tribble becomes happy.
+> If a tribble eats, equivalently it becomes happy.
 
-I am unable to validate the belief that if a tribble eats, equivalently the tribble becomes happy.
+I am unable to validate the belief that if a tribble eats, equivalently it becomes happy.
 ```
 
 ## ConsequentEventExpected
@@ -426,9 +426,9 @@ antecedent event plus
 * stative without subsequently/consequently/equivalently
 
 ```scala mdoc:processConversation
-> When a tribble eats, the tribble is happy.
+> When a tribble eats, it is happy.
 
-I am unable to validate the belief that when a tribble eats, then the tribble is happy.
+I am unable to validate the belief that when a tribble eats, then it is happy.
 ```
 
 ## ConsequentConstraintExpected
@@ -436,9 +436,9 @@ I am unable to validate the belief that when a tribble eats, then the tribble is
 * BEFORE/OTHERWISE
 
 ```scala mdoc:processConversation
-> Before a tribble eats, the tribble is happy.
+> Before a tribble eats, it is happy.
 
-I am unable to validate the belief that before a tribble eats, then the tribble is happy.
+I am unable to validate the belief that before a tribble eats, then it is happy.
 ```
 
 ## AssertionInvalidVariable
@@ -471,7 +471,7 @@ I am unable to validate the belief that after a tribble eats, equivalently the t
 * ALSO
 
 ```scala mdoc:processConversation
-> If a tribble eats, equivalently the tribble must be happy.
+> If a tribble eats, equivalently it must be happy.
 
-I am unable to validate the belief that if a tribble eats, equivalently the tribble must be happy.
+I am unable to validate the belief that if a tribble eats, equivalently it must be happy.
 ```
