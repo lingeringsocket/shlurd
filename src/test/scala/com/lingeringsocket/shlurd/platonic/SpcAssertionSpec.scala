@@ -513,9 +513,9 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(fiatExistence("trash"))
 
       verifyOK("if a slice is cold, " +
-        "then equivalently the slice belongs in the freezer")
+        "then equivalently it belongs in the freezer")
       verifyOK("if a slice is burnt, " +
-        "then equivalently the slice belongs in the trash")
+        "then equivalently it belongs in the trash")
 
       verifyOK("a slice can belong in a receptacle")
 

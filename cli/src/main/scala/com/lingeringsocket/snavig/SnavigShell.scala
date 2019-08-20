@@ -140,7 +140,7 @@ object SnavigShell
 
       override protected def executeActionImpl(
         ap : SilActionPredicate,
-        referenceMap : Map[SilReference, Set[SpcEntity]],
+        refMap : SpcRefMap,
         subjectEntityOpt : Option[SpcEntity],
         quotationOpt : Option[String]
       ) : Option[String] =
@@ -171,7 +171,7 @@ object SnavigShell
           case _ => {
             lemma match {
               case "perceive" => {
-                processPerception(snapshot, ap, referenceMap, subjectEntityOpt)
+                processPerception(snapshot, ap, refMap, subjectEntityOpt)
                 ok
               }
               case _ => None
@@ -291,10 +291,10 @@ object SnavigShell
   }
 
   def singletonLookup(
-    referenceMap : Map[SilReference, Set[SpcEntity]],
+    refMap : SpcRefMap,
     ref : SilReference) : Option[SpcEntity] =
   {
-    referenceMap.get(ref) match {
+    refMap.get(ref) match {
       case Some(set) => {
         if (set.size == 1) {
           Some(set.head)
@@ -394,7 +394,7 @@ class SnavigShell(
 
     override protected def executeActionImpl(
       ap : SilActionPredicate,
-      referenceMap : Map[SilReference, Set[SpcEntity]],
+      refMap : SpcRefMap,
       subjectEntityOpt : Option[SpcEntity],
       quotationOpt : Option[String]
     ) : Option[String] =
@@ -407,7 +407,7 @@ class SnavigShell(
         case _ => None
       }).headOption
       val targetEntityOpt = targetRefOpt.flatMap(
-        ref => singletonLookup(referenceMap, ref))
+        ref => singletonLookup(refMap, ref))
       quotationOpt match {
         case Some(quotation) => {
           if (subjectEntityOpt == Some(playerEntity)) {
@@ -480,7 +480,7 @@ class SnavigShell(
         case _ => {
           lemma match {
             case "perceive" => {
-              processPerception(snapshot, ap, referenceMap, subjectEntityOpt)
+              processPerception(snapshot, ap, refMap, subjectEntityOpt)
               ok
             }
             case "talk" => {
@@ -530,7 +530,7 @@ class SnavigShell(
 
     override def executeImperative(
       predicate : SilPredicate,
-      referenceMap : Map[SilReference, Set[SpcEntity]])
+      refMap : SpcRefMap)
         : Option[String] =
     {
       def playerRef =
@@ -542,8 +542,8 @@ class SnavigShell(
       val sentence = SilPredicateSentence(newPredicate)
       val refSet = SilUtils.collectReferences(sentence).toSet
       val entities = refSet.flatMap(ref =>
-        referenceMap.get(ref).getOrElse(Set.empty))
-      validateFiat(newPredicate, referenceMap).orElse(
+        refMap.get(ref).getOrElse(Set.empty))
+      validateFiat(newPredicate, refMap).orElse(
         processFiat(sentence, entities)
       )
     }
@@ -586,11 +586,11 @@ class SnavigShell(
 
   private def validateFiat(
     predicate : SilPredicate,
-    referenceMap : Map[SilReference, Set[SpcEntity]])
+    refMap : SpcRefMap)
       : Option[String] =
   {
     val result = phenomenalResponder.processTriggerablePredicate(
-      phenomenalCosmos, predicate, referenceMap,
+      phenomenalCosmos, predicate, refMap,
       APPLY_CONSTRAINTS_ONLY, 0, true)
     if (result == ok) {
       None
@@ -674,7 +674,7 @@ class SnavigShell(
                 val entities =
                   phenomenalMind.getConversation.getUtterances.
                     takeRight(2).flatMap(
-                      _.referenceMap.values.flatten)
+                      _.refMap.values.flatten)
                 if (findStale(entities).nonEmpty) {
                   assumption = "(At least I assume that's still the case.)"
                 }
@@ -863,13 +863,13 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
 
   override def executeAction(
     ap : SilActionPredicate,
-    referenceMap : Map[SilReference, Set[SpcEntity]]) : Option[String] =
+    refMap : SpcRefMap) : Option[String] =
   {
-    val subjectEntityOpt = singletonLookup(referenceMap, ap.subject)
+    val subjectEntityOpt = singletonLookup(refMap, ap.subject)
     val quotationOpt = ap.directObject match {
       case Some(SilQuotationReference(quotation)) => Some(quotation)
       case Some(ref) => {
-        singletonLookup(referenceMap, ref) match {
+        singletonLookup(refMap, ref) match {
           case Some(entity) => {
             entity match {
               // FIXME type check
@@ -884,21 +884,21 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
     }
     executeActionImpl(
       ap,
-      referenceMap,
+      refMap,
       subjectEntityOpt,
       quotationOpt)
   }
 
   protected def executeActionImpl(
     ap : SilActionPredicate,
-    referenceMap : Map[SilReference, Set[SpcEntity]],
+    refMap : SpcRefMap,
     subjectEntityOpt : Option[SpcEntity],
     quotationOpt : Option[String]
   ) : Option[String]
 
   override def executeInvocation(
     invocation : SmcStateChangeInvocation[SpcEntity],
-    referenceMap : Map[SilReference, Set[SpcEntity]])
+    refMap : SpcRefMap)
       : Option[String] =
   {
     val sentence = SilPredicateSentence(
@@ -919,7 +919,7 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
   protected def processPerception(
     snapshot : SnavigSnapshot,
     ap : SilActionPredicate,
-    referenceMap : Map[SilReference, Set[SpcEntity]],
+    refMap : SpcRefMap,
     subjectEntityOpt : Option[SpcEntity])
   {
     subjectEntityOpt match {
@@ -928,7 +928,7 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
           executePerception(
             snapshot,
             subjectEntity,
-            referenceMap(directObjectRef))
+            refMap(directObjectRef))
         })
         ok
       }

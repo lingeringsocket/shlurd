@@ -29,8 +29,7 @@ case class SpeakerUtterance[EntityType <: SmcEntity](
   speakerName : String,
   sentence : SilSentence,
   text : String,
-  referenceMap : Map[SilReference, Set[EntityType]] =
-    Map.empty[SilReference, Set[EntityType]])
+  refMap : SmcRefMap[EntityType] = SmcRefMap[EntityType]())
 {
 }
 
@@ -45,27 +44,27 @@ class SmcConversation[EntityType <: SmcEntity]
     speakerName : String,
     sentence : SilSentence,
     text : String,
-    referenceMap : Map[SilReference, Set[EntityType]] = Map.empty)
+    refMap : SmcRefMap[EntityType] = Map.empty)
   {
     utterances += SpeakerUtterance(
       speakerName, sentence, text,
-      freezeReferenceMap(referenceMap))
+      freezeRefMap(refMap))
   }
 
-  def updateSentenceAnalysis(referenceMap : Map[SilReference, Set[EntityType]])
+  def updateSentenceAnalysis(refMap : SmcRefMap[EntityType])
   {
     val last = utterances.last
     utterances.reduceToSize(utterances.size - 1)
     utterances += SpeakerUtterance(
       last.speakerName, last.sentence, last.text,
-      freezeReferenceMap(referenceMap))
+      freezeRefMap(refMap))
   }
 
   def getUtterances() : Seq[UtteranceType] = utterances
 
-  private def freezeReferenceMap(
-    referenceMap : Map[SilReference, Set[EntityType]]) =
+  private def freezeRefMap(
+    refMap : SmcRefMap[EntityType]) =
   {
-    referenceMap.toMap
+    refMap.toMap
   }
 }

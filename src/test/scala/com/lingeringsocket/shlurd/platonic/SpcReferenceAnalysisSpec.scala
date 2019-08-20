@@ -37,7 +37,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
 
     protected def analyze(
       input : String, response : String)
-        : Map[SilReference, Set[SpcEntity]] =
+        : SpcRefMap =
     {
       val isolated = !mind.isConversing
       if (isolated) {
@@ -50,7 +50,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
         okExecutor
       ) must be equalTo response
       val result = mind.getConversation.getUtterances.
-        dropRight(1).last.referenceMap
+        dropRight(1).last.refMap
       if (isolated) {
         stopSequence
       }
@@ -58,7 +58,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
     }
 
     protected def analyze(input : String)
-        : Map[SilReference, Set[SpcEntity]] =
+        : SpcRefMap =
     {
       analyze(input, "OK.")
     }
@@ -68,7 +68,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       new SmcExecutor[SpcEntity] {
         override def executeAction(
           predicate : SilActionPredicate,
-          referenceMap : Map[SilReference, Set[SpcEntity]]
+          refMap : SpcRefMap
         ) : Option[String] =
         {
           Some("OK.")
@@ -76,7 +76,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
 
         override def executeImperative(
           predicate : SilPredicate,
-          referenceMap : Map[SilReference, Set[SpcEntity]]
+          refMap : SpcRefMap
         ) : Option[String] =
         {
           Some("OK.")

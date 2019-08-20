@@ -56,7 +56,7 @@ case class SmcResponseParams(
 }
 
 class SmcResultCollector[EntityType<:SmcEntity](
-  val referenceMap : mutable.Map[SilReference, Set[EntityType]])
+  val refMap : SmcMutableRefMap[EntityType])
 {
   val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
   val states = new mutable.LinkedHashSet[SilWord]
@@ -69,7 +69,7 @@ class SmcResultCollector[EntityType<:SmcEntity](
     new IdentityLinkedHashMap[SilReference, SilReference]
 
   def spawn() = {
-    val newCollector = new SmcResultCollector[EntityType](referenceMap)
+    val newCollector = new SmcResultCollector[EntityType](refMap)
     newCollector.suppressWildcardExpansion = suppressWildcardExpansion
     newCollector.swapSpeakerListener = swapSpeakerListener
     newCollector.resolvingReferences = resolvingReferences
@@ -78,7 +78,7 @@ class SmcResultCollector[EntityType<:SmcEntity](
 
   def lookup(ref : SilReference) : Option[Set[EntityType]] =
   {
-    val entitiesOpt = referenceMap.get(ref)
+    val entitiesOpt = refMap.get(ref)
     entitiesOpt.orElse {
       refEquivalence.get(ref).flatMap(lookup)
     }
@@ -88,20 +88,20 @@ class SmcResultCollector[EntityType<:SmcEntity](
 object SmcResultCollector
 {
   def apply[EntityType<:SmcEntity]() =
-    new SmcResultCollector(newReferenceMap[EntityType])
+    new SmcResultCollector(newRefMap[EntityType])
 
   // we use an identity hash map since the same expression (e.g.
   // the pronoun "it") may appear in a phrase multiple times with
   // different referents
-  def newReferenceMap[EntityType<:SmcEntity]() =
+  def newRefMap[EntityType<:SmcEntity]() =
   {
-    new IdentityLinkedHashMap[SilReference, Set[EntityType]]
+    SmcMutableRefMap.newByIdentity[EntityType]()
   }
 
-  def modifiableReferenceMap[EntityType<:SmcEntity](
-    map : Map[SilReference, Set[EntityType]]) =
+  def modifiableRefMap[EntityType<:SmcEntity](
+    map : SmcRefMap[EntityType]) =
   {
-    val newMap = newReferenceMap[EntityType]
+    val newMap = newRefMap[EntityType]
     newMap ++= map
     newMap
   }
@@ -111,21 +111,21 @@ class SmcExecutor[EntityType<:SmcEntity]
 {
   def executeAction(
     predicate : SilActionPredicate,
-    referenceMap : Map[SilReference, Set[EntityType]]) : Option[String] =
+    refMap : SmcRefMap[EntityType]) : Option[String] =
   {
     None
   }
 
   def executeImperative(
     predicate : SilPredicate,
-    referenceMap : Map[SilReference, Set[EntityType]]) : Option[String] =
+    refMap : SmcRefMap[EntityType]) : Option[String] =
   {
     None
   }
 
   def executeInvocation(
     invocation : SmcStateChangeInvocation[EntityType],
-    referenceMap : Map[SilReference, Set[EntityType]]) : Option[String] =
+    refMap : SmcRefMap[EntityType]) : Option[String] =
   {
     None
   }
@@ -153,7 +153,7 @@ class SmcContextualScorer[
     resultCollector : ResultCollectorType) : SilPhraseScore =
   {
     SilPhraseScore.numeric(
-      3*resultCollector.referenceMap.values.count(_.nonEmpty))
+      3*resultCollector.refMap.values.count(_.nonEmpty))
   }
 
   override def computeGlobalScore(phrase : SilPhrase) : SilPhraseScore =
@@ -266,7 +266,7 @@ class SmcResponder[
     debug(s"RESPONSE TEXT : $responseText")
     debug(s"RESPONSE SENTENCE : $responseSentence")
     if (mind.isConversing) {
-      // perhaps we should synthesize referenceMap as we go instead
+      // perhaps we should synthesize refMap as we go instead
       // of attempting to reconstruct it here
       val responseResultCollector = SmcResultCollector[EntityType]
       responseResultCollector.swapSpeakerListener = true
@@ -274,7 +274,7 @@ class SmcResponder[
         responseSentence, responseResultCollector)
       mind.rememberSpeakerSentence(
         SmcConversation.SPEAKER_NAME_SHLURD,
-        responseSentence, responseText, responseResultCollector.referenceMap)
+        responseSentence, responseText, responseResultCollector.refMap)
     }
     responseText
   }
@@ -309,7 +309,7 @@ class SmcResponder[
     if (sentence.isUninterpretable) {
       val unrecognized = responseRewriter.rewrite(
         responseRewriter.swapPronounsSpeakerListener(
-          resultCollector.referenceMap),
+          resultCollector.refMap),
         sentence)
       val responder = new SmcUnrecognizedResponder(sentencePrinter)
       wrapResponseText(
@@ -337,7 +337,7 @@ class SmcResponder[
     interval : SmcTimeInterval,
     updatedCosmos : CosmosType,
     predicate : SilPredicate,
-    referenceMap : Map[SilReference, Set[EntityType]])
+    refMap : SmcRefMap[EntityType])
   {
     // FIXME deal with tense/aspect/mood
     if (mind.hasNarrative) {
@@ -358,7 +358,7 @@ class SmcResponder[
 
       val timeline = mind.getNarrative
       timeline.addEntry(new SmcTimelineEntry(
-        interval, updatedCosmos, predicate, referenceMap),
+        interval, updatedCosmos, predicate, refMap),
         cosmosMutator)
     }
   }
@@ -400,7 +400,7 @@ class SmcResponder[
 
   protected def rememberSentenceAnalysis(resultCollector : ResultCollectorType)
   {
-    mind.rememberSentenceAnalysis(resultCollector.referenceMap)
+    mind.rememberSentenceAnalysis(resultCollector.refMap)
   }
 
   private def processStateChange(
@@ -441,7 +441,7 @@ class SmcResponder[
             resultCollector.states.head)
         debug(s"EXECUTE INVOCATION : $invocation")
         executor.executeInvocation(
-          invocation, resultCollector.referenceMap) match
+          invocation, resultCollector.refMap) match
         {
           case Some(result) => {
             Success(wrapResponseText(result))
@@ -741,7 +741,7 @@ class SmcResponder[
             case Success(result) => result
             case Failure(e) => {
               executor.executeImperative(
-                predicate, resultCollector.referenceMap) match
+                predicate, resultCollector.refMap) match
               {
                 case Some(imperativeResult) => {
                   wrapResponseText(imperativeResult)
@@ -857,7 +857,7 @@ class SmcResponder[
     iter.foreach(entry => if (isAction) {
       val pastMatchTry = matchActions(
         entry.predicate, boundPredicate,
-        entry.referenceMap, resultCollector, false)
+        entry.refMap, resultCollector, false)
       if (pastMatchTry.isFailure) {
         return pastMatchTry.map(_ => Trilean.Unknown)
       }
@@ -866,7 +866,7 @@ class SmcResponder[
         if (!pastMatch || (iTimeframe < 0)) {
           val bindMatchTry = matchActions(
             entry.predicate, freePredicate,
-            entry.referenceMap, resultCollector, true)
+            entry.refMap, resultCollector, true)
           if (bindMatchTry.isFailure) {
             return bindMatchTry.map(_ => Trilean.Unknown)
           }
@@ -914,11 +914,11 @@ class SmcResponder[
   protected def matchActions(
     eventActionPredicate : SilPredicate,
     queryActionPredicate : SilPredicate,
-    eventReferenceMap : Map[SilReference, Set[EntityType]],
+    eventRefMap : SmcRefMap[EntityType],
     resultCollector : ResultCollectorType,
     applyBindings : Boolean) : Try[Boolean] =
   Success({
-    val queryReferenceMap = resultCollector.referenceMap
+    val queryRefMap = resultCollector.refMap
     (eventActionPredicate, queryActionPredicate) match {
       case (
         SilActionPredicate(eventSubject, eventAction,
@@ -938,7 +938,7 @@ class SmcResponder[
             bindVariable(querySubject, eventSubject)
             true
           } else {
-            queryReferenceMap(querySubject) == eventReferenceMap(eventSubject)
+            queryRefMap(querySubject) == eventRefMap(eventSubject)
           }
         }
         def directObjectMatch = {
@@ -948,7 +948,7 @@ class SmcResponder[
               !eventDirectObject.isEmpty
             } else {
               eventDirectObject.map(edo => {
-                queryReferenceMap(qdo) == eventReferenceMap(edo)
+                queryRefMap(qdo) == eventRefMap(edo)
               }).getOrElse(false)
             }
           })
@@ -972,19 +972,19 @@ class SmcResponder[
             case _ => false
           })
           val qmr = reducedModifiers.map(modifier =>
-            replaceReferencesWithEntities(modifier, queryReferenceMap)).toSet
+            replaceReferencesWithEntities(modifier, queryRefMap)).toSet
           val emr = eventModifiers.map(modifier =>
-            replaceReferencesWithEntities(modifier, eventReferenceMap)).toSet
+            replaceReferencesWithEntities(modifier, eventRefMap)).toSet
           variableMatched && qmr.subsetOf(emr)
         }
         if (subjectMatch && directObjectMatch && modifiersMatch) {
           if (applyBindings) {
             bindings.foreach({
               case (queryRef, eventRef) => {
-                eventReferenceMap.get(eventRef).foreach(entities => {
-                  queryReferenceMap.put(
+                eventRefMap.get(eventRef).foreach(entities => {
+                  queryRefMap.put(
                     queryRef,
-                    queryReferenceMap.get(queryRef).
+                    queryRefMap.get(queryRef).
                       getOrElse(Set.empty) ++ entities)
                   entities.foreach(entity =>
                     resultCollector.entityMap.put(entity, Trilean.True))
@@ -1040,13 +1040,13 @@ class SmcResponder[
 
   private def replaceReferencesWithEntities(
     phrase : SilPhrase,
-    referenceMap : Map[SilReference, Set[EntityType]]) : SilPhrase =
+    refMap : SmcRefMap[EntityType]) : SilPhrase =
   {
     val rewriter = new SilPhraseRewriter
     def replaceReferences = rewriter.replacementMatcher(
       "replaceReferencesWithEntities", {
         case ref : SilReference => {
-          referenceMap.get(ref) match {
+          refMap.get(ref) match {
             case Some(entities) => {
               SilConjunctiveReference(
                 DETERMINER_ALL,

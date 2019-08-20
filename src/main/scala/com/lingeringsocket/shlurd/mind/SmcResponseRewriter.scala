@@ -185,14 +185,14 @@ class SmcResponseRewriter[
         rewrite(
           combineRules(
             neutralizePossesseeWildcard,
-            swapPronounsSpeakerListener(resultCollector.referenceMap)
+            swapPronounsSpeakerListener(resultCollector.refMap)
           ),
           predicate)
       } else {
         rewrite(
           combineRules(
             neutralizePossesseeWildcard,
-            swapPronounsSpeakerListener(resultCollector.referenceMap),
+            swapPronounsSpeakerListener(resultCollector.refMap),
             flipPredicateQueries
           ),
           predicate)
@@ -207,11 +207,11 @@ class SmcResponseRewriter[
     val rewrite3 = rewrite(
       combineRules(
         clearActionInflection,
-        avoidTautologies(resultCollector.referenceMap),
+        avoidTautologies(resultCollector.refMap),
         removeResolvedReferenceQualifiers),
       rewrite2)
     val rewrite4 = rewrite(
-      replaceResolvedReferences(resultCollector.referenceMap),
+      replaceResolvedReferences(resultCollector.refMap),
       rewrite3)
     val rewrite5 = {
       val useThirdPersonPronouns = predicate match {
@@ -222,7 +222,7 @@ class SmcResponseRewriter[
         rewriteThirdPersonReferences(resultCollector, rewrite4)
       } else {
         rewrite(
-          replaceThirdPersonPronouns(resultCollector.referenceMap),
+          replaceThirdPersonPronouns(resultCollector.refMap),
           rewrite4)
       }
     }
@@ -245,7 +245,7 @@ class SmcResponseRewriter[
   }
 
   def swapPronounsSpeakerListener(
-    referenceMap : mutable.Map[SilReference, Set[EntityType]]
+    refMap : SmcMutableRefMap[EntityType]
   ) = replacementMatcher(
     "swapPronounSpeakerListener", {
       case oldPronoun @ SilPronounReference(person, gender, count, distance)=> {
@@ -256,24 +256,23 @@ class SmcResponseRewriter[
         }
         val newPronoun =
           SilPronounReference(speakerListenerReversed, gender, count, distance)
-        referenceMap.get(oldPronoun).foreach(entities =>
-          referenceMap.put(newPronoun, entities))
+        refMap.get(oldPronoun).foreach(entities =>
+          refMap.put(newPronoun, entities))
         newPronoun
       }
     }
   )
 
   class AmbiguousRefDetector(
-    val referenceMap : mutable.Map[SilReference, Set[EntityType]])
+    val refMap : SmcMutableRefMap[EntityType])
   {
-    val replacedRefMap =
-      new mutable.LinkedHashMap[SilReference, Set[EntityType]]
+    val replacedRefMap = SmcMutableRefMap.newByValue[EntityType]()
     val ambiguousRefs =
       new mutable.LinkedHashSet[SilReference]
 
     def analyze(originalRef : SilReference)
     {
-      val newEntitySet = referenceMap(originalRef)
+      val newEntitySet = refMap(originalRef)
       mind.thirdPersonReference(newEntitySet).foreach(replacedRef => {
         replacedRefMap.get(replacedRef) match {
           case Some(existingEntitySet) => {
@@ -369,23 +368,23 @@ class SmcResponseRewriter[
     resultCollector : ResultCollectorType,
     predicate : SilPredicate) : SilPredicate =
   {
-    val referenceMap = resultCollector.referenceMap
-    val detector = new AmbiguousRefDetector(referenceMap)
-    querier.query(disqualifyThirdPersonReferences(referenceMap), predicate)
+    val refMap = resultCollector.refMap
+    val detector = new AmbiguousRefDetector(refMap)
+    querier.query(disqualifyThirdPersonReferences(refMap), predicate)
     querier.query(disambiguateThirdPersonReferences(detector), predicate)
-    referenceMap --= detector.ambiguousRefs
+    refMap --= detector.ambiguousRefs
     predicate matchPartial {
       case SilRelationshipPredicate(
         subject, SilRelationshipPredefVerb(REL_PREDEF_IDENTITY), complement, _
       ) => {
         tupleN(
-          (referenceMap.get(subject),
-            referenceMap.get(complement))
+          (refMap.get(subject),
+            refMap.get(complement))
         ) matchPartial {
           case (Some(subjectEntities), Some(complementEntities)) => {
             if (subjectEntities == complementEntities) {
               // prevent a tautology
-              referenceMap -= complement
+              refMap -= complement
             }
           }
         }
@@ -451,7 +450,7 @@ class SmcResponseRewriter[
   )
 
   private def avoidTautologies(
-    referenceMap : mutable.Map[SilReference, Set[EntityType]]
+    refMap : SmcMutableRefMap[EntityType]
   ) = replacementMatcher(
     "avoidTautologies", {
       case SilRelationshipPredicate(
@@ -462,7 +461,7 @@ class SmcResponseRewriter[
       ) => {
         val entity = entityMap(key)
         SilRelationshipPredicate(
-          chooseReference(referenceMap, entity, other, determiner),
+          chooseReference(refMap, entity, other, determiner),
           verb.toUninflected,
           other,
           verbModifiers)
@@ -477,7 +476,7 @@ class SmcResponseRewriter[
         SilRelationshipPredicate(
           other,
           verb.toUninflected,
-          chooseReference(referenceMap, entity, other, determiner),
+          chooseReference(refMap, entity, other, determiner),
           verbModifiers)
       }
     }
@@ -494,14 +493,14 @@ class SmcResponseRewriter[
   }
 
   private def chooseReference(
-    referenceMap : mutable.Map[SilReference, Set[EntityType]],
+    refMap : SmcMutableRefMap[EntityType],
     entity : EntityType,
     other : SilReference,
     determiner : SilDeterminer) : SilReference =
   {
     val equivs = mind.equivalentReferences(
       communicationContext, entity, determiner).map(ref =>
-      rewrite(swapPronounsSpeakerListener(referenceMap), ref))
+      rewrite(swapPronounsSpeakerListener(refMap), ref))
     equivs.find(_ != other) match {
       case Some(ref) => ref
       case _ => equivs.head
@@ -537,13 +536,13 @@ class SmcResponseRewriter[
   )
 
   private def replaceResolvedReferences(
-    referenceMap : mutable.Map[SilReference, Set[EntityType]]
+    refMap : SmcMutableRefMap[EntityType]
   ) = replacementMatcher(
     "replaceResolvedReferences", {
       case SilMappedReference(key, determiner) => {
         val entity = entityMap(key)
         val ref = mind.specificReference(entity, determiner)
-        referenceMap.remove(ref)
+        refMap.remove(ref)
         ref
       }
     }
@@ -556,9 +555,9 @@ class SmcResponseRewriter[
   }
 
   // FIXME we should not be messing with the
-  // resultCollector's referenceMap like this!
+  // resultCollector's refMap like this!
   private def disqualifyThirdPersonReferences(
-    referenceMap : mutable.Map[SilReference, Set[EntityType]]
+    refMap : SmcMutableRefMap[EntityType]
   ) = querier.queryMatcher {
     case nr @ SilNounReference(
       noun, determiner, _
@@ -567,33 +566,33 @@ class SmcResponseRewriter[
         case DETERMINER_UNIQUE =>
         case DETERMINER_UNSPECIFIED => {
           if (!noun.isProper) {
-            referenceMap.remove(nr)
+            refMap.remove(nr)
           }
         }
         case _ => {
-          referenceMap.remove(nr)
+          refMap.remove(nr)
         }
       }
     }
     case SilGenitiveReference(possessor, possessee) => {
-      referenceMap.remove(possessee)
+      refMap.remove(possessee)
     }
     case SilStateSpecifiedReference(sub, state) => {
-      referenceMap.remove(sub)
+      refMap.remove(sub)
     }
     case SilAdpositionalState(_, sub) => {
-      referenceMap.remove(sub)
+      refMap.remove(sub)
     }
     case cr @ SilConjunctiveReference(determiner, references, _) => {
       if ((determiner != DETERMINER_ALL) ||
-        !references.forall(r => referenceMap.contains(r)))
+        !references.forall(r => refMap.contains(r)))
       {
-        referenceMap --= references
+        refMap --= references
       } else {
-        referenceMap.put(
+        refMap.put(
           cr,
           SprUtils.orderedSet(
-            references.flatMap(r => referenceMap(r))))
+            references.flatMap(r => refMap(r))))
       }
     }
   }
@@ -603,7 +602,7 @@ class SmcResponseRewriter[
   private def disambiguateThirdPersonReferences(
     detector : AmbiguousRefDetector
   ) = querier.queryMatcher {
-    case ref : SilReference if (detector.referenceMap.contains(ref)) => {
+    case ref : SilReference if (detector.refMap.contains(ref)) => {
       ref matchPartial {
         case SilNounReference(_, DETERMINER_UNIQUE, _) |
             SilStateSpecifiedReference(_, _) |
@@ -644,11 +643,11 @@ class SmcResponseRewriter[
   )
 
   private def replaceThirdPersonPronouns(
-    referenceMap : Map[SilReference, Set[EntityType]]
+    refMap : SmcRefMap[EntityType]
   ) = replacementMatcher(
     "replaceThirdPersonPronouns", {
       case pr @ SilPronounReference(PERSON_THIRD, _, _, _) => {
-        referenceMap.get(pr).map(
+        refMap.get(pr).map(
           entities => mind.specificReferences(entities)
         ).getOrElse(pr)
       }

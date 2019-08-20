@@ -57,7 +57,7 @@ class SmcPredicateEvaluator[
     trace(s"EVALUATE PREDICATE : $predicateOriginal")
     val predicate = normalizePredicate(
       predicateOriginal,
-      resultCollector.referenceMap,
+      resultCollector.refMap,
       resultCollector.refEquivalence)
     if (predicate != predicateOriginal) {
       trace(s"NORMALIZED PREDICATE : $predicate")
@@ -65,7 +65,7 @@ class SmcPredicateEvaluator[
     debugPushLevel()
     // we are re-resolving with reification this time, so
     // already cached references might be stale
-    resultCollector.referenceMap.clear
+    resultCollector.refMap.clear
     val resolutionResult =
       resolveReferences(predicate, resultCollector, true, true)
     if (resolutionResult.isFailure) {
@@ -215,7 +215,7 @@ class SmcPredicateEvaluator[
                 // invalidate any cached result for complementRef since
                 // we just reified a new entity
                 complementRef.descendantReferences.foreach(
-                  resultCollector.referenceMap.remove
+                  resultCollector.refMap.remove
                 )
                 // and now stash away the new result
                 val resolved = mind.resolveGenitive(subjectEntity, roleName)
@@ -223,7 +223,7 @@ class SmcPredicateEvaluator[
                   case Failure(_ : UnsupportedOperationException) => ;
                   case Failure(err) => return Failure(err)
                   case Success(entities) => {
-                    resultCollector.referenceMap.put(complementRef, entities)
+                    resultCollector.refMap.put(complementRef, entities)
                   }
                 }
               }
@@ -305,7 +305,7 @@ class SmcPredicateEvaluator[
       ref : SilReference,
       context : SilReferenceContext)
     {
-      val cached = resultCollector.referenceMap.contains(ref)
+      val cached = resultCollector.refMap.contains(ref)
       val result = resolveReference(ref, context, resultCollector)
       if (throwFailures) {
         // this will throw if result.isFailure
@@ -321,7 +321,7 @@ class SmcPredicateEvaluator[
               possessor match {
                 case SilNounReference(_, DETERMINER_ANY, _) => {
                   // force correlated evaluation after reference resolution
-                  resultCollector.referenceMap.remove(ref)
+                  resultCollector.refMap.remove(ref)
                 }
                 case _ => {
                   resultCollector.lookup(possessor).
@@ -331,8 +331,8 @@ class SmcPredicateEvaluator[
                     })
                   // now clear cache and repeat to pick up the newly
                   // reifed entities
-                  resultCollector.referenceMap.remove(ref)
-                  resultCollector.referenceMap.remove(possessee)
+                  resultCollector.refMap.remove(ref)
+                  resultCollector.refMap.remove(possessee)
                   resolveReference(ref, context, resultCollector)
                 }
               }
@@ -680,7 +680,7 @@ class SmcPredicateEvaluator[
         )
       }
     }
-    resultCollector.referenceMap.put(
+    resultCollector.refMap.put(
       reference, SprUtils.orderedSet(entities))
     val result = determiner match {
       case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
@@ -775,7 +775,7 @@ class SmcPredicateEvaluator[
     evaluator : EntityPredicateEvaluator)
       : Try[Trilean] =
   {
-    val referenceMap = resultCollector.referenceMap
+    val refMap = resultCollector.refMap
     val qualifiers = cosmos.qualifierSet(
       SilUtils.extractQualifiers(specifiedState))
     reference match {
@@ -852,7 +852,7 @@ class SmcPredicateEvaluator[
           if (resultCollector.swapSpeakerListener) {
             val rewriter = new SmcResponseRewriter(mind, communicationContext)
             rewriter.rewrite(
-              rewriter.swapPronounsSpeakerListener(referenceMap), prOriginal)
+              rewriter.swapPronounsSpeakerListener(refMap), prOriginal)
           } else {
             prOriginal
           }
@@ -862,10 +862,10 @@ class SmcPredicateEvaluator[
           reference,
           () => {
             val phraseScope = new SmcPhraseScope(
-              resultCollector.referenceMap, scope)
+              resultCollector.refMap, scope)
             phraseScope.resolvePronoun(communicationContext, pr).map(out => {
               val entities = out.entities
-              referenceMap.put(reference, entities)
+              refMap.put(reference, entities)
               entities
             })
           }
@@ -886,31 +886,31 @@ class SmcPredicateEvaluator[
           evaluatePredicateOverReference(
             _, context, resultCollector, specifiedState)(evaluator))
         val combinedEntities = references.flatMap(sub => {
-          referenceMap.get(sub) match {
+          refMap.get(sub) match {
             case Some(entities) => entities
             case _ => Seq.empty
           }
         })
-        referenceMap.put(reference, combinedEntities.toSet)
+        refMap.put(reference, combinedEntities.toSet)
         evaluateDeterminer(results, determiner)
       }
       case SilParenthesizedReference(sub) => {
         val result = evaluatePredicateOverReferenceImpl(
           sub, context, resultCollector, specifiedState,
           specifiedEntities, evaluator)
-        referenceMap.get(sub).foreach(
-          entitySet => referenceMap.put(reference, entitySet))
+        refMap.get(sub).foreach(
+          entitySet => refMap.put(reference, entitySet))
         result
       }
       case SilStateSpecifiedReference(sub, subState) => {
         val result = evaluatePredicateOverState(
           sub, subState, context, resultCollector, specifiedState, evaluator)
-        referenceMap.get(sub).foreach(
-          entitySet => referenceMap.put(reference, entitySet))
+        refMap.get(sub).foreach(
+          entitySet => refMap.put(reference, entitySet))
         result
       }
       case SilGenitiveReference(possessor, possessee) => {
-        referenceMap.get(reference) match {
+        refMap.get(reference) match {
           case Some(entities) => {
             evaluatePredicateOverReferenceImpl(
               possessee,
@@ -946,9 +946,9 @@ class SmcPredicateEvaluator[
                               return Failure(e)
                             }
                           }
-                          resultCollector.referenceMap.put(
+                          resultCollector.refMap.put(
                             reference, resolved)
-                          resultCollector.referenceMap.put(
+                          resultCollector.refMap.put(
                             possessee, resolved)
                           return Success(Trilean.True)
                         }
@@ -990,8 +990,8 @@ class SmcPredicateEvaluator[
                           COUNT_PLURAL,
                           noun,
                           evaluator)
-                        referenceMap.get(possessee).foreach(filtered => {
-                          referenceMap.put(reference, filtered)
+                        refMap.get(possessee).foreach(filtered => {
+                          refMap.put(reference, filtered)
                         })
                         result
                       }
@@ -1005,8 +1005,8 @@ class SmcPredicateEvaluator[
             val result = evaluatePredicateOverState(
               possessee, state, REF_GENITIVE_POSSESSEE, resultCollector,
               specifiedState, evaluator)
-            referenceMap.get(possessee).foreach(
-              entitySet => referenceMap.put(reference, entitySet))
+            refMap.get(possessee).foreach(
+              entitySet => refMap.put(reference, entitySet))
             result
           }
         }
@@ -1235,7 +1235,7 @@ class SmcPredicateEvaluator[
 
   protected def normalizePredicate(
     predicate : SilPredicate,
-    referenceMap : Map[SilReference, Set[EntityType]],
+    refMap : SmcRefMap[EntityType],
     refEquivalence : mutable.Map[SilReference, SilReference]
   ) : SilPredicate =
   {

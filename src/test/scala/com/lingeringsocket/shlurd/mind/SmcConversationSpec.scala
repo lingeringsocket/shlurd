@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
 
+import scala.collection._
+
 class SmcConversationSpec extends Specification
 {
   private val SPEAKER_FRED = "Fred"
@@ -47,11 +49,11 @@ class SmcConversationSpec extends Specification
     override def getUniqueIdentifier = "2"
   }
 
-  private val REF_MAP_1 = Map[SilReference, Set[SmcEntity]](
+  private val REF_MAP_1 = SmcRefMap[SmcEntity](
     REFERENCE_D -> Set(ENTITY_1)
   )
 
-  private val REF_MAP_2 = Map[SilReference, Set[SmcEntity]](
+  private val REF_MAP_2 = SmcRefMap[SmcEntity](
     REFERENCE_D -> Set(ENTITY_2)
   )
 
@@ -61,15 +63,15 @@ class SmcConversationSpec extends Specification
   private def makeSentence(s : String) =
     SilUnrecognizedSentence(makeLeaf(s))
 
-  private def makeReference(s : String) =
+  private def makeReference(s : String) : SilReference =
     SilUnrecognizedReference(makeLeaf(s))
 
   private def utterance(
     speakerName : String,
     sentence : SilSentence,
     text : String,
-    refMap : Map[SilReference, Set[SmcEntity]] =
-      Map.empty[SilReference, Set[SmcEntity]]) =
+    refMap : SmcRefMap[SmcEntity] =
+      SmcRefMap[SmcEntity]()) =
   {
     SpeakerUtterance(speakerName, sentence, text, refMap)
   }

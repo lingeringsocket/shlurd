@@ -53,7 +53,7 @@ class SnavigResponder(
   override protected def checkCycle(
     predicate : SilPredicate,
     seen : mutable.Set[SilPredicate],
-    referenceMap : Map[SilReference, Set[SpcEntity]],
+    refMap : SpcRefMap,
     isPrecondition : Boolean) : Try[Boolean] =
   {
     if (logger.isTraceEnabled) {
@@ -68,7 +68,7 @@ class SnavigResponder(
     if (isPrecondition) {
       Success(false)
     } else {
-      super.checkCycle(predicate, seen, referenceMap, isPrecondition)
+      super.checkCycle(predicate, seen, refMap, isPrecondition)
     }
   }
 }

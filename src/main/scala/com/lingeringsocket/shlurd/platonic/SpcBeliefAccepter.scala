@@ -918,7 +918,7 @@ class SpcBeliefAccepter private(
         }
       }
       stateOpt.foreach(state => {
-        resultCollector.referenceMap.put(newEntityRef, Set(possessee))
+        resultCollector.refMap.put(newEntityRef, Set(possessee))
         val statePredicate = SilStatePredicate(
           newEntityRef, STATE_PREDEF_BE.toVerb, state)
         val subjectConjunction = new SubjectConjunction(DETERMINER_UNSPECIFIED)
@@ -989,14 +989,13 @@ class SpcBeliefAccepter private(
       additionalConsequents,
       alternative
     ) => {
-      var vanilla = true
       val implicationMapper = new SpcImplicationMapper(responder)
-      sentence matchPartial {
+      val placeholderMapOpt = sentence match {
         case conditional : SilConditionalSentence => {
-          val placeholderReferenceMap = implicationMapper.validateImplication(
+          val placeholderMap = implicationMapper.validateImplication(
             conditional, additionalConsequents)
-          if (acceptSpecialAssertion(conditional, placeholderReferenceMap)) {
-            vanilla = false
+          if (acceptSpecialAssertion(conditional, placeholderMap)) {
+            None
           } else {
             if (
               (conditional.conjunction.toLemma == LEMMA_IF) &&
@@ -1007,16 +1006,21 @@ class SpcBeliefAccepter private(
               throw InvalidBeliefExcn(
                 ShlurdExceptionCode.AssertionInvalidAssociation, sentence)
             }
+            Some(placeholderMap)
           }
         }
         case ps : SilPredicateSentence => {
-          implicationMapper.validateAssertionPredicate(sentence, ps.predicate)
+          Some(implicationMapper.validateAssertionPredicate(
+            sentence, ps.predicate))
         }
+        case _ => None
       }
-      if (vanilla) {
+      placeholderMapOpt.foreach(placeholderMap => {
         cosmos.addAssertion(
-          SpcAssertion(sentence, additionalConsequents, alternative))
-      }
+          SpcAssertion(
+            sentence, additionalConsequents,
+            alternative, placeholderMap))
+      })
     }
   }
 
@@ -1039,7 +1043,7 @@ class SpcBeliefAccepter private(
 
   private def acceptSpecialAssertion(
     conditional : SilConditionalSentence,
-    referenceMap : Map[SilReference, Set[SpcEntity]]) : Boolean =
+    refMap : SpcRefMap) : Boolean =
   {
     conditional match {
       // "If a map-place is a map-connection's target-place,
@@ -1072,7 +1076,7 @@ class SpcBeliefAccepter private(
           antecedentComplement,
           consequentSubject,
           consequentComplement,
-          referenceMap
+          refMap
         ) match {
           case Some(
             (possesseeForm, possessorForm,
@@ -1095,7 +1099,7 @@ class SpcBeliefAccepter private(
     antecedentComplement : SilReference,
     consequentSubject : SilReference,
     consequentComplement : SilReference,
-    referenceMap : Map[SilReference, Set[SpcEntity]]
+    refMap : SpcRefMap
   ) : Option[(SilWord, SilWord, SilWord, SilWord)] =
   {
     val antecedentIdentity =
@@ -1104,8 +1108,8 @@ class SpcBeliefAccepter private(
       matchAssocIdentity(consequentSubject, consequentComplement)
     def samePlaceholders(ar : SilReference, cr : SilReference) : Boolean =
     {
-      val ae = SpcImplicationMapper.extractPlaceholder(ar, referenceMap)
-      val ce = SpcImplicationMapper.extractPlaceholder(cr, referenceMap)
+      val ae = SpcImplicationMapper.extractPlaceholder(ar, refMap)
+      val ce = SpcImplicationMapper.extractPlaceholder(cr, refMap)
       if (ae.nonEmpty) {
         ae == ce
       } else {

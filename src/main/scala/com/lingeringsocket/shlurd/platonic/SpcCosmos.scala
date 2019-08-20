@@ -150,6 +150,8 @@ trait SpcSentential
 
   def getAlternative() : Option[SilSentence]
 
+  def getPlaceholderMap() : SpcRefMap
+
   def toSentence() : SilSentence =
   {
     if (getAlternative.nonEmpty || getAdditional.nonEmpty) {
@@ -166,7 +168,8 @@ trait SpcSentential
 case class SpcAssertion(
   sentence : SilSentence,
   additionalConsequents : Seq[SilPredicateSentence],
-  alternative : Option[SilPredicateSentence]
+  alternative : Option[SilPredicateSentence],
+  placeholderMap : SpcRefMap
 ) extends SpcSentential
 {
   override def getAssertion() = sentence
@@ -175,11 +178,14 @@ case class SpcAssertion(
 
   override def getAlternative() = alternative
 
+  override def getPlaceholderMap() = placeholderMap
+
   def asTrigger() : Option[SpcTrigger] =
   {
     sentence match {
       case cs : SilConditionalSentence => {
-        Some(SpcTrigger(cs, additionalConsequents, alternative))
+        Some(SpcTrigger(
+          cs, additionalConsequents, alternative, placeholderMap))
       }
       case _ => None
     }
@@ -189,7 +195,8 @@ case class SpcAssertion(
 case class SpcTrigger(
   conditionalSentence : SilConditionalSentence,
   additionalConsequents : Seq[SilPredicateSentence],
-  alternative : Option[SilPredicateSentence]
+  alternative : Option[SilPredicateSentence],
+  placeholderMap : SpcRefMap
 ) extends SpcSentential
 {
   override def getAssertion() = conditionalSentence
@@ -197,6 +204,8 @@ case class SpcTrigger(
   override def getAdditional() = additionalConsequents
 
   override def getAlternative() = alternative
+
+  override def getPlaceholderMap() = placeholderMap
 }
 
 trait SpcEntity extends SmcEntity with SpcEntityVertex with SpcContainmentVertex

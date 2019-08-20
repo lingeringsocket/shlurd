@@ -51,11 +51,11 @@ trait SmcScope[
   ) : Try[SmcScopeOutput[EntityType]]
 
   protected def findMatchingPronounReference(
-    referenceMap : Map[SilReference, Set[EntityType]],
+    refMap : SmcRefMap[EntityType],
     reference : SilPronounReference) : Seq[SmcScopeOutput[EntityType]] =
   {
     var skip = false
-    referenceMap.filter {
+    refMap.filter {
       case (prior, set) => {
         if (skip) {
           false
@@ -165,7 +165,7 @@ class SmcMindScope[
             mind.getConversation.getUtterances.reverseIterator.drop(1).map(
               utterance => {
                 findMatchingPronounReference(
-                  utterance.referenceMap, reference
+                  utterance.refMap, reference
                 )
               }
             ).find(_.nonEmpty).getOrElse(Seq.empty)
@@ -185,7 +185,7 @@ class SmcPhraseScope[
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
-  referenceMap : Map[SilReference, Set[EntityType]],
+  refMap : SmcRefMap[EntityType],
   parent : SmcScope[EntityType, PropertyType, CosmosType, MindType]
 ) extends SmcScope[EntityType, PropertyType, CosmosType, MindType]
 {
@@ -201,7 +201,7 @@ class SmcPhraseScope[
     val outputs = {
       if (!noun.isProper) {
         val nounLemma = noun.toNounLemma
-        val ordered = referenceMap.toSeq.flatMap {
+        val ordered = refMap.toSeq.flatMap {
           case (prior, set) => {
             prior match {
               case SilNounReference(
@@ -291,7 +291,7 @@ class SmcPhraseScope[
   {
     val outputs = ref match {
       case SilPronounReference(PERSON_THIRD, _, _, DISTANCE_UNSPECIFIED) => {
-        findMatchingPronounReference(referenceMap, ref)
+        findMatchingPronounReference(refMap, ref)
       }
       case _ => Seq.empty
     }

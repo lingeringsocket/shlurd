@@ -68,7 +68,7 @@ class SmcResponderSpec extends Specification
 
         override protected def normalizePredicate(
           predicate : SilPredicate,
-          referenceMap : Map[SilReference, Set[SmcEntity]],
+          refMap : SmcRefMap[SmcEntity],
           refEquivalence :
               collection.mutable.Map[SilReference, SilReference]
         ) = {
@@ -104,7 +104,7 @@ class SmcResponderSpec extends Specification
       val executor = new SmcExecutor[SmcEntity] {
         override def executeInvocation(
           invocation : StateChangeInvocation,
-          referenceMap : Map[SilReference, Set[SmcEntity]]) =
+          refMap : SmcRefMap[SmcEntity]) =
         {
           throw new RuntimeException("unexpected invocation")
         }
@@ -134,7 +134,7 @@ class SmcResponderSpec extends Specification
       val executor = new SmcExecutor[SmcEntity] {
         override def executeInvocation(
           invocation : StateChangeInvocation,
-          referenceMap : Map[SilReference, Set[SmcEntity]]) =
+          refMap : SmcRefMap[SmcEntity]) =
         {
           actualInvocation = Some(invocation)
           Some(ok)

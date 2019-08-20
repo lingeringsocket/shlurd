@@ -29,7 +29,7 @@ class SmcScopeSpec extends Specification
 {
   type CosmosType = ZooCosmos
   type MindType = ZooMind
-  type ReferenceMap = Map[SilReference, Set[SmcEntity]]
+  type RefMap = SmcRefMap[SmcEntity]
 
   private val cosmos = new ZooCosmos
 
@@ -120,15 +120,15 @@ class SmcScopeSpec extends Specification
 
     "resolve nouns at phrase scope" in new ScopeContext
     {
-      val oneReferenceMap = Map[SilReference, Set[SmcEntity]](
+      val oneRefMap = SmcRefMap[SmcEntity](
         tigerRef -> Set()
       )
-      val twoReferenceMap = Map[SilReference, Set[SmcEntity]](
+      val twoRefMap = SmcRefMap[SmcEntity](
         tigerRef -> Set(),
         anotherTigerRef -> Set()
       )
-      val phraseScope1 = new SmcPhraseScope(oneReferenceMap, mindScope)
-      val phraseScope2 = new SmcPhraseScope(twoReferenceMap, mindScope)
+      val phraseScope1 = new SmcPhraseScope(oneRefMap, mindScope)
+      val phraseScope2 = new SmcPhraseScope(twoRefMap, mindScope)
       phraseScope1.resolveQualifiedNoun(
         SilWord("tiger"),
         REF_SUBJECT,
@@ -191,10 +191,10 @@ class SmcScopeSpec extends Specification
 
     "resolve pronouns at phrase scope" in new ScopeContext
     {
-      val referenceMap = Map[SilReference, Set[SmcEntity]](
+      val refMap = SmcRefMap[SmcEntity](
         nigelRef -> Set(ZooKeeper)
       )
-      val phraseScope = new SmcPhraseScope(referenceMap, mindScope)
+      val phraseScope = new SmcPhraseScope(refMap, mindScope)
       phraseScope.resolvePronoun(
         communicationContext,
         thirdPersonRef
@@ -205,11 +205,11 @@ class SmcScopeSpec extends Specification
 
     "fail to resolve ambiguous pronoun" in new ScopeContext
     {
-      val referenceMap = Map[SilReference, Set[SmcEntity]](
+      val refMap = SmcRefMap[SmcEntity](
         nigelRef -> Set(ZooKeeper),
         cliveRef -> Set(ZooVisitor)
       )
-      val phraseScope = new SmcPhraseScope(referenceMap, mindScope)
+      val phraseScope = new SmcPhraseScope(refMap, mindScope)
       phraseScope.resolvePronoun(
         communicationContext,
         thirdPersonRef

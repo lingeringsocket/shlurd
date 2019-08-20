@@ -14,8 +14,12 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd
 
+import com.lingeringsocket.shlurd.ilang._
+
 import spire.math._
 import spire.algebra._
+
+import scala.collection._
 
 package object mind
 {
@@ -23,4 +27,32 @@ package object mind
 
   implicit def orderForTimePoint[T <: SmcTimePoint] : Order[T] =
     SmcTimePointOrder.asInstanceOf[Order[T]]
+
+  type SmcRefMap[EntityType <: SmcEntity] =
+    Map[SilReference, Set[EntityType]]
+
+  type SmcMutableRefMap[EntityType <: SmcEntity] =
+    mutable.Map[SilReference, Set[EntityType]]
+
+  object SmcRefMap
+  {
+    def apply[EntityType <: SmcEntity](
+      elems : (SilReference, Set[EntityType])*) =
+    {
+      Map[SilReference, Set[EntityType]](elems:_*)
+    }
+  }
+
+  object SmcMutableRefMap
+  {
+    def newByValue[EntityType <: SmcEntity]() =
+    {
+      new mutable.LinkedHashMap[SilReference, Set[EntityType]]
+    }
+
+    def newByIdentity[EntityType <: SmcEntity]() =
+    {
+      new IdentityLinkedHashMap[SilReference, Set[EntityType]]
+    }
+  }
 }

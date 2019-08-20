@@ -27,8 +27,9 @@ import SprEnglishLemmas._
 import org.slf4j._
 
 case class SpcAssertionBinding(
-  referenceMapIn : Map[SilReference, Set[SpcEntity]],
-  referenceMapOut : Option[mutable.Map[SilReference, Set[SpcEntity]]],
+  refMapIn : SpcRefMap,
+  refMapOut : Option[SpcMutableRefMap],
+  placeholderMap : Option[SpcRefMap] = None,
   refEquivalence : Option[mutable.Map[SilReference, SilReference]] = None
 )
 
@@ -55,7 +56,7 @@ class SpcAssertionMapper(
     cosmos : SpcCosmos,
     general : SilPredicate,
     specific : SilPredicate,
-    referenceMap : Map[SilReference, Set[SpcEntity]]
+    refMap : SpcRefMap
   ) : Boolean =
   {
     val operator = "SUBSUMES"
@@ -63,9 +64,8 @@ class SpcAssertionMapper(
     val matched = matchGeneralization(
       cosmos, general, specific,
       SpcAssertionBinding(
-        referenceMap,
+        refMap,
         None),
-      None,
       0
     )._1
     if (matched && !isTraceEnabled) {
@@ -107,24 +107,19 @@ class SpcAssertionMapper(
     val consequent = conditional.consequent
     trace(s"ATTEMPT MATCH $antecedent $operator $consequent")
 
-    val placeholderReferenceMap = {
+    val maybePlaceholderMap = {
       if (conditional.biconditional) {
         None
       } else {
-        // FIXME spawn calling responder instead?
-        val implicationMapper =
-          new SpcImplicationMapper(new SpcResponder(mind))
-        Some(
-          implicationMapper.validateImplication(
-            conditional, additionalConsequents))
+        binding.placeholderMap
       }
     }
+
     val (matched, replacements) = matchGeneralization(
       cosmos,
       antecedent,
       predicate,
-      binding,
-      placeholderReferenceMap,
+      binding.copy(placeholderMap = maybePlaceholderMap),
       triggerDepth)
     if (matched) {
       if (!isTraceEnabled) {
@@ -173,8 +168,7 @@ class SpcAssertionMapper(
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
     actualRef : SilReference,
-    binding : SpcAssertionBinding,
-    placeholderReferenceMap : Option[Map[SilReference, Set[SpcEntity]]]
+    binding : SpcAssertionBinding
   ) : Boolean =
   {
     val patternMatched = prepareReplacementImpl(
@@ -182,13 +176,12 @@ class SpcAssertionMapper(
       replacements,
       ref,
       actualRef,
-      binding,
-      placeholderReferenceMap)
+      binding)
     if (patternMatched) {
       true
     } else {
       // FIXME we should prefer entity comparisons instead, but for that
-      // we need two referenceMaps simultaneously
+      // we need two refMaps simultaneously
       if (ref != actualRef) {
         trace(s"PHRASE $ref DOES NOT MATCH $actualRef")
         false
@@ -198,61 +191,16 @@ class SpcAssertionMapper(
     }
   }
 
-  private def findPlaceholderCorrespondence(
-    ref : SilReference,
-    placeholderReferenceMap : Option[Map[SilReference, Set[SpcEntity]]]
-  ) : (Boolean, Set[SilReference]) =
-  {
-    placeholderReferenceMap match {
-      case Some(referenceMap) => {
-        val placeholder = extractPlaceholder(ref, referenceMap)
-        if (placeholder.nonEmpty) {
-          tupleN((
-            true,
-            referenceMap.keySet.filter(other => {
-              (ref != other) &&
-              (extractPlaceholder(other, referenceMap) == placeholder)
-            })
-          ))
-        } else {
-          tupleN((
-            false,
-            Set.empty
-          ))
-        }
-      }
-      case _ => {
-        ref match {
-          case SilNounReference(
-            noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-          ) => {
-            tupleN((
-              true,
-              Set(SilNounReference(
-                noun, DETERMINER_UNIQUE, COUNT_SINGULAR))))
-          }
-          case _ => {
-            tupleN((
-              false,
-              Set.empty
-            ))
-          }
-        }
-      }
-    }
-  }
-
   private def prepareReplacementImpl(
     cosmos : SpcCosmos,
     replacements : mutable.Map[SilReference, SilReference],
     ref : SilReference,
     actualRef : SilReference,
-    binding : SpcAssertionBinding,
-    placeholderReferenceMap : Option[Map[SilReference, Set[SpcEntity]]]
+    binding : SpcAssertionBinding
   ) : Boolean =
   {
     tupleN((
-      findPlaceholderCorrespondence(ref, placeholderReferenceMap),
+      findPlaceholderCorrespondence(ref, binding.placeholderMap),
       extractNoun(ref)
     )) match {
       case ((true, patternRefSet), Some(noun)) => {
@@ -314,7 +262,7 @@ class SpcAssertionMapper(
             tupleN((actualRef, Set.empty[SpcEntity]))
           }
           case _ => {
-            binding.referenceMapIn.get(actualRef) match {
+            binding.refMapIn.get(actualRef) match {
               case Some(entities) => {
                 tupleN((actualRef, entities))
               }
@@ -347,14 +295,14 @@ class SpcAssertionMapper(
                   filtered.toSeq.map(entity => {
                     val entityRef = mind.specificReference(
                       entity, DETERMINER_UNIQUE)
-                    binding.referenceMapOut.foreach(
+                    binding.refMapOut.foreach(
                       _.put(entityRef, Set(entity)))
                     entityRef
                   })
                 )
               }
             }
-            binding.referenceMapOut.foreach(_.put(conjunction, filtered))
+            binding.refMapOut.foreach(_.put(conjunction, filtered))
             binding.refEquivalence.foreach(
               _.put(actualRef, conjunction))
             conjunction
@@ -378,7 +326,6 @@ class SpcAssertionMapper(
     general : SilPredicate,
     specific : SilPredicate,
     binding : SpcAssertionBinding,
-    placeholderReferenceMap : Option[Map[SilReference, Set[SpcEntity]]],
     triggerDepth : Int
   ) : (Boolean, Map[SilReference, SilReference]) =
   {
@@ -405,7 +352,7 @@ class SpcAssertionMapper(
           ) if (adp1 == adp2) => {
             if (!prepareReplacement(
               cosmos, replacements, obj1,
-              obj2, binding, placeholderReferenceMap))
+              obj2, binding))
             {
               return unmatched
             }
@@ -420,7 +367,7 @@ class SpcAssertionMapper(
         }
         if (!prepareReplacement(
           cosmos, replacements, subject, statePredicate.subject,
-          binding, placeholderReferenceMap))
+          binding))
         {
           return unmatched
         }
@@ -441,14 +388,14 @@ class SpcAssertionMapper(
         }
         if (!prepareReplacement(
           cosmos, replacements, subject, relPredicate.subject,
-          binding, placeholderReferenceMap))
+          binding))
         {
           return unmatched
         }
         if (!prepareReplacement(
           cosmos, replacements, complement,
           relPredicate.complement,
-          binding, placeholderReferenceMap))
+          binding))
         {
           return unmatched
         }
@@ -470,7 +417,7 @@ class SpcAssertionMapper(
         }
         if (!prepareReplacement(
           cosmos, replacements, subject, actionPredicate.subject,
-          binding, placeholderReferenceMap))
+          binding))
         {
           return unmatched
         }
@@ -479,7 +426,7 @@ class SpcAssertionMapper(
             case Some(actualObj) => {
               if (!prepareReplacement(
                 cosmos, replacements, obj, actualObj,
-                binding, placeholderReferenceMap))
+                binding))
               {
                 return unmatched
               }

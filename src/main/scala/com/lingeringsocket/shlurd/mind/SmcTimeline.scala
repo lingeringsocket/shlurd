@@ -79,7 +79,7 @@ case class SmcTimelineEntry[
   interval : SmcTimeInterval,
   updatedCosmos : CosmosType,
   predicate : SilPredicate,
-  referenceMap : Map[SilReference, Set[EntityType]]
+  refMap : SmcRefMap[EntityType]
 )
 {
 }
@@ -152,7 +152,7 @@ class SmcTimeline[
       actualInterval,
       entry.updatedCosmos,
       entry.predicate,
-      entry.referenceMap
+      entry.refMap
     )
     val newIntervalSeq = IntervalSeq(actualInterval)
     assert(!newIntervalSeq.intersects(intervals))
@@ -189,7 +189,7 @@ class SmcTimeline[
       updated.put(
         interval,
         new EntryType(
-          interval, updatedCosmos, entry.predicate, entry.referenceMap))
+          interval, updatedCosmos, entry.predicate, entry.refMap))
       prevCosmos = updatedCosmos
     }
     // defer updates until after loop to provide atomicity in

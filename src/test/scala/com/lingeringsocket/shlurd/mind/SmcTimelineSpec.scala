@@ -41,7 +41,7 @@ class SmcTimelineSpec extends Specification
     override def getUniqueIdentifier = "1"
   }
 
-  private val REF_MAP_1 = Map[SilReference, Set[SmcEntity]](
+  private val REF_MAP_1 = SmcRefMap[SmcEntity](
     REFERENCE_D -> Set(ENTITY_1)
   )
 

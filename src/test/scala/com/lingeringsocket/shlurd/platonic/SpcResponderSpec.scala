@@ -1894,7 +1894,7 @@ class SpcResponderSpec extends Specification
             }
           }
           responder.deriveType(
-            subjectRef, resultCollector.referenceMap
+            subjectRef, resultCollector.refMap
           ).name must be equalTo expectedType
         }
       }
