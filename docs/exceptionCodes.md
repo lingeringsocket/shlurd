@@ -7,7 +7,7 @@ Jupiter and Pete are investigators.
 A tribble's baby must be a tribble.
 After a tribble eats,
  it has a baby;
- also the tribble's baby eats.
+ also its baby eats.
 Terence is a tribble.
 Trevor is a tribble.
 ```
@@ -91,9 +91,9 @@ FIXME
 ## InvalidBelief
 
 ```scala mdoc:processConversation
-> if an investigator fires a gun, then the gun is broken
+> if an investigator fires a gun, then it is broken
 
-I am unable to validate the belief that if an investigator fires a gun, then the gun is broken.
+I am unable to validate the belief that if an investigator fires a gun, then it is broken.
 ```
 
 ## BeliefNotYetImplemented
@@ -460,9 +460,9 @@ I am unable to validate the belief that if a tribble is another tribble's baby, 
 ## EquivalenceIfExpected
 
 ```scala mdoc:processConversation
-> After a tribble eats, equivalently the tribble is happy.
+> After a tribble eats, equivalently it is happy.
 
-I am unable to validate the belief that after a tribble eats, equivalently the tribble is happy.
+I am unable to validate the belief that after a tribble eats, equivalently it is happy.
 ```
 
 ## AssertionModalProhibited

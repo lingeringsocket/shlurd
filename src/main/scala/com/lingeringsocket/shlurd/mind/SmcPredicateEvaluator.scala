@@ -861,8 +861,14 @@ class SmcPredicateEvaluator[
           resultCollector,
           reference,
           () => {
-            val phraseScope = new SmcPhraseScope(
-              resultCollector.refMap, scope)
+            // FIXME need some proper government+binding theory here
+            val phraseScope = scope match {
+              case _ : SmcPhraseScope[_, _, _, _] => scope
+              case _ => {
+                new SmcPhraseScope(
+                  resultCollector.refMap, scope)
+              }
+            }
             phraseScope.resolvePronoun(communicationContext, pr).map(out => {
               val entities = out.entities
               refMap.put(reference, entities)

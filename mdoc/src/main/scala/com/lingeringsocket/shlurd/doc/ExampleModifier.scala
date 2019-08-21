@@ -214,6 +214,11 @@ class BeliefRenderer extends StringModifier
         createImplicitProperties = false)
     )
 
+    mind.loadBeliefs(
+      ResourceUtils.getResourceSource(
+        "/ontologies/examples.txt"),
+        responder)
+
     val source = Source.fromString(input)
     val beliefs = source.getLines.
       filterNot(SprParser.isIgnorableLine).mkString("\n")

@@ -382,6 +382,11 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         "if a slice becomes burnt, then the second slice becomes cold",
         "Sorry, when you say 'second slice', I don't know which you mean.",
         MisqualifiedNoun)
+      verifyError(
+        "if a dog gives a balloon to a person, " +
+          "then the person becomes its owner",
+        "Sorry, when you say 'it', it's ambiguous.",
+        AmbiguousPronoun)
 
       verifyInvalid(
         "if a slice touches a slice, then the slice becomes cold",
@@ -540,6 +545,19 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK("Pinkie is the red balloon's owner.")
       verifyOK("Pinkie is tired.")
       verify("Is the red balloon broken?", "Yes.")
+    }
+
+    "map pronouns in queries" in new AssertionContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+      verifyOK("A person is a kind of spc-someone.")
+      verifyOK("A balloon's owner must be a person.")
+      verifyOK("A balloon must have an owner.")
+      verifyOK("Pinkie is a person.")
+      verifyOK("There is a balloon.")
+      verifyOK("Pinkie is the balloon's owner.")
+      verifyOK("If a person holds a balloon, equivalently the person is its owner.")
+      verify("Who holds the balloon?", "Pinkie.")
     }
   }
 }

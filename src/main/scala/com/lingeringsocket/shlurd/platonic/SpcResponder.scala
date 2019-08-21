@@ -305,7 +305,9 @@ class SpcResponder(
 
       val placeholderMap = trigger.getPlaceholderMap
       Seq(
-        cs,
+        cs.copy(
+          antecedent = expandPronouns(cs.antecedent, placeholderMap),
+          consequent = expandPronouns(cs.consequent, placeholderMap)),
         cs.copy(
           antecedent = flipVariables(cs.consequent, placeholderMap),
           consequent = flipVariables(cs.antecedent, placeholderMap),
@@ -315,6 +317,48 @@ class SpcResponder(
       )
     } else {
       Seq(trigger.conditionalSentence)
+    }
+  }
+
+  private def expandPronouns(
+    predicate : SilPredicate,
+    placeholderMap : SpcRefMap
+  ) : SilPredicate =
+  {
+    val rewriter = new SilPhraseRewriter
+    def replaceReferences = rewriter.replacementMatcher(
+      "expandPronouns", {
+        case ref : SilPronounReference => {
+          SpcImplicationMapper.findPlaceholderCorrespondence(
+            ref, Some(placeholderMap)
+          ) match {
+            case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
+              flipVariable(correspondingRefs.head, ref)
+            }
+            case _ => ref
+          }
+        }
+      }
+    )
+    rewriter.rewrite(replaceReferences, predicate)
+  }
+
+  private def flipVariable(
+    ref : SilReference,
+    default : => SilReference) : SilReference =
+  {
+    ref match {
+      case SilNounReference(
+        noun, DETERMINER_NONSPECIFIC, count
+      ) => {
+        SilNounReference(noun, DETERMINER_UNIQUE, count)
+      }
+      case SilNounReference(
+        noun, DETERMINER_UNIQUE, count
+      ) => {
+        SilNounReference(noun, DETERMINER_NONSPECIFIC, count)
+      }
+      case _ => default
     }
   }
 
@@ -331,21 +375,7 @@ class SpcResponder(
             ref, Some(placeholderMap)
           ) match {
             case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
-              ref match {
-                case SilNounReference(
-                  noun, DETERMINER_NONSPECIFIC, count
-                ) => {
-                  SilNounReference(noun, DETERMINER_UNIQUE, count)
-                }
-                case SilNounReference(
-                  noun, DETERMINER_UNIQUE, count
-                ) => {
-                  SilNounReference(noun, DETERMINER_NONSPECIFIC, count)
-                }
-                case _ => {
-                  correspondingRefs.head
-                }
-              }
+              flipVariable(ref, correspondingRefs.head)
             }
             case _ => ref
           }

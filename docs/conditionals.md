@@ -31,7 +31,7 @@ Pinkie is the red balloon's owner.
 ```
 
 ```scala mdoc:processConversation
-> If a person inflates a balloon, the balloon becomes full.
+> If a person inflates a balloon, it becomes full.
 
 OK.
 
@@ -47,11 +47,11 @@ Full.
 I also understand **after**, **when** and **whenever** as conditionals describing cause and effect.
 
 ```scala mdoc:processConversation
-> After a person punctures a balloon, the balloon becomes broken.
+> After a person punctures a balloon, it becomes broken.
 
 OK.
 
-> When a person deflates a balloon, the balloon becomes empty.
+> When a person deflates a balloon, it becomes empty.
 
 OK.
 
@@ -65,7 +65,7 @@ OK.
 A cause may have more than one effect:
 
 ```scala mdoc:processConversation
-> When a person inflates a balloon, the balloon becomes full; also the person becomes tired.
+> When a person inflates a balloon, it becomes full; also the person becomes tired.
 
 OK.
 
@@ -92,7 +92,7 @@ Effects may themselves be causes, resulting in a cascade of further effects.
 
 OK.
 
-> When a person punctures a balloon, the balloon pops.
+> When a person punctures a balloon, it pops.
 
 OK.
 
@@ -199,15 +199,15 @@ OK.
 You can tell me to enforce a certain condition before an event can take place:
 
 ```scala mdoc:processConversation
-> If a person inflates a balloon, the balloon becomes full.
+> If a person inflates a balloon, it becomes full.
 
 OK.
 
-> If a person punctures a balloon, the balloon pops.
+> If a person punctures a balloon, it pops.
 
 OK.
 
-> Before a balloon pops, the balloon must be full.
+> Before a balloon pops, it must be full.
 
 OK.
 
@@ -231,7 +231,7 @@ FIXME:  explain **might**, **otherwise**
 You can teach me how to interchange equivalent conditions.
 
 ```scala mdoc:processConversation
-> If a person holds a balloon, equivalently the person is the balloon's owner.
+> If a person holds a balloon, equivalently the person is its owner.
 
 OK.
 
@@ -251,9 +251,9 @@ Brain.
 The equivalent conditions must be either states or relationships, not changes or actions:
 
 ```scala mdoc:processConversation
-> If a person holds a balloon, equivalently the person becomes the balloon's owner.
+> If a person holds a balloon, equivalently the person becomes its owner.
 
-I am unable to validate the belief that if a person holds a balloon, equivalently the person becomes the balloon's owner.
+I am unable to validate the belief that if a person holds a balloon, equivalently the person becomes its owner.
 
 ```
 
