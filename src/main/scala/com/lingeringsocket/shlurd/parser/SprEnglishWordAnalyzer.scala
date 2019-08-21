@@ -66,6 +66,15 @@ trait SprEnglishWordAnalyzer
     }
   }
 
+  def isFlexiblePronoun(token : String) : Boolean =
+  {
+    token match {
+      case LEMMA_HER | LEMMA_THIS | LEMMA_THAT |
+          LEMMA_THESE | LEMMA_THOSE => true
+      case _ => false
+    }
+  }
+
   def isPossessiveAdjective(token : String) : Boolean =
   {
     token match {
@@ -100,7 +109,7 @@ trait SprEnglishWordAnalyzer
           LEMMA_IT | LEMMA_ITS | LEMMA_THEM | LEMMA_THEIR |
           LEMMA_HE | LEMMA_HIM | LEMMA_HIS |
           LEMMA_SHE | LEMMA_HER | LEMMA_HERS |
-          LEMMA_THIS | LEMMA_THESE | LEMMA_THAT => true
+          LEMMA_THIS | LEMMA_THAT => true
       case _ => false
     }
   }

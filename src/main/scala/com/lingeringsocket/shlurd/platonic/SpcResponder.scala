@@ -299,15 +299,16 @@ class SpcResponder(
     trigger : SpcTrigger) : Seq[SilConditionalSentence] =
   {
     val cs = trigger.conditionalSentence
+    val placeholderMap = trigger.getPlaceholderMap
+    val expanded = cs.copy(
+      antecedent = expandPronouns(cs.antecedent, placeholderMap),
+      consequent = expandPronouns(cs.consequent, placeholderMap))
     if (cs.biconditional) {
       assert(trigger.additionalConsequents.isEmpty)
       assert(trigger.alternative.isEmpty)
 
-      val placeholderMap = trigger.getPlaceholderMap
       Seq(
-        cs.copy(
-          antecedent = expandPronouns(cs.antecedent, placeholderMap),
-          consequent = expandPronouns(cs.consequent, placeholderMap)),
+        expanded,
         cs.copy(
           antecedent = flipVariables(cs.consequent, placeholderMap),
           consequent = flipVariables(cs.antecedent, placeholderMap),
@@ -316,14 +317,14 @@ class SpcResponder(
         )
       )
     } else {
-      Seq(trigger.conditionalSentence)
+      Seq(expanded)
     }
   }
 
-  private def expandPronouns(
-    predicate : SilPredicate,
+  private def expandPronouns[PhraseType <: SilPhrase](
+    phrase : PhraseType,
     placeholderMap : SpcRefMap
-  ) : SilPredicate =
+  ) : PhraseType =
   {
     val rewriter = new SilPhraseRewriter
     def replaceReferences = rewriter.replacementMatcher(
@@ -333,33 +334,14 @@ class SpcResponder(
             ref, Some(placeholderMap)
           ) match {
             case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
-              flipVariable(correspondingRefs.head, ref)
+              SpcImplicationMapper.flipVariable(correspondingRefs.head, ref)
             }
             case _ => ref
           }
         }
       }
     )
-    rewriter.rewrite(replaceReferences, predicate)
-  }
-
-  private def flipVariable(
-    ref : SilReference,
-    default : => SilReference) : SilReference =
-  {
-    ref match {
-      case SilNounReference(
-        noun, DETERMINER_NONSPECIFIC, count
-      ) => {
-        SilNounReference(noun, DETERMINER_UNIQUE, count)
-      }
-      case SilNounReference(
-        noun, DETERMINER_UNIQUE, count
-      ) => {
-        SilNounReference(noun, DETERMINER_NONSPECIFIC, count)
-      }
-      case _ => default
-    }
+    rewriter.rewrite(replaceReferences, phrase)
   }
 
   private def flipVariables(
@@ -375,7 +357,7 @@ class SpcResponder(
             ref, Some(placeholderMap)
           ) match {
             case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
-              flipVariable(ref, correspondingRefs.head)
+              SpcImplicationMapper.flipVariable(ref, correspondingRefs.head)
             }
             case _ => ref
           }
@@ -600,9 +582,13 @@ class SpcResponder(
     triggerDepth : Int)
       : Option[String] =
   {
+    val placeholderMap = trigger.getPlaceholderMap
     getTriggerImplications(trigger).toStream.flatMap(conditionalSentence => {
       applyTriggerImpl(
-        forkedCosmos, trigger, conditionalSentence,
+        forkedCosmos, trigger, placeholderMap, conditionalSentence,
+        trigger.additionalConsequents.map(
+          s => expandPronouns(s, placeholderMap)),
+        trigger.getAlternative.map(s => expandPronouns(s, placeholderMap)),
         predicate, resultCollector, triggerDepth)
     }).headOption
   }
@@ -610,7 +596,10 @@ class SpcResponder(
   private def applyTriggerImpl(
     forkedCosmos : SpcCosmos,
     trigger : SpcTrigger,
+    placeholderMap : SpcRefMap,
     conditionalSentence : SilConditionalSentence,
+    additionalConsequents : Seq[SilPredicateSentence],
+    alternative : Option[SilPredicateSentence],
     predicate : SilPredicate,
     resultCollector : ResultCollectorType,
     triggerDepth : Int)
@@ -636,11 +625,11 @@ class SpcResponder(
       operator,
       forkedCosmos, conditionalSentence,
       predicate,
-      trigger.additionalConsequents, trigger.alternative,
+      additionalConsequents, alternative,
       SpcAssertionBinding(
         resultCollector.refMap,
         Some(resultCollector.refMap),
-        Some(trigger.getPlaceholderMap)),
+        Some(placeholderMap)),
       triggerDepth) match
     {
       case (Some(newPredicate), newAdditionalConsequents, newAlternative) => {

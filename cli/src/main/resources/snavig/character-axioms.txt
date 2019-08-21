@@ -9,6 +9,6 @@ A game-character's awareness must be
  mindless, unperceptive, perceptive, or omniscient.
 
 If a game-character sees a visible-entity, then equivalently
- the visible-entity is in the game-character's container.
+ it is in the game-character's container.
 
 There is a player-character.

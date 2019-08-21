@@ -10,7 +10,7 @@ After a game-character kills a thief,
  the game-interpreter says "Blood splatters everywhere.".
 
 When a game-character throws a game-weapon,
- the game-character drops the game-weapon.
+ the game-character drops it.
 When a game-character throws a game-weapon at a throw-target,
  the game-character kills the throw-target with the game-weapon.
 

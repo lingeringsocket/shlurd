@@ -547,6 +547,21 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify("Is the red balloon broken?", "Yes.")
     }
 
+    "map pronouns in implications" in new AssertionContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+      verifyOK("A person is a kind of spc-someone.")
+      verifyOK("A person must be happy or sad.")
+      verifyOK("Percival is a person.")
+      verifyOK("The coatroom is a map-place.")
+      verifyOK("After a person relocates to a map-place, " +
+        "the person surveys it.")
+      verifyOK("After a person surveys a map-place, " +
+        "the person is sad.")
+      verifyOK("Percival relocates to the coatroom.")
+      verify("Is Percival sad?", "Yes.")
+    }
+
     "map pronouns in queries" in new AssertionContext
     {
       SpcPrimordial.initCosmos(cosmos)
@@ -556,7 +571,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK("Pinkie is a person.")
       verifyOK("There is a balloon.")
       verifyOK("Pinkie is the balloon's owner.")
-      verifyOK("If a person holds a balloon, equivalently the person is its owner.")
+      verifyOK("If a person holds a balloon, " +
+        "equivalently the person is its owner.")
       verify("Who holds the balloon?", "Pinkie.")
     }
   }

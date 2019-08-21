@@ -107,7 +107,10 @@ class SprPhraseRewriter(
       case SilExpectedReference(noun : SptNNC) => {
         createNounReference(noun, DETERMINER_UNSPECIFIED)
       }
-      case SilExpectedReference(pronoun : SprSyntaxPronoun) => {
+      case SilExpectedReference(pronoun : SptPRP) => {
+        analyzer.analyzePronounReference(pronoun.child)
+      }
+      case SilExpectedPossessiveReference(pronoun : SptPRP_POS) => {
         analyzer.analyzePronounReference(pronoun.child)
       }
       case SilExpectedReference(

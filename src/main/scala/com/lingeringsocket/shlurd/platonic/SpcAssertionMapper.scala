@@ -191,6 +191,20 @@ class SpcAssertionMapper(
     }
   }
 
+  private def expandPatterns(
+    set : Set[SilReference],
+    placeholderMapOpt : Option[SpcRefMap]) : Set[SilReference] =
+  {
+    placeholderMapOpt match {
+      case Some(placeholderMap) => {
+        set ++ set.flatMap(
+          ref => findPlaceholderCorrespondence(
+            ref, placeholderMapOpt)._2.map(r => flipVariable(r, r)))
+      }
+      case _ => set
+    }
+  }
+
   private def prepareReplacementImpl(
     cosmos : SpcCosmos,
     replacements : mutable.Map[SilReference, SilReference],
@@ -203,7 +217,9 @@ class SpcAssertionMapper(
       findPlaceholderCorrespondence(ref, binding.placeholderMap),
       extractNoun(ref)
     )) match {
-      case ((true, patternRefSet), Some(noun)) => {
+      case ((true, patternRefSetUnexpanded), Some(noun)) => {
+        val patternRefSet = expandPatterns(
+          patternRefSetUnexpanded, binding.placeholderMap)
         val resolvedForm = mind.resolveForm(noun)
         if (inputRewriter.containsWildcard(actualRef)) {
           val wildcardRef = actualRef match {

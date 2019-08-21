@@ -491,7 +491,7 @@ class SprEnglishSyntaxAnalyzer(
         isPossessiveAdjective(components.head.firstChild.token)) ||
         components.head.isDemonstrative))
     {
-      val pronounReference = expectReference(components.head)
+      val pronounReference = SilExpectedPossessiveReference(components.head)
       val entityReference = expectNounReference(
         tree, components.last, determiner)
       SilGenitiveReference(pronounReference, entityReference)

@@ -225,10 +225,13 @@ class SprWordnetLabeler(
       }
     } ++ {
       if (isPronounWord(token)) {
-        if (isPossessiveAdjective(token)) {
-          Set(SptPRP_POS(makeLeaf(word, token)))
+        val leaf = makeLeaf(word, token)
+        if (isFlexiblePronoun(token)) {
+          Set(SptPRP_POS(leaf), SptPRP(leaf))
+        } else if (isPossessiveAdjective(token)) {
+          Set(SptPRP_POS(leaf))
         } else {
-          Set(SptPRP(makeLeaf(word, token)))
+          Set(SptPRP(leaf))
         }
       } else {
         Set.empty

@@ -2,13 +2,13 @@
 "Resource" import "/snavig/interpreter-axioms.txt".
 
 When a player-character looks at a describable-entity,
- the player-character examines the describable-entity.
+ the player-character examines it.
 
 When a player-character looks,
  the player-character appraises the player-character's container.
 
 When a player-character discovers a map-place,
- the player-character appraises the map-place.
+ the player-character appraises it.
 
 When a player-character appraises a map-place,
  the player-character asks "where am I";
@@ -24,7 +24,7 @@ When a player-character discerns a visible-entity,
  the player-character asks "what do I see".
 
 When a player-character examines a describable-entity,
- the describable-entity's description might exist;
+ its description might exist;
  otherwise the game-interpreter says "It's about what you'd expect.".
 When a player-character examines a describable-entity,
- the game-interpreter recites the describable-entity's description.
+ the game-interpreter recites its description.

@@ -23,14 +23,14 @@ When a game-character goes downward,
  the game-character heads to the nadir.
 
 Before a game-character traverses a map-connection,
- the map-connection's exit-door must be open;
+ its exit-door must be open;
  otherwise the game-interpreter complains "But the door is not open.".
 
 When a game-character traverses a map-connection,
- the game-character relocates to the map-connection's target-place.
+ the game-character relocates to its target-place.
 
 Before a player-character moves to a map-place,
- the map-place must be the player-character's container's map-neighbor;
+ it must be the player-character's container's map-neighbor;
  otherwise the game-interpreter complains "You can't get there from here.".
 
 When a game-character moves to a map-place,
@@ -38,27 +38,25 @@ When a game-character moves to a map-place,
   among the player-character's container's place-exits).
 
 After a game-character relocates to a map-place,
- the game-character is in the map-place.
+ the game-character is in it.
 
 When a game-character enters a map-location,
- the game-character moves to the map-location.
+ the game-character moves to it.
 
 After a game-character relocates to a map-place,
- the game-character surveys the map-place.
+ the game-character surveys it.
 
 When a game-character surveys a map-place,
- the game-character perceives the map-place and
-  the map-place's spc-contained-objects;
- also the game-character surveys the map-place's place-exits;
- also the game-character surveys the map-place's place-entrances.
+ the game-character perceives it and its spc-contained-objects;
+ also the game-character surveys its place-exits;
+ also the game-character surveys its place-entrances.
 
 When a game-character surveys a map-connection,
- the game-character perceives the map-connection and
-  the map-connection's exit-doors.
+ the game-character perceives it and its exit-doors.
 
 When a player-character relocates to a map-place,
- the player-character might be the map-place's place-discoverer;
- otherwise the player-character discovers the map-place.
+ the player-character might be its place-discoverer;
+ otherwise the player-character discovers it.
 When a player-character relocates to a map-place,
- the player-character might not be the map-place's place-discoverer;
- otherwise the player-character rediscovers the map-place.
+ the player-character might not be its place-discoverer;
+ otherwise the player-character rediscovers it.

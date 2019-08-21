@@ -259,6 +259,12 @@ case class SilExpectedReference(
 {
 }
 
+case class SilExpectedPossessiveReference(
+  syntaxTree : SprSyntaxTree
+) extends SilUnknownReference with SilUnresolvedPhrase
+{
+}
+
 case class SilExpectedNounlikeReference(
   syntaxTree : SprSyntaxTree,
   preTerminal : SprSyntaxTree,

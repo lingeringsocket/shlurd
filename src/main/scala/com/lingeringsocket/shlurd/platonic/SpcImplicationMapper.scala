@@ -63,6 +63,25 @@ object SpcImplicationMapper
     }
   }
 
+  def flipVariable(
+    reference : SilReference,
+    default : => SilReference) : SilReference =
+  {
+    reference match {
+      case SilNounReference(
+        noun, DETERMINER_NONSPECIFIC, count
+      ) => {
+        SilNounReference(noun, DETERMINER_UNIQUE, count)
+      }
+      case SilNounReference(
+        noun, DETERMINER_UNIQUE, count
+      ) => {
+        SilNounReference(noun, DETERMINER_NONSPECIFIC, count)
+      }
+      case _ => default
+    }
+  }
+
   def findPlaceholderCorrespondence(
     ref : SilReference,
     placeholderMap : Option[SpcRefMap]

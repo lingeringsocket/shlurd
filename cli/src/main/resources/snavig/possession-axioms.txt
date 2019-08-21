@@ -8,18 +8,18 @@ There is a player-inventory.
 The player-inventory is the player-character's stuff.
 
 Before a game-character gets a game-object,
- the game-object must be in the game-character's container;
+ it must be in the game-character's container;
  otherwise the game-interpreter complains "But there is no such object here.".
 After a game-character gets a game-object,
- the game-object is in the game-character's stuff.
+ it is in the game-character's stuff.
 Before a game-character drops a game-object,
- the game-object must be in the game-character's stuff;
+ it must be in the game-character's stuff;
  otherwise the game-interpreter complains "But you have no such object.".
 After a game-character drops a game-object,
- the game-object is in the game-character's container.
+ it is in the game-character's container.
 
 If a game-character is holding a game-object, then equivalently
- the game-object is in the game-character's stuff.
+ it is in the game-character's stuff.
 
 Whenever the game-turn advances,
  the player-character perceives the player-inventory's spc-contained-objects.
