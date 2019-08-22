@@ -139,7 +139,7 @@ class ShlurdCliSerializer
         val pw = new PrintWriter(outputStream)
         val creed = new SpcCreed(mind.getCosmos)
         val printer = new SilSentencePrinter
-        creed.allBeliefs.foreach(belief => {
+        creed.allBeliefs(printer).foreach(belief => {
           val beliefString = printer.print(belief)
           pw.println(SprUtils.capitalize(beliefString))
         })

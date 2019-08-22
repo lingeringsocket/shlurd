@@ -59,6 +59,12 @@ class SmcScopeSpec extends Specification
   private val ambiguousMsg =
     "Sorry, when you say 'it', it's ambiguous."
 
+  private val sentencePrinter = new SilSentencePrinter
+
+  private val ordinalFirst = sentencePrinter.sb.ordinalNumber(1)
+
+  private val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
+
   abstract class ScopeContext extends Scope
   {
     protected val mind = new ZooMind(cosmos)
@@ -69,7 +75,7 @@ class SmcScopeSpec extends Specification
         Some(ZooKeeper))
     protected val mindScope = new SmcMindScope[
       SmcEntity, SmcProperty, ZooCosmos, ZooMind](
-      mind, new SilSentencePrinter
+      mind, sentencePrinter
     )
   }
 
@@ -101,7 +107,7 @@ class SmcScopeSpec extends Specification
       mindScope.resolveQualifiedNoun(
         SilWord("bear"),
         REF_SUBJECT,
-        Set(LEMMA_FIRST)
+        Set(ordinalFirst)
       ) must beSuccessfulTry.withValue(
         SmcScopeOutput(None, noEntities)
       )
@@ -146,28 +152,28 @@ class SmcScopeSpec extends Specification
       phraseScope2.resolveQualifiedNoun(
         SilWord("tiger"),
         REF_SUBJECT,
-        Set(LEMMA_FIRST)
+        Set(ordinalFirst)
       ) must beSuccessfulTry.withValue(
         SmcScopeOutput(Some(tigerRef), noEntities)
       )
       phraseScope2.resolveQualifiedNoun(
         SilWord("tiger"),
         REF_SUBJECT,
-        Set(LEMMA_SECOND)
+        Set(ordinalSecond)
       ) must beSuccessfulTry.withValue(
         SmcScopeOutput(Some(anotherTigerRef), noEntities)
       )
       phraseScope1.resolveQualifiedNoun(
         SilWord("tiger"),
         REF_SUBJECT,
-        Set(LEMMA_FIRST)
+        Set(ordinalFirst)
       ) must beFailedTry.withThrowable[ShlurdException](
         "Sorry, when you say 'first tiger', I don't know which you mean."
       )
       phraseScope1.resolveQualifiedNoun(
         SilWord("tiger"),
         REF_SUBJECT,
-        Set(LEMMA_SECOND)
+        Set(ordinalSecond)
       ) must beFailedTry.withThrowable[ShlurdException](
         "Sorry, when you say 'second tiger', I don't know which you mean."
       )

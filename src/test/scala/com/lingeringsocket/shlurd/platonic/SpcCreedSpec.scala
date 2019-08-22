@@ -56,7 +56,7 @@ class SpcCreedSpec extends Specification
     {
       input.foreach(addBelief)
       val printer = new SilSentencePrinter
-      val beliefStrings = creed.allBeliefs.map(s => printer.print(s))
+      val beliefStrings = creed.allBeliefs(printer).map(s => printer.print(s))
       beliefStrings.map(SprUtils.capitalize) must be equalTo expected
       beliefStrings.foreach(beliefString => {
         val refriedMind = new SpcMind(refriedCosmos)
@@ -74,7 +74,8 @@ class SpcCreedSpec extends Specification
           refriedBeliefAccepter.applyBelief(belief)
         })
       })
-      val refriedStrings = refriedCreed.allBeliefs.map(s => printer.print(s))
+      val refriedStrings = refriedCreed.allBeliefs(printer).map(
+        s => printer.print(s))
       refriedStrings.map(SprUtils.capitalize) must be equalTo expected
     }
   }
@@ -508,7 +509,8 @@ class SpcCreedSpec extends Specification
       SpcPrimordial.initCosmos(cosmos)
       val creed = new SpcCreed(cosmos, true)
       val printer = new SilSentencePrinter
-      val beliefStrings = creed.allBeliefs.map(s => printer.print(s) + "\n")
+      val beliefStrings = creed.allBeliefs(printer).map(
+        s => printer.print(s) + "\n")
       beliefStrings.size must be equalTo 160
       beliefStrings.map(s => SprUtils.capitalize(s)) must
         contain(allOf(primordial.map(_ + "\n"):_*))

@@ -233,38 +233,30 @@ class SmcPhraseScope[
                   noun, qualifiers.toSeq)
               )
             }
-          } else if (qualifiers == Set(LEMMA_FIRST)) {
-            val filtered = {
-              if (ordered.size > 1) {
-                ordered.filter(_._3 == 1)
-              } else {
+          } else if (qualifiers.size == 1) {
+            val qualifier = qualifiers.head
+            getSentencePrinter.sb.ordinalValue(qualifier) match {
+              case Success(ordinal) => {
+                val filtered = {
+                  if (ordered.size > 1) {
+                    ordered.filter(_._3 == ordinal)
+                  } else {
+                    Seq.empty
+                  }
+                }
+                if (filtered.isEmpty) {
+                  return getMind.getCosmos.fail(
+                    ShlurdExceptionCode.MisqualifiedNoun,
+                    getSentencePrinter.sb.respondMisqualifiedNoun(
+                      noun, qualifiers.toSeq)
+                  )
+                }
+                filtered
+              }
+              case _ => {
                 Seq.empty
               }
             }
-            if (filtered.isEmpty) {
-              return getMind.getCosmos.fail(
-                ShlurdExceptionCode.MisqualifiedNoun,
-                getSentencePrinter.sb.respondMisqualifiedNoun(
-                  noun, qualifiers.toSeq)
-              )
-            }
-            filtered
-          } else if (qualifiers == Set(LEMMA_SECOND)) {
-            val filtered = {
-              if (ordered.size > 1) {
-                ordered.filter(_._3 == 2)
-              } else {
-                Seq.empty
-              }
-            }
-            if (filtered.isEmpty) {
-              return getMind.getCosmos.fail(
-                ShlurdExceptionCode.MisqualifiedNoun,
-                getSentencePrinter.sb.respondMisqualifiedNoun(
-                  noun, qualifiers.toSeq)
-              )
-            }
-            filtered
           } else {
             Seq.empty
           }

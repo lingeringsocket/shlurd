@@ -19,12 +19,20 @@ import com.lingeringsocket.shlurd.parser._
 
 import org.atteo.evo.inflector.{English => EnglishPluralizer}
 
+import com.ibm.icu.text._
+
+import scala.util._
+import java.util._
+
 import SprEnglishLemmas._
 import ShlurdEnglishAffixes._
 
 class SilEnglishSentenceBundle
     extends SilSentenceBundle
 {
+  private val enFormatter = new RuleBasedNumberFormat(
+    Locale.ENGLISH, RuleBasedNumberFormat.SPELLOUT);
+
   override def statePredicateStatement(
     subject : String, verbSeq : Seq[String], state : String,
     existentialPronoun : Option[SilWord],
@@ -633,60 +641,23 @@ class SilEnglishSentenceBundle
   override def cardinalNumber(num : Int) : String =
   {
     assert(num >= 0)
-    if (num == 0) {
-      "zero"
-    } else {
-      positiveNum(num)
-    }
+    enFormatter.format(num, "%spellout-cardinal")
   }
 
-  // adapted from
-  // https://gist.github.com/huitseeker/212a0e4d1d2e88f40f0ef80b7bce57c5
-  private def positiveNum(num : Int) : String =
+  override def cardinalValue(s : String) =
   {
-    def BB = 1000000000
-    def MM = 1000000
-    def TT = 1000
-    def HH = 100
-    if (num >= BB) {
-      s"${positiveNum(num / BB)} billion ${positiveNum(num % BB)}"
-    } else if (num >= MM) {
-      s"${positiveNum(num / MM)} million ${positiveNum(num % MM)}"
-    } else if (num >= TT) {
-      s"${positiveNum(num / TT)} thousand ${positiveNum(num % TT)}"
-    } else if (num >= HH) {
-      s"${positiveNum(num / HH)} hundred ${positiveNum(num % HH)}"
-    } else if (num >= 20) {
-      (num/10) match {
-        case 2 =>
-          s"twenty ${positiveNum(num % 10)}"
-        case 3 =>
-          s"thirty ${positiveNum(num % 10)}"
-        case 5 =>
-          s"fifty ${positiveNum(num % 10)}"
-        case n@_ =>
-          s"${positiveNum(n).stripSuffix("t")}ty ${positiveNum(num % 10)}"
-      }
-    } else {
-      num match {
-        case 0 => ""
-        case 1 => LEMMA_ONE
-        case 2 => "two"
-        case 3 => "three"
-        case 4 => "four"
-        case 5 => "five"
-        case 6 => "six"
-        case 7 => "seven"
-        case 8 => "eight"
-        case 9 => "nine"
-        case 10 => "ten"
-        case 11 => "eleven"
-        case 12 => "twelve"
-        case 13 => "thirteen"
-        case 15 =>"fifteen";
-        case n@_ => s"${positiveNum(n-10).stripSuffix("t")}teen"
-      }
-    }
+    Try(enFormatter.parse(s).intValue)
+  }
+
+  override def ordinalNumber(num : Int) : String =
+  {
+    assert(num > 0)
+    enFormatter.format(num, "%spellout-ordinal")
+  }
+
+  override def ordinalValue(s : String) =
+  {
+    Try(enFormatter.parse(s).intValue)
   }
 
   override def adpositionedNoun(

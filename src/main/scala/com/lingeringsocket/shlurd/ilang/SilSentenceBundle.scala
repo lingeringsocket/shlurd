@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import scala.util._
+
 case class SilConjoining(
   determiner : SilDeterminer,
   separator : SilSeparator,
@@ -256,6 +258,12 @@ abstract class SilSentenceBundle
   def genitivePhrase(genitive : String, head : String) : String
 
   def cardinalNumber(num : Int) : String = num.toString
+
+  def cardinalValue(s : String) : Try[Int] = Try(s.toInt)
+
+  def ordinalNumber(num : Int) : String = num.toString
+
+  def ordinalValue(s : String) : Try[Int] = Try(s.toInt)
 
   def unknownSentence() : String
 

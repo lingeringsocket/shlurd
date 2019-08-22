@@ -36,7 +36,8 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     }
   }
 
-  def allBeliefs() : Iterable[SilSentence] =
+  def allBeliefs(
+    sentencePrinter : SilSentencePrinter) : Iterable[SilSentence] =
   {
     cosmos.getIdealSynonyms.filterNot(
       pair => SpcPrimordial.isPrimordialSynonym(pair) || isTrivialSynonym(pair)
@@ -50,7 +51,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
       cosmos.getForms.filter(includeIdeal).flatMap(formBeliefs)
     ) ++ (
       cosmos.getInverseAssocEdges.flatMap(
-        entry => inverseAssocBelief(entry._1, entry._2))
+        entry => inverseAssocBelief(sentencePrinter, entry._1, entry._2))
     ) ++ (
       cosmos.getEntities.
         filterNot(e => !includeMeta && SpcMeta.isMetaEntity(e)).
@@ -346,10 +347,13 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   }
 
   def inverseAssocBelief(
+    sentencePrinter : SilSentencePrinter,
     edge1 : SpcFormAssocEdge,
     edge2 : SpcFormAssocEdge
   ) : Option[SilSentence] =
   {
+    val ordinalFirst = sentencePrinter.sb.ordinalNumber(1)
+    val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
     val possessorForm = cosmos.getGraph.getPossessorForm(edge1)
     val possesseeForm = cosmos.getGraph.getPossessorForm(edge2)
     val (
@@ -368,12 +372,12 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
           ),
           SilStateSpecifiedReference(
             idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
-            SilPropertyState(SilWord(LEMMA_SECOND))
+            SilPropertyState(SilWord(ordinalSecond))
           ),
           SilGenitiveReference(
             SilStateSpecifiedReference(
               idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
-              SilPropertyState(SilWord(LEMMA_FIRST))
+              SilPropertyState(SilWord(ordinalFirst))
             ),
             plainNoun(edge2.getRoleName)
           )

@@ -45,6 +45,7 @@ libraryDependencies ++= Seq(
   "org.jgrapht" % "jgrapht-core" % "1.3.1",
   "org.jgrapht" % "jgrapht-io" % "1.3.1",
   "org.atteo" % "evo-inflector" % "1.2.2",
+  "com.ibm.icu" % "icu4j" % "64.2",
   "net.sf.extjwnl" % "extjwnl" % "2.0.2",
   "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
   "eus.ixa" % "ixa-pipe-ml" % "0.0.8" exclude("net.sourceforge.argparse4j", "argparse4j") exclude("com.google.guava", "guava") exclude("org.jdom", "jdom2") exclude("org.carrot2", "morfologik-stemming") exclude("org.apache.opennlp", "opennlp-tools")
