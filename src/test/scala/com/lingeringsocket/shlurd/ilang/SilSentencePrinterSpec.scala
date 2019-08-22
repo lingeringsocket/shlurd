@@ -126,6 +126,8 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized("angrily Antonio Salieri sends Mozart a letter?",
         "does Antonio Salieri send a letter to Mozart angrily?")
       expectStatement("Gallant is good and Goofus is naughty")
+      expectStatement("Mortimer went to the beach this morning")
+      expectStatement("Mortimer went back to the beach this morning")
     }
 
     "preserve sentences" in
@@ -334,8 +336,6 @@ class SilSentencePrinterSpec extends Specification
         "did Ramona go to the library?")
       expectQuestion("did Ramona go to the library")
       expectStatement("Mortimer went to the beach yesterday")
-      expectStatement("Mortimer went to the beach this morning")
-      expectStatement("Mortimer went back to the beach this morning")
       expectQuestion("what did Curtis give to Andrea")
       expectQuestion("who received the bomb")
       expectNormalized("who did Curtis give the bomb to",
