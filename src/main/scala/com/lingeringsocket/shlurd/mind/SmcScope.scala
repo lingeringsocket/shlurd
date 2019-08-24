@@ -218,6 +218,20 @@ class SmcPhraseScope[
               ) if (lemma == nounLemma) => {
                 Some(tupleN((prior, set, 2)))
               }
+              case SilStateSpecifiedReference(
+                SilNounReference(
+                  SilWordLemma(lemma),
+                  DETERMINER_NONSPECIFIC,
+                  COUNT_SINGULAR),
+                SilPropertyState(SilWordLemma(qualifier))
+              ) if (lemma == nounLemma) => {
+                getSentencePrinter.sb.ordinalValue(qualifier) match {
+                  case Success(ordinal) => {
+                    Some(tupleN((prior, set, ordinal)))
+                  }
+                  case _ => None
+                }
+              }
               case _ => None
             }
           }

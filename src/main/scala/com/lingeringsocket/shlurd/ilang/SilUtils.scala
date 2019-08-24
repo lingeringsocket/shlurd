@@ -18,7 +18,8 @@ import scala.collection._
 
 object SilUtils
 {
-  def collectReferences(phrase : SilPhrase) : Seq[SilReference] =
+  def collectReferences(
+    phrase : SilPhrase, topDown : Boolean = false) : Seq[SilReference] =
   {
     val refs = new mutable.ArrayBuffer[SilReference]
     val phraseQuerier = new SilPhraseRewriter
@@ -27,7 +28,7 @@ object SilUtils
         refs += ref
       }
     }
-    phraseQuerier.query(rule, phrase)
+    phraseQuerier.query(rule, phrase, SilRewriteOptions(topDown = topDown))
     refs
   }
 

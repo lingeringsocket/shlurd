@@ -575,5 +575,23 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         "equivalently the person is its owner.")
       verify("Who holds the balloon?", "Pinkie.")
     }
+
+    "map ordinal placeholders" in new AssertionContext
+    {
+      skipped("not working yet")
+
+      verifyOK("A person may be proud, happy, or silly.")
+      verifyOK("A matchmaker is a kind of person.")
+      verifyOK("A socialite is a kind of person.")
+      verifyOK("If a person introduces another person to a third person, " +
+        "then the first person becomes proud; " +
+        "also the second person becomes happy; " +
+        "also the third person becomes happy.")
+      verifyOK("Bob, Ted, and Alice are persons.");
+      verifyOK("Bob introduces Ted to Alice.");
+      verify("is Bob proud", responseYes)
+      verify("is Ted happy", responseYes)
+      verify("is Alice silly", responseYes)
+    }
   }
 }

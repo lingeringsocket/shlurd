@@ -199,7 +199,8 @@ class SpcAssertionMapper(
       case Some(placeholderMap) => {
         set ++ set.flatMap(
           ref => findPlaceholderCorrespondence(
-            ref, placeholderMapOpt)._2.map(r => flipVariable(r, r)))
+            ref, placeholderMapOpt
+          )._2.map(r => flipVariable(sentencePrinter, r, r)))
       }
       case _ => set
     }
@@ -476,8 +477,9 @@ class SpcAssertionMapper(
         })
         filteredModifiers match {
           case Seq(SilAdpositionalVerbModifier(
-            adposition, SilNounReference(
-              objNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR))
+            adposition, objRef
+          )) if (
+            findPlaceholderCorrespondence(objRef, binding.placeholderMap)._1
           ) => {
             // FIXME some modifiers (e.g. "never") might
             // negate the match
@@ -485,7 +487,6 @@ class SpcAssertionMapper(
               case SilAdpositionalVerbModifier(
                 SilAdposition(adposition.word), actualRef
               ) => {
-                // FIXME verify that actualRef matches objPattern
                 Some(actualRef)
               }
               case _ => None
@@ -494,9 +495,12 @@ class SpcAssertionMapper(
               trace("VERB MODIFIER PATTERN DOES NOT MATCH")
               return unmatched
             } else {
-              val objPattern = SilNounReference(
-                objNoun, DETERMINER_UNIQUE, COUNT_SINGULAR)
-              replacements.put(objPattern, actualRefs.head)
+              if (!prepareReplacement(
+                cosmos, replacements, objRef, actualRefs.head,
+                binding))
+              {
+                return unmatched
+              }
             }
           }
           case Seq() => {

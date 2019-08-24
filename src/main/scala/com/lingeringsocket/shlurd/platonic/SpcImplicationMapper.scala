@@ -64,6 +64,7 @@ object SpcImplicationMapper
   }
 
   def flipVariable(
+    sentencePrinter : SilSentencePrinter,
     reference : SilReference,
     default : => SilReference) : SilReference =
   {
@@ -77,6 +78,28 @@ object SpcImplicationMapper
         noun, DETERMINER_UNIQUE, count
       ) => {
         SilNounReference(noun, DETERMINER_NONSPECIFIC, count)
+      }
+      case SilStateSpecifiedReference(
+        SilNounReference(
+          noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+        ),
+        SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
+      ) => {
+        val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
+        SilStateSpecifiedReference(
+          SilNounReference(
+            noun, DETERMINER_UNIQUE, COUNT_SINGULAR
+          ),
+          SilPropertyState(SilWord(ordinalSecond))
+        )
+      }
+      case SilStateSpecifiedReference(sub, state) => {
+        val flipped = flipVariable(sentencePrinter, sub, sub)
+        if (flipped == sub) {
+          default
+        } else {
+          SilStateSpecifiedReference(flipped, state)
+        }
       }
       case _ => default
     }
@@ -169,33 +192,52 @@ class SpcImplicationMapper(
       }
     }
     if (antecedentRefs.isEmpty) {
-      val refs = SilUtils.collectReferences(predicate)
+      val refs = SilUtils.collectReferences(predicate, true)
       val variableCounters = new mutable.HashMap[SilWord, Int]
-      val pairs = refs.flatMap(_ match {
-        case nr @ SilNounReference(
-          noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
-        ) => {
-          if (variableCounters.contains(noun)) {
-            throw InvalidBeliefExcn(
-              ShlurdExceptionCode.AssertionInvalidVariable, belief)
+      val pairs = refs.flatMap(ref => {
+        val nounOpt = ref match {
+          case SilNounReference(
+            noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+          ) => {
+            if (variableCounters.contains(noun)) {
+              throw InvalidBeliefExcn(
+                ShlurdExceptionCode.AssertionInvalidVariable, belief)
+            }
+            Some(noun)
           }
-          val form = responder.deriveType(nr, resultCollector.refMap)
-          val placeholder = makePlaceholder(form, noun, variableCounters)
-          Some((nr, Set(placeholder)))
-        }
-        case sr @ SilStateSpecifiedReference(
-          snr @ SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
-          SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
-        ) => {
-          val form = responder.deriveType(snr, resultCollector.refMap)
-          if (variableCounters.getOrElse(noun, 0) != 1) {
-            throw InvalidBeliefExcn(
-              ShlurdExceptionCode.AssertionInvalidVariable, belief)
+          case SilStateSpecifiedReference(
+            SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+            SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
+          ) => {
+            if (variableCounters.getOrElse(noun, 0) != 1) {
+              throw InvalidBeliefExcn(
+                ShlurdExceptionCode.AssertionInvalidVariable, belief)
+            }
+            Some(noun)
           }
-          val placeholder = makePlaceholder(form, noun, variableCounters)
-          Some((sr, Set(placeholder)))
+          case SilStateSpecifiedReference(
+            SilNounReference(noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            SilPropertyState(SilWordLemma(qualifier))
+          ) => {
+            val sb = responder.sentencePrinter.sb
+            sb.ordinalValue(qualifier) match {
+              case Success(ordinal) => {
+                if (variableCounters.getOrElse(noun, 0) != (ordinal - 1)) {
+                  throw InvalidBeliefExcn(
+                    ShlurdExceptionCode.AssertionInvalidVariable, belief)
+                }
+                Some(noun)
+              }
+              case _ => None
+            }
+          }
+          case _ => None
         }
-        case _ => None
+        nounOpt.map(noun => {
+          val form = responder.deriveType(ref, resultCollector.refMap)
+          val placeholder = makePlaceholder(form, noun, variableCounters)
+          tupleN((ref, Set(placeholder)))
+        })
       })
       pairs.toMap
     } else {

@@ -334,7 +334,8 @@ class SpcResponder(
             ref, Some(placeholderMap)
           ) match {
             case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
-              SpcImplicationMapper.flipVariable(correspondingRefs.head, ref)
+              SpcImplicationMapper.flipVariable(
+                sentencePrinter, correspondingRefs.head, ref)
             }
             case _ => ref
           }
@@ -357,7 +358,8 @@ class SpcResponder(
             ref, Some(placeholderMap)
           ) match {
             case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
-              SpcImplicationMapper.flipVariable(ref, correspondingRefs.head)
+              SpcImplicationMapper.flipVariable(
+                sentencePrinter, ref, correspondingRefs.head)
             }
             case _ => ref
           }
