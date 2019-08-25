@@ -60,8 +60,8 @@ class SmcResponseRewriter[
                   _,
                   SilNounReference(
                     SilWordLemma(SmcLemmas.LEMMA_CONTAINEE),
-                    DETERMINER_UNSPECIFIED,
-                    _)
+                    _
+                  )
                 ),
                 _
               ) => {
@@ -100,11 +100,11 @@ class SmcResponseRewriter[
       "neutralizePossesseeWildcard", {
         case SilGenitiveReference(
           possessor,
-          SilNounReference(noun, DETERMINER_ANY, count)
+          SilDeterminedNounReference(noun, DETERMINER_ANY, count)
         ) => {
           SilGenitiveReference(
             possessor,
-            SilNounReference(noun, DETERMINER_UNSPECIFIED, count)
+            SilNounReference(noun, count)
           )
         }
       }
@@ -142,7 +142,7 @@ class SmcResponseRewriter[
             }
           }
         }
-        case nr @ SilNounReference(
+        case nr @ SilDeterminedNounReference(
           noun, DETERMINER_ANY | DETERMINER_SOME, count
         ) => {
           normalizeDisjunction(
@@ -165,15 +165,15 @@ class SmcResponseRewriter[
               }
               case _ => (DETERMINER_NONE, noun)
             }
-            SilNounReference(responseNoun, responseDeterminer, count)
+            SilDeterminedNounReference(responseNoun, responseDeterminer, count)
           }
         }
-        case SilNounReference(
+        case SilDeterminedNounReference(
           noun, DETERMINER_ALL, count
         ) => {
           normalizeConjunctionWrapper(
             SEPARATOR_OXFORD_COMMA,
-            SilNounReference(noun, DETERMINER_ALL, count))
+            SilDeterminedNounReference(noun, DETERMINER_ALL, count))
         }
       }
     )
@@ -312,8 +312,8 @@ class SmcResponseRewriter[
               containee,
               SilNounReference(
                 SilWordLemma(SmcLemmas.LEMMA_CONTAINER),
-                DETERMINER_UNSPECIFIED,
-                _)),
+                _
+              )),
             verbModifiers
           ),
         Some(QUESTION_WHERE)
@@ -344,8 +344,8 @@ class SmcResponseRewriter[
               container,
               SilNounReference(
                 SilWordLemma(SmcLemmas.LEMMA_CONTAINEE),
-                DETERMINER_UNSPECIFIED,
-                _)),
+                _
+              )),
             verbModifiers
           ),
         _
@@ -559,7 +559,7 @@ class SmcResponseRewriter[
   private def disqualifyThirdPersonReferences(
     refMap : SmcMutableRefMap[EntityType]
   ) = querier.queryMatcher {
-    case nr @ SilNounReference(
+    case nr @ SilDeterminedNounReference(
       noun, determiner, _
     ) => {
       determiner match {
@@ -604,21 +604,20 @@ class SmcResponseRewriter[
   ) = querier.queryMatcher {
     case ref : SilReference if (detector.refMap.contains(ref)) => {
       ref matchPartial {
-        case SilNounReference(_, DETERMINER_UNIQUE, _) |
+        case SilDeterminedNounReference(_, DETERMINER_UNIQUE, _) |
             SilStateSpecifiedReference(_, _) |
             SilConjunctiveReference(_, _, _) =>
           {
             detector.analyze(ref)
           }
         case SilNounReference(
-          noun, DETERMINER_UNSPECIFIED, _) if (noun.isProper) =>
-          {
-            detector.analyze(ref)
-          }
-        case _ : SilMappedReference =>
-          {
-            detector.analyze(ref)
-          }
+          noun, _
+        ) if (noun.isProper) => {
+          detector.analyze(ref)
+        }
+        case _ : SilMappedReference => {
+          detector.analyze(ref)
+        }
       }
     }
   }
@@ -629,7 +628,7 @@ class SmcResponseRewriter[
     "replaceThirdPersonReferences", {
       case ref : SilReference => {
         ref match {
-          case SilNounReference(_, _, _) |
+          case SilDeterminedNounReference(_, _, _) |
               SilStateSpecifiedReference(_, _) |
               SilConjunctiveReference(_, _, _) =>
             {
@@ -732,23 +731,23 @@ class SmcResponseRewriter[
         SilGenitiveReference(
           possessor, coerceCount(possessee, agreedCount))
       }
-      case nounRef : SilNounReference => {
-        if (nounRef.count == agreedCount) {
-          nounRef
+      case SilDeterminedNounReference(noun, determiner, count) => {
+        if (count == agreedCount) {
+          reference
         } else {
           val newDeterminer = {
             if (agreedCount == COUNT_PLURAL) {
-              if (nounRef.determiner == DETERMINER_NONSPECIFIC) {
+              if (determiner == DETERMINER_NONSPECIFIC) {
                 DETERMINER_UNSPECIFIED
               } else {
-                nounRef.determiner
+                determiner
               }
             } else {
-              nounRef.determiner
+              determiner
             }
           }
-          SilNounReference(
-            nounRef.noun.toNounUninflected,
+          SilDeterminedNounReference(
+            noun.toNounUninflected,
             newDeterminer, agreedCount)
         }
       }
@@ -876,7 +875,7 @@ class SmcResponseRewriter[
     }
     Some(
       SilStateSpecifiedReference(
-        SilNounReference(number, determiner, count),
+        SilDeterminedNounReference(number, determiner, count),
         SilAdpositionalState(
           SilAdposition.OF,
           SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))

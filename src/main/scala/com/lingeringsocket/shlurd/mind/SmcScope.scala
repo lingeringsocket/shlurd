@@ -204,7 +204,7 @@ class SmcPhraseScope[
         val ordered = refMap.toSeq.flatMap {
           case (prior, set) => {
             prior match {
-              case SilNounReference(
+              case SilDeterminedNounReference(
                 SilWordLemma(lemma), DETERMINER_NONSPECIFIC, _
               ) if (lemma == nounLemma) => {
                 Some(tupleN((prior, set, 1)))
@@ -212,14 +212,14 @@ class SmcPhraseScope[
               case SilStateSpecifiedReference(
                 SilNounReference(
                   SilWordLemma(lemma),
-                  DETERMINER_UNSPECIFIED,
-                  COUNT_SINGULAR),
+                  COUNT_SINGULAR
+                ),
                 SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
               ) if (lemma == nounLemma) => {
                 Some(tupleN((prior, set, 2)))
               }
               case SilStateSpecifiedReference(
-                SilNounReference(
+                SilDeterminedNounReference(
                   SilWordLemma(lemma),
                   DETERMINER_NONSPECIFIC,
                   COUNT_SINGULAR),

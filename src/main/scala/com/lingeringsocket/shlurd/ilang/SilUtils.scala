@@ -37,7 +37,9 @@ object SilUtils
     reference match {
       case _ : SilPronounReference =>
         false
-      case SilNounReference(_, determiner, _) => {
+      case _ : SilNounReference =>
+        false
+      case SilDeterminedNounReference(_, determiner, _) => {
         determiner match {
           case DETERMINER_NONE => false
           case DETERMINER_UNSPECIFIED => false
@@ -49,6 +51,13 @@ object SilUtils
         false
       case SilStateSpecifiedReference(reference, _) =>
         isCountCoercible(reference)
+      case SilDeterminedReference(reference, determiner) => {
+        determiner match {
+          case DETERMINER_NONE | DETERMINER_UNSPECIFIED |
+              DETERMINER_UNIQUE => false
+          case _ => true
+        }
+      }
       case SilParenthesizedReference(reference) =>
         isCountCoercible(reference)
       case _ : SilGenitiveReference => true
@@ -62,7 +71,7 @@ object SilUtils
     reference match {
       case SilPronounReference(_, _, count, _) =>
         count
-      case SilNounReference(_, _, count) =>
+      case SilNounReference(_, count) =>
         count
       case SilConjunctiveReference(determiner, _, _) => {
         determiner match {
@@ -74,6 +83,8 @@ object SilUtils
       case SilParenthesizedReference(reference) =>
         getCount(reference)
       case SilStateSpecifiedReference(reference, _) =>
+        getCount(reference)
+      case SilDeterminedReference(reference, _) =>
         getCount(reference)
       case SilGenitiveReference(_, possessee) =>
         getCount(possessee)

@@ -23,6 +23,7 @@ libraryDependencies ++= Common.specs2Deps
 libraryDependencies ++= Seq(
   "org.jline" % "jline" % "3.11.0",
   "com.twitter" %% "chill" % "0.9.3",
+  "com.ibm.icu" % "icu4j" % "64.2",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-english"

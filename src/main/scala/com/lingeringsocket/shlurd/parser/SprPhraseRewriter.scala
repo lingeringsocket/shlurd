@@ -125,20 +125,36 @@ class SprPhraseRewriter(
     nounlike : SprSyntaxPreTerminal,
     determiner : SilDeterminer) =
   {
-    SilNounReference(
-      analyzer.getWord(nounlike.child),
-      determiner,
-      analyzer.getCount(nounlike))
+    rememberDetermined(
+      SilDeterminedNounReference(
+        analyzer.getWord(nounlike.child),
+        determiner,
+        analyzer.getCount(nounlike)),
+      nounlike)
+  }
+
+  private def rememberDetermined(
+    ref : SilReference,
+    tree : SprSyntaxTree) : SilReference =
+  {
+    ref matchPartial {
+      case SilDeterminedReference(sub : SilNounReference, _) => {
+        sub.rememberSyntaxTree(tree)
+      }
+    }
+    ref
   }
 
   private def createNounReference(
     compound : SptNNC,
     determiner : SilDeterminer) =
   {
-    SilNounReference(
-      analyzer.getCompoundWord(compound),
-      determiner,
-      analyzer.getCount(compound.children.last))
+    rememberDetermined(
+      SilDeterminedNounReference(
+        analyzer.getCompoundWord(compound),
+        determiner,
+        analyzer.getCount(compound.children.last)),
+      compound)
   }
 
   private def replaceExpectedVerbModifier = replacementMatcher(

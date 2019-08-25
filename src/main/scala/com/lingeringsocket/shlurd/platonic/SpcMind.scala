@@ -126,7 +126,6 @@ class SpcMind(cosmos : SpcCosmos)
                     possessorEquiv,
                     SilNounReference(SilWord.uninflected(
                       getPossesseeName(specializedRole)),
-                      DETERMINER_UNSPECIFIED,
                       COUNT_PLURAL))))
             } else {
               // "Larry's father"
@@ -207,8 +206,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   def properReference(entity : SpcEntity) =
   {
-    SilNounReference(
-      SilWord(entity.properName), DETERMINER_UNSPECIFIED)
+    SilNounReference(SilWord(entity.properName))
   }
 
   def qualifiedReference(
@@ -216,7 +214,7 @@ class SpcMind(cosmos : SpcCosmos)
     determiner : SilDeterminer) =
   {
     val formName = getFormName(entity.form)
-    val nounRef = SilNounReference(
+    val nounRef = SilDeterminedNounReference(
       SilWord(formName), determiner)
     if (entity.properName.isEmpty) {
       SilReference.qualified(

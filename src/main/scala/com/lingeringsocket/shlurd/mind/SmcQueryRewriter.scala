@@ -21,12 +21,12 @@ class SmcQueryRewriter(
   answerInflection : SilInflection)
     extends SilPhraseRewriter
 {
-  def rewriteSpecifier = replacementMatcher(
+  def rewriteSpecifier(determinedSubs : Set[SilReference]) = replacementMatcher(
     "rewriteSpecifier", {
-      case SilNounReference(
+      case cr @ SilDeterminedNounReference(
         noun, DETERMINER_UNSPECIFIED, count
-      ) if (!noun.isProper) => {
-        SilNounReference(noun, DETERMINER_ANY, count)
+      ) if (!noun.isProper && !determinedSubs.contains(cr)) => {
+        SilDeterminedNounReference(noun, DETERMINER_ANY, count)
       }
     }
   )
@@ -76,7 +76,12 @@ class SmcQueryRewriter(
     requiredInflection : SilInflection) : PhraseType =
   {
     if (requiredInflection == answerInflection) {
-      rewrite(rewriteSpecifier, phrase)
+      val determinedRefs =
+        SilUtils.collectReferences(phrase).filter(
+          _.isInstanceOf[SilDeterminedReference]).toSet
+      val determinedSubs =
+        determinedRefs.flatMap(ref => SilUtils.collectReferences(ref).toSet)
+      rewrite(rewriteSpecifier(determinedSubs), phrase)
     } else {
       phrase
     }

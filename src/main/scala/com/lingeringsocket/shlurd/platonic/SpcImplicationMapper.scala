@@ -46,13 +46,13 @@ object SpcImplicationMapper
   def extractNoun(ref : SilReference) : Option[SilWord] =
   {
     ref match {
-      case SilNounReference(
+      case SilDeterminedNounReference(
         noun, _, _
       ) => {
         Some(noun)
       }
       case SilStateSpecifiedReference(
-        SilNounReference(noun, _, _),
+        SilDeterminedNounReference(noun, _, _),
         _ : SilPropertyState
       ) => {
         Some(noun)
@@ -69,25 +69,25 @@ object SpcImplicationMapper
     default : => SilReference) : SilReference =
   {
     reference match {
-      case SilNounReference(
+      case SilDeterminedNounReference(
         noun, DETERMINER_NONSPECIFIC, count
       ) => {
-        SilNounReference(noun, DETERMINER_UNIQUE, count)
+        SilDeterminedNounReference(noun, DETERMINER_UNIQUE, count)
       }
-      case SilNounReference(
+      case SilDeterminedNounReference(
         noun, DETERMINER_UNIQUE, count
       ) => {
-        SilNounReference(noun, DETERMINER_NONSPECIFIC, count)
+        SilDeterminedNounReference(noun, DETERMINER_NONSPECIFIC, count)
       }
       case SilStateSpecifiedReference(
         SilNounReference(
-          noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+          noun, COUNT_SINGULAR
         ),
         SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
       ) => {
         val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
         SilStateSpecifiedReference(
-          SilNounReference(
+          SilDeterminedNounReference(
             noun, DETERMINER_UNIQUE, COUNT_SINGULAR
           ),
           SilPropertyState(SilWord(ordinalSecond))
@@ -130,12 +130,12 @@ object SpcImplicationMapper
       }
       case _ => {
         ref match {
-          case SilNounReference(
+          case SilDeterminedNounReference(
             noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
           ) => {
             tupleN((
               true,
-              Set(SilNounReference(
+              Set(SilDeterminedNounReference(
                 noun, DETERMINER_UNIQUE, COUNT_SINGULAR))))
           }
           case _ => {
@@ -196,7 +196,7 @@ class SpcImplicationMapper(
       val variableCounters = new mutable.HashMap[SilWord, Int]
       val pairs = refs.flatMap(ref => {
         val nounOpt = ref match {
-          case SilNounReference(
+          case SilDeterminedNounReference(
             noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
           ) => {
             if (variableCounters.contains(noun)) {
@@ -206,7 +206,7 @@ class SpcImplicationMapper(
             Some(noun)
           }
           case SilStateSpecifiedReference(
-            SilNounReference(noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+            SilNounReference(noun, COUNT_SINGULAR),
             SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
           ) => {
             if (variableCounters.getOrElse(noun, 0) != 1) {
@@ -216,7 +216,8 @@ class SpcImplicationMapper(
             Some(noun)
           }
           case SilStateSpecifiedReference(
-            SilNounReference(noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            SilDeterminedNounReference(
+              noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
             SilPropertyState(SilWordLemma(qualifier))
           ) => {
             val sb = responder.sentencePrinter.sb

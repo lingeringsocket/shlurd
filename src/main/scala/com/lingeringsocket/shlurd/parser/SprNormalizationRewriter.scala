@@ -130,7 +130,7 @@ private[parser] class SprNormalizationRewriter
       case SilAdpositionalState(
         adp1 : SilAdposition,
         SilStateSpecifiedReference(
-          SilNounReference(
+          SilDeterminedNounReference(
             word : SilSimpleWord, DETERMINER_UNIQUE, COUNT_SINGULAR),
           SilAdpositionalState(
             adp2 : SilAdposition,
@@ -155,7 +155,8 @@ private[parser] class SprNormalizationRewriter
         SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         SilStateSpecifiedReference(
           SilNounReference(
-            direction : SilSimpleWord, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+            direction : SilSimpleWord,
+            _),
           SilAdpositionalState(
             adp,
             landmark)
@@ -313,7 +314,7 @@ private[parser] class SprNormalizationRewriter
       case LEMMA_AT => {
         objRef match {
           case SilNounReference(
-            _, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+            _, COUNT_SINGULAR
           ) => {
             false
           }

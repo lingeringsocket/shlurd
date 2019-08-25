@@ -54,7 +54,10 @@ class SnavigMind(
       communicationContext, entity, determiner)
     if (entity.form.name == SnavigShell.INVENTORY_WORD) {
       val (nouns, others) =
-        references.partition(_.isInstanceOf[SilNounReference])
+        references.partition(r =>
+          r.isInstanceOf[SilNounReference] ||
+            r.isInstanceOf[SilDeterminedReference]
+        )
       // prefer "the player's stuff" over "the player-inventory"
       others ++ nouns
     } else {

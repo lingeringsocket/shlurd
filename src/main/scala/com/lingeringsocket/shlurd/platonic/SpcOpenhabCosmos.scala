@@ -377,7 +377,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
           seq.last
         }
       }
-      val ref = SilNounReference(
+      val ref = SilDeterminedNounReference(
         SilWord(realForm),
         determiner)
       if (specialRoom) {

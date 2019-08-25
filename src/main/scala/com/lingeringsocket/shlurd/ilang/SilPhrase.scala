@@ -552,7 +552,7 @@ case class SilStateSpecifiedReference(
     state matchPartial {
       case SilAdpositionalState(SilAdposition.OF, pn : SilPronounReference) => {
         reference matchPartial {
-          case SilNounReference(SilWordLemma(lemma), _, _) => {
+          case SilDeterminedNounReference(SilWordLemma(lemma), _, _) => {
             if (lemma.forall(Character.isDigit)) {
               return false
             }
@@ -595,9 +595,15 @@ case class SilConjunctiveReference(
   override def acceptsSpecifiers = children.exists(_.acceptsSpecifiers)
 }
 
+case class SilDeterminedReference(
+  reference : SilReference,
+  determiner : SilDeterminer
+) extends SilTransformedPhrase with SilReference
+{
+}
+
 case class SilNounReference(
   noun : SilWord,
-  determiner : SilDeterminer = DETERMINER_UNSPECIFIED,
   count : SilCount = COUNT_SINGULAR
 ) extends SilTransformedPhrase with SilReference
 {
@@ -819,6 +825,44 @@ object SilWordInflected
   def unapply(w : SilSimpleWord) =
   {
     Some(w.inflected)
+  }
+}
+
+object SilDeterminedNounReference
+{
+  def apply(
+    noun : SilWord, determiner : SilDeterminer,
+    count : SilCount = COUNT_SINGULAR
+  ) : SilReference =
+  {
+    determiner match {
+      case DETERMINER_UNSPECIFIED => {
+        SilNounReference(noun, count)
+      }
+      case _ => {
+        SilDeterminedReference(
+          SilNounReference(noun, count),
+          determiner)
+      }
+    }
+  }
+
+  def unapply(ref : SilReference) =
+  {
+    ref match {
+      case SilNounReference(noun, count) => {
+        Some((noun, DETERMINER_UNSPECIFIED, count))
+      }
+      case SilDeterminedReference(
+        SilNounReference(noun, count),
+        determiner
+      ) => {
+        Some((noun, determiner, count))
+      }
+      case _ => {
+        None
+      }
+    }
   }
 }
 

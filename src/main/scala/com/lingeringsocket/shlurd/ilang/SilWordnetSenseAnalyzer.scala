@@ -36,9 +36,9 @@ class SilWordnetSenseAnalyzer extends SilPhraseRewriter
             directObject,
             modifiers)
         }
-        case SilNounReference(noun, determiner, count) => {
+        case SilDeterminedNounReference(noun, determiner, count) => {
           val senseId = filterSenses(noun, POS.NOUN, sense => true)
-          SilNounReference(noun.withSense(senseId), determiner, count)
+          SilDeterminedNounReference(noun.withSense(senseId), determiner, count)
         }
       }
     )

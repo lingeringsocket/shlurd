@@ -44,11 +44,11 @@ class SmcScopeSpec extends Specification
   private val cliveRef = SilNounReference(SilWord("Clive"))
 
   private val tigerRef =
-    SilNounReference(SilWord("tiger"), DETERMINER_NONSPECIFIC)
+    SilDeterminedNounReference(SilWord("tiger"), DETERMINER_NONSPECIFIC)
 
   private val anotherTigerRef =
     SilStateSpecifiedReference(
-      SilNounReference(SilWord("tiger"), DETERMINER_UNSPECIFIED),
+      SilNounReference(SilWord("tiger")),
       SilPropertyState(SilWord(LEMMA_ANOTHER)))
 
   private val noEntities = Set[SmcEntity]()

@@ -97,10 +97,14 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     conjoining : SilConjoining) : String =
   {
     reference match {
-      case SilNounReference(noun, determiner, count) => {
+      case SilDeterminedReference(sub, determiner) => {
         sb.determinedNoun(
           determiner,
-          sb.delemmatizeNoun(noun, count, inflection, conjoining))
+          print(sub, inflection, conjoining)
+        )
+      }
+      case SilNounReference(noun, count) => {
+        sb.delemmatizeNoun(noun, count, inflection, conjoining)
       }
       case SilPronounReference(person, gender, count, distance) => {
         sb.pronoun(person, gender, count, distance, inflection, conjoining)
@@ -139,7 +143,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           }
         }
         sub match {
-          case SilNounReference(noun, determiner, count) => {
+          case SilDeterminedNounReference(noun, determiner, count) => {
             sb.determinedNoun(
               determiner,
               sb.qualifiedNoun(
@@ -362,7 +366,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     // state gets lost for questions such as QUESTION_WHAT
     val (plainSubject, subjectInflection) = predicate.getSubject match {
       case SilGenitiveReference(
-        SilNounReference(SilWordLemma(LEMMA_WHO), _, _),
+        SilDeterminedNounReference(SilWordLemma(LEMMA_WHO), _, _),
         possessee
       ) => {
         tupleN((
@@ -495,7 +499,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilPronounReference(person, gender, count, _) => {
         tupleN((person, gender, count))
       }
-      case SilNounReference(_, _, count) => {
+      case SilNounReference(_, count) => {
         tupleN((PERSON_THIRD, GENDER_N, count))
       }
       case SilConjunctiveReference(determiner, references, _) => {
@@ -517,6 +521,9 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         getSubjectAttributes(reference, existentialPronoun)
       }
       case SilStateSpecifiedReference(reference, _) => {
+        getSubjectAttributes(reference, existentialPronoun)
+      }
+      case SilDeterminedReference(reference, _) => {
         getSubjectAttributes(reference, existentialPronoun)
       }
       case SilGenitiveReference(possessor, possessee) => {

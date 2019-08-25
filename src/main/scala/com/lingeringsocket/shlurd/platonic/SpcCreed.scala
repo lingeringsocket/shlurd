@@ -199,7 +199,7 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
         SilRelationshipPredicate(
           noun,
           REL_PREDEF_IDENTITY.toVerb,
-          SilNounReference(
+          SilDeterminedNounReference(
             SilWord(property.domain.name), DETERMINER_NONSPECIFIC)
         )
       }
@@ -422,11 +422,11 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   {
     count match {
       case COUNT_SINGULAR => {
-        SilNounReference(SilWord(noun), determiner)
+        SilDeterminedNounReference(SilWord(noun), determiner)
       }
       case COUNT_PLURAL => {
         SilNounReference(
-          SilWord.uninflected(noun), DETERMINER_UNSPECIFIED, COUNT_PLURAL)
+          SilWord.uninflected(noun), COUNT_PLURAL)
       }
     }
   }

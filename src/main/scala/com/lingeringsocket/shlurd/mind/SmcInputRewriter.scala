@@ -41,7 +41,7 @@ class SmcInputRewriter[
   private def convertGenitiveOf = replacementMatcher(
     "convertGenitiveOf", {
       case SilStateSpecifiedReference(
-        SilNounReference(noun, determiner, count),
+        SilDeterminedNounReference(noun, determiner, count),
         SilAdpositionalState(
           SilAdposition.OF,
           possessor
@@ -56,7 +56,7 @@ class SmcInputRewriter[
       ) => {
         SilGenitiveReference(
           possessor,
-          SilNounReference(noun, DETERMINER_UNSPECIFIED, count))
+          SilNounReference(noun, count))
       }
     }
   )
@@ -76,13 +76,16 @@ class SmcInputRewriter[
   {
     rewrite(
       replacePredicateWildcard(objRef),
-      predicate)
+      predicate,
+      SilRewriteOptions(topDown = true))
   }
 
   private def replacePredicateWildcard(
     objRef : SilReference) = replacementMatcher(
     "replacePredicateWildcard", {
-      case ref : SilNounReference if containsWildcard(ref) => {
+      case ref @ SilDeterminedNounReference(
+        _, _, _
+      ) if containsWildcard(ref) => {
         objRef
       }
     }

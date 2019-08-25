@@ -68,7 +68,8 @@ class SprWordnetGlossPrepSpec extends Specification
       SprWordnetGlossPrep.parseNounGlosses("rivulet") must be equalTo Seq(
         Some(
           SilStateSpecifiedReference(
-            SilNounReference(SilWord("stream"), DETERMINER_NONSPECIFIC),
+            SilDeterminedNounReference(
+              SilWord("stream"), DETERMINER_NONSPECIFIC),
             SilPropertyState(SilWord("small")))
         )
       )
@@ -93,7 +94,7 @@ class SprWordnetGlossPrepSpec extends Specification
               SilAdpositionalVerbModifier(
                 SilAdposition.ON,
                 SilStateSpecifiedReference(
-                  SilNounReference(
+                  SilDeterminedNounReference(
                     SilWord("step"),
                     DETERMINER_UNIQUE),
                   SilPropertyState(SilWord("bottom")))))),

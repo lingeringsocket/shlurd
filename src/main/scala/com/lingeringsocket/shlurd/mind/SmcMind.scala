@@ -108,13 +108,13 @@ class SmcMind[
   private def isRetainableReference(ref : SilReference) : Boolean =
   {
     ref match {
-      case SilNounReference(
+      case SilDeterminedNounReference(
         _, DETERMINER_UNIQUE, _
       ) => {
         true
       }
       case SilNounReference(
-        noun, DETERMINER_UNSPECIFIED, _
+        noun, _
       ) => {
         noun.isProper
       }

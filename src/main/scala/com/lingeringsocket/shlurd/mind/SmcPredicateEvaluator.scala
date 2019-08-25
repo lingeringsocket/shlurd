@@ -118,7 +118,7 @@ class SmcPredicateEvaluator[
                       Success(Trilean.Unknown)
                     } else {
                       entityRef match {
-                        case SilNounReference(
+                        case SilDeterminedNounReference(
                           noun,
                           DETERMINER_ANY | DETERMINER_UNSPECIFIED,
                           _) => {
@@ -316,10 +316,10 @@ class SmcPredicateEvaluator[
           ref matchPartial {
             case SilGenitiveReference(
               possessor,
-              possessee @ SilNounReference(noun, _, _)
+              possessee @ SilDeterminedNounReference(noun, _, _)
             ) => {
               possessor match {
-                case SilNounReference(_, DETERMINER_ANY, _) => {
+                case SilDeterminedNounReference(_, DETERMINER_ANY, _) => {
                   // force correlated evaluation after reference resolution
                   resultCollector.refMap.remove(ref)
                 }
@@ -766,81 +766,127 @@ class SmcPredicateEvaluator[
     }
   }
 
+  private def evaluatePredicateOverNounReference(
+    reference : SilReference,
+    noun : SilWord,
+    determiner : SilDeterminer,
+    count : SilCount,
+    context : SilReferenceContext,
+    resultCollector : ResultCollectorType,
+    specifiedState : SilState,
+    specifiedEntities : Option[Set[EntityType]],
+    evaluator : EntityPredicateEvaluator
+  ) : Try[Trilean] =
+  {
+    val qualifiers = cosmos.qualifierSet(
+      SilUtils.extractQualifiers(specifiedState))
+    if (resultCollector.suppressWildcardExpansion > 0) {
+      val lemma = noun.toNounLemma
+      val bail = determiner match {
+        case DETERMINER_UNIQUE => false
+        case DETERMINER_ANY => {
+          context match {
+            case REF_GENITIVE_POSSESSOR => false
+            case _ => true
+          }
+        }
+        // FIXME this is silly
+        case DETERMINER_UNSPECIFIED => {
+          (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
+            (lemma == LEMMA_WHERE) || (qualifiers.contains(LEMMA_ANOTHER))
+        }
+        case _ => true
+      }
+      if (bail) {
+        return Success(Trilean.Unknown)
+      }
+    }
+    val entitiesTry = {
+      specifiedEntities match {
+        case Some(entities) => {
+          Success(entities)
+        }
+        case _ => {
+          cacheReference(
+            resultCollector,
+            reference,
+            () => scope.resolveQualifiedNoun(
+              noun, context,
+              qualifiers).map(_.entities)
+          )
+        }
+      }
+    }
+    entitiesTry match {
+      case Success(entities) => {
+        evaluatePredicateOverEntities(
+          entities,
+          reference,
+          context,
+          resultCollector,
+          specifiedState,
+          determiner,
+          count,
+          noun,
+          evaluator)
+      }
+      case Failure(e : ShlurdException) => {
+        trace("ERROR", e)
+        Failure(e)
+      }
+      case Failure(e) => {
+        trace("ERROR", e)
+        cosmos.fail(
+          ShlurdExceptionCode.UnknownForm,
+          sentencePrinter.sb.respondUnknown(noun))
+      }
+    }
+  }
+
   private def evaluatePredicateOverReferenceImpl(
     reference : SilReference,
     context : SilReferenceContext,
     resultCollector : ResultCollectorType,
     specifiedState : SilState,
     specifiedEntities : Option[Set[EntityType]],
-    evaluator : EntityPredicateEvaluator)
+    evaluator : EntityPredicateEvaluator,
+    enclosingDeterminer : SilDeterminer = DETERMINER_UNSPECIFIED)
       : Try[Trilean] =
   {
     val refMap = resultCollector.refMap
-    val qualifiers = cosmos.qualifierSet(
-      SilUtils.extractQualifiers(specifiedState))
     reference match {
-      case SilNounReference(noun, determiner, count) => {
-        if (resultCollector.suppressWildcardExpansion > 0) {
-          val lemma = noun.toNounLemma
-          val bail = determiner match {
-            case DETERMINER_UNIQUE => false
-            case DETERMINER_ANY => {
-              context match {
-                case REF_GENITIVE_POSSESSOR => false
-                case _ => true
-              }
-            }
-            // FIXME this is silly
-            case DETERMINER_UNSPECIFIED => {
-              (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
-              (lemma == LEMMA_WHERE) || (qualifiers.contains(LEMMA_ANOTHER))
-            }
-            case _ => true
-          }
-          if (bail) {
-            return Success(Trilean.Unknown)
-          }
-        }
-        val entitiesTry = {
-          specifiedEntities match {
-            case Some(entities) => {
-              Success(entities)
-            }
-            case _ => {
-              cacheReference(
-                resultCollector,
-                reference,
-                () => scope.resolveQualifiedNoun(
-                  noun, context,
-                  qualifiers).map(_.entities)
-              )
-            }
+      case SilNounReference(noun, count) => {
+        evaluatePredicateOverNounReference(
+          reference,
+          noun,
+          enclosingDeterminer,
+          count,
+          context,
+          resultCollector,
+          specifiedState,
+          specifiedEntities,
+          evaluator)
+      }
+      case SilDeterminedNounReference(noun, nounDeterminer, count) => {
+        val determiner = nounDeterminer match {
+          case DETERMINER_UNSPECIFIED => enclosingDeterminer
+          case _ => {
+            assert(
+              enclosingDeterminer == DETERMINER_UNSPECIFIED,
+              tupleN((enclosingDeterminer, nounDeterminer)))
+            nounDeterminer
           }
         }
-        entitiesTry match {
-          case Success(entities) => {
-            evaluatePredicateOverEntities(
-              entities,
-              reference,
-              context,
-              resultCollector,
-              specifiedState,
-              determiner,
-              count,
-              noun,
-              evaluator)
-          }
-          case Failure(e : ShlurdException) => {
-            trace("ERROR", e)
-            Failure(e)
-          }
-          case Failure(e) => {
-            trace("ERROR", e)
-            cosmos.fail(
-              ShlurdExceptionCode.UnknownForm,
-              sentencePrinter.sb.respondUnknown(noun))
-          }
-        }
+        evaluatePredicateOverNounReference(
+          reference,
+          noun,
+          determiner,
+          count,
+          context,
+          resultCollector,
+          specifiedState,
+          specifiedEntities,
+          evaluator)
       }
       case prOriginal : SilPronounReference => {
         // FIXME should support phrasing like
@@ -888,6 +934,7 @@ class SmcPredicateEvaluator[
         })
       }
       case SilConjunctiveReference(determiner, references, separator) => {
+        assert(enclosingDeterminer == DETERMINER_UNSPECIFIED)
         val results = references.map(
           evaluatePredicateOverReference(
             _, context, resultCollector, specifiedState)(evaluator))
@@ -903,7 +950,7 @@ class SmcPredicateEvaluator[
       case SilParenthesizedReference(sub) => {
         val result = evaluatePredicateOverReferenceImpl(
           sub, context, resultCollector, specifiedState,
-          specifiedEntities, evaluator)
+          specifiedEntities, evaluator, enclosingDeterminer)
         refMap.get(sub).foreach(
           entitySet => refMap.put(reference, entitySet))
         result
@@ -915,7 +962,17 @@ class SmcPredicateEvaluator[
           entitySet => refMap.put(reference, entitySet))
         result
       }
+      case SilDeterminedReference(sub, determiner) => {
+        assert(enclosingDeterminer == DETERMINER_UNSPECIFIED)
+        val result = evaluatePredicateOverReferenceImpl(
+          sub, context, resultCollector, specifiedState, specifiedEntities,
+          evaluator, determiner)
+        refMap.get(sub).foreach(
+          entitySet => refMap.put(reference, entitySet))
+        result
+      }
       case SilGenitiveReference(possessor, possessee) => {
+        assert(enclosingDeterminer == DETERMINER_UNSPECIFIED)
         refMap.get(reference) match {
           case Some(entities) => {
             evaluatePredicateOverReferenceImpl(
@@ -930,7 +987,7 @@ class SmcPredicateEvaluator[
           case _ => {
             possessee matchPartial {
               case SilNounReference(
-                noun, DETERMINER_UNSPECIFIED, COUNT_SINGULAR
+                noun, COUNT_SINGULAR
               ) => {
                 resultCollector.lookup(possessor).
                   foreach(entities => {
@@ -968,7 +1025,7 @@ class SmcPredicateEvaluator[
             }
             if (resultCollector.resolvingReferences) {
               possessee matchPartial {
-                case SilNounReference(
+                case SilDeterminedNounReference(
                   noun, DETERMINER_UNSPECIFIED | DETERMINER_ANY, _
                 ) => {
                   resultCollector.lookup(possessor).foreach(
@@ -1073,7 +1130,7 @@ class SmcPredicateEvaluator[
       case Failure(e) => {
         debug("ERROR", e)
         val errorRef = entityRef match {
-          case SilNounReference(noun, determiner, count) => {
+          case SilDeterminedNounReference(noun, determiner, count) => {
             val rephrased = noun match {
               case SilWordLemma(LEMMA_WHO) =>
                 SilWord(SmcLemmas.LEMMA_SOMEONE)
@@ -1089,7 +1146,7 @@ class SmcPredicateEvaluator[
               case DETERMINER_ANY | DETERMINER_SOME => DETERMINER_NONSPECIFIC
               case _ => determiner
             }
-            SilNounReference(rephrased, rephrasedDeterminer, count)
+            SilDeterminedNounReference(rephrased, rephrasedDeterminer, count)
           }
           case _ => {
             mind.specificReference(entity, DETERMINER_NONSPECIFIC)
@@ -1133,7 +1190,7 @@ class SmcPredicateEvaluator[
   {
     // FIXME:  support qualifiers etc
     reference match {
-      case SilNounReference(
+      case SilDeterminedNounReference(
         noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => Some(noun)
       case _ => None
     }
@@ -1144,7 +1201,7 @@ class SmcPredicateEvaluator[
   {
     // FIXME:  do something less hacky
     complementRef match {
-      case SilNounReference(noun, determiner, count) => {
+      case SilDeterminedNounReference(noun, determiner, count) => {
         Set(noun)
       }
       case _ => Set.empty

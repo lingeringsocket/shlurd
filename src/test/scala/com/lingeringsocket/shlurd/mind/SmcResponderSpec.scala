@@ -57,8 +57,8 @@ class SmcResponderSpec extends Specification
               SilAdposition.IN,
               SilNounReference(
                 SilWordInflected("dreamland"),
-                DETERMINER_UNSPECIFIED,
-                COUNT_SINGULAR)) =>
+                COUNT_SINGULAR
+              )) =>
               {
                 SilPropertyState(SilWord("asleep"))
               }
