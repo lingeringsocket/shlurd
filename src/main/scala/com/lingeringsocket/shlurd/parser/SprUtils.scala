@@ -60,6 +60,7 @@ object SprEnglishLemmas
   val LEMMA_EITHER = "either"
   val LEMMA_NEITHER = "neither"
   val LEMMA_ANOTHER = "another"
+  val LEMMA_OTHER = "other"
   val LEMMA_MUST = "must"
   val LEMMA_MAY = "may"
   val LEMMA_COULD = "could"

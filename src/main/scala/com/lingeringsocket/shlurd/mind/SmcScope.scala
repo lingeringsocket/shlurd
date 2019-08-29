@@ -251,8 +251,17 @@ class SmcPhraseScope[
             }
           } else if (qualifiers.size == 1) {
             val qualifier = qualifiers.head
-            getSentencePrinter.sb.ordinalValue(qualifier) match {
-              case Success(ordinal) => {
+            val ordinalOpt = qualifier match {
+              case LEMMA_OTHER => Some(2)
+              case _ => {
+                getSentencePrinter.sb.ordinalValue(qualifier) match {
+                  case Success(o) => Some(o)
+                  case _ => None
+                }
+              }
+            }
+            ordinalOpt match {
+              case Some(ordinal) => {
                 val filtered = {
                   if (ordered.size > 1) {
                     ordered.filter(_._3 == ordinal)

@@ -597,7 +597,7 @@ class SpcResponderSpec extends Specification
       processBelief("A map-place is a kind of object.")
       processBelief("A map-place's map-neighbor must be a map-place.")
       processBelief("If a map-place is another map-place's map-neighbor, " +
-        "then equivalently the second map-place is " +
+        "then equivalently the other map-place is " +
         "the first map-place's map-neighbor.")
       processBelief("A bedroom is a kind of map-place.")
       processBelief("There is a bedroom.")
