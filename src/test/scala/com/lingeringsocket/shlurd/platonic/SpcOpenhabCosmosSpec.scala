@@ -181,12 +181,9 @@ class SpcOpenhabCosmosSpec extends Specification
       process(
         "is any bedroom light off",
         "Yes, the guest bedroom nightstand light is off.")
-
-      // FIXME:  there should be no ambiguity here
       process(
         "is any light in the guest bedroom on the first floor off",
-        "Please be more specific about which bedroom you mean.")
-
+        "Yes, the guest bedroom nightstand light is off.")
       process(
         "is any guest bedroom light on the first floor off",
         "Yes, the guest bedroom nightstand light is off.")

@@ -125,7 +125,10 @@ class SmcMind[
       case SilGenitiveReference(possessor, _) => {
         isRetainableReference(possessor)
       }
-      case SilStateSpecifiedReference(sub, state) => {
+      case SilStateSpecifiedReference(sub, _) => {
+        isRetainableReference(sub)
+      }
+      case SilDeterminedReference(sub, _) => {
         isRetainableReference(sub)
       }
       case _ => false

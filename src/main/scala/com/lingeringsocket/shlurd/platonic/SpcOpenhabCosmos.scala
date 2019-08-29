@@ -381,8 +381,8 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
         SilWord(realForm),
         determiner)
       if (specialRoom) {
-          SilReference.qualified(
-            ref, seq.map(x => SilWord(x)))
+        SilReference.qualified(
+          ref, seq.map(x => SilWord(x)))
       } else {
         if (seq.size == 1) {
           ref

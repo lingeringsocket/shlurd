@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
@@ -600,6 +601,9 @@ case class SilDeterminedReference(
   determiner : SilDeterminer
 ) extends SilTransformedPhrase with SilReference
 {
+  override def children = Seq(reference)
+
+  override def acceptsSpecifiers = reference.acceptsSpecifiers
 }
 
 case class SilNounReference(
@@ -828,6 +832,52 @@ object SilWordInflected
   }
 }
 
+object SilStackedStateReference
+{
+  def apply(ref : SilReference, states : Seq[SilState]) : SilReference =
+  {
+    if (states.isEmpty) {
+      ref
+    } else {
+      SilStateSpecifiedReference(
+        SilStackedStateReference(ref, states.tail),
+        states.head)
+    }
+  }
+
+  def unapply(ref : SilReference) : Option[(SilReference, Seq[SilState])] =
+  {
+    ref match {
+      case SilStateSpecifiedReference(
+        SilStackedStateReference(sub, states),
+        state
+      ) => {
+        Some((sub, state +: states))
+      }
+      case _ : SilNounReference => Some((ref, Seq.empty))
+      case _ => None
+    }
+  }
+}
+
+object SilOptionallyDeterminedReference
+{
+  def unapply(ref : SilReference) =
+  {
+    ref match {
+      case SilDeterminedReference(
+        sub,
+        determiner
+      ) => {
+        Some((sub, determiner))
+      }
+      case _ => {
+        Some((ref, DETERMINER_UNSPECIFIED))
+      }
+    }
+  }
+}
+
 object SilDeterminedNounReference
 {
   def apply(
@@ -835,16 +885,7 @@ object SilDeterminedNounReference
     count : SilCount = COUNT_SINGULAR
   ) : SilReference =
   {
-    determiner match {
-      case DETERMINER_UNSPECIFIED => {
-        SilNounReference(noun, count)
-      }
-      case _ => {
-        SilDeterminedReference(
-          SilNounReference(noun, count),
-          determiner)
-      }
-    }
+    SilReference.determined(SilNounReference(noun, count), determiner)
   }
 
   def unapply(ref : SilReference) =
@@ -868,24 +909,40 @@ object SilDeterminedNounReference
 
 object SilReference
 {
+  def determined(
+    reference : SilReference, determiner : SilDeterminer) : SilReference =
+  {
+    determiner match {
+      case DETERMINER_UNSPECIFIED => reference
+      case _ => SilDeterminedReference(reference, determiner)
+    }
+  }
+
   def qualifiedByProperties(
     reference : SilReference,
     qualifiers : Seq[SilState])
       : SilReference =
   {
-    if (qualifiers.isEmpty) {
-      reference
-    } else if (qualifiers.size == 1) {
-      SilStateSpecifiedReference(
-        reference, qualifiers.head)
-    } else {
-      SilStateSpecifiedReference(
-        reference,
-        SilConjunctiveState(
-          DETERMINER_ALL,
-          qualifiers,
-          SEPARATOR_CONJOINED))
+    val (sub, determiner) = reference match {
+      case SilDeterminedReference(s, d) => tupleN((s, d))
+      case _ => tupleN((reference, DETERMINER_UNSPECIFIED))
     }
+    val rewritten = {
+      if (qualifiers.isEmpty) {
+        sub
+      } else if (qualifiers.size == 1) {
+        SilStateSpecifiedReference(
+          sub, qualifiers.head)
+      } else {
+        SilStateSpecifiedReference(
+          sub,
+          SilConjunctiveState(
+            DETERMINER_ALL,
+            qualifiers,
+            SEPARATOR_CONJOINED))
+      }
+    }
+    SilReference.determined(rewritten, determiner)
   }
 
   def qualified(reference : SilReference, qualifiers : Seq[SilWord])

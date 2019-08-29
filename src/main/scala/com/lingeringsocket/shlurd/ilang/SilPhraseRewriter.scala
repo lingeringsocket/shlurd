@@ -82,8 +82,12 @@ case class SilPhraseReplacementMatcher(
   override def isDefinedAt(phrase : SilPhrase) : Boolean =
   {
     val r = replacement.isDefinedAt(phrase)
-    if (r && logger.isTraceEnabled) {
-      logger.trace(s"match succeeded on $name : $phrase")
+    if (logger.isTraceEnabled) {
+      if (r) {
+        logger.trace(s"match succeeded on $name : $phrase")
+      } else {
+        logger.trace(s"match failed on $name : $phrase")
+      }
     }
     r
   }

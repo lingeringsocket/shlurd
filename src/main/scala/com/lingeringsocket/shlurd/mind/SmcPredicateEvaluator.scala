@@ -375,6 +375,8 @@ class SmcPredicateEvaluator[
       case SilStateSpecifiedReference(sub, _) => {
         contextMap.put(sub, REF_SPECIFIED)
       }
+      case SilDeterminedReference(_, _) => {
+      }
       case ref : SilReference => {
         contextMap.get(ref).foreach(context => {
           ref.childReferences.foreach(child => contextMap.put(child, context))
@@ -584,17 +586,18 @@ class SmcPredicateEvaluator[
     reference : SilReference,
     context : SilReferenceContext,
     resultCollector : ResultCollectorType,
-    specifiedState : SilState = SilNullState()
+    specifiedState : SilState = SilNullState(),
+    enclosingDeterminer : SilDeterminer = DETERMINER_UNSPECIFIED
   )(evaluator : EntityPredicateEvaluator)
       : Try[Trilean] =
   {
     trace("EVALUATE PREDICATE OVER REFERENCE : " +
       reference + " WITH CONTEXT " + context + " AND SPECIFIED STATE "
-      + specifiedState)
+      + specifiedState + " AND DETERMINER " + enclosingDeterminer)
     debugPushLevel()
     val result = evaluatePredicateOverReferenceImpl(
       reference, context, resultCollector,
-      specifiedState, None, evaluator)
+      specifiedState, None, evaluator, enclosingDeterminer)
     debugPopLevel()
     trace(s"PREDICATE TRUTH OVER REFERENCE : $result")
     result
@@ -957,7 +960,8 @@ class SmcPredicateEvaluator[
       }
       case SilStateSpecifiedReference(sub, subState) => {
         val result = evaluatePredicateOverState(
-          sub, subState, context, resultCollector, specifiedState, evaluator)
+          sub, subState, context, resultCollector, specifiedState, evaluator,
+          enclosingDeterminer)
         refMap.get(sub).foreach(
           entitySet => refMap.put(reference, entitySet))
         result
@@ -972,7 +976,6 @@ class SmcPredicateEvaluator[
         result
       }
       case SilGenitiveReference(possessor, possessee) => {
-        assert(enclosingDeterminer == DETERMINER_UNSPECIFIED)
         refMap.get(reference) match {
           case Some(entities) => {
             evaluatePredicateOverReferenceImpl(
@@ -1093,7 +1096,8 @@ class SmcPredicateEvaluator[
     context : SilReferenceContext,
     resultCollector : ResultCollectorType,
     specifiedState : SilState,
-    evaluator : EntityPredicateEvaluator)
+    evaluator : EntityPredicateEvaluator,
+    enclosingDeterminer : SilDeterminer = DETERMINER_UNSPECIFIED)
       : Try[Trilean] =
   {
     val combinedState = {
@@ -1107,7 +1111,8 @@ class SmcPredicateEvaluator[
       }
     }
     evaluatePredicateOverReference(
-      reference, context, resultCollector, combinedState)(evaluator)
+      reference, context, resultCollector, combinedState,
+      enclosingDeterminer)(evaluator)
   }
 
   protected def evaluatePropertyStatePredicate(

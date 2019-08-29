@@ -32,7 +32,9 @@ class SmcInputRewriter[
   {
     rewrite(
       combineRules(convertGenitiveOf, deparenthesize),
-      sentence)
+      sentence,
+      SilRewriteOptions(topDown = true)
+    )
   }
 
   // FIXME this should be context-sensitive, and should be able to
@@ -40,12 +42,15 @@ class SmcInputRewriter[
   // "the first cousin of Elizabeth"
   private def convertGenitiveOf = replacementMatcher(
     "convertGenitiveOf", {
-      case SilStateSpecifiedReference(
-        SilDeterminedNounReference(noun, determiner, count),
-        SilAdpositionalState(
-          SilAdposition.OF,
-          possessor
-        )
+      case SilOptionallyDeterminedReference(
+        SilStateSpecifiedReference(
+          SilNounReference(noun, count),
+          SilAdpositionalState(
+            SilAdposition.OF,
+            possessor
+          )
+        ),
+        determiner
       ) if (
         (noun.toNounLemma != LEMMA_KIND) &&
           (determiner match {

@@ -506,24 +506,32 @@ class SprEnglishSyntaxAnalyzer(
       components.dropRight(1).forall(
         c => isNounPhraseModifier(c, components.last)))
     {
-      val entityReference = expectNounReference(
-        tree, components.last, determiner)
-      if (components.size > 1) {
-        val adjComponents = components.dropRight(1)
-        val qualifiedReference = SilReference.qualifiedByProperties(
-          entityReference,
-          adjComponents.map(expectPropertyState))
-        qualifiedReference matchPartial {
-          case SilStateSpecifiedReference(
-            _, state : SilConjunctiveState
-          ) => {
-            rememberSyntheticADJP(state, adjComponents)
+      val qr = {
+        val entityReference = expectNounReference(
+          tree, components.last, DETERMINER_UNSPECIFIED)
+        if (components.size > 1) {
+          val adjComponents = components.dropRight(1)
+          val qualifiedReference = SilReference.qualifiedByProperties(
+            entityReference,
+            adjComponents.map(expectPropertyState))
+          qualifiedReference matchPartial {
+            case sr @ SilStateSpecifiedReference(
+              _, state
+            ) => {
+              sr.rememberSyntaxTree(tree)
+              state matchPartial {
+                case cs : SilConjunctiveState => {
+                  rememberSyntheticADJP(cs, adjComponents)
+                }
+              }
+            }
           }
+          qualifiedReference
+        } else {
+          entityReference
         }
-        qualifiedReference
-      } else {
-        entityReference
       }
+      SilReference.determined(qr, determiner)
     } else {
       SilUnrecognizedReference(tree)
     }

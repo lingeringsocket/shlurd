@@ -371,16 +371,18 @@ class SpcBeliefRecognizer(
       sentence.tam.unemphaticModality == MODAL_NEUTRAL
     ) {
       val (kindOpt, aliasOpt) = complementRef match {
-        case SilStateSpecifiedReference(
-          SilDeterminedNounReference(
-            SilWordLemma(LEMMA_KIND),
-            kindDeterminer, kindCount),
-          SilAdpositionalState(
-            SilAdposition.OF,
-            SilDeterminedNounReference(
-              hypernymIdealName,
-              DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
-              _))
+        case SilOptionallyDeterminedReference(
+          SilStateSpecifiedReference(
+            SilNounReference(
+              SilWordLemma(LEMMA_KIND),
+              kindCount),
+            SilAdpositionalState(
+              SilAdposition.OF,
+              SilDeterminedNounReference(
+                hypernymIdealName,
+                DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
+                _))),
+          kindDeterminer
         ) if (
           (kindDeterminer == DETERMINER_NONSPECIFIC) ||
             ((kindDeterminer == DETERMINER_UNSPECIFIED) &&
@@ -388,16 +390,18 @@ class SpcBeliefRecognizer(
         ) => {
           tupleN((Some(hypernymIdealName), None))
         }
-        case SilStateSpecifiedReference(
-          SilDeterminedNounReference(
-            SilWordLemma(LEMMA_SAME),
-            DETERMINER_UNIQUE, COUNT_SINGULAR),
-          SilAdpositionalState(
-            SilAdposition.AS,
-            SilDeterminedNounReference(
-              idealName,
-              determiner,
-              count))
+        case SilDeterminedReference(
+          SilStateSpecifiedReference(
+            SilNounReference(
+              SilWordLemma(LEMMA_SAME),
+              COUNT_SINGULAR),
+            SilAdpositionalState(
+              SilAdposition.AS,
+              SilDeterminedNounReference(
+                idealName,
+                determiner,
+                count))),
+          DETERMINER_UNIQUE
         ) if (compatibleDeterminerAndCount(determiner, count)) => {
           tupleN((None, Some(idealName)))
         }
@@ -912,11 +916,14 @@ class SpcBeliefRecognizer(
       ) => {
         recognizeWordLabel(Seq(noun)).toSeq
       }
-      case SilStateSpecifiedReference(
-        SilDeterminedNounReference(
-          noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+      case SilDeterminedReference(
+        SilStateSpecifiedReference(
+          SilNounReference(
+            noun, COUNT_SINGULAR
+          ),
+          SilPropertyState(qualifier)
         ),
-        SilPropertyState(qualifier)
+        DETERMINER_NONSPECIFIC
       ) => {
         recognizeWordLabel(Seq(qualifier, noun)).toSeq
       }
@@ -1091,13 +1098,15 @@ class SpcBeliefRecognizer(
               roleNoun
             ))
           }
-          case SilStateSpecifiedReference(
-            SilDeterminedNounReference(
-              roleNoun,
-              DETERMINER_NONSPECIFIC,
-              _
+          case SilDeterminedReference(
+            SilStateSpecifiedReference(
+              SilNounReference(
+                roleNoun,
+                _
+              ),
+              state
             ),
-            state
+            DETERMINER_NONSPECIFIC
           ) => {
             // "Larry has a dirty dog"
             return indefiniteEntityAssocBelief(
@@ -1243,9 +1252,11 @@ class SpcBeliefRecognizer(
     Seq(EntityAssocBelief(
       sentence,
       subjectRef,
-      SilStateSpecifiedReference(
-        SilDeterminedNounReference(roleNoun, DETERMINER_UNIQUE),
-        state),
+      SilDeterminedReference(
+        SilStateSpecifiedReference(
+          SilNounReference(roleNoun),
+          state),
+        DETERMINER_UNIQUE),
       true,
       roleNoun
     ))
@@ -1336,6 +1347,12 @@ class SpcBeliefRecognizer(
       ) => {
         tupleN((noun, preQualifiers, COUNT_SINGULAR, determiner, false))
       }
+      case SilDeterminedReference(sub, determiner) => {
+        val (w, s, c, d, b) = extractQualifiedNoun(
+          sentence, sub, preQualifiers, allowGenitives, allowAdpositions)
+        assert(d == DETERMINER_UNSPECIFIED)
+        tupleN((w, s, c, determiner, b))
+      }
       case SilNounReference(
         noun, COUNT_PLURAL
       ) => {
@@ -1350,14 +1367,17 @@ class SpcBeliefRecognizer(
           preQualifiers ++ SilUtils.extractQualifiers(state))
       }
       case SilGenitiveReference(
-        SilStateSpecifiedReference(
-          sub,
-          state),
+        SilOptionallyDeterminedReference(
+          SilStateSpecifiedReference(
+            sub,
+            state),
+          determiner),
         possessee
       ) => {
         extractQualifiedNoun(
           sentence,
-          SilGenitiveReference(sub, possessee),
+          SilReference.determined(
+            SilGenitiveReference(sub, possessee), determiner),
           preQualifiers ++ SilUtils.extractQualifiers(state),
           allowGenitives)
       }

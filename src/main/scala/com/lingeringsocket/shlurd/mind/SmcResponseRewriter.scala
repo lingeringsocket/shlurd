@@ -110,6 +110,42 @@ class SmcResponseRewriter[
       }
     )
 
+    def expandToConjunction(noun : SilWord, count : SilCount) =
+    {
+      normalizeConjunctionWrapper(
+        SEPARATOR_OXFORD_COMMA,
+        SilDeterminedNounReference(noun, DETERMINER_ALL, count))
+    }
+
+    def expandToDisjunction(
+      nr : SilReference,
+      noun : SilWord,
+      count : SilCount) =
+    {
+      normalizeDisjunction(
+        nr, resultCollector, entityDeterminer,
+        SEPARATOR_OXFORD_COMMA, params).getOrElse
+      {
+        negateCollection = true
+        val (responseDeterminer, responseNoun) = noun match {
+          case SilWordLemma(LEMMA_WHO) => {
+            tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
+          }
+          case SilWordLemma(LEMMA_WHOM) => {
+            tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
+          }
+          case SilWordLemma(LEMMA_WHERE) => {
+            tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE)))
+          }
+          case SilWordLemma(LEMMA_WHAT) => {
+            tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOTHING)))
+          }
+          case _ => (DETERMINER_NONE, noun)
+        }
+        SilDeterminedNounReference(responseNoun, responseDeterminer, count)
+      }
+    }
+
     def replaceReferences = replacementMatcher(
       "replaceReferences", {
         case SilStateSpecifiedReference(
@@ -142,38 +178,33 @@ class SmcResponseRewriter[
             }
           }
         }
-        case nr @ SilDeterminedNounReference(
-          noun, DETERMINER_ANY | DETERMINER_SOME, count
+        case dr @ SilDeterminedReference(
+          SilStackedStateReference(
+            nr @ SilNounReference(noun, count),
+            states),
+          DETERMINER_ANY | DETERMINER_SOME
         ) => {
-          normalizeDisjunction(
-            nr, resultCollector, entityDeterminer,
-            SEPARATOR_OXFORD_COMMA, params).getOrElse
-          {
-            negateCollection = true
-            val (responseDeterminer, responseNoun) = noun match {
-              case SilWordLemma(LEMMA_WHO) => {
-                tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
-              }
-              case SilWordLemma(LEMMA_WHOM) => {
-                tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
-              }
-              case SilWordLemma(LEMMA_WHERE) => {
-                tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE)))
-              }
-              case SilWordLemma(LEMMA_WHAT) => {
-                tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOTHING)))
-              }
-              case _ => (DETERMINER_NONE, noun)
+          // this is weird
+          val varRef = {
+            if (states.isEmpty) {
+              dr
+            } else {
+              nr
             }
-            SilDeterminedNounReference(responseNoun, responseDeterminer, count)
           }
+          SilStackedStateReference(
+            expandToDisjunction(varRef, noun, count),
+            states)
         }
-        case SilDeterminedNounReference(
-          noun, DETERMINER_ALL, count
+        case SilDeterminedReference(
+          SilStackedStateReference(
+            SilNounReference(noun, count),
+            states),
+          DETERMINER_ALL
         ) => {
-          normalizeConjunctionWrapper(
-            SEPARATOR_OXFORD_COMMA,
-            SilDeterminedNounReference(noun, DETERMINER_ALL, count))
+          SilStackedStateReference(
+            expandToConjunction(noun, count),
+            states)
         }
       }
     )
@@ -629,7 +660,10 @@ class SmcResponseRewriter[
       case ref : SilReference => {
         ref match {
           case SilDeterminedNounReference(_, _, _) |
-              SilStateSpecifiedReference(_, _) |
+              SilOptionallyDeterminedReference(
+                SilStateSpecifiedReference(_, _),
+                _
+              ) |
               SilConjunctiveReference(_, _, _) =>
             {
               resultCollector.lookup(ref).flatMap(
@@ -720,7 +754,9 @@ class SmcResponseRewriter[
   )
 
   private def coerceCount(
-    reference : SilReference, agreedCount : SilCount) : SilReference =
+    reference : SilReference,
+    agreedCount : SilCount
+  ) : SilReference =
   {
     reference match {
       case SilStateSpecifiedReference(subReference, state) => {
@@ -731,6 +767,8 @@ class SmcResponseRewriter[
         SilGenitiveReference(
           possessor, coerceCount(possessee, agreedCount))
       }
+      // FIXME should have a case for SilDeterminedReference here too,
+      // but it's tricky
       case SilDeterminedNounReference(noun, determiner, count) => {
         if (count == agreedCount) {
           reference

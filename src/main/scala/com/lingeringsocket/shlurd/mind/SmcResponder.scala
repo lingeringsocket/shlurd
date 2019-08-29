@@ -160,6 +160,9 @@ class SmcContextualScorer[
   {
     val boost = phrase match {
       case sentence : SilSentence => {
+        if (sentence.isUninterpretable) {
+          return SilPhraseScore.conBig
+        }
         val analyzed = responder.getMind.analyzeSense(sentence)
         val resultCollector = SmcResultCollector[EntityType]
         val result = responder.resolveReferences(analyzed, resultCollector)

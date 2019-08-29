@@ -41,6 +41,7 @@ private[parser] class SprNormalizationRewriter
     normalizeDanglingAdpositions,
     normalizeCompoundAdpositions,
     normalizeAdpositionalPhrases,
+    normalizeDeterminedSpecifiers,
     normalizeCommands
   )
 
@@ -129,13 +130,16 @@ private[parser] class SprNormalizationRewriter
     "normalizeCompoundAdpositions", {
       case SilAdpositionalState(
         adp1 : SilAdposition,
-        SilStateSpecifiedReference(
-          SilDeterminedNounReference(
-            word : SilSimpleWord, DETERMINER_UNIQUE, COUNT_SINGULAR),
-          SilAdpositionalState(
-            adp2 : SilAdposition,
-            objRef
-          )
+        SilDeterminedReference(
+          SilStateSpecifiedReference(
+            SilNounReference(
+              word : SilSimpleWord, COUNT_SINGULAR),
+            SilAdpositionalState(
+              adp2 : SilAdposition,
+              objRef
+            )
+          ),
+          DETERMINER_UNIQUE
         )
       ) if (word.lemma == LEMMA_LEFT) || (word.lemma == LEMMA_RIGHT) => {
         SilAdpositionalState(
@@ -252,6 +256,19 @@ private[parser] class SprNormalizationRewriter
     }
   )
 
+  private def normalizeDeterminedSpecifiers = replacementMatcher(
+    "normalizeDeterminedSpecifiers", {
+      case SilStateSpecifiedReference(
+        SilDeterminedReference(ref, determiner),
+        state
+      ) => {
+        SilDeterminedReference(
+          SilStateSpecifiedReference(ref, state),
+          determiner)
+      }
+    }
+  )
+
   private def normalizeCommands = replacementMatcher(
     "normalizeCommands", {
       case SilPredicateSentence(
@@ -290,11 +307,16 @@ private[parser] class SprNormalizationRewriter
       : (SilReference, Seq[SilVerbModifier]) =
   {
     ref match {
-      case SilStateSpecifiedReference(
-        sub,
-        SilAdpositionalState(adposition, objRef)
+      case SilOptionallyDeterminedReference(
+        SilStateSpecifiedReference(
+          sub,
+          SilAdpositionalState(adposition, objRef)
+        ),
+        determiner
       ) if (isAdverbialAdposition(Some(sub), adposition, objRef)) => {
-        tupleN((sub, Seq(SilAdpositionalVerbModifier(adposition, objRef))))
+        tupleN((
+          SilReference.determined(sub, determiner),
+          Seq(SilAdpositionalVerbModifier(adposition, objRef))))
       }
       case _ => (ref, Seq.empty)
     }

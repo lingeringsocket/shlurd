@@ -51,9 +51,18 @@ object SpcImplicationMapper
       ) => {
         Some(noun)
       }
+      case SilDeterminedReference(
+        SilStateSpecifiedReference(
+          SilNounReference(noun, _),
+          _
+        ),
+        _
+      ) => {
+        Some(noun)
+      }
       case SilStateSpecifiedReference(
         SilDeterminedNounReference(noun, _, _),
-        _ : SilPropertyState
+        _
       ) => {
         Some(noun)
       }
@@ -86,20 +95,35 @@ object SpcImplicationMapper
         SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
       ) => {
         val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
-        SilStateSpecifiedReference(
-          SilDeterminedNounReference(
-            noun, DETERMINER_UNIQUE, COUNT_SINGULAR
-          ),
-          SilPropertyState(SilWord(ordinalSecond))
+        SilDeterminedReference(
+          SilStateSpecifiedReference(
+            SilNounReference(noun, COUNT_SINGULAR),
+            SilPropertyState(SilWord(ordinalSecond))),
+          DETERMINER_UNIQUE
         )
       }
-      case SilStateSpecifiedReference(sub, state) => {
-        val flipped = flipVariable(sentencePrinter, sub, sub)
-        if (flipped == sub) {
-          default
-        } else {
-          SilStateSpecifiedReference(flipped, state)
-        }
+      case SilDeterminedReference(
+        SilStateSpecifiedReference(
+          SilNounReference(
+            noun, COUNT_SINGULAR
+          ),
+          SilPropertyState(qualifier)
+        ),
+        determiner @ (DETERMINER_UNIQUE | DETERMINER_NONSPECIFIC)
+      ) => {
+        SilReference.determined(
+          SilStateSpecifiedReference(
+            SilNounReference(
+              noun, COUNT_SINGULAR
+            ),
+            SilPropertyState(qualifier)
+          ),
+          determiner match {
+            case DETERMINER_UNIQUE => DETERMINER_NONSPECIFIC
+            case DETERMINER_NONSPECIFIC => DETERMINER_UNIQUE
+            case _ => determiner
+          }
+        )
       }
       case _ => default
     }
@@ -215,10 +239,12 @@ class SpcImplicationMapper(
             }
             Some(noun)
           }
-          case SilStateSpecifiedReference(
-            SilDeterminedNounReference(
-              noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
-            SilPropertyState(SilWordLemma(qualifier))
+          case SilDeterminedReference(
+            SilStateSpecifiedReference(
+              SilNounReference(
+                noun, COUNT_SINGULAR),
+              SilPropertyState(SilWordLemma(qualifier))),
+            DETERMINER_NONSPECIFIC
           ) => {
             val sb = responder.sentencePrinter.sb
             sb.ordinalValue(qualifier) match {
@@ -242,7 +268,15 @@ class SpcImplicationMapper(
       })
       pairs.toMap
     } else {
-      resultCollector.refMap
+      resultCollector.refMap.filterKeys(_ match {
+        case _ : SilNounReference => false
+        case SilStateSpecifiedReference(
+          _, SilPropertyState(SilWordLemma(lemma))
+        ) => {
+          (lemma == LEMMA_ANOTHER)
+        }
+        case _ => true
+      })
     }
   }
 

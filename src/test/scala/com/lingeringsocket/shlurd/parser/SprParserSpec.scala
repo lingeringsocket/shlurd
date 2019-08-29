@@ -598,9 +598,11 @@ class SprParserSpec extends Specification
       parse(inputFront) must be equalTo
         stateCommandAction(
           SilStatePredicate(
-            SilReference.qualified(
-              SilDeterminedNounReference(NOUN_DOOR, DETERMINER_UNIQUE),
-              Seq(QUALIFIER_BIG)),
+            SilDeterminedReference(
+              SilReference.qualified(
+                SilNounReference(NOUN_DOOR),
+                Seq(QUALIFIER_BIG)),
+              DETERMINER_UNIQUE),
             VERB_BE,
             SilPropertyState(STATE_OPEN)))
     }
@@ -622,13 +624,15 @@ class SprParserSpec extends Specification
     "parse adposition specifiers" in
     {
       def pred(verb : SilWord = VERB_IS) = SilStatePredicate(
-        SilStateSpecifiedReference(
-          SilDeterminedNounReference(
-            NOUN_WINDOW, DETERMINER_UNIQUE, COUNT_SINGULAR),
-          SilAdpositionalState(
-            SilAdposition.IN,
-            SilDeterminedNounReference(
-              NOUN_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR))),
+        SilDeterminedReference(
+          SilStateSpecifiedReference(
+            SilNounReference(
+              NOUN_WINDOW, COUNT_SINGULAR),
+            SilAdpositionalState(
+              SilAdposition.IN,
+              SilDeterminedNounReference(
+                NOUN_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR))),
+          DETERMINER_UNIQUE),
         verb,
         SilPropertyState(STATE_OPEN)
       )
@@ -835,9 +839,11 @@ class SprParserSpec extends Specification
       parse("There is a big door") must be equalTo(
         SilPredicateSentence(
           SilStatePredicate(
-            SilReference.qualified(
-              SilDeterminedNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
-              Seq(QUALIFIER_BIG)),
+            SilDeterminedReference(
+              SilReference.qualified(
+                SilNounReference(NOUN_DOOR),
+                Seq(QUALIFIER_BIG)),
+              DETERMINER_NONSPECIFIC),
             VERB_IS,
             SilExistenceState(EXISTENTIAL_THERE))))
 
@@ -868,9 +874,11 @@ class SprParserSpec extends Specification
       parse("a door that is shut is closed") must be equalTo(
         SilPredicateSentence(
           SilStatePredicate(
-            SilReference.qualified(
-              SilDeterminedNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
-              Seq(STATE_SHUT)),
+            SilDeterminedReference(
+              SilReference.qualified(
+                SilNounReference(NOUN_DOOR),
+                Seq(STATE_SHUT)),
+              DETERMINER_NONSPECIFIC),
             VERB_IS,
             SilPropertyState(STATE_CLOSED))))
     }

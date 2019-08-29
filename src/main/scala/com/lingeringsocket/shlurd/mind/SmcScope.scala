@@ -218,12 +218,14 @@ class SmcPhraseScope[
               ) if (lemma == nounLemma) => {
                 Some(tupleN((prior, set, 2)))
               }
-              case SilStateSpecifiedReference(
-                SilDeterminedNounReference(
-                  SilWordLemma(lemma),
-                  DETERMINER_NONSPECIFIC,
-                  COUNT_SINGULAR),
-                SilPropertyState(SilWordLemma(qualifier))
+              case SilDeterminedReference(
+                SilStateSpecifiedReference(
+                  SilNounReference(
+                    SilWordLemma(lemma),
+                    COUNT_SINGULAR),
+                  SilPropertyState(SilWordLemma(qualifier))
+                ),
+                DETERMINER_NONSPECIFIC
               ) if (lemma == nounLemma) => {
                 getSentencePrinter.sb.ordinalValue(qualifier) match {
                   case Success(ordinal) => {
