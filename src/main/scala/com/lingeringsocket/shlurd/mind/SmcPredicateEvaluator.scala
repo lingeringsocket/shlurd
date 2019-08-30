@@ -377,6 +377,11 @@ class SmcPredicateEvaluator[
       }
       case SilDeterminedReference(_, _) => {
       }
+      case ar @ SilAppositionalReference(primary, _) => {
+        contextMap.get(ar).foreach(context => {
+          contextMap.put(primary, context)
+        })
+      }
       case ref : SilReference => {
         contextMap.get(ref).foreach(context => {
           ref.childReferences.foreach(child => contextMap.put(child, context))
@@ -955,6 +960,14 @@ class SmcPredicateEvaluator[
           sub, context, resultCollector, specifiedState,
           specifiedEntities, evaluator, enclosingDeterminer)
         refMap.get(sub).foreach(
+          entitySet => refMap.put(reference, entitySet))
+        result
+      }
+      case SilAppositionalReference(primary, _) => {
+        val result = evaluatePredicateOverReferenceImpl(
+          primary, context, resultCollector, specifiedState,
+          specifiedEntities, evaluator, enclosingDeterminer)
+        refMap.get(primary).foreach(
           entitySet => refMap.put(reference, entitySet))
         result
       }

@@ -46,6 +46,9 @@ object SpcImplicationMapper
   def extractNoun(ref : SilReference) : Option[SilWord] =
   {
     ref match {
+      case SilAppositionalReference(primary, _) => {
+        extractNoun(primary)
+      }
       case SilDeterminedNounReference(
         noun, _, _
       ) => {
@@ -78,6 +81,9 @@ object SpcImplicationMapper
     default : => SilReference) : SilReference =
   {
     reference match {
+      case SilAppositionalReference(_, secondary) => {
+        secondary
+      }
       case SilDeterminedNounReference(
         noun, DETERMINER_NONSPECIFIC, count
       ) => {
@@ -216,10 +222,21 @@ class SpcImplicationMapper(
       }
     }
     if (antecedentRefs.isEmpty) {
-      val refs = SilUtils.collectReferences(predicate, true)
+      val allRefs = SilUtils.collectReferences(predicate, true)
+      val minusRefs = allRefs.flatMap {
+        case SilAppositionalReference(primary, _) => {
+          Some(primary)
+        }
+        case _ => None
+      }.toSet
+      val refs = allRefs.filterNot(minusRefs.contains)
       val variableCounters = new mutable.HashMap[SilWord, Int]
       val pairs = refs.flatMap(ref => {
-        val nounOpt = ref match {
+        val primary = ref match {
+          case SilAppositionalReference(p, _) => p
+          case _ => ref
+        }
+        val nounOpt = primary match {
           case SilDeterminedNounReference(
             noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
           ) => {

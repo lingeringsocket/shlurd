@@ -1146,6 +1146,9 @@ class SpcResponder(
         case SilDeterminedReference(sub, _) => {
           deriveType(sub, refMap)
         }
+        case SilAppositionalReference(primary, _) => {
+          deriveType(primary, refMap)
+        }
         case SilDeterminedNounReference(noun, _, _) => {
           // FIXME resolve roles as well?
           if (noun.isProper) {

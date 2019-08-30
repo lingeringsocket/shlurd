@@ -202,13 +202,6 @@ class SmcPhraseScope[
       if (!noun.isProper) {
         val nounLemma = noun.toNounLemma
         var nextOrdinal = 0
-        def matchLemma(lemma : String) : Boolean =
-        {
-          nounLemma match {
-            case LEMMA_FORMER | LEMMA_LATTER => true
-            case _ => (lemma == nounLemma)
-          }
-        }
         def produceOrdinal(ordinal : Int) : Int =
         {
           nounLemma match {
@@ -221,7 +214,30 @@ class SmcPhraseScope[
         }
         val ordered = refMap.toSeq.flatMap {
           case (prior, set) => {
-            prior match {
+            val (primary, aliasOpt) = prior match {
+              case SilAppositionalReference(
+                primary,
+                SilDeterminedReference(
+                  SilNounReference(alias, COUNT_SINGULAR),
+                  DETERMINER_UNIQUE
+                )
+              ) => {
+                tupleN((primary, Some(alias.toNounLemma)))
+              }
+              case _ => tupleN((prior, None))
+            }
+            def matchLemma(lemma : String) : Boolean =
+            {
+              nounLemma match {
+                case LEMMA_FORMER | LEMMA_LATTER => true
+                case _ => {
+                  aliasOpt.map(_ == nounLemma).getOrElse(
+                    (lemma == nounLemma)
+                  )
+                }
+              }
+            }
+            primary match {
               case SilDeterminedNounReference(
                 SilWordLemma(lemma), DETERMINER_NONSPECIFIC, _
               ) if (matchLemma(lemma)) => {

@@ -1589,12 +1589,15 @@ class SpcResponderSpec extends Specification
     "ignore action cycles" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      processBelief("if a person sends a recipient a message, " +
-        "then the person conveys the recipient the message")
-      processBelief("if a person conveys a recipient a message, " +
-        "then the person sends the recipient the message")
       processBelief("Curtis is a person")
       processBelief("Andrew is a person")
+      processBelief("a message is a kind of object")
+      processBelief("if a person (the sender) sends " +
+        "another person (the recipient) a message, " +
+        "then the sender conveys the recipient the message")
+      processBelief("if a person (the sender) conveys " +
+        "another person (the recipient) a message, " +
+        "then the sender sends the recipient the message")
       processBelief("the signal is a message")
       process("Curtis sends Andrew the signal", "OK.")
     }
