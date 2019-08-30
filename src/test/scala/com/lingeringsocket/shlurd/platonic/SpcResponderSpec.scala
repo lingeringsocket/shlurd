@@ -809,7 +809,7 @@ class SpcResponderSpec extends Specification
       processBelief("a fruit must be green or red")
       processBelief("an apple is a kind of fruit")
       processBelief("a tomato is a kind of fruit")
-      processBelief("if a person sees an apple, then the apple becomes red")
+      processBelief("if a person sees an apple, then the latter becomes red")
       processBelief("Pippin is an apple")
       processBelief("EarlyGirl is a tomato")
       processBelief("Merry is a person")
@@ -1617,9 +1617,9 @@ class SpcResponderSpec extends Specification
       processBelief("a person must be alive or dead")
       processBelief("Adam is a person")
       processBelief("if a person moves to a garden, " +
-        "then the person eats the garden's results")
+        "then the former eats the latter's results")
       processBelief("if a person eats a poison, " +
-        "then the person is subsequently dead")
+        "then the former is subsequently dead")
       processBelief("Adam is alive")
       processBelief("Adam moves to Kenrokuen")
       processTerse("is Adam dead", "No.")

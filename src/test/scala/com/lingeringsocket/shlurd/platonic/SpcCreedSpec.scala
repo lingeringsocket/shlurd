@@ -124,6 +124,10 @@ class SpcCreedSpec extends Specification
     "equivalently the second monk is the first monk's apprentice."
   private val assocInverse3 = "If a monk is another monk's apprentice, " +
     "equivalently the other monk is the first monk's mentor."
+  private val assocInverse4 = "If a monk is another monk's apprentice, " +
+    "equivalently the latter monk is the former monk's mentor."
+  private val assocInverse5 = "If a monk is another monk's apprentice, " +
+    "equivalently the latter is the former's mentor."
   private val monkMentor = "A monk may have one mentor."
   private val monkMentors = "A monk may have mentors."
   private val womanNephews = "A woman may have nephews."
@@ -452,22 +456,31 @@ class SpcCreedSpec extends Specification
 
     "normalize inverse associations" in new CosmosContext
     {
+      val expected = Seq(
+        mentorRole, apprenticeRole,
+        monkMentor, monkApprentice,
+        assocInverse1, assocInverse2
+      )
       expectNormalized(
         Seq(
           mentorRole, apprenticeRole,
           monkMentor, assocInverse1),
-        Seq(
-          mentorRole, apprenticeRole,
-          monkMentor, monkApprentice,
-          assocInverse1, assocInverse2))
+        expected)
       expectNormalized(
         Seq(
           mentorRole, apprenticeRole,
           monkMentor, assocInverse3),
+        expected)
+      expectNormalized(
         Seq(
           mentorRole, apprenticeRole,
-          monkMentor, monkApprentice,
-          assocInverse1, assocInverse2))
+          monkMentor, assocInverse4),
+        expected)
+      expectNormalized(
+        Seq(
+          mentorRole, apprenticeRole,
+          monkMentor, assocInverse5),
+        expected)
     }
 
     "normalize inverse associations with implied roles" in new CosmosContext

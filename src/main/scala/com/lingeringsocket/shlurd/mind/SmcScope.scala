@@ -201,13 +201,31 @@ class SmcPhraseScope[
     val outputs = {
       if (!noun.isProper) {
         val nounLemma = noun.toNounLemma
+        var nextOrdinal = 0
+        def matchLemma(lemma : String) : Boolean =
+        {
+          nounLemma match {
+            case LEMMA_FORMER | LEMMA_LATTER => true
+            case _ => (lemma == nounLemma)
+          }
+        }
+        def produceOrdinal(ordinal : Int) : Int =
+        {
+          nounLemma match {
+            case LEMMA_FORMER | LEMMA_LATTER => {
+              nextOrdinal += 1
+              nextOrdinal
+            }
+            case _ => ordinal
+          }
+        }
         val ordered = refMap.toSeq.flatMap {
           case (prior, set) => {
             prior match {
               case SilDeterminedNounReference(
                 SilWordLemma(lemma), DETERMINER_NONSPECIFIC, _
-              ) if (lemma == nounLemma) => {
-                Some(tupleN((prior, set, 1)))
+              ) if (matchLemma(lemma)) => {
+                Some(tupleN((prior, set, produceOrdinal(1))))
               }
               case SilStateSpecifiedReference(
                 SilNounReference(
@@ -215,8 +233,8 @@ class SmcPhraseScope[
                   COUNT_SINGULAR
                 ),
                 SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
-              ) if (lemma == nounLemma) => {
-                Some(tupleN((prior, set, 2)))
+              ) if (matchLemma(lemma)) => {
+                Some(tupleN((prior, set, produceOrdinal(2))))
               }
               case SilDeterminedReference(
                 SilStateSpecifiedReference(
@@ -226,10 +244,10 @@ class SmcPhraseScope[
                   SilPropertyState(SilWordLemma(qualifier))
                 ),
                 DETERMINER_NONSPECIFIC
-              ) if (lemma == nounLemma) => {
+              ) if (matchLemma(lemma)) => {
                 getSentencePrinter.sb.ordinalValue(qualifier) match {
                   case Success(ordinal) => {
-                    Some(tupleN((prior, set, ordinal)))
+                    Some(tupleN((prior, set, produceOrdinal(ordinal))))
                   }
                   case _ => None
                 }
@@ -239,26 +257,47 @@ class SmcPhraseScope[
           }
         }
         val selected = {
-          if (qualifiers.isEmpty) {
-            if (ordered.size <= 1) {
-              ordered
-            } else {
-              return getMind.getCosmos.fail(
+          if (qualifiers.isEmpty && (ordered.size <= 1)) {
+            ordered
+          } else {
+            val (ordinalOpt, misqualified) = {
+              if (qualifiers.isEmpty) {
+                nounLemma match {
+                  case LEMMA_FORMER => {
+                    tupleN((Some(1), ordered.size < 1))
+                  }
+                  case LEMMA_LATTER => {
+                    tupleN((Some(2), ordered.size < 2))
+                  }
+                  case _ => {
+                    tupleN((None, true))
+                  }
+                }
+              } else if (qualifiers.size == 1) {
+                val qualifier = qualifiers.head
+                val qualifierOrdinalOpt = qualifier match {
+                  case LEMMA_FORMER => Some(1)
+                  case LEMMA_LATTER | LEMMA_OTHER => Some(2)
+                  case _ => {
+                    getSentencePrinter.sb.ordinalValue(qualifier) match {
+                      case Success(o) => Some(o)
+                      case _ => None
+                    }
+                  }
+                }
+                tupleN((qualifierOrdinalOpt, false))
+              } else {
+                tupleN((None, false))
+              }
+            }
+            def failMisqualified() = {
+              getMind.getCosmos.fail(
                 ShlurdExceptionCode.MisqualifiedNoun,
                 getSentencePrinter.sb.respondMisqualifiedNoun(
-                  noun, qualifiers.toSeq)
-              )
+                  noun, qualifiers.toSeq))
             }
-          } else if (qualifiers.size == 1) {
-            val qualifier = qualifiers.head
-            val ordinalOpt = qualifier match {
-              case LEMMA_OTHER => Some(2)
-              case _ => {
-                getSentencePrinter.sb.ordinalValue(qualifier) match {
-                  case Success(o) => Some(o)
-                  case _ => None
-                }
-              }
+            if (misqualified) {
+              return failMisqualified
             }
             ordinalOpt match {
               case Some(ordinal) => {
@@ -270,20 +309,12 @@ class SmcPhraseScope[
                   }
                 }
                 if (filtered.isEmpty) {
-                  return getMind.getCosmos.fail(
-                    ShlurdExceptionCode.MisqualifiedNoun,
-                    getSentencePrinter.sb.respondMisqualifiedNoun(
-                      noun, qualifiers.toSeq)
-                  )
+                  return failMisqualified
                 }
                 filtered
               }
-              case _ => {
-                Seq.empty
-              }
+              case _ => Seq.empty
             }
-          } else {
-            Seq.empty
           }
         }
         selected.map {
