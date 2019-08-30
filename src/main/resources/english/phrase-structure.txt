@@ -113,6 +113,8 @@ NP ->
   LCURLY NP RCURLY (POS) |
   // "((the other one)) ('s)"
   LPAREN NP RPAREN (POS) |
+  // "Larry ((the big guy))"
+  NP LPAREN NP RPAREN |
   // "(either) the fox or the hen"
   (DT) NP CC NP |
   // "(either) the fox, the hen or the pigeon"

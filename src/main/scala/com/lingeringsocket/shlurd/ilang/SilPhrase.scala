@@ -542,6 +542,16 @@ case class SilParenthesizedReference(
   override def acceptsSpecifiers = reference.acceptsSpecifiers
 }
 
+case class SilAppositionalReference(
+  primary : SilReference,
+  secondary : SilReference
+) extends SilTransformedPhrase with SilReference
+{
+  override def children = Seq(primary, secondary)
+
+  override def acceptsSpecifiers = primary.acceptsSpecifiers
+}
+
 case class SilStateSpecifiedReference(
   reference : SilReference,
   state : SilState

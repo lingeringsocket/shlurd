@@ -126,6 +126,11 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         }
         sb.parenthetical(inside, inflection, conjoining, bracket)
       }
+      case SilAppositionalReference(primary, secondary) => {
+        sb.appositionedNoun(
+          print(primary, inflection, SilConjoining.NONE),
+          print(secondary, inflection, conjoining))
+      }
       case SilStateSpecifiedReference(sub, state) => {
         state matchPartial {
           case adpositionalState : SilAdpositionalState => {
@@ -519,6 +524,9 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       }
       case SilParenthesizedReference(reference, _) => {
         getSubjectAttributes(reference, existentialPronoun)
+      }
+      case SilAppositionalReference(primary, _) => {
+        getSubjectAttributes(primary, existentialPronoun)
       }
       case SilStateSpecifiedReference(reference, _) => {
         getSubjectAttributes(reference, existentialPronoun)

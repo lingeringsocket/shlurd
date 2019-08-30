@@ -177,6 +177,11 @@ abstract class SilSentenceBundle
     }
   }
 
+  def appositionedNoun(primary : String, secondary : String) : String =
+  {
+    compose(primary, secondary)
+  }
+
   def respondToQuery(sentence : String) : String
 
   def respondToCounterfactual(sentence : String) : String

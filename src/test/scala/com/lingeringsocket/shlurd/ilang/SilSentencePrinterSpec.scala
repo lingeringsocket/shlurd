@@ -144,6 +144,7 @@ class SilSentencePrinterSpec extends Specification
 
     "normalize sentences" in
     {
+      expectStatement("Moe (the big guy) punches me")
       expectNormalized(
         "Sandra is no longer in the hallway",
         "Sandra is not in the hallway.")

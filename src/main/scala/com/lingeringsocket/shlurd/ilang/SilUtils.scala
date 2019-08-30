@@ -82,6 +82,8 @@ object SilUtils
       }
       case SilParenthesizedReference(reference, _) =>
         getCount(reference)
+      case SilAppositionalReference(primary, _) =>
+        getCount(primary)
       case SilStateSpecifiedReference(reference, _) =>
         getCount(reference)
       case SilDeterminedReference(reference, _) =>
