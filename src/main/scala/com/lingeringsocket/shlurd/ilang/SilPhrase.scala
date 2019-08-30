@@ -533,7 +533,8 @@ case class SilActionPredicate(
 }
 
 case class SilParenthesizedReference(
-  reference : SilReference
+  reference : SilReference,
+  bracket : SilBracket
 ) extends SilTransformedPhrase with SilReference
 {
   override def children = Seq(reference)

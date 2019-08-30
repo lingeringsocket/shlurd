@@ -58,7 +58,7 @@ object SilUtils
           case _ => true
         }
       }
-      case SilParenthesizedReference(reference) =>
+      case SilParenthesizedReference(reference, _) =>
         isCountCoercible(reference)
       case _ : SilGenitiveReference => true
       case _ : SilQuotationReference => true
@@ -80,7 +80,7 @@ object SilUtils
           case _ => COUNT_SINGULAR
         }
       }
-      case SilParenthesizedReference(reference) =>
+      case SilParenthesizedReference(reference, _) =>
         getCount(reference)
       case SilStateSpecifiedReference(reference, _) =>
         getCount(reference)

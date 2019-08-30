@@ -164,9 +164,11 @@ abstract class SilSentenceBundle
 
   def parenthetical(
     inside : String, inflection : SilInflection,
-    conjoining : SilConjoining) : String =
+    conjoining : SilConjoining,
+    bracket : SilBracket) : String =
   {
-    val outside = concat("(", separate(inside, conjoining), ")")
+    val outside = concat(
+      bracket.begin, separate(inside, conjoining), bracket.end)
     inflection match {
       // FIXME we should make this language-specific, but regardless of what
       // we do, it's still "unnatural language"

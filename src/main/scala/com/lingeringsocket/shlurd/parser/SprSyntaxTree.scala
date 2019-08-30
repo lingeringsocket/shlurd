@@ -92,6 +92,8 @@ object SprPennTreebankLabels
   val LABEL_RQUOTE = label("''")
   val LABEL_LPAREN = label("-LRB-")
   val LABEL_RPAREN = label("-RRB-")
+  val LABEL_LCURLY = label("-LCB-")
+  val LABEL_RCURLY = label("-RCB-")
 }
 
 import SprPennTreebankLabels._
@@ -755,6 +757,18 @@ case class SptRRB(child : SprSyntaxLeaf)
     extends SprSyntaxPunctuation
 {
   override def label = LABEL_RPAREN
+}
+
+case class SptLCB(child : SprSyntaxLeaf)
+    extends SprSyntaxPunctuation
+{
+  override def label = LABEL_LCURLY
+}
+
+case class SptRCB(child : SprSyntaxLeaf)
+    extends SprSyntaxPunctuation
+{
+  override def label = LABEL_RCURLY
 }
 
 // this is a non-standard one we cons up to wrap tmod NP's as adverbial

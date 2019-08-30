@@ -75,7 +75,8 @@ object SprHeuristicSynthesizer extends SprEnglishWordAnalyzer
   val leafSomething = makeLeaf("something")
   val npSomething = SptNP(SptNN(leafSomething))
 
-  val specialCasing = Set("I", LABEL_LPAREN, LABEL_RPAREN)
+  val specialCasing = Set(
+    "I", LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY)
 
   lazy val phrasePatternMatcher = loadMatcher
 

@@ -11,7 +11,7 @@ Before a game-character heads to a map-direction,
 
 When a game-character heads to a map-direction,
  the game-character traverses
-  (the game-character's container's place-exit in the map-direction).
+  {the game-character's container's place-exit in the map-direction}.
 
 When a game-character goes a map-direction,
  the game-character heads to the map-direction.
@@ -34,8 +34,8 @@ Before a player-character moves to a map-place,
  otherwise the game-interpreter complains "You can't get there from here.".
 
 When a game-character moves to a map-place,
- the game-character traverses (the map-place's place-entrances
-  among the player-character's container's place-exits).
+ the game-character traverses {the map-place's place-entrances
+  among the player-character's container's place-exits}.
 
 After a game-character relocates to a map-place,
  the game-character is in it.

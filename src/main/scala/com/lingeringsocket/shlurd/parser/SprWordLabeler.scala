@@ -64,7 +64,7 @@ object SprWordnetLabeler
     "I", "an", "as", "at", "by", "he", "it", "do", "at", "off",
     "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",
     "does", "have", "my", "might",
-    LABEL_LPAREN, LABEL_RPAREN
+    LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY
   )
 
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
@@ -307,6 +307,8 @@ class SprWordnetLabeler(
         case LABEL_SEMICOLON => Set(SptSEMICOLON(leaf))
         case LABEL_LPAREN => Set(SptLRB(leaf))
         case LABEL_RPAREN => Set(SptRRB(leaf))
+        case LABEL_LCURLY => Set(SptLCB(leaf))
+        case LABEL_RCURLY => Set(SptRCB(leaf))
         case "'" | "'s" => Set(SptPOS(leaf))
         // FIXME proper handling for all contractions
         case "ca" => Set(SptMD(makeLeaf(token, token, LEMMA_CAN)))

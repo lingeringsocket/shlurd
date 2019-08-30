@@ -950,7 +950,7 @@ class SmcPredicateEvaluator[
         refMap.put(reference, combinedEntities.toSet)
         evaluateDeterminer(results, determiner)
       }
-      case SilParenthesizedReference(sub) => {
+      case SilParenthesizedReference(sub, _) => {
         val result = evaluatePredicateOverReferenceImpl(
           sub, context, resultCollector, specifiedState,
           specifiedEntities, evaluator, enclosingDeterminer)

@@ -69,7 +69,7 @@ class SmcInputRewriter[
   private def deparenthesize = replacementMatcher(
     "deparenthesize", {
       case SilParenthesizedReference(
-        reference
+        reference, _
       ) => {
         reference
       }

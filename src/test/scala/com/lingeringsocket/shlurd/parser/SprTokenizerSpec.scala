@@ -54,6 +54,14 @@ class SprTokenizerSpec extends Specification
           "'s", "engine", "is", "broken"))
     }
 
+    "tokenize curly brackets" in
+    {
+      tokenize(
+        "the {gray vehicle}'s engine is broken",
+        Seq("the", LABEL_LCURLY, "gray", "vehicle", LABEL_RCURLY,
+          "'s", "engine", "is", "broken"))
+    }
+
     "tokenize quotation" in
     {
       tokenize(

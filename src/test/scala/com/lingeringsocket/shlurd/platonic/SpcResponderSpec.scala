@@ -667,13 +667,13 @@ class SpcResponderSpec extends Specification
       processBelief("Andrew is in the house")
       processBelief("Andrea is in the garden")
       processTerse(
-        "who is (Curtis' cousin in the house)",
+        "who is {Curtis' cousin in the house}",
         "Andrew.")
       processTerse(
-        "who is (Curtis' cousin in the gazebo's container)",
+        "who is {Curtis' cousin in the gazebo's container}",
         "Andrea.")
       processTerse(
-        "who are (Curtis' cousins in the gazebo's containers)",
+        "who are {Curtis' cousins in the gazebo's containers}",
         "Andrea.")
     }
 

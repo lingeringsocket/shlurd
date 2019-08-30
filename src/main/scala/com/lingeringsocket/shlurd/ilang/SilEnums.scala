@@ -239,6 +239,23 @@ object SilStatePredefVerb
   }
 }
 
+sealed trait SilBracket
+{
+  def begin : String
+  def end : String
+}
+
+case object BRACKET_PAREN extends SilBracket
+{
+  override def begin = "("
+  override def end = ")"
+}
+case object BRACKET_CURLY extends SilBracket
+{
+  override def begin = "{"
+  override def end = "}"
+}
+
 sealed trait SilSeparator
 {
   def needPunctuationAt(pos : Int, total : Int) : Boolean

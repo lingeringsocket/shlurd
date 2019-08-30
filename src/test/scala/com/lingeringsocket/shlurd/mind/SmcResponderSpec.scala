@@ -180,6 +180,8 @@ class SmcResponderSpec extends Specification
         "There is one of them.")
       process("how many bears are there") must be equalTo(
         "There are two of them.")
+      process("is there {a bear}") must be equalTo(
+        "Yes, there is a bear.")
       process("is there (a bear)") must be equalTo(
         "Yes, there is a bear.")
       process("how many goats are asleep in the farm") must be equalTo(

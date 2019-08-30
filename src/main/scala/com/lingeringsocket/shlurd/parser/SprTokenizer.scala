@@ -75,7 +75,8 @@ class SprIxaTokenizer extends SprTokenizer
             tokenizedSentence.asScala.map(
               t => SprToken(
                 t.getTokenValue.trim.replace('#', '_').
-                  replace("(", LABEL_LPAREN).replace(")", LABEL_RPAREN),
+                  replace("(", LABEL_LPAREN).replace(")", LABEL_RPAREN).
+                  replace("{", LABEL_LCURLY).replace("}", LABEL_RCURLY),
                 t.startOffset,
                 t.startOffset + t.tokenLength))),
           input)

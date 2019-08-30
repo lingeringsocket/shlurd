@@ -159,7 +159,7 @@ class SilSentencePrinterSpec extends Specification
         expectStatement(
           "Mary put down the milk")
         expectStatement(
-          "(the gray vehicle)'s engine is broken"
+          "{the gray vehicle}'s engine is broken"
         )
       }
       expectNormalized("the mule kicks the ball smugly at the vase?",

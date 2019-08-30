@@ -69,10 +69,10 @@ When a map-place faces a destination-place to a map-direction,
  also the map-place becomes the destination-place's map-neighbor.
 
 If a map-place faces a destination-place to a map-direction, then equivalently
- (the map-place's place-exit in the map-direction)'s
+ {the map-place's place-exit in the map-direction}'s
   target-place is the destination-place.
 If a map-place faces a destination-place to a map-direction, then equivalently
- (the destination-place's place-exit in the map-direction's opposite-direction)'s
+ {the destination-place's place-exit in the map-direction's opposite-direction}'s
   target-place is the map-place.
 
 If a map-place is north of a neighbor-place, then equivalently
@@ -111,5 +111,5 @@ When a door mediates a map-connection,
  also the door becomes the map-connection's opposite-connection's exit-door.
 
 When a door connects a map-place to a neighbor-place,
- the door mediates (the map-place's place-entrances
-  among the neighbor-place's place-exits).
+ the door mediates {the map-place's place-entrances
+  among the neighbor-place's place-exits}.

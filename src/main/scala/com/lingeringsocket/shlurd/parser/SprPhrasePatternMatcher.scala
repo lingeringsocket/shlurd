@@ -49,6 +49,8 @@ object SprPhrasePatternMatcher
       case "WP_POS" => LABEL_WP_POS
       case "LPAREN" | "(" => LABEL_LPAREN
       case "RPAREN" | ")" => LABEL_RPAREN
+      case "LCURLY" | "{" => LABEL_LCURLY
+      case "RCURLY" | "}" => LABEL_RCURLY
       case _ => label
     }).intern
   }

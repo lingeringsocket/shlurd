@@ -453,7 +453,15 @@ class SprEnglishSyntaxAnalyzer(
     }
     if (seq.head.hasLabel(LABEL_LPAREN) && seq.last.hasLabel(LABEL_RPAREN)) {
       return SilParenthesizedReference(
-        expectReference(seq.dropRight(1).drop(1)))
+        expectReference(seq.dropRight(1).drop(1)),
+        BRACKET_PAREN
+      )
+    }
+    if (seq.head.hasLabel(LABEL_LCURLY) && seq.last.hasLabel(LABEL_RCURLY)) {
+      return SilParenthesizedReference(
+        expectReference(seq.dropRight(1).drop(1)),
+        BRACKET_CURLY
+      )
     }
     if (seq.head.lastChild.isPossessiveClitic) {
       return SilGenitiveReference(

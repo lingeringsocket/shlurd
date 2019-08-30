@@ -119,12 +119,12 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           }
         )
       }
-      case SilParenthesizedReference(sub) => {
+      case SilParenthesizedReference(sub, bracket) => {
         val inside = inflection match {
           case INFLECT_GENITIVE => print(sub, INFLECT_NONE, SilConjoining.NONE)
           case _ => print(sub, inflection, SilConjoining.NONE)
         }
-        sb.parenthetical(inside, inflection, conjoining)
+        sb.parenthetical(inside, inflection, conjoining, bracket)
       }
       case SilStateSpecifiedReference(sub, state) => {
         state matchPartial {
@@ -517,7 +517,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         // since it makes a difference in languages such as Spanish
         tupleN((PERSON_THIRD, GENDER_N, count))
       }
-      case SilParenthesizedReference(reference) => {
+      case SilParenthesizedReference(reference, _) => {
         getSubjectAttributes(reference, existentialPronoun)
       }
       case SilStateSpecifiedReference(reference, _) => {

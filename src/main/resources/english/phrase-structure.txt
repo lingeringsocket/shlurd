@@ -109,7 +109,9 @@ NP ->
   NP SBAR |
   // "big and strong blacksmith"
   ADJP NP |
-  // "(the other one) ('s)"
+  // "{the other one} ('s)"
+  LCURLY NP RCURLY (POS) |
+  // "((the other one)) ('s)"
   LPAREN NP RPAREN (POS) |
   // "(either) the fox or the hen"
   (DT) NP CC NP |
