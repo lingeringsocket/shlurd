@@ -422,6 +422,11 @@ class SpcAssertionSpec extends SpcProcessingSpecification
           "then the person becomes its owner",
         "Sorry, when you say 'it', it's ambiguous.",
         AmbiguousPronoun)
+      verifyError(
+        "if a slice becomes cold, then the slice might be burnt; " +
+          "otherwise the pig becomes toasted",
+        "Sorry, I don't know about any 'pig'.",
+        UnknownForm)
 
       verifyInvalid(
         "if a pickle becomes cold, then the pickle splits",

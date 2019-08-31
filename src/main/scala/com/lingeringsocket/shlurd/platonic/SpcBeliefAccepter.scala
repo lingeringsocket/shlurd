@@ -1007,12 +1007,11 @@ class SpcBeliefAccepter private(
 
   def validateAssertion(belief : AssertionBelief) : Option[SpcRefMap] =
   {
-    // FIXME should do something with belief.alternative as well
     val implicationMapper = new SpcImplicationMapper(responder)
     belief.sentence match {
       case conditional : SilConditionalSentence => {
         val placeholderMap = implicationMapper.validateImplication(
-          conditional, belief.additionalConsequents)
+          conditional, belief.additionalConsequents, belief.alternative)
         if (acceptSpecialAssertion(conditional, placeholderMap)) {
           None
         } else {

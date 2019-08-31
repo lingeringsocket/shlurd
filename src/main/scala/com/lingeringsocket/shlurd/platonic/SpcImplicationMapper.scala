@@ -186,7 +186,8 @@ class SpcImplicationMapper(
 {
   def validateImplication(
     conditional : SilConditionalSentence,
-    additionalConsequents : Seq[SilPredicateSentence]
+    additionalConsequents : Seq[SilPredicateSentence],
+    alternative : Option[SilPredicateSentence]
   ) : SpcRefMap =
   {
     val antecedentRefs = validateAssertionPredicate(
@@ -197,7 +198,12 @@ class SpcImplicationMapper(
       validateAssertionPredicate(
         conditional, ac.predicate, Some(antecedentRefs)).toSeq
     })
-    antecedentRefs ++ consequentRefs ++ additionalConsequentRefs
+    val alternativeRefs = alternative.toSeq.flatMap(ap => {
+      validateAssertionPredicate(
+        conditional, ap.predicate, Some(antecedentRefs)).toSeq
+    })
+    antecedentRefs ++ consequentRefs ++ additionalConsequentRefs ++
+      alternativeRefs
   }
 
   def validateAssertionPredicate(
