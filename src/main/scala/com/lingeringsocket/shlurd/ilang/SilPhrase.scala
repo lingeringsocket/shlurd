@@ -564,7 +564,7 @@ case class SilStateSpecifiedReference(
     state matchPartial {
       case SilAdpositionalState(SilAdposition.OF, pn : SilPronounReference) => {
         reference matchPartial {
-          case SilDeterminedNounReference(SilWordLemma(lemma), _, _) => {
+          case SilNounReference(SilWordLemma(lemma), _) => {
             if (lemma.forall(Character.isDigit)) {
               return false
             }
@@ -843,6 +843,8 @@ object SilWordInflected
   }
 }
 
+// use unapply with caution since it defeats match exhaustivity checking
+// https://nrinaudo.github.io/scala-best-practices/unsafe/custom_extractors.html
 object SilStackedStateReference
 {
   def apply(ref : SilReference, states : Seq[SilState]) : SilReference =
@@ -897,24 +899,6 @@ object SilDeterminedNounReference
   ) : SilReference =
   {
     SilReference.determined(SilNounReference(noun, count), determiner)
-  }
-
-  def unapply(ref : SilReference) =
-  {
-    ref match {
-      case SilNounReference(noun, count) => {
-        Some((noun, DETERMINER_UNSPECIFIED, count))
-      }
-      case SilDeterminedReference(
-        SilNounReference(noun, count),
-        determiner
-      ) => {
-        Some((noun, determiner, count))
-      }
-      case _ => {
-        None
-      }
-    }
   }
 }
 

@@ -244,13 +244,13 @@ class SilEnglishSentenceBundle
               case TENSE_PAST => "did"
               case TENSE_FUTURE => LEMMA_DO
               case TENSE_PRESENT => count match {
-                case COUNT_SINGULAR => {
+                case COUNT_PLURAL => LEMMA_DO
+                case _ => {
                   person match {
                     case PERSON_THIRD => "does"
                     case _ => LEMMA_DO
                   }
                 }
-                case COUNT_PLURAL => LEMMA_DO
               }
             }
           }
@@ -297,19 +297,19 @@ class SilEnglishSentenceBundle
       case LEMMA_BE => {
         tam.tense match {
           case TENSE_PAST => count match {
-            case COUNT_SINGULAR => person match {
+            case COUNT_PLURAL => "were"
+            case _ => person match {
               case PERSON_SECOND => "were"
               case _ => "was"
             }
-            case COUNT_PLURAL => "were"
           }
           case TENSE_PRESENT => count match {
-            case COUNT_SINGULAR => person match {
+            case COUNT_PLURAL => "are"
+            case _ => person match {
               case PERSON_FIRST => "am"
               case PERSON_SECOND => "are"
               case PERSON_THIRD => "is"
             }
-            case COUNT_PLURAL => "are"
           }
           case TENSE_FUTURE => LEMMA_BE
         }
@@ -414,25 +414,25 @@ class SilEnglishSentenceBundle
           cardinalNumber(lemma.toInt)
         } else {
           val base = count match {
-            case COUNT_SINGULAR => {
-              lemma
-            }
             case COUNT_PLURAL => {
               EnglishPluralizer.plural(lemma)
+            }
+            case _ => {
+              lemma
             }
           }
           inflection match {
             case INFLECT_GENITIVE => {
               count match {
-                case COUNT_SINGULAR => {
+                case COUNT_PLURAL => {
+                  concat(base, "'")
+                }
+                case _ => {
                   if (base.endsWith("s")) {
                     concat(base, "'")
                   } else {
                     concat(base, "'s")
                   }
-                }
-                case COUNT_PLURAL => {
-                  concat(base, "'")
                 }
               }
             }
@@ -679,15 +679,15 @@ class SilEnglishSentenceBundle
     val unseparated = {
       person match {
         case PERSON_FIRST => count match {
-          case COUNT_SINGULAR => inflection match {
-            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_ME
-            case INFLECT_GENITIVE => LEMMA_MY
-            case _ => "I"
-          }
           case COUNT_PLURAL => inflection match {
             case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_US
             case INFLECT_GENITIVE => LEMMA_OUR
             case _ => LEMMA_WE
+          }
+          case _ => inflection match {
+            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_ME
+            case INFLECT_GENITIVE => LEMMA_MY
+            case _ => "I"
           }
         }
         case PERSON_SECOND => inflection match {
@@ -695,7 +695,16 @@ class SilEnglishSentenceBundle
           case _ => LEMMA_YOU
         }
         case PERSON_THIRD => count match {
-          case COUNT_SINGULAR => gender match {
+          case COUNT_PLURAL => distance match {
+            case DISTANCE_HERE => LEMMA_THESE
+            case DISTANCE_THERE => LEMMA_THOSE
+            case DISTANCE_UNSPECIFIED => inflection match {
+              case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_THEM
+              case INFLECT_GENITIVE => LEMMA_THEIR
+              case _ => LEMMA_THEY
+            }
+          }
+          case _ => gender match {
             case GENDER_M => inflection match {
               case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_HIM
               case INFLECT_GENITIVE => LEMMA_HIS
@@ -713,15 +722,6 @@ class SilEnglishSentenceBundle
                 case INFLECT_GENITIVE => LEMMA_ITS
                 case _ => LEMMA_IT
               }
-            }
-          }
-          case COUNT_PLURAL => distance match {
-            case DISTANCE_HERE => LEMMA_THESE
-            case DISTANCE_THERE => LEMMA_THOSE
-            case DISTANCE_UNSPECIFIED => inflection match {
-              case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_THEM
-              case INFLECT_GENITIVE => LEMMA_THEIR
-              case _ => LEMMA_THEY
             }
           }
         }
@@ -876,11 +876,11 @@ class SilEnglishSentenceBundle
     question : Option[SilQuestion]) =
   {
     val entity = count match {
-      case COUNT_SINGULAR => {
-        "entity"
-      }
       case COUNT_PLURAL => {
         "entities"
+      }
+      case _ => {
+        "entity"
       }
     }
     val something = {

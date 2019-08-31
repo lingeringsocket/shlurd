@@ -35,8 +35,14 @@ class SilWordnetSenseAnalyzerSpec extends Specification
     verb : SilRelationshipPredicate) : String =
   {
     analyzer.analyze(verb).complement match {
-      case SilDeterminedNounReference(noun, _, _) => noun.senseId
-      case _ => ""
+      case SilOptionallyDeterminedReference(
+        SilNounReference(noun, _), _
+      ) => {
+        noun.senseId
+      }
+      case _ => {
+        ""
+      }
     }
   }
 

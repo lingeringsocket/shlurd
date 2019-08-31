@@ -238,8 +238,9 @@ class SmcPhraseScope[
               }
             }
             primary match {
-              case SilDeterminedNounReference(
-                SilWordLemma(lemma), DETERMINER_NONSPECIFIC, _
+              case SilDeterminedReference(
+                SilNounReference(SilWordLemma(lemma), _),
+                DETERMINER_NONSPECIFIC
               ) if (matchLemma(lemma)) => {
                 Some(tupleN((prior, set, produceOrdinal(1))))
               }

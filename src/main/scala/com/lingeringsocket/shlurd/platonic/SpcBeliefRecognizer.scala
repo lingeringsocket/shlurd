@@ -399,10 +399,10 @@ class SpcBeliefRecognizer(
               kindCount),
             SilAdpositionalState(
               SilAdposition.OF,
-              SilDeterminedNounReference(
-                hypernymIdealName,
-                DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED,
-                _))),
+              SilOptionallyDeterminedReference(
+                SilNounReference(hypernymIdealName, _),
+                DETERMINER_NONSPECIFIC | DETERMINER_UNSPECIFIED
+              ))),
           kindDeterminer
         ) if (
           (kindDeterminer == DETERMINER_NONSPECIFIC) ||
@@ -418,10 +418,10 @@ class SpcBeliefRecognizer(
               COUNT_SINGULAR),
             SilAdpositionalState(
               SilAdposition.AS,
-              SilDeterminedNounReference(
-                idealName,
-                determiner,
-                count))),
+              SilOptionallyDeterminedReference(
+                SilNounReference(idealName, count),
+                determiner
+              ))),
           DETERMINER_UNIQUE
         ) if (compatibleDeterminerAndCount(determiner, count)) => {
           tupleN((None, Some(idealName)))
@@ -430,7 +430,10 @@ class SpcBeliefRecognizer(
       }
       if (kindOpt.nonEmpty || aliasOpt.nonEmpty) {
         subjectRef matchPartial {
-          case SilDeterminedNounReference(noun, determiner, count) if (
+          case SilOptionallyDeterminedReference(
+            SilNounReference(noun, count),
+            determiner
+          ) if (
             compatibleDeterminerAndCount(determiner, count)
           ) => {
             subjectConjunction.checkAndPluralOrSingular(count)
@@ -446,8 +449,10 @@ class SpcBeliefRecognizer(
             })
           }
           case SilGenitiveReference(
-            SilDeterminedNounReference(
-              possessorNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            SilDeterminedReference(
+              SilNounReference(possessorNoun, COUNT_SINGULAR),
+              DETERMINER_NONSPECIFIC
+            ),
             SilNounReference(
               roleNoun, COUNT_SINGULAR)
           ) => {
@@ -467,8 +472,9 @@ class SpcBeliefRecognizer(
       }
     }
     subjectRef match {
-      case SilDeterminedNounReference(
-        subjectNoun, subjectDeterminer, subjectCount
+      case SilOptionallyDeterminedReference(
+        SilNounReference(subjectNoun, subjectCount),
+        subjectDeterminer
       ) if (compatibleDeterminerAndCount(subjectDeterminer, subjectCount)) => {
         return processIdealRelationship(
           sentence, subjectNoun, subjectCount,
@@ -476,13 +482,14 @@ class SpcBeliefRecognizer(
       }
       case SilGenitiveReference(possessor, possessee) => {
         complementRef matchPartial {
-          case SilDeterminedNounReference(
-            complementNoun, determiner, COUNT_SINGULAR
+          case SilOptionallyDeterminedReference(
+            SilNounReference(complementNoun, COUNT_SINGULAR), determiner
           ) => {
             if (determiner == DETERMINER_NONSPECIFIC) {
               val formNoun = possessor match {
-                case SilDeterminedNounReference(
-                  noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+                case SilDeterminedReference(
+                  SilNounReference(noun, COUNT_SINGULAR),
+                  DETERMINER_NONSPECIFIC
                 ) => noun
                 case _ => {
                   // "Mary's cat is a pest"
@@ -538,8 +545,9 @@ class SpcBeliefRecognizer(
       }
       case _ => {
         complementRef match {
-          case SilDeterminedNounReference(
-            complementNoun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+          case SilDeterminedReference(
+            SilNounReference(complementNoun, COUNT_SINGULAR),
+            DETERMINER_NONSPECIFIC
           ) if (subjectRef.isInstanceOf[SilStateSpecifiedReference]) => {
             // "The cat in the hat is a pest"
             // FIXME more constraints ont the subjectRef
@@ -669,7 +677,9 @@ class SpcBeliefRecognizer(
       reportException(AssertionModifiersIncompatible)
     }
     def visitConsequent() = querier.queryMatcher {
-      case SilDeterminedNounReference(_, determiner, _) => {
+      case SilOptionallyDeterminedReference(
+        _ : SilNounReference, determiner
+      ) => {
         determiner match {
           case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED |
               DETERMINER_NONE | DETERMINER_NONSPECIFIC =>
@@ -932,8 +942,9 @@ class SpcBeliefRecognizer(
   ) : Seq[String] =
   {
     interpretation match {
-      case SilDeterminedNounReference(
-        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+      case SilDeterminedReference(
+        SilNounReference(noun, COUNT_SINGULAR),
+        DETERMINER_NONSPECIFIC
       ) => {
         recognizeWordLabel(Seq(noun)).toSeq
       }
@@ -1027,10 +1038,11 @@ class SpcBeliefRecognizer(
               }
               tupleN((complementNoun, count))
             })
+            // FIXME special casing for COUNT_MASS/COUNT_ZERO_PLURAL
             tupleN((pairs.map(_._1), pairs.map(_._2).maxBy(
               _ match {
-                case COUNT_SINGULAR => 1
                 case COUNT_PLURAL => 2
+                case _ => 1
               })
             ))
           }
@@ -1049,8 +1061,8 @@ class SpcBeliefRecognizer(
           }
         }
         val upper = count match {
-          case COUNT_SINGULAR => 1
           case COUNT_PLURAL => Int.MaxValue
+          case _ => 1
         }
         if (sentence.tam.isProgressive) {
           return Seq(UnimplementedBelief(sentence))
@@ -1088,10 +1100,9 @@ class SpcBeliefRecognizer(
       case REL_PREDEF_ASSOC => {
         subjectConjunction.checkAnd
         complementRef match {
-          case SilDeterminedNounReference(
-            roleNoun,
-            DETERMINER_NONE,
-            _
+          case SilDeterminedReference(
+            SilNounReference(roleNoun, _),
+            DETERMINER_NONE
           ) => {
             // "Larry has no pets"
             return Seq(EntityNoAssocBelief(
@@ -1116,10 +1127,9 @@ class SpcBeliefRecognizer(
               state,
               roleNoun)
           }
-          case SilDeterminedNounReference(
-            roleNoun,
-            DETERMINER_NONSPECIFIC,
-            _
+          case SilDeterminedReference(
+            SilNounReference(roleNoun, _),
+            DETERMINER_NONSPECIFIC
           ) => {
             // "Larry has a dog"
             return indefiniteEntityAssocBelief(
@@ -1181,7 +1191,9 @@ class SpcBeliefRecognizer(
     }
 
     val (subjectNoun, subjectDeterminer, subjectCount) = subjectRef match {
-      case SilDeterminedNounReference(noun, determiner, count) => {
+      case SilOptionallyDeterminedReference(
+        SilNounReference(noun, count), determiner
+      ) => {
         tupleN((noun, determiner, count))
       }
       case _ => return Seq.empty
@@ -1341,11 +1353,10 @@ class SpcBeliefRecognizer(
     def failedResult = (SilWord(""), Seq.empty, COUNT_SINGULAR,
       DETERMINER_UNSPECIFIED, true)
     reference match {
-      case SilDeterminedNounReference(
-        noun,
+      case SilOptionallyDeterminedReference(
+        SilNounReference(noun, COUNT_SINGULAR),
         determiner @ (DETERMINER_NONSPECIFIC | DETERMINER_UNIQUE |
-          DETERMINER_UNSPECIFIED),
-        COUNT_SINGULAR
+          DETERMINER_UNSPECIFIED)
       ) => {
         tupleN((noun, preQualifiers, COUNT_SINGULAR, determiner, false))
       }
@@ -1384,10 +1395,10 @@ class SpcBeliefRecognizer(
           allowGenitives)
       }
       case SilGenitiveReference(
-        SilDeterminedNounReference(
-          possessor, possessorDeterminer, COUNT_SINGULAR),
-        SilDeterminedNounReference(
-          possession, DETERMINER_UNSPECIFIED, count)
+        SilOptionallyDeterminedReference(
+          SilNounReference(possessor, COUNT_SINGULAR), possessorDeterminer),
+        SilNounReference(
+          possession, count)
       ) => {
         val failed = possessorDeterminer match {
           case DETERMINER_UNSPECIFIED => false

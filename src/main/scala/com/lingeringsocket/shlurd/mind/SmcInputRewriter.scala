@@ -88,8 +88,8 @@ class SmcInputRewriter[
   private def replacePredicateWildcard(
     objRef : SilReference) = replacementMatcher(
     "replacePredicateWildcard", {
-      case ref @ SilDeterminedNounReference(
-        _, _, _
+      case ref @ SilDeterminedReference(
+        _ : SilNounReference, _
       ) if containsWildcard(ref) => {
         objRef
       }

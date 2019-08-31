@@ -100,7 +100,7 @@ class SmcResponseRewriter[
       "neutralizePossesseeWildcard", {
         case SilGenitiveReference(
           possessor,
-          SilDeterminedNounReference(noun, DETERMINER_ANY, count)
+          SilDeterminedReference(SilNounReference(noun, count), DETERMINER_ANY)
         ) => {
           SilGenitiveReference(
             possessor,
@@ -590,8 +590,8 @@ class SmcResponseRewriter[
   private def disqualifyThirdPersonReferences(
     refMap : SmcMutableRefMap[EntityType]
   ) = querier.queryMatcher {
-    case nr @ SilDeterminedNounReference(
-      noun, determiner, _
+    case nr @ SilOptionallyDeterminedReference(
+      SilNounReference(noun, _), determiner
     ) => {
       determiner match {
         case DETERMINER_UNIQUE =>
@@ -635,7 +635,7 @@ class SmcResponseRewriter[
   ) = querier.queryMatcher {
     case ref : SilReference if (detector.refMap.contains(ref)) => {
       ref matchPartial {
-        case SilDeterminedNounReference(_, DETERMINER_UNIQUE, _) |
+        case SilDeterminedReference(_ : SilNounReference, DETERMINER_UNIQUE) |
             SilStateSpecifiedReference(_, _) |
             SilConjunctiveReference(_, _, _) =>
           {
@@ -659,7 +659,7 @@ class SmcResponseRewriter[
     "replaceThirdPersonReferences", {
       case ref : SilReference => {
         ref match {
-          case SilDeterminedNounReference(_, _, _) |
+          case SilOptionallyDeterminedReference(_ : SilNounReference, _) |
               SilOptionallyDeterminedReference(
                 SilStateSpecifiedReference(_, _),
                 _
@@ -767,9 +767,11 @@ class SmcResponseRewriter[
         SilGenitiveReference(
           possessor, coerceCount(possessee, agreedCount))
       }
-      // FIXME should have a case for SilDeterminedReference here too,
-      // but it's tricky
-      case SilDeterminedNounReference(noun, determiner, count) => {
+      // FIXME should have a case for arbitrary SilDeterminedReference
+      // here too, but it's tricky
+      case SilOptionallyDeterminedReference(
+        SilNounReference(noun, count), determiner
+      ) => {
         if (count == agreedCount) {
           reference
         } else {

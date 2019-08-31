@@ -364,20 +364,20 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
         tupleN((
           idealReference(possesseeForm),
           SilGenitiveReference(
-            SilStateSpecifiedReference(
+            SilReference.qualified(
               plainNoun(possessorForm),
-              SilPropertyState(SilWord(LEMMA_ANOTHER))
+              Seq(SilWord(LEMMA_ANOTHER))
             ),
             plainNoun(edge1.getRoleName)
           ),
-          SilStateSpecifiedReference(
+          SilReference.qualified(
             idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
-            SilPropertyState(SilWord(ordinalSecond))
+            Seq(SilWord(ordinalSecond))
           ),
           SilGenitiveReference(
-            SilStateSpecifiedReference(
+            SilReference.qualified(
               idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
-              SilPropertyState(SilWord(ordinalFirst))
+              Seq(SilWord(ordinalFirst))
             ),
             plainNoun(edge2.getRoleName)
           )
@@ -421,12 +421,12 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     determiner : SilDeterminer = DETERMINER_NONSPECIFIC) =
   {
     count match {
-      case COUNT_SINGULAR => {
-        SilDeterminedNounReference(SilWord(noun), determiner)
-      }
       case COUNT_PLURAL => {
         SilNounReference(
           SilWord.uninflected(noun), COUNT_PLURAL)
+      }
+      case _ => {
+        SilDeterminedNounReference(SilWord(noun), determiner)
       }
     }
   }

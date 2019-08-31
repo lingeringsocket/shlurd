@@ -144,7 +144,10 @@ class SpcBeliefAccepter private(
           ShlurdExceptionCode.NonExistent,
           sentence))).getOrElse(
       ref match {
-        case SilDeterminedNounReference(noun, determiner, _) => {
+        case SilOptionallyDeterminedReference(
+          SilNounReference(noun, _),
+          determiner
+        ) => {
           resolveUniqueNameAndExistence(sentence, noun, determiner)._1
         }
         case _ => {
@@ -659,7 +662,10 @@ class SpcBeliefAccepter private(
               sentence))
         ).getOrElse(
           entityRef match {
-            case SilDeterminedNounReference(noun, determiner, count) => {
+            case SilOptionallyDeterminedReference(
+              SilNounReference(noun, count),
+              determiner
+            ) => {
               val (entity, isNewEntity) = {
                 if (determiner == DETERMINER_UNIQUE) {
                   assert(properName.isEmpty)

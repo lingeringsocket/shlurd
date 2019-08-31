@@ -218,10 +218,9 @@ class SpcAssertionMapper(
           val wildcardRef = actualRef match {
             // FIXME need the same treatment for other variables, but
             // with intersectionality
-            case SilDeterminedNounReference(
-              SilWordLemma(LEMMA_WHAT),
-              DETERMINER_ANY,
-              count
+            case SilDeterminedReference(
+              SilNounReference(SilWordLemma(LEMMA_WHAT), count),
+              DETERMINER_ANY
             ) => {
               resolvedForm match {
                 case Some(restrictedForm) => {
@@ -263,7 +262,10 @@ class SpcAssertionMapper(
               }
             }
           }
-          case SilDeterminedNounReference(_, DETERMINER_NONSPECIFIC, _) => {
+          case SilDeterminedReference(
+            _ : SilNounReference,
+            DETERMINER_NONSPECIFIC
+          ) => {
             trace(s"NONSPECIFIC REFERENCE $actualRef")
             return false
           }
@@ -453,7 +455,10 @@ class SpcAssertionMapper(
               // FIXME should be using reference resolution for matching
               // instead
               SilAdpositionalVerbModifier(
-                _, SilDeterminedNounReference(_, DETERMINER_UNIQUE, _)
+                _,
+                SilDeterminedReference(
+                  _ : SilNounReference, DETERMINER_UNIQUE
+                )
               )
           ) => {
             if (actionPredicate.modifiers.contains(staticModifier)) {

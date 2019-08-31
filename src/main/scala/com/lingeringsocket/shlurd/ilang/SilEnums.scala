@@ -102,8 +102,14 @@ object SilAdposition
 }
 
 sealed trait SilCount
+// "dog"
 case object COUNT_SINGULAR extends SilCount
+// "dogs"
 case object COUNT_PLURAL extends SilCount
+// "sheep"
+case object COUNT_ZERO_PLURAL extends SilCount
+// "rice"
+case object COUNT_MASS extends SilCount
 
 // FIXME:  this naming is nonstandard
 sealed trait SilInflection

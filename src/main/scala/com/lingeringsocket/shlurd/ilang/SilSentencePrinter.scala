@@ -147,19 +147,8 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
               SilUtils.extractQualifiers(state))
           }
         }
-        sub match {
-          case SilDeterminedNounReference(noun, determiner, count) => {
-            sb.determinedNoun(
-              determiner,
-              sb.qualifiedNoun(
-                qualifierString,
-                sb.delemmatizeNoun(noun, count, inflection, conjoining)))
-          }
-          case _ => {
-            sb.qualifiedNoun(
-              qualifierString, print(sub, inflection, conjoining))
-          }
-        }
+        sb.qualifiedNoun(
+          qualifierString, print(sub, inflection, conjoining))
       }
       case SilGenitiveReference(possessor, possessee) => {
         val qualifierString = possessor match {
@@ -371,7 +360,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     // state gets lost for questions such as QUESTION_WHAT
     val (plainSubject, subjectInflection) = predicate.getSubject match {
       case SilGenitiveReference(
-        SilDeterminedNounReference(SilWordLemma(LEMMA_WHO), _, _),
+        SilNounReference(SilWordLemma(LEMMA_WHO), _),
         possessee
       ) => {
         tupleN((

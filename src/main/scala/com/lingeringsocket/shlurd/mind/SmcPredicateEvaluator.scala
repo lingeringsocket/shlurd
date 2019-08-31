@@ -118,10 +118,10 @@ class SmcPredicateEvaluator[
                       Success(Trilean.Unknown)
                     } else {
                       entityRef match {
-                        case SilDeterminedNounReference(
-                          noun,
-                          DETERMINER_ANY | DETERMINER_UNSPECIFIED,
-                          _) => {
+                        case SilOptionallyDeterminedReference(
+                          SilNounReference(noun, _),
+                          DETERMINER_ANY | DETERMINER_UNSPECIFIED
+                        ) => {
                           noun.toNounLemma match {
                             case LEMMA_WHO | LEMMA_WHAT => {
                               Success(Trilean.True)
@@ -316,10 +316,14 @@ class SmcPredicateEvaluator[
           ref matchPartial {
             case SilGenitiveReference(
               possessor,
-              possessee @ SilDeterminedNounReference(noun, _, _)
+              possessee @ SilOptionallyDeterminedReference(
+                SilNounReference(noun, _), _
+              )
             ) => {
               possessor match {
-                case SilDeterminedNounReference(_, DETERMINER_ANY, _) => {
+                case SilDeterminedReference(
+                  _ : SilNounReference, DETERMINER_ANY
+                ) => {
                   // force correlated evaluation after reference resolution
                   resultCollector.refMap.remove(ref)
                 }
@@ -700,8 +704,19 @@ class SmcPredicateEvaluator[
             ShlurdExceptionCode.NonExistent,
             sentencePrinter.sb.respondNonexistent(noun)))
         } else {
+          // FIXME special handling for COUNT_ZERO_PLURAL, COUNT_MASS
           count match {
-            case COUNT_SINGULAR => {
+            case COUNT_PLURAL => {
+              val newDeterminer = determiner match {
+                case DETERMINER_UNIQUE => DETERMINER_ALL
+                case _ => determiner
+              }
+              evaluateDeterminer(
+                entities.map(
+                  invokeEvaluator(_, reference, resultCollector, evaluator)),
+                newDeterminer)
+            }
+            case _ => {
               if (entities.isEmpty) {
                 Success(Trilean.False)
               } else if (entities.size > 1) {
@@ -722,16 +737,6 @@ class SmcPredicateEvaluator[
                 invokeEvaluator(
                   entities.head, reference, resultCollector, evaluator)
               }
-            }
-            case COUNT_PLURAL => {
-              val newDeterminer = determiner match {
-                case DETERMINER_UNIQUE => DETERMINER_ALL
-                case _ => determiner
-              }
-              evaluateDeterminer(
-                entities.map(
-                  invokeEvaluator(_, reference, resultCollector, evaluator)),
-                newDeterminer)
             }
           }
         }
@@ -875,7 +880,9 @@ class SmcPredicateEvaluator[
           specifiedEntities,
           evaluator)
       }
-      case SilDeterminedNounReference(noun, nounDeterminer, count) => {
+      case SilOptionallyDeterminedReference(
+        SilNounReference(noun, count), nounDeterminer
+      ) => {
         val determiner = nounDeterminer match {
           case DETERMINER_UNSPECIFIED => enclosingDeterminer
           case _ => {
@@ -1041,8 +1048,9 @@ class SmcPredicateEvaluator[
             }
             if (resultCollector.resolvingReferences) {
               possessee matchPartial {
-                case SilDeterminedNounReference(
-                  noun, DETERMINER_UNSPECIFIED | DETERMINER_ANY, _
+                case SilOptionallyDeterminedReference(
+                  SilNounReference(noun, _),
+                  DETERMINER_UNSPECIFIED | DETERMINER_ANY
                 ) => {
                   resultCollector.lookup(possessor).foreach(
                     possessorEntities => {
@@ -1148,7 +1156,9 @@ class SmcPredicateEvaluator[
       case Failure(e) => {
         debug("ERROR", e)
         val errorRef = entityRef match {
-          case SilDeterminedNounReference(noun, determiner, count) => {
+          case SilOptionallyDeterminedReference(
+            SilNounReference(noun, count), determiner
+          ) => {
             val rephrased = noun match {
               case SilWordLemma(LEMMA_WHO) =>
                 SilWord(SmcLemmas.LEMMA_SOMEONE)
@@ -1208,9 +1218,15 @@ class SmcPredicateEvaluator[
   {
     // FIXME:  support qualifiers etc
     reference match {
-      case SilDeterminedNounReference(
-        noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => Some(noun)
-      case _ => None
+      case SilDeterminedReference(
+        SilNounReference(noun, COUNT_SINGULAR),
+        DETERMINER_NONSPECIFIC
+      ) => {
+        Some(noun)
+      }
+      case _ => {
+        None
+      }
     }
   }
 
@@ -1219,10 +1235,15 @@ class SmcPredicateEvaluator[
   {
     // FIXME:  do something less hacky
     complementRef match {
-      case SilDeterminedNounReference(noun, determiner, count) => {
+      case SilOptionallyDeterminedReference(
+        SilNounReference(noun, count),
+        determiner
+      ) => {
         Set(noun)
       }
-      case _ => Set.empty
+      case _ => {
+        Set.empty
+      }
     }
   }
 

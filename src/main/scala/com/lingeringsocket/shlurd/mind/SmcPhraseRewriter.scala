@@ -45,19 +45,17 @@ class SmcPhraseRewriter extends SilPhraseRewriter
           wildcard = true
         }
       }
-      case SilDeterminedNounReference(
-        _,
-        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL,
-        _
+      case SilDeterminedReference(
+        _ : SilNounReference,
+        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL
       ) => {
         wildcard = true
       }
-      case SilDeterminedNounReference(
+      case SilNounReference(
         SilWordLemma(LEMMA_WHO) |
           SilWordLemma(LEMMA_WHOM) |
           SilWordLemma(LEMMA_WHAT) |
           SilWordLemma(LEMMA_WHERE),
-        _,
         _
       ) => {
         wildcard = true

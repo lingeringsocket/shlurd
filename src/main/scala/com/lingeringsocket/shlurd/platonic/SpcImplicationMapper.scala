@@ -49,8 +49,8 @@ object SpcImplicationMapper
       case SilAppositionalReference(primary, _) => {
         extractNoun(primary)
       }
-      case SilDeterminedNounReference(
-        noun, _, _
+      case SilOptionallyDeterminedReference(
+        SilNounReference(noun, _), _
       ) => {
         Some(noun)
       }
@@ -64,7 +64,7 @@ object SpcImplicationMapper
         Some(noun)
       }
       case SilStateSpecifiedReference(
-        SilDeterminedNounReference(noun, _, _),
+        SilOptionallyDeterminedReference(SilNounReference(noun, _), _),
         _
       ) => {
         Some(noun)
@@ -84,13 +84,13 @@ object SpcImplicationMapper
       case SilAppositionalReference(primary, _) => {
         flipVariable(sentencePrinter, primary, default)
       }
-      case SilDeterminedNounReference(
-        noun, DETERMINER_NONSPECIFIC, count
+      case SilDeterminedReference(
+        SilNounReference(noun, count), DETERMINER_NONSPECIFIC
       ) => {
         SilDeterminedNounReference(noun, DETERMINER_UNIQUE, count)
       }
-      case SilDeterminedNounReference(
-        noun, DETERMINER_UNIQUE, count
+      case SilDeterminedReference(
+        SilNounReference(noun, count), DETERMINER_UNIQUE
       ) => {
         SilDeterminedNounReference(noun, DETERMINER_NONSPECIFIC, count)
       }
@@ -160,8 +160,9 @@ object SpcImplicationMapper
       }
       case _ => {
         ref match {
-          case SilDeterminedNounReference(
-            noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+          case SilDeterminedReference(
+            SilNounReference(noun, COUNT_SINGULAR),
+            DETERMINER_NONSPECIFIC
           ) => {
             tupleN((
               true,
@@ -243,8 +244,9 @@ class SpcImplicationMapper(
           case _ => ref
         }
         val nounOpt = primary match {
-          case SilDeterminedNounReference(
-            noun, DETERMINER_NONSPECIFIC, COUNT_SINGULAR
+          case SilDeterminedReference(
+            SilNounReference(noun, COUNT_SINGULAR),
+            DETERMINER_NONSPECIFIC
           ) => {
             if (variableCounters.contains(noun)) {
               throw InvalidBeliefExcn(

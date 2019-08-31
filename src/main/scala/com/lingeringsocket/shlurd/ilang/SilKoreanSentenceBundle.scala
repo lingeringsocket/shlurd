@@ -258,24 +258,35 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
   {
     person match {
       case PERSON_FIRST => count match {
-        case COUNT_SINGULAR => inflection match {
+        case COUNT_PLURAL => inflectPronoun("우리", inflection, conjoining)
+        case _ => inflection match {
           case INFLECT_NOMINATIVE => inflectPronoun("내", inflection, conjoining)
           case INFLECT_GENITIVE => "내"
           case _ => inflectPronoun("나", inflection, conjoining)
         }
-        case COUNT_PLURAL => inflectPronoun("우리", inflection, conjoining)
       }
       case PERSON_SECOND => count match {
-        case COUNT_SINGULAR => inflection match {
+        case COUNT_PLURAL => inflectPronoun("여러분", inflection, conjoining)
+        case _ => inflection match {
           case INFLECT_NOMINATIVE => inflectPronoun(
             "니", inflection, conjoining)
           case INFLECT_GENITIVE => "네"
           case _ => inflectPronoun("너", inflection, conjoining)
         }
-        case COUNT_PLURAL => inflectPronoun("여러분", inflection, conjoining)
       }
       case PERSON_THIRD => count match {
-        case COUNT_SINGULAR => gender match {
+        case COUNT_PLURAL => {
+          // FIXME discriminate "그" from "저"
+          distance match {
+            case DISTANCE_HERE =>
+              inflectPronoun("이것들", inflection, conjoining)
+            case DISTANCE_THERE =>
+              inflectPronoun("그것들", inflection, conjoining)
+            case DISTANCE_UNSPECIFIED =>
+              inflectPronoun("그들", inflection, conjoining)
+          }
+        }
+        case _ => gender match {
           case GENDER_M => inflectPronoun("그", inflection, conjoining)
           case GENDER_F => inflectPronoun("그녀", inflection, conjoining)
           case GENDER_N => {
@@ -286,17 +297,6 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
               case _ =>
                 inflectPronoun("그것", inflection, conjoining)
             }
-          }
-        }
-        case COUNT_PLURAL => {
-          // FIXME discriminate "그" from "저"
-          distance match {
-            case DISTANCE_HERE =>
-              inflectPronoun("이것들", inflection, conjoining)
-            case DISTANCE_THERE =>
-              inflectPronoun("그것들", inflection, conjoining)
-            case DISTANCE_UNSPECIFIED =>
-              inflectPronoun("그들", inflection, conjoining)
           }
         }
       }
@@ -357,8 +357,8 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
   {
     if (lemma.exists(c => isHangul(c))) {
       val numbered = count match {
-        case COUNT_SINGULAR => lemma
         case COUNT_PLURAL => concat(lemma, "들")
+        case _ => lemma
       }
       val marker = {
         if (conjoining.isLast) {
