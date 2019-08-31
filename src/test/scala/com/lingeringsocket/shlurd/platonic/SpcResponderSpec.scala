@@ -576,7 +576,7 @@ class SpcResponderSpec extends Specification
       processBelief("a person may have students")
       processBelief("a person may have a professor")
 
-      processBelief("if a person is another person's student, " +
+      processBelief("if one person is another person's student, " +
         "then equivalently the second person is the first person's professor")
       processBelief("Eugene is a person")
       processBelief("Jerold is a person")
@@ -615,7 +615,7 @@ class SpcResponderSpec extends Specification
     {
       loadBeliefs("/ontologies/containment.txt")
       processBelief(
-        "if an object moves to another object, " +
+        "if one object moves to another object, " +
         "then subsequently the former is in the latter")
       processBelief(
         "if an object rolls into another object, " +

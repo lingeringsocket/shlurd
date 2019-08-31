@@ -146,8 +146,8 @@ class SmcScopeSpec extends Specification
         SilWord("tiger"),
         REF_SUBJECT,
         Set.empty
-      ) must beFailedTry.withThrowable[ShlurdException](
-        "Sorry, when you say 'tiger', I don't know which you mean."
+      ) must beSuccessfulTry.withValue(
+        SmcScopeOutput(Some(tigerRef), noEntities)
       )
       phraseScope2.resolveQualifiedNoun(
         SilWord("tiger"),

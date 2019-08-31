@@ -497,13 +497,6 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         "equivalently the second map-place is " +
         "the first map-place's map-neighbor",
         AssertionInvalidVariable)
-
-      // FIXME error should include the original belief
-      verifyError("if a map-place is another map-place's map-neighbor, " +
-        "equivalently the second map-place is " +
-        "the map-place's map-neighbor",
-        "Sorry, when you say 'map-place', I don't know which you mean.",
-        MisqualifiedNoun)
     }
 
     "prevent runaway triggers" in new AssertionContext
@@ -645,9 +638,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         "if an object is hot, equivalently it is cold.",
         "if an object is hot, equivalently the object is cold.",
         "if an object is cold, equivalently the object is hot.")
-      // FIXME should require "the first object" rather than just "the object"
       verifyEquivalenceStandardization(
-        "if an object is shoving another object, " +
+        "if one object is shoving another object, " +
           "equivalently the former is pushing the latter.",
         "if an object is shoving another object, " +
           "equivalently the object is pushing the second object.",
