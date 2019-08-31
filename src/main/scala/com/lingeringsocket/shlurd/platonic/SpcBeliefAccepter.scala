@@ -990,37 +990,12 @@ class SpcBeliefAccepter private(
   }
 
   beliefApplier {
-    case AssertionBelief(
+    case belief @ AssertionBelief(
       sentence,
       additionalConsequents,
       alternative
     ) => {
-      val implicationMapper = new SpcImplicationMapper(responder)
-      val placeholderMapOpt = sentence match {
-        case conditional : SilConditionalSentence => {
-          val placeholderMap = implicationMapper.validateImplication(
-            conditional, additionalConsequents)
-          if (acceptSpecialAssertion(conditional, placeholderMap)) {
-            None
-          } else {
-            if (
-              (conditional.conjunction.toLemma == LEMMA_IF) &&
-                isGenitiveRelationship(conditional.antecedent) &&
-                isGenitiveRelationship(conditional.consequent)
-            )
-            {
-              throw InvalidBeliefExcn(
-                ShlurdExceptionCode.AssertionInvalidAssociation, sentence)
-            }
-            Some(placeholderMap)
-          }
-        }
-        case ps : SilPredicateSentence => {
-          Some(implicationMapper.validateAssertionPredicate(
-            sentence, ps.predicate))
-        }
-        case _ => None
-      }
+      val placeholderMapOpt = validateAssertion(belief)
       placeholderMapOpt.foreach(placeholderMap => {
         cosmos.addAssertion(
           SpcAssertion(
@@ -1028,6 +1003,43 @@ class SpcBeliefAccepter private(
             alternative, placeholderMap))
       })
     }
+  }
+
+  def validateAssertion(belief : AssertionBelief) : Option[SpcRefMap] =
+  {
+    // FIXME should do something with belief.alternative as well
+    val implicationMapper = new SpcImplicationMapper(responder)
+    belief.sentence match {
+      case conditional : SilConditionalSentence => {
+        val placeholderMap = implicationMapper.validateImplication(
+          conditional, belief.additionalConsequents)
+        if (acceptSpecialAssertion(conditional, placeholderMap)) {
+          None
+        } else {
+          if (
+            (conditional.conjunction.toLemma == LEMMA_IF) &&
+              isGenitiveRelationship(conditional.antecedent) &&
+              isGenitiveRelationship(conditional.consequent)
+          )
+          {
+            throw InvalidBeliefExcn(
+              ShlurdExceptionCode.AssertionInvalidAssociation,
+              belief.sentence)
+          }
+          Some(placeholderMap)
+        }
+      }
+      case ps : SilPredicateSentence => {
+        Some(implicationMapper.validateAssertionPredicate(
+          belief.sentence, ps.predicate))
+      }
+      case _ => None
+    }
+  }
+
+  def isAssertionValid(belief : AssertionBelief) : Boolean =
+  {
+    Try(validateAssertion(belief)).isSuccess
   }
 
   private def isGenitiveRelationship(predicate : SilPredicate) : Boolean =

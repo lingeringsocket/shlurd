@@ -40,7 +40,7 @@ When a game-character moves to a map-place,
 After a game-character relocates to a map-place,
  the game-character is in it.
 
-When a game-character enters a map-location,
+When a game-character enters a map-place,
  the game-character moves to it.
 
 After a game-character relocates to a map-place,

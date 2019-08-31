@@ -15,26 +15,29 @@ A person may have possessions.
 An object may have a possessor.
 If an object is a person's possession, then equivalently
  the person is the object's possessor.
-If a person moves to a location, then subsequently the person is in the location;
- also the person's possessions are in the location.
-If a person goes to a location, then the person moves to the location.
-If a person goes back to a location, then the person moves to the location.
-If a person journeys to a location, then the person moves to the location.
-If a person travels to a location, then the person moves to the location.
-If a person takes an item, then the person becomes the item's possessor.
-If a person grabs an item, then the person takes the item.
-If a person picks up an item, then the person takes the item.
-If a person gets an item, then the person takes the item.
-If a person drops an item, then subsequently the item is in the person's spc-container.
-If a person drops an item, then the item has no possessor.
-If a person leaves an item, then the person drops the item.
-If a person discards an item, then the person drops the item.
-If a person puts down an item, then the person drops the item.
-If a person is carrying an item, equivalently the item is the person's possession.
-If a person receives an item, then the item becomes the person's possession.
-If a person gives an item to a recipient, then the recipient receives the item.
-If a person passes a recipient an item, then the person gives the item to the recipient.
-If a person hands an item to a recipient, then the person gives the item to the recipient.
+If a person moves to a place, then subsequently the person is in the place;
+ also the person's possessions are in the place.
+If a person goes to a place, then the person moves to the place.
+If a person goes back to a place, then the person moves to the place.
+If a person journeys to a place, then the person moves to the place.
+If a person travels to a place, then the person moves to the place.
+If a person takes an object, then the person becomes the object's possessor.
+If a person grabs an object, then the person takes the object.
+If a person picks up an object, then the person takes the object.
+If a person gets an object, then the person takes the object.
+If a person drops an object, then subsequently the object is in the person's spc-container.
+If a person drops an object, then the object has no possessor.
+If a person leaves an object, then the person drops the object.
+If a person discards an object, then the person drops the object.
+If a person puts down an object, then the person drops the object.
+If a person is carrying an object, equivalently the object is the person's possession.
+If a person receives an object, then the object becomes the person's possession.
+If a person gives an object to another person,
+ then the latter receives the object.
+If a person passes another person an object,
+ then the first person gives the object to the other person.
+If a person hands an object to another person,
+ then the first person gives the object to the other person.
 A colored-object's color must be white, gray, yellow, or green.
 A species-coloration is a kind of colored-object.
 An animal is a kind of colored-object.
@@ -76,14 +79,22 @@ If a place is another place's northern-neighbor, then equivalently
  the second place is the first place's southern-neighbor.
 If a place is another place's eastern-neighbor, then equivalently
  the second place is the first place's western-neighbor.
-If a place is west of a location, then equivalently the place is the location's western-neighbor.
-If a place is east of a location, then equivalently the place is the location's eastern-neighbor.
-If a place is north of a location, then equivalently the place is the location's northern-neighbor.
-If a place is south of a location, then equivalently the place is the location's southern-neighbor.
-If a place is west of a location, then equivalently the location is the place's eastern-neighbor.
-If a place is east of a location, then equivalently the location is the place's western-neighbor.
-If a place is north of a location, then equivalently the location is the place's southern-neighbor.
-If a place is south of a location, then equivalently the location is the place's northern-neighbor.
+If a place is west of another place,
+ then equivalently the former is the latter's western-neighbor.
+If a place is east of another place,
+ then equivalently the former is the latter's eastern-neighbor.
+If a place is north of another place,
+ then equivalently the former is the latter's northern-neighbor.
+If a place is south of another place,
+ then equivalently the former is the latter's southern-neighbor.
+If a place is west of another place,
+ then equivalently the latter is the former's eastern-neighbor.
+If a place is east of another place,
+ then equivalently the latter is the former's western-neighbor.
+If a place is north of another place,
+ then equivalently the latter is the former's southern-neighbor.
+If a place is south of another place,
+ then equivalently the latter is the former's northern-neighbor.
 A shape is a kind of object.
 Triangles, squares, spheres, and rectangles are kinds of shape.
 There is a triangle, a red sphere, a red square, a blue square,
@@ -117,24 +128,44 @@ If a row is another row's top-row, then equivalently
  the second row is the first row's bottom-row.
 If a column is another column's pre-column, then equivalently
  the second column is the first column's post-column.
-If a shape is above a neighbor, consequently the shape's abscissa is the neighbor's abscissa.
-If a shape is above a neighbor, consequently the shape's ordinate is the neighbor's ordinate's above-row.
-If a shape is above a neighbor, equivalently the neighbor's ordinate's top-row is the shape's ordinate.
-If a shape is above a neighbor, consequently the shape's ordinate sits on the neighbor's ordinate.
-If a row sits on a neighbor, then consequently the neighbor's bottom-row's top-row is the row.
-If a row sits on a neighbor, then consequently the row's bottom-row's top-rows are the row's top-rows.
-If a shape is below a neighbor, consequently the shape's abscissa is the neighbor's abscissa.
-If a shape is below a neighbor, consequently the shape's ordinate is the neighbor's ordinate's below-row.
-If a shape is below a neighbor, equivalently the neighbor's ordinate's bottom-row is the shape's ordinate.
-If a shape is below a neighbor, consequently the neighbor's ordinate sits on the shape's ordinate.
-If a shape is to the left of a neighbor, consequently the shape's ordinate is the neighbor's ordinate.
-If a shape is to the left of a neighbor, consequently the shape's abscissa is the neighbor's abscissa's left-column.
-If a shape is to the left of a neighbor, equivalently the neighbor's abscissa's pre-column is the shape's abscissa.
-If a shape is to the left of a neighbor, consequently the shape's abscissa precedes the neighbor's abscissa.
-If a column precedes a neighbor, consequently the neighbor's post-column's pre-column is the column.
-If a column precedes a neighbor, consequently the column's post-column's pre-columns are the column's pre-columns.
-If a shape is to the right of a neighbor, consequently the shape's ordinate is the neighbor's ordinate.
-If a shape is to the right of a neighbor, consequently the neighbor's abscissa's right-column is the shape's abscissa.
-If a shape is to the right of a neighbor, equivalently the neighbor's abscissa's post-column is the shape's abscissa.
-If a shape is to the right of a neighbor, consequently the neighbor's abscissa precedes the shape's abscissa.
+If a shape is above another shape,
+ consequently the former's abscissa is the latter's abscissa.
+If a shape is above another shape,
+ consequently the former's ordinate is the latter's ordinate's above-row.
+If a shape is above another shape,
+ equivalently the latter's ordinate's top-row is the former's ordinate.
+If a shape is above another shape,
+ consequently the former's ordinate sits on the latter's ordinate.
+If a row sits on another row,
+ then consequently the latter's bottom-row's top-row is the former.
+If a row sits on another row,
+ then consequently the former's bottom-row's top-rows are the former's top-rows.
+If a shape is below another shape,
+ consequently the former's abscissa is the latter's abscissa.
+If a shape is below another shape,
+ consequently the former's ordinate is the latter's ordinate's below-row.
+If a shape is below another shape,
+ equivalently the latter's ordinate's bottom-row is the former's ordinate.
+If a shape is below another shape,
+ consequently the latter's ordinate sits on the former's ordinate.
+If a shape is to the left of another shape,
+ consequently the former's ordinate is the latter's ordinate.
+If a shape is to the left of another shape,
+ consequently the former's abscissa is the latter's abscissa's left-column.
+If a shape is to the left of another shape,
+ equivalently the latter's abscissa's pre-column is the former's abscissa.
+If a shape is to the left of another shape,
+ consequently the former's abscissa precedes the latter's abscissa.
+If a column precedes another column,
+ consequently the latter's post-column's pre-column is the former.
+If a column precedes another column,
+ consequently the former's post-column's pre-columns are the former's pre-columns.
+If a shape is to the right of another shape,
+ consequently the former's ordinate is the latter's ordinate.
+If a shape is to the right of another shape,
+ consequently the latter's abscissa's right-column is the former's abscissa.
+If a shape is to the right of another shape,
+ equivalently the latter's abscissa's post-column is the former's abscissa.
+If a shape is to the right of another shape,
+ consequently the latter's abscissa precedes the former's abscissa.
 Wolves, mice, cats, and sheep are kinds of animal.

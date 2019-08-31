@@ -296,6 +296,41 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify(queryState, responseStateToasting)
       verify(queryGlow, responseYes)
     }
+
+    def verifyEquivalenceStandardization(
+      equiv : String, imp1 : String, imp2 : String) =
+    {
+      val responder = new SpcResponder(mind)
+      val before = responder.getBiconditionalImplications
+      verifyOK(equiv)
+      val after = responder.getBiconditionalImplications
+      after.size must be equalTo (before.size + 2)
+      val imps = after.takeRight(2).map {
+        case (cs, placeholderMap) => {
+          responder.sentencePrinter.print(cs)
+        }
+      }
+      imps.size must be equalTo 2
+      imps.head must be equalTo imp1
+      imps.last must be equalTo imp2
+    }
+
+    def verifyTriggerStandardization(
+      trigger : String, imp : String) =
+    {
+      val responder = new SpcResponder(mind)
+      val before = cosmos.getTriggers
+      verifyOK(trigger)
+      val after = cosmos.getTriggers
+      after.size must be equalTo (before.size + 1)
+      val imps = responder.getTriggerImplications(after.last).map {
+        case (cs, placeholderMap) => {
+          responder.sentencePrinter.print(cs)
+        }
+      }
+      imps.size must be equalTo 1
+      imps.head must be equalTo imp
+    }
   }
 
   "SpcAssertion" should
@@ -383,11 +418,14 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         "Sorry, when you say 'second slice', I don't know which you mean.",
         MisqualifiedNoun)
       verifyError(
-        "if a dog gives a balloon to a person, " +
+        "if a toaster gives a slice to a person, " +
           "then the person becomes its owner",
         "Sorry, when you say 'it', it's ambiguous.",
         AmbiguousPronoun)
 
+      verifyInvalid(
+        "if a pickle becomes cold, then the pickle splits",
+        UnknownForm)
       verifyInvalid(
         "if a slice touches a slice, then the slice becomes cold",
         AssertionInvalidVariable)
@@ -588,6 +626,42 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify("is Bob proud", responseYes)
       verify("is Ted happy", responseYes)
       verify("is Alice happy", responseYes)
+    }
+
+    "standardize variables" in new AssertionContext
+    {
+      verifyOK("An object may be hot or cold.")
+      verifyOK("There is a fire.")
+      verifyTriggerStandardization(
+        "if an object becomes hot, then the fire burns it and its neighbor.",
+        "if an object becomes hot, " +
+          "then the fire burns the object and the object's neighbor.")
+      verifyEquivalenceStandardization(
+        "if an object is hot, equivalently it is cold.",
+        "if an object is hot, equivalently the object is cold.",
+        "if an object is cold, equivalently the object is hot.")
+      // FIXME should require "the first object" rather than just "the object"
+      verifyEquivalenceStandardization(
+        "if an object is shoving another object, " +
+          "equivalently the former is pushing the latter.",
+        "if an object is shoving another object, " +
+          "equivalently the object is pushing the second object.",
+        "if an object is pushing a second object, " +
+          "equivalently the object is shoving the second object.")
+      verifyEquivalenceStandardization(
+        "if an object is shoving another object, " +
+          "equivalently the first object is pushing the other object.",
+        "if an object is shoving another object, " +
+          "equivalently the object is pushing the second object.",
+        "if an object is pushing a second object, " +
+          "equivalently the object is shoving the second object.")
+      verifyEquivalenceStandardization(
+        "if an object (the shover) is shoving another object (the shovee), " +
+          "equivalently the shover is pushing the shovee.",
+        "if an object is shoving another object, " +
+          "equivalently the object is pushing the second object.",
+        "if an object is pushing a second object, " +
+          "equivalently the object is shoving the second object.")
     }
   }
 }

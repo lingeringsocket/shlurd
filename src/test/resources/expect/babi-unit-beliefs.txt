@@ -3,8 +3,13 @@ A person is a kind of spc-someone.
 Peter, Lucy, Susan, and Edmund are persons.
 A place is a kind of object.
 The island, the forest, the castle, and the swamp are places.
-If an object moves to a location, then subsequently the object is in the location.
-If an object goes to a location, then the object moves to the location.
-If an object goes back to a location, then the object moves to the location.
-If an object journeys to a location, then the object moves to the location.
-If an object travels to a location, then the object moves to the location.
+If an object moves to another object,
+ then subsequently the former is in the latter.
+If an object goes to another object,
+ then the former moves to the latter.
+If an object goes back to another object,
+ then the former moves to the latter.
+If an object journeys to another object,
+ then the former moves to the latter.
+If an object travels to another object,
+ then the former moves to the latter.

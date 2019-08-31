@@ -614,10 +614,12 @@ class SpcResponderSpec extends Specification
     "understand actions" in new ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      processBelief("if an object moves to a location, " +
-        "then subsequently the object is in the location")
-      processBelief("if an object rolls into a location, " +
-        "then the object moves to the location")
+      processBelief(
+        "if an object moves to another object, " +
+        "then subsequently the former is in the latter")
+      processBelief(
+        "if an object rolls into another object, " +
+        "then the former moves to the latter")
       processBelief("Percy is an object")
       processBelief("Thomas is an object")
       processBelief("Fuji is an object")
@@ -681,9 +683,11 @@ class SpcResponderSpec extends Specification
       ResponderContext(ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      processBelief("if a person gives an object to a recipient, " +
+      processBelief("if a person gives an object " +
+        "to another person (the recipient), " +
         "then the object becomes the recipient's contained-object")
-      processBelief("if a person passes an object to a recipient, " +
+      processBelief("if a person passes an object " +
+        "to another person (the recipient), " +
         "then the person gives the object to the recipient")
 
       processBelief("Curtis is a person")
@@ -714,9 +718,11 @@ class SpcResponderSpec extends Specification
       processBelief("the screwdriver is an object")
       processBelief("if a person receives an object, " +
         "then the object becomes the person's contained-object")
-      processBelief("if a person gives an object to a recipient, " +
+      processBelief("if a person gives an object " +
+        "to another person (the recipient), " +
         "then the recipient receives the object")
-      processBelief("if a person passes an object to a recipient, " +
+      processBelief("if a person passes an object" +
+        " to another person (the recipient), " +
         "then the person gives the object to the recipient")
       processBelief("Thomas passed the wrench to Andrea")
       // FIXME this used to work
@@ -768,8 +774,8 @@ class SpcResponderSpec extends Specification
       processBelief("a wire must be red or blue")
       processBelief("there is an important wire")
       processBelief("the important wire is red")
-      processBelief("if a person cuts a wire, then the wire must be blue")
       processBelief("MacGyver is a person")
+      processBelief("if a person cuts a wire, then the wire must be blue")
       process(
         "MacGyver cuts the important wire",
         "But the important wire is not blue.")
@@ -789,7 +795,8 @@ class SpcResponderSpec extends Specification
       processBelief("a person may be angry or sad")
       processBelief("if a manager becomes angry," +
         " then the manager strikes the manager's minions")
-      processBelief("if a bully strikes a person, then the person becomes sad")
+      processBelief("if a person (the bully) strikes " +
+        "another person (the victim), then the victim becomes sad")
       processBelief("Scrooge is angry")
       processTerse("is Scrooge angry", "Yes.")
       processTerse("is Cratchit sad", "Yes.")
@@ -1271,7 +1278,7 @@ class SpcResponderSpec extends Specification
       ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      processBelief("if an object moves to a location, " +
+      processBelief("if an object moves to another object (the location), " +
         "then the object is subsequently in the location")
       processBelief("the key is an object")
       processBelief("the pocket is an object")
@@ -1350,10 +1357,10 @@ class SpcResponderSpec extends Specification
       loadBeliefs("/ontologies/containment.txt")
       processBelief("A vapor is a kind of object.")
       processBelief("A solid is a kind of object.")
+      processBelief("Clint is a person.")
       processBelief("If a person sees a solid, " +
         "then equivalently the solid is in the person's container.")
       processBelief("Alcatraz is an object.")
-      processBelief("Clint is a person.")
       processBelief("The gold is a solid.")
       processBelief("The oxygen is a vapor.")
       processBelief("The gold is in Alcatraz.")
@@ -1368,12 +1375,13 @@ class SpcResponderSpec extends Specification
       ACCEPT_NEW_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
-      processBelief("If an item is filling an object, " +
-        "equivalently the item is the object's contained-object.")
-      processBelief("If an item is occupying an object, " +
-        "equivalently the item is in the object.")
-      processBelief("If an object is carrying an item, " +
-        "then equivalently the object is the item's container.")
+      processBelief("If an object is filling another object, " +
+        "equivalently the former is the " +
+        "latter's contained-object.")
+      processBelief("If an object is occupying another object, " +
+        "equivalently the former is in the latter.")
+      processBelief("If an object is carrying another object, " +
+        "then equivalently the former is the latter's container.")
 
       processBelief("The wallet is an object.")
       processBelief("The pocket is an object.")
@@ -1787,7 +1795,7 @@ class SpcResponderSpec extends Specification
       processBelief("If a patriarch is another patriarch's descendant, " +
         "then equivalently the second patriarch is " +
         "the first patriarch's ancestor.")
-      processBelief("If a patriarch begets a child, " +
+      processBelief("If a patriarch begets another patriarch (the child), " +
         "then consequently the patriarch is the child's parent; " +
         "also the patriarch is the child's ancestor; " +
         "also the patriarch is the child's descendant's ancestor; " +

@@ -81,8 +81,8 @@ object SpcImplicationMapper
     default : => SilReference) : SilReference =
   {
     reference match {
-      case SilAppositionalReference(_, secondary) => {
-        secondary
+      case SilAppositionalReference(primary, _) => {
+        flipVariable(sentencePrinter, primary, default)
       }
       case SilDeterminedNounReference(
         noun, DETERMINER_NONSPECIFIC, count
@@ -279,6 +279,15 @@ class SpcImplicationMapper(
         }
         nounOpt.map(noun => {
           val form = responder.deriveType(ref, resultCollector.refMap)
+          if (form == responder.unknownType) {
+            if ((noun.toNounLemma != SpcMeta.ENTITY_METAFORM_NAME)
+              && !SpcBeliefRecognizer.recognizeWordLabel(Seq(noun)).nonEmpty
+            ) {
+              throw InvalidBeliefExcn(
+                ShlurdExceptionCode.UnknownForm,
+                belief)
+            }
+          }
           val placeholder = makePlaceholder(form, noun, variableCounters)
           tupleN((ref, Set(placeholder)))
         })
@@ -292,6 +301,7 @@ class SpcImplicationMapper(
         ) => {
           (lemma == LEMMA_ANOTHER)
         }
+        case _ : SilConjunctiveReference => false
         case _ => true
       })
     }

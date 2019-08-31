@@ -4,15 +4,16 @@ A thief is a kind of non-player-character.
 A thief must be alive or dead.
 A thief must be boorish or suave.
 
-After a game-character kills a kill-victim,
- the kill-victim is dead.
+After a game-character kills another game-character,
+ the latter is dead.
 After a game-character kills a thief,
  the game-interpreter says "Blood splatters everywhere.".
 
-When a game-character throws a game-weapon,
+When a game-character throws a game-object,
  the game-character drops it.
-When a game-character throws a game-weapon at a throw-target,
- the game-character kills the throw-target with the game-weapon.
+When a game-character throws a game-object
+ at another game-character,
+ the first game-character kills the other game-character with the game-object.
 
 There is a thief.
 Whenever the game-turn advances,

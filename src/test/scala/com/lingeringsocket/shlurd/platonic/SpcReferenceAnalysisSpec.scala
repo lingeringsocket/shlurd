@@ -107,7 +107,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       analyze("a mule is a kind of animal") must beEmpty
       analyze("a mule's gender must be masculine")
       analyze("a mule may be grumpy or happy") must beEmpty
-      analyze("if a mule kicks a kick-target, " +
+      analyze("if a mule kicks an spc-entity, " +
         "then equivalently the mule is grumpy")
       analyze("a woman's beast must be a mule")
       val isaResult = analyze(s"$ivan is a mule")

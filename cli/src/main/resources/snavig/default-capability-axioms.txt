@@ -1,18 +1,19 @@
 "Resource" import "/snavig/character-axioms.txt".
+"Resource" import "/snavig/map-axioms.txt".
 
 A player-character can look.
-A player-character can look at a look-target.
-A player-character can examine an examine-target.
-A player-character can talk to a talk-target.
-A player-character can tell a tell-target.
-A player-character can ask an ask-target.
-A player-character can say a say-quotation.
+A player-character can look at an object.
+A player-character can examine an object.
+A player-character can talk to an object.
+A player-character can tell.
+A player-character can ask.
+A player-character can say.
 A player-character can go.
-A player-character can go a go-direction.
-A player-character can go to a go-target.
-A player-character can move to a move-target.
-A player-character can enter an enter-target.
+A player-character can go a map-direction.
+A player-character can go to a map-place.
+A player-character can move to a map-place.
+A player-character can enter a map-place.
 A player-character can save.
 A player-character can restore.
-A player-character can get a game-target.
-A player-character can drop a game-target.
+A player-character can get an object.
+A player-character can drop an object.

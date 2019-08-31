@@ -559,6 +559,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
     {
       cosmos.getTriggers must beEmpty
       cosmos.getAssertions must beEmpty
+      addBelief("tailors and giants are kinds of persons")
       addBelief("a tailor can't kill a giant")
       cosmos.getAssertions.size must be equalTo(1)
       cosmos.getTriggers must beEmpty

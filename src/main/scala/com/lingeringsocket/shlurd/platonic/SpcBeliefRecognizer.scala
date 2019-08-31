@@ -81,6 +81,25 @@ object SpcBeliefRecognizer
 {
   private val logger =
     LoggerFactory.getLogger(classOf[SpcBeliefRecognizer])
+
+  def recognizeWordLabel(
+    words : Seq[SilWord]) : Option[String] =
+  {
+    words.flatMap(_.decomposed) match {
+      case Seq(SilWordLemma("noun")) => Some(LABEL_NN)
+      case Seq(SilWordLemma("common"), SilWordLemma("noun")) => Some(LABEL_NN)
+      case Seq(SilWordLemma("proper"), SilWordLemma("noun")) => Some(LABEL_NNP)
+      case Seq(SilWordLemma("verb")) => Some(LABEL_VB)
+      case Seq(SilWordLemma("adjective")) => Some(LABEL_JJ)
+      case Seq(SilWordLemma("adverb")) => Some(LABEL_RB)
+      case Seq(SilWordLemma("pronoun")) => Some(LABEL_PRP)
+      case Seq(SilWordLemma("possessive"), SilWordLemma("pronoun")) =>
+        Some(LABEL_PRP_POS)
+      case Seq(SilWordLemma("conjunction")) => Some(LABEL_CC)
+      case Seq(SilWordLemma("preposition")) => Some(LABEL_IN)
+      case _ => None
+    }
+  }
 }
 
 class SpcBeliefRecognizer(
@@ -88,6 +107,8 @@ class SpcBeliefRecognizer(
   resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
     extends SmcDebuggable(new SmcDebugger(SpcBeliefRecognizer.logger))
 {
+  import SpcBeliefRecognizer._
+
   protected val creed = new SpcCreed(cosmos)
 
   private var finished = false
@@ -942,25 +963,6 @@ class SpcBeliefRecognizer(
         }
       }
       case _ => Seq.empty
-    }
-  }
-
-  private def recognizeWordLabel(
-    words : Seq[SilWord]) : Option[String] =
-  {
-    words.flatMap(_.decomposed) match {
-      case Seq(SilWordLemma("noun")) => Some(LABEL_NN)
-      case Seq(SilWordLemma("common"), SilWordLemma("noun")) => Some(LABEL_NN)
-      case Seq(SilWordLemma("proper"), SilWordLemma("noun")) => Some(LABEL_NNP)
-      case Seq(SilWordLemma("verb")) => Some(LABEL_VB)
-      case Seq(SilWordLemma("adjective")) => Some(LABEL_JJ)
-      case Seq(SilWordLemma("adverb")) => Some(LABEL_RB)
-      case Seq(SilWordLemma("pronoun")) => Some(LABEL_PRP)
-      case Seq(SilWordLemma("possessive"), SilWordLemma("pronoun")) =>
-        Some(LABEL_PRP_POS)
-      case Seq(SilWordLemma("conjunction")) => Some(LABEL_CC)
-      case Seq(SilWordLemma("preposition")) => Some(LABEL_IN)
-      case _ => None
     }
   }
 

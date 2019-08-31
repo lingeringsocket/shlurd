@@ -51,28 +51,40 @@ class SpcContextualScorer(responder : SpcResponder)
     sentence : SilSentence,
     resultCollector : ResultCollectorType) : SilPhraseScore =
   {
-    val cosmos = responder.getMind.getCosmos
-    val recognizer = new SpcBeliefRecognizer(
-      cosmos,
+    val beliefAccepter = SpcBeliefAccepter.forResponder(
+      responder,
+      SpcBeliefParams(
+        createImplicitIdeals = false,
+        createTentativeIdeals = false,
+        createTentativeEntities = false,
+        createImplicitProperties = false
+      ),
       resultCollector)
-    val beliefs = recognizer.recognizeBeliefs(sentence)
+    val beliefs = beliefAccepter.recognizeBeliefs(sentence)
     val beliefBoost = {
       if (beliefs.isEmpty) {
         SilPhraseScore.neutral
       } else {
         if (beliefs.exists(_ match {
           case _ : InvalidBelief => true
-          case _ : UnimplementedBelief => true
+          case ab : AssertionBelief => {
+            !beliefAccepter.isAssertionValid(ab)
+          }
           case _ => false
         })) {
           SilPhraseScore.conSmall
         } else {
-          SilPhraseScore.proBig
+          if (beliefs.exists(_.isInstanceOf[UnimplementedBelief])) {
+            SilPhraseScore.neutral
+          } else {
+            SilPhraseScore.proBig
+          }
         }
       }
     }
     var propBoost = SilPhraseScore.neutral
     val querier = new SilPhraseRewriter
+    val cosmos = responder.getMind.getCosmos
     def detectBoosts = querier.queryMatcher {
       case SilStatePredicate(
         subject,
@@ -169,21 +181,25 @@ class SpcResponder(
           return Success(Trilean.Unknown)
         }
       }
-      getBiconditionalImplications.foreach(conditionalSentence => {
-        assertionMapper.matchImplication(
-          "IMPLIES",
-          mind.getCosmos,
-          conditionalSentence,
-          predicate,
-          SpcAssertionBinding(
-            resultCollector.refMap,
-            Some(resultCollector.refMap))) matchPartial
-        {
-          case Some(newPredicate) => {
-            return super.evaluatePredicate(newPredicate, resultCollector)
+      getBiconditionalImplications.foreach {
+        case (conditionalSentence, placeholderMap) => {
+          assertionMapper.matchImplication(
+            "IMPLIES",
+            mind.getCosmos,
+            conditionalSentence,
+            predicate,
+            SpcAssertionBinding(
+              resultCollector.refMap,
+              Some(resultCollector.refMap),
+              Some(placeholderMap)
+            )
+          ) matchPartial {
+            case Some(newPredicate) => {
+              return super.evaluatePredicate(newPredicate, resultCollector)
+            }
           }
         }
-      })
+      }
       super.evaluateActionPredicate(predicate, resultCollector)
     }
 
@@ -201,8 +217,8 @@ class SpcResponder(
       // FIXME this could cause the predicate to become
       // inconsistent with the answer inflection.  Also, when there
       // are multiple matches, we should be conjoining them.
-      val replacements = getBiconditionalImplications.flatMap(
-        conditionalSentence => {
+      val replacements = getBiconditionalImplications.flatMap {
+        case (conditionalSentence, placeholderMap) => {
           assertionMapper.matchImplication(
             "IMPLIES",
             mind.getCosmos,
@@ -211,10 +227,10 @@ class SpcResponder(
             SpcAssertionBinding(
               refMap,
               None,
-              None,
+              Some(placeholderMap),
               Some(refEquivalence)))
         }
-      ).map(p => optimizeEquivalentPredicate(p, refMap))
+      }.map(p => optimizeEquivalentPredicate(p, refMap))
       replacements.filter(_._2 >= 0).sortBy(_._2).map(_._1).headOption.
         getOrElse(predicate)
     }
@@ -288,66 +304,96 @@ class SpcResponder(
     }
   }
 
-  private def getBiconditionalImplications() : Seq[SilConditionalSentence] =
+  def getBiconditionalImplications()
+      : Seq[(SilConditionalSentence, SpcRefMap)] =
   {
     val triggers = mind.getCosmos.getTriggers.filter(
       _.conditionalSentence.biconditional)
     triggers.flatMap(getTriggerImplications)
   }
 
-  private def getTriggerImplications(
-    trigger : SpcTrigger) : Seq[SilConditionalSentence] =
+  def getTriggerImplications(
+    trigger : SpcTrigger) : Seq[(SilConditionalSentence, SpcMutableRefMap)] =
   {
     val cs = trigger.conditionalSentence
-    val placeholderMap = trigger.getPlaceholderMap
-    val expanded = cs.copy(
-      antecedent = expandPronouns(cs.antecedent, placeholderMap),
-      consequent = expandPronouns(cs.consequent, placeholderMap))
-    if (cs.biconditional) {
-      assert(trigger.additionalConsequents.isEmpty)
-      assert(trigger.alternative.isEmpty)
+    val placeholderMap = SmcMutableRefMap.newByValue[SpcEntity]
+    placeholderMap ++= trigger.getPlaceholderMap
+    val standardized = cs.copy(
+      antecedent = standardizeVariables(cs.antecedent, placeholderMap),
+      consequent = standardizeVariables(cs.consequent, placeholderMap))
+    val seq = {
+      if (cs.biconditional) {
+        assert(trigger.additionalConsequents.isEmpty)
+        assert(trigger.alternative.isEmpty)
 
-      Seq(
-        expanded,
-        cs.copy(
-          antecedent = flipVariables(cs.consequent, placeholderMap),
-          consequent = flipVariables(cs.antecedent, placeholderMap),
-          tamAntecedent = cs.tamConsequent,
-          tamConsequent = cs.tamAntecedent
+        Seq(
+          standardized,
+          cs.copy(
+            antecedent = flipVariables(
+              standardized.consequent, placeholderMap),
+            consequent = flipVariables(
+              cs.antecedent, placeholderMap),
+            tamAntecedent = cs.tamConsequent,
+            tamConsequent = cs.tamAntecedent
+          )
         )
-      )
-    } else {
-      Seq(expanded)
+      } else {
+        Seq(standardized)
+      }
     }
+    seq.map(cs => tupleN((cs, placeholderMap)))
   }
 
-  private def expandPronouns[PhraseType <: SilPhrase](
+  private def standardizeVariables[PhraseType <: SilPhrase](
     phrase : PhraseType,
-    placeholderMap : SpcRefMap
+    placeholderMap : SpcMutableRefMap
   ) : PhraseType =
   {
     val rewriter = new SilPhraseRewriter
+    def standardizeOne(ref : SilReference) : SilReference =
+    {
+      SpcImplicationMapper.findPlaceholderCorrespondence(
+        ref, Some(placeholderMap)
+      ) match {
+        case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
+          val newRef = SpcImplicationMapper.flipVariable(
+            sentencePrinter, correspondingRefs.head, ref)
+          placeholderMap.put(newRef, placeholderMap(ref))
+          newRef
+        }
+        case _ => ref
+      }
+    }
     def replaceReferences = rewriter.replacementMatcher(
-      "expandPronouns", {
-        case ref : SilPronounReference => {
-          SpcImplicationMapper.findPlaceholderCorrespondence(
-            ref, Some(placeholderMap)
-          ) match {
-            case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
-              SpcImplicationMapper.flipVariable(
-                sentencePrinter, correspondingRefs.head, ref)
-            }
-            case _ => ref
+      "standardizeVariables", {
+        case ar @ SilAppositionalReference(primary, _) => {
+          placeholderMap.put(primary, placeholderMap(ar))
+          primary
+        }
+        case dr @ SilDeterminedReference(
+          _, determiner
+        ) => {
+          if (determiner == DETERMINER_UNIQUE) {
+            standardizeOne(dr)
+          } else {
+            dr
           }
+        }
+        case sr : SilStateSpecifiedReference => {
+          sr
+        }
+        case ref : SilReference => {
+          standardizeOne(ref)
         }
       }
     )
-    rewriter.rewrite(replaceReferences, phrase)
+    rewriter.rewrite(
+      replaceReferences, phrase, SilRewriteOptions(topDown = true))
   }
 
   private def flipVariables(
     predicate : SilPredicate,
-    placeholderMap : SpcRefMap
+    placeholderMap : SpcMutableRefMap
   ) : SilPredicate =
   {
     val rewriter = new SilPhraseRewriter
@@ -358,15 +404,18 @@ class SpcResponder(
             ref, Some(placeholderMap)
           ) match {
             case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
-              SpcImplicationMapper.flipVariable(
+              val newRef = SpcImplicationMapper.flipVariable(
                 sentencePrinter, ref, correspondingRefs.head)
+              placeholderMap.put(newRef, placeholderMap(ref))
+              newRef
             }
             case _ => ref
           }
         }
       }
     )
-    rewriter.rewrite(replaceReferences, predicate)
+    rewriter.rewrite(
+      replaceReferences, predicate, SilRewriteOptions(topDown = true))
   }
 
   override protected def imagine(
@@ -584,15 +633,17 @@ class SpcResponder(
     triggerDepth : Int)
       : Option[String] =
   {
-    val placeholderMap = trigger.getPlaceholderMap
-    getTriggerImplications(trigger).toStream.flatMap(conditionalSentence => {
-      applyTriggerImpl(
-        forkedCosmos, trigger, placeholderMap, conditionalSentence,
-        trigger.additionalConsequents.map(
-          s => expandPronouns(s, placeholderMap)),
-        trigger.getAlternative.map(s => expandPronouns(s, placeholderMap)),
-        predicate, resultCollector, triggerDepth)
-    }).headOption
+    getTriggerImplications(trigger).toStream.flatMap {
+      case (conditionalSentence, placeholderMap) => {
+        applyTriggerImpl(
+          forkedCosmos, trigger, placeholderMap, conditionalSentence,
+          trigger.additionalConsequents.map(
+            s => standardizeVariables(s, placeholderMap)),
+          trigger.getAlternative.map(
+            s => standardizeVariables(s, placeholderMap)),
+          predicate, resultCollector, triggerDepth)
+      }
+    }.headOption
   }
 
   private def applyTriggerImpl(
@@ -1107,7 +1158,7 @@ class SpcResponder(
     punctuated.dropRight(1).trim
   }
 
-  private def unknownType() : SpcForm =
+  def unknownType() : SpcForm =
   {
     mind.instantiateForm(SilWord(SpcMeta.ENTITY_METAFORM_NAME))
   }

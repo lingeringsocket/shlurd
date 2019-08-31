@@ -149,8 +149,13 @@ class SpcCreedSpec extends Specification
   private val children = "A person may have sons or daughters."
   private val childrenSons = "A person may have sons."
   private val childrenDaughters = "A person may have daughters."
-  private val moveTrigger = "If an spc-object moves to a location, " +
-    "then the location becomes the spc-object's spc-container."
+  private val moveTrigger =
+    "If an object moves to another object, " +
+      "then the latter becomes the former's container."
+  private val teamForm = "A team is a kind of an object."
+  private val trophyForm = "A trophy is a kind of an object."
+  private val candyForm = "A candy is a kind of an object."
+  private val medalForm = "A medal is a kind of an object."
   private val positiveConstraintTrigger = "If a team wins a trophy, " +
     "then the team must be awesome."
   private val negativeConstraintTrigger = "If a team wins a trophy, " +
@@ -163,8 +168,8 @@ class SpcCreedSpec extends Specification
     "then the candy must be small; the person chokes otherwise."
   private val additionalTrigger = "If a person eats a candy, " +
     "then the candy becomes small; the candy crunches also."
-  private val positiveAssertion = "A person can kill a thief."
-  private val negativeAssertion = "A person can not kill a thief."
+  private val positiveAssertion = "A person can kill a monk."
+  private val negativeAssertion = "A person can not kill a monk."
   private val wordRule = "\"Happy\" may be a proper noun."
   private val conjunctiveBelief =
     "A duck is a kind of a bird and a monk is a kind of a person."
@@ -509,14 +514,18 @@ class SpcCreedSpec extends Specification
 
     "preserve triggers" in new CosmosContext
     {
-      expectPreserved(Seq(moveTrigger, positiveConstraintTrigger,
+      expectPreserved(Seq(
+        teamForm, trophyForm, candyForm, medalForm, formTaxonomy2,
+        moveTrigger, positiveConstraintTrigger,
         negativeConstraintTrigger, positiveTestTrigger,
         negativeTestTrigger, alternativeTrigger, additionalTrigger))
     }
 
     "preserve assertions" in new CosmosContext
     {
-      expectPreserved(Seq(positiveAssertion, negativeAssertion, wordRule))
+      expectPreserved(Seq(
+        formTaxonomy2,
+        positiveAssertion, negativeAssertion, wordRule))
     }
 
     "preserve conjunctive beliefs" in new CosmosContext

@@ -58,45 +58,48 @@ If a map-connection opposes a map-place to a map-direction, then equivalently
  the map-place's place-exit in the map-direction is
   the map-connection's opposite-connection.
 
-When a map-place faces a destination-place to a map-direction,
- the map-place has a place-exit in the map-direction;
- also the destination-place has a place-exit in the map-direction's opposite-direction;
- also the map-place's place-exit in the map-direction becomes a straight-connection;
- also the destination-place's place-exit in the map-direction's opposite-direction
+When a map-place faces another map-place to a map-direction,
+ the first map-place has a place-exit in the map-direction;
+ also the second map-place has a place-exit in the map-direction's opposite-direction;
+ also the first map-place's place-exit in the map-direction
   becomes a straight-connection;
- also the map-place's place-exit in the map-direction opposes
-  the destination-place to the map-direction's opposite-direction;
- also the map-place becomes the destination-place's map-neighbor.
+ also the second map-place's place-exit in the map-direction's opposite-direction
+  becomes a straight-connection;
+ also the first map-place's place-exit in the map-direction opposes
+  the second map-place to the map-direction's opposite-direction;
+ also the first map-place becomes the second map-place's map-neighbor.
 
-If a map-place faces a destination-place to a map-direction, then equivalently
- {the map-place's place-exit in the map-direction}'s
-  target-place is the destination-place.
-If a map-place faces a destination-place to a map-direction, then equivalently
- {the destination-place's place-exit in the map-direction's opposite-direction}'s
-  target-place is the map-place.
+If a map-place faces another map-place to a map-direction,
+ then equivalently
+ {the first map-place's place-exit in the map-direction}'s
+  target-place is the second map-place.
+If a map-place faces another map-place to a map-direction,
+ then equivalently
+ {the other map-place's place-exit in the map-direction's opposite-direction}'s
+  target-place is the first map-place.
 
-If a map-place is north of a neighbor-place, then equivalently
- the neighbor-place faces the map-place to the north.
-If a map-place is south of a neighbor-place, then equivalently
- the neighbor-place faces the map-place to the south.
-If a map-place is east of a neighbor-place, then equivalently
- the neighbor-place faces the map-place to the east.
-If a map-place is west of an neighbor-place, then equivalently
- the neighbor-place faces the map-place to the west.
+If a map-place is north of another map-place, then equivalently
+ the latter faces the former to the north.
+If a map-place is south of another map-place, then equivalently
+ the latter faces the former to the south.
+If a map-place is east of another map-place, then equivalently
+ the latter faces the former to the east.
+If a map-place is west of another map-place, then equivalently
+ the latter faces the former to the west.
 
-If a map-place is northeast of a neighbor-place, then equivalently
- the neighbor-place faces the map-place to the northeast.
-If a map-place is northwest of a neighbor-place, then equivalently
- the neighbor-place faces the map-place to the northwest.
-If a map-place is southeast of a neighbor-place, then equivalently
- the neighbor-place faces the map-place to the southeast.
-If a map-place is southwest of a neighbor-place, then equivalently
- the neighbor-place faces the map-place to the southwest.
+If a map-place is northeast of another map-place, then equivalently
+ the latter faces the former to the northeast.
+If a map-place is northwest of another map-place, then equivalently
+ the latter faces the former to the northwest.
+If a map-place is southeast of another map-place, then equivalently
+ the latter faces the former to the southeast.
+If a map-place is southwest of another map-place, then equivalently
+ the latter faces the former to the southwest.
 
-If a map-place is above a neighbor-place, then equivalently
- the neighbor-place faces the map-place to the zenith.
-If a map-place is below a neighbor-place, then equivalently
- the neighbor-place faces the map-place to the nadir.
+If a map-place is above another map-place, then equivalently
+ the latter faces the former to the zenith.
+If a map-place is below another map-place, then equivalently
+ the latter faces the former to the nadir.
 
 A door is a kind of describable-entity.
 A map-connection's exit-door must be a door.
@@ -110,6 +113,6 @@ When a door mediates a map-connection,
  the door becomes the map-connection's exit-door;
  also the door becomes the map-connection's opposite-connection's exit-door.
 
-When a door connects a map-place to a neighbor-place,
- the door mediates {the map-place's place-entrances
-  among the neighbor-place's place-exits}.
+When a door connects a map-place to another map-place,
+ the door mediates {the first map-place's place-entrances
+  among the second map-place's place-exits}.

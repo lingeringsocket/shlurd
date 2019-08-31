@@ -107,19 +107,11 @@ class SpcAssertionMapper(
     val consequent = conditional.consequent
     trace(s"ATTEMPT MATCH $antecedent $operator $consequent")
 
-    val maybePlaceholderMap = {
-      if (conditional.biconditional) {
-        None
-      } else {
-        binding.placeholderMap
-      }
-    }
-
     val (matched, replacements) = matchGeneralization(
       cosmos,
       antecedent,
       predicate,
-      binding.copy(placeholderMap = maybePlaceholderMap),
+      binding,
       triggerDepth)
     if (matched) {
       if (!isTraceEnabled) {

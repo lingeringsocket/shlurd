@@ -43,6 +43,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     scoreConjunctiveNouns,
     scoreConjunctiveSentences,
     scoreSpecialAdpositions,
+    scoreAppositions,
     scoreTam,
     scoreVerbFrames
   )
@@ -230,6 +231,26 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
         SilPhraseScore.pro(20)
       } else {
         SilPhraseScore.neutral
+      }
+    }
+  }
+
+  private def scoreAppositions = phraseScorer {
+    case SilAppositionalReference(primary, secondary) => {
+      primary match {
+        case SilOptionallyDeterminedReference(
+          SilStackedStateReference(nr : SilNounReference, states),
+          _
+        ) => {
+          if (states.exists(_.isInstanceOf[SilAdpositionalState])) {
+            SilPhraseScore.conBig
+          } else {
+            SilPhraseScore.proBig
+          }
+        }
+        case _ => {
+          SilPhraseScore.conBig
+        }
       }
     }
   }
