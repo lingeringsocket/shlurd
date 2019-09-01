@@ -79,7 +79,7 @@
  </check>
  <check level="error" class="org.scalastyle.scalariform.NumberOfTypesChecker" enabled="true">
   <parameters>
-   <parameter name="maxTypes"><![CDATA[100]]></parameter>
+   <parameter name="maxTypes"><![CDATA[200]]></parameter>
   </parameters>
  </check>
  <check level="error" class="org.scalastyle.scalariform.CyclomaticComplexityChecker" enabled="false">

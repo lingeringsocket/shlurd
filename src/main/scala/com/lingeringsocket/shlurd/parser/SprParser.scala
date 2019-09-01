@@ -528,9 +528,11 @@ object SprParser extends SprEnglishWordAnalyzer
   def interpretTemporal(ref : SilReference) : Int =
   {
     ref match {
-      case SilNounReference(
-        SilWordLemma(lemma),
-        COUNT_SINGULAR
+      case SilMandatorySingular(
+        SilNounReference(
+          SilWordLemma(lemma),
+          _
+        )
       ) => {
         lemma.toLowerCase match {
           case ONCE_UPON_A_TIME => Int.MinValue
@@ -541,8 +543,11 @@ object SprParser extends SprEnglishWordAnalyzer
       case SilGenitiveReference(
         SilPronounReference(
           PERSON_THIRD, GENDER_N, COUNT_SINGULAR, DISTANCE_HERE),
-        SilNounReference(
-          SilWordLemma(lemma), COUNT_SINGULAR)
+        SilMandatorySingular(
+          SilNounReference(
+            SilWordLemma(lemma), _
+          )
+        )
       ) => {
         lemma.toLowerCase match {
           case "morning" => 1

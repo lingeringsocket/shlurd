@@ -111,6 +111,28 @@ case object COUNT_ZERO_PLURAL extends SilCount
 // "rice"
 case object COUNT_MASS extends SilCount
 
+object SilMandatorySingular
+{
+  def unapply(ref : SilNounReference) =
+  {
+    ref.count match {
+      case COUNT_SINGULAR => Some(ref)
+      case _ => None
+    }
+  }
+}
+
+object SilMandatoryPlural
+{
+  def unapply(ref : SilNounReference) =
+  {
+    ref.count match {
+      case COUNT_PLURAL => Some(ref)
+      case _ => None
+    }
+  }
+}
+
 // FIXME:  this naming is nonstandard
 sealed trait SilInflection
 case object INFLECT_NONE extends SilInflection

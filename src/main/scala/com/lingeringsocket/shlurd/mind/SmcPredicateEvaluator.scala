@@ -1009,8 +1009,10 @@ class SmcPredicateEvaluator[
           }
           case _ => {
             possessee matchPartial {
-              case SilNounReference(
-                noun, COUNT_SINGULAR
+              case SilMandatorySingular(
+                SilNounReference(
+                  noun, _
+                )
               ) => {
                 resultCollector.lookup(possessor).
                   foreach(entities => {
@@ -1219,7 +1221,7 @@ class SmcPredicateEvaluator[
     // FIXME:  support qualifiers etc
     reference match {
       case SilDeterminedReference(
-        SilNounReference(noun, COUNT_SINGULAR),
+        SilMandatorySingular(SilNounReference(noun, _)),
         DETERMINER_NONSPECIFIC
       ) => {
         Some(noun)

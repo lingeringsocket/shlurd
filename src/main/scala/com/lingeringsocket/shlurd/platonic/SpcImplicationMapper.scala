@@ -95,8 +95,10 @@ object SpcImplicationMapper
         SilDeterminedNounReference(noun, DETERMINER_NONSPECIFIC, count)
       }
       case SilStateSpecifiedReference(
-        SilNounReference(
-          noun, COUNT_SINGULAR
+        SilMandatorySingular(
+          SilNounReference(
+            noun, _
+          )
         ),
         SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
       ) => {
@@ -110,8 +112,10 @@ object SpcImplicationMapper
       }
       case SilDeterminedReference(
         SilStateSpecifiedReference(
-          SilNounReference(
-            noun, COUNT_SINGULAR
+          SilMandatorySingular(
+            SilNounReference(
+              noun, _
+            )
           ),
           SilPropertyState(qualifier)
         ),
@@ -161,7 +165,7 @@ object SpcImplicationMapper
       case _ => {
         ref match {
           case SilDeterminedReference(
-            SilNounReference(noun, COUNT_SINGULAR),
+            SilMandatorySingular(SilNounReference(noun, _)),
             DETERMINER_NONSPECIFIC
           ) => {
             tupleN((
@@ -245,7 +249,7 @@ class SpcImplicationMapper(
         }
         val nounOpt = primary match {
           case SilDeterminedReference(
-            SilNounReference(noun, COUNT_SINGULAR),
+            SilMandatorySingular(SilNounReference(noun, _)),
             DETERMINER_NONSPECIFIC
           ) => {
             if (variableCounters.contains(noun)) {
@@ -255,7 +259,7 @@ class SpcImplicationMapper(
             Some(noun)
           }
           case SilStateSpecifiedReference(
-            SilNounReference(noun, COUNT_SINGULAR),
+            SilMandatorySingular(SilNounReference(noun, _)),
             SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
           ) => {
             if (variableCounters.getOrElse(noun, 0) != 1) {
@@ -266,8 +270,10 @@ class SpcImplicationMapper(
           }
           case SilDeterminedReference(
             SilStateSpecifiedReference(
-              SilNounReference(
-                noun, COUNT_SINGULAR),
+              SilMandatorySingular(
+                SilNounReference(
+                  noun, _)
+              ),
               SilPropertyState(SilWordLemma(qualifier))),
             DETERMINER_NONSPECIFIC
           ) => {

@@ -132,8 +132,11 @@ private[parser] class SprNormalizationRewriter
         adp1 : SilAdposition,
         SilDeterminedReference(
           SilStateSpecifiedReference(
-            SilNounReference(
-              word : SilSimpleWord, COUNT_SINGULAR),
+            SilMandatorySingular(
+              SilNounReference(
+                word : SilSimpleWord, _
+              )
+            ),
             SilAdpositionalState(
               adp2 : SilAdposition,
               objRef
@@ -335,8 +338,10 @@ private[parser] class SprNormalizationRewriter
       case LEMMA_BEFORE | LEMMA_AFTER | LEMMA_TO => true
       case LEMMA_AT => {
         objRef match {
-          case SilNounReference(
-            _, COUNT_SINGULAR
+          case SilMandatorySingular(
+            SilNounReference(
+              _, _
+            )
           ) => {
             false
           }

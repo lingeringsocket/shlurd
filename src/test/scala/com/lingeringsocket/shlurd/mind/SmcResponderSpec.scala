@@ -55,9 +55,11 @@ class SmcResponderSpec extends Specification
           state match {
             case SilAdpositionalState(
               SilAdposition.IN,
-              SilNounReference(
-                SilWordInflected("dreamland"),
-                COUNT_SINGULAR
+              SilMandatorySingular(
+                SilNounReference(
+                  SilWordInflected("dreamland"),
+                  _
+                )
               )) =>
               {
                 SilPropertyState(SilWord("asleep"))
