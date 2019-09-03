@@ -24,8 +24,9 @@ class SmcInputRewriter[
   PropertyType<:SmcProperty,
   CosmosType <:SmcCosmos[EntityType, PropertyType]
 ](
-  mind : SmcMind[EntityType, PropertyType, CosmosType]
-) extends SmcPhraseRewriter
+  mind : SmcMind[EntityType, PropertyType, CosmosType],
+  annotator : SilAnnotator
+) extends SilPhraseRewriter(annotator)
 {
   def normalizeInput(
     sentence : SilSentence) : SilSentence =
@@ -90,7 +91,7 @@ class SmcInputRewriter[
     "replacePredicateWildcard", {
       case ref @ SilDeterminedReference(
         _ : SilNounReference, _
-      ) if containsWildcard(ref) => {
+      ) if SmcPhraseQuerier.containsWildcard(ref) => {
         objRef
       }
     }

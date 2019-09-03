@@ -23,7 +23,10 @@ import scala.collection.JavaConverters._
 import SprEnglishLemmas._
 
 // FIXME add role alias support
-class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
+class SpcCreed(
+  annotator : SilAnnotator,
+  cosmos : SpcCosmos,
+  includeMeta : Boolean = false)
 {
   private val mind = new SpcMind(cosmos)
 
@@ -240,7 +243,8 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     entity : SpcEntity
   ) : SilSentence =
   {
-    val subject = mind.specificReference(entity, DETERMINER_NONSPECIFIC)
+    val subject = mind.specificReference(
+      annotator, entity, DETERMINER_NONSPECIFIC)
     val predicate = entity.properName match {
       case "" => {
         SilStatePredicate(
@@ -264,7 +268,8 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
     eps : SpcEntityPropertyState
   ) : SilSentence =
   {
-    val subject = mind.specificReference(entity, DETERMINER_UNIQUE)
+    val subject = mind.specificReference(
+      annotator, entity, DETERMINER_UNIQUE)
     val property = cosmos.resolvePropertyName(entity, eps.propertyName).get
     val propertyStates = cosmos.getPropertyStateMap(property)
     val predicate = property.domain match {
@@ -303,8 +308,10 @@ class SpcCreed(cosmos : SpcCosmos, includeMeta : Boolean = false)
   ) : SilSentence =
   {
     val possessor = mind.specificReference(
+      annotator,
       cosmos.getGraph.getPossessorEntity(edge), DETERMINER_UNIQUE)
     val possessee = mind.specificReference(
+      annotator,
       cosmos.getGraph.getPossesseeEntity(edge), DETERMINER_UNIQUE)
     val role = nounReference(
       edge.getRoleName, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)

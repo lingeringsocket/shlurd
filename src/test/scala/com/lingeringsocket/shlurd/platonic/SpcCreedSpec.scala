@@ -29,9 +29,11 @@ class SpcCreedSpec extends Specification
 
     protected val refriedCosmos = new SpcCosmos
 
-    protected val creed = new SpcCreed(cosmos)
+    protected val annotator = SilBasicAnnotator()
 
-    protected val refriedCreed = new SpcCreed(refriedCosmos)
+    protected val creed = new SpcCreed(annotator, cosmos)
+
+    protected val refriedCreed = new SpcCreed(annotator, refriedCosmos)
 
     protected def addBelief(input : String) =
     {
@@ -539,7 +541,8 @@ class SpcCreedSpec extends Specification
     {
       val cosmos = new SpcCosmos
       SpcPrimordial.initCosmos(cosmos)
-      val creed = new SpcCreed(cosmos, true)
+      val annotator = SilBasicAnnotator()
+      val creed = new SpcCreed(annotator, cosmos, true)
       val printer = new SilSentencePrinter
       val beliefStrings = creed.allBeliefs(printer).map(
         s => printer.print(s) + "\n")

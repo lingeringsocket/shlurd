@@ -31,8 +31,7 @@ class SilAnnotationSpec extends Specification
       val singular = makeSingular
       val plural = makePlural
 
-      val annotator = new SilTypedAnnotator[SilBasicRefNote](
-        (refAnnotation) => SilBasicRefNote(refAnnotation))
+      val annotator = SilBasicAnnotator()
       val singularAnnotation = annotator.register(singular)
       val pluralAnnotation = annotator.register(plural)
       val singularNote = annotator.getNote(singularAnnotation)
@@ -45,8 +44,7 @@ class SilAnnotationSpec extends Specification
     {
       val plural = makePlural
 
-      val annotator = new SilTypedAnnotator[SilBasicRefNote](
-        (refAnnotation) => SilBasicRefNote(refAnnotation))
+      val annotator = SilBasicAnnotator()
       val originalAnnotation = annotator.register(plural)
       val originalNote = annotator.getNote(originalAnnotation)
       originalNote.getCount must be equalTo COUNT_PLURAL

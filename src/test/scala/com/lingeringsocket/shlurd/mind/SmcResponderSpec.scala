@@ -46,6 +46,7 @@ class SmcResponderSpec extends Specification
     override protected def newPredicateEvaluator(scope : ScopeType) =
     {
       new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
+        annotator,
         scope, params.existenceAssumption,
         communicationContext, debugger)
       {

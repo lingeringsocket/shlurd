@@ -29,8 +29,7 @@ import scala.collection.JavaConverters._
 case class SprContext(
   wordLabeler : SprWordLabeler = new SprWordnetLabeler,
   scorer : SilPhraseScorer = new SilWordnetScorer,
-  annotator : SilAnnotator = new SilTypedAnnotator[SilBasicRefNote](
-    (refAnnotation) => SilBasicRefNote(refAnnotation))
+  annotator : SilAnnotator = SilBasicAnnotator()
 )
 {
   def newParser(input : String) = SprParser(input, this)

@@ -19,15 +19,14 @@ import com.lingeringsocket.shlurd.parser._
 
 import SprEnglishLemmas._
 
-class SmcPhraseRewriter extends SilPhraseRewriter
+object SmcPhraseQuerier
 {
-  protected val querier = new SilPhraseQuerier
-
   def containsWildcard(
     phrase : SilPhrase,
     includeConjunctions : Boolean = false,
     rejectGenitives : Boolean = false) : Boolean =
   {
+    val querier = new SilPhraseQuerier
     var wildcard = false
     var rejected = false
     def matchWildcard = querier.queryMatcher {

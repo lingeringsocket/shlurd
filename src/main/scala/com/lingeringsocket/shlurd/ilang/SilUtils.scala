@@ -63,7 +63,10 @@ object SilUtils
   def getCount(reference : SilReference) : SilCount =
   {
     reference match {
-      case annotatedRef : SilAnnotatedReference if (
+      // FIXME this should work for any SilAnnotatedReference, but
+      // only once we can correctly trigger recomputation when
+      // a descendant is updated
+      case annotatedRef : SilNounReference if (
         annotatedRef.hasAnnotation
       ) => {
         annotatedRef.getAnnotator.getBasicNote(annotatedRef).getCount

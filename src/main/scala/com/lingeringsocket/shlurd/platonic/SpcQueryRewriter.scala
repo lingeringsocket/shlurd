@@ -18,9 +18,10 @@ import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 
 class SpcQueryRewriter(
+  annotator : SilAnnotator,
   question : SilQuestion,
   answerInflection : SilInflection)
-    extends SmcQueryRewriter(question, answerInflection)
+    extends SmcQueryRewriter(annotator, question, answerInflection)
 {
   override def rewritePredicate = combineRules(
     rewriteContainmentPredicate, rewriteActionPredicate)

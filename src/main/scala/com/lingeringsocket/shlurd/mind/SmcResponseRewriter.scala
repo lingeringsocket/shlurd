@@ -28,10 +28,13 @@ class SmcResponseRewriter[
   CosmosType<:SmcCosmos[EntityType, PropertyType]
 ](
   mind : SmcMind[EntityType, PropertyType, CosmosType],
-  communicationContext : SmcCommunicationContext[EntityType]
-) extends SmcPhraseRewriter
+  communicationContext : SmcCommunicationContext[EntityType],
+  annotator : SilAnnotator
+) extends SilPhraseRewriter(annotator)
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
+
+  private val querier = new SilPhraseQuerier
 
   private val entityMap =
     new mutable.LinkedHashMap[String, EntityType]
@@ -469,7 +472,10 @@ class SmcResponseRewriter[
         verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         rhs,
         verbModifiers
-      ) if (containsWildcard(lhs) && !containsWildcard(rhs)) =>
+      ) if (
+        SmcPhraseQuerier.containsWildcard(lhs) &&
+          !SmcPhraseQuerier.containsWildcard(rhs)
+      ) =>
         {
           SilRelationshipPredicate(
             rhs,
@@ -530,7 +536,7 @@ class SmcResponseRewriter[
     determiner : SilDeterminer) : SilReference =
   {
     val equivs = mind.equivalentReferences(
-      communicationContext, entity, determiner).map(ref =>
+      annotator, communicationContext, entity, determiner).map(ref =>
       rewrite(swapPronounsSpeakerListener(refMap), ref))
     equivs.find(_ != other) match {
       case Some(ref) => ref
@@ -572,7 +578,7 @@ class SmcResponseRewriter[
     "replaceResolvedReferences", {
       case SilMappedReference(key, determiner) => {
         val entity = entityMap(key)
-        val ref = mind.specificReference(entity, determiner)
+        val ref = mind.specificReference(annotator, entity, determiner)
         refMap.remove(ref)
         ref
       }
@@ -681,7 +687,7 @@ class SmcResponseRewriter[
     "replaceThirdPersonPronouns", {
       case pr @ SilPronounReference(PERSON_THIRD, _, _, _) => {
         refMap.get(pr).map(
-          entities => mind.specificReferences(entities)
+          entities => mind.specificReferences(annotator, entities)
         ).getOrElse(pr)
       }
     }
@@ -770,7 +776,8 @@ class SmcResponseRewriter[
       // FIXME should have a case for arbitrary SilDeterminedReference
       // here too, but it's tricky
       case SilOptionallyDeterminedReference(
-        SilNounReference(noun, count), determiner
+        oldNounRef @ SilNounReference(noun, count),
+        determiner
       ) => {
         if (count == agreedCount) {
           reference
@@ -786,9 +793,11 @@ class SmcResponseRewriter[
               determiner
             }
           }
-          SilDeterminedNounReference(
+          val newNounRef = SilNounReference(
             noun.toNounUninflected,
-            newDeterminer, agreedCount)
+            agreedCount)
+          annotator.getBasicNote(newNounRef).setCount(agreedCount)
+          SilReference.determined(newNounRef, newDeterminer)
         }
       }
       case _ => reference
@@ -913,9 +922,11 @@ class SmcResponseRewriter[
       case "1" => COUNT_SINGULAR
       case _ => COUNT_PLURAL
     }
+    val nounRef = SilNounReference(number, count)
+    annotator.getBasicNote(nounRef).setCount(count)
     Some(
       SilStateSpecifiedReference(
-        SilDeterminedNounReference(number, determiner, count),
+        SilReference.determined(nounRef, determiner),
         SilAdpositionalState(
           SilAdposition.OF,
           SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))

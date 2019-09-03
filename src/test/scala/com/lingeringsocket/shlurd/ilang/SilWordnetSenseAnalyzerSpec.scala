@@ -18,7 +18,9 @@ import org.specs2.mutable._
 
 class SilWordnetSenseAnalyzerSpec extends Specification
 {
-  private val analyzer = new SilWordnetSenseAnalyzer
+  private val annotator = SilBasicAnnotator()
+
+  private val analyzer = new SilWordnetSenseAnalyzer(annotator)
 
   private val pronounI =
     SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)

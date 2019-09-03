@@ -27,6 +27,7 @@ import SprEnglishLemmas._
 import org.slf4j._
 
 case class SpcAssertionBinding(
+  annotator : SilAnnotator,
   refMapIn : SpcRefMap,
   refMapOut : Option[SpcMutableRefMap],
   placeholderMap : Option[SpcRefMap] = None,
@@ -53,6 +54,7 @@ class SpcAssertionMapper(
   ]
 
   private[platonic] def matchSubsumption(
+    annotator : SilAnnotator,
     cosmos : SpcCosmos,
     general : SilPredicate,
     specific : SilPredicate,
@@ -64,6 +66,7 @@ class SpcAssertionMapper(
     val matched = matchGeneralization(
       cosmos, general, specific,
       SpcAssertionBinding(
+        annotator,
         refMap,
         None),
       0
@@ -117,7 +120,7 @@ class SpcAssertionMapper(
       if (!isTraceEnabled) {
         debug(s"MATCH SUCCESSFUL $antecedent $operator $consequent}")
       }
-      val rewriter = new SilPhraseRewriter
+      val rewriter = new SilPhraseRewriter(binding.annotator)
       def replaceReferences = rewriter.replacementMatcher(
         "replaceReferences", {
           case ref : SilReference => {
@@ -214,7 +217,7 @@ class SpcAssertionMapper(
         val patternRefSet = expandPatterns(
           patternRefSetUnexpanded, binding.placeholderMap)
         val resolvedForm = mind.resolveForm(noun)
-        if (inputRewriter.containsWildcard(actualRef)) {
+        if (SmcPhraseQuerier.containsWildcard(actualRef)) {
           val wildcardRef = actualRef match {
             // FIXME need the same treatment for other variables, but
             // with intersectionality
@@ -253,7 +256,7 @@ class SpcAssertionMapper(
                 !entities.isEmpty
               ) => {
                 tupleN((
-                  mind.specificReferences(entities),
+                  mind.specificReferences(binding.annotator, entities),
                   entities))
               }
               case _ =>  {
@@ -299,12 +302,14 @@ class SpcAssertionMapper(
             }
             val conjunction = {
               if (filtered.size == 1) {
-                mind.specificReference(filtered.head, DETERMINER_UNIQUE)
+                mind.specificReference(
+                  binding.annotator, filtered.head, DETERMINER_UNIQUE)
               } else {
                 SilConjunctiveReference(
                   DETERMINER_ALL,
                   filtered.toSeq.map(entity => {
                     val entityRef = mind.specificReference(
+                      binding.annotator,
                       entity, DETERMINER_UNIQUE)
                     binding.refMapOut.foreach(
                       _.put(entityRef, Set(entity)))

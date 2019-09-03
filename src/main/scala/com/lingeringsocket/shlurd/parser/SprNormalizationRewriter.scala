@@ -25,7 +25,7 @@ private[parser] object SprNormalizationRewriter
 }
 
 private[parser] class SprNormalizationRewriter(context : SprContext)
-  extends SilPhraseRewriter(Some(context.annotator)) with SprEnglishWordAnalyzer
+  extends SilPhraseRewriter(context.annotator) with SprEnglishWordAnalyzer
 {
   import SprNormalizationRewriter._
 

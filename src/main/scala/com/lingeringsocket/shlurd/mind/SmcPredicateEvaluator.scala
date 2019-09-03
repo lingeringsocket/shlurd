@@ -32,6 +32,7 @@ class SmcPredicateEvaluator[
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
+  annotator : SilAnnotator,
   scope : SmcScope[EntityType, PropertyType, CosmosType, MindType],
   existenceAssumption : SmcExistenceAssumption,
   communicationContext : SmcCommunicationContext[EntityType],
@@ -41,8 +42,6 @@ class SmcPredicateEvaluator[
   type ResultCollectorType = SmcResultCollector[EntityType]
 
   type EntityPredicateEvaluator = (EntityType, SilReference) => Try[Trilean]
-
-  private val wildcardQuerier = new SmcPhraseRewriter
 
   private val mind = scope.getMind
 
@@ -100,7 +99,7 @@ class SmcPredicateEvaluator[
         if (!categoryLabel.isEmpty) {
           resultCollector.isCategorization = true
         }
-        if (wildcardQuerier.containsWildcard(subjectRef, false, true) &&
+        if (SmcPhraseQuerier.containsWildcard(subjectRef, false, true) &&
           (SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) &&
           categoryLabel.isEmpty
         ) {
@@ -560,8 +559,8 @@ class SmcPredicateEvaluator[
     SilRelationshipPredef(verb) match {
       case REL_PREDEF_IDENTITY  => {
         val result = {
-          if ((wildcardQuerier.containsWildcard(subjectRef) ||
-            wildcardQuerier.containsWildcard(complementRef)) &&
+          if ((SmcPhraseQuerier.containsWildcard(subjectRef) ||
+            SmcPhraseQuerier.containsWildcard(complementRef)) &&
             (subjectEntity.isTentative || complementEntity.isTentative))
           {
             Success(Trilean.Unknown)
@@ -911,7 +910,8 @@ class SmcPredicateEvaluator[
         }
         val pr = {
           if (resultCollector.swapSpeakerListener) {
-            val rewriter = new SmcResponseRewriter(mind, communicationContext)
+            val rewriter = new SmcResponseRewriter(
+              mind, communicationContext, annotator)
             rewriter.rewrite(
               rewriter.swapPronounsSpeakerListener(refMap), prOriginal)
           } else {
@@ -1179,7 +1179,7 @@ class SmcPredicateEvaluator[
             SilDeterminedNounReference(rephrased, rephrasedDeterminer, count)
           }
           case _ => {
-            mind.specificReference(entity, DETERMINER_NONSPECIFIC)
+            mind.specificReference(annotator, entity, DETERMINER_NONSPECIFIC)
           }
         }
         cosmos.fail(
@@ -1330,7 +1330,7 @@ class SmcPredicateEvaluator[
     phrase : SilPhrase,
     collector : ResultCollectorType) =
   {
-    if (wildcardQuerier.containsWildcard(phrase, true)) {
+    if (SmcPhraseQuerier.containsWildcard(phrase, true)) {
       collector
     } else {
       collector.spawn

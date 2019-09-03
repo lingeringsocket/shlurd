@@ -45,13 +45,14 @@ class SnavigMind(
   }
 
   override def equivalentReferences(
+    annotator : SilAnnotator,
     communicationContext : SmcCommunicationContext[SpcEntity],
     entity : SpcEntity,
     determiner : SilDeterminer)
       : Seq[SilReference] =
   {
     val references = super.equivalentReferences(
-      communicationContext, entity, determiner)
+      annotator, communicationContext, entity, determiner)
     if (entity.form.name == SnavigShell.INVENTORY_WORD) {
       val (nouns, others) =
         references.partition(r =>

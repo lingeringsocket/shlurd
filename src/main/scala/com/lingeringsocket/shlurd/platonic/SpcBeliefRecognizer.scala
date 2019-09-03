@@ -100,16 +100,109 @@ object SpcBeliefRecognizer
       case _ => None
     }
   }
+
+  def recognizeWordRule(
+    sentence : SilSentence
+  ) : Option[SprWordRule] =
+  {
+    sentence match {
+      case SilPredicateSentence(
+        SilRelationshipPredicate(
+          quotation : SilQuotationReference,
+          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+          interpretation,
+          Seq()
+        ),
+        tam,
+        _
+      ) => {
+        if (
+          tam.isNegative || !tam.isIndicative || !tam.isPresent ||
+          (tam.aspect != ASPECT_SIMPLE)
+        ) {
+          None
+        } else {
+          val labels = recognizeWordLabels(interpretation)
+          if (labels.nonEmpty) {
+            val isClosed = tam.modality match {
+              case MODAL_MUST => true
+              case _ => false
+            }
+            Some(SprWordRule(
+              tokenizeQuotation(quotation),
+              labels, isClosed))
+          } else {
+            None
+          }
+        }
+      }
+      case _ => None
+    }
+  }
+
+  private def recognizeWordLabels(
+    interpretation : SilReference
+  ) : Seq[String] =
+  {
+    interpretation match {
+      case SilDeterminedReference(
+        SilMandatorySingular(SilNounReference(noun, _)),
+        DETERMINER_NONSPECIFIC
+      ) => {
+        recognizeWordLabel(Seq(noun)).toSeq
+      }
+      case SilDeterminedReference(
+        SilStateSpecifiedReference(
+          SilMandatorySingular(
+            SilNounReference(
+              noun, _
+            )
+          ),
+          SilPropertyState(qualifier)
+        ),
+        DETERMINER_NONSPECIFIC
+      ) => {
+        recognizeWordLabel(Seq(qualifier, noun)).toSeq
+      }
+      case SilConjunctiveReference(
+        DETERMINER_ANY,
+        references,
+        _
+      ) => {
+        val subs = references.map(ref =>
+          recognizeWordLabels(ref)
+        )
+        if (subs.exists(_.isEmpty)) {
+          Seq.empty
+        } else {
+          subs.flatten
+        }
+      }
+      case _ => Seq.empty
+    }
+  }
+
+  private def tokenizeQuotation(quotation : SilQuotationReference)
+      : Seq[String] =
+  {
+    val tokenizedSentences = SprParser.tokenize(quotation.quotation)
+    if (tokenizedSentences.size != 1) {
+      Seq.empty
+    } else {
+      tokenizedSentences.head.tokens.map(_.text)
+    }
+  }
 }
 
 class SpcBeliefRecognizer(
+  annotator : SilAnnotator,
   val cosmos : SpcCosmos,
   resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
     extends SmcDebuggable(new SmcDebugger(SpcBeliefRecognizer.logger))
 {
   import SpcBeliefRecognizer._
 
-  protected val creed = new SpcCreed(cosmos)
+  protected val creed = new SpcCreed(annotator, cosmos)
 
   private var finished = false
 
@@ -891,98 +984,6 @@ class SpcBeliefRecognizer(
     } else {
       Seq(AssertionBelief(
         assertionSentence, additionalConsequents, alternative))
-    }
-  }
-
-  def recognizeWordRule(
-    sentence : SilSentence
-  ) : Option[SprWordRule] =
-  {
-    sentence match {
-      case SilPredicateSentence(
-        SilRelationshipPredicate(
-          quotation : SilQuotationReference,
-          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
-          interpretation,
-          Seq()
-        ),
-        tam,
-        _
-      ) => {
-        if (
-          tam.isNegative || !tam.isIndicative || !tam.isPresent ||
-          (tam.aspect != ASPECT_SIMPLE)
-        ) {
-          None
-        } else {
-          val labels = recognizeWordLabels(interpretation)
-          if (labels.nonEmpty) {
-            val isClosed = tam.modality match {
-              case MODAL_MUST => true
-              case _ => false
-            }
-            Some(SprWordRule(
-              tokenizeQuotation(quotation),
-              labels, isClosed))
-          } else {
-            None
-          }
-        }
-      }
-      case _ => None
-    }
-  }
-
-  private def tokenizeQuotation(quotation : SilQuotationReference)
-      : Seq[String] =
-  {
-    val tokenizedSentences = SprParser.tokenize(quotation.quotation)
-    if (tokenizedSentences.size != 1) {
-      Seq.empty
-    } else {
-      tokenizedSentences.head.tokens.map(_.text)
-    }
-  }
-
-  private def recognizeWordLabels(
-    interpretation : SilReference
-  ) : Seq[String] =
-  {
-    interpretation match {
-      case SilDeterminedReference(
-        SilMandatorySingular(SilNounReference(noun, _)),
-        DETERMINER_NONSPECIFIC
-      ) => {
-        recognizeWordLabel(Seq(noun)).toSeq
-      }
-      case SilDeterminedReference(
-        SilStateSpecifiedReference(
-          SilMandatorySingular(
-            SilNounReference(
-              noun, _
-            )
-          ),
-          SilPropertyState(qualifier)
-        ),
-        DETERMINER_NONSPECIFIC
-      ) => {
-        recognizeWordLabel(Seq(qualifier, noun)).toSeq
-      }
-      case SilConjunctiveReference(
-        DETERMINER_ANY,
-        references,
-        _
-      ) => {
-        val subs = references.map(ref =>
-          recognizeWordLabels(ref)
-        )
-        if (subs.exists(_.isEmpty)) {
-          Seq.empty
-        } else {
-          subs.flatten
-        }
-      }
-      case _ => Seq.empty
     }
   }
 

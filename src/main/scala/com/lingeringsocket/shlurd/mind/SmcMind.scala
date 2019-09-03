@@ -40,7 +40,9 @@ class SmcMind[
 
   def newParser(input : String) = cosmos.newParser(input)
 
-  def analyzeSense[PhraseType <: SilPhrase](phrase : PhraseType) = phrase
+  def analyzeSense[PhraseType <: SilPhrase](
+    annotator : SilAnnotator,
+    phrase : PhraseType) = phrase
 
   def startConversation()
   {
@@ -225,6 +227,7 @@ class SmcMind[
   }
 
   def equivalentReferences(
+    annotator : SilAnnotator,
     communicationContext : SmcCommunicationContext[EntityType],
     entity : EntityType,
     determiner : SilDeterminer)
@@ -234,7 +237,7 @@ class SmcMind[
       entity, communicationContext.speakerEntity, PERSON_FIRST) ++
     pronounReference(
       entity, communicationContext.listenerEntity, PERSON_SECOND) ++
-    Seq(specificReference(entity, determiner))
+    Seq(specificReference(annotator, entity, determiner))
   }
 
   def thirdPersonReference(entities : Set[EntityType]) : Option[SilReference] =
@@ -263,6 +266,7 @@ class SmcMind[
   }
 
   def specificReference(
+    annotator : SilAnnotator,
     entity : EntityType,
     determiner : SilDeterminer) : SilReference =
   {
@@ -270,17 +274,18 @@ class SmcMind[
   }
 
   def specificReferences(
+    annotator : SilAnnotator,
     entities : Set[EntityType]) : SilReference =
   {
     assert(!entities.isEmpty)
     if (entities.size == 1) {
-      specificReference(entities.head, DETERMINER_UNIQUE)
+      specificReference(annotator, entities.head, DETERMINER_UNIQUE)
     } else {
       SilConjunctiveReference(
         DETERMINER_ALL,
         entities.toSeq.map(entity =>
           specificReference(
-            entity, DETERMINER_UNIQUE)))
+            annotator, entity, DETERMINER_UNIQUE)))
     }
   }
 }

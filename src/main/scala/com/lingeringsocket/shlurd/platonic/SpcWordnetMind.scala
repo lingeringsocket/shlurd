@@ -16,22 +16,10 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
-import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 import scala.collection._
 import scala.util._
-
-object SpcWordnetMind
-{
-  def debug(s : String)
-  {
-    val analyzer = new SilWordnetSenseAnalyzer
-    val sentence = SprParser(s).parseOne
-    val analyzed = analyzer.analyze(sentence)
-    println("ANALYSIS = " + analyzed)
-  }
-}
 
 class SpcWordnetMind(
   cosmos : SpcCosmos,
@@ -47,18 +35,21 @@ class SpcWordnetMind(
     mind
   }
 
-  override def analyzeSense[PhraseType <: SilPhrase](phrase : PhraseType) =
+  override def analyzeSense[PhraseType <: SilPhrase](
+    annotator : SilAnnotator,
+    phrase : PhraseType) =
   {
-    val analyzer = new SilWordnetSenseAnalyzer
+    val analyzer = new SilWordnetSenseAnalyzer(annotator)
     analyzer.analyze(phrase)
   }
 
   override def specificReference(
+    annotator : SilAnnotator,
     entity : SpcEntity,
     determiner : SilDeterminer) : SilReference =
   {
-    val ref = super.specificReference(entity, determiner)
-    val analyzer = new SilWordnetSenseAnalyzer
+    val ref = super.specificReference(annotator, entity, determiner)
+    val analyzer = new SilWordnetSenseAnalyzer(annotator)
     analyzer.analyze(ref)
   }
 

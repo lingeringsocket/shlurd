@@ -62,9 +62,10 @@ class SpcMind(cosmos : SpcCosmos)
       filterNot(SprParser.isIgnorableLine).mkString("\n")
     val sentences = responder.newParser(beliefs).parseAll
     val ok = responder.sentencePrinter.sb.respondCompliance
-    val inputRewriter = new SmcInputRewriter(this)
+    val inputRewriter = new SmcInputRewriter(this, responder.getAnnotator)
     sentences.foreach(sentence => {
-      val analyzed = inputRewriter.normalizeInput(analyzeSense(sentence))
+      val analyzed = inputRewriter.normalizeInput(
+        analyzeSense(responder.getAnnotator, sentence))
       val accepter = SpcBeliefAccepter.forResponder(responder)
       accepter.recognizeBeliefs(analyzed) match {
         case Seq(ib : IndirectBelief) => {
@@ -80,6 +81,7 @@ class SpcMind(cosmos : SpcCosmos)
   }
 
   override def equivalentReferences(
+    annotator : SilAnnotator,
     communicationContext : SmcCommunicationContext[SpcEntity],
     entity : SpcEntity,
     determiner : SilDeterminer) : Seq[SilReference] =
@@ -113,7 +115,7 @@ class SpcMind(cosmos : SpcCosmos)
               graph.getPossesseeEntity(edge2).form)
           })
         val equivs = super.equivalentReferences(
-          communicationContext, possessor, determiner)
+          annotator, communicationContext, possessor, determiner)
         val genitives = equivs.map(
           possessorEquiv => {
             if (cardinality > 1) {
@@ -144,13 +146,14 @@ class SpcMind(cosmos : SpcCosmos)
     )
     val qualifiedSeq = {
       if (!entity.properName.isEmpty) {
-        Seq(qualifiedReference(entity, DETERMINER_NONSPECIFIC))
+        Seq(qualifiedReference(annotator, entity, DETERMINER_NONSPECIFIC))
       } else {
         Seq.empty
       }
     }
-    super.equivalentReferences(communicationContext, entity, determiner) ++
-      rankedGenitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
+    super.equivalentReferences(
+      annotator, communicationContext, entity, determiner
+    ) ++ rankedGenitives.sortBy(_._2).map(_._1) ++ qualifiedSeq
   }
 
   protected def getFormName(form : SpcForm) : String =
@@ -210,6 +213,7 @@ class SpcMind(cosmos : SpcCosmos)
   }
 
   def qualifiedReference(
+    annotator : SilAnnotator,
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {
@@ -225,13 +229,14 @@ class SpcMind(cosmos : SpcCosmos)
   }
 
   override def specificReference(
+    annotator : SilAnnotator,
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {
     if (entity.properName.nonEmpty) {
       properReference(entity)
     } else {
-      qualifiedReference(entity, determiner)
+      qualifiedReference(annotator, entity, determiner)
     }
   }
 
@@ -258,8 +263,9 @@ class SpcMind(cosmos : SpcCosmos)
   {
     // FIXME for enums, use the correct meta entity
     val domainName = property.domain.name
+    val annotator = SilBasicAnnotator()
     val analyzedNoun =
-      analyzeSense(SilNounReference(SilWord(domainName))).noun
+      analyzeSense(annotator, SilNounReference(SilWord(domainName))).noun
     val form = resolveForm(analyzedNoun).getOrElse(SpcForm(domainName))
     val inflected = cosmos.getPropertyStateMap(property).
       get(value).getOrElse(value)

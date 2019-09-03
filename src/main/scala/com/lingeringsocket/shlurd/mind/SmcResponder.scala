@@ -163,7 +163,8 @@ class SmcContextualScorer[
         if (sentence.isUninterpretable) {
           return SilPhraseScore.conBig
         }
-        val analyzed = responder.getMind.analyzeSense(sentence)
+        val analyzed = responder.getMind.analyzeSense(
+          responder.getAnnotator, sentence)
         val resultCollector = SmcResultCollector[EntityType]
         val result = responder.resolveReferences(analyzed, resultCollector)
         if (result.isFailure) {
@@ -209,10 +210,14 @@ class SmcResponder[
 
   private def cosmos = mind.getCosmos
 
-  protected val inputRewriter = new SmcInputRewriter(mind)
+  // FIXME either make responder one-shot, or bundle
+  // this with phrases
+  protected var annotator = newAnnotator
 
-  private val responseRewriter =
-    new SmcResponseRewriter(mind, communicationContext)
+  protected def newInputRewriter() = new SmcInputRewriter(mind, annotator)
+
+  private def newResponseRewriter() =
+    new SmcResponseRewriter(mind, communicationContext, annotator)
 
   val sentencePrinter = new SilSentencePrinter
 
@@ -228,14 +233,23 @@ class SmcResponder[
 
   def getMind = mind
 
+  protected def newAnnotator : SilAnnotator =
+  {
+    SilBasicAnnotator()
+  }
+
+  def getAnnotator = annotator
+
   protected def newPredicateEvaluator(scope : ScopeType = mindScope) =
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
-      scope, generalParams.existenceAssumption,
+      annotator, scope, generalParams.existenceAssumption,
       communicationContext, debugger)
 
   def newParser(input : String) =
   {
-    val context = SprContext(scorer = new SmcContextualScorer(this))
+    val context = SprContext(
+      scorer = new SmcContextualScorer(this),
+      annotator = annotator)
     SprParser(input, context)
   }
 
@@ -254,10 +268,10 @@ class SmcResponder[
     })
     debug(s"INPUT SENTENCE : $sentence")
     SilPhraseValidator.validatePhrase(sentence)
-    val analyzed = mind.analyzeSense(sentence)
+    val analyzed = mind.analyzeSense(annotator, sentence)
     mind.rememberSpeakerSentence(
       SmcConversation.SPEAKER_NAME_PERSON, analyzed, input)
-    val normalizedInput = inputRewriter.normalizeInput(analyzed)
+    val normalizedInput = newInputRewriter.normalizeInput(analyzed)
     if (normalizedInput != analyzed) {
       trace(s"REWRITTEN INPUT : $normalizedInput")
     }
@@ -310,6 +324,7 @@ class SmcResponder[
       : (SilSentence, String) =
   {
     if (sentence.isUninterpretable) {
+      val responseRewriter = newResponseRewriter
       val unrecognized = responseRewriter.rewrite(
         responseRewriter.swapPronounsSpeakerListener(
           resultCollector.refMap),
@@ -327,13 +342,17 @@ class SmcResponder[
     sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
-    responderMatchers(resultCollector).flatMap(_(sentence)).
-      headOption.getOrElse {
-        debug("UNKNOWN SENTENCE")
-        wrapResponseText(
-          ShlurdExceptionCode.FailedParse,
-          sentencePrinter.sb.respondCannotUnderstand)
-      }
+    try {
+      responderMatchers(resultCollector).flatMap(_(sentence)).
+        headOption.getOrElse {
+          debug("UNKNOWN SENTENCE")
+          wrapResponseText(
+            ShlurdExceptionCode.FailedParse,
+            sentencePrinter.sb.respondCannotUnderstand)
+        }
+    } finally {
+      annotator = newAnnotator
+    }
   }
 
   protected def updateNarrative(
@@ -418,6 +437,7 @@ class SmcResponder[
     result match {
       case Success(Trilean.True) => {
         debug("COUNTERFACTUAL")
+        val responseRewriter = newResponseRewriter
         val (normalizedResponse, negateCollection) =
           responseRewriter.normalizeResponse(
             predicate, resultCollector, generalParams)
@@ -487,6 +507,7 @@ class SmcResponder[
                 QUESTION_WHAT | QUESTION_WHERE => Int.MaxValue
             case QUESTION_HOW_MANY => 0
           }
+          val responseRewriter = newResponseRewriter
           val (normalizedResponse, negateCollection) =
             responseRewriter.normalizeResponse(
               rewrittenPredicate, resultCollector,
@@ -595,6 +616,7 @@ class SmcResponder[
                 }
                 case _ => generalParams
               }
+              val responseRewriter = newResponseRewriter
               val (normalizedResponse, negateCollection) =
                 responseRewriter.normalizeResponse(
                   query, resultCollector, params)
@@ -667,6 +689,7 @@ class SmcResponder[
             case Success(truth) => {
               debug(s"KNOWN TRUTH : $truth")
               if (truth.assumeFalse == positivity) {
+                val responseRewriter = newResponseRewriter
                 val (normalizedResponse, negateCollection) =
                   responseRewriter.normalizeResponse(
                     predicate, resultCollector, generalParams)
@@ -845,7 +868,7 @@ class SmcResponder[
         val freePredicate =
           predicate.withNewModifiers(reducedModifiers)
         val boundPredicate =
-          inputRewriter.bindPredicateWildcard(freePredicate, objRef)
+          newInputRewriter.bindPredicateWildcard(freePredicate, objRef)
         (adp, boundPredicate, freePredicate, reducedModifiers)
       }
     }
@@ -930,7 +953,7 @@ class SmcResponder[
           queryDirectObject, queryModifiers)
       ) if (mind.isEquivalentVerb(eventAction, queryAction)) => {
         def isVariable(phrase : SilPhrase) = {
-          inputRewriter.containsWildcard(phrase)
+          SmcPhraseQuerier.containsWildcard(phrase)
         }
         val bindings = new mutable.ArrayBuffer[(SilReference, SilReference)]
         def bindVariable(queryRef : SilReference, eventRef : SilReference) {
@@ -1038,14 +1061,14 @@ class SmcResponder[
     question : SilQuestion,
     answerInflection : SilInflection) =
   {
-    new SmcQueryRewriter(question, answerInflection)
+    new SmcQueryRewriter(annotator, question, answerInflection)
   }
 
   private def replaceReferencesWithEntities(
     phrase : SilPhrase,
     refMap : SmcRefMap[EntityType]) : SilPhrase =
   {
-    val rewriter = new SilPhraseRewriter
+    val rewriter = new SilPhraseRewriter(annotator)
     def replaceReferences = rewriter.replacementMatcher(
       "replaceReferencesWithEntities", {
         case ref : SilReference => {

@@ -20,7 +20,8 @@ import net.sf.extjwnl.data._
 
 import scala.collection._
 
-class SilWordnetSenseAnalyzer extends SilPhraseRewriter
+class SilWordnetSenseAnalyzer(annotator : SilAnnotator)
+    extends SilPhraseRewriter(annotator)
 {
   def analyze[PhraseType <: SilPhrase](phrase : PhraseType) : PhraseType =
   {

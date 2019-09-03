@@ -364,6 +364,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
   }
 
   override def specificReference(
+    annotator : SilAnnotator,
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {
@@ -410,14 +411,14 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
           }
         }
       }
-      val ref = super.specificReference(roomyEntity, determiner)
+      val ref = super.specificReference(annotator, roomyEntity, determiner)
       if (cosmos.isAmbiguous(entity)) {
         cosmos.getContainer(entity) match {
           case Some(containerEntity) => {
             cosmos.getContainer(containerEntity) match {
               case Some(floorEntity) => {
                 val floorRef =
-                  specificReference(floorEntity, DETERMINER_UNIQUE)
+                  specificReference(annotator, floorEntity, DETERMINER_UNIQUE)
                 SilStateSpecifiedReference(
                   ref,
                   SilAdpositionalState(

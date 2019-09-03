@@ -224,6 +224,7 @@ class ZooMind(cosmos : ZooCosmos)
   }
 
   override def specificReference(
+    annotator : SilAnnotator,
     entity : SmcEntity,
     determiner : SilDeterminer) =
   {

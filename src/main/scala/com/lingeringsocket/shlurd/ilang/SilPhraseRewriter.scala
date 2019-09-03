@@ -64,7 +64,7 @@ class TraceEmitter(logger : Logger) extends Emitter
 object SilPhraseRewriter
 {
   def onPhraseTransformation(
-    annotatorOpt : Option[SilAnnotator],
+    annotator : SilAnnotator,
     oldPhrase : SilPhrase, newPhrase : SilTransformedPhrase)
   {
     oldPhrase.maybeSyntaxTree.foreach(syntaxTree => {
@@ -75,9 +75,7 @@ object SilPhraseRewriter
         oldRef : SilAnnotatedReference,
         newRef : SilAnnotatedReference
       ) => {
-        annotatorOpt.orElse(oldRef.maybeAnnotator).
-          orElse(newRef.maybeAnnotator).
-          foreach(_.transform(oldRef, newRef))
+        annotator.transform(oldRef, newRef)
       }
     }
   }
@@ -136,7 +134,7 @@ class SilPhraseQuerier
 }
 
 class SilPhraseRewriter(
-  annotatorOpt : Option[SilAnnotator] = None
+  annotator : SilAnnotator
 ) extends SilPhraseQuerier
 {
   import SilPhraseRewriter._
@@ -156,7 +154,7 @@ class SilPhraseRewriter(
           newTransformed : SilTransformedPhrase
         ) => {
           onPhraseTransformation(
-            annotatorOpt, oldTransformed, newTransformed)
+            annotator, oldTransformed, newTransformed)
         }
       }
       tupleN((oldPhrase, newPhrase)) matchPartial {

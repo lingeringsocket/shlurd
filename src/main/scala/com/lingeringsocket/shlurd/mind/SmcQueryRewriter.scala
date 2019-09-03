@@ -17,9 +17,10 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd.ilang._
 
 class SmcQueryRewriter(
+  annotator : SilAnnotator,
   question : SilQuestion,
   answerInflection : SilInflection)
-    extends SilPhraseRewriter
+    extends SilPhraseRewriter(annotator)
 {
   def rewriteSpecifier(determinedSubs : Set[SilReference]) = replacementMatcher(
     "rewriteSpecifier", {

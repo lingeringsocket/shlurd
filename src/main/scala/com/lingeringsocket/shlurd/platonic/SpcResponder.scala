@@ -115,6 +115,8 @@ class SpcContextualScorer(responder : SpcResponder)
   }
 }
 
+// FIXME annotators need to be sorted out when we commingle expressions
+// from assertions
 class SpcResponder(
   mind : SpcMind,
   beliefParams : SpcBeliefParams =
@@ -133,8 +135,8 @@ class SpcResponder(
 
   private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
 
-  private val assertionMapper = new SpcAssertionMapper(
-    mind, communicationContext, inputRewriter, sentencePrinter)
+  private def newAssertionMapper() = new SpcAssertionMapper(
+    mind, communicationContext, newInputRewriter, sentencePrinter)
 
   override protected def spawn(subMind : SpcMind) =
   {
@@ -146,13 +148,14 @@ class SpcResponder(
   {
     val context = SprContext(
       mind.getCosmos.getWordLabeler,
-      scorer = new SpcContextualScorer(this))
+      scorer = new SpcContextualScorer(this),
+      annotator = annotator)
     SprParser(input, context)
   }
 
   override protected def newPredicateEvaluator(scope : ScopeType = mindScope) =
     new SmcPredicateEvaluator[SpcEntity, SpcProperty, SpcCosmos, SpcMind](
-      scope, params.existenceAssumption,
+      annotator, scope, params.existenceAssumption,
       communicationContext, debugger)
   {
     override protected def reifyRole(
@@ -183,12 +186,13 @@ class SpcResponder(
       }
       getBiconditionalImplications.foreach {
         case (conditionalSentence, placeholderMap) => {
-          assertionMapper.matchImplication(
+          newAssertionMapper().matchImplication(
             "IMPLIES",
             mind.getCosmos,
             conditionalSentence,
             predicate,
             SpcAssertionBinding(
+              annotator,
               resultCollector.refMap,
               Some(resultCollector.refMap),
               Some(placeholderMap)
@@ -219,12 +223,13 @@ class SpcResponder(
       // are multiple matches, we should be conjoining them.
       val replacements = getBiconditionalImplications.flatMap {
         case (conditionalSentence, placeholderMap) => {
-          assertionMapper.matchImplication(
+          newAssertionMapper().matchImplication(
             "IMPLIES",
             mind.getCosmos,
             conditionalSentence,
             predicate,
             SpcAssertionBinding(
+              annotator,
               refMap,
               None,
               Some(placeholderMap),
@@ -256,7 +261,7 @@ class SpcResponder(
       refMap : SpcRefMap
     ) : (SilPredicate, Int) =
     {
-      val rewriter = new SilPhraseRewriter
+      val rewriter = new SilPhraseRewriter(annotator)
       var score = 0
       def optimizePredicate = rewriter.replacementMatcher(
         "optimizePredicate", {
@@ -351,7 +356,7 @@ class SpcResponder(
     placeholderMap : SpcMutableRefMap
   ) : PhraseType =
   {
-    val rewriter = new SilPhraseRewriter
+    val rewriter = new SilPhraseRewriter(annotator)
     def standardizeOne(ref : SilReference) : SilReference =
     {
       SpcImplicationMapper.findPlaceholderCorrespondence(
@@ -398,7 +403,7 @@ class SpcResponder(
     placeholderMap : SpcMutableRefMap
   ) : SilPredicate =
   {
-    val rewriter = new SilPhraseRewriter
+    val rewriter = new SilPhraseRewriter(annotator)
     def replaceReferences = rewriter.replacementMatcher(
       "flipVariables", {
         case ref : SilReference => {
@@ -676,12 +681,13 @@ class SpcResponder(
         "TRIGGERS"
       }
     }
-    assertionMapper.matchImplicationPlusAlternative(
+    newAssertionMapper().matchImplicationPlusAlternative(
       operator,
       forkedCosmos, conditionalSentence,
       predicate,
       additionalConsequents, alternative,
       SpcAssertionBinding(
+        annotator,
         resultCollector.refMap,
         Some(resultCollector.refMap),
         Some(placeholderMap)),
@@ -843,7 +849,7 @@ class SpcResponder(
     question : SilQuestion,
     answerInflection : SilInflection) =
   {
-    new SpcQueryRewriter(question, answerInflection)
+    new SpcQueryRewriter(annotator, question, answerInflection)
   }
 
   private def updateRefMap(
@@ -1002,7 +1008,8 @@ class SpcResponder(
     specific : SilPredicate,
     refMap : SpcRefMap) : Boolean =
   {
-    assertionMapper.matchSubsumption(
+    newAssertionMapper().matchSubsumption(
+      annotator,
       forkedCosmos,
       general,
       specific,
@@ -1088,7 +1095,7 @@ class SpcResponder(
     predicate : SilPredicate,
     refMap : SpcRefMap) =
   {
-    val rewriter = new SilPhraseRewriter
+    val rewriter = new SilPhraseRewriter(annotator)
     def replaceReferences = rewriter.replacementMatcher(
       "bindReferences", {
         case ref : SilReference => {
@@ -1287,11 +1294,12 @@ class SpcResponder(
         return Success(true)
       } else {
         mind.getCosmos.getTriggers.foreach(trigger => {
-          assertionMapper.matchImplication(
+          newAssertionMapper().matchImplication(
             "IMPLIES",
             mind.getCosmos, trigger.conditionalSentence,
             predicate,
             SpcAssertionBinding(
+              annotator,
               modifiableRefMap,
               Some(modifiableRefMap),
               Some(trigger.getPlaceholderMap))

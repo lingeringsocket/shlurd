@@ -712,8 +712,9 @@ class SnavigShell(
           if (speaker == listener) {
             talkToSelf
           } else {
+            val annotator = SilBasicAnnotator()
             val listenerReference = phenomenalMind.specificReference(
-              listener, DETERMINER_UNIQUE)
+              annotator, listener, DETERMINER_UNIQUE)
             val reply = accessEntityMind(listener) match {
               case Some(entityMind) => {
                 val communicationContext = SmcCommunicationContext(
@@ -901,9 +902,10 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
     refMap : SpcRefMap)
       : Option[String] =
   {
+    val annotator = SilBasicAnnotator()
     val sentence = SilPredicateSentence(
       SilStatePredicate(
-        noumenalMind.specificReferences(invocation.entities),
+        noumenalMind.specificReferences(annotator, invocation.entities),
         STATE_PREDEF_BE.toVerb,
         SilPropertyState(invocation.state)
       )
