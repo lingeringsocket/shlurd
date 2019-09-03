@@ -134,7 +134,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
           SilStateSpecifiedReference(
             SilMandatorySingular(
               SilNounReference(
-                word : SilSimpleWord, _
+                word : SilSimpleWord
               )
             ),
             SilAdpositionalState(
@@ -162,8 +162,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         SilStateSpecifiedReference(
           SilNounReference(
-            direction : SilSimpleWord,
-            _),
+            direction : SilSimpleWord
+          ),
           SilAdpositionalState(
             adp,
             landmark)
@@ -340,7 +340,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         objRef match {
           case SilMandatorySingular(
             SilNounReference(
-              _, _
+              _
             )
           ) => {
             false

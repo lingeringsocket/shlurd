@@ -275,7 +275,7 @@ class SpcResponder(
             possessor @ SilDeterminedReference(
               _ : SilNounReference, DETERMINER_ANY
             ),
-            possessee @ SilNounReference(_, _)
+            possessee @ SilNounReference(_)
           ) => {
             if (score == 0) {
               score = 1
@@ -360,11 +360,11 @@ class SpcResponder(
     def standardizeOne(ref : SilReference) : SilReference =
     {
       SpcImplicationMapper.findPlaceholderCorrespondence(
-        ref, Some(placeholderMap)
+        annotator, ref, Some(placeholderMap)
       ) match {
         case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
           val newRef = SpcImplicationMapper.flipVariable(
-            sentencePrinter, correspondingRefs.head, ref)
+            annotator, sentencePrinter, correspondingRefs.head, ref)
           placeholderMap.put(newRef, placeholderMap(ref))
           newRef
         }
@@ -408,11 +408,11 @@ class SpcResponder(
       "flipVariables", {
         case ref : SilReference => {
           SpcImplicationMapper.findPlaceholderCorrespondence(
-            ref, Some(placeholderMap)
+            annotator, ref, Some(placeholderMap)
           ) match {
             case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
               val newRef = SpcImplicationMapper.flipVariable(
-                sentencePrinter, ref, correspondingRefs.head)
+                annotator, sentencePrinter, ref, correspondingRefs.head)
               placeholderMap.put(newRef, placeholderMap(ref))
               newRef
             }
@@ -824,7 +824,8 @@ class SpcResponder(
       rewritten matchPartial {
         case SilRelationshipPredicate(
           SilDeterminedReference(
-            SilNounReference(SilWordLemma(lemma), count), DETERMINER_ANY),
+            SilCountedNounReference(SilWordLemma(lemma), count),
+            DETERMINER_ANY),
           SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           complement,
           modifiers
@@ -1184,7 +1185,7 @@ class SpcResponder(
         }
         case SilGenitiveReference(
           possessor,
-          SilOptionallyDeterminedReference(SilNounReference(noun, _), _)
+          SilOptionallyDeterminedReference(SilNounReference(noun), _)
         ) => {
           val possessorType = deriveType(possessor, refMap)
           mind.resolveRole(possessorType, noun) match {
@@ -1210,7 +1211,7 @@ class SpcResponder(
         case SilAppositionalReference(primary, _) => {
           deriveType(primary, refMap)
         }
-        case SilOptionallyDeterminedReference(SilNounReference(noun, _), _) => {
+        case SilOptionallyDeterminedReference(SilNounReference(noun), _) => {
           // FIXME resolve roles as well?
           if (noun.isProper) {
             lcaType(

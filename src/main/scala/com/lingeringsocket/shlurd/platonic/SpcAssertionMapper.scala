@@ -188,14 +188,15 @@ class SpcAssertionMapper(
 
   private def expandPatterns(
     set : Set[SilReference],
-    placeholderMapOpt : Option[SpcRefMap]) : Set[SilReference] =
+    binding : SpcAssertionBinding) : Set[SilReference] =
   {
-    placeholderMapOpt match {
+    binding.placeholderMap match {
       case Some(placeholderMap) => {
         set ++ set.flatMap(
           ref => findPlaceholderCorrespondence(
-            ref, placeholderMapOpt
-          )._2.map(r => flipVariable(sentencePrinter, r, r)))
+            binding.annotator, ref, binding.placeholderMap
+          )._2.map(r =>
+            flipVariable(binding.annotator, sentencePrinter, r, r)))
       }
       case _ => set
     }
@@ -210,24 +211,25 @@ class SpcAssertionMapper(
   ) : Boolean =
   {
     tupleN((
-      findPlaceholderCorrespondence(ref, binding.placeholderMap),
+      findPlaceholderCorrespondence(
+        binding.annotator, ref, binding.placeholderMap),
       extractNoun(ref)
     )) match {
       case ((true, patternRefSetUnexpanded), Some(noun)) => {
         val patternRefSet = expandPatterns(
-          patternRefSetUnexpanded, binding.placeholderMap)
+          patternRefSetUnexpanded, binding)
         val resolvedForm = mind.resolveForm(noun)
         if (SmcPhraseQuerier.containsWildcard(actualRef)) {
           val wildcardRef = actualRef match {
             // FIXME need the same treatment for other variables, but
             // with intersectionality
             case SilDeterminedReference(
-              SilNounReference(SilWordLemma(LEMMA_WHAT), count),
+              SilCountedNounReference(SilWordLemma(LEMMA_WHAT), count),
               DETERMINER_ANY
             ) => {
               resolvedForm match {
                 case Some(restrictedForm) => {
-                  val typedRef = SilDeterminedNounReference(
+                  val typedRef = binding.annotator.determinedNounRef(
                     SilWord(restrictedForm.name),
                     DETERMINER_ANY,
                     count
@@ -481,7 +483,8 @@ class SpcAssertionMapper(
           case Seq(SilAdpositionalVerbModifier(
             adposition, objRef
           )) if (
-            findPlaceholderCorrespondence(objRef, binding.placeholderMap)._1
+            findPlaceholderCorrespondence(
+              binding.annotator, objRef, binding.placeholderMap)._1
           ) => {
             // FIXME some modifiers (e.g. "never") might
             // negate the match

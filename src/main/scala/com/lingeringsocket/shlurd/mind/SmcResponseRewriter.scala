@@ -62,8 +62,7 @@ class SmcResponseRewriter[
                 SilGenitiveReference(
                   _,
                   SilNounReference(
-                    SilWordLemma(SmcLemmas.LEMMA_CONTAINEE),
-                    _
+                    SilWordLemma(SmcLemmas.LEMMA_CONTAINEE)
                   )
                 ),
                 _
@@ -103,11 +102,13 @@ class SmcResponseRewriter[
       "neutralizePossesseeWildcard", {
         case SilGenitiveReference(
           possessor,
-          SilDeterminedReference(SilNounReference(noun, count), DETERMINER_ANY)
+          SilDeterminedReference(
+            SilCountedNounReference(noun, count),
+            DETERMINER_ANY)
         ) => {
           SilGenitiveReference(
             possessor,
-            SilNounReference(noun, count)
+            annotator.nounRef(noun, count)
           )
         }
       }
@@ -117,7 +118,7 @@ class SmcResponseRewriter[
     {
       normalizeConjunctionWrapper(
         SEPARATOR_OXFORD_COMMA,
-        SilDeterminedNounReference(noun, DETERMINER_ALL, count))
+        annotator.determinedNounRef(noun, DETERMINER_ALL, count))
     }
 
     def expandToDisjunction(
@@ -145,7 +146,7 @@ class SmcResponseRewriter[
           }
           case _ => (DETERMINER_NONE, noun)
         }
-        SilDeterminedNounReference(responseNoun, responseDeterminer, count)
+        annotator.determinedNounRef(responseNoun, responseDeterminer, count)
       }
     }
 
@@ -183,7 +184,7 @@ class SmcResponseRewriter[
         }
         case dr @ SilDeterminedReference(
           SilStackedStateReference(
-            nr @ SilNounReference(noun, count),
+            nr @ SilCountedNounReference(noun, count),
             states),
           DETERMINER_ANY | DETERMINER_SOME
         ) => {
@@ -201,7 +202,7 @@ class SmcResponseRewriter[
         }
         case SilDeterminedReference(
           SilStackedStateReference(
-            SilNounReference(noun, count),
+            SilCountedNounReference(noun, count),
             states),
           DETERMINER_ALL
         ) => {
@@ -345,8 +346,7 @@ class SmcResponseRewriter[
             SilGenitiveReference(
               containee,
               SilNounReference(
-                SilWordLemma(SmcLemmas.LEMMA_CONTAINER),
-                _
+                SilWordLemma(SmcLemmas.LEMMA_CONTAINER)
               )),
             verbModifiers
           ),
@@ -377,8 +377,7 @@ class SmcResponseRewriter[
             SilGenitiveReference(
               container,
               SilNounReference(
-                SilWordLemma(SmcLemmas.LEMMA_CONTAINEE),
-                _
+                SilWordLemma(SmcLemmas.LEMMA_CONTAINEE)
               )),
             verbModifiers
           ),
@@ -597,7 +596,7 @@ class SmcResponseRewriter[
     refMap : SmcMutableRefMap[EntityType]
   ) = querier.queryMatcher {
     case nr @ SilOptionallyDeterminedReference(
-      SilNounReference(noun, _), determiner
+      SilNounReference(noun), determiner
     ) => {
       determiner match {
         case DETERMINER_UNIQUE =>
@@ -648,7 +647,7 @@ class SmcResponseRewriter[
             detector.analyze(ref)
           }
         case SilNounReference(
-          noun, _
+          noun
         ) if (noun.isProper) => {
           detector.analyze(ref)
         }
@@ -776,7 +775,7 @@ class SmcResponseRewriter[
       // FIXME should have a case for arbitrary SilDeterminedReference
       // here too, but it's tricky
       case SilOptionallyDeterminedReference(
-        oldNounRef @ SilNounReference(noun, count),
+        oldNounRef @ SilCountedNounReference(noun, count),
         determiner
       ) => {
         if (count == agreedCount) {
@@ -793,11 +792,10 @@ class SmcResponseRewriter[
               determiner
             }
           }
-          val newNounRef = SilNounReference(
+          val nounRef = annotator.nounRef(
             noun.toNounUninflected,
             agreedCount)
-          annotator.getBasicNote(newNounRef).setCount(agreedCount)
-          SilReference.determined(newNounRef, newDeterminer)
+          SilReference.determined(nounRef, newDeterminer)
         }
       }
       case _ => reference
@@ -922,8 +920,7 @@ class SmcResponseRewriter[
       case "1" => COUNT_SINGULAR
       case _ => COUNT_PLURAL
     }
-    val nounRef = SilNounReference(number, count)
-    annotator.getBasicNote(nounRef).setCount(count)
+    val nounRef = annotator.nounRef(number, count)
     Some(
       SilStateSpecifiedReference(
         SilReference.determined(nounRef, determiner),

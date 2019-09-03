@@ -54,8 +54,7 @@ object SmcPhraseQuerier
         SilWordLemma(LEMMA_WHO) |
           SilWordLemma(LEMMA_WHOM) |
           SilWordLemma(LEMMA_WHAT) |
-          SilWordLemma(LEMMA_WHERE),
-        _
+          SilWordLemma(LEMMA_WHERE)
       ) => {
         wildcard = true
       }

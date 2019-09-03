@@ -58,6 +58,24 @@ trait SilAnnotator
     newRef : ReferenceType)
 
   def getBasicNote(ref : SilAnnotatedReference) : SilAbstractRefNote
+
+  def nounRef(
+    noun : SilWord, count : SilCount = COUNT_SINGULAR
+  ) : SilNounReference =
+  {
+    val newRef = register(SilNounReference(noun))
+    getBasicNote(newRef).setCount(count)
+    newRef
+  }
+
+  def determinedNounRef(
+    noun : SilWord, determiner : SilDeterminer,
+    count : SilCount = COUNT_SINGULAR
+  ) : SilReference =
+  {
+    val ref = nounRef(noun, count)
+    SilReference.determined(ref, determiner)
+  }
 }
 
 trait SilAnnotation[NoteType <: SilAbstractRefNote]
@@ -96,9 +114,11 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
     oldRef : SilAnnotatedReference,
     newRef : ReferenceType
   ) {
-    if (oldRef.hasAnnotation) {
+    val newId = newRef.getAnnotationId
+    // FIXME merge in case both old and new notes are present
+    if (oldRef.hasAnnotation && !map.contains(newId)) {
       map.get(oldRef.getAnnotationId).foreach(
-        note => map.put(newRef.getAnnotationId, note))
+        note => map.put(newId, note))
     }
   }
 

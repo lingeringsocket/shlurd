@@ -217,6 +217,11 @@ class SprEnglishVerbSpec extends Specification
     )
   }
 
+  private def determinedNounRef(word : SilWord, determiner : SilDeterminer) =
+  {
+    SilDeterminedReference(SilNounReference(word), determiner)
+  }
+
   private def rhsSeq(
     question : Option[(SilQuestion, SilInflection)] = None)
       : Seq[Option[SilPhrase]] =
@@ -235,14 +240,14 @@ class SprEnglishVerbSpec extends Specification
       case Some((QUESTION_HOW_MANY, INFLECT_ACCUSATIVE)) => {
         Seq(
           Some(SilNounReference(
-            SilWord("customers", "customer"),
-            COUNT_PLURAL))
+            SilWord("customers", "customer")
+          ))
         )
       }
       case _ => {
         Seq(
           None,
-          Some(SilDeterminedNounReference(
+          Some(determinedNounRef(
             SilWord("customer"), DETERMINER_UNIQUE)),
           Some(SilPropertyState(SilWord("ridiculous")))
         )
@@ -262,16 +267,15 @@ class SprEnglishVerbSpec extends Specification
     Seq(
       (SilNounReference(SilWord(LEMMA_WHO)),
         (QUESTION_WHO, INFLECT_NOMINATIVE)),
-      (SilDeterminedNounReference(SilWord("agent"), DETERMINER_UNIQUE),
+      (determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
         (QUESTION_WHO, INFLECT_ACCUSATIVE)),
       (SilNounReference(SilWord("agent")),
         (QUESTION_WHICH, INFLECT_NOMINATIVE)),
-      (SilDeterminedNounReference(SilWord("agent"), DETERMINER_UNIQUE),
+      (determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
         (QUESTION_WHICH, INFLECT_ACCUSATIVE)),
-      (SilNounReference(SilWord("agents", "agent"),
-        COUNT_PLURAL),
+      (SilNounReference(SilWord("agents", "agent")),
         (QUESTION_HOW_MANY, INFLECT_NOMINATIVE)),
-      (SilDeterminedNounReference(SilWord("agent"), DETERMINER_UNIQUE),
+      (determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
         (QUESTION_HOW_MANY, INFLECT_ACCUSATIVE))
     )
   }

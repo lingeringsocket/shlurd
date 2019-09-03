@@ -37,9 +37,9 @@ class SilWordnetSenseAnalyzer(annotator : SilAnnotator)
             directObject,
             modifiers)
         }
-        case SilNounReference(noun, count) => {
+        case SilCountedNounReference(noun, count) => {
           val senseId = filterSenses(noun, POS.NOUN, sense => true)
-          SilNounReference(noun.withSense(senseId), count)
+          annotator.nounRef(noun.withSense(senseId), count)
         }
       }
     )

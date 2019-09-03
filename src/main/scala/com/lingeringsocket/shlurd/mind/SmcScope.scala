@@ -218,7 +218,7 @@ class SmcPhraseScope[
               case SilAppositionalReference(
                 primary,
                 SilDeterminedReference(
-                  SilMandatorySingular(SilNounReference(alias, _)),
+                  SilMandatorySingular(SilNounReference(alias)),
                   DETERMINER_UNIQUE
                 )
               ) => {
@@ -239,7 +239,7 @@ class SmcPhraseScope[
             }
             primary match {
               case SilDeterminedReference(
-                SilNounReference(SilWordLemma(lemma), _),
+                SilNounReference(SilWordLemma(lemma)),
                 DETERMINER_NONSPECIFIC
               ) if (matchLemma(lemma)) => {
                 Some(tupleN((prior, set, produceOrdinal(1))))
@@ -247,8 +247,7 @@ class SmcPhraseScope[
               case SilStateSpecifiedReference(
                 SilMandatorySingular(
                   SilNounReference(
-                    SilWordLemma(lemma),
-                    _
+                    SilWordLemma(lemma)
                   )
                 ),
                 SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
@@ -259,8 +258,7 @@ class SmcPhraseScope[
                 SilStateSpecifiedReference(
                   SilMandatorySingular(
                     SilNounReference(
-                      SilWordLemma(lemma),
-                      _
+                      SilWordLemma(lemma)
                     )
                   ),
                   SilPropertyState(SilWordLemma(qualifier))

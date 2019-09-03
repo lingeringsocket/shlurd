@@ -146,7 +146,7 @@ class SpcBeliefAccepter private(
           sentence))).getOrElse(
       ref match {
         case SilOptionallyDeterminedReference(
-          SilNounReference(noun, _),
+          SilNounReference(noun),
           determiner
         ) => {
           resolveUniqueNameAndExistence(sentence, noun, determiner)._1
@@ -664,7 +664,7 @@ class SpcBeliefAccepter private(
         ).getOrElse(
           entityRef match {
             case SilOptionallyDeterminedReference(
-              SilNounReference(noun, count),
+              SilCountedNounReference(noun, count),
               determiner
             ) => {
               val (entity, isNewEntity) = {
@@ -1173,7 +1173,7 @@ class SpcBeliefAccepter private(
     (subject, complement) match {
       case (
         r,
-        SilGenitiveReference(p, SilNounReference(w, _))
+        SilGenitiveReference(p, SilNounReference(w))
       ) => {
         Some((r, p, w))
       }

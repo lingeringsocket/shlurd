@@ -604,7 +604,7 @@ case class SilStateSpecifiedReference(
     state matchPartial {
       case SilAdpositionalState(SilAdposition.OF, pn : SilPronounReference) => {
         reference matchPartial {
-          case SilNounReference(SilWordLemma(lemma), _) => {
+          case SilNounReference(SilWordLemma(lemma)) => {
             if (lemma.forall(Character.isDigit)) {
               return false
             }
@@ -657,11 +657,23 @@ case class SilDeterminedReference(
   override def acceptsSpecifiers = reference.acceptsSpecifiers
 }
 
+object SilCountedNounReference
+{
+  def unapply(ref : SilNounReference) =
+  {
+    Some(tupleN((ref.noun, ref.count)))
+  }
+}
+
 case class SilNounReference(
-  noun : SilWord,
-  count : SilCount = COUNT_SINGULAR
+  noun : SilWord
 ) extends SilAnnotatedReference
 {
+  def count : SilCount =
+  {
+    maybeAnnotator.map(
+      _.getBasicNote(this).getCount).getOrElse(COUNT_SINGULAR)
+  }
 }
 
 case class SilMappedReference(
@@ -928,17 +940,6 @@ object SilOptionallyDeterminedReference
         Some((ref, DETERMINER_UNSPECIFIED))
       }
     }
-  }
-}
-
-object SilDeterminedNounReference
-{
-  def apply(
-    noun : SilWord, determiner : SilDeterminer,
-    count : SilCount = COUNT_SINGULAR
-  ) : SilReference =
-  {
-    SilReference.determined(SilNounReference(noun, count), determiner)
   }
 }
 

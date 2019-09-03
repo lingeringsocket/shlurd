@@ -91,7 +91,7 @@ class SpcMind(cosmos : SpcCosmos)
         if (entity.form.name == PROPERTY_TYPE_STRING.name) {
           return Seq(SilQuotationReference(value))
         } else {
-          return Seq(SilNounReference(SilWord(inflected, value)))
+          return Seq(annotator.nounRef(SilWord(inflected, value)))
         }
       }
     }
@@ -121,19 +121,19 @@ class SpcMind(cosmos : SpcCosmos)
             if (cardinality > 1) {
               // "one of Pete's uncles"
               SilStateSpecifiedReference(
-                SilNounReference(SilWord(LEMMA_ONE)),
+                annotator.nounRef(SilWord(LEMMA_ONE)),
                 SilAdpositionalState(
                   SilAdposition.OF,
                   SilGenitiveReference(
                     possessorEquiv,
-                    SilNounReference(SilWord.uninflected(
+                    annotator.nounRef(SilWord.uninflected(
                       getPossesseeName(specializedRole)),
                       COUNT_PLURAL))))
             } else {
               // "Larry's father"
               SilGenitiveReference(
                 possessorEquiv,
-                SilNounReference(SilWord(getPossesseeName(specializedRole))))
+                annotator.nounRef(SilWord(getPossesseeName(specializedRole))))
             }
           }
         )
@@ -207,9 +207,11 @@ class SpcMind(cosmos : SpcCosmos)
     }
   }
 
-  def properReference(entity : SpcEntity) =
+  def properReference(
+    annotator : SilAnnotator,
+    entity : SpcEntity) =
   {
-    SilNounReference(SilWord(entity.properName))
+    annotator.nounRef(SilWord(entity.properName))
   }
 
   def qualifiedReference(
@@ -218,7 +220,7 @@ class SpcMind(cosmos : SpcCosmos)
     determiner : SilDeterminer) =
   {
     val formName = getFormName(entity.form)
-    val nounRef = SilDeterminedNounReference(
+    val nounRef = annotator.determinedNounRef(
       SilWord(formName), determiner)
     if (entity.properName.isEmpty) {
       SilReference.qualified(
@@ -234,7 +236,7 @@ class SpcMind(cosmos : SpcCosmos)
     determiner : SilDeterminer) =
   {
     if (entity.properName.nonEmpty) {
-      properReference(entity)
+      properReference(annotator, entity)
     } else {
       qualifiedReference(annotator, entity, determiner)
     }
@@ -265,7 +267,7 @@ class SpcMind(cosmos : SpcCosmos)
     val domainName = property.domain.name
     val annotator = SilBasicAnnotator()
     val analyzedNoun =
-      analyzeSense(annotator, SilNounReference(SilWord(domainName))).noun
+      analyzeSense(annotator, annotator.nounRef(SilWord(domainName))).noun
     val form = resolveForm(analyzedNoun).getOrElse(SpcForm(domainName))
     val inflected = cosmos.getPropertyStateMap(property).
       get(value).getOrElse(value)

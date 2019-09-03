@@ -103,7 +103,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           print(sub, inflection, conjoining)
         )
       }
-      case SilNounReference(noun, count) => {
+      case SilCountedNounReference(noun, count) => {
         sb.delemmatizeNoun(noun, count, inflection, conjoining)
       }
       case SilPronounReference(person, gender, count, distance) => {
@@ -360,7 +360,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     // state gets lost for questions such as QUESTION_WHAT
     val (plainSubject, subjectInflection) = predicate.getSubject match {
       case SilGenitiveReference(
-        SilNounReference(SilWordLemma(LEMMA_WHO), _),
+        SilNounReference(SilWordLemma(LEMMA_WHO)),
         possessee
       ) => {
         tupleN((
@@ -493,7 +493,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilPronounReference(person, gender, count, _) => {
         tupleN((person, gender, count))
       }
-      case SilNounReference(_, count) => {
+      case SilCountedNounReference(_, count) => {
         tupleN((PERSON_THIRD, GENDER_N, count))
       }
       case SilConjunctiveReference(determiner, references, _) => {

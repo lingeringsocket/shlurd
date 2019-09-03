@@ -202,7 +202,7 @@ class SpcCreed(
         SilRelationshipPredicate(
           noun,
           REL_PREDEF_IDENTITY.toVerb,
-          SilDeterminedNounReference(
+          annotator.determinedNounRef(
             SilWord(property.domain.name), DETERMINER_NONSPECIFIC)
         )
       }
@@ -280,7 +280,7 @@ class SpcCreed(
           } else {
             SilGenitiveReference(
               subject,
-              SilNounReference(SilWord(eps.propertyName))
+              annotator.nounRef(SilWord(eps.propertyName))
             )
           }
         }
@@ -294,7 +294,7 @@ class SpcCreed(
         SilRelationshipPredicate(
           SilGenitiveReference(
             subject,
-            SilNounReference(SilWord(eps.propertyName))),
+            annotator.nounRef(SilWord(eps.propertyName))),
           REL_PREDEF_IDENTITY.toVerb,
           SilQuotationReference(eps.lemma)
         )
@@ -429,11 +429,11 @@ class SpcCreed(
   {
     count match {
       case COUNT_PLURAL => {
-        SilNounReference(
+        annotator.nounRef(
           SilWord.uninflected(noun), COUNT_PLURAL)
       }
       case _ => {
-        SilDeterminedNounReference(SilWord(noun), determiner)
+        annotator.determinedNounRef(SilWord(noun), determiner)
       }
     }
   }

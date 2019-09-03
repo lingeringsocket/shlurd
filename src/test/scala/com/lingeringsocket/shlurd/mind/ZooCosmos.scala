@@ -231,7 +231,7 @@ class ZooMind(cosmos : ZooCosmos)
     entity match {
       case animal : ZooAnimalEntity => {
         val words = animal.name.split(" ")
-        val nounRef = SilDeterminedNounReference(
+        val nounRef = annotator.determinedNounRef(
           SilWord(words.last), determiner)
         if (words.size == 1) {
           nounRef

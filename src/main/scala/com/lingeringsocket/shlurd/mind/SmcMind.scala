@@ -116,7 +116,7 @@ class SmcMind[
         true
       }
       case SilNounReference(
-        noun, _
+        noun
       ) => {
         noun.isProper
       }

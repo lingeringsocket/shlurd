@@ -58,8 +58,7 @@ class SmcResponderSpec extends Specification
               SilAdposition.IN,
               SilMandatorySingular(
                 SilNounReference(
-                  SilWordInflected("dreamland"),
-                  _
+                  SilWordInflected("dreamland")
                 )
               )) =>
               {

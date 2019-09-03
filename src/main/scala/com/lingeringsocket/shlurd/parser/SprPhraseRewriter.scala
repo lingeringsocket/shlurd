@@ -137,10 +137,9 @@ class SprPhraseRewriter(
     determiner : SilDeterminer) =
   {
     val count = analyzer.getCount(nounlike)
-    val nounRef = SilNounReference(
+    val nounRef = context.annotator.nounRef(
       analyzer.getWord(nounlike.child),
       count)
-    context.annotator.getBasicNote(nounRef).setCount(count)
     rememberDetermined(
       SilReference.determined(nounRef, determiner),
       nounlike)
@@ -163,10 +162,9 @@ class SprPhraseRewriter(
     determiner : SilDeterminer) =
   {
     val count = analyzer.getCount(compound.children.last)
-    val nounRef = SilNounReference(
+    val nounRef = context.annotator.nounRef(
       analyzer.getCompoundWord(compound),
       count)
-    context.annotator.getBasicNote(nounRef).setCount(count)
     rememberDetermined(
       SilReference.determined(nounRef, determiner),
         compound)

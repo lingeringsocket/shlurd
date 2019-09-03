@@ -93,7 +93,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
   }
 
   private def scoreUsage = phraseScorer {
-    case SilNounReference(noun, _) => {
+    case SilNounReference(noun) => {
       usageScore(noun.toNounLemma, POS.NOUN)
     }
     case SilPropertyState(sw : SilSimpleWord) => {
@@ -116,7 +116,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
 
   private def scoreCompoundNouns = phraseScorer {
     case SilNounReference(
-      noun, _
+      noun
     ) if (noun.decomposed.size > 1) => {
       val matchCount = noun.decomposed.count(
         word => (word.inflected == word.lemma))
@@ -163,9 +163,9 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     case SilRelationshipPredicate(
       _,
       _,
-      SilMandatorySingular(SilNounReference(_, _)) |
+      SilMandatorySingular(SilNounReference(_)) |
         SilStateSpecifiedReference(
-          SilMandatorySingular(SilNounReference(_, _)),
+          SilMandatorySingular(SilNounReference(_)),
           _
         ),
       _

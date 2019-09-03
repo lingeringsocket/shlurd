@@ -118,7 +118,7 @@ class SmcPredicateEvaluator[
                     } else {
                       entityRef match {
                         case SilOptionallyDeterminedReference(
-                          SilNounReference(noun, _),
+                          SilNounReference(noun),
                           DETERMINER_ANY | DETERMINER_UNSPECIFIED
                         ) => {
                           noun.toNounLemma match {
@@ -316,7 +316,7 @@ class SmcPredicateEvaluator[
             case SilGenitiveReference(
               possessor,
               possessee @ SilOptionallyDeterminedReference(
-                SilNounReference(noun, _), _
+                SilNounReference(noun), _
               )
             ) => {
               possessor match {
@@ -867,7 +867,7 @@ class SmcPredicateEvaluator[
   {
     val refMap = resultCollector.refMap
     reference match {
-      case SilNounReference(noun, count) => {
+      case SilCountedNounReference(noun, count) => {
         evaluatePredicateOverNounReference(
           reference,
           noun,
@@ -880,7 +880,7 @@ class SmcPredicateEvaluator[
           evaluator)
       }
       case SilOptionallyDeterminedReference(
-        SilNounReference(noun, count), nounDeterminer
+        SilCountedNounReference(noun, count), nounDeterminer
       ) => {
         val determiner = nounDeterminer match {
           case DETERMINER_UNSPECIFIED => enclosingDeterminer
@@ -1011,7 +1011,7 @@ class SmcPredicateEvaluator[
             possessee matchPartial {
               case SilMandatorySingular(
                 SilNounReference(
-                  noun, _
+                  noun
                 )
               ) => {
                 resultCollector.lookup(possessor).
@@ -1051,7 +1051,7 @@ class SmcPredicateEvaluator[
             if (resultCollector.resolvingReferences) {
               possessee matchPartial {
                 case SilOptionallyDeterminedReference(
-                  SilNounReference(noun, _),
+                  SilNounReference(noun),
                   DETERMINER_UNSPECIFIED | DETERMINER_ANY
                 ) => {
                   resultCollector.lookup(possessor).foreach(
@@ -1159,7 +1159,7 @@ class SmcPredicateEvaluator[
         debug("ERROR", e)
         val errorRef = entityRef match {
           case SilOptionallyDeterminedReference(
-            SilNounReference(noun, count), determiner
+            SilCountedNounReference(noun, count), determiner
           ) => {
             val rephrased = noun match {
               case SilWordLemma(LEMMA_WHO) =>
@@ -1176,7 +1176,7 @@ class SmcPredicateEvaluator[
               case DETERMINER_ANY | DETERMINER_SOME => DETERMINER_NONSPECIFIC
               case _ => determiner
             }
-            SilDeterminedNounReference(rephrased, rephrasedDeterminer, count)
+            annotator.determinedNounRef(rephrased, rephrasedDeterminer, count)
           }
           case _ => {
             mind.specificReference(annotator, entity, DETERMINER_NONSPECIFIC)
@@ -1221,7 +1221,7 @@ class SmcPredicateEvaluator[
     // FIXME:  support qualifiers etc
     reference match {
       case SilDeterminedReference(
-        SilMandatorySingular(SilNounReference(noun, _)),
+        SilMandatorySingular(SilNounReference(noun)),
         DETERMINER_NONSPECIFIC
       ) => {
         Some(noun)
@@ -1238,7 +1238,7 @@ class SmcPredicateEvaluator[
     // FIXME:  do something less hacky
     complementRef match {
       case SilOptionallyDeterminedReference(
-        SilNounReference(noun, count),
+        SilCountedNounReference(noun, count),
         determiner
       ) => {
         Set(noun)

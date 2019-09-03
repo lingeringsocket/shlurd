@@ -45,7 +45,7 @@ class SmcInputRewriter[
     "convertGenitiveOf", {
       case SilOptionallyDeterminedReference(
         SilStateSpecifiedReference(
-          SilNounReference(noun, count),
+          SilCountedNounReference(noun, count),
           SilAdpositionalState(
             SilAdposition.OF,
             possessor
@@ -62,7 +62,7 @@ class SmcInputRewriter[
       ) => {
         SilGenitiveReference(
           possessor,
-          SilNounReference(noun, count))
+          annotator.nounRef(noun, count))
       }
     }
   )

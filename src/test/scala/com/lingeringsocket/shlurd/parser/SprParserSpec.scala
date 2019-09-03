@@ -112,6 +112,12 @@ class SprParserSpec extends Specification
 
   private val EXISTENTIAL_THERE = Some(SilWord("there"))
 
+  private def determinedNounRef(
+    word : SilWord, determiner : SilDeterminer) =
+  {
+    SilReference.determined(SilNounReference(word), determiner)
+  }
+
   private def predTransitiveAction(
     subject : SilWord,
     verb : SilWord = ACTION_OPENS,
@@ -122,17 +128,16 @@ class SprParserSpec extends Specification
     SilActionPredicate(
       SilNounReference(subject),
       verb,
-      Some(SilDeterminedNounReference(directObject, determiner, count)))
+      Some(determinedNounRef(directObject, determiner)))
   }
 
   private def predIntransitiveAction(
     subject : SilWord,
     verb : SilWord = ACTION_OPENS,
-    determiner : SilDeterminer = DETERMINER_UNIQUE,
-    count : SilCount = COUNT_SINGULAR) =
+    determiner : SilDeterminer = DETERMINER_UNIQUE) =
   {
     SilActionPredicate(
-      SilDeterminedNounReference(subject, determiner, count),
+      determinedNounRef(subject, determiner),
       verb)
   }
 
@@ -140,11 +145,10 @@ class SprParserSpec extends Specification
     subject : SilWord,
     verb : SilWord,
     state : SilWord,
-    determiner : SilDeterminer,
-    count : SilCount) =
+    determiner : SilDeterminer) =
   {
     SilStatePredicate(
-      SilDeterminedNounReference(subject, determiner, count),
+      determinedNounRef(subject, determiner),
       verb,
       SilPropertyState(state))
   }
@@ -152,10 +156,9 @@ class SprParserSpec extends Specification
   private def predStateDoor(
     verb : SilWord = VERB_IS,
     state : SilWord = STATE_OPEN,
-    determiner : SilDeterminer = DETERMINER_UNIQUE,
-    count : SilCount = COUNT_SINGULAR) =
+    determiner : SilDeterminer = DETERMINER_UNIQUE) =
   {
-    predState(NOUN_DOOR, verb, state, determiner, count)
+    predState(NOUN_DOOR, verb, state, determiner)
   }
 
   private def stateCommandAction(
@@ -271,20 +274,20 @@ class SprParserSpec extends Specification
       parse("there is a steak knife") must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
-            SilDeterminedNounReference(
+            determinedNounRef(
               NOUN_STEAK_KNIFE, DETERMINER_NONSPECIFIC),
             VERB_IS,
             SilExistenceState(EXISTENTIAL_THERE)))
       parse("there is a big top") must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
-            SilDeterminedNounReference(NOUN_BIG_TOP, DETERMINER_NONSPECIFIC),
+            determinedNounRef(NOUN_BIG_TOP, DETERMINER_NONSPECIFIC),
             VERB_IS,
             SilExistenceState(EXISTENTIAL_THERE)))
       parse("there is a lemon meringue pie") must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
-            SilDeterminedNounReference(
+            determinedNounRef(
               NOUN_LEMON_MERINGUE_PIE, DETERMINER_NONSPECIFIC),
             VERB_IS,
             SilExistenceState(EXISTENTIAL_THERE)))
@@ -311,7 +314,7 @@ class SprParserSpec extends Specification
       val input = "which door is open"
       val expected = SilPredicateQuery(
         predStateDoor(
-          VERB_IS, STATE_OPEN, DETERMINER_UNSPECIFIED, COUNT_SINGULAR),
+          VERB_IS, STATE_OPEN, DETERMINER_UNSPECIFIED),
         QUESTION_WHICH, INFLECT_NOMINATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
@@ -375,7 +378,7 @@ class SprParserSpec extends Specification
       val expected = SilPredicateQuery(
         predState(
           NOUN_DOORS, VERB_ARE, STATE_OPEN,
-          DETERMINER_UNSPECIFIED, COUNT_PLURAL),
+          DETERMINER_UNSPECIFIED),
         QUESTION_HOW_MANY, INFLECT_NOMINATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
       parse(input + "?") must be equalTo expected
@@ -387,7 +390,7 @@ class SprParserSpec extends Specification
       val expected = SilPredicateQuery(
         predTransitiveAction(
           NOUN_FRANNY, ACTION_CARRYING, NOUN_PIGS,
-          DETERMINER_UNSPECIFIED, COUNT_PLURAL),
+          DETERMINER_UNSPECIFIED),
         QUESTION_HOW_MANY, INFLECT_ACCUSATIVE,
         SilTam.interrogative.progressive)
       parse(input) must be equalTo expected
@@ -440,8 +443,8 @@ class SprParserSpec extends Specification
           SilActionPredicate(
             SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
             ACTION_KILL,
-            Some(SilDeterminedNounReference(
-              NOUN_PIGS, DETERMINER_UNIQUE, COUNT_PLURAL))),
+            Some(determinedNounRef(
+              NOUN_PIGS, DETERMINER_UNIQUE))),
           SilTam.imperative)
     }
 
@@ -451,11 +454,11 @@ class SprParserSpec extends Specification
       parse(input) must be equalTo
         SilPredicateSentence(
           SilRelationshipPredicate(
-            SilDeterminedNounReference(
-              NOUN_PORTAL, DETERMINER_NONSPECIFIC, COUNT_SINGULAR),
+            determinedNounRef(
+              NOUN_PORTAL, DETERMINER_NONSPECIFIC),
             VERB_IS,
-            SilDeterminedNounReference(
-              NOUN_DOOR, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+            determinedNounRef(
+              NOUN_DOOR, DETERMINER_NONSPECIFIC)
           )
         )
     }
@@ -472,8 +475,8 @@ class SprParserSpec extends Specification
             SilNounReference(
               NOUN_SOLOMON_GRUNDY),
             VERB_IS,
-            SilDeterminedNounReference(
-              NOUN_PERSON, DETERMINER_NONSPECIFIC, COUNT_SINGULAR)
+            determinedNounRef(
+              NOUN_PERSON, DETERMINER_NONSPECIFIC)
           )
         )
     }
@@ -521,8 +524,8 @@ class SprParserSpec extends Specification
       parse(conjunction) must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
-            SilDeterminedNounReference(
-              NOUN_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
+            determinedNounRef(
+              NOUN_DOOR, DETERMINER_UNIQUE),
             VERB_IS,
             SilConjunctiveState(
               DETERMINER_ALL,
@@ -534,8 +537,8 @@ class SprParserSpec extends Specification
       parse(disjunction) must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
-            SilDeterminedNounReference(
-              NOUN_DOOR, DETERMINER_UNIQUE, COUNT_SINGULAR),
+            determinedNounRef(
+              NOUN_DOOR, DETERMINER_UNIQUE),
             VERB_IS,
             SilConjunctiveState(
               DETERMINER_UNIQUE,
@@ -574,7 +577,7 @@ class SprParserSpec extends Specification
       parse(inputAll) must be equalTo
         stateCommandAction(
           predState(NOUN_DOORS, VERB_BE, STATE_OPEN,
-            DETERMINER_ALL, COUNT_PLURAL))
+            DETERMINER_ALL))
       val inputNone = "open no door"
       parse(inputNone) must be equalTo
         stateCommandAction(predStateDoor(VERB_BE, STATE_OPEN, DETERMINER_NONE))
@@ -588,7 +591,7 @@ class SprParserSpec extends Specification
       parse(inputAllQ) must be equalTo
         SilPredicateSentence(
           predState(NOUN_DOORS, VERB_ARE, STATE_OPEN,
-            DETERMINER_ALL, COUNT_PLURAL),
+            DETERMINER_ALL),
           SilTam.interrogative)
     }
 
@@ -627,11 +630,11 @@ class SprParserSpec extends Specification
         SilDeterminedReference(
           SilStateSpecifiedReference(
             SilNounReference(
-              NOUN_WINDOW, COUNT_SINGULAR),
+              NOUN_WINDOW),
             SilAdpositionalState(
               SilAdposition.IN,
-              SilDeterminedNounReference(
-                NOUN_BATHROOM, DETERMINER_UNIQUE, COUNT_SINGULAR))),
+              determinedNounRef(
+                NOUN_BATHROOM, DETERMINER_UNIQUE))),
           DETERMINER_UNIQUE),
         verb,
         SilPropertyState(STATE_OPEN)
@@ -656,10 +659,10 @@ class SprParserSpec extends Specification
           SilRelationshipPredicate(
             SilNounReference(SilWord(LEMMA_WHERE)),
             VERB_WAS,
-            SilDeterminedNounReference(NOUN_MOUSE, DETERMINER_UNIQUE),
+            determinedNounRef(NOUN_MOUSE, DETERMINER_UNIQUE),
             Seq(SilAdpositionalVerbModifier(
               SilAdposition(SilWord("before")),
-              SilDeterminedNounReference(NOUN_BATHROOM, DETERMINER_UNIQUE)
+              determinedNounRef(NOUN_BATHROOM, DETERMINER_UNIQUE)
             ))
           ),
           QUESTION_WHERE,
@@ -807,7 +810,7 @@ class SprParserSpec extends Specification
     "parse existence" in
     {
       def doorExistencePred(verb : SilWord = VERB_IS) = SilStatePredicate(
-        SilDeterminedNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
+        determinedNounRef(NOUN_DOOR, DETERMINER_NONSPECIFIC),
         verb,
         SilExistenceState(EXISTENTIAL_THERE))
 
@@ -848,8 +851,8 @@ class SprParserSpec extends Specification
             SilExistenceState(EXISTENTIAL_THERE))))
 
       val doorPlusWindow = Seq(
-        SilDeterminedNounReference(NOUN_DOOR, DETERMINER_NONSPECIFIC),
-        SilDeterminedNounReference(NOUN_WINDOW, DETERMINER_NONSPECIFIC))
+        determinedNounRef(NOUN_DOOR, DETERMINER_NONSPECIFIC),
+        determinedNounRef(NOUN_WINDOW, DETERMINER_NONSPECIFIC))
       parse("There is a door and a window") must be equalTo(
         SilPredicateSentence(
           SilStatePredicate(

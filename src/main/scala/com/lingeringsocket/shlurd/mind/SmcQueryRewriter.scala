@@ -24,10 +24,10 @@ class SmcQueryRewriter(
 {
   def rewriteSpecifier(determinedSubs : Set[SilReference]) = replacementMatcher(
     "rewriteSpecifier", {
-      case cr @ SilNounReference(
+      case cr @ SilCountedNounReference(
         noun, count
       ) if (!noun.isProper && !determinedSubs.contains(cr)) => {
-        SilDeterminedNounReference(noun, DETERMINER_ANY, count)
+        annotator.determinedNounRef(noun, DETERMINER_ANY, count)
       }
     }
   )

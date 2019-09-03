@@ -530,8 +530,7 @@ object SprParser extends SprEnglishWordAnalyzer
     ref match {
       case SilMandatorySingular(
         SilNounReference(
-          SilWordLemma(lemma),
-          _
+          SilWordLemma(lemma)
         )
       ) => {
         lemma.toLowerCase match {
@@ -545,7 +544,7 @@ object SprParser extends SprEnglishWordAnalyzer
           PERSON_THIRD, GENDER_N, COUNT_SINGULAR, DISTANCE_HERE),
         SilMandatorySingular(
           SilNounReference(
-            SilWordLemma(lemma), _
+            SilWordLemma(lemma)
           )
         )
       ) => {

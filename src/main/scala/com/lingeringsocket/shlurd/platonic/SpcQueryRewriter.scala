@@ -41,7 +41,7 @@ class SpcQueryRewriter(
               REL_PREDEF_IDENTITY.toVerb,
               SilGenitiveReference(
                 container,
-                SilNounReference(SilWord(SmcLemmas.LEMMA_CONTAINEE))),
+                annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINEE))),
               modifiers
             )
           }
@@ -57,7 +57,7 @@ class SpcQueryRewriter(
           case QUESTION_WHERE => {
             SilGenitiveReference(
               complement,
-              SilNounReference(SilWord(SmcLemmas.LEMMA_CONTAINER)))
+              annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINER)))
           }
           case _ => complement
         }

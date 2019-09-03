@@ -82,7 +82,7 @@ object SilUtils
     reference match {
       case SilPronounReference(_, _, count, _) =>
         count
-      case SilNounReference(_, count) =>
+      case SilCountedNounReference(_, count) =>
         count
       case SilConjunctiveReference(determiner, _, _) => {
         determiner match {
