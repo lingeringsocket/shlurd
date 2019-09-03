@@ -73,7 +73,7 @@ class SprSingleParser(
 {
   protected def normalize(sentence : SilSentence) : SilSentence =
   {
-    val normalizationRewriter = new SprNormalizationRewriter
+    val normalizationRewriter = new SprNormalizationRewriter(context)
     normalizationRewriter.normalize(sentence)
   }
 
@@ -83,7 +83,7 @@ class SprSingleParser(
       case SptROOT(sentenceSyntaxTree) => {
         val parsingRewriter = new SprPhraseRewriter(
           context,
-          new SprEnglishSyntaxAnalyzer(guessedQuestion))
+          new SprEnglishSyntaxAnalyzer(context.annotator, guessedQuestion))
         val parsed = parsingRewriter.parseSentence(sentenceSyntaxTree)
         normalize(parsed)
       }

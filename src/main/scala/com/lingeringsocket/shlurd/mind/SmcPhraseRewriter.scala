@@ -21,7 +21,7 @@ import SprEnglishLemmas._
 
 class SmcPhraseRewriter extends SilPhraseRewriter
 {
-  protected val querier = new SilPhraseRewriter
+  protected val querier = new SilPhraseQuerier
 
   def containsWildcard(
     phrase : SilPhrase,

@@ -129,7 +129,7 @@ object SprHeuristicAcceptCompleteSentence extends SprHeuristicFilter
         case _ : SptSBARQ => true
         case _ : SptSINV => true
         case _ : SptSQ => {
-          val querier = new SilPhraseRewriter
+          val querier = new SilPhraseQuerier
           var accepted = true
           def findDangling = querier.queryMatcher {
             case _ : SilDanglingVerbModifier => {
@@ -167,12 +167,12 @@ class SprHeuristicSynthesizer(
   private val rewriterIntermediate = new SprPhraseRewriter(
     context,
     new SprEnglishSyntaxAnalyzer(
-      false, SPR_STRICTNESS_TIGHT, false))
+      context.annotator, false, SPR_STRICTNESS_TIGHT, false))
 
   private val rewriterFinal = new SprPhraseRewriter(
     context,
     new SprEnglishSyntaxAnalyzer(
-      false, SPR_STRICTNESS_TIGHT))
+      context.annotator, false, SPR_STRICTNESS_TIGHT))
 
   private val spanGraph = new SimpleDirectedGraph[Int, SpanEdge](
     classOf[SpanEdge])

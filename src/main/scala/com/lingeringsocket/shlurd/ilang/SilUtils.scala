@@ -22,7 +22,7 @@ object SilUtils
     phrase : SilPhrase, topDown : Boolean = false) : Seq[SilReference] =
   {
     val refs = new mutable.ArrayBuffer[SilReference]
-    val phraseQuerier = new SilPhraseRewriter
+    val phraseQuerier = new SilPhraseQuerier
     val rule = phraseQuerier.queryMatcher {
       case ref : SilReference => {
         refs += ref
@@ -61,6 +61,20 @@ object SilUtils
   }
 
   def getCount(reference : SilReference) : SilCount =
+  {
+    reference match {
+      case annotatedRef : SilAnnotatedReference if (
+        annotatedRef.hasAnnotation
+      ) => {
+        annotatedRef.getAnnotator.getBasicNote(annotatedRef).getCount
+      }
+      case _ => {
+        deriveCount(reference)
+      }
+    }
+  }
+
+  def deriveCount(reference : SilReference) : SilCount =
   {
     reference match {
       case SilPronounReference(_, _, count, _) =>

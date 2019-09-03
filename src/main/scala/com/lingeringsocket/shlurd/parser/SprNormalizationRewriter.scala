@@ -24,8 +24,8 @@ private[parser] object SprNormalizationRewriter
   private val compassRose = Set("north", "south", "east", "west")
 }
 
-private[parser] class SprNormalizationRewriter
-  extends SilPhraseRewriter with SprEnglishWordAnalyzer
+private[parser] class SprNormalizationRewriter(context : SprContext)
+  extends SilPhraseRewriter(Some(context.annotator)) with SprEnglishWordAnalyzer
 {
   import SprNormalizationRewriter._
 

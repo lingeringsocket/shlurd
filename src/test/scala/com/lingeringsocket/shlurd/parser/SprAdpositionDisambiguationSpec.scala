@@ -36,7 +36,7 @@ class SprAdpositionDisambiguationSpec extends Specification
     val phrase = SprParser(input).parseOne
     var adverbial = 0
     var adjectival = 0
-    val querier = new SilPhraseRewriter
+    val querier = new SilPhraseQuerier
     def matcher = querier.queryMatcher {
       case _ : SilAdpositionalVerbModifier => {
         adverbial += 1

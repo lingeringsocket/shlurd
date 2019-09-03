@@ -168,7 +168,7 @@ sealed trait SilUnresolvedPhrase extends SilPhrase
   override def hasUnresolved = true
 }
 
-abstract class SilTransformedPhrase extends SilPhrase
+sealed abstract class SilTransformedPhrase extends SilPhrase
 {
   protected var syntaxTreeOpt : Option[SprSyntaxTree] = None
 
@@ -180,6 +180,43 @@ abstract class SilTransformedPhrase extends SilPhrase
   def hasSyntaxTree = !syntaxTreeOpt.isEmpty
 
   override def maybeSyntaxTree = syntaxTreeOpt
+}
+
+sealed abstract class SilAnnotatedReference
+    extends SilTransformedPhrase with SilReference
+{
+  private var annotatorOpt : Option[SilAnnotator] = None
+
+  private var annotationId = 0
+
+  private[ilang] def registerAnnotation(
+    annotator : SilAnnotator, id : Int)
+  {
+    assert(annotatorOpt.isEmpty)
+    annotatorOpt = Some(annotator)
+    annotationId = id
+  }
+
+  def hasAnnotation() : Boolean =
+  {
+    annotatorOpt.nonEmpty
+  }
+
+  def maybeAnnotator() : Option[SilAnnotator] =
+  {
+    annotatorOpt
+  }
+
+  def getAnnotator() : SilAnnotator =
+  {
+    annotatorOpt.get
+  }
+
+  def getAnnotationId() : Int =
+  {
+    assert(hasAnnotation)
+    annotationId
+  }
 }
 
 sealed trait SilAdpositionalPhrase extends SilTransformedPhrase
@@ -256,13 +293,15 @@ case class SilExpectedPredicate(
 
 case class SilExpectedReference(
   syntaxTree : SprSyntaxTree
-) extends SilUnknownReference with SilUnresolvedPhrase
+) extends SilAnnotatedReference
+    with SilUnknownReference with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedPossessiveReference(
   syntaxTree : SprSyntaxTree
-) extends SilUnknownReference with SilUnresolvedPhrase
+) extends SilAnnotatedReference
+    with SilUnknownReference with SilUnresolvedPhrase
 {
 }
 
@@ -270,7 +309,8 @@ case class SilExpectedNounlikeReference(
   syntaxTree : SprSyntaxTree,
   preTerminal : SprSyntaxTree,
   determiner : SilDeterminer
-) extends SilUnknownReference with SilUnresolvedPhrase
+) extends SilAnnotatedReference
+    with SilUnknownReference with SilUnresolvedPhrase
 {
 }
 
@@ -535,7 +575,7 @@ case class SilActionPredicate(
 case class SilParenthesizedReference(
   reference : SilReference,
   bracket : SilBracket
-) extends SilTransformedPhrase with SilReference
+) extends SilAnnotatedReference
 {
   override def children = Seq(reference)
 
@@ -545,7 +585,7 @@ case class SilParenthesizedReference(
 case class SilAppositionalReference(
   primary : SilReference,
   secondary : SilReference
-) extends SilTransformedPhrase with SilReference
+) extends SilAnnotatedReference
 {
   override def children = Seq(primary, secondary)
 
@@ -555,7 +595,7 @@ case class SilAppositionalReference(
 case class SilStateSpecifiedReference(
   reference : SilReference,
   state : SilState
-) extends SilTransformedPhrase with SilReference
+) extends SilAnnotatedReference
 {
   override def children = Seq(reference, state)
 
@@ -579,7 +619,7 @@ case class SilStateSpecifiedReference(
 case class SilGenitiveReference(
   possessor : SilReference,
   possessee : SilReference
-) extends SilTransformedPhrase with SilReference
+) extends SilAnnotatedReference
 {
   override def children = Seq(possessor, possessee)
 }
@@ -589,7 +629,7 @@ case class SilPronounReference(
   gender : SilGender,
   count : SilCount,
   distance : SilDistance = DISTANCE_UNSPECIFIED
-) extends SilTransformedPhrase with SilReference
+) extends SilAnnotatedReference
 {
   override def acceptsSpecifiers = false
 }
@@ -598,7 +638,7 @@ case class SilConjunctiveReference(
   determiner : SilDeterminer,
   references : Seq[SilReference],
   separator : SilSeparator = SEPARATOR_CONJOINED
-) extends SilTransformedPhrase with SilReference
+) extends SilAnnotatedReference
 {
   override def children = references
 
@@ -610,7 +650,7 @@ case class SilConjunctiveReference(
 case class SilDeterminedReference(
   reference : SilReference,
   determiner : SilDeterminer
-) extends SilTransformedPhrase with SilReference
+) extends SilAnnotatedReference
 {
   override def children = Seq(reference)
 
@@ -620,21 +660,21 @@ case class SilDeterminedReference(
 case class SilNounReference(
   noun : SilWord,
   count : SilCount = COUNT_SINGULAR
-) extends SilTransformedPhrase with SilReference
+) extends SilAnnotatedReference
 {
 }
 
 case class SilMappedReference(
   key : String,
   determiner : SilDeterminer
-) extends SilUnknownReference
+) extends SilAnnotatedReference with SilUnknownReference
 {
   override def syntaxTree = SprSyntaxLeaf(key, key, key)
 }
 
 case class SilQuotationReference(
   quotation : String
-) extends SilTransformedPhrase with SilReference
+) extends SilAnnotatedReference
 {
 }
 

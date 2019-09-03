@@ -675,7 +675,7 @@ class SpcBeliefRecognizer(
     antecedentEvent : Boolean,
     checkPatterns : Boolean = true)
   {
-    val querier = new SilPhraseRewriter
+    val querier = new SilPhraseQuerier
     def reportException(code : ShlurdExceptionCode)
     {
       exceptionReporter.reportException(code)
@@ -861,7 +861,7 @@ class SpcBeliefRecognizer(
         if (additionalSentences.nonEmpty) {
           reportException(AssertionModifiersIncompatible)
         }
-        val querier = new SilPhraseRewriter
+        val querier = new SilPhraseQuerier
         def validateCapability = querier.queryMatcher {
           case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
             ignored = true

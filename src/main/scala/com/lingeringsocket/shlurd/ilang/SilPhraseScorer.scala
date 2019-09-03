@@ -75,7 +75,7 @@ trait SilPhraseScorer
   def computeGlobalScore(phrase : SilPhrase) : SilPhraseScore =
   {
     var score = SilPhraseScore.neutral
-    val querier = new SilPhraseRewriter
+    val querier = new SilPhraseQuerier
     def scorer = querier.queryMatcher {
       case phrase : SilPhrase => {
         score = score + computeLocalScore(phrase)

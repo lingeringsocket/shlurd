@@ -22,6 +22,7 @@ case object SPR_STRICTNESS_TIGHT extends SprStrictness
 case object SPR_STRICTNESS_LOOSE extends SprStrictness
 
 abstract class SprAbstractSyntaxAnalyzer(
+  annotator : SilAnnotator,
   strictness : SprStrictness = SPR_STRICTNESS_LOOSE)
     extends SprSyntaxAnalyzer
 {

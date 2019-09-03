@@ -83,7 +83,7 @@ class SpcContextualScorer(responder : SpcResponder)
       }
     }
     var propBoost = SilPhraseScore.neutral
-    val querier = new SilPhraseRewriter
+    val querier = new SilPhraseQuerier
     val cosmos = responder.getMind.getCosmos
     def detectBoosts = querier.queryMatcher {
       case SilStatePredicate(

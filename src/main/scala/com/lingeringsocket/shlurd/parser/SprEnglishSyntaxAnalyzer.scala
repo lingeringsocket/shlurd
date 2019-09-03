@@ -22,9 +22,11 @@ import SprEnglishLemmas._
 import SprUtils._
 
 class SprEnglishSyntaxAnalyzer(
+  annotator : SilAnnotator,
   guessedQuestion : Boolean, strictness : SprStrictness = SPR_STRICTNESS_LOOSE,
   enforceTransitive : Boolean = true)
-    extends SprAbstractSyntaxAnalyzer(strictness) with SprEnglishWordAnalyzer
+    extends SprAbstractSyntaxAnalyzer(annotator, strictness)
+    with SprEnglishWordAnalyzer
 {
   override def analyzeSentence(tree : SptS)
       : SilSentence =

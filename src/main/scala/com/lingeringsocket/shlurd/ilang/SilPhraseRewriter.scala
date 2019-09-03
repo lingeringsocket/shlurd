@@ -64,11 +64,22 @@ class TraceEmitter(logger : Logger) extends Emitter
 object SilPhraseRewriter
 {
   def onPhraseTransformation(
+    annotatorOpt : Option[SilAnnotator],
     oldPhrase : SilPhrase, newPhrase : SilTransformedPhrase)
   {
     oldPhrase.maybeSyntaxTree.foreach(syntaxTree => {
       newPhrase.rememberSyntaxTree(syntaxTree)
     })
+    tupleN((oldPhrase, newPhrase)) matchPartial {
+      case (
+        oldRef : SilAnnotatedReference,
+        newRef : SilAnnotatedReference
+      ) => {
+        annotatorOpt.orElse(oldRef.maybeAnnotator).
+          orElse(newRef.maybeAnnotator).
+          foreach(_.transform(oldRef, newRef))
+      }
+    }
   }
 }
 
@@ -95,13 +106,42 @@ case class SilPhraseReplacementMatcher(
   override def apply(phrase : SilPhrase) = replacement.apply(phrase)
 }
 
-class SilPhraseRewriter
+class SilPhraseQuerier
+{
+  type SilPhraseQuery = PartialFunction[SilPhrase, Unit]
+
+  def query(
+    rule : SilPhraseQuery,
+    phrase : SilPhrase,
+    options : SilRewriteOptions = SilRewriteOptions())
+  {
+    assert(!options.repeat)
+    val ruleStrategy = Rewriter.query[SilPhrase](rule)
+    val strategy = {
+      if (options.topDown) {
+        Rewriter.manytd(
+          "rewriteEverywhere",
+          ruleStrategy)
+      } else {
+        Rewriter.manybu(
+          "rewriteEverywhere",
+          ruleStrategy)
+      }
+    }
+    Rewriter.rewrite(strategy)(phrase)
+  }
+
+  def queryMatcher(f : SilPhraseQuery)
+      : SilPhraseQuery = f
+}
+
+class SilPhraseRewriter(
+  annotatorOpt : Option[SilAnnotator] = None
+) extends SilPhraseQuerier
 {
   import SilPhraseRewriter._
 
   type SilPhraseReplacement = PartialFunction[SilPhrase, SilPhrase]
-
-  type SilPhraseQuery = PartialFunction[SilPhrase, Unit]
 
   private val logger = LoggerFactory.getLogger(classOf[SilPhraseRewriter])
 
@@ -115,7 +155,8 @@ class SilPhraseRewriter
           oldTransformed : SilPhrase,
           newTransformed : SilTransformedPhrase
         ) => {
-          onPhraseTransformation(oldTransformed, newTransformed)
+          onPhraseTransformation(
+            annotatorOpt, oldTransformed, newTransformed)
         }
       }
       tupleN((oldPhrase, newPhrase)) matchPartial {
@@ -128,6 +169,12 @@ class SilPhraseRewriter
       }
       newPhrase
     }
+  }
+
+  def combineRules(rules : SilPhraseReplacement*)
+      : SilPhraseReplacement =
+  {
+    rules.reduceLeft(_ orElse _)
   }
 
   def rewrite[PhraseType <: SilPhrase](
@@ -172,36 +219,6 @@ class SilPhraseRewriter
     finalStrategy(phrase)
   }
 
-  def query(
-    rule : SilPhraseQuery,
-    phrase : SilPhrase,
-    options : SilRewriteOptions = SilRewriteOptions())
-  {
-    assert(!options.repeat)
-    val ruleStrategy = Rewriter.query[SilPhrase](rule)
-    val strategy = {
-      if (options.topDown) {
-        Rewriter.manytd(
-          "rewriteEverywhere",
-          ruleStrategy)
-      } else {
-        Rewriter.manybu(
-          "rewriteEverywhere",
-          ruleStrategy)
-      }
-    }
-    Rewriter.rewrite(strategy)(phrase)
-  }
-
   def replacementMatcher(name : String, f : SilPhraseReplacement)
       : SilPhraseReplacement = SilPhraseReplacementMatcher(name, f)
-
-  def queryMatcher(f : SilPhraseQuery)
-      : SilPhraseQuery = f
-
-  def combineRules(rules : SilPhraseReplacement*)
-      : SilPhraseReplacement =
-  {
-    rules.reduceLeft(_ orElse _)
-  }
 }

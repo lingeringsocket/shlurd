@@ -22,7 +22,7 @@ import SprUtils._
 class SprPhraseRewriter(
   context : SprContext,
   val analyzer : SprSyntaxAnalyzer)
-  extends SilPhraseRewriter
+    extends SilPhraseRewriter(Some(context.annotator))
 {
   import SilPhraseRewriter._
 
@@ -33,7 +33,12 @@ class SprPhraseRewriter(
     val transformed = rewritePhrase(expected)
     val completed = rewrite(replaceUnresolvedWithUnrecognized, transformed)
     if (!completed.hasUnknown) {
-      query(validateResult, completed)
+      query(
+        validateTransformations,
+        completed)
+      query(
+        registerAnnotations,
+        completed)
     }
     completed match {
       case sentence : SilSentence => sentence
@@ -47,11 +52,17 @@ class SprPhraseRewriter(
       replaceAllPhrases, phrase, SilRewriteOptions(repeat = true))
   }
 
-  private def validateResult = queryMatcher {
+  private def validateTransformations = queryMatcher {
     case transformedPhrase : SilTransformedPhrase => {
       if (!transformedPhrase.hasSyntaxTree) {
         throw new AssertionError("Syntax lost for " + transformedPhrase)
       }
+    }
+  }
+
+  private def registerAnnotations = queryMatcher {
+    case annotatedRef : SilAnnotatedReference => {
+      context.annotator.register(annotatedRef)
     }
   }
 
@@ -317,7 +328,8 @@ class SprPhraseRewriter(
                   val newModifier = SilAdpositionalVerbModifier(
                     adposition,
                     adpositionObject)
-                  onPhraseTransformation(modifier, newModifier)
+                  onPhraseTransformation(
+                    Some(context.annotator), modifier, newModifier)
                   // FIXME this is gross--we leave the dangling adposition
                   // around just so that later we can rememmber to
                   // convert from INFLECT_ACCUSATIVE to INFLECT_ADPOSITIONED
@@ -365,7 +377,8 @@ class SprPhraseRewriter(
         }
         fullySpecifiedState matchPartial {
           case tp : SilTransformedPhrase => {
-            SilPhraseRewriter.onPhraseTransformation(cs, tp)
+            SilPhraseRewriter.onPhraseTransformation(
+              Some(context.annotator), cs, tp)
           }
         }
         val specifiedSubject = analyzer.specifyReference(
@@ -485,7 +498,7 @@ class SprAmbiguityResolver(context : SprContext)
 
   private def normalizeCandidate(s : SilSentence) : SilSentence =
   {
-    val rewriter = new SilPhraseRewriter
+    val rewriter = new SilPhraseRewriter(Some(context.annotator))
     def normalizer = rewriter.replacementMatcher(
       "normalizeAmbiguousCandidate", {
         case SilPropertyState(SilSimpleWord(inflected, lemma, senseId)) => {

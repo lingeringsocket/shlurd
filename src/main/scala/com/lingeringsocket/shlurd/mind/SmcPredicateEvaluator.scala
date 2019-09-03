@@ -299,7 +299,7 @@ class SmcPredicateEvaluator[
   {
     val contextMap =
       new IdentityLinkedHashMap[SilReference, SilReferenceContext]
-    val phraseQuerier = new SilPhraseRewriter
+    val phraseQuerier = new SilPhraseQuerier
 
     def resolveOne(
       ref : SilReference,

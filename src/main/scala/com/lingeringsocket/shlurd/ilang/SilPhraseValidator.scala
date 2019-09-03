@@ -18,7 +18,7 @@ object SilPhraseValidator
 {
   def isValid(phrase : SilPhrase) : Boolean =
   {
-    val querier = new SilPhraseRewriter
+    val querier = new SilPhraseQuerier
     var problem = ""
     def validation = querier.queryMatcher {
       case SilNullState() => {
