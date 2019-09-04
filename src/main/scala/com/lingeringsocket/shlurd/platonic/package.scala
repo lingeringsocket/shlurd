@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd
 
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 
 package object platonic
@@ -21,4 +22,6 @@ package object platonic
   type SpcRefMap = SmcRefMap[SpcEntity]
 
   type SpcMutableRefMap = SmcMutableRefMap[SpcEntity]
+
+  type SpcAnnotator = SilTypedAnnotator[SpcRefNote]
 }

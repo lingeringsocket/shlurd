@@ -24,11 +24,12 @@ abstract class SilAbstractRefNote(
   def setCount(count : SilCount)
 }
 
-case class SilBasicRefNote(
-  ref : SilReference,
-  var count : Option[SilCount] = None
+class SilBasicRefNote(
+  ref : SilReference
 ) extends SilAbstractRefNote(ref)
 {
+  private var count : Option[SilCount] = None
+
   override def getCount() : SilCount =
   {
     count.getOrElse {
@@ -139,6 +140,6 @@ object SilBasicAnnotator
   def apply() =
   {
     new SilTypedAnnotator[SilBasicRefNote](
-      (refAnnotation) => SilBasicRefNote(refAnnotation))
+      (ref) => new SilBasicRefNote(ref))
   }
 }

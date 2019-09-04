@@ -233,7 +233,7 @@ class SmcResponder[
 
   def getMind = mind
 
-  protected def newAnnotator : SilAnnotator =
+  protected def newAnnotator() : SilAnnotator =
   {
     SilBasicAnnotator()
   }

@@ -115,6 +115,29 @@ class SpcContextualScorer(responder : SpcResponder)
   }
 }
 
+class SpcRefNote(
+  ref : SilReference
+) extends SilBasicRefNote(ref)
+{
+  private var form : Option[SpcForm] = None
+
+  def maybeForm() : Option[SpcForm] = form
+
+  def setForm(newForm : SpcForm)
+  {
+    form = Some(newForm)
+  }
+}
+
+object SpcAnnotator
+{
+  def apply() =
+  {
+    new SilTypedAnnotator[SpcRefNote](
+      (ref) => new SpcRefNote(ref))
+  }
+}
+
 // FIXME annotators need to be sorted out when we commingle expressions
 // from assertions
 class SpcResponder(
@@ -133,10 +156,10 @@ class SpcResponder(
 {
   private val already = new mutable.HashSet[SilPredicate]
 
-  private val typeMemo = new mutable.LinkedHashMap[SilReference, SpcForm]
-
   private def newAssertionMapper() = new SpcAssertionMapper(
     mind, communicationContext, newInputRewriter, sentencePrinter)
+
+  protected def spcAnnotator = annotator.asInstanceOf[SpcAnnotator]
 
   override protected def spawn(subMind : SpcMind) =
   {
@@ -151,6 +174,11 @@ class SpcResponder(
       scorer = new SpcContextualScorer(this),
       annotator = annotator)
     SprParser(input, context)
+  }
+
+  override protected def newAnnotator() : SpcAnnotator =
+  {
+    SpcAnnotator()
   }
 
   override protected def newPredicateEvaluator(scope : ScopeType = mindScope) =
@@ -447,7 +475,6 @@ class SpcResponder(
       super.processImpl(sentence, resultCollector)
     } finally {
       already.clear
-      typeMemo.clear
     }
   }
 
@@ -1177,69 +1204,86 @@ class SpcResponder(
     ref : SilReference,
     refMap : SpcRefMap) : SpcForm =
   {
-    def cosmos = mind.getCosmos
-    typeMemo.getOrElseUpdate(ref, {
-      ref match {
-        case SilConjunctiveReference(_, refs, _) => {
-          lcaType(refs.map(r => deriveType(r, refMap)).toSet)
+    ref match {
+      case annotatedRef : SilAnnotatedReference => {
+        val note = spcAnnotator.getNote(annotatedRef)
+        note.maybeForm.getOrElse {
+          val form = deriveTypeImpl(ref, refMap)
+          note.setForm(form)
+          form
         }
-        case SilGenitiveReference(
-          possessor,
-          SilOptionallyDeterminedReference(SilNounReference(noun), _)
-        ) => {
-          val possessorType = deriveType(possessor, refMap)
-          mind.resolveRole(possessorType, noun) match {
-            case Some(role) => {
-              lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
-            }
-            case _ => {
-              cosmos.findProperty(
-                possessorType, cosmos.encodeName(noun.toLemma)) match
-              {
-                case Some(property) => {
-                  mind.resolveForm(
-                    SilWord(property.domain.name)).getOrElse(unknownType)
-                }
-                case _ => unknownType
-              }
-            }
-          }
-        }
-        case SilDeterminedReference(sub, _) => {
-          deriveType(sub, refMap)
-        }
-        case SilAppositionalReference(primary, _) => {
-          deriveType(primary, refMap)
-        }
-        case SilOptionallyDeterminedReference(SilNounReference(noun), _) => {
-          // FIXME resolve roles as well?
-          if (noun.isProper) {
-            lcaType(
-              cosmos.getEntitiesBySynonym(
-                cosmos.synthesizeEntitySynonym(noun.toNounLemma)
-              ).map(_.form).toSet)
-          } else {
-            mind.resolveForm(noun).getOrElse(unknownType)
-          }
-        }
-        case pr : SilPronounReference => {
-          // FIXME in case no entities are resolved, try prior
-          // reference instead
-          val scope = new SmcPhraseScope(
-            refMap, mindScope)
-          scope.resolvePronoun(communicationContext, pr) match {
-            case Success(SmcScopeOutput(_, entities)) => {
-              lcaType(entities.map(_.form))
-            }
-            case _ => unknownType
-          }
-        }
-        case SilStateSpecifiedReference(sub, state) => {
-          deriveType(sub, refMap)
-        }
-        case _ => unknownType
       }
-    })
+      case _ => {
+        unknownType
+      }
+    }
+  }
+
+  private def deriveTypeImpl(
+    ref : SilReference,
+    refMap : SpcRefMap) : SpcForm =
+  {
+    def cosmos = mind.getCosmos
+    ref match {
+      case SilConjunctiveReference(_, refs, _) => {
+        lcaType(refs.map(r => deriveType(r, refMap)).toSet)
+      }
+      case SilGenitiveReference(
+        possessor,
+        SilOptionallyDeterminedReference(SilNounReference(noun), _)
+      ) => {
+        val possessorType = deriveType(possessor, refMap)
+        mind.resolveRole(possessorType, noun) match {
+          case Some(role) => {
+            lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
+          }
+          case _ => {
+            cosmos.findProperty(
+              possessorType, cosmos.encodeName(noun.toLemma)) match
+            {
+              case Some(property) => {
+                mind.resolveForm(
+                  SilWord(property.domain.name)).getOrElse(unknownType)
+              }
+              case _ => unknownType
+            }
+          }
+        }
+      }
+      case SilDeterminedReference(sub, _) => {
+        deriveType(sub, refMap)
+      }
+      case SilAppositionalReference(primary, _) => {
+        deriveType(primary, refMap)
+      }
+      case SilOptionallyDeterminedReference(SilNounReference(noun), _) => {
+        // FIXME resolve roles as well?
+        if (noun.isProper) {
+          lcaType(
+            cosmos.getEntitiesBySynonym(
+              cosmos.synthesizeEntitySynonym(noun.toNounLemma)
+            ).map(_.form).toSet)
+        } else {
+          mind.resolveForm(noun).getOrElse(unknownType)
+        }
+      }
+      case pr : SilPronounReference => {
+        // FIXME in case no entities are resolved, try prior
+        // reference instead
+        val scope = new SmcPhraseScope(
+          refMap, mindScope)
+        scope.resolvePronoun(communicationContext, pr) match {
+          case Success(SmcScopeOutput(_, entities)) => {
+            lcaType(entities.map(_.form))
+          }
+          case _ => unknownType
+        }
+      }
+      case SilStateSpecifiedReference(sub, state) => {
+        deriveType(sub, refMap)
+      }
+      case _ => unknownType
+    }
   }
 
   private def lcaType(forms : Set[SpcForm]) : SpcForm =
