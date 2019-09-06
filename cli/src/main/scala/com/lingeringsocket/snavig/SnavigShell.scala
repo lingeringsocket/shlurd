@@ -533,8 +533,9 @@ class SnavigShell(
       refMap : SpcRefMap)
         : Option[String] =
     {
+      val annotator = SilBasicAnnotator()
       def playerRef =
-        SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+        annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
       val newPredicate = predicate match {
         case ap : SilActionPredicate => ap.copy(subject = playerRef)
         case _ => predicate
@@ -733,7 +734,7 @@ class SnavigShell(
                   SilActionPredicate(
                     listenerReference,
                     actionRespond,
-                    Some(SilQuotationReference(response))
+                    Some(annotator.quotationRef(response))
                   )
                 )
                 sentencePrinter.printUnterminated(responseSentence)

@@ -234,24 +234,27 @@ class SmcMind[
       : Seq[SilReference] =
   {
     pronounReference(
-      entity, communicationContext.speakerEntity, PERSON_FIRST) ++
+      annotator, entity, communicationContext.speakerEntity, PERSON_FIRST) ++
     pronounReference(
-      entity, communicationContext.listenerEntity, PERSON_SECOND) ++
+      annotator, entity, communicationContext.listenerEntity, PERSON_SECOND) ++
     Seq(specificReference(annotator, entity, determiner))
   }
 
-  def thirdPersonReference(entities : Set[EntityType]) : Option[SilReference] =
+  def thirdPersonReference(
+    annotator : SilAnnotator,
+    entities : Set[EntityType]) : Option[SilReference] =
   {
     if (entities.isEmpty) {
       None
     } else if (entities.size == 1) {
-      Some(SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_SINGULAR))
+      Some(annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_SINGULAR))
     } else {
-      Some(SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))
+      Some(annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL))
     }
   }
 
   private def pronounReference(
+    annotator : SilAnnotator,
     entity : EntityType,
     pronounEntity : Option[EntityType],
     person : SilPerson)
@@ -259,7 +262,7 @@ class SmcMind[
   {
     pronounEntity match {
       case Some(x) if (x == entity) => {
-        Seq(SilPronounReference(person, GENDER_N, COUNT_SINGULAR))
+        Seq(annotator.pronounRef(person, GENDER_N, COUNT_SINGULAR))
       }
       case _ => Seq()
     }
@@ -270,7 +273,7 @@ class SmcMind[
     entity : EntityType,
     determiner : SilDeterminer) : SilReference =
   {
-    SilMappedReference(entity.getUniqueIdentifier, determiner)
+    annotator.mappedRef(entity.getUniqueIdentifier, determiner)
   }
 
   def specificReferences(
@@ -281,7 +284,7 @@ class SmcMind[
     if (entities.size == 1) {
       specificReference(annotator, entities.head, DETERMINER_UNIQUE)
     } else {
-      SilConjunctiveReference(
+      annotator.conjunctiveRef(
         DETERMINER_ALL,
         entities.toSeq.map(entity =>
           specificReference(

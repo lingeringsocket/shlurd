@@ -268,7 +268,7 @@ abstract class SprAbstractSyntaxAnalyzer(
     if (specifiedState == SilNullState()) {
       ref
     } else {
-      val specifiedReference = SilStateSpecifiedReference(
+      val specifiedReference = annotator.stateSpecifiedRef(
         ref, specifiedState)
       ref.maybeSyntaxTree.foreach(
         refSyntaxTree => specifiedState.maybeSyntaxTree.foreach(

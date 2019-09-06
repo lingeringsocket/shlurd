@@ -183,6 +183,29 @@ case class SmcCommunicationContext[EntityType<:SmcEntity](
   listenerEntity : Option[EntityType] = None
 )
 
+class SmcRefNote[EntityType<:SmcEntity](
+  ref : SilReference
+) extends SilBasicRefNote(ref)
+{
+  private var entities : Set[EntityType] = Set.empty
+
+  def getEntities() : Set[EntityType] = entities
+
+  def setEntities(newEntities : Set[EntityType])
+  {
+    entities = newEntities
+  }
+}
+
+object SmcAnnotator
+{
+  def apply[EntityType<:SmcEntity]() =
+  {
+    new SilTypedAnnotator[SmcRefNote[EntityType]](
+      (ref) => new SmcRefNote(ref))
+  }
+}
+
 class SmcResponder[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -235,10 +258,13 @@ class SmcResponder[
 
   protected def newAnnotator() : SilAnnotator =
   {
-    SilBasicAnnotator()
+    SmcAnnotator[EntityType]()
   }
 
   def getAnnotator = annotator
+
+  protected def smcAnnotator = annotator.asInstanceOf[
+    SilTypedAnnotator[SmcRefNote[EntityType]]]
 
   protected def newPredicateEvaluator(scope : ScopeType = mindScope) =
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
@@ -1074,10 +1100,10 @@ class SmcResponder[
         case ref : SilReference => {
           refMap.get(ref) match {
             case Some(entities) => {
-              SilConjunctiveReference(
+              annotator.conjunctiveRef(
                 DETERMINER_ALL,
                 entities.map(_.getUniqueIdentifier).toSeq.sorted.map(id =>
-                  SilMappedReference(id, DETERMINER_UNSPECIFIED))
+                  annotator.mappedRef(id, DETERMINER_UNSPECIFIED))
               )
             }
             case _ => ref

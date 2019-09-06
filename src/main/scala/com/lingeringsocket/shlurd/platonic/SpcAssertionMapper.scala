@@ -253,7 +253,9 @@ class SpcAssertionMapper(
             // FIXME use SmcPhraseScope, and make use
             // of prior reference too
             val scope = new MindScopeType(mind, sentencePrinter)
-            scope.resolvePronoun(communicationContext, pr) match {
+            scope.resolvePronoun(
+              binding.annotator, communicationContext, pr
+            ) match {
               case Success(SmcScopeOutput(_, entities)) if (
                 !entities.isEmpty
               ) => {
@@ -307,7 +309,7 @@ class SpcAssertionMapper(
                 mind.specificReference(
                   binding.annotator, filtered.head, DETERMINER_UNIQUE)
               } else {
-                SilConjunctiveReference(
+                binding.annotator.conjunctiveRef(
                   DETERMINER_ALL,
                   filtered.toSeq.map(entity => {
                     val entityRef = mind.specificReference(

@@ -29,6 +29,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
 {
   import SprNormalizationRewriter._
 
+  private def annotator = context.annotator
+
   def normalize(sentence : SilSentence) : SilSentence =
   {
     rewrite(normalizeAllPhrases, sentence, SilRewriteOptions(repeat = true))
@@ -48,7 +50,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
   private def normalizeGenitives = replacementMatcher(
     "normalizeGenitives", {
       case SilGenitiveReference(r1, SilGenitiveReference(r2, r3)) => {
-        SilGenitiveReference(SilGenitiveReference(r1, r2), r3)
+        annotator.genitiveRef(
+          annotator.genitiveRef(r1, r2), r3)
       }
     }
   )
@@ -84,7 +87,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         SilRelationshipPredicate(
           subject,
           verb,
-          SilConjunctiveReference(
+          annotator.conjunctiveRef(
             determiner, references, separator),
           verbModifiers.filterNot(_ == modifier)
         )
@@ -133,9 +136,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         SilDeterminedReference(
           SilStateSpecifiedReference(
             SilMandatorySingular(
-              SilNounReference(
-                word : SilSimpleWord
-              )
+              word : SilSimpleWord
             ),
             SilAdpositionalState(
               adp2 : SilAdposition,
@@ -265,8 +266,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         SilDeterminedReference(ref, determiner),
         state
       ) => {
-        SilDeterminedReference(
-          SilStateSpecifiedReference(ref, state),
+        annotator.determinedRef(
+          annotator.stateSpecifiedRef(ref, state),
           determiner)
       }
     }
@@ -288,7 +289,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
               }
             }
           )
-        val directObject = SilReference.qualifiedByProperties(
+        val directObject = annotator.stateQualifiedRef(
           actionPredicate.directObject.get,
           stateSpecifiers.map(_.asInstanceOf[SilAdpositionalVerbModifier]).map(
             vm => SilAdpositionalState(vm.adposition, vm.objRef)))
@@ -318,7 +319,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         determiner
       ) if (isAdverbialAdposition(Some(sub), adposition, objRef)) => {
         tupleN((
-          SilReference.determined(sub, determiner),
+          annotator.determinedRef(sub, determiner),
           Seq(SilAdpositionalVerbModifier(adposition, objRef))))
       }
       case _ => (ref, Seq.empty)
@@ -339,9 +340,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
       case LEMMA_AT => {
         objRef match {
           case SilMandatorySingular(
-            SilNounReference(
-              _
-            )
+            _
           ) => {
             false
           }

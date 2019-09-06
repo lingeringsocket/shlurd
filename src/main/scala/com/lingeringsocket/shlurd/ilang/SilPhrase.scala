@@ -293,15 +293,13 @@ case class SilExpectedPredicate(
 
 case class SilExpectedReference(
   syntaxTree : SprSyntaxTree
-) extends SilAnnotatedReference
-    with SilUnknownReference with SilUnresolvedPhrase
+) extends SilUnknownReference with SilUnresolvedPhrase
 {
 }
 
 case class SilExpectedPossessiveReference(
   syntaxTree : SprSyntaxTree
-) extends SilAnnotatedReference
-    with SilUnknownReference with SilUnresolvedPhrase
+) extends SilUnknownReference with SilUnresolvedPhrase
 {
 }
 
@@ -309,8 +307,7 @@ case class SilExpectedNounlikeReference(
   syntaxTree : SprSyntaxTree,
   preTerminal : SprSyntaxTree,
   determiner : SilDeterminer
-) extends SilAnnotatedReference
-    with SilUnknownReference with SilUnresolvedPhrase
+) extends SilUnknownReference with SilUnresolvedPhrase
 {
 }
 
@@ -572,7 +569,17 @@ case class SilActionPredicate(
     copy(modifiers = newModifiers)
 }
 
-case class SilParenthesizedReference(
+object SilParenthesizedReference
+{
+  private def apply(
+    reference : SilReference, bracket : SilBracket
+  ) = new SilParenthesizedReference(reference, bracket)
+
+  def unannotated(reference : SilReference, bracket : SilBracket) =
+    SilParenthesizedReference(reference, bracket)
+}
+
+case class SilParenthesizedReference private(
   reference : SilReference,
   bracket : SilBracket
 ) extends SilAnnotatedReference
@@ -582,7 +589,18 @@ case class SilParenthesizedReference(
   override def acceptsSpecifiers = reference.acceptsSpecifiers
 }
 
-case class SilAppositionalReference(
+object SilAppositionalReference
+{
+  private def apply(
+    primary : SilReference, secondary : SilReference
+  ) = new SilAppositionalReference(primary, secondary)
+
+  def unannotated(
+    primary : SilReference, secondary : SilReference
+  ) = SilAppositionalReference(primary, secondary)
+}
+
+case class SilAppositionalReference private(
   primary : SilReference,
   secondary : SilReference
 ) extends SilAnnotatedReference
@@ -592,7 +610,18 @@ case class SilAppositionalReference(
   override def acceptsSpecifiers = primary.acceptsSpecifiers
 }
 
-case class SilStateSpecifiedReference(
+object SilStateSpecifiedReference
+{
+  private def apply(
+    reference : SilReference, state : SilState
+  ) = new SilStateSpecifiedReference(reference, state)
+
+  def unannotated(
+    reference : SilReference, state : SilState
+  ) = SilStateSpecifiedReference(reference, state)
+}
+
+case class SilStateSpecifiedReference private(
   reference : SilReference,
   state : SilState
 ) extends SilAnnotatedReference
@@ -604,7 +633,7 @@ case class SilStateSpecifiedReference(
     state matchPartial {
       case SilAdpositionalState(SilAdposition.OF, pn : SilPronounReference) => {
         reference matchPartial {
-          case SilNounReference(SilWordLemma(lemma)) => {
+          case SilNounLemmaReference(lemma) => {
             if (lemma.forall(Character.isDigit)) {
               return false
             }
@@ -616,7 +645,18 @@ case class SilStateSpecifiedReference(
   }
 }
 
-case class SilGenitiveReference(
+object SilGenitiveReference
+{
+  private def apply(
+    possessor : SilReference, possessee : SilReference
+  ) = new SilGenitiveReference(possessor, possessee)
+
+  def unannotated(
+    possessor : SilReference, possessee : SilReference
+  ) = SilGenitiveReference(possessor, possessee)
+}
+
+case class SilGenitiveReference private(
   possessor : SilReference,
   possessee : SilReference
 ) extends SilAnnotatedReference
@@ -624,20 +664,48 @@ case class SilGenitiveReference(
   override def children = Seq(possessor, possessee)
 }
 
-case class SilPronounReference(
+object SilPronounReference
+{
+  private def apply(
+    person : SilPerson, gender : SilGender,
+    count : SilCount, distance : SilDistance
+  ) = new SilPronounReference(person, gender, count, distance)
+
+  def unannotated(
+    person : SilPerson, gender : SilGender,
+    count : SilCount, distance : SilDistance
+  ) = SilPronounReference(person, gender, count, distance)
+}
+
+case class SilPronounReference private(
   person : SilPerson,
   gender : SilGender,
   count : SilCount,
-  distance : SilDistance = DISTANCE_UNSPECIFIED
+  distance : SilDistance
 ) extends SilAnnotatedReference
 {
   override def acceptsSpecifiers = false
 }
 
-case class SilConjunctiveReference(
+object SilConjunctiveReference
+{
+  private def apply(
+    determiner : SilDeterminer,
+    references : Seq[SilReference],
+    separator : SilSeparator
+  ) = new SilConjunctiveReference(determiner, references, separator)
+
+  def unannotated(
+    determiner : SilDeterminer,
+    references : Seq[SilReference],
+    separator : SilSeparator
+  ) = SilConjunctiveReference(determiner, references, separator)
+}
+
+case class SilConjunctiveReference private(
   determiner : SilDeterminer,
   references : Seq[SilReference],
-  separator : SilSeparator = SEPARATOR_CONJOINED
+  separator : SilSeparator
 ) extends SilAnnotatedReference
 {
   override def children = references
@@ -647,7 +715,18 @@ case class SilConjunctiveReference(
   override def acceptsSpecifiers = children.exists(_.acceptsSpecifiers)
 }
 
-case class SilDeterminedReference(
+object SilDeterminedReference
+{
+  private def apply(
+    reference : SilReference, determiner : SilDeterminer
+  ) = new SilDeterminedReference(reference, determiner)
+
+  def unannotated(
+    reference : SilReference, determiner : SilDeterminer
+  ) = SilDeterminedReference(reference, determiner)
+}
+
+case class SilDeterminedReference private(
   reference : SilReference,
   determiner : SilDeterminer
 ) extends SilAnnotatedReference
@@ -665,18 +744,41 @@ object SilCountedNounReference
   }
 }
 
-case class SilNounReference(
+object SilNounLemmaReference
+{
+  def unapply(ref : SilNounReference) =
+  {
+    Some(ref.noun.toNounLemma)
+  }
+}
+
+object SilNounReference
+{
+  private def apply(noun : SilWord) = new SilNounReference(noun)
+
+  def unannotated(noun : SilWord) = SilNounReference(noun)
+}
+
+case class SilNounReference private(
   noun : SilWord
 ) extends SilAnnotatedReference
 {
   def count : SilCount =
   {
-    maybeAnnotator.map(
-      _.getBasicNote(this).getCount).getOrElse(COUNT_SINGULAR)
+    maybeAnnotator.map(_.getBasicNote(this).getCount).getOrElse(COUNT_SINGULAR)
   }
 }
 
-case class SilMappedReference(
+object SilMappedReference
+{
+  private def apply(key : String, determiner : SilDeterminer) =
+    new SilMappedReference(key, determiner)
+
+  def unannotated(key : String, determiner : SilDeterminer) =
+    SilMappedReference(key, determiner)
+}
+
+case class SilMappedReference private(
   key : String,
   determiner : SilDeterminer
 ) extends SilAnnotatedReference with SilUnknownReference
@@ -684,7 +786,16 @@ case class SilMappedReference(
   override def syntaxTree = SprSyntaxLeaf(key, key, key)
 }
 
-case class SilQuotationReference(
+object SilQuotationReference
+{
+  private def apply(quotation : String) =
+    new SilQuotationReference(quotation)
+
+  def unannotated(quotation : String) =
+    SilQuotationReference(quotation)
+}
+
+case class SilQuotationReference private(
   quotation : String
 ) extends SilAnnotatedReference
 {
@@ -899,13 +1010,15 @@ object SilWordInflected
 // https://nrinaudo.github.io/scala-best-practices/unsafe/custom_extractors.html
 object SilStackedStateReference
 {
-  def apply(ref : SilReference, states : Seq[SilState]) : SilReference =
+  def apply(
+    annotator : SilAnnotator,
+    ref : SilReference, states : Seq[SilState]) : SilReference =
   {
     if (states.isEmpty) {
       ref
     } else {
-      SilStateSpecifiedReference(
-        SilStackedStateReference(ref, states.tail),
+      annotator.stateSpecifiedRef(
+        SilStackedStateReference(annotator, ref, states.tail),
         states.head)
     }
   }
@@ -940,50 +1053,5 @@ object SilOptionallyDeterminedReference
         Some((ref, DETERMINER_UNSPECIFIED))
       }
     }
-  }
-}
-
-object SilReference
-{
-  def determined(
-    reference : SilReference, determiner : SilDeterminer) : SilReference =
-  {
-    determiner match {
-      case DETERMINER_UNSPECIFIED => reference
-      case _ => SilDeterminedReference(reference, determiner)
-    }
-  }
-
-  def qualifiedByProperties(
-    reference : SilReference,
-    qualifiers : Seq[SilState])
-      : SilReference =
-  {
-    val (sub, determiner) = reference match {
-      case SilDeterminedReference(s, d) => tupleN((s, d))
-      case _ => tupleN((reference, DETERMINER_UNSPECIFIED))
-    }
-    val rewritten = {
-      if (qualifiers.isEmpty) {
-        sub
-      } else if (qualifiers.size == 1) {
-        SilStateSpecifiedReference(
-          sub, qualifiers.head)
-      } else {
-        SilStateSpecifiedReference(
-          sub,
-          SilConjunctiveState(
-            DETERMINER_ALL,
-            qualifiers,
-            SEPARATOR_CONJOINED))
-      }
-    }
-    SilReference.determined(rewritten, determiner)
-  }
-
-  def qualified(reference : SilReference, qualifiers : Seq[SilWord])
-      : SilReference =
-  {
-    qualifiedByProperties(reference, qualifiers.map(SilPropertyState))
   }
 }

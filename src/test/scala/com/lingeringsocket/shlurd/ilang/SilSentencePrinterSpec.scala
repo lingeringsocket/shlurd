@@ -369,7 +369,8 @@ class SilSentencePrinterSpec extends Specification
   {
     def print(style : SilCompoundStyle) =
     {
-      val ref = SilNounReference(
+      val annotator = SilBasicAnnotator()
+      val ref = annotator.nounRef(
         SilCompoundWord(
           Seq(
             SilWord("tea"),

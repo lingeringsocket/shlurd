@@ -49,7 +49,7 @@ case class SmcRelativeTimePoint(
 object SmcTimePointOrder extends Order[SmcTimePoint]
 {
   val ONCE_UPON_A_TIME_POINT = SmcRelativeTimePoint(
-    SilNounReference(SilWord(SprParser.ONCE_UPON_A_TIME)), 0)
+    SilBasicAnnotator().nounRef(SilWord(SprParser.ONCE_UPON_A_TIME)), 0)
 
   override def compare(x : SmcTimePoint, y : SmcTimePoint) : Int =
   {

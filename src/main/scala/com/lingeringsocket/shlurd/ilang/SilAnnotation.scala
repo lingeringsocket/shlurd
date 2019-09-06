@@ -14,7 +14,11 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import com.lingeringsocket.shlurd._
+
 import scala.collection._
+
+import java.util.concurrent.atomic._
 
 abstract class SilAbstractRefNote(
   ref : SilReference
@@ -60,11 +64,13 @@ trait SilAnnotator
 
   def getBasicNote(ref : SilAnnotatedReference) : SilAbstractRefNote
 
+  def generateId : Int
+
   def nounRef(
     noun : SilWord, count : SilCount = COUNT_SINGULAR
   ) : SilNounReference =
   {
-    val newRef = register(SilNounReference(noun))
+    val newRef = register(SilNounReference.unannotated(noun))
     getBasicNote(newRef).setCount(count)
     newRef
   }
@@ -75,7 +81,100 @@ trait SilAnnotator
   ) : SilReference =
   {
     val ref = nounRef(noun, count)
-    SilReference.determined(ref, determiner)
+    determinedRef(ref, determiner)
+  }
+
+  def mappedRef(key : String, determiner : SilDeterminer) =
+  {
+    register(SilMappedReference.unannotated(key, determiner))
+  }
+
+  def parenthesizedRef(reference : SilReference, bracket : SilBracket) =
+  {
+    register(SilParenthesizedReference.unannotated(reference, bracket))
+  }
+
+  def appositionalRef(primary : SilReference, secondary : SilReference) =
+  {
+    register(SilAppositionalReference.unannotated(primary, secondary))
+  }
+
+  def stateSpecifiedRef(reference : SilReference, state : SilState) =
+  {
+    register(SilStateSpecifiedReference.unannotated(reference, state))
+  }
+
+  def genitiveRef(possessor : SilReference, possessee : SilReference) =
+  {
+    register(SilGenitiveReference.unannotated(possessor, possessee))
+  }
+
+  def pronounRef(
+    person : SilPerson, gender : SilGender,
+    count : SilCount, distance : SilDistance = DISTANCE_UNSPECIFIED) =
+  {
+    register(SilPronounReference.unannotated(person, gender, count, distance))
+  }
+
+  def conjunctiveRef(
+    determiner : SilDeterminer,
+    references : Seq[SilReference],
+    separator : SilSeparator = SEPARATOR_CONJOINED) =
+  {
+    register(SilConjunctiveReference.unannotated(
+      determiner, references, separator))
+  }
+
+  def determinedRef(
+    reference : SilReference,
+    determiner : SilDeterminer) =
+  {
+    determiner match {
+      case DETERMINER_UNSPECIFIED => reference
+      case _ => register(
+        SilDeterminedReference.unannotated(reference, determiner))
+    }
+  }
+
+  def quotationRef(
+    quotation : String) =
+  {
+    register(SilQuotationReference.unannotated(quotation))
+  }
+
+  def stateQualifiedRef(
+    reference : SilReference,
+    qualifiers : Seq[SilState])
+      : SilReference =
+  {
+    val (sub, determiner) = reference match {
+      case SilDeterminedReference(s, d) => tupleN((s, d))
+      case _ => tupleN((reference, DETERMINER_UNSPECIFIED))
+    }
+    val rewritten = {
+      if (qualifiers.isEmpty) {
+        sub
+      } else if (qualifiers.size == 1) {
+        stateSpecifiedRef(
+          sub, qualifiers.head)
+      } else {
+        stateSpecifiedRef(
+          sub,
+          SilConjunctiveState(
+            DETERMINER_ALL,
+            qualifiers,
+            SEPARATOR_CONJOINED))
+      }
+    }
+    determinedRef(rewritten, determiner)
+  }
+
+  def qualifiedRef(
+    reference : SilReference,
+    qualifiers : Seq[SilWord])
+      : SilReference =
+  {
+    stateQualifiedRef(reference, qualifiers.map(SilPropertyState))
   }
 }
 
@@ -88,16 +187,17 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
   noteSupplier : (SilReference) => NoteType
 ) extends SilAnnotator with SilAnnotation[NoteType]
 {
-  private var nextId = 0
+  private val nextId = new AtomicInteger
 
   private val map = new mutable.LinkedHashMap[Int, NoteType]
+
+  override def generateId : Int = nextId.incrementAndGet
 
   override def register[ReferenceType <: SilAnnotatedReference](
     ref : ReferenceType) : ReferenceType =
   {
     if (!ref.hasAnnotation) {
-      nextId += 1
-      ref.registerAnnotation(this, nextId)
+      ref.registerAnnotation(this, generateId)
     }
     ref
   }

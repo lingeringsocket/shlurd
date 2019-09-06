@@ -236,17 +236,17 @@ class ZooMind(cosmos : ZooCosmos)
         if (words.size == 1) {
           nounRef
         } else {
-          SilReference.qualified(
+          annotator.qualifiedRef(
             nounRef, words.dropRight(1).map(
               q => SilWord(q)))
         }
       }
       case ZooPersonEntity(name) => {
-        SilNounReference(
+        annotator.nounRef(
           SilWord(name))
       }
       case ZooLocationEntity(name) => {
-        SilNounReference(
+        annotator.nounRef(
           SilWord(name))
       }
     }

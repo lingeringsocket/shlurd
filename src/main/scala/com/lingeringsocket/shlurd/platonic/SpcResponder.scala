@@ -117,7 +117,7 @@ class SpcContextualScorer(responder : SpcResponder)
 
 class SpcRefNote(
   ref : SilReference
-) extends SilBasicRefNote(ref)
+) extends SmcRefNote[SpcEntity](ref)
 {
   private var form : Option[SpcForm] = None
 
@@ -176,7 +176,7 @@ class SpcResponder(
     SprParser(input, context)
   }
 
-  override protected def newAnnotator() : SpcAnnotator =
+  override protected def newAnnotator() : SilAnnotator =
   {
     SpcAnnotator()
   }
@@ -303,14 +303,14 @@ class SpcResponder(
             possessor @ SilDeterminedReference(
               _ : SilNounReference, DETERMINER_ANY
             ),
-            possessee @ SilNounReference(_)
+            possessee : SilNounReference
           ) => {
             if (score == 0) {
               score = 1
             }
-            SilGenitiveReference(
+            annotator.genitiveRef(
               possessor,
-              SilDeterminedReference(possessee, DETERMINER_ANY)
+              annotator.determinedRef(possessee, DETERMINER_ANY)
             )
           }
         }
@@ -1129,7 +1129,7 @@ class SpcResponder(
         case ref : SilReference => {
           refMap.get(ref) match {
             case Some(entities) => {
-              SilMappedReference(
+              annotator.mappedRef(
                 entities.map(_.name).toSeq.sorted.mkString("+"),
                 DETERMINER_UNSPECIFIED)
             }
@@ -1272,7 +1272,7 @@ class SpcResponder(
         // reference instead
         val scope = new SmcPhraseScope(
           refMap, mindScope)
-        scope.resolvePronoun(communicationContext, pr) match {
+        scope.resolvePronoun(annotator, communicationContext, pr) match {
           case Success(SmcScopeOutput(_, entities)) => {
             lcaType(entities.map(_.form))
           }

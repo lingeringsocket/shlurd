@@ -46,11 +46,13 @@ trait SmcScope[
     qualifiers : Set[String] = Set.empty) : Try[SmcScopeOutput[EntityType]]
 
   def resolvePronoun(
+    annotator : SilAnnotator,
     communicationContext : SmcCommunicationContext[EntityType],
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]]
 
   protected def findMatchingPronounReference(
+    annotator : SilAnnotator,
     refMap : SmcRefMap[EntityType],
     reference : SilPronounReference) : Seq[SmcScopeOutput[EntityType]] =
   {
@@ -65,7 +67,7 @@ trait SmcScope[
             skip = true
             false
           } else {
-            getMind.thirdPersonReference(set) == Some(reference)
+            getMind.thirdPersonReference(annotator, set) == Some(reference)
           }
         }
       }
@@ -134,6 +136,7 @@ class SmcMindScope[
   }
 
   override def resolvePronoun(
+    annotator : SilAnnotator,
     communicationContext : SmcCommunicationContext[EntityType],
     reference : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]] =
@@ -165,6 +168,7 @@ class SmcMindScope[
             mind.getConversation.getUtterances.reverseIterator.drop(1).map(
               utterance => {
                 findMatchingPronounReference(
+                  annotator,
                   utterance.refMap, reference
                 )
               }
@@ -218,7 +222,7 @@ class SmcPhraseScope[
               case SilAppositionalReference(
                 primary,
                 SilDeterminedReference(
-                  SilMandatorySingular(SilNounReference(alias)),
+                  SilMandatorySingular(alias),
                   DETERMINER_UNIQUE
                 )
               ) => {
@@ -239,16 +243,14 @@ class SmcPhraseScope[
             }
             primary match {
               case SilDeterminedReference(
-                SilNounReference(SilWordLemma(lemma)),
+                SilNounLemmaReference(lemma),
                 DETERMINER_NONSPECIFIC
               ) if (matchLemma(lemma)) => {
                 Some(tupleN((prior, set, produceOrdinal(1))))
               }
               case SilStateSpecifiedReference(
                 SilMandatorySingular(
-                  SilNounReference(
-                    SilWordLemma(lemma)
-                  )
+                  SilWordLemma(lemma)
                 ),
                 SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
               ) if (matchLemma(lemma)) => {
@@ -257,9 +259,7 @@ class SmcPhraseScope[
               case SilDeterminedReference(
                 SilStateSpecifiedReference(
                   SilMandatorySingular(
-                    SilNounReference(
-                      SilWordLemma(lemma)
-                    )
+                    SilWordLemma(lemma)
                   ),
                   SilPropertyState(SilWordLemma(qualifier))
                 ),
@@ -354,18 +354,19 @@ class SmcPhraseScope[
   }
 
   override def resolvePronoun(
+    annotator : SilAnnotator,
     communicationContext : SmcCommunicationContext[EntityType],
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]] =
   {
     val outputs = ref match {
       case SilPronounReference(PERSON_THIRD, _, _, DISTANCE_UNSPECIFIED) => {
-        findMatchingPronounReference(refMap, ref)
+        findMatchingPronounReference(annotator, refMap, ref)
       }
       case _ => Seq.empty
     }
     if (outputs.isEmpty) {
-      parent.resolvePronoun(communicationContext, ref)
+      parent.resolvePronoun(annotator, communicationContext, ref)
     } else {
       resolveOutput(ref, outputs)
     }

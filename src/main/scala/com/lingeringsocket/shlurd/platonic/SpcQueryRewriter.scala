@@ -39,7 +39,7 @@ class SpcQueryRewriter(
             SilRelationshipPredicate(
               specified.subject,
               REL_PREDEF_IDENTITY.toVerb,
-              SilGenitiveReference(
+              annotator.genitiveRef(
                 container,
                 annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINEE))),
               modifiers
@@ -55,7 +55,7 @@ class SpcQueryRewriter(
       ) => {
         val rewrittenComplement = question match {
           case QUESTION_WHERE => {
-            SilGenitiveReference(
+            annotator.genitiveRef(
               complement,
               annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINER)))
           }

@@ -23,6 +23,8 @@ import scala.util._
 
 class SprWordnetGlossPrepSpec extends Specification
 {
+  private val annotator = SilBasicAnnotator()
+
   private def parseAll(
     iter : Iterator[String], parser : String => Option[SilPhrase]) =
   {
@@ -67,9 +69,9 @@ class SprWordnetGlossPrepSpec extends Specification
     {
       SprWordnetGlossPrep.parseNounGlosses("rivulet") must be equalTo Seq(
         Some(
-          SilDeterminedReference(
-            SilStateSpecifiedReference(
-              SilNounReference(
+          annotator.determinedRef(
+            annotator.stateSpecifiedRef(
+              annotator.nounRef(
                 SilWord("stream")),
               SilPropertyState(SilWord("small"))),
             DETERMINER_NONSPECIFIC
@@ -87,7 +89,7 @@ class SprWordnetGlossPrepSpec extends Specification
       ) must be equalTo Seq(
         SilPredicateSentence(
           SilActionPredicate(
-            SilPronounReference(
+            annotator.pronounRef(
               PERSON_THIRD,
               GENDER_M,
               COUNT_SINGULAR),
@@ -96,9 +98,9 @@ class SprWordnetGlossPrepSpec extends Specification
             Seq(
               SilAdpositionalVerbModifier(
                 SilAdposition.ON,
-                SilDeterminedReference(
-                  SilStateSpecifiedReference(
-                    SilNounReference(
+                annotator.determinedRef(
+                  annotator.stateSpecifiedRef(
+                    annotator.nounRef(
                       SilWord("step")
                     ),
                     SilPropertyState(SilWord("bottom"))),

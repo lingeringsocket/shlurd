@@ -658,7 +658,7 @@ class SmcPredicateEvaluator[
                 // interpret "the guides of Mason and Dixon" as
                 // "Mason's guides and Dixon's guides",
                 // i.e. "the guides of Mason and/or Dixon"
-                SilConjunctiveReference(
+                annotator.conjunctiveRef(
                   DETERMINER_ANY,
                   references,
                   separator)
@@ -930,7 +930,9 @@ class SmcPredicateEvaluator[
                   resultCollector.refMap, scope)
               }
             }
-            phraseScope.resolvePronoun(communicationContext, pr).map(out => {
+            phraseScope.resolvePronoun(
+              annotator, communicationContext, pr
+            ).map(out => {
               val entities = out.entities
               refMap.put(reference, entities)
               entities
@@ -1010,9 +1012,7 @@ class SmcPredicateEvaluator[
           case _ => {
             possessee matchPartial {
               case SilMandatorySingular(
-                SilNounReference(
-                  noun
-                )
+                noun
               ) => {
                 resultCollector.lookup(possessor).
                   foreach(entities => {
@@ -1221,7 +1221,7 @@ class SmcPredicateEvaluator[
     // FIXME:  support qualifiers etc
     reference match {
       case SilDeterminedReference(
-        SilMandatorySingular(SilNounReference(noun)),
+        SilMandatorySingular(noun),
         DETERMINER_NONSPECIFIC
       ) => {
         Some(noun)

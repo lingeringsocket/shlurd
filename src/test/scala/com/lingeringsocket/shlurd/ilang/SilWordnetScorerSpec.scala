@@ -20,10 +20,12 @@ class SilWordnetScorerSpec extends Specification
 {
   private val scorer = new SilWordnetScorer
 
-  private val pronoun =
-    SilPronounReference(PERSON_FIRST, GENDER_F, COUNT_SINGULAR)
+  private val annotator = SilBasicAnnotator()
 
-  private val genitiveInvalid = SilGenitiveReference(pronoun, pronoun)
+  private val pronoun =
+    annotator.pronounRef(PERSON_FIRST, GENDER_F, COUNT_SINGULAR)
+
+  private val genitiveInvalid = annotator.genitiveRef(pronoun, pronoun)
 
   "SilWordnetScorer" should
   {
@@ -37,7 +39,7 @@ class SilWordnetScorerSpec extends Specification
 
     "score global phrase" in
     {
-      val conjunction = SilConjunctiveReference(
+      val conjunction = annotator.conjunctiveRef(
         DETERMINER_ALL,
         Seq(genitiveInvalid, genitiveInvalid))
       scorer.computeLocalScore(conjunction) must be equalTo

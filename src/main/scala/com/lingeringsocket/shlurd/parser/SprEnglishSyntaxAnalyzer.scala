@@ -454,26 +454,26 @@ class SprEnglishSyntaxAnalyzer(
       return expectReference(seq.head)
     }
     if (seq.head.hasLabel(LABEL_LPAREN) && seq.last.hasLabel(LABEL_RPAREN)) {
-      return SilParenthesizedReference(
+      return annotator.parenthesizedRef(
         expectReference(seq.dropRight(1).drop(1)),
         BRACKET_PAREN
       )
     }
     if (seq.head.hasLabel(LABEL_LCURLY) && seq.last.hasLabel(LABEL_RCURLY)) {
-      return SilParenthesizedReference(
+      return annotator.parenthesizedRef(
         expectReference(seq.dropRight(1).drop(1)),
         BRACKET_CURLY
       )
     }
     if (seq.head.lastChild.isPossessiveClitic) {
-      return SilGenitiveReference(
+      return annotator.genitiveRef(
         expectReference(seq.head.children.dropRight(1)),
         expectReference(seq.tail))
     }
     if ((seq.size == 2) && seq.last.isNounPhrase &&
       seq.last.firstChild.hasLabel(LABEL_LPAREN)
     ) {
-      return SilAppositionalReference(
+      return annotator.appositionalRef(
         expectReference(seq.head),
         expectReference(seq.last)
       )
@@ -482,7 +482,7 @@ class SprEnglishSyntaxAnalyzer(
       case (DETERMINER_UNSPECIFIED, _, _) => {
       }
       case (determiner, separator, split) => {
-        return SilConjunctiveReference(
+        return annotator.conjunctiveRef(
           determiner, split.map(expectReference), separator)
       }
     }
@@ -512,9 +512,9 @@ class SprEnglishSyntaxAnalyzer(
       val pronounReference = SilExpectedPossessiveReference(components.head)
       val entityReference = expectNounReference(
         tree, components.last, determiner)
-      SilGenitiveReference(pronounReference, entityReference)
+      annotator.genitiveRef(pronounReference, entityReference)
     } else if (components.last.isCompoundAdpositionalPhrase) {
-      SilStateSpecifiedReference(
+      annotator.stateSpecifiedRef(
         expectReference(seqIn.dropRight(1)),
         SilExpectedAdpositionalState(components.last, false))
     } else if ((components.size == 2) && components.head.isNounPhrase) {
@@ -529,7 +529,7 @@ class SprEnglishSyntaxAnalyzer(
           tree, components.last, DETERMINER_UNSPECIFIED)
         if (components.size > 1) {
           val adjComponents = components.dropRight(1)
-          val qualifiedReference = SilReference.qualifiedByProperties(
+          val qualifiedReference = annotator.stateQualifiedRef(
             entityReference,
             adjComponents.map(expectPropertyState))
           qualifiedReference matchPartial {
@@ -549,7 +549,7 @@ class SprEnglishSyntaxAnalyzer(
           entityReference
         }
       }
-      SilReference.determined(qr, determiner)
+      annotator.determinedRef(qr, determiner)
     } else {
       SilUnrecognizedReference(tree)
     }
@@ -661,7 +661,7 @@ class SprEnglishSyntaxAnalyzer(
         SptS(SptVP(verb, complement))
       ) if (verb.isBeingVerb) => {
         val state = expectComplementState(SptVP(complement))
-        SilStateSpecifiedReference(reference, state)
+        annotator.stateSpecifiedRef(reference, state)
       }
       case _ => {
         SilUnrecognizedReference(syntaxTree)
@@ -958,7 +958,7 @@ class SprEnglishSyntaxAnalyzer(
           specifyReference(expectReference(seq), specifiedState)
         }
         case (determiner, separator, split) => {
-          val conjunctiveRef = SilConjunctiveReference(
+          val conjunctiveRef = annotator.conjunctiveRef(
             determiner,
             split.map(x => specifyReference(
               expectReference(x), specifiedState)),
@@ -1476,7 +1476,7 @@ class SprEnglishSyntaxAnalyzer(
       case LEMMA_THAT | LEMMA_THOSE => DISTANCE_THERE
       case _ => DISTANCE_UNSPECIFIED
     }
-    SilPronounReference(person, gender, count, distance)
+    annotator.pronounRef(person, gender, count, distance)
   }
 
   override def isProhibitedPropertyState(

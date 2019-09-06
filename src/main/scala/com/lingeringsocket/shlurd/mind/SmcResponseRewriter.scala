@@ -61,8 +61,8 @@ class SmcResponseRewriter[
                 SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
                 SilGenitiveReference(
                   _,
-                  SilNounReference(
-                    SilWordLemma(SmcLemmas.LEMMA_CONTAINEE)
+                  SilNounLemmaReference(
+                    SmcLemmas.LEMMA_CONTAINEE
                   )
                 ),
                 _
@@ -106,7 +106,7 @@ class SmcResponseRewriter[
             SilCountedNounReference(noun, count),
             DETERMINER_ANY)
         ) => {
-          SilGenitiveReference(
+          annotator.genitiveRef(
             possessor,
             annotator.nounRef(noun, count)
           )
@@ -167,18 +167,18 @@ class SmcResponseRewriter[
                 separator, params).getOrElse
               {
                 negateCollection = true
-                SilConjunctiveReference(
+                annotator.conjunctiveRef(
                   DETERMINER_NONE, references, separator)
               }
             }
             case DETERMINER_ALL => {
               normalizeConjunctionWrapper(
                 separator,
-                SilConjunctiveReference(
+                annotator.conjunctiveRef(
                   DETERMINER_ALL, references, separator))
             }
             case _ => {
-              SilConjunctiveReference(determiner, references, separator)
+              annotator.conjunctiveRef(determiner, references, separator)
             }
           }
         }
@@ -197,6 +197,7 @@ class SmcResponseRewriter[
             }
           }
           SilStackedStateReference(
+            annotator,
             expandToDisjunction(varRef, noun, count),
             states)
         }
@@ -207,6 +208,7 @@ class SmcResponseRewriter[
           DETERMINER_ALL
         ) => {
           SilStackedStateReference(
+            annotator,
             expandToConjunction(noun, count),
             states)
         }
@@ -290,7 +292,7 @@ class SmcResponseRewriter[
           case PERSON_THIRD => PERSON_THIRD
         }
         val newPronoun =
-          SilPronounReference(speakerListenerReversed, gender, count, distance)
+          annotator.pronounRef(speakerListenerReversed, gender, count, distance)
         refMap.get(oldPronoun).foreach(entities =>
           refMap.put(newPronoun, entities))
         newPronoun
@@ -308,7 +310,9 @@ class SmcResponseRewriter[
     def analyze(originalRef : SilReference)
     {
       val newEntitySet = refMap(originalRef)
-      mind.thirdPersonReference(newEntitySet).foreach(replacedRef => {
+      mind.thirdPersonReference(
+        annotator,newEntitySet
+      ).foreach(replacedRef => {
         replacedRefMap.get(replacedRef) match {
           case Some(existingEntitySet) => {
             if (existingEntitySet != newEntitySet) {
@@ -345,8 +349,8 @@ class SmcResponseRewriter[
             verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
             SilGenitiveReference(
               containee,
-              SilNounReference(
-                SilWordLemma(SmcLemmas.LEMMA_CONTAINER)
+              SilNounLemmaReference(
+                SmcLemmas.LEMMA_CONTAINER
               )),
             verbModifiers
           ),
@@ -376,8 +380,8 @@ class SmcResponseRewriter[
             SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
             SilGenitiveReference(
               container,
-              SilNounReference(
-                SilWordLemma(SmcLemmas.LEMMA_CONTAINEE)
+              SilNounLemmaReference(
+                SmcLemmas.LEMMA_CONTAINEE
               )),
             verbModifiers
           ),
@@ -525,7 +529,7 @@ class SmcResponseRewriter[
   {
     val key = entity.getUniqueIdentifier
     entityMap.put(key, entity)
-    SilMappedReference(key, determiner)
+    annotator.mappedRef(key, determiner)
   }
 
   private def chooseReference(
@@ -672,7 +676,8 @@ class SmcResponseRewriter[
               SilConjunctiveReference(_, _, _) =>
             {
               resultCollector.lookup(ref).flatMap(
-                entities => mind.thirdPersonReference(entities)).getOrElse(ref)
+                entities => mind.thirdPersonReference(
+                  annotator, entities)).getOrElse(ref)
             }
           case _ => ref
         }
@@ -765,11 +770,11 @@ class SmcResponseRewriter[
   {
     reference match {
       case SilStateSpecifiedReference(subReference, state) => {
-        SilStateSpecifiedReference(
+        annotator.stateSpecifiedRef(
           coerceCount(subReference, agreedCount), state)
       }
       case SilGenitiveReference(possessor, possessee) => {
-        SilGenitiveReference(
+        annotator.genitiveRef(
           possessor, coerceCount(possessee, agreedCount))
       }
       // FIXME should have a case for arbitrary SilDeterminedReference
@@ -795,7 +800,7 @@ class SmcResponseRewriter[
           val nounRef = annotator.nounRef(
             noun.toNounUninflected,
             agreedCount)
-          SilReference.determined(nounRef, newDeterminer)
+          annotator.determinedRef(nounRef, newDeterminer)
         }
       }
       case _ => reference
@@ -850,7 +855,7 @@ class SmcResponseRewriter[
     } else if (exhaustive || (trueEntities.size > params.listLimit)) {
       summarizeList(trueEntities, exhaustive, existence, false)
     } else {
-      Some(SilConjunctiveReference(
+      Some(annotator.conjunctiveRef(
         DETERMINER_ALL,
         trueEntities.map(
           resolveReference(_, entityDeterminer, resultCollector)).toSeq,
@@ -880,7 +885,7 @@ class SmcResponseRewriter[
       tupleN((summarizeList(falseEntities, exhaustive, existence, true),
         exhaustive))
     } else {
-      tupleN((Some(SilConjunctiveReference(
+      tupleN((Some(annotator.conjunctiveRef(
         DETERMINER_NONE,
         falseEntities.map(
           resolveReference(_, entityDeterminer, resultCollector)).toSeq,
@@ -922,10 +927,10 @@ class SmcResponseRewriter[
     }
     val nounRef = annotator.nounRef(number, count)
     Some(
-      SilStateSpecifiedReference(
-        SilReference.determined(nounRef, determiner),
+      annotator.stateSpecifiedRef(
+        annotator.determinedRef(nounRef, determiner),
         SilAdpositionalState(
           SilAdposition.OF,
-          SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))
+          annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))
   }
 }

@@ -116,7 +116,7 @@ object SilMandatorySingular
   def unapply(ref : SilNounReference) =
   {
     ref.count match {
-      case COUNT_SINGULAR => Some(ref)
+      case COUNT_SINGULAR => Some(ref.noun)
       case _ => None
     }
   }
@@ -127,7 +127,7 @@ object SilMandatoryPlural
   def unapply(ref : SilNounReference) =
   {
     ref.count match {
-      case COUNT_PLURAL => Some(ref)
+      case COUNT_PLURAL => Some(ref.noun)
       case _ => None
     }
   }

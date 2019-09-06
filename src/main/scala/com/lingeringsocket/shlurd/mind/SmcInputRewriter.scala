@@ -60,7 +60,7 @@ class SmcInputRewriter[
             case _ => false
           })
       ) => {
-        SilGenitiveReference(
+        annotator.genitiveRef(
           possessor,
           annotator.nounRef(noun, count))
       }

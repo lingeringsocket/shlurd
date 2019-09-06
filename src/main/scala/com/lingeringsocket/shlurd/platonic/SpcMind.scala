@@ -89,7 +89,7 @@ class SpcMind(cosmos : SpcCosmos)
     entity matchPartial {
       case SpcTransientEntity(form, value, inflected) => {
         if (entity.form.name == PROPERTY_TYPE_STRING.name) {
-          return Seq(SilQuotationReference(value))
+          return Seq(annotator.quotationRef(value))
         } else {
           return Seq(annotator.nounRef(SilWord(inflected, value)))
         }
@@ -120,18 +120,18 @@ class SpcMind(cosmos : SpcCosmos)
           possessorEquiv => {
             if (cardinality > 1) {
               // "one of Pete's uncles"
-              SilStateSpecifiedReference(
+              annotator.stateSpecifiedRef(
                 annotator.nounRef(SilWord(LEMMA_ONE)),
                 SilAdpositionalState(
                   SilAdposition.OF,
-                  SilGenitiveReference(
+                  annotator.genitiveRef(
                     possessorEquiv,
                     annotator.nounRef(SilWord.uninflected(
                       getPossesseeName(specializedRole)),
                       COUNT_PLURAL))))
             } else {
               // "Larry's father"
-              SilGenitiveReference(
+              annotator.genitiveRef(
                 possessorEquiv,
                 annotator.nounRef(SilWord(getPossesseeName(specializedRole))))
             }
@@ -166,7 +166,8 @@ class SpcMind(cosmos : SpcCosmos)
     cosmos.decodeName(role.name)
   }
 
-  override def thirdPersonReference(entities : Set[SpcEntity])
+  override def thirdPersonReference(
+    annotator : SilAnnotator, entities : Set[SpcEntity])
       : Option[SilReference] =
   {
     val gender = {
@@ -189,7 +190,7 @@ class SpcMind(cosmos : SpcCosmos)
         COUNT_PLURAL
       }
     }
-    Some(SilPronounReference(PERSON_THIRD, gender, count))
+    Some(annotator.pronounRef(PERSON_THIRD, gender, count))
   }
 
   protected def guessGender(entity : SpcEntity) : SilGender =
@@ -223,7 +224,7 @@ class SpcMind(cosmos : SpcCosmos)
     val nounRef = annotator.determinedNounRef(
       SilWord(formName), determiner)
     if (entity.properName.isEmpty) {
-      SilReference.qualified(
+      annotator.qualifiedRef(
         nounRef, entity.qualifiers.map(q => SilWord(q)).toSeq)
     } else {
       nounRef

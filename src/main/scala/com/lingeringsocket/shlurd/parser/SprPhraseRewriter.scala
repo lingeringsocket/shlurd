@@ -26,6 +26,8 @@ class SprPhraseRewriter(
 {
   import SilPhraseRewriter._
 
+  private def annotator = context.annotator
+
   def parseSentence(sentenceSyntaxTree : SprSyntaxTree) : SilSentence =
   {
     val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
@@ -62,7 +64,7 @@ class SprPhraseRewriter(
 
   private def registerAnnotations = queryMatcher {
     case annotatedRef : SilAnnotatedReference => {
-      context.annotator.register(annotatedRef)
+      annotator.register(annotatedRef)
     }
   }
 
@@ -97,7 +99,7 @@ class SprPhraseRewriter(
         analyzer.analyzeNounPhrase(np)
       }
       case SilExpectedReference(SptNNQ(quotation)) => {
-        SilQuotationReference(quotation.token)
+        annotator.quotationRef(quotation.token)
       }
       case SilExpectedReference(noun : SprSyntaxSimpleNoun) => {
         createNounReference(noun, DETERMINER_UNSPECIFIED)
@@ -137,11 +139,11 @@ class SprPhraseRewriter(
     determiner : SilDeterminer) =
   {
     val count = analyzer.getCount(nounlike)
-    val nounRef = context.annotator.nounRef(
+    val nounRef = annotator.nounRef(
       analyzer.getWord(nounlike.child),
       count)
     rememberDetermined(
-      SilReference.determined(nounRef, determiner),
+      annotator.determinedRef(nounRef, determiner),
       nounlike)
   }
 
@@ -162,11 +164,11 @@ class SprPhraseRewriter(
     determiner : SilDeterminer) =
   {
     val count = analyzer.getCount(compound.children.last)
-    val nounRef = context.annotator.nounRef(
+    val nounRef = annotator.nounRef(
       analyzer.getCompoundWord(compound),
       count)
     rememberDetermined(
-      SilReference.determined(nounRef, determiner),
+      annotator.determinedRef(nounRef, determiner),
         compound)
   }
 
@@ -331,7 +333,7 @@ class SprPhraseRewriter(
                     adposition,
                     adpositionObject)
                   onPhraseTransformation(
-                    context.annotator, modifier, newModifier)
+                    annotator, modifier, newModifier)
                   // FIXME this is gross--we leave the dangling adposition
                   // around just so that later we can rememmber to
                   // convert from INFLECT_ACCUSATIVE to INFLECT_ADPOSITIONED
@@ -380,7 +382,7 @@ class SprPhraseRewriter(
         fullySpecifiedState matchPartial {
           case tp : SilTransformedPhrase => {
             SilPhraseRewriter.onPhraseTransformation(
-              context.annotator, cs, tp)
+              annotator, cs, tp)
           }
         }
         val specifiedSubject = analyzer.specifyReference(
@@ -402,6 +404,8 @@ class SprPhraseRewriter(
 class SprAmbiguityResolver(context : SprContext)
     extends SprEnglishWordAnalyzer
 {
+  private def annotator = context.annotator
+
   def resolveAmbiguousSentence(ambiguous : SilAmbiguousSentence)
       : SilSentence =
   {
@@ -500,7 +504,7 @@ class SprAmbiguityResolver(context : SprContext)
 
   private def normalizeCandidate(s : SilSentence) : SilSentence =
   {
-    val rewriter = new SilPhraseRewriter(context.annotator)
+    val rewriter = new SilPhraseRewriter(annotator)
     def normalizer = rewriter.replacementMatcher(
       "normalizeAmbiguousCandidate", {
         case SilPropertyState(SilSimpleWord(inflected, lemma, senseId)) => {

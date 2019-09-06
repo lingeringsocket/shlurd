@@ -92,10 +92,11 @@ class SpcMeta(cosmos : SpcCosmos)
         s"$idealEntityName does not exist"
       }
     }
+    val annotator = SilBasicAnnotator()
     enqueueBelief(
       EntityExistenceBelief(
         SilUnparsedSentence(sentence),
-        SilNounReference(SilWord(idealEntityName)),
+        annotator.nounRef(SilWord(idealEntityName)),
         SilWord(metaFormName),
         Seq(SilWord(idealEntityName)),
         idealEntityName,
@@ -118,10 +119,11 @@ class SpcMeta(cosmos : SpcCosmos)
   {
     val propertyEntityName = propertyMetaEntityName(form, property)
     val formEntityName = formMetaEntityName(form)
+    val annotator = SilBasicAnnotator()
     enqueueBelief(
       EntityExistenceBelief(
         SilUnparsedSentence(s"$propertyEntityName is an spc-property"),
-        SilNounReference(SilWord(propertyEntityName)),
+        annotator.nounRef(SilWord(propertyEntityName)),
         SilWord(PROPERTY_METAFORM_NAME),
         Seq(SilWord(propertyEntityName)),
         propertyEntityName,
@@ -132,8 +134,8 @@ class SpcMeta(cosmos : SpcCosmos)
       EntityAssocBelief(
         SilUnparsedSentence(
           s"$propertyEntityName is $formEntityName's spc-attribute"),
-        SilNounReference(SilWord(formEntityName)),
-        SilNounReference(SilWord(propertyEntityName)),
+        annotator.nounRef(SilWord(formEntityName)),
+        annotator.nounRef(SilWord(propertyEntityName)),
         false,
         SilWord(ATTRIBUTE_METAROLE_NAME),
         true)
@@ -145,10 +147,11 @@ class SpcMeta(cosmos : SpcCosmos)
   {
     val propertyEntityName = propertyMetaEntityName(form, property)
     val valueEntityName = valueMetaEntityName(form, property, ps)
+    val annotator = SilBasicAnnotator()
     enqueueBelief(
       EntityExistenceBelief(
         SilUnparsedSentence(s"$valueEntityName is an spc-value"),
-        SilNounReference(SilWord(valueEntityName)),
+        annotator.nounRef(SilWord(valueEntityName)),
         SilWord(VALUE_METAFORM_NAME),
         Seq(SilWord(valueEntityName)),
         valueEntityName,
@@ -159,8 +162,8 @@ class SpcMeta(cosmos : SpcCosmos)
       EntityAssocBelief(
         SilUnparsedSentence(
           s"$valueEntityName is $propertyEntityName's spc-property-value"),
-        SilNounReference(SilWord(propertyEntityName)),
-        SilNounReference(SilWord(valueEntityName)),
+        annotator.nounRef(SilWord(propertyEntityName)),
+        annotator.nounRef(SilWord(valueEntityName)),
         false,
         SilWord(VALUE_METAROLE_NAME),
         true)
@@ -179,13 +182,14 @@ class SpcMeta(cosmos : SpcCosmos)
         "not"
       }
     }
+    val annotator = SilBasicAnnotator()
     enqueueBelief(
       EntityAssocBelief(
         SilUnparsedSentence(
           s"$superclassEntityName is $modifier $subclassEntityName's "
             + "spc-superclass"),
-        SilNounReference(SilWord(subclassEntityName)),
-        SilNounReference(SilWord(superclassEntityName)),
+        annotator.nounRef(SilWord(subclassEntityName)),
+        annotator.nounRef(SilWord(superclassEntityName)),
         false,
         SilWord(SUPERCLASS_METAROLE_NAME),
         positive))
@@ -208,12 +212,13 @@ class SpcMeta(cosmos : SpcCosmos)
         "not"
       }
     }
+    val annotator = SilBasicAnnotator()
     enqueueBelief(
       EntityAssocBelief(
         SilUnparsedSentence(
           s"$formEntityName is $modifier $entityName's spc-type"),
-        SilNounReference(SilWord(entityName)),
-        SilNounReference(SilWord(formEntityName)),
+        annotator.nounRef(SilWord(entityName)),
+        annotator.nounRef(SilWord(formEntityName)),
         false,
         SilWord(TYPE_METAROLE_NAME),
         positive))

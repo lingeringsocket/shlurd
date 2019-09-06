@@ -707,8 +707,8 @@ class SpcCosmosSpec extends SpcProcessingSpecification
     {
       addBelief("Lana is a person")
       val entity = expectPerson("lana")
-      val properRef = SilNounReference(SilWord("Lana"))
       val annotator = SilBasicAnnotator()
+      val properRef = annotator.nounRef(SilWord("Lana"))
       val specificRef = mind.specificReference(
         annotator, entity, DETERMINER_UNSPECIFIED)
       specificRef must be equalTo properRef

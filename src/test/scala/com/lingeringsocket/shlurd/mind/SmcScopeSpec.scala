@@ -33,23 +33,25 @@ class SmcScopeSpec extends Specification
 
   private val cosmos = new ZooCosmos
 
+  private val annotator = SilBasicAnnotator()
+
   private val firstPersonRef =
-    SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+    annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
 
   private val thirdPersonRef =
-    SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
+    annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
 
-  private val nigelRef = SilNounReference(SilWord("Nigel"))
+  private val nigelRef = annotator.nounRef(SilWord("Nigel"))
 
-  private val cliveRef = SilNounReference(SilWord("Clive"))
+  private val cliveRef = annotator.nounRef(SilWord("Clive"))
 
   private val tigerRef =
-    SilDeterminedReference(
-      SilNounReference(SilWord("tiger")), DETERMINER_NONSPECIFIC)
+    annotator.determinedRef(
+      annotator.nounRef(SilWord("tiger")), DETERMINER_NONSPECIFIC)
 
   private val anotherTigerRef =
-    SilStateSpecifiedReference(
-      SilNounReference(SilWord("tiger")),
+    annotator.stateSpecifiedRef(
+      annotator.nounRef(SilWord("tiger")),
       SilPropertyState(SilWord(LEMMA_ANOTHER)))
 
   private val noEntities = Set[SmcEntity]()
@@ -183,6 +185,7 @@ class SmcScopeSpec extends Specification
     "resolve pronouns at mind scope" in new ScopeContext
     {
       mindScope.resolvePronoun(
+        annotator,
         communicationContext,
         firstPersonRef
       ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooVisitor)))
@@ -191,6 +194,7 @@ class SmcScopeSpec extends Specification
     "fail to resolve pronoun without antecedent" in new ScopeContext
     {
       mindScope.resolvePronoun(
+        annotator,
         communicationContext,
         thirdPersonRef
       ) must beFailedTry.withThrowable[ShlurdException](unresolvedMsg)
@@ -203,6 +207,7 @@ class SmcScopeSpec extends Specification
       )
       val phraseScope = new SmcPhraseScope(refMap, mindScope)
       phraseScope.resolvePronoun(
+        annotator,
         communicationContext,
         thirdPersonRef
       ) must beSuccessfulTry.withValue(
@@ -218,6 +223,7 @@ class SmcScopeSpec extends Specification
       )
       val phraseScope = new SmcPhraseScope(refMap, mindScope)
       phraseScope.resolvePronoun(
+        annotator,
         communicationContext,
         thirdPersonRef
       ) must beFailedTry.withThrowable[ShlurdException](ambiguousMsg)

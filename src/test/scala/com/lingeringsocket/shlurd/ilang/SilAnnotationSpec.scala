@@ -18,11 +18,13 @@ import org.specs2.mutable._
 
 class SilAnnotationSpec extends Specification
 {
+  private val annotator = SilBasicAnnotator()
+
   private def makeSingular =
-    SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
+    annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
 
   private def makePlural =
-    SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL)
+    annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL)
 
   "SilAnnotationSpec" should
   {
@@ -31,7 +33,6 @@ class SilAnnotationSpec extends Specification
       val singular = makeSingular
       val plural = makePlural
 
-      val annotator = SilBasicAnnotator()
       val singularAnnotation = annotator.register(singular)
       val pluralAnnotation = annotator.register(plural)
       val singularNote = annotator.getNote(singularAnnotation)
@@ -44,7 +45,6 @@ class SilAnnotationSpec extends Specification
     {
       val plural = makePlural
 
-      val annotator = SilBasicAnnotator()
       val originalAnnotation = annotator.register(plural)
       val originalNote = annotator.getNote(originalAnnotation)
       originalNote.getCount must be equalTo COUNT_PLURAL

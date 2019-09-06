@@ -360,7 +360,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     // state gets lost for questions such as QUESTION_WHAT
     val (plainSubject, subjectInflection) = predicate.getSubject match {
       case SilGenitiveReference(
-        SilNounReference(SilWordLemma(LEMMA_WHO)),
+        SilNounLemmaReference(LEMMA_WHO),
         possessee
       ) => {
         tupleN((

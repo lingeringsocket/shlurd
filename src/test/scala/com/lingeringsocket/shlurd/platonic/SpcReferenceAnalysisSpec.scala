@@ -93,13 +93,14 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       val ivan = "Ivan"
       val boris = "Boris"
       val natasha = "Natasha"
-      val ivanRef = SilNounReference(SilWord(ivan))
-      val borisRef = SilNounReference(SilWord(boris))
-      val natashaRef = SilNounReference(SilWord(natasha))
-      val sheRef = SilPronounReference(PERSON_THIRD, GENDER_F, COUNT_SINGULAR)
-      val heRef = SilPronounReference(PERSON_THIRD, GENDER_M, COUNT_SINGULAR)
-      val beastRef = SilNounReference(SilWord("beast"))
-      val ownerRef = SilNounReference(SilWord("owner"))
+      val annotator = SilBasicAnnotator()
+      val ivanRef = annotator.nounRef(SilWord(ivan))
+      val borisRef = annotator.nounRef(SilWord(boris))
+      val natashaRef = annotator.nounRef(SilWord(natasha))
+      val sheRef = annotator.pronounRef(PERSON_THIRD, GENDER_F, COUNT_SINGULAR)
+      val heRef = annotator.pronounRef(PERSON_THIRD, GENDER_M, COUNT_SINGULAR)
+      val beastRef = annotator.nounRef(SilWord("beast"))
+      val ownerRef = annotator.nounRef(SilWord("owner"))
       analyze("a woman's gender must be feminine")
       analyze(s"$natasha is a woman")
       val natashaEntity = expectProperName(natasha)
@@ -140,7 +141,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       analyze(s"${natasha}'s beast kicks her") must be equalTo Map(
         natashaRef -> natashaSet,
         sheRef -> natashaSet,
-        SilGenitiveReference(natashaRef, beastRef) -> Set()
+        annotator.genitiveRef(natashaRef, beastRef) -> Set()
       )
 
       startSequence
@@ -160,7 +161,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       analyze(s"$ivan loves his owner") must be equalTo Map(
         ivanRef -> ivanSet,
         heRef -> ivanSet,
-        SilGenitiveReference(heRef, ownerRef) -> Set()
+        annotator.genitiveRef(heRef, ownerRef) -> Set()
       )
       stopSequence
     }

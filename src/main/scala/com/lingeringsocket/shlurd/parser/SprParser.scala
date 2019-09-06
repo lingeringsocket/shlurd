@@ -529,9 +529,7 @@ object SprParser extends SprEnglishWordAnalyzer
   {
     ref match {
       case SilMandatorySingular(
-        SilNounReference(
-          SilWordLemma(lemma)
-        )
+        SilWordLemma(lemma)
       ) => {
         lemma.toLowerCase match {
           case ONCE_UPON_A_TIME => Int.MinValue
@@ -543,9 +541,7 @@ object SprParser extends SprEnglishWordAnalyzer
         SilPronounReference(
           PERSON_THIRD, GENDER_N, COUNT_SINGULAR, DISTANCE_HERE),
         SilMandatorySingular(
-          SilNounReference(
-            SilWordLemma(lemma)
-          )
+          SilWordLemma(lemma)
         )
       ) => {
         lemma.toLowerCase match {

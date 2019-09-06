@@ -163,9 +163,9 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     case SilRelationshipPredicate(
       _,
       _,
-      SilMandatorySingular(SilNounReference(_)) |
+      SilMandatorySingular(_) |
         SilStateSpecifiedReference(
-          SilMandatorySingular(SilNounReference(_)),
+          SilMandatorySingular(_),
           _
         ),
       _

@@ -57,9 +57,7 @@ class SmcResponderSpec extends Specification
             case SilAdpositionalState(
               SilAdposition.IN,
               SilMandatorySingular(
-                SilNounReference(
-                  SilWordInflected("dreamland")
-                )
+                SilWordInflected("dreamland")
               )) =>
               {
                 SilPropertyState(SilWord("asleep"))
@@ -590,14 +588,17 @@ class SmcResponderSpec extends Specification
     {
       mind.startConversation
       process("who are you") must be equalTo("I am Muldoon.")
+      val annotator = SilBasicAnnotator()
+      val muldoonRef =
+        annotator.nounRef(SilWord("Muldoon"))
       mind.getConversation.getUtterances must be equalTo Seq(
         SpeakerUtterance(
           SmcConversation.SPEAKER_NAME_PERSON,
           SilPredicateQuery(
             SilRelationshipPredicate(
-              SilNounReference(SilWord(LEMMA_WHO)),
+              annotator.nounRef(SilWord(LEMMA_WHO)),
               SilWord("are", LEMMA_BE),
-              SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
+              annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
             ),
             QUESTION_WHO,
             INFLECT_NOMINATIVE,
@@ -605,23 +606,23 @@ class SmcResponderSpec extends Specification
             SilFormality(FORCE_NEUTRAL)),
           "who are you",
           Map(
-            SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR) ->
+            annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR) ->
               Set(ZooKeeper))),
         SpeakerUtterance(
           SmcConversation.SPEAKER_NAME_SHLURD,
           SilPredicateSentence(
             SilRelationshipPredicate(
-              SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+              annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
               SilWord.uninflected(LEMMA_BE),
-              SilNounReference(SilWord("Muldoon"))
+              muldoonRef
             ),
             SilTam.indicative,
             SilFormality(FORCE_NEUTRAL)),
           "I am Muldoon.",
           Map(
-            SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR) ->
+            annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR) ->
               Set(ZooKeeper),
-            SilNounReference(SilWord("Muldoon")) -> Set(ZooKeeper)
+            muldoonRef -> Set(ZooKeeper)
           )
         )
       )

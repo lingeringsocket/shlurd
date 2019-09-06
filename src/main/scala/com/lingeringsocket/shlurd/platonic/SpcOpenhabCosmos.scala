@@ -382,13 +382,13 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
         SilWord(realForm),
         determiner)
       if (specialRoom) {
-        SilReference.qualified(
+        annotator.qualifiedRef(
           ref, seq.map(x => SilWord(x)))
       } else {
         if (seq.size == 1) {
           ref
         } else {
-          SilReference.qualified(
+          annotator.qualifiedRef(
             ref, seq.dropRight(1).map(x => SilWord(x)))
         }
       }
@@ -419,7 +419,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
               case Some(floorEntity) => {
                 val floorRef =
                   specificReference(annotator, floorEntity, DETERMINER_UNIQUE)
-                SilStateSpecifiedReference(
+                annotator.stateSpecifiedRef(
                   ref,
                   SilAdpositionalState(
                     SilAdposition.ON,

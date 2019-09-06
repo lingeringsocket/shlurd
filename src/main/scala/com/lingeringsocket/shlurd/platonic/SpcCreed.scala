@@ -127,7 +127,7 @@ class SpcCreed(
       SilRelationshipPredicate(
         idealReference(cosmos.getGraph.getSubclassIdeal(edge)),
         REL_PREDEF_IDENTITY.toVerb,
-        SilStateSpecifiedReference(
+        annotator.stateSpecifiedRef(
           nounReference(LEMMA_KIND),
           SilAdpositionalState(
             SilAdposition.OF,
@@ -157,7 +157,7 @@ class SpcCreed(
       SilRelationshipPredicate(
         nounReference(entry._1),
         REL_PREDEF_IDENTITY.toVerb,
-        SilStateSpecifiedReference(
+        annotator.stateSpecifiedRef(
           nounReference(LEMMA_SAME, COUNT_SINGULAR, DETERMINER_UNIQUE),
           SilAdpositionalState(
             SilAdposition.AS,
@@ -174,7 +174,7 @@ class SpcCreed(
       if (property.isSynthetic) {
         idealReference(form)
       } else {
-        SilGenitiveReference(
+        annotator.genitiveRef(
           idealReference(form),
           nounReference(
             property.name, COUNT_SINGULAR, DETERMINER_UNSPECIFIED))
@@ -278,7 +278,7 @@ class SpcCreed(
           if (property.name.contains('_')) {
             subject
           } else {
-            SilGenitiveReference(
+            annotator.genitiveRef(
               subject,
               annotator.nounRef(SilWord(eps.propertyName))
             )
@@ -292,11 +292,11 @@ class SpcCreed(
       }
       case _ => {
         SilRelationshipPredicate(
-          SilGenitiveReference(
+          annotator.genitiveRef(
             subject,
             annotator.nounRef(SilWord(eps.propertyName))),
           REL_PREDEF_IDENTITY.toVerb,
-          SilQuotationReference(eps.lemma)
+          annotator.quotationRef(eps.lemma)
         )
       }
     }
@@ -319,7 +319,7 @@ class SpcCreed(
       SilRelationshipPredicate(
         possessee,
         REL_PREDEF_IDENTITY.toVerb,
-        SilGenitiveReference(
+        annotator.genitiveRef(
           possessor,
           role)
       )
@@ -333,7 +333,7 @@ class SpcCreed(
         idealNoun(ideal)
       }
       case role : SpcRole => {
-        SilGenitiveReference(
+        annotator.genitiveRef(
           idealNoun(role.possessor),
           plainNoun(ideal))
       }
@@ -370,19 +370,19 @@ class SpcCreed(
       if (possessorForm == possesseeForm) {
         tupleN((
           idealReference(possesseeForm),
-          SilGenitiveReference(
-            SilReference.qualified(
+          annotator.genitiveRef(
+            annotator.qualifiedRef(
               plainNoun(possessorForm),
               Seq(SilWord(LEMMA_ANOTHER))
             ),
             plainNoun(edge1.getRoleName)
           ),
-          SilReference.qualified(
+          annotator.qualifiedRef(
             idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
             Seq(SilWord(ordinalSecond))
           ),
-          SilGenitiveReference(
-            SilReference.qualified(
+          annotator.genitiveRef(
+            annotator.qualifiedRef(
               idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
               Seq(SilWord(ordinalFirst))
             ),
@@ -392,12 +392,12 @@ class SpcCreed(
       } else {
         tupleN((
           idealReference(possesseeForm),
-          SilGenitiveReference(
+          annotator.genitiveRef(
             idealReference(possessorForm),
             plainNoun(edge1.getRoleName)
           ),
           idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
-          SilGenitiveReference(
+          annotator.genitiveRef(
             idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
             plainNoun(edge2.getRoleName)
           )

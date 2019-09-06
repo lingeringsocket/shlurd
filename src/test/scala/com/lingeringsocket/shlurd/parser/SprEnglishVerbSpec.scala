@@ -27,6 +27,8 @@ import ShlurdEnglishAffixes._
 // LEMMA_EXIST, including "there is" form
 class SprEnglishVerbSpec extends Specification
 {
+  private val annotator = SilBasicAnnotator()
+
   case class ParsedVerb(
     subject : SilReference,
     rhs : Option[SilPhrase],
@@ -168,11 +170,11 @@ class SprEnglishVerbSpec extends Specification
   private def pronounSeq() : Seq[SilPronounReference] =
   {
     Seq(
-      SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
-      SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
-      SilPronounReference(PERSON_THIRD, GENDER_F, COUNT_SINGULAR),
-      SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_PLURAL),
-      SilPronounReference(PERSON_THIRD, GENDER_N, COUNT_PLURAL))
+      annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+      annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
+      annotator.pronounRef(PERSON_THIRD, GENDER_F, COUNT_SINGULAR),
+      annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_PLURAL),
+      annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL))
   }
 
   private def moodSeq() : Seq[SilTam] =
@@ -217,11 +219,6 @@ class SprEnglishVerbSpec extends Specification
     )
   }
 
-  private def determinedNounRef(word : SilWord, determiner : SilDeterminer) =
-  {
-    SilDeterminedReference(SilNounReference(word), determiner)
-  }
-
   private def rhsSeq(
     question : Option[(SilQuestion, SilInflection)] = None)
       : Seq[Option[SilPhrase]] =
@@ -229,17 +226,17 @@ class SprEnglishVerbSpec extends Specification
     question match {
       case Some((QUESTION_WHO, INFLECT_ACCUSATIVE)) => {
         Seq(
-          Some(SilNounReference(SilWord(LEMMA_WHOM)))
+          Some(annotator.nounRef(SilWord(LEMMA_WHOM)))
         )
       }
       case Some((QUESTION_WHICH, INFLECT_ACCUSATIVE)) => {
         Seq(
-          Some(SilNounReference(SilWord("customer")))
+          Some(annotator.nounRef(SilWord("customer")))
         )
       }
       case Some((QUESTION_HOW_MANY, INFLECT_ACCUSATIVE)) => {
         Seq(
-          Some(SilNounReference(
+          Some(annotator.nounRef(
             SilWord("customers", "customer")
           ))
         )
@@ -247,7 +244,7 @@ class SprEnglishVerbSpec extends Specification
       case _ => {
         Seq(
           None,
-          Some(determinedNounRef(
+          Some(annotator.determinedNounRef(
             SilWord("customer"), DETERMINER_UNIQUE)),
           Some(SilPropertyState(SilWord("ridiculous")))
         )
@@ -265,17 +262,17 @@ class SprEnglishVerbSpec extends Specification
     // FIXME test INFLECT_ADPOSITIONED and INFLECT_GENITIVE, plus
     // adpositional objects
     Seq(
-      (SilNounReference(SilWord(LEMMA_WHO)),
+      (annotator.nounRef(SilWord(LEMMA_WHO)),
         (QUESTION_WHO, INFLECT_NOMINATIVE)),
-      (determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
+      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
         (QUESTION_WHO, INFLECT_ACCUSATIVE)),
-      (SilNounReference(SilWord("agent")),
+      (annotator.nounRef(SilWord("agent")),
         (QUESTION_WHICH, INFLECT_NOMINATIVE)),
-      (determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
+      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
         (QUESTION_WHICH, INFLECT_ACCUSATIVE)),
-      (SilNounReference(SilWord("agents", "agent")),
+      (annotator.nounRef(SilWord("agents", "agent")),
         (QUESTION_HOW_MANY, INFLECT_NOMINATIVE)),
-      (determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
+      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
         (QUESTION_HOW_MANY, INFLECT_ACCUSATIVE))
     )
   }
@@ -372,7 +369,7 @@ class SprEnglishVerbSpec extends Specification
       : Seq[(SilReference, Option[SilPhrase], String, SilTam)] =
   {
     // FIXME support POLARITY_NEGATIVE, MODALITY_EMPHATIC
-    val pronoun = SilPronounReference(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
+    val pronoun = annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
     rhsSeq().flatMap(
       rhs => {
         val tam = SilTamImmutable(
@@ -495,7 +492,7 @@ class SprEnglishVerbSpec extends Specification
     // can be edited for a specific scenario and then run by itself
     "parse one" in
     {
-      val subject = SilPronounReference(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+      val subject = annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
       val rhs = Some(SilPropertyState(SilWord("ridiculous")))
       val lemma = LEMMA_BE
       val tam = SilTam.interrogative.progressive
