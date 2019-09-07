@@ -29,10 +29,10 @@ import SprEnglishLemmas._
 
 object SpcBeliefAccepter
 {
-  def forResponder(
+  def apply(
     responder : SpcResponder,
-    params : SpcBeliefParams = SpcBeliefParams(),
-    resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
+    params : SpcBeliefParams,
+    resultCollector : SmcResultCollector[SpcEntity])
       : SpcBeliefAccepter =
   {
     new SpcBeliefAccepter(
@@ -41,16 +41,20 @@ object SpcBeliefAccepter
       resultCollector)
   }
 
-  def forMind(
-    mind : SpcMind,
-    params : SpcBeliefParams = SpcBeliefParams(),
-    resultCollector : SmcResultCollector[SpcEntity] = SmcResultCollector())
+  def apply(
+    responder : SpcResponder,
+    params : SpcBeliefParams = SpcBeliefParams())
       : SpcBeliefAccepter =
   {
-    new SpcBeliefAccepter(
-      new SpcResponder(mind, params),
-      params,
-      resultCollector)
+    val resultCollector = SmcResultCollector(responder.smcAnnotator)
+    SpcBeliefAccepter(responder, params, resultCollector)
+  }
+
+  def apply(
+    responder : SpcResponder)
+      : SpcBeliefAccepter =
+  {
+    SpcBeliefAccepter(responder, SpcBeliefParams())
   }
 }
 

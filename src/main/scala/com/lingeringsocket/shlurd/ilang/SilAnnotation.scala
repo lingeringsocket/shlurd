@@ -21,11 +21,13 @@ import scala.collection._
 import java.util.concurrent.atomic._
 
 abstract class SilAbstractRefNote(
-  ref : SilReference
+  val ref : SilReference
 ) {
   def getCount() : SilCount
 
   def setCount(count : SilCount)
+
+  def getRef() : SilReference = ref
 }
 
 class SilBasicRefNote(
@@ -65,6 +67,12 @@ trait SilAnnotator
   def getBasicNote(ref : SilAnnotatedReference) : SilAbstractRefNote
 
   def generateId : Int
+
+  def copy[PhraseType <: SilPhrase](phrase : PhraseType) : PhraseType =
+  {
+    val rewriter = new SilPhraseRewriter(this)
+    rewriter.deepclone(phrase)
+  }
 
   def nounRef(
     noun : SilWord, count : SilCount = COUNT_SINGULAR
@@ -191,6 +199,8 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
 
   private val map = new mutable.LinkedHashMap[Int, NoteType]
 
+  def getMap() : Map[Int, NoteType] = map
+
   override def generateId : Int = nextId.incrementAndGet
 
   override def register[ReferenceType <: SilAnnotatedReference](
@@ -241,5 +251,34 @@ object SilBasicAnnotator
   {
     new SilTypedAnnotator[SilBasicRefNote](
       (ref) => new SilBasicRefNote(ref))
+  }
+}
+
+object SilAnnotator extends SilPhraseQuerier
+{
+  private def checkRef(
+    annotator : SilAnnotator,
+    idSet : mutable.Set[Int]
+  ) = queryMatcher {
+    case annotatedRef : SilAnnotatedReference => {
+      assert(annotatedRef.hasAnnotation,
+        "Annotation lost for " + annotatedRef)
+      /*
+      assert(annotatedRef.getAnnotator == annotator,
+        "Annotator mismatch for " + annotatedRef)
+      val id = annotatedRef.getAnnotationId
+      assert(!idSet.contains(id),
+        s"Duplicate annotation id $id for " + annotatedRef)
+      idSet += id
+       */
+    }
+  }
+
+  def sanityCheck(annotator : SilAnnotator, phrase : SilPhrase)
+  {
+    val idSet = new mutable.HashSet[Int]
+    query(
+      checkRef(annotator, idSet),
+      phrase)
   }
 }

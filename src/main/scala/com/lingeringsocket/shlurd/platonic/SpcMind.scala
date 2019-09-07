@@ -66,7 +66,7 @@ class SpcMind(cosmos : SpcCosmos)
     sentences.foreach(sentence => {
       val analyzed = inputRewriter.normalizeInput(
         analyzeSense(responder.getAnnotator, sentence))
-      val accepter = SpcBeliefAccepter.forResponder(responder)
+      val accepter = SpcBeliefAccepter(responder)
       accepter.recognizeBeliefs(analyzed) match {
         case Seq(ib : IndirectBelief) => {
           accepter.applyBelief(ib)

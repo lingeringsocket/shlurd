@@ -213,7 +213,7 @@ class SpcImplicationMapper(
     antecedentRefs : Option[SpcRefMap] = None)
       : SpcRefMap =
   {
-    val resultCollector = SmcResultCollector[SpcEntity]()
+    val resultCollector = SmcResultCollector[SpcEntity](responder.smcAnnotator)
     val scope = new SmcPhraseScope(
       antecedentRefs.getOrElse(Map.empty),
       responder.mindScope

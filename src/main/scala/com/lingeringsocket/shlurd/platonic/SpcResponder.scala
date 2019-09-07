@@ -51,7 +51,7 @@ class SpcContextualScorer(responder : SpcResponder)
     sentence : SilSentence,
     resultCollector : ResultCollectorType) : SilPhraseScore =
   {
-    val beliefAccepter = SpcBeliefAccepter.forResponder(
+    val beliefAccepter = SpcBeliefAccepter(
       responder,
       SpcBeliefParams(
         createImplicitIdeals = false,
@@ -159,7 +159,7 @@ class SpcResponder(
   private def newAssertionMapper() = new SpcAssertionMapper(
     mind, communicationContext, newInputRewriter, sentencePrinter)
 
-  protected def spcAnnotator = annotator.asInstanceOf[SpcAnnotator]
+  def spcAnnotator = annotator.asInstanceOf[SpcAnnotator]
 
   override protected def spawn(subMind : SpcMind) =
   {
@@ -911,7 +911,7 @@ class SpcResponder(
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
     val beliefAccepter =
-      SpcBeliefAccepter.forResponder(
+      SpcBeliefAccepter(
         spawn(mind.spawn(forkedCosmos)),
         beliefParams,
         resultCollector)

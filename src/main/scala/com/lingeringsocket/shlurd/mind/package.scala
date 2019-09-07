@@ -36,15 +36,57 @@ package object mind
 
   object SmcRefMap
   {
+    trait SmcRefMapFromAnnotation[EntityType <: SmcEntity]
+        extends Map[SilReference, Set[EntityType]]
+    {
+      def getAnnotator : SilTypedAnnotator[SmcRefNote[EntityType]]
+
+      override def get(ref : SilReference) : Option[Set[EntityType]] =
+      {
+        ref match {
+          case annotatedRef : SilAnnotatedReference => {
+            getAnnotator.getNote(annotatedRef).getEntities
+          }
+          case _ => None
+        }
+      }
+
+      override def iterator : Iterator[(SilReference, Set[EntityType])] =
+      {
+        getAnnotator.getMap.iterator.filter {
+          case (_, note) => {
+            note.getEntities.nonEmpty
+          }
+        }.map {
+          case (_, note) => {
+            tupleN((note.ref, note.getEntities.get))
+          }
+        }
+      }
+    }
+
     def apply[EntityType <: SmcEntity](
       elems : (SilReference, Set[EntityType])*) =
     {
       Map[SilReference, Set[EntityType]](elems:_*)
     }
+
+    def fromAnnotation[EntityType <: SmcEntity](
+      annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
+    ) =
+    {
+      new DefaultMap[SilReference, Set[EntityType]] with
+          SmcRefMapFromAnnotation[EntityType]
+      {
+        override def getAnnotator = annotator
+      }
+    }
   }
 
   object SmcMutableRefMap
   {
+    import SmcRefMap._
+
     def newByValue[EntityType <: SmcEntity]() =
     {
       new mutable.LinkedHashMap[SilReference, Set[EntityType]]
@@ -54,5 +96,39 @@ package object mind
     {
       new IdentityLinkedHashMap[SilReference, Set[EntityType]]
     }
+
+    def fromAnnotation[EntityType <: SmcEntity](
+      annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
+    ) =
+    {
+      new mutable.AbstractMap[SilReference, Set[EntityType]] with
+          SmcRefMapFromAnnotation[EntityType]
+      {
+        override def getAnnotator = annotator
+        override def +=(kv : (SilReference, Set[EntityType])) =
+        {
+          kv._1 match {
+            case annotatedRef : SilAnnotatedReference => {
+              annotator.getNote(annotatedRef).setEntities(kv._2)
+              this
+            }
+            case _ => throw new IllegalArgumentException
+          }
+        }
+
+        override def -=(key : SilReference) =
+        {
+          key match {
+            case annotatedRef : SilAnnotatedReference => {
+              annotator.getNote(annotatedRef).removeEntities
+              this
+            }
+            case _ => throw new IllegalArgumentException
+          }
+        }
+      }
+    }
   }
+
+
 }

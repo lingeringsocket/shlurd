@@ -34,12 +34,10 @@ class SprPhraseRewriter(
     val expected = SilExpectedSentence(sentenceSyntaxTree, forceSQ)
     val transformed = rewritePhrase(expected)
     val completed = rewrite(replaceUnresolvedWithUnrecognized, transformed)
+    SilAnnotator.sanityCheck(annotator, completed)
     if (!completed.hasUnknown) {
       query(
         validateTransformations,
-        completed)
-      query(
-        registerAnnotations,
         completed)
     }
     completed match {
@@ -59,12 +57,6 @@ class SprPhraseRewriter(
       if (!transformedPhrase.hasSyntaxTree) {
         throw new AssertionError("Syntax lost for " + transformedPhrase)
       }
-    }
-  }
-
-  private def registerAnnotations = queryMatcher {
-    case annotatedRef : SilAnnotatedReference => {
-      annotator.register(annotatedRef)
     }
   }
 

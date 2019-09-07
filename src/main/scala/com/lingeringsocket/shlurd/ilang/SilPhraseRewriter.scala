@@ -175,6 +175,13 @@ class SilPhraseRewriter(
     rules.reduceLeft(_ orElse _)
   }
 
+  def deepclone[PhraseType <: SilPhrase](
+    phrase : PhraseType) : PhraseType =
+  {
+    // FIXME
+    phrase
+  }
+
   def rewrite[PhraseType <: SilPhrase](
     rule : SilPhraseReplacement,
     phrase : PhraseType,

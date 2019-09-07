@@ -1890,7 +1890,8 @@ class SpcResponderSpec extends Specification
         ) => {
           val input = s"$subject is hungry"
           val sentence = responder.newParser(input).parseOne
-          val resultCollector = SmcResultCollector[SpcEntity]()
+          val resultCollector =
+            SmcResultCollector[SpcEntity](responder.smcAnnotator)
           responder.resolveReferences(sentence, resultCollector)
           val subjectRef = sentence match {
             case SilPredicateSentence(
