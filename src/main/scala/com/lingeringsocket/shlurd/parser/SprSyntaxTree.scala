@@ -101,7 +101,6 @@ import SprEnglishLemmas._
 import SprPrettyPrinter._
 
 trait SprAbstractSyntaxTree
-    extends PrettyPrintable
 {
   def label : String
 
@@ -246,7 +245,7 @@ trait SprAbstractSyntaxTree
 
   override def toString = SprPrettyPrinter.prettyPrint(this)
 
-  override def toDoc =
+  def toDoc : Doc =
   {
     parens(
       string(label) <> nest(

@@ -38,7 +38,7 @@ libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.26",
-  "com.googlecode.kiama" %% "kiama" % "1.8.0",
+  "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.2.1",
   "org.typelevel" %% "spire" % "0.16.0",
   "org.typelevel" %% "spire-extras" % "0.16.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",

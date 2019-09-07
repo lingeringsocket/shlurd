@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import org.kiama.rewriting._
+import org.bitbucket.inkytonik.kiama.rewriting._
 
 import SprUtils._
 import SprPennTreebankLabels._

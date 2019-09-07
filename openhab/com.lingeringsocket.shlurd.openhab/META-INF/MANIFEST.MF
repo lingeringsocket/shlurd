@@ -12,7 +12,7 @@ Import-Package:
  scala.collection,
  scala.collection.convert,
  scala.collection.mutable,
- org.kiama.rewriting,
+ org.bitbucket.inkytonik.kiama.rewriting,
  spire.algebra,
  spire.math,
  spire.math.extras.interval,

@@ -16,18 +16,18 @@ package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd.ilang._
 
-import org.kiama.output._
+import org.bitbucket.inkytonik.kiama.output._
 
 object SprPrettyPrinter extends PrettyPrinter
 {
   def prettyPrint(phrase : SilPhrase) : String =
   {
-    "\n" + pretty(any(phrase))
+    "\n" + pretty(any(phrase)).layout
   }
 
   def prettyPrint(tree : SprAbstractSyntaxTree) : String =
   {
-    "\n" + pretty(tree)
+    "\n" + pretty(tree.toDoc)
   }
 
   override def any(p : Any) : Doc =

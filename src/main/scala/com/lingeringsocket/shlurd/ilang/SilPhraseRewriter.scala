@@ -16,8 +16,8 @@ package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd._
 
-import org.kiama.rewriting._
-import org.kiama.util._
+import org.bitbucket.inkytonik.kiama.rewriting._
+import org.bitbucket.inkytonik.kiama.util._
 
 import org.slf4j._
 
