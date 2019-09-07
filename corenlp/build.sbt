@@ -22,6 +22,7 @@ libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
   "org.jline" % "jline" % "3.11.0",
+  "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.2.1",
   "com.twitter" %% "chill" % "0.9.3",
   "com.ibm.icu" % "icu4j" % "64.2",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
