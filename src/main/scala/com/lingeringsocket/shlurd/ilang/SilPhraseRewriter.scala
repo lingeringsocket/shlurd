@@ -196,6 +196,7 @@ class SilPhraseRewriter(
     copyOptions : SilPhraseCopyOptions = SilPhraseCopyOptions()) : PhraseType =
   {
     if (copyOptions.preserveIds) {
+      // FIXME also need to resync ID generator
       val refs = SilUtils.collectReferences(phrase)
       if (refs.exists(_ match {
         case annotatedRef : SilAnnotatedReference => {

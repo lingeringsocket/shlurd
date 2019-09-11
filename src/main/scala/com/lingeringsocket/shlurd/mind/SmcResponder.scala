@@ -90,7 +90,7 @@ object SmcResultCollector
   def apply[EntityType<:SmcEntity](
     annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
   ) =
-    new SmcResultCollector(newIdentityRefMap[EntityType]())
+    new SmcResultCollector(newAnnotationRefMap[EntityType](annotator))
 
   // we use an identity hash map since the same expression (e.g.
   // the pronoun "it") may appear in a phrase multiple times with

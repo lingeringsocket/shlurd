@@ -346,7 +346,7 @@ class SpcResponder(
     triggers.flatMap(getTriggerImplications)
   }
 
-  private def unpickle[PhraseType <: SilPhrase](
+  private def reannotate[PhraseType <: SilPhrase](
     phrase : PhraseType) : PhraseType =
   {
     annotator.copy(phrase, SilPhraseCopyOptions(preserveNotes = true))
@@ -356,9 +356,9 @@ class SpcResponder(
   {
     mind.getCosmos.getAssertions.map(assertion => {
       SpcAssertion(
-        unpickle(assertion.sentence),
-        assertion.additionalConsequents.map(unpickle),
-        assertion.alternative.map(unpickle),
+        reannotate(assertion.sentence),
+        assertion.additionalConsequents.map(reannotate),
+        assertion.alternative.map(reannotate),
         assertion.placeholderMap
       )
     })
@@ -368,9 +368,9 @@ class SpcResponder(
   {
     mind.getCosmos.getTriggers.map(trigger => {
       SpcTrigger(
-        unpickle(trigger.conditionalSentence),
-        trigger.additionalConsequents.map(unpickle),
-        trigger.alternative.map(unpickle),
+        reannotate(trigger.conditionalSentence),
+        trigger.additionalConsequents.map(reannotate),
+        trigger.alternative.map(reannotate),
         trigger.placeholderMap
       )
     })
@@ -939,9 +939,12 @@ class SpcResponder(
   {
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
+    val spawned = spawn(mind.spawn(forkedCosmos))
+    // FIXME do this universally
+    spawned.annotator = annotator
     val beliefAccepter =
       SpcBeliefAccepter(
-        spawn(mind.spawn(forkedCosmos)),
+        spawned,
         beliefParams,
         resultCollector)
     attemptAsBelief(beliefAccepter, sentence, triggerDepth).foreach(
