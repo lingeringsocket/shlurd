@@ -26,6 +26,9 @@ class SilAnnotationSpec extends Specification
   private def makePlural =
     annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL)
 
+  private def makeNoun =
+    annotator.nounRef(SilWord("sheep"), COUNT_PLURAL)
+
   "SilAnnotationSpec" should
   {
     "annotate counts" in
@@ -33,33 +36,105 @@ class SilAnnotationSpec extends Specification
       val singular = makeSingular
       val plural = makePlural
 
-      val singularAnnotation = annotator.register(singular)
-      val pluralAnnotation = annotator.register(plural)
-      val singularNote = annotator.getNote(singularAnnotation)
-      val pluralNote = annotator.getNote(pluralAnnotation)
+      val singularNote = annotator.getNote(singular)
+      val pluralNote = annotator.getNote(plural)
       singularNote.getCount must be equalTo COUNT_SINGULAR
       pluralNote.getCount must be equalTo COUNT_PLURAL
     }
 
-    "preserve annotators" in
+    "preserve annotators during transformation" in
     {
       val plural = makePlural
 
-      val originalAnnotation = annotator.register(plural)
-      val originalNote = annotator.getNote(originalAnnotation)
+      val originalNote = annotator.getNote(plural)
       originalNote.getCount must be equalTo COUNT_PLURAL
 
-      val plural2 = plural.copy(count = COUNT_SINGULAR)
-      val copiedAnnotation = annotator.register(plural2)
-      annotator.preserveNote(originalAnnotation, copiedAnnotation)
-      val copiedNote = annotator.getNote(copiedAnnotation)
+      val plural2 = annotator.register(
+        plural.copy(count = COUNT_SINGULAR))
+      annotator.preserveNote(plural, plural2)
+      val copiedNote = annotator.getNote(plural2)
       copiedNote.getCount must be equalTo COUNT_PLURAL
 
-      val plural3 = plural.copy(count = COUNT_SINGULAR)
+      val plural3 = annotator.register(
+        plural.copy(count = COUNT_SINGULAR))
       val transformedAnnotation =
-        annotator.transform(originalAnnotation, plural3)
+        annotator.transform(plural, plural3)
       val transformedNote = annotator.getNote(transformedAnnotation)
-      transformedNote.getCount must be equalTo COUNT_PLURAL
+      transformedNote.getCount must be equalTo COUNT_SINGULAR
+
+      val plural4 = annotator.register(
+        plural.copy(count = COUNT_SINGULAR))
+      val transformedAnnotation4 =
+        annotator.transform(
+          plural, plural4, SilPhraseCopyOptions(preserveNotes = true))
+      val transformedNote4 = annotator.getNote(transformedAnnotation4)
+      transformedNote4.getCount must be equalTo COUNT_PLURAL
+    }
+
+    "copy annotated references" in
+    {
+      val plural = makePlural
+      val noun = makeNoun
+
+      val genitive = annotator.genitiveRef(plural, noun)
+      SilAnnotator.sanityCheck(annotator, genitive)
+
+      val copySameAnnotator = annotator.copy(genitive)
+      SilAnnotator.sanityCheck(annotator, genitive)
+      SilAnnotator.sanityCheck(annotator, copySameAnnotator)
+      copySameAnnotator must be equalTo genitive
+      copySameAnnotator.getAnnotationId must not be equalTo(
+        genitive.getAnnotationId)
+      SilUtils.getCount(copySameAnnotator.possessee) must
+        be equalTo COUNT_SINGULAR
+
+      val annotator2 = SilBasicAnnotator()
+      annotator must not be equalTo(annotator2)
+      val copyOtherAnnotator = annotator2.copy(genitive)
+      SilAnnotator.sanityCheck(annotator, genitive)
+      SilAnnotator.sanityCheck(annotator2, copyOtherAnnotator)
+      copyOtherAnnotator must be equalTo genitive
+      SilUtils.getCount(copyOtherAnnotator.possessee) must
+        be equalTo COUNT_SINGULAR
+    }
+
+    "preserve notes during copy" in
+    {
+      val plural = makePlural
+      val noun = makeNoun
+      annotator.getNote(noun).getCount must be equalTo COUNT_PLURAL
+      val genitive = annotator.genitiveRef(plural, noun)
+
+      val copySameAnnotator = annotator.copy(
+        genitive, SilPhraseCopyOptions(preserveNotes = true))
+      copySameAnnotator must be equalTo genitive
+      SilUtils.getCount(copySameAnnotator.possessee) must
+        be equalTo COUNT_PLURAL
+
+      val annotator2 = SilBasicAnnotator()
+      val copyOtherAnnotator = annotator2.copy(
+        genitive, SilPhraseCopyOptions(preserveNotes = true))
+      copyOtherAnnotator must be equalTo genitive
+      SilUtils.getCount(copyOtherAnnotator.possessee) must
+        be equalTo COUNT_PLURAL
+    }
+
+    "preserve ids during copy" in
+    {
+      makePlural
+      val noun = makeNoun
+
+      val annotator2 = SilBasicAnnotator()
+      val copyOtherAnnotator = annotator2.copy(
+        noun, SilPhraseCopyOptions(preserveIds = true))
+      SilAnnotator.sanityCheck(annotator, noun)
+      SilAnnotator.sanityCheck(annotator2, copyOtherAnnotator)
+      copyOtherAnnotator must be equalTo noun
+      copyOtherAnnotator.getAnnotationId must be equalTo noun.getAnnotationId
+
+      annotator.copy(
+        noun, SilPhraseCopyOptions(preserveIds = true)
+      ) must throwA[IllegalArgumentException]
     }
   }
 }

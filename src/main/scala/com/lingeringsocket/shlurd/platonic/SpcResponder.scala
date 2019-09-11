@@ -138,8 +138,6 @@ object SpcAnnotator
   }
 }
 
-// FIXME annotators need to be sorted out when we commingle expressions
-// from assertions
 class SpcResponder(
   mind : SpcMind,
   beliefParams : SpcBeliefParams =
@@ -169,6 +167,7 @@ class SpcResponder(
 
   override def newParser(input : String) =
   {
+    annotator = newAnnotator
     val context = SprContext(
       mind.getCosmos.getWordLabeler,
       scorer = new SpcContextualScorer(this),
@@ -342,9 +341,39 @@ class SpcResponder(
   def getBiconditionalImplications()
       : Seq[(SilConditionalSentence, SpcRefMap)] =
   {
-    val triggers = mind.getCosmos.getTriggers.filter(
+    val triggers = getTriggers.filter(
       _.conditionalSentence.biconditional)
     triggers.flatMap(getTriggerImplications)
+  }
+
+  private def unpickle[PhraseType <: SilPhrase](
+    phrase : PhraseType) : PhraseType =
+  {
+    annotator.copy(phrase, SilPhraseCopyOptions(preserveNotes = true))
+  }
+
+  def getAssertions() : Seq[SpcAssertion] =
+  {
+    mind.getCosmos.getAssertions.map(assertion => {
+      SpcAssertion(
+        unpickle(assertion.sentence),
+        assertion.additionalConsequents.map(unpickle),
+        assertion.alternative.map(unpickle),
+        assertion.placeholderMap
+      )
+    })
+  }
+
+  def getTriggers() : Seq[SpcTrigger] =
+  {
+    mind.getCosmos.getTriggers.map(trigger => {
+      SpcTrigger(
+        unpickle(trigger.conditionalSentence),
+        trigger.additionalConsequents.map(unpickle),
+        trigger.alternative.map(unpickle),
+        trigger.placeholderMap
+      )
+    })
   }
 
   def getTriggerImplications(
@@ -1053,7 +1082,7 @@ class SpcResponder(
     flagErrors : Boolean)
       : Option[String] =
   {
-    val results = mind.getCosmos.getAssertions.map(assertion => {
+    val results = getAssertions.map(assertion => {
       val result = applyAssertion(
         viewedCosmos, assertion, predicate, refMap,
         applicability, triggerDepth
@@ -1338,7 +1367,7 @@ class SpcResponder(
       if (superMatch.get) {
         return Success(true)
       } else {
-        mind.getCosmos.getTriggers.foreach(trigger => {
+        getTriggers.foreach(trigger => {
           newAssertionMapper().matchImplication(
             "IMPLIES",
             mind.getCosmos, trigger.conditionalSentence,

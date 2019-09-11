@@ -72,7 +72,12 @@ trait SmcScope[
         }
       }
     }.toSeq.map {
-      case (prior, set) => SmcScopeOutput(Some(prior), set)
+      case (prior, set) => {
+        val reannotated = annotator.copy(
+          prior,
+          SilPhraseCopyOptions(preserveNotes = true))
+        SmcScopeOutput(Some(reannotated), set)
+      }
     }
   }
 

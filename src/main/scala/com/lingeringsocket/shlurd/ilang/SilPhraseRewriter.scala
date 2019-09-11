@@ -61,11 +61,18 @@ class TraceEmitter(logger : Logger) extends Emitter
   }
 }
 
+case class SilPhraseCopyOptions(
+  preserveNotes : Boolean = false,
+  preserveIds : Boolean = false
+)
+
 object SilPhraseRewriter
 {
   def onPhraseTransformation(
     annotator : SilAnnotator,
-    oldPhrase : SilPhrase, newPhrase : SilTransformedPhrase)
+    oldPhrase : SilPhrase,
+    newPhrase : SilTransformedPhrase,
+    copyOptions : SilPhraseCopyOptions = SilPhraseCopyOptions())
   {
     oldPhrase.maybeSyntaxTree.foreach(syntaxTree => {
       newPhrase.rememberSyntaxTree(syntaxTree)
@@ -75,7 +82,7 @@ object SilPhraseRewriter
         oldRef : SilAnnotatedReference,
         newRef : SilAnnotatedReference
       ) => {
-        annotator.transform(oldRef, newRef)
+        annotator.transform(oldRef, newRef, copyOptions)
       }
     }
   }
@@ -143,7 +150,9 @@ class SilPhraseRewriter(
 
   private val logger = LoggerFactory.getLogger(classOf[SilPhraseRewriter])
 
-  object SyntaxPreservingRewriter extends CallbackRewriter
+  class SyntaxPreservingRewriter(
+    copyOptions : SilPhraseCopyOptions
+  ) extends CallbackRewriter
   {
     override def rewriting[PhraseType](
       oldPhrase : PhraseType, newPhrase : PhraseType) : PhraseType =
@@ -154,7 +163,7 @@ class SilPhraseRewriter(
           newTransformed : SilTransformedPhrase
         ) => {
           onPhraseTransformation(
-            annotator, oldTransformed, newTransformed)
+            annotator, oldTransformed, newTransformed, copyOptions)
         }
       }
       tupleN((oldPhrase, newPhrase)) matchPartial {
@@ -167,6 +176,13 @@ class SilPhraseRewriter(
       }
       newPhrase
     }
+
+    def deepclone[T <: Product](t : T) : T = {
+      val cloner = everywherebu(rule[T] {
+        case n => copy(n)
+      })
+      rewrite(cloner)(t)
+    }
   }
 
   def combineRules(rules : SilPhraseReplacement*)
@@ -176,10 +192,30 @@ class SilPhraseRewriter(
   }
 
   def deepclone[PhraseType <: SilPhrase](
-    phrase : PhraseType) : PhraseType =
+    phrase : PhraseType,
+    copyOptions : SilPhraseCopyOptions = SilPhraseCopyOptions()) : PhraseType =
   {
-    // FIXME
-    phrase
+    if (copyOptions.preserveIds) {
+      val refs = SilUtils.collectReferences(phrase)
+      if (refs.exists(_ match {
+        case annotatedRef : SilAnnotatedReference => {
+          annotatedRef.getAnnotator == annotator
+        }
+        case _ => false
+      })) {
+        throw new IllegalArgumentException(
+          "can't preserve annotation ID when copying within same annotator")
+      }
+    }
+    phrase match {
+      case p : Product => {
+        val syntaxPreservingRewriter = new SyntaxPreservingRewriter(copyOptions)
+        val newPhrase =
+          syntaxPreservingRewriter.deepclone(p).asInstanceOf[PhraseType]
+        newPhrase
+      }
+      case _ => throw new IllegalArgumentException(phrase.toString)
+    }
   }
 
   def rewrite[PhraseType <: SilPhrase](
@@ -188,21 +224,23 @@ class SilPhraseRewriter(
     options : SilRewriteOptions = SilRewriteOptions())
       : PhraseType =
   {
+    val syntaxPreservingRewriter = new SyntaxPreservingRewriter(
+      SilPhraseCopyOptions(preserveNotes = true))
     val strategy = {
-      val ruleStrategy = SyntaxPreservingRewriter.rule(rule)
+      val ruleStrategy = syntaxPreservingRewriter.rule(rule)
       if (options.topDown) {
-        SyntaxPreservingRewriter.manytd(
+        syntaxPreservingRewriter.manytd(
           "rewriteEverywhere",
           ruleStrategy)
       } else {
-        SyntaxPreservingRewriter.manybu(
+        syntaxPreservingRewriter.manybu(
           "rewriteEverywhere",
           ruleStrategy)
       }
     }
     val maybeLogging = {
       if (logger.isTraceEnabled) {
-        SyntaxPreservingRewriter.log(
+        syntaxPreservingRewriter.log(
           "rewriteLog",
           strategy,
           s"REWRITE",
@@ -213,12 +251,12 @@ class SilPhraseRewriter(
     }
     val finalStrategy = {
       if (options.repeat) {
-        SyntaxPreservingRewriter.rewrite[PhraseType](
-          SyntaxPreservingRewriter.repeat(
+        syntaxPreservingRewriter.rewrite[PhraseType](
+          syntaxPreservingRewriter.repeat(
             "rewriteRepeat",
             new FixpointStrategy(maybeLogging))) _
       } else {
-        SyntaxPreservingRewriter.rewrite[PhraseType](maybeLogging) _
+        syntaxPreservingRewriter.rewrite[PhraseType](maybeLogging) _
       }
     }
     finalStrategy(phrase)

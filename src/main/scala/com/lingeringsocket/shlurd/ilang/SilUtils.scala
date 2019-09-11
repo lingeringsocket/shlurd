@@ -82,8 +82,6 @@ object SilUtils
     reference match {
       case SilPronounReference(_, _, count, _) =>
         count
-      case SilCountedNounReference(_, count) =>
-        count
       case SilConjunctiveReference(determiner, _, _) => {
         determiner match {
           case DETERMINER_ALL => COUNT_PLURAL
@@ -103,6 +101,7 @@ object SilUtils
         getCount(reference)
       case SilGenitiveReference(_, possessee) =>
         getCount(possessee)
+      case _ : SilNounReference => COUNT_SINGULAR
       case _ : SilQuotationReference => COUNT_SINGULAR
       case _ : SilUnknownReference => COUNT_SINGULAR
     }

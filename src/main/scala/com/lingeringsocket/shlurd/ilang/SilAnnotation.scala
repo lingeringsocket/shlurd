@@ -54,11 +54,14 @@ class SilBasicRefNote(
 trait SilAnnotator
 {
   def register[ReferenceType <: SilAnnotatedReference](
-    ref : ReferenceType) : ReferenceType
+    ref : ReferenceType,
+    newId : Int = generateId) : ReferenceType
 
   def transform[ReferenceType <: SilAnnotatedReference](
     oldRef : SilAnnotatedReference,
-    ref : ReferenceType) : ReferenceType
+    ref : ReferenceType,
+    copyOptions : SilPhraseCopyOptions = SilPhraseCopyOptions()
+  ) : ReferenceType
 
   def preserveNote[ReferenceType <: SilAnnotatedReference](
     oldRef : SilAnnotatedReference,
@@ -68,10 +71,13 @@ trait SilAnnotator
 
   def generateId : Int
 
-  def copy[PhraseType <: SilPhrase](phrase : PhraseType) : PhraseType =
+  def copy[PhraseType <: SilPhrase](
+    phrase : PhraseType,
+    copyOptions : SilPhraseCopyOptions = SilPhraseCopyOptions()
+  ) : PhraseType =
   {
     val rewriter = new SilPhraseRewriter(this)
-    rewriter.deepclone(phrase)
+    rewriter.deepclone(phrase, copyOptions)
   }
 
   def nounRef(
@@ -204,20 +210,32 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
   override def generateId : Int = nextId.incrementAndGet
 
   override def register[ReferenceType <: SilAnnotatedReference](
-    ref : ReferenceType) : ReferenceType =
+    ref : ReferenceType,
+    newId : Int) : ReferenceType =
   {
     if (!ref.hasAnnotation) {
-      ref.registerAnnotation(this, generateId)
+      ref.registerAnnotation(this, newId)
     }
     ref
   }
 
   override def transform[ReferenceType <: SilAnnotatedReference](
     oldRef : SilAnnotatedReference,
-    ref : ReferenceType) : ReferenceType =
+    ref : ReferenceType,
+    copyOptions : SilPhraseCopyOptions = SilPhraseCopyOptions()
+  ) : ReferenceType =
   {
-    val annotatedRef = register(ref)
-    preserveNote(oldRef, annotatedRef)
+    val newId = {
+      if (copyOptions.preserveIds) {
+        oldRef.getAnnotationId
+      } else {
+        generateId
+      }
+    }
+    val annotatedRef = register(ref, newId)
+    if (copyOptions.preserveNotes) {
+      preserveNote(oldRef, annotatedRef)
+    }
     annotatedRef
   }
 
@@ -228,8 +246,9 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
     val newId = newRef.getAnnotationId
     // FIXME merge in case both old and new notes are present
     if (oldRef.hasAnnotation && !map.contains(newId)) {
-      map.get(oldRef.getAnnotationId).foreach(
-        note => map.put(newId, note))
+      val oldNote = oldRef.getAnnotator.getBasicNote(oldRef)
+      // FIXME type checking excitement
+      map.put(newId, oldNote.asInstanceOf[NoteType])
     }
   }
 
@@ -263,14 +282,12 @@ object SilAnnotator extends SilPhraseQuerier
     case annotatedRef : SilAnnotatedReference => {
       assert(annotatedRef.hasAnnotation,
         "Annotation lost for " + annotatedRef)
-      /*
       assert(annotatedRef.getAnnotator == annotator,
         "Annotator mismatch for " + annotatedRef)
       val id = annotatedRef.getAnnotationId
       assert(!idSet.contains(id),
         s"Duplicate annotation id $id for " + annotatedRef)
       idSet += id
-       */
     }
   }
 

@@ -112,7 +112,7 @@ class SpcResponderSpec extends Specification
       input : String,
       expected : String)
     {
-      val sentence = responder.newParser(input).parseOne
+      val sentence = responderTerse.newParser(input).parseOne
       s"pass:  $input" ==> (
         responderTerse.process(sentence, input) === expected)
     }
@@ -122,6 +122,14 @@ class SpcResponderSpec extends Specification
       process(input, "OK.")
     }
 
+    private def processWithResponder(
+      specificResponder : SpcResponder,
+      input : String) : String =
+    {
+      val sentence = specificResponder.newParser(input).parseOne
+      specificResponder.process(sentence, input)
+    }
+
     protected def processMatrix(
       input : String,
       expectedWithPronouns : String,
@@ -129,16 +137,19 @@ class SpcResponderSpec extends Specification
       expectedTerse : String,
       expectedEllipsis : String = "") =
     {
-      val sentence = responder.newParser(input).parseOne
-      responder.process(sentence, input) must be equalTo(
-        expectedWithPronouns)
-      responderWithoutPronouns.process(
-        sentence, input) must be equalTo(expectedWithoutPronouns)
-      responderTerse.process(
-        sentence, input) must be equalTo(expectedTerse)
+      processWithResponder(
+        responder, input
+      ) must be equalTo(expectedWithPronouns)
+      processWithResponder(
+        responderWithoutPronouns, input
+      ) must be equalTo(expectedWithoutPronouns)
+      processWithResponder(
+        responderTerse, input
+      ) must be equalTo(expectedTerse)
       if (!expectedEllipsis.isEmpty) {
-        responderEllipsis.process(
-          sentence, input) must be equalTo(expectedEllipsis)
+        processWithResponder(
+          responderEllipsis, input
+        ) must be equalTo(expectedEllipsis)
       }
     }
   }

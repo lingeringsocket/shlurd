@@ -29,7 +29,6 @@ class SpcPerceptionSpec extends Specification
 
     protected def process(input : String, cosmos : SpcCosmos) =
     {
-      val sentence = cosmos.newParser(input).parseOne
       val mind = new SpcMind(cosmos)
       val responder = new SpcResponder(
         mind,
@@ -37,6 +36,7 @@ class SpcPerceptionSpec extends Specification
         SmcResponseParams(
           throwRejectedBeliefs = true,
           verbosity = RESPONSE_TERSE))
+      val sentence = responder.newParser(input).parseOne
       responder.process(sentence)
     }
 

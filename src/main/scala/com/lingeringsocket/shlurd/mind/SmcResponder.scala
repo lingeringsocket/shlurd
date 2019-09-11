@@ -289,6 +289,7 @@ class SmcResponder[
 
   def newParser(input : String) =
   {
+    annotator = newAnnotator
     val context = SprContext(
       scorer = new SmcContextualScorer(this),
       annotator = annotator)
@@ -385,17 +386,13 @@ class SmcResponder[
     sentence : SilSentence, resultCollector : ResultCollectorType)
       : (SilSentence, String) =
   {
-    try {
-      responderMatchers(resultCollector).flatMap(_(sentence)).
-        headOption.getOrElse {
-          debug("UNKNOWN SENTENCE")
-          wrapResponseText(
-            ShlurdExceptionCode.FailedParse,
-            sentencePrinter.sb.respondCannotUnderstand)
-        }
-    } finally {
-      annotator = newAnnotator
-    }
+    responderMatchers(resultCollector).flatMap(_(sentence)).
+      headOption.getOrElse {
+        debug("UNKNOWN SENTENCE")
+        wrapResponseText(
+          ShlurdExceptionCode.FailedParse,
+          sentencePrinter.sb.respondCannotUnderstand)
+      }
   }
 
   protected def updateNarrative(
