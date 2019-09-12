@@ -57,8 +57,8 @@ class SpcProcessingSpecification extends Specification
         beliefParams,
         params,
         executor)
-      val sentence = responder.newParser(input).parseOne
-      responder.process(sentence)
+      val parseResult = responder.newParser(input).parseOne
+      responder.process(parseResult)
     }
 
     protected def expectUnique(

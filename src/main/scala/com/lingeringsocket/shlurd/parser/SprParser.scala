@@ -23,38 +23,41 @@ import java.io._
 
 import SprPennTreebankLabels._
 
+case class SprParseResult(
+  sentence : SilSentence,
+  annotator : SilAnnotator,
+  start : Int = 0,
+  end : Int = 0
+)
+
 trait SprParser
 {
-  def parseOne() : SilSentence
+  def parseOne() : SprParseResult
 
-  def parseFirst() : SilSentence
+  def parseFirst() : SprParseResult
 
-  def parseAll() : Stream[SilSentence] = parseAllPositional.map(_._1)
-
-  def parseAllPositional() : Stream[(SilSentence, Int, Int)]
-
-  def parseOnePositional() = Stream(tupleN((parseOne, 0, 0)))
+  def parseAll() : Stream[SprParseResult]
 }
 
 class SprFallbackParser(
   parsers : Seq[() => SprParser])
     extends SprParser
 {
-  override def parseOne() : SilSentence =
+  override def parseOne() : SprParseResult =
   {
-    var best : Option[SilSentence] = None
+    var best : Option[SprParseResult] = None
     var bestCount = Int.MaxValue
     parsers.foreach(parserSupplier => {
       val parser = parserSupplier()
-      val sentence = parser.parseOne
-      if (!sentence.hasUnknown) {
-        return sentence
+      val result = parser.parseOne
+      if (!result.sentence.hasUnknown) {
+        return result
       }
       // if not even one parser produces a complete parse, choose
       // the one with the minimum number of unparsed leaves
-      val count = sentence.countUnknownSyntaxLeaves
+      val count = result.sentence.countUnknownSyntaxLeaves
       if (count < bestCount) {
-        best = Some(sentence)
+        best = Some(result)
         bestCount = count
       }
     })
@@ -63,7 +66,7 @@ class SprFallbackParser(
 
   override def parseFirst() = parseOne
 
-  override def parseAllPositional() = parseOnePositional()
+  override def parseAll() = Stream(parseOne())
 }
 
 class SprSingleParser(
@@ -91,11 +94,12 @@ class SprSingleParser(
     }
   }
 
-  override def parseOne() = parseRoot(tree)
+  override def parseOne() = SprParseResult(
+    parseRoot(tree), context.annotator)
 
   override def parseFirst() = parseOne
 
-  override def parseAllPositional() = parseOnePositional()
+  override def parseAll() = Stream(parseOne)
 }
 
 class SprSingleHeuristicParser(
@@ -105,7 +109,7 @@ class SprSingleHeuristicParser(
 {
   override def parseOne() =
   {
-    val sentence = super.parseOne
+    val sentence = super.parseOne.sentence
     val (addInterrogative, addExclamation) = {
       terminator match {
         case Some(LABEL_QUESTION_MARK) => (true, false)
@@ -132,7 +136,9 @@ class SprSingleHeuristicParser(
         sentence.formality
       }
     }
-    normalize(sentence.withNewTamFormality(tam, formality))
+    SprParseResult(
+      normalize(sentence.withNewTamFormality(tam, formality)),
+      context.annotator)
   }
 }
 
@@ -144,14 +150,16 @@ class SprAmbiguityParser(
   override def parseOne() =
   {
     val alternatives = singles.map(_.parseOne)
-    val ambiguous = SilAmbiguousSentence(alternatives)
+    val ambiguous = SilAmbiguousSentence(alternatives.map(_.sentence))
     val resolver = new SprAmbiguityResolver(context)
-    resolver.resolveAmbiguousSentence(ambiguous)
+    SprParseResult(
+      resolver.resolveAmbiguousSentence(ambiguous),
+      context.annotator)
   }
 
   override def parseFirst() = parseOne
 
-  override def parseAllPositional() = parseOnePositional()
+  override def parseAll() = Stream(parseOne)
 }
 
 class SprDelimitedParser(
@@ -163,22 +171,24 @@ class SprDelimitedParser(
 {
   override def parseOne() =
   {
-    val sentences = singles.map(_.parseOne)
-    SilConjunctiveSentence(
-      determiner,
-      sentences,
-      separator)
+    val sentences = singles.map(_.parseOne).map(_.sentence)
+    SprParseResult(
+      SilConjunctiveSentence(
+        determiner,
+        sentences,
+        separator),
+      context.annotator)
   }
 
   override def parseFirst() = parseOne
 
-  override def parseAllPositional() = parseOnePositional()
+  override def parseAll() = Stream(parseOne)
 }
 
 class SprMultipleParser(singles : Stream[(SprParser, Int, Int)])
     extends SprParser
 {
-  override def parseOne() : SilSentence =
+  override def parseOne() : SprParseResult =
   {
     assert(singles.size == 1)
     parseFirst
@@ -186,8 +196,15 @@ class SprMultipleParser(singles : Stream[(SprParser, Int, Int)])
 
   override def parseFirst() = singles.head._1.parseOne
 
-  override def parseAllPositional() = {
-    singles.map(single => tupleN((single._1.parseOne, single._2, single._3)))
+  override def parseAll() = {
+    singles.map(single => {
+      val singleResult = single._1.parseOne
+      SprParseResult(
+        singleResult.sentence,
+        singleResult.annotator,
+        single._2,
+        single._3)
+    })
   }
 }
 

@@ -33,7 +33,7 @@ class SprAdpositionDisambiguationSpec extends Specification
     input : String,
     expectedUsage : UsagePreference) =
   {
-    val phrase = SprParser(input).parseOne
+    val phrase = SprParser(input).parseOne.sentence
     var adverbial = 0
     var adjectival = 0
     val querier = new SilPhraseQuerier

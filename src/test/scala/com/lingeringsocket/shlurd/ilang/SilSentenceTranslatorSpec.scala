@@ -24,7 +24,7 @@ class SilSentenceTranslatorSpec extends Specification
     new SilSentencePrinter(LimitedKoreanParlance)
 
   private def translate(s : String) =
-    printer.print(SprParser(s).parseOne)
+    printer.print(SprParser(s).parseOne.sentence)
 
   "SilSentencePrinter" should
   {

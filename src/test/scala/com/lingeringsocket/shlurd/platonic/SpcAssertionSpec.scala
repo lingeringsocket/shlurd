@@ -300,10 +300,11 @@ class SpcAssertionSpec extends SpcProcessingSpecification
     def verifyEquivalenceStandardization(
       equiv : String, imp1 : String, imp2 : String) =
     {
+      val annotator = SpcAnnotator()
       val responder = new SpcResponder(mind)
-      val before = responder.getBiconditionalImplications
+      val before = responder.getBiconditionalImplications(annotator)
       verifyOK(equiv)
-      val after = responder.getBiconditionalImplications
+      val after = responder.getBiconditionalImplications(annotator)
       after.size must be equalTo (before.size + 2)
       val imps = after.takeRight(2).map {
         case (cs, placeholderMap) => {
@@ -323,7 +324,10 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(trigger)
       val after = cosmos.getTriggers
       after.size must be equalTo (before.size + 1)
-      val imps = responder.getTriggerImplications(after.last).map {
+      val annotator = SpcAnnotator()
+      val imps = responder.getTriggerImplications(
+        annotator, after.last
+      ).map {
         case (cs, placeholderMap) => {
           responder.sentencePrinter.print(cs)
         }

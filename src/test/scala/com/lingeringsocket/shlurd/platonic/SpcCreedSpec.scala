@@ -39,13 +39,14 @@ class SpcCreedSpec extends Specification
     {
       val mind = new SpcMind(cosmos)
       val responder = new SpcResponder(mind)
-      val sentence = responder.newParser(input).parseOne
+      val parseResult = responder.newParser(input).parseOne
       val resultCollector =
-        SmcResultCollector[SpcEntity](responder.smcAnnotator)
-      responder.resolveReferences(sentence, resultCollector)
+        SmcResultCollector[SpcEntity](
+          responder.smcAnnotator(parseResult.annotator))
+      responder.resolveReferences(parseResult.sentence, resultCollector)
       val beliefAccepter = SpcBeliefAccepter(
         responder, SpcBeliefParams(), resultCollector)
-      beliefAccepter.processBelief(sentence)
+      beliefAccepter.processBelief(parseResult.sentence)
     }
 
     protected def expectPreserved(
@@ -65,15 +66,16 @@ class SpcCreedSpec extends Specification
         val refriedMind = new SpcMind(refriedCosmos)
         val refriedResponder =
           new SpcResponder(refriedMind)
-        val sentence = refriedResponder.newParser(beliefString).parseOne
+        val parseResult = refriedResponder.newParser(beliefString).parseOne
         val resultCollector = SmcResultCollector[SpcEntity](
-          refriedResponder.smcAnnotator)
-        refriedResponder.resolveReferences(sentence, resultCollector)
+          refriedResponder.smcAnnotator(parseResult.annotator))
+        refriedResponder.resolveReferences(
+          parseResult.sentence, resultCollector)
         val refriedBeliefAccepter =
           SpcBeliefAccepter(
             refriedResponder, SpcBeliefParams(), resultCollector)
         val refriedBeliefs =
-          refriedBeliefAccepter.recognizeBeliefs(sentence)
+          refriedBeliefAccepter.recognizeBeliefs(parseResult.sentence)
         refriedBeliefs.foreach(belief => {
           refriedBeliefAccepter.applyBelief(belief)
         })

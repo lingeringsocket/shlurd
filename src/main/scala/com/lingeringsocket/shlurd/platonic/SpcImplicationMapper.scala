@@ -186,34 +186,37 @@ class SpcImplicationMapper(
 )
 {
   def validateImplication(
+    annotator : SilAnnotator,
     conditional : SilConditionalSentence,
     additionalConsequents : Seq[SilPredicateSentence],
     alternative : Option[SilPredicateSentence]
   ) : SpcRefMap =
   {
     val antecedentRefs = validateAssertionPredicate(
-      conditional, conditional.antecedent)
+      annotator, conditional, conditional.antecedent)
     val consequentRefs = validateAssertionPredicate(
-      conditional, conditional.consequent, Some(antecedentRefs))
+      annotator, conditional, conditional.consequent, Some(antecedentRefs))
     val additionalConsequentRefs = additionalConsequents.flatMap(ac => {
       validateAssertionPredicate(
-        conditional, ac.predicate, Some(antecedentRefs)).toSeq
+        annotator, conditional, ac.predicate, Some(antecedentRefs)).toSeq
     })
     val alternativeRefs = alternative.toSeq.flatMap(ap => {
       validateAssertionPredicate(
-        conditional, ap.predicate, Some(antecedentRefs)).toSeq
+        annotator, conditional, ap.predicate, Some(antecedentRefs)).toSeq
     })
     antecedentRefs ++ consequentRefs ++ additionalConsequentRefs ++
       alternativeRefs
   }
 
   def validateAssertionPredicate(
+    annotator : SilAnnotator,
     belief : SilSentence,
     predicate : SilPredicate,
     antecedentRefs : Option[SpcRefMap] = None)
       : SpcRefMap =
   {
-    val resultCollector = SmcResultCollector[SpcEntity](responder.smcAnnotator)
+    val resultCollector = SmcResultCollector[SpcEntity](
+      responder.smcAnnotator(annotator))
     val scope = new SmcPhraseScope(
       antecedentRefs.getOrElse(Map.empty),
       responder.mindScope
@@ -287,7 +290,8 @@ class SpcImplicationMapper(
           case _ => None
         }
         nounOpt.map(noun => {
-          val form = responder.deriveType(ref, resultCollector.refMap)
+          val form = responder.deriveType(
+            annotator, ref, resultCollector.refMap)
           if (form == responder.unknownType) {
             if ((noun.toNounLemma != SpcMeta.ENTITY_METAFORM_NAME)
               && !SpcBeliefRecognizer.recognizeWordLabel(Seq(noun)).nonEmpty

@@ -55,6 +55,7 @@ class SmcPredicateEvaluator[
   {
     trace(s"EVALUATE PREDICATE : $predicateOriginal")
     val predicate = normalizePredicate(
+      resultCollector.annotator,
       predicateOriginal,
       resultCollector.refMap,
       resultCollector.refEquivalence)
@@ -1338,6 +1339,7 @@ class SmcPredicateEvaluator[
   }
 
   protected def normalizePredicate(
+    annotator : SilAnnotator,
     predicate : SilPredicate,
     refMap : SmcRefMap[EntityType],
     refEquivalence : mutable.Map[SilReference, SilReference]

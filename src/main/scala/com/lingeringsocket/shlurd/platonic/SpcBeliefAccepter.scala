@@ -40,22 +40,6 @@ object SpcBeliefAccepter
       params,
       resultCollector)
   }
-
-  def apply(
-    responder : SpcResponder,
-    params : SpcBeliefParams = SpcBeliefParams())
-      : SpcBeliefAccepter =
-  {
-    val resultCollector = SmcResultCollector(responder.smcAnnotator)
-    SpcBeliefAccepter(responder, params, resultCollector)
-  }
-
-  def apply(
-    responder : SpcResponder)
-      : SpcBeliefAccepter =
-  {
-    SpcBeliefAccepter(responder, SpcBeliefParams())
-  }
 }
 
 sealed trait SpcBeliefAcceptance
@@ -78,7 +62,7 @@ class SpcBeliefAccepter private(
   responder : SpcResponder,
   params : SpcBeliefParams,
   resultCollector : SmcResultCollector[SpcEntity])
-    extends SpcBeliefRecognizer(responder.getAnnotator,
+    extends SpcBeliefRecognizer(resultCollector.annotator,
       responder.getMind.getCosmos, resultCollector)
 {
   type BeliefApplier = PartialFunction[SpcBelief, Unit]
@@ -1016,12 +1000,14 @@ class SpcBeliefAccepter private(
     }
   }
 
-  def validateAssertion(belief : AssertionBelief) : Option[SpcRefMap] =
+  def validateAssertion(
+    belief : AssertionBelief) : Option[SpcRefMap] =
   {
     val implicationMapper = new SpcImplicationMapper(responder)
     belief.sentence match {
       case conditional : SilConditionalSentence => {
         val placeholderMap = implicationMapper.validateImplication(
+          resultCollector.annotator,
           conditional, belief.additionalConsequents, belief.alternative)
         if (acceptSpecialAssertion(conditional, placeholderMap)) {
           None
@@ -1041,7 +1027,7 @@ class SpcBeliefAccepter private(
       }
       case ps : SilPredicateSentence => {
         Some(implicationMapper.validateAssertionPredicate(
-          belief.sentence, ps.predicate))
+          resultCollector.annotator, belief.sentence, ps.predicate))
       }
       case _ => None
     }

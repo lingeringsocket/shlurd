@@ -56,6 +56,7 @@ case class SmcResponseParams(
 }
 
 class SmcResultCollector[EntityType<:SmcEntity](
+  val annotator : SilAnnotator,
   val refMap : SmcMutableRefMap[EntityType])
 {
   val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
@@ -69,7 +70,7 @@ class SmcResultCollector[EntityType<:SmcEntity](
     new IdentityLinkedHashMap[SilReference, SilReference]
 
   def spawn() = {
-    val newCollector = new SmcResultCollector[EntityType](refMap)
+    val newCollector = new SmcResultCollector[EntityType](annotator, refMap)
     newCollector.suppressWildcardExpansion = suppressWildcardExpansion
     newCollector.swapSpeakerListener = swapSpeakerListener
     newCollector.resolvingReferences = resolvingReferences
@@ -90,7 +91,8 @@ object SmcResultCollector
   def apply[EntityType<:SmcEntity](
     annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
   ) =
-    new SmcResultCollector(newAnnotationRefMap[EntityType](annotator))
+    new SmcResultCollector(
+      annotator, newAnnotationRefMap[EntityType](annotator))
 
   // we use an identity hash map since the same expression (e.g.
   // the pronoun "it") may appear in a phrase multiple times with
@@ -153,7 +155,9 @@ class SmcContextualScorer[
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
-](responder : SmcResponder[EntityType, PropertyType, CosmosType, MindType])
+](
+  responder : SmcResponder[EntityType, PropertyType, CosmosType, MindType],
+  annotator : SilAnnotator)
     extends SilWordnetScorer
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
@@ -174,9 +178,9 @@ class SmcContextualScorer[
           return SilPhraseScore.conBig
         }
         val analyzed = responder.getMind.analyzeSense(
-          responder.getAnnotator, sentence)
+          annotator, sentence)
         val resultCollector = SmcResultCollector[EntityType](
-          responder.smcAnnotator)
+          responder.smcAnnotator(annotator))
         val result = responder.resolveReferences(analyzed, resultCollector)
         if (result.isFailure) {
           return SilPhraseScore.conBig
@@ -249,13 +253,10 @@ class SmcResponder[
 
   private def cosmos = mind.getCosmos
 
-  // FIXME either make responder one-shot, or bundle
-  // this with phrases
-  protected var annotator = newAnnotator
+  protected def newInputRewriter(
+    annotator : SilAnnotator) = new SmcInputRewriter(mind, annotator)
 
-  protected def newInputRewriter() = new SmcInputRewriter(mind, annotator)
-
-  private def newResponseRewriter() =
+  private def newResponseRewriter(annotator : SilAnnotator) =
     new SmcResponseRewriter(mind, communicationContext, annotator)
 
   val sentencePrinter = new SilSentencePrinter
@@ -277,27 +278,29 @@ class SmcResponder[
     SmcAnnotator[EntityType]()
   }
 
-  def getAnnotator = annotator
-
-  def smcAnnotator = annotator.asInstanceOf[
+  def smcAnnotator(annotator : SilAnnotator) = annotator.asInstanceOf[
     SilTypedAnnotator[SmcRefNote[EntityType]]]
 
-  protected def newPredicateEvaluator(scope : ScopeType = mindScope) =
+  protected def newPredicateEvaluator(
+    annotator : SilAnnotator,
+    scope : ScopeType = mindScope) =
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
       annotator, scope, generalParams.existenceAssumption,
       communicationContext, debugger)
 
   def newParser(input : String) =
   {
-    annotator = newAnnotator
+    val contextAnnotator = newAnnotator
     val context = SprContext(
-      scorer = new SmcContextualScorer(this),
-      annotator = annotator)
+      scorer = new SmcContextualScorer(this, contextAnnotator),
+      annotator = contextAnnotator)
     SprParser(input, context)
   }
 
-  def process(sentence : SilSentence, input : String = "") : String =
+  def process(parseResult : SprParseResult, input : String = "") : String =
   {
+    val sentence = parseResult.sentence
+    val annotator = parseResult.annotator
     debug("-----------------------------")
     if (!input.isEmpty) {
       debug(s"INPUT TEXT : $input")
@@ -314,11 +317,12 @@ class SmcResponder[
     val analyzed = mind.analyzeSense(annotator, sentence)
     mind.rememberSpeakerSentence(
       SmcConversation.SPEAKER_NAME_PERSON, analyzed, input)
-    val normalizedInput = newInputRewriter.normalizeInput(analyzed)
+    val normalizedInput = newInputRewriter(annotator).normalizeInput(analyzed)
     if (normalizedInput != analyzed) {
       trace(s"REWRITTEN INPUT : $normalizedInput")
     }
-    val resultCollector = SmcResultCollector[EntityType](smcAnnotator)
+    val resultCollector = SmcResultCollector[EntityType](
+      smcAnnotator(annotator))
     resolveReferencesImpl(normalizedInput, resultCollector)
     rememberSentenceAnalysis(resultCollector)
     val (responseSentence, responseText) =
@@ -329,7 +333,8 @@ class SmcResponder[
     if (mind.isConversing) {
       // perhaps we should synthesize refMap as we go instead
       // of attempting to reconstruct it here
-      val responseResultCollector = SmcResultCollector[EntityType](smcAnnotator)
+      val responseResultCollector = SmcResultCollector[EntityType](
+        smcAnnotator(annotator))
       responseResultCollector.swapSpeakerListener = true
       resolveReferences(
         responseSentence, responseResultCollector)
@@ -359,7 +364,7 @@ class SmcResponder[
     reify : Boolean = false,
     scope : ScopeType = mindScope) : Try[Trilean] =
   {
-    newPredicateEvaluator(scope).resolveReferences(
+    newPredicateEvaluator(resultCollector.annotator, scope).resolveReferences(
       phrase, resultCollector, throwFailures, reify)
   }
 
@@ -368,7 +373,7 @@ class SmcResponder[
       : (SilSentence, String) =
   {
     if (sentence.isUninterpretable) {
-      val responseRewriter = newResponseRewriter
+      val responseRewriter = newResponseRewriter(resultCollector.annotator)
       val unrecognized = responseRewriter.rewrite(
         responseRewriter.swapPronounsSpeakerListener(
           resultCollector.refMap),
@@ -399,7 +404,7 @@ class SmcResponder[
     interval : SmcTimeInterval,
     updatedCosmos : CosmosType,
     predicate : SilPredicate,
-    refMap : SmcRefMap[EntityType])
+    resultCollector : ResultCollectorType)
   {
     // FIXME deal with tense/aspect/mood
     if (mind.hasNarrative) {
@@ -410,7 +415,8 @@ class SmcResponder[
         val sentence = SilPredicateSentence(eventPredicate)
         val eventMind = imagine(eventCosmos)
         val eventResponder = spawn(eventMind)
-        val result = eventResponder.process(sentence)
+        val result = eventResponder.process(
+          SprParseResult(sentence, resultCollector.annotator))
         if (result != sentencePrinter.sb.respondCompliance) {
           throw ShlurdException(
             ShlurdExceptionCode.CausalityViolation, result)
@@ -420,7 +426,7 @@ class SmcResponder[
 
       val timeline = mind.getNarrative
       timeline.addEntry(new SmcTimelineEntry(
-        interval, updatedCosmos, predicate, refMap),
+        interval, updatedCosmos, predicate, resultCollector.refMap),
         cosmosMutator)
     }
   }
@@ -471,13 +477,16 @@ class SmcResponder[
   {
     debug("STATE CHANGE COMMAND")
 
-    val result = newPredicateEvaluator().evaluatePredicate(
-      predicate, resultCollector)
+    val result = newPredicateEvaluator(
+      resultCollector.annotator
+    ).evaluatePredicate(
+      predicate, resultCollector
+    )
 
     result match {
       case Success(Trilean.True) => {
         debug("COUNTERFACTUAL")
-        val responseRewriter = newResponseRewriter
+        val responseRewriter = newResponseRewriter(resultCollector.annotator)
         val (normalizedResponse, negateCollection) =
           responseRewriter.normalizeResponse(
             predicate, resultCollector, generalParams)
@@ -547,7 +556,7 @@ class SmcResponder[
                 QUESTION_WHAT | QUESTION_WHERE => Int.MaxValue
             case QUESTION_HOW_MANY => 0
           }
-          val responseRewriter = newResponseRewriter
+          val responseRewriter = newResponseRewriter(resultCollector.annotator)
           val (normalizedResponse, negateCollection) =
             responseRewriter.normalizeResponse(
               rewrittenPredicate, resultCollector,
@@ -656,7 +665,8 @@ class SmcResponder[
                 }
                 case _ => generalParams
               }
-              val responseRewriter = newResponseRewriter
+              val responseRewriter = newResponseRewriter(
+                resultCollector.annotator)
               val (normalizedResponse, negateCollection) =
                 responseRewriter.normalizeResponse(
                   query, resultCollector, params)
@@ -729,7 +739,8 @@ class SmcResponder[
             case Success(truth) => {
               debug(s"KNOWN TRUTH : $truth")
               if (truth.assumeFalse == positivity) {
-                val responseRewriter = newResponseRewriter
+                val responseRewriter = newResponseRewriter(
+                  resultCollector.annotator)
                 val (normalizedResponse, negateCollection) =
                   responseRewriter.normalizeResponse(
                     predicate, resultCollector, generalParams)
@@ -858,7 +869,9 @@ class SmcResponder[
           evaluatePastPredicate(predicate, resultCollector)
         }
         case TENSE_PRESENT => {
-          newPredicateEvaluator().evaluatePredicate(predicate, resultCollector)
+          newPredicateEvaluator(
+            resultCollector.annotator
+          ).evaluatePredicate(predicate, resultCollector)
         }
         case TENSE_FUTURE => {
           cosmos.fail(
@@ -908,7 +921,9 @@ class SmcResponder[
         val freePredicate =
           predicate.withNewModifiers(reducedModifiers)
         val boundPredicate =
-          newInputRewriter.bindPredicateWildcard(freePredicate, objRef)
+          newInputRewriter(
+            resultCollector.annotator
+          ).bindPredicateWildcard(freePredicate, objRef)
         (adp, boundPredicate, freePredicate, reducedModifiers)
       }
     }
@@ -950,9 +965,12 @@ class SmcResponder[
         }
       }
     } else {
-      val pastCollector = SmcResultCollector[EntityType](smcAnnotator)
+      val pastCollector = SmcResultCollector[EntityType](
+        smcAnnotator(resultCollector.annotator))
       val pastMind = imagine(entry.updatedCosmos)
-      val pastPredicateEvaluator = spawn(pastMind).newPredicateEvaluator()
+      val pastPredicateEvaluator = spawn(pastMind).newPredicateEvaluator(
+        resultCollector.annotator
+      )
       val pastTruthTry = pastPredicateEvaluator.evaluatePredicate(
         boundPredicate, pastCollector)
       val pastTruth = pastTruthTry.getOrElse(return pastTruthTry).assumeFalse
@@ -1038,9 +1056,11 @@ class SmcResponder[
             case _ => false
           })
           val qmr = reducedModifiers.map(modifier =>
-            replaceReferencesWithEntities(modifier, queryRefMap)).toSet
+            replaceReferencesWithEntities(
+              resultCollector.annotator, modifier, queryRefMap)).toSet
           val emr = eventModifiers.map(modifier =>
-            replaceReferencesWithEntities(modifier, eventRefMap)).toSet
+            replaceReferencesWithEntities(
+              resultCollector.annotator, modifier, eventRefMap)).toSet
           variableMatched && qmr.subsetOf(emr)
         }
         if (subjectMatch && directObjectMatch && modifiersMatch) {
@@ -1091,13 +1111,15 @@ class SmcResponder[
     resultCollector : ResultCollectorType)
       : (SilPredicate, SilInflection) =
   {
-    val queryRewriter = newQueryRewriter(question, answerInflection)
+    val queryRewriter = newQueryRewriter(
+      resultCollector.annotator, question, answerInflection)
     val rewritten = queryRewriter.rewrite(
       queryRewriter.rewritePredicate, predicate)
     (rewritten, answerInflection)
   }
 
   protected def newQueryRewriter(
+    annotator : SilAnnotator,
     question : SilQuestion,
     answerInflection : SilInflection) =
   {
@@ -1105,6 +1127,7 @@ class SmcResponder[
   }
 
   private def replaceReferencesWithEntities(
+    annotator : SilAnnotator,
     phrase : SilPhrase,
     refMap : SmcRefMap[EntityType]) : SilPhrase =
   {

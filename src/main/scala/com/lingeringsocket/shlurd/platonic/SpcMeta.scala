@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.mind._
 
 import scala.collection._
 
@@ -280,7 +281,8 @@ class SpcMeta(cosmos : SpcCosmos)
       val params = SpcBeliefParams()
       val mind = new SpcMind(cosmos)
       val responder = new SpcResponder(mind, params)
-      val beliefAccepter = SpcBeliefAccepter(responder, params)
+      val beliefAccepter = SpcBeliefAccepter(
+        responder, params, SmcResultCollector(SmcAnnotator()))
       beliefAccepter.applyBelief(belief)
     }
   }

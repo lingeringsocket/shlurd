@@ -47,7 +47,7 @@ class SprEnglishVerbSpec extends Specification
 
   private def parse(input : String) : ParsedVerb =
   {
-    val sentence = SprParser(input).parseOne
+    val sentence = SprParser(input).parseOne.sentence
     sentence match {
       case SilPredicateSentence(
         SilActionPredicate(subject, SilWordLemma(lemma), rhs, Seq()),

@@ -104,8 +104,8 @@ class ConversationProcessor extends StringModifier
     }
     val result = exchanges.map {
       case ((input, inputIndex), expectedLines) => {
-        val sentence = responder.newParser(input).parseOne
-        val response = responder.process(sentence, input)
+        val parseResult = responder.newParser(input).parseOne
+        val response = responder.process(parseResult, input)
         val responseLines = Source.fromString(response).getLines.toSeq.filterNot(
           SprParser.isIgnorableLine)
         val iMismatch = range(0 until expectedLines.size).find(index => {
@@ -222,12 +222,12 @@ class BeliefRenderer extends StringModifier
     val source = Source.fromString(input)
     val beliefs = source.getLines.
       filterNot(SprParser.isIgnorableLine).mkString("\n")
-    val sentences = responder.newParser(beliefs).parseAllPositional
+    val results = responder.newParser(beliefs).parseAll
     val ok = responder.sentencePrinter.sb.respondCompliance
-    sentences.foreach {
-      case(sentence, start, end) => {
+    results.foreach {
+      case pr @ SprParseResult(sentence, _, start, end) => {
         val output = try {
-          responder.process(sentence)
+          responder.process(pr)
         } catch {
           case ex : Throwable => {
             ex.printStackTrace
@@ -235,7 +235,7 @@ class BeliefRenderer extends StringModifier
           }
         }
         if (output != ok) {
-          // FIXME this isn't quite right since whenever
+          // FIXME this isn't quite right whenever
           // we stripped ignorable lines above
           val position = Position.Range(code, end, end)
           reporter.error(

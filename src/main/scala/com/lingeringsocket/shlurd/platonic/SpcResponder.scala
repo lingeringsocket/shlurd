@@ -44,8 +44,10 @@ case class SpcAssertionResult(
 {
 }
 
-class SpcContextualScorer(responder : SpcResponder)
-    extends SmcContextualScorer(responder)
+class SpcContextualScorer(
+  responder : SpcResponder,
+  annotator : SilAnnotator)
+    extends SmcContextualScorer(responder, annotator)
 {
   override protected def computeBoost(
     sentence : SilSentence,
@@ -101,6 +103,7 @@ class SpcContextualScorer(responder : SpcResponder)
           }
           case _ => {
             val form = responder.deriveType(
+              resultCollector.annotator,
               subject, resultCollector.refMap)
             cosmos.resolveHypernymPropertyState(form, lemma).nonEmpty
           }
@@ -154,10 +157,14 @@ class SpcResponder(
 {
   private val already = new mutable.HashSet[SilPredicate]
 
-  private def newAssertionMapper() = new SpcAssertionMapper(
-    mind, communicationContext, newInputRewriter, sentencePrinter)
+  private def newAssertionMapper(
+    annotator : SilAnnotator
+  ) = new SpcAssertionMapper(
+    mind, communicationContext, newInputRewriter(annotator),
+    sentencePrinter)
 
-  def spcAnnotator = annotator.asInstanceOf[SpcAnnotator]
+  def spcAnnotator(annotator : SilAnnotator) =
+    annotator.asInstanceOf[SpcAnnotator]
 
   override protected def spawn(subMind : SpcMind) =
   {
@@ -167,11 +174,11 @@ class SpcResponder(
 
   override def newParser(input : String) =
   {
-    annotator = newAnnotator
+    val contextAnnotator = newAnnotator
     val context = SprContext(
       mind.getCosmos.getWordLabeler,
-      scorer = new SpcContextualScorer(this),
-      annotator = annotator)
+      scorer = new SpcContextualScorer(this, contextAnnotator),
+      annotator = contextAnnotator)
     SprParser(input, context)
   }
 
@@ -180,7 +187,10 @@ class SpcResponder(
     SpcAnnotator()
   }
 
-  override protected def newPredicateEvaluator(scope : ScopeType = mindScope) =
+  override protected def newPredicateEvaluator(
+    annotator : SilAnnotator,
+    scope : ScopeType = mindScope
+  ) =
     new SmcPredicateEvaluator[SpcEntity, SpcProperty, SpcCosmos, SpcMind](
       annotator, scope, params.existenceAssumption,
       communicationContext, debugger)
@@ -202,7 +212,8 @@ class SpcResponder(
       resultCollector : ResultCollectorType) : Try[Trilean] =
     {
       checkCycle(
-        predicate, already, resultCollector.refMap
+        resultCollector.annotator, predicate, already,
+        resultCollector.refMap
       ) matchPartial {
         case f @ Failure(err) => {
           return f.map(Trilean(_))
@@ -211,9 +222,9 @@ class SpcResponder(
           return Success(Trilean.Unknown)
         }
       }
-      getBiconditionalImplications.foreach {
+      getBiconditionalImplications(resultCollector.annotator).foreach {
         case (conditionalSentence, placeholderMap) => {
-          newAssertionMapper().matchImplication(
+          newAssertionMapper(resultCollector.annotator).matchImplication(
             "IMPLIES",
             mind.getCosmos,
             conditionalSentence,
@@ -235,12 +246,13 @@ class SpcResponder(
     }
 
     override protected def normalizePredicate(
+      annotator : SilAnnotator,
       predicate : SilPredicate,
       refMap : SpcRefMap,
       refEquivalence : mutable.Map[SilReference, SilReference]
     ) : SilPredicate =
     {
-      if (scoreEquivalentPredicate(predicate, refMap) == 1) {
+      if (scoreEquivalentPredicate(annotator, predicate, refMap) == 1) {
         // the original predicate is something that we want to
         // keep no matter what
         return predicate
@@ -248,9 +260,9 @@ class SpcResponder(
       // FIXME this could cause the predicate to become
       // inconsistent with the answer inflection.  Also, when there
       // are multiple matches, we should be conjoining them.
-      val replacements = getBiconditionalImplications.flatMap {
+      val replacements = getBiconditionalImplications(annotator).flatMap {
         case (conditionalSentence, placeholderMap) => {
-          newAssertionMapper().matchImplication(
+          newAssertionMapper(annotator).matchImplication(
             "IMPLIES",
             mind.getCosmos,
             conditionalSentence,
@@ -262,12 +274,13 @@ class SpcResponder(
               Some(placeholderMap),
               Some(refEquivalence)))
         }
-      }.map(p => optimizeEquivalentPredicate(p, refMap))
+      }.map(p => optimizeEquivalentPredicate(annotator, p, refMap))
       replacements.filter(_._2 >= 0).sortBy(_._2).map(_._1).headOption.
         getOrElse(predicate)
     }
 
     private def scoreEquivalentPredicate(
+      annotator : SilAnnotator,
       predicate : SilPredicate,
       refMap : SpcRefMap) : Int =
     {
@@ -275,7 +288,7 @@ class SpcResponder(
         case SilStatePredicate(
           subject, _, SilPropertyState(SilWordLemma(lemma)), _
         ) => {
-          val form = deriveType(subject, refMap)
+          val form = deriveType(annotator, subject, refMap)
           mind.getCosmos.resolveHypernymPropertyState(
             form, lemma).map(_ => 1).getOrElse(-1)
         }
@@ -284,6 +297,7 @@ class SpcResponder(
     }
 
     private def optimizeEquivalentPredicate(
+      annotator : SilAnnotator,
       sil : SilPredicate,
       refMap : SpcRefMap
     ) : (SilPredicate, Int) =
@@ -293,7 +307,7 @@ class SpcResponder(
       def optimizePredicate = rewriter.replacementMatcher(
         "optimizePredicate", {
           case sp : SilStatePredicate => {
-            if (scoreEquivalentPredicate(sp, refMap) == -1) {
+            if (scoreEquivalentPredicate(annotator, sp, refMap) == -1) {
               score = -1
             }
             sp
@@ -338,53 +352,57 @@ class SpcResponder(
     }
   }
 
-  def getBiconditionalImplications()
+  def getBiconditionalImplications(annotator : SilAnnotator)
       : Seq[(SilConditionalSentence, SpcRefMap)] =
   {
-    val triggers = getTriggers.filter(
+    val triggers = getTriggers(annotator).filter(
       _.conditionalSentence.biconditional)
-    triggers.flatMap(getTriggerImplications)
+    triggers.flatMap(getTriggerImplications(annotator, _))
   }
 
   private def reannotate[PhraseType <: SilPhrase](
+    annotator : SilAnnotator,
     phrase : PhraseType) : PhraseType =
   {
     annotator.copy(phrase, SilPhraseCopyOptions(preserveNotes = true))
   }
 
-  def getAssertions() : Seq[SpcAssertion] =
+  def getAssertions(annotator : SilAnnotator) : Seq[SpcAssertion] =
   {
     mind.getCosmos.getAssertions.map(assertion => {
       SpcAssertion(
-        reannotate(assertion.sentence),
-        assertion.additionalConsequents.map(reannotate),
-        assertion.alternative.map(reannotate),
+        reannotate(annotator, assertion.sentence),
+        assertion.additionalConsequents.map(reannotate(annotator, _)),
+        assertion.alternative.map(reannotate(annotator, _)),
         assertion.placeholderMap
       )
     })
   }
 
-  def getTriggers() : Seq[SpcTrigger] =
+  def getTriggers(annotator : SilAnnotator) : Seq[SpcTrigger] =
   {
     mind.getCosmos.getTriggers.map(trigger => {
       SpcTrigger(
-        reannotate(trigger.conditionalSentence),
-        trigger.additionalConsequents.map(reannotate),
-        trigger.alternative.map(reannotate),
+        reannotate(annotator, trigger.conditionalSentence),
+        trigger.additionalConsequents.map(reannotate(annotator, _)),
+        trigger.alternative.map(reannotate(annotator, _)),
         trigger.placeholderMap
       )
     })
   }
 
   def getTriggerImplications(
+    annotator : SilAnnotator,
     trigger : SpcTrigger) : Seq[(SilConditionalSentence, SpcMutableRefMap)] =
   {
     val cs = trigger.conditionalSentence
     val placeholderMap = SmcMutableRefMap.newByValue[SpcEntity]
     placeholderMap ++= trigger.getPlaceholderMap
     val standardized = cs.copy(
-      antecedent = standardizeVariables(cs.antecedent, placeholderMap),
-      consequent = standardizeVariables(cs.consequent, placeholderMap))
+      antecedent = standardizeVariables(
+        annotator, cs.antecedent, placeholderMap),
+      consequent = standardizeVariables(
+        annotator, cs.consequent, placeholderMap))
     val seq = {
       if (cs.biconditional) {
         assert(trigger.additionalConsequents.isEmpty)
@@ -394,9 +412,9 @@ class SpcResponder(
           standardized,
           cs.copy(
             antecedent = flipVariables(
-              standardized.consequent, placeholderMap),
+              annotator, standardized.consequent, placeholderMap),
             consequent = flipVariables(
-              cs.antecedent, placeholderMap),
+              annotator, cs.antecedent, placeholderMap),
             tamAntecedent = cs.tamConsequent,
             tamConsequent = cs.tamAntecedent
           )
@@ -409,6 +427,7 @@ class SpcResponder(
   }
 
   private def standardizeVariables[PhraseType <: SilPhrase](
+    annotator : SilAnnotator,
     phrase : PhraseType,
     placeholderMap : SpcMutableRefMap
   ) : PhraseType =
@@ -456,6 +475,7 @@ class SpcResponder(
   }
 
   private def flipVariables(
+    annotator : SilAnnotator,
     predicate : SilPredicate,
     placeholderMap : SpcMutableRefMap
   ) : SilPredicate =
@@ -572,7 +592,7 @@ class SpcResponder(
                   interval,
                   updatedCosmos,
                   predicate,
-                  resultCollector.refMap)
+                  resultCollector)
               } catch {
                 case e @ ShlurdException(
                   ShlurdExceptionCode.CausalityViolation, message) => {
@@ -593,6 +613,7 @@ class SpcResponder(
   }
 
   private def applyAssertion(
+    annotator : SilAnnotator,
     forkedCosmos : SpcCosmos,
     assertion : SpcAssertion,
     predicate : SilPredicate,
@@ -602,7 +623,7 @@ class SpcResponder(
       : SpcAssertionResult =
   {
     val resultCollector = new SmcResultCollector[SpcEntity](
-      SmcResultCollector.modifiableRefMap(refMap))
+      annotator, SmcResultCollector.modifiableRefMap(refMap))
     spawn(imagine(forkedCosmos)).resolveReferences(
       predicate, resultCollector, false, true)
 
@@ -657,7 +678,7 @@ class SpcResponder(
           }
         }
         if (isSubsumption(
-          forkedCosmos, requirement, predicate, refMap)
+          annotator, forkedCosmos, requirement, predicate, refMap)
         ) {
           if (assertion.sentence.tam.isPositive) {
             SpcAssertionResult(
@@ -696,14 +717,18 @@ class SpcResponder(
     triggerDepth : Int)
       : Option[String] =
   {
-    getTriggerImplications(trigger).toStream.flatMap {
+    getTriggerImplications(
+      resultCollector.annotator, trigger
+    ).toStream.flatMap {
       case (conditionalSentence, placeholderMap) => {
         applyTriggerImpl(
           forkedCosmos, trigger, placeholderMap, conditionalSentence,
           trigger.additionalConsequents.map(
-            s => standardizeVariables(s, placeholderMap)),
+            s => standardizeVariables(
+              resultCollector.annotator, s, placeholderMap)),
           trigger.getAlternative.map(
-            s => standardizeVariables(s, placeholderMap)),
+            s => standardizeVariables(
+              resultCollector.annotator, s, placeholderMap)),
           predicate, resultCollector, triggerDepth)
       }
     }.headOption
@@ -737,13 +762,15 @@ class SpcResponder(
         "TRIGGERS"
       }
     }
-    newAssertionMapper().matchImplicationPlusAlternative(
+    newAssertionMapper(
+      resultCollector.annotator
+    ).matchImplicationPlusAlternative(
       operator,
       forkedCosmos, conditionalSentence,
       predicate,
       additionalConsequents, alternative,
       SpcAssertionBinding(
-        annotator,
+        resultCollector.annotator,
         resultCollector.refMap,
         Some(resultCollector.refMap),
         Some(placeholderMap)),
@@ -759,6 +786,7 @@ class SpcResponder(
         )
         newConsequents.foreach(sentence => {
           checkCycle(
+            resultCollector.annotator,
             sentence.predicate, already,
             resultCollector.refMap, isPrecondition || isTest
           ) matchPartial {
@@ -804,7 +832,9 @@ class SpcResponder(
                 val recoverySentence = removeBasicVerbModifier(
                   alternativeSentence,
                   Set(LEMMA_OTHERWISE, LEMMA_SUBSEQUENTLY, LEMMA_CONSEQUENTLY))
-                checkCycle(recoverySentence.predicate,
+                checkCycle(
+                  resultCollector.annotator,
+                  recoverySentence.predicate,
                   already, resultCollector.refMap
                 ) matchPartial {
                   case Failure(err) => {
@@ -886,7 +916,8 @@ class SpcResponder(
           complement,
           modifiers
         ) => {
-          val form = deriveType(complement, resultCollector.refMap)
+          val form = deriveType(
+            resultCollector.annotator, complement, resultCollector.refMap)
           if (mind.getCosmos.findProperty(form, lemma).nonEmpty) {
             val statePredicate = SilStatePredicate(
               complement,
@@ -903,6 +934,7 @@ class SpcResponder(
   }
 
   override protected def newQueryRewriter(
+    annotator : SilAnnotator,
     question : SilQuestion,
     answerInflection : SilInflection) =
   {
@@ -940,8 +972,6 @@ class SpcResponder(
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
     val spawned = spawn(mind.spawn(forkedCosmos))
-    // FIXME do this universally
-    spawned.annotator = annotator
     val beliefAccepter =
       SpcBeliefAccepter(
         spawned,
@@ -981,6 +1011,7 @@ class SpcResponder(
               }
             }
             val result = processTriggerablePredicate(
+              resultCollector.annotator,
               forkedCosmos, predicate,
               resultCollector.refMap, applicability,
               triggerDepth, flagErrors && !matched)
@@ -1046,6 +1077,7 @@ class SpcResponder(
   }
 
   private def isSubsumption(
+    annotator : SilAnnotator,
     forkedCosmos : SpcCosmos,
     generalOpt : Option[SilPredicate],
     specificOpt : Option[SilPredicate],
@@ -1056,19 +1088,20 @@ class SpcResponder(
 
     tupleN((generalOpt, specificOpt)) match {
       case (Some(general), Some(specific)) => {
-        isSubsumption(forkedCosmos, general, specific, refMap)
+        isSubsumption(annotator, forkedCosmos, general, specific, refMap)
       }
       case _ => false
     }
   }
 
   private def isSubsumption(
+    annotator : SilAnnotator,
     forkedCosmos : SpcCosmos,
     general : SilPredicate,
     specific : SilPredicate,
     refMap : SpcRefMap) : Boolean =
   {
-    newAssertionMapper().matchSubsumption(
+    newAssertionMapper(annotator).matchSubsumption(
       annotator,
       forkedCosmos,
       general,
@@ -1077,6 +1110,7 @@ class SpcResponder(
   }
 
   def processTriggerablePredicate(
+    annotator : SilAnnotator,
     viewedCosmos : SpcCosmos,
     predicate : SilPredicate,
     refMap : SpcRefMap,
@@ -1085,8 +1119,9 @@ class SpcResponder(
     flagErrors : Boolean)
       : Option[String] =
   {
-    val results = getAssertions.map(assertion => {
+    val results = getAssertions(annotator).map(assertion => {
       val result = applyAssertion(
+        annotator,
         viewedCosmos, assertion, predicate, refMap,
         applicability, triggerDepth
       )
@@ -1103,8 +1138,9 @@ class SpcResponder(
     weakFailures.find(
       w => !passes.exists(
         p => isSubsumption(
-          viewedCosmos, w.predicate, p.predicate, refMap))) matchPartial
-    {
+          annotator, viewedCosmos,
+          w.predicate, p.predicate, refMap))
+    ) matchPartial {
       case Some(result) => {
         return Some(result.message)
       }
@@ -1133,12 +1169,13 @@ class SpcResponder(
   }
 
   protected def checkCycle(
+    annotator : SilAnnotator,
     predicate : SilPredicate,
     seen : mutable.Set[SilPredicate],
     refMap : SpcRefMap,
     isPrecondition : Boolean = false) : Try[Boolean] =
   {
-    val boundPredicate = bindPredicate(predicate, refMap)
+    val boundPredicate = bindPredicate(annotator, predicate, refMap)
     if (seen.size > 100) {
       mind.getCosmos.fail(
         ShlurdExceptionCode.TriggerLimit,
@@ -1152,6 +1189,7 @@ class SpcResponder(
   }
 
   private def bindPredicate(
+    annotator : SilAnnotator,
     predicate : SilPredicate,
     refMap : SpcRefMap) =
   {
@@ -1233,14 +1271,15 @@ class SpcResponder(
   }
 
   private[platonic] def deriveType(
+    annotator : SilAnnotator,
     ref : SilReference,
     refMap : SpcRefMap) : SpcForm =
   {
     ref match {
       case annotatedRef : SilAnnotatedReference => {
-        val note = spcAnnotator.getNote(annotatedRef)
+        val note = spcAnnotator(annotator).getNote(annotatedRef)
         note.maybeForm.getOrElse {
-          val form = deriveTypeImpl(ref, refMap)
+          val form = deriveTypeImpl(annotator, ref, refMap)
           note.setForm(form)
           form
         }
@@ -1252,19 +1291,20 @@ class SpcResponder(
   }
 
   private def deriveTypeImpl(
+    annotator : SilAnnotator,
     ref : SilReference,
     refMap : SpcRefMap) : SpcForm =
   {
     def cosmos = mind.getCosmos
     ref match {
       case SilConjunctiveReference(_, refs, _) => {
-        lcaType(refs.map(r => deriveType(r, refMap)).toSet)
+        lcaType(refs.map(r => deriveType(annotator, r, refMap)).toSet)
       }
       case SilGenitiveReference(
         possessor,
         SilOptionallyDeterminedReference(SilNounReference(noun), _)
       ) => {
-        val possessorType = deriveType(possessor, refMap)
+        val possessorType = deriveType(annotator, possessor, refMap)
         mind.resolveRole(possessorType, noun) match {
           case Some(role) => {
             lcaType(cosmos.getGraph.getFormsForRole(role).toSet)
@@ -1283,10 +1323,10 @@ class SpcResponder(
         }
       }
       case SilDeterminedReference(sub, _) => {
-        deriveType(sub, refMap)
+        deriveType(annotator, sub, refMap)
       }
       case SilAppositionalReference(primary, _) => {
-        deriveType(primary, refMap)
+        deriveType(annotator, primary, refMap)
       }
       case SilOptionallyDeterminedReference(SilNounReference(noun), _) => {
         // FIXME resolve roles as well?
@@ -1312,7 +1352,7 @@ class SpcResponder(
         }
       }
       case SilStateSpecifiedReference(sub, state) => {
-        deriveType(sub, refMap)
+        deriveType(annotator, sub, refMap)
       }
       case _ => unknownType
     }
@@ -1352,7 +1392,10 @@ class SpcResponder(
     val seen = new mutable.HashSet[SilPredicate]
     while (!queue.isEmpty) {
       val predicate = queue.dequeue
-      checkCycle(predicate, seen, resultCollector.refMap) matchPartial {
+      checkCycle(
+        resultCollector.annotator,
+        predicate, seen, resultCollector.refMap
+      ) matchPartial {
         case f @ Failure(err) => {
           return f
         }
@@ -1370,13 +1413,13 @@ class SpcResponder(
       if (superMatch.get) {
         return Success(true)
       } else {
-        getTriggers.foreach(trigger => {
-          newAssertionMapper().matchImplication(
+        getTriggers(resultCollector.annotator).foreach(trigger => {
+          newAssertionMapper(resultCollector.annotator).matchImplication(
             "IMPLIES",
             mind.getCosmos, trigger.conditionalSentence,
             predicate,
             SpcAssertionBinding(
-              annotator,
+              resultCollector.annotator,
               modifiableRefMap,
               Some(modifiableRefMap),
               Some(trigger.getPlaceholderMap))

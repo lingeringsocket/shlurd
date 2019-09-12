@@ -39,7 +39,7 @@ object SprWordnetPrep
       : Option[(SilSentence, SilSentence)] =
   {
     val parser = SprParser(sentence)
-    val sil = parser.parseOne
+    val sil = parser.parseOne.sentence
     if (!sil.hasUnknown && !sil.isInstanceOf[SilAmbiguousSentence]) {
       println("SENTENCE = " + sentence)
       println
@@ -51,7 +51,7 @@ object SprWordnetPrep
       }
       val wnParser = SprParser.prepareHeuristic(
         context, sentence, dumpAnalysis, "DEBUG")
-      Some(tupleN((wnParser.parseOne, sil)))
+      Some(tupleN((wnParser.parseOne.sentence, sil)))
     } else {
       None
     }
@@ -79,7 +79,7 @@ object SprWordnetPrep
     val sentences = allSentences
     sentences.foreach(sentence => {
       val parser = SprParser(sentence)
-      val sil = parser.parseOne
+      val sil = parser.parseOne.sentence
       if (!sil.hasUnknown) {
         sil.maybeSyntaxTree.foreach(syntaxTree => {
           addToMatcher(syntaxTree)

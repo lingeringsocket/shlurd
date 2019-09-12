@@ -131,11 +131,13 @@ object SnavigShell
     lazy val executor = new SnavigExecutor(noumenalMind)
     {
       override protected def processFiat(
+        annotator : SilAnnotator,
         sentence : SilSentence,
         entities : Iterable[SpcEntity])
           : Option[String] =
       {
-        Some(noumenalInitializer.process(sentence))
+        Some(noumenalInitializer.process(
+          SprParseResult(sentence, annotator)))
       }
 
       override protected def executeActionImpl(
@@ -372,6 +374,7 @@ class SnavigShell(
   private val executor = new SnavigExecutor(noumenalMind)
   {
     override protected def processFiat(
+      annotator : SilAnnotator,
       sentence : SilSentence,
       entities : Iterable[SpcEntity])
         : Option[String] =
@@ -388,7 +391,8 @@ class SnavigShell(
         defer(DeferredComplaint(complaint))
         Some(complaint)
       } else {
-        Some(noumenalUpdater.process(sentence))
+        Some(noumenalUpdater.process(
+          SprParseResult(sentence, annotator)))
       }
     }
 
@@ -533,7 +537,7 @@ class SnavigShell(
       refMap : SpcRefMap)
         : Option[String] =
     {
-      val annotator = SilBasicAnnotator()
+      val annotator = SpcAnnotator()
       def playerRef =
         annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
       val newPredicate = predicate match {
@@ -544,8 +548,8 @@ class SnavigShell(
       val refSet = SilUtils.collectReferences(sentence).toSet
       val entities = refSet.flatMap(ref =>
         refMap.get(ref).getOrElse(Set.empty))
-      validateFiat(newPredicate, refMap).orElse(
-        processFiat(sentence, entities)
+      validateFiat(annotator, newPredicate, refMap).orElse(
+        processFiat(annotator, sentence, entities)
       )
     }
   }
@@ -586,12 +590,13 @@ class SnavigShell(
   }
 
   private def validateFiat(
+    annotator : SilAnnotator,
     predicate : SilPredicate,
     refMap : SpcRefMap)
       : Option[String] =
   {
     val result = phenomenalResponder.processTriggerablePredicate(
-      phenomenalCosmos, predicate, refMap,
+      annotator, phenomenalCosmos, predicate, refMap,
       APPLY_CONSTRAINTS_ONLY, 0, true)
     if (result == ok) {
       None
@@ -613,9 +618,9 @@ class SnavigShell(
       deferredQueue.dequeue match {
         case DeferredDirective(input) => {
           logger.trace(s"DIRECTIVE $input")
-          val sentences = noumenalUpdater.newParser(input).parseAll
-          sentences.foreach(sentence => {
-            val output = noumenalUpdater.process(sentence)
+          val parseResults = noumenalUpdater.newParser(input).parseAll
+          parseResults.foreach(parseResult => {
+            val output = noumenalUpdater.process(parseResult)
             assert(output == OK)
           })
         }
@@ -634,9 +639,9 @@ class SnavigShell(
             None, targetMind,
             beliefParams.copy(acceptance = IGNORE_BELIEFS),
             SmcResponseParams(), executor, communicationContext)
-          val sentences = responder.newParser(input).parseAll
-          sentences.foreach(sentence => {
-            val output = processUtterance(responder, sentence)
+          val parseResults = responder.newParser(input).parseAll
+          parseResults.foreach(parseResult => {
+            val output = processUtterance(responder, parseResult)
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
             // FIXME allow side effects of conversation
@@ -650,12 +655,13 @@ class SnavigShell(
           if (expanded != input) {
             logger.trace(s"EXPANDED $expanded")
           }
-          val sentences = phenomenalResponder.newParser(expanded).parseAll
-          sentences.foreach(sentence => {
-            var output = phenomenalResponder.process(sentence)
+          val parseResults = phenomenalResponder.newParser(expanded).parseAll
+          parseResults.foreach(parseResult => {
+            var output = phenomenalResponder.process(parseResult)
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
             var assumption = ""
+            val sentence = parseResult.sentence
             if (first) {
               first = false
               if (output != OK) {
@@ -663,7 +669,9 @@ class SnavigShell(
                   case c : DeferredComplaint => Some(c)
                   case _ => None
                 })
-                if (complaints.nonEmpty || sentence.tam.isImperative) {
+                if (complaints.nonEmpty ||
+                  sentence.tam.isImperative)
+                {
                   deferredQueue.clear
                 }
                 complaints.foreach(complaint => {
@@ -692,10 +700,10 @@ class SnavigShell(
         }
         case DeferredPhenomenon(belief) => {
           logger.trace(s"PHENOMENON $belief")
-          val sentences =
+          val parseResults =
             phenomenalUpdater.newParser(preprocess(belief)).parseAll
-          sentences.foreach(sentence => {
-            val output = phenomenalUpdater.process(sentence)
+          parseResults.foreach(parseResult => {
+            val output = phenomenalUpdater.process(parseResult)
             assert(output == OK, output)
           })
         }
@@ -713,7 +721,7 @@ class SnavigShell(
           if (speaker == listener) {
             talkToSelf
           } else {
-            val annotator = SilBasicAnnotator()
+            val annotator = SpcAnnotator()
             val listenerReference = phenomenalMind.specificReference(
               annotator, listener, DETERMINER_UNIQUE)
             val reply = accessEntityMind(listener) match {
@@ -727,9 +735,10 @@ class SnavigShell(
                   beliefParams.copy(acceptance = IGNORE_BELIEFS),
                   SmcResponseParams(), executor, communicationContext)
                 // FIXME use parseAll instead
-                val sentence = entityResponder.newParser(quotation).parseOne
+                val parseResult = entityResponder.newParser(quotation).
+                  parseOne
                 val response = processUtterance(
-                  entityResponder, sentence)
+                  entityResponder, parseResult)
                 val responseSentence = SilPredicateSentence(
                   SilActionPredicate(
                     listenerReference,
@@ -778,13 +787,13 @@ class SnavigShell(
   }
 
   private def processUtterance(
-    responder : SnavigResponder, sentence : SilSentence) : String =
+    responder : SnavigResponder, parseResult : SprParseResult) : String =
   {
-    if (sentence.tam.isImperative) {
+    if (parseResult.sentence.tam.isImperative) {
       // FIXME support imperatives
       sentencePrinter.sb.contradictAssumption("", false)
     } else {
-      responder.process(sentence)
+      responder.process(parseResult)
     }
   }
 
@@ -903,7 +912,7 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
     refMap : SpcRefMap)
       : Option[String] =
   {
-    val annotator = SilBasicAnnotator()
+    val annotator = SpcAnnotator()
     val sentence = SilPredicateSentence(
       SilStatePredicate(
         noumenalMind.specificReferences(annotator, invocation.entities),
@@ -911,10 +920,11 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
         SilPropertyState(invocation.state)
       )
     )
-    processFiat(sentence, invocation.entities)
+    processFiat(annotator, sentence, invocation.entities)
   }
 
   protected def processFiat(
+    annotator : SilAnnotator,
     sentence : SilSentence,
     entities : Iterable[SpcEntity])
       : Option[String]

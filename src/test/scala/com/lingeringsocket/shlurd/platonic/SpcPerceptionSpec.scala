@@ -36,8 +36,8 @@ class SpcPerceptionSpec extends Specification
         SmcResponseParams(
           throwRejectedBeliefs = true,
           verbosity = RESPONSE_TERSE))
-      val sentence = responder.newParser(input).parseOne
-      responder.process(sentence)
+      val parseResult = responder.newParser(input).parseOne
+      responder.process(parseResult)
     }
 
     protected def processNoumenal(input : String) =

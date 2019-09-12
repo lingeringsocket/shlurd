@@ -94,9 +94,9 @@ class SpcResponderSpec extends Specification
 
     protected def process(input : String, expected : String) =
     {
-      val sentence = responder.newParser(input).parseOne
+      val parseResult = responder.newParser(input).parseOne
       s"pass:  $input" ==> (
-        responder.process(sentence, input) === expected)
+        responder.process(parseResult, input) === expected)
     }
 
     protected def processExceptionExpected(
@@ -112,9 +112,9 @@ class SpcResponderSpec extends Specification
       input : String,
       expected : String)
     {
-      val sentence = responderTerse.newParser(input).parseOne
+      val parseResult = responderTerse.newParser(input).parseOne
       s"pass:  $input" ==> (
-        responderTerse.process(sentence, input) === expected)
+        responderTerse.process(parseResult, input) === expected)
     }
 
     protected def processBelief(input : String) =
@@ -126,8 +126,8 @@ class SpcResponderSpec extends Specification
       specificResponder : SpcResponder,
       input : String) : String =
     {
-      val sentence = specificResponder.newParser(input).parseOne
-      specificResponder.process(sentence, input)
+      val parseResult = specificResponder.newParser(input).parseOne
+      specificResponder.process(parseResult, input)
     }
 
     protected def processMatrix(
@@ -1900,9 +1900,11 @@ class SpcResponderSpec extends Specification
           subject, expectedType
         ) => {
           val input = s"$subject is hungry"
-          val sentence = responder.newParser(input).parseOne
+          val parseResult = responder.newParser(input).parseOne
           val resultCollector =
-            SmcResultCollector[SpcEntity](responder.smcAnnotator)
+            SmcResultCollector[SpcEntity](
+              responder.smcAnnotator(parseResult.annotator))
+          val sentence = parseResult.sentence
           responder.resolveReferences(sentence, resultCollector)
           val subjectRef = sentence match {
             case SilPredicateSentence(
@@ -1921,7 +1923,7 @@ class SpcResponderSpec extends Specification
             }
           }
           responder.deriveType(
-            subjectRef, resultCollector.refMap
+            parseResult.annotator, subjectRef, resultCollector.refMap
           ).name must be equalTo expectedType
         }
       }

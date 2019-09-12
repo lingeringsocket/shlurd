@@ -51,8 +51,8 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
         SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
         SmcResponseParams(verbosity = RESPONSE_TERSE))
 
-    val sentence = responder.newParser(input).parseOne
-    val response = responder.process(sentence, input)
+    val parseResult = responder.newParser(input).parseOne
+    val response = responder.process(parseResult, input)
     val expected = {
       if (answer.isEmpty) {
         Seq("OK.")

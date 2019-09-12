@@ -116,7 +116,7 @@ class SprTester
   protected def processOne(
     input : String, answer : String) : String =
   {
-    val sentence = SprParser(input).parseOne
+    val sentence = SprParser(input).parseOne.sentence
     if (sentence.hasUnknown) {
       s"INCOMPLETE PARSE:  $sentence"
     } else {

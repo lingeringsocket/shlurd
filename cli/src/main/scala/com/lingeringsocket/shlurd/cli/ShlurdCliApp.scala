@@ -126,9 +126,9 @@ class ShlurdCliShell(
       terminal.emitPrompt
       terminal.readCommand match {
         case Some(input) => {
-          val sentences = mind.newParser(input).parseAll
-          sentences.foreach(sentence => {
-            val output = responder.process(sentence)
+          val parseResults = mind.newParser(input).parseAll
+          parseResults.foreach(parseResult => {
+            val output = responder.process(parseResult)
             terminal.emitControl("")
             terminal.emitResponse(output)
             terminal.emitControl("")

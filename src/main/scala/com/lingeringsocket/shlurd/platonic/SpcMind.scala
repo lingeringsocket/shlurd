@@ -60,20 +60,24 @@ class SpcMind(cosmos : SpcCosmos)
   {
     val beliefs = source.getLines.
       filterNot(SprParser.isIgnorableLine).mkString("\n")
-    val sentences = responder.newParser(beliefs).parseAll
+    val parseResults = responder.newParser(beliefs).parseAll
     val ok = responder.sentencePrinter.sb.respondCompliance
-    val inputRewriter = new SmcInputRewriter(this, responder.getAnnotator)
-    sentences.foreach(sentence => {
+    parseResults.foreach(parseResult => {
+      val inputRewriter = new SmcInputRewriter(this, parseResult.annotator)
       val analyzed = inputRewriter.normalizeInput(
-        analyzeSense(responder.getAnnotator, sentence))
-      val accepter = SpcBeliefAccepter(responder)
+        analyzeSense(parseResult.annotator, parseResult.sentence))
+      val accepter = SpcBeliefAccepter(
+        responder,
+        SpcBeliefParams(),
+        SmcResultCollector(responder.smcAnnotator(parseResult.annotator)))
       accepter.recognizeBeliefs(analyzed) match {
         case Seq(ib : IndirectBelief) => {
           accepter.applyBelief(ib)
         }
         case _ => {
-          val output = responder.process(analyzed)
-          assert(output == ok, tupleN((sentence, output)))
+          val output = responder.process(
+            SprParseResult(analyzed, parseResult.annotator))
+          assert(output == ok, tupleN((parseResult.sentence, output)))
         }
       }
     })

@@ -193,7 +193,7 @@ class SprParserSpec extends Specification
 
   private def parse(input : String) =
   {
-    SprParser(input).parseOne
+    SprParser(input).parseOne.sentence
   }
 
   private def leaf(s : String) = SprSyntaxLeaf(s, s, s)

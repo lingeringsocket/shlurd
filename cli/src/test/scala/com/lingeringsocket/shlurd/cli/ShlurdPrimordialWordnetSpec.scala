@@ -37,9 +37,9 @@ class ShlurdPrimordialWordnetSpec extends Specification
 
     protected def process(input : String, expected : String) =
     {
-      val sentence = responder.newParser(input).parseOne
+      val parseResult = responder.newParser(input).parseOne
       s"pass:  $input" ==> (
-        responder.process(sentence, input) === expected)
+        responder.process(parseResult, input) === expected)
     }
   }
 

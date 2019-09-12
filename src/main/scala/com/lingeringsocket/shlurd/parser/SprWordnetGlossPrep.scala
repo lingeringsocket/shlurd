@@ -37,7 +37,7 @@ object SprWordnetGlossPrep
 
   def parseSentence(input : String) : SilSentence =
   {
-    SprParser(input, SprContext()).parseOne
+    SprParser(input, SprContext()).parseOne.sentence
   }
 
   def parseNounExample(input : String) : SilPhrase =

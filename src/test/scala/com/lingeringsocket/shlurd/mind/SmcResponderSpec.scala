@@ -43,7 +43,9 @@ class SmcResponderSpec extends Specification
     SmcEntity, SmcProperty, CosmosType, MindType](
     mind, params, executor, communicationContext)
   {
-    override protected def newPredicateEvaluator(scope : ScopeType) =
+    override protected def newPredicateEvaluator(
+      annotator : SilAnnotator,
+      scope : ScopeType) =
     {
       new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
         annotator,
@@ -67,6 +69,7 @@ class SmcResponderSpec extends Specification
         }
 
         override protected def normalizePredicate(
+          annotator : SilAnnotator,
           predicate : SilPredicate,
           refMap : SmcRefMap[SmcEntity],
           refEquivalence :
@@ -112,8 +115,8 @@ class SmcResponderSpec extends Specification
       val responder =
         new ZooResponder(mind, params, executor, communicationContext)
 
-      val sentence = responder.newParser(input).parseOne
-      responder.process(sentence, input)
+      val parseResult = responder.newParser(input).parseOne
+      responder.process(parseResult, input)
     }
 
     protected def processExceptionExpected(
@@ -144,8 +147,8 @@ class SmcResponderSpec extends Specification
         new ZooResponder(
           mind, responseParams, executor,
           communicationContext)
-      val sentence = responder.newParser(input).parseOne
-      responder.process(sentence, input) must be equalTo(ok)
+      val parseResult = responder.newParser(input).parseOne
+      responder.process(parseResult, input) must be equalTo(ok)
       actualInvocation must be equalTo(Some(invocation))
     }
   }

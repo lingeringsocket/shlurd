@@ -51,6 +51,7 @@ class SnavigResponder(
   }
 
   override protected def checkCycle(
+    annotator : SilAnnotator,
     predicate : SilPredicate,
     seen : mutable.Set[SilPredicate],
     refMap : SpcRefMap,
@@ -68,7 +69,7 @@ class SnavigResponder(
     if (isPrecondition) {
       Success(false)
     } else {
-      super.checkCycle(predicate, seen, refMap, isPrecondition)
+      super.checkCycle(annotator, predicate, seen, refMap, isPrecondition)
     }
   }
 }
