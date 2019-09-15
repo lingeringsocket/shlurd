@@ -94,12 +94,10 @@ object SmcResultCollector
     new SmcResultCollector(
       annotator, newAnnotationRefMap[EntityType](annotator))
 
-  // we use an identity hash map since the same expression (e.g.
-  // the pronoun "it") may appear in a phrase multiple times with
-  // different referents
-  def newIdentityRefMap[EntityType<:SmcEntity]() =
+  def newAnnotationRefMap[EntityType<:SmcEntity]() =
   {
-    SmcMutableRefMap.newByIdentity[EntityType]()
+    val newAnnotator = SmcAnnotator[EntityType]()
+    SmcMutableRefMap.fromAnnotation(newAnnotator)
   }
 
   def newAnnotationRefMap[EntityType<:SmcEntity](
@@ -113,7 +111,7 @@ object SmcResultCollector
   def modifiableRefMap[EntityType<:SmcEntity](
     map : SmcRefMap[EntityType]) =
   {
-    val newMap = newIdentityRefMap[EntityType]
+    val newMap = newAnnotationRefMap[EntityType]
     newMap ++= map
     newMap
   }

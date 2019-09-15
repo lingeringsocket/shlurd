@@ -92,11 +92,6 @@ package object mind
       new mutable.LinkedHashMap[SilReference, Set[EntityType]]
     }
 
-    def newByIdentity[EntityType <: SmcEntity]() =
-    {
-      new IdentityLinkedHashMap[SilReference, Set[EntityType]]
-    }
-
     def fromAnnotation[EntityType <: SmcEntity](
       annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
     ) =
