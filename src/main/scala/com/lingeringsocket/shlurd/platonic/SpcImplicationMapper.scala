@@ -186,12 +186,12 @@ class SpcImplicationMapper(
 )
 {
   def validateImplication(
-    annotator : SilAnnotator,
     conditional : SilConditionalSentence,
     additionalConsequents : Seq[SilPredicateSentence],
     alternative : Option[SilPredicateSentence]
   ) : SpcRefMap =
   {
+    val annotator = SpcAnnotator()
     val antecedentRefs = validateAssertionPredicate(
       annotator, conditional, conditional.antecedent)
     val consequentRefs = validateAssertionPredicate(
@@ -211,12 +211,13 @@ class SpcImplicationMapper(
   def validateAssertionPredicate(
     annotator : SilAnnotator,
     belief : SilSentence,
-    predicate : SilPredicate,
+    predicateIn : SilPredicate,
     antecedentRefs : Option[SpcRefMap] = None)
       : SpcRefMap =
   {
-    val resultCollector = SmcResultCollector[SpcEntity](
-      responder.smcAnnotator(annotator))
+    val predicate = annotator.copy(predicateIn)
+    val resultCollector = SmcResultCollector(
+      SmcAnnotator[SpcEntity](annotator))
     val scope = new SmcPhraseScope(
       antecedentRefs.getOrElse(Map.empty),
       responder.mindScope

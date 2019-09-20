@@ -137,7 +137,7 @@ class ShlurdCliSerializer
       })
       saveEntry(zos, BELIEF_ENTRY)(outputStream => {
         val pw = new PrintWriter(outputStream)
-        val creed = new SpcCreed(SilBasicAnnotator(), mind.getCosmos)
+        val creed = new SpcCreed(SpcAnnotator(), mind.getCosmos)
         val printer = new SilSentencePrinter
         creed.allBeliefs(printer).foreach(belief => {
           val beliefString = printer.print(belief)

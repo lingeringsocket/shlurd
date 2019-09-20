@@ -69,7 +69,7 @@ class SpcMind(cosmos : SpcCosmos)
       val accepter = SpcBeliefAccepter(
         responder,
         SpcBeliefParams(),
-        SmcResultCollector(responder.smcAnnotator(parseResult.annotator)))
+        SmcResultCollector(SmcAnnotator[SpcEntity](parseResult.annotator)))
       accepter.recognizeBeliefs(analyzed) match {
         case Seq(ib : IndirectBelief) => {
           accepter.applyBelief(ib)
@@ -270,7 +270,7 @@ class SpcMind(cosmos : SpcCosmos)
   {
     // FIXME for enums, use the correct meta entity
     val domainName = property.domain.name
-    val annotator = SilBasicAnnotator()
+    val annotator = SpcAnnotator()
     val analyzedNoun =
       analyzeSense(annotator, annotator.nounRef(SilWord(domainName))).noun
     val form = resolveForm(analyzedNoun).getOrElse(SpcForm(domainName))

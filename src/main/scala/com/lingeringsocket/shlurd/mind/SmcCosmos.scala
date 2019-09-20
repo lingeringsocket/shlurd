@@ -110,7 +110,12 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
     })
   }
 
-  def newParser(input : String) = SprParser(input, SprContext())
+  def newParser(input : String) =
+  {
+    SprParser(
+      input,
+      SprContext(annotator = SmcAnnotator[EntityType]()))
+  }
 }
 
 trait SmcNamedObject

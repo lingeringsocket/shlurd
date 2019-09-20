@@ -28,6 +28,8 @@ abstract class SilAbstractRefNote(
   def setCount(count : SilCount)
 
   def getRef() : SilReference = ref
+
+  def updateRef(newRef : SilReference) : SilAbstractRefNote
 }
 
 class SilBasicRefNote(
@@ -48,6 +50,18 @@ class SilBasicRefNote(
   override def setCount(newCount : SilCount)
   {
     count = Some(newCount)
+  }
+
+  protected def copyFrom(oldNote : SilBasicRefNote)
+  {
+    count = oldNote.count
+  }
+
+  override def updateRef(newRef : SilReference) : SilBasicRefNote =
+  {
+    val newNote = new SilBasicRefNote(newRef)
+    newNote.copyFrom(this)
+    newNote
   }
 }
 
@@ -247,8 +261,9 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
     // FIXME merge in case both old and new notes are present
     if (oldRef.hasAnnotation && !map.contains(newId)) {
       val oldNote = oldRef.getAnnotator.getBasicNote(oldRef)
-      // FIXME type checking excitement
-      map.put(newId, oldNote.asInstanceOf[NoteType])
+      // FIXME type checking excitement; also for indirect entity
+      // references, should avoid aliasing across annotators?
+      map.put(newId, oldNote.updateRef(newRef).asInstanceOf[NoteType])
     }
   }
 

@@ -540,9 +540,11 @@ class SnavigShell(
       val annotator = SpcAnnotator()
       def playerRef =
         annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
-      val newPredicate = predicate match {
+      val reannotated = annotator.copy(
+        predicate, SilPhraseCopyOptions(preserveNotes = true))
+      val newPredicate = reannotated match {
         case ap : SilActionPredicate => ap.copy(subject = playerRef)
-        case _ => predicate
+        case _ => reannotated
       }
       val sentence = SilPredicateSentence(newPredicate)
       val refSet = SilUtils.collectReferences(sentence).toSet

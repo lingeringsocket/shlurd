@@ -34,6 +34,9 @@ object SprPrettyPrinter extends PrettyPrinter
   {
     p match {
       case tree : SprAbstractSyntaxTree => tree.toDoc
+      case ar : SilAnnotatedReference => {
+        super.any(p) <> text(":" + ar.getAnnotationId)
+      }
       case _ => super.any(p)
     }
   }

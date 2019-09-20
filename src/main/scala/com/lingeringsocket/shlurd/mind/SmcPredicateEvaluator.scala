@@ -32,7 +32,7 @@ class SmcPredicateEvaluator[
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
-  annotator : SilAnnotator,
+  annotator : SilTypedAnnotator[SmcRefNote[EntityType]],
   scope : SmcScope[EntityType, PropertyType, CosmosType, MindType],
   existenceAssumption : SmcExistenceAssumption,
   communicationContext : SmcCommunicationContext[EntityType],
@@ -57,8 +57,7 @@ class SmcPredicateEvaluator[
     val predicate = normalizePredicate(
       resultCollector.annotator,
       predicateOriginal,
-      resultCollector.refMap,
-      resultCollector.refEquivalence)
+      resultCollector.refMap)
     if (predicate != predicateOriginal) {
       trace(s"NORMALIZED PREDICATE : $predicate")
     }
@@ -1341,8 +1340,7 @@ class SmcPredicateEvaluator[
   protected def normalizePredicate(
     annotator : SilAnnotator,
     predicate : SilPredicate,
-    refMap : SmcRefMap[EntityType],
-    refEquivalence : mutable.Map[SilReference, SilReference]
+    refMap : SmcRefMap[EntityType]
   ) : SilPredicate =
   {
     predicate

@@ -1007,7 +1007,6 @@ class SpcBeliefAccepter private(
     belief.sentence match {
       case conditional : SilConditionalSentence => {
         val placeholderMap = implicationMapper.validateImplication(
-          resultCollector.annotator,
           conditional, belief.additionalConsequents, belief.alternative)
         if (acceptSpecialAssertion(conditional, placeholderMap)) {
           None
@@ -1027,7 +1026,7 @@ class SpcBeliefAccepter private(
       }
       case ps : SilPredicateSentence => {
         Some(implicationMapper.validateAssertionPredicate(
-          resultCollector.annotator, belief.sentence, ps.predicate))
+          SpcAnnotator(), belief.sentence, ps.predicate))
       }
       case _ => None
     }

@@ -126,6 +126,19 @@ class SpcRefNote(
 
   def maybeForm() : Option[SpcForm] = form
 
+  protected def copyFrom(oldNote : SpcRefNote)
+  {
+    super.copyFrom(oldNote)
+    form = oldNote.form
+  }
+
+  override def updateRef(newRef : SilReference) : SpcRefNote =
+  {
+    val newNote = new SpcRefNote(newRef)
+    newNote.copyFrom(this)
+    newNote
+  }
+
   def setForm(newForm : SpcForm)
   {
     form = Some(newForm)
@@ -139,6 +152,9 @@ object SpcAnnotator
     new SilTypedAnnotator[SpcRefNote](
       (ref) => new SpcRefNote(ref))
   }
+
+  def apply(annotator : SilAnnotator) =
+    annotator.asInstanceOf[SpcAnnotator]
 }
 
 class SpcResponder(
@@ -162,9 +178,6 @@ class SpcResponder(
   ) = new SpcAssertionMapper(
     mind, communicationContext, newInputRewriter(annotator),
     sentencePrinter)
-
-  def spcAnnotator(annotator : SilAnnotator) =
-    annotator.asInstanceOf[SpcAnnotator]
 
   override protected def spawn(subMind : SpcMind) =
   {
@@ -192,7 +205,7 @@ class SpcResponder(
     scope : ScopeType = mindScope
   ) =
     new SmcPredicateEvaluator[SpcEntity, SpcProperty, SpcCosmos, SpcMind](
-      annotator, scope, params.existenceAssumption,
+      SmcAnnotator(annotator), scope, params.existenceAssumption,
       communicationContext, debugger)
   {
     override protected def reifyRole(
@@ -230,7 +243,7 @@ class SpcResponder(
             conditionalSentence,
             predicate,
             SpcAssertionBinding(
-              annotator,
+              SpcAnnotator(annotator),
               resultCollector.refMap,
               Some(resultCollector.refMap),
               Some(placeholderMap)
@@ -248,8 +261,7 @@ class SpcResponder(
     override protected def normalizePredicate(
       annotator : SilAnnotator,
       predicate : SilPredicate,
-      refMap : SpcRefMap,
-      refEquivalence : mutable.Map[SilReference, SilReference]
+      refMap : SpcRefMap
     ) : SilPredicate =
     {
       if (scoreEquivalentPredicate(annotator, predicate, refMap) == 1) {
@@ -268,11 +280,12 @@ class SpcResponder(
             conditionalSentence,
             predicate,
             SpcAssertionBinding(
-              annotator,
+              SpcAnnotator(annotator),
               refMap,
               None,
-              Some(placeholderMap),
-              Some(refEquivalence)))
+              Some(placeholderMap)
+            )
+          )
         }
       }.map(p => optimizeEquivalentPredicate(annotator, p, refMap))
       replacements.filter(_._2 >= 0).sortBy(_._2).map(_._1).headOption.
@@ -770,7 +783,7 @@ class SpcResponder(
       predicate,
       additionalConsequents, alternative,
       SpcAssertionBinding(
-        resultCollector.annotator,
+        SpcAnnotator(resultCollector.annotator),
         resultCollector.refMap,
         Some(resultCollector.refMap),
         Some(placeholderMap)),
@@ -972,6 +985,7 @@ class SpcResponder(
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
     val spawned = spawn(mind.spawn(forkedCosmos))
+    val refMap = SmcResultCollector.snapshotRefMap(resultCollector.refMap)
     val beliefAccepter =
       SpcBeliefAccepter(
         spawned,
@@ -1013,7 +1027,7 @@ class SpcResponder(
             val result = processTriggerablePredicate(
               resultCollector.annotator,
               forkedCosmos, predicate,
-              resultCollector.refMap, applicability,
+              refMap, applicability,
               triggerDepth, flagErrors && !matched)
             if (!result.isEmpty) {
               earlyReturn = result
@@ -1102,7 +1116,7 @@ class SpcResponder(
     refMap : SpcRefMap) : Boolean =
   {
     newAssertionMapper(annotator).matchSubsumption(
-      annotator,
+      SpcAnnotator(annotator),
       forkedCosmos,
       general,
       specific,
@@ -1277,7 +1291,7 @@ class SpcResponder(
   {
     ref match {
       case annotatedRef : SilAnnotatedReference => {
-        val note = spcAnnotator(annotator).getNote(annotatedRef)
+        val note = SpcAnnotator(annotator).getNote(annotatedRef)
         note.maybeForm.getOrElse {
           val form = deriveTypeImpl(annotator, ref, refMap)
           note.setForm(form)
@@ -1419,7 +1433,7 @@ class SpcResponder(
             mind.getCosmos, trigger.conditionalSentence,
             predicate,
             SpcAssertionBinding(
-              resultCollector.annotator,
+              SpcAnnotator(resultCollector.annotator),
               modifiableRefMap,
               Some(modifiableRefMap),
               Some(trigger.getPlaceholderMap))

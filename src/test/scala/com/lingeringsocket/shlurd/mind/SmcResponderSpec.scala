@@ -48,7 +48,7 @@ class SmcResponderSpec extends Specification
       scope : ScopeType) =
     {
       new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
-        annotator,
+        SmcAnnotator(annotator),
         scope, params.existenceAssumption,
         communicationContext, debugger)
       {
@@ -71,9 +71,7 @@ class SmcResponderSpec extends Specification
         override protected def normalizePredicate(
           annotator : SilAnnotator,
           predicate : SilPredicate,
-          refMap : SmcRefMap[SmcEntity],
-          refEquivalence :
-              collection.mutable.Map[SilReference, SilReference]
+          refMap : SmcRefMap[SmcEntity]
         ) = {
           predicate match {
             case SilStatePredicate(subject, verb, state, modifiers) => {

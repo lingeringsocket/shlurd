@@ -1903,7 +1903,7 @@ class SpcResponderSpec extends Specification
           val parseResult = responder.newParser(input).parseOne
           val resultCollector =
             SmcResultCollector[SpcEntity](
-              responder.smcAnnotator(parseResult.annotator))
+              SmcAnnotator(parseResult.annotator))
           val sentence = parseResult.sentence
           responder.resolveReferences(sentence, resultCollector)
           val subjectRef = sentence match {

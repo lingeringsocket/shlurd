@@ -295,8 +295,7 @@ class SmcPhraseScope[
                     tupleN((Some(2), ordered.size < 2))
                   }
                   case _ => {
-//                     tupleN((None, true))
-                     tupleN((Some(1), false))
+                    tupleN((Some(1), false))
                   }
                 }
               } else if (qualifiers.size == 1) {

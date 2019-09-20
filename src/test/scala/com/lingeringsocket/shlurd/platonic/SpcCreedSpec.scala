@@ -42,7 +42,7 @@ class SpcCreedSpec extends Specification
       val parseResult = responder.newParser(input).parseOne
       val resultCollector =
         SmcResultCollector[SpcEntity](
-          responder.smcAnnotator(parseResult.annotator))
+          SmcAnnotator(parseResult.annotator))
       responder.resolveReferences(parseResult.sentence, resultCollector)
       val beliefAccepter = SpcBeliefAccepter(
         responder, SpcBeliefParams(), resultCollector)
@@ -68,7 +68,7 @@ class SpcCreedSpec extends Specification
           new SpcResponder(refriedMind)
         val parseResult = refriedResponder.newParser(beliefString).parseOne
         val resultCollector = SmcResultCollector[SpcEntity](
-          refriedResponder.smcAnnotator(parseResult.annotator))
+          SmcAnnotator(parseResult.annotator))
         refriedResponder.resolveReferences(
           parseResult.sentence, resultCollector)
         val refriedBeliefAccepter =

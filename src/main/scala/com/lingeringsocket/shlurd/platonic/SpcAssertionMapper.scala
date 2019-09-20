@@ -27,12 +27,25 @@ import SprEnglishLemmas._
 import org.slf4j._
 
 case class SpcAssertionBinding(
-  annotator : SilAnnotator,
+  annotator : SilTypedAnnotator[SpcRefNote],
   refMapIn : SpcRefMap,
   refMapOut : Option[SpcMutableRefMap],
-  placeholderMap : Option[SpcRefMap] = None,
-  refEquivalence : Option[mutable.Map[SilReference, SilReference]] = None
+  placeholderMap : Option[SpcRefMap] = None
 )
+{
+  def unifyReferences(
+    ref1 : SilReference,
+    ref2 : SilReference)
+  {
+    tupleN((ref1, ref2)) match {
+      case (ar1 : SilAnnotatedReference, ar2 : SilAnnotatedReference) => {
+        SmcAnnotator.unifyReferences[SpcEntity, SpcRefNote](annotator, ar1, ar2)
+      }
+      case _ => {
+      }
+    }
+  }
+}
 
 object SpcAssertionMapper
 {
@@ -54,7 +67,7 @@ class SpcAssertionMapper(
   ]
 
   private[platonic] def matchSubsumption(
-    annotator : SilAnnotator,
+    annotator : SilTypedAnnotator[SpcRefNote],
     cosmos : SpcCosmos,
     general : SilPredicate,
     specific : SilPredicate,
@@ -124,7 +137,21 @@ class SpcAssertionMapper(
       def replaceReferences = rewriter.replacementMatcher(
         "replaceReferences", {
           case ref : SilReference => {
-            replacements.get(ref).getOrElse(ref)
+            replacements.get(ref) match {
+              case Some(replacement) => {
+                // avoid aliased references within tree
+                val copied = binding.annotator.copy(
+                  replacement,
+                  SilPhraseCopyOptions(preserveNotes = true))
+                binding.refMapOut.foreach(refMap => {
+                  refMap.get(replacement).foreach(entities => {
+                    refMap.put(copied, entities)
+                  })
+                })
+                copied
+              }
+              case _ => ref
+            }
           }
         }
       )
@@ -234,8 +261,7 @@ class SpcAssertionMapper(
                     DETERMINER_ANY,
                     count
                   )
-                  binding.refEquivalence.foreach(
-                    _.put(actualRef, typedRef))
+                  binding.unifyReferences(actualRef, typedRef)
                   typedRef
                 }
                 case _ => actualRef
@@ -323,8 +349,7 @@ class SpcAssertionMapper(
               }
             }
             binding.refMapOut.foreach(_.put(conjunction, filtered))
-            binding.refEquivalence.foreach(
-              _.put(actualRef, conjunction))
+            binding.unifyReferences(actualRef, conjunction)
             conjunction
           }
           case _ => candidateRef

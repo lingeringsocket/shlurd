@@ -633,7 +633,10 @@ case class SilStateSpecifiedReference private(
     state matchPartial {
       case SilAdpositionalState(SilAdposition.OF, pn : SilPronounReference) => {
         reference matchPartial {
-          case SilNounLemmaReference(lemma) => {
+          case SilOptionallyDeterminedReference(
+            SilNounLemmaReference(lemma),
+            _
+          ) => {
             if (lemma.forall(Character.isDigit)) {
               return false
             }
@@ -895,7 +898,8 @@ case class SilSimpleWord(
 
   override def toUnfoldedLemma = lemmaUnfolded
 
-  override def isProper = lemmaUnfolded.head.isUpper
+  override def isProper =
+    lemmaUnfolded.head.isUpper || lemmaUnfolded.contains(' ')
 
   def uninflected = SilSimpleWord("", lemmaUnfolded, senseId)
 

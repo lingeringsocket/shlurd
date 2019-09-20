@@ -29,7 +29,7 @@ class SmcResponseRewriter[
 ](
   mind : SmcMind[EntityType, PropertyType, CosmosType],
   communicationContext : SmcCommunicationContext[EntityType],
-  annotator : SilAnnotator
+  annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
 ) extends SilPhraseRewriter(annotator)
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
@@ -38,6 +38,18 @@ class SmcResponseRewriter[
 
   private val entityMap =
     new mutable.LinkedHashMap[String, EntityType]
+
+  private def markQueryAnswer(ref : SilReference) =
+  {
+    SilUtils.collectReferences(ref).foreach(subRef => {
+      subRef matchPartial {
+        case ar : SilAnnotatedReference => {
+          annotator.getNote(ar).markQueryAnswer
+        }
+      }
+    })
+    ref
+  }
 
   def normalizeResponse(
     predicate : SilPredicate,
@@ -196,10 +208,10 @@ class SmcResponseRewriter[
               nr
             }
           }
-          SilStackedStateReference(
+          markQueryAnswer(SilStackedStateReference(
             annotator,
             expandToDisjunction(varRef, noun, count),
-            states)
+            states))
         }
         case SilDeterminedReference(
           SilStackedStateReference(
@@ -207,10 +219,10 @@ class SmcResponseRewriter[
             states),
           DETERMINER_ALL
         ) => {
-          SilStackedStateReference(
+          markQueryAnswer(SilStackedStateReference(
             annotator,
             expandToConjunction(noun, count),
-            states)
+            states))
         }
       }
     )
@@ -405,9 +417,10 @@ class SmcResponseRewriter[
     resultCollector : ResultCollectorType,
     predicate : SilPredicate) : SilPredicate =
   {
-    val refMap = resultCollector.refMap
+    val refMap = SmcResultCollector.modifiableRefMap(resultCollector.refMap)
     val detector = new AmbiguousRefDetector(refMap)
     querier.query(disqualifyThirdPersonReferences(refMap), predicate)
+    querier.query(disqualifyQueryAnswers(refMap), predicate)
     querier.query(disambiguateThirdPersonReferences(detector), predicate)
     refMap --= detector.ambiguousRefs
     predicate matchPartial {
@@ -430,7 +443,7 @@ class SmcResponseRewriter[
     // use top down rewrite so that replacement of leaf references
     // does not mess up replacement of containing references
     rewrite(
-      replaceThirdPersonReferences(resultCollector),
+      replaceThirdPersonReferences(refMap),
       predicate,
       SilRewriteOptions(topDown = true))
   }
@@ -582,7 +595,8 @@ class SmcResponseRewriter[
       case SilMappedReference(key, determiner) => {
         val entity = entityMap(key)
         val ref = mind.specificReference(annotator, entity, determiner)
-        refMap.remove(ref)
+        refMap.put(ref, Set(entity))
+        markQueryAnswer(ref)
         ref
       }
     }
@@ -594,8 +608,16 @@ class SmcResponseRewriter[
     }
   }
 
-  // FIXME we should not be messing with the
-  // resultCollector's refMap like this!
+  private def disqualifyQueryAnswers(
+    refMap : SmcMutableRefMap[EntityType]
+  ) = querier.queryMatcher {
+    case ar : SilAnnotatedReference => {
+      if (annotator.getNote(ar).isQueryAnswer) {
+        refMap.remove(ar)
+      }
+    }
+  }
+
   private def disqualifyThirdPersonReferences(
     refMap : SmcMutableRefMap[EntityType]
   ) = querier.queryMatcher {
@@ -617,8 +639,18 @@ class SmcResponseRewriter[
     case SilGenitiveReference(possessor, possessee) => {
       refMap.remove(possessee)
     }
-    case SilStateSpecifiedReference(sub, state) => {
-      refMap.remove(sub)
+    case ss @ SilStateSpecifiedReference(sub, state) => {
+      // FIXME more crazytown; should just tag things that
+      // shouldn't be replaced
+      val subIsNone = sub match {
+        case SilDeterminedReference(_, DETERMINER_NONE) => true
+        case _ => false
+      }
+      if (ss.acceptsSpecifiers && !subIsNone) {
+        refMap.remove(sub)
+      } else {
+        refMap.remove(ss)
+      }
     }
     case SilAdpositionalState(_, sub) => {
       refMap.remove(sub)
@@ -628,6 +660,7 @@ class SmcResponseRewriter[
         !references.forall(r => refMap.contains(r)))
       {
         refMap --= references
+        refMap -= cr
       } else {
         refMap.put(
           cr,
@@ -663,7 +696,7 @@ class SmcResponseRewriter[
   }
 
   private def replaceThirdPersonReferences(
-    resultCollector : ResultCollectorType
+    refMap : SmcRefMap[EntityType]
   ) = replacementMatcher(
     "replaceThirdPersonReferences", {
       case ref : SilReference => {
@@ -675,7 +708,7 @@ class SmcResponseRewriter[
               ) |
               SilConjunctiveReference(_, _, _) =>
             {
-              resultCollector.lookup(ref).flatMap(
+              refMap.get(ref).flatMap(
                 entities => mind.thirdPersonReference(
                   annotator, entities)).getOrElse(ref)
             }
