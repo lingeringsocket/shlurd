@@ -1902,8 +1902,8 @@ class SpcResponderSpec extends Specification
           val input = s"$subject is hungry"
           val parseResult = responder.newParser(input).parseOne
           val resultCollector =
-            SmcResultCollector[SpcEntity](
-              SmcAnnotator(parseResult.annotator))
+            SpcResultCollector(
+              SpcAnnotator(parseResult.annotator))
           val sentence = parseResult.sentence
           responder.resolveReferences(sentence, resultCollector)
           val subjectRef = sentence match {
@@ -1923,7 +1923,8 @@ class SpcResponderSpec extends Specification
             }
           }
           responder.deriveType(
-            parseResult.annotator, subjectRef, resultCollector.refMap
+            SpcAnnotator(parseResult.annotator),
+            subjectRef, resultCollector.refMap
           ).name must be equalTo expectedType
         }
       }

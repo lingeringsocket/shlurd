@@ -51,7 +51,7 @@ class SnavigResponder(
   }
 
   override protected def checkCycle(
-    annotator : SilAnnotator,
+    annotator : SpcAnnotator,
     predicate : SilPredicate,
     seen : mutable.Set[SilPredicate],
     refMap : SpcRefMap,

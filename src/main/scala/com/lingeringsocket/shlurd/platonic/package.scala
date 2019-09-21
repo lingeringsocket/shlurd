@@ -14,14 +14,20 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd
 
-import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 
 package object platonic
 {
+  import scala.language.implicitConversions
+
   type SpcRefMap = SmcRefMap[SpcEntity]
 
   type SpcMutableRefMap = SmcMutableRefMap[SpcEntity]
 
-  type SpcAnnotator = SilTypedAnnotator[SpcRefNote]
+  implicit def spcResultCollector(
+    resultCollector : SmcResultCollector[SpcEntity]
+  ) : SpcResultCollector =
+  {
+    SpcResultCollector(resultCollector)
+  }
 }

@@ -193,9 +193,9 @@ object SpcBeliefRecognizer
 }
 
 class SpcBeliefRecognizer(
-  annotator : SilAnnotator,
+  annotator : SpcAnnotator,
   val cosmos : SpcCosmos,
-  resultCollector : SmcResultCollector[SpcEntity])
+  resultCollector : SpcResultCollector)
     extends SmcDebuggable(new SmcDebugger(SpcBeliefRecognizer.logger))
 {
   import SpcBeliefRecognizer._

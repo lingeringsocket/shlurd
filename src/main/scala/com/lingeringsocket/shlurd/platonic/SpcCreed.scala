@@ -24,7 +24,7 @@ import SprEnglishLemmas._
 
 // FIXME add role alias support
 class SpcCreed(
-  annotator : SilAnnotator,
+  annotator : SpcAnnotator,
   cosmos : SpcCosmos,
   includeMeta : Boolean = false)
 {

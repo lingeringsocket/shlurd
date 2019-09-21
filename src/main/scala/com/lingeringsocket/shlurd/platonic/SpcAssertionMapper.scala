@@ -27,7 +27,7 @@ import SprEnglishLemmas._
 import org.slf4j._
 
 case class SpcAssertionBinding(
-  annotator : SilTypedAnnotator[SpcRefNote],
+  annotator : SpcAnnotator,
   refMapIn : SpcRefMap,
   refMapOut : Option[SpcMutableRefMap],
   placeholderMap : Option[SpcRefMap] = None
@@ -67,7 +67,7 @@ class SpcAssertionMapper(
   ]
 
   private[platonic] def matchSubsumption(
-    annotator : SilTypedAnnotator[SpcRefNote],
+    annotator : SpcAnnotator,
     cosmos : SpcCosmos,
     general : SilPredicate,
     specific : SilPredicate,

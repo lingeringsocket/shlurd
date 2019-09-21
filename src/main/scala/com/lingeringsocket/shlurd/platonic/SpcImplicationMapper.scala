@@ -76,7 +76,7 @@ object SpcImplicationMapper
   }
 
   def flipVariable(
-    annotator : SilAnnotator,
+    annotator : SpcAnnotator,
     sentencePrinter : SilSentencePrinter,
     reference : SilReference,
     default : => SilReference) : SilReference =
@@ -135,7 +135,7 @@ object SpcImplicationMapper
   }
 
   def findPlaceholderCorrespondence(
-    annotator : SilAnnotator,
+    annotator : SpcAnnotator,
     ref : SilReference,
     placeholderMap : Option[SpcRefMap]
   ) : (Boolean, Set[SilReference]) =
@@ -209,15 +209,14 @@ class SpcImplicationMapper(
   }
 
   def validateAssertionPredicate(
-    annotator : SilAnnotator,
+    annotator : SpcAnnotator,
     belief : SilSentence,
     predicateIn : SilPredicate,
     antecedentRefs : Option[SpcRefMap] = None)
       : SpcRefMap =
   {
     val predicate = annotator.copy(predicateIn)
-    val resultCollector = SmcResultCollector(
-      SmcAnnotator[SpcEntity](annotator))
+    val resultCollector = SpcResultCollector(annotator)
     val scope = new SmcPhraseScope(
       antecedentRefs.getOrElse(Map.empty),
       responder.mindScope

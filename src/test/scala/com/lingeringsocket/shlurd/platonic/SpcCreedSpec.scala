@@ -15,7 +15,6 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
@@ -29,7 +28,7 @@ class SpcCreedSpec extends Specification
 
     protected val refriedCosmos = new SpcCosmos
 
-    protected val annotator = SilBasicAnnotator()
+    protected val annotator = SpcAnnotator()
 
     protected val creed = new SpcCreed(annotator, cosmos)
 
@@ -41,8 +40,8 @@ class SpcCreedSpec extends Specification
       val responder = new SpcResponder(mind)
       val parseResult = responder.newParser(input).parseOne
       val resultCollector =
-        SmcResultCollector[SpcEntity](
-          SmcAnnotator(parseResult.annotator))
+        SpcResultCollector(
+          SpcAnnotator(parseResult.annotator))
       responder.resolveReferences(parseResult.sentence, resultCollector)
       val beliefAccepter = SpcBeliefAccepter(
         responder, SpcBeliefParams(), resultCollector)
@@ -67,8 +66,8 @@ class SpcCreedSpec extends Specification
         val refriedResponder =
           new SpcResponder(refriedMind)
         val parseResult = refriedResponder.newParser(beliefString).parseOne
-        val resultCollector = SmcResultCollector[SpcEntity](
-          SmcAnnotator(parseResult.annotator))
+        val resultCollector = SpcResultCollector(
+          SpcAnnotator(parseResult.annotator))
         refriedResponder.resolveReferences(
           parseResult.sentence, resultCollector)
         val refriedBeliefAccepter =
@@ -545,7 +544,7 @@ class SpcCreedSpec extends Specification
     {
       val cosmos = new SpcCosmos
       SpcPrimordial.initCosmos(cosmos)
-      val annotator = SilBasicAnnotator()
+      val annotator = SpcAnnotator()
       val creed = new SpcCreed(annotator, cosmos, true)
       val printer = new SilSentencePrinter
       val beliefStrings = creed.allBeliefs(printer).map(

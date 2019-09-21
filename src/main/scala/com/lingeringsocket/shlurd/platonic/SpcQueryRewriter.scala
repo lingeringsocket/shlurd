@@ -18,7 +18,7 @@ import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 
 class SpcQueryRewriter(
-  annotator : SilAnnotator,
+  annotator : SpcAnnotator,
   question : SilQuestion,
   answerInflection : SilInflection)
     extends SmcQueryRewriter(annotator, question, answerInflection)

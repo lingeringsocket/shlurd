@@ -16,7 +16,6 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
@@ -32,7 +31,7 @@ object SpcBeliefAccepter
   def apply(
     responder : SpcResponder,
     params : SpcBeliefParams,
-    resultCollector : SmcResultCollector[SpcEntity])
+    resultCollector : SpcResultCollector)
       : SpcBeliefAccepter =
   {
     new SpcBeliefAccepter(
@@ -61,7 +60,7 @@ case class SpcBeliefParams(
 class SpcBeliefAccepter private(
   responder : SpcResponder,
   params : SpcBeliefParams,
-  resultCollector : SmcResultCollector[SpcEntity])
+  resultCollector : SpcResultCollector)
     extends SpcBeliefRecognizer(resultCollector.annotator,
       responder.getMind.getCosmos, resultCollector)
 {

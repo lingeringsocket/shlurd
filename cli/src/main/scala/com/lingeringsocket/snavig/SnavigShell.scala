@@ -592,7 +592,7 @@ class SnavigShell(
   }
 
   private def validateFiat(
-    annotator : SilAnnotator,
+    annotator : SpcAnnotator,
     predicate : SilPredicate,
     refMap : SpcRefMap)
       : Option[String] =

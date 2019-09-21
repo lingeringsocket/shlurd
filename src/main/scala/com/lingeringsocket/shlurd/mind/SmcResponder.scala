@@ -66,8 +66,13 @@ class SmcResultCollector[EntityType<:SmcEntity](
   var swapSpeakerListener = false
   var resolvingReferences = false
 
+  protected def preSpawn() =
+  {
+    new SmcResultCollector[EntityType](annotator, refMap)
+  }
+
   def spawn() = {
-    val newCollector = new SmcResultCollector[EntityType](annotator, refMap)
+    val newCollector = preSpawn
     newCollector.suppressWildcardExpansion = suppressWildcardExpansion
     newCollector.swapSpeakerListener = swapSpeakerListener
     newCollector.resolvingReferences = resolvingReferences
@@ -176,8 +181,7 @@ class SmcContextualScorer[
         }
         val analyzed = responder.getMind.analyzeSense(
           annotator, sentence)
-        val resultCollector = SmcResultCollector[EntityType](
-          SmcAnnotator(annotator))
+        val resultCollector = responder.newResultCollector(annotator)
         val result = responder.resolveReferences(analyzed, resultCollector)
         if (result.isFailure) {
           return SilPhraseScore.conBig
@@ -357,6 +361,13 @@ class SmcResponder[
     SmcAnnotator[EntityType]()
   }
 
+  def newResultCollector(
+    annotator : SilAnnotator
+  ) : ResultCollectorType =
+  {
+    SmcResultCollector[EntityType](SmcAnnotator(annotator))
+  }
+
   protected def newPredicateEvaluator(
     annotator : SilAnnotator,
     scope : ScopeType = mindScope) =
@@ -399,16 +410,14 @@ class SmcResponder[
     if (normalizedInput != analyzed) {
       trace(s"REWRITTEN INPUT : $normalizedInput")
     }
-    val inputResultCollector = SmcResultCollector[EntityType](
-      SmcAnnotator(inputAnnotator))
+    val inputResultCollector = newResultCollector(inputAnnotator)
     resolveReferencesImpl(normalizedInput, inputResultCollector)
     rememberSentenceAnalysis(inputResultCollector)
     val responseAnnotator = newAnnotator
     SilAnnotator.sanityCheck(inputAnnotator, normalizedInput)
     val copiedInput = responseAnnotator.copy(
       normalizedInput, SilPhraseCopyOptions(preserveNotes = true))
-    val responseResultCollector = SmcResultCollector(
-      SmcAnnotator[EntityType](responseAnnotator))
+    val responseResultCollector = newResultCollector(responseAnnotator)
     val (responseSentence, responseText) =
       processResolved(copiedInput, responseResultCollector)
     debug(s"RESPONSE TEXT : $responseText")
@@ -417,14 +426,13 @@ class SmcResponder[
     if (mind.isConversing) {
       // perhaps we should synthesize refMap as we go instead
       // of attempting to reconstruct it here
-      val responseResultCollector = SmcResultCollector[EntityType](
-        SmcAnnotator(responseAnnotator))
-      responseResultCollector.swapSpeakerListener = true
+      val responseReparseCollector = newResultCollector(responseAnnotator)
+      responseReparseCollector.swapSpeakerListener = true
       resolveReferences(
-        responseSentence, responseResultCollector)
+        responseSentence, responseReparseCollector)
       mind.rememberSpeakerSentence(
         SmcConversation.SPEAKER_NAME_SHLURD,
-        responseSentence, responseText, responseResultCollector.refMap)
+        responseSentence, responseText, responseReparseCollector.refMap)
     }
     responseText
   }
@@ -1056,8 +1064,7 @@ class SmcResponder[
         }
       }
     } else {
-      val pastCollector = SmcResultCollector[EntityType](
-        SmcAnnotator(resultCollector.annotator))
+      val pastCollector = newResultCollector(resultCollector.annotator)
       val pastMind = imagine(entry.updatedCosmos)
       val pastPredicateEvaluator = spawn(pastMind).newPredicateEvaluator(
         resultCollector.annotator
