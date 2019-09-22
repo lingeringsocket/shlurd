@@ -61,7 +61,7 @@ class SpcBeliefAccepter private(
   responder : SpcResponder,
   params : SpcBeliefParams,
   resultCollector : SpcResultCollector)
-    extends SpcBeliefRecognizer(resultCollector.annotator,
+    extends SpcBeliefRecognizer(resultCollector.spcAnnotator,
       responder.getMind.getCosmos, resultCollector)
 {
   type BeliefApplier = PartialFunction[SpcBelief, Unit]

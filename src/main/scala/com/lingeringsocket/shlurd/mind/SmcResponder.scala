@@ -56,7 +56,7 @@ case class SmcResponseParams(
 }
 
 class SmcResultCollector[EntityType<:SmcEntity](
-  val annotator : SilAnnotator,
+  val annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]],
   val refMap : SmcMutableRefMap[EntityType])
 {
   val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
@@ -88,7 +88,7 @@ class SmcResultCollector[EntityType<:SmcEntity](
 object SmcResultCollector
 {
   def apply[EntityType<:SmcEntity](
-    annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
+    annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
   ) =
     new SmcResultCollector(
       annotator, newAnnotationRefMap[EntityType](annotator))
@@ -100,7 +100,7 @@ object SmcResultCollector
   }
 
   def newAnnotationRefMap[EntityType<:SmcEntity](
-    annotator : SilTypedAnnotator[SmcRefNote[EntityType]]) =
+    annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]) =
   {
     SmcMutableRefMap.fromAnnotation(annotator)
   }
@@ -158,7 +158,7 @@ class SmcContextualScorer[
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
   responder : SmcResponder[EntityType, PropertyType, CosmosType, MindType],
-  annotator : SilAnnotator)
+  annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]])
     extends SilWordnetScorer
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
@@ -283,19 +283,25 @@ class SmcRefNote[EntityType<:SmcEntity](
   }
 }
 
+class SmcAnnotator[EntityType <: SmcEntity, NoteType <: SmcRefNote[EntityType]](
+  noteSupplier : (SilReference) => NoteType
+) extends SilTypedAnnotator[NoteType](noteSupplier)
+{
+}
+
 object SmcAnnotator
 {
   def apply[EntityType<:SmcEntity]() =
   {
-    new SilTypedAnnotator[SmcRefNote[EntityType]](
+    new SmcAnnotator[EntityType, SmcRefNote[EntityType]](
       (ref) => new SmcRefNote(ref))
   }
 
   def apply[EntityType<:SmcEntity](annotator : SilAnnotator) =
-    annotator.asInstanceOf[SilTypedAnnotator[SmcRefNote[EntityType]]]
+    annotator.asInstanceOf[SmcAnnotator[EntityType, SmcRefNote[EntityType]]]
 
   def unifyReferences[EntityType<:SmcEntity, NoteType<:SmcRefNote[EntityType]](
-    annotator : SilTypedAnnotator[NoteType],
+    annotator : SmcAnnotator[EntityType, NoteType],
     ref1 : SilAnnotatedReference,
     ref2 : SilAnnotatedReference
   )
@@ -322,23 +328,20 @@ class SmcResponder[
 ) extends SmcDebuggable(new SmcDebugger(SmcResponder.logger))
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
-
   type ScopeType = SmcScope[EntityType, PropertyType, CosmosType, MindType]
-
   type MindScopeType =
     SmcMindScope[EntityType, PropertyType, CosmosType, MindType]
-
   type PartialSentenceResponder =
     PartialFunction[SilSentence, (SilSentence, String)]
-
   type SentenceResponder = (SilSentence) => Option[(SilSentence, String)]
+  type AnnotatorType = SmcAnnotator[EntityType, SmcRefNote[EntityType]]
 
   private def cosmos = mind.getCosmos
 
   protected def newInputRewriter(
-    annotator : SilAnnotator) = new SmcInputRewriter(mind, annotator)
+    annotator : AnnotatorType) = new SmcInputRewriter(mind, annotator)
 
-  private def newResponseRewriter(annotator : SilAnnotator) =
+  private def newResponseRewriter(annotator : AnnotatorType) =
     new SmcResponseRewriter(
       mind, communicationContext, SmcAnnotator(annotator))
 
@@ -356,20 +359,20 @@ class SmcResponder[
 
   def getMind = mind
 
-  protected def newAnnotator() : SilAnnotator =
+  protected def newAnnotator() : AnnotatorType =
   {
     SmcAnnotator[EntityType]()
   }
 
   def newResultCollector(
-    annotator : SilAnnotator
+    annotator : AnnotatorType
   ) : ResultCollectorType =
   {
     SmcResultCollector[EntityType](SmcAnnotator(annotator))
   }
 
   protected def newPredicateEvaluator(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     scope : ScopeType = mindScope) =
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
       SmcAnnotator(annotator), scope, generalParams.existenceAssumption,
@@ -1217,7 +1220,7 @@ class SmcResponder[
   }
 
   protected def newQueryRewriter(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     question : SilQuestion,
     answerInflection : SilInflection) =
   {
@@ -1225,7 +1228,7 @@ class SmcResponder[
   }
 
   private def replaceReferencesWithEntities(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     phrase : SilPhrase,
     refMap : SmcRefMap[EntityType]) : SilPhrase =
   {

@@ -30,6 +30,7 @@ class SmcMind[
 {
   type ConversationType = SmcConversation[EntityType]
   type TimelineType = SmcTimeline[EntityType, PropertyType, CosmosType]
+  type AnnotatorType = SmcAnnotator[EntityType, SmcRefNote[EntityType]]
 
   private var conversation : Option[ConversationType] = None
 
@@ -41,7 +42,7 @@ class SmcMind[
   def newParser(input : String) = cosmos.newParser(input)
 
   def analyzeSense[PhraseType <: SilPhrase](
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     phrase : PhraseType) = phrase
 
   def startConversation()
@@ -227,7 +228,7 @@ class SmcMind[
   }
 
   def equivalentReferences(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     entity : EntityType,
     determiner : SilDeterminer)
@@ -241,7 +242,7 @@ class SmcMind[
   }
 
   def thirdPersonReference(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     entities : Set[EntityType]) : Option[SilReference] =
   {
     if (entities.isEmpty) {
@@ -254,7 +255,7 @@ class SmcMind[
   }
 
   private def pronounReference(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     entity : EntityType,
     pronounEntity : Option[EntityType],
     person : SilPerson)
@@ -269,7 +270,7 @@ class SmcMind[
   }
 
   def specificReference(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     entity : EntityType,
     determiner : SilDeterminer) : SilReference =
   {
@@ -277,7 +278,7 @@ class SmcMind[
   }
 
   def specificReferences(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     entities : Set[EntityType]) : SilReference =
   {
     assert(!entities.isEmpty)

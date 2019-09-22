@@ -24,10 +24,17 @@ package object platonic
 
   type SpcMutableRefMap = SmcMutableRefMap[SpcEntity]
 
-  implicit def spcResultCollector(
+  implicit def toSpcResultCollector(
     resultCollector : SmcResultCollector[SpcEntity]
   ) : SpcResultCollector =
   {
     SpcResultCollector(resultCollector)
+  }
+
+  implicit def toSmcAnnotator(
+    annotator : SpcAnnotator
+  ) : SmcAnnotator[SpcEntity, SmcRefNote[SpcEntity]] =
+  {
+    annotator.asInstanceOf[SmcAnnotator[SpcEntity, SmcRefNote[SpcEntity]]]
   }
 }

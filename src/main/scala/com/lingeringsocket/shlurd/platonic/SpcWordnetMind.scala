@@ -36,7 +36,7 @@ class SpcWordnetMind(
   }
 
   override def analyzeSense[PhraseType <: SilPhrase](
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     phrase : PhraseType) =
   {
     val analyzer = new SilWordnetSenseAnalyzer(annotator)
@@ -44,7 +44,7 @@ class SpcWordnetMind(
   }
 
   override def specificReference(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     entity : SpcEntity,
     determiner : SilDeterminer) : SilReference =
   {

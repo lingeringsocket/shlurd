@@ -39,7 +39,7 @@ package object mind
     trait SmcRefMapFromAnnotation[EntityType <: SmcEntity]
         extends Map[SilReference, Set[EntityType]]
     {
-      def getAnnotator : SilTypedAnnotator[SmcRefNote[EntityType]]
+      def getAnnotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
 
       override def get(ref : SilReference) : Option[Set[EntityType]] =
       {
@@ -72,7 +72,7 @@ package object mind
     }
 
     def fromAnnotation[EntityType <: SmcEntity](
-      annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
+      annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
     ) =
     {
       new DefaultMap[SilReference, Set[EntityType]] with
@@ -93,7 +93,7 @@ package object mind
     }
 
     def fromAnnotation[EntityType <: SmcEntity](
-      annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
+      annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
     ) =
     {
       new mutable.AbstractMap[SilReference, Set[EntityType]] with

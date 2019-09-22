@@ -146,16 +146,16 @@ class SpcRefNote(
 }
 
 class SpcResultCollector private(
-  override val annotator : SpcAnnotator,
+  val spcAnnotator : SpcAnnotator,
   refMap : SpcMutableRefMap
 ) extends SmcResultCollector[SpcEntity](
-  annotator,
+  spcAnnotator,
   refMap
 )
 {
   override protected def preSpawn() =
   {
-    SpcResultCollector(annotator, refMap)
+    SpcResultCollector(spcAnnotator, refMap)
   }
 }
 
@@ -184,7 +184,7 @@ object SpcResultCollector
   }
 }
 
-class SpcAnnotator extends SilTypedAnnotator[SpcRefNote](
+class SpcAnnotator extends SmcAnnotator[SpcEntity, SpcRefNote](
   (ref) => new SpcRefNote(ref))
 {
 }
@@ -227,7 +227,7 @@ class SpcResponder(
 
   override def newParser(input : String) =
   {
-    val contextAnnotator = newAnnotator
+    val contextAnnotator = SpcAnnotator()
     val context = SprContext(
       mind.getCosmos.getWordLabeler,
       scorer = new SpcContextualScorer(this, contextAnnotator),
@@ -235,13 +235,13 @@ class SpcResponder(
     SprParser(input, context)
   }
 
-  override protected def newAnnotator() : SpcAnnotator =
+  override protected def newAnnotator() =
   {
     SpcAnnotator()
   }
 
   override def newResultCollector(
-    annotator : SilAnnotator
+    annotator : AnnotatorType
   ) : SpcResultCollector =
   {
     SpcResultCollector(SpcAnnotator(annotator))
@@ -249,7 +249,7 @@ class SpcResponder(
 
 
   override protected def newPredicateEvaluator(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     scope : ScopeType = mindScope
   ) =
     new SmcPredicateEvaluator[SpcEntity, SpcProperty, SpcCosmos, SpcMind](
@@ -312,7 +312,7 @@ class SpcResponder(
     }
 
     override protected def normalizePredicate(
-      annotator : SilAnnotator,
+      annotator : AnnotatorType,
       predicate : SilPredicate,
       refMap : SpcRefMap
     ) : SilPredicate =
@@ -784,7 +784,7 @@ class SpcResponder(
     triggerDepth : Int)
       : Option[String] =
   {
-    val annotator = resultCollector.annotator
+    val annotator = resultCollector.spcAnnotator
     getTriggerImplications(
       annotator, trigger
     ).toStream.flatMap {
@@ -830,7 +830,7 @@ class SpcResponder(
         "TRIGGERS"
       }
     }
-    val annotator = resultCollector.annotator
+    val annotator = resultCollector.spcAnnotator
     newAssertionMapper(
       annotator
     ).matchImplicationPlusAlternative(
@@ -1004,7 +1004,7 @@ class SpcResponder(
   }
 
   override protected def newQueryRewriter(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     question : SilQuestion,
     answerInflection : SilInflection) =
   {
@@ -1082,7 +1082,7 @@ class SpcResponder(
               }
             }
             val result = processTriggerablePredicate(
-              resultCollector.annotator,
+              resultCollector.spcAnnotator,
               forkedCosmos, predicate,
               refMap, applicability,
               triggerDepth, flagErrors && !matched)

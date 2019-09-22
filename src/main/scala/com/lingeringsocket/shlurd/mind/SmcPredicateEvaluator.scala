@@ -32,7 +32,7 @@ class SmcPredicateEvaluator[
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
-  annotator : SilTypedAnnotator[SmcRefNote[EntityType]],
+  annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]],
   scope : SmcScope[EntityType, PropertyType, CosmosType, MindType],
   existenceAssumption : SmcExistenceAssumption,
   communicationContext : SmcCommunicationContext[EntityType],
@@ -40,8 +40,8 @@ class SmcPredicateEvaluator[
     extends SmcDebuggable(debugger)
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
-
   type EntityPredicateEvaluator = (EntityType, SilReference) => Try[Trilean]
+  type AnnotatorType = SmcAnnotator[EntityType, SmcRefNote[EntityType]]
 
   private val mind = scope.getMind
 
@@ -1338,7 +1338,7 @@ class SmcPredicateEvaluator[
   }
 
   protected def normalizePredicate(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     predicate : SilPredicate,
     refMap : SmcRefMap[EntityType]
   ) : SilPredicate =

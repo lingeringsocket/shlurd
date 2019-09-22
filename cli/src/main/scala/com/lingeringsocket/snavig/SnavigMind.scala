@@ -45,7 +45,7 @@ class SnavigMind(
   }
 
   override def equivalentReferences(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[SpcEntity],
     entity : SpcEntity,
     determiner : SilDeterminer)

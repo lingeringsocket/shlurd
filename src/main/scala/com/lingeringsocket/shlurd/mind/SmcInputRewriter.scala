@@ -25,7 +25,7 @@ class SmcInputRewriter[
   CosmosType <:SmcCosmos[EntityType, PropertyType]
 ](
   mind : SmcMind[EntityType, PropertyType, CosmosType],
-  annotator : SilAnnotator
+  annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
 ) extends SilPhraseRewriter(annotator)
 {
   def normalizeInput(

@@ -36,6 +36,8 @@ trait SmcScope[
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ]{
+  type AnnotatorType = SmcAnnotator[EntityType, SmcRefNote[EntityType]]
+
   def getMind : MindType
 
   def getSentencePrinter : SilSentencePrinter
@@ -46,13 +48,13 @@ trait SmcScope[
     qualifiers : Set[String] = Set.empty) : Try[SmcScopeOutput[EntityType]]
 
   def resolvePronoun(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]]
 
   protected def findMatchingPronounReference(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     refMap : SmcRefMap[EntityType],
     reference : SilPronounReference) : Seq[SmcScopeOutput[EntityType]] =
   {
@@ -141,7 +143,7 @@ class SmcMindScope[
   }
 
   override def resolvePronoun(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     reference : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]] =
@@ -358,7 +360,7 @@ class SmcPhraseScope[
   }
 
   override def resolvePronoun(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]] =

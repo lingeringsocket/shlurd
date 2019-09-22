@@ -29,7 +29,7 @@ class SmcResponseRewriter[
 ](
   mind : SmcMind[EntityType, PropertyType, CosmosType],
   communicationContext : SmcCommunicationContext[EntityType],
-  annotator : SilTypedAnnotator[SmcRefNote[EntityType]]
+  annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
 ) extends SilPhraseRewriter(annotator)
 {
   type ResultCollectorType = SmcResultCollector[EntityType]

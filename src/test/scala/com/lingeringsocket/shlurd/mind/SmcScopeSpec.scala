@@ -33,7 +33,7 @@ class SmcScopeSpec extends Specification
 
   private val cosmos = new ZooCosmos
 
-  private val annotator = SilBasicAnnotator()
+  private val annotator = SmcAnnotator[SmcEntity]()
 
   private val firstPersonRef =
     annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)

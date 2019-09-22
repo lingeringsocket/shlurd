@@ -63,20 +63,21 @@ class SpcMind(cosmos : SpcCosmos)
     val parseResults = responder.newParser(beliefs).parseAll
     val ok = responder.sentencePrinter.sb.respondCompliance
     parseResults.foreach(parseResult => {
-      val inputRewriter = new SmcInputRewriter(this, parseResult.annotator)
+      val annotator = SpcAnnotator(parseResult.annotator)
+      val inputRewriter = new SmcInputRewriter(this, annotator)
       val analyzed = inputRewriter.normalizeInput(
-        analyzeSense(parseResult.annotator, parseResult.sentence))
+        analyzeSense(annotator, parseResult.sentence))
       val accepter = SpcBeliefAccepter(
         responder,
         SpcBeliefParams(),
-        SpcResultCollector(SpcAnnotator(parseResult.annotator)))
+        SpcResultCollector(SpcAnnotator(annotator)))
       accepter.recognizeBeliefs(analyzed) match {
         case Seq(ib : IndirectBelief) => {
           accepter.applyBelief(ib)
         }
         case _ => {
           val output = responder.process(
-            SprParseResult(analyzed, parseResult.annotator))
+            SprParseResult(analyzed, annotator))
           assert(output == ok, tupleN((parseResult.sentence, output)))
         }
       }
@@ -85,7 +86,7 @@ class SpcMind(cosmos : SpcCosmos)
   }
 
   override def equivalentReferences(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[SpcEntity],
     entity : SpcEntity,
     determiner : SilDeterminer) : Seq[SilReference] =
@@ -171,7 +172,7 @@ class SpcMind(cosmos : SpcCosmos)
   }
 
   override def thirdPersonReference(
-    annotator : SilAnnotator, entities : Set[SpcEntity])
+    annotator : AnnotatorType, entities : Set[SpcEntity])
       : Option[SilReference] =
   {
     val gender = {
@@ -213,14 +214,14 @@ class SpcMind(cosmos : SpcCosmos)
   }
 
   def properReference(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     entity : SpcEntity) =
   {
     annotator.nounRef(SilWord(entity.properName))
   }
 
   def qualifiedReference(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {
@@ -236,7 +237,7 @@ class SpcMind(cosmos : SpcCosmos)
   }
 
   override def specificReference(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {

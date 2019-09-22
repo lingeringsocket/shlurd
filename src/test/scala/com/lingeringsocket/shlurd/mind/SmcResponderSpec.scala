@@ -44,7 +44,7 @@ class SmcResponderSpec extends Specification
     mind, params, executor, communicationContext)
   {
     override protected def newPredicateEvaluator(
-      annotator : SilAnnotator,
+      annotator : AnnotatorType,
       scope : ScopeType) =
     {
       new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
@@ -69,7 +69,7 @@ class SmcResponderSpec extends Specification
         }
 
         override protected def normalizePredicate(
-          annotator : SilAnnotator,
+          annotator : AnnotatorType,
           predicate : SilPredicate,
           refMap : SmcRefMap[SmcEntity]
         ) = {
@@ -589,7 +589,7 @@ class SmcResponderSpec extends Specification
     {
       mind.startConversation
       process("who are you") must be equalTo("I am Muldoon.")
-      val annotator = SilBasicAnnotator()
+      val annotator = SmcAnnotator()
       val muldoonRef =
         annotator.nounRef(SilWord("Muldoon"))
       mind.getConversation.getUtterances must be equalTo Seq(

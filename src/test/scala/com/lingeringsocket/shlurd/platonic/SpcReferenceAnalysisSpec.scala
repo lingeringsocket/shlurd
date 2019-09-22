@@ -93,7 +93,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       val ivan = "Ivan"
       val boris = "Boris"
       val natasha = "Natasha"
-      val annotator = SilBasicAnnotator()
+      val annotator = SpcAnnotator()
       val ivanRef = annotator.nounRef(SilWord(ivan))
       val borisRef = annotator.nounRef(SilWord(boris))
       val natashaRef = annotator.nounRef(SilWord(natasha))

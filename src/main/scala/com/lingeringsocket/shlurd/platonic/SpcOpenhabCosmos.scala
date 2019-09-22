@@ -364,7 +364,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
   }
 
   override def specificReference(
-    annotator : SilAnnotator,
+    annotator : AnnotatorType,
     entity : SpcEntity,
     determiner : SilDeterminer) =
   {
