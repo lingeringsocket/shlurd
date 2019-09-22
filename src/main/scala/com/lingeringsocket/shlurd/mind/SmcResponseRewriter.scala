@@ -51,6 +51,16 @@ class SmcResponseRewriter[
     ref
   }
 
+  private def containsQueryAnswer(ref : SilAnnotatedReference) : Boolean =
+  {
+    SilUtils.collectReferences(ref).exists(_ match {
+      case ar : SilAnnotatedReference => {
+        annotator.getNote(ar).isQueryAnswer
+      }
+      case _ => false
+    })
+  }
+
   def normalizeResponse(
     predicate : SilPredicate,
     resultCollector : ResultCollectorType,
@@ -226,7 +236,6 @@ class SmcResponseRewriter[
         }
       }
     )
-
     val rewrite1 = {
       if (resultCollector.entityMap.filter(_._2.assumeFalse).isEmpty ||
         resultCollector.isCategorization || !allowFlips)
@@ -612,7 +621,7 @@ class SmcResponseRewriter[
     refMap : SmcMutableRefMap[EntityType]
   ) = querier.queryMatcher {
     case ar : SilAnnotatedReference => {
-      if (annotator.getNote(ar).isQueryAnswer) {
+      if (containsQueryAnswer(ar)) {
         refMap.remove(ar)
       }
     }
@@ -639,34 +648,8 @@ class SmcResponseRewriter[
     case SilGenitiveReference(possessor, possessee) => {
       refMap.remove(possessee)
     }
-    case ss @ SilStateSpecifiedReference(sub, state) => {
-      // FIXME more crazytown; should just tag things that
-      // shouldn't be replaced
-      val subIsNone = sub match {
-        case SilDeterminedReference(_, DETERMINER_NONE) => true
-        case _ => false
-      }
-      if (ss.acceptsSpecifiers && !subIsNone) {
-        refMap.remove(sub)
-      } else {
-        refMap.remove(ss)
-      }
-    }
     case SilAdpositionalState(_, sub) => {
       refMap.remove(sub)
-    }
-    case cr @ SilConjunctiveReference(determiner, references, _) => {
-      if ((determiner != DETERMINER_ALL) ||
-        !references.forall(r => refMap.contains(r)))
-      {
-        refMap --= references
-        refMap -= cr
-      } else {
-        refMap.put(
-          cr,
-          SprUtils.orderedSet(
-            references.flatMap(r => refMap(r))))
-      }
     }
   }
 
@@ -959,11 +942,11 @@ class SmcResponseRewriter[
       case _ => COUNT_PLURAL
     }
     val nounRef = annotator.nounRef(number, count)
-    Some(
+    Some(markQueryAnswer(
       annotator.stateSpecifiedRef(
         annotator.determinedRef(nounRef, determiner),
         SilAdpositionalState(
           SilAdposition.OF,
-          annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL))))
+          annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL)))))
   }
 }

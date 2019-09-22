@@ -349,7 +349,9 @@ class SpcAssertionMapper(
               }
             }
             binding.refMapOut.foreach(_.put(conjunction, filtered))
-            binding.unifyReferences(actualRef, conjunction)
+            if (filtered.size == entities.size) {
+              binding.unifyReferences(actualRef, conjunction)
+            }
             conjunction
           }
           case _ => candidateRef
