@@ -343,7 +343,7 @@ class SmcResponder[
 
   private def newResponseRewriter(annotator : AnnotatorType) =
     new SmcResponseRewriter(
-      mind, communicationContext, SmcAnnotator(annotator))
+      mind, communicationContext, annotator)
 
   val sentencePrinter = new SilSentencePrinter
 
@@ -368,14 +368,14 @@ class SmcResponder[
     annotator : AnnotatorType
   ) : ResultCollectorType =
   {
-    SmcResultCollector[EntityType](SmcAnnotator(annotator))
+    SmcResultCollector[EntityType](annotator)
   }
 
   protected def newPredicateEvaluator(
     annotator : AnnotatorType,
     scope : ScopeType = mindScope) =
     new SmcPredicateEvaluator[EntityType, PropertyType, CosmosType, MindType](
-      SmcAnnotator(annotator), scope, generalParams.existenceAssumption,
+      annotator, scope, generalParams.existenceAssumption,
       communicationContext, debugger)
 
   def newParser(input : String) =

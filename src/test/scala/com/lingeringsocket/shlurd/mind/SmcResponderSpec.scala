@@ -48,7 +48,7 @@ class SmcResponderSpec extends Specification
       scope : ScopeType) =
     {
       new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
-        SmcAnnotator(annotator),
+        annotator,
         scope, params.existenceAssumption,
         communicationContext, debugger)
       {

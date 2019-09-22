@@ -103,7 +103,7 @@ class SpcContextualScorer(
           }
           case _ => {
             val form = responder.deriveType(
-              SpcAnnotator(resultCollector.annotator),
+              resultCollector.annotator,
               subject, resultCollector.refMap)
             cosmos.resolveHypernymPropertyState(form, lemma).nonEmpty
           }
@@ -146,16 +146,16 @@ class SpcRefNote(
 }
 
 class SpcResultCollector private(
-  val spcAnnotator : SpcAnnotator,
+  annotator : SpcAnnotator,
   refMap : SpcMutableRefMap
 ) extends SmcResultCollector[SpcEntity](
-  spcAnnotator,
+  annotator,
   refMap
 )
 {
   override protected def preSpawn() =
   {
-    SpcResultCollector(spcAnnotator, refMap)
+    SpcResultCollector(annotator, refMap)
   }
 }
 
@@ -163,8 +163,7 @@ object SpcResultCollector
 {
   def apply(annotator : SpcAnnotator) : SpcResultCollector =
   {
-    val refMap = SmcResultCollector.newAnnotationRefMap(
-      SmcAnnotator[SpcEntity](annotator))
+    val refMap = SmcResultCollector.newAnnotationRefMap(annotator)
     new SpcResultCollector(annotator, refMap)
   }
 
@@ -244,7 +243,7 @@ class SpcResponder(
     annotator : AnnotatorType
   ) : SpcResultCollector =
   {
-    SpcResultCollector(SpcAnnotator(annotator))
+    SpcResultCollector(annotator)
   }
 
 
@@ -253,7 +252,7 @@ class SpcResponder(
     scope : ScopeType = mindScope
   ) =
     new SmcPredicateEvaluator[SpcEntity, SpcProperty, SpcCosmos, SpcMind](
-      SmcAnnotator(annotator), scope, params.existenceAssumption,
+      annotator, scope, params.existenceAssumption,
       communicationContext, debugger)
   {
     override protected def reifyRole(
@@ -272,9 +271,8 @@ class SpcResponder(
       predicate : SilActionPredicate,
       resultCollector : ResultCollectorType) : Try[Trilean] =
     {
-      val spcAnnotator = SpcAnnotator(annotator)
       checkCycle(
-        spcAnnotator, predicate, already,
+        annotator, predicate, already,
         resultCollector.refMap
       ) matchPartial {
         case f @ Failure(err) => {
@@ -285,18 +283,18 @@ class SpcResponder(
         }
       }
       getBiconditionalImplications(
-        spcAnnotator
+        annotator
       ).foreach {
         case (conditionalSentence, placeholderMap) => {
           newAssertionMapper(
-            spcAnnotator
+            annotator
           ).matchImplication(
             "IMPLIES",
             mind.getCosmos,
             conditionalSentence,
             predicate,
             SpcAssertionBinding(
-              spcAnnotator,
+              annotator,
               resultCollector.refMap,
               Some(resultCollector.refMap),
               Some(placeholderMap)
@@ -317,8 +315,7 @@ class SpcResponder(
       refMap : SpcRefMap
     ) : SilPredicate =
     {
-      val spcAnnotator = SpcAnnotator(annotator)
-      if (scoreEquivalentPredicate(spcAnnotator, predicate, refMap) == 1) {
+      if (scoreEquivalentPredicate(annotator, predicate, refMap) == 1) {
         // the original predicate is something that we want to
         // keep no matter what
         return predicate
@@ -326,22 +323,22 @@ class SpcResponder(
       // FIXME this could cause the predicate to become
       // inconsistent with the answer inflection.  Also, when there
       // are multiple matches, we should be conjoining them.
-      val replacements = getBiconditionalImplications(spcAnnotator).flatMap {
+      val replacements = getBiconditionalImplications(annotator).flatMap {
         case (conditionalSentence, placeholderMap) => {
-          newAssertionMapper(spcAnnotator).matchImplication(
+          newAssertionMapper(annotator).matchImplication(
             "IMPLIES",
             mind.getCosmos,
             conditionalSentence,
             predicate,
             SpcAssertionBinding(
-              spcAnnotator,
+              annotator,
               refMap,
               None,
               Some(placeholderMap)
             )
           )
         }
-      }.map(p => optimizeEquivalentPredicate(spcAnnotator, p, refMap))
+      }.map(p => optimizeEquivalentPredicate(annotator, p, refMap))
       replacements.filter(_._2 >= 0).sortBy(_._2).map(_._1).headOption.
         getOrElse(predicate)
     }
@@ -784,7 +781,7 @@ class SpcResponder(
     triggerDepth : Int)
       : Option[String] =
   {
-    val annotator = resultCollector.spcAnnotator
+    val annotator = resultCollector.annotator
     getTriggerImplications(
       annotator, trigger
     ).toStream.flatMap {
@@ -830,7 +827,7 @@ class SpcResponder(
         "TRIGGERS"
       }
     }
-    val annotator = resultCollector.spcAnnotator
+    val annotator = resultCollector.annotator
     newAssertionMapper(
       annotator
     ).matchImplicationPlusAlternative(
@@ -986,7 +983,7 @@ class SpcResponder(
           modifiers
         ) => {
           val form = deriveType(
-            SpcAnnotator(resultCollector.annotator),
+            resultCollector.annotator,
             complement, resultCollector.refMap)
           if (mind.getCosmos.findProperty(form, lemma).nonEmpty) {
             val statePredicate = SilStatePredicate(
@@ -1008,7 +1005,7 @@ class SpcResponder(
     question : SilQuestion,
     answerInflection : SilInflection) =
   {
-    new SpcQueryRewriter(SpcAnnotator(annotator), question, answerInflection)
+    new SpcQueryRewriter(annotator, question, answerInflection)
   }
 
   private def updateRefMap(
@@ -1082,7 +1079,7 @@ class SpcResponder(
               }
             }
             val result = processTriggerablePredicate(
-              resultCollector.spcAnnotator,
+              resultCollector.annotator,
               forkedCosmos, predicate,
               refMap, applicability,
               triggerDepth, flagErrors && !matched)
@@ -1456,7 +1453,7 @@ class SpcResponder(
     resultCollector : ResultCollectorType,
     applyBindings : Boolean) : Try[Boolean] =
   {
-    val spcAnnotator = SpcAnnotator(resultCollector.annotator)
+    val annotator = resultCollector.annotator
     val modifiableRefMap =
       SmcResultCollector.modifiableRefMap(eventRefMap)
     val queue = new mutable.Queue[SilPredicate]
@@ -1465,7 +1462,7 @@ class SpcResponder(
     while (!queue.isEmpty) {
       val predicate = queue.dequeue
       checkCycle(
-        spcAnnotator,
+        annotator,
         predicate, seen, resultCollector.refMap
       ) matchPartial {
         case f @ Failure(err) => {
@@ -1485,13 +1482,13 @@ class SpcResponder(
       if (superMatch.get) {
         return Success(true)
       } else {
-        getTriggers(spcAnnotator).foreach(trigger => {
-          newAssertionMapper(spcAnnotator).matchImplication(
+        getTriggers(annotator).foreach(trigger => {
+          newAssertionMapper(annotator).matchImplication(
             "IMPLIES",
             mind.getCosmos, trigger.conditionalSentence,
             predicate,
             SpcAssertionBinding(
-              spcAnnotator,
+              annotator,
               modifiableRefMap,
               Some(modifiableRefMap),
               Some(trigger.getPlaceholderMap))

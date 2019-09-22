@@ -37,4 +37,11 @@ package object platonic
   {
     annotator.asInstanceOf[SmcAnnotator[SpcEntity, SmcRefNote[SpcEntity]]]
   }
+
+  implicit def toSpcAnnotator(
+    annotator : SmcAnnotator[SpcEntity, SmcRefNote[SpcEntity]]
+  ) : SpcAnnotator =
+  {
+    SpcAnnotator(annotator)
+  }
 }

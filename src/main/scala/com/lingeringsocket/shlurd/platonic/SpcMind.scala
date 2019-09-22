@@ -70,7 +70,7 @@ class SpcMind(cosmos : SpcCosmos)
       val accepter = SpcBeliefAccepter(
         responder,
         SpcBeliefParams(),
-        SpcResultCollector(SpcAnnotator(annotator)))
+        SpcResultCollector(annotator))
       accepter.recognizeBeliefs(analyzed) match {
         case Seq(ib : IndirectBelief) => {
           accepter.applyBelief(ib)
