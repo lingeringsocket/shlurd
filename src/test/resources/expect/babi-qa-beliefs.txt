@@ -48,9 +48,21 @@ If a species-coloration is an animal's coloration,
  then equivalently the animal is the species-coloration's adopter.
 Lioncolor, Rhinocolor, Swancolor, and Frogcolor are species-colorations.
 Lions, rhinos, swans, and frogs are kinds of animal.
+When an animal absorbs a species-coloration,
+ then the species-coloration might not be white;
+ otherwise the animal becomes white.
+When an animal absorbs a species-coloration,
+ then the species-coloration might not be gray;
+ otherwise the animal becomes gray.
+When an animal absorbs a species-coloration,
+ then the species-coloration might not be yellow;
+ otherwise the animal becomes yellow.
+When an animal absorbs a species-coloration,
+ then the species-coloration might not be green;
+ otherwise the animal becomes green.
 When an animal adopts a species-coloration,
  then the animal's coloration becomes the species-coloration;
- also the animal's color becomes the species-coloration's color.
+ also the animal absorbs the species-coloration.
 If an animal is a lion, consequently the animal adopts Lioncolor.
 If an animal is a rhino, consequently the animal adopts Rhinocolor.
 If an animal is a swan, consequently the animal adopts Swancolor.
