@@ -33,7 +33,7 @@ If a person puts down an object, then the person drops the object.
 If a person is carrying an object, equivalently the object is the person's possession.
 If a person receives an object, then the object becomes the person's possession.
 If a person gives an object to another person,
- then the latter receives the object.
+ then the other person receives the object.
 If a person passes another person an object,
  then the first person gives the object to the other person.
 If a person hands an object to another person,
