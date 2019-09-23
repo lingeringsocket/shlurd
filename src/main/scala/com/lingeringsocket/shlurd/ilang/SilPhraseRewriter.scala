@@ -62,6 +62,7 @@ class TraceEmitter(logger : Logger) extends Emitter
 }
 
 case class SilPhraseCopyOptions(
+  preserveBasicNotes : Boolean = false,
   preserveNotes : Boolean = false,
   preserveIds : Boolean = false
 )

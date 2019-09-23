@@ -1076,6 +1076,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
     {
       addBelief("\"Happy\" may be a proper noun")
       addBelief("Happy is a unicorn")
+      addBelief("\"ze\" and \"xe\" are pronouns")
     }
   }
 }

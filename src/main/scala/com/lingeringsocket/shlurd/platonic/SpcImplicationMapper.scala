@@ -215,7 +215,9 @@ class SpcImplicationMapper(
     antecedentRefs : Option[SpcRefMap] = None)
       : SpcRefMap =
   {
-    val predicate = annotator.copy(predicateIn)
+    val predicate = annotator.copy(
+      predicateIn,
+      SilPhraseCopyOptions(preserveBasicNotes = true))
     val resultCollector = SpcResultCollector(annotator)
     val scope = new SmcPhraseScope(
       antecedentRefs.getOrElse(Map.empty),

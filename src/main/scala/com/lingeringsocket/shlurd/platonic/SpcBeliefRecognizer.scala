@@ -103,12 +103,12 @@ object SpcBeliefRecognizer
 
   def recognizeWordRule(
     sentence : SilSentence
-  ) : Option[SprWordRule] =
+  ) : Seq[SprWordRule] =
   {
     sentence match {
       case SilPredicateSentence(
         SilRelationshipPredicate(
-          quotation : SilQuotationReference,
+          ref,
           SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           interpretation,
           Seq()
@@ -120,46 +120,74 @@ object SpcBeliefRecognizer
           tam.isNegative || !tam.isIndicative || !tam.isPresent ||
           (tam.aspect != ASPECT_SIMPLE)
         ) {
-          None
+          Seq.empty
         } else {
-          val labels = recognizeWordLabels(interpretation)
-          if (labels.nonEmpty) {
-            val isClosed = tam.modality match {
-              case MODAL_MUST => true
-              case _ => false
+          val quotations = ref match {
+            case quotation : SilQuotationReference => {
+              Seq(quotation)
             }
-            Some(SprWordRule(
-              tokenizeQuotation(quotation),
-              labels, isClosed))
+            case SilConjunctiveReference(DETERMINER_ALL, refs, _) => {
+              if (refs.forall(_.isInstanceOf[SilQuotationReference])) {
+                refs.map(_.asInstanceOf[SilQuotationReference])
+              } else {
+                Seq.empty
+              }
+            }
+            case _ => {
+              Seq.empty
+            }
+          }
+          val expectedCount = {
+            if (quotations.size > 1) {
+              COUNT_PLURAL
+            } else {
+              COUNT_SINGULAR
+            }
+          }
+          val labels = recognizeWordLabels(interpretation, expectedCount)
+          if (labels.nonEmpty) {
+            quotations.map(quotation => {
+              val isClosed = tam.modality match {
+                case MODAL_MUST => true
+                case _ => false
+              }
+              SprWordRule(
+                tokenizeQuotation(quotation),
+                labels, isClosed)
+            })
           } else {
-            None
+            Seq.empty
           }
         }
       }
-      case _ => None
+      case _ => Seq.empty
     }
   }
 
   private def recognizeWordLabels(
-    interpretation : SilReference
+    interpretation : SilReference,
+    expectedCount : SilCount
   ) : Seq[String] =
   {
     interpretation match {
       case SilDeterminedReference(
         SilMandatorySingular(noun),
         DETERMINER_NONSPECIFIC
-      ) => {
+      ) if (expectedCount == COUNT_SINGULAR) => {
+        recognizeWordLabel(Seq(noun)).toSeq
+      }
+      case SilMandatoryPlural(
+        noun
+      ) if (expectedCount == COUNT_PLURAL) => {
         recognizeWordLabel(Seq(noun)).toSeq
       }
       case SilDeterminedReference(
         SilStateSpecifiedReference(
-          SilMandatorySingular(
-            noun
-          ),
+          SilMandatorySingular(noun),
           SilPropertyState(qualifier)
         ),
         DETERMINER_NONSPECIFIC
-      ) => {
+      ) if (expectedCount == COUNT_SINGULAR) => {
         recognizeWordLabel(Seq(qualifier, noun)).toSeq
       }
       case SilConjunctiveReference(
@@ -168,7 +196,7 @@ object SpcBeliefRecognizer
         _
       ) => {
         val subs = references.map(ref =>
-          recognizeWordLabels(ref)
+          recognizeWordLabels(ref, expectedCount)
         )
         if (subs.exists(_.isEmpty)) {
           Seq.empty

@@ -27,6 +27,8 @@ abstract class SilAbstractRefNote(
 
   def setCount(count : SilCount)
 
+  def hasCount() : Boolean
+
   def getRef() : SilReference = ref
 
   def updateRef(newRef : SilReference) : SilAbstractRefNote
@@ -37,6 +39,11 @@ class SilBasicRefNote(
 ) extends SilAbstractRefNote(ref)
 {
   private var count : Option[SilCount] = None
+
+  override def hasCount() : Boolean =
+  {
+    count.nonEmpty
+  }
 
   override def getCount() : SilCount =
   {
@@ -249,8 +256,23 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
     val annotatedRef = register(ref, newId)
     if (copyOptions.preserveNotes) {
       preserveNote(oldRef, annotatedRef)
+    } else if (copyOptions.preserveBasicNotes) {
+      preserveBasicNote(oldRef, annotatedRef)
     }
     annotatedRef
+  }
+
+  private def preserveBasicNote(
+    oldRef : SilAnnotatedReference,
+    newRef : SilAnnotatedReference)
+  {
+    if (oldRef.hasAnnotation) {
+      val oldNote = oldRef.getAnnotator.getBasicNote(oldRef)
+      if (oldNote.hasCount) {
+        val newNote = getBasicNote(newRef)
+        newNote.setCount(oldNote.getCount)
+      }
+    }
   }
 
   override def preserveNote[ReferenceType <: SilAnnotatedReference](

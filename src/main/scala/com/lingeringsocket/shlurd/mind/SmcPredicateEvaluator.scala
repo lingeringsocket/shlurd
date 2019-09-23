@@ -804,6 +804,7 @@ class SmcPredicateEvaluator[
         }
         // FIXME this is silly
         case DETERMINER_UNSPECIFIED => {
+          ((count == COUNT_PLURAL) && (context == REF_COMPLEMENT)) ||
           (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
             (lemma == LEMMA_WHERE) || (qualifiers.contains(LEMMA_ANOTHER))
         }
