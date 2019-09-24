@@ -29,6 +29,10 @@ abstract class SilAbstractRefNote(
 
   def hasCount() : Boolean
 
+  def getWord() : Option[SilWord]
+
+  def setWord(word : SilWord)
+
   def getRef() : SilReference = ref
 
   def updateRef(newRef : SilReference) : SilAbstractRefNote
@@ -39,6 +43,8 @@ class SilBasicRefNote(
 ) extends SilAbstractRefNote(ref)
 {
   private var count : Option[SilCount] = None
+
+  private var word : Option[SilWord] = None
 
   override def hasCount() : Boolean =
   {
@@ -59,9 +65,20 @@ class SilBasicRefNote(
     count = Some(newCount)
   }
 
+  override def getWord() : Option[SilWord] =
+  {
+    word
+  }
+
+  override def setWord(newWord : SilWord)
+  {
+    word = Some(newWord)
+  }
+
   protected def copyFrom(oldNote : SilBasicRefNote)
   {
     count = oldNote.count
+    word = oldNote.word
   }
 
   override def updateRef(newRef : SilReference) : SilBasicRefNote =
@@ -146,9 +163,13 @@ trait SilAnnotator
 
   def pronounRef(
     person : SilPerson, gender : SilGender,
-    count : SilCount, distance : SilDistance = DISTANCE_UNSPECIFIED) =
+    count : SilCount, distance : SilDistance = DISTANCE_UNSPECIFIED,
+    word : Option[SilWord] = None) =
   {
-    register(SilPronounReference.unannotated(person, gender, count, distance))
+    val newRef = register(SilPronounReference.unannotated(
+      person, gender, count, distance))
+    word.foreach(w => getBasicNote(newRef).setWord(w))
+    newRef
   }
 
   def conjunctiveRef(
@@ -268,10 +289,13 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
   {
     if (oldRef.hasAnnotation) {
       val oldNote = oldRef.getAnnotator.getBasicNote(oldRef)
+      val newNote = getBasicNote(newRef)
       if (oldNote.hasCount) {
-        val newNote = getBasicNote(newRef)
         newNote.setCount(oldNote.getCount)
       }
+      oldNote.getWord.foreach(word => {
+        newNote.setWord(word)
+      })
     }
   }
 

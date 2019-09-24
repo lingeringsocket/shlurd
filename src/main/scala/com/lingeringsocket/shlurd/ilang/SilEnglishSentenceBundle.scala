@@ -673,10 +673,10 @@ class SilEnglishSentenceBundle
 
   override def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    distance : SilDistance, inflection : SilInflection,
+    distance : SilDistance, word : Option[SilWord], inflection : SilInflection,
     conjoining : SilConjoining) =
   {
-    val unseparated = {
+    def standard = {
       person match {
         case PERSON_FIRST => count match {
           case COUNT_PLURAL => inflection match {
@@ -727,7 +727,10 @@ class SilEnglishSentenceBundle
         }
       }
     }
-    separate(unseparated, conjoining)
+    // FIXME somewhere we need to take inflection into account
+    // when dealing with custom pronouns
+    val lemma = word.map(_.toUnfoldedLemma).getOrElse(standard)
+    separate(lemma, conjoining)
   }
 
   override def unknownSentence() =

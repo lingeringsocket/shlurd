@@ -391,7 +391,7 @@ class SmcResponderSpec extends Specification
         ShlurdExceptionCode.UnresolvedPronoun)
       processExceptionExpected(
         "is his tiger in the big cage",
-        "Sorry, when you say 'he' I don't know who or what you mean.",
+        "Sorry, when you say 'his' I don't know who or what you mean.",
         ShlurdExceptionCode.UnresolvedPronoun)
       processExceptionExpected(
         "are we in the big cage",
@@ -599,7 +599,8 @@ class SmcResponderSpec extends Specification
             SilRelationshipPredicate(
               annotator.nounRef(SilWord(LEMMA_WHO)),
               SilWord("are", LEMMA_BE),
-              annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
+              annotator.pronounRef(
+                PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
             ),
             QUESTION_WHO,
             INFLECT_NOMINATIVE,
@@ -607,13 +608,16 @@ class SmcResponderSpec extends Specification
             SilFormality(FORCE_NEUTRAL)),
           "who are you",
           Map(
-            annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR) ->
+            annotator.pronounRef(
+              PERSON_SECOND, GENDER_N, COUNT_SINGULAR) ->
               Set(ZooKeeper))),
         SpeakerUtterance(
           SmcConversation.SPEAKER_NAME_SHLURD,
           SilPredicateSentence(
             SilRelationshipPredicate(
-              annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+              annotator.pronounRef(
+                PERSON_FIRST, GENDER_N, COUNT_SINGULAR
+              ),
               SilWord.uninflected(LEMMA_BE),
               muldoonRef
             ),
@@ -621,8 +625,9 @@ class SmcResponderSpec extends Specification
             SilFormality(FORCE_NEUTRAL)),
           "I am Muldoon.",
           Map(
-            annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR) ->
-              Set(ZooKeeper),
+            annotator.pronounRef(
+              PERSON_FIRST, GENDER_N, COUNT_SINGULAR
+            ) -> Set(ZooKeeper),
             muldoonRef -> Set(ZooKeeper)
           )
         )

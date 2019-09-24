@@ -170,11 +170,17 @@ class SprEnglishVerbSpec extends Specification
   private def pronounSeq() : Seq[SilPronounReference] =
   {
     Seq(
-      annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
-      annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
-      annotator.pronounRef(PERSON_THIRD, GENDER_F, COUNT_SINGULAR),
-      annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_PLURAL),
-      annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL))
+      annotator.pronounRef(
+        PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+      annotator.pronounRef(
+        PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
+      annotator.pronounRef(
+        PERSON_THIRD, GENDER_F, COUNT_SINGULAR),
+      annotator.pronounRef(
+        PERSON_FIRST, GENDER_N, COUNT_PLURAL),
+      annotator.pronounRef(
+        PERSON_THIRD, GENDER_N, COUNT_PLURAL)
+    )
   }
 
   private def moodSeq() : Seq[SilTam] =
@@ -369,7 +375,8 @@ class SprEnglishVerbSpec extends Specification
       : Seq[(SilReference, Option[SilPhrase], String, SilTam)] =
   {
     // FIXME support POLARITY_NEGATIVE, MODALITY_EMPHATIC
-    val pronoun = annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
+    val pronoun = annotator.pronounRef(
+      PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
     rhsSeq().flatMap(
       rhs => {
         val tam = SilTamImmutable(
@@ -492,7 +499,8 @@ class SprEnglishVerbSpec extends Specification
     // can be edited for a specific scenario and then run by itself
     "parse one" in
     {
-      val subject = annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+      val subject = annotator.pronounRef(
+        PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
       val rhs = Some(SilPropertyState(SilWord("ridiculous")))
       val lemma = LEMMA_BE
       val tam = SilTam.interrogative.progressive

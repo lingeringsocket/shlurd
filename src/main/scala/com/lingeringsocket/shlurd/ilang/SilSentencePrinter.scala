@@ -106,8 +106,10 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilCountedNounReference(noun, count) => {
         sb.delemmatizeNoun(noun, count, inflection, conjoining)
       }
-      case SilPronounReference(person, gender, count, distance) => {
-        sb.pronoun(person, gender, count, distance, inflection, conjoining)
+      case pr @ SilPronounReference(person, gender, count, distance) => {
+        sb.pronoun(
+          person, gender, count, distance,
+          pr.word, inflection, conjoining)
       }
       case SilConjunctiveReference(determiner, references, separator) => {
         sb.conjoin(
@@ -152,9 +154,9 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       }
       case SilGenitiveReference(possessor, possessee) => {
         val qualifierString = possessor match {
-          case SilPronounReference(person, gender, count, distance) => {
+          case pr @ SilPronounReference(person, gender, count, distance) => {
             sb.pronoun(
-              person, gender, count, distance,
+              person, gender, count, distance, pr.word,
               INFLECT_GENITIVE, SilConjoining.NONE)
           }
           case _ => {
@@ -308,7 +310,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
     predicate match {
       case SilStatePredicate(subject, verb, state, modifiers) => {
         val (subjectString, verbString) = subject match {
-          case SilPronounReference(PERSON_SECOND, _, _, _) => {
+          case pr : SilPronounReference if (pr.person == PERSON_SECOND) => {
             tupleN(("", printChangeStateVerb(state, Some(verb))))
           }
           case _ => {
@@ -490,8 +492,8 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       : (SilPerson, SilGender, SilCount) =
   {
     subject match {
-      case SilPronounReference(person, gender, count, _) => {
-        tupleN((person, gender, count))
+      case pr : SilPronounReference => {
+        tupleN((pr.person, pr.gender, pr.count))
       }
       case SilCountedNounReference(_, count) => {
         tupleN((PERSON_THIRD, GENDER_N, count))

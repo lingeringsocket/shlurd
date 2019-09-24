@@ -253,9 +253,10 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    distance : SilDistance, inflection : SilInflection,
+    distance : SilDistance, word : Option[SilWord], inflection : SilInflection,
     conjoining : SilConjoining) =
   {
+    // FIXME use word
     person match {
       case PERSON_FIRST => count match {
         case COUNT_PLURAL => inflectPronoun("우리", inflection, conjoining)

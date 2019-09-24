@@ -1476,7 +1476,7 @@ class SprEnglishSyntaxAnalyzer(
       case LEMMA_THAT | LEMMA_THOSE => DISTANCE_THERE
       case _ => DISTANCE_UNSPECIFIED
     }
-    annotator.pronounRef(person, gender, count, distance)
+    annotator.pronounRef(person, gender, count, distance, Some(getWord(leaf)))
   }
 
   override def isProhibitedPropertyState(

@@ -424,7 +424,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyError(
         "if a toaster gives a slice to a person, " +
           "then the person becomes its owner",
-        "Sorry, when you say 'it', it's ambiguous.",
+        "Sorry, when you say 'its', it's ambiguous.",
         AmbiguousPronoun)
       verifyError(
         "if a slice becomes cold, then the slice might be burnt; " +

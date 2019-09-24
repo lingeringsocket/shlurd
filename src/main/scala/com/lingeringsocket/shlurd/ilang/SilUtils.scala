@@ -80,8 +80,8 @@ object SilUtils
   def deriveCount(reference : SilReference) : SilCount =
   {
     reference match {
-      case SilPronounReference(_, _, count, _) =>
-        count
+      case pr : SilPronounReference =>
+        pr.count
       case SilConjunctiveReference(determiner, _, _) => {
         determiner match {
           case DETERMINER_ALL => COUNT_PLURAL

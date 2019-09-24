@@ -306,6 +306,8 @@ class SmcResponseRewriter[
     refMap : SmcMutableRefMap[EntityType]
   ) = replacementMatcher(
     "swapPronounSpeakerListener", {
+      // FIXME need to transform word if we want to support
+      // custom first/second person pronouns
       case oldPronoun @ SilPronounReference(person, gender, count, distance)=> {
         val speakerListenerReversed = person match {
           case PERSON_FIRST => PERSON_SECOND
@@ -705,7 +707,7 @@ class SmcResponseRewriter[
     refMap : SmcRefMap[EntityType]
   ) = replacementMatcher(
     "replaceThirdPersonPronouns", {
-      case pr @ SilPronounReference(PERSON_THIRD, _, _, _) => {
+      case pr : SilPronounReference if (pr.person == PERSON_THIRD) => {
         refMap.get(pr).map(
           entities => mind.specificReferences(annotator, entities)
         ).getOrElse(pr)

@@ -64,8 +64,7 @@ trait SmcScope[
         if (skip) {
           false
         } else {
-          // maybe this should be eq instead of ==
-          if (prior == reference) {
+          if (prior eq reference) {
             skip = true
             false
           } else {

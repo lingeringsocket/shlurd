@@ -181,7 +181,8 @@ class SprParserSpec extends Specification
     }
     SilPredicateSentence(
       SilActionPredicate(
-        annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
+        annotator.pronounRef(
+          PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
         verbWord,
         Some(pred.subject),
         modifiers
@@ -437,7 +438,8 @@ class SprParserSpec extends Specification
       parse(input) must be equalTo
         SilPredicateSentence(
           SilActionPredicate(
-            annotator.pronounRef(PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
+            annotator.pronounRef(
+              PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
             ACTION_KILL,
             Some(annotator.determinedNounRef(
               NOUN_PIGS, DETERMINER_UNIQUE))),
@@ -672,7 +674,8 @@ class SprParserSpec extends Specification
       parse(input) must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
-            annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+            annotator.pronounRef(
+              PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
             VERB_AM,
             SilPropertyState(STATE_HUNGRY)))
     }
@@ -684,7 +687,8 @@ class SprParserSpec extends Specification
         SilPredicateSentence(
           SilStatePredicate(
             annotator.genitiveRef(
-              annotator.pronounRef(PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
+              annotator.pronounRef(
+                PERSON_THIRD, GENDER_M, COUNT_SINGULAR),
               annotator.nounRef(NOUN_GRANDDAUGHTER)),
             VERB_IS,
             SilAdpositionalState(

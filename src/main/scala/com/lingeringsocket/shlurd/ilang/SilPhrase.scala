@@ -688,6 +688,13 @@ case class SilPronounReference private(
 ) extends SilAnnotatedReference
 {
   override def acceptsSpecifiers = false
+
+  def word : Option[SilWord] =
+  {
+    maybeAnnotator.flatMap(annotator => {
+      annotator.getBasicNote(this).getWord
+    })
+  }
 }
 
 object SilConjunctiveReference
