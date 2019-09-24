@@ -729,8 +729,10 @@ class SilEnglishSentenceBundle
     }
     // FIXME somewhere we need to take inflection into account
     // when dealing with custom pronouns
-    val lemma = word.map(_.toUnfoldedLemma).getOrElse(standard)
-    separate(lemma, conjoining)
+
+    val inflected = word.map(w => w.recompose(w.decomposed.map(_.inflected))).
+      getOrElse(standard)
+    separate(inflected, conjoining)
   }
 
   override def unknownSentence() =

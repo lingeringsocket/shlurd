@@ -144,9 +144,6 @@ class SilSentencePrinterSpec extends Specification
 
     "normalize sentences" in
     {
-      if (SprParser.isCoreNLP) {
-        skipped("CoreNLP not working")
-      }
       expectNormalized(
         "Sandra is no longer in the hallway",
         "Sandra is not in the hallway.")
