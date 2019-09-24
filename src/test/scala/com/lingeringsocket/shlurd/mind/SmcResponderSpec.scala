@@ -200,6 +200,9 @@ class SmcResponderSpec extends Specification
 
     "process questions" in new ResponderContext
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
       val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
       val ellipsis = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
       process("is the lion asleep") must be equalTo(
