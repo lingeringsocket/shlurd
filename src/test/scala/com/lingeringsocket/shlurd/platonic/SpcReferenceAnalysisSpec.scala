@@ -93,14 +93,14 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       val ivan = "Ivan"
       val boris = "Boris"
       val natasha = "Natasha"
-      val annotator = SpcAnnotator()
+      val annotator = SpcAnnotator(mind)
       val ivanRef = annotator.nounRef(SilWord(ivan))
       val borisRef = annotator.nounRef(SilWord(boris))
       val natashaRef = annotator.nounRef(SilWord(natasha))
       val sheRef = annotator.pronounRef(
-        PERSON_THIRD, GENDER_F, COUNT_SINGULAR)
+        PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR)
       val heRef = annotator.pronounRef(
-        PERSON_THIRD, GENDER_M, COUNT_SINGULAR)
+        PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR)
       val beastRef = annotator.nounRef(SilWord("beast"))
       val ownerRef = annotator.nounRef(SilWord("owner"))
       analyze("a woman's gender must be feminine")

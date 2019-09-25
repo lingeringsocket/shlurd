@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 import scala.util._
@@ -39,7 +40,13 @@ class SmcMind[
 
   def getCosmos = cosmos
 
-  def newParser(input : String) = cosmos.newParser(input)
+  def newParser(input : String) =
+  {
+    SprParser(
+      input,
+      SprContext(annotator = SmcAnnotator[EntityType](this))
+    )
+  }
 
   def analyzeSense[PhraseType <: SilPhrase](
     annotator : AnnotatorType,
@@ -245,12 +252,15 @@ class SmcMind[
     annotator : AnnotatorType,
     entities : Set[EntityType]) : Option[SilReference] =
   {
+    // FIXME gender derivation
     if (entities.isEmpty) {
       None
     } else if (entities.size == 1) {
-      Some(annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_SINGULAR))
+      Some(annotator.pronounRef(
+        PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR))
     } else {
-      Some(annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL))
+      Some(annotator.pronounRef(
+        PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL))
     }
   }
 
@@ -261,9 +271,15 @@ class SmcMind[
     person : SilPerson)
       : Seq[SilReference] =
   {
+    // FIXME gender derivation
+    val gender = person match {
+      case PERSON_FIRST | PERSON_SECOND => GENDER_SOMEONE
+      case PERSON_THIRD => GENDER_NEUTER
+    }
     pronounEntity match {
       case Some(x) if (x == entity) => {
-        Seq(annotator.pronounRef(person, GENDER_N, COUNT_SINGULAR))
+        Seq(annotator.pronounRef(
+          person, gender, COUNT_SINGULAR))
       }
       case _ => Seq()
     }
@@ -291,5 +307,10 @@ class SmcMind[
           specificReference(
             annotator, entity, DETERMINER_UNIQUE)))
     }
+  }
+
+  def canonicalGender(gender : SilGender) : SilGender =
+  {
+    gender
   }
 }

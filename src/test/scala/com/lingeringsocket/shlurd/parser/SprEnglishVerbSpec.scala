@@ -171,15 +171,15 @@ class SprEnglishVerbSpec extends Specification
   {
     Seq(
       annotator.pronounRef(
-        PERSON_FIRST, GENDER_N, COUNT_SINGULAR),
+        PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR),
       annotator.pronounRef(
-        PERSON_SECOND, GENDER_N, COUNT_SINGULAR),
+        PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR),
       annotator.pronounRef(
-        PERSON_THIRD, GENDER_F, COUNT_SINGULAR),
+        PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR),
       annotator.pronounRef(
-        PERSON_FIRST, GENDER_N, COUNT_PLURAL),
+        PERSON_FIRST, GENDER_SOMEONE, COUNT_PLURAL),
       annotator.pronounRef(
-        PERSON_THIRD, GENDER_N, COUNT_PLURAL)
+        PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL)
     )
   }
 
@@ -376,7 +376,7 @@ class SprEnglishVerbSpec extends Specification
   {
     // FIXME support POLARITY_NEGATIVE, MODALITY_EMPHATIC
     val pronoun = annotator.pronounRef(
-      PERSON_SECOND, GENDER_N, COUNT_SINGULAR)
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR)
     rhsSeq().flatMap(
       rhs => {
         val tam = SilTamImmutable(
@@ -500,7 +500,7 @@ class SprEnglishVerbSpec extends Specification
     "parse one" in
     {
       val subject = annotator.pronounRef(
-        PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+        PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
       val rhs = Some(SilPropertyState(SilWord("ridiculous")))
       val lemma = LEMMA_BE
       val tam = SilTam.interrogative.progressive

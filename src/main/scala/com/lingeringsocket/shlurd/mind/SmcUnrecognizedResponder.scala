@@ -117,7 +117,7 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
       }
     }
     val verbSeq = sb.delemmatizeVerb(
-      PERSON_THIRD, GENDER_N, count,
+      PERSON_THIRD, GENDER_NEUTER, count,
       tam, None, SilWord.uninflected(verbLemma), INFLECT_NONE)
     if (!subject.hasUnknown) {
       assert(complement.hasUnknown)

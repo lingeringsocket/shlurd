@@ -183,14 +183,15 @@ object SpcResultCollector
   }
 }
 
-class SpcAnnotator extends SmcAnnotator[SpcEntity, SpcRefNote](
+class SpcAnnotator(mind : SpcMind) extends SmcAnnotator[SpcEntity, SpcRefNote](
+  mind,
   (ref) => new SpcRefNote(ref))
 {
 }
 
 object SpcAnnotator
 {
-  def apply() : SpcAnnotator = new SpcAnnotator
+  def apply(mind : SpcMind) : SpcAnnotator = new SpcAnnotator(mind)
 
   def apply(annotator : SilAnnotator) : SpcAnnotator =
     annotator.asInstanceOf[SpcAnnotator]
@@ -226,7 +227,7 @@ class SpcResponder(
 
   override def newParser(input : String) =
   {
-    val contextAnnotator = SpcAnnotator()
+    val contextAnnotator = SpcAnnotator(mind)
     val context = SprContext(
       mind.getCosmos.getWordLabeler,
       scorer = new SpcContextualScorer(this, contextAnnotator),
@@ -236,7 +237,7 @@ class SpcResponder(
 
   override protected def newAnnotator() =
   {
-    SpcAnnotator()
+    SpcAnnotator(mind)
   }
 
   override def newResultCollector(
@@ -687,7 +688,7 @@ class SpcResponder(
       : SpcAssertionResult =
   {
     val resultCollector = SpcResultCollector(
-      annotator, SmcResultCollector.modifiableRefMap(refMap))
+      annotator, SmcResultCollector.modifiableRefMap(mind, refMap))
     spawn(imagine(forkedCosmos)).resolveReferences(
       predicate, resultCollector, false, true)
 
@@ -1039,7 +1040,7 @@ class SpcResponder(
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
     val spawned = spawn(mind.spawn(forkedCosmos))
-    val refMap = SmcResultCollector.snapshotRefMap(resultCollector.refMap)
+    val refMap = SmcResultCollector.snapshotRefMap(mind, resultCollector.refMap)
     val beliefAccepter =
       SpcBeliefAccepter(
         spawned,
@@ -1455,7 +1456,7 @@ class SpcResponder(
   {
     val annotator = resultCollector.annotator
     val modifiableRefMap =
-      SmcResultCollector.modifiableRefMap(eventRefMap)
+      SmcResultCollector.modifiableRefMap(mind, eventRefMap)
     val queue = new mutable.Queue[SilPredicate]
     queue.enqueue(eventActionPredicate)
     val seen = new mutable.HashSet[SilPredicate]

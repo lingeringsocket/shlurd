@@ -24,7 +24,22 @@ class SilSentenceTranslatorSpec extends Specification
     new SilSentencePrinter(LimitedKoreanParlance)
 
   private def translate(s : String) =
-    printer.print(SprParser(s).parseOne.sentence)
+  {
+    val result = SprParser(s).parseOne
+    printer.print(neutralizePronouns(result.sentence))
+  }
+
+  private def neutralizePronouns(
+    sentence : SilSentence
+  ) : SilSentence =
+  {
+    val querier = new SilPhraseQuerier
+    def neutralize = querier.queryMatcher {
+      case pr : SilPronounReference => pr.clearWord
+    }
+    querier.query(neutralize, sentence)
+    sentence
+  }
 
   "SilSentencePrinter" should
   {

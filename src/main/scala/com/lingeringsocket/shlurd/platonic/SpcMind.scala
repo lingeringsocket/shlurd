@@ -179,13 +179,13 @@ class SpcMind(cosmos : SpcCosmos)
       if (entities.size == 1) {
         val entity = entities.head
         cosmos.evaluateEntityProperty(entity, LEMMA_GENDER) match {
-          case Success((_, Some(LEMMA_FEMININE))) => GENDER_F
-          case Success((_, Some(LEMMA_MASCULINE))) => GENDER_M
+          case Success((_, Some(LEMMA_FEMININE))) => GENDER_FEMININE
+          case Success((_, Some(LEMMA_MASCULINE))) => GENDER_MASCULINE
           case _ => guessGender(entity)
         }
       } else {
         // FIXME:  for languages like Spanish, need to be macho
-        GENDER_N
+        GENDER_NEUTER
       }
     }
     val count = {
@@ -203,13 +203,12 @@ class SpcMind(cosmos : SpcCosmos)
     cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE) match {
       case Some(someoneForm) => {
         if (cosmos.isHyponym(entity.form, someoneForm)) {
-          // FIXME support "someone" gender
-          GENDER_M
+          GENDER_SOMEONE
         } else {
-          GENDER_N
+          GENDER_NEUTER
         }
       }
-      case _ => GENDER_N
+      case _ => GENDER_NEUTER
     }
   }
 
@@ -271,7 +270,7 @@ class SpcMind(cosmos : SpcCosmos)
   {
     // FIXME for enums, use the correct meta entity
     val domainName = property.domain.name
-    val annotator = SpcAnnotator()
+    val annotator = SpcAnnotator(this)
     val analyzedNoun =
       analyzeSense(annotator, annotator.nounRef(SilWord(domainName))).noun
     val form = resolveForm(analyzedNoun).getOrElse(SpcForm(domainName))
@@ -355,6 +354,23 @@ class SpcMind(cosmos : SpcCosmos)
       case _ => {
         Success(Trilean.Unknown)
       }
+    }
+  }
+
+  override def canonicalGender(gender : SilGender) : SilGender =
+  {
+    def lookupGender(lemma : String) =
+    {
+      cosmos.resolveForm(lemma).map(
+        SpcGender(_, gender.maybeBasic)
+      ).getOrElse(gender)
+    }
+
+    gender match {
+      case GENDER_MASCULINE => lookupGender(LEMMA_MASCULINE)
+      case GENDER_FEMININE => lookupGender(LEMMA_FEMININE)
+      case GENDER_NEUTER => lookupGender(LEMMA_NEUTER)
+      case _ => super.canonicalGender(gender)
     }
   }
 

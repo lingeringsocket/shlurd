@@ -428,7 +428,8 @@ class SmcResponseRewriter[
     resultCollector : ResultCollectorType,
     predicate : SilPredicate) : SilPredicate =
   {
-    val refMap = SmcResultCollector.modifiableRefMap(resultCollector.refMap)
+    val refMap = SmcResultCollector.modifiableRefMap(
+      mind, resultCollector.refMap)
     val detector = new AmbiguousRefDetector(refMap)
     querier.query(disqualifyThirdPersonReferences(refMap), predicate)
     querier.query(disqualifyQueryAnswers(refMap), predicate)
@@ -591,7 +592,7 @@ class SmcResponseRewriter[
           SilAdpositionalState(
             SilAdposition.OF,
             SilPronounReference(
-              PERSON_THIRD, GENDER_N, COUNT_PLURAL, DISTANCE_UNSPECIFIED))),
+              PERSON_THIRD, _, COUNT_PLURAL, DISTANCE_UNSPECIFIED))),
         _
       ) => {
         sr
@@ -949,6 +950,9 @@ class SmcResponseRewriter[
         annotator.determinedRef(nounRef, determiner),
         SilAdpositionalState(
           SilAdposition.OF,
-          annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL)))))
+          annotator.pronounRef(
+            PERSON_THIRD,
+            GENDER_NEUTER,
+            COUNT_PLURAL)))))
   }
 }

@@ -91,7 +91,7 @@ class SprWordnetGlossPrepSpec extends Specification
           SilActionPredicate(
             annotator.pronounRef(
               PERSON_THIRD,
-              GENDER_M,
+              GENDER_MASCULINE,
               COUNT_SINGULAR),
             SilWord("paused", "pause"),
             None,

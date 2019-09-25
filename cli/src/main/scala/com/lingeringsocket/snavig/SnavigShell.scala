@@ -537,9 +537,9 @@ class SnavigShell(
       refMap : SpcRefMap)
         : Option[String] =
     {
-      val annotator = SpcAnnotator()
+      val annotator = SpcAnnotator(phenomenalMind)
       def playerRef =
-        annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+        annotator.pronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
       val reannotated = annotator.copy(
         predicate, SilPhraseCopyOptions(preserveNotes = true))
       val newPredicate = reannotated match {
@@ -723,7 +723,7 @@ class SnavigShell(
           if (speaker == listener) {
             talkToSelf
           } else {
-            val annotator = SpcAnnotator()
+            val annotator = SpcAnnotator(phenomenalMind)
             val listenerReference = phenomenalMind.specificReference(
               annotator, listener, DETERMINER_UNIQUE)
             val reply = accessEntityMind(listener) match {
@@ -914,7 +914,7 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
     refMap : SpcRefMap)
       : Option[String] =
   {
-    val annotator = SpcAnnotator()
+    val annotator = SpcAnnotator(noumenalMind)
     val sentence = SilPredicateSentence(
       SilStatePredicate(
         noumenalMind.specificReferences(annotator, invocation.entities),

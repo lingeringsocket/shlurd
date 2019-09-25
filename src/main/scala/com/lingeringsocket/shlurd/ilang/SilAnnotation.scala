@@ -33,6 +33,8 @@ abstract class SilAbstractRefNote(
 
   def setWord(word : SilWord)
 
+  def clearWord()
+
   def getRef() : SilReference = ref
 
   def updateRef(newRef : SilReference) : SilAbstractRefNote
@@ -73,6 +75,11 @@ class SilBasicRefNote(
   override def setWord(newWord : SilWord)
   {
     word = Some(newWord)
+  }
+
+  override def clearWord()
+  {
+    word = None
   }
 
   protected def copyFrom(oldNote : SilBasicRefNote)

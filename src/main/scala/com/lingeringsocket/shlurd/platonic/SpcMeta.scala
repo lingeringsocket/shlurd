@@ -82,6 +82,8 @@ class SpcMeta(cosmos : SpcCosmos)
 
   private var buffer : Option[mutable.Buffer[SpcBelief]] = None
 
+  private def newAnnotator() = SpcAnnotator(new SpcMind(cosmos))
+
   def idealExistence(
     metaFormName : String, idealEntityName : String, positive : Boolean)
   {
@@ -92,7 +94,7 @@ class SpcMeta(cosmos : SpcCosmos)
         s"$idealEntityName does not exist"
       }
     }
-    val annotator = SpcAnnotator()
+    val annotator = newAnnotator
     enqueueBelief(
       EntityExistenceBelief(
         SilUnparsedSentence(sentence),
@@ -119,7 +121,7 @@ class SpcMeta(cosmos : SpcCosmos)
   {
     val propertyEntityName = propertyMetaEntityName(form, property)
     val formEntityName = formMetaEntityName(form)
-    val annotator = SpcAnnotator()
+    val annotator = newAnnotator
     enqueueBelief(
       EntityExistenceBelief(
         SilUnparsedSentence(s"$propertyEntityName is an spc-property"),
@@ -147,7 +149,7 @@ class SpcMeta(cosmos : SpcCosmos)
   {
     val propertyEntityName = propertyMetaEntityName(form, property)
     val valueEntityName = valueMetaEntityName(form, property, ps)
-    val annotator = SpcAnnotator()
+    val annotator = newAnnotator
     enqueueBelief(
       EntityExistenceBelief(
         SilUnparsedSentence(s"$valueEntityName is an spc-value"),
@@ -182,7 +184,7 @@ class SpcMeta(cosmos : SpcCosmos)
         "not"
       }
     }
-    val annotator = SpcAnnotator()
+    val annotator = newAnnotator
     enqueueBelief(
       EntityAssocBelief(
         SilUnparsedSentence(
@@ -212,7 +214,7 @@ class SpcMeta(cosmos : SpcCosmos)
         "not"
       }
     }
-    val annotator = SpcAnnotator()
+    val annotator = newAnnotator
     enqueueBelief(
       EntityAssocBelief(
         SilUnparsedSentence(
@@ -281,7 +283,7 @@ class SpcMeta(cosmos : SpcCosmos)
       val mind = new SpcMind(cosmos)
       val responder = new SpcResponder(mind, params)
       val beliefAccepter = SpcBeliefAccepter(
-        responder, params, SpcResultCollector(SpcAnnotator()))
+        responder, params, SpcResultCollector(newAnnotator))
       beliefAccepter.applyBelief(belief)
     }
   }

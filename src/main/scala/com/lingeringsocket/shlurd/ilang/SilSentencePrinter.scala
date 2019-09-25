@@ -330,7 +330,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         sb.actionPredicate(
           "",
           sb.delemmatizeVerb(
-            PERSON_SECOND, GENDER_N, COUNT_SINGULAR,
+            PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
             tam, None, uninflectedVerb, INFLECT_NONE),
           Some(print(complement, INFLECT_NONE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier),
@@ -340,7 +340,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         sb.actionPredicate(
           "",
           sb.delemmatizeVerb(
-            PERSON_SECOND, GENDER_N, COUNT_SINGULAR,
+            PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
             tam, None, uninflectedVerb, INFLECT_NONE),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
@@ -496,7 +496,8 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         tupleN((pr.person, pr.gender, pr.count))
       }
       case SilCountedNounReference(_, count) => {
-        tupleN((PERSON_THIRD, GENDER_N, count))
+        // FIXME derive gender
+        tupleN((PERSON_THIRD, GENDER_NEUTER, count))
       }
       case SilConjunctiveReference(determiner, references, _) => {
         val count = if (existentialPronoun.nonEmpty) {
@@ -511,7 +512,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         }
         // FIXME:  also derive person and gender from underlying references,
         // since it makes a difference in languages such as Spanish
-        tupleN((PERSON_THIRD, GENDER_N, count))
+        tupleN((PERSON_THIRD, GENDER_NEUTER, count))
       }
       case SilParenthesizedReference(reference, _) => {
         getSubjectAttributes(reference, existentialPronoun)
@@ -529,10 +530,10 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         getSubjectAttributes(possessee, existentialPronoun)
       }
       case _ : SilQuotationReference => {
-        tupleN((PERSON_THIRD, GENDER_N, COUNT_SINGULAR))
+        tupleN((PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR))
       }
       case _ : SilUnknownReference => {
-        tupleN((PERSON_THIRD, GENDER_N, COUNT_SINGULAR))
+        tupleN((PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR))
       }
     }
   }

@@ -556,7 +556,7 @@ object SprParser extends SprEnglishWordAnalyzer
       }
       case SilGenitiveReference(
         SilPronounReference(
-          PERSON_THIRD, GENDER_N, COUNT_SINGULAR, DISTANCE_HERE),
+          PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR, DISTANCE_HERE),
         SilMandatorySingular(
           SilWordLemma(lemma)
         )

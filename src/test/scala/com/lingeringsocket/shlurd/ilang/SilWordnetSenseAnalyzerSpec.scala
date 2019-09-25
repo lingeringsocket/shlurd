@@ -23,10 +23,10 @@ class SilWordnetSenseAnalyzerSpec extends Specification
   private val analyzer = new SilWordnetSenseAnalyzer(annotator)
 
   private val pronounI =
-    annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
+    annotator.pronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
 
   private val pronounIt =
-    annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
+    annotator.pronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
 
   private def analyze(action : SilActionPredicate) : String =
   {

@@ -689,10 +689,17 @@ case class SilPronounReference private(
 {
   override def acceptsSpecifiers = false
 
-  def word : Option[SilWord] =
+  def word() : Option[SilWord] =
   {
     maybeAnnotator.flatMap(annotator => {
       annotator.getBasicNote(this).getWord
+    })
+  }
+
+  def clearWord()
+  {
+    maybeAnnotator.foreach(annotator => {
+      annotator.getBasicNote(this).clearWord
     })
   }
 }

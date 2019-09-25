@@ -1365,7 +1365,7 @@ class SpcBeliefRecognizer(
       case SilAdpositionalVerbModifier(
         SilAdposition.AFTER,
         SilPronounReference(
-          PERSON_THIRD, GENDER_N, COUNT_SINGULAR,
+          _, _, _,
           DISTANCE_HERE | DISTANCE_THERE)
       ) => true
       case _ => false

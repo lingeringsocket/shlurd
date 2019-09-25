@@ -156,7 +156,7 @@ class SpcWordnetMind(
     if (getWordnet.anyMatchingHypernym(
       entity.form, getWordnet.getFeminineForms)
     ) {
-      GENDER_F
+      GENDER_FEMININE
     } else {
       super.guessGender(entity)
     }

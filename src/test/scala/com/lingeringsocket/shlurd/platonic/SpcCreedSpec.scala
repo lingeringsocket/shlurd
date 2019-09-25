@@ -26,9 +26,11 @@ class SpcCreedSpec extends Specification
   {
     protected val cosmos = new SpcCosmos
 
+    protected val mind = new SpcMind(cosmos)
+
     protected val refriedCosmos = new SpcCosmos
 
-    protected val annotator = SpcAnnotator()
+    protected val annotator = SpcAnnotator(mind)
 
     protected val creed = new SpcCreed(annotator, cosmos)
 
@@ -36,7 +38,6 @@ class SpcCreedSpec extends Specification
 
     protected def addBelief(input : String) =
     {
-      val mind = new SpcMind(cosmos)
       val responder = new SpcResponder(mind)
       val parseResult = responder.newParser(input).parseOne
       val resultCollector =
@@ -543,8 +544,9 @@ class SpcCreedSpec extends Specification
     "recite primordial beliefs" in
     {
       val cosmos = new SpcCosmos
+      val mind = new SpcMind(cosmos)
       SpcPrimordial.initCosmos(cosmos)
-      val annotator = SpcAnnotator()
+      val annotator = SpcAnnotator(mind)
       val creed = new SpcCreed(annotator, cosmos, true)
       val printer = new SilSentencePrinter
       val beliefStrings = creed.allBeliefs(printer).map(

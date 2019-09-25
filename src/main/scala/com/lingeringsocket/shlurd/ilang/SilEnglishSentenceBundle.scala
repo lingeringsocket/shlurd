@@ -704,24 +704,27 @@ class SilEnglishSentenceBundle
               case _ => LEMMA_THEY
             }
           }
-          case _ => gender match {
-            case GENDER_M => inflection match {
+          case _ => gender.maybeBasic match {
+            case Some(GENDER_MASCULINE | GENDER_SOMEONE) => inflection match {
               case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_HIM
               case INFLECT_GENITIVE => LEMMA_HIS
               case _ => LEMMA_HE
             }
-            case GENDER_F => inflection match {
+            case Some(GENDER_FEMININE) => inflection match {
               case INFLECT_ACCUSATIVE | INFLECT_GENITIVE |
                   INFLECT_ADPOSITIONED => LEMMA_HER
               case _ => LEMMA_SHE
             }
-            case GENDER_N => distance match {
+            case Some(GENDER_NEUTER) => distance match {
               case DISTANCE_HERE => LEMMA_THIS
               case DISTANCE_THERE => LEMMA_THAT
               case DISTANCE_UNSPECIFIED => inflection match {
                 case INFLECT_GENITIVE => LEMMA_ITS
                 case _ => LEMMA_IT
               }
+            }
+            case _ => {
+              throw new IllegalArgumentException("custom pronoun word required")
             }
           }
         }

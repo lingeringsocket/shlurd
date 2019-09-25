@@ -40,6 +40,7 @@ object SprEnglishLemmas
   val LEMMA_GENDER = "gender"
   val LEMMA_MASCULINE = "masculine"
   val LEMMA_FEMININE = "feminine"
+  val LEMMA_NEUTER = "neuter"
   val LEMMA_OTHERWISE = "otherwise"
   val LEMMA_ALSO = "also"
   val LEMMA_GENERALLY = "generally"

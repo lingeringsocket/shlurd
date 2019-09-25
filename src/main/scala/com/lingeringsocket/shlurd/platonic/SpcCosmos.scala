@@ -254,6 +254,13 @@ case class SpcEntitySynonym(val name : String)
 {
 }
 
+case class SpcGender(
+  form : SpcForm,
+  basic : Option[SilBasicGender]) extends SilGender
+{
+  override def maybeBasic() = basic
+}
+
 class SpcCosmicPool
 {
   val idGenerator = new AtomicLong

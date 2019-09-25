@@ -323,8 +323,6 @@ class SpcOpenhabDerivedCosmos(
   {
     base.evaluateEntityProperty(entity, propertyName, specific)
   }
-
-  override def newParser(input : String) = base.newParser(input)
 }
 
 abstract class SpcOpenhabDefaultCosmos extends SpcOpenhabCosmos

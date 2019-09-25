@@ -33,27 +33,6 @@ class SmcScopeSpec extends Specification
 
   private val cosmos = new ZooCosmos
 
-  private val annotator = SmcAnnotator[SmcEntity]()
-
-  private val firstPersonRef =
-    annotator.pronounRef(PERSON_FIRST, GENDER_N, COUNT_SINGULAR)
-
-  private val thirdPersonRef =
-    annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
-
-  private val nigelRef = annotator.nounRef(SilWord("Nigel"))
-
-  private val cliveRef = annotator.nounRef(SilWord("Clive"))
-
-  private val tigerRef =
-    annotator.determinedRef(
-      annotator.nounRef(SilWord("tiger")), DETERMINER_NONSPECIFIC)
-
-  private val anotherTigerRef =
-    annotator.stateSpecifiedRef(
-      annotator.nounRef(SilWord("tiger")),
-      SilPropertyState(SilWord(LEMMA_ANOTHER)))
-
   private val noEntities = Set[SmcEntity]()
 
   private val unresolvedMsg =
@@ -71,6 +50,27 @@ class SmcScopeSpec extends Specification
   abstract class ScopeContext extends Scope
   {
     protected val mind = new ZooMind(cosmos)
+
+    protected val annotator = SmcAnnotator[SmcEntity](mind)
+
+    protected val firstPersonRef =
+      annotator.pronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
+
+    protected val thirdPersonRef =
+      annotator.pronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
+
+    protected val nigelRef = annotator.nounRef(SilWord("Nigel"))
+
+    protected val cliveRef = annotator.nounRef(SilWord("Clive"))
+
+    protected val tigerRef =
+      annotator.determinedRef(
+        annotator.nounRef(SilWord("tiger")), DETERMINER_NONSPECIFIC)
+
+    protected val anotherTigerRef =
+      annotator.stateSpecifiedRef(
+        annotator.nounRef(SilWord("tiger")),
+        SilPropertyState(SilWord(LEMMA_ANOTHER)))
 
     protected val communicationContext =
       SmcCommunicationContext[SmcEntity](

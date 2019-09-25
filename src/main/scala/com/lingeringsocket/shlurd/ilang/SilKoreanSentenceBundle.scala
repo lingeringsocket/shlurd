@@ -257,7 +257,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     conjoining : SilConjoining) =
   {
     // FIXME use word
-    person match {
+    def standard = person match {
       case PERSON_FIRST => count match {
         case COUNT_PLURAL => inflectPronoun("우리", inflection, conjoining)
         case _ => inflection match {
@@ -287,10 +287,12 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
               inflectPronoun("그들", inflection, conjoining)
           }
         }
-        case _ => gender match {
-          case GENDER_M => inflectPronoun("그", inflection, conjoining)
-          case GENDER_F => inflectPronoun("그녀", inflection, conjoining)
-          case GENDER_N => {
+        case _ => gender.maybeBasic match {
+          case Some(GENDER_MASCULINE | GENDER_SOMEONE) =>
+            inflectPronoun("그", inflection, conjoining)
+          case Some(GENDER_FEMININE) =>
+            inflectPronoun("그녀", inflection, conjoining)
+          case Some(GENDER_NEUTER) => {
             // FIXME discriminate "그" from "저"
             distance match {
               case DISTANCE_HERE =>
@@ -299,9 +301,14 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
                 inflectPronoun("그것", inflection, conjoining)
             }
           }
+          case None => {
+            throw new IllegalArgumentException("custom pronoun word required")
+          }
         }
       }
     }
+    word.map(w => w.recompose(w.decomposed.map(_.inflected))).
+      getOrElse(standard)
   }
 
   override def unknownSentence() =

@@ -1467,16 +1467,24 @@ class SprEnglishSyntaxAnalyzer(
       case _ => COUNT_SINGULAR
     }
     val gender = lemma match {
-      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS => GENDER_M
-      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS => GENDER_F
-      case _ => GENDER_N
+      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS => GENDER_MASCULINE
+      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS => GENDER_FEMININE
+      case _ => {
+        person match {
+          case PERSON_FIRST | PERSON_SECOND => GENDER_SOMEONE
+          // FIXME what we really want here is an uknown between NEUTER
+          // and SOMEONE, to be resolved downstream
+          case _ => GENDER_NEUTER
+        }
+      }
     }
     val distance = lemma match {
       case LEMMA_THIS | LEMMA_THESE => DISTANCE_HERE
       case LEMMA_THAT | LEMMA_THOSE => DISTANCE_THERE
       case _ => DISTANCE_UNSPECIFIED
     }
-    annotator.pronounRef(person, gender, count, distance, Some(getWord(leaf)))
+    annotator.pronounRef(
+      person, gender, count, distance, Some(getWord(leaf)))
   }
 
   override def isProhibitedPropertyState(

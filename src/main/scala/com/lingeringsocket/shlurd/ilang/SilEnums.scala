@@ -25,10 +25,20 @@ case object PERSON_FIRST extends SilPerson
 case object PERSON_SECOND extends SilPerson
 case object PERSON_THIRD extends SilPerson
 
-sealed trait SilGender
-case object GENDER_M extends SilGender
-case object GENDER_F extends SilGender
-case object GENDER_N extends SilGender
+// SilGender is intentionally not sealed; we define some builtins here,
+// and then leave it open for extension
+trait SilGender
+{
+  def maybeBasic() : Option[SilBasicGender] = None
+}
+sealed trait SilBasicGender extends SilGender
+{
+  override def maybeBasic() = Some(this)
+}
+case object GENDER_MASCULINE extends SilBasicGender
+case object GENDER_FEMININE extends SilBasicGender
+case object GENDER_NEUTER extends SilBasicGender
+case object GENDER_SOMEONE extends SilBasicGender
 
 sealed trait SilDeterminer
 case object DETERMINER_NONE extends SilDeterminer

@@ -21,10 +21,10 @@ class SilAnnotationSpec extends Specification
   private val annotator = SilBasicAnnotator()
 
   private def makeSingular =
-    annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_SINGULAR)
+    annotator.pronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
 
   private def makePlural =
-    annotator.pronounRef(PERSON_THIRD, GENDER_N, COUNT_PLURAL)
+    annotator.pronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL)
 
   private def makeNoun =
     annotator.nounRef(SilWord("sheep"), COUNT_PLURAL)

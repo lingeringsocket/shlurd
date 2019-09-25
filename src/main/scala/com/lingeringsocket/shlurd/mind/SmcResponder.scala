@@ -93,9 +93,10 @@ object SmcResultCollector
     new SmcResultCollector(
       annotator, newAnnotationRefMap[EntityType](annotator))
 
-  def newAnnotationRefMap[EntityType<:SmcEntity]() =
+  def newAnnotationRefMap[EntityType<:SmcEntity](
+    mind : SmcMind[EntityType, _, _]) =
   {
-    val newAnnotator = SmcAnnotator[EntityType]()
+    val newAnnotator = SmcAnnotator[EntityType](mind)
     SmcMutableRefMap.fromAnnotation(newAnnotator)
   }
 
@@ -106,17 +107,19 @@ object SmcResultCollector
   }
 
   def modifiableRefMap[EntityType<:SmcEntity](
+    mind : SmcMind[EntityType, _, _],
     map : SmcRefMap[EntityType]) : SmcMutableRefMap[EntityType] =
   {
-    val newMap = newAnnotationRefMap[EntityType]
+    val newMap = newAnnotationRefMap[EntityType](mind)
     newMap ++= map
     newMap
   }
 
   def snapshotRefMap[EntityType<:SmcEntity](
+    mind : SmcMind[EntityType, _, _],
     map : SmcRefMap[EntityType]) : SmcRefMap[EntityType] =
   {
-    modifiableRefMap(map)
+    modifiableRefMap(mind, map)
   }
 }
 
@@ -284,17 +287,27 @@ class SmcRefNote[EntityType<:SmcEntity](
 }
 
 class SmcAnnotator[EntityType <: SmcEntity, NoteType <: SmcRefNote[EntityType]](
+  mind : SmcMind[EntityType, _, _],
   noteSupplier : (SilReference) => NoteType
 ) extends SilTypedAnnotator[NoteType](noteSupplier)
 {
+  override def pronounRef(
+    person : SilPerson, gender : SilGender,
+    count : SilCount, distance : SilDistance = DISTANCE_UNSPECIFIED,
+    word : Option[SilWord] = None) =
+  {
+    super.pronounRef(
+      person, mind.canonicalGender(gender),
+      count, distance, word)
+  }
 }
 
 object SmcAnnotator
 {
-  def apply[EntityType<:SmcEntity]() =
+  def apply[EntityType<:SmcEntity](mind : SmcMind[EntityType, _, _]) =
   {
     new SmcAnnotator[EntityType, SmcRefNote[EntityType]](
-      (ref) => new SmcRefNote(ref))
+      mind, (ref) => new SmcRefNote(ref))
   }
 
   def apply[EntityType<:SmcEntity](annotator : SilAnnotator) =
@@ -361,7 +374,7 @@ class SmcResponder[
 
   protected def newAnnotator() : AnnotatorType =
   {
-    SmcAnnotator[EntityType]()
+    SmcAnnotator[EntityType](mind)
   }
 
   def newResultCollector(
@@ -1035,6 +1048,7 @@ class SmcResponder[
       val entryPredicate = resultCollector.annotator.copy(
         entry.predicate, SilPhraseCopyOptions(preserveNotes = true))
       val entryRefMap = SmcResultCollector.snapshotRefMap(
+        mind,
         resultCollector.refMap)
 
       val pastMatchTry = matchActions(
