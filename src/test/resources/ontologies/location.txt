@@ -1,8 +1,4 @@
-A person is a kind of spc-someone.
 Ubuntu is an entity.
-A man or a woman is a kind of person.
-A man's gender must be masculine.
-A woman's gender must be feminine.
 Cars and helicopters are kinds of object.
 Herbie, Christine, and KITT are cars.
 Chrissy and Janet are women.

@@ -73,9 +73,11 @@ class SpcOpenhabCosmosSpec extends Specification
   {
     "understand items" in new CosmosContext
     {
-      val file = ResourceUtils.getResourceFile("/ontologies/home.txt")
-      val source = Source.fromFile(file)
-      new SpcOpenhabMind(cosmos).loadBeliefs(source)
+      val mind = new SpcOpenhabMind(cosmos)
+      mind.loadBeliefs(Source.fromFile(
+        ResourceUtils.getResourceFile("/ontologies/person.txt")))
+      mind.loadBeliefs(Source.fromFile(
+        ResourceUtils.getResourceFile("/ontologies/home.txt")))
       cosmos.addItem("Home", "Our House", true, Seq.empty)
       cosmos.addItem("Phone", "Phone Presence", true, Seq("Home"))
       cosmos.addItem("Junk", "Just Junk", true, Seq.empty)

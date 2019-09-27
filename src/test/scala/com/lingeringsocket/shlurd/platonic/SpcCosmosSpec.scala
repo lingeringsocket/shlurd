@@ -722,13 +722,6 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
       val someone = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
       val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
-      val propGender = expectSingleProperty(entity)
-      propGender.name must be equalTo LEMMA_GENDER
-      propGender.domain must be equalTo PROPERTY_OPEN_ENUM
-      val genderValues = cosmos.getPropertyStateMap(propGender)
-      genderValues.size must be equalTo 2
-      genderValues must contain(LEMMA_MASCULINE -> LEMMA_MASCULINE)
-      genderValues must contain(LEMMA_FEMININE -> LEMMA_FEMININE)
       cosmos.resolveIdealSynonym(LEMMA_WHO) must
         be equalTo SmcLemmas.LEMMA_SOMEONE
       cosmos.getFormHypernyms(entity) must be equalTo(

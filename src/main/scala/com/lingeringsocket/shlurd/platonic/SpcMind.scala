@@ -171,6 +171,44 @@ class SpcMind(cosmos : SpcCosmos)
     cosmos.decodeName(role.name)
   }
 
+  private def getEntityGender(entity : SpcEntity) : Option[SpcGender] =
+  {
+    resolveGenitive(entity, SilWord(SpcMeta.GENDER_METAROLE_NAME)) match {
+      case Success(set) if (set.size == 1) => {
+        val formEntity = set.head
+        val formName = SpcMeta.formNameFromMeta(formEntity.name)
+        val basic = formName match {
+          case LEMMA_MASCULINE => Some(GENDER_MASCULINE)
+          case LEMMA_FEMININE => Some(GENDER_FEMININE)
+          case LEMMA_NEUTER => Some(GENDER_NEUTER)
+          case _ => None
+        }
+        cosmos.resolveForm(formName).map(SpcGender(_, basic))
+      }
+      case _ => None
+    }
+  }
+
+  override def resolveQualifiedNoun(
+    noun : SilWord,
+    context : SilReferenceContext,
+    qualifiers : Set[String] = Set.empty) : Try[Set[SpcEntity]] =
+  {
+    super.resolveQualifiedNoun(noun, context, qualifiers).map(set => {
+      if (set.isEmpty && noun.isProper) {
+        resolveForm(noun) match {
+          case Some(form) => {
+            val metaName = SpcMeta.idealMetaEntityName(form)
+            getCosmos.getEntityBySynonym(metaName).toSet
+          }
+          case _ => set
+        }
+      } else {
+        set
+      }
+    })
+  }
+
   override def thirdPersonReference(
     annotator : AnnotatorType, entities : Set[SpcEntity])
       : Option[SilReference] =
@@ -178,11 +216,14 @@ class SpcMind(cosmos : SpcCosmos)
     val gender = {
       if (entities.size == 1) {
         val entity = entities.head
-        cosmos.evaluateEntityProperty(entity, LEMMA_GENDER) match {
-          case Success((_, Some(LEMMA_FEMININE))) => GENDER_FEMININE
-          case Success((_, Some(LEMMA_MASCULINE))) => GENDER_MASCULINE
-          case _ => guessGender(entity)
-        }
+        getEntityGender(entity).orElse {
+          cosmos.getFormHypernyms(entity.form).flatMap(form => {
+            val formEntityName = SpcMeta.formMetaEntityName(form)
+            cosmos.getEntityBySynonym(formEntityName).flatMap(formEntity => {
+              getEntityGender(formEntity)
+            })
+          }).headOption
+        }.getOrElse(guessGender(entity))
       } else {
         // FIXME:  for languages like Spanish, need to be macho
         GENDER_NEUTER

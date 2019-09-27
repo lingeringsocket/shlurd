@@ -37,7 +37,6 @@ object SprEnglishLemmas
   val LEMMA_MANY = "many"
   val LEMMA_WHICH = "which"
   val LEMMA_WHAT = "what"
-  val LEMMA_GENDER = "gender"
   val LEMMA_MASCULINE = "masculine"
   val LEMMA_FEMININE = "feminine"
   val LEMMA_NEUTER = "neuter"

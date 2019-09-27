@@ -200,7 +200,6 @@ class SpcCreedSpec extends Specification
     "An spc-role is a kind of an spc-ideal.",
     "An spc-property is a kind of an spc-entity.",
     "An spc-property must have one spc-attributee.",
-    "An spc-entity's gender may be masculine or feminine.",
     "An spc-someone is a kind of an spc-object.",
     "An spc-object is a kind of an spc-entity.",
     "An spc-object may have spc-contained-objects.",
@@ -273,10 +272,6 @@ class SpcCreedSpec extends Specification
     "SPC-Form-spc-role is SPC-Role-spc-object-spc-container's spc-type.",
     "SPC-Role-spc-object-spc-contained-object is an spc-role.",
     "SPC-Form-spc-role is SPC-Role-spc-object-spc-contained-object's spc-type.",
-    "SPC-Property-spc-entity-gender is an spc-property.",
-    "SPC-Form-spc-property is SPC-Property-spc-entity-gender's spc-type.",
-    "SPC-Property-spc-entity-gender is SPC-Form-spc-entity's spc-attribute.",
-    "SPC-Form-spc-entity is SPC-Property-spc-entity-gender's spc-attributee.",
     "An spc-value's spc-valued-property must be an spc-property.",
     "An spc-property's spc-property-value must be an spc-value.",
     "An spc-property may have spc-property-values.",
@@ -287,22 +282,6 @@ class SpcCreedSpec extends Specification
     "SPC-Form-spc-value is an spc-form.",
     "SPC-Form-spc-entity is SPC-Form-spc-value's spc-superclass.",
     "SPC-Form-spc-form is SPC-Form-spc-value's spc-type.",
-    "SPC-Value-spc-entity-gender-masculine is " +
-      "SPC-Form-spc-value's spc-realization.",
-    "SPC-Value-spc-entity-gender-feminine is " +
-      "SPC-Form-spc-value's spc-realization.",
-    "SPC-Value-spc-entity-gender-masculine is " +
-      "SPC-Property-spc-entity-gender's spc-property-value.",
-    "SPC-Value-spc-entity-gender-feminine is " +
-      "SPC-Property-spc-entity-gender's spc-property-value.",
-    "SPC-Value-spc-entity-gender-masculine is an spc-value.",
-    "SPC-Property-spc-entity-gender is " +
-      "SPC-Value-spc-entity-gender-masculine's spc-valued-property.",
-    "SPC-Form-spc-value is SPC-Value-spc-entity-gender-masculine's spc-type.",
-    "SPC-Value-spc-entity-gender-feminine is an spc-value.",
-    "SPC-Property-spc-entity-gender is " +
-      "SPC-Value-spc-entity-gender-feminine's spc-valued-property.",
-    "SPC-Form-spc-value is SPC-Value-spc-entity-gender-feminine's spc-type.",
     "An spc-open-enum is a kind of an spc-entity.",
     "An spc-closed-enum is a kind of an spc-entity.",
     "An spc-string is a kind of an spc-entity.",
@@ -551,7 +530,7 @@ class SpcCreedSpec extends Specification
       val printer = new SilSentencePrinter
       val beliefStrings = creed.allBeliefs(printer).map(
         s => printer.print(s) + "\n")
-      beliefStrings.size must be equalTo 160
+      beliefStrings.size must be equalTo 151
       beliefStrings.map(s => SprUtils.capitalize(s)) must
         contain(allOf(primordial.map(_ + "\n"):_*))
     }

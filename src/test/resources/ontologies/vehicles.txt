@@ -1,11 +1,9 @@
-A person is a kind of spc-someone.
 A vehicle's owner must be a person.
-A man is a kind of person.
 A vehicle must be moving or stopped.
 A vehicle may have an owner.
 Cars and boats are kinds of vehicle.
 A boat must be cruising or sinking.
-A car's gender must be masculine.
+Masculine is Car's spc-gender.
 Herbie is a car.
 Lusitania is a boat.
 Jim is a man.

@@ -27,7 +27,8 @@ An spc-ideal may have spc-subclasses.
 If an spc-ideal is another spc-ideal's spc-superclass,
  then equivalently the second spc-ideal is the first spc-ideal's spc-subclass.
 An spc-someone is a kind of spc-object.
-An spc-entity's gender may be either masculine or feminine.
+An spc-entity's spc-gender must be an spc-form.
+An spc-entity may have an spc-gender.
 An spc-object's spc-container must be an spc-object.
 An spc-object's spc-contained-object must be an spc-object.
 An spc-object may have spc-contained-objects.

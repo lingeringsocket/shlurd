@@ -1,8 +1,10 @@
 An object is the same as an spc-object.
 A person is a kind of spc-someone.
 A man or a woman is a kind of person.
-A man's gender must be masculine.
-A woman's gender must be feminine.
+Masculine is a kind of gender.
+Feminine is a kind of gender.
+Masculine is Man's spc-gender.
+Feminine is Woman's spc-gender.
 Daniel, John, Bill, Fred, and Jeff are men.
 Sandra, Mary, and Julie are women.
 A place is a kind of object.

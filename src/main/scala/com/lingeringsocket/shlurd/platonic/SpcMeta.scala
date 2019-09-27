@@ -44,8 +44,17 @@ object SpcMeta
 
   val VALUE_METAROLE_NAME = "spc-property-value"
 
+  val GENDER_METAROLE_NAME = "spc-gender"
+
+  val FORM_META_ENTITY_PREFIX = "SPC-Form-"
+
   def formMetaEntityName(form : SpcForm) =
-    "SPC-Form-" + form.name
+    FORM_META_ENTITY_PREFIX + form.name
+
+  def formNameFromMeta(formMetaEntityName : String) : String =
+  {
+    formMetaEntityName.stripPrefix(FORM_META_ENTITY_PREFIX)
+  }
 
   def roleMetaEntityName(role : SpcRole) =
     "SPC-Role-" + role.possessor.name + "-" + role.name

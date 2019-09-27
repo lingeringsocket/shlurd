@@ -1,6 +1,3 @@
-A man or a woman is a kind of person.
-A man's gender must be masculine.
-A woman's gender must be feminine.
 A door must be either open or closed.
 A light must be either on or off.
 If a light is lit, then equivalently the light is on.

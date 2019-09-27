@@ -97,22 +97,24 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       val ivanRef = annotator.nounRef(SilWord(ivan))
       val borisRef = annotator.nounRef(SilWord(boris))
       val natashaRef = annotator.nounRef(SilWord(natasha))
-      val sheRef = annotator.pronounRef(
-        PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR)
-      val heRef = annotator.pronounRef(
-        PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR)
       val beastRef = annotator.nounRef(SilWord("beast"))
       val ownerRef = annotator.nounRef(SilWord("owner"))
-      analyze("a woman's gender must be feminine")
+      analyze("Masculine is a kind of gender")
+      analyze("Feminine is a kind of gender")
       analyze(s"$natasha is a woman")
+      analyze("Feminine is Woman's spc-gender")
       val natashaEntity = expectProperName(natasha)
       val natashaSet = Set(natashaEntity)
       analyze("a mule is a kind of animal") must beEmpty
-      analyze("a mule's gender must be masculine")
+      analyze("Masculine is Mule's spc-gender")
       analyze("a mule may be grumpy or happy") must beEmpty
       analyze("if a mule kicks an spc-entity, " +
         "then equivalently the mule is grumpy")
       analyze("a woman's beast must be a mule")
+      val sheRef = annotator.pronounRef(
+        PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR)
+      val heRef = annotator.pronounRef(
+        PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR)
       val isaResult = analyze(s"$ivan is a mule")
       val ivanEntity = expectProperName(ivan)
       val ivanSet = Set(ivanEntity)

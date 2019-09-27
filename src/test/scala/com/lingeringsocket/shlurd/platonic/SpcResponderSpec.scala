@@ -158,6 +158,7 @@ class SpcResponderSpec extends Specification
   {
     "understand people" in new ResponderContext
     {
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/people.txt")
       processTerse(
         "who is Amanda's sibling",
@@ -416,51 +417,6 @@ class SpcResponderSpec extends Specification
         "Arthur is a man.",
         "A man.")
       processMatrix(
-        "is Todd masculine",
-        "Yes, he is masculine.",
-        "Yes, Todd is masculine.",
-        "Yes.",
-        "Yes, he is.")
-      processMatrix(
-        "is Todd feminine",
-        "No, he is not feminine.",
-        "No, Todd is not feminine.",
-        "No.",
-        "No, he is not.")
-      processMatrix(
-        "is Todd fantastic",
-        "No, he is not fantastic.",
-        "No, Todd is not fantastic.",
-        "No.",
-        "No, he is not.")
-      processMatrix(
-        "is Amanda feminine",
-        "Yes, she is feminine.",
-        "Yes, Amanda is feminine.",
-        "Yes.",
-        "Yes, she is.")
-      processMatrix(
-        "is Amanda masculine",
-        "No, she is not masculine.",
-        "No, Amanda is not masculine.",
-        "No.",
-        "No, she is not.")
-      processMatrix(
-        "is Amanda fantastic",
-        "No, she is not fantastic.",
-        "No, Amanda is not fantastic.",
-        "No.",
-        "No, she is not.")
-      process(
-        "is Scott masculine",
-        "I don't know.")
-      process(
-        "is Scott feminine",
-        "I don't know.")
-      process(
-        "is Scott fantastic",
-        "I don't know.")
-      processMatrix(
         "is BLACKWING Hugo's employer",
         "Yes, it is his employer.",
         "Yes, BLACKWING is Hugo's employer.",
@@ -486,6 +442,7 @@ class SpcResponderSpec extends Specification
 
     "understand relatives" in new ResponderContext(ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/relatives.txt")
       process("who is Henry", "He is Titus' uncle.")
       process("who is Marion's aunt", "Her aunt is Laura.")
@@ -531,14 +488,15 @@ class SpcResponderSpec extends Specification
     "understand locations" in new ResponderContext
     {
       loadBeliefs("/ontologies/containment.txt")
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/location.txt")
 
       processMatrix(
-        "where is Jack",
-        "He is in Herbie.",
-        "Jack is in Herbie.",
-        "Herbie.",
-        "Herbie.")
+        "where is Janet",
+        "She is in Christine.",
+        "Janet is in Christine.",
+        "Christine.",
+        "Christine.")
       processTerse("where is Ubuntu", "Nowhere.")
       processTerse("where is Herbie", "I don't know.")
       processTerse("where is Christine", "I don't know.")
@@ -714,13 +672,10 @@ class SpcResponderSpec extends Specification
     "understand past actions" in new
       ResponderContext(ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/containment.txt")
       mind.startConversation
       mind.startNarrative
-      processBelief("a man is a kind of person")
-      processBelief("a woman is a kind of person")
-      processBelief("a man's gender must be masculine")
-      processBelief("a woman's gender must be feminine")
       processBelief("Curtis is a man")
       processBelief("Andrea is a woman")
       processBelief("Thomas is a man")
@@ -902,6 +857,7 @@ class SpcResponderSpec extends Specification
 
     "understand taxonomy" in new ResponderContext
     {
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/vehicles.txt")
 
       process("is Herbie moving", "No, he is not moving.")
@@ -1048,6 +1004,7 @@ class SpcResponderSpec extends Specification
     "respond correctly to disjunctive query" in new ResponderContext
     {
       skipped("maybe one day")
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/people.txt")
       processMatrix(
         "is Rapunzel or Amanda a dog",
@@ -1126,6 +1083,7 @@ class SpcResponderSpec extends Specification
 
     "understand presence" in new ResponderContext
     {
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/presence.txt")
       processMatrix("is Jack's ubiety on",
         "Yes, his ubiety is on.",
@@ -1252,6 +1210,7 @@ class SpcResponderSpec extends Specification
         reportExceptionCodes = true))
     {
       loadBeliefs("/ontologies/containment.txt")
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/people.txt")
 
       mind.startConversation
@@ -1853,6 +1812,7 @@ class SpcResponderSpec extends Specification
     "validate constraints incrementally" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/people.txt")
       processExceptionExpected(
         "Amanda is Rapunzel's owner",
@@ -1871,6 +1831,7 @@ class SpcResponderSpec extends Specification
     "accept updates with constraints" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/people.txt")
       processBelief("Amanda is Rapunzel's owner")
       processTerse("who is Rapunzel's owner", "Amanda.")
@@ -1880,6 +1841,7 @@ class SpcResponderSpec extends Specification
 
     "derive types" >> new ResponderContext
     {
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/people.txt")
       Seq(
         ("the dog", "dog"),

@@ -61,8 +61,7 @@ class SpcBeliefAccepter private(
   responder : SpcResponder,
   params : SpcBeliefParams,
   resultCollector : SpcResultCollector)
-    extends SpcBeliefRecognizer(resultCollector.annotator,
-      responder.getMind.getCosmos, resultCollector)
+    extends SpcBeliefRecognizer(responder, resultCollector)
 {
   type BeliefApplier = PartialFunction[SpcBelief, Unit]
 
@@ -847,6 +846,7 @@ class SpcBeliefAccepter private(
           sentence,
           cosmos.reifyRole(possessor, role, false, stateOpt.nonEmpty)).get
       }
+
       if (!params.createTentativeEntities && possessee.isTentative) {
         throw new ProhibitedBeliefExcn(
           ShlurdExceptionCode.TentativeEntitiesProhibited,

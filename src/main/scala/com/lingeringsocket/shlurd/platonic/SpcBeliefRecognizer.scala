@@ -221,12 +221,17 @@ object SpcBeliefRecognizer
 }
 
 class SpcBeliefRecognizer(
-  annotator : SpcAnnotator,
-  val cosmos : SpcCosmos,
+  responder : SpcResponder,
   resultCollector : SpcResultCollector)
     extends SmcDebuggable(new SmcDebugger(SpcBeliefRecognizer.logger))
 {
   import SpcBeliefRecognizer._
+
+  private val mind = responder.getMind
+
+  val cosmos = mind.getCosmos
+
+  private val annotator = resultCollector.annotator
 
   protected val creed = new SpcCreed(annotator, cosmos)
 
@@ -389,22 +394,29 @@ class SpcBeliefRecognizer(
       state match {
         case SilPropertyState(stateName) => {
           val (rr, isPropertyName) = ref match {
-            case SilGenitiveReference(possessor, _) => {
-              resultCollector.lookup(ref) match {
-                // interpret as association, e.g. "the boss's minions"
-                case Some(entities) if (
-                  entities.nonEmpty &&
-                    !entities.exists(_.isInstanceOf[SpcTransientEntity])
-                ) => {
-                  tupleN((ref, false))
+            case SilGenitiveReference(possessor, possessee) => {
+              possessee match {
+                case SilNounReference(attribute) => {
+                  val possessorForm =
+                    responder.deriveType(
+                      annotator, possessor,
+                      SmcResultCollector.newAnnotationRefMap(annotator))
+                  val propertyOpt = cosmos.findProperty(
+                    possessorForm, attribute.toNounLemma)
+                  if (propertyOpt.nonEmpty) {
+                    // interpret as property, e.g. "the boss's mood"
+                    tupleN((possessor, true))
+                  } else {
+                    // interpret as association, e.g. "the boss's minions"
+                    tupleN((ref, false))
+                  }
                 }
-                // interpret as property, e.g. "the boss's mood"
                 case _ => {
                   tupleN((possessor, true))
                 }
               }
             }
-            case _ => (ref, false)
+            case _ => tupleN((ref, false))
           }
           val prechecks = {
             if ((determiner == DETERMINER_UNIQUE) &&
@@ -595,7 +607,10 @@ class SpcBeliefRecognizer(
       case SilOptionallyDeterminedReference(
         SilCountedNounReference(subjectNoun, subjectCount),
         subjectDeterminer
-      ) if (compatibleDeterminerAndCount(subjectDeterminer, subjectCount)) => {
+      ) if (
+        compatibleDeterminerAndCount(
+          subjectDeterminer, subjectCount, exactPlural = true)
+      ) => {
         return processIdealRelationship(
           sentence, subjectNoun, subjectCount,
           complementRef, verb, subjectConjunction)
@@ -671,7 +686,7 @@ class SpcBeliefRecognizer(
             DETERMINER_NONSPECIFIC
           ) if (subjectRef.isInstanceOf[SilStateSpecifiedReference]) => {
             // "The cat in the hat is a pest"
-            // FIXME more constraints ont the subjectRef
+            // FIXME more constraints on the subjectRef
             return Seq(EntityExistenceBelief(
               sentence, subjectRef, complementNoun,
               Seq.empty, ""))
@@ -690,10 +705,12 @@ class SpcBeliefRecognizer(
 
   private def compatibleDeterminerAndCount(
     determiner : SilDeterminer,
-    count : SilCount) : Boolean =
+    count : SilCount,
+    exactPlural : Boolean = false) : Boolean =
   {
     tupleN((determiner, count)) match {
       case (DETERMINER_UNSPECIFIED, COUNT_PLURAL) => true
+      case (DETERMINER_UNSPECIFIED, _) if (!exactPlural) => true
       case (DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => true
       case _ => false
     }

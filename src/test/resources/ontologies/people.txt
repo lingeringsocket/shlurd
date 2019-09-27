@@ -1,8 +1,3 @@
-A person is a kind of spc-someone.
-A person's gender may be masculine, feminine, or fantastic.
-A man or a woman is a kind of person.
-A man's gender must be masculine.
-A woman's gender must be feminine.
 Dirk, Todd, Hugo, and Arthur are men.
 Amanda and Bart are women.
 A person's sibling must be a person.

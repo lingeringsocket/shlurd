@@ -1,7 +1,3 @@
-A person's gender must be masculine or feminine.
-A man or a woman is a kind of person.
-A man's gender must be masculine.
-A woman's gender must be feminine.
 A presence must be either on or off.
 If a presence is present, then equivalently the presence is on.
 If a presence is absent, then equivalently the presence is off.
@@ -22,8 +18,8 @@ If a hologram is present, then equivalently the hologram's ubiety is on.
 If a hologram is absent, then equivalently the hologram's ubiety is off.
 If a hologram is on, then equivalently the hologram's ubiety is on.
 If a hologram is off, then equivalently the hologram's ubiety is off.
-A ghost's gender must be masculine.
-A hologram's gender must be masculine.
+Masculine is Ghost's spc-gender.
+Masculine is Hologram's spc-gender.
 JackPhone, JillPhone, CasperPhone, and YodaPhone are presences.
 Jack is a man.
 Jill is a woman.
