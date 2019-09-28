@@ -206,6 +206,7 @@ class IndirectEntities[EntityType<:SmcEntity](
   var entities : Option[Set[EntityType]] = None
 )
 {
+  override def toString = entities.toString
 }
 
 class SmcRefNote[EntityType<:SmcEntity](
@@ -248,11 +249,15 @@ class SmcRefNote[EntityType<:SmcEntity](
   def unifyReferences(otherNote : SmcRefNote[EntityType])
   {
     otherNote.indirectEntities match {
+      case Some(ie) if (!ie.entities.isDefined) => {
+        otherNote.indirectEntities = indirectEntities
+      }
       case Some(ie) => {
         assert(
           indirectEntities.isEmpty ||
             indirectEntities.get.entities.isEmpty ||
-            ie.entities == indirectEntities.get.entities
+            ie.entities == indirectEntities.get.entities,
+          tupleN((indirectEntities, otherNote.indirectEntities))
         )
         indirectEntities = Some(ie)
       }

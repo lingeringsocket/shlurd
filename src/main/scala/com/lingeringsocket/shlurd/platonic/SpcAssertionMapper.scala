@@ -90,6 +90,13 @@ class SpcAssertionMapper(
     matched
   }
 
+  private def reannotate[PhraseType <: SilPhrase](
+    annotator : SpcAnnotator,
+    phrase : PhraseType) : PhraseType =
+  {
+    annotator.copy(phrase, SilPhraseCopyOptions(preserveNotes = true))
+  }
+
   private[platonic] def matchImplication(
     operator : String,
     cosmos : SpcCosmos,
@@ -155,16 +162,22 @@ class SpcAssertionMapper(
           }
         }
       )
-      val newPredicate = rewriter.rewrite(replaceReferences, consequent)
+      val newPredicate = rewriter.rewrite(
+        replaceReferences,
+        reannotate(binding.annotator, consequent))
       debug(s"MATCH FROM ${predicate}\nPRODUCES $newPredicate")
       val newAdditional = additionalConsequents.map(sentence => {
-        rewriter.rewrite(replaceReferences, sentence)
+        rewriter.rewrite(
+          replaceReferences,
+          reannotate(binding.annotator, sentence))
       })
       newAdditional.foreach(sentence => {
         debug(s"WITH ADDITIONAL CONSEQUENT $sentence")
       })
       val newAlternative = alternative.map(sentence => {
-        rewriter.rewrite(replaceReferences, sentence)
+        rewriter.rewrite(
+          replaceReferences,
+          reannotate(binding.annotator, sentence))
       })
       newAlternative.foreach(sentence => {
         debug(s"WITH ALTERNATIVE $sentence")

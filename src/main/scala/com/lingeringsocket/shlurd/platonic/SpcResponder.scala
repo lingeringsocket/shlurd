@@ -420,40 +420,19 @@ class SpcResponder(
   def getBiconditionalImplications(annotator : SpcAnnotator)
       : Seq[(SilConditionalSentence, SpcRefMap)] =
   {
-    val triggers = getTriggers(annotator).filter(
+    val triggers = getTriggers.filter(
       _.conditionalSentence.biconditional)
     triggers.flatMap(getTriggerImplications(annotator, _))
   }
 
-  private def reannotate[PhraseType <: SilPhrase](
-    annotator : SpcAnnotator,
-    phrase : PhraseType) : PhraseType =
+  def getAssertions() : Seq[SpcAssertion] =
   {
-    annotator.copy(phrase, SilPhraseCopyOptions(preserveNotes = true))
+    mind.getCosmos.getAssertions
   }
 
-  def getAssertions(annotator : SpcAnnotator) : Seq[SpcAssertion] =
+  def getTriggers() : Seq[SpcTrigger] =
   {
-    mind.getCosmos.getAssertions.map(assertion => {
-      SpcAssertion(
-        reannotate(annotator, assertion.sentence),
-        assertion.additionalConsequents.map(reannotate(annotator, _)),
-        assertion.alternative.map(reannotate(annotator, _)),
-        assertion.placeholderMap
-      )
-    })
-  }
-
-  def getTriggers(annotator : SpcAnnotator) : Seq[SpcTrigger] =
-  {
-    mind.getCosmos.getTriggers.map(trigger => {
-      SpcTrigger(
-        reannotate(annotator, trigger.conditionalSentence),
-        trigger.additionalConsequents.map(reannotate(annotator, _)),
-        trigger.alternative.map(reannotate(annotator, _)),
-        trigger.placeholderMap
-      )
-    })
+    mind.getCosmos.getTriggers
   }
 
   def getTriggerImplications(
@@ -1188,7 +1167,7 @@ class SpcResponder(
     flagErrors : Boolean)
       : Option[String] =
   {
-    val results = getAssertions(annotator).map(assertion => {
+    val results = getAssertions.map(assertion => {
       val result = applyAssertion(
         annotator,
         viewedCosmos, assertion, predicate, refMap,
@@ -1483,7 +1462,7 @@ class SpcResponder(
       if (superMatch.get) {
         return Success(true)
       } else {
-        getTriggers(annotator).foreach(trigger => {
+        getTriggers.foreach(trigger => {
           newAssertionMapper(annotator).matchImplication(
             "IMPLIES",
             mind.getCosmos, trigger.conditionalSentence,
