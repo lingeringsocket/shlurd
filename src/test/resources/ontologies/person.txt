@@ -1,0 +1,6 @@
+A person is a kind of spc-someone.
+A man or a woman is a kind of person.
+Masculine is a kind of gender.
+Feminine is a kind of gender.
+Masculine is Man's spc-gender.
+Feminine is Woman's spc-gender.
