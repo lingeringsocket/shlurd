@@ -1,5 +1,5 @@
 # This is used to configure the sbt instance that Travis launches
 
--Xms6G
--Xmx6G
+-Xms4G
+-Xmx4G
 -Xss2M
