@@ -183,7 +183,7 @@ object SpcResultCollector
   }
 }
 
-class SpcAnnotator(override val mind : SpcMind)
+class SpcAnnotator(mind : SpcMind)
     extends SmcAnnotator[SpcEntity, SpcRefNote](mind,
       (ref) => new SpcRefNote(ref))
 {

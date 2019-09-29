@@ -292,7 +292,7 @@ class SmcRefNote[EntityType<:SmcEntity](
 }
 
 class SmcAnnotator[EntityType <: SmcEntity, NoteType <: SmcRefNote[EntityType]](
-  val mind : SmcMind[EntityType, _, _],
+  mind : SmcMind[EntityType, _, _],
   noteSupplier : (SilReference) => NoteType
 ) extends SilTypedAnnotator[NoteType](noteSupplier)
 {
