@@ -27,11 +27,16 @@ import java.util._
 import SprEnglishLemmas._
 import ShlurdEnglishAffixes._
 
-class SilEnglishSentenceBundle
-    extends SilSentenceBundle
+object SilEnglishSentenceBundle
 {
   private val enFormatter = new RuleBasedNumberFormat(
     Locale.ENGLISH, RuleBasedNumberFormat.SPELLOUT);
+}
+
+class SilEnglishSentenceBundle
+    extends SilSentenceBundle
+{
+  import SilEnglishSentenceBundle._
 
   override def statePredicateStatement(
     subject : String, verbSeq : Seq[String], state : String,
