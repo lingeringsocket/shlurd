@@ -6,7 +6,7 @@ scala:
 jdk:
   - oraclejdk8
 
-dist: bionic
+dist: xenial
 
 script:
   - travis_wait sbt -jvm-opts .travis-jvmopts ++$TRAVIS_SCALA_VERSION clean test scalastyle test:scalastyle
