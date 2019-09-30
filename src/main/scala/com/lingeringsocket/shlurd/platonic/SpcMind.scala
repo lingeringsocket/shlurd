@@ -171,24 +171,6 @@ class SpcMind(cosmos : SpcCosmos)
     cosmos.decodeName(role.name)
   }
 
-  private def getEntityGender(entity : SpcEntity) : Option[SpcGender] =
-  {
-    resolveGenitive(entity, SilWord(SpcMeta.GENDER_METAROLE_NAME)) match {
-      case Success(set) if (set.size == 1) => {
-        val formEntity = set.head
-        val formName = SpcMeta.formNameFromMeta(formEntity.name)
-        val basic = formName match {
-          case LEMMA_MASCULINE => Some(GENDER_MASCULINE)
-          case LEMMA_FEMININE => Some(GENDER_FEMININE)
-          case LEMMA_NEUTER => Some(GENDER_NEUTER)
-          case _ => None
-        }
-        cosmos.resolveForm(formName).map(SpcGender(_, basic))
-      }
-      case _ => None
-    }
-  }
-
   override def resolveQualifiedNoun(
     noun : SilWord,
     context : SilReferenceContext,
@@ -215,15 +197,7 @@ class SpcMind(cosmos : SpcCosmos)
   {
     val gender = {
       if (entities.size == 1) {
-        val entity = entities.head
-        getEntityGender(entity).orElse {
-          cosmos.getFormHypernyms(entity.form).flatMap(form => {
-            val formEntityName = SpcMeta.formMetaEntityName(form)
-            cosmos.getEntityBySynonym(formEntityName).flatMap(formEntity => {
-              getEntityGender(formEntity)
-            })
-          }).headOption
-        }.getOrElse(guessGender(entity))
+        cosmos.getEntityGender(entities.head)
       } else {
         // FIXME:  for languages like Spanish, need to be macho
         GENDER_NEUTER
@@ -237,20 +211,6 @@ class SpcMind(cosmos : SpcCosmos)
       }
     }
     Some(annotator.pronounRef(PERSON_THIRD, gender, count))
-  }
-
-  protected def guessGender(entity : SpcEntity) : SilGender =
-  {
-    cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE) match {
-      case Some(someoneForm) => {
-        if (cosmos.isHyponym(entity.form, someoneForm)) {
-          GENDER_SOMEONE
-        } else {
-          GENDER_NEUTER
-        }
-      }
-      case _ => GENDER_NEUTER
-    }
   }
 
   def properReference(

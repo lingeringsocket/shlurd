@@ -30,6 +30,8 @@ import java.util.concurrent.atomic._
 
 import org.jgrapht._
 
+import SprEnglishLemmas._
+
 trait SpcContainmentVertex
 {
 }
@@ -288,6 +290,9 @@ class SpcCosmicPool
       (String, SilReferenceContext, Set[String]),
       (Int, Try[Set[SpcEntity]])
     ]
+
+  @transient val genderCache =
+    new mutable.HashMap[SpcEntity, (Int, SilGender)]
 
   def accessCache[K, V](
     cache : mutable.Map[K, (Int, V)],
@@ -1734,6 +1739,74 @@ class SpcCosmos(
         }
       )
     })
+  }
+
+  def getEntityGender(entity : SpcEntity) : SilGender =
+  {
+    pool.accessCache(
+      pool.genderCache,
+      entity,
+      pool.entityTimestamp + pool.taxonomyTimestamp,
+      deriveEntityGender(entity)
+    )
+  }
+
+  private def deriveEntityGender(entity : SpcEntity) : SilGender =
+  {
+    assocEntityGender(entity).orElse {
+      getFormHypernyms(entity.form).flatMap(form => {
+        val formEntityName = SpcMeta.formMetaEntityName(form)
+        getEntityBySynonym(formEntityName).flatMap(formEntity => {
+          assocEntityGender(formEntity)
+        })
+      }).headOption
+    }.getOrElse(guessGender(entity))
+  }
+
+  def getGenderRole(form : SpcForm) : Option[SpcRole] =
+  {
+    resolveRole(
+      form,
+      encodeName(SilWord(SpcMeta.GENDER_METAROLE_NAME)),
+      true
+    )
+  }
+
+  def assocEntityGender(entity : SpcEntity) : Option[SpcGender] =
+  {
+    getGenderRole(entity.form) match {
+      case Some(genderRole) => {
+        val set = resolveGenitive(entity, genderRole)
+        if (set.size == 1) {
+          val formEntity = set.head
+          val formName = SpcMeta.formNameFromMeta(formEntity.name)
+          val basic = SpcWordnet.getNoun(formName) match {
+            case LEMMA_MASCULINE => Some(GENDER_MASCULINE)
+            case LEMMA_FEMININE => Some(GENDER_FEMININE)
+            case LEMMA_NEUTER => Some(GENDER_NEUTER)
+            case _ => None
+          }
+          resolveForm(formName).map(SpcGender(_, basic))
+        } else {
+          None
+        }
+      }
+      case _ => None
+    }
+  }
+
+  private def guessGender(entity : SpcEntity) : SilGender =
+  {
+    resolveForm(SmcLemmas.LEMMA_SOMEONE) match {
+      case Some(someoneForm) => {
+        if (isHyponym(entity.form, someoneForm)) {
+          GENDER_SOMEONE
+        } else {
+          GENDER_NEUTER
+        }
+      }
+      case _ => GENDER_NEUTER
+    }
   }
 
   override def applyModifications()

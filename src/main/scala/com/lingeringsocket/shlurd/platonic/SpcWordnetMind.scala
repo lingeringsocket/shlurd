@@ -141,24 +141,13 @@ class SpcWordnetMind(
   {
     preferredSynonyms.getOrElse(
       form,
-      cosmos.decodeName(getWordnet.getNoun(form)))
+      cosmos.decodeName(SpcWordnet.getNoun(form)))
   }
 
   override protected def getPossesseeName(role : SpcRole) : String =
   {
     preferredSynonyms.getOrElse(
       role,
-      cosmos.decodeName(getWordnet.getPossesseeNoun(role)))
-  }
-
-  override protected def guessGender(entity : SpcEntity) : SilGender =
-  {
-    if (getWordnet.anyMatchingHypernym(
-      entity.form, getWordnet.getFeminineForms)
-    ) {
-      GENDER_FEMININE
-    } else {
-      super.guessGender(entity)
-    }
+      cosmos.decodeName(SpcWordnet.getPossesseeNoun(role)))
   }
 }

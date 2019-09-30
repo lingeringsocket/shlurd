@@ -28,10 +28,7 @@ import java.util.regex._
 object SpcWordnet
 {
   private val usablePattern = Pattern.compile("[ \\p{javaLowerCase}]+")
-}
 
-class SpcWordnet(cosmos : SpcCosmos)
-{
   private val someoneCategories = Seq(
     "person"
   )
@@ -42,11 +39,53 @@ class SpcWordnet(cosmos : SpcCosmos)
     "phenomenon", "possession", "shape", "substance"
   )
 
+  def getNoun(form : SpcForm) : String =
+  {
+    getNoun(form.name)
+  }
+
+  def getNoun(formName : String) : String =
+  {
+    if (formName.startsWith("wnf-")) {
+      formName.split("wnf-").last.split('-').head
+    } else {
+      formName.stripPrefix("spc-")
+    }
+  }
+
+  def getPossesseeNoun(role : SpcRole) : String =
+  {
+    if (role.name.startsWith("wnr-")) {
+      role.name.stripPrefix("wnr-").split('-').head
+    } else {
+      role.name.stripPrefix("spc-")
+    }
+  }
+
+  def getRoleName(
+    possesseeForm : SpcForm) : String =
+  {
+    val stripped = possesseeForm.name.stripPrefix("wnf-")
+    s"wnr-${stripped}"
+  }
+
+  private def isUsableFormName(lemma : String) : Boolean =
+  {
+    // FIXME deal with acronyms etc
+    SpcWordnet.usablePattern.matcher(lemma).matches
+  }
+}
+
+class SpcWordnet(cosmos : SpcCosmos)
+{
+  import SpcWordnet._
+
   def loadAll()
   {
     loadAllForms
     loadAllTaxonomy
     loadAllAssociations
+    loadBasicGenders
   }
 
   def loadAllForms()
@@ -79,6 +118,37 @@ class SpcWordnet(cosmos : SpcCosmos)
   def loadAllAssociations()
   {
     ShlurdWordnet.allNounSenses.foreach(loadMeronyms)
+  }
+
+  def loadGender(biological : String, grammatical : String)
+  {
+    val grammaticalForm =
+      ShlurdWordnet.getNounSenses(grammatical).flatMap(loadForm).head
+    val grammaticalEntityName = SpcMeta.formMetaEntityName(grammaticalForm)
+    cosmos.getEntityBySynonym(grammaticalEntityName).foreach(
+      grammaticalEntity => {
+        ShlurdWordnet.getNounSenses(biological).flatMap(loadForm).foreach(
+          biologicalForm => {
+            val biologicalEntityName =
+              SpcMeta.formMetaEntityName(biologicalForm)
+            cosmos.getEntityBySynonym(biologicalEntityName).foreach(
+              biologicalEntity => {
+                cosmos.getGenderRole(biologicalForm).foreach(genderRole => {
+                  cosmos.addEntityAssocEdge(
+                    biologicalEntity, grammaticalEntity, genderRole)
+                })
+              }
+            )
+          }
+        )
+      }
+    )
+  }
+
+  def loadBasicGenders()
+  {
+    loadGender("female", "feminine")
+    loadGender("male", "masculine")
   }
 
   def loadDirectHypernyms(
@@ -157,17 +227,6 @@ class SpcWordnet(cosmos : SpcCosmos)
     }
   }
 
-  def getFeminineForms() =
-  {
-    ShlurdWordnet.getNounSenses("female").flatMap(loadForm)
-  }
-
-  def anyMatchingHypernym(form : SpcForm, hypernyms : Seq[SpcForm]) : Boolean =
-  {
-    hypernyms.exists(
-      hypernym => cosmos.isHyponym(form, hypernym))
-  }
-
   def anyMatchingCategory(
     form : SpcForm, sense : Synset, categories : Seq[String]) : Boolean =
   {
@@ -176,6 +235,12 @@ class SpcWordnet(cosmos : SpcCosmos)
         form, categories.flatMap(
           category => ShlurdWordnet.getNounSenses(category).
             take(1).flatMap(loadForm)))
+  }
+
+  def anyMatchingHypernym(form : SpcForm, hypernyms : Seq[SpcForm]) : Boolean =
+  {
+    hypernyms.exists(
+      hypernym => cosmos.isHyponym(form, hypernym))
   }
 
   def getSynsetForm(synset : Synset) : Option[SpcForm] =
@@ -188,36 +253,5 @@ class SpcWordnet(cosmos : SpcCosmos)
   {
     val encoded = cosmos.encodeName(word.getLemma)
     s"wnf-${encoded}-${word.getSenseNumber}"
-  }
-
-  def getNoun(form : SpcForm) : String =
-  {
-    if (form.name.startsWith("wnf-")) {
-      form.name.split("wnf-").last.split('-').head
-    } else {
-      form.name.stripPrefix("spc-")
-    }
-  }
-
-  def getPossesseeNoun(role : SpcRole) : String =
-  {
-    if (role.name.startsWith("wnr-")) {
-      role.name.stripPrefix("wnr-").split('-').head
-    } else {
-      role.name.stripPrefix("spc-")
-    }
-  }
-
-  def getRoleName(
-    possesseeForm : SpcForm) : String =
-  {
-    val stripped = possesseeForm.name.stripPrefix("wnf-")
-    s"wnr-${stripped}"
-  }
-
-  private def isUsableFormName(lemma : String) : Boolean =
-  {
-    // FIXME deal with acronyms etc
-    SpcWordnet.usablePattern.matcher(lemma).matches
   }
 }
