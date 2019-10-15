@@ -22,6 +22,48 @@ import scala.util._
 
 import spire.math._
 
+import SprEnglishLemmas._
+import SprPennTreebankLabels._
+
+object SmcMind
+{
+  val singularNeuterPronounMap = Map(
+    SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
+      SilWord(LEMMA_IT),
+    SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+      SilWord(LEMMA_IT),
+    SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
+      SilWord(LEMMA_ITS)
+  )
+
+  val pluralNeuterPronounMap = Map(
+    SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
+      SilWord(LEMMA_THEY),
+    SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+      SilWord(LEMMA_THEM),
+    SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
+      SilWord(LEMMA_THEIR)
+  )
+
+  val masculinePronounMap = Map(
+    SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
+      SilWord(LEMMA_HE),
+    SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+      SilWord(LEMMA_HIM),
+    SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
+      SilWord(LEMMA_HIS)
+  )
+
+  val femininePronounMap = Map(
+    SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
+      SilWord(LEMMA_SHE),
+    SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+      SilWord(LEMMA_HER),
+    SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
+      SilWord(LEMMA_HER)
+  )
+}
+
 class SmcMind[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -29,6 +71,8 @@ class SmcMind[
 ](
   cosmos : CosmosType)
 {
+  import SmcMind._
+
   type ConversationType = SmcConversation[EntityType]
   type TimelineType = SmcTimeline[EntityType, PropertyType, CosmosType]
   type AnnotatorType = SmcAnnotator[EntityType, SmcRefNote[EntityType]]
@@ -257,10 +301,12 @@ class SmcMind[
       None
     } else if (entities.size == 1) {
       Some(annotator.pronounRef(
-        PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR))
+        PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
+        pronounMap = singularNeuterPronounMap))
     } else {
       Some(annotator.pronounRef(
-        PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL))
+        PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL,
+        pronounMap = pluralNeuterPronounMap))
     }
   }
 

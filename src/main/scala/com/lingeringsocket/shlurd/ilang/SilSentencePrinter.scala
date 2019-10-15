@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import SprEnglishLemmas._
+import SprPennTreebankLabels._
 
 object SilSentencePrinter
 {
@@ -106,10 +107,8 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       case SilCountedNounReference(noun, count) => {
         sb.delemmatizeNoun(noun, count, inflection, conjoining)
       }
-      case pr @ SilPronounReference(person, gender, count, distance) => {
-        sb.pronoun(
-          person, gender, count, distance,
-          pr.word, inflection, conjoining)
+      case pr : SilPronounReference => {
+        printPronoun(pr, inflection, conjoining)
       }
       case SilConjunctiveReference(determiner, references, separator) => {
         sb.conjoin(
@@ -154,10 +153,8 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
       }
       case SilGenitiveReference(possessor, possessee) => {
         val qualifierString = possessor match {
-          case pr @ SilPronounReference(person, gender, count, distance) => {
-            sb.pronoun(
-              person, gender, count, distance, pr.word,
-              INFLECT_GENITIVE, SilConjoining.NONE)
+          case pr : SilPronounReference => {
+            printPronoun(pr, INFLECT_GENITIVE, SilConjoining.NONE)
           }
           case _ => {
             print(possessor, INFLECT_GENITIVE, SilConjoining.NONE)
@@ -207,6 +204,25 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         sb.unknownState
       }
     }
+  }
+
+  def printPronoun(
+    ref : SilPronounReference,
+    inflection : SilInflection,
+    conjoining : SilConjoining) =
+  {
+    val word = ref.word.orElse {
+      val usage = inflection match {
+        case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LABEL_PRP_OBJ
+        case INFLECT_GENITIVE => LABEL_PRP_POS
+        case _ => LABEL_PRP
+      }
+      val pronounKey = SilPronounKey(usage, ref.person)
+      ref.pronounMap.get(pronounKey)
+    }
+    sb.pronoun(
+      ref.person, ref.gender, ref.count, ref.distance, word,
+      inflection, conjoining)
   }
 
   def printChangeStateVerb(

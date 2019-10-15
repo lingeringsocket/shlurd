@@ -47,7 +47,8 @@ trait SprWordLabeler
 {
   def labelWords(
     // (token, word, iToken)
-    entries : Seq[(String, String, Int)]
+    entries : Seq[(String, String, Int)],
+    foldEphemeralLabels : Boolean = true
   ) : Seq[Set[SprSyntaxTree]]
 
   def isCompoundNoun(seq : Seq[SprSyntaxTree]) : Boolean = false
@@ -94,22 +95,24 @@ class SprWordnetLabeler(
   }
 
   override def labelWords(
-    entries : Seq[(String, String, Int)]) : Seq[Set[SprSyntaxTree]] =
+    entries : Seq[(String, String, Int)],
+    foldEphemeralLabels : Boolean = true) : Seq[Set[SprSyntaxTree]] =
   {
     val indexedEntries = entries.toIndexedSeq
     val results = indexedEntries.map(
       entry => new mutable.LinkedHashSet[SprSyntaxTree])
     var index = 0
     while (index < entries.size) {
-      index = labelWordsAt(indexedEntries, results, index)
+      index = labelWordsAt(indexedEntries, results, index, foldEphemeralLabels)
     }
     results
   }
 
-  def labelWordsAt(
+  private def labelWordsAt(
     entries : IndexedSeq[(String, String, Int)],
     results : IndexedSeq[mutable.Set[SprSyntaxTree]],
-    iStart : Int) : Int =
+    iStart : Int,
+    foldEphemeralLabels : Boolean) : Int =
   {
     // ought to reimplement this using a trie
     val limit = Math.min(maxPrefix, entries.size - iStart)
@@ -119,7 +122,8 @@ class SprWordnetLabeler(
         val labels = rule.labels
         range(iStart until (iStart + length)).foreach(iComponent => {
           val (token, word, iToken) = entries(iComponent)
-          results(iComponent) ++= labelWordFromRule(token, word, labels)
+          results(iComponent) ++= labelWordFromRule(
+            token, word, labels, foldEphemeralLabels)
         })
         if (rule.isClosed) {
           return (iStart + length)
@@ -145,7 +149,8 @@ class SprWordnetLabeler(
   private def labelWordFromRule(
     token : String,
     word : String,
-    labels : Seq[String]) : Set[SprSyntaxTree] =
+    labels : Seq[String],
+    foldEphemeralLabels : Boolean) : Set[SprSyntaxTree] =
   {
     SprUtils.orderedSet(labels.map(label => {
       if (label == LABEL_NNP) {
@@ -153,7 +158,14 @@ class SprWordnetLabeler(
         SptNNP(leaf)
       } else {
         val leaf = makeLeaf(word, token)
-        SprSyntaxRewriter.recompose(label, Seq(leaf))
+        val foldedLabel = {
+          if (foldEphemeralLabels && (label == LABEL_PRP_OBJ)) {
+            LABEL_PRP
+          } else {
+            label
+          }
+        }
+        SprSyntaxRewriter.recompose(foldedLabel, Seq(leaf))
       }
     }))
   }

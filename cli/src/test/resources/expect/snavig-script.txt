@@ -97,24 +97,26 @@ Yes, its description is an spc-string.
 
 OK.
 
-He wields a wicked-looking stiletto.
+Ze wields a wicked-looking stiletto.
 
 // with respect to the player's knowledge
-> is the thief suave
+> is ze suave
 
 I don't know.
 
 // with respect to the thief's knowledge
-> ask the thief "are you suave"
+> ask zir "are you suave"
 
 OK.
 
-The thief responds, "Yes, I am suave."
+Ze responds, "Yes, I am suave."
 
 > close the door
 
 OK.
 
+// FIXME should be able to refer to "it" but for some reason
+// that gets interpreted as referring to the bathroom!
 > is the door open
 
 No, it is not open.
@@ -166,17 +168,17 @@ Someone has written 'clean me!' on the mirror.
 
 You see the thief.
 
-> is the thief alive
+> is ze alive
 
-Yes, he is alive.
+Yes, ze is alive.
 
 // an explicitly prohibited verb
-> spy on the thief
+> spy on zir
 
 A person can not spy on a thief.
 
 // a valid action, but without all required modifiers supplied
-> kill the thief
+> kill zir
 
 One does not simply kill.
 
@@ -199,15 +201,15 @@ You are in the bathroom.
 
 You see the thief.
 
-> throw the axe at the thief
+> throw the axe at zir
 
 OK.
 
 Blood splatters everywhere.
 
-> is the thief alive
+> is ze alive
 
-No, he is not alive.
+No, ze is not alive.
 
 > go to the kitchen
 
@@ -257,7 +259,7 @@ Oddly, the cupboard lacks doors.
 
 You can't get there from here.
 
-> move to the cupboard
+> move to it
 
 You can't get there from here.
 
@@ -330,7 +332,8 @@ Oh, really?
 
 Yes, there is an ax.
 
-> where is the axe
+// FIXME should be able to refer to "it"
+> where is the ax
 
 It is in the bathroom.
 

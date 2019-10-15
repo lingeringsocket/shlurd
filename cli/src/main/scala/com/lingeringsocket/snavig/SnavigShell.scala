@@ -391,7 +391,8 @@ class SnavigShell(
         defer(DeferredComplaint(complaint))
         Some(complaint)
       } else {
-        Some(noumenalUpdater.process(
+        val fiatUpdater = newFiatUpdater
+        Some(fiatUpdater.process(
           SprParseResult(sentence, annotator)))
       }
     }
@@ -500,9 +501,11 @@ class SnavigShell(
                           "(You are now in conversation.  Say TTYL to stop.)"))
                       }
                       case _ => {
+                        val annotator = SpcAnnotator(phenomenalMind)
                         defer(DeferredReport(
                           SprUtils.capitalize(
-                            noResponse(targetRefOpt.get))))
+                            noResponse(conversationalReference(
+                              annotator, targetEntity)))))
                       }
                     }
                   }
@@ -580,6 +583,17 @@ class SnavigShell(
     beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
     responderParams,
     executor, playerToInterpreter)
+
+  private def newFiatUpdater() : SnavigResponder =
+  {
+    // preserve conversation scope
+    val fiatMind = phenomenalMind.spawn(noumenalCosmos)
+    new SnavigResponder(
+      Some(this), fiatMind,
+      beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
+      responderParams,
+      executor, playerToInterpreter)
+  }
 
   def defer(deferred : Deferred)
   {
@@ -724,8 +738,8 @@ class SnavigShell(
             talkToSelf
           } else {
             val annotator = SpcAnnotator(phenomenalMind)
-            val listenerReference = phenomenalMind.specificReference(
-              annotator, listener, DETERMINER_UNIQUE)
+            val listenerReference = conversationalReference(
+              annotator, listener)
             val reply = accessEntityMind(listener) match {
               case Some(entityMind) => {
                 val communicationContext = SmcCommunicationContext(
@@ -759,6 +773,18 @@ class SnavigShell(
           }
         }
       }
+    }
+  }
+
+  private def conversationalReference(
+    annotator : SpcAnnotator,
+    entity : SpcEntity) : SilReference =
+  {
+    phenomenalMind.thirdPersonReference(
+      annotator, Set(entity)
+    ).getOrElse {
+      phenomenalMind.specificReference(
+        annotator, entity, DETERMINER_UNIQUE)
     }
   }
 

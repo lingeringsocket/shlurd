@@ -1,7 +1,7 @@
 "Resource" import "/example-snavig/thief-axioms.txt".
 
 The thief is perceptive.
-The thief's description is "He wields a wicked-looking stiletto.".
+The thief's description is "Ze wields a wicked-looking stiletto.".
 The thief is in the bathroom.
 The thief is alive.
 // let the thief know about places and things other than his starting location

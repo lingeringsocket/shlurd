@@ -299,11 +299,12 @@ class SmcAnnotator[EntityType <: SmcEntity, NoteType <: SmcRefNote[EntityType]](
   override def pronounRef(
     person : SilPerson, gender : SilGender,
     count : SilCount, distance : SilDistance = DISTANCE_UNSPECIFIED,
-    word : Option[SilWord] = None) =
+    word : Option[SilWord] = None,
+    pronounMap : SilPronounMap = SilPronounMap()) =
   {
     super.pronounRef(
       person, mind.canonicalGender(gender),
-      count, distance, word)
+      count, distance, word, pronounMap)
   }
 }
 
@@ -470,7 +471,7 @@ class SmcResponder[
     resolveReferencesImpl(phrase, resultCollector, throwFailures, reify, scope)
   }
 
-  private def resolveReferencesImpl(
+  protected def resolveReferencesImpl(
     phrase : SilPhrase,
     resultCollector : ResultCollectorType,
     throwFailures : Boolean = false,

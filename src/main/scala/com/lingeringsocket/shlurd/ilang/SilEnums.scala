@@ -460,3 +460,15 @@ case class SilTamImmutable(
     valid
   }
 }
+
+case class SilPronounKey(
+  usage : String,
+  person : SilPerson
+)
+{
+}
+
+object SilPronounMap
+{
+  def apply() : SilPronounMap = Map.empty
+}

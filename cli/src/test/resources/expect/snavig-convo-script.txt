@@ -30,39 +30,39 @@ Only crazy people talk to themselves.
 
 OK.
 
-The axe does not respond.
+It does not respond.
 
 > ask the thief "who are you"
 
 OK.
 
-The thief responds, "I am the thief."
+Ze responds, "I am the thief."
 
-> ask the thief "where am I"
-
-OK.
-
-The thief responds, "You are in the bathroom."
-
-> say "where is the lantern" to the thief
+> ask zir "where am I"
 
 OK.
 
-The thief responds, "I don't know."
+Ze responds, "You are in the bathroom."
 
-> tell the thief "I am holding the lantern"
+> say "where is the lantern" to zir
 
 OK.
 
-The thief responds, "Oh, really?"
+Ze responds, "I don't know."
+
+> tell zir "I am holding the lantern"
+
+OK.
+
+Ze responds, "Oh, really?"
 
 > say "get the ax" to the thief
 
 OK.
 
-The thief responds, "No."
+Ze responds, "No."
 
-> talk to the thief
+> talk to zir
 
 OK.
 
@@ -88,7 +88,7 @@ No.
 
 OK.
 
-The axe does not respond.
+It does not respond.
 
 > w
 

@@ -35,6 +35,10 @@ abstract class SilAbstractRefNote(
 
   def clearWord()
 
+  def getPronounMap() : SilPronounMap
+
+  def setPronounMap(pronounMap : SilPronounMap)
+
   def getRef() : SilReference = ref
 
   def updateRef(newRef : SilReference) : SilAbstractRefNote
@@ -47,6 +51,8 @@ class SilBasicRefNote(
   private var count : Option[SilCount] = None
 
   private var word : Option[SilWord] = None
+
+  private var pronounMap : SilPronounMap = SilPronounMap()
 
   override def hasCount() : Boolean =
   {
@@ -65,6 +71,13 @@ class SilBasicRefNote(
   override def setCount(newCount : SilCount)
   {
     count = Some(newCount)
+  }
+
+  override def getPronounMap() : SilPronounMap = pronounMap
+
+  override def setPronounMap(newPronounMap : SilPronounMap)
+  {
+    pronounMap = newPronounMap
   }
 
   override def getWord() : Option[SilWord] =
@@ -86,6 +99,7 @@ class SilBasicRefNote(
   {
     count = oldNote.count
     word = oldNote.word
+    pronounMap = oldNote.pronounMap
   }
 
   override def updateRef(newRef : SilReference) : SilBasicRefNote =
@@ -171,11 +185,14 @@ trait SilAnnotator
   def pronounRef(
     person : SilPerson, gender : SilGender,
     count : SilCount, distance : SilDistance = DISTANCE_UNSPECIFIED,
-    word : Option[SilWord] = None) =
+    word : Option[SilWord] = None,
+    pronounMap : SilPronounMap = SilPronounMap()) =
   {
     val newRef = register(SilPronounReference.unannotated(
       person, gender, count, distance))
-    word.foreach(w => getBasicNote(newRef).setWord(w))
+    val note = getBasicNote(newRef)
+    word.foreach(w => note.setWord(w))
+    note.setPronounMap(pronounMap)
     newRef
   }
 
@@ -303,6 +320,7 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
       oldNote.getWord.foreach(word => {
         newNote.setWord(word)
       })
+      newNote.setPronounMap(oldNote.getPronounMap)
     }
   }
 

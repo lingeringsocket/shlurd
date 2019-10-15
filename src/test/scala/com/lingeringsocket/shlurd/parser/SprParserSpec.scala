@@ -77,6 +77,8 @@ class SprParserSpec extends Specification
 
   private val ACTION_KILL = SilWord("kill")
 
+  private val ACTION_ASK = SilWord("ask")
+
   private val STATE_CLOSE = SilWord("close")
 
   private val ACTION_CARRYING = SilWord("carrying", "carry")
@@ -443,6 +445,26 @@ class SprParserSpec extends Specification
             ACTION_KILL,
             Some(annotator.determinedNounRef(
               NOUN_PIGS, DETERMINER_UNIQUE))),
+          SilTam.imperative)
+    }
+
+    "parse a slightly ambiguous quotation" in
+    {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
+      val input = "ask her \"where am I\""
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.pronounRef(
+              PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR),
+            ACTION_ASK,
+            Some(annotator.quotationRef("where am I")),
+            Seq(SilAdpositionalVerbModifier(
+              SilAdposition.TO,
+              annotator.pronounRef(
+                PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR)))),
           SilTam.imperative)
     }
 

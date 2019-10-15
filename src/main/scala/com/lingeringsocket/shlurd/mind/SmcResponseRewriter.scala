@@ -309,16 +309,20 @@ class SmcResponseRewriter[
       // FIXME need to transform word if we want to support
       // custom first/second person pronouns
       case oldPronoun @ SilPronounReference(person, gender, count, distance)=> {
-        val speakerListenerReversed = person match {
-          case PERSON_FIRST => PERSON_SECOND
-          case PERSON_SECOND => PERSON_FIRST
-          case PERSON_THIRD => PERSON_THIRD
+        val (swap, speakerListenerReversed) = person match {
+          case PERSON_FIRST => tupleN((true, PERSON_SECOND))
+          case PERSON_SECOND => tupleN((true, PERSON_FIRST))
+          case PERSON_THIRD => tupleN((false, PERSON_THIRD))
         }
-        val newPronoun =
-          annotator.pronounRef(speakerListenerReversed, gender, count, distance)
-        refMap.get(oldPronoun).foreach(entities =>
-          refMap.put(newPronoun, entities))
-        newPronoun
+        if (swap) {
+          val newPronoun = annotator.pronounRef(
+            speakerListenerReversed, gender, count, distance)
+          refMap.get(oldPronoun).foreach(entities =>
+            refMap.put(newPronoun, entities))
+          newPronoun
+        } else {
+          oldPronoun
+        }
       }
     }
   )
@@ -430,9 +434,9 @@ class SmcResponseRewriter[
   {
     val refMap = SmcResultCollector.modifiableRefMap(
       mind, resultCollector.refMap)
-    val detector = new AmbiguousRefDetector(refMap)
     querier.query(disqualifyThirdPersonReferences(refMap), predicate)
     querier.query(disqualifyQueryAnswers(refMap), predicate)
+    val detector = new AmbiguousRefDetector(refMap)
     querier.query(disambiguateThirdPersonReferences(detector), predicate)
     refMap --= detector.ambiguousRefs
     predicate matchPartial {
@@ -637,7 +641,7 @@ class SmcResponseRewriter[
       SilNounReference(noun), determiner
     ) => {
       determiner match {
-        case DETERMINER_UNIQUE =>
+        case DETERMINER_UNIQUE => ;
         case DETERMINER_UNSPECIFIED => {
           if (!noun.isProper) {
             refMap.remove(nr)

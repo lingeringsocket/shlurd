@@ -530,7 +530,7 @@ class SpcCreedSpec extends Specification
       val printer = new SilSentencePrinter
       val beliefStrings = creed.allBeliefs(printer).map(
         s => printer.print(s) + "\n")
-      beliefStrings.size must be equalTo 151
+      beliefStrings.size must be equalTo 157
       beliefStrings.map(s => SprUtils.capitalize(s)) must
         contain(allOf(primordial.map(_ + "\n"):_*))
     }

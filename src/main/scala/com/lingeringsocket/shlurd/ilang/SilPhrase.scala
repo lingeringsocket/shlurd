@@ -702,6 +702,12 @@ case class SilPronounReference private(
       annotator.getBasicNote(this).clearWord
     })
   }
+
+  def pronounMap : SilPronounMap =
+  {
+    maybeAnnotator.map(_.getBasicNote(this).getPronounMap).
+      getOrElse(SilPronounMap())
+  }
 }
 
 object SilConjunctiveReference

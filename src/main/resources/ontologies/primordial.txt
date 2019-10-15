@@ -38,3 +38,4 @@ If an spc-object is another spc-object's spc-contained-object,
 An spc-open-enum is a kind of spc-entity.
 An spc-closed-enum is a kind of spc-entity.
 An spc-string is a kind of spc-entity.
+An spc-entity's spc-pronoun-list must be an spc-string.

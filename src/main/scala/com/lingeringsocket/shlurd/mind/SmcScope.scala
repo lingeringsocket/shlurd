@@ -53,6 +53,24 @@ trait SmcScope[
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]]
 
+  private def isPronounMatch(
+    p1 : SilPronounReference, p2 : SilPronounReference) : Boolean =
+  {
+    if (p1 != p2) {
+      false
+    } else {
+      if (p1.word == p2.word) {
+        true
+      } else if (p1.word.nonEmpty) {
+        p2.pronounMap.values.exists(_ == p1.word.get)
+      } else if (p2.word.nonEmpty) {
+        p1.pronounMap.values.exists(_ == p2.word.get)
+      } else {
+        false
+      }
+    }
+  }
+
   protected def findMatchingPronounReference(
     annotator : AnnotatorType,
     refMap : SmcRefMap[EntityType],
@@ -68,7 +86,12 @@ trait SmcScope[
             skip = true
             false
           } else {
-            getMind.thirdPersonReference(annotator, set) == Some(reference)
+            getMind.thirdPersonReference(annotator, set) match {
+              case Some(pr : SilPronounReference) => {
+                isPronounMatch(pr, reference)
+              }
+              case _ => false
+            }
           }
         }
       }

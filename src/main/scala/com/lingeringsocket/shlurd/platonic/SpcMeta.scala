@@ -46,6 +46,8 @@ object SpcMeta
 
   val GENDER_METAROLE_NAME = "spc-gender"
 
+  val PRONOUN_LIST_METAPROP_NAME = "spc-pronoun-list"
+
   val FORM_META_ENTITY_PREFIX = "SPC-Form-"
 
   def formMetaEntityName(form : SpcForm) =

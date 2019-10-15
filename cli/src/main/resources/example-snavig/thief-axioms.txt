@@ -16,5 +16,10 @@ When a game-character throws a game-object
  the first game-character kills the other game-character with the game-object.
 
 There is a thief.
+
+"Ze" is a nominative pronoun.
+"Zir" must be an objective pronoun or a possessive pronoun.
+The thief's spc-pronoun-list is "ze, zir".
+
 Whenever the game-turn advances,
  the thief surveys the thief's container.

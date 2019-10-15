@@ -367,7 +367,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       defineTeacher
       defineStudents
       val renderedString = renderToString
-      renderedString.size must be equalTo 13500
+      renderedString.size must be equalTo 13853
     }
   }
 }

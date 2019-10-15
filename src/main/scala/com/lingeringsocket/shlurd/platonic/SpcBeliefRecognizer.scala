@@ -92,7 +92,12 @@ object SpcBeliefRecognizer
       case Seq(SilWordLemma("verb")) => Some(LABEL_VB)
       case Seq(SilWordLemma("adjective")) => Some(LABEL_JJ)
       case Seq(SilWordLemma("adverb")) => Some(LABEL_RB)
-      case Seq(SilWordLemma("pronoun")) => Some(LABEL_PRP)
+      case Seq(SilWordLemma("pronoun")) =>
+        Some(LABEL_PRP)
+      case Seq(SilWordLemma("nominative"), SilWordLemma("pronoun")) =>
+        Some(LABEL_PRP)
+      case Seq(SilWordLemma("objective"), SilWordLemma("pronoun")) =>
+        Some(LABEL_PRP_OBJ)
       case Seq(SilWordLemma("possessive"), SilWordLemma("pronoun")) =>
         Some(LABEL_PRP_POS)
       case Seq(SilWordLemma("conjunction")) => Some(LABEL_CC)
@@ -147,8 +152,8 @@ object SpcBeliefRecognizer
           val labels = recognizeWordLabels(interpretation, expectedCount)
           if (labels.nonEmpty) {
             quotations.map(quotation => {
-              val isClosed = tam.modality match {
-                case MODAL_MUST => true
+              val isClosed = tam.unemphaticModality match {
+                case MODAL_MUST | MODAL_NEUTRAL => true
                 case _ => false
               }
               SprWordRule(
@@ -215,7 +220,7 @@ object SpcBeliefRecognizer
     if (tokenizedSentences.size != 1) {
       Seq.empty
     } else {
-      tokenizedSentences.head.tokens.map(_.text)
+      tokenizedSentences.head.tokens.map(_.text.toLowerCase)
     }
   }
 }

@@ -1839,6 +1839,51 @@ class SpcResponderSpec extends Specification
       processTerse("who is ROWDYTHREE's operative", "Scott.")
     }
 
+    "detect ambiguous pronouns" in new ResponderContext(
+      ACCEPT_MODIFIED_BELIEFS)
+    {
+      skipped("not working yet")
+      loadBeliefs("/ontologies/person.txt")
+      processBelief("Mike is a man")
+      processBelief("Ike is a man")
+      processBelief("A person's fan must be a person")
+      processBelief("Ike is Mike's fan")
+      processBelief("If a person likes another person, " +
+        "equivalently the former is the latter's fan")
+      mind.startConversation
+      process("who is Mike", "He is a man.")
+      process("who likes Mike", "Ike likes him.")
+      process("who is he", "Sorry, do you mean Mike or Ike?")
+    }
+
+    "understand custom pronouns" in new ResponderContext(
+      ACCEPT_MODIFIED_BELIEFS)
+    {
+      loadBeliefs("/ontologies/person.txt")
+      processBelief("\"ze\" is a nominative pronoun")
+      processBelief("\"zir\" must be an objective pronoun or " +
+        "a possessive pronoun")
+      processBelief("Pat is a person")
+      processBelief("Chris is a person")
+      processBelief("A person's fan must be a person")
+      processBelief("Chris is Pat's fan")
+      processBelief("Pat is Chris's fan")
+      processBelief("If a person likes another person, " +
+        "equivalently the former is the latter's fan")
+      processBelief(
+        "Pat's spc-pronoun-list is \"ze, zir\"")
+
+      mind.startConversation
+      process("who is Pat", "Ze is Chris' fan.")
+      process("who likes zir", "Chris likes zir.")
+      process("who is zir fan", "Zir fan is Chris.")
+
+      // Chris has no pronouns, so always refer to Chris by name
+      process("who is Chris", "Chris is Pat's fan.")
+      process("who likes Chris", "Pat likes Chris.")
+      process("who is Chris' fan", "Chris' fan is Pat.")
+    }
+
     "derive types" >> new ResponderContext
     {
       loadBeliefs("/ontologies/person.txt")

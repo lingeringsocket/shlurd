@@ -195,22 +195,28 @@ class SpcMind(cosmos : SpcCosmos)
     annotator : AnnotatorType, entities : Set[SpcEntity])
       : Option[SilReference] =
   {
-    val gender = {
+    val (gender, count, pronounMap) = {
       if (entities.size == 1) {
-        cosmos.getEntityGender(entities.head)
+        val entity = entities.head
+        val pronounMap = cosmos.getEntityPronouns(entity)
+        val entityGender = cosmos.getEntityGender(entity)
+        if (pronounMap.nonEmpty || entityGender != GENDER_SOMEONE) {
+          tupleN((
+            entityGender,
+            COUNT_SINGULAR,
+            pronounMap))
+        } else {
+          return None
+        }
       } else {
         // FIXME:  for languages like Spanish, need to be macho
-        GENDER_NEUTER
+        tupleN((
+          GENDER_NEUTER, COUNT_PLURAL, SmcMind.pluralNeuterPronounMap))
       }
     }
-    val count = {
-      if (entities.size == 1) {
-        COUNT_SINGULAR
-      } else {
-        COUNT_PLURAL
-      }
-    }
-    Some(annotator.pronounRef(PERSON_THIRD, gender, count))
+    Some(annotator.pronounRef(
+      PERSON_THIRD, gender, count,
+      pronounMap = pronounMap))
   }
 
   def properReference(

@@ -22,10 +22,10 @@ import SprEnglishLemmas._
 import SprUtils._
 
 class SprEnglishSyntaxAnalyzer(
-  annotator : SilAnnotator,
+  context : SprContext,
   guessedQuestion : Boolean, strictness : SprStrictness = SPR_STRICTNESS_LOOSE,
   enforceTransitive : Boolean = true)
-    extends SprAbstractSyntaxAnalyzer(annotator, strictness)
+    extends SprAbstractSyntaxAnalyzer(context, strictness)
     with SprEnglishWordAnalyzer
 {
   override def analyzeSentence(tree : SptS)
@@ -505,8 +505,7 @@ class SprEnglishSyntaxAnalyzer(
       }
     }
     if ((components.size == 2) &&
-      ((components.head.isPronoun &&
-        isPossessiveAdjective(components.head.firstChild.token)) ||
+      (components.head.isPossessivePronoun ||
         components.head.isDemonstrative))
     {
       val pronounReference = SilExpectedPossessiveReference(components.head)
@@ -1454,7 +1453,7 @@ class SprEnglishSyntaxAnalyzer(
       : SilPronounReference =
   {
     val lemma = leaf.lemma
-    assert(isPronounWord(lemma), lemma)
+    val isCustomPronoun = !isPronounWord(lemma)
     val person = lemma match {
       case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY |
           LEMMA_OUR | LEMMA_MINE | LEMMA_OURS => PERSON_FIRST
@@ -1472,9 +1471,15 @@ class SprEnglishSyntaxAnalyzer(
       case _ => {
         person match {
           case PERSON_FIRST | PERSON_SECOND => GENDER_SOMEONE
-          // FIXME what we really want here is an uknown between NEUTER
-          // and SOMEONE, to be resolved downstream
-          case _ => GENDER_NEUTER
+          case _ => {
+            if (isCustomPronoun) {
+              GENDER_SOMEONE
+            } else {
+              // FIXME what we really want here is an uknown between
+              // NEUTER and SOMEONE, to be resolved downstream
+              GENDER_NEUTER
+            }
+          }
         }
       }
     }

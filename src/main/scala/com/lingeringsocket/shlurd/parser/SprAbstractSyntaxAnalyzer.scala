@@ -22,10 +22,12 @@ case object SPR_STRICTNESS_TIGHT extends SprStrictness
 case object SPR_STRICTNESS_LOOSE extends SprStrictness
 
 abstract class SprAbstractSyntaxAnalyzer(
-  annotator : SilAnnotator,
+  context : SprContext,
   strictness : SprStrictness = SPR_STRICTNESS_LOOSE)
     extends SprSyntaxAnalyzer
 {
+  protected def annotator = context.annotator
+
   def isStrict = (strictness == SPR_STRICTNESS_TIGHT)
 
   protected def stripPauses(tree : SprSyntaxTree)
@@ -348,12 +350,16 @@ abstract class SprAbstractSyntaxAnalyzer(
   override def isNounPhraseHead(
     tree : SprSyntaxTree) : Boolean =
   {
-    strictness match {
-      case SPR_STRICTNESS_TIGHT => {
-        tree.isNoun || tree.isGerund
-      }
-      case SPR_STRICTNESS_LOOSE => {
-        tree.isNoun || tree.isAdjectival
+    if (tree.isInstanceOf[SptNNQ]) {
+      false
+    } else {
+      strictness match {
+        case SPR_STRICTNESS_TIGHT => {
+          tree.isNoun || tree.isGerund
+        }
+        case SPR_STRICTNESS_LOOSE => {
+          tree.isNoun || tree.isAdjectival
+        }
       }
     }
   }
