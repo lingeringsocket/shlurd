@@ -714,7 +714,13 @@ class SmcResponseRewriter[
     "replaceThirdPersonPronouns", {
       case pr : SilPronounReference if (pr.person == PERSON_THIRD) => {
         refMap.get(pr).map(
-          entities => mind.specificReferences(annotator, entities)
+          entities => {
+            if (entities.isEmpty) {
+              pr
+            } else {
+              mind.specificReferences(annotator, entities)
+            }
+          }
         ).getOrElse(pr)
       }
     }
@@ -870,20 +876,26 @@ class SmcResponseRewriter[
       (trueEntities.size == resultCollector.entityMap.size) &&
         !params.neverSummarize
     val existence = resultCollector.states.isEmpty
-    if (trueEntities.isEmpty) {
-      None
-    } else if ((trueEntities.size == 1) && !params.alwaysSummarize) {
-      Some(resolveReference(
-        trueEntities.head, entityDeterminer, resultCollector))
-    } else if (exhaustive || (trueEntities.size > params.listLimit)) {
-      summarizeList(trueEntities, exhaustive, existence, false)
-    } else {
-      Some(annotator.conjunctiveRef(
-        DETERMINER_ALL,
-        trueEntities.map(
-          resolveReference(_, entityDeterminer, resultCollector)).toSeq,
-        separator))
+    val resultOpt = {
+      if (trueEntities.isEmpty) {
+        None
+      } else if ((trueEntities.size == 1) && !params.alwaysSummarize) {
+        Some(resolveReference(
+          trueEntities.head, entityDeterminer, resultCollector))
+      } else if (exhaustive || (trueEntities.size > params.listLimit)) {
+        summarizeList(trueEntities, exhaustive, existence, false)
+      } else {
+        Some(annotator.conjunctiveRef(
+          DETERMINER_ALL,
+          trueEntities.map(
+            resolveReference(_, entityDeterminer, resultCollector)).toSeq,
+          separator))
+      }
     }
+    resultOpt.foreach(result => {
+      resultCollector.refMap.put(result, trueEntities)
+    })
+    resultOpt
   }
 
   private def normalizeConjunction(

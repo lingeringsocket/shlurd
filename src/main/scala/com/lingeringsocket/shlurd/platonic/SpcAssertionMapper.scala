@@ -94,7 +94,8 @@ class SpcAssertionMapper(
     annotator : SpcAnnotator,
     phrase : PhraseType) : PhraseType =
   {
-    annotator.copy(phrase, SilPhraseCopyOptions(preserveNotes = true))
+    annotator.copy(phrase, SilPhraseCopyOptions(
+      preserveNotes = true))
   }
 
   private[platonic] def matchImplication(
@@ -149,7 +150,9 @@ class SpcAssertionMapper(
                 // avoid aliased references within tree
                 val copied = binding.annotator.copy(
                   replacement,
-                  SilPhraseCopyOptions(preserveNotes = true))
+                  SilPhraseCopyOptions(
+                    preserveNotes = true))
+                // FIXME should do this for entire subtree (not just root)
                 binding.refMapOut.foreach(refMap => {
                   refMap.get(replacement).foreach(entities => {
                     refMap.put(copied, entities)

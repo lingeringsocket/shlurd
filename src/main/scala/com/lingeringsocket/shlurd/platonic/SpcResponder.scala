@@ -119,24 +119,24 @@ class SpcContextualScorer(
 }
 
 class SpcRefNote(
-  ref : SilReference
+  ref : SilAnnotatedReference
 ) extends SmcRefNote[SpcEntity](ref)
 {
   private var form : Option[SpcForm] = None
 
   def maybeForm() : Option[SpcForm] = form
 
-  protected def copyFrom(oldNote : SpcRefNote)
+  override def mergeFrom(
+    oldNote : SilAbstractRefNote)
   {
-    super.copyFrom(oldNote)
-    form = oldNote.form
-  }
-
-  override def updateRef(newRef : SilReference) : SpcRefNote =
-  {
-    val newNote = new SpcRefNote(newRef)
-    newNote.copyFrom(this)
-    newNote
+    super.mergeFrom(oldNote)
+    oldNote matchPartial {
+      case spc : SpcRefNote => {
+        if (form.isEmpty) {
+          form = spc.form
+        }
+      }
+    }
   }
 
   def setForm(newForm : SpcForm)

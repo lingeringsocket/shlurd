@@ -1842,7 +1842,6 @@ class SpcResponderSpec extends Specification
     "detect ambiguous pronouns" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
-      skipped("not working yet")
       loadBeliefs("/ontologies/person.txt")
       processBelief("Mike is a man")
       processBelief("Ike is a man")
@@ -1853,7 +1852,10 @@ class SpcResponderSpec extends Specification
       mind.startConversation
       process("who is Mike", "He is a man.")
       process("who likes Mike", "Ike likes him.")
-      process("who is he", "Sorry, do you mean Mike or Ike?")
+      processExceptionExpected(
+        "who is he",
+        "Sorry, when you say 'he', it's ambiguous.",
+        ShlurdExceptionCode.AmbiguousPronoun)
     }
 
     "understand custom pronouns" in new ResponderContext(

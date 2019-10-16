@@ -210,7 +210,7 @@ class IndirectEntities[EntityType<:SmcEntity](
 }
 
 class SmcRefNote[EntityType<:SmcEntity](
-  ref : SilReference
+  ref : SilAnnotatedReference
 ) extends SilBasicRefNote(ref)
 {
   private var indirectEntities : Option[IndirectEntities[EntityType]] = None
@@ -276,24 +276,26 @@ class SmcRefNote[EntityType<:SmcEntity](
     }
   }
 
-  protected def copyFrom(oldNote : SmcRefNote[EntityType])
+  override def mergeFrom(
+    oldNote : SilAbstractRefNote)
   {
-    super.copyFrom(oldNote)
-    indirectEntities = oldNote.indirectEntities
-    isAnswer = oldNote.isAnswer
-  }
-
-  override def updateRef(newRef : SilReference) : SilBasicRefNote =
-  {
-    val newNote = new SmcRefNote[EntityType](newRef)
-    newNote.copyFrom(this)
-    newNote
+    super.mergeFrom(oldNote)
+    oldNote matchPartial {
+      case smc : SmcRefNote[EntityType] => {
+        if (!indirectEntities.isDefined) {
+          indirectEntities = smc.indirectEntities
+        }
+        if (!isAnswer) {
+          isAnswer = smc.isAnswer
+        }
+      }
+    }
   }
 }
 
 class SmcAnnotator[EntityType <: SmcEntity, NoteType <: SmcRefNote[EntityType]](
   mind : SmcMind[EntityType, _, _],
-  noteSupplier : (SilReference) => NoteType
+  noteSupplier : (SilAnnotatedReference) => NoteType
 ) extends SilTypedAnnotator[NoteType](noteSupplier)
 {
   override def pronounRef(

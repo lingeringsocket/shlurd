@@ -700,7 +700,8 @@ class SnavigShell(
                   phenomenalMind.getConversation.getUtterances.
                     takeRight(2).flatMap(
                       _.refMap.values.flatten)
-                if (findStale(entities).nonEmpty) {
+                val staleEntities = findStale(entities)
+                if (staleEntities.nonEmpty) {
                   assumption = "(At least I assume that's still the case.)"
                 }
               }

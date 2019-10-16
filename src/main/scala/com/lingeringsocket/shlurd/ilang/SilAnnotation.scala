@@ -21,7 +21,7 @@ import scala.collection._
 import java.util.concurrent.atomic._
 
 abstract class SilAbstractRefNote(
-  val ref : SilReference
+  val ref : SilAnnotatedReference
 ) {
   def getCount() : SilCount
 
@@ -41,11 +41,11 @@ abstract class SilAbstractRefNote(
 
   def getRef() : SilReference = ref
 
-  def updateRef(newRef : SilReference) : SilAbstractRefNote
+  def mergeFrom(oldNote : SilAbstractRefNote)
 }
 
 class SilBasicRefNote(
-  ref : SilReference
+  ref : SilAnnotatedReference
 ) extends SilAbstractRefNote(ref)
 {
   private var count : Option[SilCount] = None
@@ -95,18 +95,22 @@ class SilBasicRefNote(
     word = None
   }
 
-  protected def copyFrom(oldNote : SilBasicRefNote)
+  override def mergeFrom(
+    oldNote : SilAbstractRefNote)
   {
-    count = oldNote.count
-    word = oldNote.word
-    pronounMap = oldNote.pronounMap
-  }
-
-  override def updateRef(newRef : SilReference) : SilBasicRefNote =
-  {
-    val newNote = new SilBasicRefNote(newRef)
-    newNote.copyFrom(this)
-    newNote
+    oldNote matchPartial {
+      case basic : SilBasicRefNote => {
+        if (count.isEmpty) {
+          count = basic.count
+        }
+        if (word.isEmpty && (ref == oldNote.ref)) {
+          word = basic.word
+        }
+        if (pronounMap.isEmpty) {
+          pronounMap = basic.pronounMap
+        }
+      }
+    }
   }
 }
 
@@ -264,7 +268,7 @@ trait SilAnnotation[NoteType <: SilAbstractRefNote]
 }
 
 class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
-  noteSupplier : (SilReference) => NoteType
+  noteSupplier : (SilAnnotatedReference) => NoteType
 ) extends SilAnnotator with SilAnnotation[NoteType]
 {
   private val nextId = new AtomicInteger
@@ -328,13 +332,10 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
     oldRef : SilAnnotatedReference,
     newRef : ReferenceType
   ) {
-    val newId = newRef.getAnnotationId
-    // FIXME merge in case both old and new notes are present
-    if (oldRef.hasAnnotation && !map.contains(newId)) {
+    if ((oldRef ne newRef) && oldRef.hasAnnotation) {
       val oldNote = oldRef.getAnnotator.getBasicNote(oldRef)
-      // FIXME type checking excitement; also for indirect entity
-      // references, should avoid aliasing across annotators?
-      map.put(newId, oldNote.updateRef(newRef).asInstanceOf[NoteType])
+      val newNote = newRef.getAnnotator.getBasicNote(newRef)
+      newNote.mergeFrom(oldNote)
     }
   }
 
