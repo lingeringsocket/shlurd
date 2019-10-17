@@ -115,9 +115,7 @@ Ze responds, "Yes, I am suave."
 
 OK.
 
-// FIXME should be able to refer to "it" but for some reason
-// that gets interpreted as referring to the bathroom!
-> is the door open
+> is it open
 
 No, it is not open.
 
@@ -332,8 +330,7 @@ Oh, really?
 
 Yes, there is an ax.
 
-// FIXME should be able to refer to "it"
-> where is the ax
+> where is it
 
 It is in the bathroom.
 

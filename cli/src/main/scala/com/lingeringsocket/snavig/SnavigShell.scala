@@ -46,7 +46,9 @@ object SnavigShell
 
   private val serializer = new SnavigSerializer
 
-  private val responderParams = SmcResponseParams(verbosity = RESPONSE_COMPLETE)
+  private val responderParams = SmcResponseParams(
+    verbosity = RESPONSE_COMPLETE,
+    rememberConversation = false)
 
   private val beliefParams = SpcBeliefParams(
     createImplicitIdeals = false,
@@ -575,7 +577,9 @@ class SnavigShell(
   private val phenomenalResponder = new SnavigResponder(
     None, phenomenalMind,
     beliefParams.copy(acceptance = IGNORE_BELIEFS),
-    responderParams.copy(existenceAssumption = EXISTENCE_ASSUME_UNKNOWN),
+    responderParams.copy(
+      existenceAssumption = EXISTENCE_ASSUME_UNKNOWN,
+      rememberConversation = true),
     executor, playerToInterpreter)
 
   private val phenomenalUpdater = new SnavigResponder(

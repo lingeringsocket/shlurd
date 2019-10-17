@@ -47,7 +47,8 @@ case class SmcResponseParams(
   verbosity : SmcResponseVerbosity = RESPONSE_COMPLETE,
   existenceAssumption : SmcExistenceAssumption = EXISTENCE_ASSUME_NOTHING,
   reportExceptionCodes : Boolean = false,
-  throwRejectedBeliefs : Boolean = false
+  throwRejectedBeliefs : Boolean = false,
+  rememberConversation : Boolean = true
 )
 {
   def neverSummarize = (listLimit == Int.MaxValue)
@@ -427,8 +428,10 @@ class SmcResponder[
     debug(s"INPUT SENTENCE : $sentence")
     SilPhraseValidator.validatePhrase(sentence)
     val analyzed = mind.analyzeSense(inputAnnotator, sentence)
-    mind.rememberSpeakerSentence(
-      SmcConversation.SPEAKER_NAME_PERSON, analyzed, input)
+    if (generalParams.rememberConversation) {
+      mind.rememberSpeakerSentence(
+        SmcConversation.SPEAKER_NAME_PERSON, analyzed, input)
+    }
     val normalizedInput = newInputRewriter(inputAnnotator).
       normalizeInput(analyzed)
     if (normalizedInput != analyzed) {
@@ -454,9 +457,11 @@ class SmcResponder[
       responseReparseCollector.swapSpeakerListener = true
       resolveReferences(
         responseSentence, responseReparseCollector)
-      mind.rememberSpeakerSentence(
-        SmcConversation.SPEAKER_NAME_SHLURD,
-        responseSentence, responseText, responseReparseCollector.refMap)
+      if (generalParams.rememberConversation) {
+        mind.rememberSpeakerSentence(
+          SmcConversation.SPEAKER_NAME_SHLURD,
+          responseSentence, responseText, responseReparseCollector.refMap)
+      }
     }
     responseText
   }
@@ -584,7 +589,9 @@ class SmcResponder[
 
   protected def rememberSentenceAnalysis(resultCollector : ResultCollectorType)
   {
-    mind.rememberSentenceAnalysis(resultCollector.refMap)
+    if (generalParams.rememberConversation) {
+      mind.rememberSentenceAnalysis(resultCollector.refMap)
+    }
   }
 
   private def processStateChange(
