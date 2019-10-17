@@ -53,10 +53,23 @@ trait SmcScope[
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]]
 
+  // FIXME this is English-specific
+  private def foldThem(pr : SilPronounReference) : SilPronounReference =
+  {
+    pr match {
+      case SilPronounReference(
+        PERSON_THIRD, GENDER_SOMEONE, COUNT_PLURAL, DISTANCE_UNSPECIFIED
+      ) => {
+        pr.copy(gender = GENDER_NEUTER)
+      }
+      case _ => pr
+    }
+  }
+
   private def isPronounMatch(
     p1 : SilPronounReference, p2 : SilPronounReference) : Boolean =
   {
-    if (p1 != p2) {
+    if (foldThem(p1) != foldThem(p2)) {
       false
     } else {
       if (p1.word == p2.word) {

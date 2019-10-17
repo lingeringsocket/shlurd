@@ -29,6 +29,7 @@ import spire.math._
 import org.jgrapht._
 
 import SprEnglishLemmas._
+import SprPennTreebankLabels._
 
 class SpcMind(cosmos : SpcCosmos)
     extends SmcMind[SpcEntity, SpcProperty, SpcCosmos](cosmos)
@@ -201,9 +202,15 @@ class SpcMind(cosmos : SpcCosmos)
         val pronounMap = cosmos.getEntityPronouns(entity)
         val entityGender = cosmos.getEntityGender(entity)
         if (pronounMap.nonEmpty || entityGender != GENDER_SOMEONE) {
+          val count = {
+            pronounMap.get(SilPronounKey(LABEL_PRP, PERSON_THIRD)) match {
+              case Some(SilWordLemma(LEMMA_THEY)) => COUNT_PLURAL
+              case _ => COUNT_SINGULAR
+            }
+          }
           tupleN((
             entityGender,
-            COUNT_SINGULAR,
+            count,
             pronounMap))
         } else {
           return None

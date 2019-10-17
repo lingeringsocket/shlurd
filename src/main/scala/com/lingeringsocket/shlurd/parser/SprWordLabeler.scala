@@ -139,7 +139,7 @@ class SprWordnetLabeler(
           word.stripPrefix(quote).stripSuffix(quote)))
         Set(tree)
       } else {
-        labelWordFromDict(token, word, iToken)
+        labelWordFromDict(token, word, iToken, foldEphemeralLabels)
       }
     }
     results(iStart) ++= set
@@ -171,7 +171,8 @@ class SprWordnetLabeler(
   }
 
   private def labelWordFromDict(
-    token : String, word : String, iToken : Int) : Set[SprSyntaxTree] =
+    token : String, word : String, iToken : Int,
+    foldEphemeralLabels : Boolean) : Set[SprSyntaxTree] =
   {
     val (tokenPrefix, tokenSuffix) = {
       val iHyphen = token.lastIndexOf('-')
@@ -243,6 +244,8 @@ class SprWordnetLabeler(
           Set(SptPRP_POS(leaf), SptPRP(leaf))
         } else if (isPossessiveAdjective(token)) {
           Set(SptPRP_POS(leaf))
+        } else if ((token == LEMMA_THEM) && !foldEphemeralLabels) {
+          Set(SprSyntaxRewriter.recompose(LABEL_PRP_OBJ, Seq(leaf)))
         } else {
           Set(SptPRP(leaf))
         }

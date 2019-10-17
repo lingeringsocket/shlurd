@@ -1867,6 +1867,7 @@ class SpcResponderSpec extends Specification
         "a possessive pronoun")
       processBelief("Pat is a person")
       processBelief("Chris is a person")
+      processBelief("Alex is a person")
       processBelief("A person's fan must be a person")
       processBelief("Chris is Pat's fan")
       processBelief("Pat is Chris's fan")
@@ -1874,6 +1875,8 @@ class SpcResponderSpec extends Specification
         "equivalently the former is the latter's fan")
       processBelief(
         "Pat's spc-pronoun-list is \"ze, zir\"")
+      processBelief(
+        "Alex's spc-pronoun-list is \"they, them, their\"")
 
       mind.startConversation
       process("who is Pat", "Ze is Chris' fan.")
@@ -1884,6 +1887,11 @@ class SpcResponderSpec extends Specification
       process("who is Chris", "Chris is Pat's fan.")
       process("who likes Chris", "Pat likes Chris.")
       process("who is Chris' fan", "Chris' fan is Pat.")
+
+      // Alex uses the singular they
+      process("who is Alex", "They are a person.")
+      process("who likes them", "No one likes them.")
+      process("who is their fan", "No one is their fan.")
     }
 
     "derive types" >> new ResponderContext
