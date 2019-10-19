@@ -54,6 +54,7 @@ sealed trait SilDistance
 case object DISTANCE_HERE extends SilDistance
 case object DISTANCE_THERE extends SilDistance
 case object DISTANCE_UNSPECIFIED extends SilDistance
+case object DISTANCE_REFLEXIVE extends SilDistance
 
 sealed trait SilCompoundStyle
 case object COMPOUND_OPEN extends SilCompoundStyle

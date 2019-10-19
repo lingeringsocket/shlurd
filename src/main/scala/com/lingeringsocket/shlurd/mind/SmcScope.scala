@@ -58,7 +58,8 @@ trait SmcScope[
   {
     pr match {
       case SilPronounReference(
-        PERSON_THIRD, GENDER_SOMEONE, COUNT_PLURAL, DISTANCE_UNSPECIFIED
+        PERSON_THIRD, GENDER_SOMEONE, COUNT_PLURAL,
+        DISTANCE_UNSPECIFIED | DISTANCE_REFLEXIVE
       ) => {
         pr.copy(gender = GENDER_NEUTER)
       }
@@ -66,10 +67,25 @@ trait SmcScope[
     }
   }
 
+  // FIXME context
+  private def foldReflexives(pr : SilPronounReference) : SilPronounReference =
+  {
+    if (pr.isReflexive) {
+      pr.copy(distance = DISTANCE_UNSPECIFIED)
+    } else {
+      pr
+    }
+  }
+
+  private def foldSpecialCases(pr : SilPronounReference) : SilPronounReference =
+  {
+    foldThem(foldReflexives(pr))
+  }
+
   private def isPronounMatch(
     p1 : SilPronounReference, p2 : SilPronounReference) : Boolean =
   {
-    if (foldThem(p1) != foldThem(p2)) {
+    if (foldSpecialCases(p1) != foldSpecialCases(p2)) {
       false
     } else {
       if (p1.word == p2.word) {
@@ -199,7 +215,7 @@ class SmcMindScope[
         Seq(SmcScopeOutput(None, Set(entity)))
       }
       case _ => {
-        if (reference.distance != DISTANCE_UNSPECIFIED) {
+        if (reference.isDemonstrative) {
           // FIXME proper resolution for this/that
           Seq(SmcScopeOutput(None, Set.empty[EntityType]))
         } else {
@@ -401,7 +417,9 @@ class SmcPhraseScope[
   ) : Try[SmcScopeOutput[EntityType]] =
   {
     val outputs = ref match {
-      case SilPronounReference(PERSON_THIRD, _, _, DISTANCE_UNSPECIFIED) => {
+      case SilPronounReference(
+        PERSON_THIRD, _, _, DISTANCE_UNSPECIFIED | DISTANCE_REFLEXIVE
+      ) => {
         findMatchingPronounReference(annotator, refMap, ref)
       }
       case _ => Seq.empty

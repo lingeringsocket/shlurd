@@ -79,6 +79,8 @@ class SprParserSpec extends Specification
 
   private val ACTION_ASK = SilWord("ask")
 
+  private val ACTION_ASKS = SilWord("asks", "ask")
+
   private val STATE_CLOSE = SilWord("close")
 
   private val ACTION_CARRYING = SilWord("carrying", "carry")
@@ -717,6 +719,23 @@ class SprParserSpec extends Specification
               SilAdposition.AT,
               annotator.nounRef(NOUN_HOME))),
           SilTam.interrogative)
+    }
+
+    "parse reflexive pronouns" in
+    {
+      val input = "Franny asks herself"
+      parse(input) must be equalTo SilPredicateSentence(
+        SilActionPredicate(
+          annotator.nounRef(NOUN_FRANNY),
+          ACTION_ASKS,
+          Some(
+            annotator.pronounRef(
+              PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR,
+              DISTANCE_REFLEXIVE)
+          )
+        ),
+        SilTam.indicative
+      )
     }
 
     "parse possessive reference" in

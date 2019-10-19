@@ -362,6 +362,15 @@ class SilSentencePrinterSpec extends Specification
       expectNormalized(
         "can not the door be closed",
         "can the door not be closed?")
+      expectStatement("I kicked myself")
+      expectStatement("you kicked yourself")
+      expectStatement("he kicked himself")
+      expectStatement("she kicked herself")
+      expectStatement("we kicked ourself")
+      expectStatement("we kicked ourselves")
+      expectStatement("you kicked yourselves")
+      expectStatement("they kicked themself")
+      expectStatement("they kicked themselves")
     }
   }
 

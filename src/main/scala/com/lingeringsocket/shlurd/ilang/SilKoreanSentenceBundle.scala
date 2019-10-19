@@ -256,6 +256,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     distance : SilDistance, word : Option[SilWord], inflection : SilInflection,
     conjoining : SilConjoining) =
   {
+    // FIXME handle reflexives
     // FIXME use word
     def standard = person match {
       case PERSON_FIRST => count match {
@@ -283,7 +284,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
               inflectPronoun("이것들", inflection, conjoining)
             case DISTANCE_THERE =>
               inflectPronoun("그것들", inflection, conjoining)
-            case DISTANCE_UNSPECIFIED =>
+            case DISTANCE_UNSPECIFIED | DISTANCE_REFLEXIVE =>
               inflectPronoun("그들", inflection, conjoining)
           }
         }

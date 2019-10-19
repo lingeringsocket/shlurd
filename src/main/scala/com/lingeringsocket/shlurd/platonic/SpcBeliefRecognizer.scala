@@ -98,6 +98,8 @@ object SpcBeliefRecognizer
         Some(LABEL_PRP)
       case Seq(SilWordLemma("objective"), SilWordLemma("pronoun")) =>
         Some(LABEL_PRP_OBJ)
+      case Seq(SilWordLemma("reflexive"), SilWordLemma("pronoun")) =>
+        Some(LABEL_PRP_REFLEXIVE)
       case Seq(SilWordLemma("possessive"), SilWordLemma("pronoun")) =>
         Some(LABEL_PRP_POS)
       case Seq(SilWordLemma("conjunction")) => Some(LABEL_CC)
@@ -1386,10 +1388,8 @@ class SpcBeliefRecognizer(
       // "after this | that"
       case SilAdpositionalVerbModifier(
         SilAdposition.AFTER,
-        SilPronounReference(
-          _, _, _,
-          DISTANCE_HERE | DISTANCE_THERE)
-      ) => true
+        pr : SilPronounReference
+      ) if (pr.isDemonstrative) => true
       case _ => false
     }
   }

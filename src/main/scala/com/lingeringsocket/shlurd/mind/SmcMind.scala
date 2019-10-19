@@ -32,6 +32,8 @@ object SmcMind
       SilWord(LEMMA_IT),
     SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
       SilWord(LEMMA_IT),
+    SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
+      SilWord(LEMMA_ITSELF),
     SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
       SilWord(LEMMA_ITS)
   )
@@ -41,6 +43,8 @@ object SmcMind
       SilWord(LEMMA_THEY),
     SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
       SilWord(LEMMA_THEM),
+    SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
+      SilWord(LEMMA_THEMSELVES),
     SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
       SilWord(LEMMA_THEIR)
   )
@@ -50,6 +54,8 @@ object SmcMind
       SilWord(LEMMA_HE),
     SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
       SilWord(LEMMA_HIM),
+    SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
+      SilWord(LEMMA_HIMSELF),
     SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
       SilWord(LEMMA_HIS)
   )
@@ -59,6 +65,8 @@ object SmcMind
       SilWord(LEMMA_SHE),
     SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
       SilWord(LEMMA_HER),
+    SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
+      SilWord(LEMMA_HERSELF),
     SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
       SilWord(LEMMA_HER)
   )

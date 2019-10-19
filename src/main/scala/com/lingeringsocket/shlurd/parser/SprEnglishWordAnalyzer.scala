@@ -75,6 +75,17 @@ trait SprEnglishWordAnalyzer
     }
   }
 
+  def isReflexivePronoun(token : String) : Boolean =
+  {
+    token match {
+      case LEMMA_MYSELF | LEMMA_YOURSELF | LEMMA_HIMSELF |
+          LEMMA_HERSELF | LEMMA_ITSELF | LEMMA_OURSELF |
+          LEMMA_OURSELVES | LEMMA_YOURSELVES | LEMMA_THEMSELF |
+          LEMMA_THEMSELVES => true
+      case _ => false
+    }
+  }
+
   def isPossessiveAdjective(token : String) : Boolean =
   {
     token match {
@@ -102,13 +113,16 @@ trait SprEnglishWordAnalyzer
   def isPronounWord(lemma : String) : Boolean =
   {
     lemma match {
-      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY |
+      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY | LEMMA_MYSELF |
           LEMMA_OUR | LEMMA_MINE | LEMMA_OURS |
+          LEMMA_OURSELF | LEMMA_OURSELVES |
           LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS |
+          LEMMA_YOURSELF | LEMMA_YOURSELVES |
           LEMMA_US | LEMMA_THEY | LEMMA_THESE | LEMMA_THOSE |
           LEMMA_IT | LEMMA_ITS | LEMMA_THEM | LEMMA_THEIR |
-          LEMMA_HE | LEMMA_HIM | LEMMA_HIS |
-          LEMMA_SHE | LEMMA_HER | LEMMA_HERS |
+          LEMMA_THEMSELF | LEMMA_THEMSELVES |
+          LEMMA_HE | LEMMA_HIM | LEMMA_HIS | LEMMA_HIMSELF |
+          LEMMA_SHE | LEMMA_HER | LEMMA_HERS | LEMMA_HERSELF |
           LEMMA_THIS | LEMMA_THAT => true
       case _ => false
     }

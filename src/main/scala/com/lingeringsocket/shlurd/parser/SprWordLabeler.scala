@@ -146,6 +146,18 @@ class SprWordnetLabeler(
     iStart + 1
   }
 
+  private def foldEphemeral(
+    label : String, foldEphemeralLabels : Boolean) : String =
+  {
+    if (foldEphemeralLabels &&
+      ((label == LABEL_PRP_OBJ) || (label == LABEL_PRP_REFLEXIVE))
+    ) {
+      LABEL_PRP
+    } else {
+      label
+    }
+  }
+
   private def labelWordFromRule(
     token : String,
     word : String,
@@ -158,13 +170,7 @@ class SprWordnetLabeler(
         SptNNP(leaf)
       } else {
         val leaf = makeLeaf(word, token)
-        val foldedLabel = {
-          if (foldEphemeralLabels && (label == LABEL_PRP_OBJ)) {
-            LABEL_PRP
-          } else {
-            label
-          }
-        }
+        val foldedLabel = foldEphemeral(label, foldEphemeralLabels)
         SprSyntaxRewriter.recompose(foldedLabel, Seq(leaf))
       }
     }))
@@ -246,6 +252,8 @@ class SprWordnetLabeler(
           Set(SptPRP_POS(leaf))
         } else if ((token == LEMMA_THEM) && !foldEphemeralLabels) {
           Set(SprSyntaxRewriter.recompose(LABEL_PRP_OBJ, Seq(leaf)))
+        } else if (isReflexivePronoun(token) && !foldEphemeralLabels) {
+          Set(SprSyntaxRewriter.recompose(LABEL_PRP_REFLEXIVE, Seq(leaf)))
         } else {
           Set(SptPRP(leaf))
         }

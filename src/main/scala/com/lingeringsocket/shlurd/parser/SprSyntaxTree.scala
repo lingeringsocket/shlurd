@@ -63,8 +63,9 @@ object SprPennTreebankLabels
   val LABEL_DT = label("DT")
   val LABEL_CC = label("CC")
   val LABEL_PRP = label("PRP")
-  // ephemeral label used for pronoun objective case
+  // ephemeral labels used for pronoun special cases
   val LABEL_PRP_OBJ = "PRP_OBJ"
+  val LABEL_PRP_REFLEXIVE = "PRP_REFLEXIVE"
   val LABEL_PRP_POS = label("PRP$")
   val LABEL_JJ = label("JJ")
   val LABEL_JJR = label("JJR")

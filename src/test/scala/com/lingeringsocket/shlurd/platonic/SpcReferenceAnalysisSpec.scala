@@ -115,6 +115,8 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
         PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR)
       val heRef = annotator.pronounRef(
         PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR)
+      val himselfRef = annotator.pronounRef(
+        PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR, DISTANCE_REFLEXIVE)
       val isaResult = analyze(s"$ivan is a mule")
       val ivanEntity = expectProperName(ivan)
       val ivanSet = Set(ivanEntity)
@@ -156,7 +158,27 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
         natashaRef -> natashaSet,
         heRef -> borisSet
       )
+      analyze(s"he loves himself") must be equalTo Map(
+        heRef -> borisSet,
+        himselfRef -> borisSet
+      )
       stopSequence
+
+      if (false) {
+        startSequence
+        analyze(s"$boris is happy") must be equalTo Map(
+          borisRef -> borisSet
+        )
+        analyze(s"$ivan loves him") must be equalTo Map(
+          ivanRef -> ivanSet,
+          heRef -> borisSet
+        )
+        analyze(s"$ivan loves himself") must be equalTo Map(
+          ivanRef -> ivanSet,
+          himselfRef -> ivanSet
+        )
+        stopSequence
+      }
 
       startSequence
       analyze(s"$boris is happy") must be equalTo Map(

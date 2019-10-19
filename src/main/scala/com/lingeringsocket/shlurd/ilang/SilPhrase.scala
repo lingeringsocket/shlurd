@@ -703,10 +703,23 @@ case class SilPronounReference private(
     })
   }
 
-  def pronounMap : SilPronounMap =
+  def pronounMap() : SilPronounMap =
   {
     maybeAnnotator.map(_.getBasicNote(this).getPronounMap).
       getOrElse(SilPronounMap())
+  }
+
+  def isDemonstrative() : Boolean =
+  {
+    distance match {
+      case DISTANCE_HERE | DISTANCE_THERE => true
+      case _ => false
+    }
+  }
+
+  def isReflexive() : Boolean =
+  {
+    distance == DISTANCE_REFLEXIVE
   }
 }
 

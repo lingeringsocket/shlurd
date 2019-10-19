@@ -1455,19 +1455,23 @@ class SprEnglishSyntaxAnalyzer(
     val lemma = leaf.lemma
     val isCustomPronoun = !isPronounWord(lemma)
     val person = lemma match {
-      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY |
-          LEMMA_OUR | LEMMA_MINE | LEMMA_OURS => PERSON_FIRST
-      case LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS => PERSON_SECOND
+      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY | LEMMA_MYSELF |
+          LEMMA_OUR | LEMMA_MINE | LEMMA_OURS |
+          LEMMA_OURSELF | LEMMA_OURSELVES => PERSON_FIRST
+      case LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS |
+          LEMMA_YOURSELF | LEMMA_YOURSELVES => PERSON_SECOND
       case _ => PERSON_THIRD
     }
     val count = lemma match {
       case LEMMA_WE | LEMMA_US | LEMMA_THEY | LEMMA_THESE | LEMMA_THOSE |
-          LEMMA_OUR | LEMMA_THEM | LEMMA_THEIR => COUNT_PLURAL
+          LEMMA_OUR | LEMMA_THEM | LEMMA_THEIR |
+          LEMMA_OURSELF | LEMMA_OURSELVES | LEMMA_YOURSELVES |
+          LEMMA_THEMSELF | LEMMA_THEMSELVES => COUNT_PLURAL
       case _ => COUNT_SINGULAR
     }
     val gender = lemma match {
-      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS => GENDER_MASCULINE
-      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS => GENDER_FEMININE
+      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS | LEMMA_HIMSELF => GENDER_MASCULINE
+      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS | LEMMA_HERSELF => GENDER_FEMININE
       case _ => {
         person match {
           case PERSON_FIRST | PERSON_SECOND => GENDER_SOMEONE
@@ -1486,7 +1490,13 @@ class SprEnglishSyntaxAnalyzer(
     val distance = lemma match {
       case LEMMA_THIS | LEMMA_THESE => DISTANCE_HERE
       case LEMMA_THAT | LEMMA_THOSE => DISTANCE_THERE
-      case _ => DISTANCE_UNSPECIFIED
+      case _ => {
+        if (isReflexivePronoun(lemma)) {
+          DISTANCE_REFLEXIVE
+        } else {
+          DISTANCE_UNSPECIFIED
+        }
+      }
     }
     annotator.pronounRef(
       person, gender, count, distance, Some(getWord(leaf)))

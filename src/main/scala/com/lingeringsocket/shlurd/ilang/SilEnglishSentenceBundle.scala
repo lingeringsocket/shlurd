@@ -687,17 +687,31 @@ class SilEnglishSentenceBundle
           case COUNT_PLURAL => inflection match {
             case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_US
             case INFLECT_GENITIVE => LEMMA_OUR
-            case _ => LEMMA_WE
+            case _ => distance match {
+              case DISTANCE_REFLEXIVE => LEMMA_OURSELVES
+              case _ => LEMMA_WE
+            }
           }
-          case _ => inflection match {
-            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_ME
-            case INFLECT_GENITIVE => LEMMA_MY
-            case _ => "I"
+          case _ => distance match {
+            case DISTANCE_REFLEXIVE => LEMMA_MYSELF
+            case _ => inflection match {
+              case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_ME
+              case INFLECT_GENITIVE => LEMMA_MY
+              case _ => "I"
+            }
           }
         }
         case PERSON_SECOND => inflection match {
           case INFLECT_GENITIVE => LEMMA_YOUR
-          case _ => LEMMA_YOU
+          case _ => {
+            distance match {
+              case DISTANCE_REFLEXIVE => count match {
+                case COUNT_PLURAL => LEMMA_YOURSELVES
+                case _ => LEMMA_YOURSELF
+              }
+              case _ => LEMMA_YOU
+            }
+          }
         }
         case PERSON_THIRD => count match {
           case COUNT_PLURAL => distance match {
@@ -708,17 +722,24 @@ class SilEnglishSentenceBundle
               case INFLECT_GENITIVE => LEMMA_THEIR
               case _ => LEMMA_THEY
             }
+            case DISTANCE_REFLEXIVE => LEMMA_THEMSELVES
           }
           case _ => gender.maybeBasic match {
-            case Some(GENDER_MASCULINE | GENDER_SOMEONE) => inflection match {
-              case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_HIM
-              case INFLECT_GENITIVE => LEMMA_HIS
-              case _ => LEMMA_HE
+            case Some(GENDER_MASCULINE | GENDER_SOMEONE) => distance match {
+              case DISTANCE_REFLEXIVE => LEMMA_HIMSELF
+              case _ => inflection match {
+                case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_HIM
+                case INFLECT_GENITIVE => LEMMA_HIS
+                case _ => LEMMA_HE
+              }
             }
-            case Some(GENDER_FEMININE) => inflection match {
-              case INFLECT_ACCUSATIVE | INFLECT_GENITIVE |
-                  INFLECT_ADPOSITIONED => LEMMA_HER
-              case _ => LEMMA_SHE
+            case Some(GENDER_FEMININE) => distance match {
+              case DISTANCE_REFLEXIVE => LEMMA_HERSELF
+              case _ => inflection match {
+                case INFLECT_ACCUSATIVE | INFLECT_GENITIVE |
+                    INFLECT_ADPOSITIONED => LEMMA_HER
+                case _ => LEMMA_SHE
+              }
             }
             case Some(GENDER_NEUTER) => distance match {
               case DISTANCE_HERE => LEMMA_THIS
@@ -727,6 +748,7 @@ class SilEnglishSentenceBundle
                 case INFLECT_GENITIVE => LEMMA_ITS
                 case _ => LEMMA_IT
               }
+              case DISTANCE_REFLEXIVE => LEMMA_ITSELF
             }
             case _ => {
               throw new IllegalArgumentException("custom pronoun word required")
