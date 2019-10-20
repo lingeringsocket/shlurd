@@ -218,20 +218,11 @@ class SmcRefNote[EntityType<:SmcEntity](
 
   private var isAnswer : Boolean = false
 
-  private var context : Option[SilReferenceContext] = None
-
   def isQueryAnswer = isAnswer
 
   def markQueryAnswer()
   {
     isAnswer = true
-  }
-
-  def getContext() : Option[SilReferenceContext] = context
-
-  def setContext(newContext : SilReferenceContext)
-  {
-    context = Some(newContext)
   }
 
   def getEntities() : Option[Set[EntityType]] =
@@ -297,9 +288,6 @@ class SmcRefNote[EntityType<:SmcEntity](
         }
         if (!isAnswer) {
           isAnswer = smc.isAnswer
-        }
-        if (!context.isDefined) {
-          context = smc.context
         }
       }
     }

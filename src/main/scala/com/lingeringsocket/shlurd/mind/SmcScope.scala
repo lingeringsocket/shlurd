@@ -82,29 +82,96 @@ trait SmcScope[
     foldThem(foldReflexives(pr))
   }
 
-  private def isPronounMatch(
+  private def getPredicate(ref : SilReference) : Option[SilPredicate] =
+  {
+    ref match {
+      case ar : SilAnnotatedReference => {
+        ar.getAnnotator.getBasicNote(ar).getPredicate
+      }
+      case _ => None
+    }
+  }
+
+  private def getContext(ref : SilReference) : SilReferenceContext =
+  {
+    val contextOpt = ref match {
+      case ar : SilAnnotatedReference => {
+        ar.getAnnotator.getBasicNote(ar).getContext
+      }
+      case _ => None
+    }
+    contextOpt.getOrElse(REF_SUBJECT)
+  }
+
+  private def isReflexiveMatch(
     p1 : SilPronounReference, p2 : SilPronounReference) : Boolean =
+  {
+    (getContext(p1) == REF_SUBJECT) && p2.isReflexive
+  }
+
+  private def isNonReflexiveMatch(
+    p1 : SilPronounReference, p2 : SilPronounReference,
+    flipped : Boolean = false) : Boolean =
+  {
+    // FIXME what about "he kicked him and his dog out of the house"?
+    val c1 = getContext(p1)
+    val c2 = getContext(p2)
+    if (c1 == REF_SUBJECT) {
+      c2 match {
+        case REF_DIRECT_OBJECT | REF_ADPOSITION_OBJ => false
+        case _ => true
+      }
+    } else if (flipped) {
+      true
+    } else {
+      isNonReflexiveMatch(p2, p1, true)
+    }
+  }
+
+  private def isPronounMatch(
+    p1 : SilPronounReference, p2 : SilPronounReference,
+    samePhrase : Boolean) : Boolean =
   {
     if (foldSpecialCases(p1) != foldSpecialCases(p2)) {
       false
     } else {
-      if (p1.word == p2.word) {
-        true
-      } else if (p1.word.nonEmpty) {
-        p2.pronounMap.values.exists(_ == p1.word.get)
-      } else if (p2.word.nonEmpty) {
-        p1.pronounMap.values.exists(_ == p2.word.get)
-      } else {
-        false
+      val reflexiveMatch = {
+        if (p1.isReflexive || p2.isReflexive) {
+          if (!samePhrase) {
+            false
+          } else if (p1.isReflexive && p2.isReflexive) {
+            true
+          } else {
+            isReflexiveMatch(p1, p2) || isReflexiveMatch(p2, p1)
+          }
+        } else if (samePhrase) {
+          isNonReflexiveMatch(p1, p2)
+        } else {
+          true
+        }
       }
+      val pronounMatch = {
+        if (p1.word == p2.word) {
+          true
+        } else if (p1.word.nonEmpty) {
+          p2.pronounMap.values.exists(_ == p1.word.get)
+        } else if (p2.word.nonEmpty) {
+          p1.pronounMap.values.exists(_ == p2.word.get)
+        } else {
+          false
+        }
+      }
+      reflexiveMatch && pronounMatch
     }
   }
 
   protected def findMatchingPronounReference(
     annotator : AnnotatorType,
     refMap : SmcRefMap[EntityType],
-    reference : SilPronounReference) : Seq[SmcScopeOutput[EntityType]] =
+    reference : SilPronounReference,
+    samePhrase : Boolean) : Seq[SmcScopeOutput[EntityType]] =
   {
+    val refPredicate = getPredicate(reference)
     var skip = false
     refMap.filter {
       case (prior, set) => {
@@ -117,7 +184,19 @@ trait SmcScope[
           } else {
             getMind.thirdPersonReference(annotator, set) match {
               case Some(pr : SilPronounReference) => {
-                isPronounMatch(pr, reference)
+                val note = annotator.getNote(pr)
+                note.setContext(getContext(prior))
+                val priorPredicate = getPredicate(prior)
+                priorPredicate.foreach(
+                  predicate => note.setPredicate(predicate))
+                val reallySamePhrase = {
+                  if (samePhrase) {
+                    priorPredicate == refPredicate
+                  } else {
+                    false
+                  }
+                }
+                isPronounMatch(pr, reference, reallySamePhrase)
               }
               case _ => false
             }
@@ -227,7 +306,7 @@ class SmcMindScope[
               utterance => {
                 findMatchingPronounReference(
                   annotator,
-                  utterance.refMap, reference
+                  utterance.refMap, reference, false
                 )
               }
             ).find(_.nonEmpty).getOrElse(Seq.empty)
@@ -420,7 +499,7 @@ class SmcPhraseScope[
       case SilPronounReference(
         PERSON_THIRD, _, _, DISTANCE_UNSPECIFIED | DISTANCE_REFLEXIVE
       ) => {
-        findMatchingPronounReference(annotator, refMap, ref)
+        findMatchingPronounReference(annotator, refMap, ref, true)
       }
       case _ => Seq.empty
     }

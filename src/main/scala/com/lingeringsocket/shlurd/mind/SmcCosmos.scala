@@ -23,16 +23,6 @@ import spire.math._
 import scala.util._
 import scala.collection._
 
-sealed trait SilReferenceContext
-case object REF_SUBJECT extends SilReferenceContext
-case object REF_COMPLEMENT extends SilReferenceContext
-case object REF_DIRECT_OBJECT extends SilReferenceContext
-case object REF_ADPOSITION_OBJ extends SilReferenceContext
-case object REF_ADPOSITION_SUBJ extends SilReferenceContext
-case object REF_GENITIVE_POSSESSOR extends SilReferenceContext
-case object REF_GENITIVE_POSSESSEE extends SilReferenceContext
-case object REF_SPECIFIED extends SilReferenceContext
-
 trait SmcEntity
 {
   def isTentative : Boolean = false

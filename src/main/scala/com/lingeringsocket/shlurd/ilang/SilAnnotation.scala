@@ -39,6 +39,14 @@ abstract class SilAbstractRefNote(
 
   def setPronounMap(pronounMap : SilPronounMap)
 
+  def getContext() : Option[SilReferenceContext]
+
+  def setContext(context : SilReferenceContext)
+
+  def getPredicate() : Option[SilPredicate]
+
+  def setPredicate(predicate : SilPredicate)
+
   def getRef() : SilReference = ref
 
   def mergeFrom(oldNote : SilAbstractRefNote)
@@ -53,6 +61,10 @@ class SilBasicRefNote(
   private var word : Option[SilWord] = None
 
   private var pronounMap : SilPronounMap = SilPronounMap()
+
+  private var context : Option[SilReferenceContext] = None
+
+  private var predicate : Option[SilPredicate] = None
 
   override def hasCount() : Boolean =
   {
@@ -95,6 +107,20 @@ class SilBasicRefNote(
     word = None
   }
 
+  override def getContext() : Option[SilReferenceContext] = context
+
+  override def setContext(newContext : SilReferenceContext)
+  {
+    context = Some(newContext)
+  }
+
+  override def getPredicate() : Option[SilPredicate] = predicate
+
+  override def setPredicate(newPredicate : SilPredicate)
+  {
+    predicate = Some(newPredicate)
+  }
+
   override def mergeFrom(
     oldNote : SilAbstractRefNote)
   {
@@ -108,6 +134,12 @@ class SilBasicRefNote(
         }
         if (pronounMap.isEmpty) {
           pronounMap = basic.pronounMap
+        }
+        if (!context.isDefined) {
+          context = basic.context
+        }
+        if (!predicate.isDefined) {
+          predicate = basic.predicate
         }
       }
     }

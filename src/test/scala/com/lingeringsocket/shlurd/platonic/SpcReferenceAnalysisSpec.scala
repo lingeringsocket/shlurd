@@ -177,21 +177,19 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       )
       stopSequence
 
-      if (false) {
-        startSequence
-        analyze(s"$boris is happy") must be equalTo Map(
-          borisRef -> tupleN((REF_SUBJECT, borisSet))
-        )
-        analyze(s"$ivan loves him") must be equalTo Map(
-          ivanRef -> tupleN((REF_SUBJECT, ivanSet)),
-          heRef -> tupleN((REF_DIRECT_OBJECT, borisSet))
-        )
-        analyze(s"$ivan loves himself") must be equalTo Map(
-          ivanRef -> tupleN((REF_SUBJECT, ivanSet)),
-          himselfRef -> tupleN((REF_DIRECT_OBJECT, ivanSet))
-        )
-        stopSequence
-      }
+      startSequence
+      analyze(s"$boris is happy") must be equalTo Map(
+        borisRef -> tupleN((REF_SUBJECT, borisSet))
+      )
+      analyze(s"$ivan loves him") must be equalTo Map(
+        ivanRef -> tupleN((REF_SUBJECT, ivanSet)),
+        heRef -> tupleN((REF_DIRECT_OBJECT, borisSet))
+      )
+      analyze(s"$ivan loves himself") must be equalTo Map(
+        ivanRef -> tupleN((REF_SUBJECT, ivanSet)),
+        himselfRef -> tupleN((REF_DIRECT_OBJECT, ivanSet))
+      )
+      stopSequence
 
       startSequence
       analyze(s"$boris is happy") must be equalTo Map(

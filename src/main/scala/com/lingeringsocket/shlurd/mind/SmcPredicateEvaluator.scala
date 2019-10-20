@@ -344,11 +344,14 @@ class SmcPredicateEvaluator[
     }
 
     val annotator = resultCollector.annotator
+    var currentPredicate : Option[SilPredicate] = None
     def updateContext(ref : SilReference, context : SilReferenceContext)
     {
       ref matchPartial {
         case ar : SilAnnotatedReference => {
-          annotator.getNote(ar).setContext(context)
+          val note = annotator.getNote(ar)
+          note.setContext(context)
+          currentPredicate.foreach(pred => note.setPredicate(pred))
         }
       }
     }
@@ -363,12 +366,14 @@ class SmcPredicateEvaluator[
     }
 
     val contextAnalyzer = phraseQuerier.queryMatcher {
-      case SilStatePredicate(subjectRef, verb, state, modifiers) => {
+      case sp @ SilStatePredicate(subjectRef, verb, state, modifiers) => {
+        currentPredicate = Some(sp)
         updateContext(subjectRef, subjectStateContext(state))
       }
-      case SilRelationshipPredicate(
+      case rp @ SilRelationshipPredicate(
         subjectRef, verb, complementRef, modifiers
       ) => {
+        currentPredicate = Some(rp)
         updateContext(subjectRef, relationshipSubjectContext(verb))
         val (context, categoryLabel) =
           relationshipComplementContext(verb, complementRef)
@@ -382,7 +387,8 @@ class SmcPredicateEvaluator[
           }
         }
       }
-      case SilActionPredicate(subject, verb, directObject, modifiers) => {
+      case ap @ SilActionPredicate(subject, verb, directObject, modifiers) => {
+        currentPredicate = Some(ap)
         updateContext(subject, REF_SUBJECT)
         directObject.foreach(updateContext(_, REF_DIRECT_OBJECT))
       }
