@@ -296,8 +296,6 @@ class SmcPredicateEvaluator[
     throwFailures : Boolean = false,
     reify : Boolean = false) : Try[Trilean] =
   {
-    val contextMap =
-      new IdentityLinkedHashMap[SilReference, SilReferenceContext]
     val phraseQuerier = new SilPhraseQuerier
 
     def resolveOne(
@@ -345,55 +343,74 @@ class SmcPredicateEvaluator[
       }
     }
 
+    val annotator = resultCollector.annotator
+    def updateContext(ref : SilReference, context : SilReferenceContext)
+    {
+      ref matchPartial {
+        case ar : SilAnnotatedReference => {
+          annotator.getNote(ar).setContext(context)
+        }
+      }
+    }
+    def getContext(ref : SilReference) =
+    {
+      ref match {
+        case ar : SilAnnotatedReference => {
+          annotator.getNote(ar).getContext
+        }
+        case _ => None
+      }
+    }
+
     val contextAnalyzer = phraseQuerier.queryMatcher {
       case SilStatePredicate(subjectRef, verb, state, modifiers) => {
-        contextMap.put(subjectRef, subjectStateContext(state))
+        updateContext(subjectRef, subjectStateContext(state))
       }
       case SilRelationshipPredicate(
         subjectRef, verb, complementRef, modifiers
       ) => {
-        contextMap.put(subjectRef, relationshipSubjectContext(verb))
+        updateContext(subjectRef, relationshipSubjectContext(verb))
         val (context, categoryLabel) =
           relationshipComplementContext(verb, complementRef)
         if (SilRelationshipPredef(verb) == REL_PREDEF_ASSOC) {
           if (extractRoleQualifiers(complementRef).size != 1) {
-            contextMap.put(complementRef, context)
+            updateContext(complementRef, context)
           }
         } else {
           if (categoryLabel.isEmpty) {
-            contextMap.put(complementRef, context)
+            updateContext(complementRef, context)
           }
         }
       }
       case SilActionPredicate(subject, verb, directObject, modifiers) => {
-        contextMap.put(subject, REF_SUBJECT)
-        directObject.foreach(contextMap.put(_, REF_DIRECT_OBJECT))
+        updateContext(subject, REF_SUBJECT)
+        directObject.foreach(updateContext(_, REF_DIRECT_OBJECT))
       }
       case ap : SilAdpositionalPhrase => {
-        contextMap.put(ap.objRef, REF_ADPOSITION_OBJ)
+        updateContext(ap.objRef, REF_ADPOSITION_OBJ)
       }
       case SilGenitiveReference(possessor, possessee) => {
-        contextMap.put(possessor, REF_GENITIVE_POSSESSOR)
+        updateContext(possessor, REF_GENITIVE_POSSESSOR)
       }
       case SilStateSpecifiedReference(sub, _) => {
-        contextMap.put(sub, REF_SPECIFIED)
+        updateContext(sub, REF_SPECIFIED)
       }
       case SilDeterminedReference(_, _) => {
       }
       case ar @ SilAppositionalReference(primary, _) => {
-        contextMap.get(ar).foreach(context => {
-          contextMap.put(primary, context)
+        getContext(ar).foreach(context => {
+          updateContext(primary, context)
         })
       }
       case ref : SilReference => {
-        contextMap.get(ref).foreach(context => {
-          ref.childReferences.foreach(child => contextMap.put(child, context))
+        getContext(ref).foreach(context => {
+          ref.childReferences.foreach(child => updateContext(child, context))
         })
       }
     }
     val referenceResolver = phraseQuerier.queryMatcher {
       case ref : SilReference => {
-        contextMap.get(ref).foreach(context => {
+        getContext(ref).foreach(context => {
           if (context != REF_SPECIFIED) {
             resolveOne(ref, context)
           }
