@@ -1851,6 +1851,10 @@ class SpcResponderSpec extends Specification
         "equivalently the former is the latter's fan")
       mind.startConversation
       process("does Mike like himself", "No, he does not like himself.")
+      // FIXME need a rule for introducing reflexive here
+      if (false) {
+        process("does Mike like Mike", "No, he does not like himself.")
+      }
       process("who is Mike", "He is a man.")
       process("who likes Mike", "Ike likes him.")
       processExceptionExpected(
