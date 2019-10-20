@@ -1491,7 +1491,11 @@ class SprEnglishSyntaxAnalyzer(
       case LEMMA_THIS | LEMMA_THESE => DISTANCE_HERE
       case LEMMA_THAT | LEMMA_THOSE => DISTANCE_THERE
       case _ => {
-        if (isReflexivePronoun(lemma)) {
+        val seq = context.wordLabeler.labelWords(
+          Seq(tupleN((lemma, lemma, 0))),
+          foldEphemeralLabels = false)
+        assert(seq.size == 1)
+        if (seq.head.head.label == LABEL_PRP_REFLEXIVE) {
           DISTANCE_REFLEXIVE
         } else {
           DISTANCE_UNSPECIFIED

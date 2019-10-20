@@ -292,9 +292,9 @@ class SpcAssertionMapper(
         }
         val (candidateRef, entities) = actualRef match {
           case pr : SilPronounReference => {
-            // FIXME use SmcPhraseScope, and make use
-            // of prior reference too
-            val scope = new MindScopeType(mind, sentencePrinter)
+            // FIXME make use of prior reference too
+            val mindScope = new MindScopeType(mind, sentencePrinter)
+            val scope = new SmcPhraseScope(binding.refMapIn, mindScope)
             scope.resolvePronoun(
               binding.annotator, communicationContext, pr
             ) match {

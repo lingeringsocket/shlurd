@@ -1850,6 +1850,7 @@ class SpcResponderSpec extends Specification
       processBelief("If a person likes another person, " +
         "equivalently the former is the latter's fan")
       mind.startConversation
+      process("does Mike like himself", "No, he does not like himself.")
       process("who is Mike", "He is a man.")
       process("who likes Mike", "Ike likes him.")
       processExceptionExpected(
@@ -1865,6 +1866,7 @@ class SpcResponderSpec extends Specification
       processBelief("\"ze\" is a nominative pronoun")
       processBelief("\"zir\" must be an objective pronoun or " +
         "a possessive pronoun")
+      processBelief("\"zirself\" is a reflexive pronoun")
       processBelief("Pat is a person")
       processBelief("Chris is a person")
       processBelief("Alex is a person")
@@ -1874,11 +1876,12 @@ class SpcResponderSpec extends Specification
       processBelief("If a person likes another person, " +
         "equivalently the former is the latter's fan")
       processBelief(
-        "Pat's spc-pronoun-list is \"ze, zir\"")
+        "Pat's spc-pronoun-list is \"ze, zir, zirself\"")
       processBelief(
-        "Alex's spc-pronoun-list is \"they, them, their\"")
+        "Alex's spc-pronoun-list is \"they, them, their, themself\"")
 
       mind.startConversation
+      process("does Pat like zirself", "No, ze does not like zirself.")
       process("who is Pat", "Ze is Chris' fan.")
       process("who likes zir", "Chris likes zir.")
       process("who is zir fan", "Zir fan is Chris.")
@@ -1889,6 +1892,7 @@ class SpcResponderSpec extends Specification
       process("who is Chris' fan", "Chris' fan is Pat.")
 
       // Alex uses the singular they
+      process("does Alex like themself", "No, they do not like themself.")
       process("who is Alex", "They are a person.")
       process("who likes them", "No one likes them.")
       process("who is their fan", "No one is their fan.")
