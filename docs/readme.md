@@ -329,7 +329,7 @@ its original meaning and try to disambiguate based on context:
 
 OK.
 
-> A dwarf is a kind of person.
+> Dwarves, kings, and queens are kinds of person.
 
 OK.
 
@@ -373,13 +373,17 @@ Yes.
 
 OK.
 
+> The king has an enemy.
+
+OK.
+
 > The king's enemy is grumpy.
 
 OK.
 
 > Is the king's enemy a dwarf?
 
-No.
+I don't know.
 
 ```
 

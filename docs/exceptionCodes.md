@@ -65,7 +65,7 @@ Sorry, when you say 'he' I don't know who or what you mean.
 ```scala mdoc:processConversation
 > are Terence and Trevor its baby
 
-Sorry, when you say 'it', it's ambiguous.
+Sorry, when you say 'its', it's ambiguous.
 ```
 
 ## MisqualifiedNoun
