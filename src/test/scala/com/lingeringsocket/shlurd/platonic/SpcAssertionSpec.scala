@@ -570,6 +570,24 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify("is the rye burnt", responseYes)
     }
 
+    "distinguish one vs some" in new AssertionContext
+    {
+      defineToasterSlice
+      defineWallace
+      verifyOK("a person may be hungry or satisfied")
+      verifyOK("after a person eats a slice, " +
+        "the person becomes satisfied; also the slices become toasted")
+      verifyOK("after a person digests some slices, " +
+        "the person becomes hungry; also the slices becomes burnt")
+      verifyOK("Wallace eats the rye")
+      verify("is Wallace satisfied", responseYes)
+      verify("is the rye toasted", responseYes)
+      verifyOK("Wallace digests the rye and the pumpernickel")
+      verify("is Wallace hungry", responseYes)
+      verify("is the rye burnt", responseYes)
+      verify("is the pumpernickel burnt", responseYes)
+    }
+
     "unify genitives" in new AssertionContext
     {
       skipped("not working yet")
@@ -641,27 +659,27 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyEquivalenceStandardization(
         "if an object is hot, equivalently it is cold.",
         "if an object is hot, equivalently the object is cold.",
-        "if an object is cold, equivalently the object is hot.")
+        "if some object is cold, equivalently the object is hot.")
       verifyEquivalenceStandardization(
         "if one object is shoving another object, " +
           "equivalently the former is pushing the latter.",
         "if an object is shoving another object, " +
           "equivalently the object is pushing the second object.",
-        "if an object is pushing a second object, " +
+        "if some object is pushing some second object, " +
           "equivalently the object is shoving the second object.")
       verifyEquivalenceStandardization(
         "if an object is shoving another object, " +
           "equivalently the first object is pushing the other object.",
         "if an object is shoving another object, " +
           "equivalently the object is pushing the second object.",
-        "if an object is pushing a second object, " +
+        "if some object is pushing some second object, " +
           "equivalently the object is shoving the second object.")
       verifyEquivalenceStandardization(
         "if an object (the shover) is shoving another object (the shovee), " +
           "equivalently the shover is pushing the shovee.",
         "if an object is shoving another object, " +
           "equivalently the object is pushing the second object.",
-        "if an object is pushing a second object, " +
+        "if some object is pushing some second object, " +
           "equivalently the object is shoving the second object.")
     }
   }

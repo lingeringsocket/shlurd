@@ -19,8 +19,7 @@ When a player-character rediscovers a map-place,
  the player-character asks "where am I";
  also the player-character discerns the map-place's spc-contained-objects.
 
-// this applies only if at least one visible-entity is discerned
-When a player-character discerns a visible-entity,
+When a player-character discerns any visible-entities,
  the player-character asks "what do I see".
 
 When a player-character examines a describable-entity,

@@ -381,7 +381,7 @@ class SmcPhraseScope[
             primary match {
               case SilDeterminedReference(
                 SilNounLemmaReference(lemma),
-                DETERMINER_NONSPECIFIC
+                DETERMINER_NONSPECIFIC | DETERMINER_ANY | DETERMINER_SOME
               ) if (matchLemma(lemma)) => {
                 Some(tupleN((prior, set, produceOrdinal(1))))
               }
@@ -395,12 +395,12 @@ class SmcPhraseScope[
               }
               case SilDeterminedReference(
                 SilStateSpecifiedReference(
-                  SilMandatorySingular(
+                  SilNounReference(
                     SilWordLemma(lemma)
                   ),
                   SilPropertyState(SilWordLemma(qualifier))
                 ),
-                DETERMINER_NONSPECIFIC
+                DETERMINER_NONSPECIFIC | DETERMINER_ANY | DETERMINER_SOME
               ) if (matchLemma(lemma)) => {
                 getSentencePrinter.sb.ordinalValue(qualifier) match {
                   case Success(ordinal) => {

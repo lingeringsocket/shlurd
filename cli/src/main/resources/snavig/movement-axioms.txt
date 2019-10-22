@@ -49,11 +49,10 @@ After a game-character relocates to a map-place,
 
 When a game-character surveys a map-place,
  the game-character perceives it and its spc-contained-objects;
- also the game-character surveys its place-exits;
- also the game-character surveys its place-entrances.
+ also the game-character surveys its place-exits and its place-entrances.
 
-When a game-character surveys a map-connection,
- the game-character perceives it and its exit-doors.
+When a game-character surveys some map-connections,
+ the game-character perceives them and their exit-doors.
 
 When a player-character relocates to a map-place,
  the player-character might be its place-discoverer;

@@ -50,6 +50,8 @@ object SpcMeta
 
   val FORM_META_ENTITY_PREFIX = "SPC-Form-"
 
+  val PLACEHOLDER_MULTI = "spc-multi-"
+
   def formMetaEntityName(form : SpcForm) =
     FORM_META_ENTITY_PREFIX + form.name
 

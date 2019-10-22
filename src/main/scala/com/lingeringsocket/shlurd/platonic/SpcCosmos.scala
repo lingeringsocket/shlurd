@@ -1766,26 +1766,35 @@ class SpcCosmos(
   private def deriveEntityPronouns(
     entity : SpcEntity) : SilPronounMap =
   {
-    val map = new mutable.HashMap[SilPronounKey, SilWord]
-    assocEntityPronouns(entity, map)
-    getFormHypernyms(entity.form).foreach(form => {
-      val formEntityName = SpcMeta.formMetaEntityName(form)
-      getEntityBySynonym(formEntityName).foreach(formEntity => {
-        assocEntityPronouns(formEntity, map)
-      })
-    })
-    val result = if (map.isEmpty) {
-      val gender = getEntityGender(entity)
-      gender.maybeBasic match {
-        case Some(GENDER_MASCULINE) => SmcMind.masculinePronounMap
-        case Some(GENDER_FEMININE) => SmcMind.femininePronounMap
-        case Some(GENDER_NEUTER) => SmcMind.singularNeuterPronounMap
-        case _ => SilPronounMap()
+    entity match {
+      case te : SpcTransientEntity if (
+        te.value.contains(SpcMeta.PLACEHOLDER_MULTI)
+      ) => {
+          SmcMind.pluralNeuterPronounMap
       }
-    } else {
-      map
+      case _ => {
+        val map = new mutable.HashMap[SilPronounKey, SilWord]
+        assocEntityPronouns(entity, map)
+        getFormHypernyms(entity.form).foreach(form => {
+          val formEntityName = SpcMeta.formMetaEntityName(form)
+          getEntityBySynonym(formEntityName).foreach(formEntity => {
+            assocEntityPronouns(formEntity, map)
+          })
+        })
+        val result = if (map.isEmpty) {
+          val gender = getEntityGender(entity)
+          gender.maybeBasic match {
+            case Some(GENDER_MASCULINE) => SmcMind.masculinePronounMap
+            case Some(GENDER_FEMININE) => SmcMind.femininePronounMap
+            case Some(GENDER_NEUTER) => SmcMind.singularNeuterPronounMap
+            case _ => SilPronounMap()
+          }
+        } else {
+          map
+        }
+        result
+      }
     }
-    result
   }
 
   private def assocEntityPronouns(

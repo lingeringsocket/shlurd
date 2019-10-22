@@ -86,14 +86,15 @@ object SpcImplicationMapper
         flipVariable(annotator, sentencePrinter, primary, default)
       }
       case SilDeterminedReference(
-        SilCountedNounReference(noun, count), DETERMINER_NONSPECIFIC
+        SilCountedNounReference(noun, count),
+        DETERMINER_NONSPECIFIC | DETERMINER_SOME | DETERMINER_ANY
       ) => {
         annotator.determinedNounRef(noun, DETERMINER_UNIQUE, count)
       }
       case SilDeterminedReference(
         SilCountedNounReference(noun, count), DETERMINER_UNIQUE
       ) => {
-        annotator.determinedNounRef(noun, DETERMINER_NONSPECIFIC, count)
+        annotator.determinedNounRef(noun, DETERMINER_SOME, count)
       }
       case SilStateSpecifiedReference(
         SilMandatorySingular(
@@ -111,21 +112,23 @@ object SpcImplicationMapper
       }
       case SilDeterminedReference(
         SilStateSpecifiedReference(
-          SilMandatorySingular(
-            noun
-          ),
+          SilCountedNounReference(noun, count),
           SilPropertyState(qualifier)
         ),
-        determiner @ (DETERMINER_UNIQUE | DETERMINER_NONSPECIFIC)
+        determiner @ (
+          DETERMINER_UNIQUE | DETERMINER_NONSPECIFIC |
+            DETERMINER_ANY | DETERMINER_SOME
+        )
       ) => {
         annotator.determinedRef(
           annotator.stateSpecifiedRef(
-            annotator.nounRef(noun),
+            annotator.nounRef(noun, count),
             SilPropertyState(qualifier)
           ),
           determiner match {
-            case DETERMINER_UNIQUE => DETERMINER_NONSPECIFIC
-            case DETERMINER_NONSPECIFIC => DETERMINER_UNIQUE
+            case DETERMINER_UNIQUE => DETERMINER_SOME
+            case DETERMINER_NONSPECIFIC |
+                DETERMINER_ANY | DETERMINER_SOME => DETERMINER_UNIQUE
             case _ => determiner
           }
         )
@@ -168,6 +171,15 @@ object SpcImplicationMapper
               true,
               Set(annotator.determinedNounRef(
                 noun, DETERMINER_UNIQUE, COUNT_SINGULAR))))
+          }
+          case SilDeterminedReference(
+            SilCountedNounReference(noun, count),
+            DETERMINER_ANY | DETERMINER_SOME
+          ) => {
+            tupleN((
+              true,
+              Set(annotator.determinedNounRef(
+                noun, DETERMINER_UNIQUE, count))))
           }
           case _ => {
             tupleN((
@@ -250,14 +262,14 @@ class SpcImplicationMapper(
         }
         val nounOpt = primary match {
           case SilDeterminedReference(
-            SilMandatorySingular(noun),
-            DETERMINER_NONSPECIFIC
+            SilCountedNounReference(noun, count),
+            DETERMINER_NONSPECIFIC | DETERMINER_ANY | DETERMINER_SOME
           ) => {
             if (variableCounters.contains(noun)) {
               throw InvalidBeliefExcn(
                 ShlurdExceptionCode.AssertionInvalidVariable, belief)
             }
-            Some(noun)
+            Some(tupleN((noun, count)))
           }
           case SilStateSpecifiedReference(
             SilMandatorySingular(noun),
@@ -267,15 +279,13 @@ class SpcImplicationMapper(
               throw InvalidBeliefExcn(
                 ShlurdExceptionCode.AssertionInvalidVariable, belief)
             }
-            Some(noun)
+            Some(tupleN((noun, COUNT_SINGULAR)))
           }
           case SilDeterminedReference(
             SilStateSpecifiedReference(
-              SilMandatorySingular(
-                noun
-              ),
+              SilCountedNounReference(noun, count),
               SilPropertyState(SilWordLemma(qualifier))),
-            DETERMINER_NONSPECIFIC
+            DETERMINER_NONSPECIFIC | DETERMINER_ANY | DETERMINER_SOME
           ) => {
             val sb = responder.sentencePrinter.sb
             sb.ordinalValue(qualifier) match {
@@ -284,28 +294,31 @@ class SpcImplicationMapper(
                   throw InvalidBeliefExcn(
                     ShlurdExceptionCode.AssertionInvalidVariable, belief)
                 }
-                Some(noun)
+                Some(tupleN((noun, count)))
               }
               case _ => None
             }
           }
           case _ => None
         }
-        nounOpt.map(noun => {
-          val form = responder.deriveType(
-            annotator, ref, resultCollector.refMap)
-          if (form == responder.unknownType) {
-            if ((noun.toNounLemma != SpcMeta.ENTITY_METAFORM_NAME)
-              && !SpcBeliefRecognizer.recognizeWordLabel(Seq(noun)).nonEmpty
-            ) {
-              throw InvalidBeliefExcn(
-                ShlurdExceptionCode.UnknownForm,
-                belief)
+        nounOpt.map {
+          case(noun, count) => {
+            val form = responder.deriveType(
+              annotator, ref, resultCollector.refMap)
+            if (form == responder.unknownType) {
+              if ((noun.toNounLemma != SpcMeta.ENTITY_METAFORM_NAME)
+                && !SpcBeliefRecognizer.recognizeWordLabel(Seq(noun)).nonEmpty
+              ) {
+                throw InvalidBeliefExcn(
+                  ShlurdExceptionCode.UnknownForm,
+                  belief)
+              }
             }
+            val placeholder = makePlaceholder(
+              form, noun, count, variableCounters)
+            tupleN((ref, Set(placeholder)))
           }
-          val placeholder = makePlaceholder(form, noun, variableCounters)
-          tupleN((ref, Set(placeholder)))
-        })
+        }
       })
       pairs.toMap
     } else {
@@ -325,11 +338,16 @@ class SpcImplicationMapper(
   private def makePlaceholder(
     form : SpcForm,
     noun : SilWord,
+    count : SilCount,
     variableCounters : mutable.Map[SilWord, Int]) : SpcEntity =
   {
     val number = variableCounters.getOrElse(noun, 0)
     variableCounters.put(noun, number + 1)
-    val name = noun.toNounLemma + "-" + number.toString
+    val baseName = noun.toNounLemma + "-" + number.toString
+    val name = count match {
+      case COUNT_PLURAL => SpcMeta.PLACEHOLDER_MULTI + baseName
+      case _ => baseName
+    }
     SpcTransientEntity(form, name, name)
   }
 }
