@@ -363,10 +363,10 @@ class SpcGraphVisualizer(
 
   private def combineGraphs()
   {
-    if (options.includeIdeals) {
+    if (options.includeIdeals || options.includeSynonyms) {
       graph.idealSynonyms.vertexSet.asScala.toSeq.foreach(nym => {
         nym matchPartial {
-          case ideal : SpcIdeal => {
+          case ideal : SpcIdeal if (options.includeIdeals) => {
             if (includeIdeal(ideal)) {
               val idealVertex = combineVertex(ideal)
               if (options.includeProperties) {
@@ -387,17 +387,15 @@ class SpcGraphVisualizer(
               }
             }
           }
-          case synonym : SpcIdealSynonym => {
-            if (options.includeSynonyms) {
-              val ideal = graph.getIdealBySynonym(synonym)
-              if ((ideal.name != simpleName(synonym)) &&
-                includeIdeal(ideal))
-              {
-                combinedGraph.addEdge(
-                  combineVertex(synonym),
-                  combineVertex(ideal),
-                  new CombinedEdge("isSynonymFor", synonymEdgeAttributes))
-              }
+          case synonym : SpcIdealSynonym if (options.includeSynonyms) => {
+            val ideal = graph.getIdealBySynonym(synonym)
+            if ((ideal.name != simpleName(synonym)) &&
+              includeIdeal(ideal))
+            {
+              combinedGraph.addEdge(
+                combineVertex(synonym),
+                combineVertex(ideal),
+                new CombinedEdge("isSynonymFor", synonymEdgeAttributes))
             }
           }
         }

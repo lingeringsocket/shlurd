@@ -248,7 +248,14 @@ class BeliefRenderer extends StringModifier
 
     val visualizer = new SpcGraphVisualizer(
       cosmos.getGraph,
-      SpcGraphVisualizer.fullOptions)
+      SpcGraphVisualizationOptions(
+        includeEntities = true,
+        includeTaxonomy = true, includeRealizations = true,
+        includeFormAssocs = true, includeEntityAssocs = true,
+        includeInverses = true, includeSynonyms = true,
+        includeProperties = true
+      )
+    )
     val relpath = Paths.get(info)
     val out = dir.get.resolve(relpath)
     assert(!outputs.contains(out), out)
