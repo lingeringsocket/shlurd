@@ -363,18 +363,23 @@ class SpcGraphVisualizer(
 
   private def combineGraphs()
   {
-    if (options.includeIdeals || options.includeSynonyms) {
+    if (options.includeIdeals || options.includeSynonyms || options.includeProperties) {
       graph.idealSynonyms.vertexSet.asScala.toSeq.foreach(nym => {
         nym matchPartial {
-          case ideal : SpcIdeal if (options.includeIdeals) => {
+          case ideal : SpcIdeal if (
+            options.includeIdeals || options.includeProperties
+          ) => {
             if (includeIdeal(ideal)) {
-              val idealVertex = combineVertex(ideal)
+              lazy val idealVertex = combineVertex(ideal)
+              if (options.includeIdeals) {
+                idealVertex
+              }
               if (options.includeProperties) {
                 ideal matchPartial {
                   case form : SpcForm => {
                     val propertyMap =
                       graph.formPropertyIndex.accessComponentMap(form)
-                    propertyMap.values foreach(property => {
+                    propertyMap.values.foreach(property => {
                       val propertyVertex = combineVertex(property)
                       combinedGraph.addEdge(
                         idealVertex,
