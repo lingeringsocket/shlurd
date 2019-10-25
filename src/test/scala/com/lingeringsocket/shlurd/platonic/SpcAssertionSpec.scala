@@ -590,19 +590,22 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "unify genitives" in new AssertionContext
     {
-      skipped("not working yet")
-
       verifyOK("A balloon's state must be empty, full, or broken.")
       verifyOK("A person's state must be energetic or tired.")
       verifyOK("A balloon's owner must be a person.")
       verifyOK("A balloon must have an owner.")
-      verifyOK("If a balloon's owner is tired, " +
-        "consequently the balloon is broken.")
-      verifyOK("Pinkie is a person.")
-      verifyOK("There is a red balloon.")
-      verifyOK("Pinkie is the red balloon's owner.")
-      verifyOK("Pinkie is tired.")
-      verify("Is the red balloon broken?", "Yes.")
+      // FIXME for now we can't handle the unification, so
+      // report an exception instead
+      verifyInvalid("if a balloon's owner becomes tired, " +
+        "then the balloon becomes broken",
+        AssertionInvalidVariable)
+      if (false) {
+        verifyOK("Pinkie is a person.")
+        verifyOK("There is a red balloon.")
+        verifyOK("Pinkie is the red balloon's owner.")
+        verifyOK("Pinkie is tired.")
+        verify("Is the red balloon broken?", "Yes.")
+      }
     }
 
     "map pronouns in implications" in new AssertionContext

@@ -892,6 +892,13 @@ class SpcBeliefRecognizer(
           ) => true
           case _ => false
         }
+        if (!conditional.biconditional) {
+          conditional.antecedent.getSubject matchPartial {
+            case _ : SilGenitiveReference => {
+              reportException(AssertionInvalidVariable)
+            }
+          }
+        }
         val consequent = conditional.consequent
         val isAfter = (conditional.conjunction.toLemma == LEMMA_AFTER)
         val isBefore = (conditional.conjunction.toLemma == LEMMA_BEFORE)
