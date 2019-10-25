@@ -363,7 +363,9 @@ class SpcGraphVisualizer(
 
   private def combineGraphs()
   {
-    if (options.includeIdeals || options.includeSynonyms || options.includeProperties) {
+    if (options.includeIdeals || options.includeSynonyms ||
+      options.includeProperties
+    ) {
       graph.idealSynonyms.vertexSet.asScala.toSeq.foreach(nym => {
         nym matchPartial {
           case ideal : SpcIdeal if (

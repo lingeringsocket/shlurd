@@ -177,8 +177,8 @@ OK.
 OK.
 ```
 
-I only allow static conditions as effects when you add the **subsequently** modifier,
-or when you use the **after** conditional:
+I only understand static conditions as effects when you add the
+**subsequently** modifier, or when you use the **after** conditional:
 
 ```scala mdoc:processConversation
 > When a balloon becomes full, then its owner is tired.
@@ -225,6 +225,124 @@ OK.
 ```
 
 FIXME:  explain **might**, **otherwise**
+
+## Variables
+
+When a rule refers to a variable, its form is important:
+
+```scala mdoc:processConversation
+> A cloudbuster is a kind of balloon.
+
+OK.
+
+> After a person hugs a cloudbuster, the person becomes energetic.
+
+OK.
+
+> Pinkie hugs the red balloon.
+
+I'm not sure how to interpret that.
+```
+
+Since hugging is only defined specifically for cloudbusters, I'm not sure
+what it means to hug the generic red balloon.
+
+### Disambiguation
+
+You can refer to two different variables having the same form:
+
+```scala mdoc:processConversation
+> When a balloon refills another balloon, the balloon becomes empty; also the other balloon becomes full.
+
+OK.
+
+> The red balloon refills the blue balloon.
+
+OK.
+
+> What is the red balloon's state?
+
+Empty.
+
+> What is the blue balloon's state?
+
+Full.
+```
+
+Alternatively, you can use ordinal references:
+
+```scala mdoc:processConversation
+> When a first balloon refills a second balloon, the first balloon becomes empty; also the second balloon becomes full.
+
+OK.
+```
+
+Or be high-falutin:
+
+```scala mdoc:processConversation
+> When a balloon refills another balloon, the former becomes empty; also the latter becomes full.
+
+OK.
+```
+
+Or use named references:
+
+```scala mdoc:processConversation
+> When a balloon (the filler) refills another balloon (the fillee), the filler becomes empty; also the fillee becomes full.
+
+OK.
+```
+
+### Plurals
+
+You can use plurals when referring to variables:
+
+```scala mdoc:processConversation
+> When a person inflates any balloons, they become full.
+
+OK.
+
+> Pinkie inflates the red balloon and the blue balloon.
+
+OK.
+
+> Are all balloons full?
+
+Yes.
+```
+
+But the plurality doesn't have any special meaning; it still applies even
+when only a single object is involved:
+
+```scala mdoc:processConversation
+> When a person inflates some balloons, they become full.
+
+OK.
+
+> Pinkie inflates the blue balloon.
+
+OK.
+
+> What is the blue balloon's state?
+
+Full.
+```
+
+Likewise, a non-plural variable still applies when multiple objects are involved:
+
+```scala mdoc:processConversation
+> When a person inflates a balloon, it becomes full.
+
+OK.
+
+> Pinkie inflates the red balloon and the blue balloon.
+
+OK.
+
+> Are all balloons full?
+
+Yes.
+```
 
 ## Equivalences
 
