@@ -17,15 +17,13 @@ Neuter is Yeti's spc-gender.
 "E" is a nominative pronoun.
 "Em" is an objective pronoun.
 "Eir" is a possessive pronoun.
-Spivak's spc-pronoun-list is "e, em, eir".
-Theseus is a man.
+"Emself" is a reflexive pronoun.
+Spivak's spc-pronoun-list is "e, em, eir, emself".
+Michael and Theseus are men.
 Ariadne and Phaedra are women.
 Theseus is Ariadne's crush.
 Phaedra is Theseus' crush.
-Kirby is a person.
-Harley is a person.
-Rey is a person.
-Michael is a man.
+Kirby, Harley and Rey are persons.
 Michael's spc-gender is Spivak.
 Harley is Rey's crush.
 Harley's crush is Kirby.
@@ -38,6 +36,8 @@ Kirby's spc-pronoun-list is "they, them, their, themself".
 Harley's spc-pronoun-list is "ze, zir, zirself".
 Scylla's spc-pronoun-list is "she, her, herself".
 ```
+
+// FIXME diagram should show links between genders and forms/entities
 
 I have intrinsic knowledge of the pronouns for masculine, feminine, and neuter genders:
 
@@ -90,7 +90,7 @@ E is a man.
 Note that even though in general a man has been defined as having
 masculine gender (implying associated masculine pronouns),
 Michael's gender has been explicitly set to Spivak, so I use
-the corresponding pronouns to refer to him.
+the corresponding pronouns to refer to em.
 
 Finally, when someone has no custom pronouns declared, I will avoid pronouns
 altogether when referring to that individual:
