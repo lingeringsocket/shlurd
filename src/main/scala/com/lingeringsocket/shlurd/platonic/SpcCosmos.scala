@@ -1833,9 +1833,11 @@ class SpcCosmos(
         getEntityGender(entity) matchPartial {
           case SpcGender(genderForm, None) => {
             val genderFormEntityName = SpcMeta.formMetaEntityName(genderForm)
-            getEntityBySynonym(genderFormEntityName).foreach(genderFormEntity => {
-              assocEntityPronouns(genderFormEntity, map, true)
-            })
+            getEntityBySynonym(genderFormEntityName).foreach(
+              genderFormEntity => {
+                assocEntityPronouns(genderFormEntity, map, true)
+              }
+            )
           }
         }
       }
