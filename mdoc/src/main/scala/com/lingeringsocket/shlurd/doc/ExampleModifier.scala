@@ -79,6 +79,14 @@ class ConversationProcessor extends StringModifier
         defaultSetting
       }
     }
+    val verbosity = {
+      if (info.contains("verbose")) {
+        RESPONSE_COMPLETE
+      } else {
+        RESPONSE_TERSE
+      }
+    }
+    mind.startConversation
     val responder =
       new SpcResponder(
         mind,
@@ -88,7 +96,7 @@ class ConversationProcessor extends StringModifier
           createTentativeIdeals = chooseImplicit(false),
           createTentativeEntities = chooseImplicit(true),
           createImplicitProperties = chooseImplicit(false)),
-        SmcResponseParams(verbosity = RESPONSE_TERSE))
+        SmcResponseParams(verbosity = verbosity))
     val exchanges = {
       try {
         extractExchanges(lines)
@@ -146,6 +154,7 @@ class ConversationProcessor extends StringModifier
         s"$prompt$input\n\n$response"
       }
     }.mkString("\n\n")
+    mind.stopConversation
     s"```\n$result\n```"
   }
 

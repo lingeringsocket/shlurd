@@ -1775,12 +1775,18 @@ class SpcCosmos(
       case _ => {
         val map = new mutable.HashMap[SilPronounKey, SilWord]
         assocEntityPronouns(entity, map)
-        getFormHypernyms(entity.form).foreach(form => {
-          val formEntityName = SpcMeta.formMetaEntityName(form)
-          getEntityBySynonym(formEntityName).foreach(formEntity => {
-            assocEntityPronouns(formEntity, map)
+        if (map.isEmpty) {
+          getFormHypernyms(entity.form).foreach(form => {
+            if (map.isEmpty) {
+              val formEntityName = SpcMeta.formMetaEntityName(form)
+              getEntityBySynonym(formEntityName).foreach(formEntity => {
+                // FIXME should be reentrant=false, but that is
+                // super slow
+                assocEntityPronouns(formEntity, map, true)
+              })
+            }
           })
-        })
+        }
         val result = if (map.isEmpty) {
           val gender = getEntityGender(entity)
           gender.maybeBasic match {
@@ -1798,27 +1804,42 @@ class SpcCosmos(
   }
 
   private def assocEntityPronouns(
-    entity : SpcEntity, map : mutable.Map[SilPronounKey, SilWord])
+    entity : SpcEntity,
+    map : mutable.Map[SilPronounKey, SilWord],
+    reentrant : Boolean = false)
   {
-    val props = getEntityPropertyMap(entity)
-    val pronouns =
-      props.get(SpcMeta.PRONOUN_LIST_METAPROP_NAME).toSeq.flatMap(
-        _.lemma.split(',').map(_.trim))
-    pronouns.foreach(pronoun => {
-      val seq = getWordLabeler.labelWords(
-        Seq(tupleN((pronoun, pronoun, 0))),
-        foldEphemeralLabels = false)
-      assert(seq.size == 1)
-      seq.head.foreach(tree => {
-        if (tree.label.startsWith(LABEL_PRP)) {
-          val key = SilPronounKey(tree.label, PERSON_THIRD)
-          if (!map.contains(key)) {
-            // FIXME compounds
-            map.put(key, SilWord(pronoun))
+    if (map.isEmpty) {
+      val props = getEntityPropertyMap(entity)
+      val pronouns =
+        props.get(SpcMeta.PRONOUN_LIST_METAPROP_NAME).toSeq.flatMap(
+          _.lemma.split(',').map(_.trim))
+      if (pronouns.nonEmpty) {
+        pronouns.foreach(pronoun => {
+          val seq = getWordLabeler.labelWords(
+            Seq(tupleN((pronoun, pronoun, 0))),
+            foldEphemeralLabels = false)
+          assert(seq.size == 1)
+          seq.head.foreach(tree => {
+            if (tree.label.startsWith(LABEL_PRP)) {
+              val key = SilPronounKey(tree.label, PERSON_THIRD)
+              if (!map.contains(key)) {
+                // FIXME compounds
+                map.put(key, SilWord(pronoun))
+              }
+            }
+          })
+        })
+      } else if (!reentrant) {
+        getEntityGender(entity) matchPartial {
+          case SpcGender(genderForm, None) => {
+            val genderFormEntityName = SpcMeta.formMetaEntityName(genderForm)
+            getEntityBySynonym(genderFormEntityName).foreach(genderFormEntity => {
+              assocEntityPronouns(genderFormEntity, map, true)
+            })
           }
         }
-      })
-    })
+      }
+    }
   }
 
   def getEntityGender(entity : SpcEntity) : SilGender =

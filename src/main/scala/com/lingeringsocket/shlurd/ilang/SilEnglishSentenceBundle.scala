@@ -757,9 +757,6 @@ class SilEnglishSentenceBundle
         }
       }
     }
-    // FIXME somewhere we need to take inflection into account
-    // when dealing with custom pronouns
-
     val inflected = word.map(w => w.recompose(w.decomposed.map(_.inflected))).
       getOrElse(standard)
     separate(inflected, conjoining)
