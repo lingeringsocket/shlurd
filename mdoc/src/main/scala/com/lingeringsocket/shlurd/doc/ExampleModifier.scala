@@ -86,12 +86,21 @@ class ConversationProcessor extends StringModifier
         RESPONSE_TERSE
       }
     }
+    val beliefAcceptance = {
+      if (info.contains("preventNewBeliefs")) {
+        IGNORE_BELIEFS
+      } else if (info.contains("acceptModifiedBeliefs")) {
+        ACCEPT_MODIFIED_BELIEFS
+      } else {
+        ACCEPT_NEW_BELIEFS
+      }
+    }
     mind.startConversation
     val responder =
       new SpcResponder(
         mind,
         SpcBeliefParams(
-          ACCEPT_NEW_BELIEFS,
+          beliefAcceptance,
           createImplicitIdeals = chooseImplicit(false),
           createTentativeIdeals = chooseImplicit(false),
           createTentativeEntities = chooseImplicit(true),
