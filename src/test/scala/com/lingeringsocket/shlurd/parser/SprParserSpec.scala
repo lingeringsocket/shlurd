@@ -20,6 +20,7 @@ import com.lingeringsocket.shlurd.ilang._
 import org.specs2.mutable._
 
 import SprEnglishLemmas._
+import SprPennTreebankLabels._
 
 class SprParserSpec extends Specification
 {
@@ -34,6 +35,8 @@ class SprParserSpec extends Specification
   private val NOUN_BATHROOM = SilWord("bathroom")
 
   private val NOUN_DOORS = SilWord("doors", "door")
+
+  private val NOUN_SUPES = SilSimpleWord("supes", "supe")
 
   private val NOUN_PIGS = SilWord("pigs", "pig")
 
@@ -118,6 +121,21 @@ class SprParserSpec extends Specification
 
   private val EXISTENTIAL_THERE = Some(SilWord("there"))
 
+  private val wordLabeler = createWordLabeler
+
+  private val context = SprContext(wordLabeler)
+
+
+  private def createWordLabeler() =
+  {
+    val wordLabeler = new SprWordnetLabeler
+    wordLabeler.addRule(SprWordRule(
+      Seq(NOUN_SUPES.toNounLemma), Seq(LABEL_NN), true))
+    wordLabeler.addRule(SprWordRule(
+      Seq(NOUN_SUPES.inflected), Seq(LABEL_NNS), true))
+    wordLabeler
+  }
+
   private def predTransitiveAction(
     subject : SilWord,
     verb : SilWord = ACTION_OPENS,
@@ -198,7 +216,7 @@ class SprParserSpec extends Specification
 
   private def parse(input : String) =
   {
-    SprParser(input).parseOne.sentence
+    SprParser(input, context).parseOne.sentence
   }
 
   private def leaf(s : String) = SprSyntaxLeaf(s, s, s)
@@ -925,6 +943,19 @@ class SprParserSpec extends Specification
               DETERMINER_NONSPECIFIC),
             VERB_IS,
             SilPropertyState(STATE_CLOSED))))
+    }
+
+    "parse custom plurals" in
+    {
+      parse("there are supes") must be equalTo(
+        SilPredicateSentence(
+          SilStatePredicate(
+            annotator.nounRef(NOUN_SUPES),
+            VERB_ARE,
+            SilExistenceState(EXISTENTIAL_THERE)
+          )
+        )
+      )
     }
 
     "give up" in

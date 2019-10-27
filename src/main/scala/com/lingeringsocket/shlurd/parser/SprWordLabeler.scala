@@ -23,6 +23,8 @@ import ShlurdEnglishAffixes._
 
 import net.sf.extjwnl.data._
 
+import org.atteo.evo.inflector.{English => EnglishPluralizer}
+
 import scala.collection._
 import scala.collection.JavaConverters._
 
@@ -169,11 +171,27 @@ class SprWordnetLabeler(
         val leaf = makeLeaf(word, word, word)
         SptNNP(leaf)
       } else {
-        val leaf = makeLeaf(word, token)
+        val lemma = {
+          if (label == LABEL_NNS) {
+            getSingular(token)
+          } else {
+            token
+          }
+        }
+        val leaf = makeLeaf(word, token, lemma)
         val foldedLabel = foldEphemeral(label, foldEphemeralLabels)
         SprSyntaxRewriter.recompose(foldedLabel, Seq(leaf))
       }
     }))
+  }
+
+  private def getSingular(token : String) : String =
+  {
+    // FIXME cache the mapping, and deal with compound+proper nouns
+    rules.values.
+      filter(r => (r.phrase.size == 1) && r.labels.contains(LABEL_NN)).
+      filter(r => EnglishPluralizer.plural(r.phrase.last) == token).
+      map(_.phrase.last).headOption.getOrElse(token)
   }
 
   private def labelWordFromDict(

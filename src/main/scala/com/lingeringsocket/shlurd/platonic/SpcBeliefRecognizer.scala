@@ -87,8 +87,13 @@ object SpcBeliefRecognizer
   {
     words.flatMap(_.decomposed) match {
       case Seq(SilWordLemma("noun")) => Some(LABEL_NN)
+      case Seq(SilWordLemma("plural"), SilWordLemma("noun")) => Some(LABEL_NNS)
       case Seq(SilWordLemma("common"), SilWordLemma("noun")) => Some(LABEL_NN)
+      case Seq(SilWordLemma("plural"), SilWordLemma("common"),
+        SilWordLemma("noun")) => Some(LABEL_NNS)
       case Seq(SilWordLemma("proper"), SilWordLemma("noun")) => Some(LABEL_NNP)
+      case Seq(SilWordLemma("plural"), SilWordLemma("proper"),
+        SilWordLemma("noun")) => Some(LABEL_NNP)
       case Seq(SilWordLemma("verb")) => Some(LABEL_VB)
       case Seq(SilWordLemma("adjective")) => Some(LABEL_JJ)
       case Seq(SilWordLemma("adverb")) => Some(LABEL_RB)

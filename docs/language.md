@@ -14,8 +14,6 @@ But you will discover that I have many limitations in my understanding of langua
 
 ## Example Beliefs
 
-// FIXME supes as plural of supe
-
 ```scala mdoc:renderBelief:assets/languageExample.png
 A person is a kind of spc-object.
 A place is a kind of spc-object.
@@ -25,13 +23,11 @@ A supe may have a nemesis.
 A supe's identity must be an spc-string.
 If a supe is another supe's nemesis, then equivalently the latter is the former's nemesis.
 If a supe opposes another supe, then equivalently the former is the latter's nemesis.
-Homelander is a supe.
+Homelander, Starlight, and Lamplighter are supes.
 Homelander's identity is "John".
 Homelander's mindset is cynical.
-Starlight is a supe.
 Starlight's identity is "Annie January".
 Starlight is idealistic.
-Lamplighter is a supe.
 Homelander is Starlight's nemesis.
 New York City, Vought HQ, and Central Park are places.
 Vought HQ and Central Park are in New York City.
@@ -113,15 +109,15 @@ Idealistic.
 
 Homelander.
 
-> Which supe has a nemesis?
+> Which supes have a nemesis?
 
 Homelander and Starlight.
 
-> Which supe exists?
+> Which supes exist?
 
 Homelander, Starlight, and Lamplighter.
 
-> Which supe is idealistic?
+> Which supes are idealistic?
 
 Starlight.
 ```
@@ -129,15 +125,15 @@ Starlight.
 ### How Many
 
 ```scala mdoc:processConversation
-> How many supe are there?
+> How many supes are there?
 
 Three of them.
 
-> How many supe have a nemesis?
+> How many supes have a nemesis?
 
 Two of them.
 
-> How many supe are cynical?
+> How many supes are cynical?
 
 One of them.
 ```
