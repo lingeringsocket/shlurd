@@ -1,6 +1,6 @@
-# Pronouns
+# Gender and Pronouns
 
-You can teach me about the diversity of genders and pronouns:
+You can teach me about diversity:
 
 ```scala mdoc:renderBelief:assets/pronouns.png
 A monster is a kind of spc-someone.

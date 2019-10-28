@@ -1866,6 +1866,13 @@ class SpcResponderSpec extends Specification
         ShlurdExceptionCode.AmbiguousPronoun)
     }
 
+    "understand custom compound nouns" in new ResponderContext(
+      ACCEPT_MODIFIED_BELIEFS)
+    {
+      processBelief("\"big bad\" may be a noun")
+      process("a big bad is a kind of villain", "OK.")
+    }
+
     "understand custom pronouns" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS)
     {

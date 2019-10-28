@@ -391,9 +391,17 @@ class SprWordnetLabeler(
       } else if (seq.forall(isProperNoun)) {
         true
       } else {
-        val spaced = (seq.dropRight(1).map(_.firstChild.foldedToken) :+
-          seq.last.firstChild.lemma).mkString(" ")
-        ShlurdWordnet.isPotentialNoun(spaced)
+        val folded = (seq.dropRight(1).map(_.firstChild.foldedToken) :+
+          seq.last.firstChild.lemma)
+        rules.get(folded) match {
+          case Some(rule) if (
+            rule.labels.exists(_.startsWith(LABEL_NN))
+          ) => true
+          case _ => {
+            val spaced = folded.mkString(" ")
+            ShlurdWordnet.isPotentialNoun(spaced)
+          }
+        }
       }
     }
   }
@@ -403,8 +411,16 @@ class SprWordnetLabeler(
     if (seq.size < 2 || !seq.forall(_.isAdverb)) {
       false
     } else {
-      val spaced = seq.map(_.firstChild.foldedToken).mkString(" ")
-      ShlurdWordnet.isPotentialAdverb(spaced)
+      val folded = seq.map(_.firstChild.foldedToken)
+      rules.get(folded) match {
+        case Some(rule) if (
+          rule.labels.exists(_.startsWith(LABEL_RB))
+        ) => true
+        case _ => {
+          val spaced = folded.mkString(" ")
+          ShlurdWordnet.isPotentialAdverb(spaced)
+        }
+      }
     }
   }
 
@@ -415,13 +431,20 @@ class SprWordnetLabeler(
     } else {
       // this handles "stir fry" and "bump off", but there are
       // other cases that need refinement
-      val lemmas = seq.map(_.firstChild.lemma)
+      val folded = seq.map(_.firstChild.lemma)
       // meh
-      if (lemmas.contains(LEMMA_BE) || lemmas.contains(LEMMA_TO)) {
+      if (folded.contains(LEMMA_BE) || folded.contains(LEMMA_TO)) {
         false
       } else {
-        val spaced = lemmas.mkString(" ")
-        ShlurdWordnet.isPotentialVerb(spaced)
+        rules.get(folded) match {
+          case Some(rule) if (
+            rule.labels.exists(_.startsWith(LABEL_VB))
+          ) => true
+          case _ => {
+            val spaced = folded.mkString(" ")
+            ShlurdWordnet.isPotentialVerb(spaced)
+          }
+        }
       }
     }
   }

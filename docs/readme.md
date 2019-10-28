@@ -6,5 +6,6 @@ Learn about:
 * [ontology](ontology.md)
 * [conditionals](conditionals.md)
 * [capabilities](capabilities.md)
-* [pronouns](pronouns.md)
-* [exceptions](exceptionCodes.md)
+* [words](words.md)
+* [gender and pronouns](pronouns.md)
+* [when things go wrong](exceptionCodes.md)

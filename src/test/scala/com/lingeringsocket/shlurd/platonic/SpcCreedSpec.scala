@@ -177,6 +177,7 @@ class SpcCreedSpec extends Specification
   private val positiveAssertion = "A person can kill a monk."
   private val negativeAssertion = "A person can not kill a monk."
   private val wordRule = "\"Happy\" may be a proper noun."
+  private val compoundWordRule = "\"big bad\" is a noun."
   private val conjunctiveBelief =
     "A duck is a kind of a bird and a monk is a kind of a person."
 
@@ -510,7 +511,7 @@ class SpcCreedSpec extends Specification
     {
       expectPreserved(Seq(
         formTaxonomy2,
-        positiveAssertion, negativeAssertion, wordRule))
+        positiveAssertion, negativeAssertion, wordRule, compoundWordRule))
     }
 
     "preserve conjunctive beliefs" in new CosmosContext
