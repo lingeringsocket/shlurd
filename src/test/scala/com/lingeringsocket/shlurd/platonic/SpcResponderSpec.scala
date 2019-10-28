@@ -481,6 +481,8 @@ class SpcResponderSpec extends Specification
         "She is Laura's godmother.")
       process("whose godmother is Fancy",
         "She is Laura's godmother.")
+      process("whose mindset is silly",
+        "Fancy's mindset is silly.")
 
       cosmos.sanityCheck must beTrue
     }

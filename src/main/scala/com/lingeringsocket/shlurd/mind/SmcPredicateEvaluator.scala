@@ -1035,38 +1035,62 @@ class SmcPredicateEvaluator[
           }
           case _ => {
             possessee matchPartial {
-              case SilMandatorySingular(
-                noun
+              case SilOptionallyDeterminedReference(
+                SilMandatorySingular(noun),
+                DETERMINER_UNSPECIFIED | DETERMINER_ANY
               ) => {
                 resultCollector.lookup(possessor).
                   foreach(entities => {
-                    // FIXME handle multiple entities
-                    if (entities.size == 1) {
-                      val entity = entities.head
-                      cosmos.evaluateEntityProperty(
-                        entity, noun.toLemma, true) matchPartial
-                      {
-                        case Success((Some(property), Some(value))) => {
-                          val resolved = mind.resolvePropertyValueEntity(
-                            property, value) match
-                          {
-                            case Success(valueEntity) => {
-                              Set(valueEntity)
-                            }
-                            case Failure(e) => {
-                              debug("ERROR", e)
-                              return Failure(e)
+                    if (entities.size >= 1) {
+                      var matched = false
+                      val rc = evaluatePredicateOverEntities(
+                        entities,
+                        possessor,
+                        context,
+                        resultCollector,
+                        SilNullState(),
+                        DETERMINER_ANY,
+                        COUNT_SINGULAR,
+                        noun,
+                        {
+                          (entity, entityRef) => {
+                            cosmos.evaluateEntityProperty(
+                              entity, noun.toLemma, true) match
+                            {
+                              case Success((Some(property), Some(value))) => {
+                                matched = true
+                                mind.resolvePropertyValueEntity(
+                                  property, value) match
+                                  {
+                                    case Success(valueEntity) => {
+                                      val resolved = Set(valueEntity)
+                                      // FIXME need to do this additively
+                                      // in case of multiple matches?
+                                      resultCollector.refMap.put(
+                                        reference, resolved)
+                                      resultCollector.refMap.put(
+                                        possessee, resolved)
+                                      evaluator(valueEntity, possessee)
+                                    }
+                                    case Failure(e) => {
+                                      debug("ERROR", e)
+                                      Failure(e)
+                                    }
+                                  }
+                              }
+                              case Success((Some(property), None)) => {
+                                matched = true
+                                Success(Trilean.Unknown)
+                              }
+                              case _ => {
+                                Success(Trilean.Unknown)
+                              }
                             }
                           }
-                          resultCollector.refMap.put(
-                            reference, resolved)
-                          resultCollector.refMap.put(
-                            possessee, resolved)
-                          return Success(Trilean.True)
                         }
-                        case Success((Some(property), None)) => {
-                          return Success(Trilean.Unknown)
-                        }
+                      )
+                      if (matched) {
+                        return rc
                       }
                     }
                   })

@@ -74,10 +74,9 @@ Homelander, Starlight, and Lamplighter.
 
 Homelander.
 
-// FIXME
-// > Whose mindset is idealistic?
-// 
-// Starlight.
+> Whose mindset is idealistic?
+
+Starlight's mindset.
 ```
 
 ### What

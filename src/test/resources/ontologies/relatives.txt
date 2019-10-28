@@ -32,3 +32,6 @@ Marion is Laura's niece.
 Marion and Fancy are Henry's daughters.
 Titus is James' son.
 Everard is Lolly's father.
+A woman's mindset must be serious or silly.
+Fancy's mindset is silly.
+Marion's mindset is serious.
