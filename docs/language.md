@@ -4,9 +4,9 @@ I can understand the following kinds of sentences:
 
 * [Beliefs about the nature of things](ontology.md)
 * [Beliefs about the rules governing the behavior of things](conditionals.md)
-* Questions
+* Questions about the world
+* Statements about the world
 * Commands
-* Statements of fact
 
 But you will discover that I have many limitations in my understanding of language.
 
