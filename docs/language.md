@@ -15,14 +15,15 @@ But you will discover that I have many limitations in my understanding of langua
 ## Example Beliefs
 
 ```scala mdoc:renderBelief:assets/languageExample.png
-A person is a kind of spc-object.
-A place is a kind of spc-object.
+A person, place, or thing is a kind of spc-object.
 A supe is a kind of person.
 A supe's mindset must be cynical or idealistic.
 A supe may have a nemesis.
+A supe's possession must be a thing.
 A supe's identity must be an spc-string.
 If a supe is another supe's nemesis, then equivalently the latter is the former's nemesis.
 If a supe opposes another supe, then equivalently the former is the latter's nemesis.
+If a supe carries a thing, then equivalently the thing is the supe's possession.
 Homelander, Starlight, and Lamplighter are supes.
 Homelander's identity is "John".
 Homelander's mindset is cynical.
@@ -32,6 +33,9 @@ Homelander is Starlight's nemesis.
 New York City, Vought HQ, and Central Park are places.
 Vought HQ and Central Park are in New York City.
 Homelander is in Vought HQ and Starlight is in Central Park.
+A staff is a kind of thing.
+There is a staff.
+Lamplighter carries the staff.
 ```
 
 ## Questions
@@ -81,8 +85,6 @@ Starlight's mindset.
 
 ### What
 
-// FIXME other uses for what
-
 ```scala mdoc:processConversation
 > What is Starlight's identity?
 
@@ -99,6 +101,10 @@ I don't know.
 > What is Starlight's mindset?
 
 Idealistic.
+
+> What does Lamplighter carry?
+
+The staff.
 ```
 
 ### Which
@@ -123,6 +129,8 @@ Starlight.
 
 ### How Many
 
+I can count!
+
 ```scala mdoc:processConversation
 > How many supes are there?
 
@@ -139,6 +147,8 @@ One of them.
 
 ### Where
 
+I can answer simple "where is X" questions (but not "where does", "where is so-and-so going", etc):
+
 ```scala mdoc:processConversation
 > Where is Starlight?
 
@@ -154,6 +164,8 @@ New York City.
 ```
 
 ### Predicates
+
+I can also understand yes/no questions:
 
 // FIXME should be able to ask about identity too
 
@@ -174,6 +186,10 @@ I don't know.
 > Does Lamplighter oppose Homelander?
 
 No.
+
+> Does Lamplighter carry the staff?
+
+Yes.
 
 > Is Starlight Homelander's nemesis?
 
@@ -231,7 +247,7 @@ Starlight and Homelander.
 
 OK.
 
-> Who does Lamplighter oppose?
+> Whom does Lamplighter oppose?
 
 Lamplighter.
 ```
