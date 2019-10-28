@@ -167,13 +167,18 @@ New York City.
 
 I can also understand yes/no questions:
 
-// FIXME should be able to ask about identity too
-
 ```scala mdoc:processConversation
 > Is Lamplighter a supe?
 
 Yes.
 
+> Is Lamplighter's identity "John"?
+
+I don't know.
+
+> Is "Annie January" Starlight's identity?
+
+Yes.
 
 > Is Homelander cynical?
 

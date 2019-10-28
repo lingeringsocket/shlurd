@@ -272,6 +272,11 @@ class SmcMind[
     Failure(new UnsupportedOperationException)
   }
 
+  def resolveQuotation(quotation : SilQuotationReference) : Try[EntityType] =
+  {
+    Failure(new UnsupportedOperationException)
+  }
+
   def resolveQualifiedNoun(
     noun : SilWord,
     context : SilReferenceContext,

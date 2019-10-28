@@ -172,6 +172,13 @@ class SpcMind(cosmos : SpcCosmos)
     cosmos.decodeName(role.name)
   }
 
+  override def resolveQuotation(qr : SilQuotationReference) : Try[SpcEntity] =
+  {
+    resolveForm(SilWord(PROPERTY_TYPE_STRING.name)).map(form =>
+      Success(SpcTransientEntity(form, qr.quotation, qr.quotation))
+    ).getOrElse(super.resolveQuotation(qr))
+  }
+
   override def resolveQualifiedNoun(
     noun : SilWord,
     context : SilReferenceContext,

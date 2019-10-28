@@ -1472,6 +1472,7 @@ class SpcResponderSpec extends Specification
       processBelief("there is a door")
       processBelief("the door's label is " + epigram)
       processTerse("what is the door's label", epigram + ".")
+      processTerse("is the door's label " + epigram, "Yes.")
     }
 
     "understand property updates" in new

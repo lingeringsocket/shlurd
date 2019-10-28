@@ -1148,9 +1148,16 @@ class SmcPredicateEvaluator[
           }
         }
       }
-      case _ : SilQuotationReference => {
+      case qr : SilQuotationReference => {
         trace("QUOTATION REFERENCE")
-        Success(Trilean.Unknown)
+        mind.resolveQuotation(qr) match {
+          case Success(entity) => {
+            evaluator(entity, qr)
+          }
+          case _ => {
+            Success(Trilean.Unknown)
+          }
+        }
       }
       case _ : SilUnknownReference => {
         debug("UNKNOWN REFERENCE")
