@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.snavig
+package com.lingeringsocket.arclamp
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
@@ -28,11 +28,11 @@ import java.io._
 
 import org.slf4j._
 
-object SnavigShell
+object ArcLampShell
 {
   val logger =
     LoggerFactory.getLogger(
-      classOf[SnavigShell])
+      classOf[ArcLampShell])
 
   val PLAYER_WORD = "player-character"
 
@@ -44,7 +44,7 @@ object SnavigShell
 
   private val actionRespond = SilWord("responds", "respond")
 
-  private val serializer = new SnavigSerializer
+  private val serializer = new ArcLampSerializer
 
   private val responderParams = SmcResponseParams(
     verbosity = RESPONSE_COMPLETE,
@@ -58,33 +58,33 @@ object SnavigShell
 
   def ok = Some(OK)
 
-  def run(terminal : SnavigTerminal = new SnavigConsole)
+  def run(terminal : ArcLampTerminal = new ArcLampConsole)
   {
     val newShell = this.synchronized {
-      val file = new File("run/snavig-init-save.zip")
+      val file = new File("run/arclamp-init-save.zip")
       val (snapshot, init) =
         loadOrCreate(file, terminal)
-      val shell = new SnavigShell(snapshot, terminal)
+      val shell = new ArcLampShell(snapshot, terminal)
       if (init) {
         serializer.saveSnapshot(snapshot, file)
       }
       shell
     }
-    SnavigShell.run(newShell)
+    ArcLampShell.run(newShell)
   }
 
   def run(
-    firstShell : SnavigShell)
+    firstShell : ArcLampShell)
   {
-    var shellOpt : Option[SnavigShell] = Some(firstShell)
+    var shellOpt : Option[ArcLampShell] = Some(firstShell)
     while (shellOpt.nonEmpty) {
       val shell = shellOpt.get
       shellOpt = shell.run
     }
   }
 
-  def loadOrCreate(file : File, terminal : SnavigTerminal)
-      : (SnavigSnapshot, Boolean) =
+  def loadOrCreate(file : File, terminal : ArcLampTerminal)
+      : (ArcLampSnapshot, Boolean) =
   {
     if (file.exists) {
       tupleN((restore(file, terminal), false))
@@ -98,8 +98,8 @@ object SnavigShell
     }
   }
 
-  def restore(file : File, terminal : SnavigTerminal)
-      : SnavigSnapshot =
+  def restore(file : File, terminal : ArcLampTerminal)
+      : ArcLampSnapshot =
   {
     terminal.emitControl(s"Restoring from $file...")
     val snapshot = serializer.loadSnapshot(file)
@@ -107,30 +107,30 @@ object SnavigShell
     snapshot
   }
 
-  def createNewCosmos(terminal : SnavigTerminal) : SnavigSnapshot =
+  def createNewCosmos(terminal : ArcLampTerminal) : ArcLampSnapshot =
   {
     val bootCosmos = ShlurdPrimordialWordnet.newMutableCosmos
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
-    val bootMind = new SnavigMind(bootCosmos, None, preferredSynonyms)
+    val bootMind = new ArcLampMind(bootCosmos, None, preferredSynonyms)
     bootMind.importBeliefs(
-      "/example-snavig/game-axioms.txt",
+      "/example-arclamp/game-axioms.txt",
       new SpcResponder(
         bootMind,
         beliefParams))
 
     val noumenalCosmos = bootCosmos.newClone()
-    val noumenalMind = new SnavigMind(
+    val noumenalMind = new ArcLampMind(
       noumenalCosmos, None, preferredSynonyms)
 
     val playerEntity =
       bootstrapLookup(noumenalCosmos, PLAYER_WORD)
 
-    val mindMap = new mutable.LinkedHashMap[String, SnavigMind]
-    mindMap.put(SnavigSnapshot.BOOTSTRAP, bootMind)
-    mindMap.put(SnavigSnapshot.NOUMENAL, noumenalMind)
-    val snapshot = SnavigSnapshot(mindMap)
+    val mindMap = new mutable.LinkedHashMap[String, ArcLampMind]
+    mindMap.put(ArcLampSnapshot.BOOTSTRAP, bootMind)
+    mindMap.put(ArcLampSnapshot.NOUMENAL, noumenalMind)
+    val snapshot = ArcLampSnapshot(mindMap)
 
-    lazy val executor = new SnavigExecutor(noumenalMind)
+    lazy val executor = new ArcLampExecutor(noumenalMind)
     {
       override protected def processFiat(
         annotator : SilAnnotator,
@@ -185,35 +185,35 @@ object SnavigShell
       }
     }
 
-    lazy val noumenalInitializer : SnavigResponder = new SnavigResponder(
+    lazy val noumenalInitializer : ArcLampResponder = new ArcLampResponder(
       None, noumenalMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       responderParams,
       executor, SmcCommunicationContext(Some(playerEntity), Some(playerEntity)))
     noumenalMind.importBeliefs(
-      "/example-snavig/game-init.txt",
+      "/example-arclamp/game-init.txt",
       noumenalInitializer)
 
     val playerMindOpt = accessEntityMind(
       snapshot,
       playerEntity)
     playerMindOpt.foreach(playerMind => {
-      snapshot.mindMap.put(SnavigSnapshot.PLAYER_PHENOMENAL, playerMind)
+      snapshot.mindMap.put(ArcLampSnapshot.PLAYER_PHENOMENAL, playerMind)
     })
 
     snapshot
   }
 
   private def importEntityBeliefs(
-    terminal : SnavigTerminal,
-    executor : SnavigExecutor,
-    snapshot : SnavigSnapshot,
+    terminal : ArcLampTerminal,
+    executor : ArcLampExecutor,
+    snapshot : ArcLampSnapshot,
     entity : SpcEntity,
     resourceName : String)
   {
     accessEntityMind(snapshot, entity) match {
       case Some(mind) => {
-        val responder = new SnavigResponder(
+        val responder = new ArcLampResponder(
           None, mind, beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
           SmcResponseParams(), executor,
           SmcCommunicationContext(Some(entity), Some(entity)))
@@ -226,8 +226,8 @@ object SnavigShell
     }
   }
 
-  private[snavig] def executePerception(
-    snapshot : SnavigSnapshot,
+  private[arclamp] def executePerception(
+    snapshot : ArcLampSnapshot,
     perceiver : SpcEntity,
     perceived : Set[SpcEntity])
   {
@@ -246,8 +246,8 @@ object SnavigShell
   }
 
   private def accessEntityMind(
-    snapshot : SnavigSnapshot,
-    entity : SpcEntity) : Option[SnavigMind] =
+    snapshot : ArcLampSnapshot,
+    entity : SpcEntity) : Option[ArcLampMind] =
   {
     val bootCosmos = snapshot.getBootstrapMind.getCosmos
     val noumenalMind = snapshot.getNoumenalMind
@@ -286,7 +286,7 @@ object SnavigShell
           return None
         }
       }
-      val newMind = new SnavigMind(
+      val newMind = new ArcLampMind(
         cosmos,
         perception, noumenalMind.preferredSynonyms)
       snapshot.mindMap.put(entity.name, newMind)
@@ -320,11 +320,11 @@ object SnavigShell
 }
 
 
-class SnavigShell(
-  snapshot : SnavigSnapshot,
-  terminal : SnavigTerminal = new SnavigConsole)
+class ArcLampShell(
+  snapshot : ArcLampSnapshot,
+  terminal : ArcLampTerminal = new ArcLampConsole)
 {
-  import SnavigShell._
+  import ArcLampShell._
 
   sealed trait Deferred {
   }
@@ -344,7 +344,7 @@ class SnavigShell(
 
   case class DeferredUtterance(
     listener : SpcEntity,
-    listenerMind : SnavigMind,
+    listenerMind : ArcLampMind,
     quotation : String) extends Deferred
 
   case class DeferredPhenomenon(belief : String) extends Deferred
@@ -371,9 +371,9 @@ class SnavigShell(
 
   private var restoreFile : Option[File] = None
 
-  private var listenerMind : Option[(SpcEntity, SnavigMind)] = None
+  private var listenerMind : Option[(SpcEntity, ArcLampMind)] = None
 
-  private val executor = new SnavigExecutor(noumenalMind)
+  private val executor = new ArcLampExecutor(noumenalMind)
   {
     override protected def processFiat(
       annotator : SilAnnotator,
@@ -568,13 +568,13 @@ class SnavigShell(
     Some(interpreterEntity)
   )
 
-  private val noumenalUpdater : SnavigResponder = new SnavigResponder(
+  private val noumenalUpdater : ArcLampResponder = new ArcLampResponder(
     Some(this), noumenalMind,
     beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
     responderParams,
     executor, playerToInterpreter)
 
-  private val phenomenalResponder = new SnavigResponder(
+  private val phenomenalResponder = new ArcLampResponder(
     None, phenomenalMind,
     beliefParams.copy(acceptance = IGNORE_BELIEFS),
     responderParams.copy(
@@ -582,17 +582,17 @@ class SnavigShell(
       rememberConversation = true),
     executor, playerToInterpreter)
 
-  private val phenomenalUpdater = new SnavigResponder(
+  private val phenomenalUpdater = new ArcLampResponder(
     None, phenomenalMind,
     beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
     responderParams,
     executor, playerToInterpreter)
 
-  private def newFiatUpdater() : SnavigResponder =
+  private def newFiatUpdater() : ArcLampResponder =
   {
     // preserve conversation scope
     val fiatMind = phenomenalMind.spawn(noumenalCosmos)
-    new SnavigResponder(
+    new ArcLampResponder(
       Some(this), fiatMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       responderParams,
@@ -626,9 +626,9 @@ class SnavigShell(
   }
 
   private def accessEntityMind(
-    entity : SpcEntity) : Option[SnavigMind] =
+    entity : SpcEntity) : Option[ArcLampMind] =
   {
-    SnavigShell.accessEntityMind(snapshot, entity)
+    ArcLampShell.accessEntityMind(snapshot, entity)
   }
 
   private def processDeferred()
@@ -655,7 +655,7 @@ class SnavigShell(
             Some(playerEntity),
             Some(targetEntity)
           )
-          val responder = new SnavigResponder(
+          val responder = new ArcLampResponder(
             None, targetMind,
             beliefParams.copy(acceptance = IGNORE_BELIEFS),
             SmcResponseParams(), executor, communicationContext)
@@ -751,7 +751,7 @@ class SnavigShell(
                   Some(speaker),
                   Some(listener)
                 )
-                val entityResponder = new SnavigResponder(
+                val entityResponder = new ArcLampResponder(
                   None, entityMind,
                   beliefParams.copy(acceptance = IGNORE_BELIEFS),
                   SmcResponseParams(), executor, communicationContext)
@@ -820,7 +820,7 @@ class SnavigShell(
   }
 
   private def processUtterance(
-    responder : SnavigResponder, parseResult : SprParseResult) : String =
+    responder : ArcLampResponder, parseResult : SprParseResult) : String =
   {
     if (parseResult.sentence.tam.isImperative) {
       // FIXME support imperatives
@@ -832,7 +832,7 @@ class SnavigShell(
 
   private def preprocess(input : String) : String =
   {
-    SnavigAliases.map.get(input.trim.toLowerCase) match {
+    ArcLampAliases.map.get(input.trim.toLowerCase) match {
       case Some(replacement) => {
         preprocess(replacement)
       }
@@ -847,7 +847,7 @@ class SnavigShell(
     }
   }
 
-  def run() : Option[SnavigShell] =
+  def run() : Option[ArcLampShell] =
   {
     phenomenalMind.startConversation
     var exit = false
@@ -888,8 +888,8 @@ class SnavigShell(
     }
     restoreFile match {
       case Some(file) => {
-        val snapshot = SnavigShell.restore(file, terminal)
-        Some(new SnavigShell(snapshot, terminal))
+        val snapshot = ArcLampShell.restore(file, terminal)
+        Some(new ArcLampShell(snapshot, terminal))
       }
       case _ => {
         terminal.emitNarrative("")
@@ -900,10 +900,10 @@ class SnavigShell(
   }
 }
 
-abstract class SnavigExecutor(noumenalMind : SnavigMind)
+abstract class ArcLampExecutor(noumenalMind : ArcLampMind)
     extends SmcExecutor[SpcEntity]
 {
-  import SnavigShell._
+  import ArcLampShell._
 
   override def executeAction(
     ap : SilActionPredicate,
@@ -963,7 +963,7 @@ abstract class SnavigExecutor(noumenalMind : SnavigMind)
       : Option[String]
 
   protected def processPerception(
-    snapshot : SnavigSnapshot,
+    snapshot : ArcLampSnapshot,
     ap : SilActionPredicate,
     refMap : SpcRefMap,
     subjectEntityOpt : Option[SpcEntity])

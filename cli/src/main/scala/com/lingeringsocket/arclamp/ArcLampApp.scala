@@ -12,28 +12,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.snavig
+package com.lingeringsocket.arclamp
 
-import scala.collection._
-
-object SnavigSnapshot
+object ArcLampApp extends App
 {
-  val PLAYER_PHENOMENAL = "player_phenomenal"
-
-  val NOUMENAL = "noumenal"
-
-  val BOOTSTRAP = "bootstrap"
-}
-
-case class SnavigSnapshot(
-  mindMap : mutable.Map[String, SnavigMind]
-)
-{
-  import SnavigSnapshot._
-
-  def getBootstrapMind = mindMap(BOOTSTRAP)
-
-  def getNoumenalMind = mindMap(NOUMENAL)
-
-  def getPhenomenalMind = mindMap(PLAYER_PHENOMENAL)
+  ArcLampShell.run()
 }

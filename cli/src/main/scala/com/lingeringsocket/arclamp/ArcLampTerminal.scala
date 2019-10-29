@@ -12,14 +12,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.snavig
+package com.lingeringsocket.arclamp
 
 import org.jline.terminal._
 import org.jline.reader._
 
-trait SnavigTerminal
+trait ArcLampTerminal
 {
-  import SnavigShell.logger
+  import ArcLampShell.logger
 
   def emitPrompt()
   {
@@ -52,11 +52,11 @@ trait SnavigTerminal
 
   def getDefaultSaveFile() : String =
   {
-    "snavig-save.zip"
+    "arclamp-save.zip"
   }
 }
 
-class SnavigConsole extends SnavigTerminal
+class ArcLampConsole extends ArcLampTerminal
 {
   val jlineTerminal = TerminalBuilder.builder.build
   val reader = LineReaderBuilder.builder.terminal(jlineTerminal).build
@@ -70,7 +70,7 @@ class SnavigConsole extends SnavigTerminal
   override def emitControl(msg : String)
   {
     super.emitControl(msg)
-    out.println(s"[Snavig] $msg")
+    out.println(s"[ArcLamp] $msg")
   }
 
   override def emitNarrative(msg : String)

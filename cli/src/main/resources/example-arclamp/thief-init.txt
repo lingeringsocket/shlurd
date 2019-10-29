@@ -1,4 +1,4 @@
-"Resource" import "/example-snavig/thief-axioms.txt".
+"Resource" import "/example-arclamp/thief-axioms.txt".
 
 The thief is perceptive.
 The thief's description is "Ze wields a wicked-looking stiletto.".
@@ -8,4 +8,4 @@ The thief is alive.
 The thief surveys the bedroom.
 The thief surveys the bathroom.
 The thief perceives the lantern.
-The thief believes "/example-snavig/thief-mind-init.txt".
+The thief believes "/example-arclamp/thief-mind-init.txt".

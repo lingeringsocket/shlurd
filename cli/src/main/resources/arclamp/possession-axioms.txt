@@ -1,4 +1,4 @@
-"Resource" import "/snavig/game-turn-axioms.txt".
+"Resource" import "/arclamp/game-turn-axioms.txt".
 
 A game-character's character-inventory must be a repository.
 A game-character's stuff is the same as a character-inventory.

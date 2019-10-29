@@ -1,5 +1,5 @@
-"Resource" import "/snavig/character-axioms.txt".
-"Resource" import "/snavig/map-axioms.txt".
+"Resource" import "/arclamp/character-axioms.txt".
+"Resource" import "/arclamp/map-axioms.txt".
 
 A player-character can look.
 A player-character can look at an object.

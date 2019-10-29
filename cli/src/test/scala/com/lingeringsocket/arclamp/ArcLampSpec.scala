@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.snavig
+package com.lingeringsocket.arclamp
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
@@ -21,30 +21,30 @@ import org.specs2.mutable._
 
 import scala.io._
 
-class SnavigSpec extends Specification
+class ArcLampSpec extends Specification
 {
-  "SnavigApp" should
+  "ArcLampApp" should
   {
     "interpret script" in
     {
-      testScript("snavig-script.txt")
+      testScript("arclamp-script.txt")
     }
 
     "interpret conversations" in
     {
-      testScript("snavig-convo-script.txt")
+      testScript("arclamp-convo-script.txt")
     }
   }
 
   private def testScript(fileName : String) =
   {
-    val terminal = new SnavigTestTerminal(fileName)
-    SnavigShell.run(terminal)
+    val terminal = new ArcLampTestTerminal(fileName)
+    ArcLampShell.run(terminal)
     terminal.nextScriptLine must beEmpty
   }
 
-  class SnavigTestTerminal(fileName : String)
-      extends SnavigTerminal
+  class ArcLampTestTerminal(fileName : String)
+      extends ArcLampTerminal
   {
     private val script = Source.fromFile(
       ResourceUtils.getResourceFile(s"/expect/$fileName")).
@@ -73,7 +73,7 @@ class SnavigSpec extends Specification
     {
       val lineNoOneBased = lineNo + 1
       println(
-        s"SnavigSpec FAIL at $fileName:$lineNoOneBased")
+        s"ArcLampSpec FAIL at $fileName:$lineNoOneBased")
     }
 
     override def readInput() : Option[String] =
@@ -92,7 +92,7 @@ class SnavigSpec extends Specification
 
     override def getDefaultSaveFile() =
     {
-      "snavig-test-save.zip"
+      "arclamp-test-save.zip"
     }
 
     def nextScriptLine() : Option[(String, Int)] = {

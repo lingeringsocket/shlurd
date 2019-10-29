@@ -1,0 +1,3 @@
+"Resource" import "/arclamp/character-axioms.txt".
+
+"Resource" import "/example-arclamp/capability-axioms.txt".

@@ -1,6 +1,6 @@
-"Resource" import "/snavig/default-axioms.txt".
+"Resource" import "/arclamp/default-axioms.txt".
 
-"Resource" import "/example-snavig/thief-axioms.txt".
+"Resource" import "/example-arclamp/thief-axioms.txt".
 
 An axe or a lantern is a kind of game-object.
 

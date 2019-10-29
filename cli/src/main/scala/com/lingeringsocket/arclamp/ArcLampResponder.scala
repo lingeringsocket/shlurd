@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.snavig
+package com.lingeringsocket.arclamp
 
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
@@ -21,9 +21,9 @@ import com.lingeringsocket.shlurd.platonic._
 import scala.collection._
 import scala.util._
 
-class SnavigResponder(
-  propagationShell : Option[SnavigShell],
-  mind : SnavigMind,
+class ArcLampResponder(
+  propagationShell : Option[ArcLampShell],
+  mind : ArcLampMind,
   beliefParams : SpcBeliefParams,
   params : SmcResponseParams,
   executor : SmcExecutor[SpcEntity],
@@ -31,7 +31,7 @@ class SnavigResponder(
     extends SpcResponder(mind, beliefParams, params,
       executor, communicationContext)
 {
-  import SnavigShell._
+  import ArcLampShell._
 
   override protected def publishBelief(belief : SpcBelief)
   {
@@ -44,8 +44,8 @@ class SnavigResponder(
 
   override protected def spawn(subMind : SpcMind) =
   {
-    new SnavigResponder(
-      propagationShell, subMind.asInstanceOf[SnavigMind],
+    new ArcLampResponder(
+      propagationShell, subMind.asInstanceOf[ArcLampMind],
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       params, executor, communicationContext)
   }

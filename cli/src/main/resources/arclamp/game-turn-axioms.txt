@@ -1,4 +1,4 @@
-"Resource" import "/snavig/character-axioms.txt".
+"Resource" import "/arclamp/character-axioms.txt".
 
 There is a game-turn.
 

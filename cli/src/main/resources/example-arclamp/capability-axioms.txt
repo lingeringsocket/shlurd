@@ -1,6 +1,5 @@
-"Resource" import "/snavig/character-axioms.txt".
-
-"Resource" import "/snavig/default-capability-axioms.txt".
+"Resource" import "/arclamp/character-axioms.txt".
+"Resource" import "/arclamp/default-capability-axioms.txt".
 
 A person can't spy on a thief.
 

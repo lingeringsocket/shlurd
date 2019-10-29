@@ -1,4 +1,0 @@
-"Resource" import "/snavig/movement-axioms.txt".
-"Resource" import "/snavig/game-turn-axioms.txt".
-"Resource" import "/snavig/persistence-axioms.txt".
-"Resource" import "/snavig/action-axioms.txt".

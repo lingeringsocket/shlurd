@@ -1,0 +1,3 @@
+"Resource" import "/example-arclamp/thief-axioms.txt".
+
+The thief is suave.

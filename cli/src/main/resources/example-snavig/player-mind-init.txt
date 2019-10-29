@@ -1,3 +1,0 @@
-"Resource" import "/snavig/character-axioms.txt".
-
-"Resource" import "/example-snavig/capability-axioms.txt".

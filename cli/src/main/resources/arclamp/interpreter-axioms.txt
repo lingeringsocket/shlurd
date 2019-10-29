@@ -1,4 +1,4 @@
-"Resource" import "/snavig/basic-axioms.txt".
+"Resource" import "/arclamp/basic-axioms.txt".
 
 A game-interpreter is a kind of person.
 There is a game-interpreter.

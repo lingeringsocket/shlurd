@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.snavig
+package com.lingeringsocket.arclamp
 
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
@@ -21,7 +21,7 @@ import com.lingeringsocket.shlurd.cli._
 
 import scala.collection._
 
-class SnavigMind(
+class ArcLampMind(
   cosmos : SpcCosmos,
   val perception : Option[SpcPerception],
   val preferredSynonyms : mutable.Map[SpcIdeal, String]
@@ -38,7 +38,7 @@ class SnavigMind(
 
   override def spawn(newCosmos : SpcCosmos) =
   {
-    val mind = new SnavigMind(
+    val mind = new ArcLampMind(
       newCosmos, perception, preferredSynonyms)
     mind.initFrom(this)
     mind
@@ -53,7 +53,7 @@ class SnavigMind(
   {
     val references = super.equivalentReferences(
       annotator, communicationContext, entity, determiner)
-    if (entity.form.name == SnavigShell.INVENTORY_WORD) {
+    if (entity.form.name == ArcLampShell.INVENTORY_WORD) {
       val (nouns, others) =
         references.partition(r =>
           r.isInstanceOf[SilNounReference] ||
