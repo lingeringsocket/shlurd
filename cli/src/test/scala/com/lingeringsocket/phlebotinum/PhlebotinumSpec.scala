@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.arclamp
+package com.lingeringsocket.phlebotinum
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
@@ -21,30 +21,30 @@ import org.specs2.mutable._
 
 import scala.io._
 
-class ArcLampSpec extends Specification
+class PhlebSpec extends Specification
 {
-  "ArcLampApp" should
+  "PhlebApp" should
   {
     "interpret script" in
     {
-      testScript("arclamp-script.txt")
+      testScript("phlebotinum-script.txt")
     }
 
     "interpret conversations" in
     {
-      testScript("arclamp-convo-script.txt")
+      testScript("phlebotinum-convo-script.txt")
     }
   }
 
   private def testScript(fileName : String) =
   {
-    val terminal = new ArcLampTestTerminal(fileName)
-    ArcLampShell.run(terminal)
+    val terminal = new PhlebTestTerminal(fileName)
+    PhlebShell.run(terminal)
     terminal.nextScriptLine must beEmpty
   }
 
-  class ArcLampTestTerminal(fileName : String)
-      extends ArcLampTerminal
+  class PhlebTestTerminal(fileName : String)
+      extends PhlebTerminal
   {
     private val script = Source.fromFile(
       ResourceUtils.getResourceFile(s"/expect/$fileName")).
@@ -73,7 +73,7 @@ class ArcLampSpec extends Specification
     {
       val lineNoOneBased = lineNo + 1
       println(
-        s"ArcLampSpec FAIL at $fileName:$lineNoOneBased")
+        s"PhlebSpec FAIL at $fileName:$lineNoOneBased")
     }
 
     override def readInput() : Option[String] =
@@ -92,7 +92,7 @@ class ArcLampSpec extends Specification
 
     override def getDefaultSaveFile() =
     {
-      "arclamp-test-save.zip"
+      "phlebotinum-test-save.zip"
     }
 
     def nextScriptLine() : Option[(String, Int)] = {

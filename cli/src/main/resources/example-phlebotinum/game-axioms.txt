@@ -1,6 +1,6 @@
-"Resource" import "/arclamp/default-axioms.txt".
+"Resource" import "/phlebotinum/default-axioms.txt".
 
-"Resource" import "/example-arclamp/thief-axioms.txt".
+"Resource" import "/example-phlebotinum/thief-axioms.txt".
 
 An axe or a lantern is a kind of game-object.
 

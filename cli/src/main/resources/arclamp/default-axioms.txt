@@ -1,4 +1,0 @@
-"Resource" import "/arclamp/movement-axioms.txt".
-"Resource" import "/arclamp/game-turn-axioms.txt".
-"Resource" import "/arclamp/persistence-axioms.txt".
-"Resource" import "/arclamp/action-axioms.txt".

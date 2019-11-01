@@ -12,14 +12,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.arclamp
+package com.lingeringsocket.phlebotinum
 
 import org.jline.terminal._
 import org.jline.reader._
 
-trait ArcLampTerminal
+trait PhlebTerminal
 {
-  import ArcLampShell.logger
+  import PhlebShell.logger
 
   def emitPrompt()
   {
@@ -52,11 +52,11 @@ trait ArcLampTerminal
 
   def getDefaultSaveFile() : String =
   {
-    "arclamp-save.zip"
+    "phlebotinum-save.zip"
   }
 }
 
-class ArcLampConsole extends ArcLampTerminal
+class PhlebConsole extends PhlebTerminal
 {
   val jlineTerminal = TerminalBuilder.builder.build
   val reader = LineReaderBuilder.builder.terminal(jlineTerminal).build
@@ -70,7 +70,7 @@ class ArcLampConsole extends ArcLampTerminal
   override def emitControl(msg : String)
   {
     super.emitControl(msg)
-    out.println(s"[ArcLamp] $msg")
+    out.println(s"[Phleb] $msg")
   }
 
   override def emitNarrative(msg : String)

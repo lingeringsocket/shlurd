@@ -12,28 +12,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.arclamp
+package com.lingeringsocket.phlebotinum
 
-import scala.collection._
-
-object ArcLampSnapshot
+object PhlebApp extends App
 {
-  val PLAYER_PHENOMENAL = "player_phenomenal"
-
-  val NOUMENAL = "noumenal"
-
-  val BOOTSTRAP = "bootstrap"
-}
-
-case class ArcLampSnapshot(
-  mindMap : mutable.Map[String, ArcLampMind]
-)
-{
-  import ArcLampSnapshot._
-
-  def getBootstrapMind = mindMap(BOOTSTRAP)
-
-  def getNoumenalMind = mindMap(NOUMENAL)
-
-  def getPhenomenalMind = mindMap(PLAYER_PHENOMENAL)
+  PhlebShell.run()
 }

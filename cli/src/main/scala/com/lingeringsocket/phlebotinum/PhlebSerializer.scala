@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.arclamp
+package com.lingeringsocket.phlebotinum
 
 import com.lingeringsocket.shlurd.cli._
 
@@ -21,12 +21,12 @@ import com.esotericsoftware.kryo.io._
 import java.io._
 import java.util.zip._
 
-class ArcLampSerializer extends ShlurdCliSerializer
+class PhlebSerializer extends ShlurdCliSerializer
 {
   import ShlurdCliSerializer._
 
   def saveSnapshot(
-    snapshot : ArcLampSnapshot, file : File)
+    snapshot : PhlebSnapshot, file : File)
   {
     val zos = new ZipOutputStream(new FileOutputStream(file))
       saveEntry(zos, KRYO_ENTRY)(outputStream => {
@@ -40,7 +40,7 @@ class ArcLampSerializer extends ShlurdCliSerializer
     }
   }
 
-  def loadSnapshot(file : File) : ArcLampSnapshot =
+  def loadSnapshot(file : File) : PhlebSnapshot =
   {
     // this MUST be preloaded
     ShlurdPrimordialWordnet.frozenCosmos
@@ -50,7 +50,7 @@ class ArcLampSerializer extends ShlurdCliSerializer
       val nextEntry = zis.getNextEntry
       assert(nextEntry.getName == KRYO_ENTRY)
       val input = new Input(zis)
-      kryo.readObject(input, classOf[ArcLampSnapshot])
+      kryo.readObject(input, classOf[PhlebSnapshot])
     } finally {
       zis.close
     }

@@ -1,0 +1,3 @@
+"Resource" import "/phlebotinum/character-axioms.txt".
+
+"Resource" import "/example-phlebotinum/capability-axioms.txt".

@@ -1,5 +1,5 @@
-"Resource" import "/arclamp/character-axioms.txt".
-"Resource" import "/arclamp/interpreter-axioms.txt".
+"Resource" import "/phlebotinum/character-axioms.txt".
+"Resource" import "/phlebotinum/interpreter-axioms.txt".
 
 When a player-character looks at a describable-entity,
  the player-character examines it.

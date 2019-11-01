@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.arclamp
+package com.lingeringsocket.phlebotinum
 
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
@@ -21,9 +21,9 @@ import com.lingeringsocket.shlurd.platonic._
 import scala.collection._
 import scala.util._
 
-class ArcLampResponder(
-  propagationShell : Option[ArcLampShell],
-  mind : ArcLampMind,
+class PhlebResponder(
+  propagationShell : Option[PhlebShell],
+  mind : PhlebMind,
   beliefParams : SpcBeliefParams,
   params : SmcResponseParams,
   executor : SmcExecutor[SpcEntity],
@@ -31,7 +31,7 @@ class ArcLampResponder(
     extends SpcResponder(mind, beliefParams, params,
       executor, communicationContext)
 {
-  import ArcLampShell._
+  import PhlebShell._
 
   override protected def publishBelief(belief : SpcBelief)
   {
@@ -44,8 +44,8 @@ class ArcLampResponder(
 
   override protected def spawn(subMind : SpcMind) =
   {
-    new ArcLampResponder(
-      propagationShell, subMind.asInstanceOf[ArcLampMind],
+    new PhlebResponder(
+      propagationShell, subMind.asInstanceOf[PhlebMind],
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       params, executor, communicationContext)
   }

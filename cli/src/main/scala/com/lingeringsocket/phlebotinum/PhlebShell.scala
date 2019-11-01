@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.arclamp
+package com.lingeringsocket.phlebotinum
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
@@ -28,11 +28,11 @@ import java.io._
 
 import org.slf4j._
 
-object ArcLampShell
+object PhlebShell
 {
   val logger =
     LoggerFactory.getLogger(
-      classOf[ArcLampShell])
+      classOf[PhlebShell])
 
   val PLAYER_WORD = "player-character"
 
@@ -44,7 +44,7 @@ object ArcLampShell
 
   private val actionRespond = SilWord("responds", "respond")
 
-  private val serializer = new ArcLampSerializer
+  private val serializer = new PhlebSerializer
 
   private val responderParams = SmcResponseParams(
     verbosity = RESPONSE_COMPLETE,
@@ -58,33 +58,33 @@ object ArcLampShell
 
   def ok = Some(OK)
 
-  def run(terminal : ArcLampTerminal = new ArcLampConsole)
+  def run(terminal : PhlebTerminal = new PhlebConsole)
   {
     val newShell = this.synchronized {
-      val file = new File("run/arclamp-init-save.zip")
+      val file = new File("run/phlebotinum-init-save.zip")
       val (snapshot, init) =
         loadOrCreate(file, terminal)
-      val shell = new ArcLampShell(snapshot, terminal)
+      val shell = new PhlebShell(snapshot, terminal)
       if (init) {
         serializer.saveSnapshot(snapshot, file)
       }
       shell
     }
-    ArcLampShell.run(newShell)
+    PhlebShell.run(newShell)
   }
 
   def run(
-    firstShell : ArcLampShell)
+    firstShell : PhlebShell)
   {
-    var shellOpt : Option[ArcLampShell] = Some(firstShell)
+    var shellOpt : Option[PhlebShell] = Some(firstShell)
     while (shellOpt.nonEmpty) {
       val shell = shellOpt.get
       shellOpt = shell.run
     }
   }
 
-  def loadOrCreate(file : File, terminal : ArcLampTerminal)
-      : (ArcLampSnapshot, Boolean) =
+  def loadOrCreate(file : File, terminal : PhlebTerminal)
+      : (PhlebSnapshot, Boolean) =
   {
     if (file.exists) {
       tupleN((restore(file, terminal), false))
@@ -98,8 +98,8 @@ object ArcLampShell
     }
   }
 
-  def restore(file : File, terminal : ArcLampTerminal)
-      : ArcLampSnapshot =
+  def restore(file : File, terminal : PhlebTerminal)
+      : PhlebSnapshot =
   {
     terminal.emitControl(s"Restoring from $file...")
     val snapshot = serializer.loadSnapshot(file)
@@ -107,30 +107,30 @@ object ArcLampShell
     snapshot
   }
 
-  def createNewCosmos(terminal : ArcLampTerminal) : ArcLampSnapshot =
+  def createNewCosmos(terminal : PhlebTerminal) : PhlebSnapshot =
   {
     val bootCosmos = ShlurdPrimordialWordnet.newMutableCosmos
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
-    val bootMind = new ArcLampMind(bootCosmos, None, preferredSynonyms)
+    val bootMind = new PhlebMind(bootCosmos, None, preferredSynonyms)
     bootMind.importBeliefs(
-      "/example-arclamp/game-axioms.txt",
+      "/example-phlebotinum/game-axioms.txt",
       new SpcResponder(
         bootMind,
         beliefParams))
 
     val noumenalCosmos = bootCosmos.newClone()
-    val noumenalMind = new ArcLampMind(
+    val noumenalMind = new PhlebMind(
       noumenalCosmos, None, preferredSynonyms)
 
     val playerEntity =
       bootstrapLookup(noumenalCosmos, PLAYER_WORD)
 
-    val mindMap = new mutable.LinkedHashMap[String, ArcLampMind]
-    mindMap.put(ArcLampSnapshot.BOOTSTRAP, bootMind)
-    mindMap.put(ArcLampSnapshot.NOUMENAL, noumenalMind)
-    val snapshot = ArcLampSnapshot(mindMap)
+    val mindMap = new mutable.LinkedHashMap[String, PhlebMind]
+    mindMap.put(PhlebSnapshot.BOOTSTRAP, bootMind)
+    mindMap.put(PhlebSnapshot.NOUMENAL, noumenalMind)
+    val snapshot = PhlebSnapshot(mindMap)
 
-    lazy val executor = new ArcLampExecutor(noumenalMind)
+    lazy val executor = new PhlebExecutor(noumenalMind)
     {
       override protected def processFiat(
         annotator : SilAnnotator,
@@ -185,35 +185,35 @@ object ArcLampShell
       }
     }
 
-    lazy val noumenalInitializer : ArcLampResponder = new ArcLampResponder(
+    lazy val noumenalInitializer : PhlebResponder = new PhlebResponder(
       None, noumenalMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       responderParams,
       executor, SmcCommunicationContext(Some(playerEntity), Some(playerEntity)))
     noumenalMind.importBeliefs(
-      "/example-arclamp/game-init.txt",
+      "/example-phlebotinum/game-init.txt",
       noumenalInitializer)
 
     val playerMindOpt = accessEntityMind(
       snapshot,
       playerEntity)
     playerMindOpt.foreach(playerMind => {
-      snapshot.mindMap.put(ArcLampSnapshot.PLAYER_PHENOMENAL, playerMind)
+      snapshot.mindMap.put(PhlebSnapshot.PLAYER_PHENOMENAL, playerMind)
     })
 
     snapshot
   }
 
   private def importEntityBeliefs(
-    terminal : ArcLampTerminal,
-    executor : ArcLampExecutor,
-    snapshot : ArcLampSnapshot,
+    terminal : PhlebTerminal,
+    executor : PhlebExecutor,
+    snapshot : PhlebSnapshot,
     entity : SpcEntity,
     resourceName : String)
   {
     accessEntityMind(snapshot, entity) match {
       case Some(mind) => {
-        val responder = new ArcLampResponder(
+        val responder = new PhlebResponder(
           None, mind, beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
           SmcResponseParams(), executor,
           SmcCommunicationContext(Some(entity), Some(entity)))
@@ -226,8 +226,8 @@ object ArcLampShell
     }
   }
 
-  private[arclamp] def executePerception(
-    snapshot : ArcLampSnapshot,
+  private[phlebotinum] def executePerception(
+    snapshot : PhlebSnapshot,
     perceiver : SpcEntity,
     perceived : Set[SpcEntity])
   {
@@ -246,8 +246,8 @@ object ArcLampShell
   }
 
   private def accessEntityMind(
-    snapshot : ArcLampSnapshot,
-    entity : SpcEntity) : Option[ArcLampMind] =
+    snapshot : PhlebSnapshot,
+    entity : SpcEntity) : Option[PhlebMind] =
   {
     val bootCosmos = snapshot.getBootstrapMind.getCosmos
     val noumenalMind = snapshot.getNoumenalMind
@@ -286,7 +286,7 @@ object ArcLampShell
           return None
         }
       }
-      val newMind = new ArcLampMind(
+      val newMind = new PhlebMind(
         cosmos,
         perception, noumenalMind.preferredSynonyms)
       snapshot.mindMap.put(entity.name, newMind)
@@ -320,11 +320,11 @@ object ArcLampShell
 }
 
 
-class ArcLampShell(
-  snapshot : ArcLampSnapshot,
-  terminal : ArcLampTerminal = new ArcLampConsole)
+class PhlebShell(
+  snapshot : PhlebSnapshot,
+  terminal : PhlebTerminal = new PhlebConsole)
 {
-  import ArcLampShell._
+  import PhlebShell._
 
   sealed trait Deferred {
   }
@@ -344,7 +344,7 @@ class ArcLampShell(
 
   case class DeferredUtterance(
     listener : SpcEntity,
-    listenerMind : ArcLampMind,
+    listenerMind : PhlebMind,
     quotation : String) extends Deferred
 
   case class DeferredPhenomenon(belief : String) extends Deferred
@@ -371,9 +371,9 @@ class ArcLampShell(
 
   private var restoreFile : Option[File] = None
 
-  private var listenerMind : Option[(SpcEntity, ArcLampMind)] = None
+  private var listenerMind : Option[(SpcEntity, PhlebMind)] = None
 
-  private val executor = new ArcLampExecutor(noumenalMind)
+  private val executor = new PhlebExecutor(noumenalMind)
   {
     override protected def processFiat(
       annotator : SilAnnotator,
@@ -568,13 +568,13 @@ class ArcLampShell(
     Some(interpreterEntity)
   )
 
-  private val noumenalUpdater : ArcLampResponder = new ArcLampResponder(
+  private val noumenalUpdater : PhlebResponder = new PhlebResponder(
     Some(this), noumenalMind,
     beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
     responderParams,
     executor, playerToInterpreter)
 
-  private val phenomenalResponder = new ArcLampResponder(
+  private val phenomenalResponder = new PhlebResponder(
     None, phenomenalMind,
     beliefParams.copy(acceptance = IGNORE_BELIEFS),
     responderParams.copy(
@@ -582,17 +582,17 @@ class ArcLampShell(
       rememberConversation = true),
     executor, playerToInterpreter)
 
-  private val phenomenalUpdater = new ArcLampResponder(
+  private val phenomenalUpdater = new PhlebResponder(
     None, phenomenalMind,
     beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
     responderParams,
     executor, playerToInterpreter)
 
-  private def newFiatUpdater() : ArcLampResponder =
+  private def newFiatUpdater() : PhlebResponder =
   {
     // preserve conversation scope
     val fiatMind = phenomenalMind.spawn(noumenalCosmos)
-    new ArcLampResponder(
+    new PhlebResponder(
       Some(this), fiatMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       responderParams,
@@ -626,9 +626,9 @@ class ArcLampShell(
   }
 
   private def accessEntityMind(
-    entity : SpcEntity) : Option[ArcLampMind] =
+    entity : SpcEntity) : Option[PhlebMind] =
   {
-    ArcLampShell.accessEntityMind(snapshot, entity)
+    PhlebShell.accessEntityMind(snapshot, entity)
   }
 
   private def processDeferred()
@@ -655,7 +655,7 @@ class ArcLampShell(
             Some(playerEntity),
             Some(targetEntity)
           )
-          val responder = new ArcLampResponder(
+          val responder = new PhlebResponder(
             None, targetMind,
             beliefParams.copy(acceptance = IGNORE_BELIEFS),
             SmcResponseParams(), executor, communicationContext)
@@ -751,7 +751,7 @@ class ArcLampShell(
                   Some(speaker),
                   Some(listener)
                 )
-                val entityResponder = new ArcLampResponder(
+                val entityResponder = new PhlebResponder(
                   None, entityMind,
                   beliefParams.copy(acceptance = IGNORE_BELIEFS),
                   SmcResponseParams(), executor, communicationContext)
@@ -820,7 +820,7 @@ class ArcLampShell(
   }
 
   private def processUtterance(
-    responder : ArcLampResponder, parseResult : SprParseResult) : String =
+    responder : PhlebResponder, parseResult : SprParseResult) : String =
   {
     if (parseResult.sentence.tam.isImperative) {
       // FIXME support imperatives
@@ -832,7 +832,7 @@ class ArcLampShell(
 
   private def preprocess(input : String) : String =
   {
-    ArcLampAliases.map.get(input.trim.toLowerCase) match {
+    PhlebAliases.map.get(input.trim.toLowerCase) match {
       case Some(replacement) => {
         preprocess(replacement)
       }
@@ -847,7 +847,7 @@ class ArcLampShell(
     }
   }
 
-  def run() : Option[ArcLampShell] =
+  def run() : Option[PhlebShell] =
   {
     phenomenalMind.startConversation
     var exit = false
@@ -888,8 +888,8 @@ class ArcLampShell(
     }
     restoreFile match {
       case Some(file) => {
-        val snapshot = ArcLampShell.restore(file, terminal)
-        Some(new ArcLampShell(snapshot, terminal))
+        val snapshot = PhlebShell.restore(file, terminal)
+        Some(new PhlebShell(snapshot, terminal))
       }
       case _ => {
         terminal.emitNarrative("")
@@ -900,10 +900,10 @@ class ArcLampShell(
   }
 }
 
-abstract class ArcLampExecutor(noumenalMind : ArcLampMind)
+abstract class PhlebExecutor(noumenalMind : PhlebMind)
     extends SmcExecutor[SpcEntity]
 {
-  import ArcLampShell._
+  import PhlebShell._
 
   override def executeAction(
     ap : SilActionPredicate,
@@ -963,7 +963,7 @@ abstract class ArcLampExecutor(noumenalMind : ArcLampMind)
       : Option[String]
 
   protected def processPerception(
-    snapshot : ArcLampSnapshot,
+    snapshot : PhlebSnapshot,
     ap : SilActionPredicate,
     refMap : SpcRefMap,
     subjectEntityOpt : Option[SpcEntity])

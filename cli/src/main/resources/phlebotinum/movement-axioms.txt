@@ -1,6 +1,6 @@
-"Resource" import "/arclamp/map-axioms.txt".
-"Resource" import "/arclamp/character-axioms.txt".
-"Resource" import "/arclamp/interpreter-axioms.txt".
+"Resource" import "/phlebotinum/map-axioms.txt".
+"Resource" import "/phlebotinum/character-axioms.txt".
+"Resource" import "/phlebotinum/interpreter-axioms.txt".
 
 A map-place's place-discoverer must be a player-character.
 A map-place may have place-discoverers.
