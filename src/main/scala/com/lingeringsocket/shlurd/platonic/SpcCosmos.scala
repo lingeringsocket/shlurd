@@ -435,6 +435,7 @@ class SpcCosmos(
       }
     })
     this.inheritBeliefResources(src)
+    meta.enable
   }
 
   def newClone(flattenDeltas : Boolean = false) : SpcCosmos =

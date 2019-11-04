@@ -39,7 +39,7 @@ class PhlebSpec extends Specification
   private def testScript(fileName : String) =
   {
     val terminal = new PhlebTestTerminal(fileName)
-    PhlebShell.run(terminal)
+    PhlebShell.run("/example-phlebotinum/", terminal)
     terminal.nextScriptLine must beEmpty
   }
 

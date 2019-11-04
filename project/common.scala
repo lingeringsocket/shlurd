@@ -33,7 +33,7 @@ object Common
 
   def maxErrors = 99
 
-  def traceLevel = 10
+  def traceLevel = 100
 
   def specs2Deps = Seq(
     "org.specs2" %% "specs2-core" % "4.0.3" % "test")

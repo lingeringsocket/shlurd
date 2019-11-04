@@ -2,3 +2,4 @@
 "Resource" import "/phlebotinum/game-turn-axioms.txt".
 "Resource" import "/phlebotinum/persistence-axioms.txt".
 "Resource" import "/phlebotinum/action-axioms.txt".
+"Resource" import "/phlebotinum/possession-axioms.txt".

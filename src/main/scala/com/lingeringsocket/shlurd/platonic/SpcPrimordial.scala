@@ -59,7 +59,6 @@ object SpcPrimordial
   def initCosmos(cosmos : SpcCosmos)
   {
     cosmos.copyFrom(seedCosmos)
-    cosmos.meta.enable
   }
 
   def isPrimordialSynonym(pair : (String, _)) : Boolean =

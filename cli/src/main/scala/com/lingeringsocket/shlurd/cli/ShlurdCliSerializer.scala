@@ -45,10 +45,10 @@ object ShlurdCliSerializer
     }
   }
 
-  private def accessGraph(name : String) : SpcGraph =
+  private def accessGraph(name : String) : Option[SpcGraph] =
   {
     this.synchronized {
-      graphMap(name)
+      graphMap.get(name)
     }
   }
 }
@@ -89,7 +89,7 @@ class ShlurdCliSerializer
           val orig = graphSerializer.read(kser, in, cls)
           val graph = orig.baseName.map(baseName => {
             val base = accessGraph(baseName)
-            orig.rebase(base)
+            base.map(orig.rebase).getOrElse(orig)
           }).getOrElse(orig)
           graph.name.foreach(graphName => {
             saveGraph(graphName, graph)
@@ -101,6 +101,7 @@ class ShlurdCliSerializer
 
   def saveCosmos(cosmos : SpcCosmos, file : File)
   {
+    file.getParentFile.mkdirs
     val zos = new ZipOutputStream(new FileOutputStream(file))
     try {
       saveEntry(zos, KRYO_ENTRY)(outputStream => {
@@ -128,6 +129,7 @@ class ShlurdCliSerializer
 
   def saveMind(mind : ShlurdCliMind, file : File)
   {
+    file.getParentFile.mkdirs
     val zos = new ZipOutputStream(new FileOutputStream(file))
     try {
       saveEntry(zos, KRYO_ENTRY)(outputStream => {

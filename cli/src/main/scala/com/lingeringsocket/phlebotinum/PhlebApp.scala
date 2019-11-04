@@ -14,7 +14,16 @@
 // limitations under the License.
 package com.lingeringsocket.phlebotinum
 
+import com.lingeringsocket.shlurd._
+
+import java.net._
+
 object PhlebApp extends App
 {
-  PhlebShell.run()
+  if (args.isEmpty) {
+    PhlebShell.run("/example-phlebotinum/")
+  } else {
+    ResourceUtils.addUrl(new URL(args.head))
+    PhlebShell.run("")
+  }
 }

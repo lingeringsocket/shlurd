@@ -70,7 +70,7 @@ class PhlebConsole extends PhlebTerminal
   override def emitControl(msg : String)
   {
     super.emitControl(msg)
-    out.println(s"[Phleb] $msg")
+    out.println(s"[phlebotinum] $msg")
   }
 
   override def emitNarrative(msg : String)

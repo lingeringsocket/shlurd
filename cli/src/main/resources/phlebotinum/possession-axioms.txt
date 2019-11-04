@@ -16,7 +16,10 @@ Before a game-character drops a game-object,
  it must be in the game-character's stuff;
  otherwise the game-interpreter complains "But you have no such object.".
 After a game-character drops a game-object,
- it is in the game-character's container.
+ it falls onto the game-character's container.
+
+After a game-object falls onto a map-place,
+ the game-object is in the map-place.
 
 If a game-character is holding a game-object, then equivalently
  it is in the game-character's stuff.

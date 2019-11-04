@@ -28,6 +28,7 @@ class PhlebSerializer extends ShlurdCliSerializer
   def saveSnapshot(
     snapshot : PhlebSnapshot, file : File)
   {
+    file.getParentFile.mkdirs
     val zos = new ZipOutputStream(new FileOutputStream(file))
       saveEntry(zos, KRYO_ENTRY)(outputStream => {
         val output = new Output(outputStream)

@@ -19,7 +19,6 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
-import com.lingeringsocket.shlurd.cli._
 
 import scala.collection._
 import scala.util._
@@ -50,7 +49,7 @@ object PhlebShell
     verbosity = RESPONSE_COMPLETE,
     rememberConversation = false)
 
-  private val beliefParams = SpcBeliefParams(
+  val beliefParams = SpcBeliefParams(
     createImplicitIdeals = false,
     createTentativeIdeals = false,
     createTentativeEntities = true,
@@ -58,14 +57,16 @@ object PhlebShell
 
   def ok = Some(OK)
 
-  def run(terminal : PhlebTerminal = new PhlebConsole)
+  def run(
+    resourcePrefix : String,
+    terminal : PhlebTerminal = new PhlebConsole)
   {
     val newShell = this.synchronized {
-      val file = new File("run/phlebotinum-init-save.zip")
+      val file = new File(s"run${resourcePrefix}init-save.zip")
       val (snapshot, init) =
-        loadOrCreate(file, terminal)
+        loadOrCreate(resourcePrefix, file, terminal)
       val shell = new PhlebShell(snapshot, terminal)
-      if (init) {
+      if (init && resourcePrefix.nonEmpty) {
         serializer.saveSnapshot(snapshot, file)
       }
       shell
@@ -83,14 +84,15 @@ object PhlebShell
     }
   }
 
-  def loadOrCreate(file : File, terminal : PhlebTerminal)
+  private def loadOrCreate(
+    resourcePrefix : String, file : File, terminal : PhlebTerminal)
       : (PhlebSnapshot, Boolean) =
   {
-    if (file.exists) {
+    if (resourcePrefix.nonEmpty && file.exists) {
       tupleN((restore(file, terminal), false))
     } else {
       terminal.emitControl("Initializing...")
-      val snapshot = createNewCosmos(terminal)
+      val snapshot = createNewCosmos(resourcePrefix, terminal)
       terminal.emitControl("Initialization complete.")
       tupleN((
         snapshot,
@@ -107,13 +109,14 @@ object PhlebShell
     snapshot
   }
 
-  def createNewCosmos(terminal : PhlebTerminal) : PhlebSnapshot =
+  def createNewCosmos(
+    resourcePrefix : String, terminal : PhlebTerminal) : PhlebSnapshot =
   {
-    val bootCosmos = ShlurdPrimordialWordnet.newMutableCosmos
+    val bootCosmos = PhlebBaseline.newMutableCosmos
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
     val bootMind = new PhlebMind(bootCosmos, None, preferredSynonyms)
     bootMind.importBeliefs(
-      "/example-phlebotinum/game-axioms.txt",
+      s"${resourcePrefix}game-axioms.txt",
       new SpcResponder(
         bootMind,
         beliefParams))
@@ -191,7 +194,7 @@ object PhlebShell
       responderParams,
       executor, SmcCommunicationContext(Some(playerEntity), Some(playerEntity)))
     noumenalMind.importBeliefs(
-      "/example-phlebotinum/game-init.txt",
+      s"${resourcePrefix}game-init.txt",
       noumenalInitializer)
 
     val playerMindOpt = accessEntityMind(

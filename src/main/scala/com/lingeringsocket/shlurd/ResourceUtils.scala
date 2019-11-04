@@ -16,10 +16,27 @@ package com.lingeringsocket.shlurd
 
 import scala.io._
 
+import java.net._
 import java.io._
 
 object ResourceUtils
 {
+  class AugmentableLoader(parent : ClassLoader) extends URLClassLoader(
+    Array[URL](), parent)
+  {
+    def addUrl(url : URL)
+    {
+      super.addURL(url)
+    }
+  }
+
+  private val loader = new AugmentableLoader(getClass.getClassLoader)
+
+  def addUrl(url : URL)
+  {
+    loader.addUrl(url)
+  }
+
   def getResourcePath(resource : String) =
     getClass.getResource(resource).getPath
 
@@ -27,7 +44,7 @@ object ResourceUtils
     new File(getResourcePath(resource))
 
   def getResourceStream(resource : String) =
-      getClass.getClassLoader.getResourceAsStream(resource.stripPrefix("/"))
+      loader.getResourceAsStream(resource.stripPrefix("/"))
 
   def getResourceSource(resource : String) =
     Source.fromInputStream(getResourceStream(resource))
