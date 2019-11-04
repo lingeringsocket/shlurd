@@ -104,7 +104,7 @@ You are in the cupboard.
 
 I hope you don't have claustrophobia.
 
-You see the oracle.
+You see the cupboard and the oracle.
 
 > ask the oracle "where is the lantern"
 

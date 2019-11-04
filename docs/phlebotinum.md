@@ -4,13 +4,13 @@ Phlebotinum is an interactive fiction system based on [SHLURD](readme.md).
 
 It is similar to [Inform 7](inform7.com) in that a limited form of
 natural language is used for authoring stories.  It is different in
-that the same natural language is used for interpreting stories as
+that the same natural language is used while interpreting stories as
 well.
 
 ## A Short Story
 
 * play here
-* see source code
+* [see source code](https://github.com/lingeringsocket/hello-phlebotinum)
 
 ## Story Organization
 

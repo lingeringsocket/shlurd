@@ -8,6 +8,9 @@ There is a player-inventory.
 The player-inventory is the player-character's stuff.
 
 Before a game-character gets a game-object,
+ it must not be in the game-character's stuff;
+ otherwise the game-interpreter complains "But you already have that.".
+Before a game-character gets a game-object,
  it must be in the game-character's container;
  otherwise the game-interpreter complains "But there is no such object here.".
 After a game-character gets a game-object,

@@ -13,11 +13,11 @@ When a player-character discovers a map-place,
 When a player-character appraises a map-place,
  the player-character asks "where am I";
  also the game-interpreter recites the map-place's place-description;
- also the player-character discerns the map-place's spc-contained-objects.
+ also the player-character discerns the player-character's visible-items.
 
 When a player-character rediscovers a map-place,
  the player-character asks "where am I";
- also the player-character discerns the map-place's spc-contained-objects.
+ also the player-character discerns the player-character's visible-items.
 
 When a player-character discerns any visible-entities,
  the player-character asks "what do I see".

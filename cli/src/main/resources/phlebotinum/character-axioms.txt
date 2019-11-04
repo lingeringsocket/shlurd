@@ -4,11 +4,16 @@ A game-character is a kind of person.
 A game-character is a kind of describable-entity.
 Player-characters and non-player-characters are kinds of game-character.
 A non-player-character is a kind of visible-entity.
+A game-character's visible-item must be a visible-entity.
 
 A game-character's awareness must be
  mindless, unperceptive, perceptive, or omniscient.
 
-If a game-character sees a visible-entity, then equivalently
- it is in the game-character's container.
+If a game-character sees any visible-entities, then equivalently
+ they are the game-character's visible-items.
+
+When a game-character observes an object,
+ the game-character perceives the object;
+ also the game-character sees the object.
 
 There is a player-character.

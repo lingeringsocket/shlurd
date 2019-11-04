@@ -92,6 +92,7 @@ object SilAdposition
   }
 
   val AMONG = adposition(LEMMA_AMONG)
+  val EXCEPT = adposition(LEMMA_EXCEPT)
   val IN = adposition(LEMMA_IN)
   val INSIDE = adposition(LEMMA_INSIDE)
   val WITHIN = adposition(LEMMA_WITHIN)

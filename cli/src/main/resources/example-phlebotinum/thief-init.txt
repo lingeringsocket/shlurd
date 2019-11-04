@@ -7,5 +7,5 @@ The thief is alive.
 // let the thief know about places and things other than his starting location
 The thief surveys the bedroom.
 The thief surveys the bathroom.
-The thief perceives the lantern.
+The thief observes the lantern.
 The thief believes "/example-phlebotinum/thief-mind-init.txt".

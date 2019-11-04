@@ -364,6 +364,9 @@ class SpcMind(cosmos : SpcCosmos)
       case SilAdposition.AMONG => {
         return Success(Trilean(entity == objEntity))
       }
+      case SilAdposition.EXCEPT => {
+        return Success(Trilean(entity != objEntity))
+      }
       case _ => {
         return Success(Trilean.Unknown)
       }
