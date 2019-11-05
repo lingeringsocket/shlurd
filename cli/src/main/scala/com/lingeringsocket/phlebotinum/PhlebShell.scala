@@ -178,7 +178,7 @@ object PhlebShell
           case _ => {
             lemma match {
               case "perceive" => {
-                processPerception(snapshot, ap, refMap, subjectEntityOpt)
+                processPerception(None, snapshot, ap, refMap, subjectEntityOpt)
                 ok
               }
               case _ => None
@@ -189,7 +189,7 @@ object PhlebShell
     }
 
     lazy val noumenalInitializer : PhlebResponder = new PhlebResponder(
-      None, noumenalMind,
+      noumenalMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       responderParams,
       executor, SmcCommunicationContext(Some(playerEntity), Some(playerEntity)))
@@ -217,7 +217,7 @@ object PhlebShell
     accessEntityMind(snapshot, entity) match {
       case Some(mind) => {
         val responder = new PhlebResponder(
-          None, mind, beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
+          mind, beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
           SmcResponseParams(), executor,
           SmcCommunicationContext(Some(entity), Some(entity)))
         mind.importBeliefs(resourceName, responder)
@@ -350,8 +350,6 @@ class PhlebShell(
     listenerMind : PhlebMind,
     quotation : String) extends Deferred
 
-  case class DeferredPhenomenon(belief : String) extends Deferred
-
   private val phenomenalMind = snapshot.getPhenomenalMind
 
   private val phenomenalCosmos = phenomenalMind.getCosmos
@@ -369,6 +367,10 @@ class PhlebShell(
   private val playerPerception = phenomenalMind.perception.get
 
   private val deferredQueue = new mutable.Queue[Deferred]
+
+  private val deferredPerception = new mutable.ArrayBuffer[
+    (PhlebSnapshot, SpcEntity, Set[SpcEntity])
+  ]
 
   private var gameTurnTimestamp = SpcTimestamp.ZERO
 
@@ -490,7 +492,8 @@ class PhlebShell(
         case _ => {
           lemma match {
             case "perceive" => {
-              processPerception(snapshot, ap, refMap, subjectEntityOpt)
+              processPerception(
+                Some(PhlebShell.this), snapshot, ap, refMap, subjectEntityOpt)
               ok
             }
             case "talk" => {
@@ -572,23 +575,17 @@ class PhlebShell(
   )
 
   private val noumenalUpdater : PhlebResponder = new PhlebResponder(
-    Some(this), noumenalMind,
+    noumenalMind,
     beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
     responderParams,
     executor, playerToInterpreter)
 
   private val phenomenalResponder = new PhlebResponder(
-    None, phenomenalMind,
+    phenomenalMind,
     beliefParams.copy(acceptance = IGNORE_BELIEFS),
     responderParams.copy(
       existenceAssumption = EXISTENCE_ASSUME_UNKNOWN,
       rememberConversation = true),
-    executor, playerToInterpreter)
-
-  private val phenomenalUpdater = new PhlebResponder(
-    None, phenomenalMind,
-    beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
-    responderParams,
     executor, playerToInterpreter)
 
   private def newFiatUpdater() : PhlebResponder =
@@ -596,7 +593,7 @@ class PhlebShell(
     // preserve conversation scope
     val fiatMind = phenomenalMind.spawn(noumenalCosmos)
     new PhlebResponder(
-      Some(this), fiatMind,
+      fiatMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       responderParams,
       executor, playerToInterpreter)
@@ -605,11 +602,6 @@ class PhlebShell(
   def defer(deferred : Deferred)
   {
     deferredQueue += deferred
-  }
-
-  def deferPhenomenon(belief : String)
-  {
-    defer(DeferredPhenomenon(belief))
   }
 
   private def validateFiat(
@@ -659,7 +651,7 @@ class PhlebShell(
             Some(targetEntity)
           )
           val responder = new PhlebResponder(
-            None, targetMind,
+            targetMind,
             beliefParams.copy(acceptance = IGNORE_BELIEFS),
             SmcResponseParams(), executor, communicationContext)
           val parseResults = responder.newParser(input).parseAll
@@ -674,6 +666,7 @@ class PhlebShell(
         }
         case DeferredCommand(input) => {
           logger.trace(s"COMMAND $input")
+          updatePerception
           val expanded = preprocess(input)
           if (expanded != input) {
             logger.trace(s"EXPANDED $expanded")
@@ -722,18 +715,6 @@ class PhlebShell(
             }
           })
         }
-        case DeferredPhenomenon(belief) => {
-          logger.trace(s"PHENOMENON $belief")
-          val parseResults =
-            phenomenalUpdater.newParser(preprocess(belief)).parseAll
-          parseResults.foreach(parseResult => {
-            val output = phenomenalUpdater.process(parseResult)
-            // FIXME
-            if (false) {
-              assert(output == OK, output)
-            }
-          })
-        }
         case DeferredReport(report) => {
           terminal.emitNarrative("")
           terminal.emitNarrative(report)
@@ -758,7 +739,7 @@ class PhlebShell(
                   Some(listener)
                 )
                 val entityResponder = new PhlebResponder(
-                  None, entityMind,
+                  entityMind,
                   beliefParams.copy(acceptance = IGNORE_BELIEFS),
                   SmcResponseParams(), executor, communicationContext)
                 // FIXME use parseAll instead
@@ -785,6 +766,30 @@ class PhlebShell(
         }
       }
     }
+    updatePerception
+  }
+
+  private[phlebotinum] def deferPerception(
+    snapshot : PhlebSnapshot,
+    perceiver : SpcEntity,
+    perceived : Set[SpcEntity])
+  {
+    deferredPerception += tupleN((
+      snapshot,
+      perceiver,
+      perceived
+    ))
+  }
+
+  private def updatePerception()
+  {
+    deferredPerception.foreach {
+      case (snapshot, perceiver, perceived) => {
+        executePerception(
+          snapshot, perceiver, perceived)
+      }
+    }
+    deferredPerception.clear
   }
 
   private def conversationalReference(
@@ -969,6 +974,7 @@ abstract class PhlebExecutor(noumenalMind : PhlebMind)
       : Option[String]
 
   protected def processPerception(
+    shellOpt : Option[PhlebShell],
     snapshot : PhlebSnapshot,
     ap : SilActionPredicate,
     refMap : SpcRefMap,
@@ -977,10 +983,21 @@ abstract class PhlebExecutor(noumenalMind : PhlebMind)
     subjectEntityOpt match {
       case Some(subjectEntity) => {
         ap.directObject.foreach(directObjectRef => {
-          executePerception(
-            snapshot,
-            subjectEntity,
-            refMap(directObjectRef))
+          shellOpt match {
+            case Some(shell) => {
+              shell.deferPerception(
+                snapshot,
+                subjectEntity,
+                refMap(directObjectRef))
+            }
+            case _ => {
+              executePerception(
+                snapshot,
+                subjectEntity,
+                refMap(directObjectRef)
+              )
+            }
+          }
         })
         ok
       }

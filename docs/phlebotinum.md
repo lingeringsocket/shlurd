@@ -7,9 +7,9 @@ natural language is used for authoring stories.  It is different in
 that the same natural language is used while interpreting stories as
 well.
 
-## A Short Story
+## A Rather Short Story
 
-* play here
+* [play here](http://phlebotinum.xyz:8000)
 * [see source code](https://github.com/lingeringsocket/hello-phlebotinum)
 
 ## Story Organization

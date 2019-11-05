@@ -80,6 +80,12 @@ I don't know.
 
 No.
 
+> what do you see
+
+// FIXME should be "you and the axe"
+
+I see the axe.
+
 > TTYL
 
 (You are no longer in conversation.)

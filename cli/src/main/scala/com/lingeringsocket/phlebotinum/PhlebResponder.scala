@@ -22,7 +22,6 @@ import scala.collection._
 import scala.util._
 
 class PhlebResponder(
-  propagationShell : Option[PhlebShell],
   mind : PhlebMind,
   beliefParams : SpcBeliefParams,
   params : SmcResponseParams,
@@ -33,19 +32,10 @@ class PhlebResponder(
 {
   import PhlebShell._
 
-  override protected def publishBelief(belief : SpcBelief)
-  {
-    lazy val printed = sentencePrinter.print(belief.sentence)
-    if (logger.isTraceEnabled) {
-      logger.trace(s"BELIEF $printed")
-    }
-    propagationShell.foreach(_.deferPhenomenon(printed))
-  }
-
   override protected def spawn(subMind : SpcMind) =
   {
     new PhlebResponder(
-      propagationShell, subMind.asInstanceOf[PhlebMind],
+      subMind.asInstanceOf[PhlebMind],
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       params, executor, communicationContext)
   }

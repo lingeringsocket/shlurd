@@ -46,10 +46,12 @@ When a game-character enters a map-place,
 
 After a game-character relocates to a map-place,
  the game-character has no visible-items;
+ also the game-character perceives the game-character;
  also the game-character surveys the map-place.
 
 When a game-character surveys a map-place,
- the game-character observes it and its spc-contained-objects except the game-character;
+ the game-character observes it and
+ {its spc-contained-objects except the game-character};
  also the game-character surveys its place-exits and its place-entrances.
 
 When a game-character surveys some map-connections,
