@@ -84,7 +84,7 @@ No.
 
 // FIXME should be "you and the axe"
 
-I see the axe.
+I see the player-character and the axe.
 
 > TTYL
 
