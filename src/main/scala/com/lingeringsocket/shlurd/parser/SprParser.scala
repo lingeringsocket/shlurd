@@ -583,7 +583,12 @@ object SprParser extends SprEnglishWordAnalyzer
   {
     val sentences = tokenize(input)
     if (sentences.size == 1) {
-      prepareOne(context, sentences.head)
+      val sentence = sentences.head
+      if (sentence.tokens.nonEmpty) {
+        prepareOne(context, sentence)
+      } else {
+        new SprMultipleParser(Stream.empty)
+      }
     } else {
       new SprMultipleParser(sentences.toStream.map(tokenizedSentence => {
         val start = tokenizedSentence.tokens.head.start

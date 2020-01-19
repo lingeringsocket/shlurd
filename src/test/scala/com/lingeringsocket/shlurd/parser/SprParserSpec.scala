@@ -125,7 +125,6 @@ class SprParserSpec extends Specification
 
   private val context = SprContext(wordLabeler)
 
-
   private def createWordLabeler() =
   {
     val wordLabeler = new SprWordnetLabeler
@@ -1010,6 +1009,11 @@ class SprParserSpec extends Specification
       SilPredicateSentence(predStateDoor()).hasUnknown must beFalse
       SilPredicateSentence(
         SilUnrecognizedPredicate(tree)).hasUnknown must beTrue
+    }
+
+    "handle empty input" in
+    {
+      SprParser("", context).parseAll must beEmpty
     }
   }
 }
