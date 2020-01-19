@@ -940,14 +940,29 @@ class SmcResponder[
           stateChangeAttempt match {
             case Success(result) => result
             case Failure(e) => {
-              executor.executeImperative(
-                predicate, resultCollector.refMap) match
-              {
-                case Some(imperativeResult) => {
-                  wrapResponseText(imperativeResult)
+              e match {
+                case ShlurdException(
+                  ShlurdExceptionCode.UnknownForm
+                    | ShlurdExceptionCode.NotUnique
+                    | ShlurdExceptionCode.NonExistent
+                    | ShlurdExceptionCode.MisqualifiedNoun
+                    | ShlurdExceptionCode.UnresolvedPronoun
+                    | ShlurdExceptionCode.AmbiguousPronoun,
+                  _
+                ) => {
+                  wrapResponseText(e)
                 }
                 case _ => {
-                  wrapResponseText(e)
+                  executor.executeImperative(
+                    predicate, resultCollector.refMap) match
+                  {
+                    case Some(imperativeResult) => {
+                      wrapResponseText(imperativeResult)
+                    }
+                    case _ => {
+                      wrapResponseText(e)
+                    }
+                  }
                 }
               }
             }

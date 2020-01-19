@@ -14,6 +14,7 @@ The cupboard is north of the bedroom.
 The loft is above the bedroom.
 
 The player-character is in the bedroom.
+The player-character's description is "Vanity of vanities; all is vanity.".
 
 There is a big door.
 The big door is open.

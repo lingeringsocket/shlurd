@@ -9,6 +9,23 @@ Grubby articles of alien underwear lie scattered about.
 
 I'm not sure how to interpret that.
 
+// FIXME:  support "examine self" too
+> examine myself
+
+OK.
+
+Vanity of vanities; all is vanity.
+
+// can't examine irrelevant objects
+> examine the underwear
+
+But I don't know about any such underwear.
+
+// can't examine something that isn't here
+> examine the axe
+
+But I don't know about any such axe.
+
 > go
 
 I'm not sure how to interpret that.

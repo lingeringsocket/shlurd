@@ -1626,6 +1626,9 @@ class SpcResponderSpec extends Specification
       processBelief("Fafnir is a dragon")
       processBelief("Glamdring is a sword")
 
+      processExceptionExpected("Sigurd kills Gandalf",
+        "Sorry, I don't know about any 'Gandalf'.",
+        ShlurdExceptionCode.UnknownForm)
       process("Sigurd kills Fafnir", "I'm not sure how to interpret that.")
       processBelief("if a person kills a dragon, " +
         "then subsequently the dragon is dead")
@@ -1640,6 +1643,12 @@ class SpcResponderSpec extends Specification
         "A hobbit can not kill a dragon.")
       process("Gimli kills Smaug", "One does not simply kill a dragon.")
       process("Gimli kills Smaug with Glamdring", "OK.")
+      processExceptionExpected("Bilbo kills Gandalf",
+        "Sorry, I don't know about any 'Gandalf'.",
+        ShlurdExceptionCode.UnknownForm)
+      processExceptionExpected("Gimli kills Gandalf with Glamdring",
+        "Sorry, I don't know about any 'Gandalf'.",
+        ShlurdExceptionCode.UnknownForm)
     }
 
     "reify unknown person" in new ResponderContext(ACCEPT_NEW_BELIEFS)
