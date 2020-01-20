@@ -5,6 +5,7 @@ There is a game-turn.
 Whenever the game-turn advances,
  the player-character has no visible-items;
  also the player-character surveys the player-character's container;
+ also the player-character perceives the player-character;
  also the player-character becomes the player-character's container's place-discoverer.
 
 When the game-turn debuts,

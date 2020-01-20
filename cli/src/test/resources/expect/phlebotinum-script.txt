@@ -62,6 +62,15 @@ I'm not sure how to interpret that.
 
 But I don't know about any such axe.
 
+> where is the dog
+
+But I don't know about any such dog.
+
+// FIXME:  should also be "But I don't know about any such dog."
+> where is a dog
+
+A dog is nowhere.
+
 > what is east of the bedroom
 
 The bathroom is east of the bedroom.
@@ -155,7 +164,7 @@ There is no way to go in that direction.
 // FIXME should refer to "you" instead of player-character
 > what is in the bathroom
 
-The axe, the player-character, and the thief are in it.
+The axe, the thief, and the player-character are in it.
 
 > what do I see
 
@@ -327,7 +336,7 @@ OK.
 
 You are in the bathroom.
 
-You see the axe and the thief.
+You see the thief and the axe.
 
 // make sure beliefs can only be injected via internal commands
 > the thief believes "the moon is made of green cheese"
@@ -379,7 +388,7 @@ You are in the bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see the axe and the thief.
+You see the thief and the axe.
 
 > i
 

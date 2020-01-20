@@ -46,8 +46,8 @@ When a game-character enters a map-place,
 
 After a game-character relocates to a map-place,
  the game-character has no visible-items;
- also the game-character perceives the game-character;
- also the game-character surveys the map-place.
+ also the game-character surveys the map-place;
+ also the game-character perceives the game-character.
 
 When a game-character surveys a map-place,
  the game-character observes it and
