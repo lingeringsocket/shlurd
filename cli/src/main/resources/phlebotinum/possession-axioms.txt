@@ -22,7 +22,8 @@ After a game-character drops a game-object,
  it falls onto the game-character's container.
 
 After a game-object falls onto a map-place,
- the game-object is in the map-place.
+ the game-object is in the map-place;
+ also the player-character perceives the game-object.
 
 If a game-character is holding a game-object, then equivalently
  it is in the game-character's stuff.
