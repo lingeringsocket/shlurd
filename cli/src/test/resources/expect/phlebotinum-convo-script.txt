@@ -10,7 +10,7 @@ You are in the bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see the axe and the thief.
+You see an axe and a thief.
 
 // FIXME this should really be "talk to myself"
 > talk to me
@@ -110,7 +110,7 @@ You are in the cupboard.
 
 I hope you don't have claustrophobia.
 
-You see the cupboard and the oracle.
+You see the cupboard and an oracle.
 
 > ask the oracle "where is the lantern"
 

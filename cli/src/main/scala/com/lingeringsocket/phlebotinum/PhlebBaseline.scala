@@ -40,7 +40,8 @@ object PhlebBaseline
             newCosmos.copyFrom(ShlurdPrimordialWordnet.frozenCosmos)
 
             val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
-            val mind = new PhlebMind(newCosmos, None, preferredSynonyms)
+            val mind = new PhlebMind(
+              newCosmos, None, preferredSynonyms, new PhlebClock)
             mind.importBeliefs(
               "/phlebotinum/default-axioms.txt",
               new SpcResponder(

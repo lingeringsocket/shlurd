@@ -114,7 +114,8 @@ object PhlebShell
   {
     val bootCosmos = PhlebBaseline.newMutableCosmos
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
-    val bootMind = new PhlebMind(bootCosmos, None, preferredSynonyms)
+    val bootMind = new PhlebMind(
+      bootCosmos, None, preferredSynonyms, new PhlebClock)
     bootMind.importBeliefs(
       s"${resourcePrefix}game-axioms.txt",
       new SpcResponder(
@@ -123,7 +124,7 @@ object PhlebShell
 
     val noumenalCosmos = bootCosmos.newClone()
     val noumenalMind = new PhlebMind(
-      noumenalCosmos, None, preferredSynonyms)
+      noumenalCosmos, None, preferredSynonyms, bootMind.clock)
 
     val playerEntity =
       bootstrapLookup(noumenalCosmos, PLAYER_WORD)
@@ -238,7 +239,7 @@ object PhlebShell
     val entityMind = accessEntityMind(snapshot, perceiver)
     val noumenalMind = snapshot.getNoumenalMind
     entityMind.flatMap(_.perception).foreach(perception => {
-      val timestamp = noumenalMind.getTimestamp
+      val timestamp = noumenalMind.clock.getTimestamp
       perceived.toSeq.sortBy(_.name).foreach(entity => {
         perception.perceiveEntityAssociations(
           entity, timestamp)
@@ -291,7 +292,7 @@ object PhlebShell
       }
       val newMind = new PhlebMind(
         cosmos,
-        perception, noumenalMind.preferredSynonyms)
+        perception, noumenalMind.preferredSynonyms, noumenalMind.clock)
       snapshot.mindMap.put(entity.name, newMind)
       Some(newMind)
     }
@@ -864,15 +865,15 @@ class PhlebShell(
     var exit = false
     terminal.emitNarrative("")
 
-    gameTurnTimestamp = noumenalMind.getTimestamp
+    gameTurnTimestamp = noumenalMind.clock.getTimestamp
     defer(DeferredDirective("the game-turn debuts"))
     processDeferred
 
     terminal.emitNarrative("")
 
     while (!exit) {
-      noumenalMind.startNewTurn
-      gameTurnTimestamp = noumenalMind.getTimestamp
+      noumenalMind.clock.startNewTurn
+      gameTurnTimestamp = noumenalMind.clock.getTimestamp
       terminal.emitPrompt
       terminal.readCommand match {
         case Some(input) => {

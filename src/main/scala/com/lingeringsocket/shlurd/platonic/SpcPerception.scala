@@ -41,11 +41,16 @@ case class SpcTimestamp(when : Long)
   }
 }
 
+case class SpcEntityPerception(
+  earliest : SpcTimestamp,
+  latest : SpcTimestamp
+)
+
 class SpcPerception(
   val noumenalCosmos : SpcCosmos,
   val phenomenalCosmos : SpcCosmos,
-  val timestampMap : mutable.Map[SpcEntity, SpcTimestamp] =
-    new mutable.LinkedHashMap[SpcEntity, SpcTimestamp])
+  val timestampMap : mutable.Map[SpcEntity, SpcEntityPerception] =
+    new mutable.LinkedHashMap[SpcEntity, SpcEntityPerception])
 {
   private def noumenalGraph = noumenalCosmos.getGraph
 
@@ -53,7 +58,10 @@ class SpcPerception(
 
   private def touchTimestamp(entity : SpcEntity, timestamp : SpcTimestamp)
   {
-    timestampMap.put(entity, timestamp)
+    val entityPerception =
+      timestampMap.get(entity).map(_.copy(latest = timestamp)).getOrElse(
+        SpcEntityPerception(timestamp, timestamp))
+    timestampMap.put(entity, entityPerception)
   }
 
   def perceiveEntity(entity : SpcEntity, timestamp : SpcTimestamp)
@@ -117,8 +125,13 @@ class SpcPerception(
     })
   }
 
+  def getEntityEarliestTimestamp(entity : SpcEntity) : Option[SpcTimestamp] =
+  {
+    timestampMap.get(entity).map(_.earliest)
+  }
+
   def getEntityTimestamp(entity : SpcEntity) : Option[SpcTimestamp] =
   {
-    timestampMap.get(entity)
+    timestampMap.get(entity).map(_.latest)
   }
 }

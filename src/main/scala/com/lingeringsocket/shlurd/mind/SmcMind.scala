@@ -352,6 +352,30 @@ class SmcMind[
     annotator.mappedRef(entity.getUniqueIdentifier, determiner)
   }
 
+  def responseReference(
+    annotator : AnnotatorType,
+    entity : EntityType,
+    determiner : SilDeterminer) : SilReference =
+  {
+    specificReference(annotator, entity, determiner)
+  }
+
+  def responseReferences(
+    annotator : AnnotatorType,
+    entities : Set[EntityType]) : SilReference =
+  {
+    assert(!entities.isEmpty)
+    if (entities.size == 1) {
+      responseReference(annotator, entities.head, DETERMINER_UNIQUE)
+    } else {
+      annotator.conjunctiveRef(
+        DETERMINER_ALL,
+        entities.toSeq.map(entity =>
+          responseReference(
+            annotator, entity, DETERMINER_UNIQUE)))
+    }
+  }
+
   def specificReferences(
     annotator : AnnotatorType,
     entities : Set[EntityType]) : SilReference =

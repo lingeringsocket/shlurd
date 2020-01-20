@@ -107,7 +107,7 @@ You are in the bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see the axe and the thief.
+You see an axe and a thief.
 
 > look at the axe
 
@@ -266,7 +266,9 @@ You are in the kitchen.
 
 It's yer basic scullery.
 
-You see the brass lantern and the cupboard.
+// FIXME cupboard should have been mentioned previously?
+
+You see a brass lantern and the cupboard.
 
 > what is in the kitchen
 

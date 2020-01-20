@@ -21,11 +21,7 @@ import com.lingeringsocket.shlurd.cli._
 
 import scala.collection._
 
-class PhlebMind(
-  cosmos : SpcCosmos,
-  val perception : Option[SpcPerception],
-  val preferredSynonyms : mutable.Map[SpcIdeal, String]
-) extends ShlurdCliMind(cosmos, preferredSynonyms)
+class PhlebClock
 {
   private var timestamp = SpcTimestamp.ZERO
 
@@ -35,13 +31,42 @@ class PhlebMind(
   {
     timestamp = timestamp.successor
   }
+}
 
+class PhlebMind(
+  cosmos : SpcCosmos,
+  val perception : Option[SpcPerception],
+  val preferredSynonyms : mutable.Map[SpcIdeal, String],
+  val clock : PhlebClock
+) extends ShlurdCliMind(cosmos, preferredSynonyms)
+{
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new PhlebMind(
-      newCosmos, perception, preferredSynonyms)
+      newCosmos, perception, preferredSynonyms, clock)
     mind.initFrom(this)
     mind
+  }
+
+  override def responseReference(
+    annotator : AnnotatorType,
+    entity : SpcEntity,
+    determiner : SilDeterminer) : SilReference =
+  {
+    val earliestTimestamp =
+      perception.flatMap(
+        _.getEntityEarliestTimestamp(entity)
+      ).getOrElse(
+        clock.getTimestamp
+      )
+    val perceivedDeterminer = {
+      if (earliestTimestamp == clock.getTimestamp) {
+        DETERMINER_NONSPECIFIC
+      } else {
+        determiner
+      }
+    }
+    super.responseReference(annotator, entity, perceivedDeterminer)
   }
 
   override def equivalentReferences(
