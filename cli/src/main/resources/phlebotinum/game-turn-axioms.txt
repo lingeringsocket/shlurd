@@ -1,4 +1,4 @@
-Import "/phlebotinum/character-axioms.txt".
+Believe "/phlebotinum/character-axioms.txt".
 
 There is a game-turn.
 

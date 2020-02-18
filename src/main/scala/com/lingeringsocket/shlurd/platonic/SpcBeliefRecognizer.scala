@@ -284,7 +284,7 @@ class SpcBeliefRecognizer(
         SilActionPredicate(
           _, verb, Some(SilQuotationReference(quotation)), _),
         tam, formality
-      ) => {
+      ) if (tam.isImperative) => {
         return recognizeDirective(sentence, verb, quotation)
       }
     }
@@ -1049,7 +1049,7 @@ class SpcBeliefRecognizer(
     verb : SilWord,
     argument : String) : Seq[SpcBelief] =
   {
-    if (verb.toLemma == LEMMA_IMPORT) {
+    if (verb.toLemma == LEMMA_BELIEVE) {
       Seq(IndirectBelief(sentence, argument))
     } else {
       Seq.empty

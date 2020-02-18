@@ -1,5 +1,5 @@
-Import "/phlebotinum/character-axioms.txt".
-Import "/phlebotinum/interpreter-axioms.txt".
+Believe "/phlebotinum/character-axioms.txt".
+Believe "/phlebotinum/interpreter-axioms.txt".
 
 When a player-character saves,
  the game-interpreter saves ".zip".

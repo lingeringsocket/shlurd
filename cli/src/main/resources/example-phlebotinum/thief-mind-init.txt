@@ -1,3 +1,3 @@
-Import "/example-phlebotinum/thief-axioms.txt".
+Believe "/example-phlebotinum/thief-axioms.txt".
 
 The thief is suave.

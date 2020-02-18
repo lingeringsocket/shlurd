@@ -1,4 +1,4 @@
-Import "/phlebotinum/basic-axioms.txt".
+Believe "/phlebotinum/basic-axioms.txt".
 
 A map-direction is a kind of object.
 A north, a south, an east, or a west is a kind of map-direction.

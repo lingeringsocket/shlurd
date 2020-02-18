@@ -1,4 +1,4 @@
-Import "/example-phlebotinum/game-axioms.txt".
+Believe "/example-phlebotinum/game-axioms.txt".
 
 There is a bedroom, a bathroom, a kitchen, a cupboard, and a loft.
 The bedroom's place-description is "Grubby articles of alien underwear lie scattered about.".
@@ -27,7 +27,7 @@ There is a brass lantern.
 
 The big door connects the bedroom to the bathroom.
 
-Import "/example-phlebotinum/thief-init.txt".
+Believe "/example-phlebotinum/thief-init.txt".
 
 The player-character is perceptive.
 The player-character believes "/example-phlebotinum/player-mind-init.txt".

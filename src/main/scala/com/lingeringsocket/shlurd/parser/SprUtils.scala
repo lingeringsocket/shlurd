@@ -76,7 +76,7 @@ object SprEnglishLemmas
   val LEMMA_THEN = "then"
   val LEMMA_EQUIVALENTLY = "equivalently"
   val LEMMA_CONSEQUENTLY = "consequently"
-  val LEMMA_IMPORT = "import"
+  val LEMMA_BELIEVE = "believe"
   val LEMMA_IT = "it"
   val LEMMA_ITS = "its"
   val LEMMA_ITSELF = "itself"

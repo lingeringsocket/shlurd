@@ -1,6 +1,6 @@
-Import "/phlebotinum/map-axioms.txt".
-Import "/phlebotinum/character-axioms.txt".
-Import "/phlebotinum/interpreter-axioms.txt".
+Believe "/phlebotinum/map-axioms.txt".
+Believe "/phlebotinum/character-axioms.txt".
+Believe "/phlebotinum/interpreter-axioms.txt".
 
 A map-place's place-discoverer must be a player-character.
 A map-place may have place-discoverers.

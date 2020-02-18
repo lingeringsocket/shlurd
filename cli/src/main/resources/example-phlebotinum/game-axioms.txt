@@ -1,6 +1,6 @@
-Import "/phlebotinum/default-axioms.txt".
+Believe "/phlebotinum/default-axioms.txt".
 
-Import "/example-phlebotinum/thief-axioms.txt".
+Believe "/example-phlebotinum/thief-axioms.txt".
 
 An axe or a lantern is a kind of game-object.
 

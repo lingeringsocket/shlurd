@@ -1,5 +1,5 @@
-Import "/phlebotinum/character-axioms.txt".
-Import "/phlebotinum/map-axioms.txt".
+Believe "/phlebotinum/character-axioms.txt".
+Believe "/phlebotinum/map-axioms.txt".
 
 A player-character can look.
 A player-character can look at an object.

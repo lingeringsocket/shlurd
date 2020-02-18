@@ -1,4 +1,4 @@
-Import "/phlebotinum/game-turn-axioms.txt".
+Believe "/phlebotinum/game-turn-axioms.txt".
 
 A game-character's character-inventory must be a repository.
 A game-character's stuff is the same as a character-inventory.

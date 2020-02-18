@@ -27,6 +27,8 @@ import java.io._
 
 import org.slf4j._
 
+import SprEnglishLemmas._
+
 object PhlebShell
 {
   val logger =
@@ -159,7 +161,7 @@ object PhlebShell
             subjectEntityOpt match {
               case Some(subjectEntity) => {
                 lemma match {
-                  case "believe" => {
+                  case LEMMA_BELIEVE => {
                     // FIXME if quotation does not start with slash,
                     // then interpret inline
                     importEntityBeliefs(

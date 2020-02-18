@@ -1,4 +1,4 @@
-Import "/phlebotinum/basic-axioms.txt".
+Believe "/phlebotinum/basic-axioms.txt".
 
 A game-interpreter is a kind of person.
 There is a game-interpreter.

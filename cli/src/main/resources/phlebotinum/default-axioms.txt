@@ -1,5 +1,5 @@
-Import "/phlebotinum/movement-axioms.txt".
-Import "/phlebotinum/game-turn-axioms.txt".
-Import "/phlebotinum/persistence-axioms.txt".
-Import "/phlebotinum/action-axioms.txt".
-Import "/phlebotinum/possession-axioms.txt".
+Believe "/phlebotinum/movement-axioms.txt".
+Believe "/phlebotinum/game-turn-axioms.txt".
+Believe "/phlebotinum/persistence-axioms.txt".
+Believe "/phlebotinum/action-axioms.txt".
+Believe "/phlebotinum/possession-axioms.txt".
