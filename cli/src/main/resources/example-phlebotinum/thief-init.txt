@@ -1,4 +1,4 @@
-"Resource" import "/example-phlebotinum/thief-axioms.txt".
+Import "/example-phlebotinum/thief-axioms.txt".
 
 The thief is perceptive.
 The thief's description is "Ze wields a wicked-looking stiletto.".

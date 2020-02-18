@@ -1,5 +1,5 @@
-"Resource" import "/phlebotinum/character-axioms.txt".
-"Resource" import "/phlebotinum/default-capability-axioms.txt".
+Import "/phlebotinum/character-axioms.txt".
+Import "/phlebotinum/default-capability-axioms.txt".
 
 A person can't spy on a thief.
 

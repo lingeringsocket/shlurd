@@ -1,5 +1,5 @@
-"Resource" import "/phlebotinum/character-axioms.txt".
-"Resource" import "/phlebotinum/map-axioms.txt".
+Import "/phlebotinum/character-axioms.txt".
+Import "/phlebotinum/map-axioms.txt".
 
 A player-character can look.
 A player-character can look at an object.

@@ -1,4 +1,4 @@
-"Resource" import "/phlebotinum/possession-axioms.txt".
+Import "/phlebotinum/possession-axioms.txt".
 
 A thief is a kind of non-player-character.
 A thief must be alive or dead.

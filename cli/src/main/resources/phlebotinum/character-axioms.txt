@@ -1,4 +1,4 @@
-"Resource" import "/phlebotinum/basic-axioms.txt".
+Import "/phlebotinum/basic-axioms.txt".
 
 A game-character is a kind of person.
 A game-character is a kind of visible-entity.

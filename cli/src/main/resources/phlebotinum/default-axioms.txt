@@ -1,5 +1,5 @@
-"Resource" import "/phlebotinum/movement-axioms.txt".
-"Resource" import "/phlebotinum/game-turn-axioms.txt".
-"Resource" import "/phlebotinum/persistence-axioms.txt".
-"Resource" import "/phlebotinum/action-axioms.txt".
-"Resource" import "/phlebotinum/possession-axioms.txt".
+Import "/phlebotinum/movement-axioms.txt".
+Import "/phlebotinum/game-turn-axioms.txt".
+Import "/phlebotinum/persistence-axioms.txt".
+Import "/phlebotinum/action-axioms.txt".
+Import "/phlebotinum/possession-axioms.txt".

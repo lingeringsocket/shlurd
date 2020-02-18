@@ -1,5 +1,5 @@
-"Resource" import "/phlebotinum/character-axioms.txt".
-"Resource" import "/phlebotinum/interpreter-axioms.txt".
+Import "/phlebotinum/character-axioms.txt".
+Import "/phlebotinum/interpreter-axioms.txt".
 
 When a player-character saves,
  the game-interpreter saves ".zip".
