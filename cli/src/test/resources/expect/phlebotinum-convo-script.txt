@@ -1,4 +1,4 @@
-You are in the bedroom.
+You are in a bedroom.
 
 Grubby articles of alien underwear lie scattered about.
 
@@ -116,7 +116,7 @@ You see the cupboard and an oracle.
 
 OK.
 
-The oracle responds, "It is in the kitchen."
+The oracle responds, "It is in a kitchen."
 
 > talk to the thief
 

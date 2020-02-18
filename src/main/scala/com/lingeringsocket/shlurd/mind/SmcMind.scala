@@ -302,7 +302,7 @@ class SmcMind[
       annotator, entity, communicationContext.speakerEntity, PERSON_FIRST) ++
     pronounReference(
       annotator, entity, communicationContext.listenerEntity, PERSON_SECOND) ++
-    Seq(specificReference(annotator, entity, determiner))
+    Seq(responseReference(annotator, entity, determiner))
   }
 
   def thirdPersonReference(

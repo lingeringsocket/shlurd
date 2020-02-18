@@ -1,6 +1,6 @@
 // Introduction
 
-You are in the bedroom.
+You are in a bedroom.
 
 Grubby articles of alien underwear lie scattered about.
 
