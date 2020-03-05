@@ -1,1 +1,1 @@
-addSbtPlugin("org.doolse" % "sbt-osgi-felix" % "1.0.4")
+addSbtPlugin("org.doolse" % "sbt-osgi-felix" % "1.0.5")

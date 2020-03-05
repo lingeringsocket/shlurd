@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
   "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.2.1",
   "org.typelevel" %% "spire" % "0.16.0",
   "org.typelevel" %% "spire-extras" % "0.16.0",
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
   "org.jgrapht" % "jgrapht-core" % "1.3.1",
   "org.jgrapht" % "jgrapht-io" % "1.3.1",
   "org.atteo" % "evo-inflector" % "1.2.2",

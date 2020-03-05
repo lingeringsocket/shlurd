@@ -4,12 +4,12 @@ name := "shlurd-osgi"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.11.12"
+scalaVersion := "2.12.8"
 
 defaultSingleProjectSettings
 
 libraryDependencies ++= Seq(
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
   "com.lingeringsocket.shlurd" %% "shlurd" % "0.1-SNAPSHOT",
   "com.lingeringsocket.shlurd" %% "shlurd-wordnet-bundle" % "0.1-SNAPSHOT" classifier "assembly"
 )
