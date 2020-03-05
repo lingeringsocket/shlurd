@@ -96,7 +96,9 @@ class SpcPerception(
         noumenalGraph.entityAssocs,
         edge,
         entity)
-      if (phenomenalGraph.entitySynonyms.containsVertex(opposite)) {
+      if (timestampMap.get(opposite).map(_.latest == timestamp).getOrElse(false)
+        || SpcMeta.isMetaEntity(opposite))
+      {
         perceiveEntity(opposite, timestamp)
         val (possessor, possessee) = {
           if (entity == noumenalGraph.getPossessorEntity(edge)) {

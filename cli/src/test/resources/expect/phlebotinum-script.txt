@@ -4,6 +4,8 @@ You are in a bedroom.
 
 Grubby articles of alien underwear lie scattered about.
 
+You see a big door.
+
 // examine is a valid verb, but requires an object
 > examine
 
@@ -73,7 +75,8 @@ A dog is nowhere.
 
 > what is east of the bedroom
 
-I don't know.
+// FIXME should be "I don't know."
+Nothing is east of the bedroom.
 
 > what is west of the bathroom
 
@@ -85,9 +88,9 @@ Nothing is south of the bedroom.
 
 > what is above the bedroom
 
-I don't know.
+// FIXME should be "I don't know."
+Nothing is above the bedroom.
 
-// FIXME:  the door should already have been mentioned
 > is the door open
 
 Yes, it is open.
@@ -107,7 +110,7 @@ You are in a bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see an axe and a thief.
+You see an axe, a thief, and the big door.
 
 > look at the axe
 
@@ -151,7 +154,8 @@ But the door is not open.
 
 > go to the bedroom
 
-But the door is not open.
+// FIXME:  should be "But the door is not open."
+You can only interact with what's nearby.
 
 > open the door
 
@@ -168,7 +172,7 @@ The axe, the thief, and the player-character are in it.
 
 > what do I see
 
-You see the axe and the thief.
+You see the axe, the thief, and the big door.
 
 > get the axe
 
@@ -190,7 +194,7 @@ You are in the bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see the thief.
+You see the thief and the big door.
 
 > is ze alive
 
@@ -212,6 +216,8 @@ OK.
 
 You are in the bedroom.
 
+You see the big door.
+
 // reference to something in another room
 > throw the axe at the thief
 
@@ -223,7 +229,7 @@ OK.
 
 You are in the bathroom.
 
-You see the thief.
+You see the thief and the big door.
 
 > throw the axe at zir
 
@@ -240,6 +246,8 @@ No, ze is not alive.
 OK.
 
 You are in the bedroom.
+
+You see the big door.
 
 // query about something in another room
 > where is the axe
@@ -292,11 +300,13 @@ You can only interact with what's nearby.
 
 OK.
 
-> go to the bedroom
+> e
 
 OK.
 
 You are in the bedroom.
+
+You see the big door.
 
 > l
 
@@ -305,6 +315,8 @@ OK.
 You are in the bedroom.
 
 Grubby articles of alien underwear lie scattered about.
+
+You see the big door.
 
 > where is the axe
 
@@ -326,13 +338,15 @@ OK.
 
 You are in the bedroom.
 
-> enter the bathroom
+You see the big door.
+
+> e
 
 OK.
 
 You are in the bathroom.
 
-You see the thief and the axe.
+You see the thief, the axe, and the big door.
 
 // make sure beliefs can only be injected via internal commands
 > the thief believes "the moon is made of green cheese"
@@ -384,7 +398,7 @@ You are in the bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see the thief and the axe.
+You see the thief, the axe, and the big door.
 
 > i
 
@@ -392,16 +406,25 @@ You are holding the brass lantern.
 
 > what is east of the bedroom
 
-The bathroom is east of the bedroom.
+// FIXME should be "The bathroom is east of the bedroom."
+Nothing is east of the bedroom.
+
+(At least I assume that's still the case.)
 
 > what is west of the bathroom
 
-The bedroom is west of the bathroom.
+// FIXME should be "The bedroom is west of the bathroom."
+Nothing is west of the bathroom.
 
 > what is south of the bedroom
 
 Nothing is south of the bedroom.
 
+(At least I assume that's still the case.)
+
 > what is above the bedroom
 
-The loft is above the bedroom.
+// FIXME should be "The loft is above the bedroom."
+Nothing is above the bedroom.
+
+(At least I assume that's still the case.)

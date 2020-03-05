@@ -2,6 +2,8 @@ You are in a bedroom.
 
 Grubby articles of alien underwear lie scattered about.
 
+You see a big door.
+
 > e
 
 OK.
@@ -10,7 +12,7 @@ You are in a bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see an axe and a thief.
+You see an axe, a thief, and the big door.
 
 // FIXME this should really be "talk to myself"
 > talk to me
@@ -82,9 +84,9 @@ No.
 
 > what do you see
 
-// FIXME should be "you and the axe"
+// FIXME should be "you, the axe, and the big door"
 
-I see the player-character and the axe.
+I see the player-character, the axe, and the big door.
 
 > TTYL
 
@@ -101,6 +103,8 @@ It does not respond.
 OK.
 
 You are in the bedroom.
+
+You see the big door.
 
 > n
 

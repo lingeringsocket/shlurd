@@ -101,7 +101,7 @@ If a map-place is above another map-place, then equivalently
 If a map-place is below another map-place, then equivalently
  the latter faces the former to the nadir.
 
-A door is a kind of describable-entity.
+A door is a kind of visible-entity.
 A map-connection's exit-door must be a door.
 A door's door-exit must be a map-connection.
 A map-connection may have an exit-door.

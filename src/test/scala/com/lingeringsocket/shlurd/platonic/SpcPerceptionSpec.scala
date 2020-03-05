@@ -148,6 +148,7 @@ class SpcPerceptionSpec extends Specification
       processPhenomenal("Fern is Wilbur's owner?") must be equalTo "Yes."
       processPhenomenal("Avery is Wilbur's owner?") must be equalTo "No."
 
+      perception.perceiveEntityAssociations(avery, timestamp)
       perception.perceiveEntityAssociations(wilbur, timestamp)
       processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
       processPhenomenal("Avery is Wilbur's owner?") must be equalTo "Yes."

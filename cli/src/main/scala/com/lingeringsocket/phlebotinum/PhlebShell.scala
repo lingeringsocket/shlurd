@@ -237,11 +237,11 @@ object PhlebShell
     perceiver : SpcEntity,
     perceived : Set[SpcEntity])
   {
-    logger.trace(s"PERCEIVE $perceiver $perceived")
     val entityMind = accessEntityMind(snapshot, perceiver)
     val noumenalMind = snapshot.getNoumenalMind
+    val timestamp = noumenalMind.clock.getTimestamp
+    logger.trace(s"PERCEIVE $perceiver $timestamp $perceived")
     entityMind.flatMap(_.perception).foreach(perception => {
-      val timestamp = noumenalMind.clock.getTimestamp
       perceived.toSeq.sortBy(_.name).foreach(entity => {
         perception.perceiveEntityAssociations(
           entity, timestamp)
@@ -876,6 +876,7 @@ class PhlebShell(
     while (!exit) {
       noumenalMind.clock.startNewTurn
       gameTurnTimestamp = noumenalMind.clock.getTimestamp
+
       terminal.emitPrompt
       terminal.readCommand match {
         case Some(input) => {

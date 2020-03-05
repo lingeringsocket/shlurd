@@ -25,4 +25,5 @@ The thief's spc-pronoun-list is "ze, zir, zirself".
 // FIXME the equivalent "surveys zir container" should work too
 Whenever the game-turn advances,
  the thief has no visible-items;
+ also the thief perceives the thief;
  also the thief surveys the thief's container.
