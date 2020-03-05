@@ -96,19 +96,21 @@ class SpcPerception(
         noumenalGraph.entityAssocs,
         edge,
         entity)
-      perceiveEntity(opposite, timestamp)
-      val (possessor, possessee) = {
-        if (entity == noumenalGraph.getPossessorEntity(edge)) {
-          tupleN((entity, opposite))
-        } else {
-          tupleN((opposite, entity))
+      if (phenomenalGraph.entitySynonyms.containsVertex(opposite)) {
+        perceiveEntity(opposite, timestamp)
+        val (possessor, possessee) = {
+          if (entity == noumenalGraph.getPossessorEntity(edge)) {
+            tupleN((entity, opposite))
+          } else {
+            tupleN((opposite, entity))
+          }
         }
+        val role = noumenalCosmos.getPossesseeRole(edge)
+        phenomenalCosmos.addEntityAssocEdge(
+          possessor,
+          possessee,
+          role)
       }
-      val role = noumenalCosmos.getPossesseeRole(edge)
-      phenomenalCosmos.addEntityAssocEdge(
-        possessor,
-        possessee,
-        role)
     })
   }
 

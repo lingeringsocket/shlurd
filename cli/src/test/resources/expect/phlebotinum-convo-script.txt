@@ -6,7 +6,7 @@ Grubby articles of alien underwear lie scattered about.
 
 OK.
 
-You are in the bathroom.
+You are in a bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
@@ -106,11 +106,12 @@ You are in the bedroom.
 
 OK.
 
-You are in the cupboard.
+You are in a cupboard.
 
 I hope you don't have claustrophobia.
 
-You see the cupboard and an oracle.
+// FIXME should not even mention cupboard as visible from within
+You see a cupboard and an oracle.
 
 > ask the oracle "where is the lantern"
 

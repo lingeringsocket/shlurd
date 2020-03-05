@@ -73,11 +73,11 @@ A dog is nowhere.
 
 > what is east of the bedroom
 
-The bathroom is east of the bedroom.
+I don't know.
 
 > what is west of the bathroom
 
-The bedroom is west of the bathroom.
+But I don't know about any such bathroom.
 
 > what is south of the bedroom
 
@@ -85,7 +85,7 @@ Nothing is south of the bedroom.
 
 > what is above the bedroom
 
-The loft is above the bedroom.
+I don't know.
 
 // FIXME:  the door should already have been mentioned
 > is the door open
@@ -103,7 +103,7 @@ It's about what you'd expect.
 
 OK.
 
-You are in the bathroom.
+You are in a bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
@@ -235,10 +235,6 @@ Blood splatters everywhere.
 
 No, ze is not alive.
 
-> go to the kitchen
-
-You can only interact with what's nearby.
-
 > go west
 
 OK.
@@ -262,13 +258,11 @@ The axe and the thief are in it.
 
 OK.
 
-You are in the kitchen.
+You are in a kitchen.
 
 It's yer basic scullery.
 
-// FIXME cupboard should have been mentioned previously?
-
-You see a brass lantern and the cupboard.
+You see a brass lantern and a cupboard.
 
 > what is in the kitchen
 
@@ -322,7 +316,7 @@ It is in the bathroom.
 
 OK.
 
-You are in the loft.
+You are in a loft.
 
 Hardly more than a garret, really.
 
@@ -395,3 +389,19 @@ You see the thief and the axe.
 > i
 
 You are holding the brass lantern.
+
+> what is east of the bedroom
+
+The bathroom is east of the bedroom.
+
+> what is west of the bathroom
+
+The bedroom is west of the bathroom.
+
+> what is south of the bedroom
+
+Nothing is south of the bedroom.
+
+> what is above the bedroom
+
+The loft is above the bedroom.
