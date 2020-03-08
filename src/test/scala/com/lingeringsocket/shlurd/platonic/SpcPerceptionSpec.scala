@@ -24,6 +24,7 @@ class SpcPerceptionSpec extends Specification
   trait PerceptionContext extends Scope
   {
     protected val noumenalCosmos = new SpcCosmos
+    SpcPrimordial.initCosmos(noumenalCosmos)
 
     protected var phenomenalCosmos = noumenalCosmos
 
@@ -73,12 +74,13 @@ class SpcPerceptionSpec extends Specification
   {
     "perceive phenomena" in new PerceptionContext
     {
-      val timestamp = SpcTimestamp.ZERO
+      val timestampZero = SpcTimestamp.ZERO
+      val timestampOne = timestampZero.successor
 
       processBelief("a person's pet must be an animal")
       processBelief("an animal's owner must be a person")
       processBelief("a person may have pets")
-      processBelief("an animal may have an owner")
+      processBelief("an animal must have an owner")
       processBelief("if an animal is a person's pet, " +
         "then equivalently the animal's owner is the person")
       processBelief("a girl is a kind of person")
@@ -112,19 +114,21 @@ class SpcPerceptionSpec extends Specification
       phenomenalCosmos.sanityCheck must beTrue
 
       val perception = new SpcPerception(noumenalCosmos, phenomenalCosmos)
-      perception.perceiveEntity(wilbur, timestamp)
-
+      perception.perceiveEntity(wilbur, timestampZero)
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
 
       processPhenomenal("is there a pig") must be equalTo "Yes."
       processPhenomenal("is there a girl") must be equalTo "Yes."
       processPhenomenal("does Fern have a pet") must be equalTo "No."
-      processPhenomenal("does Wilbur have an owner") must be equalTo "No."
+      processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
+      processPhenomenal("who is Wilbur's owner?") must be equalTo "I don't know."
       processPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
 
-      perception.perceiveEntityAssociations(fern, timestamp)
-
+      perception.perceiveEntityAssociations(fern, timestampZero)
+      // FIXME without this, the following sanity check fails
+      // due to the existence of the dangling transient owner
+      perception.perceiveEntityAssociations(wilbur, timestampZero)
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
 
@@ -133,11 +137,11 @@ class SpcPerceptionSpec extends Specification
       processPhenomenal("does Fern have a pet") must be equalTo "Yes."
       processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
       processPhenomenal("Fern is Wilbur's owner?") must be equalTo "Yes."
+      processPhenomenal("who is Wilbur's owner?") must be equalTo "Fern."
       processPhenomenal("Avery is Wilbur's owner?") must be equalTo "No."
       processPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
 
-      perception.perceiveEntityProperties(wilbur, timestamp)
-
+      perception.perceiveEntityProperties(wilbur, timestampZero)
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
 
@@ -147,12 +151,41 @@ class SpcPerceptionSpec extends Specification
       processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
       processPhenomenal("Fern is Wilbur's owner?") must be equalTo "Yes."
       processPhenomenal("Avery is Wilbur's owner?") must be equalTo "No."
+      processPhenomenal("who is Wilbur's owner?") must be equalTo "Fern."
 
-      perception.perceiveEntityAssociations(avery, timestamp)
-      perception.perceiveEntityAssociations(wilbur, timestamp)
+      perception.perceiveEntityAssociations(avery, timestampZero)
+      perception.perceiveEntityAssociations(wilbur, timestampZero)
+      noumenalCosmos.sanityCheck must beTrue
+      phenomenalCosmos.sanityCheck must beTrue
+      
       processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
       processPhenomenal("Avery is Wilbur's owner?") must be equalTo "Yes."
       processPhenomenal("Fern is Wilbur's owner?") must be equalTo "No."
+      processPhenomenal("who is Wilbur's owner?") must be equalTo "Avery."
+
+      perception.perceiveEntityAssociations(wilbur, timestampOne)
+      noumenalCosmos.sanityCheck must beTrue
+      phenomenalCosmos.sanityCheck must beTrue
+
+      processPhenomenal("is there a pig") must be equalTo "Yes."
+      processPhenomenal("is there a girl") must be equalTo "Yes."
+      processPhenomenal("does Avery have a pet") must be equalTo "No."
+      processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
+      processPhenomenal("Avery is Wilbur's owner?") must be equalTo "No."
+      processPhenomenal("who is Wilbur's owner?") must be equalTo
+        "I don't know."
+
+      perception.perceiveEntityAssociations(wilbur, timestampOne)
+      perception.perceiveEntityAssociations(avery, timestampOne)
+      noumenalCosmos.sanityCheck must beTrue
+      phenomenalCosmos.sanityCheck must beTrue
+
+      processPhenomenal("is there a pig") must be equalTo "Yes."
+      processPhenomenal("is there a girl") must be equalTo "Yes."
+      processPhenomenal("does Avery have a pet") must be equalTo "Yes."
+      processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
+      processPhenomenal("Avery is Wilbur's owner?") must be equalTo "Yes."
+      processPhenomenal("who is Wilbur's owner?") must be equalTo "Avery."
     }
 
     "remember timestamps" in new PerceptionContext
