@@ -122,7 +122,8 @@ class SpcPerceptionSpec extends Specification
       processPhenomenal("is there a girl") must be equalTo "Yes."
       processPhenomenal("does Fern have a pet") must be equalTo "No."
       processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
-      processPhenomenal("who is Wilbur's owner?") must be equalTo "I don't know."
+      processPhenomenal("who is Wilbur's owner?") must be equalTo
+        "I don't know."
       processPhenomenal("is Wilbur hungry") must be equalTo "I don't know."
 
       perception.perceiveEntityAssociations(fern, timestampZero)
@@ -157,7 +158,7 @@ class SpcPerceptionSpec extends Specification
       perception.perceiveEntityAssociations(wilbur, timestampZero)
       noumenalCosmos.sanityCheck must beTrue
       phenomenalCosmos.sanityCheck must beTrue
-      
+
       processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
       processPhenomenal("Avery is Wilbur's owner?") must be equalTo "Yes."
       processPhenomenal("Fern is Wilbur's owner?") must be equalTo "No."
@@ -169,23 +170,11 @@ class SpcPerceptionSpec extends Specification
 
       processPhenomenal("is there a pig") must be equalTo "Yes."
       processPhenomenal("is there a girl") must be equalTo "Yes."
-      processPhenomenal("does Avery have a pet") must be equalTo "No."
-      processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
-      processPhenomenal("Avery is Wilbur's owner?") must be equalTo "No."
-      processPhenomenal("who is Wilbur's owner?") must be equalTo
-        "I don't know."
-
-      perception.perceiveEntityAssociations(wilbur, timestampOne)
-      perception.perceiveEntityAssociations(avery, timestampOne)
-      noumenalCosmos.sanityCheck must beTrue
-      phenomenalCosmos.sanityCheck must beTrue
-
-      processPhenomenal("is there a pig") must be equalTo "Yes."
-      processPhenomenal("is there a girl") must be equalTo "Yes."
       processPhenomenal("does Avery have a pet") must be equalTo "Yes."
       processPhenomenal("does Wilbur have an owner") must be equalTo "Yes."
       processPhenomenal("Avery is Wilbur's owner?") must be equalTo "Yes."
-      processPhenomenal("who is Wilbur's owner?") must be equalTo "Avery."
+      processPhenomenal("who is Wilbur's owner?") must be equalTo
+        "Avery."
     }
 
     "remember timestamps" in new PerceptionContext

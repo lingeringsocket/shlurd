@@ -152,7 +152,8 @@ But the door is not open.
 
 > go to the bedroom
 
-// FIXME:  should be "But the door is not open."
+// FIXME should be "But the door is not open."
+
 You can only interact with what's nearby.
 
 > open the door
@@ -404,15 +405,15 @@ You are holding the brass lantern.
 
 > what is east of the bedroom
 
-// FIXME should be "The bathroom is east of the bedroom."
-Nothing is east of the bedroom.
+The bathroom is east of the bedroom.
 
 (At least I assume that's still the case.)
 
 > what is west of the bathroom
 
-// FIXME should be "The bedroom is west of the bathroom."
-I don't know.
+The bedroom is west of the bathroom.
+
+(At least I assume that's still the case.)
 
 > what is south of the bedroom
 
@@ -422,7 +423,6 @@ Nothing is south of the bedroom.
 
 > what is above the bedroom
 
-// FIXME should be "The loft is above the bedroom."
-I don't know.
+The loft is above the bedroom.
 
 (At least I assume that's still the case.)

@@ -698,7 +698,9 @@ class PhlebShell(
                   terminal.emitNarrative(complaint.quotation)
                 })
               }
-              if (sentence.tam.isInterrogative) {
+              if (sentence.tam.isInterrogative &&
+                !output.equals(sentencePrinter.sb.respondDontKnow))
+              {
                 val entities =
                   phenomenalMind.getConversation.getUtterances.
                     takeRight(2).flatMap(
