@@ -55,7 +55,7 @@ When a game-character surveys a map-place,
  also the game-character surveys its place-exits and its place-entrances.
 
 When a game-character surveys some map-connections,
- the game-character observes them and their exit-doors.
+ the game-character observes them, their exit-doors, and their containers.
 
 When a player-character relocates to a map-place,
  the player-character might be its place-discoverer;
