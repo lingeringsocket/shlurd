@@ -112,8 +112,7 @@ You are in a cupboard.
 
 I hope you don't have claustrophobia.
 
-// FIXME should not even mention cupboard as visible from within
-You see a cupboard and an oracle.
+You see an oracle.
 
 > ask the oracle "where is the lantern"
 
