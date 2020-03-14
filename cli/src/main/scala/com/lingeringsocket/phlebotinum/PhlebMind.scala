@@ -50,6 +50,7 @@ class PhlebMind(
 
   override def responseReference(
     annotator : AnnotatorType,
+    communicationContext : SmcCommunicationContext[SpcEntity],
     entity : SpcEntity,
     determiner : SilDeterminer) : SilReference =
   {
@@ -66,7 +67,8 @@ class PhlebMind(
         determiner
       }
     }
-    super.responseReference(annotator, entity, perceivedDeterminer)
+    super.responseReference(
+      annotator, communicationContext, entity, perceivedDeterminer)
   }
 
   override def equivalentReferences(

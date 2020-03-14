@@ -162,10 +162,9 @@ OK.
 
 There is no way to go in that direction.
 
-// FIXME should refer to "you" instead of player-character
 > what is in the bathroom
 
-The axe, the thief, and the player-character are in it.
+The axe, the thief, and you are in it.
 
 > what do I see
 
@@ -271,7 +270,7 @@ You see a brass lantern and a cupboard.
 
 > what is in the kitchen
 
-The brass lantern, the cupboard, and the player-character are in it.
+The brass lantern, the cupboard, and you are in it.
 
 > x cupboard
 

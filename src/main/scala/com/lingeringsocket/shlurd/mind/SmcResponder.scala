@@ -202,6 +202,9 @@ case class SmcCommunicationContext[EntityType<:SmcEntity](
   speakerEntity : Option[EntityType] = None,
   listenerEntity : Option[EntityType] = None
 )
+{
+  def flip = SmcCommunicationContext(listenerEntity, speakerEntity)
+}
 
 class IndirectEntities[EntityType<:SmcEntity](
   var entities : Option[Set[EntityType]] = None

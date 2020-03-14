@@ -610,7 +610,8 @@ class SmcResponseRewriter[
     "replaceResolvedReferences", {
       case SilMappedReference(key, determiner) => {
         val entity = entityMap(key)
-        val ref = mind.responseReference(annotator, entity, determiner)
+        val ref = mind.responseReference(
+          annotator, communicationContext.flip, entity, determiner)
         refMap.put(ref, Set(entity))
         markQueryAnswer(ref)
         ref
@@ -718,7 +719,8 @@ class SmcResponseRewriter[
             if (entities.isEmpty) {
               pr
             } else {
-              mind.responseReferences(annotator, entities)
+              mind.responseReferences(
+                annotator, communicationContext.flip, entities)
             }
           }
         ).getOrElse(pr)

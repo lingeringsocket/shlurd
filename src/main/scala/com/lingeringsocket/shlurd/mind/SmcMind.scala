@@ -298,11 +298,14 @@ class SmcMind[
     determiner : SilDeterminer)
       : Seq[SilReference] =
   {
-    pronounReference(
-      annotator, entity, communicationContext.speakerEntity, PERSON_FIRST) ++
-    pronounReference(
-      annotator, entity, communicationContext.listenerEntity, PERSON_SECOND) ++
-    Seq(responseReference(annotator, entity, determiner))
+    responseReference(
+      annotator, communicationContext, entity, determiner
+    ) match {
+      case pr : SilPronounReference => {
+        Seq(pr, specificReference(annotator, entity, determiner))
+      }
+      case rr => Seq(rr)
+    }
   }
 
   def thirdPersonReference(
@@ -323,27 +326,6 @@ class SmcMind[
     }
   }
 
-  private def pronounReference(
-    annotator : AnnotatorType,
-    entity : EntityType,
-    pronounEntity : Option[EntityType],
-    person : SilPerson)
-      : Seq[SilReference] =
-  {
-    // FIXME gender derivation
-    val gender = person match {
-      case PERSON_FIRST | PERSON_SECOND => GENDER_SOMEONE
-      case PERSON_THIRD => GENDER_NEUTER
-    }
-    pronounEntity match {
-      case Some(x) if (x == entity) => {
-        Seq(annotator.pronounRef(
-          person, gender, COUNT_SINGULAR))
-      }
-      case _ => Seq()
-    }
-  }
-
   def specificReference(
     annotator : AnnotatorType,
     entity : EntityType,
@@ -354,25 +336,40 @@ class SmcMind[
 
   def responseReference(
     annotator : AnnotatorType,
+    communicationContext : SmcCommunicationContext[EntityType],
     entity : EntityType,
     determiner : SilDeterminer) : SilReference =
   {
-    specificReference(annotator, entity, determiner)
+    Some(entity) match {
+      case communicationContext.speakerEntity => {
+        annotator.pronounRef(
+          PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
+      }
+      case communicationContext.listenerEntity => {
+        annotator.pronounRef(
+          PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR)
+      }
+      case _ => {
+        specificReference(annotator, entity, determiner)
+      }
+    }
   }
 
   def responseReferences(
     annotator : AnnotatorType,
+    communicationContext : SmcCommunicationContext[EntityType],
     entities : Set[EntityType]) : SilReference =
   {
     assert(!entities.isEmpty)
     if (entities.size == 1) {
-      responseReference(annotator, entities.head, DETERMINER_UNIQUE)
+      responseReference(
+        annotator, communicationContext, entities.head, DETERMINER_UNIQUE)
     } else {
       annotator.conjunctiveRef(
         DETERMINER_ALL,
         entities.toSeq.map(entity =>
           responseReference(
-            annotator, entity, DETERMINER_UNIQUE)))
+            annotator, communicationContext, entity, DETERMINER_UNIQUE)))
     }
   }
 

@@ -414,7 +414,7 @@ class SmcResponderSpec extends Specification
       process("is your lion in the big cage") must be equalTo(
         "Yes, my lion is in the big cage.")
       process("who is in the big cage") must be equalTo(
-        "Muldoon is in the big cage.")
+        "I am in the big cage.")
       process("does Muldoon have a lion") must be equalTo(
         "Yes, Muldoon has a lion.")
       process("does Malcolm have a lion") must be equalTo(

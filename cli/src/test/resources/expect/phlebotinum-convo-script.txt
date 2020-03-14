@@ -86,7 +86,7 @@ No.
 
 // FIXME should be "you, the axe, and the big door"
 
-I see the player-character, the axe, and the big door.
+I see you, the axe, and the big door.
 
 > TTYL
 
