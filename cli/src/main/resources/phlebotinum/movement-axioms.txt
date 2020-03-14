@@ -52,7 +52,7 @@ After a game-character relocates to a map-place,
 When a game-character surveys a map-place,
  the game-character perceives it;
  also the game-character observes
- {its spc-contained-objects except the game-character};
+ {its contained-objects except the game-character};
  also the game-character surveys its place-exits and its place-entrances.
 
 When a game-character surveys some map-connections,

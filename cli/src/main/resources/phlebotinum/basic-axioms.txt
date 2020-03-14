@@ -3,3 +3,4 @@ A describable-entity's description must be an spc-string.
 A visible-entity is a kind of describable-entity.
 A game-object is a kind of visible-entity.
 An object's container is the same as an spc-container.
+An object's contained-object is the same as an spc-contained-object.

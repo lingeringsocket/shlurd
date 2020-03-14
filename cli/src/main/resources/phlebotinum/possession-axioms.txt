@@ -29,4 +29,4 @@ If a game-character is holding a game-object, then equivalently
  it is in the game-character's stuff.
 
 Whenever the game-turn advances,
- the player-character perceives the player-inventory's spc-contained-objects.
+ the player-character perceives the player-inventory's contained-objects.
