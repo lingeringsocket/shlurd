@@ -394,9 +394,18 @@ class PhlebShell(
         logger.trace(s"FIAT $printed")
       }
       val staleEntities = findStale(entities)
-      if (staleEntities.nonEmpty) {
-        // FIXME move this to the scripting level, and discriminate
-        // seeing, hearing, touching, reaching, etc
+      // FIXME move this to the scripting level, and discriminate
+      // seeing, hearing, touching, reaching, etc
+      val motion = sentence match {
+        case SilPredicateSentence(
+          SilActionPredicate(_, verb, _, _),
+          _, _
+        ) => {
+          Seq("enter", "go").contains(verb.toLemma)
+        }
+        case _ => false
+      }
+      if (staleEntities.nonEmpty && !motion) {
         val complaint = "You can only interact with what's nearby."
         defer(DeferredComplaint(complaint))
         Some(complaint)

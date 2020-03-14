@@ -152,9 +152,7 @@ But the door is not open.
 
 > go to the bedroom
 
-// FIXME should be "But the door is not open."
-
-You can only interact with what's nearby.
+But the door is not open.
 
 > open the door
 
@@ -209,7 +207,7 @@ A person can not spy on a thief.
 
 One does not simply kill.
 
-> w
+> enter the bedroom
 
 OK.
 
@@ -222,7 +220,7 @@ You see the big door.
 
 You can only interact with what's nearby.
 
-> e
+> go to the bathroom
 
 OK.
 
@@ -240,7 +238,7 @@ Blood splatters everywhere.
 
 No, ze is not alive.
 
-> go west
+> west
 
 OK.
 
@@ -261,7 +259,7 @@ The axe and the thief are in it.
 
 (At least I assume that's still the case.)
 
-> west
+> w
 
 OK.
 
