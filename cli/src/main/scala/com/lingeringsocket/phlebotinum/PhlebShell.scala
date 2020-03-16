@@ -43,7 +43,7 @@ object PhlebShell
 
   val OK = "OK."
 
-  private val actionRespond = SilWord("responds", "respond")
+  private val actionRespond = SilWord.uninflected("respond")
 
   private val serializer = new PhlebSerializer
 

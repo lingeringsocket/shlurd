@@ -68,15 +68,15 @@ respect to a character's mind:
 
 ## Game Turns
 
-Each command entered by the player corresponds to one *game turn*.  A
+Each input sentence entered by the player corresponds to one *game turn*.  A
 game turn proceeds roughly as follows:
 
 1. Game turn starts
 1. All previously perceived objects become stale for all characters
 1. For each character, all objects currently in scope (based on the character's location, possessions, and sensory awareness) become either fresh (if encountered for the first time) or familiar (if previously encountered)
-1. The command is interpreted with respect to the player character's phenomenal world
-1. If any interpretation errors are encountered, the game turn ends with a failure message
-1. The command is re-processed with respect to the noumenal world; this may lead to errors based on failed preconditions or other constraints; it may also lead to triggered actions (which may themselves trigger errors or other actions recursively)
+1. The sentence is interpreted with respect to the player character's phenomenal world
+1. If any interpretation errors are encountered, the game turn ends with a failure message; otherwise, if the sentence is a statement or question, it is evaluated and an appropriate response is reported
+1. If the sentence is a command, it is re-processed with respect to the noumenal world; this may lead to errors based on failed preconditions or other constraints; it may also lead to triggered actions (which may themselves trigger errors or other actions recursively)
 1. If any errors were encountered during processing, the effects of all triggered actions are ignored, and the game turn ends with a failure message
 1. Otherwise, the noumenal world state is updated, the game turn ends successfully, and all perceptible action effects are reported
 
