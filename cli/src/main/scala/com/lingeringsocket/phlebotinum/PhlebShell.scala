@@ -673,7 +673,7 @@ class PhlebShell(
             terminal.emitNarrative("")
             // FIXME allow side effects of conversation
             assert(deferredQueue.isEmpty)
-            terminal.emitNarrative(output)
+            terminal.emitNarrative(DQUOTE + output + DQUOTE)
           })
         }
         case DeferredCommand(input) => {

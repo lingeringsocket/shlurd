@@ -72,19 +72,19 @@ OK.
 
 > who are you
 
-I am the thief.
+"I am the thief."
 
 > where is the lantern
 
-I don't know.
+"I don't know."
 
 > get the axe
 
-No.
+"No."
 
 > what do you see
 
-I see you, the axe, and the big door.
+"I see you, the axe, and the big door."
 
 > TTYL
 
