@@ -108,7 +108,9 @@ You are in a bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see an axe, a thief, and the big door.
+You see an axe and a thief.
+
+You see the big door.
 
 > look at the axe
 
@@ -190,7 +192,9 @@ You are in the bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see the thief and the big door.
+You see the thief.
+
+You see the big door.
 
 > is ze alive
 
@@ -225,7 +229,9 @@ OK.
 
 You are in the bathroom.
 
-You see the thief and the big door.
+You see the thief.
+
+You see the big door.
 
 > throw the axe at zir
 
@@ -266,7 +272,9 @@ You are in a kitchen.
 
 It's yer basic scullery.
 
-You see a brass lantern and a cupboard.
+You see a brass lantern.
+
+You see a cupboard.
 
 > what is in the kitchen
 
@@ -342,7 +350,9 @@ OK.
 
 You are in the bathroom.
 
-You see the thief, the axe, and the big door.
+You see the thief and the axe.
+
+You see the big door.
 
 // make sure beliefs can only be injected via internal commands
 > the thief believes "the moon is made of green cheese"
@@ -394,7 +404,9 @@ You are in the bathroom.
 
 Someone has written 'clean me!' on the mirror.
 
-You see the thief, the axe, and the big door.
+You see the thief and the axe.
+
+You see the big door.
 
 > i
 

@@ -19,8 +19,11 @@ When a player-character rediscovers a map-place,
  the player-character asks "where am I";
  also the player-character discerns the player-character's visible-items.
 
-When a player-character discerns any visible-entities,
- the player-character asks "what do I see".
+When a player-character discerns any visible-objects,
+ the player-character asks "which visible-objects do I see".
+
+When a player-character discerns any visible-fixtures,
+ the player-character asks "which visible-fixtures do I see".
 
 When a player-character examines a describable-entity,
  its description might exist;

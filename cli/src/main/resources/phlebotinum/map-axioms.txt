@@ -101,18 +101,20 @@ If a map-place is above another map-place, then equivalently
 If a map-place is below another map-place, then equivalently
  the latter faces the former to the nadir.
 
-A door is a kind of visible-entity.
-A map-connection's exit-door must be a door.
-A door's door-exit must be a map-connection.
-A map-connection may have an exit-door.
-If a door is a map-connection's exit-door, then equivalently
- the map-connection is the door's door-exit.
-A door must be open or closed.
+A map-portal is a kind of describable-entity.
+A door is a kind of visible-fixture.
+A door is a kind of map-portal.
+A map-connection's exit-portal must be a map-portal.
+A map-portal's mediated-connection must be a map-connection.
+A map-connection may have an exit-portal.
+If a map-portal is a map-connection's exit-portal, then equivalently
+ the map-connection is the map-portal's mediated-connection.
+A map-portal must be open or closed.
 
-When a door mediates a map-connection,
- the door becomes the map-connection's exit-door;
- also the door becomes the map-connection's opposite-connection's exit-door.
+When a map-portal mediates a map-connection,
+ the map-portal becomes the map-connection's exit-portal;
+ also the map-portal becomes the map-connection's opposite-connection's exit-portal.
 
-When a door connects a map-place to another map-place,
- the door mediates {the first map-place's place-entrances
+When a map-portal connects a map-place to another map-place,
+ the map-portal mediates {the first map-place's place-entrances
   among the second map-place's place-exits}.

@@ -24,7 +24,7 @@ When a game-character goes downward,
  the game-character heads to the nadir.
 
 Before a game-character traverses a map-connection,
- its exit-door must be open;
+ its exit-portal must be open;
  otherwise the game-interpreter complains "But the door is not open.".
 
 When a game-character traverses a map-connection,
@@ -56,7 +56,7 @@ When a game-character surveys a map-place,
  also the game-character surveys its place-exits and its place-entrances.
 
 When a game-character surveys some map-connections,
- the game-character observes them, their exit-doors, and their containers.
+ the game-character observes them, their exit-portals, and their containers.
 
 When a player-character relocates to a map-place,
  the player-character might be its place-discoverer;

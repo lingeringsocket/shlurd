@@ -5,7 +5,7 @@ Believe "/example-phlebotinum/thief-axioms.txt".
 An axe or a lantern is a kind of game-object.
 
 Bedrooms, bathrooms, kitchens, cupboards, and lofts are kinds of map-place.
-A cupboard is a kind of visible-entity.
+A cupboard is a kind of visible-fixture.
 
 An oracle is a kind of non-player-character.
 There is an oracle.

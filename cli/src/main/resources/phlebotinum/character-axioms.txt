@@ -1,7 +1,7 @@
 Believe "/phlebotinum/basic-axioms.txt".
 
 A game-character is a kind of person.
-A game-character is a kind of visible-entity.
+A game-character is a kind of visible-object.
 Player-characters and non-player-characters are kinds of game-character.
 A game-character's visible-item must be a visible-entity.
 
