@@ -398,8 +398,22 @@ class SmcPredicateEvaluator[
       case SilGenitiveReference(possessor, possessee) => {
         updateContext(possessor, REF_GENITIVE_POSSESSOR)
       }
-      case SilStateSpecifiedReference(sub, _) => {
-        updateContext(sub, REF_SPECIFIED)
+      case ssr @ SilStateSpecifiedReference(sub, _) => {
+        if (resultCollector.analyzingAssertion) {
+          ssr.state match {
+            case _ : SilPropertyState => {
+              updateContext(sub, REF_SPECIFIED)
+            }
+            case _ => {
+              getContext(ssr).foreach(context => {
+                updateContext(sub, context)
+              })
+              updateContext(ssr, REF_SPECIFIED)
+            }
+          }
+        } else {
+          updateContext(sub, REF_SPECIFIED)
+        }
       }
       case SilDeterminedReference(_, _) => {
       }
@@ -1014,9 +1028,24 @@ class SmcPredicateEvaluator[
       }
       case SilDeterminedReference(sub, determiner) => {
         assert(enclosingDeterminer == DETERMINER_UNSPECIFIED)
+        val actualDeterminer = determiner match {
+          case DETERMINER_UNIQUE => {
+            sub match {
+              case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
+                if (resultCollector.analyzingAssertion) {
+                  DETERMINER_NONSPECIFIC
+                } else {
+                  determiner
+                }
+              }
+              case _ => determiner
+            }
+          }
+          case _ => determiner
+        }
         val result = evaluatePredicateOverReferenceImpl(
           sub, context, resultCollector, specifiedState, specifiedEntities,
-          evaluator, determiner)
+          evaluator, actualDeterminer)
         refMap.get(sub).foreach(
           entitySet => refMap.put(reference, entitySet))
         result

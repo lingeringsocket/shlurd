@@ -67,8 +67,101 @@ class PhlebMind(
         determiner
       }
     }
-    super.responseReference(
-      annotator, communicationContext, entity, perceivedDeterminer)
+    val ref =
+      super.responseReference(
+        annotator, communicationContext, entity, determiner)
+    val perceivedRef =
+      super.responseReference(
+        annotator, communicationContext, entity, perceivedDeterminer)
+    val composed = composeReference(annotator, communicationContext, entity, ref)
+    val rewriter = new SilPhraseRewriter(annotator)
+    def replaceReferences = rewriter.replacementMatcher(
+      "replaceReferences", {
+        case r : SilReference => {
+          if (r == ref) {
+            perceivedRef
+          } else {
+            r
+          }
+        }
+      }
+    )
+    rewriter.rewrite(
+      replaceReferences,
+      composed)
+  }
+
+  def composeReference(
+    annotator : SpcAnnotator,
+    communicationContext : SmcCommunicationContext[SpcEntity],
+    entity : SpcEntity,
+    ref : SilReference
+  ) : SilReference =
+  {
+    val mind = this
+    val annotatorMap = SmcResultCollector.newAnnotationRefMap(annotator)
+    val refMap = SmcResultCollector.modifiableRefMap(mind, annotatorMap)
+    refMap.put(ref, Set(entity))
+    val interpreterRef = annotator.determinedNounRef(
+      SilWord("game-interpreter"),
+      DETERMINER_UNIQUE)
+    communicationContext.speakerEntity.foreach(interpreterEntity => {
+      refMap.put(interpreterRef, Set(interpreterEntity))
+    })
+    // FIXME use communicationContext
+    val predicate = SilActionPredicate(
+      interpreterRef,
+      SilWord("reference"),
+      Some(ref)
+    )
+    val responder = new PhlebResponder(
+      mind,
+      SpcBeliefParams(IGNORE_BELIEFS, false, false, false, false),
+      SmcResponseParams(),
+      new SmcExecutor,
+      communicationContext)
+    def newAssertionMapper = new SpcAssertionMapper(
+      mind, communicationContext,
+      new SmcInputRewriter(mind, annotator),
+      new SilSentencePrinter)
+    def replacements(p : SilPredicate) = {
+      val resultCollector = SpcResultCollector(annotator, refMap)
+      responder.resolveReferences(p, resultCollector)
+      responder.getTriggers.flatMap(
+        responder.getTriggerImplications(annotator, _)
+      ).flatMap {
+        case (conditionalSentence, placeholderMap) => {
+          newAssertionMapper.matchImplication(
+            "IMPLIES",
+            getCosmos,
+            conditionalSentence,
+            p,
+            SpcAssertionBinding(
+              annotator,
+              refMap,
+              Some(refMap),
+              Some(placeholderMap)
+            )
+          )
+        }
+      }
+    }
+    def recurse(p : SilPredicate) : SilReference = {
+      replacements(p) match {
+        case Seq(SilActionPredicate(
+          _, SilWordLemma("compose"), Some(obj), _)
+        ) => {
+          obj
+        }
+        case Seq(ap : SilActionPredicate) => {
+          recurse(ap)
+        }
+        case _ => {
+          ref
+        }
+      }
+    }
+    recurse(predicate)
   }
 
   override def equivalentReferences(

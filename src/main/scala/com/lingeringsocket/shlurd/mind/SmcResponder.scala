@@ -66,6 +66,7 @@ class SmcResultCollector[EntityType<:SmcEntity](
   var suppressWildcardExpansion = 0
   var swapSpeakerListener = false
   var resolvingReferences = false
+  var analyzingAssertion = false
 
   protected def preSpawn() =
   {
@@ -77,6 +78,7 @@ class SmcResultCollector[EntityType<:SmcEntity](
     newCollector.suppressWildcardExpansion = suppressWildcardExpansion
     newCollector.swapSpeakerListener = swapSpeakerListener
     newCollector.resolvingReferences = resolvingReferences
+    newCollector.analyzingAssertion = analyzingAssertion
     newCollector
   }
 

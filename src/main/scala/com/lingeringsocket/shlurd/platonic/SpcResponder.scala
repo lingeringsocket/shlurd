@@ -213,7 +213,7 @@ class SpcResponder(
 {
   private val already = new mutable.HashSet[SilPredicate]
 
-  private def newAssertionMapper(
+  protected def newAssertionMapper(
     annotator : SpcAnnotator
   ) = new SpcAssertionMapper(
     mind, communicationContext, newInputRewriter(annotator),

@@ -231,6 +231,7 @@ class SpcImplicationMapper(
       predicateIn,
       SilPhraseCopyOptions(preserveBasicNotes = true))
     val resultCollector = SpcResultCollector(annotator)
+    resultCollector.analyzingAssertion = true
     val scope = new SmcPhraseScope(
       antecedentRefs.getOrElse(Map.empty),
       responder.mindScope

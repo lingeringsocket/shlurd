@@ -1,5 +1,6 @@
 Believe "/phlebotinum/character-axioms.txt".
 Believe "/phlebotinum/interpreter-axioms.txt".
+Believe "/phlebotinum/map-axioms.txt".
 
 When a player-character looks at a describable-entity,
  the player-character examines it.
@@ -30,3 +31,11 @@ When a player-character examines a describable-entity,
  otherwise the game-interpreter says "It's about what you'd expect.".
 When a player-character examines a describable-entity,
  the game-interpreter recites its description.
+
+When a game-interpreter references a map-portal,
+ the game-interpreter annotates the map-portal with
+ {the map-portal's mediated-connection
+ among the player-character's container's place-exits}'s container.
+
+When a game-interpreter annotates a map-portal with a map-direction,
+ the game-interpreter composes {{the map-portal} to {the map-direction}}.

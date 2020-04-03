@@ -98,7 +98,7 @@ class SpcAssertionMapper(
       preserveNotes = true))
   }
 
-  private[platonic] def matchImplication(
+  def matchImplication(
     operator : String,
     cosmos : SpcCosmos,
     implication : SilConditionalSentence,
@@ -238,8 +238,9 @@ class SpcAssertionMapper(
         set ++ set.flatMap(
           ref => findPlaceholderCorrespondence(
             binding.annotator, ref, binding.placeholderMap
-          )._2.map(r =>
-            flipVariable(binding.annotator, sentencePrinter, r, r)))
+          )._2.map(r => {
+            flipVariable(binding.annotator, sentencePrinter, r, r)
+          }))
       }
       case _ => set
     }

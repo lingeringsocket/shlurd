@@ -2,7 +2,7 @@ You are in a bedroom.
 
 Grubby articles of alien underwear lie scattered about.
 
-You see a big door.
+You see a big door to the east.
 
 > e
 
@@ -14,7 +14,7 @@ Someone has written 'clean me!' on the mirror.
 
 You see an axe and a thief.
 
-You see the big door.
+You see the big door to the west.
 
 // FIXME this should really be "talk to myself"
 > talk to me
@@ -104,7 +104,7 @@ OK.
 
 You are in the bedroom.
 
-You see the big door.
+You see the big door to the east.
 
 > n
 

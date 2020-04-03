@@ -4,7 +4,7 @@ You are in a bedroom.
 
 Grubby articles of alien underwear lie scattered about.
 
-You see a big door.
+You see a big door to the east.
 
 // examine is a valid verb, but requires an object
 > examine
@@ -110,7 +110,7 @@ Someone has written 'clean me!' on the mirror.
 
 You see an axe and a thief.
 
-You see the big door.
+You see the big door to the west.
 
 > look at the axe
 
@@ -170,7 +170,7 @@ The axe, the thief, and you are in it.
 
 > what do I see
 
-You see the axe, the thief, and the big door.
+You see the axe, the thief, and the big door to the west.
 
 > get the axe
 
@@ -194,7 +194,7 @@ Someone has written 'clean me!' on the mirror.
 
 You see the thief.
 
-You see the big door.
+You see the big door to the west.
 
 > is ze alive
 
@@ -216,7 +216,7 @@ OK.
 
 You are in the bedroom.
 
-You see the big door.
+You see the big door to the east.
 
 // reference to something in another room
 > throw the axe at the thief
@@ -231,7 +231,7 @@ You are in the bathroom.
 
 You see the thief.
 
-You see the big door.
+You see the big door to the west.
 
 > throw the axe at zir
 
@@ -249,7 +249,7 @@ OK.
 
 You are in the bedroom.
 
-You see the big door.
+You see the big door to the east.
 
 // query about something in another room
 > where is the axe
@@ -310,7 +310,7 @@ OK.
 
 You are in the bedroom.
 
-You see the big door.
+You see the big door to the east.
 
 > l
 
@@ -320,7 +320,7 @@ You are in the bedroom.
 
 Grubby articles of alien underwear lie scattered about.
 
-You see the big door.
+You see the big door to the east.
 
 > where is the axe
 
@@ -342,7 +342,7 @@ OK.
 
 You are in the bedroom.
 
-You see the big door.
+You see the big door to the east.
 
 > e
 
@@ -352,7 +352,7 @@ You are in the bathroom.
 
 You see the thief and the axe.
 
-You see the big door.
+You see the big door to the west.
 
 // make sure beliefs can only be injected via internal commands
 > the thief believes "the moon is made of green cheese"
@@ -406,7 +406,7 @@ Someone has written 'clean me!' on the mirror.
 
 You see the thief and the axe.
 
-You see the big door.
+You see the big door to the west.
 
 > i
 
