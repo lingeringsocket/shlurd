@@ -73,7 +73,8 @@ class PhlebMind(
     val perceivedRef =
       super.responseReference(
         annotator, communicationContext, entity, perceivedDeterminer)
-    val composed = composeReference(annotator, communicationContext, entity, ref)
+    val composed = composeReference(
+      annotator, communicationContext, entity, ref)
     val rewriter = new SilPhraseRewriter(annotator)
     def replaceReferences = rewriter.replacementMatcher(
       "replaceReferences", {
