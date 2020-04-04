@@ -32,10 +32,10 @@ When a player-character examines a describable-entity,
 When a player-character examines a describable-entity,
  the game-interpreter recites its description.
 
-When a game-interpreter references a map-portal,
- the game-interpreter annotates the map-portal with
+When a game-speaker references a map-portal,
+ the game-speaker annotates the map-portal with
  {the map-portal's mediated-connection
  among the player-character's container's place-exits}'s container.
 
-When a game-interpreter annotates a map-portal with a map-direction,
- the game-interpreter composes {{the map-portal} to {the map-direction}}.
+When a game-speaker annotates a map-portal with a map-direction,
+ the game-speaker composes {{the map-portal} to {the map-direction}}.

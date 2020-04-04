@@ -103,15 +103,15 @@ class PhlebMind(
     val annotatorMap = SmcResultCollector.newAnnotationRefMap(annotator)
     val refMap = SmcResultCollector.modifiableRefMap(mind, annotatorMap)
     refMap.put(ref, Set(entity))
-    val interpreterRef = annotator.determinedNounRef(
-      SilWord("game-interpreter"),
+    val speakerRef = annotator.determinedNounRef(
+      SilWord("game-speaker"),
       DETERMINER_UNIQUE)
-    communicationContext.speakerEntity.foreach(interpreterEntity => {
-      refMap.put(interpreterRef, Set(interpreterEntity))
+    communicationContext.speakerEntity.foreach(personEntity => {
+      refMap.put(speakerRef, Set(personEntity))
     })
     // FIXME use communicationContext
     val predicate = SilActionPredicate(
-      interpreterRef,
+      speakerRef,
       SilWord("reference"),
       Some(ref)
     )
@@ -148,13 +148,14 @@ class PhlebMind(
       }
     }
     def recurse(p : SilPredicate) : SilReference = {
-      replacements(p) match {
-        case Seq(SilActionPredicate(
+      // FIXME choose best match instead of last
+      replacements(p).lastOption match {
+        case Some(SilActionPredicate(
           _, SilWordLemma("compose"), Some(obj), _)
         ) => {
           obj
         }
-        case Seq(ap : SilActionPredicate) => {
+        case Some(ap : SilActionPredicate) => {
           recurse(ap)
         }
         case _ => {
