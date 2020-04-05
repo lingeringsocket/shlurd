@@ -86,7 +86,7 @@ OK.
 
 > what do you see
 
-"I see you, the axe, and the big door to the west."
+"I see you, the battleaxe, and the big door to the west."
 
 > TTYL
 

@@ -27,3 +27,6 @@ Whenever the game-turn advances,
  the thief has no visible-items;
  also the thief perceives the thief;
  also the thief surveys the thief's container.
+
+When a thief references an axe,
+ the thief recites "the battleaxe".

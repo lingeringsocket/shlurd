@@ -163,9 +163,8 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         sb.genitivePhrase(
           qualifierString, print(possessee, inflection, conjoining))
       }
-      case SilQuotationReference(quotation) => {
-        // FIXME delegate to sb
-        DQUOTE + quotation + DQUOTE
+      case SilQuotationReference(quotation, bracket) => {
+        sb.separate(bracket.begin + quotation + bracket.end, conjoining)
       }
       case _ : SilUnknownReference => {
         sb.unknownReference

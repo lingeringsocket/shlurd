@@ -937,7 +937,7 @@ abstract class PhlebExecutor(noumenalMind : PhlebMind)
   {
     val subjectEntityOpt = singletonLookup(refMap, ap.subject)
     val quotationOpt = ap.directObject match {
-      case Some(SilQuotationReference(quotation)) => Some(quotation)
+      case Some(SilQuotationReference(quotation, _)) => Some(quotation)
       case Some(ref) => {
         singletonLookup(refMap, ref) match {
           case Some(entity) => {

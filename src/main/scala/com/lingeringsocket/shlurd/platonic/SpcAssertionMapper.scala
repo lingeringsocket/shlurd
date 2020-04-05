@@ -319,7 +319,7 @@ class SpcAssertionMapper(
             trace(s"NONSPECIFIC REFERENCE $actualRef")
             return false
           }
-          case SilQuotationReference(_) => {
+          case SilQuotationReference(_, _) => {
             tupleN((actualRef, Set.empty[SpcEntity]))
           }
           case _ => {

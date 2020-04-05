@@ -253,9 +253,10 @@ trait SilAnnotator
   }
 
   def quotationRef(
-    quotation : String) =
+    quotation : String,
+    bracket : SilBracket = BRACKET_DQUOTE) =
   {
-    register(SilQuotationReference.unannotated(quotation))
+    register(SilQuotationReference.unannotated(quotation, bracket))
   }
 
   def stateQualifiedRef(

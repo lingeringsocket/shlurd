@@ -282,7 +282,7 @@ class SpcBeliefRecognizer(
     sentence matchPartial {
       case SilPredicateSentence(
         SilActionPredicate(
-          _, verb, Some(SilQuotationReference(quotation)), _),
+          _, verb, Some(SilQuotationReference(quotation, _)), _),
         tam, formality
       ) if (tam.isImperative) => {
         return recognizeDirective(sentence, verb, quotation)
@@ -684,7 +684,7 @@ class SpcBeliefRecognizer(
             return processIndirectEntityRelationship(
               sentence, subjectRef, complementRef, verb, subjectConjunction)
           }
-          case SilQuotationReference(quotation) => {
+          case SilQuotationReference(quotation, _) => {
             // "Arnie's catchphrase is <<I'll be back>>"
             return processQuotation(
               sentence, possessor, possessee, quotation, verb)

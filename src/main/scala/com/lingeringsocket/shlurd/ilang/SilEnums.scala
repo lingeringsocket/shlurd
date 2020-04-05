@@ -295,6 +295,11 @@ sealed trait SilBracket
   def end : String
 }
 
+case object BRACKET_NONE extends SilBracket
+{
+  override def begin = ""
+  override def end = ""
+}
 case object BRACKET_PAREN extends SilBracket
 {
   override def begin = "("
@@ -304,6 +309,11 @@ case object BRACKET_CURLY extends SilBracket
 {
   override def begin = "{"
   override def end = "}"
+}
+case object BRACKET_DQUOTE extends SilBracket
+{
+  override def begin = DQUOTE
+  override def end = DQUOTE
 }
 
 sealed trait SilSeparator

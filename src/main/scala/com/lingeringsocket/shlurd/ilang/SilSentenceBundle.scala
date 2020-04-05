@@ -45,7 +45,7 @@ abstract class SilSentenceBundle
   protected def compose(s : String*) =
     s.filterNot(_.isEmpty).mkString(" ")
 
-  protected def separate(item : String, conjoining : SilConjoining) =
+  def separate(item : String, conjoining : SilConjoining) =
   {
     if (conjoining.separator.needPunctuationAt(
       conjoining.pos, conjoining.total)

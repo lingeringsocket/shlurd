@@ -151,9 +151,14 @@ class PhlebMind(
       // FIXME choose best match instead of last
       replacements(p).lastOption match {
         case Some(SilActionPredicate(
-          _, SilWordLemma("compose"), Some(obj), _)
-        ) => {
+          _, SilWordLemma("compose"), Some(obj), _
+        )) => {
           obj
+        }
+        case Some(SilActionPredicate(
+          _, SilWordLemma("recite"), Some(SilQuotationReference(q, _)), _
+        )) => {
+          annotator.quotationRef(q, BRACKET_NONE)
         }
         case Some(ap : SilActionPredicate) => {
           recurse(ap)

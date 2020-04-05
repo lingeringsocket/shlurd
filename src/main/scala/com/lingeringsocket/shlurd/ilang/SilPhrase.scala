@@ -824,15 +824,16 @@ case class SilMappedReference private(
 
 object SilQuotationReference
 {
-  private def apply(quotation : String) =
-    new SilQuotationReference(quotation)
+  private def apply(quotation : String, bracket : SilBracket) =
+    new SilQuotationReference(quotation, bracket)
 
-  def unannotated(quotation : String) =
-    SilQuotationReference(quotation)
+  def unannotated(quotation : String, bracket : SilBracket) =
+    SilQuotationReference(quotation, bracket)
 }
 
 case class SilQuotationReference private(
-  quotation : String
+  quotation : String,
+  bracket : SilBracket
 ) extends SilAnnotatedReference
 {
 }
