@@ -75,6 +75,7 @@ class PhlebMind(
         annotator, communicationContext, entity, perceivedDeterminer)
     val composed = composeReference(
       annotator, communicationContext, entity, ref)
+
     val rewriter = new SilPhraseRewriter(annotator)
     def replaceReferences = rewriter.replacementMatcher(
       "replaceReferences", {
@@ -109,7 +110,7 @@ class PhlebMind(
     communicationContext.speakerEntity.foreach(personEntity => {
       refMap.put(speakerRef, Set(personEntity))
     })
-    // FIXME use communicationContext
+
     val predicate = SilActionPredicate(
       speakerRef,
       SilWord("reference"),

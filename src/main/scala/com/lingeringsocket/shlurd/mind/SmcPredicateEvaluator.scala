@@ -949,7 +949,7 @@ class SmcPredicateEvaluator[
         val pr = {
           if (resultCollector.swapSpeakerListener) {
             val rewriter = new SmcResponseRewriter(
-              mind, communicationContext, annotator)
+              mind, communicationContext.flip, annotator)
             rewriter.rewrite(
               rewriter.swapPronounsSpeakerListener(refMap), prOriginal)
           } else {

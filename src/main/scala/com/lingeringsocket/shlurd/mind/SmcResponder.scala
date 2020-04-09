@@ -370,7 +370,7 @@ class SmcResponder[
 
   private def newResponseRewriter(annotator : AnnotatorType) =
     new SmcResponseRewriter(
-      mind, communicationContext, annotator)
+      mind, communicationContext.flip, annotator)
 
   val sentencePrinter = new SilSentencePrinter
 

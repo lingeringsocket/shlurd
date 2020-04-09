@@ -498,7 +498,13 @@ class PhlebShell(
               case _ => None
             }
           } else {
-            None
+            lemma match {
+              case "say" | "reply" | "ask" | "tell" => {
+                defer(DeferredReport(DQUOTE + quotation + DQUOTE))
+                ok
+              }
+              case _ => None
+            }
           }
         }
         case _ => {

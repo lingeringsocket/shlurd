@@ -568,8 +568,7 @@ class SmcResponseRewriter[
     determiner : SilDeterminer) : SilReference =
   {
     val equivs = mind.equivalentReferences(
-      annotator, communicationContext, entity, determiner).map(ref =>
-      rewrite(swapPronounsSpeakerListener(refMap), ref))
+      annotator, communicationContext, entity, determiner)
     equivs.find(_ != other) match {
       case Some(ref) => ref
       case _ => equivs.head
@@ -611,7 +610,7 @@ class SmcResponseRewriter[
       case SilMappedReference(key, determiner) => {
         val entity = entityMap(key)
         val ref = mind.responseReference(
-          annotator, communicationContext.flip, entity, determiner)
+          annotator, communicationContext, entity, determiner)
         refMap.put(ref, Set(entity))
         markQueryAnswer(ref)
         ref
@@ -720,7 +719,7 @@ class SmcResponseRewriter[
               pr
             } else {
               mind.responseReferences(
-                annotator, communicationContext.flip, entities)
+                annotator, communicationContext, entities)
             }
           }
         ).getOrElse(pr)
