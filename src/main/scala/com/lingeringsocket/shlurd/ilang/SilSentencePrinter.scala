@@ -164,7 +164,12 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
           qualifierString, print(possessee, inflection, conjoining))
       }
       case SilQuotationReference(quotation, bracket) => {
-        sb.separate(bracket.begin + quotation + bracket.end, conjoining)
+        sb.separate(
+          sb.applyInflection(
+            bracket.begin + quotation + bracket.end,
+            COUNT_SINGULAR,
+            inflection),
+          conjoining)
       }
       case _ : SilUnknownReference => {
         sb.unknownReference

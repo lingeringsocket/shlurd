@@ -243,6 +243,17 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     compose(genitive, head)
   }
 
+  override def applyInflection(
+    base : String, count : SilCount, inflection : SilInflection) : String =
+  {
+    inflection match {
+      case INFLECT_GENITIVE => {
+        concat(base, "의")
+      }
+      case _ => base
+    }
+  }
+
   private def inflectPronoun(
     pn : String,
     inflection : SilInflection,

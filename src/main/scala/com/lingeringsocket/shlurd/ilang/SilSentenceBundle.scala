@@ -262,6 +262,9 @@ abstract class SilSentenceBundle
     distance : SilDistance, word : Option[SilWord], inflection : SilInflection,
     conjoining : SilConjoining) : String
 
+  def applyInflection(
+    base : String, count : SilCount, inflection : SilInflection) : String
+
   def genitivePhrase(genitive : String, head : String) : String
 
   def cardinalNumber(num : Int) : String = num.toString

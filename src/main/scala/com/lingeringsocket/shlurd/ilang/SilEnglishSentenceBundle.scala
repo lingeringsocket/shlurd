@@ -426,23 +426,7 @@ class SilEnglishSentenceBundle
               lemma
             }
           }
-          inflection match {
-            case INFLECT_GENITIVE => {
-              count match {
-                case COUNT_PLURAL => {
-                  concat(base, "'")
-                }
-                case _ => {
-                  if (base.endsWith("s")) {
-                    concat(base, "'")
-                  } else {
-                    concat(base, "'s")
-                  }
-                }
-              }
-            }
-            case _ => base
-          }
+          applyInflection(base, count, inflection)
         }
       } else {
         noun.inflected
@@ -450,6 +434,28 @@ class SilEnglishSentenceBundle
     }
     val seq = decomposed.dropRight(1).map(_.inflected) :+ unseparated
     separate(word.recompose(seq), conjoining)
+  }
+
+  override def applyInflection(
+    base : String, count : SilCount, inflection : SilInflection) : String =
+  {
+    inflection match {
+      case INFLECT_GENITIVE => {
+        count match {
+          case COUNT_PLURAL => {
+            concat(base, "'")
+          }
+          case _ => {
+            if (base.endsWith("s")) {
+              concat(base, "'")
+            } else {
+              concat(base, "'s")
+            }
+          }
+        }
+      }
+      case _ => base
+    }
   }
 
   private def delemmatizeProgressive(word : SilWord) : String =

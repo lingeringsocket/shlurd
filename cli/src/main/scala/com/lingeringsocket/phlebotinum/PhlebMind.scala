@@ -182,13 +182,18 @@ class PhlebMind(
     val references = super.equivalentReferences(
       annotator, communicationContext, entity, determiner)
     if (entity.form.name == PhlebShell.INVENTORY_WORD) {
-      val (nouns, others) =
-        references.partition(r =>
-          r.isInstanceOf[SilNounReference] ||
-            r.isInstanceOf[SilDeterminedReference]
-        )
+      val (worse, better) =
+        references.partition(_ match
+        {
+          case SilOptionallyDeterminedReference(
+            SilNounReference(_), _) => true
+          case SilGenitiveReference(
+            _, SilNounLemmaReference("container")) => true
+          case _ => false
+        })
       // prefer "the player's stuff" over "the player-inventory"
-      others ++ nouns
+      // and over "the widget's container"
+      better ++ worse
     } else {
       references
     }
