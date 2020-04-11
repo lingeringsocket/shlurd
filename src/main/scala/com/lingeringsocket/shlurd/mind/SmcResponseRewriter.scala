@@ -237,7 +237,8 @@ class SmcResponseRewriter[
       }
     )
     val rewrite1 = {
-      if (resultCollector.entityMap.filter(_._2.assumeFalse).isEmpty ||
+      if (resultCollector.neutralizedEntityMap.
+        filter(_._2.assumeFalse).isEmpty ||
         resultCollector.isCategorization || !allowFlips)
       {
         rewrite(
@@ -845,13 +846,14 @@ class SmcResponseRewriter[
       case Some(entities) => {
         SprUtils.orderedSet(
           entities.filter(e =>
-            resultCollector.entityMap.get(e).map(_.assumeFalse).getOrElse(false)
+            resultCollector.neutralizedEntityMap.get(e).
+              map(_.assumeFalse).getOrElse(false)
           )
         )
       }
       case _ => {
         SprUtils.orderedSet(
-          resultCollector.entityMap.filter(
+          resultCollector.neutralizedEntityMap.filter(
             _._2.assumeFalse).keySet)
       }
     }
@@ -860,7 +862,7 @@ class SmcResponseRewriter[
   private def getFalseEntities(resultCollector : ResultCollectorType) =
   {
     SprUtils.orderedSet(
-      resultCollector.entityMap.filterNot(
+      resultCollector.neutralizedEntityMap.filterNot(
         _._2.assumeTrue).keySet)
   }
 
@@ -874,7 +876,7 @@ class SmcResponseRewriter[
   {
     val trueEntities = getTrueEntities(resultCollector, ref)
     val exhaustive =
-      (trueEntities.size == resultCollector.entityMap.size) &&
+      (trueEntities.size == resultCollector.neutralizedEntityMap.size) &&
         !params.neverSummarize
     val existence = resultCollector.states.isEmpty
     val resultOpt = {
@@ -908,7 +910,7 @@ class SmcResponseRewriter[
   {
     val falseEntities = getFalseEntities(resultCollector)
     val exhaustive =
-      (falseEntities.size == resultCollector.entityMap.size) &&
+      (falseEntities.size == resultCollector.neutralizedEntityMap.size) &&
         !params.neverSummarize
     val existence = resultCollector.states.isEmpty
     if (falseEntities.isEmpty) {

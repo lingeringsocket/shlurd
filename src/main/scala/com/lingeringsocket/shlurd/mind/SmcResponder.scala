@@ -60,8 +60,10 @@ class SmcResultCollector[EntityType<:SmcEntity](
   val annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]],
   val refMap : SmcMutableRefMap[EntityType])
 {
-  val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
+  private val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
   val states = new mutable.LinkedHashSet[SilWord]
+  val neutralizedRefs = new mutable.LinkedHashSet[SilReference]
+  val neutralizedEntities = new mutable.LinkedHashSet[EntityType]
   var isCategorization = false
   var suppressWildcardExpansion = 0
   var swapSpeakerListener = false
@@ -85,6 +87,18 @@ class SmcResultCollector[EntityType<:SmcEntity](
   def lookup(ref : SilReference) : Option[Set[EntityType]] =
   {
     refMap.get(ref)
+  }
+
+  def fullEntityMap() = entityMap
+
+  def neutralizedEntityMap() =
+  {
+    entityMap.filterKeys(entity => !neutralizedEntities.contains(entity))
+  }
+
+  def saveEntityResult(entity : EntityType, result : Trilean)
+  {
+    entityMap.put(entity, result)
   }
 }
 
@@ -632,7 +646,7 @@ class SmcResponder[
         val entities =
           resultCollector.lookup(predicate.subject).
             getOrElse(Set.empty).filterNot(entity => {
-              resultCollector.entityMap.get(entity).
+              resultCollector.neutralizedEntityMap.get(entity).
                 getOrElse(Trilean.Unknown).assumeFalse
             })
         val invocation =
@@ -1223,7 +1237,7 @@ class SmcResponder[
                     queryRefMap.get(queryRef).
                       getOrElse(Set.empty) ++ entities)
                   entities.foreach(entity =>
-                    resultCollector.entityMap.put(entity, Trilean.True))
+                    resultCollector.saveEntityResult(entity, Trilean.True))
                 })
               }
             })

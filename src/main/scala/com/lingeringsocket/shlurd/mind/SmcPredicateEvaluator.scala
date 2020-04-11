@@ -55,9 +55,8 @@ class SmcPredicateEvaluator[
   {
     trace(s"EVALUATE PREDICATE : $predicateOriginal")
     val predicate = normalizePredicate(
-      resultCollector.annotator,
-      predicateOriginal,
-      resultCollector.refMap)
+      resultCollector,
+      predicateOriginal)
     if (predicate != predicateOriginal) {
       trace(s"NORMALIZED PREDICATE : $predicate")
     }
@@ -786,14 +785,14 @@ class SmcPredicateEvaluator[
     }
     val combinedResults = crossResults.toSeq.map {
       case ((subjectEntity, objectEntity), crossTrilean) => {
-        val subjectTrilean = resultCollector.entityMap.get(subjectEntity).
+        val subjectTrilean = resultCollector.fullEntityMap.get(subjectEntity).
           getOrElse(Trilean.Unknown)
         tupleN((objectEntity, crossTrilean && subjectTrilean))
       }
     }
     combinedResults.groupBy(_._1).foreach {
       case (objectEntity, results) => {
-        resultCollector.entityMap.put(
+        resultCollector.saveEntityResult(
           objectEntity, results.map(_._2).reduceLeft(_ || _))
       }
     }
@@ -1361,7 +1360,10 @@ class SmcPredicateEvaluator[
   {
     debugger.slowIncrement
     val result = evaluator(entity, entityRef)
-    result.foreach(resultCollector.entityMap.put(entity, _))
+    result.foreach(resultCollector.saveEntityResult(entity, _))
+    if (resultCollector.neutralizedRefs.contains(entityRef)) {
+      resultCollector.neutralizedEntities += entity
+    }
     result
   }
 
@@ -1422,9 +1424,8 @@ class SmcPredicateEvaluator[
   }
 
   protected def normalizePredicate(
-    annotator : AnnotatorType,
-    predicate : SilPredicate,
-    refMap : SmcRefMap[EntityType]
+    resultCollector : ResultCollectorType,
+    predicate : SilPredicate
   ) : SilPredicate =
   {
     predicate

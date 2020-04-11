@@ -69,9 +69,8 @@ class SmcResponderSpec extends Specification
         }
 
         override protected def normalizePredicate(
-          annotator : AnnotatorType,
-          predicate : SilPredicate,
-          refMap : SmcRefMap[SmcEntity]
+          resultCollector : ResultCollectorType,
+          predicate : SilPredicate
         ) = {
           predicate match {
             case SilStatePredicate(subject, verb, state, modifiers) => {

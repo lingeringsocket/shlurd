@@ -98,6 +98,10 @@ OK.
 
 It does not respond.
 
+> get the axe
+
+OK.
+
 > w
 
 OK.
@@ -121,6 +125,12 @@ You see an oracle.
 OK.
 
 The oracle responds, "It is in a kitchen."
+
+> ask the oracle "who is holding the axe"
+
+OK.
+
+The oracle responds, "You are holding it."
 
 > talk to the thief
 

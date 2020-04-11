@@ -993,7 +993,7 @@ class SpcResponderSpec extends Specification
 
     "deal with conjunctive plural noun" in new ResponderContext
     {
-      skipped("maybe one day")
+      loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/vehicles.txt")
       processMatrix(
         "are Herbie and Lusitania vehicles",
@@ -1005,15 +1005,14 @@ class SpcResponderSpec extends Specification
 
     "respond correctly to disjunctive query" in new ResponderContext
     {
-      skipped("maybe one day")
       loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/people.txt")
       processMatrix(
         "is Rapunzel or Amanda a dog",
-        "Yes, Rapunzel is a dog.",
-        "Yes, Rapunzel is a dog.",
+        "Yes, one of them is a dog.",
+        "Yes, one of them is a dog.",
         "Yes.",
-        "Yes, Rapunzel is.")
+        "Yes, one of them is.")
     }
 
     "respond correctly when no person exists" in new ResponderContext
@@ -1077,10 +1076,10 @@ class SpcResponderSpec extends Specification
         "No.",
         "No, it is not.")
 
-      skipped("ambiguous progressive")
+      // FIXME progressive formation (should be running instead of runing!)
       process(
         "are all services running",
-        "No, the multimedia service is not running.")
+        "No, the multimedia service is not runing.")
     }
 
     "understand presence" in new ResponderContext
@@ -1557,14 +1556,15 @@ class SpcResponderSpec extends Specification
     "reject unknown subject" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      skipped("broken for now")
-
       loadBeliefs("/ontologies/containment.txt")
+      processBelief("a destroyer is a kind of object")
       processBelief(
         "if a destroyer destroys an object, then the object has no container")
       processBelief("the football is an object")
-      process("Geoff destroys the football",
-        "Sorry, I don't know about any 'Geoff'.")
+      processExceptionExpected(
+        "Geoff destroys the football",
+        "Sorry, I don't know about any 'Geoff'.",
+        ShlurdExceptionCode.UnknownForm)
     }
 
     "ignore action cycles" in new ResponderContext(

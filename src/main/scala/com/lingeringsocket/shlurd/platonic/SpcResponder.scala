@@ -311,12 +311,14 @@ class SpcResponder(
     }
 
     override protected def normalizePredicate(
-      annotator : AnnotatorType,
-      predicate : SilPredicate,
-      refMap : SpcRefMap
+      resultCollector : ResultCollectorType,
+      predicate : SilPredicate
     ) : SilPredicate =
     {
-      if (scoreEquivalentPredicate(annotator, predicate, refMap) == 1) {
+      val annotator = resultCollector.annotator
+      val refMap = resultCollector.refMap
+      if (scoreEquivalentPredicate(annotator, predicate, refMap) == 1)
+      {
         // the original predicate is something that we want to
         // keep no matter what
         return predicate
@@ -339,7 +341,7 @@ class SpcResponder(
             )
           )
         }
-      }.map(p => optimizeEquivalentPredicate(annotator, p, refMap))
+      }.map(p => optimizeEquivalentPredicate(resultCollector, p))
       replacements.filter(_._2 >= 0).sortBy(_._2).map(_._1).headOption.
         getOrElse(predicate)
     }
@@ -362,11 +364,12 @@ class SpcResponder(
     }
 
     private def optimizeEquivalentPredicate(
-      annotator : SpcAnnotator,
-      sil : SilPredicate,
-      refMap : SpcRefMap
+      resultCollector : ResultCollectorType,
+      sil : SilPredicate
     ) : (SilPredicate, Int) =
     {
+      val annotator = resultCollector.annotator
+      val refMap = resultCollector.refMap
       val rewriter = new SilPhraseRewriter(annotator)
       var score = 0
       def optimizePredicate = rewriter.replacementMatcher(
@@ -386,9 +389,16 @@ class SpcResponder(
             if (score == 0) {
               score = 1
             }
+            // This whole thing is ugly...for some reason we have to
+            // make the possessee into a wildcard, but then we have to
+            // "neutralize" it so that it doesn't actually show up in
+            // the results?
+            val newPossessee = annotator.determinedRef(
+              possessee, DETERMINER_ANY)
+            resultCollector.neutralizedRefs += newPossessee
             annotator.genitiveRef(
               possessor,
-              annotator.determinedRef(possessee, DETERMINER_ANY)
+              newPossessee
             )
           }
         }

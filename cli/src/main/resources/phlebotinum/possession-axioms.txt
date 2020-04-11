@@ -25,8 +25,9 @@ After a game-object falls onto a map-place,
  the game-object is in the map-place;
  also the player-character perceives the game-object.
 
+// FIXME:  should be able to use "it is in the game-character's stuff" instead
 If a game-character is holding a game-object, then equivalently
- it is in the game-character's stuff.
+ its container is the game-character's stuff.
 
 Whenever the game-turn advances,
  the player-character perceives the player-inventory's contained-objects.
