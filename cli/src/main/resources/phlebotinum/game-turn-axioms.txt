@@ -9,6 +9,9 @@ Whenever the game-turn advances,
  player-character's stuff;
  also the player-character becomes the player-character's container's place-discoverer.
 
-When the game-turn debuts,
+When the game-turn initializes,
+ the player-character initializes.
+
+When the game-turn reloads,
  the game-turn advances;
  also the player-character looks.

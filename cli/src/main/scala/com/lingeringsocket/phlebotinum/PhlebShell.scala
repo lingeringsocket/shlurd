@@ -328,7 +328,8 @@ object PhlebShell
 
 class PhlebShell(
   snapshot : PhlebSnapshot,
-  terminal : PhlebTerminal = new PhlebConsole)
+  terminal : PhlebTerminal = new PhlebConsole,
+  restored : Boolean = false)
 {
   import PhlebShell._
 
@@ -885,7 +886,10 @@ class PhlebShell(
     terminal.emitNarrative("")
 
     gameTurnTimestamp = noumenalMind.clock.getTimestamp
-    defer(DeferredDirective("the game-turn debuts"))
+    if (!restored) {
+      defer(DeferredDirective("the game-turn initializes"))
+    }
+    defer(DeferredDirective("the game-turn reloads"))
     processDeferred
 
     terminal.emitNarrative("")
@@ -921,7 +925,7 @@ class PhlebShell(
     restoreFile match {
       case Some(file) => {
         val snapshot = PhlebShell.restore(file, terminal)
-        Some(new PhlebShell(snapshot, terminal))
+        Some(new PhlebShell(snapshot, terminal, true))
       }
       case _ => {
         terminal.emitNarrative("")

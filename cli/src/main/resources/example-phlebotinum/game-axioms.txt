@@ -19,3 +19,6 @@ After a player-character beseeches an oracle,
 When a player-character ululates,
  the player-character adjures the oracle;
  also the game-interpreter says "Blood is trickling from my ears.".
+
+When the game-turn initializes,
+ the game-interpreter says "Welcome to a tepid smorgasbord of nostalgia.".

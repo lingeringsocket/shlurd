@@ -71,7 +71,7 @@ respect to a character's mind:
 Each input sentence entered by the player corresponds to one *game turn*.  A
 game turn proceeds roughly as follows:
 
-1. Game turn starts
+1. New game turn starts
 1. All previously perceived objects become stale for all characters
 1. For each character, all objects currently in scope (based on the character's location, possessions, and sensory awareness) become either fresh (if encountered for the first time) or familiar (if previously encountered)
 1. The sentence is interpreted with respect to the player character's phenomenal world
@@ -103,7 +103,7 @@ The game axiom library supplies a fairly standard map representation:
 * map-places are linked by one-directional map-connections, each of which has a source-place and a target-place; conversely, map-places have map-connections as their place-exits and place-entrances
 * a standard straight-connection type is defined (e.g. a passage from east to west), but custom types (e.g. elbow-shaped passages) can be defined as well
 * since most passages between places are bidirectional, a map-connection is typically associated with an opposite-connection
-* doors and other portals are objects which mediate map-connections; for a bidirectional passage, typically the same door object is associated with the two opposing map-connections
+* map-portals (including doors, passages, etc) are objects which mediate map-connections; for a bidirectional passage, typically the same map-portal object is associated with the two opposing map-connections
 
 ## Movement
 
