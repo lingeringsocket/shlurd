@@ -50,7 +50,12 @@ class SpcMind(cosmos : SpcCosmos)
       SpcBeliefParams(ACCEPT_NEW_BELIEFS)))
   {
     if (!cosmos.isDuplicateBeliefResource(resourceName)) {
-      loadBeliefs(ResourceUtils.getResourceSource(resourceName), responder)
+      val stream = ResourceUtils.getResourceStream(resourceName)
+      if (stream == null) {
+        throw new IllegalArgumentException(resourceName)
+      }
+      val source = Source.fromInputStream(stream)
+      loadBeliefs(source, responder)
     }
   }
 

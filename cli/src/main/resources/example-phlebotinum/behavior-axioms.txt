@@ -1,8 +1,4 @@
-Believe "/phlebotinum/possession-axioms.txt".
-
-A thief is a kind of non-player-character.
-A thief must be alive or dead.
-A thief must be boorish or suave.
+Believe "/example-phlebotinum/base-axioms.txt".
 
 After a game-character kills another game-character,
  the latter is dead.
@@ -15,18 +11,21 @@ When a game-character throws a game-object
  at another game-character,
  the first game-character kills the other game-character with the game-object.
 
-There is a thief.
-
-"Ze" is a nominative pronoun.
-"Zir" must be an objective pronoun or a possessive pronoun.
-"Zirself" is a reflexive pronoun.
-The thief's spc-pronoun-list is "ze, zir, zirself".
-
 // FIXME the equivalent "surveys zir container" should work too
 Whenever the game-turn advances,
  the thief has no visible-items;
  also the thief perceives the thief;
  also the thief surveys the thief's container.
 
-When a thief references an axe,
- the thief recites "the battleaxe".
+After a player-character beseeches an oracle,
+ the game-interpreter says "Answer me these questions three.".
+
+// Wordnet has adjure and beseech as synonyms.  We want to verify that
+// from the user level, they are synonymous; whereas for triggering purposes,
+// they are distinct.
+When a player-character ululates,
+ the player-character adjures the oracle;
+ also the game-interpreter says "Blood is trickling from my ears.".
+
+When the game-turn initializes,
+ the game-interpreter says "Welcome to a tepid smorgasbord of nostalgia.".

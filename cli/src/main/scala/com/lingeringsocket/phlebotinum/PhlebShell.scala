@@ -119,7 +119,7 @@ object PhlebShell
     val bootMind = new PhlebMind(
       bootCosmos, None, preferredSynonyms, new PhlebClock)
     bootMind.importBeliefs(
-      s"${resourcePrefix}game-axioms.txt",
+      s"${resourcePrefix}base-axioms.txt",
       new SpcResponder(
         bootMind,
         beliefParams))

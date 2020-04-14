@@ -1,3 +1,6 @@
-Believe "/example-phlebotinum/thief-axioms.txt".
+Believe "/example-phlebotinum/base-axioms.txt".
 
 The thief is suave.
+
+When a thief references an axe,
+ the thief recites "the battleaxe".

@@ -24,6 +24,6 @@ object PhlebApp extends App
     PhlebShell.run("/example-phlebotinum/")
   } else {
     ResourceUtils.addUrl(new URL(args.head))
-    PhlebShell.run("")
+    PhlebShell.run("/")
   }
 }

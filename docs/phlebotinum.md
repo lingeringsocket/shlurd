@@ -16,30 +16,26 @@ well.
 
 A story is created as a collection of files:
 
-* [Game axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/game-axioms.txt) define the [ontology](ontology.md) of the game world and its [behavior](conditionals.md).  The corresponding file **must** be named ```game-axioms.txt```
-* [Game initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/game-init.txt) is the *fiat lux* which populates the world and situates the characters which inhabit it.  The corresponding file **must** be named ```game-init.txt```
+* [Base axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/base-axioms.txt) define the [ontology](ontology.md) of the game world.  This is the shared base of reality for all characters in the game.  The corresponding file **must** be named ```base-axioms.txt```.  Base axioms also include the existence of those characters (not to get all theological, but these "souls" need to have their existence before their corresponding mental worlds can come into being).
+* [Game initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/game-init.txt) is the *fiat lux* which populates the world and situates the characters which inhabit it.  The corresponding file **must** be named ```game-init.txt```.  Game initialization also sets up the world's [behavior](conditionals.md), as seen in the [behavior axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/behavior-axioms.txt) from the example story.
 * [Capability axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/capability-axioms.txt) define the actions understood by the interpreter in terms of [capabilities](capabilities.md)
-* [Character mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/player-mind-init.txt) is used to bring the private mental world of the player character to life (and possibly that of non-player characters as well)
+* [Character mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/player-mind-init.txt) is used to bring the private mental world of the player character to life (and possibly that of non-player characters as well, such as [the child](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/child-mind-init.txt) from the example story)
 
 A story can be broken up into as many files as desired, either for
-reuse or for organizational clarity.  In the example story, the game
-axioms are split into
-[ontology axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/ontology-axioms.txt)
-and
-[behavior axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/behavior-axioms.txt).
+reuse or for organizational clarity.
 
 A file may include the beliefs from other files via the **Believe** directive:
 
 ```
-Believe "/phlebotinum/default-axioms.txt".
-Believe "/ontology-axioms.txt".
+Believe "/phlebotinum/default-capability-axioms.txt".
+Believe "/base-axioms.txt".
 
-When a game-character climbs a tree, the game-character goes upward.
+A person can climb a tree.
 ...
 ```
 
 In the example above, the first **Believe** directive includes all the
-[default axioms from the phlebotinum library](https://github.com/lingeringsocket/shlurd/tree/master/cli/src/main/resources/phlebotinum), whereas the second
+[default capability axioms from the phlebotinum library](https://github.com/lingeringsocket/shlurd/tree/master/cli/src/main/resources/phlebotinum), whereas the second
 directive includes the ontology axioms from the story currently being defined.
 
 Redundant belief inclusions are automatically ignored.

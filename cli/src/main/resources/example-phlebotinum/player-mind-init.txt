@@ -1,3 +1,2 @@
 Believe "/phlebotinum/character-axioms.txt".
-
 Believe "/example-phlebotinum/capability-axioms.txt".
