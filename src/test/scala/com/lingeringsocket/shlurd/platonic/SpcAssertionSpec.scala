@@ -522,6 +522,19 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         TriggerLimit)
     }
 
+    "treat alternatives as successful" in new AssertionContext
+    {
+      defineToaster
+
+      verifyOK(fiatForm("clock"))
+      verifyOK(fiatExistence("clock"))
+
+      verifyOK(fiatState(formToaster, stateCold))
+      verifyOK("when a clock ticks, the toaster might be empty; "
+        + "otherwise the toaster cooks")
+      verifyOK(actionClockTicks)
+    }
+
     "map genitives in equivalences" in new AssertionContext
     {
       defineToasterSlice

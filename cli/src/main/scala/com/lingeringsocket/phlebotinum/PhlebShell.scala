@@ -68,7 +68,7 @@ object PhlebShell
       val (snapshot, init) =
         loadOrCreate(resourcePrefix, file, terminal)
       val shell = new PhlebShell(snapshot, terminal)
-      if (init && resourcePrefix.nonEmpty) {
+      if (init && (resourcePrefix.size > 1)) {
         serializer.saveSnapshot(snapshot, file)
       }
       shell

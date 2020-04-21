@@ -854,86 +854,88 @@ class SpcResponder(
             }
           }
         })
-        if (isPrecondition || isTest) {
-          // FIXME
-          assert(newAdditionalConsequents.isEmpty)
+        val results = {
+          if (isPrecondition || isTest) {
+            // FIXME
+            assert(newAdditionalConsequents.isEmpty)
 
-          spawn(imagine(forkedCosmos)).resolveReferences(
-            newConsequents.head, resultCollector, false, true)
+            spawn(imagine(forkedCosmos)).resolveReferences(
+              newConsequents.head, resultCollector, false, true)
 
-          val newTam = SilTam.indicative.withPolarity(
-            conditionalSentence.tamConsequent.polarity)
-          evaluateTamPredicate(
-            newPredicate, newTam, resultCollector) match
-          {
-            case Success(Trilean.True) if (newTam.isPositive) => {
-              None
-            }
-            case Success(Trilean.False) if (newTam.isNegative) => {
-              None
-            }
-            case Failure(e) => {
-              e match {
-                case ShlurdException(ShlurdExceptionCode.NonExistent, _) => {
-                  None
-                }
-                case _ => {
-                  // FIXME better handling
-                  throw e
-                }
+            val newTam = SilTam.indicative.withPolarity(
+              conditionalSentence.tamConsequent.polarity)
+            evaluateTamPredicate(
+              newPredicate, newTam, resultCollector) match
+            {
+              case Success(Trilean.True) if (newTam.isPositive) => {
+                return None
               }
-            }
-            case _ => {
-              newAlternative.foreach(alternativeSentence => {
-                val recoverySentence = removeBasicVerbModifier(
-                  alternativeSentence,
-                  Set(LEMMA_OTHERWISE, LEMMA_SUBSEQUENTLY, LEMMA_CONSEQUENTLY))
-                checkCycle(
-                  annotator,
-                  recoverySentence.predicate,
-                  already, resultCollector.refMap
-                ) matchPartial {
-                  case Failure(err) => {
-                    return Some(wrapResponseMessage(err))
-                  }
-                  case Success(true) => {
+              case Success(Trilean.False) if (newTam.isNegative) => {
+                return None
+              }
+              case Failure(e) => {
+                e match {
+                  case ShlurdException(ShlurdExceptionCode.NonExistent, _) => {
                     return None
                   }
+                  case _ => {
+                    // FIXME better handling
+                    throw e
+                  }
                 }
-                spawn(imagine(forkedCosmos)).resolveReferences(
-                  recoverySentence, resultCollector, false, true)
-                // FIXME use return value of this invocation somehow
-                processBeliefOrAction(
-                  forkedCosmos, recoverySentence, resultCollector,
-                  triggerDepth + 1, false)
-              })
-              // FIXME i18n
-              if (isPrecondition) {
-                Some("But " + sentencePrinter.printPredicateStatement(
-                  newPredicate, SilTam.indicative.negative) + ".")
-              } else {
-                None
+              }
+              case _ => {
+                val altResults = newAlternative.flatMap(alternativeSentence => {
+                  val recoverySentence = removeBasicVerbModifier(
+                    alternativeSentence,
+                    Set(LEMMA_OTHERWISE, LEMMA_SUBSEQUENTLY,
+                      LEMMA_CONSEQUENTLY))
+                  checkCycle(
+                    annotator,
+                    recoverySentence.predicate,
+                    already, resultCollector.refMap
+                  ) matchPartial {
+                    case Failure(err) => {
+                      return Some(wrapResponseMessage(err))
+                    }
+                    case Success(true) => {
+                      return None
+                    }
+                  }
+                  spawn(imagine(forkedCosmos)).resolveReferences(
+                    recoverySentence, resultCollector, false, true)
+                  processBeliefOrAction(
+                    forkedCosmos, recoverySentence, resultCollector,
+                    triggerDepth + 1, false)
+                }).toSeq
+                // FIXME i18n
+                if (isPrecondition) {
+                  Seq("But " + sentencePrinter.printPredicateStatement(
+                    newPredicate, SilTam.indicative.negative) + ".")
+                } else {
+                  altResults
+                }
               }
             }
+          } else {
+            newConsequents.toStream.flatMap(newSentence => {
+              spawn(imagine(forkedCosmos)).resolveReferences(
+                newSentence, resultCollector, false, true)
+              processBeliefOrAction(
+                forkedCosmos, newSentence, resultCollector,
+                triggerDepth + 1, false)
+            })
           }
+        }
+        if (results.isEmpty) {
+          Some(sentencePrinter.sb.respondCompliance)
         } else {
-          val results = newConsequents.toStream.flatMap(newSentence => {
-            spawn(imagine(forkedCosmos)).resolveReferences(
-              newSentence, resultCollector, false, true)
-            processBeliefOrAction(
-              forkedCosmos, newSentence, resultCollector,
-              triggerDepth + 1, false)
-          })
-          if (results.isEmpty) {
+          val nonCompliant =
+            results.filterNot(_ == sentencePrinter.sb.respondCompliance)
+          if (nonCompliant.isEmpty) {
             Some(sentencePrinter.sb.respondCompliance)
           } else {
-            val nonCompliant =
-              results.filterNot(_ == sentencePrinter.sb.respondCompliance)
-            if (nonCompliant.isEmpty) {
-              Some(sentencePrinter.sb.respondCompliance)
-            } else {
-              nonCompliant.headOption
-            }
+            nonCompliant.headOption
           }
         }
       }
