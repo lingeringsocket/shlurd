@@ -406,6 +406,49 @@ class SpcResponder(
       tupleN((rewriter.rewrite(optimizePredicate, sil), score))
     }
 
+    override protected def normalizeModifier(
+      modifier : SilVerbModifier
+    ) : Try[SilVerbModifier] =
+    {
+      modifier match {
+        case SilBasicVerbModifier(word @ SilWordLemma(LEMMA_HERE)) => {
+          demonstrativeLocationModifier(word, DISTANCE_HERE)
+        }
+        case SilBasicVerbModifier(word @ SilWordLemma(LEMMA_THERE)) => {
+          demonstrativeLocationModifier(word, DISTANCE_THERE)
+        }
+        case _ => super.normalizeModifier(modifier)
+      }
+    }
+
+    private def demonstrativeLocationModifier(
+      word : SilWord,
+      distance : SilDistance
+    ) : Try[SilVerbModifier] =
+    {
+      mindScope.resolveDemonstrativeLocation(
+        annotator, communicationContext, word, distance
+      ) match {
+        case Success(SmcScopeOutput(prior, entities)) => {
+          assert(entities.size == 1)
+          val entity = entities.head
+          val ref = annotator.genitiveRef(
+            mind.specificReference(annotator, entity, DETERMINER_UNIQUE),
+            annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINER)))
+          Success(
+            SilAdpositionalVerbModifier(
+              SilAdposition.IN,
+              ref
+            )
+          )
+        }
+        case Failure(e) => {
+          debug(s"DEMONSTRATIVE WITHOUT CONTEXT: $word")
+          Failure(e)
+        }
+      }
+    }
+
     override protected def evaluatePropertyStatePredicate(
       entity : SpcEntity,
       entityRef : SilReference,

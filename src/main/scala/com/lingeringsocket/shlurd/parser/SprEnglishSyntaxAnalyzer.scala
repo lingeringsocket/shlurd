@@ -188,7 +188,8 @@ class SprEnglishSyntaxAnalyzer(
     children : Seq[SprSyntaxTree],
     specifiedState : SilState,
     specifiedDirectObject : Option[SilReference] = None,
-    extraModifiers : Seq[SilExpectedVerbModifier] = Seq.empty)
+    extraModifiers : Seq[SilExpectedVerbModifier] = Seq.empty,
+    question : Option[SilQuestion] = None)
       : Option[(SilPredicate, SilTam)] =
   {
     val (tam, auxless, auxCount) = extractAux(children)
@@ -252,7 +253,7 @@ class SprEnglishSyntaxAnalyzer(
       }
       val (negativeSub, predicate) =
         expectPredicate(tree, np, rhs, specifiedState,
-          relationshipVerb(verbHead), verbModifiers ++ extraModifiers)
+          relationshipVerb(verbHead), verbModifiers ++ extraModifiers, question)
       val polarity = !(negative ^ negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
@@ -390,7 +391,8 @@ class SprEnglishSyntaxAnalyzer(
         recomposedComplement,
         combinedState,
         relationshipVerb(verbHead),
-        modifiers)
+        modifiers,
+        Some(question))
       rememberPredicateCount(predicate, verbHead)
       val tam = SilTam.interrogative.
         withPolarity(!(negativeSuper ^ negativeSub))
@@ -429,7 +431,7 @@ class SprEnglishSyntaxAnalyzer(
       }
       analyzeSubQueryChildren(
         tree, sqChildren, specifiedState,
-        specifiedDirectObject, extraModifiers) match
+        specifiedDirectObject, extraModifiers, Some(question)) match
       {
         case Some((predicate, tam)) => {
           SilPredicateQuery(
@@ -614,7 +616,8 @@ class SprEnglishSyntaxAnalyzer(
         vm => Seq(verbHead, complement).contains(vm.syntaxTree))
       val (negativeComplement, predicate) = expectPredicate(
         tree, np, complement, specifiedState,
-        relationshipVerb(verbHead), verbModifiers ++ extraModifiers)
+        relationshipVerb(verbHead), verbModifiers ++ extraModifiers,
+        Some(QUESTION_HOW_MANY))
       val polarity = !(negative ^ negativeComplement)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       SilPredicateSentence(
@@ -939,7 +942,8 @@ class SprEnglishSyntaxAnalyzer(
     complement : SprSyntaxTree,
     specifiedState : SilState,
     verb : SilWord,
-    verbModifiers : Seq[SilExpectedVerbModifier])
+    verbModifiers : Seq[SilExpectedVerbModifier],
+    question : Option[SilQuestion])
       : (Boolean, SilPredicate) =
   {
     val (negative, seq) = {
@@ -971,7 +975,10 @@ class SprEnglishSyntaxAnalyzer(
         syntaxTree, subject, verb,
         expectExistenceState(np), SilNullState(),
         verbModifiers)))
-    } else if (complement.isExistential) {
+    } else if (complement.isExistsVerb ||
+      // FIXME this is somewhat arbitrary
+      ((question == Some(QUESTION_HOW_MANY)) && complement.isExistential)
+    ) {
       if (!isBeingLemma(verb)) {
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }

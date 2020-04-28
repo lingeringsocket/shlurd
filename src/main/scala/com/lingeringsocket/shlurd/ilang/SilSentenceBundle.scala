@@ -190,6 +190,8 @@ abstract class SilSentenceBundle
 
   def respondUnknown(word : SilWord) : String
 
+  def respondUnknownModifier(word : SilWord) : String
+
   def respondUnknownState(subject : String, word : SilWord) : String
 
   def respondUnresolvedPronoun(pronoun : String) : String

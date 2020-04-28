@@ -486,6 +486,11 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     "FIXME"
   }
 
+  override def respondUnknownModifier(word : SilWord) =
+  {
+    "FIXME"
+  }
+
   override def respondIrrelevant() =
   {
     "그래요?"

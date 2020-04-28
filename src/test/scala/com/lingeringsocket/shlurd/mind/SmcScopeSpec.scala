@@ -191,6 +191,22 @@ class SmcScopeSpec extends Specification
       ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooVisitor)))
     }
 
+    "resolve demonstrative locations at mind scope" in new ScopeContext
+    {
+      mindScope.resolveDemonstrativeLocation(
+        annotator,
+        communicationContext,
+        SilWord(LEMMA_HERE),
+        DISTANCE_HERE
+      ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooVisitor)))
+      mindScope.resolveDemonstrativeLocation(
+        annotator,
+        communicationContext,
+        SilWord(LEMMA_THERE),
+        DISTANCE_THERE
+      ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooKeeper)))
+    }
+
     "fail to resolve pronoun without antecedent" in new ScopeContext
     {
       mindScope.resolvePronoun(

@@ -54,9 +54,13 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType) : Try[Trilean] =
   {
     trace(s"EVALUATE PREDICATE : $predicateOriginal")
-    val predicate = normalizePredicate(
+    val predicateTry = normalizePredicateWithModifiers(
       resultCollector,
       predicateOriginal)
+    predicateTry matchPartial {
+      case Failure(e) => return Failure(e)
+    }
+    val predicate = predicateTry.get
     if (predicate != predicateOriginal) {
       trace(s"NORMALIZED PREDICATE : $predicate")
     }
@@ -67,14 +71,36 @@ class SmcPredicateEvaluator[
     val resolutionResult =
       resolveReferences(predicate, resultCollector, true, true)
     if (resolutionResult.isFailure) {
+      debugPopLevel()
       return resolutionResult
     }
-    // FIXME analyze verb, modifiers
     val result = predicate match {
       case SilStatePredicate(
         subject, verb, state, modifiers
       ) => {
-        state match {
+        val extraStates = modifiers.flatMap(_ match {
+          case SilAdpositionalVerbModifier(adposition, objRef) => {
+            Some(SilAdpositionalState(adposition, objRef))
+          }
+          case m => None
+        })
+        val combinedState = {
+          if (extraStates.isEmpty) {
+            state
+          } else {
+            state match {
+              case SilConjunctiveState(determiner, states, separator) => {
+                assert (determiner == DETERMINER_ALL)
+                SilConjunctiveState(
+                  determiner, states ++ extraStates, separator)
+              }
+              case _ => {
+                SilConjunctiveState(DETERMINER_ALL, state +: extraStates)
+              }
+            }
+          }
+        }
+        combinedState match {
           case SilConjunctiveState(determiner, states, _) => {
             // FIXME:  how to write to resultCollector.entityMap in this case?
             val tries = states.map(
@@ -83,7 +109,7 @@ class SmcPredicateEvaluator[
             evaluateDeterminer(tries, determiner)
           }
           case _ => evaluateStatePredicate(
-            subject, state, resultCollector)
+            subject, combinedState, resultCollector)
         }
       }
       case SilRelationshipPredicate(
@@ -175,6 +201,29 @@ class SmcPredicateEvaluator[
     debugPopLevel()
     trace(s"PREDICATE TRUTH : $result")
     result
+  }
+
+  private def normalizeModifiers(
+    modifiers : Seq[SilVerbModifier]) : Try[Seq[SilVerbModifier]] =
+  {
+    Try(modifiers.map(m =>
+      normalizeModifier(m)
+    ).map(_.get))
+  }
+
+  protected def normalizeModifier(
+    modifier : SilVerbModifier
+  ) : Try[SilVerbModifier] =
+  {
+    modifier match {
+      case SilBasicVerbModifier(word) => {
+        debug(s"UNEXPECTED MODIFIER : $word")
+        cosmos.fail(
+          ShlurdExceptionCode.UnknownModifier,
+          sentencePrinter.sb.respondUnknownModifier(word))
+      }
+      case m => Success(m)
+    }
   }
 
   protected def reifyRole(
@@ -950,7 +999,7 @@ class SmcPredicateEvaluator[
             val rewriter = new SmcResponseRewriter(
               mind, communicationContext.flip, annotator)
             rewriter.rewrite(
-              rewriter.swapPronounsSpeakerListener(refMap), prOriginal)
+              rewriter.swapSpeakerListener(refMap), prOriginal)
           } else {
             prOriginal
           }
@@ -1421,6 +1470,20 @@ class SmcPredicateEvaluator[
     } else {
       collector.spawn
     }
+  }
+
+  private def normalizePredicateWithModifiers(
+    resultCollector : ResultCollectorType,
+    predicate : SilPredicate
+  ) : Try[SilPredicate] =
+  {
+    val processedModifiers = normalizeModifiers(
+      predicate.getModifiers)
+    processedModifiers.flatMap(processedModifiers => {
+      Success(normalizePredicate(
+        resultCollector,
+        predicate.withNewModifiers(processedModifiers)))
+    })
   }
 
   protected def normalizePredicate(

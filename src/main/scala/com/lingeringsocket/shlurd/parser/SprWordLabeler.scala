@@ -234,7 +234,7 @@ class SprWordnetLabeler(
             rawWords.filter(
               indexWord => (indexWord.getLemma == LEMMA_BE) &&
                 indexWord.getPOS == POS.VERB)
-          } else if (token == LEMMA_THERE) {
+          } else if ((token == LEMMA_THERE) || (token == LEMMA_HERE)) {
             rawWords.filterNot(_.getPOS == POS.NOUN)
           } else if (token == LEMMA_OR) {
             rawWords.filterNot(_.getLemma == LEMMA_OR)
@@ -288,7 +288,7 @@ class SprWordnetLabeler(
           Set(SptMD(leaf))
         }
         case LEMMA_THERE => {
-          Set(SptNP(SptEX(leaf)))
+          Set(SptNP(SptEX(leaf)), SptJJ(leaf))
         }
         case LEMMA_THAT => {
           Set(SptIN(leaf),

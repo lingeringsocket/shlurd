@@ -827,6 +827,13 @@ class SilEnglishSentenceBundle
       concat("'", word.toUnfoldedLemma, "'."))
   }
 
+  override def respondUnknownModifier(word : SilWord) =
+  {
+    compose("Sorry, I don't know what",
+      concat("'", word.toUnfoldedLemma, "'"),
+      "means in this context.")
+  }
+
   override def respondUnknownState(subject : String, state : SilWord) =
   {
     compose("Sorry, I don't know what",

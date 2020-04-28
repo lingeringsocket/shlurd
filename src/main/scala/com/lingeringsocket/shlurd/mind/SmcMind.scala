@@ -291,6 +291,13 @@ class SmcMind[
     verb1.toLemma == verb2.toLemma
   }
 
+  def isDistantCommunication(
+    communicationContext : SmcCommunicationContext[EntityType]) : Boolean =
+  {
+    communicationContext.speakerEntity.nonEmpty &&
+      communicationContext.listenerEntity.nonEmpty
+  }
+
   def equivalentReferences(
     annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],

@@ -349,6 +349,33 @@ class SpcMind(cosmos : SpcCosmos)
     }
   }
 
+  override def isDistantCommunication(
+    communicationContext : SmcCommunicationContext[SpcEntity]) : Boolean =
+  {
+    def findLocation(entityOpt : Option[SpcEntity]) =
+    {
+      entityOpt.flatMap(entity => {
+        resolveGenitive(entity, SilWord(SmcLemmas.LEMMA_CONTAINER)) match {
+          case Success(set) if (set.size == 1) => {
+            set.headOption
+          }
+          case _ => None
+        }
+      })
+    }
+    if (super.isDistantCommunication(communicationContext)) {
+      val speakerLocation = findLocation(communicationContext.speakerEntity)
+      val listenerLocation = findLocation(communicationContext.listenerEntity)
+      if (speakerLocation.isEmpty || listenerLocation.isEmpty) {
+        false
+      } else {
+        speakerLocation != listenerLocation
+      }
+    } else {
+      false
+    }
+  }
+
   override def evaluateEntityAdpositionPredicate(
     entity : SpcEntity,
     objEntity : SpcEntity,

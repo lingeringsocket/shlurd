@@ -53,6 +53,11 @@ You are holding nothing.
 
 I don't know.
 
+// unknown verb modifier
+> is there an ax upstairs
+
+Sorry, I don't know what 'upstairs' means in this context.
+
 > do I have a mentor
 
 I don't know.
@@ -119,6 +124,10 @@ You see the big door to the west.
 OK.
 
 The perfect weapon, assuming you are a dwarf.
+
+> is there an ax here
+
+Yes, there is an ax here.
 
 > is the ax's description an spc-string
 
@@ -259,6 +268,10 @@ You see the big door to the east.
 It is in the bathroom.
 
 (At least I assume that's still the case.)
+
+> is there an ax here
+
+No, there is not an ax here.
 
 > what is in the bathroom
 

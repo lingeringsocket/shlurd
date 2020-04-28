@@ -77,16 +77,16 @@ class ShlurdPrimordialWordnetSpec extends Specification
     "provide ontology to parser" in new ResponderContext
     {
       process(
-        "which animals are there",
-        "There are no animals.")
+        "which animals exist",
+        "No animals exist.")
       processBelief("a pokemon is a kind of animal")
       processBelief("Pikachu is a pokemon")
       process(
-        "which animals are there",
-        "There is Pikachu.")
+        "which animals exist",
+        "Pikachu exists.")
       process(
-        "which organisms are there",
-        "There is Pikachu.")
+        "which organisms exist",
+        "Pikachu exists.")
     }
   }
 }

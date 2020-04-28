@@ -379,7 +379,7 @@ class SmcResponder[
 
   private def cosmos = mind.getCosmos
 
-  protected def newInputRewriter(
+  protected[mind] def newInputRewriter(
     annotator : AnnotatorType) = new SmcInputRewriter(mind, annotator)
 
   private def newResponseRewriter(annotator : AnnotatorType) =
@@ -515,7 +515,7 @@ class SmcResponder[
     if (sentence.isUninterpretable) {
       val responseRewriter = newResponseRewriter(resultCollector.annotator)
       val unrecognized = responseRewriter.rewrite(
-        responseRewriter.swapPronounsSpeakerListener(
+        responseRewriter.swapSpeakerListener(
           resultCollector.refMap),
         sentence)
       val responder = new SmcUnrecognizedResponder(sentencePrinter)

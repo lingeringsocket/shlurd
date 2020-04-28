@@ -53,6 +53,13 @@ trait SmcScope[
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]]
 
+  def resolveDemonstrativeLocation(
+    annotator : AnnotatorType,
+    communicationContext : SmcCommunicationContext[EntityType],
+    word : SilWord,
+    distance : SilDistance
+  ) : Try[SmcScopeOutput[EntityType]]
+
   // FIXME this is English-specific
   private def foldThem(pr : SilPronounReference) : SilPronounReference =
   {
@@ -272,6 +279,32 @@ class SmcMindScope[
     })
   }
 
+  override def resolveDemonstrativeLocation(
+    annotator : AnnotatorType,
+    communicationContext : SmcCommunicationContext[EntityType],
+    word : SilWord,
+    distance : SilDistance
+  ) : Try[SmcScopeOutput[EntityType]] =
+  {
+    // FIXME for DISTANCE_THERE, consider places/objects referenced in
+    // conversation
+    val entityOpt = distance match {
+      case DISTANCE_HERE => communicationContext.speakerEntity
+      case DISTANCE_THERE => communicationContext.listenerEntity
+      case _ => None
+    }
+    entityOpt match {
+      case Some(entity) => {
+        Success(SmcScopeOutput(None, Set(entity)))
+      }
+      case None => {
+        mind.getCosmos.fail(
+          ShlurdExceptionCode.UnknownModifier,
+          sentencePrinter.sb.respondUnknownModifier(word))
+      }
+    }
+  }
+
   override def resolvePronoun(
     annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
@@ -487,6 +520,19 @@ class SmcPhraseScope[
       assert(outputs.size == 1)
       Success(outputs.head)
     }
+  }
+
+  override def resolveDemonstrativeLocation(
+    annotator : AnnotatorType,
+    communicationContext : SmcCommunicationContext[EntityType],
+    word : SilWord,
+    distance : SilDistance
+  ) : Try[SmcScopeOutput[EntityType]] =
+  {
+    // FIXME handle cases such as "While I was at Starbucks, I saw my
+    // friend there"
+    parent.resolveDemonstrativeLocation(
+      annotator, communicationContext, word, distance)
   }
 
   override def resolvePronoun(

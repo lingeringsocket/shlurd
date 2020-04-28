@@ -21,6 +21,7 @@ import scala.collection._
 // FIXME some of these, like LEMMA_HIS, are not real lemmas
 object SprEnglishLemmas
 {
+  val LEMMA_HERE = "here"
   val LEMMA_THERE = "there"
   val LEMMA_BE = "be"
   val LEMMA_BECOME = "become"

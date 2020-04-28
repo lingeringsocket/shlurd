@@ -98,7 +98,12 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
       usageScore(noun.toNounLemma, POS.NOUN)
     }
     case SilPropertyState(sw : SilSimpleWord) => {
-      usageScore(sw.toLemma, POS.ADJECTIVE)
+      val lemma = sw.toLemma
+      if (lemma == LEMMA_THERE) {
+        SilPhraseScore.conSmall
+      } else {
+        usageScore(lemma, POS.ADJECTIVE)
+      }
     }
     case SilActionPredicate(_, sw : SilSimpleWord, _, _) => {
       usageScore(sw.toLemma, POS.VERB)

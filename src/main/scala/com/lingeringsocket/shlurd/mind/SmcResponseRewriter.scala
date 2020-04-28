@@ -39,6 +39,8 @@ class SmcResponseRewriter[
   private val entityMap =
     new mutable.LinkedHashMap[String, EntityType]
 
+  private val swapHereThere = mind.isDistantCommunication(communicationContext)
+
   private def markQueryAnswer(ref : SilReference) =
   {
     SilUtils.collectReferences(ref).foreach(subRef => {
@@ -244,14 +246,14 @@ class SmcResponseRewriter[
         rewrite(
           combineRules(
             neutralizePossesseeWildcard,
-            swapPronounsSpeakerListener(resultCollector.refMap)
+            swapSpeakerListener(resultCollector.refMap)
           ),
           predicate)
       } else {
         rewrite(
           combineRules(
             neutralizePossesseeWildcard,
-            swapPronounsSpeakerListener(resultCollector.refMap),
+            swapSpeakerListener(resultCollector.refMap),
             flipPredicateQueries
           ),
           predicate)
@@ -303,13 +305,15 @@ class SmcResponseRewriter[
     tupleN((normalized, negateCollection))
   }
 
-  def swapPronounsSpeakerListener(
+  def swapSpeakerListener(
     refMap : SmcMutableRefMap[EntityType]
   ) = replacementMatcher(
     "swapPronounSpeakerListener", {
       // FIXME need to transform word if we want to support
       // custom first/second person pronouns
-      case oldPronoun @ SilPronounReference(person, gender, count, distance)=> {
+      case oldPronoun @ SilPronounReference(
+        person, gender, count, distance
+      ) => {
         val (swap, speakerListenerReversed) = person match {
           case PERSON_FIRST => tupleN((true, PERSON_SECOND))
           case PERSON_SECOND => tupleN((true, PERSON_FIRST))
@@ -324,6 +328,16 @@ class SmcResponseRewriter[
         } else {
           oldPronoun
         }
+      }
+      case SilBasicVerbModifier(
+        SilWordLemma(LEMMA_HERE)
+      ) if (swapHereThere) => {
+        SilBasicVerbModifier(SilWord(LEMMA_THERE))
+      }
+      case SilBasicVerbModifier(
+        SilWordLemma(LEMMA_THERE)
+      ) if (swapHereThere) => {
+        SilBasicVerbModifier(SilWord(LEMMA_HERE))
       }
     }
   )

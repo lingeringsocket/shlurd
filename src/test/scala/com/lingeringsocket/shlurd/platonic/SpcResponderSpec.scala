@@ -122,7 +122,7 @@ class SpcResponderSpec extends Specification
       process(input, "OK.")
     }
 
-    private def processWithResponder(
+    protected def processWithResponder(
       specificResponder : SpcResponder,
       input : String) : String =
     {
@@ -151,6 +151,19 @@ class SpcResponderSpec extends Specification
           responderEllipsis, input
         ) must be equalTo(expectedEllipsis)
       }
+    }
+
+    def expectUnique(
+      entities : Iterable[SpcEntity]) : SpcEntity =
+    {
+      entities.size must be equalTo(1)
+      entities.head
+    }
+
+    def expectProperName(name : String) : SpcEntity =
+    {
+      expectUnique(
+        cosmos.getEntities.filter(_.properName == name))
     }
   }
 
@@ -975,10 +988,9 @@ class SpcResponderSpec extends Specification
         "Yes, Herbie and Lusitania are vehicles.",
         "Yes.",
         "Yes, they are.")
-      // FIXME resolve number agreement
       process(
-        "which vehicles are there",
-        "There is Herbie and Lusitania.")
+        "which vehicles exist",
+        "Herbie and Lusitania exist.")
       processMatrix(
         "who is Herbie's owner",
         "His owner is Jim.",
@@ -1243,6 +1255,101 @@ class SpcResponderSpec extends Specification
       mind.startConversation
       processBelief("Auguste's muse is his lover")
       processTerse("who is his muse", "Camille.")
+    }
+
+    "understand demonstrative locations" in new ResponderContext(
+      ACCEPT_MODIFIED_BELIEFS)
+    {
+      loadBeliefs("/ontologies/containment.txt")
+      loadBeliefs("/ontologies/person.txt")
+      loadBeliefs("/ontologies/location.txt")
+
+      if (false) {
+        mind.startConversation
+        processTerse("Where is Janet", "Christine.")
+        processTerse("is Chrissy there", "Yes.")
+        mind.stopConversation
+      }
+
+      processTerse("is Janet in Christine", "Yes.")
+      processExceptionExpected("is Janet here",
+        "Sorry, I don't know what 'here' means in this context.",
+        ShlurdExceptionCode.UnknownModifier)
+      processExceptionExpected("is Janet there",
+        "Sorry, I don't know what 'there' means in this context.",
+        ShlurdExceptionCode.UnknownModifier)
+
+      val distantContext = SmcCommunicationContext(
+        Some(expectProperName("Janet")),
+        Some(expectProperName("Jack"))
+      )
+      val closeContext = SmcCommunicationContext(
+        Some(expectProperName("Janet")),
+        Some(expectProperName("Chrissy"))
+      )
+      val distantResponderTerse = new SpcResponder(
+        mind, SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
+        SmcResponseParams(verbosity = RESPONSE_TERSE),
+        new SmcExecutor[SpcEntity],
+        distantContext)
+      val distantResponder = new SpcResponder(
+        mind, SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
+        SmcResponseParams(verbosity = RESPONSE_COMPLETE),
+        new SmcExecutor[SpcEntity],
+        distantContext)
+      val closeResponder = new SpcResponder(
+        mind, SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
+        SmcResponseParams(verbosity = RESPONSE_COMPLETE),
+        new SmcExecutor[SpcEntity],
+        closeContext)
+      def processDistant(input : String, expected : String) =
+      {
+        processWithResponder(
+          distantResponder,
+          input
+        ) must be equalTo(expected)
+      }
+      def processClose(input : String, expected : String) =
+      {
+        processWithResponder(
+          closeResponder,
+          input
+        ) must be equalTo(expected)
+      }
+      def processDistantTerse(input : String, expected : String) =
+      {
+        processWithResponder(
+          distantResponderTerse,
+          input
+        ) must be equalTo(expected)
+      }
+      processDistant(
+        "is Janet here",
+        "Yes, Janet is there.")
+      processClose(
+        "is Janet here",
+        "Yes, Janet is here.")
+      processDistantTerse(
+        "is Chrissy here",
+        "Yes.")
+      processDistant(
+        "is Jack here",
+        "No, Jack is not there.")
+      processDistantTerse(
+        "is Larry here",
+        "No.")
+      processDistant(
+        "is Janet there",
+        "No, Janet is not here.")
+      processDistantTerse(
+        "is Chrissy there",
+        "No.")
+      processDistant(
+        "is Jack there",
+        "Yes, Jack is here.")
+      processDistantTerse(
+        "is Larry there",
+        "No.")
     }
 
     "understand sequential timeframes" in new ResponderContext(

@@ -38,6 +38,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
 
   private def normalizeAllPhrases = combineRules(
     normalizeCompass,
+    normalizeHereThere,
     normalizeGenitives,
     normalizeCoordinatingDeterminers,
     normalizeDanglingAdpositions,
@@ -269,6 +270,24 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         annotator.determinedRef(
           annotator.stateSpecifiedRef(ref, state),
           determiner)
+      }
+    }
+  )
+
+  private def normalizeHereThere = replacementMatcher(
+    "normalizeHereThere", {
+      case SilStatePredicate(
+        subject,
+        SilStatePredefVerb(STATE_PREDEF_BE),
+        SilPropertyState(w @ SilWordLemma(LEMMA_HERE | LEMMA_THERE)),
+        verbModifiers
+      ) => {
+        SilStatePredicate(
+          subject,
+          STATE_PREDEF_BE.toVerb,
+          SilExistenceState(),
+          verbModifiers :+ SilBasicVerbModifier(w)
+        )
       }
     }
   )

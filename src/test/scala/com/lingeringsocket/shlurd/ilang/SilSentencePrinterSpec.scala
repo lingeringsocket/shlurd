@@ -247,9 +247,8 @@ class SilSentencePrinterSpec extends Specification
       expectStatement("Muldoon has a tiger")
       expectStatement("Muldoon does have a tiger")
       expectQuestion("does Muldoon have a tiger")
-      expectNormalized(
-        "how many lights are there on the first floor",
-        "how many lights on the first floor are there?")
+      expectQuestion(
+        "how many lights exist on the first floor")
       expectQuestion("how many lights are there")
       expectQuestion("how many lights on the first floor are there")
       expectQuestion("how many lights are on the first floor")

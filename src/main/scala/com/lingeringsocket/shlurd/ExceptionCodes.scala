@@ -27,6 +27,7 @@ object ShlurdExceptionCode
   case object FailedParse extends ShlurdExceptionCode
   case object UnknownForm extends ShlurdExceptionCode
   case object UnknownState extends ShlurdExceptionCode
+  case object UnknownModifier extends ShlurdExceptionCode
   case object NonExistent extends ShlurdExceptionCode
   case object NotUnique extends ShlurdExceptionCode
   case object MisqualifiedNoun extends ShlurdExceptionCode
