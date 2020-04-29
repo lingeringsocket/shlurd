@@ -128,6 +128,7 @@ class SilSentencePrinterSpec extends Specification
       expectStatement("Gallant is good and Goofus is naughty")
       expectStatement("Mortimer went to the beach this morning")
       expectStatement("Mortimer went back to the beach this morning")
+      expectQuestion("who is there")
     }
 
     "preserve sentences" in
@@ -265,7 +266,6 @@ class SilSentencePrinterSpec extends Specification
       expectQuestion("where is my mother")
       expectQuestion("who is John Galt")
       expectQuestion("who are the twin sisters")
-      expectQuestion("who is there")
       expectQuestion("who exists")
       expectStatement("the door closes")
       expectStatement("the door does close")
