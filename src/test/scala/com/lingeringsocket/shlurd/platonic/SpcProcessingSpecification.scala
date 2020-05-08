@@ -27,9 +27,28 @@ import scala.io._
 
 class SpcProcessingSpecification extends Specification
 {
+  protected def tryEvaluateEntityProperty(
+    cosmos : SpcCosmos,
+    entity : SpcEntity,
+    propertyName : String,
+    specific : Boolean) : Try[(Option[SpcProperty], Option[String])] =
+  {
+    Failure(new UnsupportedOperationException)
+  }
+
   trait ProcessingContext extends Scope
   {
-    protected val cosmos = new SpcCosmos
+    protected val cosmos = new SpcCosmos {
+      override def evaluateEntityProperty(
+        entity : SpcEntity,
+        propertyName : String,
+        specific : Boolean) =
+      {
+        tryEvaluateEntityProperty(this, entity, propertyName, specific).orElse {
+          super.evaluateEntityProperty(entity, propertyName, specific)
+        }
+      }
+    }
 
     protected val mind = new SpcMind(cosmos)
 
