@@ -53,7 +53,7 @@ trait SmcScope[
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]]
 
-  def resolveDemonstrativeLocation(
+  def resolveSpatialDeictic(
     annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     word : SilWord,
@@ -165,7 +165,7 @@ trait SmcScope[
         } else if (p2.word.nonEmpty) {
           p1.pronounMap.values.exists(_ == p2.word.get)
         } else {
-          false
+          (p1.gender == GENDER_SOMEWHERE) && (p2.gender == GENDER_SOMEWHERE)
         }
       }
       reflexiveMatch && pronounMatch
@@ -189,7 +189,13 @@ trait SmcScope[
             skip = true
             false
           } else {
-            getMind.thirdPersonReference(annotator, set) match {
+            val axis = reference.gender match {
+              case GENDER_SOMEWHERE => DEICTIC_SPATIAL
+              case _ => DEICTIC_PERSONAL
+            }
+            getMind.thirdPersonDeictic(
+              annotator, set, axis
+            ) match {
               case Some(pr : SilPronounReference) => {
                 val note = annotator.getNote(pr)
                 note.setContext(getContext(prior))
@@ -279,15 +285,37 @@ class SmcMindScope[
     })
   }
 
-  override def resolveDemonstrativeLocation(
+  override def resolveSpatialDeictic(
     annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     word : SilWord,
     distance : SilDistance
   ) : Try[SmcScopeOutput[EntityType]] =
   {
-    // FIXME for DISTANCE_THERE, consider places/objects referenced in
-    // conversation
+    if (distance == DISTANCE_THERE) {
+      if (mind.isConversing) {
+        val reference = annotator.pronounRef(
+          PERSON_THIRD,
+          GENDER_SOMEWHERE,
+          COUNT_SINGULAR,
+          distance)
+        val outputs = {
+          mind.getConversation.getUtterances.reverseIterator.drop(1).map(
+            utterance => {
+              findMatchingPronounReference(
+                annotator,
+                utterance.refMap, reference, false
+              )
+            }
+          ).find(_.nonEmpty).getOrElse(Seq.empty)
+        }
+        val resolved = resolveOutput(reference, outputs)
+        if (resolved.isSuccess) {
+          return resolved
+        }
+      }
+    }
+
     val entityOpt = distance match {
       case DISTANCE_HERE => communicationContext.speakerEntity
       case DISTANCE_THERE => communicationContext.listenerEntity
@@ -522,7 +550,7 @@ class SmcPhraseScope[
     }
   }
 
-  override def resolveDemonstrativeLocation(
+  override def resolveSpatialDeictic(
     annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     word : SilWord,
@@ -531,7 +559,7 @@ class SmcPhraseScope[
   {
     // FIXME handle cases such as "While I was at Starbucks, I saw my
     // friend there"
-    parent.resolveDemonstrativeLocation(
+    parent.resolveSpatialDeictic(
       annotator, communicationContext, word, distance)
   }
 

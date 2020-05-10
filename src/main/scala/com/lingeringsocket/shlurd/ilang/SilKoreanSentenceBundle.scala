@@ -313,6 +313,15 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
                 inflectPronoun("그것", inflection, conjoining)
             }
           }
+          case Some(GENDER_SOMEWHERE) => {
+            // FIXME discriminate "그" from "저"
+            distance match {
+              case DISTANCE_HERE =>
+                inflectPronoun("이곳", inflection, conjoining)
+              case _ =>
+                inflectPronoun("그곳", inflection, conjoining)
+            }
+          }
           case None => {
             throw new IllegalArgumentException("custom pronoun word required")
           }

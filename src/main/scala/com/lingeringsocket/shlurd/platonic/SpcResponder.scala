@@ -412,29 +412,40 @@ class SpcResponder(
     {
       modifier match {
         case SilBasicVerbModifier(word @ SilWordLemma(LEMMA_HERE)) => {
-          demonstrativeLocationModifier(word, DISTANCE_HERE)
+          spatialDeicticModifier(word, DISTANCE_HERE)
         }
         case SilBasicVerbModifier(word @ SilWordLemma(LEMMA_THERE)) => {
-          demonstrativeLocationModifier(word, DISTANCE_THERE)
+          spatialDeicticModifier(word, DISTANCE_THERE)
         }
         case _ => super.normalizeModifier(modifier)
       }
     }
 
-    private def demonstrativeLocationModifier(
+    private def spatialDeicticModifier(
       word : SilWord,
       distance : SilDistance
     ) : Try[SilVerbModifier] =
     {
-      mindScope.resolveDemonstrativeLocation(
+      mindScope.resolveSpatialDeictic(
         annotator, communicationContext, word, distance
       ) match {
         case Success(SmcScopeOutput(prior, entities)) => {
           assert(entities.size == 1)
           val entity = entities.head
-          val ref = annotator.genitiveRef(
-            mind.specificReference(annotator, entity, DETERMINER_UNIQUE),
-            annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINER)))
+          val specificRef = mind.specificReference(
+            annotator, entity, DETERMINER_UNIQUE)
+          val ref = {
+            // FIXME dodgy since entity might be a container inside
+            // another container!
+            if (mind.isSpatialLocation(entity)) {
+              specificRef
+            } else {
+              annotator.genitiveRef(
+                specificRef,
+                annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINER)))
+            }
+          }
+
           Success(
             SilAdpositionalVerbModifier(
               SilAdposition.IN,

@@ -191,15 +191,15 @@ class SmcScopeSpec extends Specification
       ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooVisitor)))
     }
 
-    "resolve demonstrative locations at mind scope" in new ScopeContext
+    "resolve spatial deixis at mind scope" in new ScopeContext
     {
-      mindScope.resolveDemonstrativeLocation(
+      mindScope.resolveSpatialDeictic(
         annotator,
         communicationContext,
         SilWord(LEMMA_HERE),
         DISTANCE_HERE
       ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooVisitor)))
-      mindScope.resolveDemonstrativeLocation(
+      mindScope.resolveSpatialDeictic(
         annotator,
         communicationContext,
         SilWord(LEMMA_THERE),

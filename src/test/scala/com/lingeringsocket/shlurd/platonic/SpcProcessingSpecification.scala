@@ -50,7 +50,13 @@ class SpcProcessingSpecification extends Specification
       }
     }
 
-    protected val mind = new SpcMind(cosmos)
+    protected val mind = new SpcMind(cosmos) {
+      override def isSpatialLocation(entity : SpcEntity) : Boolean =
+      {
+        // FIXME this doesn't belong here
+        entity.form.name == "car"
+      }
+    }
 
     protected def process(
       input : String,

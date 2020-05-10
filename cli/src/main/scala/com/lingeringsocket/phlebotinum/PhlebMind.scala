@@ -40,6 +40,9 @@ class PhlebMind(
   val clock : PhlebClock
 ) extends ShlurdCliMind(cosmos, preferredSynonyms)
 {
+  private lazy val mapLocationForm =
+    cosmos.resolveForm(PhlebShell.MAP_PLACE_WORD).get
+
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new PhlebMind(
@@ -197,6 +200,12 @@ class PhlebMind(
     } else {
       references
     }
+  }
+
+  override def isSpatialLocation(entity : SpcEntity) : Boolean =
+  {
+    cosmos.isHyponym(entity.form, mapLocationForm) ||
+      super.isSpatialLocation(entity)
   }
 
   override def resolveFormCandidates(noun : SilWord) : Seq[SpcForm] =

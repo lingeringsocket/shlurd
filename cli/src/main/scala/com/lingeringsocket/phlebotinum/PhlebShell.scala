@@ -41,6 +41,8 @@ object PhlebShell
 
   val INVENTORY_WORD = "player-inventory"
 
+  val MAP_PLACE_WORD = "map-place"
+
   val OK = "OK."
 
   private val actionRespond = SilWord.uninflected("respond")
@@ -817,7 +819,7 @@ class PhlebShell(
     annotator : SpcAnnotator,
     entity : SpcEntity) : SilReference =
   {
-    phenomenalMind.thirdPersonReference(
+    phenomenalMind.thirdPersonDeictic(
       annotator, Set(entity)
     ).getOrElse {
       phenomenalMind.specificReference(

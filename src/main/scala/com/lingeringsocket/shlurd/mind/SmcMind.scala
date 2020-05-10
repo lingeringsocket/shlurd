@@ -298,6 +298,11 @@ class SmcMind[
       communicationContext.listenerEntity.nonEmpty
   }
 
+  def isSpatialLocation(entity : EntityType) : Boolean =
+  {
+    false
+  }
+
   def equivalentReferences(
     annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
@@ -315,12 +320,25 @@ class SmcMind[
     }
   }
 
-  def thirdPersonReference(
+  def thirdPersonDeictic(
     annotator : AnnotatorType,
-    entities : Set[EntityType]) : Option[SilReference] =
+    entities : Set[EntityType],
+    axis : SilDeicticAxis = DEICTIC_PERSONAL
+  ) : Option[SilReference] =
   {
     // FIXME gender derivation
     if (entities.isEmpty) {
+      None
+    } else if (axis == DEICTIC_SPATIAL) {
+      if (entities.forall(isSpatialLocation)) {
+        Some(
+          annotator.pronounRef(
+            PERSON_THIRD, GENDER_SOMEWHERE, COUNT_SINGULAR,
+            DISTANCE_THERE))
+      } else {
+        None
+      }
+    } else if (axis != DEICTIC_PERSONAL) {
       None
     } else if (entities.size == 1) {
       Some(annotator.pronounRef(

@@ -78,6 +78,14 @@ OK.
 
 "I am the thief."
 
+> is the axe here
+
+"Yes, the axe is here."
+
+> is the axe there
+
+"Yes, the axe is there."
+
 > where is the lantern
 
 "I don't know."

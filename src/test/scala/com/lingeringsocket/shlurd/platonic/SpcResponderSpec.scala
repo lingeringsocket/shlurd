@@ -63,19 +63,24 @@ class SpcResponderSpec extends SpcResponseSpecification
       processTerse("who is his muse", "Camille.")
     }
 
-    "understand demonstrative locations" in new ResponderContext(
+    "understand spatial deixis in conversation" in new ResponderContext(
       ACCEPT_MODIFIED_BELIEFS)
     {
       loadBeliefs("/ontologies/containment.txt")
       loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/location.txt")
 
-      if (false) {
-        mind.startConversation
-        processTerse("Where is Janet", "Christine.")
-        processTerse("is Chrissy there", "Yes.")
-        mind.stopConversation
-      }
+      mind.startConversation
+      processTerse("Where is Janet", "Christine.")
+      processTerse("is Chrissy there", "Yes.")
+    }
+
+    "understand spatial deixis" in new ResponderContext(
+      ACCEPT_MODIFIED_BELIEFS)
+    {
+      loadBeliefs("/ontologies/containment.txt")
+      loadBeliefs("/ontologies/person.txt")
+      loadBeliefs("/ontologies/location.txt")
 
       processTerse("is Janet in Christine", "Yes.")
       processExceptionExpected("is Janet here",

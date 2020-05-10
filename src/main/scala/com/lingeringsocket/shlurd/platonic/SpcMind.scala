@@ -204,38 +204,43 @@ class SpcMind(cosmos : SpcCosmos)
     })
   }
 
-  override def thirdPersonReference(
-    annotator : AnnotatorType, entities : Set[SpcEntity])
-      : Option[SilReference] =
+  override def thirdPersonDeictic(
+    annotator : AnnotatorType, entities : Set[SpcEntity],
+    axis : SilDeicticAxis = DEICTIC_PERSONAL
+  ) : Option[SilReference] =
   {
-    val (gender, count, pronounMap) = {
-      if (entities.size == 1) {
-        val entity = entities.head
-        val pronounMap = cosmos.getEntityPronouns(entity)
-        val entityGender = cosmos.getEntityGender(entity)
-        if (pronounMap.nonEmpty || entityGender != GENDER_SOMEONE) {
-          val count = {
-            pronounMap.get(SilPronounKey(LABEL_PRP, PERSON_THIRD)) match {
-              case Some(SilWordLemma(LEMMA_THEY)) => COUNT_PLURAL
-              case _ => COUNT_SINGULAR
+    if (axis == DEICTIC_PERSONAL) {
+      val (gender, count, pronounMap) = {
+        if (entities.size == 1) {
+          val entity = entities.head
+          val pronounMap = cosmos.getEntityPronouns(entity)
+          val entityGender = cosmos.getEntityGender(entity)
+          if (pronounMap.nonEmpty || entityGender != GENDER_SOMEONE) {
+            val count = {
+              pronounMap.get(SilPronounKey(LABEL_PRP, PERSON_THIRD)) match {
+                case Some(SilWordLemma(LEMMA_THEY)) => COUNT_PLURAL
+                case _ => COUNT_SINGULAR
+              }
             }
+            tupleN((
+              entityGender,
+              count,
+              pronounMap))
+          } else {
+            return None
           }
-          tupleN((
-            entityGender,
-            count,
-            pronounMap))
         } else {
-          return None
+          // FIXME:  for languages like Spanish, need to be macho
+          tupleN((
+            GENDER_NEUTER, COUNT_PLURAL, SmcMind.pluralNeuterPronounMap))
         }
-      } else {
-        // FIXME:  for languages like Spanish, need to be macho
-        tupleN((
-          GENDER_NEUTER, COUNT_PLURAL, SmcMind.pluralNeuterPronounMap))
       }
+      Some(annotator.pronounRef(
+        PERSON_THIRD, gender, count,
+        pronounMap = pronounMap))
+    } else {
+      super.thirdPersonDeictic(annotator, entities, axis)
     }
-    Some(annotator.pronounRef(
-      PERSON_THIRD, gender, count,
-      pronounMap = pronounMap))
   }
 
   def properReference(

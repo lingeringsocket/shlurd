@@ -352,8 +352,8 @@ class SmcResponseRewriter[
     def analyze(originalRef : SilReference)
     {
       val newEntitySet = refMap(originalRef)
-      mind.thirdPersonReference(
-        annotator,newEntitySet
+      mind.thirdPersonDeictic(
+        annotator, newEntitySet
       ).foreach(replacedRef => {
         replacedRefMap.get(replacedRef) match {
           case Some(existingEntitySet) => {
@@ -714,7 +714,7 @@ class SmcResponseRewriter[
               SilConjunctiveReference(_, _, _) =>
             {
               refMap.get(ref).flatMap(
-                entities => mind.thirdPersonReference(
+                entities => mind.thirdPersonDeictic(
                   annotator, entities)).getOrElse(ref)
             }
           case _ => ref

@@ -269,6 +269,19 @@ It is in the bathroom.
 
 (At least I assume that's still the case.)
 
+> is the thief there
+
+Yes, the thief is there.
+
+(At least I assume that's still the case.)
+
+> is the thief here
+
+No, the thief is not here.
+
+// FIXME is absence of evidence the same as evidence of absence??
+(At least I assume that's still the case.)
+
 > is there an ax here
 
 No, there is not an ax here.
@@ -340,6 +353,18 @@ You see the big door to the east.
 > where is the axe
 
 It is in the bathroom.
+
+(At least I assume that's still the case.)
+
+> is the cupboard there
+
+No, the cupboard is not there.
+
+(At least I assume that's still the case.)
+
+> is the cupboard here
+
+No, the cupboard is not here.
 
 (At least I assume that's still the case.)
 

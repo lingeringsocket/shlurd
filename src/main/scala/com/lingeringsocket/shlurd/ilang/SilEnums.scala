@@ -49,6 +49,7 @@ case object GENDER_MASCULINE extends SilBasicGender
 case object GENDER_FEMININE extends SilBasicGender
 case object GENDER_NEUTER extends SilBasicGender
 case object GENDER_SOMEONE extends SilBasicGender
+case object GENDER_SOMEWHERE extends SilBasicGender
 
 sealed trait SilDeterminer
 case object DETERMINER_NONE extends SilDeterminer
@@ -209,6 +210,11 @@ case object TENSE_FUTURE extends SilTense
 sealed trait SilAspect
 case object ASPECT_SIMPLE extends SilAspect
 case object ASPECT_PROGRESSIVE extends SilAspect
+
+sealed trait SilDeicticAxis
+case object DEICTIC_PERSONAL extends SilDeicticAxis
+case object DEICTIC_TEMPORAL extends SilDeicticAxis
+case object DEICTIC_SPATIAL extends SilDeicticAxis
 
 sealed trait SilRelationshipPredef
 {

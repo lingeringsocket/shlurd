@@ -756,6 +756,10 @@ class SilEnglishSentenceBundle
               }
               case DISTANCE_REFLEXIVE => LEMMA_ITSELF
             }
+            case Some(GENDER_SOMEWHERE) => distance match {
+              case DISTANCE_HERE => LEMMA_HERE
+              case _ => LEMMA_THERE
+            }
             case _ => {
               throw new IllegalArgumentException("custom pronoun word required")
             }
