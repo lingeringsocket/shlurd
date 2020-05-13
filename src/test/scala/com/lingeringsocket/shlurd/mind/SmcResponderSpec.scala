@@ -159,7 +159,7 @@ class SmcResponderSpec extends Specification
       process("which goats are not awake") must be equalTo(
         "The domestic goat, the siberian goat, " +
           "and the mountain goat are not awake.")
-      // FIXME:  we should use the same rules as for DETERMINER_UNIQUE
+      // FIXME:  we should use the same rules as for DETERMINER_DEFINITE
       process("is any tiger in the small cage awake") must be equalTo(
         "But I don't know about any such tiger.")
       // FIXME: this one is kinda cute
@@ -555,7 +555,7 @@ class SmcResponderSpec extends Specification
           "I can't understand the phrase \"my squeaking door\"")
       process("Which my squeaking door is open?") must be equalTo(
         "I think you are asking which entity is open, but " +
-          "I can't understand the phrase \"my squeaking door\"")
+          "I can't understand the phrase \"which my squeaking door\"")
       process("Which door is how I want it?") must be equalTo(
         "I think you are asking which door is in some state, but " +
           "I can't understand the phrase \"how I want it\"")

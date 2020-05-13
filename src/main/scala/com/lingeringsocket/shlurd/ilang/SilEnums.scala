@@ -52,13 +52,16 @@ case object GENDER_SOMEONE extends SilBasicGender
 case object GENDER_SOMEWHERE extends SilBasicGender
 
 sealed trait SilDeterminer
+sealed trait SilIndefiniteDeterminer extends SilDeterminer
+sealed trait SilUnlimitedDeterminer extends SilIndefiniteDeterminer
 case object DETERMINER_NONE extends SilDeterminer
-case object DETERMINER_UNIQUE extends SilDeterminer
-case object DETERMINER_NONSPECIFIC extends SilDeterminer
-case object DETERMINER_ANY extends SilDeterminer
-case object DETERMINER_SOME extends SilDeterminer
+case object DETERMINER_DEFINITE extends SilDeterminer
+case object DETERMINER_NONSPECIFIC extends SilIndefiniteDeterminer
+case object DETERMINER_ANY extends SilUnlimitedDeterminer
+case object DETERMINER_SOME extends SilUnlimitedDeterminer
+case object DETERMINER_VARIABLE extends SilUnlimitedDeterminer
 case object DETERMINER_ALL extends SilDeterminer
-case object DETERMINER_UNSPECIFIED extends SilDeterminer
+case object DETERMINER_ABSENT extends SilDeterminer
 case class SilIntegerDeterminer(number : Int) extends SilDeterminer
 
 sealed trait SilDistance

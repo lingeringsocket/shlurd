@@ -15,9 +15,6 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd.ilang._
-import com.lingeringsocket.shlurd.parser._
-
-import SprEnglishLemmas._
 
 object SmcPhraseQuerier
 {
@@ -36,7 +33,7 @@ object SmcPhraseQuerier
         rejected = true
       }
       case SilConjunctiveReference(
-        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL,
+        DETERMINER_ANY | DETERMINER_ALL,
         _,
         _
       ) => {
@@ -46,15 +43,7 @@ object SmcPhraseQuerier
       }
       case SilDeterminedReference(
         _ : SilNounReference,
-        DETERMINER_ANY | DETERMINER_SOME | DETERMINER_ALL
-      ) => {
-        wildcard = true
-      }
-      case SilNounReference(
-        SilWordLemma(LEMMA_WHO) |
-          SilWordLemma(LEMMA_WHOM) |
-          SilWordLemma(LEMMA_WHAT) |
-          SilWordLemma(LEMMA_WHERE)
+        (_ : SilUnlimitedDeterminer) | DETERMINER_ALL
       ) => {
         wildcard = true
       }
@@ -64,5 +53,21 @@ object SmcPhraseQuerier
       wildcard = false
     }
     wildcard
+  }
+
+  def containsVariable(phrase : SilPhrase) : Boolean =
+  {
+    var variable = false
+    val querier = new SilPhraseQuerier
+    def matchVariable = querier.queryMatcher {
+      case SilDeterminedReference(
+        _,
+        DETERMINER_VARIABLE
+      ) => {
+        variable = true
+      }
+    }
+    querier.query(matchVariable, phrase)
+    variable
   }
 }

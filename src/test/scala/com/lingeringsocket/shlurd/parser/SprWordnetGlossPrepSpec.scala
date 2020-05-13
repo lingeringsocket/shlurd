@@ -104,7 +104,7 @@ class SprWordnetGlossPrepSpec extends Specification
                       SilWord("step")
                     ),
                     SilPropertyState(SilWord("bottom"))),
-                  DETERMINER_UNIQUE)))),
+                  DETERMINER_DEFINITE)))),
           SilTam.indicative.past
         )
       )

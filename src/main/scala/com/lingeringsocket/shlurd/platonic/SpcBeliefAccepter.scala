@@ -153,13 +153,13 @@ class SpcBeliefAccepter private(
       : (SpcEntity, Boolean) =
   {
     determiner match {
-      case DETERMINER_UNIQUE => {
+      case DETERMINER_DEFINITE => {
         val form = instantiateForm(sentence, noun)
         val (entity, success) = cosmos.instantiateEntity(
           form, Seq.empty)
         tupleN((entity, success))
       }
-      case DETERMINER_UNSPECIFIED => {
+      case DETERMINER_ABSENT => {
         getUniqueEntity(
           sentence,
           cosmos.getEntitiesBySynonym(
@@ -642,7 +642,7 @@ class SpcBeliefAccepter private(
       val (entity, isNewEntity, determiner) =
         resultCollector.lookup(entityRef).map(entities =>
           getUniqueEntity(sentence, entities).map(
-            entity => (entity, false, DETERMINER_UNIQUE)
+            entity => (entity, false, DETERMINER_DEFINITE)
           ).getOrElse(
             throw new IncomprehensibleBeliefExcn(
               ShlurdExceptionCode.AmbiguousInterpretation,
@@ -654,7 +654,7 @@ class SpcBeliefAccepter private(
               determiner
             ) => {
               val (entity, isNewEntity) = {
-                if (determiner == DETERMINER_UNIQUE) {
+                if (determiner == DETERMINER_DEFINITE) {
                   assert(properName.isEmpty)
                   resolveUniqueNameAndExistence(
                     sentence, noun, determiner)
@@ -699,7 +699,7 @@ class SpcBeliefAccepter private(
             ShlurdExceptionCode.FormTaxonomyIncompatible,
             sentence, creed.entityFormBelief(entity))
         }
-      } else if (determiner == DETERMINER_UNIQUE) {
+      } else if (determiner == DETERMINER_DEFINITE) {
         // FIXME this has the unfortunate side-effect that
         // "the dog is a werewolf" implies "all dogs are werewolves"
         addIdealTaxonomy(sentence, entity.form, form)
@@ -921,7 +921,7 @@ class SpcBeliefAccepter private(
         resultCollector.refMap.put(newEntityRef, Set(possessee))
         val statePredicate = SilStatePredicate(
           newEntityRef, STATE_PREDEF_BE.toVerb, state)
-        val subjectConjunction = new SubjectConjunction(DETERMINER_UNSPECIFIED)
+        val subjectConjunction = new SubjectConjunction(DETERMINER_ABSENT)
         val stateBeliefs = subjectConjunction.checkFinal(
           recognizeStatePredicateBelief(
             sentence,

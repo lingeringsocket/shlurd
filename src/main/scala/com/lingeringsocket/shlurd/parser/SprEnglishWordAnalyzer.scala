@@ -43,9 +43,10 @@ trait SprEnglishWordAnalyzer
       case LEMMA_BOTH | LEMMA_AND | LEMMA_ALL | LEMMA_EVERY => DETERMINER_ALL
       // FIXME LEMMA_ONE should really map to SilIntegerDeterminer
       case LEMMA_ONE | LEMMA_A => DETERMINER_NONSPECIFIC
-      case LEMMA_THE | LEMMA_EITHER => DETERMINER_UNIQUE
+      case LEMMA_THE | LEMMA_EITHER => DETERMINER_DEFINITE
       case LEMMA_SOME => DETERMINER_SOME
       case LEMMA_ANY => DETERMINER_ANY
+      case LEMMA_WHICH => DETERMINER_VARIABLE
     }
     matcher.lift(lemma)
   }

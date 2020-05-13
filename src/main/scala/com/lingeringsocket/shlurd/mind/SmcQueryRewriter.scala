@@ -15,6 +15,9 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
+
+import SprEnglishLemmas._
 
 class SmcQueryRewriter(
   annotator : SilAnnotator,
@@ -27,7 +30,13 @@ class SmcQueryRewriter(
       case cr @ SilCountedNounReference(
         noun, count
       ) if (!noun.isProper && !determinedSubs.contains(cr)) => {
-        annotator.determinedNounRef(noun, DETERMINER_ANY, count)
+        val determiner = noun.toNounLemma match {
+          case LEMMA_WHO | LEMMA_WHOM | LEMMA_WHAT | LEMMA_WHERE => {
+            DETERMINER_VARIABLE
+          }
+          case _ => DETERMINER_ANY
+        }
+        annotator.determinedNounRef(noun, determiner, count)
       }
     }
   )

@@ -27,7 +27,7 @@ case class SilConjoining(
 
 object SilConjoining
 {
-  val NONE = SilConjoining(DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, 0, 1)
+  val NONE = SilConjoining(DETERMINER_ABSENT, SEPARATOR_CONJOINED, 0, 1)
 }
 
 object SilSentenceBundle

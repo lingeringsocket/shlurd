@@ -87,12 +87,12 @@ object SpcImplicationMapper
       }
       case SilDeterminedReference(
         SilCountedNounReference(noun, count),
-        DETERMINER_NONSPECIFIC | DETERMINER_SOME | DETERMINER_ANY
+        _ : SilIndefiniteDeterminer
       ) => {
-        annotator.determinedNounRef(noun, DETERMINER_UNIQUE, count)
+        annotator.determinedNounRef(noun, DETERMINER_DEFINITE, count)
       }
       case SilDeterminedReference(
-        SilCountedNounReference(noun, count), DETERMINER_UNIQUE
+        SilCountedNounReference(noun, count), DETERMINER_DEFINITE
       ) => {
         annotator.determinedNounRef(noun, DETERMINER_SOME, count)
       }
@@ -107,7 +107,7 @@ object SpcImplicationMapper
           annotator.stateSpecifiedRef(
             annotator.nounRef(noun),
             SilPropertyState(SilWord(ordinalSecond))),
-          DETERMINER_UNIQUE
+          DETERMINER_DEFINITE
         )
       }
       case SilDeterminedReference(
@@ -116,8 +116,7 @@ object SpcImplicationMapper
           SilPropertyState(qualifier)
         ),
         determiner @ (
-          DETERMINER_UNIQUE | DETERMINER_NONSPECIFIC |
-            DETERMINER_ANY | DETERMINER_SOME
+          DETERMINER_DEFINITE | (_ : SilIndefiniteDeterminer)
         )
       ) => {
         annotator.determinedRef(
@@ -126,9 +125,8 @@ object SpcImplicationMapper
             SilPropertyState(qualifier)
           ),
           determiner match {
-            case DETERMINER_UNIQUE => DETERMINER_SOME
-            case DETERMINER_NONSPECIFIC |
-                DETERMINER_ANY | DETERMINER_SOME => DETERMINER_UNIQUE
+            case DETERMINER_DEFINITE => DETERMINER_SOME
+            case _ : SilIndefiniteDeterminer => DETERMINER_DEFINITE
             case _ => determiner
           }
         )
@@ -170,16 +168,16 @@ object SpcImplicationMapper
             tupleN((
               true,
               Set(annotator.determinedNounRef(
-                noun, DETERMINER_UNIQUE, COUNT_SINGULAR))))
+                noun, DETERMINER_DEFINITE, COUNT_SINGULAR))))
           }
           case SilDeterminedReference(
             SilCountedNounReference(noun, count),
-            DETERMINER_ANY | DETERMINER_SOME
+            _ : SilUnlimitedDeterminer
           ) => {
             tupleN((
               true,
               Set(annotator.determinedNounRef(
-                noun, DETERMINER_UNIQUE, count))))
+                noun, DETERMINER_DEFINITE, count))))
           }
           case _ => {
             tupleN((
@@ -264,7 +262,7 @@ class SpcImplicationMapper(
         val nounOpt = primary match {
           case SilDeterminedReference(
             SilCountedNounReference(noun, count),
-            DETERMINER_NONSPECIFIC | DETERMINER_ANY | DETERMINER_SOME
+            _ : SilIndefiniteDeterminer
           ) => {
             if (variableCounters.contains(noun)) {
               throw InvalidBeliefExcn(
@@ -286,7 +284,7 @@ class SpcImplicationMapper(
             SilStateSpecifiedReference(
               SilCountedNounReference(noun, count),
               SilPropertyState(SilWordLemma(qualifier))),
-            DETERMINER_NONSPECIFIC | DETERMINER_ANY | DETERMINER_SOME
+            _ : SilIndefiniteDeterminer
           ) => {
             val sb = responder.sentencePrinter.sb
             sb.ordinalValue(qualifier) match {

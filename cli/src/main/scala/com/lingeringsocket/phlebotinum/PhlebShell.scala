@@ -823,7 +823,7 @@ class PhlebShell(
       annotator, Set(entity)
     ).getOrElse {
       phenomenalMind.specificReference(
-        annotator, entity, DETERMINER_UNIQUE)
+        annotator, entity, DETERMINER_DEFINITE)
     }
   }
 

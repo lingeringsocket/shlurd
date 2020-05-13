@@ -45,8 +45,8 @@ object SilUtils
         isCountCoercible(reference)
       case SilDeterminedReference(reference, determiner) => {
         determiner match {
-          case DETERMINER_NONE | DETERMINER_UNSPECIFIED |
-              DETERMINER_UNIQUE => false
+          case DETERMINER_NONE | DETERMINER_ABSENT |
+              DETERMINER_DEFINITE => false
           case _ => true
         }
       }

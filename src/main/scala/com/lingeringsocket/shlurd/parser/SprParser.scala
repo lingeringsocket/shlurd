@@ -521,7 +521,7 @@ object SprParser extends SprEnglishWordAnalyzer
           new SprDelimitedParser(
             context,
             singles,
-            DETERMINER_UNSPECIFIED,
+            DETERMINER_ABSENT,
             SEPARATOR_SEMICOLON)
         }
         case _ : SptROOT => {

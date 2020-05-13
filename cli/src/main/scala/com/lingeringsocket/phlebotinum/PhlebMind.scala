@@ -109,7 +109,7 @@ class PhlebMind(
     refMap.put(ref, Set(entity))
     val speakerRef = annotator.determinedNounRef(
       SilWord("game-speaker"),
-      DETERMINER_UNIQUE)
+      DETERMINER_DEFINITE)
     communicationContext.speakerEntity.foreach(personEntity => {
       refMap.put(speakerRef, Set(personEntity))
     })

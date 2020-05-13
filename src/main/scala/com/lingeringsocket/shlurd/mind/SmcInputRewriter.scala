@@ -55,8 +55,8 @@ class SmcInputRewriter[
       ) if (
         (noun.toNounLemma != LEMMA_KIND) &&
           (determiner match {
-            case DETERMINER_UNSPECIFIED | DETERMINER_UNIQUE |
-                DETERMINER_SOME | DETERMINER_ANY => true
+            case DETERMINER_ABSENT | DETERMINER_DEFINITE |
+                (_ : SilUnlimitedDeterminer) => true
             case _ => false
           })
       ) => {

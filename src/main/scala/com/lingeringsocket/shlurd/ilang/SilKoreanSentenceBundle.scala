@@ -416,7 +416,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
           }
         } else {
           conjoining.determiner match {
-            case DETERMINER_ANY | DETERMINER_UNIQUE => {
+            case (_ : SilUnlimitedDeterminer) | DETERMINER_DEFINITE => {
               if (hasFinalConsonant(numbered)) {
                 "이나"
               } else {

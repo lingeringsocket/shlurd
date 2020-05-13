@@ -257,9 +257,11 @@ class SprWordnetLabeler(
     val combined = {
       if (isCoordinatingConjunction(token)) {
         Set(SptCC(makeLeaf(word, token)))
-      } else {
+      } else if (token != LEMMA_WHICH) {
         maybeDeterminerFor(token).map(
           determiner => (SptDT(makeLeaf(word, token)))).toSet
+      } else {
+        Set.empty
       }
     } ++ {
       if (isPronounWord(token)) {

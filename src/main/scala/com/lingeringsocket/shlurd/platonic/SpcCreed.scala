@@ -158,7 +158,7 @@ class SpcCreed(
         nounReference(entry._1),
         REL_PREDEF_IDENTITY.toVerb,
         annotator.stateSpecifiedRef(
-          nounReference(LEMMA_SAME, COUNT_SINGULAR, DETERMINER_UNIQUE),
+          nounReference(LEMMA_SAME, COUNT_SINGULAR, DETERMINER_DEFINITE),
           SilAdpositionalState(
             SilAdposition.AS,
             nounReference(entry._2))))
@@ -177,7 +177,7 @@ class SpcCreed(
         annotator.genitiveRef(
           idealReference(form),
           nounReference(
-            property.name, COUNT_SINGULAR, DETERMINER_UNSPECIFIED))
+            property.name, COUNT_SINGULAR, DETERMINER_ABSENT))
       }
     }
     val predicate = property.domain match {
@@ -223,7 +223,7 @@ class SpcCreed(
       if (constraint.upper == 1) {
         tupleN((COUNT_SINGULAR, SilIntegerDeterminer(constraint.upper)))
       } else {
-        tupleN((COUNT_PLURAL, DETERMINER_UNSPECIFIED))
+        tupleN((COUNT_PLURAL, DETERMINER_ABSENT))
       }
     }
     val possesseeNoun = nounReference(
@@ -269,7 +269,7 @@ class SpcCreed(
   ) : SilSentence =
   {
     val subject = mind.specificReference(
-      annotator, entity, DETERMINER_UNIQUE)
+      annotator, entity, DETERMINER_DEFINITE)
     val property = cosmos.resolvePropertyName(entity, eps.propertyName).get
     val propertyStates = cosmos.getPropertyStateMap(property)
     val predicate = property.domain match {
@@ -309,12 +309,12 @@ class SpcCreed(
   {
     val possessor = mind.specificReference(
       annotator,
-      cosmos.getGraph.getPossessorEntity(edge), DETERMINER_UNIQUE)
+      cosmos.getGraph.getPossessorEntity(edge), DETERMINER_DEFINITE)
     val possessee = mind.specificReference(
       annotator,
-      cosmos.getGraph.getPossesseeEntity(edge), DETERMINER_UNIQUE)
+      cosmos.getGraph.getPossesseeEntity(edge), DETERMINER_DEFINITE)
     val role = nounReference(
-      edge.getRoleName, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)
+      edge.getRoleName, COUNT_SINGULAR, DETERMINER_ABSENT)
     SilPredicateSentence(
       SilRelationshipPredicate(
         possessee,
@@ -378,12 +378,12 @@ class SpcCreed(
             plainNoun(edge1.getRoleName)
           ),
           annotator.qualifiedRef(
-            idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
+            idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_DEFINITE),
             Seq(SilWord(ordinalSecond))
           ),
           annotator.genitiveRef(
             annotator.qualifiedRef(
-              idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
+              idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_DEFINITE),
               Seq(SilWord(ordinalFirst))
             ),
             plainNoun(edge2.getRoleName)
@@ -396,9 +396,9 @@ class SpcCreed(
             idealReference(possessorForm),
             plainNoun(edge1.getRoleName)
           ),
-          idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
+          idealNoun(possessorForm, COUNT_SINGULAR, DETERMINER_DEFINITE),
           annotator.genitiveRef(
-            idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_UNIQUE),
+            idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_DEFINITE),
             plainNoun(edge2.getRoleName)
           )
         ))
@@ -454,7 +454,7 @@ class SpcCreed(
   private def plainNoun(
     name : String) : SilReference =
   {
-    nounReference(name, COUNT_SINGULAR, DETERMINER_UNSPECIFIED)
+    nounReference(name, COUNT_SINGULAR, DETERMINER_ABSENT)
   }
 
   private def propertyState(entry : (String, String)) =

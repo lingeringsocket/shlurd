@@ -237,7 +237,8 @@ class SprEnglishVerbSpec extends Specification
       }
       case Some((QUESTION_WHICH, INFLECT_ACCUSATIVE)) => {
         Seq(
-          Some(annotator.nounRef(SilWord("customer")))
+          Some(annotator.determinedNounRef(
+            SilWord("customer"), DETERMINER_VARIABLE))
         )
       }
       case Some((QUESTION_HOW_MANY, INFLECT_ACCUSATIVE)) => {
@@ -251,7 +252,7 @@ class SprEnglishVerbSpec extends Specification
         Seq(
           None,
           Some(annotator.determinedNounRef(
-            SilWord("customer"), DETERMINER_UNIQUE)),
+            SilWord("customer"), DETERMINER_DEFINITE)),
           Some(SilPropertyState(SilWord("ridiculous")))
         )
       }
@@ -270,15 +271,15 @@ class SprEnglishVerbSpec extends Specification
     Seq(
       (annotator.nounRef(SilWord(LEMMA_WHO)),
         (QUESTION_WHO, INFLECT_NOMINATIVE)),
-      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
+      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_DEFINITE),
         (QUESTION_WHO, INFLECT_ACCUSATIVE)),
-      (annotator.nounRef(SilWord("agent")),
+      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_VARIABLE),
         (QUESTION_WHICH, INFLECT_NOMINATIVE)),
-      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
+      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_DEFINITE),
         (QUESTION_WHICH, INFLECT_ACCUSATIVE)),
       (annotator.nounRef(SilWord("agents", "agent")),
         (QUESTION_HOW_MANY, INFLECT_NOMINATIVE)),
-      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_UNIQUE),
+      (annotator.determinedNounRef(SilWord("agent"), DETERMINER_DEFINITE),
         (QUESTION_HOW_MANY, INFLECT_ACCUSATIVE))
     )
   }

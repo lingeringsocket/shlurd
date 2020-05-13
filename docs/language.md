@@ -16,6 +16,7 @@ But you will discover that I have many limitations in my understanding of langua
 
 ```scala mdoc:renderBelief:assets/languageExample.png
 A person, place, or thing is a kind of spc-object.
+A person is a kind of spc-someone.
 A supe is a kind of person.
 A supe's mindset must be cynical or idealistic.
 A supe may have a nemesis.

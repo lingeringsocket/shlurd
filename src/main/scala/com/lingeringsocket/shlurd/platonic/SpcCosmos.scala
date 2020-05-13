@@ -159,7 +159,7 @@ trait SpcSentential
   {
     if (getAlternative.nonEmpty || getAdditional.nonEmpty) {
       SilConjunctiveSentence(
-        DETERMINER_UNSPECIFIED,
+        DETERMINER_ABSENT,
         Seq(getAssertion) ++ getAdditional ++ getAlternative.toSeq,
         SEPARATOR_SEMICOLON)
     } else {

@@ -94,7 +94,7 @@ class SprPhraseRewriter(
         annotator.quotationRef(quotation.token)
       }
       case SilExpectedReference(noun : SprSyntaxSimpleNoun) => {
-        createNounReference(noun, DETERMINER_UNSPECIFIED)
+        createNounReference(noun, DETERMINER_ABSENT)
       }
       case SilExpectedNounlikeReference(
         syntaxTree, nounlike : SprSyntaxPreTerminal, determiner)
@@ -110,7 +110,7 @@ class SprPhraseRewriter(
         createNounReference(noun, determiner)
       }
       case SilExpectedReference(noun : SptNNC) => {
-        createNounReference(noun, DETERMINER_UNSPECIFIED)
+        createNounReference(noun, DETERMINER_ABSENT)
       }
       case SilExpectedReference(pronoun : SptPRP) => {
         analyzer.analyzePronounReference(pronoun.child)
@@ -357,7 +357,7 @@ class SprPhraseRewriter(
     predicate : SilUnresolvedStatePredicate) =
   {
     predicate.state match {
-      case cs @ SilConjunctiveState(DETERMINER_UNSPECIFIED, states, _) => {
+      case cs @ SilConjunctiveState(DETERMINER_ABSENT, states, _) => {
         val propertyState = states.head
         val fullySpecifiedState = {
           if (predicate.specifiedState == SilNullState()) {

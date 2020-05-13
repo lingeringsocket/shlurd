@@ -354,6 +354,7 @@ class SpcComprehensionSpec extends SpcResponseSpecification
       "No organization is Todd's employer.",
       "No organization.")
   }
+
   "understand relatives" in new ResponderContext(ACCEPT_NEW_BELIEFS)
   {
     loadBeliefs("/ontologies/person.txt")

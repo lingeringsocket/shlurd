@@ -729,7 +729,15 @@ object SilConjunctiveReference
     determiner : SilDeterminer,
     references : Seq[SilReference],
     separator : SilSeparator
-  ) = new SilConjunctiveReference(determiner, references, separator)
+  ) =
+  {
+    assert(determiner match {
+      case DETERMINER_NONE | DETERMINER_ANY | DETERMINER_DEFINITE |
+          DETERMINER_ALL | DETERMINER_ABSENT => true
+      case _ => false
+    })
+    new SilConjunctiveReference(determiner, references, separator)
+  }
 
   def unannotated(
     determiner : SilDeterminer,
@@ -1088,7 +1096,7 @@ object SilOptionallyDeterminedReference
         Some((sub, determiner))
       }
       case _ => {
-        Some((ref, DETERMINER_UNSPECIFIED))
+        Some((ref, DETERMINER_ABSENT))
       }
     }
   }

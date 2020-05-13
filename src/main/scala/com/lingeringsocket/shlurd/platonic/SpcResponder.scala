@@ -382,7 +382,7 @@ class SpcResponder(
           }
           case SilGenitiveReference(
             possessor @ SilDeterminedReference(
-              _ : SilNounReference, DETERMINER_ANY
+              _ : SilNounReference, determiner : SilUnlimitedDeterminer
             ),
             possessee : SilNounReference
           ) => {
@@ -395,7 +395,6 @@ class SpcResponder(
             // the results?
             val newPossessee = annotator.determinedRef(
               possessee, DETERMINER_ANY)
-            resultCollector.neutralizedRefs += newPossessee
             annotator.genitiveRef(
               possessor,
               newPossessee
@@ -433,7 +432,7 @@ class SpcResponder(
           assert(entities.size == 1)
           val entity = entities.head
           val specificRef = mind.specificReference(
-            annotator, entity, DETERMINER_UNIQUE)
+            annotator, entity, DETERMINER_DEFINITE)
           val ref = {
             // FIXME dodgy since entity might be a container inside
             // another container!
@@ -564,7 +563,7 @@ class SpcResponder(
         case dr @ SilDeterminedReference(
           _, determiner
         ) => {
-          if (determiner == DETERMINER_UNIQUE) {
+          if (determiner == DETERMINER_DEFINITE) {
             standardizeOne(dr)
           } else {
             dr
@@ -1023,7 +1022,7 @@ class SpcResponder(
         case SilRelationshipPredicate(
           SilDeterminedReference(
             SilCountedNounReference(SilWordLemma(lemma), count),
-            DETERMINER_ANY),
+            _ : SilUnlimitedDeterminer),
           SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           complement,
           modifiers
@@ -1315,7 +1314,7 @@ class SpcResponder(
             case Some(entities) => {
               annotator.mappedRef(
                 entities.map(_.name).toSeq.sorted.mkString("+"),
-                DETERMINER_UNSPECIFIED)
+                DETERMINER_ABSENT)
             }
             case _ => ref
           }

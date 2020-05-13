@@ -415,7 +415,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
             cosmos.getContainer(containerEntity) match {
               case Some(floorEntity) => {
                 val floorRef =
-                  specificReference(annotator, floorEntity, DETERMINER_UNIQUE)
+                  specificReference(annotator, floorEntity, DETERMINER_DEFINITE)
                 annotator.stateSpecifiedRef(
                   ref,
                   SilAdpositionalState(

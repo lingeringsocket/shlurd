@@ -62,7 +62,6 @@ class SmcResultCollector[EntityType<:SmcEntity](
 {
   private val entityMap = new mutable.LinkedHashMap[EntityType, Trilean]
   val states = new mutable.LinkedHashSet[SilWord]
-  val neutralizedRefs = new mutable.LinkedHashSet[SilReference]
   val neutralizedEntities = new mutable.LinkedHashSet[EntityType]
   var isCategorization = false
   var suppressWildcardExpansion = 0
@@ -1304,7 +1303,7 @@ class SmcResponder[
               annotator.conjunctiveRef(
                 DETERMINER_ALL,
                 entities.map(_.getUniqueIdentifier).toSeq.sorted.map(id =>
-                  annotator.mappedRef(id, DETERMINER_UNSPECIFIED))
+                  annotator.mappedRef(id, DETERMINER_ABSENT))
               )
             }
             case _ => ref

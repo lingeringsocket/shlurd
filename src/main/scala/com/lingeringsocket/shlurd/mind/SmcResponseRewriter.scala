@@ -106,7 +106,7 @@ class SmcResponseRewriter[
         DETERMINER_NONSPECIFIC
       }
       case _ => {
-        DETERMINER_UNIQUE
+        DETERMINER_DEFINITE
       }
     }
 
@@ -128,7 +128,7 @@ class SmcResponseRewriter[
           possessor,
           SilDeterminedReference(
             SilCountedNounReference(noun, count),
-            DETERMINER_ANY)
+            _ : SilUnlimitedDeterminer)
         ) => {
           annotator.genitiveRef(
             possessor,
@@ -163,10 +163,10 @@ class SmcResponseRewriter[
             tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
           }
           case SilWordLemma(LEMMA_WHERE) => {
-            tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOWHERE)))
+            tupleN((DETERMINER_ABSENT, SilWord(LEMMA_NOWHERE)))
           }
           case SilWordLemma(LEMMA_WHAT) => {
-            tupleN((DETERMINER_UNSPECIFIED, SilWord(LEMMA_NOTHING)))
+            tupleN((DETERMINER_ABSENT, SilWord(LEMMA_NOTHING)))
           }
           case _ => (DETERMINER_NONE, noun)
         }
@@ -210,7 +210,7 @@ class SmcResponseRewriter[
           SilStackedStateReference(
             nr @ SilCountedNounReference(noun, count),
             states),
-          DETERMINER_ANY | DETERMINER_SOME
+          _ : SilUnlimitedDeterminer
         ) => {
           // this is weird
           val varRef = {
@@ -656,8 +656,8 @@ class SmcResponseRewriter[
       SilNounReference(noun), determiner
     ) => {
       determiner match {
-        case DETERMINER_UNIQUE => ;
-        case DETERMINER_UNSPECIFIED => {
+        case DETERMINER_DEFINITE => ;
+        case DETERMINER_ABSENT => {
           if (!noun.isProper) {
             refMap.remove(nr)
           }
@@ -682,7 +682,7 @@ class SmcResponseRewriter[
   ) = querier.queryMatcher {
     case ref : SilReference if (detector.refMap.contains(ref)) => {
       ref matchPartial {
-        case SilDeterminedReference(_ : SilNounReference, DETERMINER_UNIQUE) |
+        case SilDeterminedReference(_ : SilNounReference, DETERMINER_DEFINITE) |
             SilStateSpecifiedReference(_, _) |
             SilConjunctiveReference(_, _, _) =>
           {
@@ -834,7 +834,7 @@ class SmcResponseRewriter[
           val newDeterminer = {
             if (agreedCount == COUNT_PLURAL) {
               if (determiner == DETERMINER_NONSPECIFIC) {
-                DETERMINER_UNSPECIFIED
+                DETERMINER_ABSENT
               } else {
                 determiner
               }
@@ -969,7 +969,7 @@ class SmcResponseRewriter[
       if (all && !existence) {
         DETERMINER_ALL
       } else {
-        DETERMINER_UNSPECIFIED
+        DETERMINER_ABSENT
       }
     }
     // FIXME:  derive gender from entities

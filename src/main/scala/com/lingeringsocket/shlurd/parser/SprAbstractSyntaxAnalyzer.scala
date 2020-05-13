@@ -207,6 +207,15 @@ abstract class SprAbstractSyntaxAnalyzer(
     (seq.size == 1) && !seq.head.isPreTerminal && !seq.head.isLeaf
   }
 
+  protected def unwrapSinglePhrase(seq : Seq[SprSyntaxTree]) =
+  {
+    if (isSinglePhrase(seq)) {
+      seq.head.children
+    } else {
+      seq
+    }
+  }
+
   override def getCount(tree : SprSyntaxTree) : SilCount =
   {
     if (tree.label.endsWith("S")) {

@@ -527,14 +527,14 @@ class SilEnglishSentenceBundle
   {
     val prefix = determiner match {
       case DETERMINER_NONE => LEMMA_NEITHER
-      case DETERMINER_UNIQUE => LEMMA_EITHER
+      case DETERMINER_DEFINITE => LEMMA_EITHER
       case _ => ""
     }
 
     val infix = determiner match {
       case DETERMINER_NONE => LEMMA_NOR
-      case DETERMINER_ANY | DETERMINER_UNIQUE => LEMMA_OR
-      case DETERMINER_UNSPECIFIED => separator.punctuationMark
+      case (_ : SilUnlimitedDeterminer) | DETERMINER_DEFINITE => LEMMA_OR
+      case DETERMINER_ABSENT => separator.punctuationMark
       case _ => LEMMA_AND
     }
 
@@ -546,7 +546,7 @@ class SilEnglishSentenceBundle
             if ((i + 2) < items.size) {
               Seq(n)
             } else {
-              if (determiner == DETERMINER_UNSPECIFIED) {
+              if (determiner == DETERMINER_ABSENT) {
                 Seq(concat(n, infix))
               } else {
                 Seq(n, infix)
@@ -628,9 +628,9 @@ class SilEnglishSentenceBundle
   override def determinedNoun(determiner : SilDeterminer, noun : String) =
   {
     val determinerString = determiner match {
-      case DETERMINER_UNSPECIFIED => ""
+      case DETERMINER_ABSENT | DETERMINER_VARIABLE => ""
       case DETERMINER_NONE => LEMMA_NO
-      case DETERMINER_UNIQUE => LEMMA_THE
+      case DETERMINER_DEFINITE => LEMMA_THE
       case DETERMINER_NONSPECIFIC => {
         // FIXME:  in reality it can be a little more complicated...
         if ("aeiou".contains(noun.head) || noun.startsWith("spc-")) {

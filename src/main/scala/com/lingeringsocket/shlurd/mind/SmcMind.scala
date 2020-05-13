@@ -171,7 +171,7 @@ class SmcMind[
   {
     ref match {
       case SilDeterminedReference(
-        _ : SilNounReference, DETERMINER_UNIQUE
+        _ : SilNounReference, DETERMINER_DEFINITE
       ) => {
         true
       }
@@ -388,13 +388,13 @@ class SmcMind[
     assert(!entities.isEmpty)
     if (entities.size == 1) {
       responseReference(
-        annotator, communicationContext, entities.head, DETERMINER_UNIQUE)
+        annotator, communicationContext, entities.head, DETERMINER_DEFINITE)
     } else {
       annotator.conjunctiveRef(
         DETERMINER_ALL,
         entities.toSeq.map(entity =>
           responseReference(
-            annotator, communicationContext, entity, DETERMINER_UNIQUE)))
+            annotator, communicationContext, entity, DETERMINER_DEFINITE)))
     }
   }
 
@@ -404,13 +404,13 @@ class SmcMind[
   {
     assert(!entities.isEmpty)
     if (entities.size == 1) {
-      specificReference(annotator, entities.head, DETERMINER_UNIQUE)
+      specificReference(annotator, entities.head, DETERMINER_DEFINITE)
     } else {
       annotator.conjunctiveRef(
         DETERMINER_ALL,
         entities.toSeq.map(entity =>
           specificReference(
-            annotator, entity, DETERMINER_UNIQUE)))
+            annotator, entity, DETERMINER_DEFINITE)))
     }
   }
 

@@ -269,13 +269,13 @@ class SpcAssertionMapper(
             // with intersectionality
             case SilDeterminedReference(
               SilCountedNounReference(SilWordLemma(LEMMA_WHAT), count),
-              DETERMINER_ANY
+              _ : SilUnlimitedDeterminer
             ) => {
               resolvedForm match {
                 case Some(restrictedForm) => {
                   val typedRef = binding.annotator.determinedNounRef(
                     SilWord(restrictedForm.name),
-                    DETERMINER_ANY,
+                    DETERMINER_VARIABLE,
                     count
                   )
                   binding.unifyReferences(actualRef, typedRef)
@@ -350,14 +350,14 @@ class SpcAssertionMapper(
             val conjunction = {
               if (filtered.size == 1) {
                 mind.specificReference(
-                  binding.annotator, filtered.head, DETERMINER_UNIQUE)
+                  binding.annotator, filtered.head, DETERMINER_DEFINITE)
               } else {
                 binding.annotator.conjunctiveRef(
                   DETERMINER_ALL,
                   filtered.toSeq.map(entity => {
                     val entityRef = mind.specificReference(
                       binding.annotator,
-                      entity, DETERMINER_UNIQUE)
+                      entity, DETERMINER_DEFINITE)
                     binding.refMapOut.foreach(
                       _.put(entityRef, Set(entity)))
                     entityRef
@@ -510,7 +510,7 @@ class SpcAssertionMapper(
               SilAdpositionalVerbModifier(
                 _,
                 SilDeterminedReference(
-                  _ : SilNounReference, DETERMINER_UNIQUE
+                  _ : SilNounReference, DETERMINER_DEFINITE
                 )
               )
           ) => {

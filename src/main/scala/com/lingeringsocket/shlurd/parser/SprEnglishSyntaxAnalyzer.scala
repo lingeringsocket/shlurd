@@ -50,12 +50,12 @@ class SprEnglishSyntaxAnalyzer(
         return SilUnrecognizedSentence(tree)
       }
       return SilConjunctiveSentence(
-        DETERMINER_UNSPECIFIED,
+        DETERMINER_ABSENT,
         semiSplits.map(split => SilExpectedSentence(split.head)),
         semiSeparator)
     }
     splitCoordinatingConjunction(tree.children) match {
-      case (DETERMINER_UNSPECIFIED, _, _) => ;
+      case (DETERMINER_ABSENT, _, _) => ;
       case (determiner, separator, splits) => {
         val subs = splits.map(split => {
           split match {
@@ -326,9 +326,26 @@ class SprEnglishSyntaxAnalyzer(
           SptNP(questionChildren:_*)
         }
       }
-      case QUESTION_WHICH | QUESTION_HOW_MANY => {
+      case QUESTION_WHICH => {
         // FIXME likewise, these have two flavors "which do you want?"
-        // and "which flavor do you want?"; "how many trees are there"
+        // and "which flavor do you want?"
+
+        questionChildren match {
+          case Seq(SptNP(first : SptNP, second)) => {
+            SptNP(
+              SptNP((SptDT(makeLeaf(LEMMA_WHICH)) +:
+                unwrapSinglePhrase(first.children)):_*),
+              second
+            )
+          }
+          case _ => {
+            SptNP((SptDT(makeLeaf(LEMMA_WHICH)) +:
+              unwrapSinglePhrase(questionChildren)):_*)
+          }
+        }
+      }
+      case QUESTION_HOW_MANY => {
+        // FIXME likewise, these have two flavors "how many trees are there"
         // and "how many are still alive"
         SptNP(questionChildren:_*)
       }
@@ -481,7 +498,7 @@ class SprEnglishSyntaxAnalyzer(
       )
     }
     splitCoordinatingConjunction(seq) match {
-      case (DETERMINER_UNSPECIFIED, _, _) => {
+      case (DETERMINER_ABSENT, _, _) => {
       }
       case (determiner, separator, split) => {
         return annotator.conjunctiveRef(
@@ -502,7 +519,7 @@ class SprEnglishSyntaxAnalyzer(
           tupleN((determinerFor(requireLeaf(pt.children)), seq.drop(1)))
         }
         case _ => {
-          tupleN((DETERMINER_UNSPECIFIED, seq))
+          tupleN((DETERMINER_ABSENT, seq))
         }
       }
     }
@@ -527,7 +544,7 @@ class SprEnglishSyntaxAnalyzer(
     {
       val qr = {
         val entityReference = expectNounReference(
-          tree, components.last, DETERMINER_UNSPECIFIED)
+          tree, components.last, DETERMINER_ABSENT)
         if (components.size > 1) {
           val adjComponents = components.dropRight(1)
           val qualifiedReference = annotator.stateQualifiedRef(
@@ -958,7 +975,7 @@ class SprEnglishSyntaxAnalyzer(
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }
       val subject = splitCoordinatingConjunction(seq) match {
-        case (DETERMINER_UNSPECIFIED, _, _) => {
+        case (DETERMINER_ABSENT, _, _) => {
           specifyReference(expectReference(seq), specifiedState)
         }
         case (determiner, separator, split) => {
@@ -1033,7 +1050,7 @@ class SprEnglishSyntaxAnalyzer(
           }
           case _ => {
             val seqState = splitCoordinatingConjunction(seq) match {
-              case (DETERMINER_UNSPECIFIED, _, _) => {
+              case (DETERMINER_ABSENT, _, _) => {
                 val recomposed = {
                   if (complement.isAdjective) {
                     SptADJP(complement)
@@ -1081,21 +1098,14 @@ class SprEnglishSyntaxAnalyzer(
           SilUnrecognizedState(tree)
         case _ => {
           splitCoordinatingConjunction(seq) match {
-            case (DETERMINER_UNSPECIFIED, _, _) => {
+            case (DETERMINER_ABSENT, _, _) => {
               analyzePropertyComplementState(tree, seq)
             }
             case (determiner, separator, split) => {
               val state = SilConjunctiveState(
                 determiner,
                 split.map(x => {
-                  val sub = {
-                    if (isSinglePhrase(x)) {
-                      x.head.children
-                    } else {
-                      x
-                    }
-                  }
-                  analyzePropertyComplementState(tree, sub)
+                  analyzePropertyComplementState(tree, unwrapSinglePhrase(x))
                 }),
                 separator)
               state
@@ -1131,7 +1141,7 @@ class SprEnglishSyntaxAnalyzer(
         expectAdpositionalState(tree, false)
       } else {
         SilConjunctiveState(
-          DETERMINER_UNSPECIFIED,
+          DETERMINER_ABSENT,
           Seq(state) ++ seq.tail.map(
             component => expectComplementState(component)))
       }
@@ -1176,7 +1186,8 @@ class SprEnglishSyntaxAnalyzer(
           case (_ : SptDT | _ : SptCC | _ : SprSyntaxAdverb) => {
             preTerminal.child.lemma match {
               case LEMMA_BOTH => (determiner == DETERMINER_ALL)
-              case LEMMA_EITHER => (determiner == DETERMINER_ANY)
+              case LEMMA_EITHER =>
+                determiner.isInstanceOf[SilUnlimitedDeterminer]
               case LEMMA_NEITHER => (determiner == DETERMINER_NONE)
               case _ => false
             }
@@ -1390,8 +1401,8 @@ class SprEnglishSyntaxAnalyzer(
       commaSeparator match {
         case SEPARATOR_COMMA | SEPARATOR_OXFORD_COMMA => {
           splitCoordinatingConjunction(commaSplit.last) match {
-            case (DETERMINER_UNSPECIFIED, _, _) => {
-              tupleN((DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, Seq.empty))
+            case (DETERMINER_ABSENT, _, _) => {
+              tupleN((DETERMINER_ABSENT, SEPARATOR_CONJOINED, Seq.empty))
             }
             case (determiner, separator, subSplit) => {
               // FIXME:  deal with coordinating determiner in
@@ -1402,7 +1413,7 @@ class SprEnglishSyntaxAnalyzer(
           }
         }
         case _ => {
-          tupleN((DETERMINER_UNSPECIFIED, SEPARATOR_CONJOINED, Seq.empty))
+          tupleN((DETERMINER_ABSENT, SEPARATOR_CONJOINED, Seq.empty))
         }
       }
     } else {
@@ -1414,8 +1425,8 @@ class SprEnglishSyntaxAnalyzer(
       }
       val prefix = {
         if (isCoordinatingDeterminer(components.head, determiner)) {
-          if (determiner == DETERMINER_ANY) {
-            determiner = DETERMINER_UNIQUE
+          if (determiner.isInstanceOf[SilUnlimitedDeterminer]) {
+            determiner = DETERMINER_DEFINITE
           }
           components.take(pos).drop(1)
         } else {
@@ -1425,7 +1436,7 @@ class SprEnglishSyntaxAnalyzer(
       val (commaSplit, commaSeparator) = splitCommas(prefix)
       val suffix = components.drop(pos + 1)
       splitCoordinatingConjunction(suffix) match {
-        case (DETERMINER_UNSPECIFIED, _, _) => {
+        case (DETERMINER_ABSENT, _, _) => {
           tupleN((determiner, commaSeparator, commaSplit ++ Seq(suffix)))
         }
         case (subDeterminer, _, subSplit) => {

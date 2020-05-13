@@ -144,7 +144,7 @@ class SmcPredicateEvaluator[
                       entityRef match {
                         case SilOptionallyDeterminedReference(
                           SilNounReference(noun),
-                          DETERMINER_ANY | DETERMINER_UNSPECIFIED
+                          (_ : SilUnlimitedDeterminer) | DETERMINER_ABSENT
                         ) => {
                           noun.toNounLemma match {
                             case LEMMA_WHO | LEMMA_WHAT => {
@@ -197,6 +197,15 @@ class SmcPredicateEvaluator[
           ShlurdExceptionCode.FailedParse,
           sentencePrinter.sb.respondCannotUnderstand)
       }
+    }
+    if (SmcPhraseQuerier.containsVariable(predicate)) {
+      val (keep, discard) = resultCollector.refMap.keys.partition(_ match {
+          case SilDeterminedReference(_, DETERMINER_VARIABLE) => true
+          case _ => false
+      })
+      resultCollector.neutralizedEntities ++=
+        (discard.flatMap(ref => resultCollector.refMap(ref)).toSet --
+          keep.flatMap(ref => resultCollector.refMap(ref)).toSet)
     }
     debugPopLevel()
     trace(s"PREDICATE TRUTH : $result")
@@ -367,7 +376,7 @@ class SmcPredicateEvaluator[
             ) => {
               possessor match {
                 case SilDeterminedReference(
-                  _ : SilNounReference, DETERMINER_ANY
+                  _ : SilNounReference, _ : SilUnlimitedDeterminer
                 ) => {
                   // force correlated evaluation after reference resolution
                   resultCollector.refMap.remove(ref)
@@ -680,7 +689,7 @@ class SmcPredicateEvaluator[
     context : SilReferenceContext,
     resultCollector : ResultCollectorType,
     specifiedState : SilState = SilNullState(),
-    enclosingDeterminer : SilDeterminer = DETERMINER_UNSPECIFIED
+    enclosingDeterminer : SilDeterminer = DETERMINER_ABSENT
   )(evaluator : EntityPredicateEvaluator)
       : Try[Trilean] =
   {
@@ -779,10 +788,10 @@ class SmcPredicateEvaluator[
     resultCollector.refMap.put(
       reference, SprUtils.orderedSet(entities))
     val result = determiner match {
-      case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
+      case DETERMINER_DEFINITE | DETERMINER_ABSENT => {
         if (entities.isEmpty &&
-          ((count == COUNT_SINGULAR) || (determiner == DETERMINER_UNIQUE)) &&
-          ((context == REF_SUBJECT) || (determiner == DETERMINER_UNIQUE))
+          ((count == COUNT_SINGULAR) || (determiner == DETERMINER_DEFINITE)) &&
+          ((context == REF_SUBJECT) || (determiner == DETERMINER_DEFINITE))
         ) {
           Failure(ShlurdException(
             ShlurdExceptionCode.NonExistent,
@@ -792,7 +801,7 @@ class SmcPredicateEvaluator[
           count match {
             case COUNT_PLURAL => {
               val newDeterminer = determiner match {
-                case DETERMINER_UNIQUE => DETERMINER_ALL
+                case DETERMINER_DEFINITE => DETERMINER_ALL
                 case _ => determiner
               }
               evaluateDeterminer(
@@ -804,8 +813,8 @@ class SmcPredicateEvaluator[
               if (entities.isEmpty) {
                 Success(Trilean.False)
               } else if (entities.size > 1) {
-                if ((determiner == DETERMINER_UNIQUE) ||
-                  (noun.isProper && (determiner == DETERMINER_UNSPECIFIED)))
+                if ((determiner == DETERMINER_DEFINITE) ||
+                  (noun.isProper && (determiner == DETERMINER_ABSENT)))
                 {
                   cosmos.fail(
                     ShlurdExceptionCode.NotUnique,
@@ -880,15 +889,15 @@ class SmcPredicateEvaluator[
     if (resultCollector.suppressWildcardExpansion > 0) {
       val lemma = noun.toNounLemma
       val bail = determiner match {
-        case DETERMINER_UNIQUE => false
-        case DETERMINER_ANY => {
+        case DETERMINER_DEFINITE => false
+        case _ : SilUnlimitedDeterminer => {
           context match {
             case REF_GENITIVE_POSSESSOR => false
             case _ => true
           }
         }
         // FIXME this is silly
-        case DETERMINER_UNSPECIFIED => {
+        case DETERMINER_ABSENT => {
           ((count == COUNT_PLURAL) && (context == REF_COMPLEMENT)) ||
           (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
             (lemma == LEMMA_WHERE) || (qualifiers.contains(LEMMA_ANOTHER))
@@ -948,7 +957,7 @@ class SmcPredicateEvaluator[
     specifiedState : SilState,
     specifiedEntities : Option[Set[EntityType]],
     evaluator : EntityPredicateEvaluator,
-    enclosingDeterminer : SilDeterminer = DETERMINER_UNSPECIFIED)
+    enclosingDeterminer : SilDeterminer = DETERMINER_ABSENT)
       : Try[Trilean] =
   {
     val refMap = resultCollector.refMap
@@ -969,10 +978,10 @@ class SmcPredicateEvaluator[
         SilCountedNounReference(noun, count), nounDeterminer
       ) => {
         val determiner = nounDeterminer match {
-          case DETERMINER_UNSPECIFIED => enclosingDeterminer
+          case DETERMINER_ABSENT => enclosingDeterminer
           case _ => {
             assert(
-              enclosingDeterminer == DETERMINER_UNSPECIFIED,
+              enclosingDeterminer == DETERMINER_ABSENT,
               tupleN((enclosingDeterminer, nounDeterminer)))
             nounDeterminer
           }
@@ -1037,7 +1046,7 @@ class SmcPredicateEvaluator[
         })
       }
       case SilConjunctiveReference(determiner, references, separator) => {
-        assert(enclosingDeterminer == DETERMINER_UNSPECIFIED)
+        assert(enclosingDeterminer == DETERMINER_ABSENT)
         val results = references.map(
           evaluatePredicateOverReference(
             _, context, resultCollector, specifiedState)(evaluator))
@@ -1075,9 +1084,9 @@ class SmcPredicateEvaluator[
         result
       }
       case SilDeterminedReference(sub, determiner) => {
-        assert(enclosingDeterminer == DETERMINER_UNSPECIFIED)
+        assert(enclosingDeterminer == DETERMINER_ABSENT)
         val actualDeterminer = determiner match {
-          case DETERMINER_UNIQUE => {
+          case DETERMINER_DEFINITE => {
             sub match {
               case SilStateSpecifiedReference(_, _ : SilAdpositionalState) => {
                 if (resultCollector.analyzingAssertion) {
@@ -1114,7 +1123,7 @@ class SmcPredicateEvaluator[
             possessee matchPartial {
               case SilOptionallyDeterminedReference(
                 SilMandatorySingular(noun),
-                DETERMINER_UNSPECIFIED | DETERMINER_ANY
+                DETERMINER_ABSENT | (_ : SilUnlimitedDeterminer)
               ) => {
                 resultCollector.lookup(possessor).
                   foreach(entities => {
@@ -1177,7 +1186,7 @@ class SmcPredicateEvaluator[
               possessee matchPartial {
                 case SilOptionallyDeterminedReference(
                   SilNounReference(noun),
-                  DETERMINER_UNSPECIFIED | DETERMINER_ANY
+                  DETERMINER_ABSENT | (_ : SilUnlimitedDeterminer)
                 ) => {
                   resultCollector.lookup(possessor).foreach(
                     possessorEntities => {
@@ -1252,7 +1261,7 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType,
     specifiedState : SilState,
     evaluator : EntityPredicateEvaluator,
-    enclosingDeterminer : SilDeterminer = DETERMINER_UNSPECIFIED)
+    enclosingDeterminer : SilDeterminer = DETERMINER_ABSENT)
       : Try[Trilean] =
   {
     val combinedState = {
@@ -1305,7 +1314,7 @@ class SmcPredicateEvaluator[
               case _ => noun
             }
             val rephrasedDeterminer = determiner match {
-              case DETERMINER_ANY | DETERMINER_SOME => DETERMINER_NONSPECIFIC
+              case _ : SilUnlimitedDeterminer => DETERMINER_NONSPECIFIC
               case _ => determiner
             }
             annotator.determinedNounRef(rephrased, rephrasedDeterminer, count)
@@ -1410,9 +1419,6 @@ class SmcPredicateEvaluator[
     debugger.slowIncrement
     val result = evaluator(entity, entityRef)
     result.foreach(resultCollector.saveEntityResult(entity, _))
-    if (resultCollector.neutralizedRefs.contains(entityRef)) {
-      resultCollector.neutralizedEntities += entity
-    }
     result
   }
 
@@ -1430,7 +1436,7 @@ class SmcPredicateEvaluator[
           case DETERMINER_NONE => {
             Success(!results.fold(Trilean.False)(_|_))
           }
-          case DETERMINER_UNIQUE | DETERMINER_UNSPECIFIED => {
+          case DETERMINER_DEFINITE | DETERMINER_ABSENT => {
             val lowerBound = results.count(_.assumeFalse)
             if (lowerBound > 1) {
               Success(Trilean.False)
@@ -1450,7 +1456,7 @@ class SmcPredicateEvaluator[
               Success(results.fold(Trilean.True)(_&_))
             }
           }
-          case DETERMINER_ANY | DETERMINER_SOME | DETERMINER_NONSPECIFIC => {
+          case _ : SilIndefiniteDeterminer => {
             Success(results.fold(Trilean.False)(_|_))
           }
           case _ => cosmos.fail(

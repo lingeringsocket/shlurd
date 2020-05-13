@@ -710,7 +710,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       val annotator = SpcAnnotator(new SpcMind(cosmos))
       val properRef = annotator.nounRef(SilWord("Lana"))
       val specificRef = mind.specificReference(
-        annotator, entity, DETERMINER_UNSPECIFIED)
+        annotator, entity, DETERMINER_ABSENT)
       specificRef must be equalTo properRef
     }
 

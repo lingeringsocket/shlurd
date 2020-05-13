@@ -144,7 +144,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
               objRef
             )
           ),
-          DETERMINER_UNIQUE
+          DETERMINER_DEFINITE
         )
       ) if (word.lemma == LEMMA_LEFT) || (word.lemma == LEMMA_RIGHT) => {
         SilAdpositionalState(

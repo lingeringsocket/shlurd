@@ -242,4 +242,20 @@ class SpcTriggerSpec extends SpcResponseSpecification
       "Sorry, I don't know about any 'Gandalf'.",
       ShlurdExceptionCode.UnknownForm)
   }
+
+  "understand funky genitives" in new ResponderContext(
+    ACCEPT_MODIFIED_BELIEFS)
+  {
+    processBelief("A person is a kind of spc-someone.")
+    processBelief("A supe is a kind of person.")
+    processBelief("A supe may have a nemesis.")
+    processBelief("If a supe is another supe's nemesis, " +
+      "then equivalently the latter is the former's nemesis.")
+    processBelief("If a supe opposes another supe, " +
+      "then equivalently the former is the latter's nemesis.")
+    processBelief("Homelander is a supe.")
+    processBelief("Starlight is a supe.")
+    processBelief("Homelander is Starlight's nemesis.")
+    processTerse("Whom does Homelander oppose?", "Starlight.")
+  }
 }

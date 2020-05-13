@@ -246,7 +246,7 @@ trait SilAnnotator
     determiner : SilDeterminer) =
   {
     determiner match {
-      case DETERMINER_UNSPECIFIED => reference
+      case DETERMINER_ABSENT => reference
       case _ => register(
         SilDeterminedReference.unannotated(reference, determiner))
     }
@@ -266,7 +266,7 @@ trait SilAnnotator
   {
     val (sub, determiner) = reference match {
       case SilDeterminedReference(s, d) => tupleN((s, d))
-      case _ => tupleN((reference, DETERMINER_UNSPECIFIED))
+      case _ => tupleN((reference, DETERMINER_ABSENT))
     }
     val rewritten = {
       if (qualifiers.isEmpty) {
