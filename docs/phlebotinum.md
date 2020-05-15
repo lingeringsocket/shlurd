@@ -10,19 +10,16 @@ well.
 ## A Rather Short Story
 
 * [play here](http://phlebotinum.xyz:8000)
-* [see source code](https://github.com/lingeringsocket/hello-phlebotinum)
+* [see source code](https://github.com/lingeringsocket/hello-phlebotinum) (but hey, make sure you try playing it first!)
 
 ## Story Organization
 
 A story is created as a collection of files:
 
-* [Base axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/base-axioms.txt) define the [ontology](ontology.md) of the game world.  This is the shared base of reality for all characters in the game.  The corresponding file **must** be named ```base-axioms.txt```.  Base axioms also include the existence of those characters (not to get all theological, but these "souls" need to have their existence before their corresponding mental worlds can come into being).
+* [Base axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/base-axioms.txt) define the [ontology](ontology.md) of the game world.  This is the shared base of reality for all characters in the game.  The corresponding file **must** be named ```base-axioms.txt```.  Base axioms must also include the existence of the characters (not to get all theological, but these "souls" need to be granted their existence before their private mental worlds can come into being).
 * [Game initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/game-init.txt) is the *fiat lux* which populates the world and situates the characters which inhabit it.  The corresponding file **must** be named ```game-init.txt```.  Game initialization also sets up the world's [behavior](conditionals.md), as seen in the [behavior axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/behavior-axioms.txt) from the example story.
 * [Capability axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/capability-axioms.txt) define the actions understood by the interpreter in terms of [capabilities](capabilities.md)
-* [Character mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/player-mind-init.txt) is used to bring the private mental world of the player character to life (and possibly that of non-player characters as well, such as [the child](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/child-mind-init.txt) from the example story)
-
-A story can be broken up into as many files as desired, either for
-reuse or for organizational clarity.
+* [Character mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/player-mind-init.txt) is used to bring the private mental world of the player character to life (and possibly that of non-player characters as well, such as [the child](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/child-mind-init.txt) from the example story).  At a minimum, in good self-help fashion, the player needs to believe in some capabilities, otherwise all actions will be prohibited.
 
 A file may include the beliefs from other files via the **Believe** directive:
 
@@ -35,10 +32,13 @@ A person can climb a tree.
 ```
 
 In the example above, the first **Believe** directive includes all the
-[default capability axioms from the phlebotinum library](https://github.com/lingeringsocket/shlurd/tree/master/cli/src/main/resources/phlebotinum), whereas the second
+[default capability axioms from the phlebotinum library](https://github.com/lingeringsocket/shlurd/tree/master/cli/src/main/resources/phlebotinum/default-capability-axioms.txt), whereas the second
 directive includes the ontology axioms from the story currently being defined.
 
 Redundant belief inclusions are automatically ignored.
+
+A story can be broken up into as many files as desired, either for
+reuse or for organizational clarity.  In the example, [behavior axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/behavior-axioms.txt) include a separate file defining the [axioms regarding what happens when the player tries to love something](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/love-behavior-axioms.txt).
 
 ## Minds, Worlds, and Perception
 
@@ -70,7 +70,7 @@ game turn proceeds roughly as follows:
 1. New game turn starts
 1. All previously perceived objects become stale for all characters
 1. For each character, all objects currently in scope (based on the character's location, possessions, and sensory awareness) become either fresh (if encountered for the first time) or familiar (if previously encountered)
-1. The sentence is interpreted with respect to the player character's phenomenal world
+1. The sentence is interpreted with respect to the player character's phenomenal world (including the player's capabilities)
 1. If any interpretation errors are encountered, the game turn ends with a failure message; otherwise, if the sentence is a statement or question, it is evaluated and an appropriate response is reported
 1. If the sentence is a command, it is re-processed with respect to the noumenal world; this may lead to errors based on failed preconditions or other constraints; it may also lead to triggered actions (which may themselves trigger errors or other actions recursively)
 1. If any errors were encountered during processing, the effects of all triggered actions are ignored, and the game turn ends with a failure message
@@ -86,7 +86,7 @@ whatever is present in them (including characters).
 Each character has an associated character-inventory, a.k.a. stuff
 (which is itself a kind of object so that it can contain other
 things).  So if a character is holding a lantern, the lantern is not
-directly inside of the character; instead, it is in the character's
+directly inside of the character (ouch!); instead, it is in the character's
 stuff.  Getting an object moves it from a location to the character's
 stuff, and the opposite is true for dropping an object.
 
@@ -105,8 +105,8 @@ The game axiom library supplies a fairly standard map representation:
 
 * for direction-based movement (e.g. ```go north```), the current location must have a place-exit in the corresponding direction
 * for location-based movement (e.g. ```go to the kitchen```), the destination must be a known neighbor of the current location
-* for object-based movement (e.g. ```enter the oven```), the destination object must be in scope (and must in fact be a location)
-* for any type of movement, if there is a door or other portal mediating the map-connection, the door must be open
+* for object-based movement (e.g. ```enter the oven```), the destination object must not be stale (and must in fact be a location)
+* for any type of movement, if there is a door or other portal mediating the map-connection, the portal must be open
 
 ## And More
 
