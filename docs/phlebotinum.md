@@ -115,6 +115,7 @@ The game axiom library supplies a fairly standard map representation:
 * the interpreter
 * actions
 * capabilities
+* otherwise/complains
 
 ## Command Interpretation
 

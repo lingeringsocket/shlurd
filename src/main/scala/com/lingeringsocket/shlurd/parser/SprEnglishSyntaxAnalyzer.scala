@@ -74,11 +74,13 @@ class SprEnglishSyntaxAnalyzer(
     val children = stripPauses(tree)
     extractAntecedent(children) match {
       case Some((conjunction, antecedent)) => {
-        expectConditionalSentence(
+        SilExpectedConditionalSentence(
           tree,
           conjunction,
-          antecedent,
-          SptS(children.tail.filterNot(c => (c.isThen || c.isEquivalently)):_*),
+          SilExpectedSentence(antecedent),
+          SilExpectedSentence(
+            SptS(children.tail.filterNot(
+              c => (c.isThen || c.isEquivalently)):_*)),
           children.tail.exists(c =>
             (c.isEquivalently || c.children.exists(_.isEquivalently))),
           SilFormality(force))

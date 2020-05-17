@@ -79,6 +79,25 @@ class SprPhraseRewriter(
           analyzer.analyzeSentence(sentence)
         }
       }
+      case SilExpectedConditionalSentence(
+        syntaxTree,
+        conjunction,
+        antecedent,
+        consequent,
+        biconditional,
+        formality
+      ) if (!antecedent.hasUnresolvedChildren &&
+        !consequent.hasUnresolvedChildren
+      ) => {
+        analyzer.analyzeConditionalSentence(
+          syntaxTree,
+          conjunction,
+          antecedent,
+          consequent,
+          biconditional,
+          formality
+        )
+      }
     }
   )
 

@@ -22,6 +22,15 @@ trait SprSyntaxAnalyzer
     tree : SptS)
       : SilSentence
 
+  def analyzeConditionalSentence(
+    tree : SprSyntaxTree,
+    conjunction : SilWord,
+    antecedent : SilSentence,
+    consequent : SilSentence,
+    biconditional : Boolean,
+    formality : SilFormality
+  ) : SilSentence
+
   def analyzeSQ(
     tree : SprSyntaxTree, forceSQ : Boolean)
       : SilSentence

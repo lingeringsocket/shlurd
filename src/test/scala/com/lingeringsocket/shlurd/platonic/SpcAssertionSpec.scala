@@ -535,6 +535,19 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(actionClockTicks)
     }
 
+    "handle conjunctive conditionals" in new AssertionContext
+    {
+      defineToaster
+
+      verifyOK(fiatForm("clock"))
+      verifyOK(fiatExistence("clock"))
+
+      verifyOK(fiatState(formToaster, stateCold))
+      verifyOK("when a clock ticks, and the toaster is toasting, "
+        + "then the toaster cooks")
+      verifyOK(actionClockTicks)
+    }
+
     "map genitives in equivalences" in new AssertionContext
     {
       defineToasterSlice

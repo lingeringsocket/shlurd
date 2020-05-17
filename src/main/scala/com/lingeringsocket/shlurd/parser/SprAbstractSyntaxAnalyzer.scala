@@ -17,6 +17,8 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
+import SprEnglishLemmas._
+
 sealed trait SprStrictness
 case object SPR_STRICTNESS_TIGHT extends SprStrictness
 case object SPR_STRICTNESS_LOOSE extends SprStrictness
@@ -36,17 +38,14 @@ abstract class SprAbstractSyntaxAnalyzer(
     tree.children.filterNot(_.isPause)
   }
 
-  protected def expectConditionalSentence(
+  override def analyzeConditionalSentence(
     tree : SprSyntaxTree,
     conjunction : SilWord,
-    antecedent : SptS,
-    consequent : SptS,
+    antecedentSentence : SilSentence,
+    consequentSentence : SilSentence,
     biconditional : Boolean,
     formality : SilFormality) : SilSentence =
   {
-    val antecedentSentence = analyzeSentence(antecedent)
-    val consequentSentence = analyzeSentence(consequent)
-
     if (!antecedentSentence.tam.isPositive) {
       return SilUnrecognizedSentence(tree)
     }
@@ -57,14 +56,53 @@ abstract class SprAbstractSyntaxAnalyzer(
         return SilUnrecognizedSentence(tree)
       }
     }
-    val antecedentPredicate = antecedentSentence match {
+    val consequentPredicate = consequentSentence match {
       case SilPredicateSentence(predicate, _, _) => predicate
       case _ => {
         return SilUnrecognizedSentence(tree)
       }
     }
-    val consequentPredicate = consequentSentence match {
+    val antecedentPredicate = antecedentSentence match {
       case SilPredicateSentence(predicate, _, _) => predicate
+      case SilConjunctiveSentence(
+        DETERMINER_ALL,
+        Seq(
+          SilPredicateSentence(p1, t1, _),
+          SilPredicateSentence(p2, t2, _)),
+        separator
+      ) if (!biconditional && !t2.isProgressive) => {
+        // FIXME this rewrite, if it happens at all, should be done
+        // downstream, not here!
+        val conditional = SilConditionalSentence(
+          conjunction,
+          p1,
+          p2,
+          t1,
+          t2.withModality(MODAL_POSSIBLE).withPolarity(t2.isNegative),
+          biconditional,
+          formality)
+        val otherwiseModifier = SilBasicVerbModifier(SilWord(LEMMA_OTHERWISE))
+        val cp = consequentPredicate.withNewModifiers(
+            consequentPredicate.getModifiers :+ otherwiseModifier)
+        val modifiedConsequent = SilPredicateSentence(
+          cp,
+          consequentSentence.tam,
+          consequentSentence.formality)
+        // this grossness can only be eliminated by moving the
+        // entire transformation downstream
+        conditional.rememberSyntaxTree(tree)
+        modifiedConsequent.rememberSyntaxTree(tree)
+        cp.asInstanceOf[SilTransformedPhrase].rememberSyntaxTree(tree)
+        otherwiseModifier.rememberSyntaxTree(tree)
+        return SilConjunctiveSentence(
+          DETERMINER_ABSENT,
+          Seq(
+            conditional,
+            modifiedConsequent
+          ),
+          SEPARATOR_SEMICOLON
+        )
+      }
       case _ => {
         return SilUnrecognizedSentence(tree)
       }

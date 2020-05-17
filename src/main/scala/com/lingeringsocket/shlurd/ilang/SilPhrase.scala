@@ -285,6 +285,18 @@ case class SilExpectedSentence(
 {
 }
 
+case class SilExpectedConditionalSentence(
+  syntaxTree : SprSyntaxTree,
+  conjunction : SilWord,
+  antecedent : SilSentence,
+  consequent : SilSentence,
+  biconditional : Boolean,
+  expectedFormality : SilFormality
+) extends SilUnknownSentence with SilUnresolvedPhrase
+{
+  override def formality = expectedFormality
+}
+
 case class SilExpectedPredicate(
   syntaxTree : SprSyntaxTree
 ) extends SilUnknownPredicate with SilUnresolvedPhrase

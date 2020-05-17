@@ -194,6 +194,49 @@ OK.
 OK.
 ```
 
+### Conjunctive Conditions
+
+In order to limit the situations in which a cause results in an effect, you can specify an additional condition:
+
+```scala mdoc:processConversation
+> If a person inflates a balloon, and the person is tired, then the balloon becomes full.
+
+OK.
+> If a person inflates a balloon, and the person is energetic, then the balloon becomes broken.
+
+OK.
+
+> The red balloon is empty.
+
+OK.
+
+> Brain is tired.
+
+OK.
+
+> Pinkie is energetic.
+
+OK.
+
+> Brain inflates the red balloon.
+
+OK.
+
+> What is the red balloon's state?
+
+Full.
+
+> Pinkie inflates the red balloon.
+
+OK.
+
+> What is the red balloon's state?
+
+Broken.
+```
+
+I can only handle one extra condition like this, and it must be combined with the cause via **AND** (not **OR**).
+
 ### Preconditions
 
 You can tell me to enforce a certain condition before an event can take place:
@@ -223,8 +266,6 @@ OK.
 
 OK.
 ```
-
-FIXME:  explain **might**, **otherwise**
 
 ## Variables
 

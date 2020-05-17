@@ -59,8 +59,8 @@ When a game-character surveys some map-connections,
  the game-character observes them, their exit-portals, and their containers.
 
 When a player-character relocates to a map-place,
- the player-character might be its place-discoverer;
- otherwise the player-character discovers it.
+ and player-character is not its place-discoverer,
+ the player-character discovers it.
 When a player-character relocates to a map-place,
- the player-character might not be its place-discoverer;
- otherwise the player-character rediscovers it.
+ and the player-character is its place-discoverer,
+ the player-character rediscovers it.
