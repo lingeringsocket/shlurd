@@ -475,3 +475,15 @@ Nothing is south of the bedroom.
 The loft is above the bedroom.
 
 (At least I assume that's still the case.)
+
+> get the axe
+
+OK.
+
+> throw the axe at myself
+
+OK.
+
+You are now a tree forever, and not in a good way.
+
+GAME OVER

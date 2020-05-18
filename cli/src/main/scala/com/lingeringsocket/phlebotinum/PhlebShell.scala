@@ -356,6 +356,9 @@ class PhlebShell(
     listenerMind : PhlebMind,
     quotation : String) extends Deferred
 
+  case class DeferredTermination(
+  ) extends Deferred
+
   private val phenomenalMind = snapshot.getPhenomenalMind
 
   private val phenomenalCosmos = phenomenalMind.getCosmos
@@ -381,6 +384,8 @@ class PhlebShell(
   private var gameTurnTimestamp = SpcTimestamp.ZERO
 
   private var restoreFile : Option[File] = None
+
+  private var terminated = false
 
   private var listenerMind : Option[(SpcEntity, PhlebMind)] = None
 
@@ -512,6 +517,12 @@ class PhlebShell(
         }
         case _ => {
           lemma match {
+            case "terminate" if (
+              subjectEntityOpt == Some(interpreterEntity)
+            ) => {
+              defer(DeferredTermination())
+              ok
+            }
             case "perceive" => {
               processPerception(
                 Some(PhlebShell.this), snapshot, ap, refMap, subjectEntityOpt)
@@ -652,6 +663,10 @@ class PhlebShell(
     var first = true
     while (deferredQueue.nonEmpty) {
       deferredQueue.dequeue match {
+        case DeferredTermination() => {
+          logger.trace("TERMINATE")
+          terminated = true
+        }
         case DeferredDirective(input) => {
           logger.trace(s"DIRECTIVE $input")
           val parseResults = noumenalUpdater.newParser(input).parseAll
@@ -920,7 +935,7 @@ class PhlebShell(
           exit = true
         }
       }
-      if (restoreFile.nonEmpty) {
+      if (terminated || restoreFile.nonEmpty) {
         exit = true
       }
     }

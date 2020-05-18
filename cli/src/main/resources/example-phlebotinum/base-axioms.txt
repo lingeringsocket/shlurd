@@ -1,7 +1,8 @@
 Believe "/phlebotinum/default-axioms.txt".
 
+A person must be alive or dead.
+
 A thief is a kind of non-player-character.
-A thief must be alive or dead.
 A thief must be boorish or suave.
 
 An axe or a lantern is a kind of game-object.

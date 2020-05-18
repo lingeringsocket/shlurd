@@ -29,3 +29,8 @@ When a player-character ululates,
 
 When the game-turn initializes,
  the game-interpreter says "Welcome to a tepid smorgasbord of nostalgia.".
+
+When the player-character kills the player-character,
+ the game-interpreter says "You are now a tree forever, and not in a good way.";
+ also the game-interpreter says "GAME OVER";
+ also the game-interpreter terminates.

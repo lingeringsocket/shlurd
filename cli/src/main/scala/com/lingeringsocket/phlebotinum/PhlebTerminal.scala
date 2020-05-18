@@ -71,6 +71,7 @@ class PhlebConsole extends PhlebTerminal
   {
     super.emitControl(msg)
     out.println(s"[phlebotinum] $msg")
+    jlineTerminal.flush
   }
 
   override def emitNarrative(msg : String)
