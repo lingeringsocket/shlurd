@@ -692,7 +692,14 @@ class SpcCosmos(
   {
     val hypernyms = {
       if (includeHypernyms) {
-        getFormHypernyms(form)
+        try {
+          getFormHypernyms(form)
+        } catch {
+          case ex : Throwable => {
+            // SpcGraphVisualizer.displayEntities(getGraph)
+            throw ex
+          }
+        }
       } else {
         Seq(form)
       }
@@ -1714,11 +1721,22 @@ class SpcCosmos(
           // make up possessee out of thin air
           val name = possessor.name + "_" + role.name +
             SpcForm.TENTATIVE_INFIX + generateId
-          val form = instantiateForm(SpcForm.tentativeName(SilWord(name)))
-          graph.getFormsForRole(role).foreach(
-            hypernym => {
-              addIdealTaxonomy(form, hypernym)
-            })
+          val roleForms = graph.getFormsForRole(role)
+          val form = {
+            // if role has a unique form, use it, otherwise make
+            // up a multiple-inheritance subform
+            if (roleForms.size == 1) {
+              roleForms.head
+            } else {
+              val roleForm = instantiateForm(
+                SpcForm.tentativeName(SilWord(name)))
+              graph.getFormsForRole(role).foreach(
+                hypernym => {
+                  addIdealTaxonomy(roleForm, hypernym)
+                })
+              roleForm
+            }
+          }
           val (possessee, success) = instantiateEntity(
             form, Seq(SilWord(name)), name)
           assert(success, tupleN((form, name)))
