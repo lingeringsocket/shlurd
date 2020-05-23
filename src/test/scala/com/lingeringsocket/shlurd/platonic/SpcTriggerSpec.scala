@@ -248,7 +248,7 @@ class SpcTriggerSpec extends SpcResponseSpecification
   {
     processBelief("A person is a kind of spc-someone.")
     processBelief("A supe is a kind of person.")
-    processBelief("A supe may have a nemesis.")
+    processBelief("A supe's nemesis must be a supe.")
     processBelief("If a supe is another supe's nemesis, " +
       "then equivalently the latter is the former's nemesis.")
     processBelief("If a supe opposes another supe, " +

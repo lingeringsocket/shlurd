@@ -5,7 +5,7 @@ You can teach me about diversity:
 ```scala mdoc:renderBelief:assets/pronouns.png
 A monster is a kind of spc-someone.
 A person is a kind of spc-someone.
-A person may have crushes.
+A person's crush must be a person.
 A man or a woman is a kind of person.
 A man is a kind of male.
 A woman is a kind of female.

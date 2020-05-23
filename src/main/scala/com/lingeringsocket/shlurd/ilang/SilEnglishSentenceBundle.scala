@@ -556,7 +556,7 @@ class SilEnglishSentenceBundle
         }
       }
     }
-    compose((Seq(prefix) ++ seq ++ Seq(items.last)):_*)
+    compose((Seq(prefix) ++ seq ++ items.lastOption.toSeq):_*)
   }
 
   override def conditional(

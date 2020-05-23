@@ -311,11 +311,11 @@ The belief that Pete is a monster contradicts the belief that Pete is an investi
 ## FormRoleIncompatible
 
 ```scala mdoc:processConversation:allowImplicits
-> a tribble must have a groomer
+> a tribble's groomer must be a human
 
 OK.
 
-> a tribble's groomer must be a human
+> a tribble must have a groomer
 
 OK.
 

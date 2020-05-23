@@ -133,6 +133,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       expectFormSingleton(expectNamedForm("cloud"))
 
       // named entity existence
+      addBelief("a spy is a kind of an owner")
       addBelief("Krieger and Archer are spies")
       val spy = expectNamedForm("spy")
       val krieger = expectProperName("Krieger")
@@ -933,6 +934,20 @@ class SpcCosmosSpec extends SpcProcessingSpecification
         InvalidBeliefExcn(
           ShlurdExceptionCode.ConsequentConditionExpected,
           unusedSentence))
+    }
+
+    "reject role hyponym conflicts" in new CosmosContext
+    {
+      addBelief("nobles, knights, pages, and serfs are kinds of persons")
+      addBelief("a templar is a kind of knight")
+      expectErrorBelief(
+        "a noble's serf must be a knight",
+        IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.RoleHyponymConflictsWithForm,
+          unusedSentence))
+      addBelief("a noble's serf must be a serf")
+      addBelief("a noble's knight must be a templar")
+      addBelief("a knight must have a page")
     }
 
     "reject more invalid beliefs" in new CosmosContext

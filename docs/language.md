@@ -19,7 +19,7 @@ A person, place, or thing is a kind of spc-object.
 A person is a kind of spc-someone.
 A supe is a kind of person.
 A supe's mindset must be cynical or idealistic.
-A supe may have a nemesis.
+A supe's nemesis must be a supe.
 A supe's possession must be a thing.
 A supe's identity must be an spc-string.
 If a supe is another supe's nemesis, then equivalently the latter is the former's nemesis.

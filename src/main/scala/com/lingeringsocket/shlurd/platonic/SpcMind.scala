@@ -47,7 +47,8 @@ class SpcMind(cosmos : SpcCosmos)
     resourceName : String,
     responder : SpcResponder = new SpcResponder(
       this,
-      SpcBeliefParams(ACCEPT_NEW_BELIEFS)))
+      SpcBeliefParams(ACCEPT_NEW_BELIEFS),
+      SmcResponseParams(reportExceptionCodes = true)))
   {
     if (!cosmos.isDuplicateBeliefResource(resourceName)) {
       val stream = ResourceUtils.getResourceStream(resourceName)
@@ -62,7 +63,9 @@ class SpcMind(cosmos : SpcCosmos)
   def loadBeliefs(
     source : Source,
     responder : SpcResponder = new SpcResponder(
-      this, SpcBeliefParams(ACCEPT_NEW_BELIEFS)))
+      this,
+      SpcBeliefParams(ACCEPT_NEW_BELIEFS),
+      SmcResponseParams(reportExceptionCodes = true)))
   {
     val beliefs = source.getLines.
       filterNot(SprParser.isIgnorableLine).mkString("\n")

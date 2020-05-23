@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.phlebotinum
 
+import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 import com.lingeringsocket.shlurd.cli._
 
@@ -46,7 +47,8 @@ object PhlebBaseline
               "/phlebotinum/default-axioms.txt",
               new SpcResponder(
                 mind,
-                PhlebShell.beliefParams))
+                PhlebShell.beliefParams,
+                SmcResponseParams(reportExceptionCodes = true)))
 
             // hmm we kind of just conveniently forget preferredSynonyms
             // here

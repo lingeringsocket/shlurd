@@ -100,7 +100,9 @@ class SpcCreedSpec extends Specification
   private val animalOwners = "An animal may have owners."
   private val assocHas = "A dog has an owner."
   private val assocMust = "A dog must have one owner."
+  private val dogOwner = "A dog's owner must be an owner."
   private val assocMustPlural = "A shark must have teeth."
+  private val sharkTooth = "A shark's tooth must be a tooth."
   private val assocMay = "A person may have one mentor."
   private val assocMayPlural = "A person may have pets."
   private val entityExists = "A parakeet exists."
@@ -154,7 +156,9 @@ class SpcCreedSpec extends Specification
   private val auntWoman = "A man's aunt must be a woman."
   private val children = "A person may have sons or daughters."
   private val childrenSons = "A person may have sons."
+  private val sonPerson = "A person's son must be a son."
   private val childrenDaughters = "A person may have daughters."
+  private val daughterPerson = "A person's daughter must be a daughter."
   private val moveTrigger =
     "If an object moves to another object, " +
       "then the latter becomes the former's container."
@@ -330,18 +334,23 @@ class SpcCreedSpec extends Specification
       expectPreserved(Seq(formTaxonomy))
     }
 
-    "preserve form associations" in new CosmosContext
+    "normalize form associations" in new CosmosContext
     {
-      expectPreserved(Seq(
-        formRole, formRole2, formRole3, assocMay, assocMayPlural,
-        animalOwners, assocMust, assocMustPlural))
+      expectNormalized(
+        Seq(
+          formRole, formRole2, formRole3, assocMay, assocMayPlural,
+          animalOwners, assocMust, assocMustPlural),
+        Seq(
+          formRole, formRole2, formRole3, dogOwner, sharkTooth,
+          assocMay, assocMayPlural,
+          animalOwners, assocMust, assocMustPlural))
     }
 
     "normalize form associations" in new CosmosContext
     {
       expectNormalized(
         Seq(formRole2, assocHas),
-        Seq(formRole2, animalOwners, assocMust))
+        Seq(formRole2, dogOwner, animalOwners, assocMust))
     }
 
     "preserve entity existence" in new CosmosContext
@@ -486,7 +495,7 @@ class SpcCreedSpec extends Specification
     {
       expectNormalized(
         Seq(children),
-        Seq(childrenSons, childrenDaughters))
+        Seq(sonPerson, daughterPerson, childrenSons, childrenDaughters))
     }
 
     "preserve inverse associations with multiple roles" in new CosmosContext

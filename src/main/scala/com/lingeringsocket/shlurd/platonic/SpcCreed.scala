@@ -343,8 +343,10 @@ class SpcCreed(
   private def isTrivialTaxonomy(
     edge : SpcTaxonomyEdge) =
   {
-    cosmos.getGraph.getSuperclassIdeal(edge).name.equals(
-      cosmos.getGraph.getSubclassIdeal(edge).name)
+    val superclass = cosmos.getGraph.getSuperclassIdeal(edge)
+    val subclass = cosmos.getGraph.getSubclassIdeal(edge)
+    superclass.isRole && subclass.isRole &&
+      superclass.name.equals(subclass.name)
   }
 
   private def isTrivialSynonym(

@@ -1194,6 +1194,16 @@ class SpcComprehensionSpec extends SpcResponseSpecification
     cosmos.sanityCheck must beTrue
   }
 
+  "support role form collisions" in new ResponderContext(
+    ACCEPT_NEW_BELIEFS)
+  {
+    processBelief("a squire is a kind of boy")
+    processBelief("a knight may have a squire")
+    processBelief("Quijote is a knight")
+    processBelief("Sancho is Quijote's squire")
+    processTerse("is Sancho a boy", "Yes.")
+  }
+
   "understand compound names" in new ResponderContext(
     ACCEPT_NEW_BELIEFS)
   {

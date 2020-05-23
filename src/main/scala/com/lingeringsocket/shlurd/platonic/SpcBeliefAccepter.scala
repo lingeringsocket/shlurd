@@ -324,7 +324,8 @@ class SpcBeliefAccepter private(
     sentence : SilSentence, possessor : SpcEntity, roleName : SilWord) =
   {
     val graph = cosmos.getGraph
-    val role = instantiateRole(sentence, possessor.form, roleName, true)
+    val (role, isNewRole) = instantiateRole(
+      sentence, possessor.form, roleName, true)
     val candidates =
       Seq(possessor.form) ++ cosmos.getRolesForForm(possessor.form) ++ {
         if (possessor.form.isTentative) {
@@ -435,17 +436,17 @@ class SpcBeliefAccepter private(
     possessorForm : SpcForm,
     idealName : SilWord,
     includeHypernyms : Boolean = false,
-    isImplicit : Boolean = true) : SpcRole =
+    isImplicit : Boolean = true) : (SpcRole, Boolean) =
   {
     mind.resolveRole(possessorForm, idealName, includeHypernyms) match {
-      case Some(r) => r
+      case Some(r) => tupleN((r, false))
       case _ => {
         if (isImplicit && !params.createImplicitIdeals) {
           throw new ProhibitedBeliefExcn(
             ShlurdExceptionCode.ImplicitIdealsProhibited,
             sentence)
         }
-        mind.instantiateRole(possessorForm, idealName)
+        tupleN((mind.instantiateRole(possessorForm, idealName), true))
       }
     }
   }
@@ -508,7 +509,8 @@ class SpcBeliefAccepter private(
       possessorOpt match {
         case Some(possessorFormName) => {
           val possessorForm = mind.instantiateForm(possessorFormName)
-          val role = instantiateRole(sentence, possessorForm, idealName, true)
+          val (role, isNewRole) = instantiateRole(
+            sentence, possessorForm, idealName, true)
           cosmos.addIdealSynonym(
             cosmos.synthesizeRoleSynonym(
               possessorForm, cosmos.encodeName(synonym)),
@@ -556,11 +558,14 @@ class SpcBeliefAccepter private(
           instantiateForm(sentence, hypernymIdealName)
         }
       }
-      if (mind.resolveForm(hyponymRoleName).nonEmpty) {
-        throw new IncomprehensibleBeliefExcn(
-          ShlurdExceptionCode.RoleHyponymConflictsWithForm,
-          sentence)
-      }
+      val existingFormOpt = mind.resolveForm(hyponymRoleName)
+      existingFormOpt.foreach(form => {
+        if (!cosmos.isHyponym(hypernymIdeal, form)) {
+          throw new IncomprehensibleBeliefExcn(
+            ShlurdExceptionCode.RoleHyponymConflictsWithForm,
+            sentence)
+        }
+      })
       if (isRefinement) {
         if (mind.resolveRole(possessorForm, hyponymRoleName, false).nonEmpty) {
           // FIXME instead of failing, merge the associations
@@ -621,8 +626,12 @@ class SpcBeliefAccepter private(
     ) => {
       val possessorForm = instantiateForm(sentence, possessorFormName)
       possesseeRoleNames.foreach(possesseeRoleName => {
-        val possesseeRole = instantiateRole(
-          sentence, possessorForm, possesseeRoleName)
+        val existingHypernymOpt = mind.resolveForm(possesseeRoleName)
+        val possibleRefinement =
+          mind.resolveRole(possessorForm, possesseeRoleName, true).nonEmpty
+        val (possesseeRole, isNewRole) = instantiateRole(
+          sentence, possessorForm, possesseeRoleName,
+          false, existingHypernymOpt.isEmpty)
         val edge = cosmos.addFormAssoc(
           possessorForm, possesseeRole)
         val oldConstraint = edge.constraint
@@ -630,6 +639,12 @@ class SpcBeliefAccepter private(
           Math.max(oldConstraint.lower, newConstraint.lower),
           Math.min(oldConstraint.upper, newConstraint.upper))
         cosmos.annotateFormAssoc(edge, constraint)
+        if (isNewRole && !possibleRefinement) {
+          val hypernym = existingHypernymOpt.getOrElse {
+            instantiateForm(sentence, possesseeRoleName)
+          }
+          addIdealTaxonomy(sentence, possesseeRole, hypernym)
+        }
       })
     }
   }
@@ -944,9 +959,9 @@ class SpcBeliefAccepter private(
     ) => {
       val possessorForm = instantiateForm(sentence, possessorFormName)
       val possesseeForm = instantiateForm(sentence, possesseeFormName)
-      val possessorRole = instantiateRole(
+      val (possessorRole, isNewPossessor) = instantiateRole(
         sentence, possesseeForm, possessorRoleName)
-      val possesseeRole = instantiateRole(
+      val (possesseeRole, isNewPossessee) = instantiateRole(
         sentence, possessorForm, possesseeRoleName)
       addIdealTaxonomy(sentence, possessorRole, possessorForm)
       addIdealTaxonomy(sentence, possesseeRole, possesseeForm)

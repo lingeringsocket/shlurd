@@ -124,7 +124,8 @@ object PhlebShell
       s"${resourcePrefix}base-axioms.txt",
       new SpcResponder(
         bootMind,
-        beliefParams))
+        beliefParams,
+        SmcResponseParams(reportExceptionCodes = true)))
 
     val noumenalCosmos = bootCosmos.newClone()
     val noumenalMind = new PhlebMind(
@@ -196,7 +197,7 @@ object PhlebShell
     lazy val noumenalInitializer : PhlebResponder = new PhlebResponder(
       noumenalMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
-      responderParams,
+      responderParams.copy(reportExceptionCodes = true),
       executor, SmcCommunicationContext(Some(playerEntity), Some(playerEntity)))
     noumenalMind.importBeliefs(
       s"${resourcePrefix}game-init.txt",
@@ -223,7 +224,7 @@ object PhlebShell
       case Some(mind) => {
         val responder = new PhlebResponder(
           mind, beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
-          SmcResponseParams(), executor,
+          SmcResponseParams(reportExceptionCodes = true), executor,
           SmcCommunicationContext(Some(entity), Some(entity)))
         mind.importBeliefs(resourceName, responder)
       }

@@ -6,5 +6,5 @@ Jack, Larry, and Furley are men.
 Jack is in Herbie.
 Chrissy's container is Christine.
 Janet is in Christine.
-A person may have tenants.
-Jack, Janet, Chrissy, and Larry are Furley's tenant.
+A person's tenant must be a person.
+Jack, Janet, Chrissy, and Larry are Furley's tenants.

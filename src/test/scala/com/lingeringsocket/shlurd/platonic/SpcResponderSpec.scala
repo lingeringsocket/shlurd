@@ -51,8 +51,8 @@ class SpcResponderSpec extends SpcResponseSpecification
       processBelief("Todd and Dirk teleport")
       process("are they in the jail", "Yes, Todd and Dirk are in the jail.")
 
-      processBelief("a person may have a lover")
-      processBelief("a person may have a muse")
+      processBelief("a person's lover must be a person")
+      processBelief("a person's muse must be a person")
       processBelief("Camille is a woman")
       processBelief("Auguste is a man")
       processBelief("She is his lover")
@@ -274,8 +274,8 @@ class SpcResponderSpec extends SpcResponseSpecification
     "reject incompatible form for role" in new ResponderContext(
       ACCEPT_NEW_BELIEFS)
     {
-      processBelief("a person must have a lawyer")
       processBelief("a person's lawyer must be a weasel")
+      processBelief("a person must have a lawyer")
       processBelief("Donald is a person")
       processBelief("Michael is a snake")
       processExceptionExpected(
