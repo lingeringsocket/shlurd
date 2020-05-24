@@ -39,8 +39,6 @@ object PhlebShell
 
   val INTERPRETER_WORD = "game-interpreter"
 
-  val INVENTORY_WORD = "player-inventory"
-
   val MAP_PLACE_WORD = "map-place"
 
   val OK = "OK."
@@ -518,6 +516,14 @@ class PhlebShell(
         }
         case _ => {
           lemma match {
+            case "visualize" => {
+              SpcGraphVisualizer.displayEntities(phenomenalCosmos.getGraph)
+              ok
+            }
+            case "scry" => {
+              SpcGraphVisualizer.displayEntities(noumenalCosmos.getGraph)
+              ok
+            }
             case "terminate" if (
               subjectEntityOpt == Some(interpreterEntity)
             ) => {

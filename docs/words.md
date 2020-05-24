@@ -211,7 +211,7 @@ OK.
 
 > Is the king's enemy a dwarf?
 
-I don't know.
+No.
 
 ```
 

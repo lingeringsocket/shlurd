@@ -98,11 +98,16 @@ case class EntityExistenceBelief(
 {
 }
 
+sealed trait EntityAssocInstantiation
+case object ENTITY_ASSOC_EXISTING extends EntityAssocInstantiation
+case object ENTITY_ASSOC_DEFINITE extends EntityAssocInstantiation
+case object ENTITY_ASSOC_INDEFINITE extends EntityAssocInstantiation
+
 case class EntityAssocBelief(
   sentence : SilSentence,
   possessorRef : SilReference,
   possesseeRef : SilReference,
-  indefinite : Boolean,
+  instantiation : EntityAssocInstantiation,
   roleName : SilWord,
   positive : Boolean = true
 ) extends SpcBelief

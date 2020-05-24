@@ -151,7 +151,7 @@ class SpcMeta(cosmos : SpcCosmos)
           s"$propertyEntityName is $formEntityName's spc-attribute"),
         annotator.nounRef(SilWord(formEntityName)),
         annotator.nounRef(SilWord(propertyEntityName)),
-        false,
+        ENTITY_ASSOC_EXISTING,
         SilWord(ATTRIBUTE_METAROLE_NAME),
         true)
     )
@@ -179,7 +179,7 @@ class SpcMeta(cosmos : SpcCosmos)
           s"$valueEntityName is $propertyEntityName's spc-property-value"),
         annotator.nounRef(SilWord(propertyEntityName)),
         annotator.nounRef(SilWord(valueEntityName)),
-        false,
+        ENTITY_ASSOC_EXISTING,
         SilWord(VALUE_METAROLE_NAME),
         true)
     )
@@ -205,7 +205,7 @@ class SpcMeta(cosmos : SpcCosmos)
             + "spc-superclass"),
         annotator.nounRef(SilWord(subclassEntityName)),
         annotator.nounRef(SilWord(superclassEntityName)),
-        false,
+        ENTITY_ASSOC_EXISTING,
         SilWord(SUPERCLASS_METAROLE_NAME),
         positive))
   }
@@ -234,7 +234,7 @@ class SpcMeta(cosmos : SpcCosmos)
           s"$formEntityName is $modifier $entityName's spc-type"),
         annotator.nounRef(SilWord(entityName)),
         annotator.nounRef(SilWord(formEntityName)),
-        false,
+        ENTITY_ASSOC_EXISTING,
         SilWord(TYPE_METAROLE_NAME),
         positive))
   }

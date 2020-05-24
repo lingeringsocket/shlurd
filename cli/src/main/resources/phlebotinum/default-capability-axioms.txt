@@ -15,5 +15,7 @@ A player-character can move to a map-place.
 A player-character can enter a map-place.
 A player-character can save.
 A player-character can restore.
+A player-character can visualize.
+A player-character can scry.
 A player-character can get an object.
 A player-character can drop an object.

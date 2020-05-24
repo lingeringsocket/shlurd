@@ -350,7 +350,7 @@ class SpcMind(cosmos : SpcCosmos)
   {
     resolveRole(possessor.form, roleName) match {
       case Some(role) => {
-        cosmos.reifyRole(possessor, role, onlyIfProven)
+        cosmos.reifyRole(possessor, role, ENTITY_ASSOC_INDEFINITE, onlyIfProven)
       }
       // FIXME assert instead?
       case _ => Set.empty

@@ -461,14 +461,30 @@ class SpcBeliefRecognizer(
           })
         }
         case SilExistenceState(_) if (isProperSubject(noun, count)) => {
-          // "Beelzebub exists"
           subjectConjunction.checkAnd
-          return Seq(EntityExistenceBelief(
-            sentence,
-            ref,
-            SpcForm.tentativeName(noun),
-            Seq(noun),
-            noun.toUnfoldedLemma))
+          if (qualifiers.nonEmpty) {
+            assert(qualifiers.size == 1)
+            val possessor = ref match {
+              case SilGenitiveReference(possessor, possessee) => possessor
+              case _ => ref
+            }
+            // "Beelzebub's minion exists"
+            return determinedEntityAssocBelief(
+              sentence,
+              possessor,
+              state,
+              noun,
+              ENTITY_ASSOC_DEFINITE
+            )
+          } else {
+            // "Beelzebub exists"
+            return Seq(EntityExistenceBelief(
+              sentence,
+              ref,
+              SpcForm.tentativeName(noun),
+              Seq(noun),
+              noun.toUnfoldedLemma))
+          }
         }
         case _ => {
           return Seq.empty
@@ -1188,20 +1204,22 @@ class SpcBeliefRecognizer(
             DETERMINER_NONSPECIFIC
           ) => {
             // "Larry has a dirty dog"
-            return indefiniteEntityAssocBelief(
+            return determinedEntityAssocBelief(
               sentence, subjectRef,
               state,
-              roleNoun)
+              roleNoun,
+              ENTITY_ASSOC_INDEFINITE)
           }
           case SilDeterminedReference(
             SilNounReference(roleNoun),
             DETERMINER_NONSPECIFIC
           ) => {
             // "Larry has a dog"
-            return indefiniteEntityAssocBelief(
+            return determinedEntityAssocBelief(
               sentence, subjectRef,
               SilExistenceState(),
-              roleNoun)
+              roleNoun,
+              ENTITY_ASSOC_INDEFINITE)
           }
           case _ => {
             // FIXME other interesting cases such as
@@ -1253,7 +1271,7 @@ class SpcBeliefRecognizer(
             sentence,
             possessorRef,
             subjectRef,
-            false,
+            ENTITY_ASSOC_EXISTING,
             roleNoun,
             sentence.tam.isPositive))
         }
@@ -1327,11 +1345,12 @@ class SpcBeliefRecognizer(
     word.isProper || (count == COUNT_SINGULAR)
   }
 
-  private def indefiniteEntityAssocBelief(
+  private def determinedEntityAssocBelief(
     sentence : SilSentence,
     subjectRef : SilReference,
     state : SilState,
-    roleNoun : SilWord) =
+    roleNoun : SilWord,
+    instantiation : EntityAssocInstantiation) =
   {
     Seq(EntityAssocBelief(
       sentence,
@@ -1341,7 +1360,7 @@ class SpcBeliefRecognizer(
           annotator.nounRef(roleNoun),
           state),
         DETERMINER_DEFINITE),
-      true,
+      instantiation,
       roleNoun
     ))
   }

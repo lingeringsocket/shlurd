@@ -15,11 +15,14 @@
 package com.lingeringsocket.phlebotinum
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 import com.lingeringsocket.shlurd.cli._
 
 import scala.collection._
+
+import SprEnglishLemmas._
 
 class PhlebClock
 {
@@ -184,22 +187,25 @@ class PhlebMind(
   {
     val references = super.equivalentReferences(
       annotator, communicationContext, entity, determiner)
-    if (entity.form.name == PhlebShell.INVENTORY_WORD) {
-      val (worse, better) =
-        references.partition(_ match
-        {
-          case SilOptionallyDeterminedReference(
-            SilNounReference(_), _) => true
-          case SilGenitiveReference(
-            _, SilNounLemmaReference("container")) => true
-          case _ => false
-        })
-      // prefer "the player's stuff" over "the player-inventory"
-      // and over "the widget's container"
-      better ++ worse
-    } else {
-      references
-    }
+    // prefer "the player's stuff" over "player-inventory--123"
+    // and over "the widget's container"
+    val (worse, better) =
+      references.partition(_ match
+      {
+        case SilOptionallyDeterminedReference(
+          SilNounReference(noun),
+          _
+        ) => {
+          noun.toNounLemma.contains(SpcForm.TENTATIVE_INFIX) ||
+          noun.toNounLemma.contains(SpcForm.POSSESSEE_INFIX)
+        }
+        case SilGenitiveReference(
+          _,
+          SilNounLemmaReference("container" | LEMMA_WHERE)
+        ) => true
+        case _ => false
+      })
+    better ++ worse
   }
 
   override def isSpatialLocation(entity : SpcEntity) : Boolean =

@@ -113,6 +113,8 @@ object SpcForm
 {
   val TENTATIVE_INFIX = "__"
 
+  val POSSESSEE_INFIX = "--"
+
   val TENTATIVE_SUFFIX = s"${TENTATIVE_INFIX}form"
 
   def tentativeName(word : SilWord) =
@@ -1697,6 +1699,7 @@ class SpcCosmos(
   def reifyRole(
     possessor : SpcEntity,
     role : SpcRole,
+    instantiation : EntityAssocInstantiation,
     onlyIfProven : Boolean,
     assumeNew : Boolean = false) : Set[SpcEntity] =
   {
@@ -1719,8 +1722,12 @@ class SpcCosmos(
           existing
         } else {
           // make up possessee out of thin air
+          val infix = instantiation match {
+            case ENTITY_ASSOC_DEFINITE => SpcForm.POSSESSEE_INFIX
+            case _ => SpcForm.TENTATIVE_INFIX
+          }
           val name = possessor.name + "_" + role.name +
-            SpcForm.TENTATIVE_INFIX + generateId
+            infix + generateId
           val roleForms = graph.getFormsForRole(role)
           val form = {
             // if role has a unique form, use it, otherwise make

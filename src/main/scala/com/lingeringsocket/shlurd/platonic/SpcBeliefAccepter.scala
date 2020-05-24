@@ -819,18 +819,18 @@ class SpcBeliefAccepter private(
 
   beliefApplier {
     case EntityAssocBelief(
-      sentence, possessorRef, possesseeRef, indefinite, roleName, positive
+      sentence, possessorRef, possesseeRef, instantiation, roleName, positive
     ) => {
       val possessor = resolveReference(
         sentence, possessorRef)
 
       var newEntityRef = possesseeRef
 
-      // FIXME for indefinite, we should check whether an existing
-      // entity satisfies the state rather than assuming that it
-      // specifies a new entity
+      // FIXME for non-existing instantiation, we should check whether
+      // an existing entity satisfies the state rather than assuming
+      // that it specifies a new entity
       val (possesseeOpt, stateOpt) = {
-        if (indefinite) {
+        if (instantiation != ENTITY_ASSOC_EXISTING) {
           possesseeRef match {
             case SilOptionallyDeterminedReference(
               SilStateSpecifiedReference(ref, SilExistenceState(_)),
@@ -859,7 +859,8 @@ class SpcBeliefAccepter private(
       val possessee = possesseeOpt.getOrElse {
         getUniqueEntity(
           sentence,
-          cosmos.reifyRole(possessor, role, false, stateOpt.nonEmpty)).get
+          cosmos.reifyRole(
+            possessor, role, instantiation, false, stateOpt.nonEmpty)).get
       }
 
       if (!params.createTentativeEntities && possessee.isTentative) {
