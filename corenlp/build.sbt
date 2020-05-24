@@ -35,10 +35,10 @@ scalacOptions in (Compile, console) := Common.scalacCommonOptions :+ "-Yrepl-syn
 scalacOptions in (Test, console) := Common.scalacCommonOptions :+ "-Yrepl-sync"
 
 testOptions in Test += Tests.Setup(
-  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.corenlp.CorenlpTestSetup").newInstance)
+  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.corenlp.CorenlpTestSetup").getDeclaredConstructor().newInstance())
 
 testOptions in Test += Tests.Cleanup(
-  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.corenlp.CorenlpTestCleanup").newInstance)
+  (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.corenlp.CorenlpTestCleanup").getDeclaredConstructor().newInstance())
 
 if (sys.env.get("xonly").getOrElse("true") != "false") {
   Seq(
