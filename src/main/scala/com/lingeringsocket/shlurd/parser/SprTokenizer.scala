@@ -14,8 +14,11 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd._
+
 import eus.ixa.ixa.pipe.ml.tok._
 
+import scala.collection._
 import scala.collection.JavaConverters._
 
 import java.io._
@@ -50,8 +53,15 @@ trait SprTokenizer
   def tokenize(input : String) : Seq[SprTokenizedSentence]
 }
 
+object SprIxaTokenizer
+{
+  private val HIDDEN_DOT = '\u00b7'
+}
+
 class SprIxaTokenizer extends SprTokenizer
 {
+  import SprIxaTokenizer._
+
   override def tokenize(input : String) : Seq[SprTokenizedSentence] =
   {
     val properties = new java.util.Properties
@@ -59,22 +69,22 @@ class SprIxaTokenizer extends SprTokenizer
     properties.put("untokenizable", "no")
     properties.put("hardParagraph", "no")
     // ugh
-    val folded = input.replace('_', '#')
+    val folded = fold(input)
     val textSegment = RuleBasedSegmenter.readText(
       new BufferedReader(new StringReader(folded)))
     val segmenter = new RuleBasedSegmenter(textSegment, properties)
-    val tokenizer = new RuleBasedTokenizer(textSegment, properties)
-    val sentences = segmenter.segmentSentence
+    val tokenizer = new RuleBasedTokenizer(unfoldDot(textSegment), properties)
+    val sentences = segmenter.segmentSentence.map(unfoldDot)
     val tokenizedSentences = tokenizer.tokenize(sentences)
     assert(sentences.size == tokenizedSentences.size)
     sentences.zip(tokenizedSentences.asScala).map {
       case (sentence, tokenizedSentence) => {
         SprPlainTokenizedSentence(
-          sentence.trim.replace('#', '_'),
+          unfoldHash(sentence),
           fixPossessives(
             tokenizedSentence.asScala.map(
               t => SprToken(
-                t.getTokenValue.trim.replace('#', '_').
+                unfoldHash(t.getTokenValue).
                   replace("(", LABEL_LPAREN).replace(")", LABEL_RPAREN).
                   replace("{", LABEL_LCURLY).replace("}", LABEL_RCURLY),
                 t.startOffset,
@@ -82,6 +92,46 @@ class SprIxaTokenizer extends SprTokenizer
           input)
       }
     }
+  }
+
+  private def fold(input : String) : String =
+  {
+    hideDotsInsideQuotes(input.replace('_', '#'))
+  }
+
+  private def unfoldHash(input : String) : String =
+  {
+    input.trim.replace('#', '_')
+  }
+
+  private def unfoldDot(input : String) : String =
+  {
+    input.replace(HIDDEN_DOT, '.')
+  }
+
+  private def hideDotsInsideQuotes(input : String) : String =
+  {
+    var inside = false
+    val sb = new mutable.StringBuilder(input.size)
+    input.foreach(c => {
+      c match {
+        case DQUOTE_CHAR => {
+          inside = !inside
+          sb += c
+        }
+        case '.' => {
+          if (inside) {
+            sb += HIDDEN_DOT
+          } else {
+            sb += c
+          }
+        }
+        case _ => {
+          sb += c
+        }
+      }
+    })
+    sb.toString
   }
 
   private def fixPossessives(seq : Seq[SprToken]) : Seq[SprToken] =

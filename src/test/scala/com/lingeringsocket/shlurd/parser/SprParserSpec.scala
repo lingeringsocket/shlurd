@@ -264,13 +264,13 @@ class SprParserSpec extends Specification
       if (SprParser.isCoreNLP) {
         skipped("CoreNLP not working")
       }
-      val input = "Franny says \"I love you\""
+      val input = "Franny says \"I love you.  You love me.\""
       parse(input) must be equalTo
         SilPredicateSentence(
           SilActionPredicate(
             annotator.nounRef(NOUN_FRANNY),
             ACTION_SAYS,
-            Some(annotator.quotationRef("I love you"))))
+            Some(annotator.quotationRef("I love you.  You love me."))))
     }
 
     "parse a negation" in

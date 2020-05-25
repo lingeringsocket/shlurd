@@ -65,9 +65,10 @@ class SprTokenizerSpec extends Specification
     "tokenize quotation" in
     {
       tokenize(
-        "She said \"Eat my shorts\".",
+        "She said \"Eat my shorts. I love pie.\"",
         Seq("She", "said", LABEL_LQUOTE,
-          "Eat", "my", "shorts", LABEL_RQUOTE, "."))
+          "Eat", "my", "shorts", ".", "I", "love", "pie", ".",
+          LABEL_RQUOTE))
     }
   }
 }

@@ -388,9 +388,8 @@ object SprParser extends SprEnglishWordAnalyzer
       if (right == -1) {
         tokensText
       } else {
-        val quotation = DQUOTE +
-          sentence.offsetText.slice(tokens(left).end, tokens(right).start) +
-          DQUOTE
+        val quotation =
+          sentence.offsetText.slice(tokens(left).start, tokens(right).end)
         tokensText.take(left) ++
           Seq(quotation) ++
           collapseQuotations(sentence, tokens.drop(right + 1))
