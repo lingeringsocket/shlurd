@@ -39,6 +39,9 @@ class PhlebSpec extends Specification
 
   private def testScript(fileName : String) =
   {
+    // preload
+    PhlebBaseline.frozenCosmos
+
     val terminal = new PhlebTestTerminal(fileName)
     PhlebShell.run("/example-phlebotinum/", terminal)
     terminal.nextScriptLine must beEmpty

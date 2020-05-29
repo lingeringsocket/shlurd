@@ -80,6 +80,9 @@ object PhlebTrc
 {
   def run(terminal : PhlebTerminal)
   {
+    // preload
+    PhlebBaseline.frozenCosmos
+
     ResourceUtils.addUrl(new URL(
       "https://raw.githubusercontent.com/lingeringsocket/" +
         "hello-phlebotinum/master/"))
