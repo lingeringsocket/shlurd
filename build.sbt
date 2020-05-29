@@ -20,7 +20,7 @@ lazy val cli = project.dependsOn(rootProject % "test->test;compile->compile")
 
 lazy val corenlp = project.dependsOn(rootProject % "test->test;compile->compile")
 
-lazy val mdocProject = (project in file ("mdoc")).dependsOn(rootProject)
+lazy val mdocProject = (project in file ("mdoc")).dependsOn(cli)
 
 lazy val `wordnet-bundle` = project.dependsOn(rootProject)
 

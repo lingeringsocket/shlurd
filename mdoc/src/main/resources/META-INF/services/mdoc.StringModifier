@@ -1,2 +1,4 @@
 com.lingeringsocket.shlurd.doc.BeliefRenderer
 com.lingeringsocket.shlurd.doc.ConversationProcessor
+com.lingeringsocket.shlurd.doc.PhlebProcessor
+com.lingeringsocket.shlurd.doc.PhlebRenderer

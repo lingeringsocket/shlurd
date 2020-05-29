@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
+import com.lingeringsocket.phlebotinum._
 
 import mdoc._
 import mdoc.internal.cli._
@@ -28,6 +29,7 @@ import scala.meta._
 import scala.meta.internal.io._
 import scala.io.Source
 
+import java.net._
 import java.nio.file._
 
 object ExampleModifier
@@ -45,16 +47,168 @@ object ExampleModifier
 
   var dir : Option[Path] = None
 
-  var lastCosmos : Option[SpcCosmos] = None
+  def reportErrorLocation(
+    reporter : Reporter,
+    code : Input,
+    startLine : Int,
+    actual : String,
+    expected : String)
+  {
+    val position = Position.Range(code, startLine, 0, startLine, 0)
+    reporter.error(
+      position,
+      s"\nMISMATCH:\n\n$actual\n\nEXPECTED:$expected\n")
+  }
 
-  var beliefParams : Option[SpcBeliefParams] = None
+  def getOutputLocation(info : String) =
+  {
+    val relpath = Paths.get(info)
+    val out = dir.get.resolve(relpath)
+    assert(!outputs.contains(out), out)
+    outputs += out
+    Files.createDirectories(out.getParent)
+    out
+  }
 }
 
+object CosmosModifier
+{
+  var lastCosmos : Option[SpcCosmos] = None
+}
 
+object PhlebTrc
+{
+  def run(terminal : PhlebTerminal)
+  {
+    ResourceUtils.addUrl(new URL(
+      "https://raw.githubusercontent.com/lingeringsocket/" +
+        "hello-phlebotinum/master/"))
+    PhlebShell.run("/", terminal)
+  }
+}
+
+abstract class PhlebAbstractProcessor extends StringModifier
+{
+  import ExampleModifier._
+
+  class DocTerminal(
+    info : String, code : Input, reporter : Reporter,
+    expectOutput : Boolean
+  ) extends PhlebTerminal
+  {
+    private val script = Source.fromString(code.text).getLines.zipWithIndex
+
+    private var lastLineNo = 0
+
+    override def emitNarrative(msg : String)
+    {
+      super.emitNarrative(msg)
+      if (expectOutput && !msg.isEmpty) {
+        nextScriptLine match {
+          case Some((expected, lineNo)) => {
+            if (msg != expected) {
+              reportErrorLocation(reporter, code, lineNo, msg, expected)
+            }
+          }
+          case _ => {
+            reportErrorLocation(reporter, code, lastLineNo, msg, "EOF")
+          }
+        }
+      }
+    }
+
+    override def emitVisualization(visualizer : SpcGraphVisualizer)
+    {
+      if (info.isEmpty) {
+        reportErrorLocation(
+          reporter, code, lastLineNo, "visualize", "output location required")
+      }
+      val out = getOutputLocation(info)
+      visualizer.renderToImageFile(out.toFile)
+    }
+
+    override def readInput() : Option[String] =
+    {
+      nextScriptLine match {
+        case Some((cmd, lineNo)) => {
+          val expected = prompt
+          if (!cmd.startsWith(expected)) {
+            reportErrorLocation(reporter, code, lineNo, cmd, expected)
+          }
+          Some(cmd.stripPrefix(expected))
+        }
+        case _ => None
+      }
+    }
+
+    override def getInitSaveFile() : String =
+    {
+      "trc/init-save.zip"
+    }
+
+    def nextScriptLine() : Option[(String, Int)] = {
+      if (!script.hasNext) {
+        None
+      } else {
+        val s = script.next
+        lastLineNo = s._2
+        if (SprParser.isIgnorableLine(s._1)) {
+          nextScriptLine
+        } else {
+          Some(s)
+        }
+      }
+    }
+  }
+
+  protected def processImpl(
+    info : String,
+    code : Input,
+    reporter : Reporter,
+    expectOutput : Boolean)
+  {
+    val terminal = new DocTerminal(info, code, reporter, expectOutput)
+    PhlebTrc.run(terminal)
+    terminal.nextScriptLine matchPartial {
+      case Some((cmd, lineNo)) => {
+        reportErrorLocation(reporter, code, lineNo, cmd, "EOF")
+      }
+    }
+  }
+}
+
+class PhlebProcessor extends PhlebAbstractProcessor
+{
+  override val name = "processPhleb"
+
+  override def process(
+    info : String,
+    code : Input,
+    reporter : Reporter) : String =
+  {
+    processImpl(info, code, reporter, true)
+    s"```\n${code.text}\n```"
+  }
+}
+
+class PhlebRenderer extends PhlebAbstractProcessor
+{
+  override val name = "renderPhleb"
+
+  override def process(
+    info : String,
+    code : Input,
+    reporter : Reporter) : String =
+  {
+    processImpl(info, code, reporter, false)
+    s"![diagram]($info)"
+  }
+}
 
 class ConversationProcessor extends StringModifier
 {
   import ExampleModifier._
+  import CosmosModifier._
 
   override val name = "processConversation"
 
@@ -141,10 +295,7 @@ class ConversationProcessor extends StringModifier
               "(response ended prematurely)"
             }
           }
-          val position = Position.Range(code, startLine, 0, startLine, 0)
-          reporter.error(
-            position,
-            s"\nMISMATCH:\n\n$actual\n\nEXPECTED:\n")
+          reportErrorLocation(reporter, code, startLine, actual, "")
         })
         if (responseLines.size > expectedLines.size) {
           val actual = responseLines(expectedLines.size)
@@ -208,6 +359,7 @@ class ConversationProcessor extends StringModifier
 class BeliefRenderer extends StringModifier
 {
   import ExampleModifier._
+  import CosmosModifier._
 
   override val name = "renderBelief"
 
@@ -271,14 +423,10 @@ class BeliefRenderer extends StringModifier
         includeTaxonomy = true, includeRealizations = true,
         includeFormAssocs = true, includeEntityAssocs = true,
         includeInverses = true, includeSynonyms = true,
-        includeProperties = true
+        includeProperties = true, includeEntityProperties = true
       )
     )
-    val relpath = Paths.get(info)
-    val out = dir.get.resolve(relpath)
-    assert(!outputs.contains(out), out)
-    outputs += out
-    Files.createDirectories(out.getParent)
+    val out = getOutputLocation(info)
     visualizer.renderToImageFile(out.toFile)
     s"```\n$input\n```\n\n![diagram]($info)"
   }

@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.phlebotinum
 
+import com.lingeringsocket.shlurd.platonic._
+
 import org.jline.terminal._
 import org.jline.reader._
 
@@ -38,6 +40,11 @@ trait PhlebTerminal
     }
   }
 
+  def emitVisualization(visualizer : SpcGraphVisualizer)
+  {
+    visualizer.display
+  }
+
   def readCommand() : Option[String] =
   {
     val result = readInput
@@ -53,6 +60,12 @@ trait PhlebTerminal
   def getDefaultSaveFile() : String =
   {
     "phlebotinum-save.zip"
+  }
+
+  // override this to return empty string if no init save desired
+  def getInitSaveFile() : String =
+  {
+    "init-save.zip"
   }
 }
 

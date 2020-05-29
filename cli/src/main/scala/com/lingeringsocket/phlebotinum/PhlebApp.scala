@@ -23,7 +23,11 @@ object PhlebApp extends App
   if (args.isEmpty) {
     PhlebShell.run("/example-phlebotinum/")
   } else {
+    val terminal = new PhlebConsole
+    {
+      override def getInitSaveFile() = ""
+    }
     ResourceUtils.addUrl(new URL(args.head))
-    PhlebShell.run("/")
+    PhlebShell.run("/", terminal)
   }
 }

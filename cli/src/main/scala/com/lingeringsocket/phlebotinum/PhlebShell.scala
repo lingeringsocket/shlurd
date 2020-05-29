@@ -64,11 +64,12 @@ object PhlebShell
     terminal : PhlebTerminal = new PhlebConsole)
   {
     val newShell = this.synchronized {
-      val file = new File(s"run${resourcePrefix}init-save.zip")
+      val suffix = terminal.getInitSaveFile
+      val file = new File(s"run${resourcePrefix}${suffix}")
       val (snapshot, init) =
         loadOrCreate(resourcePrefix, file, terminal)
       val shell = new PhlebShell(snapshot, terminal)
-      if (init && (resourcePrefix.size > 1)) {
+      if (init && suffix.nonEmpty) {
         serializer.saveSnapshot(snapshot, file)
       }
       shell
@@ -90,7 +91,7 @@ object PhlebShell
     resourcePrefix : String, file : File, terminal : PhlebTerminal)
       : (PhlebSnapshot, Boolean) =
   {
-    if (resourcePrefix.nonEmpty && file.exists) {
+    if (terminal.getInitSaveFile.nonEmpty && file.exists) {
       tupleN((restore(file, terminal), false))
     } else {
       terminal.emitControl("Initializing...")
@@ -408,7 +409,7 @@ class PhlebShell(
           SilActionPredicate(_, verb, _, _),
           _, _
         ) => {
-          Seq("enter", "go").contains(verb.toLemma)
+          Seq("enter", "go", "scry", "visualize").contains(verb.toLemma)
         }
         case _ => false
       }
@@ -436,9 +437,12 @@ class PhlebShell(
           SilAdposition.TO,
           ref) => Some(ref)
         case _ => None
-      }).headOption
+      }).headOption.orElse {
+        ap.directObject
+      }
       val targetEntityOpt = targetRefOpt.flatMap(
         ref => singletonLookup(refMap, ref))
+      val targetEntitySet = targetRefOpt.flatMap(ref => refMap.get(ref))
       quotationOpt match {
         case Some(quotation) => {
           if (subjectEntityOpt == Some(playerEntity)) {
@@ -517,11 +521,11 @@ class PhlebShell(
         case _ => {
           lemma match {
             case "visualize" => {
-              SpcGraphVisualizer.displayEntities(phenomenalCosmos.getGraph)
+              visualize(phenomenalCosmos.getGraph, targetEntitySet)
               ok
             }
             case "scry" => {
-              SpcGraphVisualizer.displayEntities(noumenalCosmos.getGraph)
+              visualize(noumenalCosmos.getGraph, targetEntitySet)
               ok
             }
             case "terminate" if (
@@ -567,6 +571,27 @@ class PhlebShell(
           }
         }
       }
+    }
+
+    private def visualize(
+      graph : SpcGraph,
+      targetEntitySetOpt : Option[Set[SpcEntity]])
+    {
+      val visualizer = new SpcGraphVisualizer(
+        graph,
+        SpcGraphVisualizer.entityFullOptions.copy(
+          entityFilter = (entity => {
+            targetEntitySetOpt match {
+              case Some(set) => {
+                set.contains(entity)
+              }
+              case _ => true
+            }
+          }),
+          includeProperties = targetEntitySetOpt.isEmpty
+        )
+      )
+      terminal.emitVisualization(visualizer)
     }
 
     private def getSaveFile(quotation : String) : File =

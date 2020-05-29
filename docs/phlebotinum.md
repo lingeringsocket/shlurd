@@ -10,6 +10,7 @@ well.
 ## A Rather Short Story
 
 * [play here](http://phlebotinum.xyz:8000)
+* if you get stuck, there's a [walkthrough](walkthrough.md)
 * [see source code](https://github.com/lingeringsocket/hello-phlebotinum) (but hey, make sure you try playing it first!)
 
 ## Story Organization
@@ -83,12 +84,24 @@ other objects recursively, but there is not yet any notion of
 supporter, transparency, etc.  Locations are objects, and they contain
 whatever is present in them (including characters).
 
-Each character has an associated character-inventory, a.k.a. stuff
+Each character has an associated inventory, a.k.a. stuff
 (which is itself a kind of object so that it can contain other
 things).  So if a character is holding a lantern, the lantern is not
 directly inside of the character (ouch!); instead, it is in the character's
 stuff.  Getting an object moves it from a location to the character's
 stuff, and the opposite is true for dropping an object.
+
+In the example story, here's how this looks after getting the rock and
+moving to the barn:
+
+```scala mdoc:renderPhleb:assets/possessions.png
+> get the rock
+
+> s
+
+> scry the barn, the child, me, my stuff, the rock, and the photo
+```
+
 
 ## Maps
 
@@ -100,6 +113,21 @@ The game axiom library supplies a fairly standard map representation:
 * a standard straight-connection type is defined (e.g. a passage from east to west), but custom types (e.g. elbow-shaped passages) can be defined as well
 * since most passages between places are bidirectional, a map-connection is typically associated with an opposite-connection
 * map-portals (including doors, passages, etc) are objects which mediate map-connections; for a bidirectional passage, typically the same map-portal object is associated with the two opposing map-connections
+
+Let's take a look at the pathway from the meadow to the barn in the example story:
+
+```scala mdoc:renderPhleb:assets/grassy.png
+> s
+
+> scry the meadow, the barn, the path, the north, the south, and the path's mediated-connections
+```
+
+Whew!  There's a lot going on here:
+
+* The actual map locations are the meadow (aka "hayfield") and the barn
+* The map connections are the place exits.
+* The singleton compass directions (north and south) are the containers for the place exits, indicating the direction in which an exit leads
+* Finally the grassy path object (aka "grassy way") is the portal which mediates these connections.
 
 ## Movement
 

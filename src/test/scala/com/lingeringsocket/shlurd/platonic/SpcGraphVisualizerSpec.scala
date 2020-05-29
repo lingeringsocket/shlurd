@@ -291,7 +291,9 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
     "visualize properties" in new VisualizationContext(
       SpcGraphVisualizationOptions(
         includeIdeals = true, includeTaxonomy = true,
-        includeRealizations = true, includeProperties = true)
+        includeRealizations = true,
+        includeProperties = true,
+        includeEntityProperties = true)
     ) {
       definePowerpuffs
       defineProperties
@@ -311,6 +313,21 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
           3->1 $taxonomyAttributes;
           6->3 $realizationAttributes;
           7->3 $realizationAttributes;
+        }
+      """).ignoreSpace
+    }
+
+    "visualize filtered entities" in new VisualizationContext(
+      SpcGraphVisualizationOptions(
+        includeEntities = true,
+        entityFilter = (entity => (entity.name == "Buttercup"))
+      )
+    ) {
+      definePowerpuffs
+      renderToString must beEqualTo(s"""
+        strict digraph G {
+          rankdir=LR;
+          1 ${entityAttributes("Buttercup")};
         }
       """).ignoreSpace
     }

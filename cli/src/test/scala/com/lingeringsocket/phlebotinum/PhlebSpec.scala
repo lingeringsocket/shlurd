@@ -16,6 +16,7 @@ package com.lingeringsocket.phlebotinum
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.platonic._
 
 import org.specs2.mutable._
 
@@ -66,6 +67,11 @@ class PhlebSpec extends Specification
           }
         }
       }
+    }
+
+    override def emitVisualization(visualizer : SpcGraphVisualizer)
+    {
+      // just skip it
     }
 
     // FIXME do this the proper specs2 way

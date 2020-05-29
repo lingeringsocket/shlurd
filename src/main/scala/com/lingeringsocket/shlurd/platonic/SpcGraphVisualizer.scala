@@ -38,7 +38,9 @@ case class SpcGraphVisualizationOptions(
   includeEntityAssocs : Boolean = false,
   includeSynonyms : Boolean = false,
   includeProperties : Boolean = false,
-  includeMeta : Boolean = false
+  includeEntityProperties : Boolean = false,
+  includeMeta : Boolean = false,
+  entityFilter : (SpcEntity => Boolean) = (_ => true)
 )
 
 object SpcGraphVisualizer
@@ -48,12 +50,13 @@ object SpcGraphVisualizer
     includeTaxonomy = true, includeRealizations = true,
     includeFormAssocs = true, includeEntityAssocs = true,
     includeInverses = true, includeSynonyms = true,
-    includeProperties = true
+    includeProperties = true, includeEntityProperties = true
   )
 
   val entityFullOptions = SpcGraphVisualizationOptions(
     includeEntities = true, includeRealizations = true,
-    includeEntityAssocs = true, includeProperties = true
+    includeEntityAssocs = true,
+    includeEntityProperties = true
   )
 
   val entityAssocOptions = SpcGraphVisualizationOptions(
@@ -257,7 +260,7 @@ class SpcGraphVisualizer(
                 valuesExtended.mkString("|") + "}}"
             }
             case entity : SpcEntity => {
-              if (options.includeProperties) {
+              if (options.includeEntityProperties) {
                 val propertyMap =
                   graph.entityPropertyIndex.accessComponentMap(entity)
                 "{" + simpleName(entity) + "|" +
@@ -354,10 +357,14 @@ class SpcGraphVisualizer(
 
   private def includeEntity(entity : SpcEntity) : Boolean =
   {
-    if (options.includeMeta) {
-      true
+    if (options.entityFilter(entity)) {
+      if (options.includeMeta) {
+        true
+      } else {
+        !SpcMeta.isMetaEntity(entity)
+      }
     } else {
-      !SpcMeta.isMetaEntity(entity)
+      false
     }
   }
 
