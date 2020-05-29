@@ -31,7 +31,6 @@ lazy val docs = project.in(file("generated-docs")).settings(
   mainClass in (Compile, run) := Some("com.lingeringsocket.shlurd.doc.MdocMain")
 ).dependsOn(mdocProject).enablePlugins(MdocPlugin)
 
-
 resolvers ++= Common.resolvers
 
 libraryDependencies ++= Common.specs2Deps

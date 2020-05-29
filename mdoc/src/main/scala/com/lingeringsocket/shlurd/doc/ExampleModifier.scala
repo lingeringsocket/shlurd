@@ -201,7 +201,7 @@ class PhlebRenderer extends PhlebAbstractProcessor
     reporter : Reporter) : String =
   {
     processImpl(info, code, reporter, false)
-    s"![diagram]($info)"
+    s"[![diagram]($info)]($info)"
   }
 }
 
@@ -428,7 +428,7 @@ class BeliefRenderer extends StringModifier
     )
     val out = getOutputLocation(info)
     visualizer.renderToImageFile(out.toFile)
-    s"```\n$input\n```\n\n![diagram]($info)"
+    s"```\n$input\n```\n\n[![diagram]($info)]($info)"
   }
 }
 
