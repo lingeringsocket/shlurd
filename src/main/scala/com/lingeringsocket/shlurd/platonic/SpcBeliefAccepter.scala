@@ -1041,7 +1041,7 @@ class SpcBeliefAccepter private(
       }
       case ps : SilPredicateSentence => {
         Some(implicationMapper.validateAssertionPredicate(
-          SpcAnnotator(mind), belief.sentence, ps.predicate))
+          SpcAnnotator(), belief.sentence, ps.predicate))
       }
       case _ => None
     }

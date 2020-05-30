@@ -23,7 +23,7 @@ class SilWordnetScorerSpec extends Specification
   private val annotator = SilBasicAnnotator()
 
   private val pronoun =
-    annotator.pronounRef(PERSON_FIRST, GENDER_FEMININE, COUNT_SINGULAR)
+    annotator.basicPronounRef(PERSON_FIRST, GENDER_FEMININE, COUNT_SINGULAR)
 
   private val genitiveInvalid = annotator.genitiveRef(pronoun, pronoun)
 

@@ -108,7 +108,7 @@ class PhlebMind(
   {
     val mind = this
     val annotatorMap = SmcResultCollector.newAnnotationRefMap(annotator)
-    val refMap = SmcResultCollector.modifiableRefMap(mind, annotatorMap)
+    val refMap = SmcResultCollector.modifiableRefMap(annotatorMap)
     refMap.put(ref, Set(entity))
     val speakerRef = annotator.determinedNounRef(
       SilWord("game-speaker"),

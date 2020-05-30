@@ -89,7 +89,7 @@ class SprWordnetGlossPrepSpec extends Specification
       ) must be equalTo Seq(
         SilPredicateSentence(
           SilActionPredicate(
-            annotator.pronounRef(
+            annotator.basicPronounRef(
               PERSON_THIRD,
               GENDER_MASCULINE,
               COUNT_SINGULAR),

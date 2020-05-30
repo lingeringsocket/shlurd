@@ -321,7 +321,7 @@ class SmcResponseRewriter[
         }
         if (swap) {
           val newPronoun = annotator.pronounRef(
-            speakerListenerReversed, gender, count, distance)
+            speakerListenerReversed, gender, count, mind, distance)
           refMap.get(oldPronoun).foreach(entities =>
             refMap.put(newPronoun, entities))
           newPronoun
@@ -448,7 +448,7 @@ class SmcResponseRewriter[
     predicate : SilPredicate) : SilPredicate =
   {
     val refMap = SmcResultCollector.modifiableRefMap(
-      mind, resultCollector.refMap)
+      resultCollector.refMap)
     querier.query(disqualifyThirdPersonReferences(refMap), predicate)
     querier.query(disqualifyQueryAnswers(refMap), predicate)
     val detector = new AmbiguousRefDetector(refMap)
@@ -986,6 +986,7 @@ class SmcResponseRewriter[
           annotator.pronounRef(
             PERSON_THIRD,
             GENDER_NEUTER,
-            COUNT_PLURAL)))))
+            COUNT_PLURAL,
+            mind)))))
   }
 }

@@ -202,7 +202,7 @@ class SprParserSpec extends Specification
     }
     SilPredicateSentence(
       SilActionPredicate(
-        annotator.pronounRef(
+        annotator.basicPronounRef(
           PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR),
         verbWord,
         Some(pred.subject),
@@ -459,7 +459,7 @@ class SprParserSpec extends Specification
       parse(input) must be equalTo
         SilPredicateSentence(
           SilActionPredicate(
-            annotator.pronounRef(
+            annotator.basicPronounRef(
               PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR),
             ACTION_KILL,
             Some(annotator.determinedNounRef(
@@ -476,13 +476,13 @@ class SprParserSpec extends Specification
       parse(input) must be equalTo
         SilPredicateSentence(
           SilActionPredicate(
-            annotator.pronounRef(
+            annotator.basicPronounRef(
               PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR),
             ACTION_ASK,
             Some(annotator.quotationRef("where am I")),
             Seq(SilAdpositionalVerbModifier(
               SilAdposition.TO,
-              annotator.pronounRef(
+              annotator.basicPronounRef(
                 PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR)))),
           SilTam.imperative)
     }
@@ -715,7 +715,7 @@ class SprParserSpec extends Specification
       parse(input) must be equalTo
         SilPredicateSentence(
           SilStatePredicate(
-            annotator.pronounRef(
+            annotator.basicPronounRef(
               PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR),
             VERB_AM,
             SilPropertyState(STATE_HUNGRY)))
@@ -728,7 +728,7 @@ class SprParserSpec extends Specification
         SilPredicateSentence(
           SilStatePredicate(
             annotator.genitiveRef(
-              annotator.pronounRef(
+              annotator.basicPronounRef(
                 PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR),
               annotator.nounRef(NOUN_GRANDDAUGHTER)),
             VERB_IS,
@@ -746,9 +746,9 @@ class SprParserSpec extends Specification
           annotator.nounRef(NOUN_FRANNY),
           ACTION_ASKS,
           Some(
-            annotator.pronounRef(
+            annotator.basicPronounRef(
               PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR,
-              DISTANCE_REFLEXIVE)
+              distance = DISTANCE_REFLEXIVE)
           )
         ),
         SilTam.indicative

@@ -1524,7 +1524,8 @@ class SprEnglishSyntaxAnalyzer(
       }
     }
     annotator.pronounRef(
-      person, gender, count, distance, Some(getWord(leaf)))
+      person, gender, count,
+      context.genderAnalyzer, distance, Some(getWord(leaf)))
   }
 
   override def isProhibitedPropertyState(

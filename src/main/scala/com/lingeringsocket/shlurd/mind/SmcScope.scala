@@ -298,6 +298,7 @@ class SmcMindScope[
           PERSON_THIRD,
           GENDER_SOMEWHERE,
           COUNT_SINGULAR,
+          mind,
           distance)
         val outputs = {
           mind.getConversation.getUtterances.reverseIterator.drop(1).map(

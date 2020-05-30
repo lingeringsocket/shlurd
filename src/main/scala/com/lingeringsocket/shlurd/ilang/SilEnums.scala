@@ -51,6 +51,16 @@ case object GENDER_NEUTER extends SilBasicGender
 case object GENDER_SOMEONE extends SilBasicGender
 case object GENDER_SOMEWHERE extends SilBasicGender
 
+trait SilGenderAnalyzer
+{
+  def canonicalGender(gender : SilGender) : SilGender
+}
+
+object SilGenderPreserver extends SilGenderAnalyzer
+{
+  override def canonicalGender(gender : SilGender) = gender
+}
+
 sealed trait SilDeterminer
 sealed trait SilIndefiniteDeterminer extends SilDeterminer
 sealed trait SilUnlimitedDeterminer extends SilIndefiniteDeterminer

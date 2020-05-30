@@ -51,13 +51,13 @@ class SmcScopeSpec extends Specification
   {
     protected val mind = new ZooMind(cosmos)
 
-    protected val annotator = SmcAnnotator[SmcEntity](mind)
+    protected val annotator = SmcAnnotator[SmcEntity]()
 
     protected val firstPersonRef =
-      annotator.pronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
+      annotator.pronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR, mind)
 
     protected val thirdPersonRef =
-      annotator.pronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
+      annotator.pronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR, mind)
 
     protected val nigelRef = annotator.nounRef(SilWord("Nigel"))
 

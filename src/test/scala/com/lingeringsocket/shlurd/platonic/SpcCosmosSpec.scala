@@ -708,7 +708,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
     {
       addBelief("Lana is a person")
       val entity = expectPerson("lana")
-      val annotator = SpcAnnotator(new SpcMind(cosmos))
+      val annotator = SpcAnnotator()
       val properRef = annotator.nounRef(SilWord("Lana"))
       val specificRef = mind.specificReference(
         annotator, entity, DETERMINER_ABSENT)

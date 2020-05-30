@@ -183,15 +183,15 @@ object SpcResultCollector
   }
 }
 
-class SpcAnnotator(mind : SpcMind)
-    extends SmcAnnotator[SpcEntity, SpcRefNote](mind,
+class SpcAnnotator()
+    extends SmcAnnotator[SpcEntity, SpcRefNote](
       (ref) => new SpcRefNote(ref))
 {
 }
 
 object SpcAnnotator
 {
-  def apply(mind : SpcMind) : SpcAnnotator = new SpcAnnotator(mind)
+  def apply() : SpcAnnotator = new SpcAnnotator()
 
   def apply(annotator : SilAnnotator) : SpcAnnotator =
     annotator.asInstanceOf[SpcAnnotator]
@@ -227,17 +227,18 @@ class SpcResponder(
 
   override def newParser(input : String) =
   {
-    val contextAnnotator = SpcAnnotator(mind)
+    val contextAnnotator = SpcAnnotator()
     val context = SprContext(
       mind.getCosmos.getWordLabeler,
       scorer = new SpcContextualScorer(this, contextAnnotator),
-      annotator = contextAnnotator)
+      annotator = contextAnnotator,
+      genderAnalyzer = mind)
     SprParser(input, context)
   }
 
   override protected def newAnnotator() =
   {
-    SpcAnnotator(mind)
+    SpcAnnotator()
   }
 
   override def newResultCollector(
@@ -730,7 +731,7 @@ class SpcResponder(
       : SpcAssertionResult =
   {
     val resultCollector = SpcResultCollector(
-      annotator, SmcResultCollector.modifiableRefMap(mind, refMap))
+      annotator, SmcResultCollector.modifiableRefMap(refMap))
     spawn(imagine(forkedCosmos)).resolveReferences(
       predicate, resultCollector, false, true)
 
@@ -1084,7 +1085,7 @@ class SpcResponder(
     var matched = false
     val compliance = sentencePrinter.sb.respondCompliance
     val spawned = spawn(mind.spawn(forkedCosmos))
-    val refMap = SmcResultCollector.snapshotRefMap(mind, resultCollector.refMap)
+    val refMap = SmcResultCollector.snapshotRefMap(resultCollector.refMap)
     val beliefAccepter =
       SpcBeliefAccepter(
         spawned,
@@ -1500,7 +1501,7 @@ class SpcResponder(
   {
     val annotator = resultCollector.annotator
     val modifiableRefMap =
-      SmcResultCollector.modifiableRefMap(mind, eventRefMap)
+      SmcResultCollector.modifiableRefMap(eventRefMap)
     val queue = new mutable.Queue[SilPredicate]
     queue.enqueue(eventActionPredicate)
     val seen = new mutable.HashSet[SilPredicate]

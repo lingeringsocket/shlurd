@@ -239,7 +239,7 @@ class SpcMind(cosmos : SpcCosmos)
         }
       }
       Some(annotator.pronounRef(
-        PERSON_THIRD, gender, count,
+        PERSON_THIRD, gender, count, this,
         pronounMap = pronounMap))
     } else {
       super.thirdPersonDeictic(annotator, entities, axis)
@@ -304,7 +304,7 @@ class SpcMind(cosmos : SpcCosmos)
   {
     // FIXME for enums, use the correct meta entity
     val domainName = property.domain.name
-    val annotator = SpcAnnotator(this)
+    val annotator = SpcAnnotator()
     val analyzedNoun =
       analyzeSense(annotator, annotator.nounRef(SilWord(domainName))).noun
     val form = resolveForm(analyzedNoun).getOrElse(SpcForm(domainName))

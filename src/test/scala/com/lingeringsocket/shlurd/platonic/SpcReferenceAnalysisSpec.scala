@@ -104,7 +104,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       val ivan = "Ivan"
       val boris = "Boris"
       val natasha = "Natasha"
-      val annotator = SpcAnnotator(mind)
+      val annotator = SpcAnnotator()
       val ivanRef = annotator.nounRef(SilWord(ivan))
       val borisRef = annotator.nounRef(SilWord(boris))
       val natashaRef = annotator.nounRef(SilWord(natasha))
@@ -123,11 +123,12 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
         "then equivalently the mule is grumpy")
       analyze("a woman's beast must be a mule")
       val sheRef = annotator.pronounRef(
-        PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR)
+        PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR, mind)
       val heRef = annotator.pronounRef(
-        PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR)
+        PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR, mind)
       val himselfRef = annotator.pronounRef(
-        PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR, DISTANCE_REFLEXIVE)
+        PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR, mind,
+        distance = DISTANCE_REFLEXIVE)
       val isaResult = analyze(s"$ivan is a mule")
       val ivanEntity = expectProperName(ivan)
       val ivanSet = Set(ivanEntity)

@@ -95,7 +95,7 @@ class SpcMeta(cosmos : SpcCosmos)
 
   private var buffer : Option[mutable.Buffer[SpcBelief]] = None
 
-  private def newAnnotator() = SpcAnnotator(new SpcMind(cosmos))
+  private def newAnnotator() = SpcAnnotator()
 
   def idealExistence(
     metaFormName : String, idealEntityName : String, positive : Boolean)

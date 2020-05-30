@@ -77,7 +77,8 @@ class SmcMind[
   PropertyType<:SmcProperty,
   CosmosType<:SmcCosmos[EntityType, PropertyType]
 ](
-  cosmos : CosmosType)
+  cosmos : CosmosType
+) extends SilGenderAnalyzer
 {
   import SmcMind._
 
@@ -96,7 +97,9 @@ class SmcMind[
   {
     SprParser(
       input,
-      SprContext(annotator = SmcAnnotator[EntityType](this))
+      SprContext(
+        annotator = SmcAnnotator[EntityType](),
+        genderAnalyzer = this)
     )
   }
 
@@ -334,7 +337,7 @@ class SmcMind[
         Some(
           annotator.pronounRef(
             PERSON_THIRD, GENDER_SOMEWHERE, COUNT_SINGULAR,
-            DISTANCE_THERE))
+            this, DISTANCE_THERE))
       } else {
         None
       }
@@ -343,11 +346,11 @@ class SmcMind[
     } else if (entities.size == 1) {
       Some(annotator.pronounRef(
         PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
-        pronounMap = singularNeuterPronounMap))
+        this, pronounMap = singularNeuterPronounMap))
     } else {
       Some(annotator.pronounRef(
         PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL,
-        pronounMap = pluralNeuterPronounMap))
+        this, pronounMap = pluralNeuterPronounMap))
     }
   }
 
@@ -368,11 +371,11 @@ class SmcMind[
     Some(entity) match {
       case communicationContext.speakerEntity => {
         annotator.pronounRef(
-          PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
+          PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR, this)
       }
       case communicationContext.listenerEntity => {
         annotator.pronounRef(
-          PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR)
+          PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR, this)
       }
       case _ => {
         specificReference(annotator, entity, determiner)
@@ -414,7 +417,7 @@ class SmcMind[
     }
   }
 
-  def canonicalGender(gender : SilGender) : SilGender =
+  override def canonicalGender(gender : SilGender) : SilGender =
   {
     gender
   }

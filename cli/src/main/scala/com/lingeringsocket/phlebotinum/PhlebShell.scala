@@ -552,7 +552,7 @@ class PhlebShell(
                           "(You are now in conversation.  Say TTYL to stop.)"))
                       }
                       case _ => {
-                        val annotator = SpcAnnotator(phenomenalMind)
+                        val annotator = SpcAnnotator()
                         defer(DeferredReport(
                           SprUtils.capitalize(
                             noResponse(conversationalReference(
@@ -612,9 +612,10 @@ class PhlebShell(
       refMap : SpcRefMap)
         : Option[String] =
     {
-      val annotator = SpcAnnotator(phenomenalMind)
+      val annotator = SpcAnnotator()
       def playerRef =
-        annotator.pronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
+        annotator.pronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
+          phenomenalMind)
       val reannotated = annotator.copy(
         predicate, SilPhraseCopyOptions(preserveNotes = true))
       val newPredicate = reannotated match {
@@ -799,7 +800,7 @@ class PhlebShell(
           if (speaker == listener) {
             talkToSelf
           } else {
-            val annotator = SpcAnnotator(phenomenalMind)
+            val annotator = SpcAnnotator()
             val listenerReference = conversationalReference(
               annotator, listener)
             val reply = accessEntityMind(listener) match {
@@ -1030,7 +1031,7 @@ abstract class PhlebExecutor(noumenalMind : PhlebMind)
     refMap : SpcRefMap)
       : Option[String] =
   {
-    val annotator = SpcAnnotator(noumenalMind)
+    val annotator = SpcAnnotator()
     val sentence = SilPredicateSentence(
       SilStatePredicate(
         noumenalMind.specificReferences(annotator, invocation.entities),

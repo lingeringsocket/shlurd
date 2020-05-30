@@ -588,7 +588,7 @@ class SmcResponderSpec extends Specification
     {
       mind.startConversation
       process("who are you") must be equalTo("I am Muldoon.")
-      val annotator = SmcAnnotator(mind)
+      val annotator = SmcAnnotator()
       val muldoonRef =
         annotator.nounRef(SilWord("Muldoon"))
       mind.getConversation.getUtterances must be equalTo Seq(
@@ -599,7 +599,7 @@ class SmcResponderSpec extends Specification
               annotator.nounRef(SilWord(LEMMA_WHO)),
               SilWord("are", LEMMA_BE),
               annotator.pronounRef(
-                PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR)
+                PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR, mind)
             ),
             QUESTION_WHO,
             INFLECT_NOMINATIVE,
@@ -608,14 +608,14 @@ class SmcResponderSpec extends Specification
           "who are you",
           Map(
             annotator.pronounRef(
-              PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR) ->
+              PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR, mind) ->
               Set(ZooKeeper))),
         SpeakerUtterance(
           SmcConversation.SPEAKER_NAME_SHLURD,
           SilPredicateSentence(
             SilRelationshipPredicate(
               annotator.pronounRef(
-                PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR
+                PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR, mind
               ),
               SilWord.uninflected(LEMMA_BE),
               muldoonRef
@@ -625,7 +625,7 @@ class SmcResponderSpec extends Specification
           "I am Muldoon.",
           Map(
             annotator.pronounRef(
-              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR, mind
             ) -> Set(ZooKeeper),
             muldoonRef -> Set(ZooKeeper)
           )

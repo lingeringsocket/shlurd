@@ -20,6 +20,7 @@ import com.lingeringsocket.shlurd.platonic._
 
 import org.specs2.mutable._
 
+import java.io._
 import scala.io._
 
 class PhlebSpec extends Specification
@@ -28,7 +29,14 @@ class PhlebSpec extends Specification
   {
     "interpret script" in
     {
+      val maxFileSize = 1000000
       testScript("phlebotinum-script.txt")
+
+      // make sure we didn't bloat the serialization
+      val initLength = new File("run/example-phlebotinum/init-save.zip").length
+      initLength must be lessThan maxFileSize
+      val saveLength = new File("run/phlebotinum-test-save.zip").length
+      saveLength must be lessThan maxFileSize
     }
 
     "interpret conversations" in

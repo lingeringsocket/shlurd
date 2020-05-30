@@ -201,7 +201,7 @@ class SpcImplicationMapper(
     alternative : Option[SilPredicateSentence]
   ) : SpcRefMap =
   {
-    val annotator = SpcAnnotator(responder.getMind)
+    val annotator = SpcAnnotator()
     val antecedentRefs = validateAssertionPredicate(
       annotator, conditional, conditional.antecedent)
     val consequentRefs = validateAssertionPredicate(
