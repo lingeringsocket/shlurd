@@ -8,6 +8,9 @@ jdk:
 
 dist: trusty
 
+before_install:
+  - sudo apt-get install graphviz
+
 script:
   - sbt -jvm-opts .travis-jvmopts ++$TRAVIS_SCALA_VERSION clean test scalastyle test:scalastyle
   - sbt -jvm-opts .travis-jvmopts ++$TRAVIS_SCALA_VERSION corenlp/test corenlp/scalastyle
