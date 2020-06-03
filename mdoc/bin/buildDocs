@@ -8,3 +8,5 @@ pushd ${SRC_DIR}
 sbt mdocProject/clean
 sbt "docs/mdoc --no-link-hygiene"
 popd
+
+echo "Docs updated successfully"
