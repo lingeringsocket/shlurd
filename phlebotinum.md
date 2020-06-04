@@ -139,5 +139,104 @@ Whew!  There's a lot going on here:
 
 ## Conversations
 
+A conversations with an NPC may be modeless:
+
+```
+> s
+
+OK.
+
+You are in a barn.
+
+You see a child.
+
+You see the grassy path to the north.
+
+> ask the child "who am I"
+
+OK.
+
+They respond, "You are some oldster."
+
+> say "follow me" to the child
+
+OK.
+
+They respond, "No."
+
+> tell the child "I am your father"
+
+OK.
+
+They respond, "Oh, really?"
+```
+
+(Inform-style direct address appositions such as "child, follow me" are not yet supported.)
+
+Alternatively, a conversation may be modal:
+
+```
+> s
+
+OK.
+
+You are in a barn.
+
+You see a child.
+
+You see the grassy path to the north.
+
+> talk to the child
+
+OK.
+
+(You are now in conversation.  Say TTYL to stop.)
+
+> where is my wife
+
+"I don't know."
+
+> what is in the barn
+
+"I and some oldster are in it."
+
+> I have some candy
+
+"Oh, really?"
+
+> take this photo
+
+"No."
+
+> TTYL
+
+(You are no longer in conversation.)
+
+> l
+
+OK.
+
+You are in the barn.
+
+You see the child.
+
+You see the grassy path to the north.
+```
+
+Normally, the player is "talking" to the game interpreter, but for the
+duration of a modal conversation, utterances are directed at an NPC
+instead.
+
+When processing sentences, NPC's evaluate them with respect to their
+own minds.  Typically, an NPC's private world will not match that of
+either the player or the game interpreter, so their responses will
+vary accordingly.
+
+NPC's respond to questions, but beyond that, responses are quite limited:
+
+* statements are confirmed if true; false or unverifiable statements are met with skepticism
+* statements never result in the NPC's mental state being changed
+* all commands are curtly rejected
+
 ## Wordnet Ontology
 
