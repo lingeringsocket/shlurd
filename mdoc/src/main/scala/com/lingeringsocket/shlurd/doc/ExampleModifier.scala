@@ -103,10 +103,12 @@ abstract class PhlebAbstractProcessor extends StringModifier
 
     private var lastLineNo = 0
 
+    private var skipIntro = (info == "skipIntro")
+
     override def emitNarrative(msg : String)
     {
       super.emitNarrative(msg)
-      if (expectOutput && !msg.isEmpty) {
+      if (!skipIntro && expectOutput && !msg.isEmpty) {
         nextScriptLine match {
           case Some((expected, lineNo)) => {
             if (msg != expected) {
@@ -132,6 +134,7 @@ abstract class PhlebAbstractProcessor extends StringModifier
 
     override def readInput() : Option[String] =
     {
+      skipIntro = false
       nextScriptLine match {
         case Some((cmd, lineNo)) => {
           val expected = prompt
