@@ -13,6 +13,16 @@ You see a grassy path to the south.
 
 You are holding the photograph.
 
+> x photo
+
+OK.
+
+A photo of your wife, but her face is blurred.
+
+> where is my wife
+
+Your wife is in one of your memories.
+
 > s
 
 OK.
@@ -29,11 +39,11 @@ OK.
 
 "Aw, you must love 'er."
 
-> x photo
+> ask the child "where is my wife"
 
 OK.
 
-A photo of your wife, but her face is blurred.
+They respond, "I don't know."
 
 > love my wife
 

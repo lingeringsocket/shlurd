@@ -17,7 +17,7 @@ well.
 
 A story is created as a collection of files:
 
-* [Base axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/base-axioms.txt) define the [ontology](ontology.md) of the game world.  This is the shared base of reality for all characters in the game.  The corresponding file **must** be named ```base-axioms.txt```.  Base axioms must also include the existence of the characters (not to get all theological, but these "souls" need to be granted their existence before their private mental worlds can come into being).
+* [Base axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/base-axioms.txt) define the [ontology](ontology.md) of the game world.  This is the shared base of reality for all characters in the game.  The corresponding file **must** be named ```base-axioms.txt```.
 * [Game initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/game-init.txt) is the *fiat lux* which populates the world and situates the characters which inhabit it.  The corresponding file **must** be named ```game-init.txt```.  Game initialization also sets up the world's [behavior](conditionals.md), as seen in the [behavior axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/behavior-axioms.txt) from the example story.
 * [Capability axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/capability-axioms.txt) define the actions understood by the interpreter in terms of [capabilities](capabilities.md)
 * [Character mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/player-mind-init.txt) is used to bring the private mental world of the player character to life (and possibly that of non-player characters as well, such as [the child](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/child-mind-init.txt) from the example story).  At a minimum, in good self-help fashion, the player needs to believe in some capabilities, otherwise all actions will be prohibited.
@@ -49,8 +49,9 @@ Each game character may have a mind with an associated *phenomenal*
 world (what the character is aware of).  A phenomenal world may be:
 
 * a simple subset of the noumenal world (based on what the character has encountered so far)
-* a subset of the noumenal world, plus an imagined superset (private beliefs, hallucinations, etc)
+* a subset of the noumenal world, plus an imagined superset (private beliefs, hallucinations, etc); this variant is not actually supported yet
 * a totally private world independent of the noumenal world
+* a direct access to the noumenal world (meaning the character is omniscient)
 
 When a character encounters an object in the noumenal world, the
 object becomes a *perceived* part of the character's phenomenal world.
@@ -62,6 +63,9 @@ respect to a character's mind:
 * *fresh* (the character is currently perceiving it for the first time)
 * *familiar* (the character is currently perceiving it, but was already aware of it)
 * *stale* (the character has encountered it, but is not currently perceiving it)
+
+Characters need not be burdened with a mind if it would serve no
+purpose; this is the case for Amy in the example story.
 
 ## Game Turns
 
@@ -96,14 +100,13 @@ moving to the barn:
 
 [![diagram](assets/possessions.png)](assets/possessions.png)
 
-
 ## Maps
 
 The game axiom library supplies a fairly standard map representation:
 
 * the eight compass directions (N/S/E/W/NW/SW/NE/SE) plus the two vertical directions (zenith and nadir) are singleton map-direction objects (e.g. "the north"), each of which has an opposite direction
 * locations are represented by map-places
-* map-places are linked by one-directional map-connections, each of which has a source-place and a target-place; conversely, map-places have map-connections as their place-exits and place-entrances
+* map-places are linked by one-directional map-connections, each of which has a source-place and a target-place; conversely, map-places have map-connections as their place-exits (outgoing connections) and place-entrances (incoming connections)
 * a standard straight-connection type is defined (e.g. a passage from east to west), but custom types (e.g. elbow-shaped passages) can be defined as well
 * since most passages between places are bidirectional, a map-connection is typically associated with an opposite-connection
 * map-portals (including doors, passages, etc) are objects which mediate map-connections; for a bidirectional passage, typically the same map-portal object is associated with the two opposing map-connections
@@ -121,25 +124,153 @@ Whew!  There's a lot going on here:
 
 ## Movement
 
-* for direction-based movement (e.g. ```go north```), the current location must have a place-exit in the corresponding direction
+* for direction-based movement (e.g. ```go north```), the player character's current location must have a place-exit in the corresponding direction
 * for location-based movement (e.g. ```go to the kitchen```), the destination must be a known neighbor of the current location
 * for object-based movement (e.g. ```enter the oven```), the destination object must not be stale (and must in fact be a location)
-* for any type of movement, if there is a door or other portal mediating the map-connection, the portal must be open
+* for any type of movement, if there is a door or other portal mediating the map-connection, the portal must not be closed
 
-## And More
+## Visibility
 
-* the player character
-* non-player characters
-* the interpreter
-* actions
-* capabilities
-* otherwise/complains
+* survey
+* observe
+* see
+* perceive
 
-## Command Interpretation
+## The Player Character
+
+The player character is a unique character from whose perspective the
+game is played.  By default, the player character is anonymous and
+genderless.  The identification between the player and the player
+character is currently one-to-one and immutable; these restrictions
+may be relaxed in future releases.
+
+By default, the player character has the following attributes
+(explained in other sections of this document):
+
+* phenomenal world
+* current location
+* possessions
+* visible items
+
+A game may give the player character additional attributes such as
+description, name, gender, etc.
+
+## Non-Player Characters
+
+A game may define any number of non-player characters, and it's possible
+for a new NPC to come into existence after the game has started.
+
+An NPC has the same default attributes (e.g. location and possessions)
+as a player character.  NPC's will typically have a gender also,
+and sometimes [pronouns](pronouns.md) as well.
+
+Besides defining the behavior of an NPC, a game may also specify what
+each NPC perceives as events occur.  As in countless science fiction
+novels, NPC initialization may also involve perceiving out-of-scope
+objects in order to construct memories.  This allows for appropriate
+responses to be delivered automatically during interactions with the
+player character.
+
+### Expressions For People and Objects
+
+Special conditionals are supported for crafting how an NPC refers to
+entities in a game.  From the
+[example story](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/child-mind-init.txt):
+
+```
+When a child references a photograph,
+ the child recites "the photo".
+
+When a child references a player-character,
+ the child recites "some oldster".
+```
+
+In the first case, the rule simply overrides the default terminology.
+
+In the second case, the rule provides a way for the child to refer to
+the player character, whose name is unknown.
+
+Rules such as these typically only need to be defined in the
+`mind-init` axioms for the relevant NPC, since they aren't applicable
+to other characters.  However, it's also possible to apply them to all
+NPC's across the board:
+
+```
+When a non-player-character references a coin,
+ the non-player-character recites "the zorkmid."
+```
+
+In such cases, the rule should be defined in the general behavior axioms.
+
+TODO:  example with references+annotates
+
+## The Interpreter
+
+Player input is normally processed by the (unique) game interpreter.  The game
+interpreter is not a game character, yet is still a person, and serves
+as the default conversation partner for the player character.  The
+game interpreter is defined to exist within the game world, but normally
+does not have an actual location.
+
+```
+> who am I
+
+You are the player-character.
+
+> who are you
+
+I am the game-interpreter.
+
+> where am I
+
+You are in the meadow.
+
+> where are you
+
+I don't know.
+```
+
+On close examination, the conventions of interactive fiction for
+processing player utterances directed at the game interpreter are
+somewhat peculiar.  For questions or statements, the interpreter
+responds based on the state of the player character's own phenomenal
+world.  For commands, the interpreter processes them as if the player
+character were in self-conversation.  So, the command `throw the rock`
+is executed as if the statement `the player-character throws the rock`
+were being recorded as a new event in the history of the game world.
+
+The game interpreter may also play a part in the cause and effect
+logic of the game world.  Narrative output can be inserted by `the
+game-interpreter says`:
+
+```
+When a player-character examines a describable-entity,
+ and its description does not exist,
+ the game-interpreter says "It's about what you'd expect.".
+```
+
+This can also be done indirectly via `the game-interpreter recites`:
+
+```
+When a player-character examines a describable-entity,
+ the game-interpreter recites its description.
+```
+
+The effect of an action may be prevented via `the game-interpreter complains`:
+
+```
+Before a game-character traverses a map-connection,
+ its exit-portal must be open;
+ otherwise the game-interpreter complains "But the door is not open.".
+```
+
+Such a complaint is treated seriously as a processing error, meaning that all
+other effects of the attempted command are undone.  Don't mess
+with the game interpreter!
 
 ## Conversations
 
-A conversations with an NPC may be modeless:
+A **modeless** conversation with an NPC is mediated by the game interpreter:
 
 ```
 > s
@@ -171,9 +302,12 @@ OK.
 They respond, "Oh, really?"
 ```
 
-(Inform-style direct address appositions such as "child, follow me" are not yet supported.)
+Some speech patterns are not yet supported:
 
-Alternatively, a conversation may be modal:
+* Inform-style direct address appositions such as `child, follow me`
+* indirect speech such as `ask the child about the photo` or `tell the child that I am their father`
+
+A conversation may instead be **modal**:
 
 ```
 > s
@@ -240,3 +374,4 @@ NPC's respond to questions, but beyond that, responses are quite limited:
 
 ## Wordnet Ontology
 
+TODO
