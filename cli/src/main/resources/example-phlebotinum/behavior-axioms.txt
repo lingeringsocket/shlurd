@@ -11,8 +11,7 @@ When a game-character throws a game-object
  at another game-character,
  the first game-character kills the other game-character with the game-object.
 
-// FIXME the equivalent "surveys zir container" should work too
-Whenever the game-turn advances,
+Whenever a thief begins a game-turn,
  the thief has no visible-items;
  also the thief perceives the thief;
  also the thief surveys the thief's container.
@@ -24,7 +23,7 @@ After a player-character beseeches an oracle,
 // from the user level, they are synonymous; whereas for triggering purposes,
 // they are distinct.
 When a player-character ululates,
- the player-character adjures the oracle;
+ the player-character adjures all oracles;
  also the game-interpreter says "Blood is trickling from my ears.".
 
 When the game-turn initializes,

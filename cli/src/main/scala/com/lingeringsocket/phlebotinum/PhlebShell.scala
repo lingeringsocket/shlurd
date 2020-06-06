@@ -294,9 +294,12 @@ object PhlebShell
           return None
         }
       }
+      val clock = noumenalMind.clock
       val newMind = new PhlebMind(
         cosmos,
-        perception, noumenalMind.preferredSynonyms, noumenalMind.clock)
+        perception, noumenalMind.preferredSynonyms, clock)
+      // cogito ergo sum
+      perception.foreach(_.perceiveEntity(entity, clock.getTimestamp))
       snapshot.mindMap.put(entity.name, newMind)
       Some(newMind)
     }
@@ -705,7 +708,7 @@ class PhlebShell(
           val parseResults = noumenalUpdater.newParser(input).parseAll
           parseResults.foreach(parseResult => {
             val output = noumenalUpdater.process(parseResult)
-            assert(output == OK)
+            assert(output == OK, tupleN((parseResult, output)))
           })
         }
         case DeferredUtterance(_, _, "TTYL" | "ttyl") => {

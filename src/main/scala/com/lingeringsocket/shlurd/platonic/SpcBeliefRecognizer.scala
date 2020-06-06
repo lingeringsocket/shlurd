@@ -347,6 +347,7 @@ class SpcBeliefRecognizer(
     predicate : PredicateType) : (Seq[PredicateType], SubjectConjunction) =
   {
     predicate.getSubject match {
+      // "Bill and Ted are dead" becomes "Bill is dead and Ted is dead"
       case SilConjunctiveReference(
         determiner @ (DETERMINER_ANY | DETERMINER_ALL), references, _) => {
         tupleN((
@@ -354,6 +355,26 @@ class SpcBeliefRecognizer(
             predicate.withNewSubject(reference).asInstanceOf[PredicateType]
           }),
           new SubjectConjunction(determiner)
+        ))
+      }
+      // "Bill and Ted's adventure is excellent" becomes
+      // "Bill's adventure is excellent and Ted's adventure is excellent"
+      case SilGenitiveReference(
+        SilConjunctiveReference(
+          DETERMINER_ALL,
+          references,
+          _
+        ),
+        possessee
+      ) => {
+        tupleN((
+          references.map(reference => {
+            val gr = annotator.genitiveRef(
+              reference,
+              possessee)
+            predicate.withNewSubject(gr).asInstanceOf[PredicateType]
+          }),
+          new SubjectConjunction(DETERMINER_ALL)
         ))
       }
       case _ => tupleN((
@@ -441,9 +462,9 @@ class SpcBeliefRecognizer(
           }
           return prechecks ++ processResolvedReference(sentence, rr, {
             entityRef => {
+              subjectConjunction.checkAnd
               if (!isPropertyName) {
                 // "the cat is angry "
-                subjectConjunction.checkAnd
                 Seq(EntityPropertyBelief(
                   sentence,
                   entityRef,
@@ -848,7 +869,7 @@ class SpcBeliefRecognizer(
       ) => {
         determiner match {
           case DETERMINER_DEFINITE | DETERMINER_ABSENT |
-              DETERMINER_NONE | DETERMINER_NONSPECIFIC =>
+              DETERMINER_NONE | DETERMINER_NONSPECIFIC | DETERMINER_ALL =>
           case _ => {
             reportException(QuantifierNotYetImplemented)
           }
@@ -1232,7 +1253,8 @@ class SpcBeliefRecognizer(
     complementRef matchPartial {
       case SilGenitiveReference(
         sub @ (_ : SilStateSpecifiedReference | _ : SilGenitiveReference |
-          SilConjunctiveReference(DETERMINER_ALL, _, _)),
+          SilConjunctiveReference(DETERMINER_ALL, _, _) |
+          SilDeterminedReference(_, DETERMINER_ALL)),
         possessee
       ) => {
         // "Lurch is Morticia's children's butler" =>
@@ -1483,17 +1505,18 @@ class SpcBeliefRecognizer(
       }
       case SilGenitiveReference(
         SilOptionallyDeterminedReference(
-          SilMandatorySingular(
-            possessor
+          SilCountedNounReference(
+            possessor,
+            possessorCount
           ),
           possessorDeterminer),
         SilCountedNounReference(
           possession, count)
       ) => {
         val failed = possessorDeterminer match {
-          case DETERMINER_ABSENT => false
-          case DETERMINER_NONSPECIFIC => false
-          case DETERMINER_DEFINITE => false
+          case DETERMINER_ABSENT | DETERMINER_NONSPECIFIC |
+              DETERMINER_DEFINITE => (possessorCount == COUNT_PLURAL)
+          case DETERMINER_ALL => (possessorCount == COUNT_SINGULAR)
           case _ => true
         }
         tupleN((possession, preQualifiers :+ possessor,

@@ -12,11 +12,6 @@ A cupboard is a kind of visible-fixture.
 
 An oracle is a kind of non-player-character.
 
-// Existence of each NPC has to be part of base
-There is a thief.
-There is an oracle.
-
 "Ze" is a nominative pronoun.
 "Zir" must be an objective pronoun or a possessive pronoun.
 "Zirself" is a reflexive pronoun.
-The thief's spc-pronoun-list is "ze, zir, zirself".

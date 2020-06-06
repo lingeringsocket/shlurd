@@ -902,6 +902,7 @@ class SmcPredicateEvaluator[
           (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
             (lemma == LEMMA_WHERE) || (qualifiers.contains(LEMMA_ANOTHER))
         }
+        case DETERMINER_ALL => false
         case _ => true
       }
       if (bail) {

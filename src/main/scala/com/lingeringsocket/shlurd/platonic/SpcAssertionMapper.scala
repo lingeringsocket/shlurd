@@ -263,7 +263,7 @@ class SpcAssertionMapper(
         val patternRefSet = expandPatterns(
           patternRefSetUnexpanded, binding)
         val resolvedForm = mind.resolveForm(noun)
-        if (SmcPhraseQuerier.containsWildcard(actualRef)) {
+        if (SmcPhraseQuerier.containsWildcard(actualRef, false, false, false)) {
           val wildcardRef = actualRef match {
             // FIXME need the same treatment for other variables, but
             // with intersectionality

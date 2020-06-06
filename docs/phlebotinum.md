@@ -207,7 +207,7 @@ NPC's across the board:
 
 ```
 When a non-player-character references a coin,
- the non-player-character recites "the zorkmid."
+ the non-player-character recites "the zorkmid".
 ```
 
 In such cases, the rule should be defined in the general behavior axioms.

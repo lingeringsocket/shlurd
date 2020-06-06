@@ -27,11 +27,13 @@ There is a brass lantern.
 
 The big door connects the bedroom to the bathroom.
 
+There is a thief.
+The thief's spc-pronoun-list is "ze, zir, zirself".
 The thief is perceptive.
 The thief's description is "Ze wields a wicked-looking stiletto.".
 The thief is in the bathroom.
 The thief is alive.
-// let the thief know about places and things other than his starting location
+// let the thief know about places and things other than zir starting location
 The thief surveys the bedroom.
 The thief surveys the bathroom.
 The thief observes the lantern.
@@ -42,5 +44,6 @@ The player-character believes "/example-phlebotinum/player-mind-init.txt".
 
 The lantern and the cupboard are in the kitchen.
 
+There is an oracle.
 The oracle is omniscient.
 The oracle is in the cupboard.

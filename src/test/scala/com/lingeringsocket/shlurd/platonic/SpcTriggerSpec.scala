@@ -258,4 +258,25 @@ class SpcTriggerSpec extends SpcResponseSpecification
     processBelief("Homelander is Starlight's nemesis.")
     processTerse("Whom does Homelander oppose?", "Starlight.")
   }
+
+  "understand all" in new ResponderContext(ACCEPT_MODIFIED_BELIEFS)
+  {
+    loadBeliefs("/ontologies/containment.txt")
+    processBelief("pigs and pens are kinds of objects")
+    processBelief("a pig's color must be pink or red")
+    processBelief("there is a farmer")
+    processBelief("there is a pen")
+    processBelief("if a farmer calls, then all pigs squeal")
+    processBelief(
+      "if a pig squeals, then subsequently the pig is in the pen;" +
+        "also the pig's color becomes red")
+    processBelief("there is a big pig")
+    processBelief("there is a small pig")
+    process("the farmer calls", "OK.")
+    processTerse("is the big pig red", "Yes.")
+    processTerse("is the small pig red", "Yes.")
+    processTerse("is the big pig in the pen", "Yes.")
+    processTerse("is the small pig in the pen", "Yes.")
+  }
+
 }

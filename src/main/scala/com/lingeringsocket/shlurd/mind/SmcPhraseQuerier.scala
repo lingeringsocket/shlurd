@@ -21,7 +21,8 @@ object SmcPhraseQuerier
   def containsWildcard(
     phrase : SilPhrase,
     includeConjunctions : Boolean = false,
-    rejectGenitives : Boolean = false) : Boolean =
+    rejectGenitives : Boolean = false,
+    includeAll : Boolean = true) : Boolean =
   {
     val querier = new SilPhraseQuerier
     var wildcard = false
@@ -43,8 +44,14 @@ object SmcPhraseQuerier
       }
       case SilDeterminedReference(
         _ : SilNounReference,
-        (_ : SilUnlimitedDeterminer) | DETERMINER_ALL
+        _ : SilUnlimitedDeterminer
       ) => {
+        wildcard = true
+      }
+      case SilDeterminedReference(
+        _ : SilNounReference,
+        DETERMINER_ALL
+      ) if (includeAll) => {
         wildcard = true
       }
     }
