@@ -1130,6 +1130,7 @@ class SpcComprehensionSpec extends SpcResponseSpecification
     processBelief("EarlyGirl is Filoli's result")
     processBelief("a person must be alive or dead")
     processBelief("Adam is a person")
+    // processBelief("a person can eat")
     processBelief("if a person moves to a garden, " +
       "then the former eats the latter's results")
     processBelief("if a person eats a poison, " +

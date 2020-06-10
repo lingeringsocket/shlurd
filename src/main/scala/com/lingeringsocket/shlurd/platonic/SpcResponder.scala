@@ -40,14 +40,20 @@ case object ASSERTION_WEAK_FAILURE extends SpcAssertionResultStrength
 case class SpcAssertionResult(
   predicate : Option[SilPredicate],
   message : String,
-  strength : SpcAssertionResultStrength)
+  strength : SpcAssertionResultStrength,
+  verbMatched : Boolean = false)
+{
+}
+
+case class SpcTriggerResult(
+  message : Option[String],
+  verbMatched : Boolean)
 {
 }
 
 class SpcContextualScorer(
-  responder : SpcResponder,
-  annotator : SpcAnnotator)
-    extends SmcContextualScorer(responder, annotator)
+  responder : SpcResponder)
+    extends SmcContextualScorer(responder)
 {
   override protected def computeBoost(
     sentence : SilSentence,
@@ -227,16 +233,15 @@ class SpcResponder(
 
   override def newParser(input : String) =
   {
-    val contextAnnotator = SpcAnnotator()
     val context = SprContext(
       mind.getCosmos.getWordLabeler,
-      scorer = new SpcContextualScorer(this, contextAnnotator),
-      annotator = contextAnnotator,
+      scorer = new SpcContextualScorer(this),
+      annotator = newAnnotator,
       genderAnalyzer = mind)
     SprParser(input, context)
   }
 
-  override protected def newAnnotator() =
+  override def newAnnotator() =
   {
     SpcAnnotator()
   }
@@ -295,7 +300,7 @@ class SpcResponder(
             mind.getCosmos,
             conditionalSentence,
             predicate,
-            SpcAssertionBinding(
+            new SpcAssertionBinding(
               annotator,
               resultCollector.refMap,
               Some(resultCollector.refMap),
@@ -334,7 +339,7 @@ class SpcResponder(
             mind.getCosmos,
             conditionalSentence,
             predicate,
-            SpcAssertionBinding(
+            new SpcAssertionBinding(
               annotator,
               refMap,
               None,
@@ -716,7 +721,6 @@ class SpcResponder(
         }
       }
     }
-    already.clear
     None
   }
 
@@ -735,7 +739,8 @@ class SpcResponder(
     spawn(imagine(forkedCosmos)).resolveReferences(
       predicate, resultCollector, false, true)
 
-    def inapplicable = SpcAssertionResult(None, "", ASSERTION_INAPPLICABLE)
+    def inapplicable = SpcAssertionResult(
+      None, "", ASSERTION_INAPPLICABLE, false)
 
     assertion.asTrigger match {
       case Some(trigger) => {
@@ -745,7 +750,7 @@ class SpcResponder(
           applyTrigger(
             forkedCosmos, trigger, predicate, resultCollector, triggerDepth
           ) match {
-            case Some(message) => {
+            case SpcTriggerResult(Some(message), verbMatched) => {
               val strength = {
                 if (message == sentencePrinter.sb.respondCompliance) {
                   ASSERTION_PASS
@@ -753,9 +758,11 @@ class SpcResponder(
                   ASSERTION_STRONG_FAILURE
                 }
               }
-              SpcAssertionResult(None, message, strength)
+              SpcAssertionResult(None, message, strength, verbMatched)
             }
-            case _ => inapplicable
+            case SpcTriggerResult(None, verbMatched) => {
+              inapplicable.copy(verbMatched = verbMatched)
+            }
           }
         }
       }
@@ -823,14 +830,15 @@ class SpcResponder(
     predicate : SilPredicate,
     resultCollector : SpcResultCollector,
     triggerDepth : Int)
-      : Option[String] =
+      : SpcTriggerResult =
   {
     val annotator = resultCollector.annotator
-    getTriggerImplications(
+    var verbMatched = false
+    val message = getTriggerImplications(
       annotator, trigger
     ).toStream.flatMap {
       case (conditionalSentence, placeholderMap) => {
-        applyTriggerImpl(
+        val result = applyTriggerImpl(
           forkedCosmos, trigger, placeholderMap, conditionalSentence,
           trigger.additionalConsequents.map(
             s => standardizeVariables(
@@ -839,8 +847,13 @@ class SpcResponder(
             s => standardizeVariables(
               annotator, s, placeholderMap)),
           predicate, resultCollector, triggerDepth)
+        if (result.verbMatched) {
+          verbMatched = true
+        }
+        result.message
       }
     }.headOption
+    SpcTriggerResult(message, verbMatched)
   }
 
   private def applyTriggerImpl(
@@ -853,7 +866,7 @@ class SpcResponder(
     predicate : SilPredicate,
     resultCollector : SpcResultCollector,
     triggerDepth : Int)
-      : Option[String] =
+      : SpcTriggerResult =
   {
     val (isTest, isPrecondition) =
       conditionalSentence.tamConsequent.modality match
@@ -872,20 +885,53 @@ class SpcResponder(
       }
     }
     val annotator = resultCollector.annotator
-    newAssertionMapper(
+    val binding = new SpcAssertionBinding(
+        annotator,
+        resultCollector.refMap,
+        Some(resultCollector.refMap),
+        Some(placeholderMap))
+    val (
+      newPredicate, newConsequents, newAlternative
+    ) = newAssertionMapper(
       annotator
     ).matchImplicationPlusAlternative(
       operator,
       forkedCosmos, conditionalSentence,
       predicate,
       additionalConsequents, alternative,
-      SpcAssertionBinding(
+      binding,
+      triggerDepth)
+    SpcTriggerResult(
+      applyTrigger2(
+        forkedCosmos,
+        conditionalSentence,
         annotator,
-        resultCollector.refMap,
-        Some(resultCollector.refMap),
-        Some(placeholderMap)),
-      triggerDepth) match
-    {
+        resultCollector,
+        isPrecondition,
+        isTest,
+        triggerDepth,
+        newPredicate,
+        newConsequents,
+        newAlternative
+      ),
+      binding.verbMatched
+    )
+  }
+
+  private def applyTrigger2(
+    forkedCosmos : SpcCosmos,
+    conditionalSentence : SilConditionalSentence,
+    annotator : SpcAnnotator,
+    resultCollector : SpcResultCollector,
+    isPrecondition : Boolean,
+    isTest : Boolean,
+    triggerDepth : Int,
+    newPredicate : Option[SilPredicate],
+    additionalConsequents : Seq[SilPredicateSentence],
+    newAlternative : Option[SilPredicateSentence]
+  ) : Option[String] =
+  {
+    tupleN((newPredicate, additionalConsequents, newAlternative)) match {
       case (Some(newPredicate), newAdditionalConsequents, newAlternative) => {
         val newConsequents = (
           SilPredicateSentence(newPredicate) +: newAdditionalConsequents
@@ -904,7 +950,7 @@ class SpcResponder(
               return Some(wrapResponseMessage(err))
             }
             case Success(true) => {
-              return None
+              return Some(sentencePrinter.sb.respondCompliance)
             }
           }
         })
@@ -925,6 +971,9 @@ class SpcResponder(
                 return None
               }
               case Success(Trilean.False) if (newTam.isNegative) => {
+                return None
+              }
+              case Success(Trilean.Unknown) if (newTam.isNegative) => {
                 return None
               }
               case Failure(e) => {
@@ -953,7 +1002,7 @@ class SpcResponder(
                       return Some(wrapResponseMessage(err))
                     }
                     case Success(true) => {
-                      return None
+                      return Some(sentencePrinter.sb.respondCompliance)
                     }
                   }
                   spawn(imagine(forkedCosmos)).resolveReferences(
@@ -1091,20 +1140,41 @@ class SpcResponder(
         spawned,
         beliefParams,
         resultCollector)
-    attemptAsBelief(beliefAccepter, sentence, triggerDepth).foreach(
-      result => {
-        if (result != compliance) {
-          return Some(result)
-        } else {
-          matched = true
+    val isAction = sentence match {
+      case SilPredicateSentence(_ : SilActionPredicate, _, _) => true
+      case _ => false
+    }
+    if (!isAction || (sentence.tam.unemphaticModality != MODAL_NEUTRAL)) {
+      var failed = false
+      try {
+        attemptAsBelief(beliefAccepter, sentence, triggerDepth).foreach(
+          result => {
+            if (result != compliance) {
+              failed = true
+              return Some(result)
+            } else {
+              matched = true
+            }
+          }
+        )
+      } catch {
+        case e : Exception => {
+          failed = true
+          throw e
+        }
+      } finally {
+        // don't pollute the cache with abandonded junk left
+        // over by an error
+        if (failed) {
+          forkedCosmos.getPool.invalidateCache
         }
       }
-    )
+    }
     var earlyReturn : Option[String] = None
     if (sentence.tam.unemphaticModality == MODAL_NEUTRAL) {
       sentence matchPartial {
         case SilPredicateSentence(predicate, _, _) => {
-          if (flagErrors && predicate.isInstanceOf[SilActionPredicate]) {
+          if (flagErrors && isAction) {
             resultCollector.refMap.clear
             val resolutionResult =
               spawn(imagine(forkedCosmos)).resolveReferences(
@@ -1129,8 +1199,11 @@ class SpcResponder(
               forkedCosmos, predicate,
               refMap, applicability,
               triggerDepth, flagErrors && !matched)
-            if (!result.isEmpty) {
-              earlyReturn = result
+            if (!result.message.isEmpty) {
+              earlyReturn = result.message
+            }
+            if (result.verbMatched) {
+              matched = true
             }
           }
         }
@@ -1145,7 +1218,14 @@ class SpcResponder(
       if (matched) {
         Some(compliance)
       } else {
-        None
+        val ex = IncomprehensibleBeliefExcn(
+          ShlurdExceptionCode.IncomprehensibleBelief,
+          sentence)
+        if (params.throwRejectedBeliefs) {
+          throw ex
+        } else {
+          Some(respondRejection(ex))
+        }
       }
     }
   }
@@ -1179,14 +1259,7 @@ class SpcResponder(
         })
         Some(sentencePrinter.sb.respondCompliance)
       }
-      case _ => {
-        if (params.throwRejectedBeliefs) {
-          throw new IncomprehensibleBeliefExcn(
-            ShlurdExceptionCode.IncomprehensibleBelief,
-            sentence)
-        }
-        None
-      }
+      case _ => None
     }
   }
 
@@ -1231,7 +1304,7 @@ class SpcResponder(
     applicability : SpcAssertionApplicability,
     triggerDepth : Int,
     flagErrors : Boolean)
-      : Option[String] =
+      : SpcTriggerResult =
   {
     val results = getAssertions.map(assertion => {
       val result = applyAssertion(
@@ -1240,7 +1313,7 @@ class SpcResponder(
         applicability, triggerDepth
       )
       if (result.strength == ASSERTION_STRONG_FAILURE) {
-        return Some(result.message)
+        return SpcTriggerResult(Some(result.message), result.verbMatched)
       }
       result
     })
@@ -1248,6 +1321,7 @@ class SpcResponder(
     val grouped = results.groupBy(_.strength)
     val weakFailures = grouped.getOrElse(ASSERTION_WEAK_FAILURE, Seq.empty)
     val passes = grouped.getOrElse(ASSERTION_PASS, Seq.empty)
+    val verbMatched = results.exists(_.verbMatched)
 
     weakFailures.find(
       w => !passes.exists(
@@ -1256,7 +1330,7 @@ class SpcResponder(
           w.predicate, p.predicate, refMap))
     ) matchPartial {
       case Some(result) => {
-        return Some(result.message)
+        return SpcTriggerResult(Some(result.message), verbMatched)
       }
     }
 
@@ -1265,21 +1339,24 @@ class SpcResponder(
         case ap : SilActionPredicate => {
           val executorResponse = executor.executeAction(ap, refMap)
           if (executorResponse.nonEmpty) {
-            return executorResponse
+            return SpcTriggerResult(executorResponse, verbMatched)
           }
         }
       }
     }
 
-    if (passes.nonEmpty) {
-      Some(sentencePrinter.sb.respondCompliance)
-    } else {
-      if (flagErrors) {
-        Some(sentencePrinter.sb.respondIrrelevant)
+    val message = {
+      if (passes.nonEmpty) {
+        Some(sentencePrinter.sb.respondCompliance)
       } else {
-        None
+        if (flagErrors) {
+          Some(sentencePrinter.sb.respondIrrelevant)
+        } else {
+          None
+        }
       }
     }
+    SpcTriggerResult(message, verbMatched)
   }
 
   protected def checkCycle(
@@ -1533,7 +1610,7 @@ class SpcResponder(
             "IMPLIES",
             mind.getCosmos, trigger.conditionalSentence,
             predicate,
-            SpcAssertionBinding(
+            new SpcAssertionBinding(
               annotator,
               modifiableRefMap,
               Some(modifiableRefMap),

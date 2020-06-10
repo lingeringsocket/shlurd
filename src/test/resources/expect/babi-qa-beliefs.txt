@@ -49,19 +49,31 @@ A species-coloration's adopter must be an animal.
 If a species-coloration is an animal's coloration,
  then equivalently the animal is the species-coloration's adopter.
 Lioncolor, Rhinocolor, Swancolor, and Frogcolor are species-colorations.
+Lioncolor's color is green.
+Rhinocolor's color is green.
+Swancolor's color is green.
+Frogcolor's color is green.
 Lions, rhinos, swans, and frogs are kinds of animal.
 When an animal absorbs a species-coloration,
- then the species-coloration might not be white;
- otherwise the animal becomes white.
+ and the species-coloration is white,
+ then the animal white-changes.
 When an animal absorbs a species-coloration,
- then the species-coloration might not be gray;
- otherwise the animal becomes gray.
+ and the species-coloration is gray,
+ then the animal gray-changes.
 When an animal absorbs a species-coloration,
- then the species-coloration might not be yellow;
- otherwise the animal becomes yellow.
+ and the species-coloration is yellow,
+ then the animal yellow-changes.
 When an animal absorbs a species-coloration,
- then the species-coloration might not be green;
- otherwise the animal becomes green.
+ and the species-coloration is green,
+ then the animal green-changes.
+When an animal white-changes,
+ then the animal's color becomes white.
+When an animal gray-changes,
+ then the animal's color becomes gray.
+When an animal yellow-changes,
+ then the animal's color becomes yellow.
+When an animal green-changes,
+ then the animal's color becomes green.
 When an animal adopts a species-coloration,
  then the animal's coloration becomes the species-coloration;
  also the animal absorbs the species-coloration.
@@ -69,18 +81,22 @@ If an animal is a lion, consequently the animal adopts Lioncolor.
 If an animal is a rhino, consequently the animal adopts Rhinocolor.
 If an animal is a swan, consequently the animal adopts Swancolor.
 If an animal is a frog, consequently the animal adopts Frogcolor.
-If an animal is white, consequently the animal's coloration is white.
-If an animal is gray, consequently the animal's coloration is gray.
-If an animal is yellow, consequently the animal's coloration is yellow.
-If an animal is green, consequently the animal's coloration is green.
-After a species-coloration becomes white,
- the species-coloration's adopters become white.
-After a species-coloration becomes gray,
- the species-coloration's adopters become gray.
-After a species-coloration becomes yellow,
- the species-coloration's adopters become yellow.
-After a species-coloration becomes green,
- the species-coloration's adopters become green.
+If an animal is white, consequently the animal's coloration white-adopts.
+If an animal is gray, consequently the animal's coloration gray-adopts.
+If an animal is yellow, consequently the animal's coloration yellow-adopts.
+If an animal is green, consequently the animal's coloration green-adopts.
+When a species-coloration white-adopts,
+ the species-coloration's color becomes white;
+ also the species-coloration's adopters white-change.
+When a species-coloration gray-adopts,
+ the species-coloration's color becomes gray;
+ also the species-coloration's adopters gray-change.
+When a species-coloration yellow-adopts,
+ the species-coloration's color becomes yellow;
+ also the species-coloration's adopters yellow-change.
+When a species-coloration green-adopts,
+ the species-coloration's color becomes green;
+ also the species-coloration's adopters green-change.
 A place's northern-neighbor must be a place.
 A place's southern-neighbor must be a place.
 A place's eastern-neighbor must be a place.

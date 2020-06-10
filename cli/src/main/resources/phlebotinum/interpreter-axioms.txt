@@ -2,3 +2,11 @@ Believe "/phlebotinum/basic-axioms.txt".
 
 A game-interpreter is a kind of game-speaker.
 There is a game-interpreter.
+
+// define some special verbs that only apply to the game interpreter
+A game-interpreter can recite.
+A game-interpreter can say.
+A game-interpreter can complain.
+A game-interpreter can save.
+A game-interpreter can restore.
+A game-interpreter can terminate.

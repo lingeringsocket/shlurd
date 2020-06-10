@@ -297,14 +297,8 @@ class SpcBeliefRecognizer(
         if (predicate.getModifiers.filterNot(isIgnorableModifier).isEmpty) {
           predicate matchPartial {
             case statePredicate : SilStatePredicate => {
-              val (components, conjunction) =
-                decomposeSubject(statePredicate)
-              return conjunction.checkFinal(
-                components.flatMap(component => {
-                  recognizeStatePredicateBelief(
-                    sentence, component, tam, conjunction)
-                })
-              )
+              return decomposeAndRecognizeStatePredicate(
+                sentence, tam, statePredicate)
             }
             case relationshipPredicate : SilRelationshipPredicate => {
               if (recognizeWordRule(sentence).isEmpty) {
@@ -341,6 +335,21 @@ class SpcBeliefRecognizer(
         recognizeAssertionBelief(sentence)
       }
     }
+  }
+
+  protected def decomposeAndRecognizeStatePredicate(
+    sentence : SilSentence,
+    tam : SilTam,
+    statePredicate : SilStatePredicate) : Seq[SpcBelief] =
+  {
+    val (components, conjunction) =
+      decomposeSubject(statePredicate)
+    conjunction.checkFinal(
+      components.flatMap(component => {
+        recognizeStatePredicateBelief(
+          sentence, component, tam, conjunction)
+      })
+    )
   }
 
   private def decomposeSubject[PredicateType <: SilPredicate](

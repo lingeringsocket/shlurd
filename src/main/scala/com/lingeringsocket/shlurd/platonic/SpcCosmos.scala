@@ -300,6 +300,12 @@ class SpcCosmicPool
   @transient val pronounCache =
     new mutable.HashMap[SpcEntity, (Int, SilPronounMap)]
 
+  def invalidateCache()
+  {
+    taxonomyTimestamp += 1
+    entityTimestamp += 1
+  }
+
   def accessCache[K, V](
     cache : mutable.Map[K, (Int, V)],
     key : K,

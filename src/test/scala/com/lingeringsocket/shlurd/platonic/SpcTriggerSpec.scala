@@ -149,6 +149,7 @@ class SpcTriggerSpec extends SpcResponseSpecification
     processBelief("Scrooge becomes angry")
     processTerse("is Cratchit angry", "No.")
   }
+
   "understand subset matches" in new
     ResponderContext(ACCEPT_NEW_BELIEFS)
   {
@@ -169,7 +170,7 @@ class SpcTriggerSpec extends SpcResponseSpecification
     processTerse("is EarlyGirl red", "I don't know.")
   }
 
-  "detect causality violations" in  new ResponderContext(
+  "detect causality violations" in new ResponderContext(
     ACCEPT_NEW_BELIEFS)
   {
     mind.startNarrative
@@ -192,12 +193,24 @@ class SpcTriggerSpec extends SpcResponseSpecification
   {
     loadBeliefs("/ontologies/person.txt")
     loadBeliefs("/ontologies/people.txt")
+
+    val expected = "Previously I was told that a dog may have one owner and " +
+        "Bart is Rapunzel's owner.  So it does not add up when I hear that " +
+        "Amanda is Rapunzel's owner."
     processExceptionExpected(
       "Amanda is Rapunzel's owner",
-      "Previously I was told that a dog may have one owner and Bart " +
-        "is Rapunzel's owner.  So it does not add up when I hear that " +
-        "Amanda is Rapunzel's owner.",
+      expected,
       ShlurdExceptionCode.CardinalityConstraint)
+
+    // verify reporting from trigger as well
+    processBelief(
+      "when a person graduates, " +
+        "then the person is subsequently Rapunzel's owner")
+    processExceptionExpected(
+      "Amanda graduates",
+      expected,
+      ShlurdExceptionCode.CardinalityConstraint)
+
     processExceptionExpected(
       "Scott is ROWDYTHREE's operative",
       "Previously I was told that a person may have one employer and " +
@@ -205,6 +218,21 @@ class SpcTriggerSpec extends SpcResponseSpecification
         "hear that Scott is ROWDYTHREE's operative.",
       ShlurdExceptionCode.CardinalityConstraint)
   }
+
+  "report triggered errors" in new ResponderContext(
+    ACCEPT_NEW_BELIEFS)
+  {
+    processBelief("a hobbit's friend must be a hobbit")
+    processBelief("Frodo, Sam, Merry, and Pippin are hobbits")
+    processBelief("when a hobbit befriends another hobbit, " +
+      "the former becomes the latter's friend")
+    processExceptionExpected(
+      "Frodo befriends any hobbit",
+      "I am unable to understand the belief that Frodo " +
+        "becomes any hobbit's friend.",
+      ShlurdExceptionCode.IncomprehensibleBelief)
+  }
+
   "enforce assertions" in new ResponderContext(
     ACCEPT_NEW_BELIEFS)
   {
@@ -278,5 +306,4 @@ class SpcTriggerSpec extends SpcResponseSpecification
     processTerse("is the big pig in the pen", "Yes.")
     processTerse("is the small pig in the pen", "Yes.")
   }
-
 }

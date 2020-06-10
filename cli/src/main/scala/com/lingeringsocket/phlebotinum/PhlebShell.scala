@@ -680,7 +680,7 @@ class PhlebShell(
   {
     val result = phenomenalResponder.processTriggerablePredicate(
       annotator, phenomenalCosmos, predicate, refMap,
-      APPLY_CONSTRAINTS_ONLY, 0, true)
+      APPLY_CONSTRAINTS_ONLY, 0, true).message
     if (result == ok) {
       None
     } else {

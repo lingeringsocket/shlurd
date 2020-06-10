@@ -39,7 +39,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   private val stateCold = "cold"
 
   private val fiatToasterStates =
-    "a toaster's state may be empty, toasting, or done"
+    "a toaster's state must be empty, toasting, or done"
 
   private val fiatSliceStates =
     "a slice may be cold, toasted, or burnt"
@@ -53,8 +53,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
   private val abilityClockCanTick =
     "a clock can tick"
 
-  private val abilityToasterCanGlow =
-    "a toaster can glow"
+  private val abilityToasterCanCook =
+    "a toaster can cook"
 
   private val actionClockTicks =
     "the clock ticks"
@@ -166,7 +166,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(fiatForm(formToaster))
       verifyOK(fiatToasterStates)
       verifyOK(fiatExistence(formToaster))
-      verifyOK(abilityToasterCanGlow)
+      verifyOK(abilityToasterCanCook)
     }
 
     protected def defineSlice()
@@ -538,14 +538,17 @@ class SpcAssertionSpec extends SpcProcessingSpecification
     "handle conjunctive conditionals" in new AssertionContext
     {
       defineToaster
+      defineClock
 
-      verifyOK(fiatForm("clock"))
-      verifyOK(fiatExistence("clock"))
-
-      verifyOK(fiatState(formToaster, stateCold))
+      verifyOK(fiatState(formToaster, stateEmpty))
       verifyOK("when a clock ticks, and the toaster is toasting, "
         + "then the toaster cooks")
+      verifyOK(triggerToasterCompletion)
       verifyOK(actionClockTicks)
+      verify("what is the toaster's state", "Empty.")
+      verifyOK(fiatState(formToaster, "toasting"))
+      verifyOK(actionClockTicks)
+      verify("what is the toaster's state", "Done.")
     }
 
     "map genitives in equivalences" in new AssertionContext

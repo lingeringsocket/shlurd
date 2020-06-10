@@ -173,8 +173,7 @@ class SmcContextualScorer[
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
-  responder : SmcResponder[EntityType, PropertyType, CosmosType, MindType],
-  annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]])
+  responder : SmcResponder[EntityType, PropertyType, CosmosType, MindType])
     extends SilWordnetScorer
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
@@ -195,6 +194,7 @@ class SmcContextualScorer[
         if (sentence.isUninterpretable) {
           return SilPhraseScore.conBig
         }
+        val annotator = responder.newAnnotator
         val analyzed = responder.getMind.analyzeSense(
           annotator, sentence)
         val resultCollector = responder.newResultCollector(annotator)
@@ -385,7 +385,7 @@ class SmcResponder[
 
   def getMind = mind
 
-  protected def newAnnotator() : AnnotatorType =
+  def newAnnotator() : AnnotatorType =
   {
     SmcAnnotator[EntityType]()
   }
@@ -406,10 +406,9 @@ class SmcResponder[
 
   def newParser(input : String) =
   {
-    val contextAnnotator = newAnnotator
     val context = SprContext(
-      scorer = new SmcContextualScorer(this, contextAnnotator),
-      annotator = contextAnnotator,
+      scorer = new SmcContextualScorer(this),
+      annotator = newAnnotator,
       genderAnalyzer = mind)
     SprParser(input, context)
   }

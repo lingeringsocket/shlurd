@@ -3,15 +3,19 @@ Believe "/phlebotinum/character-axioms.txt".
 There is a game-turn.
 
 Whenever the game-turn advances,
+ all game-characters begin the game-turn.
+
+Whenever a player-character begins a game-turn,
  the player-character has no visible-items;
  also the player-character surveys the player-character's container;
- also the player-character perceives the player-character and the
- player-character's stuff;
- also the player-character becomes the player-character's container's place-discoverer;
- also all non-player-characters begin the game-turn.
+ also the player-character perceives the player-character and the player-character's stuff;
+ also the player-character becomes the player-character's container's place-discoverer.
 
 When the game-turn initializes,
- the player-character initializes.
+ all game-characters initialize.
+
+When a game-character initializes,
+ the game-character perceives the game-character.
 
 When the game-turn reloads,
  the game-turn advances;

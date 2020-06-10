@@ -144,7 +144,7 @@ class PhlebMind(
             getCosmos,
             conditionalSentence,
             p,
-            SpcAssertionBinding(
+            new SpcAssertionBinding(
               annotator,
               refMap,
               Some(refMap),

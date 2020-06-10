@@ -15,7 +15,7 @@ which may cause confusion:
 ```scala mdoc:processConversation
 > A coffee's size may be small, medium, or ginormous.
 
-Modals not supported yet.
+I am unable to understand the belief that a coffee's size may be small, medium, or ginormous.
 ```
 
 To correct this, you can teach me new words:

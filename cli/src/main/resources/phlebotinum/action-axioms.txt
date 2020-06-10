@@ -30,6 +30,7 @@ When a player-character examines a describable-entity,
  and its description does not exist,
  the game-interpreter says "It's about what you'd expect.".
 When a player-character examines a describable-entity,
+ and its description exists,
  the game-interpreter recites its description.
 
 When a game-speaker references a map-portal,

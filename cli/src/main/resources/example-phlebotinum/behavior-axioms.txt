@@ -19,6 +19,9 @@ Whenever a thief begins a game-turn,
 After a player-character beseeches an oracle,
  the game-interpreter says "Answer me these questions three.".
 
+After a player-character adjures an oracle,
+ the game-interpreter says "It's a witch!".
+
 // Wordnet has adjure and beseech as synonyms.  We want to verify that
 // from the user level, they are synonymous; whereas for triggering purposes,
 // they are distinct.

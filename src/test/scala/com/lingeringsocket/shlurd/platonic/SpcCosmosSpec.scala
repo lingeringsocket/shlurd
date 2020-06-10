@@ -45,6 +45,14 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       result must be equalTo "OK."
     }
 
+    protected def expectUninterpretable(input : String)
+    {
+      val result = processBelief(
+        input,
+        SpcBeliefParams(ACCEPT_NEW_BELIEFS))
+      result must be equalTo "I'm not sure how to interpret that."
+    }
+
     protected def expectErrorBelief[ExpectedClass <: SpcBeliefExcn : ClassTag](
       input : String,
       expectedExcn : ExpectedClass,
@@ -186,8 +194,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       cosmos.resolveIdealSynonym("kitty") must be equalTo "cat"
       cosmos.resolveIdealSynonym("puss") must be equalTo "cat"
 
-      addBelief("a dog or a cat exists") must
-        throwA[IncomprehensibleBeliefExcn]
+      expectUninterpretable("a dog or a cat exists")
     }
 
     "understand qualified references" in new CosmosContext
@@ -853,7 +860,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
           ShlurdExceptionCode.IncomprehensibleBelief,
           unusedSentence)
       )
-
+      // expectUninterpretable("he may be either open or closed")
       expectErrorBelief(
         "Daffy is a pig's duck",
         IncomprehensibleBeliefExcn(
@@ -863,12 +870,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
       addBelief("the wrench is an object")
       addBelief("the screwdriver is an object")
-      expectErrorBelief(
-        "the screwdriver is proud of the wrench",
-        IncomprehensibleBeliefExcn(
-          ShlurdExceptionCode.IncomprehensibleBelief,
-          unusedSentence)
-      )
+      expectUninterpretable("the screwdriver is proud of the wrench")
 
       addBelief("there is a door")
       expectErrorBelief(
@@ -952,11 +954,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
     "reject more invalid beliefs" in new CosmosContext
     {
-      expectErrorBelief(
-        "almonds are a morsel of joy",
-        IncomprehensibleBeliefExcn(
-          ShlurdExceptionCode.IncomprehensibleBelief,
-          unusedSentence))
+      expectUninterpretable("almonds are a morsel of joy")
       expectErrorBelief(
         "a noble's serf is a kind of peon",
         IncomprehensibleBeliefExcn(

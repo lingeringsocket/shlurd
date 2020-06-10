@@ -26,11 +26,12 @@ import SprEnglishLemmas._
 
 import org.slf4j._
 
-case class SpcAssertionBinding(
-  annotator : SpcAnnotator,
-  refMapIn : SpcRefMap,
-  refMapOut : Option[SpcMutableRefMap],
-  placeholderMap : Option[SpcRefMap] = None
+class SpcAssertionBinding(
+  val annotator : SpcAnnotator,
+  val refMapIn : SpcRefMap,
+  val refMapOut : Option[SpcMutableRefMap],
+  val placeholderMap : Option[SpcRefMap] = None,
+  var verbMatched : Boolean = false
 )
 {
   def unifyReferences(
@@ -78,7 +79,7 @@ class SpcAssertionMapper(
     trace(s"ATTEMPT MATCH $general $operator $specific")
     val matched = matchGeneralization(
       cosmos, general, specific,
-      SpcAssertionBinding(
+      new SpcAssertionBinding(
         annotator,
         refMap,
         None),
@@ -479,6 +480,7 @@ class SpcAssertionMapper(
           trace(s"ACTION $lemma DOES NOT MATCH")
           return unmatched
         }
+        binding.verbMatched = true
         if (!prepareReplacement(
           cosmos, replacements, subject, actionPredicate.subject,
           binding))
