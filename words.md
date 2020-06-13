@@ -267,3 +267,93 @@ OK.
 Yes.
 ```
 
+## Hyphenated Words
+
+When I see a hyphenated word which I don't recognize, I look at the
+part after the last hyphen to see if I can recognize that word by
+itself.  If I can, then for determining part of speech and word sense,
+I treat the entire hyphenated word the same as the suffix.  For
+example:
+
+```
+> Pigs and truffles are kinds of objects.
+
+OK.
+
+> After a pig scarfles a truffle, the pig digests the truffle.
+
+Sorry, I cannot understand what you said.
+
+> After a pig scarfle-eats a truffle, the pig digests the truffle.
+
+OK.
+```
+
+I was unable to recognize the unknown word "scarfle" as a verb.  But I
+was able to understand "scarfle-eat" as functioning similarly to
+"eat".  This isn't terribly helpful for making up new words to be used
+in conversation.  (For that, you should explicitly tell me the parts of
+speech of your neologisms.)  But it is useful when you are deriving
+your own private language, particularly for use in defining
+[conditional rules](conditionals.md):
+
+```
+> A person may be alert or complacent.
+
+OK.
+
+> A person may be calm or puffy.
+
+OK.
+
+> An irritable-person is a kind of person.
+
+OK.
+
+> When a person pokes another person, the latter poke-reacts.
+
+OK.
+
+> When a person pokes an irritable-person, the irritable-person angry-reacts.
+
+OK.
+
+> When a person poke-reacts, the person becomes alert.
+
+OK.
+
+> When a person angry-reacts, the person becomes puffy.
+
+OK.
+
+> Brutus is a person.
+
+OK.
+
+> Julius is an irritable-person.
+
+OK.
+
+> Julius and Brutus are calm.
+
+OK.
+
+> Julius pokes Brutus.
+
+OK.
+
+> Is Brutus puffy?
+
+No.
+
+> Brutus pokes Julius.
+
+OK.
+
+> Is Julius puffy?
+
+Yes.
+```
+
+In this way, you can derive new concepts without hijacking the
+normal meanings of words such as "person" and "react".

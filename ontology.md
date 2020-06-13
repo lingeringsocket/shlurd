@@ -308,3 +308,41 @@ Huge.
 "Itsa me, Mario!".
 ```
 
+## Wordnet Ontology
+
+In some environments, I automatically have access to builtin ontology
+information from wordnet.  For example, in wordnet, "duchess" is
+defined as a *hyponym* of "noblewoman".  So:
+
+```
+> Wilhelmina is a duchess.
+
+OK.
+
+> Is Wilhelmina a noblewoman?
+
+Yes.
+
+> Is Wilhelmina a princess?
+
+No.
+```
+
+You can extend the wordnet ontology directly:
+
+```
+> A landspeeder is a kind of hovercraft.
+
+OK.
+
+> There is a landspeeder.
+
+OK.
+
+> Which vehicles exist?
+
+A landspeeder.
+```
+
+I am able to figure out that the landspeeder is a vehicle, because
+in wordnet, "vehicle" is a hypernym of "hovercraft".
