@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
+import com.lingeringsocket.shlurd.cli._
 import com.lingeringsocket.phlebotinum._
 
 import mdoc._
@@ -225,8 +226,21 @@ class ConversationProcessor extends StringModifier
   {
     val lines = Source.fromString(code.text).getLines.toSeq.zipWithIndex
 
-    val cosmos = lastCosmos.get.fork(true)
-    val mind = new SpcMind(cosmos)
+    val wordnet = info.contains("wordnet")
+    val cosmos = {
+      if (wordnet) {
+        ShlurdPrimordialWordnet.newMutableCosmos
+      } else {
+        lastCosmos.get.fork(true)
+      }
+    }
+    val mind = {
+      if (info.contains("wordnet")) {
+        new SpcWordnetMind(cosmos)
+      } else {
+        new SpcMind(cosmos)
+      }
+    }
     val allowImplicits = info.contains("allowImplicits")
     val preventImplicits = info.contains("preventImplicits")
     def chooseImplicit(defaultSetting : Boolean) =

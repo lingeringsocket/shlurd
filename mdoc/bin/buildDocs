@@ -6,6 +6,7 @@ set -e
 
 pushd ${SRC_DIR}
 sbt mdocProject/clean
+# you can add --in docs/some-file.md here to restrict the build
 sbt "docs/mdoc --no-link-hygiene"
 popd
 

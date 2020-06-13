@@ -2,10 +2,15 @@
 
 Phlebotinum is an interactive fiction system based on [SHLURD](readme.md).
 
-It is similar to [Inform 7](http://inform7.com) in that a limited form of
-natural language is used for authoring stories.  It is different in
+It is similar to [Inform 7](http://inform7.com) in that a limited form
+of natural language is used for authoring stories.  It is different in
 that the same natural language is used while interpreting stories as
-well.
+well.  Phlebotinum uses
+[wordnet 3.1](http://wordnetweb.princeton.edu/perl/webwn) to assist it
+in automatically recognizing usage of nouns, verbs, adjectives, and
+adverbs during parsing.  Currently, only the English language is
+supported, but the underlying frameworks are designed with an eye
+towards eventual polyglot capabilities.
 
 ## A Rather Short Story
 
@@ -382,6 +387,14 @@ NPC's respond to questions, but beyond that, responses are quite limited:
 * statements never result in the NPC's mental state being changed
 * all commands are curtly rejected
 
-## Wordnet Ontology
+## Wordnet
 
-TODO
+The parser would like you to read about
+[how it uses wordnet to recognize word usage](words.md), including how
+you can customize this for better handling of compounds words, proper
+nouns, etc.  It also wants you to study [pronouns](pronouns.md).
+
+Beyond identifying parts of speech, wordnet is also used as a
+[builtin ontology](ontology.md#wordnet-ontology), allowing you to
+instantiate forms, e.g. `Amelia is a pilot`, with automatic inference
+that Amelia is also an aviator, a person, etc.
