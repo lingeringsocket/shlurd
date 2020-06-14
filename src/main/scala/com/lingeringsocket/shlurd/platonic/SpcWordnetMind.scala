@@ -25,7 +25,7 @@ class SpcWordnetMind(
   preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
     extends SpcMind(cosmos)
 {
-  private def getWordnet() = new SpcWordnet(cosmos)
+  def getWordnet() = new SpcWordnet(cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {

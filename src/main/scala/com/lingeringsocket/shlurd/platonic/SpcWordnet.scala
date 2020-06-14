@@ -84,7 +84,10 @@ class SpcWordnet(cosmos : SpcCosmos)
   {
     loadAllForms
     loadAllTaxonomy
-    loadAllAssociations
+    // not clear that these are terribly useful
+    if (false) {
+      loadAllAssociations
+    }
     loadBasicGenders
   }
 

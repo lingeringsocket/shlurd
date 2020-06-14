@@ -392,7 +392,8 @@ NPC's respond to questions, but beyond that, responses are quite limited:
 The parser would like you to read about
 [how it uses wordnet to recognize word usage](words.md), including how
 you can customize this for better handling of compounds words, proper
-nouns, etc.  It also wants you to study [pronouns](pronouns.md).
+nouns, etc.  Further, it wants you to study
+[its support for pronouns and gender](pronouns.md).
 
 Beyond identifying parts of speech, wordnet is also used as a
 [builtin ontology](ontology.md#wordnet-ontology), allowing you to
