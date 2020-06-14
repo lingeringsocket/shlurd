@@ -44,7 +44,7 @@ directive includes the ontology axioms from the story currently being defined.
 Redundant belief inclusions are automatically ignored.
 
 A story can be broken up into as many files as desired, either for
-reuse or for organizational clarity.  In the example, [behavior axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/behavior-axioms.txt) include a separate file defining the [axioms regarding what happens when the player tries to love something](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/love-behavior-axioms.txt).
+reuse or for organizational clarity.  In the example, [behavior axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/behavior-axioms.txt) include a separate file defining the [axioms regarding what happens when the player drinks love potion number 9](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/love-behavior-axioms.txt).
 
 ## Minds, Worlds, and Perception
 
@@ -54,7 +54,7 @@ Each game character may have a mind with an associated *phenomenal*
 world (what the character is aware of).  A phenomenal world may be:
 
 * a simple subset of the noumenal world (based on what the character has encountered so far)
-* a subset of the noumenal world, plus an imagined superset (private beliefs, hallucinations, etc); this variant is not actually supported yet
+* a subset of the noumenal world, plus an imagined superset (private beliefs, hallucinations, etc); this variant is not well supported yet
 * a totally private world independent of the noumenal world
 * a direct access to the noumenal world (meaning the character is omniscient)
 
@@ -184,7 +184,203 @@ each NPC perceives as events occur.  As in countless science fiction
 novels, NPC initialization may also involve perceiving out-of-scope
 objects in order to construct memories.  This allows for appropriate
 responses to be delivered automatically during interactions with the
-player character.
+player character.  In the example game, there's a hidden sprite;
+the interpreter is aware of its existence, but initially only
+the child knows its location:
+
+```scala mdoc:processPhleb:skipIntro
+> is there a sprite
+
+Yes, there is a sprite.
+
+> where is the sprite
+
+I don't know.
+
+> s
+
+OK.
+
+You are in a barn.
+
+You see a child.
+
+You see the grassy path to the north.
+
+> talk to the child
+
+OK.
+
+(You are now in conversation.  Say TTYL to stop.)
+
+> is there a sprite
+
+"Yes, there is a sprite."
+
+> where is the sprite
+
+"The sprite is in the hayloft."
+
+> TTYL
+
+(You are no longer in conversation.)
+
+> u
+
+OK.
+
+You are in a hayloft.
+
+You see the sprite.
+
+> where is the sprite
+
+The sprite is in the hayloft.
+```
+
+Once the sprite has been encountered, the player character becomes
+aware of its location (as does the interpreter).
+
+Some objects may exist only in an NPC's mind:
+
+```scala mdoc:processPhleb:skipIntro
+> is there a mouse
+
+I don't know.
+
+> who is the mouse
+
+But I don't know about any such mouse.
+
+> s
+
+OK.
+
+You are in a barn.
+
+You see a child.
+
+You see the grassy path to the north.
+
+> talk to the child
+
+OK.
+
+(You are now in conversation.  Say TTYL to stop.)
+
+> is there a mouse
+
+"Yes, there is a mouse."
+
+> who is the mouse
+
+"It is Frederick."
+
+> where is Frederick
+
+"I don't know."
+```
+
+[The child's mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/child-mind-init.txt)
+defines Frederick, so the existence of the mouse can only ever be in
+the child's mind, making it inaccessible to the interpreter.
+
+However, due to the child being a perceptive character, there are
+currently many limitations on this feature (let's just say it's
+technically challenging to maintain a consistent overlap between the noumenal
+and phenomenal worlds as they evolve).  For example, defining the mouse as the
+child's pet won't work correctly.
+
+For some characters, you may be able to solve this by making them unperceptive instead:
+
+```scala mdoc:processPhleb:skipIntro
+> u
+
+OK.
+
+You are in the tree.
+
+You are sitting on a thick branch a few feet above the ground.
+
+You see a chickadee and the cloud.
+
+> ask the chickadee "where are you"
+
+OK.
+
+The chickadee responds, "I am in an invisible nest."
+
+> get the chickadee
+
+OK.
+
+> d
+
+OK.
+
+You are in the meadow.
+
+You see the tree, the rock, and the cloud.
+
+You see the grassy path to the south.
+
+> ask the chickadee "where are you"
+
+OK.
+
+The chickadee responds, "I am in an invisible nest."
+```
+
+The chickadee's world is defined entirely by
+[its mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/chickadee-mind-init.txt),
+so it is unaware of the real world around it.  This allows you to fill
+in any alternate reality desired.
+
+Finally, let's take a look at the mind of an omniscient character (the sprite):
+
+```scala mdoc:processPhleb:skipIntro
+> s
+
+OK.
+
+You are in a barn.
+
+You see a child.
+
+You see the grassy path to the north.
+
+> u
+
+OK.
+
+You are in a hayloft.
+
+You see the sprite.
+
+> talk to the sprite
+
+OK.
+
+(You are now in conversation.  Say TTYL to stop.)
+
+> who are you
+
+"I am the sprite."
+
+> who is my wife
+
+"Your wife is Amy."
+
+> where is my wife
+
+"Your wife is in one of your memories."
+
+> what is in the sky
+
+"A cloud is in it."
+```
+
+Since the sprite is omniscient, it has access to the latest state of the entire world.
 
 ### Expressions For People and Objects
 
