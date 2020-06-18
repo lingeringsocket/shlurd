@@ -642,7 +642,7 @@ class SpcBeliefRecognizer(
               SilMandatorySingular(possessorNoun),
               DETERMINER_NONSPECIFIC
             ),
-            SilMandatorySingular(
+            SilNounReference(
               roleNoun
             )
           ) => {
@@ -832,7 +832,7 @@ class SpcBeliefRecognizer(
       return Seq.empty
     }
     propertyRef match {
-      case SilMandatorySingular(
+      case SilNounReference(
         propertyName
       ) => {
         Seq(EntityPropertyBelief(

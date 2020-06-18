@@ -4,6 +4,7 @@ A visible-entity is a kind of describable-entity.
 A visible-object is a kind of visible-entity.
 A visible-fixture is a kind of visible-entity.
 A game-object is a kind of visible-object.
+An spc-entity's gender is the same as an spc-gender.
 An object's container is the same as an spc-container.
 An object's contained-object is the same as an spc-contained-object.
 A game-speaker is a kind of person.

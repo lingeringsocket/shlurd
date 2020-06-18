@@ -410,30 +410,51 @@ class BeliefRenderer extends StringModifier
         responder)
 
     val source = Source.fromString(input)
-    val beliefs = source.getLines.
-      filterNot(SprParser.isIgnorableLine).mkString("\n")
-    val results = responder.newParser(beliefs).parseAll
+    val lines = source.getLines
+    val lineBuf = new mutable.ArrayBuffer[String]
     val ok = responder.sentencePrinter.sb.respondCompliance
-    results.foreach {
-      case pr @ SprParseResult(sentence, _, start, end) => {
-        val output = try {
-          responder.process(pr)
-        } catch {
-          case ex : Throwable => {
-            ex.printStackTrace
-            ex.toString
+    var offset = 0
+    var total = 0
+
+    def flush() {
+      if (lineBuf.nonEmpty) {
+        val beliefs = lineBuf.mkString("\n")
+        lineBuf.clear
+        val results = responder.newParser(beliefs).parseAll
+        results.foreach {
+          case pr @ SprParseResult(sentence, _, start, end) => {
+            val output = try {
+              responder.process(pr)
+            } catch {
+              case ex : Throwable => {
+                ex.printStackTrace
+                ex.toString
+              }
+            }
+            if (output != ok) {
+              val adj = offset + end
+              val position = Position.Range(code, adj, adj)
+              reporter.error(
+                position,
+                s"\nERROR:\n\n$output\n\nAT:\n")
+            }
           }
         }
-        if (output != ok) {
-          // FIXME this isn't quite right whenever
-          // we stripped ignorable lines above
-          val position = Position.Range(code, end, end)
-          reporter.error(
-            position,
-            s"\nERROR:\n\n$output\n\nAT:\n")
-        }
+      }
+      offset = total
+    }
+
+    while (lines.hasNext) {
+      val line = lines.next
+      total += (line.size + 1)
+      if (SprParser.isIgnorableLine(line)) {
+        flush()
+      } else {
+        lineBuf += line
       }
     }
+    flush()
+
     cosmos.validateBeliefs
 
     val visualizer = new SpcGraphVisualizer(
