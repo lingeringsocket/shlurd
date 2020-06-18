@@ -167,7 +167,7 @@ for a new NPC to come into existence after the game has started.
 
 An NPC has the same default attributes (e.g. location and possessions)
 as a player character.  NPC's will typically have a gender also,
-and sometimes [pronouns](pronouns.md) as well.
+and sometimes [preferred pronouns](pronouns.md) as well.
 
 Besides defining the behavior of an NPC, a game may also specify what
 each NPC perceives as events occur.  As in countless science fiction
@@ -230,6 +230,48 @@ The sprite is in the hayloft.
 
 Once the sprite has been encountered, the player character becomes
 aware of its location (as does the interpreter).
+
+Moreover, interactions with the player may result in updates to an NPC's perception:
+
+```
+> i
+
+You are holding the photograph.
+
+> x photo
+
+OK.
+
+A photo of your wife, but her face is blurred.
+
+> s
+
+OK.
+
+You are in a barn.
+
+You see a child.
+
+You see the grassy path to the north.
+
+> ask the child "what am I holding"
+
+OK.
+
+They respond, "You are holding nothing."
+
+> show child the photo
+
+OK.
+
+"Aw, you must love 'er."
+
+> ask the child "what am I holding"
+
+OK.
+
+They respond, "You are holding the photo."
+```
 
 Some objects may exist only in an NPC's mind:
 
