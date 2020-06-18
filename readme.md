@@ -6,7 +6,7 @@ It is similar to [Inform 7](http://inform7.com) in that a limited form
 of natural language is used for authoring stories.  It is different in
 that the same natural language is used while interpreting stories as
 well.  Phlebotinum uses
-[wordnet 3.1](http://wordnetweb.princeton.edu/perl/webwn) to assist it
+[WordNet 3.1](http://wordnet.princeton.edu) to assist it
 in automatically recognizing usage of nouns, verbs, adjectives, and
 adverbs during parsing.  Currently, only the English language is
 supported, but the underlying frameworks are designed with an eye
@@ -24,7 +24,7 @@ A story is created as a collection of files:
 
 * [Base axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/base-axioms.txt) define the [ontology](ontology.md) of the game world.  This is the shared base of reality for all characters in the game.  The corresponding file **must** be named ```base-axioms.txt```.
 * [Game initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/game-init.txt) is the *fiat lux* which populates the world and situates the characters which inhabit it.  The corresponding file **must** be named ```game-init.txt```.  Game initialization also sets up the world's [behavior](conditionals.md), as seen in the [behavior axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/behavior-axioms.txt) from the example story.
-* [Capability axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/capability-axioms.txt) define the actions understood by the interpreter in terms of [capabilities](capabilities.md)
+* [Capability axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/capability-axioms.txt) define the actions understood by the interpreter in terms of [character capabilities](capabilities.md)
 * [Character mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/player-mind-init.txt) is used to bring the private mental world of the player character to life (and possibly that of non-player characters as well, such as [the child](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/child-mind-init.txt) from the example story).  At a minimum, in good self-help fashion, the player needs to believe in some capabilities, otherwise all actions will be prohibited.
 
 A file may include the beliefs from other files via the **Believe** directive:
@@ -573,15 +573,15 @@ NPC's respond to questions, but beyond that, responses are quite limited:
 * statements never result in the NPC's mental state being changed
 * all commands are curtly rejected
 
-## Wordnet
+## WordNet
 
 The parser would like you to read about
-[how it uses wordnet to recognize word usage](words.md), including how
+[how it uses WordNet to recognize word usage](words.md), including how
 you can customize this for better handling of compounds words, proper
 nouns, etc.  Further, it wants you to study
 [its support for pronouns and gender](pronouns.md).
 
-Beyond identifying parts of speech, wordnet is also used as a
+Beyond identifying parts of speech, WordNet is also used as a
 [builtin ontology](ontology.md#wordnet-ontology), allowing you to
 instantiate forms, e.g. `Amelia is a pilot`, with automatic inference
 that Amelia is also an aviator, a person, etc.

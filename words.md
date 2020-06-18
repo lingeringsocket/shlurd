@@ -11,6 +11,18 @@ A coffee is a kind of beverage.
 
 [![diagram](assets/words.png)](assets/words.png)
 
+WordNet knows about synonyms as well:
+
+```
+> Polly is a lumberjack.
+
+OK.
+
+> Is Polly a logger?
+
+Yes.
+```
+
 For unknown uncapitalized words, I usually assume them to be common nouns,
 which may cause confusion:
 
@@ -33,7 +45,7 @@ OK.
 ```
 
 You can also extend words I already know with additional usages.  For
-example, from Wordnet, I know the word "rad" as a noun (a unit of
+example, from WordNet, I know the word "rad" as a noun (a unit of
 absorbed ionizing radiation).  You can extend it to be usable as an
 adjective as well:
 
@@ -93,7 +105,7 @@ These are the English parts of speech you can specify when you define a word:
 
 ## Compound Words
 
-I know some compound words (with or without spaces or hyphens) from Wordnet:
+I know some compound words (with or without spaces or hyphens) from WordNet:
 
 ```
 > A big top is a kind of tent.

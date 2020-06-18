@@ -308,10 +308,10 @@ Huge.
 "Itsa me, Mario!".
 ```
 
-## Wordnet Ontology
+## WordNet Ontology
 
 In some environments, I automatically have access to builtin ontology
-information from wordnet.  For example, in wordnet, "duchess" is
+information from WordNet.  For example, in WordNet, "duchess" is
 defined as a *hyponym* of "noblewoman".  So:
 
 ```
@@ -328,7 +328,7 @@ Yes.
 No.
 ```
 
-You can extend the wordnet ontology directly:
+You can extend the WordNet ontology directly:
 
 ```
 > A landspeeder is a kind of hovercraft.
@@ -345,4 +345,4 @@ A landspeeder.
 ```
 
 I am able to figure out that the landspeeder is a vehicle, because
-in wordnet, "vehicle" is a hypernym of "hovercraft".
+in WordNet, "vehicle" is a hypernym of "hovercraft".
