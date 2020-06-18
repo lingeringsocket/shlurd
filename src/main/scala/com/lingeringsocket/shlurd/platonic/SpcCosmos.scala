@@ -1030,7 +1030,7 @@ class SpcCosmos(
     }
   }
 
-  protected[platonic] def createOrReplaceEntity(entity : SpcEntity)
+  def createOrReplaceEntity(entity : SpcEntity)
   {
     pool.entityTimestamp += 1
     graph.entityAssocs.addVertex(entity)

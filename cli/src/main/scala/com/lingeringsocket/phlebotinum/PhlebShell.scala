@@ -275,7 +275,12 @@ object PhlebShell
               return None
             }
             case "unperceptive" => {
-              tupleN((bootCosmos.newClone(), None))
+              val cloned = bootCosmos.newClone()
+              // the existence of the entity in the noumenal world has to
+              // bleed into the phenomenal world, otherwise the entity
+              // wouldn't have a point of reference for itself
+              cloned.createOrReplaceEntity(entity)
+              tupleN((cloned, None))
             }
             case "perceptive" => {
               val cosmos = bootCosmos.newClone()
