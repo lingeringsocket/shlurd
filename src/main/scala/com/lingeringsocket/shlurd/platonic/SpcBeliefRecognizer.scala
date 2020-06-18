@@ -473,14 +473,14 @@ class SpcBeliefRecognizer(
             entityRef => {
               subjectConjunction.checkAnd
               if (!isPropertyName) {
-                // "the cat is angry "
+                // "the cat is angry"
                 Seq(EntityPropertyBelief(
                   sentence,
                   entityRef,
                   None, Left(stateName)
                 ))
               } else {
-                // "the cat's mood is angry "
+                // "the cat's mood is angry"
                 Seq(EntityPropertyBelief(
                   sentence,
                   entityRef,
@@ -1530,6 +1530,13 @@ class SpcBeliefRecognizer(
         }
         tupleN((possession, preQualifiers :+ possessor,
           count, possessorDeterminer, failed || !allowGenitives))
+      }
+      case pr : SilPronounReference => {
+        // the "noun" returned here is bogus, so we should be forcing
+        // the caller to validate it in inappropriate contexts
+        tupleN((pr.word.getOrElse(SilWord(SmcLemmas.LEMMA_SOMEONE)),
+          preQualifiers, pr.count,
+          DETERMINER_ABSENT, false))
       }
       case _ => failedResult
     }
