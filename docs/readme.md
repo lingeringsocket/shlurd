@@ -219,7 +219,7 @@ OK.
 
 > where is the sprite
 
-"The sprite is in the hayloft."
+"Zzz is in the hayloft."
 
 > TTYL
 
@@ -231,11 +231,11 @@ OK.
 
 You are in a hayloft.
 
-You see the sprite.
+You see the sprite and a rooster.
 
 > where is the sprite
 
-The sprite is in the hayloft.
+Zzz is in the hayloft.
 ```
 
 Once the sprite has been encountered, the player character becomes
@@ -350,7 +350,7 @@ You see a hen and the cloud.
 
 OK.
 
-The hen responds, "I am in an invisible nest."
+She responds, "I am in an invisible nest."
 
 > get the hen
 
@@ -370,7 +370,7 @@ You see the grassy path to the south.
 
 OK.
 
-The hen responds, "I am in an invisible nest."
+She responds, "I am in an invisible nest."
 ```
 
 The hen's world is defined entirely by
@@ -427,7 +427,7 @@ OK.
 
 You are in a hayloft.
 
-You see the sprite.
+You see the sprite and a rooster.
 
 > talk to the sprite
 
@@ -666,7 +666,7 @@ nouns, etc.  Further, it wants you to study
 
 In the example story, the child prefers the singular they, whereas the
 sprite has zrz very own pronouns.  The interpreter is made aware
-so that it can recognize and respect these preferences:
+so that it (and NPC's) can recognize and respect these preferences:
 
 ```scala mdoc:processPhleb:skipIntro
 > s
