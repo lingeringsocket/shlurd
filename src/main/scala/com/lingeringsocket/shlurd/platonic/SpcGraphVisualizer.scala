@@ -39,8 +39,8 @@ case class SpcGraphVisualizationOptions(
   includeSynonyms : Boolean = false,
   includeProperties : Boolean = false,
   includeEntityProperties : Boolean = false,
-  includeMeta : Boolean = false,
-  entityFilter : (SpcEntity => Boolean) = (_ => true)
+  entityFilter : (SpcEntity => Boolean) = (e => !SpcMeta.isMetaEntity(e)),
+  idealFilter : (SpcIdeal => Boolean) = (i => !SpcMeta.isMetaIdeal(i))
 )
 
 object SpcGraphVisualizer
@@ -348,24 +348,12 @@ class SpcGraphVisualizer(
 
   private def includeIdeal(ideal : SpcIdeal) : Boolean =
   {
-    if (options.includeMeta) {
-      true
-    } else {
-      !SpcMeta.isMetaIdeal(ideal)
-    }
+    options.idealFilter(ideal)
   }
 
   private def includeEntity(entity : SpcEntity) : Boolean =
   {
-    if (options.entityFilter(entity)) {
-      if (options.includeMeta) {
-        true
-      } else {
-        !SpcMeta.isMetaEntity(entity)
-      }
-    } else {
-      false
-    }
+    options.entityFilter(entity)
   }
 
   private def combineGraphs()

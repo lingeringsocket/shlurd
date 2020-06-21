@@ -485,12 +485,13 @@ I don't know.
 
 On close examination, the conventions of interactive fiction for
 processing player utterances directed at the game interpreter are
-somewhat peculiar.  For questions or statements, the interpreter
-responds based on the state of the player character's own phenomenal
-world.  For commands, the interpreter processes them as if the player
-character were in self-conversation.  So, the command `throw the rock`
-is executed as if the statement `the player-character throws the rock`
-were being recorded as a new event in the history of the game world.
+somewhat peculiar.  For commands, the interpreter processes them as if
+the player character were in self-conversation.  So, the command
+`throw the rock` is executed as if the statement `the player-character
+throws the rock` were being recorded as a new event in the history of
+the game world.  Likewise, for questions or statements, phlebotinum's
+interpreter responds based on the state of the player character's own
+phenomenal world.
 
 The game interpreter may also play a part in the cause and effect
 logic of the game world.  Narrative output can be inserted by `the

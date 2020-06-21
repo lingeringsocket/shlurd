@@ -332,6 +332,21 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       """).ignoreSpace
     }
 
+    "visualize filtered forms" in new VisualizationContext(
+      SpcGraphVisualizationOptions(
+        includeIdeals = true,
+        idealFilter = (ideal => (ideal.name == "girl"))
+      )
+    ) {
+      definePowerpuffs
+      renderToString must beEqualTo(s"""
+        strict digraph G {
+          rankdir=LR;
+          1 ${formAttributes("girl")};
+        }
+      """).ignoreSpace
+    }
+
     "visualize the whole shebang" in new VisualizationContext(
       SpcGraphVisualizationOptions(
         includeIdeals = true,
@@ -339,7 +354,6 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         includeTaxonomy = true, includeFormAssocs = true,
         includeEntityAssocs = true)
     ) {
-      // verify that includeMeta=false hides all of this
       SpcPrimordial.initCosmos(cosmos)
       definePowerpuffs
       defineProfessor
@@ -376,7 +390,9 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         includeIdeals = true,
         includeEntities = true, includeRealizations = true,
         includeTaxonomy = true, includeFormAssocs = true,
-        includeEntityAssocs = true, includeMeta = true)
+        includeEntityAssocs = true,
+        entityFilter = (_ => true),
+        idealFilter = (_ => true))
     ) {
       SpcPrimordial.initCosmos(cosmos)
       definePowerpuffs

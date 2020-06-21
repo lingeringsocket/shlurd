@@ -2,7 +2,7 @@
 
 You can teach me about diversity:
 
-```scala mdoc:renderBelief:assets/pronouns.png
+```scala mdoc:renderBelief:genderMagic|assets/pronouns.png
 // These beliefs are automatic from WordNet, and are only
 // included here for completeness:
 A man or a woman is a kind of person.
@@ -10,14 +10,16 @@ A man is a kind of male.
 A woman is a kind of female.
 A yeti is a kind of monster.
 Masculine, Feminine, and Neuter are kinds of gender.
-// sex+gender have default pairings, but these can be overridden
-// for individuals or entire subclasses
+// Sex+gender have default pairings, but these can be overridden
+// for individuals or entire subclasses.  Here we pair
+// the biological form Male with the gender form Masculine,
+// and likewise Female with Feminine.
 Masculine is Male's gender.
 Feminine is Female's gender.
 
 // Remaining beliefs below are custom
 
-// Allow monsters to be the answers to "who is..." questions
+// Allow a monster to be the answer to "who is..." questions
 A monster is a kind of spc-someone.
 
 // Introduce a custom gender, with associated pronouns
@@ -28,7 +30,7 @@ Spivak is a kind of gender.
 "Emself" is a reflexive pronoun.
 Spivak's spc-pronoun-list is "e, em, eir, emself".
 
-// Every yeti is neuter by default
+// Pair the biological form Yeti with the gender form Neuter
 Neuter is Yeti's gender.
 
 A person's crush must be a person.
@@ -51,16 +53,15 @@ Kirby's spc-pronoun-list is "they, them, their, themself".
 "Zirself" is a reflexive pronoun.
 Harley's spc-pronoun-list is "ze, zir, zirself".
 
-// Even though Scylla is a monster, and hence having neuter gender by
-// default, we can still specify whatever pronouns we want,
-// overriding the gender default
+// Even though Scylla is a monster, and hence having no gender
+// at all, we can still specify whatever pronouns we want,
+// overriding the defaults taken from the gender (if any).  Note that
+// even with these custom pronouns defined, Scylla still has no gender.
 Scylla's spc-pronoun-list is "she, her, herself".
 
 // Likewise, we can override the gender of one man in particular
 Michael's gender is Spivak.
 ```
-
-// FIXME diagram should show links between genders and forms/entities
 
 I have intrinsic knowledge of the pronouns for masculine, feminine, and neuter genders:
 

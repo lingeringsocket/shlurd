@@ -61,9 +61,9 @@ object ExampleModifier
       s"\nMISMATCH:\n\n$actual\n\nEXPECTED:$expected\n")
   }
 
-  def getOutputLocation(info : String) =
+  def getOutputLocation(name : String) =
   {
-    val relpath = Paths.get(info)
+    val relpath = Paths.get(name)
     val out = dir.get.resolve(relpath)
     assert(!outputs.contains(out), out)
     outputs += out
@@ -457,19 +457,43 @@ class BeliefRenderer extends StringModifier
 
     cosmos.validateBeliefs
 
+    val genderMagic = info.contains("genderMagic")
     val visualizer = new SpcGraphVisualizer(
       cosmos.getGraph,
       SpcGraphVisualizationOptions(
+        includeIdeals = info.contains("includeIdeals"),
         includeEntities = true,
         includeTaxonomy = true, includeRealizations = true,
         includeFormAssocs = true, includeEntityAssocs = true,
         includeInverses = true, includeSynonyms = true,
-        includeProperties = true, includeEntityProperties = true
+        includeProperties = true, includeEntityProperties = true,
+        entityFilter = (entity => {
+          if (SpcMeta.isMetaEntity(entity)) {
+            if (genderMagic) {
+              entity.name match {
+                case "SPC-Form-male" => true
+                case "SPC-Form-female" => true
+                case "SPC-Form-neuter" => true
+                case "SPC-Form-spivak" => true
+                case "SPC-Form-woman" => true
+                case "SPC-Form-man" => true
+                case "SPC-Form-monster" => true
+                case "SPC-Form-yeti" => true
+                case _ => false
+              }
+            } else {
+              false
+            }
+          } else {
+            true
+          }
+        })
       )
     )
-    val out = getOutputLocation(info)
+    val name = info.split('|').last
+    val out = getOutputLocation(name)
     visualizer.renderToImageFile(out.toFile)
-    s"```\n$input\n```\n\n[![diagram]($info)]($info)"
+    s"```\n$input\n```\n\n[![diagram]($name)]($name)"
   }
 }
 
