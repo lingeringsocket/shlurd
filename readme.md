@@ -209,7 +209,7 @@ OK.
 
 > where is the sprite
 
-"The sprite is in the hayloft."
+"Zzz is in the hayloft."
 
 > TTYL
 
@@ -221,11 +221,11 @@ OK.
 
 You are in a hayloft.
 
-You see the sprite.
+You see the sprite and a rooster.
 
 > where is the sprite
 
-The sprite is in the hayloft.
+Zzz is in the hayloft.
 ```
 
 Once the sprite has been encountered, the player character becomes
@@ -334,15 +334,15 @@ You are in the tree.
 
 You are sitting on a thick branch a few feet above the ground.
 
-You see a chickadee and the cloud.
+You see a hen and the cloud.
 
-> ask the chickadee "where are you"
+> ask the hen "where are you"
 
 OK.
 
-The chickadee responds, "I am in an invisible nest."
+She responds, "I am in an invisible nest."
 
-> get the chickadee
+> get the hen
 
 OK.
 
@@ -356,17 +356,47 @@ You see the tree, the rock, and the cloud.
 
 You see the grassy path to the south.
 
-> ask the chickadee "where are you"
+> ask the hen "where are you"
 
 OK.
 
-The chickadee responds, "I am in an invisible nest."
+She responds, "I am in an invisible nest."
 ```
 
-The chickadee's world is defined entirely by
-[its mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/chickadee-mind-init.txt),
+The hen's world is defined entirely by
+[its mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/hen-mind-init.txt),
 so it is unaware of the real world around it.  This allows you to fill
-in any alternate reality desired.
+in any alternate reality desired, including associations:
+
+```
+> u
+
+OK.
+
+You are in the tree.
+
+You are sitting on a thick branch a few feet above the ground.
+
+You see a hen and the cloud.
+
+> talk to the hen
+
+OK.
+
+(You are now in conversation.  Say TTYL to stop.)
+
+> who are you
+
+"I am the hen."
+
+> who is your mate
+
+"My mate is a rooster."
+
+> where is the rooster
+
+"He is in a hayloft."
+```
 
 Finally, let's take a look at the mind of an omniscient character (the sprite):
 
@@ -387,7 +417,7 @@ OK.
 
 You are in a hayloft.
 
-You see the sprite.
+You see the sprite and a rooster.
 
 > talk to the sprite
 
@@ -412,7 +442,7 @@ OK.
 "A cloud is in it."
 ```
 
-Since the sprite is omniscient, it has access to the latest state of the entire world.
+The sprite, being omniscient, has access to the latest state of the entire world.
 
 ### Expressions For People and Objects
 
@@ -624,7 +654,75 @@ you can customize this for better handling of compounds words, proper
 nouns, etc.  Further, it wants you to study
 [its support for pronouns and gender](pronouns.md).
 
+In the example story, the child prefers the singular they, whereas the
+sprite has zrz very own pronouns.  The interpreter is made aware
+so that it (and NPC's) can recognize and respect these preferences:
+
+```
+> s
+
+OK.
+
+You are in a barn.
+
+You see a child.
+
+You see the grassy path to the north.
+
+> where is the child
+
+They are in the barn.
+
+> who is their friend
+
+No one is their friend.
+
+> u
+
+OK.
+
+You are in a hayloft.
+
+You see the sprite and a rooster.
+
+> where is the sprite
+
+Zzz is in the hayloft.
+
+> who is the sprite's friend
+
+No one is zrz friend.
+
+> I am zrz friend
+
+Oh, really?
+```
+
 Beyond identifying parts of speech, WordNet is also used as a
 [builtin ontology](ontology.md#wordnet-ontology), allowing you to
 instantiate forms, e.g. `Amelia is a pilot`, with automatic inference
 that Amelia is also an aviator, a person, etc.
+
+In the example story, no rules say anything about birds, but the interpreter
+still knows that chickens are birds:
+
+```
+> climb the tree
+
+OK.
+
+You are in the tree.
+
+You are sitting on a thick branch a few feet above the ground.
+
+You see a hen and the cloud.
+
+> is the hen a bird
+
+Yes, she is a bird.
+
+> is the hen a dog
+
+No, she is not a dog.
+```
+
