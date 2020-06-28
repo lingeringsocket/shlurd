@@ -16,6 +16,10 @@ Whenever a thief begins a game-turn,
  also the thief perceives the thief;
  also the thief surveys the thief's container.
 
+Whenever a thief observes a game-character,
+ the thief observes the game-character's stuff;
+ also the thief observes the game-character's stuff's contained-objects.
+
 After a player-character beseeches an oracle,
  the game-interpreter says "Answer me these questions three.".
 

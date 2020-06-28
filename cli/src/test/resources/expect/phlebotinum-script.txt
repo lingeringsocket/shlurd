@@ -151,6 +151,12 @@ OK.
 
 Ze responds, "Yes, I am suave."
 
+> say "what am I holding" to zir
+
+OK.
+
+Ze responds, "You are holding nothing."
+
 > close the door
 
 OK.
@@ -194,6 +200,12 @@ It is in your stuff.
 > inventory
 
 You are holding the axe.
+
+> say "what am I holding" to zir
+
+OK.
+
+Ze responds, "You are holding the battleaxe."
 
 > look
 
@@ -313,6 +325,10 @@ The brass lantern, the cupboard, and you are in it.
 OK.
 
 Oddly, the cupboard lacks doors.
+
+> go to the kitchen
+
+But you are already there.
 
 // no map connection from here
 > go to the cupboard

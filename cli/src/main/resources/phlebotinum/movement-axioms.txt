@@ -31,6 +31,10 @@ When a game-character traverses a map-connection,
  the game-character relocates to its target-place.
 
 Before a player-character moves to a map-place,
+ it must not be the player-character's container;
+ otherwise the game-interpreter complains "But you are already there.".
+
+Before a player-character moves to a map-place,
  it must be the player-character's container's map-neighbor;
  otherwise the game-interpreter complains "You can't get there from here.".
 
