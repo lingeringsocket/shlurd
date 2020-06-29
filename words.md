@@ -1,7 +1,7 @@
 # Words
 
 When I parse an English sentence, by default I look up words using
-[wordnet 3.1](http://wordnetweb.princeton.edu/perl/webwn), and then
+[WordNet 3.1](http://wordnetweb.princeton.edu/perl/webwn), and then
 try to determine the correct part of speech for each word based on both
 syntax and semantics.
 
@@ -95,7 +95,7 @@ These are the English parts of speech you can specify when you define a word:
 * verb
 * adjective
 * adverb
-* [pronoun](pronouns.md) (assumed nominative)
+* [pronoun](pronouns.md) (default nominative)
 * nominative pronoun
 * objective pronoun
 * reflexive pronoun

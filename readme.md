@@ -136,10 +136,43 @@ Whew!  There's a lot going on here:
 
 ## Visibility
 
-* survey
-* observe
-* see
-* perceive
+The phlebotinum library provides a default implementation of object
+visibility.  Each game character has an associated set of
+visible-items, and this set is maintained automatically as the
+character moves around, interacts with objects, etc.  Typically, all
+visible items will have been perceived by the character, but not all
+perceived items are necessarily visible.  For example, by default the
+character perceives held items, but does not see them.
+
+Visible items must inherit the form visible-entity, which is divided
+into visible-objects (things that you can probably pick up), and
+visible-fixtures (things you probably can't, such as doors).  By
+default, when describing a map place, the interpreter answers the
+questions "which visible-objects do I see?" and "which
+visible-fixtures do I see?"
+
+The library defines an equivalance so that anything a character can
+```see``` is one of the character's visible items, and vice versa.
+
+Internally, the library uses the verb ```observe``` to combine the act
+of seeing with perception.  Custom game rules can be defined in order
+to cause additional side effects when objects are observed.
+
+The library uses the verb ```survey``` for the act of taking in a map
+place.  By default, when a character surveys a place, the character
+observes everything in it, including entrances, exits, and associated
+portals such as doors.
+
+Typically, characters don't automatically observe the possessions
+carried by others.  This behavior could be modified with a rule such as:
+
+```
+Whenever a thief observes a game-character,
+ the thief observes the game-character's stuff;
+ also the thief observes the game-character's stuff's contained-objects.
+```
+
+There is not yet support for other sensory modalities such as hearing.
 
 ## The Player Character
 

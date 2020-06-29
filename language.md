@@ -263,4 +263,29 @@ Lamplighter.
 
 ## Commands
 
-// FIXME
+Interpretation of commands depends on the context, and that's all I'll
+say about it here.
+
+## Parser Hints
+
+Sometimes I get confused when I'm trying to parse a sentence.  In such
+cases, you can help me out with curly brackets.  For example:
+
+```
+> When a supe loots a place, the supe leaves with the place's contained-objects among the supe's nemesis' possessions.
+
+I am unable to validate the belief that when a supe loots a place, then the supe leaves with the place's contained-objects among the supe's nemesis' possessions | when a supe loots a place, then the supe leaves with the place's contained-objects among the supe's nemesis' possessions.
+
+> When a supe loots a place, the supe leaves with {the place's contained-objects among the supe's nemesis' possessions}.
+
+OK.
+```
+
+The weird error message indicates that I encountered a parsing
+ambiguity which I didn't know how to resolve.  In this case, I wasn't
+sure where to apply the "among" modifier, and the curly brackets help me
+understand that it applies to the contained objects rather than to the
+verb.
+
+How to add the curly brackets correctly is a bit of a dark art.  I
+hope one day I will no longer need your assistance at all.
