@@ -23,10 +23,34 @@ trait PhlebTerminal
 {
   import PhlebShell.logger
 
+  private var debugging = false
+
+  def toggleDebug()
+  {
+    debugging = !debugging
+  }
+
+  def isDebugging() : Boolean = debugging
+
   def emitPrompt()
   {
     logger.trace("PROMPT")
   }
+
+  def emitDebug(msg : String)
+  {
+    if (debugging) {
+      emitDirect(msg)
+    }
+  }
+
+  def emitTrace(msg : String)
+  {
+    logger.trace(msg)
+    emitDebug(msg)
+  }
+
+  def emitDirect(msg : String)
 
   def emitControl(msg : String)
   {
@@ -36,7 +60,8 @@ trait PhlebTerminal
   def emitNarrative(msg : String)
   {
     if (!msg.isEmpty) {
-      logger.debug(s"NARRATIVE $msg")
+      val formatted = s"NARRATIVE $msg"
+      logger.debug(formatted)
     }
   }
 
@@ -90,6 +115,11 @@ class PhlebConsole extends PhlebTerminal
   override def emitNarrative(msg : String)
   {
     super.emitNarrative(msg)
+    emitDirect(msg)
+  }
+
+  override def emitDirect(msg : String)
+  {
     out.println(msg)
   }
 

@@ -22,6 +22,7 @@ import scala.collection._
 import scala.util._
 
 class PhlebResponder(
+  terminal : Option[PhlebTerminal],
   mind : PhlebMind,
   beliefParams : SpcBeliefParams,
   params : SmcResponseParams,
@@ -35,6 +36,7 @@ class PhlebResponder(
   override protected def spawn(subMind : SpcMind) =
   {
     new PhlebResponder(
+      terminal,
       subMind.asInstanceOf[PhlebMind],
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       params, executor, communicationContext)
@@ -47,14 +49,18 @@ class PhlebResponder(
     refMap : SpcRefMap,
     isPrecondition : Boolean) : Try[Boolean] =
   {
-    if (logger.isTraceEnabled) {
+    if (logger.isTraceEnabled || terminal.exists(_.isDebugging)) {
       val printed = sentencePrinter.printPredicateStatement(
         predicate, SilTam.indicative)
-      if (isPrecondition) {
-        logger.trace(s"VERIFY $printed")
-      } else {
-        logger.trace(s"TRIGGER $printed")
+      val formatted = {
+        if (isPrecondition) {
+          s"VERIFY $printed"
+        } else {
+          s"TRIGGER $printed"
+        }
       }
+      logger.trace(formatted)
+      terminal.foreach(_.emitDebug(formatted))
     }
     if (isPrecondition) {
       Success(false)

@@ -1000,9 +1000,11 @@ class SpcCosmos(
     val formId = generateId.toString
     val name = {
       if (properName.isEmpty) {
-        (qualifierString.flatMap(_.decomposed).map(_.lemma) ++
+        "E_" ++ (qualifierString.flatMap(_.decomposed).map(_.lemma) ++
           Seq(form.name, formId)).mkString("_")
       } else {
+        // FIXME should enforce that properName is capitalized,
+        // or else handle uncapitalized names properly
         encodeName(properName)
       }
     }

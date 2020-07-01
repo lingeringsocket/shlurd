@@ -106,9 +106,8 @@ abstract class PhlebAbstractProcessor extends StringModifier
 
     private var skipIntro = (info == "skipIntro")
 
-    override def emitNarrative(msg : String)
+    override def emitDirect(msg : String)
     {
-      super.emitNarrative(msg)
       if (!skipIntro && expectOutput && !msg.isEmpty) {
         nextScriptLine match {
           case Some((expected, lineNo)) => {
@@ -121,6 +120,12 @@ abstract class PhlebAbstractProcessor extends StringModifier
           }
         }
       }
+    }
+
+    override def emitNarrative(msg : String)
+    {
+      super.emitNarrative(msg)
+      emitDirect(msg)
     }
 
     override def emitVisualization(visualizer : SpcGraphVisualizer)

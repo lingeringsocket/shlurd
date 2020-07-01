@@ -138,7 +138,7 @@ object PhlebShell
     mindMap.put(PhlebSnapshot.NOUMENAL, noumenalMind)
     val snapshot = PhlebSnapshot(mindMap)
 
-    lazy val executor = new PhlebExecutor(noumenalMind)
+    lazy val executor = new PhlebExecutor(terminal, noumenalMind)
     {
       override protected def processFiat(
         annotator : SilAnnotator,
@@ -194,6 +194,7 @@ object PhlebShell
     }
 
     lazy val noumenalInitializer : PhlebResponder = new PhlebResponder(
+      Some(terminal),
       noumenalMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       responderParams.copy(reportExceptionCodes = true),
@@ -222,6 +223,7 @@ object PhlebShell
     accessEntityMind(snapshot, entity) match {
       case Some(mind) => {
         val responder = new PhlebResponder(
+          Some(terminal),
           mind, beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
           SmcResponseParams(reportExceptionCodes = true), executor,
           SmcCommunicationContext(Some(entity), Some(entity)))
@@ -397,7 +399,7 @@ class PhlebShell(
 
   private var listenerMind : Option[(SpcEntity, PhlebMind)] = None
 
-  private val executor = new PhlebExecutor(noumenalMind)
+  private val executor = new PhlebExecutor(terminal, noumenalMind)
   {
     override protected def processFiat(
       annotator : SilAnnotator,
@@ -405,9 +407,9 @@ class PhlebShell(
       entities : Iterable[SpcEntity])
         : Option[String] =
     {
-      if (logger.isTraceEnabled) {
+      if (logger.isTraceEnabled || terminal.isDebugging) {
         val printed = sentencePrinter.print(sentence)
-        logger.trace(s"FIAT $printed")
+        terminal.emitTrace(s"RESTATED $printed")
       }
       val staleEntities = findStale(entities)
       // FIXME move this to the scripting level, and discriminate
@@ -528,6 +530,10 @@ class PhlebShell(
         }
         case _ => {
           lemma match {
+            case "debug" => {
+              terminal.toggleDebug
+              ok
+            }
             case "visualize" => {
               visualize(phenomenalCosmos.getGraph, targetEntitySet)
               ok
@@ -648,12 +654,14 @@ class PhlebShell(
   )
 
   private val noumenalUpdater : PhlebResponder = new PhlebResponder(
+    Some(terminal),
     noumenalMind,
     beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
     responderParams,
     executor, playerToInterpreter)
 
   private val phenomenalResponder = new PhlebResponder(
+    Some(terminal),
     phenomenalMind,
     beliefParams.copy(acceptance = IGNORE_BELIEFS),
     responderParams.copy(
@@ -666,6 +674,7 @@ class PhlebShell(
     // preserve conversation scope
     val fiatMind = phenomenalMind.spawn(noumenalCosmos)
     new PhlebResponder(
+      Some(terminal),
       fiatMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       responderParams,
@@ -709,7 +718,7 @@ class PhlebShell(
           terminated = true
         }
         case DeferredDirective(input) => {
-          logger.trace(s"DIRECTIVE $input")
+          terminal.emitTrace(s"DIRECTIVE $input")
           val parseResults = noumenalUpdater.newParser(input).parseAll
           parseResults.foreach(parseResult => {
             val output = noumenalUpdater.process(parseResult)
@@ -722,12 +731,13 @@ class PhlebShell(
             "(You are no longer in conversation.)"))
         }
         case DeferredUtterance(targetEntity, targetMind, input) => {
-          logger.trace(s"UTTERANCE $input")
+          terminal.emitTrace(s"UTTERANCE $input")
           val communicationContext = SmcCommunicationContext(
             Some(playerEntity),
             Some(targetEntity)
           )
           val responder = new PhlebResponder(
+            Some(terminal),
             targetMind,
             beliefParams.copy(acceptance = IGNORE_BELIEFS),
             SmcResponseParams(), executor, communicationContext)
@@ -742,14 +752,19 @@ class PhlebShell(
           })
         }
         case DeferredCommand(input) => {
-          logger.trace(s"COMMAND $input")
+          terminal.emitTrace(s"COMMAND $input")
           updatePerception
           val expanded = preprocess(input)
           if (expanded != input) {
-            logger.trace(s"EXPANDED $expanded")
+            terminal.emitTrace(s"EXPANDED $expanded")
           }
+          val dumpParse = first &&
+            (terminal.isDebugging || logger.isTraceEnabled)
           val parseResults = phenomenalResponder.newParser(expanded).parseAll
           parseResults.foreach(parseResult => {
+            if (dumpParse) {
+              terminal.emitTrace(s"PARSED ${parseResult.sentence}")
+            }
             var output = phenomenalResponder.process(parseResult)
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
@@ -818,6 +833,7 @@ class PhlebShell(
                   Some(listener)
                 )
                 val entityResponder = new PhlebResponder(
+                  Some(terminal),
                   entityMind,
                   beliefParams.copy(acceptance = IGNORE_BELIEFS),
                   SmcResponseParams(), executor, communicationContext)
@@ -994,7 +1010,7 @@ class PhlebShell(
   }
 }
 
-abstract class PhlebExecutor(noumenalMind : PhlebMind)
+abstract class PhlebExecutor(terminal : PhlebTerminal, noumenalMind : PhlebMind)
     extends SmcExecutor[SpcEntity]
 {
   import PhlebShell._

@@ -899,6 +899,7 @@ class SmcPredicateEvaluator[
         // FIXME this is silly
         case DETERMINER_ABSENT => {
           ((count == COUNT_PLURAL) && (context == REF_COMPLEMENT)) ||
+          ((context == REF_GENITIVE_POSSESSOR) && !noun.isProper)||
           (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
             (lemma == LEMMA_WHERE) || (qualifiers.contains(LEMMA_ANOTHER))
         }

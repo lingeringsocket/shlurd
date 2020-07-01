@@ -17,5 +17,6 @@ A player-character can save.
 A player-character can restore.
 A player-character can visualize.
 A player-character can scry.
+A player-character can debug.
 A player-character can get an object.
 A player-character can drop an object.

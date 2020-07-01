@@ -123,6 +123,7 @@ class PhlebMind(
       Some(ref)
     )
     val responder = new PhlebResponder(
+      None,
       mind,
       SpcBeliefParams(IGNORE_BELIEFS, false, false, false, false),
       SmcResponseParams(),

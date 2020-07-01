@@ -65,6 +65,11 @@ class PhlebSpec extends Specification
     override def emitNarrative(msg : String)
     {
       super.emitNarrative(msg)
+      emitDirect(msg)
+    }
+
+    override def emitDirect(msg : String)
+    {
       if (!msg.isEmpty) {
         nextScriptLine match {
           case Some((expected, lineNo)) => {
