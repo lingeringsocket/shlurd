@@ -522,11 +522,11 @@ TODO:  example with references+annotates
 
 ## The Interpreter
 
-Player input is normally processed by the (unique) game interpreter.  The game
-interpreter is not a game character, yet is still a person, and serves
-as the default conversation partner for the player character.  The
-game interpreter is defined to exist within the game world, but normally
-does not have an actual location.
+[Player input](language.md) is normally processed by the (unique) game
+interpreter.  The game interpreter is not a game character, yet is
+still a person, and serves as the default conversation partner for the
+player character.  The game interpreter is defined to exist within the
+game world, but normally does not have an actual location.
 
 ```scala mdoc:processPhleb:skipIntro
 > who am I
@@ -768,3 +768,8 @@ Yes, she is a bird.
 
 No, she is not a dog.
 ```
+
+## Internals
+
+[Debugging](debugging.md) can be a good way to understand more of
+what's going on under the hood.
