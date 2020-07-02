@@ -10,8 +10,6 @@ I can understand the following kinds of sentences:
 
 But you will discover that I have many limitations in my understanding of language.
 
-// FIXME sil structures, narratives, conversations
-
 ## Example Beliefs
 
 ```
@@ -289,3 +287,8 @@ verb.
 
 How to add the curly brackets correctly is a bit of a dark art.  I
 hope one day I will no longer need your assistance at all.
+
+## Internals
+
+To get a view into the internal details of parsed structures, you can read
+about [debugging](debugging.md).
