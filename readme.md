@@ -14,7 +14,7 @@ towards eventual polyglot capabilities.
 
 ## A Rather Short Story
 
-* [play here](http://phlebotinum.xyz:8000)
+* [play here](http://demo.phlebotinum.xyz:8000)
 * if you get stuck, there's a [walkthrough](walkthrough.md)
 * [see source code](https://github.com/lingeringsocket/hello-phlebotinum) (but hey, make sure you try playing it first!)
 
@@ -477,6 +477,10 @@ OK.
 
 The sprite, being omniscient, has access to the latest state of the entire world.
 
+Regardless of mind type, all NPC's are currently far along the
+spectrum, in that they are not capable of internally modeling the minds of other
+characters (although this can be simulated with a lot of effort).
+
 ### Expressions For People and Objects
 
 Special conditionals are supported for crafting how an NPC refers to
@@ -507,8 +511,6 @@ When a non-player-character references a coin,
 ```
 
 In such cases, the rule should be defined in the general behavior axioms.
-
-TODO:  example with references+annotates
 
 ## The Interpreter
 
