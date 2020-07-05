@@ -20,14 +20,25 @@ import java.net._
 
 object PhlebApp extends App
 {
+  // preload
+  PhlebBaseline.frozenCosmos
+
   if (args.isEmpty) {
     PhlebShell.run("/example-phlebotinum/")
   } else {
+    val url = new URL(args.head)
     val terminal = new PhlebConsole
     {
-      override def getInitSaveFile() = ""
+      override def getInitSaveFile() =
+      {
+        if (url.getProtocol == "file") {
+          ""
+        } else {
+          url.getPath.stripPrefix("/") + super.getInitSaveFile
+        }
+      }
     }
-    ResourceUtils.addUrl(new URL(args.head))
+    ResourceUtils.addUrl(url)
     PhlebShell.run("/", terminal)
   }
 }
