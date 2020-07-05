@@ -14,7 +14,7 @@ towards eventual polyglot capabilities.
 
 ## A Rather Short Story
 
-* [play here](http://demo.phlebotinum.xyz:8000)
+* [play here](http://demo.phlebotinum.xyz:8000){:target="_blank"}
 * if you get stuck, there's a [walkthrough](walkthrough.md)
 * [see source code](https://github.com/lingeringsocket/hello-phlebotinum) (but hey, make sure you try playing it first!)
 
