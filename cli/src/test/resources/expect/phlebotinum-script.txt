@@ -44,6 +44,10 @@ I'm not sure how to interpret that.
 
 You are in the bedroom.
 
+> where am i
+
+You are in the bedroom.
+
 > i
 
 You are holding nothing.

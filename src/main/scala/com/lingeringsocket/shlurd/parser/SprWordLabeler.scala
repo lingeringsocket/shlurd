@@ -66,7 +66,7 @@ object SprWordnetLabeler
   // adapted from
   // http://www.d.umn.edu/~tpederse/Group01/WordNet/wordnet-stoplist.html
   private val stopList = Set(
-    "I", "an", "as", "at", "by", "he", "it", "do", "at", "off",
+    "I", "i", "an", "as", "at", "by", "he", "it", "do", "at", "off",
     "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",
     "does", "have", "my", "might",
     LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY
@@ -265,7 +265,9 @@ class SprWordnetLabeler(
         Set.empty
       }
     } ++ {
-      if (isPronounWord(token)) {
+      if (token == "i") {
+        Set(SptPRP(makeLeaf(word, token, LEMMA_I)))
+      } else if (isPronounWord(token)) {
         val leaf = makeLeaf(word, token)
         if (isFlexiblePronoun(token)) {
           Set(SptPRP_POS(leaf), SptPRP(leaf))

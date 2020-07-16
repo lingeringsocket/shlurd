@@ -487,6 +487,22 @@ class SprParserSpec extends Specification
           SilTam.imperative)
     }
 
+    "parse a mischievous pronoun" in
+    {
+      val input = "where am i"
+      parse(input) must be equalTo
+        SilPredicateQuery(
+          SilRelationshipPredicate(
+            annotator.nounRef(SilWord(LEMMA_WHERE)),
+            VERB_AM,
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
+          ),
+          QUESTION_WHERE,
+          INFLECT_NOMINATIVE,
+          SilTam.interrogative)
+    }
+
     "parse an identity statement" in
     {
       val input = "a portal is a door"
