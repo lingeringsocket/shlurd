@@ -489,6 +489,9 @@ class SprParserSpec extends Specification
 
     "parse a mischievous pronoun" in
     {
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
       val input = "where am i"
       parse(input) must be equalTo
         SilPredicateQuery(
