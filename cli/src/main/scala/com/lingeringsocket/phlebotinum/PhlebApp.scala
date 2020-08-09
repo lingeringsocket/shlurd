@@ -20,25 +20,44 @@ import java.net._
 
 object PhlebApp extends App
 {
-  // preload
-  PhlebBaseline.frozenCosmos
+  run()
 
-  if (args.isEmpty) {
-    PhlebShell.run("/example-phlebotinum/")
-  } else {
-    val url = new URL(args.head)
-    val terminal = new PhlebConsole
-    {
-      override def getInitSaveFile() =
+  private def run()
+  {
+    // preload
+    PhlebBaseline.frozenCosmos
+
+    if (args.isEmpty) {
+      PhlebShell.run("/example-phlebotinum/")
+    } else {
+      val url = new URL(args.head)
+      val terminal = new PhlebConsole
       {
-        if (url.getProtocol == "file") {
-          ""
-        } else {
-          url.getPath.stripPrefix("/") + super.getInitSaveFile
+        override def getInitSaveFile() =
+        {
+          if (url.getProtocol == "file") {
+            ""
+          } else {
+            url.getPath.stripPrefix("/") + super.getInitSaveFile
+          }
         }
       }
+      ResourceUtils.addUrl(url)
+      if (verifyResource("base-axioms.txt") &&
+        verifyResource("game-init.txt"))
+      {
+        PhlebShell.run("/", terminal)
+      }
     }
-    ResourceUtils.addUrl(url)
-    PhlebShell.run("/", terminal)
+  }
+
+  private def verifyResource(resourceName : String) : Boolean =
+  {
+    if (ResourceUtils.getResourceStream(s"/${resourceName}") == null) {
+      println(s"Invalid story location (missing ${resourceName})")
+      false
+    } else {
+      true
+    }
   }
 }
