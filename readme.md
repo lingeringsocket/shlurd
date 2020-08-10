@@ -46,6 +46,8 @@ Redundant belief inclusions are automatically ignored.
 A story can be broken up into as many files as desired, either for
 reuse or for organizational clarity.  In the example, [behavior axioms](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/behavior-axioms.txt) include a separate file defining the [axioms regarding what happens when the player drinks love potion number 9](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/love-behavior-axioms.txt).
 
+You can [develop and play your own stories](authoring.md) too.
+
 ## Minds, Worlds, and Perception
 
 The objective reality of the game is the *noumenal* world.
