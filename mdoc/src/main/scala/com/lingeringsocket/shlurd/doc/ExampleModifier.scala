@@ -234,14 +234,14 @@ class ConversationProcessor extends StringModifier
     val wordnet = info.contains("wordnet")
     val cosmos = {
       if (wordnet) {
-        ShlurdPrimordialWordnet.newMutableCosmos
+        ShlurdPrincetonPrimordial.newMutableCosmos
       } else {
         lastCosmos.get.fork(true)
       }
     }
     val mind = {
       if (info.contains("wordnet")) {
-        new SpcWordnetMind(ShlurdPrincetonWordnet, cosmos)
+        new SpcWordnetOntologyMind(ShlurdPrincetonWordnet, cosmos)
       } else {
         new SpcMind(cosmos)
       }

@@ -22,12 +22,13 @@ import com.lingeringsocket.shlurd.platonic._
 import org.specs2.mutable._
 import org.specs2.specification._
 
-class ShlurdPrimordialWordnetSpec extends Specification
+class ShlurdPrincetonPrimordialSpec extends Specification
 {
   abstract class ResponderContext extends Scope
   {
-    protected val cosmos = ShlurdPrimordialWordnet.newMutableCosmos
-    protected val mind = new SpcWordnetMind(ShlurdPrincetonWordnet, cosmos)
+    protected val cosmos = ShlurdPrincetonPrimordial.newMutableCosmos
+    protected val mind = new SpcWordnetOntologyMind(
+      ShlurdPrincetonWordnet, cosmos)
     protected val responder =
       new SpcResponder(
         mind, SpcBeliefParams(ACCEPT_NEW_BELIEFS), SmcResponseParams())
@@ -45,11 +46,11 @@ class ShlurdPrimordialWordnetSpec extends Specification
     }
   }
 
-  "ShlurdPrimordialWordnet" should
+  "ShlurdPrincetonPrimordial" should
   {
     "load forms" in
     {
-      val cosmos = ShlurdPrimordialWordnet.frozenCosmos
+      val cosmos = ShlurdPrincetonPrimordial.frozenCosmos
       val dogOpt = cosmos.resolveForm("wnf-dog-1")
       dogOpt must beSome
       val dogForm = dogOpt.get

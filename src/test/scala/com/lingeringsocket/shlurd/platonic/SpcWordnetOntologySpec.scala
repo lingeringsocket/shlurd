@@ -21,13 +21,14 @@ import org.specs2.specification._
 
 import net.sf.extjwnl.data._
 
-class SpcWordnetSpec extends Specification
+class SpcWordnetOntologySpec extends Specification
 {
   trait CosmosContext extends Scope
   {
     protected val cosmos = new SpcCosmos
 
-    protected val wordnet = new SpcWordnet(ShlurdPrincetonWordnet, cosmos)
+    protected val ontology = new SpcWordnetOntology(
+      ShlurdPrincetonWordnet, cosmos)
 
     protected val graph = cosmos.getGraph
   }
@@ -45,12 +46,12 @@ class SpcWordnetSpec extends Specification
     formOpt.get
   }
 
-  "SpcWordnet" should
+  "SpcWordnetOntology" should
   {
     "load form" in new CosmosContext
     {
       val sense = expectUniqueSense("aunt")
-      val form = expectForm(wordnet.loadForm(sense))
+      val form = expectForm(ontology.loadForm(sense))
       form.name must be equalTo "wnf-aunt-1"
       cosmos.resolveForm(form.name) must beSome(form)
     }
@@ -59,9 +60,9 @@ class SpcWordnetSpec extends Specification
     {
       val auntSense = expectUniqueSense("aunt")
       val kinswomanSense = expectUniqueSense("kinswoman")
-      val hypernyms = wordnet.loadDirectHypernyms(auntSense, false)
-      val auntForm = expectForm(wordnet.getSynsetForm(auntSense))
-      val kinswomanForm = expectForm(wordnet.getSynsetForm(kinswomanSense))
+      val hypernyms = ontology.loadDirectHypernyms(auntSense, false)
+      val auntForm = expectForm(ontology.getSynsetForm(auntSense))
+      val kinswomanForm = expectForm(ontology.getSynsetForm(kinswomanSense))
       hypernyms must be equalTo Seq(kinswomanForm)
       cosmos.isHyponym(auntForm, kinswomanForm) must beTrue
       cosmos.isHyponym(kinswomanForm, auntForm) must beFalse
@@ -70,11 +71,11 @@ class SpcWordnetSpec extends Specification
     "load meronym associations" in new CosmosContext
     {
       val sense = ShlurdPrincetonWordnet.getNounSenses("fork").head
-      val meronyms = wordnet.loadMeronyms(sense)
-      val forkForm = expectForm(wordnet.getSynsetForm(sense))
-      val prongForm = expectForm(wordnet.getSynsetForm(
+      val meronyms = ontology.loadMeronyms(sense)
+      val forkForm = expectForm(ontology.getSynsetForm(sense))
+      val prongForm = expectForm(ontology.getSynsetForm(
         expectUniqueSense("prong")))
-      val tineForm = expectForm(wordnet.getSynsetForm(
+      val tineForm = expectForm(ontology.getSynsetForm(
         expectUniqueSense("tine")))
       meronyms.map(_.name) must be equalTo(
         Seq(
@@ -94,9 +95,9 @@ class SpcWordnetSpec extends Specification
         ShlurdPrincetonWordnet.getNounSenses("country").tail.head
       val provinceSense =
         ShlurdPrincetonWordnet.getNounSenses("province").head
-      val meronyms = wordnet.loadMeronyms(countrySense)
-      val countryForm = expectForm(wordnet.getSynsetForm(countrySense))
-      val provinceForm = expectForm(wordnet.getSynsetForm(provinceSense))
+      val meronyms = ontology.loadMeronyms(countrySense)
+      val countryForm = expectForm(ontology.getSynsetForm(countrySense))
+      val provinceForm = expectForm(ontology.getSynsetForm(provinceSense))
       val roleOpt = meronyms.map(
         role => tupleN(((role, graph.getFormsForRole(role))))).find(
           _._2.exists(_ == provinceForm)).map(_._1).headOption

@@ -81,11 +81,11 @@ object ShlurdCliShell
 {
   def newMind(terminal : ShlurdCliTerminal) =
   {
-    val cosmos = ShlurdPrimordialWordnet.newMutableCosmos
+    val cosmos = ShlurdPrincetonPrimordial.newMutableCosmos
     val beliefs = ResourceUtils.getResourceFile("/console/beliefs.txt")
     val source = Source.fromFile(beliefs)
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
-    val bootMind = new SpcWordnetMind(
+    val bootMind = new SpcWordnetOntologyMind(
       ShlurdPrincetonWordnet, cosmos, preferredSynonyms)
     bootMind.loadBeliefs(source)
 

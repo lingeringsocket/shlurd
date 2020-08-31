@@ -22,7 +22,8 @@ import scala.collection._
 class ShlurdCliMind(
   cosmos : SpcCosmos,
   preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
-    extends SpcWordnetMind(ShlurdPrincetonWordnet, cosmos, preferredSynonyms)
+    extends SpcWordnetOntologyMind(ShlurdPrincetonWordnet,
+      cosmos, preferredSynonyms)
 {
   override def spawn(newCosmos : SpcCosmos) =
   {

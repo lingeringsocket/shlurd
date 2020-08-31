@@ -19,7 +19,7 @@ import com.lingeringsocket.shlurd.platonic._
 
 import java.io._
 
-object ShlurdPrimordialWordnet
+object ShlurdPrincetonPrimordial
 {
   private var frozen : Option[SpcCosmos] = None
 
@@ -27,17 +27,18 @@ object ShlurdPrimordialWordnet
   {
     this.synchronized {
       frozen.getOrElse {
-        val file = new File("run/primordial-wordnet.zip")
+        val file = new File("run/princeton-primordial.zip")
         val serializer = new ShlurdCliSerializer
         val cosmos = {
           if (file.exists) {
             serializer.loadCosmos(file)
           } else {
-            val newCosmos = new SpcCosmos(SpcGraph("primordial-wordnet"))
+            val newCosmos = new SpcCosmos(SpcGraph("princeton-primordial"))
             newCosmos.getPool.enableBulkLoad
             SpcPrimordial.initCosmos(newCosmos)
-            val wordnet = new SpcWordnet(ShlurdPrincetonWordnet, newCosmos)
-            wordnet.loadAll
+            val ontology = new SpcWordnetOntology(
+              ShlurdPrincetonWordnet, newCosmos)
+            ontology.loadAll
             serializer.saveCosmos(newCosmos, file)
             newCosmos
           }

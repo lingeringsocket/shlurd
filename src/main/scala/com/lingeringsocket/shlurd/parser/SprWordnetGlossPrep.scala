@@ -21,9 +21,11 @@ import net.sf.extjwnl.data._
 
 object SprWordnetGlossPrep
 {
+  private val wordnet = ShlurdPrincetonWordnet
+
   def parseNounGlosses(lemma : String) : Seq[Option[SilReference]] =
   {
-    ShlurdPrincetonWordnet.getNounSenses(lemma).flatMap(sense => {
+    wordnet.getNounSenses(lemma).flatMap(sense => {
       getNounSenseDefinitions(sense).map(parseNounDefinition)
     })
   }
@@ -31,7 +33,7 @@ object SprWordnetGlossPrep
   def getNounSenseDefinitions(sense : Synset)
       : Seq[String] =
   {
-    ShlurdPrincetonWordnet.getGlossDefinitions(sense).map(
+    wordnet.getGlossDefinitions(sense).map(
       definition => s"$definition exists")
   }
 

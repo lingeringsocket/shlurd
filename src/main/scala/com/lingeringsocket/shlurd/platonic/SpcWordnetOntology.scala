@@ -25,7 +25,7 @@ import scala.collection.JavaConverters._
 
 import java.util.regex._
 
-object SpcWordnet
+object SpcWordnetOntology
 {
   private val usablePattern = Pattern.compile("[ \\p{javaLowerCase}]+")
 
@@ -72,13 +72,13 @@ object SpcWordnet
   private def isUsableFormName(lemma : String) : Boolean =
   {
     // FIXME deal with acronyms etc
-    SpcWordnet.usablePattern.matcher(lemma).matches
+    SpcWordnetOntology.usablePattern.matcher(lemma).matches
   }
 }
 
-class SpcWordnet(wordnet : ShlurdWordnet, cosmos : SpcCosmos)
+class SpcWordnetOntology(wordnet : ShlurdWordnet, cosmos : SpcCosmos)
 {
-  import SpcWordnet._
+  import SpcWordnetOntology._
 
   def loadAll()
   {

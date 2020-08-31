@@ -38,7 +38,7 @@ object PhlebBaseline
           } else {
             val newCosmos = new SpcCosmos(SpcGraph("phlebotinum-baseline"))
             newCosmos.getPool.enableBulkLoad
-            newCosmos.copyFrom(ShlurdPrimordialWordnet.frozenCosmos)
+            newCosmos.copyFrom(ShlurdPrincetonPrimordial.frozenCosmos)
 
             val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
             val mind = new PhlebMind(

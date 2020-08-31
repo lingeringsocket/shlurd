@@ -20,7 +20,7 @@ import com.lingeringsocket.shlurd.ilang._
 import scala.collection._
 import scala.util._
 
-class SpcWordnetMind(
+class SpcWordnetOntologyMind(
   wordnet : ShlurdWordnet,
   cosmos : SpcCosmos,
   preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
@@ -28,11 +28,11 @@ class SpcWordnetMind(
 {
   override def getWordnet = wordnet
 
-  private def getSpcWordnet() = new SpcWordnet(wordnet, cosmos)
+  private def getOntology() = new SpcWordnetOntology(wordnet, cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {
-    val mind = new SpcWordnetMind(wordnet, newCosmos, preferredSynonyms)
+    val mind = new SpcWordnetOntologyMind(wordnet, newCosmos, preferredSynonyms)
     mind.initFrom(this)
     mind
   }
@@ -62,7 +62,7 @@ class SpcWordnetMind(
       seq
     } else {
       val senses = wordnet.findSenses(noun.senseId)
-      senses.toStream.flatMap(getSpcWordnet.getSynsetForm)
+      senses.toStream.flatMap(getOntology.getSynsetForm)
     }
   }
 
@@ -79,10 +79,10 @@ class SpcWordnetMind(
       {
         val wordnetOpt = {
           val senses = wordnet.findSenses(noun.senseId)
-          val spcWordnet = getSpcWordnet
+          val ontology = getOntology
           val graph = cosmos.getGraph
           senses.toStream.flatMap(sense => {
-            spcWordnet.getSynsetForm(sense)
+            ontology.getSynsetForm(sense)
           }).flatMap(possesseeForm => {
             cosmos.getRolesForForm(possesseeForm).filter(
               possesseeRole => {
@@ -142,13 +142,13 @@ class SpcWordnetMind(
   {
     preferredSynonyms.getOrElse(
       form,
-      cosmos.decodeName(SpcWordnet.getNoun(form)))
+      cosmos.decodeName(SpcWordnetOntology.getNoun(form)))
   }
 
   override protected def getPossesseeName(role : SpcRole) : String =
   {
     preferredSynonyms.getOrElse(
       role,
-      cosmos.decodeName(SpcWordnet.getPossesseeNoun(role)))
+      cosmos.decodeName(SpcWordnetOntology.getPossesseeNoun(role)))
   }
 }

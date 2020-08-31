@@ -44,7 +44,7 @@ class PhlebSerializer extends ShlurdCliSerializer
   def loadSnapshot(file : File) : PhlebSnapshot =
   {
     // this MUST be preloaded
-    ShlurdPrimordialWordnet.frozenCosmos
+    ShlurdPrincetonPrimordial.frozenCosmos
 
     val zis = new ZipInputStream(new FileInputStream(file))
     try {
