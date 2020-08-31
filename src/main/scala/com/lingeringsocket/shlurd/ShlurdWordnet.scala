@@ -27,19 +27,19 @@ object ShlurdEnglishAffixes
   val SUFFIX_ING = "ing"
 }
 
-object ShlurdWordnet
+trait ShlurdWordnet
 {
   import ShlurdEnglishAffixes._
 
-  val dictionary = Dictionary.getDefaultResourceInstance
+  def getDictionary : Dictionary
 
-  val morphology = dictionary.getMorphologicalProcessor
+  def getMorphology : MorphologicalProcessor
 
   private val plainPattern = Pattern.compile("\\p{javaLowerCase}+")
 
   def getWordSenses(pos : POS, lemma : String) : Seq[Synset] =
   {
-    Option(dictionary.getIndexWord(pos, lemma)) match {
+    Option(getDictionary.getIndexWord(pos, lemma)) match {
       case Some(indexWord) => {
         indexWord.getSenses.asScala
       }
@@ -59,7 +59,7 @@ object ShlurdWordnet
 
   def allNounSenses() =
   {
-    dictionary.getSynsetIterator(POS.NOUN).asScala
+    getDictionary.getSynsetIterator(POS.NOUN).asScala
   }
 
   def getVerbFrames(lemma : String) : Seq[String] =
@@ -76,7 +76,7 @@ object ShlurdWordnet
 
   def getUsageScore(lemma : String, pos : POS) : Int =
   {
-    Option(dictionary.getIndexWord(pos, lemma)) match {
+    Option(getDictionary.getIndexWord(pos, lemma)) match {
       case Some(indexWord) => {
         val senseIter = indexWord.getSenses.iterator
         if (senseIter.hasNext) {
@@ -96,7 +96,7 @@ object ShlurdWordnet
 
   def isPotentialAdjective(inflected : String) : Boolean =
   {
-    Option(dictionary.getIndexWord(POS.ADJECTIVE, inflected)) match {
+    Option(getDictionary.getIndexWord(POS.ADJECTIVE, inflected)) match {
       case Some(indexWord) => true
       case _ => false
     }
@@ -104,7 +104,7 @@ object ShlurdWordnet
 
   def isPotentialAdverb(inflected : String) : Boolean =
   {
-    Option(dictionary.getIndexWord(POS.ADVERB, inflected)) match {
+    Option(getDictionary.getIndexWord(POS.ADVERB, inflected)) match {
       case Some(indexWord) => true
       case _ => false
     }
@@ -112,7 +112,7 @@ object ShlurdWordnet
 
   def isPotentialNoun(inflected : String) : Boolean =
   {
-    Option(dictionary.getIndexWord(POS.NOUN, inflected)) match {
+    Option(getDictionary.getIndexWord(POS.NOUN, inflected)) match {
       case Some(indexWord) => true
       case _ => false
     }
@@ -120,7 +120,7 @@ object ShlurdWordnet
 
   def isPotentialVerb(inflected : String) : Boolean =
   {
-    Option(dictionary.getIndexWord(POS.VERB, inflected)) match {
+    Option(getDictionary.getIndexWord(POS.VERB, inflected)) match {
       case Some(indexWord) => true
       case _ => false
     }
@@ -131,7 +131,7 @@ object ShlurdWordnet
     if (!inflected.endsWith(SUFFIX_ING)) {
       false
     } else {
-      Option(dictionary.getIndexWord(POS.ADJECTIVE, inflected)) match {
+      Option(getDictionary.getIndexWord(POS.ADJECTIVE, inflected)) match {
         case Some(indexWord) => true
         case _ => false
       }
@@ -140,7 +140,7 @@ object ShlurdWordnet
 
   def isPotentialPlural(noun : String) : Boolean =
   {
-    val bases = morphology.lookupAllBaseForms(POS.NOUN, noun).asScala
+    val bases = getMorphology.lookupAllBaseForms(POS.NOUN, noun).asScala
     return (bases.size > 1) || !bases.contains(noun)
   }
 
@@ -185,7 +185,7 @@ object ShlurdWordnet
   {
     val components = senseId.split(':')
     val pos = POS.getPOSForKey(components.head)
-    dictionary.getSynsetAt(pos, components.last.toLong)
+    getDictionary.getSynsetAt(pos, components.last.toLong)
   }
 
   def findSenses(senseId : String) : Seq[Synset] =

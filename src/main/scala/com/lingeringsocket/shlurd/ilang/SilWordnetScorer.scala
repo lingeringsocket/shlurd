@@ -23,7 +23,9 @@ import net.sf.extjwnl.data._
 
 import scala.collection._
 
-class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
+class SilWordnetScorer(
+  wordnet : ShlurdWordnet
+) extends SilPhraseScorer with SprEnglishWordAnalyzer
 {
   type PhraseScorer = PartialFunction[SilPhrase, SilPhraseScore]
 
@@ -83,7 +85,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
     if (lemma.contains('-')) {
       return SilPhraseScore.neutral
     }
-    val score = ShlurdWordnet.getUsageScore(lemma, pos)
+    val score = wordnet.getUsageScore(lemma, pos)
     if (score == 0) {
       SilPhraseScore.proSmall
     } else if (score < 0) {
@@ -268,7 +270,7 @@ class SilWordnetScorer extends SilPhraseScorer with SprEnglishWordAnalyzer
       directObject,
       modifiers
     ) => {
-      val frameFlags = ShlurdWordnet.getVerbFrameFlags(lemma)
+      val frameFlags = wordnet.getVerbFrameFlags(lemma)
       val matched = SilWordnetScorer.matchAction(
         frameFlags, subject, directObject, modifiers)
       if (matched > 0) {

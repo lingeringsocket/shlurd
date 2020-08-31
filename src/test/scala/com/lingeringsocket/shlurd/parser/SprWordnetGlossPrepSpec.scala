@@ -82,8 +82,8 @@ class SprWordnetGlossPrepSpec extends Specification
 
     "parse one noun example" in
     {
-      ShlurdWordnet.getNounSenses("stair").flatMap(
-        ShlurdWordnet.getGlossExamples
+      ShlurdPrincetonWordnet.getNounSenses("stair").flatMap(
+        ShlurdPrincetonWordnet.getGlossExamples
       ).map(
         SprWordnetGlossPrep.parseNounExample
       ) must be equalTo Seq(
@@ -113,8 +113,8 @@ class SprWordnetGlossPrepSpec extends Specification
     "parse all noun examples" in
     {
       skipped("not ready for prime time")
-      val examples = ShlurdWordnet.allNounSenses.flatMap(
-        ShlurdWordnet.getGlossExamples)
+      val examples = ShlurdPrincetonWordnet.allNounSenses.flatMap(
+        ShlurdPrincetonWordnet.getGlossExamples)
       def parser(example : String) : Option[SilPhrase] =
       {
         val phrase = SprWordnetGlossPrep.parseNounExample(example)
@@ -131,7 +131,7 @@ class SprWordnetGlossPrepSpec extends Specification
     "parse all noun glosses" in
     {
       skipped("not ready for prime time")
-      val glosses = ShlurdWordnet.allNounSenses.flatMap(sense =>
+      val glosses = ShlurdPrincetonWordnet.allNounSenses.flatMap(sense =>
         SprWordnetGlossPrep.getNounSenseDefinitions(
           sense))
       def parser(gloss : String) : Option[SilPhrase] =

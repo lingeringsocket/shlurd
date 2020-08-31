@@ -18,62 +18,69 @@ import net.sf.extjwnl.data._
 
 import org.specs2.mutable._
 
+object ShlurdWordnetSpec
+{
+  private val wordnet = ShlurdPrincetonWordnet
+}
+
 class ShlurdWordnetSpec extends Specification
 {
+  import ShlurdWordnetSpec._
+
   "ShlurdWordnet" should
   {
     "detect potential adverbs" in
     {
-      ShlurdWordnet.isPotentialAdverb("quickly") must beTrue
-      ShlurdWordnet.isPotentialAdverb("slow") must beTrue
-      ShlurdWordnet.isPotentialAdverb("smile") must beFalse
+      wordnet.isPotentialAdverb("quickly") must beTrue
+      wordnet.isPotentialAdverb("slow") must beTrue
+      wordnet.isPotentialAdverb("smile") must beFalse
     }
 
     "detect potential verbs" in
     {
-      ShlurdWordnet.isPotentialVerb("run") must beTrue
-      ShlurdWordnet.isPotentialVerb("stir fry") must beTrue
-      ShlurdWordnet.isPotentialVerb("frogmarch") must beTrue
-      ShlurdWordnet.isPotentialVerb("bump off") must beTrue
-      ShlurdWordnet.isPotentialVerb("highchair") must beFalse
+      wordnet.isPotentialVerb("run") must beTrue
+      wordnet.isPotentialVerb("stir fry") must beTrue
+      wordnet.isPotentialVerb("frogmarch") must beTrue
+      wordnet.isPotentialVerb("bump off") must beTrue
+      wordnet.isPotentialVerb("highchair") must beFalse
     }
 
     "detect potential nouns" in
     {
-      ShlurdWordnet.isPotentialNoun("defenestrate") must beFalse
-      ShlurdWordnet.isPotentialNoun("kill") must beTrue
-      ShlurdWordnet.isPotentialNoun("smile") must beTrue
-      ShlurdWordnet.isPotentialNoun("steak knife") must beTrue
+      wordnet.isPotentialNoun("defenestrate") must beFalse
+      wordnet.isPotentialNoun("kill") must beTrue
+      wordnet.isPotentialNoun("smile") must beTrue
+      wordnet.isPotentialNoun("steak knife") must beTrue
     }
 
     "detect potential gerunds" in
     {
-      ShlurdWordnet.isPotentialGerund("running") must beTrue
-      ShlurdWordnet.isPotentialGerund("king") must beFalse
-      ShlurdWordnet.isPotentialGerund("run") must beFalse
+      wordnet.isPotentialGerund("running") must beTrue
+      wordnet.isPotentialGerund("king") must beFalse
+      wordnet.isPotentialGerund("run") must beFalse
     }
 
     "detect potential plurals" in
     {
-      ShlurdWordnet.isPotentialPlural("horses") must beTrue
-      ShlurdWordnet.isPotentialPlural("mice") must beTrue
-      ShlurdWordnet.isPotentialPlural("horse") must beFalse
+      wordnet.isPotentialPlural("horses") must beTrue
+      wordnet.isPotentialPlural("mice") must beTrue
+      wordnet.isPotentialPlural("horse") must beFalse
     }
 
     "detect plain words" in
     {
-      ShlurdWordnet.isPlainWord("mouse") must beTrue
-      ShlurdWordnet.isPlainWord("boss") must beTrue
-      ShlurdWordnet.isPlainWord("NYC") must beFalse
+      wordnet.isPlainWord("mouse") must beTrue
+      wordnet.isPlainWord("boss") must beTrue
+      wordnet.isPlainWord("NYC") must beFalse
     }
 
     "get verb frames" in
     {
-      ShlurdWordnet.getVerbFrames("defenestrate") must be equalTo Seq(
+      wordnet.getVerbFrames("defenestrate") must be equalTo Seq(
         "Somebody ----s something",
         "Somebody ----s somebody"
       )
-      ShlurdWordnet.getVerbFrames("distinguish") must be equalTo Seq(
+      wordnet.getVerbFrames("distinguish") must be equalTo Seq(
         "Somebody ----s something",
         "Somebody ----s somebody",
         "Somebody ----s something from somebody",
@@ -84,7 +91,7 @@ class ShlurdWordnetSpec extends Specification
 
     "get verb frame flags" in
     {
-      val flags = ShlurdWordnet.getVerbFrameFlags("defenestrate")
+      val flags = wordnet.getVerbFrameFlags("defenestrate")
       flags.size must be equalTo 2
       flags(7) must beFalse
       flags(8) must beTrue
@@ -93,13 +100,13 @@ class ShlurdWordnetSpec extends Specification
 
     "get gloss definitions" in
     {
-      ShlurdWordnet.getVerbSenses("pester").flatMap(
-        ShlurdWordnet.getGlossDefinitions
+      wordnet.getVerbSenses("pester").flatMap(
+        wordnet.getGlossDefinitions
       ) must be equalTo Seq(
         "annoy persistently"
       )
-      ShlurdWordnet.getNounSenses("gallop").flatMap(
-        ShlurdWordnet.getGlossDefinitions
+      wordnet.getNounSenses("gallop").flatMap(
+        wordnet.getGlossDefinitions
       ) must be equalTo Seq(
         "a fast gait of a horse",
         "a two-beat stride during which all four legs " +
@@ -109,63 +116,63 @@ class ShlurdWordnetSpec extends Specification
 
     "get gloss examples" in
     {
-      ShlurdWordnet.getVerbSenses("pester").flatMap(
-        ShlurdWordnet.getGlossExamples
+      wordnet.getVerbSenses("pester").flatMap(
+        wordnet.getGlossExamples
       ) must be equalTo Seq(
         "The children teased the boy because of his stammer"
       )
-      ShlurdWordnet.getNounSenses("pickle").flatMap(
-        ShlurdWordnet.getGlossExamples
+      wordnet.getNounSenses("pickle").flatMap(
+        wordnet.getGlossExamples
       ) must be equalTo Seq(
         "he got into a terrible fix",
         "he made a muddle of his marriage")
-      ShlurdWordnet.getVerbSenses("pickle").flatMap(
-        ShlurdWordnet.getGlossExamples
+      wordnet.getVerbSenses("pickle").flatMap(
+        wordnet.getGlossExamples
       ) must be equalTo Seq()
     }
 
     "use simple sense keys" in
     {
-      val senses = ShlurdWordnet.getVerbSenses("defenestrate")
+      val senses = wordnet.getVerbSenses("defenestrate")
       senses.size must be equalTo 1
       val sense = senses.head
-      val senseId = ShlurdWordnet.getSenseId(sense)
+      val senseId = wordnet.getSenseId(sense)
       senseId must be equalTo "v:1511516"
-      val found = ShlurdWordnet.findSense(senseId)
+      val found = wordnet.findSense(senseId)
       found must be equalTo sense
-      ShlurdWordnet.findSenses(senseId) must be equalTo Seq(sense)
+      wordnet.findSenses(senseId) must be equalTo Seq(sense)
     }
 
     "use compound sense keys" in
     {
-      val senses = ShlurdWordnet.getVerbSenses("smile")
+      val senses = wordnet.getVerbSenses("smile")
       senses.size must be equalTo 2
-      val senseId = ShlurdWordnet.getSenseId(senses)
+      val senseId = wordnet.getSenseId(senses)
       senseId must be equalTo "v:28558|v:1069534"
-      val found = ShlurdWordnet.findSenses(senseId)
+      val found = wordnet.findSenses(senseId)
       found must be equalTo senses
-      ShlurdWordnet.findSenses("") must beEmpty
+      wordnet.findSenses("") must beEmpty
     }
 
     "get lex file names" in
     {
-      val senses = ShlurdWordnet.getNounSenses("firefighter")
+      val senses = wordnet.getNounSenses("firefighter")
       senses.head.getLexFileName must be equalTo "noun.person"
     }
 
     "compute usage scores" in
     {
-      ShlurdWordnet.getUsageScore("small", POS.ADJECTIVE) must be equalTo 42
-      ShlurdWordnet.getUsageScore("small", POS.NOUN) must be equalTo 0
-      ShlurdWordnet.getUsageScore("small", POS.ADVERB) must be equalTo 0
-      ShlurdWordnet.getUsageScore("small", POS.VERB) must be equalTo -1
-      ShlurdWordnet.getUsageScore("red", POS.ADJECTIVE) must be equalTo 8
-      ShlurdWordnet.getUsageScore("red", POS.NOUN) must be equalTo 1
-      ShlurdWordnet.getUsageScore("young", POS.NOUN) must be equalTo 1
-      ShlurdWordnet.getUsageScore("young", POS.ADJECTIVE) must be equalTo 21
-      ShlurdWordnet.getUsageScore("man", POS.NOUN) must be equalTo 149
-      ShlurdWordnet.getUsageScore("man", POS.VERB) must be equalTo 0
-      ShlurdWordnet.getUsageScore("back", POS.ADVERB) must be equalTo 18
+      wordnet.getUsageScore("small", POS.ADJECTIVE) must be equalTo 42
+      wordnet.getUsageScore("small", POS.NOUN) must be equalTo 0
+      wordnet.getUsageScore("small", POS.ADVERB) must be equalTo 0
+      wordnet.getUsageScore("small", POS.VERB) must be equalTo -1
+      wordnet.getUsageScore("red", POS.ADJECTIVE) must be equalTo 8
+      wordnet.getUsageScore("red", POS.NOUN) must be equalTo 1
+      wordnet.getUsageScore("young", POS.NOUN) must be equalTo 1
+      wordnet.getUsageScore("young", POS.ADJECTIVE) must be equalTo 21
+      wordnet.getUsageScore("man", POS.NOUN) must be equalTo 149
+      wordnet.getUsageScore("man", POS.VERB) must be equalTo 0
+      wordnet.getUsageScore("back", POS.ADVERB) must be equalTo 18
     }
   }
 }

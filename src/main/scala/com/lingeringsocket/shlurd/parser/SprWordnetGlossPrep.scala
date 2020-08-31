@@ -23,7 +23,7 @@ object SprWordnetGlossPrep
 {
   def parseNounGlosses(lemma : String) : Seq[Option[SilReference]] =
   {
-    ShlurdWordnet.getNounSenses(lemma).flatMap(sense => {
+    ShlurdPrincetonWordnet.getNounSenses(lemma).flatMap(sense => {
       getNounSenseDefinitions(sense).map(parseNounDefinition)
     })
   }
@@ -31,7 +31,7 @@ object SprWordnetGlossPrep
   def getNounSenseDefinitions(sense : Synset)
       : Seq[String] =
   {
-    ShlurdWordnet.getGlossDefinitions(sense).map(
+    ShlurdPrincetonWordnet.getGlossDefinitions(sense).map(
       definition => s"$definition exists")
   }
 

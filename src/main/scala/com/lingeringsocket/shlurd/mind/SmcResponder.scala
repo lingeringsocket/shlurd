@@ -173,8 +173,9 @@ class SmcContextualScorer[
   CosmosType<:SmcCosmos[EntityType, PropertyType],
   MindType<:SmcMind[EntityType, PropertyType, CosmosType]
 ](
+  wordnet : ShlurdWordnet,
   responder : SmcResponder[EntityType, PropertyType, CosmosType, MindType])
-    extends SilWordnetScorer
+    extends SilWordnetScorer(wordnet)
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
@@ -407,7 +408,7 @@ class SmcResponder[
   def newParser(input : String) =
   {
     val context = SprContext(
-      scorer = new SmcContextualScorer(this),
+      scorer = new SmcContextualScorer(mind.getWordnet, this),
       annotator = newAnnotator,
       genderAnalyzer = mind)
     SprParser(input, context)

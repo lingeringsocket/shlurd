@@ -85,7 +85,8 @@ object ShlurdCliShell
     val beliefs = ResourceUtils.getResourceFile("/console/beliefs.txt")
     val source = Source.fromFile(beliefs)
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
-    val bootMind = new SpcWordnetMind(cosmos, preferredSynonyms)
+    val bootMind = new SpcWordnetMind(
+      ShlurdPrincetonWordnet, cosmos, preferredSynonyms)
     bootMind.loadBeliefs(source)
 
     terminal.emitControl("Hello, human!")

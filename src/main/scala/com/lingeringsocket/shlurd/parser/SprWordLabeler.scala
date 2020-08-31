@@ -29,8 +29,8 @@ import scala.collection._
 import scala.collection.JavaConverters._
 
 case class SprContext(
-  wordLabeler : SprWordLabeler = new SprWordnetLabeler,
-  scorer : SilPhraseScorer = new SilWordnetScorer,
+  wordLabeler : SprWordLabeler = new SprWordnetLabeler(ShlurdPrincetonWordnet),
+  scorer : SilPhraseScorer = new SilWordnetScorer(ShlurdPrincetonWordnet),
   annotator : SilAnnotator = SilBasicAnnotator(),
   genderAnalyzer : SilGenderAnalyzer = SilGenderPreserver
 )
@@ -74,14 +74,11 @@ object SprWordnetLabeler
 
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
 
-  private val dictionary = ShlurdWordnet.dictionary
-
-  private val morphology = ShlurdWordnet.morphology
-
   private val quote = DQUOTE
 }
 
 class SprWordnetLabeler(
+  val wordnet : ShlurdWordnet,
   var maxPrefix : Int = 0,
   val rules : mutable.HashMap[Seq[String], SprWordRule] =
     new mutable.HashMap[Seq[String], SprWordRule]
@@ -222,12 +219,13 @@ class SprWordnetLabeler(
         Set(SptNNP(makeLeaf(word, word, word)))
       } else {
         val pairs = partsOfSpeech.flatMap(pos => {
-          morphology.lookupAllBaseForms(pos, tokenSuffix).asScala.map(
-            lemma => tupleN((pos, lemma))).toSet
+          wordnet.getMorphology.lookupAllBaseForms(pos, tokenSuffix).
+            asScala.map(
+              lemma => tupleN((pos, lemma))).toSet
         })
         val rawWords = pairs.flatMap {
           case (pos, lemma) => {
-            Option(dictionary.getIndexWord(pos, lemma))
+            Option(wordnet.getDictionary.getIndexWord(pos, lemma))
           }
         }
         val filteredWords = {
@@ -249,7 +247,7 @@ class SprWordnetLabeler(
                   (other.getLemma != tokenSuffix))))
           }
         }
-        filteredWords.filterNot(ShlurdWordnet.isAcronym).flatMap(
+        filteredWords.filterNot(wordnet.isAcronym).flatMap(
           indexWord => makePreTerminals(
             word, token, tokenPrefix, tokenSuffix,
             indexWord, (iToken == 0), filteredWords))
@@ -404,7 +402,7 @@ class SprWordnetLabeler(
           ) => true
           case _ => {
             val spaced = folded.mkString(" ")
-            ShlurdWordnet.isPotentialNoun(spaced)
+            wordnet.isPotentialNoun(spaced)
           }
         }
       }
@@ -423,7 +421,7 @@ class SprWordnetLabeler(
         ) => true
         case _ => {
           val spaced = folded.mkString(" ")
-          ShlurdWordnet.isPotentialAdverb(spaced)
+          wordnet.isPotentialAdverb(spaced)
         }
       }
     }
@@ -447,7 +445,7 @@ class SprWordnetLabeler(
           ) => true
           case _ => {
             val spaced = folded.mkString(" ")
-            ShlurdWordnet.isPotentialVerb(spaced)
+            wordnet.isPotentialVerb(spaced)
           }
         }
       }
@@ -466,7 +464,7 @@ class SprWordnetLabeler(
       case POS.ADJECTIVE => LABEL_JJ
       case POS.ADVERB => LABEL_RB
       case POS.NOUN => {
-        if ((tokenSuffix != lemma) || ShlurdWordnet.isPlural(indexWord)) {
+        if ((tokenSuffix != lemma) || wordnet.isPlural(indexWord)) {
           LABEL_NNS
         } else {
           if (forceProper) {
@@ -513,14 +511,14 @@ class SprWordnetLabeler(
       val conformedLemma = {
         label match {
           case LABEL_VBN => {
-            if (ShlurdWordnet.isPotentialNoun(tokenSuffix)) {
+            if (wordnet.isPotentialNoun(tokenSuffix)) {
               tokenSuffix
             } else {
               lemma
             }
           }
           case LABEL_JJ => {
-            if (ShlurdWordnet.isPotentialNoun(tokenSuffix)) {
+            if (wordnet.isPotentialNoun(tokenSuffix)) {
               lemma
             } else {
               alternatives.find(v => (v.getPOS == POS.VERB)).

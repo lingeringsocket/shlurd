@@ -27,14 +27,14 @@ class SpcWordnetSpec extends Specification
   {
     protected val cosmos = new SpcCosmos
 
-    protected val wordnet = new SpcWordnet(cosmos)
+    protected val wordnet = new SpcWordnet(ShlurdPrincetonWordnet, cosmos)
 
     protected val graph = cosmos.getGraph
   }
 
   private def expectUniqueSense(lemma : String) : Synset =
   {
-    val senses = ShlurdWordnet.getNounSenses(lemma)
+    val senses = ShlurdPrincetonWordnet.getNounSenses(lemma)
     senses.size must be equalTo 1
     senses.head
   }
@@ -69,7 +69,7 @@ class SpcWordnetSpec extends Specification
 
     "load meronym associations" in new CosmosContext
     {
-      val sense = ShlurdWordnet.getNounSenses("fork").head
+      val sense = ShlurdPrincetonWordnet.getNounSenses("fork").head
       val meronyms = wordnet.loadMeronyms(sense)
       val forkForm = expectForm(wordnet.getSynsetForm(sense))
       val prongForm = expectForm(wordnet.getSynsetForm(
@@ -90,8 +90,10 @@ class SpcWordnetSpec extends Specification
 
     "load bidirectional meronym associations" in new CosmosContext
     {
-      val countrySense = ShlurdWordnet.getNounSenses("country").tail.head
-      val provinceSense = ShlurdWordnet.getNounSenses("province").head
+      val countrySense =
+        ShlurdPrincetonWordnet.getNounSenses("country").tail.head
+      val provinceSense =
+        ShlurdPrincetonWordnet.getNounSenses("province").head
       val meronyms = wordnet.loadMeronyms(countrySense)
       val countryForm = expectForm(wordnet.getSynsetForm(countrySense))
       val provinceForm = expectForm(wordnet.getSynsetForm(provinceSense))

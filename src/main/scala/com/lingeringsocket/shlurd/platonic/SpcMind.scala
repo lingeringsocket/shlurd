@@ -216,7 +216,7 @@ class SpcMind(cosmos : SpcCosmos)
       val (gender, count, pronounMap) = {
         if (entities.size == 1) {
           val entity = entities.head
-          val pronounMap = cosmos.getEntityPronouns(entity)
+          val pronounMap = cosmos.getEntityPronouns(getWordnet, entity)
           val entityGender = cosmos.getEntityGender(entity)
           if (pronounMap.nonEmpty || entityGender != GENDER_SOMEONE) {
             val count = {

@@ -12,23 +12,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.cli
+package com.lingeringsocket.shlurd
 
-import com.lingeringsocket.shlurd._
-import com.lingeringsocket.shlurd.platonic._
+import net.sf.extjwnl.dictionary._
 
-import scala.collection._
-
-class ShlurdCliMind(
-  cosmos : SpcCosmos,
-  preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
-    extends SpcWordnetMind(ShlurdPrincetonWordnet, cosmos, preferredSynonyms)
+object ShlurdPrincetonWordnet extends ShlurdWordnet
 {
-  override def spawn(newCosmos : SpcCosmos) =
-  {
-    val mind = new ShlurdCliMind(
-      newCosmos, preferredSynonyms)
-    mind.initFrom(this)
-    mind
-  }
+  private val dictionary = Dictionary.getDefaultResourceInstance
+
+  private val morphology = dictionary.getMorphologicalProcessor
+
+  override def getDictionary = dictionary
+
+  override def getMorphology = morphology
 }

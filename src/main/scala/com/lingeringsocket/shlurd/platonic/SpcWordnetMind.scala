@@ -21,15 +21,18 @@ import scala.collection._
 import scala.util._
 
 class SpcWordnetMind(
+  wordnet : ShlurdWordnet,
   cosmos : SpcCosmos,
   preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
     extends SpcMind(cosmos)
 {
-  def getWordnet() = new SpcWordnet(cosmos)
+  override def getWordnet = wordnet
+
+  private def getSpcWordnet() = new SpcWordnet(wordnet, cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {
-    val mind = new SpcWordnetMind(newCosmos, preferredSynonyms)
+    val mind = new SpcWordnetMind(wordnet, newCosmos, preferredSynonyms)
     mind.initFrom(this)
     mind
   }
@@ -38,7 +41,7 @@ class SpcWordnetMind(
     annotator : AnnotatorType,
     phrase : PhraseType) =
   {
-    val analyzer = new SilWordnetSenseAnalyzer(annotator)
+    val analyzer = new SilWordnetSenseAnalyzer(wordnet, annotator)
     analyzer.analyze(phrase)
   }
 
@@ -48,7 +51,7 @@ class SpcWordnetMind(
     determiner : SilDeterminer) : SilReference =
   {
     val ref = super.specificReference(annotator, entity, determiner)
-    val analyzer = new SilWordnetSenseAnalyzer(annotator)
+    val analyzer = new SilWordnetSenseAnalyzer(wordnet, annotator)
     analyzer.analyze(ref)
   }
 
@@ -58,9 +61,8 @@ class SpcWordnetMind(
     if (!seq.isEmpty) {
       seq
     } else {
-      val senses = ShlurdWordnet.findSenses(noun.senseId)
-      val wordnet = getWordnet
-      senses.toStream.flatMap(wordnet.getSynsetForm)
+      val senses = wordnet.findSenses(noun.senseId)
+      senses.toStream.flatMap(getSpcWordnet.getSynsetForm)
     }
   }
 
@@ -76,11 +78,11 @@ class SpcWordnetMind(
       pool.taxonomyTimestamp,
       {
         val wordnetOpt = {
-          val senses = ShlurdWordnet.findSenses(noun.senseId)
-          val wordnet = getWordnet
+          val senses = wordnet.findSenses(noun.senseId)
+          val spcWordnet = getSpcWordnet
           val graph = cosmos.getGraph
           senses.toStream.flatMap(sense => {
-            wordnet.getSynsetForm(sense)
+            spcWordnet.getSynsetForm(sense)
           }).flatMap(possesseeForm => {
             cosmos.getRolesForForm(possesseeForm).filter(
               possesseeRole => {
@@ -125,8 +127,8 @@ class SpcWordnetMind(
     if (super.isEquivalentVerb(verb1, verb2)) {
       true
     } else {
-      val sense1 = ShlurdWordnet.findSenses(verb1.senseId).headOption
-      val sense2 = ShlurdWordnet.findSenses(verb2.senseId).headOption
+      val sense1 = wordnet.findSenses(verb1.senseId).headOption
+      val sense2 = wordnet.findSenses(verb2.senseId).headOption
       tupleN((sense1, sense2)) match {
         case (Some(s1), Some(s2)) => {
           s1 == s2

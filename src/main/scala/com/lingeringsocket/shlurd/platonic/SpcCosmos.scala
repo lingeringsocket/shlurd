@@ -455,10 +455,11 @@ class SpcCosmos(
     newCosmos
   }
 
-  def getWordLabeler() : SprWordnetLabeler =
+  def getWordLabeler(wordnet : ShlurdWordnet) : SprWordnetLabeler =
   {
+    // FIXME what if a different wordnet is used?
     if (Option(wordLabeler).isEmpty) {
-      val newLabeler = new SprWordnetLabeler
+      val newLabeler = new SprWordnetLabeler(wordnet)
       getAssertions.flatMap(assertion =>
         SpcBeliefRecognizer.recognizeWordRule(assertion.sentence)
       ).foreach(rule => {
@@ -479,7 +480,7 @@ class SpcCosmos(
     importedBeliefResources ++= src.importedBeliefResources
     Option(src.wordLabeler).foreach(labeler => {
       wordLabeler = new SprWordnetLabeler(
-        labeler.maxPrefix, labeler.rules.clone)
+        labeler.wordnet, labeler.maxPrefix, labeler.rules.clone)
     })
   }
 
@@ -1780,24 +1781,28 @@ class SpcCosmos(
   }
 
   def getEntityPronounWord(
+    wordnet : ShlurdWordnet,
     pronounKey : SilPronounKey,
     entity : SpcEntity) : Option[SilWord] =
   {
-    val pronouns = getEntityPronouns(entity)
+    val pronouns = getEntityPronouns(wordnet, entity)
     pronouns.get(pronounKey)
   }
 
-  def getEntityPronouns(entity : SpcEntity) : SilPronounMap =
+  def getEntityPronouns(
+    wordnet : ShlurdWordnet,
+    entity : SpcEntity) : SilPronounMap =
   {
     pool.accessCache(
       pool.pronounCache,
       entity,
       pool.entityTimestamp + pool.taxonomyTimestamp,
-      deriveEntityPronouns(entity)
+      deriveEntityPronouns(wordnet, entity)
     )
   }
 
   private def deriveEntityPronouns(
+    wordnet : ShlurdWordnet,
     entity : SpcEntity) : SilPronounMap =
   {
     entity match {
@@ -1808,7 +1813,7 @@ class SpcCosmos(
       }
       case _ => {
         val map = new mutable.HashMap[SilPronounKey, SilWord]
-        assocEntityPronouns(entity, map)
+        assocEntityPronouns(wordnet, entity, map)
         if (map.isEmpty) {
           getFormHypernyms(entity.form).foreach(form => {
             if (map.isEmpty) {
@@ -1816,7 +1821,7 @@ class SpcCosmos(
               getEntityBySynonym(formEntityName).foreach(formEntity => {
                 // FIXME should be reentrant=false, but that is
                 // super slow
-                assocEntityPronouns(formEntity, map, true)
+                assocEntityPronouns(wordnet, formEntity, map, true)
               })
             }
           })
@@ -1838,6 +1843,7 @@ class SpcCosmos(
   }
 
   private def assocEntityPronouns(
+    wordnet : ShlurdWordnet,
     entity : SpcEntity,
     map : mutable.Map[SilPronounKey, SilWord],
     reentrant : Boolean = false)
@@ -1849,7 +1855,7 @@ class SpcCosmos(
           _.lemma.split(',').map(_.trim))
       if (pronouns.nonEmpty) {
         pronouns.foreach(pronoun => {
-          val seq = getWordLabeler.labelWords(
+          val seq = getWordLabeler(wordnet).labelWords(
             Seq(tupleN((pronoun, pronoun, 0))),
             foldEphemeralLabels = false)
           assert(seq.size == 1)
@@ -1869,7 +1875,7 @@ class SpcCosmos(
             val genderFormEntityName = SpcMeta.formMetaEntityName(genderForm)
             getEntityBySynonym(genderFormEntityName).foreach(
               genderFormEntity => {
-                assocEntityPronouns(genderFormEntity, map, true)
+                assocEntityPronouns(wordnet, genderFormEntity, map, true)
               }
             )
           }

@@ -20,7 +20,9 @@ import net.sf.extjwnl.data._
 
 import scala.collection._
 
-class SilWordnetSenseAnalyzer(annotator : SilAnnotator)
+class SilWordnetSenseAnalyzer(
+  wordnet : ShlurdWordnet,
+  annotator : SilAnnotator)
     extends SilPhraseRewriter(annotator)
 {
   def analyze[PhraseType <: SilPhrase](phrase : PhraseType) : PhraseType =
@@ -51,7 +53,7 @@ class SilWordnetSenseAnalyzer(annotator : SilAnnotator)
     pos : POS,
     filter : Synset => Boolean) : String =
   {
-    val inputSenses = ShlurdWordnet.findSenses(word.senseId)
+    val inputSenses = wordnet.findSenses(word.senseId)
     val candidateSenses = {
       if (inputSenses.isEmpty) {
         val lemma = {
@@ -61,13 +63,13 @@ class SilWordnetSenseAnalyzer(annotator : SilAnnotator)
             word.toLemma
           }
         }
-        ShlurdWordnet.getWordSenses(pos, lemma)
+        wordnet.getWordSenses(pos, lemma)
       } else {
         inputSenses
       }
     }
     val filteredSenses = candidateSenses.filter(filter)
-    ShlurdWordnet.getSenseId(filteredSenses)
+    wordnet.getSenseId(filteredSenses)
   }
 
   private def isCompatibleAction(

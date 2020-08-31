@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
+import com.lingeringsocket.shlurd._
+
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
@@ -25,7 +27,7 @@ class ShlurdPrimordialWordnetSpec extends Specification
   abstract class ResponderContext extends Scope
   {
     protected val cosmos = ShlurdPrimordialWordnet.newMutableCosmos
-    protected val mind = new SpcWordnetMind(cosmos)
+    protected val mind = new SpcWordnetMind(ShlurdPrincetonWordnet, cosmos)
     protected val responder =
       new SpcResponder(
         mind, SpcBeliefParams(ACCEPT_NEW_BELIEFS), SmcResponseParams())

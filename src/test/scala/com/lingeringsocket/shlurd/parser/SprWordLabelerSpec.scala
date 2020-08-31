@@ -27,7 +27,7 @@ class SprWordLabelerSpec extends Specification
 {
   trait LabelingContext extends Scope
   {
-    protected val labeler = new SprWordnetLabeler
+    protected val labeler = new SprWordnetLabeler(ShlurdPrincetonWordnet)
 
     protected def labelWord(token : String) : Set[String] =
     {

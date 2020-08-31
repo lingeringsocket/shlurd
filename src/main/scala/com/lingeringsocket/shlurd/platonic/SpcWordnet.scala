@@ -76,7 +76,7 @@ object SpcWordnet
   }
 }
 
-class SpcWordnet(cosmos : SpcCosmos)
+class SpcWordnet(wordnet : ShlurdWordnet, cosmos : SpcCosmos)
 {
   import SpcWordnet._
 
@@ -93,7 +93,7 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   def loadAllForms()
   {
-    ShlurdWordnet.allNounSenses.foreach(loadForm)
+    wordnet.allNounSenses.foreach(loadForm)
   }
 
   def loadForm(sense : Synset) : Option[SpcForm] =
@@ -115,22 +115,22 @@ class SpcWordnet(cosmos : SpcCosmos)
 
   def loadAllTaxonomy()
   {
-    ShlurdWordnet.allNounSenses.foreach(loadDirectHypernyms(_, true))
+    wordnet.allNounSenses.foreach(loadDirectHypernyms(_, true))
   }
 
   def loadAllAssociations()
   {
-    ShlurdWordnet.allNounSenses.foreach(loadMeronyms)
+    wordnet.allNounSenses.foreach(loadMeronyms)
   }
 
   def loadGender(biological : String, grammatical : String)
   {
     val grammaticalForm =
-      ShlurdWordnet.getNounSenses(grammatical).flatMap(loadForm).head
+      wordnet.getNounSenses(grammatical).flatMap(loadForm).head
     val grammaticalEntityName = SpcMeta.formMetaEntityName(grammaticalForm)
     cosmos.getEntityBySynonym(grammaticalEntityName).foreach(
       grammaticalEntity => {
-        ShlurdWordnet.getNounSenses(biological).flatMap(loadForm).foreach(
+        wordnet.getNounSenses(biological).flatMap(loadForm).foreach(
           biologicalForm => {
             val biologicalEntityName =
               SpcMeta.formMetaEntityName(biologicalForm)
@@ -236,7 +236,7 @@ class SpcWordnet(cosmos : SpcCosmos)
     categories.contains(sense.getLexFileName.stripPrefix("noun.")) ||
       anyMatchingHypernym(
         form, categories.flatMap(
-          category => ShlurdWordnet.getNounSenses(category).
+          category => wordnet.getNounSenses(category).
             take(1).flatMap(loadForm)))
   }
 

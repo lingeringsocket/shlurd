@@ -170,7 +170,8 @@ class ShlurdCliSpec extends Specification
 
       // we no longer automatically load associations, so do it here
       // so we can keep the corresponding tests working
-      new SpcWordnet(mind.getCosmos).loadAllAssociations
+      new SpcWordnet(
+        ShlurdPrincetonWordnet, mind.getCosmos).loadAllAssociations
 
       val shell = new ShlurdCliShell(mind, terminal)
       shell.run
