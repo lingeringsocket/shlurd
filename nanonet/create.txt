@@ -1,0 +1,1 @@
+caminar%2:38:00:: -add -addword andar -setgloss "ir usando las piernas"

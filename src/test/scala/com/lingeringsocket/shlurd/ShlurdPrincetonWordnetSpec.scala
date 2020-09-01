@@ -18,16 +18,16 @@ import net.sf.extjwnl.data._
 
 import org.specs2.mutable._
 
-object ShlurdWordnetSpec
+object ShlurdPrincetonWordnetSpec
 {
   private val wordnet = ShlurdPrincetonWordnet
 }
 
-class ShlurdWordnetSpec extends Specification
+class ShlurdPrincetonWordnetSpec extends Specification
 {
-  import ShlurdWordnetSpec._
+  import ShlurdPrincetonWordnetSpec._
 
-  "ShlurdWordnet" should
+  "ShlurdPrincetonWordnet" should
   {
     "detect potential adverbs" in
     {
