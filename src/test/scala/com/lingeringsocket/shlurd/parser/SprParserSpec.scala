@@ -984,6 +984,14 @@ class SprParserSpec extends Specification
       result.hasUnknown must beTrue
     }
 
+    "fail on a foreign language" in
+    {
+      val inputUnspecified =
+        "Pedro camina en la calle"
+      val result = parse(inputUnspecified)
+      result.hasUnknown must beTrue
+    }
+
     "preserve unrecognized reference syntax" in
     {
       if (!SprParser.isCoreNLP) {

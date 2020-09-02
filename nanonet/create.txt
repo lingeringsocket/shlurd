@@ -1,1 +1,6 @@
 caminar%2:38:00:: -add -addword andar -setgloss "ir usando las piernas"
+v#camino -addexc caminar
+v#caminas -addexc caminar
+v#camina -addexc caminar
+v#caminamos -addexc caminar
+v#caminan -addexc caminar
