@@ -19,7 +19,7 @@ import com.lingeringsocket.shlurd.ilang._
 import org.specs2.mutable._
 
 class SprHeuristicSynthesizerSpec
-    extends Specification with SprEnglishWordAnalyzer
+    extends Specification with SprSynthesizer
 {
   private def parse(
     input : String,

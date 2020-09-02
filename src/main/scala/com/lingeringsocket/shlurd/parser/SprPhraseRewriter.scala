@@ -413,7 +413,6 @@ class SprPhraseRewriter(
 }
 
 class SprAmbiguityResolver(context : SprContext)
-    extends SprEnglishWordAnalyzer
 {
   private def annotator = context.annotator
 

@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.cli
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
@@ -86,7 +87,7 @@ object ShlurdCliShell
     val source = Source.fromFile(beliefs)
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
     val bootMind = new SpcWordnetOntologyMind(
-      ShlurdPrincetonWordnet, cosmos, preferredSynonyms)
+      SprContext.defaultWordAnalyzer, cosmos, preferredSynonyms)
     bootMind.loadBeliefs(source)
 
     terminal.emitControl("Hello, human!")

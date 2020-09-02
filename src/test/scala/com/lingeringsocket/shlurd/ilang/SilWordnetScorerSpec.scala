@@ -14,13 +14,13 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
-import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 
 class SilWordnetScorerSpec extends Specification
 {
-  private val scorer = new SilWordnetScorer(ShlurdPrincetonWordnet)
+  private val scorer = SprContext.defaultPhraseScorer
 
   private val annotator = SilBasicAnnotator()
 

@@ -27,11 +27,13 @@ class SprSpanishParserSpec extends Specification
     ResourceUtils.getResourcePath("/nanonet"))
 
   private val context = SprContext(
-    new SprWordnetLabeler(wordnet),
-    new SilWordnetScorer(wordnet)
+    new SprWordnetLabeler(new SprSpanishWordAnalyzer(wordnet)),
+    new SilWordnetScorer(new SprSpanishWordAnalyzer(wordnet))
   )
 
   private val NOUN_PEDRO = SilWord("Pedro")
+
+  private val VERB_CAMINO = SilWord("camino", "caminar")
 
   private val VERB_CAMINA = SilWord("camina", "caminar")
 
@@ -50,6 +52,19 @@ class SprSpanishParserSpec extends Specification
           SilActionPredicate(
             annotator.nounRef(NOUN_PEDRO),
             VERB_CAMINA
+          )
+        )
+    }
+
+    "parse a pronoun" in
+    {
+      val input = "yo camino"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR),
+            VERB_CAMINO
           )
         )
     }

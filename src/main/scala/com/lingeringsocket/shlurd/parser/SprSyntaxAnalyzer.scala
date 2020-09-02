@@ -16,7 +16,7 @@ package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd.ilang._
 
-trait SprSyntaxAnalyzer
+trait SprSyntaxAnalyzer extends SprSynthesizer
 {
   def analyzeSentence(
     tree : SptS)

@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import SprEnglishLemmas._
+import SprPennTreebankLabels._
 
 object SprEnglishLexicon
 {
@@ -34,9 +35,68 @@ object SprEnglishLexicon
   }
 }
 
-trait SprEnglishWordAnalyzer
+class SprEnglishWordAnalyzer(wordnet : ShlurdWordnet)
+    extends SprWordAnalyzer(wordnet)
 {
-  def maybeDeterminerFor(lemma : String) : Option[SilDeterminer] =
+  override def getPronounMap(
+    gender : SilBasicGender,
+    count : SilCount
+  ) : SilPronounMap =
+  {
+    tupleN((gender, count)) match {
+      case (GENDER_MASCULINE, COUNT_SINGULAR) => {
+        Map(
+          SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
+            SilWord(LEMMA_HE),
+          SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_HIM),
+          SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
+            SilWord(LEMMA_HIMSELF),
+          SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
+            SilWord(LEMMA_HIS)
+        )
+      }
+      case (GENDER_FEMININE, COUNT_SINGULAR) => {
+        Map(
+          SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
+            SilWord(LEMMA_SHE),
+          SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_HER),
+          SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
+            SilWord(LEMMA_HERSELF),
+          SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
+            SilWord(LEMMA_HER)
+        )
+      }
+      case (GENDER_NEUTER, COUNT_SINGULAR) => {
+        Map(
+          SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
+            SilWord(LEMMA_IT),
+          SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_IT),
+          SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
+            SilWord(LEMMA_ITSELF),
+          SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
+            SilWord(LEMMA_ITS)
+        )
+      }
+      case (GENDER_NEUTER, COUNT_PLURAL) => {
+        Map(
+          SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
+            SilWord(LEMMA_THEY),
+          SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_THEM),
+          SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
+            SilWord(LEMMA_THEMSELVES),
+          SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
+            SilWord(LEMMA_THEIR)
+        )
+      }
+      case _ => SilPronounMap()
+    }
+  }
+
+  override def maybeDeterminerFor(lemma : String) : Option[SilDeterminer] =
   {
     val matcher : PartialFunction[String, SilDeterminer] = {
       case LEMMA_NO | LEMMA_NEITHER | LEMMA_NOR => DETERMINER_NONE
@@ -51,7 +111,7 @@ trait SprEnglishWordAnalyzer
     matcher.lift(lemma)
   }
 
-  def isCoordinatingDeterminer(lemma : String) : Boolean =
+  override def isCoordinatingDeterminer(lemma : String) : Boolean =
   {
     lemma match {
       case LEMMA_EITHER | LEMMA_NEITHER | LEMMA_BOTH => true
@@ -59,7 +119,7 @@ trait SprEnglishWordAnalyzer
     }
   }
 
-  def isCoordinatingConjunction(lemma : String) : Boolean =
+  override def isCoordinatingConjunction(lemma : String) : Boolean =
   {
     lemma match {
       case LEMMA_AND | LEMMA_OR | LEMMA_NOR => true
@@ -67,7 +127,7 @@ trait SprEnglishWordAnalyzer
     }
   }
 
-  def isFlexiblePronoun(token : String) : Boolean =
+  override def isFlexiblePronoun(token : String) : Boolean =
   {
     token match {
       case LEMMA_HER | LEMMA_THIS | LEMMA_THAT |
@@ -76,7 +136,7 @@ trait SprEnglishWordAnalyzer
     }
   }
 
-  def isReflexivePronoun(token : String) : Boolean =
+  override def isReflexivePronoun(token : String) : Boolean =
   {
     token match {
       case LEMMA_MYSELF | LEMMA_YOURSELF | LEMMA_HIMSELF |
@@ -87,7 +147,7 @@ trait SprEnglishWordAnalyzer
     }
   }
 
-  def isPossessiveAdjective(token : String) : Boolean =
+  override def isPossessiveAdjective(token : String) : Boolean =
   {
     token match {
       case LEMMA_MY | LEMMA_OUR | LEMMA_YOUR |
@@ -96,22 +156,22 @@ trait SprEnglishWordAnalyzer
     }
   }
 
-  def isAdposition(lemma : String) : Boolean =
+  override def isAdposition(lemma : String) : Boolean =
   {
     SprEnglishLexicon.prepositions.contains(lemma)
   }
 
-  def isSubordinatingConjunction(lemma : String) : Boolean =
+  override def isSubordinatingConjunction(lemma : String) : Boolean =
   {
     SprEnglishLexicon.subordinates.contains(lemma)
   }
 
-  def isProper(lemma : String) : Boolean =
+  override def isProper(lemma : String) : Boolean =
   {
     SprEnglishLexicon.proper.contains(lemma)
   }
 
-  def isPronounWord(lemma : String) : Boolean =
+  override def isPronounWord(lemma : String) : Boolean =
   {
     lemma match {
       case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY | LEMMA_MYSELF |
@@ -129,21 +189,47 @@ trait SprEnglishWordAnalyzer
     }
   }
 
-  def makeLeaf(
-    label : String, token : String, lemma : String) : SprSyntaxLeaf =
+  override def analyzePronoun(lemma : String) =
   {
-    SprSyntaxLeaf(label, lemma, token)
-  }
-
-  def makeLeaf(
-    label : String, token : String) : SprSyntaxLeaf =
-  {
-    SprSyntaxLeaf(label, token, token)
-  }
-
-  def makeLeaf(
-    token : String) : SprSyntaxLeaf =
-  {
-    makeLeaf(token, token, token)
+    val isCustomPronoun = !isPronounWord(lemma)
+    val person = lemma match {
+      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY | LEMMA_MYSELF |
+          LEMMA_OUR | LEMMA_MINE | LEMMA_OURS |
+          LEMMA_OURSELF | LEMMA_OURSELVES => PERSON_FIRST
+      case LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS |
+          LEMMA_YOURSELF | LEMMA_YOURSELVES => PERSON_SECOND
+      case _ => PERSON_THIRD
+    }
+    val count = lemma match {
+      case LEMMA_WE | LEMMA_US | LEMMA_THEY | LEMMA_THESE | LEMMA_THOSE |
+          LEMMA_OUR | LEMMA_THEM | LEMMA_THEIR |
+          LEMMA_OURSELF | LEMMA_OURSELVES | LEMMA_YOURSELVES |
+          LEMMA_THEMSELF | LEMMA_THEMSELVES => COUNT_PLURAL
+      case _ => COUNT_SINGULAR
+    }
+    val gender = lemma match {
+      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS | LEMMA_HIMSELF => GENDER_MASCULINE
+      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS | LEMMA_HERSELF => GENDER_FEMININE
+      case _ => {
+        person match {
+          case PERSON_FIRST | PERSON_SECOND => GENDER_SOMEONE
+          case _ => {
+            if (isCustomPronoun) {
+              GENDER_SOMEONE
+            } else {
+              // FIXME what we really want here is an uknown between
+              // NEUTER and SOMEONE, to be resolved downstream
+              GENDER_NEUTER
+            }
+          }
+        }
+      }
+    }
+    val distanceOpt = lemma match {
+      case LEMMA_THIS | LEMMA_THESE => Some(DISTANCE_HERE)
+      case LEMMA_THAT | LEMMA_THOSE => Some(DISTANCE_THERE)
+      case _ => None
+    }
+    tupleN((person, count, gender, distanceOpt))
   }
 }

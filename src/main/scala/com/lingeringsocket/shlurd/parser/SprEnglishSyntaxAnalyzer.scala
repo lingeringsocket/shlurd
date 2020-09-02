@@ -26,8 +26,9 @@ class SprEnglishSyntaxAnalyzer(
   guessedQuestion : Boolean, strictness : SprStrictness = SPR_STRICTNESS_LOOSE,
   enforceTransitive : Boolean = true)
     extends SprAbstractSyntaxAnalyzer(context, strictness)
-    with SprEnglishWordAnalyzer
 {
+  private val wordAnalyzer = context.getWordAnalyzer
+
   override def analyzeSentence(tree : SptS)
       : SilSentence =
   {
@@ -381,7 +382,9 @@ class SprEnglishSyntaxAnalyzer(
           }
           complement.last match {
             case SptPP(pt : SprSyntaxPreTerminal) => {
-              if (!isAdposition(pt.child.lemma) || (complement.size < 3)) {
+              if (!wordAnalyzer.isAdposition(pt.child.lemma) ||
+                (complement.size < 3))
+              {
                 return SilUnrecognizedSentence(tree)
               }
               tupleN((
@@ -516,7 +519,7 @@ class SprEnglishSyntaxAnalyzer(
           _ : SptDT | _ : SptCD
         ) if (
           !pt.isDemonstrative &&
-            !isCoordinatingDeterminer(pt.firstChild.lemma)
+            !wordAnalyzer.isCoordinatingDeterminer(pt.firstChild.lemma)
         ) => {
           tupleN((determinerFor(requireLeaf(pt.children)), seq.drop(1)))
         }
@@ -760,7 +763,7 @@ class SprEnglishSyntaxAnalyzer(
     preTerminal match {
       case adp : SprSyntaxAdposition => {
         val leaf = adp.child
-        if (isAdposition(getWord(leaf).inflected)) {
+        if (wordAnalyzer.isAdposition(getWord(leaf).inflected)) {
           Some(SilAdposition(getWord(adp.child)))
         } else {
           None
@@ -935,7 +938,7 @@ class SprEnglishSyntaxAnalyzer(
   {
     tree match {
       case SptPP(pt : SprSyntaxPreTerminal) => {
-        if (isAdposition(pt.child.lemma)) {
+        if (wordAnalyzer.isAdposition(pt.child.lemma)) {
           SilDanglingVerbModifier(
             SilAdposition(getWord(pt.child)))
         } else {
@@ -1292,7 +1295,7 @@ class SprEnglishSyntaxAnalyzer(
 
   private def determinerFor(leaf : SprSyntaxLeaf) : SilDeterminer =
   {
-    maybeDeterminerFor(leaf.lemma).getOrElse(DETERMINER_ANY)
+    wordAnalyzer.maybeDeterminerFor(leaf.lemma).getOrElse(DETERMINER_ANY)
   }
 
   private def extractAdpositionalState(seq : Seq[SprSyntaxTree])
@@ -1474,53 +1477,17 @@ class SprEnglishSyntaxAnalyzer(
       : SilPronounReference =
   {
     val lemma = leaf.lemma
-    val isCustomPronoun = !isPronounWord(lemma)
-    val person = lemma match {
-      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY | LEMMA_MYSELF |
-          LEMMA_OUR | LEMMA_MINE | LEMMA_OURS |
-          LEMMA_OURSELF | LEMMA_OURSELVES => PERSON_FIRST
-      case LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS |
-          LEMMA_YOURSELF | LEMMA_YOURSELVES => PERSON_SECOND
-      case _ => PERSON_THIRD
-    }
-    val count = lemma match {
-      case LEMMA_WE | LEMMA_US | LEMMA_THEY | LEMMA_THESE | LEMMA_THOSE |
-          LEMMA_OUR | LEMMA_THEM | LEMMA_THEIR |
-          LEMMA_OURSELF | LEMMA_OURSELVES | LEMMA_YOURSELVES |
-          LEMMA_THEMSELF | LEMMA_THEMSELVES => COUNT_PLURAL
-      case _ => COUNT_SINGULAR
-    }
-    val gender = lemma match {
-      case LEMMA_HE | LEMMA_HIM | LEMMA_HIS | LEMMA_HIMSELF => GENDER_MASCULINE
-      case LEMMA_SHE | LEMMA_HER | LEMMA_HERS | LEMMA_HERSELF => GENDER_FEMININE
-      case _ => {
-        person match {
-          case PERSON_FIRST | PERSON_SECOND => GENDER_SOMEONE
-          case _ => {
-            if (isCustomPronoun) {
-              GENDER_SOMEONE
-            } else {
-              // FIXME what we really want here is an uknown between
-              // NEUTER and SOMEONE, to be resolved downstream
-              GENDER_NEUTER
-            }
-          }
-        }
-      }
-    }
-    val distance = lemma match {
-      case LEMMA_THIS | LEMMA_THESE => DISTANCE_HERE
-      case LEMMA_THAT | LEMMA_THOSE => DISTANCE_THERE
-      case _ => {
-        val seq = context.wordLabeler.labelWords(
-          Seq(tupleN((lemma, lemma, 0))),
-          foldEphemeralLabels = false)
-        assert(seq.size == 1)
-        if (seq.head.head.label == LABEL_PRP_REFLEXIVE) {
-          DISTANCE_REFLEXIVE
-        } else {
-          DISTANCE_UNSPECIFIED
-        }
+    val (person, count, gender, distanceOpt) =
+      wordAnalyzer.analyzePronoun(lemma)
+    val distance = distanceOpt.getOrElse {
+      val seq = context.wordLabeler.labelWords(
+        Seq(tupleN((lemma, lemma, 0))),
+        foldEphemeralLabels = false)
+      assert(seq.size == 1)
+      if (seq.head.head.label == LABEL_PRP_REFLEXIVE) {
+        DISTANCE_REFLEXIVE
+      } else {
+        DISTANCE_UNSPECIFIED
       }
     }
     annotator.pronounRef(
@@ -1536,8 +1503,8 @@ class SprEnglishSyntaxAnalyzer(
       lemma == LEMMA_BE
     ) || (
       isStrict && preTerminal.isAdposition &&
-        (isAdposition(lemma) ||
-          isSubordinatingConjunction(lemma))
+        (wordAnalyzer.isAdposition(lemma) ||
+          wordAnalyzer.isSubordinatingConjunction(lemma))
     )
   }
 

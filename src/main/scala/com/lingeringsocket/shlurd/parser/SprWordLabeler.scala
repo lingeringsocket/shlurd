@@ -28,14 +28,29 @@ import org.atteo.evo.inflector.{English => EnglishPluralizer}
 import scala.collection._
 import scala.collection.JavaConverters._
 
+object SprContext
+{
+  val defaultWordnet = ShlurdPrincetonWordnet
+
+  val defaultWordAnalyzer = new SprEnglishWordAnalyzer(defaultWordnet)
+
+  val defaultPhraseScorer = new SilWordnetScorer(defaultWordAnalyzer)
+
+  def defaultWordLabeler() = new SprWordnetLabeler(defaultWordAnalyzer)
+}
+
 case class SprContext(
-  wordLabeler : SprWordLabeler = new SprWordnetLabeler(ShlurdPrincetonWordnet),
-  scorer : SilPhraseScorer = new SilWordnetScorer(ShlurdPrincetonWordnet),
+  wordLabeler : SprWordLabeler = SprContext.defaultWordLabeler,
+  scorer : SilPhraseScorer = SprContext.defaultPhraseScorer,
   annotator : SilAnnotator = SilBasicAnnotator(),
   genderAnalyzer : SilGenderAnalyzer = SilGenderPreserver
 )
 {
   def newParser(input : String) = SprParser(input, this)
+
+  def getWordAnalyzer = wordLabeler.getWordAnalyzer
+
+  def getWordnet = wordLabeler.getWordnet
 }
 
 case class SprWordRule(
@@ -48,6 +63,10 @@ case class SprWordRule(
 
 trait SprWordLabeler
 {
+  def getWordAnalyzer : SprWordAnalyzer = SprContext.defaultWordAnalyzer
+
+  def getWordnet = getWordAnalyzer.getWordnet
+
   def labelWords(
     // (token, word, iToken)
     entries : Seq[(String, String, Int)],
@@ -78,13 +97,17 @@ object SprWordnetLabeler
 }
 
 class SprWordnetLabeler(
-  val wordnet : ShlurdWordnet,
+  val wordAnalyzer : SprWordAnalyzer,
   var maxPrefix : Int = 0,
   val rules : mutable.HashMap[Seq[String], SprWordRule] =
     new mutable.HashMap[Seq[String], SprWordRule]
-) extends SprWordLabeler with SprEnglishWordAnalyzer
+) extends SprWordLabeler with SprSynthesizer
 {
   import SprWordnetLabeler._
+
+  private val wordnet = getWordnet
+
+  override def getWordAnalyzer = wordAnalyzer
 
   def addRule(rule : SprWordRule)
   {
@@ -208,13 +231,13 @@ class SprWordnetLabeler(
       if (token.contains('_')) {
         Set(SptNN(makeLeaf(word, word, word)))
       } else if (stopList.contains(tokenSuffix) ||
-        maybeDeterminerFor(token).nonEmpty)
+        wordAnalyzer.maybeDeterminerFor(token).nonEmpty)
       {
         // FIXME some determiners may have other POS roles, e.g.
         // "no" can be a noun or interjection
         Set.empty
       } else if (((token != word) && (iToken > 0)) ||
-        (isProper(token) && (iToken == 0)))
+        (wordAnalyzer.isProper(token) && (iToken == 0)))
       {
         Set(SptNNP(makeLeaf(word, word, word)))
       } else {
@@ -254,10 +277,10 @@ class SprWordnetLabeler(
       }
     }
     val combined = {
-      if (isCoordinatingConjunction(token)) {
+      if (wordAnalyzer.isCoordinatingConjunction(token)) {
         Set(SptCC(makeLeaf(word, token)))
       } else if (token != LEMMA_WHICH) {
-        maybeDeterminerFor(token).map(
+        wordAnalyzer.maybeDeterminerFor(token).map(
           determiner => (SptDT(makeLeaf(word, token)))).toSet
       } else {
         Set.empty
@@ -265,15 +288,17 @@ class SprWordnetLabeler(
     } ++ {
       if (token == "i") {
         Set(SptPRP(makeLeaf(word, token, LEMMA_I)))
-      } else if (isPronounWord(token)) {
+      } else if (wordAnalyzer.isPronounWord(token)) {
         val leaf = makeLeaf(word, token)
-        if (isFlexiblePronoun(token)) {
+        if (wordAnalyzer.isFlexiblePronoun(token)) {
           Set(SptPRP_POS(leaf), SptPRP(leaf))
-        } else if (isPossessiveAdjective(token)) {
+        } else if (wordAnalyzer.isPossessiveAdjective(token)) {
           Set(SptPRP_POS(leaf))
         } else if ((token == LEMMA_THEM) && !foldEphemeralLabels) {
           Set(SprSyntaxRewriter.recompose(LABEL_PRP_OBJ, Seq(leaf)))
-        } else if (isReflexivePronoun(token) && !foldEphemeralLabels) {
+        } else if (wordAnalyzer.isReflexivePronoun(token) &&
+          !foldEphemeralLabels)
+        {
           Set(SprSyntaxRewriter.recompose(LABEL_PRP_REFLEXIVE, Seq(leaf)))
         } else {
           Set(SptPRP(leaf))
@@ -332,8 +357,8 @@ class SprWordnetLabeler(
         }
       }
     } ++ {
-      if ((isAdposition(token) ||
-        isSubordinatingConjunction(token)) &&
+      if ((wordAnalyzer.isAdposition(token) ||
+        wordAnalyzer.isSubordinatingConjunction(token)) &&
         (token != LEMMA_TO))
       {
         Set(SptIN(makeLeaf(word, token)))

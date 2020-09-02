@@ -14,8 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
-import com.lingeringsocket.shlurd._
-
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
@@ -28,7 +27,7 @@ class ShlurdPrincetonPrimordialSpec extends Specification
   {
     protected val cosmos = ShlurdPrincetonPrimordial.newMutableCosmos
     protected val mind = new SpcWordnetOntologyMind(
-      ShlurdPrincetonWordnet, cosmos)
+      SprContext.defaultWordAnalyzer, cosmos)
     protected val responder =
       new SpcResponder(
         mind, SpcBeliefParams(ACCEPT_NEW_BELIEFS), SmcResponseParams())

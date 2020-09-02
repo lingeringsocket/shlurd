@@ -15,24 +15,28 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
 import scala.util._
 
 class SpcWordnetOntologyMind(
-  wordnet : ShlurdWordnet,
+  wordAnalyzer : SprWordAnalyzer,
   cosmos : SpcCosmos,
   preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
     extends SpcMind(cosmos)
 {
-  override def getWordnet = wordnet
+  private val wordnet = wordAnalyzer.getWordnet
+
+  override def getWordAnalyzer = wordAnalyzer
 
   private def getOntology() = new SpcWordnetOntology(wordnet, cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {
-    val mind = new SpcWordnetOntologyMind(wordnet, newCosmos, preferredSynonyms)
+    val mind = new SpcWordnetOntologyMind(
+      wordAnalyzer, newCosmos, preferredSynonyms)
     mind.initFrom(this)
     mind
   }

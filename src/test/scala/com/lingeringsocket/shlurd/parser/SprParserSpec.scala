@@ -127,7 +127,7 @@ class SprParserSpec extends Specification
 
   private def createWordLabeler() =
   {
-    val wordLabeler = new SprWordnetLabeler(ShlurdPrincetonWordnet)
+    val wordLabeler = SprContext.defaultWordLabeler
     wordLabeler.addRule(SprWordRule(
       Seq(NOUN_SUPES.toNounLemma), Seq(LABEL_NN), true))
     wordLabeler.addRule(SprWordRule(

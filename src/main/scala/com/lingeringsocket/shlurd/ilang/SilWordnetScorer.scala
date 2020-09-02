@@ -14,7 +14,6 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
-import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import SprEnglishLemmas._
@@ -24,9 +23,11 @@ import net.sf.extjwnl.data._
 import scala.collection._
 
 class SilWordnetScorer(
-  wordnet : ShlurdWordnet
-) extends SilPhraseScorer with SprEnglishWordAnalyzer
+  wordAnalyzer : SprWordAnalyzer
+) extends SilPhraseScorer
 {
+  private val wordnet = wordAnalyzer.getWordnet
+
   type PhraseScorer = PartialFunction[SilPhrase, SilPhraseScore]
 
   private def phraseScorer(s : PhraseScorer)
@@ -288,7 +289,7 @@ class SilWordnetScorer(
   }
 }
 
-object SilWordnetScorer extends SprEnglishWordAnalyzer
+object SilWordnetScorer
 {
   def matchAction(
     frameFlags : BitSet,

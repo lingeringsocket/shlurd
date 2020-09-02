@@ -455,11 +455,11 @@ class SpcCosmos(
     newCosmos
   }
 
-  def getWordLabeler(wordnet : ShlurdWordnet) : SprWordnetLabeler =
+  def getWordLabeler(wordAnalyzer : SprWordAnalyzer) : SprWordnetLabeler =
   {
     // FIXME what if a different wordnet is used?
     if (Option(wordLabeler).isEmpty) {
-      val newLabeler = new SprWordnetLabeler(wordnet)
+      val newLabeler = new SprWordnetLabeler(wordAnalyzer)
       getAssertions.flatMap(assertion =>
         SpcBeliefRecognizer.recognizeWordRule(assertion.sentence)
       ).foreach(rule => {
@@ -480,7 +480,7 @@ class SpcCosmos(
     importedBeliefResources ++= src.importedBeliefResources
     Option(src.wordLabeler).foreach(labeler => {
       wordLabeler = new SprWordnetLabeler(
-        labeler.wordnet, labeler.maxPrefix, labeler.rules.clone)
+        labeler.wordAnalyzer, labeler.maxPrefix, labeler.rules.clone)
     })
   }
 
@@ -1781,39 +1781,39 @@ class SpcCosmos(
   }
 
   def getEntityPronounWord(
-    wordnet : ShlurdWordnet,
+    wordAnalyzer : SprWordAnalyzer,
     pronounKey : SilPronounKey,
     entity : SpcEntity) : Option[SilWord] =
   {
-    val pronouns = getEntityPronouns(wordnet, entity)
+    val pronouns = getEntityPronouns(wordAnalyzer, entity)
     pronouns.get(pronounKey)
   }
 
   def getEntityPronouns(
-    wordnet : ShlurdWordnet,
+    wordAnalyzer : SprWordAnalyzer,
     entity : SpcEntity) : SilPronounMap =
   {
     pool.accessCache(
       pool.pronounCache,
       entity,
       pool.entityTimestamp + pool.taxonomyTimestamp,
-      deriveEntityPronouns(wordnet, entity)
+      deriveEntityPronouns(wordAnalyzer, entity)
     )
   }
 
   private def deriveEntityPronouns(
-    wordnet : ShlurdWordnet,
+    wordAnalyzer : SprWordAnalyzer,
     entity : SpcEntity) : SilPronounMap =
   {
     entity match {
       case te : SpcTransientEntity if (
         te.value.contains(SpcMeta.PLACEHOLDER_MULTI)
       ) => {
-          SmcMind.pluralNeuterPronounMap
+        wordAnalyzer.getPronounMap(GENDER_NEUTER, COUNT_PLURAL)
       }
       case _ => {
         val map = new mutable.HashMap[SilPronounKey, SilWord]
-        assocEntityPronouns(wordnet, entity, map)
+        assocEntityPronouns(wordAnalyzer, entity, map)
         if (map.isEmpty) {
           getFormHypernyms(entity.form).foreach(form => {
             if (map.isEmpty) {
@@ -1821,7 +1821,7 @@ class SpcCosmos(
               getEntityBySynonym(formEntityName).foreach(formEntity => {
                 // FIXME should be reentrant=false, but that is
                 // super slow
-                assocEntityPronouns(wordnet, formEntity, map, true)
+                assocEntityPronouns(wordAnalyzer, formEntity, map, true)
               })
             }
           })
@@ -1829,9 +1829,9 @@ class SpcCosmos(
         val result = if (map.isEmpty) {
           val gender = getEntityGender(entity)
           gender.maybeBasic match {
-            case Some(GENDER_MASCULINE) => SmcMind.masculinePronounMap
-            case Some(GENDER_FEMININE) => SmcMind.femininePronounMap
-            case Some(GENDER_NEUTER) => SmcMind.singularNeuterPronounMap
+            case Some(g) => {
+              wordAnalyzer.getPronounMap(g, COUNT_SINGULAR)
+            }
             case _ => SilPronounMap()
           }
         } else {
@@ -1843,7 +1843,7 @@ class SpcCosmos(
   }
 
   private def assocEntityPronouns(
-    wordnet : ShlurdWordnet,
+    wordAnalyzer : SprWordAnalyzer,
     entity : SpcEntity,
     map : mutable.Map[SilPronounKey, SilWord],
     reentrant : Boolean = false)
@@ -1855,7 +1855,7 @@ class SpcCosmos(
           _.lemma.split(',').map(_.trim))
       if (pronouns.nonEmpty) {
         pronouns.foreach(pronoun => {
-          val seq = getWordLabeler(wordnet).labelWords(
+          val seq = getWordLabeler(wordAnalyzer).labelWords(
             Seq(tupleN((pronoun, pronoun, 0))),
             foldEphemeralLabels = false)
           assert(seq.size == 1)
@@ -1875,7 +1875,7 @@ class SpcCosmos(
             val genderFormEntityName = SpcMeta.formMetaEntityName(genderForm)
             getEntityBySynonym(genderFormEntityName).foreach(
               genderFormEntity => {
-                assocEntityPronouns(wordnet, genderFormEntity, map, true)
+                assocEntityPronouns(wordAnalyzer, genderFormEntity, map, true)
               }
             )
           }

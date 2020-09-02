@@ -233,7 +233,7 @@ object SprHeuristicParsingStrategy extends SprParsingStrategy
   }
 }
 
-object SprParser extends SprEnglishWordAnalyzer
+object SprParser extends SprSynthesizer
 {
   case class CacheKey(
     sentence : String,

@@ -23,56 +23,6 @@ import scala.util._
 
 import spire.math._
 
-import SprEnglishLemmas._
-import SprPennTreebankLabels._
-
-object SmcMind
-{
-  val singularNeuterPronounMap = Map(
-    SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
-      SilWord(LEMMA_IT),
-    SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
-      SilWord(LEMMA_IT),
-    SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-      SilWord(LEMMA_ITSELF),
-    SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
-      SilWord(LEMMA_ITS)
-  )
-
-  val pluralNeuterPronounMap = Map(
-    SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
-      SilWord(LEMMA_THEY),
-    SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
-      SilWord(LEMMA_THEM),
-    SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-      SilWord(LEMMA_THEMSELVES),
-    SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
-      SilWord(LEMMA_THEIR)
-  )
-
-  val masculinePronounMap = Map(
-    SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
-      SilWord(LEMMA_HE),
-    SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
-      SilWord(LEMMA_HIM),
-    SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-      SilWord(LEMMA_HIMSELF),
-    SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
-      SilWord(LEMMA_HIS)
-  )
-
-  val femininePronounMap = Map(
-    SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
-      SilWord(LEMMA_SHE),
-    SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
-      SilWord(LEMMA_HER),
-    SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-      SilWord(LEMMA_HERSELF),
-    SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
-      SilWord(LEMMA_HER)
-  )
-}
-
 class SmcMind[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -81,8 +31,6 @@ class SmcMind[
   cosmos : CosmosType
 ) extends SilGenderAnalyzer
 {
-  import SmcMind._
-
   type ConversationType = SmcConversation[EntityType]
   type TimelineType = SmcTimeline[EntityType, PropertyType, CosmosType]
   type AnnotatorType = SmcAnnotator[EntityType, SmcRefNote[EntityType]]
@@ -92,7 +40,9 @@ class SmcMind[
   private var timeline
       : Option[TimelineType] = None
 
-  def getWordnet : ShlurdWordnet = ShlurdPrincetonWordnet
+  def getWordAnalyzer : SprWordAnalyzer = SprContext.defaultWordAnalyzer
+
+  def getWordnet : ShlurdWordnet = getWordAnalyzer.getWordnet
 
   def getCosmos = cosmos
 
@@ -346,14 +296,18 @@ class SmcMind[
       }
     } else if (axis != DEICTIC_PERSONAL) {
       None
-    } else if (entities.size == 1) {
-      Some(annotator.pronounRef(
-        PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
-        this, pronounMap = singularNeuterPronounMap))
     } else {
+      val count = {
+        if (entities.size == 1) {
+          COUNT_SINGULAR
+        } else {
+          COUNT_PLURAL
+        }
+      }
       Some(annotator.pronounRef(
-        PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL,
-        this, pronounMap = pluralNeuterPronounMap))
+        PERSON_THIRD, GENDER_NEUTER, count,
+        this, pronounMap =
+          getWordAnalyzer.getPronounMap(GENDER_NEUTER, count)))
     }
   }
 

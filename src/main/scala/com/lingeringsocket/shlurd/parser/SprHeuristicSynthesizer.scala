@@ -33,7 +33,7 @@ case class SprParseComplexityException()
 {
 }
 
-object SprHeuristicSynthesizer extends SprEnglishWordAnalyzer
+object SprHeuristicSynthesizer extends SprSynthesizer
 {
   class SpanEdge extends DefaultEdge
   {
@@ -73,6 +73,7 @@ object SprHeuristicSynthesizer extends SprEnglishWordAnalyzer
   }
 
   val leafSomething = makeLeaf("something")
+
   val npSomething = SptNP(SptNN(leafSomething))
 
   val specialCasing = Set(
@@ -156,7 +157,6 @@ class SprHeuristicSynthesizer(
   filter : SprHeuristicFilter,
   stamina : SprHeuristicStamina,
   words : Seq[String])
-    extends SprEnglishWordAnalyzer
 {
   import SprHeuristicSynthesizer._
 
