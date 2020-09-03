@@ -1935,6 +1935,7 @@ class SpcCosmos(
         if (set.size == 1) {
           val formEntity = set.head
           val formName = SpcMeta.formNameFromMeta(formEntity.name)
+          // FIXME language-specific
           val basic = SpcWordnetOntology.getNoun(formName) match {
             case LEMMA_MASCULINE => Some(GENDER_MASCULINE)
             case LEMMA_FEMININE => Some(GENDER_FEMININE)

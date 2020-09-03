@@ -417,15 +417,18 @@ class SpcResponder(
       modifier : SilVerbModifier
     ) : Try[SilVerbModifier] =
     {
-      modifier match {
-        case SilBasicVerbModifier(word @ SilWordLemma(LEMMA_HERE)) => {
-          spatialDeicticModifier(word, DISTANCE_HERE)
+      modifier matchPartial {
+        case SilBasicVerbModifier(word) => {
+          mind.getTongue.analyzePronoun(word.toLemma) matchPartial {
+            case (PERSON_THIRD, COUNT_SINGULAR,
+              GENDER_SOMEWHERE, Some(distance)
+            ) => {
+              return spatialDeicticModifier(word, distance)
+            }
+          }
         }
-        case SilBasicVerbModifier(word @ SilWordLemma(LEMMA_THERE)) => {
-          spatialDeicticModifier(word, DISTANCE_THERE)
-        }
-        case _ => super.normalizeModifier(modifier)
       }
+      super.normalizeModifier(modifier)
     }
 
     private def spatialDeicticModifier(

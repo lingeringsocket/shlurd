@@ -210,6 +210,7 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     val gender = lemma match {
       case LEMMA_HE | LEMMA_HIM | LEMMA_HIS | LEMMA_HIMSELF => GENDER_MASCULINE
       case LEMMA_SHE | LEMMA_HER | LEMMA_HERS | LEMMA_HERSELF => GENDER_FEMININE
+      case LEMMA_HERE | LEMMA_THERE => GENDER_SOMEWHERE
       case _ => {
         person match {
           case PERSON_FIRST | PERSON_SECOND => GENDER_SOMEONE
@@ -226,8 +227,8 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
       }
     }
     val distanceOpt = lemma match {
-      case LEMMA_THIS | LEMMA_THESE => Some(DISTANCE_HERE)
-      case LEMMA_THAT | LEMMA_THOSE => Some(DISTANCE_THERE)
+      case LEMMA_HERE | LEMMA_THIS | LEMMA_THESE => Some(DISTANCE_HERE)
+      case LEMMA_THERE | LEMMA_THAT | LEMMA_THOSE => Some(DISTANCE_THERE)
       case _ => None
     }
     tupleN((person, count, gender, distanceOpt))

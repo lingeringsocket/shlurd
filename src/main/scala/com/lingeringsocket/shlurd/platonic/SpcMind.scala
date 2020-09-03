@@ -223,7 +223,21 @@ class SpcMind(cosmos : SpcCosmos)
           if (pronounMap.nonEmpty || entityGender != GENDER_SOMEONE) {
             val count = {
               pronounMap.get(SilPronounKey(LABEL_PRP, PERSON_THIRD)) match {
-                case Some(SilWordLemma(LEMMA_THEY)) => COUNT_PLURAL
+                case Some(SilWordLemma(lemma)) => {
+                  // support for "singular they"
+                  val key = SilPronounKey(LABEL_PRP, PERSON_THIRD)
+                  val allGenders = Set(
+                    GENDER_MASCULINE, GENDER_FEMININE,
+                    GENDER_NEUTER, GENDER_SOMEONE)
+                  val pluralThirdLemmas = allGenders.flatMap(g =>
+                    tongue.getPronounMap(g, COUNT_PLURAL).
+                      get(key).map(_.toLemma))
+                  if (pluralThirdLemmas.contains(lemma)) {
+                    COUNT_PLURAL
+                  } else {
+                    COUNT_SINGULAR
+                  }
+                }
                 case _ => COUNT_SINGULAR
               }
             }
@@ -435,6 +449,9 @@ class SpcMind(cosmos : SpcCosmos)
       ).getOrElse(gender)
     }
 
+    // FIXME these should either use language/wordnet-specific lemmas,
+    // or look up from English first and then use inter-language
+    // mappings to the corresponding language-specific forms
     gender match {
       case GENDER_MASCULINE => lookupGender(LEMMA_MASCULINE)
       case GENDER_FEMININE => lookupGender(LEMMA_FEMININE)
