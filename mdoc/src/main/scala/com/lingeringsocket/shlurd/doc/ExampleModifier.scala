@@ -241,7 +241,7 @@ class ConversationProcessor extends StringModifier
     }
     val mind = {
       if (info.contains("wordnet")) {
-        new SpcWordnetOntologyMind(ShlurdPrincetonWordnet, cosmos)
+        new SpcWordnetOntologyMind(SprContext.defaultTongue, cosmos)
       } else {
         new SpcMind(cosmos)
       }
