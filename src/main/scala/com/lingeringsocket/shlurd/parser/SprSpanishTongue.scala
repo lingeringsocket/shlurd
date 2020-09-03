@@ -107,8 +107,8 @@ object SprSpanishLemmas
   val LEMMA_YO = "yo"
 }
 
-class SprSpanishWordAnalyzer(wordnet : ShlurdWordnet)
-    extends SprWordAnalyzer(wordnet)
+class SprSpanishTongue(wordnet : ShlurdWordnet)
+    extends SprTongue(wordnet)
 {
   import SprSpanishLemmas._
 

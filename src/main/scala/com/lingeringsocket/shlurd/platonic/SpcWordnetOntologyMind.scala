@@ -22,21 +22,21 @@ import scala.collection._
 import scala.util._
 
 class SpcWordnetOntologyMind(
-  wordAnalyzer : SprWordAnalyzer,
+  tongue : SprTongue,
   cosmos : SpcCosmos,
   preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
     extends SpcMind(cosmos)
 {
-  private val wordnet = wordAnalyzer.getWordnet
+  private val wordnet = tongue.getWordnet
 
-  override def getWordAnalyzer = wordAnalyzer
+  override def getTongue = tongue
 
   private def getOntology() = new SpcWordnetOntology(wordnet, cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new SpcWordnetOntologyMind(
-      wordAnalyzer, newCosmos, preferredSynonyms)
+      tongue, newCosmos, preferredSynonyms)
     mind.initFrom(this)
     mind
   }

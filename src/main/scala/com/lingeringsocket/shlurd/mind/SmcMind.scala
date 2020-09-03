@@ -40,9 +40,9 @@ class SmcMind[
   private var timeline
       : Option[TimelineType] = None
 
-  def getWordAnalyzer : SprWordAnalyzer = SprContext.defaultWordAnalyzer
+  def getTongue : SprTongue = SprContext.defaultTongue
 
-  def getWordnet : ShlurdWordnet = getWordAnalyzer.getWordnet
+  def getWordnet : ShlurdWordnet = getTongue.getWordnet
 
   def getCosmos = cosmos
 
@@ -307,7 +307,7 @@ class SmcMind[
       Some(annotator.pronounRef(
         PERSON_THIRD, GENDER_NEUTER, count,
         this, pronounMap =
-          getWordAnalyzer.getPronounMap(GENDER_NEUTER, count)))
+          getTongue.getPronounMap(GENDER_NEUTER, count)))
     }
   }
 

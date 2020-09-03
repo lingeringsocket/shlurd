@@ -213,11 +213,11 @@ class SpcMind(cosmos : SpcCosmos)
   ) : Option[SilReference] =
   {
     if (axis == DEICTIC_PERSONAL) {
-      val wordAnalyzer = getWordAnalyzer
+      val tongue = getTongue
       val (gender, count, pronounMap) = {
         if (entities.size == 1) {
           val entity = entities.head
-          val pronounMap = cosmos.getEntityPronouns(wordAnalyzer, entity)
+          val pronounMap = cosmos.getEntityPronouns(tongue, entity)
           val entityGender = cosmos.getEntityGender(entity)
           if (pronounMap.nonEmpty || entityGender != GENDER_SOMEONE) {
             val count = {
@@ -234,12 +234,12 @@ class SpcMind(cosmos : SpcCosmos)
             return None
           }
         } else {
-          val combinedGender = wordAnalyzer.combineGenders(
+          val combinedGender = tongue.combineGenders(
             entities.toSeq.map(cosmos.getEntityGender)).
             maybeBasic.getOrElse(GENDER_NEUTER)
           tupleN((
             GENDER_NEUTER, COUNT_PLURAL,
-            wordAnalyzer.getPronounMap(combinedGender, COUNT_PLURAL)))
+            tongue.getPronounMap(combinedGender, COUNT_PLURAL)))
         }
       }
       Some(annotator.pronounRef(

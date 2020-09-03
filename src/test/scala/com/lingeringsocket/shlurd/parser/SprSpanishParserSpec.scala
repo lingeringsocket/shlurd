@@ -27,8 +27,8 @@ class SprSpanishParserSpec extends Specification
     ResourceUtils.getResourcePath("/nanonet"))
 
   private val context = SprContext(
-    new SprWordnetLabeler(new SprSpanishWordAnalyzer(wordnet)),
-    new SilWordnetScorer(new SprSpanishWordAnalyzer(wordnet))
+    new SprWordnetLabeler(new SprSpanishTongue(wordnet)),
+    new SilWordnetScorer(new SprSpanishTongue(wordnet))
   )
 
   private val NOUN_PEDRO = SilWord("Pedro")

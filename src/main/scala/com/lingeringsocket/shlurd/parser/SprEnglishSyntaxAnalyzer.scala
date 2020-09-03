@@ -27,7 +27,7 @@ class SprEnglishSyntaxAnalyzer(
   enforceTransitive : Boolean = true)
     extends SprAbstractSyntaxAnalyzer(context, strictness)
 {
-  private val wordAnalyzer = context.getWordAnalyzer
+  private val tongue = context.getTongue
 
   override def analyzeSentence(tree : SptS)
       : SilSentence =
@@ -382,7 +382,7 @@ class SprEnglishSyntaxAnalyzer(
           }
           complement.last match {
             case SptPP(pt : SprSyntaxPreTerminal) => {
-              if (!wordAnalyzer.isAdposition(pt.child.lemma) ||
+              if (!tongue.isAdposition(pt.child.lemma) ||
                 (complement.size < 3))
               {
                 return SilUnrecognizedSentence(tree)
@@ -519,7 +519,7 @@ class SprEnglishSyntaxAnalyzer(
           _ : SptDT | _ : SptCD
         ) if (
           !pt.isDemonstrative &&
-            !wordAnalyzer.isCoordinatingDeterminer(pt.firstChild.lemma)
+            !tongue.isCoordinatingDeterminer(pt.firstChild.lemma)
         ) => {
           tupleN((determinerFor(requireLeaf(pt.children)), seq.drop(1)))
         }
@@ -763,7 +763,7 @@ class SprEnglishSyntaxAnalyzer(
     preTerminal match {
       case adp : SprSyntaxAdposition => {
         val leaf = adp.child
-        if (wordAnalyzer.isAdposition(getWord(leaf).inflected)) {
+        if (tongue.isAdposition(getWord(leaf).inflected)) {
           Some(SilAdposition(getWord(adp.child)))
         } else {
           None
@@ -938,7 +938,7 @@ class SprEnglishSyntaxAnalyzer(
   {
     tree match {
       case SptPP(pt : SprSyntaxPreTerminal) => {
-        if (wordAnalyzer.isAdposition(pt.child.lemma)) {
+        if (tongue.isAdposition(pt.child.lemma)) {
           SilDanglingVerbModifier(
             SilAdposition(getWord(pt.child)))
         } else {
@@ -1295,7 +1295,7 @@ class SprEnglishSyntaxAnalyzer(
 
   private def determinerFor(leaf : SprSyntaxLeaf) : SilDeterminer =
   {
-    wordAnalyzer.maybeDeterminerFor(leaf.lemma).getOrElse(DETERMINER_ANY)
+    tongue.maybeDeterminerFor(leaf.lemma).getOrElse(DETERMINER_ANY)
   }
 
   private def extractAdpositionalState(seq : Seq[SprSyntaxTree])
@@ -1478,7 +1478,7 @@ class SprEnglishSyntaxAnalyzer(
   {
     val lemma = leaf.lemma
     val (person, count, gender, distanceOpt) =
-      wordAnalyzer.analyzePronoun(lemma)
+      tongue.analyzePronoun(lemma)
     val distance = distanceOpt.getOrElse {
       val seq = context.wordLabeler.labelWords(
         Seq(tupleN((lemma, lemma, 0))),
@@ -1503,8 +1503,8 @@ class SprEnglishSyntaxAnalyzer(
       lemma == LEMMA_BE
     ) || (
       isStrict && preTerminal.isAdposition &&
-        (wordAnalyzer.isAdposition(lemma) ||
-          wordAnalyzer.isSubordinatingConjunction(lemma))
+        (tongue.isAdposition(lemma) ||
+          tongue.isSubordinatingConjunction(lemma))
     )
   }
 

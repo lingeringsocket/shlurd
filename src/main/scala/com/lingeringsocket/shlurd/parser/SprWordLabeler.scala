@@ -32,11 +32,11 @@ object SprContext
 {
   val defaultWordnet = ShlurdPrincetonWordnet
 
-  val defaultWordAnalyzer = new SprEnglishWordAnalyzer(defaultWordnet)
+  val defaultTongue = new SprEnglishTongue(defaultWordnet)
 
-  val defaultPhraseScorer = new SilWordnetScorer(defaultWordAnalyzer)
+  val defaultPhraseScorer = new SilWordnetScorer(defaultTongue)
 
-  def defaultWordLabeler() = new SprWordnetLabeler(defaultWordAnalyzer)
+  def defaultWordLabeler() = new SprWordnetLabeler(defaultTongue)
 }
 
 case class SprContext(
@@ -48,7 +48,7 @@ case class SprContext(
 {
   def newParser(input : String) = SprParser(input, this)
 
-  def getWordAnalyzer = wordLabeler.getWordAnalyzer
+  def getTongue = wordLabeler.getTongue
 
   def getWordnet = wordLabeler.getWordnet
 }
@@ -63,9 +63,9 @@ case class SprWordRule(
 
 trait SprWordLabeler
 {
-  def getWordAnalyzer : SprWordAnalyzer = SprContext.defaultWordAnalyzer
+  def getTongue : SprTongue = SprContext.defaultTongue
 
-  def getWordnet = getWordAnalyzer.getWordnet
+  def getWordnet = getTongue.getWordnet
 
   def labelWords(
     // (token, word, iToken)
@@ -97,7 +97,7 @@ object SprWordnetLabeler
 }
 
 class SprWordnetLabeler(
-  val wordAnalyzer : SprWordAnalyzer,
+  val tongue : SprTongue,
   var maxPrefix : Int = 0,
   val rules : mutable.HashMap[Seq[String], SprWordRule] =
     new mutable.HashMap[Seq[String], SprWordRule]
@@ -107,7 +107,7 @@ class SprWordnetLabeler(
 
   private val wordnet = getWordnet
 
-  override def getWordAnalyzer = wordAnalyzer
+  override def getTongue = tongue
 
   def addRule(rule : SprWordRule)
   {
@@ -231,13 +231,13 @@ class SprWordnetLabeler(
       if (token.contains('_')) {
         Set(SptNN(makeLeaf(word, word, word)))
       } else if (stopList.contains(tokenSuffix) ||
-        wordAnalyzer.maybeDeterminerFor(token).nonEmpty)
+        tongue.maybeDeterminerFor(token).nonEmpty)
       {
         // FIXME some determiners may have other POS roles, e.g.
         // "no" can be a noun or interjection
         Set.empty
       } else if (((token != word) && (iToken > 0)) ||
-        (wordAnalyzer.isProper(token) && (iToken == 0)))
+        (tongue.isProper(token) && (iToken == 0)))
       {
         Set(SptNNP(makeLeaf(word, word, word)))
       } else {
@@ -277,10 +277,10 @@ class SprWordnetLabeler(
       }
     }
     val combined = {
-      if (wordAnalyzer.isCoordinatingConjunction(token)) {
+      if (tongue.isCoordinatingConjunction(token)) {
         Set(SptCC(makeLeaf(word, token)))
       } else if (token != LEMMA_WHICH) {
-        wordAnalyzer.maybeDeterminerFor(token).map(
+        tongue.maybeDeterminerFor(token).map(
           determiner => (SptDT(makeLeaf(word, token)))).toSet
       } else {
         Set.empty
@@ -288,15 +288,15 @@ class SprWordnetLabeler(
     } ++ {
       if (token == "i") {
         Set(SptPRP(makeLeaf(word, token, LEMMA_I)))
-      } else if (wordAnalyzer.isPronounWord(token)) {
+      } else if (tongue.isPronounWord(token)) {
         val leaf = makeLeaf(word, token)
-        if (wordAnalyzer.isFlexiblePronoun(token)) {
+        if (tongue.isFlexiblePronoun(token)) {
           Set(SptPRP_POS(leaf), SptPRP(leaf))
-        } else if (wordAnalyzer.isPossessiveAdjective(token)) {
+        } else if (tongue.isPossessiveAdjective(token)) {
           Set(SptPRP_POS(leaf))
         } else if ((token == LEMMA_THEM) && !foldEphemeralLabels) {
           Set(SprSyntaxRewriter.recompose(LABEL_PRP_OBJ, Seq(leaf)))
-        } else if (wordAnalyzer.isReflexivePronoun(token) &&
+        } else if (tongue.isReflexivePronoun(token) &&
           !foldEphemeralLabels)
         {
           Set(SprSyntaxRewriter.recompose(LABEL_PRP_REFLEXIVE, Seq(leaf)))
@@ -357,8 +357,8 @@ class SprWordnetLabeler(
         }
       }
     } ++ {
-      if ((wordAnalyzer.isAdposition(token) ||
-        wordAnalyzer.isSubordinatingConjunction(token)) &&
+      if ((tongue.isAdposition(token) ||
+        tongue.isSubordinatingConjunction(token)) &&
         (token != LEMMA_TO))
       {
         Set(SptIN(makeLeaf(word, token)))

@@ -40,7 +40,7 @@ trait SprSynthesizer
   }
 }
 
-abstract class SprWordAnalyzer(wordnet : ShlurdWordnet) extends SprSynthesizer
+abstract class SprTongue(wordnet : ShlurdWordnet) extends SprSynthesizer
 {
   def getWordnet = wordnet
 

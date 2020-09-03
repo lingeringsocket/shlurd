@@ -87,7 +87,7 @@ object ShlurdCliShell
     val source = Source.fromFile(beliefs)
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
     val bootMind = new SpcWordnetOntologyMind(
-      SprContext.defaultWordAnalyzer, cosmos, preferredSynonyms)
+      SprContext.defaultTongue, cosmos, preferredSynonyms)
     bootMind.loadBeliefs(source)
 
     terminal.emitControl("Hello, human!")

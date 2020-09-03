@@ -35,8 +35,8 @@ object SprEnglishLexicon
   }
 }
 
-class SprEnglishWordAnalyzer(wordnet : ShlurdWordnet)
-    extends SprWordAnalyzer(wordnet)
+class SprEnglishTongue(wordnet : ShlurdWordnet)
+    extends SprTongue(wordnet)
 {
   override def getPronounMap(
     gender : SilBasicGender,

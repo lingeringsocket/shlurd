@@ -455,11 +455,11 @@ class SpcCosmos(
     newCosmos
   }
 
-  def getWordLabeler(wordAnalyzer : SprWordAnalyzer) : SprWordnetLabeler =
+  def getWordLabeler(tongue : SprTongue) : SprWordnetLabeler =
   {
     // FIXME what if a different wordnet is used?
     if (Option(wordLabeler).isEmpty) {
-      val newLabeler = new SprWordnetLabeler(wordAnalyzer)
+      val newLabeler = new SprWordnetLabeler(tongue)
       getAssertions.flatMap(assertion =>
         SpcBeliefRecognizer.recognizeWordRule(assertion.sentence)
       ).foreach(rule => {
@@ -480,7 +480,7 @@ class SpcCosmos(
     importedBeliefResources ++= src.importedBeliefResources
     Option(src.wordLabeler).foreach(labeler => {
       wordLabeler = new SprWordnetLabeler(
-        labeler.wordAnalyzer, labeler.maxPrefix, labeler.rules.clone)
+        labeler.tongue, labeler.maxPrefix, labeler.rules.clone)
     })
   }
 
@@ -1781,39 +1781,39 @@ class SpcCosmos(
   }
 
   def getEntityPronounWord(
-    wordAnalyzer : SprWordAnalyzer,
+    tongue : SprTongue,
     pronounKey : SilPronounKey,
     entity : SpcEntity) : Option[SilWord] =
   {
-    val pronouns = getEntityPronouns(wordAnalyzer, entity)
+    val pronouns = getEntityPronouns(tongue, entity)
     pronouns.get(pronounKey)
   }
 
   def getEntityPronouns(
-    wordAnalyzer : SprWordAnalyzer,
+    tongue : SprTongue,
     entity : SpcEntity) : SilPronounMap =
   {
     pool.accessCache(
       pool.pronounCache,
       entity,
       pool.entityTimestamp + pool.taxonomyTimestamp,
-      deriveEntityPronouns(wordAnalyzer, entity)
+      deriveEntityPronouns(tongue, entity)
     )
   }
 
   private def deriveEntityPronouns(
-    wordAnalyzer : SprWordAnalyzer,
+    tongue : SprTongue,
     entity : SpcEntity) : SilPronounMap =
   {
     entity match {
       case te : SpcTransientEntity if (
         te.value.contains(SpcMeta.PLACEHOLDER_MULTI)
       ) => {
-        wordAnalyzer.getPronounMap(GENDER_NEUTER, COUNT_PLURAL)
+        tongue.getPronounMap(GENDER_NEUTER, COUNT_PLURAL)
       }
       case _ => {
         val map = new mutable.HashMap[SilPronounKey, SilWord]
-        assocEntityPronouns(wordAnalyzer, entity, map)
+        assocEntityPronouns(tongue, entity, map)
         if (map.isEmpty) {
           getFormHypernyms(entity.form).foreach(form => {
             if (map.isEmpty) {
@@ -1821,7 +1821,7 @@ class SpcCosmos(
               getEntityBySynonym(formEntityName).foreach(formEntity => {
                 // FIXME should be reentrant=false, but that is
                 // super slow
-                assocEntityPronouns(wordAnalyzer, formEntity, map, true)
+                assocEntityPronouns(tongue, formEntity, map, true)
               })
             }
           })
@@ -1830,7 +1830,7 @@ class SpcCosmos(
           val gender = getEntityGender(entity)
           gender.maybeBasic match {
             case Some(g) => {
-              wordAnalyzer.getPronounMap(g, COUNT_SINGULAR)
+              tongue.getPronounMap(g, COUNT_SINGULAR)
             }
             case _ => SilPronounMap()
           }
@@ -1843,7 +1843,7 @@ class SpcCosmos(
   }
 
   private def assocEntityPronouns(
-    wordAnalyzer : SprWordAnalyzer,
+    tongue : SprTongue,
     entity : SpcEntity,
     map : mutable.Map[SilPronounKey, SilWord],
     reentrant : Boolean = false)
@@ -1855,7 +1855,7 @@ class SpcCosmos(
           _.lemma.split(',').map(_.trim))
       if (pronouns.nonEmpty) {
         pronouns.foreach(pronoun => {
-          val seq = getWordLabeler(wordAnalyzer).labelWords(
+          val seq = getWordLabeler(tongue).labelWords(
             Seq(tupleN((pronoun, pronoun, 0))),
             foldEphemeralLabels = false)
           assert(seq.size == 1)
@@ -1875,7 +1875,7 @@ class SpcCosmos(
             val genderFormEntityName = SpcMeta.formMetaEntityName(genderForm)
             getEntityBySynonym(genderFormEntityName).foreach(
               genderFormEntity => {
-                assocEntityPronouns(wordAnalyzer, genderFormEntity, map, true)
+                assocEntityPronouns(tongue, genderFormEntity, map, true)
               }
             )
           }

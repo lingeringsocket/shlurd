@@ -23,10 +23,10 @@ import net.sf.extjwnl.data._
 import scala.collection._
 
 class SilWordnetScorer(
-  wordAnalyzer : SprWordAnalyzer
+  tongue : SprTongue
 ) extends SilPhraseScorer
 {
-  private val wordnet = wordAnalyzer.getWordnet
+  private val wordnet = tongue.getWordnet
 
   type PhraseScorer = PartialFunction[SilPhrase, SilPhraseScore]
 

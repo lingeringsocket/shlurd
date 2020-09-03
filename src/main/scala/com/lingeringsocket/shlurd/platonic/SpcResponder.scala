@@ -52,9 +52,9 @@ case class SpcTriggerResult(
 }
 
 class SpcContextualScorer(
-  wordAnalyzer : SprWordAnalyzer,
+  tongue : SprTongue,
   responder : SpcResponder)
-    extends SmcContextualScorer(wordAnalyzer, responder)
+    extends SmcContextualScorer(tongue, responder)
 {
   override protected def computeBoost(
     sentence : SilSentence,
@@ -234,10 +234,10 @@ class SpcResponder(
 
   override def newParser(input : String) =
   {
-    val wordAnalyzer = mind.getWordAnalyzer
+    val tongue = mind.getTongue
     val context = SprContext(
-      mind.getCosmos.getWordLabeler(wordAnalyzer),
-      scorer = new SpcContextualScorer(wordAnalyzer, this),
+      mind.getCosmos.getWordLabeler(tongue),
+      scorer = new SpcContextualScorer(tongue, this),
       annotator = newAnnotator,
       genderAnalyzer = mind)
     SprParser(input, context)

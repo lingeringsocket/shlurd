@@ -27,7 +27,7 @@ class ShlurdPrincetonPrimordialSpec extends Specification
   {
     protected val cosmos = ShlurdPrincetonPrimordial.newMutableCosmos
     protected val mind = new SpcWordnetOntologyMind(
-      SprContext.defaultWordAnalyzer, cosmos)
+      SprContext.defaultTongue, cosmos)
     protected val responder =
       new SpcResponder(
         mind, SpcBeliefParams(ACCEPT_NEW_BELIEFS), SmcResponseParams())

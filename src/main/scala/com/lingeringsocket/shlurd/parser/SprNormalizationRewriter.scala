@@ -29,7 +29,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
 {
   import SprNormalizationRewriter._
 
-  private val wordAnalyzer = context.getWordAnalyzer
+  private val tongue = context.getTongue
 
   private def annotator = context.annotator
 
@@ -69,7 +69,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         verbModifiers
       ) if (findCoordinatingDeterminer(verbModifiers).nonEmpty) => {
         val (modifier, lemma) = findCoordinatingDeterminer(verbModifiers).get
-        val determiner = wordAnalyzer.maybeDeterminerFor(lemma).get
+        val determiner = tongue.maybeDeterminerFor(lemma).get
         SilStatePredicate(
           subject,
           verb,
@@ -86,7 +86,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         verbModifiers
       ) if (findCoordinatingDeterminer(verbModifiers).nonEmpty) => {
         val (modifier, lemma) = findCoordinatingDeterminer(verbModifiers).get
-        val determiner = wordAnalyzer.maybeDeterminerFor(lemma).get
+        val determiner = tongue.maybeDeterminerFor(lemma).get
         SilRelationshipPredicate(
           subject,
           verb,
@@ -381,7 +381,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     verbModifiers.toStream.flatMap(modifier => modifier match {
       case SilBasicVerbModifier(word) => {
         val lemma = word.toLemma
-        if (wordAnalyzer.isCoordinatingDeterminer(lemma)) {
+        if (tongue.isCoordinatingDeterminer(lemma)) {
           Some(tupleN((modifier, lemma)))
         } else {
           None
