@@ -232,4 +232,21 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     }
     tupleN((person, count, gender, distanceOpt))
   }
+
+  override def synthesizeMembersRef(
+    annotator : SilAnnotator,
+    determiner : SilDeterminer,
+    gender : SilGender) : SilReference =
+  {
+    val lemma = determiner match {
+      case DETERMINER_NONE => LEMMA_NONE
+      case SilIntegerDeterminer(1) | DETERMINER_NONSPECIFIC => LEMMA_ONE
+      case DETERMINER_ANY => LEMMA_ANY
+      case DETERMINER_SOME => LEMMA_SOME
+      case DETERMINER_ALL => LEMMA_ALL
+      case SilIntegerDeterminer(n) => n.toString
+      case _ => throw new IllegalArgumentException(determiner.toString)
+    }
+    annotator.nounRef(SilWord(lemma))
+  }
 }

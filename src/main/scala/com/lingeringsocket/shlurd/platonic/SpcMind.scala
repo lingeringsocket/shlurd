@@ -116,6 +116,7 @@ class SpcMind(cosmos : SpcCosmos)
         val graph = cosmos.getGraph
         val possessor = graph.getPossessorEntity(edge)
         val role = cosmos.getPossesseeRole(edge)
+        val roleGender = cosmos.getIdealGender(role)
         val specializedRole = graph.specializeRoleForForm(
           role,
           entity.form)
@@ -134,15 +135,15 @@ class SpcMind(cosmos : SpcCosmos)
           possessorEquiv => {
             if (cardinality > 1) {
               // "one of Pete's uncles"
-              annotator.stateSpecifiedRef(
-                annotator.nounRef(SilWord(LEMMA_ONE)),
-                SilAdpositionalState(
-                  SilAdposition.OF,
-                  annotator.genitiveRef(
-                    possessorEquiv,
-                    annotator.nounRef(SilWord.uninflected(
-                      getPossesseeName(specializedRole)),
-                      COUNT_PLURAL))))
+              getTongue.synthesizeSubsetRef(
+                annotator,
+                getTongue.synthesizeMembersRef(
+                  annotator, DETERMINER_NONSPECIFIC, roleGender),
+                annotator.genitiveRef(
+                  possessorEquiv,
+                  annotator.nounRef(SilWord.uninflected(
+                    getPossesseeName(specializedRole)),
+                    COUNT_PLURAL)))
             } else {
               // "Larry's father"
               annotator.genitiveRef(

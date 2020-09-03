@@ -80,4 +80,21 @@ abstract class SprTongue(wordnet : ShlurdWordnet) extends SprSynthesizer
 
   def analyzePronoun(lemma : String) :
       (SilPerson, SilCount, SilGender, Option[SilDistance])
+
+  def synthesizeMembersRef(
+    annotator : SilAnnotator,
+    determiner : SilDeterminer,
+    gender : SilGender) : SilReference
+
+  def synthesizeSubsetRef(
+    annotator : SilAnnotator,
+    membersRef : SilReference,
+    setRef : SilReference) : SilReference =
+  {
+    annotator.stateSpecifiedRef(
+      membersRef,
+      SilAdpositionalState(
+        SilAdposition.OF,
+        setRef))
+  }
 }

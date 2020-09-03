@@ -23,7 +23,7 @@ import SprPennTreebankLabels._
 
 object SprSpanishLemmas
 {
-  val LEMMA_ALGUN = "algun"
+  val LEMMA_ALGUN = "algún"
   val LEMMA_ALGUNO = "alguno"
   val LEMMA_ALGUNA = "alguna"
   val LEMMA_ALGUNAS = "algunas"
@@ -38,10 +38,8 @@ object SprSpanishLemmas
   val LEMMA_AQUELLO = "eso"
   val LEMMA_AQUELLOS = "esos"
   val LEMMA_CADA = "cada"
-  val LEMMA_CADAS = "cadas"
   val LEMMA_CUAL = "cual"
-  val LEMMA_CUALOS = "cualos"
-  val LEMMA_CUALAS = "cualos"
+  val LEMMA_CUALES = "cuales"
   val LEMMA_EL = "el"
   val LEMMA_EL_ACCENTED = "él"
   val LEMMA_ELLA = "ella"
@@ -68,12 +66,13 @@ object SprSpanishLemmas
   val LEMMA_MIO = "mío"
   val LEMMA_MIS = "mis"
   val LEMMA_NI = "ni"
-  val LEMMA_NINGUN = "ningun"
+  val LEMMA_NINGUN = "ningún"
   val LEMMA_NINGUNA = "ninguna"
   val LEMMA_NINGUNAS = "ningunas"
   val LEMMA_NINGUNO = "ninguno"
   val LEMMA_NINGUNOS = "ningunos"
   val LEMMA_NO = "no"
+  val LEMMA_NOS = "nos"
   val LEMMA_NOSOTRAS = "nosotras"
   val LEMMA_NOSOTROS = "nosotros"
   val LEMMA_NUESTRA = "nuestra"
@@ -221,16 +220,16 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     val matcher : PartialFunction[String, SilDeterminer] = {
       case LEMMA_NINGUN | LEMMA_NINGUNO | LEMMA_NINGUNA
           | LEMMA_NINGUNOS | LEMMA_NINGUNAS | LEMMA_NI => DETERMINER_NONE
-      case LEMMA_AMBO | LEMMA_AMBOS | LEMMA_AMBA | LEMMA_AMBAS |
+      case LEMMA_AMBOS | LEMMA_AMBAS |
           LEMMA_Y | LEMMA_TODO | LEMMA_TODA | LEMMA_TODOS | LEMMA_TODAS |
-          LEMMA_CADA | LEMMA_CADAS => DETERMINER_ALL
+          LEMMA_CADA  => DETERMINER_ALL
       case LEMMA_UN | LEMMA_UNA | LEMMA_UNAS |
           LEMMA_UNO | LEMMA_UNOS => DETERMINER_NONSPECIFIC
       case LEMMA_EL | LEMMA_LA | LEMMA_LO | LEMMA_LOS | LEMMA_LAS =>
         DETERMINER_DEFINITE
       case LEMMA_ALGUN | LEMMA_ALGUNO | LEMMA_ALGUNA |
           LEMMA_ALGUNOS | LEMMA_ALGUNAS => DETERMINER_SOME
-      case LEMMA_CUAL | LEMMA_CUALOS | LEMMA_CUALAS => DETERMINER_VARIABLE
+      case LEMMA_CUAL | LEMMA_CUALES => DETERMINER_VARIABLE
     }
     matcher.lift(lemma)
   }
@@ -240,7 +239,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     lemma match {
       case LEMMA_NINGUN | LEMMA_NINGUNO | LEMMA_NINGUNA
           | LEMMA_NINGUNOS | LEMMA_NINGUNAS |
-          LEMMA_AMBO | LEMMA_AMBOS | LEMMA_AMBA | LEMMA_AMBAS |
+          LEMMA_AMBOS | LEMMA_AMBAS |
           LEMMA_TODO | LEMMA_TODA | LEMMA_TODOS | LEMMA_TODAS => true
       case _ => false
     }
@@ -309,7 +308,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   override def isPronounWord(lemma : String) : Boolean =
   {
     lemma match {
-      case LEMMA_YO | LEMMA_ME |
+      case LEMMA_YO | LEMMA_ME | LEMMA_NOS |
           LEMMA_NOSOTROS | LEMMA_NOSOTRAS |
           LEMMA_MI | LEMMA_MIS |
           LEMMA_NUESTRO | LEMMA_NUESTRA |
@@ -351,10 +350,10 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     }
     val count = lemma match {
       case LEMMA_ALGUNAS | LEMMA_ALGUNOS | LEMMA_AMBAS | LEMMA_AMBOS |
-          LEMMA_AQUELLAS | LEMMA_AQUELLOS | LEMMA_CADAS |
-          LEMMA_CUALOS | LEMMA_CUALAS | LEMMA_ELLOS | LEMMA_ELLAS |
+          LEMMA_AQUELLAS | LEMMA_AQUELLOS |
+          LEMMA_CUALES | LEMMA_ELLOS | LEMMA_ELLAS |
           LEMMA_ESOS | LEMMA_ESAS | LEMMA_ESTOS | LEMMA_ESTAS |
-          LEMMA_LOS | LEMMA_LAS | LEMMA_LES |
+          LEMMA_LOS | LEMMA_LAS | LEMMA_LES | LEMMA_NOS |
           LEMMA_MIS | LEMMA_NINGUNAS | LEMMA_NINGUNOS |
           LEMMA_NOSOTROS | LEMMA_NOSOTRAS |
           LEMMA_NUESTROS | LEMMA_NUESTRAS |
@@ -365,9 +364,8 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     }
     val gender = lemma match {
       case LEMMA_ALGUNO | LEMMA_ALGUNOS |
-          LEMMA_AMBO | LEMMA_AMBOS |
+          LEMMA_AMBOS |
           LEMMA_AQUELLO | LEMMA_AQUELLOS |
-          LEMMA_CUALOS |
           LEMMA_EL | LEMMA_EL_ACCENTED | LEMMA_ELLO | LEMMA_ELLOS |
           LEMMA_ESO | LEMMA_ESOS |
           LEMMA_ESTO | LEMMA_ESTOS |
@@ -378,9 +376,8 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           LEMMA_TUYO | LEMMA_TUYOS |
           LEMMA_UNO | LEMMA_UNOS => GENDER_MASCULINE
       case LEMMA_ALGUNA | LEMMA_ALGUNAS |
-          LEMMA_AMBA | LEMMA_AMBAS |
+          LEMMA_AMBAS |
           LEMMA_AQUELLA | LEMMA_AQUELLAS |
-          LEMMA_CUALAS |
           LEMMA_ELLA | LEMMA_ELLAS |
           LEMMA_ESA | LEMMA_ESAS |
           LEMMA_ESTA | LEMMA_ESTAS |
@@ -417,5 +414,150 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case _ => None
     }
     tupleN((person, count, gender, distanceOpt))
+  }
+
+  override def synthesizeMembersRef(
+    annotator : SilAnnotator,
+    determiner : SilDeterminer,
+    gender : SilGender) : SilReference =
+  {
+    val lemma = determiner match {
+      case DETERMINER_NONE => LEMMA_NINGUNOS
+      case SilIntegerDeterminer(1) | DETERMINER_NONSPECIFIC => LEMMA_UNO
+      case DETERMINER_ANY => LEMMA_ALGUNOS
+      case DETERMINER_SOME => LEMMA_UNOS
+      case DETERMINER_ALL => LEMMA_TODOS
+      case SilIntegerDeterminer(n) => n.toString
+      case _ => throw new IllegalArgumentException(determiner.toString)
+    }
+    val (_, count, _, _) = analyzePronoun(lemma)
+    annotator.nounRef(SilWord(correctGenderCount(lemma, gender, count)))
+  }
+
+  private def ignoreGenderCount(lemma : String) : String =
+  {
+    lemma match {
+      case LEMMA_ALGUNO | LEMMA_ALGUNA |
+          LEMMA_ALGUNOS | LEMMA_ALGUNAS => LEMMA_ALGUN
+      case LEMMA_AMBAS => LEMMA_AMBOS
+      case LEMMA_AQUELLA | LEMMA_AQUELLO |
+          LEMMA_AQUELLAS | LEMMA_AQUELLOS => LEMMA_AQUEL
+      case LEMMA_CUALES => LEMMA_CUAL
+      case LEMMA_EL_ACCENTED | LEMMA_ELLA |
+          LEMMA_ELLOS | LEMMA_ELLAS => LEMMA_ELLO
+      case LEMMA_LES => LEMMA_LE
+      case LEMMA_LOS | LEMMA_LA | LEMMA_LAS => LEMMA_EL
+      case LEMMA_ESA | LEMMA_ESOS | LEMMA_ESAS => LEMMA_ESO
+      case LEMMA_ESTA | LEMMA_ESTOS | LEMMA_ESTAS => LEMMA_ESTO
+      case LEMMA_NOSOTRAS => LEMMA_NOSOTROS
+      case LEMMA_NUESTRA | LEMMA_NUESTROS | LEMMA_NUESTRAS => LEMMA_NUESTRO
+      case LEMMA_SUS => LEMMA_SU
+      case LEMMA_TODA | LEMMA_TODOS | LEMMA_TODAS => LEMMA_TODO
+      case LEMMA_TUS => LEMMA_TU
+      case LEMMA_TUYA | LEMMA_TUYAS | LEMMA_TUYOS => LEMMA_TUYO
+      case LEMMA_UNO | LEMMA_UNA | LEMMA_UNOS | LEMMA_UNAS => LEMMA_UN
+      case _ => lemma
+    }
+  }
+
+  private def correctGenderCount(
+    lemma : String, gender : SilGender, count : SilCount) : String =
+  {
+    val basic = gender.maybeBasic match {
+      case Some(GENDER_MASCULINE) | Some(GENDER_SOMEONE) => GENDER_MASCULINE
+      case Some(GENDER_FEMININE) => GENDER_FEMININE
+      case _ => GENDER_NEUTER
+    }
+    // FIXME refinements for COUNT_MASS and COUNT_ZERO_PLURAL
+    ignoreGenderCount(lemma) match {
+      case LEMMA_ALGUN => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ALGUNA
+        case (GENDER_FEMININE, _) => LEMMA_ALGUNAS
+        // FIXME as an adjective this should be LEMMA_ALGUN for GENDER_MASCULINE
+        case (_, COUNT_SINGULAR) => LEMMA_ALGUNO
+        case (_, _) => LEMMA_ALGUNOS
+      }
+      case LEMMA_AMBOS => basic match {
+        case GENDER_FEMININE => LEMMA_AMBAS
+        case _ => LEMMA_AMBOS
+      }
+      case LEMMA_AQUEL => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_AQUELLA
+        case (GENDER_FEMININE, _) => LEMMA_AQUELLAS
+        // FIXME as an adjective this should be LEMMA_AQUEL for GENDER_MASCULINE
+        case (_, COUNT_SINGULAR) => LEMMA_AQUELLO
+        case (_, _) => LEMMA_AQUELLOS
+      }
+      case LEMMA_CUAL => count match {
+        case COUNT_SINGULAR => LEMMA_CUAL
+        case _ => LEMMA_CUALES
+      }
+      case LEMMA_ELLO => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ELLA
+        case (GENDER_FEMININE, _) => LEMMA_ELLAS
+        case (GENDER_MASCULINE, COUNT_SINGULAR) => LEMMA_EL_ACCENTED
+        case (_, COUNT_SINGULAR) => LEMMA_ELLO
+        case (_, _) => LEMMA_ELLOS
+      }
+      case LEMMA_LE => count match {
+        case COUNT_SINGULAR => LEMMA_LE
+        case _ => LEMMA_LES
+      }
+      case LEMMA_EL => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_LA
+        case (GENDER_FEMININE, _) => LEMMA_LAS
+        case (_, COUNT_SINGULAR) => LEMMA_EL
+        case (_, _) => LEMMA_LOS
+      }
+      case LEMMA_ESO => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ESA
+        case (GENDER_FEMININE, _) => LEMMA_ESAS
+        case (_, COUNT_SINGULAR) => LEMMA_ESO
+        case (_, _) => LEMMA_ESOS
+      }
+      case LEMMA_ESTO => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ESTA
+        case (GENDER_FEMININE, _) => LEMMA_ESTAS
+        case (_, COUNT_SINGULAR) => LEMMA_ESTO
+        case (_, _) => LEMMA_ESTOS
+      }
+      case LEMMA_NOSOTROS => basic match {
+        case GENDER_FEMININE => LEMMA_NOSOTRAS
+        case _ => LEMMA_NOSOTROS
+      }
+      case LEMMA_NUESTRO => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_NUESTRA
+        case (GENDER_FEMININE, _) => LEMMA_NUESTRAS
+        case (_, COUNT_SINGULAR) => LEMMA_NUESTRO
+        case (_, _) => LEMMA_NUESTROS
+      }
+      case LEMMA_SU => count match {
+        case COUNT_SINGULAR => LEMMA_SU
+        case _ => LEMMA_SUS
+      }
+      case LEMMA_TODO => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_TODA
+        case (GENDER_FEMININE, _) => LEMMA_TODAS
+        case (_, COUNT_SINGULAR) => LEMMA_TODO
+        case (_, _) => LEMMA_TODOS
+      }
+      case LEMMA_TU => count match {
+        case COUNT_SINGULAR => LEMMA_TU
+        case _ => LEMMA_TUS
+      }
+      case LEMMA_TUYO => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_TUYA
+        case (GENDER_FEMININE, _) => LEMMA_TUYAS
+        case (_, COUNT_SINGULAR) => LEMMA_TUYO
+        case (_, _) => LEMMA_TUYOS
+      }
+      case LEMMA_UN => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_UNA
+        case (GENDER_FEMININE, _) => LEMMA_UNAS
+        // FIXME as an adjective this should be LEMMA_ALGUN for GENDER_MASCULINE
+        case (_, COUNT_SINGULAR) => LEMMA_UNO
+        case (_, _) => LEMMA_UNOS
+      }
+    }
   }
 }

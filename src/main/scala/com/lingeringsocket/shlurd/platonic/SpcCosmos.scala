@@ -1903,7 +1903,19 @@ class SpcCosmos(
           assocEntityGender(formEntity)
         })
       }).headOption
-    }.getOrElse(guessGender(entity))
+    }.getOrElse(guessGender(entity.form))
+  }
+
+  def getIdealGender(ideal : SpcIdeal) : SilGender =
+  {
+    // maybe we should cache this too?
+    graph.getIdealHypernyms(ideal).filter(_.isForm).
+      map(_.asInstanceOf[SpcForm]).flatMap(form => {
+        val formEntityName = SpcMeta.formMetaEntityName(form)
+        getEntityBySynonym(formEntityName).flatMap(formEntity => {
+          assocEntityGender(formEntity)
+        })
+      }).toIterable.headOption.getOrElse(guessGender(ideal))
   }
 
   def getGenderRole(form : SpcForm) : Option[SpcRole] =
@@ -1938,11 +1950,11 @@ class SpcCosmos(
     }
   }
 
-  private def guessGender(entity : SpcEntity) : SilGender =
+  private def guessGender(ideal : SpcIdeal) : SilGender =
   {
     resolveForm(SmcLemmas.LEMMA_SOMEONE) match {
       case Some(someoneForm) => {
-        if (isHyponym(entity.form, someoneForm)) {
+        if (isHyponym(ideal, someoneForm)) {
           GENDER_SOMEONE
         } else {
           GENDER_NEUTER
