@@ -49,8 +49,6 @@ case class SprContext(
   def newParser(input : String) = SprParser(input, this)
 
   def getTongue = wordLabeler.getTongue
-
-  def getWordnet = wordLabeler.getWordnet
 }
 
 case class SprWordRule(
