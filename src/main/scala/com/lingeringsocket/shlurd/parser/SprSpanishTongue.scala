@@ -152,7 +152,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   ) : SprSyntaxAnalyzer =
   {
     new SprSpanishSyntaxAnalyzer(
-      context, guessedQuestion, strictness, enforceTransitive)
+      context, strictness, enforceTransitive)
   }
 
   override def getStopList = SprSpanishLexicon.stopList
@@ -601,7 +601,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       coord.person,
       coord.count,
       GENDER_NEUTER,
-      SilTam.indicative.withTense(coord.tense)
+      SilTam.indicative.withTense(coord.tense).withMood(coord.mood)
     ))
   }
 

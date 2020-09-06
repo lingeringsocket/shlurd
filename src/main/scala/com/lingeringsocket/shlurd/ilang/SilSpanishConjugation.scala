@@ -24,7 +24,8 @@ import scala.collection.concurrent._
 case class SilSpanishConjugationCoord(
   person : SilPerson,
   count : SilCount,
-  tense : SilTense
+  tense : SilTense,
+  mood : SilMood
 )
 {
 }
@@ -38,7 +39,8 @@ object SilSpanishConjugationCoord
     SilSpanishConjugationCoord(
       person,
       count,
-      tam.tense)
+      tam.tense,
+      tam.mood)
   }
 }
 
@@ -53,13 +55,18 @@ object SilSpanishConjugation
     Seq(COUNT_SINGULAR, COUNT_PLURAL)
   private val allTenses =
     Seq(TENSE_PRESENT, TENSE_PAST, TENSE_FUTURE)
+  private val imperativePersons =
+    Seq(PERSON_SECOND, PERSON_THIRD)
 
   private val validCoords = allPersons.flatMap(person => {
     allCounts.flatMap(count => {
       allTenses.map(tense => {
-        SilSpanishConjugationCoord(person, count, tense)
+        SilSpanishConjugationCoord(person, count, tense, MOOD_INDICATIVE)
       })
     })
+  }) ++ imperativePersons.map(person => {
+    SilSpanishConjugationCoord(
+      person, COUNT_SINGULAR, TENSE_PRESENT, MOOD_IMPERATIVE)
   })
 
   def conjugateVerb(
@@ -67,15 +74,29 @@ object SilSpanishConjugation
     coord : SilSpanishConjugationCoord) : String =
   {
     // FIXME all the tams
-    val spanishTense = coord.tense match {
-      case TENSE_PAST => {
-        SpanishVerbConjugator.preterite
-      }
-      case TENSE_FUTURE => {
-        SpanishVerbConjugator.futureSimple
-      }
-      case _ => {
-        SpanishVerbConjugator.present
+    val spanishTense = {
+      coord.mood match {
+        case MOOD_IMPERATIVE => {
+          coord.person match {
+            // informal
+            case PERSON_SECOND => SpanishVerbConjugator.commandsPositive
+            // formal
+            case _ => SpanishVerbConjugator.presentSubjunctive
+          }
+        }
+        case _ => {
+          coord.tense match {
+            case TENSE_PAST => {
+              SpanishVerbConjugator.preterite
+            }
+            case TENSE_FUTURE => {
+              SpanishVerbConjugator.futureSimple
+            }
+            case _ => {
+              SpanishVerbConjugator.present
+            }
+          }
+        }
       }
     }
     val iPerson = coord.person match {
@@ -97,7 +118,8 @@ object SilSpanishConjugation
     cache.get(tupleN((infinitive, conjugated))).getOrElse {
       var found = false
       validCoords.foreach(coord => {
-        if (conjugateVerb(infinitive, coord) == conjugated) {
+        val coordConjugated = conjugateVerb(infinitive, coord)
+        if (coordConjugated == conjugated) {
           found = true
         }
       })

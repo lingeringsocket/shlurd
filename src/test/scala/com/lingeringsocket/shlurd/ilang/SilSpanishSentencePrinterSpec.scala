@@ -25,12 +25,20 @@ class SilSpanishSentencePrinterSpec
 {
   "Spanish SilSentencePrinter" should
   {
+    "preserve sentences" in
+    {
+      expectPreserved("el perro camina en la calle.")
+      expectPreserved("el perro camina entre las calles!")
+      expectPreserved("camina el perro entre las calles?")
+    }
+
     "normalize sentences" in
     {
       expectStatement("el perro camina en la calle")
       expectStatement("el perro camina entre las calles")
       expectStatement("los perros caminan entre las calles")
       expectStatement("ella camina")
+      expectCommand("viva la vida")
     }
 
     "handle sketchy constructs" in

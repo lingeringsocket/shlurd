@@ -1,4 +1,5 @@
 perro%1:05:00:: -add -addword perra -setgloss "el mejor amigo de un hombre"
+vida%1:19:00:: -add -setgloss "lo opuesto a la muerte"
 calle%1:15:00:: -add -addword camino -setgloss "una via de punto A a punto B"
 caminar%2:38:00:: -add -addword andar -setgloss "ir usando las piernas"
 beber%2:34:00:: -add -setgloss "consumir un bebido"

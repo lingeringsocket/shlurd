@@ -88,8 +88,6 @@ trait SprWordLabeler
 
 object SprWordnetLabeler
 {
-  // adapted from
-  // http://www.d.umn.edu/~tpederse/Group01/WordNet/wordnet-stoplist.html
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
 
   private val quote = DQUOTE

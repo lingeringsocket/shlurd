@@ -72,6 +72,7 @@ class SilEnglishSentencePrinterSpec
       expectStatement("Mortimer went to the beach this morning")
       expectStatement("Mortimer went back to the beach this morning")
       expectQuestion("who is there")
+      expectQuestion("are all lights on the first floor on")
     }
 
     "preserve sentences" in
@@ -185,7 +186,6 @@ class SilEnglishSentencePrinterSpec
       expectNormalized("awake the goat on the farm.",
         "awake the goat on the farm!")
       expectQuestion("is the tiger in the big cage")
-      expectQuestion("are all lights on the first floor on")
       expectStatement("the tiger has a tail")
       expectStatement("the tigers have tails")
       expectStatement("Muldoon has a tiger")

@@ -44,6 +44,8 @@ object SprEnglishLexicon
 
   val proper = readLexicon("/english/proper.txt")
 
+  // adapted from
+  // http://www.d.umn.edu/~tpederse/Group01/WordNet/wordnet-stoplist.html
   val stopList = Set(
     "I", "i", "an", "as", "at", "by", "he", "it", "do", "at", "off",
     "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",

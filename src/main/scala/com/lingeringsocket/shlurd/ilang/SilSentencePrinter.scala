@@ -356,21 +356,25 @@ class SilSentencePrinter(
         subject, verb, complement, modifiers
       ) => {
         val uninflectedVerb = verb.toUninflected
+        val (person, gender, count) = getCommandeeAttributes(subject)
         sb.actionPredicate(
           "",
           sb.delemmatizeVerb(
-            PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+            person, gender, count,
             tam, None, uninflectedVerb, INFLECT_NONE),
           Some(print(complement, INFLECT_NONE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier),
           tam)
       }
-      case SilActionPredicate(_, uninflectedVerb, directObject, modifiers) => {
+      case SilActionPredicate(
+        subject, verb, directObject, modifiers
+      ) => {
+        val (person, gender, count) = getCommandeeAttributes(subject)
         sb.actionPredicate(
           "",
           sb.delemmatizeVerb(
-            PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
-            tam, None, uninflectedVerb, INFLECT_NONE),
+            person, gender, count,
+            tam, None, verb, INFLECT_NONE),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier),
@@ -378,6 +382,18 @@ class SilSentencePrinter(
       }
       case _ => {
         sb.unknownPredicateCommand
+      }
+    }
+  }
+
+  private def getCommandeeAttributes(subject : SilReference) =
+  {
+    subject match {
+      case pr : SilPronounReference => {
+        tupleN((pr.person, pr.gender, pr.count))
+      }
+      case _ => {
+        tupleN((PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR))
       }
     }
   }

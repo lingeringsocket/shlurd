@@ -35,8 +35,7 @@ abstract class SprSvoSyntaxAnalyzer(
   {
     val hasQuestionMark =
       tree.children.last.hasTerminalLabel(LABEL_DOT, LABEL_QUESTION_MARK)
-    val isQuestion =
-      hasQuestionMark && !guessedQuestion
+    val isQuestion = hasQuestionMark && !guessedQuestion
     val force = {
       if (tree.children.last.hasTerminalLabel(
         LABEL_DOT, LABEL_EXCLAMATION_MARK))
@@ -278,14 +277,7 @@ abstract class SprSvoSyntaxAnalyzer(
       return None
     }
     val tamTensed = extractTense(verbHead, tam)
-    val tamMoody = {
-      // FIXME we want to do this for some sentence patterns in Spanish too
-      if (tongue.isInstanceOf[SprEnglishTongue]) {
-        tamTensed.withMood(MOOD_INTERROGATIVE)
-      } else {
-        tamTensed
-      }
-    }
+    val tamMoody = applyInterrogative(tamTensed)
     if (verbHead.isRelationshipVerb && specifiedDirectObject.isEmpty) {
       if (rhsLoss) {
         return None
@@ -305,6 +297,11 @@ abstract class SprSvoSyntaxAnalyzer(
       Some((predicate,
         tamMoody.withPolarity(polarity)))
     }
+  }
+
+  protected def applyInterrogative(tam : SilTam) : SilTam =
+  {
+    tam.withMood(MOOD_INTERROGATIVE)
   }
 
   override def analyzeSBARQ(tree : SptSBARQ)

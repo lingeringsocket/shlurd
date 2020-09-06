@@ -14,19 +14,44 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd.ilang._
+
 class SprSpanishSyntaxAnalyzer(
   context : SprContext,
-  guessedQuestion : Boolean,
   strictness : SprStrictness,
   enforceTransitive : Boolean
 ) extends SprSvoSyntaxAnalyzer(
-  context, guessedQuestion, strictness, enforceTransitive)
+  context, false, strictness, enforceTransitive)
 {
   override protected def allowElidedSubject() : Boolean = true
 
   override protected def isImperative(children : Seq[SprSyntaxTree]) =
   {
-    // FIXME use inflection of verb
-    false
+    // FIXME negatives etc
+    val seq = {
+      if (children.head.isVerbPhrase) {
+        children.head.children
+      } else {
+        children
+      }
+    }
+    seq.head match {
+      case verb : SprSyntaxSimpleVerb => {
+        val leaf = verb.child
+        val (person, count, gender, tam) =
+          context.getTongue.analyzeVerbConjugation(
+            SilWord(leaf.token, leaf.lemma))
+        tam.isImperative
+      }
+      case _ => {
+        false
+      }
+    }
+  }
+
+  override protected def applyInterrogative(tam : SilTam) : SilTam =
+  {
+    // FIXME not correct for some sentence patterns
+    tam
   }
 }
