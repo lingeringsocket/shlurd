@@ -57,7 +57,7 @@ trait SmcScope[
     annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     word : SilWord,
-    distance : SilDistance
+    proximity : SilProximity
   ) : Try[SmcScopeOutput[EntityType]]
 
   // FIXME this is English-specific
@@ -66,7 +66,7 @@ trait SmcScope[
     pr match {
       case SilPronounReference(
         PERSON_THIRD, GENDER_SOMEONE, COUNT_PLURAL,
-        DISTANCE_UNSPECIFIED | DISTANCE_REFLEXIVE
+        PROXIMITY_UNSPECIFIED | PROXIMITY_REFLEXIVE
       ) => {
         pr.copy(gender = GENDER_NEUTER)
       }
@@ -78,7 +78,7 @@ trait SmcScope[
   private def foldReflexives(pr : SilPronounReference) : SilPronounReference =
   {
     if (pr.isReflexive) {
-      pr.copy(distance = DISTANCE_UNSPECIFIED)
+      pr.copy(proximity = PROXIMITY_UNSPECIFIED)
     } else {
       pr
     }
@@ -289,17 +289,17 @@ class SmcMindScope[
     annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     word : SilWord,
-    distance : SilDistance
+    proximity : SilProximity
   ) : Try[SmcScopeOutput[EntityType]] =
   {
-    if ((distance == DISTANCE_THERE) || (distance == DISTANCE_LISTENER_THERE)) {
+    if (proximity.isInstanceOf[SilThereLimitedProximity]) {
       if (mind.isConversing) {
         val reference = annotator.pronounRef(
           PERSON_THIRD,
           GENDER_SOMEWHERE,
           COUNT_SINGULAR,
           mind,
-          distance)
+          proximity)
         val outputs = {
           mind.getConversation.getUtterances.reverseIterator.drop(1).map(
             utterance => {
@@ -317,10 +317,10 @@ class SmcMindScope[
       }
     }
 
-    val entityOpt = distance match {
-      case DISTANCE_HERE | DISTANCE_AROUND_HERE =>
+    val entityOpt = proximity match {
+      case _ : SilHereProximity =>
         communicationContext.speakerEntity
-      case DISTANCE_THERE | DISTANCE_LISTENER_THERE =>
+      case _ : SilThereLimitedProximity =>
         communicationContext.listenerEntity
       case _ => None
     }
@@ -557,13 +557,13 @@ class SmcPhraseScope[
     annotator : AnnotatorType,
     communicationContext : SmcCommunicationContext[EntityType],
     word : SilWord,
-    distance : SilDistance
+    proximity : SilProximity
   ) : Try[SmcScopeOutput[EntityType]] =
   {
     // FIXME handle cases such as "While I was at Starbucks, I saw my
     // friend there"
     parent.resolveSpatialDeictic(
-      annotator, communicationContext, word, distance)
+      annotator, communicationContext, word, proximity)
   }
 
   override def resolvePronoun(
@@ -574,7 +574,7 @@ class SmcPhraseScope[
   {
     val outputs = ref match {
       case SilPronounReference(
-        PERSON_THIRD, _, _, DISTANCE_UNSPECIFIED | DISTANCE_REFLEXIVE
+        PERSON_THIRD, _, _, PROXIMITY_UNSPECIFIED | PROXIMITY_REFLEXIVE
       ) => {
         findMatchingPronounReference(annotator, refMap, ref, true)
       }

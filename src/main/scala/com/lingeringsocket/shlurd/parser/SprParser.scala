@@ -555,7 +555,7 @@ object SprParser extends SprSynthesizer
       }
       case SilGenitiveReference(
         SilPronounReference(
-          PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR, DISTANCE_HERE),
+          PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR, PROXIMITY_HERE),
         SilMandatorySingular(
           SilWordLemma(lemma)
         )

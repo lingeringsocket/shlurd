@@ -769,7 +769,7 @@ class SprParserSpec extends Specification
           Some(
             annotator.basicPronounRef(
               PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR,
-              distance = DISTANCE_REFLEXIVE)
+              proximity = PROXIMITY_REFLEXIVE)
           )
         ),
         SilTam.indicative

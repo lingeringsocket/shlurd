@@ -106,7 +106,7 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   def isPronounWord(lemma : String) : Boolean
 
   def analyzePronoun(lemma : String) :
-      (SilPerson, SilCount, SilGender, Option[SilDistance])
+      (SilPerson, SilCount, SilGender, Option[SilProximity])
 
   def labelVerb(token : String, lemma : String) : Set[String]
 

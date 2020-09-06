@@ -284,7 +284,8 @@ class SilEnglishSentenceBundle(
 
   override def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    distance : SilDistance, word : Option[SilWord], inflection : SilInflection,
+    proximity : SilProximity, word : Option[SilWord],
+    inflection : SilInflection,
     conjoining : SilConjoining) =
   {
     def standard = {
@@ -293,13 +294,13 @@ class SilEnglishSentenceBundle(
           case COUNT_PLURAL => inflection match {
             case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_US
             case INFLECT_GENITIVE => LEMMA_OUR
-            case _ => distance match {
-              case DISTANCE_REFLEXIVE => LEMMA_OURSELVES
+            case _ => proximity match {
+              case PROXIMITY_REFLEXIVE => LEMMA_OURSELVES
               case _ => LEMMA_WE
             }
           }
-          case _ => distance match {
-            case DISTANCE_REFLEXIVE => LEMMA_MYSELF
+          case _ => proximity match {
+            case PROXIMITY_REFLEXIVE => LEMMA_MYSELF
             case _ => inflection match {
               case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_ME
               case INFLECT_GENITIVE => LEMMA_MY
@@ -310,8 +311,8 @@ class SilEnglishSentenceBundle(
         case PERSON_SECOND => inflection match {
           case INFLECT_GENITIVE => LEMMA_YOUR
           case _ => {
-            distance match {
-              case DISTANCE_REFLEXIVE => count match {
+            proximity match {
+              case PROXIMITY_REFLEXIVE => count match {
                 case COUNT_PLURAL => LEMMA_YOURSELVES
                 case _ => LEMMA_YOURSELF
               }
@@ -320,46 +321,44 @@ class SilEnglishSentenceBundle(
           }
         }
         case PERSON_THIRD => count match {
-          case COUNT_PLURAL => distance match {
-            case DISTANCE_HERE | DISTANCE_AROUND_HERE => LEMMA_THESE
-            case DISTANCE_THERE | DISTANCE_LISTENER_THERE |
-                DISTANCE_WAY_OVER_THERE => LEMMA_THOSE
-            case DISTANCE_UNSPECIFIED => inflection match {
+          case COUNT_PLURAL => proximity match {
+            case _ : SilHereProximity => LEMMA_THESE
+            case _ : SilThereProximity => LEMMA_THOSE
+            case PROXIMITY_UNSPECIFIED => inflection match {
               case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_THEM
               case INFLECT_GENITIVE => LEMMA_THEIR
               case _ => LEMMA_THEY
             }
-            case DISTANCE_REFLEXIVE => LEMMA_THEMSELVES
+            case PROXIMITY_REFLEXIVE => LEMMA_THEMSELVES
           }
           case _ => gender.maybeBasic match {
-            case Some(GENDER_MASCULINE | GENDER_SOMEONE) => distance match {
-              case DISTANCE_REFLEXIVE => LEMMA_HIMSELF
+            case Some(GENDER_MASCULINE | GENDER_SOMEONE) => proximity match {
+              case PROXIMITY_REFLEXIVE => LEMMA_HIMSELF
               case _ => inflection match {
                 case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_HIM
                 case INFLECT_GENITIVE => LEMMA_HIS
                 case _ => LEMMA_HE
               }
             }
-            case Some(GENDER_FEMININE) => distance match {
-              case DISTANCE_REFLEXIVE => LEMMA_HERSELF
+            case Some(GENDER_FEMININE) => proximity match {
+              case PROXIMITY_REFLEXIVE => LEMMA_HERSELF
               case _ => inflection match {
                 case INFLECT_ACCUSATIVE | INFLECT_GENITIVE |
                     INFLECT_ADPOSITIONED => LEMMA_HER
                 case _ => LEMMA_SHE
               }
             }
-            case Some(GENDER_NEUTER) => distance match {
-              case DISTANCE_HERE | DISTANCE_AROUND_HERE => LEMMA_THIS
-              case DISTANCE_THERE | DISTANCE_LISTENER_THERE |
-                  DISTANCE_WAY_OVER_THERE => LEMMA_THAT
-              case DISTANCE_UNSPECIFIED => inflection match {
+            case Some(GENDER_NEUTER) => proximity match {
+              case _ : SilHereProximity => LEMMA_THIS
+              case _ : SilThereProximity => LEMMA_THAT
+              case PROXIMITY_UNSPECIFIED => inflection match {
                 case INFLECT_GENITIVE => LEMMA_ITS
                 case _ => LEMMA_IT
               }
-              case DISTANCE_REFLEXIVE => LEMMA_ITSELF
+              case PROXIMITY_REFLEXIVE => LEMMA_ITSELF
             }
-            case Some(GENDER_SOMEWHERE) => distance match {
-              case DISTANCE_HERE | DISTANCE_AROUND_HERE => LEMMA_HERE
+            case Some(GENDER_SOMEWHERE) => proximity match {
+              case _ : SilHereProximity => LEMMA_HERE
               case _ => LEMMA_THERE
             }
             case _ => {

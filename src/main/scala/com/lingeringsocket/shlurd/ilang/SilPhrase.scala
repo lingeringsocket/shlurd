@@ -683,20 +683,20 @@ object SilPronounReference
 {
   private def apply(
     person : SilPerson, gender : SilGender,
-    count : SilCount, distance : SilDistance
-  ) = new SilPronounReference(person, gender, count, distance)
+    count : SilCount, proximity : SilProximity
+  ) = new SilPronounReference(person, gender, count, proximity)
 
   def unannotated(
     person : SilPerson, gender : SilGender,
-    count : SilCount, distance : SilDistance
-  ) = SilPronounReference(person, gender, count, distance)
+    count : SilCount, proximity : SilProximity
+  ) = SilPronounReference(person, gender, count, proximity)
 }
 
 case class SilPronounReference private(
   person : SilPerson,
   gender : SilGender,
   count : SilCount,
-  distance : SilDistance
+  proximity : SilProximity
 ) extends SilAnnotatedReference
 {
   override def acceptsSpecifiers = false
@@ -723,16 +723,15 @@ case class SilPronounReference private(
 
   def isDemonstrative() : Boolean =
   {
-    distance match {
-      case DISTANCE_HERE | DISTANCE_AROUND_HERE | DISTANCE_THERE |
-          DISTANCE_LISTENER_THERE | DISTANCE_WAY_OVER_THERE => true
+    proximity match {
+      case _ : SilDemonstrativeProximity => true
       case _ => false
     }
   }
 
   def isReflexive() : Boolean =
   {
-    distance == DISTANCE_REFLEXIVE
+    proximity == PROXIMITY_REFLEXIVE
   }
 }
 

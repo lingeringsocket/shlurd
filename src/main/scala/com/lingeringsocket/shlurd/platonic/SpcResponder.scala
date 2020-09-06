@@ -423,9 +423,9 @@ class SpcResponder(
         case SilBasicVerbModifier(word) => {
           mind.getTongue.analyzePronoun(word.toLemma) matchPartial {
             case (PERSON_THIRD, COUNT_SINGULAR,
-              GENDER_SOMEWHERE, Some(distance)
+              GENDER_SOMEWHERE, Some(proximity)
             ) => {
-              return spatialDeicticModifier(word, distance)
+              return spatialDeicticModifier(word, proximity)
             }
           }
         }
@@ -435,11 +435,11 @@ class SpcResponder(
 
     private def spatialDeicticModifier(
       word : SilWord,
-      distance : SilDistance
+      proximity : SilProximity
     ) : Try[SilVerbModifier] =
     {
       mindScope.resolveSpatialDeictic(
-        annotator, communicationContext, word, distance
+        annotator, communicationContext, word, proximity
       ) match {
         case Success(SmcScopeOutput(prior, entities)) => {
           assert(entities.size == 1)

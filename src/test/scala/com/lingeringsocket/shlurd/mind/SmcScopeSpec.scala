@@ -197,13 +197,13 @@ class SmcScopeSpec extends Specification
         annotator,
         communicationContext,
         SilWord(LEMMA_HERE),
-        DISTANCE_HERE
+        PROXIMITY_HERE
       ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooVisitor)))
       mindScope.resolveSpatialDeictic(
         annotator,
         communicationContext,
         SilWord(LEMMA_THERE),
-        DISTANCE_THERE
+        PROXIMITY_THERE
       ) must beSuccessfulTry.withValue(SmcScopeOutput(None, Set(ZooKeeper)))
     }
 

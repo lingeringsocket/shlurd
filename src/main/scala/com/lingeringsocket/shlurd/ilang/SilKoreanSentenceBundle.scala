@@ -269,7 +269,8 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    distance : SilDistance, word : Option[SilWord], inflection : SilInflection,
+    proximity : SilProximity, word : Option[SilWord],
+    inflection : SilInflection,
     conjoining : SilConjoining) =
   {
     // FIXME handle reflexives
@@ -294,14 +295,14 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
       }
       case PERSON_THIRD => count match {
         case COUNT_PLURAL => {
-          distance match {
-            case DISTANCE_HERE | DISTANCE_AROUND_HERE =>
+          proximity match {
+            case _ : SilHereProximity =>
               inflectPronoun("이것들", inflection, conjoining)
-            case DISTANCE_LISTENER_THERE =>
+            case PROXIMITY_LISTENER_THERE =>
               inflectPronoun("그것들", inflection, conjoining)
-            case DISTANCE_THERE | DISTANCE_WAY_OVER_THERE =>
+            case PROXIMITY_THERE | PROXIMITY_WAY_OVER_THERE =>
               inflectPronoun("저것들", inflection, conjoining)
-            case DISTANCE_UNSPECIFIED | DISTANCE_REFLEXIVE =>
+            case PROXIMITY_UNSPECIFIED | PROXIMITY_REFLEXIVE =>
               inflectPronoun("그들", inflection, conjoining)
           }
         }
@@ -311,20 +312,20 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
           case Some(GENDER_FEMININE) =>
             inflectPronoun("그녀", inflection, conjoining)
           case Some(GENDER_NEUTER) => {
-            distance match {
-              case DISTANCE_HERE | DISTANCE_AROUND_HERE =>
+            proximity match {
+              case _ : SilHereProximity =>
                 inflectPronoun("이것", inflection, conjoining)
-              case DISTANCE_LISTENER_THERE =>
+              case PROXIMITY_LISTENER_THERE =>
                 inflectPronoun("그것", inflection, conjoining)
               case _ =>
                 inflectPronoun("저것", inflection, conjoining)
             }
           }
           case Some(GENDER_SOMEWHERE) => {
-            distance match {
-              case DISTANCE_HERE | DISTANCE_AROUND_HERE =>
+            proximity match {
+              case _ : SilHereProximity =>
                 inflectPronoun("이곳", inflection, conjoining)
-              case DISTANCE_LISTENER_THERE =>
+              case PROXIMITY_LISTENER_THERE =>
                 inflectPronoun("그곳", inflection, conjoining)
               case _ =>
                 inflectPronoun("저곳", inflection, conjoining)

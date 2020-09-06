@@ -128,7 +128,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
         PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR, mind)
       val himselfRef = annotator.pronounRef(
         PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR, mind,
-        distance = DISTANCE_REFLEXIVE)
+        proximity = PROXIMITY_REFLEXIVE)
       val isaResult = analyze(s"$ivan is a mule")
       val ivanEntity = expectProperName(ivan)
       val ivanSet = Set(ivanEntity)

@@ -295,12 +295,12 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
         }
       }
     }
-    val distanceOpt = lemma match {
-      case LEMMA_HERE | LEMMA_THIS | LEMMA_THESE => Some(DISTANCE_HERE)
-      case LEMMA_THERE | LEMMA_THAT | LEMMA_THOSE => Some(DISTANCE_THERE)
+    val proximityOpt = lemma match {
+      case LEMMA_HERE | LEMMA_THIS | LEMMA_THESE => Some(PROXIMITY_HERE)
+      case LEMMA_THERE | LEMMA_THAT | LEMMA_THOSE => Some(PROXIMITY_THERE)
       case _ => None
     }
-    tupleN((person, count, gender, distanceOpt))
+    tupleN((person, count, gender, proximityOpt))
   }
 
   override def synthesizeMembersRef(

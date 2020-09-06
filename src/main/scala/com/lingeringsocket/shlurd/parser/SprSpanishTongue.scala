@@ -494,16 +494,16 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
         }
       }
     }
-    val distanceOpt = lemma match {
+    val proximityOpt = lemma match {
       case LEMMA_ESTO | LEMMA_ESTOS |
-          LEMMA_ESTA | LEMMA_ESTAS => Some(DISTANCE_HERE)
+          LEMMA_ESTA | LEMMA_ESTAS => Some(PROXIMITY_HERE)
       case LEMMA_ESO | LEMMA_ESOS |
-          LEMMA_ESA | LEMMA_ESAS => Some(DISTANCE_LISTENER_THERE)
+          LEMMA_ESA | LEMMA_ESAS => Some(PROXIMITY_LISTENER_THERE)
       case LEMMA_AQUEL | LEMMA_AQUELLO | LEMMA_AQUELLOS |
-          LEMMA_AQUELLA | LEMMA_AQUELLAS => Some(DISTANCE_THERE)
+          LEMMA_AQUELLA | LEMMA_AQUELLAS => Some(PROXIMITY_THERE)
       case _ => None
     }
-    tupleN((person, count, gender, distanceOpt))
+    tupleN((person, count, gender, proximityOpt))
   }
 
   override def synthesizeMembersRef(

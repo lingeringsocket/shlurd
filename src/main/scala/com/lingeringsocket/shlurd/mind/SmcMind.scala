@@ -287,7 +287,7 @@ class SmcMind[
         Some(
           annotator.pronounRef(
             PERSON_THIRD, GENDER_SOMEWHERE, COUNT_SINGULAR,
-            this, DISTANCE_THERE))
+            this, PROXIMITY_THERE))
       } else {
         None
       }

@@ -75,14 +75,22 @@ case object DETERMINER_ALL extends SilDeterminer
 case object DETERMINER_ABSENT extends SilDeterminer
 case class SilIntegerDeterminer(number : Int) extends SilDeterminer
 
-sealed trait SilDistance
-case object DISTANCE_HERE extends SilDistance
-case object DISTANCE_AROUND_HERE extends SilDistance
-case object DISTANCE_LISTENER_THERE extends SilDistance
-case object DISTANCE_THERE extends SilDistance
-case object DISTANCE_WAY_OVER_THERE extends SilDistance
-case object DISTANCE_UNSPECIFIED extends SilDistance
-case object DISTANCE_REFLEXIVE extends SilDistance
+sealed trait SilProximity
+sealed trait SilDemonstrativeProximity extends SilProximity
+sealed trait SilLimitedProximity extends SilDemonstrativeProximity
+sealed trait SilHereProximity extends SilDemonstrativeProximity
+sealed trait SilHereLimitedProximity extends SilHereProximity
+    with SilLimitedProximity
+sealed trait SilThereProximity extends SilDemonstrativeProximity
+sealed trait SilThereLimitedProximity extends SilThereProximity
+    with SilLimitedProximity
+case object PROXIMITY_HERE extends SilHereLimitedProximity
+case object PROXIMITY_AROUND_HERE extends SilHereProximity
+case object PROXIMITY_LISTENER_THERE extends SilThereLimitedProximity
+case object PROXIMITY_THERE extends SilThereLimitedProximity
+case object PROXIMITY_WAY_OVER_THERE extends SilThereProximity
+case object PROXIMITY_UNSPECIFIED extends SilProximity
+case object PROXIMITY_REFLEXIVE extends SilProximity
 
 sealed trait SilCompoundStyle
 case object COMPOUND_OPEN extends SilCompoundStyle

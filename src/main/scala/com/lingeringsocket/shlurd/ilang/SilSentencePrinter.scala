@@ -234,7 +234,7 @@ class SilSentencePrinter(
       ref.pronounMap.get(pronounKey)
     }
     sb.pronoun(
-      ref.person, ref.gender, ref.count, ref.distance, word,
+      ref.person, ref.gender, ref.count, ref.proximity, word,
       inflection, conjoining)
   }
 

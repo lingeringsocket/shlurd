@@ -1477,22 +1477,22 @@ class SprEnglishSyntaxAnalyzer(
       : SilPronounReference =
   {
     val lemma = leaf.lemma
-    val (person, count, gender, distanceOpt) =
+    val (person, count, gender, proximityOpt) =
       tongue.analyzePronoun(lemma)
-    val distance = distanceOpt.getOrElse {
+    val proximity = proximityOpt.getOrElse {
       val seq = context.wordLabeler.labelWords(
         Seq(tupleN((lemma, lemma, 0))),
         foldEphemeralLabels = false)
       assert(seq.size == 1)
       if (seq.head.head.label == LABEL_PRP_REFLEXIVE) {
-        DISTANCE_REFLEXIVE
+        PROXIMITY_REFLEXIVE
       } else {
-        DISTANCE_UNSPECIFIED
+        PROXIMITY_UNSPECIFIED
       }
     }
     annotator.pronounRef(
       person, gender, count,
-      context.genderAnalyzer, distance, Some(getWord(leaf)))
+      context.genderAnalyzer, proximity, Some(getWord(leaf)))
   }
 
   override def isProhibitedPropertyState(

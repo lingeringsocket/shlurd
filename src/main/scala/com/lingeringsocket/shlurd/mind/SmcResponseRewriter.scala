@@ -314,7 +314,7 @@ class SmcResponseRewriter[
       // FIXME need to transform word if we want to support
       // custom first/second person pronouns
       case oldPronoun @ SilPronounReference(
-        person, gender, count, distance
+        person, gender, count, proximity
       ) => {
         val (swap, speakerListenerReversed) = person match {
           case PERSON_FIRST => tupleN((true, PERSON_SECOND))
@@ -323,7 +323,7 @@ class SmcResponseRewriter[
         }
         if (swap) {
           val newPronoun = annotator.pronounRef(
-            speakerListenerReversed, gender, count, mind, distance)
+            speakerListenerReversed, gender, count, mind, proximity)
           refMap.get(oldPronoun).foreach(entities =>
             refMap.put(newPronoun, entities))
           newPronoun
@@ -612,7 +612,7 @@ class SmcResponseRewriter[
           SilAdpositionalState(
             SilAdposition.OF,
             SilPronounReference(
-              PERSON_THIRD, _, COUNT_PLURAL, DISTANCE_UNSPECIFIED))),
+              PERSON_THIRD, _, COUNT_PLURAL, PROXIMITY_UNSPECIFIED))),
         _
       ) => {
         sr
