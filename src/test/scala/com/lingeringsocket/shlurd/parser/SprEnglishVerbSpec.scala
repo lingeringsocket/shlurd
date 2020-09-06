@@ -29,6 +29,8 @@ class SprEnglishVerbSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
+  private implicit val tongue = SprContext.defaultTongue
+
   case class ParsedVerb(
     subject : SilReference,
     rhs : Option[SilPhrase],
@@ -163,7 +165,7 @@ class SprEnglishVerbSpec extends Specification
         SilPredicateSentence(predicate, tam)
       }
     }
-    val printer = new SilSentencePrinter
+    val printer = SprContext.defaultSentencePrinter
     printer.print(sentence)
   }
 

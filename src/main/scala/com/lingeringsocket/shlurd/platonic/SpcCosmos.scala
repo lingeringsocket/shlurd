@@ -461,7 +461,7 @@ class SpcCosmos(
     if (Option(wordLabeler).isEmpty) {
       val newLabeler = new SprWordnetLabeler(tongue)
       getAssertions.flatMap(assertion =>
-        SpcBeliefRecognizer.recognizeWordRule(assertion.sentence)
+        SpcBeliefRecognizer.recognizeWordRule(tongue, assertion.sentence)
       ).foreach(rule => {
         newLabeler.addRule(rule)
       })
@@ -1768,11 +1768,12 @@ class SpcCosmos(
   }
 
   def addAssertion(
+    tongue : SprTongue,
     assertion : SpcAssertion)
   {
     graph.assertions.addVertex(assertion)
     Option(wordLabeler).foreach(labeler => {
-      SpcBeliefRecognizer.recognizeWordRule(assertion.sentence).foreach(
+      SpcBeliefRecognizer.recognizeWordRule(tongue, assertion.sentence).foreach(
         rule => {
           labeler.addRule(rule)
         }

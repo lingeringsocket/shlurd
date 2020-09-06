@@ -20,7 +20,7 @@ import com.lingeringsocket.shlurd.mind._
 
 // we selectively import suites known to work with CoreNLP
 
-class CorenlpSentencePrinterSpec extends SilSentencePrinterSpec
+class CorenlpSentencePrinterSpec extends SilEnglishSentencePrinterSpec
 {
 }
 

@@ -14,72 +14,15 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
-import org.specs2.mutable._
-
 import com.lingeringsocket.shlurd.parser._
 
-class SilSentencePrinterSpec extends Specification
+// currently, we have a lot of trouble with irregularities in
+// re-inflecting words, so for now just preserve the original
+// inflection
+class SilEnglishSentencePrinterSpec
+    extends SilSentencePrinterSpecification(SprContext(), false)
 {
-  private val printer = new SilSentencePrinter
-
-  private def normalize(s : String) : String =
-  {
-    val parsed = SprParser(s).parseOne.sentence
-    val normalized = normalize(parsed)
-    printer.print(normalized)
-  }
-
-  private def normalize(parsed : SilSentence) : SilSentence =
-  {
-    parsed match {
-      case SilPredicateSentence(predicate, tam, formality) => {
-        tam.mood match {
-          case MOOD_IMPERATIVE => SilPredicateSentence(
-            predicate, tam,
-            formality.copy(force = FORCE_EXCLAMATION))
-          case _ => parsed
-        }
-      }
-      case _ : SilConditionalSentence => parsed
-      case _ : SilPredicateQuery => parsed
-      case SilAmbiguousSentence(alternatives, _) => {
-        SilAmbiguousSentence(alternatives.map(normalize))
-      }
-      case _ : SilConjunctiveSentence => {
-        // FIXME
-        parsed
-      }
-      case _ : SilUnknownSentence => parsed
-      case _ : SilUnparsedSentence => parsed
-    }
-  }
-
-  private def expectPreserved(s : String) =
-  {
-    normalize(s) must be equalTo s
-  }
-
-  private def expectStatement(s : String) =
-  {
-    normalize(s) must be equalTo (s + ".")
-  }
-
-  private def expectCommand(s : String) =
-  {
-    normalize(s) must be equalTo (s + "!")
-  }
-
-  private def expectQuestion(s : String) =
-  {
-    normalize(s) must be equalTo (s + "?")
-  }
-
-  private def expectNormalized(s : String, normalized : String) =
-  {
-    normalize(s) must be equalTo(normalized)
-  }
-
-  "SilSentencePrinter" should
+  "English SilSentencePrinter" should
   {
     "deal with problem cases" in
     {

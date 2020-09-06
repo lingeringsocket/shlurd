@@ -30,6 +30,8 @@ class SpcCreed(
 {
   private val mind = new SpcMind(cosmos)
 
+  private implicit val tongue = mind.getTongue
+
   private def includeIdeal(ideal : SpcIdeal) : Boolean =
   {
     if (includeMeta) {

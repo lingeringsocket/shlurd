@@ -292,7 +292,7 @@ class SmcMindScope[
     distance : SilDistance
   ) : Try[SmcScopeOutput[EntityType]] =
   {
-    if (distance == DISTANCE_THERE) {
+    if ((distance == DISTANCE_THERE) || (distance == DISTANCE_LISTENER_THERE)) {
       if (mind.isConversing) {
         val reference = annotator.pronounRef(
           PERSON_THIRD,
@@ -318,8 +318,10 @@ class SmcMindScope[
     }
 
     val entityOpt = distance match {
-      case DISTANCE_HERE => communicationContext.speakerEntity
-      case DISTANCE_THERE => communicationContext.listenerEntity
+      case DISTANCE_HERE | DISTANCE_AROUND_HERE =>
+        communicationContext.speakerEntity
+      case DISTANCE_THERE | DISTANCE_LISTENER_THERE =>
+        communicationContext.listenerEntity
       case _ => None
     }
     entityOpt match {

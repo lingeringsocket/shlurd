@@ -28,9 +28,14 @@ object SilSentencePrinter
 }
 import SilSentencePrinter._
 
-class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
+class SilSentencePrinter(
+  tongueIn : SprTongue,
+  parlance : SilParlance = SilEnglishParlance,
+  genderAnalyzer : SilGenderAnalyzer)
 {
-  val sb = SilSentenceBundle(parlance)
+  private implicit val tongue = tongueIn
+
+  val sb = SilSentenceBundle(tongue, parlance)
 
   def print(
     sentence : SilSentence, ellipsis : Boolean = false) : String =
@@ -99,9 +104,13 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
   {
     reference match {
       case SilDeterminedReference(sub, determiner) => {
+        val (person, gender, count) = getSubjectAttributes(sub)
         sb.determinedNoun(
           determiner,
-          print(sub, inflection, conjoining)
+          print(sub, inflection, conjoining),
+          person,
+          gender,
+          count
         )
       }
       case SilCountedNounReference(noun, count) => {
@@ -516,8 +525,7 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
         tupleN((pr.person, pr.gender, pr.count))
       }
       case SilCountedNounReference(_, count) => {
-        // FIXME derive gender
-        tupleN((PERSON_THIRD, GENDER_NEUTER, count))
+        tupleN((PERSON_THIRD, genderAnalyzer.deriveGender(subject), count))
       }
       case SilConjunctiveReference(determiner, references, _) => {
         val count = if (existentialPronoun.nonEmpty) {
@@ -530,9 +538,9 @@ class SilSentencePrinter(parlance : SilParlance = SilDefaultParlance)
             case _ => COUNT_SINGULAR
           }
         }
-        // FIXME:  also derive person and gender from underlying references,
+        // FIXME:  also derive person from underlying references,
         // since it makes a difference in languages such as Spanish
-        tupleN((PERSON_THIRD, GENDER_NEUTER, count))
+        tupleN((PERSON_THIRD, genderAnalyzer.deriveGender(subject), count))
       }
       case SilParenthesizedReference(reference, _) => {
         getSubjectAttributes(reference, existentialPronoun)

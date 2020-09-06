@@ -114,9 +114,11 @@ object SpcBeliefRecognizer
   }
 
   def recognizeWordRule(
+    tongueIn : SprTongue,
     sentence : SilSentence
   ) : Seq[SprWordRule] =
   {
+    implicit val tongue = tongueIn
     sentence match {
       case SilPredicateSentence(
         SilRelationshipPredicate(
@@ -249,6 +251,8 @@ class SpcBeliefRecognizer(
 
   private var finished = false
 
+  private implicit val tongue = mind.getTongue
+
   def recognizeBeliefs(sentence : SilSentence)
       : Seq[SpcBelief] =
   {
@@ -301,7 +305,7 @@ class SpcBeliefRecognizer(
                 sentence, tam, statePredicate)
             }
             case relationshipPredicate : SilRelationshipPredicate => {
-              if (recognizeWordRule(sentence).isEmpty) {
+              if (recognizeWordRule(tongue, sentence).isEmpty) {
                 val (components, conjunction) =
                   decomposeSubject(relationshipPredicate)
                 return conjunction.checkFinal(
@@ -1073,7 +1077,7 @@ class SpcBeliefRecognizer(
         }
       }
       case _ => {
-        if (recognizeWordRule(assertionSentence).isEmpty) {
+        if (recognizeWordRule(tongue, assertionSentence).isEmpty) {
           trace(s"UNRECOGNIZED ASSERTION $assertionSentence")
           reportException(ShlurdExceptionCode.InvalidBelief)
         }

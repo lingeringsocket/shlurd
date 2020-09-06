@@ -724,7 +724,8 @@ case class SilPronounReference private(
   def isDemonstrative() : Boolean =
   {
     distance match {
-      case DISTANCE_HERE | DISTANCE_THERE => true
+      case DISTANCE_HERE | DISTANCE_AROUND_HERE | DISTANCE_THERE |
+          DISTANCE_LISTENER_THERE | DISTANCE_WAY_OVER_THERE => true
       case _ => false
     }
   }

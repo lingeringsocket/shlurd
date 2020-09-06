@@ -219,10 +219,10 @@ trait SprAbstractSyntaxTree
 
   def isProgressiveVerb = isGerund
 
-  def isExistential =
+  def isExistential(implicit tongue : SprTongue) =
     (isNounPhrase && firstChild.hasLabel(LABEL_EX)) || isExistsVerb
 
-  def isBeingVerb =
+  def isBeingVerb(implicit tongue : SprTongue) =
   {
     if (isVerb && isPreTerminal) {
       isBeingLemma(firstChild.lemma)
@@ -231,12 +231,14 @@ trait SprAbstractSyntaxTree
     }
   }
 
-  def isPossessionVerb =
-    isVerb && hasTerminalLemma(LEMMA_HAVE)
+  def isPossessionVerb(implicit tongue : SprTongue) =
+    isVerb && isPreTerminal && tongue.isPossessionLemma(firstChild.lemma)
 
-  def isRelationshipVerb = isBeingVerb || isPossessionVerb
+  def isRelationshipVerb(implicit tongue : SprTongue) =
+    isBeingVerb || isPossessionVerb
 
-  def isExistsVerb = isVerb && hasTerminalLemma(LEMMA_EXIST)
+  def isExistsVerb(implicit tongue : SprTongue) =
+    isVerb && isPreTerminal && tongue.isExistsLemma(firstChild.lemma)
 
   def isDemonstrative = isPreTerminal &&
     Set(LEMMA_THIS, LEMMA_THAT, LEMMA_THESE, LEMMA_THOSE).contains(

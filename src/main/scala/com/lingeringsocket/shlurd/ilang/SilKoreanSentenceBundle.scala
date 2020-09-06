@@ -220,7 +220,12 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
     compose(specifier, noun)
   }
 
-  override def determinedNoun(determiner : SilDeterminer, noun : String) =
+  override def determinedNoun(
+    determiner : SilDeterminer,
+    noun : String,
+    person : SilPerson,
+    gender : SilGender,
+    count : SilCount) =
   {
     val determinerString = determiner match {
       case DETERMINER_NONE => throw SilSentenceUnprintable()
@@ -289,12 +294,13 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
       }
       case PERSON_THIRD => count match {
         case COUNT_PLURAL => {
-          // FIXME discriminate "그" from "저"
           distance match {
-            case DISTANCE_HERE =>
+            case DISTANCE_HERE | DISTANCE_AROUND_HERE =>
               inflectPronoun("이것들", inflection, conjoining)
-            case DISTANCE_THERE =>
+            case DISTANCE_LISTENER_THERE =>
               inflectPronoun("그것들", inflection, conjoining)
+            case DISTANCE_THERE | DISTANCE_WAY_OVER_THERE =>
+              inflectPronoun("저것들", inflection, conjoining)
             case DISTANCE_UNSPECIFIED | DISTANCE_REFLEXIVE =>
               inflectPronoun("그들", inflection, conjoining)
           }
@@ -305,21 +311,23 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
           case Some(GENDER_FEMININE) =>
             inflectPronoun("그녀", inflection, conjoining)
           case Some(GENDER_NEUTER) => {
-            // FIXME discriminate "그" from "저"
             distance match {
-              case DISTANCE_HERE =>
+              case DISTANCE_HERE | DISTANCE_AROUND_HERE =>
                 inflectPronoun("이것", inflection, conjoining)
-              case _ =>
+              case DISTANCE_LISTENER_THERE =>
                 inflectPronoun("그것", inflection, conjoining)
+              case _ =>
+                inflectPronoun("저것", inflection, conjoining)
             }
           }
           case Some(GENDER_SOMEWHERE) => {
-            // FIXME discriminate "그" from "저"
             distance match {
-              case DISTANCE_HERE =>
+              case DISTANCE_HERE | DISTANCE_AROUND_HERE =>
                 inflectPronoun("이곳", inflection, conjoining)
-              case _ =>
+              case DISTANCE_LISTENER_THERE =>
                 inflectPronoun("그곳", inflection, conjoining)
+              case _ =>
+                inflectPronoun("저곳", inflection, conjoining)
             }
           }
           case None => {

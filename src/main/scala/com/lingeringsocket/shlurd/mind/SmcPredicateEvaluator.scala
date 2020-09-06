@@ -49,6 +49,8 @@ class SmcPredicateEvaluator[
 
   private def cosmos = mind.getCosmos
 
+  private implicit val tongue = mind.getTongue
+
   protected[mind] def evaluatePredicate(
     predicateOriginal : SilPredicate,
     resultCollector : ResultCollectorType) : Try[Trilean] =
@@ -125,7 +127,8 @@ class SmcPredicateEvaluator[
           resultCollector.isCategorization = true
         }
         if (SmcPhraseQuerier.containsWildcard(subjectRef, false, true) &&
-          (SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) &&
+          (SilRelationshipPredef(verb) ==
+            REL_PREDEF_IDENTITY) &&
           categoryLabel.isEmpty
         ) {
           resultCollector.lookup(complementRef) match {
@@ -263,7 +266,9 @@ class SmcPredicateEvaluator[
             evaluateCategorization(subjectEntity, label)
           }
           case _ => {
-            if (SilRelationshipPredef(verb) == REL_PREDEF_ASSOC) {
+            if (SilRelationshipPredef(verb) ==
+              REL_PREDEF_ASSOC)
+            {
               val roleQualifiers = extractRoleQualifiers(complementRef)
               if (roleQualifiers.size == 1) {
                 val roleName = roleQualifiers.head

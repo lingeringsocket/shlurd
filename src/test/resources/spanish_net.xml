@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jwnl_properties language="en">
+    <version publisher="Lingering Socket Labs" number="0.1" language="es"/>
+    <dictionary class="net.sf.extjwnl.dictionary.FileBackedDictionary">
+        <param name="morphological_processor" value="net.sf.extjwnl.dictionary.morph.DefaultMorphologicalProcessor">
+            <param name="operations">
+                <param value="net.sf.extjwnl.dictionary.morph.LookupExceptionsOperation"/>
+                <param value="net.sf.extjwnl.dictionary.morph.DetachSuffixesOperation">
+                    <param name="noun" value="|s=|"/>
+                    <param name="verb" value="|o=ar|as=ar|a=ar|amos=ar|áis=ar|an=ar|é=ar|aste=ar|ó=ar|asteis=ar|aron=ar|uve=ar|uviste=ar|uvo=ar|uvimos=ar|uvisteis=ar|uvieron=ar|o=er|es=er|e=er|emos=er|éis=er|en=er|í=er|iste=er|ió=er|imos=er|isteis=er|ieron=er|o=ir|es=ir|e=ir|imos=ir|ís=ir|en=ir|í=ir|iste=ir|ió=ir|imos=ir|isteis=ir|ieron=ir|"/>
+                    <param name="operations">
+                        <param value="net.sf.extjwnl.dictionary.morph.LookupIndexWordOperation"/>
+                        <param value="net.sf.extjwnl.dictionary.morph.LookupExceptionsOperation"/>
+                    </param>
+                </param>
+                <param value="net.sf.extjwnl.dictionary.morph.TokenizerOperation">
+                    <param name="delimiters">
+                        <param value=" "/>
+                        <param value="-"/>
+                    </param>
+                    <param name="token_operations">
+                        <param value="net.sf.extjwnl.dictionary.morph.LookupIndexWordOperation"/>
+                        <param value="net.sf.extjwnl.dictionary.morph.LookupExceptionsOperation"/>
+                        <param value="net.sf.extjwnl.dictionary.morph.DetachSuffixesOperation">
+                            <param name="noun" value="|s=|"/>
+                            <param name="verb" value="|o=ar|as=ar|a=ar|amos=ar|áis=ar|an=ar|é=ar|aste=ar|ó=ar|asteis=ar|aron=ar|uve=ar|uviste=ar|uvo=ar|uvimos=ar|uvisteis=ar|uvieron=ar|o=er|es=er|e=er|emos=er|éis=er|en=er|í=er|iste=er|ió=er|imos=er|isteis=er|ieron=er|o=ir|es=ir|e=ir|imos=ir|ís=ir|en=ir|í=ir|iste=ir|ió=ir|imos=ir|isteis=ir|ieron=ir|"/>
+                            <param name="operations">
+                                <param value="net.sf.extjwnl.dictionary.morph.LookupIndexWordOperation"/>
+                                <param value="net.sf.extjwnl.dictionary.morph.LookupExceptionsOperation"/>
+                            </param>
+                        </param>
+                    </param>
+                </param>
+            </param>
+        </param>
+        <param name="dictionary_element_factory"
+               value="net.sf.extjwnl.princeton.data.PrincetonWN17FileDictionaryElementFactory"/>
+        <param name="file_manager" value="net.sf.extjwnl.dictionary.file_manager.FileManagerImpl">
+            <param name="file_type" value="net.sf.extjwnl.princeton.file.PrincetonRandomAccessDictionaryFile">
+                <param name="encoding" value="UTF-8"/>
+            </param>
+            <param name="dictionary_path" value="./src/test/resources/spanish_net"/>
+        </param>
+    </dictionary>
+    <resource class="net.sf.extjwnl.princeton.PrincetonResource"/>
+</jwnl_properties>

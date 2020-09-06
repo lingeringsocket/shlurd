@@ -18,8 +18,7 @@ import org.specs2.mutable._
 
 object ShlurdExternalWordnetSpec
 {
-  private val wordnet = new ShlurdExternalWordnet(
-    ResourceUtils.getResourcePath("/nanonet"))
+  private val wordnet = new ShlurdExternalWordnet("/spanish_net.xml")
 }
 
 class ShlurdExternalWordnetSpec extends Specification

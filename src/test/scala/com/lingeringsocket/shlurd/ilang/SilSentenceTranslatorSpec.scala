@@ -21,7 +21,8 @@ import com.lingeringsocket.shlurd.parser._
 class SilSentenceTranslatorSpec extends Specification
 {
   private val printer =
-    new SilSentencePrinter(LimitedKoreanParlance)
+    new SilSentencePrinter(
+      SprContext.defaultTongue, LimitedKoreanParlance, SprContext.defaultTongue)
 
   private def translate(s : String) =
   {
@@ -58,7 +59,7 @@ class SilSentenceTranslatorSpec extends Specification
       translate("is she hungry") must be equalTo
         "그녀가 배고파요?"
       translate("close it") must be equalTo
-        "그것을 닫으세요."
+        "저것을 닫으세요."
       translate("close my door") must be equalTo
         "내 문을 닫으세요."
       translate("the door and the blind are closed") must be equalTo
@@ -77,37 +78,38 @@ class SilSentenceTranslatorSpec extends Specification
 
 object LimitedKoreanParlance extends SilParlance
 {
-  override def newSentenceBundle() = new SilKoreanSentenceBundle {
-    override def inflectNoun(
-      lemma : String, count : SilCount,
-      inflection : SilInflection, conjoining : SilConjoining) =
-    {
-      lemma match {
-        case "door" => super.inflectNoun(
-          "문", count, inflection, conjoining)
-        case "blind" => super.inflectNoun(
-          "블라인드", count, inflection, conjoining)
-        case _ => super.inflectNoun(
-          lemma, count, inflection, conjoining)
+  override def newSentenceBundle(tongue : SprTongue) =
+    new SilKoreanSentenceBundle {
+      override def inflectNoun(
+        lemma : String, count : SilCount,
+        inflection : SilInflection, conjoining : SilConjoining) =
+      {
+        lemma match {
+          case "door" => super.inflectNoun(
+            "문", count, inflection, conjoining)
+          case "blind" => super.inflectNoun(
+            "블라인드", count, inflection, conjoining)
+          case _ => super.inflectNoun(
+            lemma, count, inflection, conjoining)
+        }
       }
-    }
 
-    override def conjugateImperative(lemma : String) =
-    {
-      lemma match {
-        case "close" => "닫으세요"
-        case _ => super.conjugateImperative(lemma)
+      override def conjugateImperative(lemma : String) =
+      {
+        lemma match {
+          case "close" => "닫으세요"
+          case _ => super.conjugateImperative(lemma)
+        }
       }
-    }
 
-    override def conjugateAdjective(lemma : String, tam : SilTam) =
-    {
-      // FIXME:  make use of tam
-      lemma match {
-        case "close" => "닫았어요"
-        case "hungry" => "배고파요"
-        case _ => super.conjugateAdjective(lemma, tam)
+      override def conjugateAdjective(lemma : String, tam : SilTam) =
+      {
+        // FIXME:  make use of tam
+        lemma match {
+          case "close" => "닫았어요"
+          case "hungry" => "배고파요"
+          case _ => super.conjugateAdjective(lemma, tam)
+        }
       }
     }
-  }
 }

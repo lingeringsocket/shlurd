@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import com.lingeringsocket.shlurd.parser._
+
 import scala.util._
 
 case class SilConjoining(
@@ -32,8 +34,8 @@ object SilConjoining
 
 object SilSentenceBundle
 {
-  def apply(parlance : SilParlance) =
-    parlance.newSentenceBundle
+  def apply(tongue : SprTongue, parlance : SilParlance) =
+    parlance.newSentenceBundle(tongue)
 }
 
 abstract class SilSentenceBundle
@@ -157,7 +159,9 @@ abstract class SilSentenceBundle
 
   def specifiedNoun(specifier : String, noun : String) : String
 
-  def determinedNoun(determiner : SilDeterminer, noun : String) : String
+  def determinedNoun(
+    determiner : SilDeterminer, noun : String,
+    person : SilPerson, gender : SilGender, count : SilCount) : String
 
   def adpositionedNoun(
     position : String, noun : String, conjoining : SilConjoining) : String

@@ -40,14 +40,41 @@ trait SprSynthesizer
   }
 }
 
-abstract class SprTongue(wordnet : ShlurdWordnet) extends SprSynthesizer
+abstract class SprTongue(wordnet : ShlurdWordnet)
+    extends SprSynthesizer with SilGenderAnalyzer
 {
+  lazy val relLemmaMap = Map(SilRelationshipPredef.enumeration.map(
+      rel => tupleN((getRelPredefLemma(rel), rel))):_*)
+
+  def newSentencePrinter(
+    genderAnalyzer : SilGenderAnalyzer) : SilSentencePrinter
+
   def getWordnet = wordnet
+
+  def getStopList : Set[String]
+
+  def getRelPredefLemma(predef : SilRelationshipPredef) : String
+
+  def getStatePredefLemma(predef : SilStatePredef) : String
+
+  def getStatePredefFromLemma(lemma : String) : SilStatePredef
+
+  def isBeingLemma(lemma : String) : Boolean
+
+  def isPossessionLemma(lemma : String) : Boolean
+
+  def isExistsLemma(lemma : String) : Boolean
 
   def getPronounMap(
     gender : SilBasicGender,
     count : SilCount
   ) : SilPronounMap
+
+  override def deriveGender(ref : SilReference) : SilGender = GENDER_NEUTER
+
+  def correctGenderCount(
+    lemma : String, gender : SilGender, count : SilCount,
+    isModifier : Boolean) : String = lemma
 
   def combineGenders(genders : Seq[SilGender]) : SilGender =
   {
@@ -80,6 +107,8 @@ abstract class SprTongue(wordnet : ShlurdWordnet) extends SprSynthesizer
 
   def analyzePronoun(lemma : String) :
       (SilPerson, SilCount, SilGender, Option[SilDistance])
+
+  def labelVerb(token : String, lemma : String) : Set[String]
 
   def synthesizeMembersRef(
     annotator : SilAnnotator,

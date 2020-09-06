@@ -28,6 +28,8 @@ class SprPhraseRewriter(
 
   private def annotator = context.annotator
 
+  private implicit val tongue = context.getTongue
+
   def parseSentence(sentenceSyntaxTree : SprSyntaxTree) : SilSentence =
   {
     val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
@@ -415,6 +417,8 @@ class SprPhraseRewriter(
 class SprAmbiguityResolver(context : SprContext)
 {
   private def annotator = context.annotator
+
+  private implicit val tongue = context.getTongue
 
   def resolveAmbiguousSentence(ambiguous : SilAmbiguousSentence)
       : SilSentence =

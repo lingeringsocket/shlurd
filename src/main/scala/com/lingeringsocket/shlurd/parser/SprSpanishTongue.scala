@@ -21,6 +21,22 @@ import scala.collection._
 
 import SprPennTreebankLabels._
 
+object SprSpanishLexicon
+{
+  import SprLexicon._
+
+  val prepositions = readLexicon("/spanish/prepositions.txt")
+
+  val subordinates = readLexicon("/spanish/subordinates.txt")
+
+  // FIXME
+  val proper = readLexicon("/english/proper.txt")
+
+  val stopList = Set(
+    "ella"
+  ) ++ stopListPunct
+}
+
 object SprSpanishLemmas
 {
   val LEMMA_ALGUN = "algún"
@@ -40,6 +56,7 @@ object SprSpanishLemmas
   val LEMMA_CADA = "cada"
   val LEMMA_CUAL = "cual"
   val LEMMA_CUALES = "cuales"
+  val LEMMA_DE = "de"
   val LEMMA_EL = "el"
   val LEMMA_EL_ACCENTED = "él"
   val LEMMA_ELLA = "ella"
@@ -51,9 +68,12 @@ object SprSpanishLemmas
   val LEMMA_ESO = "eso"
   val LEMMA_ESOS = "esos"
   val LEMMA_ESTA = "esta"
+  val LEMMA_ESTAR = "estar"
   val LEMMA_ESTAS = "estas"
   val LEMMA_ESTO = "esto"
   val LEMMA_ESTOS = "estos"
+  val LEMMA_EXISTIR = "existir"
+  val LEMMA_HACER = "hacer"
   val LEMMA_LA = "la"
   val LEMMA_LAS = "las"
   val LEMMA_LE = "le"
@@ -80,9 +100,12 @@ object SprSpanishLemmas
   val LEMMA_NUESTRO = "nuestro"
   val LEMMA_NUESTROS = "nuestros"
   val LEMMA_O = "o"
+  val LEMMA_OS = "os"
   val LEMMA_SE = "se"
+  val LEMMA_SER = "ser"
   val LEMMA_SU = "su"
   val LEMMA_SUS = "sus"
+  val LEMMA_TENER = "tener"
   val LEMMA_TODA = "toda"
   val LEMMA_TODAS = "todas"
   val LEMMA_TODO = "todo"
@@ -102,6 +125,13 @@ object SprSpanishLemmas
   val LEMMA_UNOS = "unos"
   val LEMMA_USTED = "usted"
   val LEMMA_USTEDES = "ustedes"
+  val LEMMA_VOS = "vos"
+  val LEMMA_VOSOTRAS = "vosotras"
+  val LEMMA_VOSOTROS = "vosotros"
+  val LEMMA_VUESTRA = "vuestra"
+  val LEMMA_VUESTRAS = "vuestras"
+  val LEMMA_VUESTRO = "vuestro"
+  val LEMMA_VUESTROS = "vuestros"
   val LEMMA_Y = "y"
   val LEMMA_YO = "yo"
 }
@@ -110,6 +140,60 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     extends SprTongue(wordnet)
 {
   import SprSpanishLemmas._
+
+  override def newSentencePrinter(genderAnalyzer : SilGenderAnalyzer) =
+    new SilSentencePrinter(this, SilSpanishParlance, genderAnalyzer)
+
+  override def getStopList = SprSpanishLexicon.stopList
+
+  override def getRelPredefLemma(predef : SilRelationshipPredef) : String =
+  {
+    predef match {
+      case REL_PREDEF_IDENTITY => LEMMA_SER
+      // FIXME this is just wrong
+      case REL_PREDEF_BECOME => LEMMA_HACER
+      case REL_PREDEF_ASSOC => LEMMA_TENER
+    }
+  }
+
+  override def getStatePredefLemma(predef : SilStatePredef) : String =
+  {
+    predef match {
+      case STATE_PREDEF_BE => LEMMA_ESTAR
+      // FIXME this is just wrong
+      case STATE_PREDEF_BECOME => LEMMA_HACER
+    }
+  }
+
+  override def getStatePredefFromLemma(lemma : String) : SilStatePredef =
+  {
+    lemma match {
+      case LEMMA_EXISTIR | LEMMA_ESTAR => STATE_PREDEF_BE
+      // FIXME this is just wrong
+      case LEMMA_HACER => STATE_PREDEF_BECOME
+      case _ => throw new IllegalArgumentException(
+        "Non-predef state verb " + lemma)
+    }
+  }
+
+  override def isBeingLemma(lemma : String) : Boolean =
+  {
+    // FIXME this is just wrong for LEMMA_HACER
+    lemma match {
+      case LEMMA_SER | LEMMA_ESTAR | LEMMA_EXISTIR | LEMMA_HACER => true
+      case _ => false
+    }
+  }
+
+  override def isPossessionLemma(lemma : String) : Boolean =
+  {
+    lemma == LEMMA_TENER
+  }
+
+  override def isExistsLemma(lemma : String) : Boolean =
+  {
+    lemma == LEMMA_EXISTIR
+  }
 
   override def getPronounMap(
     gender : SilBasicGender,
@@ -128,7 +212,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
             SilWord(LEMMA_LE),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-            SilWord(LEMMA_LE),
+            SilWord(LEMMA_SE),
           SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
             SilWord(LEMMA_SU)
         )
@@ -140,7 +224,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
             SilWord(LEMMA_LES),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-            SilWord(LEMMA_LES),
+            SilWord(LEMMA_SE),
           SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
             SilWord(LEMMA_SU)
         )
@@ -152,7 +236,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
             SilWord(LEMMA_LE),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-            SilWord(LEMMA_LE),
+            SilWord(LEMMA_SE),
           SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
             SilWord(LEMMA_SU)
         )
@@ -164,20 +248,20 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
             SilWord(LEMMA_LES),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-            SilWord(LEMMA_LES),
+            SilWord(LEMMA_SE),
           SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
             SilWord(LEMMA_SU)
         )
       }
       case (GENDER_NEUTER, COUNT_SINGULAR) => {
         Map(
-          // FIXME should really be omitted entirely
+          // FIXME should typically be omitted entirely instead
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
             SilWord(LEMMA_ELLO),
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
             SilWord(LEMMA_LE),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-            SilWord(LEMMA_LE),
+            SilWord(LEMMA_SE),
           SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
             SilWord(LEMMA_SU)
         )
@@ -189,7 +273,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
             SilWord(LEMMA_LES),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
-            SilWord(LEMMA_LES),
+            SilWord(LEMMA_SE),
           SilPronounKey(LABEL_PRP_POS, PERSON_THIRD) ->
             SilWord(LEMMA_SU)
         )
@@ -270,7 +354,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   {
     // FIXME handle other forms such as "si mismo"
     token match {
-      case LEMMA_SE => true
+      case LEMMA_SE | LEMMA_OS | LEMMA_VOS | LEMMA_NOS => true
       case _ => false
     }
   }
@@ -281,6 +365,8 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case LEMMA_MI | LEMMA_MIS |
           LEMMA_TU | LEMMA_TUS |
           LEMMA_SU | LEMMA_SUS |
+          LEMMA_VUESTRA | LEMMA_VUESTRO |
+          LEMMA_VUESTRAS | LEMMA_VUESTROS |
           LEMMA_NUESTRA | LEMMA_NUESTRO |
           LEMMA_NUESTRAS | LEMMA_NUESTROS => true
       case _ => false
@@ -289,30 +375,30 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
 
   override def isAdposition(lemma : String) : Boolean =
   {
-    // FIXME
-    SprEnglishLexicon.prepositions.contains(lemma)
+    SprSpanishLexicon.prepositions.contains(lemma)
   }
 
   override def isSubordinatingConjunction(lemma : String) : Boolean =
   {
-    // FIXME
-    SprEnglishLexicon.subordinates.contains(lemma)
+    SprSpanishLexicon.subordinates.contains(lemma)
   }
 
   override def isProper(lemma : String) : Boolean =
   {
-    // FIXME
-    SprEnglishLexicon.proper.contains(lemma)
+    SprSpanishLexicon.proper.contains(lemma)
   }
 
   override def isPronounWord(lemma : String) : Boolean =
   {
     lemma match {
-      case LEMMA_YO | LEMMA_ME | LEMMA_NOS |
+      case LEMMA_YO | LEMMA_ME | LEMMA_NOS | LEMMA_VOS | LEMMA_OS |
           LEMMA_NOSOTROS | LEMMA_NOSOTRAS |
+          LEMMA_VOSOTROS | LEMMA_VOSOTRAS |
           LEMMA_MI | LEMMA_MIS |
           LEMMA_NUESTRO | LEMMA_NUESTRA |
           LEMMA_NUESTROS | LEMMA_NUESTRAS |
+          LEMMA_VUESTRO | LEMMA_VUESTRA |
+          LEMMA_VUESTROS | LEMMA_VUESTRAS |
           LEMMA_MIA | LEMMA_MIO |
           LEMMA_TU_ACCENTED | LEMMA_TU |
           LEMMA_USTED | LEMMA_USTEDES |
@@ -320,7 +406,6 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           LEMMA_SU | LEMMA_SUS |
           LEMMA_TUYA | LEMMA_TUYO |
           LEMMA_TUYAS | LEMMA_TUYOS |
-          LEMMA_NOSOTROS | LEMMA_NOSOTRAS |
           LEMMA_EL_ACCENTED |
           LEMMA_ELLA | LEMMA_ELLO |
           LEMMA_ELLAS | LEMMA_ELLOS |
@@ -340,11 +425,14 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     val isCustomPronoun = !isPronounWord(lemma)
     val person = lemma match {
       case LEMMA_YO | LEMMA_ME | LEMMA_NOSOTROS | LEMMA_NOSOTRAS
-         | LEMMA_MI | LEMMA_MIA | LEMMA_MIO | LEMMA_MIS |
+         | LEMMA_MI | LEMMA_MIA | LEMMA_MIO | LEMMA_MIS | LEMMA_NOS |
           LEMMA_NUESTRO | LEMMA_NUESTRA |
           LEMMA_NUESTROS | LEMMA_NUESTRAS => PERSON_FIRST
       case LEMMA_TU_ACCENTED | LEMMA_TU | LEMMA_TUS |
           LEMMA_TUYA | LEMMA_TUYO | LEMMA_TUYAS | LEMMA_TUYOS |
+          LEMMA_VOSOTROS | LEMMA_VOSOTRAS | LEMMA_VOS | LEMMA_OS |
+          LEMMA_VUESTRO | LEMMA_VUESTRA |
+          LEMMA_VUESTROS | LEMMA_VUESTRAS |
           LEMMA_USTED | LEMMA_USTEDES => PERSON_SECOND
       case _ => PERSON_THIRD
     }
@@ -353,10 +441,12 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           LEMMA_AQUELLAS | LEMMA_AQUELLOS |
           LEMMA_CUALES | LEMMA_ELLOS | LEMMA_ELLAS |
           LEMMA_ESOS | LEMMA_ESAS | LEMMA_ESTOS | LEMMA_ESTAS |
-          LEMMA_LOS | LEMMA_LAS | LEMMA_LES | LEMMA_NOS |
+          LEMMA_LOS | LEMMA_LAS | LEMMA_LES | LEMMA_NOS | LEMMA_VOS |
           LEMMA_MIS | LEMMA_NINGUNAS | LEMMA_NINGUNOS |
           LEMMA_NOSOTROS | LEMMA_NOSOTRAS |
+          LEMMA_VOSOTROS | LEMMA_VOSOTRAS |
           LEMMA_NUESTROS | LEMMA_NUESTRAS |
+          LEMMA_VUESTROS | LEMMA_VUESTRAS |
           LEMMA_SUS | LEMMA_TODOS | LEMMA_TODAS |
           LEMMA_TUS | LEMMA_TUYAS | LEMMA_TUYOS |
           LEMMA_USTEDES => COUNT_PLURAL
@@ -372,6 +462,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           LEMMA_LO | LEMMA_LOS |
           LEMMA_NINGUNO | LEMMA_NINGUNOS |
           LEMMA_NOSOTROS | LEMMA_NUESTRO | LEMMA_NUESTROS |
+          LEMMA_VOSOTROS | LEMMA_VUESTRO | LEMMA_VUESTROS |
           LEMMA_TODO | LEMMA_TODOS |
           LEMMA_TUYO | LEMMA_TUYOS |
           LEMMA_UNO | LEMMA_UNOS => GENDER_MASCULINE
@@ -384,6 +475,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
           LEMMA_LA | LEMMA_LAS |
           LEMMA_NINGUNA | LEMMA_NINGUNAS |
           LEMMA_NOSOTRAS | LEMMA_NUESTRA | LEMMA_NUESTRAS |
+          LEMMA_VOSOTRAS | LEMMA_VUESTRA | LEMMA_VUESTRAS |
           LEMMA_TODA | LEMMA_TODAS |
           LEMMA_TUYA | LEMMA_TUYAS |
           LEMMA_UNA | LEMMA_UNAS => GENDER_FEMININE
@@ -394,7 +486,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
             if (isCustomPronoun) {
               GENDER_SOMEONE
             } else {
-              // FIXME what we really want here is an uknown between
+              // FIXME what we really want here is an unknown between
               // NEUTER and SOMEONE, to be resolved downstream
               GENDER_NEUTER
             }
@@ -402,13 +494,11 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
         }
       }
     }
-    // FIXME discriminate ESO from AQUEL, and also add
-    // in AHI and ALLA distances
     val distanceOpt = lemma match {
       case LEMMA_ESTO | LEMMA_ESTOS |
           LEMMA_ESTA | LEMMA_ESTAS => Some(DISTANCE_HERE)
       case LEMMA_ESO | LEMMA_ESOS |
-          LEMMA_ESA | LEMMA_ESAS => Some(DISTANCE_THERE)
+          LEMMA_ESA | LEMMA_ESAS => Some(DISTANCE_LISTENER_THERE)
       case LEMMA_AQUEL | LEMMA_AQUELLO | LEMMA_AQUELLOS |
           LEMMA_AQUELLA | LEMMA_AQUELLAS => Some(DISTANCE_THERE)
       case _ => None
@@ -431,37 +521,62 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case _ => throw new IllegalArgumentException(determiner.toString)
     }
     val (_, count, _, _) = analyzePronoun(lemma)
-    annotator.nounRef(SilWord(correctGenderCount(lemma, gender, count)))
+    annotator.nounRef(SilWord(correctGenderCount(lemma, gender, count, false)))
   }
 
-  private def ignoreGenderCount(lemma : String) : String =
+  override def deriveGender(ref : SilReference) : SilGender =
   {
-    lemma match {
-      case LEMMA_ALGUNO | LEMMA_ALGUNA |
-          LEMMA_ALGUNOS | LEMMA_ALGUNAS => LEMMA_ALGUN
-      case LEMMA_AMBAS => LEMMA_AMBOS
-      case LEMMA_AQUELLA | LEMMA_AQUELLO |
-          LEMMA_AQUELLAS | LEMMA_AQUELLOS => LEMMA_AQUEL
-      case LEMMA_CUALES => LEMMA_CUAL
-      case LEMMA_EL_ACCENTED | LEMMA_ELLA |
-          LEMMA_ELLOS | LEMMA_ELLAS => LEMMA_ELLO
-      case LEMMA_LES => LEMMA_LE
-      case LEMMA_LOS | LEMMA_LA | LEMMA_LAS => LEMMA_EL
-      case LEMMA_ESA | LEMMA_ESOS | LEMMA_ESAS => LEMMA_ESO
-      case LEMMA_ESTA | LEMMA_ESTOS | LEMMA_ESTAS => LEMMA_ESTO
-      case LEMMA_NOSOTRAS => LEMMA_NOSOTROS
-      case LEMMA_NUESTRA | LEMMA_NUESTROS | LEMMA_NUESTRAS => LEMMA_NUESTRO
-      case LEMMA_SUS => LEMMA_SU
-      case LEMMA_TODA | LEMMA_TODOS | LEMMA_TODAS => LEMMA_TODO
-      case LEMMA_TUS => LEMMA_TU
-      case LEMMA_TUYA | LEMMA_TUYAS | LEMMA_TUYOS => LEMMA_TUYO
-      case LEMMA_UNO | LEMMA_UNA | LEMMA_UNOS | LEMMA_UNAS => LEMMA_UN
-      case _ => lemma
+    ref match {
+      case pr : SilPronounReference => {
+        pr.gender
+      }
+      case SilNounReference(noun) => {
+        // FIXME get this from wordnet instead
+        if (noun.toNounLemma.endsWith("o")) {
+          GENDER_MASCULINE
+        } else {
+          GENDER_FEMININE
+        }
+      }
+      case SilConjunctiveReference(determiner, references, _) => {
+        combineGenders(references.map(deriveGender))
+      }
+      case SilParenthesizedReference(reference, _) => {
+        deriveGender(reference)
+      }
+      case SilAppositionalReference(primary, _) => {
+        deriveGender(primary)
+      }
+      case SilStateSpecifiedReference(reference, _) => {
+        deriveGender(reference)
+      }
+      case SilDeterminedReference(reference, _) => {
+        deriveGender(reference)
+      }
+      case SilGenitiveReference(possessor, possessee) => {
+        deriveGender(possessee)
+      }
+      case _ : SilQuotationReference => {
+        GENDER_NEUTER
+      }
+      case _ : SilUnknownReference => {
+        GENDER_NEUTER
+      }
     }
   }
 
-  private def correctGenderCount(
-    lemma : String, gender : SilGender, count : SilCount) : String =
+  override def labelVerb(token : String, lemma : String) : Set[String] =
+  {
+    // FIXME all the tams
+    SilSpanishConjugation.getConjugationCoord(lemma, token).tense match {
+      case TENSE_PAST => Set(LABEL_VBD)
+      case _ => Set(LABEL_VB)
+    }
+  }
+
+  override def correctGenderCount(
+    lemma : String, gender : SilGender, count : SilCount,
+    isModifier : Boolean) : String =
   {
     val basic = gender.maybeBasic match {
       case Some(GENDER_MASCULINE) | Some(GENDER_SOMEONE) => GENDER_MASCULINE
@@ -473,8 +588,13 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case LEMMA_ALGUN => tupleN((basic, count)) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ALGUNA
         case (GENDER_FEMININE, _) => LEMMA_ALGUNAS
-        // FIXME as an adjective this should be LEMMA_ALGUN for GENDER_MASCULINE
-        case (_, COUNT_SINGULAR) => LEMMA_ALGUNO
+        case (_, COUNT_SINGULAR) => {
+          if (isModifier) {
+            LEMMA_ALGUN
+          } else {
+            LEMMA_ALGUNO
+          }
+        }
         case (_, _) => LEMMA_ALGUNOS
       }
       case LEMMA_AMBOS => basic match {
@@ -484,8 +604,13 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case LEMMA_AQUEL => tupleN((basic, count)) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_AQUELLA
         case (GENDER_FEMININE, _) => LEMMA_AQUELLAS
-        // FIXME as an adjective this should be LEMMA_AQUEL for GENDER_MASCULINE
-        case (_, COUNT_SINGULAR) => LEMMA_AQUELLO
+        case (_, COUNT_SINGULAR) => {
+          if (isModifier) {
+            LEMMA_AQUEL
+          } else {
+            LEMMA_AQUELLO
+          }
+        }
         case (_, _) => LEMMA_AQUELLOS
       }
       case LEMMA_CUAL => count match {
@@ -525,11 +650,21 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
         case GENDER_FEMININE => LEMMA_NOSOTRAS
         case _ => LEMMA_NOSOTROS
       }
+      case LEMMA_VOSOTROS => basic match {
+        case GENDER_FEMININE => LEMMA_VOSOTRAS
+        case _ => LEMMA_VOSOTROS
+      }
       case LEMMA_NUESTRO => tupleN((basic, count)) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_NUESTRA
         case (GENDER_FEMININE, _) => LEMMA_NUESTRAS
         case (_, COUNT_SINGULAR) => LEMMA_NUESTRO
         case (_, _) => LEMMA_NUESTROS
+      }
+      case LEMMA_VUESTRO => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_VUESTRA
+        case (GENDER_FEMININE, _) => LEMMA_VUESTRAS
+        case (_, COUNT_SINGULAR) => LEMMA_VUESTRO
+        case (_, _) => LEMMA_VUESTROS
       }
       case LEMMA_SU => count match {
         case COUNT_SINGULAR => LEMMA_SU
@@ -554,10 +689,43 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case LEMMA_UN => tupleN((basic, count)) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_UNA
         case (GENDER_FEMININE, _) => LEMMA_UNAS
-        // FIXME as an adjective this should be LEMMA_ALGUN for GENDER_MASCULINE
-        case (_, COUNT_SINGULAR) => LEMMA_UNO
+        case (_, COUNT_SINGULAR) => {
+          if (isModifier) {
+            LEMMA_UN
+          } else {
+            LEMMA_UNO
+          }
+        }
         case (_, _) => LEMMA_UNOS
       }
+    }
+  }
+
+  private def ignoreGenderCount(lemma : String) : String =
+  {
+    lemma match {
+      case LEMMA_ALGUNO | LEMMA_ALGUNA |
+          LEMMA_ALGUNOS | LEMMA_ALGUNAS => LEMMA_ALGUN
+      case LEMMA_AMBAS => LEMMA_AMBOS
+      case LEMMA_AQUELLA | LEMMA_AQUELLO |
+          LEMMA_AQUELLAS | LEMMA_AQUELLOS => LEMMA_AQUEL
+      case LEMMA_CUALES => LEMMA_CUAL
+      case LEMMA_EL_ACCENTED | LEMMA_ELLA |
+          LEMMA_ELLOS | LEMMA_ELLAS => LEMMA_ELLO
+      case LEMMA_LES => LEMMA_LE
+      case LEMMA_LOS | LEMMA_LA | LEMMA_LAS => LEMMA_EL
+      case LEMMA_ESA | LEMMA_ESOS | LEMMA_ESAS => LEMMA_ESO
+      case LEMMA_ESTA | LEMMA_ESTOS | LEMMA_ESTAS => LEMMA_ESTO
+      case LEMMA_NOSOTRAS => LEMMA_NOSOTROS
+      case LEMMA_VOSOTRAS => LEMMA_VOSOTROS
+      case LEMMA_NUESTRA | LEMMA_NUESTROS | LEMMA_NUESTRAS => LEMMA_NUESTRO
+      case LEMMA_VUESTRA | LEMMA_VUESTROS | LEMMA_VUESTRAS => LEMMA_VUESTRO
+      case LEMMA_SUS => LEMMA_SU
+      case LEMMA_TODA | LEMMA_TODOS | LEMMA_TODAS => LEMMA_TODO
+      case LEMMA_TUS => LEMMA_TU
+      case LEMMA_TUYA | LEMMA_TUYAS | LEMMA_TUYOS => LEMMA_TUYO
+      case LEMMA_UNO | LEMMA_UNA | LEMMA_UNOS | LEMMA_UNAS => LEMMA_UN
+      case _ => lemma
     }
   }
 }

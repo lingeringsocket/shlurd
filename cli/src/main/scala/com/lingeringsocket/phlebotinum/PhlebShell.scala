@@ -646,7 +646,8 @@ class PhlebShell(
     }
   }
 
-  private val sentencePrinter = new SilSentencePrinter
+  private val sentencePrinter = new SilSentencePrinter(
+    SprContext.defaultTongue, SilEnglishParlance, noumenalMind)
 
   private val playerToInterpreter = SmcCommunicationContext(
     Some(playerEntity),
@@ -1014,6 +1015,8 @@ abstract class PhlebExecutor(terminal : PhlebTerminal, noumenalMind : PhlebMind)
     extends SmcExecutor[SpcEntity]
 {
   import PhlebShell._
+
+  private implicit val tongue = noumenalMind.getTongue
 
   override def executeAction(
     ap : SilActionPredicate,

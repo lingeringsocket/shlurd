@@ -19,7 +19,6 @@ import com.lingeringsocket.shlurd.ilang._
 
 import SprPennTreebankLabels._
 import SprEnglishLemmas._
-import ShlurdEnglishAffixes._
 
 import net.sf.extjwnl.data._
 
@@ -36,7 +35,16 @@ object SprContext
 
   val defaultPhraseScorer = new SilWordnetScorer(defaultTongue)
 
+  val defaultSentencePrinter = new SilSentencePrinter(
+    defaultTongue, SilEnglishParlance, defaultTongue)
+
   def defaultWordLabeler() = new SprWordnetLabeler(defaultTongue)
+
+  def apply(tongue : SprTongue) = {
+    new SprContext(
+      new SprWordnetLabeler(tongue),
+      new SilWordnetScorer(tongue))
+  }
 }
 
 case class SprContext(
@@ -82,13 +90,6 @@ object SprWordnetLabeler
 {
   // adapted from
   // http://www.d.umn.edu/~tpederse/Group01/WordNet/wordnet-stoplist.html
-  private val stopList = Set(
-    "I", "i", "an", "as", "at", "by", "he", "it", "do", "at", "off",
-    "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",
-    "does", "have", "my", "might",
-    LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY
-  )
-
   private val partsOfSpeech = POS.getAllPOS.asScala.toSet
 
   private val quote = DQUOTE
@@ -217,6 +218,7 @@ class SprWordnetLabeler(
     token : String, word : String, iToken : Int,
     foldEphemeralLabels : Boolean) : Set[SprSyntaxTree] =
   {
+    val stopList = tongue.getStopList
     val (tokenPrefix, tokenSuffix) = {
       val iHyphen = token.lastIndexOf('-')
       if ((iHyphen < 1) || (iHyphen == (token.size - 1))) {
@@ -483,52 +485,24 @@ class SprWordnetLabeler(
       : Set[SprSyntaxTree] =
   {
     val lemma = indexWord.getLemma
-    val label = indexWord.getPOS match {
-      case POS.ADJECTIVE => LABEL_JJ
-      case POS.ADVERB => LABEL_RB
+    val labels = indexWord.getPOS match {
+      case POS.ADJECTIVE => Set(LABEL_JJ)
+      case POS.ADVERB => Set(LABEL_RB)
       case POS.NOUN => {
         if ((tokenSuffix != lemma) || wordnet.isPlural(indexWord)) {
-          LABEL_NNS
+          Set(LABEL_NNS)
         } else {
           if (forceProper) {
-            LABEL_NNP
+            Set(LABEL_NNP)
           } else {
-            LABEL_NN
+            Set(LABEL_NN)
           }
         }
       }
       case POS.VERB => {
-        if (tokenSuffix != lemma) {
-          if (tokenSuffix.endsWith(SUFFIX_ING)) {
-            LABEL_VBG
-          } else {
-            // FIXME this is lame
-            if (lemma == LEMMA_BE) {
-              token match {
-                case "was" | "were" => LABEL_VBD
-                case "is" => LABEL_VBZ
-                case _ => LABEL_VBP
-              }
-            } else if (token.endsWith("d") ||
-              (tokenSuffix.take(2) != lemma.take(2)))
-            {
-              LABEL_VBD
-            } else {
-              LABEL_VBZ
-            }
-          }
-        } else {
-          LABEL_VBP
-        }
+        tongue.labelVerb(tokenSuffix, lemma)
       }
     }
-    val labels = Set(label) ++ {
-      if ((label == LABEL_VBD) && (lemma != LEMMA_BE) && (lemma != LEMMA_DO)) {
-        Set(LABEL_VBN)
-      } else {
-        Set.empty
-      }
-     }
     labels.map(label => {
       // try to match the way CoreNLP lemmatizes gerunds and participles
       val conformedLemma = {

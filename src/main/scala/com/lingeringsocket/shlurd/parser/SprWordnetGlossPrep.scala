@@ -23,6 +23,8 @@ object SprWordnetGlossPrep
 {
   private val wordnet = ShlurdPrincetonWordnet
 
+  private implicit val tongue = SprContext.defaultTongue
+
   def parseNounGlosses(lemma : String) : Seq[Option[SilReference]] =
   {
     wordnet.getNounSenses(lemma).flatMap(sense => {

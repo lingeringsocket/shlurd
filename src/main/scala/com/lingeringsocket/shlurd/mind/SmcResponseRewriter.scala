@@ -41,6 +41,8 @@ class SmcResponseRewriter[
 
   private val swapHereThere = mind.isDistantCommunication(communicationContext)
 
+  private implicit val tongue = mind.getTongue
+
   private def markQueryAnswer(ref : SilReference) =
   {
     SilUtils.collectReferences(ref).foreach(subRef => {

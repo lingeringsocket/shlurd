@@ -19,25 +19,94 @@ import com.lingeringsocket.shlurd.ilang._
 
 import SprEnglishLemmas._
 import SprPennTreebankLabels._
+import ShlurdEnglishAffixes._
+
+object SprLexicon
+{
+  def readLexicon(resource : String) : Set[String] =
+  {
+    val words = ResourceUtils.getResourceSource(resource).getLines
+    Set(words.toSeq:_*)
+  }
+
+  val stopListPunct = Set(
+    LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY
+  )
+}
 
 object SprEnglishLexicon
 {
+  import SprLexicon._
+
   val prepositions = readLexicon("/english/prepositions.txt")
 
   val subordinates = readLexicon("/english/subordinates.txt")
 
   val proper = readLexicon("/english/proper.txt")
 
-  private def readLexicon(resource : String) : Set[String] =
-  {
-    val words = ResourceUtils.getResourceSource(resource).getLines
-    Set(words.toSeq:_*)
-  }
+  val stopList = Set(
+    "I", "i", "an", "as", "at", "by", "he", "it", "do", "at", "off",
+    "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",
+    "does", "have", "my", "might"
+  ) ++ stopListPunct
 }
 
 class SprEnglishTongue(wordnet : ShlurdWordnet)
     extends SprTongue(wordnet)
 {
+  override def newSentencePrinter(
+    genderAnalyzer : SilGenderAnalyzer) =
+  {
+    new SilSentencePrinter(this, SilEnglishParlance, genderAnalyzer)
+  }
+
+  override def getStopList = SprEnglishLexicon.stopList
+
+  override def getRelPredefLemma(predef : SilRelationshipPredef) : String =
+  {
+    predef match {
+      case REL_PREDEF_IDENTITY => LEMMA_BE
+      case REL_PREDEF_BECOME => LEMMA_BECOME
+      case REL_PREDEF_ASSOC => LEMMA_HAVE
+    }
+  }
+
+  override def getStatePredefLemma(predef : SilStatePredef) : String =
+  {
+    predef match {
+      case STATE_PREDEF_BE => LEMMA_BE
+      case STATE_PREDEF_BECOME => LEMMA_BECOME
+    }
+  }
+
+  override def getStatePredefFromLemma(lemma : String) : SilStatePredef =
+  {
+    lemma match {
+      case LEMMA_EXIST | LEMMA_BE => STATE_PREDEF_BE
+      case LEMMA_BECOME => STATE_PREDEF_BECOME
+      case _ => throw new IllegalArgumentException(
+        "Non-predef state verb " + lemma)
+    }
+  }
+
+  override def isBeingLemma(lemma : String) : Boolean =
+  {
+    lemma match {
+      case LEMMA_BE | LEMMA_EXIST | LEMMA_BECOME => true
+      case _ => false
+    }
+  }
+
+  override def isPossessionLemma(lemma : String) : Boolean =
+  {
+    lemma == LEMMA_HAVE
+  }
+
+  override def isExistsLemma(lemma : String) : Boolean =
+  {
+    lemma == LEMMA_EXIST
+  }
+
   override def getPronounMap(
     gender : SilBasicGender,
     count : SilCount
@@ -249,5 +318,38 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
       case _ => throw new IllegalArgumentException(determiner.toString)
     }
     annotator.nounRef(SilWord(lemma))
+  }
+
+  override def labelVerb(token : String, lemma : String) : Set[String] =
+  {
+    val label = {
+      if (token != lemma) {
+        if (token.endsWith(SUFFIX_ING)) {
+          LABEL_VBG
+        } else {
+          // FIXME this is lame
+          if (lemma == LEMMA_BE) {
+            token match {
+              case "was" | "were" => LABEL_VBD
+              case "is" => LABEL_VBZ
+              case _ => LABEL_VBP
+            }
+          } else if (token.endsWith("d") ||
+            (token.take(2) != lemma.take(2)))
+          {
+            LABEL_VBD
+          } else {
+            LABEL_VBZ
+          }
+        }
+      } else {
+        LABEL_VBP
+      }
+    }
+    if ((label == LABEL_VBD) && (lemma != LEMMA_BE) && (lemma != LEMMA_DO)) {
+      Set(label, LABEL_VBN)
+    } else {
+      Set(label)
+    }
   }
 }

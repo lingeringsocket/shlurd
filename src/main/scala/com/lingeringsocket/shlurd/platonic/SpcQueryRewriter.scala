@@ -15,9 +15,11 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 class SpcQueryRewriter(
+  tongue : SprTongue,
   annotator : SpcAnnotator,
   question : SilQuestion,
   answerInflection : SilInflection)
@@ -38,7 +40,7 @@ class SpcQueryRewriter(
           case SilAdpositionalState(SilAdposition.IN, container) => {
             SilRelationshipPredicate(
               specified.subject,
-              REL_PREDEF_IDENTITY.toVerb,
+              REL_PREDEF_IDENTITY.toVerb(tongue),
               annotator.genitiveRef(
                 container,
                 annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINEE))),

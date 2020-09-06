@@ -132,7 +132,8 @@ class PhlebMind(
     def newAssertionMapper = new SpcAssertionMapper(
       mind, communicationContext,
       new SmcInputRewriter(mind, annotator),
-      new SilSentencePrinter)
+      new SilSentencePrinter(
+        SprContext.defaultTongue, SilEnglishParlance, this))
     def replacements(p : SilPredicate) = {
       val resultCollector = SpcResultCollector(annotator, refMap)
       responder.resolveReferences(p, resultCollector)

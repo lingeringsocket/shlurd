@@ -170,9 +170,11 @@ class SmcResponder[
     new SmcResponseRewriter(
       mind, communicationContext.flip, annotator)
 
-  val sentencePrinter = new SilSentencePrinter
+  val sentencePrinter = mind.getTongue.newSentencePrinter(mind)
 
   val mindScope = new MindScopeType(mind, sentencePrinter)
+
+  private implicit val tongue = mind.getTongue
 
   protected def responderMatchers(
     resultCollector : ResultCollectorType

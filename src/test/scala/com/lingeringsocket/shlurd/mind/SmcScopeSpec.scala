@@ -41,7 +41,7 @@ class SmcScopeSpec extends Specification
   private val ambiguousMsg =
     "Sorry, when you say 'it', it's ambiguous."
 
-  private val sentencePrinter = new SilSentencePrinter
+  private val sentencePrinter = SprContext.defaultSentencePrinter
 
   private val ordinalFirst = sentencePrinter.sb.ordinalNumber(1)
 

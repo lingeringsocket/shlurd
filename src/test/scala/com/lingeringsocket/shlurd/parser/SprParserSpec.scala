@@ -125,6 +125,8 @@ class SprParserSpec extends Specification
 
   private val context = SprContext(wordLabeler)
 
+  private implicit val tongue = context.getTongue
+
   private def createWordLabeler() =
   {
     val wordLabeler = SprContext.defaultWordLabeler
@@ -223,7 +225,7 @@ class SprParserSpec extends Specification
   private def leafCapitalized(s : String) = SprSyntaxLeaf(
     SprUtils.capitalize(s), s, SprUtils.capitalize(s))
 
-  "SprParser" should
+  "English SprParser" should
   {
     "parse a state predicate statement" in
     {

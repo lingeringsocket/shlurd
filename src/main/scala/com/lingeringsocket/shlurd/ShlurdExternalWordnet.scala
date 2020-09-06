@@ -17,10 +17,11 @@ package com.lingeringsocket.shlurd
 import net.sf.extjwnl.dictionary._
 
 class ShlurdExternalWordnet(
-  path : String
+  propertiesPath : String
 ) extends ShlurdWordnet
 {
-  private val dictionary = Dictionary.getFileBackedInstance(path)
+  private val dictionary = Dictionary.getInstance(
+    ResourceUtils.getResourceStream(propertiesPath))
 
   private val morphology = dictionary.getMorphologicalProcessor
 

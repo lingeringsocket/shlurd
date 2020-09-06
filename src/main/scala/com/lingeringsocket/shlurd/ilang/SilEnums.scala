@@ -53,12 +53,13 @@ case object GENDER_SOMEWHERE extends SilBasicGender
 
 trait SilGenderAnalyzer
 {
-  def canonicalGender(gender : SilGender) : SilGender
+  def canonicalGender(gender : SilGender) : SilGender = gender
+
+  def deriveGender(ref : SilReference) : SilGender = GENDER_NEUTER
 }
 
 object SilGenderPreserver extends SilGenderAnalyzer
 {
-  override def canonicalGender(gender : SilGender) = gender
 }
 
 sealed trait SilDeterminer
@@ -76,7 +77,10 @@ case class SilIntegerDeterminer(number : Int) extends SilDeterminer
 
 sealed trait SilDistance
 case object DISTANCE_HERE extends SilDistance
+case object DISTANCE_AROUND_HERE extends SilDistance
+case object DISTANCE_LISTENER_THERE extends SilDistance
 case object DISTANCE_THERE extends SilDistance
+case object DISTANCE_WAY_OVER_THERE extends SilDistance
 case object DISTANCE_UNSPECIFIED extends SilDistance
 case object DISTANCE_REFLEXIVE extends SilDistance
 
@@ -231,32 +235,22 @@ case object DEICTIC_SPATIAL extends SilDeicticAxis
 
 sealed trait SilRelationshipPredef
 {
-  def toLemma : String
-  def toVerb = SilWord(toLemma)
+  def toLemma(implicit tongue : SprTongue) : String =
+    tongue.getRelPredefLemma(this)
+  def toVerb(implicit tongue : SprTongue) = SilWord(toLemma)
 }
 case object REL_PREDEF_IDENTITY extends SilRelationshipPredef
-{
-  override def toLemma = LEMMA_BE
-}
 case object REL_PREDEF_BECOME extends SilRelationshipPredef
-{
-  override def toLemma = LEMMA_BECOME
-}
 case object REL_PREDEF_ASSOC extends SilRelationshipPredef
-{
-  override def toLemma = LEMMA_HAVE
-}
 
 object SilRelationshipPredef
 {
   val enumeration = Seq(
     REL_PREDEF_IDENTITY, REL_PREDEF_BECOME, REL_PREDEF_ASSOC)
 
-  val lemmaMap = Map(enumeration.map(rel => tupleN((rel.toLemma, rel))):_*)
-
-  def apply(word : SilWord) =
+  def apply(word : SilWord)(implicit tongue : SprTongue) =
   {
-    lemmaMap.get(word.toLemma).getOrElse {
+    tongue.relLemmaMap.get(word.toLemma).getOrElse {
       throw new IllegalArgumentException(
         "Non-predef relationship verb " + word)
     }
@@ -265,7 +259,7 @@ object SilRelationshipPredef
 
 object SilRelationshipPredefVerb
 {
-  def unapply(w : SilSimpleWord) =
+  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue) =
   {
     Some(SilRelationshipPredef(w))
   }
@@ -273,36 +267,25 @@ object SilRelationshipPredefVerb
 
 sealed trait SilStatePredef
 {
-  def toLemma : String
-  def toVerb = SilWord(toLemma)
+  def toLemma(implicit tongue : SprTongue) : String =
+    tongue.getStatePredefLemma(this)
+  def toVerb(implicit tongue : SprTongue) = SilWord(toLemma)
 }
 
 case object STATE_PREDEF_BE extends SilStatePredef
-{
-  override def toLemma = LEMMA_BE
-}
-
 case object STATE_PREDEF_BECOME extends SilStatePredef
-{
-  override def toLemma = LEMMA_BECOME
-}
 
 object SilStatePredef
 {
-  def apply(word : SilWord) =
+  def apply(word : SilWord)(implicit tongue : SprTongue) =
   {
-    word.toLemma match {
-      case LEMMA_EXIST | LEMMA_BE => STATE_PREDEF_BE
-      case LEMMA_BECOME => STATE_PREDEF_BECOME
-      case _ => throw new IllegalArgumentException(
-        "Non-predef state verb " + word)
-    }
+    tongue.getStatePredefFromLemma(word.toLemma)
   }
 }
 
 object SilStatePredefVerb
 {
-  def unapply(w : SilSimpleWord) =
+  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue) =
   {
     Some(SilStatePredef(w))
   }

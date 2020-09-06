@@ -29,7 +29,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
 {
   import SprNormalizationRewriter._
 
-  private val tongue = context.getTongue
+  private implicit val tongue = context.getTongue
 
   private def annotator = context.annotator
 

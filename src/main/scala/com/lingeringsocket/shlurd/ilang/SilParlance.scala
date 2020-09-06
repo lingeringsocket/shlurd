@@ -14,14 +14,23 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import com.lingeringsocket.shlurd.parser._
+
 trait SilParlanceBundle
 
 trait SilParlance
 {
-  def newSentenceBundle() : SilSentenceBundle
+  def newSentenceBundle(tongue : SprTongue) : SilSentenceBundle
 }
 
-object SilDefaultParlance extends SilParlance
+object SilEnglishParlance extends SilParlance
 {
-  override def newSentenceBundle() = new SilEnglishSentenceBundle
+  override def newSentenceBundle(tongue : SprTongue) =
+    new SilEnglishSentenceBundle(tongue)
+}
+
+object SilSpanishParlance extends SilParlance
+{
+  override def newSentenceBundle(tongue : SprTongue)
+  = new SilSpanishSentenceBundle(tongue)
 }

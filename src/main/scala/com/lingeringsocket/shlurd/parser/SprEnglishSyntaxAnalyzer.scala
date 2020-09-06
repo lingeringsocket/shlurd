@@ -27,7 +27,7 @@ class SprEnglishSyntaxAnalyzer(
   enforceTransitive : Boolean = true)
     extends SprAbstractSyntaxAnalyzer(context, strictness)
 {
-  private val tongue = context.getTongue
+  private implicit val tongue = context.getTongue
 
   override def analyzeSentence(tree : SptS)
       : SilSentence =

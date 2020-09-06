@@ -1,0 +1,24 @@
+perro%1:05:00:: -add -addword perra -setgloss "el mejor amigo de un hombre"
+calle%1:15:00:: -add -addword camino -setgloss "una via de punto A a punto B"
+caminar%2:38:00:: -add -addword andar -setgloss "ir usando las piernas"
+beber%2:34:00:: -add -setgloss "consumir un bebido"
+vivir%2:42:00:: -add -setgloss "preparar por la muerte"
+ser%2:42:00:: -add -setgloss "existir"
+estar%2:42:00:: -add -setgloss "tener una condición particular"
+triste%3:00:00:: -add -setgloss "no contento"
+v#soy -addexc ser
+v#eres -addexc ser
+v#es -addexc ser
+v#somos -addexc ser
+v#sois -addexc ser
+v#son -addexc ser
+v#fui -addexc ser
+v#fuiste -addexc ser
+v#fue -addexc ser
+v#fuimos -addexc ser
+v#fuisteis -addexc ser
+v#fueron -addexc ser
+v#estoy -addexc estar
+v#estás -addexc estar
+v#está -addexc estar
+v#están -addexc estar

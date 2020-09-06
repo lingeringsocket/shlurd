@@ -147,15 +147,12 @@ object SprEnglishLemmas
   val LEMMA_GENITIVE_OF = "_of_"
   val LEMMA_ADVERBIAL_TMP = "_TEMPORAL_"
 
-  def isBeingLemma(verb : SilWord) : Boolean =
+  def isBeingLemma(verb : SilWord)(implicit tongue : SprTongue) : Boolean =
     isBeingLemma(verb.toLemma)
 
-  def isBeingLemma(lemma : String) : Boolean =
+  def isBeingLemma(lemma : String)(implicit tongue : SprTongue) : Boolean =
   {
-    lemma match {
-      case LEMMA_BE | LEMMA_EXIST | LEMMA_BECOME => true
-      case _ => false
-    }
+    tongue.isBeingLemma(lemma)
   }
 }
 

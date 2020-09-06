@@ -24,18 +24,25 @@ class SprSpanishParserSpec extends Specification
   private val annotator = SilBasicAnnotator()
 
   private val wordnet = new ShlurdExternalWordnet(
-    ResourceUtils.getResourcePath("/nanonet"))
+    "/spanish_net.xml")
 
-  private val context = SprContext(
-    new SprWordnetLabeler(new SprSpanishTongue(wordnet)),
-    new SilWordnetScorer(new SprSpanishTongue(wordnet))
-  )
+  private val context = SprContext(new SprSpanishTongue(wordnet))
 
   private val NOUN_PEDRO = SilWord("Pedro")
+
+  private val NOUN_PERRO = SilWord("perro")
 
   private val VERB_CAMINO = SilWord("camino", "caminar")
 
   private val VERB_CAMINA = SilWord("camina", "caminar")
+
+  private val VERB_BEBO = SilWord("bebo", "beber")
+
+  private val VERB_ES = SilWord("es", "ser")
+
+  private val VERB_ESTOY = SilWord("estoy", "estar")
+
+  private val STATE_TRISTE = SilWord("triste")
 
   private def parse(input : String) =
   {
@@ -44,7 +51,7 @@ class SprSpanishParserSpec extends Specification
 
   "Spanish SprParser" should
   {
-    "parse a simple sentence" in
+    "parse an action sentence" in
     {
       val input = "Pedro camina"
       parse(input) must be equalTo
@@ -52,6 +59,36 @@ class SprSpanishParserSpec extends Specification
           SilActionPredicate(
             annotator.nounRef(NOUN_PEDRO),
             VERB_CAMINA
+          )
+        )
+    }
+
+    "parse an identity relation sentence" in
+    {
+      val input = "Pedro es un perro"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilRelationshipPredicate(
+            annotator.nounRef(NOUN_PEDRO),
+            VERB_ES,
+            annotator.determinedNounRef(
+              NOUN_PERRO,
+              DETERMINER_NONSPECIFIC
+            )
+          )
+        )
+    }
+
+    "parse a property state sentence" in
+    {
+      val input = "yo estoy triste"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilStatePredicate(
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR),
+            VERB_ESTOY,
+            SilPropertyState(STATE_TRISTE)
           )
         )
     }
@@ -65,6 +102,32 @@ class SprSpanishParserSpec extends Specification
             annotator.basicPronounRef(
               PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR),
             VERB_CAMINO
+          )
+        )
+    }
+
+    "parse a conjugation which is the same for -ar and -er" in
+    {
+      val input = "yo bebo"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR),
+            VERB_BEBO
+          )
+        )
+    }
+
+    "parse another pronoun" in
+    {
+      val input = "ella camina"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR),
+            VERB_CAMINA
           )
         )
     }

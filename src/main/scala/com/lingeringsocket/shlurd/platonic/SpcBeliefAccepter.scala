@@ -73,6 +73,8 @@ class SpcBeliefAccepter private(
 
   private var finished = false
 
+  private implicit val tongue = mind.getTongue
+
   def processBelief(sentence : SilSentence)
   {
     assert(!finished)
@@ -1003,6 +1005,7 @@ class SpcBeliefAccepter private(
       val placeholderMapOpt = validateAssertion(belief)
       placeholderMapOpt.foreach(placeholderMap => {
         cosmos.addAssertion(
+          tongue,
           SpcAssertion(
             sentence, additionalConsequents,
             alternative, placeholderMap))

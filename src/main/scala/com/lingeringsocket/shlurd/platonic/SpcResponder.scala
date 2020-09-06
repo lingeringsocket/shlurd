@@ -220,6 +220,8 @@ class SpcResponder(
 {
   private val already = new mutable.HashSet[SilPredicate]
 
+  private implicit val tongue = mind.getTongue
+
   protected def newAssertionMapper(
     annotator : SpcAnnotator
   ) = new SpcAssertionMapper(
@@ -1105,7 +1107,7 @@ class SpcResponder(
     question : SilQuestion,
     answerInflection : SilInflection) =
   {
-    new SpcQueryRewriter(annotator, question, answerInflection)
+    new SpcQueryRewriter(tongue, annotator, question, answerInflection)
   }
 
   private def updateRefMap(
