@@ -27,13 +27,24 @@ class SilSpanishSentencePrinterSpec
   {
     "normalize sentences" in
     {
-      // FIXME subject implicit
-      // expectStatement("caminan")
-
       expectStatement("el perro camina en la calle")
       expectStatement("el perro camina entre las calles")
       expectStatement("los perros caminan entre las calles")
       expectStatement("ella camina")
+    }
+
+    "handle sketchy constructs" in
+    {
+      // a prescriptivist parser should complain about this, but
+      // maybe the speaker is congenitally sad?
+      expectStatement("soy triste")
+    }
+
+    "accept elided subjects" in
+    {
+      expectStatement("eres un perro")
+      expectStatement("estoy triste")
+      expectStatement("caminan")
     }
 
     "verify conjugations" in

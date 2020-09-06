@@ -223,7 +223,7 @@ trait SilAnnotator
     gender : SilGender,
     count : SilCount,
     genderAnalyzer : SilGenderAnalyzer,
-    proximity : SilProximity = PROXIMITY_UNSPECIFIED,
+    proximity : SilProximity = PROXIMITY_ENTITY,
     word : Option[SilWord] = None,
     pronounMap : SilPronounMap = SilPronounMap()) =
   {
@@ -239,7 +239,7 @@ trait SilAnnotator
     person : SilPerson,
     gender : SilGender,
     count : SilCount,
-    proximity : SilProximity = PROXIMITY_UNSPECIFIED,
+    proximity : SilProximity = PROXIMITY_ENTITY,
     word : Option[SilWord] = None,
     pronounMap : SilPronounMap = SilPronounMap()) =
   {

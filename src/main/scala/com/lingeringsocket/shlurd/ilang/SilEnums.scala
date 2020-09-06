@@ -89,8 +89,9 @@ case object PROXIMITY_AROUND_HERE extends SilHereProximity
 case object PROXIMITY_LISTENER_THERE extends SilThereLimitedProximity
 case object PROXIMITY_THERE extends SilThereLimitedProximity
 case object PROXIMITY_WAY_OVER_THERE extends SilThereProximity
-case object PROXIMITY_UNSPECIFIED extends SilProximity
+case object PROXIMITY_ENTITY extends SilProximity
 case object PROXIMITY_REFLEXIVE extends SilProximity
+case object PROXIMITY_ELIDED extends SilProximity
 
 sealed trait SilCompoundStyle
 case object COMPOUND_OPEN extends SilCompoundStyle

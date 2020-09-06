@@ -32,7 +32,7 @@ class SprPhraseRewriter(
 
   def parseSentence(sentenceSyntaxTree : SprSyntaxTree) : SilSentence =
   {
-    val forceSQ = sentenceSyntaxTree.firstChild.firstChild.isBeingVerb
+    val forceSQ = tongue.shouldForceSQ(sentenceSyntaxTree)
     val expected = SilExpectedSentence(sentenceSyntaxTree, forceSQ)
     val transformed = rewritePhrase(expected)
     val completed = rewrite(replaceUnresolvedWithUnrecognized, transformed)
@@ -114,6 +114,9 @@ class SprPhraseRewriter(
       case SilExpectedReference(SptNNQ(quotation)) => {
         annotator.quotationRef(quotation.token)
       }
+      case SilExpectedReference(SptNNE()) => {
+        createElidedReference()
+      }
       case SilExpectedReference(noun : SprSyntaxSimpleNoun) => {
         createNounReference(noun, DETERMINER_ABSENT)
       }
@@ -146,6 +149,20 @@ class SprPhraseRewriter(
       }
     }
   )
+
+  private def createElidedReference() =
+  {
+    // for an elided noun phrase, we make up a corresponding pronoun
+    // reference and normalize it downstream with the correct
+    // person/gender/count derived from the verb
+    annotator.pronounRef(
+      PERSON_THIRD,
+      GENDER_NEUTER,
+      COUNT_SINGULAR,
+      context.genderAnalyzer,
+      PROXIMITY_ELIDED
+    )
+  }
 
   private def createNounReference(
     nounlike : SprSyntaxPreTerminal,

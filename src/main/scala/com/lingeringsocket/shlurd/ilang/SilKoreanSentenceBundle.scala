@@ -302,8 +302,9 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
               inflectPronoun("그것들", inflection, conjoining)
             case PROXIMITY_THERE | PROXIMITY_WAY_OVER_THERE =>
               inflectPronoun("저것들", inflection, conjoining)
-            case PROXIMITY_UNSPECIFIED | PROXIMITY_REFLEXIVE =>
+            case PROXIMITY_ENTITY | PROXIMITY_REFLEXIVE =>
               inflectPronoun("그들", inflection, conjoining)
+            case PROXIMITY_ELIDED => ""
           }
         }
         case _ => gender.maybeBasic match {
@@ -317,6 +318,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
                 inflectPronoun("이것", inflection, conjoining)
               case PROXIMITY_LISTENER_THERE =>
                 inflectPronoun("그것", inflection, conjoining)
+              case PROXIMITY_ELIDED => ""
               case _ =>
                 inflectPronoun("저것", inflection, conjoining)
             }
@@ -327,6 +329,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
                 inflectPronoun("이곳", inflection, conjoining)
               case PROXIMITY_LISTENER_THERE =>
                 inflectPronoun("그곳", inflection, conjoining)
+              case PROXIMITY_ELIDED => ""
               case _ =>
                 inflectPronoun("저곳", inflection, conjoining)
             }

@@ -49,6 +49,13 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   def newSentencePrinter(
     genderAnalyzer : SilGenderAnalyzer) : SilSentencePrinter
 
+  def newSyntaxAnalyzer(
+    context : SprContext,
+    guessedQuestion : Boolean,
+    strictness : SprStrictness = SPR_STRICTNESS_LOOSE,
+    enforceTransitive : Boolean = true
+  ) : SprSyntaxAnalyzer
+
   def getWordnet = wordnet
 
   def getStopList : Set[String]
@@ -110,6 +117,12 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
 
   def labelVerb(token : String, lemma : String) : Set[String]
 
+  def analyzeVerbConjugation(word : SilWord)
+      : (SilPerson, SilCount, SilGender, SilTam) =
+  {
+    tupleN((PERSON_THIRD, COUNT_SINGULAR, GENDER_NEUTER, SilTam.indicative))
+  }
+
   def synthesizeMembersRef(
     annotator : SilAnnotator,
     determiner : SilDeterminer,
@@ -126,4 +139,6 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
         SilAdposition.OF,
         setRef))
   }
+
+  def shouldForceSQ(tree : SprSyntaxTree) : Boolean = false
 }

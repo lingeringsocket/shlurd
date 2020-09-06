@@ -44,6 +44,10 @@ object SprSyntaxRewriter
     LABEL_WHADVP -> SptWHADVP.apply _
   )
 
+  private val nullaryConstructors = Map(
+    LABEL_NNE -> SptNNE()
+  )
+
   private val uniqueChildConstructors = Map(
     LABEL_ROOT -> SptROOT,
     LABEL_TMOD -> SptTMOD
@@ -113,6 +117,9 @@ object SprSyntaxRewriter
     )
     phraseConstructors.get(label).foreach(
       constructor => return constructor(children)
+    )
+    nullaryConstructors.get(label).foreach(
+      constructor => return constructor
     )
     uniqueChildConstructors.get(label).foreach(
       constructor => return constructor(requireUnique(children))

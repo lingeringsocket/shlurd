@@ -35,8 +35,8 @@ object SilUtils
   def isCountCoercible(reference : SilReference) : Boolean =
   {
     reference match {
-      case _ : SilPronounReference =>
-        false
+      case pr : SilPronounReference =>
+        (pr.proximity == PROXIMITY_ELIDED)
       case _ : SilNounReference =>
         false
       case _ : SilConjunctiveReference =>

@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-class SprEnglishSyntaxAnalyzer(
+class SprSpanishSyntaxAnalyzer(
   context : SprContext,
   guessedQuestion : Boolean,
   strictness : SprStrictness,
@@ -22,8 +22,11 @@ class SprEnglishSyntaxAnalyzer(
 ) extends SprSvoSyntaxAnalyzer(
   context, guessedQuestion, strictness, enforceTransitive)
 {
+  override protected def allowElidedSubject() : Boolean = true
+
   override protected def isImperative(children : Seq[SprSyntaxTree]) =
   {
-    (children.size == 1) && children.head.isVerbPhrase
+    // FIXME use inflection of verb
+    false
   }
 }

@@ -42,6 +42,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     normalizeCompass,
     normalizeHereThere,
     normalizeGenitives,
+    normalizeElidedSubject,
     normalizeCoordinatingDeterminers,
     normalizeDanglingAdpositions,
     normalizeCompoundAdpositions,
@@ -327,6 +328,33 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
       }
     }
   )
+
+  private def normalizeElidedSubject = replacementMatcher(
+    "normalizeElidedSubject", {
+      case predicate : SilPredicate if (
+        predicate.getSubject match {
+          case pr : SilPronounReference => (pr.proximity == PROXIMITY_ELIDED)
+          case _ => false
+        }
+      ) => {
+        predicate.withNewSubject(
+          normalizeElidedPronoun(predicate.getSubject, predicate.getVerb))
+      }
+    }
+  )
+
+  private def normalizeElidedPronoun(ref : SilReference, verb : SilWord) =
+  {
+    ref match {
+      case pr : SilPronounReference => {
+        val (vPerson, vCount, vGender, tam) =
+          tongue.analyzeVerbConjugation(verb)
+        annotator.pronounRef(
+          vPerson, vGender, vCount, context.genderAnalyzer, pr.proximity)
+      }
+      case _ => ref
+    }
+  }
 
   private def extractVerbModifier(ref : SilReference)
       : (SilReference, Seq[SilVerbModifier]) =

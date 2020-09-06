@@ -66,7 +66,7 @@ trait SmcScope[
     pr match {
       case SilPronounReference(
         PERSON_THIRD, GENDER_SOMEONE, COUNT_PLURAL,
-        PROXIMITY_UNSPECIFIED | PROXIMITY_REFLEXIVE
+        PROXIMITY_ENTITY | PROXIMITY_REFLEXIVE | PROXIMITY_ELIDED
       ) => {
         pr.copy(gender = GENDER_NEUTER)
       }
@@ -78,7 +78,7 @@ trait SmcScope[
   private def foldReflexives(pr : SilPronounReference) : SilPronounReference =
   {
     if (pr.isReflexive) {
-      pr.copy(proximity = PROXIMITY_UNSPECIFIED)
+      pr.copy(proximity = PROXIMITY_ENTITY)
     } else {
       pr
     }
@@ -574,7 +574,8 @@ class SmcPhraseScope[
   {
     val outputs = ref match {
       case SilPronounReference(
-        PERSON_THIRD, _, _, PROXIMITY_UNSPECIFIED | PROXIMITY_REFLEXIVE
+        PERSON_THIRD, _, _,
+        PROXIMITY_ENTITY | PROXIMITY_REFLEXIVE | PROXIMITY_ELIDED
       ) => {
         findMatchingPronounReference(annotator, refMap, ref, true)
       }

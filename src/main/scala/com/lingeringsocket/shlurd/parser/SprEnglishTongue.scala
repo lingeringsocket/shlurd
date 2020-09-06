@@ -60,6 +60,17 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     new SilSentencePrinter(this, SilEnglishParlance, genderAnalyzer)
   }
 
+  override def newSyntaxAnalyzer(
+    context : SprContext,
+    guessedQuestion : Boolean,
+    strictness : SprStrictness = SPR_STRICTNESS_LOOSE,
+    enforceTransitive : Boolean = true
+  ) : SprSyntaxAnalyzer =
+  {
+    new SprEnglishSyntaxAnalyzer(
+      context, guessedQuestion, strictness, enforceTransitive)
+  }
+
   override def getStopList = SprEnglishLexicon.stopList
 
   override def getRelPredefLemma(predef : SilRelationshipPredef) : String =
@@ -351,5 +362,10 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     } else {
       Set(label)
     }
+  }
+
+  override def shouldForceSQ(tree : SprSyntaxTree) : Boolean =
+  {
+    tree.firstChild.firstChild.isBeingVerb(this)
   }
 }

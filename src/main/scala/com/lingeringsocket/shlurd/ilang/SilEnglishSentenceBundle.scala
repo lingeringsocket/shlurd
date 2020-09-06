@@ -296,11 +296,13 @@ class SilEnglishSentenceBundle(
             case INFLECT_GENITIVE => LEMMA_OUR
             case _ => proximity match {
               case PROXIMITY_REFLEXIVE => LEMMA_OURSELVES
+              case PROXIMITY_ELIDED => ""
               case _ => LEMMA_WE
             }
           }
           case _ => proximity match {
             case PROXIMITY_REFLEXIVE => LEMMA_MYSELF
+            case PROXIMITY_ELIDED => ""
             case _ => inflection match {
               case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_ME
               case INFLECT_GENITIVE => LEMMA_MY
@@ -316,6 +318,7 @@ class SilEnglishSentenceBundle(
                 case COUNT_PLURAL => LEMMA_YOURSELVES
                 case _ => LEMMA_YOURSELF
               }
+              case PROXIMITY_ELIDED => ""
               case _ => LEMMA_YOU
             }
           }
@@ -324,16 +327,18 @@ class SilEnglishSentenceBundle(
           case COUNT_PLURAL => proximity match {
             case _ : SilHereProximity => LEMMA_THESE
             case _ : SilThereProximity => LEMMA_THOSE
-            case PROXIMITY_UNSPECIFIED => inflection match {
+            case PROXIMITY_ENTITY => inflection match {
               case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_THEM
               case INFLECT_GENITIVE => LEMMA_THEIR
               case _ => LEMMA_THEY
             }
             case PROXIMITY_REFLEXIVE => LEMMA_THEMSELVES
+            case PROXIMITY_ELIDED => ""
           }
           case _ => gender.maybeBasic match {
             case Some(GENDER_MASCULINE | GENDER_SOMEONE) => proximity match {
               case PROXIMITY_REFLEXIVE => LEMMA_HIMSELF
+              case PROXIMITY_ELIDED => ""
               case _ => inflection match {
                 case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_HIM
                 case INFLECT_GENITIVE => LEMMA_HIS
@@ -342,6 +347,7 @@ class SilEnglishSentenceBundle(
             }
             case Some(GENDER_FEMININE) => proximity match {
               case PROXIMITY_REFLEXIVE => LEMMA_HERSELF
+              case PROXIMITY_ELIDED => ""
               case _ => inflection match {
                 case INFLECT_ACCUSATIVE | INFLECT_GENITIVE |
                     INFLECT_ADPOSITIONED => LEMMA_HER
@@ -351,14 +357,16 @@ class SilEnglishSentenceBundle(
             case Some(GENDER_NEUTER) => proximity match {
               case _ : SilHereProximity => LEMMA_THIS
               case _ : SilThereProximity => LEMMA_THAT
-              case PROXIMITY_UNSPECIFIED => inflection match {
+              case PROXIMITY_ENTITY => inflection match {
                 case INFLECT_GENITIVE => LEMMA_ITS
                 case _ => LEMMA_IT
               }
               case PROXIMITY_REFLEXIVE => LEMMA_ITSELF
+              case PROXIMITY_ELIDED => ""
             }
             case Some(GENDER_SOMEWHERE) => proximity match {
               case _ : SilHereProximity => LEMMA_HERE
+              case PROXIMITY_ELIDED => ""
               case _ => LEMMA_THERE
             }
             case _ => {

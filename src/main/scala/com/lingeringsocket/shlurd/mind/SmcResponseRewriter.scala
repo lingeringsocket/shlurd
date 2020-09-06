@@ -612,7 +612,7 @@ class SmcResponseRewriter[
           SilAdpositionalState(
             SilAdposition.OF,
             SilPronounReference(
-              PERSON_THIRD, _, COUNT_PLURAL, PROXIMITY_UNSPECIFIED))),
+              PERSON_THIRD, _, COUNT_PLURAL, PROXIMITY_ENTITY))),
         _
       ) => {
         sr
@@ -849,6 +849,9 @@ class SmcResponseRewriter[
             agreedCount)
           annotator.determinedRef(nounRef, newDeterminer)
         }
+      }
+      case pr : SilPronounReference => {
+        pr.copy(count = agreedCount)
       }
       case _ => reference
     }

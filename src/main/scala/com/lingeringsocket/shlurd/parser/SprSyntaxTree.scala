@@ -81,6 +81,7 @@ object SprPennTreebankLabels
   val LABEL_CD = label("CD")
   val LABEL_DPP = label("DPP")
   val LABEL_TMOD = label("TMOD")
+  val LABEL_NNE = label("NNE")
   val LABEL_NNQ = label("NNQ")
   val LABEL_NNC = label("NNC")
   val LABEL_RBC = label("RBC")
@@ -782,6 +783,15 @@ case class SptTMOD(child : SprSyntaxTree)
     extends SprSyntaxUniqueChild
 {
   override def label = LABEL_TMOD
+}
+
+// another non-standard one we cons up to represent elided subjects
+case class SptNNE()
+    extends SprSyntaxNoun
+{
+  override def label = LABEL_NNE
+
+  override def children = Seq.empty
 }
 
 // another non-standard one we cons up to wrap quotations

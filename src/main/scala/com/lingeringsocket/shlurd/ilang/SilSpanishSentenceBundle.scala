@@ -101,11 +101,15 @@ class SilSpanishSentenceBundle(
     inflection : SilInflection,
     conjoining : SilConjoining) =
   {
-    // FIXME
-    val standard = "yo"
-    val inflected = word.map(w => w.recompose(w.decomposed.map(_.inflected))).
-      getOrElse(standard)
-    separate(inflected, conjoining)
+    if (proximity == PROXIMITY_ELIDED) {
+      ""
+    } else {
+      // FIXME
+      val standard = "yo"
+      val inflected = word.map(w => w.recompose(w.decomposed.map(_.inflected))).
+        getOrElse(standard)
+      separate(inflected, conjoining)
+    }
   }
 
   override def determinedNoun(

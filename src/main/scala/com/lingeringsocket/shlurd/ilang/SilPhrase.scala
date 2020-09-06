@@ -733,6 +733,11 @@ case class SilPronounReference private(
   {
     proximity == PROXIMITY_REFLEXIVE
   }
+
+  def isElided() : Boolean =
+  {
+    proximity == PROXIMITY_ELIDED
+  }
 }
 
 object SilConjunctiveReference

@@ -144,6 +144,17 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   override def newSentencePrinter(genderAnalyzer : SilGenderAnalyzer) =
     new SilSentencePrinter(this, SilSpanishParlance, genderAnalyzer)
 
+  override def newSyntaxAnalyzer(
+    context : SprContext,
+    guessedQuestion : Boolean,
+    strictness : SprStrictness = SPR_STRICTNESS_LOOSE,
+    enforceTransitive : Boolean = true
+  ) : SprSyntaxAnalyzer =
+  {
+    new SprSpanishSyntaxAnalyzer(
+      context, guessedQuestion, strictness, enforceTransitive)
+  }
+
   override def getStopList = SprSpanishLexicon.stopList
 
   override def getRelPredefLemma(predef : SilRelationshipPredef) : String =
@@ -159,6 +170,8 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   override def getStatePredefLemma(predef : SilStatePredef) : String =
   {
     predef match {
+      // FIXME this should depend on the nature of the state
+      // (condition vs disposition)
       case STATE_PREDEF_BE => LEMMA_ESTAR
       // FIXME this is just wrong
       case STATE_PREDEF_BECOME => LEMMA_HACER
@@ -168,7 +181,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   override def getStatePredefFromLemma(lemma : String) : SilStatePredef =
   {
     lemma match {
-      case LEMMA_EXISTIR | LEMMA_ESTAR => STATE_PREDEF_BE
+      case LEMMA_SER | LEMMA_EXISTIR | LEMMA_ESTAR => STATE_PREDEF_BE
       // FIXME this is just wrong
       case LEMMA_HACER => STATE_PREDEF_BECOME
       case _ => throw new IllegalArgumentException(
@@ -256,6 +269,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case (GENDER_NEUTER, COUNT_SINGULAR) => {
         Map(
           // FIXME should typically be omitted entirely instead
+          // via PROXIMITY_ELIDED
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
             SilWord(LEMMA_ELLO),
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
@@ -572,6 +586,23 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case TENSE_PAST => Set(LABEL_VBD)
       case _ => Set(LABEL_VB)
     }
+  }
+
+  override def analyzeVerbConjugation(word : SilWord)
+      : (SilPerson, SilCount, SilGender, SilTam) =
+  {
+    val simple = word match {
+      case sw : SilSimpleWord => sw
+      case cw : SilCompoundWord => cw.components.last
+    }
+    val coord = SilSpanishConjugation.getConjugationCoord(
+      simple.lemma, simple.inflected)
+    tupleN((
+      coord.person,
+      coord.count,
+      GENDER_NEUTER,
+      SilTam.indicative.withTense(coord.tense)
+    ))
   }
 
   override def correctGenderCount(

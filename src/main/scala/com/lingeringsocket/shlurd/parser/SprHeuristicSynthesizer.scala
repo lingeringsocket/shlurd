@@ -166,12 +166,12 @@ class SprHeuristicSynthesizer(
 
   private val rewriterIntermediate = new SprPhraseRewriter(
     context,
-    new SprEnglishSyntaxAnalyzer(
+    context.getTongue.newSyntaxAnalyzer(
       context, false, SPR_STRICTNESS_TIGHT, false))
 
   private val rewriterFinal = new SprPhraseRewriter(
     context,
-    new SprEnglishSyntaxAnalyzer(
+    context.getTongue.newSyntaxAnalyzer(
       context, false, SPR_STRICTNESS_TIGHT))
 
   private val spanGraph = new SimpleDirectedGraph[Int, SpanEdge](
