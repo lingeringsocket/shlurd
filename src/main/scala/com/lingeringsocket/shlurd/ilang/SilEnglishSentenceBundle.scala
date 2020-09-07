@@ -17,8 +17,6 @@ package com.lingeringsocket.shlurd.ilang
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
-import org.atteo.evo.inflector.{English => EnglishPluralizer}
-
 import com.ibm.icu.text._
 
 import java.util._
@@ -203,11 +201,6 @@ class SilEnglishSentenceBundle(
       }
     }
     existentialPronoun.map(_.toLemma).toSeq ++ seq
-  }
-
-  override protected def pluralizeNoun(lemma : String) : String =
-  {
-    EnglishPluralizer.plural(lemma)
   }
 
   override def applyInflection(

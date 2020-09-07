@@ -282,7 +282,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
       case SilStatePredicate(
         subject,
         SilStatePredefVerb(STATE_PREDEF_BE),
-        SilPropertyState(w @ SilWordLemma(LEMMA_HERE | LEMMA_THERE)),
+        SilPropertyState(w @ SilProximityWord(
+          PROXIMITY_SPEAKER_HERE | PROXIMITY_LISTENER_THERE)),
         verbModifiers
       ) => {
         SilStatePredicate(

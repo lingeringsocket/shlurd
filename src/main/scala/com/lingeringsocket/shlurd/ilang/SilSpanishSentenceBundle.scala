@@ -69,12 +69,6 @@ class SilSpanishSentenceBundle(
     delemmatizeModalVerb(tam, verb, person, gender, count)
   }
 
-  override protected def pluralizeNoun(lemma : String) : String =
-  {
-    // FIXME the real thing
-    lemma + "s"
-  }
-
   override def applyInflection(
     base : String, count : SilCount, inflection : SilInflection) : String =
   {

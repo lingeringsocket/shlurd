@@ -17,6 +17,12 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
+import net.sf.extjwnl.data._
+
+import scala.collection._
+
+import org.atteo.evo.inflector.{English => EnglishPluralizer}
+
 import SprEnglishLemmas._
 import SprPennTreebankLabels._
 import ShlurdEnglishAffixes._
@@ -178,7 +184,8 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     }
   }
 
-  override def maybeDeterminerFor(lemma : String) : Option[SilDeterminer] =
+  override def maybeDeterminerFor(
+    lemma : String) : Option[SilDeterminer] =
   {
     val matcher : PartialFunction[String, SilDeterminer] = {
       case LEMMA_NO | LEMMA_NEITHER | LEMMA_NOR => DETERMINER_NONE
@@ -236,6 +243,12 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
           LEMMA_ITS | LEMMA_THEIR | LEMMA_HIS | LEMMA_HER => true
       case _ => false
     }
+  }
+
+  override def isSpecialAdposition(lemma : String) : Boolean =
+  {
+    // Penn Treebank has special "TO" label instead of "IN"
+    (lemma == LEMMA_TO)
   }
 
   override def isAdposition(lemma : String) : Boolean =
@@ -309,8 +322,10 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
       }
     }
     val proximityOpt = lemma match {
-      case LEMMA_HERE | LEMMA_THIS | LEMMA_THESE => Some(PROXIMITY_HERE)
-      case LEMMA_THERE | LEMMA_THAT | LEMMA_THOSE => Some(PROXIMITY_THERE)
+      case LEMMA_HERE | LEMMA_THIS | LEMMA_THESE =>
+        Some(PROXIMITY_SPEAKER_HERE)
+      case LEMMA_THERE | LEMMA_THAT | LEMMA_THOSE =>
+        Some(PROXIMITY_LISTENER_THERE)
       case _ => None
     }
     tupleN((person, count, gender, proximityOpt))
@@ -366,8 +381,149 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     }
   }
 
+  override def labelPronoun(
+    word : String,
+    token : String,
+    foldEphemeralLabels : Boolean) : Set[SprSyntaxTree] =
+  {
+    if (token == "i") {
+      Set(SptPRP(makeLeaf(word, token, LEMMA_I)))
+    } else if ((token == LEMMA_THEM) && !foldEphemeralLabels) {
+      Set(SprSyntaxRewriter.recompose(
+        LABEL_PRP_OBJ, Seq(makeLeaf(word, token))))
+    } else {
+      super.labelPronoun(word, token, foldEphemeralLabels)
+    }
+  }
+
+  override def labelSpecial(
+    word : String,
+    token : String) : Set[SprSyntaxTree] =
+  {
+    def leaf = makeLeaf(word, token)
+    token match {
+      case (
+        LEMMA_MUST | LEMMA_MAY | LEMMA_MIGHT |
+          LEMMA_COULD | LEMMA_SHOULD | LEMMA_CAN
+      )=> {
+        Set(SptMD(leaf))
+      }
+      case LEMMA_THERE => {
+        Set(SptNP(SptEX(leaf)), SptJJ(leaf))
+      }
+      case LEMMA_THAT => {
+        Set(SptIN(leaf),
+          SptWDT(leaf))
+      }
+      case LEMMA_WHO | LEMMA_WHOM => Set(SptWP(leaf))
+      case LEMMA_WHOSE => Set(SptWP_POS(leaf))
+      case LEMMA_HOW | LEMMA_WHERE => {
+        Set(SptWRB(leaf))
+      }
+      case LEMMA_WHAT | LEMMA_WHICH => {
+        Set(SptWP(leaf),
+          SptWDT(leaf))
+      }
+      case LEMMA_EQUIVALENTLY => {
+        Set(SptRB(leaf))
+      }
+      case LEMMA_DO => {
+        Set(SptVBP(leaf))
+      }
+      case "does" => {
+        Set(SptVBZ(makeLeaf(word, token, LEMMA_DO)))
+      }
+      case LEMMA_HAVE => {
+        Set(SptVBP(leaf))
+      }
+      case LEMMA_NO => {
+        Set(SptRB(leaf))
+      }
+      case "an" => {
+        Set(SptDT(makeLeaf(word, token, LEMMA_A)))
+      }
+      case "off" => {
+        Set(SptJJ(leaf), SptRB(leaf))
+      }
+      // FIXME proper handling for all contractions
+      case "ca" => Set(SptMD(makeLeaf(token, token, LEMMA_CAN)))
+      case "n't" => Set(SptRB(makeLeaf(token, token, LEMMA_NOT)))
+      case "'" | "'s" => Set(SptPOS(leaf))
+      case LEMMA_TO => Set(SptTO(leaf))
+      case _ => {
+        Set.empty
+      }
+    }
+  }
+
   override def shouldForceSQ(tree : SprSyntaxTree) : Boolean =
   {
     tree.firstChild.firstChild.isBeingVerb(this)
+  }
+
+  override def proximityLemma(proximity : SilProximity) : String =
+  {
+    proximity match {
+      case PROXIMITY_SPEAKER_HERE => LEMMA_HERE
+      case PROXIMITY_AROUND_HERE => LEMMA_HERE
+      case PROXIMITY_LISTENER_THERE => LEMMA_THERE
+      case PROXIMITY_OVER_THERE => LEMMA_THERE
+      case PROXIMITY_WAY_OVER_THERE => LEMMA_THERE
+      case _ => ""
+    }
+  }
+
+  override def proximityForLemma(lemma : String) : Option[SilProximity] =
+  {
+    lemma match {
+      case LEMMA_HERE => Some(PROXIMITY_SPEAKER_HERE)
+      case LEMMA_THERE => Some(PROXIMITY_LISTENER_THERE)
+      case _ => None
+    }
+  }
+
+  override def filterIndexWords(
+    token : String,
+    tokenSuffix : String,
+    rawWords : Set[IndexWord]
+  ) : Set[IndexWord] =
+  {
+    if (rawWords.exists(_.getLemma == LEMMA_BE)) {
+      rawWords.filter(
+        indexWord => (indexWord.getLemma == LEMMA_BE) &&
+          indexWord.getPOS == POS.VERB)
+    } else if ((token == LEMMA_THERE) || (token == LEMMA_HERE)) {
+      rawWords.filterNot(_.getPOS == POS.NOUN)
+    } else if (token == LEMMA_OR) {
+      rawWords.filterNot(_.getLemma == LEMMA_OR)
+    } else if (tokenSuffix == "boss") {
+      // FIXME ugh
+      rawWords.filterNot(_.getLemma == "bos")
+    } else {
+      rawWords.filterNot(raw => (raw.getLemma == tokenSuffix) &&
+        rawWords.exists(other =>
+          ((other != raw) && (other.getPOS == raw.getPOS) &&
+            (other.getLemma != tokenSuffix))))
+    }
+  }
+
+  // since English doesn't discriminate between PROXIMITY_LISTENER_THERE
+  // and PROXIMITY_OVER_THERE, we fold them together
+  override def overThere : SilProximity = PROXIMITY_LISTENER_THERE
+
+  override def possibleCompoundNoun(seq : Seq[SprSyntaxTree]) : Boolean =
+  {
+    !seq.head.hasTerminalLemma(LEMMA_A)
+  }
+
+  override def possibleCompoundVerb(seq : Seq[String]) : Boolean =
+  {
+    // meh
+    !(seq.contains(LEMMA_BE) || seq.contains(LEMMA_TO))
+  }
+
+  override def pluralizeNoun(lemma : String) : String =
+  {
+    EnglishPluralizer.plural(lemma)
   }
 }

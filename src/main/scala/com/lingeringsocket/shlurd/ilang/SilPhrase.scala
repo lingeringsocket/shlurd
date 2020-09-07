@@ -1053,6 +1053,19 @@ object SilWord
     SilSimpleWord(s, s, senseId)
 }
 
+object SilProximityWord
+{
+  def apply(proximity : SilProximity)(implicit tongue : SprTongue) =
+  {
+    SilWord(tongue.proximityLemma(proximity))
+  }
+
+  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue) =
+  {
+    tongue.proximityForLemma(w.lemma)
+  }
+}
+
 object SilWordLemma
 {
   def unapply(w : SilSimpleWord) =

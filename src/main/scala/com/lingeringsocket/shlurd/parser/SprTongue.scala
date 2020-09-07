@@ -19,6 +19,10 @@ import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
 
+import net.sf.extjwnl.data._
+
+import SprPennTreebankLabels._
+
 trait SprSynthesizer
 {
   def makeLeaf(
@@ -92,7 +96,8 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
     }
   }
 
-  def maybeDeterminerFor(lemma : String) : Option[SilDeterminer]
+  def maybeDeterminerFor(
+    lemma : String) : Option[SilDeterminer]
 
   def isCoordinatingDeterminer(lemma : String) : Boolean
 
@@ -115,7 +120,36 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   def analyzePronoun(lemma : String) :
       (SilPerson, SilCount, SilGender, Option[SilProximity])
 
+  def isSpecialAdposition(lemma : String) : Boolean = false
+
   def labelVerb(token : String, lemma : String) : Set[String]
+
+  def labelPronoun(
+    word : String,
+    token : String,
+    foldEphemeralLabels : Boolean) : Set[SprSyntaxTree] =
+  {
+    if (isPronounWord(token)) {
+      val leaf = makeLeaf(word, token)
+      if (isFlexiblePronoun(token)) {
+        Set(SptPRP_POS(leaf), SptPRP(leaf))
+      } else if (isPossessiveAdjective(token)) {
+        Set(SptPRP_POS(leaf))
+      } else if (isReflexivePronoun(token) && !foldEphemeralLabels)
+      {
+        Set(SprSyntaxRewriter.recompose(LABEL_PRP_REFLEXIVE, Seq(leaf)))
+      } else {
+        Set(SptPRP(leaf))
+      }
+    } else {
+      Set.empty
+    }
+  }
+
+  def labelSpecial(
+    word : String,
+    token : String
+  ) : Set[SprSyntaxTree] = Set.empty
 
   def analyzeVerbConjugation(word : SilWord)
       : (SilPerson, SilCount, SilGender, SilTam) =
@@ -141,4 +175,22 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   }
 
   def shouldForceSQ(tree : SprSyntaxTree) : Boolean = false
+
+  def proximityLemma(proximity : SilProximity) : String
+
+  def proximityForLemma(lemma : String) : Option[SilProximity]
+
+  def filterIndexWords(
+    token : String,
+    tokenSuffix : String,
+    rawWords : Set[IndexWord]
+  ) : Set[IndexWord] = rawWords
+
+  def overThere : SilProximity = PROXIMITY_OVER_THERE
+
+  def possibleCompoundNoun(seq : Seq[SprSyntaxTree]) : Boolean = true
+
+  def possibleCompoundVerb(seq : Seq[String]) : Boolean = true
+
+  def pluralizeNoun(lemma : String) : String
 }

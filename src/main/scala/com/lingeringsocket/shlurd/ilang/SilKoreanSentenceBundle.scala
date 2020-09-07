@@ -300,7 +300,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
               inflectPronoun("이것들", inflection, conjoining)
             case PROXIMITY_LISTENER_THERE =>
               inflectPronoun("그것들", inflection, conjoining)
-            case PROXIMITY_THERE | PROXIMITY_WAY_OVER_THERE =>
+            case PROXIMITY_OVER_THERE | PROXIMITY_WAY_OVER_THERE =>
               inflectPronoun("저것들", inflection, conjoining)
             case PROXIMITY_ENTITY | PROXIMITY_REFLEXIVE =>
               inflectPronoun("그들", inflection, conjoining)

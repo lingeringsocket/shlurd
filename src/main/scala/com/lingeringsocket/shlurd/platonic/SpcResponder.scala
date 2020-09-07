@@ -421,13 +421,9 @@ class SpcResponder(
     {
       modifier matchPartial {
         case SilBasicVerbModifier(word) => {
-          mind.getTongue.analyzePronoun(word.toLemma) matchPartial {
-            case (PERSON_THIRD, COUNT_SINGULAR,
-              GENDER_SOMEWHERE, Some(proximity)
-            ) => {
-              return spatialDeicticModifier(word, proximity)
-            }
-          }
+          mind.getTongue.proximityForLemma(word.toLemma).foreach(proximity => {
+            return spatialDeicticModifier(word, proximity)
+          })
         }
       }
       super.normalizeModifier(modifier)

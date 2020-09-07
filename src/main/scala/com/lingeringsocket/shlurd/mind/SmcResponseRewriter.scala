@@ -332,14 +332,14 @@ class SmcResponseRewriter[
         }
       }
       case SilBasicVerbModifier(
-        SilWordLemma(LEMMA_HERE)
+        SilProximityWord(PROXIMITY_SPEAKER_HERE)
       ) if (swapHereThere) => {
-        SilBasicVerbModifier(SilWord(LEMMA_THERE))
+        SilBasicVerbModifier(SilProximityWord(PROXIMITY_LISTENER_THERE))
       }
       case SilBasicVerbModifier(
-        SilWordLemma(LEMMA_THERE)
+        SilProximityWord(PROXIMITY_LISTENER_THERE)
       ) if (swapHereThere) => {
-        SilBasicVerbModifier(SilWord(LEMMA_HERE))
+        SilBasicVerbModifier(SilProximityWord(PROXIMITY_SPEAKER_HERE))
       }
     }
   )

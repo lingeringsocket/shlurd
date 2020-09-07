@@ -39,15 +39,20 @@ object SprSpanishLexicon
 
 object SprSpanishLemmas
 {
+  val LEMMA_ACA = "acá"
+  val LEMMA_AHI = "ahí"
   val LEMMA_ALGUN = "algún"
   val LEMMA_ALGUNO = "alguno"
   val LEMMA_ALGUNA = "alguna"
   val LEMMA_ALGUNAS = "algunas"
   val LEMMA_ALGUNOS = "algunos"
+  val LEMMA_ALLA = "allá"
+  val LEMMA_ALLI = "allí"
   val LEMMA_AMBA = "ambas"
   val LEMMA_AMBAS = "ambas"
   val LEMMA_AMBO = "ambos"
   val LEMMA_AMBOS = "ambos"
+  val LEMMA_AQUI = "aquí"
   val LEMMA_AQUEL = "esa"
   val LEMMA_AQUELLA = "esa"
   val LEMMA_AQUELLAS = "esas"
@@ -510,11 +515,11 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     }
     val proximityOpt = lemma match {
       case LEMMA_ESTO | LEMMA_ESTOS |
-          LEMMA_ESTA | LEMMA_ESTAS => Some(PROXIMITY_HERE)
+          LEMMA_ESTA | LEMMA_ESTAS => Some(PROXIMITY_SPEAKER_HERE)
       case LEMMA_ESO | LEMMA_ESOS |
           LEMMA_ESA | LEMMA_ESAS => Some(PROXIMITY_LISTENER_THERE)
       case LEMMA_AQUEL | LEMMA_AQUELLO | LEMMA_AQUELLOS |
-          LEMMA_AQUELLA | LEMMA_AQUELLAS => Some(PROXIMITY_THERE)
+          LEMMA_AQUELLA | LEMMA_AQUELLAS => Some(PROXIMITY_OVER_THERE)
       case _ => None
     }
     tupleN((person, count, gender, proximityOpt))
@@ -758,5 +763,35 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case LEMMA_UNO | LEMMA_UNA | LEMMA_UNOS | LEMMA_UNAS => LEMMA_UN
       case _ => lemma
     }
+  }
+
+  override def proximityLemma(proximity : SilProximity) : String =
+  {
+    proximity match {
+      case PROXIMITY_SPEAKER_HERE => LEMMA_AQUI
+      case PROXIMITY_AROUND_HERE => LEMMA_ACA
+      case PROXIMITY_LISTENER_THERE => LEMMA_AHI
+      case PROXIMITY_OVER_THERE => LEMMA_ALLI
+      case PROXIMITY_WAY_OVER_THERE => LEMMA_ALLA
+      case _ => ""
+    }
+  }
+
+  override def proximityForLemma(lemma : String) : Option[SilProximity] =
+  {
+    lemma match {
+      case LEMMA_ACA => Some(PROXIMITY_AROUND_HERE)
+      case LEMMA_AQUI => Some(PROXIMITY_SPEAKER_HERE)
+      case LEMMA_AHI => Some(PROXIMITY_LISTENER_THERE)
+      case LEMMA_ALLI => Some(PROXIMITY_OVER_THERE)
+      case LEMMA_ALLA => Some(PROXIMITY_WAY_OVER_THERE)
+      case _ => None
+    }
+  }
+
+  override def pluralizeNoun(lemma : String) : String =
+  {
+    // FIXME the real thing
+    lemma + "s"
   }
 }

@@ -240,8 +240,6 @@ abstract class SilSvoSentenceBundle(
       (changeVerb.toSeq :+ state).flatMap(_.decomposed).map(_.lemmaUnfolded):_*)
   }
 
-  protected def pluralizeNoun(lemma : String) : String
-
   override def delemmatizeNoun(
     word : SilWord, count : SilCount,
     inflection : SilInflection,
@@ -260,7 +258,7 @@ abstract class SilSvoSentenceBundle(
         } else {
           val base = count match {
             case COUNT_PLURAL => {
-              pluralizeNoun(lemma)
+              tongue.pluralizeNoun(lemma)
             }
             case _ => {
               lemma

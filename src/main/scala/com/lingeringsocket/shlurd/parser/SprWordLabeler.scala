@@ -18,11 +18,8 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import SprPennTreebankLabels._
-import SprEnglishLemmas._
 
 import net.sf.extjwnl.data._
-
-import org.atteo.evo.inflector.{English => EnglishPluralizer}
 
 import scala.collection._
 import scala.collection.JavaConverters._
@@ -208,7 +205,7 @@ class SprWordnetLabeler(
     // FIXME cache the mapping, and deal with compound+proper nouns
     rules.values.
       filter(r => (r.phrase.size == 1) && r.labels.contains(LABEL_NN)).
-      filter(r => EnglishPluralizer.plural(r.phrase.last) == token).
+      filter(r => tongue.pluralizeNoun(r.phrase.last) == token).
       map(_.phrase.last).headOption.getOrElse(token)
   }
 
@@ -232,7 +229,7 @@ class SprWordnetLabeler(
         tongue.maybeDeterminerFor(token).nonEmpty)
       {
         // FIXME some determiners may have other POS roles, e.g.
-        // "no" can be a noun or interjection
+        // in English, "no" can be a noun or interjection
         Set.empty
       } else if (((token != word) && (iToken > 0)) ||
         (tongue.isProper(token) && (iToken == 0)))
@@ -249,117 +246,32 @@ class SprWordnetLabeler(
             Option(wordnet.getDictionary.getIndexWord(pos, lemma))
           }
         }
-        val filteredWords = {
-          if (rawWords.exists(_.getLemma == LEMMA_BE)) {
-            rawWords.filter(
-              indexWord => (indexWord.getLemma == LEMMA_BE) &&
-                indexWord.getPOS == POS.VERB)
-          } else if ((token == LEMMA_THERE) || (token == LEMMA_HERE)) {
-            rawWords.filterNot(_.getPOS == POS.NOUN)
-          } else if (token == LEMMA_OR) {
-            rawWords.filterNot(_.getLemma == LEMMA_OR)
-          } else if (tokenSuffix == "boss") {
-            // FIXME ugh
-            rawWords.filterNot(_.getLemma == "bos")
-          } else {
-            rawWords.filterNot(raw => (raw.getLemma == tokenSuffix) &&
-              rawWords.exists(other =>
-                ((other != raw) && (other.getPOS == raw.getPOS) &&
-                  (other.getLemma != tokenSuffix))))
-          }
-        }
+        val filteredWords = tongue.filterIndexWords(
+          token, tokenSuffix, rawWords)
         filteredWords.filterNot(wordnet.isAcronym).flatMap(
           indexWord => makePreTerminals(
             word, token, tokenPrefix, tokenSuffix,
             indexWord, (iToken == 0), filteredWords))
       }
     }
+    def leaf = makeLeaf(word, token)
     val combined = {
       if (tongue.isCoordinatingConjunction(token)) {
-        Set(SptCC(makeLeaf(word, token)))
-      } else if (token != LEMMA_WHICH) {
-        tongue.maybeDeterminerFor(token).map(
-          determiner => (SptDT(makeLeaf(word, token)))).toSet
+        Set(SptCC(leaf))
       } else {
-        Set.empty
+        tongue.maybeDeterminerFor(token).filter(_ != DETERMINER_VARIABLE).map(
+          determiner => (SptDT(leaf))).toSet
       }
     } ++ {
-      if (token == "i") {
-        Set(SptPRP(makeLeaf(word, token, LEMMA_I)))
-      } else if (tongue.isPronounWord(token)) {
-        val leaf = makeLeaf(word, token)
-        if (tongue.isFlexiblePronoun(token)) {
-          Set(SptPRP_POS(leaf), SptPRP(leaf))
-        } else if (tongue.isPossessiveAdjective(token)) {
-          Set(SptPRP_POS(leaf))
-        } else if ((token == LEMMA_THEM) && !foldEphemeralLabels) {
-          Set(SprSyntaxRewriter.recompose(LABEL_PRP_OBJ, Seq(leaf)))
-        } else if (tongue.isReflexivePronoun(token) &&
-          !foldEphemeralLabels)
-        {
-          Set(SprSyntaxRewriter.recompose(LABEL_PRP_REFLEXIVE, Seq(leaf)))
-        } else {
-          Set(SptPRP(leaf))
-        }
-      } else {
-        Set.empty
-      }
+      tongue.labelPronoun(word, token, foldEphemeralLabels)
     } ++ {
-      def leaf = makeLeaf(word, token)
-      token match {
-        case (
-          LEMMA_MUST | LEMMA_MAY | LEMMA_MIGHT |
-            LEMMA_COULD | LEMMA_SHOULD | LEMMA_CAN
-        )=> {
-          Set(SptMD(leaf))
-        }
-        case LEMMA_THERE => {
-          Set(SptNP(SptEX(leaf)), SptJJ(leaf))
-        }
-        case LEMMA_THAT => {
-          Set(SptIN(leaf),
-            SptWDT(leaf))
-        }
-        case LEMMA_WHO | LEMMA_WHOM => Set(SptWP(leaf))
-        case LEMMA_WHOSE => Set(SptWP_POS(leaf))
-        case LEMMA_HOW | LEMMA_WHERE => {
-          Set(SptWRB(leaf))
-        }
-        case LEMMA_WHAT | LEMMA_WHICH => {
-          Set(SptWP(leaf),
-            SptWDT(leaf))
-        }
-        case LEMMA_EQUIVALENTLY => {
-          Set(SptRB(leaf))
-        }
-        case LEMMA_DO => {
-          Set(SptVBP(leaf))
-        }
-        case "does" => {
-          Set(SptVBZ(makeLeaf(word, token, LEMMA_DO)))
-        }
-        case LEMMA_HAVE => {
-          Set(SptVBP(leaf))
-        }
-        case LEMMA_NO => {
-          Set(SptRB(leaf))
-        }
-        case "an" => {
-          Set(SptDT(makeLeaf(word, token, LEMMA_A)))
-        }
-        case "off" => {
-          Set(SptJJ(leaf), SptRB(leaf))
-        }
-        case _ => {
-          Set.empty
-        }
-      }
+      tongue.labelSpecial(word, token)
     } ++ {
       if ((tongue.isAdposition(token) ||
         tongue.isSubordinatingConjunction(token)) &&
-        (token != LEMMA_TO))
+        !tongue.isSpecialAdposition(token))
       {
-        Set(SptIN(makeLeaf(word, token)))
+        Set(SptIN(leaf))
       } else {
         Set.empty
       }
@@ -369,7 +281,6 @@ class SprWordnetLabeler(
     if (combined.nonEmpty) {
       combined
     } else {
-      def leaf = makeLeaf(word, token)
       val set : Set[SprSyntaxTree] = token match {
         case LABEL_COMMA => Set(SptCOMMA(leaf))
         case LABEL_SEMICOLON => Set(SptSEMICOLON(leaf))
@@ -377,11 +288,6 @@ class SprWordnetLabeler(
         case LABEL_RPAREN => Set(SptRRB(leaf))
         case LABEL_LCURLY => Set(SptLCB(leaf))
         case LABEL_RCURLY => Set(SptRCB(leaf))
-        case "'" | "'s" => Set(SptPOS(leaf))
-        // FIXME proper handling for all contractions
-        case "ca" => Set(SptMD(makeLeaf(token, token, LEMMA_CAN)))
-        case "n't" => Set(SptRB(makeLeaf(token, token, LEMMA_NOT)))
-        case LEMMA_TO => Set(SptTO(leaf))
         case _ => {
           if (SprParser.isTerminator(token)) {
             Set(SptDOT(leaf))
@@ -410,7 +316,7 @@ class SprWordnetLabeler(
         case noun : SprSyntaxNoun => noun.isProper
         case _ => false
       }
-      if (seq.head.hasTerminalLemma(LEMMA_A)) {
+      if (!tongue.possibleCompoundNoun(seq)) {
         false
       } else if (!seq.last.isNoun) {
         false
@@ -458,8 +364,7 @@ class SprWordnetLabeler(
       // this handles "stir fry" and "bump off", but there are
       // other cases that need refinement
       val folded = seq.map(_.firstChild.lemma)
-      // meh
-      if (folded.contains(LEMMA_BE) || folded.contains(LEMMA_TO)) {
+      if (!tongue.possibleCompoundVerb(folded)) {
         false
       } else {
         rules.get(folded) match {
