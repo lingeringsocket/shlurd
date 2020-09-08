@@ -99,6 +99,7 @@ object SprEnglishLemmas
   val LEMMA_YOURSELVES = "yourselves"
   val LEMMA_THEY = "they"
   val LEMMA_THEIR = "their"
+  val LEMMA_THEIRS = "theirs"
   val LEMMA_THEM = "them"
   val LEMMA_THEMSELVES = "themselves"
   val LEMMA_THEMSELF = "themself"

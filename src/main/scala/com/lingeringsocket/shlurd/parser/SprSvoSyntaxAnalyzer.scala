@@ -1507,7 +1507,7 @@ abstract class SprSvoSyntaxAnalyzer(
       : SilPronounReference =
   {
     val lemma = leaf.lemma
-    val (person, count, gender, proximityOpt) =
+    val (person, count, gender, _, proximityOpt, _) =
       tongue.analyzePronoun(lemma)
     val proximity = proximityOpt.getOrElse {
       val seq = context.wordLabeler.labelWords(

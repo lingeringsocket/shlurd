@@ -21,22 +21,6 @@ import scala.collection._
 
 import SprPennTreebankLabels._
 
-object SprSpanishLexicon
-{
-  import SprLexicon._
-
-  val prepositions = readLexicon("/spanish/prepositions.txt")
-
-  val subordinates = readLexicon("/spanish/subordinates.txt")
-
-  // FIXME
-  val proper = readLexicon("/english/proper.txt")
-
-  val stopList = Set(
-    "ella"
-  ) ++ stopListPunct
-}
-
 object SprSpanishLemmas
 {
   val LEMMA_ACA = "acá"
@@ -89,6 +73,8 @@ object SprSpanishLemmas
   val LEMMA_MI = "mi"
   val LEMMA_MIA = "mía"
   val LEMMA_MIO = "mío"
+  val LEMMA_MIAS = "mías"
+  val LEMMA_MIOS = "míos"
   val LEMMA_MIS = "mis"
   val LEMMA_NI = "ni"
   val LEMMA_NINGUN = "ningún"
@@ -110,6 +96,7 @@ object SprSpanishLemmas
   val LEMMA_SER = "ser"
   val LEMMA_SU = "su"
   val LEMMA_SUS = "sus"
+  val LEMMA_TE = "tener"
   val LEMMA_TENER = "tener"
   val LEMMA_TODA = "toda"
   val LEMMA_TODAS = "todas"
@@ -122,15 +109,16 @@ object SprSpanishLemmas
   val LEMMA_TUYAS = "tuyas"
   val LEMMA_TUYO = "tuyo"
   val LEMMA_TUYOS = "tuyos"
+  val LEMMA_SUYA = "suya"
+  val LEMMA_SUYAS = "suyas"
+  val LEMMA_SUYO = "suyo"
+  val LEMMA_SUYOS = "suyos"
   val LEMMA_U = "u"
   val LEMMA_UN = "un"
   val LEMMA_UNA = "una"
   val LEMMA_UNAS = "unas"
   val LEMMA_UNO = "uno"
   val LEMMA_UNOS = "unos"
-  val LEMMA_USTED = "usted"
-  val LEMMA_USTEDES = "ustedes"
-  val LEMMA_VOS = "vos"
   val LEMMA_VOSOTRAS = "vosotras"
   val LEMMA_VOSOTROS = "vosotros"
   val LEMMA_VUESTRA = "vuestra"
@@ -141,10 +129,251 @@ object SprSpanishLemmas
   val LEMMA_YO = "yo"
 }
 
+case class SprPronounCoord(
+  person : SilPerson,
+  gender : SilGender,
+  count : SilCount,
+  proximity : SilProximity,
+  inflection : SilInflection,
+  possesseeCount : SilCount = COUNT_SINGULAR
+)
+
+object SprSpanishLexicon
+{
+  import SprLexicon._
+  import SprSpanishLemmas._
+
+  val prepositions = readLexicon("/spanish/prepositions.txt")
+
+  val subordinates = readLexicon("/spanish/subordinates.txt")
+
+  // FIXME
+  val proper = readLexicon("/english/proper.txt")
+
+  val stopList = Set(
+    "ella"
+  ) ++ stopListPunct
+
+  val nominativeToCoord = Map(
+    LEMMA_YO -> SprPronounCoord(
+      PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_TU_ACCENTED -> SprPronounCoord(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_EL_ACCENTED -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_ELLA -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_ELLO -> SprPronounCoord(
+      PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_NOSOTROS -> SprPronounCoord(
+      PERSON_FIRST, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_NOSOTRAS -> SprPronounCoord(
+      PERSON_FIRST, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_VOSOTROS -> SprPronounCoord(
+      PERSON_SECOND, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_VOSOTRAS -> SprPronounCoord(
+      PERSON_SECOND, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_ELLOS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_ELLAS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE)
+  )
+
+  val accusativeToCoord = Map(
+    LEMMA_ME -> SprPronounCoord(
+      PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_ACCUSATIVE),
+    LEMMA_TE -> SprPronounCoord(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_ACCUSATIVE),
+    LEMMA_LO -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_ACCUSATIVE),
+    LEMMA_LA -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_ACCUSATIVE),
+    LEMMA_NOS -> SprPronounCoord(
+      PERSON_FIRST, GENDER_SOMEONE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_ACCUSATIVE),
+    LEMMA_OS -> SprPronounCoord(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_ACCUSATIVE),
+    LEMMA_LOS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_ACCUSATIVE),
+    LEMMA_LAS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_ACCUSATIVE)
+  )
+
+  val adpositionedToCoord = Map(
+    LEMMA_LE -> SprPronounCoord(
+      PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_ADPOSITIONED),
+    LEMMA_LES -> SprPronounCoord(
+      PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_ADPOSITIONED)
+  )
+
+  val reflexiveToCoord = Map(
+    LEMMA_SE -> SprPronounCoord(
+      PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
+      PROXIMITY_REFLEXIVE, INFLECT_NONE)
+  )
+
+  val genitiveToCoord = Map(
+    LEMMA_MI -> SprPronounCoord(
+      PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE),
+    LEMMA_MIS -> SprPronounCoord(
+      PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE, COUNT_PLURAL),
+    LEMMA_TU -> SprPronounCoord(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE),
+    LEMMA_TUS -> SprPronounCoord(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE, COUNT_PLURAL),
+    LEMMA_SU -> SprPronounCoord(
+      PERSON_THIRD, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE),
+    LEMMA_SUS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE, COUNT_PLURAL),
+    LEMMA_NUESTRO -> SprPronounCoord(
+      PERSON_FIRST, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE),
+    LEMMA_NUESTROS -> SprPronounCoord(
+      PERSON_FIRST, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE, COUNT_PLURAL),
+    LEMMA_NUESTRA -> SprPronounCoord(
+      PERSON_FIRST, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE),
+    LEMMA_NUESTRAS -> SprPronounCoord(
+      PERSON_FIRST, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE, COUNT_PLURAL),
+    LEMMA_VUESTRO -> SprPronounCoord(
+      PERSON_SECOND, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE),
+    LEMMA_VUESTROS -> SprPronounCoord(
+      PERSON_SECOND, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE, COUNT_PLURAL),
+    LEMMA_VUESTRA -> SprPronounCoord(
+      PERSON_SECOND, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE),
+    LEMMA_VUESTRAS -> SprPronounCoord(
+      PERSON_SECOND, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_GENITIVE, COUNT_PLURAL)
+  )
+
+  val possesseeToCoord = Map(
+    LEMMA_MIO -> SprPronounCoord(
+      PERSON_FIRST, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE),
+    LEMMA_MIA -> SprPronounCoord(
+      PERSON_FIRST, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE),
+    LEMMA_MIOS -> SprPronounCoord(
+      PERSON_FIRST, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE, COUNT_PLURAL),
+    LEMMA_MIAS -> SprPronounCoord(
+      PERSON_FIRST, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE, COUNT_PLURAL),
+    LEMMA_TUYO -> SprPronounCoord(
+      PERSON_SECOND, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE),
+    LEMMA_TUYA -> SprPronounCoord(
+      PERSON_SECOND, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE),
+    LEMMA_TUYOS -> SprPronounCoord(
+      PERSON_SECOND, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE, COUNT_PLURAL),
+    LEMMA_TUYAS -> SprPronounCoord(
+      PERSON_SECOND, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE, COUNT_PLURAL),
+    LEMMA_SUYO -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE),
+    LEMMA_SUYA -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE),
+    LEMMA_SUYOS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE, COUNT_PLURAL),
+    LEMMA_SUYAS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_POSSESSEE, INFLECT_NOMINATIVE, COUNT_PLURAL)
+  )
+
+  val demonstrativeToCoord = Map(
+    LEMMA_ESTO -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_SPEAKER_HERE, INFLECT_NOMINATIVE),
+    LEMMA_ESTA -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_SPEAKER_HERE, INFLECT_NOMINATIVE),
+    LEMMA_ESTOS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_SPEAKER_HERE, INFLECT_NOMINATIVE),
+    LEMMA_ESTAS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_SPEAKER_HERE, INFLECT_NOMINATIVE),
+    LEMMA_ESO -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_LISTENER_THERE, INFLECT_NOMINATIVE),
+    LEMMA_ESA -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_LISTENER_THERE, INFLECT_NOMINATIVE),
+    LEMMA_ESO -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_LISTENER_THERE, INFLECT_NOMINATIVE),
+    LEMMA_ESA -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_LISTENER_THERE, INFLECT_NOMINATIVE),
+    LEMMA_AQUEL -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
+      PROXIMITY_OVER_THERE, INFLECT_NOMINATIVE),
+    LEMMA_AQUELLA -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR,
+      PROXIMITY_OVER_THERE, INFLECT_NOMINATIVE),
+    LEMMA_AQUELLO -> SprPronounCoord(
+      PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
+      PROXIMITY_OVER_THERE, INFLECT_NOMINATIVE),
+    LEMMA_AQUELLOS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_MASCULINE, COUNT_PLURAL,
+      PROXIMITY_OVER_THERE, INFLECT_NOMINATIVE),
+    LEMMA_AQUELLAS -> SprPronounCoord(
+      PERSON_THIRD, GENDER_FEMININE, COUNT_PLURAL,
+      PROXIMITY_OVER_THERE, INFLECT_NOMINATIVE)
+  )
+
+  val pronounToCoord = (
+    nominativeToCoord ++ accusativeToCoord ++ adpositionedToCoord ++
+      reflexiveToCoord ++ genitiveToCoord ++ possesseeToCoord ++
+      demonstrativeToCoord)
+
+  val coordToPronoun = pronounToCoord.map(_.swap)
+  assert(coordToPronoun.size == pronounToCoord.size)
+
+  val pronounLemmas = pronounToCoord.keySet
+}
+
 class SprSpanishTongue(wordnet : ShlurdWordnet)
     extends SprTongue(wordnet)
 {
   import SprSpanishLemmas._
+  import SprSpanishLexicon._
 
   override def newSentencePrinter(genderAnalyzer : SilGenderAnalyzer) =
     new SilSentencePrinter(this, SilSpanishParlance, genderAnalyzer)
@@ -160,7 +389,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       context, strictness, enforceTransitive)
   }
 
-  override def getStopList = SprSpanishLexicon.stopList
+  override def getStopList = stopList
 
   override def getRelPredefLemma(predef : SilRelationshipPredef) : String =
   {
@@ -373,156 +602,56 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   {
     // FIXME handle other forms such as "si mismo"
     token match {
-      case LEMMA_SE | LEMMA_OS | LEMMA_VOS | LEMMA_NOS => true
+      case LEMMA_SE | LEMMA_OS | LEMMA_NOS => true
       case _ => false
     }
   }
 
-  override def isPossessiveAdjective(token : String) : Boolean =
+  override def isPossessiveAdjective(lemma : String) : Boolean =
   {
-    token match {
-      case LEMMA_MI | LEMMA_MIS |
-          LEMMA_TU | LEMMA_TUS |
-          LEMMA_SU | LEMMA_SUS |
-          LEMMA_VUESTRA | LEMMA_VUESTRO |
-          LEMMA_VUESTRAS | LEMMA_VUESTROS |
-          LEMMA_NUESTRA | LEMMA_NUESTRO |
-          LEMMA_NUESTRAS | LEMMA_NUESTROS => true
-      case _ => false
-    }
+    genitiveToCoord.contains(lemma)
   }
 
   override def isAdposition(lemma : String) : Boolean =
   {
-    SprSpanishLexicon.prepositions.contains(lemma)
+    prepositions.contains(lemma)
   }
 
   override def isSubordinatingConjunction(lemma : String) : Boolean =
   {
-    SprSpanishLexicon.subordinates.contains(lemma)
+    subordinates.contains(lemma)
   }
 
   override def isProper(lemma : String) : Boolean =
   {
-    SprSpanishLexicon.proper.contains(lemma)
+    proper.contains(lemma)
   }
 
-  override def isPronounWord(lemma : String) : Boolean =
+  override def getPronounLemmas() : Set[String] =
   {
-    lemma match {
-      case LEMMA_YO | LEMMA_ME | LEMMA_NOS | LEMMA_VOS | LEMMA_OS |
-          LEMMA_NOSOTROS | LEMMA_NOSOTRAS |
-          LEMMA_VOSOTROS | LEMMA_VOSOTRAS |
-          LEMMA_MI | LEMMA_MIS |
-          LEMMA_NUESTRO | LEMMA_NUESTRA |
-          LEMMA_NUESTROS | LEMMA_NUESTRAS |
-          LEMMA_VUESTRO | LEMMA_VUESTRA |
-          LEMMA_VUESTROS | LEMMA_VUESTRAS |
-          LEMMA_MIA | LEMMA_MIO |
-          LEMMA_TU_ACCENTED | LEMMA_TU |
-          LEMMA_USTED | LEMMA_USTEDES |
-          LEMMA_SE |
-          LEMMA_SU | LEMMA_SUS |
-          LEMMA_TUYA | LEMMA_TUYO |
-          LEMMA_TUYAS | LEMMA_TUYOS |
-          LEMMA_EL_ACCENTED |
-          LEMMA_ELLA | LEMMA_ELLO |
-          LEMMA_ELLAS | LEMMA_ELLOS |
-          LEMMA_ESTO | LEMMA_ESTA |
-          LEMMA_ESTOS | LEMMA_ESTAS |
-          LEMMA_ESO | LEMMA_ESA |
-          LEMMA_ESOS | LEMMA_ESAS |
-          LEMMA_AQUEL | LEMMA_AQUELLO | LEMMA_AQUELLA |
-          LEMMA_AQUELLOS | LEMMA_AQUELLAS |
-          LEMMA_LO | LEMMA_LE | LEMMA_LES => true
-      case _ => false
-    }
+    pronounLemmas
   }
 
   override def analyzePronoun(lemma : String) =
   {
-    val isCustomPronoun = !isPronounWord(lemma)
-    val person = lemma match {
-      case LEMMA_YO | LEMMA_ME | LEMMA_NOSOTROS | LEMMA_NOSOTRAS
-         | LEMMA_MI | LEMMA_MIA | LEMMA_MIO | LEMMA_MIS | LEMMA_NOS |
-          LEMMA_NUESTRO | LEMMA_NUESTRA |
-          LEMMA_NUESTROS | LEMMA_NUESTRAS => PERSON_FIRST
-      case LEMMA_TU_ACCENTED | LEMMA_TU | LEMMA_TUS |
-          LEMMA_TUYA | LEMMA_TUYO | LEMMA_TUYAS | LEMMA_TUYOS |
-          LEMMA_VOSOTROS | LEMMA_VOSOTRAS | LEMMA_VOS | LEMMA_OS |
-          LEMMA_VUESTRO | LEMMA_VUESTRA |
-          LEMMA_VUESTROS | LEMMA_VUESTRAS |
-          LEMMA_USTED | LEMMA_USTEDES => PERSON_SECOND
-      case _ => PERSON_THIRD
-    }
-    val count = lemma match {
-      case LEMMA_ALGUNAS | LEMMA_ALGUNOS | LEMMA_AMBAS | LEMMA_AMBOS |
-          LEMMA_AQUELLAS | LEMMA_AQUELLOS |
-          LEMMA_CUALES | LEMMA_ELLOS | LEMMA_ELLAS |
-          LEMMA_ESOS | LEMMA_ESAS | LEMMA_ESTOS | LEMMA_ESTAS |
-          LEMMA_LOS | LEMMA_LAS | LEMMA_LES | LEMMA_NOS | LEMMA_VOS |
-          LEMMA_MIS | LEMMA_NINGUNAS | LEMMA_NINGUNOS |
-          LEMMA_NOSOTROS | LEMMA_NOSOTRAS |
-          LEMMA_VOSOTROS | LEMMA_VOSOTRAS |
-          LEMMA_NUESTROS | LEMMA_NUESTRAS |
-          LEMMA_VUESTROS | LEMMA_VUESTRAS |
-          LEMMA_SUS | LEMMA_TODOS | LEMMA_TODAS |
-          LEMMA_TUS | LEMMA_TUYAS | LEMMA_TUYOS |
-          LEMMA_USTEDES => COUNT_PLURAL
-      case _ => COUNT_SINGULAR
-    }
-    val gender = lemma match {
-      case LEMMA_ALGUNO | LEMMA_ALGUNOS |
-          LEMMA_AMBOS |
-          LEMMA_AQUELLO | LEMMA_AQUELLOS |
-          LEMMA_EL | LEMMA_EL_ACCENTED | LEMMA_ELLO | LEMMA_ELLOS |
-          LEMMA_ESO | LEMMA_ESOS |
-          LEMMA_ESTO | LEMMA_ESTOS |
-          LEMMA_LO | LEMMA_LOS |
-          LEMMA_NINGUNO | LEMMA_NINGUNOS |
-          LEMMA_NOSOTROS | LEMMA_NUESTRO | LEMMA_NUESTROS |
-          LEMMA_VOSOTROS | LEMMA_VUESTRO | LEMMA_VUESTROS |
-          LEMMA_TODO | LEMMA_TODOS |
-          LEMMA_TUYO | LEMMA_TUYOS |
-          LEMMA_UNO | LEMMA_UNOS => GENDER_MASCULINE
-      case LEMMA_ALGUNA | LEMMA_ALGUNAS |
-          LEMMA_AMBAS |
-          LEMMA_AQUELLA | LEMMA_AQUELLAS |
-          LEMMA_ELLA | LEMMA_ELLAS |
-          LEMMA_ESA | LEMMA_ESAS |
-          LEMMA_ESTA | LEMMA_ESTAS |
-          LEMMA_LA | LEMMA_LAS |
-          LEMMA_NINGUNA | LEMMA_NINGUNAS |
-          LEMMA_NOSOTRAS | LEMMA_NUESTRA | LEMMA_NUESTRAS |
-          LEMMA_VOSOTRAS | LEMMA_VUESTRA | LEMMA_VUESTRAS |
-          LEMMA_TODA | LEMMA_TODAS |
-          LEMMA_TUYA | LEMMA_TUYAS |
-          LEMMA_UNA | LEMMA_UNAS => GENDER_FEMININE
+    pronounToCoord.get(lemma) match {
+      case Some(coord) => {
+        tupleN((coord.person, coord.count, coord.gender, coord.inflection,
+          Some(coord.proximity), coord.possesseeCount))
+      }
       case _ => {
-        person match {
-          case PERSON_FIRST | PERSON_SECOND => GENDER_SOMEONE
-          case _ => {
-            if (isCustomPronoun) {
-              GENDER_SOMEONE
-            } else {
-              // FIXME what we really want here is an unknown between
-              // NEUTER and SOMEONE, to be resolved downstream
-              GENDER_NEUTER
-            }
-          }
+        val isCustomPronoun = !isPronounWord(lemma)
+        val gender = if (isCustomPronoun) {
+          GENDER_SOMEONE
+        } else {
+          // FIXME what we really want here is an unknown between
+          // NEUTER and SOMEONE, to be resolved downstream
+          GENDER_NEUTER
         }
+        tupleN((PERSON_THIRD, COUNT_SINGULAR, gender, INFLECT_NONE,
+          None, COUNT_SINGULAR))
       }
     }
-    val proximityOpt = lemma match {
-      case LEMMA_ESTO | LEMMA_ESTOS |
-          LEMMA_ESTA | LEMMA_ESTAS => Some(PROXIMITY_SPEAKER_HERE)
-      case LEMMA_ESO | LEMMA_ESOS |
-          LEMMA_ESA | LEMMA_ESAS => Some(PROXIMITY_LISTENER_THERE)
-      case LEMMA_AQUEL | LEMMA_AQUELLO | LEMMA_AQUELLOS |
-          LEMMA_AQUELLA | LEMMA_AQUELLAS => Some(PROXIMITY_OVER_THERE)
-      case _ => None
-    }
-    tupleN((person, count, gender, proximityOpt))
   }
 
   override def synthesizeMembersRef(
@@ -539,7 +668,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case SilIntegerDeterminer(n) => n.toString
       case _ => throw new IllegalArgumentException(determiner.toString)
     }
-    val (_, count, _, _) = analyzePronoun(lemma)
+    val (_, count, _, _, _, _) = analyzePronoun(lemma)
     annotator.nounRef(SilWord(correctGenderCount(lemma, gender, count, false)))
   }
 
@@ -610,6 +739,8 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     ))
   }
 
+  // FIXME generalize pronoun coordinates to cover determiners,
+  // and use map instead
   override def correctGenderCount(
     lemma : String, gender : SilGender, count : SilCount,
     isModifier : Boolean) : String =
@@ -716,11 +847,23 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
         case COUNT_SINGULAR => LEMMA_TU
         case _ => LEMMA_TUS
       }
+      case LEMMA_MIO => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_MIA
+        case (GENDER_FEMININE, _) => LEMMA_MIAS
+        case (_, COUNT_SINGULAR) => LEMMA_MIO
+        case (_, _) => LEMMA_MIOS
+      }
       case LEMMA_TUYO => tupleN((basic, count)) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_TUYA
         case (GENDER_FEMININE, _) => LEMMA_TUYAS
         case (_, COUNT_SINGULAR) => LEMMA_TUYO
         case (_, _) => LEMMA_TUYOS
+      }
+      case LEMMA_SUYO => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_SUYA
+        case (GENDER_FEMININE, _) => LEMMA_SUYAS
+        case (_, COUNT_SINGULAR) => LEMMA_SUYO
+        case (_, _) => LEMMA_SUYOS
       }
       case LEMMA_UN => tupleN((basic, count)) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_UNA
@@ -759,10 +902,24 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case LEMMA_SUS => LEMMA_SU
       case LEMMA_TODA | LEMMA_TODOS | LEMMA_TODAS => LEMMA_TODO
       case LEMMA_TUS => LEMMA_TU
+      case LEMMA_MIA | LEMMA_MIAS | LEMMA_MIOS => LEMMA_MIO
       case LEMMA_TUYA | LEMMA_TUYAS | LEMMA_TUYOS => LEMMA_TUYO
+      case LEMMA_SUYA | LEMMA_SUYAS | LEMMA_SUYOS => LEMMA_SUYO
       case LEMMA_UNO | LEMMA_UNA | LEMMA_UNOS | LEMMA_UNAS => LEMMA_UN
       case _ => lemma
     }
+  }
+
+  override def pronounLemma(
+    person : SilPerson, gender : SilGender, count : SilCount,
+    proximity : SilProximity,
+    inflection : SilInflection,
+    possesseeCount : SilCount = COUNT_SINGULAR
+  ) : String =
+  {
+    val coord = SprPronounCoord(
+      person, gender, count, proximity, inflection, possesseeCount)
+    coordToPronoun.get(coord).getOrElse("")
   }
 
   override def proximityLemma(proximity : SilProximity) : String =

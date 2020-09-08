@@ -572,6 +572,7 @@ class SmcPhraseScope[
     ref : SilPronounReference
   ) : Try[SmcScopeOutput[EntityType]] =
   {
+    // FIXME what about PROXIMITY_POSSESSEE?
     val outputs = ref match {
       case SilPronounReference(
         PERSON_THIRD, _, _,

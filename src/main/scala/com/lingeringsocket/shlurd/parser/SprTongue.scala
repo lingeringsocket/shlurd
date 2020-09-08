@@ -115,10 +115,18 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
 
   def isProper(lemma : String) : Boolean
 
-  def isPronounWord(lemma : String) : Boolean
+  def getPronounLemmas() : Set[String]
+
+  def isPronounWord(lemma : String) : Boolean =
+  {
+    getPronounLemmas.contains(lemma)
+  }
 
   def analyzePronoun(lemma : String) :
-      (SilPerson, SilCount, SilGender, Option[SilProximity])
+      (
+        SilPerson, SilCount, SilGender,
+        SilInflection, Option[SilProximity], SilCount
+      )
 
   def isSpecialAdposition(lemma : String) : Boolean = false
 
@@ -179,6 +187,13 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   def proximityLemma(proximity : SilProximity) : String
 
   def proximityForLemma(lemma : String) : Option[SilProximity]
+
+  def pronounLemma(
+    person : SilPerson, gender : SilGender, count : SilCount,
+    proximity : SilProximity,
+    inflection : SilInflection,
+    possesseeCount : SilCount = COUNT_SINGULAR
+  ) : String
 
   def filterIndexWords(
     token : String,

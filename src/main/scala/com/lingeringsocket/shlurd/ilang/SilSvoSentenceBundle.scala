@@ -424,6 +424,23 @@ abstract class SilSvoSentenceBundle(
     separate(compose(position, noun), conjoining)
   }
 
+  override def pronoun(
+    person : SilPerson, gender : SilGender, count : SilCount,
+    proximity : SilProximity, word : Option[SilWord],
+    inflection : SilInflection,
+    conjoining : SilConjoining) =
+  {
+    if (proximity == PROXIMITY_ELIDED) {
+      ""
+    } else {
+      def standard = tongue.pronounLemma(
+        person, gender, count, proximity, inflection)
+      val inflected = word.map(w => w.recompose(w.decomposed.map(_.inflected))).
+        getOrElse(standard)
+      separate(inflected, conjoining)
+    }
+  }
+
   // FIXME these need to be translated
   override def unknownSentence() =
   {

@@ -89,23 +89,6 @@ class SilSpanishSentenceBundle(
     compose(head, LEMMA_DE, genitive)
   }
 
-  override def pronoun(
-    person : SilPerson, gender : SilGender, count : SilCount,
-    proximity : SilProximity, word : Option[SilWord],
-    inflection : SilInflection,
-    conjoining : SilConjoining) =
-  {
-    if (proximity == PROXIMITY_ELIDED) {
-      ""
-    } else {
-      // FIXME
-      val standard = "yo"
-      val inflected = word.map(w => w.recompose(w.decomposed.map(_.inflected))).
-        getOrElse(standard)
-      separate(inflected, conjoining)
-    }
-  }
-
   override def determinedNoun(
     determiner : SilDeterminer,
     noun : String,

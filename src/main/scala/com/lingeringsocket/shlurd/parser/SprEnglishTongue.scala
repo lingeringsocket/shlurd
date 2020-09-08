@@ -57,11 +57,27 @@ object SprEnglishLexicon
     "his", "me", "or", "thou", "us", "who", "must", "ca", "may", "in",
     "does", "have", "my", "might"
   ) ++ stopListPunct
+
+  val pronounLemmas = Set(
+    LEMMA_I, LEMMA_ME, LEMMA_WE, LEMMA_MY, LEMMA_MYSELF,
+    LEMMA_OUR, LEMMA_MINE, LEMMA_OURS,
+    LEMMA_OURSELF, LEMMA_OURSELVES,
+    LEMMA_YOU, LEMMA_YOUR, LEMMA_YOURS,
+    LEMMA_YOURSELF, LEMMA_YOURSELVES,
+    LEMMA_US, LEMMA_THEY, LEMMA_THESE, LEMMA_THOSE,
+    LEMMA_IT, LEMMA_ITS, LEMMA_THEM, LEMMA_THEIR,
+    LEMMA_THEMSELF, LEMMA_THEMSELVES,
+    LEMMA_HE, LEMMA_HIM, LEMMA_HIS, LEMMA_HIMSELF,
+    LEMMA_SHE, LEMMA_HER, LEMMA_HERS, LEMMA_HERSELF,
+    LEMMA_THIS, LEMMA_THAT
+  )
 }
 
 class SprEnglishTongue(wordnet : ShlurdWordnet)
     extends SprTongue(wordnet)
 {
+  import SprEnglishLexicon._
+
   override def newSentencePrinter(
     genderAnalyzer : SilGenderAnalyzer) =
   {
@@ -79,7 +95,7 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
       context, guessedQuestion, strictness, enforceTransitive)
   }
 
-  override def getStopList = SprEnglishLexicon.stopList
+  override def getStopList = stopList
 
   override def getRelPredefLemma(predef : SilRelationshipPredef) : String =
   {
@@ -253,42 +269,29 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
 
   override def isAdposition(lemma : String) : Boolean =
   {
-    SprEnglishLexicon.prepositions.contains(lemma)
+    prepositions.contains(lemma)
   }
 
   override def isSubordinatingConjunction(lemma : String) : Boolean =
   {
-    SprEnglishLexicon.subordinates.contains(lemma)
+    subordinates.contains(lemma)
   }
 
   override def isProper(lemma : String) : Boolean =
   {
-    SprEnglishLexicon.proper.contains(lemma)
+    proper.contains(lemma)
   }
 
-  override def isPronounWord(lemma : String) : Boolean =
+  override def getPronounLemmas() : Set[String] =
   {
-    lemma match {
-      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY | LEMMA_MYSELF |
-          LEMMA_OUR | LEMMA_MINE | LEMMA_OURS |
-          LEMMA_OURSELF | LEMMA_OURSELVES |
-          LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS |
-          LEMMA_YOURSELF | LEMMA_YOURSELVES |
-          LEMMA_US | LEMMA_THEY | LEMMA_THESE | LEMMA_THOSE |
-          LEMMA_IT | LEMMA_ITS | LEMMA_THEM | LEMMA_THEIR |
-          LEMMA_THEMSELF | LEMMA_THEMSELVES |
-          LEMMA_HE | LEMMA_HIM | LEMMA_HIS | LEMMA_HIMSELF |
-          LEMMA_SHE | LEMMA_HER | LEMMA_HERS | LEMMA_HERSELF |
-          LEMMA_THIS | LEMMA_THAT => true
-      case _ => false
-    }
+    pronounLemmas
   }
 
   override def analyzePronoun(lemma : String) =
   {
     val isCustomPronoun = !isPronounWord(lemma)
     val person = lemma match {
-      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_MY | LEMMA_MYSELF |
+      case LEMMA_I | LEMMA_ME | LEMMA_WE | LEMMA_US | LEMMA_MY | LEMMA_MYSELF |
           LEMMA_OUR | LEMMA_MINE | LEMMA_OURS |
           LEMMA_OURSELF | LEMMA_OURSELVES => PERSON_FIRST
       case LEMMA_YOU | LEMMA_YOUR | LEMMA_YOURS |
@@ -297,8 +300,8 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     }
     val count = lemma match {
       case LEMMA_WE | LEMMA_US | LEMMA_THEY | LEMMA_THESE | LEMMA_THOSE |
-          LEMMA_OUR | LEMMA_THEM | LEMMA_THEIR |
-          LEMMA_OURSELF | LEMMA_OURSELVES | LEMMA_YOURSELVES |
+          LEMMA_OUR | LEMMA_THEM | LEMMA_THEIR | LEMMA_THEIRS |
+          LEMMA_OURS | LEMMA_OURSELF | LEMMA_OURSELVES | LEMMA_YOURSELVES |
           LEMMA_THEMSELF | LEMMA_THEMSELVES => COUNT_PLURAL
       case _ => COUNT_SINGULAR
     }
@@ -321,14 +324,31 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
         }
       }
     }
+    val inflection = lemma match {
+      case LEMMA_I | LEMMA_WE| LEMMA_HE | LEMMA_THEY | LEMMA_SHE =>
+        INFLECT_NOMINATIVE
+      case LEMMA_ME | LEMMA_US | LEMMA_THEM | LEMMA_HIM | LEMMA_HER =>
+        INFLECT_ACCUSATIVE
+      case LEMMA_MY | LEMMA_OUR | LEMMA_YOUR | LEMMA_ITS |
+          LEMMA_THEIR | LEMMA_HIS =>
+        INFLECT_GENITIVE
+      case _ => INFLECT_NONE
+    }
     val proximityOpt = lemma match {
       case LEMMA_HERE | LEMMA_THIS | LEMMA_THESE =>
         Some(PROXIMITY_SPEAKER_HERE)
       case LEMMA_THERE | LEMMA_THAT | LEMMA_THOSE =>
         Some(PROXIMITY_LISTENER_THERE)
+      case LEMMA_MINE | LEMMA_YOURS | LEMMA_OURS |
+          LEMMA_YOURS | LEMMA_THEIRS | LEMMA_HERS =>
+        Some(PROXIMITY_POSSESSEE)
+      case _ if (isReflexivePronoun(lemma)) =>
+        Some(PROXIMITY_REFLEXIVE)
+      case _ if (!isCustomPronoun) =>
+        Some(PROXIMITY_ENTITY)
       case _ => None
     }
-    tupleN((person, count, gender, proximityOpt))
+    tupleN((person, count, gender, inflection, proximityOpt, COUNT_SINGULAR))
   }
 
   override def synthesizeMembersRef(
@@ -459,6 +479,108 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
   override def shouldForceSQ(tree : SprSyntaxTree) : Boolean =
   {
     tree.firstChild.firstChild.isBeingVerb(this)
+  }
+
+  override def pronounLemma(
+    person : SilPerson, gender : SilGender, count : SilCount,
+    proximity : SilProximity,
+    inflection : SilInflection,
+    possesseeCount : SilCount = COUNT_SINGULAR
+  ) : String =
+  {
+    person match {
+      case PERSON_FIRST => count match {
+        case COUNT_PLURAL => inflection match {
+          case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_US
+          case INFLECT_GENITIVE => LEMMA_OUR
+          case _ => proximity match {
+            case PROXIMITY_REFLEXIVE => LEMMA_OURSELVES
+            case PROXIMITY_POSSESSEE => LEMMA_OURS
+            case PROXIMITY_ELIDED => ""
+            case _ => LEMMA_WE
+          }
+        }
+        case _ => proximity match {
+          case PROXIMITY_REFLEXIVE => LEMMA_MYSELF
+          case PROXIMITY_POSSESSEE => LEMMA_MINE
+          case PROXIMITY_ELIDED => ""
+          case _ => inflection match {
+            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_ME
+            case INFLECT_GENITIVE => LEMMA_MY
+            case _ => "I"
+          }
+        }
+      }
+      case PERSON_SECOND => inflection match {
+        case INFLECT_GENITIVE => LEMMA_YOUR
+        case _ => {
+          proximity match {
+            case PROXIMITY_REFLEXIVE => count match {
+              case COUNT_PLURAL => LEMMA_YOURSELVES
+              case _ => LEMMA_YOURSELF
+            }
+            case PROXIMITY_POSSESSEE => LEMMA_YOURS
+            case PROXIMITY_ELIDED => ""
+            case _ => LEMMA_YOU
+          }
+        }
+      }
+      case PERSON_THIRD => count match {
+        case COUNT_PLURAL => proximity match {
+          case _ : SilHereProximity => LEMMA_THESE
+          case _ : SilThereProximity => LEMMA_THOSE
+          case PROXIMITY_ENTITY => inflection match {
+            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_THEM
+            case INFLECT_GENITIVE => LEMMA_THEIR
+            case _ => LEMMA_THEY
+          }
+          case PROXIMITY_REFLEXIVE => LEMMA_THEMSELVES
+          case PROXIMITY_POSSESSEE => LEMMA_THEIRS
+          case PROXIMITY_ELIDED => ""
+        }
+        case _ => gender.maybeBasic match {
+          case Some(GENDER_MASCULINE | GENDER_SOMEONE) => proximity match {
+            case PROXIMITY_REFLEXIVE => LEMMA_HIMSELF
+            case PROXIMITY_ELIDED => ""
+            case PROXIMITY_POSSESSEE => LEMMA_HIS
+            case _ => inflection match {
+              case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_HIM
+              case INFLECT_GENITIVE => LEMMA_HIS
+              case _ => LEMMA_HE
+            }
+          }
+          case Some(GENDER_FEMININE) => proximity match {
+            case PROXIMITY_REFLEXIVE => LEMMA_HERSELF
+            case PROXIMITY_ELIDED => ""
+            case PROXIMITY_POSSESSEE => LEMMA_HERS
+            case _ => inflection match {
+              case INFLECT_ACCUSATIVE | INFLECT_GENITIVE |
+                  INFLECT_ADPOSITIONED => LEMMA_HER
+              case _ => LEMMA_SHE
+            }
+          }
+          case Some(GENDER_NEUTER) => proximity match {
+            case _ : SilHereProximity => LEMMA_THIS
+            case _ : SilThereProximity => LEMMA_THAT
+            case PROXIMITY_POSSESSEE => LEMMA_ITS
+            case PROXIMITY_ENTITY => inflection match {
+              case INFLECT_GENITIVE => LEMMA_ITS
+              case _ => LEMMA_IT
+            }
+            case PROXIMITY_REFLEXIVE => LEMMA_ITSELF
+            case PROXIMITY_ELIDED => ""
+          }
+          case Some(GENDER_SOMEWHERE) => proximity match {
+            case _ : SilHereProximity => LEMMA_HERE
+            case PROXIMITY_ELIDED => ""
+            case _ => LEMMA_THERE
+          }
+          case _ => {
+            throw new IllegalArgumentException("custom pronoun word required")
+          }
+        }
+      }
+    }
   }
 
   override def proximityLemma(proximity : SilProximity) : String =

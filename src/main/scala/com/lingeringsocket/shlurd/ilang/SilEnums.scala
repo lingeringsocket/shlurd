@@ -90,6 +90,7 @@ case object PROXIMITY_LISTENER_THERE extends SilThereLimitedProximity
 case object PROXIMITY_OVER_THERE extends SilThereLimitedProximity
 case object PROXIMITY_WAY_OVER_THERE extends SilThereProximity
 case object PROXIMITY_ENTITY extends SilProximity
+case object PROXIMITY_POSSESSEE extends SilProximity
 case object PROXIMITY_REFLEXIVE extends SilProximity
 case object PROXIMITY_ELIDED extends SilProximity
 
