@@ -15,10 +15,10 @@
 package com.lingeringsocket.shlurd.mind
 
 // FIXME maybe these should be renamed with smc- prefix?
-object SmcLemmas
+object SmcIdeals
 {
-  val LEMMA_OBJECT = "spc-object"
-  val LEMMA_SOMEONE = "spc-someone"
-  val LEMMA_CONTAINER = "spc-container"
-  val LEMMA_CONTAINEE = "spc-contained-object"
+  val FORM_OBJECT = "spc-object"
+  val FORM_SOMEONE = "spc-someone"
+  val ROLE_CONTAINER = "spc-container"
+  val ROLE_CONTAINEE = "spc-contained-object"
 }

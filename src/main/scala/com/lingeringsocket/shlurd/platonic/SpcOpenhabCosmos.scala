@@ -331,6 +331,8 @@ abstract class SpcOpenhabDefaultCosmos extends SpcOpenhabCosmos
 class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
     extends SpcMind(cosmos)
 {
+  private implicit val tongue = getTongue
+
   override def spawn(newCosmos : SpcCosmos) =
   {
     val mind = new SpcOpenhabMind(newCosmos.asInstanceOf[SpcOpenhabCosmos])
@@ -350,7 +352,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
     adposition : SilAdposition,
     qualifiers : Set[SilWord]) : Try[Trilean] =
   {
-    if (adposition == SilAdposition.GENITIVE_OF) {
+    if (adposition == SilAdposition(MW_GENITIVE_OF)) {
       super.evaluateEntityAdpositionPredicate(
         entity, location, adposition, qualifiers)
     } else {
@@ -419,7 +421,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
                 annotator.stateSpecifiedRef(
                   ref,
                   SilAdpositionalState(
-                    SilAdposition.ON,
+                    SilAdposition(MW_ON),
                     floorRef))
               }
               case _ => ref

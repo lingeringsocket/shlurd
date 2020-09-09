@@ -399,6 +399,8 @@ class PhlebShell(
 
   private var listenerMind : Option[(SpcEntity, PhlebMind)] = None
 
+  private implicit val tongue = noumenalMind.getTongue
+
   private val executor = new PhlebExecutor(terminal, noumenalMind)
   {
     override protected def processFiat(
@@ -444,7 +446,7 @@ class PhlebShell(
       val lemma = ap.verb.toLemma
       val targetRefOpt = ap.modifiers.flatMap(_ match {
         case SilAdpositionalVerbModifier(
-          SilAdposition.TO,
+          SilMagicAdposition(MW_TO),
           ref) => Some(ref)
         case _ => None
       }).headOption.orElse {

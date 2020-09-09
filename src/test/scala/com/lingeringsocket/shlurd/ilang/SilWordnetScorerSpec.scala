@@ -22,6 +22,8 @@ class SilWordnetScorerSpec extends Specification
 {
   private val scorer = SprContext.defaultPhraseScorer
 
+  private implicit val tongue = SprContext.defaultTongue
+
   private val annotator = SilBasicAnnotator()
 
   private val pronoun =
@@ -76,7 +78,8 @@ class SilWordnetScorerSpec extends Specification
             Some(pronoun),
             Seq(SilAdpositionalVerbModifier(adp, pronoun))))
       }
-      score(SilAdposition.FROM) must be greaterThan score(SilAdposition.ON)
+      score(SilAdposition(MW_FROM)) must be greaterThan
+        score(SilAdposition(MW_ON))
     }
   }
 }

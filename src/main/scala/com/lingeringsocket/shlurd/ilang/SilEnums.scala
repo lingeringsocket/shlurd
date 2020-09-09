@@ -17,9 +17,6 @@ package com.lingeringsocket.shlurd.ilang
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
-// FIXME
-import SprEnglishLemmas._
-
 sealed trait SilReferenceContext
 case object REF_SUBJECT extends SilReferenceContext
 case object REF_COMPLEMENT extends SilReferenceContext
@@ -101,6 +98,27 @@ case object COMPOUND_HYPHENATED extends SilCompoundStyle
 
 case class SilAdposition(word : SilWord)
 {
+  override def equals(other : Any) =
+  {
+    other match {
+      case SilAdposition(otherWord) => {
+        word.toLemma == otherWord.toLemma
+      }
+      case _ => false
+    }
+  }
+
+  override def hashCode = word.toLemma.hashCode
+}
+
+object SilMagicAdposition
+{
+  def unapply(
+    adposition : SilAdposition)(implicit tongue : SprTongue)
+      : Option[SprMagicWord] =
+  {
+    tongue.keywordForLemma(adposition.word.toLemma)
+  }
 }
 
 object SilAdposition
@@ -114,41 +132,11 @@ object SilAdposition
     }
   }
 
-  private def adposition(lemma : String) =
+  def apply(
+    magicWord : SprMagicWord)(implicit tongue : SprTongue) : SilAdposition =
   {
-    SilAdposition(SilWord(lemma))
+    SilAdposition(SilMagicWord(magicWord))
   }
-
-  val AMONG = adposition(LEMMA_AMONG)
-  val EXCEPT = adposition(LEMMA_EXCEPT)
-  val IN = adposition(LEMMA_IN)
-  val INSIDE = adposition(LEMMA_INSIDE)
-  val WITHIN = adposition(LEMMA_WITHIN)
-  val OUTSIDE = adposition(LEMMA_OUTSIDE)
-  val AT = adposition(LEMMA_AT)
-  val WITH = adposition(LEMMA_WITH)
-  val AS = adposition(LEMMA_AS)
-  val NEAR = adposition(LEMMA_NEAR)
-  val NEARBY = adposition(LEMMA_NEARBY)
-  val ON = adposition(LEMMA_ON)
-  val ABOVE = adposition(LEMMA_ABOVE)
-  val OVER = adposition(LEMMA_OVER)
-  val BELOW = adposition(LEMMA_BELOW)
-  val UNDER = adposition(LEMMA_UNDER)
-  val BENEATH = adposition(LEMMA_BENEATH)
-  val UNDERNEATH = adposition(LEMMA_UNDERNEATH)
-  val BEFORE = adposition(LEMMA_BEFORE)
-  val AFTER = adposition(LEMMA_AFTER)
-  val LEFT = adposition(LEMMA_LEFT)
-  val RIGHT = adposition(LEMMA_RIGHT)
-  val FRONT = adposition(LEMMA_FRONT)
-  val BACK = adposition(LEMMA_BACK)
-  val BEHIND = adposition(LEMMA_BEHIND)
-  val TO = adposition(LEMMA_TO)
-  val FROM = adposition(LEMMA_FROM)
-  val OF = adposition(LEMMA_OF)
-  val GENITIVE_OF = adposition(LEMMA_GENITIVE_OF)
-  val ADVERBIAL_TMP = adposition(LEMMA_ADVERBIAL_TMP)
 }
 
 sealed trait SilCount

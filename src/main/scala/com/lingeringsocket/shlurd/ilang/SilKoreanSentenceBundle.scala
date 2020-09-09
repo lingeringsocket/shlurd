@@ -422,7 +422,7 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
               }
             }
             case INFLECT_ADPOSITIONED => {
-              // FIXME this is only correct for SilAdposition.TO;
+              // FIXME this is only correct for SilAdposition(MW_TO);
               // also, should take formality into account
               "에게"
             }

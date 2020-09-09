@@ -216,6 +216,8 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
 class ZooMind(cosmos : ZooCosmos)
     extends SmcMind[SmcEntity, SmcProperty, ZooCosmos](cosmos)
 {
+  private implicit val tongue = getTongue
+
   override def spawn(newCosmos : ZooCosmos) =
   {
     val mind = new ZooMind(newCosmos)
@@ -259,13 +261,13 @@ class ZooMind(cosmos : ZooCosmos)
     qualifiers : Set[SilWord]) : Try[Trilean] =
   {
     val map = adposition match {
-      case SilAdposition.GENITIVE_OF => {
+      case SilMagicAdposition(MW_GENITIVE_OF) => {
         if (!objEntity.isInstanceOf[ZooPersonEntity]) {
           return Success(Trilean.False)
         }
         ZooCosmos.ownership
       }
-      case SilAdposition.IN | SilAdposition.ON => {
+      case SilMagicAdposition(MW_IN | MW_ON) => {
         if (!objEntity.isInstanceOf[ZooLocationEntity]) {
           return Success(Trilean.False)
         }

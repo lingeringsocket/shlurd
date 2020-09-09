@@ -750,8 +750,8 @@ abstract class SprSvoSyntaxAnalyzer(
             if (extracted) {
               // FIXME ugh
               adposition match {
-                case SilAdposition.OF | SilAdposition.GENITIVE_OF
-                    | SilAdposition.TO => false
+                case SilMagicAdposition(
+                  MW_OF | MW_GENITIVE_OF | MW_TO) => false
                 case _ => true
               }
             } else {
@@ -799,7 +799,7 @@ abstract class SprSvoSyntaxAnalyzer(
       }
     } else if ((seq.size == 1) && seq.head.isNounPhrase) {
       SilAdpositionalState(
-        SilAdposition.ADVERBIAL_TMP, expectReference(seq.head))
+        SilAdposition(MW_ADVERBIAL_TMP), expectReference(seq.head))
     } else {
       SilUnrecognizedState(tree)
     }
@@ -817,29 +817,11 @@ abstract class SprSvoSyntaxAnalyzer(
           None
         }
       }
-      case _ => preTerminal.firstChild.lemma match {
-        case LEMMA_IN => Some(SilAdposition.IN)
-        case LEMMA_INSIDE => Some(SilAdposition.INSIDE)
-        case LEMMA_WITHIN => Some(SilAdposition.WITHIN)
-        case LEMMA_OUTSIDE => Some(SilAdposition.OUTSIDE)
-        case LEMMA_AT => Some(SilAdposition.AT)
-        case LEMMA_WITH => Some(SilAdposition.WITH)
-        case LEMMA_AMONG => Some(SilAdposition.AMONG)
-        case LEMMA_EXCEPT => Some(SilAdposition.EXCEPT)
-        case LEMMA_AS => Some(SilAdposition.AS)
-        case LEMMA_NEAR => Some(SilAdposition.NEAR)
-        case LEMMA_NEARBY => Some(SilAdposition.NEARBY)
-        case LEMMA_ON => Some(SilAdposition.ON)
-        case LEMMA_ABOVE => Some(SilAdposition.ABOVE)
-        case LEMMA_OVER => Some(SilAdposition.OVER)
-        case LEMMA_BELOW => Some(SilAdposition.BELOW)
-        case LEMMA_UNDER => Some(SilAdposition.UNDER)
-        case LEMMA_BENEATH => Some(SilAdposition.BENEATH)
-        case LEMMA_UNDERNEATH => Some(SilAdposition.UNDERNEATH)
-        case LEMMA_BEHIND => Some(SilAdposition.BEHIND)
-        case LEMMA_OF => Some(SilAdposition.OF)
-        case LEMMA_TO => Some(SilAdposition.TO)
-        case _ => None
+      case _ => {
+        tongue.keywordForLemma(preTerminal.firstChild.lemma) match {
+          case Some(amw : SprAdpositionMagicWord) => Some(SilAdposition(amw))
+          case _ => None
+        }
       }
     }
   }
@@ -941,7 +923,7 @@ abstract class SprSvoSyntaxAnalyzer(
     val objTrees = directObjTree.toSeq ++ indirectObjTree
     val indirectAdposition = indirectObjTree.map(indirectObj => {
       val modifier = SilAdpositionalVerbModifier(
-        SilAdposition.TO,
+        SilAdposition(MW_TO),
         expectReference(indirectObj)
       )
       modifier.rememberSyntaxTree(indirectObj)

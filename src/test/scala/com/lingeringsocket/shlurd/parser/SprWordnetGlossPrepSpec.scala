@@ -25,6 +25,8 @@ class SprWordnetGlossPrepSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
+  private implicit val tongue = SprContext.defaultTongue
+
   private def parseAll(
     iter : Iterator[String], parser : String => Option[SilPhrase]) =
   {
@@ -97,7 +99,7 @@ class SprWordnetGlossPrepSpec extends Specification
             None,
             Seq(
               SilAdpositionalVerbModifier(
-                SilAdposition.ON,
+                SilAdposition(MW_ON),
                 annotator.determinedRef(
                   annotator.stateSpecifiedRef(
                     annotator.nounRef(

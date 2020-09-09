@@ -24,16 +24,16 @@ class SilWordnetSenseAnalyzerSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
+  private implicit val tongue = SprContext.defaultTongue
+
   private val analyzer =
-    new SilWordnetSenseAnalyzer(ShlurdPrincetonWordnet, annotator)
+    new SilWordnetSenseAnalyzer(tongue, ShlurdPrincetonWordnet, annotator)
 
   private val pronounI =
     annotator.basicPronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
 
   private val pronounIt =
     annotator.basicPronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
-
-  private implicit val tongue = SprContext.defaultTongue
 
   private def analyze(action : SilActionPredicate) : String =
   {

@@ -48,28 +48,68 @@ sealed trait SprMagicWord
 {
   def toLemma(implicit tongue : SprTongue) = magicToString(this)
 }
-case object MW_AFTER extends SprMagicWord
-case object MW_ALSO extends SprMagicWord
-case object MW_ANOTHER extends SprMagicWord
-case object MW_BEFORE extends SprMagicWord
-case object MW_BELIEVE extends SprMagicWord
-case object MW_CONSEQUENTLY extends SprMagicWord
-case object MW_EXIST extends SprMagicWord
-case object MW_FEMININE extends SprMagicWord
-case object MW_GENERALLY extends SprMagicWord
-case object MW_IF extends SprMagicWord
-case object MW_KIND extends SprMagicWord
-case object MW_MASCULINE extends SprMagicWord
-case object MW_NEUTER extends SprMagicWord
-case object MW_OTHERWISE extends SprMagicWord
-case object MW_SAME extends SprMagicWord
-case object MW_SUBSEQUENTLY extends SprMagicWord
-case object MW_WHAT extends SprMagicWord
-case object MW_WHERE extends SprMagicWord
-case object MW_WHICH extends SprMagicWord
-case object MW_WHO extends SprMagicWord
-case object MW_WHOM extends SprMagicWord
-case object MW_WHOSE extends SprMagicWord
+sealed trait SprQuestionMagicWord extends SprMagicWord
+sealed trait SprGenderMagicWord extends SprMagicWord
+sealed trait SprBeliefMagicWord extends SprMagicWord
+sealed trait SprAdpositionMagicWord extends SprMagicWord
+
+// question words
+case object MW_WHAT extends SprQuestionMagicWord
+case object MW_WHERE extends SprQuestionMagicWord
+case object MW_WHICH extends SprQuestionMagicWord
+case object MW_WHO extends SprQuestionMagicWord
+case object MW_WHOM extends SprQuestionMagicWord
+case object MW_WHOSE extends SprQuestionMagicWord
+
+// genders
+case object MW_MASCULINE extends SprGenderMagicWord
+case object MW_FEMININE extends SprGenderMagicWord
+case object MW_NEUTER extends SprGenderMagicWord
+
+// keywords used in belief statements
+case object MW_ALSO extends SprBeliefMagicWord
+case object MW_ANOTHER extends SprBeliefMagicWord
+case object MW_BELIEVE extends SprBeliefMagicWord
+case object MW_CONSEQUENTLY extends SprBeliefMagicWord
+case object MW_EXIST extends SprBeliefMagicWord
+case object MW_GENERALLY extends SprBeliefMagicWord
+case object MW_IF extends SprBeliefMagicWord
+case object MW_KIND extends SprBeliefMagicWord
+case object MW_OTHERWISE extends SprBeliefMagicWord
+case object MW_SAME extends SprBeliefMagicWord
+case object MW_SUBSEQUENTLY extends SprBeliefMagicWord
+
+// important adpositions
+case object MW_AMONG extends SprAdpositionMagicWord
+case object MW_EXCEPT extends SprAdpositionMagicWord
+case object MW_IN extends SprAdpositionMagicWord
+case object MW_INSIDE extends SprAdpositionMagicWord
+case object MW_WITHIN extends SprAdpositionMagicWord
+case object MW_OUTSIDE extends SprAdpositionMagicWord
+case object MW_AT extends SprAdpositionMagicWord
+case object MW_WITH extends SprAdpositionMagicWord
+case object MW_AS extends SprAdpositionMagicWord
+case object MW_NEAR extends SprAdpositionMagicWord
+case object MW_NEARBY extends SprAdpositionMagicWord
+case object MW_ON extends SprAdpositionMagicWord
+case object MW_ABOVE extends SprAdpositionMagicWord
+case object MW_OVER extends SprAdpositionMagicWord
+case object MW_BELOW extends SprAdpositionMagicWord
+case object MW_UNDER extends SprAdpositionMagicWord
+case object MW_BENEATH extends SprAdpositionMagicWord
+case object MW_UNDERNEATH extends SprAdpositionMagicWord
+case object MW_BEFORE extends SprAdpositionMagicWord with SprBeliefMagicWord
+case object MW_AFTER extends SprAdpositionMagicWord with SprBeliefMagicWord
+case object MW_LEFT extends SprAdpositionMagicWord
+case object MW_RIGHT extends SprAdpositionMagicWord
+case object MW_FRONT extends SprAdpositionMagicWord
+case object MW_BACK extends SprAdpositionMagicWord
+case object MW_BEHIND extends SprAdpositionMagicWord
+case object MW_TO extends SprAdpositionMagicWord
+case object MW_FROM extends SprAdpositionMagicWord
+case object MW_OF extends SprAdpositionMagicWord
+case object MW_GENITIVE_OF extends SprAdpositionMagicWord
+case object MW_ADVERBIAL_TMP extends SprAdpositionMagicWord
 
 object SilMagicWord
 {
@@ -89,7 +129,9 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
     extends SprSynthesizer with SilGenderAnalyzer
 {
   lazy val relLemmaMap = Map(SilRelationshipPredef.enumeration.map(
-      rel => tupleN((getRelPredefLemma(rel), rel))):_*)
+    rel => tupleN((getRelPredefLemma(rel), rel))):_*)
+
+  private implicit val tongue = this
 
   def newSentencePrinter(
     genderAnalyzer : SilGenderAnalyzer) : SilSentencePrinter
@@ -221,7 +263,7 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
     annotator.stateSpecifiedRef(
       membersRef,
       SilAdpositionalState(
-        SilAdposition.OF,
+        SilAdposition(MW_OF),
         setRef))
   }
 

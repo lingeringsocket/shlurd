@@ -643,7 +643,7 @@ case class SilStateSpecifiedReference private(
   override def acceptsSpecifiers : Boolean = {
     // FIXME:  weird special case for "3 of them"
     state matchPartial {
-      case SilAdpositionalState(SilAdposition.OF, pn : SilPronounReference) => {
+      case SilAdpositionalState(_, pn : SilPronounReference) => {
         reference matchPartial {
           case SilOptionallyDeterminedReference(
             SilNounLemmaReference(lemma),

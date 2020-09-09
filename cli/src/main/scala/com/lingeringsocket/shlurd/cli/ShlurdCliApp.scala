@@ -108,7 +108,7 @@ class ShlurdCliShell(
 
   private val entityShlurd = cosmos.uniqueEntity(
     cosmos.resolveQualifiedNoun(
-      SmcLemmas.LEMMA_SOMEONE, REF_SUBJECT, Set("shlurd"))).get
+      SmcIdeals.FORM_SOMEONE, REF_SUBJECT, Set("shlurd"))).get
 
   private val params = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
 

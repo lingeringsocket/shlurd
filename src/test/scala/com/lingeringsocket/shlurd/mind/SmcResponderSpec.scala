@@ -43,6 +43,8 @@ class SmcResponderSpec extends Specification
     SmcEntity, SmcProperty, CosmosType, MindType](
     mind, params, executor, communicationContext)
   {
+    private implicit val tongue = mind.getTongue
+
     override protected def newPredicateEvaluator(
       annotator : AnnotatorType,
       scope : ScopeType) =
@@ -57,7 +59,7 @@ class SmcResponderSpec extends Specification
         {
           state match {
             case SilAdpositionalState(
-              SilAdposition.IN,
+              SilMagicAdposition(MW_IN),
               SilMandatorySingular(
                 SilWordInflected("dreamland")
               )) =>

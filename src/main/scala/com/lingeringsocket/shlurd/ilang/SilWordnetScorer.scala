@@ -23,9 +23,11 @@ import net.sf.extjwnl.data._
 import scala.collection._
 
 class SilWordnetScorer(
-  tongue : SprTongue
+  tongueIn : SprTongue
 ) extends SilPhraseScorer
 {
+  private implicit val tongue = tongueIn
+
   private val wordnet = tongue.getWordnet
 
   type PhraseScorer = PartialFunction[SilPhrase, SilPhraseScore]
@@ -232,9 +234,9 @@ class SilWordnetScorer(
       val words = ap.adposition.word.decomposed
       if ((words.size > 1) && words.exists(_.lemma == LEMMA_THERE)) {
         SilPhraseScore.conBig
-      } else if (words.exists(_.inflected == LEMMA_ADVERBIAL_TMP)) {
+      } else if (words.exists(_.lemma == LEMMA_ADVERBIAL_TMP)) {
         SilPhraseScore.proBig
-      } else if (ap.adposition != SilAdposition.TO) {
+      } else if (ap.adposition != SilAdposition(MW_TO)) {
         // in a phrase like "he went up the steps", we boost the
         // interpretation of "up" as an adposition vs adverb
         SilPhraseScore.pro(20)
@@ -273,7 +275,7 @@ class SilWordnetScorer(
     ) => {
       val frameFlags = wordnet.getVerbFrameFlags(lemma)
       val matched = SilWordnetScorer.matchAction(
-        frameFlags, subject, directObject, modifiers)
+        tongue, frameFlags, subject, directObject, modifiers)
       if (matched > 0) {
         SilPhraseScore.pro(matched)
       } else {
@@ -292,11 +294,14 @@ class SilWordnetScorer(
 object SilWordnetScorer
 {
   def matchAction(
+    tongueIn : SprTongue,
     frameFlags : BitSet,
     subject : SilReference,
     directObject : Option[SilReference],
     modifiers : Seq[SilVerbModifier]) : Int =
   {
+    implicit val tongue = tongueIn
+
     frameFlags.count(_ match {
       // see https://wordnet.princeton.edu/documentation/wninput5wn
       case 1 => {
@@ -330,60 +335,62 @@ object SilWordnetScorer
       }
       case 8 => {
         // Somebody ----s something
-        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition.TO)
+        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition(MW_TO))
       }
       case 9 => {
         // Somebody ----s somebody
-        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition.TO)
+        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition(MW_TO))
       }
       case 10 => {
         // Something ----s somebody
-        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition.TO)
+        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition(MW_TO))
       }
       case 11 => {
         // Something ----s something
-        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition.TO)
+        directObject.nonEmpty && !hasAdposition(modifiers, SilAdposition(MW_TO))
       }
       case 12 => {
         // Something ----s to somebody
-        directObject.isEmpty && hasAdposition(modifiers, SilAdposition.TO)
+        directObject.isEmpty && hasAdposition(modifiers, SilAdposition(MW_TO))
       }
       case 13 => {
         //  Somebody ----s on something
-        directObject.isEmpty && hasAdposition(modifiers, SilAdposition.ON)
+        directObject.isEmpty && hasAdposition(modifiers, SilAdposition(MW_ON))
       }
       case 14 => {
         // Somebody ----s somebody something
-        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition.TO)
+        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition(MW_TO))
       }
       case 15 => {
         // Somebody ----s something to somebody
-        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition.TO)
+        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition(MW_TO))
       }
       case 16 => {
         // Somebody ----s something from somebody
-        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition.FROM)
+        directObject.nonEmpty &&
+          hasAdposition(modifiers, SilAdposition(MW_FROM))
       }
       case 17 => {
         // Somebody ----s somebody with something
-        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition.WITH)
+        directObject.nonEmpty &&
+          hasAdposition(modifiers, SilAdposition(MW_WITH))
       }
       case 18 => {
         // Somebody ----s somebody of something
-        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition.OF)
+        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition(MW_OF))
       }
       case 19 => {
         // Somebody ----s something on somebody
-        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition.ON)
+        directObject.nonEmpty && hasAdposition(modifiers, SilAdposition(MW_ON))
       }
       case 20 => {
         // Somebody ----s somebody PP
         directObject.nonEmpty && hasAdposition(modifiers) &&
-        !hasAdposition(modifiers, SilAdposition.TO)
+        !hasAdposition(modifiers, SilAdposition(MW_TO))
       }
       case 21 => {
         // Somebody ----s something PP &&
-        !hasAdposition(modifiers, SilAdposition.TO)
+        !hasAdposition(modifiers, SilAdposition(MW_TO))
         directObject.nonEmpty && hasAdposition(modifiers)
       }
       case 22 => {
@@ -408,7 +415,7 @@ object SilWordnetScorer
       }
       case 27 => {
         // Somebody ----s to somebody
-        directObject.isEmpty && hasAdposition(modifiers,SilAdposition.TO)
+        directObject.isEmpty && hasAdposition(modifiers,SilAdposition(MW_TO))
       }
       case 28 => {
         // Somebody ----s to INFINITIVE
@@ -424,7 +431,7 @@ object SilWordnetScorer
       }
       case 31 => {
         // Somebody ----s something with something
-        directObject.nonEmpty && hasAdposition(modifiers,SilAdposition.WITH)
+        directObject.nonEmpty && hasAdposition(modifiers,SilAdposition(MW_WITH))
       }
       case 32 => {
         // Somebody ----s INFINITIVE

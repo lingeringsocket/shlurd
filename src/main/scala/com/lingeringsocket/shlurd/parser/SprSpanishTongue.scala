@@ -377,24 +377,51 @@ object SprSpanishLexicon
   val pronounLemmas = pronounToCoord.keySet
 
   val keywordToLemma : Map[SprMagicWord, String] = Map(
-    // FIXME should be compound "después de"
-    MW_AFTER -> "después",
+    MW_ABOVE -> "arriba de",
+    MW_ADVERBIAL_TMP -> "_temporal_",
+    MW_AFTER -> "después de",
     MW_ALSO -> "también",
+    // FIXME Spanish doesn't discriminate from MW_BETWEEN
+    MW_AMONG -> "entre",
     // FIXME needs to respect gender
     MW_ANOTHER -> "otro",
-    // FIXME should be compound "antes de"
-    MW_BEFORE -> "antes",
+    MW_AS -> "como",
+    // FIXME a lot of variations for this one
+    MW_AT -> "hacia",
+    // FIXME why does this even exist?
+    MW_BACK -> "atrás de",
+    MW_BEFORE -> "antes de",
     MW_BELIEVE -> "crea",
+    MW_BEHIND -> "detrás de",
+    MW_BELOW -> "debajo de",
+    MW_BENEATH -> "bajo",
     MW_CONSEQUENTLY -> "consiguientemente",
+    MW_EXCEPT -> "excepto",
     MW_EXIST -> LEMMA_EXISTIR,
     MW_FEMININE -> "feminino",
+    MW_FROM -> "desde",
+    MW_FRONT -> "enfrente de",
     MW_GENERALLY -> "generalmente",
+    // Spanish doesn't really need this
+    MW_GENITIVE_OF -> "_of_",
     MW_IF -> "si",
+    MW_IN -> "en",
+    MW_INSIDE -> "dentro de",
     MW_KIND -> "tipo",
+    MW_LEFT -> "a la izquierda de",
     MW_MASCULINE -> "masculino",
+    MW_NEAR -> "cerca de",
+    MW_NEARBY -> "alrededor de",
     MW_NEUTER -> "neutro",
+    MW_OF -> "de",
+    MW_ON -> "encima de",
     MW_OTHERWISE -> "contrario",
+    MW_OUTSIDE -> "fuera de",
+    MW_OVER -> "sobre",
+    MW_RIGHT -> "al derecho de",
     MW_SAME -> "mismo",
+    MW_TO -> "a",
+    MW_UNDER -> "abajo de",
     MW_SUBSEQUENTLY -> "posteriormente",
     // FIXME need to discriminate qué from que
     MW_WHAT -> "que",
@@ -407,11 +434,16 @@ object SprSpanishLexicon
     // FIXME how is this supposed to work?
     MW_WHOM -> "a quién",
     // FIXME how is this supposed to work?
-    MW_WHOSE -> "de quién"
+    MW_WHOSE -> "de quién",
+    MW_WITH -> "con",
+    MW_WITHIN -> "a menos de",
+    MW_UNDERNEATH -> "debajo de"
   )
 
   val lemmaToKeyword = keywordToLemma.map(_.swap)
-  assert(keywordToLemma.size == lemmaToKeyword.size)
+
+  // FIXME figure out how to handle non 1-to-1 mappings
+  // assert(keywordToLemma.size == lemmaToKeyword.size)
 }
 
 class SprSpanishTongue(wordnet : ShlurdWordnet)

@@ -88,7 +88,7 @@ class SmcResponseRewriter[
                 SilGenitiveReference(
                   _,
                   SilNounLemmaReference(
-                    SmcLemmas.LEMMA_CONTAINEE
+                    SmcIdeals.ROLE_CONTAINEE
                   )
                 ),
                 _
@@ -394,7 +394,7 @@ class SmcResponseRewriter[
             SilGenitiveReference(
               containee,
               SilNounLemmaReference(
-                SmcLemmas.LEMMA_CONTAINER
+                SmcIdeals.ROLE_CONTAINER
               )),
             verbModifiers
           ),
@@ -413,7 +413,7 @@ class SmcResponseRewriter[
             containee,
             verb.toUninflected,
             SilAdpositionalState(
-              SilAdposition.IN,
+              SilAdposition(MW_IN),
               container),
             verbModifiers)
         }
@@ -425,7 +425,7 @@ class SmcResponseRewriter[
             SilGenitiveReference(
               container,
               SilNounLemmaReference(
-                SmcLemmas.LEMMA_CONTAINEE
+                SmcIdeals.ROLE_CONTAINEE
               )),
             verbModifiers
           ),
@@ -435,7 +435,7 @@ class SmcResponseRewriter[
           containee,
           STATE_PREDEF_BE.toVerb,
           SilAdpositionalState(
-            SilAdposition.IN,
+            SilAdposition(MW_IN),
             container),
           verbModifiers)
       }
@@ -610,7 +610,7 @@ class SmcResponseRewriter[
         sr @ SilStateSpecifiedReference(
           _,
           SilAdpositionalState(
-            SilAdposition.OF,
+            SilMagicAdposition(MW_OF),
             SilPronounReference(
               PERSON_THIRD, _, COUNT_PLURAL, PROXIMITY_ENTITY))),
         _
@@ -987,7 +987,7 @@ class SmcResponseRewriter[
       annotator.stateSpecifiedRef(
         annotator.determinedRef(nounRef, determiner),
         SilAdpositionalState(
-          SilAdposition.OF,
+          SilAdposition(MW_OF),
           annotator.pronounRef(
             PERSON_THIRD,
             GENDER_NEUTER,

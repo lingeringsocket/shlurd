@@ -175,7 +175,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         ),
         modifiers
       ) if (
-        (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
+        (adp == SilAdposition(MW_OF)) && compassRose.contains(direction.lemma)
       ) => {
         SilStatePredicate(
           subject,
@@ -193,7 +193,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         SilPropertyState(direction : SilSimpleWord),
         Seq(SilAdpositionalVerbModifier(adp, landmark))
       ) if (
-        (adp == SilAdposition.OF) && compassRose.contains(direction.lemma)
+        (adp == SilAdposition(MW_OF)) && compassRose.contains(direction.lemma)
       ) => {
         SilStatePredicate(
           subject,

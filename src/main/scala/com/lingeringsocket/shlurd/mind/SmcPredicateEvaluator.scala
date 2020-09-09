@@ -618,7 +618,7 @@ class SmcPredicateEvaluator[
       unassumed,
       state match {
         case SilExistenceState(_) | SilAdpositionalState(
-          SilAdposition.GENITIVE_OF, _
+          SilMagicAdposition(MW_GENITIVE_OF), _
         ) => true
         case _ => false
       }
@@ -680,7 +680,7 @@ class SmcPredicateEvaluator[
         val roleQualifiers = extractRoleQualifiers(complementRef)
         val result = mind.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,
-          SilAdposition.GENITIVE_OF, roleQualifiers)
+          SilAdposition(MW_GENITIVE_OF), roleQualifiers)
         trace("RESULT FOR " +
           s"$complementEntity GENITIVE_OF " +
           s"$subjectEntity with $roleQualifiers is $result")
@@ -741,7 +741,7 @@ class SmcPredicateEvaluator[
           adpositionStates.forall(adp => {
             val adposition = adp.adposition
             val qualifiers : Set[SilWord] = {
-              if (adposition == SilAdposition.GENITIVE_OF) {
+              if (adposition == SilAdposition(MW_GENITIVE_OF)) {
                 Set(noun)
               } else {
                 Set.empty
@@ -1232,7 +1232,7 @@ class SmcPredicateEvaluator[
               }
             }
             val state = SilAdpositionalState(
-              SilAdposition.GENITIVE_OF, possessor)
+              SilAdposition(MW_GENITIVE_OF), possessor)
             val result = evaluatePredicateOverState(
               possessee, state, REF_GENITIVE_POSSESSEE, resultCollector,
               specifiedState, evaluator)
@@ -1312,13 +1312,13 @@ class SmcPredicateEvaluator[
           ) => {
             val rephrased = noun match {
               case SilMagicWord(MW_WHO) =>
-                SilWord(SmcLemmas.LEMMA_SOMEONE)
+                SilWord(SmcIdeals.FORM_SOMEONE)
               case SilMagicWord(MW_WHOM) =>
-                SilWord(SmcLemmas.LEMMA_SOMEONE)
+                SilWord(SmcIdeals.FORM_SOMEONE)
               case SilMagicWord(MW_WHAT) =>
                 SilWord(LEMMA_THAT)
               case SilMagicWord(MW_WHERE) =>
-                SilWord(SmcLemmas.LEMMA_CONTAINER)
+                SilWord(SmcIdeals.ROLE_CONTAINER)
               case _ => noun
             }
             val rephrasedDeterminer = determiner match {

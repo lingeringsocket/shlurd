@@ -1955,7 +1955,7 @@ class SpcCosmos(
 
   private def guessGender(ideal : SpcIdeal) : SilGender =
   {
-    resolveForm(SmcLemmas.LEMMA_SOMEONE) match {
+    resolveForm(SmcIdeals.FORM_SOMEONE) match {
       case Some(someoneForm) => {
         if (isHyponym(ideal, someoneForm)) {
           GENDER_SOMEONE

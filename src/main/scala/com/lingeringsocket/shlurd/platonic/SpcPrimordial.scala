@@ -26,10 +26,10 @@ object SpcPrimordial
 
   // all the Whos down in Whoville
   private val synonyms = Map(
-    LEMMA_WHO -> SmcLemmas.LEMMA_SOMEONE,
-    LEMMA_WHOM -> SmcLemmas.LEMMA_SOMEONE,
+    LEMMA_WHO -> SmcIdeals.FORM_SOMEONE,
+    LEMMA_WHOM -> SmcIdeals.FORM_SOMEONE,
     LEMMA_WHAT -> SpcMeta.ENTITY_METAFORM_NAME,
-    LEMMA_WHERE -> (SmcLemmas.LEMMA_OBJECT + ":" + SmcLemmas.LEMMA_CONTAINER)
+    LEMMA_WHERE -> (SmcIdeals.FORM_OBJECT + ":" + SmcIdeals.ROLE_CONTAINER)
   )
 
   private lazy val seedCosmos = initSeedCosmos()

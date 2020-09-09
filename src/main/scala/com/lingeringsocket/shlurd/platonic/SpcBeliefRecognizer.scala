@@ -404,14 +404,14 @@ class SpcBeliefRecognizer(
     val ref = predicate.subject
     val state = predicate.state
     state matchPartial {
-      case SilAdpositionalState(SilAdposition.IN, container) => {
+      case SilAdpositionalState(SilMagicAdposition(MW_IN), container) => {
         return recognizeRelationshipPredicateBelief(
           sentence,
           SilRelationshipPredicate(
             annotator.genitiveRef(
               ref,
               annotator.nounRef(
-                SilWord(SmcLemmas.LEMMA_CONTAINER),
+                SilWord(SmcIdeals.ROLE_CONTAINER),
                 COUNT_SINGULAR)),
             REL_PREDEF_IDENTITY.toVerb,
             container
@@ -590,7 +590,7 @@ class SpcBeliefRecognizer(
               SilMagicWord(MW_KIND),
               kindCount),
             SilAdpositionalState(
-              SilAdposition.OF,
+              SilMagicAdposition(MW_OF),
               SilOptionallyDeterminedReference(
                 SilNounReference(hypernymIdealName),
                 DETERMINER_NONSPECIFIC | DETERMINER_ABSENT
@@ -609,7 +609,7 @@ class SpcBeliefRecognizer(
               SilMagicWord(MW_SAME)
             ),
             SilAdpositionalState(
-              SilAdposition.AS,
+              SilMagicAdposition(MW_AS),
               SilOptionallyDeterminedReference(
                 SilCountedNounReference(idealName, count),
                 determiner
@@ -1456,7 +1456,7 @@ class SpcBeliefRecognizer(
     modifier match {
       // "after this | that"
       case SilAdpositionalVerbModifier(
-        SilAdposition.AFTER,
+        SilMagicAdposition(MW_AFTER),
         pr : SilPronounReference
       ) if (pr.isDemonstrative) => true
       case _ => false
@@ -1537,7 +1537,7 @@ class SpcBeliefRecognizer(
       case pr : SilPronounReference => {
         // the "noun" returned here is bogus, so we should be forcing
         // the caller to validate it in inappropriate contexts
-        tupleN((pr.word.getOrElse(SilWord(SmcLemmas.LEMMA_SOMEONE)),
+        tupleN((pr.word.getOrElse(SilWord(SmcIdeals.FORM_SOMEONE)),
           preQualifiers, pr.count,
           DETERMINER_ABSENT, false))
       }

@@ -637,7 +637,7 @@ class SilSentencePrinter(
     conjoining : SilConjoining) : String =
   {
     phrase.adposition match {
-      case SilAdposition.ADVERBIAL_TMP => {
+      case SilMagicAdposition(MW_ADVERBIAL_TMP) => {
         print(phrase.objRef, INFLECT_NONE, conjoining)
       }
       case _ => {

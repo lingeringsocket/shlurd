@@ -448,13 +448,13 @@ class SpcResponder(
             } else {
               annotator.genitiveRef(
                 specificRef,
-                annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINER)))
+                annotator.nounRef(SilWord(SmcIdeals.ROLE_CONTAINER)))
             }
           }
 
           Success(
             SilAdpositionalVerbModifier(
-              SilAdposition.IN,
+              SilAdposition(MW_IN),
               ref
             )
           )
@@ -653,7 +653,7 @@ class SpcResponder(
           val temporalRefs = predicate.getModifiers.map(
             _ match {
               case SilAdpositionalVerbModifier(
-                SilAdposition.ADVERBIAL_TMP,
+                SilMagicAdposition(MW_ADVERBIAL_TMP),
                 ref
               ) => {
                 Some(ref)

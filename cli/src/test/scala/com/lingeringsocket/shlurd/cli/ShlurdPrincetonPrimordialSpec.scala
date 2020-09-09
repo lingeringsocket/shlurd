@@ -64,7 +64,7 @@ class ShlurdPrincetonPrimordialSpec extends Specification
       val puppyOpt = cosmos.resolveForm("wnf-puppy-1")
       puppyOpt must beSome
       val puppyForm = puppyOpt.get
-      val someoneOpt = cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE)
+      val someoneOpt = cosmos.resolveForm(SmcIdeals.FORM_SOMEONE)
       someoneOpt must beSome
       val someoneForm = someoneOpt.get
       cosmos.isHyponym(puppyForm, dogForm) must beTrue

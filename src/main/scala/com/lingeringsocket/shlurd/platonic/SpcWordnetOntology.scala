@@ -160,8 +160,8 @@ class SpcWordnetOntology(wordnet : ShlurdWordnet, cosmos : SpcCosmos)
     val (someoneForm, objectForm) = {
       if (includeImplicit) {
         tupleN((
-          cosmos.resolveForm(SmcLemmas.LEMMA_SOMEONE),
-          cosmos.resolveForm(SmcLemmas.LEMMA_OBJECT)))
+          cosmos.resolveForm(SmcIdeals.FORM_SOMEONE),
+          cosmos.resolveForm(SmcIdeals.FORM_OBJECT)))
       } else {
         tupleN((None, None))
       }

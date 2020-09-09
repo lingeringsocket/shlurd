@@ -130,7 +130,7 @@ class SpcCreed(
         annotator.stateSpecifiedRef(
           nounReference(MW_KIND),
           SilAdpositionalState(
-            SilAdposition.OF,
+            SilAdposition(MW_OF),
             idealNoun(cosmos.getGraph.getSuperclassIdeal(edge))))
       )
     )
@@ -161,7 +161,7 @@ class SpcCreed(
           nounReference(
             MW_SAME, COUNT_SINGULAR, DETERMINER_DEFINITE),
           SilAdpositionalState(
-            SilAdposition.AS,
+            SilAdposition(MW_AS),
             nounReference(entry._2))))
     )
   }

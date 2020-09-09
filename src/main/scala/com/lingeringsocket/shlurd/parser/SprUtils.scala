@@ -135,7 +135,7 @@ object SprEnglishLemmas
   val LEMMA_BEHIND = "behind"
   val LEMMA_OF = "of"
   val LEMMA_GENITIVE_OF = "_of_"
-  val LEMMA_ADVERBIAL_TMP = "_TEMPORAL_"
+  val LEMMA_ADVERBIAL_TMP = "_temporal_"
 
   def isBeingLemma(verb : SilWord)(implicit tongue : SprTongue) : Boolean =
     isBeingLemma(verb.toLemma)

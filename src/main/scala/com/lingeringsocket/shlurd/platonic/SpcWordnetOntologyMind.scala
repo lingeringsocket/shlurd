@@ -45,7 +45,7 @@ class SpcWordnetOntologyMind(
     annotator : AnnotatorType,
     phrase : PhraseType) =
   {
-    val analyzer = new SilWordnetSenseAnalyzer(wordnet, annotator)
+    val analyzer = new SilWordnetSenseAnalyzer(getTongue, wordnet, annotator)
     analyzer.analyze(phrase)
   }
 
@@ -55,7 +55,7 @@ class SpcWordnetOntologyMind(
     determiner : SilDeterminer) : SilReference =
   {
     val ref = super.specificReference(annotator, entity, determiner)
-    val analyzer = new SilWordnetSenseAnalyzer(wordnet, annotator)
+    val analyzer = new SilWordnetSenseAnalyzer(getTongue, wordnet, annotator)
     analyzer.analyze(ref)
   }
 

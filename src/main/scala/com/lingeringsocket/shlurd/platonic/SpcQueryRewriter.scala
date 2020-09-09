@@ -19,12 +19,14 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 class SpcQueryRewriter(
-  tongue : SprTongue,
+  tongueIn : SprTongue,
   annotator : SpcAnnotator,
   question : SilQuestion,
   answerInflection : SilInflection)
-    extends SmcQueryRewriter(tongue, annotator, question, answerInflection)
+    extends SmcQueryRewriter(tongueIn, annotator, question, answerInflection)
 {
+  private implicit val tongue = tongueIn
+
   override def rewritePredicate = combineRules(
     rewriteContainmentPredicate, rewriteActionPredicate)
 
@@ -37,13 +39,13 @@ class SpcQueryRewriter(
           scopedRewrite(state, INFLECT_ADPOSITIONED),
           modifiers)
         specified.state match {
-          case SilAdpositionalState(SilAdposition.IN, container) => {
+          case SilAdpositionalState(SilMagicAdposition(MW_IN), container) => {
             SilRelationshipPredicate(
               specified.subject,
               REL_PREDEF_IDENTITY.toVerb(tongue),
               annotator.genitiveRef(
                 container,
-                annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINEE))),
+                annotator.nounRef(SilWord(SmcIdeals.ROLE_CONTAINEE))),
               modifiers
             )
           }
@@ -59,7 +61,7 @@ class SpcQueryRewriter(
           case QUESTION_WHERE => {
             annotator.genitiveRef(
               complement,
-              annotator.nounRef(SilWord(SmcLemmas.LEMMA_CONTAINER)))
+              annotator.nounRef(SilWord(SmcIdeals.ROLE_CONTAINER)))
           }
           case _ => complement
         }

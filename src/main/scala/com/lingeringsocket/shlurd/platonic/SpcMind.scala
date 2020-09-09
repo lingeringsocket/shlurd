@@ -33,6 +33,8 @@ import SprPennTreebankLabels._
 class SpcMind(cosmos : SpcCosmos)
     extends SmcMind[SpcEntity, SpcProperty, SpcCosmos](cosmos)
 {
+  private implicit val tongue = getTongue
+
   override def getCosmos = cosmos
 
   override def spawn(newCosmos : SpcCosmos) =
@@ -381,7 +383,7 @@ class SpcMind(cosmos : SpcCosmos)
     def findLocation(entityOpt : Option[SpcEntity]) =
     {
       entityOpt.flatMap(entity => {
-        resolveGenitive(entity, SilWord(SmcLemmas.LEMMA_CONTAINER)) match {
+        resolveGenitive(entity, SilWord(SmcIdeals.ROLE_CONTAINER)) match {
           case Success(set) if (set.size == 1) => {
             set.headOption
           }
@@ -409,20 +411,20 @@ class SpcMind(cosmos : SpcCosmos)
     qualifiers : Set[SilWord]) : Try[Trilean] =
   {
     val roleName = adposition match {
-      case SilAdposition.GENITIVE_OF => {
+      case SilMagicAdposition(MW_GENITIVE_OF) => {
         if (qualifiers.size != 1) {
           return Success(Trilean.Unknown)
         } else {
           qualifiers.head
         }
       }
-      case SilAdposition.IN => {
-        SilWord(SmcLemmas.LEMMA_CONTAINEE)
+      case SilMagicAdposition(MW_IN) => {
+        SilWord(SmcIdeals.ROLE_CONTAINEE)
       }
-      case SilAdposition.AMONG => {
+      case SilMagicAdposition(MW_AMONG) => {
         return Success(Trilean(entity == objEntity))
       }
-      case SilAdposition.EXCEPT => {
+      case SilMagicAdposition(MW_EXCEPT) => {
         return Success(Trilean(entity != objEntity))
       }
       case _ => {

@@ -840,7 +840,7 @@ class SmcResponder[
     }
     val timeframes = predicate.getModifiers.map(_ match {
       case SilAdpositionalVerbModifier(
-        adp @ (SilAdposition.BEFORE | SilAdposition.AFTER),
+        adp @ (SilMagicAdposition(MW_BEFORE | MW_AFTER)),
         objRef
       ) => {
         Some((adp, objRef))
@@ -856,7 +856,7 @@ class SmcResponder[
             ShlurdExceptionCode.NotYetImplemented,
             "A timeframe must be specified.")
         }
-        (SilAdposition.AFTER, predicate, predicate, predicate.getModifiers)
+        (SilAdposition(MW_AFTER), predicate, predicate, predicate.getModifiers)
       } else {
         val (adp, objRef) = timeframes(iTimeframe).get
         val reducedModifiers =
@@ -875,7 +875,7 @@ class SmcResponder[
     var matchSeen = (iTimeframe < 0)
     var success = false
     val iter = adp match {
-      case SilAdposition.BEFORE => timeline.getEntries.reverseIterator
+      case SilMagicAdposition(MW_BEFORE) => timeline.getEntries.reverseIterator
       case _ => timeline.getEntries.iterator
     }
 

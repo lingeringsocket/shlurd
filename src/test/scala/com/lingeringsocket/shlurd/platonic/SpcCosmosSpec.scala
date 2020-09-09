@@ -728,10 +728,10 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       SpcPrimordial.initCosmos(cosmos)
       cosmos.getForms.size must be greaterThan 0
       val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
-      val someone = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
-      val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
+      val someone = expectNamedForm(SmcIdeals.FORM_SOMEONE)
+      val obj = expectNamedForm(SmcIdeals.FORM_OBJECT)
       cosmos.resolveIdealSynonym(LEMMA_WHO) must
-        be equalTo SmcLemmas.LEMMA_SOMEONE
+        be equalTo SmcIdeals.FORM_SOMEONE
       cosmos.getFormHypernyms(entity) must be equalTo(
         Seq(entity))
       cosmos.getFormHypernyms(obj) must be equalTo(
@@ -756,8 +756,8 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       SpcPrimordial.initCosmos(cosmos)
       addBelief("a firefighter is a kind of spc-someone")
       val entity = expectNamedForm(SpcMeta.ENTITY_METAFORM_NAME)
-      val someone = expectNamedForm(SmcLemmas.LEMMA_SOMEONE)
-      val obj = expectNamedForm(SmcLemmas.LEMMA_OBJECT)
+      val someone = expectNamedForm(SmcIdeals.FORM_SOMEONE)
+      val obj = expectNamedForm(SmcIdeals.FORM_OBJECT)
       val firefighter = expectNamedForm("firefighter")
       cosmos.getFormHypernyms(entity) must be equalTo(
         Seq(entity))

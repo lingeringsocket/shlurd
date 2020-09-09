@@ -164,14 +164,16 @@ class SprHeuristicSynthesizer(
 
   private val pending = new mutable.Queue[SprSyntaxTree]
 
+  private implicit val tongue = context.getTongue
+
   private val rewriterIntermediate = new SprPhraseRewriter(
     context,
-    context.getTongue.newSyntaxAnalyzer(
+    tongue.newSyntaxAnalyzer(
       context, false, SPR_STRICTNESS_TIGHT, false))
 
   private val rewriterFinal = new SprPhraseRewriter(
     context,
-    context.getTongue.newSyntaxAnalyzer(
+    tongue.newSyntaxAnalyzer(
       context, false, SPR_STRICTNESS_TIGHT))
 
   private val spanGraph = new SimpleDirectedGraph[Int, SpanEdge](
@@ -614,7 +616,7 @@ class SprHeuristicSynthesizer(
             allowConjunctive)
           result.map(_._1) match {
             case Some(SilAdpositionalVerbModifier(
-              SilAdposition.ADVERBIAL_TMP, ref)
+              SilMagicAdposition(MW_ADVERBIAL_TMP), ref)
             ) => {
               // FIXME discriminate excns
               if (Try(SprParser.interpretTemporal(ref)).isSuccess) {

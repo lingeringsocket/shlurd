@@ -187,7 +187,7 @@ abstract class SprAbstractSyntaxAnalyzer(
       : SilVerbModifier =
   {
     SilAdpositionalVerbModifier(
-      SilAdposition.ADVERBIAL_TMP,
+      SilAdposition(MW_ADVERBIAL_TMP),
       expectReference(tmod.child))
   }
 

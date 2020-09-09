@@ -47,7 +47,7 @@ class SmcInputRewriter[
         SilStateSpecifiedReference(
           SilCountedNounReference(noun, count),
           SilAdpositionalState(
-            SilAdposition.OF,
+            SilMagicAdposition(MW_OF),
             possessor
           )
         ),
