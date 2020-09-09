@@ -14,8 +14,6 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import com.lingeringsocket.shlurd.ilang._
-
 import scala.collection._
 
 // FIXME some of these, like LEMMA_HIS, are not real lemmas
@@ -136,14 +134,6 @@ object SprEnglishLemmas
   val LEMMA_OF = "of"
   val LEMMA_GENITIVE_OF = "_of_"
   val LEMMA_ADVERBIAL_TMP = "_temporal_"
-
-  def isBeingLemma(verb : SilWord)(implicit tongue : SprTongue) : Boolean =
-    isBeingLemma(verb.toLemma)
-
-  def isBeingLemma(lemma : String)(implicit tongue : SprTongue) : Boolean =
-  {
-    tongue.isBeingLemma(lemma)
-  }
 }
 
 object SprUtils
@@ -168,5 +158,4 @@ object SprUtils
       }
     }
   }
-
 }

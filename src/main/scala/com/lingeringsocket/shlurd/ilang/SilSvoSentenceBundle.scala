@@ -21,8 +21,6 @@ import com.ibm.icu.text._
 
 import scala.util._
 
-import SprEnglishLemmas._
-
 abstract class SilSvoSentenceBundle(
   tongueIn : SprTongue,
   numberFormat : RuleBasedNumberFormat)
@@ -164,7 +162,7 @@ abstract class SilSvoSentenceBundle(
     modifiers : Seq[String]) =
   {
     if (tam.isInterrogative && question.isEmpty) {
-      if (isBeingLemma(verb)) {
+      if (tongue.isBeingLemma(verb)) {
         composePredicateQuestion(
           subject, verbSeq, Seq(complement), modifiers)
       } else {
@@ -297,16 +295,16 @@ abstract class SilSvoSentenceBundle(
     items : Seq[String]) =
   {
     val prefix = determiner match {
-      case DETERMINER_NONE => LEMMA_NEITHER
-      case DETERMINER_DEFINITE => LEMMA_EITHER
+      case DETERMINER_NONE => MW_NEITHER.toLemma
+      case DETERMINER_DEFINITE => MW_EITHER.toLemma
       case _ => ""
     }
 
     val infix = determiner match {
-      case DETERMINER_NONE => LEMMA_NOR
-      case (_ : SilUnlimitedDeterminer) | DETERMINER_DEFINITE => LEMMA_OR
+      case DETERMINER_NONE => MW_NOR.toLemma
+      case (_ : SilUnlimitedDeterminer) | DETERMINER_DEFINITE => MW_OR.toLemma
       case DETERMINER_ABSENT => separator.punctuationMark
-      case _ => LEMMA_AND
+      case _ => MW_AND.toLemma
     }
 
     val seq = items.dropRight(1).zipWithIndex.flatMap {
@@ -338,14 +336,14 @@ abstract class SilSvoSentenceBundle(
   {
     val connective = {
       if (biconditional) {
-        LEMMA_EQUIVALENTLY
+        MW_EQUIVALENTLY
       } else {
-        LEMMA_THEN
+        MW_THEN
       }
     }
     compose(
       delemmatizeWord(conjunction),
-      concat(antecedent, ","), connective, consequent)
+      concat(antecedent, ","), connective.toLemma, consequent)
   }
 
   override def composeQualifiers(qualifiers : Seq[SilWord]) =
@@ -377,10 +375,10 @@ abstract class SilSvoSentenceBundle(
         compose(MW_WHAT.toLemma)
       }
       case Some(QUESTION_HOW_MANY) => {
-        compose(LEMMA_HOW, LEMMA_MANY, noun)
+        compose(MW_HOW_MANY.toLemma, noun)
       }
       case Some(QUESTION_WHERE) => {
-        compose(LEMMA_WHERE)
+        compose(MW_WHERE.toLemma)
       }
       case None => noun
     }

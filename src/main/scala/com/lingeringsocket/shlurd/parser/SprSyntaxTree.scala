@@ -226,7 +226,7 @@ trait SprAbstractSyntaxTree
   def isBeingVerb(implicit tongue : SprTongue) =
   {
     if (isVerb && isPreTerminal) {
-      isBeingLemma(firstChild.lemma)
+      tongue.isBeingLemma(firstChild.lemma)
     } else {
       false
     }

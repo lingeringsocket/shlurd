@@ -17,7 +17,6 @@ package com.lingeringsocket.shlurd.ilang
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
-import SprEnglishLemmas._
 import SprPennTreebankLabels._
 
 object SilSentencePrinter
@@ -281,14 +280,14 @@ class SilSentencePrinter(
         subject, verb, complement, modifiers
       ) => {
         val complementInflection = {
-          if (isBeingLemma(verb)) {
+          if (tongue.isBeingLemma(verb)) {
             INFLECT_NOMINATIVE
           } else {
             INFLECT_ACCUSATIVE
           }
         }
         val tam = {
-          if (ellipsis && !isBeingLemma(verb)) {
+          if (ellipsis && !tongue.isBeingLemma(verb)) {
             if (tamOriginal.isIndicative) {
               tamOriginal.withModality(MODAL_ELLIPTICAL)
             } else {

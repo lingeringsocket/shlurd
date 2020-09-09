@@ -385,6 +385,7 @@ object SprSpanishLexicon
     MW_ALSO -> "también",
     // FIXME Spanish doesn't discriminate from MW_BETWEEN
     MW_AMONG -> "entre",
+    MW_AND -> LEMMA_Y,
     // FIXME needs to respect gender
     MW_ANOTHER -> "otro",
     MW_AS -> "como",
@@ -398,6 +399,9 @@ object SprSpanishLexicon
     MW_BELOW -> "debajo de",
     MW_BENEATH -> "bajo",
     MW_CONSEQUENTLY -> "consiguientemente",
+    // FIXME:  the real thing
+    MW_EITHER -> "cualquiera",
+    MW_EQUIVALENTLY -> "equivalentemente",
     MW_EXCEPT -> "excepto",
     MW_EXIST -> LEMMA_EXISTIR,
     MW_FEMININE -> "feminino",
@@ -406,6 +410,8 @@ object SprSpanishLexicon
     MW_GENERALLY -> "generalmente",
     // Spanish doesn't really need this
     MW_GENITIVE_OF -> "_of_",
+    // FIXME: agreement
+    MW_HOW_MANY -> "cuántos",
     MW_IF -> "si",
     MW_IN -> "en",
     MW_INSIDE -> "dentro de",
@@ -414,15 +420,21 @@ object SprSpanishLexicon
     MW_MASCULINE -> "masculino",
     MW_NEAR -> "cerca de",
     MW_NEARBY -> "alrededor de",
+    // FIXME:  the real thing
+    MW_NEITHER -> LEMMA_NINGUNO,
+    MW_NOR -> LEMMA_NI,
     MW_NEUTER -> "neutro",
-    MW_OF -> "de",
+    MW_OF -> LEMMA_DE,
     MW_ON -> "encima de",
+    // FIXME:  change to LEMMA_U before a vowel
+    MW_OR -> LEMMA_O,
     MW_OTHERWISE -> "contrario",
     MW_OUTSIDE -> "fuera de",
     MW_OVER -> "sobre",
     MW_RIGHT -> "al derecho de",
     MW_SAME -> "mismo",
     MW_TO -> "a",
+    MW_THEN -> "entonces",
     MW_UNDER -> "abajo de",
     MW_SUBSEQUENTLY -> "posteriormente",
     // FIXME need to discriminate qué from que

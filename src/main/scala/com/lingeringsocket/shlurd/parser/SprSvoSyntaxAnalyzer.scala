@@ -1015,7 +1015,7 @@ abstract class SprSvoSyntaxAnalyzer(
       }
     }
     if (np.isExistential) {
-      if (!isBeingLemma(verb)) {
+      if (!tongue.isBeingLemma(verb)) {
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }
       val subject = splitCoordinatingConjunction(seq) match {
@@ -1040,7 +1040,7 @@ abstract class SprSvoSyntaxAnalyzer(
       // FIXME this is somewhat arbitrary
       ((question == Some(QUESTION_HOW_MANY)) && complement.isExistential)
     ) {
-      if (!isBeingLemma(verb)) {
+      if (!tongue.isBeingLemma(verb)) {
         return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
       }
       tupleN((negative, expectStatePredicate(
@@ -1054,7 +1054,7 @@ abstract class SprSvoSyntaxAnalyzer(
     } else if (complement.isNounOrPronoun) {
       // FIXME this is quite arbitrary
       val (subjectRef, complementRef) = {
-        if (isBeingLemma(verb)) {
+        if (tongue.isBeingLemma(verb)) {
           tupleN((specifyReference(expectReference(np), specifiedState),
             expectReference(seq)))
         } else {
@@ -1070,7 +1070,7 @@ abstract class SprSvoSyntaxAnalyzer(
         verbModifiers)
       tupleN((negative, relationshipPredicate))
     } else {
-      if (!isBeingLemma(verb)) {
+      if (!tongue.isBeingLemma(verb)) {
         if (enforceTransitive) {
           return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
         } else {

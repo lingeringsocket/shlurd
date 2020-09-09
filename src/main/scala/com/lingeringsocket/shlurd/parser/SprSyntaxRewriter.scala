@@ -16,8 +16,8 @@ package com.lingeringsocket.shlurd.parser
 
 import org.bitbucket.inkytonik.kiama.rewriting._
 
-import SprUtils._
 import SprPennTreebankLabels._
+import SprUtils._
 
 object SprSyntaxRewriter
 {

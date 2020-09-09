@@ -25,7 +25,6 @@ import scala.collection.JavaConverters._
 
 import java.util._
 
-import SprUtils._
 import SprPennTreebankLabels._
 import SprEnglishLemmas._
 

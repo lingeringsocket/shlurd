@@ -54,6 +54,7 @@ sealed trait SprBeliefMagicWord extends SprMagicWord
 sealed trait SprAdpositionMagicWord extends SprMagicWord
 
 // question words
+case object MW_HOW_MANY extends SprQuestionMagicWord
 case object MW_WHAT extends SprQuestionMagicWord
 case object MW_WHERE extends SprQuestionMagicWord
 case object MW_WHICH extends SprQuestionMagicWord
@@ -68,16 +69,23 @@ case object MW_NEUTER extends SprGenderMagicWord
 
 // keywords used in belief statements
 case object MW_ALSO extends SprBeliefMagicWord
+case object MW_AND extends SprBeliefMagicWord
 case object MW_ANOTHER extends SprBeliefMagicWord
 case object MW_BELIEVE extends SprBeliefMagicWord
 case object MW_CONSEQUENTLY extends SprBeliefMagicWord
+case object MW_EITHER extends SprBeliefMagicWord
+case object MW_EQUIVALENTLY extends SprBeliefMagicWord
 case object MW_EXIST extends SprBeliefMagicWord
 case object MW_GENERALLY extends SprBeliefMagicWord
 case object MW_IF extends SprBeliefMagicWord
 case object MW_KIND extends SprBeliefMagicWord
+case object MW_NEITHER extends SprBeliefMagicWord
+case object MW_OR extends SprBeliefMagicWord
+case object MW_NOR extends SprBeliefMagicWord
 case object MW_OTHERWISE extends SprBeliefMagicWord
 case object MW_SAME extends SprBeliefMagicWord
 case object MW_SUBSEQUENTLY extends SprBeliefMagicWord
+case object MW_THEN extends SprBeliefMagicWord
 
 // important adpositions
 case object MW_AMONG extends SprAdpositionMagicWord
@@ -156,6 +164,9 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   def getStatePredefFromLemma(lemma : String) : SilStatePredef
 
   def isBeingLemma(lemma : String) : Boolean
+
+  def isBeingLemma(verb : SilWord) : Boolean =
+    isBeingLemma(verb.toLemma)
 
   def isPossessionLemma(lemma : String) : Boolean
 
