@@ -17,6 +17,8 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
+import net.sf.extjwnl.data._
+
 import scala.collection._
 
 import SprPennTreebankLabels._
@@ -451,6 +453,14 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
 {
   import SprSpanishLemmas._
   import SprSpanishLexicon._
+  import SilWordnetScorer._
+
+  private implicit val tongue = this
+
+  private val phraseScorers = Seq(
+    scoreSpecialSpanishAdpositions,
+    scoreSpanishUsage
+  )
 
   override def newSentencePrinter(genderAnalyzer : SilGenderAnalyzer) =
     new SilSentencePrinter(this, SilSpanishParlance, genderAnalyzer)
@@ -464,6 +474,11 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   {
     new SprSpanishSyntaxAnalyzer(
       context, strictness, enforceTransitive)
+  }
+
+  override def getPhraseScorers : Seq[SilWordnetScorer.PhraseScorer] =
+  {
+    phraseScorers
   }
 
   override def getStopList = stopList
@@ -1053,5 +1068,31 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   {
     // FIXME the real thing
     lemma + "s"
+  }
+
+  private def scoreSpecialSpanishAdpositions = phraseScorer {
+    case ap : SilAdpositionalPhrase => {
+      val words = ap.adposition.word.decomposed
+      if (words.exists(_.lemma == MW_ADVERBIAL_TMP.toLemma)) {
+        SilPhraseScore.proBig
+      } else {
+        SilPhraseScore.neutral
+      }
+    }
+  }
+
+  private def scoreSpanishUsage = phraseScorer {
+    case SilNounReference(noun) => {
+      usageScore(noun.toNounLemma, POS.NOUN)
+    }
+    case SilPropertyState(sw : SilSimpleWord) => {
+      usageScore(sw.toLemma, POS.ADJECTIVE)
+    }
+    case SilActionPredicate(_, sw : SilSimpleWord, _, _) => {
+      usageScore(sw.toLemma, POS.VERB)
+    }
+    case SilBasicVerbModifier(sw : SilSimpleWord) => {
+      usageScore(sw.toLemma, POS.ADVERB)
+    }
   }
 }

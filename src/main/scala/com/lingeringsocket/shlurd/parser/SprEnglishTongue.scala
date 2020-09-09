@@ -133,6 +133,15 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     extends SprTongue(wordnet)
 {
   import SprEnglishLexicon._
+  import SilWordnetScorer._
+
+  private implicit val tongue = this
+
+  private val phraseScorers = Seq(
+    scoreVerbModifiers,
+    scoreSpecialEnglishAdpositions,
+    scoreEnglishUsage
+  )
 
   override def newSentencePrinter(
     genderAnalyzer : SilGenderAnalyzer) =
@@ -152,6 +161,11 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
   }
 
   override def getStopList = stopList
+
+  override def getPhraseScorers : Seq[SilWordnetScorer.PhraseScorer] =
+  {
+    phraseScorers
+  }
 
   override def getRelPredefLemma(predef : SilRelationshipPredef) : String =
   {
@@ -734,5 +748,60 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
   override def pluralizeNoun(lemma : String) : String =
   {
     EnglishPluralizer.plural(lemma)
+  }
+
+
+  private def scoreVerbModifiers = phraseScorer {
+    case SilBasicVerbModifier(word) => {
+      if (word.toLemma == LEMMA_NO) {
+        SilPhraseScore.conBig
+      } else {
+        SilPhraseScore.neutral
+      }
+    }
+  }
+
+  private def scoreSpecialEnglishAdpositions = phraseScorer {
+    case ap : SilAdpositionalPhrase => {
+      val words = ap.adposition.word.decomposed
+      if ((words.size > 1) && words.exists(_.lemma == LEMMA_THERE)) {
+        SilPhraseScore.conBig
+      } else if (words.exists(_.lemma == MW_ADVERBIAL_TMP.toLemma)) {
+        SilPhraseScore.proBig
+      } else if (ap.adposition != SilAdposition(MW_TO)) {
+        // in a phrase like "he went up the steps", we boost the
+        // interpretation of "up" as an adposition vs adverb
+        SilPhraseScore.pro(20)
+      } else {
+        SilPhraseScore.neutral
+      }
+    }
+  }
+
+  private def scoreEnglishUsage = phraseScorer {
+    case SilNounReference(noun) => {
+      usageScore(noun.toNounLemma, POS.NOUN)
+    }
+    case SilPropertyState(sw : SilSimpleWord) => {
+      val lemma = sw.toLemma
+      if (lemma == LEMMA_THERE) {
+        SilPhraseScore.conSmall
+      } else {
+        usageScore(lemma, POS.ADJECTIVE)
+      }
+    }
+    case SilActionPredicate(_, sw : SilSimpleWord, _, _) => {
+      usageScore(sw.toLemma, POS.VERB)
+    }
+    case SilBasicVerbModifier(sw : SilSimpleWord) => {
+      val lemma = sw.toLemma
+      if (lemma.toLowerCase == "yesterday") {
+        SilPhraseScore.pro(10)
+      } else if (lemma == LEMMA_THERE) {
+        SilPhraseScore.conSmall
+      } else {
+        usageScore(lemma, POS.ADVERB)
+      }
+    }
   }
 }

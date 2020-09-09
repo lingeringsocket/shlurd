@@ -147,6 +147,8 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
 
   def getStopList : Set[String]
 
+  def getPhraseScorers : Seq[SilWordnetScorer.PhraseScorer] = Seq.empty
+
   def getRelPredefLemma(predef : SilRelationshipPredef) : String
 
   def getStatePredefLemma(predef : SilStatePredef) : String
@@ -297,4 +299,19 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   def possibleCompoundVerb(seq : Seq[String]) : Boolean = true
 
   def pluralizeNoun(lemma : String) : String
+
+  protected def usageScore(lemma : String, pos : POS) : SilPhraseScore =
+  {
+    if (lemma.contains('-')) {
+      return SilPhraseScore.neutral
+    }
+    val score = wordnet.getUsageScore(lemma, pos)
+    if (score == 0) {
+      SilPhraseScore.proSmall
+    } else if (score < 0) {
+      SilPhraseScore.neutral
+    } else {
+      SilPhraseScore.pro(1 + score)
+    }
+  }
 }
