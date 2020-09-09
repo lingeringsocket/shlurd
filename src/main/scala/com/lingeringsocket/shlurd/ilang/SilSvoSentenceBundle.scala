@@ -358,23 +358,23 @@ abstract class SilSvoSentenceBundle(
   {
     question match {
       case Some(QUESTION_WHICH) => {
-        compose(LEMMA_WHICH, noun)
+        compose(MW_WHICH.toLemma, noun)
       }
       case Some(QUESTION_WHO) => {
         answerInflection match {
           case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => {
-            compose(LEMMA_WHOM)
+            compose(MW_WHOM.toLemma)
           }
           case INFLECT_GENITIVE => {
-            compose(LEMMA_WHOSE, noun)
+            compose(MW_WHOSE.toLemma, noun)
           }
           case _ => {
-            compose(LEMMA_WHO)
+            compose(MW_WHO.toLemma)
           }
         }
       }
       case Some(QUESTION_WHAT) => {
-        compose(LEMMA_WHAT)
+        compose(MW_WHAT.toLemma)
       }
       case Some(QUESTION_HOW_MANY) => {
         compose(LEMMA_HOW, LEMMA_MANY, noun)

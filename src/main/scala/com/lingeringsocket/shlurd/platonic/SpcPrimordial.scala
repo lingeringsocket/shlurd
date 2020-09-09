@@ -22,6 +22,8 @@ import SprEnglishLemmas._
 
 object SpcPrimordial
 {
+  // FIXME can this even be language-specific?
+
   // all the Whos down in Whoville
   private val synonyms = Map(
     LEMMA_WHO -> SmcLemmas.LEMMA_SOMEONE,

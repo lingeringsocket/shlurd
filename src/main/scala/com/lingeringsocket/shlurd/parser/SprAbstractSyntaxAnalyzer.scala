@@ -17,8 +17,6 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
-import SprEnglishLemmas._
-
 sealed trait SprStrictness
 case object SPR_STRICTNESS_TIGHT extends SprStrictness
 case object SPR_STRICTNESS_LOOSE extends SprStrictness
@@ -29,6 +27,8 @@ abstract class SprAbstractSyntaxAnalyzer(
     extends SprSyntaxAnalyzer
 {
   protected def annotator = context.annotator
+
+  private implicit val tongue = context.getTongue
 
   def isStrict = (strictness == SPR_STRICTNESS_TIGHT)
 
@@ -81,7 +81,7 @@ abstract class SprAbstractSyntaxAnalyzer(
           t2.withModality(MODAL_POSSIBLE).withPolarity(t2.isNegative),
           biconditional,
           formality)
-        val otherwiseModifier = SilBasicVerbModifier(SilWord(LEMMA_OTHERWISE))
+        val otherwiseModifier = SilBasicVerbModifier(SilMagicWord(MW_OTHERWISE))
         val cp = consequentPredicate.withNewModifiers(
             consequentPredicate.getModifiers :+ otherwiseModifier)
         val modifiedConsequent = SilPredicateSentence(

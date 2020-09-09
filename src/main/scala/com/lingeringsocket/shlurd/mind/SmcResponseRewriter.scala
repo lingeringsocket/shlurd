@@ -158,16 +158,16 @@ class SmcResponseRewriter[
       {
         negateCollection = true
         val (responseDeterminer, responseNoun) = noun match {
-          case SilWordLemma(LEMMA_WHO) => {
+          case SilMagicWord(MW_WHO) => {
             tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
           }
-          case SilWordLemma(LEMMA_WHOM) => {
+          case SilMagicWord(MW_WHOM) => {
             tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
           }
           case SilWordLemma(LEMMA_WHERE) => {
             tupleN((DETERMINER_ABSENT, SilWord(LEMMA_NOWHERE)))
           }
-          case SilWordLemma(LEMMA_WHAT) => {
+          case SilMagicWord(MW_WHAT) => {
             tupleN((DETERMINER_ABSENT, SilWord(LEMMA_NOTHING)))
           }
           case _ => (DETERMINER_NONE, noun)

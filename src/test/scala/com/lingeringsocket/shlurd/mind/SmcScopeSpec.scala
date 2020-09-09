@@ -51,6 +51,8 @@ class SmcScopeSpec extends Specification
   {
     protected val mind = new ZooMind(cosmos)
 
+    protected implicit val tongue = mind.getTongue
+
     protected val annotator = SmcAnnotator[SmcEntity]()
 
     protected val firstPersonRef =
@@ -70,7 +72,7 @@ class SmcScopeSpec extends Specification
     protected val anotherTigerRef =
       annotator.stateSpecifiedRef(
         annotator.nounRef(SilWord("tiger")),
-        SilPropertyState(SilWord(LEMMA_ANOTHER)))
+        SilPropertyState(SilMagicWord(MW_ANOTHER)))
 
     protected val communicationContext =
       SmcCommunicationContext[SmcEntity](

@@ -50,7 +50,7 @@ class SprSpanishTongueSpec extends Specification
         lemmaProduced must be equalTo lemma
       })
 
-      pronounLemmas.size must be equalTo 56
+      pronounLemmas.size must be equalTo 61
     }
   }
 }

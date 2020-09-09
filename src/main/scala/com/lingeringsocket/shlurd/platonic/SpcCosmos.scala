@@ -30,7 +30,6 @@ import java.util.concurrent.atomic._
 
 import org.jgrapht._
 
-import SprEnglishLemmas._
 import SprPennTreebankLabels._
 
 trait SpcContainmentVertex
@@ -1937,10 +1936,12 @@ class SpcCosmos(
           val formEntity = set.head
           val formName = SpcMeta.formNameFromMeta(formEntity.name)
           // FIXME language-specific
-          val basic = SpcWordnetOntology.getNoun(formName) match {
-            case LEMMA_MASCULINE => Some(GENDER_MASCULINE)
-            case LEMMA_FEMININE => Some(GENDER_FEMININE)
-            case LEMMA_NEUTER => Some(GENDER_NEUTER)
+          val mw = SprContext.defaultTongue.keywordForLemma(
+            SpcWordnetOntology.getNoun(formName))
+          val basic = mw match {
+            case Some(MW_MASCULINE) => Some(GENDER_MASCULINE)
+            case Some(MW_FEMININE) => Some(GENDER_FEMININE)
+            case Some(MW_NEUTER) => Some(GENDER_NEUTER)
             case _ => None
           }
           resolveForm(formName).map(SpcGender(_, basic))

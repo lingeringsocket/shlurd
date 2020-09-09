@@ -25,6 +25,8 @@ class SprSpanishSyntaxAnalyzer(
 {
   override protected def allowElidedSubject() : Boolean = true
 
+  override protected def allowObjectPronounsAfterVerb() : Boolean = false
+
   override protected def isImperative(children : Seq[SprSyntaxTree]) =
   {
     // FIXME negatives etc

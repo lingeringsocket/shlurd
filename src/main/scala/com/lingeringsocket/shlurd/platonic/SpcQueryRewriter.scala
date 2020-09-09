@@ -23,7 +23,7 @@ class SpcQueryRewriter(
   annotator : SpcAnnotator,
   question : SilQuestion,
   answerInflection : SilInflection)
-    extends SmcQueryRewriter(annotator, question, answerInflection)
+    extends SmcQueryRewriter(tongue, annotator, question, answerInflection)
 {
   override def rewritePredicate = combineRules(
     rewriteContainmentPredicate, rewriteActionPredicate)

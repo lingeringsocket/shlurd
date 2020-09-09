@@ -17,21 +17,22 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
-import SprEnglishLemmas._
-
 class SmcQueryRewriter(
+  tongueIn : SprTongue,
   annotator : SilAnnotator,
   question : SilQuestion,
   answerInflection : SilInflection)
     extends SilPhraseRewriter(annotator)
 {
+  private implicit val tongue = tongueIn
+
   def rewriteSpecifier(determinedSubs : Set[SilReference]) = replacementMatcher(
     "rewriteSpecifier", {
       case cr @ SilCountedNounReference(
         noun, count
       ) if (!noun.isProper && !determinedSubs.contains(cr)) => {
-        val determiner = noun.toNounLemma match {
-          case LEMMA_WHO | LEMMA_WHOM | LEMMA_WHAT | LEMMA_WHERE => {
+        val determiner = noun match {
+          case SilMagicWord(MW_WHO | MW_WHOM | MW_WHAT | MW_WHERE) => {
             DETERMINER_VARIABLE
           }
           case _ => DETERMINER_ANY

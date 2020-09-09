@@ -149,8 +149,8 @@ class SmcPredicateEvaluator[
                           SilNounReference(noun),
                           (_ : SilUnlimitedDeterminer) | DETERMINER_ABSENT
                         ) => {
-                          noun.toNounLemma match {
-                            case LEMMA_WHO | LEMMA_WHAT => {
+                          noun match {
+                            case SilMagicWord(MW_WHO | MW_WHAT) => {
                               Success(Trilean.True)
                             }
                             case _ => {
@@ -905,8 +905,9 @@ class SmcPredicateEvaluator[
         case DETERMINER_ABSENT => {
           ((count == COUNT_PLURAL) && (context == REF_COMPLEMENT)) ||
           ((context == REF_GENITIVE_POSSESSOR) && !noun.isProper)||
-          (lemma == LEMMA_WHO) || (lemma == LEMMA_WHAT) ||
-            (lemma == LEMMA_WHERE) || (qualifiers.contains(LEMMA_ANOTHER))
+          (lemma == MW_WHO.toLemma) || (lemma == MW_WHAT.toLemma) ||
+          (lemma == MW_WHERE.toLemma) ||
+          (qualifiers.contains(MW_ANOTHER.toLemma))
         }
         case DETERMINER_ALL => false
         case _ => true
@@ -1310,13 +1311,13 @@ class SmcPredicateEvaluator[
             SilCountedNounReference(noun, count), determiner
           ) => {
             val rephrased = noun match {
-              case SilWordLemma(LEMMA_WHO) =>
+              case SilMagicWord(MW_WHO) =>
                 SilWord(SmcLemmas.LEMMA_SOMEONE)
-              case SilWordLemma(LEMMA_WHOM) =>
+              case SilMagicWord(MW_WHOM) =>
                 SilWord(SmcLemmas.LEMMA_SOMEONE)
-              case SilWordLemma(LEMMA_WHAT) =>
+              case SilMagicWord(MW_WHAT) =>
                 SilWord(LEMMA_THAT)
-              case SilWordLemma(LEMMA_WHERE) =>
+              case SilMagicWord(MW_WHERE) =>
                 SilWord(SmcLemmas.LEMMA_CONTAINER)
               case _ => noun
             }

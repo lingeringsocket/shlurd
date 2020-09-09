@@ -17,8 +17,6 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
-import SprEnglishLemmas._
-
 class SmcInputRewriter[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -28,6 +26,8 @@ class SmcInputRewriter[
   annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
 ) extends SilPhraseRewriter(annotator)
 {
+  private implicit val tongue = mind.getTongue
+
   def normalizeInput(
     sentence : SilSentence) : SilSentence =
   {
@@ -53,7 +53,7 @@ class SmcInputRewriter[
         ),
         determiner
       ) if (
-        (noun.toNounLemma != LEMMA_KIND) &&
+        (noun.toNounLemma != MW_KIND.toLemma) &&
           (determiner match {
             case DETERMINER_ABSENT | DETERMINER_DEFINITE |
                 (_ : SilUnlimitedDeterminer) => true

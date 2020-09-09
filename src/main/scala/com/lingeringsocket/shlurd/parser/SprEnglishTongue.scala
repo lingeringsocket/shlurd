@@ -71,6 +71,34 @@ object SprEnglishLexicon
     LEMMA_SHE, LEMMA_HER, LEMMA_HERS, LEMMA_HERSELF,
     LEMMA_THIS, LEMMA_THAT
   )
+
+  val keywordToLemma : Map[SprMagicWord, String] = Map(
+    MW_AFTER -> LEMMA_AFTER,
+    MW_ALSO -> "also",
+    MW_ANOTHER -> "another",
+    MW_BEFORE -> LEMMA_BEFORE,
+    MW_BELIEVE -> "believe",
+    MW_CONSEQUENTLY -> "consequently",
+    MW_EXIST -> LEMMA_EXIST,
+    MW_FEMININE -> "feminine",
+    MW_GENERALLY -> "generally",
+    MW_IF -> LEMMA_IF,
+    MW_KIND -> "kind",
+    MW_MASCULINE -> "masculine",
+    MW_NEUTER -> "neuter",
+    MW_OTHERWISE -> "otherwise",
+    MW_SAME -> "same",
+    MW_SUBSEQUENTLY -> "subsequently",
+    MW_WHAT -> LEMMA_WHAT,
+    MW_WHERE -> LEMMA_WHERE,
+    MW_WHICH -> LEMMA_WHICH,
+    MW_WHO -> LEMMA_WHO,
+    MW_WHOM -> LEMMA_WHOM,
+    MW_WHOSE -> LEMMA_WHOSE
+  )
+
+  val lemmaToKeyword = keywordToLemma.map(_.swap)
+  assert(keywordToLemma.size == lemmaToKeyword.size)
 }
 
 class SprEnglishTongue(wordnet : ShlurdWordnet)
@@ -265,6 +293,27 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
   {
     // Penn Treebank has special "TO" label instead of "IN"
     (lemma == LEMMA_TO)
+  }
+
+  override def isAdpositionablePronoun(lemma : String) : Boolean =
+  {
+    lemma match {
+      case LEMMA_ME | LEMMA_MYSELF | LEMMA_MINE | LEMMA_OURS |
+          LEMMA_OURSELF | LEMMA_OURSELVES | LEMMA_YOU |
+          LEMMA_YOURS | LEMMA_YOURSELF | LEMMA_YOURSELVES |
+          LEMMA_US | LEMMA_THESE | LEMMA_THOSE |
+          LEMMA_IT | LEMMA_ITS | LEMMA_THEM | LEMMA_THEMSELF |
+          LEMMA_THEMSELVES | LEMMA_HIM | LEMMA_HIS |
+          LEMMA_HIMSELF | LEMMA_HER | LEMMA_HERS | LEMMA_HERSELF |
+          LEMMA_THIS | LEMMA_THAT => true
+      case _ => {
+        if (isPronounWord(lemma)) {
+          false
+        } else {
+          true
+        }
+      }
+    }
   }
 
   override def isAdposition(lemma : String) : Boolean =
@@ -602,6 +651,16 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
       case LEMMA_THERE => Some(PROXIMITY_LISTENER_THERE)
       case _ => None
     }
+  }
+
+  override def keywordLemma(keyword : SprMagicWord) : String =
+  {
+    keywordToLemma(keyword)
+  }
+
+  def keywordForLemma(lemma : String) : Option[SprMagicWord] =
+  {
+    lemmaToKeyword.get(lemma)
   }
 
   override def filterIndexWords(

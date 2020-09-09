@@ -44,6 +44,47 @@ trait SprSynthesizer
   }
 }
 
+sealed trait SprMagicWord
+{
+  def toLemma(implicit tongue : SprTongue) = magicToString(this)
+}
+case object MW_AFTER extends SprMagicWord
+case object MW_ALSO extends SprMagicWord
+case object MW_ANOTHER extends SprMagicWord
+case object MW_BEFORE extends SprMagicWord
+case object MW_BELIEVE extends SprMagicWord
+case object MW_CONSEQUENTLY extends SprMagicWord
+case object MW_EXIST extends SprMagicWord
+case object MW_FEMININE extends SprMagicWord
+case object MW_GENERALLY extends SprMagicWord
+case object MW_IF extends SprMagicWord
+case object MW_KIND extends SprMagicWord
+case object MW_MASCULINE extends SprMagicWord
+case object MW_NEUTER extends SprMagicWord
+case object MW_OTHERWISE extends SprMagicWord
+case object MW_SAME extends SprMagicWord
+case object MW_SUBSEQUENTLY extends SprMagicWord
+case object MW_WHAT extends SprMagicWord
+case object MW_WHERE extends SprMagicWord
+case object MW_WHICH extends SprMagicWord
+case object MW_WHO extends SprMagicWord
+case object MW_WHOM extends SprMagicWord
+case object MW_WHOSE extends SprMagicWord
+
+object SilMagicWord
+{
+  def apply(keyword : SprMagicWord)(implicit tongue : SprTongue) =
+  {
+    SilWord(tongue.keywordLemma(keyword))
+  }
+
+  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue)
+      : Option[SprMagicWord] =
+  {
+    tongue.keywordForLemma(w.lemma)
+  }
+}
+
 abstract class SprTongue(wordnet : ShlurdWordnet)
     extends SprSynthesizer with SilGenderAnalyzer
 {
@@ -130,6 +171,8 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
 
   def isSpecialAdposition(lemma : String) : Boolean = false
 
+  def isAdpositionablePronoun(lemma : String) : Boolean = true
+
   def labelVerb(token : String, lemma : String) : Set[String]
 
   def labelPronoun(
@@ -187,6 +230,10 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   def proximityLemma(proximity : SilProximity) : String
 
   def proximityForLemma(lemma : String) : Option[SilProximity]
+
+  def keywordLemma(keyword : SprMagicWord) : String
+
+  def keywordForLemma(lemma : String) : Option[SprMagicWord]
 
   def pronounLemma(
     person : SilPerson, gender : SilGender, count : SilCount,

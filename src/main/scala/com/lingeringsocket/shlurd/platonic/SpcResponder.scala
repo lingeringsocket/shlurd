@@ -24,8 +24,6 @@ import scala.util._
 
 import spire.math._
 
-import SprEnglishLemmas._
-
 sealed trait SpcAssertionApplicability
 case object APPLY_CONSTRAINTS_ONLY extends SpcAssertionApplicability
 case object APPLY_TRIGGERS_ONLY extends SpcAssertionApplicability
@@ -782,7 +780,7 @@ class SpcResponder(
         }
         def isGenerally(m : SilVerbModifier) : Boolean = {
           m match {
-            case SilBasicVerbModifier(SilWordLemma(LEMMA_GENERALLY)) => true
+            case SilBasicVerbModifier(SilMagicWord(MW_GENERALLY)) => true
             case _ => false
           }
         }
@@ -940,7 +938,8 @@ class SpcResponder(
           SilPredicateSentence(newPredicate) +: newAdditionalConsequents
         ).map(
           removeBasicVerbModifier(
-            _, Set(LEMMA_ALSO, LEMMA_SUBSEQUENTLY, LEMMA_CONSEQUENTLY)
+            _, Set(MW_ALSO.toLemma, MW_SUBSEQUENTLY.toLemma,
+              MW_CONSEQUENTLY.toLemma)
           )
         )
         newConsequents.foreach(sentence => {
@@ -994,8 +993,8 @@ class SpcResponder(
                 val altResults = newAlternative.flatMap(alternativeSentence => {
                   val recoverySentence = removeBasicVerbModifier(
                     alternativeSentence,
-                    Set(LEMMA_OTHERWISE, LEMMA_SUBSEQUENTLY,
-                      LEMMA_CONSEQUENTLY))
+                    Set(MW_OTHERWISE.toLemma, MW_SUBSEQUENTLY.toLemma,
+                      MW_CONSEQUENTLY.toLemma))
                   checkCycle(
                     annotator,
                     recoverySentence.predicate,

@@ -28,7 +28,6 @@ import spire.math._
 
 import org.jgrapht._
 
-import SprEnglishLemmas._
 import SprPennTreebankLabels._
 
 class SpcMind(cosmos : SpcCosmos)
@@ -449,13 +448,11 @@ class SpcMind(cosmos : SpcCosmos)
       ).getOrElse(gender)
     }
 
-    // FIXME these should either use language/wordnet-specific lemmas,
-    // or look up from English first and then use inter-language
-    // mappings to the corresponding language-specific forms
+    implicit val tongue = getTongue
     gender match {
-      case GENDER_MASCULINE => lookupGender(LEMMA_MASCULINE)
-      case GENDER_FEMININE => lookupGender(LEMMA_FEMININE)
-      case GENDER_NEUTER => lookupGender(LEMMA_NEUTER)
+      case GENDER_MASCULINE => lookupGender(MW_MASCULINE.toLemma)
+      case GENDER_FEMININE => lookupGender(MW_FEMININE.toLemma)
+      case GENDER_NEUTER => lookupGender(MW_NEUTER.toLemma)
       case _ => super.canonicalGender(gender)
     }
   }

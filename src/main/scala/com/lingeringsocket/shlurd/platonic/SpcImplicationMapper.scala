@@ -22,8 +22,6 @@ import com.lingeringsocket.shlurd.ilang._
 import scala.collection._
 import scala.util._
 
-import SprEnglishLemmas._
-
 object SpcImplicationMapper
 {
   def extractPlaceholder(
@@ -81,6 +79,8 @@ object SpcImplicationMapper
     reference : SilReference,
     default : => SilReference) : SilReference =
   {
+    implicit val tongue = sentencePrinter.getTongue
+
     reference match {
       case SilAppositionalReference(primary, _) => {
         flipVariable(annotator, sentencePrinter, primary, default)
@@ -100,7 +100,7 @@ object SpcImplicationMapper
         SilMandatorySingular(
           noun
         ),
-        SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
+        SilPropertyState(SilMagicWord(MW_ANOTHER))
       ) => {
         val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
         annotator.determinedRef(
@@ -195,6 +195,8 @@ class SpcImplicationMapper(
   responder : SpcResponder
 )
 {
+  private implicit val tongue = responder.getMind.getTongue
+
   def validateImplication(
     conditional : SilConditionalSentence,
     additionalConsequents : Seq[SilPredicateSentence],
@@ -272,7 +274,7 @@ class SpcImplicationMapper(
           }
           case SilStateSpecifiedReference(
             SilMandatorySingular(noun),
-            SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
+            SilPropertyState(SilMagicWord(MW_ANOTHER))
           ) => {
             if (variableCounters.getOrElse(noun, 0) != 1) {
               throw InvalidBeliefExcn(
@@ -326,7 +328,7 @@ class SpcImplicationMapper(
         case SilStateSpecifiedReference(
           _, SilPropertyState(SilWordLemma(lemma))
         ) => {
-          (lemma == LEMMA_ANOTHER)
+          (lemma == MW_ANOTHER.toLemma)
         }
         case _ : SilConjunctiveReference => false
         case _ => true

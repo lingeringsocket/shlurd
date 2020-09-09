@@ -140,7 +140,7 @@ trait SprAbstractSyntaxTree
   def hasTerminalLabel(label : String, terminalLabel : String) =
     isPreTerminal && hasLabel(label) && firstChild.hasLabel(terminalLabel)
 
-  def isNounNode = isNoun || isNounPhrase || isPronounOrDemonstrative
+  def isNounOrPronoun = isNoun || isNounPhrase || isPronounOrDemonstrative
 
   def isNounPhrase = hasLabel(LABEL_NP)
 

@@ -20,8 +20,6 @@ import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection.JavaConverters._
 
-import SprEnglishLemmas._
-
 // FIXME add role alias support
 class SpcCreed(
   annotator : SpcAnnotator,
@@ -130,7 +128,7 @@ class SpcCreed(
         idealReference(cosmos.getGraph.getSubclassIdeal(edge)),
         REL_PREDEF_IDENTITY.toVerb,
         annotator.stateSpecifiedRef(
-          nounReference(LEMMA_KIND),
+          nounReference(MW_KIND),
           SilAdpositionalState(
             SilAdposition.OF,
             idealNoun(cosmos.getGraph.getSuperclassIdeal(edge))))
@@ -160,7 +158,8 @@ class SpcCreed(
         nounReference(entry._1),
         REL_PREDEF_IDENTITY.toVerb,
         annotator.stateSpecifiedRef(
-          nounReference(LEMMA_SAME, COUNT_SINGULAR, DETERMINER_DEFINITE),
+          nounReference(
+            MW_SAME, COUNT_SINGULAR, DETERMINER_DEFINITE),
           SilAdpositionalState(
             SilAdposition.AS,
             nounReference(entry._2))))
@@ -251,7 +250,7 @@ class SpcCreed(
       case "" => {
         SilStatePredicate(
           subject,
-          SilWord.uninflected(LEMMA_EXIST),
+          SilMagicWord(MW_EXIST).toUninflected,
           SilExistenceState())
       }
       case _ => {
@@ -377,7 +376,7 @@ class SpcCreed(
           annotator.genitiveRef(
             annotator.qualifiedRef(
               plainNoun(possessorForm),
-              Seq(SilWord(LEMMA_ANOTHER))
+              Seq(SilMagicWord(MW_ANOTHER))
             ),
             plainNoun(edge1.getRoleName)
           ),
@@ -409,7 +408,7 @@ class SpcCreed(
       }
     }
     val sentence = SilConditionalSentence(
-      SilWord(LEMMA_IF),
+      SilMagicWord(MW_IF),
       SilRelationshipPredicate(
         antecedentSubject,
         REL_PREDEF_IDENTITY.toVerb,

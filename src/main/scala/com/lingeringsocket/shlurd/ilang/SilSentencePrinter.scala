@@ -35,6 +35,8 @@ class SilSentencePrinter(
 {
   private implicit val tongue = tongueIn
 
+  def getTongue = tongue
+
   val sb = SilSentenceBundle(tongue, parlance)
 
   def print(
@@ -407,7 +409,7 @@ class SilSentencePrinter(
     // state gets lost for questions such as QUESTION_WHAT
     val (plainSubject, subjectInflection) = predicate.getSubject match {
       case SilGenitiveReference(
-        SilNounLemmaReference(LEMMA_WHO),
+        SilNounReference(SilMagicWord(MW_WHO)),
         possessee
       ) => {
         tupleN((
@@ -509,7 +511,7 @@ class SilSentencePrinter(
   {
     val uninflectedVerb = {
       if (existentialPronoun.nonEmpty && (tam.modality == MODAL_EMPHATIC)) {
-        SilWord.uninflected(LEMMA_EXIST)
+        SilMagicWord(MW_EXIST).toUninflected
       } else {
         verb.toUninflected
       }

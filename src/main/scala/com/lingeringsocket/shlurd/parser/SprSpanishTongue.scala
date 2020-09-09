@@ -32,16 +32,16 @@ object SprSpanishLemmas
   val LEMMA_ALGUNOS = "algunos"
   val LEMMA_ALLA = "allá"
   val LEMMA_ALLI = "allí"
-  val LEMMA_AMBA = "ambas"
+  val LEMMA_AMBA = "amba"
   val LEMMA_AMBAS = "ambas"
-  val LEMMA_AMBO = "ambos"
+  val LEMMA_AMBO = "ambo"
   val LEMMA_AMBOS = "ambos"
   val LEMMA_AQUI = "aquí"
-  val LEMMA_AQUEL = "esa"
-  val LEMMA_AQUELLA = "esa"
-  val LEMMA_AQUELLAS = "esas"
-  val LEMMA_AQUELLO = "eso"
-  val LEMMA_AQUELLOS = "esos"
+  val LEMMA_AQUEL = "aquel"
+  val LEMMA_AQUELLA = "aquella"
+  val LEMMA_AQUELLAS = "aquellas"
+  val LEMMA_AQUELLO = "aquello"
+  val LEMMA_AQUELLOS = "aquellos"
   val LEMMA_CADA = "cada"
   val LEMMA_CUAL = "cual"
   val LEMMA_CUALES = "cuales"
@@ -71,6 +71,7 @@ object SprSpanishLemmas
   val LEMMA_LOS = "los"
   val LEMMA_ME = "me"
   val LEMMA_MI = "mi"
+  val LEMMA_MI_ACCENTED = "mí"
   val LEMMA_MIA = "mía"
   val LEMMA_MIO = "mío"
   val LEMMA_MIAS = "mías"
@@ -96,8 +97,9 @@ object SprSpanishLemmas
   val LEMMA_SER = "ser"
   val LEMMA_SU = "su"
   val LEMMA_SUS = "sus"
-  val LEMMA_TE = "tener"
+  val LEMMA_TE = "te"
   val LEMMA_TENER = "tener"
+  val LEMMA_TI = "ti"
   val LEMMA_TODA = "toda"
   val LEMMA_TODAS = "todas"
   val LEMMA_TODO = "todo"
@@ -218,6 +220,12 @@ object SprSpanishLexicon
   )
 
   val adpositionedToCoord = Map(
+    LEMMA_MI_ACCENTED -> SprPronounCoord(
+      PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_ADPOSITIONED),
+    LEMMA_TI -> SprPronounCoord(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_ADPOSITIONED),
     LEMMA_LE -> SprPronounCoord(
       PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
       PROXIMITY_ENTITY, INFLECT_ADPOSITIONED),
@@ -367,6 +375,43 @@ object SprSpanishLexicon
   assert(coordToPronoun.size == pronounToCoord.size)
 
   val pronounLemmas = pronounToCoord.keySet
+
+  val keywordToLemma : Map[SprMagicWord, String] = Map(
+    // FIXME should be compound "después de"
+    MW_AFTER -> "después",
+    MW_ALSO -> "también",
+    // FIXME needs to respect gender
+    MW_ANOTHER -> "otro",
+    // FIXME should be compound "antes de"
+    MW_BEFORE -> "antes",
+    MW_BELIEVE -> "crea",
+    MW_CONSEQUENTLY -> "consiguientemente",
+    MW_EXIST -> LEMMA_EXISTIR,
+    MW_FEMININE -> "feminino",
+    MW_GENERALLY -> "generalmente",
+    MW_IF -> "si",
+    MW_KIND -> "tipo",
+    MW_MASCULINE -> "masculino",
+    MW_NEUTER -> "neutro",
+    MW_OTHERWISE -> "contrario",
+    MW_SAME -> "mismo",
+    MW_SUBSEQUENTLY -> "posteriormente",
+    // FIXME need to discriminate qué from que
+    MW_WHAT -> "que",
+    // FIXME need to discriminate donde from dónde
+    MW_WHERE -> "donde",
+    // FIXME need to discriminate cual from cuál, and deal with agreement
+    MW_WHICH -> "cual",
+    // FIXME need to discriminate quién from quien, and deal with agreement
+    MW_WHO -> "quien",
+    // FIXME how is this supposed to work?
+    MW_WHOM -> "a quién",
+    // FIXME how is this supposed to work?
+    MW_WHOSE -> "de quién"
+  )
+
+  val lemmaToKeyword = keywordToLemma.map(_.swap)
+  assert(keywordToLemma.size == lemmaToKeyword.size)
 }
 
 class SprSpanishTongue(wordnet : ShlurdWordnet)
@@ -610,6 +655,22 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   override def isPossessiveAdjective(lemma : String) : Boolean =
   {
     genitiveToCoord.contains(lemma)
+  }
+
+  override def isAdpositionablePronoun(lemma : String) : Boolean =
+  {
+    lemma match {
+      case LEMMA_MI_ACCENTED | LEMMA_TI | LEMMA_EL_ACCENTED |
+          LEMMA_ELLA | LEMMA_NOSOTROS | LEMMA_NOSOTRAS | LEMMA_VOSOTROS |
+          LEMMA_VOSOTRAS | LEMMA_ELLOS | LEMMA_ELLAS => true
+      case _ => {
+        if (isPronounWord(lemma)) {
+          false
+        } else {
+          true
+        }
+      }
+    }
   }
 
   override def isAdposition(lemma : String) : Boolean =
@@ -920,6 +981,16 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     val coord = SprPronounCoord(
       person, gender, count, proximity, inflection, possesseeCount)
     coordToPronoun.get(coord).getOrElse("")
+  }
+
+  override def keywordLemma(keyword : SprMagicWord) : String =
+  {
+    keywordToLemma(keyword)
+  }
+
+  def keywordForLemma(lemma : String) : Option[SprMagicWord] =
+  {
+    lemmaToKeyword.get(lemma)
   }
 
   override def proximityLemma(proximity : SilProximity) : String =

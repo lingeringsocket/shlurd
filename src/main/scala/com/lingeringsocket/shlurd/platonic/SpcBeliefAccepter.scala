@@ -24,8 +24,6 @@ import scala.util._
 
 import org.jgrapht.alg.shortestpath._
 
-import SprEnglishLemmas._
-
 object SpcBeliefAccepter
 {
   def apply(
@@ -1025,7 +1023,7 @@ class SpcBeliefAccepter private(
           None
         } else {
           if (
-            (conditional.conjunction.toLemma == LEMMA_IF) &&
+            (conditional.conjunction.toLemma == MW_IF.toLemma) &&
               isGenitiveRelationship(conditional.antecedent) &&
               isGenitiveRelationship(conditional.consequent)
           )
@@ -1076,7 +1074,7 @@ class SpcBeliefAccepter private(
       //   then equivalently the map-connection is
       //   the map-place's place-entrance."
       case SilConditionalSentence(
-        SilWordLemma(LEMMA_IF),
+        SilMagicWord(MW_IF),
         SilRelationshipPredicate(
           antecedentSubject,
           SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),

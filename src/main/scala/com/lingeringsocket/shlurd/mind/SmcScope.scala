@@ -398,6 +398,8 @@ class SmcPhraseScope[
 
   override def getSentencePrinter = parent.getSentencePrinter
 
+  private implicit val tongue = getSentencePrinter.getTongue
+
   override def resolveQualifiedNoun(
     noun : SilWord,
     context : SilReferenceContext,
@@ -453,7 +455,7 @@ class SmcPhraseScope[
                 SilMandatorySingular(
                   SilWordLemma(lemma)
                 ),
-                SilPropertyState(SilWordLemma(LEMMA_ANOTHER))
+                SilPropertyState(SilMagicWord(MW_ANOTHER))
               ) if (matchLemma(lemma)) => {
                 Some(tupleN((prior, set, produceOrdinal(2))))
               }

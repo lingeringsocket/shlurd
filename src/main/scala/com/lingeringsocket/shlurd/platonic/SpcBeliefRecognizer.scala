@@ -23,7 +23,6 @@ import scala.collection._
 
 import org.slf4j._
 
-import SprEnglishLemmas._
 import SprPennTreebankLabels._
 import ShlurdExceptionCode._
 
@@ -588,7 +587,7 @@ class SpcBeliefRecognizer(
         case SilOptionallyDeterminedReference(
           SilStateSpecifiedReference(
             SilCountedNounReference(
-              SilWordLemma(LEMMA_KIND),
+              SilMagicWord(MW_KIND),
               kindCount),
             SilAdpositionalState(
               SilAdposition.OF,
@@ -607,7 +606,7 @@ class SpcBeliefRecognizer(
         case SilDeterminedReference(
           SilStateSpecifiedReference(
             SilMandatorySingular(
-              SilWordLemma(LEMMA_SAME)
+              SilMagicWord(MW_SAME)
             ),
             SilAdpositionalState(
               SilAdposition.AS,
@@ -848,12 +847,12 @@ class SpcBeliefRecognizer(
     }
   }
 
-  private def extractBasicModifierLemmas(
-    predicate : SilPredicate) : Seq[String] =
+  private def extractBasicModifiers(
+    predicate : SilPredicate) : Seq[SprMagicWord] =
   {
     predicate.getModifiers.flatMap(
       _ match {
-        case SilBasicVerbModifier(SilWordLemma(lemma)) => Some(lemma)
+        case SilBasicVerbModifier(SilMagicWord(mw)) => Some(mw)
         case _ => None
       }
     )
@@ -955,16 +954,16 @@ class SpcBeliefRecognizer(
           }
         }
         val consequent = conditional.consequent
-        val isAfter = (conditional.conjunction.toLemma == LEMMA_AFTER)
-        val isBefore = (conditional.conjunction.toLemma == LEMMA_BEFORE)
-        val consequentModifiers = extractBasicModifierLemmas(consequent)
+        val isAfter = (conditional.conjunction.toLemma == MW_AFTER.toLemma)
+        val isBefore = (conditional.conjunction.toLemma == MW_BEFORE.toLemma)
+        val consequentModifiers = extractBasicModifiers(consequent)
         val isConsequentOtherwise =
-          consequentModifiers.contains(LEMMA_OTHERWISE)
-        val isConsequentAlso = consequentModifiers.contains(LEMMA_ALSO)
+          consequentModifiers.contains(MW_OTHERWISE)
+        val isConsequentAlso = consequentModifiers.contains(MW_ALSO)
         val isConsequentSubsequently = isAfter ||
-          consequentModifiers.contains(LEMMA_SUBSEQUENTLY)
+          consequentModifiers.contains(MW_SUBSEQUENTLY)
         val isConsequentImplication =
-          consequentModifiers.contains(LEMMA_CONSEQUENTLY)
+          consequentModifiers.contains(MW_CONSEQUENTLY)
         if (!antecedentEvent && !conditional.biconditional &&
           !isConsequentImplication)
         {
@@ -982,7 +981,7 @@ class SpcBeliefRecognizer(
           if (isBefore) {
             reportException(ConsequentConstraintExpected)
           }
-          if (conditional.conjunction.toLemma != LEMMA_IF) {
+          if (conditional.conjunction.toLemma != MW_IF.toLemma) {
             if (conditional.biconditional) {
               reportException(EquivalenceIfExpected)
             }
@@ -1006,12 +1005,12 @@ class SpcBeliefRecognizer(
           consequentNonModal
         )
         additionalSentences.foreach(additionalSentence => {
-          val modifiers = extractBasicModifierLemmas(
+          val modifiers = extractBasicModifiers(
             additionalSentence.predicate)
-          val isOtherwise = modifiers.contains(LEMMA_OTHERWISE)
-          val isAlso = modifiers.contains(LEMMA_ALSO)
-          val isSubsequently = modifiers.contains(LEMMA_SUBSEQUENTLY)
-          val isImplication = modifiers.contains(LEMMA_CONSEQUENTLY)
+          val isOtherwise = modifiers.contains(MW_OTHERWISE)
+          val isAlso = modifiers.contains(MW_ALSO)
+          val isSubsequently = modifiers.contains(MW_SUBSEQUENTLY)
+          val isImplication = modifiers.contains(MW_CONSEQUENTLY)
           if (isSubsequently && isImplication) {
             reportException(AssertionModifiersIncompatible)
           }
@@ -1099,7 +1098,7 @@ class SpcBeliefRecognizer(
     verb : SilWord,
     argument : String) : Seq[SpcBelief] =
   {
-    if (verb.toLemma == LEMMA_BELIEVE) {
+    if (verb.toLemma == MW_BELIEVE.toLemma) {
       Seq(IndirectBelief(sentence, argument))
     } else {
       Seq.empty

@@ -1072,7 +1072,7 @@ class SmcResponder[
     question : SilQuestion,
     answerInflection : SilInflection) =
   {
-    new SmcQueryRewriter(annotator, question, answerInflection)
+    new SmcQueryRewriter(tongue, annotator, question, answerInflection)
   }
 
   private def replaceReferencesWithEntities(

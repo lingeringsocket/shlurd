@@ -22,8 +22,6 @@ import com.lingeringsocket.shlurd.ilang._
 import scala.collection._
 import scala.util._
 
-import SprEnglishLemmas._
-
 import org.slf4j._
 
 class SpcAssertionBinding(
@@ -66,6 +64,8 @@ class SpcAssertionMapper(
   type MindScopeType = SmcMindScope[
     SpcEntity, SpcProperty, SpcCosmos, SpcMind
   ]
+
+  private implicit val tongue = mind.getTongue
 
   private[platonic] def matchSubsumption(
     annotator : SpcAnnotator,
@@ -269,7 +269,7 @@ class SpcAssertionMapper(
             // FIXME need the same treatment for other variables, but
             // with intersectionality
             case SilDeterminedReference(
-              SilCountedNounReference(SilWordLemma(LEMMA_WHAT), count),
+              SilCountedNounReference(SilMagicWord(MW_WHAT), count),
               _ : SilUnlimitedDeterminer
             ) => {
               resolvedForm match {

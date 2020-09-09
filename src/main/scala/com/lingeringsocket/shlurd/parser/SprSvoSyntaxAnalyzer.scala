@@ -117,7 +117,7 @@ abstract class SprSvoSyntaxAnalyzer(
     isQuestion : Boolean,
     force : SilForce) =
   {
-    if (np.isNounNode && vp.isVerbPhrase &&
+    if (np.isNounOrPronoun && vp.isVerbPhrase &&
       verbModifiers.forall(_.isAdverbialPhrase))
     {
       val tam = if (isQuestion) {
@@ -369,13 +369,13 @@ abstract class SprSvoSyntaxAnalyzer(
         questionChildren match {
           case Seq(SptNP(first : SptNP, second)) => {
             SptNP(
-              SptNP((SptDT(makeLeaf(LEMMA_WHICH)) +:
+              SptNP((SptDT(makeLeaf(MW_WHICH.toLemma)) +:
                 unwrapSinglePhrase(first.children)):_*),
               second
             )
           }
           case _ => {
-            SptNP((SptDT(makeLeaf(LEMMA_WHICH)) +:
+            SptNP((SptDT(makeLeaf(MW_WHICH.toLemma)) +:
               unwrapSinglePhrase(questionChildren)):_*)
           }
         }
@@ -726,6 +726,16 @@ abstract class SprSvoSyntaxAnalyzer(
     }
   }
 
+  private def isAdpositionable(tree : SprSyntaxTree) : Boolean =
+  {
+    tree match {
+      case SptPRP(leaf) => {
+        tongue.isAdpositionablePronoun(getWord(leaf).lemma)
+      }
+      case _ => true
+    }
+  }
+
   override def expectAdpositionalState(
     tree : SprSyntaxTree, extracted : Boolean)
     : SilState =
@@ -749,7 +759,12 @@ abstract class SprSvoSyntaxAnalyzer(
             }
           }
           if (valid) {
-            SilAdpositionalState(adposition, expectReference(seq.last))
+            val obj = seq.last
+            if (isAdpositionable(obj.unwrapPhrase)) {
+              SilAdpositionalState(adposition, expectReference(obj))
+            } else {
+              SilUnrecognizedState(tree)
+            }
           } else {
             SilUnrecognizedState(tree)
           }
@@ -877,6 +892,8 @@ abstract class SprSvoSyntaxAnalyzer(
     tupleN((negative, predicate))
   }
 
+  protected def allowObjectPronounsAfterVerb() : Boolean = true
+
   private def expectVerbObjectsAndModifiers(
     seq : Seq[SprSyntaxTree],
     specifiedDirectObjectOrig : Option[SilReference]) =
@@ -889,7 +906,14 @@ abstract class SprSvoSyntaxAnalyzer(
         specifiedDirectObjectOrig
       }
     }
-    val objCandidates = seq.filter(_.isNounNode)
+    val objCandidates = {
+      if (allowObjectPronounsAfterVerb) {
+        seq.filter(_.isNounOrPronoun)
+      } else {
+        seq.filter(t => t.isNoun ||
+          (t.isNounPhrase && !t.unwrapPhrase.isPronoun))
+      }
+    }
     val directCandidates =
       objCandidates.filter(_.containsIncomingDependency("dobj"))
     val directObjTree = {
@@ -1045,7 +1069,7 @@ abstract class SprSvoSyntaxAnalyzer(
         expectExistenceState(complement),
         SilNullState(),
         verbModifiers)))
-    } else if (complement.isNounNode) {
+    } else if (complement.isNounOrPronoun) {
       // FIXME this is quite arbitrary
       val (subjectRef, complementRef) = {
         if (isBeingLemma(verb)) {
@@ -1128,7 +1152,7 @@ abstract class SprSvoSyntaxAnalyzer(
         case _ : SptVP => SilUnrecognizedState(tree)
         case _ : SptADVP => SilUnrecognizedState(tree)
         case SptADJP(_ : SptRB) => SilUnrecognizedState(tree)
-        case SptADJP(nn) if (nn.isNounNode) => SilUnrecognizedState(tree)
+        case SptADJP(nn) if (nn.isNounOrPronoun) => SilUnrecognizedState(tree)
         case ap : SptADJP if (
           ap.children.exists(
             child => child.isInstanceOf[SptPP] && (child.numChildren < 2))
@@ -1280,8 +1304,8 @@ abstract class SprSvoSyntaxAnalyzer(
         }
       }
       case SptWDT(wdt) => {
-        wdt.lemma match {
-          case LEMMA_WHICH | LEMMA_WHAT =>
+        SilWord(wdt.lemma) match {
+          case SilMagicWord(MW_WHICH | MW_WHAT) =>
             Some((QUESTION_WHICH, None, seq.tail))
           case _ => None
         }
@@ -1289,14 +1313,14 @@ abstract class SprSvoSyntaxAnalyzer(
       case SptWP_POS(wpp) => {
         Some((QUESTION_WHO, None,
           Seq(SptNP(
-            (SptNP(SptNN(makeLeaf(LEMMA_WHO)), SptPOS(makeLeaf("'s"))) +:
+            (SptNP(SptNN(makeLeaf(MW_WHO.toLemma)), SptPOS(makeLeaf("'s"))) +:
               seq.tail):_*))))
       }
       case SptWP(wp) => {
-        wp.lemma match {
-          case LEMMA_WHO | LEMMA_WHOM =>
+        SilWord(wp.lemma) match {
+          case SilMagicWord(MW_WHO | MW_WHOM) =>
             Some((QUESTION_WHO, None, tree.children))
-          case LEMMA_WHAT =>
+          case SilMagicWord(MW_WHAT) =>
             Some((QUESTION_WHAT, None, tree.children))
           case _ => None
         }
