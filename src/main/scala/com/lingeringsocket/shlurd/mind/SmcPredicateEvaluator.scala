@@ -24,8 +24,6 @@ import spire.math._
 
 import scala.collection._
 
-import SprEnglishLemmas._
-
 class SmcPredicateEvaluator[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -1316,7 +1314,7 @@ class SmcPredicateEvaluator[
               case SilMagicWord(MW_WHOM) =>
                 SilWord(SmcIdeals.FORM_SOMEONE)
               case SilMagicWord(MW_WHAT) =>
-                SilWord(LEMMA_THAT)
+                SilMagicWord(MW_THAT)
               case SilMagicWord(MW_WHERE) =>
                 SilWord(SmcIdeals.ROLE_CONTAINER)
               case _ => noun

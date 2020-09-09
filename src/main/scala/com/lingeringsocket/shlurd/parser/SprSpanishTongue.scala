@@ -398,6 +398,8 @@ object SprSpanishLexicon
     MW_BEHIND -> "detrás de",
     MW_BELOW -> "debajo de",
     MW_BENEATH -> "bajo",
+    // FIXME: agreement
+    MW_BOTH -> LEMMA_AMBOS,
     MW_CONSEQUENTLY -> "consiguientemente",
     // FIXME:  the real thing
     MW_EITHER -> "cualquiera",
@@ -424,8 +426,14 @@ object SprSpanishLexicon
     MW_NEITHER -> LEMMA_NINGUNO,
     MW_NOR -> LEMMA_NI,
     MW_NEUTER -> "neutro",
+    // FIXME: agreement
+    MW_NONE -> LEMMA_NINGUNO,
+    MW_NOTHING -> "nada",
+    MW_NOWHERE -> "en ninguna parte",
     MW_OF -> LEMMA_DE,
     MW_ON -> "encima de",
+    // FIXME: agreement
+    MW_ONE -> LEMMA_UNO,
     // FIXME:  change to LEMMA_U before a vowel
     MW_OR -> LEMMA_O,
     MW_OTHERWISE -> "contrario",
@@ -434,6 +442,8 @@ object SprSpanishLexicon
     MW_RIGHT -> "al derecho de",
     MW_SAME -> "mismo",
     MW_TO -> "a",
+    // FIXME: the real thing
+    MW_THAT -> LEMMA_ESO,
     MW_THEN -> "entonces",
     MW_UNDER -> "abajo de",
     MW_SUBSEQUENTLY -> "posteriormente",

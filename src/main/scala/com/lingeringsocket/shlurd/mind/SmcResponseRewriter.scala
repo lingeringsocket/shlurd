@@ -20,8 +20,6 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
-import SprEnglishLemmas._
-
 class SmcResponseRewriter[
   EntityType<:SmcEntity,
   PropertyType<:SmcProperty,
@@ -159,16 +157,16 @@ class SmcResponseRewriter[
         negateCollection = true
         val (responseDeterminer, responseNoun) = noun match {
           case SilMagicWord(MW_WHO) => {
-            tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
+            tupleN((DETERMINER_NONE, SilMagicWord(MW_ONE)))
           }
           case SilMagicWord(MW_WHOM) => {
-            tupleN((DETERMINER_NONE, SilWord(LEMMA_ONE)))
+            tupleN((DETERMINER_NONE, SilMagicWord(MW_ONE)))
           }
-          case SilWordLemma(LEMMA_WHERE) => {
-            tupleN((DETERMINER_ABSENT, SilWord(LEMMA_NOWHERE)))
+          case SilMagicWord(MW_WHERE) => {
+            tupleN((DETERMINER_ABSENT, SilMagicWord(MW_NOWHERE)))
           }
           case SilMagicWord(MW_WHAT) => {
-            tupleN((DETERMINER_ABSENT, SilWord(LEMMA_NOTHING)))
+            tupleN((DETERMINER_ABSENT, SilMagicWord(MW_NOTHING)))
           }
           case _ => (DETERMINER_NONE, noun)
         }
@@ -962,10 +960,10 @@ class SmcResponseRewriter[
     val number = {
       if (conjunction && exhaustive) {
         all = false
-        SilWord(LEMMA_NONE)
+        SilMagicWord(MW_NONE)
       } else  if ((entities.size == 2) && exhaustive && !existence) {
         all = false
-        SilWord(LEMMA_BOTH)
+        SilMagicWord(MW_BOTH)
       } else {
         SilWord.uninflected(entities.size.toString)
       }

@@ -72,6 +72,7 @@ case object MW_ALSO extends SprBeliefMagicWord
 case object MW_AND extends SprBeliefMagicWord
 case object MW_ANOTHER extends SprBeliefMagicWord
 case object MW_BELIEVE extends SprBeliefMagicWord
+case object MW_BOTH extends SprBeliefMagicWord
 case object MW_CONSEQUENTLY extends SprBeliefMagicWord
 case object MW_EITHER extends SprBeliefMagicWord
 case object MW_EQUIVALENTLY extends SprBeliefMagicWord
@@ -80,11 +81,16 @@ case object MW_GENERALLY extends SprBeliefMagicWord
 case object MW_IF extends SprBeliefMagicWord
 case object MW_KIND extends SprBeliefMagicWord
 case object MW_NEITHER extends SprBeliefMagicWord
+case object MW_NOTHING extends SprBeliefMagicWord
+case object MW_NOWHERE extends SprBeliefMagicWord
+case object MW_ONE extends SprBeliefMagicWord
 case object MW_OR extends SprBeliefMagicWord
+case object MW_NONE extends SprBeliefMagicWord
 case object MW_NOR extends SprBeliefMagicWord
 case object MW_OTHERWISE extends SprBeliefMagicWord
 case object MW_SAME extends SprBeliefMagicWord
 case object MW_SUBSEQUENTLY extends SprBeliefMagicWord
+case object MW_THAT extends SprBeliefMagicWord
 case object MW_THEN extends SprBeliefMagicWord
 
 // important adpositions

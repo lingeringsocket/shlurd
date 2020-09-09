@@ -27,6 +27,7 @@ import java.util._
 
 import SprPennTreebankLabels._
 import SprEnglishLemmas._
+import SprUtils._
 
 class CorenlpTestSetup
 {
