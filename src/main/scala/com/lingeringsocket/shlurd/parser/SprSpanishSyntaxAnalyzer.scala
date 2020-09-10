@@ -71,4 +71,19 @@ class SprSpanishSyntaxAnalyzer(
     // FIXME not correct for some sentence patterns
     tam
   }
+
+
+  override protected def getVerbCount(verb : SprSyntaxTree) : SilCount =
+  {
+    verb match {
+      case simple : SprSyntaxSimpleVerb => {
+        val leaf = simple.child
+        val word = SilWord(leaf.token, leaf.lemma)
+        val (person, count, gender, tam) =
+          context.getTongue.analyzeVerbConjugation(word)
+        count
+      }
+      case _ => COUNT_SINGULAR
+    }
+  }
 }

@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd.ilang._
+
 import SprEnglishLemmas._
 
 class SprEnglishSyntaxAnalyzer(
@@ -39,6 +41,20 @@ class SprEnglishSyntaxAnalyzer(
         c.hasTerminalLemma(LEMMA_NOT) || c.hasTerminalLemma(LEMMA_NO))
     } else {
       false
+    }
+  }
+
+  override protected def getVerbCount(verb : SprSyntaxTree) : SilCount =
+  {
+    verb match {
+      case vbp : SptVBP => {
+        if (vbp.child.token == "am") {
+          COUNT_SINGULAR
+        } else {
+          COUNT_PLURAL
+        }
+      }
+      case _ => COUNT_SINGULAR
     }
   }
 }

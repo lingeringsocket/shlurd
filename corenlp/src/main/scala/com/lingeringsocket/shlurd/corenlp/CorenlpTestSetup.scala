@@ -100,6 +100,8 @@ object CorenlpParsingStrategy extends SprParsingStrategy
 
   override def isCoreNLP : Boolean = true
 
+  private implicit val tongue = SprContext.defaultTongue
+
   override def prepareParser(
     context : SprContext,
     sentence : SprTokenizedSentence,

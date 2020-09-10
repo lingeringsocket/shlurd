@@ -106,8 +106,6 @@ abstract class SprSvoSyntaxAnalyzer(
     }
   }
 
-  protected def allowElidedSubject() : Boolean = false
-
   private def expectFullPredicate(
     tree : SprSyntaxTree,
     np : SprSyntaxTree,
@@ -131,11 +129,6 @@ abstract class SprSvoSyntaxAnalyzer(
     } else {
       SilUnrecognizedSentence(tree)
     }
-  }
-
-  private def expectVerbModifiers(seq : Seq[SprSyntaxTree]) =
-  {
-    seq.map(expectVerbModifier)
   }
 
   override def analyzeSQ(
@@ -296,11 +289,6 @@ abstract class SprSvoSyntaxAnalyzer(
       Some((predicate,
         tamMoody.withPolarity(polarity)))
     }
-  }
-
-  protected def applyInterrogative(tam : SilTam) : SilTam =
-  {
-    tam.withMood(MOOD_INTERROGATIVE)
   }
 
   override def analyzeSBARQ(tree : SptSBARQ)
@@ -690,54 +678,6 @@ abstract class SprSvoSyntaxAnalyzer(
     }
   }
 
-  private def expectCommand(
-    tree : SprSyntaxTree,
-    vp : SprSyntaxTree, formality : SilFormality) : SilSentence =
-  {
-    val pronounLemma = tongue.pronounLemma(
-      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
-      PROXIMITY_ENTITY, INFLECT_NOMINATIVE)
-    val np = SptNP(SptPRP(makeLeaf(pronounLemma)))
-    val (negativeVerb, predicate) = analyzeActionPredicate(
-      tree, np, vp, None, Seq.empty, true)
-    if (negativeVerb) {
-      return SilUnrecognizedSentence(tree)
-    }
-    SilPredicateSentence(
-      predicate,
-      SilTam.imperative,
-      formality)
-  }
-
-  private def expectRelativeReference(
-    syntaxTree : SprSyntaxTree,
-    reference : SilReference,
-    relativeTree : SprSyntaxTree) : SilReference =
-  {
-    relativeTree match {
-      case SptSBAR(
-        SptWHNP(SptWDT(_)),
-        SptS(SptVP(verb, complement))
-      ) if (verb.isBeingVerb) => {
-        val state = expectComplementState(SptVP(complement))
-        annotator.stateSpecifiedRef(reference, state)
-      }
-      case _ => {
-        SilUnrecognizedReference(syntaxTree)
-      }
-    }
-  }
-
-  private def isAdpositionable(tree : SprSyntaxTree) : Boolean =
-  {
-    tree match {
-      case SptPRP(leaf) => {
-        tongue.isAdpositionablePronoun(getWord(leaf).lemma)
-      }
-      case _ => true
-    }
-  }
-
   override def expectAdpositionalState(
     tree : SprSyntaxTree, extracted : Boolean)
     : SilState =
@@ -807,28 +747,7 @@ abstract class SprSvoSyntaxAnalyzer(
     }
   }
 
-  private def extractAdposition(preTerminal : SprSyntaxTree)
-      : Option[SilAdposition] =
-  {
-    preTerminal match {
-      case adp : SprSyntaxAdposition => {
-        val leaf = adp.child
-        if (tongue.isAdposition(getWord(leaf).inflected)) {
-          Some(SilAdposition(getWord(adp.child)))
-        } else {
-          None
-        }
-      }
-      case _ => {
-        tongue.keywordForLemma(preTerminal.firstChild.lemma) match {
-          case Some(amw : SprAdpositionMagicWord) => Some(SilAdposition(amw))
-          case _ => None
-        }
-      }
-    }
-  }
-
-  private def analyzeActionPredicate(
+  override protected def analyzeActionPredicate(
     syntaxTree : SprSyntaxTree,
     np : SprSyntaxTree,
     vp : SprSyntaxTree,
@@ -1194,8 +1113,6 @@ abstract class SprSvoSyntaxAnalyzer(
     }
   }
 
-  protected def isImperative(children : Seq[SprSyntaxTree]) : Boolean
-
   private def extractAntecedent(children : Seq[SprSyntaxTree])
       : Option[(SilWord, SptS)] =
   {
@@ -1218,39 +1135,6 @@ abstract class SprSvoSyntaxAnalyzer(
       }
       case _ => None
     }
-  }
-
-  private def isCoordinatingDeterminer(
-    syntaxTree : SprSyntaxTree, determiner : SilDeterminer) : Boolean =
-  {
-    syntaxTree.unwrapPhrase match {
-      case preTerminal : SprSyntaxPreTerminal => {
-        preTerminal match {
-          case (_ : SptDT | _ : SptCC | _ : SprSyntaxAdverb) => {
-            SilWord(preTerminal.child.lemma) match {
-              case SilMagicWord(MW_BOTH) => (determiner == DETERMINER_ALL)
-              case SilMagicWord(MW_EITHER) =>
-                determiner.isInstanceOf[SilUnlimitedDeterminer]
-              case SilMagicWord(MW_NEITHER) => (determiner == DETERMINER_NONE)
-              case _ => false
-            }
-          }
-          case _ => false
-        }
-      }
-      case _ => false
-    }
-  }
-
-  private def tamForAux(leaf : SprSyntaxLeaf) : SilTam =
-  {
-    tongue.tamForAuxLemma(leaf.lemma)
-  }
-
-  private def relationshipVerb(
-    verbHead : SprSyntaxTree) : SilWord =
-  {
-    getWord(verbHead.asInstanceOf[SprSyntaxPreTerminal].child)
   }
 
   private def maybeQuestionFor(
@@ -1325,11 +1209,6 @@ abstract class SprSvoSyntaxAnalyzer(
     }
   }
 
-  private def determinerFor(leaf : SprSyntaxLeaf) : SilDeterminer =
-  {
-    tongue.maybeDeterminerFor(leaf.lemma).getOrElse(DETERMINER_ANY)
-  }
-
   private def extractAdpositionalState(seq : Seq[SprSyntaxTree])
       : (SilState, Seq[SprSyntaxTree])=
   {
@@ -1399,21 +1278,6 @@ abstract class SprSvoSyntaxAnalyzer(
     tupleN((tamTensed, remainder, getVerbCount(aux)))
   }
 
-  private def extractNegative(
-    seq : Seq[SprSyntaxTree])
-      : (Boolean, Seq[SprSyntaxTree]) =
-  {
-    // FIXME:  don't reduce to empty seq
-    val pos = seq.indexWhere(isNegative)
-    if (pos == -1) {
-      tupleN((false, seq))
-    } else {
-      tupleN((true, seq.patch(pos, Seq.empty, 1)))
-    }
-  }
-
-  protected def isNegative(tree : SprSyntaxTree) : Boolean
-
   private def splitCoordinatingConjunction(
     components : Seq[SprSyntaxTree])
       : (SilDeterminer, SilSeparator, Seq[Seq[SprSyntaxTree]]) =
@@ -1479,43 +1343,6 @@ abstract class SprSvoSyntaxAnalyzer(
     }
   }
 
-  override protected def getVerbCount(verb : SprSyntaxTree) : SilCount =
-  {
-    verb match {
-      case _ : SptVBP => {
-        if (verb.firstChild.token == "am") {
-          COUNT_SINGULAR
-        } else {
-          COUNT_PLURAL
-        }
-      }
-      case _ => COUNT_SINGULAR
-    }
-  }
-
-  override def analyzePronounReference(
-    leaf : SprSyntaxLeaf)
-      : SilPronounReference =
-  {
-    val lemma = leaf.lemma
-    val (person, count, gender, _, proximityOpt, _) =
-      tongue.analyzePronoun(lemma)
-    val proximity = proximityOpt.getOrElse {
-      val seq = context.wordLabeler.labelWords(
-        Seq(tupleN((lemma, lemma, 0))),
-        foldEphemeralLabels = false)
-      assert(seq.size == 1)
-      if (seq.head.head.label == LABEL_PRP_REFLEXIVE) {
-        PROXIMITY_REFLEXIVE
-      } else {
-        PROXIMITY_ENTITY
-      }
-    }
-    annotator.pronounRef(
-      person, gender, count,
-      context.genderAnalyzer, proximity, Some(getWord(leaf)))
-  }
-
   override def isProhibitedPropertyState(
     preTerminal : SprSyntaxPreTerminal) : Boolean =
   {
@@ -1527,12 +1354,5 @@ abstract class SprSvoSyntaxAnalyzer(
         (tongue.isAdposition(lemma) ||
           tongue.isSubordinatingConjunction(lemma))
     )
-  }
-
-  override def expectBasicVerbModifier(
-    preTerminal : SprSyntaxPreTerminal)
-      : SilVerbModifier =
-  {
-    SilBasicVerbModifier(getWord(preTerminal.child))
   }
 }
