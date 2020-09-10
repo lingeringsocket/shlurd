@@ -41,7 +41,7 @@ S ->
   // "I am rubber, and you are glue"
   // "I am rubber, you are glue, and it bounces off me"
   (sentenceListElem)+ CC S |
-  // "he that laughs last laughs best"
+  // "he that laughs last, laughs best"
   SBAR COMMA plainS |
   // "yesterday, he died"
   TMOD COMMA plainS |

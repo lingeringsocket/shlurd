@@ -1,0 +1,208 @@
+// shlurd:  a limited understanding of small worlds
+// Copyright 2017-2018 John V. Sichi
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+verbmod :=
+  // "sobre la mesa"
+  PP |
+  // "rapidamente y cruelmente"
+  ADVP |
+  // "ayer"
+  TMOD
+  ;
+
+preposition :=
+  IN;
+
+// Spanish does not allow dangling prepositions, so we
+// don't use DPP anywhere here
+
+plainS :=
+  // "estoy triste"
+  VP |
+  // "(frecuentemente) ella va al mercado"
+  (verbmod)* NP VP;
+
+sentenceListElem :=
+ S COMMA;
+
+S ->
+  plainS |
+  //  "soy un hombre y eres una mujer"
+  S CC S |
+  // "soy un hombre, eres una mujer, y ellos son perros"
+  (sentenceListElem)+ CC S |
+  // "ayer, fueron a la playa"
+  TMOD COMMA plainS |
+  // "ayer fueron a la playa"
+  TMOD plainS;
+
+SBARQ ->
+  // "which dog bit me?"
+  WHNP SQ |
+  // "por cuál puerta entraba a la casa?"
+  WHPP SQ |
+  // "cuándo comiste?"
+  WHADVP SQ;
+
+SBAR ->
+  // "[el perro] que tiene hambre"
+  WHNP S |
+  // "si el perro muerde a la mujer"
+  preposition S;
+
+SQ ->
+  // "tiene razón"
+  VP;
+
+nounPreModifier :=
+  // "rojo"
+  JJ;
+
+nounPostModifier :=
+  // "rojo"
+  JJ |
+  // "derrotado"
+  VBN;
+
+npSimple :=
+  // "(el) (grande) sueño (roto)"
+  (DT) (nounPreModifier)* NN (nounPostModifier)* |
+  // "yo"
+  PRP |
+  // "el mío"
+  (DT) PRP_POS |
+  // "mi cabro"
+  PRP_POS NN;
+
+npListElem :=
+  NP COMMA;
+
+NP ->
+  // "el perro"
+  npSimple |
+  // "el perro ((un caniche))"
+  NP NP |
+  // "el rey de las ratas"
+  NP (PP)+ |
+  // "el hombre que tiene todos"
+  NP SBAR |
+  // "herrero grande y fuerte"
+  NP ADJP |
+  // "{el otro}"
+  LCURLY NP RCURLY |
+  // "((el otro))"
+  LPAREN NP RPAREN |
+  // "(ni) el zorro ni la gallina"
+  (DT) NP CC NP |
+  // "(ni) el zorro, la gallina ni la paloma"
+  (DT) (npListElem)+ NP CC NP |
+  // "(ni) el zorro, la gallina, ni la paloma"
+  (DT) npListElem (npListElem)+ CC NP;
+
+compoundVerb :=
+  // "digo"
+  VB |
+  // "estoy deciendo"
+  VB VBG |
+  // "he dicho"
+  VB VBN |
+  // "tiene que decier"
+  VB preposition VB;
+
+VP ->
+  // "mata (rapidamente) (el ladrón) (con un cuchillo)"
+  (verbmod)* compoundVerb (verbmod)* (NP) (verbmod)* |
+  // "(rapidamente) (le) da (a la ladrona) un pepinillo (con sal)"
+  (verbmod)* (PRP) compoundVerb (verbmod)* NP (verbmod)* |
+  // "(rapidamente) lo le da (a la ladrona) (con sal)"
+  (verbmod)* PRP PRP compoundVerb (verbmod)* (verbmod)* |
+  // "es rojo" |
+  (verbmod)* compoundVerb (verbmod)* ADJP (verbmod)* |
+  // "es Juan el rey"
+  (verbmod)* compoundVerb (verbmod)* NP (verbmod)* NP (verbmod)*;
+
+adjSimple :=
+  // "corriendo"
+  VBG |
+  // "comido"
+  VBN |
+  // "rojo"
+  JJ |
+  // "rojo de vergüenza"
+  JJ PP;
+
+adjListElem :=
+  adjSimple COMMA;
+
+ADJP ->
+  // "rojo"
+  adjSimple |
+  // "(ni) rojo ni azul"
+  (DT) adjSimple CC adjSimple |
+  // "(ni) rojo, azul ni amarillo"
+  (DT) (adjListElem)+ adjSimple CC adjSimple |
+  // "(ni) rojo, azul, ni amarillo"
+  (DT) adjListElem (adjListElem)+ CC adjSimple;
+
+PP ->
+  // "en el medio"
+  preposition NP;
+
+advSimple :=
+  // "(muy) rapidamente"
+  (RB)+ |
+  // "rapidamente para variar"
+  ADVP PP;
+
+advListElem :=
+  advSimple COMMA;
+
+ADVP ->
+  advSimple |
+  advSimple CC advSimple |
+  (advListElem)+ advSimple CC advSimple |
+  advListElem (advListElem)+ CC advSimple;
+
+TMOD ->
+  // "ayer por la tarde"
+  NP;
+
+WHNP ->
+  // "cuál manzana en la canasta"
+  WHNP PP |
+  // "quién"
+  WP |
+  // "cuántos gatos rojos"
+  WHADJP NP |
+  // "which"
+  WDT |
+  // "cuál gato"
+  WDT NP |
+  // "de quién"
+  WP_POS |
+  // "cuyo paraguas"
+  WP_POS NP;
+
+WHADVP ->
+  // "por qué"
+  WRB;
+
+WHADJP ->
+  // "que tan alto"
+  WRB JJ;
+
+WHPP ->
+  // "en que casa"
+  preposition WHNP;

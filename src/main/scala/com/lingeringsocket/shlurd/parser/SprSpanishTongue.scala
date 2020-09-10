@@ -1108,6 +1108,9 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     lemma + "s"
   }
 
+  override protected def getMatcherResource() =
+    "/spanish/phrase-structure.txt"
+
   private def scoreSpecialSpanishAdpositions = phraseScorer {
     case ap : SilAdpositionalPhrase => {
       val words = ap.adposition.word.decomposed

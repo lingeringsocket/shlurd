@@ -152,6 +152,8 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   lazy val relLemmaMap = Map(SilRelationshipPredef.enumeration.map(
     rel => tupleN((getRelPredefLemma(rel), rel))):_*)
 
+  private lazy val phrasePatternMatcher = loadMatcher
+
   private implicit val tongue = this
 
   def newSentencePrinter(
@@ -344,4 +346,18 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
       SilPhraseScore.pro(1 + score)
     }
   }
+
+  private def loadMatcher() =
+  {
+    val matcher = new SprPhrasePatternMatcher
+    val source = ResourceUtils.getResourceSource(
+      getMatcherResource)
+    SprGrammar.buildMatcher(source, matcher)
+    matcher
+  }
+
+  protected def getMatcherResource() : String
+
+  def getPhrasePatternMatcher() : SprPhrasePatternMatcher =
+    phrasePatternMatcher
 }

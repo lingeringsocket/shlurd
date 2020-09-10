@@ -78,17 +78,6 @@ object SprHeuristicSynthesizer extends SprSynthesizer
   val specialCasing = Set(
     "I", LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY)
 
-  lazy val phrasePatternMatcher = loadMatcher
-
-  private def loadMatcher() =
-  {
-    val matcher = new SprPhrasePatternMatcher
-    val source = ResourceUtils.getResourceSource(
-      "/english/phrase-structure.txt")
-    SprGrammar.buildMatcher(source, matcher)
-    matcher
-  }
-
   def maybeLowerCase(word : String) : String =
   {
     if (specialCasing.contains(word)) {
@@ -182,7 +171,7 @@ class SprHeuristicSynthesizer(
 
   private val tokens = words.map(maybeLowerCase)
 
-  private val patternMatcher = phrasePatternMatcher
+  private val patternMatcher = tongue.getPhrasePatternMatcher
 
   private val maxPatternLength = patternMatcher.getMaxPatternLength
 

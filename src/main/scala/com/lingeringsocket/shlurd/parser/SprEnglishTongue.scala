@@ -919,6 +919,8 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     EnglishPluralizer.plural(lemma)
   }
 
+  override protected def getMatcherResource() =
+    "/english/phrase-structure.txt"
 
   private def scoreVerbModifiers = phraseScorer {
     case SilBasicVerbModifier(word) => {
