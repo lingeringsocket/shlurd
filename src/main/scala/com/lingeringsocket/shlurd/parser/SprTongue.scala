@@ -56,6 +56,7 @@ sealed trait SprAdpositionMagicWord extends SprMagicWord
 // question words
 case object MW_HOW_MANY extends SprQuestionMagicWord
 case object MW_WHAT extends SprQuestionMagicWord
+case object MW_WHEN extends SprQuestionMagicWord
 case object MW_WHERE extends SprQuestionMagicWord
 case object MW_WHICH extends SprQuestionMagicWord
 case object MW_WHO extends SprQuestionMagicWord
@@ -71,19 +72,24 @@ case object MW_NEUTER extends SprGenderMagicWord
 case object MW_ALSO extends SprBeliefMagicWord
 case object MW_AND extends SprBeliefMagicWord
 case object MW_ANOTHER extends SprBeliefMagicWord
+// FIXME make this one less squishy across languages
+case object MW_BE extends SprBeliefMagicWord
 case object MW_BELIEVE extends SprBeliefMagicWord
 case object MW_BOTH extends SprBeliefMagicWord
 case object MW_CONSEQUENTLY extends SprBeliefMagicWord
 case object MW_EITHER extends SprBeliefMagicWord
 case object MW_EQUIVALENTLY extends SprBeliefMagicWord
 case object MW_EXIST extends SprBeliefMagicWord
+case object MW_FORMER extends SprBeliefMagicWord
 case object MW_GENERALLY extends SprBeliefMagicWord
 case object MW_IF extends SprBeliefMagicWord
 case object MW_KIND extends SprBeliefMagicWord
+case object MW_LATTER extends SprBeliefMagicWord
 case object MW_NEITHER extends SprBeliefMagicWord
 case object MW_NOTHING extends SprBeliefMagicWord
 case object MW_NOWHERE extends SprBeliefMagicWord
 case object MW_ONE extends SprBeliefMagicWord
+case object MW_OTHER extends SprBeliefMagicWord
 case object MW_OR extends SprBeliefMagicWord
 case object MW_NONE extends SprBeliefMagicWord
 case object MW_NOR extends SprBeliefMagicWord
@@ -92,6 +98,7 @@ case object MW_SAME extends SprBeliefMagicWord
 case object MW_SUBSEQUENTLY extends SprBeliefMagicWord
 case object MW_THAT extends SprBeliefMagicWord
 case object MW_THEN extends SprBeliefMagicWord
+case object MW_WHENEVER extends SprBeliefMagicWord
 
 // important adpositions
 case object MW_AMONG extends SprAdpositionMagicWord
@@ -171,6 +178,10 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
 
   def isBeingLemma(lemma : String) : Boolean
 
+  def isModalAuxLemma(lemma : String) : Boolean = false
+
+  def tamForAuxLemma(lemma : String) : SilTam = SilTam.indicative
+
   def isBeingLemma(verb : SilWord) : Boolean =
     isBeingLemma(verb.toLemma)
 
@@ -204,6 +215,8 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   def isCoordinatingDeterminer(lemma : String) : Boolean
 
   def isCoordinatingConjunction(lemma : String) : Boolean
+
+  def isDemonstrative(lemma : String) : Boolean
 
   def isFlexiblePronoun(token : String) : Boolean
 

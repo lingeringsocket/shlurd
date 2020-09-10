@@ -1936,12 +1936,11 @@ class SpcCosmos(
           val formEntity = set.head
           val formName = SpcMeta.formNameFromMeta(formEntity.name)
           // FIXME language-specific
-          val mw = SprContext.defaultTongue.keywordForLemma(
-            SpcWordnetOntology.getNoun(formName))
-          val basic = mw match {
-            case Some(MW_MASCULINE) => Some(GENDER_MASCULINE)
-            case Some(MW_FEMININE) => Some(GENDER_FEMININE)
-            case Some(MW_NEUTER) => Some(GENDER_NEUTER)
+          implicit val tongue = SprContext.defaultTongue
+          val basic = SilWord(SpcWordnetOntology.getNoun(formName)) match {
+            case SilMagicWord(MW_MASCULINE) => Some(GENDER_MASCULINE)
+            case SilMagicWord(MW_FEMININE) => Some(GENDER_FEMININE)
+            case SilMagicWord(MW_NEUTER) => Some(GENDER_NEUTER)
             case _ => None
           }
           resolveForm(formName).map(SpcGender(_, basic))

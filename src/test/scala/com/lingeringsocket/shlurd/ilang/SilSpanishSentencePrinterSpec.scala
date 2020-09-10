@@ -38,7 +38,9 @@ class SilSpanishSentencePrinterSpec
       expectStatement("el perro camina entre las calles")
       expectStatement("los perros caminan entre las calles")
       expectStatement("ella camina")
-      expectCommand("viva la vida")
+
+      // for usted, should be viva la vida
+      expectCommand("vive la vida")
     }
 
     "handle sketchy constructs" in

@@ -21,8 +21,6 @@ import com.lingeringsocket.shlurd.ilang._
 import scala.collection._
 import scala.util._
 
-import SprEnglishLemmas._
-
 case class SmcScopeOutput[
   EntityType<:SmcEntity
 ](
@@ -407,12 +405,11 @@ class SmcPhraseScope[
   {
     val outputs = {
       if (!noun.isProper) {
-        val nounLemma = noun.toNounLemma
         var nextOrdinal = 0
         def produceOrdinal(ordinal : Int) : Int =
         {
-          nounLemma match {
-            case LEMMA_FORMER | LEMMA_LATTER => {
+          noun match {
+            case SilMagicWord(MW_FORMER | MW_LATTER) => {
               nextOrdinal += 1
               nextOrdinal
             }
@@ -435,9 +432,10 @@ class SmcPhraseScope[
             }
             def matchLemma(lemma : String) : Boolean =
             {
-              nounLemma match {
-                case LEMMA_FORMER | LEMMA_LATTER => true
+              noun match {
+                case SilMagicWord(MW_FORMER | MW_LATTER) => true
                 case _ => {
+                  val nounLemma = noun.toNounLemma
                   aliasOpt.map(_ == nounLemma).getOrElse(
                     (lemma == nounLemma)
                   )
@@ -485,11 +483,11 @@ class SmcPhraseScope[
           } else {
             val (ordinalOpt, misqualified) = {
               if (qualifiers.isEmpty) {
-                nounLemma match {
-                  case LEMMA_FORMER => {
+                noun match {
+                  case SilMagicWord(MW_FORMER) => {
                     tupleN((Some(1), ordered.size < 1))
                   }
-                  case LEMMA_LATTER => {
+                  case SilMagicWord(MW_LATTER) => {
                     tupleN((Some(2), ordered.size < 2))
                   }
                   case _ => {
@@ -498,9 +496,9 @@ class SmcPhraseScope[
                 }
               } else if (qualifiers.size == 1) {
                 val qualifier = qualifiers.head
-                val qualifierOrdinalOpt = qualifier match {
-                  case LEMMA_FORMER => Some(1)
-                  case LEMMA_LATTER | LEMMA_OTHER => Some(2)
+                val qualifierOrdinalOpt = SilWord(qualifier) match {
+                  case SilMagicWord(MW_FORMER) => Some(1)
+                  case SilMagicWord(MW_LATTER | MW_OTHER) => Some(2)
                   case _ => {
                     getSentencePrinter.sb.ordinalValue(qualifier) match {
                       case Success(o) => Some(o)

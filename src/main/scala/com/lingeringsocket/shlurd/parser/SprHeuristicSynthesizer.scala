@@ -18,7 +18,6 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.jgrapht._
 
-import SprEnglishLemmas._
 import SprPennTreebankLabels._
 
 import scala.collection._
@@ -576,10 +575,11 @@ class SprHeuristicSynthesizer(
             SilExpectedSentence(sq))
         }
         // FIXME required because we currently only accept "does" as auxiliary
-        case SptVP(SptVBZ(leaf)) if (leaf.lemma == LEMMA_DO) => {
+        case SptVP(SptVBZ(leaf)) if (tongue.isModalAuxLemma(leaf.lemma)) => {
           tryRewrite(
             SilExpectedSentence(
-              SptS(npSomething, SptVP(SptVB(makeLeaf(LEMMA_HAVE))))))
+              SptS(npSomething,
+                SptVP(SptVB(makeLeaf(SprEnglishLemmas.LEMMA_HAVE))))))
         }
         case vp : SptVP => {
           tryRewrite(

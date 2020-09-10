@@ -17,8 +17,8 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
-import SprEnglishLemmas._
 
+// FIXME this is English-specific and also incomplete
 private[parser] object SprNormalizationRewriter
 {
   private val compassRose = Set("north", "south", "east", "west")
@@ -140,7 +140,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         SilDeterminedReference(
           SilStateSpecifiedReference(
             SilMandatorySingular(
-              word : SilSimpleWord
+              word @ SilMagicWord(MW_LEFT | MW_RIGHT)
             ),
             SilAdpositionalState(
               adp2 : SilAdposition,
@@ -149,10 +149,12 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
           ),
           DETERMINER_DEFINITE
         )
-      ) if (word.lemma == LEMMA_LEFT) || (word.lemma == LEMMA_RIGHT) => {
+      ) => {
+        // FIXME this whole thing is English-specific
+        val the = SilWord(SprEnglishLemmas.LEMMA_THE)
         SilAdpositionalState(
           SilAdposition(
-            adp1.word.decomposed ++ Seq(SilWord(LEMMA_THE), word) ++
+            adp1.word.decomposed ++ Seq(the) ++ word.decomposed ++
               adp2.word.decomposed),
           objRef
         )
@@ -385,9 +387,9 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     // whereas "where was the football before the kitchen" and
     // "bow before the throne" involve adverbial phrases.  And in some cases,
     // we should leave it ambiguous and try it both ways.
-    adposition.word.toLemma match {
-      case LEMMA_BEFORE | LEMMA_AFTER | LEMMA_TO => true
-      case LEMMA_AT => {
+    adposition match {
+      case SilMagicAdposition(MW_BEFORE | MW_AFTER | MW_TO) => true
+      case SilMagicAdposition(MW_AT) => {
         objRef match {
           case SilMandatorySingular(
             _

@@ -17,11 +17,11 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
-import SprEnglishLemmas._
-
 class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
 {
   private val sb = sentencePrinter.sb
+
+  private implicit val tongue = sentencePrinter.getTongue
 
   def respond(unrecognized : SilSentence) : String =
   {
@@ -109,10 +109,10 @@ class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
     val verbLemma = {
       complement match {
         case SilExistenceState(_) => {
-          LEMMA_EXIST
+          MW_EXIST.toLemma
         }
         case _ => {
-          relationshipVerb.map(_.toLemma).getOrElse(LEMMA_BE)
+          relationshipVerb.map(_.toLemma).getOrElse(MW_BE.toLemma)
         }
       }
     }

@@ -18,18 +18,17 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.parser._
 
-import SprEnglishLemmas._
-
 object SpcPrimordial
 {
-  // FIXME can this even be language-specific?
+  // FIXME can this ever be language-specific?
+  private implicit val tongue = SprContext.defaultTongue
 
   // all the Whos down in Whoville
   private val synonyms = Map(
-    LEMMA_WHO -> SmcIdeals.FORM_SOMEONE,
-    LEMMA_WHOM -> SmcIdeals.FORM_SOMEONE,
-    LEMMA_WHAT -> SpcMeta.ENTITY_METAFORM_NAME,
-    LEMMA_WHERE -> (SmcIdeals.FORM_OBJECT + ":" + SmcIdeals.ROLE_CONTAINER)
+    MW_WHO.toLemma -> SmcIdeals.FORM_SOMEONE,
+    MW_WHOM.toLemma -> SmcIdeals.FORM_SOMEONE,
+    MW_WHAT.toLemma -> SpcMeta.ENTITY_METAFORM_NAME,
+    MW_WHERE.toLemma -> (SmcIdeals.FORM_OBJECT + ":" + SmcIdeals.ROLE_CONTAINER)
   )
 
   private lazy val seedCosmos = initSeedCosmos()

@@ -18,7 +18,6 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import SprPennTreebankLabels._
-import SprEnglishLemmas._
 import SprUtils._
 
 abstract class SprSvoSyntaxAnalyzer(
@@ -695,7 +694,10 @@ abstract class SprSvoSyntaxAnalyzer(
     tree : SprSyntaxTree,
     vp : SprSyntaxTree, formality : SilFormality) : SilSentence =
   {
-    val np = SptNP(SptPRP(makeLeaf(LEMMA_YOU)))
+    val pronounLemma = tongue.pronounLemma(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE)
+    val np = SptNP(SptPRP(makeLeaf(pronounLemma)))
     val (negativeVerb, predicate) = analyzeActionPredicate(
       tree, np, vp, None, Seq.empty, true)
     if (negativeVerb) {
@@ -946,7 +948,7 @@ abstract class SprSvoSyntaxAnalyzer(
         case s : SprSyntaxSimpleAdverb => {
           // FIXME full list of qualifying adverbs
           s.child.lemma match {
-            case LEMMA_NO | "very" => true
+            case SprEnglishLemmas.LEMMA_NO | "very" => true
             case _ => false
           }
         }
@@ -1176,7 +1178,7 @@ abstract class SprSvoSyntaxAnalyzer(
         case SptPP(
           SptIN(adp),
           _
-        ) if (adp.lemma == LEMMA_OF) => {
+        ) if (SilWord(adp.lemma) == SilMagicWord(MW_OF)) => {
           Some(adp)
         }
         case _ => None
@@ -1199,17 +1201,17 @@ abstract class SprSvoSyntaxAnalyzer(
   {
     children.headOption match {
       case Some(SptSBAR(SptIN(leaf), antecedent : SptS)) => {
-        leaf.lemma match {
-          case LEMMA_IF | LEMMA_WHEN | LEMMA_WHENEVER |
-              LEMMA_BEFORE | LEMMA_AFTER =>
+        SilWord(leaf.lemma) match {
+          case SilMagicWord(MW_IF | MW_WHEN | MW_WHENEVER |
+              MW_BEFORE | MW_AFTER) =>
             Some(tupleN((getWord(leaf), antecedent)))
           case _ =>
             None
         }
       }
       case Some(SptSBAR(SptWHADVP(SptWRB(leaf)), antecedent : SptS)) => {
-        leaf.lemma match {
-          case LEMMA_WHEN | LEMMA_WHENEVER =>
+        SilWord(leaf.lemma) match {
+          case SilMagicWord(MW_WHEN | MW_WHENEVER) =>
             Some(tupleN((getWord(leaf), antecedent)))
           case _ => None
         }
@@ -1225,11 +1227,11 @@ abstract class SprSvoSyntaxAnalyzer(
       case preTerminal : SprSyntaxPreTerminal => {
         preTerminal match {
           case (_ : SptDT | _ : SptCC | _ : SprSyntaxAdverb) => {
-            preTerminal.child.lemma match {
-              case LEMMA_BOTH => (determiner == DETERMINER_ALL)
-              case LEMMA_EITHER =>
+            SilWord(preTerminal.child.lemma) match {
+              case SilMagicWord(MW_BOTH) => (determiner == DETERMINER_ALL)
+              case SilMagicWord(MW_EITHER) =>
                 determiner.isInstanceOf[SilUnlimitedDeterminer]
-              case LEMMA_NEITHER => (determiner == DETERMINER_NONE)
+              case SilMagicWord(MW_NEITHER) => (determiner == DETERMINER_NONE)
               case _ => false
             }
           }
@@ -1242,17 +1244,7 @@ abstract class SprSvoSyntaxAnalyzer(
 
   private def tamForAux(leaf : SprSyntaxLeaf) : SilTam =
   {
-    val tam = SilTam.indicative
-    leaf.lemma match {
-      case LEMMA_MUST => tam.withModality(MODAL_MUST)
-      case LEMMA_MAY => tam.withModality(MODAL_MAY)
-      case LEMMA_COULD | LEMMA_CAN => tam.withModality(MODAL_CAPABLE)
-      case LEMMA_MIGHT => tam.withModality(MODAL_POSSIBLE)
-      case LEMMA_SHOULD => tam.withModality(MODAL_SHOULD)
-      case LEMMA_DO => tam.withModality(MODAL_EMPHATIC)
-      case LEMMA_BE => tam.progressive
-      case _ => tam
-    }
+    tongue.tamForAuxLemma(leaf.lemma)
   }
 
   private def relationshipVerb(
@@ -1267,20 +1259,24 @@ abstract class SprSvoSyntaxAnalyzer(
   {
     val tree = seq.head
     tree match {
-      case SptWHADJP(how, many) => {
-        if (how.hasTerminalLemma(LEMMA_HOW) &&
-          many.hasTerminalLemma(LEMMA_MANY))
-        {
-          // FIXME for HOW_MANY, force the corresponding noun reference
-          // to plural
-          Some((QUESTION_HOW_MANY, None, seq.tail))
+      case SptWHADJP(children @ _*) => {
+        if (children.forall(_.isPreTerminal)) {
+          val lemma = children.map(_.firstChild.lemma).mkString(" ")
+          SilWord(lemma) match {
+            case SilMagicWord(MW_HOW_MANY) => {
+              // FIXME for HOW_MANY, force the corresponding noun reference
+              // to plural
+              Some((QUESTION_HOW_MANY, None, seq.tail))
+            }
+            case _ => None
+          }
         } else {
           None
         }
       }
       case SptWRB(where) => {
-        where.lemma match {
-          case LEMMA_WHERE =>
+        SilWord(where.lemma) match {
+          case SilMagicWord(MW_WHERE) =>
             Some((QUESTION_WHERE, None, tree.children))
           case _ => None
         }
@@ -1416,18 +1412,7 @@ abstract class SprSvoSyntaxAnalyzer(
     }
   }
 
-  private def isNegative(tree : SprSyntaxTree) : Boolean =
-  {
-    // FIXME I just can't even
-    if (tree.unwrapPhrase.hasTerminalLemma(LEMMA_NOT)) {
-      true
-    } else if (tree.isAdverbPhrase && (tree.children.size > 1)) {
-      tree.children.exists(c =>
-        c.hasTerminalLemma(LEMMA_NOT) || c.hasTerminalLemma(LEMMA_NO))
-    } else {
-      false
-    }
-  }
+  protected def isNegative(tree : SprSyntaxTree) : Boolean
 
   private def splitCoordinatingConjunction(
     components : Seq[SprSyntaxTree])
@@ -1536,7 +1521,7 @@ abstract class SprSvoSyntaxAnalyzer(
   {
     val lemma = getWord(preTerminal.child).lemma
     (
-      lemma == LEMMA_BE
+      tongue.isBeingLemma(lemma)
     ) || (
       isStrict && preTerminal.isAdposition &&
         (tongue.isAdposition(lemma) ||

@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd.ilang._
 
+import SprSpanishLemmas._
+
 class SprSpanishSyntaxAnalyzer(
   context : SprContext,
   strictness : SprStrictness,
@@ -48,6 +50,19 @@ class SprSpanishSyntaxAnalyzer(
       case _ => {
         false
       }
+    }
+  }
+
+  override protected def isNegative(tree : SprSyntaxTree) : Boolean =
+  {
+    // FIXME I just can't even
+    if (tree.unwrapPhrase.hasTerminalLemma(LEMMA_NO)) {
+      true
+    } else if (tree.isAdverbPhrase && (tree.children.size > 1)) {
+      tree.children.exists(c =>
+        c.hasTerminalLemma(LEMMA_NO))
+    } else {
+      false
     }
   }
 

@@ -23,9 +23,129 @@ import scala.collection._
 
 import org.atteo.evo.inflector.{English => EnglishPluralizer}
 
-import SprEnglishLemmas._
 import SprPennTreebankLabels._
 import ShlurdEnglishAffixes._
+
+// FIXME some of these, like LEMMA_HIS, are not real lemmas
+object SprEnglishLemmas
+{
+  val LEMMA_HERE = "here"
+  val LEMMA_THERE = "there"
+  val LEMMA_BE = "be"
+  val LEMMA_BECOME = "become"
+  val LEMMA_EXIST = "exist"
+  val LEMMA_HAVE = "have"
+  val LEMMA_WHO = "who"
+  val LEMMA_WHOM = "whom"
+  val LEMMA_WHOSE = "whose"
+  val LEMMA_WHERE = "where"
+  val LEMMA_NOWHERE = "nowhere"
+  val LEMMA_NOTHING = "nothing"
+  val LEMMA_ONE = "one"
+  val LEMMA_HOW = "how"
+  val LEMMA_MANY = "many"
+  val LEMMA_WHICH = "which"
+  val LEMMA_WHAT = "what"
+  val LEMMA_NO = "no"
+  val LEMMA_NOT = "not"
+  val LEMMA_NOR = "nor"
+  val LEMMA_NONE = "none"
+  val LEMMA_BOTH = "both"
+  val LEMMA_AND = "and"
+  val LEMMA_OR = "or"
+  val LEMMA_A = "a"
+  val LEMMA_THE = "the"
+  val LEMMA_ALL = "all"
+  val LEMMA_ANY = "any"
+  val LEMMA_EVERY = "every"
+  val LEMMA_SOME = "some"
+  val LEMMA_EITHER = "either"
+  val LEMMA_NEITHER = "neither"
+  val LEMMA_OTHER = "other"
+  val LEMMA_FORMER = "former"
+  val LEMMA_LATTER = "latter"
+  val LEMMA_MUST = "must"
+  val LEMMA_MAY = "may"
+  val LEMMA_COULD = "could"
+  val LEMMA_CAN = "can"
+  val LEMMA_MIGHT = "might"
+  val LEMMA_SHOULD = "should"
+  val LEMMA_DO = "do"
+  val LEMMA_IF = "if"
+  val LEMMA_WHEN = "when"
+  val LEMMA_WHENEVER = "whenever"
+  val LEMMA_THEN = "then"
+  val LEMMA_EQUIVALENTLY = "equivalently"
+  val LEMMA_BELIEVE = "believe"
+  val LEMMA_IT = "it"
+  val LEMMA_ITS = "its"
+  val LEMMA_ITSELF = "itself"
+  val LEMMA_I = "I"
+  val LEMMA_ME = "me"
+  val LEMMA_WE = "we"
+  val LEMMA_US = "us"
+  val LEMMA_MY = "my"
+  val LEMMA_MYSELF = "myself"
+  val LEMMA_OUR = "our"
+  val LEMMA_MINE = "mine"
+  val LEMMA_OURS = "ours"
+  val LEMMA_OURSELF = "ourself"
+  val LEMMA_OURSELVES = "ourselves"
+  val LEMMA_YOU = "you"
+  val LEMMA_YOUR = "your"
+  val LEMMA_YOURS = "yours"
+  val LEMMA_YOURSELF = "yourself"
+  val LEMMA_YOURSELVES = "yourselves"
+  val LEMMA_THEY = "they"
+  val LEMMA_THEIR = "their"
+  val LEMMA_THEIRS = "theirs"
+  val LEMMA_THEM = "them"
+  val LEMMA_THEMSELVES = "themselves"
+  val LEMMA_THEMSELF = "themself"
+  val LEMMA_HE = "he"
+  val LEMMA_HIM = "him"
+  val LEMMA_HIMSELF = "himself"
+  val LEMMA_HIS = "his"
+  val LEMMA_SHE = "she"
+  val LEMMA_HER = "her"
+  val LEMMA_HERS = "hers"
+  val LEMMA_HERSELF = "herself"
+  val LEMMA_THIS = "this"
+  val LEMMA_THAT = "that"
+  val LEMMA_THESE = "these"
+  val LEMMA_THOSE = "those"
+  val LEMMA_AMONG = "among"
+  val LEMMA_EXCEPT = "except"
+  val LEMMA_IN = "in"
+  val LEMMA_INSIDE = "inside"
+  val LEMMA_WITHIN = "within"
+  val LEMMA_OUTSIDE = "outside"
+  val LEMMA_AT = "at"
+  val LEMMA_WITH = "with"
+  val LEMMA_AS = "as"
+  val LEMMA_NEAR = "near"
+  val LEMMA_NEARBY = "nearby"
+  val LEMMA_TO = "to"
+  val LEMMA_FROM = "from"
+  val LEMMA_ON = "on"
+  val LEMMA_BEFORE = "before"
+  val LEMMA_AFTER = "after"
+  val LEMMA_LEFT = "left"
+  val LEMMA_RIGHT = "right"
+  val LEMMA_FRONT = "front"
+  val LEMMA_BACK = "back"
+  val LEMMA_ABOVE = "above"
+  val LEMMA_OVER = "over"
+  val LEMMA_BELOW = "below"
+  val LEMMA_UNDER = "under"
+  val LEMMA_BENEATH = "beneath"
+  val LEMMA_UNDERNEATH = "underneath"
+  val LEMMA_BEHIND = "behind"
+  val LEMMA_OF = "of"
+  val LEMMA_GENITIVE_OF = "_of_"
+  val LEMMA_ADVERBIAL_TMP = "_temporal_"
+}
+import SprEnglishLemmas._
 
 object SprLexicon
 {
@@ -83,6 +203,7 @@ object SprEnglishLexicon
     MW_AS -> LEMMA_AS,
     MW_AT -> LEMMA_AT,
     MW_BACK -> LEMMA_BACK,
+    MW_BE -> LEMMA_BE,
     MW_BEFORE -> LEMMA_BEFORE,
     MW_BEHIND -> LEMMA_BEHIND,
     MW_BELIEVE -> "believe",
@@ -95,6 +216,7 @@ object SprEnglishLexicon
     MW_EXCEPT -> LEMMA_EXCEPT,
     MW_EXIST -> LEMMA_EXIST,
     MW_FEMININE -> "feminine",
+    MW_FORMER -> LEMMA_FORMER,
     MW_FROM -> LEMMA_FROM,
     MW_FRONT -> LEMMA_FRONT,
     MW_GENERALLY -> "generally",
@@ -105,6 +227,7 @@ object SprEnglishLexicon
     MW_IN -> LEMMA_IN,
     MW_INSIDE -> LEMMA_INSIDE,
     MW_KIND -> "kind",
+    MW_LATTER -> LEMMA_LATTER,
     MW_LEFT -> LEMMA_LEFT,
     MW_MASCULINE -> "masculine",
     MW_NEAR -> LEMMA_NEAR,
@@ -119,6 +242,7 @@ object SprEnglishLexicon
     MW_ON -> LEMMA_ON,
     MW_ONE -> LEMMA_ONE,
     MW_OR -> LEMMA_OR,
+    MW_OTHER -> LEMMA_OTHER,
     MW_OTHERWISE -> "otherwise",
     MW_OUTSIDE -> LEMMA_OUTSIDE,
     MW_OVER -> LEMMA_OVER,
@@ -130,6 +254,8 @@ object SprEnglishLexicon
     MW_TO -> LEMMA_TO,
     MW_UNDER -> LEMMA_UNDER,
     MW_WHAT -> LEMMA_WHAT,
+    MW_WHEN -> LEMMA_WHEN,
+    MW_WHENEVER -> LEMMA_WHENEVER,
     MW_WHERE -> LEMMA_WHERE,
     MW_WHICH -> LEMMA_WHICH,
     MW_WHO -> LEMMA_WHO,
@@ -314,6 +440,34 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     lemma match {
       case LEMMA_AND | LEMMA_OR | LEMMA_NOR => true
       case _ => false
+    }
+  }
+
+  override def isDemonstrative(lemma : String) =
+  {
+    lemma match {
+      case LEMMA_THIS | LEMMA_THAT | LEMMA_THESE | LEMMA_THOSE => true
+      case _ => false
+    }
+  }
+
+  override def isModalAuxLemma(lemma : String) : Boolean =
+  {
+    lemma == LEMMA_DO
+  }
+
+  override def tamForAuxLemma(lemma : String) : SilTam =
+  {
+    val tam = SilTam.indicative
+    lemma match {
+      case LEMMA_MUST => tam.withModality(MODAL_MUST)
+      case LEMMA_MAY => tam.withModality(MODAL_MAY)
+      case LEMMA_COULD | LEMMA_CAN => tam.withModality(MODAL_CAPABLE)
+      case LEMMA_MIGHT => tam.withModality(MODAL_POSSIBLE)
+      case LEMMA_SHOULD => tam.withModality(MODAL_SHOULD)
+      case LEMMA_DO => tam.withModality(MODAL_EMPHATIC)
+      case LEMMA_BE => tam.progressive
+      case _ => tam
     }
   }
 

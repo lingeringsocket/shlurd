@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import SprEnglishLemmas._
+
 class SprEnglishSyntaxAnalyzer(
   context : SprContext,
   guessedQuestion : Boolean,
@@ -25,5 +27,18 @@ class SprEnglishSyntaxAnalyzer(
   override protected def isImperative(children : Seq[SprSyntaxTree]) =
   {
     (children.size == 1) && children.head.isVerbPhrase
+  }
+
+  override protected def isNegative(tree : SprSyntaxTree) : Boolean =
+  {
+    // FIXME I just can't even
+    if (tree.unwrapPhrase.hasTerminalLemma(LEMMA_NOT)) {
+      true
+    } else if (tree.isAdverbPhrase && (tree.children.size > 1)) {
+      tree.children.exists(c =>
+        c.hasTerminalLemma(LEMMA_NOT) || c.hasTerminalLemma(LEMMA_NO))
+    } else {
+      false
+    }
   }
 }

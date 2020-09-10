@@ -27,8 +27,6 @@ import java.io._
 
 import org.slf4j._
 
-import SprEnglishLemmas._
-
 object PhlebShell
 {
   val logger =
@@ -56,6 +54,8 @@ object PhlebShell
     createTentativeIdeals = false,
     createTentativeEntities = true,
     createImplicitProperties = false)
+
+  private implicit val tongue = SprContext.defaultTongue
 
   def ok = Some(OK)
 
@@ -162,8 +162,8 @@ object PhlebShell
           case Some(quotation) => {
             subjectEntityOpt match {
               case Some(subjectEntity) => {
-                lemma match {
-                  case LEMMA_BELIEVE => {
+                SilWord(lemma) match {
+                  case SilMagicWord(MW_BELIEVE) => {
                     // FIXME if quotation does not start with slash,
                     // then interpret inline
                     importEntityBeliefs(

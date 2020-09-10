@@ -393,6 +393,8 @@ object SprSpanishLexicon
     MW_AT -> "hacia",
     // FIXME why does this even exist?
     MW_BACK -> "atrás de",
+    // FIXME:  sometimes should be LEMMA_ESTAR instead
+    MW_BE -> LEMMA_SER,
     MW_BEFORE -> "antes de",
     MW_BELIEVE -> "crea",
     MW_BEHIND -> "detrás de",
@@ -407,6 +409,8 @@ object SprSpanishLexicon
     MW_EXCEPT -> "excepto",
     MW_EXIST -> LEMMA_EXISTIR,
     MW_FEMININE -> "feminino",
+    // FIXME: agreement
+    MW_FORMER -> "primero",
     MW_FROM -> "desde",
     MW_FRONT -> "enfrente de",
     MW_GENERALLY -> "generalmente",
@@ -418,6 +422,8 @@ object SprSpanishLexicon
     MW_IN -> "en",
     MW_INSIDE -> "dentro de",
     MW_KIND -> "tipo",
+    // FIXME: agreement
+    MW_LATTER -> "último",
     MW_LEFT -> "a la izquierda de",
     MW_MASCULINE -> "masculino",
     MW_NEAR -> "cerca de",
@@ -436,6 +442,8 @@ object SprSpanishLexicon
     MW_ONE -> LEMMA_UNO,
     // FIXME:  change to LEMMA_U before a vowel
     MW_OR -> LEMMA_O,
+    // FIXME: agreement
+    MW_OTHER -> "otro",
     MW_OTHERWISE -> "contrario",
     MW_OUTSIDE -> "fuera de",
     MW_OVER -> "sobre",
@@ -449,6 +457,9 @@ object SprSpanishLexicon
     MW_SUBSEQUENTLY -> "posteriormente",
     // FIXME need to discriminate qué from que
     MW_WHAT -> "que",
+    // FIXME need to discriminate cuando from cuándo
+    MW_WHEN -> "cuándo",
+    MW_WHENEVER -> "cada vez que",
     // FIXME need to discriminate donde from dónde
     MW_WHERE -> "donde",
     // FIXME need to discriminate cual from cuál, and deal with agreement
@@ -694,9 +705,14 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   override def isCoordinatingConjunction(lemma : String) : Boolean =
   {
     lemma match {
-      case LEMMA_Y | LEMMA_O | LEMMA_O | LEMMA_NI => true
+      case LEMMA_Y | LEMMA_O | LEMMA_U | LEMMA_NI => true
       case _ => false
     }
+  }
+
+  override def isDemonstrative(lemma : String) =
+  {
+    demonstrativeToCoord.contains(lemma)
   }
 
   override def isFlexiblePronoun(token : String) : Boolean =

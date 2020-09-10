@@ -22,8 +22,6 @@ import com.lingeringsocket.shlurd.cli._
 
 import scala.collection._
 
-import SprEnglishLemmas._
-
 class PhlebClock
 {
   private var timestamp = SpcTimestamp.ZERO
@@ -203,7 +201,7 @@ class PhlebMind(
         }
         case SilGenitiveReference(
           _,
-          SilNounLemmaReference("container" | LEMMA_WHERE)
+          SilNounLemmaReference("container" | SprEnglishLemmas.LEMMA_WHERE)
         ) => true
         case _ => false
       })

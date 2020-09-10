@@ -101,7 +101,6 @@ object SprPennTreebankLabels
 }
 
 import SprPennTreebankLabels._
-import SprEnglishLemmas._
 import SprPrettyPrinter._
 
 trait SprAbstractSyntaxTree
@@ -140,7 +139,8 @@ trait SprAbstractSyntaxTree
   def hasTerminalLabel(label : String, terminalLabel : String) =
     isPreTerminal && hasLabel(label) && firstChild.hasLabel(terminalLabel)
 
-  def isNounOrPronoun = isNoun || isNounPhrase || isPronounOrDemonstrative
+  def isNounOrPronoun(implicit tongue : SprTongue) =
+    isNoun || isNounPhrase || isPronounOrDemonstrative
 
   def isNounPhrase = hasLabel(LABEL_NP)
 
@@ -187,7 +187,8 @@ trait SprAbstractSyntaxTree
 
   def isPossessivePronoun = hasLabel(LABEL_PRP_POS)
 
-  def isPronounOrDemonstrative = isPronoun || isDemonstrative
+  def isPronounOrDemonstrative(implicit tongue : SprTongue) =
+    isPronoun || isDemonstrative
 
   def isAdjective = label.startsWith(LABEL_JJ)
 
@@ -201,9 +202,9 @@ trait SprAbstractSyntaxTree
 
   def isCoordinatingConjunction = hasLabel(LABEL_CC)
 
-  def isModal : Boolean =
+  def isModal(implicit tongue : SprTongue) : Boolean =
     hasLabel(LABEL_MD) ||
-      (isVerb && hasTerminalLemma(LEMMA_DO)) ||
+      (isVerb && isPreTerminal && tongue.isModalAuxLemma(firstChild.lemma)) ||
       (isVerbPhrase && (numChildren == 1) && firstChild.isModal)
 
   def isParticle = hasLabel(LABEL_RP)
@@ -241,9 +242,8 @@ trait SprAbstractSyntaxTree
   def isExistsVerb(implicit tongue : SprTongue) =
     isVerb && isPreTerminal && tongue.isExistsLemma(firstChild.lemma)
 
-  def isDemonstrative = isPreTerminal &&
-    Set(LEMMA_THIS, LEMMA_THAT, LEMMA_THESE, LEMMA_THOSE).contains(
-      firstChild.lemma)
+  def isDemonstrative(implicit tongue : SprTongue) = isPreTerminal &&
+    tongue.isDemonstrative(firstChild.lemma)
 
   def isComma = hasLabel(LABEL_COMMA)
 
@@ -314,9 +314,25 @@ sealed trait SprSyntaxTree extends SprAbstractSyntaxTree
     }
   }
 
-  def isThen = unwrapPhrase.hasTerminalLemma(LEMMA_THEN)
+  def isThen(implicit tongue : SprTongue) =
+  {
+    val unwrapped = unwrapPhrase
+    if (unwrapped.isPreTerminal) {
+      unwrapped.firstChild.lemma == MW_THEN.toLemma
+    } else {
+      false
+    }
+  }
 
-  def isEquivalently = unwrapPhrase.hasTerminalLemma(LEMMA_EQUIVALENTLY)
+  def isEquivalently(implicit tongue : SprTongue) =
+  {
+    val unwrapped = unwrapPhrase
+    if (unwrapped.isPreTerminal) {
+      unwrapped.firstChild.lemma == MW_EQUIVALENTLY.toLemma
+    } else {
+      false
+    }
+  }
 }
 
 sealed trait SprSyntaxNonLeaf extends SprSyntaxTree

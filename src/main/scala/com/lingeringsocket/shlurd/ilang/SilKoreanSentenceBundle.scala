@@ -16,11 +16,11 @@ package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd.parser._
 
-// FIXME:  this is terrible
-import SprEnglishLemmas._
-
 class SilKoreanSentenceBundle extends SilSentenceBundle
 {
+  // FIXME this should be SprKoreanTongue, which doesn't exist yet.
+  private implicit val tongue = SprContext.defaultTongue
+
   override def statePredicateStatement(
     subject : String, verbSeq : Seq[String], state : String,
     existentialPronoun : Option[SilWord],
@@ -80,7 +80,8 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
   {
     // FIXME arbitrary lemmas
     val verbLemma = verb.toLemma
-    val exists = existentialPronoun.nonEmpty || (verbLemma == LEMMA_HAVE)
+    val exists = existentialPronoun.nonEmpty ||
+      tongue.isPossessionLemma(verbLemma)
     // FIXME:  use tam.modality
     if (tam.isImperative) {
       Seq(conjugateImperative(verbLemma))
@@ -104,25 +105,25 @@ class SilKoreanSentenceBundle extends SilSentenceBundle
 
   override def adpositionString(adposition : SilAdposition) =
   {
-    // FIXME find significant word in phrase such as "to the right of"
-    val pos = adposition.word.decomposed.head.lemma match {
-      case LEMMA_IN | LEMMA_WITHIN | LEMMA_INSIDE => "안"
-      case LEMMA_OUTSIDE => "밖"
-      case LEMMA_AT => ""
+    val pos = tongue.keywordForLemma(adposition.word.toLemma).map(_ match {
+      case MW_IN | MW_WITHIN | MW_INSIDE => "안"
+      case MW_OUTSIDE => "밖"
+      case MW_AT => ""
       // FIXME:  distinguish "near" from "next to"
-      case LEMMA_NEAR | LEMMA_NEARBY => "근처"
-      case LEMMA_ON | LEMMA_ABOVE | LEMMA_OVER => "위"
-      case LEMMA_BELOW | LEMMA_UNDER |
-          LEMMA_UNDERNEATH | LEMMA_BENEATH => "밑"
+      case MW_NEAR | MW_NEARBY => "근처"
+      case MW_ON | MW_ABOVE | MW_OVER => "위"
+      case MW_BELOW | MW_UNDER | MW_UNDERNEATH | MW_BENEATH => "밑"
       // FIXME:  need to attach 의 to previous word
-      case LEMMA_LEFT => "왼쪽"
-      case LEMMA_RIGHT => "오른쪽"
-      case LEMMA_FRONT => "앞"
-      case LEMMA_BACK | LEMMA_BEHIND => "뒤"
+      case MW_LEFT => "왼쪽"
+      case MW_RIGHT => "오른쪽"
+      case MW_FRONT => "앞"
+      case MW_BACK | MW_BEHIND => "뒤"
       // FIXME:  context-dependent
-      case LEMMA_WITH => "하고"
+      case MW_WITH => "하고"
       // FIXME:  OF etc
-      case _ => compose(adposition.word.decomposed.map(_.lemma):_*)
+      case _ => ""
+    }).filterNot(_.isEmpty).getOrElse {
+      compose(adposition.word.decomposed.map(_.lemma):_*)
     }
     // later need to distinguish 에 from 에서
     compose(concat(pos, "에"), "있어요")
