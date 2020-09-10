@@ -25,7 +25,8 @@ case class SilSpanishConjugationCoord(
   person : SilPerson,
   count : SilCount,
   tense : SilTense,
-  mood : SilMood
+  mood : SilMood,
+  aspect : SilAspect
 )
 {
 }
@@ -40,7 +41,8 @@ object SilSpanishConjugationCoord
       person,
       count,
       tam.tense,
-      tam.mood)
+      tam.mood,
+      tam.aspect)
   }
 }
 
@@ -55,18 +57,23 @@ object SilSpanishConjugation
     Seq(COUNT_SINGULAR, COUNT_PLURAL)
   private val allTenses =
     Seq(TENSE_PRESENT, TENSE_PAST, TENSE_FUTURE)
+  private val allAspects =
+    Seq(ASPECT_SIMPLE, ASPECT_PROGRESSIVE)
   private val imperativePersons =
     Seq(PERSON_SECOND, PERSON_THIRD)
 
   private val validCoords = allPersons.flatMap(person => {
     allCounts.flatMap(count => {
-      allTenses.map(tense => {
-        SilSpanishConjugationCoord(person, count, tense, MOOD_INDICATIVE)
+      allTenses.flatMap(tense => {
+        allAspects.map(aspect => {
+          SilSpanishConjugationCoord(
+            person, count, tense, MOOD_INDICATIVE, aspect)
+        })
       })
     })
   }) ++ imperativePersons.map(person => {
     SilSpanishConjugationCoord(
-      person, COUNT_SINGULAR, TENSE_PRESENT, MOOD_IMPERATIVE)
+      person, COUNT_SINGULAR, TENSE_PRESENT, MOOD_IMPERATIVE, ASPECT_SIMPLE)
   })
 
   def conjugateVerb(
@@ -85,15 +92,32 @@ object SilSpanishConjugation
           }
         }
         case _ => {
-          coord.tense match {
-            case TENSE_PAST => {
-              SpanishVerbConjugator.preterite
+          coord.aspect match {
+            case ASPECT_SIMPLE => {
+              coord.tense match {
+                case TENSE_PAST => {
+                  SpanishVerbConjugator.preterite
+                }
+                case TENSE_FUTURE => {
+                  SpanishVerbConjugator.futureSimple
+                }
+                case _ => {
+                  SpanishVerbConjugator.present
+                }
+              }
             }
-            case TENSE_FUTURE => {
-              SpanishVerbConjugator.futureSimple
-            }
-            case _ => {
-              SpanishVerbConjugator.present
+            case ASPECT_PROGRESSIVE => {
+              coord.tense match {
+                case TENSE_PAST => {
+                  SpanishVerbConjugator.pastProgressive
+                }
+                case TENSE_FUTURE => {
+                  SpanishVerbConjugator.futureProgressive
+                }
+                case _ => {
+                  SpanishVerbConjugator.presentProgressive
+                }
+              }
             }
           }
         }
@@ -113,18 +137,13 @@ object SilSpanishConjugation
 
   def getConjugationCoord(
     infinitive : String, conjugated : String
-  ) : SilSpanishConjugationCoord =
+  ) : Option[SilSpanishConjugationCoord] =
   {
-    cache.get(tupleN((infinitive, conjugated))).getOrElse {
-      var found = false
+    cache.get(tupleN((infinitive, conjugated))).orElse {
       validCoords.foreach(coord => {
-        val coordConjugated = conjugateVerb(infinitive, coord)
-        if (coordConjugated == conjugated) {
-          found = true
-        }
+        conjugateVerb(infinitive, coord)
       })
-      assert(found, s"Mismatched conjugation $conjugated of $infinitive")
-      cache(tupleN((infinitive, conjugated)))
+      cache.get(tupleN((infinitive, conjugated)))
     }
   }
 }

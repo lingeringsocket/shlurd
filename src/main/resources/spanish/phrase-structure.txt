@@ -111,27 +111,23 @@ NP ->
   // "(ni) el zorro, la gallina, ni la paloma"
   (DT) npListElem (npListElem)+ CC NP;
 
-compoundVerb :=
-  // "digo"
-  VB |
-  // "estoy deciendo"
-  VB VBG |
-  // "he dicho"
-  VB VBN |
-  // "tiene que decier"
-  VB preposition VB;
+verbSimple := VB | VBG | VBN;
 
 VP ->
   // "mata (rapidamente) (el ladrón) (con un cuchillo)"
-  (verbmod)* compoundVerb (verbmod)* (NP) (verbmod)* |
+  (verbmod)* verbSimple (verbmod)* (NP) (verbmod)* |
   // "(rapidamente) (le) da (a la ladrona) un pepinillo (con sal)"
-  (verbmod)* (PRP) compoundVerb (verbmod)* NP (verbmod)* |
+  (verbmod)* (PRP) verbSimple (verbmod)* NP (verbmod)* |
   // "(rapidamente) lo le da (a la ladrona) (con sal)"
-  (verbmod)* PRP PRP compoundVerb (verbmod)* (verbmod)* |
+  (verbmod)* PRP PRP verbSimple (verbmod)* (verbmod)* |
   // "es rojo" |
-  (verbmod)* compoundVerb (verbmod)* ADJP (verbmod)* |
+  (verbmod)* verbSimple (verbmod)* ADJP (verbmod)* |
   // "es Juan el rey"
-  (verbmod)* compoundVerb (verbmod)* NP (verbmod)* NP (verbmod)*;
+  (verbmod)* verbSimple (verbmod)* NP (verbmod)* NP (verbmod)* |
+  // "estoy deciendo"
+  VB VP |
+  // "tiene que decier"
+  VB preposition VP;
 
 adjSimple :=
   // "corriendo"

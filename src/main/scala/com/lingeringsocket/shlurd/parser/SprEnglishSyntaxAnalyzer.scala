@@ -57,4 +57,11 @@ class SprEnglishSyntaxAnalyzer(
       case _ => COUNT_SINGULAR
     }
   }
+
+  override protected def combineNegatives(
+    n1 : Boolean, n2 : Boolean) : Boolean =
+  {
+    // FIXME:  representation for double negatives?
+    n1 ^ n2
+  }
 }

@@ -36,6 +36,8 @@ class SprSpanishParserSpec extends Specification
 
   private val VERB_CAMINA = SilWord("camina", "caminar")
 
+  private val VERB_CAMINANDO = SilWord("caminando", "caminar")
+
   private val VERB_BEBO = SilWord("bebo", "beber")
 
   private val VERB_ES = SilWord("es", "ser")
@@ -60,6 +62,21 @@ class SprSpanishParserSpec extends Specification
             annotator.nounRef(NOUN_PEDRO),
             VERB_CAMINA
           )
+        )
+    }
+
+    "parse a progressive sentence" in
+    {
+      val input = "estoy caminando"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
+              PROXIMITY_ELIDED),
+            VERB_CAMINANDO
+          ),
+          SilTam.indicative.progressive
         )
     }
 

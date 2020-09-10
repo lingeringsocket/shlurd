@@ -35,6 +35,7 @@ class SilSpanishSentencePrinterSpec
     "normalize sentences" in
     {
       expectStatement("el perro camina en la calle")
+      expectStatement("el perro está caminando en la calle")
       expectStatement("el perro camina entre las calles")
       expectStatement("los perros caminan entre las calles")
       expectStatement("ella camina")

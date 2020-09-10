@@ -260,7 +260,7 @@ abstract class SprSvoSyntaxAnalyzer(
         }
         val (negativeSub, sub) = extractNegative(vp.children)
         tupleN((sub.head, fromNounSlice(0), SptVP(sub:_*),
-          sub.last, (negativeSub ^ negativeSuper),
+          sub.last, combineNegatives(negativeSub, negativeSuper),
           expectVerbModifiers(seq).patch(iNoun, Seq.empty, expectedSize),
           (sub.size > 2)))
       }
@@ -277,14 +277,14 @@ abstract class SprSvoSyntaxAnalyzer(
       val (negativeSub, predicate) =
         expectPredicate(tree, np, rhs, specifiedState,
           relationshipVerb(verbHead), verbModifiers ++ extraModifiers, question)
-      val polarity = !(negative ^ negativeSub)
+      val polarity = !combineNegatives(negative, negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
         tamMoody.withPolarity(polarity)))
     } else {
       val (negativeSub, predicate) = analyzeActionPredicate(
         tree, np, vp, specifiedDirectObject, extraModifiers)
-      val polarity = !(negative ^ negativeSub)
+      val polarity = !combineNegatives(negative, negativeSub)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       Some((predicate,
         tamMoody.withPolarity(polarity)))
@@ -437,7 +437,7 @@ abstract class SprSvoSyntaxAnalyzer(
         Some(question))
       rememberPredicateCount(predicate, verbHead)
       val tam = SilTam.interrogative.
-        withPolarity(!(negativeSuper ^ negativeSub))
+        withPolarity(!combineNegatives(negativeSuper, negativeSub))
       val tamTensed = extractTense(verbHead, tam)
       SilPredicateQuery(
         predicate, question, answerInflection, tamTensed)
@@ -598,6 +598,8 @@ abstract class SprSvoSyntaxAnalyzer(
     }
   }
 
+  protected def combineNegatives(n1 : Boolean, n2 : Boolean) : Boolean
+
   private def expectPredicateSentence(
     tree : SprSyntaxTree,
     np : SprSyntaxTree, vp : SprSyntaxTree,
@@ -606,8 +608,7 @@ abstract class SprSvoSyntaxAnalyzer(
     negativeSuper : Boolean) : SilSentence =
   {
     val (negativeSub, vpChildren) = extractNegative(vp.children)
-    // FIXME:  representation for double negatives?
-    val negative = negativeSuper ^ negativeSub
+    val negative = combineNegatives(negativeSuper, negativeSub)
     val verbHead = vpChildren.head
     if (!verbHead.isVerbNode && !verbHead.isModal) {
       return SilUnrecognizedSentence(tree)
@@ -660,7 +661,7 @@ abstract class SprSvoSyntaxAnalyzer(
         tree, np, complement, specifiedState,
         relationshipVerb(verbHead), verbModifiers ++ extraModifiers,
         Some(QUESTION_HOW_MANY))
-      val polarity = !(negative ^ negativeComplement)
+      val polarity = !combineNegatives(negative, negativeComplement)
       rememberPredicateCount(predicate, verbHead, tam, auxCount)
       SilPredicateSentence(
         predicate, tamTensed.withPolarity(polarity), SilFormality(force))

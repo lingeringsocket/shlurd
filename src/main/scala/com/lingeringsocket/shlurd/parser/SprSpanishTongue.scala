@@ -715,6 +715,12 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     demonstrativeToCoord.contains(lemma)
   }
 
+  override def tamForAuxLemma(lemma : String) : SilTam =
+  {
+    // FIXME all the modals
+    SilTam.indicative.progressive
+  }
+
   override def isFlexiblePronoun(token : String) : Boolean =
   {
     token match {
@@ -859,12 +865,24 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     }
   }
 
+  private def isProgressive(inflected : String) : Boolean =
+  {
+    inflected.endsWith("ando") || inflected.endsWith("iendo") ||
+      inflected.endsWith("yendo")
+  }
+
   override def labelVerb(token : String, lemma : String) : Set[String] =
   {
     // FIXME all the tams
-    SilSpanishConjugation.getConjugationCoord(lemma, token).tense match {
-      case TENSE_PAST => Set(LABEL_VBD)
-      case _ => Set(LABEL_VB)
+    if (isProgressive(token)) {
+      Set(LABEL_VBG)
+    } else {
+      SilSpanishConjugation.getConjugationCoord(
+        lemma, token).map(_.tense) match
+      {
+        case Some(TENSE_PAST) => Set(LABEL_VBD)
+        case _ => Set(LABEL_VB)
+      }
     }
   }
 
@@ -875,14 +893,36 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
       case sw : SilSimpleWord => sw
       case cw : SilCompoundWord => cw.components.last
     }
-    val coord = SilSpanishConjugation.getConjugationCoord(
-      simple.lemma, simple.inflected)
-    tupleN((
-      coord.person,
-      coord.count,
-      GENDER_NEUTER,
-      SilTam.indicative.withTense(coord.tense).withMood(coord.mood)
-    ))
+    if (isProgressive(simple.inflected)) {
+      tupleN((
+        PERSON_FIRST,
+        COUNT_SINGULAR,
+        GENDER_SOMEONE,
+        SilTam.indicative.progressive
+      ))
+    } else {
+      val coordOpt = SilSpanishConjugation.getConjugationCoord(
+        simple.lemma, simple.inflected)
+      coordOpt match {
+        case Some(coord) => {
+          tupleN((
+            coord.person,
+            coord.count,
+            if (coord.person == PERSON_THIRD) GENDER_NEUTER else GENDER_SOMEONE,
+            SilTam.indicative.withTense(coord.tense).withMood(coord.mood)
+          ))
+        }
+        case _ => {
+          // unrecognized conjugation, just make something up
+          tupleN((
+            PERSON_THIRD,
+            COUNT_SINGULAR,
+            GENDER_MASCULINE,
+            SilTam.indicative
+          ))
+        }
+      }
+    }
   }
 
   // FIXME generalize pronoun coordinates to cover determiners,

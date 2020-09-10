@@ -4,6 +4,7 @@ public class Progressive extends Tense {
     private String type;
     private String[] present = {"estoy", "estás", "está", "estamos", "estáis",  "están"};
     private String[] imperfect = {"estaba", "estabas", "estaba", "estábamos", "estabais", "estaban"};
+    private String[] future = {"estaré", "estarás", "estará", "estaremos", "estaréis", "estarán"};
 
     public Progressive(String type) {
         super(noEndings);
@@ -19,6 +20,8 @@ public class Progressive extends Tense {
             return print(conjugation, present, verb, pn);
         } else if(type.equals("Past")) {
             return print(conjugation, imperfect, verb, pn);
+        } else if(type.equals("Future")) {
+            return print(conjugation, future, verb, pn);
         } else {
             return "";
         }

@@ -86,4 +86,11 @@ class SprSpanishSyntaxAnalyzer(
       case _ => COUNT_SINGULAR
     }
   }
+
+  override protected def combineNegatives(
+    n1 : Boolean, n2 : Boolean) : Boolean =
+  {
+    // we love double negatives!
+    n1 || n2
+  }
 }
