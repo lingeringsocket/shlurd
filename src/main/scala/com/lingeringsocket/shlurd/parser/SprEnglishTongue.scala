@@ -287,7 +287,12 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
   override def newSentencePrinter(
     genderAnalyzer : SilGenderAnalyzer) =
   {
-    new SilSentencePrinter(this, SilEnglishParlance, genderAnalyzer)
+    new SilSentencePrinter(this, genderAnalyzer)
+  }
+
+  def newSentenceBundle() : SilSentenceBundle =
+  {
+    new SilEnglishSentenceBundle(this)
   }
 
   override def newSyntaxAnalyzer(

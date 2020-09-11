@@ -649,7 +649,7 @@ class PhlebShell(
   }
 
   private val sentencePrinter = new SilSentencePrinter(
-    SprContext.defaultTongue, SilEnglishParlance, noumenalMind)
+    SprContext.defaultTongue, noumenalMind)
 
   private val playerToInterpreter = SmcCommunicationContext(
     Some(playerEntity),

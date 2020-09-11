@@ -29,14 +29,13 @@ import SilSentencePrinter._
 
 class SilSentencePrinter(
   tongueIn : SprTongue,
-  parlance : SilParlance = SilEnglishParlance,
   genderAnalyzer : SilGenderAnalyzer)
 {
   private implicit val tongue = tongueIn
 
   def getTongue = tongue
 
-  val sb = SilSentenceBundle(tongue, parlance)
+  val sb = tongue.newSentenceBundle()
 
   def print(
     sentence : SilSentence, ellipsis : Boolean = false) : String =

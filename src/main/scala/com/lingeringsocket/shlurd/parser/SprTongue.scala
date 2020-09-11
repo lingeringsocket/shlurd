@@ -159,6 +159,8 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
   def newSentencePrinter(
     genderAnalyzer : SilGenderAnalyzer) : SilSentencePrinter
 
+  def newSentenceBundle() : SilSentenceBundle
+
   def newSyntaxAnalyzer(
     context : SprContext,
     guessedQuestion : Boolean,

@@ -496,7 +496,14 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   )
 
   override def newSentencePrinter(genderAnalyzer : SilGenderAnalyzer) =
-    new SilSentencePrinter(this, SilSpanishParlance, genderAnalyzer)
+  {
+    new SilSentencePrinter(this, genderAnalyzer)
+  }
+
+  def newSentenceBundle() : SilSentenceBundle =
+  {
+    new SilSpanishSentenceBundle(this)
+  }
 
   override def newSyntaxAnalyzer(
     context : SprContext,

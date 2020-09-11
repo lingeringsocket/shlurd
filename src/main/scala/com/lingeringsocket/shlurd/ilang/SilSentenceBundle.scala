@@ -14,8 +14,6 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
-import com.lingeringsocket.shlurd.parser._
-
 import scala.util._
 
 case class SilConjoining(
@@ -32,14 +30,7 @@ object SilConjoining
   val NONE = SilConjoining(DETERMINER_ABSENT, SEPARATOR_CONJOINED, 0, 1)
 }
 
-object SilSentenceBundle
-{
-  def apply(tongue : SprTongue, parlance : SilParlance) =
-    parlance.newSentenceBundle(tongue)
-}
-
 abstract class SilSentenceBundle
-    extends SilParlanceBundle
 {
   protected def concat(s : String*) =
     s.mkString("")

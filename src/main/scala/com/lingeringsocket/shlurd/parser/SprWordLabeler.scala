@@ -32,8 +32,7 @@ object SprContext
 
   val defaultPhraseScorer = new SilWordnetScorer(defaultTongue)
 
-  val defaultSentencePrinter = new SilSentencePrinter(
-    defaultTongue, SilEnglishParlance, defaultTongue)
+  val defaultSentencePrinter = defaultTongue.newSentencePrinter(defaultTongue)
 
   def defaultWordLabeler() = new SprWordnetLabeler(defaultTongue)
 

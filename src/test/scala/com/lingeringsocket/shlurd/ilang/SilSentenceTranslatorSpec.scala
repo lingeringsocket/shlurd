@@ -22,7 +22,7 @@ class SilSentenceTranslatorSpec extends Specification
 {
   private val printer =
     new SilSentencePrinter(
-      SprContext.defaultTongue, LimitedKoreanParlance, SprContext.defaultTongue)
+      LimitedKoreanTongue, LimitedKoreanTongue)
 
   private def translate(s : String) =
   {
@@ -76,10 +76,10 @@ class SilSentenceTranslatorSpec extends Specification
   }
 }
 
-object LimitedKoreanParlance extends SilParlance
+object LimitedKoreanTongue extends SprEnglishTongue(SprContext.defaultWordnet)
 {
-  override def newSentenceBundle(tongue : SprTongue) =
-    new SilKoreanSentenceBundle {
+  override def newSentenceBundle() =
+    new SilKoreanSentenceBundle() {
       override def inflectNoun(
         lemma : String, count : SilCount,
         inflection : SilInflection, conjoining : SilConjoining) =
