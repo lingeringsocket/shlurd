@@ -64,6 +64,7 @@ object SprSyntaxRewriter
     LABEL_VBZ -> SptVBZ,
     LABEL_VBP -> SptVBP,
     LABEL_VBD -> SptVBD,
+    LABEL_VBF -> SptVBF,
     LABEL_VBN -> SptVBN,
     LABEL_VBG -> SptVBG,
     LABEL_JJ -> SptJJ,

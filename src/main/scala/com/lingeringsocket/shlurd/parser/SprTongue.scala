@@ -178,14 +178,19 @@ abstract class SprTongue(wordnet : ShlurdWordnet)
 
   def getStatePredefFromLemma(lemma : String) : SilStatePredef
 
-  def isBeingLemma(lemma : String) : Boolean
-
   def isModalAuxLemma(lemma : String) : Boolean = false
+
+  def isProgressiveAuxLemma(lemma : String) : Boolean = false
 
   def tamForAuxLemma(lemma : String) : SilTam = SilTam.indicative
 
   def isBeingLemma(verb : SilWord) : Boolean =
     isBeingLemma(verb.toLemma)
+
+  def isBeingLemma(lemma : String) : Boolean
+
+  def isRelationshipLemma(lemma : String) : Boolean =
+    isBeingLemma(lemma) || isPossessionLemma(lemma)
 
   def isPossessionLemma(lemma : String) : Boolean
 

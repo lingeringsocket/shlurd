@@ -196,7 +196,7 @@ abstract class SprSvoSyntaxAnalyzer(
       }
       case vb => vb
     }
-    if (seq(iFirstVerb).unwrapPhrase.isRelationshipVerb &&
+    if (seq(iFirstVerb).unwrapPhrase.isProgressiveAux &&
       nextVerb.unwrapPhrase.isProgressiveVerb)
     {
       tupleN((true, iNextVerb))
@@ -645,7 +645,7 @@ abstract class SprSvoSyntaxAnalyzer(
       } else {
         SilUnrecognizedSentence(tree)
       }
-    } else if (verbHead.isRelationshipVerb) {
+    } else if (verbHead.isBeingVerb || verbHead.isPossessionVerb) {
       val (maybeSpecifiedState, vpRemainder) =
         extractAdpositionalState(vpChildren)
       val (complement, specifiedState) = {

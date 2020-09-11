@@ -40,6 +40,10 @@ class SprSpanishParserSpec extends Specification
 
   private val VERB_BEBO = SilWord("bebo", "beber")
 
+  private val VERB_BEBISTE = SilWord("bebiste", "beber")
+
+  private val VERB_BEBERA = SilWord("beberá", "beber")
+
   private val VERB_ES = SilWord("es", "ser")
 
   private val VERB_ESTOY = SilWord("estoy", "estar")
@@ -77,6 +81,36 @@ class SprSpanishParserSpec extends Specification
             VERB_CAMINANDO
           ),
           SilTam.indicative.progressive
+        )
+    }
+
+    "parse a preterite sentence" in
+    {
+      val input = "bebiste"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+              PROXIMITY_ELIDED),
+            VERB_BEBISTE
+          ),
+          SilTam.indicative.past
+        )
+    }
+
+    "parse a future sentence" in
+    {
+      val input = "beberá"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
+              PROXIMITY_ELIDED),
+            VERB_BEBERA
+          ),
+          SilTam.indicative.future
         )
     }
 

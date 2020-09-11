@@ -3,6 +3,7 @@ vida%1:19:00:: -add -setgloss "lo opuesto a la muerte"
 calle%1:15:00:: -add -addword camino -setgloss "una via de punto A a punto B"
 caminar%2:38:00:: -add -addword andar -setgloss "ir usando las piernas"
 beber%2:34:00:: -add -setgloss "consumir un bebido"
+saber%2:31:00:: -add -setgloss "tener un concepto"
 vivir%2:42:00:: -add -setgloss "preparar por la muerte"
 ser%2:42:00:: -add -setgloss "existir"
 estar%2:42:00:: -add -setgloss "tener una condición particular"
@@ -23,3 +24,16 @@ v#estoy -addexc estar
 v#estás -addexc estar
 v#está -addexc estar
 v#están -addexc estar
+v#sé -addexc saber
+v#supe -addexc saber
+v#supiste -addexc saber
+v#supo -addexc saber
+v#supimos -addexc saber
+v#supisteis -addexc saber
+v#supieron -addexc saber
+v#sabré -addexc saber
+v#sabrás -addexc saber
+v#sabrá -addexc saber
+v#sabremos -addexc saber
+v#sabréis -addexc saber
+v#sabrán -addexc saber

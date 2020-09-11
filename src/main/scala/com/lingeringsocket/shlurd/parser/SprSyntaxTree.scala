@@ -57,6 +57,7 @@ object SprPennTreebankLabels
   val LABEL_VBZ = label("VBZ")
   val LABEL_VBP = label("VBP")
   val LABEL_VBD = label("VBD")
+  val LABEL_VBF = label("VBF")
   val LABEL_VBG = label("VBG")
   val LABEL_VBN = label("VBN")
   val LABEL_EX = label("EX")
@@ -170,6 +171,8 @@ trait SprAbstractSyntaxTree
 
   def isVerbPastTense = label.equals(LABEL_VBD) || label.equals(LABEL_VBN)
 
+  def isVerbFutureTense = label.equals(LABEL_VBF)
+
   def isNoun = label.startsWith(LABEL_NN)
 
   def isQueryPhrase =
@@ -221,6 +224,15 @@ trait SprAbstractSyntaxTree
 
   def isProgressiveVerb = isGerund
 
+  def isProgressiveAux(implicit tongue : SprTongue) : Boolean =
+  {
+    if (isVerb && isPreTerminal) {
+      tongue.isProgressiveAuxLemma(firstChild.lemma)
+    } else {
+      false
+    }
+  }
+
   def isExistential(implicit tongue : SprTongue) =
     (isNounPhrase && firstChild.hasLabel(LABEL_EX)) || isExistsVerb
 
@@ -237,7 +249,13 @@ trait SprAbstractSyntaxTree
     isVerb && isPreTerminal && tongue.isPossessionLemma(firstChild.lemma)
 
   def isRelationshipVerb(implicit tongue : SprTongue) =
-    isBeingVerb || isPossessionVerb
+  {
+    if (isVerb && isPreTerminal) {
+      tongue.isRelationshipLemma(firstChild.lemma)
+    } else {
+      false
+    }
+  }
 
   def isExistsVerb(implicit tongue : SprTongue) =
     isVerb && isPreTerminal && tongue.isExistsLemma(firstChild.lemma)
@@ -843,4 +861,13 @@ case class SptVBC(children : SprSyntaxTree*)
   override def label = LABEL_VBC
 
   override def isVerbPastTense = children.exists(_.isVerbPastTense)
+
+  override def isVerbFutureTense = children.exists(_.isVerbFutureTense)
+}
+
+// another non-standard one we use for future tense verbs
+case class SptVBF(child : SprSyntaxLeaf)
+    extends SprSyntaxSimpleVerb
+{
+  override def label = LABEL_VBF
 }

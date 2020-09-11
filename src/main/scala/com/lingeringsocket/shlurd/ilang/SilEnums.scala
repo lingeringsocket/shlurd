@@ -249,8 +249,7 @@ object SilRelationshipPredef
   def apply(word : SilWord)(implicit tongue : SprTongue) =
   {
     tongue.relLemmaMap.get(word.toLemma).getOrElse {
-      throw new IllegalArgumentException(
-        "Non-predef relationship verb " + word)
+      REL_PREDEF_IDENTITY
     }
   }
 }

@@ -4,8 +4,8 @@ import java.util.HashMap;
 
 public class Future extends Tense {
 
-    public Future(String[] endings) {
-        super(endings);
+    public Future(String[] endingsA, String [] endingsE, String [] endingsI) {
+        super(endingsA, endingsE, endingsI);
         putValues();
     }
 
@@ -13,6 +13,8 @@ public class Future extends Tense {
     public String conjugate(Conjugation conjugation) {
         String verb = conjugation.verb;
         int pn = conjugation.pn;
+
+        String [] endings = endingsAEI(verb);
 
         //Checks if a verb of any subsections of it are irregular
         if(checkForIreg(verb, iregRoots) >= 0) {

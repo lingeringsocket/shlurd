@@ -541,11 +541,15 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
   {
     lemma match {
       case LEMMA_SER | LEMMA_EXISTIR | LEMMA_ESTAR => STATE_PREDEF_BE
-      // FIXME this is just wrong
       case LEMMA_HACER => STATE_PREDEF_BECOME
       case _ => throw new IllegalArgumentException(
         "Non-predef state verb " + lemma)
     }
+  }
+
+  override def isProgressiveAuxLemma(lemma : String) : Boolean =
+  {
+    lemma == LEMMA_ESTAR
   }
 
   override def isBeingLemma(lemma : String) : Boolean =
@@ -553,6 +557,15 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     // FIXME this is just wrong for LEMMA_HACER
     lemma match {
       case LEMMA_SER | LEMMA_ESTAR | LEMMA_EXISTIR | LEMMA_HACER => true
+      case _ => false
+    }
+  }
+
+  override def isRelationshipLemma(lemma : String) : Boolean =
+  {
+    // FIXME this is just wrong for LEMMA_HACER
+    lemma match {
+      case LEMMA_SER | LEMMA_TENER | LEMMA_HACER => true
       case _ => false
     }
   }
@@ -881,6 +894,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
         lemma, token).map(_.tense) match
       {
         case Some(TENSE_PAST) => Set(LABEL_VBD)
+        case Some(TENSE_FUTURE) => Set(LABEL_VBF)
         case _ => Set(LABEL_VB)
       }
     }

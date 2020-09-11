@@ -13,7 +13,8 @@ public class Endings
     static String[] imperfectAr = {"aba", "abas", "aba", "ábamos", "abais", "aban"};
     static String[] imperfectErIr = {"ía", "ías", "ía", "íamos", "íais", "ían"};
 
-    static String[] future = {"é", "ás", "á", "emos", "éis", "án"};
+    static String[] futureAr = {"é", "ás", "á", "amos", "áis", "án"};
+    static String[] futureErIr = {"é", "ás", "á", "emos", "éis", "án"};
 
     static String[] conditional = {"ía", "ías", "ía", "íamos", "íais", "ían"};
 

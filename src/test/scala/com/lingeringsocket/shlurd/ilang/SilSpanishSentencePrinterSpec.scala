@@ -49,6 +49,10 @@ class SilSpanishSentencePrinterSpec
       // a prescriptivist parser should complain about this, but
       // maybe the speaker is congenitally sad?
       expectStatement("soy triste")
+
+      // this one is even worse, but maybe in the future
+      // we will change species like we change our clothes?
+      expectStatement("estoy un perro")
     }
 
     "accept elided subjects" in
@@ -83,6 +87,14 @@ class SilSpanishSentencePrinterSpec
       expectStatement("vosotros anduvisteis")
       expectStatement("ellos anduvieron")
 
+      // -ar future
+      expectStatement("yo caminaré")
+      expectStatement("tú caminarás")
+      expectStatement("él caminará")
+      expectStatement("nosotros caminaramos")
+      expectStatement("vosotros caminaráis")
+      expectStatement("ellos caminarán")
+
       // -er present
       expectStatement("yo bebo")
       expectStatement("tú bebes")
@@ -91,12 +103,52 @@ class SilSpanishSentencePrinterSpec
       expectStatement("vosotros bebéis")
       expectStatement("ellas beben")
 
+      // -er present irregular
+      expectStatement("yo sé")
+      expectStatement("tú sabes")
+      expectStatement("él sabe")
+      expectStatement("nosotros sabemos")
+      expectStatement("vosotros sabéis")
+      expectStatement("ellas saben")
+
       // -er preterite
       expectStatement("yo bebí")
       expectStatement("tú bebiste")
       expectStatement("él bebió")
       expectStatement("vosotros bebisteis")
       expectStatement("ellas bebieron")
+
+      // -er preterite irregular
+      expectStatement("yo supe")
+      expectStatement("tú supiste")
+      expectStatement("él supo")
+      expectStatement("nosotros supimos")
+      expectStatement("vosotros supisteis")
+      expectStatement("ellas supieron")
+
+      // -er future
+      expectStatement("yo beberé")
+      expectStatement("tú beberás")
+      expectStatement("él beberá")
+      expectStatement("nosotros beberemos")
+      expectStatement("vosotros beberéis")
+      expectStatement("ellas beberán")
+
+      // -er future irregular
+      expectStatement("yo beberé")
+      expectStatement("tú beberás")
+      expectStatement("él beberá")
+      expectStatement("nosotros beberemos")
+      expectStatement("vosotros beberéis")
+      expectStatement("ellas beberán")
+
+      // -er future irregular round 2
+      expectStatement("yo sabré")
+      expectStatement("tú sabrás")
+      expectStatement("él sabrá")
+      expectStatement("nosotros sabremos")
+      expectStatement("vosotros sabréis")
+      expectStatement("ellas sabrán")
 
       // -ir present
       expectStatement("yo vivo")
@@ -112,6 +164,14 @@ class SilSpanishSentencePrinterSpec
       expectStatement("él vivió")
       expectStatement("vosotros vivisteis")
       expectStatement("ellas vivieron")
+
+      // -ir future
+      expectStatement("yo viviré")
+      expectStatement("tú vivirás")
+      expectStatement("él vivirá")
+      expectStatement("nosotros viviremos")
+      expectStatement("vosotros viviréis")
+      expectStatement("ellas vivirán")
 
       // ser present
       expectStatement("yo soy un perro")
@@ -129,21 +189,37 @@ class SilSpanishSentencePrinterSpec
       expectStatement("vosotros fuisteis perros")
       expectStatement("ellas fueron perras")
 
+      // ser future
+      expectStatement("yo seré un perro")
+      expectStatement("tú serás un perro")
+      expectStatement("él será un perro")
+      expectStatement("nosotros seremos perros")
+      expectStatement("vosotros seréis perros")
+      expectStatement("ellas serán perras")
+
       // estar present
       expectStatement("yo estoy triste")
       expectStatement("tú estás triste")
       expectStatement("él está triste")
-      expectStatement("nosotros estamos triste")
-      expectStatement("vosotros estáis triste")
-      expectStatement("ellas están triste")
+      expectStatement("nosotros estamos tristes")
+      expectStatement("vosotros estáis tristes")
+      expectStatement("ellas están tristes")
 
       // estar preterite
       expectStatement("yo estuve triste")
       expectStatement("tú estuviste triste")
       expectStatement("él estuvo triste")
-      expectStatement("nosotros estuvimos triste")
-      expectStatement("vosotros estuvisteis triste")
-      expectStatement("ellas estuvieron triste")
+      expectStatement("nosotros estuvimos tristes")
+      expectStatement("vosotros estuvisteis tristes")
+      expectStatement("ellas estuvieron tristes")
+
+      // estar future
+      expectStatement("yo estaré triste")
+      expectStatement("tú estarás triste")
+      expectStatement("él estará triste")
+      expectStatement("nosotros estaramos tristes")
+      expectStatement("vosotros estaráis tristes")
+      expectStatement("ellas estarán tristes")
     }
   }
 }

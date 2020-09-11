@@ -7,7 +7,7 @@
                 <param value="net.sf.extjwnl.dictionary.morph.LookupExceptionsOperation"/>
                 <param value="net.sf.extjwnl.dictionary.morph.DetachSuffixesOperation">
                     <param name="noun" value="|s=|"/>
-                    <param name="verb" value="|o=ar|as=ar|a=ar|amos=ar|áis=ar|an=ar|é=ar|aste=ar|ó=ar|asteis=ar|aron=ar|uve=ar|uviste=ar|uvo=ar|uvimos=ar|uvisteis=ar|uvieron=ar|e=ar|ando=ar|o=er|es=er|e=er|emos=er|éis=er|en=er|í=er|iste=er|ió=er|imos=er|isteis=er|ieron=er|a=er|iendo=er|yendo=er|o=ir|es=ir|e=ir|imos=ir|ís=ir|en=ir|í=ir|iste=ir|ió=ir|imos=ir|isteis=ir|ieron=ir|a=ir|iendo=ir|yendo=ir|"/>
+                    <param name="verb" value="|o=ar|as=ar|a=ar|amos=ar|áis=ar|an=ar|é=ar|aste=ar|ó=ar|asteis=ar|aron=ar|uve=ar|uviste=ar|uvo=ar|uvimos=ar|uvisteis=ar|uvieron=ar|e=ar|ando=ar|aré=ar|arás=ar|ará=ar|aramos=ar|aráis=ar|arán=ar|o=er|es=er|e=er|emos=er|éis=er|en=er|í=er|iste=er|ió=er|imos=er|isteis=er|ieron=er|a=er|iendo=er|yendo=er|eré=er|erás=er|erá=er|eremos=er|eréis=er|erán=er|o=ir|es=ir|e=ir|imos=ir|ís=ir|en=ir|í=ir|iste=ir|ió=ir|imos=ir|isteis=ir|ieron=ir|a=ir|iendo=ir|yendo=ir|iré=ir|irás=ir|irá=ir|iremos=ir|iréis=ir|irán=ir|"/>
                     <param name="operations">
                         <param value="net.sf.extjwnl.dictionary.morph.LookupIndexWordOperation"/>
                         <param value="net.sf.extjwnl.dictionary.morph.LookupExceptionsOperation"/>
@@ -23,7 +23,7 @@
                         <param value="net.sf.extjwnl.dictionary.morph.LookupExceptionsOperation"/>
                         <param value="net.sf.extjwnl.dictionary.morph.DetachSuffixesOperation">
                             <param name="noun" value="|s=|"/>
-                            <param name="verb" value="|o=ar|as=ar|a=ar|amos=ar|áis=ar|an=ar|é=ar|aste=ar|ó=ar|asteis=ar|aron=ar|uve=ar|uviste=ar|uvo=ar|uvimos=ar|uvisteis=ar|uvieron=ar|e=ar|ando=ar|o=er|es=er|e=er|emos=er|éis=er|en=er|í=er|iste=er|ió=er|imos=er|isteis=er|ieron=er|a=er|iendo=er|yendo=er|o=ir|es=ir|e=ir|imos=ir|ís=ir|en=ir|í=ir|iste=ir|ió=ir|imos=ir|isteis=ir|ieron=ir|a=ir|iendo=ir|yendo=ir|"/>
+                            <param name="verb" value="|o=ar|as=ar|a=ar|amos=ar|áis=ar|an=ar|é=ar|aste=ar|ó=ar|asteis=ar|aron=ar|uve=ar|uviste=ar|uvo=ar|uvimos=ar|uvisteis=ar|uvieron=ar|e=ar|ando=ar|aré=ar|arás=ar|ará=ar|aramos=ar|aráis=ar|arán=ar|o=er|es=er|e=er|emos=er|éis=er|en=er|í=er|iste=er|ió=er|imos=er|isteis=er|ieron=er|a=er|iendo=er|yendo=er|eré=er|erás=er|erá=er|eremos=er|eréis=er|erán=er|o=ir|es=ir|e=ir|imos=ir|ís=ir|en=ir|í=ir|iste=ir|ió=ir|imos=ir|isteis=ir|ieron=ir|a=ir|iendo=ir|yendo=ir|eré=ir|erás=ir|erá=ir|eremos=ir|eréis=ir|erán=ir|"/>
                             <param name="operations">
                                 <param value="net.sf.extjwnl.dictionary.morph.LookupIndexWordOperation"/>
                                 <param value="net.sf.extjwnl.dictionary.morph.LookupExceptionsOperation"/>

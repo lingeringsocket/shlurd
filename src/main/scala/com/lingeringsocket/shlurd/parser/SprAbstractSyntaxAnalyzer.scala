@@ -443,6 +443,8 @@ abstract class SprAbstractSyntaxAnalyzer(
   {
     if (verbHead.isVerbPastTense) {
       tam.past
+    } else if (verbHead.isVerbFutureTense) {
+      tam.future
     } else {
       tam
     }

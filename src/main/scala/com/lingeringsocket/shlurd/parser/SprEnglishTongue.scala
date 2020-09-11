@@ -335,6 +335,11 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     }
   }
 
+  override def isProgressiveAuxLemma(lemma : String) : Boolean =
+  {
+    lemma == LEMMA_BE
+  }
+
   override def isBeingLemma(lemma : String) : Boolean =
   {
     lemma match {

@@ -41,7 +41,8 @@ object SprPhrasePatternMatcher
     (label match {
       case LABEL_NNS | LABEL_NNP | LABEL_NNPS | LABEL_NNQ | LABEL_NNE |
           LABEL_NNC => LABEL_NN
-      case LABEL_VBP | LABEL_VBD | LABEL_VBZ | LABEL_VBC => LABEL_VB
+      case LABEL_VBP | LABEL_VBD | LABEL_VBZ |
+          LABEL_VBC | LABEL_VBF => LABEL_VB
       case LABEL_RP | LABEL_RBC => LABEL_RB
       case "," => "COMMA"
       case ";" => "SEMICOLON"
