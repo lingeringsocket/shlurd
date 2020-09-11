@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 
@@ -35,7 +36,7 @@ class SprHeuristicSynthesizerSpec
     val sentence = sentences.head
 
     val synthesizer = new SprHeuristicSynthesizer(
-      SprContext(scorer = scorer),
+      SprContext(wordLabeler = SnlUtils.defaultWordLabeler, scorer = scorer),
       filter,
       stamina,
       sentence.tokens.map(_.text)

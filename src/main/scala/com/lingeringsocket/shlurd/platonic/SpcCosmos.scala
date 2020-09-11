@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.jgrapht._
 
 import spire.math._
@@ -1936,7 +1937,7 @@ class SpcCosmos(
           val formEntity = set.head
           val formName = SpcMeta.formNameFromMeta(formEntity.name)
           // FIXME language-specific
-          implicit val tongue = SprContext.defaultTongue
+          implicit val tongue = SnlUtils.defaultTongue
           val basic = SilWord(SpcWordnetOntology.getNoun(formName)) match {
             case SilMagicWord(MW_MASCULINE) => Some(GENDER_MASCULINE)
             case SilMagicWord(MW_FEMININE) => Some(GENDER_FEMININE)

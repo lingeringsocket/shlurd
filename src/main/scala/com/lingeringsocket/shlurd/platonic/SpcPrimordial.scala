@@ -17,11 +17,12 @@ package com.lingeringsocket.shlurd.platonic
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.nlang._
 
 object SpcPrimordial
 {
   // FIXME can this ever be language-specific?
-  private implicit val tongue = SprContext.defaultTongue
+  private implicit val tongue = SnlUtils.defaultTongue
 
   // all the Whos down in Whoville
   private val synonyms = Map(

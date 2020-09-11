@@ -16,10 +16,11 @@ package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 import SprPennTreebankLabels._
 
 class SprParserSpec extends Specification
@@ -123,13 +124,14 @@ class SprParserSpec extends Specification
 
   private val wordLabeler = createWordLabeler
 
-  private val context = SprContext(wordLabeler)
+  private val context = SprContext(
+    wordLabeler, SnlUtils.defaultPhraseScorer)
 
   private implicit val tongue = context.getTongue
 
   private def createWordLabeler() =
   {
-    val wordLabeler = SprContext.defaultWordLabeler
+    val wordLabeler = SnlUtils.defaultWordLabeler
     wordLabeler.addRule(SprWordRule(
       Seq(NOUN_SUPES.toNounLemma), Seq(LABEL_NN), true))
     wordLabeler.addRule(SprWordRule(

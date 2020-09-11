@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 import org.specs2.specification._
@@ -58,7 +59,7 @@ class SpcCreedSpec extends Specification
       input : Iterable[String], expected : Iterable[String]) =
     {
       input.foreach(addBelief)
-      val printer = SprContext.defaultSentencePrinter
+      val printer = SnlUtils.defaultSentencePrinter
       val beliefStrings = creed.allBeliefs(printer).map(s => printer.print(s))
       beliefStrings.map(SprUtils.capitalize) must be equalTo expected
       beliefStrings.foreach(beliefString => {
@@ -535,7 +536,7 @@ class SpcCreedSpec extends Specification
       SpcPrimordial.initCosmos(cosmos)
       val annotator = SpcAnnotator()
       val creed = new SpcCreed(annotator, cosmos, true)
-      val printer = SprContext.defaultSentencePrinter
+      val printer = SnlUtils.defaultSentencePrinter
       val beliefStrings = creed.allBeliefs(printer).map(
         s => printer.print(s) + "\n")
       beliefStrings.size must be equalTo 157

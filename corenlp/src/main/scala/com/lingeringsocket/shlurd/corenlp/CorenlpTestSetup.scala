@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.corenlp
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.nlang._
 
 import edu.stanford.nlp.simple._
 import edu.stanford.nlp.trees._
@@ -26,7 +27,7 @@ import scala.collection.JavaConverters._
 import java.util._
 
 import SprPennTreebankLabels._
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 import SprUtils._
 
 class CorenlpTestSetup
@@ -100,7 +101,7 @@ object CorenlpParsingStrategy extends SprParsingStrategy
 
   override def isCoreNLP : Boolean = true
 
-  private implicit val tongue = SprContext.defaultTongue
+  private implicit val tongue = SnlUtils.defaultTongue
 
   override def prepareParser(
     context : SprContext,

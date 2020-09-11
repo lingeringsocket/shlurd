@@ -12,29 +12,29 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.ilang
+package com.lingeringsocket.shlurd.nlang
 
-import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
 import com.ibm.icu.text._
 
 import java.util._
 
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 import ShlurdEnglishAffixes._
 
-object SilEnglishSentenceBundle
+object SnlEnglishSentenceBundle
 {
   private val numberFormat = new RuleBasedNumberFormat(
     Locale.ENGLISH, RuleBasedNumberFormat.SPELLOUT);
 }
 
-class SilEnglishSentenceBundle(
+class SnlEnglishSentenceBundle(
   tongue : SprTongue
-) extends SilSvoSentenceBundle(
+) extends SnlSentenceBundle(
   tongue,
-  SilEnglishSentenceBundle.numberFormat)
+  SnlEnglishSentenceBundle.numberFormat)
 {
   override protected def delemmatizeModalVerb(
     tam : SilTam, verb : SilWord,

@@ -12,10 +12,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import net.sf.extjwnl.data._
 
@@ -23,7 +24,7 @@ import scala.collection._
 
 import SprPennTreebankLabels._
 
-object SprSpanishLemmas
+object SnlSpanishLemmas
 {
   val LEMMA_ACA = "acá"
   val LEMMA_AHI = "ahí"
@@ -142,10 +143,10 @@ case class SprPronounCoord(
   possesseeCount : SilCount = COUNT_SINGULAR
 )
 
-object SprSpanishLexicon
+object SnlSpanishLexicon
 {
   import SprLexicon._
-  import SprSpanishLemmas._
+  import SnlSpanishLemmas._
 
   val prepositions = readLexicon("/spanish/prepositions.txt")
 
@@ -481,11 +482,11 @@ object SprSpanishLexicon
   // assert(keywordToLemma.size == lemmaToKeyword.size)
 }
 
-class SprSpanishTongue(wordnet : ShlurdWordnet)
+class SnlSpanishTongue(wordnet : SprWordnet)
     extends SprTongue(wordnet)
 {
-  import SprSpanishLemmas._
-  import SprSpanishLexicon._
+  import SnlSpanishLemmas._
+  import SnlSpanishLexicon._
   import SilWordnetScorer._
 
   private implicit val tongue = this
@@ -502,7 +503,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
 
   def newSentenceBundle() : SilSentenceBundle =
   {
-    new SilSpanishSentenceBundle(this)
+    new SnlSpanishSentenceBundle(this)
   }
 
   override def newSyntaxAnalyzer(
@@ -512,7 +513,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     enforceTransitive : Boolean = true
   ) : SprSyntaxAnalyzer =
   {
-    new SprSpanishSyntaxAnalyzer(
+    new SnlSpanishSyntaxAnalyzer(
       context, strictness, enforceTransitive)
   }
 
@@ -897,7 +898,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
     if (isProgressive(token)) {
       Set(LABEL_VBG)
     } else {
-      SilSpanishConjugation.getConjugationCoord(
+      SnlSpanishConjugation.getConjugationCoord(
         lemma, token).map(_.tense) match
       {
         case Some(TENSE_PAST) => Set(LABEL_VBD)
@@ -922,7 +923,7 @@ class SprSpanishTongue(wordnet : ShlurdWordnet)
         SilTam.indicative.progressive
       ))
     } else {
-      val coordOpt = SilSpanishConjugation.getConjugationCoord(
+      val coordOpt = SnlSpanishConjugation.getConjugationCoord(
         simple.lemma, simple.inflected)
       coordOpt match {
         case Some(coord) => {

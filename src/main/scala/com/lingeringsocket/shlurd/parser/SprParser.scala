@@ -257,14 +257,6 @@ object SprParser extends SprSynthesizer
 
   private var strategy : SprParsingStrategy = SprHeuristicParsingStrategy
 
-  def debug(s : String)
-  {
-    tokenize(s).foreach(sentence => {
-      val parser = prepareOne(SprContext(), sentence, true)
-      println("SHLURD = " + parser.parseOne)
-    })
-  }
-
   def isIgnorableLine(line : String) : Boolean =
   {
     val trimmed = line.trim
@@ -351,7 +343,7 @@ object SprParser extends SprSynthesizer
     terminators.contains(token)
   }
 
-  private def prepareOne(
+  def prepareOne(
     context : SprContext,
     sentence : SprTokenizedSentence,
     dump : Boolean = false) : SprParser =
@@ -359,7 +351,7 @@ object SprParser extends SprSynthesizer
     strategy.prepareParser(context, sentence, dump)
   }
 
-  private[parser] def prepareHeuristic(
+  def prepareHeuristic(
     context : SprContext,
     sentenceString : String,
     dump : Boolean, dumpDesc : String) : SprParser =
@@ -572,9 +564,6 @@ object SprParser extends SprSynthesizer
       }
     }
   }
-
-  def apply(input : String) : SprParser =
-    apply(input, SprContext())
 
   def apply(
     input : String,

@@ -17,6 +17,7 @@ package com.lingeringsocket.phlebotinum
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 
@@ -55,7 +56,7 @@ object PhlebShell
     createTentativeEntities = true,
     createImplicitProperties = false)
 
-  private implicit val tongue = SprContext.defaultTongue
+  private implicit val tongue = SnlUtils.defaultTongue
 
   def ok = Some(OK)
 
@@ -649,7 +650,7 @@ class PhlebShell(
   }
 
   private val sentencePrinter = new SilSentencePrinter(
-    SprContext.defaultTongue, noumenalMind)
+    SnlUtils.defaultTongue, noumenalMind)
 
   private val playerToInterpreter = SmcCommunicationContext(
     Some(playerEntity),

@@ -12,16 +12,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.ilang
+package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.ilang._
 
 import jvendrow._
 
 import scala.collection._
 import scala.collection.concurrent._
 
-case class SilSpanishConjugationCoord(
+case class SnlSpanishConjugationCoord(
   person : SilPerson,
   count : SilCount,
   tense : SilTense,
@@ -31,13 +32,13 @@ case class SilSpanishConjugationCoord(
 {
 }
 
-object SilSpanishConjugationCoord
+object SnlSpanishConjugationCoord
 {
   def apply(
     tam : SilTam, person : SilPerson, count : SilCount
-  ) : SilSpanishConjugationCoord =
+  ) : SnlSpanishConjugationCoord =
   {
-    SilSpanishConjugationCoord(
+    SnlSpanishConjugationCoord(
       person,
       count,
       tam.tense,
@@ -46,10 +47,10 @@ object SilSpanishConjugationCoord
   }
 }
 
-object SilSpanishConjugation
+object SnlSpanishConjugation
 {
   private val cache =
-    new TrieMap[(String, String), SilSpanishConjugationCoord]
+    new TrieMap[(String, String), SnlSpanishConjugationCoord]
 
   private val allPersons =
     Seq(PERSON_FIRST, PERSON_SECOND, PERSON_THIRD)
@@ -66,19 +67,19 @@ object SilSpanishConjugation
     allCounts.flatMap(count => {
       allTenses.flatMap(tense => {
         allAspects.map(aspect => {
-          SilSpanishConjugationCoord(
+          SnlSpanishConjugationCoord(
             person, count, tense, MOOD_INDICATIVE, aspect)
         })
       })
     })
   }) ++ imperativePersons.map(person => {
-    SilSpanishConjugationCoord(
+    SnlSpanishConjugationCoord(
       person, COUNT_SINGULAR, TENSE_PRESENT, MOOD_IMPERATIVE, ASPECT_SIMPLE)
   })
 
   def conjugateVerb(
     infinitive : String,
-    coord : SilSpanishConjugationCoord) : String =
+    coord : SnlSpanishConjugationCoord) : String =
   {
     // FIXME all the tams
     val spanishTense = {
@@ -137,7 +138,7 @@ object SilSpanishConjugation
 
   def getConjugationCoord(
     infinitive : String, conjugated : String
-  ) : Option[SilSpanishConjugationCoord] =
+  ) : Option[SnlSpanishConjugationCoord] =
   {
     cache.get(tupleN((infinitive, conjugated))).orElse {
       validCoords.foreach(coord => {

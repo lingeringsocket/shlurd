@@ -12,10 +12,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import net.sf.extjwnl.data._
 
@@ -27,7 +28,7 @@ import SprPennTreebankLabels._
 import ShlurdEnglishAffixes._
 
 // FIXME some of these, like LEMMA_HIS, are not real lemmas
-object SprEnglishLemmas
+object SnlEnglishLemmas
 {
   val LEMMA_HERE = "here"
   val LEMMA_THERE = "there"
@@ -145,7 +146,7 @@ object SprEnglishLemmas
   val LEMMA_GENITIVE_OF = "_of_"
   val LEMMA_ADVERBIAL_TMP = "_temporal_"
 }
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 
 object SprLexicon
 {
@@ -160,7 +161,7 @@ object SprLexicon
   )
 }
 
-object SprEnglishLexicon
+object SnlEnglishLexicon
 {
   import SprLexicon._
 
@@ -270,10 +271,10 @@ object SprEnglishLexicon
   assert(keywordToLemma.size == lemmaToKeyword.size)
 }
 
-class SprEnglishTongue(wordnet : ShlurdWordnet)
+class SnlEnglishTongue(wordnet : SprWordnet)
     extends SprTongue(wordnet)
 {
-  import SprEnglishLexicon._
+  import SnlEnglishLexicon._
   import SilWordnetScorer._
 
   private implicit val tongue = this
@@ -292,7 +293,7 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
 
   def newSentenceBundle() : SilSentenceBundle =
   {
-    new SilEnglishSentenceBundle(this)
+    new SnlEnglishSentenceBundle(this)
   }
 
   override def newSyntaxAnalyzer(
@@ -302,7 +303,7 @@ class SprEnglishTongue(wordnet : ShlurdWordnet)
     enforceTransitive : Boolean = true
   ) : SprSyntaxAnalyzer =
   {
-    new SprEnglishSyntaxAnalyzer(
+    new SnlEnglishSyntaxAnalyzer(
       context, guessedQuestion, strictness, enforceTransitive)
   }
 

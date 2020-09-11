@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd.platonic
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import net.sf.extjwnl.data._
 
@@ -76,7 +77,7 @@ object SpcWordnetOntology
   }
 }
 
-class SpcWordnetOntology(wordnet : ShlurdWordnet, cosmos : SpcCosmos)
+class SpcWordnetOntology(wordnet : SprWordnet, cosmos : SpcCosmos)
 {
   import SpcWordnetOntology._
 

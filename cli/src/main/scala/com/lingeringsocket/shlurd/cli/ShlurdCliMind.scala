@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
-import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.platonic._
 
 import scala.collection._
@@ -22,7 +22,7 @@ import scala.collection._
 class ShlurdCliMind(
   cosmos : SpcCosmos,
   preferredSynonyms : Map[SpcIdeal, String] = Map.empty)
-    extends SpcWordnetOntologyMind(SprContext.defaultTongue,
+    extends SpcWordnetOntologyMind(SnlUtils.defaultTongue,
       cosmos, preferredSynonyms)
 {
   override def spawn(newCosmos : SpcCosmos) =

@@ -12,20 +12,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd
+package com.lingeringsocket.shlurd.nlang
 
 import org.specs2.mutable._
 
-object ShlurdExternalWordnetSpec
+object SnlExternalWordnetSpec
 {
-  private val wordnet = new ShlurdExternalWordnet("/spanish_net.xml")
+  private val wordnet = new SnlExternalWordnet("/spanish_net.xml")
 }
 
-class ShlurdExternalWordnetSpec extends Specification
+class SnlExternalWordnetSpec extends Specification
 {
-  import ShlurdExternalWordnetSpec._
+  import SnlExternalWordnetSpec._
 
-  "ShlurdExternalWordnet" should
+  "SnlExternalWordnet" should
   {
     "support multiple languages" in
     {

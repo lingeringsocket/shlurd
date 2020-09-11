@@ -12,15 +12,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import SprPennTreebankLabels._
 import SprUtils._
 
-abstract class SprSvoSyntaxAnalyzer(
+abstract class SnlSyntaxAnalyzer(
   context : SprContext,
   guessedQuestion : Boolean,
   strictness : SprStrictness,
@@ -868,7 +869,7 @@ abstract class SprSvoSyntaxAnalyzer(
         case s : SprSyntaxSimpleAdverb => {
           // FIXME full list of qualifying adverbs
           s.child.lemma match {
-            case SprEnglishLemmas.LEMMA_NO | "very" => true
+            case SnlEnglishLemmas.LEMMA_NO | "very" => true
             case _ => false
           }
         }

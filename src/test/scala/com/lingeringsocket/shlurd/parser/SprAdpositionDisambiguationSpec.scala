@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 
@@ -33,7 +34,7 @@ class SprAdpositionDisambiguationSpec extends Specification
     input : String,
     expectedUsage : UsagePreference) =
   {
-    val phrase = SprParser(input).parseOne.sentence
+    val phrase = SprParser(input, SnlUtils.defaultContext).parseOne.sentence
     var adverbial = 0
     var adjectival = 0
     val querier = new SilPhraseQuerier

@@ -12,15 +12,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.ilang
+package com.lingeringsocket.shlurd.nlang
 
-import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
-class SilSpanishSentencePrinterSpec
+class SnlSpanishSentencePrinterSpec
     extends SilSentencePrinterSpecification(SprContext(
-      new SprSpanishTongue(
-        new ShlurdExternalWordnet("/spanish_net.xml"))),
+      new SnlSpanishTongue(
+        new SnlExternalWordnet("/spanish_net.xml"))),
       true)
 {
   "Spanish SilSentencePrinter" should

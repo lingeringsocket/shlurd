@@ -12,19 +12,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
 
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 
-class SprEnglishTongueSpec extends Specification
+class SnlEnglishTongueSpec extends Specification
 {
-  private val tongue = SprContext.defaultTongue
+  private val tongue = SnlUtils.defaultTongue
 
-  "SprEnglishTongue" should
+  "SnlEnglishTongue" should
   {
     "produce pronoun lemmas" in
     {

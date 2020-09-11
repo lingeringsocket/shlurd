@@ -17,13 +17,14 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 import org.specs2.specification._
 
 import scala.collection._
 
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 
 class SmcScopeSpec extends Specification
 {
@@ -41,7 +42,7 @@ class SmcScopeSpec extends Specification
   private val ambiguousMsg =
     "Sorry, when you say 'it', it's ambiguous."
 
-  private val sentencePrinter = SprContext.defaultSentencePrinter
+  private val sentencePrinter = SnlUtils.defaultSentencePrinter
 
   private val ordinalFirst = sentencePrinter.sb.ordinalNumber(1)
 

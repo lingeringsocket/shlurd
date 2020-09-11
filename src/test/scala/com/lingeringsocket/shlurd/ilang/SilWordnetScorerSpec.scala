@@ -15,14 +15,15 @@
 package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 
 class SilWordnetScorerSpec extends Specification
 {
-  private val scorer = SprContext.defaultPhraseScorer
+  private val scorer = SnlUtils.defaultPhraseScorer
 
-  private implicit val tongue = SprContext.defaultTongue
+  private implicit val tongue = SnlUtils.defaultTongue
 
   private val annotator = SilBasicAnnotator()
 

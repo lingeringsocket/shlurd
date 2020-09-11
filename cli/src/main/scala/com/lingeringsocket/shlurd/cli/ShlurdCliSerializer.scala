@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.cli
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.platonic._
 
 import com.twitter.chill.ScalaKryoInstantiator
@@ -141,7 +142,7 @@ class ShlurdCliSerializer
         val pw = new PrintWriter(outputStream)
         val creed = new SpcCreed(SpcAnnotator(), mind.getCosmos)
         val printer = new SilSentencePrinter(
-          SprContext.defaultTongue, mind)
+          SnlUtils.defaultTongue, mind)
         creed.allBeliefs(printer).foreach(belief => {
           val beliefString = printer.print(belief)
           pw.println(SprUtils.capitalize(beliefString))

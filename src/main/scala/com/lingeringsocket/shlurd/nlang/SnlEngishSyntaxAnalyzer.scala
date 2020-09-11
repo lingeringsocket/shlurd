@@ -12,18 +12,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 
-class SprEnglishSyntaxAnalyzer(
+class SnlEnglishSyntaxAnalyzer(
   context : SprContext,
   guessedQuestion : Boolean,
   strictness : SprStrictness,
   enforceTransitive : Boolean
-) extends SprSvoSyntaxAnalyzer(
+) extends SnlSyntaxAnalyzer(
   context, guessedQuestion, strictness, enforceTransitive)
 {
   override protected def isImperative(children : Seq[SprSyntaxTree]) =

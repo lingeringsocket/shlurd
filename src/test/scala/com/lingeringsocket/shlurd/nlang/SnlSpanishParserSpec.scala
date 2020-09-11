@@ -12,21 +12,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.nlang
 
-import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 
-class SprSpanishParserSpec extends Specification
+class SnlSpanishParserSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
-  private val wordnet = new ShlurdExternalWordnet(
+  private val wordnet = new SnlExternalWordnet(
     "/spanish_net.xml")
 
-  private val context = SprContext(new SprSpanishTongue(wordnet))
+  private val context = SprContext(new SnlSpanishTongue(wordnet))
 
   private val NOUN_PEDRO = SilWord("Pedro")
 

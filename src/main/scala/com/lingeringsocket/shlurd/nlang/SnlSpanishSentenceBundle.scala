@@ -12,25 +12,26 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.ilang
+package com.lingeringsocket.shlurd.nlang
 
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
 import com.ibm.icu.text._
 
 import java.util._
 
-import SprSpanishLemmas._
+import SnlSpanishLemmas._
 
-object SilSpanishSentenceBundle
+object SnlSpanishSentenceBundle
 {
   private val numberFormat = new RuleBasedNumberFormat(
     new Locale("es"), RuleBasedNumberFormat.SPELLOUT);
 }
 
-class SilSpanishSentenceBundle(
+class SnlSpanishSentenceBundle(
   tongue : SprTongue
-) extends SilSvoSentenceBundle(tongue, SilSpanishSentenceBundle.numberFormat)
+) extends SnlSentenceBundle(tongue, SnlSpanishSentenceBundle.numberFormat)
 {
   override protected def delemmatizeModalVerb(
     tam : SilTam, verb : SilWord,
@@ -39,9 +40,9 @@ class SilSpanishSentenceBundle(
   {
     verb.decomposed.map(w => {
       if (w.inflected.isEmpty) {
-        SilSpanishConjugation.conjugateVerb(
+        SnlSpanishConjugation.conjugateVerb(
           w.lemma,
-          SilSpanishConjugationCoord(tam, person, count))
+          SnlSpanishConjugationCoord(tam, person, count))
       } else {
         w.inflected
       }

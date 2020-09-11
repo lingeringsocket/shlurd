@@ -12,24 +12,25 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 import org.specs2.specification.core._
 
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 import ShlurdEnglishAffixes._
 
 // FIXME:  add coverage for various modifier types
 // LEMMA_EXIST, including "there is" form
-class SprEnglishVerbSpec extends Specification
+class SnlEnglishVerbSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
-  private implicit val tongue = SprContext.defaultTongue
+  private implicit val tongue = SnlUtils.defaultTongue
 
   case class ParsedVerb(
     subject : SilReference,
@@ -49,7 +50,8 @@ class SprEnglishVerbSpec extends Specification
 
   private def parse(input : String) : ParsedVerb =
   {
-    val sentence = SprParser(input).parseOne.sentence
+    val sentence = SprParser(
+      input, SnlUtils.defaultContext).parseOne.sentence
     sentence match {
       case SilPredicateSentence(
         SilActionPredicate(subject, SilWordLemma(lemma), rhs, Seq()),
@@ -165,7 +167,7 @@ class SprEnglishVerbSpec extends Specification
         SilPredicateSentence(predicate, tam)
       }
     }
-    val printer = SprContext.defaultSentencePrinter
+    val printer = SnlUtils.defaultSentencePrinter
     printer.print(sentence)
   }
 
@@ -413,7 +415,7 @@ class SprEnglishVerbSpec extends Specification
     }
   }
 
-  "SprEnglishVerbParser" should
+  "SnlEnglishVerbParser" should
   {
     "parse main matrix" >>
     {
@@ -512,7 +514,7 @@ class SprEnglishVerbSpec extends Specification
         subject, rhs, lemma, tam, question)
       if (false) {
         println(s"INPUT:  $input")
-        SprParser.debug(input)
+        SnlUtils.debug(input)
       }
       parse(input) must be equalTo ParsedVerb(
         subject, rhs, lemma, tam, question)

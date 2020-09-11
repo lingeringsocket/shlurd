@@ -17,13 +17,14 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 import org.specs2.specification._
 
 import scala.collection._
 
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 
 class SmcResponderSpec extends Specification
 {

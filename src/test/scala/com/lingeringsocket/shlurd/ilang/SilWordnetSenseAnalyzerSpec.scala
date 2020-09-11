@@ -14,9 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
-import com.lingeringsocket.shlurd.parser._
-
-import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 
@@ -24,10 +22,10 @@ class SilWordnetSenseAnalyzerSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
-  private implicit val tongue = SprContext.defaultTongue
+  private implicit val tongue = SnlUtils.defaultTongue
 
   private val analyzer =
-    new SilWordnetSenseAnalyzer(tongue, ShlurdPrincetonWordnet, annotator)
+    new SilWordnetSenseAnalyzer(tongue, SnlPrincetonWordnet, annotator)
 
   private val pronounI =
     annotator.basicPronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)

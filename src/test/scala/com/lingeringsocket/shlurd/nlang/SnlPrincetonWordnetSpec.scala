@@ -12,22 +12,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd
+package com.lingeringsocket.shlurd.nlang
 
 import net.sf.extjwnl.data._
 
 import org.specs2.mutable._
 
-object ShlurdPrincetonWordnetSpec
+object SnlPrincetonWordnetSpec
 {
-  private val wordnet = ShlurdPrincetonWordnet
+  private val wordnet = SnlPrincetonWordnet
 }
 
-class ShlurdPrincetonWordnetSpec extends Specification
+class SnlPrincetonWordnetSpec extends Specification
 {
-  import ShlurdPrincetonWordnetSpec._
+  import SnlPrincetonWordnetSpec._
 
-  "ShlurdPrincetonWordnet" should
+  "SnlPrincetonWordnet" should
   {
     "detect potential adverbs" in
     {

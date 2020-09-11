@@ -26,16 +26,6 @@ import scala.collection.JavaConverters._
 
 object SprContext
 {
-  val defaultWordnet = ShlurdPrincetonWordnet
-
-  val defaultTongue = new SprEnglishTongue(defaultWordnet)
-
-  val defaultPhraseScorer = new SilWordnetScorer(defaultTongue)
-
-  val defaultSentencePrinter = defaultTongue.newSentencePrinter(defaultTongue)
-
-  def defaultWordLabeler() = new SprWordnetLabeler(defaultTongue)
-
   def apply(tongue : SprTongue) = {
     new SprContext(
       new SprWordnetLabeler(tongue),
@@ -44,8 +34,8 @@ object SprContext
 }
 
 case class SprContext(
-  wordLabeler : SprWordLabeler = SprContext.defaultWordLabeler,
-  scorer : SilPhraseScorer = SprContext.defaultPhraseScorer,
+  wordLabeler : SprWordLabeler,
+  scorer : SilPhraseScorer,
   annotator : SilAnnotator = SilBasicAnnotator(),
   genderAnalyzer : SilGenderAnalyzer = SilGenderPreserver
 )
@@ -65,7 +55,7 @@ case class SprWordRule(
 
 trait SprWordLabeler
 {
-  def getTongue : SprTongue = SprContext.defaultTongue
+  def getTongue : SprTongue
 
   def getWordnet = getTongue.getWordnet
 

@@ -15,8 +15,8 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
-import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.mind._
 
 import spire.math._
@@ -26,7 +26,7 @@ import scala.io._
 import scala.util._
 import scala.reflect._
 
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 
 class SpcCosmosSpec extends SpcProcessingSpecification
 {

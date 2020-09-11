@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.nlang._
 
 import scala.io._
 import scala.util._
@@ -116,7 +117,7 @@ class SprTester
   protected def processOne(
     input : String, answer : String) : String =
   {
-    val sentence = SprParser(input).parseOne.sentence
+    val sentence = SprParser(input, SnlUtils.defaultContext).parseOne.sentence
     if (sentence.hasUnknown) {
       s"INCOMPLETE PARSE:  $sentence"
     } else {

@@ -14,18 +14,18 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
-import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 
 import scala.util._
 
-class SprWordnetGlossPrepSpec extends Specification
+class SnlWordnetGlossPrepSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
-  private implicit val tongue = SprContext.defaultTongue
+  private implicit val tongue = SnlUtils.defaultTongue
 
   private def parseAll(
     iter : Iterator[String], parser : String => Option[SilPhrase]) =
@@ -65,11 +65,11 @@ class SprWordnetGlossPrepSpec extends Specification
     total
   }
 
-  "SprWordnetGlossPrep" should
+  "SnlWordnetGlossPrep" should
   {
     "parse one noun gloss" in
     {
-      SprWordnetGlossPrep.parseNounGlosses("rivulet") must be equalTo Seq(
+      SnlWordnetGlossPrep.parseNounGlosses("rivulet") must be equalTo Seq(
         Some(
           annotator.determinedRef(
             annotator.stateSpecifiedRef(
@@ -84,10 +84,10 @@ class SprWordnetGlossPrepSpec extends Specification
 
     "parse one noun example" in
     {
-      ShlurdPrincetonWordnet.getNounSenses("stair").flatMap(
-        ShlurdPrincetonWordnet.getGlossExamples
+      SnlPrincetonWordnet.getNounSenses("stair").flatMap(
+        SnlPrincetonWordnet.getGlossExamples
       ).map(
-        SprWordnetGlossPrep.parseNounExample
+        SnlWordnetGlossPrep.parseNounExample
       ) must be equalTo Seq(
         SilPredicateSentence(
           SilActionPredicate(
@@ -115,11 +115,11 @@ class SprWordnetGlossPrepSpec extends Specification
     "parse all noun examples" in
     {
       skipped("not ready for prime time")
-      val examples = ShlurdPrincetonWordnet.allNounSenses.flatMap(
-        ShlurdPrincetonWordnet.getGlossExamples)
+      val examples = SnlPrincetonWordnet.allNounSenses.flatMap(
+        SnlPrincetonWordnet.getGlossExamples)
       def parser(example : String) : Option[SilPhrase] =
       {
-        val phrase = SprWordnetGlossPrep.parseNounExample(example)
+        val phrase = SnlWordnetGlossPrep.parseNounExample(example)
         if (phrase.hasUnknown) {
           None
         } else {
@@ -133,12 +133,12 @@ class SprWordnetGlossPrepSpec extends Specification
     "parse all noun glosses" in
     {
       skipped("not ready for prime time")
-      val glosses = ShlurdPrincetonWordnet.allNounSenses.flatMap(sense =>
-        SprWordnetGlossPrep.getNounSenseDefinitions(
+      val glosses = SnlPrincetonWordnet.allNounSenses.flatMap(sense =>
+        SnlWordnetGlossPrep.getNounSenseDefinitions(
           sense))
       def parser(gloss : String) : Option[SilPhrase] =
       {
-        SprWordnetGlossPrep.parseNounDefinition(gloss)
+        SnlWordnetGlossPrep.parseNounDefinition(gloss)
       }
       val total = parseAll(glosses, parser)
       total must be equalTo 82192

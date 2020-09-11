@@ -12,15 +12,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.ilang
+package com.lingeringsocket.shlurd.nlang
 
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
 // currently, we have a lot of trouble with irregularities in
 // re-inflecting words, so for now just preserve the original
 // inflection
-class SilEnglishSentencePrinterSpec
-    extends SilSentencePrinterSpecification(SprContext(), false)
+class SnlEnglishSentencePrinterSpec
+    extends SilSentencePrinterSpecification(SnlUtils.defaultContext, false)
 {
   "English SilSentencePrinter" should
   {

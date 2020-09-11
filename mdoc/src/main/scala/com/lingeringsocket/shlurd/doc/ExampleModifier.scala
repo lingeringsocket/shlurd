@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.doc
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 import com.lingeringsocket.shlurd.cli._
@@ -241,7 +242,7 @@ class ConversationProcessor extends StringModifier
     }
     val mind = {
       if (info.contains("wordnet")) {
-        new SpcWordnetOntologyMind(SprContext.defaultTongue, cosmos)
+        new SpcWordnetOntologyMind(SnlUtils.defaultTongue, cosmos)
       } else {
         new SpcMind(cosmos)
       }

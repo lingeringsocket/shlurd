@@ -16,15 +16,13 @@ package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd.parser._
 
-import com.lingeringsocket.shlurd._
-
 import net.sf.extjwnl.data._
 
 import scala.collection._
 
 class SilWordnetSenseAnalyzer(
   tongue : SprTongue,
-  wordnet : ShlurdWordnet,
+  wordnet : SprWordnet,
   annotator : SilAnnotator)
     extends SilPhraseRewriter(annotator)
 {

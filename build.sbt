@@ -77,6 +77,7 @@ if (sys.env.get("xonly").getOrElse("true") != "false") {
 initialCommands := """
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 import com.lingeringsocket.shlurd.jgrapht._

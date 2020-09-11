@@ -12,13 +12,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd
+package com.lingeringsocket.shlurd.nlang
+
+import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.parser._
 
 import net.sf.extjwnl.dictionary._
 
-class ShlurdExternalWordnet(
+class SnlExternalWordnet(
   propertiesPath : String
-) extends ShlurdWordnet
+) extends SprWordnet
 {
   private val dictionary = Dictionary.getInstance(
     ResourceUtils.getResourceStream(propertiesPath))

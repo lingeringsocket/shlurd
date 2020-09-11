@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 import org.specs2.specification._
@@ -28,14 +29,14 @@ class SpcWordnetOntologySpec extends Specification
     protected val cosmos = new SpcCosmos
 
     protected val ontology = new SpcWordnetOntology(
-      ShlurdPrincetonWordnet, cosmos)
+      SnlPrincetonWordnet, cosmos)
 
     protected val graph = cosmos.getGraph
   }
 
   private def expectUniqueSense(lemma : String) : Synset =
   {
-    val senses = ShlurdPrincetonWordnet.getNounSenses(lemma)
+    val senses = SnlPrincetonWordnet.getNounSenses(lemma)
     senses.size must be equalTo 1
     senses.head
   }
@@ -70,7 +71,7 @@ class SpcWordnetOntologySpec extends Specification
 
     "load meronym associations" in new CosmosContext
     {
-      val sense = ShlurdPrincetonWordnet.getNounSenses("fork").head
+      val sense = SnlPrincetonWordnet.getNounSenses("fork").head
       val meronyms = ontology.loadMeronyms(sense)
       val forkForm = expectForm(ontology.getSynsetForm(sense))
       val prongForm = expectForm(ontology.getSynsetForm(
@@ -92,9 +93,9 @@ class SpcWordnetOntologySpec extends Specification
     "load bidirectional meronym associations" in new CosmosContext
     {
       val countrySense =
-        ShlurdPrincetonWordnet.getNounSenses("country").tail.head
+        SnlPrincetonWordnet.getNounSenses("country").tail.head
       val provinceSense =
-        ShlurdPrincetonWordnet.getNounSenses("province").head
+        SnlPrincetonWordnet.getNounSenses("province").head
       val meronyms = ontology.loadMeronyms(countrySense)
       val countryForm = expectForm(ontology.getSynsetForm(countrySense))
       val provinceForm = expectForm(ontology.getSynsetForm(provinceSense))

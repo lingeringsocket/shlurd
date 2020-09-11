@@ -12,13 +12,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.ilang
+package com.lingeringsocket.shlurd.nlang
 
 import org.specs2.mutable._
 
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
-class SilSentenceTranslatorSpec extends Specification
+class SnlSentenceTranslatorSpec extends Specification
 {
   private val printer =
     new SilSentencePrinter(
@@ -26,7 +27,7 @@ class SilSentenceTranslatorSpec extends Specification
 
   private def translate(s : String) =
   {
-    val result = SprParser(s).parseOne
+    val result = SprParser(s, SnlUtils.defaultContext).parseOne
     printer.print(neutralizePronouns(result.sentence))
   }
 
@@ -76,10 +77,10 @@ class SilSentenceTranslatorSpec extends Specification
   }
 }
 
-object LimitedKoreanTongue extends SprEnglishTongue(SprContext.defaultWordnet)
+object LimitedKoreanTongue extends SnlEnglishTongue(SnlUtils.defaultWordnet)
 {
   override def newSentenceBundle() =
-    new SilKoreanSentenceBundle() {
+    new SnlKoreanSentenceBundle() {
       override def inflectNoun(
         lemma : String, count : SilCount,
         inflection : SilInflection, conjoining : SilConjoining) =

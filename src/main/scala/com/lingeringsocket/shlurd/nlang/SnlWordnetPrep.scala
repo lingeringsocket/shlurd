@@ -12,10 +12,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 import scala.util._
@@ -25,20 +26,20 @@ import java.io._
 // to compare CoreNLP against Wordnet:
 // sbt corenlp/console
 //   new com.lingeringsocket.shlurd.corenlp.CorenlpTestSetup
-//   SprWordnetPrep.runAll()
-object SprWordnetPrep
+//   SnlWordnetPrep.runAll()
+object SnlWordnetPrep
 {
   SprParser.enableCache(Some(new File("run/test-parser-cache.dat")))
   private val parserCache = SprParser.getCache
 
-  private val context = SprContext()
+  private val context = SnlUtils.defaultContext
 
   private def parseOne(
     sentence : String,
     dumpAnalysis : Boolean)
       : Option[(SilSentence, SilSentence)] =
   {
-    val parser = SprParser(sentence)
+    val parser = SprParser(sentence, context)
     val sil = parser.parseOne.sentence
     if (!sil.hasUnknown && !sil.isInstanceOf[SilAmbiguousSentence]) {
       println("SENTENCE = " + sentence)
@@ -78,7 +79,7 @@ object SprWordnetPrep
     }
     val sentences = allSentences
     sentences.foreach(sentence => {
-      val parser = SprParser(sentence)
+      val parser = SprParser(sentence, context)
       val sil = parser.parseOne.sentence
       if (!sil.hasUnknown) {
         sil.maybeSyntaxTree.foreach(syntaxTree => {

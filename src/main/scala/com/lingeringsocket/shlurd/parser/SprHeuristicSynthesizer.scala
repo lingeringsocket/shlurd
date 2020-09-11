@@ -568,7 +568,7 @@ class SprHeuristicSynthesizer(
           tryRewrite(
             SilExpectedSentence(
               SptS(npSomething,
-                SptVP(SptVB(makeLeaf(SprEnglishLemmas.LEMMA_HAVE))))))
+                SptVP(SptVB(makeLeaf(SilMagicWord(MW_EXIST).lemma))))))
         }
         case vp : SptVP => {
           tryRewrite(

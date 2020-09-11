@@ -16,13 +16,14 @@ package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 
 import spire.math._
 
 import scala.collection._
 import scala.util._
 
-import SprEnglishLemmas._
+import SnlEnglishLemmas._
 
 trait ZooEntity extends SmcEntity with SmcNamedObject
 {

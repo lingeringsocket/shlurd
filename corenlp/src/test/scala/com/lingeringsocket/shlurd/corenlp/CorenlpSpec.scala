@@ -15,16 +15,16 @@
 package com.lingeringsocket.shlurd.corenlp
 
 import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.mind._
 
 // we selectively import suites known to work with CoreNLP
 
-class CorenlpSentencePrinterSpec extends SilEnglishSentencePrinterSpec
+class CorenlpSentencePrinterSpec extends SnlEnglishSentencePrinterSpec
 {
 }
 
-class CorenlpSentenceTranslatorSpec extends SilSentenceTranslatorSpec
+class CorenlpSentenceTranslatorSpec extends SnlSentenceTranslatorSpec
 {
 }
 
@@ -32,7 +32,7 @@ class CorenlpParserSpec extends SprParserSpec
 {
 }
 
-class CorenlpEnglishVerbSpec extends SprEnglishVerbSpec
+class CorenlpEnglishVerbSpec extends SnlEnglishVerbSpec
 {
 }
 

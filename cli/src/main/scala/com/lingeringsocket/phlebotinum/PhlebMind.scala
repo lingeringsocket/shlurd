@@ -15,7 +15,7 @@
 package com.lingeringsocket.phlebotinum
 
 import com.lingeringsocket.shlurd.ilang._
-import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._
 import com.lingeringsocket.shlurd.cli._
@@ -131,7 +131,7 @@ class PhlebMind(
       mind, communicationContext,
       new SmcInputRewriter(mind, annotator),
       new SilSentencePrinter(
-        SprContext.defaultTongue, this))
+        SnlUtils.defaultTongue, this))
     def replacements(p : SilPredicate) = {
       val resultCollector = SpcResultCollector(annotator, refMap)
       responder.resolveReferences(p, resultCollector)
@@ -201,7 +201,7 @@ class PhlebMind(
         }
         case SilGenitiveReference(
           _,
-          SilNounLemmaReference("container" | SprEnglishLemmas.LEMMA_WHERE)
+          SilNounLemmaReference("container" | SnlEnglishLemmas.LEMMA_WHERE)
         ) => true
         case _ => false
       })

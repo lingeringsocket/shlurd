@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.cli
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.platonic._
 
 import org.specs2.mutable._
@@ -171,7 +172,7 @@ class ShlurdCliSpec extends Specification
       // we no longer automatically load associations, so do it here
       // so we can keep the corresponding tests working
       new SpcWordnetOntology(
-        ShlurdPrincetonWordnet, mind.getCosmos).loadAllAssociations
+        SnlPrincetonWordnet, mind.getCosmos).loadAllAssociations
 
       val shell = new ShlurdCliShell(mind, terminal)
       shell.run

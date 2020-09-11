@@ -146,7 +146,7 @@ object SilMagicWord
   }
 }
 
-abstract class SprTongue(wordnet : ShlurdWordnet)
+abstract class SprTongue(wordnet : SprWordnet)
     extends SprSynthesizer with SilGenderAnalyzer
 {
   lazy val relLemmaMap = Map(SilRelationshipPredef.enumeration.map(

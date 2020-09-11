@@ -14,7 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.cli
 
-import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.platonic._
 
 import java.io._
@@ -37,7 +37,7 @@ object ShlurdPrincetonPrimordial
             newCosmos.getPool.enableBulkLoad
             SpcPrimordial.initCosmos(newCosmos)
             val ontology = new SpcWordnetOntology(
-              ShlurdPrincetonWordnet, newCosmos)
+              SnlPrincetonWordnet, newCosmos)
             ontology.loadAll
             serializer.saveCosmos(newCosmos, file)
             newCosmos

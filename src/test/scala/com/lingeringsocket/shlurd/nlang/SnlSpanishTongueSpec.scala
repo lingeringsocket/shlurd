@@ -12,22 +12,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
+package com.lingeringsocket.shlurd.nlang
 
-import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import org.specs2.mutable._
 
-import SprSpanishLemmas._
+import SnlSpanishLemmas._
 
-class SprSpanishTongueSpec extends Specification
+class SnlSpanishTongueSpec extends Specification
 {
-  private val tongue = new SprSpanishTongue(
-    new ShlurdExternalWordnet("/spanish_net.xml")
+  private val tongue = new SnlSpanishTongue(
+    new SnlExternalWordnet("/spanish_net.xml")
   )
 
-  "SprSpanishTongue" should
+  "SnlSpanishTongue" should
   {
     "produce pronoun lemmas" in
     {

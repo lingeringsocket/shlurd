@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
@@ -39,7 +40,7 @@ class SmcMind[
   private var timeline
       : Option[TimelineType] = None
 
-  def getTongue : SprTongue = SprContext.defaultTongue
+  def getTongue : SprTongue = SnlUtils.defaultTongue
 
   def getCosmos = cosmos
 
@@ -48,6 +49,8 @@ class SmcMind[
     SprParser(
       input,
       SprContext(
+        SnlUtils.defaultWordLabeler,
+        SnlUtils.defaultPhraseScorer,
         annotator = SmcAnnotator[EntityType](),
         genderAnalyzer = this)
     )

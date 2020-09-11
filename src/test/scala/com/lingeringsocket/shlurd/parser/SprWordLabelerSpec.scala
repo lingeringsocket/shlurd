@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd._
+import com.lingeringsocket.shlurd.nlang._
 
 import SprPennTreebankLabels._
 
@@ -27,7 +28,7 @@ class SprWordLabelerSpec extends Specification
 {
   trait LabelingContext extends Scope
   {
-    protected val labeler = SprContext.defaultWordLabeler
+    protected val labeler = SnlUtils.defaultWordLabeler
 
     protected def labelWord(token : String) : Set[String] =
     {

@@ -151,7 +151,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         )
       ) => {
         // FIXME this whole thing is English-specific
-        val the = SilWord(SprEnglishLemmas.LEMMA_THE)
+        val the = SilWord("the")
         SilAdpositionalState(
           SilAdposition(
             adp1.word.decomposed ++ Seq(the) ++ word.decomposed ++
