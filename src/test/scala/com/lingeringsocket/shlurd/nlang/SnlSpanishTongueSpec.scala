@@ -28,6 +28,31 @@ class SnlSpanishTongueSpec extends Specification
 
   "SnlSpanishTongue" should
   {
+    "pluralize words" in
+    {
+      tongue.pluralizeNoun("casa") must be equalTo "casas"
+      tongue.pluralizeNoun("color") must be equalTo "colores"
+      tongue.pluralizeNoun("avión") must be equalTo "aviones"
+      tongue.pluralizeNoun("actriz") must be equalTo "actrices"
+      tongue.pluralizeNoun("frac") must be equalTo "fraques"
+      tongue.pluralizeNoun("zigzag") must be equalTo "zigzagues"
+      tongue.pluralizeNoun("lunes") must be equalTo "lunes"
+      tongue.pluralizeNoun("tórax") must be equalTo "tórax"
+      tongue.pluralizeNoun("inglés") must be equalTo "ingleses"
+      tongue.pluralizeNoun("sofá") must be equalTo "sofás"
+      tongue.pluralizeNoun("esquí") must be equalTo "esquíes"
+
+      // in certain cases, stress position changes
+      tongue.pluralizeNoun("carácter") must be equalTo "caracteres"
+      tongue.pluralizeNoun("espécimen") must be equalTo "especímenes"
+      tongue.pluralizeNoun("régimen") must be equalTo "regímenes"
+
+      // otherwise, preserve stress position
+      // FIXME:  not working yet
+
+      // tongue.pluralizeNoun("imagen") must be equalTo "imágenes"
+    }
+
     "produce pronoun lemmas" in
     {
       val pronounLemmas = tongue.getPronounLemmas

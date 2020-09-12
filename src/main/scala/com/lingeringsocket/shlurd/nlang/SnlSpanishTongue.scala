@@ -159,6 +159,10 @@ object SnlSpanishLexicon
     "ella"
   ) ++ stopListPunct
 
+  val unaccentedVowels = "aeiou"
+
+  val accentedVowels = "áéíóú"
+
   val nominativeToCoord = Map(
     LEMMA_YO -> SprPronounCoord(
       PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
@@ -1166,8 +1170,42 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def pluralizeNoun(lemma : String) : String =
   {
-    // FIXME the real thing
-    lemma + "s"
+    val last = lemma.last
+    if (unaccentedVowels.contains(last)) {
+      lemma + "s"
+    } else if (accentedVowels.contains(last)) {
+      val i = accentedVowels.indexOf(last)
+      if ((i == 2) || (i == 4)) {
+        // í or ú
+        lemma + "es"
+      } else {
+        // á, é, or ó
+        lemma + "s"
+      }
+    } else if (lemma.endsWith("ión")) {
+      lemma.stripSuffix("ión") + "iones"
+    } else if (lemma.endsWith("z")) {
+      lemma.stripSuffix("z") + "ces"
+    } else if (lemma.endsWith("g")) {
+      lemma + "ues"
+    } else if (lemma.endsWith("c")) {
+      lemma.stripSuffix("c") + "ques"
+    } else if (lemma.endsWith("s") || lemma.endsWith("x")) {
+      val vowel = lemma.takeRight(2).head
+      val i = accentedVowels.indexOf(vowel)
+      if (i == -1) {
+        lemma
+      } else {
+        lemma.dropRight(2) + unaccentedVowels(i) + "ses"
+      }
+    } else {
+      lemma match {
+        case "carácter" => "caracteres"
+        case "espécimen" => "especímenes"
+        case "régimen" => "regímenes"
+        case _ => lemma + "es"
+      }
+    }
   }
 
   override protected def getMatcherResource() =
