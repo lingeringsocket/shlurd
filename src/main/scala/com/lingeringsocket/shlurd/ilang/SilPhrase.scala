@@ -82,13 +82,41 @@ sealed trait SilPredicate extends SilPhrase
 
   def getVerb : SilWord
 
+  private var inflectedPerson : SilPerson = PERSON_THIRD
+
+  private var inflectedGender : SilGender = GENDER_NEUTER
+
   private var inflectedCount : SilCount = COUNT_SINGULAR
 
+  def getInflectedPerson = inflectedPerson
+
+  def getInflectedGender = inflectedGender
+
   def getInflectedCount = inflectedCount
+
+  def getInflectedAttributes =
+    SilVerbInflection(inflectedPerson, inflectedGender, inflectedCount)
+
+  def setInflectedPerson(person : SilPerson)
+  {
+    inflectedPerson = person
+  }
+
+  def setInflectedGender(gender : SilGender)
+  {
+    inflectedGender = gender
+  }
 
   def setInflectedCount(count : SilCount)
   {
     inflectedCount = count
+  }
+
+  def setInflectedAttributes(attributes : SilVerbInflection)
+  {
+    inflectedPerson = attributes.person
+    inflectedGender = attributes.gender
+    inflectedCount = attributes.count
   }
 
   def getModifiers : Seq[SilVerbModifier] = Seq.empty

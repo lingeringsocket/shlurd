@@ -126,7 +126,8 @@ abstract class SnlSyntaxAnalyzer(
       expectPredicateSentence(
         tree, np, vp,
         expectVerbModifiers(verbModifiers :+ np).dropRight(1),
-        force, tam, COUNT_SINGULAR, false)
+        force, tam,
+        SilVerbInflection(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR), false)
     } else {
       SilUnrecognizedSentence(tree)
     }
@@ -215,7 +216,7 @@ abstract class SnlSyntaxAnalyzer(
     question : Option[SilQuestion] = None)
       : Option[(SilPredicate, SilTam)] =
   {
-    val (tam, auxless, auxCount) = extractAux(children)
+    val (tam, auxless, auxInflection) = extractAux(children)
     val (negativeSuper, seq) = extractNegative(auxless)
     val iVerb = seq.indexWhere(_.isVerbNode)
     if (iVerb < 0) {
@@ -279,14 +280,14 @@ abstract class SnlSyntaxAnalyzer(
         expectPredicate(tree, np, rhs, specifiedState,
           relationshipVerb(verbHead), verbModifiers ++ extraModifiers, question)
       val polarity = !combineNegatives(negative, negativeSub)
-      rememberPredicateCount(predicate, verbHead, tam, auxCount)
+      rememberPredicateInflection(predicate, verbHead, tam, auxInflection)
       Some((predicate,
         tamMoody.withPolarity(polarity)))
     } else {
       val (negativeSub, predicate) = analyzeActionPredicate(
         tree, np, vp, specifiedDirectObject, extraModifiers)
       val polarity = !combineNegatives(negative, negativeSub)
-      rememberPredicateCount(predicate, verbHead, tam, auxCount)
+      rememberPredicateInflection(predicate, verbHead, tam, auxInflection)
       Some((predicate,
         tamMoody.withPolarity(polarity)))
     }
@@ -436,7 +437,7 @@ abstract class SnlSyntaxAnalyzer(
         relationshipVerb(verbHead),
         modifiers,
         Some(question))
-      rememberPredicateCount(predicate, verbHead)
+      rememberPredicateInflection(predicate, verbHead)
       val tam = SilTam.interrogative.
         withPolarity(!combineNegatives(negativeSuper, negativeSub))
       val tamTensed = extractTense(verbHead, tam)
@@ -605,7 +606,7 @@ abstract class SnlSyntaxAnalyzer(
     tree : SprSyntaxTree,
     np : SprSyntaxTree, vp : SprSyntaxTree,
     verbModifiers : Seq[SipExpectedVerbModifier],
-    force : SilForce, tam : SilTam, auxCount : SilCount,
+    force : SilForce, tam : SilTam, auxInflection : SilVerbInflection,
     negativeSuper : Boolean) : SilSentence =
   {
     val (negativeSub, vpChildren) = extractNegative(vp.children)
@@ -634,15 +635,24 @@ abstract class SnlSyntaxAnalyzer(
             SptVP(vSub)
           }
         }
-        val extraModifiers = expectVerbModifiers(vpChildren.tail).
+        val candidateModifiers = expectVerbModifiers(vpChildren.tail).
           filterNot(_.syntaxTree == vSub)
-        expectPredicateSentence(
-          tree, np, vpSub, verbModifiers ++ extraModifiers,
-          force,
-          tamForAux(requireLeaf(verbHead.children)).withMood(tam.mood).
-            withTense(tamTensed.tense),
-          getVerbCount(verbHead),
-          negative)
+        val (adpositions, extraModifiers) =
+          candidateModifiers.partition(_.syntaxTree.isAdposition)
+        val verbHeadLeaf = requireLeaf(verbHead.children)
+        if (validateAuxAdposition(
+          verbHeadLeaf.lemma, adpositions.map(_.syntaxTree)))
+        {
+          expectPredicateSentence(
+            tree, np, vpSub, verbModifiers ++ extraModifiers,
+            force,
+            tamForAux(verbHeadLeaf).withMood(tam.mood).
+              withTense(tamTensed.tense),
+            getVerbInflection(verbHead),
+            negative)
+        } else {
+          SilUnrecognizedSentence(tree)
+        }
       } else {
         SilUnrecognizedSentence(tree)
       }
@@ -663,7 +673,7 @@ abstract class SnlSyntaxAnalyzer(
         relationshipVerb(verbHead), verbModifiers ++ extraModifiers,
         Some(QUESTION_HOW_MANY))
       val polarity = !combineNegatives(negative, negativeComplement)
-      rememberPredicateCount(predicate, verbHead, tam, auxCount)
+      rememberPredicateInflection(predicate, verbHead, tam, auxInflection)
       SilPredicateSentence(
         predicate, tamTensed.withPolarity(polarity), SilFormality(force))
     } else {
@@ -671,12 +681,25 @@ abstract class SnlSyntaxAnalyzer(
         tree, np, vp, None, verbModifiers)
       assert(negativeVerb == negativeSub)
       val polarity = !negative
-      rememberPredicateCount(
-        predicate, verbHead, tam, auxCount)
+      rememberPredicateInflection(
+        predicate, verbHead, tam, auxInflection)
       SilPredicateSentence(
         predicate,
         tamTensed.withPolarity(polarity),
         SilFormality(force))
+    }
+  }
+
+  private def validateAuxAdposition(
+    auxLemma : String,
+    adpositions : Seq[SprSyntaxTree]) : Boolean =
+  {
+    if (adpositions.size > 1) {
+      false
+    } else {
+      val adpositionLemma = adpositions.
+        headOption.map(_.firstChild.lemma).getOrElse("")
+      tongue.isValidAuxAdposition(auxLemma, adpositionLemma)
     }
   }
 
@@ -1241,7 +1264,7 @@ abstract class SnlSyntaxAnalyzer(
 
   private def extractAux(
     seq : Seq[SprSyntaxTree])
-      : (SilTam, Seq[SprSyntaxTree], SilCount) =
+      : (SilTam, Seq[SprSyntaxTree], SilVerbInflection) =
   {
     // FIXME for "does", we need to be careful to make sure it's
     // acting as an auxiliary, e.g. "Luke does know" but not
@@ -1252,7 +1275,8 @@ abstract class SnlSyntaxAnalyzer(
       if (iModal < 0) {
         val (progressive, iVerb) = detectProgressive(seq)
         if (!progressive) {
-          return tupleN((SilTam.indicative, seq, COUNT_SINGULAR))
+          return tupleN((SilTam.indicative, seq,
+            SilVerbInflection(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)))
         } else {
           val iBeing = seq.indexWhere(_.isVerbNode)
           val being = seq(iBeing).unwrapPhrase
@@ -1277,7 +1301,7 @@ abstract class SnlSyntaxAnalyzer(
     val leaf = requireLeaf(aux.children)
     val tam = tamForAux(leaf)
     val tamTensed = extractTense(aux, tam)
-    tupleN((tamTensed, remainder, getVerbCount(aux)))
+    tupleN((tamTensed, remainder, getVerbInflection(aux)))
   }
 
   private def splitCoordinatingConjunction(

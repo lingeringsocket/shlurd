@@ -419,3 +419,9 @@ object SilPronounMap
 {
   def apply() : SilPronounMap = Map.empty
 }
+
+case class SilVerbInflection(
+  person : SilPerson,
+  gender : SilGender,
+  count : SilCount
+)

@@ -343,19 +343,24 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         }
       ) => {
         predicate.withNewSubject(
-          normalizeElidedPronoun(predicate.getSubject, predicate.getVerb))
+          normalizeElidedPronoun(predicate.getSubject, predicate))
       }
     }
   )
 
-  private def normalizeElidedPronoun(ref : SilReference, verb : SilWord) =
+  private def normalizeElidedPronoun(
+    ref : SilReference, predicate : SilPredicate) =
   {
     ref match {
       case pr : SilPronounReference => {
-        val (vPerson, vCount, vGender, tam) =
-          tongue.analyzeVerbConjugation(verb)
+        val person = predicate.getInflectedPerson
+        val gender = person match {
+          case PERSON_THIRD => GENDER_NEUTER
+          case _ => GENDER_SOMEONE
+        }
+        val count = predicate.getInflectedCount
         annotator.pronounRef(
-          vPerson, vGender, vCount, context.genderAnalyzer, pr.proximity)
+          person, gender, count, context.genderAnalyzer, pr.proximity)
       }
       case _ => ref
     }

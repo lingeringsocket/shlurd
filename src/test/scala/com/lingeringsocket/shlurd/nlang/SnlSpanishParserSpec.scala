@@ -44,6 +44,8 @@ class SnlSpanishParserSpec extends Specification
 
   private val VERB_BEBERA = SilWord("beberá", "beber")
 
+  private val VERB_VIVIR = SilWord("vivir", "vivir")
+
   private val VERB_ES = SilWord("es", "ser")
 
   private val VERB_ESTOY = SilWord("estoy", "estar")
@@ -170,6 +172,21 @@ class SnlSpanishParserSpec extends Specification
         )
     }
 
+    "parse a modal" in
+    {
+      val input = "debo de vivir"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
+              PROXIMITY_ELIDED),
+            VERB_VIVIR
+          ),
+          SilTam.indicative.withModality(MODAL_SHOULD)
+        )
+    }
+
     "parse another pronoun" in
     {
       val input = "ella camina"
@@ -181,6 +198,16 @@ class SnlSpanishParserSpec extends Specification
             VERB_CAMINA
           )
         )
+    }
+
+    "reject ungrammatical sentences" in
+    {
+      // this one is fine
+      parse("debo de vivir").hasUnknown must beFalse
+
+      // but these are not
+      parse("debo vivir").hasUnknown must beTrue
+      parse("debo que vivir").hasUnknown must beTrue
     }
   }
 }

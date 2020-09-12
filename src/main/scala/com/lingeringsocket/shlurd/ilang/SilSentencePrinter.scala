@@ -260,7 +260,7 @@ class SilSentencePrinter(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
             subject, state, tam, verb,
-            predicate.getInflectedCount, INFLECT_NONE),
+            predicate.getInflectedAttributes, INFLECT_NONE),
           rhs,
           existentialPronoun,
           modifiers.map(printVerbModifier)
@@ -298,7 +298,7 @@ class SilSentencePrinter(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
             subject, SilNullState(), tam, verb,
-            predicate.getInflectedCount, INFLECT_NONE),
+            predicate.getInflectedAttributes, INFLECT_NONE),
           rhs,
           verb,
           None,
@@ -312,7 +312,7 @@ class SilSentencePrinter(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
             subject, verb, tamOriginal,
-            predicate.getInflectedCount, INFLECT_NONE),
+            predicate.getInflectedAttributes, INFLECT_NONE),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier),
@@ -425,7 +425,7 @@ class SilSentencePrinter(
           subjectString,
           getVerbSeq(
             subject, state, tam, verb,
-            predicate.getInflectedCount, answerInflection),
+            predicate.getInflectedAttributes, answerInflection),
           stateString,
           existentialPronoun,
           question,
@@ -466,7 +466,7 @@ class SilSentencePrinter(
         sb.actionPredicate(
           subjectString,
           getVerbSeq(subject, verb, tam,
-            predicate.getInflectedCount, answerInflection),
+            predicate.getInflectedAttributes, answerInflection),
           directObjectString,
           modifierStrings,
           tam,
@@ -479,7 +479,7 @@ class SilSentencePrinter(
           subjectString,
           getVerbSeq(
             subject, SilNullState(), tam, verb,
-            predicate.getInflectedCount, answerInflection),
+            predicate.getInflectedAttributes, answerInflection),
           print(complement, INFLECT_NOMINATIVE, SilConjoining.NONE),
           verb,
           question,
@@ -514,12 +514,14 @@ class SilSentencePrinter(
     subject : SilReference,
     verb : SilWord,
     tam : SilTam,
-    predicateCount : SilCount,
+    inflectedAttributes : SilVerbInflection,
     answerInflection : SilInflection) : Seq[String] =
   {
     val (person, gender, count) = getSubjectAttributes(subject)
     sb.delemmatizeVerb(
-      person, gender, combineCounts(count, predicateCount),
+      combinePersons(person, inflectedAttributes.person),
+      tongue.combineGenders(Seq(gender, inflectedAttributes.gender)),
+      combineCounts(count, inflectedAttributes.count),
       tam, None, verb, answerInflection)
   }
 
@@ -581,9 +583,21 @@ class SilSentencePrinter(
     }
   }
 
+  private def combinePersons(
+    person1 : SilPerson, person2 : SilPerson) : SilPerson =
+  {
+    tupleN((person1, person2)) match {
+      case (PERSON_FIRST, _) => PERSON_FIRST
+      case (_, PERSON_FIRST) => PERSON_FIRST
+      case (PERSON_SECOND, _) => PERSON_SECOND
+      case (_, PERSON_SECOND) => PERSON_SECOND
+      case _ => PERSON_THIRD
+    }
+  }
+
   private def getVerbSeq(
     subject : SilReference, state : SilState, tam : SilTam,
-    verb : SilWord, predicateCount : SilCount,
+    verb : SilWord, inflectedAttributes : SilVerbInflection,
     answerInflection : SilInflection)
       : Seq[String] =
   {
@@ -591,7 +605,9 @@ class SilSentencePrinter(
     val (person, gender, count) =
       getSubjectAttributes(subject, existentialPronoun)
     getVerbSeq(
-      person, gender, combineCounts(count, predicateCount),
+      combinePersons(person, inflectedAttributes.person),
+      tongue.combineGenders(Seq(gender, inflectedAttributes.gender)),
+      combineCounts(count, inflectedAttributes.count),
       tam, existentialPronoun, verb, answerInflection)
   }
 

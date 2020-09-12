@@ -52,6 +52,10 @@ object SnlSpanishConjugation
   private val cache =
     new TrieMap[(String, String), SnlSpanishConjugationCoord]
 
+  // Order of sequences below matters!  In case of collision, we want to pick
+  // the first one.  For example, when indicative and imperative collide,
+  // assume indicative.
+
   private val allPersons =
     Seq(PERSON_FIRST, PERSON_SECOND, PERSON_THIRD)
   private val allCounts =
@@ -132,7 +136,10 @@ object SnlSpanishConjugation
     val conjugated =
       SpanishVerbConjugator.conjugate(
         infinitive, spanishTense, iPerson, (coord.count != COUNT_SINGULAR))
-    cache.put(tupleN((infinitive, conjugated)), coord)
+    val key = tupleN((infinitive, conjugated))
+    if (!cache.contains(key)) {
+      cache.put(key, coord)
+    }
     conjugated
   }
 

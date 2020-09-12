@@ -520,34 +520,34 @@ abstract class SprAbstractSyntaxAnalyzer(
     reference.rememberSyntaxTree(SptADJP(seq:_*))
   }
 
-  protected def rememberPredicateCount(
+  protected def rememberPredicateInflection(
     predicate : SilPredicate,
-    count : SilCount)
+    auxInflection : SilVerbInflection)
   {
-    predicate.setInflectedCount(count)
+    predicate.setInflectedAttributes(auxInflection)
   }
 
-  protected def rememberPredicateCount(
+  protected def rememberPredicateInflection(
     predicate : SilPredicate,
     verbHead : SprSyntaxTree)
   {
-    rememberPredicateCount(predicate, getVerbCount(verbHead))
+    rememberPredicateInflection(predicate, getVerbInflection(verbHead))
   }
 
-  protected def rememberPredicateCount(
+  protected def rememberPredicateInflection(
     predicate : SilPredicate,
     verbHead : SprSyntaxTree,
     tam : SilTam,
-    auxCount : SilCount)
+    auxInflection : SilVerbInflection)
   {
     if (tam.requiresAux) {
-      rememberPredicateCount(predicate, auxCount)
+      rememberPredicateInflection(predicate, auxInflection)
     } else {
-      rememberPredicateCount(predicate, verbHead)
+      rememberPredicateInflection(predicate, verbHead)
     }
   }
 
-  protected def getVerbCount(verb : SprSyntaxTree) : SilCount
+  protected def getVerbInflection(verb : SprSyntaxTree) : SilVerbInflection
 
   override def isNounPhraseModifier(
     tree : SprSyntaxTree, head : SprSyntaxTree) : Boolean =

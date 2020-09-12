@@ -249,7 +249,7 @@ abstract class SprTongue(wordnet : SprWordnet)
     lemma : String, gender : SilGender, count : SilCount,
     isModifier : Boolean) : String = lemma
 
-  def combineGenders(genders : Seq[SilGender]) : SilGender =
+  override def combineGenders(genders : Seq[SilGender]) : SilGender =
   {
     if (genders.size == 1) {
       genders.head
@@ -274,6 +274,9 @@ abstract class SprTongue(wordnet : SprWordnet)
   def isPossessiveAdjective(token : String) : Boolean
 
   def isAdposition(lemma : String) : Boolean
+
+  def isValidAuxAdposition(
+    auxLemma : String, adpositionLemma : String) : Boolean = false
 
   def isSubordinatingConjunction(lemma : String) : Boolean
 

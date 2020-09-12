@@ -49,6 +49,7 @@ object SnlSpanishLemmas
   val LEMMA_CUAL = "cual"
   val LEMMA_CUALES = "cuales"
   val LEMMA_DE = "de"
+  val LEMMA_DEBER = "deber"
   val LEMMA_EL = "el"
   val LEMMA_EL_ACCENTED = "él"
   val LEMMA_ELLA = "ella"
@@ -740,10 +741,22 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     demonstrativeToCoord.contains(lemma)
   }
 
-  override def tamForAuxLemma(lemma : String) : SilTam =
+  override def isModalAuxLemma(lemma : String) : Boolean =
   {
     // FIXME all the modals
-    SilTam.indicative.progressive
+    lemma == LEMMA_DEBER
+  }
+
+  override def tamForAuxLemma(lemma : String) : SilTam =
+  {
+    val tam = SilTam.indicative
+    // FIXME all the modals, and verify that the correct adposition is used
+    // (e.g. "tengo que" but "debo de")
+    lemma match {
+      case LEMMA_DEBER => tam.withModality(MODAL_SHOULD)
+      case LEMMA_ESTAR => tam.progressive
+      case _ => tam
+    }
   }
 
   override def isFlexiblePronoun(token : String) : Boolean =
@@ -792,6 +805,17 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def isAdposition(lemma : String) : Boolean =
   {
     prepositions.contains(lemma)
+  }
+
+  override def isValidAuxAdposition(
+    auxLemma : String, adpositionLemma : String) : Boolean =
+  {
+    // FIXME all the feels
+    tupleN((auxLemma, adpositionLemma)) match {
+      case (LEMMA_ESTAR, "") => true
+      case (LEMMA_DEBER, LEMMA_DE) => true
+      case _ => false
+    }
   }
 
   override def isSubordinatingConjunction(lemma : String) : Boolean =

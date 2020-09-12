@@ -45,17 +45,20 @@ class SnlEnglishSyntaxAnalyzer(
     }
   }
 
-  override protected def getVerbCount(verb : SprSyntaxTree) : SilCount =
+  override protected def getVerbInflection(verb : SprSyntaxTree)
+      : SilVerbInflection =
   {
+    // this is bogus but works correctly for the few special cases
+    // where it matters
     verb match {
       case vbp : SptVBP => {
         if (vbp.child.token == "am") {
-          COUNT_SINGULAR
+          SilVerbInflection(PERSON_FIRST, GENDER_NEUTER, COUNT_SINGULAR)
         } else {
-          COUNT_PLURAL
+          SilVerbInflection(PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL)
         }
       }
-      case _ => COUNT_SINGULAR
+      case _ => SilVerbInflection(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
     }
   }
 

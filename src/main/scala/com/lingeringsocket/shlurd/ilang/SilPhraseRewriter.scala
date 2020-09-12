@@ -172,7 +172,8 @@ class SilPhraseRewriter(
           oldPredicate : SilPredicate,
           newPredicate : SilPredicate
         ) => {
-          newPredicate.setInflectedCount(oldPredicate.getInflectedCount)
+          newPredicate.setInflectedAttributes(
+            oldPredicate.getInflectedAttributes)
         }
       }
       newPhrase

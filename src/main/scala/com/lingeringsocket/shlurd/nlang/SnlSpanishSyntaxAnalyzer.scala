@@ -74,7 +74,8 @@ class SnlSpanishSyntaxAnalyzer(
   }
 
 
-  override protected def getVerbCount(verb : SprSyntaxTree) : SilCount =
+  override protected def getVerbInflection(
+    verb : SprSyntaxTree) : SilVerbInflection =
   {
     verb match {
       case simple : SprSyntaxSimpleVerb => {
@@ -82,9 +83,10 @@ class SnlSpanishSyntaxAnalyzer(
         val word = SilWord(leaf.token, leaf.lemma)
         val (person, count, gender, tam) =
           context.getTongue.analyzeVerbConjugation(word)
-        count
+        SilVerbInflection(person, gender, count)
       }
-      case _ => COUNT_SINGULAR
+      case _ =>
+        SilVerbInflection(PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR)
     }
   }
 

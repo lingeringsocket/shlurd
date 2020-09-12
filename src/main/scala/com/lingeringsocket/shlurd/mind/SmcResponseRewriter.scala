@@ -297,7 +297,7 @@ class SmcResponseRewriter[
       }
     }
 
-    querier.query(clearInflectedCounts, rewriteLast)
+    querier.query(clearInflectedAttributes, rewriteLast)
 
     val normalized = transformQuestionResponse(
       rewriteLast, params, question, negateCollection)
@@ -633,8 +633,10 @@ class SmcResponseRewriter[
     }
   )
 
-  private def clearInflectedCounts = querier.queryMatcher {
+  private def clearInflectedAttributes = querier.queryMatcher {
     case predicate : SilPredicate => {
+      predicate.setInflectedPerson(PERSON_THIRD)
+      predicate.setInflectedGender(GENDER_NEUTER)
       predicate.setInflectedCount(COUNT_SINGULAR)
     }
   }
