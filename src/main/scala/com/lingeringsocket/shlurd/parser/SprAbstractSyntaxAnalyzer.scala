@@ -141,7 +141,7 @@ abstract class SprAbstractSyntaxAnalyzer(
     np : SprSyntaxTree,
     vp : SprSyntaxTree,
     specifiedDirectObject : Option[SilReference],
-    verbModifiers : Seq[SilExpectedVerbModifier],
+    verbModifiers : Seq[SipExpectedVerbModifier],
     imperative : Boolean = false)
       : (Boolean, SilPredicate)
 
@@ -302,7 +302,7 @@ abstract class SprAbstractSyntaxAnalyzer(
     specifiedState : SilState = SilNullState(),
     verbModifiers : Seq[SilVerbModifier] = Seq.empty) =
   {
-    SilUnresolvedStatePredicate(
+    SipUnresolvedStatePredicate(
       syntaxTree, subject, verb, state, specifiedState, verbModifiers)
   }
 
@@ -313,7 +313,7 @@ abstract class SprAbstractSyntaxAnalyzer(
     adpositionObject : Option[SilReference],
     verbModifiers : Seq[SilVerbModifier]) =
   {
-    SilUnresolvedActionPredicate(
+    SipUnresolvedActionPredicate(
       syntaxTree, subject, verb, directObject,
       adpositionObject, verbModifiers)
   }
@@ -325,20 +325,20 @@ abstract class SprAbstractSyntaxAnalyzer(
     verb : SilWord,
     verbModifiers : Seq[SilVerbModifier]) =
   {
-    SilUnresolvedRelationshipPredicate(
+    SipUnresolvedRelationshipPredicate(
       syntaxTree, subject, complement, verb, verbModifiers)
   }
 
   protected def expectReference(
     seq : Seq[SprSyntaxTree]) : SilReference =
   {
-    SilExpectedReference(SptNP(seq:_*))
+    SipExpectedReference(SptNP(seq:_*))
   }
 
   protected def expectReference(np : SprSyntaxTree)
-      : SilExpectedReference =
+      : SipExpectedReference =
   {
-    SilExpectedReference(np)
+    SipExpectedReference(np)
   }
 
   protected def expectNounReference(
@@ -346,19 +346,19 @@ abstract class SprAbstractSyntaxAnalyzer(
     preTerminal : SprSyntaxTree,
     determiner : SilDeterminer) =
   {
-    SilExpectedNounlikeReference(syntaxTree, preTerminal, determiner)
+    SipExpectedNounlikeReference(syntaxTree, preTerminal, determiner)
   }
 
   override def expectPropertyState(
     syntaxTree : SprSyntaxTree) =
   {
-    SilExpectedPropertyState(syntaxTree)
+    SipExpectedPropertyState(syntaxTree)
   }
 
   protected def expectVerbModifier(
     tree : SprSyntaxTree) =
   {
-    SilExpectedVerbModifier(tree)
+    SipExpectedVerbModifier(tree)
   }
 
   override def expectTemporalVerbModifier(tmod : SptTMOD)
@@ -386,16 +386,16 @@ abstract class SprAbstractSyntaxAnalyzer(
 
   protected def expectExistenceState(syntaxTree : SprSyntaxTree) =
   {
-    SilExpectedExistenceState(syntaxTree)
+    SipExpectedExistenceState(syntaxTree)
   }
 
   override def expectComplementState(
-    tree : SprSyntaxTree) : SilExpectedComplementState =
+    tree : SprSyntaxTree) : SipExpectedComplementState =
   {
     if (isSinglePhrase(tree.children)) {
       expectComplementState(tree.firstChild)
     } else {
-      SilExpectedComplementState(tree)
+      SipExpectedComplementState(tree)
     }
   }
 
@@ -492,8 +492,8 @@ abstract class SprAbstractSyntaxAnalyzer(
     } else {
       val specifiedReference = annotator.stateSpecifiedRef(
         ref, specifiedState)
-      ref.maybeSyntaxTree.foreach(
-        refSyntaxTree => specifiedState.maybeSyntaxTree.foreach(
+      SprUtils.maybeSyntaxTree(ref).foreach(
+        refSyntaxTree => SprUtils.maybeSyntaxTree(specifiedState).foreach(
           stateSyntaxTree => {
             rememberSyntheticNP(
               specifiedReference,

@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd.ilang._
+
 import scala.collection._
 
 object SprUtils
@@ -37,5 +39,10 @@ object SprUtils
         throw new IllegalArgumentException("leaf expected but got " + nonLeaf)
       }
     }
+  }
+
+  def maybeSyntaxTree(phrase : SilPhrase) : Option[SprSyntaxTree] =
+  {
+    phrase.maybeSyntaxTree.map(_.asInstanceOf[SprSyntaxTree])
   }
 }

@@ -1450,7 +1450,7 @@ class SpcResponder(
 
   private def printBelief(belief : SilSentence) : String =
   {
-    val punctuated = belief.maybeSyntaxTree match {
+    val punctuated = SprUtils.maybeSyntaxTree(belief) match {
       case Some(syntaxTree) => syntaxTree.toWordString
       case _ => sentencePrinter.print(belief)
     }

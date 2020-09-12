@@ -33,7 +33,7 @@ class SprPhraseRewriter(
   def parseSentence(sentenceSyntaxTree : SprSyntaxTree) : SilSentence =
   {
     val forceSQ = tongue.shouldForceSQ(sentenceSyntaxTree)
-    val expected = SilExpectedSentence(sentenceSyntaxTree, forceSQ)
+    val expected = SipExpectedSentence(sentenceSyntaxTree, forceSQ)
     val transformed = rewritePhrase(expected)
     val completed = rewrite(replaceUnresolvedWithUnrecognized, transformed)
     SilAnnotator.sanityCheck(annotator, completed)
@@ -74,14 +74,14 @@ class SprPhraseRewriter(
 
   private def replaceExpectedSentence = replacementMatcher(
     "replaceExpectedSentence", {
-      case SilExpectedSentence(sentence : SptS, forceSQ) => {
+      case SipExpectedSentence(sentence : SptS, forceSQ) => {
         if (forceSQ) {
           analyzer.analyzeSQ(sentence, forceSQ)
         } else {
           analyzer.analyzeSentence(sentence)
         }
       }
-      case SilExpectedConditionalSentence(
+      case SipExpectedConditionalSentence(
         syntaxTree,
         conjunction,
         antecedent,
@@ -105,22 +105,22 @@ class SprPhraseRewriter(
 
   private def replaceExpectedReference = replacementMatcher(
     "replaceExpectedReference", {
-      case SilExpectedReference(SptNP(noun)) => {
-        SilExpectedReference(noun)
+      case SipExpectedReference(SptNP(noun)) => {
+        SipExpectedReference(noun)
       }
-      case SilExpectedReference(np : SptNP) => {
+      case SipExpectedReference(np : SptNP) => {
         analyzer.analyzeNounPhrase(np)
       }
-      case SilExpectedReference(SptNNQ(quotation)) => {
+      case SipExpectedReference(SptNNQ(quotation)) => {
         annotator.quotationRef(quotation.token)
       }
-      case SilExpectedReference(SptNNE()) => {
+      case SipExpectedReference(SptNNE()) => {
         createElidedReference()
       }
-      case SilExpectedReference(noun : SprSyntaxSimpleNoun) => {
+      case SipExpectedReference(noun : SprSyntaxSimpleNoun) => {
         createNounReference(noun, DETERMINER_ABSENT)
       }
-      case SilExpectedNounlikeReference(
+      case SipExpectedNounlikeReference(
         syntaxTree, nounlike : SprSyntaxPreTerminal, determiner)
           if (analyzer.isNounPhraseHead(nounlike)) =>
         {
@@ -128,21 +128,21 @@ class SprPhraseRewriter(
           // cases like "roll up the blind"
           createNounReference(nounlike, determiner)
         }
-      case SilExpectedNounlikeReference(
+      case SipExpectedNounlikeReference(
         syntaxTree, noun : SptNNC, determiner
       ) => {
         createNounReference(noun, determiner)
       }
-      case SilExpectedReference(noun : SptNNC) => {
+      case SipExpectedReference(noun : SptNNC) => {
         createNounReference(noun, DETERMINER_ABSENT)
       }
-      case SilExpectedReference(pronoun : SptPRP) => {
+      case SipExpectedReference(pronoun : SptPRP) => {
         analyzer.analyzePronounReference(pronoun.child)
       }
-      case SilExpectedPossessiveReference(pronoun : SptPRP_POS) => {
+      case SipExpectedPossessiveReference(pronoun : SptPRP_POS) => {
         analyzer.analyzePronounReference(pronoun.child)
       }
-      case SilExpectedReference(
+      case SipExpectedReference(
         determiner : SprSyntaxDeterminer
       ) if (determiner.isDemonstrative) => {
         analyzer.analyzePronounReference(determiner.child)
@@ -204,25 +204,25 @@ class SprPhraseRewriter(
 
   private def replaceExpectedVerbModifier = replacementMatcher(
     "replaceExpectedVerbModifier", {
-      case SilExpectedVerbModifier(advp : SptADVP) => {
+      case SipExpectedVerbModifier(advp : SptADVP) => {
         analyzer.expectVerbModifierPhrase(advp)
       }
-      case SilExpectedVerbModifier(prt : SptPRT) => {
+      case SipExpectedVerbModifier(prt : SptPRT) => {
         analyzer.expectVerbModifierPhrase(prt)
       }
-      case SilExpectedVerbModifier(tmod : SptTMOD) => {
+      case SipExpectedVerbModifier(tmod : SptTMOD) => {
         analyzer.expectTemporalVerbModifier(tmod)
       }
-      case SilExpectedVerbModifier(adv : SprSyntaxSimpleAdverb) => {
+      case SipExpectedVerbModifier(adv : SprSyntaxSimpleAdverb) => {
         analyzer.expectBasicVerbModifier(adv)
       }
-      case SilExpectedVerbModifier(compound : SptRBC) => {
+      case SipExpectedVerbModifier(compound : SptRBC) => {
         analyzer.expectBasicVerbModifier(compound)
       }
-      case SilExpectedVerbModifier(particle : SptRP) => {
+      case SipExpectedVerbModifier(particle : SptRP) => {
         analyzer.expectBasicVerbModifier(particle)
       }
-      case SilExpectedVerbModifier(pp : SptPP) => {
+      case SipExpectedVerbModifier(pp : SptPP) => {
         analyzer.expectAdpositionalVerbModifier(pp)
       }
     }
@@ -230,46 +230,46 @@ class SprPhraseRewriter(
 
   private def replaceExpectedState = replacementMatcher(
     "replaceExpectedState", {
-      case SilExpectedAdpositionalState(syntaxTree, extracted) => {
+      case SipExpectedAdpositionalState(syntaxTree, extracted) => {
         analyzer.expectAdpositionalState(syntaxTree, extracted)
       }
-      case SilExpectedPropertyState(
+      case SipExpectedPropertyState(
         preTerminal : SprSyntaxPreTerminal
       ) if (!analyzer.isProhibitedPropertyState(preTerminal)) => {
         SilPropertyState(analyzer.getWord(preTerminal.child))
       }
-      case SilExpectedExistenceState(SptNP(SptEX(leaf))) => {
+      case SipExpectedExistenceState(SptNP(SptEX(leaf))) => {
         SilExistenceState(Some(analyzer.getWord(leaf)))
       }
-      case SilExpectedExistenceState(_) => {
+      case SipExpectedExistenceState(_) => {
         SilExistenceState()
       }
-      case SilExpectedComplementState(adjp : SptADJP) => {
+      case SipExpectedComplementState(adjp : SptADJP) => {
         analyzer.expectPropertyComplementState(adjp)
       }
-      case SilExpectedComplementState(
+      case SipExpectedComplementState(
         syntaxTree @ (_ : SptADVP | _ : SptPP)) =>
         {
           val seq = syntaxTree.children
           if ((seq.head.isAdposition || seq.head.isAdverb) && (seq.size > 1) &&
             ((seq.head.isAdverb || !seq.exists(_.isAdpositionalPhrase))))
           {
-            SilExpectedAdpositionalState(syntaxTree, false)
+            SipExpectedAdpositionalState(syntaxTree, false)
           } else {
             analyzer.expectPropertyComplementState(syntaxTree)
           }
         }
-      case SilExpectedComplementState(vp : SptVP) => {
+      case SipExpectedComplementState(vp : SptVP) => {
         // FIXME:  ambiguity for action (passive construction) vs
         // state (participial adjective)
         analyzer.expectPropertyComplementState(vp)
       }
-      case SilExpectedComplementState(syntaxTree : SptPRT) if (
+      case SipExpectedComplementState(syntaxTree : SptPRT) if (
         syntaxTree.numChildren == 1
       ) => {
         analyzer.expectPropertyState(requireUnique(syntaxTree.children))
       }
-      case SilExpectedComplementState(SptNP(noun)) => {
+      case SipExpectedComplementState(SptNP(noun)) => {
         analyzer.expectPropertyState(noun)
       }
     }
@@ -277,17 +277,17 @@ class SprPhraseRewriter(
 
   private def replaceUnresolvedPredicate = replacementMatcher(
     "replaceUnresolvedPredicate", {
-      case predicate : SilUnresolvedStatePredicate
+      case predicate : SipUnresolvedStatePredicate
           if (!predicate.hasUnresolvedChildren) =>
         {
           resolveStatePredicate(predicate)
         }
-      case predicate : SilUnresolvedActionPredicate
+      case predicate : SipUnresolvedActionPredicate
           if (!predicate.hasUnresolvedChildren) =>
         {
           resolveActionPredicate(predicate)
         }
-      case predicate : SilUnresolvedRelationshipPredicate
+      case predicate : SipUnresolvedRelationshipPredicate
           if (!predicate.hasUnresolvedChildren) =>
         {
           resolveRelationshipPredicate(predicate)
@@ -297,7 +297,7 @@ class SprPhraseRewriter(
 
   private def replaceExpectedSBARQ = replacementMatcher(
     "replaceExpectedSBARQ", {
-      case SilExpectedSentence(sbarq : SptSBARQ, _) => {
+      case SipExpectedSentence(sbarq : SptSBARQ, _) => {
         analyzer.analyzeSBARQ(sbarq)
       }
     }
@@ -305,10 +305,10 @@ class SprPhraseRewriter(
 
   private def replaceExpectedSQ = replacementMatcher(
     "replaceExpectedSQ", {
-      case SilExpectedSentence(sinv : SptSINV, forceSQ) => {
+      case SipExpectedSentence(sinv : SptSINV, forceSQ) => {
         analyzer.analyzeSQ(sinv, forceSQ)
       }
-      case SilExpectedSentence(sq : SptSQ, forceSQ) => {
+      case SipExpectedSentence(sq : SptSQ, forceSQ) => {
         analyzer.analyzeSQ(sq, forceSQ)
       }
     }
@@ -325,20 +325,20 @@ class SprPhraseRewriter(
 
   private def replaceUnresolvedWithUnrecognized = replacementMatcher(
     "relaceUnresolvedWithUnrecognized", {
-      case predicate : SilUnresolvedStatePredicate => {
+      case predicate : SipUnresolvedStatePredicate => {
         resolveStatePredicate(predicate)
       }
-      case predicate : SilUnresolvedActionPredicate => {
+      case predicate : SipUnresolvedActionPredicate => {
         resolveActionPredicate(predicate)
       }
-      case predicate : SilUnresolvedRelationshipPredicate => {
+      case predicate : SipUnresolvedRelationshipPredicate => {
         resolveRelationshipPredicate(predicate)
       }
     }
   )
 
   private def resolveRelationshipPredicate(
-    predicate : SilUnresolvedRelationshipPredicate) =
+    predicate : SipUnresolvedRelationshipPredicate) =
   {
     SilRelationshipPredicate(
       predicate.subject,
@@ -348,7 +348,7 @@ class SprPhraseRewriter(
   }
 
   private def resolveActionPredicate(
-    predicate : SilUnresolvedActionPredicate) =
+    predicate : SipUnresolvedActionPredicate) =
   {
     val modifiers = {
       if (predicate.modifiers.exists(
@@ -392,7 +392,7 @@ class SprPhraseRewriter(
   }
 
   private def resolveStatePredicate(
-    predicate : SilUnresolvedStatePredicate) =
+    predicate : SipUnresolvedStatePredicate) =
   {
     predicate.state match {
       case cs @ SilConjunctiveState(DETERMINER_ABSENT, states, _) => {

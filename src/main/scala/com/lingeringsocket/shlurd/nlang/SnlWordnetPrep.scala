@@ -45,7 +45,7 @@ object SnlWordnetPrep
       println("SENTENCE = " + sentence)
       println
       if (dumpAnalysis) {
-        println("BASELINE TREE = " + sil.maybeSyntaxTree)
+        println("BASELINE TREE = " + SprUtils.maybeSyntaxTree(sil))
         println
         println("BASELINE SIL = " + sil)
         println
@@ -82,7 +82,7 @@ object SnlWordnetPrep
       val parser = SprParser(sentence, context)
       val sil = parser.parseOne.sentence
       if (!sil.hasUnknown) {
-        sil.maybeSyntaxTree.foreach(syntaxTree => {
+        SprUtils.maybeSyntaxTree(sil).foreach(syntaxTree => {
           addToMatcher(syntaxTree)
         })
       }
@@ -121,7 +121,7 @@ object SnlWordnetPrep
             case SilAmbiguousSentence(alternatives, _) => {
               println("AMBIGUOUS PARSE")
               println("SIL = " + alternatives)
-              println("SPR = " + alternatives.map(_.maybeSyntaxTree))
+              println("SPR = " + alternatives.map(a => SprUtils.maybeSyntaxTree(a)))
               ambiguous += 1
             }
             case _ => {

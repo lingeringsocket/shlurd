@@ -1014,7 +1014,7 @@ class SprParserSpec extends Specification
           SilFormality.DEFAULT
         ) if (tam.isIndicative) => {
           val dependencyStripped = SprSyntaxRewriter.rewriteAbstract(
-            syntaxTree,
+            syntaxTree.asInstanceOf[SprSyntaxTree],
             true)
           dependencyStripped must be equalTo(
             SptNP(

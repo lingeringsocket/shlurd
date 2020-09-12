@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd.ilang._
+
 import scala.collection._
 
 object SprPennTreebankLabels
@@ -104,7 +106,7 @@ object SprPennTreebankLabels
 import SprPennTreebankLabels._
 import SprPrettyPrinter._
 
-trait SprAbstractSyntaxTree
+trait SprAbstractSyntaxTree extends SilSyntaxTree
 {
   def label : String
 

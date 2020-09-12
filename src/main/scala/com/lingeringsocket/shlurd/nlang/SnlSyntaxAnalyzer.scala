@@ -52,7 +52,7 @@ abstract class SnlSyntaxAnalyzer(
       }
       return SilConjunctiveSentence(
         DETERMINER_ABSENT,
-        semiSplits.map(split => SilExpectedSentence(split.head)),
+        semiSplits.map(split => SipExpectedSentence(split.head)),
         semiSeparator)
     }
     splitCoordinatingConjunction(tree.children) match {
@@ -67,7 +67,7 @@ abstract class SnlSyntaxAnalyzer(
         if (subs.forall(_.nonEmpty)) {
           return SilConjunctiveSentence(
             determiner,
-            subs.flatten.map(s => SilExpectedSentence(s)),
+            subs.flatten.map(s => SipExpectedSentence(s)),
             separator)
         }
       }
@@ -75,11 +75,11 @@ abstract class SnlSyntaxAnalyzer(
     val children = stripPauses(tree)
     extractAntecedent(children) match {
       case Some((conjunction, antecedent)) => {
-        SilExpectedConditionalSentence(
+        SipExpectedConditionalSentence(
           tree,
           conjunction,
-          SilExpectedSentence(antecedent),
-          SilExpectedSentence(
+          SipExpectedSentence(antecedent),
+          SipExpectedSentence(
             SptS(children.tail.filterNot(
               c => (c.isThen || c.isEquivalently)):_*)),
           children.tail.exists(c =>
@@ -211,7 +211,7 @@ abstract class SnlSyntaxAnalyzer(
     children : Seq[SprSyntaxTree],
     specifiedState : SilState,
     specifiedDirectObject : Option[SilReference] = None,
-    extraModifiers : Seq[SilExpectedVerbModifier] = Seq.empty,
+    extraModifiers : Seq[SipExpectedVerbModifier] = Seq.empty,
     question : Option[SilQuestion] = None)
       : Option[(SilPredicate, SilTam)] =
   {
@@ -553,14 +553,14 @@ abstract class SnlSyntaxAnalyzer(
       (components.head.isPossessivePronoun ||
         components.head.isDemonstrative))
     {
-      val pronounReference = SilExpectedPossessiveReference(components.head)
+      val pronounReference = SipExpectedPossessiveReference(components.head)
       val entityReference = expectNounReference(
         tree, components.last, determiner)
       annotator.genitiveRef(pronounReference, entityReference)
     } else if (components.last.isCompoundAdpositionalPhrase) {
       annotator.stateSpecifiedRef(
         expectReference(seqIn.dropRight(1)),
-        SilExpectedAdpositionalState(components.last, false))
+        SipExpectedAdpositionalState(components.last, false))
     } else if ((components.size == 2) && components.head.isNounPhrase) {
       val entityReference = expectReference(components.head)
       expectRelativeReference(tree, entityReference, components.last)
@@ -604,7 +604,7 @@ abstract class SnlSyntaxAnalyzer(
   private def expectPredicateSentence(
     tree : SprSyntaxTree,
     np : SprSyntaxTree, vp : SprSyntaxTree,
-    verbModifiers : Seq[SilExpectedVerbModifier],
+    verbModifiers : Seq[SipExpectedVerbModifier],
     force : SilForce, tam : SilTam, auxCount : SilCount,
     negativeSuper : Boolean) : SilSentence =
   {
@@ -754,7 +754,7 @@ abstract class SnlSyntaxAnalyzer(
     np : SprSyntaxTree,
     vp : SprSyntaxTree,
     specifiedDirectObject : Option[SilReference],
-    verbModifiers : Seq[SilExpectedVerbModifier],
+    verbModifiers : Seq[SipExpectedVerbModifier],
     imperative : Boolean = false)
       : (Boolean, SilPredicate) =
   {
@@ -926,7 +926,7 @@ abstract class SnlSyntaxAnalyzer(
     complement : SprSyntaxTree,
     specifiedState : SilState,
     verb : SilWord,
-    verbModifiers : Seq[SilExpectedVerbModifier],
+    verbModifiers : Seq[SipExpectedVerbModifier],
     question : Option[SilQuestion])
       : (Boolean, SilPredicate) =
   {
@@ -1234,7 +1234,7 @@ abstract class SnlSyntaxAnalyzer(
         }
       }
     } else {
-      tupleN((SilExpectedAdpositionalState(seq(i), true),
+      tupleN((SipExpectedAdpositionalState(seq(i), true),
         seq.take(i) ++ seq.drop(i + 1)))
     }
   }

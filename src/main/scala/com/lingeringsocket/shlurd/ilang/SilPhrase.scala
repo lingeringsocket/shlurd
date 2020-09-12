@@ -19,6 +19,13 @@ import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 
+trait SilSyntaxTree
+{
+  def toWordString : String
+
+  def countLeaves : Int
+}
+
 sealed trait SilPhrase
 {
   def children : Seq[SilPhrase] = Seq.empty
@@ -36,7 +43,7 @@ sealed trait SilPhrase
 
   override def toString = SprPrettyPrinter.prettyPrint(this)
 
-  def maybeSyntaxTree : Option[SprSyntaxTree] = None
+  def maybeSyntaxTree : Option[SilSyntaxTree] = None
 
   def toWordString : String =
   {
@@ -111,9 +118,9 @@ sealed trait SilUnknownPhrase extends SilPhrase
 {
   override def hasUnknown = true
 
-  def syntaxTree : SprSyntaxTree
+  def syntaxTree : SilSyntaxTree
 
-  override def maybeSyntaxTree = Some(syntaxTree)
+  override def maybeSyntaxTree : Option[SilSyntaxTree] = Some(syntaxTree)
 
   override def countUnknownSyntaxLeaves : Int =
   {
@@ -168,11 +175,24 @@ sealed trait SilUnresolvedPhrase extends SilPhrase
   override def hasUnresolved = true
 }
 
+// these unresolved phrases are intentionally left unsealed
+// so that we can extend them in the parser
+trait SilUnresolvedSentence extends SilUnknownSentence
+    with SilUnresolvedPhrase
+trait SilUnresolvedPredicate extends SilUnknownPredicate
+    with SilUnresolvedPhrase
+trait SilUnresolvedReference extends SilUnknownReference
+    with SilUnresolvedPhrase
+trait SilUnresolvedState extends SilUnknownState
+    with SilUnresolvedPhrase
+trait SilUnresolvedVerbModifier extends SilUnknownVerbModifier
+    with SilUnresolvedPhrase
+
 sealed abstract class SilTransformedPhrase extends SilPhrase
 {
-  protected var syntaxTreeOpt : Option[SprSyntaxTree] = None
+  protected var syntaxTreeOpt : Option[SilSyntaxTree] = None
 
-  def rememberSyntaxTree(syntaxTree : SprSyntaxTree)
+  def rememberSyntaxTree(syntaxTree : SilSyntaxTree)
   {
     syntaxTreeOpt = Some(syntaxTree)
   }
@@ -249,172 +269,33 @@ case class SilUnparsedSentence(
 }
 
 case class SilUnrecognizedSentence(
-  syntaxTree : SprSyntaxTree
+  syntaxTree : SilSyntaxTree
 ) extends SilUnknownSentence with SilUnrecognizedPhrase
 {
 }
 
 case class SilUnrecognizedPredicate(
-  syntaxTree : SprSyntaxTree
+  syntaxTree : SilSyntaxTree
 ) extends SilUnknownPredicate with SilUnrecognizedPhrase
 {
 }
 
 case class SilUnrecognizedReference(
-  syntaxTree : SprSyntaxTree
+  syntaxTree : SilSyntaxTree
 ) extends SilUnknownReference with SilUnrecognizedPhrase
 {
 }
 
 case class SilUnrecognizedState(
-  syntaxTree : SprSyntaxTree
+  syntaxTree : SilSyntaxTree
 ) extends SilUnknownState with SilUnrecognizedPhrase
 {
 }
 
 case class SilUnrecognizedVerbModifier(
-  syntaxTree : SprSyntaxTree
+  syntaxTree : SilSyntaxTree
 ) extends SilUnknownVerbModifier with SilUnrecognizedPhrase
 {
-}
-
-case class SilExpectedSentence(
-  syntaxTree : SprSyntaxTree,
-  forceSQ : Boolean = false
-) extends SilUnknownSentence with SilUnresolvedPhrase
-{
-}
-
-case class SilExpectedConditionalSentence(
-  syntaxTree : SprSyntaxTree,
-  conjunction : SilWord,
-  antecedent : SilSentence,
-  consequent : SilSentence,
-  biconditional : Boolean,
-  expectedFormality : SilFormality
-) extends SilUnknownSentence with SilUnresolvedPhrase
-{
-  override def formality = expectedFormality
-}
-
-case class SilExpectedPredicate(
-  syntaxTree : SprSyntaxTree
-) extends SilUnknownPredicate with SilUnresolvedPhrase
-{
-}
-
-case class SilExpectedReference(
-  syntaxTree : SprSyntaxTree
-) extends SilUnknownReference with SilUnresolvedPhrase
-{
-}
-
-case class SilExpectedPossessiveReference(
-  syntaxTree : SprSyntaxTree
-) extends SilUnknownReference with SilUnresolvedPhrase
-{
-}
-
-case class SilExpectedNounlikeReference(
-  syntaxTree : SprSyntaxTree,
-  preTerminal : SprSyntaxTree,
-  determiner : SilDeterminer
-) extends SilUnknownReference with SilUnresolvedPhrase
-{
-}
-
-case class SilExpectedComplementState(
-  syntaxTree : SprSyntaxTree
-) extends SilUnknownState with SilUnresolvedPhrase
-{
-}
-
-case class SilExpectedAdpositionalState(
-  syntaxTree : SprSyntaxTree,
-  extracted : Boolean
-) extends SilUnknownState with SilUnresolvedPhrase
-{
-}
-
-case class SilExpectedPropertyState(
-  syntaxTree : SprSyntaxTree
-) extends SilUnknownState with SilUnresolvedPhrase
-{
-}
-
-case class SilExpectedExistenceState(
-  syntaxTree : SprSyntaxTree
-) extends SilUnknownState with SilUnresolvedPhrase
-{
-}
-
-case class SilExpectedVerbModifier(
-  syntaxTree : SprSyntaxTree
-) extends SilUnknownVerbModifier with SilUnresolvedPhrase
-{
-}
-
-case class SilUnresolvedStatePredicate(
-  syntaxTree : SprSyntaxTree,
-  subject : SilReference,
-  verb : SilWord,
-  state : SilState,
-  specifiedState : SilState,
-  modifiers : Seq[SilVerbModifier]
-) extends SilUnknownPredicate with SilUnresolvedPhrase
-{
-  override def getSubject = subject
-
-  override def getModifiers = modifiers
-
-  override def children = Seq(subject, state, specifiedState) ++ modifiers
-
-  override def withNewSubject(reference : SilReference) =
-    copy(subject = reference)
-
-  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
-    copy(modifiers = newModifiers)
-}
-
-case class SilUnresolvedActionPredicate(
-  syntaxTree : SprSyntaxTree,
-  subject : SilReference,
-  verb : SilWord,
-  directObject : Option[SilReference],
-  adpositionObject : Option[SilReference],
-  modifiers : Seq[SilVerbModifier]
-) extends SilUnknownPredicate with SilUnresolvedPhrase
-{
-  override def getSubject = subject
-
-  override def getModifiers = modifiers
-
-  override def children =
-    Seq(subject) ++ directObject ++ adpositionObject ++ modifiers
-
-  override def withNewSubject(reference : SilReference) =
-    copy(subject = reference)
-
-  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
-    copy(modifiers = newModifiers)
-}
-
-case class SilUnresolvedRelationshipPredicate(
-  syntaxTree : SprSyntaxTree,
-  subject : SilReference,
-  complement : SilReference,
-  verb : SilWord,
-  modifiers : Seq[SilVerbModifier]
-) extends SilUnknownPredicate with SilUnresolvedPhrase
-{
-  override def getSubject = subject
-
-  override def getModifiers = modifiers
-
-  override def children = Seq(subject, complement) ++ modifiers
-
-  override def withNewModifiers(newModifiers : Seq[SilVerbModifier]) =
-    copy(modifiers = newModifiers)
 }
 
 case class SilPredicateSentence(
@@ -844,7 +725,9 @@ case class SilMappedReference private(
   determiner : SilDeterminer
 ) extends SilAnnotatedReference with SilUnknownReference
 {
-  override def syntaxTree = SprSyntaxLeaf(key, key, key)
+  override def syntaxTree = syntaxTreeOpt.get
+
+  override def maybeSyntaxTree = syntaxTreeOpt
 }
 
 object SilQuotationReference

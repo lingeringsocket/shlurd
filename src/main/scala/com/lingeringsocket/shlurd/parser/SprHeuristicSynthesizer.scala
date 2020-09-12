@@ -539,40 +539,40 @@ class SprHeuristicSynthesizer(
       tree match {
         case SptS(vp : SptVP) => {
           tryRewrite(
-            SilExpectedSentence(
+            SipExpectedSentence(
               SptS(npSomething, vp)))
         }
         case s : SptS => {
           tryRewrite(
-            SilExpectedSentence(s))
+            SipExpectedSentence(s))
         }
         case sbarq : SptSBARQ => {
           tryRewrite(
-            SilExpectedSentence(sbarq))
+            SipExpectedSentence(sbarq))
         }
         case sinv : SptSINV => {
           tryRewrite(
-            SilExpectedSentence(sinv))
+            SipExpectedSentence(sinv))
         }
         case sq @ SptSQ(vp : SptVP) => {
           tryRewrite(
-            SilExpectedSentence(
+            SipExpectedSentence(
               SptS(npSomething, vp)))
         }
         case sq : SptSQ => {
           tryRewrite(
-            SilExpectedSentence(sq))
+            SipExpectedSentence(sq))
         }
         // FIXME required because we currently only accept "does" as auxiliary
         case SptVP(SptVBZ(leaf)) if (tongue.isModalAuxLemma(leaf.lemma)) => {
           tryRewrite(
-            SilExpectedSentence(
+            SipExpectedSentence(
               SptS(npSomething,
                 SptVP(SptVB(makeLeaf(SilMagicWord(MW_EXIST).lemma))))))
         }
         case vp : SptVP => {
           tryRewrite(
-            SilExpectedSentence(
+            SipExpectedSentence(
               SptS(npSomething, vp)))
         }
         case np : SptNP => {
@@ -584,24 +584,24 @@ class SprHeuristicSynthesizer(
             }
           }
           tryRewrite(
-            SilExpectedReference(dispossessed))
+            SipExpectedReference(dispossessed))
         }
         case advp : SptADVP => {
           tryRewrite(
-            SilExpectedVerbModifier(advp))
+            SipExpectedVerbModifier(advp))
         }
         case adjp : SptADJP => {
           tryRewrite(
-            SilExpectedComplementState(adjp))
+            SipExpectedComplementState(adjp))
         }
         case pp : SptPP => {
           tryRewrite(
-            SilExpectedVerbModifier(pp))
+            SipExpectedVerbModifier(pp))
         }
         case tmod : SptTMOD => {
           val result = tryPhrase(
             rewriter,
-            SilExpectedVerbModifier(tmod),
+            SipExpectedVerbModifier(tmod),
             allowConjunctive)
           result.map(_._1) match {
             case Some(SilAdpositionalVerbModifier(
@@ -640,18 +640,19 @@ class SprHeuristicSynthesizer(
       }
     }
 
-    val syntaxTree = phrase.syntaxTree
-    if ((syntaxTree.children.size == 1) &&
-      syntaxTree.label == syntaxTree.firstChild.label)
-    {
-      None
-    } else {
-      val transformed = rewriter.rewritePhrase(phrase)
-      if (rejectResult(transformed)) {
+    SprUtils.maybeSyntaxTree(phrase).flatMap(syntaxTree => {
+      if ((syntaxTree.children.size == 1) &&
+        syntaxTree.label == syntaxTree.firstChild.label)
+      {
         None
       } else {
-        Some(tupleN((transformed, syntaxTree)))
+        val transformed = rewriter.rewritePhrase(phrase)
+        if (rejectResult(transformed)) {
+          None
+        } else {
+          Some(tupleN((transformed, syntaxTree)))
+        }
       }
-    }
+    })
   }
 }

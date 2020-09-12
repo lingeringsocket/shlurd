@@ -48,10 +48,10 @@ trait SprSyntaxAnalyzer extends SprSynthesizer
       : SilPronounReference
 
   def expectComplementState(
-    tree : SprSyntaxTree) : SilExpectedComplementState
+    tree : SprSyntaxTree) : SipExpectedComplementState
 
   def expectPropertyState(
-    syntaxTree : SprSyntaxTree) : SilExpectedPropertyState
+    syntaxTree : SprSyntaxTree) : SipExpectedPropertyState
 
   def expectAdpositionalState(
     tree : SprSyntaxTree,
