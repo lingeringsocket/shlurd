@@ -411,20 +411,20 @@ class SpcMind(cosmos : SpcCosmos)
     qualifiers : Set[SilWord]) : Try[Trilean] =
   {
     val roleName = adposition match {
-      case SilMagicAdposition(MW_GENITIVE_OF) => {
+      case SprMagicAdposition(MW_GENITIVE_OF) => {
         if (qualifiers.size != 1) {
           return Success(Trilean.Unknown)
         } else {
           qualifiers.head
         }
       }
-      case SilMagicAdposition(MW_IN) => {
+      case SprMagicAdposition(MW_IN) => {
         SilWord(SmcIdeals.ROLE_CONTAINEE)
       }
-      case SilMagicAdposition(MW_AMONG) => {
+      case SprMagicAdposition(MW_AMONG) => {
         return Success(Trilean(entity == objEntity))
       }
-      case SilMagicAdposition(MW_EXCEPT) => {
+      case SprMagicAdposition(MW_EXCEPT) => {
         return Success(Trilean(entity != objEntity))
       }
       case _ => {

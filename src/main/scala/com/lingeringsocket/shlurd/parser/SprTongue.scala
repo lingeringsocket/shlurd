@@ -146,10 +146,39 @@ object SilMagicWord
   }
 }
 
-abstract class SprTongue(wordnet : SprWordnet)
-    extends SprSynthesizer with SilGenderAnalyzer
+object SprMagicAdposition
 {
-  lazy val relLemmaMap = Map(SilRelationshipPredef.enumeration.map(
+  def apply(
+    magicWord : SprMagicWord)(implicit tongue : SprTongue) : SilAdposition =
+  {
+    SilAdposition(SilMagicWord(magicWord))
+  }
+
+  def unapply(
+    adposition : SilAdposition)(implicit tongue : SprTongue)
+      : Option[SprMagicWord] =
+  {
+    tongue.keywordForLemma(adposition.word.toLemma)
+  }
+}
+
+object SprProximityWord
+{
+  def apply(proximity : SilProximity)(implicit tongue : SprTongue) =
+  {
+    SilWord(tongue.proximityLemma(proximity))
+  }
+
+  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue) =
+  {
+    tongue.proximityForLemma(w.lemma)
+  }
+}
+
+abstract class SprTongue(wordnet : SprWordnet)
+    extends SprSynthesizer with SilTongue
+{
+  lazy val relLemmaMap = Map(SprRelationshipPredef.enumeration.map(
     rel => tupleN((getRelPredefLemma(rel), rel))):_*)
 
   private lazy val phrasePatternMatcher = loadMatcher
@@ -158,8 +187,6 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def newSentencePrinter(
     genderAnalyzer : SilGenderAnalyzer) : SilSentencePrinter
-
-  def newSentenceBundle() : SilSentenceBundle
 
   def newSyntaxAnalyzer(
     context : SprContext,
@@ -172,24 +199,19 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def getStopList : Set[String]
 
-  def getPhraseScorers : Seq[SilWordnetScorer.PhraseScorer] = Seq.empty
+  def getPhraseScorers : Seq[SprWordnetScorer.PhraseScorer] = Seq.empty
 
-  def getRelPredefLemma(predef : SilRelationshipPredef) : String
+  def getRelPredefLemma(predef : SprRelationshipPredef) : String
 
-  def getStatePredefLemma(predef : SilStatePredef) : String
+  def getStatePredefLemma(predef : SprStatePredef) : String
 
-  def getStatePredefFromLemma(lemma : String) : SilStatePredef
+  def getStatePredefFromLemma(lemma : String) : SprStatePredef
 
   def isModalAuxLemma(lemma : String) : Boolean = false
 
   def isProgressiveAuxLemma(lemma : String) : Boolean = false
 
   def tamForAuxLemma(lemma : String) : SilTam = SilTam.indicative
-
-  def isBeingLemma(verb : SilWord) : Boolean =
-    isBeingLemma(verb.toLemma)
-
-  def isBeingLemma(lemma : String) : Boolean
 
   def isRelationshipLemma(lemma : String) : Boolean =
     isBeingLemma(lemma) || isPossessionLemma(lemma)
@@ -202,6 +224,24 @@ abstract class SprTongue(wordnet : SprWordnet)
     gender : SilBasicGender,
     count : SilCount
   ) : SilPronounMap
+
+  override def getPronounUsage(
+    inflection : SilInflection,
+    proximity : SilProximity) : String =
+  {
+    proximity match {
+      case PROXIMITY_REFLEXIVE => LABEL_PRP_REFLEXIVE
+      case _ => {
+        inflection match {
+          // FIXME for Spanish, should override to distinguish
+          // direct from indirect object
+          case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LABEL_PRP_OBJ
+          case INFLECT_GENITIVE => LABEL_PRP_POS
+          case _ => LABEL_PRP
+        }
+      }
+    }
+  }
 
   override def deriveGender(ref : SilReference) : SilGender = GENDER_NEUTER
 
@@ -304,7 +344,7 @@ abstract class SprTongue(wordnet : SprWordnet)
     annotator.stateSpecifiedRef(
       membersRef,
       SilAdpositionalState(
-        SilAdposition(MW_OF),
+        SprMagicAdposition(MW_OF),
         setRef))
   }
 
@@ -367,4 +407,9 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def getPhrasePatternMatcher() : SprPhrasePatternMatcher =
     phrasePatternMatcher
+
+  override def isGenitiveVariableLemma(lemma : String) : Boolean =
+  {
+    lemma == SilMagicWord(MW_WHO).toLemma
+  }
 }

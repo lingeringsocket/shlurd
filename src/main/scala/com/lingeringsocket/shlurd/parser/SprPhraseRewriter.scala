@@ -542,7 +542,7 @@ class SprAmbiguityResolver(context : SprContext)
           SilPropertyState(SilSimpleWord(inflected, inflected, senseId))
         }
         case SilStatePredicate(
-          subject, SilStatePredefVerb(STATE_PREDEF_BE), state, modifiers
+          subject, SprStatePredefVerb(STATE_PREDEF_BE), state, modifiers
         ) => {
           SilStatePredicate(subject, STATE_PREDEF_BE.toVerb, state, modifiers)
         }
@@ -560,13 +560,13 @@ class SprAmbiguityResolver(context : SprContext)
       case (
         SilStatePredicate(
           s1,
-          SilStatePredefVerb(STATE_PREDEF_BE),
+          SprStatePredefVerb(STATE_PREDEF_BE),
           _ : SilConjunctiveState,
           m1
         ),
         SilRelationshipPredicate(
           s2,
-          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+          SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           _ : SilConjunctiveReference,
           m2
         )

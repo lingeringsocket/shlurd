@@ -12,20 +12,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.parser
-
-import com.lingeringsocket.shlurd.ilang._
+package com.lingeringsocket.shlurd.ilang
 
 import org.bitbucket.inkytonik.kiama.output._
 
-object SprPrettyPrinter extends PrettyPrinter
+object SilPrettyPrinter extends PrettyPrinter
 {
   def prettyPrint(phrase : SilPhrase) : String =
   {
     "\n" + pretty(any(phrase)).layout
   }
 
-  def prettyPrint(tree : SprAbstractSyntaxTree) : String =
+  def prettyPrint(tree : SilSyntaxTree) : String =
   {
     "\n" + pretty(tree.toDoc)
   }
@@ -33,7 +31,7 @@ object SprPrettyPrinter extends PrettyPrinter
   override def any(p : Any) : Doc =
   {
     p match {
-      case tree : SprAbstractSyntaxTree => tree.toDoc
+      case tree : SilSyntaxTree => tree.toDoc
       case ar : SilAnnotatedReference => {
         super.any(p) <> text(":" + ar.getAnnotationId)
       }

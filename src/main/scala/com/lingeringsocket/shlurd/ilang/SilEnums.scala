@@ -15,7 +15,6 @@
 package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd._
-import com.lingeringsocket.shlurd.parser._
 
 sealed trait SilReferenceContext
 case object REF_SUBJECT extends SilReferenceContext
@@ -111,16 +110,6 @@ case class SilAdposition(word : SilWord)
   override def hashCode = word.toLemma.hashCode
 }
 
-object SilMagicAdposition
-{
-  def unapply(
-    adposition : SilAdposition)(implicit tongue : SprTongue)
-      : Option[SprMagicWord] =
-  {
-    tongue.keywordForLemma(adposition.word.toLemma)
-  }
-}
-
 object SilAdposition
 {
   def apply(words : Seq[SilSimpleWord]) : SilAdposition =
@@ -130,12 +119,6 @@ object SilAdposition
     } else {
       SilAdposition(SilCompoundWord(words))
     }
-  }
-
-  def apply(
-    magicWord : SprMagicWord)(implicit tongue : SprTongue) : SilAdposition =
-  {
-    SilAdposition(SilMagicWord(magicWord))
   }
 }
 
@@ -230,63 +213,6 @@ sealed trait SilDeicticAxis
 case object DEICTIC_PERSONAL extends SilDeicticAxis
 case object DEICTIC_TEMPORAL extends SilDeicticAxis
 case object DEICTIC_SPATIAL extends SilDeicticAxis
-
-sealed trait SilRelationshipPredef
-{
-  def toLemma(implicit tongue : SprTongue) : String =
-    tongue.getRelPredefLemma(this)
-  def toVerb(implicit tongue : SprTongue) = SilWord(toLemma)
-}
-case object REL_PREDEF_IDENTITY extends SilRelationshipPredef
-case object REL_PREDEF_BECOME extends SilRelationshipPredef
-case object REL_PREDEF_ASSOC extends SilRelationshipPredef
-
-object SilRelationshipPredef
-{
-  val enumeration = Seq(
-    REL_PREDEF_IDENTITY, REL_PREDEF_BECOME, REL_PREDEF_ASSOC)
-
-  def apply(word : SilWord)(implicit tongue : SprTongue) =
-  {
-    tongue.relLemmaMap.get(word.toLemma).getOrElse {
-      REL_PREDEF_IDENTITY
-    }
-  }
-}
-
-object SilRelationshipPredefVerb
-{
-  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue) =
-  {
-    Some(SilRelationshipPredef(w))
-  }
-}
-
-sealed trait SilStatePredef
-{
-  def toLemma(implicit tongue : SprTongue) : String =
-    tongue.getStatePredefLemma(this)
-  def toVerb(implicit tongue : SprTongue) = SilWord(toLemma)
-}
-
-case object STATE_PREDEF_BE extends SilStatePredef
-case object STATE_PREDEF_BECOME extends SilStatePredef
-
-object SilStatePredef
-{
-  def apply(word : SilWord)(implicit tongue : SprTongue) =
-  {
-    tongue.getStatePredefFromLemma(word.toLemma)
-  }
-}
-
-object SilStatePredefVerb
-{
-  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue) =
-  {
-    Some(SilStatePredef(w))
-  }
-}
 
 sealed trait SilBracket
 {

@@ -17,11 +17,13 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
-class SmcUnrecognizedResponder(sentencePrinter : SilSentencePrinter)
+class SmcUnrecognizedResponder(
+  tongueIn : SprTongue,
+  sentencePrinter : SilSentencePrinter)
 {
   private val sb = sentencePrinter.sb
 
-  private implicit val tongue = sentencePrinter.getTongue
+  private implicit val tongue = tongueIn
 
   def respond(unrecognized : SilSentence) : String =
   {

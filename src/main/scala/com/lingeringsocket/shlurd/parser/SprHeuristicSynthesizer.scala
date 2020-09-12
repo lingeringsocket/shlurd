@@ -605,7 +605,7 @@ class SprHeuristicSynthesizer(
             allowConjunctive)
           result.map(_._1) match {
             case Some(SilAdpositionalVerbModifier(
-              SilMagicAdposition(MW_ADVERBIAL_TMP), ref)
+              SprMagicAdposition(MW_ADVERBIAL_TMP), ref)
             ) => {
               // FIXME discriminate excns
               if (Try(SprParser.interpretTemporal(ref)).isSuccess) {

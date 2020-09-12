@@ -39,7 +39,7 @@ class SpcQueryRewriter(
           scopedRewrite(state, INFLECT_ADPOSITIONED),
           modifiers)
         specified.state match {
-          case SilAdpositionalState(SilMagicAdposition(MW_IN), container) => {
+          case SilAdpositionalState(SprMagicAdposition(MW_IN), container) => {
             SilRelationshipPredicate(
               specified.subject,
               REL_PREDEF_IDENTITY.toVerb(tongue),

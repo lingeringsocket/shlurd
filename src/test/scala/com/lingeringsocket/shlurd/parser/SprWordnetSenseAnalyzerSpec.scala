@@ -12,20 +12,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.ilang
+package com.lingeringsocket.shlurd.parser
 
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 
-class SilWordnetSenseAnalyzerSpec extends Specification
+class SprWordnetSenseAnalyzerSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
   private implicit val tongue = SnlUtils.defaultTongue
 
   private val analyzer =
-    new SilWordnetSenseAnalyzer(tongue, SnlPrincetonWordnet, annotator)
+    new SprWordnetSenseAnalyzer(tongue, SnlPrincetonWordnet, annotator)
 
   private val pronounI =
     annotator.basicPronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)
@@ -53,7 +54,7 @@ class SilWordnetSenseAnalyzerSpec extends Specification
     }
   }
 
-  "SilWordnetSenseAnalyzer" should
+  "SprWordnetSenseAnalyzer" should
   {
     "analyze simple action verb sense" in
     {

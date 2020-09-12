@@ -454,7 +454,7 @@ class SpcResponder(
 
           Success(
             SilAdpositionalVerbModifier(
-              SilAdposition(MW_IN),
+              SprMagicAdposition(MW_IN),
               ref
             )
           )
@@ -526,9 +526,9 @@ class SpcResponder(
           standardized,
           cs.copy(
             antecedent = flipVariables(
-              annotator, standardized.consequent, placeholderMap),
+              tongue, annotator, standardized.consequent, placeholderMap),
             consequent = flipVariables(
-              annotator, cs.antecedent, placeholderMap),
+              tongue, annotator, cs.antecedent, placeholderMap),
             tamAntecedent = cs.tamConsequent,
             tamConsequent = cs.tamAntecedent
           )
@@ -554,7 +554,7 @@ class SpcResponder(
       ) match {
         case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
           val newRef = SpcImplicationMapper.flipVariable(
-            annotator, sentencePrinter, correspondingRefs.head, ref)
+            tongue, annotator, sentencePrinter, correspondingRefs.head, ref)
           placeholderMap.put(newRef, placeholderMap(ref))
           newRef
         }
@@ -589,6 +589,7 @@ class SpcResponder(
   }
 
   private def flipVariables(
+    tongue : SprTongue,
     annotator : SpcAnnotator,
     predicate : SilPredicate,
     placeholderMap : SpcMutableRefMap
@@ -603,7 +604,7 @@ class SpcResponder(
           ) match {
             case (true, correspondingRefs) if (!correspondingRefs.isEmpty) => {
               val newRef = SpcImplicationMapper.flipVariable(
-                annotator, sentencePrinter, ref, correspondingRefs.head)
+                tongue, annotator, sentencePrinter, ref, correspondingRefs.head)
               placeholderMap.put(newRef, placeholderMap(ref))
               newRef
             }
@@ -653,7 +654,7 @@ class SpcResponder(
           val temporalRefs = predicate.getModifiers.map(
             _ match {
               case SilAdpositionalVerbModifier(
-                SilMagicAdposition(MW_ADVERBIAL_TMP),
+                SprMagicAdposition(MW_ADVERBIAL_TMP),
                 ref
               ) => {
                 Some(ref)
@@ -1075,7 +1076,7 @@ class SpcResponder(
           SilDeterminedReference(
             SilCountedNounReference(SilWordLemma(lemma), count),
             _ : SilUnlimitedDeterminer),
-          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+          SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           complement,
           modifiers
         ) => {

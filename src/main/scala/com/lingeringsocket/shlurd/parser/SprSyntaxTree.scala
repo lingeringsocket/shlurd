@@ -104,7 +104,7 @@ object SprPennTreebankLabels
 }
 
 import SprPennTreebankLabels._
-import SprPrettyPrinter._
+import SilPrettyPrinter._
 
 trait SprAbstractSyntaxTree extends SilSyntaxTree
 {
@@ -271,9 +271,9 @@ trait SprAbstractSyntaxTree extends SilSyntaxTree
 
   def isPause = isComma || isSemicolon || hasLabel(LABEL_DOT)
 
-  override def toString = SprPrettyPrinter.prettyPrint(this)
+  override def toString = SilPrettyPrinter.prettyPrint(this)
 
-  def toDoc : Doc =
+  override def toDoc : Doc =
   {
     parens(
       string(label) <> nest(

@@ -15,7 +15,6 @@
 package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd._
-import com.lingeringsocket.shlurd.parser._
 
 import scala.collection._
 
@@ -24,6 +23,8 @@ trait SilSyntaxTree
   def toWordString : String
 
   def countLeaves : Int
+
+  def toDoc : SilPrettyPrinter.Doc
 }
 
 sealed trait SilPhrase
@@ -41,7 +42,7 @@ sealed trait SilPhrase
 
   def isConjunctive : Boolean = false
 
-  override def toString = SprPrettyPrinter.prettyPrint(this)
+  override def toString = SilPrettyPrinter.prettyPrint(this)
 
   def maybeSyntaxTree : Option[SilSyntaxTree] = None
 
@@ -934,19 +935,6 @@ object SilWord
 
   def withSense(s : String, senseId : String) =
     SilSimpleWord(s, s, senseId)
-}
-
-object SilProximityWord
-{
-  def apply(proximity : SilProximity)(implicit tongue : SprTongue) =
-  {
-    SilWord(tongue.proximityLemma(proximity))
-  }
-
-  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue) =
-  {
-    tongue.proximityForLemma(w.lemma)
-  }
 }
 
 object SilWordLemma

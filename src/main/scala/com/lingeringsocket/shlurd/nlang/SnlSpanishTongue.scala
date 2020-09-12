@@ -381,7 +381,7 @@ object SnlSpanishLexicon
 
   val keywordToLemma : Map[SprMagicWord, String] = Map(
     MW_ABOVE -> "arriba de",
-    MW_ADVERBIAL_TMP -> "_temporal_",
+    MW_ADVERBIAL_TMP -> LEMMA_ADVERBIAL_TMP,
     MW_AFTER -> "después de",
     MW_ALSO -> "también",
     // FIXME Spanish doesn't discriminate from MW_BETWEEN
@@ -487,7 +487,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 {
   import SnlSpanishLemmas._
   import SnlSpanishLexicon._
-  import SilWordnetScorer._
+  import SprWordnetScorer._
 
   private implicit val tongue = this
 
@@ -517,14 +517,14 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       context, strictness, enforceTransitive)
   }
 
-  override def getPhraseScorers : Seq[SilWordnetScorer.PhraseScorer] =
+  override def getPhraseScorers : Seq[SprWordnetScorer.PhraseScorer] =
   {
     phraseScorers
   }
 
   override def getStopList = stopList
 
-  override def getRelPredefLemma(predef : SilRelationshipPredef) : String =
+  override def getRelPredefLemma(predef : SprRelationshipPredef) : String =
   {
     predef match {
       case REL_PREDEF_IDENTITY => LEMMA_SER
@@ -534,7 +534,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   }
 
-  override def getStatePredefLemma(predef : SilStatePredef) : String =
+  override def getStatePredefLemma(predef : SprStatePredef) : String =
   {
     predef match {
       // FIXME this should depend on the nature of the state
@@ -545,7 +545,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   }
 
-  override def getStatePredefFromLemma(lemma : String) : SilStatePredef =
+  override def getStatePredefFromLemma(lemma : String) : SprStatePredef =
   {
     lemma match {
       case LEMMA_SER | LEMMA_EXISTIR | LEMMA_ESTAR => STATE_PREDEF_BE

@@ -23,7 +23,7 @@ object SnlUtils
 
   val defaultTongue = new SnlEnglishTongue(defaultWordnet)
 
-  val defaultPhraseScorer = new SilWordnetScorer(defaultTongue)
+  val defaultPhraseScorer = new SprWordnetScorer(defaultTongue)
 
   val defaultSentencePrinter = defaultTongue.newSentencePrinter(defaultTongue)
 

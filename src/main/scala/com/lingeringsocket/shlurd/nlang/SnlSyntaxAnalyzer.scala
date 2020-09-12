@@ -694,7 +694,7 @@ abstract class SnlSyntaxAnalyzer(
             if (extracted) {
               // FIXME ugh
               adposition match {
-                case SilMagicAdposition(
+                case SprMagicAdposition(
                   MW_OF | MW_GENITIVE_OF | MW_TO) => false
                 case _ => true
               }
@@ -743,7 +743,7 @@ abstract class SnlSyntaxAnalyzer(
       }
     } else if ((seq.size == 1) && seq.head.isNounPhrase) {
       SilAdpositionalState(
-        SilAdposition(MW_ADVERBIAL_TMP), expectReference(seq.head))
+        SprMagicAdposition(MW_ADVERBIAL_TMP), expectReference(seq.head))
     } else {
       SilUnrecognizedState(tree)
     }
@@ -846,7 +846,7 @@ abstract class SnlSyntaxAnalyzer(
     val objTrees = directObjTree.toSeq ++ indirectObjTree
     val indirectAdposition = indirectObjTree.map(indirectObj => {
       val modifier = SilAdpositionalVerbModifier(
-        SilAdposition(MW_TO),
+        SprMagicAdposition(MW_TO),
         expectReference(indirectObj)
       )
       modifier.rememberSyntaxTree(indirectObj)

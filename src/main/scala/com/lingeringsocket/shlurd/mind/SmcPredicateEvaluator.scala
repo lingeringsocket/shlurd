@@ -125,7 +125,7 @@ class SmcPredicateEvaluator[
           resultCollector.isCategorization = true
         }
         if (SmcPhraseQuerier.containsWildcard(subjectRef, false, true) &&
-          (SilRelationshipPredef(verb) ==
+          (SprRelationshipPredef(verb) ==
             REL_PREDEF_IDENTITY) &&
           categoryLabel.isEmpty
         ) {
@@ -264,7 +264,7 @@ class SmcPredicateEvaluator[
             evaluateCategorization(subjectEntity, label)
           }
           case _ => {
-            if (SilRelationshipPredef(verb) ==
+            if (SprRelationshipPredef(verb) ==
               REL_PREDEF_ASSOC)
             {
               val roleQualifiers = extractRoleQualifiers(complementRef)
@@ -300,7 +300,7 @@ class SmcPredicateEvaluator[
             }
             assumeExistence(
               unassumed,
-              SilRelationshipPredef(verb) == REL_PREDEF_ASSOC)
+              SprRelationshipPredef(verb) == REL_PREDEF_ASSOC)
           }
         }
       }
@@ -437,7 +437,7 @@ class SmcPredicateEvaluator[
         updateContext(subjectRef, relationshipSubjectContext(verb))
         val (context, categoryLabel) =
           relationshipComplementContext(verb, complementRef)
-        if (SilRelationshipPredef(verb) == REL_PREDEF_ASSOC) {
+        if (SprRelationshipPredef(verb) == REL_PREDEF_ASSOC) {
           if (extractRoleQualifiers(complementRef).size != 1) {
             updateContext(complementRef, context)
           }
@@ -527,7 +527,7 @@ class SmcPredicateEvaluator[
   private def relationshipSubjectContext(
     verb : SilWord) : SilReferenceContext =
   {
-    SilRelationshipPredef(verb) match {
+    SprRelationshipPredef(verb) match {
       case REL_PREDEF_IDENTITY | REL_PREDEF_BECOME => REF_COMPLEMENT
       case REL_PREDEF_ASSOC => REF_SUBJECT
     }
@@ -537,7 +537,7 @@ class SmcPredicateEvaluator[
     verb : SilWord,
     complementRef : SilReference) : (SilReferenceContext, Option[SilWord]) =
   {
-    SilRelationshipPredef(verb) match {
+    SprRelationshipPredef(verb) match {
       case REL_PREDEF_IDENTITY | REL_PREDEF_BECOME => {
         tupleN((REF_COMPLEMENT, extractCategory(complementRef)))
       }
@@ -616,7 +616,7 @@ class SmcPredicateEvaluator[
       unassumed,
       state match {
         case SilExistenceState(_) | SilAdpositionalState(
-          SilMagicAdposition(MW_GENITIVE_OF), _
+          SprMagicAdposition(MW_GENITIVE_OF), _
         ) => true
         case _ => false
       }
@@ -653,7 +653,7 @@ class SmcPredicateEvaluator[
     complementEntity : EntityType,
     verb : SilWord) : Try[Trilean] =
   {
-    SilRelationshipPredef(verb) match {
+    SprRelationshipPredef(verb) match {
       case REL_PREDEF_IDENTITY  => {
         val result = {
           if ((SmcPhraseQuerier.containsWildcard(subjectRef) ||
@@ -678,7 +678,7 @@ class SmcPredicateEvaluator[
         val roleQualifiers = extractRoleQualifiers(complementRef)
         val result = mind.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,
-          SilAdposition(MW_GENITIVE_OF), roleQualifiers)
+          SprMagicAdposition(MW_GENITIVE_OF), roleQualifiers)
         trace("RESULT FOR " +
           s"$complementEntity GENITIVE_OF " +
           s"$subjectEntity with $roleQualifiers is $result")
@@ -739,7 +739,7 @@ class SmcPredicateEvaluator[
           adpositionStates.forall(adp => {
             val adposition = adp.adposition
             val qualifiers : Set[SilWord] = {
-              if (adposition == SilAdposition(MW_GENITIVE_OF)) {
+              if (adposition == SprMagicAdposition(MW_GENITIVE_OF)) {
                 Set(noun)
               } else {
                 Set.empty
@@ -1230,7 +1230,7 @@ class SmcPredicateEvaluator[
               }
             }
             val state = SilAdpositionalState(
-              SilAdposition(MW_GENITIVE_OF), possessor)
+              SprMagicAdposition(MW_GENITIVE_OF), possessor)
             val result = evaluatePredicateOverState(
               possessee, state, REF_GENITIVE_POSSESSEE, resultCollector,
               specifiedState, evaluator)

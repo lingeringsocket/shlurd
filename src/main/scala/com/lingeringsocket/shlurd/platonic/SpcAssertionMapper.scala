@@ -240,7 +240,7 @@ class SpcAssertionMapper(
           ref => findPlaceholderCorrespondence(
             binding.annotator, ref, binding.placeholderMap
           )._2.map(r => {
-            flipVariable(binding.annotator, sentencePrinter, r, r)
+            flipVariable(tongue, binding.annotator, sentencePrinter, r, r)
           }))
       }
       case _ => set

@@ -66,7 +66,7 @@ class SnlEnglishVerbSpec extends Specification
         ParsedVerb(subject, Some(complement), verb.toLemma, tam, None)
       }
       case SilPredicateSentence(
-        SilStatePredicate(subject, SilStatePredefVerb(STATE_PREDEF_BE),
+        SilStatePredicate(subject, SprStatePredefVerb(STATE_PREDEF_BE),
           rhs @ SilPropertyState(state : SilSimpleWord), Seq()),
         tam, _
       ) => {
@@ -96,7 +96,7 @@ class SnlEnglishVerbSpec extends Specification
       }
       case SilPredicateQuery(
         SilStatePredicate(
-          subject, SilStatePredefVerb(STATE_PREDEF_BE),
+          subject, SprStatePredefVerb(STATE_PREDEF_BE),
           rhs @ SilPropertyState(state : SilSimpleWord), Seq()),
         question, answerInflection, tam, _
       ) => {

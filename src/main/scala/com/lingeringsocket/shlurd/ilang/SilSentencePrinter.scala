@@ -15,9 +15,6 @@
 package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd._
-import com.lingeringsocket.shlurd.parser._
-
-import SprPennTreebankLabels._
 
 object SilSentencePrinter
 {
@@ -28,11 +25,9 @@ object SilSentencePrinter
 import SilSentencePrinter._
 
 class SilSentencePrinter(
-  tongueIn : SprTongue,
+  tongue : SilTongue,
   genderAnalyzer : SilGenderAnalyzer)
 {
-  private implicit val tongue = tongueIn
-
   def getTongue = tongue
 
   val sb = tongue.newSentenceBundle()
@@ -225,11 +220,7 @@ class SilSentencePrinter(
     conjoining : SilConjoining) =
   {
     val word = ref.word.orElse {
-      val usage = inflection match {
-        case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LABEL_PRP_OBJ
-        case INFLECT_GENITIVE => LABEL_PRP_POS
-        case _ => LABEL_PRP
-      }
+      val usage = tongue.getPronounUsage(inflection, ref.proximity)
       val pronounKey = SilPronounKey(usage, ref.person)
       ref.pronounMap.get(pronounKey)
     }
@@ -407,9 +398,9 @@ class SilSentencePrinter(
     // state gets lost for questions such as QUESTION_WHAT
     val (plainSubject, subjectInflection) = predicate.getSubject match {
       case SilGenitiveReference(
-        SilNounReference(SilMagicWord(MW_WHO)),
+        SilNounReference(noun),
         possessee
-      ) => {
+      ) if (tongue.isGenitiveVariableLemma(noun.toLemma)) => {
         tupleN((
           print(
             possessee, INFLECT_NOMINATIVE, SilConjoining.NONE),
@@ -509,7 +500,7 @@ class SilSentencePrinter(
   {
     val uninflectedVerb = {
       if (existentialPronoun.nonEmpty && (tam.modality == MODAL_EMPHATIC)) {
-        SilMagicWord(MW_EXIST).toUninflected
+        sb.existsVerb
       } else {
         verb.toUninflected
       }
@@ -634,16 +625,13 @@ class SilSentencePrinter(
     phrase : SilAdpositionalPhrase,
     conjoining : SilConjoining) : String =
   {
-    phrase.adposition match {
-      case SilMagicAdposition(MW_ADVERBIAL_TMP) => {
-        print(phrase.objRef, INFLECT_NONE, conjoining)
-      }
-      case _ => {
-        sb.adpositionedNoun(
-          sb.adpositionString(phrase.adposition),
-          print(phrase.objRef, INFLECT_ACCUSATIVE, SilConjoining.NONE),
-          conjoining)
-      }
+    if (phrase.adposition.word.toLemma == LEMMA_ADVERBIAL_TMP) {
+      print(phrase.objRef, INFLECT_NONE, conjoining)
+    } else {
+      sb.adpositionedNoun(
+        sb.adpositionString(phrase.adposition),
+        print(phrase.objRef, INFLECT_ACCUSATIVE, SilConjoining.NONE),
+        conjoining)
     }
   }
 }

@@ -232,6 +232,11 @@ abstract class SnlSentenceBundle(
     delemmatizeWord(verb)
   }
 
+  override def existsVerb() : SilWord =
+  {
+    SilMagicWord(MW_EXIST).toUninflected
+  }
+
   override def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) =
   {

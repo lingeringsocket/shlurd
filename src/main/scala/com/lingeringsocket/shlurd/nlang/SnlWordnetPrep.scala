@@ -121,7 +121,8 @@ object SnlWordnetPrep
             case SilAmbiguousSentence(alternatives, _) => {
               println("AMBIGUOUS PARSE")
               println("SIL = " + alternatives)
-              println("SPR = " + alternatives.map(a => SprUtils.maybeSyntaxTree(a)))
+              println("SPR = " + alternatives.map(
+                a => SprUtils.maybeSyntaxTree(a)))
               ambiguous += 1
             }
             case _ => {

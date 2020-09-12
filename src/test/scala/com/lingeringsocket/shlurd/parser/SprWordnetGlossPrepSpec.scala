@@ -99,7 +99,7 @@ class SnlWordnetGlossPrepSpec extends Specification
             None,
             Seq(
               SilAdpositionalVerbModifier(
-                SilAdposition(MW_ON),
+                SprMagicAdposition(MW_ON),
                 annotator.determinedRef(
                   annotator.stateSpecifiedRef(
                     annotator.nounRef(

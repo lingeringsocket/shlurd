@@ -12,14 +12,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.ilang
+package com.lingeringsocket.shlurd.parser
 
-import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.nlang._
 
 import org.specs2.mutable._
 
-class SilWordnetScorerSpec extends Specification
+class SprWordnetScorerSpec extends Specification
 {
   private val scorer = SnlUtils.defaultPhraseScorer
 
@@ -32,7 +32,7 @@ class SilWordnetScorerSpec extends Specification
 
   private val genitiveInvalid = annotator.genitiveRef(pronoun, pronoun)
 
-  "SilWordnetScorer" should
+  "SprWordnetScorer" should
   {
     "score local phrase" in
     {
@@ -79,8 +79,8 @@ class SilWordnetScorerSpec extends Specification
             Some(pronoun),
             Seq(SilAdpositionalVerbModifier(adp, pronoun))))
       }
-      score(SilAdposition(MW_FROM)) must be greaterThan
-        score(SilAdposition(MW_ON))
+      score(SprMagicAdposition(MW_FROM)) must be greaterThan
+        score(SprMagicAdposition(MW_ON))
     }
   }
 }

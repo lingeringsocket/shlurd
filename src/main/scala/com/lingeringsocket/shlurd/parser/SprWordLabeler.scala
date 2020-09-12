@@ -29,7 +29,7 @@ object SprContext
   def apply(tongue : SprTongue) = {
     new SprContext(
       new SprWordnetLabeler(tongue),
-      new SilWordnetScorer(tongue))
+      new SprWordnetScorer(tongue))
   }
 }
 

@@ -96,7 +96,7 @@ class SmcContextualScorer[
 ](
   tongue : SprTongue,
   responder : SmcResponder[EntityType, PropertyType, CosmosType, MindType])
-    extends SilWordnetScorer(tongue)
+    extends SprWordnetScorer(tongue)
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
 
@@ -306,7 +306,7 @@ class SmcResponder[
         responseRewriter.swapSpeakerListener(
           resultCollector.refMap),
         sentence)
-      val responder = new SmcUnrecognizedResponder(sentencePrinter)
+      val responder = new SmcUnrecognizedResponder(tongue, sentencePrinter)
       wrapResponseText(
         ShlurdExceptionCode.FailedParse,
         responder.respond(unrecognized))
@@ -842,7 +842,7 @@ class SmcResponder[
     }
     val timeframes = predicate.getModifiers.map(_ match {
       case SilAdpositionalVerbModifier(
-        adp @ (SilMagicAdposition(MW_BEFORE | MW_AFTER)),
+        adp @ (SprMagicAdposition(MW_BEFORE | MW_AFTER)),
         objRef
       ) => {
         Some((adp, objRef))
@@ -858,7 +858,10 @@ class SmcResponder[
             ShlurdExceptionCode.NotYetImplemented,
             "A timeframe must be specified.")
         }
-        (SilAdposition(MW_AFTER), predicate, predicate, predicate.getModifiers)
+        tupleN((
+          SprMagicAdposition(MW_AFTER), predicate,
+          predicate, predicate.getModifiers
+        ))
       } else {
         val (adp, objRef) = timeframes(iTimeframe).get
         val reducedModifiers =
@@ -877,7 +880,7 @@ class SmcResponder[
     var matchSeen = (iTimeframe < 0)
     var success = false
     val iter = adp match {
-      case SilMagicAdposition(MW_BEFORE) => timeline.getEntries.reverseIterator
+      case SprMagicAdposition(MW_BEFORE) => timeline.getEntries.reverseIterator
       case _ => timeline.getEntries.iterator
     }
 

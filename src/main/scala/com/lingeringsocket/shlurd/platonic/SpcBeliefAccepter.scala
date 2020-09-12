@@ -1077,12 +1077,12 @@ class SpcBeliefAccepter private(
         SilMagicWord(MW_IF),
         SilRelationshipPredicate(
           antecedentSubject,
-          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+          SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           antecedentComplement,
           Seq()),
         SilRelationshipPredicate(
           consequentSubject,
-          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+          SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           consequentComplement,
           verbModifiers),
         tam1,

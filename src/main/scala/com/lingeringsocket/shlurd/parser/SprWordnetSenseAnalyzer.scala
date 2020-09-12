@@ -12,15 +12,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.ilang
+package com.lingeringsocket.shlurd.parser
 
-import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.ilang._
 
 import net.sf.extjwnl.data._
 
 import scala.collection._
 
-class SilWordnetSenseAnalyzer(
+class SprWordnetSenseAnalyzer(
   tongue : SprTongue,
   wordnet : SprWordnet,
   annotator : SilAnnotator)
@@ -29,7 +29,7 @@ class SilWordnetSenseAnalyzer(
   def analyze[PhraseType <: SilPhrase](phrase : PhraseType) : PhraseType =
   {
     def matcher = replacementMatcher(
-      "SilWordnetSenseAnalyzer", {
+      "SprWordnetSenseAnalyzer", {
         case SilActionPredicate(subject, verb, directObject, modifiers) => {
           val senseId = filterSenses(verb, POS.VERB, sense => {
             isCompatibleAction(sense, subject, directObject, modifiers)
@@ -80,7 +80,7 @@ class SilWordnetSenseAnalyzer(
     modifiers : Seq[SilVerbModifier]) : Boolean =
   {
     val frameFlags = BitSet(sense.getVerbFrameIndices:_*)
-    val matched = SilWordnetScorer.matchAction(
+    val matched = SprWordnetScorer.matchAction(
       tongue, frameFlags, subject, directObject, modifiers)
     (matched > 0)
   }

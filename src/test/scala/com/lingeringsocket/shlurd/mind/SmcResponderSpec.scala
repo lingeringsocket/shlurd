@@ -60,7 +60,7 @@ class SmcResponderSpec extends Specification
         {
           state match {
             case SilAdpositionalState(
-              SilMagicAdposition(MW_IN),
+              SprMagicAdposition(MW_IN),
               SilMandatorySingular(
                 SilWordInflected("dreamland")
               )) =>

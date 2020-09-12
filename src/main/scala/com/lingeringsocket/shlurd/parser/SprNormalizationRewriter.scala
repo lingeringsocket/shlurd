@@ -166,7 +166,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     "normalizeCompass", {
       case SilRelationshipPredicate(
         subject,
-        SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+        SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         SilStateSpecifiedReference(
           SilNounReference(
             direction : SilSimpleWord
@@ -177,7 +177,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         ),
         modifiers
       ) if (
-        (adp == SilAdposition(MW_OF)) && compassRose.contains(direction.lemma)
+        (adp == SprMagicAdposition(MW_OF)) &&
+          compassRose.contains(direction.lemma)
       ) => {
         SilStatePredicate(
           subject,
@@ -195,7 +196,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         SilPropertyState(direction : SilSimpleWord),
         Seq(SilAdpositionalVerbModifier(adp, landmark))
       ) if (
-        (adp == SilAdposition(MW_OF)) && compassRose.contains(direction.lemma)
+        (adp == SprMagicAdposition(MW_OF)) &&
+          compassRose.contains(direction.lemma)
       ) => {
         SilStatePredicate(
           subject,
@@ -283,8 +285,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     "normalizeHereThere", {
       case SilStatePredicate(
         subject,
-        SilStatePredefVerb(STATE_PREDEF_BE),
-        SilPropertyState(w @ SilProximityWord(
+        SprStatePredefVerb(STATE_PREDEF_BE),
+        SilPropertyState(w @ SprProximityWord(
           PROXIMITY_SPEAKER_HERE | PROXIMITY_LISTENER_THERE)),
         verbModifiers
       ) => {
@@ -388,8 +390,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     // "bow before the throne" involve adverbial phrases.  And in some cases,
     // we should leave it ambiguous and try it both ways.
     adposition match {
-      case SilMagicAdposition(MW_BEFORE | MW_AFTER | MW_TO) => true
-      case SilMagicAdposition(MW_AT) => {
+      case SprMagicAdposition(MW_BEFORE | MW_AFTER | MW_TO) => true
+      case SprMagicAdposition(MW_AT) => {
         objRef match {
           case SilMandatorySingular(
             _

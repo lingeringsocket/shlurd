@@ -74,16 +74,17 @@ object SpcImplicationMapper
   }
 
   def flipVariable(
+    tongueIn : SprTongue,
     annotator : SpcAnnotator,
     sentencePrinter : SilSentencePrinter,
     reference : SilReference,
     default : => SilReference) : SilReference =
   {
-    implicit val tongue = sentencePrinter.getTongue
+    implicit val tongue = tongueIn
 
     reference match {
       case SilAppositionalReference(primary, _) => {
-        flipVariable(annotator, sentencePrinter, primary, default)
+        flipVariable(tongue, annotator, sentencePrinter, primary, default)
       }
       case SilDeterminedReference(
         SilCountedNounReference(noun, count),

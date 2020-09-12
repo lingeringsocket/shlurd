@@ -262,13 +262,13 @@ class ZooMind(cosmos : ZooCosmos)
     qualifiers : Set[SilWord]) : Try[Trilean] =
   {
     val map = adposition match {
-      case SilMagicAdposition(MW_GENITIVE_OF) => {
+      case SprMagicAdposition(MW_GENITIVE_OF) => {
         if (!objEntity.isInstanceOf[ZooPersonEntity]) {
           return Success(Trilean.False)
         }
         ZooCosmos.ownership
       }
-      case SilMagicAdposition(MW_IN | MW_ON) => {
+      case SprMagicAdposition(MW_IN | MW_ON) => {
         if (!objEntity.isInstanceOf[ZooLocationEntity]) {
           return Success(Trilean.False)
         }

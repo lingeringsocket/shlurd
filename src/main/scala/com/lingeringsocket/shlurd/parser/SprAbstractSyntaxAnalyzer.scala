@@ -239,7 +239,8 @@ abstract class SprAbstractSyntaxAnalyzer(
       }
       case _ => {
         tongue.keywordForLemma(preTerminal.firstChild.lemma) match {
-          case Some(amw : SprAdpositionMagicWord) => Some(SilAdposition(amw))
+          case Some(amw : SprAdpositionMagicWord) =>
+            Some(SprMagicAdposition(amw))
           case _ => None
         }
       }
@@ -365,7 +366,7 @@ abstract class SprAbstractSyntaxAnalyzer(
       : SilVerbModifier =
   {
     SilAdpositionalVerbModifier(
-      SilAdposition(MW_ADVERBIAL_TMP),
+      SprMagicAdposition(MW_ADVERBIAL_TMP),
       expectReference(tmod.child))
   }
 

@@ -144,7 +144,6 @@ object SnlEnglishLemmas
   val LEMMA_BEHIND = "behind"
   val LEMMA_OF = "of"
   val LEMMA_GENITIVE_OF = "_of_"
-  val LEMMA_ADVERBIAL_TMP = "_temporal_"
 }
 import SnlEnglishLemmas._
 
@@ -275,7 +274,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     extends SprTongue(wordnet)
 {
   import SnlEnglishLexicon._
-  import SilWordnetScorer._
+  import SprWordnetScorer._
 
   private implicit val tongue = this
 
@@ -309,12 +308,12 @@ class SnlEnglishTongue(wordnet : SprWordnet)
 
   override def getStopList = stopList
 
-  override def getPhraseScorers : Seq[SilWordnetScorer.PhraseScorer] =
+  override def getPhraseScorers : Seq[SprWordnetScorer.PhraseScorer] =
   {
     phraseScorers
   }
 
-  override def getRelPredefLemma(predef : SilRelationshipPredef) : String =
+  override def getRelPredefLemma(predef : SprRelationshipPredef) : String =
   {
     predef match {
       case REL_PREDEF_IDENTITY => LEMMA_BE
@@ -323,7 +322,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     }
   }
 
-  override def getStatePredefLemma(predef : SilStatePredef) : String =
+  override def getStatePredefLemma(predef : SprStatePredef) : String =
   {
     predef match {
       case STATE_PREDEF_BE => LEMMA_BE
@@ -331,7 +330,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     }
   }
 
-  override def getStatePredefFromLemma(lemma : String) : SilStatePredef =
+  override def getStatePredefFromLemma(lemma : String) : SprStatePredef =
   {
     lemma match {
       case LEMMA_EXIST | LEMMA_BE => STATE_PREDEF_BE
@@ -950,7 +949,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
         SilPhraseScore.conBig
       } else if (words.exists(_.lemma == MW_ADVERBIAL_TMP.toLemma)) {
         SilPhraseScore.proBig
-      } else if (ap.adposition != SilAdposition(MW_TO)) {
+      } else if (ap.adposition != SprMagicAdposition(MW_TO)) {
         // in a phrase like "he went up the steps", we boost the
         // interpretation of "up" as an adposition vs adverb
         SilPhraseScore.pro(20)

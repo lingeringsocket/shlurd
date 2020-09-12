@@ -625,4 +625,9 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
       compose("아니요,", prefixed)
     }
   }
+
+  override def existsVerb() : SilWord =
+  {
+    SilWord("있다")
+  }
 }

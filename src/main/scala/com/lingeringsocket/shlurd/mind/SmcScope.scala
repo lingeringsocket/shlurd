@@ -396,7 +396,7 @@ class SmcPhraseScope[
 
   override def getSentencePrinter = parent.getSentencePrinter
 
-  private implicit val tongue = getSentencePrinter.getTongue
+  private implicit val tongue = getMind.getTongue
 
   override def resolveQualifiedNoun(
     noun : SilWord,

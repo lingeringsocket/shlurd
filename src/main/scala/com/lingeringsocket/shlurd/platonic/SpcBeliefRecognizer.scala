@@ -122,7 +122,7 @@ object SpcBeliefRecognizer
       case SilPredicateSentence(
         SilRelationshipPredicate(
           ref,
-          SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+          SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
           interpretation,
           Seq()
         ),
@@ -404,7 +404,7 @@ class SpcBeliefRecognizer(
     val ref = predicate.subject
     val state = predicate.state
     state matchPartial {
-      case SilAdpositionalState(SilMagicAdposition(MW_IN), container) => {
+      case SilAdpositionalState(SprMagicAdposition(MW_IN), container) => {
         return recognizeRelationshipPredicateBelief(
           sentence,
           SilRelationshipPredicate(
@@ -580,7 +580,7 @@ class SpcBeliefRecognizer(
     val subjectRef = predicate.subject
     val complementRef = predicate.complement
     val verb = predicate.verb
-    if ((SilRelationshipPredef(verb) == REL_PREDEF_IDENTITY) &&
+    if ((SprRelationshipPredef(verb) == REL_PREDEF_IDENTITY) &&
       sentence.tam.unemphaticModality == MODAL_NEUTRAL
     ) {
       val (kindOpt, aliasOpt) = complementRef match {
@@ -590,7 +590,7 @@ class SpcBeliefRecognizer(
               SilMagicWord(MW_KIND),
               kindCount),
             SilAdpositionalState(
-              SilMagicAdposition(MW_OF),
+              SprMagicAdposition(MW_OF),
               SilOptionallyDeterminedReference(
                 SilNounReference(hypernymIdealName),
                 DETERMINER_NONSPECIFIC | DETERMINER_ABSENT
@@ -609,7 +609,7 @@ class SpcBeliefRecognizer(
               SilMagicWord(MW_SAME)
             ),
             SilAdpositionalState(
-              SilMagicAdposition(MW_AS),
+              SprMagicAdposition(MW_AS),
               SilOptionallyDeterminedReference(
                 SilCountedNounReference(idealName, count),
                 determiner
@@ -831,7 +831,7 @@ class SpcBeliefRecognizer(
     verb : SilWord
   ) : Seq[SpcBelief] =
   {
-    if (SilRelationshipPredef(verb) != REL_PREDEF_IDENTITY) {
+    if (SprRelationshipPredef(verb) != REL_PREDEF_IDENTITY) {
       return Seq.empty
     }
     propertyRef match {
@@ -888,7 +888,7 @@ class SpcBeliefRecognizer(
         }
       }
       case sp : SilStatePredicate => {
-        val predef = SilStatePredef(sp.verb)
+        val predef = SprStatePredef(sp.verb)
         if (biconditional) {
           if ((predef == STATE_PREDEF_BECOME) || isUnidirectional) {
             reportException(ConsequentConditionExpected)
@@ -902,7 +902,7 @@ class SpcBeliefRecognizer(
         }
       }
       case rp : SilRelationshipPredicate => {
-        val predef = SilRelationshipPredef(rp.verb)
+        val predef = SprRelationshipPredef(rp.verb)
         if (biconditional) {
           if ((predef == REL_PREDEF_BECOME) || isUnidirectional) {
             reportException(ConsequentConditionExpected)
@@ -939,10 +939,10 @@ class SpcBeliefRecognizer(
         val antecedentEvent = conditional.antecedent match {
           case _ : SilActionPredicate => true
           case rp : SilRelationshipPredicate if (
-            SilRelationshipPredef(rp.verb) == REL_PREDEF_BECOME
+            SprRelationshipPredef(rp.verb) == REL_PREDEF_BECOME
           ) => true
           case sp : SilStatePredicate if (
-            SilStatePredef(sp.verb) == STATE_PREDEF_BECOME
+            SprStatePredef(sp.verb) == STATE_PREDEF_BECOME
           ) => true
           case _ => false
         }
@@ -1113,7 +1113,7 @@ class SpcBeliefRecognizer(
     verb : SilWord)
       : Seq[SpcBelief] =
   {
-    SilRelationshipPredef(verb) match {
+    SprRelationshipPredef(verb) match {
       case REL_PREDEF_IDENTITY if (sentence.tam.modality == MODAL_MUST) => {
         Seq(RoleTaxonomyBelief(
           sentence, formNoun, roleNoun, complementNoun, false))
@@ -1133,7 +1133,7 @@ class SpcBeliefRecognizer(
     subjectConjunction : SubjectConjunction)
       : Seq[SpcBelief] =
   {
-    SilRelationshipPredef(verb) match {
+    SprRelationshipPredef(verb) match {
       case REL_PREDEF_BECOME | REL_PREDEF_IDENTITY => {
         Seq.empty
       }
@@ -1212,7 +1212,7 @@ class SpcBeliefRecognizer(
     if (sentence.tam.modality != MODAL_NEUTRAL) {
       return Seq(UnimplementedBelief(sentence))
     }
-    SilRelationshipPredef(verb) matchPartial {
+    SprRelationshipPredef(verb) matchPartial {
       case REL_PREDEF_ASSOC => {
         subjectConjunction.checkAnd
         complementRef match {
@@ -1456,7 +1456,7 @@ class SpcBeliefRecognizer(
     modifier match {
       // "after this | that"
       case SilAdpositionalVerbModifier(
-        SilMagicAdposition(MW_AFTER),
+        SprMagicAdposition(MW_AFTER),
         pr : SilPronounReference
       ) if (pr.isDemonstrative) => true
       case _ => false

@@ -115,6 +115,8 @@ abstract class SilSentenceBundle
   def actionVerb(
     verb : SilWord) : String
 
+  def existsVerb() : SilWord
+
   def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) : String
 

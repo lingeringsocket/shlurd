@@ -62,7 +62,7 @@ object SnlWordnetGlossPrep
       case SilPredicateSentence(
         SilStatePredicate(
           subject,
-          SilStatePredefVerb(STATE_PREDEF_BE),
+          SprStatePredefVerb(STATE_PREDEF_BE),
           SilExistenceState(_),
           Seq()
         ),

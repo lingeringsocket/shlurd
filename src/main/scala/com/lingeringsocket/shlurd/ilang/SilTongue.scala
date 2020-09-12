@@ -12,13 +12,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd
+package com.lingeringsocket.shlurd.ilang
 
-import scala.collection._
-
-package object ilang
+trait SilTongue extends SilGenderAnalyzer
 {
-  type SilPronounMap = Map[SilPronounKey, SilWord]
+  def newSentenceBundle() : SilSentenceBundle
 
-  val LEMMA_ADVERBIAL_TMP = "_temporal_"
+  def getPronounUsage(
+    inflection : SilInflection,
+    proximity : SilProximity) : String
+
+  def isBeingLemma(verb : SilWord) : Boolean =
+    isBeingLemma(verb.toLemma)
+
+  def isBeingLemma(lemma : String) : Boolean
+
+  def isGenitiveVariableLemma(lemma : String) : Boolean
 }

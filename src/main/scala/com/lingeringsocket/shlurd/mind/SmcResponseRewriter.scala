@@ -82,7 +82,7 @@ class SmcResponseRewriter[
             predicate match {
               case SilRelationshipPredicate(
                 _,
-                SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+                SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
                 SilGenitiveReference(
                   _,
                   SilNounLemmaReference(
@@ -330,14 +330,14 @@ class SmcResponseRewriter[
         }
       }
       case SilBasicVerbModifier(
-        SilProximityWord(PROXIMITY_SPEAKER_HERE)
+        SprProximityWord(PROXIMITY_SPEAKER_HERE)
       ) if (swapHereThere) => {
-        SilBasicVerbModifier(SilProximityWord(PROXIMITY_LISTENER_THERE))
+        SilBasicVerbModifier(SprProximityWord(PROXIMITY_LISTENER_THERE))
       }
       case SilBasicVerbModifier(
-        SilProximityWord(PROXIMITY_LISTENER_THERE)
+        SprProximityWord(PROXIMITY_LISTENER_THERE)
       ) if (swapHereThere) => {
-        SilBasicVerbModifier(SilProximityWord(PROXIMITY_SPEAKER_HERE))
+        SilBasicVerbModifier(SprProximityWord(PROXIMITY_SPEAKER_HERE))
       }
     }
   )
@@ -388,7 +388,7 @@ class SmcResponseRewriter[
       case (rp @
           SilRelationshipPredicate(
             container,
-            verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+            verb @ SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
             SilGenitiveReference(
               containee,
               SilNounLemmaReference(
@@ -411,7 +411,7 @@ class SmcResponseRewriter[
             containee,
             verb.toUninflected,
             SilAdpositionalState(
-              SilAdposition(MW_IN),
+              SprMagicAdposition(MW_IN),
               container),
             verbModifiers)
         }
@@ -419,7 +419,7 @@ class SmcResponseRewriter[
       case (rp @
           SilRelationshipPredicate(
             containee,
-            SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+            SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
             SilGenitiveReference(
               container,
               SilNounLemmaReference(
@@ -433,7 +433,7 @@ class SmcResponseRewriter[
           containee,
           STATE_PREDEF_BE.toVerb,
           SilAdpositionalState(
-            SilAdposition(MW_IN),
+            SprMagicAdposition(MW_IN),
             container),
           verbModifiers)
       }
@@ -456,7 +456,7 @@ class SmcResponseRewriter[
     refMap --= detector.ambiguousRefs
     predicate matchPartial {
       case SilRelationshipPredicate(
-        subject, SilRelationshipPredefVerb(REL_PREDEF_IDENTITY), complement, _
+        subject, SprRelationshipPredefVerb(REL_PREDEF_IDENTITY), complement, _
       ) => {
         tupleN(
           (refMap.get(subject),
@@ -484,7 +484,7 @@ class SmcResponseRewriter[
     "flipPronouns", {
       case SilRelationshipPredicate(
         lhs,
-        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+        verb @ SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         rhs : SilPronounReference,
         modifiers
       ) => {
@@ -496,7 +496,7 @@ class SmcResponseRewriter[
       }
       case SilRelationshipPredicate(
         lhs,
-        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+        verb @ SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         rhs @ SilConjunctiveReference(_, references, _),
         modifiers
       ) if (references.exists(_.isInstanceOf[SilPronounReference])) => {
@@ -516,7 +516,7 @@ class SmcResponseRewriter[
     {
       case SilRelationshipPredicate(
         lhs,
-        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+        verb @ SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         rhs,
         verbModifiers
       ) if (
@@ -539,7 +539,7 @@ class SmcResponseRewriter[
     "avoidTautologies", {
       case SilRelationshipPredicate(
         SilMappedReference(key, determiner),
-        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+        verb @ SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         other : SilReference,
         verbModifiers
       ) => {
@@ -552,7 +552,7 @@ class SmcResponseRewriter[
       }
       case SilRelationshipPredicate(
         other : SilReference,
-        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+        verb @ SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         SilMappedReference(key, determiner),
         verbModifiers
       ) => {
@@ -608,7 +608,7 @@ class SmcResponseRewriter[
         sr @ SilStateSpecifiedReference(
           _,
           SilAdpositionalState(
-            SilMagicAdposition(MW_OF),
+            SprMagicAdposition(MW_OF),
             SilPronounReference(
               PERSON_THIRD, _, COUNT_PLURAL, PROXIMITY_ENTITY))),
         _
@@ -768,7 +768,7 @@ class SmcResponseRewriter[
     "coerceCountAgreement", {
       case SilRelationshipPredicate(
         subject,
-        verb @ SilRelationshipPredefVerb(REL_PREDEF_IDENTITY),
+        verb @ SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         complement, verbModifiers
       ) => {
         val subjectCount = SilUtils.getCount(subject)
@@ -985,7 +985,7 @@ class SmcResponseRewriter[
       annotator.stateSpecifiedRef(
         annotator.determinedRef(nounRef, determiner),
         SilAdpositionalState(
-          SilAdposition(MW_OF),
+          SprMagicAdposition(MW_OF),
           annotator.pronounRef(
             PERSON_THIRD,
             GENDER_NEUTER,

@@ -447,7 +447,7 @@ class PhlebShell(
       val lemma = ap.verb.toLemma
       val targetRefOpt = ap.modifiers.flatMap(_ match {
         case SilAdpositionalVerbModifier(
-          SilMagicAdposition(MW_TO),
+          SprMagicAdposition(MW_TO),
           ref) => Some(ref)
         case _ => None
       }).headOption.orElse {

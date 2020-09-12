@@ -46,3 +46,60 @@ object SprUtils
     phrase.maybeSyntaxTree.map(_.asInstanceOf[SprSyntaxTree])
   }
 }
+
+sealed trait SprRelationshipPredef
+{
+  def toLemma(implicit tongue : SprTongue) : String =
+    tongue.getRelPredefLemma(this)
+  def toVerb(implicit tongue : SprTongue) = SilWord(toLemma)
+}
+case object REL_PREDEF_IDENTITY extends SprRelationshipPredef
+case object REL_PREDEF_BECOME extends SprRelationshipPredef
+case object REL_PREDEF_ASSOC extends SprRelationshipPredef
+
+object SprRelationshipPredef
+{
+  val enumeration = Seq(
+    REL_PREDEF_IDENTITY, REL_PREDEF_BECOME, REL_PREDEF_ASSOC)
+
+  def apply(word : SilWord)(implicit tongue : SprTongue) =
+  {
+    tongue.relLemmaMap.get(word.toLemma).getOrElse {
+      REL_PREDEF_IDENTITY
+    }
+  }
+}
+
+object SprRelationshipPredefVerb
+{
+  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue) =
+  {
+    Some(SprRelationshipPredef(w))
+  }
+}
+
+sealed trait SprStatePredef
+{
+  def toLemma(implicit tongue : SprTongue) : String =
+    tongue.getStatePredefLemma(this)
+  def toVerb(implicit tongue : SprTongue) = SilWord(toLemma)
+}
+
+case object STATE_PREDEF_BE extends SprStatePredef
+case object STATE_PREDEF_BECOME extends SprStatePredef
+
+object SprStatePredef
+{
+  def apply(word : SilWord)(implicit tongue : SprTongue) =
+  {
+    tongue.getStatePredefFromLemma(word.toLemma)
+  }
+}
+
+object SprStatePredefVerb
+{
+  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue) =
+  {
+    Some(SprStatePredef(w))
+  }
+}
