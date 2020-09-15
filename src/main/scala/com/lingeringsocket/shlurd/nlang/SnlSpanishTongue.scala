@@ -807,14 +807,21 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     prepositions.contains(lemma)
   }
 
-  override def isValidAuxAdposition(
-    auxLemma : String, adpositionLemma : String) : Boolean =
+  override def adpositionForAux(auxLemma : String) : String =
   {
-    // FIXME all the feels
-    tupleN((auxLemma, adpositionLemma)) match {
-      case (LEMMA_ESTAR, "") => true
-      case (LEMMA_DEBER, LEMMA_DE) => true
-      case _ => false
+    // FIXME all of 'em
+    auxLemma match {
+      case LEMMA_DEBER => LEMMA_DE
+      case _ => ""
+    }
+  }
+
+  override def auxVerbForModal(modality : SilModality) : String =
+  {
+    // FIXME all of 'em
+    modality match {
+      case MODAL_SHOULD => LEMMA_DEBER
+      case _ => throw new IllegalArgumentException("whoops")
     }
   }
 

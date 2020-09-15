@@ -85,6 +85,9 @@ object SnlSpanishConjugation
     infinitive : String,
     coord : SnlSpanishConjugationCoord) : String =
   {
+    if (coord.tense == TENSE_INFINITIVE) {
+      return infinitive
+    }
     // FIXME all the tams
     val spanishTense = {
       coord.mood match {

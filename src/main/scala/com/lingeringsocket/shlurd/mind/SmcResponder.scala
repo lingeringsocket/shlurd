@@ -823,6 +823,11 @@ class SmcResponder[
             ShlurdExceptionCode.NotYetImplemented,
             "Future tense not supported yet.")
         }
+        case TENSE_INFINITIVE => {
+          cosmos.fail(
+            ShlurdExceptionCode.NotYetImplemented,
+            "Infinitive not meaningful here.")
+        }
       }
     }
   }

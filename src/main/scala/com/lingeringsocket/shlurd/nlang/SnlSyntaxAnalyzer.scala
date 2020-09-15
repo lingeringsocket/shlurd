@@ -699,7 +699,7 @@ abstract class SnlSyntaxAnalyzer(
     } else {
       val adpositionLemma = adpositions.
         headOption.map(_.firstChild.lemma).getOrElse("")
-      tongue.isValidAuxAdposition(auxLemma, adpositionLemma)
+      tongue.adpositionForAux(auxLemma) == adpositionLemma
     }
   }
 

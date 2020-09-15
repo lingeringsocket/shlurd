@@ -542,11 +542,16 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     prepositions.contains(lemma)
   }
 
-  override def isValidAuxAdposition(
-    auxLemma : String, adpositionLemma : String) : Boolean =
+  override def adpositionForAux(auxLemma : String) : String =
   {
-    // FIXME support stuff like "I have to go"
-    adpositionLemma.isEmpty
+    // FIXME "have to", etc
+    ""
+  }
+
+  override def auxVerbForModal(modality : SilModality) : String =
+  {
+    // FIXME "have to", etc
+    ""
   }
 
   override def isSubordinatingConjunction(lemma : String) : Boolean =

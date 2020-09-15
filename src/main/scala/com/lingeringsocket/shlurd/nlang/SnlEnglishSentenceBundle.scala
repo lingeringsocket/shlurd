@@ -36,7 +36,7 @@ class SnlEnglishSentenceBundle(
   tongue,
   SnlEnglishSentenceBundle.numberFormat)
 {
-  override protected def delemmatizeModalVerb(
+  private def delemmatizeModalVerb(
     tam : SilTam, verb : SilWord,
     person : SilPerson, gender : SilGender, count : SilCount)
       : Seq[String] =
@@ -55,6 +55,7 @@ class SnlEnglishSentenceBundle(
       if (tam.isProgressive) {
         delemmatizeModelessVerb(person, gender, count, SilWord(LEMMA_BE), tam)
       } else {
+        // FIXME conjugate result of auxVerbForModal?
         modality match {
           case MODAL_NEUTRAL => ""
           case MODAL_MUST => LEMMA_MUST
@@ -76,6 +77,8 @@ class SnlEnglishSentenceBundle(
                   }
                 }
               }
+              // not really meaningful here
+              case TENSE_INFINITIVE => ""
             }
           }
         }
@@ -98,7 +101,7 @@ class SnlEnglishSentenceBundle(
     }
   }
 
-  override protected def delemmatizeModelessVerb(
+  private def delemmatizeModelessVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
     word : SilWord, tam : SilTam
   ) : String =
@@ -135,13 +138,13 @@ class SnlEnglishSentenceBundle(
               case PERSON_THIRD => "is"
             }
           }
-          case TENSE_FUTURE => LEMMA_BE
+          case TENSE_FUTURE | TENSE_INFINITIVE => LEMMA_BE
         }
       }
       case LEMMA_HAVE => {
         tam.tense match {
           case TENSE_PAST => "had"
-          case TENSE_FUTURE => LEMMA_HAVE
+          case TENSE_FUTURE | TENSE_INFINITIVE => LEMMA_HAVE
           case TENSE_PRESENT => (person, count) match {
             case (PERSON_THIRD, COUNT_SINGULAR) => "has"
             case _ => LEMMA_HAVE
@@ -159,7 +162,7 @@ class SnlEnglishSentenceBundle(
                 concat(verbLemma, "ed")
               }
             }
-            case TENSE_FUTURE => verbLemma
+            case TENSE_FUTURE | TENSE_INFINITIVE => verbLemma
             case TENSE_PRESENT => (person, count) match {
               case (PERSON_THIRD, COUNT_SINGULAR) => concat(verbLemma, "s")
               case _ => verbLemma

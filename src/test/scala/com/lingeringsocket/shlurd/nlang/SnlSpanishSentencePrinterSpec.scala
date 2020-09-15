@@ -23,7 +23,7 @@ class SnlSpanishSentencePrinterSpec
         new SnlExternalWordnet("/spanish_net.xml"))),
       true)
 {
-  "Spanish SilSentencePrinter" should
+  "SilSentencePrinter with SnlSpanishTongue" should
   {
     "preserve sentences" in
     {
@@ -39,6 +39,7 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("el perro camina entre las calles")
       expectStatement("los perros caminan entre las calles")
       expectStatement("ella camina")
+      expectStatement("debo de caminar")
 
       // for usted, should preserve viva la vida
       expectNormalized("viva la vida", "vive la vida!")

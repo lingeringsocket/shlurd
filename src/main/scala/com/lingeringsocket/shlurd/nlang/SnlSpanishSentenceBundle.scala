@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.nlang
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
@@ -33,31 +34,6 @@ class SnlSpanishSentenceBundle(
   tongue : SprTongue
 ) extends SnlSentenceBundle(tongue, SnlSpanishSentenceBundle.numberFormat)
 {
-  override protected def delemmatizeModalVerb(
-    tam : SilTam, verb : SilWord,
-    person : SilPerson, gender : SilGender, count : SilCount)
-      : Seq[String] =
-  {
-    verb.decomposed.map(w => {
-      if (w.inflected.isEmpty) {
-        SnlSpanishConjugation.conjugateVerb(
-          w.lemma,
-          SnlSpanishConjugationCoord(tam, person, count))
-      } else {
-        w.inflected
-      }
-    })
-  }
-
-  override protected def delemmatizeModelessVerb(
-    person : SilPerson, gender : SilGender, count : SilCount,
-    word : SilWord, tam : SilTam
-  ) : String =
-  {
-    // FIXME conjugate
-    word.recompose(delemmatizeModalVerb(tam, word, person, gender, count))
-  }
-
   override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
     tam : SilTam, existentialPronoun : Option[SilWord],
@@ -66,8 +42,45 @@ class SnlSpanishSentenceBundle(
   )
       : Seq[String] =
   {
-    // FIXME conjugate
-    delemmatizeModalVerb(tam, verb, person, gender, count)
+    // FIXME:  SnlSpanishConjugation currently returns a single string;
+    // when auxiliary verbs are included, we should break them
+    // out
+    val modalSeq = {
+      if (tam.modality != MODAL_NEUTRAL) {
+        val auxLemma = tongue.auxVerbForModal(tam.modality)
+        val auxSeq = delemmatizeVerb(
+          person, gender, count, tam.withModality(MODAL_NEUTRAL),
+          existentialPronoun, SilWord.uninflected(auxLemma),
+          answerInflection)
+        val adpositionLemma = tongue.adpositionForAux(auxLemma)
+        if (adpositionLemma.isEmpty) {
+          auxSeq
+        } else {
+          auxSeq :+ adpositionLemma
+        }
+      } else {
+        Seq.empty
+      }
+    }
+    val (mainTam, mainVerb) = {
+      if (modalSeq.isEmpty) {
+        tupleN((tam, verb))
+      } else {
+        tupleN((
+          tam.infinitive.withModality(MODAL_NEUTRAL),
+          verb.toUninflected))
+      }
+    }
+    val mainSeq = mainVerb.decomposed.map(w => {
+      if (w.inflected.isEmpty) {
+        SnlSpanishConjugation.conjugateVerb(
+          w.lemma,
+          SnlSpanishConjugationCoord(mainTam, person, count))
+      } else {
+        w.inflected
+      }
+    })
+    modalSeq ++ mainSeq
   }
 
   override def applyInflection(

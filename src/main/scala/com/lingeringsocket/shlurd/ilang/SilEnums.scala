@@ -204,6 +204,9 @@ sealed trait SilTense
 case object TENSE_PAST extends SilTense
 case object TENSE_PRESENT extends SilTense
 case object TENSE_FUTURE extends SilTense
+// technically the infinitive is a form, not a tense, but it's
+// convenient to represent it as one
+case object TENSE_INFINITIVE extends SilTense
 
 sealed trait SilAspect
 case object ASPECT_SIMPLE extends SilAspect
@@ -307,12 +310,14 @@ sealed trait SilTam
   def isPast = (tense == TENSE_PAST)
   def isPresent = (tense == TENSE_PRESENT)
   def isFuture = (tense == TENSE_FUTURE)
+  def isInfinitive = (tense == TENSE_INFINITIVE)
   def positive : SilTam
   def negative : SilTam
   def progressive : SilTam
-  def past : SilTam
-  def present : SilTam
-  def future : SilTam
+  def past : SilTam = withTense(TENSE_PAST)
+  def present : SilTam = withTense(TENSE_PRESENT)
+  def future : SilTam = withTense(TENSE_FUTURE)
+  def infinitive : SilTam = withTense(TENSE_INFINITIVE)
   def withAspect(newAspect : SilAspect) : SilTam
   def withPolarity(newPolarity : SilPolarity) : SilTam
   def withModality(newModality : SilModality) : SilTam
@@ -362,10 +367,6 @@ case class SilTamImmutable(
   override def positive = withPolarity(POLARITY_POSITIVE)
   override def negative = withPolarity(POLARITY_NEGATIVE)
   override def progressive = withAspect(ASPECT_PROGRESSIVE)
-
-  def past : SilTam = withTense(TENSE_PAST)
-  def present : SilTam = withTense(TENSE_PRESENT)
-  def future : SilTam = withTense(TENSE_FUTURE)
 
   override def withPolarity(newPolarity : SilPolarity) =
     copy(polarity = newPolarity).validate

@@ -212,15 +212,6 @@ abstract class SnlSentenceBundle(
     compose((Seq(state) ++ Seq(subject) ++ modifiers):_*)
   }
 
-  protected def delemmatizeModalVerb(
-    tam : SilTam, verb : SilWord,
-    person : SilPerson, gender : SilGender, count : SilCount) : Seq[String]
-
-  protected def delemmatizeModelessVerb(
-    person : SilPerson, gender : SilGender, count : SilCount,
-    word : SilWord, tam : SilTam
-  ) : String
-
   override def adpositionString(adposition : SilAdposition) =
   {
     delemmatizeWord(adposition.word)

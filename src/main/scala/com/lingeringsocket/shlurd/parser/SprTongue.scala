@@ -275,8 +275,9 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def isAdposition(lemma : String) : Boolean
 
-  def isValidAuxAdposition(
-    auxLemma : String, adpositionLemma : String) : Boolean = false
+  def adpositionForAux(auxLemma : String) : String
+
+  def auxVerbForModal(modality : SilModality) : String
 
   def isSubordinatingConjunction(lemma : String) : Boolean
 

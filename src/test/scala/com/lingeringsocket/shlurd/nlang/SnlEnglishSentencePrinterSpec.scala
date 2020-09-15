@@ -23,7 +23,7 @@ import com.lingeringsocket.shlurd.parser._
 class SnlEnglishSentencePrinterSpec
     extends SilSentencePrinterSpecification(SnlUtils.defaultContext, false)
 {
-  "English SilSentencePrinter" should
+  "SilSentencePrinter with SnlEnglishTongue" should
   {
     "deal with problem cases" in
     {
