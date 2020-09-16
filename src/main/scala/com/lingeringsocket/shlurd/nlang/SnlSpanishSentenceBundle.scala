@@ -73,9 +73,17 @@ class SnlSpanishSentenceBundle(
     }
     val mainSeq = mainVerb.decomposed.map(w => {
       if (w.inflected.isEmpty) {
-        SnlSpanishConjugation.conjugateVerb(
-          w.lemma,
-          SnlSpanishConjugationCoord(mainTam, person, count))
+        if ((w.lemma == LEMMA_HABER) && tam.isPresent) {
+          // FIXME don't do this when used as an auxiliary.  Also,
+          // technically all tenses are supposed to be conjugated
+          // as singular, but supposedly native speakers tend
+          // quite naturally to make the "there is/are" distinction?
+          "hay"
+        } else {
+          SnlSpanishConjugation.conjugateVerb(
+            w.lemma,
+            SnlSpanishConjugationCoord(mainTam, person, count))
+        }
       } else {
         w.inflected
       }

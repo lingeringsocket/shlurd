@@ -10,6 +10,7 @@ estar%2:42:00:: -add -setgloss "estar"
 tener%2:42:00:: -add -setgloss "tener"
 poder%2:42:00:: -add -setgloss "poder"
 deber%2:42:00:: -add -setgloss "deber"
+haber%2:42:00:: -add -setgloss "haber"
 triste%3:00:00:: -add -setgloss "triste"
 v#soy -addexc ser
 v#eres -addexc ser
@@ -60,3 +61,4 @@ v#tengo -addexc tener
 v#tienes -addexc tener
 v#tiene -addexc tener
 v#tienen -addexc tener
+v#hay -addexc haber

@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 
+import SnlSpanishLemmas._
+
 class SnlSpanishParserSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
@@ -44,13 +46,15 @@ class SnlSpanishParserSpec extends Specification
 
   private val VERB_BEBERA = SilWord("beberá", "beber")
 
-  private val VERB_VIVIR = SilWord("vivir", "vivir")
+  private val VERB_VIVIR = SilWord("vivir")
 
-  private val VERB_ES = SilWord("es", "ser")
+  private val VERB_ES = SilWord("es", LEMMA_SER)
 
-  private val VERB_ESTAR = SilWord("estar", "estar")
+  private val VERB_ESTAR = SilWord(LEMMA_ESTAR)
 
-  private val VERB_ESTOY = SilWord("estoy", "estar")
+  private val VERB_ESTOY = SilWord("estoy", LEMMA_ESTAR)
+
+  private val VERB_HAY = SilWord("hay", LEMMA_HABER)
 
   private val STATE_TRISTE = SilWord("triste")
 
@@ -246,6 +250,22 @@ class SnlSpanishParserSpec extends Specification
             SilPropertyState(STATE_TRISTE)
           ),
           SilTam.indicative.withModality(MODAL_MAY)
+        )
+    }
+
+    "parse impersonal haber" in
+    {
+      val input = "hay un perro"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilStatePredicate(
+            annotator.determinedNounRef(
+              NOUN_PERRO,
+              DETERMINER_NONSPECIFIC
+            ),
+            VERB_HAY,
+            SilExistenceState(Some(SilWord("")))
+          )
         )
     }
 

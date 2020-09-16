@@ -342,8 +342,29 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
           case _ => false
         }
       ) => {
-        predicate.withNewSubject(
-          normalizeElidedPronoun(predicate.getSubject, predicate))
+        predicate match {
+          case SilActionPredicate(
+            _,
+            verb,
+            Some(directObject),
+            modifiers
+          ) if (
+            tongue.isImpersonalVerbLemma(verb.toLemma)
+          ) => {
+            // FIXME this is specific to Spanish "hay un problema";
+            // deal with other forms, e.g. "hace buen tiempo"
+            SilStatePredicate(
+              directObject,
+              verb,
+              SilExistenceState(Some(SilWord(""))),
+              modifiers
+            )
+          }
+          case _ => {
+            predicate.withNewSubject(
+              normalizeElidedPronoun(predicate.getSubject, predicate))
+          }
+        }
       }
     }
   )

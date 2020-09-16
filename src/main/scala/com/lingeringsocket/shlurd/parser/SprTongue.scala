@@ -221,6 +221,8 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def isExistsLemma(lemma : String) : Boolean
 
+  def isImpersonalVerbLemma(lemma : String) : Boolean = false
+
   def getPronounMap(
     gender : SilBasicGender,
     count : SilCount

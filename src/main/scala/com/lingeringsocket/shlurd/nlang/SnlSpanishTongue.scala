@@ -66,6 +66,7 @@ object SnlSpanishLemmas
   val LEMMA_ESTO = "esto"
   val LEMMA_ESTOS = "estos"
   val LEMMA_EXISTIR = "existir"
+  val LEMMA_HABER = "haber"
   val LEMMA_HACER = "hacer"
   val LEMMA_LA = "la"
   val LEMMA_LAS = "las"
@@ -545,7 +546,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   {
     predef match {
       // FIXME this should depend on the nature of the state
-      // (condition vs disposition)
+      // (condition vs disposition vs existence)
       case STATE_PREDEF_BE => LEMMA_ESTAR
       // FIXME this is just wrong
       case STATE_PREDEF_BECOME => LEMMA_HACER
@@ -555,7 +556,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def getStatePredefFromLemma(lemma : String) : SprStatePredef =
   {
     lemma match {
-      case LEMMA_SER | LEMMA_EXISTIR | LEMMA_ESTAR => STATE_PREDEF_BE
+      case LEMMA_SER | LEMMA_EXISTIR |
+          LEMMA_ESTAR | LEMMA_HABER => STATE_PREDEF_BE
       case LEMMA_HACER => STATE_PREDEF_BECOME
       case _ => throw new IllegalArgumentException(
         "Non-predef state verb " + lemma)
@@ -592,7 +594,12 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def isExistsLemma(lemma : String) : Boolean =
   {
-    lemma == LEMMA_EXISTIR
+    lemma == LEMMA_EXISTIR || lemma == LEMMA_HABER
+  }
+
+  override def isImpersonalVerbLemma(lemma : String) : Boolean =
+  {
+    lemma == LEMMA_HABER
   }
 
   override def getPronounMap(
