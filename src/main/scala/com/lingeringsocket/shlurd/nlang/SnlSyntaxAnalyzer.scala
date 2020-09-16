@@ -793,7 +793,7 @@ abstract class SnlSyntaxAnalyzer(
     val verbHead = seq.head
     val verb = verbHead match {
       case vb : SprSyntaxVerb if (
-        !imperative || !verbHead.isModal
+        !imperative || (!verbHead.isModal && !verbHead.isPossessionVerb)
       ) => {
         getTreeWord(vb)
       }
