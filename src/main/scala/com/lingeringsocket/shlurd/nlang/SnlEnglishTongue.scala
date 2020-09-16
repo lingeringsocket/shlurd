@@ -466,10 +466,11 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     lemma == LEMMA_DO
   }
 
-  override def tamForAuxLemma(lemma : String) : SilTam =
+  override def tamForAuxLemma(
+    auxLemma : String, verbLemma : String) : SilTam =
   {
     val tam = SilTam.indicative
-    lemma match {
+    auxLemma match {
       case LEMMA_MUST => tam.withModality(MODAL_MUST)
       case LEMMA_MAY => tam.withModality(MODAL_MAY)
       case LEMMA_COULD | LEMMA_CAN => tam.withModality(MODAL_CAPABLE)

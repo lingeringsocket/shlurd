@@ -40,7 +40,9 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("los perros caminan entre las calles")
       expectStatement("ella camina")
       expectStatement("debo de caminar")
+      expectStatement("tiene que caminar")
       expectStatement("pueden caminar")
+      expectStatement("podemos ser perros")
 
       // for usted, should preserve viva la vida
       expectNormalized("viva la vida", "vive la vida!")

@@ -211,7 +211,8 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def isProgressiveAuxLemma(lemma : String) : Boolean = false
 
-  def tamForAuxLemma(lemma : String) : SilTam = SilTam.indicative
+  def tamForAuxLemma(
+    auxLemma : String, verbLemma : String) : SilTam = SilTam.indicative
 
   def isRelationshipLemma(lemma : String) : Boolean =
     isBeingLemma(lemma) || isPossessionLemma(lemma)

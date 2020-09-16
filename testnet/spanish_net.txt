@@ -56,3 +56,7 @@ v#podrá -addexc poder
 v#podremos -addexc poder
 v#podréis -addexc poder
 v#podrán -addexc poder
+v#tengo -addexc tener
+v#tienes -addexc tener
+v#tiene -addexc tener
+v#tienen -addexc tener

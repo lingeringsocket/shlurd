@@ -752,15 +752,20 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   }
 
-  override def tamForAuxLemma(lemma : String) : SilTam =
+  override def tamForAuxLemma(
+    auxLemma : String, verbLemma : String) : SilTam =
   {
     val tam = SilTam.indicative
-    // FIXME all the modals, and verify that the correct adposition is used
-    // (e.g. "tengo que" but "debo de")
-    lemma match {
+    // FIXME all the modals
+    auxLemma match {
       case LEMMA_DEBER => tam.withModality(MODAL_SHOULD)
       case LEMMA_TENER => tam.withModality(MODAL_MUST)
-      case LEMMA_PODER => tam.withModality(MODAL_CAPABLE)
+      case LEMMA_PODER => {
+        verbLemma match {
+          case LEMMA_SER | LEMMA_ESTAR => tam.withModality(MODAL_MAY)
+          case _ => tam.withModality(MODAL_CAPABLE)
+        }
+      }
       case LEMMA_ESTAR => tam.progressive
       case _ => tam
     }
@@ -832,6 +837,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case MODAL_SHOULD => LEMMA_DEBER
       case MODAL_MUST => LEMMA_TENER
       case MODAL_CAPABLE => LEMMA_PODER
+      // FIXME enforce MODAL_MAY being paired only with ser/estar
+      case MODAL_MAY => LEMMA_PODER
       case _ => throw new IllegalArgumentException("whoops")
     }
   }

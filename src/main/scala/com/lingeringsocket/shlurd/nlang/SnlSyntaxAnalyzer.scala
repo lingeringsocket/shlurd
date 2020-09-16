@@ -646,7 +646,7 @@ abstract class SnlSyntaxAnalyzer(
           expectPredicateSentence(
             tree, np, vpSub, verbModifiers ++ extraModifiers,
             force,
-            tamForAux(verbHeadLeaf).withMood(tam.mood).
+            tamForAux(verbHeadLeaf, Seq(vpSub)).withMood(tam.mood).
               withTense(tamTensed.tense),
             getVerbInflection(verbHead),
             negative)
@@ -793,7 +793,7 @@ abstract class SnlSyntaxAnalyzer(
     val verbHead = seq.head
     val verb = verbHead match {
       case vb : SprSyntaxVerb if (
-        !imperative || (!verbHead.isModal && !verbHead.isPossessionVerb)
+        !imperative || !verbHead.isModal
       ) => {
         getTreeWord(vb)
       }
@@ -1299,7 +1299,7 @@ abstract class SnlSyntaxAnalyzer(
     }
     val aux = seq(iAux).unwrapPhrase
     val leaf = requireLeaf(aux.children)
-    val tam = tamForAux(leaf)
+    val tam = tamForAux(leaf, nonAux)
     val tamTensed = extractTense(aux, tam)
     tupleN((tamTensed, remainder, getVerbInflection(aux)))
   }

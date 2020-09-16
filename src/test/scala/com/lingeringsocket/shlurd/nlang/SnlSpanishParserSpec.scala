@@ -48,6 +48,8 @@ class SnlSpanishParserSpec extends Specification
 
   private val VERB_ES = SilWord("es", "ser")
 
+  private val VERB_ESTAR = SilWord("estar", "estar")
+
   private val VERB_ESTOY = SilWord("estoy", "estar")
 
   private val STATE_TRISTE = SilWord("triste")
@@ -200,6 +202,21 @@ class SnlSpanishParserSpec extends Specification
         )
     }
 
+    "parse another modal" in
+    {
+      val input = "tienen que vivir"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL,
+              PROXIMITY_ELIDED),
+            VERB_VIVIR
+          ),
+          SilTam.indicative.withModality(MODAL_MUST)
+        )
+    }
+
     "parse a modal without an adposition" in
     {
       val input = "puedes vivir"
@@ -212,6 +229,23 @@ class SnlSpanishParserSpec extends Specification
             VERB_VIVIR
           ),
           SilTam.indicative.withModality(MODAL_CAPABLE)
+        )
+    }
+
+    "parse modal may" in
+    {
+      val input = "un perro puede estar triste"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilStatePredicate(
+            annotator.determinedNounRef(
+              NOUN_PERRO,
+              DETERMINER_NONSPECIFIC
+            ),
+            VERB_ESTAR,
+            SilPropertyState(STATE_TRISTE)
+          ),
+          SilTam.indicative.withModality(MODAL_MAY)
         )
     }
 

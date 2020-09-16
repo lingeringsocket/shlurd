@@ -74,9 +74,20 @@ abstract class SprAbstractSyntaxAnalyzer(
 
   protected def isNegative(tree : SprSyntaxTree) : Boolean
 
-  protected def tamForAux(leaf : SprSyntaxLeaf) : SilTam =
+  protected def tamForAux(
+    leaf : SprSyntaxLeaf,
+    seq : Seq[SprSyntaxTree]) : SilTam =
   {
-    tongue.tamForAuxLemma(leaf.lemma)
+    seq.find(_.isVerbNode) match {
+      case Some(mainVerb) => {
+        mainVerb match {
+          case vp : SptVP => tamForAux(leaf, vp.children)
+          case _ => tongue.tamForAuxLemma(
+            leaf.lemma, mainVerb.firstChild.lemma)
+        }
+      }
+      case _ => SilTam.indicative
+    }
   }
 
   protected def determinerFor(leaf : SprSyntaxLeaf) : SilDeterminer =
