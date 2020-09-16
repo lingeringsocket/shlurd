@@ -1,7 +1,9 @@
-00000000 38 v 02 caminar 0 andar 0 000 00 | ir usando las piernas  
-00000068 34 v 01 beber 0 000 00 | consumir un bebido  
-00000123 31 v 01 saber 0 000 00 | tener un concepto  
-00000177 42 v 01 vivir 0 000 00 | preparar por la muerte  
-00000236 42 v 01 ser 0 000 00 | "existir"  
-00000280 42 v 01 estar 0 000 00 | tener una condición particular  
-00000348 42 v 01 deber 0 000 00 | "deber"  
+00000000 38 v 02 caminar 0 andar 0 000 00 | "caminar"  
+00000056 34 v 01 beber 0 000 00 | "beber"  
+00000100 31 v 01 saber 0 000 00 | "saber"  
+00000144 42 v 01 vivir 0 000 00 | "vivir"  
+00000188 42 v 01 ser 0 000 00 | "ser"  
+00000228 42 v 01 estar 0 000 00 | "estar"  
+00000272 42 v 01 tener 0 000 00 | "tener"  
+00000316 42 v 01 poder 0 000 00 | "poder"  
+00000360 42 v 01 deber 0 000 00 | "deber"  

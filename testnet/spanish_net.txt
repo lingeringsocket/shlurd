@@ -1,14 +1,16 @@
-perro%1:05:00:: -add -addword perra -setgloss "el mejor amigo de un hombre"
-vida%1:19:00:: -add -setgloss "lo opuesto a la muerte"
-calle%1:15:00:: -add -addword camino -setgloss "una via de punto A a punto B"
-caminar%2:38:00:: -add -addword andar -setgloss "ir usando las piernas"
-beber%2:34:00:: -add -setgloss "consumir un bebido"
-saber%2:31:00:: -add -setgloss "tener un concepto"
-vivir%2:42:00:: -add -setgloss "preparar por la muerte"
-ser%2:42:00:: -add -setgloss "existir"
-estar%2:42:00:: -add -setgloss "tener una condición particular"
+perro%1:05:00:: -add -addword perra -setgloss "perro"
+vida%1:19:00:: -add -setgloss "vida"
+calle%1:15:00:: -add -addword camino -setgloss "calle"
+caminar%2:38:00:: -add -addword andar -setgloss "caminar"
+beber%2:34:00:: -add -setgloss "beber"
+saber%2:31:00:: -add -setgloss "saber"
+vivir%2:42:00:: -add -setgloss "vivir"
+ser%2:42:00:: -add -setgloss "ser"
+estar%2:42:00:: -add -setgloss "estar"
+tener%2:42:00:: -add -setgloss "tener"
+poder%2:42:00:: -add -setgloss "poder"
 deber%2:42:00:: -add -setgloss "deber"
-triste%3:00:00:: -add -setgloss "no contento"
+triste%3:00:00:: -add -setgloss "triste"
 v#soy -addexc ser
 v#eres -addexc ser
 v#es -addexc ser
@@ -38,3 +40,19 @@ v#sabrá -addexc saber
 v#sabremos -addexc saber
 v#sabréis -addexc saber
 v#sabrán -addexc saber
+v#puedo -addexc poder
+v#puedes -addexc poder
+v#puede -addexc poder
+v#pueden -addexc poder
+v#pude -addexc poder
+v#pudiste -addexc poder
+v#pudo -addexc poder
+v#pudimos -addexc poder
+v#pudisteis -addexc poder
+v#pudieron -addexc poder
+v#podré -addexc poder
+v#podrás -addexc poder
+v#podrá -addexc poder
+v#podremos -addexc poder
+v#podréis -addexc poder
+v#podrán -addexc poder

@@ -159,6 +159,19 @@ class SnlSpanishParserSpec extends Specification
         )
     }
 
+    "parse another pronoun" in
+    {
+      val input = "ella camina"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR),
+            VERB_CAMINA
+          )
+        )
+    }
+
     "parse a conjugation which is the same for -ar and -er" in
     {
       val input = "yo bebo"
@@ -187,16 +200,18 @@ class SnlSpanishParserSpec extends Specification
         )
     }
 
-    "parse another pronoun" in
+    "parse a modal without an adposition" in
     {
-      val input = "ella camina"
+      val input = "puedes vivir"
       parse(input) must be equalTo
         SilPredicateSentence(
           SilActionPredicate(
             annotator.basicPronounRef(
-              PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR),
-            VERB_CAMINA
-          )
+              PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+              PROXIMITY_ELIDED),
+            VERB_VIVIR
+          ),
+          SilTam.indicative.withModality(MODAL_CAPABLE)
         )
     }
 

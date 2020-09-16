@@ -26,7 +26,7 @@ public abstract class Tense {
     //Arrays of the various stem-changing verbs
     protected static String[] eToIe = {"pensar", "empezar", "comenzar", "preferir", "acertar", "tener", "venir", "cerrar", "mentir", "fregar", "hervir", "confesar", "defender", "negar", "sentir", "querer"};
     protected static String[] eToI = {"pedir", "decir", "seguir", "servir", "competir", "elegir", "cerregir", "vestir", "freír", "gemir", "repetir"};
-    protected static String[] oToUe = {"dormir", "almorzar", "morir", "probar", "mover", "colgar", "mostrar", "contar", "costar", "recordar", "volver", "resolver", "solver", "jugar"};
+    protected static String[] oToUe = {"dormir", "almorzar", "morir", "probar", "mover", "colgar", "mostrar", "contar", "costar", "recordar", "volver", "resolver", "solver", "jugar", "poder"};
 
     static String[] reflexive = {"me ", "te ", "se ", "nos ", "os ", "se "};
     static String[] toBeReflexive = {"", "", "", "", "", ""};

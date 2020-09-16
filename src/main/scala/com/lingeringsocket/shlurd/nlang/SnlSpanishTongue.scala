@@ -97,6 +97,8 @@ object SnlSpanishLemmas
   val LEMMA_NUESTROS = "nuestros"
   val LEMMA_O = "o"
   val LEMMA_OS = "os"
+  val LEMMA_PODER = "poder"
+  val LEMMA_QUE = "que"
   val LEMMA_SE = "se"
   val LEMMA_SER = "ser"
   val LEMMA_SU = "su"
@@ -744,7 +746,10 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def isModalAuxLemma(lemma : String) : Boolean =
   {
     // FIXME all the modals
-    lemma == LEMMA_DEBER
+    lemma match {
+      case LEMMA_DEBER | LEMMA_TENER | LEMMA_PODER => true
+      case _ => false
+    }
   }
 
   override def tamForAuxLemma(lemma : String) : SilTam =
@@ -754,6 +759,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     // (e.g. "tengo que" but "debo de")
     lemma match {
       case LEMMA_DEBER => tam.withModality(MODAL_SHOULD)
+      case LEMMA_TENER => tam.withModality(MODAL_MUST)
+      case LEMMA_PODER => tam.withModality(MODAL_CAPABLE)
       case LEMMA_ESTAR => tam.progressive
       case _ => tam
     }
@@ -812,6 +819,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     // FIXME all of 'em
     auxLemma match {
       case LEMMA_DEBER => LEMMA_DE
+      case LEMMA_TENER => LEMMA_QUE
+      case LEMMA_PODER => ""
       case _ => ""
     }
   }
@@ -821,6 +830,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     // FIXME all of 'em
     modality match {
       case MODAL_SHOULD => LEMMA_DEBER
+      case MODAL_MUST => LEMMA_TENER
+      case MODAL_CAPABLE => LEMMA_PODER
       case _ => throw new IllegalArgumentException("whoops")
     }
   }
