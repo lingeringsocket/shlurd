@@ -565,38 +565,71 @@ abstract class SnlSyntaxAnalyzer(
     } else if ((components.size == 2) && components.head.isNounPhrase) {
       val entityReference = expectReference(components.head)
       expectRelativeReference(tree, entityReference, components.last)
-    } else if (isNounPhraseHead(components.last) &&
-      components.dropRight(1).forall(
-        c => isNounPhraseModifier(c, components.last)))
-    {
-      val qr = {
-        val entityReference = expectNounReference(
-          tree, components.last, DETERMINER_ABSENT)
-        if (components.size > 1) {
-          val adjComponents = components.dropRight(1)
-          val qualifiedReference = annotator.stateQualifiedRef(
-            entityReference,
-            adjComponents.map(expectPropertyState))
-          qualifiedReference matchPartial {
-            case sr @ SilStateSpecifiedReference(
-              _, state
-            ) => {
-              sr.rememberSyntaxTree(tree)
-              state matchPartial {
-                case cs : SilConjunctiveState => {
-                  rememberSyntheticADJP(cs, adjComponents)
+    } else {
+      analyzeQualifiedNounPhrase(tree, determiner, components)
+    }
+  }
+
+  private def findNounPhraseHead(components : Seq[SprSyntaxTree]) : Int =
+  {
+    tongue.getAdjectivePosition match {
+      case MOD_BEFORE_ALWAYS => {
+        components.size - 1
+      }
+      case MOD_BEFORE_DEFAULT => {
+        components.lastIndexWhere(isNounPhraseHead)
+      }
+      case MOD_AFTER_ALWAYS => {
+        0
+      }
+      case MOD_AFTER_DEFAULT => {
+        components.indexWhere(isNounPhraseHead)
+      }
+    }
+  }
+
+  protected def analyzeQualifiedNounPhrase(
+    tree : SptNP,
+    determiner : SilDeterminer,
+    components : Seq[SprSyntaxTree]) : SilReference =
+  {
+    val iHead = findNounPhraseHead(components)
+    if (iHead == -1) {
+      SilUnrecognizedReference(tree)
+    } else {
+      val head = components(iHead)
+      val adjComponents = components.patch(iHead, Seq.empty, 1)
+      if (isNounPhraseHead(head) && adjComponents.forall(
+        c => isNounPhraseModifier(c, head)))
+      {
+        val qr = {
+          val entityReference = expectNounReference(
+            tree, head, DETERMINER_ABSENT)
+          if (components.size > 1) {
+            val qualifiedReference = annotator.stateQualifiedRef(
+              entityReference,
+              adjComponents.map(expectPropertyState))
+            qualifiedReference matchPartial {
+              case sr @ SilStateSpecifiedReference(
+                _, state
+              ) => {
+                sr.rememberSyntaxTree(tree)
+                state matchPartial {
+                  case cs : SilConjunctiveState => {
+                    rememberSyntheticADJP(cs, adjComponents)
+                  }
                 }
               }
             }
+            qualifiedReference
+          } else {
+            entityReference
           }
-          qualifiedReference
-        } else {
-          entityReference
         }
+        annotator.determinedRef(qr, determiner)
+      } else {
+        SilUnrecognizedReference(tree)
       }
-      annotator.determinedRef(qr, determiner)
-    } else {
-      SilUnrecognizedReference(tree)
     }
   }
 

@@ -32,6 +32,8 @@ object SilConjoining
 
 abstract class SilSentenceBundle
 {
+  def getTongue : SilTongue
+
   protected def concat(s : String*) =
     s.mkString("")
 
@@ -148,7 +150,17 @@ abstract class SilSentenceBundle
   def query(noun : String, question : Option[SilQuestion],
     answerInflection : SilInflection = INFLECT_NONE) : String
 
-  def qualifiedNoun(qualifiers : String, noun : String) : String
+  def qualifiedNoun(qualifiers : String, noun : String) : String =
+  {
+    getTongue.getAdjectivePosition match {
+      case MOD_BEFORE_ALWAYS | MOD_BEFORE_DEFAULT => {
+        compose(qualifiers, noun)
+      }
+      case _ => {
+        compose(noun, qualifiers)
+      }
+    }
+  }
 
   def specifiedNoun(specifier : String, noun : String) : String
 

@@ -22,6 +22,8 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
   // FIXME this should be SnlKoreanTongue, which doesn't exist yet.
   private implicit val tongue = SnlUtils.defaultTongue
 
+  override def getTongue = tongue
+
   override def statePredicateStatement(
     subject : String, verbSeq : Seq[String], state : String,
     existentialPronoun : Option[SilWord],
@@ -210,11 +212,6 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
       }
       case _ => noun
     }
-  }
-
-  override def qualifiedNoun(qualifiers : String, noun : String) =
-  {
-    compose(qualifiers, noun)
   }
 
   override def specifiedNoun(specifier : String, noun : String) =

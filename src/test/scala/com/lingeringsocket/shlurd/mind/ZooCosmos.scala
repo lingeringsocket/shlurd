@@ -134,6 +134,15 @@ class ZooCosmos(
     context : SilReferenceContext,
     qualifiers : Set[String]) =
   {
+    resolveQualifiedNoun(lemma, context, qualifiers, SnlUtils.defaultTongue)
+  }
+
+  def resolveQualifiedNoun(
+    lemma : String,
+    context : SilReferenceContext,
+    qualifiers : Set[String],
+    tongue : SprTongue) : Try[Set[SmcEntity]] =
+  {
     if ((lemma == LEMMA_WHO) || (lemma == LEMMA_WHOM) ||
       (lemma == "person"))
     {
@@ -143,7 +152,14 @@ class ZooCosmos(
       Success(SprUtils.orderedSet(
         animals.values))
     } else {
-      val name = (qualifiers.toSeq ++ Seq(lemma)).mkString(" ")
+      val name = tongue.getAdjectivePosition match {
+        case MOD_AFTER_ALWAYS | MOD_AFTER_DEFAULT => {
+          (lemma +: qualifiers.toSeq).mkString(" ")
+        }
+        case _ => {
+          (qualifiers.toSeq :+ lemma).mkString(" ")
+        }
+      }
       if (context == REF_ADPOSITION_OBJ) {
         Success(SprUtils.orderedSet(
           locations.filterKeys(_.endsWith(name)).values))
@@ -244,6 +260,14 @@ class ZooMind(cosmos : ZooCosmos, tongueIn : SprTongue = SnlUtils.defaultTongue)
     val mind = new ZooMind(newCosmos)
     mind.initFrom(this)
     mind
+  }
+
+  override def resolveQualifiedNoun(
+    noun : SilWord,
+    context : SilReferenceContext,
+    qualifiers : Set[String] = Set.empty) : Try[Set[SmcEntity]] =
+  {
+    cosmos.resolveQualifiedNoun(noun.toNounLemma, context, qualifiers, tongue)
   }
 
   override def specificReference(

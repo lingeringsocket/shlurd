@@ -29,6 +29,8 @@ abstract class SnlSentenceBundle(
 {
   protected implicit val tongue = tongueIn
 
+  override def getTongue = tongue
+
   override def statePredicateStatement(
     subject : String, verbSeq : Seq[String], state : String,
     existentialPronoun : Option[SilWord],
@@ -379,11 +381,6 @@ abstract class SnlSentenceBundle(
       }
       case None => noun
     }
-  }
-
-  override def qualifiedNoun(qualifiers : String, noun : String) =
-  {
-    compose(qualifiers, noun)
   }
 
   override def specifiedNoun(specifier : String, noun : String) =

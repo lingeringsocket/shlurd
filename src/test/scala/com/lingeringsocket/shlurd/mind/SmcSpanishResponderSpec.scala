@@ -41,6 +41,21 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Claro, hay un tigre.")
       process("hay un tigre?") must be equalTo(
         "Sí, hay un tigre.")
+      // FIXME in English the response specifies a single tiger
+      process("hay tigres?") must be equalTo(
+        "Sí, hay tigres.")
+      process("hay algún tigre?") must be equalTo(
+        "Sí, hay un tigre.")
+      process("hay algunos tigres?") must be equalTo(
+        "Sí, hay un tigre.")
+      process("hay un oso?") must be equalTo(
+        "Sí, hay un oso.")
+      process("hay un oso polar?") must be equalTo(
+        "Sí, hay un oso polar.")
+      process("hay osos?") must be equalTo(
+        "Sí, hay osos.")
+      process("hay un oso triste?") must be equalTo(
+        "No, no hay un oso triste.")
       process("hay una salamandra?") must be equalTo(
         "No, no hay una salamandra.")
     }

@@ -48,6 +48,7 @@ object SnlSpanishLemmas
   val LEMMA_CADA = "cada"
   val LEMMA_CUAL = "cual"
   val LEMMA_CUALES = "cuales"
+  val LEMMA_CUANTOS = "cuántos"
   val LEMMA_DE = "de"
   val LEMMA_DEBER = "deber"
   val LEMMA_EL = "el"
@@ -426,7 +427,7 @@ object SnlSpanishLexicon
     // Spanish doesn't really need this
     MW_GENITIVE_OF -> "_of_",
     // FIXME: agreement
-    MW_HOW_MANY -> "cuántos",
+    MW_HOW_MANY -> LEMMA_CUANTOS,
     MW_IF -> "si",
     MW_IN -> "en",
     MW_INSIDE -> "dentro de",
