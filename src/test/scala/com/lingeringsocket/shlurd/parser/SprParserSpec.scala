@@ -227,7 +227,7 @@ class SprParserSpec extends Specification
   private def leafCapitalized(s : String) = SprSyntaxLeaf(
     SprUtils.capitalize(s), s, SprUtils.capitalize(s))
 
-  "English SprParser" should
+  "SprParser with SnlEnglishTongue" should
   {
     "parse a state predicate statement" in
     {
@@ -867,6 +867,10 @@ class SprParserSpec extends Specification
     "parse modals" in
     {
       parse("The door must be open") must be equalTo(
+        SilPredicateSentence(
+          predStateDoor(VERB_BE),
+          SilTam.indicative.withModality(MODAL_MUST)))
+      parse("The door has to be open") must be equalTo(
         SilPredicateSentence(
           predStateDoor(VERB_BE),
           SilTam.indicative.withModality(MODAL_MUST)))

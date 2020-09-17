@@ -89,6 +89,7 @@ object SnlEnglishLemmas
   val LEMMA_MYSELF = "myself"
   val LEMMA_OUR = "our"
   val LEMMA_MINE = "mine"
+  val LEMMA_OUGHT = "ought"
   val LEMMA_OURS = "ours"
   val LEMMA_OURSELF = "ourself"
   val LEMMA_OURSELVES = "ourselves"
@@ -463,7 +464,10 @@ class SnlEnglishTongue(wordnet : SprWordnet)
 
   override def isModalAuxLemma(lemma : String) : Boolean =
   {
-    lemma == LEMMA_DO
+    lemma match {
+      case LEMMA_DO => true
+      case _ => false
+    }
   }
 
   override def tamForAuxLemma(
@@ -471,11 +475,11 @@ class SnlEnglishTongue(wordnet : SprWordnet)
   {
     val tam = SilTam.indicative
     auxLemma match {
-      case LEMMA_MUST => tam.withModality(MODAL_MUST)
+      case LEMMA_HAVE | LEMMA_MUST => tam.withModality(MODAL_MUST)
       case LEMMA_MAY => tam.withModality(MODAL_MAY)
       case LEMMA_COULD | LEMMA_CAN => tam.withModality(MODAL_CAPABLE)
       case LEMMA_MIGHT => tam.withModality(MODAL_POSSIBLE)
-      case LEMMA_SHOULD => tam.withModality(MODAL_SHOULD)
+      case LEMMA_SHOULD | LEMMA_OUGHT => tam.withModality(MODAL_SHOULD)
       case LEMMA_DO => tam.withModality(MODAL_EMPHATIC)
       case LEMMA_BE => tam.progressive
       case _ => tam
@@ -545,8 +549,11 @@ class SnlEnglishTongue(wordnet : SprWordnet)
 
   override def adpositionForAux(auxLemma : String) : String =
   {
-    // FIXME "have to", etc
-    ""
+    // FIXME all of 'em
+    auxLemma match {
+      case LEMMA_HAVE | LEMMA_OUGHT => LEMMA_TO
+      case _ => ""
+    }
   }
 
   override def auxVerbForModal(modality : SilModality) : String =
@@ -707,9 +714,24 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     token match {
       case (
         LEMMA_MUST | LEMMA_MAY | LEMMA_MIGHT |
-          LEMMA_COULD | LEMMA_SHOULD | LEMMA_CAN
-      )=> {
+          LEMMA_COULD | LEMMA_SHOULD | LEMMA_CAN | LEMMA_OUGHT
+      ) => {
         Set(SptMD(leaf))
+      }
+      case LEMMA_HAVE | LEMMA_DO => {
+        Set(SptMD(leaf), SptVBP(leaf))
+      }
+      case "does" => {
+        val inflected = makeLeaf(word, token, LEMMA_DO)
+        Set(SptVBZ(inflected))
+      }
+      case "has" => {
+        val inflected = makeLeaf(word, token, LEMMA_HAVE)
+        Set(SptMD(inflected), SptVBZ(inflected))
+      }
+      case "had" => {
+        val inflected = makeLeaf(word, token, LEMMA_HAVE)
+        Set(SptMD(inflected), SptVBD(inflected))
       }
       case LEMMA_THERE => {
         Set(SptNP(SptEX(leaf)), SptJJ(leaf))
@@ -729,15 +751,6 @@ class SnlEnglishTongue(wordnet : SprWordnet)
       }
       case LEMMA_EQUIVALENTLY => {
         Set(SptRB(leaf))
-      }
-      case LEMMA_DO => {
-        Set(SptVBP(leaf))
-      }
-      case "does" => {
-        Set(SptVBZ(makeLeaf(word, token, LEMMA_DO)))
-      }
-      case LEMMA_HAVE => {
-        Set(SptVBP(leaf))
       }
       case LEMMA_NO => {
         Set(SptRB(leaf))

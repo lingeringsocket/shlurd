@@ -69,13 +69,13 @@ SQ ->
   // "go home"
   VP |
   // "must (not) the werewolf (by the light of the moon) drink blood"
-  MD (verbmod)* NP (verbmod) VP |
+  (verbmod) MD (verbmod)* NP (verbmod) VP |
   // "is (not) the werewolf (now) (in the cage) (alive) (with fury)"
-  VB (verbmod) NP (verbmod) (ADJP) (verbmodFinal) |
+  (verbmod) VB (verbmod) NP (verbmod) (ADJP) (verbmodFinal) |
   // "is (not) the werewolf (thirstily) drinking blood"
-  VB (verbmod) NP (verbmod) VP |
+  (verbmod) VB (verbmod) NP (verbmod) VP |
   // "is (not) the werewolf (really) Dan"
-  VB (verbmod) NP (verbmod) NP (verbmodFinal);
+  (verbmod) VB (verbmod) NP (verbmod) NP (verbmodFinal);
 
 nounModifier :=
   // "red"
@@ -121,8 +121,12 @@ NP ->
   (DT) npListElem (npListElem)+ CC NP;
 
 VP ->
-  // "must go to bed"
+  // "must (quickly) go to bed"
   MD (verbmod) VP |
+  // "ought to (quickly) go to bed"
+  MD TO (verbmod) VP |
+  // "has to go to bed"
+  VB TO (verbmod) VP |
   // "kill the thief"
   (verbmod) VB (ADVP) (NP) (verbmodFinal) |
   // "give the thief a pickle"

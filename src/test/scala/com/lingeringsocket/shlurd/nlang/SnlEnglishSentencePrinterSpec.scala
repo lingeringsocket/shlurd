@@ -150,6 +150,14 @@ class SnlEnglishSentencePrinterSpec
       expectStatement("the door must be open")
       expectStatement("the door may be open")
       expectStatement("the door must not be open")
+      expectNormalized(
+        "the door has to be open",
+        "the door must be open.")
+      expectStatement(
+        "the door should be open")
+      expectNormalized(
+        "the door ought to be open",
+        "the door should be open.")
       expectStatement("a door must be either open or closed")
       expectStatement("a door must be neither open nor closed")
       expectStatement("there is a door")
