@@ -17,7 +17,6 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
-import com.lingeringsocket.shlurd.nlang._
 
 import scala.util._
 
@@ -171,11 +170,11 @@ class SmcResponder[
     new SmcResponseRewriter(
       mind, communicationContext.flip, annotator)
 
-  val sentencePrinter = mind.getTongue.newSentencePrinter(mind)
+  private implicit val tongue = mind.getTongue
+
+  val sentencePrinter = tongue.newSentencePrinter(mind)
 
   val mindScope = new MindScopeType(mind, sentencePrinter)
-
-  private implicit val tongue = mind.getTongue
 
   protected def responderMatchers(
     resultCollector : ResultCollectorType
@@ -209,8 +208,8 @@ class SmcResponder[
   def newParser(input : String) =
   {
     val context = SprContext(
-      SnlUtils.defaultWordLabeler,
-      scorer = new SmcContextualScorer(mind.getTongue, this),
+      new SprWordnetLabeler(tongue),
+      scorer = new SmcContextualScorer(tongue, this),
       annotator = newAnnotator,
       genderAnalyzer = mind)
     SprParser(input, context)

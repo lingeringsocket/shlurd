@@ -88,7 +88,15 @@ class SnlSpanishSentenceBundle(
         w.inflected
       }
     })
-    modalSeq ++ mainSeq
+    // FIXME handle MODAL_ELLIPTICAL
+    val prefix = {
+      if (tam.isNegative) {
+        Seq(LEMMA_NO)
+      } else {
+        Seq.empty
+      }
+    }
+    prefix ++ modalSeq ++ mainSeq
   }
 
   override def applyInflection(
@@ -133,5 +141,23 @@ class SnlSpanishSentenceBundle(
     val determinerInflected = tongue.correctGenderCount(
       determinerLemma, gender, count, true)
     compose(determinerInflected, noun)
+  }
+
+  override def affirmation(strength : Boolean) : String =
+  {
+    if (strength) {
+      "Claro"
+    } else {
+      "Sí"
+    }
+  }
+
+  override def negation(strength : Boolean) : String =
+  {
+    if (strength) {
+      "Claro que no"
+    } else {
+      "No"
+    }
   }
 }

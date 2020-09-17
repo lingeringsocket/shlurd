@@ -667,32 +667,27 @@ abstract class SnlSentenceBundle(
     "Oh, really?"
   }
 
+  def affirmation(strength : Boolean) : String
+
+  def negation(strength : Boolean) : String
+
   override def affirmAssumption(sentence : String, strength : Boolean) =
   {
-    val affirmation = {
-      if (strength) {
-        "Right"
-      } else {
-        "Yes"
-      }
-    }
+    val interjection = affirmation(strength)
     if (sentence.isEmpty) {
-      concat(affirmation, ".")
+      concat(interjection, ".")
     } else {
-      compose(concat(affirmation, ","), sentence)
+      compose(concat(interjection, ","), sentence)
     }
   }
 
   override def contradictAssumption(sentence : String, strength : Boolean) =
   {
+    val interjection = negation(strength)
     if (sentence.isEmpty) {
-      "No."
+      concat(interjection, ".")
     } else {
-      if (strength) {
-        compose("No, actually", sentence)
-      } else {
-        compose("No,", sentence)
-      }
+      compose(concat(interjection, ","), sentence)
     }
   }
 }

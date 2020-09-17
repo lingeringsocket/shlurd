@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.nlang._
@@ -28,42 +29,64 @@ import SnlEnglishLemmas._
 trait ZooEntity extends SmcEntity with SmcNamedObject
 {
   override def getUniqueIdentifier = name
+
+  def spanish : String
 }
 
-sealed case class ZooAnimalEntity(name : String) extends ZooEntity
-object ZooLion extends ZooAnimalEntity("lion")
-object ZooTiger extends ZooAnimalEntity("tiger")
-object ZooPolarBear extends ZooAnimalEntity("polar bear")
-object ZooGrizzlyBear extends ZooAnimalEntity("grizzly bear")
-object ZooSloth extends ZooAnimalEntity("sloth")
-object ZooPeacock extends ZooAnimalEntity("peacock")
-object ZooHippogriff extends ZooAnimalEntity("hippogriff")
-object ZooSalamander extends ZooAnimalEntity("salamander")
-object ZooMountainGoat extends ZooAnimalEntity("mountain goat")
-object ZooDomesticGoat extends ZooAnimalEntity("domestic goat")
-object ZooSiberianGoat extends ZooAnimalEntity("siberian goat")
+sealed case class ZooAnimalEntity(
+  name : String, spanish : String) extends ZooEntity
+object ZooLion extends ZooAnimalEntity("lion", "león")
+object ZooTiger extends ZooAnimalEntity("tiger", "tigre")
+object ZooPolarBear extends ZooAnimalEntity("polar bear", "oso polar")
+object ZooGrizzlyBear extends ZooAnimalEntity("grizzly bear", "oso pardo")
+object ZooSloth extends ZooAnimalEntity("sloth", "perezoso")
+object ZooPeacock extends ZooAnimalEntity("peacock", "pavo real")
+object ZooHippogriff extends ZooAnimalEntity("hippogriff", "hipogrifo")
+object ZooSalamander extends ZooAnimalEntity("salamander", "salamandra")
+object ZooMountainGoat extends ZooAnimalEntity(
+  "mountain goat", "cabra de montaña")
+object ZooDomesticGoat extends ZooAnimalEntity(
+  "domestic goat", "cabra domestica")
+object ZooSiberianGoat extends ZooAnimalEntity(
+  "siberian goat", "cabra siberiana")
 
-sealed case class ZooLocationEntity(name : String) extends ZooEntity
-object ZooFarm extends ZooLocationEntity("farm")
-object ZooBigCage extends ZooLocationEntity("big cage")
-object ZooSmallCage extends ZooLocationEntity("small cage")
+sealed case class ZooLocationEntity(
+  name : String, spanish : String) extends ZooEntity
+object ZooFarm extends ZooLocationEntity("farm", "granja")
+object ZooBigCage extends ZooLocationEntity("big cage", "jaula grande")
+object ZooSmallCage extends ZooLocationEntity("small cage", "jaula pequeña")
 
 sealed case class ZooPersonEntity(name : String) extends ZooEntity
+{
+  override def spanish = name
+}
 object ZooKeeper extends ZooPersonEntity("Muldoon")
 object ZooVisitor extends ZooPersonEntity("Malcolm")
 
 object ZooAnimalSleepinessProperty extends SmcProperty
 
-sealed case class ZooAnimalSleepiness(name : String) extends SmcNamedObject
-object ZooAnimalAwake extends ZooAnimalSleepiness("awake")
-object ZooAnimalAsleep extends ZooAnimalSleepiness("asleep")
+sealed case class ZooAnimalSleepiness(
+  name : String, spanish : String) extends ZooEntity
+object ZooAnimalAwake extends ZooAnimalSleepiness("awake", "despierta")
+object ZooAnimalAsleep extends ZooAnimalSleepiness("asleep", "dormida")
 
-object ZooCosmos
+class ZooCosmos(
+  isSpanish : Boolean = false
+) extends SmcCosmos[SmcEntity, SmcProperty]
 {
   private val LEMMA_ANIMAL = "animal"
 
-  private def index[T <: SmcNamedObject](set : Set[T]) =
-    Map(set.map(x => (x.name, x)).toSeq:_*)
+  def nameFor(e : ZooEntity) : String =
+  {
+    if (isSpanish) {
+      e.spanish
+    } else {
+      e.name
+    }
+  }
+
+  private def index[T <: ZooEntity](set : Set[T]) =
+    Map(set.map(x => (nameFor(x), x)).toSeq:_*)
 
   val animals =
     index(Set(ZooLion, ZooTiger, ZooPolarBear,
@@ -105,11 +128,6 @@ object ZooCosmos
     Map(
       ZooLion -> ZooKeeper,
       ZooTiger -> ZooVisitor)
-}
-
-class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
-{
-  import ZooCosmos._
 
   override def resolveQualifiedNoun(
     lemma : String,
@@ -214,10 +232,12 @@ class ZooCosmos extends SmcCosmos[SmcEntity, SmcProperty]
   }
 }
 
-class ZooMind(cosmos : ZooCosmos)
+class ZooMind(cosmos : ZooCosmos, tongueIn : SprTongue = SnlUtils.defaultTongue)
     extends SmcMind[SmcEntity, SmcProperty, ZooCosmos](cosmos)
 {
   private implicit val tongue = getTongue
+
+  override def getTongue : SprTongue = tongueIn
 
   override def spawn(newCosmos : ZooCosmos) =
   {
@@ -233,24 +253,30 @@ class ZooMind(cosmos : ZooCosmos)
   {
     entity match {
       case animal : ZooAnimalEntity => {
-        val words = animal.name.split(" ")
+        val words = cosmos.nameFor(animal).split(" ")
+        val (headWord, modifiers) = tongue.getAdjectivePosition match {
+          case MOD_AFTER_ALWAYS | MOD_AFTER_DEFAULT =>
+            tupleN((words.head, words.drop(1)))
+          case _ =>
+            tupleN((words.last, words.dropRight(1)))
+        }
         val nounRef = annotator.determinedNounRef(
-          SilWord(words.last), determiner)
+          SilWord(headWord), determiner)
         if (words.size == 1) {
           nounRef
         } else {
           annotator.qualifiedRef(
-            nounRef, words.dropRight(1).map(
+            nounRef, modifiers.map(
               q => SilWord(q)))
         }
       }
-      case ZooPersonEntity(name) => {
+      case e : ZooPersonEntity => {
         annotator.nounRef(
-          SilWord(name))
+          SilWord(cosmos.nameFor(e)))
       }
-      case ZooLocationEntity(name) => {
+      case e : ZooLocationEntity => {
         annotator.nounRef(
-          SilWord(name))
+          SilWord(cosmos.nameFor(e)))
       }
     }
   }
@@ -266,13 +292,13 @@ class ZooMind(cosmos : ZooCosmos)
         if (!objEntity.isInstanceOf[ZooPersonEntity]) {
           return Success(Trilean.False)
         }
-        ZooCosmos.ownership
+        cosmos.ownership
       }
       case SprMagicAdposition(MW_IN | MW_ON) => {
         if (!objEntity.isInstanceOf[ZooLocationEntity]) {
           return Success(Trilean.False)
         }
-        ZooCosmos.containment
+        cosmos.containment
       }
       case _ => {
         return Success(Trilean.False)

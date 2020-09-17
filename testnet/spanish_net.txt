@@ -1,17 +1,19 @@
-perro%1:05:00:: -add -addword perra -setgloss "perro"
-vida%1:19:00:: -add -setgloss "vida"
-calle%1:15:00:: -add -addword camino -setgloss "calle"
-caminar%2:38:00:: -add -addword andar -setgloss "caminar"
-beber%2:34:00:: -add -setgloss "beber"
-saber%2:31:00:: -add -setgloss "saber"
-vivir%2:42:00:: -add -setgloss "vivir"
-ser%2:42:00:: -add -setgloss "ser"
-estar%2:42:00:: -add -setgloss "estar"
-tener%2:42:00:: -add -setgloss "tener"
-poder%2:42:00:: -add -setgloss "poder"
-deber%2:42:00:: -add -setgloss "deber"
-haber%2:42:00:: -add -setgloss "haber"
-triste%3:00:00:: -add -setgloss "triste"
+tigre%1:05:00:: -add -setgloss m
+perro%1:05:00:: -add -addword perra -setgloss m
+vida%1:19:00:: -add -setgloss f
+calle%1:15:00:: -add -addword camino -setgloss n
+caminar%2:38:00:: -add -addword andar -setgloss caminar
+beber%2:34:00:: -add -setgloss beber
+saber%2:31:00:: -add -setgloss saber
+vivir%2:42:00:: -add -setgloss vivir
+ser%2:42:00:: -add -setgloss ser
+estar%2:42:00:: -add -setgloss estar
+tener%2:42:00:: -add -setgloss tener
+poder%2:42:00:: -add -setgloss poder
+deber%2:42:00:: -add -setgloss deber
+haber%2:42:00:: -add -setgloss haber
+triste%3:00:00:: -add -setgloss triste
+polar%3:00:00:: -add -setgloss polar
 v#soy -addexc ser
 v#eres -addexc ser
 v#es -addexc ser

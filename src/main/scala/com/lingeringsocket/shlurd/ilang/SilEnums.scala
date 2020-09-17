@@ -217,6 +217,12 @@ case object DEICTIC_PERSONAL extends SilDeicticAxis
 case object DEICTIC_TEMPORAL extends SilDeicticAxis
 case object DEICTIC_SPATIAL extends SilDeicticAxis
 
+sealed trait SilModifierPosition
+case object MOD_BEFORE_ALWAYS extends SilModifierPosition
+case object MOD_BEFORE_DEFAULT extends SilModifierPosition
+case object MOD_AFTER_ALWAYS extends SilModifierPosition
+case object MOD_AFTER_DEFAULT extends SilModifierPosition
+
 sealed trait SilBracket
 {
   def begin : String

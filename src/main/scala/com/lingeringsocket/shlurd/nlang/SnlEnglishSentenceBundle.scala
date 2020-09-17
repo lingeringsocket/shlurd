@@ -306,4 +306,22 @@ class SnlEnglishSentenceBundle(
     }
     compose(determinerString, noun)
   }
+
+  override def affirmation(strength : Boolean) : String =
+  {
+    if (strength) {
+      "Right"
+    } else {
+      "Yes"
+    }
+  }
+
+  override def negation(strength : Boolean) : String =
+  {
+    if (strength) {
+      "No, actually"
+    } else {
+      "No"
+    }
+  }
 }

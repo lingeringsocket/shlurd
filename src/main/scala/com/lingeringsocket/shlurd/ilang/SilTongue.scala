@@ -30,4 +30,6 @@ trait SilTongue extends SilGenderAnalyzer
   def isGenitiveVariableLemma(lemma : String) : Boolean
 
   def combineGenders(genders : Seq[SilGender]) : SilGender
+
+  def getAdjectivePosition : SilModifierPosition
 }

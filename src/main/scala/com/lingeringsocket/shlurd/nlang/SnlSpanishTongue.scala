@@ -532,6 +532,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def getStopList = stopList
 
+  override def getAdjectivePosition = MOD_AFTER_DEFAULT
+
   override def getRelPredefLemma(predef : SprRelationshipPredef) : String =
   {
     predef match {
@@ -912,11 +914,20 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         pr.gender
       }
       case SilNounReference(noun) => {
-        // FIXME get this from wordnet instead
-        if (noun.toNounLemma.endsWith("o")) {
-          GENDER_MASCULINE
-        } else {
-          GENDER_FEMININE
+        val glosses = wordnet.getNounSenses(noun.toNounLemma).
+          flatMap(sense => {
+            wordnet.getGlossDefinitions(sense)
+          })
+        glosses.headOption.flatMap(_ match {
+          case "m" => Some(GENDER_MASCULINE)
+          case "f" => Some(GENDER_FEMININE)
+          case _ => None
+        }).getOrElse {
+          if (noun.toNounLemma.endsWith("o")) {
+            GENDER_MASCULINE
+          } else {
+            GENDER_FEMININE
+          }
         }
       }
       case SilConjunctiveReference(determiner, references, _) => {

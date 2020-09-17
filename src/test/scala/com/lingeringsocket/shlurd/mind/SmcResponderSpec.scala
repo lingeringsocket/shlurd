@@ -19,143 +19,27 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.nlang._
 
-import org.specs2.mutable._
-import org.specs2.specification._
-
 import scala.collection._
 
 import SnlEnglishLemmas._
 
-class SmcResponderSpec extends Specification
+class SmcResponderSpec extends SmcResponderSpecification
 {
-  type CosmosType = ZooCosmos
-  type MindType = ZooMind
-
   private val cosmos = new ZooCosmos
 
-  type StateChangeInvocation = SmcStateChangeInvocation[SmcEntity]
-
-  class ZooResponder(
-    mind : ZooMind,
-    params : SmcResponseParams,
-    executor : SmcExecutor[SmcEntity],
-    communicationContext : SmcCommunicationContext[SmcEntity]
-  ) extends SmcResponder[
-    SmcEntity, SmcProperty, CosmosType, MindType](
-    mind, params, executor, communicationContext)
-  {
-    private implicit val tongue = mind.getTongue
-
-    override protected def newPredicateEvaluator(
-      annotator : AnnotatorType,
-      scope : ScopeType) =
-    {
-      new SmcPredicateEvaluator[SmcEntity, SmcProperty, CosmosType, MindType](
-        annotator,
-        scope, params.existenceAssumption,
-        communicationContext, debugger)
-      {
-        private def normalizeState(
-          state : SilState) : SilState =
-        {
-          state match {
-            case SilAdpositionalState(
-              SprMagicAdposition(MW_IN),
-              SilMandatorySingular(
-                SilWordInflected("dreamland")
-              )) =>
-              {
-                SilPropertyState(SilWord("asleep"))
-              }
-            case _ => state
-          }
-        }
-
-        override protected def normalizePredicate(
-          resultCollector : ResultCollectorType,
-          predicate : SilPredicate
-        ) = {
-          predicate match {
-            case SilStatePredicate(subject, verb, state, modifiers) => {
-              SilStatePredicate(subject, verb, normalizeState(state), modifiers)
-            }
-            case _ => predicate
-          }
-        }
-      }
-    }
-  }
-
-  abstract class ResponderContext(
+  abstract class EnglishResponderContext(
     responseParams : SmcResponseParams =
       SmcResponseParams(
         thirdPersonPronouns = false,
         reportExceptionCodes = true)
-  ) extends Scope
+  ) extends ResponderContext(responseParams)
   {
-    protected val mind = new ZooMind(cosmos)
-
-    protected val communicationContext = SmcCommunicationContext[SmcEntity](
-      Some(ZooVisitor),
-      Some(ZooKeeper)
-    )
-
-    protected def process(
-      input : String,
-      params : SmcResponseParams = responseParams) =
-    {
-      val executor = new SmcExecutor[SmcEntity] {
-        override def executeInvocation(
-          invocation : StateChangeInvocation,
-          refMap : SmcRefMap[SmcEntity]) =
-        {
-          throw new RuntimeException("unexpected invocation")
-        }
-      }
-      val responder =
-        new ZooResponder(mind, params, executor, communicationContext)
-
-      val parseResult = responder.newParser(input).parseOne
-      responder.process(parseResult, input)
-    }
-
-    protected def processExceptionExpected(
-      input : String,
-      message : String,
-      code : ShlurdExceptionCode) =
-    {
-      process(input) must be equalTo(
-        s"$message\n\nFor more information see ${code.getUrl}")
-    }
-
-    protected def processCommandExpected(
-      input : String,
-      invocation : StateChangeInvocation) =
-    {
-      val ok = "OK."
-      var actualInvocation : Option[StateChangeInvocation] = None
-      val executor = new SmcExecutor[SmcEntity] {
-        override def executeInvocation(
-          invocation : StateChangeInvocation,
-          refMap : SmcRefMap[SmcEntity]) =
-        {
-          actualInvocation = Some(invocation)
-          Some(ok)
-        }
-      }
-      val responder =
-        new ZooResponder(
-          mind, responseParams, executor,
-          communicationContext)
-      val parseResult = responder.newParser(input).parseOne
-      responder.process(parseResult, input) must be equalTo(ok)
-      actualInvocation must be equalTo(Some(invocation))
-    }
+    override protected def getCosmos = cosmos
   }
 
   "SmcResponder" should
   {
-    "deal with problem cases" in new ResponderContext
+    "deal with problem cases" in new EnglishResponderContext
     {
       skipped("maybe one day")
       // FIXME:  we don't deal with negated questions yet
@@ -170,7 +54,7 @@ class SmcResponderSpec extends Specification
         "Please be more specific about which bear you mean.")
     }
 
-    "handle CoreNLP excluded cases" in new ResponderContext
+    "handle CoreNLP excluded cases" in new EnglishResponderContext
     {
       if (SprParser.isCoreNLP) {
         skipped("CoreNLP not working")
@@ -191,7 +75,7 @@ class SmcResponderSpec extends Specification
         "One of them is asleep.")
     }
 
-    "suppress exception codes" in new ResponderContext(
+    "suppress exception codes" in new EnglishResponderContext(
       responseParams = SmcResponseParams())
     {
       ShlurdExceptionCode.NotUnique.getUrl must be equalTo
@@ -200,7 +84,7 @@ class SmcResponderSpec extends Specification
         "Please be more specific about which bear you mean.")
     }
 
-    "process questions" in new ResponderContext
+    "process questions" in new EnglishResponderContext
     {
       val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
       val ellipsis = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
@@ -459,7 +343,7 @@ class SmcResponderSpec extends Specification
         "The lion and the tiger are in the big cage.")
     }
 
-    "process statements" in new ResponderContext
+    "process statements" in new EnglishResponderContext
     {
       val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
       process("the lion is asleep") must be equalTo(
@@ -476,7 +360,7 @@ class SmcResponderSpec extends Specification
         "Oh, really?")
     }
 
-    "process commands" in new ResponderContext
+    "process commands" in new EnglishResponderContext
     {
       val awake = SilWord("awake")
       val asleep = SilWord("sleepify", "asleep")
@@ -509,7 +393,7 @@ class SmcResponderSpec extends Specification
         SmcStateChangeInvocation(Set(ZooTiger), asleep))
     }
 
-    "respond to unrecognized phrases" in new ResponderContext(
+    "respond to unrecognized phrases" in new EnglishResponderContext(
       SmcResponseParams()
     )
     {
@@ -587,7 +471,7 @@ class SmcResponderSpec extends Specification
           "I can't understand the phrase \"how I want you\"")
     }
 
-    "remember conversation" in new ResponderContext
+    "remember conversation" in new EnglishResponderContext
     {
       mind.startConversation
       process("who are you") must be equalTo("I am Muldoon.")
@@ -637,7 +521,7 @@ class SmcResponderSpec extends Specification
     }
 
     "understand conversational singular pronoun references" in new
-      ResponderContext
+      EnglishResponderContext
     {
       mind.startConversation
       processExceptionExpected(
@@ -651,7 +535,7 @@ class SmcResponderSpec extends Specification
     }
 
     "understand conversational plural pronoun references" in new
-      ResponderContext
+      EnglishResponderContext
     {
       mind.startConversation
       processExceptionExpected(
@@ -667,7 +551,7 @@ class SmcResponderSpec extends Specification
     }
 
     "allow for unknown existence" in new
-      ResponderContext(SmcResponseParams(
+      EnglishResponderContext(SmcResponseParams(
         thirdPersonPronouns = false,
         existenceAssumption = EXISTENCE_ASSUME_UNKNOWN))
     {

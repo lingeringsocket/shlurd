@@ -307,6 +307,8 @@ class SnlEnglishTongue(wordnet : SprWordnet)
       context, guessedQuestion, strictness, enforceTransitive)
   }
 
+  override def getAdjectivePosition = MOD_BEFORE_ALWAYS
+
   override def getStopList = stopList
 
   override def getPhraseScorers : Seq[SprWordnetScorer.PhraseScorer] =
