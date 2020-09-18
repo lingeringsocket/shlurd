@@ -28,6 +28,7 @@ import java.util.regex._
 
 object SpcWordnetOntology
 {
+  // FIXME need to incorporate all Latin characters
   private val usablePattern = Pattern.compile("[ \\p{javaLowerCase}]+")
 
   private val someoneCategories = Seq(

@@ -1,5 +1,6 @@
 tigre%1:05:00:: -add -setgloss m
 oso%1:05:00:: -add -setgloss m
+cabra%1:05:00:: -add -setgloss f
 perro%1:05:00:: -add -addword perra -setgloss m
 vida%1:19:00:: -add -setgloss f
 calle%1:15:00:: -add -addword camino -setgloss n
@@ -15,6 +16,8 @@ deber%2:42:00:: -add -setgloss deber
 haber%2:42:00:: -add -setgloss haber
 triste%3:00:00:: -add -setgloss triste
 polar%3:00:00:: -add -setgloss polar
+siberiana%3:00:00:: -add -setgloss siberiana
+niñera%3:00:00:: -add -setgloss niñera
 v#soy -addexc ser
 v#eres -addexc ser
 v#es -addexc ser

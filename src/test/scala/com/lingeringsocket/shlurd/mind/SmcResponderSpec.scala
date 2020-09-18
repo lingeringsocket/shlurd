@@ -45,7 +45,7 @@ class SmcResponderSpec extends SmcResponderSpecification
       // FIXME:  we don't deal with negated questions yet
       process("which goats are not awake") must be equalTo(
         "The domestic goat, the siberian goat, " +
-          "and the mountain goat are not awake.")
+          "and the nanny goat are not awake.")
       // FIXME:  we should use the same rules as for DETERMINER_DEFINITE
       process("is any tiger in the small cage awake") must be equalTo(
         "But I don't know about any such tiger.")
@@ -249,8 +249,8 @@ class SmcResponderSpec extends SmcResponderSpecification
         "No goats are awake.")
       process("what goat is awake") must be equalTo(
         "No goat is awake.")
-      val list = "The domestic goat, the siberian goat, " +
-        "and the mountain goat are asleep."
+      val list = "The domestic goat, the nanny goat, " +
+        "and the siberian goat are asleep."
       process("which goat is asleep") must be equalTo(list)
       process("which goats are asleep") must be equalTo(list)
       process("which goat in the farm is asleep") must be equalTo(
@@ -263,7 +263,7 @@ class SmcResponderSpec extends SmcResponderSpecification
         "All three of them are asleep.")
       process("how many goats in the farm are asleep") must be equalTo(
         "One of them is asleep.")
-      process("how many mountain goats are asleep") must be equalTo(
+      process("how many nanny goats are asleep") must be equalTo(
         "One of them is asleep.")
       process("how many lions or polar bears are asleep") must be equalTo(
         "Both of them are asleep.")

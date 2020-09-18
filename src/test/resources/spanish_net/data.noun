@@ -1,5 +1,6 @@
 00000000 05 n 01 tigre 0 000 | m  
 00000035 05 n 01 oso 0 000 | m  
-00000068 05 n 02 perro 0 perra 0 000 | m  
-00000111 19 n 01 vida 0 000 | f  
-00000145 15 n 02 calle 0 camino 0 000 | n  
+00000068 05 n 01 cabra 0 000 | f  
+00000103 05 n 02 perro 0 perra 0 000 | m  
+00000146 19 n 01 vida 0 000 | f  
+00000180 15 n 02 calle 0 camino 0 000 | n  

@@ -37,7 +37,7 @@ trait SprWordnet
 
   def getMorphology : MorphologicalProcessor
 
-  private val plainPattern = Pattern.compile("\\p{javaLowerCase}+")
+  private val plainPattern = Pattern.compile("[\\p{IsAlphabetic}&&[^\\p{Lu}]]+")
 
   def getWordSenses(pos : POS, lemma : String) : Seq[Synset] =
   {

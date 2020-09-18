@@ -43,8 +43,8 @@ object ZooSloth extends ZooAnimalEntity("sloth", "perezoso")
 object ZooPeacock extends ZooAnimalEntity("peacock", "pavo real")
 object ZooHippogriff extends ZooAnimalEntity("hippogriff", "hipogrifo")
 object ZooSalamander extends ZooAnimalEntity("salamander", "salamandra")
-object ZooMountainGoat extends ZooAnimalEntity(
-  "mountain goat", "cabra de montaña")
+object ZooNannyGoat extends ZooAnimalEntity(
+  "nanny goat", "cabra niñera")
 object ZooDomesticGoat extends ZooAnimalEntity(
   "domestic goat", "cabra domestica")
 object ZooSiberianGoat extends ZooAnimalEntity(
@@ -91,7 +91,7 @@ class ZooCosmos(
   val animals =
     index(Set(ZooLion, ZooTiger, ZooPolarBear,
       ZooGrizzlyBear, ZooSloth,
-      ZooMountainGoat, ZooDomesticGoat, ZooSiberianGoat,
+      ZooNannyGoat, ZooDomesticGoat, ZooSiberianGoat,
       ZooPeacock, ZooHippogriff, ZooSalamander))
 
   val locations =
@@ -109,7 +109,7 @@ class ZooCosmos(
     ZooTiger -> Trilean.False,
     ZooPolarBear -> Trilean.True,
     ZooGrizzlyBear -> Trilean.False,
-    ZooMountainGoat -> Trilean.True,
+    ZooNannyGoat -> Trilean.True,
     ZooDomesticGoat -> Trilean.True,
     ZooSiberianGoat -> Trilean.True,
     ZooSloth -> Trilean.Unknown)
@@ -162,9 +162,9 @@ class ZooCosmos(
       }
       if (context == REF_ADPOSITION_OBJ) {
         Success(SprUtils.orderedSet(
-          locations.filterKeys(_.endsWith(name)).values))
+          locations.filterKeys(_.contains(name)).values))
       } else {
-        if (animals.filterKeys(_.endsWith(lemma)).isEmpty) {
+        if (animals.filterKeys(_.contains(lemma)).isEmpty) {
           val namedPeople = people.filterKeys(
             _.toLowerCase == lemma.toLowerCase).values
           if (namedPeople.isEmpty) {
@@ -174,7 +174,7 @@ class ZooCosmos(
           }
         } else {
           Success(
-            animals.filterKeys(_.endsWith(name)).
+            animals.filterKeys(_.contains(name)).
               values.filter(asleep.contains).toSet)
         }
       }

@@ -58,6 +58,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, no hay un oso triste.")
       process("hay una salamandra?") must be equalTo(
         "No, no hay una salamandra.")
+      process("hay una cabra niñera?") must be equalTo(
+        "Sí, hay una cabra niñera.")
     }
   }
 }

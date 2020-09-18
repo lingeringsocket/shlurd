@@ -234,6 +234,9 @@ class SprWordnetLabeler(
           case (pos, lemma) => {
             Option(wordnet.getDictionary.getIndexWord(pos, lemma))
           }
+        } ++ {
+          wordnet.getDictionary.lookupAllIndexWords(tokenSuffix).
+            getIndexWordArray.toSet
         }
         val filteredWords = tongue.filterIndexWords(
           token, tokenSuffix, rawWords)
