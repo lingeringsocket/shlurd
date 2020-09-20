@@ -109,9 +109,23 @@ class SnlSpanishSentenceBundle(
   override def delemmatizeState(
     word : SilWord, tam : SilTam, conjoining : SilConjoining) : String =
   {
-    // FIXME the real thing
-    val decomposed = word.decomposed.map(_.lemma)
-    separate(word.recompose(decomposed), conjoining)
+    val decomposed = word.decomposed
+    val state = decomposed.last
+    val unseparated = {
+      if (state.inflected.isEmpty) {
+        // FIXME irregulars such as roto
+        val lemma = state.lemmaUnfolded
+        if (lemma.endsWith("r")) {
+          concat(lemma.dropRight(1), "do")
+        } else {
+          lemma
+        }
+      } else {
+        state.inflected
+      }
+    }
+    val seq = decomposed.dropRight(1).map(_.inflected) :+ unseparated
+    separate(word.recompose(seq), conjoining)
   }
 
   override def genitivePhrase(genitive : String, head : String) =
@@ -141,6 +155,20 @@ class SnlSpanishSentenceBundle(
     val determinerInflected = tongue.correctGenderCount(
       determinerLemma, gender, count, true)
     compose(determinerInflected, noun)
+  }
+
+  override def cardinalNumber(num : Int) : String =
+  {
+    // FIXME:  need to take gender
+    assert(num >= 0)
+    numberFormat.format(num, "%spellout-cardinal-masculine")
+  }
+
+  override def ordinalNumber(num : Int) : String =
+  {
+    // FIXME:  need to take gender and number
+    assert(num > 0)
+    numberFormat.format(num, "%spellout-ordinal-masculine")
   }
 
   override def affirmation(strength : Boolean) : String =

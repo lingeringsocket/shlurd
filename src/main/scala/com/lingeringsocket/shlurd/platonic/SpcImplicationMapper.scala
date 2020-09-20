@@ -101,7 +101,7 @@ object SpcImplicationMapper
         SilMandatorySingular(
           noun
         ),
-        SilPropertyState(SilMagicWord(MW_ANOTHER))
+        SilPropertyState(SprPredefWord(PD_ANOTHER))
       ) => {
         val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
         annotator.determinedRef(
@@ -275,7 +275,7 @@ class SpcImplicationMapper(
           }
           case SilStateSpecifiedReference(
             SilMandatorySingular(noun),
-            SilPropertyState(SilMagicWord(MW_ANOTHER))
+            SilPropertyState(SprPredefWord(PD_ANOTHER))
           ) => {
             if (variableCounters.getOrElse(noun, 0) != 1) {
               throw InvalidBeliefExcn(
@@ -329,7 +329,7 @@ class SpcImplicationMapper(
         case SilStateSpecifiedReference(
           _, SilPropertyState(SilWordLemma(lemma))
         ) => {
-          (lemma == MW_ANOTHER.toLemma)
+          (lemma == PD_ANOTHER.toLemma)
         }
         case _ : SilConjunctiveReference => false
         case _ => true

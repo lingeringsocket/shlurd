@@ -47,13 +47,13 @@ class SmcInputRewriter[
         SilStateSpecifiedReference(
           SilCountedNounReference(noun, count),
           SilAdpositionalState(
-            SprMagicAdposition(MW_OF),
+            SprPredefAdposition(PD_OF),
             possessor
           )
         ),
         determiner
       ) if (
-        (noun.toNounLemma != MW_KIND.toLemma) &&
+        (noun.toNounLemma != PD_KIND.toLemma) &&
           (determiner match {
             case DETERMINER_ABSENT | DETERMINER_DEFINITE |
                 (_ : SilUnlimitedDeterminer) => true

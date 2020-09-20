@@ -662,7 +662,7 @@ object SilConjunctiveReference
       case DETERMINER_NONE | DETERMINER_ANY | DETERMINER_DEFINITE |
           DETERMINER_ALL | DETERMINER_ABSENT => true
       case _ => false
-    })
+    }, determiner)
     new SilConjunctiveReference(determiner, references, separator)
   }
 

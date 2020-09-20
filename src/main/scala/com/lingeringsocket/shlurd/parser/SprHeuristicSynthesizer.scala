@@ -568,7 +568,7 @@ class SprHeuristicSynthesizer(
           tryRewrite(
             SipExpectedSentence(
               SptS(npSomething,
-                SptVP(SptVB(makeLeaf(SilMagicWord(MW_EXIST).lemma))))))
+                SptVP(SptVB(makeLeaf(SprPredefWord(PD_EXIST).lemma))))))
         }
         case vp : SptVP => {
           tryRewrite(
@@ -605,7 +605,7 @@ class SprHeuristicSynthesizer(
             allowConjunctive)
           result.map(_._1) match {
             case Some(SilAdpositionalVerbModifier(
-              SprMagicAdposition(MW_ADVERBIAL_TMP), ref)
+              SprPredefAdposition(PD_ADVERBIAL_TMP), ref)
             ) => {
               // FIXME discriminate excns
               if (Try(SprParser.interpretTemporal(ref)).isSuccess) {

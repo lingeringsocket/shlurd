@@ -38,5 +38,20 @@ class SnlExternalWordnetSpec extends Specification
       found must be equalTo sense
       wordnet.findSenses(senseId) must be equalTo Seq(sense)
     }
+
+    "support plurals" in
+    {
+      // regular singular noun declared in wordnet
+      wordnet.isPotentialPlural("cabra") must beFalse
+
+      // regular plural noun with singular declared in wordnet
+      wordnet.isPotentialPlural("cabras") must beTrue
+
+      // noun not declared in wordnet
+      wordnet.isPotentialPlural("crisis") must beFalse
+
+      // noun with exceptional form declared in wordnet
+      wordnet.isPotentialPlural("leones") must beTrue
+    }
   }
 }

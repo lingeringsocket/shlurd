@@ -140,7 +140,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         SilDeterminedReference(
           SilStateSpecifiedReference(
             SilMandatorySingular(
-              word @ SilMagicWord(MW_LEFT | MW_RIGHT)
+              word @ SprPredefWord(PD_LEFT | PD_RIGHT)
             ),
             SilAdpositionalState(
               adp2 : SilAdposition,
@@ -177,7 +177,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         ),
         modifiers
       ) if (
-        (adp == SprMagicAdposition(MW_OF)) &&
+        (adp == SprPredefAdposition(PD_OF)) &&
           compassRose.contains(direction.lemma)
       ) => {
         SilStatePredicate(
@@ -196,7 +196,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
         SilPropertyState(direction : SilSimpleWord),
         Seq(SilAdpositionalVerbModifier(adp, landmark))
       ) if (
-        (adp == SprMagicAdposition(MW_OF)) &&
+        (adp == SprPredefAdposition(PD_OF)) &&
           compassRose.contains(direction.lemma)
       ) => {
         SilStatePredicate(
@@ -416,8 +416,8 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     // "bow before the throne" involve adverbial phrases.  And in some cases,
     // we should leave it ambiguous and try it both ways.
     adposition match {
-      case SprMagicAdposition(MW_BEFORE | MW_AFTER | MW_TO) => true
-      case SprMagicAdposition(MW_AT) => {
+      case SprPredefAdposition(PD_BEFORE | PD_AFTER | PD_TO) => true
+      case SprPredefAdposition(PD_AT) => {
         objRef match {
           case SilMandatorySingular(
             _

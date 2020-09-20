@@ -52,12 +52,20 @@ class SmcResponderSpecification extends Specification
         {
           state match {
             case SilAdpositionalState(
-              SprMagicAdposition(MW_IN),
+              SprPredefAdposition(PD_IN),
               SilMandatorySingular(
-                SilWordInflected("dreamland")
+                inflected @ SilWordInflected("dreamland")
               )) =>
               {
                 SilPropertyState(SilWord("asleep"))
+              }
+            case SilAdpositionalState(
+              SprPredefAdposition(PD_IN),
+              SilMandatorySingular(
+                inflected @ SilWordInflected("sueños")
+              )) =>
+              {
+                SilPropertyState(SilWord("dormido"))
               }
             case _ => state
           }

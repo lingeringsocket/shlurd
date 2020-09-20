@@ -128,9 +128,9 @@ class SpcCreed(
         idealReference(cosmos.getGraph.getSubclassIdeal(edge)),
         REL_PREDEF_IDENTITY.toVerb,
         annotator.stateSpecifiedRef(
-          nounReference(MW_KIND),
+          nounReference(PD_KIND),
           SilAdpositionalState(
-            SprMagicAdposition(MW_OF),
+            SprPredefAdposition(PD_OF),
             idealNoun(cosmos.getGraph.getSuperclassIdeal(edge))))
       )
     )
@@ -159,9 +159,9 @@ class SpcCreed(
         REL_PREDEF_IDENTITY.toVerb,
         annotator.stateSpecifiedRef(
           nounReference(
-            MW_SAME, COUNT_SINGULAR, DETERMINER_DEFINITE),
+            PD_SAME, COUNT_SINGULAR, DETERMINER_DEFINITE),
           SilAdpositionalState(
-            SprMagicAdposition(MW_AS),
+            SprPredefAdposition(PD_AS),
             nounReference(entry._2))))
     )
   }
@@ -250,7 +250,7 @@ class SpcCreed(
       case "" => {
         SilStatePredicate(
           subject,
-          SilMagicWord(MW_EXIST).toUninflected,
+          SprPredefWord(PD_EXIST).toUninflected,
           SilExistenceState())
       }
       case _ => {
@@ -376,7 +376,7 @@ class SpcCreed(
           annotator.genitiveRef(
             annotator.qualifiedRef(
               plainNoun(possessorForm),
-              Seq(SilMagicWord(MW_ANOTHER))
+              Seq(SprPredefWord(PD_ANOTHER))
             ),
             plainNoun(edge1.getRoleName)
           ),
@@ -408,7 +408,7 @@ class SpcCreed(
       }
     }
     val sentence = SilConditionalSentence(
-      SilMagicWord(MW_IF),
+      SprPredefWord(PD_IF),
       SilRelationshipPredicate(
         antecedentSubject,
         REL_PREDEF_IDENTITY.toVerb,

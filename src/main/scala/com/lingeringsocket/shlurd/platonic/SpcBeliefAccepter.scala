@@ -1023,7 +1023,7 @@ class SpcBeliefAccepter private(
           None
         } else {
           if (
-            (conditional.conjunction.toLemma == MW_IF.toLemma) &&
+            (conditional.conjunction.toLemma == PD_IF.toLemma) &&
               isGenitiveRelationship(conditional.antecedent) &&
               isGenitiveRelationship(conditional.consequent)
           )
@@ -1074,7 +1074,7 @@ class SpcBeliefAccepter private(
       //   then equivalently the map-connection is
       //   the map-place's place-entrance."
       case SilConditionalSentence(
-        SilMagicWord(MW_IF),
+        SprPredefWord(PD_IF),
         SilRelationshipPredicate(
           antecedentSubject,
           SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),

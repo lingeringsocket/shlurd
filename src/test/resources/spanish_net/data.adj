@@ -1,4 +1,7 @@
 00000000 00 a 01 triste 0 000 | triste  
-00000041 00 a 01 polar 0 000 | polar  
-00000080 00 a 01 siberiana 0 000 | siberiana  
-00000127 00 a 01 niñera 0 000 | niñera  
+00000041 00 a 01 despierto 0 000 | despierto  
+00000088 00 a 01 dormido 0 000 | dormido  
+00000131 00 a 01 polar 0 000 | polar  
+00000170 00 a 01 siberiana 0 000 | siberiana  
+00000217 00 a 01 niñera 0 000 | niñera  
+00000260 00 a 01 real 0 000 | real  

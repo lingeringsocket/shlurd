@@ -269,7 +269,7 @@ class SpcAssertionMapper(
             // FIXME need the same treatment for other variables, but
             // with intersectionality
             case SilDeterminedReference(
-              SilCountedNounReference(SilMagicWord(MW_WHAT), count),
+              SilCountedNounReference(SprPredefWord(PD_WHAT), count),
               _ : SilUnlimitedDeterminer
             ) => {
               resolvedForm match {

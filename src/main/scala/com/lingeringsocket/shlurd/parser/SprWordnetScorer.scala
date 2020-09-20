@@ -68,71 +68,71 @@ object SprWordnetScorer
       case 8 => {
         // Somebody ----s something
         directObject.nonEmpty && !hasAdposition(
-          modifiers, SprMagicAdposition(MW_TO))
+          modifiers, SprPredefAdposition(PD_TO))
       }
       case 9 => {
         // Somebody ----s somebody
         directObject.nonEmpty && !hasAdposition(modifiers,
-          SprMagicAdposition(MW_TO))
+          SprPredefAdposition(PD_TO))
       }
       case 10 => {
         // Something ----s somebody
         directObject.nonEmpty && !hasAdposition(modifiers,
-          SprMagicAdposition(MW_TO))
+          SprPredefAdposition(PD_TO))
       }
       case 11 => {
         // Something ----s something
         directObject.nonEmpty && !hasAdposition(modifiers,
-          SprMagicAdposition(MW_TO))
+          SprPredefAdposition(PD_TO))
       }
       case 12 => {
         // Something ----s to somebody
         directObject.isEmpty && hasAdposition(modifiers,
-          SprMagicAdposition(MW_TO))
+          SprPredefAdposition(PD_TO))
       }
       case 13 => {
         //  Somebody ----s on something
         directObject.isEmpty && hasAdposition(modifiers,
-          SprMagicAdposition(MW_ON))
+          SprPredefAdposition(PD_ON))
       }
       case 14 => {
         // Somebody ----s somebody something
         directObject.nonEmpty && hasAdposition(modifiers,
-          SprMagicAdposition(MW_TO))
+          SprPredefAdposition(PD_TO))
       }
       case 15 => {
         // Somebody ----s something to somebody
         directObject.nonEmpty && hasAdposition(modifiers,
-          SprMagicAdposition(MW_TO))
+          SprPredefAdposition(PD_TO))
       }
       case 16 => {
         // Somebody ----s something from somebody
         directObject.nonEmpty &&
-          hasAdposition(modifiers, SprMagicAdposition(MW_FROM))
+          hasAdposition(modifiers, SprPredefAdposition(PD_FROM))
       }
       case 17 => {
         // Somebody ----s somebody with something
         directObject.nonEmpty &&
-          hasAdposition(modifiers, SprMagicAdposition(MW_WITH))
+          hasAdposition(modifiers, SprPredefAdposition(PD_WITH))
       }
       case 18 => {
         // Somebody ----s somebody of something
         directObject.nonEmpty && hasAdposition(modifiers,
-          SprMagicAdposition(MW_OF))
+          SprPredefAdposition(PD_OF))
       }
       case 19 => {
         // Somebody ----s something on somebody
         directObject.nonEmpty && hasAdposition(modifiers,
-          SprMagicAdposition(MW_ON))
+          SprPredefAdposition(PD_ON))
       }
       case 20 => {
         // Somebody ----s somebody PP
         directObject.nonEmpty && hasAdposition(modifiers) &&
-        !hasAdposition(modifiers, SprMagicAdposition(MW_TO))
+        !hasAdposition(modifiers, SprPredefAdposition(PD_TO))
       }
       case 21 => {
         // Somebody ----s something PP &&
-        !hasAdposition(modifiers, SprMagicAdposition(MW_TO))
+        !hasAdposition(modifiers, SprPredefAdposition(PD_TO))
         directObject.nonEmpty && hasAdposition(modifiers)
       }
       case 22 => {
@@ -158,7 +158,7 @@ object SprWordnetScorer
       case 27 => {
         // Somebody ----s to somebody
         directObject.isEmpty && hasAdposition(
-          modifiers,SprMagicAdposition(MW_TO))
+          modifiers,SprPredefAdposition(PD_TO))
       }
       case 28 => {
         // Somebody ----s to INFINITIVE
@@ -175,7 +175,7 @@ object SprWordnetScorer
       case 31 => {
         // Somebody ----s something with something
         directObject.nonEmpty && hasAdposition(
-          modifiers,SprMagicAdposition(MW_WITH))
+          modifiers,SprPredefAdposition(PD_WITH))
       }
       case 32 => {
         // Somebody ----s INFINITIVE
@@ -281,8 +281,8 @@ class SprWordnetScorer(
       ap.adposition.word.decomposed.size > 1
     ) => {
       val decomposed = ap.adposition.word.decomposed
-      if ((decomposed.last.lemma == MW_OF.toLemma) ||
-        (decomposed.last.lemma == MW_TO.toLemma))
+      if ((decomposed.last.lemma == PD_OF.toLemma) ||
+        (decomposed.last.lemma == PD_TO.toLemma))
       {
         SilPhraseScore.proBig
       } else {

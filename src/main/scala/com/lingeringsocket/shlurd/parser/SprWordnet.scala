@@ -143,7 +143,7 @@ trait SprWordnet
   def isPotentialPlural(noun : String) : Boolean =
   {
     val bases = getMorphology.lookupAllBaseForms(POS.NOUN, noun).asScala
-    return (bases.size > 1) || !bases.contains(noun)
+    return (bases.size > 1) || (!bases.isEmpty && !bases.contains(noun))
   }
 
   def isPlural(indexWord : IndexWord) : Boolean =

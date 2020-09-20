@@ -387,4 +387,6 @@ class SmcMind[
     // about caching.
     getTongue.deriveGender(ref)
   }
+
+  def deriveGender(entity : EntityType) : SilGender = GENDER_NEUTER
 }

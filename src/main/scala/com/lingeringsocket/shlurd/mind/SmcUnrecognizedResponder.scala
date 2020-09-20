@@ -111,10 +111,10 @@ class SmcUnrecognizedResponder(
     val verbLemma = {
       complement match {
         case SilExistenceState(_) => {
-          MW_EXIST.toLemma
+          PD_EXIST.toLemma
         }
         case _ => {
-          relationshipVerb.map(_.toLemma).getOrElse(MW_BE.toLemma)
+          relationshipVerb.map(_.toLemma).getOrElse(PD_BE.toLemma)
         }
       }
     }

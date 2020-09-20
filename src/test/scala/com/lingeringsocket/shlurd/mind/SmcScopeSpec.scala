@@ -73,7 +73,7 @@ class SmcScopeSpec extends Specification
     protected val anotherTigerRef =
       annotator.stateSpecifiedRef(
         annotator.nounRef(SilWord("tiger")),
-        SilPropertyState(SilMagicWord(MW_ANOTHER)))
+        SilPropertyState(SprPredefWord(PD_ANOTHER)))
 
     protected val communicationContext =
       SmcCommunicationContext[SmcEntity](

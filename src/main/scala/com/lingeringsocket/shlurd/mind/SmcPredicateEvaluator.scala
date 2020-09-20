@@ -148,7 +148,7 @@ class SmcPredicateEvaluator[
                           (_ : SilUnlimitedDeterminer) | DETERMINER_ABSENT
                         ) => {
                           noun match {
-                            case SilMagicWord(MW_WHO | MW_WHAT) => {
+                            case SprPredefWord(PD_WHO | PD_WHAT) => {
                               Success(Trilean.True)
                             }
                             case _ => {
@@ -616,7 +616,7 @@ class SmcPredicateEvaluator[
       unassumed,
       state match {
         case SilExistenceState(_) | SilAdpositionalState(
-          SprMagicAdposition(MW_GENITIVE_OF), _
+          SprPredefAdposition(PD_GENITIVE_OF), _
         ) => true
         case _ => false
       }
@@ -678,7 +678,7 @@ class SmcPredicateEvaluator[
         val roleQualifiers = extractRoleQualifiers(complementRef)
         val result = mind.evaluateEntityAdpositionPredicate(
           complementEntity, subjectEntity,
-          SprMagicAdposition(MW_GENITIVE_OF), roleQualifiers)
+          SprPredefAdposition(PD_GENITIVE_OF), roleQualifiers)
         trace("RESULT FOR " +
           s"$complementEntity GENITIVE_OF " +
           s"$subjectEntity with $roleQualifiers is $result")
@@ -739,7 +739,7 @@ class SmcPredicateEvaluator[
           adpositionStates.forall(adp => {
             val adposition = adp.adposition
             val qualifiers : Set[SilWord] = {
-              if (adposition == SprMagicAdposition(MW_GENITIVE_OF)) {
+              if (adposition == SprPredefAdposition(PD_GENITIVE_OF)) {
                 Set(noun)
               } else {
                 Set.empty
@@ -903,9 +903,9 @@ class SmcPredicateEvaluator[
         case DETERMINER_ABSENT => {
           ((count == COUNT_PLURAL) && (context == REF_COMPLEMENT)) ||
           ((context == REF_GENITIVE_POSSESSOR) && !noun.isProper)||
-          (lemma == MW_WHO.toLemma) || (lemma == MW_WHAT.toLemma) ||
-          (lemma == MW_WHERE.toLemma) ||
-          (qualifiers.contains(MW_ANOTHER.toLemma))
+          (lemma == PD_WHO.toLemma) || (lemma == PD_WHAT.toLemma) ||
+          (lemma == PD_WHERE.toLemma) ||
+          (qualifiers.contains(PD_ANOTHER.toLemma))
         }
         case DETERMINER_ALL => false
         case _ => true
@@ -1230,7 +1230,7 @@ class SmcPredicateEvaluator[
               }
             }
             val state = SilAdpositionalState(
-              SprMagicAdposition(MW_GENITIVE_OF), possessor)
+              SprPredefAdposition(PD_GENITIVE_OF), possessor)
             val result = evaluatePredicateOverState(
               possessee, state, REF_GENITIVE_POSSESSEE, resultCollector,
               specifiedState, evaluator)
@@ -1309,13 +1309,13 @@ class SmcPredicateEvaluator[
             SilCountedNounReference(noun, count), determiner
           ) => {
             val rephrased = noun match {
-              case SilMagicWord(MW_WHO) =>
+              case SprPredefWord(PD_WHO) =>
                 SilWord(SmcIdeals.FORM_SOMEONE)
-              case SilMagicWord(MW_WHOM) =>
+              case SprPredefWord(PD_WHOM) =>
                 SilWord(SmcIdeals.FORM_SOMEONE)
-              case SilMagicWord(MW_WHAT) =>
-                SilMagicWord(MW_THAT)
-              case SilMagicWord(MW_WHERE) =>
+              case SprPredefWord(PD_WHAT) =>
+                SprPredefWord(PD_THAT)
+              case SprPredefWord(PD_WHERE) =>
                 SilWord(SmcIdeals.ROLE_CONTAINER)
               case _ => noun
             }

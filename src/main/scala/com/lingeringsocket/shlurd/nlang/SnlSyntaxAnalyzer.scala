@@ -358,13 +358,13 @@ abstract class SnlSyntaxAnalyzer(
         questionChildren match {
           case Seq(SptNP(first : SptNP, second)) => {
             SptNP(
-              SptNP((SptDT(makeLeaf(MW_WHICH.toLemma)) +:
+              SptNP((SptDT(makeLeaf(PD_WHICH.toLemma)) +:
                 unwrapSinglePhrase(first.children)):_*),
               second
             )
           }
           case _ => {
-            SptNP((SptDT(makeLeaf(MW_WHICH.toLemma)) +:
+            SptNP((SptDT(makeLeaf(PD_WHICH.toLemma)) +:
               unwrapSinglePhrase(questionChildren)):_*)
           }
         }
@@ -750,8 +750,8 @@ abstract class SnlSyntaxAnalyzer(
             if (extracted) {
               // FIXME ugh
               adposition match {
-                case SprMagicAdposition(
-                  MW_OF | MW_GENITIVE_OF | MW_TO) => false
+                case SprPredefAdposition(
+                  PD_OF | PD_GENITIVE_OF | PD_TO) => false
                 case _ => true
               }
             } else {
@@ -799,7 +799,7 @@ abstract class SnlSyntaxAnalyzer(
       }
     } else if ((seq.size == 1) && seq.head.isNounPhrase) {
       SilAdpositionalState(
-        SprMagicAdposition(MW_ADVERBIAL_TMP), expectReference(seq.head))
+        SprPredefAdposition(PD_ADVERBIAL_TMP), expectReference(seq.head))
     } else {
       SilUnrecognizedState(tree)
     }
@@ -902,7 +902,7 @@ abstract class SnlSyntaxAnalyzer(
     val objTrees = directObjTree.toSeq ++ indirectObjTree
     val indirectAdposition = indirectObjTree.map(indirectObj => {
       val modifier = SilAdpositionalVerbModifier(
-        SprMagicAdposition(MW_TO),
+        SprPredefAdposition(PD_TO),
         expectReference(indirectObj)
       )
       modifier.rememberSyntaxTree(indirectObj)
@@ -1155,7 +1155,7 @@ abstract class SnlSyntaxAnalyzer(
         case SptPP(
           SptIN(adp),
           _
-        ) if (SilWord(adp.lemma) == SilMagicWord(MW_OF)) => {
+        ) if (SilWord(adp.lemma) == SprPredefWord(PD_OF)) => {
           Some(adp)
         }
         case _ => None
@@ -1177,8 +1177,8 @@ abstract class SnlSyntaxAnalyzer(
     children.headOption match {
       case Some(SptSBAR(SptIN(leaf), antecedent : SptS)) => {
         SilWord(leaf.lemma) match {
-          case SilMagicWord(MW_IF | MW_WHEN | MW_WHENEVER |
-              MW_BEFORE | MW_AFTER) =>
+          case SprPredefWord(PD_IF | PD_WHEN | PD_WHENEVER |
+              PD_BEFORE | PD_AFTER) =>
             Some(tupleN((getWord(leaf), antecedent)))
           case _ =>
             None
@@ -1186,7 +1186,7 @@ abstract class SnlSyntaxAnalyzer(
       }
       case Some(SptSBAR(SptWHADVP(SptWRB(leaf)), antecedent : SptS)) => {
         SilWord(leaf.lemma) match {
-          case SilMagicWord(MW_WHEN | MW_WHENEVER) =>
+          case SprPredefWord(PD_WHEN | PD_WHENEVER) =>
             Some(tupleN((getWord(leaf), antecedent)))
           case _ => None
         }
@@ -1205,7 +1205,7 @@ abstract class SnlSyntaxAnalyzer(
         if (children.forall(_.isPreTerminal)) {
           val lemma = children.map(_.firstChild.lemma).mkString(" ")
           SilWord(lemma) match {
-            case SilMagicWord(MW_HOW_MANY) => {
+            case SprPredefWord(PD_HOW_MANY) => {
               // FIXME for HOW_MANY, force the corresponding noun reference
               // to plural
               Some((QUESTION_HOW_MANY, None, seq.tail))
@@ -1218,14 +1218,14 @@ abstract class SnlSyntaxAnalyzer(
       }
       case SptWRB(where) => {
         SilWord(where.lemma) match {
-          case SilMagicWord(MW_WHERE) =>
+          case SprPredefWord(PD_WHERE) =>
             Some((QUESTION_WHERE, None, tree.children))
           case _ => None
         }
       }
       case SptWDT(wdt) => {
         SilWord(wdt.lemma) match {
-          case SilMagicWord(MW_WHICH | MW_WHAT) =>
+          case SprPredefWord(PD_WHICH | PD_WHAT) =>
             Some((QUESTION_WHICH, None, seq.tail))
           case _ => None
         }
@@ -1233,14 +1233,14 @@ abstract class SnlSyntaxAnalyzer(
       case SptWP_POS(wpp) => {
         Some((QUESTION_WHO, None,
           Seq(SptNP(
-            (SptNP(SptNN(makeLeaf(MW_WHO.toLemma)), SptPOS(makeLeaf("'s"))) +:
+            (SptNP(SptNN(makeLeaf(PD_WHO.toLemma)), SptPOS(makeLeaf("'s"))) +:
               seq.tail):_*))))
       }
       case SptWP(wp) => {
         SilWord(wp.lemma) match {
-          case SilMagicWord(MW_WHO | MW_WHOM) =>
+          case SprPredefWord(PD_WHO | PD_WHOM) =>
             Some((QUESTION_WHO, None, tree.children))
-          case SilMagicWord(MW_WHAT) =>
+          case SprPredefWord(PD_WHAT) =>
             Some((QUESTION_WHAT, None, tree.children))
           case _ => None
         }

@@ -79,8 +79,8 @@ class SprWordnetScorerSpec extends Specification
             Some(pronoun),
             Seq(SilAdpositionalVerbModifier(adp, pronoun))))
       }
-      score(SprMagicAdposition(MW_FROM)) must be greaterThan
-        score(SprMagicAdposition(MW_ON))
+      score(SprPredefAdposition(PD_FROM)) must be greaterThan
+        score(SprPredefAdposition(PD_ON))
     }
   }
 }

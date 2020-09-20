@@ -409,7 +409,7 @@ class SmcPhraseScope[
         def produceOrdinal(ordinal : Int) : Int =
         {
           noun match {
-            case SilMagicWord(MW_FORMER | MW_LATTER) => {
+            case SprPredefWord(PD_FORMER | PD_LATTER) => {
               nextOrdinal += 1
               nextOrdinal
             }
@@ -433,7 +433,7 @@ class SmcPhraseScope[
             def matchLemma(lemma : String) : Boolean =
             {
               noun match {
-                case SilMagicWord(MW_FORMER | MW_LATTER) => true
+                case SprPredefWord(PD_FORMER | PD_LATTER) => true
                 case _ => {
                   val nounLemma = noun.toNounLemma
                   aliasOpt.map(_ == nounLemma).getOrElse(
@@ -453,7 +453,7 @@ class SmcPhraseScope[
                 SilMandatorySingular(
                   SilWordLemma(lemma)
                 ),
-                SilPropertyState(SilMagicWord(MW_ANOTHER))
+                SilPropertyState(SprPredefWord(PD_ANOTHER))
               ) if (matchLemma(lemma)) => {
                 Some(tupleN((prior, set, produceOrdinal(2))))
               }
@@ -484,10 +484,10 @@ class SmcPhraseScope[
             val (ordinalOpt, misqualified) = {
               if (qualifiers.isEmpty) {
                 noun match {
-                  case SilMagicWord(MW_FORMER) => {
+                  case SprPredefWord(PD_FORMER) => {
                     tupleN((Some(1), ordered.size < 1))
                   }
-                  case SilMagicWord(MW_LATTER) => {
+                  case SprPredefWord(PD_LATTER) => {
                     tupleN((Some(2), ordered.size < 2))
                   }
                   case _ => {
@@ -497,8 +497,8 @@ class SmcPhraseScope[
               } else if (qualifiers.size == 1) {
                 val qualifier = qualifiers.head
                 val qualifierOrdinalOpt = SilWord(qualifier) match {
-                  case SilMagicWord(MW_FORMER) => Some(1)
-                  case SilMagicWord(MW_LATTER | MW_OTHER) => Some(2)
+                  case SprPredefWord(PD_FORMER) => Some(1)
+                  case SprPredefWord(PD_LATTER | PD_OTHER) => Some(2)
                   case _ => {
                     getSentencePrinter.sb.ordinalValue(qualifier) match {
                       case Success(o) => Some(o)

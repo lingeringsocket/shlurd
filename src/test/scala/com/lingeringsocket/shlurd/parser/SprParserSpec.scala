@@ -362,7 +362,7 @@ class SprParserSpec extends Specification
           annotator.nounRef(NOUN_WHO),
           VERB_IS,
           SilAdpositionalState(
-            SprMagicAdposition(MW_AT),
+            SprPredefAdposition(PD_AT),
             annotator.nounRef(NOUN_HOME))),
         QUESTION_WHO, INFLECT_NOMINATIVE, SilTam.interrogative)
       parse(input) must be equalTo expected
@@ -385,7 +385,7 @@ class SprParserSpec extends Specification
       val expected = SilPredicateQuery(
         predTransitiveAction(NOUN_FRANNY, ACTION_GIVE, NOUN_MOUSE).
           withNewModifiers(Seq(SilAdpositionalVerbModifier(
-            SprMagicAdposition(MW_TO),
+            SprPredefAdposition(PD_TO),
             annotator.nounRef(SilWord(LEMMA_WHOM))
           ))),
         QUESTION_WHO, INFLECT_ADPOSITIONED,
@@ -485,7 +485,7 @@ class SprParserSpec extends Specification
             ACTION_ASK,
             Some(annotator.quotationRef("where am I")),
             Seq(SilAdpositionalVerbModifier(
-              SprMagicAdposition(MW_TO),
+              SprPredefAdposition(PD_TO),
               annotator.basicPronounRef(
                 PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR)))),
           SilTam.imperative)
@@ -681,7 +681,7 @@ class SprParserSpec extends Specification
             annotator.nounRef(NOUN_FRANNY),
             VERB_IS,
             SilAdpositionalState(
-              SprMagicAdposition(MW_AT),
+              SprPredefAdposition(PD_AT),
               annotator.nounRef(NOUN_HOME))),
           SilTam.interrogative)
     }
@@ -694,7 +694,7 @@ class SprParserSpec extends Specification
             annotator.nounRef(
               NOUN_WINDOW),
             SilAdpositionalState(
-              SprMagicAdposition(MW_IN),
+              SprPredefAdposition(PD_IN),
               annotator.determinedNounRef(
                 NOUN_BATHROOM, DETERMINER_DEFINITE))),
           DETERMINER_DEFINITE),
@@ -756,7 +756,7 @@ class SprParserSpec extends Specification
               annotator.nounRef(NOUN_GRANDDAUGHTER)),
             VERB_IS,
             SilAdpositionalState(
-              SprMagicAdposition(MW_AT),
+              SprPredefAdposition(PD_AT),
               annotator.nounRef(NOUN_HOME))),
           SilTam.interrogative)
     }

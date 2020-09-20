@@ -108,21 +108,21 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
 
   override def adpositionString(adposition : SilAdposition) =
   {
-    val pos = tongue.keywordForLemma(adposition.word.toLemma).map(_ match {
-      case MW_IN | MW_WITHIN | MW_INSIDE => "안"
-      case MW_OUTSIDE => "밖"
-      case MW_AT => ""
+    val pos = SprPredefWord.unapply(adposition.word).map(_ match {
+      case PD_IN | PD_WITHIN | PD_INSIDE => "안"
+      case PD_OUTSIDE => "밖"
+      case PD_AT => ""
       // FIXME:  distinguish "near" from "next to"
-      case MW_NEAR | MW_NEARBY => "근처"
-      case MW_ON | MW_ABOVE | MW_OVER => "위"
-      case MW_BELOW | MW_UNDER | MW_UNDERNEATH | MW_BENEATH => "밑"
+      case PD_NEAR | PD_NEARBY => "근처"
+      case PD_ON | PD_ABOVE | PD_OVER => "위"
+      // case PD_BELOW | PD_BENEATH => "밑"
       // FIXME:  need to attach 의 to previous word
-      case MW_LEFT => "왼쪽"
-      case MW_RIGHT => "오른쪽"
-      case MW_FRONT => "앞"
-      case MW_BACK | MW_BEHIND => "뒤"
+      case PD_LEFT => "왼쪽"
+      case PD_RIGHT => "오른쪽"
+      case PD_FRONT => "앞"
+      case PD_BACK | PD_BEHIND => "뒤"
       // FIXME:  context-dependent
-      case MW_WITH => "하고"
+      case PD_WITH => "하고"
       // FIXME:  OF etc
       case _ => ""
     }).filterNot(_.isEmpty).getOrElse {
@@ -421,7 +421,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
               }
             }
             case INFLECT_ADPOSITIONED => {
-              // FIXME this is only correct for SilAdposition(MW_TO);
+              // FIXME this is only correct for SilAdposition(PD_TO);
               // also, should take formality into account
               "에게"
             }

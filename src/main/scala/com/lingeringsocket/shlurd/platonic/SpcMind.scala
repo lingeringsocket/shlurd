@@ -411,20 +411,20 @@ class SpcMind(cosmos : SpcCosmos)
     qualifiers : Set[SilWord]) : Try[Trilean] =
   {
     val roleName = adposition match {
-      case SprMagicAdposition(MW_GENITIVE_OF) => {
+      case SprPredefAdposition(PD_GENITIVE_OF) => {
         if (qualifiers.size != 1) {
           return Success(Trilean.Unknown)
         } else {
           qualifiers.head
         }
       }
-      case SprMagicAdposition(MW_IN) => {
+      case SprPredefAdposition(PD_IN) => {
         SilWord(SmcIdeals.ROLE_CONTAINEE)
       }
-      case SprMagicAdposition(MW_AMONG) => {
+      case SprPredefAdposition(PD_AMONG) => {
         return Success(Trilean(entity == objEntity))
       }
-      case SprMagicAdposition(MW_EXCEPT) => {
+      case SprPredefAdposition(PD_EXCEPT) => {
         return Success(Trilean(entity != objEntity))
       }
       case _ => {
@@ -452,11 +452,16 @@ class SpcMind(cosmos : SpcCosmos)
 
     implicit val tongue = getTongue
     gender match {
-      case GENDER_MASCULINE => lookupGender(MW_MASCULINE.toLemma)
-      case GENDER_FEMININE => lookupGender(MW_FEMININE.toLemma)
-      case GENDER_NEUTER => lookupGender(MW_NEUTER.toLemma)
+      case GENDER_MASCULINE => lookupGender(PD_MASCULINE.toLemma)
+      case GENDER_FEMININE => lookupGender(PD_FEMININE.toLemma)
+      case GENDER_NEUTER => lookupGender(PD_NEUTER.toLemma)
       case _ => super.canonicalGender(gender)
     }
+  }
+
+  override def deriveGender(entity : SpcEntity) : SilGender =
+  {
+    cosmos.getEntityGender(entity)
   }
 
   override def evaluateEntityCategoryPredicate(

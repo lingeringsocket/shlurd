@@ -32,7 +32,7 @@ class SmcQueryRewriter(
         noun, count
       ) if (!noun.isProper && !determinedSubs.contains(cr)) => {
         val determiner = noun match {
-          case SilMagicWord(MW_WHO | MW_WHOM | MW_WHAT | MW_WHERE) => {
+          case SprPredefWord(PD_WHO | PD_WHOM | PD_WHAT | PD_WHERE) => {
             DETERMINER_VARIABLE
           }
           case _ => DETERMINER_ANY

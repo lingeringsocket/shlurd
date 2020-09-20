@@ -99,6 +99,7 @@ object SnlSpanishLemmas
   val LEMMA_NUESTROS = "nuestros"
   val LEMMA_O = "o"
   val LEMMA_OS = "os"
+  val LEMMA_OTRO = "otro"
   val LEMMA_PODER = "poder"
   val LEMMA_QUE = "que"
   val LEMMA_SE = "se"
@@ -388,107 +389,105 @@ object SnlSpanishLexicon
 
   val pronounLemmas = pronounToCoord.keySet
 
-  val keywordToLemma : Map[SprMagicWord, String] = Map(
-    MW_ABOVE -> "arriba de",
-    MW_ADVERBIAL_TMP -> LEMMA_ADVERBIAL_TMP,
-    MW_AFTER -> "después de",
-    MW_ALSO -> "también",
-    // FIXME Spanish doesn't discriminate from MW_BETWEEN
-    MW_AMONG -> "entre",
-    MW_AND -> LEMMA_Y,
+  val predefToLemma : Map[SprPredef, String] = Map(
+    PD_ABOVE -> "arriba de",
+    PD_ADVERBIAL_TMP -> LEMMA_ADVERBIAL_TMP,
+    PD_AFTER -> "después de",
+    PD_ALSO -> "también",
+    // FIXME Spanish doesn't discriminate from PD_BETWEEN
+    PD_AMONG -> "entre",
+    PD_AND -> LEMMA_Y,
     // FIXME needs to respect gender
-    MW_ANOTHER -> "otro",
-    MW_AS -> "como",
+    PD_ANOTHER -> LEMMA_OTRO,
+    PD_AS -> "como",
     // FIXME a lot of variations for this one
-    MW_AT -> "hacia",
+    PD_AT -> "hacia",
     // FIXME why does this even exist?
-    MW_BACK -> "atrás de",
+    PD_BACK -> "atrás de",
     // FIXME:  sometimes should be LEMMA_ESTAR instead
-    MW_BE -> LEMMA_SER,
-    MW_BEFORE -> "antes de",
-    MW_BELIEVE -> "crea",
-    MW_BEHIND -> "detrás de",
-    MW_BELOW -> "debajo de",
-    MW_BENEATH -> "bajo",
+    PD_BE -> LEMMA_SER,
+    PD_BEFORE -> "antes de",
+    PD_BELIEVE -> "crea",
+    PD_BEHIND -> "detrás de",
     // FIXME: agreement
-    MW_BOTH -> LEMMA_AMBOS,
-    MW_CONSEQUENTLY -> "consiguientemente",
+    PD_BOTH -> LEMMA_AMBOS,
+    PD_CONSEQUENTLY -> "consiguientemente",
     // FIXME:  the real thing
-    MW_EITHER -> "cualquiera",
-    MW_EQUIVALENTLY -> "equivalentemente",
-    MW_EXCEPT -> "excepto",
-    MW_EXIST -> LEMMA_EXISTIR,
-    MW_FEMININE -> "feminino",
+    PD_EITHER -> "cualquiera",
+    PD_EQUIVALENTLY -> "equivalentemente",
+    PD_EXCEPT -> "excepto",
+    PD_EXIST -> LEMMA_EXISTIR,
+    PD_FEMININE -> "feminino",
     // FIXME: agreement
-    MW_FORMER -> "primero",
-    MW_FROM -> "desde",
-    MW_FRONT -> "enfrente de",
-    MW_GENERALLY -> "generalmente",
+    PD_FORMER -> "primero",
+    PD_FROM -> "desde",
+    PD_FRONT -> "enfrente de",
+    PD_GENERALLY -> "generalmente",
     // Spanish doesn't really need this
-    MW_GENITIVE_OF -> "_of_",
+    PD_GENITIVE_OF -> "_of_",
     // FIXME: agreement
-    MW_HOW_MANY -> LEMMA_CUANTOS,
-    MW_IF -> "si",
-    MW_IN -> "en",
-    MW_INSIDE -> "dentro de",
-    MW_KIND -> "tipo",
+    PD_HOW_MANY -> LEMMA_CUANTOS,
+    PD_IF -> "si",
+    PD_IN -> "en",
+    PD_INSIDE -> "dentro de",
+    PD_KIND -> "tipo",
     // FIXME: agreement
-    MW_LATTER -> "último",
-    MW_LEFT -> "a la izquierda de",
-    MW_MASCULINE -> "masculino",
-    MW_NEAR -> "cerca de",
-    MW_NEARBY -> "alrededor de",
+    PD_LATTER -> "último",
+    PD_LEFT -> "a la izquierda de",
+    PD_MASCULINE -> "masculino",
+    PD_NEAR -> "cerca de",
+    PD_NEARBY -> "alrededor de",
     // FIXME:  the real thing
-    MW_NEITHER -> LEMMA_NINGUNO,
-    MW_NOR -> LEMMA_NI,
-    MW_NEUTER -> "neutro",
+    PD_NEITHER_NOUN -> LEMMA_NINGUNO,
+    PD_NEITHER_DETERMINER -> LEMMA_NI,
+    PD_NOR -> LEMMA_NI,
+    PD_NEUTER -> "neutro",
     // FIXME: agreement
-    MW_NONE -> LEMMA_NINGUNO,
-    MW_NOTHING -> "nada",
-    MW_NOWHERE -> "en ninguna parte",
-    MW_OF -> LEMMA_DE,
-    MW_ON -> "encima de",
+    PD_NONE_NOUN -> LEMMA_NINGUNO,
+    PD_NONE_DETERMINER -> LEMMA_NINGUN,
+    PD_NOTHING -> "nada",
+    PD_NOWHERE -> "en ninguna parte",
+    PD_OF -> LEMMA_DE,
+    PD_ON -> "encima de",
     // FIXME: agreement
-    MW_ONE -> LEMMA_UNO,
+    PD_ONE -> LEMMA_UNO,
     // FIXME:  change to LEMMA_U before a vowel
-    MW_OR -> LEMMA_O,
+    PD_OR -> LEMMA_O,
     // FIXME: agreement
-    MW_OTHER -> "otro",
-    MW_OTHERWISE -> "contrario",
-    MW_OUTSIDE -> "fuera de",
-    MW_OVER -> "sobre",
-    MW_RIGHT -> "al derecho de",
-    MW_SAME -> "mismo",
-    MW_TO -> "a",
+    PD_OTHER -> LEMMA_OTRO,
+    PD_OTHERWISE -> "contrario",
+    PD_OUTSIDE -> "fuera de",
+    PD_OVER -> "sobre",
+    PD_RIGHT -> "al derecho de",
+    PD_SAME -> "mismo",
+    PD_TO -> "a",
     // FIXME: the real thing
-    MW_THAT -> LEMMA_ESO,
-    MW_THEN -> "entonces",
-    MW_UNDER -> "abajo de",
-    MW_SUBSEQUENTLY -> "posteriormente",
+    PD_THAT -> LEMMA_ESO,
+    PD_THEN -> "entonces",
+    PD_SUBSEQUENTLY -> "posteriormente",
     // FIXME need to discriminate qué from que
-    MW_WHAT -> "que",
+    PD_WHAT -> "que",
     // FIXME need to discriminate cuando from cuándo
-    MW_WHEN -> "cuándo",
-    MW_WHENEVER -> "cada vez que",
+    PD_WHEN -> "cuándo",
+    PD_WHENEVER -> "cada vez que",
     // FIXME need to discriminate donde from dónde
-    MW_WHERE -> "donde",
+    PD_WHERE -> "donde",
     // FIXME need to discriminate cual from cuál, and deal with agreement
-    MW_WHICH -> "cual",
+    PD_WHICH -> "cual",
     // FIXME need to discriminate quién from quien, and deal with agreement
-    MW_WHO -> "quien",
+    PD_WHO -> "quien",
     // FIXME how is this supposed to work?
-    MW_WHOM -> "a quién",
+    PD_WHOM -> "a quién",
     // FIXME how is this supposed to work?
-    MW_WHOSE -> "de quién",
-    MW_WITH -> "con",
-    MW_WITHIN -> "a menos de",
-    MW_UNDERNEATH -> "debajo de"
+    PD_WHOSE -> "de quién",
+    PD_WITH -> "con",
+    PD_WITHIN -> "a menos de"
   )
 
-  val lemmaToKeyword = keywordToLemma.map(_.swap)
-
-  // FIXME figure out how to handle non 1-to-1 mappings
-  // assert(keywordToLemma.size == lemmaToKeyword.size)
+  // note that this mapping may not be one-to-one; in case of collisions,
+  // it's necessary to sort them out via special cases in the
+  // tongue's predefForLemma implementation
+  val lemmaToPredef = predefToLemma.map(_.swap)
 }
 
 class SnlSpanishTongue(wordnet : SprWordnet)
@@ -534,6 +533,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def getStopList = stopList
 
   override def getAdjectivePosition = MOD_AFTER_DEFAULT
+
+  override def allowDoubleNegatives : Boolean = true
 
   override def getRelPredefLemma(predef : SprRelationshipPredef) : String =
   {
@@ -724,6 +725,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         DETERMINER_DEFINITE
       case LEMMA_ALGUN | LEMMA_ALGUNO | LEMMA_ALGUNA |
           LEMMA_ALGUNOS | LEMMA_ALGUNAS => DETERMINER_SOME
+      case LEMMA_O | LEMMA_U => DETERMINER_ANY
       case LEMMA_CUAL | LEMMA_CUALES => DETERMINER_VARIABLE
     }
     matcher.lift(lemma)
@@ -732,8 +734,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def isCoordinatingDeterminer(lemma : String) : Boolean =
   {
     lemma match {
-      case LEMMA_NINGUN | LEMMA_NINGUNO | LEMMA_NINGUNA
-          | LEMMA_NINGUNOS | LEMMA_NINGUNAS |
+      case LEMMA_NI | LEMMA_O | LEMMA_U |
           LEMMA_AMBOS | LEMMA_AMBAS |
           LEMMA_TODO | LEMMA_TODA | LEMMA_TODOS | LEMMA_TODAS => true
       case _ => false
@@ -908,6 +909,25 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     annotator.nounRef(SilWord(correctGenderCount(lemma, gender, count, false)))
   }
 
+  override def deriveGender(word : SilWord) : SilGender =
+  {
+    val glosses = wordnet.getNounSenses(word.toNounLemma).
+      flatMap(sense => {
+        wordnet.getGlossDefinitions(sense)
+      })
+    glosses.headOption.flatMap(_ match {
+      case "m" => Some(GENDER_MASCULINE)
+      case "f" => Some(GENDER_FEMININE)
+      case _ => None
+    }).getOrElse {
+      if (word.toNounLemma.endsWith("o")) {
+        GENDER_MASCULINE
+      } else {
+        GENDER_FEMININE
+      }
+    }
+  }
+
   override def deriveGender(ref : SilReference) : SilGender =
   {
     ref match {
@@ -915,21 +935,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         pr.gender
       }
       case SilNounReference(noun) => {
-        val glosses = wordnet.getNounSenses(noun.toNounLemma).
-          flatMap(sense => {
-            wordnet.getGlossDefinitions(sense)
-          })
-        glosses.headOption.flatMap(_ match {
-          case "m" => Some(GENDER_MASCULINE)
-          case "f" => Some(GENDER_FEMININE)
-          case _ => None
-        }).getOrElse {
-          if (noun.toNounLemma.endsWith("o")) {
-            GENDER_MASCULINE
-          } else {
-            GENDER_FEMININE
-          }
-        }
+        deriveGender(noun)
       }
       case SilConjunctiveReference(determiner, references, _) => {
         combineGenders(references.map(deriveGender))
@@ -964,11 +970,19 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       inflected.endsWith("yendo")
   }
 
+  private def isParticiple(inflected : String) : Boolean =
+  {
+    // FIXME irregulars such as roto
+    inflected.endsWith("ado") || inflected.endsWith("ido")
+  }
+
   override def labelVerb(token : String, lemma : String) : Set[String] =
   {
     // FIXME all the tams
     if (isProgressive(token)) {
       Set(LABEL_VBG)
+    } else if (isParticiple(token)) {
+      Set(LABEL_VBN)
     } else {
       SnlSpanishConjugation.getConjugationCoord(
         lemma, token).map(_.tense) match
@@ -1043,6 +1057,18 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           }
         }
         case (_, _) => LEMMA_ALGUNOS
+      }
+      case LEMMA_NINGUN => tupleN((basic, count)) match {
+        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_NINGUNA
+        case (GENDER_FEMININE, _) => LEMMA_NINGUNAS
+        case (_, COUNT_SINGULAR) => {
+          if (isModifier) {
+            LEMMA_NINGUN
+          } else {
+            LEMMA_NINGUNO
+          }
+        }
+        case (_, _) => LEMMA_NINGUNOS
       }
       case LEMMA_AMBOS => basic match {
         case GENDER_FEMININE => LEMMA_AMBAS
@@ -1199,17 +1225,42 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   {
     val coord = SprPronounCoord(
       person, gender, count, proximity, inflection, possesseeCount)
-    coordToPronoun.get(coord).getOrElse("")
+    coordToPronoun.get(coord).getOrElse {
+      inflection match {
+        case INFLECT_ADPOSITIONED => {
+          pronounLemma(
+            person, gender, count, proximity,
+            INFLECT_NOMINATIVE, possesseeCount)
+        }
+        case _ => ""
+      }
+    }
   }
 
-  override def keywordLemma(keyword : SprMagicWord) : String =
+  override def predefLemma(predef : SprPredef) : String =
   {
-    keywordToLemma(keyword)
+    predefToLemma(predef)
   }
 
-  def keywordForLemma(lemma : String) : Option[SprMagicWord] =
+  def predefForLemma(
+    lemma : String,
+    label : String = LABEL_AMBIGUOUS,
+    gender : SilGender = GENDER_NEUTER,
+    count : SilCount = COUNT_SINGULAR
+  ) : Option[SprPredef] =
   {
-    lemmaToKeyword.get(lemma)
+    lemma match {
+      case LEMMA_NINGUNO => Some(PD_NONE_NOUN)
+      case LEMMA_OTRO => Some(label match {
+        case LABEL_DT => PD_ANOTHER
+        case _ => PD_OTHER
+      })
+      case LEMMA_NI => Some(label match {
+        case LABEL_DT => PD_NEITHER_DETERMINER
+        case _ => PD_NOR
+      })
+      case _ => lemmaToPredef.get(lemma)
+    }
   }
 
   override def proximityLemma(proximity : SilProximity) : String =
@@ -1282,7 +1333,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   private def scoreSpecialSpanishAdpositions = phraseScorer {
     case ap : SilAdpositionalPhrase => {
       val words = ap.adposition.word.decomposed
-      if (words.exists(_.lemma == MW_ADVERBIAL_TMP.toLemma)) {
+      if (words.exists(_.lemma == PD_ADVERBIAL_TMP.toLemma)) {
         SilPhraseScore.proBig
       } else {
         SilPhraseScore.neutral

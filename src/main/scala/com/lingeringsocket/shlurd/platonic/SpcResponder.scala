@@ -454,7 +454,7 @@ class SpcResponder(
 
           Success(
             SilAdpositionalVerbModifier(
-              SprMagicAdposition(MW_IN),
+              SprPredefAdposition(PD_IN),
               ref
             )
           )
@@ -654,7 +654,7 @@ class SpcResponder(
           val temporalRefs = predicate.getModifiers.map(
             _ match {
               case SilAdpositionalVerbModifier(
-                SprMagicAdposition(MW_ADVERBIAL_TMP),
+                SprPredefAdposition(PD_ADVERBIAL_TMP),
                 ref
               ) => {
                 Some(ref)
@@ -781,7 +781,7 @@ class SpcResponder(
         }
         def isGenerally(m : SilVerbModifier) : Boolean = {
           m match {
-            case SilBasicVerbModifier(SilMagicWord(MW_GENERALLY)) => true
+            case SilBasicVerbModifier(SprPredefWord(PD_GENERALLY)) => true
             case _ => false
           }
         }
@@ -939,8 +939,8 @@ class SpcResponder(
           SilPredicateSentence(newPredicate) +: newAdditionalConsequents
         ).map(
           removeBasicVerbModifier(
-            _, Set(MW_ALSO.toLemma, MW_SUBSEQUENTLY.toLemma,
-              MW_CONSEQUENTLY.toLemma)
+            _, Set(PD_ALSO.toLemma, PD_SUBSEQUENTLY.toLemma,
+              PD_CONSEQUENTLY.toLemma)
           )
         )
         newConsequents.foreach(sentence => {
@@ -994,8 +994,8 @@ class SpcResponder(
                 val altResults = newAlternative.flatMap(alternativeSentence => {
                   val recoverySentence = removeBasicVerbModifier(
                     alternativeSentence,
-                    Set(MW_OTHERWISE.toLemma, MW_SUBSEQUENTLY.toLemma,
-                      MW_CONSEQUENTLY.toLemma))
+                    Set(PD_OTHERWISE.toLemma, PD_SUBSEQUENTLY.toLemma,
+                      PD_CONSEQUENTLY.toLemma))
                   checkCycle(
                     annotator,
                     recoverySentence.predicate,

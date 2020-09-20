@@ -109,6 +109,8 @@ class SmcResponderSpec extends SmcResponderSpecification
         "No, the tiger is not in dreamland.")
       process("is there a tiger") must be equalTo(
         "Yes, there is a tiger.")
+      process("are there tigers") must be equalTo(
+        "Yes, there are tigers.")
       process("is there any tiger") must be equalTo(
         "Yes, there is a tiger.")
       process("are there any tigers") must be equalTo(
@@ -133,6 +135,7 @@ class SmcResponderSpec extends SmcResponderSpecification
         "No, there are no peacocks.")
       process("is there a hippogriff or a peacock") must be equalTo(
         "No, there is neither a hippogriff nor a peacock.")
+      // FIXME need one more nor
       process("is there a hippogriff, a peacock, or a salamander") must
         be equalTo(
           "No, there is neither a hippogriff, a peacock, nor a salamander.")

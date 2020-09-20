@@ -1939,9 +1939,9 @@ class SpcCosmos(
           // FIXME language-specific
           implicit val tongue = SnlUtils.defaultTongue
           val basic = SilWord(SpcWordnetOntology.getNoun(formName)) match {
-            case SilMagicWord(MW_MASCULINE) => Some(GENDER_MASCULINE)
-            case SilMagicWord(MW_FEMININE) => Some(GENDER_FEMININE)
-            case SilMagicWord(MW_NEUTER) => Some(GENDER_NEUTER)
+            case SprPredefWord(PD_MASCULINE) => Some(GENDER_MASCULINE)
+            case SprPredefWord(PD_FEMININE) => Some(GENDER_FEMININE)
+            case SprPredefWord(PD_NEUTER) => Some(GENDER_NEUTER)
             case _ => None
           }
           resolveForm(formName).map(SpcGender(_, basic))

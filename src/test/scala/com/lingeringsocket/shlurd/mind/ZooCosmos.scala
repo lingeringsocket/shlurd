@@ -67,8 +67,8 @@ object ZooAnimalSleepinessProperty extends SmcProperty
 
 sealed case class ZooAnimalSleepiness(
   name : String, spanish : String) extends ZooEntity
-object ZooAnimalAwake extends ZooAnimalSleepiness("awake", "despierta")
-object ZooAnimalAsleep extends ZooAnimalSleepiness("asleep", "dormida")
+object ZooAnimalAwake extends ZooAnimalSleepiness("awake", "despierto")
+object ZooAnimalAsleep extends ZooAnimalSleepiness("asleep", "dormido")
 
 class ZooCosmos(
   isSpanish : Boolean = false
@@ -270,6 +270,17 @@ class ZooMind(cosmos : ZooCosmos, tongueIn : SprTongue = SnlUtils.defaultTongue)
     cosmos.resolveQualifiedNoun(noun.toNounLemma, context, qualifiers, tongue)
   }
 
+  def splitNoun(entity : ZooEntity) : (String, Seq[String]) =
+  {
+    val words = cosmos.nameFor(entity).split(" ")
+    tongue.getAdjectivePosition match {
+      case MOD_AFTER_ALWAYS | MOD_AFTER_DEFAULT =>
+        tupleN((words.head, words.drop(1)))
+      case _ =>
+        tupleN((words.last, words.dropRight(1)))
+    }
+  }
+
   override def specificReference(
     annotator : AnnotatorType,
     entity : SmcEntity,
@@ -277,16 +288,10 @@ class ZooMind(cosmos : ZooCosmos, tongueIn : SprTongue = SnlUtils.defaultTongue)
   {
     entity match {
       case animal : ZooAnimalEntity => {
-        val words = cosmos.nameFor(animal).split(" ")
-        val (headWord, modifiers) = tongue.getAdjectivePosition match {
-          case MOD_AFTER_ALWAYS | MOD_AFTER_DEFAULT =>
-            tupleN((words.head, words.drop(1)))
-          case _ =>
-            tupleN((words.last, words.dropRight(1)))
-        }
+        val (headWord, modifiers) = splitNoun(animal)
         val nounRef = annotator.determinedNounRef(
           SilWord(headWord), determiner)
-        if (words.size == 1) {
+        if (modifiers.isEmpty) {
           nounRef
         } else {
           annotator.qualifiedRef(
@@ -312,13 +317,13 @@ class ZooMind(cosmos : ZooCosmos, tongueIn : SprTongue = SnlUtils.defaultTongue)
     qualifiers : Set[SilWord]) : Try[Trilean] =
   {
     val map = adposition match {
-      case SprMagicAdposition(MW_GENITIVE_OF) => {
+      case SprPredefAdposition(PD_GENITIVE_OF) => {
         if (!objEntity.isInstanceOf[ZooPersonEntity]) {
           return Success(Trilean.False)
         }
         cosmos.ownership
       }
-      case SprMagicAdposition(MW_IN | MW_ON) => {
+      case SprPredefAdposition(PD_IN | PD_ON) => {
         if (!objEntity.isInstanceOf[ZooLocationEntity]) {
           return Success(Trilean.False)
         }
@@ -333,6 +338,17 @@ class ZooMind(cosmos : ZooCosmos, tongueIn : SprTongue = SnlUtils.defaultTongue)
         Success(Trilean(objEntity == actualLocation))
       case _ =>
         Success(Trilean.False)
+    }
+  }
+
+  override def deriveGender(entity : SmcEntity) : SilGender =
+  {
+    entity match {
+      case zoo : ZooEntity => {
+        val (headWord, modifiers) = splitNoun(zoo)
+        tongue.deriveGender(SilWord(headWord))
+      }
+      case _ => super.deriveGender(entity)
     }
   }
 }

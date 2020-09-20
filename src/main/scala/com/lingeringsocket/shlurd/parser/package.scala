@@ -18,30 +18,30 @@ package object parser
 {
   import scala.language.implicitConversions
 
-  implicit def magicToString(
-    keyword : SprMagicWord)(implicit tongue : SprTongue) : String =
+  implicit def predefToString(
+    predef : SprPredef)(implicit tongue : SprTongue) : String =
   {
-    tongue.keywordLemma(keyword)
+    tongue.predefLemma(predef)
   }
 
-  private val NEED_CONVERSION = "Convert magic word toLemma before comparing"
+  private val NEED_CONVERSION = "Convert predef toLemma before comparing"
 
-  def == (s : String, w : SprMagicWord) =
-  {
-    throw new IllegalArgumentException(NEED_CONVERSION)
-  }
-
-  def == (w : SprMagicWord, s : String) =
+  def == (s : String, w : SprPredef) =
   {
     throw new IllegalArgumentException(NEED_CONVERSION)
   }
 
-  def != (s : String, w : SprMagicWord) =
+  def == (w : SprPredef, s : String) =
   {
     throw new IllegalArgumentException(NEED_CONVERSION)
   }
 
-  def != (w : SprMagicWord, s : String) =
+  def != (s : String, w : SprPredef) =
+  {
+    throw new IllegalArgumentException(NEED_CONVERSION)
+  }
+
+  def != (w : SprPredef, s : String) =
   {
     throw new IllegalArgumentException(NEED_CONVERSION)
   }

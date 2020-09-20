@@ -352,7 +352,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
     adposition : SilAdposition,
     qualifiers : Set[SilWord]) : Try[Trilean] =
   {
-    if (adposition == SprMagicAdposition(MW_GENITIVE_OF)) {
+    if (adposition == SprPredefAdposition(PD_GENITIVE_OF)) {
       super.evaluateEntityAdpositionPredicate(
         entity, location, adposition, qualifiers)
     } else {
@@ -421,7 +421,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
                 annotator.stateSpecifiedRef(
                   ref,
                   SilAdpositionalState(
-                    SprMagicAdposition(MW_ON),
+                    SprPredefAdposition(PD_ON),
                     floorRef))
               }
               case _ => ref

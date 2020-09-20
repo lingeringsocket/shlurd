@@ -1,3 +1,5 @@
+pavo%1:05:00:: -add -setgloss m
+león%1:05:00:: -add -setgloss m
 tigre%1:05:00:: -add -setgloss m
 oso%1:05:00:: -add -setgloss m
 cabra%1:05:00:: -add -setgloss f
@@ -15,9 +17,13 @@ poder%2:42:00:: -add -setgloss poder
 deber%2:42:00:: -add -setgloss deber
 haber%2:42:00:: -add -setgloss haber
 triste%3:00:00:: -add -setgloss triste
+despierto%3:00:00:: -add -setgloss despierto
+dormido%3:00:00:: -add -setgloss dormido
 polar%3:00:00:: -add -setgloss polar
 siberiana%3:00:00:: -add -setgloss siberiana
 niñera%3:00:00:: -add -setgloss niñera
+real%3:00:00:: -add -setgloss real
+n#leones -addexc león
 v#soy -addexc ser
 v#eres -addexc ser
 v#es -addexc ser

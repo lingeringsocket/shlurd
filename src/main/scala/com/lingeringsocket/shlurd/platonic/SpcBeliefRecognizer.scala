@@ -404,7 +404,7 @@ class SpcBeliefRecognizer(
     val ref = predicate.subject
     val state = predicate.state
     state matchPartial {
-      case SilAdpositionalState(SprMagicAdposition(MW_IN), container) => {
+      case SilAdpositionalState(SprPredefAdposition(PD_IN), container) => {
         return recognizeRelationshipPredicateBelief(
           sentence,
           SilRelationshipPredicate(
@@ -587,10 +587,10 @@ class SpcBeliefRecognizer(
         case SilOptionallyDeterminedReference(
           SilStateSpecifiedReference(
             SilCountedNounReference(
-              SilMagicWord(MW_KIND),
+              SprPredefWord(PD_KIND),
               kindCount),
             SilAdpositionalState(
-              SprMagicAdposition(MW_OF),
+              SprPredefAdposition(PD_OF),
               SilOptionallyDeterminedReference(
                 SilNounReference(hypernymIdealName),
                 DETERMINER_NONSPECIFIC | DETERMINER_ABSENT
@@ -606,10 +606,10 @@ class SpcBeliefRecognizer(
         case SilDeterminedReference(
           SilStateSpecifiedReference(
             SilMandatorySingular(
-              SilMagicWord(MW_SAME)
+              SprPredefWord(PD_SAME)
             ),
             SilAdpositionalState(
-              SprMagicAdposition(MW_AS),
+              SprPredefAdposition(PD_AS),
               SilOptionallyDeterminedReference(
                 SilCountedNounReference(idealName, count),
                 determiner
@@ -848,11 +848,11 @@ class SpcBeliefRecognizer(
   }
 
   private def extractBasicModifiers(
-    predicate : SilPredicate) : Seq[SprMagicWord] =
+    predicate : SilPredicate) : Seq[SprPredef] =
   {
     predicate.getModifiers.flatMap(
       _ match {
-        case SilBasicVerbModifier(SilMagicWord(mw)) => Some(mw)
+        case SilBasicVerbModifier(SprPredefWord(mw)) => Some(mw)
         case _ => None
       }
     )
@@ -954,16 +954,16 @@ class SpcBeliefRecognizer(
           }
         }
         val consequent = conditional.consequent
-        val isAfter = (conditional.conjunction.toLemma == MW_AFTER.toLemma)
-        val isBefore = (conditional.conjunction.toLemma == MW_BEFORE.toLemma)
+        val isAfter = (conditional.conjunction.toLemma == PD_AFTER.toLemma)
+        val isBefore = (conditional.conjunction.toLemma == PD_BEFORE.toLemma)
         val consequentModifiers = extractBasicModifiers(consequent)
         val isConsequentOtherwise =
-          consequentModifiers.contains(MW_OTHERWISE)
-        val isConsequentAlso = consequentModifiers.contains(MW_ALSO)
+          consequentModifiers.contains(PD_OTHERWISE)
+        val isConsequentAlso = consequentModifiers.contains(PD_ALSO)
         val isConsequentSubsequently = isAfter ||
-          consequentModifiers.contains(MW_SUBSEQUENTLY)
+          consequentModifiers.contains(PD_SUBSEQUENTLY)
         val isConsequentImplication =
-          consequentModifiers.contains(MW_CONSEQUENTLY)
+          consequentModifiers.contains(PD_CONSEQUENTLY)
         if (!antecedentEvent && !conditional.biconditional &&
           !isConsequentImplication)
         {
@@ -981,7 +981,7 @@ class SpcBeliefRecognizer(
           if (isBefore) {
             reportException(ConsequentConstraintExpected)
           }
-          if (conditional.conjunction.toLemma != MW_IF.toLemma) {
+          if (conditional.conjunction.toLemma != PD_IF.toLemma) {
             if (conditional.biconditional) {
               reportException(EquivalenceIfExpected)
             }
@@ -1007,10 +1007,10 @@ class SpcBeliefRecognizer(
         additionalSentences.foreach(additionalSentence => {
           val modifiers = extractBasicModifiers(
             additionalSentence.predicate)
-          val isOtherwise = modifiers.contains(MW_OTHERWISE)
-          val isAlso = modifiers.contains(MW_ALSO)
-          val isSubsequently = modifiers.contains(MW_SUBSEQUENTLY)
-          val isImplication = modifiers.contains(MW_CONSEQUENTLY)
+          val isOtherwise = modifiers.contains(PD_OTHERWISE)
+          val isAlso = modifiers.contains(PD_ALSO)
+          val isSubsequently = modifiers.contains(PD_SUBSEQUENTLY)
+          val isImplication = modifiers.contains(PD_CONSEQUENTLY)
           if (isSubsequently && isImplication) {
             reportException(AssertionModifiersIncompatible)
           }
@@ -1098,7 +1098,7 @@ class SpcBeliefRecognizer(
     verb : SilWord,
     argument : String) : Seq[SpcBelief] =
   {
-    if (verb.toLemma == MW_BELIEVE.toLemma) {
+    if (verb.toLemma == PD_BELIEVE.toLemma) {
       Seq(IndirectBelief(sentence, argument))
     } else {
       Seq.empty
@@ -1456,7 +1456,7 @@ class SpcBeliefRecognizer(
     modifier match {
       // "after this | that"
       case SilAdpositionalVerbModifier(
-        SprMagicAdposition(MW_AFTER),
+        SprPredefAdposition(PD_AFTER),
         pr : SilPronounReference
       ) if (pr.isDemonstrative) => true
       case _ => false

@@ -164,7 +164,7 @@ object PhlebShell
             subjectEntityOpt match {
               case Some(subjectEntity) => {
                 SilWord(lemma) match {
-                  case SilMagicWord(MW_BELIEVE) => {
+                  case SprPredefWord(PD_BELIEVE) => {
                     // FIXME if quotation does not start with slash,
                     // then interpret inline
                     importEntityBeliefs(
@@ -447,7 +447,7 @@ class PhlebShell(
       val lemma = ap.verb.toLemma
       val targetRefOpt = ap.modifiers.flatMap(_ match {
         case SilAdpositionalVerbModifier(
-          SprMagicAdposition(MW_TO),
+          SprPredefAdposition(PD_TO),
           ref) => Some(ref)
         case _ => None
       }).headOption.orElse {

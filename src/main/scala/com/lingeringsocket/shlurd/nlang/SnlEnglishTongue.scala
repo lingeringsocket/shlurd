@@ -138,10 +138,6 @@ object SnlEnglishLemmas
   val LEMMA_BACK = "back"
   val LEMMA_ABOVE = "above"
   val LEMMA_OVER = "over"
-  val LEMMA_BELOW = "below"
-  val LEMMA_UNDER = "under"
-  val LEMMA_BENEATH = "beneath"
-  val LEMMA_UNDERNEATH = "underneath"
   val LEMMA_BEHIND = "behind"
   val LEMMA_OF = "of"
   val LEMMA_GENITIVE_OF = "_of_"
@@ -193,82 +189,82 @@ object SnlEnglishLexicon
     LEMMA_THIS, LEMMA_THAT
   )
 
-  val keywordToLemma : Map[SprMagicWord, String] = Map(
-    MW_ABOVE -> LEMMA_ABOVE,
-    MW_ADVERBIAL_TMP -> LEMMA_ADVERBIAL_TMP,
-    MW_AFTER -> LEMMA_AFTER,
-    MW_ALSO -> "also",
-    MW_AMONG -> LEMMA_AMONG,
-    MW_AND -> LEMMA_AND,
-    MW_ANOTHER -> "another",
-    MW_AS -> LEMMA_AS,
-    MW_AT -> LEMMA_AT,
-    MW_BACK -> LEMMA_BACK,
-    MW_BE -> LEMMA_BE,
-    MW_BEFORE -> LEMMA_BEFORE,
-    MW_BEHIND -> LEMMA_BEHIND,
-    MW_BELIEVE -> "believe",
-    MW_BELOW -> LEMMA_BELOW,
-    MW_BENEATH -> LEMMA_BENEATH,
-    MW_BOTH -> LEMMA_BOTH,
-    MW_CONSEQUENTLY -> "consequently",
-    MW_EITHER -> LEMMA_EITHER,
-    MW_EQUIVALENTLY -> LEMMA_EQUIVALENTLY,
-    MW_EXCEPT -> LEMMA_EXCEPT,
-    MW_EXIST -> LEMMA_EXIST,
-    MW_FEMININE -> "feminine",
-    MW_FORMER -> LEMMA_FORMER,
-    MW_FROM -> LEMMA_FROM,
-    MW_FRONT -> LEMMA_FRONT,
-    MW_GENERALLY -> "generally",
-    MW_GENITIVE_OF -> LEMMA_GENITIVE_OF,
+  val predefToLemma : Map[SprPredef, String] = Map(
+    PD_ABOVE -> LEMMA_ABOVE,
+    PD_ADVERBIAL_TMP -> LEMMA_ADVERBIAL_TMP,
+    PD_AFTER -> LEMMA_AFTER,
+    PD_ALSO -> "also",
+    PD_AMONG -> LEMMA_AMONG,
+    PD_AND -> LEMMA_AND,
+    PD_ANOTHER -> "another",
+    PD_AS -> LEMMA_AS,
+    PD_AT -> LEMMA_AT,
+    PD_BACK -> LEMMA_BACK,
+    PD_BE -> LEMMA_BE,
+    PD_BEFORE -> LEMMA_BEFORE,
+    PD_BEHIND -> LEMMA_BEHIND,
+    PD_BELIEVE -> "believe",
+    PD_BOTH -> LEMMA_BOTH,
+    PD_CONSEQUENTLY -> "consequently",
+    PD_EITHER -> LEMMA_EITHER,
+    PD_EQUIVALENTLY -> LEMMA_EQUIVALENTLY,
+    PD_EXCEPT -> LEMMA_EXCEPT,
+    PD_EXIST -> LEMMA_EXIST,
+    PD_FEMININE -> "feminine",
+    PD_FORMER -> LEMMA_FORMER,
+    PD_FROM -> LEMMA_FROM,
+    PD_FRONT -> LEMMA_FRONT,
+    PD_GENERALLY -> "generally",
+    PD_GENITIVE_OF -> LEMMA_GENITIVE_OF,
     // FIXME: handle compounds properly
-    MW_HOW_MANY -> "how many",
-    MW_IF -> LEMMA_IF,
-    MW_IN -> LEMMA_IN,
-    MW_INSIDE -> LEMMA_INSIDE,
-    MW_KIND -> "kind",
-    MW_LATTER -> LEMMA_LATTER,
-    MW_LEFT -> LEMMA_LEFT,
-    MW_MASCULINE -> "masculine",
-    MW_NEAR -> LEMMA_NEAR,
-    MW_NEARBY -> LEMMA_NEARBY,
-    MW_NEITHER -> LEMMA_NEITHER,
-    MW_NONE -> LEMMA_NONE,
-    MW_NOR -> LEMMA_NOR,
-    MW_NOTHING -> LEMMA_NOTHING,
-    MW_NOWHERE -> LEMMA_NOWHERE,
-    MW_NEUTER -> "neuter",
-    MW_OF -> LEMMA_OF,
-    MW_ON -> LEMMA_ON,
-    MW_ONE -> LEMMA_ONE,
-    MW_OR -> LEMMA_OR,
-    MW_OTHER -> LEMMA_OTHER,
-    MW_OTHERWISE -> "otherwise",
-    MW_OUTSIDE -> LEMMA_OUTSIDE,
-    MW_OVER -> LEMMA_OVER,
-    MW_RIGHT -> LEMMA_RIGHT,
-    MW_SAME -> "same",
-    MW_SUBSEQUENTLY -> "subsequently",
-    MW_THAT -> LEMMA_THAT,
-    MW_THEN -> LEMMA_THEN,
-    MW_TO -> LEMMA_TO,
-    MW_UNDER -> LEMMA_UNDER,
-    MW_WHAT -> LEMMA_WHAT,
-    MW_WHEN -> LEMMA_WHEN,
-    MW_WHENEVER -> LEMMA_WHENEVER,
-    MW_WHERE -> LEMMA_WHERE,
-    MW_WHICH -> LEMMA_WHICH,
-    MW_WHO -> LEMMA_WHO,
-    MW_WHOM -> LEMMA_WHOM,
-    MW_WHOSE -> LEMMA_WHOSE,
-    MW_WITH -> LEMMA_WITH,
-    MW_WITHIN -> LEMMA_WITHIN,
-    MW_UNDERNEATH -> LEMMA_UNDERNEATH
+    PD_HOW_MANY -> "how many",
+    PD_IF -> LEMMA_IF,
+    PD_IN -> LEMMA_IN,
+    PD_INSIDE -> LEMMA_INSIDE,
+    PD_KIND -> "kind",
+    PD_LATTER -> LEMMA_LATTER,
+    PD_LEFT -> LEMMA_LEFT,
+    PD_MASCULINE -> "masculine",
+    PD_NEAR -> LEMMA_NEAR,
+    PD_NEARBY -> LEMMA_NEARBY,
+    PD_NEITHER_NOUN -> LEMMA_NEITHER,
+    PD_NEITHER_DETERMINER -> LEMMA_NEITHER,
+    PD_NONE_NOUN -> LEMMA_NONE,
+    PD_NONE_DETERMINER -> LEMMA_NO,
+    PD_NOR -> LEMMA_NOR,
+    PD_NOTHING -> LEMMA_NOTHING,
+    PD_NOWHERE -> LEMMA_NOWHERE,
+    PD_NEUTER -> "neuter",
+    PD_OF -> LEMMA_OF,
+    PD_ON -> LEMMA_ON,
+    PD_ONE -> LEMMA_ONE,
+    PD_OR -> LEMMA_OR,
+    PD_OTHER -> LEMMA_OTHER,
+    PD_OTHERWISE -> "otherwise",
+    PD_OUTSIDE -> LEMMA_OUTSIDE,
+    PD_OVER -> LEMMA_OVER,
+    PD_RIGHT -> LEMMA_RIGHT,
+    PD_SAME -> "same",
+    PD_SUBSEQUENTLY -> "subsequently",
+    PD_THAT -> LEMMA_THAT,
+    PD_THEN -> LEMMA_THEN,
+    PD_TO -> LEMMA_TO,
+    PD_WHAT -> LEMMA_WHAT,
+    PD_WHEN -> LEMMA_WHEN,
+    PD_WHENEVER -> LEMMA_WHENEVER,
+    PD_WHERE -> LEMMA_WHERE,
+    PD_WHICH -> LEMMA_WHICH,
+    PD_WHO -> LEMMA_WHO,
+    PD_WHOM -> LEMMA_WHOM,
+    PD_WHOSE -> LEMMA_WHOSE,
+    PD_WITH -> LEMMA_WITH,
+    PD_WITHIN -> LEMMA_WITHIN
   )
 
-  val lemmaToKeyword = keywordToLemma.map(_.swap)
-  assert(keywordToLemma.size == lemmaToKeyword.size)
+  // note that this mapping may not be one-to-one; in case of collisions,
+  // it's necessary to sort them out via special cases in the
+  // tongue's predefForLemma implementation
+  val lemmaToPredef = predefToLemma.map(_.swap)
 }
 
 class SnlEnglishTongue(wordnet : SprWordnet)
@@ -902,14 +898,25 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     }
   }
 
-  override def keywordLemma(keyword : SprMagicWord) : String =
+  override def predefLemma(predef : SprPredef) : String =
   {
-    keywordToLemma(keyword)
+    predefToLemma(predef)
   }
 
-  def keywordForLemma(lemma : String) : Option[SprMagicWord] =
+  def predefForLemma(
+    lemma : String,
+    label : String = LABEL_AMBIGUOUS,
+    gender : SilGender = GENDER_NEUTER,
+    count : SilCount = COUNT_SINGULAR
+  ) : Option[SprPredef] =
   {
-    lemmaToKeyword.get(lemma)
+    lemma match {
+      case LEMMA_NEITHER => Some(label match {
+        case LABEL_DT => PD_NEITHER_DETERMINER
+        case _ => PD_NEITHER_NOUN
+      })
+      case _ => lemmaToPredef.get(lemma)
+    }
   }
 
   override def filterIndexWords(
@@ -975,9 +982,9 @@ class SnlEnglishTongue(wordnet : SprWordnet)
       val words = ap.adposition.word.decomposed
       if ((words.size > 1) && words.exists(_.lemma == LEMMA_THERE)) {
         SilPhraseScore.conBig
-      } else if (words.exists(_.lemma == MW_ADVERBIAL_TMP.toLemma)) {
+      } else if (words.exists(_.lemma == PD_ADVERBIAL_TMP.toLemma)) {
         SilPhraseScore.proBig
-      } else if (ap.adposition != SprMagicAdposition(MW_TO)) {
+      } else if (ap.adposition != SprPredefAdposition(PD_TO)) {
         // in a phrase like "he went up the steps", we boost the
         // interpretation of "up" as an adposition vs adverb
         SilPhraseScore.pro(20)

@@ -44,121 +44,131 @@ trait SprSynthesizer
   }
 }
 
-sealed trait SprMagicWord
+sealed trait SprPredef
 {
-  def toLemma(implicit tongue : SprTongue) = magicToString(this)
+  def toLemma(implicit tongue : SprTongue) = predefToString(this)
 }
-sealed trait SprQuestionMagicWord extends SprMagicWord
-sealed trait SprGenderMagicWord extends SprMagicWord
-sealed trait SprBeliefMagicWord extends SprMagicWord
-sealed trait SprAdpositionMagicWord extends SprMagicWord
+sealed trait SprQuestionPredef extends SprPredef
+sealed trait SprGenderPredef extends SprPredef
+sealed trait SprBeliefPredef extends SprPredef
+sealed trait SprAdpositionPredef extends SprPredef
 
 // question words
-case object MW_HOW_MANY extends SprQuestionMagicWord
-case object MW_WHAT extends SprQuestionMagicWord
-case object MW_WHEN extends SprQuestionMagicWord
-case object MW_WHERE extends SprQuestionMagicWord
-case object MW_WHICH extends SprQuestionMagicWord
-case object MW_WHO extends SprQuestionMagicWord
-case object MW_WHOM extends SprQuestionMagicWord
-case object MW_WHOSE extends SprQuestionMagicWord
+case object PD_HOW_MANY extends SprQuestionPredef
+case object PD_WHAT extends SprQuestionPredef
+case object PD_WHEN extends SprQuestionPredef
+case object PD_WHERE extends SprQuestionPredef
+case object PD_WHICH extends SprQuestionPredef
+case object PD_WHO extends SprQuestionPredef
+case object PD_WHOM extends SprQuestionPredef
+case object PD_WHOSE extends SprQuestionPredef
 
 // genders
-case object MW_MASCULINE extends SprGenderMagicWord
-case object MW_FEMININE extends SprGenderMagicWord
-case object MW_NEUTER extends SprGenderMagicWord
+case object PD_MASCULINE extends SprGenderPredef
+case object PD_FEMININE extends SprGenderPredef
+case object PD_NEUTER extends SprGenderPredef
 
-// keywords used in belief statements
-case object MW_ALSO extends SprBeliefMagicWord
-case object MW_AND extends SprBeliefMagicWord
-case object MW_ANOTHER extends SprBeliefMagicWord
+// predefs used in belief statements
+case object PD_ALSO extends SprBeliefPredef
+case object PD_AND extends SprBeliefPredef
+case object PD_ANOTHER extends SprBeliefPredef
 // FIXME make this one less squishy across languages
-case object MW_BE extends SprBeliefMagicWord
-case object MW_BELIEVE extends SprBeliefMagicWord
-case object MW_BOTH extends SprBeliefMagicWord
-case object MW_CONSEQUENTLY extends SprBeliefMagicWord
-case object MW_EITHER extends SprBeliefMagicWord
-case object MW_EQUIVALENTLY extends SprBeliefMagicWord
-case object MW_EXIST extends SprBeliefMagicWord
-case object MW_FORMER extends SprBeliefMagicWord
-case object MW_GENERALLY extends SprBeliefMagicWord
-case object MW_IF extends SprBeliefMagicWord
-case object MW_KIND extends SprBeliefMagicWord
-case object MW_LATTER extends SprBeliefMagicWord
-case object MW_NEITHER extends SprBeliefMagicWord
-case object MW_NOTHING extends SprBeliefMagicWord
-case object MW_NOWHERE extends SprBeliefMagicWord
-case object MW_ONE extends SprBeliefMagicWord
-case object MW_OTHER extends SprBeliefMagicWord
-case object MW_OR extends SprBeliefMagicWord
-case object MW_NONE extends SprBeliefMagicWord
-case object MW_NOR extends SprBeliefMagicWord
-case object MW_OTHERWISE extends SprBeliefMagicWord
-case object MW_SAME extends SprBeliefMagicWord
-case object MW_SUBSEQUENTLY extends SprBeliefMagicWord
-case object MW_THAT extends SprBeliefMagicWord
-case object MW_THEN extends SprBeliefMagicWord
-case object MW_WHENEVER extends SprBeliefMagicWord
+case object PD_BE extends SprBeliefPredef
+case object PD_BELIEVE extends SprBeliefPredef
+case object PD_BOTH extends SprBeliefPredef
+case object PD_CONSEQUENTLY extends SprBeliefPredef
+case object PD_EITHER extends SprBeliefPredef
+case object PD_EQUIVALENTLY extends SprBeliefPredef
+case object PD_EXIST extends SprBeliefPredef
+case object PD_FORMER extends SprBeliefPredef
+case object PD_GENERALLY extends SprBeliefPredef
+case object PD_IF extends SprBeliefPredef
+case object PD_KIND extends SprBeliefPredef
+case object PD_LATTER extends SprBeliefPredef
+case object PD_NEITHER_NOUN extends SprBeliefPredef
+case object PD_NEITHER_DETERMINER extends SprBeliefPredef
+case object PD_NOTHING extends SprBeliefPredef
+case object PD_NOWHERE extends SprBeliefPredef
+case object PD_ONE extends SprBeliefPredef
+case object PD_OTHER extends SprBeliefPredef
+case object PD_OR extends SprBeliefPredef
+case object PD_NONE_NOUN extends SprBeliefPredef
+case object PD_NONE_DETERMINER extends SprBeliefPredef
+case object PD_NOR extends SprBeliefPredef
+case object PD_OTHERWISE extends SprBeliefPredef
+case object PD_SAME extends SprBeliefPredef
+case object PD_SUBSEQUENTLY extends SprBeliefPredef
+case object PD_THAT extends SprBeliefPredef
+case object PD_THEN extends SprBeliefPredef
+case object PD_WHENEVER extends SprBeliefPredef
 
 // important adpositions
-case object MW_AMONG extends SprAdpositionMagicWord
-case object MW_EXCEPT extends SprAdpositionMagicWord
-case object MW_IN extends SprAdpositionMagicWord
-case object MW_INSIDE extends SprAdpositionMagicWord
-case object MW_WITHIN extends SprAdpositionMagicWord
-case object MW_OUTSIDE extends SprAdpositionMagicWord
-case object MW_AT extends SprAdpositionMagicWord
-case object MW_WITH extends SprAdpositionMagicWord
-case object MW_AS extends SprAdpositionMagicWord
-case object MW_NEAR extends SprAdpositionMagicWord
-case object MW_NEARBY extends SprAdpositionMagicWord
-case object MW_ON extends SprAdpositionMagicWord
-case object MW_ABOVE extends SprAdpositionMagicWord
-case object MW_OVER extends SprAdpositionMagicWord
-case object MW_BELOW extends SprAdpositionMagicWord
-case object MW_UNDER extends SprAdpositionMagicWord
-case object MW_BENEATH extends SprAdpositionMagicWord
-case object MW_UNDERNEATH extends SprAdpositionMagicWord
-case object MW_BEFORE extends SprAdpositionMagicWord with SprBeliefMagicWord
-case object MW_AFTER extends SprAdpositionMagicWord with SprBeliefMagicWord
-case object MW_LEFT extends SprAdpositionMagicWord
-case object MW_RIGHT extends SprAdpositionMagicWord
-case object MW_FRONT extends SprAdpositionMagicWord
-case object MW_BACK extends SprAdpositionMagicWord
-case object MW_BEHIND extends SprAdpositionMagicWord
-case object MW_TO extends SprAdpositionMagicWord
-case object MW_FROM extends SprAdpositionMagicWord
-case object MW_OF extends SprAdpositionMagicWord
-case object MW_GENITIVE_OF extends SprAdpositionMagicWord
-case object MW_ADVERBIAL_TMP extends SprAdpositionMagicWord
+case object PD_AMONG extends SprAdpositionPredef
+case object PD_EXCEPT extends SprAdpositionPredef
+case object PD_IN extends SprAdpositionPredef
+case object PD_INSIDE extends SprAdpositionPredef
+case object PD_WITHIN extends SprAdpositionPredef
+case object PD_OUTSIDE extends SprAdpositionPredef
+case object PD_AT extends SprAdpositionPredef
+case object PD_WITH extends SprAdpositionPredef
+case object PD_AS extends SprAdpositionPredef
+case object PD_NEAR extends SprAdpositionPredef
+case object PD_NEARBY extends SprAdpositionPredef
+case object PD_ON extends SprAdpositionPredef
+case object PD_ABOVE extends SprAdpositionPredef
+case object PD_OVER extends SprAdpositionPredef
+case object PD_BEFORE extends SprAdpositionPredef with SprBeliefPredef
+case object PD_AFTER extends SprAdpositionPredef with SprBeliefPredef
+case object PD_LEFT extends SprAdpositionPredef
+case object PD_RIGHT extends SprAdpositionPredef
+case object PD_FRONT extends SprAdpositionPredef
+case object PD_BACK extends SprAdpositionPredef
+case object PD_BEHIND extends SprAdpositionPredef
+case object PD_TO extends SprAdpositionPredef
+case object PD_FROM extends SprAdpositionPredef
+case object PD_OF extends SprAdpositionPredef
+case object PD_GENITIVE_OF extends SprAdpositionPredef
+case object PD_ADVERBIAL_TMP extends SprAdpositionPredef
 
-object SilMagicWord
+object SprPredefWord
 {
-  def apply(keyword : SprMagicWord)(implicit tongue : SprTongue) =
+  def apply(predef : SprPredef)(implicit tongue : SprTongue) =
   {
-    SilWord(tongue.keywordLemma(keyword))
+    SilWord(tongue.predefLemma(predef))
   }
 
-  def unapply(w : SilSimpleWord)(implicit tongue : SprTongue)
-      : Option[SprMagicWord] =
+  def unapply(w : SilWord)(
+    implicit tongue : SprTongue,
+    label : String = LABEL_AMBIGUOUS)
+      : Option[SprPredef] =
   {
-    tongue.keywordForLemma(w.lemma)
+    tongue.predefForLemma(w.toLemma, label)
   }
 }
 
-object SprMagicAdposition
+object SprPredefDeterminerWord
+{
+  def unapply(w : SilWord)(
+    implicit tongue : SprTongue)
+      : Option[SprPredef] =
+  {
+    tongue.predefForLemma(w.toLemma, LABEL_DT)
+  }
+}
+
+object SprPredefAdposition
 {
   def apply(
-    magicWord : SprMagicWord)(implicit tongue : SprTongue) : SilAdposition =
+    predef : SprPredef)(implicit tongue : SprTongue) : SilAdposition =
   {
-    SilAdposition(SilMagicWord(magicWord))
+    SilAdposition(SprPredefWord(predef))
   }
 
   def unapply(
     adposition : SilAdposition)(implicit tongue : SprTongue)
-      : Option[SprMagicWord] =
+      : Option[SprPredef] =
   {
-    tongue.keywordForLemma(adposition.word.toLemma)
+    tongue.predefForLemma(adposition.word.toLemma, LABEL_IN)
   }
 }
 
@@ -351,7 +361,7 @@ abstract class SprTongue(wordnet : SprWordnet)
     annotator.stateSpecifiedRef(
       membersRef,
       SilAdpositionalState(
-        SprMagicAdposition(MW_OF),
+        SprPredefAdposition(PD_OF),
         setRef))
   }
 
@@ -361,9 +371,14 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def proximityForLemma(lemma : String) : Option[SilProximity]
 
-  def keywordLemma(keyword : SprMagicWord) : String
+  def predefLemma(predef : SprPredef) : String
 
-  def keywordForLemma(lemma : String) : Option[SprMagicWord]
+  def predefForLemma(
+    lemma : String,
+    label : String = LABEL_AMBIGUOUS,
+    gender : SilGender = GENDER_NEUTER,
+    count : SilCount = COUNT_SINGULAR
+  ) : Option[SprPredef]
 
   def pronounLemma(
     person : SilPerson, gender : SilGender, count : SilCount,
@@ -417,6 +432,6 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   override def isGenitiveVariableLemma(lemma : String) : Boolean =
   {
-    lemma == SilMagicWord(MW_WHO).toLemma
+    lemma == SprPredefWord(PD_WHO).toLemma
   }
 }

@@ -156,17 +156,17 @@ class SmcResponseRewriter[
       {
         negateCollection = true
         val (responseDeterminer, responseNoun) = noun match {
-          case SilMagicWord(MW_WHO) => {
-            tupleN((DETERMINER_NONE, SilMagicWord(MW_ONE)))
+          case SprPredefWord(PD_WHO) => {
+            tupleN((DETERMINER_NONE, SprPredefWord(PD_ONE)))
           }
-          case SilMagicWord(MW_WHOM) => {
-            tupleN((DETERMINER_NONE, SilMagicWord(MW_ONE)))
+          case SprPredefWord(PD_WHOM) => {
+            tupleN((DETERMINER_NONE, SprPredefWord(PD_ONE)))
           }
-          case SilMagicWord(MW_WHERE) => {
-            tupleN((DETERMINER_ABSENT, SilMagicWord(MW_NOWHERE)))
+          case SprPredefWord(PD_WHERE) => {
+            tupleN((DETERMINER_ABSENT, SprPredefWord(PD_NOWHERE)))
           }
-          case SilMagicWord(MW_WHAT) => {
-            tupleN((DETERMINER_ABSENT, SilMagicWord(MW_NOTHING)))
+          case SprPredefWord(PD_WHAT) => {
+            tupleN((DETERMINER_ABSENT, SprPredefWord(PD_NOTHING)))
           }
           case _ => (DETERMINER_NONE, noun)
         }
@@ -302,7 +302,14 @@ class SmcResponseRewriter[
     val normalized = transformQuestionResponse(
       rewriteLast, params, question, negateCollection)
     SilPhraseValidator.validatePhrase(normalized)
-    tupleN((normalized, negateCollection))
+    val maybeNegateCollection = {
+      if (tongue.allowDoubleNegatives) {
+        false
+      } else {
+        negateCollection
+      }
+    }
+    tupleN((normalized, maybeNegateCollection))
   }
 
   def swapSpeakerListener(
@@ -411,7 +418,7 @@ class SmcResponseRewriter[
             containee,
             verb.toUninflected,
             SilAdpositionalState(
-              SprMagicAdposition(MW_IN),
+              SprPredefAdposition(PD_IN),
               container),
             verbModifiers)
         }
@@ -433,7 +440,7 @@ class SmcResponseRewriter[
           containee,
           STATE_PREDEF_BE.toVerb,
           SilAdpositionalState(
-            SprMagicAdposition(MW_IN),
+            SprPredefAdposition(PD_IN),
             container),
           verbModifiers)
       }
@@ -608,7 +615,7 @@ class SmcResponseRewriter[
         sr @ SilStateSpecifiedReference(
           _,
           SilAdpositionalState(
-            SprMagicAdposition(MW_OF),
+            SprPredefAdposition(PD_OF),
             SilPronounReference(
               PERSON_THIRD, _, COUNT_PLURAL, PROXIMITY_ENTITY))),
         _
@@ -952,7 +959,7 @@ class SmcResponseRewriter[
   }
 
   private def summarizeList(
-    entities : Iterable[SmcEntity],
+    entities : Iterable[EntityType],
     exhaustive : Boolean,
     existence : Boolean,
     conjunction : Boolean) =
@@ -962,10 +969,10 @@ class SmcResponseRewriter[
     val number = {
       if (conjunction && exhaustive) {
         all = false
-        SilMagicWord(MW_NONE)
+        SprPredefWord(PD_NONE_NOUN)
       } else  if ((entities.size == 2) && exhaustive && !existence) {
         all = false
-        SilMagicWord(MW_BOTH)
+        SprPredefWord(PD_BOTH)
       } else {
         SilWord.uninflected(entities.size.toString)
       }
@@ -977,7 +984,8 @@ class SmcResponseRewriter[
         DETERMINER_ABSENT
       }
     }
-    // FIXME:  derive gender from entities
+    val gender = tongue.combineGenders(
+      entities.toSeq.map(mind.deriveGender))
     val count = number.lemma match {
       case "1" => COUNT_SINGULAR
       case _ => COUNT_PLURAL
@@ -987,10 +995,10 @@ class SmcResponseRewriter[
       annotator.stateSpecifiedRef(
         annotator.determinedRef(nounRef, determiner),
         SilAdpositionalState(
-          SprMagicAdposition(MW_OF),
+          SprPredefAdposition(PD_OF),
           annotator.pronounRef(
             PERSON_THIRD,
-            GENDER_NEUTER,
+            gender,
             COUNT_PLURAL,
             mind)))))
   }

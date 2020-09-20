@@ -32,4 +32,6 @@ trait SilTongue extends SilGenderAnalyzer
   def combineGenders(genders : Seq[SilGender]) : SilGender
 
   def getAdjectivePosition : SilModifierPosition
+
+  def allowDoubleNegatives : Boolean = false
 }

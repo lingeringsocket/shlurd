@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 
@@ -22,7 +23,7 @@ import SnlSpanishLemmas._
 
 class SnlSpanishTongueSpec extends Specification
 {
-  private val tongue = new SnlSpanishTongue(
+  private implicit val tongue = new SnlSpanishTongue(
     new SnlExternalWordnet("/spanish_net.xml")
   )
 
@@ -75,6 +76,54 @@ class SnlSpanishTongueSpec extends Specification
       })
 
       pronounLemmas.size must be equalTo 61
+    }
+
+    "transform predefs" in
+    {
+      val forwardSize = SnlSpanishLexicon.predefToLemma.size
+      val inverseSize = SnlSpanishLexicon.lemmaToPredef.size
+      forwardSize must be equalTo inverseSize + 3
+
+      val specialCases = SnlSpanishLexicon.predefToLemma.values.groupBy(x => x).
+        filter(_._2.size > 1).map(_._1).toSet
+      specialCases must be equalTo Set(LEMMA_NINGUNO, LEMMA_NI, LEMMA_OTRO)
+
+      SprPredefWord(PD_NEITHER_NOUN).toLemma must be equalTo(
+        LEMMA_NINGUNO)
+      SprPredefWord(PD_NONE_NOUN).toLemma must be equalTo(
+        LEMMA_NINGUNO)
+      SprPredefWord(PD_NEITHER_DETERMINER).toLemma must be equalTo(
+        LEMMA_NI)
+      SprPredefWord(PD_NOR).toLemma must be equalTo(
+        LEMMA_NI)
+      SprPredefWord(PD_ANOTHER).toLemma must be equalTo(
+        LEMMA_OTRO)
+      SprPredefWord(PD_OTHER).toLemma must be equalTo(
+        LEMMA_OTRO)
+
+      val CORRECT = "correct"
+      val INCORRECT = "incorrect"
+      (SilWord(LEMMA_NINGUNO) match {
+        case SprPredefWord(PD_NONE_NOUN) => CORRECT
+        case _ => INCORRECT
+      }) must be equalTo CORRECT
+      (SilWord(LEMMA_NI) match {
+        case SprPredefWord(PD_NOR) => CORRECT
+        case _ => INCORRECT
+      }) must be equalTo CORRECT
+      (SilWord(LEMMA_OTRO) match {
+        case SprPredefWord(PD_OTHER) => CORRECT
+        case _ => INCORRECT
+      }) must be equalTo CORRECT
+
+      (SilWord(LEMMA_NI) match {
+        case SprPredefDeterminerWord(PD_NEITHER_DETERMINER) => CORRECT
+        case _ => INCORRECT
+      }) must be equalTo CORRECT
+      (SilWord(LEMMA_OTRO) match {
+        case SprPredefDeterminerWord(PD_ANOTHER) => CORRECT
+        case _ => INCORRECT
+      }) must be equalTo CORRECT
     }
   }
 }

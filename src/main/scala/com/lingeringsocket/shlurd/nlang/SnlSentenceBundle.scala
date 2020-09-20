@@ -24,10 +24,12 @@ import scala.util._
 
 abstract class SnlSentenceBundle(
   tongueIn : SprTongue,
-  numberFormat : RuleBasedNumberFormat)
+  numberFormatIn : RuleBasedNumberFormat)
     extends SilSentenceBundle
 {
   protected implicit val tongue = tongueIn
+
+  protected val numberFormat = numberFormatIn
 
   override def getTongue = tongue
 
@@ -227,7 +229,7 @@ abstract class SnlSentenceBundle(
 
   override def existsVerb() : SilWord =
   {
-    SilMagicWord(MW_EXIST).toUninflected
+    SprPredefWord(PD_EXIST).toUninflected
   }
 
   override def changeStateVerb(
@@ -294,16 +296,16 @@ abstract class SnlSentenceBundle(
     items : Seq[String]) =
   {
     val prefix = determiner match {
-      case DETERMINER_NONE => MW_NEITHER.toLemma
-      case DETERMINER_DEFINITE => MW_EITHER.toLemma
+      case DETERMINER_NONE => PD_NEITHER_DETERMINER.toLemma
+      case DETERMINER_DEFINITE => PD_EITHER.toLemma
       case _ => ""
     }
 
     val infix = determiner match {
-      case DETERMINER_NONE => MW_NOR.toLemma
-      case (_ : SilUnlimitedDeterminer) | DETERMINER_DEFINITE => MW_OR.toLemma
+      case DETERMINER_NONE => PD_NOR.toLemma
+      case (_ : SilUnlimitedDeterminer) | DETERMINER_DEFINITE => PD_OR.toLemma
       case DETERMINER_ABSENT => separator.punctuationMark
-      case _ => MW_AND.toLemma
+      case _ => PD_AND.toLemma
     }
 
     val seq = items.dropRight(1).zipWithIndex.flatMap {
@@ -335,9 +337,9 @@ abstract class SnlSentenceBundle(
   {
     val connective = {
       if (biconditional) {
-        MW_EQUIVALENTLY
+        PD_EQUIVALENTLY
       } else {
-        MW_THEN
+        PD_THEN
       }
     }
     compose(
@@ -355,29 +357,29 @@ abstract class SnlSentenceBundle(
   {
     question match {
       case Some(QUESTION_WHICH) => {
-        compose(MW_WHICH.toLemma, noun)
+        compose(PD_WHICH.toLemma, noun)
       }
       case Some(QUESTION_WHO) => {
         answerInflection match {
           case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => {
-            compose(MW_WHOM.toLemma)
+            compose(PD_WHOM.toLemma)
           }
           case INFLECT_GENITIVE => {
-            compose(MW_WHOSE.toLemma, noun)
+            compose(PD_WHOSE.toLemma, noun)
           }
           case _ => {
-            compose(MW_WHO.toLemma)
+            compose(PD_WHO.toLemma)
           }
         }
       }
       case Some(QUESTION_WHAT) => {
-        compose(MW_WHAT.toLemma)
+        compose(PD_WHAT.toLemma)
       }
       case Some(QUESTION_HOW_MANY) => {
-        compose(MW_HOW_MANY.toLemma, noun)
+        compose(PD_HOW_MANY.toLemma, noun)
       }
       case Some(QUESTION_WHERE) => {
-        compose(MW_WHERE.toLemma)
+        compose(PD_WHERE.toLemma)
       }
       case None => noun
     }

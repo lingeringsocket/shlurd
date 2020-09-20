@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import org.specs2.mutable._
 
@@ -22,7 +23,7 @@ import SnlEnglishLemmas._
 
 class SnlEnglishTongueSpec extends Specification
 {
-  private val tongue = SnlUtils.defaultTongue
+  private implicit val tongue = SnlUtils.defaultTongue
 
   "SnlEnglishTongue" should
   {
@@ -49,6 +50,34 @@ class SnlEnglishTongueSpec extends Specification
       })
 
       pronounLemmas.size must be equalTo 35
+    }
+
+    "transform predefs" in
+    {
+      val forwardSize = SnlEnglishLexicon.predefToLemma.size
+      val inverseSize = SnlEnglishLexicon.lemmaToPredef.size
+      forwardSize must be equalTo inverseSize + 1
+
+      val specialCases = SnlEnglishLexicon.predefToLemma.values.groupBy(x => x).
+        filter(_._2.size > 1).map(_._1).toSet
+      specialCases must be equalTo Set(LEMMA_NEITHER)
+
+      SprPredefWord(PD_NEITHER_NOUN).toLemma must be equalTo(
+        LEMMA_NEITHER)
+      SprPredefWord(PD_NEITHER_DETERMINER).toLemma must be equalTo(
+        LEMMA_NEITHER)
+
+      val CORRECT = "correct"
+      val INCORRECT = "incorrect"
+      (SilWord(LEMMA_NEITHER) match {
+        case SprPredefWord(PD_NEITHER_NOUN) => CORRECT
+        case _ => INCORRECT
+      }) must be equalTo CORRECT
+
+      (SilWord(LEMMA_NEITHER) match {
+        case SprPredefDeterminerWord(PD_NEITHER_DETERMINER) => CORRECT
+        case _ => INCORRECT
+      }) must be equalTo CORRECT
     }
   }
 }

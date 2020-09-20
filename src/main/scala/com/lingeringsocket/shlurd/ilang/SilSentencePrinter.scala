@@ -152,8 +152,11 @@ class SilSentencePrinter(
               SilUtils.extractQualifiers(state))
           }
         }
-        sb.qualifiedNoun(
-          qualifierString, print(sub, inflection, conjoining))
+        sb.separate(
+          sb.qualifiedNoun(
+            qualifierString,
+            print(sub, inflection, SilConjoining.NONE)),
+          conjoining)
       }
       case SilGenitiveReference(possessor, possessee) => {
         val qualifierString = possessor match {
@@ -646,7 +649,7 @@ class SilSentencePrinter(
     } else {
       sb.adpositionedNoun(
         sb.adpositionString(phrase.adposition),
-        print(phrase.objRef, INFLECT_ACCUSATIVE, SilConjoining.NONE),
+        print(phrase.objRef, INFLECT_ADPOSITIONED, SilConjoining.NONE),
         conjoining)
     }
   }

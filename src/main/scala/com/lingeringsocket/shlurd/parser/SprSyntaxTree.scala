@@ -338,7 +338,7 @@ sealed trait SprSyntaxTree extends SprAbstractSyntaxTree
   {
     val unwrapped = unwrapPhrase
     if (unwrapped.isPreTerminal) {
-      unwrapped.firstChild.lemma == MW_THEN.toLemma
+      unwrapped.firstChild.lemma == PD_THEN.toLemma
     } else {
       false
     }
@@ -348,7 +348,7 @@ sealed trait SprSyntaxTree extends SprAbstractSyntaxTree
   {
     val unwrapped = unwrapPhrase
     if (unwrapped.isPreTerminal) {
-      unwrapped.firstChild.lemma == MW_EQUIVALENTLY.toLemma
+      unwrapped.firstChild.lemma == PD_EQUIVALENTLY.toLemma
     } else {
       false
     }

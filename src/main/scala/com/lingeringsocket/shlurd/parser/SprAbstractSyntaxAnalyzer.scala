@@ -110,10 +110,12 @@ abstract class SprAbstractSyntaxAnalyzer(
         preTerminal match {
           case (_ : SptDT | _ : SptCC | _ : SprSyntaxAdverb) => {
             SilWord(preTerminal.child.lemma) match {
-              case SilMagicWord(MW_BOTH) => (determiner == DETERMINER_ALL)
-              case SilMagicWord(MW_EITHER) =>
+              case SprPredefDeterminerWord(PD_BOTH) =>
+                (determiner == DETERMINER_ALL)
+              case SprPredefDeterminerWord(PD_EITHER) =>
                 determiner.isInstanceOf[SilUnlimitedDeterminer]
-              case SilMagicWord(MW_NEITHER) => (determiner == DETERMINER_NONE)
+              case SprPredefDeterminerWord(PD_NEITHER_DETERMINER) =>
+                (determiner == DETERMINER_NONE)
               case _ => false
             }
           }
@@ -199,7 +201,8 @@ abstract class SprAbstractSyntaxAnalyzer(
           t2.withModality(MODAL_POSSIBLE).withPolarity(t2.isNegative),
           biconditional,
           formality)
-        val otherwiseModifier = SilBasicVerbModifier(SilMagicWord(MW_OTHERWISE))
+        val otherwiseModifier = SilBasicVerbModifier(
+          SprPredefWord(PD_OTHERWISE))
         val cp = consequentPredicate.withNewModifiers(
             consequentPredicate.getModifiers :+ otherwiseModifier)
         val modifiedConsequent = SilPredicateSentence(
@@ -248,13 +251,14 @@ abstract class SprAbstractSyntaxAnalyzer(
           None
         }
       }
-      case _ => {
-        tongue.keywordForLemma(preTerminal.firstChild.lemma) match {
-          case Some(amw : SprAdpositionMagicWord) =>
-            Some(SprMagicAdposition(amw))
+      case pt : SprSyntaxPreTerminal => {
+        SprPredefWord.unapply(getWord(pt.child)) match {
+          case Some(amw : SprAdpositionPredef) =>
+            Some(SprPredefAdposition(amw))
           case _ => None
         }
       }
+      case _ => None
     }
   }
 
@@ -377,7 +381,7 @@ abstract class SprAbstractSyntaxAnalyzer(
       : SilVerbModifier =
   {
     SilAdpositionalVerbModifier(
-      SprMagicAdposition(MW_ADVERBIAL_TMP),
+      SprPredefAdposition(PD_ADVERBIAL_TMP),
       expectReference(tmod.child))
   }
 
