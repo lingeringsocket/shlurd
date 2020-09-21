@@ -1,3 +1,5 @@
+persona%1:05:00:: -add -setgloss f
+animal%1:05:00:: -add -setgloss m
 pavo%1:05:00:: -add -setgloss m
 león%1:05:00:: -add -setgloss m
 tigre%1:05:00:: -add -setgloss m
@@ -20,9 +22,13 @@ triste%3:00:00:: -add -setgloss triste
 despierto%3:00:00:: -add -setgloss despierto
 dormido%3:00:00:: -add -setgloss dormido
 polar%3:00:00:: -add -setgloss polar
-siberiana%3:00:00:: -add -setgloss siberiana
+pardo%3:00:00:: -add -setgloss pardo
+siberiano%3:00:00:: -add -setgloss siberiano
+rizado%3:00:00:: -add -setgloss rizado
 niñera%3:00:00:: -add -setgloss niñera
 real%3:00:00:: -add -setgloss real
+grande%3:00:00:: -add -setgloss grande
+pequeño%3:00:00:: -add -setgloss pequeño
 n#leones -addexc león
 v#soy -addexc ser
 v#eres -addexc ser

@@ -348,6 +348,25 @@ abstract class SprTongue(wordnet : SprWordnet)
     tupleN((PERSON_THIRD, COUNT_SINGULAR, GENDER_NEUTER, SilTam.indicative))
   }
 
+  def synthesizeSummaryRef(
+    annotator : SilAnnotator,
+    determiner : SilDeterminer,
+    summarizedRef : SilReference,
+    gender : SilGender,
+    genderAnalyzer : SilGenderAnalyzer
+  ) : SilReference =
+  {
+    annotator.stateSpecifiedRef(
+      annotator.determinedRef(summarizedRef, determiner),
+      SilAdpositionalState(
+        SprPredefAdposition(PD_OF),
+        annotator.pronounRef(
+          PERSON_THIRD,
+          gender,
+          COUNT_PLURAL,
+          genderAnalyzer)))
+  }
+
   def synthesizeMembersRef(
     annotator : SilAnnotator,
     determiner : SilDeterminer,

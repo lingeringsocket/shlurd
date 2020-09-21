@@ -282,6 +282,7 @@ class SmcResponderSpec extends SmcResponderSpecification
         "is his tiger in the big cage",
         "Sorry, when you say 'his' I don't know who or what you mean.",
         ShlurdExceptionCode.UnresolvedPronoun)
+      // FIXME perhaps this should interpret 'we' as 'you and I'
       processExceptionExpected(
         "are we in the big cage",
         "Sorry, when you say 'we' I don't know who or what you mean.",

@@ -46,8 +46,8 @@ object SnlSpanishLemmas
   val LEMMA_AQUELLO = "aquello"
   val LEMMA_AQUELLOS = "aquellos"
   val LEMMA_CADA = "cada"
-  val LEMMA_CUAL = "cual"
-  val LEMMA_CUALES = "cuales"
+  val LEMMA_CUAL = "cuál"
+  val LEMMA_CUALES = "cuáles"
   val LEMMA_CUANTOS = "cuántos"
   val LEMMA_DE = "de"
   val LEMMA_DEBER = "deber"
@@ -101,6 +101,7 @@ object SnlSpanishLemmas
   val LEMMA_OS = "os"
   val LEMMA_OTRO = "otro"
   val LEMMA_PODER = "poder"
+  val LEMMA_QUE_ACCENTED = "qué"
   val LEMMA_QUE = "que"
   val LEMMA_SE = "se"
   val LEMMA_SER = "ser"
@@ -735,8 +736,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   {
     lemma match {
       case LEMMA_NI | LEMMA_O | LEMMA_U |
-          LEMMA_AMBOS | LEMMA_AMBAS |
-          LEMMA_TODO | LEMMA_TODA | LEMMA_TODOS | LEMMA_TODAS => true
+          LEMMA_AMBOS | LEMMA_AMBAS => true
       case _ => false
     }
   }
@@ -907,6 +907,37 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
     val (_, count, _, _, _, _) = analyzePronoun(lemma)
     annotator.nounRef(SilWord(correctGenderCount(lemma, gender, count, false)))
+  }
+
+  override def synthesizeSummaryRef(
+    annotator : SilAnnotator,
+    determiner : SilDeterminer,
+    summarizedRef : SilReference,
+    gender : SilGender,
+    genderAnalyzer : SilGenderAnalyzer
+  ) : SilReference =
+  {
+    determiner match {
+      case DETERMINER_ALL => {
+        // "todas las tres"
+        annotator.determinedRef(
+          annotator.determinedRef(
+            summarizedRef,
+            DETERMINER_DEFINITE),
+          determiner
+        )
+      }
+      case _ => {
+        summarizedRef match {
+          case SilNounReference(SprPredefWord(PD_BOTH)) => summarizedRef
+          case _ => {
+            super.synthesizeSummaryRef(
+              annotator, determiner, summarizedRef,
+              gender, genderAnalyzer)
+          }
+        }
+      }
+    }
   }
 
   override def deriveGender(word : SilWord) : SilGender =

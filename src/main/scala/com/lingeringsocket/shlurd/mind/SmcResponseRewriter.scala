@@ -992,14 +992,11 @@ class SmcResponseRewriter[
     }
     val nounRef = annotator.nounRef(number, count)
     Some(markQueryAnswer(
-      annotator.stateSpecifiedRef(
-        annotator.determinedRef(nounRef, determiner),
-        SilAdpositionalState(
-          SprPredefAdposition(PD_OF),
-          annotator.pronounRef(
-            PERSON_THIRD,
-            gender,
-            COUNT_PLURAL,
-            mind)))))
+      tongue.synthesizeSummaryRef(
+        annotator,
+        determiner,
+        nounRef,
+        gender,
+        mind)))
   }
 }

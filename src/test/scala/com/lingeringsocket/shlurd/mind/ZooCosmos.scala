@@ -46,7 +46,7 @@ object ZooSalamander extends ZooAnimalEntity("salamander", "salamandra")
 object ZooNannyGoat extends ZooAnimalEntity(
   "nanny goat", "cabra niñera")
 object ZooDomesticGoat extends ZooAnimalEntity(
-  "domestic goat", "cabra domestica")
+  "domestic goat", "cabra doméstica")
 object ZooSiberianGoat extends ZooAnimalEntity(
   "siberian goat", "cabra siberiana")
 
@@ -144,7 +144,7 @@ class ZooCosmos(
     tongue : SprTongue) : Try[Set[SmcEntity]] =
   {
     if ((lemma == LEMMA_WHO) || (lemma == LEMMA_WHOM) ||
-      (lemma == "person"))
+      (lemma.startsWith("person")))
     {
       Success(SprUtils.orderedSet(
         people.values))

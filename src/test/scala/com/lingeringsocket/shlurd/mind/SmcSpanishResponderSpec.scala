@@ -88,6 +88,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, hay un león y un tigre.")
       process("hay un león o un pavo real?") must be equalTo(
         "Sí, hay un león.")
+      // arguably, this and others should introduce a double
+      // negative in the response
       process("hay un pavo real?") must be equalTo(
         "No, no hay un pavo real.")
       process("hay un pavo real?", ellipsis) must be equalTo(
@@ -109,6 +111,158 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       // FIXME:  I'm not even sure what the right answer is to this
       process("hay ningún pavo real?") must be equalTo(
         "Sí, hay ningún pavo real.")
+      process("hay un león y un pavo real?") must be equalTo(
+        "No, no hay un león y un pavo real.")
+      process("hay un tigre siberiano?") must be equalTo(
+        "No, no hay un tigre siberiano.")
+      process("hay un oso?") must be equalTo(
+        "Sí, hay un oso.")
+      process("hay un oso pardo?") must be equalTo(
+        "Sí, hay un oso pardo.")
+      process("hay un oso polar?") must be equalTo(
+        "Sí, hay un oso polar.")
+      process("hay un oso rizado?") must be equalTo(
+        "No, no hay un oso rizado.")
+      process("el oso polar está dormido?") must be equalTo(
+        "Sí, el oso polar está dormido.")
+      process("el oso pardo está dormido?") must be equalTo(
+        "No, el oso pardo no está dormido.")
+      process("oso pardo está dormido?") must be equalTo(
+        "No, oso pardo no está dormido.")
+      // FIXME translate exceptions too
+      processExceptionExpected(
+        "el oso rizado está dormido?",
+        "But I don't know about any such oso.",
+        ShlurdExceptionCode.NonExistent)
+      processExceptionExpected(
+        "el oso está dormido?",
+        "Please be more specific about which oso you mean.",
+        ShlurdExceptionCode.NotUnique)
+      processExceptionExpected(
+        "orange the soccer field",
+        "Sorry, I cannot understand what you said.",
+        ShlurdExceptionCode.FailedParse)
+      process("algún oso está dormido?") must be equalTo(
+        "Sí, el oso polar está dormido.")
+      process("algún oso polar está dormido?") must be equalTo(
+        "Sí, el oso polar está dormido.")
+      process("los osos están dormidos?") must be equalTo(
+        "No, los osos no están dormidos.")
+      process("todas cabras están dormidas?") must be equalTo(
+        "Sí, todas cabras están dormidas.")
+      process("algunas cabras están dormidas?") must be equalTo(
+        "Sí, todas las tres están dormidas.")
+      val lowLimit = SmcResponseParams(listLimit = 1)
+      process("algunas cabras están dormidas?", lowLimit) must be equalTo(
+        "Sí, todas las tres están dormidas.")
+      // FIXME this double negative looks sketchy
+      process("algunas cabras están despiertas?") must be equalTo(
+        "No, ningunas cabras no están despiertas.")
+      processExceptionExpected(
+        "hay un aardvark",
+        "Sorry, I don't know about any 'aardvark'.",
+        ShlurdExceptionCode.UnknownForm)
+      // FIXME translate canned responses
+      process("el perezoso está despierto?") must be equalTo(
+        "I don't know.")
+      process("el perezoso o el tigre está despierto?") must be equalTo(
+        "Sí, el tigre está despierto.")
+      process("el león o el oso polar está despierto?") must be equalTo(
+        "No, ni el león ni el oso polar no está despierto.")
+      process("el oso pardo o el tigre está despierto?") must be equalTo(
+        "Sí, ambos están despierto.")
+      process("el perezoso o el tigre está dormido?") must be equalTo(
+        "I don't know.")
+      process("el perezoso o el león está despierto?") must be equalTo(
+        "I don't know.")
+      process("el perezoso o el león está dormido?") must be equalTo(
+        "Sí, el león está dormido.")
+      process("el tigre y el oso pardo están despiertos?") must be equalTo(
+        "Sí, el tigre y el oso pardo están despiertos.")
+      process("los osos y el león están despiertos?", lowLimit) must be equalTo(
+        "No, dos de ellos no están despiertos.")
+      process("el oso pardo está en algún jaula?") must be equalTo(
+        "No, el oso pardo no está en ninguna jaula.")
+      processExceptionExpected(
+        "el tigre está en la jaula?",
+        "Please be more specific about which jaula you mean.",
+        ShlurdExceptionCode.NotUnique)
+      process("el tigre está en la jaula grande?") must be equalTo(
+        "Sí, el tigre está en la jaula grande.")
+      process("hay un tigre en la jaula grande?") must be equalTo(
+        "Sí, hay un tigre en la jaula grande.")
+      process("el tigre en la jaula grande está despierto?") must be equalTo(
+        "Sí, el tigre en la jaula grande está despierto.")
+      process("la cabra en la granja está despierta?") must be equalTo(
+        "No, la cabra en la granja no está despierta.")
+      process("yo estoy en la jaula grande?") must be equalTo(
+        "No, tú no estás en la jaula grande.")
+      process("tú estás en la jaula grande?") must be equalTo(
+        "Sí, yo estoy en la jaula grande.")
+      processExceptionExpected(
+        "ella está en la jaula grande?",
+        "Sorry, when you say 'ella' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      processExceptionExpected(
+        "su tigre está en la jaula grande?",
+        "Sorry, when you say 'su' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      processExceptionExpected(
+        "nosotros estamos en la jaula grande?",
+        "Sorry, when you say 'nosotros' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      processExceptionExpected(
+        "ellos están en la jaula grande?",
+        "Sorry, when you say 'ellos' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      processExceptionExpected(
+        "tu tigre está en la jaula grande?",
+        "But I don't know about any such tigre.",
+        ShlurdExceptionCode.NonExistent)
+      processExceptionExpected(
+        "mi león está en la jaula grande?",
+        "But I don't know about any such león.",
+        ShlurdExceptionCode.NonExistent)
+      process("el oso pardo es un oso?") must be equalTo(
+        "Sí, el oso pardo es un oso.")
+      process("el oso pardo es un león?") must be equalTo(
+        "No, el oso pardo no es un león.")
+      process("el león es un león?") must be equalTo(
+        "Sí, el león es un león.")
+      process("el león es un animal?") must be equalTo(
+        "Sí, el león es un animal.")
+      process("el león es una persona?") must be equalTo(
+        "No, el león no es una persona.")
+      process("Muldoon es un animal?") must be equalTo(
+        "No, Muldoon no es un animal.")
+      process("Muldoon es una persona?") must be equalTo(
+        "Sí, Muldoon es una persona.")
+    }
+
+    "not working yet" in new SpanishResponderContext
+    {
+      skipped("not working yet")
+      process("el tigre está en la jaula pequeña?") must be equalTo(
+        "Sí, el tigre está en la jaula pequeña.")
+      process("hay un tigre en la jaula pequeña?") must be equalTo(
+        "No, no hay un tigre en la jaula pequeña.")
+      processExceptionExpected(
+        "el tigre en la jaula pequeña está despierto?",
+        "But I don't know about any such tigre.",
+        ShlurdExceptionCode.NonExistent)
+      process("estoy en la jaula grande?") must be equalTo(
+        "No, no estás en la jaula grande.")
+      process("estás en la jaula grande?") must be equalTo(
+        "Sí, estoy en la jaula grande.")
+      // need better response for this one
+      processExceptionExpected(
+        "está en la jaula grande?",
+        "Sorry, when you say 'ELIDED' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      process("mi tigre está en la jaula grande?") must be equalTo(
+        "Sí, tu tigre está en la jaula grande.")
+      process("tu león está en la jaula grande?") must be equalTo(
+        "Sí, mi león está en la jaula grande.")
     }
 
     "understand inverted order" in new SpanishResponderContext
@@ -120,213 +274,88 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, el león está dormido.")
     }
 
-    "process unsupported questions" in new SpanishResponderContext
+    "use correct gender and number" in new SpanishResponderContext
     {
-      skipped("not translated/tested yet")
+      skipped("not working yet")
+      process("algunos osos están dormidos?") must be equalTo(
+        "Sí, el oso polar está dormido.")
+      process("todos osos están dormidos?") must be equalTo(
+        "No, el oso pardo no está dormido.")
+      process("todas cabras están despiertas?") must be equalTo(
+        "No, ninguna de ellas están despiertas.")
+      process("los osos y el león están dormidos?") must be equalTo(
+        "No, el oso pardo no está dormido.")
+      process("los osos y el león están despiertos?") must be equalTo(
+        "No, ni el oso polar ni el león no están despiertos.")
+      process("el tigre y el león están dormidos?") must be equalTo(
+        "No, el tigre no está dormido.")
+    }
+
+    "process questions with variables" in new SpanishResponderContext
+    {
+      skipped("not working yet")
       val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
       val ellipsis = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
-      process("is there a lion and a peacock") must be equalTo(
-        "No, there is not a lion and a peacock.")
-      process("is there a siberian tiger") must be equalTo(
-        "No, there is not a siberian tiger.")
-      process("is there a bear") must be equalTo(
-        "Yes, there is a bear.")
-      process("is there a grizzly bear") must be equalTo(
-        "Yes, there is a grizzly bear.")
-      process("is there a polar bear") must be equalTo(
-        "Yes, there is a polar bear.")
-      process("is there a fuzzy bear") must be equalTo(
-        "No, there is not a fuzzy bear.")
-      process("is the polar bear asleep") must be equalTo(
-        "Yes, the polar bear is asleep.")
-      process("is the grizzly bear asleep") must be equalTo(
-        "No, the grizzly bear is not asleep.")
-      process("is grizzly bear asleep") must be equalTo(
-        "No, grizzly bear is not asleep.")
-      processExceptionExpected(
-        "is the fuzzy bear asleep",
-        "But I don't know about any such bear.",
-        ShlurdExceptionCode.NonExistent)
-      processExceptionExpected(
-        "is the bear asleep",
-        "Please be more specific about which bear you mean.",
-        ShlurdExceptionCode.NotUnique)
-      processExceptionExpected(
-        "orange the soccer field",
-        "Sorry, I cannot understand what you said.",
-        ShlurdExceptionCode.FailedParse)
-      process("is any bear asleep") must be equalTo(
-        "Yes, the polar bear is asleep.")
-      process("is any polar bear asleep") must be equalTo(
-        "Yes, the polar bear is asleep.")
-      process("is some bear asleep") must be equalTo(
-        "Yes, the polar bear is asleep.")
-      process("are the bears asleep") must be equalTo(
-        "No, the bears are not asleep.")
-      process("are any bears asleep") must be equalTo(
-        "Yes, the polar bear is asleep.")
-      process("are all bears asleep") must be equalTo(
-        "No, the grizzly bear is not asleep.")
-      process("are all goats asleep") must be equalTo(
-        "Yes, all goats are asleep.")
-      process("are any goats asleep") must be equalTo(
-        "Yes, all three of them are asleep.")
       val lowLimit = SmcResponseParams(listLimit = 1)
-      process("are any goats asleep", lowLimit) must be equalTo(
-        "Yes, all three of them are asleep.")
-      process("are any goats awake") must be equalTo(
-        "No, no goats are awake.")
-      process("are all goats awake") must be equalTo(
-        "No, none of them are awake.")
-      processExceptionExpected(
-        "is there an aardvark",
-        "Sorry, I don't know about any 'aardvark'.",
-        ShlurdExceptionCode.UnknownForm
-      )
-      process("is the sloth awake") must be equalTo(
-        "I don't know.")
-      process("is the sloth or the tiger awake") must be equalTo(
-        "Yes, the tiger is awake.")
-      process("is the lion or the polar bear awake") must be equalTo(
-        "No, neither the lion nor the polar bear is awake.")
-      process("is the grizzly bear or the tiger awake") must be equalTo(
-        "Yes, both of them are awake.")
-      process("is the sloth or the tiger asleep") must be equalTo(
-        "I don't know.")
-      process("is the sloth or the lion awake") must be equalTo(
-        "I don't know.")
-      process("is the sloth or the lion asleep") must be equalTo(
-        "Yes, the lion is asleep.")
-      process("are the tiger and the grizzly bear awake") must be equalTo(
-        "Yes, the tiger and the grizzly bear are awake.")
-      process("are the bears and the lion asleep") must be equalTo(
-        "No, the grizzly bear is not asleep.")
-      process("are the bears and the lion awake") must be equalTo(
-        "No, neither the polar bear nor the lion is awake.")
-      process("are the bears and the lion awake", lowLimit) must be equalTo(
-        "No, two of them are not awake.")
-      process("are the tiger and the lion asleep") must be equalTo(
-        "No, the tiger is not asleep.")
-      process("is the grizzly bear in any cage") must be equalTo(
-        "No, the grizzly bear is in no cage.")
-      processExceptionExpected(
-        "is the tiger in the cage",
-        "Please be more specific about which cage you mean.",
-        ShlurdExceptionCode.NotUnique)
-      process("is the tiger in the big cage") must be equalTo(
-        "Yes, the tiger is in the big cage.")
-      process("is there a tiger in the big cage") must be equalTo(
-        "Yes, there is a tiger in the big cage.")
-      process("is the tiger in the small cage") must be equalTo(
-        "No, the tiger is not in the small cage.")
-      process("is there a tiger in the small cage") must be equalTo(
-        "No, there is not a tiger in the small cage.")
-      process("is the tiger in the big cage awake") must be equalTo(
-        "Yes, the tiger in the big cage is awake.")
-      processExceptionExpected(
-        "is the tiger in the small cage awake",
-        "But I don't know about any such tiger.",
-        ShlurdExceptionCode.NonExistent)
-      process("is the goat on the farm awake") must be equalTo(
-        "No, the goat on the farm is not awake.")
-      process("which goat is awake") must be equalTo(
-        "No goat is awake.")
-      process("which goats are awake") must be equalTo(
-        "No goats are awake.")
-      process("what goat is awake") must be equalTo(
-        "No goat is awake.")
-      val list = "The domestic goat, the nanny goat, " +
-        "and the siberian goat are asleep."
-      process("which goat is asleep") must be equalTo(list)
-      process("which goats are asleep") must be equalTo(list)
-      process("which goat in the farm is asleep") must be equalTo(
-        "The domestic goat is asleep.")
-      process("which goat in the farm is awake") must be equalTo(
-        "No goat in the farm is awake.")
-      process("how many goats are awake") must be equalTo(
-        "No goats are awake.")
-      process("how many goats are asleep") must be equalTo(
-        "All three of them are asleep.")
-      process("how many goats in the farm are asleep") must be equalTo(
-        "One of them is asleep.")
-      process("how many nanny goats are asleep") must be equalTo(
-        "One of them is asleep.")
-      process("how many lions or polar bears are asleep") must be equalTo(
-        "Both of them are asleep.")
-      process("am I in the big cage") must be equalTo(
-        "No, you are not in the big cage.")
-      process("are you in the big cage") must be equalTo(
-        "Yes, I am in the big cage.")
-      processExceptionExpected(
-        "is he in the big cage",
-        "Sorry, when you say 'he' I don't know who or what you mean.",
-        ShlurdExceptionCode.UnresolvedPronoun)
-      processExceptionExpected(
-        "is his tiger in the big cage",
-        "Sorry, when you say 'his' I don't know who or what you mean.",
-        ShlurdExceptionCode.UnresolvedPronoun)
-      processExceptionExpected(
-        "are we in the big cage",
-        "Sorry, when you say 'we' I don't know who or what you mean.",
-        ShlurdExceptionCode.UnresolvedPronoun)
-      processExceptionExpected(
-        "are they in the big cage",
-        "Sorry, when you say 'they' I don't know who or what you mean.",
-        ShlurdExceptionCode.UnresolvedPronoun)
-      process("is my tiger in the big cage") must be equalTo(
-        "Yes, your tiger is in the big cage.")
-      processExceptionExpected(
-        "is your tiger in the big cage",
-        "But I don't know about any such tiger.",
-        ShlurdExceptionCode.NonExistent)
-      processExceptionExpected(
-        "is my lion in the big cage",
-        "But I don't know about any such lion.",
-        ShlurdExceptionCode.NonExistent)
-      process("is your lion in the big cage") must be equalTo(
-        "Yes, my lion is in the big cage.")
-      process("who is in the big cage") must be equalTo(
-        "I am in the big cage.")
-      process("does Muldoon have a lion") must be equalTo(
-        "Yes, Muldoon has a lion.")
-      process("does Malcolm have a lion") must be equalTo(
-        "No, Malcolm does not have a lion.")
-      process("has Muldoon a tiger") must be equalTo(
-        "No, Muldoon does not have a tiger.")
-      process("does Malcolm have a tiger") must be equalTo(
-        "Yes, Malcolm has a tiger.")
-      process("do I have a lion") must be equalTo(
-        "No, you do not have a lion.")
-      process("do you have a lion") must be equalTo(
-        "Yes, I have a lion.")
-      process("do I have a tiger") must be equalTo(
-        "Yes, you have a tiger.")
-      process("do you have a tiger") must be equalTo(
-        "No, I do not have a tiger.")
-      process("is the grizzly bear a bear") must be equalTo(
-        "Yes, the grizzly bear is a bear.")
-      process("is the grizzly bear a lion") must be equalTo(
-        "No, the grizzly bear is not a lion.")
-      process("is the lion a lion") must be equalTo(
-        "Yes, the lion is a lion.")
-      process("who is Muldoon") must be equalTo(
-        "I am Muldoon.")
-      process("who am I") must be equalTo(
-        "You are Malcolm.")
-      process("who are you") must be equalTo(
-        "I am Muldoon.")
-      process("who is Malcolm") must be equalTo(
-        "You are Malcolm.")
-      process("is the lion an animal") must be equalTo(
-        "Yes, the lion is an animal.")
-      process("is the lion a person") must be equalTo(
-        "No, the lion is not a person.")
-      process("is Muldoon an animal") must be equalTo(
-        "No, Muldoon is not an animal.")
-      process("is Muldoon a person") must be equalTo(
-        "Yes, Muldoon is a person.")
-      process("which animals are in the big cage") must be equalTo(
-        "The lion and the tiger are in the big cage.")
+      process("cuál cabra está despierta?") must be equalTo(
+        "Ninguna cabra está despierta.")
+      process("cuáles cabras están despiertas?") must be equalTo(
+        "Ningunas cabras están despiertas.")
+      process("qué cabra está despierta?") must be equalTo(
+        "Ninguna cabra está despierta.")
+      val list = "La cabra doméstica, la cabra niñera, " +
+        "y la cabra siberiana están dormidas."
+      process("cuál cabra está dormida?") must be equalTo(list)
+      process("cuál cabras están dormidas") must be equalTo(list)
+      process("cuál cabra en la granja está dormida?") must be equalTo(
+        "La cabra doméstica está dormida.")
+      process("cuál cabra en la granja está despierta?") must be equalTo(
+        "Ninguna cabra en la granja está despierta.")
+      process("cuántas cabras están despiertas?") must be equalTo(
+        "Ningunas cabras están despiertas.")
+      process("cuántas cabras están dormidas?") must be equalTo(
+        "Todas las tres están dormidas.")
+      process("cuántas cabras en la granja están dormidas?") must be equalTo(
+        "Una de ellas está dormida.")
+      process("cuántas cabras niñeras están dormidas?") must be equalTo(
+        "Una de ellas está dormida.")
+      process("cuántos leones o osos pardos están dormidos?") must be equalTo(
+        "Ambos están dormidos.")
+
+      process("quién está en la jaula grande?") must be equalTo(
+        "Yo estoy en la jaula grande.")
+      process("Muldoon tiene un león?") must be equalTo(
+        "Sí, Muldoon tiene un león.")
+      process("Malcolm tiene un león?") must be equalTo(
+        "No, Malcolm no tiene un león.")
+      process("Muldoon tiene un tigre?") must be equalTo(
+        "No, Muldoon no tiene un tigre.")
+      process("Malcolm tiene un tigre?") must be equalTo(
+        "Sí, Malcolm tiene un tigre.")
+      process("tengo un león?") must be equalTo(
+        "No, no tienes un león.")
+      process("tienes un león?") must be equalTo(
+        "Sí, tengo un león.")
+      process("tengo un tigre?") must be equalTo(
+        "Sí, tienes un tigre.")
+      process("tienes un tigre?") must be equalTo(
+        "No, no tengo un tigre.")
+
+      process("quién es Muldoon?") must be equalTo(
+        "Yo soy Muldoon.")
+      process("quién soy?") must be equalTo(
+        "Eres Malcolm.")
+      process("quién soy yo?") must be equalTo(
+        "Tú eres Malcolm.")
+      process("quién eres?") must be equalTo(
+        "Soy Muldoon.")
+      process("quién eres tú?") must be equalTo(
+        "Yo soy Muldoon.")
+      process("quién es Malcolm?") must be equalTo(
+        "Tú eres Malcolm.")
+
+      process("cuálos animales están en la jaula grande?") must be equalTo(
+        "El león y el tigre están en la jaula grande.")
     }
   }
 }
