@@ -34,4 +34,6 @@ trait SilTongue extends SilGenderAnalyzer
   def getAdjectivePosition : SilModifierPosition
 
   def allowDoubleNegatives : Boolean = false
+
+  def getNoneCount : SilCount = COUNT_PLURAL
 }

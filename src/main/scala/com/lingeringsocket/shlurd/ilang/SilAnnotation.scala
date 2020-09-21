@@ -29,6 +29,12 @@ abstract class SilAbstractRefNote(
 
   def hasCount() : Boolean
 
+  def maybeGender() : Option[SilGender]
+
+  def setGender(gender : SilGender)
+
+  def hasGender() : Boolean
+
   def getWord() : Option[SilWord]
 
   def setWord(word : SilWord)
@@ -58,6 +64,8 @@ class SilBasicRefNote(
 {
   private var count : Option[SilCount] = None
 
+  private var gender : Option[SilGender] = None
+
   private var word : Option[SilWord] = None
 
   private var pronounMap : SilPronounMap = SilPronounMap()
@@ -83,6 +91,21 @@ class SilBasicRefNote(
   override def setCount(newCount : SilCount)
   {
     count = Some(newCount)
+  }
+
+  override def hasGender() : Boolean =
+  {
+    gender.nonEmpty
+  }
+
+  override def maybeGender() : Option[SilGender] =
+  {
+    gender
+  }
+
+  override def setGender(newGender : SilGender)
+  {
+    gender = Some(newGender)
   }
 
   override def getPronounMap() : SilPronounMap = pronounMap
@@ -128,6 +151,9 @@ class SilBasicRefNote(
       case basic : SilBasicRefNote => {
         if (count.isEmpty) {
           count = basic.count
+        }
+        if (gender.isEmpty) {
+          gender = basic.gender
         }
         if (word.isEmpty && (ref == oldNote.ref)) {
           word = basic.word
@@ -176,20 +202,25 @@ trait SilAnnotator
   }
 
   def nounRef(
-    noun : SilWord, count : SilCount = COUNT_SINGULAR
+    noun : SilWord,
+    count : SilCount = COUNT_SINGULAR,
+    genderOpt : Option[SilGender] = None
   ) : SilNounReference =
   {
     val newRef = register(SilNounReference.unannotated(noun))
-    getBasicNote(newRef).setCount(count)
+    val basic = getBasicNote(newRef)
+    basic.setCount(count)
+    genderOpt.foreach(gender => basic.setGender(gender))
     newRef
   }
 
   def determinedNounRef(
     noun : SilWord, determiner : SilDeterminer,
-    count : SilCount = COUNT_SINGULAR
+    count : SilCount = COUNT_SINGULAR,
+    genderOpt : Option[SilGender] = None
   ) : SilReference =
   {
-    val ref = nounRef(noun, count)
+    val ref = nounRef(noun, count, genderOpt)
     determinedRef(ref, determiner)
   }
 
@@ -368,6 +399,9 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
       val newNote = getBasicNote(newRef)
       if (oldNote.hasCount) {
         newNote.setCount(oldNote.getCount)
+      }
+      if (oldNote.hasGender) {
+        newNote.setGender(oldNote.maybeGender.get)
       }
       oldNote.getWord.foreach(word => {
         newNote.setWord(word)

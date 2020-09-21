@@ -256,8 +256,6 @@ abstract class SprTongue(wordnet : SprWordnet)
     }
   }
 
-  override def deriveGender(ref : SilReference) : SilGender = GENDER_NEUTER
-
   def correctGenderCount(
     lemma : String, gender : SilGender, count : SilCount,
     isModifier : Boolean) : String = lemma
@@ -394,9 +392,7 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def predefForLemma(
     lemma : String,
-    label : String = LABEL_AMBIGUOUS,
-    gender : SilGender = GENDER_NEUTER,
-    count : SilCount = COUNT_SINGULAR
+    label : String = LABEL_AMBIGUOUS
   ) : Option[SprPredef]
 
   def pronounLemma(

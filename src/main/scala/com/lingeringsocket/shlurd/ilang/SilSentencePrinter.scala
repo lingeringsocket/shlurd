@@ -537,7 +537,10 @@ class SilSentencePrinter(
         tupleN((pr.person, pr.gender, pr.count))
       }
       case SilCountedNounReference(_, count) => {
-        tupleN((PERSON_THIRD, genderAnalyzer.deriveGender(subject), count))
+        tupleN((
+          PERSON_THIRD,
+          SilUtils.getGender(subject, genderAnalyzer),
+          count))
       }
       case SilConjunctiveReference(determiner, references, _) => {
         val count = if (existentialPronoun.nonEmpty) {
@@ -552,7 +555,9 @@ class SilSentencePrinter(
         }
         // FIXME:  also derive person from underlying references,
         // since it makes a difference in languages such as Spanish
-        tupleN((PERSON_THIRD, genderAnalyzer.deriveGender(subject), count))
+        tupleN((
+          PERSON_THIRD,
+          SilUtils.getGender(subject, genderAnalyzer), count))
       }
       case SilParenthesizedReference(reference, _) => {
         getSubjectAttributes(reference, existentialPronoun)

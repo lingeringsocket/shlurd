@@ -77,6 +77,24 @@ object SilUtils
     }
   }
 
+  def getGender(
+    reference : SilReference,
+    genderAnalyzer : SilGenderAnalyzer) : SilGender =
+  {
+    val genderOpt = reference match {
+      // FIXME this should work for any SilAnnotatedReference, but
+      // only once we can correctly trigger recomputation when
+      // a descendant is updated
+      case annotatedRef : SilNounReference if (
+        annotatedRef.hasAnnotation
+      ) => {
+        annotatedRef.getAnnotator.getBasicNote(annotatedRef).maybeGender
+      }
+      case _ => None
+    }
+    genderOpt.getOrElse(genderAnalyzer.deriveGender(reference, genderAnalyzer))
+  }
+
   def deriveCount(reference : SilReference) : SilCount =
   {
     reference match {
@@ -89,16 +107,16 @@ object SilUtils
           case _ => COUNT_SINGULAR
         }
       }
-      case SilParenthesizedReference(reference, _) =>
-        getCount(reference)
-      case SilAppositionalReference(primary, _) =>
-        getCount(primary)
-      case SilStateSpecifiedReference(reference, _) =>
-        getCount(reference)
-      case SilDeterminedReference(reference, DETERMINER_NONSPECIFIC) =>
+      case SilParenthesizedReference(r, _) =>
+        getCount(r)
+      case SilAppositionalReference(r, _) =>
+        getCount(r)
+      case SilStateSpecifiedReference(r, _) =>
+        getCount(r)
+      case SilDeterminedReference(_, DETERMINER_NONSPECIFIC) =>
         COUNT_SINGULAR
-      case SilDeterminedReference(reference, _) =>
-        getCount(reference)
+      case SilDeterminedReference(r, _) =>
+        getCount(r)
       case SilGenitiveReference(_, possessee) =>
         getCount(possessee)
       case _ : SilNounReference => COUNT_SINGULAR

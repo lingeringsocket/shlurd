@@ -51,7 +51,9 @@ trait SilGenderAnalyzer
 {
   def canonicalGender(gender : SilGender) : SilGender = gender
 
-  def deriveGender(ref : SilReference) : SilGender = GENDER_NEUTER
+  def deriveGender(
+    ref : SilReference,
+    subAnalyzer : SilGenderAnalyzer) : SilGender = GENDER_NEUTER
 
   def deriveGender(word : SilWord) : SilGender = GENDER_NEUTER
 }

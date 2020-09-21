@@ -905,9 +905,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
 
   def predefForLemma(
     lemma : String,
-    label : String = LABEL_AMBIGUOUS,
-    gender : SilGender = GENDER_NEUTER,
-    count : SilCount = COUNT_SINGULAR
+    label : String = LABEL_AMBIGUOUS
   ) : Option[SprPredef] =
   {
     lemma match {

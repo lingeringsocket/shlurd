@@ -929,7 +929,11 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       }
       case _ => {
         summarizedRef match {
-          case SilNounReference(SprPredefWord(PD_BOTH)) => summarizedRef
+          // "ambos"
+          case SilNounReference(SprPredefWord(PD_BOTH)) => {
+            summarizedRef
+          }
+          // "tres de ellas"
           case _ => {
             super.synthesizeSummaryRef(
               annotator, determiner, summarizedRef,
@@ -951,7 +955,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case "f" => Some(GENDER_FEMININE)
       case _ => None
     }).getOrElse {
-      if (word.toNounLemma.endsWith("o")) {
+      val lemma = word.toNounLemma
+      if (lemma.endsWith("o") || lemma.endsWith("os")) {
         GENDER_MASCULINE
       } else {
         GENDER_FEMININE
@@ -959,32 +964,34 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   }
 
-  override def deriveGender(ref : SilReference) : SilGender =
+  override def deriveGender(
+    ref : SilReference,
+    subAnalyzer : SilGenderAnalyzer) : SilGender =
   {
     ref match {
       case pr : SilPronounReference => {
         pr.gender
       }
       case SilNounReference(noun) => {
-        deriveGender(noun)
+        subAnalyzer.deriveGender(noun)
       }
       case SilConjunctiveReference(determiner, references, _) => {
-        combineGenders(references.map(deriveGender))
+        combineGenders(references.map(r => SilUtils.getGender(r, subAnalyzer)))
       }
-      case SilParenthesizedReference(reference, _) => {
-        deriveGender(reference)
+      case SilParenthesizedReference(r, _) => {
+        SilUtils.getGender(r, subAnalyzer)
       }
-      case SilAppositionalReference(primary, _) => {
-        deriveGender(primary)
+      case SilAppositionalReference(r, _) => {
+        SilUtils.getGender(r, subAnalyzer)
       }
-      case SilStateSpecifiedReference(reference, _) => {
-        deriveGender(reference)
+      case SilStateSpecifiedReference(r, _) => {
+        SilUtils.getGender(r, subAnalyzer)
       }
-      case SilDeterminedReference(reference, _) => {
-        deriveGender(reference)
+      case SilDeterminedReference(r, _) => {
+        SilUtils.getGender(r, this)
       }
-      case SilGenitiveReference(possessor, possessee) => {
-        deriveGender(possessee)
+      case SilGenitiveReference(_, possessee) => {
+        SilUtils.getGender(possessee, subAnalyzer)
       }
       case _ : SilQuotationReference => {
         GENDER_NEUTER
@@ -1138,18 +1145,6 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         case (_, COUNT_SINGULAR) => LEMMA_EL
         case (_, _) => LEMMA_LOS
       }
-      case LEMMA_ESO => tupleN((basic, count)) match {
-        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ESA
-        case (GENDER_FEMININE, _) => LEMMA_ESAS
-        case (_, COUNT_SINGULAR) => LEMMA_ESO
-        case (_, _) => LEMMA_ESOS
-      }
-      case LEMMA_ESTO => tupleN((basic, count)) match {
-        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ESTA
-        case (GENDER_FEMININE, _) => LEMMA_ESTAS
-        case (_, COUNT_SINGULAR) => LEMMA_ESTO
-        case (_, _) => LEMMA_ESTOS
-      }
       case LEMMA_NOSOTROS => basic match {
         case GENDER_FEMININE => LEMMA_NOSOTRAS
         case _ => LEMMA_NOSOTROS
@@ -1158,49 +1153,13 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         case GENDER_FEMININE => LEMMA_VOSOTRAS
         case _ => LEMMA_VOSOTROS
       }
-      case LEMMA_NUESTRO => tupleN((basic, count)) match {
-        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_NUESTRA
-        case (GENDER_FEMININE, _) => LEMMA_NUESTRAS
-        case (_, COUNT_SINGULAR) => LEMMA_NUESTRO
-        case (_, _) => LEMMA_NUESTROS
-      }
-      case LEMMA_VUESTRO => tupleN((basic, count)) match {
-        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_VUESTRA
-        case (GENDER_FEMININE, _) => LEMMA_VUESTRAS
-        case (_, COUNT_SINGULAR) => LEMMA_VUESTRO
-        case (_, _) => LEMMA_VUESTROS
-      }
       case LEMMA_SU => count match {
         case COUNT_SINGULAR => LEMMA_SU
         case _ => LEMMA_SUS
       }
-      case LEMMA_TODO => tupleN((basic, count)) match {
-        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_TODA
-        case (GENDER_FEMININE, _) => LEMMA_TODAS
-        case (_, COUNT_SINGULAR) => LEMMA_TODO
-        case (_, _) => LEMMA_TODOS
-      }
       case LEMMA_TU => count match {
         case COUNT_SINGULAR => LEMMA_TU
         case _ => LEMMA_TUS
-      }
-      case LEMMA_MIO => tupleN((basic, count)) match {
-        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_MIA
-        case (GENDER_FEMININE, _) => LEMMA_MIAS
-        case (_, COUNT_SINGULAR) => LEMMA_MIO
-        case (_, _) => LEMMA_MIOS
-      }
-      case LEMMA_TUYO => tupleN((basic, count)) match {
-        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_TUYA
-        case (GENDER_FEMININE, _) => LEMMA_TUYAS
-        case (_, COUNT_SINGULAR) => LEMMA_TUYO
-        case (_, _) => LEMMA_TUYOS
-      }
-      case LEMMA_SUYO => tupleN((basic, count)) match {
-        case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_SUYA
-        case (GENDER_FEMININE, _) => LEMMA_SUYAS
-        case (_, COUNT_SINGULAR) => LEMMA_SUYO
-        case (_, _) => LEMMA_SUYOS
       }
       case LEMMA_UN => tupleN((basic, count)) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_UNA
@@ -1214,6 +1173,27 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         }
         case (_, _) => LEMMA_UNOS
       }
+      case lemma => {
+        if (lemma.endsWith("o")) {
+          val suffix = tupleN((basic, count)) match {
+            case (GENDER_FEMININE, COUNT_SINGULAR) => "a"
+            case (GENDER_FEMININE, _) => "as"
+            case (_, COUNT_SINGULAR) => "o"
+            case (_, _) => "os"
+          }
+          lemma.stripSuffix("o") + suffix
+        } else {
+          count match {
+            case COUNT_SINGULAR => {
+              lemma
+            }
+            case _ => {
+              // FIXME should be pluralizeAdjective
+              pluralizeNoun(lemma)
+            }
+          }
+        }
+      }
     }
   }
 
@@ -1222,7 +1202,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     lemma match {
       case LEMMA_ALGUNO | LEMMA_ALGUNA |
           LEMMA_ALGUNOS | LEMMA_ALGUNAS => LEMMA_ALGUN
-      case LEMMA_AMBAS => LEMMA_AMBOS
+      case LEMMA_AMBOS | LEMMA_AMBAS => LEMMA_AMBOS
       case LEMMA_AQUELLA | LEMMA_AQUELLO |
           LEMMA_AQUELLAS | LEMMA_AQUELLOS => LEMMA_AQUEL
       case LEMMA_CUALES => LEMMA_CUAL
@@ -1230,20 +1210,24 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           LEMMA_ELLOS | LEMMA_ELLAS => LEMMA_ELLO
       case LEMMA_LES => LEMMA_LE
       case LEMMA_LOS | LEMMA_LA | LEMMA_LAS => LEMMA_EL
-      case LEMMA_ESA | LEMMA_ESOS | LEMMA_ESAS => LEMMA_ESO
-      case LEMMA_ESTA | LEMMA_ESTOS | LEMMA_ESTAS => LEMMA_ESTO
-      case LEMMA_NOSOTRAS => LEMMA_NOSOTROS
-      case LEMMA_VOSOTRAS => LEMMA_VOSOTROS
-      case LEMMA_NUESTRA | LEMMA_NUESTROS | LEMMA_NUESTRAS => LEMMA_NUESTRO
-      case LEMMA_VUESTRA | LEMMA_VUESTROS | LEMMA_VUESTRAS => LEMMA_VUESTRO
+      case LEMMA_NOSOTROS | LEMMA_NOSOTRAS => LEMMA_NOSOTROS
+      case LEMMA_VOSOTROS | LEMMA_VOSOTRAS => LEMMA_VOSOTROS
       case LEMMA_SUS => LEMMA_SU
-      case LEMMA_TODA | LEMMA_TODOS | LEMMA_TODAS => LEMMA_TODO
       case LEMMA_TUS => LEMMA_TU
-      case LEMMA_MIA | LEMMA_MIAS | LEMMA_MIOS => LEMMA_MIO
-      case LEMMA_TUYA | LEMMA_TUYAS | LEMMA_TUYOS => LEMMA_TUYO
-      case LEMMA_SUYA | LEMMA_SUYAS | LEMMA_SUYOS => LEMMA_SUYO
       case LEMMA_UNO | LEMMA_UNA | LEMMA_UNOS | LEMMA_UNAS => LEMMA_UN
-      case _ => lemma
+      case _ => {
+        if (lemma.endsWith("a")) {
+          lemma.stripSuffix("a") + "o"
+        } else if (lemma.endsWith("as")) {
+          lemma.stripSuffix("as") + "o"
+        } else if (lemma.endsWith("os")) {
+          lemma.stripSuffix("s")
+        } else if (lemma.endsWith("es")) {
+          lemma.stripSuffix("s")
+        } else {
+          lemma
+        }
+      }
     }
   }
 
@@ -1275,13 +1259,11 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   def predefForLemma(
     lemma : String,
-    label : String = LABEL_AMBIGUOUS,
-    gender : SilGender = GENDER_NEUTER,
-    count : SilCount = COUNT_SINGULAR
+    label : String = LABEL_AMBIGUOUS
   ) : Option[SprPredef] =
   {
     lemma match {
-      case LEMMA_NINGUNO => Some(PD_NONE_NOUN)
+      case LEMMA_NINGUNO | LEMMA_NINGUNA => Some(PD_NONE_NOUN)
       case LEMMA_OTRO => Some(label match {
         case LABEL_DT => PD_ANOTHER
         case _ => PD_OTHER
@@ -1290,7 +1272,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         case LABEL_DT => PD_NEITHER_DETERMINER
         case _ => PD_NOR
       })
-      case _ => lemmaToPredef.get(lemma)
+      case _ => lemmaToPredef.get(ignoreGenderCount(lemma))
     }
   }
 
@@ -1357,6 +1339,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       }
     }
   }
+
+  override def getNoneCount : SilCount = COUNT_SINGULAR
 
   override protected def getMatcherResource() =
     "/spanish/phrase-structure.txt"

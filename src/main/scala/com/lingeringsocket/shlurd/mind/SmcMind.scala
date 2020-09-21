@@ -379,13 +379,20 @@ class SmcMind[
     gender
   }
 
-  override def deriveGender(ref : SilReference) : SilGender =
+  override def deriveGender(word : SilWord) : SilGender =
+  {
+    getTongue.deriveGender(word)
+  }
+
+  override def deriveGender(
+    ref : SilReference,
+    subAnalyzer : SilGenderAnalyzer) : SilGender =
   {
     // FIXME in SpcMind, we can derive form, and from there look for
     // gender; likewise, if we have associated entities in a ref map,
     // their gender should factor in too.  Also need to think
     // about caching.
-    getTongue.deriveGender(ref)
+    getTongue.deriveGender(ref, subAnalyzer)
   }
 
   def deriveGender(entity : EntityType) : SilGender = GENDER_NEUTER

@@ -111,11 +111,12 @@ class SmcResponseRewriter[
     }
 
     def normalizeConjunctionWrapper(
+      fullRef : SilReference,
       separator : SilSeparator,
       allRef : => SilReference) =
     {
       val (rr, rn) = normalizeConjunction(
-        resultCollector, entityDeterminer, separator, params)
+        fullRef, resultCollector, entityDeterminer, separator, params)
       if (rn) {
         negateCollection = true
       }
@@ -138,9 +139,11 @@ class SmcResponseRewriter[
       }
     )
 
-    def expandToConjunction(noun : SilWord, count : SilCount) =
+    def expandToConjunction(
+      fullRef : SilReference, noun : SilWord, count : SilCount) =
     {
       normalizeConjunctionWrapper(
+        fullRef,
         SEPARATOR_OXFORD_COMMA,
         annotator.determinedNounRef(noun, DETERMINER_ALL, count))
     }
@@ -197,6 +200,7 @@ class SmcResponseRewriter[
             }
             case DETERMINER_ALL => {
               normalizeConjunctionWrapper(
+                cr,
                 separator,
                 annotator.conjunctiveRef(
                   DETERMINER_ALL, references, separator))
@@ -225,7 +229,7 @@ class SmcResponseRewriter[
             expandToDisjunction(varRef, noun, count),
             states))
         }
-        case SilDeterminedReference(
+        case dr @ SilDeterminedReference(
           SilStackedStateReference(
             SilCountedNounReference(noun, count),
             states),
@@ -233,7 +237,7 @@ class SmcResponseRewriter[
         ) => {
           markQueryAnswer(SilStackedStateReference(
             annotator,
-            expandToConjunction(noun, count),
+            expandToConjunction(dr, noun, count),
             states))
         }
       }
@@ -814,6 +818,21 @@ class SmcResponseRewriter[
             subject, verb.toUninflected, complement, verbModifiers)
         }
       }
+      case SilStatePredicate(
+        subject,
+        verb,
+        state,
+        modifiers
+      ) => {
+        val subjectGender = SilUtils.getGender(subject, mind)
+        val subjectCount = SilUtils.getCount(subject)
+        SilStatePredicate(
+          subject,
+          verb,
+          coerceState(state, subjectGender, subjectCount),
+          modifiers
+        )
+      }
     }
   )
 
@@ -861,6 +880,26 @@ class SmcResponseRewriter[
         pr.copy(count = agreedCount)
       }
       case _ => reference
+    }
+  }
+
+  private def coerceState(
+    state : SilState,
+    agreedGender : SilGender,
+    agreedCount : SilCount
+  ) : SilState =
+  {
+    state match {
+      case SilPropertyState(sw : SilSimpleWord) => {
+        val original = sw.inflected
+        val corrected = tongue.correctGenderCount(
+          original,
+          agreedGender,
+          agreedCount,
+          false)
+        SilPropertyState(SilWord(corrected, sw.lemmaUnfolded, sw.senseId))
+      }
+      case _ => state
     }
   }
 
@@ -912,7 +951,7 @@ class SmcResponseRewriter[
         Some(resolveReference(
           trueEntities.head, entityDeterminer, resultCollector))
       } else if (exhaustive || (trueEntities.size > params.listLimit)) {
-        summarizeList(trueEntities, exhaustive, existence, false)
+        summarizeList(ref, trueEntities, exhaustive, existence, false)
       } else {
         Some(annotator.conjunctiveRef(
           DETERMINER_ALL,
@@ -928,6 +967,7 @@ class SmcResponseRewriter[
   }
 
   private def normalizeConjunction(
+    fullRef : SilReference,
     resultCollector : ResultCollectorType,
     entityDeterminer : SilDeterminer,
     separator : SilSeparator,
@@ -946,7 +986,8 @@ class SmcResponseRewriter[
         falseEntities.head, entityDeterminer, resultCollector)),
         false))
     } else if (exhaustive || (falseEntities.size > params.listLimit)) {
-      tupleN((summarizeList(falseEntities, exhaustive, existence, true),
+      tupleN((
+        summarizeList(fullRef, falseEntities, exhaustive, existence, true),
         exhaustive))
     } else {
       tupleN((Some(annotator.conjunctiveRef(
@@ -959,22 +1000,41 @@ class SmcResponseRewriter[
   }
 
   private def summarizeList(
+    fullRef : SilReference,
     entities : Iterable[EntityType],
     exhaustive : Boolean,
     existence : Boolean,
     conjunction : Boolean) =
   {
+    val gender = SilUtils.getGender(fullRef, mind)
     var all = exhaustive && (entities.size > 1)
     // FIXME:  make this language-independent
-    val number = {
+    val (number, count) = {
       if (conjunction && exhaustive) {
         all = false
-        SprPredefWord(PD_NONE_NOUN)
+        val c = tongue.getNoneCount
+        val n = SilWord(
+          tongue.correctGenderCount(
+            SprPredefWord(PD_NONE_NOUN).toLemma,
+            gender, c, false))
+        tupleN((n, c))
       } else  if ((entities.size == 2) && exhaustive && !existence) {
         all = false
-        SprPredefWord(PD_BOTH)
+        val c = COUNT_PLURAL
+        val n = SilWord(
+          tongue.correctGenderCount(
+            SprPredefWord(PD_BOTH).toLemma,
+            gender, c, false))
+        tupleN((n, c))
       } else {
-        SilWord.uninflected(entities.size.toString)
+        val s = entities.size
+        val n = SilWord.uninflected(s.toString)
+        val c = s match {
+          case 0 => tongue.getNoneCount
+          case 1 => COUNT_SINGULAR
+          case _ => COUNT_PLURAL
+        }
+        tupleN((n, c))
       }
     }
     val determiner = {
@@ -984,13 +1044,9 @@ class SmcResponseRewriter[
         DETERMINER_ABSENT
       }
     }
-    val gender = tongue.combineGenders(
-      entities.toSeq.map(mind.deriveGender))
-    val count = number.lemma match {
-      case "1" => COUNT_SINGULAR
-      case _ => COUNT_PLURAL
-    }
-    val nounRef = annotator.nounRef(number, count)
+    // stuff like both/none should really be represented as
+    // pronouns, not nouns
+    val nounRef = annotator.nounRef(number, count, Some(gender))
     Some(markQueryAnswer(
       tongue.synthesizeSummaryRef(
         annotator,

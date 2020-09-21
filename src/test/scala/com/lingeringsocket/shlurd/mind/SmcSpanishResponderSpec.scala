@@ -170,7 +170,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("el león o el oso polar está despierto?") must be equalTo(
         "No, ni el león ni el oso polar no está despierto.")
       process("el oso pardo o el tigre está despierto?") must be equalTo(
-        "Sí, ambos están despierto.")
+        "Sí, ambos están despiertos.")
       process("el perezoso o el tigre está dormido?") must be equalTo(
         "I don't know.")
       process("el perezoso o el león está despierto?") must be equalTo(
@@ -237,6 +237,18 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, Muldoon no es un animal.")
       process("Muldoon es una persona?") must be equalTo(
         "Sí, Muldoon es una persona.")
+      process("algunos osos están dormidos?") must be equalTo(
+        "Sí, el oso polar está dormido.")
+      process("todos osos están dormidos?") must be equalTo(
+        "No, el oso pardo no está dormido.")
+      process("los osos y el león están dormidos?") must be equalTo(
+        "No, el oso pardo no está dormido.")
+      process("el tigre y el león están dormidos?") must be equalTo(
+        "No, el tigre no está dormido.")
+      process("los osos y el león están despiertos?") must be equalTo(
+        "No, ni el oso polar ni el león no está despierto.")
+      process("todas cabras están despiertas?") must be equalTo(
+        "No, ninguna de ellas no está despierta.")
     }
 
     "not working yet" in new SpanishResponderContext
@@ -272,23 +284,6 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, el león está dormido.")
       process("está dormido el león?") must be equalTo(
         "Sí, el león está dormido.")
-    }
-
-    "use correct gender and number" in new SpanishResponderContext
-    {
-      skipped("not working yet")
-      process("algunos osos están dormidos?") must be equalTo(
-        "Sí, el oso polar está dormido.")
-      process("todos osos están dormidos?") must be equalTo(
-        "No, el oso pardo no está dormido.")
-      process("todas cabras están despiertas?") must be equalTo(
-        "No, ninguna de ellas están despiertas.")
-      process("los osos y el león están dormidos?") must be equalTo(
-        "No, el oso pardo no está dormido.")
-      process("los osos y el león están despiertos?") must be equalTo(
-        "No, ni el oso polar ni el león no están despiertos.")
-      process("el tigre y el león están dormidos?") must be equalTo(
-        "No, el tigre no está dormido.")
     }
 
     "process questions with variables" in new SpanishResponderContext
