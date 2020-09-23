@@ -24,8 +24,6 @@ import spire.math._
 import scala.collection._
 import scala.util._
 
-import SnlEnglishLemmas._
-
 trait ZooEntity extends SmcEntity with SmcNamedObject
 {
   override def getUniqueIdentifier = name
@@ -141,12 +139,13 @@ class ZooCosmos(
     lemma : String,
     context : SilReferenceContext,
     qualifiersIn : Set[String],
-    tongue : SprTongue) : Try[Set[SmcEntity]] =
+    tongueIn : SprTongue) : Try[Set[SmcEntity]] =
   {
+    implicit val tongue = tongueIn
     val gender = tongue.deriveGender(SilWord(lemma))
     val qualifiers = qualifiersIn.map(q =>
       tongue.correctGenderCount(q, gender, COUNT_SINGULAR, false))
-    if ((lemma == LEMMA_WHO) || (lemma == LEMMA_WHOM) ||
+    if ((lemma == PD_WHO.toLemma) || (lemma == PD_WHOM.toLemma) ||
       (lemma.startsWith("person")))
     {
       Success(SprUtils.orderedSet(

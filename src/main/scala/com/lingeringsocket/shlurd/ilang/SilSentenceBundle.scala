@@ -123,7 +123,9 @@ abstract class SilSentenceBundle
     state : SilWord, changeVerb : Option[SilWord]) : String
 
   def delemmatizeNoun(
-    entity : SilWord, count : SilCount,
+    entity : SilWord,
+    gender : SilGender,
+    count : SilCount,
     inflection : SilInflection,
     conjoining : SilConjoining) : String
 
@@ -279,11 +281,11 @@ abstract class SilSentenceBundle
 
   def genitivePhrase(genitive : String, head : String) : String
 
-  def cardinalNumber(num : Int) : String = num.toString
+  def cardinalNumber(num : Int, gender : SilGender) : String = num.toString
 
   def cardinalValue(s : String) : Try[Int] = Try(s.toInt)
 
-  def ordinalNumber(num : Int) : String = num.toString
+  def ordinalNumber(num : Int, gender : SilGender) : String = num.toString
 
   def ordinalValue(s : String) : Try[Int] = Try(s.toInt)
 

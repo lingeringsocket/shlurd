@@ -109,7 +109,8 @@ class SilSentencePrinter(
         )
       }
       case SilCountedNounReference(noun, count) => {
-        sb.delemmatizeNoun(noun, count, inflection, conjoining)
+        val gender = SilUtils.getGender(reference, genderAnalyzer)
+        sb.delemmatizeNoun(noun, gender, count, inflection, conjoining)
       }
       case pr : SilPronounReference => {
         printPronoun(pr, inflection, conjoining)

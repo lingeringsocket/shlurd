@@ -42,7 +42,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     normalizeCompass,
     normalizeHereThere,
     normalizeGenitives,
-    normalizeElidedSubject,
+    normalizeElidedReference,
     normalizeCoordinatingDeterminers,
     normalizeDanglingAdpositions,
     normalizeCompoundAdpositions,
@@ -334,11 +334,11 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     }
   )
 
-  private def normalizeElidedSubject = replacementMatcher(
-    "normalizeElidedSubject", {
+  private def normalizeElidedReference = replacementMatcher(
+    "normalizeElidedReference", {
       case predicate : SilPredicate if (
         predicate.getSubject match {
-          case pr : SilPronounReference => (pr.proximity == PROXIMITY_ELIDED)
+          case pr : SilPronounReference => pr.isElided
           case _ => false
         }
       ) => {
@@ -365,6 +365,18 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
               normalizeElidedPronoun(predicate.getSubject, predicate))
           }
         }
+      }
+      case predicate @ SilRelationshipPredicate(
+        subject, verb, complement, modifiers
+      ) if (
+        complement match {
+          case pr : SilPronounReference => pr.isElided
+          case _ => false
+        }
+      ) => {
+        SilRelationshipPredicate(
+          subject, verb,
+          normalizeElidedPronoun(complement, predicate), modifiers)
       }
     }
   )

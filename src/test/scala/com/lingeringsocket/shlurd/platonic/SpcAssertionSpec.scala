@@ -537,7 +537,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "handle conjunctive conditionals" in new AssertionContext
     {
-      defineToaster
+      defineToasterSlice
       defineClock
 
       verifyOK(fiatState(formToaster, stateEmpty))

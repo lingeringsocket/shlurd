@@ -1395,7 +1395,8 @@ class SpcResponder(
             case Some(entities) => {
               annotator.mappedRef(
                 entities.map(_.name).toSeq.sorted.mkString("+"),
-                DETERMINER_ABSENT)
+                DETERMINER_ABSENT,
+                SilUtils.getGender(ref, mind))
             }
             case _ => ref
           }

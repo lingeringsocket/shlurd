@@ -316,7 +316,8 @@ class SmcMind[
     entity : EntityType,
     determiner : SilDeterminer) : SilReference =
   {
-    annotator.mappedRef(entity.getUniqueIdentifier, determiner)
+    annotator.mappedRef(
+      entity.getUniqueIdentifier, determiner, deriveGender(entity))
   }
 
   def responseReference(

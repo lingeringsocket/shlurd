@@ -240,7 +240,9 @@ abstract class SnlSentenceBundle(
   }
 
   override def delemmatizeNoun(
-    word : SilWord, count : SilCount,
+    word : SilWord,
+    gender : SilGender,
+    count : SilCount,
     inflection : SilInflection,
     conjoining : SilConjoining) =
   {
@@ -253,7 +255,7 @@ abstract class SnlSentenceBundle(
           case _ => noun.lemmaUnfolded
         }
         if (lemma.forall(Character.isDigit)) {
-          cardinalNumber(lemma.toInt)
+          cardinalNumber(lemma.toInt, gender)
         } else {
           val base = count match {
             case COUNT_PLURAL => {
@@ -390,7 +392,7 @@ abstract class SnlSentenceBundle(
     compose(noun, specifier)
   }
 
-  override def cardinalNumber(num : Int) : String =
+  override def cardinalNumber(num : Int, gender : SilGender) : String =
   {
     assert(num >= 0)
     numberFormat.format(num, "%spellout-cardinal")
@@ -401,7 +403,7 @@ abstract class SnlSentenceBundle(
     Try(numberFormat.parse(s).intValue)
   }
 
-  override def ordinalNumber(num : Int) : String =
+  override def ordinalNumber(num : Int, gender : SilGender) : String =
   {
     assert(num > 0)
     numberFormat.format(num, "%spellout-ordinal")

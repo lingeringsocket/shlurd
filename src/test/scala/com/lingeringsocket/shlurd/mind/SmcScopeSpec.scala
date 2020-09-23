@@ -44,9 +44,9 @@ class SmcScopeSpec extends Specification
 
   private val sentencePrinter = SnlUtils.defaultSentencePrinter
 
-  private val ordinalFirst = sentencePrinter.sb.ordinalNumber(1)
+  private val ordinalFirst = sentencePrinter.sb.ordinalNumber(1, GENDER_NEUTER)
 
-  private val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
+  private val ordinalSecond = sentencePrinter.sb.ordinalNumber(2, GENDER_NEUTER)
 
   abstract class ScopeContext extends Scope
   {

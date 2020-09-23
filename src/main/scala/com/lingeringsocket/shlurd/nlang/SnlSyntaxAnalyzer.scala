@@ -354,7 +354,6 @@ abstract class SnlSyntaxAnalyzer(
       case QUESTION_WHICH => {
         // FIXME likewise, these have two flavors "which do you want?"
         // and "which flavor do you want?"
-
         questionChildren match {
           case Seq(SptNP(first : SptNP, second)) => {
             SptNP(
@@ -377,7 +376,7 @@ abstract class SnlSyntaxAnalyzer(
     }
     val (progressive, iVerb) = detectProgressive(secondSub)
     assert(iVerb >= 0, secondSub)
-    if (verbHead.isRelationshipVerb && !progressive) {
+    if ((verbHead.isBeingVerb || verbHead.isRelationshipVerb) && !progressive) {
       // FIXME find a way to represent this
       if (!adpositionOpt.isEmpty) {
         return SilUnrecognizedSentence(tree)
@@ -468,7 +467,9 @@ abstract class SnlSyntaxAnalyzer(
             }
           }
         } else {
-          assert(adpositionOpt.isEmpty)
+          if (adpositionOpt.nonEmpty) {
+            return SilUnrecognizedSentence(tree)
+          }
           tupleN((None, INFLECT_NOMINATIVE,
             Seq(np) ++ secondUnwrapped, Seq.empty))
         }
@@ -676,20 +677,17 @@ abstract class SnlSyntaxAnalyzer(
         if (validateAuxAdposition(
           verbHeadLeaf.lemma, adpositions.map(_.syntaxTree)))
         {
-          expectPredicateSentence(
+          return expectPredicateSentence(
             tree, np, vpSub, verbModifiers ++ extraModifiers,
             force,
             tamForAux(verbHeadLeaf, Seq(vpSub)).withMood(tam.mood).
               withTense(tamTensed.tense),
             getVerbInflection(verbHead),
             negative)
-        } else {
-          SilUnrecognizedSentence(tree)
         }
-      } else {
-        SilUnrecognizedSentence(tree)
       }
-    } else if (verbHead.isBeingVerb || verbHead.isPossessionVerb) {
+    }
+    if (verbHead.isBeingVerb || verbHead.isPossessionVerb) {
       val (maybeSpecifiedState, vpRemainder) =
         extractAdpositionalState(vpChildren)
       val (complement, specifiedState) = {
@@ -1070,6 +1068,14 @@ abstract class SnlSyntaxAnalyzer(
             specifiedState != SilNullState()
           ) => {
             tupleN((specifiedState, Seq(advp), SilNullState()))
+          }
+          case vb : SprSyntaxSimpleVerb if (
+            allowElidedSubject && (getWord(vb.child) == verb)
+          ) => {
+            val elided = SptNP(SptNNE())
+            return expectPredicate(
+              syntaxTree, np, elided,
+              specifiedState, verb, verbModifiers, question)
           }
           case _ => {
             val seqState = splitCoordinatingConjunction(seq) match {

@@ -257,64 +257,30 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, ni el oso polar ni el león no está despierto.")
       process("todas cabras están despiertas?") must be equalTo(
         "No, ninguna de ellas no está despierta.")
-    }
 
-    "not working yet" in new SpanishResponderContext
-    {
-      skipped("not working yet")
-      process("estoy en la jaula grande?") must be equalTo(
-        "No, no estás en la jaula grande.")
-      process("estás en la jaula grande?") must be equalTo(
-        "Sí, estoy en la jaula grande.")
-      // need better response for this one
-      processExceptionExpected(
-        "está en la jaula grande?",
-        "Sorry, when you say 'ELIDED' I don't know who or what you mean.",
-        ShlurdExceptionCode.UnresolvedPronoun)
-      process("mi tigre está en la jaula grande?") must be equalTo(
-        "Sí, tu tigre está en la jaula grande.")
-      process("tu león está en la jaula grande?") must be equalTo(
-        "Sí, mi león está en la jaula grande.")
-    }
-
-    "understand inverted order" in new SpanishResponderContext
-    {
-      skipped("not working yet")
-      process("está el león dormido?") must be equalTo(
-        "Sí, el león está dormido.")
-      process("está dormido el león?") must be equalTo(
-        "Sí, el león está dormido.")
-    }
-
-    "process questions with variables" in new SpanishResponderContext
-    {
-      skipped("not working yet")
-      val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
-      val ellipsis = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
-      val lowLimit = SmcResponseParams(listLimit = 1)
       process("cuál cabra está despierta?") must be equalTo(
-        "Ninguna cabra está despierta.")
+        "Ninguna cabra no está despierta.")
       process("cuáles cabras están despiertas?") must be equalTo(
-        "Ningunas cabras están despiertas.")
+        "Ningunas cabras no están despiertas.")
       process("qué cabra está despierta?") must be equalTo(
-        "Ninguna cabra está despierta.")
-      val list = "La cabra doméstica, la cabra niñera, " +
-        "y la cabra siberiana están dormidas."
+        "Ninguna cabra no está despierta.")
+      val list = "La cabra doméstica, la cabra siberiana, " +
+        "y la cabra niñera están dormidas."
       process("cuál cabra está dormida?") must be equalTo(list)
-      process("cuál cabras están dormidas") must be equalTo(list)
+      process("cuáles cabras están dormidas") must be equalTo(list)
       process("cuál cabra en la granja está dormida?") must be equalTo(
         "La cabra doméstica está dormida.")
       process("cuál cabra en la granja está despierta?") must be equalTo(
-        "Ninguna cabra en la granja está despierta.")
+        "Ninguna cabra en la granja no está despierta.")
       process("cuántas cabras están despiertas?") must be equalTo(
-        "Ningunas cabras están despiertas.")
+        "Ningunas cabras no están despiertas.")
       process("cuántas cabras están dormidas?") must be equalTo(
         "Todas las tres están dormidas.")
       process("cuántas cabras en la granja están dormidas?") must be equalTo(
         "Una de ellas está dormida.")
       process("cuántas cabras niñeras están dormidas?") must be equalTo(
         "Una de ellas está dormida.")
-      process("cuántos leones o osos pardos están dormidos?") must be equalTo(
+      process("cuántos leones o osos polares están dormidos?") must be equalTo(
         "Ambos están dormidos.")
 
       process("quién está en la jaula grande?") must be equalTo(
@@ -349,8 +315,35 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("quién es Malcolm?") must be equalTo(
         "Tú eres Malcolm.")
 
-      process("cuálos animales están en la jaula grande?") must be equalTo(
+      process("cuáles animales están en la jaula grande?") must be equalTo(
         "El león y el tigre están en la jaula grande.")
+    }
+
+    "not working yet" in new SpanishResponderContext
+    {
+      skipped("not working yet")
+      process("estoy en la jaula grande?") must be equalTo(
+        "No, no estás en la jaula grande.")
+      process("estás en la jaula grande?") must be equalTo(
+        "Sí, estoy en la jaula grande.")
+      // need better response for this one
+      processExceptionExpected(
+        "está en la jaula grande?",
+        "Sorry, when you say 'ELIDED' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      process("mi tigre está en la jaula grande?") must be equalTo(
+        "Sí, tu tigre está en la jaula grande.")
+      process("tu león está en la jaula grande?") must be equalTo(
+        "Sí, mi león está en la jaula grande.")
+    }
+
+    "understand inverted order" in new SpanishResponderContext
+    {
+      skipped("not working yet")
+      process("está el león dormido?") must be equalTo(
+        "Sí, el león está dormido.")
+      process("está dormido el león?") must be equalTo(
+        "Sí, el león está dormido.")
     }
   }
 }

@@ -103,7 +103,8 @@ object SpcImplicationMapper
         ),
         SilPropertyState(SprPredefWord(PD_ANOTHER))
       ) => {
-        val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
+        val ordinalSecond = sentencePrinter.sb.ordinalNumber(
+          2, SilUtils.getGender(reference, tongue))
         annotator.determinedRef(
           annotator.stateSpecifiedRef(
             annotator.nounRef(noun),

@@ -525,7 +525,7 @@ class SmcResponseRewriter[
   private def flipPredicateQueries = replacementMatcher(
     "flipPredicateQueries",
     {
-      case SilRelationshipPredicate(
+      case rp @ SilRelationshipPredicate(
         lhs,
         verb @ SprRelationshipPredefVerb(REL_PREDEF_IDENTITY),
         rhs,
@@ -584,7 +584,7 @@ class SmcResponseRewriter[
   {
     val key = entity.getUniqueIdentifier
     entityMap.put(key, entity)
-    annotator.mappedRef(key, determiner)
+    annotator.mappedRef(key, determiner, mind.deriveGender(entity))
   }
 
   private def chooseReference(
@@ -595,9 +595,19 @@ class SmcResponseRewriter[
   {
     val equivs = mind.equivalentReferences(
       annotator, communicationContext, entity, determiner)
-    equivs.find(_ != other) match {
+    equivs.find(foldReference(_) != foldReference(other)) match {
       case Some(ref) => ref
       case _ => equivs.head
+    }
+  }
+
+  private def foldReference(ref : SilReference) : SilReference =
+  {
+    ref match {
+      case pr : SilPronounReference if (pr.isElided) => {
+        pr.copy(proximity = PROXIMITY_ENTITY)
+      }
+      case _ => ref
     }
   }
 

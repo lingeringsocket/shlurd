@@ -224,9 +224,12 @@ trait SilAnnotator
     determinedRef(ref, determiner)
   }
 
-  def mappedRef(key : String, determiner : SilDeterminer) =
+  def mappedRef(key : String, determiner : SilDeterminer, gender : SilGender) =
   {
-    register(SilMappedReference.unannotated(key, determiner))
+    val newRef = register(SilMappedReference.unannotated(key, determiner))
+    val basic = getBasicNote(newRef)
+    basic.setGender(gender)
+    newRef
   }
 
   def parenthesizedRef(reference : SilReference, bracket : SilBracket) =

@@ -1097,8 +1097,10 @@ class SmcResponder[
             case Some(entities) => {
               annotator.conjunctiveRef(
                 DETERMINER_ALL,
-                entities.map(_.getUniqueIdentifier).toSeq.sorted.map(id =>
-                  annotator.mappedRef(id, DETERMINER_ABSENT))
+                entities.map(e => tupleN((e, e.getUniqueIdentifier))).toSeq.
+                  sortBy(_._2).map(pair =>
+                    annotator.mappedRef(
+                      pair._2, DETERMINER_ABSENT, mind.deriveGender(pair._1)))
               )
             }
             case _ => ref

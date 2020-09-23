@@ -196,7 +196,9 @@ WHADVP ->
   WRB;
 
 WHADJP ->
-  // "que tan alto"
+  // "cuántos
+  WRB |
+  // "cuán alto"
   WRB JJ;
 
 WHPP ->

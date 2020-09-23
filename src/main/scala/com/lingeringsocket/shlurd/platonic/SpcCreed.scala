@@ -362,8 +362,6 @@ class SpcCreed(
     edge2 : SpcFormAssocEdge
   ) : Option[SilSentence] =
   {
-    val ordinalFirst = sentencePrinter.sb.ordinalNumber(1)
-    val ordinalSecond = sentencePrinter.sb.ordinalNumber(2)
     val possessorForm = cosmos.getGraph.getPossessorForm(edge1)
     val possesseeForm = cosmos.getGraph.getPossessorForm(edge2)
     val (
@@ -371,8 +369,12 @@ class SpcCreed(
         consequentSubject, consequentComplement
     ) = {
       if (possessorForm == possesseeForm) {
+        val possesseeRef = idealReference(possesseeForm)
+        val gender = SilUtils.getGender(possesseeRef, mind)
+        val ordinalFirst = sentencePrinter.sb.ordinalNumber(1, gender)
+        val ordinalSecond = sentencePrinter.sb.ordinalNumber(2, gender)
         tupleN((
-          idealReference(possesseeForm),
+          possesseeRef,
           annotator.genitiveRef(
             annotator.qualifiedRef(
               plainNoun(possessorForm),

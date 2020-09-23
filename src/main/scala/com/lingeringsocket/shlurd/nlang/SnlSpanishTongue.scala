@@ -27,6 +27,8 @@ import SprPennTreebankLabels._
 object SnlSpanishLemmas
 {
   val LEMMA_ACA = "acá"
+  val LEMMA_ADONDE_ACCENTED = "adónde"
+  val LEMMA_ADONDE = "adónde"
   val LEMMA_AHI = "ahí"
   val LEMMA_ALGUN = "algún"
   val LEMMA_ALGUNO = "alguno"
@@ -46,11 +48,18 @@ object SnlSpanishLemmas
   val LEMMA_AQUELLO = "aquello"
   val LEMMA_AQUELLOS = "aquellos"
   val LEMMA_CADA = "cada"
-  val LEMMA_CUAL = "cuál"
-  val LEMMA_CUALES = "cuáles"
-  val LEMMA_CUANTOS = "cuántos"
+  val LEMMA_COMO_ACCENTED = "cómo"
+  val LEMMA_COMO = "como"
+  val LEMMA_CUAL_ACCENTED = "cuál"
+  val LEMMA_CUAL = "cual"
+  val LEMMA_CUALES_ACCENTED = "cuáles"
+  val LEMMA_CUALES = "cuales"
+  val LEMMA_CUANTOS_ACCENTED = "cuántos"
+  val LEMMA_CUANTAS_ACCENTED = "cuántas"
   val LEMMA_DE = "de"
   val LEMMA_DEBER = "deber"
+  val LEMMA_DONDE_ACCENTED = "dónde"
+  val LEMMA_DONDE = "donde"
   val LEMMA_EL = "el"
   val LEMMA_EL_ACCENTED = "él"
   val LEMMA_ELLA = "ella"
@@ -103,6 +112,10 @@ object SnlSpanishLemmas
   val LEMMA_PODER = "poder"
   val LEMMA_QUE_ACCENTED = "qué"
   val LEMMA_QUE = "que"
+  val LEMMA_QUIEN_ACCENTED = "quién"
+  val LEMMA_QUIEN = "quien"
+  val LEMMA_QUIENES_ACCENTED = "quiénes"
+  val LEMMA_QUIENES = "quienes"
   val LEMMA_SE = "se"
   val LEMMA_SER = "ser"
   val LEMMA_SU = "su"
@@ -400,7 +413,7 @@ object SnlSpanishLexicon
     PD_AND -> LEMMA_Y,
     // FIXME needs to respect gender
     PD_ANOTHER -> LEMMA_OTRO,
-    PD_AS -> "como",
+    PD_AS -> LEMMA_COMO,
     // FIXME a lot of variations for this one
     PD_AT -> "hacia",
     // FIXME why does this even exist?
@@ -426,8 +439,7 @@ object SnlSpanishLexicon
     PD_GENERALLY -> "generalmente",
     // Spanish doesn't really need this
     PD_GENITIVE_OF -> "_of_",
-    // FIXME: agreement
-    PD_HOW_MANY -> LEMMA_CUANTOS,
+    PD_HOW_MANY -> LEMMA_CUANTOS_ACCENTED,
     PD_IF -> "si",
     PD_IN -> "en",
     PD_INSIDE -> "dentro de",
@@ -466,17 +478,16 @@ object SnlSpanishLexicon
     PD_THAT -> LEMMA_ESO,
     PD_THEN -> "entonces",
     PD_SUBSEQUENTLY -> "posteriormente",
-    // FIXME need to discriminate qué from que
-    PD_WHAT -> "que",
+    PD_WHAT -> LEMMA_QUE_ACCENTED,
     // FIXME need to discriminate cuando from cuándo
     PD_WHEN -> "cuándo",
     PD_WHENEVER -> "cada vez que",
     // FIXME need to discriminate donde from dónde
     PD_WHERE -> "donde",
-    // FIXME need to discriminate cual from cuál, and deal with agreement
-    PD_WHICH -> "cual",
-    // FIXME need to discriminate quién from quien, and deal with agreement
-    PD_WHO -> "quien",
+    // FIXME need to deal with agreement
+    PD_WHICH -> LEMMA_CUAL_ACCENTED,
+    // FIXME need to deal with agreement
+    PD_WHO -> LEMMA_QUIEN_ACCENTED,
     // FIXME how is this supposed to work?
     PD_WHOM -> "a quién",
     // FIXME how is this supposed to work?
@@ -727,7 +738,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case LEMMA_ALGUN | LEMMA_ALGUNO | LEMMA_ALGUNA |
           LEMMA_ALGUNOS | LEMMA_ALGUNAS => DETERMINER_SOME
       case LEMMA_O | LEMMA_U => DETERMINER_ANY
-      case LEMMA_CUAL | LEMMA_CUALES => DETERMINER_VARIABLE
+      case LEMMA_CUAL_ACCENTED | LEMMA_CUALES_ACCENTED =>
+        DETERMINER_VARIABLE
     }
     matcher.lift(lemma)
   }
@@ -976,7 +988,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         subAnalyzer.deriveGender(noun)
       }
       case SilConjunctiveReference(determiner, references, _) => {
-        combineGenders(references.map(r => SilUtils.getGender(r, subAnalyzer)))
+        val subGenders = references.map(r => SilUtils.getGender(r, subAnalyzer))
+        combineGenders(subGenders)
       }
       case SilParenthesizedReference(r, _) => {
         SilUtils.getGender(r, subAnalyzer)
@@ -1028,6 +1041,48 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         case Some(TENSE_PAST) => Set(LABEL_VBD)
         case Some(TENSE_FUTURE) => Set(LABEL_VBF)
         case _ => Set(LABEL_VB)
+      }
+    }
+  }
+
+  override def labelSpecial(
+    word : String,
+    token : String) : Set[SprSyntaxTree] =
+  {
+    def leafUninflected = makeLeaf(word, token)
+    def leafInflected(lemma : String) = makeLeaf(word, token, lemma)
+    token match {
+      case LEMMA_QUE | LEMMA_QUIEN | LEMMA_DONDE | LEMMA_ADONDE => {
+        Set(SptIN(leafUninflected))
+      }
+      case LEMMA_QUIENES => {
+        Set(SptIN(leafInflected(LEMMA_QUIEN)))
+      }
+      case LEMMA_QUIEN_ACCENTED =>
+        Set(SptWP(leafUninflected))
+      case LEMMA_QUIENES_ACCENTED =>
+        Set(SptWP(leafInflected(LEMMA_QUIEN_ACCENTED)))
+      case LEMMA_COMO_ACCENTED | LEMMA_DONDE_ACCENTED | LEMMA_ADONDE_ACCENTED |
+          LEMMA_CUANTOS_ACCENTED =>
+        {
+          Set(SptWRB(leafUninflected))
+        }
+      case LEMMA_CUANTAS_ACCENTED => {
+          Set(SptWRB(leafInflected(LEMMA_CUANTOS_ACCENTED)))
+      }
+      case LEMMA_QUE_ACCENTED | LEMMA_CUAL_ACCENTED => {
+        Set(SptWP(leafUninflected),
+          SptWDT(leafUninflected))
+      }
+      case LEMMA_CUALES_ACCENTED => {
+        Set(SptWP(leafInflected(LEMMA_CUAL_ACCENTED)),
+          SptWDT(leafInflected(LEMMA_CUAL_ACCENTED)))
+      }
+      case LEMMA_NO => {
+        Set(SptRB(leafUninflected))
+      }
+      case _ => {
+        Set.empty
       }
     }
   }
@@ -1128,6 +1183,18 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         case COUNT_SINGULAR => LEMMA_CUAL
         case _ => LEMMA_CUALES
       }
+      case LEMMA_CUAL_ACCENTED => count match {
+        case COUNT_SINGULAR => LEMMA_CUAL_ACCENTED
+        case _ => LEMMA_CUALES_ACCENTED
+      }
+      case LEMMA_QUIEN => count match {
+        case COUNT_SINGULAR => LEMMA_QUIEN
+        case _ => LEMMA_QUIENES
+      }
+      case LEMMA_QUIEN_ACCENTED => count match {
+        case COUNT_SINGULAR => LEMMA_QUIEN_ACCENTED
+        case _ => LEMMA_QUIENES_ACCENTED
+      }
       case LEMMA_ELLO => tupleN((basic, count)) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ELLA
         case (GENDER_FEMININE, _) => LEMMA_ELLAS
@@ -1206,6 +1273,11 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case LEMMA_AQUELLA | LEMMA_AQUELLO |
           LEMMA_AQUELLAS | LEMMA_AQUELLOS => LEMMA_AQUEL
       case LEMMA_CUALES => LEMMA_CUAL
+      case LEMMA_CUALES_ACCENTED => LEMMA_CUAL_ACCENTED
+      case LEMMA_CUANTOS_ACCENTED | LEMMA_CUANTAS_ACCENTED =>
+        LEMMA_CUANTOS_ACCENTED
+      case LEMMA_QUIENES => LEMMA_QUIEN
+      case LEMMA_QUIENES_ACCENTED => LEMMA_QUIEN_ACCENTED
       case LEMMA_EL_ACCENTED | LEMMA_ELLA |
           LEMMA_ELLOS | LEMMA_ELLAS => LEMMA_ELLO
       case LEMMA_LES => LEMMA_LE

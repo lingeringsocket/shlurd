@@ -147,6 +147,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
 
   override def delemmatizeNoun(
     noun : SilWord,
+    gender : SilGender,
     count : SilCount,
     inflection : SilInflection,
     conjoining : SilConjoining) =

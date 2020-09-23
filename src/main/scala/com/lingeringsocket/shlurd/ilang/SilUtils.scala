@@ -85,10 +85,15 @@ object SilUtils
       // FIXME this should work for any SilAnnotatedReference, but
       // only once we can correctly trigger recomputation when
       // a descendant is updated
-      case annotatedRef : SilNounReference if (
+      case annotatedRef : SilAnnotatedReference if (
         annotatedRef.hasAnnotation
       ) => {
-        annotatedRef.getAnnotator.getBasicNote(annotatedRef).maybeGender
+        annotatedRef match {
+          case (_ : SilNounReference | _ : SilMappedReference) => {
+            annotatedRef.getAnnotator.getBasicNote(annotatedRef).maybeGender
+          }
+          case _ => None
+        }
       }
       case _ => None
     }
