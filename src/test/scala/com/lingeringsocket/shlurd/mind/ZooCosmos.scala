@@ -140,9 +140,12 @@ class ZooCosmos(
   def resolveQualifiedNoun(
     lemma : String,
     context : SilReferenceContext,
-    qualifiers : Set[String],
+    qualifiersIn : Set[String],
     tongue : SprTongue) : Try[Set[SmcEntity]] =
   {
+    val gender = tongue.deriveGender(SilWord(lemma))
+    val qualifiers = qualifiersIn.map(q =>
+      tongue.correctGenderCount(q, gender, COUNT_SINGULAR, false))
     if ((lemma == LEMMA_WHO) || (lemma == LEMMA_WHOM) ||
       (lemma.startsWith("person")))
     {

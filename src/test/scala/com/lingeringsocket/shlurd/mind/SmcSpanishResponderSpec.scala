@@ -193,6 +193,14 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, hay un tigre en la jaula grande.")
       process("el tigre en la jaula grande está despierto?") must be equalTo(
         "Sí, el tigre en la jaula grande está despierto.")
+      process("el tigre está en la jaula pequeña?") must be equalTo(
+        "No, el tigre no está en la jaula pequeña.")
+      process("hay un tigre en la jaula pequeña?") must be equalTo(
+        "No, no hay un tigre en la jaula pequeña.")
+      processExceptionExpected(
+        "el tigre en la jaula pequeña está despierto?",
+        "But I don't know about any such tigre.",
+        ShlurdExceptionCode.NonExistent)
       process("la cabra en la granja está despierta?") must be equalTo(
         "No, la cabra en la granja no está despierta.")
       process("yo estoy en la jaula grande?") must be equalTo(
@@ -254,14 +262,6 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
     "not working yet" in new SpanishResponderContext
     {
       skipped("not working yet")
-      process("el tigre está en la jaula pequeña?") must be equalTo(
-        "Sí, el tigre está en la jaula pequeña.")
-      process("hay un tigre en la jaula pequeña?") must be equalTo(
-        "No, no hay un tigre en la jaula pequeña.")
-      processExceptionExpected(
-        "el tigre en la jaula pequeña está despierto?",
-        "But I don't know about any such tigre.",
-        ShlurdExceptionCode.NonExistent)
       process("estoy en la jaula grande?") must be equalTo(
         "No, no estás en la jaula grande.")
       process("estás en la jaula grande?") must be equalTo(

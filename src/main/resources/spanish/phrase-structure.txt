@@ -121,7 +121,7 @@ VP ->
   // "(rapidamente) lo le da (a la ladrona) (con sal)"
   (verbmod)* PRP PRP verbSimple (verbmod)* (verbmod)* |
   // "es rojo" |
-  (verbmod)* verbSimple (verbmod)* ADJP (verbmod)* |
+  (verbmod)* verbSimple ADJP (verbmod)* |
   // "es Juan el rey"
   (verbmod)* verbSimple (verbmod)* NP (verbmod)* NP (verbmod)* |
   // "estoy deciendo"
