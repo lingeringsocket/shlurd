@@ -273,7 +273,7 @@ abstract class SnlSyntaxAnalyzer(
     val tamTensed = extractTense(verbHead, tam)
     val tamMoody = applyInterrogative(tamTensed)
     if ((verbHead.isRelationshipVerb || verbHead.isBeingVerb)
-      && specifiedDirectObject.isEmpty)
+      && specifiedDirectObject.isEmpty && !verbHead.isImpersonalVerb)
     {
       if (rhsLoss) {
         return None
@@ -689,7 +689,9 @@ abstract class SnlSyntaxAnalyzer(
         }
       }
     }
-    if (verbHead.isBeingVerb || verbHead.isPossessionVerb) {
+    if ((verbHead.isBeingVerb || verbHead.isPossessionVerb) &&
+      !verbHead.isImpersonalVerb)
+    {
       val (maybeSpecifiedState, vpRemainder) =
         extractAdpositionalState(vpChildren)
       val (complement, specifiedState) = {

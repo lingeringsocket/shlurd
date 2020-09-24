@@ -255,7 +255,7 @@ abstract class SnlSentenceBundle(
           case _ => noun.lemmaUnfolded
         }
         if (lemma.forall(Character.isDigit)) {
-          cardinalNumber(lemma.toInt, gender)
+          cardinalNumber(lemma.toInt, gender, false)
         } else {
           val base = count match {
             case COUNT_PLURAL => {
@@ -392,7 +392,8 @@ abstract class SnlSentenceBundle(
     compose(noun, specifier)
   }
 
-  override def cardinalNumber(num : Int, gender : SilGender) : String =
+  override def cardinalNumber(
+    num : Int, gender : SilGender, isModifier : Boolean) : String =
   {
     assert(num >= 0)
     numberFormat.format(num, "%spellout-cardinal")

@@ -602,7 +602,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   {
     // FIXME this is just wrong for LEMMA_HACER
     lemma match {
-      case LEMMA_SER | LEMMA_ESTAR | LEMMA_EXISTIR | LEMMA_HACER => true
+      case LEMMA_SER | LEMMA_ESTAR | LEMMA_EXISTIR |
+          LEMMA_HACER | LEMMA_HABER => true
       case _ => false
     }
   }

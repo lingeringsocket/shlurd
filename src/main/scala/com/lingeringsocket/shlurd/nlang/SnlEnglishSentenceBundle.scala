@@ -302,7 +302,7 @@ class SnlEnglishSentenceBundle(
       case DETERMINER_SOME => LEMMA_SOME
       case DETERMINER_ALL => LEMMA_ALL
       case SilIntegerDeterminer(number : Int) => {
-        cardinalNumber(number, GENDER_NEUTER)
+        cardinalNumber(number, GENDER_NEUTER, true)
       }
     }
     compose(determinerString, noun)

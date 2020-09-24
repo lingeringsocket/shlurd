@@ -164,9 +164,9 @@ class ZooCosmos(
       }
       if (context == REF_ADPOSITION_OBJ) {
         Success(SprUtils.orderedSet(
-          locations.filterKeys(_.contains(name)).values))
+          locations.filterKeys(matchName(_, name)).values))
       } else {
-        if (animals.filterKeys(_.contains(lemma)).isEmpty) {
+        if (animals.filterKeys(matchName(_, lemma)).isEmpty) {
           val namedPeople = people.filterKeys(
             _.toLowerCase == lemma.toLowerCase).values
           if (namedPeople.isEmpty) {
@@ -176,11 +176,16 @@ class ZooCosmos(
           }
         } else {
           Success(
-            animals.filterKeys(_.contains(name)).
+            animals.filterKeys(matchName(_, name)).
               values.filter(asleep.contains).toSet)
         }
       }
     }
+  }
+
+  private def matchName(key : String, name : String) : Boolean =
+  {
+    (key == name) || (key.contains(name + " ") || key.contains(" " + name))
   }
 
   override def resolvePropertyState(

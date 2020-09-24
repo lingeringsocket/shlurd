@@ -282,7 +282,8 @@ abstract class SilSentenceBundle
   def genitivePhrase(
     genitive : String, head : String, isPronoun : Boolean) : String
 
-  def cardinalNumber(num : Int, gender : SilGender) : String = num.toString
+  def cardinalNumber(
+    num : Int, gender : SilGender, isModifier : Boolean) : String = num.toString
 
   def cardinalValue(s : String) : Try[Int] = Try(s.toInt)
 

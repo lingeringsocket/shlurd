@@ -154,7 +154,7 @@ class SnlSpanishSentenceBundle(
       case DETERMINER_SOME => LEMMA_ALGUN
       case DETERMINER_ALL => LEMMA_TODO
       case SilIntegerDeterminer(number : Int) => {
-        cardinalNumber(number, gender)
+        cardinalNumber(number, gender, true)
       }
     }
     val determinerInflected = tongue.correctGenderCount(
@@ -162,14 +162,19 @@ class SnlSpanishSentenceBundle(
     compose(determinerInflected, noun)
   }
 
-  override def cardinalNumber(num : Int, gender : SilGender) : String =
+  override def cardinalNumber(
+    num : Int, gender : SilGender, isModifier : Boolean) : String =
   {
     assert(num >= 0)
-    val spellout = gender match {
-      case GENDER_FEMININE => "%spellout-cardinal-feminine"
-      case _ => "%spellout-cardinal-masculine"
+    if ((num == 1) && (gender == GENDER_MASCULINE) && !isModifier) {
+      "uno"
+    } else {
+      val spellout = gender match {
+        case GENDER_FEMININE => "%spellout-cardinal-feminine"
+        case _ => "%spellout-cardinal-masculine"
+      }
+      numberFormat.format(num, spellout)
     }
-    numberFormat.format(num, spellout)
   }
 
   override def ordinalNumber(num : Int, gender : SilGender) : String =

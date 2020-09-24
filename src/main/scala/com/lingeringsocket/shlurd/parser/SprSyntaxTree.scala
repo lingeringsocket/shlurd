@@ -262,6 +262,9 @@ trait SprAbstractSyntaxTree extends SilSyntaxTree
   def isExistsVerb(implicit tongue : SprTongue) =
     isVerb && isPreTerminal && tongue.isExistsLemma(firstChild.lemma)
 
+  def isImpersonalVerb(implicit tongue : SprTongue) =
+    isVerb && isPreTerminal && tongue.isImpersonalVerbLemma(firstChild.lemma)
+
   def isDemonstrative(implicit tongue : SprTongue) = isPreTerminal &&
     tongue.isDemonstrative(firstChild.lemma)
 

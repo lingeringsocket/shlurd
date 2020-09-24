@@ -36,13 +36,17 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
 
   "SmcResponder with SnlSpanishTongue" should
   {
+    "process statements" in new SpanishResponderContext
+    {
+      process("hay un tigre") must be equalTo(
+        "Claro, hay un tigre.")
+    }
+
     "process questions" in new SpanishResponderContext
     {
       val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
       val ellipsis = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
 
-      process("hay un tigre") must be equalTo(
-        "Claro, hay un tigre.")
       process("hay un tigre?") must be equalTo(
         "Sí, hay un tigre.")
       process("hay tigres?") must be equalTo(
@@ -327,6 +331,19 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("quién es Malcolm?") must be equalTo(
         "Tú eres Malcolm.")
 
+      process("hay {un oso}?") must be equalTo(
+        "Sí, hay un oso.")
+      process("hay (un oso)?") must be equalTo(
+        "Sí, hay un oso.")
+      process("cuántas cabras están dormidas en la granja?") must be equalTo(
+        "Una de ellas está dormida.")
+      process("cuál cabra está dormida en la granja ?") must be equalTo(
+        "La cabra doméstica está dormida.")
+      // FIXME: response should use inverted order
+      process("cuántos osos hay?") must be equalTo(
+        "Dos de ellos hay.")
+      process("cuántos osos hay en la jaula pequeña?") must be equalTo(
+        "Uno de ellos hay en la jaula pequeña.")
       process("cuáles animales están en la jaula grande?") must be equalTo(
         "El león y el tigre están en la jaula grande.")
     }
@@ -338,6 +355,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, el león está dormido.")
       process("está dormido el león?") must be equalTo(
         "Sí, el león está dormido.")
+      process("hay cuántos osos?") must be equalTo(
+        "Hay dos de ellos.")
     }
   }
 }
