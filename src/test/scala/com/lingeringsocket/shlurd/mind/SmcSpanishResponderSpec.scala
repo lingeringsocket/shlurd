@@ -207,6 +207,19 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, tú no estás en la jaula grande.")
       process("tú estás en la jaula grande?") must be equalTo(
         "Sí, yo estoy en la jaula grande.")
+      process("mi tigre está en la jaula grande?") must be equalTo(
+        "Sí, tu tigre está en la jaula grande.")
+      process("tu león está en la jaula grande?") must be equalTo(
+        "Sí, mi león está en la jaula grande.")
+      process("estoy en la jaula grande?") must be equalTo(
+        "No, no estás en la jaula grande.")
+      process("estás en la jaula grande?") must be equalTo(
+        "Sí, estoy en la jaula grande.")
+
+      processExceptionExpected(
+        "está en la jaula grande?",
+        "Sorry, when you say 'él' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
       processExceptionExpected(
         "ella está en la jaula grande?",
         "Sorry, when you say 'ella' I don't know who or what you mean.",
@@ -317,24 +330,6 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
 
       process("cuáles animales están en la jaula grande?") must be equalTo(
         "El león y el tigre están en la jaula grande.")
-    }
-
-    "not working yet" in new SpanishResponderContext
-    {
-      skipped("not working yet")
-      process("estoy en la jaula grande?") must be equalTo(
-        "No, no estás en la jaula grande.")
-      process("estás en la jaula grande?") must be equalTo(
-        "Sí, estoy en la jaula grande.")
-      // need better response for this one
-      processExceptionExpected(
-        "está en la jaula grande?",
-        "Sorry, when you say 'ELIDED' I don't know who or what you mean.",
-        ShlurdExceptionCode.UnresolvedPronoun)
-      process("mi tigre está en la jaula grande?") must be equalTo(
-        "Sí, tu tigre está en la jaula grande.")
-      process("tu león está en la jaula grande?") must be equalTo(
-        "Sí, mi león está en la jaula grande.")
     }
 
     "understand inverted order" in new SpanishResponderContext

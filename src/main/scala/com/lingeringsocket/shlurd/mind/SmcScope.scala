@@ -229,6 +229,18 @@ trait SmcScope[
     outputs : Seq[SmcScopeOutput[EntityType]])
       : Try[SmcScopeOutput[EntityType]] =
   {
+    def unelided = {
+      reference match {
+        case pr : SilPronounReference if pr.isElided => {
+          val newGender = pr.gender match {
+            case GENDER_NEUTER => GENDER_MASCULINE
+            case _ => pr.gender
+          }
+          pr.copy(proximity = PROXIMITY_ENTITY, gender = newGender)
+        }
+        case _ => reference
+      }
+    }
     val sentencePrinter = getSentencePrinter
     outputs match {
       case Seq() => {
@@ -236,7 +248,7 @@ trait SmcScope[
           ShlurdExceptionCode.UnresolvedPronoun,
           sentencePrinter.sb.respondUnresolvedPronoun(
             sentencePrinter.print(
-              reference, INFLECT_NOMINATIVE, SilConjoining.NONE)))
+              unelided, INFLECT_NOMINATIVE, SilConjoining.NONE)))
       }
       case Seq(output) => {
         Success(output)
@@ -252,7 +264,7 @@ trait SmcScope[
             ShlurdExceptionCode.AmbiguousPronoun,
             sentencePrinter.sb.respondAmbiguousPronoun(
               sentencePrinter.print(
-                reference, INFLECT_NOMINATIVE, SilConjoining.NONE)))
+                unelided, INFLECT_NOMINATIVE, SilConjoining.NONE)))
         }
       }
     }

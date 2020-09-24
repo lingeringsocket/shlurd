@@ -160,16 +160,24 @@ class SilSentencePrinter(
           conjoining)
       }
       case SilGenitiveReference(possessor, possessee) => {
-        val qualifierString = possessor match {
+        val (qualifierString, isPronoun) = possessor match {
           case pr : SilPronounReference => {
-            printPronoun(pr, INFLECT_GENITIVE, SilConjoining.NONE)
+            tupleN((
+              printPronoun(pr, INFLECT_GENITIVE, SilConjoining.NONE),
+              true
+            ))
           }
           case _ => {
-            print(possessor, INFLECT_GENITIVE, SilConjoining.NONE)
+            tupleN((
+              print(possessor, INFLECT_GENITIVE, SilConjoining.NONE),
+              false
+            ))
           }
         }
         sb.genitivePhrase(
-          qualifierString, print(possessee, inflection, conjoining))
+          qualifierString,
+          print(possessee, inflection, conjoining),
+          isPronoun)
       }
       case SilQuotationReference(quotation, bracket) => {
         sb.separate(

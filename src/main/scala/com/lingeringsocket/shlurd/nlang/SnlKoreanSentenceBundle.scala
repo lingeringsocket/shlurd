@@ -243,7 +243,8 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     separate(compose(noun, position), conjoining)
   }
 
-  override def genitivePhrase(genitive : String, head : String) =
+  override def genitivePhrase(
+    genitive : String, head : String, isPronoun : Boolean) =
   {
     compose(genitive, head)
   }

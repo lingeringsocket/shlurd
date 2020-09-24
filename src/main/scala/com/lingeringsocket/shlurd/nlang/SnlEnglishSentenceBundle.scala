@@ -273,7 +273,8 @@ class SnlEnglishSentenceBundle(
     separate(word.recompose(seq), conjoining)
   }
 
-  override def genitivePhrase(genitive : String, head : String) =
+  override def genitivePhrase(
+    genitive : String, head : String, isPronoun : Boolean) =
   {
     compose(genitive, head)
   }

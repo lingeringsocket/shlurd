@@ -272,7 +272,9 @@ abstract class SnlSyntaxAnalyzer(
     }
     val tamTensed = extractTense(verbHead, tam)
     val tamMoody = applyInterrogative(tamTensed)
-    if (verbHead.isRelationshipVerb && specifiedDirectObject.isEmpty) {
+    if ((verbHead.isRelationshipVerb || verbHead.isBeingVerb)
+      && specifiedDirectObject.isEmpty)
+    {
       if (rhsLoss) {
         return None
       }

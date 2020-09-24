@@ -128,9 +128,14 @@ class SnlSpanishSentenceBundle(
     separate(word.recompose(seq), conjoining)
   }
 
-  override def genitivePhrase(genitive : String, head : String) =
+  override def genitivePhrase(
+    genitive : String, head : String, isPronoun : Boolean) =
   {
-    compose(head, LEMMA_DE, genitive)
+    if (isPronoun) {
+      compose(genitive, head)
+    } else {
+      compose(head, LEMMA_DE, genitive)
+    }
   }
 
   override def determinedNoun(
