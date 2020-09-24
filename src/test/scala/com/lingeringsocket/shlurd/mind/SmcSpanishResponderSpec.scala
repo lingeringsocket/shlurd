@@ -155,9 +155,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       val lowLimit = SmcResponseParams(listLimit = 1)
       process("algunas cabras están dormidas?", lowLimit) must be equalTo(
         "Sí, todas las tres están dormidas.")
-      // FIXME this double negative looks sketchy
       process("algunas cabras están despiertas?") must be equalTo(
-        "No, ningunas cabras no están despiertas.")
+        "No, ningunas cabras están despiertas.")
       processExceptionExpected(
         "hay un aardvark",
         "Sorry, I don't know about any 'aardvark'.",
@@ -269,14 +268,14 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("los osos y el león están despiertos?") must be equalTo(
         "No, ni el oso polar ni el león no está despierto.")
       process("todas cabras están despiertas?") must be equalTo(
-        "No, ninguna de ellas no está despierta.")
+        "No, ninguna de ellas está despierta.")
 
       process("cuál cabra está despierta?") must be equalTo(
-        "Ninguna cabra no está despierta.")
+        "Ninguna cabra está despierta.")
       process("cuáles cabras están despiertas?") must be equalTo(
-        "Ningunas cabras no están despiertas.")
+        "Ningunas cabras están despiertas.")
       process("qué cabra está despierta?") must be equalTo(
-        "Ninguna cabra no está despierta.")
+        "Ninguna cabra está despierta.")
       val list = "La cabra doméstica, la cabra siberiana, " +
         "y la cabra niñera están dormidas."
       process("cuál cabra está dormida?") must be equalTo(list)
@@ -284,9 +283,9 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("cuál cabra en la granja está dormida?") must be equalTo(
         "La cabra doméstica está dormida.")
       process("cuál cabra en la granja está despierta?") must be equalTo(
-        "Ninguna cabra en la granja no está despierta.")
+        "Ninguna cabra en la granja está despierta.")
       process("cuántas cabras están despiertas?") must be equalTo(
-        "Ningunas cabras no están despiertas.")
+        "Ningunas cabras están despiertas.")
       process("cuántas cabras están dormidas?") must be equalTo(
         "Todas las tres están dormidas.")
       process("cuántas cabras en la granja están dormidas?") must be equalTo(

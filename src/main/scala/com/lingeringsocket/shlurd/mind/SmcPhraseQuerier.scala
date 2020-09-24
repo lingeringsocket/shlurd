@@ -49,6 +49,15 @@ object SmcPhraseQuerier
         wildcard = true
       }
       case SilDeterminedReference(
+        _,
+        DETERMINER_VARIABLE
+      ) => {
+        // previous rule handles most variables, but sometimes
+        // DETERMINER_VARIABLE ends up wrapped around a complex reference,
+        // so handle that here
+        wildcard = true
+      }
+      case SilDeterminedReference(
         _ : SilNounReference,
         DETERMINER_ALL
       ) if (includeAll) => {

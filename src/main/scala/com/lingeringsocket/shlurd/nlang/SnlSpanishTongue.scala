@@ -548,6 +548,19 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def allowDoubleNegatives : Boolean = true
 
+  override def combinePolarities(
+    truthBoolean : Boolean,
+    negateCollection : Boolean,
+    subjectVariable : Boolean) : Boolean =
+  {
+    if (subjectVariable) {
+      super.combinePolarities(
+        truthBoolean, negateCollection, subjectVariable)
+    } else {
+      truthBoolean
+    }
+  }
+
   override def getRelPredefLemma(predef : SprRelationshipPredef) : String =
   {
     predef match {

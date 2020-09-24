@@ -470,6 +470,9 @@ class SmcResponder[
         originalAnswerInflection, resultCollector)
       trace(s"REWRITTEN PREDICATE : $rewrittenPredicate")
 
+      val subjectVariable = SmcPhraseQuerier.containsWildcard(
+        rewrittenPredicate.getSubject)
+
       val result = evaluateTamPredicate(
         rewrittenPredicate, tam, resultCollector)
       result match {
@@ -494,7 +497,8 @@ class SmcResponder[
               Some(question))
           trace(s"NORMALIZED RESPONSE : $normalizedResponse")
           val tamResponse = tam.withMood(MOOD_INDICATIVE).withPolarity(
-            truthBoolean || negateCollection).
+            tongue.combinePolarities(
+              truthBoolean, negateCollection, subjectVariable)).
             withModality(tam.unemphaticModality)
           val responseSentence = SilPredicateSentence(
             normalizedResponse,
@@ -574,6 +578,8 @@ class SmcResponder[
     resultCollector : ResultCollectorType) = sentenceResponder
   {
     case SilPredicateSentence(predicate, tam, formality) => {
+      val subjectVariable = SmcPhraseQuerier.containsWildcard(
+        predicate.getSubject)
       tam.mood match {
         // FIXME deal with positive, modality
         case MOOD_INTERROGATIVE => {
@@ -604,14 +610,16 @@ class SmcResponder[
                 case RESPONSE_ELLIPSIS => {
                   query match {
                     case SilStatePredicate(_, _, SilExistenceState(_), _) => {
-                      truthBoolean || negateCollection
+                      tongue.combinePolarities(
+                        truthBoolean, negateCollection, subjectVariable)
                     }
                     case _ => {
                       truthBoolean
                     }
                   }
                 }
-                case _ => truthBoolean || negateCollection
+                case _ => tongue.combinePolarities(
+                  truthBoolean, negateCollection, subjectVariable)
               }
               val tamResponse = tam.withMood(MOOD_INDICATIVE).
                 withPolarity(responseTruth).withModality(tam.unemphaticModality)

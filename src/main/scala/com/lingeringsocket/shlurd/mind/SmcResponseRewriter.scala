@@ -306,14 +306,7 @@ class SmcResponseRewriter[
     val normalized = transformQuestionResponse(
       rewriteLast, params, question, negateCollection)
     SilPhraseValidator.validatePhrase(normalized)
-    val maybeNegateCollection = {
-      if (tongue.allowDoubleNegatives) {
-        false
-      } else {
-        negateCollection
-      }
-    }
-    tupleN((normalized, maybeNegateCollection))
+    tupleN((normalized, negateCollection))
   }
 
   def swapSpeakerListener(
