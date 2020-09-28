@@ -30,8 +30,9 @@ abstract class SnlCorenlpSyntaxAnalyzer(
 {
   override protected def analyzeSentenceChildren(
     tree : SprSyntaxTree, children : Seq[SprSyntaxTree],
-    isQuestion : Boolean, force : SilForce) =
+    mood : SilMood, force : SilForce) =
   {
+    val isQuestion = (mood == MOOD_INTERROGATIVE)
     if (isImperative(children)) {
       expectCommand(tree, children.head, SilFormality(force))
     } else if (children.size >= 2) {
@@ -696,5 +697,105 @@ abstract class SnlCorenlpSyntaxAnalyzer(
     val tam = tamForAux(leaf, nonAux)
     val tamTensed = extractTense(aux, tam)
     tupleN((tamTensed, remainder, getVerbInflection(aux)))
+  }
+
+  private def analyzeActionPredicate(
+    syntaxTree : SprSyntaxTree,
+    np : SprSyntaxTree,
+    vp : SprSyntaxTree,
+    specifiedDirectObject : Option[SilReference],
+    verbModifiers : Seq[SipExpectedVerbModifier],
+    imperative : Boolean = false)
+      : (Boolean, SilPredicate) =
+  {
+    val (negative, seq) = extractNegative(vp.children)
+    // FIXME should support "there goes the mailman"?
+    if (np.isExistential) {
+      return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
+    }
+    val subject = expectReference(np)
+    if (seq.isEmpty) {
+      return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
+    }
+    val verbHead = seq.head
+    val verb = verbHead match {
+      case vb : SprSyntaxVerb if (
+        !imperative || (!verbHead.isModal && !verbHead.isPossessionVerb)
+      ) => {
+        getTreeWord(vb)
+      }
+      case _ => {
+        return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
+      }
+    }
+    val (directObject, extraModifiers) =
+      expectVerbObjectsAndModifiers(seq.drop(1), specifiedDirectObject)
+    val directObjects = Seq(directObject, specifiedDirectObject).flatten
+    val adpositionObject = {
+      if (directObjects.size == 2) {
+        specifiedDirectObject
+      } else {
+        None
+      }
+    }
+    val predicate = expectActionPredicate(
+      syntaxTree,
+      subject, verb,
+      directObjects.headOption,
+      adpositionObject,
+      extraModifiers ++ verbModifiers)
+    tupleN((negative, predicate))
+  }
+
+  private def expectVerbObjectsAndModifiers(
+    seq : Seq[SprSyntaxTree],
+    specifiedDirectObjectOrig : Option[SilReference]) =
+  {
+    val specifiedDirectObject = seq.lastOption match {
+      case Some(SptPP(pt)) => {
+        None
+      }
+      case _ => {
+        specifiedDirectObjectOrig
+      }
+    }
+    val objCandidates = seq.filter(_.isNounOrPronoun)
+    val directCandidates =
+      objCandidates.filter(_.containsIncomingDependency("dobj"))
+    val directObjTree = {
+      if (directCandidates.size == 1) {
+        directCandidates.headOption
+      } else {
+        if (specifiedDirectObject.isEmpty) {
+          objCandidates.lastOption
+        } else {
+          None
+        }
+      }
+    }
+    val minusDirect = objCandidates.filterNot(Some(_) == directObjTree)
+    val indirectObjTree = minusDirect.find(
+      _.containsIncomingDependency("iobj")) match
+    {
+      case Some(iobj) => {
+        Some(iobj)
+      }
+      case _ => {
+        minusDirect.headOption
+      }
+    }
+    val objTrees = directObjTree.toSeq ++ indirectObjTree
+    val indirectAdposition = indirectObjTree.map(indirectObj => {
+      val modifier = SilAdpositionalVerbModifier(
+        SprPredefAdposition(PD_TO),
+        expectReference(indirectObj)
+      )
+      modifier.rememberSyntaxTree(indirectObj)
+      modifier
+    })
+    val modifiers = expectVerbModifiers(seq).filterNot(
+      vm => objTrees.contains(vm.syntaxTree))
+    tupleN((directObjTree.map(expectReference),
+      indirectAdposition.toSeq ++ modifiers))
   }
 }

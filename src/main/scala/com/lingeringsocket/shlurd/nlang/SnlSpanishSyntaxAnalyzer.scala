@@ -26,8 +26,6 @@ class SnlSpanishSyntaxAnalyzer(
 ) extends SnlRomanceSyntaxAnalyzer(
   context, false, strictness, enforceTransitive)
 {
-  override protected def allowObjectPronounsAfterVerb() : Boolean = false
-
   override protected def isImperative(children : Seq[SprSyntaxTree]) =
   {
     // FIXME negatives etc

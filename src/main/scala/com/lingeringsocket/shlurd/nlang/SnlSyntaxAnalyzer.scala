@@ -86,13 +86,23 @@ abstract class SnlSyntaxAnalyzer(
             (c.isEquivalently || c.children.exists(_.isEquivalently))),
           SilFormality(force))
       }
-      case _ => analyzeSentenceChildren(tree, children, isQuestion, force)
+      case _ => {
+        val mood = {
+          if (isQuestion) {
+            MOOD_INTERROGATIVE
+          } else {
+            MOOD_INDICATIVE
+          }
+        }
+        analyzeSentenceChildren(
+          tree, children, mood, force)
+      }
     }
   }
 
   protected def analyzeSentenceChildren(
     tree : SprSyntaxTree, children : Seq[SprSyntaxTree],
-    isQuestion : Boolean, force : SilForce) : SilSentence
+    mood : SilMood, force : SilForce) : SilSentence
 
   protected def unwrapQuery(seq : Seq[SprSyntaxTree]) : Seq[SprSyntaxTree] =
   {
@@ -368,115 +378,6 @@ abstract class SnlSyntaxAnalyzer(
       SilUnrecognizedState(tree)
     }
   }
-
-  override protected def analyzeActionPredicate(
-    syntaxTree : SprSyntaxTree,
-    np : SprSyntaxTree,
-    vp : SprSyntaxTree,
-    specifiedDirectObject : Option[SilReference],
-    verbModifiers : Seq[SipExpectedVerbModifier],
-    imperative : Boolean = false)
-      : (Boolean, SilPredicate) =
-  {
-    val (negative, seq) = extractNegative(vp.children)
-    // FIXME should support "there goes the mailman"?
-    if (np.isExistential) {
-      return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
-    }
-    val subject = expectReference(np)
-    if (seq.isEmpty) {
-      return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
-    }
-    val verbHead = seq.head
-    val verb = verbHead match {
-      case vb : SprSyntaxVerb if (
-        !imperative || (!verbHead.isModal && !verbHead.isPossessionVerb)
-      ) => {
-        getTreeWord(vb)
-      }
-      case _ => {
-        return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
-      }
-    }
-    val (directObject, extraModifiers) =
-      expectVerbObjectsAndModifiers(seq.drop(1), specifiedDirectObject)
-    val directObjects = Seq(directObject, specifiedDirectObject).flatten
-    val adpositionObject = {
-      if (directObjects.size == 2) {
-        specifiedDirectObject
-      } else {
-        None
-      }
-    }
-    val predicate = expectActionPredicate(
-      syntaxTree,
-      subject, verb,
-      directObjects.headOption,
-      adpositionObject,
-      extraModifiers ++ verbModifiers)
-    tupleN((negative, predicate))
-  }
-
-  private def expectVerbObjectsAndModifiers(
-    seq : Seq[SprSyntaxTree],
-    specifiedDirectObjectOrig : Option[SilReference]) =
-  {
-    val specifiedDirectObject = seq.lastOption match {
-      case Some(SptPP(pt)) => {
-        None
-      }
-      case _ => {
-        specifiedDirectObjectOrig
-      }
-    }
-    val objCandidates = {
-      if (allowObjectPronounsAfterVerb) {
-        seq.filter(_.isNounOrPronoun)
-      } else {
-        seq.filter(t => t.isNoun ||
-          (t.isNounPhrase && !t.unwrapPhrase.isPronoun))
-      }
-    }
-    val directCandidates =
-      objCandidates.filter(_.containsIncomingDependency("dobj"))
-    val directObjTree = {
-      if (directCandidates.size == 1) {
-        directCandidates.headOption
-      } else {
-        if (specifiedDirectObject.isEmpty) {
-          objCandidates.lastOption
-        } else {
-          None
-        }
-      }
-    }
-    val minusDirect = objCandidates.filterNot(Some(_) == directObjTree)
-    val indirectObjTree = minusDirect.find(
-      _.containsIncomingDependency("iobj")) match
-    {
-      case Some(iobj) => {
-        Some(iobj)
-      }
-      case _ => {
-        minusDirect.headOption
-      }
-    }
-    val objTrees = directObjTree.toSeq ++ indirectObjTree
-    val indirectAdposition = indirectObjTree.map(indirectObj => {
-      val modifier = SilAdpositionalVerbModifier(
-        SprPredefAdposition(PD_TO),
-        expectReference(indirectObj)
-      )
-      modifier.rememberSyntaxTree(indirectObj)
-      modifier
-    })
-    val modifiers = expectVerbModifiers(seq).filterNot(
-      vm => objTrees.contains(vm.syntaxTree))
-    tupleN((directObjTree.map(expectReference),
-      indirectAdposition.toSeq ++ modifiers))
-  }
-
-  protected def allowObjectPronounsAfterVerb() : Boolean = true
 
   override def expectVerbModifierPhrase(
     tree : SprSyntaxPhrase)
@@ -779,5 +680,28 @@ abstract class SnlSyntaxAnalyzer(
         (tongue.isAdposition(lemma) ||
           tongue.isSubordinatingConjunction(lemma))
     )
+  }
+
+  protected def expectCommand(
+    tree : SprSyntaxTree,
+    vp : SprSyntaxTree, formality : SilFormality) : SilSentence =
+  {
+    val pronounLemma = tongue.pronounLemma(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE)
+    val np = SptNP(SptPRP(makeLeaf(pronounLemma)))
+    val sentence = analyzeSentenceChildren(
+      tree, Seq(np, vp), MOOD_IMPERATIVE, formality.force)
+    val tam = sentence.tam
+    if ((tam.modality == MODAL_NEUTRAL) &&
+      (tam.aspect == ASPECT_SIMPLE) &&
+      (tam.tense == TENSE_PRESENT))
+    {
+      sentence.withNewTamFormality(
+        tam.withMood(MOOD_IMPERATIVE),
+        formality)
+    } else {
+      SilUnrecognizedSentence(tree)
+    }
   }
 }

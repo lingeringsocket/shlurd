@@ -147,15 +147,6 @@ abstract class SprAbstractSyntaxAnalyzer(
       context.genderAnalyzer, proximity, Some(getWord(leaf)))
   }
 
-  protected def analyzeActionPredicate(
-    syntaxTree : SprSyntaxTree,
-    np : SprSyntaxTree,
-    vp : SprSyntaxTree,
-    specifiedDirectObject : Option[SilReference],
-    verbModifiers : Seq[SipExpectedVerbModifier],
-    imperative : Boolean = false)
-      : (Boolean, SilPredicate)
-
   override def analyzeConditionalSentence(
     tree : SprSyntaxTree,
     conjunction : SilWord,
@@ -265,25 +256,6 @@ abstract class SprAbstractSyntaxAnalyzer(
       : SilVerbModifier =
   {
     SilBasicVerbModifier(getWord(preTerminal.child))
-  }
-
-  protected def expectCommand(
-    tree : SprSyntaxTree,
-    vp : SprSyntaxTree, formality : SilFormality) : SilSentence =
-  {
-    val pronounLemma = tongue.pronounLemma(
-      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
-      PROXIMITY_ENTITY, INFLECT_NOMINATIVE)
-    val np = SptNP(SptPRP(makeLeaf(pronounLemma)))
-    val (negativeVerb, predicate) = analyzeActionPredicate(
-      tree, np, vp, None, Seq.empty, true)
-    if (negativeVerb) {
-      return SilUnrecognizedSentence(tree)
-    }
-    SilPredicateSentence(
-      predicate,
-      SilTam.imperative,
-      formality)
   }
 
   protected def expectRelativeReference(

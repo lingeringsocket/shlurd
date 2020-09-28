@@ -70,7 +70,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
 
   override protected def analyzeSentenceChildren(
     tree : SprSyntaxTree, children : Seq[SprSyntaxTree],
-    isQuestion : Boolean, force : SilForce) =
+    mood : SilMood, force : SilForce) =
   {
     val (isNegative, extracted) = extractNegative(children)
     val seq = unwrapSinglePhrase(extracted)
@@ -94,18 +94,18 @@ abstract class SnlRomanceSyntaxAnalyzer(
         val bonusFrames = tupleN((iNoms.size, iAdjs.size)) match {
           case (0 | 1, 0) => {
             iAdps.flatMap(iAdp => {
-              produceFrames(unwrapped, iVerbs, iNoms, Seq(iAdp))
+              produceFrames(unwrapped, iVerbs, iNoms, Seq(iAdp), mood)
             })
           }
           case _ => Seq.empty
         }
-        produceFrames(unwrapped, iVerbs, iNoms, iAdjs) ++ bonusFrames
+        produceFrames(unwrapped, iVerbs, iNoms, iAdjs, mood) ++ bonusFrames
       }
       val tam = {
-        if (isQuestion || questionOpt.nonEmpty) {
+        if (questionOpt.nonEmpty) {
           SilTam.interrogative
         } else {
-          SilTam.indicative
+          SilTam.indicative.withMood(mood)
         }
       }
       val tamPolarized = tam.withPolarity(!isNegative)
@@ -143,7 +143,8 @@ abstract class SnlRomanceSyntaxAnalyzer(
     seq : Seq[SprSyntaxTree],
     iVerbs : Seq[(SprSyntaxTree, Int)],
     iNoms : Seq[(SprSyntaxTree, Int)],
-    iAdjs : Seq[(SprSyntaxTree, Int)]
+    iAdjs : Seq[(SprSyntaxTree, Int)],
+    mood : SilMood
   ) : Seq[SnlRomanceSyntaxFrame] =
   {
     def firstVerb = iVerbs(0)._1.unwrapPhrase
@@ -175,7 +176,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
 
     // order of produced frames is significant in that in case
     // of unresolvable ambiguity, we will take the former
-    val unmodified = tupleN((iVerbs.size, iNoms.size, iAdjs.size)) match {
+    val full = tupleN((iVerbs.size, iNoms.size, iAdjs.size)) match {
       case (1, 0, 0) => {
         Seq(
           SnlRomanceSyntaxFrame(
@@ -246,6 +247,14 @@ abstract class SnlRomanceSyntaxAnalyzer(
       }
       case _ => {
         Seq.empty
+      }
+    }
+    val unmodified = mood match {
+      case MOOD_IMPERATIVE => {
+        full.take(1)
+      }
+      case _ => {
+        full
       }
     }
     val nonModPos = (iVerbs ++ iNoms ++ iAdjs).

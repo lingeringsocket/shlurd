@@ -15,23 +15,27 @@
 package com.lingeringsocket.shlurd.ilang
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 class SilAnnotationSpec extends Specification
 {
-  private val annotator = SilBasicAnnotator()
+  trait AnnotationContext extends Scope
+  {
+    protected val annotator = SilBasicAnnotator()
 
-  private def makeSingular =
-    annotator.basicPronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
+    protected def makeSingular =
+      annotator.basicPronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
 
-  private def makePlural =
-    annotator.basicPronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL)
+    protected def makePlural =
+      annotator.basicPronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL)
 
-  private def makeNoun =
-    annotator.nounRef(SilWord("sheep"), COUNT_PLURAL)
+    protected def makeNoun =
+      annotator.nounRef(SilWord("sheep"), COUNT_PLURAL)
+  }
 
   "SilAnnotationSpec" should
   {
-    "annotate counts" in
+    "annotate counts" in new AnnotationContext
     {
       val singular = makeSingular
       val plural = makePlural
@@ -42,7 +46,7 @@ class SilAnnotationSpec extends Specification
       pluralNote.getCount must be equalTo COUNT_PLURAL
     }
 
-    "preserve annotators during transformation" in
+    "preserve annotators during transformation" in new AnnotationContext
     {
       val plural = makePlural
 
@@ -71,7 +75,7 @@ class SilAnnotationSpec extends Specification
       transformedNote4.getCount must be equalTo COUNT_PLURAL
     }
 
-    "copy annotated references" in
+    "copy annotated references" in new AnnotationContext
     {
       val plural = makePlural
       val noun = makeNoun
@@ -98,7 +102,7 @@ class SilAnnotationSpec extends Specification
         be equalTo COUNT_SINGULAR
     }
 
-    "preserve notes during copy" in
+    "preserve notes during copy" in new AnnotationContext
     {
       val plural = makePlural
       val noun = makeNoun
@@ -119,7 +123,7 @@ class SilAnnotationSpec extends Specification
         be equalTo COUNT_PLURAL
     }
 
-    "preserve ids during copy" in
+    "preserve ids during copy" in new AnnotationContext
     {
       makePlural
       val noun = makeNoun
