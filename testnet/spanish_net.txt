@@ -12,8 +12,8 @@ caminar%2:38:00:: -add -addword andar -setgloss caminar
 beber%2:34:00:: -add -setgloss beber
 saber%2:31:00:: -add -setgloss saber
 vivir%2:42:00:: -add -setgloss vivir
-ser%2:42:00:: -add -setgloss ser
-estar%2:42:00:: -add -setgloss estar
+ser%2:42:00:: -add -setgloss ser -setverbframeall 6 -setverbframeall 7
+estar%2:42:00:: -add -setgloss estar -setverbframeall 6 -setverbframeall 7
 tener%2:42:00:: -add -setgloss tener
 poder%2:42:00:: -add -setgloss poder
 deber%2:42:00:: -add -setgloss deber

@@ -27,6 +27,8 @@ import scala.sys.process._
 import org.jgrapht._
 import org.jgrapht.graph._
 
+import org.slf4j._
+
 case class SprParseComplexityException()
     extends RuntimeException("Expression too complex")
 {
@@ -34,6 +36,9 @@ case class SprParseComplexityException()
 
 object SprHeuristicSynthesizer extends SprSynthesizer
 {
+  private val logger =
+    LoggerFactory.getLogger(classOf[SprHeuristicSynthesizer])
+
   class SpanEdge extends DefaultEdge
   {
     val set = new mutable.LinkedHashSet[SprSyntaxTree]
@@ -176,6 +181,10 @@ class SprHeuristicSynthesizer(
   private val maxPatternLength = patternMatcher.getMaxPatternLength
 
   private val phraseGraph = SprPhraseGraph()
+
+  private val traceSuccessfulTransformations = logger.isDebugEnabled
+
+  private val traceRejectedTransformations = logger.isTraceEnabled
 
   private var cost = 0
 
@@ -522,6 +531,15 @@ class SprHeuristicSynthesizer(
     attemptReplacement(rewriterIntermediate, tree, allowConjunctive).nonEmpty
   }
 
+  private def sentenceForVP(vp : SptVP) : SptS =
+  {
+    if (tongue.allowElidedSubject) {
+      SptS(vp)
+    } else {
+      SptS(npSomething, vp)
+    }
+  }
+
   private def attemptReplacement(
     rewriter : SprPhraseRewriter,
     tree : SprSyntaxTree,
@@ -540,7 +558,7 @@ class SprHeuristicSynthesizer(
         case SptS(vp : SptVP) => {
           tryRewrite(
             SipExpectedSentence(
-              SptS(npSomething, vp)))
+              sentenceForVP(vp)))
         }
         case s : SptS => {
           tryRewrite(
@@ -557,7 +575,7 @@ class SprHeuristicSynthesizer(
         case sq @ SptSQ(vp : SptVP) => {
           tryRewrite(
             SipExpectedSentence(
-              SptS(npSomething, vp)))
+              sentenceForVP(vp)))
         }
         case sq : SptSQ => {
           tryRewrite(
@@ -567,13 +585,13 @@ class SprHeuristicSynthesizer(
         case SptVP(SptVBZ(leaf)) if (tongue.isModalAuxLemma(leaf.lemma)) => {
           tryRewrite(
             SipExpectedSentence(
-              SptS(npSomething,
+              sentenceForVP(
                 SptVP(SptVB(makeLeaf(SprPredefWord(PD_EXIST).lemma))))))
         }
         case vp : SptVP => {
           tryRewrite(
             SipExpectedSentence(
-              SptS(npSomething, vp)))
+              sentenceForVP(vp)))
         }
         case np : SptNP => {
           val dispossessed = {
@@ -648,8 +666,15 @@ class SprHeuristicSynthesizer(
       } else {
         val transformed = rewriter.rewritePhrase(phrase)
         if (rejectResult(transformed)) {
+          if (traceRejectedTransformations) {
+            logger.trace("REJECT " + syntaxTree + "\n\n")
+          }
           None
         } else {
+          if (traceSuccessfulTransformations) {
+            logger.debug("ACCEPT " + syntaxTree)
+            logger.debug("TRANSFORMED " + transformed + "\n\n")
+          }
           Some(tupleN((transformed, syntaxTree)))
         }
       }

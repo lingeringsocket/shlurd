@@ -264,7 +264,7 @@ class SnlSpanishParserSpec extends Specification
               DETERMINER_NONSPECIFIC
             ),
             VERB_HAY,
-            SilExistenceState(Some(SilWord("")))
+            SilExistenceState(Some(VERB_HAY))
           )
         )
     }
@@ -274,8 +274,7 @@ class SnlSpanishParserSpec extends Specification
       // this one is fine
       parse("debo de vivir").hasUnknown must beFalse
 
-      // but these are not
-      parse("debo vivir").hasUnknown must beTrue
+      // but this one is not
       parse("debo que vivir").hasUnknown must beTrue
     }
   }

@@ -28,7 +28,7 @@ abstract class SnlSyntaxAnalyzer(
   enforceTransitive : Boolean)
     extends SprAbstractSyntaxAnalyzer(context, strictness)
 {
-  private implicit val tongue = context.getTongue
+  protected implicit val tongue = context.getTongue
 
   override def analyzeSentence(tree : SptS)
       : SilSentence =
@@ -86,24 +86,28 @@ abstract class SnlSyntaxAnalyzer(
             (c.isEquivalently || c.children.exists(_.isEquivalently))),
           SilFormality(force))
       }
-      case _ if (isImperative(children)) => {
-        expectCommand(tree, children.head, SilFormality(force))
-      }
-      case _ if (children.size >= 2) => {
-        val tail = children.takeRight(2)
-        val np = tail.head
-        val vp = tail.last
-        val verbModifiers = children.dropRight(2)
-        expectFullPredicate(tree, np, vp, verbModifiers, isQuestion, force)
-      }
-      case _ if ((children.size == 1) && allowElidedSubject) => {
-        val np = SptNP(SptNNE())
-        val vp = children.head
-        expectFullPredicate(tree, np, vp, Seq.empty, isQuestion, force)
-      }
-      case _ => {
-        SilUnrecognizedSentence(tree)
-      }
+      case _ => analyzeSentenceChildren(tree, children, isQuestion, force)
+    }
+  }
+
+  protected def analyzeSentenceChildren(
+    tree : SprSyntaxTree, children : Seq[SprSyntaxTree],
+    isQuestion : Boolean, force : SilForce) =
+  {
+    if (isImperative(children)) {
+      expectCommand(tree, children.head, SilFormality(force))
+    } else if (children.size >= 2) {
+      val tail = children.takeRight(2)
+      val np = tail.head
+      val vp = tail.last
+      val verbModifiers = children.dropRight(2)
+      expectFullPredicate(tree, np, vp, verbModifiers, isQuestion, force)
+    } else if ((children.size == 1) && tongue.allowElidedSubject) {
+      val np = SptNP(SptNNE())
+      val vp = children.head
+      expectFullPredicate(tree, np, vp, Seq.empty, isQuestion, force)
+    } else {
+      SilUnrecognizedSentence(tree)
     }
   }
 
@@ -160,7 +164,7 @@ abstract class SnlSyntaxAnalyzer(
       return expectCommand(tree, children.head, SilFormality.DEFAULT)
     }
     val seq = {
-      if (allowElidedSubject && (children.size == 1)) {
+      if (tongue.allowElidedSubject && (children.size == 1)) {
         SptNP(SptNNE()) +: children
       } else {
         children
@@ -316,13 +320,7 @@ abstract class SnlSyntaxAnalyzer(
       return SilUnrecognizedSentence(tree)
     }
     val (specifiedState, whpc) = extractAdpositionalState(first.children)
-    val seq = {
-      if ((whpc.size == 1) && whpc.head.isQueryPhrase) {
-        whpc.head.children
-      } else {
-        whpc
-      }
-    }
+    val seq = unwrapQuery(whpc)
     val (question, adpositionOpt, questionChildren) =
       maybeQuestionFor(seq) match {
         case Some((q, a, qc)) => (q, a, qc)
@@ -340,42 +338,7 @@ abstract class SnlSyntaxAnalyzer(
     }
     // FIXME for QUESTION_WHERE, it shouldn't be a noun phrase at all;
     // it should be either a state or verb modifier
-    val np = question match {
-      // FIXME for QUESTION_WHAT, there are two flavors (plain "what
-      // do you want?" and also "what beer is most delicious?")
-      case QUESTION_WHERE  | QUESTION_WHAT => {
-        SptNP(SptNN(requireLeaf(questionChildren)))
-      }
-      case QUESTION_WHO => {
-        if ((questionChildren.size == 1) && questionChildren.head.isLeaf) {
-          SptNP(SptNN(requireLeaf(questionChildren)))
-        } else {
-          SptNP(questionChildren:_*)
-        }
-      }
-      case QUESTION_WHICH => {
-        // FIXME likewise, these have two flavors "which do you want?"
-        // and "which flavor do you want?"
-        questionChildren match {
-          case Seq(SptNP(first : SptNP, second)) => {
-            SptNP(
-              SptNP((SptDT(makeLeaf(PD_WHICH.toLemma)) +:
-                unwrapSinglePhrase(first.children)):_*),
-              second
-            )
-          }
-          case _ => {
-            SptNP((SptDT(makeLeaf(PD_WHICH.toLemma)) +:
-              unwrapSinglePhrase(questionChildren)):_*)
-          }
-        }
-      }
-      case QUESTION_HOW_MANY => {
-        // FIXME likewise, these have two flavors "how many trees are there"
-        // and "how many are still alive"
-        SptNP(questionChildren:_*)
-      }
-    }
+    val np = nounPhraseForQuestion(question, questionChildren)
     val (progressive, iVerb) = detectProgressive(secondSub)
     assert(iVerb >= 0, secondSub)
     if ((verbHead.isBeingVerb || verbHead.isRelationshipVerb) && !progressive) {
@@ -487,6 +450,65 @@ abstract class SnlSyntaxAnalyzer(
         case _ => {
           SilUnrecognizedSentence(tree)
         }
+      }
+    }
+  }
+
+  protected def unwrapQuery(seq : Seq[SprSyntaxTree]) : Seq[SprSyntaxTree] =
+  {
+    if (seq.head.hasLabel(LABEL_LPAREN) &&
+      seq.last.hasLabel(LABEL_RPAREN))
+    {
+      unwrapQuery(seq.dropRight(1).drop(1))
+    } else if (seq.head.hasLabel(LABEL_LCURLY) &&
+      seq.last.hasLabel(LABEL_RCURLY))
+    {
+      unwrapQuery(seq.dropRight(1).drop(1))
+    } else if ((seq.size == 1) && seq.head.isQueryPhrase) {
+      seq.head.children
+    } else {
+      seq
+    }
+  }
+
+  protected def nounPhraseForQuestion(
+    question : SilQuestion,
+    questionChildren : Seq[SprSyntaxTree]) : SptNP =
+  {
+    question match {
+      // FIXME for QUESTION_WHAT, there are two flavors (plain "what
+      // do you want?" and also "what beer is most delicious?")
+      case QUESTION_WHERE  | QUESTION_WHAT => {
+        SptNP(SptNN(requireLeaf(questionChildren)))
+      }
+      case QUESTION_WHO => {
+        if ((questionChildren.size == 1) && questionChildren.head.isLeaf) {
+          SptNP(SptNN(requireLeaf(questionChildren)))
+        } else {
+          SptNP(questionChildren:_*)
+        }
+      }
+      case QUESTION_WHICH => {
+        // FIXME likewise, these have two flavors "which do you want?"
+        // and "which flavor do you want?"
+        questionChildren match {
+          case Seq(SptNP(first : SptNP, second)) => {
+            SptNP(
+              SptNP((SptDT(makeLeaf(PD_WHICH.toLemma)) +:
+                unwrapSinglePhrase(first.children)):_*),
+              second
+            )
+          }
+          case _ => {
+            SptNP((SptDT(makeLeaf(PD_WHICH.toLemma)) +:
+              unwrapSinglePhrase(questionChildren)):_*)
+          }
+        }
+      }
+      case QUESTION_HOW_MANY => {
+        // FIXME likewise, these have two flavors "how many trees are there"
+        // and "how many are still alive"
+        SptNP(questionChildren:_*)
       }
     }
   }
@@ -1074,7 +1096,7 @@ abstract class SnlSyntaxAnalyzer(
             tupleN((specifiedState, Seq(advp), SilNullState()))
           }
           case vb : SprSyntaxSimpleVerb if (
-            allowElidedSubject && (getWord(vb.child) == verb)
+            tongue.allowElidedSubject && (getWord(vb.child) == verb)
           ) => {
             val elided = SptNP(SptNNE())
             return expectPredicate(
@@ -1205,7 +1227,7 @@ abstract class SnlSyntaxAnalyzer(
     }
   }
 
-  private def maybeQuestionFor(
+  protected def maybeQuestionFor(
     seq : Seq[SprSyntaxTree])
       : Option[(SilQuestion, Option[SprSyntaxTree], Seq[SprSyntaxTree])] =
   {

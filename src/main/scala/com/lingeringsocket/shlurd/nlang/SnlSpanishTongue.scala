@@ -548,6 +548,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def allowDoubleNegatives : Boolean = true
 
+  override def allowElidedSubject : Boolean = true
+
   override def combinePolarities(
     truthBoolean : Boolean,
     negateCollection : Boolean,
@@ -630,6 +632,11 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def isImpersonalVerbLemma(lemma : String) : Boolean =
   {
     lemma == LEMMA_HABER
+  }
+
+  override def isPotentialGerund(inflected : String) : Boolean =
+  {
+    isProgressive(inflected)
   }
 
   override def getPronounMap(

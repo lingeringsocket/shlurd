@@ -23,11 +23,9 @@ class SnlSpanishSyntaxAnalyzer(
   context : SprContext,
   strictness : SprStrictness,
   enforceTransitive : Boolean
-) extends SnlSyntaxAnalyzer(
+) extends SnlRomanceSyntaxAnalyzer(
   context, false, strictness, enforceTransitive)
 {
-  override protected def allowElidedSubject() : Boolean = true
-
   override protected def allowObjectPronounsAfterVerb() : Boolean = false
 
   override protected def isImperative(children : Seq[SprSyntaxTree]) =
@@ -56,15 +54,8 @@ class SnlSpanishSyntaxAnalyzer(
 
   override protected def isNegative(tree : SprSyntaxTree) : Boolean =
   {
-    // FIXME I just can't even
-    if (tree.unwrapPhrase.hasTerminalLemma(LEMMA_NO)) {
-      true
-    } else if (tree.isAdverbPhrase && (tree.children.size > 1)) {
-      tree.children.exists(c =>
-        c.hasTerminalLemma(LEMMA_NO))
-    } else {
-      false
-    }
+    // FIXME nunca etc
+    tree.unwrapPhrase.hasTerminalLemma(LEMMA_NO)
   }
 
   override protected def applyInterrogative(tam : SilTam) : SilTam =

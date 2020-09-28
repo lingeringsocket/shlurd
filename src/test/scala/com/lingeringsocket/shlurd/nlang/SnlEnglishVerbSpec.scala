@@ -22,7 +22,7 @@ import org.specs2.mutable._
 import org.specs2.specification.core._
 
 import SnlEnglishLemmas._
-import ShlurdEnglishAffixes._
+import SnlEnglishAffixes._
 
 // FIXME:  add coverage for various modifier types
 // LEMMA_EXIST, including "there is" form

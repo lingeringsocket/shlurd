@@ -32,6 +32,7 @@ class SnlPrincetonWordnetSpec extends Specification
     "detect potential adverbs" in
     {
       wordnet.isPotentialAdverb("quickly") must beTrue
+      wordnet.isPotentialAdverb("heavenly") must beFalse
       wordnet.isPotentialAdverb("slow") must beTrue
       wordnet.isPotentialAdverb("smile") must beFalse
     }
@@ -53,11 +54,15 @@ class SnlPrincetonWordnetSpec extends Specification
       wordnet.isPotentialNoun("steak knife") must beTrue
     }
 
-    "detect potential gerunds" in
+    "detect potential adjectives" in
     {
-      wordnet.isPotentialGerund("running") must beTrue
-      wordnet.isPotentialGerund("king") must beFalse
-      wordnet.isPotentialGerund("run") must beFalse
+      wordnet.isPotentialAdjective("red") must beTrue
+      wordnet.isPotentialAdjective("heavenly") must beTrue
+      wordnet.isPotentialAdjective("running") must beTrue
+      wordnet.isPotentialAdjective("living") must beTrue
+      wordnet.isPotentialAdjective("king") must beFalse
+      wordnet.isPotentialAdjective("run") must beFalse
+      wordnet.isPotentialAdjective("quickly") must beFalse
     }
 
     "detect potential plurals" in

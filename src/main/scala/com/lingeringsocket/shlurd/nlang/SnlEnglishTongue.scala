@@ -25,7 +25,6 @@ import scala.collection._
 import org.atteo.evo.inflector.{English => EnglishPluralizer}
 
 import SprPennTreebankLabels._
-import ShlurdEnglishAffixes._
 
 // FIXME some of these, like LEMMA_HIS, are not real lemmas
 object SnlEnglishLemmas
@@ -143,6 +142,12 @@ object SnlEnglishLemmas
   val LEMMA_GENITIVE_OF = "_of_"
 }
 import SnlEnglishLemmas._
+
+object SnlEnglishAffixes
+{
+  val SUFFIX_ING = "ing"
+}
+import SnlEnglishAffixes._
 
 object SprLexicon
 {
@@ -360,6 +365,15 @@ class SnlEnglishTongue(wordnet : SprWordnet)
   override def isExistsLemma(lemma : String) : Boolean =
   {
     lemma == LEMMA_EXIST
+  }
+
+  override def isPotentialGerund(inflected : String) : Boolean =
+  {
+    if (!inflected.endsWith(SUFFIX_ING)) {
+      false
+    } else {
+      wordnet.isPotentialAdjective(inflected)
+    }
   }
 
   override def getPronounMap(

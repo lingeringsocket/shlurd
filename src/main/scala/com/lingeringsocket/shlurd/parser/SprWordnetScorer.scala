@@ -197,6 +197,27 @@ object SprWordnetScorer
     })
   }
 
+  def matchState(
+    frameFlags : BitSet,
+    subject : SilReference,
+    state : SilState,
+    modifiers : Seq[SilVerbModifier]) : Int =
+  {
+    frameFlags.count(_ match {
+      case 6 => {
+        // Something ----s Adjective/Noun
+        true
+      }
+      case 7 => {
+        // Somebody ----s Adjective
+        true
+      }
+      case _ => {
+        false
+      }
+    })
+  }
+
   private def hasAdposition(
     modifiers : Seq[SilVerbModifier],
     adp : SilAdposition) : Boolean =
@@ -239,16 +260,24 @@ class SprWordnetScorer(
     scoreConjunctiveSentences,
     scoreAppositions,
     scoreTam,
-    scoreVerbFrames
+    scoreVerbFrames,
+    scoreAgreement
   ) ++ tongue.getPhraseScorers
 
   private def scoreTam = phraseScorer {
     case s : SilSentence if (
       (s.tam.modality != MODAL_NEUTRAL) || s.tam.isNegative
     ) => {
-      val tests = Seq((s.tam.modality != MODAL_NEUTRAL), s.tam.isNegative)
+      val tests = Seq(
+        (s.tam.modality != MODAL_NEUTRAL),
+        s.tam.isNegative)
       val boost = 2 * tests.count(truth => truth)
       SilPhraseScore.numeric(boost * SilPhraseScore.proBig.pro)
+    }
+    case s : SilSentence if (
+      s.tam.isProgressive
+    ) => {
+      SilPhraseScore.proSmall
     }
   }
 
@@ -398,6 +427,56 @@ class SprWordnetScorer(
         tongue, frameFlags, subject, directObject, modifiers)
       if (matched > 0) {
         SilPhraseScore.pro(matched)
+      } else {
+        SilPhraseScore.neutral
+      }
+    }
+    case SilStatePredicate(
+      subject,
+      SilWordLemma(lemma),
+      state,
+      modifiers
+    ) => {
+      state match {
+        case SilPropertyState(
+          SilWordInflected(inflected)
+        ) if (
+          tongue.isPotentialGerund(inflected)
+        ) => {
+          SilPhraseScore.neutral
+        }
+        case _ => {
+          val frameFlags = wordnet.getVerbFrameFlags(lemma)
+          val matched = SprWordnetScorer.matchState(
+            frameFlags, subject, state, modifiers)
+          if (matched > 0) {
+            SilPhraseScore.proBig
+          } else {
+            SilPhraseScore.neutral
+          }
+        }
+      }
+    }
+  }
+
+  private def scoreAgreement = phraseScorer {
+    case pr : SilPredicate => {
+      // for now we just use person; probably should use
+      // gender and count as well
+      val subject = pr.getSubject
+      val verbPerson = pr.getInflectedPerson
+      val person = subject match {
+        case pr : SilPronounReference => {
+          if (pr.isElided) {
+            verbPerson
+          } else {
+            pr.person
+          }
+        }
+        case _ => PERSON_THIRD
+      }
+      if (person != verbPerson) {
+        SilPhraseScore.conSmall
       } else {
         SilPhraseScore.neutral
       }

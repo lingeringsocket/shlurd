@@ -35,7 +35,10 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
 
   def normalize(sentence : SilSentence) : SilSentence =
   {
-    rewrite(normalizeAllPhrases, sentence, SilRewriteOptions(repeat = true))
+    rewrite(
+      normalizeAllPhrases,
+      sentence,
+      SilRewriteOptions(repeat = true))
   }
 
   private def normalizeAllPhrases = combineRules(
@@ -48,6 +51,7 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     normalizeCompoundAdpositions,
     normalizeAdpositionalPhrases,
     normalizeDeterminedSpecifiers,
+    normalizeQueries,
     normalizeCommands
   )
 
@@ -296,6 +300,35 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
           SilExistenceState(),
           verbModifiers :+ SilBasicVerbModifier(w)
         )
+      }
+    }
+  )
+
+  private def normalizeQueries = replacementMatcher(
+    "normalizeQueries", {
+      case SilPredicateQuery(
+        pred @ SilRelationshipPredicate(
+          pr : SilPronounReference,
+          verb,
+          rhs,
+          modifiers),
+        QUESTION_WHO,
+        answerInflection,
+        tam,
+        formality
+      ) => {
+        val newPred = SilRelationshipPredicate(
+          rhs,
+          verb,
+          pr,
+          modifiers)
+        newPred.setInflectedAttributes(pred.getInflectedAttributes)
+        SilPredicateQuery(
+          newPred,
+          QUESTION_WHO,
+          answerInflection,
+          tam,
+          formality)
       }
     }
   )

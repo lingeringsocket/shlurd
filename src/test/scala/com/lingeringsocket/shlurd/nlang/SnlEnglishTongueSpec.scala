@@ -52,6 +52,14 @@ class SnlEnglishTongueSpec extends Specification
       pronounLemmas.size must be equalTo 35
     }
 
+    "detect potential gerunds" in
+    {
+      tongue.isPotentialGerund("running") must beTrue
+      tongue.isPotentialGerund("king") must beFalse
+      tongue.isPotentialGerund("run") must beFalse
+      tongue.isPotentialGerund("red") must beFalse
+    }
+
     "transform predefs" in
     {
       val forwardSize = SnlEnglishLexicon.predefToLemma.size

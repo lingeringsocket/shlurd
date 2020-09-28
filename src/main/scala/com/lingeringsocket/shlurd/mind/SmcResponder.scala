@@ -519,10 +519,10 @@ class SmcResponder[
                 }
                 case (
                   INFLECT_COMPLEMENT,
-                  SilStatePredicate(_, _, state, _)
+                  SilStatePredicate(subject, _, state, _)
                 ) => {
                   sentencePrinter.print(
-                    state, tamResponse, SilConjoining.NONE)
+                    state, tamResponse, Some(subject), SilConjoining.NONE)
                 }
                 case (
                   INFLECT_ADPOSITIONED,

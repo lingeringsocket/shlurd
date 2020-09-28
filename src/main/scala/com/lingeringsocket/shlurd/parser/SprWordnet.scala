@@ -24,15 +24,8 @@ import scala.collection.JavaConverters._
 
 import java.util.regex._
 
-object ShlurdEnglishAffixes
-{
-  val SUFFIX_ING = "ing"
-}
-
 trait SprWordnet
 {
-  import ShlurdEnglishAffixes._
-
   def getDictionary : Dictionary
 
   def getMorphology : MorphologicalProcessor
@@ -125,18 +118,6 @@ trait SprWordnet
     Option(getDictionary.getIndexWord(POS.VERB, inflected)) match {
       case Some(indexWord) => true
       case _ => false
-    }
-  }
-
-  def isPotentialGerund(inflected : String) : Boolean =
-  {
-    if (!inflected.endsWith(SUFFIX_ING)) {
-      false
-    } else {
-      Option(getDictionary.getIndexWord(POS.ADJECTIVE, inflected)) match {
-        case Some(indexWord) => true
-        case _ => false
-      }
     }
   }
 

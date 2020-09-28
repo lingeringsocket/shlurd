@@ -107,19 +107,27 @@ class SnlSpanishSentenceBundle(
   }
 
   override def delemmatizeState(
-    word : SilWord, tam : SilTam, conjoining : SilConjoining) : String =
+    word : SilWord, tam : SilTam,
+    person : SilPerson,
+    gender : SilGender,
+    count : SilCount,
+    conjoining : SilConjoining) : String =
   {
     val decomposed = word.decomposed
     val state = decomposed.last
     val unseparated = {
       if (state.inflected.isEmpty) {
-        // FIXME irregulars such as roto
-        val lemma = state.lemmaUnfolded
-        if (lemma.endsWith("r")) {
-          concat(lemma.dropRight(1), "do")
-        } else {
-          lemma
+        val uncorrected = {
+          // FIXME irregulars such as roto
+          val lemma = state.lemmaUnfolded
+          if (lemma.endsWith("r")) {
+            concat(lemma.dropRight(1), "do")
+          } else {
+            lemma
+          }
         }
+        tongue.correctGenderCount(
+          uncorrected, gender, count, true)
       } else {
         state.inflected
       }

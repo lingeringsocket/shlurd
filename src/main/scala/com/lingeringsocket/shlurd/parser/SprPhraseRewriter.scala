@@ -50,8 +50,9 @@ class SprPhraseRewriter(
 
   def rewritePhrase[PhraseType <: SilPhrase](phrase : PhraseType) : SilPhrase =
   {
-    rewrite(
+    val rewritten = rewrite(
       replaceAllPhrases, phrase, SilRewriteOptions(repeat = true))
+    rewrite(resolveAmbiguousSentence, rewritten)
   }
 
   private def validateTransformations = queryMatcher {
@@ -323,6 +324,15 @@ class SprPhraseRewriter(
     }
   )
 
+  private def resolveAmbiguousSentence = replacementMatcher(
+    "resolveAmbiguousSentence", {
+      case ambiguous : SilAmbiguousSentence if (!ambiguous.done) => {
+        val resolver = new SprAmbiguityResolver(context)
+        resolver.resolveAmbiguousSentence(ambiguous)
+      }
+    }
+  )
+
   private def replaceUnresolvedWithUnrecognized = replacementMatcher(
     "relaceUnresolvedWithUnrecognized", {
       case predicate : SipUnresolvedStatePredicate => {
@@ -471,7 +481,7 @@ class SprAmbiguityResolver(context : SprContext)
         } else if (candidates.size < 20) {
           resolveAmbiguousSeq(candidates)
         } else {
-          SilAmbiguousSentence(candidates, true)
+          candidates.head
         }
       }
     }
@@ -493,7 +503,7 @@ class SprAmbiguityResolver(context : SprContext)
             seq.patch(iFirst, Seq(resolved), 1).patch(iSecond, Seq.empty, 1))
         })
       })
-      SilAmbiguousSentence(seq, true)
+      seq.head
     }
   }
 

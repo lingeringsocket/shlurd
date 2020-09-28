@@ -150,6 +150,7 @@ class SmcUnrecognizedResponder(
               sentencePrinter.print(
                 state,
                 tam,
+                Some(subject),
                 SilConjoining.NONE)
             }
             case _ => complement.toWordString

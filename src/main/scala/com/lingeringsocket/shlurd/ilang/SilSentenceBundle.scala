@@ -131,6 +131,9 @@ abstract class SilSentenceBundle
 
   def delemmatizeState(
     state : SilWord, tam : SilTam,
+    person : SilPerson,
+    gender : SilGender,
+    count : SilCount,
     conjoining : SilConjoining) : String
 
   def delemmatizeQualifier(qualifier : SilWord) : String

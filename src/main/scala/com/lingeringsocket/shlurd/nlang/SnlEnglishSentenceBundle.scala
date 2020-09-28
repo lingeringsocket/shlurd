@@ -22,7 +22,7 @@ import com.ibm.icu.text._
 import java.util._
 
 import SnlEnglishLemmas._
-import ShlurdEnglishAffixes._
+import SnlEnglishAffixes._
 
 object SnlEnglishSentenceBundle
 {
@@ -251,7 +251,11 @@ class SnlEnglishSentenceBundle(
   }
 
   override def delemmatizeState(
-    word : SilWord, tam : SilTam, conjoining : SilConjoining) =
+    word : SilWord, tam : SilTam,
+    person : SilPerson,
+    gender : SilGender,
+    count : SilCount,
+    conjoining : SilConjoining) =
   {
     val decomposed = word.decomposed
     val state = decomposed.last

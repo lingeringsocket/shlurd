@@ -40,8 +40,6 @@ abstract class SprAbstractSyntaxAnalyzer(
     tree.children.filterNot(_.isPause)
   }
 
-  protected def allowElidedSubject() : Boolean = false
-
   protected def applyInterrogative(tam : SilTam) : SilTam =
   {
     tam.withMood(MOOD_INTERROGATIVE)
@@ -537,9 +535,9 @@ abstract class SprAbstractSyntaxAnalyzer(
 
   protected def rememberPredicateInflection(
     predicate : SilPredicate,
-    auxInflection : SilVerbInflection)
+    verbInflection : SilVerbInflection)
   {
-    predicate.setInflectedAttributes(auxInflection)
+    predicate.setInflectedAttributes(verbInflection)
   }
 
   protected def rememberPredicateInflection(

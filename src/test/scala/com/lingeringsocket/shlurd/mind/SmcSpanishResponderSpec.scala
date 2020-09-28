@@ -201,7 +201,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("hay un tigre en la jaula pequeña?") must be equalTo(
         "No, no hay un tigre en la jaula pequeña.")
       processExceptionExpected(
-        "el tigre en la jaula pequeña está despierto?",
+        "{el tigre en la jaula pequeña} está despierto?",
         "But I don't know about any such tigre.",
         ShlurdExceptionCode.NonExistent)
       process("la cabra en la granja está despierta?") must be equalTo(
@@ -284,9 +284,9 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "y la cabra niñera están dormidas."
       process("cuál cabra está dormida?") must be equalTo(list)
       process("cuáles cabras están dormidas") must be equalTo(list)
-      process("cuál cabra en la granja está dormida?") must be equalTo(
+      process("{cuál cabra en la granja} está dormida?") must be equalTo(
         "La cabra doméstica está dormida.")
-      process("cuál cabra en la granja está despierta?") must be equalTo(
+      process("{cuál cabra en la granja} está despierta?") must be equalTo(
         "Ninguna cabra en la granja está despierta.")
       process("cuántas cabras están despiertas?") must be equalTo(
         "Ningunas cabras están despiertas.")
@@ -324,6 +324,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Eres Malcolm.")
       process("quién soy yo?") must be equalTo(
         "Tú eres Malcolm.")
+      process("yo soy quién?") must be equalTo(
+        "Tú eres Malcolm.")
       process("quién eres?") must be equalTo(
         "Soy Muldoon.")
       process("quién eres tú?") must be equalTo(
@@ -338,23 +340,39 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("cuántas cabras están dormidas en la granja?") must be equalTo(
         "Una de ellas está dormida.")
       process("cuál cabra está dormida en la granja ?") must be equalTo(
-        "La cabra doméstica está dormida.")
-      // FIXME: response should use inverted order
+        "La cabra doméstica está dormida en la granja.")
       process("cuántos osos hay?") must be equalTo(
-        "Dos de ellos hay.")
+        "Hay dos de ellos.")
       process("cuántos osos hay en la jaula pequeña?") must be equalTo(
-        "Uno de ellos hay en la jaula pequeña.")
+        "Hay uno de ellos en la jaula pequeña.")
       process("cuáles animales están en la jaula grande?") must be equalTo(
         "El león y el tigre están en la jaula grande.")
     }
 
     "understand inverted order" in new SpanishResponderContext
     {
-      skipped("not working yet")
+      process("Muldoon es una persona") must be equalTo(
+        "Claro, Muldoon es una persona.")
+      process("es Muldoon una persona") must be equalTo(
+        "Claro, Muldoon es una persona.")
+
+      process("es Muldoon una persona?") must be equalTo(
+        "Sí, Muldoon es una persona.")
+      process("Muldoon es una persona?") must be equalTo(
+        "Sí, Muldoon es una persona.")
+
       process("está el león dormido?") must be equalTo(
+        "Sí, el león está dormido.")
+      process("el león está dormido?") must be equalTo(
         "Sí, el león está dormido.")
       process("está dormido el león?") must be equalTo(
         "Sí, el león está dormido.")
+
+      process("el tigre está en la jaula grande?") must be equalTo(
+        "Sí, el tigre está en la jaula grande.")
+      process("está en la jaula grande el tigre?") must be equalTo(
+        "Sí, el tigre está en la jaula grande.")
+
       process("hay cuántos osos?") must be equalTo(
         "Hay dos de ellos.")
     }

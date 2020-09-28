@@ -672,9 +672,10 @@ class SpcComprehensionSpec extends SpcResponseSpecification
       "Yes, Lusitania is sinking.",
       "Yes.",
       "Yes, it is.")
-    process(
+    processExceptionExpected(
       "is Herbie cruising",
-      "I don't know.")
+      "Sorry, I don't know what 'cruise' means for Herbie.",
+      ShlurdExceptionCode.UnknownState)
     processExceptionExpected(
       "is Herbie pink",
       "Sorry, I don't know what 'pink' means for Herbie.",

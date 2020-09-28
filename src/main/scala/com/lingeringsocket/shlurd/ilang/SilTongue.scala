@@ -35,6 +35,8 @@ trait SilTongue extends SilGenderAnalyzer
 
   def allowDoubleNegatives : Boolean = false
 
+  def allowElidedSubject : Boolean = false
+
   def combinePolarities(
     truthBoolean : Boolean,
     negateCollection : Boolean,

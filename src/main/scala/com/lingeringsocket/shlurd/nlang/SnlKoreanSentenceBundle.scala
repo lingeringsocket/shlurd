@@ -156,7 +156,11 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
   }
 
   override def delemmatizeState(
-    state : SilWord, tam : SilTam, conjoining : SilConjoining) =
+    state : SilWord, tam : SilTam,
+    person : SilPerson,
+    gender : SilGender,
+    count : SilCount,
+    conjoining : SilConjoining) =
   {
     // FIXME:  conjoining
     conjugateAdjective(state.toLemma, tam)

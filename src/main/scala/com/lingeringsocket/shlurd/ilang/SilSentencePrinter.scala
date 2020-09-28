@@ -194,7 +194,8 @@ class SilSentencePrinter(
   }
 
   def print(
-    state : SilState, tam : SilTam, conjoining : SilConjoining)
+    state : SilState, tam : SilTam,
+    subjectOpt : Option[SilReference], conjoining : SilConjoining)
       : String =
   {
     state match {
@@ -202,7 +203,21 @@ class SilSentencePrinter(
         ""
       }
       case SilPropertyState(state) => {
-        sb.delemmatizeState(state, tam, conjoining)
+        val (person, gender, count) = subjectOpt match {
+          case Some(subject) => {
+            getSubjectAttributes(subject)
+          }
+          case _ => {
+            tupleN((PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR))
+          }
+        }
+        sb.delemmatizeState(
+          state,
+          tam,
+          person,
+          gender,
+          count,
+          conjoining)
       }
       case SilPropertyQueryState(propertyName) => {
         propertyName
@@ -215,7 +230,7 @@ class SilSentencePrinter(
           determiner, separator, INFLECT_NONE,
           states.zipWithIndex.map {
             case (s, i) => print(
-              s, tam,
+              s, tam, subjectOpt,
               SilConjoining(determiner, separator, i, states.size))
           }
         )
@@ -249,7 +264,7 @@ class SilSentencePrinter(
         sb.changeStateVerb(state, changeVerb)
       }
       // FIXME:  conjoining, e.g. "close and lock the door"
-      case _ => print(state, SilTam.imperative, SilConjoining.NONE)
+      case _ => print(state, SilTam.imperative, None, SilConjoining.NONE)
     }
   }
 
@@ -264,7 +279,7 @@ class SilSentencePrinter(
           if (ellipsis && (!state.isInstanceOf[SilExistenceState])) {
             ELLIPSIS_MARKER
           } else {
-            print(state, tam, SilConjoining.NONE)
+            print(state, tam, Some(subject), SilConjoining.NONE)
           }
         }
         val existentialPronoun = getExistentialPronoun(state)
@@ -432,7 +447,7 @@ class SilSentencePrinter(
     predicate match {
       case SilStatePredicate(subject, verb, state, modifiers) => {
         val existentialPronoun = getExistentialPronoun(state)
-        val stateString = print(state, tam, SilConjoining.NONE)
+        val stateString = print(state, tam, Some(subject), SilConjoining.NONE)
         sb.statePredicateQuestion(
           subjectString,
           getVerbSeq(
