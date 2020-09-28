@@ -24,7 +24,7 @@ class SnlEnglishSyntaxAnalyzer(
   guessedQuestion : Boolean,
   strictness : SprStrictness,
   enforceTransitive : Boolean
-) extends SnlSyntaxAnalyzer(
+) extends SnlCorenlpSyntaxAnalyzer(
   context, guessedQuestion, strictness, enforceTransitive)
 {
   override protected def isImperative(children : Seq[SprSyntaxTree]) =

@@ -411,4 +411,17 @@ abstract class SnlRomanceSyntaxAnalyzer(
     sentenceOpt.foreach(s => s.rememberSyntaxTree(tree))
     sentenceOpt
   }
+
+  override def analyzeSBARQ(tree : SptSBARQ)
+      : SilSentence =
+  {
+    SilUnrecognizedSentence(tree)
+  }
+
+  override def analyzeSQ(
+    tree : SprSyntaxTree, forceSQ : Boolean)
+      : SilSentence =
+  {
+    SilUnrecognizedSentence(tree)
+  }
 }
