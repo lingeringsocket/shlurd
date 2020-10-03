@@ -149,28 +149,15 @@ object SnlEnglishAffixes
 }
 import SnlEnglishAffixes._
 
-object SprLexicon
-{
-  def readLexicon(resource : String) : Set[String] =
-  {
-    val words = ResourceUtils.getResourceSource(resource).getLines
-    Set(words.toSeq:_*)
-  }
-
-  val stopListPunct = Set(
-    LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY
-  )
-}
-
 object SnlEnglishLexicon
 {
-  import SprLexicon._
+  import SnlUtils._
 
   val prepositions = readLexicon("/english/prepositions.txt")
 
   val subordinates = readLexicon("/english/subordinates.txt")
 
-  val proper = readLexicon("/english/proper.txt")
+  val proper = readLexicon("/proper_names.txt")
 
   // adapted from
   // http://www.d.umn.edu/~tpederse/Group01/WordNet/wordnet-stoplist.html

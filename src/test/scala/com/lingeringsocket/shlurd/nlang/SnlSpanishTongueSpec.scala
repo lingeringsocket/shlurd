@@ -54,6 +54,45 @@ class SnlSpanishTongueSpec extends Specification
       // tongue.pluralizeNoun("imagen") must be equalTo "imágenes"
     }
 
+    "derive gender" in
+    {
+      // explicitly coded in our lexicon
+      tongue.deriveGender(SilWord(
+        "perro"
+      )) must be equalTo GENDER_MASCULINE
+      tongue.deriveGender(SilWord(
+        "elefante"
+      )) must be equalTo GENDER_MASCULINE
+      tongue.deriveGender(SilWord(
+        "perra"
+      )) must be equalTo GENDER_FEMININE
+      tongue.deriveGender(SilWord(
+        "problema"
+      )) must be equalTo GENDER_MASCULINE
+      tongue.deriveGender(SilWord(
+        "ciudad"
+      )) must be equalTo GENDER_FEMININE
+
+      // made-up regulars
+      tongue.deriveGender(SilWord(
+        "hydroxicloro"
+      )) must be equalTo GENDER_MASCULINE
+      tongue.deriveGender(SilWord(
+        "hydroxiclore"
+      )) must be equalTo GENDER_MASCULINE
+      tongue.deriveGender(SilWord(
+        "hydroxiclora"
+      )) must be equalTo GENDER_FEMININE
+
+      // made-up irregulars
+      tongue.deriveGender(SilWord(
+        "hydroxicloridad"
+      )) must be equalTo GENDER_FEMININE
+      tongue.deriveGender(SilWord(
+        "hydroxiclorema"
+      )) must be equalTo GENDER_MASCULINE
+    }
+
     "produce pronoun lemmas" in
     {
       val pronounLemmas = tongue.getPronounLemmas

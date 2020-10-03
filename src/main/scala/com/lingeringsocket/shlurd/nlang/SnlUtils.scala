@@ -14,8 +14,11 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.nlang
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
+
+import SprPennTreebankLabels._
 
 object SnlUtils
 {
@@ -35,6 +38,10 @@ object SnlUtils
     SilBasicAnnotator(),
     SilGenderPreserver)
 
+  val stopListPunct = Set(
+    LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY
+  )
+
   def debug(s : String)
   {
     SprParser.tokenize(s).foreach(sentence => {
@@ -42,5 +49,26 @@ object SnlUtils
         SnlUtils.defaultContext, sentence, true)
       println("SHLURD = " + parser.parseOne)
     })
+  }
+
+  def readLexicon(resource : String) : Set[String] =
+  {
+    val words = ResourceUtils.getResourceSource(resource).getLines
+    Set(words.toSeq:_*)
+  }
+
+  def readGenderMap(resource : String) : Map[String, String] =
+  {
+    val entries = ResourceUtils.getResourceSource(resource).getLines
+    entries.toSeq.map(entry => {
+      val i = entry.lastIndexOf(' ')
+      val (word, noisy) = entry.splitAt(i)
+      val gender = noisy.stripPrefix(" {").stripSuffix("}")
+      assert(Set("m", "f", "mf", "mp", "fp", "mfp").contains(gender), gender)
+      tupleN((
+        word,
+        gender
+      ))
+    }).toMap
   }
 }

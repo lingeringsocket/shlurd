@@ -165,15 +165,17 @@ case class SprPronounCoord(
 
 object SnlSpanishLexicon
 {
-  import SprLexicon._
+  import SnlUtils._
   import SnlSpanishLemmas._
 
   val prepositions = readLexicon("/spanish/prepositions.txt")
 
   val subordinates = readLexicon("/spanish/subordinates.txt")
 
-  // FIXME
-  val proper = readLexicon("/english/proper.txt")
+  // for now these are all rolled together
+  val proper = SnlEnglishLexicon.proper
+
+  val nounGenders = readGenderMap("/spanish/gender.txt")
 
   val stopList = Set(
     "ella"
@@ -979,20 +981,26 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def deriveGender(word : SilWord) : SilGender =
   {
-    val glosses = wordnet.getNounSenses(word.toNounLemma).
-      flatMap(sense => {
-        wordnet.getGlossDefinitions(sense)
-      })
-    glosses.headOption.flatMap(_ match {
-      case "m" => Some(GENDER_MASCULINE)
-      case "f" => Some(GENDER_FEMININE)
-      case _ => None
-    }).getOrElse {
-      val lemma = word.toNounLemma
-      if (lemma.endsWith("o") || lemma.endsWith("os")) {
+    val lemma = word.toNounLemma
+    nounGenders.get(lemma).map(
+      // FIXME for "mf" and "mfp", we should keep it fluid
+      _ match {
+        case "f" | "fp" => GENDER_FEMININE
+        case _ => GENDER_MASCULINE
+      }
+    ).getOrElse {
+      if (lemma.endsWith("o") || lemma.endsWith("os") ||
+        lemma.endsWith("ma") || lemma.endsWith("mas"))
+      {
         GENDER_MASCULINE
-      } else {
+      } else if (lemma.endsWith("a") || lemma.endsWith("as") ||
+        lemma.endsWith("sión") || lemma.endsWith("ción") ||
+        lemma.endsWith("dad") || lemma.endsWith("tud") ||
+        lemma.endsWith("umbre"))
+      {
         GENDER_FEMININE
+      } else {
+        GENDER_MASCULINE
       }
     }
   }
