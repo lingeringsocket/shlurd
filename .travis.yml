@@ -11,6 +11,11 @@ dist: trusty
 before_install:
   - sudo apt-get install graphviz
 
+install:
+  - wget https://github.com/lingeringsocket/extjwnl-data-mcr30-2016/archive/master.zip
+  - unzip master.zip
+  - pushd extjwnl-data-mcr30-2016-master && ./publishLocal.sh && popd
+
 script:
   - set -e
   - sbt -jvm-opts .travis-jvmopts ++$TRAVIS_SCALA_VERSION clean test scalastyle test:scalastyle

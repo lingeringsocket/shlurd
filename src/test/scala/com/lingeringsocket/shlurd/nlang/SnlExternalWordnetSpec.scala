@@ -53,5 +53,12 @@ class SnlExternalWordnetSpec extends Specification
       // noun with exceptional form declared in wordnet
       wordnet.isPotentialPlural("leones") must beTrue
     }
+
+    "support big wordnet" in
+    {
+      val big = new SnlExternalWordnet("/extjwnl_data_spa.xml")
+      val senses = big.getVerbSenses("caminar")
+      senses.size must be equalTo 10
+    }
   }
 }

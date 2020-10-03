@@ -38,5 +38,5 @@ object Common
   def specs2Deps = Seq(
     "org.specs2" %% "specs2-core" % "4.0.3" % "test")
 
-  def resolvers = Seq(Resolver.sonatypeRepo("snapshots"))
+  def resolvers = Seq(Resolver.sonatypeRepo("snapshots"), Resolver.mavenLocal)
 }
