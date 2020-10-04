@@ -316,6 +316,9 @@ abstract class SnlRomanceSyntaxAnalyzer(
   ) : Option[SilSentence] =
   {
     assert(frame.auxVerbOpt.isEmpty)
+    if (frame.mainVerb.children.size != 1) {
+      return None
+    }
     val mainVerbLeaf = requireLeaf(frame.mainVerb.children)
     val mainVerb = getWord(mainVerbLeaf)
     val modifiers = expectVerbModifiers(frame.modifiers)

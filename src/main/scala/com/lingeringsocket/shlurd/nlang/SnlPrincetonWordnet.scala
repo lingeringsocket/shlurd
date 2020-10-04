@@ -17,6 +17,9 @@ package com.lingeringsocket.shlurd.nlang
 import com.lingeringsocket.shlurd.parser._
 
 import net.sf.extjwnl.dictionary._
+import net.sf.extjwnl.data._
+
+import scala.collection._
 
 object SnlPrincetonWordnet extends SprWordnet
 {
@@ -27,4 +30,19 @@ object SnlPrincetonWordnet extends SprWordnet
   override def getDictionary = dictionary
 
   override def getMorphology = morphology
+
+  override def getAdjectiveLemma(
+    token : String,
+    lemma : String,
+    alternatives : Set[IndexWord]
+  ) : String =
+  {
+    // try to match the way CoreNLP lemmatizes gerunds and participles
+    if (isPotentialNoun(token)) {
+      lemma
+    } else {
+      alternatives.find(v => (v.getPOS == POS.VERB)).
+        map(_.getLemma).getOrElse(lemma)
+    }
+  }
 }

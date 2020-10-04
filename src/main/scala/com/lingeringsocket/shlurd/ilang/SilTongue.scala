@@ -38,6 +38,7 @@ trait SilTongue extends SilGenderAnalyzer
   def allowElidedSubject : Boolean = false
 
   def combinePolarities(
+    predicate : SilPredicate,
     truthBoolean : Boolean,
     negateCollection : Boolean,
     subjectVariable : Boolean) : Boolean =

@@ -226,8 +226,9 @@ class SprWordnetLabeler(
         Set(SptNNP(makeLeaf(word, word, word)))
       } else {
         val pairs = partsOfSpeech.flatMap(pos => {
-          wordnet.getMorphology.lookupAllBaseForms(pos, tokenSuffix).
-            asScala.map(
+          val baseForms = wordnet.getMorphology.
+            lookupAllBaseForms(pos, tokenSuffix).asScala
+          baseForms.map(
               lemma => tupleN((pos, lemma))).toSet
         })
         val rawWords = pairs.flatMap {
@@ -270,8 +271,17 @@ class SprWordnetLabeler(
     } ++ {
       indexWords
     }
-    if (combined.nonEmpty) {
-      combined
+
+    // ugh
+    val condensed = combined.filterNot(x => {
+      (x.label == LABEL_NNS) && (x.firstChild.lemma == x.firstChild.token) &&
+      combined.exists(y =>
+        (y.label == LABEL_NNS) && (y.firstChild.token == x.firstChild.token) &&
+          (y.firstChild.lemma != x.firstChild.lemma))
+    })
+
+    if (condensed.nonEmpty) {
+      condensed
     } else {
       val set : Set[SprSyntaxTree] = token match {
         case LABEL_COMMA => Set(SptCOMMA(leaf))
@@ -384,7 +394,7 @@ class SprWordnetLabeler(
       case POS.ADJECTIVE => Set(LABEL_JJ)
       case POS.ADVERB => Set(LABEL_RB)
       case POS.NOUN => {
-        if ((tokenSuffix != lemma) || wordnet.isPlural(indexWord)) {
+        if (tongue.isPluralNoun(tokenSuffix, lemma, indexWord)) {
           Set(LABEL_NNS)
         } else {
           if (forceProper) {
@@ -399,9 +409,9 @@ class SprWordnetLabeler(
       }
     }
     labels.map(label => {
-      // try to match the way CoreNLP lemmatizes gerunds and participles
       val conformedLemma = {
         label match {
+          // try to match the way CoreNLP lemmatizes participles
           case LABEL_VBN => {
             if (wordnet.isPotentialNoun(tokenSuffix)) {
               tokenSuffix
@@ -410,12 +420,7 @@ class SprWordnetLabeler(
             }
           }
           case LABEL_JJ => {
-            if (wordnet.isPotentialNoun(tokenSuffix)) {
-              lemma
-            } else {
-              alternatives.find(v => (v.getPOS == POS.VERB)).
-                map(_.getLemma).getOrElse(lemma)
-            }
+            wordnet.getAdjectiveLemma(tokenSuffix, lemma, alternatives)
           }
           case _ => lemma
         }

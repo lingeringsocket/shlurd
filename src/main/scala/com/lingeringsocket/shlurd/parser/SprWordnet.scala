@@ -121,24 +121,6 @@ trait SprWordnet
     }
   }
 
-  def isPotentialPlural(noun : String) : Boolean =
-  {
-    val bases = getMorphology.lookupAllBaseForms(POS.NOUN, noun).asScala
-    return (bases.size > 1) || (!bases.isEmpty && !bases.contains(noun))
-  }
-
-  def isPlural(indexWord : IndexWord) : Boolean =
-  {
-    val senses = indexWord.getSenses.asScala
-    senses.exists(s => {
-      val equivalents = s.getWords.asScala.
-        filter(w => isPlainWord(w.getLemma)).
-        filter(_.getLemma != indexWord.getLemma)
-      s.getGloss.startsWith("(plural) ") ||
-        (equivalents.count(w => isPotentialPlural(w.getLemma)) > 1)
-    })
-  }
-
   def isPlainWord(word : String) : Boolean =
   {
     plainPattern.matcher(word).matches
@@ -193,5 +175,14 @@ trait SprWordnet
     val gloss = synset.getGloss
     gloss.split(';').map(_.trim).filter(_.startsWith(quote)).map(
       _.stripPrefix(quote).stripSuffix(quote))
+  }
+
+  def getAdjectiveLemma(
+    token : String,
+    lemma : String,
+    alternatives : Set[IndexWord]
+  ) : String =
+  {
+    lemma
   }
 }

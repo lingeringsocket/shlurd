@@ -18,7 +18,7 @@ import org.specs2.mutable._
 
 object SnlExternalWordnetSpec
 {
-  private val wordnet = new SnlExternalWordnet("/spanish_net.xml")
+  private val wordnet = new SnlExternalWordnet("/extjwnl_data_spa.xml")
 }
 
 class SnlExternalWordnetSpec extends Specification
@@ -30,35 +30,13 @@ class SnlExternalWordnetSpec extends Specification
     "support multiple languages" in
     {
       val senses = wordnet.getVerbSenses("caminar")
-      senses.size must be equalTo 1
+      senses.size must be equalTo 10
       val sense = senses.head
       val senseId = wordnet.getSenseId(sense)
-      senseId must be equalTo "v:0"
+      senseId must be equalTo "v:1339661"
       val found = wordnet.findSense(senseId)
       found must be equalTo sense
       wordnet.findSenses(senseId) must be equalTo Seq(sense)
-    }
-
-    "support plurals" in
-    {
-      // regular singular noun declared in wordnet
-      wordnet.isPotentialPlural("cabra") must beFalse
-
-      // regular plural noun with singular declared in wordnet
-      wordnet.isPotentialPlural("cabras") must beTrue
-
-      // noun not declared in wordnet
-      wordnet.isPotentialPlural("crisis") must beFalse
-
-      // noun with exceptional form declared in wordnet
-      wordnet.isPotentialPlural("leones") must beTrue
-    }
-
-    "support big wordnet" in
-    {
-      val big = new SnlExternalWordnet("/extjwnl_data_spa.xml")
-      val senses = big.getVerbSenses("caminar")
-      senses.size must be equalTo 10
     }
   }
 }

@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
+import scala.collection.JavaConverters._
 
 import net.sf.extjwnl.data._
 
@@ -417,6 +418,20 @@ abstract class SprTongue(wordnet : SprWordnet)
   def possibleCompoundVerb(seq : Seq[String]) : Boolean = true
 
   def pluralizeNoun(lemma : String) : String
+
+  def isPluralNoun(
+    token : String,
+    lemma : String,
+    indexWord : IndexWord) : Boolean =
+  {
+    if (token != lemma) {
+      true
+    } else {
+      val bases = wordnet.getMorphology.lookupAllBaseForms(
+        POS.NOUN, lemma).asScala
+      bases.nonEmpty && bases.forall(b => pluralizeNoun(b) == lemma)
+    }
+  }
 
   protected def usageScore(lemma : String, pos : POS) : SilPhraseScore =
   {

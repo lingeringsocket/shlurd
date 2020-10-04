@@ -21,6 +21,7 @@ import com.lingeringsocket.shlurd.parser._
 import net.sf.extjwnl.data._
 
 import scala.collection._
+import scala.collection.JavaConverters._
 
 import org.atteo.evo.inflector.{English => EnglishPluralizer}
 
@@ -961,6 +962,32 @@ class SnlEnglishTongue(wordnet : SprWordnet)
   override def pluralizeNoun(lemma : String) : String =
   {
     EnglishPluralizer.plural(lemma)
+  }
+
+  def isPotentialPlural(noun : String) : Boolean =
+  {
+    val bases = wordnet.getMorphology.lookupAllBaseForms(
+      POS.NOUN, noun).asScala
+    return (bases.size > 1) || (!bases.isEmpty && !bases.contains(noun))
+  }
+
+  override def isPluralNoun(
+    token : String,
+    lemma : String,
+    indexWord : IndexWord) : Boolean =
+  {
+    if (token != lemma) {
+      true
+    } else {
+      val senses = indexWord.getSenses.asScala
+      senses.exists(s => {
+        val equivalents = s.getWords.asScala.
+          filter(w => wordnet.isPlainWord(w.getLemma)).
+          filter(_.getLemma != indexWord.getLemma)
+        s.getGloss.startsWith("(plural) ") ||
+        (equivalents.count(w => isPotentialPlural(w.getLemma)) > 1)
+      })
+    }
   }
 
   override protected def getMatcherResource() =

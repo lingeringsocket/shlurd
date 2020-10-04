@@ -61,7 +61,7 @@ class SmcResponderSpecification extends Specification
               }
             case SilAdpositionalState(
               SprPredefAdposition(PD_IN),
-              SilMandatorySingular(
+              SilMandatoryPlural(
                 inflected @ SilWordInflected("sueños")
               )) =>
               {

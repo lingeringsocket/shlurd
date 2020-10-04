@@ -498,7 +498,10 @@ class SmcResponder[
           trace(s"NORMALIZED RESPONSE : $normalizedResponse")
           val tamResponse = tam.withMood(MOOD_INDICATIVE).withPolarity(
             tongue.combinePolarities(
-              truthBoolean, negateCollection, subjectVariable)).
+              rewrittenPredicate,
+              truthBoolean,
+              negateCollection,
+              subjectVariable)).
             withModality(tam.unemphaticModality)
           val responseSentence = SilPredicateSentence(
             normalizedResponse,
@@ -611,7 +614,10 @@ class SmcResponder[
                   query match {
                     case SilStatePredicate(_, _, SilExistenceState(_), _) => {
                       tongue.combinePolarities(
-                        truthBoolean, negateCollection, subjectVariable)
+                        query,
+                        truthBoolean,
+                        negateCollection,
+                        subjectVariable)
                     }
                     case _ => {
                       truthBoolean
@@ -619,7 +625,10 @@ class SmcResponder[
                   }
                 }
                 case _ => tongue.combinePolarities(
-                  truthBoolean, negateCollection, subjectVariable)
+                  query,
+                  truthBoolean,
+                  negateCollection,
+                  subjectVariable)
               }
               val tamResponse = tam.withMood(MOOD_INDICATIVE).
                 withPolarity(responseTruth).withModality(tam.unemphaticModality)

@@ -422,13 +422,17 @@ class SprWordnetScorer(
       directObject,
       modifiers
     ) => {
-      val frameFlags = wordnet.getVerbFrameFlags(lemma)
-      val matched = SprWordnetScorer.matchAction(
-        tongue, frameFlags, subject, directObject, modifiers)
-      if (matched > 0) {
-        SilPhraseScore.pro(matched)
+      if (tongue.isBeingLemma(lemma)) {
+        SilPhraseScore.conSmall
       } else {
-        SilPhraseScore.neutral
+        val frameFlags = wordnet.getVerbFrameFlags(lemma)
+        val matched = SprWordnetScorer.matchAction(
+          tongue, frameFlags, subject, directObject, modifiers)
+        if (matched > 0) {
+          SilPhraseScore.pro(matched)
+        } else {
+          SilPhraseScore.neutral
+        }
       }
     }
     case SilStatePredicate(
@@ -446,13 +450,17 @@ class SprWordnetScorer(
           SilPhraseScore.neutral
         }
         case _ => {
-          val frameFlags = wordnet.getVerbFrameFlags(lemma)
-          val matched = SprWordnetScorer.matchState(
-            frameFlags, subject, state, modifiers)
-          if (matched > 0) {
+          if (tongue.isBeingLemma(lemma)) {
             SilPhraseScore.proBig
           } else {
-            SilPhraseScore.neutral
+            val frameFlags = wordnet.getVerbFrameFlags(lemma)
+            val matched = SprWordnetScorer.matchState(
+              frameFlags, subject, state, modifiers)
+            if (matched > 0) {
+              SilPhraseScore.proBig
+            } else {
+              SilPhraseScore.neutral
+            }
           }
         }
       }

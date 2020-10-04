@@ -178,7 +178,7 @@ object SnlSpanishLexicon
   val nounGenders = readGenderMap("/spanish/gender.txt")
 
   val stopList = Set(
-    "ella"
+    "ella", "yo"
   ) ++ stopListPunct
 
   val unaccentedVowels = "aeiou"
@@ -553,13 +553,23 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def allowElidedSubject : Boolean = true
 
   override def combinePolarities(
+    predicate : SilPredicate,
     truthBoolean : Boolean,
     negateCollection : Boolean,
     subjectVariable : Boolean) : Boolean =
   {
-    if (subjectVariable) {
+    val haber = predicate match {
+      case SilStatePredicate(
+        _,
+        SilWordLemma(LEMMA_HABER),
+        SilExistenceState(_),
+        _
+      ) => true
+      case _ => false
+    }
+    if (subjectVariable && !haber) {
       super.combinePolarities(
-        truthBoolean, negateCollection, subjectVariable)
+        predicate, truthBoolean, negateCollection, subjectVariable)
     } else {
       truthBoolean
     }
@@ -1059,7 +1069,13 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def labelVerb(token : String, lemma : String) : Set[String] =
   {
     // FIXME all the tams
-    if (isProgressive(token)) {
+    if ((token == "es") && (lemma == "ir")) {
+      // bizarre stemming anomaly
+      Set.empty
+    } else if ((token == "de") && (lemma == "dar")) {
+      // another one
+      Set.empty
+    } else if (isProgressive(token)) {
       Set(LABEL_VBG)
     } else if (isParticiple(token)) {
       Set(LABEL_VBN)

@@ -23,6 +23,9 @@ import SnlEnglishLemmas._
 
 class SnlEnglishTongueSpec extends Specification
 {
+  // FIXME minimize fallout from race conditions in extjwnl
+  sequential
+
   private implicit val tongue = SnlUtils.defaultTongue
 
   "SnlEnglishTongue" should
@@ -58,6 +61,13 @@ class SnlEnglishTongueSpec extends Specification
       tongue.isPotentialGerund("king") must beFalse
       tongue.isPotentialGerund("run") must beFalse
       tongue.isPotentialGerund("red") must beFalse
+    }
+
+    "detect potential plurals" in
+    {
+      tongue.isPotentialPlural("horses") must beTrue
+      tongue.isPotentialPlural("mice") must beTrue
+      tongue.isPotentialPlural("horse") must beFalse
     }
 
     "transform predefs" in

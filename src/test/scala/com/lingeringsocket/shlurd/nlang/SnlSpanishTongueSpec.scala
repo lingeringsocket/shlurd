@@ -17,20 +17,59 @@ package com.lingeringsocket.shlurd.nlang
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
-import org.specs2.mutable._
-
 import SnlSpanishLemmas._
+import SprPennTreebankLabels._
 
-class SnlSpanishTongueSpec extends Specification
+class SnlSpanishTongueSpec extends SprWordLabelerSpecification
 {
+  // FIXME minimize fallout from race conditions in extjwnl
+  sequential
+
   private implicit val tongue = new SnlSpanishTongue(
-    new SnlExternalWordnet("/spanish_net.xml")
+    new SnlExternalWordnet("/extjwnl_data_spa.xml")
   )
+
+  trait SpanishLabelingContext extends SprLabelingContext
+  {
+    private val wordLabeler = new SprWordnetLabeler(tongue)
+
+    override protected def labeler = wordLabeler
+  }
 
   "SnlSpanishTongue" should
   {
+    "label words" in new SpanishLabelingContext
+    {
+      labelWord("perro") must be equalTo Set(LABEL_NN)
+      labelWord("perros") must be equalTo Set(LABEL_NNS)
+      labelWord("cabra") must be equalTo Set(LABEL_NN)
+      labelWord("cabras") must be equalTo Set(LABEL_NNS)
+      labelWord("crisis") must be equalTo Set(LABEL_NN)
+      labelWord("leones") must be equalTo Set(LABEL_NNS)
+      labelWord("ir") must be equalTo Set(LABEL_VB)
+      labelWord("caminar") must be equalTo Set(LABEL_NN, LABEL_VB)
+      labelWord("camino") must be equalTo Set(LABEL_NN, LABEL_VB)
+      labelWord("caminé") must be equalTo Set(LABEL_VBD)
+      labelWord("caminaré") must be equalTo Set(LABEL_VBF)
+      labelWord("rojo") must be equalTo Set(LABEL_JJ, LABEL_NN)
+      // FIXME should be VBN
+      labelWord("roto") must be equalTo Set(LABEL_JJ, LABEL_VB)
+      labelWord("dormido") must be equalTo Set(LABEL_JJ, LABEL_VBN)
+    }
+
+    "lemmatize words" in new SpanishLabelingContext
+    {
+      lemmatizeNoun("perro") must be equalTo "perro"
+      lemmatizeNoun("perros") must be equalTo "perro"
+      lemmatizeAmbiguousNoun("leones") must be equalTo(
+        Set("león", "leon", "leone"))
+      lemmatizeAdjective("dormido") must be equalTo "dormido"
+      lemmatizeAdjective("dormida") must be equalTo "dormido"
+    }
+
     "pluralize words" in
     {
+      tongue.pluralizeNoun("perro") must be equalTo "perros"
       tongue.pluralizeNoun("casa") must be equalTo "casas"
       tongue.pluralizeNoun("color") must be equalTo "colores"
       tongue.pluralizeNoun("avión") must be equalTo "aviones"

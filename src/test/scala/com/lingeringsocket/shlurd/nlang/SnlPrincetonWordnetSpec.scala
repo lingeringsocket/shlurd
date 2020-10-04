@@ -65,13 +65,6 @@ class SnlPrincetonWordnetSpec extends Specification
       wordnet.isPotentialAdjective("quickly") must beFalse
     }
 
-    "detect potential plurals" in
-    {
-      wordnet.isPotentialPlural("horses") must beTrue
-      wordnet.isPotentialPlural("mice") must beTrue
-      wordnet.isPotentialPlural("horse") must beFalse
-    }
-
     "detect plain words" in
     {
       wordnet.isPlainWord("mouse") must beTrue

@@ -24,27 +24,57 @@ import org.specs2.specification._
 
 import scala.collection._
 
-class SprWordLabelerSpec extends Specification
+class SprWordLabelerSpecification extends Specification
 {
-  trait LabelingContext extends Scope
+  trait SprLabelingContext extends Scope
   {
-    protected val labeler = SnlUtils.defaultWordLabeler
+    protected def labeler : SprWordLabeler
 
     protected def labelWord(token : String) : Set[String] =
     {
       labeler.labelWords(Seq(tupleN((token, token, 1)))).head.map(_.label)
     }
 
-    protected def lemmatizeNoun(token : String) : String =
+    private def lemmatizePos(
+      token : String, accept : (SprSyntaxTree) => Boolean) : Set[String] =
     {
       labeler.labelWords(Seq(tupleN((token, token, 1)))).head.
-        filter(_.isNoun).head.firstChild.lemma
+        filter(accept).map(_.firstChild.lemma)
     }
+
+    protected def lemmatizeNoun(token : String) : String =
+    {
+      val set = lemmatizePos(token, x => x.isNoun)
+      assert(set.size == 1, set)
+      set.head
+    }
+
+    protected def lemmatizeAmbiguousNoun(token : String) : Set[String] =
+    {
+      lemmatizePos(token, x => x.isNoun)
+    }
+
+    protected def lemmatizeAdjective(token : String) : String =
+    {
+      val set = lemmatizePos(token, x => x.isAdjective)
+      assert(set.size == 1)
+      set.head
+    }
+  }
+}
+
+class SprWordLabelerSpec extends SprWordLabelerSpecification
+{
+  trait LabelingContext extends SprLabelingContext
+  {
+    private val wordLabeler = SnlUtils.defaultWordLabeler
+
+    override protected def labeler = wordLabeler
   }
 
   "SprWordnetLabeler" should
   {
-    "label words correctly" in new LabelingContext
+    "label words" in new LabelingContext
     {
       labelWord("cow") must be equalTo Set(LABEL_NN, LABEL_VBP)
       labelWord("cows") must be equalTo Set(LABEL_NNS, LABEL_VBZ)
@@ -58,12 +88,12 @@ class SprWordLabelerSpec extends Specification
       labelWord("bully") must be equalTo Set(LABEL_NN, LABEL_VBP, LABEL_JJ)
     }
 
-    "label quotations correctly" in new LabelingContext
+    "label quotations" in new LabelingContext
     {
       labelWord("\"what the actual f\"") must be equalTo Set(LABEL_NNQ)
     }
 
-    "lemmatize words correctly" in new LabelingContext
+    "lemmatize words" in new LabelingContext
     {
       // FIXME special rules needed for people/cattle/etc
       lemmatizeNoun("cow") must be equalTo "cow"
