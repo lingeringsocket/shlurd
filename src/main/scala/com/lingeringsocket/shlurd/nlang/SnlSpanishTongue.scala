@@ -178,7 +178,7 @@ object SnlSpanishLexicon
   val nounGenders = readGenderMap("/spanish/gender.txt")
 
   val stopList = Set(
-    "ella", "yo"
+    LEMMA_ELLA, LEMMA_YO, LEMMA_NO, LEMMA_SER
   ) ++ stopListPunct
 
   val unaccentedVowels = "aeiou"
@@ -547,8 +547,6 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def getStopList = stopList
 
   override def getAdjectivePosition = MOD_AFTER_DEFAULT
-
-  override def allowDoubleNegatives : Boolean = true
 
   override def allowElidedSubject : Boolean = true
 
@@ -1126,6 +1124,9 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case LEMMA_NO => {
         Set(SptRB(leafUninflected))
       }
+      case LEMMA_SER => {
+        Set(SptVB(leafUninflected))
+      }
       case _ => {
         Set.empty
       }
@@ -1419,6 +1420,9 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def pluralizeNoun(lemma : String) : String =
   {
+    if (lemma.isEmpty) {
+      return lemma
+    }
     val last = lemma.last
     if (unaccentedVowels.contains(last)) {
       lemma + "s"

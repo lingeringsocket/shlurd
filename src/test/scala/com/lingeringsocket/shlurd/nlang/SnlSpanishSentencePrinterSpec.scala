@@ -29,7 +29,7 @@ class SnlSpanishSentencePrinterSpec
     {
       expectPreserved("el perro camina en la calle.")
       expectPreserved("el perro camina entre las calles!")
-      expectPreserved("camina el perro entre las calles?")
+      expectPreserved("el perro camina entre las calles?")
     }
 
     "normalize sentences" in

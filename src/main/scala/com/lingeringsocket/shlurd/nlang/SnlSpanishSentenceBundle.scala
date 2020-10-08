@@ -34,6 +34,13 @@ class SnlSpanishSentenceBundle(
   tongue : SprTongue
 ) extends SnlSentenceBundle(tongue, SnlSpanishSentenceBundle.numberFormat)
 {
+  override protected def composePredicateQuestion(
+    subject : String, verbSeq : Seq[String], complement : Seq[String],
+    modifiers : Seq[String]) =
+  {
+    composePredicateStatement(subject, verbSeq, complement, modifiers)
+  }
+
   override def delemmatizeVerb(
     person : SilPerson, gender : SilGender, count : SilCount,
     tam : SilTam, existentialPronoun : Option[SilWord],
@@ -67,13 +74,13 @@ class SnlSpanishSentenceBundle(
         tupleN((tam, verb))
       } else {
         tupleN((
-          tam.infinitive.withModality(MODAL_NEUTRAL),
+          tam.infinitive.withModality(MODAL_NEUTRAL).positive,
           verb.toUninflected))
       }
     }
     val mainSeq = mainVerb.decomposed.map(w => {
       if (w.inflected.isEmpty) {
-        if ((w.lemma == LEMMA_HABER) && tam.isPresent) {
+        if ((w.lemma == LEMMA_HABER) && mainTam.isPresent) {
           // FIXME don't do this when used as an auxiliary.  Also,
           // technically all tenses are supposed to be conjugated
           // as singular, but supposedly native speakers tend
@@ -90,7 +97,7 @@ class SnlSpanishSentenceBundle(
     })
     // FIXME handle MODAL_ELLIPTICAL
     val prefix = {
-      if (tam.isNegative) {
+      if (mainTam.isNegative) {
         Seq(LEMMA_NO)
       } else {
         Seq.empty

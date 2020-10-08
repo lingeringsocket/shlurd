@@ -42,11 +42,11 @@ object SnlUtils
     LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY
   )
 
-  def debug(s : String)
+  def debug(s : String, context : SprContext = SnlUtils.defaultContext)
   {
     SprParser.tokenize(s).foreach(sentence => {
       val parser = SprParser.prepareOne(
-        SnlUtils.defaultContext, sentence, true)
+        context, sentence, true)
       println("SHLURD = " + parser.parseOne)
     })
   }

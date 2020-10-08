@@ -72,13 +72,16 @@ abstract class SnlRomanceSyntaxAnalyzer(
     tree : SprSyntaxTree, children : Seq[SprSyntaxTree],
     mood : SilMood, force : SilForce) =
   {
-    val (isNegative, extracted) = extractNegative(children)
+    val (isNegativeAbove, extracted) =
+      extractNegative(unwrapSinglePhrase(children))
     val seq = unwrapSinglePhrase(extracted)
     if (isImperative(seq)) {
-      // FIXME use isNegative
+      // FIXME use isNegativeAbove
       expectCommand(tree, children.head, SilFormality(force))
     } else {
-      val unwrapped = unwrapVerbPhrases(seq)
+      val (isNegativeBelow, unwrapped) =
+        extractNegative(unwrapVerbPhrases(seq))
+      val isNegative = combineNegatives(isNegativeAbove, isNegativeBelow)
       // FIXME special handling for object/reflexive pronouns
       val iVerbs = unwrapped.zipWithIndex.filter(z => detectVerb(z._1))
       val iNoms = unwrapped.zipWithIndex.filter(z => detectNominative(z._1))

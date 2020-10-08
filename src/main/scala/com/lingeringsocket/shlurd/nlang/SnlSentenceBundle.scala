@@ -96,7 +96,7 @@ abstract class SnlSentenceBundle(
     }
   }
 
-  private def composePredicateStatement(
+  protected def composePredicateStatement(
     subject : String, verbSeq : Seq[String], complement : Seq[String],
     modifiers : Seq[String] = Seq.empty) =
   {
@@ -186,7 +186,7 @@ abstract class SnlSentenceBundle(
   }
 
   // FIXME need to factor out some English-specifics
-  private def composePredicateQuestion(
+  protected def composePredicateQuestion(
     subject : String, verbSeq : Seq[String], complement : Seq[String],
     modifiers : Seq[String]) =
   {
@@ -370,7 +370,11 @@ abstract class SnlSentenceBundle(
             compose(PD_WHOSE.toLemma, noun)
           }
           case _ => {
-            compose(PD_WHO.toLemma)
+            if (noun.isEmpty) {
+              compose(PD_WHO.toLemma)
+            } else {
+              noun
+            }
           }
         }
       }

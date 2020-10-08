@@ -141,7 +141,14 @@ class SnlSpanishTongueSpec extends SprWordLabelerSpecification
         PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
         PROXIMITY_ENTITY, INFLECT_NOMINATIVE
       ) must be equalTo(LEMMA_YO)
+
+      tongue.pronounLemma(
+        PERSON_FIRST, GENDER_MASCULINE, COUNT_PLURAL,
+        PROXIMITY_ENTITY, INFLECT_NOMINATIVE
+      ) must be equalTo(LEMMA_NOSOTROS)
+
       pronounLemmas must contain(LEMMA_YO)
+      pronounLemmas must contain(LEMMA_NOSOTROS)
 
       pronounLemmas.foreach(lemma => {
         val (person, count, gender, inflection, proximityOpt, possesseeCount) =

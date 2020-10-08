@@ -117,7 +117,7 @@ object SnlSpanishConjugation
             case ASPECT_PROGRESSIVE => {
               coord.tense match {
                 case TENSE_PAST => {
-                  SpanishVerbConjugator.pastProgressive
+                  SpanishVerbConjugator.preteriteProgressive
                 }
                 case TENSE_FUTURE => {
                   SpanishVerbConjugator.futureProgressive

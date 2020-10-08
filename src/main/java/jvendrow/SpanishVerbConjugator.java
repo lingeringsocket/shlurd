@@ -14,7 +14,8 @@ public class SpanishVerbConjugator extends Endings
     public static Perfect subjunctivePerfect = new Perfect("Subjunctive");
     public static Perfect imperfectSubjunctivePerfect = new Perfect("ImperfectSubjunctive");
     public static Progressive presentProgressive = new Progressive("Present");
-    public static Progressive pastProgressive = new Progressive("Past");
+    public static Progressive imperfectProgressive = new Progressive("Imperfect");
+    public static Progressive preteriteProgressive = new Progressive("Preterite");
     public static Progressive futureProgressive = new Progressive("Future");
     public static PresentSubjunctive presentSubjunctive = new PresentSubjunctive(subjunctiveAr, subjunctiveErIr, subjunctiveErIr);
     public static ImperfectSubjunctive imperfectSubjunctive = new ImperfectSubjunctive(imperfectSubjunctiveAr, imperfectSubjunctiveErIr, imperfectSubjunctiveErIr);

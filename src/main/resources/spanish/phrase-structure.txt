@@ -126,9 +126,9 @@ VP ->
   // "es Juan el rey"
   (verbmod)* verbSimple (verbmod)* nounPhrase (verbmod)* nounPhrase (verbmod)* |
   // "estoy deciendo"
-  VB VP |
+  (verbmod)* VB VP |
   // "tiene que decier"
-  VB preposition VP;
+  (verbmod)* VB preposition VP;
 
 adjSimple :=
   // "corriendo"

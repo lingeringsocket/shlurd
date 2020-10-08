@@ -133,7 +133,12 @@ abstract class SnlSyntaxAnalyzer(
       }
       case QUESTION_WHO => {
         if ((questionChildren.size == 1) && questionChildren.head.isLeaf) {
-          SptNP(SptNN(requireLeaf(questionChildren)))
+          val leaf = requireLeaf(questionChildren)
+          if (leaf.lemma != leaf.token) {
+            SptNP(SptNNS(leaf))
+          } else {
+            SptNP(SptNN(leaf))
+          }
         } else {
           SptNP(questionChildren:_*)
         }
