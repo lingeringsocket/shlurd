@@ -401,17 +401,20 @@ class SnlEnglishVerbSpec extends Specification
     )
   }.distinct
 
-  private def notYetWorking(
+  private def notEnabled(
     tam : SilTam, rhs : Option[SilPhrase],
     inflection : SilInflection) : Boolean =
   {
-    // FIXME corenlp doesn't seem to understand progressives in these contexts
-    tupleN((tam.polarity, tam.aspect, rhs, inflection)) match {
-      case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE,
-        _, INFLECT_ACCUSATIVE) => true
-      case (POLARITY_NEGATIVE, ASPECT_PROGRESSIVE,
-        Some(_ : SilState), INFLECT_NONE) => true
-      case _ => false
+    if (SprParser.isCoreNLP) {
+      tupleN((tam.polarity, tam.aspect, rhs, inflection)) match {
+        case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE,
+          _, INFLECT_ACCUSATIVE) => true
+        case (POLARITY_NEGATIVE, ASPECT_PROGRESSIVE,
+          Some(_ : SilState), INFLECT_NONE) => true
+        case _ => false
+      }
+    } else {
+      false
     }
   }
 
@@ -428,8 +431,8 @@ class SnlEnglishVerbSpec extends Specification
           val input = generateInput(
             subject, rhs, lemma, tam, None)
           "in phrase: " + input >> {
-            if (notYetWorking(tam, rhs, INFLECT_NONE)) {
-              skipped("not working yet")
+            if (notEnabled(tam, rhs, INFLECT_NONE)) {
+              skipped("not supported by CoreNLP")
             }
             val tamExpected = {
               if ((tam.isInterrogative || tam.isNegative) &&
@@ -460,8 +463,8 @@ class SnlEnglishVerbSpec extends Specification
             subject, rhs, lemma, tam, Some(question))
           "in query: " + input >> {
             val answerInflection = question._2
-            if (notYetWorking(tam, rhs, answerInflection)) {
-              skipped("not working yet")
+            if (notEnabled(tam, rhs, answerInflection)) {
+              skipped("not supported by CoreNLP")
             }
             val tamExpected = {
               if ((lemma != LEMMA_BE) && !tam.isProgressive &&
