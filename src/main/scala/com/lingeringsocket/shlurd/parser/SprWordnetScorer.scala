@@ -260,9 +260,7 @@ class SprWordnetScorer(
     scoreConjunctiveSentences,
     scoreAppositions,
     scoreTam,
-    scoreVerbFrames,
-    scoreAgreement,
-    scoreElided
+    scoreVerbFrames
   ) ++ tongue.getPhraseScorers
 
   private def scoreTam = phraseScorer {
@@ -463,52 +461,6 @@ class SprWordnetScorer(
               SilPhraseScore.neutral
             }
           }
-        }
-      }
-    }
-  }
-
-  private def scoreAgreement = phraseScorer {
-    case pred : SilPredicate => {
-      val subject = pred.getSubject
-      val verbPerson = pred.getInflectedPerson
-      val person = subject match {
-        case pr : SilPronounReference => {
-          if (pr.isElided) {
-            verbPerson
-          } else {
-            pr.person
-          }
-        }
-        case _ => PERSON_THIRD
-      }
-      // maybe we'll need to check gender one day too, for like,
-      // Russian?
-      val count = SilUtils.getCount(subject)
-      val verbCount = pred.getInflectedCount
-      var conCount = 0
-      if (person != verbPerson) {
-        conCount += 1
-      }
-      if (count != verbCount) {
-        conCount += 1
-      }
-      if (conCount > 0) {
-        SilPhraseScore.con(3*conCount)
-      } else {
-        SilPhraseScore.neutral
-      }
-    }
-  }
-
-  private def scoreElided = phraseScorer {
-    case pred : SilPredicate => {
-      pred.getSubject match {
-        case pr : SilPronounReference if pr.isElided => {
-          SilPhraseScore.neutral
-        }
-        case _ => {
-          SilPhraseScore.proSmall
         }
       }
     }

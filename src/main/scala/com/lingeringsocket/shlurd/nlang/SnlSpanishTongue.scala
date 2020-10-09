@@ -515,7 +515,9 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   private val phraseScorers = Seq(
     scoreSpecialSpanishAdpositions,
-    scoreSpanishUsage
+    scoreSpanishUsage,
+    scoreAgreement,
+    scoreElided
   )
 
   override def newSentencePrinter(genderAnalyzer : SilGenderAnalyzer) =
@@ -1489,6 +1491,52 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
     case SilBasicVerbModifier(sw : SilSimpleWord) => {
       usageScore(sw.toLemma, POS.ADVERB)
+    }
+  }
+
+  private def scoreAgreement = phraseScorer {
+    case pred : SilPredicate => {
+      val subject = pred.getSubject
+      val verbPerson = pred.getInflectedPerson
+      val person = subject match {
+        case pr : SilPronounReference => {
+          if (pr.isElided) {
+            verbPerson
+          } else {
+            pr.person
+          }
+        }
+        case _ => PERSON_THIRD
+      }
+      // maybe we'll need to check gender one day too, for like,
+      // Russian?
+      val count = SilUtils.getCount(subject)
+      val verbCount = pred.getInflectedCount
+      var conCount = 0
+      if (person != verbPerson) {
+        conCount += 1
+      }
+      if (count != verbCount) {
+        conCount += 1
+      }
+      if (conCount > 0) {
+        SilPhraseScore.con(conCount)
+      } else {
+        SilPhraseScore.neutral
+      }
+    }
+  }
+
+  private def scoreElided = phraseScorer {
+    case pred : SilPredicate => {
+      pred.getSubject match {
+        case pr : SilPronounReference if pr.isElided => {
+          SilPhraseScore.neutral
+        }
+        case _ => {
+          SilPhraseScore.proSmall
+        }
+      }
     }
   }
 }
