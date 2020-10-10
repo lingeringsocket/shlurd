@@ -62,7 +62,8 @@ public class ImperfectSubjunctive extends Tense{
         else if(end(verb) == 'i' && (contains(verb, oToUe))) {
             for(int i = verb.length()-3; i >= 0; i--) {
                 if(verb.charAt(i) == 'o') {
-                    return print(conjugation, root(changeValue(verb, "u", i)), endings, pn);
+                    String subst = stemChangeU(verb, i);
+                    return print(conjugation, root(changeValue(verb, subst, i)), endings, pn);
                 }
             }
             return "";

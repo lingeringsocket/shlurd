@@ -17,7 +17,7 @@ public class Future extends Tense {
         String [] endings = endingsAEI(verb);
 
         //Checks if a verb of any subsections of it are irregular
-        if(checkForIreg(verb, iregRoots) >= 0) {
+        if(((!verb.contains("decir")) || verb.equals("decir")) && (checkForIreg(verb, iregRoots) >= 0)) {
             int i = checkForIreg(verb, iregRoots);
             return print(conjugation, verb.substring(0, i) + iregRoots.get(verb.substring(i)), endings, pn);
         }
@@ -29,17 +29,20 @@ public class Future extends Tense {
 
     private HashMap<String, String> iregRoots = new HashMap<String, String>();
 
-    //Fills a mashmap of irregular verbs in the Future tense
+    //Fills a map of irregular verbs in the Future tense
     private void putValues() {
         iregRoots.put("poder", "podr");
         iregRoots.put("querer", "querr");
         iregRoots.put("poner", "pondr");
-        iregRoots.put("hacer", "hice");
+        iregRoots.put("hacer", "har");
         iregRoots.put("tener", "tendr");
         iregRoots.put("caber", "cabr");
         iregRoots.put("saber", "sabr");
+        iregRoots.put("salir", "saldr");
         iregRoots.put("venir", "vendr");
         iregRoots.put("decir", "dir");
         iregRoots.put("haber", "habr");
+        iregRoots.put("valer", "valdr");
+        iregRoots.put("satisfacer", "satisfar");
     }
 }

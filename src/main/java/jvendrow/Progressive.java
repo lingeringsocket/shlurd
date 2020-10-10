@@ -67,10 +67,11 @@ public class Progressive extends Tense {
             //Finds the gerund for verbs that end with ir and are stem changing	 for o to ue
         } else if(Tense.end(verb) == 'i' && (Tense.checkForIreg(verb, Tense.oToUe) >= 0)) {
 
-            //Finds the first o from the end ti replace with u
+            //Finds the first o from the end to replace with u
             for(int i = verb.length()-3; i >= 0; i--) {
                 if(verb.charAt(i) == 'o') {
-                    verb = Tense.changeValue(verb, "u", i);
+                    String subst = stemChangeU(verb, i);
+                    verb = Tense.changeValue(verb, subst, i);
                 }
             }
             return verb.substring(0, verb.length() - 2) + "iendo";

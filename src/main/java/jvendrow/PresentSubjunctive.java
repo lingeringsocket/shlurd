@@ -17,20 +17,21 @@ public class PresentSubjunctive extends Present{
         String stemChange = stemChange(verb);
         String[] endings = endingsAEI(verb);
 
-        //Checks of the verb is irregular
+        //Checks if the verb is irregular
         if(iregs.containsKey(verb)) {
             return print(conjugation, "", iregs.get(verb), pn);
         }
 
-        //Checks of a verb or any subsections of it have change matching that of the first person in the Present Tense
+        //Checks if a verb or any subsections of it have change matching that of the first person in the Present Tense
         else if (checkForIreg(verb, yoChange) >= 0) {
             int i = checkForIreg(verb, yoChange);
             return printYo(verb.substring(0, i), yoChange.get(verb.substring(i)), endings, pn);
         }
 
         //Checks if the verb ends with "cer" or "cir" due to certain exceptions
-        else if(verb.substring(verb.length()-3).equals("cer") || verb.substring(verb.length()-3).equals("cir")) {
-            return print(conjugation, verb.substring(0, verb.length()-3) + "zc", endings, pn);
+        else if(endsWithCerCir(verb)) {
+            String subst = substZC(verb);
+            return print(conjugation, subst, endings, pn);
         }
 
         //Checks if the verb ends with "uir" due to certain exceptions
@@ -43,7 +44,7 @@ public class PresentSubjunctive extends Present{
             return print(conjugation, verb.substring(0, verb.length()-3) + "ú", root(verb), endings, pn);
         }
 
-        //Checks of a verb ends with "iar" due to an exception
+        //Checks if a verb ends with "iar" due to an exception
         else if(verb.substring(verb.length()-3).equals("iar")) {
             return print(conjugation, verb.substring(0, verb.length()-3) + "í", root(verb), endings, pn);
         }

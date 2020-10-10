@@ -96,8 +96,8 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("yo caminaré")
       expectStatement("tú caminarás")
       expectStatement("él caminará")
-      expectStatement("nosotros caminaramos")
-      expectStatement("vosotros caminaráis")
+      expectStatement("nosotros caminaremos")
+      expectStatement("vosotros caminaréis")
       expectStatement("ellos caminarán")
 
       // -er present
@@ -222,8 +222,8 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("yo estaré triste")
       expectStatement("tú estarás triste")
       expectStatement("él estará triste")
-      expectStatement("nosotros estaramos tristes")
-      expectStatement("vosotros estaráis tristes")
+      expectStatement("nosotros estaremos tristes")
+      expectStatement("vosotros estaréis tristes")
       expectStatement("ellas estarán tristes")
     }
   }

@@ -5,7 +5,7 @@ public class SpanishVerbConjugator extends Endings
     public static Present present = new Present(presentAr, presentEr, presentIr);
     public static Preterite preterite = new Preterite(preteriteAr, preteriteEr, preteriteIr);
     public static Imperfect imperfect = new Imperfect(imperfectAr, imperfectErIr, imperfectErIr);
-    public static Future futureSimple = new Future(futureAr, futureErIr, futureErIr);
+    public static Future futureSimple = new Future(futureErIr, futureErIr, futureErIr);
     public static Conditional conditionalSimple = new Conditional(conditional);
     public static Perfect presentPerfect = new Perfect("Present");
     public static Perfect imperfectPerfect = new Perfect("Imperfect");

@@ -21,30 +21,31 @@ public class Commands extends PresentSubjunctive{
         String stemChange = stemChange(verb);
         String[] endings = endingsAEI(verb);
 
-        //Checks of the verb is positive, reflexive, and irregular to handle reflexive irregulars
+        //Checks if the verb is positive, reflexive, and irregular to handle reflexive irregulars
         if(type.equals("Positive") && posIregsReflexive.containsKey(verb) && !conjugation.toBeReflexive[0].equals("")) {
             return printIregs(conjugation, "", posIregsReflexive.get(verb), false, pn);
         }
 
-        ////Checks of the verb is irregular and the Commands should be Positive
+        ////Checks if the verb is irregular and the Commands should be Positive
         else if(type.equals("Positive") && posIregs.containsKey(verb)) {
             return printIregs(conjugation, "", posIregs.get(verb), true, pn);
         }
 
-        //Checks of the verb is irregular and the Commands should be Negative
+        //Checks if the verb is irregular and the Commands should be Negative
         else if(type.equals("Negative") && iregs.containsKey(verb)) {
             return printIregs(conjugation, NO, Arrays.copyOfRange(iregs.get(verb), 1, 6), true, pn);
         }
 
-        //Checks of a verb or any subsections of it have change matching that of the first person in the Present Tense
+        //Checks if a verb or any subsections of it have change matching that of the first person in the Present Tense
         else if(checkForIreg(verb, yoChange) >= 0) {
             int i = checkForIreg(verb, yoChange);
             return printYo(conjugation, verb.substring(0, i), verb.substring(i), yoChange.get(verb.substring(i)), endings, pn);
         }
 
         //Checks if the verb ends with "cer" or "cir" due to certain exceptions
-        else if(verb.substring(verb.length()-3).equals("cer") || verb.substring(verb.length()-3).equals("cir")) {
-            return print(conjugation, verb.substring(0, verb.length()-3) + "zc", verb.substring(0, verb.length()-3) + "zc", verb, verb.substring(0, verb.length()-3) + "zc", endings, pn);
+        else if(endsWithCerCir(verb)) {
+            String subst = substZC(verb);
+            return print(conjugation, subst, subst, verb, subst, endings, pn);
         }
         //Checks if the verb ends with "uir" due to certain exceptions
         else if(verb.substring(verb.length()-3).equals("uir")) {
@@ -159,7 +160,7 @@ public class Commands extends PresentSubjunctive{
     //Prints positive commands with a change matching the first person of the Present tense and handles various slight changes
     private String printYoPositive(Conjugation conjugation, String beginning, String verb, String stemChange, String[] ends, int i) {
         if(i == 1) {
-            //Checks of the verb is irregular in the first person
+            //Checks if the verb is irregular in the first person
             if(yoIreg.containsKey(verb)) {
                 return(endReflexive(conjugation, beginning) + yoIreg.get(verb) + conjugation.toBeReflexive[i]);
             }

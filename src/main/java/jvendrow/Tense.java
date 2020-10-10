@@ -24,9 +24,9 @@ public abstract class Tense {
     }
 
     //Arrays of the various stem-changing verbs
-    protected static String[] eToIe = {"pensar", "empezar", "comenzar", "preferir", "acertar", "tener", "venir", "cerrar", "mentir", "fregar", "hervir", "confesar", "defender", "negar", "sentir", "querer"};
-    protected static String[] eToI = {"pedir", "decir", "seguir", "servir", "competir", "elegir", "cerregir", "vestir", "freír", "gemir", "repetir"};
-    protected static String[] oToUe = {"dormir", "almorzar", "morir", "probar", "mover", "colgar", "mostrar", "contar", "costar", "recordar", "volver", "resolver", "solver", "jugar", "poder"};
+    protected static String[] eToIe = {"pensar", "empezar", "comenzar", "preferir", "acertar", "tener", "venir", "cerrar", "mentir", "fregar", "hervir", "confesar", "defender", "negar", "sentir", "querer", "advertir", "alentar", "apretar", "arrepentir", "atender", "atravesar", "convertir", "descender", "despertar", "divertir", "encender", "entender", "extender", "gobernar", "helar", "herir", "invertir", "merendar", "nevar", "perder", "quebrar", "recomendar", "regar", "requerir", "sentir", "sentar", "sugerir", "tropezar"};
+    protected static String[] eToI = {"pedir", "decir", "seguir", "servir", "competir", "elegir", "corregir", "vestir", "freír", "gemir", "repetir", "derretir", "despedir", "medir", "regir", "reñir", "teñir"};
+    protected static String[] oToUe = {"dormir", "almorzar", "morir", "probar", "mover", "colgar", "mostrar", "contar", "costar", "recordar", "volver", "resolver", "solver", "jugar", "poder", "acordar", "agorar", "apostar", "doler", "encontrar", "llover", "renovar", "rogar", "soler", "sonar", "soñar", "torcer", "volar"};
 
     static String[] reflexive = {"me ", "te ", "se ", "nos ", "os ", "se "};
     static String[] toBeReflexive = {"", "", "", "", "", ""};
@@ -70,6 +70,27 @@ public abstract class Tense {
         }
     }
 
+    static String stemChangeU(String verb, int i) 
+    {
+        char pre = verb.charAt(i-1);
+        if (pre == 'g') {
+            return "ü";
+        } else {
+            return "u";
+        }
+    }
+
+    static String substZC(String verb)
+    {
+        String base = verb.substring(0, verb.length()-3);
+        char pre = verb.charAt(verb.length()-4);
+        if ((pre == 'n') || (pre == 'r')) {
+            return base + "z";
+        } else {
+            return base + "zc";
+        }
+    }
+
     //Updates the verb to account for stem changes
     String stemChange(String verb) {
         if(checkForIreg(verb, eToI) >= 0) {
@@ -87,16 +108,18 @@ public abstract class Tense {
         } else if(checkForIreg(verb, oToUe) >= 0) {
             for(int i = verb.length()-3; i >= 0; i--) {
                 if(verb.charAt(i) == 'o' || (verb.charAt(i) == 'u' && verb.equals("jugar"))) {
-                    return changeValue(verb, "ue", i);
+                    String subst = stemChangeU(verb, i) + "e";
+                    return changeValue(verb, subst, i);
                 }
             }
         }
         return verb;
     }
 
-    //Checks if the verb or any subsections of it are keys in a HashMap where the irregular "sub-verb" beings
+    //Checks if the verb or any subsections of it are keys in a HashMap where the irregular "sub-verb" begins
     static int checkForIreg(String verb, HashMap<String, String> map) {
-        for(int i = 0; i < verb.length(); i++) {
+        int limit = (verb.endsWith("dar") || verb.endsWith("ver")) ? 1 : verb.length();
+        for(int i = 0; i < limit; i++) {
             if(map.containsKey(verb.substring(i))) {
                 return i;
             }
@@ -104,9 +127,10 @@ public abstract class Tense {
         return -1;
     }
 
-    //Checks if the verb or any subsections of it are in a String array where the irregular "sub-verb" beings
+    //Checks if the verb or any subsections of it are in a String array where the irregular "sub-verb" begins
     static int checkForIreg(String verb, String[] list) {
-        for(int i = 0; i < verb.length(); i++) {
+        int limit = (verb.endsWith("jugar") || verb.endsWith("helar") || verb.endsWith("regar") || verb.endsWith("sentar")) ? 1 : verb.length();
+        for(int i = 0; i < limit; i++) {
             if(contains(verb.substring(i), list)) {
                 return i;
             }
@@ -124,7 +148,12 @@ public abstract class Tense {
         return false;
     }
 
-    //Checks of a verbs ends with "car", "gar", or "zar" due to certain exceptions
+    static boolean endsWithCerCir(String verb)
+    {
+        return (verb.substring(verb.length()-3).equals("cer") || verb.substring(verb.length()-3).equals("cir"));
+    }
+
+    //Checks if a verbs ends with "car", "gar", or "zar" due to certain exceptions
     String carGarZar(String verb) {
         if(verb.length() < 3) {
             return verb;
