@@ -517,7 +517,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     scoreSpecialSpanishAdpositions,
     scoreSpanishUsage,
     scoreAgreement,
-    scoreElided
+    scoreElided,
+    scoreSer
   )
 
   override def newSentencePrinter(genderAnalyzer : SilGenderAnalyzer) =
@@ -1537,6 +1538,17 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           SilPhraseScore.proSmall
         }
       }
+    }
+  }
+
+  // break ties between ser and ir which arise in some
+  // conjugations
+  private def scoreSer = phraseScorer {
+    case SilRelationshipPredicate(_, SilWordLemma(LEMMA_SER), _, _) => {
+      SilPhraseScore.proBig
+    }
+    case SilStatePredicate(_, SilWordLemma(LEMMA_SER), _, _) => {
+      SilPhraseScore.proBig
     }
   }
 }
