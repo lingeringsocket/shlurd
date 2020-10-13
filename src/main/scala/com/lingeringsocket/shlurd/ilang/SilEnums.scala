@@ -292,7 +292,7 @@ case object SEPARATOR_SEMICOLON extends SilSeparator
 }
 
 sealed case class SilFormality(
-  force : SilForce,
+  force : SilForce = FORCE_NEUTRAL,
   politeness : SilPoliteness = SilPoliteness.DEFAULT
 )
 

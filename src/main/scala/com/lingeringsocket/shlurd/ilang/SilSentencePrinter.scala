@@ -558,7 +558,7 @@ class SilSentencePrinter(
   {
     subject match {
       case pr : SilPronounReference => {
-        tupleN((pr.person, pr.gender, pr.count))
+        tupleN((tongue.getEffectivePerson(pr), pr.gender, pr.count))
       }
       case SilCountedNounReference(_, count) => {
         tupleN((

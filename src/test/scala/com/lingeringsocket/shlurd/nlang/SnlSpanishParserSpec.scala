@@ -178,6 +178,21 @@ class SnlSpanishParserSpec extends Specification
         )
     }
 
+    "parse a polite pronoun" in
+    {
+      val input = "usted camina"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+              politeness = POLITENESS_RESPECTFUL),
+            VERB_CAMINA
+          ),
+          formality = SilFormality(politeness = POLITENESS_RESPECTFUL)
+        )
+    }
+
     "parse a conjugation which is the same for -ar and -er" in
     {
       val input = "yo bebo"

@@ -169,11 +169,17 @@ class SnlSpanishVerbSpec extends Specification
       annotator.basicPronounRef(
         PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR),
       annotator.basicPronounRef(
+        PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+        politeness = POLITENESS_RESPECTFUL),
+      annotator.basicPronounRef(
         PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR),
       annotator.basicPronounRef(
         PERSON_FIRST, GENDER_MASCULINE, COUNT_PLURAL),
       annotator.basicPronounRef(
         PERSON_SECOND, GENDER_FEMININE, COUNT_PLURAL),
+      annotator.basicPronounRef(
+        PERSON_SECOND, GENDER_SOMEONE, COUNT_PLURAL,
+        politeness = POLITENESS_RESPECTFUL),
       annotator.basicPronounRef(
         PERSON_THIRD, GENDER_MASCULINE, COUNT_PLURAL)
     )

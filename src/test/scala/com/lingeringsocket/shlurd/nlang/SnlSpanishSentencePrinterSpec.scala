@@ -39,9 +39,11 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("el perro camina entre las calles")
       expectStatement("los perros caminan entre las calles")
       expectStatement("ella camina")
+      expectStatement("usted camina")
       expectStatement("debo de caminar")
       expectStatement("tiene que caminar")
       expectStatement("pueden caminar")
+      expectStatement("ustedes caminan")
       expectStatement("podemos ser perros")
       expectStatement("hay un perro")
 

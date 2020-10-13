@@ -1483,6 +1483,15 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override protected def getMatcherResource() =
     "/spanish/phrase-structure.txt"
 
+  override def getEffectivePerson(pr : SilPronounReference) : SilPerson =
+  {
+    if (pr.politeness == POLITENESS_RESPECTFUL) {
+      PERSON_THIRD
+    } else {
+      pr.person
+    }
+  }
+
   private def scoreSpecialSpanishAdpositions = phraseScorer {
     case ap : SilAdpositionalPhrase => {
       val words = ap.adposition.word.decomposed
@@ -1518,7 +1527,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           if (pr.isElided) {
             verbPerson
           } else {
-            pr.person
+            getEffectivePerson(pr)
           }
         }
         case _ => PERSON_THIRD
