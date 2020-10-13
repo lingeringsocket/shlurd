@@ -76,8 +76,13 @@ class SprSingleParser(
 {
   protected def normalize(sentence : SilSentence) : SilSentence =
   {
+    val tongue = context.getTongue
     val normalizationRewriter = new SprNormalizationRewriter(context)
-    normalizationRewriter.normalize(sentence)
+    val normalized = normalizationRewriter.normalize(sentence)
+    val inferredPoliteness = SilUtils.derivePoliteness(tongue, normalized)
+    val normalizedFormality = normalized.formality.copy(
+      politeness = inferredPoliteness)
+    normalized.withNewTamFormality(normalized.tam, normalizedFormality)
   }
 
   private def parseRoot(tree : SprSyntaxTree) =
@@ -547,7 +552,8 @@ object SprParser extends SprSynthesizer
       }
       case SilGenitiveReference(
         SilPronounReference(
-          PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR, PROXIMITY_SPEAKER_HERE),
+          PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
+          PROXIMITY_SPEAKER_HERE, _),
         SilMandatorySingular(
           SilWordLemma(lemma)
         )

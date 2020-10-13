@@ -427,7 +427,8 @@ abstract class SnlSentenceBundle(
 
   override def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    proximity : SilProximity, word : Option[SilWord],
+    proximity : SilProximity, politeness : SilPoliteness,
+    word : Option[SilWord],
     inflection : SilInflection,
     conjoining : SilConjoining) =
   {
@@ -435,7 +436,7 @@ abstract class SnlSentenceBundle(
       ""
     } else {
       def standard = tongue.pronounLemma(
-        person, gender, count, proximity, inflection)
+        person, gender, count, proximity, politeness, inflection)
       val inflected = word.map(w => w.recompose(w.decomposed.map(_.inflected))).
         getOrElse(standard)
       separate(inflected, conjoining)

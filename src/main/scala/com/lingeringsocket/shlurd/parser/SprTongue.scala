@@ -307,7 +307,8 @@ abstract class SprTongue(wordnet : SprWordnet)
   def analyzePronoun(lemma : String) :
       (
         SilPerson, SilCount, SilGender,
-        SilInflection, Option[SilProximity], SilCount
+        SilInflection, Option[SilProximity], SilCount,
+        SilPoliteness
       )
 
   def isSpecialAdposition(lemma : String) : Boolean = false
@@ -401,6 +402,7 @@ abstract class SprTongue(wordnet : SprWordnet)
   def pronounLemma(
     person : SilPerson, gender : SilGender, count : SilCount,
     proximity : SilProximity,
+    politeness : SilPoliteness,
     inflection : SilInflection,
     possesseeCount : SilCount = COUNT_SINGULAR
   ) : String

@@ -129,7 +129,7 @@ abstract class SprAbstractSyntaxAnalyzer(
       : SilPronounReference =
   {
     val lemma = leaf.lemma
-    val (person, count, gender, _, proximityOpt, _) =
+    val (person, count, gender, _, proximityOpt, _, politeness) =
       tongue.analyzePronoun(lemma)
     val proximity = proximityOpt.getOrElse {
       val seq = context.wordLabeler.labelWords(
@@ -144,7 +144,7 @@ abstract class SprAbstractSyntaxAnalyzer(
     }
     annotator.pronounRef(
       person, gender, count,
-      context.genderAnalyzer, proximity, Some(getWord(leaf)))
+      context.genderAnalyzer, proximity, politeness, Some(getWord(leaf)))
   }
 
   override def analyzeConditionalSentence(

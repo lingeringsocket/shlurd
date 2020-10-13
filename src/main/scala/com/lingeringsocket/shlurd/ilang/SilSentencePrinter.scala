@@ -252,8 +252,8 @@ class SilSentencePrinter(
       ref.pronounMap.get(pronounKey)
     }
     sb.pronoun(
-      ref.person, ref.gender, ref.count, ref.proximity, word,
-      inflection, conjoining)
+      ref.person, ref.gender, ref.count, ref.proximity, ref.politeness,
+      word, inflection, conjoining)
   }
 
   def printChangeStateVerb(

@@ -172,6 +172,15 @@ case object ASSUMED_TRUE extends SilAssumption
 case object ASSUMED_FALSE extends SilAssumption
 case object ASSUMED_NOTHING extends SilAssumption
 
+sealed trait SilPoliteness
+case object POLITENESS_FAMILIAR extends SilPoliteness
+case object POLITENESS_RESPECTFUL extends SilPoliteness
+
+object SilPoliteness
+{
+  val DEFAULT = POLITENESS_FAMILIAR
+}
+
 sealed trait SilForce
 case object FORCE_NEUTRAL extends SilForce
 case object FORCE_EXCLAMATION extends SilForce
@@ -283,12 +292,13 @@ case object SEPARATOR_SEMICOLON extends SilSeparator
 }
 
 sealed case class SilFormality(
-  force : SilForce
+  force : SilForce,
+  politeness : SilPoliteness = SilPoliteness.DEFAULT
 )
 
 object SilFormality
 {
-  val DEFAULT = SilFormality(FORCE_NEUTRAL)
+  val DEFAULT = SilFormality(FORCE_NEUTRAL, SilPoliteness.DEFAULT)
 }
 
 object SilTam

@@ -37,18 +37,19 @@ class SnlEnglishTongueSpec extends Specification
       // spot-check
       tongue.pronounLemma(
         PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
-        PROXIMITY_ENTITY, INFLECT_NOMINATIVE
+        PROXIMITY_ENTITY, SilPoliteness.DEFAULT, INFLECT_NOMINATIVE
       ) must be equalTo(LEMMA_I)
       pronounLemmas must contain(LEMMA_I)
 
       def fold(s : String) = s.replace("elves", "elf")
 
       pronounLemmas.foreach(lemma => {
-        val (person, count, gender, inflection, proximityOpt, _) =
+        val (person, count, gender, inflection, proximityOpt, _, politeness) =
           tongue.analyzePronoun(lemma)
         val lemmaProduced = tongue.pronounLemma(
           person, gender, count,
-          proximityOpt.getOrElse(PROXIMITY_ENTITY), inflection)
+          proximityOpt.getOrElse(PROXIMITY_ENTITY),
+          politeness, inflection)
         fold(lemmaProduced) must be equalTo fold(lemma)
       })
 

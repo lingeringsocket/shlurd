@@ -64,7 +64,8 @@ trait SmcScope[
     pr match {
       case SilPronounReference(
         PERSON_THIRD, GENDER_SOMEONE, COUNT_PLURAL,
-        PROXIMITY_ENTITY | PROXIMITY_REFLEXIVE | PROXIMITY_ELIDED
+        PROXIMITY_ENTITY | PROXIMITY_REFLEXIVE | PROXIMITY_ELIDED,
+        _
       ) => {
         pr.copy(gender = GENDER_NEUTER)
       }
@@ -588,7 +589,8 @@ class SmcPhraseScope[
     val outputs = ref match {
       case SilPronounReference(
         PERSON_THIRD, _, _,
-        PROXIMITY_ENTITY | PROXIMITY_REFLEXIVE | PROXIMITY_ELIDED
+        PROXIMITY_ENTITY | PROXIMITY_REFLEXIVE | PROXIMITY_ELIDED,
+        _
       ) => {
         findMatchingPronounReference(annotator, refMap, ref, true)
       }

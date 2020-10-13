@@ -593,20 +593,23 @@ object SilPronounReference
 {
   private def apply(
     person : SilPerson, gender : SilGender,
-    count : SilCount, proximity : SilProximity
-  ) = new SilPronounReference(person, gender, count, proximity)
+    count : SilCount, proximity : SilProximity,
+    politeness : SilPoliteness
+  ) = new SilPronounReference(person, gender, count, proximity, politeness)
 
   def unannotated(
     person : SilPerson, gender : SilGender,
-    count : SilCount, proximity : SilProximity
-  ) = SilPronounReference(person, gender, count, proximity)
+    count : SilCount, proximity : SilProximity,
+    politeness : SilPoliteness
+  ) = SilPronounReference(person, gender, count, proximity, politeness)
 }
 
 case class SilPronounReference private(
   person : SilPerson,
   gender : SilGender,
   count : SilCount,
-  proximity : SilProximity
+  proximity : SilProximity,
+  politeness : SilPoliteness
 ) extends SilAnnotatedReference
 {
   override def acceptsSpecifiers = false

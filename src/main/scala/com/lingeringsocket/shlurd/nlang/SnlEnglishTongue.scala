@@ -638,7 +638,9 @@ class SnlEnglishTongue(wordnet : SprWordnet)
         Some(PROXIMITY_ENTITY)
       case _ => None
     }
-    tupleN((person, count, gender, inflection, proximityOpt, COUNT_SINGULAR))
+    tupleN((
+      person, count, gender, inflection,
+      proximityOpt, COUNT_SINGULAR, SilPoliteness.DEFAULT))
   }
 
   override def synthesizeMembersRef(
@@ -780,10 +782,12 @@ class SnlEnglishTongue(wordnet : SprWordnet)
   override def pronounLemma(
     person : SilPerson, gender : SilGender, count : SilCount,
     proximity : SilProximity,
+    politeness : SilPoliteness,
     inflection : SilInflection,
     possesseeCount : SilCount = COUNT_SINGULAR
   ) : String =
   {
+    // FIXME:  old school thee/thou politeness
     person match {
       case PERSON_FIRST => count match {
         case COUNT_PLURAL => inflection match {

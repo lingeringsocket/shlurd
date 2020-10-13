@@ -170,4 +170,22 @@ object SilUtils
       case _ => None
     }
   }
+
+  def derivePoliteness(tongue : SilTongue, phrase : SilPhrase) : SilPoliteness =
+  {
+    val entries = new mutable.ArrayBuffer[SilPoliteness]
+    val phraseQuerier = new SilPhraseQuerier
+    val rule = phraseQuerier.queryMatcher {
+      case sentence : SilSentence => {
+        entries += sentence.formality.politeness
+      }
+      case pronoun : SilPronounReference => {
+        entries += pronoun.politeness
+      }
+    }
+    phraseQuerier.query(rule, phrase)
+    entries.reduceOption(tongue.combinePoliteness).getOrElse {
+      SilFormality.DEFAULT.politeness
+    }
+  }
 }

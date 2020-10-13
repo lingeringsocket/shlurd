@@ -144,6 +144,8 @@ object SnlSpanishLemmas
   val LEMMA_UNAS = "unas"
   val LEMMA_UNO = "uno"
   val LEMMA_UNOS = "unos"
+  val LEMMA_USTED = "usted"
+  val LEMMA_USTEDES = "ustedes"
   val LEMMA_VOSOTRAS = "vosotras"
   val LEMMA_VOSOTROS = "vosotros"
   val LEMMA_VUESTRA = "vuestra"
@@ -160,7 +162,8 @@ case class SprPronounCoord(
   count : SilCount,
   proximity : SilProximity,
   inflection : SilInflection,
-  possesseeCount : SilCount = COUNT_SINGULAR
+  possesseeCount : SilCount = COUNT_SINGULAR,
+  politeness : SilPoliteness = SilPoliteness.DEFAULT
 )
 
 object SnlSpanishLexicon
@@ -192,6 +195,10 @@ object SnlSpanishLexicon
     LEMMA_TU_ACCENTED -> SprPronounCoord(
       PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
       PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_USTED -> SprPronounCoord(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE,
+      politeness = POLITENESS_RESPECTFUL),
     LEMMA_EL_ACCENTED -> SprPronounCoord(
       PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
       PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
@@ -213,6 +220,10 @@ object SnlSpanishLexicon
     LEMMA_VOSOTRAS -> SprPronounCoord(
       PERSON_SECOND, GENDER_FEMININE, COUNT_PLURAL,
       PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
+    LEMMA_USTEDES -> SprPronounCoord(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_PLURAL,
+      PROXIMITY_ENTITY, INFLECT_NOMINATIVE,
+      politeness = POLITENESS_RESPECTFUL),
     LEMMA_ELLOS -> SprPronounCoord(
       PERSON_THIRD, GENDER_MASCULINE, COUNT_PLURAL,
       PROXIMITY_ENTITY, INFLECT_NOMINATIVE),
@@ -859,6 +870,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   {
     lemma match {
       case LEMMA_MI_ACCENTED | LEMMA_TI | LEMMA_EL_ACCENTED |
+          LEMMA_USTED | LEMMA_USTEDES |
           LEMMA_ELLA | LEMMA_NOSOTROS | LEMMA_NOSOTRAS | LEMMA_VOSOTROS |
           LEMMA_VOSOTRAS | LEMMA_ELLOS | LEMMA_ELLAS => true
       case _ => {
@@ -920,7 +932,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     pronounToCoord.get(lemma) match {
       case Some(coord) => {
         tupleN((coord.person, coord.count, coord.gender, coord.inflection,
-          Some(coord.proximity), coord.possesseeCount))
+          Some(coord.proximity), coord.possesseeCount, coord.politeness))
       }
       case _ => {
         val isCustomPronoun = !isPronounWord(lemma)
@@ -932,7 +944,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           GENDER_NEUTER
         }
         tupleN((PERSON_THIRD, COUNT_SINGULAR, gender, INFLECT_NONE,
-          None, COUNT_SINGULAR))
+          None, COUNT_SINGULAR, SilPoliteness.DEFAULT))
       }
     }
   }
@@ -951,7 +963,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case SilIntegerDeterminer(n) => n.toString
       case _ => throw new IllegalArgumentException(determiner.toString)
     }
-    val (_, count, _, _, _, _) = analyzePronoun(lemma)
+    val (_, count, _, _, _, _, _) = analyzePronoun(lemma)
     annotator.nounRef(SilWord(correctGenderCount(lemma, gender, count, false)))
   }
 
@@ -1335,6 +1347,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case LEMMA_VOSOTROS | LEMMA_VOSOTRAS => LEMMA_VOSOTROS
       case LEMMA_SUS => LEMMA_SU
       case LEMMA_TUS => LEMMA_TU
+      case LEMMA_USTEDES => LEMMA_USTED
       case LEMMA_UNO | LEMMA_UNA | LEMMA_UNOS | LEMMA_UNAS => LEMMA_UN
       case _ => {
         if (lemma.endsWith("a")) {
@@ -1355,18 +1368,19 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def pronounLemma(
     person : SilPerson, gender : SilGender, count : SilCount,
     proximity : SilProximity,
+    politeness : SilPoliteness,
     inflection : SilInflection,
     possesseeCount : SilCount = COUNT_SINGULAR
   ) : String =
   {
     val coord = SprPronounCoord(
-      person, gender, count, proximity, inflection, possesseeCount)
+      person, gender, count, proximity, inflection, possesseeCount, politeness)
     coordToPronoun.get(coord).getOrElse {
       inflection match {
         case INFLECT_ADPOSITIONED => {
           pronounLemma(
             person, gender, count, proximity,
-            INFLECT_NOMINATIVE, possesseeCount)
+            politeness, INFLECT_NOMINATIVE, possesseeCount)
         }
         case _ => ""
       }

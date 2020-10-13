@@ -275,7 +275,8 @@ abstract class SilSentenceBundle
 
   def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    proximity : SilProximity, word : Option[SilWord],
+    proximity : SilProximity, politeness : SilPoliteness,
+    word : Option[SilWord],
     inflection : SilInflection,
     conjoining : SilConjoining) : String
 

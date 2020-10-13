@@ -274,12 +274,13 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
 
   override def pronoun(
     person : SilPerson, gender : SilGender, count : SilCount,
-    proximity : SilProximity, word : Option[SilWord],
+    proximity : SilProximity, politeness : SilPoliteness,
+    word : Option[SilWord],
     inflection : SilInflection,
     conjoining : SilConjoining) =
   {
     // FIXME handle reflexives and PROXIMITY_POSSESSEE, e.g. "mine" => "내것"
-    // FIXME use word
+    // FIXME use word, politeness
     def standard = person match {
       case PERSON_FIRST => count match {
         case COUNT_PLURAL => inflectPronoun("우리", inflection, conjoining)

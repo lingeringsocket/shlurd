@@ -258,11 +258,13 @@ trait SilAnnotator
     count : SilCount,
     genderAnalyzer : SilGenderAnalyzer,
     proximity : SilProximity = PROXIMITY_ENTITY,
+    politeness : SilPoliteness = SilPoliteness.DEFAULT,
     word : Option[SilWord] = None,
     pronounMap : SilPronounMap = SilPronounMap()) =
   {
     val newRef = register(SilPronounReference.unannotated(
-      person, genderAnalyzer.canonicalGender(gender), count, proximity))
+      person, genderAnalyzer.canonicalGender(gender), count, proximity,
+      politeness))
     val note = getBasicNote(newRef)
     word.foreach(w => note.setWord(w))
     note.setPronounMap(pronounMap)
@@ -274,11 +276,13 @@ trait SilAnnotator
     gender : SilGender,
     count : SilCount,
     proximity : SilProximity = PROXIMITY_ENTITY,
+    politeness : SilPoliteness = SilPoliteness.DEFAULT,
     word : Option[SilWord] = None,
     pronounMap : SilPronounMap = SilPronounMap()) =
   {
     pronounRef(
-      person, gender, count, SilGenderPreserver, proximity, word, pronounMap)
+      person, gender, count, SilGenderPreserver, proximity,
+      politeness, word, pronounMap)
   }
 
   def conjunctiveRef(

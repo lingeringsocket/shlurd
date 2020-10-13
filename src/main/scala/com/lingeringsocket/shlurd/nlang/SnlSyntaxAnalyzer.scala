@@ -693,7 +693,7 @@ abstract class SnlSyntaxAnalyzer(
   {
     val pronounLemma = tongue.pronounLemma(
       PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
-      PROXIMITY_ENTITY, INFLECT_NOMINATIVE)
+      PROXIMITY_ENTITY, formality.politeness, INFLECT_NOMINATIVE)
     val np = SptNP(SptPRP(makeLeaf(pronounLemma)))
     val sentence = analyzeSentenceChildren(
       tree, Seq(np, vp), MOOD_IMPERATIVE, formality.force)

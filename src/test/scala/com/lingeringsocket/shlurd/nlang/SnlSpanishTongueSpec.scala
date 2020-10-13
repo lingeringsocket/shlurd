@@ -139,28 +139,35 @@ class SnlSpanishTongueSpec extends SprWordLabelerSpecification
       // spot-check
       tongue.pronounLemma(
         PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
-        PROXIMITY_ENTITY, INFLECT_NOMINATIVE
+        PROXIMITY_ENTITY, SilPoliteness.DEFAULT, INFLECT_NOMINATIVE
       ) must be equalTo(LEMMA_YO)
 
       tongue.pronounLemma(
+        PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+        PROXIMITY_ENTITY, POLITENESS_RESPECTFUL, INFLECT_NOMINATIVE
+      ) must be equalTo(LEMMA_USTED)
+
+      tongue.pronounLemma(
         PERSON_FIRST, GENDER_MASCULINE, COUNT_PLURAL,
-        PROXIMITY_ENTITY, INFLECT_NOMINATIVE
+        PROXIMITY_ENTITY, SilPoliteness.DEFAULT, INFLECT_NOMINATIVE
       ) must be equalTo(LEMMA_NOSOTROS)
 
       pronounLemmas must contain(LEMMA_YO)
       pronounLemmas must contain(LEMMA_NOSOTROS)
+      pronounLemmas must contain(LEMMA_USTED)
 
       pronounLemmas.foreach(lemma => {
-        val (person, count, gender, inflection, proximityOpt, possesseeCount) =
-          tongue.analyzePronoun(lemma)
+        val (person, count, gender, inflection,
+          proximityOpt, possesseeCount, politeness
+        ) = tongue.analyzePronoun(lemma)
         val lemmaProduced = tongue.pronounLemma(
           person, gender, count,
           proximityOpt.getOrElse(PROXIMITY_ENTITY),
-          inflection, possesseeCount)
+          politeness, inflection, possesseeCount)
         lemmaProduced must be equalTo lemma
       })
 
-      pronounLemmas.size must be equalTo 61
+      pronounLemmas.size must be equalTo 63
     }
 
     "transform predefs" in

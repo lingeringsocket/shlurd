@@ -14,6 +14,8 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import com.lingeringsocket.shlurd._
+
 trait SilTongue extends SilGenderAnalyzer
 {
   def newSentenceBundle() : SilSentenceBundle
@@ -42,6 +44,16 @@ trait SilTongue extends SilGenderAnalyzer
     subjectVariable : Boolean) : Boolean =
   {
     truthBoolean || negateCollection
+  }
+
+  def combinePoliteness(
+    p1 : SilPoliteness,
+    p2 : SilPoliteness) : SilPoliteness =
+  {
+    tupleN((p1, p2)) match {
+      case (POLITENESS_FAMILIAR, POLITENESS_FAMILIAR) => POLITENESS_FAMILIAR
+      case _ => POLITENESS_RESPECTFUL
+    }
   }
 
   def getNoneCount : SilCount = COUNT_PLURAL
