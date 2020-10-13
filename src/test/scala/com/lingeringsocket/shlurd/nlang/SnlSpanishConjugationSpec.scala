@@ -109,7 +109,19 @@ class SnlSpanishConjugationSpec extends Specification
 
   private def acceptTam(tam : SilTam) : Boolean =
   {
-    (tam.mood == MOOD_INDICATIVE) && (tam.tense != TENSE_INFINITIVE)
+    (tam.mood != MOOD_INTERROGATIVE) && (tam.tense != TENSE_INFINITIVE) &&
+      tam.isPositive
+  }
+
+  private def extractForms(seq : Seq[String], tam : SilTam) : Seq[String] =
+  {
+    assert(seq.size == 6)
+    if (tam.isImperative) {
+      // correct the database mixup
+      Seq(seq(0), seq(1), seq(4), seq(3), seq(2), seq(5))
+    } else {
+      seq
+    }
   }
 
   private def lastWord(s : String) : String =
@@ -132,6 +144,45 @@ class SnlSpanishConjugationSpec extends Specification
       ) must be equalTo("soy")
     }
 
+    "conjugate usted imperative" in
+    {
+      SnlSpanishConjugation.conjugateVerb(
+        "vivir",
+        SnlSpanishConjugationCoord(
+          PERSON_THIRD,
+          COUNT_SINGULAR,
+          TENSE_PRESENT,
+          MOOD_IMPERATIVE,
+          ASPECT_SIMPLE)
+      ) must be equalTo("viva")
+    }
+
+    "conjugate ustedes imperative" in
+    {
+      SnlSpanishConjugation.conjugateVerb(
+        "vivir",
+        SnlSpanishConjugationCoord(
+          PERSON_THIRD,
+          COUNT_PLURAL,
+          TENSE_PRESENT,
+          MOOD_IMPERATIVE,
+          ASPECT_SIMPLE)
+      ) must be equalTo("vivan")
+    }
+
+    "conjugate vosotros imperative" in
+    {
+      SnlSpanishConjugation.conjugateVerb(
+        "vivir",
+        SnlSpanishConjugationCoord(
+          PERSON_SECOND,
+          COUNT_PLURAL,
+          TENSE_PRESENT,
+          MOOD_IMPERATIVE,
+          ASPECT_SIMPLE)
+      ) must be equalTo("vivid")
+    }
+
     "produce irregular form list" in
     {
       skipped("requires site specifics")
@@ -144,7 +195,7 @@ class SnlSpanishConjugationSpec extends Specification
         val infinitive = parseInfinitive(row(0)).stripSuffix("se")
         val tam = parseTam(row)
         if (acceptTam(tam)) {
-          val forms = row.slice(7, 13)
+          val forms = extractForms(row.slice(7, 13), tam)
           forms.foreach(form => {
             val conjugated = lastWord(form)
             if (conjugated.nonEmpty) {
@@ -178,8 +229,8 @@ class SnlSpanishConjugationSpec extends Specification
         val tam = parseTam(row)
         // val gerund = row(13)
         // val participle = row(15)
-        // FIXME: MOOD_IMPERATIVE
-        if (acceptTam(tam)) {
+        // FIXME deal with reflexives
+        if (acceptTam(tam) && !infinitive.endsWith("se")) {
           val coords = Seq(COUNT_SINGULAR, COUNT_PLURAL).flatMap(count => {
             Seq(PERSON_FIRST, PERSON_SECOND, PERSON_THIRD).map(person => {
               SnlSpanishConjugationCoord(
@@ -190,7 +241,7 @@ class SnlSpanishConjugationSpec extends Specification
                 ASPECT_SIMPLE)
             })
           })
-          val forms = row.slice(7, 13)
+          val forms = extractForms(row.slice(7, 13), tam)
           forms.zip(coords).foreach {
             case (form, coord) => {
               println("COORD = " + coord)

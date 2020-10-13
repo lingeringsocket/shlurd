@@ -39,11 +39,11 @@ public class Present extends Tense{
         }
 
         //Checks if a verb ends with "uar" due to an exception
-        else if(verb.substring(verb.length()-3).equals("uar") && !"cg".contains(Character.toString(verb.charAt(verb.length()-4)))) {
+        else if(endsWithUar(verb)) {
             return print(conjugation, verb.substring(0, verb.length()-3) + "ú", root(verb), endings, pn);
         }
         //Checks if a verb ends with "iar" due to an exception
-        else if(verb.substring(verb.length()-3).equals("iar") && iarAccented.contains(verb)) {
+        else if(iarAccented.contains(verb)) {
             return print(conjugation, verb.substring(0, verb.length()-3) + "í", root(verb), endings, pn);
         }
         else {
@@ -53,7 +53,6 @@ public class Present extends Tense{
 
     protected HashMap<String, String> yoChange = new HashMap<String, String>();
     private HashMap<String, String[]> iregsPresent = new HashMap<String, String[]>();
-    private HashSet<String> iarAccented = new HashSet<String>();
 
 
     private void putValuesGo() {
@@ -102,14 +101,6 @@ public class Present extends Tense{
         iregsPresent.put("producir", new String[] {"produzco", "produces", "produce", "producimos", "producís", "producen"});
         iregsPresent.put("reducir", new String[] {"reduzco", "reduces", "reduce", "reducimos", "reducís", "reducen"});
         iregsPresent.put("traducir", new String[] {"traduzco", "traduces", "traduce", "traducimos", "traducís", "traducen"});
-
-        iarAccented.add("criar");
-        iarAccented.add("confiar");
-        iarAccented.add("enviar");
-        iarAccented.add("esquiar");
-        iarAccented.add("guiar");
-        iarAccented.add("vaciar");
-        iarAccented.add("variar");
     }
 
     //Print method that handles stem changing verbs

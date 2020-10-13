@@ -43,8 +43,19 @@ abstract class SnlRomanceSyntaxAnalyzer(
 
   private def detectNominative(tree : SprSyntaxTree) : Boolean =
   {
-    // FIXME special handling for object/reflexive pronouns
-    tree.isNounOrPronoun || tree.isQueryNounPhrase
+    if (tree.isNounPhrase && (tree.children.size == 1)) {
+      detectNominative(tree.unwrapPhrase)
+    } else if (tree.isQueryNounPhrase || tree.isNoun ||
+      tree.isNounPhrase || tree.isDemonstrative)
+    {
+      true
+    } else if (tree.isPronoun) {
+      val lemma = tree.firstChild.lemma
+      val inflection = tongue.analyzePronoun(lemma)._4
+      (inflection == INFLECT_NOMINATIVE)
+    } else {
+      false
+    }
   }
 
   private def detectAdjective(tree : SprSyntaxTree) : Boolean =
@@ -68,6 +79,9 @@ abstract class SnlRomanceSyntaxAnalyzer(
     })
   }
 
+  protected def detectImperative(children : Seq[SprSyntaxTree]) :
+      (Boolean, SilGender, SilCount, SilPoliteness)
+
   override protected def analyzeSentenceChildren(
     tree : SprSyntaxTree, children : Seq[SprSyntaxTree],
     mood : SilMood, force : SilForce) =
@@ -75,14 +89,23 @@ abstract class SnlRomanceSyntaxAnalyzer(
     val (isNegativeAbove, extracted) =
       extractNegative(unwrapSinglePhrase(children))
     val seq = unwrapSinglePhrase(extracted)
-    if (isImperative(seq)) {
+    // FIXME support explicit (vocative) subject for imperatives,
+    // possibly providing gender
+    val (
+      isImperative, imperativeGender, imperativeCount, imperativePoliteness
+    ) = detectImperative(seq)
+    if (isImperative) {
       // FIXME use isNegativeAbove
-      expectCommand(tree, children.head, SilFormality(force))
+      expectCommand(
+        tree,
+        children.head,
+        SilFormality(force, imperativePoliteness),
+        imperativeGender,
+        imperativeCount)
     } else {
       val (isNegativeBelow, unwrapped) =
         extractNegative(unwrapVerbPhrases(seq))
       val isNegative = combineNegatives(isNegativeAbove, isNegativeBelow)
-      // FIXME special handling for object/reflexive pronouns
       val iVerbs = unwrapped.zipWithIndex.filter(z => detectVerb(z._1))
       val iNoms = unwrapped.zipWithIndex.filter(z => detectNominative(z._1))
       val iAdjs = unwrapped.zipWithIndex.filter(z => detectAdjective(z._1))

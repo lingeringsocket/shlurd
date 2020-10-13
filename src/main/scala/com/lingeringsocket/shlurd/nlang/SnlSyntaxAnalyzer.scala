@@ -689,10 +689,13 @@ abstract class SnlSyntaxAnalyzer(
 
   protected def expectCommand(
     tree : SprSyntaxTree,
-    vp : SprSyntaxTree, formality : SilFormality) : SilSentence =
+    vp : SprSyntaxTree,
+    formality : SilFormality,
+    gender : SilGender = GENDER_SOMEONE,
+    count : SilCount = COUNT_SINGULAR) : SilSentence =
   {
     val pronounLemma = tongue.pronounLemma(
-      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      PERSON_SECOND, gender, count,
       PROXIMITY_ENTITY, formality.politeness, INFLECT_NOMINATIVE)
     val np = SptNP(SptPRP(makeLeaf(pronounLemma)))
     val sentence = analyzeSentenceChildren(

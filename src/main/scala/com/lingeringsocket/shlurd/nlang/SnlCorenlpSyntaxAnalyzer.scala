@@ -28,6 +28,8 @@ abstract class SnlCorenlpSyntaxAnalyzer(
 ) extends SnlSyntaxAnalyzer(
   context, guessedQuestion, strictness, enforceTransitive)
 {
+  protected def isImperative(children : Seq[SprSyntaxTree]) : Boolean
+
   override protected def analyzeSentenceChildren(
     tree : SprSyntaxTree, children : Seq[SprSyntaxTree],
     mood : SilMood, force : SilForce) =

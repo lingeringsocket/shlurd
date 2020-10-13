@@ -45,8 +45,6 @@ abstract class SprAbstractSyntaxAnalyzer(
     tam.withMood(MOOD_INTERROGATIVE)
   }
 
-  protected def isImperative(children : Seq[SprSyntaxTree]) : Boolean
-
   protected def isAdpositionable(tree : SprSyntaxTree) : Boolean =
   {
     tree match {

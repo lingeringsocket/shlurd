@@ -181,7 +181,7 @@ object SnlSpanishLexicon
   val nounGenders = readGenderMap("/spanish/gender.txt")
 
   val stopList = Set(
-    LEMMA_ELLA, LEMMA_YO, LEMMA_NO, LEMMA_SER
+    LEMMA_ELLA, LEMMA_YO, LEMMA_NO, LEMMA_SER, LEMMA_SUS
   ) ++ stopListPunct
 
   val unaccentedVowels = "aeiou"
@@ -929,6 +929,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def analyzePronoun(lemma : String) =
   {
+    // FIXME in case of su/sus, need a way to decide between third person
+    // vs usted
     pronounToCoord.get(lemma) match {
       case Some(coord) => {
         tupleN((coord.person, coord.count, coord.gender, coord.inflection,
@@ -1086,6 +1088,9 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       // bizarre stemming anomaly
       Set.empty
     } else if ((token == "de") && (lemma == "dar")) {
+      // another one
+      Set.empty
+    } else if ((token == "sé") && (lemma == LEMMA_SER)) {
       // another one
       Set.empty
     } else if (isProgressive(token)) {

@@ -40,15 +40,17 @@ public class PresentSubjunctive extends Present{
         }
 
         //Checks if the verb ends with "uar" due to certain exceptions
-        else if(verb.substring(verb.length()-3).equals("uar")) {
+        else if(endsWithUar(verb)) {
             return print(conjugation, verb.substring(0, verb.length()-3) + "ú", root(verb), endings, pn);
         }
 
         //Checks if a verb ends with "iar" due to an exception
-        else if(verb.substring(verb.length()-3).equals("iar")) {
+        else if(iarAccented.contains(verb)) {
             return print(conjugation, verb.substring(0, verb.length()-3) + "í", root(verb), endings, pn);
         }
-
+        else if (verb.endsWith("guar")) {
+            return print(conjugation, verb.substring(0, verb.length()-3), iregs.get("guar"), pn);
+        }
         else {
 
             //Uses the verb's gerund to handle certain stem changes
@@ -91,5 +93,6 @@ public class PresentSubjunctive extends Present{
         iregs.put("ir" , new String[]{"vaya", "vayas", "vaya", "vayamos", "vayáis", "vayan"});
         iregs.put("haber" , new String[]{"haya", "hayas", "haya", "hayamos", "hayáis", "hayan"});
         iregs.put("reir" , new String[]{"ría", "rías", "ría", "riamos", "riáis", "rían"});
+        iregs.put("guar", new String[] {"üe", "ües", "üe", "üemos", "üéis", "üen"});
     }
 }

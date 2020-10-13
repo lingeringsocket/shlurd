@@ -427,26 +427,35 @@ class SnlSpanishVerbSpec extends Specification
       : Seq[(SilReference, Option[SilPhrase], String, SilTam)] =
   {
     // FIXME support POLARITY_NEGATIVE
-    val pronoun = annotator.basicPronounRef(
-      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR)
-    rhsSeq(None, pronoun).flatMap(
-      rhs => {
-        val tam = SilTamImmutable(
-          MOOD_IMPERATIVE,
-          POLARITY_POSITIVE,
-          MODAL_NEUTRAL,
-          ASPECT_SIMPLE,
-          TENSE_PRESENT)
-        if (isConsistent(
-          pronoun, rhs, lemma, tam))
-        {
-          Some((pronoun, rhs, lemma, tam))
-        } else {
-          None
+    val usted = annotator.basicPronounRef(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+      politeness = POLITENESS_RESPECTFUL)
+    val ustedes = annotator.basicPronounRef(
+      PERSON_SECOND, GENDER_SOMEONE, COUNT_PLURAL,
+      politeness = POLITENESS_RESPECTFUL)
+    val vosotros = annotator.basicPronounRef(
+      PERSON_SECOND, GENDER_MASCULINE, COUNT_PLURAL,
+      politeness = POLITENESS_FAMILIAR)
+    Seq(usted, ustedes, vosotros).flatMap(pronoun => {
+      rhsSeq(None, pronoun).flatMap(
+        rhs => {
+          val tam = SilTamImmutable(
+            MOOD_IMPERATIVE,
+            POLARITY_POSITIVE,
+            MODAL_NEUTRAL,
+            ASPECT_SIMPLE,
+            TENSE_PRESENT)
+          if (isConsistent(
+            pronoun, rhs, lemma, tam))
+          {
+            Some((pronoun, rhs, lemma, tam))
+          } else {
+            None
+          }
         }
-      }
-    )
-  }.distinct
+      )
+    }).distinct
+  }
 
   "SnlSpanishVerbParser" should
   {

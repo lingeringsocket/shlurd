@@ -46,9 +46,9 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("ustedes caminan")
       expectStatement("podemos ser perros")
       expectStatement("hay un perro")
-
-      // for usted, should preserve viva la vida
-      expectNormalized("viva la vida", "vive la vida!")
+      expectCommand("viva su vida")
+      expectCommand("vivan sus vidas")
+      expectCommand("vivid vuestras vidas")
     }
 
     "handle sketchy constructs" in

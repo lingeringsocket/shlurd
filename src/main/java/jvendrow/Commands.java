@@ -37,7 +37,7 @@ public class Commands extends PresentSubjunctive{
         }
 
         //Checks if a verb or any subsections of it have change matching that of the first person in the Present Tense
-        else if(checkForIreg(verb, yoChange) >= 0) {
+        else if((checkForIreg(verb, yoChange) >= 0) && !((pn < 2) && verb.contains("decir") && !verb.equals("decir"))) {
             int i = checkForIreg(verb, yoChange);
             return printYo(conjugation, verb.substring(0, i), verb.substring(i), yoChange.get(verb.substring(i)), endings, pn);
         }
@@ -53,12 +53,12 @@ public class Commands extends PresentSubjunctive{
         }
 
         //Checks if the verb ends with "uar" due to certain exceptions
-        else if(verb.substring(verb.length()-3).equals("uar")) {
+        else if(endsWithUar(verb)) {
             return print(conjugation, verb.substring(0, verb.length()-3) + "ú", verb, verb, root(verb), endings, pn);
         }
 
         //Checks if the verb ends with "iar" due to certain exceptions
-        else if(verb.substring(verb.length()-3).equals("iar")) {
+        else if(iarAccented.contains(verb)) {
             return print(conjugation, verb.substring(0, verb.length()-3) + "í", verb, verb, root(verb), endings, pn);
         }
 
@@ -103,11 +103,14 @@ public class Commands extends PresentSubjunctive{
                 return(conjugation.toBeReflexive[i] + root(stemChange(originalVerb)) + "y" + Endings.presentEr[2]);
             }
             //Checks if the ending of the verb is uar due to an exception
-            else if(originalVerb.substring(originalVerb.length()-3).equals("uar")) {
+            else if(endsWithUar(originalVerb)) {
                 return(conjugation.toBeReflexive[i] + stemChange(originalVerb).substring(0, originalVerb.length()-3) + "ú" + Endings.presentAr[2]);
             }
+            else if (originalVerb.endsWith("guar")) {
+                return(conjugation.toBeReflexive[i] + stemChange(originalVerb).substring(0, originalVerb.length()-2) + Endings.presentAr[2]);
+            }
             //Checks if the ending of the verb is iar due to an exception
-            else if(originalVerb.substring(originalVerb.length()-3).equals("iar")) {
+            else if(iarAccented.contains(originalVerb)) {
                 return(conjugation.toBeReflexive[i] + stemChange(originalVerb).substring(0, originalVerb.length()-3) + "í" + Endings.presentAr[2]);
             }
             else if(end(originalVerb) == 'a') {
@@ -116,6 +119,9 @@ public class Commands extends PresentSubjunctive{
             else {
                 return(endReflexive(conjugation, root(stemChange(originalVerb))) + Endings.presentEr[2] + conjugation.toBeReflexive[i]);
             }
+        }
+        else if (((i == 2) || (i == 5)) && originalVerb.endsWith("guar")) {
+            return(conjugation.toBeReflexive[i] + stemChange(originalVerb).substring(0, originalVerb.length()-3) + iregs.get("guar")[i]);
         }
         else if(i == 3) {
             //Handles exception for reflexive verbs for nosotros (we)
@@ -162,7 +168,11 @@ public class Commands extends PresentSubjunctive{
         if(i == 1) {
             //Checks if the verb is irregular in the first person
             if(yoIreg.containsKey(verb)) {
-                return(endReflexive(conjugation, beginning) + yoIreg.get(verb) + conjugation.toBeReflexive[i]);
+                String base = yoIreg.get(verb);
+                if (!beginning.isEmpty() && base.endsWith("n")) {
+                    base = accentFirstVowel(base);
+                }
+                return(endReflexive(conjugation, beginning) + base + conjugation.toBeReflexive[i]);
             }
             else {
                 if(end(verb) == 'a') {
@@ -228,6 +238,15 @@ public class Commands extends PresentSubjunctive{
         posIregs.put("saber", new String[]{"sabe", "sepa", "sepamos", "sabed", "sepan"});
         posIregs.put("haber" , new String[]{"has", "haya", "hayamos", "habed", "hayan"});
         posIregs.put("reir" , new String[]{"ríe", "ría", "riamos", "reíd", "rían"});
+        posIregs.put("sonreir" , new String[]{"sonríe", "sonría", "sonriamos", "sonreíd", "sonrían"});
+        posIregs.put("freir" , new String[]{"fríe", "fría", "friamos", "freíd", "frían"});
+        posIregs.put("errar" , new String[]{"yerra", "yerre", "yerramos", "errad", "yerren"});
+        posIregs.put("gruñir", new String[] {"gruñe", "gruña", "gruñemos", "gruñed", "gruñan"});
+        posIregs.put("oler", new String[] {"huele", "huela", "huelemos", "oled", "huelan"});
+        posIregs.put("prever", new String[] {"prevé", "prevea", "prevemos", "preved", "prevean"});
+        posIregs.put("ver", new String[] {"ve", "vea", "vemos", "ved", "vean"});
+        posIregs.put("prohibir", new String[] {"prohíbe", "prohíba", "prohibemos", "prohibid", "prohíban"});
+        posIregs.put("rehusar", new String[] {"rehúsa", "rehúse", "rehusamos", "rehusad", "rehúsen"});
 
         posIregsReflexive.put("dar", new String[]{"date", "dése", "démonos", "daos", "dense"});
         posIregsReflexive.put("ir" , new String[]{"vete", "váyase", "vayámonos", "idos", "váyanse"});
@@ -239,6 +258,7 @@ public class Commands extends PresentSubjunctive{
         yoIreg.put("decir", "di");
         yoIreg.put("salir", "sal");
         yoIreg.put("hacer", "haz");
+        yoIreg.put("satisfacer", "satisfaz");
 
         //Not an actual yo irregular, but has the same effect
         yoIreg.put("oir", "oye");

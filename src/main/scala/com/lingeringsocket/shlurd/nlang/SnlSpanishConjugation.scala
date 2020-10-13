@@ -64,8 +64,6 @@ object SnlSpanishConjugation
     Seq(TENSE_PRESENT, TENSE_PAST, TENSE_FUTURE)
   private val allAspects =
     Seq(ASPECT_SIMPLE, ASPECT_PROGRESSIVE)
-  private val imperativePersons =
-    Seq(PERSON_SECOND, PERSON_THIRD)
 
   private val validCoords = allPersons.flatMap(person => {
     allCounts.flatMap(count => {
@@ -76,10 +74,14 @@ object SnlSpanishConjugation
         })
       })
     })
-  }) ++ imperativePersons.map(person => {
+  }) ++ allCounts.map(count => {
     SnlSpanishConjugationCoord(
-      person, COUNT_SINGULAR, TENSE_PRESENT, MOOD_IMPERATIVE, ASPECT_SIMPLE)
-  })
+      PERSON_THIRD, count, TENSE_PRESENT, MOOD_IMPERATIVE, ASPECT_SIMPLE)
+  }) ++ Seq(
+    SnlSpanishConjugationCoord(
+      PERSON_SECOND, COUNT_PLURAL, TENSE_PRESENT,
+      MOOD_IMPERATIVE, ASPECT_SIMPLE)
+  )
 
   def conjugateVerb(
     infinitive : String,
@@ -92,12 +94,7 @@ object SnlSpanishConjugation
     val spanishTense = {
       coord.mood match {
         case MOOD_IMPERATIVE => {
-          coord.person match {
-            // informal
-            case PERSON_SECOND => SpanishVerbConjugator.commandsPositive
-            // formal
-            case _ => SpanishVerbConjugator.presentSubjunctive
-          }
+          SpanishVerbConjugator.commandsPositive
         }
         case _ => {
           coord.aspect match {

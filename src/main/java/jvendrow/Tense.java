@@ -1,6 +1,8 @@
 package jvendrow;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Arrays;
 
 public abstract class Tense {
     protected String[] endings;
@@ -31,6 +33,8 @@ public abstract class Tense {
     static String[] reflexive = {"me ", "te ", "se ", "nos ", "os ", "se "};
     static String[] toBeReflexive = {"", "", "", "", "", ""};
     static String[] noEndings = {};
+
+    static HashSet<String> iarAccented = new HashSet<>(Arrays.asList("criar", "confiar", "enviar", "esquiar", "guiar", "vaciar", "variar"));
     
     abstract public String conjugate(Conjugation conjugation);
 
@@ -153,6 +157,11 @@ public abstract class Tense {
         return (verb.substring(verb.length()-3).equals("cer") || verb.substring(verb.length()-3).equals("cir"));
     }
 
+    static boolean endsWithUar(String verb)
+    {
+        return verb.substring(verb.length()-3).equals("uar") && !"cg".contains(Character.toString(verb.charAt(verb.length()-4)));
+    }
+
     //Checks if a verbs ends with "car", "gar", or "zar" due to certain exceptions
     String carGarZar(String verb) {
         if(verb.length() < 3) {
@@ -178,6 +187,11 @@ public abstract class Tense {
         if(conjugation.toBeReflexive[0].equals("")) {
             return root;
         }
+        return accentFirstVowel(root);
+    }
+
+    String accentFirstVowel(String root)
+    {
         for(int i = 1; i < root.length(); i++) {
             if("eiaou".contains(root.substring(root.length()-i, root.length()-i+1))) {
                 return root.substring(0, root.length()-i) + accents.get(root.charAt(root.length()-i)) + root.substring(root.length()-i+1, root.length());

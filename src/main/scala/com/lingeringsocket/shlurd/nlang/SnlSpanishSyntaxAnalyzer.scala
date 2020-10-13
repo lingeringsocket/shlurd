@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.nlang
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
@@ -26,7 +27,7 @@ class SnlSpanishSyntaxAnalyzer(
 ) extends SnlRomanceSyntaxAnalyzer(
   context, false, strictness, enforceTransitive)
 {
-  override protected def isImperative(children : Seq[SprSyntaxTree]) =
+  override protected def detectImperative(children : Seq[SprSyntaxTree]) =
   {
     // FIXME negatives etc
     val seq = {
@@ -42,10 +43,28 @@ class SnlSpanishSyntaxAnalyzer(
         val (person, count, gender, tam) =
           context.getTongue.analyzeVerbConjugation(
             SilWord(leaf.token, leaf.lemma))
-        tam.isImperative
+        tupleN((person, count)) match {
+          case (PERSON_SECOND, COUNT_PLURAL) => {
+            tupleN((
+              tam.isImperative, GENDER_MASCULINE,
+              count, POLITENESS_FAMILIAR
+            ))
+          }
+          case (PERSON_SECOND, COUNT_SINGULAR) => {
+            // no way to distinguish indicative from imperative here,
+            // so assume indicative
+            tupleN((false, GENDER_MASCULINE, count, POLITENESS_FAMILIAR))
+          }
+          case _ => {
+            tupleN((
+              tam.isImperative, GENDER_SOMEONE,
+              count, POLITENESS_RESPECTFUL
+            ))
+          }
+        }
       }
       case _ => {
-        false
+        tupleN((false, GENDER_SOMEONE, COUNT_SINGULAR, SilPoliteness.DEFAULT))
       }
     }
   }
