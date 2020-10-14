@@ -133,6 +133,11 @@ class SnlSpanishConjugationSpec extends Specification
     }
   }
 
+  private def extractParticiple(entry : String) : String =
+  {
+    entry.split(", ").head
+  }
+
   private def lastWord(s : String) : String =
   {
     s.split(" ").last
@@ -228,10 +233,13 @@ class SnlSpanishConjugationSpec extends Specification
       var mismatches = 0
       data.foreach(line => {
         val row = parseLine(line)
-        val infinitive = parseInfinitive(row(0)).stripSuffix("se")
+        val infinitive = parseInfinitive(row(0))
         val tam = parseTam(row)
-        if (acceptTam(tam)) {
-          val forms = extractForms(row.slice(7, 13), tam)
+        if (acceptTam(tam) && !infinitive.endsWith("se")) {
+          val formGerund = row(13)
+          val formParticiple = extractParticiple(row(15))
+          val forms = extractForms(row.slice(7, 13), tam) ++
+            Seq(formGerund, formParticiple)
           forms.foreach(form => {
             val conjugated = lastWord(form)
             if (conjugated.nonEmpty) {
@@ -263,10 +271,16 @@ class SnlSpanishConjugationSpec extends Specification
         row.size must be equalTo 17
         val infinitive = parseInfinitive(row(0))
         val tam = parseTam(row)
-        // val gerund = row(13)
-        // val participle = row(15)
         // FIXME deal with reflexives
         if (acceptTam(tam) && !infinitive.endsWith("se")) {
+          val formGerund = row(13)
+          val formParticiple = extractParticiple(row(15))
+          val conjugatedGerund =
+            SnlSpanishConjugation.conjugateGerund(infinitive)
+          val conjugatedParticiple =
+            SnlSpanishConjugation.conjugateParticiple(infinitive)
+          conjugatedGerund must be equalTo formGerund
+          conjugatedParticiple must be equalTo formParticiple
           val coords = Seq(COUNT_SINGULAR, COUNT_PLURAL).flatMap(count => {
             Seq(PERSON_FIRST, PERSON_SECOND, PERSON_THIRD).map(person => {
               SnlSpanishConjugationCoord(

@@ -52,8 +52,7 @@ class SnlSpanishTongueSpec extends SprWordLabelerSpecification
       labelWord("caminé") must be equalTo Set(LABEL_VBD)
       labelWord("caminaré") must be equalTo Set(LABEL_VBF)
       labelWord("rojo") must be equalTo Set(LABEL_JJ, LABEL_NN)
-      // FIXME should be VBN
-      labelWord("roto") must be equalTo Set(LABEL_JJ, LABEL_VB)
+      labelWord("roto") must be equalTo Set(LABEL_JJ, LABEL_VBN)
       labelWord("dormido") must be equalTo Set(LABEL_JJ, LABEL_VBN)
       labelWord("duerme") must be equalTo Set(LABEL_VB)
       labelWord("hay") must be equalTo Set(LABEL_VB)

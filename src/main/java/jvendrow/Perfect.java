@@ -47,7 +47,7 @@ public class Perfect extends Tense {
     }
 
     //Finds the verb's past participle
-    private String pastParticiple(String verb) {
+    public String pastParticiple(String verb) {
         if(Tense.checkForIreg(verb, participleIregs) >= 0) {
             int i = Tense.checkForIreg(verb, participleIregs);
             return verb.substring(0, i) + participleIregs.get(verb.substring(i));
@@ -74,15 +74,19 @@ public class Perfect extends Tense {
         participleIregs.put("abrir", "abierto");
         participleIregs.put("cubrir", "cubierto");
         participleIregs.put("decir", "dicho");
+        participleIregs.put("bendecir", "bendito");
         participleIregs.put("escribir", "escrito");
         participleIregs.put("freír", "frito");
         participleIregs.put("hacer", "hecho");
+        participleIregs.put("satisfacer", "satisfecho");
         participleIregs.put("morir", "muerto");
         participleIregs.put("poner", "puesto");
         participleIregs.put("resolver", "resuelto");
         participleIregs.put("romper", "roto");
         participleIregs.put("ver", "visto");
+        participleIregs.put("prever", "previsto");
         participleIregs.put("volver", "vuelto");
+        participleIregs.put("devolver", "devuelto");
         participleIregs.put("solver", "suelto");
     }
 }

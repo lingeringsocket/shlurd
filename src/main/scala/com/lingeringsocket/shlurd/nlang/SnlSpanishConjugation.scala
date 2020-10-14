@@ -95,6 +95,18 @@ object SnlSpanishConjugation
       MOOD_IMPERATIVE, ASPECT_SIMPLE)
   )
 
+  def conjugateGerund(
+    infinitive : String) : String =
+  {
+    Progressive.gerund(infinitive)
+  }
+
+  def conjugateParticiple(
+    infinitive : String) : String =
+  {
+    SpanishVerbConjugator.presentPerfect.pastParticiple(infinitive)
+  }
+
   def conjugateVerb(
     infinitive : String,
     coord : SnlSpanishConjugationCoord) : String =

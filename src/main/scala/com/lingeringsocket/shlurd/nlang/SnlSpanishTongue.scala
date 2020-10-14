@@ -21,6 +21,7 @@ import com.lingeringsocket.shlurd.parser._
 import net.sf.extjwnl.data._
 
 import scala.collection._
+import scala.collection.JavaConverters._
 
 import SprPennTreebankLabels._
 
@@ -1071,14 +1072,22 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   private def isProgressive(inflected : String) : Boolean =
   {
-    inflected.endsWith("ando") || inflected.endsWith("iendo") ||
-      inflected.endsWith("yendo")
+    wordnet.getMorphology.
+      lookupAllBaseForms(POS.VERB, inflected).asScala.exists(
+        infinitive => {
+          SnlSpanishConjugation.conjugateGerund(infinitive) == inflected
+        }
+      )
   }
 
   private def isParticiple(inflected : String) : Boolean =
   {
-    // FIXME irregulars such as roto
-    inflected.endsWith("ado") || inflected.endsWith("ido")
+    wordnet.getMorphology.
+      lookupAllBaseForms(POS.VERB, inflected).asScala.exists(
+        infinitive => {
+          SnlSpanishConjugation.conjugateParticiple(infinitive) == inflected
+        }
+      )
   }
 
   override def labelVerb(token : String, lemma : String) : Set[String] =

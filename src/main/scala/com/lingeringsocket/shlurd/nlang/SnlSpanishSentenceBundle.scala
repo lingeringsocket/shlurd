@@ -125,10 +125,9 @@ class SnlSpanishSentenceBundle(
     val unseparated = {
       if (state.inflected.isEmpty) {
         val uncorrected = {
-          // FIXME irregulars such as roto
           val lemma = state.lemmaUnfolded
           if (lemma.endsWith("r")) {
-            concat(lemma.dropRight(1), "do")
+            SnlSpanishConjugation.conjugateParticiple(lemma)
           } else {
             lemma
           }

@@ -59,8 +59,12 @@ public class PresentSubjunctive extends Present{
 
             //Changes the amount removed from the verb bases on it's endings
             //Due to the difference in length between "ando" and "iendo"
-            if(gerund.charAt(gerund.length()-4) != 'a') {
+            if((gerund.charAt(gerund.length()-4) != 'a') && (gerund.charAt(gerund.length()-5) != 'ñ')) {
                 withSmallChange = gerund.substring(0, gerund.length()-5);
+            }
+
+            if (verb.equals("poder")) {
+                withSmallChange = "pod";
             }
 
             return print(conjugation, root(carGarZar(stemChange)), root(carGarZar(withSmallChange+ending(verb))), endings, pn);
