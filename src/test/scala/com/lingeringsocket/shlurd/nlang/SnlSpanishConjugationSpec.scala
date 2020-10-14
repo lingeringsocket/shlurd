@@ -87,11 +87,12 @@ class SnlSpanishConjugationSpec extends Specification
     val (mood, polarity) = row(2) match {
       case "Indicativo" =>
         tupleN((MOOD_INDICATIVE, POLARITY_POSITIVE))
+      case "Subjuntivo" =>
+        tupleN((MOOD_SUBJUNCTIVE, POLARITY_POSITIVE))
       case "Imperativo Afirmativo" =>
         tupleN((MOOD_IMPERATIVE, POLARITY_POSITIVE))
       case "Imperativo Negativo" =>
         tupleN((MOOD_IMPERATIVE, POLARITY_NEGATIVE))
-      // FIXME Subjuntivo
       case _ =>
         tupleN((MOOD_INTERROGATIVE, POLARITY_POSITIVE))
     }
@@ -109,15 +110,23 @@ class SnlSpanishConjugationSpec extends Specification
 
   private def acceptTam(tam : SilTam) : Boolean =
   {
-    (tam.mood != MOOD_INTERROGATIVE) && (tam.tense != TENSE_INFINITIVE) &&
-      tam.isPositive
+    if (tam.isInfinitive) {
+      false
+    } else {
+      tam.mood match {
+        case MOOD_INDICATIVE => true
+        case MOOD_IMPERATIVE => tam.isPositive
+        case MOOD_SUBJUNCTIVE => tam.isPresent
+        case MOOD_INTERROGATIVE => false
+      }
+    }
   }
 
   private def extractForms(seq : Seq[String], tam : SilTam) : Seq[String] =
   {
     assert(seq.size == 6)
     if (tam.isImperative) {
-      // correct the database mixup
+      // the database uses a different row order for imperative
       Seq(seq(0), seq(1), seq(4), seq(3), seq(2), seq(5))
     } else {
       seq
@@ -142,6 +151,19 @@ class SnlSpanishConjugationSpec extends Specification
           MOOD_INDICATIVE,
           ASPECT_SIMPLE)
       ) must be equalTo("soy")
+    }
+
+    "conjugate tú subjunctive" in
+    {
+      SnlSpanishConjugation.conjugateVerb(
+        "vivir",
+        SnlSpanishConjugationCoord(
+          PERSON_SECOND,
+          COUNT_SINGULAR,
+          TENSE_PRESENT,
+          MOOD_SUBJUNCTIVE,
+          ASPECT_SIMPLE)
+      ) must be equalTo("vivas")
     }
 
     "conjugate usted imperative" in
@@ -183,10 +205,24 @@ class SnlSpanishConjugationSpec extends Specification
       ) must be equalTo("vivid")
     }
 
+    "conjugate vosotros subjunctive" in
+    {
+      SnlSpanishConjugation.conjugateVerb(
+        "vivir",
+        SnlSpanishConjugationCoord(
+          PERSON_SECOND,
+          COUNT_PLURAL,
+          TENSE_PRESENT,
+          MOOD_SUBJUNCTIVE,
+          ASPECT_SIMPLE)
+      ) must be equalTo("viváis")
+    }
+
     "produce irregular form list" in
     {
       skipped("requires site specifics")
 
+      // FIXME need to include haber as well
       val data = readDatabaseLines
       var count = 0
       var mismatches = 0

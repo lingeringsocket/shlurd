@@ -46,9 +46,18 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("ustedes caminan")
       expectStatement("podemos ser perros")
       expectStatement("hay un perro")
+
+      // this one is ambiguous between indicative/imperative; we
+      // default to interpreting it as indicative
+      expectStatement("vives su vida")
+
       expectCommand("viva su vida")
       expectCommand("vivan sus vidas")
       expectCommand("vivid vuestras vidas")
+      expectCommand("no viva su vida")
+      expectCommand("no vivas su vida")
+      expectCommand("no viváis sus vidas")
+      expectCommand("no vivan sus vidas")
     }
 
     "handle sketchy constructs" in

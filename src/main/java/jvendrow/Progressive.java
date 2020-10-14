@@ -60,6 +60,7 @@ public class Progressive extends Tense {
             for(int i = verb.length()-3; i >= 0; i--) {
                 if(verb.charAt(i) == 'e') {
                     verb = Tense.changeValue(verb, "i", i);
+                    break;
                 }
             }
             return verb.substring(0, verb.length() - 2) + "iendo";

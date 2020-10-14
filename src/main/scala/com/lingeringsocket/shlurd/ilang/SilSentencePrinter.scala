@@ -46,7 +46,7 @@ class SilSentencePrinter(
     sentence match {
       case SilPredicateSentence(predicate, tam, _) => {
         tam.mood match {
-          case MOOD_INDICATIVE =>  {
+          case MOOD_INDICATIVE | MOOD_SUBJUNCTIVE =>  {
             printPredicateStatement(predicate, tam, ellipsis).
               replaceAllLiterally(ELLIPSIS_REMOVAL, "")
           }

@@ -562,6 +562,9 @@ abstract class SnlSentenceBundle(
       case MOOD_INDICATIVE => {
         "I think you are saying"
       }
+      case MOOD_SUBJUNCTIVE => {
+        "I think you are hypothesizing"
+      }
       case MOOD_INTERROGATIVE => {
         "I think you are asking"
       }
@@ -612,7 +615,7 @@ abstract class SnlSentenceBundle(
       }
     }
     tam.mood match {
-      case MOOD_INDICATIVE => {
+      case MOOD_INDICATIVE | MOOD_SUBJUNCTIVE => {
         compose("that",
           composePredicateStatement(something, verbSeq, Seq(complement)))
       }

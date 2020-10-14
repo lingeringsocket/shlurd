@@ -79,7 +79,8 @@ abstract class SnlRomanceSyntaxAnalyzer(
     })
   }
 
-  protected def detectImperative(children : Seq[SprSyntaxTree]) :
+  protected def detectImperative(
+    children : Seq[SprSyntaxTree], isNegated : Boolean) :
       (Boolean, SilGender, SilCount, SilPoliteness)
 
   override protected def analyzeSentenceChildren(
@@ -93,7 +94,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
     // possibly providing gender
     val (
       isImperative, imperativeGender, imperativeCount, imperativePoliteness
-    ) = detectImperative(seq)
+    ) = detectImperative(seq, isNegativeAbove)
     if (isImperative) {
       // FIXME use isNegativeAbove
       expectCommand(

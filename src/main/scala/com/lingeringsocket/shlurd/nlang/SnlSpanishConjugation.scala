@@ -38,12 +38,21 @@ object SnlSpanishConjugationCoord
     tam : SilTam, person : SilPerson, count : SilCount
   ) : SnlSpanishConjugationCoord =
   {
-    SnlSpanishConjugationCoord(
-      person,
-      count,
-      tam.tense,
-      tam.mood,
-      tam.aspect)
+    if (tam.isNegative && tam.isImperative) {
+      SnlSpanishConjugationCoord(
+        person,
+        count,
+        tam.tense,
+        MOOD_SUBJUNCTIVE,
+        tam.aspect)
+    } else {
+      SnlSpanishConjugationCoord(
+        person,
+        count,
+        tam.tense,
+        tam.mood,
+        tam.aspect)
+    }
   }
 }
 
@@ -77,6 +86,9 @@ object SnlSpanishConjugation
   }) ++ allCounts.map(count => {
     SnlSpanishConjugationCoord(
       PERSON_THIRD, count, TENSE_PRESENT, MOOD_IMPERATIVE, ASPECT_SIMPLE)
+  }) ++ allCounts.map(count => {
+    SnlSpanishConjugationCoord(
+      PERSON_SECOND, count, TENSE_PRESENT, MOOD_SUBJUNCTIVE, ASPECT_SIMPLE)
   }) ++ Seq(
     SnlSpanishConjugationCoord(
       PERSON_SECOND, COUNT_PLURAL, TENSE_PRESENT,
@@ -95,6 +107,16 @@ object SnlSpanishConjugation
       coord.mood match {
         case MOOD_IMPERATIVE => {
           SpanishVerbConjugator.commandsPositive
+        }
+        case MOOD_SUBJUNCTIVE => {
+          coord.tense match {
+            case TENSE_PAST => {
+              SpanishVerbConjugator.imperfectSubjunctive
+            }
+            case _ => {
+              SpanishVerbConjugator.presentSubjunctive
+            }
+          }
         }
         case _ => {
           coord.aspect match {

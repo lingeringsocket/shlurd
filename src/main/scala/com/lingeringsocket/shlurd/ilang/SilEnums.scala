@@ -196,6 +196,7 @@ sealed trait SilMood
 case object MOOD_INDICATIVE extends SilMood
 case object MOOD_INTERROGATIVE extends SilMood
 case object MOOD_IMPERATIVE extends SilMood
+case object MOOD_SUBJUNCTIVE extends SilMood
 
 sealed trait SilModality
 case object MODAL_NEUTRAL extends SilModality
@@ -324,6 +325,7 @@ sealed trait SilTam
   def isIndicative : Boolean = (mood == MOOD_INDICATIVE)
   def isInterrogative : Boolean = (mood == MOOD_INTERROGATIVE)
   def isImperative : Boolean = (mood == MOOD_IMPERATIVE)
+  def isSubjunctive : Boolean = (mood == MOOD_SUBJUNCTIVE)
   def isPositive : Boolean = (polarity == POLARITY_POSITIVE)
   def isNegative : Boolean = (polarity == POLARITY_NEGATIVE)
   def isProgressive = (aspect == ASPECT_PROGRESSIVE)

@@ -27,7 +27,8 @@ class SnlSpanishSyntaxAnalyzer(
 ) extends SnlRomanceSyntaxAnalyzer(
   context, false, strictness, enforceTransitive)
 {
-  override protected def detectImperative(children : Seq[SprSyntaxTree]) =
+  override protected def detectImperative(
+    children : Seq[SprSyntaxTree], isNegated : Boolean) =
   {
     // FIXME negatives etc
     val seq = {
@@ -46,14 +47,22 @@ class SnlSpanishSyntaxAnalyzer(
         tupleN((person, count)) match {
           case (PERSON_SECOND, COUNT_PLURAL) => {
             tupleN((
-              tam.isImperative, GENDER_MASCULINE,
+              tam.isImperative || tam.isSubjunctive, GENDER_MASCULINE,
               count, POLITENESS_FAMILIAR
             ))
           }
           case (PERSON_SECOND, COUNT_SINGULAR) => {
-            // no way to distinguish indicative from imperative here,
-            // so assume indicative
-            tupleN((false, GENDER_MASCULINE, count, POLITENESS_FAMILIAR))
+            if (isNegated) {
+              tupleN((
+                tam.isSubjunctive, GENDER_SOMEONE, count, POLITENESS_FAMILIAR
+              ))
+            } else {
+              // no way to distinguish indicative from imperative here,
+              // so assume indicative
+              tupleN((
+                false, GENDER_MASCULINE, count, POLITENESS_FAMILIAR
+              ))
+            }
           }
           case _ => {
             tupleN((

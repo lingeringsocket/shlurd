@@ -85,14 +85,24 @@ public class PresentSubjunctive extends Present{
 
     //Fills a HashMap of irregular verbs in the Present Subjunctive tense
     private void fillMap() {
-        iregs.put("ser ", new String[]{"sea", "seas", "sea", "seamos", "seáis", "sean"});
+        iregs.put("ser", new String[]{"sea", "seas", "sea", "seamos", "seáis", "sean"});
         iregs.put("estar" , new String[]{"esté", "estés", "esté", "estemos", "estéis", "estén"});
         iregs.put("ir" , new String[]{"vaya", "vayas", "vaya", "vamos", "vayáis", "vayan"});
-        iregs.put("dar" , new String[]{"dé", "das", "dé", "demos", "deis", "den"});
+        iregs.put("dar" , new String[]{"dé", "des", "dé", "demos", "deis", "den"});
         iregs.put("saber" , new String[]{"sepa", "sepas", "sepa", "sepamos", "sepáis", "sepan"});
         iregs.put("ir" , new String[]{"vaya", "vayas", "vaya", "vayamos", "vayáis", "vayan"});
         iregs.put("haber" , new String[]{"haya", "hayas", "haya", "hayamos", "hayáis", "hayan"});
         iregs.put("reir" , new String[]{"ría", "rías", "ría", "riamos", "riáis", "rían"});
-        iregs.put("guar", new String[] {"üe", "ües", "üe", "üemos", "üéis", "üen"});
+        iregs.put("sonreir" , new String[]{"sonría", "sonrías", "sonría", "sonriamos", "sonriáis", "sonrían"});
+        iregs.put("freir" , new String[]{"fría", "frías", "fría", "friamos", "friáis", "frían"});
+        iregs.put("errar", new String[]{"yerre","yerres","yerre","erremos","erréis","yerren"});
+        iregs.put("prever", new String[]{"prevea","preveas","prevea","preveamos","preveáis","prevean"});
+        iregs.put("ver", new String[]{"vea","veas","vea","veamos","veáis","vean"});
+        iregs.put("prohibir", new String[]{"prohíba","prohíbas","prohíba","prohibamos","prohibáis","prohíban"});
+        iregs.put("rehusar", new String[]{"rehúse","rehúses","rehúse","rehusemos","rehuséis","rehúsen","rehusando"});
+        iregs.put("oler", new String[]{"huela","huelas","huela","olamos","oláis","huelan"});
+        iregs.put("torcer", new String[]{"tuerza","tuerzas","tuerza","torzamos","torzáis","tuerzan"});
+        iregs.put("tropezar", new String[]{"tropiece","tropieces","tropiece","tropecemos","tropezéis","tropiecen","tropezando"});
+        iregs.put("guar", new String[]{"üe", "ües", "üe", "üemos", "üéis", "üen"});
     }
 }

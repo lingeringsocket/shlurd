@@ -57,7 +57,14 @@ class SprWordLabelerSpecification extends Specification
     protected def lemmatizeAdjective(token : String) : String =
     {
       val set = lemmatizePos(token, x => x.isAdjective)
-      assert(set.size == 1)
+      assert(set.size == 1, set)
+      set.head
+    }
+
+    protected def lemmatizeVerb(token : String) : String =
+    {
+      val set = lemmatizePos(token, x => x.isVerb)
+      assert(set.size == 1, set)
       set.head
     }
   }

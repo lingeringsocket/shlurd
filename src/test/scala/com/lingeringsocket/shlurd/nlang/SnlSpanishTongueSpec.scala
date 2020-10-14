@@ -55,6 +55,8 @@ class SnlSpanishTongueSpec extends SprWordLabelerSpecification
       // FIXME should be VBN
       labelWord("roto") must be equalTo Set(LABEL_JJ, LABEL_VB)
       labelWord("dormido") must be equalTo Set(LABEL_JJ, LABEL_VBN)
+      labelWord("duerme") must be equalTo Set(LABEL_VB)
+      labelWord("hay") must be equalTo Set(LABEL_VB)
     }
 
     "lemmatize words" in new SpanishLabelingContext
@@ -65,6 +67,8 @@ class SnlSpanishTongueSpec extends SprWordLabelerSpecification
         Set("león", "leon", "leone"))
       lemmatizeAdjective("dormido") must be equalTo "dormido"
       lemmatizeAdjective("dormida") must be equalTo "dormido"
+      lemmatizeVerb("duerme") must be equalTo "dormir"
+      lemmatizeVerb("hay") must be equalTo "haber"
     }
 
     "pluralize words" in

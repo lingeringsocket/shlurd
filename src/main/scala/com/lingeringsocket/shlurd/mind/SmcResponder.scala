@@ -660,7 +660,7 @@ class SmcResponder[
             }
           }
         }
-        case MOOD_INDICATIVE => {
+        case MOOD_INDICATIVE | MOOD_SUBJUNCTIVE => {
           // FIXME deal with modality
           val positivity = tam.isPositive
           trace(s"POSITIVITY : $positivity")
