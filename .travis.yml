@@ -18,7 +18,7 @@ install:
 
 script:
   - set -e
-  - sbt -jvm-opts .travis-jvmopts ++$TRAVIS_SCALA_VERSION clean test scalastyle test:scalastyle
+  - travis_wait sbt -jvm-opts .travis-jvmopts ++$TRAVIS_SCALA_VERSION clean test scalastyle test:scalastyle
   - sbt -jvm-opts .travis-jvmopts ++$TRAVIS_SCALA_VERSION corenlp/test corenlp/scalastyle
   - mdoc/bin/buildDocs
 
