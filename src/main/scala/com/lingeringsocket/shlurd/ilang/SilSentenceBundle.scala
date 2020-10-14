@@ -30,6 +30,10 @@ object SilConjoining
   val NONE = SilConjoining(DETERMINER_ABSENT, SEPARATOR_CONJOINED, 0, 1)
 }
 
+sealed trait SilObjectPosition
+case object OBJ_BEFORE_VERB extends SilObjectPosition
+case object OBJ_AFTER_VERB extends SilObjectPosition
+
 abstract class SilSentenceBundle
 {
   def getTongue : SilTongue
@@ -82,7 +86,8 @@ abstract class SilSentenceBundle
     directObject : Option[String],
     modifiers : Seq[String],
     tam : SilTam,
-    answerInflection : SilInflection = INFLECT_NONE) : String
+    answerInflection : SilInflection = INFLECT_NONE,
+    objectPosition : SilObjectPosition = OBJ_AFTER_VERB) : String
 
   def relationshipPredicate(
     firstRef : String,
@@ -308,4 +313,10 @@ abstract class SilSentenceBundle
   def unknownPredicateCommand() : String
 
   def unknownPredicateQuestion() : String
+
+  // FIXME move to SilTongue
+  def getObjectPosition(refOpt : Option[SilReference]) : SilObjectPosition =
+  {
+    OBJ_AFTER_VERB
+  }
 }

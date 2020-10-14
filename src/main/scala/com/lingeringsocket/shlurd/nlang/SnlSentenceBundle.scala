@@ -57,7 +57,8 @@ abstract class SnlSentenceBundle(
     directObject : Option[String],
     modifiersOriginal : Seq[String],
     tam : SilTam,
-    answerInflection : SilInflection) =
+    answerInflection : SilInflection,
+    objectPosition : SilObjectPosition = OBJ_AFTER_VERB) =
   {
     val (adpositionPre, modifiers) = answerInflection match {
       case INFLECT_ADPOSITIONED =>
@@ -82,10 +83,12 @@ abstract class SnlSentenceBundle(
         (answerInflection == INFLECT_NOMINATIVE))
       {
         composePredicateStatement(
-          subject, verbMaybeComma, Seq(complement), modifiers)
+          subject, verbMaybeComma, Seq(complement),
+          modifiers, objectPosition)
       } else {
         composePredicateQuestion(
-          subject, verbMaybeComma, Seq(complement), modifiers)
+          subject, verbMaybeComma, Seq(complement),
+          modifiers, objectPosition)
       }
     }
     answerInflection match {
@@ -98,9 +101,14 @@ abstract class SnlSentenceBundle(
 
   protected def composePredicateStatement(
     subject : String, verbSeq : Seq[String], complement : Seq[String],
-    modifiers : Seq[String] = Seq.empty) =
+    modifiers : Seq[String] = Seq.empty,
+    objectPosition : SilObjectPosition = OBJ_AFTER_VERB) =
   {
-    compose((Seq(subject) ++ verbSeq ++ complement ++ modifiers):_*)
+    val middle = objectPosition match {
+      case OBJ_AFTER_VERB => verbSeq ++ complement
+      case OBJ_BEFORE_VERB => complement ++ verbSeq
+    }
+    compose((Seq(subject) ++ middle ++ modifiers):_*)
   }
 
   // FIXME need to factor out some English-specifics
@@ -188,11 +196,13 @@ abstract class SnlSentenceBundle(
   // FIXME need to factor out some English-specifics
   protected def composePredicateQuestion(
     subject : String, verbSeq : Seq[String], complement : Seq[String],
-    modifiers : Seq[String]) =
+    modifiers : Seq[String],
+    objectPosition : SilObjectPosition = OBJ_AFTER_VERB) =
   {
     if (complement.isEmpty) {
       compose((Seq(subject) ++ verbSeq ++ modifiers):_*)
     } else {
+      assert(objectPosition == OBJ_AFTER_VERB)
       val (headSeq, tailSeq) = verbSeq.splitAt(1)
       verbSeq.size match {
         // "is Larry clumsy?"

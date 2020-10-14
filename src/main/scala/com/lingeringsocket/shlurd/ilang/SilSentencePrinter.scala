@@ -343,7 +343,8 @@ class SilSentencePrinter(
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
           modifiers.map(printVerbModifier),
-          tamOriginal)
+          tamOriginal,
+          objectPosition = sb.getObjectPosition(directObject))
       }
       case _ : SilUnknownPredicate => {
         sb.unknownPredicateStatement
@@ -497,7 +498,8 @@ class SilSentencePrinter(
           directObjectString,
           modifierStrings,
           tam,
-          answerInflection)
+          answerInflection,
+          objectPosition = sb.getObjectPosition(directObject))
       }
       case SilRelationshipPredicate(
         subject, verb, complement, modifiers

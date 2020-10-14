@@ -36,9 +36,12 @@ class SnlSpanishSentenceBundle(
 {
   override protected def composePredicateQuestion(
     subject : String, verbSeq : Seq[String], complement : Seq[String],
-    modifiers : Seq[String]) =
+    modifiers : Seq[String],
+    objectPosition : SilObjectPosition = OBJ_AFTER_VERB) =
   {
-    composePredicateStatement(subject, verbSeq, complement, modifiers)
+    composePredicateStatement(
+      subject, verbSeq, complement, modifiers,
+      objectPosition)
   }
 
   override def delemmatizeVerb(
@@ -217,6 +220,17 @@ class SnlSpanishSentenceBundle(
       "Claro que no"
     } else {
       "No"
+    }
+  }
+
+  override def getObjectPosition(
+    refOpt : Option[SilReference]) : SilObjectPosition =
+  {
+    refOpt match {
+      case Some(pr : SilPronounReference) => {
+        OBJ_BEFORE_VERB
+      }
+      case _ => super.getObjectPosition(refOpt)
     }
   }
 }

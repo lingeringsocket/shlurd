@@ -47,6 +47,9 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("podemos ser perros")
       expectStatement("hay un perro")
 
+      expectStatement("ella lo besa")
+      expectStatement("ella besa el perro")
+
       // this one is ambiguous between indicative/imperative; we
       // default to interpreting it as indicative
       expectStatement("vives su vida")

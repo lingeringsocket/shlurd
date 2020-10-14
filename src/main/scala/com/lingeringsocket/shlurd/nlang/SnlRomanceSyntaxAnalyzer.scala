@@ -58,6 +58,19 @@ abstract class SnlRomanceSyntaxAnalyzer(
     }
   }
 
+  private def detectAccusative(tree : SprSyntaxTree) : Boolean =
+  {
+    if (tree.isNounPhrase && (tree.children.size == 1)) {
+      detectAccusative(tree.unwrapPhrase)
+    } else if (tree.isPronoun) {
+      val lemma = tree.firstChild.lemma
+      val inflection = tongue.analyzePronoun(lemma)._4
+      (inflection == INFLECT_ACCUSATIVE)
+    } else {
+      false
+    }
+  }
+
   private def detectAdjective(tree : SprSyntaxTree) : Boolean =
   {
     tree.isAdjective || tree.isAdjectivePhrase
@@ -85,7 +98,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
 
   override protected def analyzeSentenceChildren(
     tree : SprSyntaxTree, children : Seq[SprSyntaxTree],
-    mood : SilMood, force : SilForce) =
+    mood : SilMood, force : SilForce) : SilSentence =
   {
     val (isNegativeAbove, extracted) =
       extractNegative(unwrapSinglePhrase(children))
@@ -108,7 +121,15 @@ abstract class SnlRomanceSyntaxAnalyzer(
         extractNegative(unwrapVerbPhrases(seq))
       val isNegative = combineNegatives(isNegativeAbove, isNegativeBelow)
       val iVerbs = unwrapped.zipWithIndex.filter(z => detectVerb(z._1))
+      val iFirstVerb = iVerbs.headOption.map(_._2).getOrElse(unwrapped.size)
+      val beforeFirstVerb = unwrapped.take(iFirstVerb)
       val iNoms = unwrapped.zipWithIndex.filter(z => detectNominative(z._1))
+      val iDirects = beforeFirstVerb.zipWithIndex.filter(
+        z => detectAccusative(z._1))
+      if (iDirects.size > 1) {
+        // FIXME ambiguous/mixed direct and indirect
+        return SilUnrecognizedSentence(tree)
+      }
       val iAdjs = unwrapped.zipWithIndex.filter(z => detectAdjective(z._1))
       val iAdps = unwrapped.zipWithIndex.filter(z => detectAdposition(z._1))
       // FIXME deal with presence of more than one question
@@ -121,12 +142,14 @@ abstract class SnlRomanceSyntaxAnalyzer(
         val bonusFrames = tupleN((iNoms.size, iAdjs.size)) match {
           case (0 | 1, 0) => {
             iAdps.flatMap(iAdp => {
-              produceFrames(unwrapped, iVerbs, iNoms, Seq(iAdp), mood)
+              produceFrames(unwrapped, iVerbs, iNoms, iDirects, Seq(iAdp), mood)
             })
           }
           case _ => Seq.empty
         }
-        produceFrames(unwrapped, iVerbs, iNoms, iAdjs, mood) ++ bonusFrames
+        produceFrames(
+          unwrapped, iVerbs, iNoms, iDirects, iAdjs, mood
+        ) ++ bonusFrames
       }
       val tam = {
         if (questionOpt.nonEmpty) {
@@ -166,10 +189,40 @@ abstract class SnlRomanceSyntaxAnalyzer(
     }
   }
 
+  private def checkNoDirect(
+    rhsDirect : Option[SprSyntaxTree],
+    seq : Seq[SnlRomanceSyntaxFrame]
+  ) : Seq[SnlRomanceSyntaxFrame] =
+  {
+    if (rhsDirect.isEmpty) {
+      seq
+    } else {
+      Seq.empty
+    }
+  }
+
+  private def swappable(
+    frame : SnlRomanceSyntaxFrame
+  ) : Seq[SnlRomanceSyntaxFrame] =
+  {
+    if (frame.rhsOpt.nonEmpty) {
+      Seq(frame)
+    } else {
+      Seq(
+        frame,
+        SnlRomanceSyntaxFrame(
+          None, frame.auxVerbOpt, frame.mainVerb,
+          frame.subjectOpt,
+          frame.modifiers)
+      )
+    }
+  }
+
   private def produceFrames(
     seq : Seq[SprSyntaxTree],
     iVerbs : Seq[(SprSyntaxTree, Int)],
     iNoms : Seq[(SprSyntaxTree, Int)],
+    iDirects : Seq[(SprSyntaxTree, Int)],
     iAdjs : Seq[(SprSyntaxTree, Int)],
     mood : SilMood
   ) : Seq[SnlRomanceSyntaxFrame] =
@@ -201,75 +254,92 @@ abstract class SnlRomanceSyntaxAnalyzer(
       }
     }
 
+    assert(iDirects.size < 2)
+    val rhsDirect = iDirects.headOption.map(_._1)
+
     // order of produced frames is significant in that in case
     // of unresolvable ambiguity, we will take the former
     val full = tupleN((iVerbs.size, iNoms.size, iAdjs.size)) match {
       case (1, 0, 0) => {
         Seq(
           SnlRomanceSyntaxFrame(
-            None, None, firstVerb, None)
+            None, None, firstVerb, rhsDirect)
         )
       }
       case (1, 1, 0) => {
-        Seq(
+        swappable(
           SnlRomanceSyntaxFrame(
-            Some(firstNom), None, firstVerb, None),
-          SnlRomanceSyntaxFrame(
-            None, None, firstVerb, Some(firstNom))
+            Some(firstNom), None, firstVerb, rhsDirect)
         )
       }
       case (1, 2, 0) => {
-        Seq(
-          SnlRomanceSyntaxFrame(
-            Some(firstNom), None, firstVerb, Some(secondNom)),
-          SnlRomanceSyntaxFrame(
-            Some(secondNom), None, firstVerb, Some(firstNom))
+        checkNoDirect(
+          rhsDirect,
+          Seq(
+            SnlRomanceSyntaxFrame(
+              Some(firstNom), None, firstVerb, Some(secondNom)),
+            SnlRomanceSyntaxFrame(
+              Some(secondNom), None, firstVerb, Some(firstNom))
+          )
         )
       }
       case (2, 0, 0) => {
         Seq(
           SnlRomanceSyntaxFrame(
-            None, Some(firstVerb), secondVerb, None)
+            None, Some(firstVerb), secondVerb, rhsDirect)
         )
       }
       case (2, 1, 0) => {
-        Seq(
+        swappable(
           SnlRomanceSyntaxFrame(
-            Some(firstNom), Some(firstVerb), secondVerb, None),
-          SnlRomanceSyntaxFrame(
-            None, Some(firstVerb), secondVerb, Some(firstNom))
+            Some(firstNom), Some(firstVerb), secondVerb, rhsDirect)
         )
       }
       case (2, 2, 0) => {
-        Seq(
-          SnlRomanceSyntaxFrame(
-            Some(firstNom), Some(firstVerb), secondVerb, Some(secondNom)),
-          SnlRomanceSyntaxFrame(
-            Some(secondNom), Some(firstVerb), secondVerb, Some(firstNom))
+        checkNoDirect(
+          rhsDirect,
+          Seq(
+            SnlRomanceSyntaxFrame(
+              Some(firstNom), Some(firstVerb), secondVerb, Some(secondNom)),
+            SnlRomanceSyntaxFrame(
+              Some(secondNom), Some(firstVerb), secondVerb, Some(firstNom))
+          )
         )
       }
       case (1, 0, 1) => {
-        Seq(
-          SnlRomanceSyntaxFrame(
-            None, None, firstVerb, Some(firstAdj))
+        checkNoDirect(
+          rhsDirect,
+          Seq(
+            SnlRomanceSyntaxFrame(
+              None, None, firstVerb, Some(firstAdj))
+          )
         )
       }
       case (1, 1, 1) => {
-        Seq(
-          SnlRomanceSyntaxFrame(
-            Some(firstNom), None, firstVerb, Some(firstAdj))
+        checkNoDirect(
+          rhsDirect,
+          Seq(
+            SnlRomanceSyntaxFrame(
+              Some(firstNom), None, firstVerb, Some(firstAdj))
+          )
         )
       }
       case (2, 0, 1) => {
-        Seq(
-          SnlRomanceSyntaxFrame(
-            None, Some(firstVerb), secondVerb, Some(firstAdj))
+        checkNoDirect(
+          rhsDirect,
+          Seq(
+            SnlRomanceSyntaxFrame(
+              None, Some(firstVerb), secondVerb, Some(firstAdj))
+          )
         )
       }
       case (2, 1, 1) => {
-        Seq(
-          SnlRomanceSyntaxFrame(
-            Some(firstNom), Some(firstVerb), secondVerb, Some(firstAdj))
+        checkNoDirect(
+          rhsDirect,
+          Seq(
+            SnlRomanceSyntaxFrame(
+              Some(firstNom), Some(firstVerb), secondVerb, Some(firstAdj))
+          )
         )
       }
       case _ => {
@@ -284,7 +354,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
         full
       }
     }
-    val nonModPos = (iVerbs ++ iNoms ++ iAdjs).
+    val nonModPos = (iVerbs ++ iNoms ++ iAdjs ++ iDirects).
       map(_._2).toSet + modalAdpositionPos
     val verbModifiers = seq.zipWithIndex.filterNot(
       z => nonModPos.contains(z._2)).map(_._1)

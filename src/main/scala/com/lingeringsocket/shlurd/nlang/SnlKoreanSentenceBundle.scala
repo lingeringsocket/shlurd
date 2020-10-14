@@ -42,8 +42,10 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     directObject : Option[String],
     modifiers : Seq[String],
     tam : SilTam,
-    answerInflection : SilInflection) =
+    answerInflection : SilInflection,
+    objectPosition : SilObjectPosition) =
   {
+    assert(objectPosition == OBJ_BEFORE_VERB)
     // FIXME:  for interrogative mood, this only holds for "요" politeness
     compose((Seq(subject) ++ modifiers ++ directObject ++ verbSeq):_*)
   }
@@ -633,5 +635,11 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
   override def existsVerb() : SilWord =
   {
     SilWord("있다")
+  }
+
+  override def getObjectPosition(
+    refOpt : Option[SilReference]) : SilObjectPosition =
+  {
+    OBJ_BEFORE_VERB
   }
 }
