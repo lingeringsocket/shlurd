@@ -126,6 +126,7 @@ case object PD_FRONT extends SprAdpositionPredef
 case object PD_BACK extends SprAdpositionPredef
 case object PD_BEHIND extends SprAdpositionPredef
 case object PD_TO extends SprAdpositionPredef
+case object PD_DATIVE_TO extends SprAdpositionPredef
 case object PD_FROM extends SprAdpositionPredef
 case object PD_OF extends SprAdpositionPredef
 case object PD_GENITIVE_OF extends SprAdpositionPredef
@@ -307,7 +308,7 @@ abstract class SprTongue(wordnet : SprWordnet)
   def analyzePronoun(lemma : String) :
       (
         SilPerson, SilCount, SilGender,
-        SilInflection, Option[SilProximity], SilCount,
+        Set[SilInflection], Option[SilProximity], SilCount,
         SilPoliteness
       )
 

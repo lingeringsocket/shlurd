@@ -68,27 +68,27 @@ object SprWordnetScorer
       case 8 => {
         // Somebody ----s something
         directObject.nonEmpty && !hasAdposition(
-          modifiers, SprPredefAdposition(PD_TO))
+          modifiers, SprPredefAdposition(PD_DATIVE_TO))
       }
       case 9 => {
         // Somebody ----s somebody
         directObject.nonEmpty && !hasAdposition(modifiers,
-          SprPredefAdposition(PD_TO))
+          SprPredefAdposition(PD_DATIVE_TO))
       }
       case 10 => {
         // Something ----s somebody
         directObject.nonEmpty && !hasAdposition(modifiers,
-          SprPredefAdposition(PD_TO))
+          SprPredefAdposition(PD_DATIVE_TO))
       }
       case 11 => {
         // Something ----s something
         directObject.nonEmpty && !hasAdposition(modifiers,
-          SprPredefAdposition(PD_TO))
+          SprPredefAdposition(PD_DATIVE_TO))
       }
       case 12 => {
         // Something ----s to somebody
         directObject.isEmpty && hasAdposition(modifiers,
-          SprPredefAdposition(PD_TO))
+          SprPredefAdposition(PD_DATIVE_TO))
       }
       case 13 => {
         //  Somebody ----s on something
@@ -98,7 +98,7 @@ object SprWordnetScorer
       case 14 => {
         // Somebody ----s somebody something
         directObject.nonEmpty && hasAdposition(modifiers,
-          SprPredefAdposition(PD_TO))
+          SprPredefAdposition(PD_DATIVE_TO))
       }
       case 15 => {
         // Somebody ----s something to somebody
@@ -128,11 +128,11 @@ object SprWordnetScorer
       case 20 => {
         // Somebody ----s somebody PP
         directObject.nonEmpty && hasAdposition(modifiers) &&
-        !hasAdposition(modifiers, SprPredefAdposition(PD_TO))
+        !hasAdposition(modifiers, SprPredefAdposition(PD_DATIVE_TO))
       }
       case 21 => {
         // Somebody ----s something PP &&
-        !hasAdposition(modifiers, SprPredefAdposition(PD_TO))
+        !hasAdposition(modifiers, SprPredefAdposition(PD_DATIVE_TO))
         directObject.nonEmpty && hasAdposition(modifiers)
       }
       case 22 => {

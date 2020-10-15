@@ -40,6 +40,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     subject : String,
     verbSeq : Seq[String],
     directObject : Option[String],
+    indirectObjects : Seq[String],
     modifiers : Seq[String],
     tam : SilTam,
     answerInflection : SilInflection,
@@ -47,7 +48,8 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
   {
     assert(objectPosition == OBJ_BEFORE_VERB)
     // FIXME:  for interrogative mood, this only holds for "요" politeness
-    compose((Seq(subject) ++ modifiers ++ directObject ++ verbSeq):_*)
+    compose((Seq(subject) ++ modifiers ++
+      indirectObjects ++ directObject ++ verbSeq):_*)
   }
 
   override def relationshipPredicate(
@@ -434,6 +436,10 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
               // also, should take formality into account
               "에게"
             }
+            case INFLECT_DATIVE => {
+              // FIXME should take formality into account
+              "한테"
+            }
             case INFLECT_GENITIVE => "의"
           }
         } else {
@@ -462,6 +468,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
         case INFLECT_NONE => ""
         case INFLECT_NOMINATIVE => "(nominative)"
         case INFLECT_ACCUSATIVE => "(accusative)"
+        case INFLECT_DATIVE => "(dative)"
         case INFLECT_ADPOSITIONED => "(adpositioned)"
         case INFLECT_GENITIVE => "(genitive)"
         case INFLECT_COMPLEMENT => "(complement)"

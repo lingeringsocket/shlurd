@@ -55,6 +55,7 @@ abstract class SnlSentenceBundle(
     subject : String,
     verbSeq : Seq[String],
     directObject : Option[String],
+    indirectObjects : Seq[String],
     modifiersOriginal : Seq[String],
     tam : SilTam,
     answerInflection : SilInflection,
@@ -84,11 +85,11 @@ abstract class SnlSentenceBundle(
       {
         composePredicateStatement(
           subject, verbMaybeComma, Seq(complement),
-          modifiers, objectPosition)
+          modifiers, objectPosition, indirectObjects)
       } else {
         composePredicateQuestion(
           subject, verbMaybeComma, Seq(complement),
-          modifiers, objectPosition)
+          modifiers, objectPosition, indirectObjects)
       }
     }
     answerInflection match {
@@ -102,11 +103,12 @@ abstract class SnlSentenceBundle(
   protected def composePredicateStatement(
     subject : String, verbSeq : Seq[String], complement : Seq[String],
     modifiers : Seq[String] = Seq.empty,
-    objectPosition : SilObjectPosition = OBJ_AFTER_VERB) =
+    objectPosition : SilObjectPosition = OBJ_AFTER_VERB,
+    dative : Seq[String] = Seq.empty) =
   {
     val middle = objectPosition match {
-      case OBJ_AFTER_VERB => verbSeq ++ complement
-      case OBJ_BEFORE_VERB => complement ++ verbSeq
+      case OBJ_AFTER_VERB => verbSeq ++ dative ++ complement
+      case OBJ_BEFORE_VERB => dative ++ complement ++ verbSeq
     }
     compose((Seq(subject) ++ middle ++ modifiers):_*)
   }
@@ -155,7 +157,7 @@ abstract class SnlSentenceBundle(
             Seq(subject) ++ modifiers):_*)
         } else {
           actionPredicate(
-            subject, verbSeq, None, modifiers,
+            subject, verbSeq, None, Seq.empty, modifiers,
             SilTam.interrogative,
             answerInflection)
         }
@@ -197,25 +199,27 @@ abstract class SnlSentenceBundle(
   protected def composePredicateQuestion(
     subject : String, verbSeq : Seq[String], complement : Seq[String],
     modifiers : Seq[String],
-    objectPosition : SilObjectPosition = OBJ_AFTER_VERB) =
+    objectPosition : SilObjectPosition = OBJ_AFTER_VERB,
+    dative : Seq[String] = Seq.empty) =
   {
+    val middle = dative ++ complement
     if (complement.isEmpty) {
-      compose((Seq(subject) ++ verbSeq ++ modifiers):_*)
+      compose((Seq(subject) ++ verbSeq ++ middle ++ modifiers):_*)
     } else {
       assert(objectPosition == OBJ_AFTER_VERB)
       val (headSeq, tailSeq) = verbSeq.splitAt(1)
       verbSeq.size match {
         // "is Larry clumsy?"
         case 1 =>
-          compose((headSeq ++ Seq(subject) ++ complement ++ modifiers):_*)
+          compose((headSeq ++ Seq(subject) ++ middle ++ modifiers):_*)
         // "is Larry not clumsy?" or "must Larry be clumsy?"
         case 2 =>
           compose((headSeq ++ Seq(subject) ++ tailSeq ++
-            complement ++ modifiers):_*)
+            middle ++ modifiers):_*)
         // "must Larry not be clumsy?"
         case _ =>
           compose((headSeq ++ Seq(subject) ++ tailSeq ++
-            complement ++ modifiers):_*)
+            middle ++ modifiers):_*)
       }
     }
   }
@@ -281,7 +285,7 @@ abstract class SnlSentenceBundle(
         noun.inflected
       }
     }
-    val seq = decomposed.dropRight(1).map(_.inflected) :+ unseparated
+    val seq = decomposed.dropRight(1).map(delemmatizeWord) :+ unseparated
     separate(word.recompose(seq), conjoining)
   }
 

@@ -25,7 +25,7 @@ case class SnlRomanceSyntaxFrame(
   auxVerbOpt : Option[SprSyntaxTree],
   mainVerb : SprSyntaxTree,
   rhsOpt : Option[SprSyntaxTree],
-  modifiers : Seq[SprSyntaxTree] = Seq.empty
+  modifiers : Seq[SilVerbModifier] = Seq.empty
 )
 
 abstract class SnlRomanceSyntaxAnalyzer(
@@ -43,7 +43,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
 
   private def detectNominative(tree : SprSyntaxTree) : Boolean =
   {
-    if (tree.isNounPhrase && (tree.children.size == 1)) {
+    if (tree.isNounPhrase && tree.isUnwrappable) {
       detectNominative(tree.unwrapPhrase)
     } else if (tree.isQueryNounPhrase || tree.isNoun ||
       tree.isNounPhrase || tree.isDemonstrative)
@@ -51,8 +51,8 @@ abstract class SnlRomanceSyntaxAnalyzer(
       true
     } else if (tree.isPronoun) {
       val lemma = tree.firstChild.lemma
-      val inflection = tongue.analyzePronoun(lemma)._4
-      (inflection == INFLECT_NOMINATIVE)
+      val inflections = tongue.analyzePronoun(lemma)._4
+      inflections.contains(INFLECT_NOMINATIVE)
     } else {
       false
     }
@@ -60,12 +60,25 @@ abstract class SnlRomanceSyntaxAnalyzer(
 
   private def detectAccusative(tree : SprSyntaxTree) : Boolean =
   {
-    if (tree.isNounPhrase && (tree.children.size == 1)) {
+    if (tree.isNounPhrase && tree.isUnwrappable) {
       detectAccusative(tree.unwrapPhrase)
     } else if (tree.isPronoun) {
       val lemma = tree.firstChild.lemma
-      val inflection = tongue.analyzePronoun(lemma)._4
-      (inflection == INFLECT_ACCUSATIVE)
+      val inflections = tongue.analyzePronoun(lemma)._4
+      inflections.contains(INFLECT_ACCUSATIVE)
+    } else {
+      false
+    }
+  }
+
+  private def detectDative(tree : SprSyntaxTree) : Boolean =
+  {
+    if (tree.isNounPhrase && tree.isUnwrappable) {
+      detectDative(tree.unwrapPhrase)
+    } else if (tree.isPronoun) {
+      val lemma = tree.firstChild.lemma
+      val inflections = tongue.analyzePronoun(lemma)._4
+      inflections.contains(INFLECT_DATIVE)
     } else {
       false
     }
@@ -124,12 +137,12 @@ abstract class SnlRomanceSyntaxAnalyzer(
       val iFirstVerb = iVerbs.headOption.map(_._2).getOrElse(unwrapped.size)
       val beforeFirstVerb = unwrapped.take(iFirstVerb)
       val iNoms = unwrapped.zipWithIndex.filter(z => detectNominative(z._1))
+      // note that iDirects and iIndirects may overlap due to
+      // pronoun usage collisions (e.g. "te" in Spanish)
       val iDirects = beforeFirstVerb.zipWithIndex.filter(
         z => detectAccusative(z._1))
-      if (iDirects.size > 1) {
-        // FIXME ambiguous/mixed direct and indirect
-        return SilUnrecognizedSentence(tree)
-      }
+      val iIndirects = beforeFirstVerb.zipWithIndex.filter(
+        z => detectDative(z._1))
       val iAdjs = unwrapped.zipWithIndex.filter(z => detectAdjective(z._1))
       val iAdps = unwrapped.zipWithIndex.filter(z => detectAdposition(z._1))
       // FIXME deal with presence of more than one question
@@ -142,13 +155,16 @@ abstract class SnlRomanceSyntaxAnalyzer(
         val bonusFrames = tupleN((iNoms.size, iAdjs.size)) match {
           case (0 | 1, 0) => {
             iAdps.flatMap(iAdp => {
-              produceFrames(unwrapped, iVerbs, iNoms, iDirects, Seq(iAdp), mood)
+              produceFrames(
+                unwrapped, iVerbs, iNoms, iDirects,
+                iIndirects, Seq(iAdp), mood
+              )
             })
           }
           case _ => Seq.empty
         }
         produceFrames(
-          unwrapped, iVerbs, iNoms, iDirects, iAdjs, mood
+          unwrapped, iVerbs, iNoms, iDirects, iIndirects, iAdjs, mood
         ) ++ bonusFrames
       }
       val tam = {
@@ -223,6 +239,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
     iVerbs : Seq[(SprSyntaxTree, Int)],
     iNoms : Seq[(SprSyntaxTree, Int)],
     iDirects : Seq[(SprSyntaxTree, Int)],
+    iIndirects : Seq[(SprSyntaxTree, Int)],
     iAdjs : Seq[(SprSyntaxTree, Int)],
     mood : SilMood
   ) : Seq[SnlRomanceSyntaxFrame] =
@@ -254,8 +271,41 @@ abstract class SnlRomanceSyntaxAnalyzer(
       }
     }
 
-    assert(iDirects.size < 2)
-    val rhsDirect = iDirects.headOption.map(_._1)
+    def firstDirect = iDirects.headOption.map(_._1)
+    def secondDirect = iDirects.drop(1).headOption.map(_._1)
+    def firstIndirect = iIndirects.headOption.map(_._1)
+    val (rhsDirect, dativeObj) = tupleN(
+      (iDirects.size, iIndirects.size)
+    ) match {
+      case (0, 0) => {
+        tupleN((None, None))
+      }
+      case (1, 0) => {
+        tupleN((firstDirect, None))
+      }
+      case (0, 1) => {
+        tupleN((None, firstIndirect))
+      }
+      case (1, 1) => {
+        if (iDirects == iIndirects) {
+          // FIXME some verbs may allow for an indirect object with no
+          // explicit direct object (e.g. "ella me dice"); in that case
+          // we should interpret the sole object as indirect, not direct
+          tupleN((firstDirect, None))
+        } else {
+          tupleN((firstDirect, firstIndirect))
+        }
+      }
+      case (2, 1) => {
+        if (iDirects.head == iIndirects.head) {
+          // "ella me lo cuenta"
+          tupleN((secondDirect, firstIndirect))
+        } else {
+          return Seq.empty
+        }
+      }
+      case _ => return Seq.empty
+    }
 
     // order of produced frames is significant in that in case
     // of unresolvable ambiguity, we will take the former
@@ -354,10 +404,17 @@ abstract class SnlRomanceSyntaxAnalyzer(
         full
       }
     }
-    val nonModPos = (iVerbs ++ iNoms ++ iAdjs ++ iDirects).
+    val nonModPos = (iVerbs ++ iNoms ++ iAdjs ++ iDirects ++ iIndirects).
       map(_._2).toSet + modalAdpositionPos
-    val verbModifiers = seq.zipWithIndex.filterNot(
-      z => nonModPos.contains(z._2)).map(_._1)
+    val verbModifiers = expectVerbModifiers(seq.zipWithIndex.filterNot(
+      z => nonModPos.contains(z._2)
+    ).map(_._1)) ++ dativeObj.map(indirectObj => {
+      val modifier = SilAdpositionalVerbModifier(
+        SprPredefAdposition(PD_DATIVE_TO),
+        expectReference(indirectObj))
+      modifier.rememberSyntaxTree(indirectObj)
+      modifier
+    })
     unmodified.map(_.copy(modifiers = verbModifiers))
   }
 
@@ -418,7 +475,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
     }
     val mainVerbLeaf = requireLeaf(frame.mainVerb.children)
     val mainVerb = getWord(mainVerbLeaf)
-    val modifiers = expectVerbModifiers(frame.modifiers)
+    val modifiers = frame.modifiers
     val subject = frame.subjectOpt match {
       case Some(s) => s
       case _ => SptNP(SptNNE())

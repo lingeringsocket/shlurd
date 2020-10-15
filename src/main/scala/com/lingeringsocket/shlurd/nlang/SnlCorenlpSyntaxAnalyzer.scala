@@ -789,7 +789,7 @@ abstract class SnlCorenlpSyntaxAnalyzer(
     val objTrees = directObjTree.toSeq ++ indirectObjTree
     val indirectAdposition = indirectObjTree.map(indirectObj => {
       val modifier = SilAdpositionalVerbModifier(
-        SprPredefAdposition(PD_TO),
+        SprPredefAdposition(PD_DATIVE_TO),
         expectReference(indirectObj)
       )
       modifier.rememberSyntaxTree(indirectObj)

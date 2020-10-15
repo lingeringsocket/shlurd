@@ -342,6 +342,7 @@ class SilSentencePrinter(
             predicate.getInflectedAttributes, INFLECT_NONE),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
+          modifiers.flatMap(printDative),
           modifiers.map(printVerbModifier),
           tamOriginal,
           objectPosition = sb.getObjectPosition(directObject))
@@ -382,6 +383,7 @@ class SilSentencePrinter(
             person, gender, count,
             tam, None, uninflectedVerb, INFLECT_NONE),
           Some(print(complement, INFLECT_NONE, SilConjoining.NONE)),
+          Seq.empty,
           modifiers.map(printVerbModifier),
           tam)
       }
@@ -396,8 +398,10 @@ class SilSentencePrinter(
             tam, None, verb, INFLECT_NONE),
           directObject.map(
             ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
+          modifiers.flatMap(printDative),
           modifiers.map(printVerbModifier),
-          tam)
+          tam,
+          objectPosition = sb.getObjectPosition(directObject))
       }
       case _ => {
         sb.unknownPredicateCommand
@@ -496,6 +500,7 @@ class SilSentencePrinter(
           getVerbSeq(subject, verb, tam,
             predicate.getInflectedAttributes, answerInflection),
           directObjectString,
+          modifiers.flatMap(printDative),
           modifierStrings,
           tam,
           answerInflection,
@@ -671,17 +676,38 @@ class SilSentencePrinter(
     }
   }
 
+  def printDative(modifier : SilVerbModifier) : Option[String] =
+  {
+    modifier match {
+      case SilAdpositionalVerbModifier(
+        SilAdposition(word),
+        objRef
+      ) if (word.toLemma == LEMMA_ADPOSITION_DATIVE) => {
+        Some(print(objRef, INFLECT_DATIVE, SilConjoining.NONE))
+      }
+      case _ => {
+        None
+      }
+    }
+  }
+
   def printAdpositionalPhrase(
     phrase : SilAdpositionalPhrase,
     conjoining : SilConjoining) : String =
   {
-    if (phrase.adposition.word.toLemma == LEMMA_ADVERBIAL_TMP) {
-      print(phrase.objRef, INFLECT_NONE, conjoining)
-    } else {
-      sb.adpositionedNoun(
-        sb.adpositionString(phrase.adposition),
-        print(phrase.objRef, INFLECT_ADPOSITIONED, SilConjoining.NONE),
-        conjoining)
+    phrase.adposition.word.toLemma match {
+      case LEMMA_ADVERBIAL_TMP => {
+        print(phrase.objRef, INFLECT_NONE, conjoining)
+      }
+      case LEMMA_ADPOSITION_DATIVE => {
+        ""
+      }
+      case _ => {
+        sb.adpositionedNoun(
+          sb.adpositionString(phrase.adposition),
+          print(phrase.objRef, INFLECT_ADPOSITIONED, SilConjoining.NONE),
+          conjoining)
+      }
     }
   }
 }

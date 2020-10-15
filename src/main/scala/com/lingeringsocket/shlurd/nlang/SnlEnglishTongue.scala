@@ -242,6 +242,7 @@ object SnlEnglishLexicon
     PD_THAT -> LEMMA_THAT,
     PD_THEN -> LEMMA_THEN,
     PD_TO -> LEMMA_TO,
+    PD_DATIVE_TO -> LEMMA_ADPOSITION_DATIVE,
     PD_WHAT -> LEMMA_WHAT,
     PD_WHEN -> LEMMA_WHEN,
     PD_WHENEVER -> LEMMA_WHENEVER,
@@ -639,7 +640,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
       case _ => None
     }
     tupleN((
-      person, count, gender, inflection,
+      person, count, gender, Set(inflection),
       proximityOpt, COUNT_SINGULAR, SilPoliteness.DEFAULT))
   }
 

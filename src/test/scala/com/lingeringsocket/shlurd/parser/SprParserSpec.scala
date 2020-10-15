@@ -485,7 +485,7 @@ class SprParserSpec extends Specification
             ACTION_ASK,
             Some(annotator.quotationRef("where am I")),
             Seq(SilAdpositionalVerbModifier(
-              SprPredefAdposition(PD_TO),
+              SprPredefAdposition(PD_DATIVE_TO),
               annotator.basicPronounRef(
                 PERSON_THIRD, GENDER_FEMININE, COUNT_SINGULAR)))),
           SilTam.imperative)

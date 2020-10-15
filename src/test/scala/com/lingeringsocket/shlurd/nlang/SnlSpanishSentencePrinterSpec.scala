@@ -30,6 +30,7 @@ class SnlSpanishSentencePrinterSpec
       expectPreserved("el perro camina en la calle.")
       expectPreserved("el perro camina entre las calles!")
       expectPreserved("el perro camina entre las calles?")
+      expectPreserved("el oso pardo está dormido?")
     }
 
     "normalize sentences" in
@@ -47,8 +48,16 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("podemos ser perros")
       expectStatement("hay un perro")
 
+      expectStatement("ella me besa")
       expectStatement("ella lo besa")
+      expectStatement("ella le dice")
       expectStatement("ella besa el perro")
+      expectStatement("ella le da un beso")
+      expectStatement("ella se lo da")
+      // this is incorrect (le should change to se) but
+      // we're tolerant folks around here
+      expectStatement("ella le lo da")
+      expectStatement("ella me lo da")
 
       // this one is ambiguous between indicative/imperative; we
       // default to interpreting it as indicative

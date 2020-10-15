@@ -34,14 +34,31 @@ class SnlSpanishSentenceBundle(
   tongue : SprTongue
 ) extends SnlSentenceBundle(tongue, SnlSpanishSentenceBundle.numberFormat)
 {
+  override protected def composePredicateStatement(
+    subject : String, verbSeq : Seq[String], complement : Seq[String],
+    modifiers : Seq[String] = Seq.empty,
+    objectPosition : SilObjectPosition = OBJ_AFTER_VERB,
+    dative : Seq[String] = Seq.empty) =
+  {
+    val middle = objectPosition match {
+      case OBJ_AFTER_VERB => verbSeq ++ complement
+      case OBJ_BEFORE_VERB => complement ++ verbSeq
+    }
+    // For Spanish, we only use dative to represent indirect object
+    // pronouns, and those always go before the verb (and before
+    // the direct object if any)
+    compose((Seq(subject) ++ dative ++ middle ++ modifiers):_*)
+  }
+
   override protected def composePredicateQuestion(
     subject : String, verbSeq : Seq[String], complement : Seq[String],
     modifiers : Seq[String],
-    objectPosition : SilObjectPosition = OBJ_AFTER_VERB) =
+    objectPosition : SilObjectPosition = OBJ_AFTER_VERB,
+    dative : Seq[String] = Seq.empty) =
   {
     composePredicateStatement(
       subject, verbSeq, complement, modifiers,
-      objectPosition)
+      objectPosition, dative)
   }
 
   override def delemmatizeVerb(

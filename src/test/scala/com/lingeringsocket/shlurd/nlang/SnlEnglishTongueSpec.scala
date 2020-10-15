@@ -44,13 +44,15 @@ class SnlEnglishTongueSpec extends Specification
       def fold(s : String) = s.replace("elves", "elf")
 
       pronounLemmas.foreach(lemma => {
-        val (person, count, gender, inflection, proximityOpt, _, politeness) =
+        val (person, count, gender, inflections, proximityOpt, _, politeness) =
           tongue.analyzePronoun(lemma)
-        val lemmaProduced = tongue.pronounLemma(
-          person, gender, count,
-          proximityOpt.getOrElse(PROXIMITY_ENTITY),
-          politeness, inflection)
-        fold(lemmaProduced) must be equalTo fold(lemma)
+        inflections.foreach(inflection => {
+          val lemmaProduced = tongue.pronounLemma(
+            person, gender, count,
+            proximityOpt.getOrElse(PROXIMITY_ENTITY),
+            politeness, inflection)
+          fold(lemmaProduced) must be equalTo fold(lemma)
+        })
       })
 
       pronounLemmas.size must be equalTo 35

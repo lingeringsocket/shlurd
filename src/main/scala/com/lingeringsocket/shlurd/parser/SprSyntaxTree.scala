@@ -328,9 +328,14 @@ sealed trait SprSyntaxTree extends SprAbstractSyntaxTree
 
   override def lastChild : SprSyntaxTree = children.last
 
+  def isUnwrappable =
+  {
+    isPrePreTerminal && (numChildren == 1)
+  }
+
   def unwrapPhrase =
   {
-    if (isPrePreTerminal && (numChildren == 1)) {
+    if (isUnwrappable) {
       firstChild
     } else {
       this

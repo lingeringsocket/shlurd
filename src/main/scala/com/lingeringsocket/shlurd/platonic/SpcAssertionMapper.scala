@@ -538,8 +538,8 @@ class SpcAssertionMapper(
             // negate the match
             val actualRefs = actionPredicate.modifiers.flatMap(_ match {
               case SilAdpositionalVerbModifier(
-                SilAdposition(adposition.word), actualRef
-              ) => {
+                actualAdposition, actualRef
+              ) if (matchAdpositions(adposition, actualAdposition)) => {
                 Some(actualRef)
               }
               case _ => None
@@ -573,5 +573,18 @@ class SpcAssertionMapper(
       debug("MATCH SUCCESSFUL")
     }
     tupleN((true, replacements))
+  }
+
+  private def matchAdpositions(
+    a1 : SilAdposition, a2 : SilAdposition) : Boolean =
+  {
+    def fold(a : SilAdposition) =
+    {
+      a match {
+        case SprPredefAdposition(PD_DATIVE_TO) => SprPredefAdposition(PD_TO)
+        case _ => a
+      }
+    }
+    fold(a1) == fold(a2)
   }
 }

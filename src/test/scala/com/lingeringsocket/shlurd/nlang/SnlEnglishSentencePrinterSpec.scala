@@ -31,8 +31,6 @@ class SnlEnglishSentencePrinterSpec
       expectNormalized("a body generally has a tail",
         "a body has a tail generally.")
       expectStatement("a body has a tail generally")
-      expectStatement("Salieri sends Mozart a letter angrily")
-      expectQuestion("does Antonio Salieri send Mozart a letter angrily")
       expectStatement("the king is running merrily through the woods")
     }
 
@@ -67,21 +65,22 @@ class SnlEnglishSentencePrinterSpec
         "whenever an object moves to a location, " +
           "then the location becomes the object's container."
       )
-      expectNormalized(
-        "Antonio Salieri sends Mozart a letter",
-        "Antonio Salieri sends a letter to Mozart.")
+      expectStatement(
+        "Antonio Salieri sends Mozart a letter")
       expectNormalized(
         "in the morning Antonio Salieri sends Mozart a letter",
-        "Antonio Salieri sends a letter to Mozart in the morning.")
+        "Antonio Salieri sends Mozart a letter in the morning.")
       expectNormalized("angrily Antonio Salieri sends Mozart a letter",
-        "Antonio Salieri sends a letter to Mozart angrily.")
+        "Antonio Salieri sends Mozart a letter angrily.")
       expectNormalized("angrily Antonio Salieri sends Mozart a letter?",
-        "does Antonio Salieri send a letter to Mozart angrily?")
+        "does Antonio Salieri send Mozart a letter angrily?")
       expectStatement("Gallant is good and Goofus is naughty")
       expectStatement("Mortimer went to the beach this morning")
       expectStatement("Mortimer went back to the beach this morning")
       expectQuestion("who is there")
       expectQuestion("are all lights on the first floor on")
+      expectStatement("Salieri sends Mozart a letter angrily")
+      expectQuestion("does Antonio Salieri send Mozart a letter angrily")
     }
 
     "preserve sentences" in

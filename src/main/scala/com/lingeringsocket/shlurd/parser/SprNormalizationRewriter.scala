@@ -461,7 +461,9 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
     // "bow before the throne" involve adverbial phrases.  And in some cases,
     // we should leave it ambiguous and try it both ways.
     adposition match {
-      case SprPredefAdposition(PD_BEFORE | PD_AFTER | PD_TO) => true
+      case SprPredefAdposition(
+        PD_BEFORE | PD_AFTER | PD_TO | PD_DATIVE_TO
+      ) => true
       case SprPredefAdposition(PD_AT) => {
         objRef match {
           case SilMandatorySingular(

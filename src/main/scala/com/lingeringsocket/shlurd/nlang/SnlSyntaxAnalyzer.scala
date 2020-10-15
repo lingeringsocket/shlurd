@@ -330,7 +330,7 @@ abstract class SnlSyntaxAnalyzer(
               // FIXME ugh
               adposition match {
                 case SprPredefAdposition(
-                  PD_OF | PD_GENITIVE_OF | PD_TO) => false
+                  PD_OF | PD_GENITIVE_OF | PD_TO | PD_DATIVE_TO) => false
                 case _ => true
               }
             } else {

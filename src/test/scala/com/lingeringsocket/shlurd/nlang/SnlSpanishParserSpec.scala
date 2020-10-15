@@ -291,6 +291,9 @@ class SnlSpanishParserSpec extends Specification
 
       // but this one is not
       parse("debo que vivir").hasUnknown must beTrue
+
+      // nor is this one
+      parse("ella me lo da un beso").hasUnknown must beTrue
     }
   }
 }

@@ -160,14 +160,16 @@ class SnlSpanishTongueSpec extends SprWordLabelerSpecification
       pronounLemmas must contain(LEMMA_USTED)
 
       pronounLemmas.foreach(lemma => {
-        val (person, count, gender, inflection,
+        val (person, count, gender, inflections,
           proximityOpt, possesseeCount, politeness
         ) = tongue.analyzePronoun(lemma)
-        val lemmaProduced = tongue.pronounLemma(
-          person, gender, count,
-          proximityOpt.getOrElse(PROXIMITY_ENTITY),
-          politeness, inflection, possesseeCount)
-        lemmaProduced must be equalTo lemma
+        inflections.foreach(inflection => {
+          val lemmaProduced = tongue.pronounLemma(
+            person, gender, count,
+            proximityOpt.getOrElse(PROXIMITY_ENTITY),
+            politeness, inflection, possesseeCount)
+          lemmaProduced must be equalTo lemma
+        })
       })
 
       pronounLemmas.size must be equalTo 63

@@ -21,4 +21,5 @@ package object ilang
   type SilPronounMap = Map[SilPronounKey, SilWord]
 
   val LEMMA_ADVERBIAL_TMP = "_temporal_"
+  val LEMMA_ADPOSITION_DATIVE = "_dative_"
 }
