@@ -1015,7 +1015,9 @@ class SnlEnglishTongue(wordnet : SprWordnet)
         SilPhraseScore.conBig
       } else if (words.exists(_.lemma == PD_ADVERBIAL_TMP.toLemma)) {
         SilPhraseScore.proBig
-      } else if (ap.adposition != SprPredefAdposition(PD_TO)) {
+      } else if (ap.adposition != SprPredefAdposition(PD_TO) &&
+        (ap.adposition != SprPredefAdposition(PD_DATIVE_TO)))
+      {
         // in a phrase like "he went up the steps", we boost the
         // interpretation of "up" as an adposition vs adverb
         SilPhraseScore.pro(20)
