@@ -46,6 +46,8 @@ class SnlSpanishParserSpec extends Specification
 
   private val VERB_BEBERA = SilWord("beberá", "beber")
 
+  private val VERB_BESA = SilWord("besa", "besar")
+
   private val VERB_VIVIR = SilWord("vivir")
 
   private val VERB_ES = SilWord("es", LEMMA_SER)
@@ -280,6 +282,22 @@ class SnlSpanishParserSpec extends Specification
             ),
             VERB_HAY,
             SilExistenceState(Some(VERB_HAY))
+          )
+        )
+    }
+
+    "parse personal a" in
+    {
+      val input = "un perro besa a Pedro"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.determinedNounRef(
+              NOUN_PERRO,
+              DETERMINER_NONSPECIFIC
+            ),
+            VERB_BESA,
+            Some(annotator.nounRef(NOUN_PEDRO))
           )
         )
     }

@@ -182,6 +182,13 @@ abstract class SilSentenceBundle
   def adpositionedNoun(
     position : String, noun : String, conjoining : SilConjoining) : String
 
+  def directObject(
+    noun : String,
+    isPerson : Boolean) : String =
+  {
+    noun
+  }
+
   def parenthetical(
     inside : String, inflection : SilInflection,
     conjoining : SilConjoining,

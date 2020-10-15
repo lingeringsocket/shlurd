@@ -24,7 +24,7 @@ private[parser] object SprNormalizationRewriter
   private val compassRose = Set("north", "south", "east", "west")
 }
 
-private[parser] class SprNormalizationRewriter(context : SprContext)
+class SprNormalizationRewriter(context : SprContext)
   extends SilPhraseRewriter(context.annotator)
 {
   import SprNormalizationRewriter._
@@ -35,10 +35,22 @@ private[parser] class SprNormalizationRewriter(context : SprContext)
 
   def normalize(sentence : SilSentence) : SilSentence =
   {
-    rewrite(
+    // apply generic rules
+    val intermediate = rewrite(
       normalizeAllPhrases,
       sentence,
       SilRewriteOptions(repeat = true))
+
+    // then apply language-specific rules
+    val languageRules = tongue.getNormalizationRules(context.genderAnalyzer)
+    if (languageRules.isEmpty) {
+      intermediate
+    } else {
+      rewrite(
+        combineRules(languageRules:_*),
+        intermediate,
+        SilRewriteOptions(repeat = true))
+    }
   }
 
   private def normalizeAllPhrases = combineRules(

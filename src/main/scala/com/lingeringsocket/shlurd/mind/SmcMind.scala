@@ -396,5 +396,16 @@ class SmcMind[
     getTongue.deriveGender(ref, subAnalyzer)
   }
 
+  override def isPerson(
+    ref : SilReference,
+    subAnalyzer : SilGenderAnalyzer) =
+  {
+    // FIXME in SpcMind, we can derive form, and from there look for
+    // FORM_SOMEONE hyperform; likewise, if we have associated
+    // entities in a ref map, they should factor in too.  Also need to
+    // think about caching.
+    getTongue.isPerson(ref, subAnalyzer)
+  }
+
   def deriveGender(entity : EntityType) : SilGender = GENDER_NEUTER
 }

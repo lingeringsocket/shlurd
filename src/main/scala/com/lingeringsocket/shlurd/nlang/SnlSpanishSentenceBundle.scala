@@ -196,6 +196,18 @@ class SnlSpanishSentenceBundle(
     compose(determinerInflected, noun)
   }
 
+  override def directObject(
+    noun : String,
+    isPerson : Boolean) : String =
+  {
+    if (isPerson) {
+      // personal "a"
+      compose(LEMMA_A, noun)
+    } else {
+      noun
+    }
+  }
+
   override def cardinalNumber(
     num : Int, gender : SilGender, isModifier : Boolean) : String =
   {

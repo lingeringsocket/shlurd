@@ -213,6 +213,10 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def getPhraseScorers : Seq[SprWordnetScorer.PhraseScorer] = Seq.empty
 
+  def getNormalizationRules(
+    genderAnalyzer : SilGenderAnalyzer
+  ) : Seq[SilPhraseReplacementMatcher] = Seq.empty
+
   def getRelPredefLemma(predef : SprRelationshipPredef) : String
 
   def getStatePredefLemma(predef : SprStatePredef) : String

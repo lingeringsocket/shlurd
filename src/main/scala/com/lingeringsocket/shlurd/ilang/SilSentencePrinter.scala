@@ -341,7 +341,7 @@ class SilSentencePrinter(
             subject, verb, tamOriginal,
             predicate.getInflectedAttributes, INFLECT_NONE),
           directObject.map(
-            ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
+            ref => printDirectObject(ref)),
           modifiers.flatMap(printDative),
           modifiers.map(printVerbModifier),
           tamOriginal,
@@ -363,7 +363,8 @@ class SilSentencePrinter(
             tupleN(("", printChangeStateVerb(state, Some(verb))))
           }
           case _ => {
-            tupleN((print(subject, INFLECT_ACCUSATIVE, SilConjoining.NONE),
+            tupleN((
+              printDirectObject(subject),
               printChangeStateVerb(state, None)))
           }
         }
@@ -397,7 +398,7 @@ class SilSentencePrinter(
             person, gender, count,
             tam, None, verb, INFLECT_NONE),
           directObject.map(
-            ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE)),
+            ref => printDirectObject(ref)),
           modifiers.flatMap(printDative),
           modifiers.map(printVerbModifier),
           tam,
@@ -468,7 +469,7 @@ class SilSentencePrinter(
         subject, verb, directObject, modifiers
       ) => {
         val plainDirectObject = directObject.map(
-          ref => print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE))
+          ref => printDirectObject(ref))
         val directObjectString = answerInflection match {
           case INFLECT_ACCUSATIVE => {
             plainDirectObject.map(sb.query(_, question, answerInflection))
@@ -680,9 +681,9 @@ class SilSentencePrinter(
   {
     modifier match {
       case SilAdpositionalVerbModifier(
-        SilAdposition(word),
+        SilAdposition(SilWordLemma(LEMMA_ADPOSITION_DATIVE)),
         objRef
-      ) if (word.toLemma == LEMMA_ADPOSITION_DATIVE) => {
+      ) => {
         Some(print(objRef, INFLECT_DATIVE, SilConjoining.NONE))
       }
       case _ => {
@@ -709,6 +710,13 @@ class SilSentencePrinter(
           conjoining)
       }
     }
+  }
+
+  private def printDirectObject(ref : SilReference) : String =
+  {
+    sb.directObject(
+      print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE),
+      genderAnalyzer.isPerson(ref, genderAnalyzer))
   }
 }
 

@@ -55,6 +55,32 @@ trait SilGenderAnalyzer
     ref : SilReference,
     subAnalyzer : SilGenderAnalyzer) : SilGender = GENDER_NEUTER
 
+  def isPerson(
+    ref : SilReference,
+    subAnalyzer : SilGenderAnalyzer) : Boolean =
+  {
+    ref match {
+      case pr : SilPronounReference =>
+        (pr.gender != GENDER_NEUTER)
+      case SilConjunctiveReference(_, refs, _) =>
+        refs.exists(r => subAnalyzer.isPerson(r, subAnalyzer))
+      case SilParenthesizedReference(r, _) =>
+        subAnalyzer.isPerson(r, subAnalyzer)
+      case SilAppositionalReference(r, _) =>
+        subAnalyzer.isPerson(r, subAnalyzer)
+      case SilStateSpecifiedReference(r, _) =>
+        subAnalyzer.isPerson(r, subAnalyzer)
+      case SilDeterminedReference(r, _) =>
+        subAnalyzer.isPerson(r, subAnalyzer)
+      case SilGenitiveReference(_, possessee) =>
+        subAnalyzer.isPerson(possessee, subAnalyzer)
+      case SilNounReference(word) =>
+        word.isProper
+      case _ : SilQuotationReference => false
+      case _ : SilUnknownReference => false
+    }
+  }
+
   def deriveGender(word : SilWord) : SilGender = GENDER_NEUTER
 }
 

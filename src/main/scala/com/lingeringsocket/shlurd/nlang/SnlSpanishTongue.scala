@@ -27,6 +27,7 @@ import SprPennTreebankLabels._
 
 object SnlSpanishLemmas
 {
+  val LEMMA_A = "a"
   val LEMMA_ACA = "acá"
   val LEMMA_ADONDE_ACCENTED = "adónde"
   val LEMMA_ADONDE = "adónde"
@@ -511,7 +512,7 @@ object SnlSpanishLexicon
     PD_OVER -> "sobre",
     PD_RIGHT -> "al derecho de",
     PD_SAME -> "mismo",
-    PD_TO -> "a",
+    PD_TO -> LEMMA_A,
     PD_DATIVE_TO -> LEMMA_ADPOSITION_DATIVE,
     // FIXME: the real thing
     PD_THAT -> LEMMA_ESO,
@@ -582,6 +583,15 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def getPhraseScorers : Seq[SprWordnetScorer.PhraseScorer] =
   {
     phraseScorers
+  }
+
+  override def getNormalizationRules(
+    genderAnalyzer : SilGenderAnalyzer
+  ) =
+  {
+    Seq(
+      normalizePersonalA(genderAnalyzer)
+    )
   }
 
   override def getStopList = stopList
@@ -1540,6 +1550,21 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   }
 
+  override def isPerson(
+    ref : SilReference,
+    subAnalyzer : SilGenderAnalyzer) : Boolean =
+  {
+    // FIXME we do this specifically for the purpose of
+    // deciding whether to insert "personal a", which
+    // should never happen for object pronouns, but
+    // what if isPerson gets used for something
+    // more general later on?
+    ref match {
+      case pr : SilPronounReference => false
+      case _ => super.isPerson(ref, subAnalyzer)
+    }
+  }
+
   private def scoreSpecialSpanishAdpositions = phraseScorer {
     case ap : SilAdpositionalPhrase => {
       val words = ap.adposition.word.decomposed
@@ -1622,4 +1647,35 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       SilPhraseScore.proBig
     }
   }
+
+  private def normalizePersonalA(
+    genderAnalyzer : SilGenderAnalyzer
+  ) = SilPhraseReplacementMatcher(
+    "normalizePersonalA", {
+      case SilActionPredicate(
+        subject,
+        verb,
+        None,
+        modifiers
+      ) => {
+        val found = modifiers.map(vm => vm match {
+          case SilAdpositionalVerbModifier(
+            SilAdposition(SilWordLemma(LEMMA_A)),
+            ref : SilReference
+          ) if (genderAnalyzer.isPerson(ref, genderAnalyzer)) => {
+            tupleN((Some(vm), Some(ref)))
+          }
+          case _ => tupleN((None, None))
+        }).find(_._1.nonEmpty)
+        val objModifier = found.flatMap(_._1)
+        val directObj = found.flatMap(_._2)
+        SilActionPredicate(
+          subject,
+          verb,
+          directObj,
+          modifiers.filterNot(vm => (Some(vm) == objModifier))
+        )
+      }
+    }
+  )
 }

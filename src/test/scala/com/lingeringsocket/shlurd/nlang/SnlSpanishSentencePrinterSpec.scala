@@ -48,6 +48,7 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("podemos ser perros")
       expectStatement("hay un perro")
 
+      // object pronouns
       expectStatement("ella me besa")
       expectStatement("ella lo besa")
       expectStatement("ella le dice")
@@ -62,6 +63,10 @@ class SnlSpanishSentencePrinterSpec
       // this one is ambiguous between indicative/imperative; we
       // default to interpreting it as indicative
       expectStatement("vives su vida")
+
+      // personal a
+      expectNormalized("ella besa Juan", "ella besa a Juan.")
+      expectStatement("ella besa a Juan")
 
       expectCommand("viva su vida")
       expectCommand("vivan sus vidas")
