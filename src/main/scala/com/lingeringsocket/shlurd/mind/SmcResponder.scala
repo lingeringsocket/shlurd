@@ -85,6 +85,22 @@ object SmcResponder
   private val logger =
     LoggerFactory.getLogger(
       classOf[SmcResponder[_, _, _, _]])
+
+  def apply[
+    EntityType<:SmcEntity,
+    PropertyType<:SmcProperty,
+    CosmosType<:SmcCosmos[EntityType, PropertyType],
+    MindType<:SmcMind[EntityType, PropertyType, CosmosType]
+  ](
+    mind : MindType,
+    generalParams : SmcResponseParams = SmcResponseParams(),
+    executor : SmcExecutor[EntityType] = new SmcExecutor[EntityType]
+  ) : SmcResponder[EntityType, PropertyType, CosmosType, MindType] =
+  {
+    new SmcResponder(
+      mind, generalParams, executor,
+      SmcCommunicationContext(mind.getTongue))
+  }
 }
 
 class SmcContextualScorer[
@@ -132,11 +148,12 @@ class SmcContextualScorer[
 }
 
 case class SmcCommunicationContext[EntityType<:SmcEntity](
+  tongue : SprTongue,
   speakerEntity : Option[EntityType] = None,
   listenerEntity : Option[EntityType] = None
 )
 {
-  def flip = SmcCommunicationContext(listenerEntity, speakerEntity)
+  def flip = SmcCommunicationContext(tongue, listenerEntity, speakerEntity)
 }
 
 class SmcResponder[
@@ -148,8 +165,7 @@ class SmcResponder[
   mind : MindType,
   generalParams : SmcResponseParams = SmcResponseParams(),
   executor : SmcExecutor[EntityType] = new SmcExecutor[EntityType],
-  communicationContext : SmcCommunicationContext[EntityType] =
-    SmcCommunicationContext()
+  communicationContext : SmcCommunicationContext[EntityType]
 ) extends SmcDebuggable(new SmcDebugger(SmcResponder.logger))
 {
   type ResultCollectorType = SmcResultCollector[EntityType]

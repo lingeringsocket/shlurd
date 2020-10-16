@@ -31,7 +31,7 @@ class SpcPerceptionSpec extends Specification
     protected def process(input : String, cosmos : SpcCosmos) =
     {
       val mind = new SpcMind(cosmos)
-      val responder = new SpcResponder(
+      val responder = SpcResponder(
         mind,
         SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
         SmcResponseParams(

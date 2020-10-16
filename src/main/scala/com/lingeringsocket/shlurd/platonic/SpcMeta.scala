@@ -294,7 +294,8 @@ class SpcMeta(cosmos : SpcCosmos)
     if (enabled) {
       val params = SpcBeliefParams()
       val mind = new SpcMind(cosmos)
-      val responder = new SpcResponder(mind, params)
+      val responder = SpcResponder(
+        mind, params)
       val beliefAccepter = SpcBeliefAccepter(
         responder, params, SpcResultCollector(newAnnotator))
       beliefAccepter.applyBelief(belief)

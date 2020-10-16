@@ -122,7 +122,7 @@ object PhlebShell
       bootCosmos, None, preferredSynonyms, new PhlebClock)
     bootMind.importBeliefs(
       s"${resourcePrefix}base-axioms.txt",
-      new SpcResponder(
+      SpcResponder(
         bootMind,
         beliefParams,
         SmcResponseParams(reportExceptionCodes = true)))
@@ -199,7 +199,8 @@ object PhlebShell
       noumenalMind,
       beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
       responderParams.copy(reportExceptionCodes = true),
-      executor, SmcCommunicationContext(Some(playerEntity), Some(playerEntity)))
+      executor,
+      SmcCommunicationContext(tongue, Some(playerEntity), Some(playerEntity)))
     noumenalMind.importBeliefs(
       s"${resourcePrefix}game-init.txt",
       noumenalInitializer)
@@ -227,7 +228,7 @@ object PhlebShell
           Some(terminal),
           mind, beliefParams.copy(acceptance = ACCEPT_MODIFIED_BELIEFS),
           SmcResponseParams(reportExceptionCodes = true), executor,
-          SmcCommunicationContext(Some(entity), Some(entity)))
+          SmcCommunicationContext(tongue, Some(entity), Some(entity)))
         mind.importBeliefs(resourceName, responder)
       }
       case _ => {
@@ -653,6 +654,7 @@ class PhlebShell(
     SnlUtils.defaultTongue, noumenalMind)
 
   private val playerToInterpreter = SmcCommunicationContext(
+    tongue,
     Some(playerEntity),
     Some(interpreterEntity)
   )
@@ -737,6 +739,7 @@ class PhlebShell(
         case DeferredUtterance(targetEntity, targetMind, input) => {
           terminal.emitTrace(s"UTTERANCE $input")
           val communicationContext = SmcCommunicationContext(
+            tongue,
             Some(playerEntity),
             Some(targetEntity)
           )
@@ -833,6 +836,7 @@ class PhlebShell(
             val reply = accessEntityMind(listener) match {
               case Some(entityMind) => {
                 val communicationContext = SmcCommunicationContext(
+                  tongue,
                   Some(speaker),
                   Some(listener)
                 )

@@ -29,7 +29,7 @@ class SpcMetaReflectorSpec extends Specification
     protected val mind = new SpcMind(cosmos)
 
     protected val responder =
-      new SpcResponder(
+      SpcResponder(
         mind, SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
         SmcResponseParams(verbosity = RESPONSE_TERSE))
 

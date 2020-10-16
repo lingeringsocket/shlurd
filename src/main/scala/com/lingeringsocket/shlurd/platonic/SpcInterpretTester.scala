@@ -46,7 +46,7 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
     input : String, answer : String) =
   {
     val responder =
-      new SpcResponder(
+      SpcResponder(
         mind,
         SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS),
         SmcResponseParams(verbosity = RESPONSE_TERSE))

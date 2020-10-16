@@ -376,5 +376,58 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("hay cuántos osos?") must be equalTo(
         "Hay dos de ellos.")
     }
+
+    "understand conversational singular pronoun references" in new
+      SpanishResponderContext
+    {
+      mind.startConversation
+
+      processExceptionExpected(
+        "él está dormido",
+        "Sorry, when you say 'él' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      process("está el tigre dormido?") must be equalTo(
+        "No, el tigre no está dormido.")
+      process("él está despierto?") must be equalTo(
+        "Sí, el tigre está despierto.")
+
+      processExceptionExpected(
+        "ella está dormida",
+        "Sorry, when you say 'ella' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      process("está la cabra siberiana dormida?") must be equalTo(
+        "Sí, la cabra siberiana está dormida.")
+      process("ella está despierta?") must be equalTo(
+        "No, la cabra siberiana no está despierta.")
+    }
+
+    "understand conversational plural pronoun references" in new
+      SpanishResponderContext
+    {
+      mind.startConversation
+
+      processExceptionExpected(
+        "ellos están dormidos",
+        "Sorry, when you say 'ellos' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+      process("están el león y la cabra siberiana dormidos?") must be equalTo(
+        "Sí, el león y la cabra siberiana están dormidos.")
+      process("ellos están dormidos?") must be equalTo(
+        "Sí, el león y la cabra siberiana están dormidos.")
+
+      processExceptionExpected(
+        "ellas están dormidas",
+        "Sorry, when you say 'ellas' I don't know who or what you mean.",
+        ShlurdExceptionCode.UnresolvedPronoun)
+
+      process("están las cabras despiertas?") must be equalTo(
+        "No, las cabras no están despiertas.")
+      process("ellas están dormidas?") must be equalTo(
+        "Sí, la cabra doméstica y la cabra siberiana y " +
+          "la cabra niñera están dormidas.")
+
+      process("ellos están dormidos?") must be equalTo(
+        "Sí, el león y la cabra siberiana están dormidos.")
+    }
   }
 }

@@ -127,7 +127,10 @@ class SmcMind[
   {
     ref match {
       case SilDeterminedReference(
-        _ : SilNounReference, DETERMINER_DEFINITE
+        SilStackedStateReference(
+          _ : SilNounReference,
+          states),
+        DETERMINER_DEFINITE
       ) => {
         true
       }
@@ -282,7 +285,6 @@ class SmcMind[
     axis : SilDeicticAxis = DEICTIC_PERSONAL
   ) : Option[SilReference] =
   {
-    // FIXME gender derivation
     if (entities.isEmpty) {
       None
     } else if (axis == DEICTIC_SPATIAL) {
@@ -304,10 +306,14 @@ class SmcMind[
           COUNT_PLURAL
         }
       }
+      val gender = getTongue.combineGenders(
+        entities.toSeq.map(deriveGender))
       Some(annotator.pronounRef(
-        PERSON_THIRD, GENDER_NEUTER, count,
+        PERSON_THIRD, gender, count,
         this, pronounMap =
-          getTongue.getPronounMap(GENDER_NEUTER, count)))
+          getTongue.getPronounMap(
+            gender.maybeBasic.getOrElse(GENDER_NEUTER),
+            count)))
     }
   }
 
@@ -407,5 +413,6 @@ class SmcMind[
     getTongue.isPerson(ref, subAnalyzer)
   }
 
-  def deriveGender(entity : EntityType) : SilGender = GENDER_NEUTER
+  def deriveGender(
+    entity : EntityType) : SilGender = GENDER_NEUTER
 }

@@ -60,7 +60,7 @@ class SpcOpenhabCosmosSpec extends Specification
     }
 
     protected val responder =
-      new SpcResponder(new SpcOpenhabMind(cosmos))
+      SpcResponder(new SpcOpenhabMind(cosmos))
 
     protected def process(input : String, expected : String) =
     {

@@ -27,21 +27,21 @@ class SpcResponseSpecification extends SpcProcessingSpecification
     SpcPrimordial.initCosmos(cosmos)
 
     protected val responder =
-      new SpcResponder(
+      SpcResponder(
         mind, SpcBeliefParams(beliefAcceptance), params)
 
     protected val responderWithoutPronouns =
-      new SpcResponder(
+      SpcResponder(
         mind, SpcBeliefParams(beliefAcceptance), params.
           copy(thirdPersonPronouns = false))
 
     protected val responderTerse =
-      new SpcResponder(
+      SpcResponder(
         mind, SpcBeliefParams(beliefAcceptance), params.
           copy(verbosity = RESPONSE_TERSE))
 
     protected val responderEllipsis =
-      new SpcResponder(
+      SpcResponder(
         mind, SpcBeliefParams(beliefAcceptance), params.
           copy(verbosity = RESPONSE_ELLIPSIS))
 

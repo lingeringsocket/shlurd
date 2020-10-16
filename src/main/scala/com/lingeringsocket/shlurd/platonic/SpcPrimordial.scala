@@ -49,7 +49,7 @@ object SpcPrimordial
     mind.loadBeliefs(
       ResourceUtils.getResourceSource(
         "/ontologies/primordial.txt"),
-      new SpcResponder(
+      SpcResponder(
         mind,
         SpcBeliefParams(
           createTentativeIdeals = false,

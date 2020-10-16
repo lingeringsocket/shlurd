@@ -91,10 +91,12 @@ class SpcResponderSpec extends SpcResponseSpecification
         ShlurdExceptionCode.UnknownModifier)
 
       val distantContext = SmcCommunicationContext(
+        mind.getTongue,
         Some(expectProperName("Janet")),
         Some(expectProperName("Jack"))
       )
       val closeContext = SmcCommunicationContext(
+        mind.getTongue,
         Some(expectProperName("Janet")),
         Some(expectProperName("Chrissy"))
       )

@@ -38,7 +38,7 @@ class SpcCreedSpec extends Specification
 
     protected def addBelief(input : String) =
     {
-      val responder = new SpcResponder(mind)
+      val responder = SpcResponder(mind)
       val parseResult = responder.newParser(input).parseOne
       val resultCollector =
         SpcResultCollector(
@@ -65,7 +65,7 @@ class SpcCreedSpec extends Specification
       beliefStrings.foreach(beliefString => {
         val refriedMind = new SpcMind(refriedCosmos)
         val refriedResponder =
-          new SpcResponder(refriedMind)
+          SpcResponder(refriedMind)
         val parseResult = refriedResponder.newParser(beliefString).parseOne
         val resultCollector = SpcResultCollector(
           SpcAnnotator(parseResult.annotator))

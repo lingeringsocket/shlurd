@@ -45,7 +45,7 @@ object PhlebBaseline
               newCosmos, None, preferredSynonyms, new PhlebClock)
             mind.importBeliefs(
               "/phlebotinum/default-axioms.txt",
-              new SpcResponder(
+              SpcResponder(
                 mind,
                 PhlebShell.beliefParams,
                 SmcResponseParams(reportExceptionCodes = true)))

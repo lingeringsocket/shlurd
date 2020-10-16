@@ -29,7 +29,7 @@ class ShlurdPrincetonPrimordialSpec extends Specification
     protected val mind = new SpcWordnetOntologyMind(
       SnlUtils.defaultTongue, cosmos)
     protected val responder =
-      new SpcResponder(
+      SpcResponder(
         mind, SpcBeliefParams(ACCEPT_NEW_BELIEFS), SmcResponseParams())
 
     protected def processBelief(input : String) =

@@ -1794,6 +1794,7 @@ class SpcCosmos(
     tongue : SprTongue,
     entity : SpcEntity) : SilPronounMap =
   {
+    // FIXME tongue needs to be part of cache key
     pool.accessCache(
       pool.pronounCache,
       entity,
@@ -1828,7 +1829,7 @@ class SpcCosmos(
           })
         }
         val result = if (map.isEmpty) {
-          val gender = getEntityGender(entity)
+          val gender = getEntityGender(tongue, entity)
           gender.maybeBasic match {
             case Some(g) => {
               tongue.getPronounMap(g, COUNT_SINGULAR)
@@ -1871,7 +1872,7 @@ class SpcCosmos(
           })
         })
       } else if (!reentrant) {
-        getEntityGender(entity) matchPartial {
+        getEntityGender(tongue, entity) matchPartial {
           case SpcGender(genderForm, None) => {
             val genderFormEntityName = SpcMeta.formMetaEntityName(genderForm)
             getEntityBySynonym(genderFormEntityName).foreach(
@@ -1885,17 +1886,20 @@ class SpcCosmos(
     }
   }
 
-  def getEntityGender(entity : SpcEntity) : SilGender =
+  def getEntityGender(
+    tongue : SprTongue, entity : SpcEntity) : SilGender =
   {
+    // FIXME tongue needs to be part of cache key
     pool.accessCache(
       pool.genderCache,
       entity,
       pool.entityTimestamp + pool.taxonomyTimestamp,
-      deriveEntityGender(entity)
+      deriveEntityGender(tongue, entity)
     )
   }
 
-  private def deriveEntityGender(entity : SpcEntity) : SilGender =
+  private def deriveEntityGender(
+    tongue : SprTongue, entity : SpcEntity) : SilGender =
   {
     assocEntityGender(entity).orElse {
       getFormHypernyms(entity.form).flatMap(form => {
@@ -1904,10 +1908,10 @@ class SpcCosmos(
           assocEntityGender(formEntity)
         })
       }).headOption
-    }.getOrElse(guessGender(entity.form))
+    }.getOrElse(guessGender(tongue, entity.form))
   }
 
-  def getIdealGender(ideal : SpcIdeal) : SilGender =
+  def getIdealGender(tongue : SprTongue, ideal : SpcIdeal) : SilGender =
   {
     // maybe we should cache this too?
     graph.getIdealHypernyms(ideal).filter(_.isForm).
@@ -1916,7 +1920,7 @@ class SpcCosmos(
         getEntityBySynonym(formEntityName).flatMap(formEntity => {
           assocEntityGender(formEntity)
         })
-      }).toIterable.headOption.getOrElse(guessGender(ideal))
+      }).toIterable.headOption.getOrElse(guessGender(tongue, ideal))
   }
 
   def getGenderRole(form : SpcForm) : Option[SpcRole] =
@@ -1953,17 +1957,23 @@ class SpcCosmos(
     }
   }
 
-  private def guessGender(ideal : SpcIdeal) : SilGender =
+  private def guessGender(
+    tongue : SprTongue,
+    ideal : SpcIdeal) : SilGender =
   {
+    def genderViaTongue = {
+      tongue.deriveGender(SilWord(
+        decodeName(SpcWordnetOntology.getNoun(ideal.name))))
+    }
     resolveForm(SmcIdeals.FORM_SOMEONE) match {
       case Some(someoneForm) => {
         if (isHyponym(ideal, someoneForm)) {
           GENDER_SOMEONE
         } else {
-          GENDER_NEUTER
+          genderViaTongue
         }
       }
-      case _ => GENDER_NEUTER
+      case _ => genderViaTongue
     }
   }
 

@@ -77,6 +77,7 @@ class SmcScopeSpec extends Specification
 
     protected val communicationContext =
       SmcCommunicationContext[SmcEntity](
+        tongue,
         Some(ZooVisitor),
         Some(ZooKeeper))
     protected val mindScope = new SmcMindScope[

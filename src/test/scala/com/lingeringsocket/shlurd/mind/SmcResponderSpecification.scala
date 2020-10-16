@@ -97,6 +97,7 @@ class SmcResponderSpecification extends Specification
     protected def newMind = new ZooMind(getCosmos)
 
     protected val communicationContext = SmcCommunicationContext[SmcEntity](
+      mind.getTongue,
       Some(ZooVisitor),
       Some(ZooKeeper)
     )

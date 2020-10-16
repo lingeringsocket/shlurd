@@ -46,7 +46,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   def importBeliefs(
     resourceName : String,
-    responder : SpcResponder = new SpcResponder(
+    responder : SpcResponder = SpcResponder(
       this,
       SpcBeliefParams(ACCEPT_NEW_BELIEFS),
       SmcResponseParams(reportExceptionCodes = true)))
@@ -63,7 +63,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   def loadBeliefs(
     source : Source,
-    responder : SpcResponder = new SpcResponder(
+    responder : SpcResponder = SpcResponder(
       this,
       SpcBeliefParams(ACCEPT_NEW_BELIEFS),
       SmcResponseParams(reportExceptionCodes = true)))
@@ -117,7 +117,8 @@ class SpcMind(cosmos : SpcCosmos)
         val graph = cosmos.getGraph
         val possessor = graph.getPossessorEntity(edge)
         val role = cosmos.getPossesseeRole(edge)
-        val roleGender = cosmos.getIdealGender(role)
+        val roleGender = cosmos.getIdealGender(
+          communicationContext.tongue, role)
         val specializedRole = graph.specializeRoleForForm(
           role,
           entity.form)
@@ -220,7 +221,7 @@ class SpcMind(cosmos : SpcCosmos)
         if (entities.size == 1) {
           val entity = entities.head
           val pronounMap = cosmos.getEntityPronouns(tongue, entity)
-          val entityGender = cosmos.getEntityGender(entity)
+          val entityGender = cosmos.getEntityGender(tongue, entity)
           if (pronounMap.nonEmpty || entityGender != GENDER_SOMEONE) {
             val count = {
               pronounMap.get(SilPronounKey(LABEL_PRP, PERSON_THIRD)) match {
@@ -251,7 +252,7 @@ class SpcMind(cosmos : SpcCosmos)
           }
         } else {
           val combinedGender = tongue.combineGenders(
-            entities.toSeq.map(cosmos.getEntityGender)).
+            entities.toSeq.map(e => cosmos.getEntityGender(tongue, e))).
             maybeBasic.getOrElse(GENDER_NEUTER)
           tupleN((
             GENDER_NEUTER, COUNT_PLURAL,
@@ -461,7 +462,7 @@ class SpcMind(cosmos : SpcCosmos)
 
   override def deriveGender(entity : SpcEntity) : SilGender =
   {
-    cosmos.getEntityGender(entity)
+    cosmos.getEntityGender(getTongue, entity)
   }
 
   override def evaluateEntityCategoryPredicate(

@@ -115,6 +115,7 @@ class ShlurdCliShell(
   private val responder = new SpcResponder(
     mind, SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS), params,
     communicationContext = SmcCommunicationContext(
+      mind.getTongue,
       Some(entityInterviewer),
       Some(entityShlurd)
     )

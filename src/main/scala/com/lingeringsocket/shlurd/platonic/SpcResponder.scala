@@ -202,14 +202,31 @@ object SpcAnnotator
     annotator.asInstanceOf[SpcAnnotator]
 }
 
+object SpcResponder
+{
+  def apply(
+    mind : SpcMind,
+    beliefParams : SpcBeliefParams =
+      SpcBeliefParams(ACCEPT_NO_BELIEFS),
+    params : SmcResponseParams = SmcResponseParams(),
+    executor : SmcExecutor[SpcEntity] = new SmcExecutor[SpcEntity]
+  ) : SpcResponder =
+  {
+    new SpcResponder(
+      mind, beliefParams,
+      params,
+      executor,
+      SmcCommunicationContext(mind.getTongue))
+  }
+}
+
 class SpcResponder(
   mind : SpcMind,
   beliefParams : SpcBeliefParams =
     SpcBeliefParams(ACCEPT_NO_BELIEFS),
   params : SmcResponseParams = SmcResponseParams(),
   executor : SmcExecutor[SpcEntity] = new SmcExecutor[SpcEntity],
-  communicationContext : SmcCommunicationContext[SpcEntity] =
-    SmcCommunicationContext()
+  communicationContext : SmcCommunicationContext[SpcEntity]
 ) extends SmcResponder[
   SpcEntity, SpcProperty, SpcCosmos, SpcMind
 ](

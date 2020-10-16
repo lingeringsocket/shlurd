@@ -277,7 +277,7 @@ class ConversationProcessor extends StringModifier
     }
     mind.startConversation
     val responder =
-      new SpcResponder(
+      SpcResponder(
         mind,
         SpcBeliefParams(
           beliefAcceptance,
@@ -400,7 +400,7 @@ class BeliefRenderer extends StringModifier
     lastCosmos = Some(cosmos)
     SpcPrimordial.initCosmos(cosmos)
     val mind = new SpcMind(cosmos)
-    val responder = new SpcResponder(
+    val responder = SpcResponder(
       mind,
       SpcBeliefParams(
         ACCEPT_NEW_BELIEFS,

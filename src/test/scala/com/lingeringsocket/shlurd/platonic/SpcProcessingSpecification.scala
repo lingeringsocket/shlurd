@@ -78,7 +78,7 @@ class SpcProcessingSpecification extends Specification
       executor : SmcExecutor[SpcEntity] =
         new SmcExecutor[SpcEntity]) =
     {
-      val responder = new SpcResponder(
+      val responder = SpcResponder(
         mind,
         beliefParams,
         params,
