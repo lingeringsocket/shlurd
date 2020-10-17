@@ -278,7 +278,7 @@ object SnlSpanishLexicon
       PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
       PROXIMITY_ENTITY, INFLECT_DATIVE),
     LEMMA_LE -> SnlPronounCoord(
-      PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR,
+      PERSON_THIRD, GENDER_SOMEONE, COUNT_SINGULAR,
       PROXIMITY_ENTITY, INFLECT_DATIVE),
     LEMMA_NOS -> SnlPronounCoord(
       PERSON_FIRST, GENDER_SOMEONE, COUNT_PLURAL,
@@ -287,12 +287,12 @@ object SnlSpanishLexicon
       PERSON_SECOND, GENDER_SOMEONE, COUNT_PLURAL,
       PROXIMITY_ENTITY, INFLECT_DATIVE),
     LEMMA_LES -> SnlPronounCoord(
-      PERSON_THIRD, GENDER_NEUTER, COUNT_PLURAL,
+      PERSON_THIRD, GENDER_SOMEONE, COUNT_PLURAL,
       PROXIMITY_ENTITY, INFLECT_DATIVE),
 
     // annoying substitution for le/les before
-    // lo/la/los/las; note that we use GENDER_SOMEONE
-    // instead of GENDER_MASCULINE just to avoid collision
+    // lo/la/los/las; note that we use GENDER_MASCULINE
+    // instead of GENDER_SOMEONE just to avoid collision
     // with LEMMA_LE in reverse mapping, ugh
     LEMMA_SE -> SnlPronounCoord(
       PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
@@ -714,6 +714,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
             SilWord(LEMMA_EL_ACCENTED),
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_LO),
+          SilPronounKey(LABEL_PRP_DATIVE, PERSON_THIRD) ->
             SilWord(LEMMA_LE),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
             SilWord(LEMMA_SE),
@@ -726,6 +728,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
             SilWord(LEMMA_ELLOS),
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_LOS),
+          SilPronounKey(LABEL_PRP_DATIVE, PERSON_THIRD) ->
             SilWord(LEMMA_LES),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
             SilWord(LEMMA_SE),
@@ -738,6 +742,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
             SilWord(LEMMA_ELLA),
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_LA),
+          SilPronounKey(LABEL_PRP_DATIVE, PERSON_THIRD) ->
             SilWord(LEMMA_LE),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
             SilWord(LEMMA_SE),
@@ -750,6 +756,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
             SilWord(LEMMA_ELLAS),
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_LAS),
+          SilPronounKey(LABEL_PRP_DATIVE, PERSON_THIRD) ->
             SilWord(LEMMA_LES),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
             SilWord(LEMMA_SE),
@@ -764,6 +772,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
             SilWord(LEMMA_ELLO),
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_LO),
+          SilPronounKey(LABEL_PRP_DATIVE, PERSON_THIRD) ->
             SilWord(LEMMA_LE),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
             SilWord(LEMMA_SE),
@@ -776,6 +786,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
             SilWord(LEMMA_ELLOS),
           SilPronounKey(LABEL_PRP_OBJ, PERSON_THIRD) ->
+            SilWord(LEMMA_LOS),
+          SilPronounKey(LABEL_PRP_DATIVE, PERSON_THIRD) ->
             SilWord(LEMMA_LES),
           SilPronounKey(LABEL_PRP_REFLEXIVE, PERSON_THIRD) ->
             SilWord(LEMMA_SE),

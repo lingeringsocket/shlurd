@@ -112,6 +112,14 @@ class ZooCosmos(
     ZooSiberianGoat -> Trilean.True,
     ZooSloth -> Trilean.Unknown)
 
+  val carnivores : Set[SmcEntity] = Set(
+    ZooLion, ZooTiger, ZooPolarBear, ZooGrizzlyBear, ZooVisitor
+  )
+
+  val informers : Set[SmcEntity] = Set(
+    ZooKeeper
+  )
+
   val containment : Map[SmcEntity, ZooLocationEntity] =
     Map(
       ZooVisitor -> ZooFarm,
@@ -351,6 +359,7 @@ class ZooMind(cosmos : ZooCosmos, tongueIn : SprTongue = SnlUtils.defaultTongue)
   override def deriveGender(entity : SmcEntity) : SilGender =
   {
     entity match {
+      case ZooKeeper | ZooVisitor => GENDER_MASCULINE
       case zoo : ZooEntity => {
         val (headWord, modifiers) = splitNoun(zoo)
         tongue.deriveGender(SilWord(headWord))

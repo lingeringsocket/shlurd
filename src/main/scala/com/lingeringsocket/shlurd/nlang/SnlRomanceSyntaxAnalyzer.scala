@@ -145,6 +145,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
         z => detectDative(z._1))
       val iAdjs = unwrapped.zipWithIndex.filter(z => detectAdjective(z._1))
       val iAdps = unwrapped.zipWithIndex.filter(z => detectAdposition(z._1))
+
       // FIXME deal with presence of more than one question
       val queryOpt = unwrapped.find(_.isQueryPhrase)
       val questionOpt = queryOpt.flatMap(queryPhrase => {

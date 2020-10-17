@@ -138,7 +138,19 @@ trait SmcScope[
     p1 : SilPronounReference, p2 : SilPronounReference,
     samePhrase : Boolean) : Boolean =
   {
-    if (foldSpecialCases(p1) != foldSpecialCases(p2)) {
+    val (pA, pB) = {
+      // FIXME discriminate between GENDER_SOMEONE and GENDER_WILDCARD
+      if (((p1.gender == GENDER_SOMEONE) || (p2.gender == GENDER_SOMEONE)) &&
+        !((p1.gender == GENDER_SOMEWHERE) || (p2.gender == GENDER_SOMEWHERE)))
+      {
+        tupleN((
+          p1.copy(gender = GENDER_SOMEONE),
+          p2.copy(gender = GENDER_SOMEONE)))
+      } else {
+        tupleN((p1, p2))
+      }
+    }
+    if (foldSpecialCases(pA) != foldSpecialCases(pB)) {
       false
     } else {
       val reflexiveMatch = {

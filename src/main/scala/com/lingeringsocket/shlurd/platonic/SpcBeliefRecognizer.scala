@@ -102,6 +102,8 @@ object SpcBeliefRecognizer
         Some(LABEL_PRP)
       case Seq(SilWordLemma("objective"), SilWordLemma("pronoun")) =>
         Some(LABEL_PRP_OBJ)
+      case Seq(SilWordLemma("dative"), SilWordLemma("pronoun")) =>
+        Some(LABEL_PRP_DATIVE)
       case Seq(SilWordLemma("reflexive"), SilWordLemma("pronoun")) =>
         Some(LABEL_PRP_REFLEXIVE)
       case Seq(SilWordLemma("possessive"), SilWordLemma("pronoun")) =>

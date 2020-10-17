@@ -96,6 +96,7 @@ These are the English parts of speech you can specify when you define a word:
 * [pronoun](pronouns.md) (default nominative)
 * nominative pronoun
 * objective pronoun
+* dative pronoun
 * reflexive pronoun
 * possessive pronoun (FIXME:  discriminate her vs hers)
 * conjunction

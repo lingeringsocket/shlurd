@@ -156,7 +156,8 @@ class SprWordnetLabeler(
     label : String, foldEphemeralLabels : Boolean) : String =
   {
     if (foldEphemeralLabels &&
-      ((label == LABEL_PRP_OBJ) || (label == LABEL_PRP_REFLEXIVE))
+      ((label == LABEL_PRP_OBJ) || (label == LABEL_PRP_REFLEXIVE) ||
+        (label == LABEL_PRP_DATIVE))
     ) {
       LABEL_PRP
     } else {

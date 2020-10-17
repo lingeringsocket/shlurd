@@ -254,9 +254,8 @@ abstract class SprTongue(wordnet : SprWordnet)
       case PROXIMITY_REFLEXIVE => LABEL_PRP_REFLEXIVE
       case _ => {
         inflection match {
-          // FIXME for Spanish, should override to distinguish
-          // direct from indirect object
           case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LABEL_PRP_OBJ
+          case INFLECT_DATIVE => LABEL_PRP_DATIVE
           case INFLECT_GENITIVE => LABEL_PRP_POS
           case _ => LABEL_PRP
         }

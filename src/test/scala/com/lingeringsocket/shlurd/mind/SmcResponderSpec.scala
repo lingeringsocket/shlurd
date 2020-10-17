@@ -52,6 +52,10 @@ class SmcResponderSpec extends SmcResponderSpecification
       // FIXME: this one is kinda cute
       process("is bear asleep") must be equalTo(
         "Please be more specific about which bear you mean.")
+      process("what does the lion devour") must be equalTo(
+        "The lion devours <long list>.")
+      process("what devours the sloth") must be equalTo(
+        "<long list> devour the sloth.")
     }
 
     "handle CoreNLP excluded cases" in new EnglishResponderContext
@@ -345,6 +349,16 @@ class SmcResponderSpec extends SmcResponderSpecification
         "Yes, Muldoon is a person.")
       process("which animals are in the big cage") must be equalTo(
         "The lion and the tiger are in the big cage.")
+      process("does the lion devour the sloth") must be equalTo(
+        "Yes, the lion devours the sloth.")
+      process("does Malcolm devour the sloth") must be equalTo(
+        "Yes, Malcolm devours the sloth.")
+      process("does Muldoon devour the sloth") must be equalTo(
+        "No, Muldoon does not devour the sloth.")
+      process("does Malcolm inform the sloth") must be equalTo(
+        "No, Malcolm does not inform the sloth.")
+      process("does Muldoon inform the sloth") must be equalTo(
+        "Yes, Muldoon informs the sloth.")
     }
 
     "process statements" in new EnglishResponderContext
@@ -361,6 +375,8 @@ class SmcResponderSpec extends SmcResponderSpecification
       process("the tiger is awake") must be equalTo(
         "Right, the tiger is awake.")
       process("the lion or the polar bear is awake") must be equalTo(
+        "Oh, really?")
+      process("the sloth devours the lion") must be equalTo(
         "Oh, really?")
     }
 
@@ -536,6 +552,12 @@ class SmcResponderSpec extends SmcResponderSpecification
         "No, the tiger is not asleep.")
       process("is it awake") must be equalTo(
         "Yes, the tiger is awake.")
+      process("does Malcolm inform it") must be equalTo(
+        "No, Malcolm does not inform the tiger.")
+      process("does Muldoon inform it") must be equalTo(
+        "Yes, Muldoon informs the tiger.")
+      process("does the lion devour it") must be equalTo(
+        "Yes, the lion devours the tiger.")
     }
 
     "understand conversational plural pronoun references" in new
@@ -552,6 +574,12 @@ class SmcResponderSpec extends SmcResponderSpecification
       // split the pronoun reference somehow when evaluating it
       process("are they awake") must be equalTo(
         "No, the lion and the tiger are not awake.")
+      process("does Malcolm inform them") must be equalTo(
+        "No, Malcolm does not inform the lion and the tiger.")
+      process("does Muldoon inform them") must be equalTo(
+        "Yes, Muldoon informs the lion and the tiger.")
+      process("does the polar bear devour them") must be equalTo(
+        "Yes, the polar bear devours the lion and the tiger.")
     }
 
     "allow for unknown existence" in new

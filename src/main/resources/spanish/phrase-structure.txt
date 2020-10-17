@@ -116,9 +116,9 @@ VP ->
   // "mata (rapidamente) (el ladrón) (con un cuchillo)"
   (verbmod)* verbSimple (verbmod)* (nounPhrase) (verbmod)* |
   // "(rapidamente) (le) da (a la ladrona) un pepinillo (con sal)"
-  (verbmod)* (PRP) verbSimple (verbmod)* nounPhrase (verbmod)* |
+  (verbmod)* (PRP) verbSimple (verbmod)* (nounPhrase) (verbmod)* |
   // "(rapidamente) lo le da (a la ladrona) (con sal)"
-  (verbmod)* PRP PRP verbSimple (verbmod)* (verbmod)* |
+  (verbmod)* PRP PRP verbSimple (verbmod)* (nounPhrase) (verbmod)* |
   // "es (el sol) rojo" |
   (verbmod)* verbSimple (nounPhrase) ADJP (verbmod)* |
   // "es rojo el sol" |

@@ -21,6 +21,10 @@ import com.lingeringsocket.shlurd.ilang._
 import org.specs2.mutable._
 import org.specs2.specification._
 
+import spire.math._
+
+import scala.util._
+
 class SmcResponderSpecification extends Specification
 {
   type CosmosType = ZooCosmos
@@ -68,6 +72,48 @@ class SmcResponderSpecification extends Specification
                 SilPropertyState(SilWord("dormido"))
               }
             case _ => state
+          }
+        }
+
+        override protected def evaluateActionPredicate(
+          ap : SilActionPredicate,
+          resultCollector : ResultCollectorType) : Try[Trilean] =
+        {
+          if (Set("devour", "devorar").contains(ap.verb.toLemma)) {
+            ap.directObject match {
+              case Some(directObject) => {
+                resultCollector.lookup(ap.subject) match {
+                  case (
+                    Some(subjectEntities)
+                  ) => {
+                    // should be exists for disjunction, but this is just a test
+                    Success(Trilean(subjectEntities.forall(x =>
+                      mind.getCosmos.carnivores.contains(x))))
+                  }
+                  case _ => {
+                    Success(Trilean.Unknown)
+                  }
+                }
+
+              }
+              case _ => {
+                Success(Trilean.True)
+              }
+            }
+          } else if (Set("inform", "informar").contains(ap.verb.toLemma)) {
+            resultCollector.lookup(ap.subject) match {
+              case (
+                Some(subjectEntities)
+              ) => {
+                Success(Trilean(subjectEntities.forall(x =>
+                  mind.getCosmos.informers.contains(x))))
+              }
+              case _ => {
+                Success(Trilean.Unknown)
+              }
+            }
+          } else {
+            Success(Trilean.Unknown)
           }
         }
 

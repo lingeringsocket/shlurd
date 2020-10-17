@@ -347,6 +347,11 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Hay uno de ellos en la jaula pequeña.")
       process("cuáles animales están en la jaula grande?") must be equalTo(
         "El león y el tigre están en la jaula grande.")
+
+      process("el león devora el perezoso?") must be equalTo(
+        "Sí, el león devora el perezoso.")
+      process("Muldoon devora el perezoso?") must be equalTo(
+        "No, Muldoon no devora el perezoso.")
     }
 
     "understand inverted order" in new SpanishResponderContext
@@ -390,6 +395,12 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, el tigre no está dormido.")
       process("él está despierto?") must be equalTo(
         "Sí, el tigre está despierto.")
+      if (false) {
+        process("Malcolm le informa?") must be equalTo(
+          "No, Malcolm no le informa al tigre.")
+      }
+      process("el león lo devora?") must be equalTo(
+        "Sí, el león devora el tigre.")
 
       processExceptionExpected(
         "ella está dormida",
@@ -399,6 +410,12 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, la cabra siberiana está dormida.")
       process("ella está despierta?") must be equalTo(
         "No, la cabra siberiana no está despierta.")
+      if (false) {
+        process("Muldoon le informa?") must be equalTo(
+          "Sí, Muldoon le informa a la cabra siberiana.")
+      }
+      process("el león la devora?") must be equalTo(
+        "Sí, el león devora la cabra siberiana.")
     }
 
     "understand conversational plural pronoun references" in new
@@ -414,6 +431,12 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, el león y la cabra siberiana están dormidos.")
       process("ellos están dormidos?") must be equalTo(
         "Sí, el león y la cabra siberiana están dormidos.")
+      process("el tigre los devora?") must be equalTo(
+        "Sí, el tigre devora el león y la cabra siberiana.")
+      if (false) {
+        process("Malcolm les informa?") must be equalTo(
+          "No, Malcolm no les informa al león y la cabra siberiana.")
+      }
 
       processExceptionExpected(
         "ellas están dormidas",
@@ -425,6 +448,14 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("ellas están dormidas?") must be equalTo(
         "Sí, la cabra doméstica y la cabra siberiana y " +
           "la cabra niñera están dormidas.")
+      process("el tigre las devora?") must be equalTo(
+        "Sí, el tigre devora la cabra doméstica y la cabra siberiana y " +
+          "la cabra niñera.")
+      if (false) {
+        process("Muldoon les informa?") must be equalTo(
+          "Sí, Muldoon les informa a la cabra doméstica " +
+            "y la cabra siberiana y la cabra niñera.")
+      }
 
       process("ellos están dormidos?") must be equalTo(
         "Sí, el león y la cabra siberiana están dormidos.")

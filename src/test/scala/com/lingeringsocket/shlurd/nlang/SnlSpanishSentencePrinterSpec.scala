@@ -31,6 +31,7 @@ class SnlSpanishSentencePrinterSpec
       expectPreserved("el perro camina entre las calles!")
       expectPreserved("el perro camina entre las calles?")
       expectPreserved("el oso pardo está dormido?")
+      expectPreserved("el león lo devora?")
     }
 
     "normalize sentences" in

@@ -37,10 +37,10 @@ class SmcScopeSpec extends Specification
   private val noEntities = Set[SmcEntity]()
 
   private val unresolvedMsg =
-    "Sorry, when you say 'it' I don't know who or what you mean."
+    "Sorry, when you say 'he' I don't know who or what you mean."
 
   private val ambiguousMsg =
-    "Sorry, when you say 'it', it's ambiguous."
+    "Sorry, when you say 'he', it's ambiguous."
 
   private val sentencePrinter = SnlUtils.defaultSentencePrinter
 
@@ -60,7 +60,7 @@ class SmcScopeSpec extends Specification
       annotator.pronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR, mind)
 
     protected val thirdPersonRef =
-      annotator.pronounRef(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR, mind)
+      annotator.pronounRef(PERSON_THIRD, GENDER_SOMEONE, COUNT_SINGULAR, mind)
 
     protected val nigelRef = annotator.nounRef(SilWord("Nigel"))
 
