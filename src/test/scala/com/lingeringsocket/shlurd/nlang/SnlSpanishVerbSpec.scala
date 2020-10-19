@@ -161,7 +161,7 @@ class SnlSpanishVerbSpec extends Specification
     printer.print(sentence)
   }
 
-  private def pronounSeq() : Seq[SilPronounReference] =
+  private def pronounSeq : Seq[SilPronounReference] =
   {
     Seq(
       annotator.basicPronounRef(
@@ -185,7 +185,7 @@ class SnlSpanishVerbSpec extends Specification
     )
   }
 
-  private def moodSeq() : Seq[SilTam] =
+  private def moodSeq : Seq[SilTam] =
   {
     // SilTam.imperative is handled via a separate matrix
     Seq(
@@ -194,7 +194,7 @@ class SnlSpanishVerbSpec extends Specification
     )
   }
 
-  private def modalitySeq() : Seq[SilModality] =
+  private def modalitySeq : Seq[SilModality] =
   {
     Seq(
       MODAL_NEUTRAL,
@@ -202,7 +202,7 @@ class SnlSpanishVerbSpec extends Specification
     )
   }
 
-  private def tenseSeq() : Seq[SilTense] =
+  private def tenseSeq : Seq[SilTense] =
   {
     Seq(
       TENSE_PRESENT,
@@ -210,7 +210,7 @@ class SnlSpanishVerbSpec extends Specification
     )
   }
 
-  private def aspectSeq() : Seq[SilAspect] =
+  private def aspectSeq : Seq[SilAspect] =
   {
     Seq(
       ASPECT_SIMPLE,
@@ -218,7 +218,7 @@ class SnlSpanishVerbSpec extends Specification
     )
   }
 
-  private def polaritySeq() : Seq[SilPolarity] =
+  private def polaritySeq : Seq[SilPolarity] =
   {
     Seq(
       POLARITY_POSITIVE,
@@ -330,7 +330,7 @@ class SnlSpanishVerbSpec extends Specification
     rhs : Option[SilPhrase], lemma : String,
     tam : SilTam, inflection : SilInflection = INFLECT_NONE) : Boolean =
   {
-    if (!tam.isValid()) {
+    if (!tam.isValid) {
       false
     } else {
       (!isRelationship(lemma, inflection) || !rhs.isEmpty) &&

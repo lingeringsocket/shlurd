@@ -14,10 +14,10 @@ scalacOptions := Common.scalacOptions
 
 maxErrors := Common.maxErrors
 
-traceLevel := Common.traceLevel
+traceLevel.withRank(KeyRanks.Invisible) := Common.traceLevel
 
 resolvers ++= Common.resolvers
 
 libraryDependencies ++= Seq(
-  "org.scalameta" %% "mdoc" % "1.3.1",
+  "org.scalameta" %% "mdoc" % "2.2.10"
 )

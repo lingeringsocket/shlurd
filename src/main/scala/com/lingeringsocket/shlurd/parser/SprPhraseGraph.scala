@@ -15,7 +15,7 @@
 package com.lingeringsocket.shlurd.parser
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import org.jgrapht.graph._
 import org.jgrapht.io._
@@ -24,6 +24,31 @@ import java.io._
 
 object SprPhraseGraph
 {
+  private final case class TreeKey(tree : SprSyntaxTree)
+  {
+    override def equals(o : Any) : Boolean =
+    {
+      o match {
+        case TreeKey(other) => {
+          (tree eq other) ||
+          ((tree == other) && !tree.isLeaf && !tree.isPreTerminal)
+        }
+        case _ => {
+          false
+        }
+      }
+    }
+
+    override def hashCode(): Int =
+    {
+      if (tree.isLeaf || tree.isPreTerminal) {
+        System.identityHashCode(tree)
+      } else {
+        tree.hashCode
+      }
+    }
+  }
+
   class SprPhraseVertex(val tree : SprSyntaxTree)
   {
   }
@@ -44,35 +69,18 @@ class SprPhraseGraph
 {
   import SprPhraseGraph._
 
-  private val map = new mutable.HashMap[SprSyntaxTree, SprPhraseVertex] {
-    override protected def elemEquals(
-      key1 : SprSyntaxTree, key2 : SprSyntaxTree) : Boolean =
-    {
-      (key1 eq key2) ||
-        ((key1 == key2) && !key1.isLeaf && !key1.isPreTerminal)
-    }
-
-    override protected def elemHashCode(
-      key : SprSyntaxTree) =
-    {
-      if (key.isLeaf || key.isPreTerminal) {
-        System.identityHashCode(key)
-      } else {
-        key.hashCode
-      }
-    }
-  }
+  private val map = new mutable.HashMap[TreeKey, SprPhraseVertex]
 
   def vertexFor(tree : SprSyntaxTree) : SprPhraseVertex =
   {
-    map.getOrElseUpdate(tree, {
+    map.getOrElseUpdate(TreeKey(tree), {
       val vertex = new SprPhraseVertex(tree)
       addVertex(vertex)
       vertex
     })
   }
 
-  def addPhrase(tree : SprSyntaxTree)
+  def addPhrase(tree : SprSyntaxTree) : Unit =
   {
     val newVertex = vertexFor(tree)
     tree.children.foreach(term => {

@@ -17,7 +17,7 @@ package com.lingeringsocket.shlurd.jgrapht
 import org.jgrapht._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class GraphPathStreamer[V, E](graph : Graph[V, E], start : V)
 {
@@ -73,7 +73,7 @@ class GraphPathStreamer[V, E](graph : Graph[V, E], start : V)
     }
   }
 
-  private def pathEdgeStream(index : PathAddress, pos : Int) : Stream[E] =
+  private def pathEdgeStream(index : PathAddress, pos : Int) : LazyList[E] =
   {
     val nextPos = pos + 1
     if (nextPos < index.size) {
@@ -87,13 +87,13 @@ class GraphPathStreamer[V, E](graph : Graph[V, E], start : V)
           pathEdgeStream(expanded, pos)
         }
         case _ => {
-          Stream.empty
+          LazyList.empty
         }
       }
     }
   }
 
-  private def nextStream() : Option[Stream[E]] =
+  private def nextStream : Option[LazyList[E]] =
   {
     nextPath match {
       case Some(path) => {
@@ -104,7 +104,7 @@ class GraphPathStreamer[V, E](graph : Graph[V, E], start : V)
           }
           case _ => {
             nextPath = incrementPath(path)
-            nextStream()
+            nextStream
           }
         }
       }
@@ -114,13 +114,13 @@ class GraphPathStreamer[V, E](graph : Graph[V, E], start : V)
     }
   }
 
-  def pathStream() : Stream[Stream[E]] =
+  def pathStream : LazyList[LazyList[E]] =
   {
-    nextStream() match {
+    nextStream match {
       case Some(stream) => {
         stream #:: pathStream
       }
-      case _ => Stream.empty
+      case _ => LazyList.empty
     }
   }
 }

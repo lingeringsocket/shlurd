@@ -22,7 +22,7 @@ import com.lingeringsocket.shlurd.parser._
 import net.sf.extjwnl.data._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import java.util.regex._
 
@@ -82,18 +82,18 @@ class SpcWordnetOntology(wordnet : SprWordnet, cosmos : SpcCosmos)
 {
   import SpcWordnetOntology._
 
-  def loadAll()
+  def loadAll() : Unit =
   {
-    loadAllForms
-    loadAllTaxonomy
+    loadAllForms()
+    loadAllTaxonomy()
     // not clear that these are terribly useful
     if (false) {
-      loadAllAssociations
+      loadAllAssociations()
     }
-    loadBasicGenders
+    loadBasicGenders()
   }
 
-  def loadAllForms()
+  def loadAllForms() : Unit =
   {
     wordnet.allNounSenses.foreach(loadForm)
   }
@@ -115,17 +115,17 @@ class SpcWordnetOntology(wordnet : SprWordnet, cosmos : SpcCosmos)
     }
   }
 
-  def loadAllTaxonomy()
+  def loadAllTaxonomy() : Unit =
   {
     wordnet.allNounSenses.foreach(loadDirectHypernyms(_, true))
   }
 
-  def loadAllAssociations()
+  def loadAllAssociations() : Unit =
   {
     wordnet.allNounSenses.foreach(loadMeronyms)
   }
 
-  def loadGender(biological : String, grammatical : String)
+  def loadGender(biological : String, grammatical : String) : Unit =
   {
     val grammaticalForm =
       wordnet.getNounSenses(grammatical).flatMap(loadForm).head
@@ -150,7 +150,7 @@ class SpcWordnetOntology(wordnet : SprWordnet, cosmos : SpcCosmos)
     )
   }
 
-  def loadBasicGenders()
+  def loadBasicGenders() : Unit =
   {
     loadGender("female", "feminine")
     loadGender("male", "masculine")
@@ -250,7 +250,7 @@ class SpcWordnetOntology(wordnet : SprWordnet, cosmos : SpcCosmos)
 
   def getSynsetForm(synset : Synset) : Option[SpcForm] =
   {
-    synset.getWords.asScala.toStream.map(getFormName).
+    synset.getWords.asScala.to(LazyList).map(getFormName).
       flatMap(cosmos.resolveForm).headOption
   }
 

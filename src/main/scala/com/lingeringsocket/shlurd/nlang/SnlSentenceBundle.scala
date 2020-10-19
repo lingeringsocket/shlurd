@@ -20,6 +20,7 @@ import com.lingeringsocket.shlurd.parser._
 
 import com.ibm.icu.text._
 
+import scala.collection._
 import scala.util._
 
 abstract class SnlSentenceBundle(
@@ -41,7 +42,7 @@ abstract class SnlSentenceBundle(
     if (state.isEmpty) {
       if (existentialPronoun.nonEmpty) {
         // "there is ..."
-        compose((verbSeq ++ Seq(subject) ++ modifiers):_*)
+        compose((verbSeq ++ Seq(subject) ++ modifiers).toSeq:_*)
       } else {
         // "... exists"
         composePredicateStatement(subject, verbSeq, Seq.empty, modifiers)
@@ -110,7 +111,7 @@ abstract class SnlSentenceBundle(
       case OBJ_AFTER_VERB => verbSeq ++ dative ++ complement
       case OBJ_BEFORE_VERB => dative ++ complement ++ verbSeq
     }
-    compose((Seq(subject) ++ middle ++ modifiers):_*)
+    compose((Seq(subject) ++ middle ++ modifiers).toSeq:_*)
   }
 
   // FIXME need to factor out some English-specifics
@@ -143,7 +144,7 @@ abstract class SnlSentenceBundle(
       if (!question.isEmpty) {
         if (existentialPronoun.nonEmpty) {
           compose((Seq(subject) ++ verbSeq.take(2).reverse ++
-            verbSeq.drop(2) ++ Seq(state) ++ modifiers):_*)
+            verbSeq.drop(2) ++ Seq(state) ++ modifiers).toSeq:_*)
         } else {
           if (answerInflection == INFLECT_NOMINATIVE) {
             composePredicateStatement(subject, verbSeq, Seq(state), modifiers)
@@ -154,7 +155,7 @@ abstract class SnlSentenceBundle(
       } else if (state.isEmpty) {
         if (existentialPronoun.nonEmpty) {
           compose((verbSeq.take(2).reverse ++ verbSeq.drop(2) ++
-            Seq(subject) ++ modifiers):_*)
+            Seq(subject) ++ modifiers).toSeq:_*)
         } else {
           actionPredicate(
             subject, verbSeq, None, Seq.empty, modifiers,
@@ -204,22 +205,22 @@ abstract class SnlSentenceBundle(
   {
     val middle = dative ++ complement
     if (complement.isEmpty) {
-      compose((Seq(subject) ++ verbSeq ++ middle ++ modifiers):_*)
+      compose((Seq(subject) ++ verbSeq ++ middle ++ modifiers).toSeq:_*)
     } else {
       assert(objectPosition == OBJ_AFTER_VERB)
       val (headSeq, tailSeq) = verbSeq.splitAt(1)
       verbSeq.size match {
         // "is Larry clumsy?"
         case 1 =>
-          compose((headSeq ++ Seq(subject) ++ middle ++ modifiers):_*)
+          compose((headSeq ++ Seq(subject) ++ middle ++ modifiers).toSeq:_*)
         // "is Larry not clumsy?" or "must Larry be clumsy?"
         case 2 =>
           compose((headSeq ++ Seq(subject) ++ tailSeq ++
-            middle ++ modifiers):_*)
+            middle ++ modifiers).toSeq:_*)
         // "must Larry not be clumsy?"
         case _ =>
           compose((headSeq ++ Seq(subject) ++ tailSeq ++
-            middle ++ modifiers):_*)
+            middle ++ modifiers).toSeq:_*)
       }
     }
   }
@@ -227,7 +228,7 @@ abstract class SnlSentenceBundle(
   override def statePredicateCommand(subject : String, state : String,
     modifiers : Seq[String]) =
   {
-    compose((Seq(state) ++ Seq(subject) ++ modifiers):_*)
+    compose((Seq(state) ++ Seq(subject) ++ modifiers).toSeq:_*)
   }
 
   override def adpositionString(adposition : SilAdposition) =
@@ -241,7 +242,7 @@ abstract class SnlSentenceBundle(
     delemmatizeWord(verb)
   }
 
-  override def existsVerb() : SilWord =
+  override def existsVerb : SilWord =
   {
     SprPredefWord(PD_EXIST).toUninflected
   }
@@ -342,7 +343,7 @@ abstract class SnlSentenceBundle(
         }
       }
     }
-    compose((Seq(prefix) ++ seq ++ items.lastOption.toSeq):_*)
+    compose((Seq(prefix) ++ seq ++ items.lastOption.toSeq).toSeq:_*)
   }
 
   override def conditional(
@@ -365,7 +366,7 @@ abstract class SnlSentenceBundle(
 
   override def composeQualifiers(qualifiers : Seq[SilWord]) =
   {
-    compose(qualifiers.map(delemmatizeQualifier) :_*)
+    compose(qualifiers.map(delemmatizeQualifier).toSeq:_*)
   }
 
   override def query(noun : String, question : Option[SilQuestion],
@@ -458,37 +459,37 @@ abstract class SnlSentenceBundle(
   }
 
   // FIXME these need to be translated
-  override def unknownSentence() =
+  override def unknownSentence =
   {
     "blah blah blah"
   }
 
-  override def unknownReference() =
+  override def unknownReference =
   {
     "something or other"
   }
 
-  override def unknownState() =
+  override def unknownState =
   {
     "discombobulated"
   }
 
-  override def unknownVerbModifier() =
+  override def unknownVerbModifier =
   {
     "mimsily"
   }
 
-  override def unknownPredicateStatement() =
+  override def unknownPredicateStatement =
   {
     "foo is bar"
   }
 
-  override def unknownPredicateCommand() =
+  override def unknownPredicateCommand =
   {
     "make it so"
   }
 
-  override def unknownPredicateQuestion() =
+  override def unknownPredicateQuestion =
   {
     "is it what now"
   }
@@ -548,7 +549,7 @@ abstract class SnlSentenceBundle(
   {
     compose("Sorry, when you say",
       concat("'",
-        compose((qualifiers :+ noun.toUnfoldedLemma):_*),
+        compose((qualifiers :+ noun.toUnfoldedLemma).toSeq:_*),
         "',"),
       "I don't know which you mean.")
   }
@@ -559,12 +560,12 @@ abstract class SnlSentenceBundle(
       concat(noun.toUnfoldedLemma, "."))
   }
 
-  override def respondCannotUnderstand() =
+  override def respondCannotUnderstand =
   {
     "Sorry, I cannot understand what you said."
   }
 
-  override def respondDontKnow() =
+  override def respondDontKnow =
   {
     "I don't know."
   }
@@ -598,12 +599,12 @@ abstract class SnlSentenceBundle(
     compose("One does not simply", concat(action, "."))
   }
 
-  override def respondIrrelevant() =
+  override def respondIrrelevant =
   {
     "I'm not sure how to interpret that."
   }
 
-  override def respondTriggerLimit() =
+  override def respondTriggerLimit =
   {
     "Trigger limit exceeded."
   }
@@ -681,12 +682,12 @@ abstract class SnlSentenceBundle(
     }
   }
 
-  override def respondCompliance() =
+  override def respondCompliance =
   {
     "OK."
   }
 
-  override def respondNoncommittal() =
+  override def respondNoncommittal =
   {
     "Oh, really?"
   }

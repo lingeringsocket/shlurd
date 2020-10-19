@@ -164,7 +164,7 @@ class SpcProcessingSpecification extends Specification
       }
     }
 
-    protected def loadBeliefs(resource : String)
+    protected def loadBeliefs(resource : String) : Unit =
     {
       val file = ResourceUtils.getResourceFile(resource)
       val source = Source.fromFile(file)

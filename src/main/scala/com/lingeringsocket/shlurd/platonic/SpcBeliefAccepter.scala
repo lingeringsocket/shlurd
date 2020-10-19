@@ -19,7 +19,7 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util._
 
 import org.jgrapht.alg.shortestpath._
@@ -73,7 +73,7 @@ class SpcBeliefAccepter private(
 
   private implicit val tongue = mind.getTongue
 
-  def processBelief(sentence : SilSentence)
+  def processBelief(sentence : SilSentence) : Unit =
   {
     assert(!finished)
     finished = true
@@ -89,7 +89,7 @@ class SpcBeliefAccepter private(
     }
   }
 
-  def applyBelief(belief : SpcBelief)
+  def applyBelief(belief : SpcBelief) : Unit =
   {
     if (params.acceptance == ACCEPT_NO_BELIEFS) {
       throw new ProhibitedBeliefExcn(
@@ -187,14 +187,14 @@ class SpcBeliefAccepter private(
     }
   }
 
-  def allowUpdates() : Boolean =
+  def allowUpdates : Boolean =
     (params.acceptance == ACCEPT_MODIFIED_BELIEFS)
 
   private def validateEdgeCardinality(
     sentence : SilSentence,
     formAssocEdge : SpcFormAssocEdge,
     possessor : SpcEntity,
-    possessee : SpcEntity)
+    possessee : SpcEntity) : Unit =
   {
     if (cosmos.isBulkLoad) {
       return
@@ -233,7 +233,7 @@ class SpcBeliefAccepter private(
   }
 
   private def transmogrify(
-    sentence : SilSentence, entity : SpcEntity, newForm : SpcForm)
+    sentence : SilSentence, entity : SpcEntity, newForm : SpcForm) : Unit =
   {
     // we are changing the form of an existing entity
     val oldForm = entity.form
@@ -283,7 +283,7 @@ class SpcBeliefAccepter private(
   private def addIdealTaxonomy(
     sentence : SilSentence,
     hyponymIdeal : SpcIdeal,
-    hypernymIdeal : SpcIdeal)
+    hypernymIdeal : SpcIdeal) : Unit =
   {
     if (hyponymIdeal == hypernymIdeal) {
       return
@@ -306,7 +306,7 @@ class SpcBeliefAccepter private(
   private def removeEntityAssocEdges(
     possessor : SpcEntity,
     formAssocEdge : SpcFormAssocEdge,
-    edges : Seq[SpcEntityAssocEdge])
+    edges : Seq[SpcEntityAssocEdge]) : Unit =
   {
     val entityAssocGraph = cosmos.getEntityAssocGraph
     cosmos.getInverseAssocEdge(formAssocEdge) matchPartial {
@@ -476,7 +476,7 @@ class SpcBeliefAccepter private(
 
   }
 
-  private def beliefApplier(applier : BeliefApplier)
+  private def beliefApplier(applier : BeliefApplier) : Unit =
   {
     beliefAppliers += applier
   }
@@ -492,7 +492,7 @@ class SpcBeliefAccepter private(
   }
 
   beliefApplier {
-    case InvalidBelief(
+    case NonvalidBelief(
       sentence,
       exceptionCode
     ) => {

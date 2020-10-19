@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd._
 
+import scala.collection._
+
 object SilSentencePrinter
 {
   private val ELLIPSIS_MARKER = "<...>"
@@ -30,7 +32,7 @@ class SilSentencePrinter(
 {
   def getTongue = tongue
 
-  val sb = tongue.newSentenceBundle()
+  val sb = tongue.newSentenceBundle
 
   def print(
     sentence : SilSentence, ellipsis : Boolean = false) : String =
@@ -48,7 +50,7 @@ class SilSentencePrinter(
         tam.mood match {
           case MOOD_INDICATIVE | MOOD_SUBJUNCTIVE =>  {
             printPredicateStatement(predicate, tam, ellipsis).
-              replaceAllLiterally(ELLIPSIS_REMOVAL, "")
+              replace(ELLIPSIS_REMOVAL, "")
           }
           case MOOD_INTERROGATIVE => {
             printPredicateQuestion(predicate, tam)

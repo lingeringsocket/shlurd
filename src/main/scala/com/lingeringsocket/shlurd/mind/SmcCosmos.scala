@@ -72,12 +72,12 @@ trait SmcCosmos[EntityType<:SmcEntity, PropertyType<:SmcProperty]
 
   def encodeName(lemma : String) : String =
   {
-    lemma.replaceAllLiterally(" ", "_")
+    lemma.replace(" ", "_")
   }
 
   def decodeName(name : String) : String =
   {
-    name.replaceAllLiterally("_", " ")
+    name.replace("_", " ")
   }
 
   def encodeName(word : SilWord) : String =

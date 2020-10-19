@@ -194,7 +194,7 @@ class SmcResponder[
 
   protected def responderMatchers(
     resultCollector : ResultCollectorType
-  ) = Stream(
+  ) = LazyList(
     processPredicateQuery(resultCollector),
     processPredicateSentence(resultCollector),
     processUnsupportedSentence(resultCollector)
@@ -202,7 +202,7 @@ class SmcResponder[
 
   def getMind = mind
 
-  def newAnnotator() : AnnotatorType =
+  def newAnnotator : AnnotatorType =
   {
     SmcAnnotator[EntityType]()
   }
@@ -347,7 +347,7 @@ class SmcResponder[
     interval : SmcTimeInterval,
     updatedCosmos : CosmosType,
     predicate : SilPredicate,
-    resultCollector : ResultCollectorType)
+    resultCollector : ResultCollectorType) : Unit =
   {
     // FIXME deal with tense/aspect/mood
     if (mind.hasNarrative) {
@@ -409,7 +409,8 @@ class SmcResponder[
   private def sentenceResponder(f : PartialSentenceResponder)
       : SentenceResponder = f.lift
 
-  protected def rememberSentenceAnalysis(resultCollector : ResultCollectorType)
+  protected def rememberSentenceAnalysis(
+    resultCollector : ResultCollectorType) : Unit =
   {
     if (generalParams.rememberConversation) {
       mind.rememberSentenceAnalysis(resultCollector.refMap)
@@ -1005,7 +1006,9 @@ class SmcResponder[
           SmcPhraseQuerier.containsWildcard(phrase)
         }
         val bindings = new mutable.ArrayBuffer[(SilReference, SilReference)]
-        def bindVariable(queryRef : SilReference, eventRef : SilReference) {
+        def bindVariable(
+          queryRef : SilReference, eventRef : SilReference) : Unit =
+        {
           bindings += ((queryRef, eventRef))
         }
         def subjectMatch = {

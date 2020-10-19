@@ -32,18 +32,18 @@ case class SprParseResult(
 
 trait SprParser
 {
-  def parseOne() : SprParseResult
+  def parseOne : SprParseResult
 
-  def parseFirst() : SprParseResult
+  def parseFirst : SprParseResult
 
-  def parseAll() : Stream[SprParseResult]
+  def parseAll : LazyList[SprParseResult]
 }
 
 class SprFallbackParser(
   parsers : Seq[() => SprParser])
     extends SprParser
 {
-  override def parseOne() : SprParseResult =
+  override def parseOne : SprParseResult =
   {
     var best : Option[SprParseResult] = None
     var bestCount = Int.MaxValue
@@ -64,9 +64,9 @@ class SprFallbackParser(
     best.get
   }
 
-  override def parseFirst() = parseOne
+  override def parseFirst = parseOne
 
-  override def parseAll() = Stream(parseOne())
+  override def parseAll = LazyList(parseOne)
 }
 
 class SprSingleParser(
@@ -99,12 +99,12 @@ class SprSingleParser(
     }
   }
 
-  override def parseOne() = SprParseResult(
+  override def parseOne = SprParseResult(
     parseRoot(tree), context.annotator)
 
-  override def parseFirst() = parseOne
+  override def parseFirst = parseOne
 
-  override def parseAll() = Stream(parseOne)
+  override def parseAll = LazyList(parseOne)
 }
 
 class SprSingleHeuristicParser(
@@ -112,7 +112,7 @@ class SprSingleHeuristicParser(
   tree : SprSyntaxTree, terminator : Option[String]
 ) extends SprSingleParser(context, tree, false)
 {
-  override def parseOne() =
+  override def parseOne =
   {
     val sentence = super.parseOne.sentence
     val (addInterrogative, addExclamation) = {
@@ -152,7 +152,7 @@ class SprAmbiguityParser(
   singles : Seq[SprParser])
     extends SprParser
 {
-  override def parseOne() =
+  override def parseOne =
   {
     val alternatives = singles.map(_.parseOne)
     val ambiguous = SilAmbiguousSentence(alternatives.map(_.sentence))
@@ -162,9 +162,9 @@ class SprAmbiguityParser(
       context.annotator)
   }
 
-  override def parseFirst() = parseOne
+  override def parseFirst = parseOne
 
-  override def parseAll() = Stream(parseOne)
+  override def parseAll = LazyList(parseOne)
 }
 
 class SprDelimitedParser(
@@ -174,7 +174,7 @@ class SprDelimitedParser(
   separator : SilSeparator)
     extends SprParser
 {
-  override def parseOne() =
+  override def parseOne =
   {
     val sentences = singles.map(_.parseOne).map(_.sentence)
     SprParseResult(
@@ -185,23 +185,23 @@ class SprDelimitedParser(
       context.annotator)
   }
 
-  override def parseFirst() = parseOne
+  override def parseFirst = parseOne
 
-  override def parseAll() = Stream(parseOne)
+  override def parseAll = LazyList(parseOne)
 }
 
-class SprMultipleParser(singles : Stream[(SprParser, Int, Int)])
+class SprMultipleParser(singles : LazyList[(SprParser, Int, Int)])
     extends SprParser
 {
-  override def parseOne() : SprParseResult =
+  override def parseOne : SprParseResult =
   {
     assert(singles.size == 1)
     parseFirst
   }
 
-  override def parseFirst() = singles.head._1.parseOne
+  override def parseFirst = singles.head._1.parseOne
 
-  override def parseAll() = {
+  override def parseAll = {
     singles.map(single => {
       val singleResult = single._1.parseOne
       SprParseResult(
@@ -268,14 +268,14 @@ object SprParser extends SprSynthesizer
     trimmed.isEmpty || trimmed.startsWith("//")
   }
 
-  def setStrategy(newStrategy : SprParsingStrategy)
+  def setStrategy(newStrategy : SprParsingStrategy) : Unit =
   {
     strategy = newStrategy
   }
 
   def isCoreNLP : Boolean = strategy.isCoreNLP
 
-  def enableCache(file : Option[File] = None)
+  def enableCache(file : Option[File] = None) : Unit =
   {
     this.synchronized {
       if (cache.isEmpty) {
@@ -287,13 +287,13 @@ object SprParser extends SprSynthesizer
     }
   }
 
-  def lockCache() : Map[CacheKey, CacheValue] =
+  def lockCache : Map[CacheKey, CacheValue] =
   {
     cacheOnly = true
     cache.get
   }
 
-  def getCache() : Map[CacheKey, CacheValue] =
+  def getCache : Map[CacheKey, CacheValue] =
   {
     cache.get
   }
@@ -303,7 +303,7 @@ object SprParser extends SprSynthesizer
     SerializationUtils.deserialize[mutable.Map[CacheKey, CacheValue]](file)
   }
 
-  def saveCache()
+  def saveCache() : Unit =
   {
     this.synchronized {
       if (cacheDirty) {
@@ -433,9 +433,9 @@ object SprParser extends SprSynthesizer
       }
       val analysis = synthesizer.analyzeWords
       if (dump) {
-        println
+        println()
         println("LEXICAL ANALYSIS")
-        println
+        println()
         words.zip(analysis).foreach {
           case (word, preTerminals) => {
             print(s"WORD:  " + word)
@@ -444,8 +444,8 @@ object SprParser extends SprSynthesizer
               print(" -> ")
               print(pt.firstChild.lemma)
             })
-            println
-            println
+            println()
+            println()
           }
         }
       }
@@ -473,7 +473,7 @@ object SprParser extends SprSynthesizer
         SptAMBIGUOUS(treeSet.toSeq:_*)
       }
     }
-    def heuristicParse() : SprSyntaxTree =
+    def heuristicParse : SprSyntaxTree =
     {
       val splitters = unterminatedWords.indices.filter(
         i => unterminatedWords(i) == ";")
@@ -581,10 +581,10 @@ object SprParser extends SprSynthesizer
       if (sentence.tokens.nonEmpty) {
         prepareOne(context, sentence)
       } else {
-        new SprMultipleParser(Stream.empty)
+        new SprMultipleParser(LazyList.empty)
       }
     } else {
-      new SprMultipleParser(sentences.toStream.map(tokenizedSentence => {
+      new SprMultipleParser(sentences.to(LazyList).map(tokenizedSentence => {
         val start = tokenizedSentence.tokens.head.start
         val end = tokenizedSentence.tokens.last.end
         tupleN((prepareOne(context, tokenizedSentence), start, end))

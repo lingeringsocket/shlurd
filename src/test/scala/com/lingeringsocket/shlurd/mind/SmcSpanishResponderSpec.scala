@@ -385,7 +385,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
     "understand conversational singular pronoun references" in new
       SpanishResponderContext
     {
-      mind.startConversation
+      mind.startConversation()
 
       processExceptionExpected(
         "él está dormido",
@@ -421,7 +421,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
     "understand conversational plural pronoun references" in new
       SpanishResponderContext
     {
-      mind.startConversation
+      mind.startConversation()
 
       processExceptionExpected(
         "ellos están dormidos",

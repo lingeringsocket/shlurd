@@ -32,7 +32,7 @@ object ShlurdCliApp extends App
   val terminal = new ShlurdCliTerminal
   val mind = loadOrCreate(file, terminal)
   val shell = new ShlurdCliShell(mind, terminal)
-  shell.run
+  shell.run()
   serializer.saveMind(mind, file)
 
   private def loadOrCreate(
@@ -53,28 +53,28 @@ object ShlurdCliApp extends App
 
 class ShlurdCliTerminal
 {
-  def emitPrompt()
+  def emitPrompt() : Unit =
   {
     print("> ")
   }
 
-  def emitControl(msg : String)
+  def emitControl(msg : String) : Unit =
   {
     if (msg.isEmpty) {
-      println
+      println()
     } else {
       emitResponse(msg)
     }
   }
 
-  def emitResponse(msg : String)
+  def emitResponse(msg : String) : Unit =
   {
     println(s"[SHLURD] $msg")
   }
 
-  def readCommand() : Option[String] =
+  def readCommand : Option[String] =
   {
-    Option(StdIn.readLine)
+    Option(StdIn.readLine())
   }
 }
 
@@ -121,13 +121,13 @@ class ShlurdCliShell(
     )
   )
 
-  def run()
+  def run() : Unit =
   {
-    mind.startConversation
+    mind.startConversation()
     var exit = false
     terminal.emitControl("")
     while (!exit) {
-      terminal.emitPrompt
+      terminal.emitPrompt()
       terminal.readCommand match {
         case Some(input) => {
           val parseResults = mind.newParser(input).parseAll
@@ -147,6 +147,6 @@ class ShlurdCliShell(
     terminal.emitControl("Shutting down...")
     // don't serialize conversation since that could be an extra source of
     // deserialization problems later
-    mind.stopConversation
+    mind.stopConversation()
   }
 }

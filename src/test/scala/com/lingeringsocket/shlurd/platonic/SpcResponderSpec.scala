@@ -32,7 +32,7 @@ class SpcResponderSpec extends SpcResponseSpecification
       loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/people.txt")
 
-      mind.startConversation
+      mind.startConversation()
       processExceptionExpected(
         "is she a dog",
         "Sorry, when you say 'she' I don't know who or what you mean.",
@@ -56,9 +56,9 @@ class SpcResponderSpec extends SpcResponseSpecification
       processBelief("Camille is a woman")
       processBelief("Auguste is a man")
       processBelief("She is his lover")
-      mind.stopConversation
+      mind.stopConversation()
 
-      mind.startConversation
+      mind.startConversation()
       processBelief("Auguste's muse is his lover")
       processTerse("who is his muse", "Camille.")
     }
@@ -70,7 +70,7 @@ class SpcResponderSpec extends SpcResponseSpecification
       loadBeliefs("/ontologies/person.txt")
       loadBeliefs("/ontologies/location.txt")
 
-      mind.startConversation
+      mind.startConversation()
       processTerse("Where is Janet", "Christine.")
       processTerse("is Chrissy there", "Yes.")
     }
@@ -179,7 +179,7 @@ class SpcResponderSpec extends SpcResponseSpecification
         "where was the key before the pocket",
         "No narrative in progress.",
         ShlurdExceptionCode.NotYetImplemented)
-      mind.startNarrative
+      mind.startNarrative()
       processBelief("the key was in the pocket")
       processTerse("where is the key", "The pocket.")
       processBelief("after that the key moved to the purse")
@@ -213,7 +213,7 @@ class SpcResponderSpec extends SpcResponseSpecification
       processBelief("the purse is an object")
       processBelief("the shoe is an object")
       processBelief("the card is an object")
-      mind.startNarrative
+      mind.startNarrative()
       processBelief("the key was in the pocket this afternoon")
       processBelief("this morning, the card was in the purse")
       processBelief("yesterday, the card was in the shoe")
@@ -360,7 +360,7 @@ class SpcResponderSpec extends SpcResponseSpecification
       processBelief("Ike is Mike's fan")
       processBelief("If a person likes another person, " +
         "equivalently the former is the latter's fan")
-      mind.startConversation
+      mind.startConversation()
       process("does Mike like himself", "No, he does not like himself.")
       // FIXME need a rule for introducing reflexive here
       if (false) {

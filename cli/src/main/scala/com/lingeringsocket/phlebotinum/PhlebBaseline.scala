@@ -26,7 +26,7 @@ object PhlebBaseline
 {
   private var frozen : Option[SpcCosmos] = None
 
-  def frozenCosmos() : SpcCosmos =
+  def frozenCosmos : SpcCosmos =
   {
     this.synchronized {
       frozen.getOrElse {
@@ -37,7 +37,7 @@ object PhlebBaseline
             serializer.loadCosmos(file)
           } else {
             val newCosmos = new SpcCosmos(SpcGraph("phlebotinum-baseline"))
-            newCosmos.getPool.enableBulkLoad
+            newCosmos.getPool.enableBulkLoad()
             newCosmos.copyFrom(ShlurdPrincetonPrimordial.frozenCosmos)
 
             val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
@@ -63,7 +63,7 @@ object PhlebBaseline
     }
   }
 
-  def newMutableCosmos() : SpcCosmos =
+  def newMutableCosmos : SpcCosmos =
   {
     val frozen = frozenCosmos
     frozen.fork(true)

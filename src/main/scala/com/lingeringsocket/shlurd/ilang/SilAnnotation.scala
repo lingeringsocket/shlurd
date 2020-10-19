@@ -23,39 +23,39 @@ import java.util.concurrent.atomic._
 abstract class SilAbstractRefNote(
   val ref : SilAnnotatedReference
 ) {
-  def getCount() : SilCount
+  def getCount : SilCount
 
-  def setCount(count : SilCount)
+  def setCount(count : SilCount) : Unit
 
-  def hasCount() : Boolean
+  def hasCount : Boolean
 
-  def maybeGender() : Option[SilGender]
+  def maybeGender : Option[SilGender]
 
-  def setGender(gender : SilGender)
+  def setGender(gender : SilGender) : Unit
 
-  def hasGender() : Boolean
+  def hasGender : Boolean
 
-  def getWord() : Option[SilWord]
+  def getWord : Option[SilWord]
 
-  def setWord(word : SilWord)
+  def setWord(word : SilWord) : Unit
 
-  def clearWord()
+  def clearWord() : Unit
 
-  def getPronounMap() : SilPronounMap
+  def getPronounMap : SilPronounMap
 
-  def setPronounMap(pronounMap : SilPronounMap)
+  def setPronounMap(pronounMap : SilPronounMap) : Unit
 
-  def getContext() : Option[SilReferenceContext]
+  def getContext : Option[SilReferenceContext]
 
-  def setContext(context : SilReferenceContext)
+  def setContext(context : SilReferenceContext) : Unit
 
-  def getPredicate() : Option[SilPredicate]
+  def getPredicate : Option[SilPredicate]
 
-  def setPredicate(predicate : SilPredicate)
+  def setPredicate(predicate : SilPredicate) : Unit
 
-  def getRef() : SilReference = ref
+  def getRef : SilReference = ref
 
-  def mergeFrom(oldNote : SilAbstractRefNote)
+  def mergeFrom(oldNote : SilAbstractRefNote) : Unit
 }
 
 class SilBasicRefNote(
@@ -74,12 +74,12 @@ class SilBasicRefNote(
 
   private var predicate : Option[SilPredicate] = None
 
-  override def hasCount() : Boolean =
+  override def hasCount : Boolean =
   {
     count.nonEmpty
   }
 
-  override def getCount() : SilCount =
+  override def getCount : SilCount =
   {
     count.getOrElse {
       val newCount = SilUtils.deriveCount(ref)
@@ -88,64 +88,64 @@ class SilBasicRefNote(
     }
   }
 
-  override def setCount(newCount : SilCount)
+  override def setCount(newCount : SilCount) : Unit =
   {
     count = Some(newCount)
   }
 
-  override def hasGender() : Boolean =
+  override def hasGender : Boolean =
   {
     gender.nonEmpty
   }
 
-  override def maybeGender() : Option[SilGender] =
+  override def maybeGender : Option[SilGender] =
   {
     gender
   }
 
-  override def setGender(newGender : SilGender)
+  override def setGender(newGender : SilGender) : Unit =
   {
     gender = Some(newGender)
   }
 
-  override def getPronounMap() : SilPronounMap = pronounMap
+  override def getPronounMap : SilPronounMap = pronounMap
 
-  override def setPronounMap(newPronounMap : SilPronounMap)
+  override def setPronounMap(newPronounMap : SilPronounMap) : Unit =
   {
     pronounMap = newPronounMap
   }
 
-  override def getWord() : Option[SilWord] =
+  override def getWord : Option[SilWord] =
   {
     word
   }
 
-  override def setWord(newWord : SilWord)
+  override def setWord(newWord : SilWord) : Unit =
   {
     word = Some(newWord)
   }
 
-  override def clearWord()
+  override def clearWord() : Unit =
   {
     word = None
   }
 
-  override def getContext() : Option[SilReferenceContext] = context
+  override def getContext : Option[SilReferenceContext] = context
 
-  override def setContext(newContext : SilReferenceContext)
+  override def setContext(newContext : SilReferenceContext) : Unit =
   {
     context = Some(newContext)
   }
 
-  override def getPredicate() : Option[SilPredicate] = predicate
+  override def getPredicate : Option[SilPredicate] = predicate
 
-  override def setPredicate(newPredicate : SilPredicate)
+  override def setPredicate(newPredicate : SilPredicate) : Unit =
   {
     predicate = Some(newPredicate)
   }
 
   override def mergeFrom(
-    oldNote : SilAbstractRefNote)
+    oldNote : SilAbstractRefNote) : Unit =
   {
     oldNote matchPartial {
       case basic : SilBasicRefNote => {
@@ -186,7 +186,7 @@ trait SilAnnotator
 
   def preserveNote[ReferenceType <: SilAnnotatedReference](
     oldRef : SilAnnotatedReference,
-    newRef : ReferenceType)
+    newRef : ReferenceType) : Unit
 
   def getBasicNote(ref : SilAnnotatedReference) : SilAbstractRefNote
 
@@ -361,7 +361,7 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
 
   private val map = new mutable.LinkedHashMap[Int, NoteType]
 
-  def getMap() : Map[Int, NoteType] = map
+  def getMap : Map[Int, NoteType] = map
 
   override def generateId : Int = nextId.incrementAndGet
 
@@ -399,7 +399,7 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
 
   private def preserveBasicNote(
     oldRef : SilAnnotatedReference,
-    newRef : SilAnnotatedReference)
+    newRef : SilAnnotatedReference) : Unit =
   {
     if (oldRef.hasAnnotation) {
       val oldNote = oldRef.getAnnotator.getBasicNote(oldRef)
@@ -420,7 +420,8 @@ class SilTypedAnnotator[NoteType <: SilAbstractRefNote](
   override def preserveNote[ReferenceType <: SilAnnotatedReference](
     oldRef : SilAnnotatedReference,
     newRef : ReferenceType
-  ) {
+  ) : Unit =
+  {
     if ((oldRef ne newRef) && oldRef.hasAnnotation) {
       val oldNote = oldRef.getAnnotator.getBasicNote(oldRef)
       val newNote = newRef.getAnnotator.getBasicNote(newRef)
@@ -467,7 +468,7 @@ object SilAnnotator extends SilPhraseQuerier
     }
   }
 
-  def sanityCheck(annotator : SilAnnotator, phrase : SilPhrase)
+  def sanityCheck(annotator : SilAnnotator, phrase : SilPhrase) : Unit =
   {
     val idSet = new mutable.HashSet[Int]
     query(

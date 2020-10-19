@@ -20,7 +20,7 @@ import net.sf.extjwnl.data._
 import net.sf.extjwnl.dictionary._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import java.util.regex._
 
@@ -52,7 +52,7 @@ trait SprWordnet
     getWordSenses(POS.NOUN, lemma)
   }
 
-  def allNounSenses() =
+  def allNounSenses =
   {
     getDictionary.getSynsetIterator(POS.NOUN).asScala
   }
@@ -64,9 +64,9 @@ trait SprWordnet
 
   def getVerbFrameFlags(lemma : String) : BitSet =
   {
-    getVerbSenses(lemma).map(sense => BitSet(sense.getVerbFrameIndices:_*)).
-      reduceLeftOption(_ union _).getOrElse(
-        BitSet.empty)
+    getVerbSenses(lemma).map(
+      sense => BitSet(sense.getVerbFrameIndices.toIndexedSeq:_*)
+    ).reduceLeftOption(_ union _).getOrElse(BitSet.empty)
   }
 
   def getUsageScore(lemma : String, pos : POS) : Int =

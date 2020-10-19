@@ -22,7 +22,7 @@ import org.jgrapht.graph._
 import org.jgrapht.io._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import scala.sys.process._
 
@@ -160,22 +160,22 @@ object SpcGraphVisualizer
     new DefaultAttribute[String](value, AttributeType.STRING)
   }
 
-  def displayFull(graph : SpcGraph)
+  def displayFull(graph : SpcGraph) : Unit =
   {
     val visualizer = new SpcGraphVisualizer(graph, fullOptions)
-    visualizer.display
+    visualizer.display()
   }
 
-  def displayEntities(graph : SpcGraph)
+  def displayEntities(graph : SpcGraph) : Unit =
   {
     val visualizer = new SpcGraphVisualizer(graph, entityFullOptions)
-    visualizer.display
+    visualizer.display()
   }
 
-  def displayEntityAssociations(graph : SpcGraph)
+  def displayEntityAssociations(graph : SpcGraph) : Unit =
   {
     val visualizer = new SpcGraphVisualizer(graph, entityAssocOptions)
-    visualizer.display
+    visualizer.display()
   }
 }
 
@@ -191,9 +191,9 @@ class SpcGraphVisualizer(
   private val combinedGraph =
     new DefaultDirectedGraph[CombinedVertex, CombinedEdge](
       classOf[CombinedEdge])
-  combineGraphs
+  combineGraphs()
 
-  def display()
+  def display() : Unit =
   {
     val exporter = createDotExporter
     val dot = renderToString(exporter)
@@ -210,14 +210,14 @@ class SpcGraphVisualizer(
     sw.toString
   }
 
-  def renderToFile(file : File)
+  def renderToFile(file : File) : Unit =
   {
     val fw = new FileWriter(file)
     renderToWriter(fw)
     fw.close
   }
 
-  def renderToImageFile(file : File)
+  def renderToImageFile(file : File) : Unit =
   {
     val dot = renderToString()
     val dotStream = new ByteArrayInputStream(dot.getBytes)
@@ -226,7 +226,8 @@ class SpcGraphVisualizer(
 
   def renderToWriter(
     writer : Writer,
-    exporter : DOTExporter[CombinedVertex, CombinedEdge] = createDotExporter)
+    exporter : DOTExporter[CombinedVertex, CombinedEdge] = createDotExporter
+  ) : Unit =
   {
     if (options.includeTaxonomy || options.includeRealizations) {
       exporter.putGraphAttribute("rankdir", "BT")
@@ -241,7 +242,7 @@ class SpcGraphVisualizer(
     obj.name.split(":").last
   }
 
-  private def createDotExporter() =
+  private def createDotExporter =
   {
     new DOTExporter[CombinedVertex, CombinedEdge](
       idGenerator,
@@ -356,7 +357,7 @@ class SpcGraphVisualizer(
     options.entityFilter(entity)
   }
 
-  private def combineGraphs()
+  private def combineGraphs() : Unit =
   {
     if (options.includeIdeals || options.includeSynonyms ||
       options.includeProperties

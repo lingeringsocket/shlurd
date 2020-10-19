@@ -22,7 +22,8 @@ import edu.stanford.nlp.trees._
 import edu.stanford.nlp.ling._
 import edu.stanford.nlp.simple.Document
 
-import scala.collection.JavaConverters._
+import scala.collection._
+import scala.jdk.CollectionConverters._
 
 import java.util._
 
@@ -142,19 +143,19 @@ object CorenlpParsingStrategy extends SprParsingStrategy
       "parse.model",
       "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
     val capitalizedString = capitalize(sentenceString)
-    def main() = prepareCorenlp(
+    def main = prepareCorenlp(
       context,
       capitalizedString, tokens, props, true, guessedQuestion,
       dump, dumpPrefix + " RNN")
-    def fallbackSR() = prepareCorenlp(
+    def fallbackSR = prepareCorenlp(
       context,
       capitalizedString, tokens, propsSR, true, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR")
-    def fallbackPCFG() = prepareCorenlp(
+    def fallbackPCFG = prepareCorenlp(
       context,
       capitalizedString, tokens, propsPCFG, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK PCFG")
-    def fallbackSRCASELESS() = prepareCorenlp(
+    def fallbackSRCASELESS = prepareCorenlp(
       context,
       sentenceString, tokens, propsSR, false, guessedQuestion,
       dump, dumpPrefix + " FALLBACK SR CASELESS")
@@ -169,7 +170,7 @@ object CorenlpParsingStrategy extends SprParsingStrategy
     preDependencies : Boolean, guessedQuestion : Boolean,
     dump : Boolean, dumpPrefix : String) =
   {
-    def corenlpParse() : SprSyntaxTree = {
+    def corenlpParse : SprSyntaxTree = {
       var deps : Seq[String] = Seq.empty
       val sentence = tokenizeCorenlp(sentenceString).head
       if (preDependencies) {
@@ -281,7 +282,7 @@ object CorenlpParsingStrategy extends SprParsingStrategy
       ),
       remainder @ _*
     ) => {
-      SptSQ((Seq(vb) ++ children ++ remainder):_*)
+      SptSQ((Seq(vb) ++ children ++ remainder).toSeq:_*)
     }
     case SptS(
       SptVP(
@@ -296,7 +297,7 @@ object CorenlpParsingStrategy extends SprParsingStrategy
         (Seq(SptPP(
           SptIN(vbg),
           SptDT(dem.child)
-        )) ++ children ++ remainder):_*
+        )) ++ children ++ remainder).toSeq:_*
       )
     }
   }

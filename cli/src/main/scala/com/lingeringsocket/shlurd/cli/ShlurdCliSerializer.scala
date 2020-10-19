@@ -39,7 +39,7 @@ object ShlurdCliSerializer
 
   private val graphMap = new mutable.LinkedHashMap[String, SpcGraph]
 
-  private def saveGraph(name : String, graph : SpcGraph)
+  private def saveGraph(name : String, graph : SpcGraph) : Unit =
   {
     this.synchronized {
       graphMap.put(name, graph)
@@ -77,7 +77,7 @@ class ShlurdCliSerializer
     classOf[SpcGraph],
     new Serializer[SpcGraph]
       {
-        def write(kser : Kryo, out : Output, graph : SpcGraph)
+        def write(kser : Kryo, out : Output, graph : SpcGraph) : Unit =
         {
           graph.name.foreach(graphName => {
             saveGraph(graphName, graph)
@@ -100,7 +100,7 @@ class ShlurdCliSerializer
       }
   )
 
-  def saveCosmos(cosmos : SpcCosmos, file : File)
+  def saveCosmos(cosmos : SpcCosmos, file : File) : Unit =
   {
     file.getParentFile.mkdirs
     val zos = new ZipOutputStream(new FileOutputStream(file))
@@ -128,7 +128,7 @@ class ShlurdCliSerializer
     }
   }
 
-  def saveMind(mind : ShlurdCliMind, file : File)
+  def saveMind(mind : ShlurdCliMind, file : File) : Unit =
   {
     file.getParentFile.mkdirs
     val zos = new ZipOutputStream(new FileOutputStream(file))
@@ -161,7 +161,7 @@ class ShlurdCliSerializer
 
   protected def saveEntry(
     zos : ZipOutputStream,
-    entry : String)(writeEntry : OutputStream => Unit)
+    entry : String)(writeEntry : OutputStream => Unit) : Unit =
   {
     zos.putNextEntry(new ZipEntry(entry))
     writeEntry(zos)

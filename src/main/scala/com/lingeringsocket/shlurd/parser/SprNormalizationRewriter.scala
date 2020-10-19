@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd.parser
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
+import scala.collection._
 
 // FIXME this is English-specific and also incomplete
 private[parser] object SprNormalizationRewriter
@@ -47,7 +48,7 @@ class SprNormalizationRewriter(context : SprContext)
       intermediate
     } else {
       rewrite(
-        combineRules(languageRules:_*),
+        combineRules(languageRules.toSeq:_*),
         intermediate,
         SilRewriteOptions(repeat = true))
     }
@@ -170,8 +171,8 @@ class SprNormalizationRewriter(context : SprContext)
         val the = SilWord("the")
         SilAdpositionalState(
           SilAdposition(
-            adp1.word.decomposed ++ Seq(the) ++ word.decomposed ++
-              adp2.word.decomposed),
+            (adp1.word.decomposed ++ Seq(the) ++ word.decomposed ++
+              adp2.word.decomposed).toSeq),
           objRef
         )
       }
@@ -200,7 +201,7 @@ class SprNormalizationRewriter(context : SprContext)
           subject,
           STATE_PREDEF_BE.toVerb,
           SilAdpositionalState(
-            SilAdposition(direction +: adp.word.decomposed),
+            SilAdposition((direction +: adp.word.decomposed).toSeq),
             landmark
           ),
           modifiers
@@ -219,7 +220,7 @@ class SprNormalizationRewriter(context : SprContext)
           subject,
           verb,
           SilAdpositionalState(
-            SilAdposition(direction +: adp.word.decomposed),
+            SilAdposition((direction +: adp.word.decomposed).toSeq),
             landmark),
           Seq.empty)
       }
@@ -496,7 +497,7 @@ class SprNormalizationRewriter(context : SprContext)
     verbModifiers : Seq[SilVerbModifier]) :
       Option[(SilVerbModifier, String)] =
   {
-    verbModifiers.toStream.flatMap(modifier => modifier match {
+    verbModifiers.to(LazyList).flatMap(modifier => modifier match {
       case SilBasicVerbModifier(word) => {
         val lemma = word.toLemma
         if (tongue.isCoordinatingDeterminer(lemma)) {

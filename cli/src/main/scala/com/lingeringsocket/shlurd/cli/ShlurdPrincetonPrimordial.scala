@@ -23,7 +23,7 @@ object ShlurdPrincetonPrimordial
 {
   private var frozen : Option[SpcCosmos] = None
 
-  def frozenCosmos() : SpcCosmos =
+  def frozenCosmos : SpcCosmos =
   {
     this.synchronized {
       frozen.getOrElse {
@@ -34,11 +34,11 @@ object ShlurdPrincetonPrimordial
             serializer.loadCosmos(file)
           } else {
             val newCosmos = new SpcCosmos(SpcGraph("princeton-primordial"))
-            newCosmos.getPool.enableBulkLoad
+            newCosmos.getPool.enableBulkLoad()
             SpcPrimordial.initCosmos(newCosmos)
             val ontology = new SpcWordnetOntology(
               SnlPrincetonWordnet, newCosmos)
-            ontology.loadAll
+            ontology.loadAll()
             serializer.saveCosmos(newCosmos, file)
             newCosmos
           }
@@ -49,7 +49,7 @@ object ShlurdPrincetonPrimordial
     }
   }
 
-  def newMutableCosmos() : SpcCosmos =
+  def newMutableCosmos : SpcCosmos =
   {
     val frozen = frozenCosmos
     frozen.fork(true)

@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.parser._
 
 import net.sf.extjwnl.data._
 
+import scala.collection._
+
 object SnlWordnetGlossPrep
 {
   private val wordnet = SnlPrincetonWordnet

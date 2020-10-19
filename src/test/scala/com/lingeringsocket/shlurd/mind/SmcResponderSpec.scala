@@ -493,7 +493,7 @@ class SmcResponderSpec extends SmcResponderSpecification
 
     "remember conversation" in new EnglishResponderContext
     {
-      mind.startConversation
+      mind.startConversation()
       process("who are you") must be equalTo("I am Muldoon.")
       val annotator = SmcAnnotator()
       val muldoonRef =
@@ -543,7 +543,7 @@ class SmcResponderSpec extends SmcResponderSpecification
     "understand conversational singular pronoun references" in new
       EnglishResponderContext
     {
-      mind.startConversation
+      mind.startConversation()
       processExceptionExpected(
         "is it asleep",
         "Sorry, when you say 'it' I don't know who or what you mean.",
@@ -563,7 +563,10 @@ class SmcResponderSpec extends SmcResponderSpecification
     "understand conversational plural pronoun references" in new
       EnglishResponderContext
     {
-      mind.startConversation
+      if (SprParser.isCoreNLP) {
+        skipped("CoreNLP not working")
+      }
+      mind.startConversation()
       processExceptionExpected(
         "are they asleep",
         "Sorry, when you say 'they' I don't know who or what you mean.",

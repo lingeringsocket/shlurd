@@ -32,19 +32,19 @@ class SubjectConjunction(determiner : SilDeterminer)
 
   private var checkFailed = false
 
-  def fail() : Boolean =
+  def fail : Boolean =
   {
     checkFailed = true
     false
   }
 
-  def check() : SilDeterminer =
+  def check : SilDeterminer =
   {
     checked = true
     determiner
   }
 
-  def checkAnd() : Boolean =
+  def checkAnd : Boolean =
   {
     check match {
       case DETERMINER_ALL | DETERMINER_ABSENT => true
@@ -867,17 +867,17 @@ class SpcBeliefRecognizer(
     consequent : SilPredicate,
     biconditional : Boolean,
     antecedentEvent : Boolean,
-    checkPatterns : Boolean = true)
+    checkPatterns : Boolean = true) : Unit =
   {
     val querier = new SilPhraseQuerier
-    def reportException(code : ShlurdExceptionCode)
+    def reportException(code : ShlurdExceptionCode) : Unit =
     {
       exceptionReporter.reportException(code)
     }
     if (isBefore && isUnidirectional) {
       reportException(AssertionModifiersIncompatible)
     }
-    def visitConsequent() = querier.queryMatcher {
+    def visitConsequent = querier.queryMatcher {
       case SilOptionallyDeterminedReference(
         _ : SilNounReference, determiner
       ) => {
@@ -929,7 +929,7 @@ class SpcBeliefRecognizer(
       : Seq[SpcBelief] =
   {
     val exceptionReporter = new ExceptionReporter
-    def reportException(code : ShlurdExceptionCode)
+    def reportException(code : ShlurdExceptionCode) : Unit =
     {
       exceptionReporter.reportException(code)
     }
@@ -1088,7 +1088,7 @@ class SpcBeliefRecognizer(
     if (ignored) {
       Seq.empty
     } else if (exceptionCode.nonEmpty) {
-      Seq(InvalidBelief(assertionSentence, exceptionCode.get))
+      Seq(NonvalidBelief(assertionSentence, exceptionCode.get))
     } else {
       Seq(AssertionBelief(
         assertionSentence, additionalConsequents, alternative))
@@ -1500,7 +1500,8 @@ class SpcBeliefRecognizer(
       ) if (allowAdpositions || !state.isInstanceOf[SilAdpositionalState]) => {
         extractQualifiedNoun(
           sentence, subRef,
-          preQualifiers ++ SilUtils.extractQualifiers(state))
+          preQualifiers ++ SilUtils.extractQualifiers(state),
+          false, false)
       }
       case SilGenitiveReference(
         SilOptionallyDeterminedReference(
@@ -1515,7 +1516,7 @@ class SpcBeliefRecognizer(
           annotator.determinedRef(
             annotator.genitiveRef(sub, possessee), determiner),
           preQualifiers ++ SilUtils.extractQualifiers(state),
-          allowGenitives)
+          allowGenitives, false)
       }
       case SilGenitiveReference(
         SilOptionallyDeterminedReference(
@@ -1551,7 +1552,7 @@ class SpcBeliefRecognizer(
   {
     private var exceptionCode : Option[ShlurdExceptionCode] = None
 
-    def reportException(code : ShlurdExceptionCode)
+    def reportException(code : ShlurdExceptionCode) : Unit =
     {
       trace(s"INVALID ASSERTION:  $code")
       if (exceptionCode.isEmpty) {
@@ -1559,6 +1560,6 @@ class SpcBeliefRecognizer(
       }
     }
 
-    def getCode() = exceptionCode
+    def getCode = exceptionCode
   }
 }

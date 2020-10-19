@@ -25,7 +25,7 @@ import spire.math._
 
 import scala.util._
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import java.util.concurrent.atomic._
 
@@ -149,15 +149,15 @@ trait SpcEntityVertex extends SmcNamedObject
 
 trait SpcSentential
 {
-  def getAssertion() : SilSentence
+  def getAssertion : SilSentence
 
-  def getAdditional() : Seq[SilSentence]
+  def getAdditional : Seq[SilSentence]
 
-  def getAlternative() : Option[SilSentence]
+  def getAlternative : Option[SilSentence]
 
-  def getPlaceholderMap() : SpcRefMap
+  def getPlaceholderMap : SpcRefMap
 
-  def toSentence() : SilSentence =
+  def toSentence : SilSentence =
   {
     if (getAlternative.nonEmpty || getAdditional.nonEmpty) {
       SilConjunctiveSentence(
@@ -177,15 +177,15 @@ case class SpcAssertion(
   placeholderMap : SpcRefMap
 ) extends SpcSentential
 {
-  override def getAssertion() = sentence
+  override def getAssertion = sentence
 
-  override def getAdditional() = additionalConsequents
+  override def getAdditional = additionalConsequents
 
-  override def getAlternative() = alternative
+  override def getAlternative = alternative
 
-  override def getPlaceholderMap() = placeholderMap
+  override def getPlaceholderMap = placeholderMap
 
-  def asTrigger() : Option[SpcTrigger] =
+  def asTrigger : Option[SpcTrigger] =
   {
     sentence match {
       case cs : SilConditionalSentence => {
@@ -204,13 +204,13 @@ case class SpcTrigger(
   placeholderMap : SpcRefMap
 ) extends SpcSentential
 {
-  override def getAssertion() = conditionalSentence
+  override def getAssertion = conditionalSentence
 
-  override def getAdditional() = additionalConsequents
+  override def getAdditional = additionalConsequents
 
-  override def getAlternative() = alternative
+  override def getAlternative = alternative
 
-  override def getPlaceholderMap() = placeholderMap
+  override def getPlaceholderMap = placeholderMap
 }
 
 trait SpcEntity extends SmcEntity with SpcEntityVertex with SpcContainmentVertex
@@ -263,7 +263,7 @@ case class SpcGender(
   form : SpcForm,
   basic : Option[SilBasicGender]) extends SilGender
 {
-  override def maybeBasic() = basic
+  override def maybeBasic = basic
 }
 
 class SpcCosmicPool
@@ -300,7 +300,7 @@ class SpcCosmicPool
   @transient val pronounCache =
     new mutable.HashMap[SpcEntity, (Int, SilPronounMap)]
 
-  def invalidateCache()
+  def invalidateCache() : Unit =
   {
     taxonomyTimestamp += 1
     entityTimestamp += 1
@@ -328,12 +328,12 @@ class SpcCosmicPool
     }
   }
 
-  def isBulkLoad() : Boolean =
+  def isBulkLoad : Boolean =
   {
     bulkLoad
   }
 
-  def enableBulkLoad()
+  def enableBulkLoad() : Unit =
   {
     bulkLoad = true
   }
@@ -385,7 +385,7 @@ class SpcCosmos(
   private def generateId = getIdGenerator.getAndIncrement
 
   protected[platonic] def annotateFormAssoc(
-    edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint)
+    edge : SpcFormAssocEdge, constraint : SpcCardinalityConstraint) : Unit =
   {
     edge.constraint = constraint
   }
@@ -419,7 +419,7 @@ class SpcCosmos(
     forked
   }
 
-  def asUnmodifiable() : SpcCosmos =
+  def asUnmodifiable : SpcCosmos =
   {
     val frozen = new SpcCosmos(unmodifiableGraph, forkLevel, pool)
     frozen.meta.afterFork(meta)
@@ -428,7 +428,7 @@ class SpcCosmos(
     frozen
   }
 
-  def copyFrom(src : SpcCosmos)
+  def copyFrom(src : SpcCosmos) : Unit =
   {
     assert(getIdGenerator.get == 0)
     val dstGraphs = graph.getGraphs
@@ -443,7 +443,7 @@ class SpcCosmos(
       }
     })
     this.inheritBeliefResources(src)
-    meta.enable
+    meta.enable()
   }
 
   def newClone(flattenDeltas : Boolean = false) : SpcCosmos =
@@ -470,12 +470,12 @@ class SpcCosmos(
     wordLabeler
   }
 
-  private def syncGenerator(src : SpcCosmos)
+  private def syncGenerator(src : SpcCosmos) : Unit =
   {
     getIdGenerator.set(src.getIdGenerator.get)
   }
 
-  private def inheritBeliefResources(src : SpcCosmos)
+  private def inheritBeliefResources(src : SpcCosmos) : Unit =
   {
     importedBeliefResources ++= src.importedBeliefResources
     Option(src.wordLabeler).foreach(labeler => {
@@ -494,7 +494,7 @@ class SpcCosmos(
     }
   }
 
-  def isBulkLoad() : Boolean =
+  def isBulkLoad : Boolean =
   {
     pool.isBulkLoad
   }
@@ -544,18 +544,18 @@ class SpcCosmos(
   }
 
   private def addIdealSynonymEdge(
-    synonym : SpcIdealSynonym, ideal : SpcNym)
+    synonym : SpcIdealSynonym, ideal : SpcNym) : Unit =
   {
     graph.idealSynonyms.addEdge(synonym, ideal, SpcSynonymEdge(generateId))
   }
 
   private def addEntitySynonymEdge(
-    synonym : SpcEntitySynonym, entity : SpcEntity)
+    synonym : SpcEntitySynonym, entity : SpcEntity) : Unit =
   {
     graph.entitySynonyms.addEdge(synonym, entity, SpcSynonymEdge(generateId))
   }
 
-  private def forgetIdeal(ideal : SpcIdeal)
+  private def forgetIdeal(ideal : SpcIdeal) : Unit =
   {
     assert(graph.idealSynonyms.degreeOf(ideal) == 0)
     assert(graph.idealTaxonomy.inDegreeOf(ideal) == 0)
@@ -759,7 +759,7 @@ class SpcCosmos(
     ideal.asInstanceOf[SpcRole]
   }
 
-  private[platonic] def forgetForm(form : SpcForm)
+  private[platonic] def forgetForm(form : SpcForm) : Unit =
   {
     assert(getFormHyponymRealizations(form).isEmpty)
     assert(graph.idealTaxonomy.incomingEdgesOf(form).isEmpty)
@@ -775,7 +775,7 @@ class SpcCosmos(
     forgetIdeal(form)
   }
 
-  private[platonic] def forgetEntity(entity : SpcEntity)
+  private[platonic] def forgetEntity(entity : SpcEntity) : Unit =
   {
     pool.entityTimestamp += 1
     meta.entityExistence(entity, false)
@@ -828,7 +828,7 @@ class SpcCosmos(
   }
 
   private[platonic] def mergeAssoc(
-    oldEdge : SpcFormAssocEdge, newEdge : SpcFormAssocEdge)
+    oldEdge : SpcFormAssocEdge, newEdge : SpcFormAssocEdge) : Unit =
   {
     assert(!graph.inverseAssocs.containsVertex(oldEdge))
     // FIXME we should be able to support this
@@ -850,7 +850,8 @@ class SpcCosmos(
     formAssocs.removeEdge(oldEdge)
   }
 
-  private[platonic] def replaceForm(oldForm : SpcForm, newForm : SpcForm)
+  private[platonic] def replaceForm(
+    oldForm : SpcForm, newForm : SpcForm) : Unit =
   {
     pool.taxonomyTimestamp += 1
     assert(oldForm.isTentative)
@@ -860,7 +861,7 @@ class SpcCosmos(
   }
 
   private[platonic] def replaceEntity(
-    oldEntity : SpcEntity, newEntity : SpcEntity)
+    oldEntity : SpcEntity, newEntity : SpcEntity) : Unit =
   {
     // FIXME verify that entities are role-compatible across all
     // relevant form associations, etc
@@ -897,19 +898,19 @@ class SpcCosmos(
     }
   }
 
-  def addIdealSynonym(synonymName : String, fundamentalName : String)
+  def addIdealSynonym(synonymName : String, fundamentalName : String) : Unit =
   {
     val ideal = getIdealBySynonym(fundamentalName).get
     addIdealSynonym(synonymName, ideal)
   }
 
-  def addIdealSynonym(synonymName : String, ideal : SpcIdeal)
+  def addIdealSynonym(synonymName : String, ideal : SpcIdeal) : Unit =
   {
     val synonym = SpcIdealSynonym(encodeName(synonymName))
     addIdealSynonym(synonym, ideal)
   }
 
-  def addIdealSynonym(synonym : SpcIdealSynonym, ideal : SpcIdeal)
+  def addIdealSynonym(synonym : SpcIdealSynonym, ideal : SpcIdeal) : Unit =
   {
     assert(!graph.idealSynonyms.containsVertex(synonym), synonym)
     graph.idealSynonyms.addVertex(synonym)
@@ -1014,7 +1015,7 @@ class SpcCosmos(
     tupleN((entity, true))
   }
 
-  private def addPartialEntitySynonyms(entity : SpcEntity)
+  private def addPartialEntitySynonyms(entity : SpcEntity) : Unit =
   {
     val components = entity.properName.split(" ")
     if (components.size > 1) {
@@ -1033,7 +1034,7 @@ class SpcCosmos(
     }
   }
 
-  def createOrReplaceEntity(entity : SpcEntity)
+  def createOrReplaceEntity(entity : SpcEntity) : Unit =
   {
     pool.entityTimestamp += 1
     graph.entityAssocs.addVertex(entity)
@@ -1064,7 +1065,7 @@ class SpcCosmos(
 
   protected[platonic] def connectInverseAssocEdges(
     edge1 : SpcFormAssocEdge,
-    edge2 : SpcFormAssocEdge)
+    edge2 : SpcFormAssocEdge) : Unit =
   {
     val inverseAssocs = graph.inverseAssocs
     getInverseAssocEdge(edge1).foreach(existing => {
@@ -1081,7 +1082,7 @@ class SpcCosmos(
 
   def addIdealTaxonomy(
     hyponymIdeal : SpcIdeal,
-    hypernymIdeal : SpcIdeal)
+    hypernymIdeal : SpcIdeal) : Unit =
   {
     if (!isHyponym(hyponymIdeal, hypernymIdeal)) {
       pool.taxonomyTimestamp += 1
@@ -1173,7 +1174,7 @@ class SpcCosmos(
   protected[platonic] def removeEntityAssociation(
     possessor : SpcEntity,
     possessee : SpcEntity,
-    formAssocEdge : SpcFormAssocEdge)
+    formAssocEdge : SpcFormAssocEdge) : Unit =
   {
     getEntityAssocEdge(
       possessor, possessee,
@@ -1183,7 +1184,8 @@ class SpcCosmos(
     )
   }
 
-  protected[platonic] def removeEntityAssocEdge(edge : SpcEntityAssocEdge)
+  protected[platonic] def removeEntityAssocEdge(
+    edge : SpcEntityAssocEdge) : Unit =
   {
     graph.entityAssocs.removeEdge(edge)
   }
@@ -1210,7 +1212,7 @@ class SpcCosmos(
     })
   }
 
-  def validateBeliefs()
+  def validateBeliefs() : Unit =
   {
     if (!isBulkLoad && (getIdGenerator.get < 10000)) {
       assert(sanityCheck)
@@ -1223,7 +1225,7 @@ class SpcCosmos(
     Set(a:_*)
   }
 
-  def sanityCheck() : Boolean =
+  def sanityCheck : Boolean =
   {
     assert(graph.sanityCheck)
     val idealSet = safeSet(graph.idealSynonyms.vertexSet).filter(_.isIdeal).
@@ -1462,7 +1464,7 @@ class SpcCosmos(
 
   override def getPropertyStateMap(property : SpcProperty) =
   {
-    getPropertyStateObjMap(property).mapValues(_.inflected)
+    getPropertyStateObjMap(property).view.mapValues(_.inflected).toMap
   }
 
   def getEntityPropertyMap(entity : SpcEntity)
@@ -1501,7 +1503,7 @@ class SpcCosmos(
   }
 
   private def addComponent(
-    container : SpcContainmentVertex, component : SpcContainmentVertex)
+    container : SpcContainmentVertex, component : SpcContainmentVertex) : Unit =
   {
     graph.addComponent(container, component, generateId)
   }
@@ -1523,7 +1525,7 @@ class SpcCosmos(
     }
   }
 
-  def closePropertyStates(property : SpcProperty)
+  def closePropertyStates(property : SpcProperty) : Unit =
   {
     if (property.domain == PROPERTY_OPEN_ENUM) {
       val closedProperty = new SpcProperty(
@@ -1536,7 +1538,7 @@ class SpcCosmos(
   }
 
   def instantiatePropertyState(
-    property : SpcProperty, word : SilWord)
+    property : SpcProperty, word : SilWord) : Unit =
   {
     val name = encodeName(word)
     assert(!getPropertyStateMap(property).contains(name))
@@ -1549,7 +1551,7 @@ class SpcCosmos(
 
   def updateEntityProperty(
     originalEntity : SpcEntity, originalProperty : SpcProperty,
-    originalLemma : String)
+    originalLemma : String) : Unit =
   {
     visitEntityProperty(
       originalEntity, originalProperty.name, originalLemma,
@@ -1769,7 +1771,7 @@ class SpcCosmos(
 
   def addAssertion(
     tongue : SprTongue,
-    assertion : SpcAssertion)
+    assertion : SpcAssertion) : Unit =
   {
     graph.assertions.addVertex(assertion)
     Option(wordLabeler).foreach(labeler => {
@@ -1848,7 +1850,7 @@ class SpcCosmos(
     tongue : SprTongue,
     entity : SpcEntity,
     map : mutable.Map[SilPronounKey, SilWord],
-    reentrant : Boolean = false)
+    reentrant : Boolean = false) : Unit =
   {
     if (map.isEmpty) {
       val props = getEntityPropertyMap(entity)
@@ -1920,7 +1922,7 @@ class SpcCosmos(
         getEntityBySynonym(formEntityName).flatMap(formEntity => {
           assocEntityGender(formEntity)
         })
-      }).toIterable.headOption.getOrElse(guessGender(tongue, ideal))
+      }).to(Iterable).headOption.getOrElse(guessGender(tongue, ideal))
   }
 
   def getGenderRole(form : SpcForm) : Option[SpcRole] =
@@ -1977,14 +1979,14 @@ class SpcCosmos(
     }
   }
 
-  override def applyModifications()
+  override def applyModifications() : Unit =
   {
-    validateBeliefs
+    validateBeliefs()
     assert(forkLevel != 0)
     if (forkLevel == 1) {
-      graph.applyModifications
+      graph.applyModifications()
       parent.foreach(cosmos => cosmos.inheritBeliefResources(this))
-      validateBeliefs
+      validateBeliefs()
     }
   }
 }

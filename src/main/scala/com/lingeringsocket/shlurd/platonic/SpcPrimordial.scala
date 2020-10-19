@@ -32,18 +32,18 @@ object SpcPrimordial
     PD_WHERE.toLemma -> (SmcIdeals.FORM_OBJECT + ":" + SmcIdeals.ROLE_CONTAINER)
   )
 
-  private lazy val seedCosmos = initSeedCosmos()
+  private lazy val seedCosmos = initSeedCosmos
 
-  private def initSeedCosmos() =
+  private def initSeedCosmos =
   {
     val newCosmos = new SpcCosmos
-    newCosmos.meta.enableBuffering
+    newCosmos.meta.enableBuffering()
     initCosmosFromBeliefs(newCosmos)
-    newCosmos.meta.flush
+    newCosmos.meta.flush()
     newCosmos
   }
 
-  private def initCosmosFromBeliefs(cosmos : SpcCosmos)
+  private def initCosmosFromBeliefs(cosmos : SpcCosmos) : Unit =
   {
     val mind = new SpcMind(cosmos)
     mind.loadBeliefs(
@@ -58,7 +58,7 @@ object SpcPrimordial
     synonyms.foreach(e => cosmos.addIdealSynonym(e._1, e._2))
   }
 
-  def initCosmos(cosmos : SpcCosmos)
+  def initCosmos(cosmos : SpcCosmos) : Unit =
   {
     cosmos.copyFrom(seedCosmos)
   }

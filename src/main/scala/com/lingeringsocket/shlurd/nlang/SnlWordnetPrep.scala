@@ -26,7 +26,7 @@ import java.io._
 // to compare CoreNLP against Wordnet:
 // sbt corenlp/console
 //   new com.lingeringsocket.shlurd.corenlp.CorenlpTestSetup
-//   SnlWordnetPrep.runAll()
+//   SnlWordnetPrep.runAll
 object SnlWordnetPrep
 {
   SprParser.enableCache(Some(new File("run/test-parser-cache.dat")))
@@ -43,12 +43,12 @@ object SnlWordnetPrep
     val sil = parser.parseOne.sentence
     if (!sil.hasUnknown && !sil.isInstanceOf[SilAmbiguousSentence]) {
       println("SENTENCE = " + sentence)
-      println
+      println()
       if (dumpAnalysis) {
         println("BASELINE TREE = " + SprUtils.maybeSyntaxTree(sil))
-        println
+        println()
         println("BASELINE SIL = " + sil)
-        println
+        println()
       }
       val wnParser = SprParser.prepareHeuristic(
         context, sentence, dumpAnalysis, "DEBUG")
@@ -58,15 +58,15 @@ object SnlWordnetPrep
     }
   }
 
-  private def allSentences() =
+  private def allSentences =
   {
     parserCache.keys.map(_.sentence).toSet
   }
 
-  def buildMatcher()
+  def buildMatcher() : Unit =
   {
     val matcher = new SprPhrasePatternMatcher
-    def addToMatcher(syntaxTree : SprSyntaxTree)
+    def addToMatcher(syntaxTree : SprSyntaxTree) : Unit =
     {
       syntaxTree match {
         case _ : SprSyntaxLeaf  =>
@@ -92,7 +92,7 @@ object SnlWordnetPrep
 
   def runAll(
     sentences : Iterable[String] = allSentences,
-    dumpAnalysis : Boolean = false)
+    dumpAnalysis : Boolean = false) : Unit =
   {
     println("TOTAL = " + sentences.size)
     var processed = 0
@@ -101,14 +101,15 @@ object SnlWordnetPrep
     var slow = 0
     var failed = 0
     var ambiguous = 0
-    def reportStatus() {
+    def reportStatus() : Unit =
+    {
       println("PROCESSED = " + processed)
       println("SUCCEEDED = " + succeeded)
       println("MISMATCHED = " + mismatched)
       println("SLOW = " + slow)
       println("FAILED = " + failed)
       println("AMBIGUOUS = " + ambiguous)
-      println
+      println()
     }
     sentences.foreach(sentence => {
       Try(parseOne(sentence, dumpAnalysis)) match {
@@ -144,7 +145,7 @@ object SnlWordnetPrep
           }
           processed += 1
           if ((processed % 10) == 0) {
-            reportStatus
+            reportStatus()
           }
         }
         case Failure(SprParseComplexityException()) => {
@@ -158,10 +159,10 @@ object SnlWordnetPrep
         }
       }
     })
-    reportStatus
+    reportStatus()
   }
 
-  def runOne()
+  def runOne() : Unit =
   {
     val sentence = "the hammer is no longer in the box"
     runAll(Seq(sentence), true)

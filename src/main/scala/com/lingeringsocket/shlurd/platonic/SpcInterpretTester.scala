@@ -34,12 +34,12 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
   private var cosmos = new SpcCosmos
   private var mind = new SpcMind(cosmos)
 
-  override protected def restartSequence()
+  override protected def restartSequence() : Unit =
   {
     cosmos = seedCosmos.newClone()
     mind = new SpcMind(cosmos)
-    mind.startConversation
-    mind.startNarrative
+    mind.startConversation()
+    mind.startNarrative()
   }
 
   override protected def processOne(

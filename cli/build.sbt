@@ -14,7 +14,7 @@ scalacOptions := Common.scalacOptions
 
 maxErrors := Common.maxErrors
 
-traceLevel := Common.traceLevel
+traceLevel.withRank(KeyRanks.Invisible) := Common.traceLevel
 
 resolvers ++= Common.resolvers
 
@@ -22,7 +22,7 @@ libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
   "org.jline" % "jline" % "3.11.0",
-  "com.twitter" %% "chill" % "0.9.3"
+  "com.twitter" %% "chill" % "0.9.5"
 )
 
 testOptions in Test += Tests.Setup(

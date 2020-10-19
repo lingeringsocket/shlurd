@@ -35,9 +35,9 @@ class SnlWordnetGlossPrepSpec extends Specification
     var exception = 0
     var unrecognized = 0
 
-    def reportStatus()
+    def reportStatus() : Unit =
     {
-      println
+      println()
       println("TOTAL = " + total)
       println("UNRECOGNIZED = " + unrecognized)
       println("EXCEPTION = " + exception)
@@ -47,7 +47,7 @@ class SnlWordnetGlossPrepSpec extends Specification
     iter.foreach(definition => {
       total += 1
       if ((total % 10) == 0) {
-        reportStatus
+        reportStatus()
       }
       Try(parser(definition)) match {
         case Success(Some(predicate)) => {
@@ -61,7 +61,7 @@ class SnlWordnetGlossPrepSpec extends Specification
         }
       }
     })
-    reportStatus
+    reportStatus()
     total
   }
 

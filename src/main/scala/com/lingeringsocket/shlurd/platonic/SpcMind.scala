@@ -20,7 +20,7 @@ import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.io._
 import scala.util._
 
@@ -49,7 +49,7 @@ class SpcMind(cosmos : SpcCosmos)
     responder : SpcResponder = SpcResponder(
       this,
       SpcBeliefParams(ACCEPT_NEW_BELIEFS),
-      SmcResponseParams(reportExceptionCodes = true)))
+      SmcResponseParams(reportExceptionCodes = true))) : Unit =
   {
     if (!cosmos.isDuplicateBeliefResource(resourceName)) {
       val stream = ResourceUtils.getResourceStream(resourceName)
@@ -66,9 +66,9 @@ class SpcMind(cosmos : SpcCosmos)
     responder : SpcResponder = SpcResponder(
       this,
       SpcBeliefParams(ACCEPT_NEW_BELIEFS),
-      SmcResponseParams(reportExceptionCodes = true)))
+      SmcResponseParams(reportExceptionCodes = true))) : Unit =
   {
-    val beliefs = source.getLines.
+    val beliefs = source.getLines().
       filterNot(SprParser.isIgnorableLine).mkString("\n")
     val parseResults = responder.newParser(beliefs).parseAll
     val ok = responder.sentencePrinter.sb.respondCompliance
@@ -92,7 +92,7 @@ class SpcMind(cosmos : SpcCosmos)
         }
       }
     })
-    cosmos.validateBeliefs
+    cosmos.validateBeliefs()
   }
 
   override def equivalentReferences(

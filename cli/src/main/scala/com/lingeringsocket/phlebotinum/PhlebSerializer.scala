@@ -26,7 +26,7 @@ class PhlebSerializer extends ShlurdCliSerializer
   import ShlurdCliSerializer._
 
   def saveSnapshot(
-    snapshot : PhlebSnapshot, file : File)
+    snapshot : PhlebSnapshot, file : File) : Unit =
   {
     file.getParentFile.mkdirs
     val zos = new ZipOutputStream(new FileOutputStream(file))

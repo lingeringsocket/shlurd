@@ -37,7 +37,7 @@ case class SilPhraseScore(pro : Int, con : Int) extends Ordered[SilPhraseScore]
 
 object SilPhraseScore
 {
-  def neutral() = SilPhraseScore(0, 0)
+  def neutral = SilPhraseScore(0, 0)
 
   def pro(n : Int) = {
     assert(n > 0)
@@ -59,13 +59,13 @@ object SilPhraseScore
     }
   }
 
-  def proBig() = pro(100)
+  def proBig = pro(100)
 
-  def proSmall() = pro(1)
+  def proSmall = pro(1)
 
-  def conBig() = con(100)
+  def conBig = con(100)
 
-  def conSmall() = con(1)
+  def conSmall = con(1)
 }
 
 trait SilPhraseScorer
@@ -85,7 +85,7 @@ trait SilPhraseScorer
     if (false) {
       println("PHRASE = " + phrase)
       println("SCORE = " + score)
-      println
+      println()
     }
     score
   }

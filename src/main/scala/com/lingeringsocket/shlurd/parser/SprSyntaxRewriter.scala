@@ -19,6 +19,8 @@ import org.bitbucket.inkytonik.kiama.rewriting._
 import SprPennTreebankLabels._
 import SprUtils._
 
+import scala.collection._
+
 object SprSyntaxRewriter
 {
   private val phraseConstructors = Map(
@@ -117,7 +119,7 @@ object SprSyntaxRewriter
       constructor => return constructor(requireLeaf(children))
     )
     phraseConstructors.get(label).foreach(
-      constructor => return constructor(children)
+      constructor => return constructor(children.toSeq)
     )
     nullaryConstructors.get(label).foreach(
       constructor => return constructor

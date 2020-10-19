@@ -63,7 +63,7 @@ class SpcResponseSpecification extends SpcProcessingSpecification
 
     protected def processTerse(
       input : String,
-      expected : String)
+      expected : String) : Unit =
     {
       val parseResult = responderTerse.newParser(input).parseOne
       s"pass:  $input" ==> (

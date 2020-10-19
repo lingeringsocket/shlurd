@@ -79,7 +79,7 @@ class SprWordnetSenseAnalyzer(
     directObject : Option[SilReference],
     modifiers : Seq[SilVerbModifier]) : Boolean =
   {
-    val frameFlags = BitSet(sense.getVerbFrameIndices:_*)
+    val frameFlags = BitSet(sense.getVerbFrameIndices.toIndexedSeq:_*)
     val matched = SprWordnetScorer.matchAction(
       tongue, frameFlags, subject, directObject, modifiers)
     (matched > 0)

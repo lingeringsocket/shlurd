@@ -34,7 +34,7 @@ class SpcAssertionBinding(
 {
   def unifyReferences(
     ref1 : SilReference,
-    ref2 : SilReference)
+    ref2 : SilReference) : Unit =
   {
     tupleN((ref1, ref2)) match {
       case (ar1 : SilAnnotatedReference, ar2 : SilAnnotatedReference) => {
@@ -395,7 +395,7 @@ class SpcAssertionMapper(
   ) : (Boolean, Map[SilReference, SilReference]) =
   {
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
-    def unmatched() = tupleN((false, replacements))
+    def unmatched = tupleN((false, replacements))
     general match {
       // FIXME match on verb; e.g. "is" implies "is" and "becomes" implies "is",
       // but "is" may not imply "becomes"

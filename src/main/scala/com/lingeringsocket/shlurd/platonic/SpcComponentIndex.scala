@@ -20,7 +20,7 @@ import org.jgrapht._
 import org.jgrapht.event._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class SpcComponentIndex[KeyType, ComponentType](
   graph : ListenableGraph[SpcContainmentVertex, SpcComponentEdge],
@@ -32,7 +32,7 @@ class SpcComponentIndex[KeyType, ComponentType](
 
   init()
 
-  private def init()
+  private def init() : Unit =
   {
     graph.addGraphListener(this)
   }
@@ -57,30 +57,32 @@ class SpcComponentIndex[KeyType, ComponentType](
     Map(seq:_*)
   }
 
-  private def invalidateComponentMap(container : SpcContainmentVertex)
+  private def invalidateComponentMap(container : SpcContainmentVertex) : Unit =
   {
     map.remove(container)
   }
 
   override def vertexAdded(
-    event : GraphVertexChangeEvent[SpcContainmentVertex])
+    event : GraphVertexChangeEvent[SpcContainmentVertex]) : Unit =
   {
   }
 
   override def vertexRemoved(
-    event : GraphVertexChangeEvent[SpcContainmentVertex])
+    event : GraphVertexChangeEvent[SpcContainmentVertex]) : Unit =
   {
     invalidateComponentMap(event.getVertex)
   }
 
   override def edgeAdded(
-    event : GraphEdgeChangeEvent[SpcContainmentVertex, SpcComponentEdge])
+    event : GraphEdgeChangeEvent[SpcContainmentVertex, SpcComponentEdge]
+  ) : Unit =
   {
     invalidateComponentMap(event.getEdgeSource)
   }
 
   override def edgeRemoved(
-    event : GraphEdgeChangeEvent[SpcContainmentVertex, SpcComponentEdge])
+    event : GraphEdgeChangeEvent[SpcContainmentVertex, SpcComponentEdge]
+  ) : Unit =
   {
     invalidateComponentMap(event.getEdgeSource)
   }

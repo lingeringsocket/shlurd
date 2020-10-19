@@ -75,10 +75,21 @@ package object mind
       annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
     ) =
     {
-      new DefaultMap[SilReference, Set[EntityType]] with
+      new immutable.Map[SilReference, Set[EntityType]] with
           SmcRefMapFromAnnotation[EntityType]
       {
         override def getAnnotator = annotator
+
+        override def removed(key : SilReference) =
+        {
+          throw new RuntimeException("not supported")
+        }
+
+        override def updated[V1 >: Set[EntityType]](
+          key : SilReference, set : V1) =
+        {
+          throw new RuntimeException("not supported")
+        }
       }
     }
   }
@@ -87,7 +98,7 @@ package object mind
   {
     import SmcRefMap._
 
-    def newByValue[EntityType <: SmcEntity]() =
+    def newByValue[EntityType <: SmcEntity] =
     {
       new mutable.LinkedHashMap[SilReference, Set[EntityType]]
     }
@@ -100,7 +111,7 @@ package object mind
           SmcRefMapFromAnnotation[EntityType]
       {
         override def getAnnotator = annotator
-        override def +=(kv : (SilReference, Set[EntityType])) =
+        override def addOne(kv : (SilReference, Set[EntityType])) =
         {
           kv._1 match {
             case annotatedRef : SilAnnotatedReference => {
@@ -111,11 +122,11 @@ package object mind
           }
         }
 
-        override def -=(key : SilReference) =
+        override def subtractOne(key : SilReference) =
         {
           key match {
             case annotatedRef : SilAnnotatedReference => {
-              annotator.getNote(annotatedRef).removeEntities
+              annotator.getNote(annotatedRef).removeEntities()
               this
             }
             case _ => throw new IllegalArgumentException

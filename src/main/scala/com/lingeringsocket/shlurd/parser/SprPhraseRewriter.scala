@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.ilang._
 
 import SprUtils._
 
+import scala.collection._
+
 class SprPhraseRewriter(
   context : SprContext,
   val analyzer : SprSyntaxAnalyzer)
@@ -116,7 +118,7 @@ class SprPhraseRewriter(
         annotator.quotationRef(quotation.token)
       }
       case SipExpectedReference(SptNNE()) => {
-        createElidedReference()
+        createElidedReference
       }
       case SipExpectedReference(noun : SprSyntaxSimpleNoun) => {
         createNounReference(noun, DETERMINER_ABSENT)
@@ -151,7 +153,7 @@ class SprPhraseRewriter(
     }
   )
 
-  private def createElidedReference() =
+  private def createElidedReference =
   {
     // for an elided noun phrase, we make up a corresponding pronoun
     // reference and normalize it downstream with the correct

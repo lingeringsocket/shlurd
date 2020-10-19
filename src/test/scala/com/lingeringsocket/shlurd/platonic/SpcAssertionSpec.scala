@@ -161,7 +161,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify(input, "OK.")
     }
 
-    protected def defineToaster()
+    protected def defineToaster() : Unit =
     {
       verifyOK(fiatForm(formToaster))
       verifyOK(fiatToasterStates)
@@ -169,35 +169,35 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(abilityToasterCanCook)
     }
 
-    protected def defineSlice()
+    protected def defineSlice() : Unit =
     {
       verifyOK(fiatForm(formSlice))
       verifyOK(fiatSliceStates)
     }
 
-    protected def definePumpernickel()
+    protected def definePumpernickel() : Unit =
     {
       verifyOK(fiatForm(formPumpernickel, formSlice))
       verifyOK(fiatExistence(formPumpernickel))
       verifyOK(fiatState(formPumpernickel, stateCold))
     }
 
-    protected def defineRye()
+    protected def defineRye() : Unit =
     {
       verifyOK(fiatForm(formRye, formSlice))
       verifyOK(fiatExistence(formRye))
       verifyOK(fiatState(formRye, stateCold))
     }
 
-    protected def defineToasterSlice()
+    protected def defineToasterSlice() : Unit =
     {
       SpcPrimordial.initCosmos(cosmos)
       loadBeliefs("/ontologies/containment.txt")
 
-      defineToaster
-      defineSlice
-      definePumpernickel
-      defineRye
+      defineToaster()
+      defineSlice()
+      definePumpernickel()
+      defineRye()
 
       verifyOK(constraintToasterMustBeEmpty)
       verifyOK(constraintToasterMustBeToasting)
@@ -205,17 +205,17 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verifyOK(triggerToasterCompletion)
     }
 
-    protected def defineWallace()
+    protected def defineWallace() : Unit =
     {
       verifyOK(fiatWallace)
     }
 
-    protected def defineGromit()
+    protected def defineGromit() : Unit =
     {
       verifyOK(fiatGromit)
     }
 
-    protected def defineClock()
+    protected def defineClock() : Unit =
     {
       verifyOK(fiatForm("clock"))
       verifyOK(fiatExistence("clock"))
@@ -244,11 +244,11 @@ class SpcAssertionSpec extends SpcProcessingSpecification
         expected)
     }
 
-    protected def processWithClock(equivalenceGlow : String)
+    protected def processWithClock(equivalenceGlow : String) : Unit =
     {
-      defineToasterSlice
-      defineClock
-      defineWallace
+      defineToasterSlice()
+      defineClock()
+      defineWallace()
 
       verifyOK(equivalenceGlow)
 
@@ -351,8 +351,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "process without clock" in new AssertionContext
     {
-      defineToasterSlice
-      defineWallace
+      defineToasterSlice()
+      defineWallace()
 
       verifyOK(fiatState(formToaster, stateEmpty))
       verifyOK(abilityPersonCanPut)
@@ -369,9 +369,9 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "propagate errors upward" in  new AssertionContext
     {
-      defineToasterSlice
-      defineClock
-      defineWallace
+      defineToasterSlice()
+      defineClock()
+      defineWallace()
 
       verifyOK(fiatState(formToaster, stateEmpty))
 
@@ -381,8 +381,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "allow genitive property as subject" in new AssertionContext
     {
-      defineToasterSlice
-      defineWallace
+      defineToasterSlice()
+      defineWallace()
 
       verifyOK(fiatState(formToaster, stateEmpty))
       verifyOK(abilityPersonCanPut)
@@ -394,8 +394,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "prevent disabled actions" in new AssertionContext
     {
-      defineToasterSlice
-      defineWallace
+      defineToasterSlice()
+      defineWallace()
 
       // declare disability
       verifyOK(abilityPersonCannotPut)
@@ -406,7 +406,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "prevent invalid variables in assertions" in new AssertionContext
     {
-      defineToasterSlice
+      defineToasterSlice()
 
       // FIXME error should include the original belief
       verifyError(
@@ -452,8 +452,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "prevent invalid assertions" in new AssertionContext
     {
-      defineToasterSlice
-      defineClock
+      defineToasterSlice()
+      defineClock()
 
       verifyError(
         "before a person puts a slice into a toaster, " +
@@ -505,8 +505,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "prevent runaway triggers" in new AssertionContext
     {
-      defineToasterSlice
-      defineWallace
+      defineToasterSlice()
+      defineWallace()
 
       verifyOK(fiatForm("heel", "slice"))
       verifyOK("a slice's predecessor must be a slice")
@@ -524,7 +524,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "treat alternatives as successful" in new AssertionContext
     {
-      defineToaster
+      defineToaster()
 
       verifyOK(fiatForm("clock"))
       verifyOK(fiatExistence("clock"))
@@ -537,8 +537,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "handle conjunctive conditionals" in new AssertionContext
     {
-      defineToasterSlice
-      defineClock
+      defineToasterSlice()
+      defineClock()
 
       verifyOK(fiatState(formToaster, stateEmpty))
       verifyOK("when a clock ticks, and the toaster is toasting, "
@@ -553,9 +553,9 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "map genitives in equivalences" in new AssertionContext
     {
-      defineToasterSlice
-      defineWallace
-      defineGromit
+      defineToasterSlice()
+      defineWallace()
+      defineGromit()
       verifyOK("a slice's devourer must be a person")
       verifyOK("a slice may have a devourer")
       verifyOK("if a person eats a slice, " +
@@ -569,7 +569,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "support pronouns in assertions" in new AssertionContext
     {
-      defineToasterSlice
+      defineToasterSlice()
 
       verifyOK("if a slice explodes, then it becomes burnt")
       verifyOK("the rye explodes")
@@ -578,7 +578,7 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "preserve singletons in equivalences" in new AssertionContext
     {
-      defineToasterSlice
+      defineToasterSlice()
 
       verifyOK(fiatForm("receptacle"))
       verifyOK(fiatForm("freezer", "receptacle"))
@@ -601,8 +601,8 @@ class SpcAssertionSpec extends SpcProcessingSpecification
 
     "distinguish one vs some" in new AssertionContext
     {
-      defineToasterSlice
-      defineWallace
+      defineToasterSlice()
+      defineWallace()
       verifyOK("a person may be hungry or satisfied")
       verifyOK("after a person eats a slice, " +
         "the person becomes satisfied; also the slices become toasted")

@@ -56,7 +56,7 @@ object SprPhrasePatternMatcher
     }).intern
   }
 
-  private def computeAllowableLabels() : Set[String] =
+  private def computeAllowableLabels : Set[String] =
   {
     SprPennTreebankLabels.getAll.map(foldLabel) ++
       Set(ZERO_OR_ONE, ZERO_OR_MORE, ONE_OR_MORE)
@@ -71,19 +71,19 @@ class SprPhrasePatternMatcher
 
   val root = new PatternVertex
 
-  def getMaxPatternLength() : Int =
+  def getMaxPatternLength : Int =
   {
     root.getMaxPatternLength
   }
 
   def matchPatterns(
-    stream : Stream[Set[SprSyntaxTree]], minLength : Int = 1)
+    stream : LazyList[Set[SprSyntaxTree]], minLength : Int = 1)
       : Map[Int, Set[SprSyntaxTree]] =
   {
     root.matchPatterns(stream, minLength)
   }
 
-  def addRule(syntaxTree : SprSyntaxTree)
+  def addRule(syntaxTree : SprSyntaxTree) : Unit =
   {
     val children = syntaxTree.children.map(
       child => foldAndValidateLabel(child.label))
@@ -100,7 +100,7 @@ class SprPhrasePatternMatcher
       List.empty)
   }
 
-  def addRule(label : String, pattern : Seq[String])
+  def addRule(label : String, pattern : Seq[String]) : Unit =
   {
     root.addFoldedPattern(
       pattern.map(foldAndValidateLabel),
@@ -108,7 +108,7 @@ class SprPhrasePatternMatcher
       List.empty)
   }
 
-  def addSymbol(symbol : String, patterns : Seq[Seq[String]])
+  def addSymbol(symbol : String, patterns : Seq[Seq[String]]) : Unit =
   {
     symbols.put(symbol, patterns.map(_.map(foldAndValidateLabel)))
   }
@@ -161,13 +161,13 @@ class SprPhrasePatternMatcher
 
     private var maxPatternLength : Int = 1
 
-    def getMaxPatternLength() : Int =
+    def getMaxPatternLength : Int =
     {
       maxPatternLength
     }
 
     def matchPatterns(
-      stream : Stream[Set[SprSyntaxTree]], minLength : Int = 1)
+      stream : LazyList[Set[SprSyntaxTree]], minLength : Int = 1)
         : Map[Int, Set[SprSyntaxTree]] =
     {
       if (maxPatternLength >= minLength) {
@@ -185,7 +185,7 @@ class SprPhrasePatternMatcher
     }
 
     private def matchPatternsSub(
-      stream : Stream[Set[SprSyntaxTree]],
+      stream : LazyList[Set[SprSyntaxTree]],
       map : mutable.Map[Int, mutable.Set[SprSyntaxTree]],
       prefix : Seq[SprSyntaxTree],
       minLength : Int,
@@ -239,7 +239,7 @@ class SprPhrasePatternMatcher
       pattern : Seq[String],
       label : String,
       cycleLinkerStack : List[CycleLinker],
-      cycle : Boolean = false)
+      cycle : Boolean = false) : Unit =
     {
       val iOptional = pattern.indexWhere(
         Seq(ZERO_OR_ONE, ZERO_OR_MORE).contains)
@@ -272,7 +272,7 @@ class SprPhrasePatternMatcher
       pattern : Seq[String],
       label : String,
       cycleLinkerStack : List[CycleLinker],
-      cycle : Boolean)
+      cycle : Boolean) : Unit =
     {
       if (pattern.isEmpty) {
         assert(cycleLinkerStack.isEmpty)
@@ -356,7 +356,7 @@ class SprPhrasePatternMatcher
       }
     }
 
-    private[parser] def dump(pw : PrintWriter, level : Int)
+    private[parser] def dump(pw : PrintWriter, level : Int) : Unit =
     {
       val prefix = "  " * level
       pw.print(prefix)

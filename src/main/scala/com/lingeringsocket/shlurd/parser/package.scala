@@ -23,26 +23,4 @@ package object parser
   {
     tongue.predefLemma(predef)
   }
-
-  private val NEED_CONVERSION = "Convert predef toLemma before comparing"
-
-  def == (s : String, w : SprPredef) =
-  {
-    throw new IllegalArgumentException(NEED_CONVERSION)
-  }
-
-  def == (w : SprPredef, s : String) =
-  {
-    throw new IllegalArgumentException(NEED_CONVERSION)
-  }
-
-  def != (s : String, w : SprPredef) =
-  {
-    throw new IllegalArgumentException(NEED_CONVERSION)
-  }
-
-  def != (w : SprPredef, s : String) =
-  {
-    throw new IllegalArgumentException(NEED_CONVERSION)
-  }
 }

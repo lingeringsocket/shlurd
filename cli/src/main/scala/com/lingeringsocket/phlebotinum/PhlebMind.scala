@@ -26,9 +26,9 @@ class PhlebClock
 {
   private var timestamp = SpcTimestamp.ZERO
 
-  def getTimestamp() = timestamp
+  def getTimestamp = timestamp
 
-  def startNewTurn()
+  def startNewTurn() : Unit =
   {
     timestamp = timestamp.successor
   }
@@ -239,7 +239,7 @@ class PhlebMind(
   }
 
   private def considerPreferredSynonym(
-    ideals : Iterable[SpcIdeal], noun : SilWord)
+    ideals : Iterable[SpcIdeal], noun : SilWord) : Unit =
   {
     ideals.foreach(ideal => {
       if (!preferredSynonyms.contains(ideal)) {

@@ -45,7 +45,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       result must be equalTo "OK."
     }
 
-    protected def expectUninterpretable(input : String)
+    protected def expectUninterpretable(input : String) : Unit =
     {
       val result = processBelief(
         input,
@@ -232,7 +232,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
 
       addBelief("there is a door")
       addBelief("the door's creator is Sirius")
-      cosmos.validateBeliefs
+      cosmos.validateBeliefs()
       val door = expectNamedForm("door")
       val anonDoor = expectFormSingleton(door)
       val sirius = expectProperName("Sirius")
@@ -250,7 +250,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("a duck is a kind of bird")
       addBelief("a mallard is a kind of duck")
       addBelief("a canvasback is a kind of duck")
-      cosmos.validateBeliefs
+      cosmos.validateBeliefs()
       val dog = expectNamedForm("dog")
       val canine = expectNamedForm("canine")
       val bird = expectNamedForm("bird")
@@ -300,7 +300,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("a penguin is a kind of bird")
       addBelief("a penguin's mood must be happy")
       addBelief("Penelope is a penguin")
-      cosmos.validateBeliefs
+      cosmos.validateBeliefs()
 
       val bird = resolveForm("bird")
       val duck = resolveForm("duck")
@@ -471,7 +471,7 @@ class SpcCosmosSpec extends SpcProcessingSpecification
       addBelief("Lonnie is Jonathan's dad")
       addBelief("Lonnie is Joyce's ex-husband")
       addBelief("Joyce is Lonnie's ex-wife")
-      cosmos.validateBeliefs
+      cosmos.validateBeliefs()
 
       val person = expectNamedForm("person")
       expectNamedRole(person, "mom")

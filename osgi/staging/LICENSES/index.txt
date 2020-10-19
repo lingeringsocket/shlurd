@@ -10,5 +10,5 @@ scala, extjwnl: 3-clause BSD
 WordNet:  2-clause BSD
 
 Note that extjwnl (including all WordNet 3.1 data) is repackaged into
-shlurd-extjwnl-bundle_2.12.assembly.jar in order for resources to
+shlurd-extjwnl-bundle_2.13.assembly.jar in order for resources to
 be correctly loadable via OSGi.

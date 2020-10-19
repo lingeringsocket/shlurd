@@ -1333,7 +1333,7 @@ class SpcComprehensionSpec extends SpcResponseSpecification
     processBelief(
       "Alex's spc-pronoun-list is \"they, them, their, themself\"")
 
-    mind.startConversation
+    mind.startConversation()
     process("does Pat like zirself", "No, ze does not like zirself.")
     process("who is Pat", "Ze is Chris' fan.")
     process("who likes zir", "Chris likes zir.")

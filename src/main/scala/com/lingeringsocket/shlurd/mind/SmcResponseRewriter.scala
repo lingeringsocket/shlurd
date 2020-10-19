@@ -14,11 +14,11 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.mind
 
-import scala.collection._
-
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
+
+import scala.collection._
 
 class SmcResponseRewriter[
   EntityType<:SmcEntity,
@@ -46,7 +46,7 @@ class SmcResponseRewriter[
     SilUtils.collectReferences(ref).foreach(subRef => {
       subRef matchPartial {
         case ar : SilAnnotatedReference => {
-          annotator.getNote(ar).markQueryAnswer
+          annotator.getNote(ar).markQueryAnswer()
         }
       }
     })
@@ -350,11 +350,11 @@ class SmcResponseRewriter[
   class AmbiguousRefDetector(
     val refMap : SmcMutableRefMap[EntityType])
   {
-    val replacedRefMap = SmcMutableRefMap.newByValue[EntityType]()
+    val replacedRefMap = SmcMutableRefMap.newByValue[EntityType]
     val ambiguousRefs =
       new mutable.LinkedHashSet[SilReference]
 
-    def analyze(originalRef : SilReference)
+    def analyze(originalRef : SilReference) : Unit =
     {
       val newEntitySet = refMap(originalRef)
       mind.thirdPersonDeictic(

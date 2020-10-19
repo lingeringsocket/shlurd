@@ -22,6 +22,8 @@ import com.ibm.icu.text._
 
 import java.util._
 
+import scala.collection._
+
 import SnlSpanishLemmas._
 
 object SnlSpanishSentenceBundle
@@ -47,7 +49,7 @@ class SnlSpanishSentenceBundle(
     // For Spanish, we only use dative to represent indirect object
     // pronouns, and those always go before the verb (and before
     // the direct object if any)
-    compose((Seq(subject) ++ dative ++ middle ++ modifiers):_*)
+    compose((Seq(subject) ++ dative ++ middle ++ modifiers).toSeq:_*)
   }
 
   override protected def composePredicateQuestion(

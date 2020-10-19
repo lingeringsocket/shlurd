@@ -18,7 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 // FIXME add role alias support
 class SpcCreed(

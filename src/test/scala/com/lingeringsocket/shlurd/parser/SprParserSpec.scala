@@ -129,7 +129,7 @@ class SprParserSpec extends Specification
 
   private implicit val tongue = context.getTongue
 
-  private def createWordLabeler() =
+  private def createWordLabeler =
   {
     val wordLabeler = SnlUtils.defaultWordLabeler
     wordLabeler.addRule(SprWordRule(

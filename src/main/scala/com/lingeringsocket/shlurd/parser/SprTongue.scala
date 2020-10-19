@@ -18,7 +18,7 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import net.sf.extjwnl.data._
 
@@ -191,7 +191,7 @@ abstract class SprTongue(wordnet : SprWordnet)
     extends SprSynthesizer with SilTongue
 {
   lazy val relLemmaMap = Map(SprRelationshipPredef.enumeration.map(
-    rel => tupleN((getRelPredefLemma(rel), rel))):_*)
+    rel => tupleN((getRelPredefLemma(rel), rel))).toSeq:_*)
 
   private lazy val phrasePatternMatcher = loadMatcher
 
@@ -301,7 +301,7 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def isProper(lemma : String) : Boolean
 
-  def getPronounLemmas() : Set[String]
+  def getPronounLemmas : Set[String]
 
   def isPronounWord(lemma : String) : Boolean =
   {
@@ -454,7 +454,7 @@ abstract class SprTongue(wordnet : SprWordnet)
     }
   }
 
-  private def loadMatcher() =
+  private def loadMatcher =
   {
     val matcher = new SprPhrasePatternMatcher
     val source = ResourceUtils.getResourceSource(
@@ -463,9 +463,9 @@ abstract class SprTongue(wordnet : SprWordnet)
     matcher
   }
 
-  protected def getMatcherResource() : String
+  protected def getMatcherResource : String
 
-  def getPhrasePatternMatcher() : SprPhrasePatternMatcher =
+  def getPhrasePatternMatcher : SprPhrasePatternMatcher =
     phrasePatternMatcher
 
   override def isGenitiveVariableLemma(lemma : String) : Boolean =

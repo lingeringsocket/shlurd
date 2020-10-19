@@ -37,7 +37,7 @@ class SnlSentenceTranslatorSpec extends Specification
   {
     val querier = new SilPhraseQuerier
     def neutralize = querier.queryMatcher {
-      case pr : SilPronounReference => pr.clearWord
+      case pr : SilPronounReference => pr.clearWord()
     }
     querier.query(neutralize, sentence)
     sentence
@@ -79,7 +79,7 @@ class SnlSentenceTranslatorSpec extends Specification
 
 object LimitedKoreanTongue extends SnlEnglishTongue(SnlUtils.defaultWordnet)
 {
-  override def newSentenceBundle() =
+  override def newSentenceBundle =
     new SnlKoreanSentenceBundle() {
       override def inflectNoun(
         lemma : String, count : SilCount,

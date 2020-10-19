@@ -75,14 +75,14 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       result must be equalTo "OK."
     }
 
-    protected def definePowerpuffs()
+    protected def definePowerpuffs() : Unit =
     {
       addBelief("a powerpuff is a kind of girl")
       addBelief("Bubblossom is a powerpuff")
       addBelief("Buttercup is a powerpuff")
     }
 
-    protected def defineProperties()
+    protected def defineProperties() : Unit =
     {
       addBelief("a girl's demeanor may be feisty or demure")
       addBelief("a powerpuff's demeanor must be feisty")
@@ -91,46 +91,46 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       addBelief("Buttercup is asleep")
     }
 
-    protected def defineProfessor()
+    protected def defineProfessor() : Unit =
     {
       addBelief("a professor is a kind of boy")
       addBelief("Utonium is a professor")
     }
 
-    protected def defineTeacher()
+    protected def defineTeacher() : Unit =
     {
       addBelief("a powerpuff's teacher must be a professor")
       addBelief("a powerpuff must have a teacher")
     }
 
-    protected def defineInverse()
+    protected def defineInverse() : Unit =
     {
       addBelief("a professor's student must be a powerpuff")
       addBelief("if a professor is a powerpuff's teacher, then equivalently " +
         "the powerpuff is the professor's student")
     }
 
-    protected def defineStudents()
+    protected def defineStudents() : Unit =
     {
       addBelief("Utonium is Bubblossom's teacher")
       addBelief("Utonium is Buttercup's teacher")
     }
 
-    protected def defineSynonyms()
+    protected def defineSynonyms() : Unit =
     {
       addBelief("a heroine is the same as a powerpuff")
     }
 
-    protected def renderToString() : String =
+    protected def renderToString : String =
     {
       val visualizer = new SpcGraphVisualizer(cosmos.getGraph, options)
       visualizer.renderToString()
     }
 
-    protected def displayGraph()
+    protected def displayGraph() : Unit =
     {
       val visualizer = new SpcGraphVisualizer(cosmos.getGraph, options)
-      visualizer.display
+      visualizer.display()
     }
   }
 
@@ -139,7 +139,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
     "visualize ideals" in new VisualizationContext(
       SpcGraphVisualizationOptions(includeIdeals = true)
     ) {
-      definePowerpuffs
+      definePowerpuffs()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
@@ -152,8 +152,8 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
     "visualize synonyms" in new VisualizationContext(
       SpcGraphVisualizationOptions(includeIdeals = true, includeSynonyms = true)
     ) {
-      definePowerpuffs
-      defineSynonyms
+      definePowerpuffs()
+      defineSynonyms()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
@@ -168,7 +168,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
     "visualize taxonomy" in new VisualizationContext(
       SpcGraphVisualizationOptions(includeTaxonomy = true)
     ) {
-      definePowerpuffs
+      definePowerpuffs()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
@@ -182,7 +182,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
     "visualize entities" in new VisualizationContext(
       SpcGraphVisualizationOptions(includeEntities = true)
     ) {
-      definePowerpuffs
+      definePowerpuffs()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
@@ -195,7 +195,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
     "visualize entities with realizations" in new VisualizationContext(
       SpcGraphVisualizationOptions(includeRealizations = true)
     ) {
-      definePowerpuffs
+      definePowerpuffs()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
@@ -212,7 +212,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       VisualizationContext(SpcGraphVisualizationOptions(
         includeRealizations = true, includeTaxonomy = true)
     ) {
-      definePowerpuffs
+      definePowerpuffs()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
@@ -231,9 +231,9 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       SpcGraphVisualizationOptions(
         includeFormAssocs = true)
     ) {
-      definePowerpuffs
-      defineProfessor
-      defineTeacher
+      definePowerpuffs()
+      defineProfessor()
+      defineTeacher()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
@@ -248,9 +248,9 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
       SpcGraphVisualizationOptions(
         includeTaxonomy = true, includeFormAssocs = true)
     ) {
-      definePowerpuffs
-      defineProfessor
-      defineTeacher
+      definePowerpuffs()
+      defineProfessor()
+      defineTeacher()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
@@ -272,18 +272,18 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         includeFormAssocs = true,
         includeInverses = true)
     ) {
-      defineTeacher
-      defineInverse
+      defineTeacher()
+      defineInverse()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
-          1 ${roleAttributes("teacher")};
-          2 ${roleAttributes("student")};
-          3 ${formAttributes("powerpuff")};
+          1 ${formAttributes("powerpuff")};
+          2 ${roleAttributes("teacher")};
+          3 ${roleAttributes("student")};
           4 ${formAttributes("professor")};
-          1->2 $inverseAssocAttributes;
-          3->1 ${formAssocAttributes("1")};
-          4->2 ${formAssocAttributes("0..*")};
+          1->2 ${formAssocAttributes("1")};
+          3->2 $inverseAssocAttributes;
+          4->3 ${formAssocAttributes("0..*")};
         }
       """).ignoreSpace
     }
@@ -295,8 +295,8 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         includeProperties = true,
         includeEntityProperties = true)
     ) {
-      definePowerpuffs
-      defineProperties
+      definePowerpuffs()
+      defineProperties()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=BT;
@@ -323,7 +323,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         entityFilter = (entity => (entity.name == "Buttercup"))
       )
     ) {
-      definePowerpuffs
+      definePowerpuffs()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
@@ -338,7 +338,7 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         idealFilter = (ideal => (ideal.name == "girl"))
       )
     ) {
-      definePowerpuffs
+      definePowerpuffs()
       renderToString must beEqualTo(s"""
         strict digraph G {
           rankdir=LR;
@@ -355,10 +355,10 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         includeEntityAssocs = true)
     ) {
       SpcPrimordial.initCosmos(cosmos)
-      definePowerpuffs
-      defineProfessor
-      defineTeacher
-      defineStudents
+      definePowerpuffs()
+      defineProfessor()
+      defineTeacher()
+      defineStudents()
       val renderedString = renderToString
       renderedString must beEqualTo(s"""
         strict digraph G {
@@ -395,10 +395,10 @@ class SpcGraphVisualizerSpec extends SpcProcessingSpecification
         idealFilter = (_ => true))
     ) {
       SpcPrimordial.initCosmos(cosmos)
-      definePowerpuffs
-      defineProfessor
-      defineTeacher
-      defineStudents
+      definePowerpuffs()
+      defineProfessor()
+      defineTeacher()
+      defineStudents()
       val renderedString = renderToString
       renderedString.size must be equalTo 13853
     }

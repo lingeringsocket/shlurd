@@ -64,8 +64,8 @@ class SpcTriggerSpec extends SpcResponseSpecification
   {
     loadBeliefs("/ontologies/person.txt")
     loadBeliefs("/ontologies/containment.txt")
-    mind.startConversation
-    mind.startNarrative
+    mind.startConversation()
+    mind.startNarrative()
     processBelief("Curtis is a man")
     processBelief("Andrea is a woman")
     processBelief("Thomas is a man")
@@ -173,7 +173,7 @@ class SpcTriggerSpec extends SpcResponseSpecification
   "detect causality violations" in new ResponderContext(
     ACCEPT_NEW_BELIEFS)
   {
-    mind.startNarrative
+    mind.startNarrative()
     processBelief("yesterday, Harvey was Elwood's pet")
     processExceptionExpected(
       "this afternoon, Elwood had no pets",

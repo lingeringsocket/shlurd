@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.ilang
 
+import scala.collection._
 import scala.util._
 
 case class SilConjoining(
@@ -22,7 +23,7 @@ case class SilConjoining(
   pos : Int,
   total : Int)
 {
-  def isLast() = ((pos + 1) == total)
+  def isLast = ((pos + 1) == total)
 }
 
 object SilConjoining
@@ -123,7 +124,7 @@ abstract class SilSentenceBundle
   def actionVerb(
     verb : SilWord) : String
 
-  def existsVerb() : SilWord
+  def existsVerb : SilWord
 
   def changeStateVerb(
     state : SilWord, changeVerb : Option[SilWord]) : String
@@ -230,18 +231,18 @@ abstract class SilSentenceBundle
 
   def respondNonexistent(entity : SilWord) : String
 
-  def respondCannotUnderstand() : String
+  def respondCannotUnderstand : String
 
-  def respondDontKnow() : String
+  def respondDontKnow : String
 
   def respondNotUnderstood(
     tam : SilTam, predicate : String, errorPhrase : String) : String
 
   def respondUnable(action : String) : String
 
-  def respondIrrelevant() : String
+  def respondIrrelevant : String
 
-  def respondTriggerLimit() : String
+  def respondTriggerLimit : String
 
   def predicateUnrecognizedSubject(
     tam : SilTam, complement : String, verbSeq : Seq[String],
@@ -254,9 +255,9 @@ abstract class SilSentenceBundle
     question : Option[SilQuestion],
     isRelationship : Boolean) : String
 
-  def respondCompliance() : String
+  def respondCompliance : String
 
-  def respondNoncommittal() : String
+  def respondNoncommittal : String
 
   def respondToAssumption(
     assumption : SilAssumption, truth : Boolean,
@@ -308,19 +309,19 @@ abstract class SilSentenceBundle
 
   def ordinalValue(s : String) : Try[Int] = Try(s.toInt)
 
-  def unknownSentence() : String
+  def unknownSentence : String
 
-  def unknownReference() : String
+  def unknownReference : String
 
-  def unknownState() : String
+  def unknownState : String
 
-  def unknownVerbModifier() : String
+  def unknownVerbModifier : String
 
-  def unknownPredicateStatement() : String
+  def unknownPredicateStatement : String
 
-  def unknownPredicateCommand() : String
+  def unknownPredicateCommand : String
 
-  def unknownPredicateQuestion() : String
+  def unknownPredicateQuestion : String
 
   // FIXME move to SilTongue
   def getObjectPosition(refOpt : Option[SilReference]) : SilObjectPosition =

@@ -25,39 +25,39 @@ trait PhlebTerminal
 
   private var debugging = false
 
-  def toggleDebug()
+  def toggleDebug() : Unit =
   {
     debugging = !debugging
   }
 
-  def isDebugging() : Boolean = debugging
+  def isDebugging : Boolean = debugging
 
-  def emitPrompt()
+  def emitPrompt() : Unit =
   {
     logger.trace("PROMPT")
   }
 
-  def emitDebug(msg : String)
+  def emitDebug(msg : String) : Unit =
   {
     if (debugging) {
       emitDirect(msg)
     }
   }
 
-  def emitTrace(msg : String)
+  def emitTrace(msg : String) : Unit =
   {
     logger.trace(msg)
     emitDebug(msg)
   }
 
-  def emitDirect(msg : String)
+  def emitDirect(msg : String) : Unit
 
-  def emitControl(msg : String)
+  def emitControl(msg : String) : Unit =
   {
     logger.trace(s"CONTROL $msg")
   }
 
-  def emitNarrative(msg : String)
+  def emitNarrative(msg : String) : Unit =
   {
     if (!msg.isEmpty) {
       val formatted = s"NARRATIVE $msg"
@@ -65,30 +65,30 @@ trait PhlebTerminal
     }
   }
 
-  def emitVisualization(visualizer : SpcGraphVisualizer)
+  def emitVisualization(visualizer : SpcGraphVisualizer) : Unit =
   {
-    visualizer.display
+    visualizer.display()
   }
 
-  def readCommand() : Option[String] =
+  def readCommand : Option[String] =
   {
     val result = readInput
     result.foreach(cmd => logger.debug(s"INPUT $cmd"))
     result
   }
 
-  def readInput() : Option[String] =
+  def readInput : Option[String] =
   {
     None
   }
 
-  def getDefaultSaveFile() : String =
+  def getDefaultSaveFile : String =
   {
     "phlebotinum-save.zip"
   }
 
   // override this to return empty string if no init save desired
-  def getInitSaveFile() : String =
+  def getInitSaveFile : String =
   {
     "init-save.zip"
   }
@@ -100,30 +100,30 @@ class PhlebConsole extends PhlebTerminal
   val reader = LineReaderBuilder.builder.terminal(jlineTerminal).build
   val out = jlineTerminal.writer
 
-  override def emitPrompt()
+  override def emitPrompt() : Unit =
   {
-    super.emitPrompt
+    super.emitPrompt()
   }
 
-  override def emitControl(msg : String)
+  override def emitControl(msg : String) : Unit =
   {
     super.emitControl(msg)
     out.println(s"[phlebotinum] $msg")
     jlineTerminal.flush
   }
 
-  override def emitNarrative(msg : String)
+  override def emitNarrative(msg : String) : Unit =
   {
     super.emitNarrative(msg)
     emitDirect(msg)
   }
 
-  override def emitDirect(msg : String)
+  override def emitDirect(msg : String) : Unit =
   {
     out.println(msg)
   }
 
-  override def readInput() : Option[String] =
+  override def readInput : Option[String] =
   {
     try {
       // FIXME what is going on with empty input?

@@ -16,9 +16,11 @@ package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd._
 
+import scala.collection._
+
 trait SilTongue extends SilGenderAnalyzer
 {
-  def newSentenceBundle() : SilSentenceBundle
+  def newSentenceBundle : SilSentenceBundle
 
   def getPronounUsage(
     inflection : SilInflection,

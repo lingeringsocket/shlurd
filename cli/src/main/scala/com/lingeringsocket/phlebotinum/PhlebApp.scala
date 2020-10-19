@@ -22,7 +22,7 @@ object PhlebApp extends App
 {
   run()
 
-  private def run()
+  private def run() : Unit =
   {
     // preload
     PhlebBaseline.frozenCosmos
@@ -33,7 +33,7 @@ object PhlebApp extends App
       val url = new URL(args.head)
       val terminal = new PhlebConsole
       {
-        override def getInitSaveFile() =
+        override def getInitSaveFile =
         {
           if (url.getProtocol == "file") {
             ""

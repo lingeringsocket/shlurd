@@ -22,7 +22,7 @@ import SprPennTreebankLabels._
 import net.sf.extjwnl.data._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object SprContext
 {
@@ -92,7 +92,7 @@ class SprWordnetLabeler(
 
   override def getTongue = tongue
 
-  def addRule(rule : SprWordRule)
+  def addRule(rule : SprWordRule) : Unit =
   {
     rules.put(rule.phrase.map(_.toLowerCase), rule)
     if (rule.phrase.size > maxPrefix) {

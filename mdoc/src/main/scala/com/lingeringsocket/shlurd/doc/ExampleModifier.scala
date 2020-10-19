@@ -54,7 +54,7 @@ object ExampleModifier
     code : Input,
     startLine : Int,
     actual : String,
-    expected : String)
+    expected : String) : Unit =
   {
     val position = Position.Range(code, startLine, 0, startLine, 0)
     reporter.error(
@@ -80,7 +80,7 @@ object CosmosModifier
 
 object PhlebTrc
 {
-  def run(terminal : PhlebTerminal)
+  def run(terminal : PhlebTerminal) : Unit =
   {
     // preload
     PhlebBaseline.frozenCosmos
@@ -101,13 +101,13 @@ abstract class PhlebAbstractProcessor extends StringModifier
     expectOutput : Boolean
   ) extends PhlebTerminal
   {
-    private val script = Source.fromString(code.text).getLines.zipWithIndex
+    private val script = Source.fromString(code.text).getLines().zipWithIndex
 
     private var lastLineNo = 0
 
     private var skipIntro = (info == "skipIntro")
 
-    override def emitDirect(msg : String)
+    override def emitDirect(msg : String) : Unit =
     {
       if (!skipIntro && expectOutput && !msg.isEmpty) {
         nextScriptLine match {
@@ -123,13 +123,13 @@ abstract class PhlebAbstractProcessor extends StringModifier
       }
     }
 
-    override def emitNarrative(msg : String)
+    override def emitNarrative(msg : String) : Unit =
     {
       super.emitNarrative(msg)
       emitDirect(msg)
     }
 
-    override def emitVisualization(visualizer : SpcGraphVisualizer)
+    override def emitVisualization(visualizer : SpcGraphVisualizer) : Unit =
     {
       if (info.isEmpty) {
         reportErrorLocation(
@@ -139,7 +139,7 @@ abstract class PhlebAbstractProcessor extends StringModifier
       visualizer.renderToImageFile(out.toFile)
     }
 
-    override def readInput() : Option[String] =
+    override def readInput : Option[String] =
     {
       skipIntro = false
       nextScriptLine match {
@@ -154,16 +154,16 @@ abstract class PhlebAbstractProcessor extends StringModifier
       }
     }
 
-    override def getInitSaveFile() : String =
+    override def getInitSaveFile : String =
     {
       "trc/init-save.zip"
     }
 
-    def nextScriptLine() : Option[(String, Int)] = {
+    def nextScriptLine : Option[(String, Int)] = {
       if (!script.hasNext) {
         None
       } else {
-        val s = script.next
+        val s = script.next()
         lastLineNo = s._2
         if (SprParser.isIgnorableLine(s._1)) {
           nextScriptLine
@@ -178,7 +178,7 @@ abstract class PhlebAbstractProcessor extends StringModifier
     info : String,
     code : Input,
     reporter : Reporter,
-    expectOutput : Boolean)
+    expectOutput : Boolean) : Unit =
   {
     val terminal = new DocTerminal(info, code, reporter, expectOutput)
     PhlebTrc.run(terminal)
@@ -230,7 +230,7 @@ class ConversationProcessor extends StringModifier
     code : Input,
     reporter : Reporter) : String =
   {
-    val lines = Source.fromString(code.text).getLines.toSeq.zipWithIndex
+    val lines = Source.fromString(code.text).getLines().toSeq.zipWithIndex
 
     val wordnet = info.contains("wordnet")
     val cosmos = {
@@ -275,7 +275,7 @@ class ConversationProcessor extends StringModifier
         ACCEPT_NEW_BELIEFS
       }
     }
-    mind.startConversation
+    mind.startConversation()
     val responder =
       SpcResponder(
         mind,
@@ -303,7 +303,7 @@ class ConversationProcessor extends StringModifier
       case ((input, inputIndex), expectedLines) => {
         val parseResult = responder.newParser(input).parseOne
         val response = responder.process(parseResult, input)
-        val responseLines = Source.fromString(response).getLines.toSeq.filterNot(
+        val responseLines = Source.fromString(response).getLines().toSeq.filterNot(
           SprParser.isIgnorableLine)
         val iMismatch = range(0 until expectedLines.size).find(index => {
           if (index < responseLines.size) {
@@ -340,7 +340,7 @@ class ConversationProcessor extends StringModifier
         s"$prompt$input\n\n$response"
       }
     }.mkString("\n\n")
-    mind.stopConversation
+    mind.stopConversation()
     s"```\n$result\n```"
   }
 
@@ -416,16 +416,17 @@ class BeliefRenderer extends StringModifier
         responder)
 
     val source = Source.fromString(input)
-    val lines = source.getLines
+    val lines = source.getLines()
     val lineBuf = new mutable.ArrayBuffer[String]
     val ok = responder.sentencePrinter.sb.respondCompliance
     var offset = 0
     var total = 0
 
-    def flush() {
+    def flush() : Unit =
+    {
       if (lineBuf.nonEmpty) {
         val beliefs = lineBuf.mkString("\n")
-        lineBuf.clear
+        lineBuf.clear()
         val results = responder.newParser(beliefs).parseAll
         results.foreach {
           case pr @ SprParseResult(sentence, _, start, end) => {
@@ -451,7 +452,7 @@ class BeliefRenderer extends StringModifier
     }
 
     while (lines.hasNext) {
-      val line = lines.next
+      val line = lines.next()
       total += (line.size + 1)
       if (SprParser.isIgnorableLine(line)) {
         flush()
@@ -461,7 +462,7 @@ class BeliefRenderer extends StringModifier
     }
     flush()
 
-    cosmos.validateBeliefs
+    cosmos.validateBeliefs()
 
     val genderMagic = info.contains("genderMagic")
     val visualizer = new SpcGraphVisualizer(
@@ -509,7 +510,7 @@ object MdocMain extends App
   ExampleModifier.dir = Settings.fromCliArgs(
     args.toList, Settings.default(AbsolutePath(PathIO.workingDirectory.toNIO))
   ) match {
-    case Configured.Ok(setting) => Some(setting.out.toNIO)
+    case Configured.Ok(setting) => setting.out.headOption.map(_.toNIO)
     case _ => None
   }
   val settings = mdoc.MainSettings()

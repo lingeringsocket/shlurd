@@ -34,22 +34,22 @@ class TransientGraphDelegator[V, E] extends AbstractGraph[V, E]
 {
   @transient private var delegate : Graph[V, E] = null
 
-  def getDelegate() =
+  def getDelegate =
   {
     delegate
   }
 
-  def setDelegate(graph : Graph[V, E])
+  def setDelegate(graph : Graph[V, E]) : Unit =
   {
     delegate = graph
   }
 
-  override def getVertexSupplier() =
+  override def getVertexSupplier =
   {
     delegate.getVertexSupplier
   }
 
-  override def getEdgeSupplier() =
+  override def getEdgeSupplier =
   {
     delegate.getEdgeSupplier
   }
@@ -74,7 +74,7 @@ class TransientGraphDelegator[V, E] extends AbstractGraph[V, E]
     delegate.addEdge(sourceVertex, targetVertex, e)
   }
 
-  override def addVertex() =
+  override def addVertex =
   {
     delegate.addVertex
   }
@@ -99,7 +99,7 @@ class TransientGraphDelegator[V, E] extends AbstractGraph[V, E]
     delegate.degreeOf(v)
   }
 
-  override def edgeSet() =
+  override def edgeSet =
   {
     delegate.edgeSet
   }
@@ -144,12 +144,12 @@ class TransientGraphDelegator[V, E] extends AbstractGraph[V, E]
     delegate.removeVertex(v)
   }
 
-  override def toString() =
+  override def toString =
   {
     delegate.toString
   }
 
-  override def vertexSet() =
+  override def vertexSet =
   {
     delegate.vertexSet
   }
@@ -169,12 +169,12 @@ class TransientGraphDelegator[V, E] extends AbstractGraph[V, E]
     delegate.getEdgeWeight(e)
   }
 
-  override def setEdgeWeight(e : E, weight : Double)
+  override def setEdgeWeight(e : E, weight : Double) : Unit =
   {
     delegate.setEdgeWeight(e, weight)
   }
 
-  override def getType() =
+  override def getType =
   {
     delegate.getType
   }

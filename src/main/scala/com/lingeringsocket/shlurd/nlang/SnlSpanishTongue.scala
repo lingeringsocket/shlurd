@@ -21,7 +21,7 @@ import com.lingeringsocket.shlurd.parser._
 import net.sf.extjwnl.data._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import SprPennTreebankLabels._
 
@@ -564,7 +564,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     new SilSentencePrinter(this, genderAnalyzer)
   }
 
-  def newSentenceBundle() : SilSentenceBundle =
+  def newSentenceBundle : SilSentenceBundle =
   {
     new SnlSpanishSentenceBundle(this)
   }
@@ -970,7 +970,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     proper.contains(lemma)
   }
 
-  override def getPronounLemmas() : Set[String] =
+  override def getPronounLemmas : Set[String] =
   {
     pronounLemmas
   }
@@ -1550,7 +1550,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def getNoneCount : SilCount = COUNT_SINGULAR
 
-  override protected def getMatcherResource() =
+  override protected def getMatcherResource =
     "/spanish/phrase-structure.txt"
 
   override def getEffectivePerson(pr : SilPronounReference) : SilPerson =

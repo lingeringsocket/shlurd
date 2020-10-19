@@ -102,7 +102,7 @@ class SmcTimeline[
 
   private val intervalToEntry = new mutable.HashMap[SmcTimeInterval, EntryType]
 
-  private[mind] def generateSequence() =
+  private[mind] def generateSequence =
   {
     val timestamp = sequence
     sequence += 1
@@ -169,21 +169,21 @@ class SmcTimeline[
     actualEntry
   }
 
-  def getEntries() : Seq[EntryType] =
+  def getEntries : Seq[EntryType] =
     intervals.intervals.map(intervalToEntry).toSeq
 
   private def applyCausality(
     newIntervals : IntervalSeq[SmcTimePoint],
     eventInterval : SmcTimeInterval,
     eventCosmos : CosmosType,
-    cosmosMutator : CosmosMutator)
+    cosmosMutator : CosmosMutator) : Unit =
   {
     val iter = newIntervals.intervalIterator
-    while (iter.next != eventInterval) {}
+    while (iter.next() != eventInterval) {}
     var prevCosmos = eventCosmos
     val updated = new mutable.HashMap[SmcTimeInterval, EntryType]
     while (iter.hasNext) {
-      val interval = iter.next
+      val interval = iter.next()
       val entry = intervalToEntry(interval)
       val updatedCosmos = cosmosMutator(entry.predicate, prevCosmos)
       updated.put(

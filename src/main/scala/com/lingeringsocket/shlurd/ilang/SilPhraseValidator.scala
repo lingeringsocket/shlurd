@@ -38,7 +38,7 @@ object SilPhraseValidator
     }
   }
 
-  def validatePhrase(phrase : SilPhrase)
+  def validatePhrase(phrase : SilPhrase) : Unit =
   {
     assert(SilPhraseValidator.isValid(phrase))
   }

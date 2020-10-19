@@ -44,20 +44,20 @@ class FixpointStrategy(s : Strategy) extends Strategy("fixpoint")
 
 class TraceEmitter(logger : Logger) extends Emitter
 {
-  override def emit(any : Any)
+  override def emit(any : Any) : Unit =
   {
     logger.trace(any.toString)
   }
 
-  override def emitln()
+  override def emitln() : Unit =
   {
     logger.trace("\n")
   }
 
-  override def emitln(any : Any)
+  override def emitln(any : Any) : Unit =
   {
     emit(any)
-    emitln
+    emitln()
   }
 }
 
@@ -73,7 +73,7 @@ object SilPhraseRewriter
     annotator : SilAnnotator,
     oldPhrase : SilPhrase,
     newPhrase : SilTransformedPhrase,
-    copyOptions : SilPhraseCopyOptions = SilPhraseCopyOptions())
+    copyOptions : SilPhraseCopyOptions = SilPhraseCopyOptions()) : Unit =
   {
     oldPhrase.maybeSyntaxTree.foreach(syntaxTree => {
       newPhrase.rememberSyntaxTree(syntaxTree)
@@ -119,7 +119,7 @@ class SilPhraseQuerier
   def query(
     rule : SilPhraseQuery,
     phrase : SilPhrase,
-    options : SilRewriteOptions = SilRewriteOptions())
+    options : SilRewriteOptions = SilRewriteOptions()) : Unit =
   {
     assert(!options.repeat)
     val ruleStrategy = Rewriter.query[SilPhrase](rule)

@@ -24,16 +24,16 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
 {
   trait AnalysisContext extends ProcessingContext
   {
-    protected def startSequence()
+    protected def startSequence() : Unit =
     {
-      mind.startConversation
-      mind.startNarrative
+      mind.startConversation()
+      mind.startNarrative()
     }
 
-    protected def stopSequence()
+    protected def stopSequence() : Unit =
     {
-      mind.stopNarrative
-      mind.stopConversation
+      mind.stopNarrative()
+      mind.stopConversation()
     }
 
     protected def analyze(
@@ -42,7 +42,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
     {
       val isolated = !mind.isConversing
       if (isolated) {
-        startSequence
+        startSequence()
       }
       process(
         input,
@@ -53,7 +53,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       val result = mind.getConversation.getUtterances.
         dropRight(1).last.refMap
       if (isolated) {
-        stopSequence
+        stopSequence()
       }
       result.map {
         case (ref, entities) => {
@@ -74,7 +74,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       analyze(input, "OK.")
     }
 
-    protected def okExecutor() =
+    protected def okExecutor =
     {
       new SmcExecutor[SpcEntity] {
         override def executeAction(
@@ -164,7 +164,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
           tupleN((REF_SUBJECT, Set()))
       )
 
-      startSequence
+      startSequence()
       analyze(s"$boris is happy") must be equalTo Map(
         borisRef -> tupleN((REF_SUBJECT, borisSet))
       )
@@ -176,9 +176,9 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
         heRef -> tupleN((REF_SUBJECT, borisSet)),
         himselfRef -> tupleN((REF_DIRECT_OBJECT, borisSet))
       )
-      stopSequence
+      stopSequence()
 
-      startSequence
+      startSequence()
       analyze(s"$boris is happy") must be equalTo Map(
         borisRef -> tupleN((REF_SUBJECT, borisSet))
       )
@@ -190,9 +190,9 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
         ivanRef -> tupleN((REF_SUBJECT, ivanSet)),
         himselfRef -> tupleN((REF_DIRECT_OBJECT, ivanSet))
       )
-      stopSequence
+      stopSequence()
 
-      startSequence
+      startSequence()
       analyze(s"$boris is happy") must be equalTo Map(
         borisRef -> tupleN((REF_SUBJECT, borisSet))
       )
@@ -202,7 +202,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
         annotator.genitiveRef(heRef, ownerRef) ->
           tupleN((REF_DIRECT_OBJECT, Set()))
       )
-      stopSequence
+      stopSequence()
     }
   }
 }

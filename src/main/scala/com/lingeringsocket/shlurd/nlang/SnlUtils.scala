@@ -42,7 +42,7 @@ object SnlUtils
     LABEL_LPAREN, LABEL_RPAREN, LABEL_LCURLY, LABEL_RCURLY
   )
 
-  def debug(s : String, context : SprContext = SnlUtils.defaultContext)
+  def debug(s : String, context : SprContext = SnlUtils.defaultContext) : Unit =
   {
     SprParser.tokenize(s).foreach(sentence => {
       val parser = SprParser.prepareOne(
@@ -53,13 +53,13 @@ object SnlUtils
 
   def readLexicon(resource : String) : Set[String] =
   {
-    val words = ResourceUtils.getResourceSource(resource).getLines
+    val words = ResourceUtils.getResourceSource(resource).getLines()
     Set(words.toSeq:_*)
   }
 
   def readGenderMap(resource : String) : Map[String, String] =
   {
-    val entries = ResourceUtils.getResourceSource(resource).getLines
+    val entries = ResourceUtils.getResourceSource(resource).getLines()
     entries.toSeq.map(entry => {
       val i = entry.lastIndexOf(' ')
       val (word, noisy) = entry.splitAt(i)

@@ -14,7 +14,7 @@ scalacOptions := Common.scalacOptions
 
 maxErrors := Common.maxErrors
 
-traceLevel := Common.traceLevel
+traceLevel.withRank(KeyRanks.Invisible) := Common.traceLevel
 
 resolvers ++= Common.resolvers
 
@@ -22,8 +22,8 @@ libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
   "org.jline" % "jline" % "3.11.0",
-  "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.2.1",
-  "com.twitter" %% "chill" % "0.9.3",
+  "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.3.0",
+  "com.twitter" %% "chill" % "0.9.5",
   "com.ibm.icu" % "icu4j" % "64.2",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models",
@@ -50,6 +50,7 @@ if (sys.env.get("xonly").getOrElse("true") != "false") {
 
 initialCommands := """
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.platonic._

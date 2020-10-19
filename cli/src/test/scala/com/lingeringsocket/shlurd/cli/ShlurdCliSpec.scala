@@ -120,12 +120,12 @@ class ShlurdCliSpec extends Specification
     "interpret script" in
     {
       val script = Source.fromFile(
-        ResourceUtils.getResourceFile("/expect/cli-script.txt")).getLines
-      def nextScriptLine() : Option[String] = {
+        ResourceUtils.getResourceFile("/expect/cli-script.txt")).getLines()
+      def nextScriptLine : Option[String] = {
         if (!script.hasNext) {
           None
         } else {
-          val s = script.next
+          val s = script.next()
           if (s.isEmpty) {
             nextScriptLine
           } else {
@@ -134,15 +134,15 @@ class ShlurdCliSpec extends Specification
         }
       }
       val terminal = new ShlurdCliTerminal {
-        override def emitPrompt()
+        override def emitPrompt : Unit =
         {
         }
 
-        override def emitControl(msg : String)
+        override def emitControl(msg : String) : Unit =
         {
         }
 
-        override def emitResponse(msg : String)
+        override def emitResponse(msg : String) : Unit =
         {
           if (!msg.isEmpty) {
             nextScriptLine match {
@@ -156,7 +156,7 @@ class ShlurdCliSpec extends Specification
           }
         }
 
-        override def readCommand() : Option[String] =
+        override def readCommand : Option[String] =
         {
           nextScriptLine match {
             case Some(cmd) => {
@@ -172,10 +172,10 @@ class ShlurdCliSpec extends Specification
       // we no longer automatically load associations, so do it here
       // so we can keep the corresponding tests working
       new SpcWordnetOntology(
-        SnlPrincetonWordnet, mind.getCosmos).loadAllAssociations
+        SnlPrincetonWordnet, mind.getCosmos).loadAllAssociations()
 
       val shell = new ShlurdCliShell(mind, terminal)
-      shell.run
+      shell.run()
       nextScriptLine must beEmpty
     }
   }

@@ -172,10 +172,10 @@ class ZooCosmos(
       }
       if (context == REF_ADPOSITION_OBJ) {
         Success(SprUtils.orderedSet(
-          locations.filterKeys(matchName(_, name)).values))
+          locations.view.filterKeys(matchName(_, name)).values))
       } else {
-        if (animals.filterKeys(matchName(_, lemma)).isEmpty) {
-          val namedPeople = people.filterKeys(
+        if (animals.view.filterKeys(matchName(_, lemma)).isEmpty) {
+          val namedPeople = people.view.filterKeys(
             _.toLowerCase == lemma.toLowerCase).values
           if (namedPeople.isEmpty) {
             fail("I don't know about this name: " + name)
@@ -184,7 +184,7 @@ class ZooCosmos(
           }
         } else {
           Success(
-            animals.filterKeys(matchName(_, name)).
+            animals.view.filterKeys(matchName(_, name)).
               values.filter(asleep.contains).toSet)
         }
       }

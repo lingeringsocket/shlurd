@@ -281,7 +281,7 @@ trait SprAbstractSyntaxTree extends SilSyntaxTree
   {
     parens(
       string(label) <> nest(
-        line <> vsep(children.map(_.toDoc).to[immutable.Seq], space)))
+        line <> vsep(children.map(_.toDoc).to(immutable.Seq), space)))
   }
 
   def containsIncomingDependency(dep : String) : Boolean =
@@ -315,8 +315,8 @@ trait SprAbstractSyntaxTree extends SilSyntaxTree
     } else {
       // FIXME uniform handling for all clitics and punctuation
       children.map(_.toWordString).mkString(" ").
-        replaceAllLiterally(" 's", "'s").
-        replaceAllLiterally(" ,", ",")
+        replace(" 's", "'s").
+        replace(" ,", ",")
     }
   }
 }

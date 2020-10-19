@@ -67,7 +67,7 @@ class SmcPredicateEvaluator[
     debugPushLevel()
     // we are re-resolving with reification this time, so
     // already cached references might be stale
-    resultCollector.refMap.clear
+    resultCollector.refMap.clear()
     val resolutionResult =
       resolveReferences(predicate, resultCollector, true, true)
     if (resolutionResult.isFailure) {
@@ -188,7 +188,7 @@ class SmcPredicateEvaluator[
         }
       }
       case ap : SilActionPredicate => {
-        // FIXME we should be calling updateNarrative() here too for
+        // FIXME we should be calling updateNarrative here too for
         // indicative statements
         evaluateActionPredicate(ap, resultCollector)
       }
@@ -360,7 +360,7 @@ class SmcPredicateEvaluator[
 
     def resolveOne(
       ref : SilReference,
-      context : SilReferenceContext)
+      context : SilReferenceContext) : Unit =
     {
       val cached = resultCollector.refMap.contains(ref)
       val result = resolveReference(ref, context, resultCollector)
@@ -405,7 +405,8 @@ class SmcPredicateEvaluator[
 
     val annotator = resultCollector.annotator
     var currentPredicate : Option[SilPredicate] = None
-    def updateContext(ref : SilReference, context : SilReferenceContext)
+    def updateContext(
+      ref : SilReference, context : SilReferenceContext) : Unit =
     {
       ref matchPartial {
         case ar : SilAnnotatedReference => {
@@ -1122,7 +1123,8 @@ class SmcPredicateEvaluator[
               resultCollector,
               specifiedState,
               Some(entities),
-              evaluator
+              evaluator,
+              DETERMINER_ABSENT
             )
           }
           case _ => {
@@ -1422,7 +1424,7 @@ class SmcPredicateEvaluator[
     resultCollector : ResultCollectorType,
     evaluator : EntityPredicateEvaluator) : Try[Trilean] =
   {
-    debugger.slowIncrement
+    debugger.slowIncrement()
     val result = evaluator(entity, entityRef)
     result.foreach(resultCollector.saveEntityResult(entity, _))
     result

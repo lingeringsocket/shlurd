@@ -27,7 +27,7 @@ import java.io._
 import scala.io._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class SnlSpanishConjugationSpec extends Specification
 {
@@ -40,7 +40,7 @@ class SnlSpanishConjugationSpec extends Specification
     line.split("\",\"").map(_.stripPrefix("\"").stripSuffix("\""))
   }
 
-  private def readDatabaseLines() : Seq[String] =
+  private def readDatabaseLines : Seq[String] =
   {
     // To run tests which use this, get the data from
     // https://github.com/ghidinelli/fred-jehle-spanish-verbs
@@ -49,7 +49,7 @@ class SnlSpanishConjugationSpec extends Specification
     val file = new File(
       "/home/jvs/open/fred-jehle-spanish-verbs/jehle_verb_database.csv")
     val source = Source.fromFile(file)
-    val lines = source.getLines.toSeq
+    val lines = source.getLines().toSeq
     val header = lines.head
     val headings = parseLine(header)
     headings must be equalTo Seq(
@@ -266,7 +266,7 @@ class SnlSpanishConjugationSpec extends Specification
       var count = 0
       data.foreach(line => {
         println(line)
-        println
+        println()
         val row = parseLine(line)
         row.size must be equalTo 17
         val infinitive = parseInfinitive(row(0))
@@ -295,7 +295,7 @@ class SnlSpanishConjugationSpec extends Specification
           forms.zip(coords).foreach {
             case (form, coord) => {
               println("COORD = " + coord)
-              println
+              println()
               if ((coord.person == PERSON_FIRST) &&
                 (tam.mood == MOOD_IMPERATIVE))
               {

@@ -536,7 +536,7 @@ class SmcPhraseScope[
                 tupleN((None, false))
               }
             }
-            def failMisqualified() = {
+            def failMisqualified = {
               getMind.getCosmos.fail(
                 ShlurdExceptionCode.MisqualifiedNoun,
                 getSentencePrinter.sb.respondMisqualifiedNoun(

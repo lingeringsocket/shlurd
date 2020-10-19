@@ -62,7 +62,7 @@ object PhlebShell
 
   def run(
     resourcePrefix : String,
-    terminal : PhlebTerminal = new PhlebConsole)
+    terminal : PhlebTerminal = new PhlebConsole) : Unit =
   {
     val newShell = this.synchronized {
       val suffix = terminal.getInitSaveFile
@@ -79,7 +79,7 @@ object PhlebShell
   }
 
   def run(
-    firstShell : PhlebShell)
+    firstShell : PhlebShell) : Unit =
   {
     var shellOpt : Option[PhlebShell] = Some(firstShell)
     while (shellOpt.nonEmpty) {
@@ -220,7 +220,7 @@ object PhlebShell
     executor : PhlebExecutor,
     snapshot : PhlebSnapshot,
     entity : SpcEntity,
-    resourceName : String)
+    resourceName : String) : Unit =
   {
     accessEntityMind(snapshot, entity) match {
       case Some(mind) => {
@@ -241,7 +241,7 @@ object PhlebShell
   private[phlebotinum] def executePerception(
     snapshot : PhlebSnapshot,
     perceiver : SpcEntity,
-    perceived : Set[SpcEntity])
+    perceived : Set[SpcEntity]) : Unit =
   {
     val entityMind = accessEntityMind(snapshot, perceiver)
     val noumenalMind = snapshot.getNoumenalMind
@@ -509,11 +509,11 @@ class PhlebShell(
               case "save" => {
                 val file = getSaveFile(quotation)
                 terminal.emitControl(s"Saving $file...")
-                phenomenalMind.stopConversation
+                phenomenalMind.stopConversation()
                 serializer.saveSnapshot(
                   snapshot,
                   file)
-                phenomenalMind.startConversation
+                phenomenalMind.startConversation()
                 ok
               }
               case "restore" => {
@@ -535,7 +535,7 @@ class PhlebShell(
         case _ => {
           lemma match {
             case "debug" => {
-              terminal.toggleDebug
+              terminal.toggleDebug()
               ok
             }
             case "visualize" => {
@@ -561,7 +561,7 @@ class PhlebShell(
               targetEntityOpt match {
                 case Some(targetEntity) => {
                   if (targetEntity == playerEntity) {
-                    talkToSelf
+                    talkToSelf()
                   } else {
                     accessEntityMind(targetEntity) match {
                       case Some(entityMind) => {
@@ -593,7 +593,7 @@ class PhlebShell(
 
     private def visualize(
       graph : SpcGraph,
-      targetEntitySetOpt : Option[Set[SpcEntity]])
+      targetEntitySetOpt : Option[Set[SpcEntity]]) : Unit =
     {
       val visualizer = new SpcGraphVisualizer(
         graph,
@@ -675,7 +675,7 @@ class PhlebShell(
       rememberConversation = true),
     executor, playerToInterpreter)
 
-  private def newFiatUpdater() : PhlebResponder =
+  private def newFiatUpdater : PhlebResponder =
   {
     // preserve conversation scope
     val fiatMind = phenomenalMind.spawn(noumenalCosmos)
@@ -687,7 +687,7 @@ class PhlebShell(
       executor, playerToInterpreter)
   }
 
-  def defer(deferred : Deferred)
+  def defer(deferred : Deferred) : Unit =
   {
     deferredQueue += deferred
   }
@@ -714,11 +714,11 @@ class PhlebShell(
     PhlebShell.accessEntityMind(snapshot, entity)
   }
 
-  private def processDeferred()
+  private def processDeferred() : Unit =
   {
     var first = true
     while (deferredQueue.nonEmpty) {
-      deferredQueue.dequeue match {
+      deferredQueue.dequeue() match {
         case DeferredTermination() => {
           logger.trace("TERMINATE")
           terminated = true
@@ -760,7 +760,7 @@ class PhlebShell(
         }
         case DeferredCommand(input) => {
           terminal.emitTrace(s"COMMAND $input")
-          updatePerception
+          updatePerception()
           val expanded = preprocess(input)
           if (expanded != input) {
             terminal.emitTrace(s"EXPANDED $expanded")
@@ -787,7 +787,7 @@ class PhlebShell(
                 if (complaints.nonEmpty ||
                   sentence.tam.isImperative)
                 {
-                  deferredQueue.clear
+                  deferredQueue.clear()
                 }
                 complaints.foreach(complaint => {
                   output = ""
@@ -828,7 +828,7 @@ class PhlebShell(
         }
         case DeferredCommunication(speaker, listener, quotation) => {
           if (speaker == listener) {
-            talkToSelf
+            talkToSelf()
           } else {
             val annotator = SpcAnnotator()
             val listenerReference = conversationalReference(
@@ -869,13 +869,13 @@ class PhlebShell(
         }
       }
     }
-    updatePerception
+    updatePerception()
   }
 
   private[phlebotinum] def deferPerception(
     snapshot : PhlebSnapshot,
     perceiver : SpcEntity,
-    perceived : Set[SpcEntity])
+    perceived : Set[SpcEntity]) : Unit =
   {
     deferredPerception += tupleN((
       snapshot,
@@ -884,7 +884,7 @@ class PhlebShell(
     ))
   }
 
-  private def updatePerception()
+  private def updatePerception() : Unit =
   {
     deferredPerception.foreach {
       case (snapshot, perceiver, perceived) => {
@@ -892,7 +892,7 @@ class PhlebShell(
           snapshot, perceiver, perceived)
       }
     }
-    deferredPerception.clear
+    deferredPerception.clear()
   }
 
   private def conversationalReference(
@@ -915,7 +915,7 @@ class PhlebShell(
     })
   }
 
-  private def talkToSelf()
+  private def talkToSelf() : Unit =
   {
     defer(DeferredReport(
       "Only crazy people talk to themselves."))
@@ -961,9 +961,9 @@ class PhlebShell(
     }
   }
 
-  def run() : Option[PhlebShell] =
+  def run : Option[PhlebShell] =
   {
-    phenomenalMind.startConversation
+    phenomenalMind.startConversation()
     var exit = false
     terminal.emitNarrative("")
 
@@ -972,19 +972,19 @@ class PhlebShell(
       defer(DeferredDirective("the game-turn initializes"))
     }
     defer(DeferredDirective("the game-turn reloads"))
-    processDeferred
+    processDeferred()
 
     terminal.emitNarrative("")
 
     while (!exit) {
-      noumenalMind.clock.startNewTurn
+      noumenalMind.clock.startNewTurn()
       gameTurnTimestamp = noumenalMind.clock.getTimestamp
 
-      terminal.emitPrompt
+      terminal.emitPrompt()
       terminal.readCommand match {
         case Some(input) => {
           defer(DeferredDirective("the game-turn advances"))
-          processDeferred
+          processDeferred()
           listenerMind match {
             case Some((targetEntity, targetMind)) => {
               defer(DeferredUtterance(targetEntity, targetMind, input))
@@ -993,7 +993,7 @@ class PhlebShell(
               defer(DeferredCommand(input))
             }
           }
-          processDeferred
+          processDeferred()
           terminal.emitNarrative("")
         }
         case _ => {
@@ -1087,7 +1087,7 @@ abstract class PhlebExecutor(terminal : PhlebTerminal, noumenalMind : PhlebMind)
     snapshot : PhlebSnapshot,
     ap : SilActionPredicate,
     refMap : SpcRefMap,
-    subjectEntityOpt : Option[SpcEntity])
+    subjectEntityOpt : Option[SpcEntity]) : Unit =
   {
     subjectEntityOpt match {
       case Some(subjectEntity) => {

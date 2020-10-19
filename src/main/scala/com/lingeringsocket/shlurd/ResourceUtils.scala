@@ -24,7 +24,7 @@ object ResourceUtils
   class AugmentableLoader(parent : ClassLoader) extends URLClassLoader(
     Array[URL](), parent)
   {
-    def addUrl(url : URL)
+    def addUrl(url : URL) : Unit =
     {
       super.addURL(url)
     }
@@ -32,7 +32,7 @@ object ResourceUtils
 
   private val loader = new AugmentableLoader(getClass.getClassLoader)
 
-  def addUrl(url : URL)
+  def addUrl(url : URL) : Unit =
   {
     loader.addUrl(url)
   }
@@ -50,5 +50,5 @@ object ResourceUtils
     Source.fromInputStream(getResourceStream(resource))
 
   def readResource(resource : String) : String =
-    getResourceSource(resource).getLines.mkString("\n")
+    getResourceSource(resource).getLines().mkString("\n")
 }

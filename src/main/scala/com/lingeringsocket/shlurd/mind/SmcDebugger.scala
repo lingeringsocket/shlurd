@@ -26,66 +26,66 @@ class SmcDebugger(val logger : Logger)
 
   private var slowCount = 0
 
-  private def freshContext() =
+  private def freshContext =
   {
-    Stream.cons(
+    LazyList.cons(
       "GLOBAL",
-      contextInitializer.map(_()).toStream)
+      contextInitializer.map(_()).to(LazyList))
   }
 
-  def setContext(newContext : => String)
+  def setContext(newContext : => String) : Unit =
   {
     context = freshContext
     contextInitializer = Some(() => newContext)
     slowCount = 0
   }
 
-  @inline final def debug(msg : => String)
+  @inline final def debug(msg : => String) : Unit =
   {
     val prefix = "*" * debugDepth
     logger.debug(prefix + msg)
   }
 
-  def warn(msg : String)
+  def warn(msg : String) : Unit =
   {
     val prefix = "*" * debugDepth
     logger.warn(prefix + s"$msg in ${context.last}")
   }
 
-  @inline final def trace(msg : => String)
+  @inline final def trace(msg : => String) : Unit =
   {
     val prefix = "*" * debugDepth
     logger.trace(prefix + msg)
   }
 
-  final def trace(msg : => String, t : Throwable)
+  final def trace(msg : => String, t : Throwable) : Unit =
   {
     val prefix = "*" * debugDepth
     logger.trace(prefix + msg, t)
   }
 
-  final def debug(msg : => String, t : Throwable)
+  final def debug(msg : => String, t : Throwable) : Unit =
   {
     val prefix = "*" * debugDepth
     logger.debug(prefix + msg, t)
   }
 
-  @inline final def pushLevel()
+  @inline final def pushLevel() : Unit =
   {
     debugDepth += 1
   }
 
-  @inline final def popLevel()
+  @inline final def popLevel() : Unit =
   {
     debugDepth -= 1
   }
 
-  @inline final def isTraceEnabled() : Boolean =
+  @inline final def isTraceEnabled : Boolean =
   {
     logger.isTraceEnabled
   }
 
-  def slowIncrement()
+  def slowIncrement() : Unit =
   {
     slowCount += 1
     if (slowCount == 1000) {
@@ -104,42 +104,42 @@ abstract class SmcDebuggable(protected val debugger : SmcDebugger)
     }
   }
 
-  @inline protected final def debug(msg : => String)
+  @inline protected final def debug(msg : => String) : Unit =
   {
     debuggerOpt.foreach(_.debug(msg))
   }
 
-  @inline protected final def trace(msg : => String)
+  @inline protected final def trace(msg : => String) : Unit =
   {
     debuggerOpt.foreach(_.trace(msg))
   }
 
-  protected final def warn(msg : => String)
+  protected final def warn(msg : => String) : Unit =
   {
     debugger.warn(msg)
   }
 
-  protected final def debug(msg : => String, t : Throwable)
+  protected final def debug(msg : => String, t : Throwable) : Unit =
   {
     debuggerOpt.foreach(_.debug(msg, t))
   }
 
-  protected final def trace(msg : => String, t : Throwable)
+  protected final def trace(msg : => String, t : Throwable) : Unit =
   {
     debuggerOpt.foreach(_.trace(msg, t))
   }
 
-  @inline protected final def debugPushLevel()
+  @inline protected final def debugPushLevel() : Unit =
   {
-    debuggerOpt.foreach(_.pushLevel)
+    debuggerOpt.foreach(_.pushLevel())
   }
 
-  @inline protected final def debugPopLevel()
+  @inline protected final def debugPopLevel() : Unit =
   {
-    debuggerOpt.foreach(_.popLevel)
+    debuggerOpt.foreach(_.popLevel())
   }
 
-  @inline protected final def isTraceEnabled() : Boolean =
+  @inline protected final def isTraceEnabled : Boolean =
   {
     debugger.isTraceEnabled
   }

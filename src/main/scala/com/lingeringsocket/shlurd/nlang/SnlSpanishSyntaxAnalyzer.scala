@@ -18,6 +18,8 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
+import scala.collection._
+
 import SnlSpanishLemmas._
 
 class SnlSpanishSyntaxAnalyzer(

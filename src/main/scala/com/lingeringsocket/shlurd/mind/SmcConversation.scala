@@ -44,23 +44,23 @@ class SmcConversation[EntityType <: SmcEntity]
     speakerName : String,
     sentence : SilSentence,
     text : String,
-    refMap : SmcRefMap[EntityType] = Map.empty)
+    refMap : SmcRefMap[EntityType] = Map.empty) : Unit =
   {
     utterances += SpeakerUtterance(
       speakerName, sentence, text,
       freezeRefMap(refMap))
   }
 
-  def updateSentenceAnalysis(refMap : SmcRefMap[EntityType])
+  def updateSentenceAnalysis(refMap : SmcRefMap[EntityType]) : Unit =
   {
     val last = utterances.last
-    utterances.reduceToSize(utterances.size - 1)
+    utterances.remove(utterances.size - 1)
     utterances += SpeakerUtterance(
       last.speakerName, last.sentence, last.text,
       freezeRefMap(refMap))
   }
 
-  def getUtterances() : Seq[UtteranceType] = utterances
+  def getUtterances : Seq[UtteranceType] = utterances
 
   private def freezeRefMap(
     refMap : SmcRefMap[EntityType]) =

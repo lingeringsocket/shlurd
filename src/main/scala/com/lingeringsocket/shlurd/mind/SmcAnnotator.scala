@@ -36,15 +36,15 @@ class SmcRefNote[EntityType<:SmcEntity](
 
   def isQueryAnswer = isAnswer
 
-  def markQueryAnswer()
+  def markQueryAnswer() : Unit =
   {
     isAnswer = true
   }
 
-  def getEntities() : Option[Set[EntityType]] =
+  def getEntities : Option[Set[EntityType]] =
     indirectEntities.flatMap(_.entities)
 
-  def setEntities(newEntities : Set[EntityType])
+  def setEntities(newEntities : Set[EntityType]) : Unit =
   {
     indirectEntities match {
       case Some(ie) => {
@@ -56,14 +56,14 @@ class SmcRefNote[EntityType<:SmcEntity](
     }
   }
 
-  def removeEntities()
+  def removeEntities() : Unit =
   {
     indirectEntities.foreach(ie => {
       ie.entities = None
     })
   }
 
-  def unifyReferences(otherNote : SmcRefNote[EntityType])
+  def unifyReferences(otherNote : SmcRefNote[EntityType]) : Unit =
   {
     otherNote.indirectEntities match {
       case Some(ie) if (!ie.entities.isDefined) => {
@@ -94,7 +94,7 @@ class SmcRefNote[EntityType<:SmcEntity](
   }
 
   override def mergeFrom(
-    oldNote : SilAbstractRefNote)
+    oldNote : SilAbstractRefNote) : Unit =
   {
     super.mergeFrom(oldNote)
     oldNote matchPartial {
@@ -131,7 +131,7 @@ object SmcAnnotator
     annotator : SmcAnnotator[EntityType, NoteType],
     ref1 : SilAnnotatedReference,
     ref2 : SilAnnotatedReference
-  )
+  ) : Unit =
   {
     assert(ref1.getAnnotator == annotator)
     assert(ref2.getAnnotator == annotator)

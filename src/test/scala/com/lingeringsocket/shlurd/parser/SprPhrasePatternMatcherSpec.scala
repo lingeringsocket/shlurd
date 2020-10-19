@@ -65,7 +65,7 @@ class SprPhrasePatternMatcherSpec extends Specification
     protected def matchPatterns(
       seq : Seq[Set[SprSyntaxTree]], start : Int = 0) =
     {
-      matcher.matchPatterns(seq.drop(start).toStream)
+      matcher.matchPatterns(seq.drop(start).to(LazyList))
     }
   }
 

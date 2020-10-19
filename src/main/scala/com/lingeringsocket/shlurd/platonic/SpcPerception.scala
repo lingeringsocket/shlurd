@@ -19,7 +19,7 @@ import com.lingeringsocket.shlurd._
 import org.jgrapht._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object SpcTimestamp
 {
@@ -28,7 +28,7 @@ object SpcTimestamp
 
 case class SpcTimestamp(when : Long)
 {
-  def successor() = SpcTimestamp(when + 1)
+  def successor = SpcTimestamp(when + 1)
 
   def isBefore(another : SpcTimestamp) : Boolean =
   {
@@ -56,7 +56,8 @@ class SpcPerception(
 
   private def phenomenalGraph = phenomenalCosmos.getModifiableGraph
 
-  private def touchTimestamp(entity : SpcEntity, timestamp : SpcTimestamp)
+  private def touchTimestamp(
+    entity : SpcEntity, timestamp : SpcTimestamp) : Unit =
   {
     val entityPerception =
       timestampMap.get(entity).map(_.copy(latest = timestamp)).getOrElse(
@@ -64,7 +65,7 @@ class SpcPerception(
     timestampMap.put(entity, entityPerception)
   }
 
-  def perceiveEntity(entity : SpcEntity, timestamp : SpcTimestamp)
+  def perceiveEntity(entity : SpcEntity, timestamp : SpcTimestamp) : Unit =
   {
     assert(noumenalGraph.entitySynonyms.containsVertex(entity))
 
@@ -80,7 +81,8 @@ class SpcPerception(
         noumenalCosmos.getIdGenerator.get))
   }
 
-  def perceiveEntityAssociations(entity : SpcEntity, timestamp : SpcTimestamp)
+  def perceiveEntityAssociations(
+    entity : SpcEntity, timestamp : SpcTimestamp) : Unit =
   {
     perceiveEntity(entity, timestamp)
 
@@ -113,7 +115,8 @@ class SpcPerception(
     })
   }
 
-  def perceiveEntityProperties(entity : SpcEntity, timestamp : SpcTimestamp)
+  def perceiveEntityProperties(
+    entity : SpcEntity, timestamp : SpcTimestamp) : Unit =
   {
     perceiveEntity(entity, timestamp)
 

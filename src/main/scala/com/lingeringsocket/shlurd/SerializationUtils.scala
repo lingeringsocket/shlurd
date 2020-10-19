@@ -18,7 +18,7 @@ import java.io._
 
 object SerializationUtils
 {
-  def serialize[T](obj : T, file : File)
+  def serialize[T](obj : T, file : File) : Unit =
   {
     val fileOut = new FileOutputStream(file)
     try {

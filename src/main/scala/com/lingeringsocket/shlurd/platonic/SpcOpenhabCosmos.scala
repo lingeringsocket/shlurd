@@ -19,20 +19,16 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util._
 import scala.io._
 
 import spire.math._
 
-class GroupMap extends mutable.LinkedHashMap[String, mutable.Set[String]]
-    with mutable.MultiMap[String, String]
-{
-  override protected def makeSet = new mutable.LinkedHashSet[String]
-}
-
 object SpcOpenhabCosmos
 {
+  type GroupMap = mutable.MultiDict[String, String]
+
   val locationFormName = "location"
 
   val presenceFormName = "presence"
@@ -41,10 +37,11 @@ object SpcOpenhabCosmos
 
   val roomLemma = "room"
 }
+import SpcOpenhabCosmos._
 
 abstract class SpcOpenhabCosmos(
   graph : SpcGraph = SpcGraph(),
-  val groupMap : GroupMap = new GroupMap,
+  val groupMap : GroupMap = mutable.MultiDict(),
   val roomyRooms : mutable.Set[String] = new mutable.LinkedHashSet[String],
   forkLevel : Int = 0,
   pool : SpcCosmicPool = new SpcCosmicPool
@@ -75,7 +72,7 @@ abstract class SpcOpenhabCosmos(
     forked
   }
 
-  override def asUnmodifiable() : SpcOpenhabCosmos =
+  override def asUnmodifiable : SpcOpenhabCosmos =
   {
     val frozen = new SpcOpenhabDerivedCosmos(this, getGraph, forkLevel)
     frozen.meta.afterFork(meta)
@@ -102,7 +99,7 @@ abstract class SpcOpenhabCosmos(
         Set(lemma)
       }
     }
-    val rewrittenQualifiers = ((qualifiers - roomLemma) ++ rewrittenLemma)
+    val rewrittenQualifiers = ((qualifiers.toSet - roomLemma) ++ rewrittenLemma)
     context match {
       case REF_ADPOSITION_OBJ => {
         val result = super.resolveQualifiedNoun(
@@ -129,7 +126,7 @@ abstract class SpcOpenhabCosmos(
       }
       case _ => {
         val result = super.resolveQualifiedNoun(
-          lemma, context, (qualifiers - roomLemma))
+          lemma, context, (qualifiers.toSet - roomLemma))
         if (result.isFailure) {
           val any = super.resolveQualifiedNoun(
             locationFormName, context, rewrittenLemma)
@@ -166,7 +163,7 @@ abstract class SpcOpenhabCosmos(
       : Option[SpcEntity] =
   {
     groupMap.get(entity.name) match {
-      case Some(groupNames) => {
+      case groupNames : Set[String] => {
         if (!groupNames.isEmpty) {
           getEntityBySynonym(groupNames.head) match {
             case Some(groupEntity) => {
@@ -202,7 +199,7 @@ abstract class SpcOpenhabCosmos(
     adposition : SilAdposition) : Boolean =
   {
     groupMap.get(entity.name) match {
-      case Some(groupNames) => {
+      case groupNames : Set[String] => {
         groupNames.contains(location.name) ||
           groupNames.exists(groupName =>
             getEntityBySynonym(groupName).map(
@@ -217,21 +214,21 @@ abstract class SpcOpenhabCosmos(
     itemName : String,
     itemLabel : String,
     isGroup : Boolean,
-    itemGroupNames : Iterable[String])
+    itemGroupNames : Iterable[String]) : Unit =
   {
     val qualifiers = new mutable.LinkedHashSet[String]
     var trimmed = itemName
     itemGroupNames.foreach(groupName => {
       if (trimmed != groupName) {
-        trimmed = trimmed.replaceAllLiterally(groupName, "")
+        trimmed = trimmed.replace(groupName, "")
       }
       if (groupName.startsWith("g") && (groupName.size > 1)
         && (groupName.drop(1).forall(_.isUpper)))
       {
-        trimmed = trimmed.replaceAllLiterally(groupName.stripPrefix("g"), "")
+        trimmed = trimmed.replace(groupName.stripPrefix("g"), "")
       }
       getEntityBySynonym(groupName).foreach(groupEntity => {
-        groupMap.addBinding(itemName, groupName)
+        groupMap += tupleN((itemName, groupName))
         if (!isGroup) {
           qualifiers ++= groupEntity.qualifiers
         }
@@ -239,9 +236,9 @@ abstract class SpcOpenhabCosmos(
       trimmed = trimmed.stripPrefix("_").stripSuffix("_")
     })
     if (trimmed.contains('_')) {
-      trimmed = trimmed.replaceAllLiterally(itemLabel, "")
+      trimmed = trimmed.replace(itemLabel, "")
       trimmed = trimmed.stripPrefix("_").stripSuffix("_")
-      trimmed = trimmed.replaceAllLiterally("_", "")
+      trimmed = trimmed.replace("_", "")
     }
     val formName = {
       if (isGroup) {
@@ -340,7 +337,7 @@ class SpcOpenhabMind(cosmos : SpcOpenhabCosmos)
     mind
   }
 
-  override def loadBeliefs(source : Source, responder : SpcResponder)
+  override def loadBeliefs(source : Source, responder : SpcResponder) : Unit =
   {
     super.loadBeliefs(source, responder)
     cosmos.beliefsLoaded = true

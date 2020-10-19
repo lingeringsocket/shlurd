@@ -325,7 +325,7 @@ class SpcImplicationMapper(
       })
       pairs.toMap
     } else {
-      resultCollector.refMap.filterKeys(_ match {
+      resultCollector.refMap.view.filterKeys(_ match {
         case _ : SilNounReference => false
         case SilStateSpecifiedReference(
           _, SilPropertyState(SilWordLemma(lemma))
@@ -334,7 +334,7 @@ class SpcImplicationMapper(
         }
         case _ : SilConjunctiveReference => false
         case _ => true
-      })
+      }).toMap
     }
   }
 

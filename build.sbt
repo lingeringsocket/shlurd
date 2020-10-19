@@ -12,7 +12,7 @@ scalacOptions := Common.scalacOptions
 
 maxErrors := Common.maxErrors
 
-traceLevel := Common.traceLevel
+traceLevel.withRank(KeyRanks.Invisible) := Common.traceLevel
 
 lazy val rootProject = (project in file("."))
 
@@ -37,10 +37,11 @@ libraryDependencies ++= Common.specs2Deps
 
 libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.26",
-  "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.2.1",
-  "org.typelevel" %% "spire" % "0.16.0",
-  "org.typelevel" %% "spire-extras" % "0.16.0",
+  "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.3.0",
+  "org.typelevel" %% "spire" % "0.17.0",
+  "org.typelevel" %% "spire-extras" % "0.17.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
+  "org.scala-lang.modules" %% "scala-collection-contrib" % "0.2.1",
   "org.jgrapht" % "jgrapht-core" % "1.3.1",
   "org.jgrapht" % "jgrapht-io" % "1.3.1",
   "org.atteo" % "evo-inflector" % "1.2.2",

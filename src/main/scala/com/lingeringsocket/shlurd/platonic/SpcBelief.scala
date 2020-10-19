@@ -34,7 +34,7 @@ case class UnimplementedBelief(
 {
 }
 
-case class InvalidBelief(
+case class NonvalidBelief(
   sentence : SilSentence,
   exceptionCode : ShlurdExceptionCode
 ) extends SpcBelief

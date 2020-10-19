@@ -35,11 +35,11 @@ case object PERSON_THIRD extends SilPerson
 // and then leave it open for extension
 trait SilGender
 {
-  def maybeBasic() : Option[SilBasicGender] = None
+  def maybeBasic : Option[SilBasicGender] = None
 }
 sealed trait SilBasicGender extends SilGender
 {
-  override def maybeBasic() = Some(this)
+  override def maybeBasic = Some(this)
 }
 case object GENDER_MASCULINE extends SilBasicGender
 case object GENDER_FEMININE extends SilBasicGender
@@ -373,11 +373,12 @@ sealed trait SilTam
   def withMood(newMood : SilMood) : SilTam
   def withTense(newTense : SilTense) : SilTam
   def isValid(withAssert : Boolean = false) : Boolean
+  def isValid : Boolean = isValid(false)
 
   def withPolarity(newPolarity : Boolean) : SilTam =
     withPolarity(if (newPolarity) POLARITY_POSITIVE else POLARITY_NEGATIVE)
 
-  def validate() : SilTam =
+  def validate : SilTam =
   {
     assert(isValid(true))
     this
@@ -431,7 +432,8 @@ case class SilTamImmutable(
   override def isValid(withAssert : Boolean = false) : Boolean =
   {
     var valid = true
-    def check(condition : Boolean) {
+    def check(condition : Boolean) : Unit =
+    {
       assert(condition || !withAssert)
       if (!condition) {
         valid = false

@@ -8,7 +8,7 @@ scalaVersion := Common.scalaVersion
 
 maxErrors := Common.maxErrors
 
-traceLevel := Common.traceLevel
+traceLevel.withRank(KeyRanks.Invisible) := Common.traceLevel
 
 libraryDependencies ++= Seq(
   "net.sf.extjwnl" % "extjwnl" % "2.0.2",

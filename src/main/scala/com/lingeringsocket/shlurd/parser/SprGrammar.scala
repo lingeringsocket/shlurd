@@ -76,9 +76,9 @@ object SprGrammar extends StandardTokenParsers
       arrow, semicolon, assignment, bar, lparen, rparen, plus, star, optional)
   }
 
-  def buildMatcher(source : Source, matcher : SprPhrasePatternMatcher)
+  def buildMatcher(source : Source, matcher : SprPhrasePatternMatcher) : Unit =
   {
-    val input = source.getLines.mkString("\n")
+    val input = source.getLines().mkString("\n")
     val result = phrase(grammar)(new lexical.Scanner(input))
     result match {
       case Success(rules, _) => {

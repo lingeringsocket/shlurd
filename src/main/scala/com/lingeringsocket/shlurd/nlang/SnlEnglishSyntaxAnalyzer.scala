@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.parser._
 
 import SnlEnglishLemmas._
 
+import scala.collection._
+
 class SnlEnglishSyntaxAnalyzer(
   context : SprContext,
   guessedQuestion : Boolean,

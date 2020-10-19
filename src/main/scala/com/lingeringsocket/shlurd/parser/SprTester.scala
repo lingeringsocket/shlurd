@@ -22,12 +22,12 @@ import scala.util._
 
 trait ConsoleOutput
 {
-  def println(s : String = "")
+  def println(s : String = "") : Unit
 }
 
 object DefaultConsoleOutput extends ConsoleOutput
 {
-  override def println(s : String = "")
+  override def println(s : String = "") : Unit =
   {
     Console.println(s)
   }
@@ -35,7 +35,7 @@ object DefaultConsoleOutput extends ConsoleOutput
 
 object NullConsoleOutput extends ConsoleOutput
 {
-  override def println(s : String = "")
+  override def println(s : String = "") : Unit =
   {
   }
 }
@@ -54,22 +54,22 @@ class SprTester
     var lastCheckpoint = 0
     var lastSeqNo = 0
 
-    def reportStatus()
+    def reportStatus() : Unit =
     {
       target.println()
       target.println("SUCCESSES:  " + successes)
       target.println("FAILURES:  " + failures)
     }
 
-    restartSequence
+    restartSequence()
 
-    val iter = source.getLines
+    val iter = source.getLines()
     while (iter.hasNext) {
-      val input = iter.next
+      val input = iter.next()
       val prefix = input.takeWhile(_.isDigit)
       val seqNo = Try(prefix.toInt).getOrElse(0)
       if (seqNo < lastSeqNo) {
-        restartSequence
+        restartSequence()
       }
       lastSeqNo = seqNo
       val cleaned = input.stripPrefix(prefix).trim.split("\t")
@@ -102,15 +102,15 @@ class SprTester
       }
       lineNumber += 1
       if (lineNumber - lastCheckpoint > 20) {
-        reportStatus
+        reportStatus()
         lastCheckpoint = lineNumber
       }
     }
-    reportStatus
+    reportStatus()
     tupleN((successes, failures))
   }
 
-  protected def restartSequence()
+  protected def restartSequence() : Unit =
   {
   }
 

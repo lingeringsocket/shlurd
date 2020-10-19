@@ -33,12 +33,12 @@ class SmcResultCollector[EntityType<:SmcEntity](
   var resolvingReferences = false
   var analyzingAssertion = false
 
-  protected def preSpawn() =
+  protected def preSpawn =
   {
     new SmcResultCollector[EntityType](annotator, refMap)
   }
 
-  def spawn() = {
+  def spawn = {
     val newCollector = preSpawn
     newCollector.suppressWildcardExpansion = suppressWildcardExpansion
     newCollector.swapSpeakerListener = swapSpeakerListener
@@ -52,14 +52,15 @@ class SmcResultCollector[EntityType<:SmcEntity](
     refMap.get(ref)
   }
 
-  def fullEntityMap() = entityMap
+  def fullEntityMap = entityMap
 
-  def neutralizedEntityMap() =
+  def neutralizedEntityMap =
   {
-    entityMap.filterKeys(entity => !neutralizedEntities.contains(entity))
+    entityMap.view.filterKeys(
+      entity => !neutralizedEntities.contains(entity)).toMap
   }
 
-  def saveEntityResult(entity : EntityType, result : Trilean)
+  def saveEntityResult(entity : EntityType, result : Trilean) : Unit =
   {
     entityMap.put(entity, result)
   }
@@ -73,7 +74,7 @@ object SmcResultCollector
     new SmcResultCollector(
       annotator, newAnnotationRefMap[EntityType](annotator))
 
-  def newAnnotationRefMap[EntityType<:SmcEntity]() =
+  def newAnnotationRefMap[EntityType<:SmcEntity] =
   {
     val newAnnotator = SmcAnnotator[EntityType]()
     SmcMutableRefMap.fromAnnotation(newAnnotator)
@@ -88,7 +89,7 @@ object SmcResultCollector
   def modifiableRefMap[EntityType<:SmcEntity](
     map : SmcRefMap[EntityType]) : SmcMutableRefMap[EntityType] =
   {
-    val newMap = newAnnotationRefMap[EntityType]()
+    val newMap = newAnnotationRefMap[EntityType]
     newMap ++= map
     newMap
   }

@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.ilang._
 
 import SprPennTreebankLabels._
 
+import scala.collection._
+
 sealed trait SprStrictness
 case object SPR_STRICTNESS_TIGHT extends SprStrictness
 case object SPR_STRICTNESS_LOOSE extends SprStrictness
@@ -316,7 +318,7 @@ abstract class SprAbstractSyntaxAnalyzer(
   protected def expectReference(
     seq : Seq[SprSyntaxTree]) : SilReference =
   {
-    SipExpectedReference(SptNP(seq:_*))
+    SipExpectedReference(SptNP(seq.toSeq:_*))
   }
 
   protected def expectReference(np : SprSyntaxTree)
@@ -491,28 +493,28 @@ abstract class SprAbstractSyntaxAnalyzer(
 
   protected def rememberSyntheticNP(
     reference : SilTransformedPhrase,
-    seq : Seq[SprSyntaxTree])
+    seq : Seq[SprSyntaxTree]) : Unit =
   {
-    reference.rememberSyntaxTree(SptNP(seq:_*))
+    reference.rememberSyntaxTree(SptNP(seq.toSeq:_*))
   }
 
   protected def rememberSyntheticADJP(
     reference : SilTransformedPhrase,
-    seq : Seq[SprSyntaxTree])
+    seq : Seq[SprSyntaxTree]) : Unit =
   {
-    reference.rememberSyntaxTree(SptADJP(seq:_*))
+    reference.rememberSyntaxTree(SptADJP(seq.toSeq:_*))
   }
 
   protected def rememberPredicateInflection(
     predicate : SilPredicate,
-    verbInflection : SilVerbInflection)
+    verbInflection : SilVerbInflection) : Unit =
   {
     predicate.setInflectedAttributes(verbInflection)
   }
 
   protected def rememberPredicateInflection(
     predicate : SilPredicate,
-    verbHead : SprSyntaxTree)
+    verbHead : SprSyntaxTree) : Unit =
   {
     rememberPredicateInflection(predicate, getVerbInflection(verbHead))
   }
@@ -521,7 +523,7 @@ abstract class SprAbstractSyntaxAnalyzer(
     predicate : SilPredicate,
     verbHead : SprSyntaxTree,
     tam : SilTam,
-    auxInflection : SilVerbInflection)
+    auxInflection : SilVerbInflection) : Unit =
   {
     if (tam.requiresAux) {
       rememberPredicateInflection(predicate, auxInflection)

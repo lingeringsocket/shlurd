@@ -60,15 +60,15 @@ class PhlebSpec extends Specification
   {
     private val script = Source.fromFile(
       ResourceUtils.getResourceFile(s"/expect/$fileName")).
-      getLines.zipWithIndex
+      getLines().zipWithIndex
 
-    override def emitNarrative(msg : String)
+    override def emitNarrative(msg : String) : Unit =
     {
       super.emitNarrative(msg)
       emitDirect(msg)
     }
 
-    override def emitDirect(msg : String)
+    override def emitDirect(msg : String) : Unit =
     {
       if (!msg.isEmpty) {
         nextScriptLine match {
@@ -85,20 +85,20 @@ class PhlebSpec extends Specification
       }
     }
 
-    override def emitVisualization(visualizer : SpcGraphVisualizer)
+    override def emitVisualization(visualizer : SpcGraphVisualizer) : Unit =
     {
       // just skip it
     }
 
     // FIXME do this the proper specs2 way
-    private def reportErrorLocation(lineNo : Int)
+    private def reportErrorLocation(lineNo : Int) : Unit =
     {
       val lineNoOneBased = lineNo + 1
       println(
         s"PhlebSpec FAIL at $fileName:$lineNoOneBased")
     }
 
-    override def readInput() : Option[String] =
+    override def readInput : Option[String] =
     {
       nextScriptLine match {
         case Some((cmd, lineNo)) => {
@@ -112,16 +112,16 @@ class PhlebSpec extends Specification
       }
     }
 
-    override def getDefaultSaveFile() =
+    override def getDefaultSaveFile =
     {
       "phlebotinum-test-save.zip"
     }
 
-    def nextScriptLine() : Option[(String, Int)] = {
+    def nextScriptLine : Option[(String, Int)] = {
       if (!script.hasNext) {
         None
       } else {
-        val s = script.next
+        val s = script.next()
         if (SprParser.isIgnorableLine(s._1)) {
           nextScriptLine
         } else {

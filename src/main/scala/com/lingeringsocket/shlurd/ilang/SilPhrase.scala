@@ -97,22 +97,22 @@ sealed trait SilPredicate extends SilPhrase
   def getInflectedAttributes =
     SilVerbInflection(inflectedPerson, inflectedGender, inflectedCount)
 
-  def setInflectedPerson(person : SilPerson)
+  def setInflectedPerson(person : SilPerson) : Unit =
   {
     inflectedPerson = person
   }
 
-  def setInflectedGender(gender : SilGender)
+  def setInflectedGender(gender : SilGender) : Unit =
   {
     inflectedGender = gender
   }
 
-  def setInflectedCount(count : SilCount)
+  def setInflectedCount(count : SilCount) : Unit =
   {
     inflectedCount = count
   }
 
-  def setInflectedAttributes(attributes : SilVerbInflection)
+  def setInflectedAttributes(attributes : SilVerbInflection) : Unit =
   {
     inflectedPerson = attributes.person
     inflectedGender = attributes.gender
@@ -221,7 +221,7 @@ sealed abstract class SilTransformedPhrase extends SilPhrase
 {
   protected var syntaxTreeOpt : Option[SilSyntaxTree] = None
 
-  def rememberSyntaxTree(syntaxTree : SilSyntaxTree)
+  def rememberSyntaxTree(syntaxTree : SilSyntaxTree) : Unit =
   {
     syntaxTreeOpt = Some(syntaxTree)
   }
@@ -239,29 +239,29 @@ sealed abstract class SilAnnotatedReference
   private var annotationId = 0
 
   private[ilang] def registerAnnotation(
-    annotator : SilAnnotator, id : Int)
+    annotator : SilAnnotator, id : Int) : Unit =
   {
     assert(annotatorOpt.isEmpty)
     annotatorOpt = Some(annotator)
     annotationId = id
   }
 
-  def hasAnnotation() : Boolean =
+  def hasAnnotation : Boolean =
   {
     annotatorOpt.nonEmpty
   }
 
-  def maybeAnnotator() : Option[SilAnnotator] =
+  def maybeAnnotator : Option[SilAnnotator] =
   {
     annotatorOpt
   }
 
-  def getAnnotator() : SilAnnotator =
+  def getAnnotator : SilAnnotator =
   {
     annotatorOpt.get
   }
 
-  def getAnnotationId() : Int =
+  def getAnnotationId : Int =
   {
     assert(hasAnnotation)
     annotationId
@@ -614,27 +614,27 @@ case class SilPronounReference private(
 {
   override def acceptsSpecifiers = false
 
-  def word() : Option[SilWord] =
+  def word : Option[SilWord] =
   {
     maybeAnnotator.flatMap(annotator => {
       annotator.getBasicNote(this).getWord
     })
   }
 
-  def clearWord()
+  def clearWord() : Unit =
   {
     maybeAnnotator.foreach(annotator => {
-      annotator.getBasicNote(this).clearWord
+      annotator.getBasicNote(this).clearWord()
     })
   }
 
-  def pronounMap() : SilPronounMap =
+  def pronounMap : SilPronounMap =
   {
     maybeAnnotator.map(_.getBasicNote(this).getPronounMap).
       getOrElse(SilPronounMap())
   }
 
-  def isDemonstrative() : Boolean =
+  def isDemonstrative : Boolean =
   {
     proximity match {
       case _ : SilDemonstrativeProximity => true
@@ -642,12 +642,12 @@ case class SilPronounReference private(
     }
   }
 
-  def isReflexive() : Boolean =
+  def isReflexive : Boolean =
   {
     proximity == PROXIMITY_REFLEXIVE
   }
 
-  def isElided() : Boolean =
+  def isElided : Boolean =
   {
     proximity == PROXIMITY_ELIDED
   }

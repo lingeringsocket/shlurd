@@ -16,13 +16,13 @@ package com.lingeringsocket.shlurd.jgrapht
 
 import org.jgrapht.graph._
 
-import scala.collection.immutable._
-
 import org.specs2.mutable._
+
+import scala.collection._
 
 class GraphPathStreamerSpec extends Specification
 {
-  private def forceSeq[T](stream : Stream[Stream[T]]) : Seq[Seq[T]] =
+  private def forceSeq[T](stream : LazyList[LazyList[T]]) : Seq[Seq[T]] =
   {
     stream.map(_.force.toSeq).force.toSeq
   }
@@ -71,14 +71,14 @@ class GraphPathStreamerSpec extends Specification
       val skipStream = skipStreamer.pathStream
       val head = skipStream.head
       val tail = skipStream.tail
-      head.take(2).force.toSeq must be equalTo(
-        Seq("A", "B")
+      head.take(2).force.to(immutable.Seq) must be equalTo(
+        immutable.Seq("A", "B")
       )
       forceSeq(tail) must be equalTo Seq(
-        Seq("A", "D", "F"),
-        Seq("A", "D", "G"),
-        Seq("C", "E", "F"),
-        Seq("C", "E", "G")
+        immutable.Seq("A", "D", "F"),
+        immutable.Seq("A", "D", "G"),
+        immutable.Seq("C", "E", "F"),
+        immutable.Seq("C", "E", "G")
       )
     }
   }

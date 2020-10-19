@@ -21,13 +21,13 @@ object Common
 
   def version = "0.1-SNAPSHOT"
 
-  def scalaVersion = "2.12.11"
+  def scalaVersion = "2.13.3"
 
   def scalacCommonOptions = Seq(
-    "-unchecked", "-feature", "-Xlint",
+    "-unchecked", "-feature", "-Xlint", "-Xlint:-nonlocal-return", "-Xlint:-unit-special",
     "-deprecation", "-Xfatal-warnings", "-Yrangepos")
 
-  def scalacOptions = scalacCommonOptions :+ "-Ywarn-unused-import"
+  def scalacOptions = scalacCommonOptions :+ "-Ywarn-unused:imports,privates,locals,implicits"
 
   def consoleOptions = Seq("-Yrepl-sync","-Ywarn-unused:-imports")
 
@@ -36,7 +36,7 @@ object Common
   def traceLevel = 100
 
   def specs2Deps = Seq(
-    "org.specs2" %% "specs2-core" % "4.0.3" % "test")
+    "org.specs2" %% "specs2-core" % "4.10.5" % "test")
 
   def resolvers = Seq(Resolver.sonatypeRepo("snapshots"), Resolver.mavenLocal)
 }

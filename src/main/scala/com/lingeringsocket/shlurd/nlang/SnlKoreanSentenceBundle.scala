@@ -17,6 +17,8 @@ package com.lingeringsocket.shlurd.nlang
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
+import scala.collection._
+
 class SnlKoreanSentenceBundle extends SilSentenceBundle
 {
   // FIXME this should be SnlKoreanTongue, which doesn't exist yet.
@@ -30,9 +32,9 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     modifiers : Seq[String]) =
   {
     if (state.isEmpty) {
-      compose((Seq(subject) ++ modifiers ++ verbSeq):_*)
+      compose((Seq(subject) ++ modifiers ++ verbSeq).toSeq:_*)
     } else {
-      compose((Seq(subject) ++ modifiers ++ Seq(state)):_*)
+      compose((Seq(subject) ++ modifiers ++ Seq(state)).toSeq:_*)
     }
   }
 
@@ -49,7 +51,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     assert(objectPosition == OBJ_BEFORE_VERB)
     // FIXME:  for interrogative mood, this only holds for "요" politeness
     compose((Seq(subject) ++ modifiers ++
-      indirectObjects ++ directObject ++ verbSeq):_*)
+      indirectObjects ++ directObject ++ verbSeq).toSeq:_*)
   }
 
   override def relationshipPredicate(
@@ -60,7 +62,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     modifiers : Seq[String]) =
   {
     // FIXME
-    compose((Seq(subject) ++ modifiers ++ Seq(complement) ++ verbSeq):_*)
+    compose((Seq(subject) ++ modifiers ++ Seq(complement) ++ verbSeq).toSeq:_*)
   }
 
   override def statePredicateQuestion(
@@ -77,7 +79,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
   override def statePredicateCommand(subject : String, state : String,
     modifiers : Seq[String]) =
   {
-    compose((Seq(subject) ++ modifiers ++ Seq(state)):_*)
+    compose((Seq(subject) ++ modifiers ++ Seq(state)).toSeq:_*)
   }
 
   override def delemmatizeVerb(
@@ -130,7 +132,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
       // FIXME:  OF etc
       case _ => ""
     }).filterNot(_.isEmpty).getOrElse {
-      compose(adposition.word.decomposed.map(_.lemma):_*)
+      compose(adposition.word.decomposed.map(_.lemma).toSeq:_*)
     }
     // later need to distinguish 에 from 에서
     compose(concat(pos, "에"), "있어요")
@@ -182,7 +184,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     items : Seq[String]) =
   {
     // FIXME:  deal with other determiners such as DETERMINER_NONE
-    compose(items:_*)
+    compose(items.toSeq:_*)
   }
 
   override def conditional(
@@ -197,7 +199,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
 
   override def composeQualifiers(qualifiers : Seq[SilWord]) =
   {
-    compose(qualifiers.map(delemmatizeQualifier) :_*)
+    compose(qualifiers.map(delemmatizeQualifier).toSeq:_*)
   }
 
   override def query(noun : String, question : Option[SilQuestion],
@@ -356,37 +358,37 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
       getOrElse(standard)
   }
 
-  override def unknownSentence() =
+  override def unknownSentence =
   {
     "모모모"
   }
 
-  override def unknownReference() =
+  override def unknownReference =
   {
     "뭐뭐뭐"
   }
 
-  override def unknownState() =
+  override def unknownState =
   {
     "뭐뭐뭐"
   }
 
-  override def unknownVerbModifier() =
+  override def unknownVerbModifier =
   {
     "뭐뭐뭐게"
   }
 
-  override def unknownPredicateStatement() =
+  override def unknownPredicateStatement =
   {
     "모모모"
   }
 
-  override def unknownPredicateCommand() =
+  override def unknownPredicateCommand =
   {
     "모모모"
   }
 
-  override def unknownPredicateQuestion() =
+  override def unknownPredicateQuestion =
   {
     "모모모"
   }
@@ -529,12 +531,12 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     "FIXME"
   }
 
-  override def respondIrrelevant() =
+  override def respondIrrelevant =
   {
     "그래요?"
   }
 
-  override def respondTriggerLimit() =
+  override def respondTriggerLimit =
   {
     "대박!"
   }
@@ -559,22 +561,22 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     compose(noun.toNounLemma, "없어요")
   }
 
-  override def respondCannotUnderstand() =
+  override def respondCannotUnderstand =
   {
     "이해 못 해요."
   }
 
-  override def respondCompliance() =
+  override def respondCompliance =
   {
     "내, 알겠습니다."
   }
 
-  override def respondNoncommittal() =
+  override def respondNoncommittal =
   {
     "아, 그래요?"
   }
 
-  override def respondDontKnow() =
+  override def respondDontKnow =
   {
     "몰라요."
   }
@@ -639,7 +641,7 @@ class SnlKoreanSentenceBundle extends SilSentenceBundle
     }
   }
 
-  override def existsVerb() : SilWord =
+  override def existsVerb : SilWord =
   {
     SilWord("있다")
   }

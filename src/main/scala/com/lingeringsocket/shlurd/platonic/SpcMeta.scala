@@ -95,10 +95,12 @@ class SpcMeta(cosmos : SpcCosmos)
 
   private var buffer : Option[mutable.Buffer[SpcBelief]] = None
 
-  private def newAnnotator() = SpcAnnotator()
+  private def newAnnotator = SpcAnnotator()
 
   def idealExistence(
-    metaFormName : String, idealEntityName : String, positive : Boolean)
+    metaFormName : String,
+    idealEntityName : String,
+    positive : Boolean) : Unit =
   {
     val sentence = {
       if (positive) {
@@ -120,17 +122,17 @@ class SpcMeta(cosmos : SpcCosmos)
     )
   }
 
-  def formExistence(form : SpcForm, positive : Boolean)
+  def formExistence(form : SpcForm, positive : Boolean) : Unit =
   {
     idealExistence(FORM_METAFORM_NAME, formMetaEntityName(form), positive)
   }
 
-  def roleExistence(role : SpcRole)
+  def roleExistence(role : SpcRole) : Unit =
   {
     idealExistence(ROLE_METAFORM_NAME, roleMetaEntityName(role), true)
   }
 
-  def propertyExistence(form : SpcForm, property : SpcProperty)
+  def propertyExistence(form : SpcForm, property : SpcProperty) : Unit =
   {
     val propertyEntityName = propertyMetaEntityName(form, property)
     val formEntityName = formMetaEntityName(form)
@@ -158,7 +160,7 @@ class SpcMeta(cosmos : SpcCosmos)
   }
 
   def propertyValueExistence(
-    form : SpcForm, property : SpcProperty, ps : SpcPropertyState)
+    form : SpcForm, property : SpcProperty, ps : SpcPropertyState) : Unit =
   {
     val propertyEntityName = propertyMetaEntityName(form, property)
     val valueEntityName = valueMetaEntityName(form, property, ps)
@@ -186,7 +188,7 @@ class SpcMeta(cosmos : SpcCosmos)
   }
 
   def idealSuperclass(
-    subclass : SpcIdeal, superclass : SpcIdeal, positive : Boolean)
+    subclass : SpcIdeal, superclass : SpcIdeal, positive : Boolean) : Unit =
   {
     val subclassEntityName = idealMetaEntityName(subclass)
     val superclassEntityName = idealMetaEntityName(superclass)
@@ -210,7 +212,7 @@ class SpcMeta(cosmos : SpcCosmos)
         positive))
   }
 
-  def entityExistence(entity : SpcEntity, positive : Boolean)
+  def entityExistence(entity : SpcEntity, positive : Boolean) : Unit =
   {
     val entityName = {
       if (entity.properName.isEmpty) {
@@ -239,45 +241,45 @@ class SpcMeta(cosmos : SpcCosmos)
         positive))
   }
 
-  def afterFork(original : SpcMeta)
+  def afterFork(original : SpcMeta) : Unit =
   {
     if (original.enabled) {
-      enable
+      enable()
     }
     if (!original.buffer.isEmpty) {
       buffer = original.buffer
     }
   }
 
-  def isFresh() : Boolean =
+  def isFresh : Boolean =
   {
     enabled && buffer.isEmpty
   }
 
-  def enable()
+  def enable() : Unit =
   {
     enabled = true
   }
 
-  def enableBuffering()
+  def enableBuffering() : Unit =
   {
     buffer = Some(new mutable.ArrayBuffer[SpcBelief])
-    enable
+    enable()
   }
 
-  def flush()
+  def flush() : Unit =
   {
     buffer.foreach(b => {
       do {
-        val saved = Seq(b:_*)
-        b.clear
+        val saved = Seq(b.toSeq:_*)
+        b.clear()
         saved.foreach(applyBelief)
       } while (!b.isEmpty);
       buffer = None
     })
   }
 
-  def enqueueBelief(belief : SpcBelief)
+  def enqueueBelief(belief : SpcBelief) : Unit =
   {
     buffer match {
       case Some(beliefs) => {
@@ -289,7 +291,7 @@ class SpcMeta(cosmos : SpcCosmos)
     }
   }
 
-  private def applyBelief(belief : SpcBelief)
+  private def applyBelief(belief : SpcBelief) : Unit =
   {
     if (enabled) {
       val params = SpcBeliefParams()

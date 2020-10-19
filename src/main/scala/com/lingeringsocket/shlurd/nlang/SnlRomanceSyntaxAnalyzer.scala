@@ -20,6 +20,8 @@ import com.lingeringsocket.shlurd.parser._
 
 import SprUtils._
 
+import scala.collection._
+
 case class SnlRomanceSyntaxFrame(
   subjectOpt : Option[SprSyntaxTree],
   auxVerbOpt : Option[SprSyntaxTree],

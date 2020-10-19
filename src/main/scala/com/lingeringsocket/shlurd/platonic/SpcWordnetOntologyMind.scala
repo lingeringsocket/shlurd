@@ -31,7 +31,7 @@ class SpcWordnetOntologyMind(
 
   override def getTongue = tongue
 
-  private def getOntology() = new SpcWordnetOntology(wordnet, cosmos)
+  private def getOntology = new SpcWordnetOntology(wordnet, cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {
@@ -66,7 +66,7 @@ class SpcWordnetOntologyMind(
       seq
     } else {
       val senses = wordnet.findSenses(noun.senseId)
-      senses.toStream.flatMap(getOntology.getSynsetForm)
+      senses.to(LazyList).flatMap(getOntology.getSynsetForm)
     }
   }
 
@@ -85,7 +85,7 @@ class SpcWordnetOntologyMind(
           val senses = wordnet.findSenses(noun.senseId)
           val ontology = getOntology
           val graph = cosmos.getGraph
-          senses.toStream.flatMap(sense => {
+          senses.to(LazyList).flatMap(sense => {
             ontology.getSynsetForm(sense)
           }).flatMap(possesseeForm => {
             cosmos.getRolesForForm(possesseeForm).filter(

@@ -21,7 +21,6 @@ import org.jgrapht._
 import org.jgrapht.graph._
 import org.jgrapht.alg._
 import org.jgrapht.alg.cycle._
-import org.jgrapht.alg.cycle.CycleDetector
 import org.jgrapht.alg.shortestpath._
 import org.jgrapht.alg.lca._
 import org.jgrapht.traverse._
@@ -29,7 +28,7 @@ import org.jgrapht.io._
 
 import java.io._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object SpcGraph
 {
@@ -37,7 +36,7 @@ object SpcGraph
     delegate : Graph[V, E]
   ) extends DefaultListenableGraph[V, E](delegate)
   {
-    def getExposedDelegate() = delegate
+    def getExposedDelegate = delegate
   }
 
   class ExposedUnmodifiableGraph[V, E](
@@ -45,7 +44,7 @@ object SpcGraph
     val isFrozen : Boolean
   ) extends AsUnmodifiableGraph[V, E](delegate)
   {
-    def getExposedDelegate() = delegate
+    def getExposedDelegate = delegate
   }
 
   def fork(base : SpcGraph) : SpcGraph =
@@ -129,7 +128,7 @@ object SpcGraph
           delta.minusVertices.clone,
           delta.minusEdges.clone)
         if (flattenDeltas && baseDelta) {
-          newDelta.applyModifications
+          newDelta.applyModifications()
           tupleN((newDelta.baseGraph, false))
         } else {
           tupleN((newDelta, true))
@@ -268,7 +267,7 @@ object SpcGraph
 
 class SpcEdge
 {
-  override def toString = super.toString.replaceAllLiterally(
+  override def toString = super.toString.replace(
     "com.lingeringsocket.shlurd.platonic.", "")
 }
 
@@ -343,9 +342,9 @@ class SpcGraph(
       entitySynonyms, entityAssocs, components, assertions).flatMap(
       extractDelta)
 
-  def asUnmodifiable() =
+  def asUnmodifiable =
   {
-    if (getGraphs().exists(_.getType.isModifiable)) {
+    if (getGraphs.exists(_.getType.isModifiable)) {
       val isFrozen = name.nonEmpty
       new SpcGraph(
         name,
@@ -412,7 +411,7 @@ class SpcGraph(
       propertyStateIndexCloned)
   }
 
-  def getGraphs() : Seq[Graph[_, _]] =
+  def getGraphs : Seq[Graph[_, _]] =
   {
     Seq(idealSynonyms, idealTaxonomy, formAssocs, inverseAssocs, entitySynonyms,
       entityAssocs, components, assertions)
@@ -580,7 +579,7 @@ class SpcGraph(
     Option(alg.getLCA(ideal1, ideal2))
   }
 
-  def render() : String =
+  def render : String =
   {
     render(idealSynonyms, "Ideal synonyms") + "\n" +
     render(idealTaxonomy, "Ideal taxonomy") + "\n" +
@@ -605,7 +604,8 @@ class SpcGraph(
     sw.toString
   }
 
-  def replaceVertex[V, E](graph : Graph[V, E], oldVertex : V, newVertex : V)
+  def replaceVertex[V, E](
+    graph : Graph[V, E], oldVertex : V, newVertex : V) : Unit =
   {
     def replaceOld(v : V) = {
       if (v == oldVertex) {
@@ -624,7 +624,7 @@ class SpcGraph(
     })
   }
 
-  def removeContainer(container : SpcContainmentVertex)
+  def removeContainer(container : SpcContainmentVertex) : Unit =
   {
     val reachable =
       new BreadthFirstIterator(components, container).asScala.toSet
@@ -633,19 +633,19 @@ class SpcGraph(
 
   def addComponent(
     container : SpcContainmentVertex, component : SpcContainmentVertex,
-    edgeId : Long)
+    edgeId : Long) : Unit =
   {
     components.addVertex(component)
     components.addEdge(container, component, SpcComponentEdge(edgeId))
   }
 
   def removeComponent(
-    component : SpcContainmentVertex)
+    component : SpcContainmentVertex) : Unit =
   {
     components.removeVertex(component)
   }
 
-  def sanityCheck() : Boolean =
+  def sanityCheck : Boolean =
   {
     assert(!idealSynonyms.vertexSet.asScala.exists(v =>
       idealSynonyms.degreeOf(v) == 0))
@@ -714,8 +714,8 @@ class SpcGraph(
     true
   }
 
-  override def applyModifications()
+  override def applyModifications() : Unit =
   {
-    deltas.foreach(_.applyModifications)
+    deltas.foreach(_.applyModifications())
   }
 }

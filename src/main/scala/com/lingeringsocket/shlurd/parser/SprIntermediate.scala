@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.parser
 
 import com.lingeringsocket.shlurd.ilang._
 
+import scala.collection._
+
 case class SipExpectedSentence(
   syntaxTree : SprSyntaxTree,
   forceSQ : Boolean = false

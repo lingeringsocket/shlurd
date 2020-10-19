@@ -20,7 +20,7 @@ import scala.collection._
 
 object SprUtils
 {
-  def capitalize(s : String) = s.head.toUpper + s.tail
+  def capitalize(s : String) = s"${s.head.toUpper}${s.tail}"
 
   def orderedSet[T](iterable : Iterable[T]) =
     (new mutable.LinkedHashSet[T] ++= iterable)

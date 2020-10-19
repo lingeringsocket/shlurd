@@ -21,6 +21,8 @@ import com.lingeringsocket.shlurd.parser._
 import SprPennTreebankLabels._
 import SprUtils._
 
+import scala.collection._
+
 abstract class SnlSyntaxAnalyzer(
   context : SprContext,
   guessedQuestion : Boolean,
@@ -81,7 +83,7 @@ abstract class SnlSyntaxAnalyzer(
           SipExpectedSentence(antecedent),
           SipExpectedSentence(
             SptS(children.tail.filterNot(
-              c => (c.isThen || c.isEquivalently)):_*)),
+              c => (c.isThen || c.isEquivalently)).toSeq:_*)),
           children.tail.exists(c =>
             (c.isEquivalently || c.children.exists(_.isEquivalently))),
           SilFormality(force))
@@ -140,7 +142,7 @@ abstract class SnlSyntaxAnalyzer(
             SptNP(SptNN(leaf))
           }
         } else {
-          SptNP(questionChildren:_*)
+          SptNP(questionChildren.toSeq:_*)
         }
       }
       case QUESTION_WHICH => {
@@ -150,20 +152,20 @@ abstract class SnlSyntaxAnalyzer(
           case Seq(SptNP(first : SptNP, second)) => {
             SptNP(
               SptNP((SptDT(makeLeaf(PD_WHICH.toLemma)) +:
-                unwrapSinglePhrase(first.children)):_*),
+                unwrapSinglePhrase(first.children)).toSeq:_*),
               second
             )
           }
           case _ => {
             SptNP((SptDT(makeLeaf(PD_WHICH.toLemma)) +:
-              unwrapSinglePhrase(questionChildren)):_*)
+              unwrapSinglePhrase(questionChildren)).toSeq:_*)
           }
         }
       }
       case QUESTION_HOW_MANY => {
         // FIXME likewise, these have two flavors "how many trees are there"
         // and "how many are still alive"
-        SptNP(questionChildren:_*)
+        SptNP(questionChildren.toSeq:_*)
       }
     }
   }
@@ -360,8 +362,10 @@ abstract class SnlSyntaxAnalyzer(
                 {
                   SilAdpositionalState(
                     SilAdposition(
-                      getWord(
-                        requireLeaf(unwrapped.children)) +: word.decomposed),
+                      (getWord(
+                        requireLeaf(unwrapped.children)) +: word.decomposed
+                      ).toSeq
+                    ),
                     ref)
                 } else {
                   SilUnrecognizedState(tree)
@@ -576,7 +580,7 @@ abstract class SnlSyntaxAnalyzer(
         Some((QUESTION_WHO, None,
           Seq(SptNP(
             (SptNP(SptNN(makeLeaf(PD_WHO.toLemma)), SptPOS(makeLeaf("'s"))) +:
-              seq.tail):_*))))
+              seq.tail).toSeq:_*))))
       }
       case SptWP(wp) => {
         SilWord(wp.lemma) match {

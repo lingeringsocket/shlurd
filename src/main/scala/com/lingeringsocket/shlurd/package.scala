@@ -32,7 +32,7 @@ package object shlurd
   // that don't produce a result
   implicit class MatchPartial[T](x : T)
   {
-    def matchPartial(f : PartialFunction[T, Unit])
+    def matchPartial(f : PartialFunction[T, Unit]) : Unit =
     {
       if (f.isDefinedAt(x)) {
         f(x)
@@ -43,12 +43,12 @@ package object shlurd
   // catch-all as None
   implicit class MatchMaybe[T, U](x : T)
   {
-    def matchMaybe(f : PartialFunction[T, U])
+    def matchMaybe(f : PartialFunction[T, U]) : Unit =
     {
       f.lift(x)
     }
 
-    def matchOption(f : PartialFunction[T, Option[U]])
+    def matchOption(f : PartialFunction[T, Option[U]]) : Unit =
     {
       f.lift(x).flatten
     }

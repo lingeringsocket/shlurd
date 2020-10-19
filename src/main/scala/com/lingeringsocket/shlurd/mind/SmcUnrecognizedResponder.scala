@@ -17,6 +17,8 @@ package com.lingeringsocket.shlurd.mind
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.ilang._
 
+import scala.collection._
+
 class SmcUnrecognizedResponder(
   tongueIn : SprTongue,
   sentencePrinter : SilSentencePrinter)
@@ -89,7 +91,7 @@ class SmcUnrecognizedResponder(
       case _ : SilUnknownSentence => ;
       case _ : SilUnparsedSentence => ;
     }
-    sb.respondCannotUnderstand()
+    sb.respondCannotUnderstand
   }
 
   private def respondToUnresolvedPredicate(

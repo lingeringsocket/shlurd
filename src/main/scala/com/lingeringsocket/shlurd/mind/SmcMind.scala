@@ -60,48 +60,48 @@ class SmcMind[
     annotator : AnnotatorType,
     phrase : PhraseType) = phrase
 
-  def startConversation()
+  def startConversation() : Unit =
   {
     conversation = Some(new ConversationType)
   }
 
-  def stopConversation()
+  def stopConversation() : Unit =
   {
     conversation = None
   }
 
-  def startNarrative()
+  def startNarrative() : Unit =
   {
     timeline = Some(new TimelineType)
   }
 
-  def stopNarrative()
+  def stopNarrative() : Unit =
   {
     timeline = None
   }
 
-  def hasNarrative() =
+  def hasNarrative =
   {
     !timeline.isEmpty
   }
 
-  def getNarrative() : TimelineType =
+  def getNarrative : TimelineType =
   {
     timeline.get
   }
 
-  def isConversing() : Boolean =
+  def isConversing : Boolean =
   {
     !conversation.isEmpty
   }
 
-  def getConversation() : ConversationType =
+  def getConversation : ConversationType =
   {
     conversation.get
   }
 
   protected def initFrom(
-    mind : SmcMind[EntityType, PropertyType, CosmosType])
+    mind : SmcMind[EntityType, PropertyType, CosmosType]) : Unit =
   {
     conversation = mind.conversation
   }
@@ -115,12 +115,12 @@ class SmcMind[
 
   private def filterRefMap(
     phrase : SilPhrase,
-    refMap : SmcRefMap[EntityType]) =
+    refMap : SmcRefMap[EntityType]) : SmcRefMap[EntityType] =
   {
     val refSet = SilUtils.collectReferences(phrase).toSet
-    refMap.filterKeys(ref => {
+    refMap.view.filterKeys(ref => {
       refSet.contains(ref) && isRetainableReference(ref)
-    })
+    }).toMap
   }
 
   private def isRetainableReference(ref : SilReference) : Boolean =
@@ -160,7 +160,7 @@ class SmcMind[
     speakerName : String,
     sentence : SilSentence,
     text : String,
-    refMap : SmcRefMap[EntityType] = Map.empty)
+    refMap : SmcRefMap[EntityType] = Map.empty) : Unit =
   {
     val savedText = {
       if (text.isEmpty) {
@@ -175,7 +175,7 @@ class SmcMind[
   }
 
   def rememberSentenceAnalysis(
-    refMap : SmcRefMap[EntityType])
+    refMap : SmcRefMap[EntityType]) : Unit =
   {
     conversation.foreach(c => c.updateSentenceAnalysis(
       filterRefMap(c.getUtterances.last.sentence, refMap)))

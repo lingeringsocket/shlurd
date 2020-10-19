@@ -73,7 +73,7 @@ class SpcContextualScorer(
         SilPhraseScore.neutral
       } else {
         if (beliefs.exists(_ match {
-          case _ : InvalidBelief => true
+          case _ : NonvalidBelief => true
           case ab : AssertionBelief => {
             !beliefAccepter.isAssertionValid(ab)
           }
@@ -129,10 +129,10 @@ class SpcRefNote(
 {
   private var form : Option[SpcForm] = None
 
-  def maybeForm() : Option[SpcForm] = form
+  def maybeForm : Option[SpcForm] = form
 
   override def mergeFrom(
-    oldNote : SilAbstractRefNote)
+    oldNote : SilAbstractRefNote) : Unit =
   {
     super.mergeFrom(oldNote)
     oldNote matchPartial {
@@ -144,7 +144,7 @@ class SpcRefNote(
     }
   }
 
-  def setForm(newForm : SpcForm)
+  def setForm(newForm : SpcForm) : Unit =
   {
     form = Some(newForm)
   }
@@ -158,7 +158,7 @@ class SpcResultCollector private(
   refMap
 )
 {
-  override protected def preSpawn() =
+  override protected def preSpawn =
   {
     SpcResultCollector(annotator, refMap)
   }
@@ -260,7 +260,7 @@ class SpcResponder(
     SprParser(input, context)
   }
 
-  override def newAnnotator() =
+  override def newAnnotator =
   {
     SpcAnnotator()
   }
@@ -512,12 +512,12 @@ class SpcResponder(
     triggers.flatMap(getTriggerImplications(annotator, _))
   }
 
-  def getAssertions() : Seq[SpcAssertion] =
+  def getAssertions : Seq[SpcAssertion] =
   {
     mind.getCosmos.getAssertions
   }
 
-  def getTriggers() : Seq[SpcTrigger] =
+  def getTriggers : Seq[SpcTrigger] =
   {
     mind.getCosmos.getTriggers
   }
@@ -655,7 +655,7 @@ class SpcResponder(
     try {
       super.processImpl(sentence, resultCollector)
     } finally {
-      already.clear
+      already.clear()
     }
   }
 
@@ -734,7 +734,7 @@ class SpcResponder(
             })
           }
           if (!temporal) {
-            forkedCosmos.applyModifications
+            forkedCosmos.applyModifications()
           }
           return Some(wrapResponseText(result))
         }
@@ -855,7 +855,7 @@ class SpcResponder(
     var verbMatched = false
     val message = getTriggerImplications(
       annotator, trigger
-    ).toStream.flatMap {
+    ).to(LazyList).flatMap {
       case (conditionalSentence, placeholderMap) => {
         val result = applyTriggerImpl(
           forkedCosmos, trigger, placeholderMap, conditionalSentence,
@@ -1041,7 +1041,7 @@ class SpcResponder(
               }
             }
           } else {
-            newConsequents.toStream.flatMap(newSentence => {
+            newConsequents.to(LazyList).flatMap(newSentence => {
               spawn(imagine(forkedCosmos)).resolveReferences(
                 newSentence, resultCollector, false, true)
               processBeliefOrAction(
@@ -1126,12 +1126,12 @@ class SpcResponder(
   private def updateRefMap(
     sentence : SilSentence,
     cosmos : SpcCosmos,
-    resultCollector : SpcResultCollector)
+    resultCollector : SpcResultCollector) : Unit =
   {
     // we may have modified cosmos (e.g. with new entities) by this
     // point, so run another full reference resolution pass to pick
     // them up
-    resultCollector.refMap.clear
+    resultCollector.refMap.clear()
     spawn(imagine(cosmos)).resolveReferences(
       sentence, resultCollector)
     rememberSentenceAnalysis(resultCollector)
@@ -1186,7 +1186,7 @@ class SpcResponder(
         // don't pollute the cache with abandonded junk left
         // over by an error
         if (failed) {
-          forkedCosmos.getPool.invalidateCache
+          forkedCosmos.getPool.invalidateCache()
         }
       }
     }
@@ -1195,7 +1195,7 @@ class SpcResponder(
       sentence matchPartial {
         case SilPredicateSentence(predicate, _, _) => {
           if (flagErrors && isAction) {
-            resultCollector.refMap.clear
+            resultCollector.refMap.clear()
             val resolutionResult =
               spawn(imagine(forkedCosmos)).resolveReferences(
                 predicate, resultCollector,
@@ -1250,7 +1250,7 @@ class SpcResponder(
     }
   }
 
-  protected def publishBelief(belief : SpcBelief)
+  protected def publishBelief(belief : SpcBelief) : Unit =
   {
   }
 
@@ -1477,7 +1477,7 @@ class SpcResponder(
     punctuated.dropRight(1).trim
   }
 
-  def unknownType() : SpcForm =
+  def unknownType : SpcForm =
   {
     mind.instantiateForm(SilWord(SpcMeta.ENTITY_METAFORM_NAME))
   }
@@ -1604,7 +1604,7 @@ class SpcResponder(
     queue.enqueue(eventActionPredicate)
     val seen = new mutable.HashSet[SilPredicate]
     while (!queue.isEmpty) {
-      val predicate = queue.dequeue
+      val predicate = queue.dequeue()
       checkCycle(
         annotator,
         predicate, seen, resultCollector.refMap

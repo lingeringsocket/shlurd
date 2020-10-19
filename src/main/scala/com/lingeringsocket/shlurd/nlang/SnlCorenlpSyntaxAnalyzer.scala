@@ -20,6 +20,8 @@ import com.lingeringsocket.shlurd.parser._
 
 import SprUtils._
 
+import scala.collection._
+
 abstract class SnlCorenlpSyntaxAnalyzer(
   context : SprContext,
   guessedQuestion : Boolean,
@@ -70,7 +72,7 @@ abstract class SnlCorenlpSyntaxAnalyzer(
       }
       expectPredicateSentence(
         tree, np, vp,
-        expectVerbModifiers(verbModifiers :+ np).dropRight(1),
+        expectVerbModifiers((verbModifiers :+ np).toSeq).dropRight(1),
         force, tam,
         SilVerbInflection(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR), false)
     } else {
@@ -190,7 +192,7 @@ abstract class SnlCorenlpSyntaxAnalyzer(
         // "(can) Larry [be [smart]]?"
         val expectedSize = 2
         val iNoun = iVerb - 1
-        if (seq.view(0, iNoun).exists(
+        if (seq.view.slice(0, iNoun).exists(
           c => isNounPhraseHead(c) || isNounPhraseModifier(c, c) ||
             c.isDeterminer))
         {
@@ -203,10 +205,10 @@ abstract class SnlCorenlpSyntaxAnalyzer(
         val nounSuccessor = fromNounSlice(1)
         val vp = nounSuccessor match {
           case _ : SptVP => nounSuccessor
-          case _ => SptVP(seq.drop(iNoun + 1):_*)
+          case _ => SptVP(seq.drop(iNoun + 1).toSeq:_*)
         }
         val (negativeSub, sub) = extractNegative(vp.children)
-        tupleN((sub.head, fromNounSlice(0), SptVP(sub:_*),
+        tupleN((sub.head, fromNounSlice(0), SptVP(sub.toSeq:_*),
           sub.last, combineNegatives(negativeSub, negativeSuper),
           expectVerbModifiers(seq).patch(iNoun, Seq.empty, expectedSize),
           (sub.size > 2)))

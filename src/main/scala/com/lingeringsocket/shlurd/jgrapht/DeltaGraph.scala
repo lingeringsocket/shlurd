@@ -21,11 +21,11 @@ import org.jgrapht.util._
 
 import scala.collection._
 import scala.collection.Set
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait DeltaModification
 {
-  def applyModifications()
+  def applyModifications() : Unit
 }
 
 object DeltaGraph
@@ -152,7 +152,7 @@ class DeltaGraph[V, E](
     }
   }
 
-  override def addVertex() : V =
+  override def addVertex : V =
   {
     plusGraph.addVertex
   }
@@ -207,12 +207,12 @@ class DeltaGraph[V, E](
     }
   }
 
-  override def getType() : GraphType =
+  override def getType : GraphType =
   {
     plusGraph.getType
   }
 
-  override def applyModifications()
+  override def applyModifications() : Unit =
   {
     assert(baseGraph.getType.isModifiable)
     val plusVertices = plusGraph.vertexSet.asScala.toSeq

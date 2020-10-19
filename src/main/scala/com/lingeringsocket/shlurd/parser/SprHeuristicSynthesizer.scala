@@ -191,7 +191,7 @@ class SprHeuristicSynthesizer(
   private val silMemo =
     new mutable.HashMap[SprSyntaxTree, Option[(SilPhrase, SprSyntaxTree)]]
 
-  def synthesize(seq : Seq[Set[SprSyntaxTree]]) : Stream[SprSyntaxTree] =
+  def synthesize(seq : Seq[Set[SprSyntaxTree]]) : LazyList[SprSyntaxTree] =
   {
     seq.foreach(set => {
       updatePhraseGraph(set)
@@ -233,7 +233,7 @@ class SprHeuristicSynthesizer(
       }
     )
     if (context.wordLabeler.isCompoundNoun(components)) {
-      Set(SptNNC(components:_*))
+      Set(SptNNC(components.toSeq:_*))
     } else {
       Set.empty
     }
@@ -248,7 +248,7 @@ class SprHeuristicSynthesizer(
       }
     )
     if (context.wordLabeler.isCompoundAdverb(components)) {
-      Set(SptRBC(components:_*))
+      Set(SptRBC(components.toSeq:_*))
     } else {
       Set.empty
     }
@@ -263,14 +263,14 @@ class SprHeuristicSynthesizer(
       }
     )
     if (context.wordLabeler.isCompoundVerb(components)) {
-      Set(SptVBC(components:_*))
+      Set(SptVBC(components.toSeq:_*))
     } else {
       Set.empty
     }
   }
 
   private def seedChoice(
-    rangeStart : Int, rangeEnd : Int, set : Set[SprSyntaxTree])
+    rangeStart : Int, rangeEnd : Int, set : Set[SprSyntaxTree]) : Unit =
   {
     val span = range(rangeStart until rangeEnd)
     val choice = SpanChoice(set, span)
@@ -283,7 +283,7 @@ class SprHeuristicSynthesizer(
 
   def getCost = cost
 
-  private def stopEarly() : Boolean =
+  private def stopEarly : Boolean =
   {
     stamina match {
       case HEURISTIC_STAMINA_COMPLETE => false
@@ -298,25 +298,25 @@ class SprHeuristicSynthesizer(
     context.scorer.computeGlobalScore(silMemo(tree).get._1)
   }
 
-  private def produceMore() : Stream[SprSyntaxTree] =
+  private def produceMore : LazyList[SprSyntaxTree] =
   {
-    pump
+    pump()
     if (pending.isEmpty) {
-      Stream.empty
+      LazyList.empty
     } else {
-      Stream.cons(pending.dequeue, produceMore)
+      LazyList.cons(pending.dequeue(), produceMore)
     }
   }
 
-  private def pump()
+  private def pump() : Unit =
   {
     while (pending.isEmpty && queue.nonEmpty && !stopEarly) {
-      val entry = queue.dequeue
+      val entry = queue.dequeue()
       process(entry)
     }
   }
 
-  private def enqueue(entry : ScoredEntry)
+  private def enqueue(entry : ScoredEntry) : Unit =
   {
     queue += entry
   }
@@ -331,7 +331,7 @@ class SprHeuristicSynthesizer(
     }
   }
 
-  private def process(entry : ScoredEntry)
+  private def process(entry : ScoredEntry) : Unit =
   {
     entry match {
       case pe : PartialEntry => {
@@ -355,10 +355,10 @@ class SprHeuristicSynthesizer(
       range(edgeStart until edgeEnd))
   }
 
-  private def pathStream(span : Range) : Stream[Stream[SpanChoice]] =
+  private def pathStream(span : Range) : LazyList[LazyList[SpanChoice]] =
   {
     if (span.isEmpty) {
-      Stream(Stream.empty)
+      LazyList(LazyList.empty)
     } else {
       new SpanPathStreamer(span).pathStream.map(_.map(edgeToChoice))
     }
@@ -375,7 +375,7 @@ class SprHeuristicSynthesizer(
     }
   }
 
-  private def processPartialEntry(entry : PartialEntry)
+  private def processPartialEntry(entry : PartialEntry) : Unit =
   {
     val leftSpan = range(0 until entry.choice.span.start)
     val rightSpan = range(entry.choice.span.end until words.size)
@@ -400,12 +400,12 @@ class SprHeuristicSynthesizer(
       })
     })
 
-    deltaGraph.applyModifications
+    deltaGraph.applyModifications()
   }
 
   private def processPath(
     entry : PartialEntry,
-    stream : Stream[SpanChoice],
+    stream : LazyList[SpanChoice],
     seen : mutable.HashSet[SpanChoice],
     oldLowerBound : Int,
     deltaGraph : Graph[Int, SpanEdge],
@@ -456,12 +456,12 @@ class SprHeuristicSynthesizer(
 
   private def processReplacement(
     entry : PartialEntry,
-    stream : Stream[SpanChoice],
+    stream : LazyList[SpanChoice],
     start : Int,
     length : Int,
     choice : SpanChoice,
     deltaGraph : Graph[Int, SpanEdge]
-  )
+  ) : Unit =
   {
     val filteredSet = choice.set.filter(
       tree => acceptReplacement(tree))
@@ -474,7 +474,7 @@ class SprHeuristicSynthesizer(
           val edge = Option(
             deltaGraph.getEdge(choice.span.start, choice.span.end)).
             getOrElse(deltaGraph.addEdge(choice.span.start, choice.span.end))
-          val newSet = set -- edge.set
+          val newSet = set.toSet -- edge.set
           if (newSet.nonEmpty) {
             edge.set ++= newSet
             val newEntry = PartialEntry(
@@ -496,7 +496,7 @@ class SprHeuristicSynthesizer(
     }
   }
 
-  private[parser] def analyzeWords() : Seq[Set[SprSyntaxTree]] =
+  private[parser] def analyzeWords : Seq[Set[SprSyntaxTree]] =
   {
     val entries = tokens.zip(words).zipWithIndex.map {
       case ((token, word), iToken) => {
@@ -506,19 +506,19 @@ class SprHeuristicSynthesizer(
     context.wordLabeler.labelWords(entries)
   }
 
-  private def updatePhraseGraph(replacements : Iterable[SprSyntaxTree])
+  private def updatePhraseGraph(replacements : Iterable[SprSyntaxTree]) : Unit =
   {
     replacements.foreach(phraseGraph.addPhrase)
   }
 
-  private def displayDotty(dot : String)
+  private def displayDotty(dot : String) : Unit =
   {
     val dotStream = new java.io.ByteArrayInputStream(dot.getBytes)
     shellCommand("xdot -" #< dotStream).!!
   }
 
   private[parser] def displayGraph(
-    accepted : => Set[SprSyntaxTree])
+    accepted : => Set[SprSyntaxTree]) : Unit =
   {
     val dot = phraseGraph.render(accepted)
     displayDotty(dot)
@@ -546,7 +546,7 @@ class SprHeuristicSynthesizer(
     allowConjunctive : Boolean = true) : Option[(SilPhrase, SprSyntaxTree)] =
   {
     cost += 1
-    if (cost > 1000000) {
+    if (cost > 10000000) {
       throw SprParseComplexityException()
     }
     def tryRewrite(phrase : SilUnknownPhrase) =
