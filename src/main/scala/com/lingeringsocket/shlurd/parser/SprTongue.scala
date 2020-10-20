@@ -217,6 +217,10 @@ abstract class SprTongue(wordnet : SprWordnet)
     genderAnalyzer : SilGenderAnalyzer
   ) : Seq[SilPhraseReplacementMatcher] = Seq.empty
 
+  def getResponseRules(
+    refToPronoun : (SilReference) => SilReference
+  ) : Seq[SilPhraseReplacementMatcher] = Seq.empty
+
   def getRelPredefLemma(predef : SprRelationshipPredef) : String
 
   def getStatePredefLemma(predef : SprStatePredef) : String

@@ -42,14 +42,22 @@ class SnlSpanishSentenceBundle(
     objectPosition : SilObjectPosition = OBJ_AFTER_VERB,
     dative : Seq[String] = Seq.empty) =
   {
-    val middle = objectPosition match {
-      case OBJ_AFTER_VERB => verbSeq ++ complement
-      case OBJ_BEFORE_VERB => complement ++ verbSeq
-    }
     // For Spanish, we only use dative to represent indirect object
     // pronouns, and those always go before the verb (and before
     // the direct object if any)
-    compose((Seq(subject) ++ dative ++ middle ++ modifiers).toSeq:_*)
+    val (verbPre, verbMain) = {
+      // FIXME generalize to any negative
+      if (verbSeq.head == LEMMA_NO) {
+        tupleN((verbSeq.take(1), verbSeq.drop(1)))
+      } else {
+        tupleN((Seq.empty, verbSeq))
+      }
+    }
+    val middle = objectPosition match {
+      case OBJ_AFTER_VERB => verbMain ++ complement
+      case OBJ_BEFORE_VERB => complement ++ verbMain
+    }
+    compose((Seq(subject) ++ verbPre ++ dative ++ middle ++ modifiers).toSeq:_*)
   }
 
   override protected def composePredicateQuestion(

@@ -594,6 +594,15 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     )
   }
 
+  override def getResponseRules(
+    refToPronoun : (SilReference) => SilReference
+  ) =
+  {
+    Seq(
+      normalizeDative(refToPronoun)
+    )
+  }
+
   override def getStopList = stopList
 
   override def getAdjectivePosition = MOD_AFTER_DEFAULT
@@ -1687,6 +1696,38 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           directObj,
           modifiers.filterNot(vm => (Some(vm) == objModifier))
         )
+      }
+    }
+  )
+
+  private def replaceDative(
+    refToPronoun : (SilReference) => SilReference,
+    modifiers : Seq[SilVerbModifier]) : Seq[SilVerbModifier] =
+  {
+    modifiers.flatMap(_ match {
+      case SilAdpositionalVerbModifier(
+        SprPredefAdposition(PD_DATIVE_TO),
+        ref
+      ) if (!ref.isInstanceOf[SilPronounReference]) => {
+        Seq(
+          SilAdpositionalVerbModifier(
+            SprPredefAdposition(PD_DATIVE_TO),
+            refToPronoun(ref)),
+          SilAdpositionalVerbModifier(
+            SprPredefAdposition(PD_TO),
+            ref)
+        )
+      }
+      case m => Seq(m)
+    })
+  }
+
+  private def normalizeDative(
+    refToPronoun : (SilReference) => SilReference
+  ) = SilPhraseReplacementMatcher(
+    "normalizeDative", {
+      case ap : SilActionPredicate => {
+        ap.withNewModifiers(replaceDative(refToPronoun, ap.modifiers))
       }
     }
   )

@@ -42,6 +42,13 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Claro, hay un tigre.")
     }
 
+    "understand dative reference" in new SpanishResponderContext
+    {
+      skipped("not working yet")
+      process("Muldoon le informa a la cabra siberiana?") must be equalTo(
+        "Sí, Muldoon le informa a la cabra siberiana.")
+    }
+
     "process questions" in new SpanishResponderContext
     {
       val terse = SmcResponseParams(verbosity = RESPONSE_TERSE)
@@ -395,12 +402,9 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, el tigre no está dormido.")
       process("él está despierto?") must be equalTo(
         "Sí, el tigre está despierto.")
-      if (false) {
-        process("Malcolm le informa?") must be equalTo(
-          "No, Malcolm no le informa al tigre.")
-      }
-      process("el león lo devora?") must be equalTo(
-        "Sí, el león devora el tigre.")
+      // FIXME should contract to "al tigre"
+      process("Malcolm le informa?") must be equalTo(
+        "No, Malcolm no le informa a el tigre.")
 
       processExceptionExpected(
         "ella está dormida",
@@ -410,12 +414,32 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, la cabra siberiana está dormida.")
       process("ella está despierta?") must be equalTo(
         "No, la cabra siberiana no está despierta.")
-      if (false) {
-        process("Muldoon le informa?") must be equalTo(
-          "Sí, Muldoon le informa a la cabra siberiana.")
-      }
+      process("Muldoon le informa?") must be equalTo(
+        "Sí, Muldoon le informa a la cabra siberiana.")
       process("el león la devora?") must be equalTo(
         "Sí, el león devora la cabra siberiana.")
+    }
+
+    "produce singular pronoun references" in new
+      SpanishResponderContext(SmcResponseParams())
+    {
+      mind.startConversation()
+
+      process("está el tigre dormido?") must be equalTo(
+        "No, él no está dormido.")
+      process("él está despierto?") must be equalTo(
+        "Sí, él está despierto.")
+      process("Malcolm le informa?") must be equalTo(
+        "No, él no le informa.")
+
+      process("está la cabra siberiana dormida?") must be equalTo(
+        "Sí, ella está dormida.")
+      process("ella está despierta?") must be equalTo(
+        "No, ella no está despierta.")
+      process("Muldoon le informa?") must be equalTo(
+        "Sí, él le informa.")
+      process("el león la devora?") must be equalTo(
+        "Sí, él la devora.")
     }
 
     "understand conversational plural pronoun references" in new
@@ -433,10 +457,9 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, el león y la cabra siberiana están dormidos.")
       process("el tigre los devora?") must be equalTo(
         "Sí, el tigre devora el león y la cabra siberiana.")
-      if (false) {
-        process("Malcolm les informa?") must be equalTo(
-          "No, Malcolm no les informa al león y la cabra siberiana.")
-      }
+      // FIXME should contract to "al león"
+      process("Malcolm les informa?") must be equalTo(
+        "No, Malcolm no les informa a el león y la cabra siberiana.")
 
       processExceptionExpected(
         "ellas están dormidas",
@@ -451,14 +474,39 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("el tigre las devora?") must be equalTo(
         "Sí, el tigre devora la cabra doméstica y la cabra siberiana y " +
           "la cabra niñera.")
-      if (false) {
-        process("Muldoon les informa?") must be equalTo(
-          "Sí, Muldoon les informa a la cabra doméstica " +
-            "y la cabra siberiana y la cabra niñera.")
-      }
+      process("Muldoon les informa?") must be equalTo(
+        "Sí, Muldoon les informa a la cabra doméstica " +
+          "y la cabra siberiana y la cabra niñera.")
 
       process("ellos están dormidos?") must be equalTo(
         "Sí, el león y la cabra siberiana están dormidos.")
+    }
+
+    "produce plural pronoun references" in new
+      SpanishResponderContext(SmcResponseParams())
+    {
+      mind.startConversation()
+
+      process("están el león y la cabra siberiana dormidos?") must be equalTo(
+        "Sí, ellos están dormidos.")
+      process("ellos están dormidos?") must be equalTo(
+        "Sí, ellos están dormidos.")
+      process("el tigre los devora?") must be equalTo(
+        "Sí, él los devora.")
+      process("Malcolm les informa?") must be equalTo(
+        "No, él no les informa.")
+
+      process("están las cabras despiertas?") must be equalTo(
+        "No, ellas no están despiertas.")
+      process("ellas están dormidas?") must be equalTo(
+        "Sí, ellas están dormidas.")
+      process("el tigre las devora?") must be equalTo(
+        "Sí, él las devora.")
+      process("Muldoon les informa?") must be equalTo(
+        "Sí, él les informa.")
+
+      process("ellos están dormidos?") must be equalTo(
+        "Sí, ellos están dormidos.")
     }
   }
 }

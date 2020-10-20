@@ -135,6 +135,4 @@ package object mind
       }
     }
   }
-
-
 }

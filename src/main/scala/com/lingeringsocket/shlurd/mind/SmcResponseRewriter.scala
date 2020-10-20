@@ -301,12 +301,37 @@ class SmcResponseRewriter[
       }
     }
 
-    querier.query(clearInflectedAttributes, rewriteLast)
+    val tongueRules = tongue.getResponseRules(
+      refToPronoun(resultCollector.refMap))
+    val rewriteTongue = {
+      if (tongueRules.isEmpty) {
+        rewriteLast
+      } else {
+        rewrite(
+          combineRules(tongueRules.toSeq:_*),
+          rewriteLast)
+      }
+    }
+
+    querier.query(clearInflectedAttributes, rewriteTongue)
 
     val normalized = transformQuestionResponse(
-      rewriteLast, params, question, negateCollection)
+      rewriteTongue, params, question, negateCollection)
     SilPhraseValidator.validatePhrase(normalized)
     tupleN((normalized, negateCollection))
+  }
+
+  private def refToPronoun(
+    refMap : SmcMutableRefMap[EntityType])(ref : SilReference) : SilReference =
+  {
+    refMap.get(ref).flatMap(
+      entities => {
+        val newRef = mind.thirdPersonDeictic(
+          annotator, entities)
+        newRef.foreach(r => refMap.put(r, entities))
+        newRef
+      }
+    ).getOrElse(ref)
   }
 
   def swapSpeakerListener(
@@ -718,7 +743,7 @@ class SmcResponseRewriter[
   }
 
   private def replaceThirdPersonReferences(
-    refMap : SmcRefMap[EntityType]
+    refMap : SmcMutableRefMap[EntityType]
   ) = replacementMatcher(
     "replaceThirdPersonReferences", {
       case ref : SilReference => {
@@ -730,9 +755,7 @@ class SmcResponseRewriter[
               ) |
               SilConjunctiveReference(_, _, _) =>
             {
-              refMap.get(ref).flatMap(
-                entities => mind.thirdPersonDeictic(
-                  annotator, entities)).getOrElse(ref)
+              refToPronoun(refMap)(ref)
             }
           case _ => ref
         }
