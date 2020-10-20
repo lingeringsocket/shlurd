@@ -10,7 +10,6 @@ A coffee is a kind of beverage.
 ```
 
 [![diagram](assets/words.png)](assets/words.png)
-
 WordNet knows about synonyms as well:
 
 ```
@@ -22,8 +21,7 @@ OK.
 
 Yes.
 ```
-
-For unknown uncapitalized words, I usually assume them to be common nouns,
+For unknown uncapitalized words, I usually assume them to be common nouns, 
 which may cause confusion:
 
 ```
@@ -31,7 +29,6 @@ which may cause confusion:
 
 I am unable to understand the belief that a coffee's size may be small, medium, or ginormous.
 ```
-
 To correct this, you can teach me new words:
 
 ```
@@ -43,7 +40,6 @@ OK.
 
 OK.
 ```
-
 You can also extend words I already know with additional usages.  For
 example, from WordNet, I know the word "rad" as a noun (a unit of
 absorbed ionizing radiation).  You can extend it to be usable as an
@@ -70,7 +66,6 @@ OK.
 
 OK.
 ```
-
 Or you can tell me to forget about pre-existing usages:
 
 ```
@@ -82,7 +77,6 @@ OK.
 
 Sorry, I cannot understand what you said.
 ```
-
 ## Parts of Speech
 
 These are the English parts of speech you can specify when you define a word:
@@ -98,6 +92,7 @@ These are the English parts of speech you can specify when you define a word:
 * [pronoun](pronouns.md) (default nominative)
 * nominative pronoun
 * objective pronoun
+* dative pronoun
 * reflexive pronoun
 * possessive pronoun (FIXME:  discriminate her vs hers)
 * conjunction
@@ -112,7 +107,6 @@ I know some compound words (with or without spaces or hyphens) from WordNet:
 
 OK.
 ```
-
 But others I need to be told about:
 
 ```
@@ -120,7 +114,6 @@ But others I need to be told about:
 
 I'm not sure how to interpret that.
 ```
-
 So:
 
 ```
@@ -132,7 +125,6 @@ OK.
 
 OK.
 ```
-
 ## Proper Nouns
 
 When you try to use normal words as names, I may get confused:
@@ -142,7 +134,6 @@ When you try to use normal words as names, I may get confused:
 
 Sorry, I cannot understand what you said.
 ```
-
 You can help me understand what you're trying to do:
 
 ```
@@ -154,7 +145,6 @@ OK.
 
 OK.
 ```
-
 You may also need to do this in cases where you use a name that I haven't
 heard of before.
 
@@ -222,7 +212,6 @@ OK.
 
 No.
 ```
-
 As you can see above, this may get a bit confusing.  If you'd prefer
 to completely take over the word, just tell me that it **must be** a
 proper noun (or just **is** a proper noun), and I will forget about
@@ -241,7 +230,6 @@ OK.
 
 Sorry, I cannot understand what you said.
 ```
-
 You can also use multi-word names (as long as they are all
 capitalized), and then I'll do my best to understand full or partial
 references to them:
@@ -255,7 +243,6 @@ OK.
 
 Yes.
 ```
-
 // FIXME support titles such as "Ethelred the Unready"
 
 When names also overlap with common words, I may get confused, in which case
@@ -278,7 +265,6 @@ OK.
 
 Yes.
 ```
-
 ## Hyphenated Words
 
 When I see a hyphenated word which I don't recognize, I look at the
@@ -300,7 +286,6 @@ Sorry, I cannot understand what you said.
 
 OK.
 ```
-
 I was unable to recognize the unknown word "scarfle" as a verb.  But I
 was able to understand "scarfle-eat" as functioning similarly to
 "eat".  This isn't terribly helpful for making up new words to be used
@@ -366,6 +351,5 @@ OK.
 
 Yes.
 ```
-
 In this way, you can derive new concepts without hijacking the
 normal meanings of words such as "person" and "react".

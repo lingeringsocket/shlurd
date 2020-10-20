@@ -64,7 +64,6 @@ Michael's gender is Spivak.
 ```
 
 [![diagram](assets/pronouns.png)](assets/pronouns.png)
-
 I have intrinsic knowledge of the pronouns for masculine, feminine, and neuter genders:
 
 ```
@@ -84,7 +83,6 @@ His crush is Phaedra.
 
 It is a yeti.
 ```
-
 And if you teach me custom pronouns for anyone or anything, I will use them:
 
 ```
@@ -104,7 +102,6 @@ They are Harley's crush.
 
 She is a monster.
 ```
-
 I can also infer pronouns from gender:
 
 ```
@@ -112,7 +109,6 @@ I can also infer pronouns from gender:
 
 E is a man.
 ```
-
 Note that even though in general a man has been defined as having
 masculine gender (implying associated masculine pronouns),
 Michael's gender has been explicitly set to Spivak, so I use
@@ -126,4 +122,3 @@ altogether when referring to that individual:
 
 Rey's crush is Harley.
 ```
-

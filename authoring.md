@@ -10,10 +10,10 @@ want to learn how to set up a github sandbox on your own machine.)
 After signing into your github account, you can either
 
 * [create a new repository](https://docs.github.com/en/github/getting-started-with-github/create-a-repo)
-  * [do this now on github](https://github.com/new)
+    * [do this now on github](https://github.com/new)
 * or
-  [fork an existing repository containing a story you want to modify](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo)
-  * to do this for the example story, [visit the repository page](https://github.com/lingeringsocket/hello-phlebotinum) and then click the Fork button at the top right
+[fork an existing repository containing a story you want to modify](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo)
+    * to do this for the example story, [visit the repository page](https://github.com/lingeringsocket/hello-phlebotinum) and then click the Fork button at the top right
 
 Either way, be sure that your new repository is public, otherwise
 phlebotinum won't be able to access it.
@@ -26,8 +26,8 @@ your stories with others.*
 Once your story is published in your repository, you can use the form below to try playing it by entering `github-username/repository-name`.  For example, if your github username is `bmoriartyb` and your repository name is `trinity`, you would enter `bmoriartyb/trinity`.
 
 <form action="http://demo.phlebotinum.xyz:8000" target="_blank">
-<input type="text" id="arg" name="arg" size="50"/>
-<input type="submit" value="Play"/>
+  <input type="text" id="arg" name="arg" size="50"/>
+  <input type="submit" value="Play"/>
 </form>
 <br>
 
@@ -48,4 +48,4 @@ first try, it will have to parse all of the files constituting your
 story; this may take a while.
 
 *There may be other cases in which the cached save isn't available, in
-particular after phlebotinum itself is upgraded.*
+ particular after phlebotinum itself is upgraded.*

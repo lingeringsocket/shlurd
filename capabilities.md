@@ -17,7 +17,6 @@ The lion and the zebra are healthy.
 ```
 
 [![diagram](assets/capabilities.png)](assets/capabilities.png)
-
 Implicitly, once a verb has been used in a conditional, it is assumed to
 be applicable to any statement which matches the antecedent of the conditional:
 
@@ -30,7 +29,6 @@ OK.
 
 Yes.
 ```
-
 However, it is not applicable for arbitrary statements involving the verb:
 
 ```
@@ -38,7 +36,6 @@ However, it is not applicable for arbitrary statements involving the verb:
 
 I'm not sure how to interpret that.
 ```
-
 In the example above, the verb is used intransitively, but the antecedent
 in the conditional specifies an object for the verb (to eat).
 
@@ -53,7 +50,6 @@ OK.
 
 OK.
 ```
-
 You can also tell me more precise rules:
 
 ```
@@ -77,7 +73,6 @@ A zebra can not eat an animal.
 
 OK.
 ```
-
 You may also want to restrict a behavior in general, but allow for exceptions:
 
 ```
@@ -101,7 +96,6 @@ A lion can not eat a plant.
 
 A lion can not eat a plant.
 ```
-
 Oops, but the lion should be able to eat the carrot under the tree.  You
 can correct this with the "generally" modifier:
 
@@ -126,7 +120,6 @@ One does not simply eat a plant.
 
 OK.
 ```
-
 With the "generally" modifier, the rule remains open for exceptional
 cases defined in more specific rules, whereas without it, the rule is
 hard and fast.

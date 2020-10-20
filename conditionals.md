@@ -31,7 +31,6 @@ Pinkie is the red balloon's owner.
 ```
 
 [![diagram](assets/etiology.png)](assets/etiology.png)
-
 ```
 > If a person inflates a balloon, it becomes full.
 
@@ -45,7 +44,6 @@ OK.
 
 Full.
 ```
-
 I also understand **after**, **when** and **whenever** as conditionals describing cause and effect.
 
 ```
@@ -61,7 +59,6 @@ OK.
 
 OK.
 ```
-
 ### Multiple Reactions
 
 A cause may have more than one effect:
@@ -83,7 +80,6 @@ Full.
 
 Tired.
 ```
-
 ### Chain Reactions
 
 Effects may themselves be causes, resulting in a cascade of further effects.
@@ -121,7 +117,6 @@ Yes.
 
 Yes.
 ```
-
 ### Causes
 
 I can recognize either actions or changes as causes:
@@ -139,7 +134,6 @@ OK.
 
 OK.
 ```
-
 But I do not recognize static conditions as causes.
 
 ```
@@ -147,7 +141,6 @@ But I do not recognize static conditions as causes.
 
 I am unable to validate the belief that when a balloon is full, then its owner becomes tired.
 ```
-
 Instead, you can either restate it as a change in state ("the balloon becomes full"),
 or you can use the **consequently** modifier:
 
@@ -156,7 +149,6 @@ or you can use the **consequently** modifier:
 
 OK.
 ```
-
 When declared as above, the consequence must continue to hold for as
 long as the antecedent does.  (FIXME: this constraint is not actually
 implemented yet!)
@@ -174,7 +166,6 @@ OK.
 
 OK.
 ```
-
 I only understand static conditions as effects when you add the
 **subsequently** modifier, or when you use the **after** conditional:
 
@@ -191,7 +182,6 @@ OK.
 
 OK.
 ```
-
 ### Conjunctive Conditions
 
 In order to limit the situations in which a cause results in an effect, you can specify an additional condition:
@@ -233,7 +223,6 @@ OK.
 
 Broken.
 ```
-
 I can only handle one extra condition like this, and it must be combined with the cause via **AND** (not **OR**).
 
 ### Preconditions
@@ -265,7 +254,6 @@ OK.
 
 OK.
 ```
-
 ## Variables
 
 When a rule refers to a variable, its form is important:
@@ -283,7 +271,6 @@ OK.
 
 I'm not sure how to interpret that.
 ```
-
 Since hugging is only defined specifically for cloudbusters, I'm not sure
 what it means to hug the generic red balloon.
 
@@ -308,7 +295,6 @@ Empty.
 
 Full.
 ```
-
 Alternatively, you can use ordinal references:
 
 ```
@@ -316,7 +302,6 @@ Alternatively, you can use ordinal references:
 
 OK.
 ```
-
 Or be high-falutin:
 
 ```
@@ -324,7 +309,6 @@ Or be high-falutin:
 
 OK.
 ```
-
 Or use named references:
 
 ```
@@ -332,7 +316,6 @@ Or use named references:
 
 OK.
 ```
-
 ### Plurals
 
 You can use plurals when referring to variables:
@@ -350,7 +333,6 @@ OK.
 
 Yes.
 ```
-
 But the plurality doesn't have any special meaning; it still applies even
 when only a single object is involved:
 
@@ -367,7 +349,6 @@ OK.
 
 Full.
 ```
-
 Likewise, a non-plural variable still applies when multiple objects are involved:
 
 ```
@@ -383,7 +364,6 @@ OK.
 
 Yes.
 ```
-
 ## Equivalences
 
 You can teach me how to interchange equivalent conditions.
@@ -405,7 +385,6 @@ OK.
 
 Brain.
 ```
-
 The equivalent conditions must be either states or relationships, not changes or actions:
 
 ```
@@ -413,5 +392,4 @@ The equivalent conditions must be either states or relationships, not changes or
 
 I am unable to validate the belief that if a person holds a balloon, equivalently the person becomes its owner.
 ```
-
 (FIXME:  I don't actually know how to discriminate stative from action verbs yet)

@@ -13,7 +13,6 @@ Trevor is a tribble.
 ```
 
 [![diagram](assets/exceptions.png)](assets/exceptions.png)
-
 ## FailedParse
 
 ```
@@ -21,7 +20,6 @@ Trevor is a tribble.
 
 Sorry, I cannot understand what you said.
 ```
-
 ## UnknownForm
 
 ```
@@ -29,7 +27,6 @@ Sorry, I cannot understand what you said.
 
 Sorry, I don't know about any 'jubjub'.
 ```
-
 ## UnknownState
 
 ```
@@ -37,7 +34,6 @@ Sorry, I don't know about any 'jubjub'.
 
 Sorry, I don't know what 'arrogant' means for Jupiter.
 ```
-
 ## NonExistent
 
 ```
@@ -45,7 +41,6 @@ Sorry, I don't know what 'arrogant' means for Jupiter.
 
 But I don't know about any such investigator.
 ```
-
 ## NotUnique
 
 ```
@@ -53,7 +48,6 @@ But I don't know about any such investigator.
 
 Please be more specific about which investigator you mean.
 ```
-
 ## UnresolvedPronoun
 
 ```
@@ -61,7 +55,6 @@ Please be more specific about which investigator you mean.
 
 Sorry, when you say 'he' I don't know who or what you mean.
 ```
-
 ## AmbiguousPronoun
 
 ```
@@ -69,7 +62,6 @@ Sorry, when you say 'he' I don't know who or what you mean.
 
 Sorry, when you say 'its', it's ambiguous.
 ```
-
 ## MisqualifiedNoun
 
 ```
@@ -77,7 +69,6 @@ Sorry, when you say 'its', it's ambiguous.
 
 Sorry, when you say 'second tribble', I don't know which you mean.
 ```
-
 ## TriggerLimit
 
 ```
@@ -85,7 +76,6 @@ Sorry, when you say 'second tribble', I don't know which you mean.
 
 Trigger limit exceeded.
 ```
-
 ## IncomprehensibleBelief
 
 FIXME
@@ -97,7 +87,6 @@ FIXME
 
 I am unable to validate the belief that if an investigator fires a gun, then it is broken.
 ```
-
 ## BeliefNotYetImplemented
 
 ```
@@ -105,7 +94,6 @@ I am unable to validate the belief that if an investigator fires a gun, then it 
 
 I am not yet capable of processing the belief that a green door must be either open or closed.
 ```
-
 ## ReferenceNotYetImplemented
 
 ```
@@ -113,7 +101,6 @@ I am not yet capable of processing the belief that a green door must be either o
 
 I am unable to understand the belief that Pete is a house's owner.
 ```
-
 ## NewBeliefsProhibited
 
 ```
@@ -121,7 +108,6 @@ I am unable to understand the belief that Pete is a house's owner.
 
 The belief that a tribble is a kind of reptile is prohibited in the given context.
 ```
-
 ## ImplicitIdealsProhibited
 
 ```
@@ -129,7 +115,6 @@ The belief that a tribble is a kind of reptile is prohibited in the given contex
 
 The belief that an ewok is a kind of animal is prohibited in the given context.
 ```
-
 ## ImplicitPropertiesProhibited
 
 ```
@@ -137,7 +122,6 @@ The belief that an ewok is a kind of animal is prohibited in the given context.
 
 The belief that Trevor is hungry is prohibited in the given context.
 ```
-
 ## TentativeIdealsProhibited
 
 ```
@@ -145,7 +129,6 @@ The belief that Trevor is hungry is prohibited in the given context.
 
 The belief that Bob exists is prohibited in the given context.
 ```
-
 ## TentativeEntitiesProhibited
 
 ```
@@ -153,7 +136,6 @@ The belief that Bob exists is prohibited in the given context.
 
 The belief that Jupiter has an uncle is prohibited in the given context.
 ```
-
 ## AmbiguousInterpretation
 
 ```
@@ -165,7 +147,6 @@ OK.
 
 Previously I was told that a big door exists.  So there is an ambiguous reference in the belief that there is a door.
 ```
-
 ## CardinalityConstraint
 
 ```
@@ -189,7 +170,6 @@ OK.
 
 Previously I was told that a bloodhound must have one owner and Pete is McGruff's owner.  So it does not add up when I hear that Jupiter is McGruff's owner.
 ```
-
 ## TaxonomyCycle
 
 ```
@@ -201,7 +181,6 @@ OK.
 
 The belief that a tribble is a kind of hamster contradicts the belief that a hamster is a kind of a tribble.
 ```
-
 ## OverlappingProperties
 
 ```
@@ -217,7 +196,6 @@ OK.
 
 I am not yet capable of processing the belief that a tribble may be round or red.
 ```
-
 ## PropertyAlreadyClosed
 
 ```
@@ -233,7 +211,6 @@ OK.
 
 The belief that a door may be open or ajar contradicts the belief that a door must be open or closed.
 ```
-
 ## RoleHypernymNonExistent
 
 ```
@@ -241,7 +218,6 @@ The belief that a door may be open or ajar contradicts the belief that a door mu
 
 I am unable to understand the belief that a tribble's owner is a kind of guardian.
 ```
-
 ## RoleHyponymConflictsWithForm
 
 ```
@@ -257,7 +233,6 @@ OK.
 
 I am unable to understand the belief that a tribble's owner is a kind of guardian.
 ```
-
 ## RoleHyponymAlreadyExists
 
 ```
@@ -277,7 +252,6 @@ OK.
 
 I am unable to understand the belief that a tribble's owner is a kind of petsitter.
 ```
-
 ## RoleTaxonomyIncompatible
 
 ```
@@ -301,7 +275,6 @@ OK.
 
 The belief that a tribble's custodian must be a chef contradicts the belief that Kirk is a groomer and Kirk is Terence's custodian.
 ```
-
 ## FormTaxonomyIncompatible
 
 ```
@@ -309,7 +282,6 @@ The belief that a tribble's custodian must be a chef contradicts the belief that
 
 The belief that Pete is a monster contradicts the belief that Pete is an investigator.
 ```
-
 ## FormRoleIncompatible
 
 ```
@@ -329,7 +301,6 @@ OK.
 
 The belief that Spock is Terence's groomer contradicts the belief that a tribble's groomer must be a human.
 ```
-
 ## PropertyDomainIncompatible
 
 ```
@@ -341,7 +312,6 @@ OK.
 
 The belief that a door's state must be an spc-string contradicts the belief that a door's state may be open or closed.
 ```
-
 ## AbsenceConstraint
 
 ```
@@ -353,7 +323,6 @@ OK.
 
 The belief that Jupiter has no pets contradicts the belief that McGruff is Jupiter's pet.
 ```
-
 ## AssertionModifiersIncompatible
 
 * BEFORE+SUBSEQUENTLY
@@ -368,7 +337,6 @@ The belief that Jupiter has no pets contradicts the belief that McGruff is Jupit
 
 I am unable to validate the belief that if a tribble eats, equivalently it is fat subsequently.
 ```
-
 ## AssertionModifierSequence
 
 * OTHERWISE/ALSO prohibited on main consequent
@@ -381,7 +349,6 @@ I am unable to validate the belief that if a tribble eats, equivalently it is fa
 
 I am unable to validate the belief that after a tribble eats, then it becomes fat also.
 ```
-
 ## QuantifierNotYetImplemented
 
 ```
@@ -389,7 +356,6 @@ I am unable to validate the belief that after a tribble eats, then it becomes fa
 
 I am unable to validate the belief that after a tribble eats, then some tribble becomes fat.
 ```
-
 ## PostConstraintNotYetImplemented
 
 ```
@@ -397,7 +363,6 @@ I am unable to validate the belief that after a tribble eats, then some tribble 
 
 I am unable to validate the belief that after a tribble eats, then it must be alone.
 ```
-
 ## AntecedentEventExpected
 
 * not equivalently/consequently
@@ -407,7 +372,6 @@ I am unable to validate the belief that after a tribble eats, then it must be al
 
 I am unable to validate the belief that after a tribble is happy, then it eats.
 ```
-
 ## ConsequentConditionExpected
 
 equivalence plus
@@ -421,7 +385,6 @@ equivalence plus
 
 I am unable to validate the belief that if a tribble eats, equivalently it becomes happy.
 ```
-
 ## ConsequentEventExpected
 
 antecedent event plus
@@ -432,7 +395,6 @@ antecedent event plus
 
 I am unable to validate the belief that when a tribble eats, then it is happy.
 ```
-
 ## ConsequentConstraintExpected
 
 * BEFORE/OTHERWISE
@@ -442,7 +404,6 @@ I am unable to validate the belief that when a tribble eats, then it is happy.
 
 I am unable to validate the belief that before a tribble eats, then it is happy.
 ```
-
 ## AssertionInvalidVariable
 
 ```
@@ -450,7 +411,6 @@ I am unable to validate the belief that before a tribble eats, then it is happy.
 
 I am unable to validate the belief that if a tribble is a tribble's baby, then the tribble eats.
 ```
-
 ## AssertionInvalidAssociation
 
 ```
@@ -458,7 +418,6 @@ I am unable to validate the belief that if a tribble is a tribble's baby, then t
 
 I am unable to validate the belief that if a tribble is another tribble's baby, then the tribble's parent is the tribble.
 ```
-
 ## EquivalenceIfExpected
 
 ```
@@ -466,7 +425,6 @@ I am unable to validate the belief that if a tribble is another tribble's baby, 
 
 I am unable to validate the belief that after a tribble eats, equivalently it is happy.
 ```
-
 ## AssertionModalProhibited
 
 * EQUIVALENTLY
@@ -477,4 +435,3 @@ I am unable to validate the belief that after a tribble eats, equivalently it is
 
 I am unable to validate the belief that if a tribble eats, equivalently it must be happy.
 ```
-

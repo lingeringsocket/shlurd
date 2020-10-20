@@ -38,7 +38,6 @@ Lamplighter carries the staff.
 ```
 
 [![diagram](assets/languageExample.png)](assets/languageExample.png)
-
 ## Questions
 
 ### Who
@@ -83,7 +82,6 @@ Homelander.
 
 Starlight's mindset.
 ```
-
 ### What
 
 ```
@@ -107,7 +105,6 @@ Idealistic.
 
 The staff.
 ```
-
 ### Which
 
 ```
@@ -127,7 +124,6 @@ Homelander, Starlight, and Lamplighter.
 
 Starlight.
 ```
-
 ### How Many
 
 I can count!
@@ -145,7 +141,6 @@ Two of them.
 
 One of them.
 ```
-
 ### Where
 
 I can answer simple "where is X" questions (but not "where does", "where is so-and-so going", etc):
@@ -163,7 +158,6 @@ Vought HQ.
 
 New York City.
 ```
-
 ### Predicates
 
 I can also understand yes/no questions:
@@ -205,7 +199,6 @@ Yes.
 
 No.
 ```
-
 ## Statements
 
 How I interpret statements depends on whether I am accepting new
@@ -238,7 +231,6 @@ Oh, really?
 
 No one.
 ```
-
 But my responses are different if I am accepting new or modified beliefs:
 
 ```
@@ -258,7 +250,6 @@ OK.
 
 Lamplighter.
 ```
-
 ## Commands
 
 Interpretation of commands depends on the context, and that's all I'll
@@ -274,7 +265,6 @@ cases, you can help me out with curly brackets.  For example:
 
 OK.
 ```
-
 In this case, the curly brackets help me understand that the "among"
 modifier applies to the contained objects rather than to the verb.
 

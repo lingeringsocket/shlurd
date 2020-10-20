@@ -16,7 +16,6 @@ A mule is a kind of animal.
 ```
 
 [![diagram](assets/taxonomy.png)](assets/taxonomy.png)
-
 The structure may be a vast web rather than a simple tree:
 
 ```
@@ -29,7 +28,6 @@ A wolf or a lion is a kind of predator, and a dog is a kind of scavenger.
 ```
 
 [![diagram](assets/hypernyms.png)](assets/hypernyms.png)
-
 As seen above with "a canine or a feline", you can combine your
 assertions using conjunctions in cases where it makes sense.  And you
 can use equivalent phrasing, so I would understand "canines and
@@ -52,7 +50,6 @@ A big crossbow exists.
 ```
 
 [![diagram](assets/formInstantiation.png)](assets/formInstantiation.png)
-
 Anonymous instances may be qualified (like the big crossbow), but I'm
 not yet capable of understanding named objects which are qualified
 (e.g. ```Orcrist is an elvish sword```).
@@ -77,7 +74,6 @@ No.
 A sword.
 ```
 
-
 ## Associations
 
 You can instruct me on how things may be associated.  And then I can display
@@ -89,7 +85,6 @@ Seekers and keepers are kinds of player.
 ```
 
 [![diagram](assets/assoc.png)](assets/assoc.png)
-
 (Notice that I use different arrow styles to distinguish taxonomy from
 association.  Also, I use different shapes to distinguish forms from the
 roles they play.)
@@ -107,7 +102,6 @@ A level may have rewards and a level may have a guide.
 ```
 
 [![diagram](assets/constraints.png)](assets/constraints.png)
-
 ### Association Instantiation
 
 You can connect particular instances of forms via their associations:
@@ -127,7 +121,6 @@ Saskatchewan is Canada's province.
 ```
 
 [![diagram](assets/assocInstantiation.png)](assets/assocInstantiation.png)
-
 Now I can answer questions about how things are connected:
 
 ```
@@ -152,7 +145,6 @@ Greece's capital.
 A nation.
 ```
 
-
 ### Inverses
 
 You can tell me that one association is the inverse of another:
@@ -169,7 +161,6 @@ Aristotle is Alexander's mentor.
 ```
 
 [![diagram](assets/inverses.png)](assets/inverses.png)
-
 After learning that Aristotle is Alexander's mentor, I am able to
 infer automatically that Alexander is Aristotle's protege.
 
@@ -190,7 +181,6 @@ Ryan Reynolds is Deadpool's star and Chad Riley is Deadpool's extra.
 ```
 
 [![diagram](assets/refinement.png)](assets/refinement.png)
-
 Now I know how to group together actors generically, or discriminate
 them as stars or extras:
 
@@ -207,7 +197,6 @@ Ryan Reynolds.
 
 Chad Riley.
 ```
-
 ## Scoping
 
 I can distinguish the same role name used in different association contexts:
@@ -224,7 +213,6 @@ Adam and Eve are persons and Adam is Eve's mate.
 ```
 
 [![diagram](assets/scoping.png)](assets/scoping.png)
-
 ## Synonyms
 
 You can tell me alternate names for things:
@@ -240,7 +228,6 @@ Fido is Oscar's pet.
 ```
 
 [![diagram](assets/synonyms.png)](assets/synonyms.png)
-
 Then you can use them interchangeably:
 
 ```
@@ -256,7 +243,6 @@ Felix.
 
 Fido.
 ```
-
 ## Properties
 
 You can tell me about the properties of objects:
@@ -283,7 +269,6 @@ The latte is huge.
 ```
 
 [![diagram](assets/properties.png)](assets/properties.png)
-
 Then I can answer questions about them:
 
 ```
@@ -307,7 +292,6 @@ Huge.
 
 "Itsa me, Mario!".
 ```
-
 ## WordNet Ontology
 
 In some environments, I automatically have access to builtin ontology
@@ -327,7 +311,6 @@ Yes.
 
 No.
 ```
-
 You can extend the WordNet ontology directly:
 
 ```
@@ -343,6 +326,5 @@ OK.
 
 A landspeeder.
 ```
-
 I am able to figure out that the landspeeder is a vehicle, because
 in WordNet, "vehicle" is a hypernym of "hovercraft".

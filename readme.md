@@ -80,13 +80,13 @@ Each input sentence entered by the player corresponds to one *game turn*.  A
 game turn proceeds roughly as follows:
 
 1. New game turn starts
-2. All previously perceived objects become stale for all characters
-3. For each character, all objects currently in scope (based on the character's location, possessions, and sensory awareness) become either fresh (if encountered for the first time) or familiar (if previously encountered)
-4. The sentence is interpreted with respect to the player character's phenomenal world (including the player's capabilities)
-5. If any interpretation errors are encountered, the game turn ends with a failure message; otherwise, if the sentence is a statement or question, it is evaluated and an appropriate response is reported
-6. If the sentence is a command, it is re-processed with respect to the noumenal world; this may lead to errors based on failed preconditions or other constraints; it may also lead to triggered actions (which may themselves trigger errors or other actions recursively)
-7. If any errors were encountered during processing, the effects of all triggered actions are ignored, and the game turn ends with a failure message
-8. Otherwise, the noumenal world state is updated, the game turn ends successfully, and all perceptible action effects are reported
+1. All previously perceived objects become stale for all characters
+1. For each character, all objects currently in scope (based on the character's location, possessions, and sensory awareness) become either fresh (if encountered for the first time) or familiar (if previously encountered)
+1. The sentence is interpreted with respect to the player character's phenomenal world (including the player's capabilities)
+1. If any interpretation errors are encountered, the game turn ends with a failure message; otherwise, if the sentence is a statement or question, it is evaluated and an appropriate response is reported
+1. If the sentence is a command, it is re-processed with respect to the noumenal world; this may lead to errors based on failed preconditions or other constraints; it may also lead to triggered actions (which may themselves trigger errors or other actions recursively)
+1. If any errors were encountered during processing, the effects of all triggered actions are ignored, and the game turn ends with a failure message
+1. Otherwise, the noumenal world state is updated, the game turn ends successfully, and all perceptible action effects are reported
 
 ## Containment and Possession
 
@@ -106,7 +106,6 @@ In the example story, here's how this looks after getting the rock and
 moving to the barn:
 
 [![diagram](assets/possessions.png)](assets/possessions.png)
-
 ## Maps
 
 The game axiom library supplies a fairly standard map representation:
@@ -121,7 +120,6 @@ The game axiom library supplies a fairly standard map representation:
 Let's take a look at the pathway from the meadow to the barn in the example story:
 
 [![diagram](assets/grassy.png)](assets/grassy.png)
-
 Whew!  There's a lot going on here:
 
 * The actual map locations are the meadow (aka "hayfield") and the barn
@@ -213,7 +211,7 @@ player character.  In the example game, there's a hidden sprite;
 the interpreter is aware of its existence, but initially only
 the child knows its location:
 
-```
+```scala mdoc:processPhleb:skipIntro
 > is there a sprite
 
 Yes, there is a sprite.
@@ -307,7 +305,6 @@ OK.
 
 They respond, "You are holding the photo."
 ```
-
 Some objects may exist only in an NPC's mind:
 
 ```
@@ -347,7 +344,6 @@ OK.
 
 "I don't know."
 ```
-
 [The child's mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/child-mind-init.txt)
 defines Frederick, so the existence of the mouse can only ever be in
 the child's mind, making it inaccessible to the interpreter.
@@ -397,7 +393,6 @@ OK.
 
 She responds, "I am in an invisible nest."
 ```
-
 The hen's world is defined entirely by
 [its mind initialization](https://github.com/lingeringsocket/hello-phlebotinum/blob/master/hen-mind-init.txt),
 so it is unaware of the real world around it.  This allows you to fill
@@ -432,7 +427,6 @@ OK.
 
 "He is in a hayloft."
 ```
-
 Finally, let's take a look at the mind of an omniscient character (the sprite):
 
 ```
@@ -476,7 +470,6 @@ OK.
 
 "A cloud is in it."
 ```
-
 The sprite, being omniscient, has access to the latest state of the entire world.
 
 Regardless of mind type, all NPC's are currently far along the
@@ -539,7 +532,6 @@ You are in the meadow.
 
 I don't know.
 ```
-
 On close examination, the conventions of interactive fiction for
 processing player utterances directed at the game interpreter are
 somewhat peculiar.  For commands, the interpreter processes them as if
@@ -612,7 +604,6 @@ OK.
 
 They respond, "Oh, really?"
 ```
-
 Some speech patterns are not yet supported:
 
 * Inform-style direct address appositions such as `child, follow me`
@@ -667,7 +658,6 @@ You see the child.
 
 You see the grassy path to the north.
 ```
-
 Normally, the player is "talking" to the game interpreter, but for the
 duration of a modal conversation, utterances are directed at an NPC
 instead.
@@ -734,7 +724,6 @@ No one is zrz friend.
 
 Oh, really?
 ```
-
 Beyond identifying parts of speech, WordNet is also used as a
 [builtin ontology](ontology.md#wordnet-ontology), allowing you to
 instantiate forms, e.g. `Amelia is a pilot`, with automatic inference
@@ -762,7 +751,6 @@ Yes, she is a bird.
 
 No, she is not a dog.
 ```
-
 ## Internals
 
 [Debugging](debugging.md) can be a good way to understand more of
