@@ -28,7 +28,8 @@ lazy val root = rootProject.aggregate(cli)
 
 lazy val docs = project.in(file("generated-docs")).settings(
   mdoc := run.in(Compile).evaluated,
-  mainClass in (Compile, run) := Some("com.lingeringsocket.shlurd.doc.MdocMain")
+  mainClass in (Compile, run) := Some("com.lingeringsocket.shlurd.doc.MdocMain"),
+  scalaVersion := Common.scalaVersion
 ).dependsOn(mdocProject).enablePlugins(MdocPlugin)
 
 resolvers ++= Common.resolvers
