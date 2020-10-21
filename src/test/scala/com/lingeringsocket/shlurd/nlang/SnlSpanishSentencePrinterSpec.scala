@@ -49,6 +49,10 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("podemos ser perros")
       expectStatement("hay un perro")
 
+      // contractions
+      expectStatement("ella besa al tigre")
+      expectStatement("ella viene del norte")
+
       // object pronouns
       expectStatement("ella me besa")
       expectStatement("ella lo besa")

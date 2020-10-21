@@ -402,9 +402,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, el tigre no está dormido.")
       process("él está despierto?") must be equalTo(
         "Sí, el tigre está despierto.")
-      // FIXME should contract to "al tigre"
       process("Malcolm le informa?") must be equalTo(
-        "No, Malcolm no le informa a el tigre.")
+        "No, Malcolm no le informa al tigre.")
 
       processExceptionExpected(
         "ella está dormida",
@@ -457,9 +456,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, el león y la cabra siberiana están dormidos.")
       process("el tigre los devora?") must be equalTo(
         "Sí, el tigre devora el león y la cabra siberiana.")
-      // FIXME should contract to "al león"
       process("Malcolm les informa?") must be equalTo(
-        "No, Malcolm no les informa a el león y la cabra siberiana.")
+        "No, Malcolm no les informa al león y la cabra siberiana.")
 
       processExceptionExpected(
         "ellas están dormidas",

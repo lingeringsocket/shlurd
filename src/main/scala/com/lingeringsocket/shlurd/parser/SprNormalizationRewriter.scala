@@ -43,7 +43,8 @@ class SprNormalizationRewriter(context : SprContext)
       SilRewriteOptions(repeat = true))
 
     // then apply language-specific rules
-    val languageRules = tongue.getNormalizationRules(context.genderAnalyzer)
+    val languageRules = tongue.getNormalizationRules(
+      annotator, context.genderAnalyzer)
     if (languageRules.isEmpty) {
       intermediate
     } else {

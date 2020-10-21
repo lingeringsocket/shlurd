@@ -143,6 +143,20 @@ class SnlSpanishSentenceBundle(
     base
   }
 
+  override def adpositionedNoun(
+    position : String, noun : String, conjoining : SilConjoining) =
+  {
+    val isContractable = position match {
+      case "a" | "A" | "de" | "De" => true
+      case _ => false
+    }
+    if (isContractable && noun.startsWith("el ")) {
+      separate(compose(position + "l", noun.stripPrefix("el ")), conjoining)
+    } else {
+      super.adpositionedNoun(position, noun, conjoining)
+    }
+  }
+
   override def delemmatizeState(
     word : SilWord, tam : SilTam,
     person : SilPerson,

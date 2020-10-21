@@ -309,7 +309,8 @@ class SmcResponseRewriter[
       } else {
         rewrite(
           combineRules(tongueRules.toSeq:_*),
-          rewriteLast)
+          rewriteLast,
+          SilRewriteOptions(repeat = true))
       }
     }
 

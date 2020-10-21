@@ -32,6 +32,7 @@ object SnlSpanishLemmas
   val LEMMA_ADONDE_ACCENTED = "adónde"
   val LEMMA_ADONDE = "adónde"
   val LEMMA_AHI = "ahí"
+  val LEMMA_AL = "al"
   val LEMMA_ALGUN = "algún"
   val LEMMA_ALGUNO = "alguno"
   val LEMMA_ALGUNA = "alguna"
@@ -60,6 +61,7 @@ object SnlSpanishLemmas
   val LEMMA_CUANTAS_ACCENTED = "cuántas"
   val LEMMA_DE = "de"
   val LEMMA_DEBER = "deber"
+  val LEMMA_DEL = "del"
   val LEMMA_DONDE_ACCENTED = "dónde"
   val LEMMA_DONDE = "donde"
   val LEMMA_EL = "el"
@@ -586,11 +588,13 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   }
 
   override def getNormalizationRules(
+    annotator : SilAnnotator,
     genderAnalyzer : SilGenderAnalyzer
   ) =
   {
     Seq(
-      normalizePersonalA(genderAnalyzer)
+      normalizePersonalA(genderAnalyzer),
+      normalizeContractions(annotator)
     )
   }
 
@@ -599,7 +603,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   ) =
   {
     Seq(
-      normalizeDative(refToPronoun)
+      expandDative(refToPronoun)
     )
   }
 
@@ -1700,7 +1704,29 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   )
 
-  private def replaceDative(
+  private def normalizeContractions(
+    annotator : SilAnnotator
+  ) = SilPhraseReplacementMatcher(
+    "normalizeContractions", {
+      case SilAdpositionalVerbModifier(
+        SilAdposition(word @ SilWordLemma(LEMMA_AL | LEMMA_DEL)),
+        ref
+      ) => {
+        val newAdposition = word.toLemma match {
+          case LEMMA_AL => SprPredefAdposition(PD_TO)
+          case LEMMA_DEL => SprPredefAdposition(PD_OF)
+        }
+        SilAdpositionalVerbModifier(
+          newAdposition,
+          annotator.determinedRef(
+            ref,
+            DETERMINER_DEFINITE)
+        )
+      }
+    }
+  )
+
+  private def expandOneDative(
     refToPronoun : (SilReference) => SilReference,
     modifiers : Seq[SilVerbModifier]) : Seq[SilVerbModifier] =
   {
@@ -1722,12 +1748,12 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     })
   }
 
-  private def normalizeDative(
+  private def expandDative(
     refToPronoun : (SilReference) => SilReference
   ) = SilPhraseReplacementMatcher(
-    "normalizeDative", {
+    "expandDative", {
       case ap : SilActionPredicate => {
-        ap.withNewModifiers(replaceDative(refToPronoun, ap.modifiers))
+        ap.withNewModifiers(expandOneDative(refToPronoun, ap.modifiers))
       }
     }
   )

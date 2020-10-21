@@ -214,6 +214,7 @@ abstract class SprTongue(wordnet : SprWordnet)
   def getPhraseScorers : Seq[SprWordnetScorer.PhraseScorer] = Seq.empty
 
   def getNormalizationRules(
+    annotator : SilAnnotator,
     genderAnalyzer : SilGenderAnalyzer
   ) : Seq[SilPhraseReplacementMatcher] = Seq.empty
 
