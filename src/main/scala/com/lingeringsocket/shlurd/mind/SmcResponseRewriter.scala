@@ -323,13 +323,16 @@ class SmcResponseRewriter[
   }
 
   private def refToPronoun(
-    refMap : SmcMutableRefMap[EntityType])(ref : SilReference) : SilReference =
+    refMap : SmcMutableRefMap[EntityType])
+    (ref : SilReference, updateMap : Boolean) : SilReference =
   {
     refMap.get(ref).flatMap(
       entities => {
         val newRef = mind.thirdPersonDeictic(
           annotator, entities)
-        newRef.foreach(r => refMap.put(r, entities))
+        if (updateMap) {
+          newRef.foreach(r => refMap.put(r, entities))
+        }
         newRef
       }
     ).getOrElse(ref)
@@ -756,7 +759,7 @@ class SmcResponseRewriter[
               ) |
               SilConjunctiveReference(_, _, _) =>
             {
-              refToPronoun(refMap)(ref)
+              refToPronoun(refMap)(ref, false)
             }
           case _ => ref
         }

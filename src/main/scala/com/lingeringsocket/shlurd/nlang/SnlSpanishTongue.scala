@@ -599,7 +599,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   }
 
   override def getResponseRules(
-    refToPronoun : (SilReference) => SilReference
+    refToPronoun : (SilReference, Boolean) => SilReference
   ) =
   {
     Seq(
@@ -710,6 +710,23 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override def isPotentialGerund(inflected : String) : Boolean =
   {
     isProgressive(inflected)
+  }
+
+  override def getPronounUsage(
+    inflection : SilInflection,
+    proximity : SilProximity) : String =
+  {
+    proximity match {
+      case PROXIMITY_REFLEXIVE => LABEL_PRP_REFLEXIVE
+      case _ => {
+        inflection match {
+          case INFLECT_ACCUSATIVE => LABEL_PRP_OBJ
+          case INFLECT_DATIVE => LABEL_PRP_DATIVE
+          case INFLECT_GENITIVE => LABEL_PRP_POS
+          case _ => LABEL_PRP
+        }
+      }
+    }
   }
 
   override def getPronounMap(
@@ -1726,8 +1743,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   )
 
-  private def expandOneDative(
-    refToPronoun : (SilReference) => SilReference,
+  private def expandDativeModifiers(
+    refToPronoun : (SilReference, Boolean) => SilReference,
     modifiers : Seq[SilVerbModifier]) : Seq[SilVerbModifier] =
   {
     modifiers.flatMap(_ match {
@@ -1735,25 +1752,45 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         SprPredefAdposition(PD_DATIVE_TO),
         ref
       ) if (!ref.isInstanceOf[SilPronounReference]) => {
-        Seq(
-          SilAdpositionalVerbModifier(
-            SprPredefAdposition(PD_DATIVE_TO),
-            refToPronoun(ref)),
-          SilAdpositionalVerbModifier(
-            SprPredefAdposition(PD_TO),
-            ref)
-        )
+        val newAdpositioned = SilAdpositionalVerbModifier(
+          SprPredefAdposition(PD_TO),
+          ref)
+        val newPronoun = refToPronoun(ref, true)
+        val newDative = SilAdpositionalVerbModifier(
+          SprPredefAdposition(PD_DATIVE_TO),
+          newPronoun)
+        val existingAdpositioned = modifiers.find(_ match {
+          case SilAdpositionalVerbModifier(
+            SilAdposition(SilWordLemma(LEMMA_A)),
+            existingRef
+          ) if (refToPronoun(existingRef, false) == newPronoun) => {
+            true
+          }
+          case _ => {
+            false
+          }
+        })
+        // FIXME instead of structural equality, should be
+        // comparing by equivalent references
+        if (existingAdpositioned.nonEmpty) {
+          Seq(newDative)
+        } else {
+          Seq(
+            newDative,
+            newAdpositioned
+          )
+        }
       }
       case m => Seq(m)
     })
   }
 
   private def expandDative(
-    refToPronoun : (SilReference) => SilReference
+    refToPronoun : (SilReference, Boolean) => SilReference
   ) = SilPhraseReplacementMatcher(
     "expandDative", {
       case ap : SilActionPredicate => {
-        ap.withNewModifiers(expandOneDative(refToPronoun, ap.modifiers))
+        ap.withNewModifiers(expandDativeModifiers(refToPronoun, ap.modifiers))
       }
     }
   )

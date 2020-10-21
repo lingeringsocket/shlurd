@@ -61,6 +61,18 @@ sealed case class ZooPersonEntity(name : String) extends ZooEntity
 object ZooKeeper extends ZooPersonEntity("Muldoon")
 object ZooVisitor extends ZooPersonEntity("Malcolm")
 
+object ZooNews1 extends ZooEntity
+{
+  override def name = "first-news"
+  override def spanish = "primera-noticias"
+}
+
+object ZooNews2 extends ZooEntity
+{
+  override def name = "second-news"
+  override def spanish = "segunda-noticias"
+}
+
 object ZooAnimalSleepinessProperty extends SmcProperty
 
 sealed case class ZooAnimalSleepiness(
@@ -161,6 +173,8 @@ class ZooCosmos(
     } else if (lemma == LEMMA_ANIMAL) {
       Success(SprUtils.orderedSet(
         animals.values))
+    } else if ((lemma == "new") || (lemma == "noticia")) {
+      Success(Set(ZooNews1, ZooNews2))
     } else {
       val name = tongue.getAdjectivePosition match {
         case MOD_AFTER_ALWAYS | MOD_AFTER_DEFAULT => {
@@ -170,9 +184,9 @@ class ZooCosmos(
           (qualifiers.toSeq :+ lemma).mkString(" ")
         }
       }
-      if (context == REF_ADPOSITION_OBJ) {
-        Success(SprUtils.orderedSet(
-          locations.view.filterKeys(matchName(_, name)).values))
+      val locs = locations.view.filterKeys(matchName(_, name)).values
+      if (locs.nonEmpty) {
+        Success(SprUtils.orderedSet(locs))
       } else {
         if (animals.view.filterKeys(matchName(_, lemma)).isEmpty) {
           val namedPeople = people.view.filterKeys(
@@ -314,11 +328,7 @@ class ZooMind(cosmos : ZooCosmos, tongueIn : SprTongue = SnlUtils.defaultTongue)
               q => SilWord(q)))
         }
       }
-      case e : ZooPersonEntity => {
-        annotator.nounRef(
-          SilWord(cosmos.nameFor(e)))
-      }
-      case e : ZooLocationEntity => {
+      case e : ZooEntity => {
         annotator.nounRef(
           SilWord(cosmos.nameFor(e)))
       }

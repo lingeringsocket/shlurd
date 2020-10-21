@@ -44,9 +44,25 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
 
     "understand dative reference" in new SpanishResponderContext
     {
-      skipped("not working yet")
+      val usePronouns = SmcResponseParams()
       process("Muldoon le informa a la cabra siberiana?") must be equalTo(
         "Sí, Muldoon le informa a la cabra siberiana.")
+      process(
+        "Muldoon le informa las noticias a la cabra siberiana?"
+      ) must be equalTo(
+        "Sí, Muldoon le informa las noticias a la cabra siberiana."
+      )
+
+      process(
+        "Muldoon le informa las noticias a la cabra siberiana?", usePronouns
+      ) must be equalTo(
+        "Sí, él se las informa a ella."
+      )
+      process(
+        "Muldoon le informa a la cabra siberiana?", usePronouns
+      ) must be equalTo(
+        "Sí, él le informa a ella."
+      )
     }
 
     "process questions" in new SpanishResponderContext
@@ -428,8 +444,10 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, él no está dormido.")
       process("él está despierto?") must be equalTo(
         "Sí, él está despierto.")
-      process("Malcolm le informa?") must be equalTo(
-        "No, él no le informa.")
+      process("Malcolm sabe las noticias?") must be equalTo(
+        "I don't know.")
+      process("Malcolm se las informa?") must be equalTo(
+        "No, él no se las informa.")
 
       process("está la cabra siberiana dormida?") must be equalTo(
         "Sí, ella está dormida.")
@@ -456,8 +474,15 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, el león y la cabra siberiana están dormidos.")
       process("el tigre los devora?") must be equalTo(
         "Sí, el tigre devora el león y la cabra siberiana.")
-      process("Malcolm les informa?") must be equalTo(
-        "No, Malcolm no les informa al león y la cabra siberiana.")
+
+      // FIXME need se to match as a wildcard (masc/fem, singular/plural)
+      if (false) {
+        process("Muldoon sabe las noticias?") must be equalTo(
+          "I don't know.")
+        process("Muldoon se las informa?") must be equalTo(
+          "Sí, Muldoon les informa las noticias a la cabra doméstica " +
+            "y la cabra siberiana y la cabra niñera.")
+      }
 
       processExceptionExpected(
         "ellas están dormidas",
@@ -474,6 +499,9 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
           "la cabra niñera.")
       process("Muldoon les informa?") must be equalTo(
         "Sí, Muldoon les informa a la cabra doméstica " +
+          "y la cabra siberiana y la cabra niñera.")
+      process("Muldoon les informa las noticias?") must be equalTo(
+        "Sí, Muldoon les informa las noticias a la cabra doméstica " +
           "y la cabra siberiana y la cabra niñera.")
 
       process("ellos están dormidos?") must be equalTo(
@@ -493,6 +521,10 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, él los devora.")
       process("Malcolm les informa?") must be equalTo(
         "No, él no les informa.")
+      process("Malcolm sabe las noticias?") must be equalTo(
+        "I don't know.")
+      process("Malcolm se las informa?") must be equalTo(
+        "No, él no se las informa.")
 
       process("están las cabras despiertas?") must be equalTo(
         "No, ellas no están despiertas.")
@@ -500,8 +532,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Sí, ellas están dormidas.")
       process("el tigre las devora?") must be equalTo(
         "Sí, él las devora.")
-      process("Muldoon les informa?") must be equalTo(
-        "Sí, él les informa.")
+      process("Muldoon les informa las noticias?") must be equalTo(
+        "Sí, él se las informa.")
 
       process("ellos están dormidos?") must be equalTo(
         "Sí, ellos están dormidos.")

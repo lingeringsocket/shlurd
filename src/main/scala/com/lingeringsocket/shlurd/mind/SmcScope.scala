@@ -127,6 +127,11 @@ trait SmcScope[
         case REF_DIRECT_OBJECT | REF_ADPOSITION_OBJ => false
         case _ => true
       }
+    } else if (c1 == REF_DIRECT_OBJECT) {
+      c2 match {
+        case REF_SUBJECT | REF_ADPOSITION_OBJ => false
+        case _ => true
+      }
     } else if (flipped) {
       true
     } else {

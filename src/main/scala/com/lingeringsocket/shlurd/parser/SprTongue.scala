@@ -219,7 +219,7 @@ abstract class SprTongue(wordnet : SprWordnet)
   ) : Seq[SilPhraseReplacementMatcher] = Seq.empty
 
   def getResponseRules(
-    refToPronoun : (SilReference) => SilReference
+    refToPronoun : (SilReference, Boolean) => SilReference
   ) : Seq[SilPhraseReplacementMatcher] = Seq.empty
 
   def getRelPredefLemma(predef : SprRelationshipPredef) : String
