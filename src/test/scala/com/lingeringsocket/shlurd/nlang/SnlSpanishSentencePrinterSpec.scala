@@ -60,9 +60,7 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("ella besa el perro")
       expectStatement("ella le da un beso")
       expectStatement("ella se lo da")
-      // this is incorrect (le should change to se) but
-      // we're tolerant folks around here
-      expectStatement("ella le lo da")
+      expectNormalized("ella le lo da", "ella se lo da.")
       expectStatement("ella me lo da")
 
       // this one is ambiguous between indicative/imperative; we

@@ -57,7 +57,19 @@ class SnlSpanishSentenceBundle(
       case OBJ_AFTER_VERB => verbMain ++ complement
       case OBJ_BEFORE_VERB => complement ++ verbMain
     }
-    compose((Seq(subject) ++ verbPre ++ dative ++ middle ++ modifiers).toSeq:_*)
+    val dativeSe = {
+      if ((objectPosition == OBJ_BEFORE_VERB) &&
+        complement.head.startsWith("l") &&
+        (dative.size == 1) && dative.head.startsWith("l"))
+      {
+        // horrors, we can't have alllliteration!
+        Seq(LEMMA_SE)
+      } else {
+        dative
+      }
+    }
+    compose((Seq(subject) ++ verbPre ++ dativeSe ++
+      middle ++ modifiers).toSeq:_*)
   }
 
   override protected def composePredicateQuestion(
