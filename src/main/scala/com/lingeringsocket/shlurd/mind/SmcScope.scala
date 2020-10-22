@@ -150,12 +150,23 @@ trait SmcScope[
       {
         tupleN((
           p1.copy(gender = GENDER_SOMEONE),
-          p2.copy(gender = GENDER_SOMEONE)))
+          p2.copy(gender = GENDER_SOMEONE)
+        ))
       } else {
         tupleN((p1, p2))
       }
     }
-    if (foldSpecialCases(pA) != foldSpecialCases(pB)) {
+    val (pC, pD) = {
+      if ((pA.count == COUNT_MASS) || (pB.count == COUNT_MASS)) {
+        tupleN((
+          pA.copy(count = COUNT_MASS),
+          pB.copy(count = COUNT_MASS)
+        ))
+      } else {
+        tupleN((pA, pB))
+      }
+    }
+    if (foldSpecialCases(pC) != foldSpecialCases(pD)) {
       false
     } else {
       val reflexiveMatch = {

@@ -100,7 +100,9 @@ class SmcResponderSpecification extends Specification
                 Success(Trilean.True)
               }
             }
-          } else if (Set("inform", "informar").contains(ap.verb.toLemma)) {
+          } else if (Set("tell", "inform", "informar").contains(
+            ap.verb.toLemma))
+          {
             resultCollector.lookup(ap.subject) match {
               case (
                 Some(subjectEntities)

@@ -554,10 +554,12 @@ class SmcResponderSpec extends SmcResponderSpecification
         "Yes, the tiger is awake.")
       process("does Malcolm inform it") must be equalTo(
         "No, Malcolm does not inform the tiger.")
+      process("does Malcolm devour it") must be equalTo(
+        "Yes, Malcolm devours the tiger.")
       process("does Muldoon inform it") must be equalTo(
         "Yes, Muldoon informs the tiger.")
-      process("does the lion devour it") must be equalTo(
-        "Yes, the lion devours the tiger.")
+      process("does Muldoon tell it the amount") must be equalTo(
+        "Yes, Muldoon tells the tiger the amount.")
     }
 
     "understand conversational plural pronoun references" in new

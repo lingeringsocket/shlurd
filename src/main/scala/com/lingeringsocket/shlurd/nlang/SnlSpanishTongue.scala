@@ -293,11 +293,11 @@ object SnlSpanishLexicon
       PROXIMITY_ENTITY, INFLECT_DATIVE),
 
     // annoying substitution for le/les before
-    // lo/la/los/las; note that we use GENDER_MASCULINE
-    // instead of GENDER_SOMEONE just to avoid collision
-    // with LEMMA_LE in reverse mapping, ugh
+    // lo/la/los/las; note that we use COUNT_MASS
+    // as a hack for representing the fact that
+    // this can match either singular or plural
     LEMMA_SE -> SnlPronounCoord(
-      PERSON_THIRD, GENDER_MASCULINE, COUNT_SINGULAR,
+      PERSON_THIRD, GENDER_SOMEONE, COUNT_MASS,
       PROXIMITY_ENTITY, INFLECT_DATIVE)
   )
 
