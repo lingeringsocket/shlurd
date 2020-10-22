@@ -101,9 +101,9 @@ class SpcPerception(
       if (timestampMap.contains(opposite) || SpcMeta.isMetaEntity(opposite)) {
         val (possessor, possessee) = {
           if (entity == noumenalGraph.getPossessorEntity(edge)) {
-            tupleN((entity, opposite))
+            tupleN(entity, opposite)
           } else {
-            tupleN((opposite, entity))
+            tupleN(opposite, entity)
           }
         }
         val role = noumenalCosmos.getPossesseeRole(edge)

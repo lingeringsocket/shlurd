@@ -100,7 +100,7 @@ class SpcWordnetOntologySpec extends Specification
       val countryForm = expectForm(ontology.getSynsetForm(countrySense))
       val provinceForm = expectForm(ontology.getSynsetForm(provinceSense))
       val roleOpt = meronyms.map(
-        role => tupleN(((role, graph.getFormsForRole(role))))).find(
+        role => tupleN((role, graph.getFormsForRole(role)))).find(
           _._2.exists(_ == provinceForm)).map(_._1).headOption
       roleOpt must beSome
       val role = roleOpt.get

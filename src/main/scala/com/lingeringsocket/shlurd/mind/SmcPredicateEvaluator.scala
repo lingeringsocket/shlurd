@@ -540,10 +540,10 @@ class SmcPredicateEvaluator[
   {
     SprRelationshipPredef(verb) match {
       case REL_PREDEF_IDENTITY | REL_PREDEF_BECOME => {
-        tupleN((REF_COMPLEMENT, extractCategory(complementRef)))
+        tupleN(REF_COMPLEMENT, extractCategory(complementRef))
       }
       case REL_PREDEF_ASSOC => {
-        tupleN((REF_SUBJECT, None))
+        tupleN(REF_SUBJECT, None)
       }
     }
   }
@@ -849,7 +849,7 @@ class SmcPredicateEvaluator[
       case ((subjectEntity, objectEntity), crossTrilean) => {
         val subjectTrilean = resultCollector.fullEntityMap.get(subjectEntity).
           getOrElse(Trilean.Unknown)
-        tupleN((objectEntity, crossTrilean && subjectTrilean))
+        tupleN(objectEntity, crossTrilean && subjectTrilean)
       }
     }
     combinedResults.groupBy(_._1).foreach {
@@ -989,7 +989,7 @@ class SmcPredicateEvaluator[
           case _ => {
             assert(
               enclosingDeterminer == DETERMINER_ABSENT,
-              tupleN((enclosingDeterminer, nounDeterminer)))
+              tupleN(enclosingDeterminer, nounDeterminer))
             nounDeterminer
           }
         }

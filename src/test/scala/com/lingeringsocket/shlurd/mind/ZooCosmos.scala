@@ -298,9 +298,9 @@ class ZooMind(cosmos : ZooCosmos, tongueIn : SprTongue = SnlUtils.defaultTongue)
     val words = cosmos.nameFor(entity).split(" ")
     tongue.getAdjectivePosition match {
       case MOD_AFTER_ALWAYS | MOD_AFTER_DEFAULT =>
-        tupleN((words.head, words.drop(1)))
+        tupleN(words.head, words.drop(1))
       case _ =>
-        tupleN((words.last, words.dropRight(1)))
+        tupleN(words.last, words.dropRight(1))
     }
   }
 

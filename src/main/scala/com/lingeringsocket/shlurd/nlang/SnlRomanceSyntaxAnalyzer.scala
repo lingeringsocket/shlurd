@@ -155,7 +155,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
         maybeQuestionFor(unwrapQuery(queryPhrase.children)).map(_._1)
       })
       val frames = {
-        val bonusFrames = tupleN((iNoms.size, iAdjs.size)) match {
+        val bonusFrames = tupleN(iNoms.size, iAdjs.size) match {
           case (0 | 1, 0) => {
             iAdps.flatMap(iAdp => {
               produceFrames(
@@ -298,31 +298,31 @@ abstract class SnlRomanceSyntaxAnalyzer(
     def secondDirect = iDirects.drop(1).headOption.map(_._1)
     def firstIndirect = iIndirects.headOption.map(_._1)
     val (rhsDirect, dativeObj) = tupleN(
-      (iDirects.size, iIndirects.size)
+      iDirects.size, iIndirects.size
     ) match {
       case (0, 0) => {
-        tupleN((None, None))
+        tupleN(None, None)
       }
       case (1, 0) => {
-        tupleN((firstDirect, None))
+        tupleN(firstDirect, None)
       }
       case (0, 1) => {
-        tupleN((None, firstIndirect))
+        tupleN(None, firstIndirect)
       }
       case (1, 1) => {
         if (iDirects == iIndirects) {
           // FIXME some verbs may allow for an indirect object with no
           // explicit direct object (e.g. "ella me dice"); in that case
           // we should interpret the sole object as indirect, not direct
-          tupleN((firstDirect, None))
+          tupleN(firstDirect, None)
         } else {
-          tupleN((firstDirect, firstIndirect))
+          tupleN(firstDirect, firstIndirect)
         }
       }
       case (2, 1) => {
         if (iDirects.head == iIndirects.head) {
           // "ella me lo cuenta"
-          tupleN((secondDirect, firstIndirect))
+          tupleN(secondDirect, firstIndirect)
         } else {
           return Seq.empty
         }
@@ -332,7 +332,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
 
     // order of produced frames is significant in that in case
     // of unresolvable ambiguity, we will take the former
-    val full = tupleN((iVerbs.size, iNoms.size, iAdjs.size)) match {
+    val full = tupleN(iVerbs.size, iNoms.size, iAdjs.size) match {
       case (1, 0, 0) => {
         Seq(
           SnlRomanceSyntaxFrame(

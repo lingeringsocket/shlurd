@@ -78,7 +78,7 @@ object SilPhraseRewriter
     oldPhrase.maybeSyntaxTree.foreach(syntaxTree => {
       newPhrase.rememberSyntaxTree(syntaxTree)
     })
-    tupleN((oldPhrase, newPhrase)) matchPartial {
+    tupleN(oldPhrase, newPhrase) matchPartial {
       case (
         oldRef : SilAnnotatedReference,
         newRef : SilAnnotatedReference
@@ -158,7 +158,7 @@ class SilPhraseRewriter(
     override def rewriting[PhraseType](
       oldPhrase : PhraseType, newPhrase : PhraseType) : PhraseType =
     {
-      tupleN((oldPhrase, newPhrase)) matchPartial {
+      tupleN(oldPhrase, newPhrase) matchPartial {
         case (
           oldTransformed : SilPhrase,
           newTransformed : SilTransformedPhrase
@@ -167,7 +167,7 @@ class SilPhraseRewriter(
             annotator, oldTransformed, newTransformed, copyOptions)
         }
       }
-      tupleN((oldPhrase, newPhrase)) matchPartial {
+      tupleN(oldPhrase, newPhrase) matchPartial {
         case (
           oldPredicate : SilPredicate,
           newPredicate : SilPredicate

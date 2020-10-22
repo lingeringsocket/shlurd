@@ -442,9 +442,9 @@ class SmcResponder[
         val responseSentence = SilPredicateSentence(
           normalizedResponse,
           tamResponse)
-        Success(tupleN((responseSentence,
+        Success(tupleN(responseSentence,
           sentencePrinter.sb.respondToCounterfactual(
-            sentencePrinter.print(responseSentence)))))
+            sentencePrinter.print(responseSentence))))
       }
       case Success(_) => {
         assert(resultCollector.states.size == 1)
@@ -755,11 +755,11 @@ class SmcResponder[
               val actionModifiers = actionPredicate.modifiers
               val (actionWord, modifiers) = actionModifiers match {
                 case Seq(SilBasicVerbModifier(word)) => {
-                  tupleN((word, Seq.empty))
+                  tupleN(word, Seq.empty)
                 }
                 case _ => {
-                  tupleN((actionPredicate.verb.decomposed.last,
-                    actionModifiers))
+                  tupleN(actionPredicate.verb.decomposed.last,
+                    actionModifiers)
                 }
               }
               val pred = SilStatePredicate(
@@ -897,10 +897,10 @@ class SmcResponder[
             ShlurdExceptionCode.NotYetImplemented,
             "A timeframe must be specified.")
         }
-        tupleN((
+        tupleN(
           SprPredefAdposition(PD_AFTER), predicate,
           predicate, predicate.getModifiers
-        ))
+        )
       } else {
         val (adp, objRef) = timeframes(iTimeframe).get
         val reducedModifiers =
@@ -1134,11 +1134,11 @@ class SmcResponder[
             case Some(entities) => {
               annotator.conjunctiveRef(
                 DETERMINER_ALL,
-                entities.map(e => tupleN((e, e.getUniqueIdentifier))).toSeq.
+                entities.map(e => tupleN(e, e.getUniqueIdentifier)).toSeq.
                   sortBy(_._2).map(pair =>
                     annotator.mappedRef(
-                      pair._2, DETERMINER_ABSENT, mind.deriveGender(pair._1)))
-              )
+                      pair._2, DETERMINER_ABSENT, mind.deriveGender(pair._1))))
+
             }
             case _ => ref
           }

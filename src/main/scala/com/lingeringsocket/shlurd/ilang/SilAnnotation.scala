@@ -318,8 +318,8 @@ trait SilAnnotator
       : SilReference =
   {
     val (sub, determiner) = reference match {
-      case SilDeterminedReference(s, d) => tupleN((s, d))
-      case _ => tupleN((reference, DETERMINER_ABSENT))
+      case SilDeterminedReference(s, d) => tupleN(s, d)
+      case _ => tupleN(reference, DETERMINER_ABSENT)
     }
     val rewritten = {
       if (qualifiers.isEmpty) {

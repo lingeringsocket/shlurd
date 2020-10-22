@@ -97,9 +97,9 @@ abstract class SnlCorenlpSyntaxAnalyzer(
       }
       val (s, c) = extractAdpositionalState(unwrapped)
       if (c.size < 3) {
-        tupleN((SilNullState(), unwrapped))
+        tupleN(SilNullState(), unwrapped)
       } else {
-        tupleN((s, c))
+        tupleN(s, c)
       }
     }
     if (!forceSQ && isImperative(punctless)) {
@@ -130,11 +130,11 @@ abstract class SnlCorenlpSyntaxAnalyzer(
   {
     val iFirstVerb = seq.indexWhere(_.isVerbNode)
     if (iFirstVerb < 0) {
-      return tupleN((false, -1))
+      return tupleN(false, -1)
     }
     val iNextVerb = seq.indexWhere(_.isVerbNode, iFirstVerb + 1)
     if (iNextVerb < 0) {
-      return tupleN((false, iFirstVerb))
+      return tupleN(false, iFirstVerb)
     }
     val nextVerb = seq(iNextVerb) match {
       case vp : SptVP => {
@@ -148,9 +148,9 @@ abstract class SnlCorenlpSyntaxAnalyzer(
     if (seq(iFirstVerb).unwrapPhrase.isProgressiveAux &&
       nextVerb.unwrapPhrase.isProgressiveVerb)
     {
-      tupleN((true, iNextVerb))
+      tupleN(true, iNextVerb)
     } else {
-      tupleN((false, iFirstVerb))
+      tupleN(false, iFirstVerb)
     }
   }
 
@@ -181,10 +181,10 @@ abstract class SnlCorenlpSyntaxAnalyzer(
         }
         val fromVerbSlice = seq.slice(iVerb, iVerb + expectedSize)
         val vp = SptVP(fromVerbSlice(0), fromVerbSlice(2))
-        tupleN((fromVerbSlice(0), fromVerbSlice(1), vp,
+        tupleN(fromVerbSlice(0), fromVerbSlice(1), vp,
           fromVerbSlice(2), negativeSuper,
           expectVerbModifiers(seq).patch(iVerb, Seq.empty, expectedSize),
-          false))
+          false)
       } else {
         if (iVerb == 0) {
           return None
@@ -208,10 +208,10 @@ abstract class SnlCorenlpSyntaxAnalyzer(
           case _ => SptVP(seq.drop(iNoun + 1).toSeq:_*)
         }
         val (negativeSub, sub) = extractNegative(vp.children)
-        tupleN((sub.head, fromNounSlice(0), SptVP(sub.toSeq:_*),
+        tupleN(sub.head, fromNounSlice(0), SptVP(sub.toSeq:_*),
           sub.last, combineNegatives(negativeSub, negativeSuper),
           expectVerbModifiers(seq).patch(iNoun, Seq.empty, expectedSize),
-          (sub.size > 2)))
+          (sub.size > 2))
       }
     }
     if (np.children.isEmpty) {
@@ -294,17 +294,17 @@ abstract class SnlCorenlpSyntaxAnalyzer(
         if (specifiedState == SilNullState()) {
           val (s, r) = extractAdpositionalState(complement)
           if (r.isEmpty) {
-            tupleN((specifiedState, complement))
+            tupleN(specifiedState, complement)
           } else {
-            tupleN((s, r))
+            tupleN(s, r)
           }
         } else {
-          tupleN((specifiedState, complement))
+          tupleN(specifiedState, complement)
         }
       }
       val (subj, recomposedComplement, answerInflection, modifiers) = {
         if (complement.isEmpty) {
-          tupleN((np, verbHead, INFLECT_NOMINATIVE, Seq.empty))
+          tupleN(np, verbHead, INFLECT_NOMINATIVE, Seq.empty)
         } else {
           if (complement.head.isPreTerminal) {
             return SilUnrecognizedSentence(tree)
@@ -316,22 +316,22 @@ abstract class SnlCorenlpSyntaxAnalyzer(
               {
                 return SilUnrecognizedSentence(tree)
               }
-              tupleN((
+              tupleN(
                 complement.head,
                 SprSyntaxRewriter.recompose(
                   complement(1),
                   complement.drop(1).dropRight(1)),
                 INFLECT_ADPOSITIONED,
                 expectVerbModifiers(Seq(SptPP(pt, np)))
-              ))
+              )
             }
             case _ => {
-              tupleN((
+              tupleN(
                 np,
                 SprSyntaxRewriter.recompose(
                   complement.head, complementRemainder),
                 INFLECT_NOMINATIVE,
-                Seq.empty))
+                Seq.empty)
             }
           }
         }
@@ -366,20 +366,20 @@ abstract class SnlCorenlpSyntaxAnalyzer(
           // I think you mean "whom", Chief!
           adpositionOpt match {
             case Some(adposition) => {
-              tupleN((None, INFLECT_ADPOSITIONED, secondUnwrapped,
-                expectVerbModifiers(Seq(SptPP(adpositionOpt.get, np)))))
+              tupleN(None, INFLECT_ADPOSITIONED, secondUnwrapped,
+                expectVerbModifiers(Seq(SptPP(adpositionOpt.get, np))))
             }
             case _ =>  {
-              tupleN((Some(expectReference(np)), INFLECT_ACCUSATIVE,
-                secondUnwrapped, Seq.empty))
+              tupleN(Some(expectReference(np)), INFLECT_ACCUSATIVE,
+                secondUnwrapped, Seq.empty)
             }
           }
         } else {
           if (adpositionOpt.nonEmpty) {
             return SilUnrecognizedSentence(tree)
           }
-          tupleN((None, INFLECT_NOMINATIVE,
-            Seq(np) ++ secondUnwrapped, Seq.empty))
+          tupleN(None, INFLECT_NOMINATIVE,
+            Seq(np) ++ secondUnwrapped, Seq.empty)
         }
       }
       analyzeSubQueryChildren(
@@ -455,9 +455,9 @@ abstract class SnlCorenlpSyntaxAnalyzer(
         extractAdpositionalState(vpChildren)
       val (complement, specifiedState) = {
         if (vpRemainder.size > 1) {
-          tupleN((vpRemainder.last, maybeSpecifiedState))
+          tupleN(vpRemainder.last, maybeSpecifiedState)
         } else {
-          tupleN((vpChildren.last, SilNullState()))
+          tupleN(vpChildren.last, SilNullState())
         }
       }
       val extraModifiers = expectVerbModifiers(vpRemainder).filterNot(
@@ -509,14 +509,14 @@ abstract class SnlCorenlpSyntaxAnalyzer(
   {
     val (negative, seq) = {
       if (complement.isPreTerminal) {
-        tupleN((false, Seq(complement)))
+        tupleN(false, Seq(complement))
       } else {
         extractNegative(complement.children)
       }
     }
     if (np.isExistential) {
       if (!tongue.isBeingLemma(verb)) {
-        return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
+        return tupleN(false, SilUnrecognizedPredicate(syntaxTree))
       }
       val subject = splitCoordinatingConjunction(seq) match {
         case (DETERMINER_ABSENT, _, _) => {
@@ -532,34 +532,34 @@ abstract class SnlCorenlpSyntaxAnalyzer(
           conjunctiveRef
         }
       }
-      tupleN((negative, expectStatePredicate(
+      tupleN(negative, expectStatePredicate(
         syntaxTree, subject, verb,
         expectExistenceState(np), SilNullState(),
-        verbModifiers)))
+        verbModifiers))
     } else if (complement.isExistsVerb ||
       // FIXME this is somewhat arbitrary
       ((question == Some(QUESTION_HOW_MANY)) && complement.isExistential)
     ) {
       if (!tongue.isBeingLemma(verb)) {
-        return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
+        return tupleN(false, SilUnrecognizedPredicate(syntaxTree))
       }
-      tupleN((negative, expectStatePredicate(
+      tupleN(negative, expectStatePredicate(
         syntaxTree,
         specifyReference(
           expectReference(np), specifiedState),
         verb,
         expectExistenceState(complement),
         SilNullState(),
-        verbModifiers)))
+        verbModifiers))
     } else if (complement.isNounOrPronoun) {
       // FIXME this is quite arbitrary
       val (subjectRef, complementRef) = {
         if (tongue.isBeingLemma(verb)) {
-          tupleN((specifyReference(expectReference(np), specifiedState),
-            expectReference(seq)))
+          tupleN(specifyReference(expectReference(np), specifiedState),
+            expectReference(seq))
         } else {
-          tupleN((expectReference(np),
-            specifyReference(expectReference(seq), specifiedState)))
+          tupleN(expectReference(np),
+            specifyReference(expectReference(seq), specifiedState))
         }
       }
       val relationshipPredicate = expectRelationshipPredicate(
@@ -568,18 +568,18 @@ abstract class SnlCorenlpSyntaxAnalyzer(
         complementRef,
         verb,
         verbModifiers)
-      tupleN((negative, relationshipPredicate))
+      tupleN(negative, relationshipPredicate)
     } else {
       if (!tongue.isBeingLemma(verb)) {
         if (enforceTransitive) {
-          return tupleN((false, SilUnrecognizedPredicate(syntaxTree)))
+          return tupleN(false, SilUnrecognizedPredicate(syntaxTree))
         } else {
-          return tupleN((negative, expectStatePredicate(
+          return tupleN(negative, expectStatePredicate(
             syntaxTree, expectReference(np),
             STATE_PREDEF_BE.toVerb,
             SilExistenceState(),
             specifiedState,
-            verbModifiers)))
+            verbModifiers))
         }
       }
       val (state, extraModifiers, refinedState) = {
@@ -590,7 +590,7 @@ abstract class SnlCorenlpSyntaxAnalyzer(
           case advp @ (_ : SptTMOD | _ : SptADVP) if (
             specifiedState != SilNullState()
           ) => {
-            tupleN((specifiedState, Seq(advp), SilNullState()))
+            tupleN(specifiedState, Seq(advp), SilNullState())
           }
           case vb : SprSyntaxSimpleVerb if (
             tongue.allowElidedSubject && (getWord(vb.child) == verb)
@@ -623,13 +623,13 @@ abstract class SnlCorenlpSyntaxAnalyzer(
                 conjunctiveState
               }
             }
-            tupleN((seqState, Seq.empty, specifiedState))
+            tupleN(seqState, Seq.empty, specifiedState)
           }
         }
       }
-      tupleN((negative, expectStatePredicate(
+      tupleN(negative, expectStatePredicate(
         syntaxTree, expectReference(np), verb, state, refinedState,
-        verbModifiers ++ expectVerbModifiers(extraModifiers))))
+        verbModifiers ++ expectVerbModifiers(extraModifiers)))
     }
   }
 
@@ -649,15 +649,15 @@ abstract class SnlCorenlpSyntaxAnalyzer(
           val rewrite = SprSyntaxRewriter.recompose(
             advp,
             Seq(advp.firstChild, np))
-          tupleN((SilNullState(), seq.dropRight(2) :+ rewrite))
+          tupleN(SilNullState(), seq.dropRight(2) :+ rewrite)
         }
         case _ => {
-          tupleN((SilNullState(), seq))
+          tupleN(SilNullState(), seq)
         }
       }
     } else {
-      tupleN((SipExpectedAdpositionalState(seq(i), true),
-        seq.take(i) ++ seq.drop(i + 1)))
+      tupleN(SipExpectedAdpositionalState(seq(i), true),
+        seq.take(i) ++ seq.drop(i + 1))
     }
   }
 
@@ -674,18 +674,18 @@ abstract class SnlCorenlpSyntaxAnalyzer(
       if (iModal < 0) {
         val (progressive, iVerb) = detectProgressive(seq)
         if (!progressive) {
-          return tupleN((SilTam.indicative, seq,
-            SilVerbInflection(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)))
+          return tupleN(SilTam.indicative, seq,
+            SilVerbInflection(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR))
         } else {
           val iBeing = seq.indexWhere(_.isVerbNode)
           val being = seq(iBeing).unwrapPhrase
           assert(being.isRelationshipVerb)
           val nonBeing = seq.patch(iBeing, Seq.empty, 1)
-          tupleN((nonBeing, iBeing))
+          tupleN(nonBeing, iBeing)
         }
       } else {
         val nonModal = seq.patch(iModal, Seq.empty, 1)
-        tupleN((nonModal, iModal))
+        tupleN(nonModal, iModal)
       }
     }
 
@@ -700,7 +700,7 @@ abstract class SnlCorenlpSyntaxAnalyzer(
     val leaf = requireLeaf(aux.children)
     val tam = tamForAux(leaf, nonAux)
     val tamTensed = extractTense(aux, tam)
-    tupleN((tamTensed, remainder, getVerbInflection(aux)))
+    tupleN(tamTensed, remainder, getVerbInflection(aux))
   }
 
   private def analyzeActionPredicate(
@@ -715,11 +715,11 @@ abstract class SnlCorenlpSyntaxAnalyzer(
     val (negative, seq) = extractNegative(vp.children)
     // FIXME should support "there goes the mailman"?
     if (np.isExistential) {
-      return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
+      return tupleN(negative, SilUnrecognizedPredicate(syntaxTree))
     }
     val subject = expectReference(np)
     if (seq.isEmpty) {
-      return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
+      return tupleN(negative, SilUnrecognizedPredicate(syntaxTree))
     }
     val verbHead = seq.head
     val verb = verbHead match {
@@ -729,7 +729,7 @@ abstract class SnlCorenlpSyntaxAnalyzer(
         getTreeWord(vb)
       }
       case _ => {
-        return tupleN((negative, SilUnrecognizedPredicate(syntaxTree)))
+        return tupleN(negative, SilUnrecognizedPredicate(syntaxTree))
       }
     }
     val (directObject, extraModifiers) =
@@ -748,7 +748,7 @@ abstract class SnlCorenlpSyntaxAnalyzer(
       directObjects.headOption,
       adpositionObject,
       extraModifiers ++ verbModifiers)
-    tupleN((negative, predicate))
+    tupleN(negative, predicate)
   }
 
   private def expectVerbObjectsAndModifiers(
@@ -799,7 +799,7 @@ abstract class SnlCorenlpSyntaxAnalyzer(
     })
     val modifiers = expectVerbModifiers(seq).filterNot(
       vm => objTrees.contains(vm.syntaxTree))
-    tupleN((directObjTree.map(expectReference),
-      indirectAdposition.toSeq ++ modifiers))
+    tupleN(directObjTree.map(expectReference),
+      indirectAdposition.toSeq ++ modifiers)
   }
 }

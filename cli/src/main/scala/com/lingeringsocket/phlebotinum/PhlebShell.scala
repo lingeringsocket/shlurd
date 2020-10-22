@@ -93,14 +93,14 @@ object PhlebShell
       : (PhlebSnapshot, Boolean) =
   {
     if (terminal.getInitSaveFile.nonEmpty && file.exists) {
-      tupleN((restore(file, terminal), false))
+      tupleN(restore(file, terminal), false)
     } else {
       terminal.emitControl("Initializing...")
       val snapshot = createNewCosmos(resourcePrefix, terminal)
       terminal.emitControl("Initialization complete.")
-      tupleN((
+      tupleN(
         snapshot,
-        true))
+        true)
     }
   }
 
@@ -284,15 +284,15 @@ object PhlebShell
               // bleed into the phenomenal world, otherwise the entity
               // wouldn't have a point of reference for itself
               cloned.createOrReplaceEntity(entity)
-              tupleN((cloned, None))
+              tupleN(cloned, None)
             }
             case "perceptive" => {
               val cosmos = bootCosmos.newClone()
-              tupleN((
-                cosmos, Some(new SpcPerception(noumenalCosmos, cosmos))))
+              tupleN(
+                cosmos, Some(new SpcPerception(noumenalCosmos, cosmos)))
             }
             case "omniscient" => {
-              tupleN((noumenalCosmos, None))
+              tupleN(noumenalCosmos, None)
             }
             case _ => {
               return None
@@ -565,7 +565,7 @@ class PhlebShell(
                   } else {
                     accessEntityMind(targetEntity) match {
                       case Some(entityMind) => {
-                        listenerMind = Some(tupleN((targetEntity, entityMind)))
+                        listenerMind = Some(tupleN(targetEntity, entityMind))
                         defer(DeferredReport(
                           "(You are now in conversation.  Say TTYL to stop.)"))
                       }
@@ -728,7 +728,7 @@ class PhlebShell(
           val parseResults = noumenalUpdater.newParser(input).parseAll
           parseResults.foreach(parseResult => {
             val output = noumenalUpdater.process(parseResult)
-            assert(output == OK, tupleN((parseResult, output)))
+            assert(output == OK, tupleN(parseResult, output))
           })
         }
         case DeferredUtterance(_, _, "TTYL" | "ttyl") => {
@@ -877,11 +877,11 @@ class PhlebShell(
     perceiver : SpcEntity,
     perceived : Set[SpcEntity]) : Unit =
   {
-    deferredPerception += tupleN((
+    deferredPerception += tupleN(
       snapshot,
       perceiver,
       perceived
-    ))
+    )
   }
 
   private def updatePerception() : Unit =

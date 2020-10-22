@@ -222,9 +222,9 @@ class SpcCreed(
     val constraint = edge.constraint
     val (count, determiner) = {
       if (constraint.upper == 1) {
-        tupleN((COUNT_SINGULAR, SilIntegerDeterminer(constraint.upper)))
+        tupleN(COUNT_SINGULAR, SilIntegerDeterminer(constraint.upper))
       } else {
-        tupleN((COUNT_PLURAL, DETERMINER_ABSENT))
+        tupleN(COUNT_PLURAL, DETERMINER_ABSENT)
       }
     }
     val possesseeNoun = nounReference(
@@ -373,7 +373,7 @@ class SpcCreed(
         val gender = SilUtils.getGender(possesseeRef, mind)
         val ordinalFirst = sentencePrinter.sb.ordinalNumber(1, gender)
         val ordinalSecond = sentencePrinter.sb.ordinalNumber(2, gender)
-        tupleN((
+        tupleN(
           possesseeRef,
           annotator.genitiveRef(
             annotator.qualifiedRef(
@@ -393,9 +393,9 @@ class SpcCreed(
             ),
             plainNoun(edge2.getRoleName)
           )
-        ))
+        )
       } else {
-        tupleN((
+        tupleN(
           idealReference(possesseeForm),
           annotator.genitiveRef(
             idealReference(possessorForm),
@@ -406,7 +406,7 @@ class SpcCreed(
             idealNoun(possesseeForm, COUNT_SINGULAR, DETERMINER_DEFINITE),
             plainNoun(edge2.getRoleName)
           )
-        ))
+        )
       }
     }
     val sentence = SilConditionalSentence(

@@ -160,16 +160,16 @@ class SmcResponseRewriter[
         negateCollection = true
         val (responseDeterminer, responseNoun) = noun match {
           case SprPredefWord(PD_WHO) => {
-            tupleN((DETERMINER_NONE, SprPredefWord(PD_ONE)))
+            tupleN(DETERMINER_NONE, SprPredefWord(PD_ONE))
           }
           case SprPredefWord(PD_WHOM) => {
-            tupleN((DETERMINER_NONE, SprPredefWord(PD_ONE)))
+            tupleN(DETERMINER_NONE, SprPredefWord(PD_ONE))
           }
           case SprPredefWord(PD_WHERE) => {
-            tupleN((DETERMINER_ABSENT, SprPredefWord(PD_NOWHERE)))
+            tupleN(DETERMINER_ABSENT, SprPredefWord(PD_NOWHERE))
           }
           case SprPredefWord(PD_WHAT) => {
-            tupleN((DETERMINER_ABSENT, SprPredefWord(PD_NOTHING)))
+            tupleN(DETERMINER_ABSENT, SprPredefWord(PD_NOTHING))
           }
           case _ => (DETERMINER_NONE, noun)
         }
@@ -319,7 +319,7 @@ class SmcResponseRewriter[
     val normalized = transformQuestionResponse(
       rewriteTongue, params, question, negateCollection)
     SilPhraseValidator.validatePhrase(normalized)
-    tupleN((normalized, negateCollection))
+    tupleN(normalized, negateCollection)
   }
 
   private def refToPronoun(
@@ -348,9 +348,9 @@ class SmcResponseRewriter[
         person, gender, count, proximity, politeness
       ) => {
         val (swap, speakerListenerReversed) = person match {
-          case PERSON_FIRST => tupleN((true, PERSON_SECOND))
-          case PERSON_SECOND => tupleN((true, PERSON_FIRST))
-          case PERSON_THIRD => tupleN((false, PERSON_THIRD))
+          case PERSON_FIRST => tupleN(true, PERSON_SECOND)
+          case PERSON_SECOND => tupleN(true, PERSON_FIRST)
+          case PERSON_THIRD => tupleN(false, PERSON_THIRD)
         }
         if (swap) {
           val newPronoun = annotator.pronounRef(
@@ -418,7 +418,7 @@ class SmcResponseRewriter[
         return predicate
       }
     }
-    tupleN((predicate, question)) match {
+    tupleN(predicate, question) match {
       case (rp @
           SilRelationshipPredicate(
             container,
@@ -493,8 +493,8 @@ class SmcResponseRewriter[
         subject, SprRelationshipPredefVerb(REL_PREDEF_IDENTITY), complement, _
       ) => {
         tupleN(
-          (refMap.get(subject),
-            refMap.get(complement))
+          refMap.get(subject),
+          refMap.get(complement)
         ) matchPartial {
           case (Some(subjectEntities), Some(complementEntities)) => {
             if (subjectEntities == complementEntities) {
@@ -628,7 +628,15 @@ class SmcResponseRewriter[
   {
     ref match {
       case pr : SilPronounReference if (pr.isElided) => {
-        pr.copy(proximity = PROXIMITY_ENTITY)
+        annotator.pronounRef(
+          pr.person,
+          pr.gender,
+          pr.count,
+          mind,
+          PROXIMITY_ENTITY,
+          pr.politeness,
+          pr.word,
+          pr.pronounMap)
       }
       case _ => ref
     }
@@ -908,7 +916,15 @@ class SmcResponseRewriter[
         }
       }
       case pr : SilPronounReference => {
-        pr.copy(count = agreedCount)
+        annotator.pronounRef(
+          pr.person,
+          pr.gender,
+          agreedCount,
+          mind,
+          pr.proximity,
+          pr.politeness,
+          pr.word,
+          pr.pronounMap)
       }
       case _ => reference
     }
@@ -1011,22 +1027,22 @@ class SmcResponseRewriter[
         !params.neverSummarize
     val existence = resultCollector.states.isEmpty
     if (falseEntities.isEmpty) {
-      tupleN((None, false))
+      tupleN(None, false)
     } else if ((falseEntities.size == 1) && !params.alwaysSummarize) {
-      tupleN((Some(resolveReference(
+      tupleN(Some(resolveReference(
         falseEntities.head, entityDeterminer, resultCollector)),
-        false))
+        false)
     } else if (exhaustive || (falseEntities.size > params.listLimit)) {
-      tupleN((
+      tupleN(
         summarizeList(fullRef, falseEntities, exhaustive, existence, true),
-        exhaustive))
+        exhaustive)
     } else {
-      tupleN((Some(annotator.conjunctiveRef(
+      tupleN(Some(annotator.conjunctiveRef(
         DETERMINER_NONE,
         falseEntities.map(
           resolveReference(_, entityDeterminer, resultCollector)).toSeq,
         separator)),
-        true))
+        true)
     }
   }
 
@@ -1048,7 +1064,7 @@ class SmcResponseRewriter[
           tongue.correctGenderCount(
             SprPredefWord(PD_NONE_NOUN).toLemma,
             gender, c, false))
-        tupleN((n, c))
+        tupleN(n, c)
       } else  if ((entities.size == 2) && exhaustive && !existence) {
         all = false
         val c = COUNT_PLURAL
@@ -1056,7 +1072,7 @@ class SmcResponseRewriter[
           tongue.correctGenderCount(
             SprPredefWord(PD_BOTH).toLemma,
             gender, c, false))
-        tupleN((n, c))
+        tupleN(n, c)
       } else {
         val s = entities.size
         val n = SilWord.uninflected(s.toString)
@@ -1065,7 +1081,7 @@ class SmcResponseRewriter[
           case 1 => COUNT_SINGULAR
           case _ => COUNT_PLURAL
         }
-        tupleN((n, c))
+        tupleN(n, c)
       }
     }
     val determiner = {

@@ -740,7 +740,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     // the count of the noun too
     // FIXME reflexives
     // FIXME distinguish direct object from indirect object
-    tupleN((gender, count)) match {
+    tupleN(gender, count) match {
       case (GENDER_MASCULINE, COUNT_SINGULAR) => {
         Map(
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
@@ -1014,13 +1014,13 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     (pronounToCoord.get(lemma).toSeq ++ dativeToCoord.get(lemma)) match {
       case Seq(coord1, coord2) => {
         assert(coord2.copy(inflection = coord1.inflection) == coord1)
-        tupleN((coord1.person, coord1.count, coord1.gender,
+        tupleN(coord1.person, coord1.count, coord1.gender,
           Set(coord1.inflection, coord2.inflection),
-          Some(coord1.proximity), coord1.possesseeCount, coord1.politeness))
+          Some(coord1.proximity), coord1.possesseeCount, coord1.politeness)
       }
       case Seq(coord) => {
-        tupleN((coord.person, coord.count, coord.gender, Set(coord.inflection),
-          Some(coord.proximity), coord.possesseeCount, coord.politeness))
+        tupleN(coord.person, coord.count, coord.gender, Set(coord.inflection),
+          Some(coord.proximity), coord.possesseeCount, coord.politeness)
       }
       case _ => {
         val isCustomPronoun = !isPronounWord(lemma)
@@ -1031,8 +1031,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           // NEUTER and SOMEONE, to be resolved downstream
           GENDER_NEUTER
         }
-        tupleN((PERSON_THIRD, COUNT_SINGULAR, gender, Set(INFLECT_NONE),
-          None, COUNT_SINGULAR, SilPoliteness.DEFAULT))
+        tupleN(PERSON_THIRD, COUNT_SINGULAR, gender, Set(INFLECT_NONE),
+          None, COUNT_SINGULAR, SilPoliteness.DEFAULT)
       }
     }
   }
@@ -1258,32 +1258,32 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case cw : SilCompoundWord => cw.components.last
     }
     if (isProgressive(simple.inflected)) {
-      tupleN((
+      tupleN(
         PERSON_FIRST,
         COUNT_SINGULAR,
         GENDER_SOMEONE,
         SilTam.indicative.progressive
-      ))
+      )
     } else {
       val coordOpt = SnlSpanishConjugation.getConjugationCoord(
         simple.lemma, simple.inflected)
       coordOpt match {
         case Some(coord) => {
-          tupleN((
+          tupleN(
             coord.person,
             coord.count,
             if (coord.person == PERSON_THIRD) GENDER_NEUTER else GENDER_SOMEONE,
             SilTam.indicative.withTense(coord.tense).withMood(coord.mood)
-          ))
+          )
         }
         case _ => {
           // unrecognized conjugation, just make something up
-          tupleN((
+          tupleN(
             PERSON_THIRD,
             COUNT_SINGULAR,
             GENDER_MASCULINE,
             SilTam.indicative
-          ))
+          )
         }
       }
     }
@@ -1302,7 +1302,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
     // FIXME refinements for COUNT_MASS and COUNT_ZERO_PLURAL
     ignoreGenderCount(lemma) match {
-      case LEMMA_ALGUN => tupleN((basic, count)) match {
+      case LEMMA_ALGUN => tupleN(basic, count) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ALGUNA
         case (GENDER_FEMININE, _) => LEMMA_ALGUNAS
         case (_, COUNT_SINGULAR) => {
@@ -1314,7 +1314,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         }
         case (_, _) => LEMMA_ALGUNOS
       }
-      case LEMMA_NINGUN => tupleN((basic, count)) match {
+      case LEMMA_NINGUN => tupleN(basic, count) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_NINGUNA
         case (GENDER_FEMININE, _) => LEMMA_NINGUNAS
         case (_, COUNT_SINGULAR) => {
@@ -1330,7 +1330,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         case GENDER_FEMININE => LEMMA_AMBAS
         case _ => LEMMA_AMBOS
       }
-      case LEMMA_AQUEL => tupleN((basic, count)) match {
+      case LEMMA_AQUEL => tupleN(basic, count) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_AQUELLA
         case (GENDER_FEMININE, _) => LEMMA_AQUELLAS
         case (_, COUNT_SINGULAR) => {
@@ -1358,7 +1358,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         case COUNT_SINGULAR => LEMMA_QUIEN_ACCENTED
         case _ => LEMMA_QUIENES_ACCENTED
       }
-      case LEMMA_ELLO => tupleN((basic, count)) match {
+      case LEMMA_ELLO => tupleN(basic, count) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_ELLA
         case (GENDER_FEMININE, _) => LEMMA_ELLAS
         case (GENDER_MASCULINE, COUNT_SINGULAR) => LEMMA_EL_ACCENTED
@@ -1369,7 +1369,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         case COUNT_SINGULAR => LEMMA_LE
         case _ => LEMMA_LES
       }
-      case LEMMA_EL => tupleN((basic, count)) match {
+      case LEMMA_EL => tupleN(basic, count) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_LA
         case (GENDER_FEMININE, _) => LEMMA_LAS
         case (_, COUNT_SINGULAR) => LEMMA_EL
@@ -1391,7 +1391,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         case COUNT_SINGULAR => LEMMA_TU
         case _ => LEMMA_TUS
       }
-      case LEMMA_UN => tupleN((basic, count)) match {
+      case LEMMA_UN => tupleN(basic, count) match {
         case (GENDER_FEMININE, COUNT_SINGULAR) => LEMMA_UNA
         case (GENDER_FEMININE, _) => LEMMA_UNAS
         case (_, COUNT_SINGULAR) => {
@@ -1405,7 +1405,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       }
       case lemma => {
         if (lemma.endsWith("o")) {
-          val suffix = tupleN((basic, count)) match {
+          val suffix = tupleN(basic, count) match {
             case (GENDER_FEMININE, COUNT_SINGULAR) => "a"
             case (GENDER_FEMININE, _) => "as"
             case (_, COUNT_SINGULAR) => "o"
@@ -1707,9 +1707,9 @@ class SnlSpanishTongue(wordnet : SprWordnet)
             SilAdposition(SilWordLemma(LEMMA_A)),
             ref : SilReference
           ) if (genderAnalyzer.isPerson(ref, genderAnalyzer)) => {
-            tupleN((Some(vm), Some(ref)))
+            tupleN(Some(vm), Some(ref))
           }
-          case _ => tupleN((None, None))
+          case _ => tupleN(None, None)
         }).find(_._1.nonEmpty)
         val objModifier = found.flatMap(_._1)
         val directObj = found.flatMap(_._2)

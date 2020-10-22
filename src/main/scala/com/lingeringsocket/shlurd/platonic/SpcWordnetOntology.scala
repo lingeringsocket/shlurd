@@ -161,11 +161,11 @@ class SpcWordnetOntology(wordnet : SprWordnet, cosmos : SpcCosmos)
   {
     val (someoneForm, objectForm) = {
       if (includeImplicit) {
-        tupleN((
+        tupleN(
           cosmos.resolveForm(SmcIdeals.FORM_SOMEONE),
-          cosmos.resolveForm(SmcIdeals.FORM_OBJECT)))
+          cosmos.resolveForm(SmcIdeals.FORM_OBJECT))
       } else {
-        tupleN((None, None))
+        tupleN(None, None)
       }
     }
     loadForm(hyponymSynset) match {

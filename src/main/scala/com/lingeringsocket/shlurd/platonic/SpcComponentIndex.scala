@@ -50,7 +50,7 @@ class SpcComponentIndex[KeyType, ComponentType](
       edge => {
         val component = graph.getEdgeTarget(edge)
         keyExtractor(component).map(key => {
-          tupleN((key, component.asInstanceOf[ComponentType]))
+          tupleN(key, component.asInstanceOf[ComponentType])
         })
       }
     )

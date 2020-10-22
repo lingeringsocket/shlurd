@@ -418,9 +418,9 @@ object SprParser extends SprSynthesizer
     val allWords = refineTokens(sentence)
     val (unterminatedWords, terminator) = {
       if (isTerminator(allWords.last)) {
-        tupleN((allWords.dropRight(1), Some(allWords.last)))
+        tupleN(allWords.dropRight(1), Some(allWords.last))
       } else {
-        tupleN((allWords, None))
+        tupleN(allWords, None)
       }
     }
     def heuristicParseOne(words : Seq[String]) : SprSyntaxTree =
@@ -587,7 +587,7 @@ object SprParser extends SprSynthesizer
       new SprMultipleParser(sentences.to(LazyList).map(tokenizedSentence => {
         val start = tokenizedSentence.tokens.head.start
         val end = tokenizedSentence.tokens.last.end
-        tupleN((prepareOne(context, tokenizedSentence), start, end))
+        tupleN(prepareOne(context, tokenizedSentence), start, end)
       }))
     }
   }

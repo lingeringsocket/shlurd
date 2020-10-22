@@ -207,9 +207,9 @@ class SprWordnetLabeler(
     val (tokenPrefix, tokenSuffix) = {
       val iHyphen = token.lastIndexOf('-')
       if ((iHyphen < 1) || (iHyphen == (token.size - 1))) {
-        tupleN(("", token))
+        tupleN("", token)
       } else {
-        tupleN((token.take(iHyphen + 1), token.drop(iHyphen + 1)))
+        tupleN(token.take(iHyphen + 1), token.drop(iHyphen + 1))
       }
     }
     val indexWords : Set[SprSyntaxTree] = {
@@ -230,7 +230,7 @@ class SprWordnetLabeler(
           val baseForms = wordnet.getMorphology.
             lookupAllBaseForms(pos, tokenSuffix).asScala
           baseForms.map(
-              lemma => tupleN((pos, lemma))).toSet
+              lemma => tupleN(pos, lemma)).toSet
         })
         val rawWords = pairs.flatMap {
           case (pos, lemma) => {

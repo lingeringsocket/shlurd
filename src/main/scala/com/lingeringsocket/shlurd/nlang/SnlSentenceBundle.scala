@@ -64,9 +64,9 @@ abstract class SnlSentenceBundle(
   {
     val (adpositionPre, modifiers) = answerInflection match {
       case INFLECT_ADPOSITIONED =>
-        tupleN((Some(modifiersOriginal.last), modifiersOriginal.dropRight(1)))
+        tupleN(Some(modifiersOriginal.last), modifiersOriginal.dropRight(1))
       case _ =>
-        tupleN((None, modifiersOriginal))
+        tupleN(None, modifiersOriginal)
     }
     val directObjectPost = answerInflection match {
       case INFLECT_ACCUSATIVE => None
@@ -126,19 +126,19 @@ abstract class SnlSentenceBundle(
       case INFLECT_ADPOSITIONED =>
         // FIXME this is a mess from "south of what is the cave?"
         if (modifiersOriginal.isEmpty) {
-          tupleN((
+          tupleN(
             Some(stateOriginal),
             modifiersOriginal,
             ""
-          ))
+          )
         } else {
-          tupleN((
+          tupleN(
             Some(modifiersOriginal.last),
             modifiersOriginal.dropRight(1),
-            stateOriginal))
+            stateOriginal)
         }
       case _ =>
-        tupleN((None, modifiersOriginal, stateOriginal))
+        tupleN(None, modifiersOriginal, stateOriginal)
     }
     val primary = {
       if (!question.isEmpty) {

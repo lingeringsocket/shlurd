@@ -48,9 +48,9 @@ class SnlSpanishSentenceBundle(
     val (verbPre, verbMain) = {
       // FIXME generalize to any negative
       if (verbSeq.head == LEMMA_NO) {
-        tupleN((verbSeq.take(1), verbSeq.drop(1)))
+        tupleN(verbSeq.take(1), verbSeq.drop(1))
       } else {
-        tupleN((Seq.empty, verbSeq))
+        tupleN(Seq.empty, verbSeq)
       }
     }
     val middle = objectPosition match {
@@ -113,11 +113,11 @@ class SnlSpanishSentenceBundle(
     }
     val (mainTam, mainVerb) = {
       if (modalSeq.isEmpty) {
-        tupleN((tam, verb))
+        tupleN(tam, verb)
       } else {
-        tupleN((
+        tupleN(
           tam.infinitive.withModality(MODAL_NEUTRAL).positive,
-          verb.toUninflected))
+          verb.toUninflected)
       }
     }
     val mainSeq = mainVerb.decomposed.map(w => {

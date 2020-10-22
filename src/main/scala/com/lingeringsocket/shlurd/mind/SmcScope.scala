@@ -148,22 +148,22 @@ trait SmcScope[
       if (((p1.gender == GENDER_SOMEONE) || (p2.gender == GENDER_SOMEONE)) &&
         !((p1.gender == GENDER_SOMEWHERE) || (p2.gender == GENDER_SOMEWHERE)))
       {
-        tupleN((
+        tupleN(
           p1.copy(gender = GENDER_SOMEONE),
           p2.copy(gender = GENDER_SOMEONE)
-        ))
+        )
       } else {
-        tupleN((p1, p2))
+        tupleN(p1, p2)
       }
     }
     val (pC, pD) = {
       if ((pA.count == COUNT_MASS) || (pB.count == COUNT_MASS)) {
-        tupleN((
+        tupleN(
           pA.copy(count = COUNT_MASS),
           pB.copy(count = COUNT_MASS)
-        ))
+        )
       } else {
-        tupleN((pA, pB))
+        tupleN(pA, pB)
       }
     }
     if (foldSpecialCases(pC) != foldSpecialCases(pD)) {
@@ -467,9 +467,9 @@ class SmcPhraseScope[
                   DETERMINER_DEFINITE
                 )
               ) => {
-                tupleN((primary, Some(alias.toNounLemma)))
+                tupleN(primary, Some(alias.toNounLemma))
               }
-              case _ => tupleN((prior, None))
+              case _ => tupleN(prior, None)
             }
             def matchLemma(lemma : String) : Boolean =
             {
@@ -488,7 +488,7 @@ class SmcPhraseScope[
                 SilNounLemmaReference(lemma),
                 _ : SilIndefiniteDeterminer
               ) if (matchLemma(lemma)) => {
-                Some(tupleN((prior, set, produceOrdinal(1))))
+                Some(tupleN(prior, set, produceOrdinal(1)))
               }
               case SilStateSpecifiedReference(
                 SilMandatorySingular(
@@ -496,7 +496,7 @@ class SmcPhraseScope[
                 ),
                 SilPropertyState(SprPredefWord(PD_ANOTHER))
               ) if (matchLemma(lemma)) => {
-                Some(tupleN((prior, set, produceOrdinal(2))))
+                Some(tupleN(prior, set, produceOrdinal(2)))
               }
               case SilDeterminedReference(
                 SilStateSpecifiedReference(
@@ -509,7 +509,7 @@ class SmcPhraseScope[
               ) if (matchLemma(lemma)) => {
                 getSentencePrinter.sb.ordinalValue(qualifier) match {
                   case Success(ordinal) => {
-                    Some(tupleN((prior, set, produceOrdinal(ordinal))))
+                    Some(tupleN(prior, set, produceOrdinal(ordinal)))
                   }
                   case _ => None
                 }
@@ -526,13 +526,13 @@ class SmcPhraseScope[
               if (qualifiers.isEmpty) {
                 noun match {
                   case SprPredefWord(PD_FORMER) => {
-                    tupleN((Some(1), ordered.size < 1))
+                    tupleN(Some(1), ordered.size < 1)
                   }
                   case SprPredefWord(PD_LATTER) => {
-                    tupleN((Some(2), ordered.size < 2))
+                    tupleN(Some(2), ordered.size < 2)
                   }
                   case _ => {
-                    tupleN((Some(1), false))
+                    tupleN(Some(1), false)
                   }
                 }
               } else if (qualifiers.size == 1) {
@@ -547,9 +547,9 @@ class SmcPhraseScope[
                     }
                   }
                 }
-                tupleN((qualifierOrdinalOpt, false))
+                tupleN(qualifierOrdinalOpt, false)
               } else {
-                tupleN((None, false))
+                tupleN(None, false)
               }
             }
             def failMisqualified = {

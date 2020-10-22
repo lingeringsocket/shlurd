@@ -102,16 +102,16 @@ object SpcGraph
           cloneSubImpl(listenable.getExposedDelegate, flattenDeltas)
         subClone match {
           case _ : ExposedListenableGraph[V,E] => {
-            tupleN((subClone, subDelta))
+            tupleN(subClone, subDelta)
           }
           case _ => {
-            tupleN((new ExposedListenableGraph(subClone), subDelta))
+            tupleN(new ExposedListenableGraph(subClone), subDelta)
           }
         }
       }
       case unmodifiable : ExposedUnmodifiableGraph[V, E] => {
         if (unmodifiable.isFrozen) {
-          tupleN((unmodifiable, false))
+          tupleN(unmodifiable, false)
         } else {
           cloneSubImpl(unmodifiable.getExposedDelegate, flattenDeltas)
         }
@@ -129,15 +129,15 @@ object SpcGraph
           delta.minusEdges.clone)
         if (flattenDeltas && baseDelta) {
           newDelta.applyModifications()
-          tupleN((newDelta.baseGraph, false))
+          tupleN(newDelta.baseGraph, false)
         } else {
-          tupleN((newDelta, true))
+          tupleN(newDelta, true)
         }
       }
       case _ => {
         val cloned = graph.asInstanceOf[AbstractBaseGraph[V, E]].clone.
           asInstanceOf[Graph[V, E]]
-        tupleN((cloned, false))
+        tupleN(cloned, false)
       }
     }
   }
@@ -148,30 +148,30 @@ object SpcGraph
     val (modifiable, unmodifiable, isFrozen) = {
       forked match {
         case exposed : ExposedUnmodifiableGraph[V, E] => {
-        tupleN((
+        tupleN(
           exposed.getExposedDelegate,
           true,
-          exposed.isFrozen))
+          exposed.isFrozen)
         }
         case _ => {
-          tupleN((
+          tupleN(
             forked,
             false,
-            false))
+            false)
         }
       }
     }
     val (underlying, listenable) = {
       modifiable match {
         case exposed : ExposedListenableGraph[V, E] => {
-        tupleN((
+        tupleN(
           exposed.getExposedDelegate,
-          true))
+          true)
         }
         case _ => {
-          tupleN((
+          tupleN(
             modifiable,
-            false))
+            false)
         }
       }
     }
@@ -260,8 +260,8 @@ object SpcGraph
           case ps : SpcPropertyState => Some(ps.lemma)
           case _ => None
         })
-    tupleN((formPropertyIndex, entityPropertyIndex,
-      propertyStateIndex))
+    tupleN(formPropertyIndex, entityPropertyIndex,
+      propertyStateIndex)
   }
 }
 
@@ -615,9 +615,9 @@ class SpcGraph(
       }
     }
     val edgeTriples = graph.edgesOf(oldVertex).asScala.toSeq.map(edge =>
-      tupleN((edge,
+      tupleN(edge,
         replaceOld(graph.getEdgeSource(edge)),
-        replaceOld(graph.getEdgeTarget(edge)))))
+        replaceOld(graph.getEdgeTarget(edge))))
     graph.removeAllEdges(edgeTriples.map(_._1).asJava)
     edgeTriples.foreach(edgeTriple => {
       graph.addEdge(edgeTriple._2, edgeTriple._3, edgeTriple._1)
@@ -662,7 +662,7 @@ class SpcGraph(
       val subclass = getSubclassIdeal(taxonomyEdge)
       val superclass = getSuperclassIdeal(taxonomyEdge)
       assert(!(subclass.isForm && superclass.isRole),
-        tupleN((subclass, superclass)).toString)
+        tupleN(subclass, superclass).toString)
     })
     assert(!new CycleDetector(idealTaxonomy).detectCycles)
     assert(!new CycleDetector(idealSynonyms).detectCycles)
@@ -672,7 +672,7 @@ class SpcGraph(
       assert(formAssocs.getEdgeSource(formEdge).isForm, formEdge)
       val role = getPossesseeRole(formEdge)
       assert(role.name == formEdge.getRoleName,
-        tupleN((role, formEdge)).toString)
+        tupleN(role, formEdge).toString)
       assert(!getFormsForRole(role).isEmpty, role.toString)
     })
     val inverseAssocsVertexSet = inverseAssocs.vertexSet.asScala

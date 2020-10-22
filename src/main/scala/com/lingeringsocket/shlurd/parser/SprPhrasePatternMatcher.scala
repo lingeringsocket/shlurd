@@ -297,13 +297,13 @@ class SprPhrasePatternMatcher
             patternTail.headOption match {
               case Some(ONE_OR_MORE) => {
                 val cycleVertex = new PatternVertex
-                tupleN((patternTail.tail,
+                tupleN(patternTail.tail,
                   CycleLinker(cycleVertex, Some(cycleVertex)) ::
                     cycleLinkerStack,
-                  Seq(CYCLE_END)))
+                  Seq(CYCLE_END))
               }
               case _ => {
-                tupleN((patternTail, cycleLinkerStack, Seq.empty))
+                tupleN(patternTail, cycleLinkerStack, Seq.empty)
               }
             }
           }

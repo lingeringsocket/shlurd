@@ -86,15 +86,15 @@ class SnlSpanishConjugationSpec extends Specification
   {
     val (mood, polarity) = row(2) match {
       case "Indicativo" =>
-        tupleN((MOOD_INDICATIVE, POLARITY_POSITIVE))
+        tupleN(MOOD_INDICATIVE, POLARITY_POSITIVE)
       case "Subjuntivo" =>
-        tupleN((MOOD_SUBJUNCTIVE, POLARITY_POSITIVE))
+        tupleN(MOOD_SUBJUNCTIVE, POLARITY_POSITIVE)
       case "Imperativo Afirmativo" =>
-        tupleN((MOOD_IMPERATIVE, POLARITY_POSITIVE))
+        tupleN(MOOD_IMPERATIVE, POLARITY_POSITIVE)
       case "Imperativo Negativo" =>
-        tupleN((MOOD_IMPERATIVE, POLARITY_NEGATIVE))
+        tupleN(MOOD_IMPERATIVE, POLARITY_NEGATIVE)
       case _ =>
-        tupleN((MOOD_INTERROGATIVE, POLARITY_POSITIVE))
+        tupleN(MOOD_INTERROGATIVE, POLARITY_POSITIVE)
     }
     val tense = row(4) match {
       case "Futuro" => TENSE_FUTURE

@@ -87,9 +87,9 @@ abstract class SpcOpenhabCosmos(
     val (lemma, qualifiers) = {
       val split = lemmaOrig.split(" ")
       if (split.size == 1) {
-        tupleN((lemmaOrig, qualifiersOrig))
+        tupleN(lemmaOrig, qualifiersOrig)
       } else {
-        tupleN((split.last, qualifiersOrig ++ split.dropRight(1)))
+        tupleN(split.last, qualifiersOrig ++ split.dropRight(1))
       }
     }
     val rewrittenLemma = {
@@ -228,7 +228,7 @@ abstract class SpcOpenhabCosmos(
         trimmed = trimmed.replace(groupName.stripPrefix("g"), "")
       }
       getEntityBySynonym(groupName).foreach(groupEntity => {
-        groupMap += tupleN((itemName, groupName))
+        groupMap += tupleN(itemName, groupName)
         if (!isGroup) {
           qualifiers ++= groupEntity.qualifiers
         }

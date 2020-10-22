@@ -526,7 +526,7 @@ class SprAmbiguityResolver(context : SprContext)
   {
     val sn1 = normalizeCandidate(s1)
     val sn2 = normalizeCandidate(s2)
-    tupleN((sn1, sn2)) match {
+    tupleN(sn1, sn2) match {
       case (
         SilPredicateSentence(p1, t1, f1),
         SilPredicateSentence(p2, t2, f2)
@@ -536,7 +536,7 @@ class SprAmbiguityResolver(context : SprContext)
       case (
         SilPredicateQuery(p1, q1, a1, t1, f1),
         SilPredicateQuery(p2, q2, a2, t2, f2)
-      ) if (tupleN((q1, a1, f1)) == tupleN((q2, a2, f2))) => {
+      ) if (tupleN(q1, a1, f1) == tupleN(q2, a2, f2)) => {
         ambiguousEquivalent(p1, t1, p2, t2)
       }
       case _ => {
@@ -566,7 +566,7 @@ class SprAmbiguityResolver(context : SprContext)
   private def ambiguousEquivalent(
     p1 : SilPredicate, t1 : SilTam, p2 : SilPredicate, t2 : SilTam) : Boolean =
   {
-    tupleN((p1, p2)) match {
+    tupleN(p1, p2) match {
       // FIXME this is way too loose, and should be replace by disambiguation
       // at the semantic level
       case (
@@ -583,10 +583,10 @@ class SprAmbiguityResolver(context : SprContext)
           m2
         )
       ) if (t1.modality != MODAL_NEUTRAL) => {
-        tupleN((t1, s1, m1)) == tupleN((t2, s2, m2))
+        tupleN(t1, s1, m1) == tupleN(t2, s2, m2)
       }
       case _ => {
-        tupleN((p1, t1)) == tupleN((p2, t2))
+        tupleN(p1, t1) == tupleN(p2, t2)
       }
     }
   }

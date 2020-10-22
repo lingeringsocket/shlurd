@@ -406,7 +406,7 @@ class SnlEnglishVerbSpec extends Specification
     inflection : SilInflection) : Boolean =
   {
     if (SprParser.isCoreNLP) {
-      tupleN((tam.polarity, tam.aspect, rhs, inflection)) match {
+      tupleN(tam.polarity, tam.aspect, rhs, inflection) match {
         case (POLARITY_POSITIVE, ASPECT_PROGRESSIVE,
           _, INFLECT_ACCUSATIVE) => true
         case (POLARITY_NEGATIVE, ASPECT_PROGRESSIVE,

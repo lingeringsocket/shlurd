@@ -103,7 +103,7 @@ class SmcTimelineSpec extends Specification
     val entry3 = timeline.addEntry(
       new TimelineEntry(TIME_AUTO, COSMOS_3, PRED_A, REF_MAP_1),
       nullCosmosMutator)
-    tupleN((entry1, entry2, entry3))
+    tupleN(entry1, entry2, entry3)
   }
 
   "SmcTimeline" should

@@ -73,10 +73,10 @@ object SnlUtils
       val (word, noisy) = entry.splitAt(i)
       val gender = noisy.stripPrefix(" {").stripSuffix("}")
       assert(Set("m", "f", "mf", "mp", "fp", "mfp").contains(gender), gender)
-      tupleN((
+      tupleN(
         word,
         gender
-      ))
+      )
     }).toMap
   }
 }

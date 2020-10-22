@@ -192,16 +192,16 @@ class SprParserSpec extends Specification
     val (verbWord, modifiers) = changeVerb match {
       case Some(word : SilSimpleWord) => {
         if (compound) {
-          tupleN((SilCompoundWord(
+          tupleN(SilCompoundWord(
             Seq(word, stateWord.asInstanceOf[SilSimpleWord])),
-            pred.modifiers))
+            pred.modifiers)
         } else {
-          tupleN((word,
-            pred.modifiers :+ SilBasicVerbModifier(stateWord)))
+          tupleN(word,
+            pred.modifiers :+ SilBasicVerbModifier(stateWord))
         }
       }
       case _ => {
-        tupleN((stateWord, pred.modifiers))
+        tupleN(stateWord, pred.modifiers)
       }
     }
     SilPredicateSentence(

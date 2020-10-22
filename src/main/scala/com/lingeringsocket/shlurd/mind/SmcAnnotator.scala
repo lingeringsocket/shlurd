@@ -74,7 +74,7 @@ class SmcRefNote[EntityType<:SmcEntity](
           indirectEntities.isEmpty ||
             indirectEntities.get.entities.isEmpty ||
             ie.entities == indirectEntities.get.entities,
-          tupleN((indirectEntities, otherNote.indirectEntities))
+          tupleN(indirectEntities, otherNote.indirectEntities)
         )
         indirectEntities = Some(ie)
       }

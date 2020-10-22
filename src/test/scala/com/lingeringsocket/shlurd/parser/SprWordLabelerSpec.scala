@@ -32,13 +32,13 @@ class SprWordLabelerSpecification extends Specification
 
     protected def labelWord(token : String) : Set[String] =
     {
-      labeler.labelWords(Seq(tupleN((token, token, 1)))).head.map(_.label)
+      labeler.labelWords(Seq(tupleN(token, token, 1))).head.map(_.label)
     }
 
     private def lemmatizePos(
       token : String, accept : (SprSyntaxTree) => Boolean) : Set[String] =
     {
-      labeler.labelWords(Seq(tupleN((token, token, 1)))).head.
+      labeler.labelWords(Seq(tupleN(token, token, 1))).head.
         filter(accept).map(_.firstChild.lemma)
     }
 

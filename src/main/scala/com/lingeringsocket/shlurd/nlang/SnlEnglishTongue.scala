@@ -372,7 +372,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     count : SilCount
   ) : SilPronounMap =
   {
-    tupleN((gender, count)) match {
+    tupleN(gender, count) match {
       case (GENDER_MASCULINE, COUNT_SINGULAR) => {
         Map(
           SilPronounKey(LABEL_PRP, PERSON_THIRD) ->
@@ -649,9 +649,9 @@ class SnlEnglishTongue(wordnet : SprWordnet)
         Some(PROXIMITY_ENTITY)
       case _ => None
     }
-    tupleN((
+    tupleN(
       person, count, gender, Set(inflection),
-      proximityOpt, COUNT_SINGULAR, SilPoliteness.DEFAULT))
+      proximityOpt, COUNT_SINGULAR, SilPoliteness.DEFAULT)
   }
 
   override def synthesizeMembersRef(

@@ -500,7 +500,7 @@ class SprHeuristicSynthesizer(
   {
     val entries = tokens.zip(words).zipWithIndex.map {
       case ((token, word), iToken) => {
-        tupleN((token, word, iToken))
+        tupleN(token, word, iToken)
       }
     }
     context.wordLabeler.labelWords(entries)
@@ -636,7 +636,7 @@ class SprHeuristicSynthesizer(
           }
         }
         case _ => {
-          Some(tupleN((SilUnrecognizedReference(tree), tree)))
+          Some(tupleN(SilUnrecognizedReference(tree), tree))
         }
       }
     })
@@ -675,7 +675,7 @@ class SprHeuristicSynthesizer(
             logger.debug("ACCEPT " + syntaxTree)
             logger.debug("TRANSFORMED " + transformed + "\n\n")
           }
-          Some(tupleN((transformed, syntaxTree)))
+          Some(tupleN(transformed, syntaxTree))
         }
       }
     })

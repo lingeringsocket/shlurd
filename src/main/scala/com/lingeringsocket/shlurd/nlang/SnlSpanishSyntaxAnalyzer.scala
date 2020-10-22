@@ -46,36 +46,36 @@ class SnlSpanishSyntaxAnalyzer(
         val (person, count, gender, tam) =
           context.getTongue.analyzeVerbConjugation(
             SilWord(leaf.token, leaf.lemma))
-        tupleN((person, count)) match {
+        tupleN(person, count) match {
           case (PERSON_SECOND, COUNT_PLURAL) => {
-            tupleN((
+            tupleN(
               tam.isImperative || tam.isSubjunctive, GENDER_MASCULINE,
               count, POLITENESS_FAMILIAR
-            ))
+            )
           }
           case (PERSON_SECOND, COUNT_SINGULAR) => {
             if (isNegated) {
-              tupleN((
+              tupleN(
                 tam.isSubjunctive, GENDER_SOMEONE, count, POLITENESS_FAMILIAR
-              ))
+              )
             } else {
               // no way to distinguish indicative from imperative here,
               // so assume indicative
-              tupleN((
+              tupleN(
                 false, GENDER_MASCULINE, count, POLITENESS_FAMILIAR
-              ))
+              )
             }
           }
           case _ => {
-            tupleN((
+            tupleN(
               tam.isImperative, GENDER_SOMEONE,
               count, POLITENESS_RESPECTFUL
-            ))
+            )
           }
         }
       }
       case _ => {
-        tupleN((false, GENDER_SOMEONE, COUNT_SINGULAR, SilPoliteness.DEFAULT))
+        tupleN(false, GENDER_SOMEONE, COUNT_SINGULAR, SilPoliteness.DEFAULT)
       }
     }
   }

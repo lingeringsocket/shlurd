@@ -225,10 +225,10 @@ abstract class SnlSyntaxAnalyzer(
           !pt.isDemonstrative &&
             !tongue.isCoordinatingDeterminer(pt.firstChild.lemma)
         ) => {
-          tupleN((determinerFor(requireLeaf(pt.children)), seq.drop(1)))
+          tupleN(determinerFor(requireLeaf(pt.children)), seq.drop(1))
         }
         case _ => {
-          tupleN((DETERMINER_ABSENT, seq))
+          tupleN(DETERMINER_ABSENT, seq)
         }
       }
     }
@@ -525,7 +525,7 @@ abstract class SnlSyntaxAnalyzer(
         SilWord(leaf.lemma) match {
           case SprPredefWord(PD_IF | PD_WHEN | PD_WHENEVER |
               PD_BEFORE | PD_AFTER) =>
-            Some(tupleN((getWord(leaf), antecedent)))
+            Some(tupleN(getWord(leaf), antecedent))
           case _ =>
             None
         }
@@ -533,7 +533,7 @@ abstract class SnlSyntaxAnalyzer(
       case Some(SptSBAR(SptWHADVP(SptWRB(leaf)), antecedent : SptS)) => {
         SilWord(leaf.lemma) match {
           case SprPredefWord(PD_WHEN | PD_WHENEVER) =>
-            Some(tupleN((getWord(leaf), antecedent)))
+            Some(tupleN(getWord(leaf), antecedent))
           case _ => None
         }
       }
@@ -627,18 +627,18 @@ abstract class SnlSyntaxAnalyzer(
         case SEPARATOR_COMMA | SEPARATOR_OXFORD_COMMA => {
           splitCoordinatingConjunction(commaSplit.last) match {
             case (DETERMINER_ABSENT, _, _) => {
-              tupleN((DETERMINER_ABSENT, SEPARATOR_CONJOINED, Seq.empty))
+              tupleN(DETERMINER_ABSENT, SEPARATOR_CONJOINED, Seq.empty)
             }
             case (determiner, separator, subSplit) => {
               // FIXME:  deal with coordinating determiner in
               // first sub-phrase
               val seq = commaSplit.dropRight(1) ++ subSplit
-              tupleN((determiner, commaSeparator, seq))
+              tupleN(determiner, commaSeparator, seq)
             }
           }
         }
         case _ => {
-          tupleN((DETERMINER_ABSENT, SEPARATOR_CONJOINED, Seq.empty))
+          tupleN(DETERMINER_ABSENT, SEPARATOR_CONJOINED, Seq.empty)
         }
       }
     } else {
@@ -662,7 +662,7 @@ abstract class SnlSyntaxAnalyzer(
       val suffix = components.drop(pos + 1)
       splitCoordinatingConjunction(suffix) match {
         case (DETERMINER_ABSENT, _, _) => {
-          tupleN((determiner, commaSeparator, commaSplit ++ Seq(suffix)))
+          tupleN(determiner, commaSeparator, commaSplit ++ Seq(suffix))
         }
         case (subDeterminer, _, subSplit) => {
           val seq = {
@@ -672,7 +672,7 @@ abstract class SnlSyntaxAnalyzer(
               commaSplit ++ Seq(suffix)
             }
           }
-          tupleN((determiner, commaSeparator, seq.filterNot(_.isEmpty)))
+          tupleN(determiner, commaSeparator, seq.filterNot(_.isEmpty))
         }
       }
     }

@@ -164,16 +164,16 @@ class SilSentencePrinter(
       case SilGenitiveReference(possessor, possessee) => {
         val (qualifierString, isPronoun) = possessor match {
           case pr : SilPronounReference => {
-            tupleN((
+            tupleN(
               printPronoun(pr, INFLECT_GENITIVE, SilConjoining.NONE),
               true
-            ))
+            )
           }
           case _ => {
-            tupleN((
+            tupleN(
               print(possessor, INFLECT_GENITIVE, SilConjoining.NONE),
               false
-            ))
+            )
           }
         }
         sb.genitivePhrase(
@@ -210,7 +210,7 @@ class SilSentencePrinter(
             getSubjectAttributes(subject)
           }
           case _ => {
-            tupleN((PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR))
+            tupleN(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
           }
         }
         sb.delemmatizeState(
@@ -362,12 +362,12 @@ class SilSentencePrinter(
       case SilStatePredicate(subject, verb, state, modifiers) => {
         val (subjectString, verbString) = subject match {
           case pr : SilPronounReference if (pr.person == PERSON_SECOND) => {
-            tupleN(("", printChangeStateVerb(state, Some(verb))))
+            tupleN("", printChangeStateVerb(state, Some(verb)))
           }
           case _ => {
-            tupleN((
+            tupleN(
               printDirectObject(subject),
-              printChangeStateVerb(state, None)))
+              printChangeStateVerb(state, None))
           }
         }
         sb.statePredicateCommand(
@@ -416,10 +416,10 @@ class SilSentencePrinter(
   {
     subject match {
       case pr : SilPronounReference => {
-        tupleN((tongue.getEffectivePerson(pr), pr.gender, pr.count))
+        tupleN(tongue.getEffectivePerson(pr), pr.gender, pr.count)
       }
       case _ => {
-        tupleN((PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR))
+        tupleN(PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR)
       }
     }
   }
@@ -436,16 +436,16 @@ class SilSentencePrinter(
         SilNounReference(noun),
         possessee
       ) if (tongue.isGenitiveVariableLemma(noun.toLemma)) => {
-        tupleN((
+        tupleN(
           print(
             possessee, INFLECT_NOMINATIVE, SilConjoining.NONE),
-          INFLECT_GENITIVE))
+          INFLECT_GENITIVE)
       }
       case subject => {
-        tupleN((
+        tupleN(
           print(
             subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
-          answerInflection))
+          answerInflection)
       }
     }
     val subjectString = subjectInflection match {
@@ -568,13 +568,13 @@ class SilSentencePrinter(
   {
     subject match {
       case pr : SilPronounReference => {
-        tupleN((tongue.getEffectivePerson(pr), pr.gender, pr.count))
+        tupleN(tongue.getEffectivePerson(pr), pr.gender, pr.count)
       }
       case SilCountedNounReference(_, count) => {
-        tupleN((
+        tupleN(
           PERSON_THIRD,
           SilUtils.getGender(subject, genderAnalyzer),
-          count))
+          count)
       }
       case SilConjunctiveReference(determiner, references, _) => {
         val count = if (existentialPronoun.nonEmpty) {
@@ -589,9 +589,9 @@ class SilSentencePrinter(
         }
         // FIXME:  also derive person from underlying references,
         // since it makes a difference in languages such as Spanish
-        tupleN((
+        tupleN(
           PERSON_THIRD,
-          SilUtils.getGender(subject, genderAnalyzer), count))
+          SilUtils.getGender(subject, genderAnalyzer), count)
       }
       case SilParenthesizedReference(reference, _) => {
         getSubjectAttributes(reference, existentialPronoun)
@@ -609,17 +609,17 @@ class SilSentencePrinter(
         getSubjectAttributes(possessee, existentialPronoun)
       }
       case _ : SilQuotationReference => {
-        tupleN((PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR))
+        tupleN(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
       }
       case _ : SilUnknownReference => {
-        tupleN((PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR))
+        tupleN(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
       }
     }
   }
 
   private def combineCounts(count1 : SilCount, count2 : SilCount) : SilCount =
   {
-    tupleN((count1, count2)) match {
+    tupleN(count1, count2) match {
       case (COUNT_SINGULAR, COUNT_SINGULAR) => COUNT_SINGULAR
       case _ => COUNT_PLURAL
     }
@@ -628,7 +628,7 @@ class SilSentencePrinter(
   private def combinePersons(
     person1 : SilPerson, person2 : SilPerson) : SilPerson =
   {
-    tupleN((person1, person2)) match {
+    tupleN(person1, person2) match {
       case (PERSON_FIRST, _) => PERSON_FIRST
       case (_, PERSON_FIRST) => PERSON_FIRST
       case (PERSON_SECOND, _) => PERSON_SECOND

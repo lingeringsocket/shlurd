@@ -63,7 +63,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
             }
             case _ => None
           }
-          tupleN((ref, tupleN((contextOpt.getOrElse(REF_SUBJECT), entities))))
+          tupleN(ref, tupleN(contextOpt.getOrElse(REF_SUBJECT), entities))
         }
       }
     }
@@ -134,7 +134,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       val ivanSet = Set(ivanEntity)
       // FIXME why is this REF_COMPLEMENT instead of REF_SUBJECT?
       isaResult must be equalTo Map(
-        ivanRef -> tupleN((REF_COMPLEMENT, ivanSet))
+        ivanRef -> tupleN(REF_COMPLEMENT, ivanSet)
       )
       analyze("if a mule becomes happy, " +
         s"then the mule kicks $ivan")
@@ -142,65 +142,65 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
       val borisEntity = expectProperName(boris)
       val borisSet = Set(borisEntity)
       analyze(s"$ivan is grumpy") must be equalTo Map(
-        ivanRef -> tupleN((REF_SUBJECT, ivanSet))
+        ivanRef -> tupleN(REF_SUBJECT, ivanSet)
       )
       analyze(s"is $ivan a mule", "Yes.") must be equalTo Map(
-        ivanRef -> tupleN((REF_COMPLEMENT, ivanSet))
+        ivanRef -> tupleN(REF_COMPLEMENT, ivanSet)
       )
       analyze(s"does $ivan kick $boris", "Yes.") must be equalTo Map(
-        ivanRef -> tupleN((REF_SUBJECT, ivanSet)),
-        borisRef -> tupleN((REF_DIRECT_OBJECT, borisSet))
+        ivanRef -> tupleN(REF_SUBJECT, ivanSet),
+        borisRef -> tupleN(REF_DIRECT_OBJECT, borisSet)
       )
       analyze(s"shout at $boris") must be equalTo Map(
-        borisRef -> tupleN((REF_ADPOSITION_OBJ, borisSet))
+        borisRef -> tupleN(REF_ADPOSITION_OBJ, borisSet)
       )
       analyze(s"$boris is happy") must be equalTo Map(
-        borisRef -> tupleN((REF_SUBJECT, borisSet))
+        borisRef -> tupleN(REF_SUBJECT, borisSet)
       )
       analyze(s"${natasha}'s beast kicks her") must be equalTo Map(
-        natashaRef -> tupleN((REF_GENITIVE_POSSESSOR, natashaSet)),
-        sheRef -> tupleN((REF_DIRECT_OBJECT, natashaSet)),
+        natashaRef -> tupleN(REF_GENITIVE_POSSESSOR, natashaSet),
+        sheRef -> tupleN(REF_DIRECT_OBJECT, natashaSet),
         annotator.genitiveRef(natashaRef, beastRef) ->
-          tupleN((REF_SUBJECT, Set()))
+          tupleN(REF_SUBJECT, Set())
       )
 
       startSequence()
       analyze(s"$boris is happy") must be equalTo Map(
-        borisRef -> tupleN((REF_SUBJECT, borisSet))
+        borisRef -> tupleN(REF_SUBJECT, borisSet)
       )
       analyze(s"he loves $natasha") must be equalTo Map(
-        natashaRef -> tupleN((REF_DIRECT_OBJECT, natashaSet)),
-        heRef -> tupleN((REF_SUBJECT, borisSet))
+        natashaRef -> tupleN(REF_DIRECT_OBJECT, natashaSet),
+        heRef -> tupleN(REF_SUBJECT, borisSet)
       )
       analyze(s"he loves himself") must be equalTo Map(
-        heRef -> tupleN((REF_SUBJECT, borisSet)),
-        himselfRef -> tupleN((REF_DIRECT_OBJECT, borisSet))
+        heRef -> tupleN(REF_SUBJECT, borisSet),
+        himselfRef -> tupleN(REF_DIRECT_OBJECT, borisSet)
       )
       stopSequence()
 
       startSequence()
       analyze(s"$boris is happy") must be equalTo Map(
-        borisRef -> tupleN((REF_SUBJECT, borisSet))
+        borisRef -> tupleN(REF_SUBJECT, borisSet)
       )
       analyze(s"$ivan loves him") must be equalTo Map(
-        ivanRef -> tupleN((REF_SUBJECT, ivanSet)),
-        heRef -> tupleN((REF_DIRECT_OBJECT, borisSet))
+        ivanRef -> tupleN(REF_SUBJECT, ivanSet),
+        heRef -> tupleN(REF_DIRECT_OBJECT, borisSet)
       )
       analyze(s"$ivan loves himself") must be equalTo Map(
-        ivanRef -> tupleN((REF_SUBJECT, ivanSet)),
-        himselfRef -> tupleN((REF_DIRECT_OBJECT, ivanSet))
+        ivanRef -> tupleN(REF_SUBJECT, ivanSet),
+        himselfRef -> tupleN(REF_DIRECT_OBJECT, ivanSet)
       )
       stopSequence()
 
       startSequence()
       analyze(s"$boris is happy") must be equalTo Map(
-        borisRef -> tupleN((REF_SUBJECT, borisSet))
+        borisRef -> tupleN(REF_SUBJECT, borisSet)
       )
       analyze(s"$ivan loves his owner") must be equalTo Map(
-        ivanRef -> tupleN((REF_SUBJECT, ivanSet)),
-        heRef -> tupleN((REF_GENITIVE_POSSESSOR, ivanSet)),
+        ivanRef -> tupleN(REF_SUBJECT, ivanSet),
+        heRef -> tupleN(REF_GENITIVE_POSSESSOR, ivanSet),
         annotator.genitiveRef(heRef, ownerRef) ->
-          tupleN((REF_DIRECT_OBJECT, Set()))
+          tupleN(REF_DIRECT_OBJECT, Set())
       )
       stopSequence()
     }

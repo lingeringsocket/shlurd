@@ -88,7 +88,7 @@ class SpcMind(cosmos : SpcCosmos)
         case _ => {
           val output = responder.process(
             SprParseResult(analyzed, annotator))
-          assert(output == ok, tupleN((parseResult.sentence, output)))
+          assert(output == ok, tupleN(parseResult.sentence, output))
         }
       }
     })
@@ -157,7 +157,7 @@ class SpcMind(cosmos : SpcCosmos)
         if (SpcMeta.isMetaEntity(possessor)) {
           None
         } else {
-          genitives.map(g => tupleN((g, cardinality)))
+          genitives.map(g => tupleN(g, cardinality))
         }
       }
     )
@@ -243,10 +243,10 @@ class SpcMind(cosmos : SpcCosmos)
                 case _ => COUNT_SINGULAR
               }
             }
-            tupleN((
+            tupleN(
               entityGender,
               count,
-              pronounMap))
+              pronounMap)
           } else {
             return None
           }
@@ -254,9 +254,9 @@ class SpcMind(cosmos : SpcCosmos)
           val combinedGender = tongue.combineGenders(
             entities.toSeq.map(e => cosmos.getEntityGender(tongue, e))).
             maybeBasic.getOrElse(GENDER_NEUTER)
-          tupleN((
+          tupleN(
             GENDER_NEUTER, COUNT_PLURAL,
-            tongue.getPronounMap(combinedGender, COUNT_PLURAL)))
+            tongue.getPronounMap(combinedGender, COUNT_PLURAL))
         }
       }
       Some(annotator.pronounRef(
@@ -492,19 +492,19 @@ class SpcMind(cosmos : SpcCosmos)
                 cosmos.synthesizeRoleSynonym(role.possessor, categoryName)
               )
             ).map(role =>
-              tupleN((Seq.empty, Some(role)))
+              tupleN(Seq.empty, Some(role))
             ).getOrElse {
-              tupleN((Seq.empty, None))
+              tupleN(Seq.empty, None)
             }
           }
-          case seq => tupleN((seq, None))
+          case seq => tupleN(seq, None)
         }
       }
       case (Some(form), roleOpt) => {
-        tupleN((Seq(form), roleOpt))
+        tupleN(Seq(form), roleOpt)
       }
       case (None, roleOpt) => {
-        tupleN((Seq.empty, roleOpt))
+        tupleN(Seq.empty, roleOpt)
       }
     }
     roleOpt match {

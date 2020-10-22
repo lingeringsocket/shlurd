@@ -369,13 +369,13 @@ class ConversationProcessor extends StringModifier
       if (iNext == -1) {
         iNext = lines.size
       }
-      tupleN((
-        tupleN((
-          tupleN((line.stripPrefix(prompt), index)),
+      tupleN(
+        tupleN(
+          tupleN(line.stripPrefix(prompt), index),
           lines.slice(1, iNext).filterNot(
-            line => SprParser.isIgnorableLine(line._1)))),
+            line => SprParser.isIgnorableLine(line._1))),
         lines.drop(iNext)
-      ))
+      )
     } else {
       throw MalformedInputException(line, index)
     }

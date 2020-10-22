@@ -409,7 +409,7 @@ class SpcGraphVisualizer(
         val subclass = graph.getSubclassIdeal(e)
         val superclass = graph.getSuperclassIdeal(e)
         if (includeIdeal(subclass) && includeIdeal(superclass)) {
-          val label = tupleN((superclass, subclass)) match {
+          val label = tupleN(superclass, subclass) match {
             case (_ : SpcForm, _ : SpcRole) => "mustBeA"
             case (_ : SpcRole, _ : SpcRole) => "refines"
             case _ => "isKindOf"

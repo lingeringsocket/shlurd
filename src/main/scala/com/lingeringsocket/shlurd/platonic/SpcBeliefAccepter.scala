@@ -157,7 +157,7 @@ class SpcBeliefAccepter private(
         val form = instantiateForm(sentence, noun)
         val (entity, success) = cosmos.instantiateEntity(
           form, Seq.empty)
-        tupleN((entity, success))
+        tupleN(entity, success)
       }
       case DETERMINER_ABSENT => {
         getUniqueEntity(
@@ -166,7 +166,7 @@ class SpcBeliefAccepter private(
             cosmos.synthesizeEntitySynonym(noun.toNounLemma))
         ) match {
           case Some(entity) => {
-            tupleN((entity, false))
+            tupleN(entity, false)
           }
           case _ => {
             val tentativeName = SpcForm.tentativeName(noun)
@@ -174,8 +174,8 @@ class SpcBeliefAccepter private(
             val newForm = instantiateForm(sentence, tentativeName)
             val (entity, success) = cosmos.instantiateEntity(
               newForm, Seq(noun), noun.toUnfoldedLemma)
-            assert(success, tupleN((noun, entity)))
-            tupleN((entity, success))
+            assert(success, tupleN(noun, entity))
+            tupleN(entity, success)
           }
         }
       }
@@ -348,7 +348,7 @@ class SpcBeliefAccepter private(
       assert(possessor.form.isTentative)
       addIdealTaxonomy(sentence, possessor.form, possessorForm)
     }
-    tupleN((formAssocEdge, possessorForm, role))
+    tupleN(formAssocEdge, possessorForm, role)
   }
 
   private def instantiatePropertyStates(
@@ -439,14 +439,14 @@ class SpcBeliefAccepter private(
     isImplicit : Boolean = true) : (SpcRole, Boolean) =
   {
     mind.resolveRole(possessorForm, idealName, includeHypernyms) match {
-      case Some(r) => tupleN((r, false))
+      case Some(r) => tupleN(r, false)
       case _ => {
         if (isImplicit && !params.createImplicitIdeals) {
           throw new ProhibitedBeliefExcn(
             ShlurdExceptionCode.ImplicitIdealsProhibited,
             sentence)
         }
-        tupleN((mind.instantiateRole(possessorForm, idealName), true))
+        tupleN(mind.instantiateRole(possessorForm, idealName), true)
       }
     }
   }
@@ -577,10 +577,10 @@ class SpcBeliefAccepter private(
       val (hyponymRole, existingRole) = mind.resolveRole(
         possessorForm, hyponymRoleName, false
       ) match {
-        case Some(r) => tupleN((r, true))
-        case _ => tupleN((
+        case Some(r) => tupleN(r, true)
+        case _ => tupleN(
           mind.instantiateRole(possessorForm, hyponymRoleName),
-          false))
+          false)
       }
       if (existingRole) {
         val entityAssocs = cosmos.getEntityAssocGraph
@@ -678,7 +678,7 @@ class SpcBeliefAccepter private(
                     form, qualifiers, properName)
                 }
               }
-              tupleN((entity, isNewEntity, determiner))
+              tupleN(entity, isNewEntity, determiner)
             }
             case _ => {
               throw new IncomprehensibleBeliefExcn(
@@ -768,7 +768,7 @@ class SpcBeliefAccepter private(
       val propertyOpt = propertyName match {
         case Some(word) => {
           cosmos.findProperty(form, cosmos.encodeName(word)).map(
-            property => tupleN((property, encodedStateName))
+            property => tupleN(property, encodedStateName)
           )
         }
         case _ => {
@@ -790,7 +790,7 @@ class SpcBeliefAccepter private(
         }
         val p = instantiatePropertyStates(
           sentence, form, Seq(stateName), false, propertyName)
-        tupleN((p, encodedStateName))
+        tupleN(p, encodedStateName)
       })
       // FIXME need to honor allowUpdates
       cosmos.updateEntityProperty(entity, property, actualState)
@@ -837,21 +837,21 @@ class SpcBeliefAccepter private(
               _
             ) => {
               newEntityRef = ref
-              tupleN((None, None))
+              tupleN(None, None)
             }
             case SilOptionallyDeterminedReference(
               SilStateSpecifiedReference(ref, state),
               _
             ) => {
               newEntityRef = ref
-              tupleN((None, Some(state)))
+              tupleN(None, Some(state))
             }
             case ref => {
-              tupleN((Some(resolveReference(sentence, ref)), None))
+              tupleN(Some(resolveReference(sentence, ref)), None)
             }
           }
         } else {
-          tupleN((Some(resolveReference(sentence, possesseeRef)), None))
+          tupleN(Some(resolveReference(sentence, possesseeRef)), None)
         }
       }
       val (formAssocEdge, possessorIdeal, role) =
@@ -1140,17 +1140,17 @@ class SpcBeliefAccepter private(
         false
       }
     }
-    tupleN((antecedentIdentity, consequentIdentity)) match {
+    tupleN(antecedentIdentity, consequentIdentity) match {
       case (Some((ar1, ar2, aw)), Some((cr1, cr2, cw))) => {
         if (samePlaceholders(ar1, cr2) &&
           samePlaceholders(ar2, cr1)
         ) {
-          tupleN((
+          tupleN(
             SpcImplicationMapper.extractNoun(ar1),
-            SpcImplicationMapper.extractNoun(ar2))
+            SpcImplicationMapper.extractNoun(ar2)
           ) match {
             case (Some(n1), Some(n2)) => {
-              Some(tupleN((n1, n2, aw, cw)))
+              Some(tupleN(n1, n2, aw, cw))
             }
             case _ => {
               None

@@ -52,7 +52,7 @@ object SnlWordnetPrep
       }
       val wnParser = SprParser.prepareHeuristic(
         context, sentence, dumpAnalysis, "DEBUG")
-      Some(tupleN((wnParser.parseOne.sentence, sil)))
+      Some(tupleN(wnParser.parseOne.sentence, sil))
     } else {
       None
     }

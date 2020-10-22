@@ -427,7 +427,7 @@ class SpcResponder(
           }
         }
       )
-      tupleN((rewriter.rewrite(optimizePredicate, sil), score))
+      tupleN(rewriter.rewrite(optimizePredicate, sil), score)
     }
 
     override protected def normalizeModifier(
@@ -554,7 +554,7 @@ class SpcResponder(
         Seq(standardized)
       }
     }
-    seq.map(cs => tupleN((cs, placeholderMap)))
+    seq.map(cs => tupleN(cs, placeholderMap))
   }
 
   private def standardizeVariables[PhraseType <: SilPhrase](
@@ -684,24 +684,24 @@ class SpcResponder(
           val iTemporal = temporalRefs.indexWhere(!_.isEmpty)
           val (interval, predicateOpt, baselineCosmos, temporal) = {
             if (iTemporal < 0) {
-              tupleN((SmcTimeInterval.NEXT_INSTANT,
-                predicate, mind.getCosmos, false))
+              tupleN(SmcTimeInterval.NEXT_INSTANT,
+                predicate, mind.getCosmos, false)
             } else {
               val interval = Interval.point[SmcTimePoint](
                 SmcRelativeTimePoint(
                   temporalRefs(iTemporal).get))
               val temporalCosmos = mind.getTemporalCosmos(interval)
-              tupleN((interval,
+              tupleN(interval,
                 predicate.withNewModifiers(
                   predicate.getModifiers.patch(iTemporal, Seq.empty, 1)),
                 temporalCosmos,
-                true))
+                true)
             }
           }
-          tupleN((interval, Some(predicateOpt), baselineCosmos, temporal))
+          tupleN(interval, Some(predicateOpt), baselineCosmos, temporal)
         }
         case _ => {
-          tupleN((SmcTimeInterval.NEXT_INSTANT, None, mind.getCosmos, false))
+          tupleN(SmcTimeInterval.NEXT_INSTANT, None, mind.getCosmos, false)
         }
       }
 
@@ -804,11 +804,11 @@ class SpcResponder(
         }
         val (generally, requirement) = {
           if (assertionPredicate.getModifiers.exists(isGenerally)) {
-            tupleN((true,
+            tupleN(true,
               assertionPredicate.withNewModifiers(
-                assertionPredicate.getModifiers.filterNot(isGenerally))))
+                assertionPredicate.getModifiers.filterNot(isGenerally)))
           } else {
-            tupleN((false, assertionPredicate))
+            tupleN(false, assertionPredicate)
           }
         }
         if (isSubsumption(
@@ -890,9 +890,9 @@ class SpcResponder(
     val (isTest, isPrecondition) =
       conditionalSentence.tamConsequent.modality match
       {
-        case MODAL_MAY | MODAL_POSSIBLE => tupleN((true, false))
-        case MODAL_MUST | MODAL_SHOULD => tupleN((false, true))
-        case _ => tupleN((false, false))
+        case MODAL_MAY | MODAL_POSSIBLE => tupleN(true, false)
+        case MODAL_MUST | MODAL_SHOULD => tupleN(false, true)
+        case _ => tupleN(false, false)
       }
     val operator = {
       if (isPrecondition) {
@@ -950,7 +950,7 @@ class SpcResponder(
     newAlternative : Option[SilPredicateSentence]
   ) : Option[String] =
   {
-    tupleN((newPredicate, additionalConsequents, newAlternative)) match {
+    tupleN(newPredicate, additionalConsequents, newAlternative) match {
       case (Some(newPredicate), newAdditionalConsequents, newAlternative) => {
         val newConsequents = (
           SilPredicateSentence(newPredicate) +: newAdditionalConsequents
@@ -1107,12 +1107,12 @@ class SpcResponder(
               SilPropertyQueryState(lemma),
               modifiers
             )
-            return tupleN((statePredicate, INFLECT_COMPLEMENT))
+            return tupleN(statePredicate, INFLECT_COMPLEMENT)
           }
         }
       }
     }
-    tupleN((rewritten, answerInflection))
+    tupleN(rewritten, answerInflection)
   }
 
   override protected def newQueryRewriter(
@@ -1293,7 +1293,7 @@ class SpcResponder(
     // maybe we should maintain this relationship in the graph
     // for efficiency?
 
-    tupleN((generalOpt, specificOpt)) match {
+    tupleN(generalOpt, specificOpt) match {
       case (Some(general), Some(specific)) => {
         isSubsumption(annotator, forkedCosmos, general, specific, refMap)
       }

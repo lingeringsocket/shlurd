@@ -273,7 +273,7 @@ class SprNormalizationRewriter(context : SprContext)
           directObject match {
             case Some(obj) => {
               val (r, m) = extractVerbModifier(obj)
-              tupleN((Some(r), m))
+              tupleN(Some(r), m)
             }
             case _ => (None, Seq.empty)
           }
@@ -457,9 +457,9 @@ class SprNormalizationRewriter(context : SprContext)
         ),
         determiner
       ) if (isAdverbialAdposition(Some(sub), adposition, objRef)) => {
-        tupleN((
+        tupleN(
           annotator.determinedRef(sub, determiner),
-          Seq(SilAdpositionalVerbModifier(adposition, objRef))))
+          Seq(SilAdpositionalVerbModifier(adposition, objRef)))
       }
       case _ => (ref, Seq.empty)
     }
@@ -502,7 +502,7 @@ class SprNormalizationRewriter(context : SprContext)
       case SilBasicVerbModifier(word) => {
         val lemma = word.toLemma
         if (tongue.isCoordinatingDeterminer(lemma)) {
-          Some(tupleN((modifier, lemma)))
+          Some(tupleN(modifier, lemma))
         } else {
           None
         }

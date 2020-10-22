@@ -36,7 +36,7 @@ class SpcAssertionBinding(
     ref1 : SilReference,
     ref2 : SilReference) : Unit =
   {
-    tupleN((ref1, ref2)) match {
+    tupleN(ref1, ref2) match {
       case (ar1 : SilAnnotatedReference, ar2 : SilAnnotatedReference) => {
         SmcAnnotator.unifyReferences[SpcEntity, SpcRefNote](annotator, ar1, ar2)
       }
@@ -186,9 +186,9 @@ class SpcAssertionMapper(
       newAlternative.foreach(sentence => {
         debug(s"WITH ALTERNATIVE $sentence")
       })
-      tupleN((Some(newPredicate), newAdditional, newAlternative))
+      tupleN(Some(newPredicate), newAdditional, newAlternative)
     } else {
-      tupleN((None, Seq.empty, None))
+      tupleN(None, Seq.empty, None)
     }
   }
 
@@ -255,11 +255,11 @@ class SpcAssertionMapper(
     binding : SpcAssertionBinding
   ) : Boolean =
   {
-    tupleN((
+    tupleN(
       findPlaceholderCorrespondence(
         binding.annotator, ref, binding.placeholderMap),
       extractNoun(ref)
-    )) match {
+    ) match {
       case ((true, patternRefSetUnexpanded), Some(noun)) => {
         val patternRefSet = expandPatterns(
           patternRefSetUnexpanded, binding)
@@ -303,9 +303,9 @@ class SpcAssertionMapper(
               case Success(SmcScopeOutput(_, entities)) if (
                 !entities.isEmpty
               ) => {
-                tupleN((
+                tupleN(
                   mind.specificReferences(binding.annotator, entities),
-                  entities))
+                  entities)
               }
               case _ =>  {
                 trace(s"PRONOUN $pr UNRESOLVED")
@@ -321,16 +321,16 @@ class SpcAssertionMapper(
             return false
           }
           case SilQuotationReference(_, _) => {
-            tupleN((actualRef, Set.empty[SpcEntity]))
+            tupleN(actualRef, Set.empty[SpcEntity])
           }
           case _ => {
             binding.refMapIn.get(actualRef) match {
               case Some(entities) => {
-                tupleN((actualRef, entities))
+                tupleN(actualRef, entities)
               }
               case _ => {
                 if (resolvedForm.isEmpty) {
-                  tupleN((actualRef, Set.empty[SpcEntity]))
+                  tupleN(actualRef, Set.empty[SpcEntity])
                 } else {
                   trace(s"UNRESOLVED REFERENCE $actualRef")
                   return false
@@ -395,7 +395,7 @@ class SpcAssertionMapper(
   ) : (Boolean, Map[SilReference, SilReference]) =
   {
     val replacements = new mutable.LinkedHashMap[SilReference, SilReference]
-    def unmatched = tupleN((false, replacements))
+    def unmatched = tupleN(false, replacements)
     general match {
       // FIXME match on verb; e.g. "is" implies "is" and "becomes" implies "is",
       // but "is" may not imply "becomes"
@@ -409,7 +409,7 @@ class SpcAssertionMapper(
             return unmatched
           }
         }
-        tupleN((state, statePredicate.state)) match {
+        tupleN(state, statePredicate.state) match {
           // FIXME allow other variable patterns
           case (
             SilAdpositionalState(adp1, obj1),
@@ -572,7 +572,7 @@ class SpcAssertionMapper(
     if (isTraceEnabled) {
       debug("MATCH SUCCESSFUL")
     }
-    tupleN((true, replacements))
+    tupleN(true, replacements)
   }
 
   private def matchAdpositions(

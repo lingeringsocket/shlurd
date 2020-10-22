@@ -191,7 +191,7 @@ abstract class SprTongue(wordnet : SprWordnet)
     extends SprSynthesizer with SilTongue
 {
   lazy val relLemmaMap = Map(SprRelationshipPredef.enumeration.map(
-    rel => tupleN((getRelPredefLemma(rel), rel))).toSeq:_*)
+    rel => tupleN(getRelPredefLemma(rel), rel)).toSeq:_*)
 
   private lazy val phrasePatternMatcher = loadMatcher
 
@@ -356,7 +356,7 @@ abstract class SprTongue(wordnet : SprWordnet)
   def analyzeVerbConjugation(word : SilWord)
       : (SilPerson, SilCount, SilGender, SilTam) =
   {
-    tupleN((PERSON_THIRD, COUNT_SINGULAR, GENDER_NEUTER, SilTam.indicative))
+    tupleN(PERSON_THIRD, COUNT_SINGULAR, GENDER_NEUTER, SilTam.indicative)
   }
 
   def synthesizeSummaryRef(

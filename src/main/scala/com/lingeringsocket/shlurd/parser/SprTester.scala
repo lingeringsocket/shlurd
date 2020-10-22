@@ -107,7 +107,7 @@ class SprTester
       }
     }
     reportStatus()
-    tupleN((successes, failures))
+    tupleN(successes, failures)
   }
 
   protected def restartSequence() : Unit =

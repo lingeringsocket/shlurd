@@ -170,7 +170,7 @@ object SnlSpanishConjugation
     val conjugated =
       SpanishVerbConjugator.conjugate(
         infinitive, spanishTense, iPerson, (coord.count != COUNT_SINGULAR))
-    val key = tupleN((infinitive, conjugated))
+    val key = tupleN(infinitive, conjugated)
     if (!cache.contains(key)) {
       cache.put(key, coord)
     }
@@ -181,11 +181,11 @@ object SnlSpanishConjugation
     infinitive : String, conjugated : String
   ) : Option[SnlSpanishConjugationCoord] =
   {
-    cache.get(tupleN((infinitive, conjugated))).orElse {
+    cache.get(tupleN(infinitive, conjugated)).orElse {
       validCoords.foreach(coord => {
         conjugateVerb(infinitive, coord)
       })
-      cache.get(tupleN((infinitive, conjugated)))
+      cache.get(tupleN(infinitive, conjugated))
     }
   }
 }

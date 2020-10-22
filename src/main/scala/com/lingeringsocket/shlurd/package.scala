@@ -22,7 +22,30 @@ package object shlurd
 
   // syntactic sugar to make it easier to spot where we are
   // constructing a tuple (and to make Emacs indentation happier)
-  def tupleN[TupleN <: Product](t : TupleN) = t
+  def tupleN[T1](
+    t1 : T1) =
+    (t1)
+  def tupleN[T1, T2](
+    t1 : T1, t2 : T2) =
+    (t1, t2)
+  def tupleN[T1, T2, T3](
+    t1 : T1, t2 : T2, t3 : T3) =
+    (t1, t2, t3)
+  def tupleN[T1, T2, T3, T4](
+    t1 : T1, t2 : T2, t3 : T3, t4 : T4) =
+    (t1, t2, t3, t4)
+  def tupleN[T1, T2, T3, T4, T5](
+    t1 : T1, t2 : T2, t3 : T3, t4 : T4, t5 : T5) =
+    (t1, t2, t3, t4, t5)
+  def tupleN[T1, T2, T3, T4, T5, T6](
+    t1 : T1, t2 : T2, t3 : T3, t4 : T4, t5 : T5, t6 : T6) =
+    (t1, t2, t3, t4, t5, t6)
+  def tupleN[T1, T2, T3, T4, T5, T6, T7](
+    t1 : T1, t2 : T2, t3 : T3, t4 : T4, t5 : T5, t6 : T6, t7 : T7) =
+    (t1, t2, t3, t4, t5, t6, t7)
+  def tupleN[T1, T2, T3, T4, T5, T6, T7, T8](
+    t1 : T1, t2 : T2, t3 : T3, t4 : T4, t5 : T5, t6 : T6, t7 : T7, t8 : T8) =
+    (t1, t2, t3, t4, t5, t6, t7, t8)
 
   def range(r : Range) = r
 

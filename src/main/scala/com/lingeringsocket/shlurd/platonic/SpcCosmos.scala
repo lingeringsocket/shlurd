@@ -323,7 +323,7 @@ class SpcCosmicPool
     }
     oldValueOpt.getOrElse {
       val newValue = op
-      cache.put(key, tupleN((newTimestamp, newValue)))
+      cache.put(key, tupleN(newTimestamp, newValue))
       newValue
     }
   }
@@ -405,9 +405,9 @@ class SpcCosmos(
       if (detached) {
         val newPool = new SpcCosmicPool
         newPool.idGenerator.set(pool.idGenerator.get)
-        tupleN((newPool, 0))
+        tupleN(newPool, 0)
       } else {
-        tupleN((pool, forkLevel + 1))
+        tupleN(pool, forkLevel + 1)
       }
     }
     val forked = new SpcCosmos(forkedGraph, newForkLevel, forkPool)
@@ -924,8 +924,8 @@ class SpcCosmos(
 
   protected[platonic] def getIdealSynonyms =
     graph.idealSynonyms.edgeSet.asScala.toSeq.map(edge =>
-      tupleN((graph.idealSynonyms.getEdgeSource(edge).name,
-        graph.idealSynonyms.getEdgeTarget(edge).name)))
+      tupleN(graph.idealSynonyms.getEdgeSource(edge).name,
+        graph.idealSynonyms.getEdgeTarget(edge).name))
 
   def getIdealTaxonomyGraph =
     unmodifiableGraph.idealTaxonomy
@@ -938,7 +938,7 @@ class SpcCosmos(
 
   def getInverseAssocEdges : Seq[(SpcFormAssocEdge, SpcFormAssocEdge)] =
     graph.inverseAssocs.vertexSet.asScala.toSeq.map(vertex =>
-      tupleN((vertex, getInverseAssocEdge(vertex).get)))
+      tupleN(vertex, getInverseAssocEdge(vertex).get))
 
   def getRolesForForm(
     form : SpcForm) : Iterable[SpcRole] =
@@ -965,7 +965,7 @@ class SpcCosmos(
   {
     pool.accessCache(
       pool.roleCompatibilityCache,
-      tupleN((role, form)),
+      tupleN(role, form),
       pool.taxonomyTimestamp,
       graph.isFormCompatibleWithRole(form, role)
     )
@@ -997,11 +997,11 @@ class SpcCosmos(
       getFormHypernymRealizations(form).find(hasQualifiers(
         _, form, qualifiers, true)
       ).foreach(entity => {
-        return tupleN((entity, false))
+        return tupleN(entity, false)
       })
     } else {
       getEntityBySynonym(properName).foreach(entity => {
-        return tupleN((entity, false))
+        return tupleN(entity, false)
       })
     }
     val formId = generateId.toString
@@ -1017,7 +1017,7 @@ class SpcCosmos(
     }
     val entity = SpcPersistentEntity(name, form, qualifiers, properName)
     createOrReplaceEntity(entity)
-    tupleN((entity, true))
+    tupleN(entity, true)
   }
 
   private def addPartialEntitySynonyms(entity : SpcEntity) : Unit =
@@ -1306,7 +1306,7 @@ class SpcCosmos(
       assert(isFormCompatibleWithIdeal(possessorEntity.form, possessorForm))
       val role = graph.getPossesseeRole(formEdge)
       assert(isFormCompatibleWithRole(possesseeEntity.form, role),
-        tupleN((possesseeEntity.form, role)).toString)
+        tupleN(possesseeEntity.form, role)).toString
     })
     true
   }
@@ -1365,10 +1365,10 @@ class SpcCosmos(
     val name = encodeName(lemma)
     getIdealBySynonym(name) match {
       case Some(form : SpcForm) => {
-        tupleN((Some(form), None))
+        tupleN(Some(form), None)
       }
       case Some(role : SpcRole) => {
-        tupleN((None, Some(role)))
+        tupleN(None, Some(role))
       }
       case _ => (None, None)
     }
@@ -1381,7 +1381,7 @@ class SpcCosmos(
   {
     pool.accessCache(
       pool.nounCache,
-      tupleN((lemma, context, qualifiers)),
+      tupleN(lemma, context, qualifiers),
       pool.entityTimestamp + pool.taxonomyTimestamp,
       lookupNoun(lemma, context, qualifiers))
   }
@@ -1449,8 +1449,8 @@ class SpcCosmos(
       resolveFormProperty(hyperForm, lemma) matchPartial {
         case Some((property, stateName)) => {
           return Some(
-            tupleN((findProperty(form, property.name).getOrElse(property),
-              stateName)))
+            tupleN(findProperty(form, property.name).getOrElse(property),
+              stateName))
         }
       }
     })
@@ -1636,9 +1636,9 @@ class SpcCosmos(
       findProperty(originalEntity.form, originalPropertyName) match {
         case Some(property) => {
           return Success(
-            tupleN((Some(property),
+            tupleN(Some(property),
               getEntityPropertyMap(originalEntity).
-                get(originalPropertyName).map(_.lemma))))
+                get(originalPropertyName).map(_.lemma)))
         }
         case _ => {
           return Success((None, None))
@@ -1762,7 +1762,7 @@ class SpcCosmos(
           }
           val (possessee, success) = instantiateEntity(
             form, Seq(SilWord(name)), name)
-          assert(success, tupleN((form, name)))
+          assert(success, tupleN(form, name))
           addEntityAssoc(possessor, possessee, role)
           Set(possessee)
         }
@@ -1865,7 +1865,7 @@ class SpcCosmos(
       if (pronouns.nonEmpty) {
         pronouns.foreach(pronoun => {
           val seq = getWordLabeler(tongue).labelWords(
-            Seq(tupleN((pronoun, pronoun, 0))),
+            Seq(tupleN(pronoun, pronoun, 0)),
             foldEphemeralLabels = false)
           assert(seq.size == 1)
           seq.head.foreach(tree => {

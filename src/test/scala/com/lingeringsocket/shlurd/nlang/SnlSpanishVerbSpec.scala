@@ -236,27 +236,27 @@ class SnlSpanishVerbSpec extends Specification
       case _ => pronoun.count
     }
     val (clientWord, stateWord) = tupleN(
-      (pronoun.gender, count)
+      pronoun.gender, count
     ) match {
       case (GENDER_FEMININE, COUNT_SINGULAR) => {
-        tupleN((
+        tupleN(
           SilWord("clienta"),
-          SilWord("ridícula", "ridículo")))
+          SilWord("ridícula", "ridículo"))
       }
       case (GENDER_FEMININE, COUNT_PLURAL) => {
-        tupleN((
+        tupleN(
           SilWord("clientas", "clienta"),
-          SilWord("ridículas", "ridículo")))
+          SilWord("ridículas", "ridículo"))
       }
       case (_, COUNT_SINGULAR) => {
-        tupleN((
+        tupleN(
           SilWord("cliente"),
-          SilWord("ridículo")))
+          SilWord("ridículo"))
       }
       case _ => {
-        tupleN((
+        tupleN(
           SilWord("clientes", "cliente"),
-          SilWord("ridículos", "ridículo")))
+          SilWord("ridículos", "ridículo"))
       }
     }
     question match {

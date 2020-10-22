@@ -364,12 +364,12 @@ class SpcBeliefRecognizer(
       // "Bill and Ted are dead" becomes "Bill is dead and Ted is dead"
       case SilConjunctiveReference(
         determiner @ (DETERMINER_ANY | DETERMINER_ALL), references, _) => {
-        tupleN((
+        tupleN(
           references.map(reference => {
             predicate.withNewSubject(reference).asInstanceOf[PredicateType]
           }),
           new SubjectConjunction(determiner)
-        ))
+        )
       }
       // "Bill and Ted's adventure is excellent" becomes
       // "Bill's adventure is excellent and Ted's adventure is excellent"
@@ -381,7 +381,7 @@ class SpcBeliefRecognizer(
         ),
         possessee
       ) => {
-        tupleN((
+        tupleN(
           references.map(reference => {
             val gr = annotator.genitiveRef(
               reference,
@@ -389,11 +389,11 @@ class SpcBeliefRecognizer(
             predicate.withNewSubject(gr).asInstanceOf[PredicateType]
           }),
           new SubjectConjunction(DETERMINER_ALL)
-        ))
+        )
       }
-      case _ => tupleN((
+      case _ => tupleN(
         Seq(predicate),
-        new SubjectConjunction(DETERMINER_ABSENT)))
+        new SubjectConjunction(DETERMINER_ABSENT))
     }
   }
 
@@ -452,18 +452,18 @@ class SpcBeliefRecognizer(
                     possessorForm, attribute.toNounLemma)
                   if (propertyOpt.nonEmpty) {
                     // interpret as property, e.g. "the boss's mood"
-                    tupleN((possessor, true))
+                    tupleN(possessor, true)
                   } else {
                     // interpret as association, e.g. "the boss's minions"
-                    tupleN((ref, false))
+                    tupleN(ref, false)
                   }
                 }
                 case _ => {
-                  tupleN((possessor, true))
+                  tupleN(possessor, true)
                 }
               }
             }
-            case _ => tupleN((ref, false))
+            case _ => tupleN(ref, false)
           }
           val prechecks = {
             if ((determiner == DETERMINER_DEFINITE) &&
@@ -603,7 +603,7 @@ class SpcBeliefRecognizer(
             ((kindDeterminer == DETERMINER_ABSENT) &&
               (kindCount == COUNT_PLURAL))
         ) => {
-          tupleN((Some(hypernymIdealName), None))
+          tupleN(Some(hypernymIdealName), None)
         }
         case SilDeterminedReference(
           SilStateSpecifiedReference(
@@ -618,9 +618,9 @@ class SpcBeliefRecognizer(
               ))),
           DETERMINER_DEFINITE
         ) if (compatibleDeterminerAndCount(determiner, count)) => {
-          tupleN((None, Some(idealName)))
+          tupleN(None, Some(idealName))
         }
-        case _ => tupleN((None, None))
+        case _ => tupleN(None, None)
       }
       if (kindOpt.nonEmpty || aliasOpt.nonEmpty) {
         subjectRef matchPartial {
@@ -771,7 +771,7 @@ class SpcBeliefRecognizer(
     count : SilCount,
     exactPlural : Boolean = false) : Boolean =
   {
-    tupleN((determiner, count)) match {
+    tupleN(determiner, count) match {
       case (DETERMINER_ABSENT, COUNT_PLURAL) => true
       case (DETERMINER_ABSENT, _) if (!exactPlural) => true
       case (DETERMINER_NONSPECIFIC, COUNT_SINGULAR) => true
@@ -1154,15 +1154,15 @@ class SpcBeliefRecognizer(
               if (!qualifiers.isEmpty) {
                 return Seq(UnimplementedBelief(sentence))
               }
-              tupleN((complementNoun, count))
+              tupleN(complementNoun, count)
             })
             // FIXME special casing for COUNT_MASS/COUNT_ZERO_PLURAL
-            tupleN((pairs.map(_._1), pairs.map(_._2).maxBy(
+            tupleN(pairs.map(_._1), pairs.map(_._2).maxBy(
               _ match {
                 case COUNT_PLURAL => 2
                 case _ => 1
               })
-            ))
+            )
           }
           // "a dog has an owner"
           case ref => {
@@ -1175,7 +1175,7 @@ class SpcBeliefRecognizer(
             if (!qualifiers.isEmpty) {
               return Seq(UnimplementedBelief(sentence))
             }
-            tupleN((Seq(complementNoun), count))
+            tupleN(Seq(complementNoun), count)
           }
         }
         val upper = count match {
@@ -1318,7 +1318,7 @@ class SpcBeliefRecognizer(
       case SilOptionallyDeterminedReference(
         SilCountedNounReference(noun, count), determiner
       ) => {
-        tupleN((noun, determiner, count))
+        tupleN(noun, determiner, count)
       }
       case _ => return Seq.empty
     }
@@ -1336,7 +1336,7 @@ class SpcBeliefRecognizer(
       return Seq.empty
     }
     subjectConjunction.checkAnd
-    tupleN((subjectConjunction.check, complementDeterminer)) match {
+    tupleN(subjectConjunction.check, complementDeterminer) match {
       // "Spot is a canine"
       case (DETERMINER_ABSENT, DETERMINER_NONSPECIFIC) => ;
       // "Spot and Tiger are canines"
@@ -1481,19 +1481,19 @@ class SpcBeliefRecognizer(
         determiner @ (DETERMINER_NONSPECIFIC | DETERMINER_DEFINITE |
           DETERMINER_ABSENT)
       ) => {
-        tupleN((noun, preQualifiers, COUNT_SINGULAR, determiner, false))
+        tupleN(noun, preQualifiers, COUNT_SINGULAR, determiner, false)
       }
       case SilDeterminedReference(sub, determiner) => {
         val (w, s, c, d, b) = extractQualifiedNoun(
           sentence, sub, preQualifiers, allowGenitives, allowAdpositions)
         assert(d == DETERMINER_ABSENT)
-        tupleN((w, s, c, determiner, b))
+        tupleN(w, s, c, determiner, b)
       }
       case SilMandatoryPlural(
         noun
       ) => {
-        tupleN((noun, preQualifiers, COUNT_PLURAL,
-          DETERMINER_ABSENT, false))
+        tupleN(noun, preQualifiers, COUNT_PLURAL,
+          DETERMINER_ABSENT, false)
       }
       case SilStateSpecifiedReference(
         subRef, state
@@ -1534,15 +1534,15 @@ class SpcBeliefRecognizer(
           case DETERMINER_ALL => (possessorCount == COUNT_SINGULAR)
           case _ => true
         }
-        tupleN((possession, preQualifiers :+ possessor,
-          count, possessorDeterminer, failed || !allowGenitives))
+        tupleN(possession, preQualifiers :+ possessor,
+          count, possessorDeterminer, failed || !allowGenitives)
       }
       case pr : SilPronounReference => {
         // the "noun" returned here is bogus, so we should be forcing
         // the caller to validate it in inappropriate contexts
-        tupleN((pr.word.getOrElse(SilWord(SmcIdeals.FORM_SOMEONE)),
+        tupleN(pr.word.getOrElse(SilWord(SmcIdeals.FORM_SOMEONE)),
           preQualifiers, pr.count,
-          DETERMINER_ABSENT, false))
+          DETERMINER_ABSENT, false)
       }
       case _ => failedResult
     }

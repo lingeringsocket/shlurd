@@ -59,7 +59,7 @@ package object mind
           }
         }.map {
           case (_, note) => {
-            tupleN((note.ref, note.getEntities.get))
+            tupleN(note.ref, note.getEntities.get)
           }
         }
       }

@@ -54,7 +54,7 @@ trait SilTongue extends SilGenderAnalyzer
     p1 : SilPoliteness,
     p2 : SilPoliteness) : SilPoliteness =
   {
-    tupleN((p1, p2)) match {
+    tupleN(p1, p2) match {
       case (POLITENESS_FAMILIAR, POLITENESS_FAMILIAR) => POLITENESS_FAMILIAR
       case _ => POLITENESS_RESPECTFUL
     }

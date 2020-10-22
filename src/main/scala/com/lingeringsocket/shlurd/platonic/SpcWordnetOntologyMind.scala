@@ -78,7 +78,7 @@ class SpcWordnetOntologyMind(
     val pool = cosmos.getPool
     pool.accessCache(
       pool.roleCache,
-      tupleN((possessorForm, noun, includeHypernyms)),
+      tupleN(possessorForm, noun, includeHypernyms),
       pool.taxonomyTimestamp,
       {
         val wordnetOpt = {
@@ -133,7 +133,7 @@ class SpcWordnetOntologyMind(
     } else {
       val sense1 = wordnet.findSenses(verb1.senseId).headOption
       val sense2 = wordnet.findSenses(verb2.senseId).headOption
-      tupleN((sense1, sense2)) match {
+      tupleN(sense1, sense2) match {
         case (Some(s1), Some(s2)) => {
           s1 == s2
         }

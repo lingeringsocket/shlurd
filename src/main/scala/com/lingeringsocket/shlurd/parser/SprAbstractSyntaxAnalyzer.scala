@@ -64,9 +64,9 @@ abstract class SprAbstractSyntaxAnalyzer(
     // FIXME:  don't reduce to empty seq
     val pos = seq.indexWhere(isNegative)
     if (pos == -1) {
-      tupleN((false, seq))
+      tupleN(false, seq)
     } else {
-      tupleN((true, seq.patch(pos, Seq.empty, 1)))
+      tupleN(true, seq.patch(pos, Seq.empty, 1))
     }
   }
 
@@ -133,7 +133,7 @@ abstract class SprAbstractSyntaxAnalyzer(
       tongue.analyzePronoun(lemma)
     val proximity = proximityOpt.getOrElse {
       val seq = context.wordLabeler.labelWords(
-        Seq(tupleN((lemma, lemma, 0))),
+        Seq(tupleN(lemma, lemma, 0)),
         foldEphemeralLabels = false)
       assert(seq.size == 1)
       if (seq.head.head.label == LABEL_PRP_REFLEXIVE) {
@@ -542,7 +542,7 @@ abstract class SprAbstractSyntaxAnalyzer(
     } else if (tree.isAdjectival) {
       true
     } else if (tree.isNoun) {
-      tupleN((tree, head)) match {
+      tupleN(tree, head) match {
         case (n1 : SprSyntaxNoun, n2 : SprSyntaxNoun) => {
           n1.isProper == n2.isProper
         }

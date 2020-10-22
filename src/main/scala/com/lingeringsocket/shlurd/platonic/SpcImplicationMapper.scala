@@ -147,18 +147,18 @@ object SpcImplicationMapper
       case Some(refMap) => {
         val placeholder = extractPlaceholder(ref, refMap)
         if (placeholder.nonEmpty) {
-          tupleN((
+          tupleN(
             true,
             refMap.keySet.filter(other => {
               (ref != other) &&
               (extractPlaceholder(other, refMap) == placeholder)
             })
-          ))
+          )
         } else {
-          tupleN((
+          tupleN(
             false,
             Set.empty
-          ))
+          )
         }
       }
       case _ => {
@@ -167,25 +167,25 @@ object SpcImplicationMapper
             SilMandatorySingular(noun),
             DETERMINER_NONSPECIFIC
           ) => {
-            tupleN((
+            tupleN(
               true,
               Set(annotator.determinedNounRef(
-                noun, DETERMINER_DEFINITE, COUNT_SINGULAR))))
+                noun, DETERMINER_DEFINITE, COUNT_SINGULAR)))
           }
           case SilDeterminedReference(
             SilCountedNounReference(noun, count),
             _ : SilUnlimitedDeterminer
           ) => {
-            tupleN((
+            tupleN(
               true,
               Set(annotator.determinedNounRef(
-                noun, DETERMINER_DEFINITE, count))))
+                noun, DETERMINER_DEFINITE, count)))
           }
           case _ => {
-            tupleN((
+            tupleN(
               false,
               Set.empty
-            ))
+            )
           }
         }
       }
@@ -272,7 +272,7 @@ class SpcImplicationMapper(
               throw InvalidBeliefExcn(
                 ShlurdExceptionCode.AssertionInvalidVariable, belief)
             }
-            Some(tupleN((noun, count)))
+            Some(tupleN(noun, count))
           }
           case SilStateSpecifiedReference(
             SilMandatorySingular(noun),
@@ -282,7 +282,7 @@ class SpcImplicationMapper(
               throw InvalidBeliefExcn(
                 ShlurdExceptionCode.AssertionInvalidVariable, belief)
             }
-            Some(tupleN((noun, COUNT_SINGULAR)))
+            Some(tupleN(noun, COUNT_SINGULAR))
           }
           case SilDeterminedReference(
             SilStateSpecifiedReference(
@@ -297,7 +297,7 @@ class SpcImplicationMapper(
                   throw InvalidBeliefExcn(
                     ShlurdExceptionCode.AssertionInvalidVariable, belief)
                 }
-                Some(tupleN((noun, count)))
+                Some(tupleN(noun, count))
               }
               case _ => None
             }
@@ -319,7 +319,7 @@ class SpcImplicationMapper(
             }
             val placeholder = makePlaceholder(
               form, noun, count, variableCounters)
-            tupleN((ref, Set(placeholder)))
+            tupleN(ref, Set(placeholder))
           }
         }
       })

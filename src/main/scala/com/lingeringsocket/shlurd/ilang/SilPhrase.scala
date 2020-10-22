@@ -714,7 +714,7 @@ object SilCountedNounReference
 {
   def unapply(ref : SilNounReference) =
   {
-    Some(tupleN((ref.noun, ref.count)))
+    Some(tupleN(ref.noun, ref.count))
   }
 }
 
