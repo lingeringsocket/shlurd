@@ -40,6 +40,7 @@ object SpcPrimordial
     newCosmos.meta.enableBuffering()
     initCosmosFromBeliefs(newCosmos)
     newCosmos.meta.flush()
+    newCosmos.clearWordLabeler()
     newCosmos
   }
 

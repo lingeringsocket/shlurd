@@ -30,8 +30,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
   {
     override protected def getCosmos = cosmos
 
-    override protected def newMind = new ZooMind(cosmos, new SnlSpanishTongue(
-      new SnlExternalWordnet("/extjwnl_data_spa.xml")))
+    override protected def newMind = new ZooMind(cosmos, SnlUtils.spanishTongue)
   }
 
   "SmcResponder with SnlSpanishTongue" should

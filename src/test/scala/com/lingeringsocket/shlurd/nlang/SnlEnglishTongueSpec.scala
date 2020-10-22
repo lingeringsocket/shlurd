@@ -26,7 +26,7 @@ class SnlEnglishTongueSpec extends Specification
   // FIXME minimize fallout from race conditions in extjwnl
   sequential
 
-  private implicit val tongue = SnlUtils.defaultTongue
+  private implicit val tongue = SnlUtils.englishTongue
 
   "SnlEnglishTongue" should
   {

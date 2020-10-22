@@ -25,9 +25,7 @@ class SnlSpanishTongueSpec extends SprWordLabelerSpecification
   // FIXME minimize fallout from race conditions in extjwnl
   sequential
 
-  private implicit val tongue = new SnlSpanishTongue(
-    new SnlExternalWordnet("/extjwnl_data_spa.xml")
-  )
+  private implicit val tongue = SnlUtils.spanishTongue
 
   trait SpanishLabelingContext extends SprLabelingContext
   {

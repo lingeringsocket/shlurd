@@ -27,9 +27,7 @@ class SnlSpanishVerbSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
-  private implicit val tongue = new SnlSpanishTongue(
-    new SnlExternalWordnet("/extjwnl_data_spa.xml")
-  )
+  private implicit val tongue = SnlUtils.spanishTongue
 
   private val context = SprContext(tongue)
 

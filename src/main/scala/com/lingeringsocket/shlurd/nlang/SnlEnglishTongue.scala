@@ -275,6 +275,8 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     scoreEnglishUsage
   )
 
+  override def getIdentifier = "en"
+
   override def newSentencePrinter(
     genderAnalyzer : SilGenderAnalyzer) =
   {

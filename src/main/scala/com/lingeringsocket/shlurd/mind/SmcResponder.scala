@@ -239,6 +239,7 @@ class SmcResponder[
     debug("-----------------------------")
     if (!input.isEmpty) {
       debug(s"INPUT TEXT : $input")
+      debug(s"INPUT LANGUAGE: ${tongue.getIdentifier}")
     }
     debugger.setContext({
       if (input.nonEmpty) {

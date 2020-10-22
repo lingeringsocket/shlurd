@@ -18,7 +18,7 @@ import org.specs2.mutable._
 
 object SnlExternalWordnetSpec
 {
-  private val wordnet = new SnlExternalWordnet("/extjwnl_data_spa.xml")
+  private val wordnet = SnlUtils.spanishWordnet
 }
 
 class SnlExternalWordnetSpec extends Specification

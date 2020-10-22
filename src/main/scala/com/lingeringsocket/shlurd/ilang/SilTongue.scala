@@ -20,6 +20,8 @@ import scala.collection._
 
 trait SilTongue extends SilGenderAnalyzer
 {
+  def getIdentifier : String
+
   def newSentenceBundle : SilSentenceBundle
 
   def getPronounUsage(

@@ -561,6 +561,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     scoreSer
   )
 
+  override def getIdentifier = "es"
+
   override def newSentencePrinter(genderAnalyzer : SilGenderAnalyzer) =
   {
     new SilSentencePrinter(this, genderAnalyzer)

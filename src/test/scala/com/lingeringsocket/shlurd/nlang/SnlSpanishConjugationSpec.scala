@@ -31,7 +31,7 @@ import scala.jdk.CollectionConverters._
 
 class SnlSpanishConjugationSpec extends Specification
 {
-  private val wordnet = new SnlExternalWordnet("/extjwnl_data_spa.xml")
+  private val wordnet = SnlUtils.spanishWordnet
 
   private val LINE_COUNT = 11466
 

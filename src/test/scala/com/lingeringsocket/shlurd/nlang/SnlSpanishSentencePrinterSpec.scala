@@ -19,9 +19,7 @@ import com.lingeringsocket.shlurd.parser._
 
 class SnlSpanishSentencePrinterSpec
     extends SilSentencePrinterSpecification(SprContext(
-      new SnlSpanishTongue(
-        new SnlExternalWordnet("/extjwnl_data_spa.xml"))),
-      true)
+      SnlUtils.spanishTongue), true)
 {
   "SilSentencePrinter with SnlSpanishTongue" should
   {

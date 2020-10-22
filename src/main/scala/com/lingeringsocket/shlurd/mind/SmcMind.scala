@@ -46,11 +46,12 @@ class SmcMind[
 
   def newParser(input : String) =
   {
+    val tongue = getTongue
     SprParser(
       input,
       SprContext(
-        SnlUtils.defaultWordLabeler,
-        SnlUtils.defaultPhraseScorer,
+        new SprWordnetLabeler(tongue),
+        new SprWordnetScorer(tongue),
         annotator = SmcAnnotator[EntityType](),
         genderAnalyzer = this)
     )

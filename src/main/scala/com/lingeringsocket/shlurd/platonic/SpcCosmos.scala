@@ -470,6 +470,11 @@ class SpcCosmos(
     wordLabeler
   }
 
+  private[platonic] def clearWordLabeler() : Unit =
+  {
+    wordLabeler = null
+  }
+
   private def syncGenerator(src : SpcCosmos) : Unit =
   {
     getIdGenerator.set(src.getIdGenerator.get)

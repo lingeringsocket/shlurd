@@ -22,9 +22,17 @@ import SprPennTreebankLabels._
 
 object SnlUtils
 {
-  val defaultWordnet = SnlPrincetonWordnet
+  val englishWordnet = SnlPrincetonWordnet
 
-  val defaultTongue = new SnlEnglishTongue(defaultWordnet)
+  lazy val spanishWordnet = new SnlExternalWordnet("/extjwnl_data_spa.xml")
+
+  val defaultWordnet : SprWordnet = englishWordnet
+
+  val englishTongue = new SnlEnglishTongue(englishWordnet)
+
+  lazy val spanishTongue = new SnlSpanishTongue(spanishWordnet)
+
+  val defaultTongue : SprTongue = englishTongue
 
   val defaultPhraseScorer = new SprWordnetScorer(defaultTongue)
 

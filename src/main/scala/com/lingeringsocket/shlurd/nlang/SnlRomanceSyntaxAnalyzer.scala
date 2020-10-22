@@ -220,7 +220,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
     }
   }
 
-  private def swappable(
+  private def swappableSubject(
     frame : SnlRomanceSyntaxFrame
   ) : Seq[SnlRomanceSyntaxFrame] =
   {
@@ -233,6 +233,26 @@ abstract class SnlRomanceSyntaxAnalyzer(
           None, frame.auxVerbOpt, frame.mainVerb,
           frame.subjectOpt,
           frame.modifiers)
+      )
+    }
+  }
+
+  private def swappableVerb(
+    frame : SnlRomanceSyntaxFrame
+  ) : Seq[SnlRomanceSyntaxFrame] =
+  {
+    if (frame.mainVerb.isBeingVerb) {
+      Seq(frame)
+    } else {
+      Seq(
+        frame,
+        SnlRomanceSyntaxFrame(
+          frame.rhsOpt,
+          frame.auxVerbOpt,
+          frame.mainVerb,
+          frame.subjectOpt,
+          frame.modifiers
+        )
       )
     }
   }
@@ -320,7 +340,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
         )
       }
       case (1, 1, 0) => {
-        swappable(
+        swappableSubject(
           SnlRomanceSyntaxFrame(
             Some(firstNom), None, firstVerb, rhsDirect)
         )
@@ -328,13 +348,9 @@ abstract class SnlRomanceSyntaxAnalyzer(
       case (1, 2, 0) => {
         checkNoDirect(
           rhsDirect,
-          Seq(
+          swappableVerb(
             SnlRomanceSyntaxFrame(
-              Some(firstNom), None, firstVerb, Some(secondNom)),
-            SnlRomanceSyntaxFrame(
-              Some(secondNom), None, firstVerb, Some(firstNom))
-          )
-        )
+              Some(firstNom), None, firstVerb, Some(secondNom))))
       }
       case (2, 0, 0) => {
         Seq(
@@ -343,7 +359,7 @@ abstract class SnlRomanceSyntaxAnalyzer(
         )
       }
       case (2, 1, 0) => {
-        swappable(
+        swappableSubject(
           SnlRomanceSyntaxFrame(
             Some(firstNom), Some(firstVerb), secondVerb, rhsDirect)
         )
@@ -351,13 +367,9 @@ abstract class SnlRomanceSyntaxAnalyzer(
       case (2, 2, 0) => {
         checkNoDirect(
           rhsDirect,
-          Seq(
+          swappableVerb(
             SnlRomanceSyntaxFrame(
-              Some(firstNom), Some(firstVerb), secondVerb, Some(secondNom)),
-            SnlRomanceSyntaxFrame(
-              Some(secondNom), Some(firstVerb), secondVerb, Some(firstNom))
-          )
-        )
+              Some(firstNom), Some(firstVerb), secondVerb, Some(secondNom))))
       }
       case (1, 0, 1) => {
         checkNoDirect(

@@ -25,10 +25,7 @@ class SnlSpanishParserSpec extends Specification
 {
   private val annotator = SilBasicAnnotator()
 
-  private val wordnet = new SnlExternalWordnet(
-    "/extjwnl_data_spa.xml")
-
-  private val context = SprContext(new SnlSpanishTongue(wordnet))
+  private val context = SprContext(SnlUtils.spanishTongue)
 
   private val NOUN_PEDRO = SilWord("Pedro")
 

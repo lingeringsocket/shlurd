@@ -16,6 +16,7 @@ package com.lingeringsocket.shlurd.platonic
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.mind._
 
 import org.specs2.mutable._
@@ -38,6 +39,24 @@ class SpcProcessingSpecification extends Specification
 
   trait ProcessingContext extends Scope
   {
+    class RefinedMind(cosmos : SpcCosmos) extends SpcMind(cosmos)
+    {
+      override def isSpatialLocation(entity : SpcEntity) : Boolean =
+      {
+        // FIXME this doesn't belong here
+        entity.form.name == "car"
+      }
+
+      override def spawn(newCosmos : SpcCosmos) =
+      {
+        val mind = new RefinedMind(newCosmos)
+        mind.initFrom(this)
+        mind
+      }
+
+      override def getTongue = processingTongue
+    }
+
     protected val cosmos = new SpcCosmos {
       override def evaluateEntityProperty(
         entity : SpcEntity,
@@ -50,13 +69,11 @@ class SpcProcessingSpecification extends Specification
       }
     }
 
-    protected val mind = new SpcMind(cosmos) {
-      override def isSpatialLocation(entity : SpcEntity) : Boolean =
-      {
-        // FIXME this doesn't belong here
-        entity.form.name == "car"
-      }
-    }
+    protected def getProcessingTongue = SnlUtils.defaultTongue
+
+    protected val processingTongue = getProcessingTongue
+
+    protected val mind = new RefinedMind(cosmos)
 
     protected def process(
       input : String,
