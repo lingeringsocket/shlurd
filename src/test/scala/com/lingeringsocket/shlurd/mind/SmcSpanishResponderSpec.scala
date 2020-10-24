@@ -87,8 +87,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, no hay un oso triste.")
       process("hay una salamandra?") must be equalTo(
         "No, no hay una salamandra.")
-      process("hay una cabra niñera?") must be equalTo(
-        "Sí, hay una cabra niñera.")
+      process("hay una cabra salvaje?") must be equalTo(
+        "Sí, hay una cabra salvaje.")
       process("el león está dormido?") must be equalTo(
         "Sí, el león está dormido.")
       process("el león está despierto?") must be equalTo(
@@ -302,8 +302,8 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Ningunas cabras están despiertas.")
       process("qué cabra está despierta?") must be equalTo(
         "Ninguna cabra está despierta.")
-      val list = "La cabra doméstica, la cabra siberiana, " +
-        "y la cabra niñera están dormidas."
+      val list = "La cabra salvaje, la cabra doméstica, " +
+        "y la cabra siberiana están dormidas."
       process("cuál cabra está dormida?") must be equalTo(list)
       process("cuáles cabras están dormidas") must be equalTo(list)
       process("{cuál cabra en la granja} está dormida?") must be equalTo(
@@ -316,7 +316,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "Todas las tres están dormidas.")
       process("cuántas cabras en la granja están dormidas?") must be equalTo(
         "Una de ellas está dormida.")
-      process("cuántas cabras niñeras están dormidas?") must be equalTo(
+      process("cuántas cabras salvajes están dormidas?") must be equalTo(
         "Una de ellas está dormida.")
       process("cuántos leones o osos polares están dormidos?") must be equalTo(
         "Ambos están dormidos.")
@@ -496,17 +496,17 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("están las cabras despiertas?") must be equalTo(
         "No, las cabras no están despiertas.")
       process("ellas están dormidas?") must be equalTo(
-        "Sí, la cabra doméstica y la cabra siberiana y " +
-          "la cabra niñera están dormidas.")
+        "Sí, la cabra salvaje y la cabra doméstica y " +
+          "la cabra siberiana están dormidas.")
       process("el tigre las devora?") must be equalTo(
-        "Sí, el tigre devora la cabra doméstica y la cabra siberiana y " +
-          "la cabra niñera.")
+        "Sí, el tigre devora la cabra salvaje y la cabra doméstica y " +
+          "la cabra siberiana.")
       process("Muldoon les informa?") must be equalTo(
-        "Sí, Muldoon les informa a la cabra doméstica " +
-          "y la cabra siberiana y la cabra niñera.")
+        "Sí, Muldoon les informa a la cabra salvaje " +
+          "y la cabra doméstica y la cabra siberiana.")
       process("Muldoon les informa la cantidad?") must be equalTo(
-        "Sí, Muldoon les informa la cantidad a la cabra doméstica " +
-          "y la cabra siberiana y la cabra niñera.")
+        "Sí, Muldoon les informa la cantidad a la cabra salvaje " +
+          "y la cabra doméstica y la cabra siberiana.")
 
       process("ellos están dormidos?") must be equalTo(
         "Sí, el león y la cabra siberiana están dormidos.")

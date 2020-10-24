@@ -2848,6 +2848,7 @@ cabo {m}
 cabotaje {m}
 caboverdiano {m}
 cabra {f}
+cabra salvaje {f}
 cabrero {m}
 cabrito {m}
 cabro {m}

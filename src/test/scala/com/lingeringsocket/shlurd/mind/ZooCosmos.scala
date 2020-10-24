@@ -42,7 +42,7 @@ object ZooPeacock extends ZooAnimalEntity("peacock", "pavo real")
 object ZooHippogriff extends ZooAnimalEntity("hippogriff", "hipogrifo")
 object ZooSalamander extends ZooAnimalEntity("salamander", "salamandra")
 object ZooNannyGoat extends ZooAnimalEntity(
-  "nanny goat", "cabra niñera")
+  "wild goat", "cabra salvaje")
 object ZooDomesticGoat extends ZooAnimalEntity(
   "domestic goat", "cabra doméstica")
 object ZooSiberianGoat extends ZooAnimalEntity(
