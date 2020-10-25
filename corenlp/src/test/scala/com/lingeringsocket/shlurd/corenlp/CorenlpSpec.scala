@@ -24,7 +24,7 @@ class CorenlpSentencePrinterSpec extends SnlEnglishSentencePrinterSpec
 {
 }
 
-class CorenlpSentenceTranslatorSpec extends SnlSentenceTranslatorSpec
+class CorenlpSentenceTranslatorSpec extends SnlKoreanTranslatorSpec
 {
 }
 
