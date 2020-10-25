@@ -46,6 +46,10 @@ sealed trait SilPhrase
 
   def maybeSyntaxTree : Option[SilSyntaxTree] = None
 
+  def maybeWord : Option[SilWord] = None
+
+  def withNewWord(newWord : SilWord) : SilPhrase = this
+
   def toWordString : String =
   {
     maybeSyntaxTree match {
@@ -356,6 +360,11 @@ case class SilConditionalSentence(
 
   override def tam = tamConsequent
 
+  override def maybeWord = Some(conjunction)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(conjunction = newWord)
+
   override def withNewTamFormality(
     newTam : SilTam, newFormality : SilFormality) =
   {
@@ -435,6 +444,11 @@ case class SilStatePredicate(
 
   override def children = Seq(subject, state) ++ modifiers
 
+  override def maybeWord = Some(verb)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(verb = newWord)
+
   override def withNewSubject(reference : SilReference) =
   {
     copy(subject = reference)
@@ -458,6 +472,11 @@ case class SilRelationshipPredicate(
   override def getModifiers = modifiers
 
   override def children = Seq(subject, complement) ++ modifiers
+
+  override def maybeWord = Some(verb)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(verb = newWord)
 
   override def withNewSubject(reference : SilReference) =
   {
@@ -483,6 +502,11 @@ case class SilActionPredicate(
 
   override def children =
     Seq(subject) ++ directObject ++ modifiers
+
+  override def maybeWord = Some(verb)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(verb = newWord)
 
   override def withNewSubject(reference : SilReference) =
     copy(subject = reference)
@@ -741,6 +765,11 @@ case class SilNounReference private(
   {
     maybeAnnotator.map(_.getBasicNote(this).getCount).getOrElse(COUNT_SINGULAR)
   }
+
+  override def maybeWord = Some(noun)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(noun = newWord)
 }
 
 object SilMappedReference
@@ -800,6 +829,10 @@ case class SilPropertyState(
   state : SilWord
 ) extends SilTransformedPhrase with SilState
 {
+  override def maybeWord = Some(state)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(state = newWord)
 }
 
 case class SilAdpositionalState(
@@ -807,6 +840,10 @@ case class SilAdpositionalState(
   objRef : SilReference
 ) extends SilAdpositionalPhrase with SilState
 {
+  override def maybeWord = Some(adposition.word)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(adposition = SilAdposition(newWord))
 }
 
 case class SilConjunctiveState(
@@ -824,12 +861,20 @@ case class SilBasicVerbModifier(
   word : SilWord
 ) extends SilTransformedPhrase with SilVerbModifier
 {
+  override def maybeWord = Some(word)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(word = newWord)
 }
 
 case class SilDanglingVerbModifier(
   adposition : SilAdposition
 ) extends SilTransformedPhrase with SilVerbModifier
 {
+  override def maybeWord = Some(adposition.word)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(adposition = SilAdposition(newWord))
 }
 
 case class SilAdpositionalVerbModifier(
@@ -837,6 +882,10 @@ case class SilAdpositionalVerbModifier(
   objRef : SilReference
 ) extends SilAdpositionalPhrase with SilVerbModifier
 {
+  override def maybeWord = Some(adposition.word)
+
+  override def withNewWord(newWord : SilWord) =
+    copy(adposition = SilAdposition(newWord))
 }
 
 trait SilWord

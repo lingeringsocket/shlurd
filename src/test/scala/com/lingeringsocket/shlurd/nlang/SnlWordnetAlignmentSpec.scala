@@ -27,10 +27,12 @@ class SnlWordnetAlignmentSpec extends Specification
     val spanishSenses = alignment.getFirstWordnet.getWordSenses(pos, spanish)
     spanishSenses.size must be equalTo 1
     val spanishSynset = spanishSenses.head
-    val englishSynsetOpt = alignment.mapFirstToSecond(spanishSynset)
+    val englishSynsetOpt = alignment.mapSense(
+      spanishSynset, TRANSLATE_FIRST_TO_SECOND)
     val result = englishSynsetOpt must beSome.which(_.containsWord(english))
     englishSynsetOpt.foreach(englishSynset => {
-      val spanishSynsetOpt = alignment.mapSecondToFirst(englishSynset)
+      val spanishSynsetOpt = alignment.mapSense(
+        englishSynset, TRANSLATE_SECOND_TO_FIRST)
       spanishSynsetOpt must beSome(spanishSynset)
     })
     result

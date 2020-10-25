@@ -25,8 +25,8 @@ import scala.collection._
 
 class SnlWordnetAlignment(
   resourceDir : String,
-  firstWordnet : SprWordnet,
-  secondWordnet : SprWordnet)
+  firstTongue : SprTongue,
+  secondTongue : SprTongue)
 {
   private val firstToSecond = loadMapping
 
@@ -97,21 +97,28 @@ class SnlWordnetAlignment(
       target.getSynsetAt(pos, offset))
   }
 
-  def getFirstWordnet = firstWordnet
+  def getFirstTongue = firstTongue
 
-  def getSecondWordnet = secondWordnet
+  def getSecondTongue = secondTongue
 
-  def mapFirstToSecond(synset : Synset) : Option[Synset] =
+  def getFirstWordnet = firstTongue.getWordnet
+
+  def getSecondWordnet = secondTongue.getWordnet
+
+  def mapSense(
+    synset : Synset,
+    direction : SnlTranslationDirection) : Option[Synset] =
   {
+    val (mapping, dict) = direction match {
+      case TRANSLATE_FIRST_TO_SECOND => tupleN(
+        firstToSecond, getSecondWordnet.getDictionary
+      )
+      case TRANSLATE_SECOND_TO_FIRST => tupleN(
+        secondToFirst, getFirstWordnet.getDictionary
+      )
+    }
     applyMapping(
-      synset, firstToSecond,
-      secondWordnet.getDictionary)
-  }
-
-  def mapSecondToFirst(synset : Synset) : Option[Synset] =
-  {
-    applyMapping(
-      synset, secondToFirst,
-      firstWordnet.getDictionary)
+      synset, mapping,
+      dict)
   }
 }

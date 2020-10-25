@@ -19,7 +19,7 @@ import org.specs2.mutable._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
-class SnlSentenceTranslatorSpec extends Specification
+class SnlKoreanTranslatorSpec extends Specification
 {
   private val printer =
     new SilSentencePrinter(
@@ -43,7 +43,7 @@ class SnlSentenceTranslatorSpec extends Specification
     sentence
   }
 
-  "SilSentencePrinter" should
+  "SilSentencePrinter with LimitedKoreanTongue" should
   {
     "translate sentences" in
     {

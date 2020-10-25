@@ -26,10 +26,6 @@ object SnlUtils
 
   lazy val spanishWordnet = new SnlExternalWordnet("/extjwnl_data_spa.xml")
 
-  lazy val spanishEnglishAlignment = new SnlWordnetAlignment(
-    "/com/lingeringsocket/extjwnl/data/mcr30-2016/spa/",
-    spanishWordnet, englishWordnet)
-
   val defaultWordnet : SprWordnet = englishWordnet
 
   val englishTongue = new SnlEnglishTongue(englishWordnet)
@@ -37,6 +33,10 @@ object SnlUtils
   lazy val spanishTongue = new SnlSpanishTongue(spanishWordnet)
 
   val defaultTongue : SprTongue = englishTongue
+
+  lazy val spanishEnglishAlignment = new SnlWordnetAlignment(
+    "/com/lingeringsocket/extjwnl/data/mcr30-2016/spa/",
+    spanishTongue, englishTongue)
 
   val defaultPhraseScorer = new SprWordnetScorer(defaultTongue)
 

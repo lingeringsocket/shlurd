@@ -22,10 +22,11 @@ import scala.collection._
 
 class SprWordnetSenseAnalyzer(
   tongue : SprTongue,
-  wordnet : SprWordnet,
   annotator : SilAnnotator)
     extends SilPhraseRewriter(annotator)
 {
+  private val wordnet = tongue.getWordnet
+
   def analyze[PhraseType <: SilPhrase](phrase : PhraseType) : PhraseType =
   {
     def matcher = replacementMatcher(

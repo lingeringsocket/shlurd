@@ -26,7 +26,7 @@ class SprWordnetSenseAnalyzerSpec extends Specification
   private implicit val tongue = SnlUtils.defaultTongue
 
   private val analyzer =
-    new SprWordnetSenseAnalyzer(tongue, SnlPrincetonWordnet, annotator)
+    new SprWordnetSenseAnalyzer(tongue, annotator)
 
   private val pronounI =
     annotator.basicPronounRef(PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR)

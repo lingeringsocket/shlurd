@@ -34,30 +34,13 @@ abstract class SilSentencePrinterSpecification(
       if (clearInflections) {
         val annotator = SilBasicAnnotator()
         val rewriter = new SilPhraseRewriter(annotator)
-        // this is kinda fragile, and doesn't cover adpositions,
-        // but luckily they don't inflect anyway
         def clearWords = rewriter.replacementMatcher(
           "clearInflections", {
-            case cs : SilConditionalSentence => {
-              cs.copy(conjunction = cs.conjunction.toUninflected)
+            case nr @ SilNounReference(noun) if noun.isProper => {
+              nr
             }
-            case sp : SilStatePredicate => {
-              sp.copy(verb = sp.verb.toUninflected)
-            }
-            case rp : SilRelationshipPredicate => {
-              rp.copy(verb = rp.verb.toUninflected)
-            }
-            case ap : SilActionPredicate => {
-              ap.copy(verb = ap.verb.toUninflected)
-            }
-            case nr : SilNounReference if (!nr.noun.isProper) => {
-              nr.copy(noun = nr.noun.toUninflected)
-            }
-            case ps : SilPropertyState => {
-              ps.copy(state = ps.state.toUninflected)
-            }
-            case vm : SilBasicVerbModifier => {
-              vm.copy(word = vm.word.toUninflected)
+            case phrase : SilPhrase if (phrase.maybeWord.nonEmpty) => {
+              phrase.withNewWord(phrase.maybeWord.get.toUninflected)
             }
           }
         )
