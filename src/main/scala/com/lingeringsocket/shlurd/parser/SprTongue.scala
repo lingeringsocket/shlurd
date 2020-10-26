@@ -477,4 +477,6 @@ abstract class SprTongue(wordnet : SprWordnet)
   {
     lemma == SprPredefWord(PD_WHO).toLemma
   }
+
+  def chooseLemma(lemmas : Seq[String]) = lemmas.head
 }

@@ -20,3 +20,9 @@ the following XSLT:
       </xsl:if>
   </xsl:template>
 </xsl:stylesheet>
+
+Frequency information obtained from OPUS ParaCrawl:
+https://object.pouta.csc.fi/OPUS-ParaCrawl/v5/freq/es.freq.gz
+and then filtered to only MCR Spanish WordNet lemmas
+via com.lingeringsocket.shlurd.nlang.SnlSpanishPrep. More on OPUS at
+http://opus.nlpl.eu

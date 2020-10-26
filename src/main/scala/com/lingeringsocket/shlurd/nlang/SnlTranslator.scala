@@ -14,6 +14,7 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.nlang
 
+import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
 import scala.jdk.CollectionConverters._
@@ -33,9 +34,15 @@ class SnlTranslator(
   {
     // FIXME special handling for pronouns, adpositions, conjunctions, etc
     val rewriter = new SilPhraseRewriter(annotator)
-    val sourceWordnet = direction match {
-      case TRANSLATE_FIRST_TO_SECOND => alignment.getFirstWordnet
-      case TRANSLATE_SECOND_TO_FIRST => alignment.getSecondWordnet
+    val (sourceWordnet, targetTongue) = direction match {
+      case TRANSLATE_FIRST_TO_SECOND => tupleN(
+        alignment.getFirstWordnet,
+        alignment.getSecondTongue
+      )
+      case TRANSLATE_SECOND_TO_FIRST => tupleN(
+        alignment.getSecondWordnet,
+        alignment.getFirstTongue
+      )
     }
     def translateWords = rewriter.replacementMatcher(
       "translateWords", {
@@ -50,7 +57,8 @@ class SnlTranslator(
           val translatedSenseId = sourceWordnet.getSenseId(translatedSenses)
           // FIXME what about compound words?  Also should maybe
           // only preserve senses with the same lemma?
-          val lemma = translatedSenses.head.getWords.asScala.head.getLemma
+          val lemmas = translatedSenses.head.getWords.asScala.map(_.getLemma)
+          val lemma = targetTongue.chooseLemma(lemmas)
           val translatedWord = SilWord("", lemma, translatedSenseId)
           phrase.withNewWord(translatedWord)
         }

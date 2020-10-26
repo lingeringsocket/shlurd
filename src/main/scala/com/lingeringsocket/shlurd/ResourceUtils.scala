@@ -18,6 +18,7 @@ import scala.io._
 
 import java.net._
 import java.io._
+import java.util.zip._
 
 object ResourceUtils
 {
@@ -44,10 +45,13 @@ object ResourceUtils
     new File(getResourcePath(resource))
 
   def getResourceStream(resource : String) =
-      loader.getResourceAsStream(resource.stripPrefix("/"))
+    loader.getResourceAsStream(resource.stripPrefix("/"))
 
   def getResourceSource(resource : String) =
     Source.fromInputStream(getResourceStream(resource))
+
+  def getGzipResourceSource(resource : String) =
+    Source.fromInputStream(new GZIPInputStream(getResourceStream(resource)))
 
   def readResource(resource : String) : String =
     getResourceSource(resource).getLines().mkString("\n")

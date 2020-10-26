@@ -182,7 +182,9 @@ object SnlSpanishLexicon
   // for now these are all rolled together
   val proper = SnlEnglishLexicon.proper
 
-  val nounGenders = readGenderMap("/spanish/gender.txt")
+  val nounGenders = readGenderMap("/spanish/gender.txt.gz")
+
+  val freqs = SnlUtils.readFreqMap("/spanish/freq.txt.gz")
 
   val stopList = Set(
     LEMMA_ELLA, LEMMA_YO, LEMMA_NO, LEMMA_SER, LEMMA_SUS
@@ -1796,4 +1798,18 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       }
     }
   )
+
+  override def chooseLemma(
+    lemmas : Seq[String]) =
+  {
+    val candidate =
+      lemmas.sortBy(lemma => freqs.get(lemma).getOrElse(0)).last
+    lemmas.flatMap(other => {
+      if (pluralizeNoun(other) == candidate) {
+        Some(other)
+      } else {
+        None
+      }
+    }).headOption.getOrElse(candidate)
+  }
 }

@@ -52,9 +52,9 @@ class SnlTranslatorSpec extends Specification
     "translate sentences" in
     {
       translate(
-        "the man kisses a salamander."
+        "the man kisses a dog."
       ) must be equalTo(
-        "el hombre besa una salamandra."
+        "el hombre besa un perro."
       )
     }
   }

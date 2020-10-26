@@ -20,6 +20,8 @@ import com.lingeringsocket.shlurd.parser._
 
 import SprPennTreebankLabels._
 
+import scala.util._
+
 object SnlUtils
 {
   val englishWordnet = SnlPrincetonWordnet
@@ -69,18 +71,29 @@ object SnlUtils
     Set(words.toSeq:_*)
   }
 
+  def readFreqMap(resource : String) : Map[String, Int] =
+  {
+    Using.resource(ResourceUtils.getGzipResourceSource(resource)) { source =>
+      source.getLines().toSeq.map(entry => {
+        val cols = entry.split(' ')
+        tupleN(cols(0), cols(1).toInt)
+      }).toMap
+    }
+  }
+
   def readGenderMap(resource : String) : Map[String, String] =
   {
-    val entries = ResourceUtils.getResourceSource(resource).getLines()
-    entries.toSeq.map(entry => {
-      val i = entry.lastIndexOf(' ')
-      val (word, noisy) = entry.splitAt(i)
-      val gender = noisy.stripPrefix(" {").stripSuffix("}")
-      assert(Set("m", "f", "mf", "mp", "fp", "mfp").contains(gender), gender)
-      tupleN(
-        word,
-        gender
-      )
-    }).toMap
+    Using.resource(ResourceUtils.getGzipResourceSource(resource)) { source =>
+      source.getLines().toSeq.map(entry => {
+        val i = entry.lastIndexOf(' ')
+        val (word, noisy) = entry.splitAt(i)
+        val gender = noisy.stripPrefix(" {").stripSuffix("}")
+        assert(Set("m", "f", "mf", "mp", "fp", "mfp").contains(gender), gender)
+        tupleN(
+          word,
+          gender
+        )
+      }).toMap
+    }
   }
 }
