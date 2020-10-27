@@ -1799,7 +1799,10 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   )
 
-  override def chooseLemma(
+  // our Spanish wordnet lacks use counts, so use an external
+  // source instead, ignoring POS
+  override def chooseVariant(
+    pos : POS,
     lemmas : Seq[String]) =
   {
     val candidate =

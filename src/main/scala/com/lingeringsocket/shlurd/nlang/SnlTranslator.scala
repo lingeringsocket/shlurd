@@ -25,25 +25,30 @@ case object TRANSLATE_SECOND_TO_FIRST extends SnlTranslationDirection
 
 class SnlTranslator(
   annotator : SilAnnotator,
-  alignment : SnlWordnetAlignment
+  alignment : SnlWordnetAlignment,
+  direction : SnlTranslationDirection
 )
 {
+  val (sourceTongue, targetTongue) = direction match {
+    case TRANSLATE_FIRST_TO_SECOND => tupleN(
+      alignment.getFirstTongue,
+      alignment.getSecondTongue
+    )
+    case TRANSLATE_SECOND_TO_FIRST => tupleN(
+      alignment.getSecondTongue,
+      alignment.getFirstTongue
+    )
+  }
+
+  val sourceWordnet = sourceTongue.getWordnet
+
+  val targetWordnet = targetTongue.getWordnet
+
   def translate(
-    input : SilSentence,
-    direction : SnlTranslationDirection) : SilSentence =
+    input : SilSentence) : SilSentence =
   {
     // FIXME special handling for pronouns, adpositions, conjunctions, etc
     val rewriter = new SilPhraseRewriter(annotator)
-    val (sourceWordnet, targetTongue) = direction match {
-      case TRANSLATE_FIRST_TO_SECOND => tupleN(
-        alignment.getFirstWordnet,
-        alignment.getSecondTongue
-      )
-      case TRANSLATE_SECOND_TO_FIRST => tupleN(
-        alignment.getSecondWordnet,
-        alignment.getFirstTongue
-      )
-    }
     def translateWords = rewriter.replacementMatcher(
       "translateWords", {
         case phrase : SilPhrase if (
@@ -51,6 +56,7 @@ class SnlTranslator(
         ) => {
           val word = phrase.maybeWord.get
           val senses = sourceWordnet.findSenses(word.senseId)
+          val pos = senses.head.getPOS
           val translatedSenses = senses.flatMap(synset => {
             alignment.mapSense(synset, direction)
           })
@@ -58,7 +64,7 @@ class SnlTranslator(
           // FIXME what about compound words?  Also should maybe
           // only preserve senses with the same lemma?
           val lemmas = translatedSenses.head.getWords.asScala.map(_.getLemma)
-          val lemma = targetTongue.chooseLemma(lemmas)
+          val lemma = targetTongue.chooseVariant(pos, lemmas)
           val translatedWord = SilWord("", lemma, translatedSenseId)
           phrase.withNewWord(translatedWord)
         }

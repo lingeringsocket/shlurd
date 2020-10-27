@@ -34,6 +34,11 @@ object SprWordnetScorer
   {
     implicit val tongue = tongueIn
 
+    // FIXME figure out a way to get this info from Spanish
+    if (tongue.getIdentifier == "es") {
+      return 1
+    }
+
     def hasAdposition(
       modifiers : Seq[SilVerbModifier],
       adp : SilAdposition) : Boolean =

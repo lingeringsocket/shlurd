@@ -18,6 +18,9 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
 import net.sf.extjwnl.dictionary._
+import net.sf.extjwnl.data._
+
+import scala.jdk.CollectionConverters._
 
 class SnlExternalWordnet(
   propertiesPath : String
@@ -31,4 +34,11 @@ class SnlExternalWordnet(
   override def getDictionary = dictionary
 
   override def getMorphology = morphology
+  override def getSortedSenses(indexWord : IndexWord) =
+  {
+    // needed in case sense numbers got reshuffled by ewn
+    val senses = indexWord.getSenses.asScala
+    val offsets = indexWord.getSynsetOffsets.toSeq
+    senses.zip(offsets).sortBy(_._2).map(_._1)
+  }
 }

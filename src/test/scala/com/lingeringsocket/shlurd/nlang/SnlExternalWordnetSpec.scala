@@ -33,7 +33,7 @@ class SnlExternalWordnetSpec extends Specification
       senses.size must be equalTo 10
       val sense = senses.head
       val senseId = wordnet.getSenseId(sense)
-      senseId must be equalTo "v:1339661"
+      senseId must be equalTo "v:1285193"
       val found = wordnet.findSense(senseId)
       found must be equalTo sense
       wordnet.findSenses(senseId) must be equalTo Seq(sense)

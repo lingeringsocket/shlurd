@@ -25,36 +25,39 @@ class SnlTranslatorSpec extends Specification
 
   private val alignment = SnlUtils.spanishEnglishAlignment
 
-  private val analyzer =
-    new SprWordnetSenseAnalyzer(
-      alignment.getSecondTongue,
-      annotator)
-
-  private val printer = alignment.getFirstTongue.newSentencePrinter(
-    alignment.getFirstTongue)
-
-  private val translator = new SnlTranslator(
-    annotator,
-    alignment)
-
-  private def translate(s : String) =
+  private def translate(s : String, direction : SnlTranslationDirection) =
   {
-    val result = SprParser(s, SnlUtils.defaultContext).parseOne
+    val translator = new SnlTranslator(
+      annotator,
+      alignment,
+      direction)
+    val context = SprContext(translator.sourceTongue)
+    val result = SprParser(s, context).parseOne
+    val analyzer =
+      new SprWordnetSenseAnalyzer(
+        translator.sourceTongue,
+        annotator)
     // FIXME need full analysis
     val analyzed = analyzer.analyze(result.sentence)
-    val translatedSentence = translator.translate(
-      analyzed, TRANSLATE_SECOND_TO_FIRST)
+    val translatedSentence = translator.translate(analyzed)
+    val printer = translator.targetTongue.newSentencePrinter(
+      translator.targetTongue)
     printer.print(translatedSentence)
+  }
+
+  private def checkTranslation(english : String, spanish : String) =
+  {
+    translate(english, TRANSLATE_SECOND_TO_FIRST) must be equalTo spanish
+    translate(spanish, TRANSLATE_FIRST_TO_SECOND) must be equalTo english
   }
 
   "SnlTranslator" should
   {
     "translate sentences" in
     {
-      translate(
-        "the man kisses a dog."
-      ) must be equalTo(
-        "el hombre besa un perro."
+      checkTranslation(
+        "the man kills a dog.",
+        "el hombre mata un perro."
       )
     }
   }

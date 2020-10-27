@@ -478,5 +478,24 @@ abstract class SprTongue(wordnet : SprWordnet)
     lemma == SprPredefWord(PD_WHO).toLemma
   }
 
-  def chooseLemma(lemmas : Seq[String]) = lemmas.head
+  def chooseVariant(pos : POS, lemmas : Seq[String]) : String =
+  {
+    val dictionary = wordnet.getDictionary
+    def score(lemma : String) = {
+      Option(dictionary.getIndexWord(pos, lemma)) match {
+        case Some(indexWord) => {
+          indexWord.getSenses.asScala.flatMap(synset => {
+            val iWord = synset.indexOfWord(lemma)
+            if (iWord == -1) {
+              None
+            } else {
+              Some(synset.getWords.get(iWord).getUseCount)
+            }
+          }).sum
+        }
+        case _ => 0
+      }
+    }
+    lemmas.sortBy(score).last
+  }
 }

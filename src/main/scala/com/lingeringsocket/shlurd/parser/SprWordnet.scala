@@ -35,12 +35,12 @@ trait SprWordnet
   def getWordSenses(pos : POS, lemma : String) : Seq[Synset] =
   {
     Option(getDictionary.getIndexWord(pos, lemma)) match {
-      case Some(indexWord) => {
-        indexWord.getSenses.asScala
-      }
+      case Some(indexWord) => getSortedSenses(indexWord)
       case _ => Seq.empty
     }
   }
+
+  def getSortedSenses(indexWord : IndexWord) = indexWord.getSenses.asScala
 
   def getVerbSenses(lemma : String) : Seq[Synset] =
   {

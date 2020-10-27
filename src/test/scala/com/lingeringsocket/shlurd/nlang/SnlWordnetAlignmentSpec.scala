@@ -25,7 +25,7 @@ class SnlWordnetAlignmentSpec extends Specification
   private def checkMapping(pos : POS, spanish : String, english : String) =
   {
     val spanishSenses = alignment.getFirstWordnet.getWordSenses(pos, spanish)
-    spanishSenses.size must be equalTo 1
+    spanishSenses must not beEmpty
     val spanishSynset = spanishSenses.head
     val englishSynsetOpt = alignment.mapSense(
       spanishSynset, TRANSLATE_FIRST_TO_SECOND)
@@ -44,6 +44,7 @@ class SnlWordnetAlignmentSpec extends Specification
     {
       checkMapping(POS.NOUN, "claustrofobia", "claustrophobia")
       checkMapping(POS.VERB, "defenestrar", "defenestrate")
+      checkMapping(POS.VERB, "besar", "kiss")
       checkMapping(POS.ADJECTIVE, "picaresco", "picaresque")
       checkMapping(POS.ADVERB, "científicamente", "scientifically")
     }
