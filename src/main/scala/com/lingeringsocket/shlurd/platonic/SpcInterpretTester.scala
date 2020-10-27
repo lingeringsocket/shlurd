@@ -18,6 +18,7 @@ import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.mind._
 
 import scala.io._
+import scala.util._
 
 /*
   sbt "runMain com.lingeringsocket.shlurd.platonic.SpcInterpretTester \
@@ -29,7 +30,9 @@ class SpcInterpretTester(beliefsFile : String) extends SprTester
   private val seedCosmos = new SpcCosmos
   SpcPrimordial.initCosmos(seedCosmos)
   private val seedMind = new SpcMind(seedCosmos)
-  seedMind.loadBeliefs(Source.fromFile(beliefsFile))
+  Using.resource(Source.fromFile(beliefsFile)) {
+    source => seedMind.loadBeliefs(source)
+  }
 
   private var cosmos = new SpcCosmos
   private var mind = new SpcMind(cosmos)

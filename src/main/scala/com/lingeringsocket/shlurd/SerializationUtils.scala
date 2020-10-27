@@ -16,39 +16,39 @@ package com.lingeringsocket.shlurd
 
 import java.io._
 
+import scala.util._
+
 object SerializationUtils
 {
   def serialize[T](obj : T, file : File) : Unit =
   {
-    val fileOut = new FileOutputStream(file)
-    try {
-      val objOut = new ObjectOutputStream(fileOut)
-      objOut.writeObject(obj)
-      objOut.flush
-    } finally {
-      fileOut.close
+    Using.resource(new FileOutputStream(file)) {
+      fileOut => {
+        val objOut = new ObjectOutputStream(fileOut)
+        objOut.writeObject(obj)
+        objOut.flush
+      }
     }
   }
 
   def deserialize[T](file : File) : T =
   {
-    val fileIn = new FileInputStream(file)
-    try {
-      // https://stackoverflow.com/a/22375260/2913158
-      val objIn = new ObjectInputStream(fileIn) {
-        override def resolveClass(
-          desc: java.io.ObjectStreamClass): Class[_] =
-        {
-          try {
-            Class.forName(desc.getName, false, getClass.getClassLoader)
-          } catch {
-            case ex : ClassNotFoundException => super.resolveClass(desc)
+    Using.resource(new FileInputStream(file)) {
+      fileIn => {
+        // https://stackoverflow.com/a/22375260/2913158
+        val objIn = new ObjectInputStream(fileIn) {
+          override def resolveClass(
+            desc: java.io.ObjectStreamClass): Class[_] =
+          {
+            try {
+              Class.forName(desc.getName, false, getClass.getClassLoader)
+            } catch {
+              case ex : ClassNotFoundException => super.resolveClass(desc)
+            }
           }
         }
+        objIn.readObject.asInstanceOf[T]
       }
-      objIn.readObject.asInstanceOf[T]
-    } finally {
-      fileIn.close
     }
   }
 }

@@ -38,10 +38,10 @@ class SnlWordnetAlignment(
 
   private def loadPOS(resourceName : String) : IndexedSeq[Long] =
   {
-    Using.resource(ResourceUtils.getResourceSource(
-      resourceDir + resourceName)
-    ) { source =>
-      source.getLines().flatMap(line => {
+    Using.resource(
+      ResourceUtils.getResourceSource(resourceDir + resourceName)
+    ) {
+      source => source.getLines().flatMap(line => {
         if (line.startsWith("#")) {
           None
         } else {
@@ -60,10 +60,10 @@ class SnlWordnetAlignment(
       POS.ADJECTIVE -> loadPOS("data.adj"),
       POS.ADVERB -> loadPOS("data.adv")
     )
-    Using.resource(ResourceUtils.getResourceSource(
-      resourceDir + "translation.ssv")
-    ) { source =>
-      source.getLines().flatMap(line => {
+    Using.resource(
+      ResourceUtils.getResourceSource(resourceDir + "translation.ssv")
+    ) {
+      source => source.getLines().flatMap(line => {
         val cols = line.split(" ")
         assert(cols.size == 2, cols)
         val src = cols.head

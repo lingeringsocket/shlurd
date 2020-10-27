@@ -25,6 +25,7 @@ import net.sf.extjwnl.data._
 
 import java.io._
 import scala.io._
+import scala.util._
 
 import scala.collection._
 import scala.jdk.CollectionConverters._
@@ -48,8 +49,9 @@ class SnlSpanishConjugationSpec extends Specification
     // edit the path here
     val file = new File(
       "/home/jvs/open/fred-jehle-spanish-verbs/jehle_verb_database.csv")
-    val source = Source.fromFile(file)
-    val lines = source.getLines().toSeq
+    val lines = Using.resource(Source.fromFile(file)) {
+      source => source.getLines().toSeq
+    }
     val header = lines.head
     val headings = parseLine(header)
     headings must be equalTo Seq(

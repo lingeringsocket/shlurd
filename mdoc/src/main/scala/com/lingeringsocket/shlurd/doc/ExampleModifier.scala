@@ -101,7 +101,9 @@ abstract class PhlebAbstractProcessor extends StringModifier
     expectOutput : Boolean
   ) extends PhlebTerminal
   {
-    private val script = Source.fromString(code.text).getLines().zipWithIndex
+    private val script = Using.resource(Source.fromString(code.text)) {
+      source => source.getLines().zipWithIndex.toSeq.iterator
+    }
 
     private var lastLineNo = 0
 
@@ -230,7 +232,9 @@ class ConversationProcessor extends StringModifier
     code : Input,
     reporter : Reporter) : String =
   {
-    val lines = Source.fromString(code.text).getLines().toSeq.zipWithIndex
+    val lines = Using.resource(Source.fromString(code.text)) {
+      source => source.getLines().zipWithIndex.toSeq
+    }
 
     val wordnet = info.contains("wordnet")
     val cosmos = {
@@ -303,8 +307,10 @@ class ConversationProcessor extends StringModifier
       case ((input, inputIndex), expectedLines) => {
         val parseResult = responder.newParser(input).parseOne
         val response = responder.process(parseResult, input)
-        val responseLines = Source.fromString(response).getLines().toSeq.filterNot(
-          SprParser.isIgnorableLine)
+        val responseLines = Using.resource(Source.fromString(response)) {
+          source => source.getLines().toSeq.filterNot(
+            SprParser.isIgnorableLine)
+        }
         val iMismatch = range(0 until expectedLines.size).find(index => {
           if (index < responseLines.size) {
             expectedLines(index)._1 != responseLines(index)
@@ -410,13 +416,18 @@ class BeliefRenderer extends StringModifier
         createImplicitProperties = false)
     )
 
-    mind.loadBeliefs(
+    Using.resource(
       ResourceUtils.getResourceSource(
-        "/ontologies/examples.txt"),
+        "/ontologies/examples.txt")
+    ) {
+      source => mind.loadBeliefs(
+        source,
         responder)
+    }
 
-    val source = Source.fromString(input)
-    val lines = source.getLines()
+    val lines = Using.resource(Source.fromString(input)) {
+      source => source.getLines().toSeq.iterator
+    }
     val lineBuf = new mutable.ArrayBuffer[String]
     val ok = responder.sentencePrinter.sb.respondCompliance
     var offset = 0

@@ -778,8 +778,9 @@ class SpcCosmosSpec extends SpcProcessingSpecification
     "load beliefs from a file" in new CosmosContext
     {
       val file = ResourceUtils.getResourceFile("/ontologies/bit.txt")
-      val source = Source.fromFile(file)
-      new SpcMind(cosmos).loadBeliefs(source)
+      Using.resource(Source.fromFile(file)) {
+        source => new SpcMind(cosmos).loadBeliefs(source)
+      }
       val form = expectNamedForm("bit")
       val property = expectSingleProperty(form)
       property.domain must be equalTo PROPERTY_CLOSED_ENUM

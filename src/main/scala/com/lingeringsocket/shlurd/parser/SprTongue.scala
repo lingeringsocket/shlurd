@@ -19,6 +19,7 @@ import com.lingeringsocket.shlurd.ilang._
 
 import scala.collection._
 import scala.jdk.CollectionConverters._
+import scala.util._
 
 import net.sf.extjwnl.data._
 
@@ -462,9 +463,11 @@ abstract class SprTongue(wordnet : SprWordnet)
   private def loadMatcher =
   {
     val matcher = new SprPhrasePatternMatcher
-    val source = ResourceUtils.getResourceSource(
-      getMatcherResource)
-    SprGrammar.buildMatcher(source, matcher)
+    Using.resource(
+      ResourceUtils.getResourceSource(getMatcherResource)
+    ) {
+      source => SprGrammar.buildMatcher(source, matcher)
+    }
     matcher
   }
 

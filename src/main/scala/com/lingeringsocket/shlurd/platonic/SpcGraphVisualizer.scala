@@ -23,6 +23,7 @@ import org.jgrapht.io._
 
 import scala.collection._
 import scala.jdk.CollectionConverters._
+import scala.util._
 
 import scala.sys.process._
 
@@ -212,9 +213,9 @@ class SpcGraphVisualizer(
 
   def renderToFile(file : File) : Unit =
   {
-    val fw = new FileWriter(file)
-    renderToWriter(fw)
-    fw.close
+    Using.resource(new FileWriter(file)) {
+      fw => renderToWriter(fw)
+    }
   }
 
   def renderToImageFile(file : File) : Unit =

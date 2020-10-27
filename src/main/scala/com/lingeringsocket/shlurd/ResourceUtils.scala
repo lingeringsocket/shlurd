@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd
 
 import scala.io._
+import scala.util._
 
 import java.net._
 import java.io._
@@ -53,6 +54,9 @@ object ResourceUtils
   def getGzipResourceSource(resource : String) =
     Source.fromInputStream(new GZIPInputStream(getResourceStream(resource)))
 
-  def readResource(resource : String) : String =
-    getResourceSource(resource).getLines().mkString("\n")
+  def readResource(resource : String) : String = {
+    Using.resource(getResourceSource(resource)) {
+      source => source.getLines().mkString("\n")
+    }
+  }
 }

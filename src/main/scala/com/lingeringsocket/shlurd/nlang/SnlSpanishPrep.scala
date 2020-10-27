@@ -40,17 +40,19 @@ object SnlSpanishPrep extends App
     Using.resources(
       Source.fromFile(freqFileIn),
       new GZIPOutputStream(new FileOutputStream(freqFileOut))
-    ) { (source, target) =>
-      val pw = new PrintWriter(target)
-      source.getLines().foreach(line => {
-        val cols = line.trim.split(' ')
-        val freq = cols(0)
-        val lemma = cols(1)
-        if (dict.lookupAllIndexWords(lemma).size > 0) {
-          pw.println(s"$lemma $freq")
-        }
-      })
-      pw.close
+    ) {
+      (source, target) => {
+        val pw = new PrintWriter(target)
+        source.getLines().foreach(line => {
+          val cols = line.trim.split(' ')
+          val freq = cols(0)
+          val lemma = cols(1)
+          if (dict.lookupAllIndexWords(lemma).size > 0) {
+            pw.println(s"$lemma $freq")
+          }
+        })
+        pw.close
+      }
     }
   }
 }

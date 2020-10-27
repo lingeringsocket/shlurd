@@ -22,6 +22,7 @@ import com.lingeringsocket.shlurd.platonic._
 import org.specs2.mutable._
 
 import scala.io._
+import scala.util._
 
 import java.io._
 
@@ -119,8 +120,12 @@ class ShlurdCliSpec extends Specification
   {
     "interpret script" in
     {
-      val script = Source.fromFile(
-        ResourceUtils.getResourceFile("/expect/cli-script.txt")).getLines()
+      val script = Using.resource(Source.fromFile(
+        ResourceUtils.getResourceFile("/expect/cli-script.txt")
+      )) {
+        source => source.getLines().toSeq.iterator
+      }
+
       def nextScriptLine : Option[String] = {
         if (!script.hasNext) {
           None

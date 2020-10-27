@@ -22,6 +22,7 @@ import org.specs2.mutable._
 
 import java.io._
 import scala.io._
+import scala.util._
 
 class PhlebSpec extends Specification
 {
@@ -58,9 +59,11 @@ class PhlebSpec extends Specification
   class PhlebTestTerminal(fileName : String)
       extends PhlebTerminal
   {
-    private val script = Source.fromFile(
-      ResourceUtils.getResourceFile(s"/expect/$fileName")).
-      getLines().zipWithIndex
+    private val script = Using.resource(Source.fromFile(
+      ResourceUtils.getResourceFile(s"/expect/$fileName")
+    )) {
+      source => source.getLines().zipWithIndex.toSeq.iterator
+    }
 
     override def emitNarrative(msg : String) : Unit =
     {

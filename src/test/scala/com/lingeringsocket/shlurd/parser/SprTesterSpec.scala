@@ -19,6 +19,7 @@ import com.lingeringsocket.shlurd._
 import org.specs2.mutable._
 
 import scala.io._
+import scala.util._
 
 class SprTesterSpec extends Specification
 {
@@ -28,9 +29,11 @@ class SprTesterSpec extends Specification
     {
       val script = ResourceUtils.getResourceFile("/expect/babi-unit-script.txt")
       val tester = new SprTester
-      val (successes, failures) = tester.run(
-        Source.fromFile(script),
-        NullConsoleOutput)
+      val (successes, failures) = Using.resource(Source.fromFile(script)) {
+        source => tester.run(
+          source,
+          NullConsoleOutput)
+      }
       successes must be equalTo 14
       failures must be equalTo 0
     }

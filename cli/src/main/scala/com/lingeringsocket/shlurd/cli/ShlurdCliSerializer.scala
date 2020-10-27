@@ -25,6 +25,7 @@ import com.esotericsoftware.kryo._
 import com.esotericsoftware.kryo.io._
 
 import scala.collection._
+import scala.util._
 
 import java.io._
 import java.util.zip._
@@ -103,59 +104,56 @@ class ShlurdCliSerializer
   def saveCosmos(cosmos : SpcCosmos, file : File) : Unit =
   {
     file.getParentFile.mkdirs
-    val zos = new ZipOutputStream(new FileOutputStream(file))
-    try {
-      saveEntry(zos, KRYO_ENTRY)(outputStream => {
-        val output = new Output(outputStream)
-        kryo.writeObject(output, cosmos)
-        output.flush
-      })
-    } finally {
-      zos.close
+    Using.resource(new ZipOutputStream(new FileOutputStream(file))) {
+      zos => {
+        saveEntry(zos, KRYO_ENTRY)(outputStream => {
+          val output = new Output(outputStream)
+          kryo.writeObject(output, cosmos)
+          output.flush
+        })
+      }
     }
   }
 
   def loadCosmos(file : File) : SpcCosmos =
   {
-    val zis = new ZipInputStream(new FileInputStream(file))
-    try {
-      val nextEntry = zis.getNextEntry
-      assert(nextEntry.getName == KRYO_ENTRY)
-      val input = new Input(zis)
-      kryo.readObject(input, classOf[SpcCosmos])
-    } finally {
-      zis.close
+    Using.resource(new ZipInputStream(new FileInputStream(file))) {
+      zis => {
+        val nextEntry = zis.getNextEntry
+        assert(nextEntry.getName == KRYO_ENTRY)
+        val input = new Input(zis)
+        kryo.readObject(input, classOf[SpcCosmos])
+      }
     }
   }
 
   def saveMind(mind : ShlurdCliMind, file : File) : Unit =
   {
     file.getParentFile.mkdirs
-    val zos = new ZipOutputStream(new FileOutputStream(file))
-    try {
-      saveEntry(zos, KRYO_ENTRY)(outputStream => {
-        val output = new Output(outputStream)
-        kryo.writeObject(output, mind)
-        output.flush
-      })
-      saveEntry(zos, BELIEF_ENTRY)(outputStream => {
-        val pw = new PrintWriter(outputStream)
-        val creed = new SpcCreed(SpcAnnotator(), mind.getCosmos)
-        val printer = new SilSentencePrinter(
-          SnlUtils.defaultTongue, mind)
-        creed.allBeliefs(printer).foreach(belief => {
-          val beliefString = printer.print(belief)
-          pw.println(SprUtils.capitalize(beliefString))
+    Using.resource(new ZipOutputStream(new FileOutputStream(file))) {
+      zos => {
+        saveEntry(zos, KRYO_ENTRY)(outputStream => {
+          val output = new Output(outputStream)
+          kryo.writeObject(output, mind)
+          output.flush
         })
-        pw.flush
-      })
-      saveEntry(zos, GML_ENTRY)(outputStream => {
-        val pw = new PrintWriter(outputStream)
-        pw.println(mind.getCosmos.getGraph.render)
-        pw.flush
-      })
-    } finally {
-      zos.close
+        saveEntry(zos, BELIEF_ENTRY)(outputStream => {
+          val pw = new PrintWriter(outputStream)
+          val creed = new SpcCreed(SpcAnnotator(), mind.getCosmos)
+          val printer = new SilSentencePrinter(
+            SnlUtils.defaultTongue, mind)
+          creed.allBeliefs(printer).foreach(belief => {
+            val beliefString = printer.print(belief)
+            pw.println(SprUtils.capitalize(beliefString))
+          })
+          pw.flush
+        })
+        saveEntry(zos, GML_ENTRY)(outputStream => {
+          val pw = new PrintWriter(outputStream)
+          pw.println(mind.getCosmos.getGraph.render)
+          pw.flush
+        })
+      }
     }
   }
 
@@ -170,14 +168,13 @@ class ShlurdCliSerializer
 
   def loadMind(file : File) : ShlurdCliMind =
   {
-    val zis = new ZipInputStream(new FileInputStream(file))
-    try {
-      val nextEntry = zis.getNextEntry
-      assert(nextEntry.getName == KRYO_ENTRY)
-      val input = new Input(zis)
-      kryo.readObject(input, classOf[ShlurdCliMind])
-    } finally {
-      zis.close
+    Using.resource(new ZipInputStream(new FileInputStream(file))) {
+      zis => {
+        val nextEntry = zis.getNextEntry
+        assert(nextEntry.getName == KRYO_ENTRY)
+        val input = new Input(zis)
+        kryo.readObject(input, classOf[ShlurdCliMind])
+      }
     }
   }
 }

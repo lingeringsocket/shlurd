@@ -20,6 +20,7 @@ import com.lingeringsocket.shlurd.parser._
 import org.specs2.mutable._
 
 import scala.io._
+import scala.util._
 
 class SpcInterpretTesterSpec extends Specification
 {
@@ -32,9 +33,11 @@ class SpcInterpretTesterSpec extends Specification
       val script = ResourceUtils.getResourceFile(
         "/expect/babi-unit-script.txt")
       val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
-      val (successes, failures) = tester.run(
-        Source.fromFile(script),
-        NullConsoleOutput)
+      val (successes, failures) = Using.resource(Source.fromFile(script)) {
+        source => tester.run(
+          source,
+          NullConsoleOutput)
+      }
       successes must be equalTo 14
       failures must be equalTo 0
     }
@@ -46,9 +49,11 @@ class SpcInterpretTesterSpec extends Specification
       val script = ResourceUtils.getResourceFile(
         "/expect/babi-qa-script.txt")
       val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
-      val (successes, failures) = tester.run(
-        Source.fromFile(script),
-        NullConsoleOutput)
+      val (successes, failures) =  Using.resource(Source.fromFile(script)) {
+        source => tester.run(
+          source,
+          NullConsoleOutput)
+      }
       successes must be equalTo 39
       failures must be equalTo 0
     }
@@ -60,9 +65,11 @@ class SpcInterpretTesterSpec extends Specification
       val script = ResourceUtils.getResourceFile(
         "/expect/babi-qa-wordnet-script.txt")
       val tester = new SpcInterpretTester(beliefs.getAbsolutePath)
-      val (successes, failures) = tester.run(
-        Source.fromFile(script),
-        NullConsoleOutput)
+      val (successes, failures) =  Using.resource(Source.fromFile(script)) {
+        source => tester.run(
+          source,
+          NullConsoleOutput)
+      }
       successes must be equalTo 10
       failures must be equalTo 0
     }

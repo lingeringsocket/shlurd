@@ -19,6 +19,8 @@ import com.lingeringsocket.shlurd.mind._
 import com.lingeringsocket.shlurd.parser._
 import com.lingeringsocket.shlurd.nlang._
 
+import scala.util._
+
 object SpcPrimordial
 {
   // FIXME can this ever be language-specific?
@@ -47,15 +49,17 @@ object SpcPrimordial
   private def initCosmosFromBeliefs(cosmos : SpcCosmos) : Unit =
   {
     val mind = new SpcMind(cosmos)
-    mind.loadBeliefs(
-      ResourceUtils.getResourceSource(
-        "/ontologies/primordial.txt"),
-      SpcResponder(
-        mind,
-        SpcBeliefParams(
-          createTentativeIdeals = false,
-          createTentativeEntities = false))
-    )
+    Using.resource(
+      ResourceUtils.getResourceSource("/ontologies/primordial.txt")
+    ) {
+      source => mind.loadBeliefs(
+        source,
+        SpcResponder(
+          mind,
+          SpcBeliefParams(
+            createTentativeIdeals = false,
+            createTentativeEntities = false)))
+    }
     synonyms.foreach(e => cosmos.addIdealSynonym(e._1, e._2))
   }
 

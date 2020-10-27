@@ -22,6 +22,7 @@ import com.lingeringsocket.shlurd.platonic._
 
 import scala.collection._
 import scala.io._
+import scala.util._
 
 import java.io._
 
@@ -83,13 +84,13 @@ object ShlurdCliShell
   def newMind(terminal : ShlurdCliTerminal) =
   {
     val cosmos = ShlurdPrincetonPrimordial.newMutableCosmos
-    val beliefs = ResourceUtils.getResourceFile("/console/beliefs.txt")
-    val source = Source.fromFile(beliefs)
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
     val bootMind = new SpcWordnetOntologyMind(
       SnlUtils.defaultTongue, cosmos, preferredSynonyms)
-    bootMind.loadBeliefs(source)
-
+    val beliefs = ResourceUtils.getResourceFile("/console/beliefs.txt")
+    Using.resource(Source.fromFile(beliefs)) {
+      source => bootMind.loadBeliefs(source)
+    }
     terminal.emitControl("Hello, human!")
     new ShlurdCliMind(cosmos, preferredSynonyms)
   }

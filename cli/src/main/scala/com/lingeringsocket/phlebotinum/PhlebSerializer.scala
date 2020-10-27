@@ -18,6 +18,8 @@ import com.lingeringsocket.shlurd.cli._
 
 import com.esotericsoftware.kryo.io._
 
+import scala.util._
+
 import java.io._
 import java.util.zip._
 
@@ -29,15 +31,14 @@ class PhlebSerializer extends ShlurdCliSerializer
     snapshot : PhlebSnapshot, file : File) : Unit =
   {
     file.getParentFile.mkdirs
-    val zos = new ZipOutputStream(new FileOutputStream(file))
-      saveEntry(zos, KRYO_ENTRY)(outputStream => {
-        val output = new Output(outputStream)
-        kryo.writeObject(output, snapshot)
-        output.flush
-      })
-    try {
-    } finally {
-      zos.close
+    Using.resource(new ZipOutputStream(new FileOutputStream(file))) {
+      zos => {
+        saveEntry(zos, KRYO_ENTRY)(outputStream => {
+          val output = new Output(outputStream)
+          kryo.writeObject(output, snapshot)
+          output.flush
+        })
+      }
     }
   }
 
@@ -46,14 +47,13 @@ class PhlebSerializer extends ShlurdCliSerializer
     // this MUST be preloaded
     ShlurdPrincetonPrimordial.frozenCosmos
 
-    val zis = new ZipInputStream(new FileInputStream(file))
-    try {
-      val nextEntry = zis.getNextEntry
-      assert(nextEntry.getName == KRYO_ENTRY)
-      val input = new Input(zis)
-      kryo.readObject(input, classOf[PhlebSnapshot])
-    } finally {
-      zis.close
+    Using.resource(new ZipInputStream(new FileInputStream(file))) {
+      zis => {
+        val nextEntry = zis.getNextEntry
+        assert(nextEntry.getName == KRYO_ENTRY)
+        val input = new Input(zis)
+        kryo.readObject(input, classOf[PhlebSnapshot])
+      }
     }
   }
 }

@@ -21,13 +21,17 @@ import net.sf.extjwnl.dictionary._
 import net.sf.extjwnl.data._
 
 import scala.jdk.CollectionConverters._
+import scala.util._
 
 class SnlExternalWordnet(
   propertiesPath : String
 ) extends SprWordnet
 {
-  private val dictionary = Dictionary.getInstance(
-    ResourceUtils.getResourceStream(propertiesPath))
+  private val dictionary = Using.resource(
+    ResourceUtils.getResourceStream(propertiesPath)
+  ) {
+    stream => Dictionary.getInstance(stream)
+  }
 
   private val morphology = dictionary.getMorphologicalProcessor
 

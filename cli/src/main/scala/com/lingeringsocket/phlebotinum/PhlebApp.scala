@@ -53,10 +53,12 @@ object PhlebApp extends App
 
   private def verifyResource(resourceName : String) : Boolean =
   {
-    if (ResourceUtils.getResourceStream(s"/${resourceName}") == null) {
+    val streamOpt = Option(ResourceUtils.getResourceStream(s"/${resourceName}"))
+    if (streamOpt.isEmpty) {
       println(s"Invalid story location (missing ${resourceName})")
       false
     } else {
+      streamOpt.foreach(stream => stream.close)
       true
     }
   }

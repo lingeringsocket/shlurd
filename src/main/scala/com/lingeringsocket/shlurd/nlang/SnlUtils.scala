@@ -67,14 +67,15 @@ object SnlUtils
 
   def readLexicon(resource : String) : Set[String] =
   {
-    val words = ResourceUtils.getResourceSource(resource).getLines()
-    Set(words.toSeq:_*)
+    Using.resource(ResourceUtils.getResourceSource(resource)) {
+      source => Set(source.getLines().toSeq:_*)
+    }
   }
 
   def readFreqMap(resource : String) : Map[String, Int] =
   {
-    Using.resource(ResourceUtils.getGzipResourceSource(resource)) { source =>
-      source.getLines().toSeq.map(entry => {
+    Using.resource(ResourceUtils.getGzipResourceSource(resource)) {
+      source => source.getLines().toSeq.map(entry => {
         val cols = entry.split(' ')
         tupleN(cols(0), cols(1).toInt)
       }).toMap
@@ -83,8 +84,8 @@ object SnlUtils
 
   def readGenderMap(resource : String) : Map[String, String] =
   {
-    Using.resource(ResourceUtils.getGzipResourceSource(resource)) { source =>
-      source.getLines().toSeq.map(entry => {
+    Using.resource(ResourceUtils.getGzipResourceSource(resource)) {
+      source => source.getLines().toSeq.map(entry => {
         val i = entry.lastIndexOf(' ')
         val (word, noisy) = entry.splitAt(i)
         val gender = noisy.stripPrefix(" {").stripSuffix("}")

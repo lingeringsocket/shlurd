@@ -56,8 +56,9 @@ class SpcMind(cosmos : SpcCosmos)
       if (stream == null) {
         throw new IllegalArgumentException(resourceName)
       }
-      val source = Source.fromInputStream(stream)
-      loadBeliefs(source, responder)
+      Using.resource(Source.fromInputStream(stream)) {
+        source => loadBeliefs(source, responder)
+      }
     }
   }
 
