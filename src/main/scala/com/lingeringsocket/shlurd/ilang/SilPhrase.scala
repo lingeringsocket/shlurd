@@ -658,6 +658,13 @@ case class SilPronounReference private(
       getOrElse(SilPronounMap())
   }
 
+  def clearPronounMap() : Unit =
+  {
+    maybeAnnotator.foreach(annotator => {
+      annotator.getBasicNote(this).setPronounMap(SilPronounMap())
+    })
+  }
+
   def isDemonstrative : Boolean =
   {
     proximity match {

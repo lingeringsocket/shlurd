@@ -611,6 +611,14 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     )
   }
 
+  override def getTranslationTargetRules(
+  ) =
+  {
+    Seq(
+      correctInflection
+    )
+  }
+
   override def getStopList = stopList
 
   override def getAdjectivePosition = MOD_AFTER_DEFAULT
@@ -1743,6 +1751,17 @@ class SnlSpanishTongue(wordnet : SprWordnet)
             ref,
             DETERMINER_DEFINITE)
         )
+      }
+    }
+  )
+
+  private def correctInflection = SilPhraseReplacementMatcher(
+    "correctInflection", {
+      case pred : SilPredicate => {
+        val subject = pred.getSubject
+        val count = SilUtils.getCount(subject)
+        pred.setInflectedCount(count)
+        pred
       }
     }
   )

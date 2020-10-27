@@ -23,12 +23,32 @@ sealed trait SnlTranslationDirection
 case object TRANSLATE_FIRST_TO_SECOND extends SnlTranslationDirection
 case object TRANSLATE_SECOND_TO_FIRST extends SnlTranslationDirection
 
+object SnlTranslator
+{
+  def neutralizePronouns(
+    sentence : SilSentence
+  ) : SilSentence =
+  {
+    val querier = new SilPhraseQuerier
+    def neutralize = querier.queryMatcher {
+      case pr : SilPronounReference => {
+        pr.clearWord()
+        pr.clearPronounMap()
+      }
+    }
+    querier.query(neutralize, sentence)
+    sentence
+  }
+}
+
 class SnlTranslator(
   annotator : SilAnnotator,
   alignment : SnlWordnetAlignment,
   direction : SnlTranslationDirection
 )
 {
+  import SnlTranslator._
+
   val (sourceTongue, targetTongue) = direction match {
     case TRANSLATE_FIRST_TO_SECOND => tupleN(
       alignment.getFirstTongue,
@@ -51,6 +71,15 @@ class SnlTranslator(
     val rewriter = new SilPhraseRewriter(annotator)
     def translateWords = rewriter.replacementMatcher(
       "translateWords", {
+        case pr : SilPronounReference => {
+          annotator.pronounRef(
+            pr.person,
+            pr.gender,
+            pr.count,
+            targetTongue,
+            pr.proximity,
+            pr.politeness)
+        }
         case phrase : SilPhrase if (
           phrase.maybeWord.map(_.senseId).getOrElse("").nonEmpty
         ) => {
@@ -70,6 +99,16 @@ class SnlTranslator(
         }
       }
     )
-    rewriter.rewrite(translateWords, input)
+    val generic = neutralizePronouns(
+      rewriter.rewrite(translateWords, input))
+    val languageRules = targetTongue.getTranslationTargetRules()
+    if (languageRules.isEmpty) {
+      generic
+    } else {
+      rewriter.rewrite(
+        rewriter.combineRules(languageRules.toSeq:_*),
+        generic,
+        SilRewriteOptions(repeat = true))
+    }
   }
 }

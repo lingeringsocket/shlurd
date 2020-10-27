@@ -28,19 +28,7 @@ class SnlKoreanTranslatorSpec extends Specification
   private def translate(s : String) =
   {
     val result = SprParser(s, SnlUtils.defaultContext).parseOne
-    printer.print(neutralizePronouns(result.sentence))
-  }
-
-  private def neutralizePronouns(
-    sentence : SilSentence
-  ) : SilSentence =
-  {
-    val querier = new SilPhraseQuerier
-    def neutralize = querier.queryMatcher {
-      case pr : SilPronounReference => pr.clearWord()
-    }
-    querier.query(neutralize, sentence)
-    sentence
+    printer.print(SnlTranslator.neutralizePronouns(result.sentence))
   }
 
   "SilSentencePrinter with LimitedKoreanTongue" should

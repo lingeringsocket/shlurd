@@ -60,5 +60,13 @@ class SnlTranslatorSpec extends Specification
         "el hombre mata un perro."
       )
     }
+
+    "translate pronouns" in
+    {
+      checkTranslation(
+        "I kill a dog.",
+        "yo mato un perro."
+      )
+    }
   }
 }
