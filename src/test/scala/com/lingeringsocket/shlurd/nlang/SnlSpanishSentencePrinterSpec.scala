@@ -94,6 +94,7 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("eres un perro")
       expectStatement("estoy triste")
       expectStatement("caminan")
+      expectStatement("beben limonada")
     }
 
     "verify conjugations" in

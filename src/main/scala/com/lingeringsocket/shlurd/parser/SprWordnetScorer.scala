@@ -344,7 +344,12 @@ class SprWordnetScorer(
     case SilActionPredicate(_, word, _, _) if (
       word.decomposed.size > 1
     ) => {
-      SilPhraseScore.proBig
+      val decomposed = word.decomposed
+      if (decomposed.last.lemma == PD_IN.toLemma) {
+        SilPhraseScore.conSmall
+      } else {
+        SilPhraseScore.proBig
+      }
     }
   }
 

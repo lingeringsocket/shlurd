@@ -56,7 +56,7 @@ class SilSentencePrinter(
             printPredicateQuestion(predicate, tam)
           }
           case MOOD_IMPERATIVE => {
-            printPredicateCommand(predicate, tam)
+            printPredicateCommand(predicate, tam, sentence.formality)
           }
         }
       }
@@ -356,7 +356,7 @@ class SilSentencePrinter(
   }
 
   def printPredicateCommand(
-    predicate : SilPredicate, tam : SilTam) =
+    predicate : SilPredicate, tam : SilTam, formality : SilFormality) =
   {
     predicate match {
       case SilStatePredicate(subject, verb, state, modifiers) => {
@@ -379,7 +379,7 @@ class SilSentencePrinter(
         subject, verb, complement, modifiers
       ) => {
         val uninflectedVerb = verb.toUninflected
-        val (person, gender, count) = getCommandeeAttributes(subject)
+        val (person, gender, count) = getCommandeeAttributes(subject, formality)
         sb.actionPredicate(
           "",
           sb.delemmatizeVerb(
@@ -393,7 +393,7 @@ class SilSentencePrinter(
       case SilActionPredicate(
         subject, verb, directObject, modifiers
       ) => {
-        val (person, gender, count) = getCommandeeAttributes(subject)
+        val (person, gender, count) = getCommandeeAttributes(subject, formality)
         sb.actionPredicate(
           "",
           sb.delemmatizeVerb(
@@ -412,11 +412,13 @@ class SilSentencePrinter(
     }
   }
 
-  private def getCommandeeAttributes(subject : SilReference) =
+  private def getCommandeeAttributes(
+    subject : SilReference,
+    formality : SilFormality) =
   {
     subject match {
       case pr : SilPronounReference => {
-        tupleN(tongue.getEffectivePerson(pr), pr.gender, pr.count)
+        tupleN(tongue.getEffectivePerson(pr, formality), pr.gender, pr.count)
       }
       case _ => {
         tupleN(PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR)

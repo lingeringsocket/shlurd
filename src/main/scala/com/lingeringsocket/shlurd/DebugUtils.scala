@@ -12,11 +12,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.lingeringsocket.shlurd.mind
+package com.lingeringsocket.shlurd
 
 import org.slf4j._
 
-class SmcDebugger(val logger : Logger)
+class SutDebugger(val logger : Logger)
 {
   private var contextInitializer : Option[() => String] = None
 
@@ -94,7 +94,7 @@ class SmcDebugger(val logger : Logger)
   }
 }
 
-abstract class SmcDebuggable(protected val debugger : SmcDebugger)
+abstract class SutDebuggable(protected val debugger : SutDebugger)
 {
   protected val debuggerOpt = {
     if (debugger.logger.isDebugEnabled) {

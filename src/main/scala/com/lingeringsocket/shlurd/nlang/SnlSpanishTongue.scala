@@ -615,7 +615,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   ) =
   {
     Seq(
-      correctInflection
+      correctInflection,
+      correctGender
     )
   }
 
@@ -1461,6 +1462,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case LEMMA_TUS => LEMMA_TU
       case LEMMA_USTEDES => LEMMA_USTED
       case LEMMA_UNO | LEMMA_UNA | LEMMA_UNOS | LEMMA_UNAS => LEMMA_UN
+      case LEMMA_A => LEMMA_A
       case _ => {
         if (lemma.endsWith("a")) {
           lemma.stripSuffix("a") + "o"
@@ -1595,9 +1597,12 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   override protected def getMatcherResource =
     "/spanish/phrase-structure.txt"
 
-  override def getEffectivePerson(pr : SilPronounReference) : SilPerson =
+  override def getEffectivePerson(
+    pr : SilPronounReference,
+    formality : SilFormality) : SilPerson =
   {
-    if (pr.politeness == POLITENESS_RESPECTFUL) {
+    val politeness = combinePoliteness(pr.politeness, formality.politeness)
+    if (politeness == POLITENESS_RESPECTFUL) {
       PERSON_THIRD
     } else {
       pr.person
@@ -1649,20 +1654,19 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     case pred : SilPredicate => {
       val subject = pred.getSubject
       val verbPerson = pred.getInflectedPerson
-      val person = subject match {
+      val verbCount = pred.getInflectedCount
+      val (person, count) = subject match {
         case pr : SilPronounReference => {
           if (pr.isElided) {
-            verbPerson
+            tupleN(verbPerson, verbCount)
           } else {
-            getEffectivePerson(pr)
+            tupleN(getEffectivePerson(pr), pr.count)
           }
         }
-        case _ => PERSON_THIRD
+        case _ => tupleN(PERSON_THIRD, SilUtils.getCount(subject))
       }
       // maybe we'll need to check gender one day too, for like,
       // Russian?
-      val count = SilUtils.getCount(subject)
-      val verbCount = pred.getInflectedCount
       var conCount = 0
       if (person != verbPerson) {
         conCount += 1
@@ -1762,6 +1766,23 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         val count = SilUtils.getCount(subject)
         pred.setInflectedCount(count)
         pred
+      }
+    }
+  )
+
+  private def correctGender = SilPhraseReplacementMatcher(
+    "correctGender", {
+      case pr : SilPronounReference => {
+        tupleN(pr.person, pr.gender, pr.count) match {
+          case (
+            PERSON_FIRST | PERSON_SECOND, GENDER_SOMEONE, COUNT_PLURAL
+          ) => {
+            // FIXME: if entity reference information is available, try using
+            // that to infer gender
+            pr.copy(gender = GENDER_MASCULINE)
+          }
+          case _ => pr
+        }
       }
     }
   )

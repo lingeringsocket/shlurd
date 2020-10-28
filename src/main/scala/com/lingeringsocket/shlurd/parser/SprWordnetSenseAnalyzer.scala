@@ -41,9 +41,22 @@ class SprWordnetSenseAnalyzer(
             directObject,
             modifiers)
         }
+        case pred : SilPredicate => {
+          val verb = pred.getVerb
+          val senseId = filterSenses(verb, POS.VERB, sense => true)
+          pred.withNewWord(verb.withSense(senseId))
+        }
         case SilCountedNounReference(noun, count) => {
           val senseId = filterSenses(noun, POS.NOUN, sense => true)
           annotator.nounRef(noun.withSense(senseId), count)
+        }
+        case ps @ SilPropertyState(word) => {
+          val senseId = filterSenses(word, POS.ADJECTIVE, sense => true)
+          ps.withNewWord(word.withSense(senseId))
+        }
+        case vm @ SilBasicVerbModifier(word) => {
+          val senseId = filterSenses(word, POS.ADVERB, sense => true)
+          vm.withNewWord(word.withSense(senseId))
         }
       }
     )

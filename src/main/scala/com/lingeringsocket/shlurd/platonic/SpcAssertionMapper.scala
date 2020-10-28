@@ -57,7 +57,7 @@ class SpcAssertionMapper(
   communicationContext : SmcCommunicationContext[SpcEntity],
   inputRewriter : SmcInputRewriter[SpcEntity, SpcProperty, SpcCosmos],
   sentencePrinter : SilSentencePrinter)
-    extends SmcDebuggable(new SmcDebugger(SpcAssertionMapper.logger))
+    extends SutDebuggable(new SutDebugger(SpcAssertionMapper.logger))
 {
   import SpcImplicationMapper._
 

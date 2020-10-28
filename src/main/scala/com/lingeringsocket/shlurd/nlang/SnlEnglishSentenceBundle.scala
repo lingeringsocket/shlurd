@@ -262,7 +262,8 @@ class SnlEnglishSentenceBundle(
     val unseparated = {
       if (state.inflected.isEmpty) {
         val lemma = state.lemmaUnfolded
-        if (lemma.endsWith("ed")) {
+        val definitelyAdjective = word.senseId.startsWith("a")
+        if (definitelyAdjective || lemma.endsWith("ed")) {
           lemma
         } else if (lemma.endsWith("e")) {
           concat(lemma, "d")

@@ -16,8 +16,13 @@ package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 import scala.jdk.CollectionConverters._
+
+import org.slf4j._
+
+import SprPennTreebankLabels._
 
 sealed trait SnlTranslationDirection
 case object TRANSLATE_FIRST_TO_SECOND extends SnlTranslationDirection
@@ -25,6 +30,8 @@ case object TRANSLATE_SECOND_TO_FIRST extends SnlTranslationDirection
 
 object SnlTranslator
 {
+  private val logger = LoggerFactory.getLogger(classOf[SnlTranslator])
+
   def neutralizePronouns(
     sentence : SilSentence
   ) : SilSentence =
@@ -67,7 +74,9 @@ class SnlTranslator(
   def translate(
     input : SilSentence) : SilSentence =
   {
-    // FIXME special handling for pronouns, adpositions, conjunctions, etc
+    val debugger = new SutDebugger(logger)
+    debugger.debug(s"TRANSLATION INPUT = " + input)
+    // FIXME special handling for conjunctions, etc
     val rewriter = new SilPhraseRewriter(annotator)
     def translateWords = rewriter.replacementMatcher(
       "translateWords", {
@@ -79,6 +88,20 @@ class SnlTranslator(
             targetTongue,
             pr.proximity,
             pr.politeness)
+        }
+        case rp : SilRelationshipPredicate => {
+          sourceTongue.relLemmaMap.get(rp.getVerb.toLemma) match {
+            case Some(predef) => {
+              rp.withNewWord(SilWord.uninflected(
+                targetTongue.getRelPredefLemma(predef)))
+            }
+            case _ => rp
+          }
+        }
+        case sp : SilStatePredicate => {
+          val predef = sourceTongue.getStatePredefFromLemma(sp.getVerb.toLemma)
+          sp.withNewWord(SilWord.uninflected(
+            targetTongue.getStatePredefLemma(predef)))
         }
         case phrase : SilPhrase if (
           phrase.maybeWord.map(_.senseId).getOrElse("").nonEmpty
@@ -97,18 +120,34 @@ class SnlTranslator(
           val translatedWord = SilWord("", lemma, translatedSenseId)
           phrase.withNewWord(translatedWord)
         }
+        case ap : SilAdpositionalPhrase => {
+          // FIXME all the adpositions, and context-sensitive
+          sourceTongue.predefForLemma(
+            ap.adposition.word.toLemma, LABEL_IN
+          ) match {
+            case Some(pd) => {
+              val newLemma = targetTongue.predefLemma(pd)
+              ap.withNewWord(SilWord.uninflected(newLemma))
+            }
+            case _ => ap
+          }
+        }
       }
     )
     val generic = neutralizePronouns(
       rewriter.rewrite(translateWords, input))
     val languageRules = targetTongue.getTranslationTargetRules()
-    if (languageRules.isEmpty) {
-      generic
-    } else {
-      rewriter.rewrite(
-        rewriter.combineRules(languageRules.toSeq:_*),
-        generic,
-        SilRewriteOptions(repeat = true))
+    val output = {
+      if (languageRules.isEmpty) {
+        generic
+      } else {
+        rewriter.rewrite(
+          rewriter.combineRules(languageRules.toSeq:_*),
+          generic,
+          SilRewriteOptions(repeat = true))
+      }
     }
+    debugger.debug(s"TRANSLATION OUTPUT = " + output)
+    output
   }
 }

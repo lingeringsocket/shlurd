@@ -321,6 +321,7 @@ class SnlEnglishSentencePrinterSpec
       expectStatement("you kicked yourselves")
       expectStatement("they kicked themself")
       expectStatement("they kicked themselves")
+      expectStatement("we sleep in a bed")
     }
   }
 

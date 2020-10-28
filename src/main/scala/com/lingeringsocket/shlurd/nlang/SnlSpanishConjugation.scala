@@ -95,23 +95,37 @@ object SnlSpanishConjugation
       MOOD_IMPERATIVE, ASPECT_SIMPLE)
   )
 
+  private def isValidInfinitive(infinitive : String) : Boolean =
+  {
+    infinitive.endsWith("ar") || infinitive.endsWith("er") ||
+      infinitive.endsWith("ir")
+  }
+
   def conjugateGerund(
     infinitive : String) : String =
   {
-    Progressive.gerund(infinitive)
+    if (isValidInfinitive(infinitive)) {
+      Progressive.gerund(infinitive)
+    } else {
+      infinitive
+    }
   }
 
   def conjugateParticiple(
     infinitive : String) : String =
   {
-    SpanishVerbConjugator.presentPerfect.pastParticiple(infinitive)
+    if (isValidInfinitive(infinitive)) {
+      SpanishVerbConjugator.presentPerfect.pastParticiple(infinitive)
+    } else {
+      infinitive
+    }
   }
 
   def conjugateVerb(
     infinitive : String,
     coord : SnlSpanishConjugationCoord) : String =
   {
-    if (coord.tense == TENSE_INFINITIVE) {
+    if ((coord.tense == TENSE_INFINITIVE) || !isValidInfinitive(infinitive)) {
       return infinitive
     }
     // FIXME all the tams

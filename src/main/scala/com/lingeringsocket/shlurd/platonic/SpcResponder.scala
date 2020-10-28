@@ -822,7 +822,7 @@ class SpcResponder(
           } else {
             if (generally) {
               val action = sentencePrinter.printPredicateCommand(
-                requirement, SilTam.imperative)
+                requirement, SilTam.imperative, assertion.sentence.formality)
               SpcAssertionResult(
                 Some(requirement),
                 sentencePrinter.sb.respondUnable(action),

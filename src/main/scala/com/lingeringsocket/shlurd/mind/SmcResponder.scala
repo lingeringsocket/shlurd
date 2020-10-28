@@ -166,7 +166,7 @@ class SmcResponder[
   generalParams : SmcResponseParams = SmcResponseParams(),
   executor : SmcExecutor[EntityType] = new SmcExecutor[EntityType],
   communicationContext : SmcCommunicationContext[EntityType]
-) extends SmcDebuggable(new SmcDebugger(SmcResponder.logger))
+) extends SutDebuggable(new SutDebugger(SmcResponder.logger))
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
   type ScopeType = SmcScope[EntityType, PropertyType, CosmosType, MindType]

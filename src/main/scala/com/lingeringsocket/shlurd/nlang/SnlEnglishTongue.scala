@@ -308,6 +308,14 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     phraseScorers
   }
 
+  override def getTranslationTargetRules(
+  ) =
+  {
+    Seq(
+      expandElided
+    )
+  }
+
   override def getRelPredefLemma(predef : SprRelationshipPredef) : String =
   {
     predef match {
@@ -699,8 +707,10 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     }
     if ((label == LABEL_VBD) && (lemma != LEMMA_BE) && (lemma != LEMMA_DO)) {
       Set(label, LABEL_VBN)
-    } else {
+    } else if (token != "bed") {
       Set(label)
+    } else {
+      Set.empty
     }
   }
 
@@ -1063,4 +1073,12 @@ class SnlEnglishTongue(wordnet : SprWordnet)
       }
     }
   }
+
+  private def expandElided = SilPhraseReplacementMatcher(
+    "expandElided", {
+      case pr : SilPronounReference if pr.isElided => {
+        pr.copy(proximity = PROXIMITY_ENTITY)
+      }
+    }
+  )
 }

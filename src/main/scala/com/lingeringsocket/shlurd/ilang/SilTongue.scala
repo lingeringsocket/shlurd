@@ -62,7 +62,9 @@ trait SilTongue extends SilGenderAnalyzer
 
   def getNoneCount : SilCount = COUNT_PLURAL
 
-  def getEffectivePerson(pr : SilPronounReference) : SilPerson =
+  def getEffectivePerson(
+    pr : SilPronounReference,
+    formality : SilFormality = SilFormality.DEFAULT) : SilPerson =
   {
     pr.person
   }

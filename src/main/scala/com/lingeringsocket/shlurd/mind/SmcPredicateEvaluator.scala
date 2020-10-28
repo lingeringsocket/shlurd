@@ -34,8 +34,8 @@ class SmcPredicateEvaluator[
   scope : SmcScope[EntityType, PropertyType, CosmosType, MindType],
   existenceAssumption : SmcExistenceAssumption,
   communicationContext : SmcCommunicationContext[EntityType],
-  debugger : SmcDebugger)
-    extends SmcDebuggable(debugger)
+  debugger : SutDebugger)
+    extends SutDebuggable(debugger)
 {
   type ResultCollectorType = SmcResultCollector[EntityType]
   type EntityPredicateEvaluator = (EntityType, SilReference) => Try[Trilean]

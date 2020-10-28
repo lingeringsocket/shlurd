@@ -238,7 +238,7 @@ object SpcBeliefRecognizer
 class SpcBeliefRecognizer(
   responder : SpcResponder,
   resultCollector : SpcResultCollector)
-    extends SmcDebuggable(new SmcDebugger(SpcBeliefRecognizer.logger))
+    extends SutDebuggable(new SutDebugger(SpcBeliefRecognizer.logger))
 {
   import SpcBeliefRecognizer._
 

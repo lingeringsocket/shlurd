@@ -30,6 +30,7 @@ import scala.collection._
 import scala.meta._
 import scala.meta.internal.io._
 import scala.io.Source
+import scala.util._
 
 import java.net._
 import java.nio.file._
