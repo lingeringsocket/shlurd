@@ -16,6 +16,8 @@ package com.lingeringsocket.shlurd.ilang
 
 import com.lingeringsocket.shlurd._
 
+import scala.collection._
+
 import org.bitbucket.inkytonik.kiama.rewriting._
 import org.bitbucket.inkytonik.kiama.util._
 
@@ -218,6 +220,22 @@ class SilPhraseRewriter(
         newPhrase
       }
       case _ => throw new IllegalArgumentException(phrase.toString)
+    }
+  }
+
+  def rewriteCombined[PhraseType <: SilPhrase](
+    rules : Seq[SilPhraseReplacement],
+    phrase : PhraseType,
+    options : SilRewriteOptions = SilRewriteOptions())
+      : PhraseType =
+  {
+    if (rules.isEmpty) {
+      phrase
+    } else {
+      rewrite(
+        combineRules(rules.toSeq:_*),
+        phrase,
+        options)
     }
   }
 

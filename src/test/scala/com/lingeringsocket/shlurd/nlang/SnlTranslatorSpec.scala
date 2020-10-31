@@ -164,19 +164,25 @@ class SnlTranslatorSpec extends Specification
 
     "translate dative pronoun to Spanish" in
     {
-      skipped("need to expand dative")
       checkEnglishToSpanish(
         "I give her a kiss.",
-        "yo le doy a ella un beso."
+        "yo le doy un beso a ella."
       )
     }
 
     "translate dative pronoun to English" in
     {
-      skipped("need to rearrange the pronouns")
       checkSpanishToEnglish(
         "I give her a kiss.",
         "yo le doy a ella un beso."
+      )
+      checkSpanishToEnglish(
+        "I give him a kiss.",
+        "yo le doy a él un beso."
+      )
+      checkSpanishToEnglish(
+        "I give him a kiss.",
+        "yo le doy un beso."
       )
     }
 
@@ -191,9 +197,10 @@ class SnlTranslatorSpec extends Specification
 
     "translate indirect object pronoun to English" in
     {
-      skipped("need to rearrange the pronouns")
+      // FIXME without a prior gendered referent, the translation should
+      // use "I give her it"
       checkSpanishToEnglish(
-        "I give it to her.",
+        "I give her him.",
         "yo se lo doy a ella."
       )
     }

@@ -812,7 +812,8 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     person match {
       case PERSON_FIRST => count match {
         case COUNT_PLURAL => inflection match {
-          case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_US
+          case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED |
+              INFLECT_DATIVE => LEMMA_US
           case INFLECT_GENITIVE => LEMMA_OUR
           case _ => proximity match {
             case PROXIMITY_REFLEXIVE => LEMMA_OURSELVES
@@ -826,7 +827,8 @@ class SnlEnglishTongue(wordnet : SprWordnet)
           case PROXIMITY_POSSESSEE => LEMMA_MINE
           case PROXIMITY_ELIDED => ""
           case _ => inflection match {
-            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_ME
+            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED |
+                INFLECT_DATIVE => LEMMA_ME
             case INFLECT_GENITIVE => LEMMA_MY
             case _ => "I"
           }
@@ -851,7 +853,8 @@ class SnlEnglishTongue(wordnet : SprWordnet)
           case _ : SilHereProximity => LEMMA_THESE
           case _ : SilThereProximity => LEMMA_THOSE
           case PROXIMITY_ENTITY => inflection match {
-            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_THEM
+            case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED |
+                INFLECT_DATIVE => LEMMA_THEM
             case INFLECT_GENITIVE => LEMMA_THEIR
             case _ => LEMMA_THEY
           }
@@ -865,7 +868,8 @@ class SnlEnglishTongue(wordnet : SprWordnet)
             case PROXIMITY_ELIDED => ""
             case PROXIMITY_POSSESSEE => LEMMA_HIS
             case _ => inflection match {
-              case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => LEMMA_HIM
+              case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED |
+                  INFLECT_DATIVE => LEMMA_HIM
               case INFLECT_GENITIVE => LEMMA_HIS
               case _ => LEMMA_HE
             }
@@ -875,7 +879,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
             case PROXIMITY_ELIDED => ""
             case PROXIMITY_POSSESSEE => LEMMA_HERS
             case _ => inflection match {
-              case INFLECT_ACCUSATIVE | INFLECT_GENITIVE |
+              case INFLECT_ACCUSATIVE | INFLECT_GENITIVE | INFLECT_DATIVE |
                   INFLECT_ADPOSITIONED => LEMMA_HER
               case _ => LEMMA_SHE
             }

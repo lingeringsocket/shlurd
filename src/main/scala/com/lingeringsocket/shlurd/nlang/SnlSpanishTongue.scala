@@ -611,10 +611,19 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     )
   }
 
+  override def getTranslationSourceRules(
+  ) =
+  {
+    Seq(
+      combineDative
+    )
+  }
+
   override def getTranslationTargetRules(
   ) =
   {
     Seq(
+      expandGenderedDative,
       correctInflection,
       correctGender
     )
@@ -1759,12 +1768,15 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   )
 
+  private def correctPredicateInflection(pred : SilPredicate) : Unit =
+  {
+    pred.setInflectedCount(SilUtils.getCount(pred.getSubject))
+  }
+
   private def correctInflection = SilPhraseReplacementMatcher(
     "correctInflection", {
       case pred : SilPredicate => {
-        val subject = pred.getSubject
-        val count = SilUtils.getCount(subject)
-        pred.setInflectedCount(count)
+        correctPredicateInflection(pred)
         pred
       }
     }
@@ -1829,12 +1841,89 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     })
   }
 
+  private def expandGenderedDativeModifiers(
+    modifiers : Seq[SilVerbModifier]) : Seq[SilVerbModifier] =
+  {
+    modifiers.flatMap(_ match {
+      case SilAdpositionalVerbModifier(
+        SprPredefAdposition(PD_DATIVE_TO),
+        pr : SilPronounReference
+      ) if (pr.gender != GENDER_SOMEONE) => {
+        val newAdpositioned = SilAdpositionalVerbModifier(
+          SprPredefAdposition(PD_TO),
+          pr)
+        val newDative = SilAdpositionalVerbModifier(
+          SprPredefAdposition(PD_DATIVE_TO),
+          pr.copy(gender = GENDER_SOMEONE))
+        Seq(
+          newDative,
+          newAdpositioned
+        )
+      }
+      case m => Seq(m)
+    })
+  }
+
+  private def combineDativeModifiers(
+    modifiers : Seq[SilVerbModifier]) : Seq[SilVerbModifier] =
+  {
+    val zippedModifiers = modifiers.zipWithIndex
+    val dativeOpt = zippedModifiers.flatMap(p => p._1 match {
+      case SilAdpositionalVerbModifier(
+        SprPredefAdposition(PD_DATIVE_TO),
+        pr : SilPronounReference
+      ) => Some(tupleN(pr, p._2))
+      case _ => None
+    }).headOption
+    // FIXME in case of more than one, should be more discriminative
+    val indirectObjOpt = zippedModifiers.flatMap(p => p._1 match {
+      case SilAdpositionalVerbModifier(
+        SprPredefAdposition(PD_TO),
+        ref
+      ) => Some(tupleN(ref, p._2))
+      case _ => None
+    }).headOption
+    tupleN(dativeOpt, indirectObjOpt) match {
+      case (Some((_, dativePos)), Some((indirectObj, indirectObjPos))) => {
+        val i1 = Math.min(dativePos, indirectObjPos)
+        val i2 = Math.max(dativePos, indirectObjPos)
+        val deleted = modifiers.toBuffer
+        deleted.remove(i2)
+        deleted.remove(i1)
+        val newDative = SilAdpositionalVerbModifier(
+          SprPredefAdposition(PD_DATIVE_TO),
+          indirectObj)
+        deleted :+ newDative
+      }
+      case _ => modifiers
+    }
+  }
+
   private def expandDative(
     refToPronoun : (SilReference, Boolean) => SilReference
   ) = SilPhraseReplacementMatcher(
     "expandDative", {
       case ap : SilActionPredicate => {
         ap.withNewModifiers(expandDativeModifiers(refToPronoun, ap.modifiers))
+      }
+    }
+  )
+
+  private def combineDative = SilPhraseReplacementMatcher(
+    "combineDative", {
+      case ap : SilActionPredicate => {
+        ap.withNewModifiers(combineDativeModifiers(ap.modifiers))
+      }
+    }
+  )
+
+  private def expandGenderedDative = SilPhraseReplacementMatcher(
+    "expandGenderedDative", {
+      case ap : SilActionPredicate => {
+        // this is required due to weird rule overlap with
+        // correctInflection
+        correctPredicateInflection(ap)
+        ap.withNewModifiers(expandGenderedDativeModifiers(ap.modifiers))
       }
     }
   )

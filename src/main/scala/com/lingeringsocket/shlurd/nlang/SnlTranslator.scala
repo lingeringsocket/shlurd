@@ -76,8 +76,11 @@ class SnlTranslator(
   {
     val debugger = new SutDebugger(logger)
     debugger.debug(s"TRANSLATION INPUT = " + input)
-    // FIXME special handling for conjunctions, etc
     val rewriter = new SilPhraseRewriter(annotator)
+    val normalized = rewriter.rewriteCombined(
+      sourceTongue.getTranslationSourceRules(),
+      input,
+      SilRewriteOptions(repeat = true))
     def translateWords = rewriter.replacementMatcher(
       "translateWords", {
         case pr : SilPronounReference => {
@@ -135,18 +138,11 @@ class SnlTranslator(
       }
     )
     val generic = neutralizePronouns(
-      rewriter.rewrite(translateWords, input))
-    val languageRules = targetTongue.getTranslationTargetRules()
-    val output = {
-      if (languageRules.isEmpty) {
-        generic
-      } else {
-        rewriter.rewrite(
-          rewriter.combineRules(languageRules.toSeq:_*),
-          generic,
-          SilRewriteOptions(repeat = true))
-      }
-    }
+      rewriter.rewrite(translateWords, normalized))
+    val output = rewriter.rewriteCombined(
+      targetTongue.getTranslationTargetRules(),
+      generic,
+      SilRewriteOptions(repeat = true))
     debugger.debug(s"TRANSLATION OUTPUT = " + output)
     output
   }

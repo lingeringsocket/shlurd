@@ -80,6 +80,7 @@ class SnlEnglishSentencePrinterSpec
       expectQuestion("who is there")
       expectQuestion("are all lights on the first floor on")
       expectStatement("Salieri sends Mozart a letter angrily")
+      expectStatement("Salieri sends him a letter angrily")
       expectQuestion("does Antonio Salieri send Mozart a letter angrily")
     }
 

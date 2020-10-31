@@ -45,14 +45,10 @@ class SprNormalizationRewriter(context : SprContext)
     // then apply language-specific rules
     val languageRules = tongue.getNormalizationRules(
       annotator, context.genderAnalyzer)
-    if (languageRules.isEmpty) {
-      intermediate
-    } else {
-      rewrite(
-        combineRules(languageRules.toSeq:_*),
-        intermediate,
-        SilRewriteOptions(repeat = true))
-    }
+    rewriteCombined(
+      languageRules,
+      intermediate,
+      SilRewriteOptions(repeat = true))
   }
 
   private def normalizeAllPhrases = combineRules(
