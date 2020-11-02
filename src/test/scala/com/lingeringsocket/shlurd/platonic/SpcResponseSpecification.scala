@@ -49,7 +49,7 @@ class SpcResponseSpecification extends SpcProcessingSpecification
     {
       val parseResult = responder.newParser(input).parseOne
       s"pass:  $input" ==> (
-        responder.process(parseResult, input) === expected)
+        responder.process(parseResult, input).text === expected)
     }
 
     protected def processExceptionExpected(
@@ -67,7 +67,7 @@ class SpcResponseSpecification extends SpcProcessingSpecification
     {
       val parseResult = responderTerse.newParser(input).parseOne
       s"pass:  $input" ==> (
-        responderTerse.process(parseResult, input) === expected)
+        responderTerse.process(parseResult, input).text === expected)
     }
 
     protected def processBelief(input : String) =
@@ -80,7 +80,7 @@ class SpcResponseSpecification extends SpcProcessingSpecification
       input : String) : String =
     {
       val parseResult = specificResponder.newParser(input).parseOne
-      specificResponder.process(parseResult, input)
+      specificResponder.process(parseResult, input).text
     }
 
     protected def processMatrix(

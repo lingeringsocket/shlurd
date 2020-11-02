@@ -88,7 +88,7 @@ class SpcMind(cosmos : SpcCosmos)
         }
         case _ => {
           val output = responder.process(
-            SprParseResult(analyzed, annotator))
+            SprParseResult(analyzed, annotator)).text
           assert(output == ok, tupleN(parseResult.sentence, output))
         }
       }

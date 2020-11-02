@@ -41,7 +41,7 @@ class ShlurdPrincetonPrimordialSpec extends Specification
     {
       val parseResult = responder.newParser(input).parseOne
       s"pass:  $input" ==> (
-        responder.process(parseResult, input) === expected)
+        responder.process(parseResult, input).text === expected)
     }
   }
 

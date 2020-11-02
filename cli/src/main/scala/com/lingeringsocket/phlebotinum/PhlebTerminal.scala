@@ -92,6 +92,8 @@ trait PhlebTerminal
   {
     "init-save.zip"
   }
+
+  def getTranslatorOpt : Option[PhlebTranslator] = None
 }
 
 class PhlebConsole extends PhlebTerminal

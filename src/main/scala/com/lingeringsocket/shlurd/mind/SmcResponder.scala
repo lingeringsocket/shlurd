@@ -56,6 +56,13 @@ case class SmcResponseParams(
   def alwaysSummarize = (listLimit == 0)
 }
 
+case class SmcResponse(
+  tongue : SprTongue,
+  text : String,
+  annotator : SilAnnotator,
+  sentence : SilSentence
+)
+
 class SmcExecutor[EntityType<:SmcEntity]
 {
   def executeAction(
@@ -231,7 +238,7 @@ class SmcResponder[
     SprParser(input, context)
   }
 
-  def process(parseResult : SprParseResult, input : String = "") : String =
+  def process(parseResult : SprParseResult, input : String = "") : SmcResponse =
   {
     val inputAnnotator = newAnnotator
     val sentence = inputAnnotator.copy(
@@ -286,7 +293,11 @@ class SmcResponder[
           responseSentence, responseText, responseReparseCollector.refMap)
       }
     }
-    responseText
+    SmcResponse(
+      tongue,
+      responseText,
+      responseAnnotator,
+      responseSentence)
   }
 
   def resolveReferences(
@@ -360,7 +371,7 @@ class SmcResponder[
         val eventMind = imagine(eventCosmos)
         val eventResponder = spawn(eventMind)
         val result = eventResponder.process(
-          SprParseResult(sentence, resultCollector.annotator))
+          SprParseResult(sentence, resultCollector.annotator)).text
         if (result != sentencePrinter.sb.respondCompliance) {
           throw ShlurdException(
             ShlurdExceptionCode.CausalityViolation, result)

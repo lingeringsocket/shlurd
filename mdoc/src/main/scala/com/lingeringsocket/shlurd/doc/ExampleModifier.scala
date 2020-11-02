@@ -307,7 +307,7 @@ class ConversationProcessor extends StringModifier
     val result = exchanges.map {
       case ((input, inputIndex), expectedLines) => {
         val parseResult = responder.newParser(input).parseOne
-        val response = responder.process(parseResult, input)
+        val response = responder.process(parseResult, input).text
         val responseLines = Using.resource(Source.fromString(response)) {
           source => source.getLines().toSeq.filterNot(
             SprParser.isIgnorableLine)
@@ -443,7 +443,7 @@ class BeliefRenderer extends StringModifier
         results.foreach {
           case pr @ SprParseResult(sentence, _, start, end) => {
             val output = try {
-              responder.process(pr)
+              responder.process(pr).text
             } catch {
               case ex : Throwable => {
                 ex.printStackTrace

@@ -16,6 +16,7 @@ package com.lingeringsocket.phlebotinum
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.platonic._
 
 import org.specs2.mutable._
@@ -44,20 +45,33 @@ class PhlebSpec extends Specification
     {
       testScript("phlebotinum-convo-script.txt")
     }
+
+    "interpret Spanish script" in
+    {
+      val translator = new PhlebTranslator(
+        SnlUtils.spanishEnglishAlignment,
+        TRANSLATE_FIRST_TO_SECOND
+      )
+      testScript("phlebotinum-spanish-script.txt", Some(translator))
+    }
   }
 
-  private def testScript(fileName : String) =
+  private def testScript(
+    fileName : String,
+    translatorOpt : Option[PhlebTranslator] = None) =
   {
     // preload
     PhlebBaseline.frozenCosmos
 
-    val terminal = new PhlebTestTerminal(fileName)
+    val terminal = new PhlebTestTerminal(fileName, translatorOpt)
     PhlebShell.run("/example-phlebotinum/", terminal)
     terminal.nextScriptLine must beEmpty
   }
 
-  class PhlebTestTerminal(fileName : String)
-      extends PhlebTerminal
+  class PhlebTestTerminal(
+    fileName : String,
+    translatorOpt : Option[PhlebTranslator] = None
+  ) extends PhlebTerminal
   {
     private val script = Using.resource(Source.fromFile(
       ResourceUtils.getResourceFile(s"/expect/$fileName")
@@ -118,6 +132,11 @@ class PhlebSpec extends Specification
     override def getDefaultSaveFile =
     {
       "phlebotinum-test-save.zip"
+    }
+
+    override def getTranslatorOpt =
+    {
+      translatorOpt
     }
 
     def nextScriptLine : Option[(String, Int)] = {

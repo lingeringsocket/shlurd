@@ -25,8 +25,17 @@ import org.slf4j._
 import SprPennTreebankLabels._
 
 sealed trait SnlTranslationDirection
+{
+  def reverse : SnlTranslationDirection
+}
 case object TRANSLATE_FIRST_TO_SECOND extends SnlTranslationDirection
+{
+  override def reverse = TRANSLATE_SECOND_TO_FIRST
+}
 case object TRANSLATE_SECOND_TO_FIRST extends SnlTranslationDirection
+{
+  override def reverse = TRANSLATE_FIRST_TO_SECOND
+}
 
 object SnlTranslator
 {
@@ -49,7 +58,7 @@ object SnlTranslator
 }
 
 class SnlTranslator(
-  annotator : SilAnnotator,
+  val annotator : SilAnnotator,
   alignment : SnlWordnetAlignment,
   direction : SnlTranslationDirection
 )
@@ -76,6 +85,19 @@ class SnlTranslator(
   {
     val debugger = new SutDebugger(logger)
     debugger.debug(s"TRANSLATION INPUT = " + input)
+    debugger.debug(s"TRANSLATING FROM = " + sourceTongue.getIdentifier)
+    debugger.debug(s"TRANSLATING TO = " + targetTongue.getIdentifier)
+    val output = input match {
+      case _ : SilUnparsedSentence => input
+      case _ => translateImpl(input)
+    }
+    debugger.debug(s"TRANSLATION OUTPUT = " + output)
+    output
+  }
+
+  private def translateImpl(
+    input : SilSentence) : SilSentence =
+  {
     val rewriter = new SilPhraseRewriter(annotator)
     val normalized = rewriter.rewriteCombined(
       sourceTongue.getTranslationSourceRules(),
@@ -139,11 +161,9 @@ class SnlTranslator(
     )
     val generic = neutralizePronouns(
       rewriter.rewrite(translateWords, normalized))
-    val output = rewriter.rewriteCombined(
+    rewriter.rewriteCombined(
       targetTongue.getTranslationTargetRules(),
       generic,
       SilRewriteOptions(repeat = true))
-    debugger.debug(s"TRANSLATION OUTPUT = " + output)
-    output
   }
 }

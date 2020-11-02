@@ -65,7 +65,7 @@ class SpcOpenhabCosmosSpec extends Specification
     protected def process(input : String, expected : String) =
     {
       val parseResult = responder.newParser(input).parseOne
-      responder.process(parseResult, input) must be equalTo(expected)
+      responder.process(parseResult, input).text must be equalTo(expected)
     }
   }
 

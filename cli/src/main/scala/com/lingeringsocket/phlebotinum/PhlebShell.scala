@@ -148,7 +148,7 @@ object PhlebShell
           : Option[String] =
       {
         Some(noumenalInitializer.process(
-          SprParseResult(sentence, annotator)))
+          SprParseResult(sentence, annotator)).text)
       }
 
       override protected def executeActionImpl(
@@ -350,7 +350,9 @@ class PhlebShell(
   sealed trait Deferred {
   }
 
-  case class DeferredCommand(quotation : String) extends Deferred
+  case class DeferredCommand(
+    quotation : String,
+    isPlayerInput : Boolean = false) extends Deferred
 
   case class DeferredDirective(quotation : String) extends Deferred
 
@@ -434,7 +436,7 @@ class PhlebShell(
       } else {
         val fiatUpdater = newFiatUpdater
         Some(fiatUpdater.process(
-          SprParseResult(sentence, annotator)))
+          SprParseResult(sentence, annotator)).text)
       }
     }
 
@@ -727,7 +729,7 @@ class PhlebShell(
           terminal.emitTrace(s"DIRECTIVE $input")
           val parseResults = noumenalUpdater.newParser(input).parseAll
           parseResults.foreach(parseResult => {
-            val output = noumenalUpdater.process(parseResult)
+            val output = noumenalUpdater.process(parseResult).text
             assert(output == OK, tupleN(parseResult, output))
           })
         }
@@ -758,7 +760,7 @@ class PhlebShell(
             terminal.emitNarrative(DQUOTE + output + DQUOTE)
           })
         }
-        case DeferredCommand(input) => {
+        case DeferredCommand(input, isPlayerInput) => {
           terminal.emitTrace(s"COMMAND $input")
           updatePerception()
           val expanded = preprocess(input)
@@ -767,16 +769,63 @@ class PhlebShell(
           }
           val dumpParse = first &&
             (terminal.isDebugging || logger.isTraceEnabled)
-          val parseResults = phenomenalResponder.newParser(expanded).parseAll
+          val translatorOpt = {
+            if (isPlayerInput) {
+              terminal.getTranslatorOpt
+            } else {
+              None
+            }
+          }
+          val parser = translatorOpt match {
+            case Some(translator) => {
+              // FIXME need to hybridize in phenomenalResponder for
+              // genderAnalyzer and word labeler
+              val playerTongue = translator.getPlayerTongue
+              val context = SprContext(
+                new SprWordnetLabeler(playerTongue),
+                scorer = new SpcContextualScorer(
+                  playerTongue, phenomenalResponder),
+                annotator = phenomenalResponder.newAnnotator,
+                genderAnalyzer = playerTongue)
+              SprParser(expanded, context)
+            }
+            case _ => {
+              phenomenalResponder.newParser(expanded)
+            }
+          }
+          val parseResults = parser.parseAll
           parseResults.foreach(parseResult => {
             if (dumpParse) {
               terminal.emitTrace(s"PARSED ${parseResult.sentence}")
             }
-            var output = phenomenalResponder.process(parseResult)
+            val translated = translatorOpt match {
+              case Some(translator) => {
+                val commandTranslator = translator.newCommandTranslator
+                val analyzer =
+                  new SprWordnetSenseAnalyzer(
+                    translator.getPlayerTongue,
+                    parseResult.annotator)
+                val analyzed = analyzer.analyze(parseResult.sentence)
+                val translatedCommand =
+                  commandTranslator.translate(analyzed)
+                if (dumpParse) {
+                  terminal.emitTrace(s"TRANSLATED $translatedCommand")
+                }
+                parseResult.copy(
+                  sentence = translatedCommand,
+                  annotator = commandTranslator.annotator
+                )
+              }
+              case _ => {
+                parseResult
+              }
+            }
+            val response = phenomenalResponder.process(translated)
+            var output = response.text
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
             var assumption = ""
-            val sentence = parseResult.sentence
+            val sentence = translated.sentence
             if (first) {
               first = false
               if (output != OK) {
@@ -808,6 +857,16 @@ class PhlebShell(
               }
             }
             if (output.nonEmpty) {
+              terminal.getTranslatorOpt.foreach(translator => {
+                val translated = translator.newResponseTranslator.translate(
+                  response.sentence)
+                // FIXME genderAnalyzer should hybridize in phenomenalMind
+                val playerTongue = translator.getPlayerTongue
+                output = SprUtils.capitalize(
+                  playerTongue.newSentencePrinter(
+                    playerTongue).print(translated))
+                terminal.emitTrace(s"TRANSLATED $output")
+              })
               terminal.emitNarrative(output)
             }
             if (assumption.nonEmpty) {
@@ -940,7 +999,7 @@ class PhlebShell(
       // FIXME support imperatives
       sentencePrinter.sb.contradictAssumption("", false)
     } else {
-      responder.process(parseResult)
+      responder.process(parseResult).text
     }
   }
 
@@ -990,7 +1049,7 @@ class PhlebShell(
               defer(DeferredUtterance(targetEntity, targetMind, input))
             }
             case _ => {
-              defer(DeferredCommand(input))
+              defer(DeferredCommand(input, true))
             }
           }
           processDeferred()

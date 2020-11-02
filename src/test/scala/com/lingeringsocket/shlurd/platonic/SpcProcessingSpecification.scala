@@ -101,7 +101,7 @@ class SpcProcessingSpecification extends Specification
         params,
         executor)
       val parseResult = responder.newParser(input).parseOne
-      responder.process(parseResult)
+      responder.process(parseResult).text
     }
 
     protected def expectUnique(

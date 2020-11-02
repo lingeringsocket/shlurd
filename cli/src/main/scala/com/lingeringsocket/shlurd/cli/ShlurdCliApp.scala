@@ -133,7 +133,7 @@ class ShlurdCliShell(
         case Some(input) => {
           val parseResults = mind.newParser(input).parseAll
           parseResults.foreach(parseResult => {
-            val output = responder.process(parseResult)
+            val output = responder.process(parseResult).text
             terminal.emitControl("")
             terminal.emitResponse(output)
             terminal.emitControl("")

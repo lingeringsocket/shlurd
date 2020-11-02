@@ -38,7 +38,7 @@ class SpcPerceptionSpec extends Specification
           throwRejectedBeliefs = true,
           verbosity = RESPONSE_TERSE))
       val parseResult = responder.newParser(input).parseOne
-      responder.process(parseResult)
+      responder.process(parseResult).text
     }
 
     protected def processNoumenal(input : String) =

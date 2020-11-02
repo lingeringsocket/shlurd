@@ -166,7 +166,7 @@ class SmcResponderSpecification extends Specification
         new ZooResponder(mind, params, executor, communicationContext)
 
       val parseResult = responder.newParser(input).parseOne
-      responder.process(parseResult, input)
+      responder.process(parseResult, input).text
     }
 
     protected def processExceptionExpected(
@@ -198,7 +198,7 @@ class SmcResponderSpecification extends Specification
           mind, responseParams, executor,
           communicationContext)
       val parseResult = responder.newParser(input).parseOne
-      responder.process(parseResult, input) must be equalTo(ok)
+      responder.process(parseResult, input).text must be equalTo(ok)
       actualInvocation must be equalTo(Some(invocation))
     }
   }

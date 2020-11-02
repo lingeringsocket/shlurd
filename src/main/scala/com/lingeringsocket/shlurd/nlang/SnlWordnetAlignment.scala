@@ -101,6 +101,22 @@ class SnlWordnetAlignment(
 
   def getSecondTongue = secondTongue
 
+  def getSourceTongue(direction : SnlTranslationDirection) : SprTongue =
+  {
+    direction match {
+      case TRANSLATE_FIRST_TO_SECOND => getFirstTongue
+      case TRANSLATE_SECOND_TO_FIRST => getSecondTongue
+    }
+  }
+
+  def getTargetTongue(direction : SnlTranslationDirection) : SprTongue =
+  {
+    direction match {
+      case TRANSLATE_FIRST_TO_SECOND => getSecondTongue
+      case TRANSLATE_SECOND_TO_FIRST => getFirstTongue
+    }
+  }
+
   def getFirstWordnet = firstTongue.getWordnet
 
   def getSecondWordnet = secondTongue.getWordnet
