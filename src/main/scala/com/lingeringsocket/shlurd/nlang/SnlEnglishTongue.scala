@@ -333,13 +333,13 @@ class SnlEnglishTongue(wordnet : SprWordnet)
     }
   }
 
-  override def getStatePredefFromLemma(lemma : String) : SprStatePredef =
+  override def getStatePredefFromLemma(
+    lemma : String) : Option[SprStatePredef] =
   {
     lemma match {
-      case LEMMA_EXIST | LEMMA_BE => STATE_PREDEF_BE
-      case LEMMA_BECOME => STATE_PREDEF_BECOME
-      case _ => throw new IllegalArgumentException(
-        "Non-predef state verb " + lemma)
+      case LEMMA_EXIST | LEMMA_BE => Some(STATE_PREDEF_BE)
+      case LEMMA_BECOME => Some(STATE_PREDEF_BECOME)
+      case _ => None
     }
   }
 

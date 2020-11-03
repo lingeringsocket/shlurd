@@ -95,6 +95,52 @@ class SnlTranslator(
     output
   }
 
+  private def translateSense(phrase : SilPhrase) =
+  {
+    val word = phrase.maybeWord.get
+    val senses = sourceWordnet.findSenses(word.senseId)
+    val translatedWord = {
+      if (senses.isEmpty) {
+        word.withSense("")
+      } else {
+        val pos = senses.head.getPOS
+        val translatedSenses = senses.flatMap(synset => {
+          alignment.mapSense(synset, direction)
+        })
+        if (translatedSenses.isEmpty) {
+          // we must discard original sense identifiers, since they aren't
+          // relevant in the target tongue
+          word.withSense("")
+        } else {
+          val translatedSenseId = targetWordnet.getSenseId(translatedSenses)
+          // FIXME what about compound words?  Also should maybe
+          // only preserve senses with the same lemma?
+          val lemmas = translatedSenses.head.getWords.asScala.map(_.getLemma)
+          val lemma = targetTongue.chooseVariant(pos, lemmas)
+          SilWord("", lemma, translatedSenseId)
+        }
+      }
+    }
+    phrase.withNewWord(translatedWord)
+  }
+
+  private def translateState(phrase : SilPhrase) =
+  {
+    val word = phrase.maybeWord.get
+    val translatedWord = sourceTongue.getStatePredefFromLemma(
+      word.toLemma
+    ) match {
+      case Some(predef) => {
+        SilWord.uninflected(
+          targetTongue.getStatePredefLemma(predef))
+      }
+      case _ => {
+        word.withSense("")
+      }
+    }
+    phrase.withNewWord(translatedWord)
+  }
+
   private def translateImpl(
     input : SilSentence) : SilSentence =
   {
@@ -115,35 +161,35 @@ class SnlTranslator(
             pr.politeness)
         }
         case rp : SilRelationshipPredicate => {
-          sourceTongue.relLemmaMap.get(rp.getVerb.toLemma) match {
+          val lemma = rp.getVerb.toLemma
+          sourceTongue.relLemmaMap.get(lemma) match {
             case Some(predef) => {
               rp.withNewWord(SilWord.uninflected(
                 targetTongue.getRelPredefLemma(predef)))
             }
-            case _ => rp
+            case _ if (
+              sourceTongue.getStatePredefFromLemma(lemma).nonEmpty
+            ) => translateState(rp)
+            case _ => {
+              translateSense(rp)
+            }
           }
         }
         case sp : SilStatePredicate => {
-          val predef = sourceTongue.getStatePredefFromLemma(sp.getVerb.toLemma)
-          sp.withNewWord(SilWord.uninflected(
-            targetTongue.getStatePredefLemma(predef)))
+          translateState(sp)
+        }
+        case phrase : SilPhrase if (
+          phrase.maybeWord.flatMap(w => sourceTongue.predefForLemma(
+            w.toLemma)).nonEmpty
+        ) => {
+          val pd = sourceTongue.predefForLemma(phrase.maybeWord.get.toLemma).get
+          val newLemma = targetTongue.predefLemma(pd)
+          phrase.withNewWord(SilWord.uninflected(newLemma))
         }
         case phrase : SilPhrase if (
           phrase.maybeWord.map(_.senseId).getOrElse("").nonEmpty
         ) => {
-          val word = phrase.maybeWord.get
-          val senses = sourceWordnet.findSenses(word.senseId)
-          val pos = senses.head.getPOS
-          val translatedSenses = senses.flatMap(synset => {
-            alignment.mapSense(synset, direction)
-          })
-          val translatedSenseId = sourceWordnet.getSenseId(translatedSenses)
-          // FIXME what about compound words?  Also should maybe
-          // only preserve senses with the same lemma?
-          val lemmas = translatedSenses.head.getWords.asScala.map(_.getLemma)
-          val lemma = targetTongue.chooseVariant(pos, lemmas)
-          val translatedWord = SilWord("", lemma, translatedSenseId)
-          phrase.withNewWord(translatedWord)
+          translateSense(phrase)
         }
         case ap : SilAdpositionalPhrase => {
           // FIXME all the adpositions, and context-sensitive

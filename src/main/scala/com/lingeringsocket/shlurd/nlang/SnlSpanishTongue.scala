@@ -527,7 +527,7 @@ object SnlSpanishLexicon
     PD_WHEN -> "cuándo",
     PD_WHENEVER -> "cada vez que",
     // FIXME need to discriminate donde from dónde
-    PD_WHERE -> "donde",
+    PD_WHERE -> LEMMA_DONDE_ACCENTED,
     // FIXME need to deal with agreement
     PD_WHICH -> LEMMA_CUAL_ACCENTED,
     // FIXME need to deal with agreement
@@ -679,14 +679,14 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     }
   }
 
-  override def getStatePredefFromLemma(lemma : String) : SprStatePredef =
+  override def getStatePredefFromLemma(
+    lemma : String) : Option[SprStatePredef] =
   {
     lemma match {
       case LEMMA_SER | LEMMA_EXISTIR |
-          LEMMA_ESTAR | LEMMA_HABER => STATE_PREDEF_BE
-      case LEMMA_HACER => STATE_PREDEF_BECOME
-      case _ => throw new IllegalArgumentException(
-        "Non-predef state verb " + lemma)
+          LEMMA_ESTAR | LEMMA_HABER => Some(STATE_PREDEF_BE)
+      case LEMMA_HACER => Some(STATE_PREDEF_BECOME)
+      case _ => None
     }
   }
 

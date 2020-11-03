@@ -31,6 +31,8 @@ class SnlSpanishParserSpec extends Specification
 
   private val NOUN_PERRO = SilWord("perro")
 
+  private val NOUN_DONDE = SilWord("dónde")
+
   private val VERB_CAMINO = SilWord("camino", "caminar")
 
   private val VERB_CAMINA = SilWord("camina", "caminar")
@@ -52,6 +54,8 @@ class SnlSpanishParserSpec extends Specification
   private val VERB_ESTAR = SilWord(LEMMA_ESTAR)
 
   private val VERB_ESTOY = SilWord("estoy", LEMMA_ESTAR)
+
+  private val VERB_ESTA = SilWord("está", LEMMA_ESTAR)
 
   private val VERB_HAY = SilWord("hay", LEMMA_HABER)
 
@@ -296,6 +300,22 @@ class SnlSpanishParserSpec extends Specification
             VERB_BESA,
             Some(annotator.nounRef(NOUN_PEDRO))
           )
+        )
+    }
+
+    "parse where" in
+    {
+      val input = "dónde está Pedro?"
+      parse(input) must be equalTo
+        SilPredicateQuery(
+          SilRelationshipPredicate(
+            annotator.nounRef(NOUN_DONDE),
+            VERB_ESTA,
+            annotator.nounRef(NOUN_PEDRO)
+          ),
+          QUESTION_WHERE,
+          INFLECT_NOMINATIVE,
+          SilTam.interrogative
         )
     }
 

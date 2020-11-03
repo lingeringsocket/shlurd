@@ -322,7 +322,7 @@ class SprNormalizationRewriter(context : SprContext)
           verb,
           rhs,
           modifiers),
-        QUESTION_WHO,
+        question @ (QUESTION_WHO | QUESTION_WHERE),
         answerInflection,
         tam,
         formality
@@ -335,7 +335,7 @@ class SprNormalizationRewriter(context : SprContext)
         newPred.setInflectedAttributes(pred.getInflectedAttributes)
         SilPredicateQuery(
           newPred,
-          QUESTION_WHO,
+          question,
           answerInflection,
           tam,
           formality)

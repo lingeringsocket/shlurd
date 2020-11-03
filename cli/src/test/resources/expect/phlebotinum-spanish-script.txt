@@ -13,3 +13,15 @@ Tú ves un seguro gran al este.
 > soy un perro?
 
 Tú no eres un perro.
+
+> quién soy?
+
+Tú eres el player-character.
+
+> quién eres?
+
+Yo soy el game-interpreter.
+
+> dónde estoy?
+
+Tú estás en la habitación.

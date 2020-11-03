@@ -47,9 +47,12 @@ abstract class SnlRomanceSyntaxAnalyzer(
   {
     if (tree.isNounPhrase && tree.isUnwrappable) {
       detectNominative(tree.unwrapPhrase)
-    } else if (tree.isQueryNounPhrase || tree.isNoun ||
+    } else if (tree.isQueryNounPhrase ||
+      tree.isQueryAdverbPhrase || tree.isNoun ||
       tree.isNounPhrase || tree.isDemonstrative)
     {
+      // FIXME isQueryAdverbPhrase is for dónde, but it shouldn't really
+      // be interpreted as a noun
       true
     } else if (tree.isPronoun) {
       val lemma = tree.firstChild.lemma

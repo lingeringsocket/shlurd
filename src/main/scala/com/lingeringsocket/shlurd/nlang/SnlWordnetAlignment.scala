@@ -41,11 +41,15 @@ class SnlWordnetAlignment(
     Using.resource(
       ResourceUtils.getResourceSource(resourceDir + resourceName)
     ) {
+      var pos = 0
       source => source.getLines().flatMap(line => {
+        val linePos = pos
+        pos += (line.getBytes("UTF-8").length + 1)
         if (line.startsWith("#")) {
           None
         } else {
           val offset = line.split(" ").head.toLong
+          assert(offset == linePos, tupleN(offset, linePos, line))
           Some(offset)
         }
       }).toIndexedSeq

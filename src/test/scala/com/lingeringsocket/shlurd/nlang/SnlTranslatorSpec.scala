@@ -281,5 +281,26 @@ class SnlTranslatorSpec extends Specification
         "nosotros tenemos que ir."
       )
     }
+
+    "translate who" in
+    {
+      checkBidirectional(
+        "who am I?",
+        "quién soy yo?"
+      )
+    }
+
+    "translate where" in
+    {
+      checkSpanishToEnglish(
+        "where am I?",
+        "dónde estoy yo?"
+      )
+      // FIXME should be estar instead
+      checkEnglishToSpanish(
+        "where am I?",
+        "dónde soy yo?"
+      )
+    }
   }
 }

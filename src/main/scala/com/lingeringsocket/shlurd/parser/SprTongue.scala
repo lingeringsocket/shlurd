@@ -233,7 +233,7 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def getStatePredefLemma(predef : SprStatePredef) : String
 
-  def getStatePredefFromLemma(lemma : String) : SprStatePredef
+  def getStatePredefFromLemma(lemma : String) : Option[SprStatePredef]
 
   def isModalAuxLemma(lemma : String) : Boolean = false
 

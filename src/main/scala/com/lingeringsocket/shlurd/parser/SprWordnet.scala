@@ -136,6 +136,7 @@ trait SprWordnet
     })
   }
 
+  // FIXME include tongue as well
   def getSenseId(synset : Synset) : String =
   {
     s"${synset.getPOS.getKey}:${synset.getOffset}"

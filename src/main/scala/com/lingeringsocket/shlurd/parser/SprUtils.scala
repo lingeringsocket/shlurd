@@ -92,7 +92,11 @@ object SprStatePredef
 {
   def apply(word : SilWord)(implicit tongue : SprTongue) =
   {
-    tongue.getStatePredefFromLemma(word.toLemma)
+    val lemma = word.toLemma
+    tongue.getStatePredefFromLemma(lemma).getOrElse {
+      throw new IllegalArgumentException(
+        "Non-predef state verb " + lemma)
+    }
   }
 }
 
