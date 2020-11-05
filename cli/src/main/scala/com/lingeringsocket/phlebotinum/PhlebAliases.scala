@@ -18,7 +18,7 @@ import scala.collection._
 
 object PhlebAliases
 {
-  val map = Map(
+  val english = Map(
     "d" -> "go downward",
     "down" -> "go downward",
     "e" -> "go east",
@@ -49,6 +49,42 @@ object PhlebAliases
     "x" -> "examine",
     "y" -> "yes",
     "z" -> "wait"
+  )
+
+  val spanish = Map(
+    "d" -> "vaya al nadir",
+    "abajo" -> "vaya al nadir",
+    "baja" -> "vaya al nadir",
+    "e" -> "este",
+    "este" -> "vaya al este",
+    "g" -> "otra vez",
+    "i" -> "inventario",
+    "inventario" -> "qué sujeto",
+    "l" -> "mire",
+    "m" -> "mire",
+    // FIXME this can instead be "no" in context
+    "n" -> "norte",
+    "norte" -> "vaya al norte",
+    "ne" -> "noreste",
+    "noreste" -> "vaya al noreste",
+    // FIXME "no" for "noroeste"?
+    "nw" -> "noroeste",
+    "noroeste" -> "vaya al noroeste",
+    "o" -> "oeste",
+    "q" -> "deje",
+    "s" -> "sur",
+    "sur" -> "vaya al sur",
+    "se" -> "sudeste",
+    "sudeste" -> "vaya al sudeste",
+    "sw" -> "suroeste",
+    "suroeste" -> "vaya al suroeste",
+    "u" -> "vaya al cenit",
+    "arriba" -> "vaya al cenit",
+    "w" -> "oeste",
+    "oeste" -> "vaya al oeste",
+    "x" -> "inspeccione",
+    "y" -> "sí",
+    "z" -> "espere"
   )
 }
 

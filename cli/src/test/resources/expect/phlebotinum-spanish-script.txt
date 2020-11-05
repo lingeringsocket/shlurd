@@ -25,3 +25,54 @@ Yo soy el game-interpreter.
 > dónde estoy?
 
 Tú estás en la habitación.
+
+// formal command
+
+> va al este
+
+OK.
+
+Tú estás en un baño.
+
+Someone has written 'clean me!' on the mirror.
+
+// FIXME feminine nouns that begin with a stressed "(h)a"
+// should use el/un in the singular, who knew?
+
+Tú ves una hacha y un ladrón.
+
+// FIXME should be oeste, and uncapitalized
+
+Tú ves el seguro gran al Occidente.
+
+// informal command
+
+// FIXME (formal coge should work too)
+
+> coja el hacha
+
+OK.
+
+> o
+
+OK.
+
+Tú estás en la habitación.
+
+Tú ves el seguro gran al este.
+
+> x el hacha
+
+OK.
+
+The perfect weapon, assuming you are a dwarf.
+
+> vaya al este
+
+OK.
+
+Tú estás en el baño.
+
+Tú ves el ladrón.
+
+Tú ves el seguro gran al Occidente.

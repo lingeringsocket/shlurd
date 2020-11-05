@@ -187,7 +187,7 @@ object SnlSpanishLexicon
   val freqs = SnlUtils.readFreqMap("/spanish/freq.txt.gz")
 
   val stopList = Set(
-    LEMMA_ELLA, LEMMA_YO, LEMMA_NO, LEMMA_SER, LEMMA_SUS
+    LEMMA_ELLA, LEMMA_YO, LEMMA_NO, LEMMA_SER, LEMMA_SUS, LEMMA_AL
   ) ++ stopListPunct
 
   val unaccentedVowels = "aeiou"
@@ -1205,6 +1205,9 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       // another one
       Set.empty
     } else if ((token == "sé") && (lemma == LEMMA_SER)) {
+      // another one
+      Set.empty
+    } else if ((token == "va") && (lemma == "ver")) {
       // another one
       Set.empty
     } else if ((token == LEMMA_SE) && (lemma == LEMMA_SER)) {

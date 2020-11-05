@@ -403,6 +403,9 @@ class PhlebShell(
 
   private var listenerMind : Option[(SpcEntity, PhlebMind)] = None
 
+  private val aliases = terminal.getTranslatorOpt.map(
+    _.getAliases).getOrElse(PhlebAliases.english)
+
   private implicit val tongue = noumenalMind.getTongue
 
   private val executor = new PhlebExecutor(terminal, noumenalMind)
@@ -800,20 +803,20 @@ class PhlebShell(
             }
             val translated = translatorOpt match {
               case Some(translator) => {
-                val commandTranslator = translator.newCommandTranslator
+                val inputTranslator = translator.newInputTranslator
                 val analyzer =
                   new SprWordnetSenseAnalyzer(
                     translator.getPlayerTongue,
                     parseResult.annotator)
                 val analyzed = analyzer.analyze(parseResult.sentence)
                 val translatedCommand =
-                  commandTranslator.translate(analyzed)
+                  inputTranslator.translate(analyzed)
                 if (dumpParse) {
                   terminal.emitTrace(s"TRANSLATED $translatedCommand")
                 }
                 parseResult.copy(
                   sentence = translatedCommand,
-                  annotator = commandTranslator.annotator
+                  annotator = inputTranslator.annotator
                 )
               }
               case _ => {
@@ -862,9 +865,17 @@ class PhlebShell(
                   response.sentence)
                 // FIXME genderAnalyzer should hybridize in phenomenalMind
                 val playerTongue = translator.getPlayerTongue
-                output = SprUtils.capitalize(
-                  playerTongue.newSentencePrinter(
-                    playerTongue).print(translated))
+                val playerSentencePrinter = playerTongue.newSentencePrinter(
+                  playerTongue)
+                val printed = translated match {
+                  case _ : SilUnparsedSentence => {
+                    playerSentencePrinter.printUnterminated(translated)
+                  }
+                  case _ => {
+                    playerSentencePrinter.print(translated)
+                  }
+                }
+                output = SprUtils.capitalize(printed)
                 terminal.emitTrace(s"TRANSLATED $output")
               })
               terminal.emitNarrative(output)
@@ -1005,14 +1016,14 @@ class PhlebShell(
 
   private def preprocess(input : String) : String =
   {
-    PhlebAliases.map.get(input.trim.toLowerCase) match {
+    aliases.get(input.trim.toLowerCase) match {
       case Some(replacement) => {
         preprocess(replacement)
       }
       case _ => {
         // special case for examine, which can take an object
         if (input.startsWith("x ")) {
-          "examine "  + input.stripPrefix("x ")
+          aliases("x") + " "  + input.stripPrefix("x ")
         } else {
           input
         }

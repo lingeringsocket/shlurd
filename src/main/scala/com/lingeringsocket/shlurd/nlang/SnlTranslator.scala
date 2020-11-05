@@ -141,7 +141,7 @@ class SnlTranslator(
     phrase.withNewWord(translatedWord)
   }
 
-  private def translateImpl(
+  protected def translateImpl(
     input : SilSentence) : SilSentence =
   {
     val rewriter = new SilPhraseRewriter(annotator)

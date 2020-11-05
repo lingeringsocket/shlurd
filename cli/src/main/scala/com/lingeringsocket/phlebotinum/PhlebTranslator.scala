@@ -14,23 +14,89 @@
 // limitations under the License.
 package com.lingeringsocket.phlebotinum
 
+import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.platonic._
 
 class PhlebTranslator(
-  alignment : SnlWordnetAlignment,
-  playerToInterpreter : SnlTranslationDirection
+  val alignment : SnlWordnetAlignment,
+  val playerToInterpreter : SnlTranslationDirection
 )
 {
   def getPlayerTongue = alignment.getSourceTongue(playerToInterpreter)
 
-  def newCommandTranslator =
+  def getInterpreterTongue = alignment.getTargetTongue(playerToInterpreter)
+
+  def newInputTranslator =
   {
-    new SnlTranslator(SpcAnnotator(), alignment, playerToInterpreter)
+    val annotator = SpcAnnotator()
+    new SnlTranslator(annotator, alignment, playerToInterpreter)
   }
 
   def newResponseTranslator =
   {
     new SnlTranslator(SpcAnnotator(), alignment, playerToInterpreter.reverse)
+  }
+
+  def getAliases = PhlebAliases.english
+}
+
+object PhlebSpanishTranslator extends PhlebTranslator(
+  SnlUtils.spanishEnglishAlignment,
+  TRANSLATE_FIRST_TO_SECOND
+) {
+  override def getAliases = PhlebAliases.spanish
+
+  override def newInputTranslator =
+  {
+    val annotator = SpcAnnotator()
+    new SnlTranslator(annotator, alignment, playerToInterpreter)
+    {
+      override protected def translateImpl(
+        input : SilSentence) : SilSentence =
+      {
+        super.translateImpl(input) match {
+          case SilPredicateSentence(
+            ap @ SilActionPredicate(
+              pr @ SilPronounReference(
+                PERSON_THIRD,
+                GENDER_NEUTER,
+                COUNT_SINGULAR,
+                // FIXME catch it earlier and require elided
+                PROXIMITY_ENTITY | PROXIMITY_ELIDED,
+                _
+              ),
+              verb,
+              directObject,
+              modifiers
+            ),
+            tam,
+            formality
+          ) if (tam.isIndicative) => {
+            val command = SilPredicateSentence(
+              SilActionPredicate(
+                annotator.pronounRef(
+                  PERSON_SECOND,
+                  GENDER_SOMEONE,
+                  COUNT_SINGULAR,
+                  getInterpreterTongue,
+                  PROXIMITY_ELIDED,
+                  POLITENESS_RESPECTFUL
+                ),
+                verb,
+                directObject,
+                modifiers
+              ),
+              tam.withMood(MOOD_IMPERATIVE),
+              formality
+            )
+            command.predicate.setInflectedAttributes(
+              ap.getInflectedAttributes)
+            command
+          }
+          case output => output
+        }
+      }
+    }
   }
 }

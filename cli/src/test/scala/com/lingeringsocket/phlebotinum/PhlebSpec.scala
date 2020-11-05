@@ -16,7 +16,6 @@ package com.lingeringsocket.phlebotinum
 
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
-import com.lingeringsocket.shlurd.nlang._
 import com.lingeringsocket.shlurd.platonic._
 
 import org.specs2.mutable._
@@ -48,11 +47,9 @@ class PhlebSpec extends Specification
 
     "interpret Spanish script" in
     {
-      val translator = new PhlebTranslator(
-        SnlUtils.spanishEnglishAlignment,
-        TRANSLATE_FIRST_TO_SECOND
-      )
-      testScript("phlebotinum-spanish-script.txt", Some(translator))
+      testScript(
+        "phlebotinum-spanish-script.txt",
+        Some(PhlebSpanishTranslator))
     }
   }
 

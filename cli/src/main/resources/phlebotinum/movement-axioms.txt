@@ -17,6 +17,9 @@ When a game-character heads to a map-direction,
 When a game-character goes a map-direction,
  the game-character heads to the map-direction.
 
+When a game-character goes to a map-direction,
+ the game-character heads to the map-direction.
+
 When a game-character goes upward,
  the game-character heads to the zenith.
 
