@@ -25,6 +25,21 @@ object SprWordnetScorer
   def phraseScorer(s : PhraseScorer)
       : PhraseScorer = s
 
+  def matchNonSpanishAction(
+    tongue : SprTongue,
+    frameFlags : BitSet,
+    subject : SilReference,
+    directObject : Option[SilReference],
+    modifiers : Seq[SilVerbModifier]) : Int =
+  {
+    // FIXME figure out a way to get this info from Spanish
+    if (tongue.getIdentifier == "es") {
+      1
+    } else {
+      matchAction(tongue, frameFlags, subject, directObject, modifiers)
+    }
+  }
+
   def matchAction(
     tongueIn : SprTongue,
     frameFlags : BitSet,
@@ -33,11 +48,6 @@ object SprWordnetScorer
     modifiers : Seq[SilVerbModifier]) : Int =
   {
     implicit val tongue = tongueIn
-
-    // FIXME figure out a way to get this info from Spanish
-    if (tongue.getIdentifier == "es") {
-      return 1
-    }
 
     def hasAdposition(
       modifiers : Seq[SilVerbModifier],
@@ -443,7 +453,7 @@ class SprWordnetScorer(
         SilPhraseScore.conSmall
       } else {
         val frameFlags = wordnet.getVerbFrameFlags(lemma)
-        val matched = SprWordnetScorer.matchAction(
+        val matched = SprWordnetScorer.matchNonSpanishAction(
           tongue, frameFlags, subject, directObject, modifiers)
         if (matched > 0) {
           SilPhraseScore.pro(matched)

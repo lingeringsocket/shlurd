@@ -45,11 +45,7 @@ Tú ves una hacha y un ladrón.
 
 Tú ves el seguro gran al Occidente.
 
-// informal command
-
-// FIXME (formal coge should work too)
-
-> coja el hacha
+> coge el hacha
 
 OK.
 
@@ -66,6 +62,8 @@ Tú ves el seguro gran al este.
 OK.
 
 The perfect weapon, assuming you are a dwarf.
+
+// informal command
 
 > vaya al este
 

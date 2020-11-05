@@ -786,8 +786,14 @@ class PhlebShell(
               val playerTongue = translator.getPlayerTongue
               val context = SprContext(
                 new SprWordnetLabeler(playerTongue),
-                scorer = new SpcContextualScorer(
-                  playerTongue, phenomenalResponder),
+                scorer = new SnlTranslatingScorer(
+                  new SpcContextualScorer(
+                    playerTongue, phenomenalResponder),
+                  translator.getPlayerTongue,
+                  translator.getInterpreterTongue,
+                  translator.alignment,
+                  translator.playerToInterpreter
+                ),
                 annotator = phenomenalResponder.newAnnotator,
                 genderAnalyzer = playerTongue)
               SprParser(expanded, context)

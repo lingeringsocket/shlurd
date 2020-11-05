@@ -94,7 +94,7 @@ class SprWordnetSenseAnalyzer(
     modifiers : Seq[SilVerbModifier]) : Boolean =
   {
     val frameFlags = BitSet(sense.getVerbFrameIndices.toIndexedSeq:_*)
-    val matched = SprWordnetScorer.matchAction(
+    val matched = SprWordnetScorer.matchNonSpanishAction(
       tongue, frameFlags, subject, directObject, modifiers)
     (matched > 0)
   }

@@ -65,8 +65,13 @@ trait SprWordnet
   def getVerbFrameFlags(lemma : String) : BitSet =
   {
     getVerbSenses(lemma).map(
-      sense => BitSet(sense.getVerbFrameIndices.toIndexedSeq:_*)
+      getVerbFrameFlags
     ).reduceLeftOption(_ union _).getOrElse(BitSet.empty)
+  }
+
+  def getVerbFrameFlags(sense : Synset) : BitSet =
+  {
+    BitSet(sense.getVerbFrameIndices.toIndexedSeq:_*)
   }
 
   def getUsageScore(lemma : String, pos : POS) : Int =

@@ -34,7 +34,15 @@ class SnlTranslatorSpec extends Specification
       annotator,
       alignment,
       direction)
-    val context = SprContext(translator.sourceTongue)
+    val context = new SprContext(
+      wordLabeler = new SprWordnetLabeler(translator.sourceTongue),
+      scorer = new SnlTranslatingScorer(
+        new SprWordnetScorer(translator.sourceTongue),
+        translator.sourceTongue,
+        translator.targetTongue,
+        alignment,
+        direction),
+      genderAnalyzer = translator.sourceTongue)
     val result = SprParser(s, context).parseOne
     val analyzer =
       new SprWordnetSenseAnalyzer(
@@ -141,8 +149,8 @@ class SnlTranslatorSpec extends Specification
     "translate adverbs" in
     {
       checkBidirectional(
-        "she draws rapidly.",
-        "ella dibuja rápido."
+        "she sneezes rapidly.",
+        "ella estornuda rápido."
       )
     }
 
@@ -288,6 +296,13 @@ class SnlTranslatorSpec extends Specification
         "who am I?",
         "quién soy yo?"
       )
+    }
+
+    "translate transitive" in
+    {
+      checkSpanishToEnglish(
+        "it gets the axe.",
+        "coge el hacha.")
     }
 
     "translate where" in
