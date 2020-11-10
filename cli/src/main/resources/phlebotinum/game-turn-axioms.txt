@@ -19,4 +19,4 @@ When a game-character initializes,
 
 When the game-turn reloads,
  the game-turn advances;
- also the player-character looks.
+ also the player-character reconnoiters.

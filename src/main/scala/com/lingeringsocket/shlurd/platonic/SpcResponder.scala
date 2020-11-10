@@ -89,6 +89,7 @@ class SpcContextualScorer(
         }
       }
     }
+
     var propBoost = SilPhraseScore.neutral
     val querier = new SilPhraseQuerier
     val cosmos = responder.getMind.getCosmos
@@ -119,7 +120,34 @@ class SpcContextualScorer(
       }
     }
     querier.query(detectBoosts, sentence)
-    super.computeBoost(sentence, resultCollector) + beliefBoost + propBoost
+
+    val implicationBoost = sentence match {
+      case SilPredicateSentence(ap : SilActionPredicate, _, _) => {
+        val annotator = resultCollector.annotator
+        // FIXME should really try all triggers, but only dry-run;
+        // for now this fits perfectly for the Phlebotinum
+        // use case
+        val triggerResult = responder.processTriggerablePredicate(
+          annotator,
+          cosmos,
+          ap,
+          resultCollector.refMap,
+          APPLY_CONSTRAINTS_ONLY,
+          0,
+          false)
+        if (triggerResult.verbMatched) {
+          SilPhraseScore.proBig + SilPhraseScore.proBig
+        } else {
+          SilPhraseScore.neutral
+        }
+      }
+      case _ => SilPhraseScore.neutral
+    }
+
+    val boost = super.computeBoost(sentence, resultCollector) + (
+      beliefBoost + propBoost + implicationBoost
+    )
+    boost
   }
 }
 
@@ -237,7 +265,7 @@ class SpcResponder(
 
   private implicit val tongue = mind.getTongue
 
-  protected def newAssertionMapper(
+  protected[platonic] def newAssertionMapper(
     annotator : SpcAnnotator
   ) = new SpcAssertionMapper(
     mind, communicationContext, newInputRewriter(annotator),
@@ -811,14 +839,17 @@ class SpcResponder(
             tupleN(false, assertionPredicate)
           }
         }
+        val binding = new SpcAssertionBinding(annotator, refMap, None)
         if (isSubsumption(
-          annotator, forkedCosmos, requirement, predicate, refMap)
+          annotator, forkedCosmos, requirement, predicate, refMap,
+          Some(binding))
         ) {
           if (assertion.sentence.tam.isPositive) {
             SpcAssertionResult(
               Some(requirement),
               sentencePrinter.sb.respondCompliance,
-              ASSERTION_PASS)
+              ASSERTION_PASS,
+              binding.verbMatched)
           } else {
             if (generally) {
               val action = sentencePrinter.printPredicateCommand(
@@ -826,17 +857,19 @@ class SpcResponder(
               SpcAssertionResult(
                 Some(requirement),
                 sentencePrinter.sb.respondUnable(action),
-                ASSERTION_WEAK_FAILURE)
+                ASSERTION_WEAK_FAILURE,
+                binding.verbMatched)
             } else {
               SpcAssertionResult(
                 None,
                 SprUtils.capitalize(
                   sentencePrinter.print(assertion.sentence)),
-                ASSERTION_STRONG_FAILURE)
+                ASSERTION_STRONG_FAILURE,
+                binding.verbMatched)
             }
           }
         } else {
-          inapplicable
+          inapplicable.copy(verbMatched = binding.verbMatched)
         }
       }
       case _ => inapplicable
@@ -1306,14 +1339,16 @@ class SpcResponder(
     forkedCosmos : SpcCosmos,
     general : SilPredicate,
     specific : SilPredicate,
-    refMap : SpcRefMap) : Boolean =
+    refMap : SpcRefMap,
+    bindingOpt : Option[SpcAssertionBinding] = None) : Boolean =
   {
     newAssertionMapper(annotator).matchSubsumption(
       annotator,
       forkedCosmos,
       general,
       specific,
-      refMap)
+      refMap,
+      bindingOpt)
   }
 
   def processTriggerablePredicate(

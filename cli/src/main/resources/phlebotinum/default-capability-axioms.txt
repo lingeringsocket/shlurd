@@ -1,7 +1,7 @@
 Believe "/phlebotinum/character-axioms.txt".
 Believe "/phlebotinum/map-axioms.txt".
 
-A player-character can look.
+A player-character can reconnoiter.
 A player-character can look at an object.
 A player-character can examine an object.
 A player-character can talk to an object.

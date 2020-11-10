@@ -82,6 +82,7 @@ object SnlSpanishLemmas
   val LEMMA_EXISTIR = "existir"
   val LEMMA_HABER = "haber"
   val LEMMA_HACER = "hacer"
+  val LEMMA_HACIA = "hacia"
   val LEMMA_LA = "la"
   val LEMMA_LAS = "las"
   val LEMMA_LE = "le"
@@ -458,7 +459,7 @@ object SnlSpanishLexicon
     PD_ANOTHER -> LEMMA_OTRO,
     PD_AS -> LEMMA_COMO,
     // FIXME a lot of variations for this one
-    PD_AT -> "hacia",
+    PD_AT -> LEMMA_HACIA,
     // FIXME why does this even exist?
     PD_BACK -> "atrás de",
     // FIXME:  sometimes should be LEMMA_ESTAR instead
@@ -1475,6 +1476,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       case LEMMA_USTEDES => LEMMA_USTED
       case LEMMA_UNO | LEMMA_UNA | LEMMA_UNOS | LEMMA_UNAS => LEMMA_UN
       case LEMMA_A => LEMMA_A
+      case LEMMA_HACIA => LEMMA_HACIA
       case _ => {
         if (lemma.endsWith("a")) {
           lemma.stripSuffix("a") + "o"

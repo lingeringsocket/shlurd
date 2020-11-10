@@ -5,7 +5,10 @@ Believe "/phlebotinum/map-axioms.txt".
 When a player-character looks at a describable-entity,
  the player-character examines it.
 
-When a player-character looks,
+When a player-character looks a describable-entity,
+ the player-character examines it.
+
+When a player-character reconnoiters,
  the player-character appraises the player-character's container.
 
 When a player-character discovers a map-place,

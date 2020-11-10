@@ -27,10 +27,10 @@ class PhlebTranslator(
 
   def getInterpreterTongue = alignment.getTargetTongue(playerToInterpreter)
 
-  def newInputTranslator =
+  def newInputTranslator(scorerOpt : Option[SilPhraseScorer] = None) =
   {
     val annotator = SpcAnnotator()
-    new SnlTranslator(annotator, alignment, playerToInterpreter)
+    new SnlTranslator(annotator, alignment, playerToInterpreter, scorerOpt)
   }
 
   def newResponseTranslator =
@@ -47,10 +47,10 @@ object PhlebSpanishTranslator extends PhlebTranslator(
 ) {
   override def getAliases = PhlebAliases.spanish
 
-  override def newInputTranslator =
+  override def newInputTranslator(scorerOpt : Option[SilPhraseScorer] = None) =
   {
     val annotator = SpcAnnotator()
-    new SnlTranslator(annotator, alignment, playerToInterpreter)
+    new SnlTranslator(annotator, alignment, playerToInterpreter, scorerOpt)
     {
       override protected def translateImpl(
         input : SilSentence) : SilSentence =

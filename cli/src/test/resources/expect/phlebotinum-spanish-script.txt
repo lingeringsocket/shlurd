@@ -49,6 +49,16 @@ Tú ves el seguro gran al Occidente.
 
 OK.
 
+> tira el hacha hacia el ladrón
+
+OK.
+
+Blood splatters everywhere.
+
+> coge el hacha
+
+OK.
+
 > o
 
 OK.
@@ -57,13 +67,27 @@ Tú estás en la habitación.
 
 Tú ves el seguro gran al este.
 
+> dónde está el hacha?
+
+// FIXME elide pronoun here, or at least use masculine
+
+Ello está en tu stuff.
+
 > x el hacha
 
 OK.
 
 The perfect weapon, assuming you are a dwarf.
 
+> tira el hacha
+
+OK.
+
 // informal command
+
+> dónde está el hacha?
+
+Ello está en la habitación.
 
 > vaya al este
 
@@ -74,3 +98,9 @@ Tú estás en el baño.
 Tú ves el ladrón.
 
 Tú ves el seguro gran al Occidente.
+
+> dónde está el hacha?
+
+Ello está en la habitación.
+
+(At least I assume that's still the case.)

@@ -18,9 +18,12 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
+import scala.collection._
 import scala.jdk.CollectionConverters._
 
 import org.slf4j._
+
+import net.sf.extjwnl.data._
 
 import SprPennTreebankLabels._
 
@@ -60,7 +63,8 @@ object SnlTranslator
 class SnlTranslator(
   val annotator : SilAnnotator,
   alignment : SnlWordnetAlignment,
-  direction : SnlTranslationDirection
+  direction : SnlTranslationDirection,
+  scorerOpt : Option[SilPhraseScorer] = None
 )
 {
   import SnlTranslator._
@@ -87,12 +91,89 @@ class SnlTranslator(
     debugger.debug(s"TRANSLATION INPUT = " + input)
     debugger.debug(s"TRANSLATING FROM = " + sourceTongue.getIdentifier)
     debugger.debug(s"TRANSLATING TO = " + targetTongue.getIdentifier)
-    val output = input match {
+    val intermediate = input match {
       case _ : SilUnparsedSentence => input
       case _ => translateImpl(input)
     }
+    // FIXME use pattern matching to do this all over the tree, not
+    // just at the top; also maybe for non-actions as well?
+    val output = intermediate match {
+      case ps @ SilPredicateSentence(
+        ap : SilActionPredicate,
+        _,
+        _
+      ) => {
+        scorerOpt match {
+          case Some(scorer) => {
+            ps.copy(predicate = reorderActionSenses(ps, ap, scorer))
+          }
+          case _ => {
+            ps
+          }
+        }
+      }
+      case _ => intermediate
+    }
     debugger.debug(s"TRANSLATION OUTPUT = " + output)
     output
+  }
+
+  private def reorderActionSenses(
+    ps : SilPredicateSentence,
+    ap : SilActionPredicate,
+    scorer : SilPhraseScorer) : SilActionPredicate =
+  {
+    def newVerb(senses : Seq[Synset]) = {
+      val lemmas = senses.head.getWords.asScala.map(_.getLemma)
+      val lemma = targetTongue.chooseVariant(POS.VERB, lemmas)
+      SilWord("", lemma, targetWordnet.getSenseId(senses))
+    }
+    if (ap.verb.senseId.isEmpty) {
+      ap
+    } else {
+      val sortedSenses = targetWordnet.findSenses(
+        ap.verb.senseId
+      ).map(sense => {
+        val pred = ap.withNewWord(newVerb(Seq(sense)))
+        val score = scorer.computeGlobalScore(ps.copy(predicate = pred))
+        tupleN(sense, score)
+      }).sortBy(_._2).reverse.map(_._1)
+      ap.withNewWord(newVerb(sortedSenses))
+    }
+  }
+
+  private def reorderNounSenses(
+    ref : SilNounReference,
+    scorer : SilPhraseScorer) : SilNounReference =
+  {
+    def newNoun(senses : Seq[Synset]) = {
+      val lemmas = senses.head.getWords.asScala.map(_.getLemma)
+      val lemma = targetTongue.chooseVariant(POS.NOUN, lemmas)
+      SilWord("", lemma, targetWordnet.getSenseId(senses))
+    }
+    val noun = ref.noun
+    if (noun.senseId.isEmpty) {
+      ref
+    } else {
+      val sortedSenses = targetWordnet.findSenses(
+        noun.senseId
+      ).map(sense => {
+        // FIXME should do this higher in the phrase when possible
+        val testSentence = SilPredicateSentence(
+          SilStatePredicate(
+            annotator.determinedNounRef(
+              newNoun(Seq(sense)),
+              DETERMINER_DEFINITE,
+              COUNT_PLURAL),
+            SprPredefWord(PD_EXIST)(targetTongue).toUninflected,
+            SilExistenceState()
+          )
+        )
+        val score = scorer.computeGlobalScore(testSentence)
+        tupleN(sense, score)
+      }).sortBy(_._2).reverse.map(_._1)
+      ref.withNewWord(newNoun(sortedSenses))
+    }
   }
 
   private def translateSense(phrase : SilPhrase) =
@@ -121,7 +202,17 @@ class SnlTranslator(
         }
       }
     }
-    phrase.withNewWord(translatedWord)
+    phrase.withNewWord(translatedWord) match {
+      case nr : SilNounReference => {
+        scorerOpt match {
+          case Some(scorer) => {
+            reorderNounSenses(nr, scorer)
+          }
+          case _ => nr
+        }
+      }
+      case x => x
+    }
   }
 
   private def translateState(phrase : SilPhrase) =

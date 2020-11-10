@@ -782,14 +782,15 @@ class PhlebShell(
           val parser = translatorOpt match {
             case Some(translator) => {
               // FIXME need to hybridize in phenomenalResponder for
-              // genderAnalyzer and word labeler
+              // genderAnalyzer and maybe word labeler
               val playerTongue = translator.getPlayerTongue
+              val playerScorer = new SpcContextualScorer(
+                playerTongue, phenomenalResponder)
               val context = SprContext(
                 new SprWordnetLabeler(playerTongue),
                 scorer = new SnlTranslatingScorer(
-                  new SpcContextualScorer(
-                    playerTongue, phenomenalResponder),
-                  translator.getPlayerTongue,
+                  playerScorer,
+                  playerTongue,
                   translator.getInterpreterTongue,
                   translator.alignment,
                   translator.playerToInterpreter
@@ -809,7 +810,10 @@ class PhlebShell(
             }
             val translated = translatorOpt match {
               case Some(translator) => {
-                val inputTranslator = translator.newInputTranslator
+                val interpreterScorer = new SpcContextualScorer(
+                  translator.getInterpreterTongue, phenomenalResponder)
+                val inputTranslator = translator.newInputTranslator(
+                  Some(interpreterScorer))
                 val analyzer =
                   new SprWordnetSenseAnalyzer(
                     translator.getPlayerTongue,

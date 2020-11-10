@@ -38,7 +38,8 @@ class SpcAssertionBinding(
   {
     tupleN(ref1, ref2) match {
       case (ar1 : SilAnnotatedReference, ar2 : SilAnnotatedReference) => {
-        SmcAnnotator.unifyReferences[SpcEntity, SpcRefNote](annotator, ar1, ar2)
+        SmcAnnotator.unifyReferences[SpcEntity, SpcRefNote](
+          annotator, ar1, ar2)
       }
       case _ => {
       }
@@ -72,17 +73,21 @@ class SpcAssertionMapper(
     cosmos : SpcCosmos,
     general : SilPredicate,
     specific : SilPredicate,
-    refMap : SpcRefMap
+    refMap : SpcRefMap,
+    bindingOpt : Option[SpcAssertionBinding] = None
   ) : Boolean =
   {
     val operator = "SUBSUMES"
     trace(s"ATTEMPT MATCH $general $operator $specific")
-    val matched = matchGeneralization(
-      cosmos, general, specific,
+    val binding = bindingOpt.getOrElse {
       new SpcAssertionBinding(
         annotator,
         refMap,
-        None),
+        None)
+    }
+    val matched = matchGeneralization(
+      cosmos, general, specific,
+      binding,
       0
     )._1
     if (matched && !isTraceEnabled) {

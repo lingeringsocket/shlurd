@@ -27,6 +27,7 @@ object PhlebAliases
     "i" -> "inventory",
     "inventory" -> "what am I holding",
     "l" -> "look",
+    "look" -> "reconnoiter",
     // FIXME this can instead be "no" in context
     "n" -> "go north",
     "north" -> "go north",
@@ -62,6 +63,8 @@ object PhlebAliases
     "inventario" -> "qué sujeto",
     "l" -> "mire",
     "m" -> "mire",
+    "mire" -> "explore",
+    "mira" -> "mire",
     // FIXME this can instead be "no" in context
     "n" -> "norte",
     "norte" -> "vaya al norte",
@@ -82,7 +85,7 @@ object PhlebAliases
     "arriba" -> "vaya al cenit",
     "w" -> "oeste",
     "oeste" -> "vaya al oeste",
-    "x" -> "inspeccione",
+    "x" -> "estudie",
     "y" -> "sí",
     "z" -> "espere"
   )

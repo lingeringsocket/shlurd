@@ -28,12 +28,14 @@ class SnlTranslatorSpec extends Specification
   private def translate(
     s : String,
     direction : SnlTranslationDirection,
-    politenessOverride : Option[SilPoliteness]) =
+    politenessOverride : Option[SilPoliteness],
+    scorerOpt : Option[SilPhraseScorer]) =
   {
     val translator = new SnlTranslator(
       annotator,
       alignment,
-      direction)
+      direction,
+      scorerOpt)
     val context = new SprContext(
       wordLabeler = new SprWordnetLabeler(translator.sourceTongue),
       scorer = new SnlTranslatingScorer(
@@ -66,10 +68,11 @@ class SnlTranslatorSpec extends Specification
   private def checkEnglishToSpanish(
     english : String,
     spanish : String,
-    politenessOverride : Option[SilPoliteness] = None) =
+    politenessOverride : Option[SilPoliteness] = None,
+    scorerOpt : Option[SilPhraseScorer] = None) =
   {
     translate(
-      english, TRANSLATE_SECOND_TO_FIRST, politenessOverride
+      english, TRANSLATE_SECOND_TO_FIRST, politenessOverride, scorerOpt
     ) must be equalTo(
       spanish
     )
@@ -78,10 +81,11 @@ class SnlTranslatorSpec extends Specification
   private def checkSpanishToEnglish(
     english : String,
     spanish : String,
-    politenessOverride : Option[SilPoliteness] = None) =
+    politenessOverride : Option[SilPoliteness] = None,
+    scorerOpt : Option[SilPhraseScorer] = None) =
   {
     translate(
-      spanish, TRANSLATE_FIRST_TO_SECOND, politenessOverride
+      spanish, TRANSLATE_FIRST_TO_SECOND, politenessOverride, scorerOpt
     ) must be equalTo(
       english
     )
@@ -94,6 +98,31 @@ class SnlTranslatorSpec extends Specification
   {
     checkEnglishToSpanish(english, spanish, politenessOverride)
     checkSpanishToEnglish(english, spanish, politenessOverride)
+  }
+
+  private class WordPreferenceScorer(
+    nounLemma : String, verbLemma : String) extends SilPhraseScorer
+  {
+    override def computeLocalScore(phrase : SilPhrase) : SilPhraseScore =
+    {
+      phrase match {
+        case ap : SilActionPredicate => {
+          if (ap.verb.toLemma == verbLemma) {
+            SilPhraseScore.proBig
+          } else {
+            SilPhraseScore.neutral
+          }
+        }
+        case nr : SilNounReference => {
+          if (nr.noun.toNounLemma == nounLemma) {
+            SilPhraseScore.proBig
+          } else {
+            SilPhraseScore.neutral
+          }
+        }
+        case _ => SilPhraseScore.neutral
+      }
+    }
   }
 
   "SnlTranslator" should
@@ -303,6 +332,18 @@ class SnlTranslatorSpec extends Specification
       checkSpanishToEnglish(
         "it gets the axe.",
         "coge el hacha.")
+    }
+
+    "translate word sense" in
+    {
+      checkSpanishToEnglish(
+        "it throws the axe.",
+        "tira el hacha.",
+        scorerOpt = Some(new WordPreferenceScorer("axe", "throw")))
+      checkSpanishToEnglish(
+        "it pulls the hatchet.",
+        "tira el hacha.",
+        scorerOpt = Some(new WordPreferenceScorer("hatchet", "pull")))
     }
 
     "translate where" in

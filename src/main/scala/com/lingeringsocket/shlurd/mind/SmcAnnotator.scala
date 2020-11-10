@@ -133,10 +133,10 @@ object SmcAnnotator
     ref2 : SilAnnotatedReference
   ) : Unit =
   {
-    assert(ref1.getAnnotator == annotator)
-    assert(ref2.getAnnotator == annotator)
-    val note1 = annotator.getNote(ref1)
-    val note2 = annotator.getNote(ref2)
-    note1.unifyReferences(note2)
+    if ((ref1.getAnnotator == annotator) && (ref2.getAnnotator == annotator)) {
+      val note1 = annotator.getNote(ref1)
+      val note2 = annotator.getNote(ref2)
+      note1.unifyReferences(note2)
+    }
   }
 }
