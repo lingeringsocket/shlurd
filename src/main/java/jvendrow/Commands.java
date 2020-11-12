@@ -64,7 +64,7 @@ public class Commands extends PresentSubjunctive{
 
         else {
             //Uses the verb's gerund to handle certain stem changes
-            String gerund = Progressive.gerund(verb);
+            String gerund = Progressive.gerundImpl(verb);
             String withSmallChange = gerund.substring(0, gerund.length()-4);
 
             //Changes the amount removed from the verb bases on it's endings

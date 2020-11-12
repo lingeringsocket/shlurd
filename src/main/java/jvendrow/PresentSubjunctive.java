@@ -54,7 +54,7 @@ public class PresentSubjunctive extends Present{
         else {
 
             //Uses the verb's gerund to handle certain stem changes
-            String gerund = Progressive.gerund(verb);
+            String gerund = Progressive.gerundImpl(verb);
             String withSmallChange = gerund.substring(0, gerund.length()-4);
 
             //Changes the amount removed from the verb bases on it's endings
@@ -106,6 +106,8 @@ public class PresentSubjunctive extends Present{
         iregs.put("rehusar", new String[]{"rehúse","rehúses","rehúse","rehusemos","rehuséis","rehúsen","rehusando"});
         iregs.put("oler", new String[]{"huela","huelas","huela","olamos","oláis","huelan"});
         iregs.put("torcer", new String[]{"tuerza","tuerzas","tuerza","torzamos","torzáis","tuerzan"});
+        iregs.put("retorcer", new String[]{"retuerza","retuerzas","retuerza","retorzamos","retorzáis","retuerzan"});
+        iregs.put("destorcer", new String[]{"destuerza","destuerzas","destuerza","destorzamos","destorzáis","destuerzan"});
         iregs.put("tropezar", new String[]{"tropiece","tropieces","tropiece","tropecemos","tropezéis","tropiecen","tropezando"});
         iregs.put("guar", new String[]{"üe", "ües", "üe", "üemos", "üéis", "üen"});
     }

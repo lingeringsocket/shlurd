@@ -334,7 +334,7 @@ class SnlTranslatorSpec extends Specification
         "coge el hacha.")
     }
 
-    "translate word sense" in
+    "translate preferred word sense" in
     {
       checkSpanishToEnglish(
         "it throws the axe.",

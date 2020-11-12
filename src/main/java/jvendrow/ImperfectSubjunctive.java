@@ -35,6 +35,12 @@ public class ImperfectSubjunctive extends Tense{
         else if(verb.equals("reir")) {
             return print(conjugation, "r", endingsE, pn);
         }
+        else if(verb.equals("estar")) {
+            return print(conjugation, "estuvi", era, pn);
+        }
+        else if(verb.equals("andar")) {
+            return print(conjugation, "anduvi", era, pn);
+        }
 
         //Checks if a verb or any subsections of it are irregular
         else if(checkForIreg(verb, iregRoots) >= 0) {

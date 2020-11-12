@@ -44,6 +44,6 @@ public class SpanishVerbConjugator extends Endings
         if(Tense.end(conjugation.verb) == 'í') {
             conjugation.verb = Tense.root(conjugation.verb) + "ir";
         }
-        return tense.conjugate(conjugation);
+        return Tense.fixOrthography(tense.conjugate(conjugation));
     }
 }

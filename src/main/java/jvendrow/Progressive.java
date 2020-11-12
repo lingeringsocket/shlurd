@@ -37,6 +37,10 @@ public class Progressive extends Tense {
 
     //Finds the gerund of a verb
     public static String gerund(String verb) {
+        return fixOrthography(gerundImpl(verb));
+    }
+
+    static String gerundImpl(String verb) {
         if(verb.equals("ir")) {
             return "yendo";
         }

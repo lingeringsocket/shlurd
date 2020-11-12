@@ -252,6 +252,7 @@ case object TENSE_INFINITIVE extends SilTense
 sealed trait SilAspect
 case object ASPECT_SIMPLE extends SilAspect
 case object ASPECT_PROGRESSIVE extends SilAspect
+case object ASPECT_IMPERFECT extends SilAspect
 
 sealed trait SilDeicticAxis
 case object DEICTIC_PERSONAL extends SilDeicticAxis

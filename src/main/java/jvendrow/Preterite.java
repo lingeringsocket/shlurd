@@ -80,7 +80,6 @@ public class Preterite extends Tense{
         else if(verb.substring(verb.length()-4).equals("guar")) {
             return print(conjugation, verb.substring(0, verb.length()-3), iregs.get("guar"), pn);
         }
-
         else {
             return print(conjugation, verb, verb, root(carGarZar(verb)), endings, pn);
         }
@@ -123,7 +122,6 @@ public class Preterite extends Tense{
         iregsMap.put("freir", new String[] {"freí", "freíste", "frió", "freímos", "freísteis", "frieron"});
         iregsMap.put("criar", new String[] {"crié", "criaste", "crio", "criamos", "criasteis", "criaron"});
         iregsMap.put("guiar", new String[] {"guie", "guiaste", "guio", "guiamos", "guiasteis", "guiaron"});
-        iregsMap.put("gruñir", new String[] {"gruñí", "gruñiste", "gruñó", "gruñimos", "gruñisteis", "gruñeron"});
         iregsMap.put("reñir", new String[] {"reñí", "reñiste", "riñó", "reñimos", "reñisteis", "riñeron"});
         iregsMap.put("teñir", new String[] {"teñí", "teñiste", "tiñó", "teñimos", "teñisteis", "tiñeron"});
         iregsMap.put("tañer", new String[] {"tañí", "tañiste", "tañó", "tañimos", "tañisteis", "tañeron"});

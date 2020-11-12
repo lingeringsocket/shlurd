@@ -496,7 +496,7 @@ class SnlSpanishVerbSpec extends Specification
     "parse imperative matrix" >>
     {
       Fragment.foreach(
-        Seq(LEMMA_SER, LEMMA_ESTAR, LEMMA_TENER, "ejecutar").flatMap(
+        Seq(LEMMA_SER, LEMMA_ESTAR, LEMMA_TENER, "decapitar").flatMap(
           imperativeSeq)
       ) {
         case (
@@ -505,7 +505,7 @@ class SnlSpanishVerbSpec extends Specification
           val input = generateInput(
             subject, rhs, lemma, tam, None)
           "in command: " + input >> {
-            if (lemma != "ejecutar") {
+            if (lemma != "decapitar") {
               skipped("not ready for prime time")
             }
             parse(input) must be equalTo ParsedVerb(

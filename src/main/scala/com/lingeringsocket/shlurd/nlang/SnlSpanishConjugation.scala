@@ -71,13 +71,15 @@ object SnlSpanishConjugation
     Seq(COUNT_SINGULAR, COUNT_PLURAL)
   private val allTenses =
     Seq(TENSE_PRESENT, TENSE_PAST, TENSE_FUTURE)
-  private val allAspects =
+  private val nonImperfectAspects =
     Seq(ASPECT_SIMPLE, ASPECT_PROGRESSIVE)
+  private val someMoods =
+    Seq(MOOD_INDICATIVE, MOOD_SUBJUNCTIVE)
 
-  private val validCoords = allPersons.flatMap(person => {
+  val validCoords = allPersons.flatMap(person => {
     allCounts.flatMap(count => {
       allTenses.flatMap(tense => {
-        allAspects.map(aspect => {
+        nonImperfectAspects.map(aspect => {
           SnlSpanishConjugationCoord(
             person, count, tense, MOOD_INDICATIVE, aspect)
         })
@@ -86,19 +88,33 @@ object SnlSpanishConjugation
   }) ++ allCounts.map(count => {
     SnlSpanishConjugationCoord(
       PERSON_THIRD, count, TENSE_PRESENT, MOOD_IMPERATIVE, ASPECT_SIMPLE)
-  }) ++ allCounts.map(count => {
-    SnlSpanishConjugationCoord(
-      PERSON_SECOND, count, TENSE_PRESENT, MOOD_SUBJUNCTIVE, ASPECT_SIMPLE)
   }) ++ Seq(
     SnlSpanishConjugationCoord(
       PERSON_SECOND, COUNT_PLURAL, TENSE_PRESENT,
-      MOOD_IMPERATIVE, ASPECT_SIMPLE)
-  )
+      MOOD_IMPERATIVE, ASPECT_SIMPLE
+    )
+  ) ++ allPersons.flatMap(person => {
+    allCounts.flatMap(count => {
+      allTenses.flatMap(tense => {
+        nonImperfectAspects.map(aspect => {
+          SnlSpanishConjugationCoord(
+            person, count, tense, MOOD_SUBJUNCTIVE, aspect)
+        })
+      })
+    })
+  }) ++ allPersons.flatMap(person => {
+    allCounts.flatMap(count => {
+      someMoods.map(mood => {
+        SnlSpanishConjugationCoord(
+          person, count, TENSE_PAST, mood, ASPECT_IMPERFECT)
+      })
+    })
+  })
 
-  private def isValidInfinitive(infinitive : String) : Boolean =
+  def isValidInfinitive(infinitive : String) : Boolean =
   {
     infinitive.endsWith("ar") || infinitive.endsWith("er") ||
-      infinitive.endsWith("ir")
+      infinitive.endsWith("ir") || infinitive.endsWith("ír")
   }
 
   def conjugateGerund(
@@ -123,7 +139,8 @@ object SnlSpanishConjugation
 
   def conjugateVerb(
     infinitive : String,
-    coord : SnlSpanishConjugationCoord) : String =
+    coord : SnlSpanishConjugationCoord,
+    fillCache : Boolean = false) : String =
   {
     if ((coord.tense == TENSE_INFINITIVE) || !isValidInfinitive(infinitive)) {
       return infinitive
@@ -172,6 +189,10 @@ object SnlSpanishConjugation
                 }
               }
             }
+            case ASPECT_IMPERFECT => {
+              // FIXME there are many more variations...
+              SpanishVerbConjugator.imperfect
+            }
           }
         }
       }
@@ -185,7 +206,7 @@ object SnlSpanishConjugation
       SpanishVerbConjugator.conjugate(
         infinitive, spanishTense, iPerson, (coord.count != COUNT_SINGULAR))
     val key = tupleN(infinitive, conjugated)
-    if (!cache.contains(key)) {
+    if (fillCache && !cache.contains(key)) {
       cache.put(key, coord)
     }
     conjugated
@@ -197,7 +218,7 @@ object SnlSpanishConjugation
   {
     cache.get(tupleN(infinitive, conjugated)).orElse {
       validCoords.foreach(coord => {
-        conjugateVerb(infinitive, coord)
+        conjugateVerb(infinitive, coord, true)
       })
       cache.get(tupleN(infinitive, conjugated))
     }

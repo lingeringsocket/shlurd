@@ -70,6 +70,7 @@ public class Present extends Tense{
         yoChange.put("caber", "quepo");
         yoChange.put("regir", "rijo");
         yoChange.put("elegir", "elijo");
+        yoChange.put("colegir", "colijo");
         yoChange.put("tinguir", "tingo");
         yoChange.put("oir", "oigo");
         yoChange.put("gir", "jo");
@@ -79,6 +80,9 @@ public class Present extends Tense{
         yoChange.put("satisfacer", "satisfago");
 
         iregsPresent.put("haber", new String[] {"he", "has", "ha", "hemos", "habéis", "han"});
+        iregsPresent.put("cocer", new String[] {"cuezo", "cueces", "cuece", "cocemos", "cocéis", "cuecen"});
+        iregsPresent.put("recocer", new String[] {"recuezo", "recueces", "recuece", "recocemos", "recocéis", "recuecen"});
+        iregsPresent.put("descocer", new String[] {"descuezo", "descueces", "descuece", "descocemos", "descocéis", "descuecen"});
         iregsPresent.put("oler", new String[] {"huelo", "hueles", "huele", "olemos", "oléis", "huelen"});
         iregsPresent.put("estar", new String[] {"estoy", "estás", "está", "estamos", "estáis", "están"});
         iregsPresent.put("errar", new String[] {"yerro", "yerras", "yerra", "erramos", "erráis", "yerran"});

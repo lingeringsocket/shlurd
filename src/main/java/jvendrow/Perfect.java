@@ -72,21 +72,44 @@ public class Perfect extends Tense {
     //Fills the HashMap of irregular past participles
     private void fillParticiples() {
         participleIregs.put("abrir", "abierto");
+        participleIregs.put("jabrir", "jabrido");
+        participleIregs.put("ejabrir", "ejabrido");
         participleIregs.put("cubrir", "cubierto");
         participleIregs.put("decir", "dicho");
         participleIregs.put("bendecir", "bendito");
+        participleIregs.put("maldecir", "maldito");
         participleIregs.put("escribir", "escrito");
+        participleIregs.put("inscribir", "inscrito");
+        participleIregs.put("preinscribir", "preinscrito");
+        participleIregs.put("proscribir", "proscrito");
+        participleIregs.put("circunscribir", "circunscrito");
+        participleIregs.put("adscribir", "adscrito");
+        participleIregs.put("subscribir", "subscrito");
+        participleIregs.put("suscribir", "suscrito");
+        participleIregs.put("transcribir", "transcrito");
+        participleIregs.put("trascribir", "trascrito");
+        participleIregs.put("manuscribir", "manuscrito");
         participleIregs.put("freír", "frito");
         participleIregs.put("hacer", "hecho");
         participleIregs.put("satisfacer", "satisfecho");
         participleIregs.put("morir", "muerto");
         participleIregs.put("poner", "puesto");
+        participleIregs.put("pudrir", "podrido");
+        participleIregs.put("repudrir", "repodrido");
         participleIregs.put("resolver", "resuelto");
         participleIregs.put("romper", "roto");
+        participleIregs.put("corromper", "corrompido");
         participleIregs.put("ver", "visto");
         participleIregs.put("prever", "previsto");
         participleIregs.put("volver", "vuelto");
+        participleIregs.put("desvolver", "desvuelto");
+        participleIregs.put("envolver", "envuelto");
+        participleIregs.put("desenvolver", "desenvuelto");
+        participleIregs.put("arrevolver", "arrevuelto");
         participleIregs.put("devolver", "devuelto");
+        participleIregs.put("revolver", "revuelto");
         participleIregs.put("solver", "suelto");
+        participleIregs.put("disolver", "disuelto");
+        participleIregs.put("absolver", "absuelto");
     }
 }
