@@ -89,6 +89,14 @@ OK.
 
 Ello está en la habitación.
 
+> coge el hacha
+
+OK.
+
+> suelta el hacha
+
+OK.
+
 > vaya al este
 
 OK.
