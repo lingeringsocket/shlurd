@@ -258,12 +258,10 @@ class SnlSpanishConjugationSpec extends Specification
         ).toSet
       }
 
-      val coords = SnlSpanishConjugation.validCoords.filter(coord => {
-        (coord.aspect != ASPECT_PROGRESSIVE) && !(
-          (coord.mood == MOOD_IMPERATIVE) &&
-            (coord.person == PERSON_SECOND) &&
-            (coord.count == COUNT_PLURAL)
-        )
+      val coords = SnlSpanishConjugation.fundamentalCoords.filterNot(coord => {
+        (coord.mood == MOOD_IMPERATIVE) &&
+        (coord.person == PERSON_SECOND) &&
+        (coord.count == COUNT_PLURAL)
       })
 
       val ignored = untriaged ++ obscure

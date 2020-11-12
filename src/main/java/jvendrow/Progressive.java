@@ -1,43 +1,9 @@
 package jvendrow;
 
-public class Progressive extends Tense {
-    private String type;
-    private String[] present = {"estoy", "estás", "está", "estamos", "estáis",  "están"};
-    private String[] imperfect = {"estaba", "estabas", "estaba", "estábamos", "estabais", "estaban"};
-    private String[] preterite = {"estuve", "estuviste", "estuvo", "estuvimos", "estuvisteis", "estuvieron"};
-    private String[] future = {"estaré", "estarás", "estará", "estaremos", "estaréis", "estarán"};
-
-    public Progressive(String type) {
-        super(noEndings);
-        this.type = type;
-    }
-
-    //Conjugates verbs in the Progressive tenses and handles irregular verbs
-    public String conjugate(Conjugation conjugation) {
-        String verb = conjugation.verb;
-        int pn = conjugation.pn;
-        //Identified between the Present and Past progressive
-        if(type.equals("Present")) {
-            return print(conjugation, present, verb, pn);
-        } else if(type.equals("Imperfect")) {
-            return print(conjugation, imperfect, verb, pn);
-        } else if(type.equals("Preterite")) {
-            return print(conjugation, preterite, verb, pn);
-        } else if(type.equals("Future")) {
-            return print(conjugation, future, verb, pn);
-        } else {
-            return "";
-        }
-    }
-
-    //Print method for the progressive tense
-    private String print(Conjugation conjugation, String[] estar, String verb, int i) {
-        return(conjugation.toBeReflexive[i] + estar[i] + " " + gerund(verb));
-    }
-
+public class Progressive {
     //Finds the gerund of a verb
     public static String gerund(String verb) {
-        return fixOrthography(gerundImpl(verb));
+        return Tense.fixOrthography(gerundImpl(verb));
     }
 
     static String gerundImpl(String verb) {
@@ -88,7 +54,7 @@ public class Progressive extends Tense {
             //Finds the first o from the end to replace with u
             for(int i = verb.length()-3; i >= 0; i--) {
                 if(verb.charAt(i) == 'o') {
-                    String subst = stemChangeU(verb, i);
+                    String subst = Tense.stemChangeU(verb, i);
                     verb = Tense.changeValue(verb, subst, i);
                 }
             }

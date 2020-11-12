@@ -22,6 +22,8 @@ import jvendrow._
 import scala.collection._
 import scala.collection.concurrent._
 
+import SnlSpanishLemmas._
+
 case class SnlSpanishConjugationCoord(
   person : SilPerson,
   count : SilCount,
@@ -71,18 +73,14 @@ object SnlSpanishConjugation
     Seq(COUNT_SINGULAR, COUNT_PLURAL)
   private val allTenses =
     Seq(TENSE_PRESENT, TENSE_PAST, TENSE_FUTURE)
-  private val nonImperfectAspects =
-    Seq(ASPECT_SIMPLE, ASPECT_PROGRESSIVE)
   private val someMoods =
     Seq(MOOD_INDICATIVE, MOOD_SUBJUNCTIVE)
 
-  val validCoords = allPersons.flatMap(person => {
+  val fundamentalCoords = allPersons.flatMap(person => {
     allCounts.flatMap(count => {
-      allTenses.flatMap(tense => {
-        nonImperfectAspects.map(aspect => {
-          SnlSpanishConjugationCoord(
-            person, count, tense, MOOD_INDICATIVE, aspect)
-        })
+      allTenses.map(tense => {
+        SnlSpanishConjugationCoord(
+          person, count, tense, MOOD_INDICATIVE, ASPECT_SIMPLE)
       })
     })
   }) ++ allCounts.map(count => {
@@ -95,11 +93,9 @@ object SnlSpanishConjugation
     )
   ) ++ allPersons.flatMap(person => {
     allCounts.flatMap(count => {
-      allTenses.flatMap(tense => {
-        nonImperfectAspects.map(aspect => {
-          SnlSpanishConjugationCoord(
-            person, count, tense, MOOD_SUBJUNCTIVE, aspect)
-        })
+      allTenses.map(tense => {
+        SnlSpanishConjugationCoord(
+          person, count, tense, MOOD_SUBJUNCTIVE, ASPECT_SIMPLE)
       })
     })
   }) ++ allPersons.flatMap(person => {
@@ -131,7 +127,7 @@ object SnlSpanishConjugation
     infinitive : String) : String =
   {
     if (isValidInfinitive(infinitive)) {
-      SpanishVerbConjugator.presentPerfect.pastParticiple(infinitive)
+      Perfect.pastParticiple(infinitive)
     } else {
       infinitive
     }
@@ -163,7 +159,7 @@ object SnlSpanishConjugation
         }
         case _ => {
           coord.aspect match {
-            case ASPECT_SIMPLE => {
+            case ASPECT_SIMPLE | ASPECT_PROGRESSIVE => {
               coord.tense match {
                 case TENSE_PAST => {
                   SpanishVerbConjugator.preterite
@@ -173,19 +169,6 @@ object SnlSpanishConjugation
                 }
                 case _ => {
                   SpanishVerbConjugator.present
-                }
-              }
-            }
-            case ASPECT_PROGRESSIVE => {
-              coord.tense match {
-                case TENSE_PAST => {
-                  SpanishVerbConjugator.preteriteProgressive
-                }
-                case TENSE_FUTURE => {
-                  SpanishVerbConjugator.futureProgressive
-                }
-                case _ => {
-                  SpanishVerbConjugator.presentProgressive
                 }
               }
             }
@@ -202,9 +185,20 @@ object SnlSpanishConjugation
       case PERSON_SECOND => 1
       case PERSON_THIRD => 2
     }
+    val (firstVerb, secondVerbOpt) = coord.aspect match {
+      case ASPECT_PROGRESSIVE => {
+        tupleN(LEMMA_ESTAR, Some(conjugateGerund(infinitive)))
+      }
+      case _ => {
+        tupleN(infinitive, None)
+      }
+    }
     val conjugated =
       SpanishVerbConjugator.conjugate(
-        infinitive, spanishTense, iPerson, (coord.count != COUNT_SINGULAR))
+        firstVerb, spanishTense, iPerson, (coord.count != COUNT_SINGULAR)
+      ) + (
+        secondVerbOpt.map(v => s" $v").getOrElse("")
+      )
     val key = tupleN(infinitive, conjugated)
     if (fillCache && !cache.contains(key)) {
       cache.put(key, coord)
@@ -217,7 +211,7 @@ object SnlSpanishConjugation
   ) : Option[SnlSpanishConjugationCoord] =
   {
     cache.get(tupleN(infinitive, conjugated)).orElse {
-      validCoords.foreach(coord => {
+      fundamentalCoords.foreach(coord => {
         conjugateVerb(infinitive, coord, true)
       })
       cache.get(tupleN(infinitive, conjugated))
