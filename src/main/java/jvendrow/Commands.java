@@ -4,13 +4,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public class Commands extends PresentSubjunctive{
-    private String type;
-
-    private static final String NO = "no ";
-
-    public Commands(String[] endingsA, String[] endingsE, String[] endingsI, String type) {
+    public Commands(String[] endingsA, String[] endingsE, String[] endingsI) {
         super(endingsA, endingsE, endingsI);
-        this.type = type;
         fillMapCommands();
     }
 
@@ -21,19 +16,14 @@ public class Commands extends PresentSubjunctive{
         String stemChange = stemChange(verb);
         String[] endings = endingsAEI(verb);
 
-        //Checks if the verb is positive, reflexive, and irregular to handle reflexive irregulars
-        if(type.equals("Positive") && posIregsReflexive.containsKey(verb) && !conjugation.toBeReflexive[0].equals("")) {
+        //Handle reflexive irregulars
+        if(posIregsReflexive.containsKey(verb) && !conjugation.toBeReflexive[0].equals("")) {
             return printIregs(conjugation, "", posIregsReflexive.get(verb), false, pn);
         }
 
-        ////Checks if the verb is irregular and the Commands should be Positive
-        else if(type.equals("Positive") && posIregs.containsKey(verb)) {
+        ////Checks if the verb is irregular
+        else if(posIregs.containsKey(verb)) {
             return printIregs(conjugation, "", posIregs.get(verb), true, pn);
-        }
-
-        //Checks if the verb is irregular and the Commands should be Negative
-        else if(type.equals("Negative") && iregs.containsKey(verb)) {
-            return printIregs(conjugation, NO, Arrays.copyOfRange(iregs.get(verb), 1, 6), true, pn);
         }
 
         //Checks if a verb or any subsections of it have change matching that of the first person in the Present Tense
@@ -81,25 +71,8 @@ public class Commands extends PresentSubjunctive{
         }
     }
 
-    //Separates between positive and negative commands
-    private String print(Conjugation conjugation, String stemChange, String verb, String originalVerb, String gerund, String[] ends, int pn) {
-        if(type.equals("Positive")) {
-            return printPositive(conjugation, stemChange, verb, originalVerb, gerund, ends, pn);
-        } else {
-            return printNegative(conjugation, stemChange, verb, gerund, ends, pn);
-        }
-    }
-    //Separates between positive and negative commands for words with a change matching that of the Present tense first person
-    protected String printYo(Conjugation conjugation, String beginning, String verb, String stemChange, String[] ends, int pn) {
-        if(type.equals("Positive")) {
-            return printYoPositive(conjugation, beginning, verb, stemChange, ends, pn);
-        } else {
-            return printYoNegative(conjugation, beginning, stemChange, ends, pn);
-        }
-    }
-
-    //Prints positive commands with reflexive pronouns at the end of the verb and handles various slight changes
-    private String printPositive(Conjugation conjugation, String stemChange, String verb, String originalVerb, String withSmallChange, String[] ends, int i) {
+    //Prints commands with reflexive pronouns at the end of the verb and handles various slight changes
+    private String print(Conjugation conjugation, String stemChange, String verb, String originalVerb, String withSmallChange, String[] ends, int i) {
         if(i == 1) {
             //Checks if the ending of the verb is uir due to an exception
 
@@ -154,21 +127,8 @@ public class Commands extends PresentSubjunctive{
         }
     }
 
-    //Prints negative commands and handles various slight changes
-    private String printNegative(Conjugation conjugation, String stemChange, String verb, String withSmallChange, String[] ends, int i) {
-        if(i == 0) {
-            return "";
-        } else if(i == 1) {
-            return(NO + conjugation.toBeReflexive[i] + stemChange + ends[1]);
-        } else if(i == 3 || i == 4) {
-            return(NO + conjugation.toBeReflexive[i] + withSmallChange + ends[i]);
-        } else {
-            return(NO + conjugation.toBeReflexive[i] + stemChange + ends[i]);
-        }
-    }
-
-    //Prints positive commands with a change matching the first person of the Present tense and handles various slight changes
-    private String printYoPositive(Conjugation conjugation, String beginning, String verb, String stemChange, String[] ends, int i) {
+    //Prints commands with a change matching the first person of the Present tense and handles various slight changes
+    protected String printYo(Conjugation conjugation, String beginning, String verb, String stemChange, String[] ends, int i) {
         if(i == 1) {
             //Checks if the verb is irregular in the first person
             if(yoIreg.containsKey(verb)) {
@@ -205,16 +165,6 @@ public class Commands extends PresentSubjunctive{
             }
         } else {
             return(endReflexive(conjugation, beginning + stemChange.substring(0, stemChange.length()-1)) + ends[i] + conjugation.toBeReflexive[i]);
-        }
-    }
-
-    //Prints negative commands with a change matching the first person of the Present tense and handles various slight changes
-    private String printYoNegative(Conjugation conjugation, String beginning, String stemChange, String[] ends, int i) {
-        if(i == 1) {
-            return(NO + conjugation.toBeReflexive[i] + beginning + stemChange.substring(0, stemChange.length()-1) + ends[i]);
-        }
-        else {
-            return(NO + conjugation.toBeReflexive[i] + beginning + stemChange.substring(0, stemChange.length()-1) + ends[i]);
         }
     }
 

@@ -145,7 +145,7 @@ object SnlSpanishConjugation
     val spanishTense = {
       coord.mood match {
         case MOOD_IMPERATIVE => {
-          SpanishVerbConjugator.commandsPositive
+          SpanishVerbConjugator.commands
         }
         case MOOD_SUBJUNCTIVE => {
           coord.tense match {

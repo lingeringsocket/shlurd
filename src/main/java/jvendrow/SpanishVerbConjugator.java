@@ -9,8 +9,7 @@ public class SpanishVerbConjugator extends Endings
     public static Conditional conditionalSimple = new Conditional(conditional);
     public static PresentSubjunctive presentSubjunctive = new PresentSubjunctive(subjunctiveAr, subjunctiveErIr, subjunctiveErIr);
     public static ImperfectSubjunctive imperfectSubjunctive = new ImperfectSubjunctive(imperfectSubjunctiveAr, imperfectSubjunctiveErIr, imperfectSubjunctiveErIr);
-    public static Commands commandsPositive = new Commands(subjunctiveAr, subjunctiveErIr, subjunctiveErIr, "Positive");
-    public static Commands commandsNegative = new Commands(subjunctiveAr, subjunctiveErIr, subjunctiveErIr, "Negative");
+    public static Commands commands = new Commands(subjunctiveAr, subjunctiveErIr, subjunctiveErIr);
 
     public static String conjugate(
         String infinitive, Tense tense, int person, boolean plural)
