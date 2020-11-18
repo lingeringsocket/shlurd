@@ -17,7 +17,7 @@ package com.lingeringsocket.shlurd.nlang
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 
-import jvendrow._
+import com.lingeringsocket.morphala.spanish._
 
 import scala.collection._
 import scala.collection.concurrent._
@@ -117,7 +117,7 @@ object SnlSpanishConjugation
     infinitive : String) : String =
   {
     if (isValidInfinitive(infinitive)) {
-      Progressive.gerund(infinitive)
+      SpanishGerund.gerund(infinitive)
     } else {
       infinitive
     }
@@ -127,7 +127,7 @@ object SnlSpanishConjugation
     infinitive : String) : String =
   {
     if (isValidInfinitive(infinitive)) {
-      Perfect.pastParticiple(infinitive)
+      SpanishParticiple.pastParticiple(infinitive)
     } else {
       infinitive
     }
@@ -144,38 +144,23 @@ object SnlSpanishConjugation
     // FIXME all the tams
     val spanishTense = {
       coord.mood match {
-        case MOOD_IMPERATIVE => {
-          SpanishVerbConjugator.commands
-        }
+        case MOOD_IMPERATIVE => SpanishImperative
         case MOOD_SUBJUNCTIVE => {
           coord.tense match {
-            case TENSE_PAST => {
-              SpanishVerbConjugator.imperfectSubjunctive
-            }
-            case _ => {
-              SpanishVerbConjugator.presentSubjunctive
-            }
+            case TENSE_PAST => SpanishImperfectSubjunctive
+            case _ => SpanishPresentSubjunctive
           }
         }
         case _ => {
           coord.aspect match {
             case ASPECT_SIMPLE | ASPECT_PROGRESSIVE => {
               coord.tense match {
-                case TENSE_PAST => {
-                  SpanishVerbConjugator.preterite
-                }
-                case TENSE_FUTURE => {
-                  SpanishVerbConjugator.futureSimple
-                }
-                case _ => {
-                  SpanishVerbConjugator.present
-                }
+                case TENSE_PAST => SpanishPreterite
+                case TENSE_FUTURE => SpanishFutureIndicative
+                case _ => SpanishPresentIndicative
               }
             }
-            case ASPECT_IMPERFECT => {
-              // FIXME there are many more variations...
-              SpanishVerbConjugator.imperfect
-            }
+            case ASPECT_IMPERFECT => SpanishImperfectIndicative
           }
         }
       }
