@@ -18,7 +18,7 @@ install:
   - rm -f main.zip
   - wget https://github.com/lingeringsocket/morphala/archive/main.zip
   - unzip main.zip
-  - pushd morphala-main && sbt ++$TRAVIS_SCALA_VERSION clean test publishLocal && popd
+  - pushd morphala-main && sbt ++$TRAVIS_SCALA_VERSION clean compile publishLocal && popd
 
 script:
   - set -e

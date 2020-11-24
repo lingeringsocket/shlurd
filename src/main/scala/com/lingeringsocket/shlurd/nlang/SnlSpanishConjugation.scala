@@ -179,7 +179,7 @@ object SnlSpanishConjugation
       }
     }
     val conjugated =
-      SpanishVerbConjugator.conjugate(
+      SpanishMorphology.conjugateVerb(
         firstVerb, spanishTense, iPerson, (coord.count != COUNT_SINGULAR)
       ) + (
         secondVerbOpt.map(v => s" $v").getOrElse("")
