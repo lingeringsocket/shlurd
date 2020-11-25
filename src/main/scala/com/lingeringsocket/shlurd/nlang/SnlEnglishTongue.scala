@@ -18,12 +18,12 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
+import com.lingeringsocket.morphala.english._
+
 import net.sf.extjwnl.data._
 
 import scala.collection._
 import scala.jdk.CollectionConverters._
-
-import org.atteo.evo.inflector.{English => EnglishPluralizer}
 
 import SprPennTreebankLabels._
 
@@ -990,7 +990,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
 
   override def pluralizeNoun(lemma : String) : String =
   {
-    EnglishPluralizer.plural(lemma)
+    EnglishMorphology.pluralizeNoun(lemma)
   }
 
   def isPotentialPlural(noun : String) : Boolean =

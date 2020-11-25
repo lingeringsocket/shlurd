@@ -18,6 +18,8 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
+import com.lingeringsocket.morphala.spanish._
+
 import net.sf.extjwnl.data._
 
 import scala.collection._
@@ -190,10 +192,6 @@ object SnlSpanishLexicon
   val stopList = Set(
     LEMMA_ELLA, LEMMA_YO, LEMMA_NO, LEMMA_SER, LEMMA_SUS, LEMMA_AL
   ) ++ stopListPunct
-
-  val unaccentedVowels = "aeiou"
-
-  val accentedVowels = "áéíóú"
 
   val nominativeToCoord = Map(
     LEMMA_YO -> SnlPronounCoord(
@@ -1565,45 +1563,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   override def pluralizeNoun(lemma : String) : String =
   {
-    if (lemma.isEmpty) {
-      return lemma
-    }
-    val last = lemma.last
-    if (unaccentedVowels.contains(last)) {
-      lemma + "s"
-    } else if (accentedVowels.contains(last)) {
-      val i = accentedVowels.indexOf(last)
-      if ((i == 2) || (i == 4)) {
-        // í or ú
-        lemma + "es"
-      } else {
-        // á, é, or ó
-        lemma + "s"
-      }
-    } else if (lemma.endsWith("ión")) {
-      lemma.stripSuffix("ión") + "iones"
-    } else if (lemma.endsWith("z")) {
-      lemma.stripSuffix("z") + "ces"
-    } else if (lemma.endsWith("g")) {
-      lemma + "ues"
-    } else if (lemma.endsWith("c")) {
-      lemma.stripSuffix("c") + "ques"
-    } else if (lemma.endsWith("s") || lemma.endsWith("x")) {
-      val vowel = lemma.takeRight(2).head
-      val i = accentedVowels.indexOf(vowel)
-      if (i == -1) {
-        lemma
-      } else {
-        lemma.dropRight(2) + unaccentedVowels(i) + "ses"
-      }
-    } else {
-      lemma match {
-        case "carácter" => "caracteres"
-        case "espécimen" => "especímenes"
-        case "régimen" => "regímenes"
-        case _ => lemma + "es"
-      }
-    }
+    SpanishMorphology.pluralizeNoun(lemma)
   }
 
   override def getNoneCount : SilCount = COUNT_SINGULAR

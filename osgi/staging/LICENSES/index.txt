@@ -3,7 +3,7 @@ dependencies.  They are summarized below.
 
 dsinfo, dsprofile: LGPL v3
 algebra, cats, scallop, spire: MIT
-shlurd, guava, evo-inflector, ixa-pipes: Apache 2
+shlurd, morphala, guava, evo-inflector, ixa-pipes: Apache 2
 jgrapht: LGPL v2.1 or EPL
 kiama: Mozilla 2
 scala, extjwnl: 3-clause BSD

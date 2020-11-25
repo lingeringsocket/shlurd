@@ -45,7 +45,6 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-collection-contrib" % "0.2.1",
   "org.jgrapht" % "jgrapht-core" % "1.3.1",
   "org.jgrapht" % "jgrapht-io" % "1.3.1",
-  "org.atteo" % "evo-inflector" % "1.2.2",
   "com.ibm.icu" % "icu4j" % "64.2",
   "net.sf.extjwnl" % "extjwnl" % "2.0.2",
   "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
