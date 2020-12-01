@@ -69,9 +69,9 @@ class SnlWordnetAlignment(
     ) {
       source => source.getLines().flatMap(line => {
         val cols = line.split(" ")
-        assert(cols.size == 2, cols)
+        assert(cols.size == 3, cols)
         val src = cols.head
-        val target = cols.last
+        val target = cols(1)
         val posChar = src.head
         if (posChar != target.head) {
           // due to a few pos mismatches in mapping_wordnet.json
