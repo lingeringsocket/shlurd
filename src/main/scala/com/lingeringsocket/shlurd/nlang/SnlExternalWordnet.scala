@@ -26,7 +26,8 @@ class SnlExternalWordnet(
   languageCode : String
 ) extends SprWordnet
 {
-  private val dictionary = InterLingualIndex.getDictionary(wordnetSource, languageCode)
+  private val dictionary = InterLingualIndex.getDictionary(
+    wordnetSource, languageCode)
 
   private val morphology = dictionary.getMorphologicalProcessor
 
