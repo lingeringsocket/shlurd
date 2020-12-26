@@ -14,24 +14,19 @@
 // limitations under the License.
 package com.lingeringsocket.shlurd.nlang
 
-import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.parser._
 
-import net.sf.extjwnl.dictionary._
 import net.sf.extjwnl.data._
+import net.sf.extjwnl.data.mcr30.alignment._
 
 import scala.jdk.CollectionConverters._
-import scala.util._
 
 class SnlExternalWordnet(
-  propertiesPath : String
+  wordnetSource : String,
+  languageCode : String
 ) extends SprWordnet
 {
-  private val dictionary = Using.resource(
-    ResourceUtils.getResourceStream(propertiesPath)
-  ) {
-    stream => Dictionary.getInstance(stream)
-  }
+  private val dictionary = InterLingualIndex.getDictionary(wordnetSource, languageCode)
 
   private val morphology = dictionary.getMorphologicalProcessor
 

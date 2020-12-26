@@ -12,10 +12,6 @@ before_install:
   - sudo apt-get install graphviz
 
 install:
-  - wget https://github.com/lingeringsocket/extjwnl-data-mcr30-2016/archive/main.zip
-  - unzip main.zip
-  - pushd extjwnl-data-mcr30-2016-main && ./publishLocal.sh && popd
-  - rm -f main.zip
   - wget https://github.com/lingeringsocket/morphala/archive/main.zip
   - unzip main.zip
   - pushd morphala-main && sbt ++$TRAVIS_SCALA_VERSION clean compile publishLocal && popd

@@ -26,7 +26,7 @@ object SnlUtils
 {
   val englishWordnet = SnlPrincetonWordnet
 
-  lazy val spanishWordnet = new SnlExternalWordnet("/extjwnl_data_spa.xml")
+  lazy val spanishWordnet = new SnlExternalWordnet("mcr30", "spa")
 
   val defaultWordnet : SprWordnet = englishWordnet
 

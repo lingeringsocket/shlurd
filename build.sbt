@@ -48,7 +48,8 @@ libraryDependencies ++= Seq(
   "com.ibm.icu" % "icu4j" % "64.2",
   "net.sf.extjwnl" % "extjwnl" % "2.0.2",
   "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
-  "com.lingeringsocket" % "extjwnl-data-mcr30-2016" % "0.0.1",
+  "net.sf.extjwnl.mcr" % "extjwnl-data-spa-mcr30" % "0.0.1-SNAPSHOT",
+  "net.sf.extjwnl.mcr" % "extjwnl-data-alignment-mcr30" % "0.0.1-SNAPSHOT",
   "com.lingeringsocket" %% "morphala" % "0.1-SNAPSHOT",
   "eus.ixa" % "ixa-pipe-ml" % "0.0.8" exclude("net.sourceforge.argparse4j", "argparse4j") exclude("com.google.guava", "guava") exclude("org.jdom", "jdom2") exclude("org.carrot2", "morfologik-stemming") exclude("org.apache.opennlp", "opennlp-tools")
 )

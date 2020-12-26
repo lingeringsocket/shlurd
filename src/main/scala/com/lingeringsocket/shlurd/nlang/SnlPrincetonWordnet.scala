@@ -16,14 +16,14 @@ package com.lingeringsocket.shlurd.nlang
 
 import com.lingeringsocket.shlurd.parser._
 
-import net.sf.extjwnl.dictionary._
 import net.sf.extjwnl.data._
+import net.sf.extjwnl.data.mcr30.alignment._
 
 import scala.collection._
 
 object SnlPrincetonWordnet extends SprWordnet
 {
-  private val dictionary = Dictionary.getDefaultResourceInstance
+  private val dictionary = InterLingualIndex.getDictionary("wn31", "eng")
 
   private val morphology = dictionary.getMorphologicalProcessor
 
