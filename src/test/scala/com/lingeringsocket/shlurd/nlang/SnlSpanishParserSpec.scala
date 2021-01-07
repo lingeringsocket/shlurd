@@ -59,6 +59,14 @@ class SnlSpanishParserSpec extends Specification
 
   private val VERB_HAY = SilWord("hay", LEMMA_HABER)
 
+  private val VERB_AFEITO_ME = SilWord("afeito", "afeitarse")
+
+  private val VERB_AFEITAS_TE = SilWord("afeitas", "afeitarse")
+
+  private val VERB_AFEITA_SE = SilWord("afeita", "afeitarse")
+
+  private val VERB_AFEITAMOS_NOS = SilWord("afeitamos", "afeitarse")
+
   private val STATE_TRISTE = SilWord("triste")
 
   private def parse(input : String) =
@@ -299,6 +307,49 @@ class SnlSpanishParserSpec extends Specification
             ),
             VERB_BESA,
             Some(annotator.nounRef(NOUN_PEDRO))
+          )
+        )
+    }
+
+    "parse reflexives" in
+    {
+      parse("nos afeitamos") must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_PLURAL, PROXIMITY_ELIDED),
+            VERB_AFEITAMOS_NOS
+          )
+        )
+      parse("me afeito") must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR, PROXIMITY_ELIDED),
+            VERB_AFEITO_ME
+          )
+        )
+      parse("te afeitas") must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR, PROXIMITY_ELIDED),
+            VERB_AFEITAS_TE
+          )
+        )
+      parse("nosotros nos afeitamos") must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_MASCULINE, COUNT_PLURAL),
+            VERB_AFEITAMOS_NOS
+          )
+        )
+      parse("Pedro se afeita") must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.nounRef(NOUN_PEDRO),
+            VERB_AFEITA_SE
           )
         )
     }

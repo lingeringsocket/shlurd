@@ -69,6 +69,16 @@ class SnlSpanishSentencePrinterSpec
       expectNormalized("ella besa Juan", "ella besa a Juan.")
       expectStatement("ella besa a Juan")
 
+      // reflexive verbs
+      expectStatement("me afeito")
+      expectStatement("te afeitas")
+      expectStatement("yo me afeito")
+      expectStatement("nos afeitamos")
+      expectStatement("nosotros nos afeitamos")
+      expectStatement("Pedro se afeita")
+      expectStatement("ellos se afeitan")
+
+      // commands
       expectCommand("viva su vida")
       expectCommand("vivan sus vidas")
       expectCommand("vivid vuestras vidas")

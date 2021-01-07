@@ -138,7 +138,9 @@ object SnlSpanishConjugation
     coord : SnlSpanishConjugationCoord,
     fillCache : Boolean = false) : String =
   {
-    if ((coord.tense == TENSE_INFINITIVE) || !isValidInfinitive(infinitive)) {
+    if ((coord.tense == TENSE_INFINITIVE) || !
+      isValidInfinitive(infinitive.stripSuffix(LEMMA_SE))
+    ) {
       return infinitive
     }
     // FIXME all the tams

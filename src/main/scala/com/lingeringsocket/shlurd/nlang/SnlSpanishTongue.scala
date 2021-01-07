@@ -190,7 +190,8 @@ object SnlSpanishLexicon
   val freqs = SnlUtils.readFreqMap("/spanish/freq.txt.gz")
 
   val stopList = Set(
-    LEMMA_ELLA, LEMMA_YO, LEMMA_NO, LEMMA_SER, LEMMA_SUS, LEMMA_AL
+    LEMMA_ELLA, LEMMA_YO, LEMMA_NO, LEMMA_SER, LEMMA_SUS, LEMMA_AL,
+    LEMMA_NOS, LEMMA_ME, LEMMA_TE, LEMMA_OS
   ) ++ stopListPunct
 
   val nominativeToCoord = Map(
@@ -596,6 +597,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   ) =
   {
     Seq(
+      normalizeReflexiveVerbs(genderAnalyzer),
       normalizePersonalA(genderAnalyzer),
       normalizeContractions(annotator)
     )
@@ -1626,33 +1628,38 @@ class SnlSpanishTongue(wordnet : SprWordnet)
 
   private def scoreAgreement = phraseScorer {
     case pred : SilPredicate => {
-      val subject = pred.getSubject
-      val verbPerson = pred.getInflectedPerson
-      val verbCount = pred.getInflectedCount
-      val (person, count) = subject match {
-        case pr : SilPronounReference => {
-          if (pr.isElided) {
-            tupleN(verbPerson, verbCount)
-          } else {
-            tupleN(getEffectivePerson(pr), pr.count)
-          }
+      evaluateAgreement(pred, pred.getSubject)
+    }
+  }
+
+  private def evaluateAgreement(
+    pred : SilPredicate, ref : SilReference) : SilPhraseScore =
+  {
+    val verbPerson = pred.getInflectedPerson
+    val verbCount = pred.getInflectedCount
+    val (person, count) = ref match {
+      case pr : SilPronounReference => {
+        if (pr.isElided) {
+          tupleN(verbPerson, verbCount)
+        } else {
+          tupleN(getEffectivePerson(pr), pr.count)
         }
-        case _ => tupleN(PERSON_THIRD, SilUtils.getCount(subject))
       }
-      // maybe we'll need to check gender one day too, for like,
-      // Russian?
-      var conCount = 0
-      if (person != verbPerson) {
-        conCount += 1
-      }
-      if (count != verbCount) {
-        conCount += 1
-      }
-      if (conCount > 0) {
-        SilPhraseScore.con(conCount)
-      } else {
-        SilPhraseScore.neutral
-      }
+      case _ => tupleN(PERSON_THIRD, SilUtils.getCount(ref))
+    }
+    // maybe we'll need to check gender one day too, for like,
+    // Russian?
+    var conCount = 0
+    if (person != verbPerson) {
+      conCount += 1
+    }
+    if ((count != COUNT_MASS) && (count != verbCount)) {
+      conCount += 1
+    }
+    if (conCount > 0) {
+      SilPhraseScore.con(conCount)
+    } else {
+      SilPhraseScore.neutral
     }
   }
 
@@ -1732,6 +1739,81 @@ class SnlSpanishTongue(wordnet : SprWordnet)
       }
     }
   )
+
+  private def normalizeReflexiveVerbs(
+    genderAnalyzer : SilGenderAnalyzer
+  ) = SilPhraseReplacementMatcher(
+    "normalizeReflexiveVerbs", {
+      case ap @ SilActionPredicate(
+        subject,
+        SilSimpleWord(inflected, lemma, _),
+        Some(directObject : SilPronounReference),
+        modifiers
+      ) if (
+        !lemma.endsWith(LEMMA_SE) &&
+          isPotentialReflexive(genderAnalyzer, ap, directObject)
+      ) => {
+        SilActionPredicate(
+          subject,
+          SilWord(inflected, lemma + LEMMA_SE),
+          None,
+          modifiers
+        )
+      }
+      case ap @ SilActionPredicate(
+        subject,
+        SilSimpleWord(inflected, lemma, _),
+        None,
+        modifiers
+      ) if (
+        !lemma.endsWith(LEMMA_SE) &&
+          findDativeReflexive(genderAnalyzer, ap, modifiers).nonEmpty
+      ) => {
+        val dativeReflexive = findDativeReflexive(genderAnalyzer, ap, modifiers)
+        SilActionPredicate(
+          subject,
+          SilWord(inflected, lemma + LEMMA_SE),
+          None,
+          modifiers.filterNot(vm => (Some(vm) == dativeReflexive))
+        )
+      }
+    }
+  )
+
+  private def isPotentialReflexive(
+    genderAnalyzer : SilGenderAnalyzer,
+    predicate : SilActionPredicate,
+    pr : SilPronounReference
+  ) : Boolean =
+  {
+    if (evaluateAgreement(predicate, pr).con > 0) {
+      false
+    } else {
+      newSentencePrinter(genderAnalyzer).printPronoun(
+        pr, INFLECT_NONE, SilConjoining.NONE
+      ) match {
+        case LEMMA_ME | LEMMA_TE | LEMMA_SE | LEMMA_OS | LEMMA_NOS => true
+        case _ => false
+      }
+    }
+  }
+
+  private def findDativeReflexive(
+    genderAnalyzer : SilGenderAnalyzer,
+    predicate : SilActionPredicate,
+    modifiers : Seq[SilVerbModifier]
+  ) : Option[SilVerbModifier] =
+  {
+    modifiers.find(_ match {
+      case SilAdpositionalVerbModifier(
+        SilAdposition(SilWordLemma(LEMMA_ADPOSITION_DATIVE)),
+        pr : SilPronounReference
+      ) => {
+        isPotentialReflexive(genderAnalyzer, predicate, pr)
+      }
+      case _ => false
+    })
+  }
 
   private def correctPredicateInflection(pred : SilPredicate) : Unit =
   {
