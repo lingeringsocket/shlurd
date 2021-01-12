@@ -25,6 +25,10 @@ libraryDependencies ++= Seq(
   "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.3.0",
   "com.twitter" %% "chill" % "0.9.5",
   "com.ibm.icu" % "icu4j" % "64.2",
+  "net.sf.extjwnl" % "extjwnl" % "2.0.2",
+  "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2",
+  "net.sf.extjwnl.mcr" % "extjwnl-data-spa-mcr30" % "1.0.5",
+  "net.sf.extjwnl.mcr" % "extjwnl-data-alignment-mcr30" % "1.0.5",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-english"
