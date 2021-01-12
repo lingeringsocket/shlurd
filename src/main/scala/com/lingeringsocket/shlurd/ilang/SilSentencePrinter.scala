@@ -176,6 +176,7 @@ class SilSentencePrinter(
             )
           }
         }
+
         sb.genitivePhrase(
           qualifierString,
           print(possessee, inflection, conjoining),

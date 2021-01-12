@@ -314,8 +314,8 @@ class SnlTranslatorSpec extends Specification
     "translate modal" in
     {
       checkBidirectional(
-        "we must go.",
-        "nosotros tenemos que ir."
+        "we must see the apples.",
+        "nosotros tenemos que ver las manzanas."
       )
     }
 
@@ -332,6 +332,28 @@ class SnlTranslatorSpec extends Specification
       checkSpanishToEnglish(
         "it gets the axe.",
         "coge el hacha.")
+    }
+
+    "translate reflexives" in
+    {
+      checkBidirectional(
+        "the man shaves.",
+        "el hombre se afeita.")
+      checkBidirectional(
+        "I shave.",
+        "yo me afeito.")
+      checkEnglishToSpanish(
+        "the man shaves himself.",
+        "el hombre se afeita.")
+      checkBidirectional(
+        "the man shaves the clergyman.",
+        "el hombre afeita el sacerdote.")
+      checkBidirectional(
+        "I shave the clergyman.",
+        "yo afeito el sacerdote.")
+      checkBidirectional(
+        "the man shaves his dog.",
+        "el hombre afeita su perro.")
     }
 
     "translate preferred word sense" in
