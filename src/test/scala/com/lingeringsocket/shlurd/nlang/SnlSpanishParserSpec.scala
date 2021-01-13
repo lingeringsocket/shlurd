@@ -67,6 +67,8 @@ class SnlSpanishParserSpec extends Specification
 
   private val VERB_AFEITAMOS_NOS = SilWord("afeitamos", "afeitarse")
 
+  private val VERB_CALLA_TE = SilWord("callate", "callarse")
+
   private val STATE_TRISTE = SilWord("triste")
 
   private def parse(input : String) =
@@ -351,6 +353,22 @@ class SnlSpanishParserSpec extends Specification
             annotator.nounRef(NOUN_PEDRO),
             VERB_AFEITA_SE
           )
+        )
+    }
+
+    "parse reflexive commands" in
+    {
+      skipped("not working yet")
+      val input = "cállate"
+      parse(input) must be equalTo
+        SilPredicateSentence(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_SECOND, GENDER_SOMEONE, COUNT_SINGULAR,
+              politeness = POLITENESS_FAMILIAR),
+            VERB_CALLA_TE
+          ),
+          SilTam.imperative
         )
     }
 
