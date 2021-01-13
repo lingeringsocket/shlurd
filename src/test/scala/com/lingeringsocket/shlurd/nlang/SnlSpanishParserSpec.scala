@@ -67,7 +67,7 @@ class SnlSpanishParserSpec extends Specification
 
   private val VERB_AFEITAMOS_NOS = SilWord("afeitamos", "afeitarse")
 
-  private val VERB_CALLA_TE = SilWord("callate", "callarse")
+  private val VERB_CALLA_TE = SilWord("cállate", "callarse")
 
   private val STATE_TRISTE = SilWord("triste")
 
