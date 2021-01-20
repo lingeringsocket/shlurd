@@ -393,3 +393,44 @@ The equivalent conditions must be either states or relationships, not changes or
 I am unable to validate the belief that if a person holds a balloon, equivalently the person becomes its owner.
 ```
 (FIXME:  I don't actually know how to discriminate stative from action verbs yet)
+
+## Special Events
+
+You can tell me what to do when new objects come into existence:
+
+```
+> After a balloon instantiates, its owner is Pinkie.
+
+OK.
+
+> There is a green balloon.
+
+OK.
+
+> Who is the green balloon's owner?
+
+Pinkie.
+```
+And you can prevent instantiation when a given constraint does not hold:
+
+```
+> Before a balloon instantiates, Brain must be energetic.
+
+OK.
+
+> When a person inflates a balloon, the person becomes energetic.
+
+OK.
+
+> There is a green balloon.
+
+But Brain is not energetic.
+
+> Brain inflates the red balloon.
+
+OK.
+
+> There is a green balloon.
+
+OK.
+```
