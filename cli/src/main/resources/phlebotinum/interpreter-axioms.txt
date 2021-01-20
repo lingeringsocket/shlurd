@@ -10,3 +10,19 @@ A game-interpreter can complain.
 A game-interpreter can save.
 A game-interpreter can restore.
 A game-interpreter can terminate.
+
+When a game-interpreter invokes a game-spiel,
+ the game-interpreter invokes {the game-spiel's language-renderer in the
+ player-character's expected-language}.
+
+A game-complaint is a kind of game-spiel.
+
+When a game-interpreter complains a game-complaint,
+ the game-interpreter complains {the game-complaint's language-renderer in the
+ player-character's expected-language}.
+
+When a game-interpreter invokes a spiel-renderer,
+ the game-interpreter recites the spiel-renderer's predefined-text.
+
+When a game-interpreter complains a spiel-renderer,
+ the game-interpreter complains the spiel-renderer's predefined-text.

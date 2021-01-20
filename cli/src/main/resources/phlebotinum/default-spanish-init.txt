@@ -1,0 +1,37 @@
+Believe "/phlebotinum/default-init.txt".
+
+The bland-description yields
+"No es nada especial."
+in Generic-Spanish.
+
+The no-exit-complaint yields
+"No se puede ir por ese camino."
+in Generic-Spanish.
+
+The door-complaint yields
+"Pero la puerta no esta abierta."
+in Generic-Spanish.
+
+The already-there-complaint yields
+"Pero ya estás ahí."
+in Generic-Spanish.
+
+The no-way-complaint yields
+"No se puede llegar desde aquí."
+in Generic-Spanish.
+
+The already-held-complaint yields
+"Pero ya lo tienes."
+in Generic-Spanish.
+
+The not-present-complaint yields
+"Pero no hay tal objecto aquí."
+in Generic-Spanish.
+
+The not-held-complaint yields
+"Pero no tienes tal objeto."
+in Generic-Spanish.
+
+The continuity-assumption yields
+"Al menos asumo que ese sigue siendo el caso."
+in Generic-Spanish.

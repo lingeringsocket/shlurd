@@ -16,3 +16,4 @@ When a game-character observes an object,
  also the game-character sees the object.
 
 There is a player-character.
+The player-character's expected-language is Generic-English.

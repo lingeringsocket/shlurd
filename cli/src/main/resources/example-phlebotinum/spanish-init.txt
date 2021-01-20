@@ -1,0 +1,46 @@
+Believe "/example-phlebotinum/game-init.txt".
+Believe "/phlebotinum/default-spanish-init.txt".
+
+The game-greeting yields
+"Bienvenidos."
+in Generic-Spanish.
+
+The bedroom's place-describer yields
+"Artículos sucios de ropa interior alienígena yacen esparcidos por ahí."
+in Generic-Spanish.
+
+The bathroom's place-describer yields
+"Alguien ha escrito 'límpiame' en el espejo."
+in Generic-Spanish.
+
+The kitchen's place-describer yields
+"Es una cocina básica."
+in Generic-Spanish.
+
+The cupboard's describer yields
+"Curiosamente, el armario carece de puertas."
+in Generic-Spanish.
+
+The cupboard's place-describer yields
+"Espero que no tengas claustrofobia."
+in Generic-Spanish.
+
+The loft's place-describer yields
+"En realidad, apenas más que una buhardilla."
+in Generic-Spanish.
+
+The player-character's describer yields
+"Eres tan vanidoso."
+in Generic-Spanish.
+
+The ax's describer yields
+"El arma perfecta para un enano."
+in Generic-Spanish.
+
+The thief's describer yields
+"Maneja un estilete de aspecto perverso."
+in Generic-Spanish.
+
+The thief-death-description yields
+"La sangre salpica por todas partes."
+in Generic-Spanish.

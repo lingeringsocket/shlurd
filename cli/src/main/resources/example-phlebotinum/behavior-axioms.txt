@@ -1,9 +1,11 @@
 Believe "/example-phlebotinum/base-axioms.txt".
 
+A thief-death-description is a kind of game-spiel.
+
 After a game-character kills another game-character,
  the latter is dead.
 After a game-character kills a thief,
- the game-interpreter says "Blood splatters everywhere.".
+ the game-interpreter invokes all thief-death-descriptions.
 
 When a game-character throws a game-object,
  the game-character drops it.
@@ -32,9 +34,6 @@ After a player-character adjures an oracle,
 When a player-character ululates,
  the player-character adjures all oracles;
  also the game-interpreter says "Blood is trickling from my ears.".
-
-When the game-turn initializes,
- the game-interpreter says "Welcome to a tepid smorgasbord of nostalgia.".
 
 When the player-character kills the player-character,
  the game-interpreter says "You are now a tree forever, and not in a good way.";

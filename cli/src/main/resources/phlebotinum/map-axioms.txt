@@ -27,7 +27,10 @@ There is a zenith and a nadir.
 The zenith is the nadir's opposite-direction.
 
 A map-place is a kind of location.
-A map-place's place-description must be an spc-string.
+A map-place's place-describer must be a game-spiel.
+A map-place must have one place-describer.
+After a map-place instantiates, it has a place-describer.
+
 A map-connection is a kind of describable-entity.
 A straight-connection is a kind of map-connection.
 

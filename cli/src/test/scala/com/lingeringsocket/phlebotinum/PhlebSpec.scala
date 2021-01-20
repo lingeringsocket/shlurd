@@ -49,25 +49,29 @@ class PhlebSpec extends Specification
     {
       testScript(
         "phlebotinum-spanish-script.txt",
-        Some(PhlebSpanishTranslator))
+        Some(PhlebSpanishTranslator),
+        Some("the player-character's expected-language is Generic-Spanish"))
     }
   }
 
   private def testScript(
     fileName : String,
-    translatorOpt : Option[PhlebTranslator] = None) =
+    translatorOpt : Option[PhlebTranslator] = None,
+    initCommandOpt : Option[String] = None) =
   {
     // preload
     PhlebBaseline.frozenCosmos
 
-    val terminal = new PhlebTestTerminal(fileName, translatorOpt)
+    val terminal = new PhlebTestTerminal(
+      fileName, translatorOpt, initCommandOpt)
     PhlebShell.run("/example-phlebotinum/", terminal)
     terminal.nextScriptLine must beEmpty
   }
 
   class PhlebTestTerminal(
     fileName : String,
-    translatorOpt : Option[PhlebTranslator] = None
+    translatorOpt : Option[PhlebTranslator] = None,
+    initCommandOpt : Option[String] = None
   ) extends PhlebTerminal
   {
     private val script = Using.resource(Source.fromFile(
@@ -134,6 +138,11 @@ class PhlebSpec extends Specification
     override def getTranslatorOpt =
     {
       translatorOpt
+    }
+
+    override def getInitCommandOpt : Option[String] =
+    {
+      initCommandOpt
     }
 
     def nextScriptLine : Option[(String, Int)] = {

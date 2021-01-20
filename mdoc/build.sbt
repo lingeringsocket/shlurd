@@ -19,5 +19,5 @@ traceLevel.withRank(KeyRanks.Invisible) := Common.traceLevel
 resolvers ++= Common.resolvers
 
 libraryDependencies ++= Seq(
-  "org.scalameta" %% "mdoc" % "2.2.10"
+  "org.scalameta" %% "mdoc" % "2.2.15"
 )

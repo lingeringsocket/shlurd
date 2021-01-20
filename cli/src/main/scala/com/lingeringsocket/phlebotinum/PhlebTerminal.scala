@@ -94,6 +94,8 @@ trait PhlebTerminal
   }
 
   def getTranslatorOpt : Option[PhlebTranslator] = None
+
+  def getInitCommandOpt : Option[String] = None
 }
 
 class PhlebConsole extends PhlebTerminal

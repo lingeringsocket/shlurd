@@ -1,14 +1,18 @@
-// FIXME untranslated phrases
-
-Welcome to a tepid smorgasbord of nostalgia.
+Bienvenidos.
 
 Tú estás en una habitación.
 
-Grubby articles of alien underwear lie scattered about.
+Artículos sucios de ropa interior alienígena yacen esparcidos por ahí.
 
 // FIXME diction
 
 Tú ves un seguro gran al este.
+
+> x la puerta
+
+OK.
+
+No es nada especial.
 
 > soy un perro?
 
@@ -34,7 +38,7 @@ OK.
 
 Tú estás en un baño.
 
-Someone has written 'clean me!' on the mirror.
+Alguien ha escrito 'límpiame' en el espejo.
 
 // FIXME feminine nouns that begin with a stressed "(h)a"
 // should use el/un in the singular, who knew?
@@ -45,6 +49,10 @@ Tú ves una hacha y un ladrón.
 
 Tú ves el seguro gran al Occidente.
 
+> e
+
+No se puede ir por ese camino.
+
 > coge el hacha
 
 OK.
@@ -53,7 +61,7 @@ OK.
 
 OK.
 
-Blood splatters everywhere.
+La sangre salpica por todas partes.
 
 > coge el hacha
 
@@ -77,7 +85,7 @@ Ello está en tu stuff.
 
 OK.
 
-The perfect weapon, assuming you are a dwarf.
+El arma perfecta para un enano.
 
 > tira el hacha
 
@@ -111,4 +119,4 @@ Tú ves el seguro gran al Occidente.
 
 Ello está en la habitación.
 
-(At least I assume that's still the case.)
+Al menos asumo que ese sigue siendo el caso.

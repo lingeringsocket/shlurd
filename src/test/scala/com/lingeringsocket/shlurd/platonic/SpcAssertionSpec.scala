@@ -680,6 +680,17 @@ class SpcAssertionSpec extends SpcProcessingSpecification
       verify("is Alice happy", responseYes)
     }
 
+    "map strings" in new AssertionContext
+    {
+      SpcPrimordial.initCosmos(cosmos)
+      verifyOK("A person's tagline must be an spc-string.")
+      verifyOK("After a person chooses an spc-string, " +
+        "the person's tagline is the spc-string.")
+      verifyOK("Ahab is a person.")
+      verifyOK("Ahab chooses \"thar she blows\".")
+      verify("what is Ahab's tagline", "\"thar she blows\".")
+    }
+
     "standardize variables" in new AssertionContext
     {
       verifyOK("An object may be hot or cold.")

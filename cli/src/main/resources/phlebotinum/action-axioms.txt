@@ -1,5 +1,6 @@
 Believe "/phlebotinum/character-axioms.txt".
 Believe "/phlebotinum/interpreter-axioms.txt".
+Believe "/phlebotinum/game-turn-axioms.txt".
 Believe "/phlebotinum/map-axioms.txt".
 
 When a player-character looks at a describable-entity,
@@ -16,7 +17,7 @@ When a player-character discovers a map-place,
 
 When a player-character appraises a map-place,
  the player-character asks "where am I";
- also the game-interpreter recites the map-place's place-description;
+ also the game-interpreter invokes the map-place's place-describer;
  also the player-character discerns the player-character's visible-items.
 
 When a player-character rediscovers a map-place,
@@ -29,12 +30,14 @@ When a player-character discerns any visible-objects,
 When a player-character discerns any visible-fixtures,
  the player-character asks "which visible-fixtures do I see".
 
+A bland-description is a kind of game-spiel.
+
 When a player-character examines a describable-entity,
- and its description does not exist,
- the game-interpreter says "It's about what you'd expect.".
+ and its describer has no language-renderer,
+ the game-interpreter invokes all bland-description.
 When a player-character examines a describable-entity,
- and its description exists,
- the game-interpreter recites its description.
+ and its describer has a language-renderer,
+ the game-interpreter invokes its describer.
 
 When a game-speaker references a map-portal,
  the game-speaker annotates the map-portal with
@@ -43,3 +46,20 @@ When a game-speaker references a map-portal,
 
 When a game-speaker annotates a map-portal with a map-direction,
  the game-speaker composes {{the map-portal} to {the map-direction}}.
+
+When a spiel-renderer yields an spc-string,
+ consequently the spiel-renderer's predefined-text is the spc-string.
+
+When a game-spiel substitutes an spc-string in a game-language,
+ the game-spiel's language-renderer in the game-language yields the spc-string.
+
+When a game-spiel yields an spc-string in a game-language,
+ the game-spiel has a language-renderer in the game-language;
+ also the game-spiel substitutes the spc-string in the game-language.
+
+When a game-spiel defaults to an spc-string,
+ the game-spiel yields the spc-string in Generic-English.
+
+A game-greeting is a kind of game-spiel.
+When the game-turn initializes,
+ the game-interpreter invokes all game-greetings.

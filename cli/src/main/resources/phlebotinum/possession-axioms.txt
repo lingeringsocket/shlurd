@@ -4,17 +4,23 @@ A stuff is a kind of an object.
 A game-character must have a stuff.
 The player-character's stuff exists.
 
+An already-held-complaint is a kind of game-complaint.
 Before a game-character gets a game-object,
  it must not be in the game-character's stuff;
- otherwise the game-interpreter complains "But you already have that.".
+ otherwise the game-interpreter complains all already-held-complaints.
+
+A not-present-complaint is a kind of game-complaint.
 Before a game-character gets a game-object,
  it must be in the game-character's container;
- otherwise the game-interpreter complains "But there is no such object here.".
+ otherwise the game-interpreter complains all not-present-complaints.
+
 After a game-character gets a game-object,
  it is in the game-character's stuff.
+
+A not-held-complaint is a kind of game-complaint.
 Before a game-character drops a game-object,
  it must be in the game-character's stuff;
- otherwise the game-interpreter complains "But you have no such object.".
+ otherwise the game-interpreter complains all not-held-complaints.
 After a game-character drops a game-object,
  it falls onto the game-character's container.
 

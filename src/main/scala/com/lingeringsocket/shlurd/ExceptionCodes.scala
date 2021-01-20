@@ -34,6 +34,7 @@ object ShlurdExceptionCode
   case object UnresolvedPronoun extends ShlurdExceptionCode
   case object AmbiguousPronoun extends ShlurdExceptionCode
   case object TriggerLimit extends ShlurdExceptionCode
+  case object InstantiationProhibited extends ShlurdExceptionCode
   case object CausalityViolation extends ShlurdExceptionCode
   case object NotYetImplemented extends ShlurdExceptionCode
   case object IncomprehensibleBelief extends ShlurdExceptionCode

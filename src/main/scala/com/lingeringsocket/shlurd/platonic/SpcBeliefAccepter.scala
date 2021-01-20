@@ -481,6 +481,35 @@ class SpcBeliefAccepter private(
     beliefAppliers += applier
   }
 
+  private def fireInstantiationTrigger(
+    entity : SpcEntity,
+    entityRef : SilReference,
+    sentence : SilSentence) : Unit =
+  {
+    resultCollector.refMap.put(entityRef, Set(entity))
+    val instantiation = SilActionPredicate(
+      mind.specificReference(
+        resultCollector.annotator, entity, DETERMINER_DEFINITE),
+      SilWord("instantiates", "instantiate"))
+    val result = responder.processTriggerablePredicate(
+      resultCollector.annotator,
+      cosmos,
+      instantiation,
+      resultCollector.refMap,
+      APPLY_ALL_ASSERTIONS,
+      triggerDepth = 1,
+      flagErrors = false)
+    def ok = responder.sentencePrinter.sb.respondCompliance
+    result.message matchPartial {
+      case Some(msg) if (msg != ok) => {
+        throw new UnacceptableBeliefExcn(
+          ShlurdExceptionCode.InstantiationProhibited,
+          msg,
+          sentence)
+      }
+    }
+  }
+
   beliefApplier {
     case UnimplementedBelief(
       sentence
@@ -650,7 +679,7 @@ class SpcBeliefAccepter private(
   }
 
   beliefApplier {
-    case EntityExistenceBelief(
+    case belief @ EntityExistenceBelief(
       sentence, entityRef, formName, qualifiers, properName, true
     ) => {
       val form = instantiateForm(sentence, formName, false)
@@ -677,6 +706,9 @@ class SpcBeliefAccepter private(
                   cosmos.instantiateEntity(
                     form, qualifiers, properName)
                 }
+              }
+              if (isNewEntity) {
+                fireInstantiationTrigger(entity, entityRef, sentence)
               }
               tupleN(entity, isNewEntity, determiner)
             }
@@ -868,6 +900,11 @@ class SpcBeliefAccepter private(
           ShlurdExceptionCode.TentativeEntitiesProhibited,
           sentence)
       }
+
+      if (possesseeOpt.isEmpty) {
+        fireInstantiationTrigger(possessee, newEntityRef, sentence)
+      }
+
       val graph = cosmos.getGraph
       if (positive) {
         if (possessee.form.isTentative) {

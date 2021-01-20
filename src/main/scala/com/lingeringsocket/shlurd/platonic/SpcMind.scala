@@ -272,7 +272,18 @@ class SpcMind(cosmos : SpcCosmos)
     annotator : AnnotatorType,
     entity : SpcEntity) =
   {
-    annotator.nounRef(SilWord(entity.properName))
+    entity match {
+      case SpcTransientEntity(
+        form, value, _
+      ) if (
+        form.name == PROPERTY_TYPE_STRING.name
+      ) => {
+        annotator.quotationRef(value)
+      }
+      case _ => {
+        annotator.nounRef(SilWord(entity.properName))
+      }
+    }
   }
 
   def qualifiedReference(

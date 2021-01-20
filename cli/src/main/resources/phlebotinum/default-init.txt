@@ -1,0 +1,31 @@
+Believe "/phlebotinum/basic-axioms.txt".
+
+There is a game-greeting.
+The game-greeting defaults to "Welcome.".
+
+There is a bland-description.
+The bland-description defaults to "It's about what you'd expect.".
+
+There is a no-exit-complaint.
+The no-exit-complaint defaults to "There is no way to go in that direction.".
+
+There is a door-complaint.
+The door-complaint defaults to "But the door is not open.".
+
+There is an already-there-complaint.
+The already-there-complaint defaults to "But you are already there.".
+
+There is a no-way-complaint.
+The no-way-complaint defaults to "You can't get there from here.".
+
+There is an already-held-complaint.
+The already-held-complaint defaults to "But you already have that.".
+
+There is a not-present-complaint.
+The not-present-complaint defaults to "But there is no such object here.".
+
+There is a not-held-complaint.
+The not-held-complaint defaults to "But you have no such object.".
+
+There is a continuity-assumption.
+The continuity-assumption defaults to "At least I assume that is still the case.".

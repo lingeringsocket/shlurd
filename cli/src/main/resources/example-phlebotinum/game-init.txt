@@ -1,12 +1,23 @@
 Believe "/example-phlebotinum/behavior-axioms.txt".
+Believe "/phlebotinum/default-init.txt".
+
+The game-greeting substitutes
+"Welcome to a tepid smorgasbord of nostalgia."
+in Generic-English.
 
 There is a bedroom, a bathroom, a kitchen, a cupboard, and a loft.
-The bedroom's place-description is "Grubby articles of alien underwear lie scattered about.".
-The bathroom's place-description is "Someone has written 'clean me!' on the mirror.".
-The kitchen's place-description is "It's yer basic scullery.".
-The cupboard's description is "Oddly, the cupboard lacks doors.".
-The cupboard's place-description is "I hope you don't have claustrophobia.".
-The loft's place-description is "Hardly more than a garret, really.".
+The bedroom's place-describer defaults to
+ "Grubby articles of alien underwear lie scattered about.".
+The bathroom's place-describer defaults to
+ "Someone has written 'clean me!' on the mirror.".
+The kitchen's place-describer defaults to
+ "It's yer basic scullery.".
+The cupboard's describer defaults to
+ "Oddly, the cupboard lacks doors.".
+The cupboard's place-describer defaults to
+ "I hope you don't have claustrophobia.".
+The loft's place-describer defaults to
+ "Hardly more than a garret, really.".
 
 The bedroom is west of the bathroom.
 The bedroom is east of the kitchen.
@@ -14,14 +25,16 @@ The cupboard is north of the bedroom.
 The loft is above the bedroom.
 
 The player-character is in the bedroom.
-The player-character's description is "Vanity of vanities; all is vanity.".
+The player-character's describer defaults to
+ "Vanity of vanities; all is vanity.".
 
 There is a big door.
 The big door is open.
 
 There is an axe.
 The ax is in the bathroom.
-The ax's description is "The perfect weapon, assuming you are a dwarf.".
+The ax's describer defaults to
+ "The perfect weapon, assuming you are a dwarf.".
 
 There is a brass lantern.
 
@@ -30,7 +43,8 @@ The big door connects the bedroom to the bathroom.
 There is a thief.
 The thief's spc-pronoun-list is "ze, zir, zirself".
 The thief is perceptive.
-The thief's description is "Ze wields a wicked-looking stiletto.".
+The thief's describer defaults to
+ "Ze wields a wicked-looking stiletto.".
 The thief is in the bathroom.
 The thief is alive.
 // let the thief know about places and things other than zir starting location
@@ -38,6 +52,9 @@ The thief surveys the bedroom.
 The thief surveys the bathroom.
 The thief observes the lantern.
 The thief believes "/example-phlebotinum/thief-mind-init.txt".
+
+There is a thief-death-description.
+The thief-death-description defaults to "Blood splatters everywhere.".
 
 The player-character is perceptive.
 The player-character believes "/example-phlebotinum/player-mind-init.txt".
@@ -47,3 +64,5 @@ The lantern and the cupboard are in the kitchen.
 There is an oracle.
 The oracle is omniscient.
 The oracle is in the cupboard.
+
+Believe "/example-phlebotinum/spanish-init.txt".

@@ -170,6 +170,27 @@ class SpcTriggerSpec extends SpcResponseSpecification
     processTerse("is EarlyGirl red", "I don't know.")
   }
 
+  "understand instantiation triggers" in new
+    ResponderContext(ACCEPT_NEW_BELIEFS)
+  {
+    processBelief("fruits and trees are kinds of objects")
+    processBelief("a tree's product must be a fruit")
+    processBelief("apples and oranges are kinds of fruit")
+    processBelief("a fruit must be green or red")
+    processBelief("when a fruit instantiates, it becomes green")
+    processBelief("before a fruit instantiates, a tree must exist")
+    processExceptionExpected(
+      "an apple exists",
+      // FIXME less Shakespearean phrasing
+      "But a tree exists not.",
+      ShlurdExceptionCode.InstantiationProhibited)
+    processBelief("a tree exists")
+    processBelief("an apple exists")
+    processTerse("is the apple green", "Yes.")
+    processBelief("the tree has a product")
+    processTerse("is the tree's product green", "Yes.")
+  }
+
   "detect causality violations" in new ResponderContext(
     ACCEPT_NEW_BELIEFS)
   {

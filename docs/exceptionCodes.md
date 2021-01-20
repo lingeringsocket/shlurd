@@ -84,6 +84,18 @@ Sorry, when you say 'second tribble', I don't know which you mean.
 Trigger limit exceeded.
 ```
 
+## InstantiationProhibited
+
+```scala mdoc:processConversation
+> Before a tribble instantiates, Jupiter must be confident.
+
+OK.
+
+> Terence has a baby.
+
+But Jupiter is not confident.
+```
+
 ## IncomprehensibleBelief
 
 FIXME

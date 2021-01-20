@@ -81,6 +81,7 @@ object PhlebShell
   def run(
     firstShell : PhlebShell) : Unit =
   {
+    firstShell.terminalInit()
     var shellOpt : Option[PhlebShell] = Some(firstShell)
     while (shellOpt.nonEmpty) {
       val shell = shellOpt.get
@@ -692,6 +693,13 @@ class PhlebShell(
       executor, playerToInterpreter)
   }
 
+  def terminalInit() : Unit =
+  {
+    terminal.getInitCommandOpt.foreach(command => {
+      defer(DeferredDirective(command))
+    })
+  }
+
   def defer(deferred : Deferred) : Unit =
   {
     deferredQueue += deferred
@@ -865,7 +873,8 @@ class PhlebShell(
                       _.refMap.values.flatten)
                 val staleEntities = findStale(entities)
                 if (staleEntities.nonEmpty) {
-                  assumption = "(At least I assume that's still the case.)"
+                  assumption =
+                    "the game-interpreter invokes all continuity-assumptions"
                 }
               }
             }
@@ -892,7 +901,7 @@ class PhlebShell(
             }
             if (assumption.nonEmpty) {
               terminal.emitNarrative("")
-              terminal.emitNarrative(assumption)
+              defer(DeferredDirective(assumption))
             }
           })
         }

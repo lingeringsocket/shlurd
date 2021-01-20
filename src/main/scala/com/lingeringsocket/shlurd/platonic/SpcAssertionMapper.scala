@@ -325,8 +325,9 @@ class SpcAssertionMapper(
             trace(s"NONSPECIFIC REFERENCE $actualRef")
             return false
           }
-          case SilQuotationReference(_, _) => {
-            tupleN(actualRef, Set.empty[SpcEntity])
+          case qr @ SilQuotationReference(_, _) => {
+            val qe = mind.resolveQuotation(qr).get
+            tupleN(actualRef, Set(qe))
           }
           case _ => {
             binding.refMapIn.get(actualRef) match {

@@ -679,6 +679,18 @@ class SpcBeliefRecognizer(
           complementRef, verb, subjectConjunction)
       }
       case SilGenitiveReference(possessor, possessee) => {
+        resultCollector.lookup(complementRef) matchPartial {
+          case Some(set) if (set.size == 1) => {
+            set.head matchPartial {
+              case SpcTransientEntity(form, quotation, _) => {
+                if (form.name == PROPERTY_TYPE_STRING.name) {
+                  return processQuotation(
+                    sentence, possessor, possessee, quotation, verb)
+                }
+              }
+            }
+          }
+        }
         complementRef matchPartial {
           case SilOptionallyDeterminedReference(
             SilMandatorySingular(complementNoun),
