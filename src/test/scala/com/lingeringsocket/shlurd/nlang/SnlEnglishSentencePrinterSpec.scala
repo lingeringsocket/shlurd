@@ -165,6 +165,7 @@ class SnlEnglishSentencePrinterSpec
       expectStatement("there is a front door and a back door")
       expectStatement("there exists a door")
       expectStatement("a door exists")
+      expectStatement("a door does not exist")
       expectStatement("there is a door and a window")
       expectStatement("there is a door and windows")
       expectStatement("there are doors and a window")

@@ -191,7 +191,7 @@ class SnlEnglishSentenceBundle(
       return delemmatizeModalVerb(tam, verb, person, gender, count)
     }
     val seq = {
-      if (tam.requiresAux) {
+      if (tam.requiresAux || (tam.isNegative && (verbLemma == LEMMA_EXIST))) {
         delemmatizeModalVerb(tam, verb, person, gender, count)
       } else {
         val inflected = delemmatizeModelessVerb(

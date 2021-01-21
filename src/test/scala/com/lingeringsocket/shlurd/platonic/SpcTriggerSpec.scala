@@ -181,8 +181,7 @@ class SpcTriggerSpec extends SpcResponseSpecification
     processBelief("before a fruit instantiates, a tree must exist")
     processExceptionExpected(
       "an apple exists",
-      // FIXME less Shakespearean phrasing
-      "But a tree exists not.",
+      "But a tree does not exist.",
       ShlurdExceptionCode.InstantiationProhibited)
     processBelief("a tree exists")
     processBelief("an apple exists")
