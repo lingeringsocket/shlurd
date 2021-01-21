@@ -5,9 +5,8 @@ The game-greeting yields
 "Bienvenidos."
 in Generic-Spanish.
 
-The bedroom's place-describer yields
-"Artículos sucios de ropa interior alienígena yacen esparcidos por ahí."
-in Generic-Spanish.
+// We intentionally leave the bedroom's place-describer without a
+// Spanish translation to test automatic translation at runtime
 
 The bathroom's place-describer yields
 "Alguien ha escrito 'límpiame' en el espejo."
@@ -33,9 +32,8 @@ The player-character's describer yields
 "Eres tan vanidoso."
 in Generic-Spanish.
 
-The ax's describer yields
-"El arma perfecta para un enano."
-in Generic-Spanish.
+// We intentionally leave the ax's describer without a
+// Spanish translation to test what happens when automatic translation fails
 
 The thief's describer yields
 "Maneja un estilete de aspecto perverso."

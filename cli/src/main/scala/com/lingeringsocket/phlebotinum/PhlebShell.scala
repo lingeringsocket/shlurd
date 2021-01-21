@@ -508,6 +508,44 @@ class PhlebShell(
                 defer(DeferredReport(quotation))
                 ok
               }
+              case verb @ ("translate" | "complain-translate") => {
+                val translatorOpt = terminal.getTranslatorOpt
+                val translation = translatorOpt.flatMap(translator => {
+                  val parseResults =
+                    noumenalUpdater.newParser(quotation).parseAll
+                  val translations = parseResults.map(parseResult => {
+                    val playerTongue = translator.getPlayerTongue
+                    val responseTranslator = translator.newResponseTranslator
+                    val analyzer =
+                      new SprWordnetSenseAnalyzer(
+                        translator.getInterpreterTongue,
+                        parseResult.annotator)
+                    val analyzed = analyzer.analyze(parseResult.sentence)
+                    responseTranslator.translate(analyzed) match {
+                      case s if (s.hasUnknown) => None
+                      case translated => {
+                        val playerSentencePrinter =
+                          playerTongue.newSentencePrinter(playerTongue)
+                        Some(SprUtils.capitalize(
+                          playerSentencePrinter.print(translated)))
+                      }
+                    }
+                  })
+                  if (translations.exists(_.isEmpty)) {
+                    None
+                  } else {
+                    val concatenated = translations.flatten.mkString(" ")
+                    terminal.emitTrace(s"TRANSLATED $concatenated")
+                    Some(concatenated)
+                  }
+                }).getOrElse(quotation)
+                if (verb == "complain-translate") {
+                  defer(DeferredComplaint(translation))
+                } else {
+                  defer(DeferredReport(translation))
+                }
+                ok
+              }
               case "complain" => {
                 defer(DeferredComplaint(quotation))
                 ok

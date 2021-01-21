@@ -2,8 +2,11 @@ A game-speaker is a kind of person.
 A game-language is a kind of language.
 A game-language is a kind of object.
 A game-speaker's expected-language must be a game-language.
+A game-speaker must have one expected-language.
 Generic-English is a game-language.
 Generic-Spanish is a game-language.
+
+After a game-speaker instantiates, the game-speaker's expected-language is Generic-English.
 
 A game-spiel is a kind of entity.
 A spiel-renderer is a kind of object.

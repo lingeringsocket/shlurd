@@ -2,7 +2,8 @@ Bienvenidos.
 
 Tú estás en una habitación.
 
-Artículos sucios de ropa interior alienígena yacen esparcidos por ahí.
+// truly lovely automatic translation
+Artículos agusanado de historia ajeno underwear se disiparon cerca.
 
 // FIXME diction
 
@@ -85,7 +86,8 @@ Ello está en tu stuff.
 
 OK.
 
-El arma perfecta para un enano.
+// no explicit translation supplied, and automatic translation fails
+The perfect weapon, assuming you are a dwarf.
 
 > tira el hacha
 

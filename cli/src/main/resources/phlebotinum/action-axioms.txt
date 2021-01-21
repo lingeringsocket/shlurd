@@ -34,7 +34,7 @@ A bland-description is a kind of game-spiel.
 
 When a player-character examines a describable-entity,
  and its describer has no language-renderer,
- the game-interpreter invokes all bland-description.
+ the game-interpreter invokes all bland-descriptions.
 When a player-character examines a describable-entity,
  and its describer has a language-renderer,
  the game-interpreter invokes its describer.

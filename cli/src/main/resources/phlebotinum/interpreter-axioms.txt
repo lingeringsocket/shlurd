@@ -7,22 +7,40 @@ There is a game-interpreter.
 A game-interpreter can recite.
 A game-interpreter can say.
 A game-interpreter can complain.
+A game-interpreter can translate.
+A game-interpreter can complain-translate.
 A game-interpreter can save.
 A game-interpreter can restore.
 A game-interpreter can terminate.
 
-When a game-interpreter invokes a game-spiel,
- the game-interpreter invokes {the game-spiel's language-renderer in the
- player-character's expected-language}.
-
 A game-complaint is a kind of game-spiel.
 
-When a game-interpreter complains a game-complaint,
- the game-interpreter complains {the game-complaint's language-renderer in the
- player-character's expected-language}.
+When a game-interpreter invokes a game-spiel,
+ and the player-character's expected-language is among
+  the game-spiel's language-renderer's containers,
+ the game-interpreter invokes {the game-spiel's language-renderer in the
+  player-character's expected-language} to the game-spiel.
+When a game-interpreter invokes a game-spiel,
+ and the player-character's expected-language is not among
+  the game-spiel's language-renderer's containers,
+ the game-interpreter invoke-translates {the game-spiel's language-renderer in 
+  Generic-English} to the game-spiel.
 
-When a game-interpreter invokes a spiel-renderer,
+When a game-interpreter invoke-translates a spiel-renderer to a game-spiel,
+ and the game-spiel is not a game-complaint,
+ the game-interpreter translates the spiel-renderer's predefined-text.
+
+When a game-interpreter invoke-translates a spiel-renderer to a game-spiel,
+ and the game-spiel is a game-complaint,
+ the game-interpreter complain-translates the spiel-renderer's predefined-text.
+
+When a game-interpreter complains a game-complaint,
+ the game-interpreter invokes the game-complaint.
+
+When a game-interpreter invokes a spiel-renderer to a game-spiel,
+ and the game-spiel is not a game-complaint,
  the game-interpreter recites the spiel-renderer's predefined-text.
 
-When a game-interpreter complains a spiel-renderer,
+When a game-interpreter invokes a spiel-renderer to a game-spiel,
+ and the game-spiel is a game-complaint,
  the game-interpreter complains the spiel-renderer's predefined-text.
