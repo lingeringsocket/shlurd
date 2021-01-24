@@ -196,7 +196,10 @@ class SnlTranslator(
           val translatedSenseId = targetWordnet.getSenseId(translatedSenses)
           // FIXME what about compound words?  Also should maybe
           // only preserve senses with the same lemma?
-          val lemmas = translatedSenses.head.getWords.asScala.map(_.getLemma)
+          val senseLemmas = translatedSenses.map(
+            _.getWords.asScala.map(_.getLemma))
+          val lemmas = senseLemmas.find(
+            _.exists(lemma => !lemma.head.isUpper)).getOrElse(senseLemmas.head)
           val lemma = targetTongue.chooseVariant(pos, lemmas)
           SilWord("", lemma, translatedSenseId)
         }

@@ -43,9 +43,7 @@ Alguien ha escrito 'límpiame' en el espejo.
 
 Tú ves un hacha y un ladrón.
 
-// FIXME should be oeste, and uncapitalized
-
-Tú ves el seguro gran al Occidente.
+Tú ves el seguro gran al oeste.
 
 > e
 
@@ -112,7 +110,7 @@ Tú estás en el baño.
 
 Tú ves el ladrón.
 
-Tú ves el seguro gran al Occidente.
+Tú ves el seguro gran al oeste.
 
 > dónde está el hacha?
 
