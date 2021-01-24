@@ -69,6 +69,9 @@ class SnlSpanishSentencePrinterSpec
       expectNormalized("ella besa Juan", "ella besa a Juan.")
       expectStatement("ella besa a Juan")
 
+      // determiner for stressed initial a
+      expectStatement("tengo el hacha")
+
       // reflexive verbs
       expectStatement("me afeito")
       expectStatement("te afeitas")

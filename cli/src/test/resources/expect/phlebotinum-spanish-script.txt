@@ -41,10 +41,7 @@ Tú estás en un baño.
 
 Alguien ha escrito 'límpiame' en el espejo.
 
-// FIXME feminine nouns that begin with a stressed "(h)a"
-// should use el/un in the singular, who knew?
-
-Tú ves una hacha y un ladrón.
+Tú ves un hacha y un ladrón.
 
 // FIXME should be oeste, and uncapitalized
 

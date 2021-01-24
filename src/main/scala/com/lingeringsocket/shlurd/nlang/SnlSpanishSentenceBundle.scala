@@ -18,6 +18,8 @@ import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
 
+import com.lingeringsocket.morphala.spanish._
+
 import com.ibm.icu.text._
 
 import java.util._
@@ -227,8 +229,24 @@ class SnlSpanishSentenceBundle(
         cardinalNumber(number, gender, true)
       }
     }
+    def startsWithAccentedA = {
+      if (noun.startsWith("ha") || noun.startsWith("a") ||
+        noun.startsWith("há") || noun.startsWith("á"))
+      {
+        val (vowelPos, accentedVowelPos, naturalPos) =
+          SpanishUtils.analyzeStress(noun)
+        val firstVowelPos = vowelPos.head
+        (accentedVowelPos == firstVowelPos) || (naturalPos == firstVowelPos)
+      } else {
+        false
+      }
+    }
+    val artificialGender = determinerLemma match {
+      case LEMMA_EL | LEMMA_UN if (startsWithAccentedA) => GENDER_MASCULINE
+      case _ => gender
+    }
     val determinerInflected = tongue.correctGenderCount(
-      determinerLemma, gender, count, true)
+      determinerLemma, artificialGender, count, true)
     compose(determinerInflected, noun)
   }
 
