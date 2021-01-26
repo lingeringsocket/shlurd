@@ -20,6 +20,10 @@ import java.net._
 
 object PhlebApp extends App
 {
+  private val GENERIC_SPANISH = "Generic-Spanish"
+
+  private val SPANISH_FLAG = s"--tongue=$GENERIC_SPANISH"
+
   run()
 
   private def run() : Unit =
@@ -27,10 +31,22 @@ object PhlebApp extends App
     // preload
     PhlebBaseline.frozenCosmos
 
-    if (args.isEmpty) {
+    val spanish = args.contains(SPANISH_FLAG)
+
+    val reducedArgs = args.filterNot(_ == SPANISH_FLAG)
+
+    val translatorOpt = {
+      if (spanish) {
+        Some(PhlebSpanishTranslator)
+      } else {
+        None
+      }
+    }
+
+    if (reducedArgs.isEmpty) {
       PhlebShell.run("/example-phlebotinum/")
     } else {
-      val url = new URL(args.head)
+      val url = new URL(reducedArgs.head)
       val terminal = new PhlebConsole
       {
         override def getInitSaveFile =
@@ -40,6 +56,22 @@ object PhlebApp extends App
           } else {
             url.getPath.stripPrefix("/") + super.getInitSaveFile
           }
+        }
+
+        override def getTranslatorOpt =
+        {
+          translatorOpt
+        }
+
+        override def getInitCommandOpt : Option[String] =
+        {
+          if (spanish) {
+            Some(
+              s"the player-character's expected-language is $GENERIC_SPANISH")
+          } else {
+            super.getInitCommandOpt
+          }
+
         }
       }
       ResourceUtils.addUrl(url)

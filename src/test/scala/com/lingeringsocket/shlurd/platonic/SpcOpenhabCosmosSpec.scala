@@ -250,7 +250,7 @@ class SpcOpenhabCosmosSpec extends Specification
         "which rooms are on the first floor",
         "The family room, the living room, " +
           "the guest bedroom, and the bathroom " +
-          "are on the first floor.")
+          "are on it.")
       process(
         "which lights on the first floor are on",
         "The family room light, " +

@@ -143,6 +143,14 @@ class SnlTranslatorSpec extends Specification
       )
     }
 
+    "translate existential pronouns" in
+    {
+      checkSpanishToEnglish(
+        "there is a way.",
+        "hay un camino."
+      )
+    }
+
     "expand elided pronouns" in
     {
       checkSpanishToEnglish(
@@ -330,7 +338,7 @@ class SnlTranslatorSpec extends Specification
     "translate transitive" in
     {
       checkSpanishToEnglish(
-        "it gets the axe.",
+        "it takes the axe.",
         "coge el hacha.")
     }
 
@@ -344,16 +352,16 @@ class SnlTranslatorSpec extends Specification
         "yo me afeito.")
       checkEnglishToSpanish(
         "the man shaves himself.",
-        "el hombre se afeita.")
+        "el hombre se rasura.")
       checkBidirectional(
-        "the man shaves the clergyman.",
-        "el hombre afeita el sacerdote.")
+        "the man shaves the priest.",
+        "el hombre rasura el sacerdote.")
       checkBidirectional(
-        "I shave the clergyman.",
-        "yo afeito el sacerdote.")
+        "I shave the priest.",
+        "yo rasuro el sacerdote.")
       checkBidirectional(
         "the man shaves his dog.",
-        "el hombre afeita su perro.")
+        "el hombre rasura su perro.")
     }
 
     "translate preferred word sense" in

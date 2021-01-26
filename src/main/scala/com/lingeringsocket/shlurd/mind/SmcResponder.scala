@@ -127,7 +127,8 @@ class SmcContextualScorer[
     resultCollector : ResultCollectorType) : SilPhraseScore =
   {
     val refSet = SilUtils.collectReferences(sentence).toSet
-    val score = 3*refSet.toSeq.flatMap(resultCollector.lookup).count(_.nonEmpty)
+    val score = 30*refSet.toSeq.flatMap(resultCollector.lookup).
+      count(_.nonEmpty)
     SilPhraseScore.numeric(score)
   }
 

@@ -3,11 +3,9 @@ Bienvenidos.
 Tú estás en una habitación.
 
 // truly lovely automatic translation
-Artículos agusanado de historia ajeno underwear se disiparon cerca.
+Artículos agusanado de historia ajeno underwear se disiparon aproximadamente.
 
-// FIXME diction
-
-Tú ves un seguro gran al este.
+Tú ves una puerta grande al este.
 
 > x la puerta
 
@@ -43,7 +41,7 @@ Alguien ha escrito 'límpiame' en el espejo.
 
 Tú ves un hacha y un ladrón.
 
-Tú ves el seguro gran al oeste.
+Tú ves la puerta grande al oeste.
 
 > e
 
@@ -69,7 +67,7 @@ OK.
 
 Tú estás en la habitación.
 
-Tú ves el seguro gran al este.
+Tú ves la puerta grande al este.
 
 > dónde está el hacha?
 
@@ -110,7 +108,7 @@ Tú estás en el baño.
 
 Tú ves el ladrón.
 
-Tú ves el seguro gran al oeste.
+Tú ves la puerta grande al oeste.
 
 > dónde está el hacha?
 

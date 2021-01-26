@@ -335,7 +335,18 @@ class SmcResponseRewriter[
         }
         newRef
       }
-    ).getOrElse(ref)
+    ).getOrElse {
+      ref match {
+        case SilDeterminedReference(sub, _) => {
+          val replaced = refToPronoun(refMap)(sub, updateMap)
+          replaced match {
+            case pronoun : SilPronounReference => pronoun
+            case _ => ref
+          }
+        }
+        case _ => ref
+      }
+    }
   }
 
   def swapSpeakerListener(

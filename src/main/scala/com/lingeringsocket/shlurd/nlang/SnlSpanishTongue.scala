@@ -97,6 +97,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   ) =
   {
     Seq(
+      standardizeExistential,
       combineDative
     )
   }
@@ -107,6 +108,7 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     Seq(
       correctReflexiveVerbs,
       expandGenderedDative,
+      standardizeExistential,
       correctInflection,
       correctGender
     )
@@ -1475,6 +1477,26 @@ class SnlSpanishTongue(wordnet : SprWordnet)
         // correctInflection
         correctPredicateInflection(ap)
         ap.withNewModifiers(expandGenderedDativeModifiers(ap.modifiers))
+      }
+    }
+  )
+
+  private def standardizeExistential = SilPhraseReplacementMatcher(
+    "standardizeExistential", {
+      case SilStatePredicate(
+        subject,
+        SilWordLemma(verbLemma),
+        SilExistenceState(_),
+        modifiers
+      ) if (verbLemma != LEMMA_EXISTIR) => {
+        val verb = SilWord("hay", LEMMA_HABER)
+        SilStatePredicate(
+          subject,
+          verb,
+          // FIXME need language-neutral existential pronoun placeholder
+          SilExistenceState(Some(SilWord(SnlEnglishLemmas.LEMMA_THERE))),
+          modifiers
+        )
       }
     }
   )
