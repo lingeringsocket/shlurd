@@ -15,6 +15,7 @@
 package com.lingeringsocket.shlurd.mind
 
 import com.lingeringsocket.shlurd.ilang._
+import com.lingeringsocket.shlurd.parser._
 
 object SmcPhraseQuerier
 {
@@ -71,7 +72,10 @@ object SmcPhraseQuerier
     wildcard
   }
 
-  def containsVariable(phrase : SilPhrase) : Boolean =
+  def containsVariable(
+    phrase : SilPhrase)(
+    implicit tongue : SprTongue
+  ) : Boolean =
   {
     var variable = false
     val querier = new SilPhraseQuerier
@@ -79,6 +83,11 @@ object SmcPhraseQuerier
       case SilDeterminedReference(
         _,
         DETERMINER_VARIABLE
+      ) => {
+        variable = true
+      }
+      case SilNounReference(
+        SprPredefWord(PD_WHO | PD_WHOM | PD_WHAT | PD_WHERE)
       ) => {
         variable = true
       }

@@ -17,6 +17,7 @@ package com.lingeringsocket.shlurd.nlang
 import com.lingeringsocket.shlurd._
 import com.lingeringsocket.shlurd.ilang._
 import com.lingeringsocket.shlurd.parser._
+import com.lingeringsocket.shlurd.mind._
 
 import com.lingeringsocket.morphala.spanish._
 
@@ -80,7 +81,8 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     Seq(
       normalizeReflexiveVerbs(genderAnalyzer),
       normalizePersonalA(genderAnalyzer),
-      normalizeContractions(annotator)
+      normalizeContractions(annotator),
+      normalizeQueryInflection
     )
   }
 
@@ -1219,6 +1221,64 @@ class SnlSpanishTongue(wordnet : SprWordnet)
           annotator.determinedRef(
             ref,
             DETERMINER_DEFINITE)
+        )
+      }
+    }
+  )
+
+  // seems like this should be a standard normalization rule
+  // rather than language-specific?
+  private def normalizeQueryInflection = SilPhraseReplacementMatcher(
+    "normalizeQueryInflection", {
+      case SilPredicateQuery(
+        predicate @ SilActionPredicate(
+          subject,
+          _,
+          directObj,
+          modifiers
+        ),
+        question,
+        oldInflection,
+        tam,
+        formality
+      ) => {
+        val newInflection = {
+          if (SmcPhraseQuerier.containsVariable(subject)) {
+            INFLECT_NOMINATIVE
+          } else if (
+            directObj.map(
+              ref => SmcPhraseQuerier.containsVariable(ref)
+            ).getOrElse(false)
+          ) {
+            INFLECT_ACCUSATIVE
+          } else {
+            modifiers.flatMap(_ match {
+              case SilAdpositionalVerbModifier(
+                adposition,
+                objRef
+              ) => {
+                if (SmcPhraseQuerier.containsVariable(objRef)) {
+                  if (adposition == SprPredefAdposition(PD_DATIVE_TO)) {
+                    Some(INFLECT_DATIVE)
+                  } else {
+                    // FIXME what about INFLECT_GENITIVE for
+                    // "de quién"?
+                    Some(INFLECT_ADPOSITIONED)
+                  }
+                } else {
+                  None
+                }
+              }
+              case _ => None
+            }).headOption.getOrElse(oldInflection)
+          }
+        }
+        SilPredicateQuery(
+          predicate,
+          question,
+          newInflection,
+          tam,
+          formality
         )
       }
     }

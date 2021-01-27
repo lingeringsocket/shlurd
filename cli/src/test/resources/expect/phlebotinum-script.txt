@@ -419,6 +419,10 @@ Oh, really?
 
 You are holding the brass lantern.
 
+> what am I carrying
+
+You are carrying the brass lantern.
+
 // counterfactual
 > I am holding the axe
 

@@ -60,11 +60,11 @@ object PhlebAliases
     "este" -> "vaya al este",
     "g" -> "otra vez",
     "i" -> "inventario",
-    "inventario" -> "qué sujeto",
+    "inventario" -> "qué llevo",
     "l" -> "mire",
     "m" -> "mire",
-    "mire" -> "explore",
     "mira" -> "mire",
+    "mire" -> "reconoce",
     // FIXME this can instead be "no" in context
     "n" -> "norte",
     "norte" -> "vaya al norte",

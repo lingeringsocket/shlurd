@@ -32,5 +32,8 @@ After a game-object falls onto a map-place,
 If a game-character is holding a game-object, then equivalently
  its container is the game-character's stuff.
 
+If a game-character is carrying a game-object, then equivalently
+ its container is the game-character's stuff.
+
 Whenever the game-turn advances,
  the player-character perceives {the player-character's stuff}'s contained-objects.

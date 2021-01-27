@@ -31,7 +31,9 @@ class SnlSpanishParserSpec extends Specification
 
   private val NOUN_PERRO = SilWord("perro")
 
-  private val NOUN_DONDE = SilWord("dónde")
+  private val NOUN_DONDE = SilWord(LEMMA_DONDE_ACCENTED)
+
+  private val NOUN_QUE = SilWord(LEMMA_QUE_ACCENTED)
 
   private val VERB_CAMINO = SilWord("camino", "caminar")
 
@@ -384,6 +386,24 @@ class SnlSpanishParserSpec extends Specification
           ),
           QUESTION_WHERE,
           INFLECT_NOMINATIVE,
+          SilTam.interrogative
+        )
+    }
+
+    "parse accusative question" in
+    {
+      val input = "qué bebo?"
+      parse(input) must be equalTo
+        SilPredicateQuery(
+          SilActionPredicate(
+            annotator.basicPronounRef(
+              PERSON_FIRST, GENDER_SOMEONE, COUNT_SINGULAR,
+              PROXIMITY_ELIDED),
+            VERB_BEBO,
+            Some(annotator.nounRef(NOUN_QUE))
+          ),
+          QUESTION_WHAT,
+          INFLECT_ACCUSATIVE,
           SilTam.interrogative
         )
     }

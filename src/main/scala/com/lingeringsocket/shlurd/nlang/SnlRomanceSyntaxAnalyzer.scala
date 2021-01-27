@@ -579,7 +579,8 @@ abstract class SnlRomanceSyntaxAnalyzer(
           SilPredicateQuery(
             predicate,
             question,
-            // FIXME
+            // this is incorrect, but we fix it later
+            // during normalization
             INFLECT_NOMINATIVE,
             tamTensed,
             SilFormality(force))
