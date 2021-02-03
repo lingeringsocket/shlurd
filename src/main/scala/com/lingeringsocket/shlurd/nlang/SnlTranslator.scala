@@ -191,8 +191,9 @@ class SnlTranslator(
       val sortedSenses = targetWordnet.findSenses(
         verb.senseId
       ).map(sense => {
-        val pred = ap.withNewWord(chooseLemma(verb, Seq(sense), POS.VERB))
-        val score = scorer.computeGlobalScore(ps.copy(predicate = pred))
+        val lemma = chooseLemma(verb, Seq(sense), POS.VERB)
+        val score = scorer.computeGlobalScore(ps.copy(
+          predicate = ap.withNewWord(lemma)))
         tupleN(sense, score)
       }).sortBy(_._2).reverse.map(_._1)
       ap.withNewWord(chooseLemma(verb, sortedSenses.take(1), POS.VERB))
@@ -211,17 +212,24 @@ class SnlTranslator(
         noun.senseId
       ).map(sense => {
         // FIXME should do this higher in the phrase when possible
-        val testSentence = SilPredicateSentence(
-          SilStatePredicate(
-            annotator.determinedNounRef(
-              chooseLemma(noun, Seq(sense), POS.NOUN),
-              DETERMINER_DEFINITE,
-              COUNT_PLURAL),
-            SprPredefWord(PD_EXIST)(targetTongue).toUninflected,
-            SilExistenceState()
-          )
-        )
-        val score = scorer.computeGlobalScore(testSentence)
+        val chosen = chooseLemma(noun, Seq(sense), POS.NOUN)
+        val score = {
+          if (chosen.isProper != noun.isProper) {
+            SilPhraseScore.neutral
+          } else {
+            val testSentence = SilPredicateSentence(
+              SilStatePredicate(
+                annotator.determinedNounRef(
+                  chosen,
+                  DETERMINER_DEFINITE,
+                  COUNT_PLURAL),
+                SprPredefWord(PD_EXIST)(targetTongue).toUninflected,
+                SilExistenceState()
+              )
+            )
+            scorer.computeGlobalScore(testSentence)
+          }
+        }
         tupleN(sense, score)
       }).sortBy(_._2).reverse.map(_._1)
       ref.withNewWord(chooseLemma(noun, sortedSenses.take(1), POS.NOUN))

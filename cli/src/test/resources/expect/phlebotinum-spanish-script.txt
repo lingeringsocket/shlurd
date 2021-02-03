@@ -7,6 +7,10 @@ Artículos agusanado de historia ajeno underwear se disiparon aproximadamente.
 
 Tú ves una puerta grande al oriente.
 
+> s
+
+No se puede ir por ese camino.
+
 > l
 
 OK.
@@ -119,6 +123,18 @@ OK.
 OK.
 
 Tú estás en el baño.
+
+Tú ves el ladrón.
+
+Tú ves la puerta grande al oeste.
+
+> mira
+
+OK.
+
+Tú estás en el baño.
+
+Alguien ha escrito 'límpiame' en el espejo.
 
 Tú ves el ladrón.
 
