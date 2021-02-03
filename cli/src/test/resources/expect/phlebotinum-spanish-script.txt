@@ -5,7 +5,17 @@ Tú estás en una habitación.
 // truly lovely automatic translation
 Artículos agusanado de historia ajeno underwear se disiparon aproximadamente.
 
-Tú ves una puerta grande al este.
+Tú ves una puerta grande al oriente.
+
+> l
+
+OK.
+
+Tú estás en la habitación.
+
+Artículos agusanado de historia ajeno underwear se disiparon aproximadamente.
+
+Tú ves la puerta grande al oriente.
 
 > x la puerta
 
@@ -51,6 +61,10 @@ No se puede ir por ese camino.
 
 OK.
 
+> i
+
+Tú llevas el hacha.
+
 > tira el hacha hacia el ladrón
 
 OK.
@@ -67,7 +81,7 @@ OK.
 
 Tú estás en la habitación.
 
-Tú ves la puerta grande al este.
+Tú ves la puerta grande al oriente.
 
 > dónde está el hacha?
 

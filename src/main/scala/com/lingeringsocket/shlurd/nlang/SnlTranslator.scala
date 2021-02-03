@@ -118,27 +118,84 @@ class SnlTranslator(
     output
   }
 
+  private def chooseLemma(
+    word : SilWord,
+    senses : Seq[Synset],
+    pos : POS) : SilWord =
+  {
+    // FIXME what about compound words?  Also should maybe
+    // only preserve senses with the same lemma?
+    val mixedLemmas = senses.map(
+      _.getWords.asScala.map(_.getLemma))
+    val filteredLemmas = mixedLemmas.map(seq => {
+      seq.filterNot(_.head.isUpper)
+    })
+    val senseLemmas = {
+      if (filteredLemmas.exists(_.nonEmpty)) {
+        filteredLemmas
+      } else {
+        mixedLemmas
+      }
+    }
+    val lemmas = senseLemmas.flatten.distinct.filterNot(_.startsWith("`"))
+    // FIXME optimize computation
+    val lemmaCounts = lemmas.map(lemma => {
+      tupleN(lemma, senseLemmas.count(_.contains(lemma)))
+    }).toMap
+    val maxCount = lemmaCounts.values.max
+    val maxLemmas = lemmaCounts.filter(_._2 == maxCount)
+    val lemma = {
+      if (maxLemmas.size == 1) {
+        maxLemmas.head._1
+      } else {
+        lemmas.head
+        val candidateLemmas = mixedLemmas.find(
+          _.exists(
+            lemma => !lemma.head.isUpper)).getOrElse(mixedLemmas.head)
+        targetTongue.chooseVariant(pos, candidateLemmas)
+      }
+    }
+    SilWord("", lemma, targetWordnet.getSenseId(senses))
+  }
+
+  private def chooseWord(
+    word : SilWord,
+    senses : Seq[Synset],
+    pos : POS) : SilWord =
+  {
+    if (senses.isEmpty) {
+      word.withSense("")
+    } else {
+      val translatedSenses = senses.flatMap(synset => {
+        alignment.mapSense(synset, direction)
+      }).distinct
+      if (translatedSenses.isEmpty) {
+        // we must discard original sense identifiers, since they aren't
+        // relevant in the target tongue
+        word.withSense("")
+      } else {
+        chooseLemma(word, translatedSenses, pos)
+      }
+    }
+  }
+
   private def reorderActionSenses(
     ps : SilPredicateSentence,
     ap : SilActionPredicate,
     scorer : SilPhraseScorer) : SilActionPredicate =
   {
-    def newVerb(senses : Seq[Synset]) = {
-      val lemmas = senses.head.getWords.asScala.map(_.getLemma)
-      val lemma = targetTongue.chooseVariant(POS.VERB, lemmas)
-      SilWord("", lemma, targetWordnet.getSenseId(senses))
-    }
-    if (ap.verb.senseId.isEmpty) {
+    val verb = ap.verb
+    if (verb.senseId.isEmpty) {
       ap
     } else {
       val sortedSenses = targetWordnet.findSenses(
-        ap.verb.senseId
+        verb.senseId
       ).map(sense => {
-        val pred = ap.withNewWord(newVerb(Seq(sense)))
+        val pred = ap.withNewWord(chooseLemma(verb, Seq(sense), POS.VERB))
         val score = scorer.computeGlobalScore(ps.copy(predicate = pred))
         tupleN(sense, score)
       }).sortBy(_._2).reverse.map(_._1)
-      ap.withNewWord(newVerb(sortedSenses))
+      ap.withNewWord(chooseLemma(verb, sortedSenses.take(1), POS.VERB))
     }
   }
 
@@ -146,11 +203,6 @@ class SnlTranslator(
     ref : SilNounReference,
     scorer : SilPhraseScorer) : SilNounReference =
   {
-    def newNoun(senses : Seq[Synset]) = {
-      val lemmas = senses.head.getWords.asScala.map(_.getLemma)
-      val lemma = targetTongue.chooseVariant(POS.NOUN, lemmas)
-      SilWord("", lemma, targetWordnet.getSenseId(senses))
-    }
     val noun = ref.noun
     if (noun.senseId.isEmpty) {
       ref
@@ -162,7 +214,7 @@ class SnlTranslator(
         val testSentence = SilPredicateSentence(
           SilStatePredicate(
             annotator.determinedNounRef(
-              newNoun(Seq(sense)),
+              chooseLemma(noun, Seq(sense), POS.NOUN),
               DETERMINER_DEFINITE,
               COUNT_PLURAL),
             SprPredefWord(PD_EXIST)(targetTongue).toUninflected,
@@ -172,70 +224,27 @@ class SnlTranslator(
         val score = scorer.computeGlobalScore(testSentence)
         tupleN(sense, score)
       }).sortBy(_._2).reverse.map(_._1)
-      ref.withNewWord(newNoun(sortedSenses))
+      ref.withNewWord(chooseLemma(noun, sortedSenses.take(1), POS.NOUN))
     }
   }
 
   private def translateSense(phrase : SilPhrase) =
   {
-    val word = phrase.maybeWord.get
-    val senses = sourceWordnet.findSenses(word.senseId)
-    val translatedWord = {
-      if (senses.isEmpty) {
-        word.withSense("")
-      } else {
-        val pos = senses.head.getPOS
-        val translatedSenses = senses.flatMap(synset => {
-          alignment.mapSense(synset, direction)
-        })
-        if (translatedSenses.isEmpty) {
-          // we must discard original sense identifiers, since they aren't
-          // relevant in the target tongue
-          word.withSense("")
+    val translatedPhrase = {
+      val word = phrase.maybeWord.get
+      val senses = sourceWordnet.findSenses(word.senseId)
+      val translatedWord = {
+        if (senses.isEmpty) {
+          word
         } else {
-          val translatedSenseId = targetWordnet.getSenseId(translatedSenses)
-          // FIXME what about compound words?  Also should maybe
-          // only preserve senses with the same lemma?
-          val mixedLemmas = translatedSenses.map(
-            _.getWords.asScala.map(_.getLemma))
-          val filteredLemmas = mixedLemmas.filterNot(
-            _.exists(lemma => lemma.head.isUpper))
-          val senseLemmas = {
-            if (filteredLemmas.isEmpty) {
-              mixedLemmas
-            } else {
-              filteredLemmas
-            }
-          }
-          val lemmas = senseLemmas.flatten.distinct.filterNot(_.startsWith("`"))
-          // FIXME optimize computation
-          val lemmaCounts = lemmas.map(lemma => {
-            tupleN(lemma, senseLemmas.count(_.contains(lemma)))
-          }).toMap
-          val maxCount = lemmaCounts.values.max
-          val maxLemmas = lemmaCounts.filter(_._2 == maxCount)
-          val lemma = {
-            if (maxLemmas.size == 1) {
-              maxLemmas.head._1
-            } else {
-              val candidateLemmas = mixedLemmas.find(
-                _.exists(
-                  lemma => !lemma.head.isUpper)).getOrElse(mixedLemmas.head)
-              targetTongue.chooseVariant(pos, candidateLemmas)
-            }
-          }
-          SilWord("", lemma, translatedSenseId)
+          chooseWord(word, senses, senses.head.getPOS)
         }
       }
+      phrase.withNewWord(translatedWord)
     }
-    phrase.withNewWord(translatedWord) match {
-      case nr : SilNounReference => {
-        scorerOpt match {
-          case Some(scorer) => {
-            reorderNounSenses(nr, scorer)
-          }
-          case _ => nr
-        }
+    translatedPhrase match {
+      case nr : SilNounReference if (scorerOpt.nonEmpty) => {
+        reorderNounSenses(nr, scorerOpt.get)
       }
       case x => x
     }
