@@ -39,6 +39,10 @@ When a player-character examines a describable-entity,
  and its describer has a language-renderer,
  the game-interpreter invokes its describer.
 
+When a player-character examines a map-place,
+ and the map-place is not a describable-entity,
+ the player-character appraises the map-place.
+
 When a game-speaker references a map-portal,
  the game-speaker annotates the map-portal with
  {the map-portal's mediated-connection

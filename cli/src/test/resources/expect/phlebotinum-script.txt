@@ -20,6 +20,16 @@ OK.
 
 Vanity of vanities; all is vanity.
 
+> examine bedroom
+
+OK.
+
+You are in the bedroom.
+
+Grubby articles of alien underwear lie scattered about.
+
+You see the big door to the east.
+
 // can't examine irrelevant objects
 > examine the underwear
 

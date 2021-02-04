@@ -85,7 +85,7 @@ object PhlebAliases
     "arriba" -> "vaya al cenit",
     "w" -> "oeste",
     "oeste" -> "vaya al oeste",
-    "x" -> "estudie",
+    "x" -> "examine",
     "y" -> "sí",
     "z" -> "espere"
   )
