@@ -68,6 +68,7 @@ class SnlTranslator(
 )
 {
   import SnlTranslator._
+  import SilPhraseRewriter._
 
   val (sourceTongue, targetTongue) = direction match {
     case TRANSLATE_FIRST_TO_SECOND => tupleN(
@@ -283,7 +284,7 @@ class SnlTranslator(
       sourceTongue.getTranslationSourceRules(),
       input,
       SilRewriteOptions(repeat = true))
-    def translateWords = rewriter.replacementMatcher(
+    def translateWords = replacementMatcher(
       "translateWords", {
         case pr : SilPronounReference => {
           annotator.pronounRef(
@@ -342,7 +343,7 @@ class SnlTranslator(
     val generic = neutralizePronouns(
       rewriter.rewrite(translateWords, normalized))
     rewriter.rewriteCombined(
-      targetTongue.getTranslationTargetRules(),
+      targetTongue.getTranslationTargetRules(annotator),
       generic,
       SilRewriteOptions(repeat = true))
   }

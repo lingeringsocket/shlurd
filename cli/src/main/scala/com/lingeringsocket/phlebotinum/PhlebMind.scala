@@ -41,6 +41,8 @@ class PhlebMind(
   val clock : PhlebClock
 ) extends ShlurdCliMind(cosmos, preferredSynonyms)
 {
+  import SilPhraseRewriter._
+
   private lazy val mapLocationForm =
     cosmos.resolveForm(PhlebShell.MAP_PLACE_WORD).get
 
@@ -81,7 +83,7 @@ class PhlebMind(
       annotator, communicationContext, entity, ref)
 
     val rewriter = new SilPhraseRewriter(annotator)
-    def replaceReferences = rewriter.replacementMatcher(
+    def replaceReferences = replacementMatcher(
       "replaceReferences", {
         case r : SilReference => {
           if (r == ref) {

@@ -25,6 +25,8 @@ class SpcQueryRewriter(
   answerInflection : SilInflection)
     extends SmcQueryRewriter(tongueIn, annotator, question, answerInflection)
 {
+  import SilPhraseRewriter._
+
   private implicit val tongue = tongueIn
 
   override def rewritePredicate = combineRules(

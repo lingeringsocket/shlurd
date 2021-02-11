@@ -28,6 +28,7 @@ private[parser] object SprNormalizationRewriter
 class SprNormalizationRewriter(context : SprContext)
   extends SilPhraseRewriter(context.annotator)
 {
+  import SilPhraseRewriter._
   import SprNormalizationRewriter._
 
   private implicit val tongue = context.getTongue

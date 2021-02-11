@@ -24,6 +24,8 @@ class SmcQueryRewriter(
   answerInflection : SilInflection)
     extends SilPhraseRewriter(annotator)
 {
+  import SilPhraseRewriter._
+
   private implicit val tongue = tongueIn
 
   def rewriteSpecifier(determinedSubs : Set[SilReference]) = replacementMatcher(

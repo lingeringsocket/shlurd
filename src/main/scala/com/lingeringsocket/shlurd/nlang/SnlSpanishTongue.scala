@@ -105,9 +105,11 @@ class SnlSpanishTongue(wordnet : SprWordnet)
   }
 
   override def getTranslationTargetRules(
+    annotator : SilAnnotator
   ) =
   {
     Seq(
+      SilRewriteRules.elideSubjectPronouns(annotator),
       correctReflexiveVerbs,
       expandGenderedDative,
       standardizeExistential,

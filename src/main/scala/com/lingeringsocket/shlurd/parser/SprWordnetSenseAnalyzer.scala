@@ -25,6 +25,8 @@ class SprWordnetSenseAnalyzer(
   annotator : SilAnnotator)
     extends SilPhraseRewriter(annotator)
 {
+  import SilPhraseRewriter._
+
   private val wordnet = tongue.getWordnet
 
   def analyze[PhraseType <: SilPhrase](phrase : PhraseType) : PhraseType =

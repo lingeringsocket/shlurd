@@ -26,6 +26,8 @@ class SmcInputRewriter[
   annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
 ) extends SilPhraseRewriter(annotator)
 {
+  import SilPhraseRewriter._
+
   private implicit val tongue = mind.getTongue
 
   def normalizeInput(

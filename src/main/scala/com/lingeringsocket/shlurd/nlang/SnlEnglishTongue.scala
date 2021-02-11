@@ -309,6 +309,7 @@ class SnlEnglishTongue(wordnet : SprWordnet)
   }
 
   override def getTranslationTargetRules(
+    annotator : SilAnnotator
   ) =
   {
     Seq(

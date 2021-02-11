@@ -227,6 +227,7 @@ abstract class SprTongue(wordnet : SprWordnet)
   ) : Seq[SilPhraseReplacementMatcher] = Seq.empty
 
   def getTranslationTargetRules(
+    annotator : SilAnnotator
   ) : Seq[SilPhraseReplacementMatcher] = Seq.empty
 
   def getRelPredefLemma(predef : SprRelationshipPredef) : String

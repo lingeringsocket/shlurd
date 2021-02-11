@@ -548,7 +548,7 @@ class SprAmbiguityResolver(context : SprContext)
   private def normalizeCandidate(s : SilSentence) : SilSentence =
   {
     val rewriter = new SilPhraseRewriter(annotator)
-    def normalizer = rewriter.replacementMatcher(
+    def normalizer = SilPhraseRewriter.replacementMatcher(
       "normalizeAmbiguousCandidate", {
         case SilPropertyState(SilSimpleWord(inflected, lemma, senseId)) => {
           SilPropertyState(SilSimpleWord(inflected, inflected, senseId))

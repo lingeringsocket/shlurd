@@ -55,12 +55,12 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process(
         "Muldoon le informa la cantidad a la cabra siberiana?", usePronouns
       ) must be equalTo(
-        "Sí, él se la informa a ella."
+        "Sí, se la informa a ella."
       )
       process(
         "Muldoon le informa a la cabra siberiana?", usePronouns
       ) must be equalTo(
-        "Sí, él le informa a ella."
+        "Sí, le informa a ella."
       )
     }
 
@@ -440,22 +440,22 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       mind.startConversation()
 
       process("está el tigre dormido?") must be equalTo(
-        "No, él no está dormido.")
+        "No, no está dormido.")
       process("él está despierto?") must be equalTo(
-        "Sí, él está despierto.")
+        "Sí, está despierto.")
       process("Malcolm sabe la cantidad?") must be equalTo(
         "I don't know.")
       process("Malcolm se la informa?") must be equalTo(
-        "No, él no se la informa.")
+        "No, no se la informa.")
 
       process("está la cabra siberiana dormida?") must be equalTo(
-        "Sí, ella está dormida.")
+        "Sí, está dormida.")
       process("ella está despierta?") must be equalTo(
-        "No, ella no está despierta.")
+        "No, no está despierta.")
       process("Muldoon le informa?") must be equalTo(
-        "Sí, él le informa.")
+        "Sí, le informa.")
       process("el león la devora?") must be equalTo(
-        "Sí, él la devora.")
+        "Sí, la devora.")
     }
 
     "understand conversational plural pronoun references" in new
@@ -518,29 +518,29 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       mind.startConversation()
 
       process("están el león y la cabra siberiana dormidos?") must be equalTo(
-        "Sí, ellos están dormidos.")
+        "Sí, están dormidos.")
       process("ellos están dormidos?") must be equalTo(
-        "Sí, ellos están dormidos.")
+        "Sí, están dormidos.")
       process("el tigre los devora?") must be equalTo(
-        "Sí, él los devora.")
+        "Sí, los devora.")
       process("Malcolm les informa?") must be equalTo(
-        "No, él no les informa.")
+        "No, no les informa.")
       process("Malcolm sabe la cantidad?") must be equalTo(
         "I don't know.")
       process("Malcolm se la informa?") must be equalTo(
-        "No, él no se la informa.")
+        "No, no se la informa.")
 
       process("están las cabras despiertas?") must be equalTo(
-        "No, ellas no están despiertas.")
+        "No, no están despiertas.")
       process("ellas están dormidas?") must be equalTo(
-        "Sí, ellas están dormidas.")
+        "Sí, están dormidas.")
       process("el tigre las devora?") must be equalTo(
-        "Sí, él las devora.")
+        "Sí, las devora.")
       process("Muldoon les informa la cantidad?") must be equalTo(
-        "Sí, él se la informa.")
+        "Sí, se la informa.")
 
       process("ellos están dormidos?") must be equalTo(
-        "Sí, ellos están dormidos.")
+        "Sí, están dormidos.")
     }
   }
 }

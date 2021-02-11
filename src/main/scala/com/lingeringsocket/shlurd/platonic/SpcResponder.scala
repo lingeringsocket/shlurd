@@ -261,6 +261,8 @@ class SpcResponder(
   mind, params, executor, communicationContext
 )
 {
+  import SilPhraseRewriter._
+
   private val already = new mutable.HashSet[SilPredicate]
 
   private implicit val tongue = mind.getTongue
@@ -425,7 +427,7 @@ class SpcResponder(
       val refMap = resultCollector.refMap
       val rewriter = new SilPhraseRewriter(annotator)
       var score = 0
-      def optimizePredicate = rewriter.replacementMatcher(
+      def optimizePredicate = replacementMatcher(
         "optimizePredicate", {
           case sp : SilStatePredicate => {
             if (scoreEquivalentPredicate(annotator, sp, refMap) == -1) {
@@ -606,7 +608,7 @@ class SpcResponder(
         case _ => ref
       }
     }
-    def replaceReferences = rewriter.replacementMatcher(
+    def replaceReferences = replacementMatcher(
       "standardizeVariables", {
         case ar @ SilAppositionalReference(primary, _) => {
           placeholderMap.put(primary, placeholderMap(ar))
@@ -641,7 +643,7 @@ class SpcResponder(
   ) : SilPredicate =
   {
     val rewriter = new SilPhraseRewriter(annotator)
-    def replaceReferences = rewriter.replacementMatcher(
+    def replaceReferences = replacementMatcher(
       "flipVariables", {
         case ref : SilReference => {
           SpcImplicationMapper.findPlaceholderCorrespondence(
@@ -1440,7 +1442,7 @@ class SpcResponder(
     refMap : SpcRefMap) =
   {
     val rewriter = new SilPhraseRewriter(annotator)
-    def replaceReferences = rewriter.replacementMatcher(
+    def replaceReferences = replacementMatcher(
       "bindReferences", {
         case ref : SilReference => {
           refMap.get(ref) match {

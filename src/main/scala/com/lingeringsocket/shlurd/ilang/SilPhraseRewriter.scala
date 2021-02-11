@@ -71,6 +71,11 @@ case class SilPhraseCopyOptions(
 
 object SilPhraseRewriter
 {
+  type SilPhraseReplacement = PartialFunction[SilPhrase, SilPhrase]
+
+  def replacementMatcher(name : String, f : SilPhraseReplacement)
+      : SilPhraseReplacement = SilPhraseReplacementMatcher(name, f)
+
   def onPhraseTransformation(
     annotator : SilAnnotator,
     oldPhrase : SilPhrase,
@@ -148,8 +153,6 @@ class SilPhraseRewriter(
 ) extends SilPhraseQuerier
 {
   import SilPhraseRewriter._
-
-  type SilPhraseReplacement = PartialFunction[SilPhrase, SilPhrase]
 
   private val logger = LoggerFactory.getLogger(classOf[SilPhraseRewriter])
 
@@ -282,7 +285,4 @@ class SilPhraseRewriter(
     }
     finalStrategy(phrase)
   }
-
-  def replacementMatcher(name : String, f : SilPhraseReplacement)
-      : SilPhraseReplacement = SilPhraseReplacementMatcher(name, f)
 }

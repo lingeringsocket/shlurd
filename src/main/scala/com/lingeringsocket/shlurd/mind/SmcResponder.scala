@@ -176,6 +176,8 @@ class SmcResponder[
   communicationContext : SmcCommunicationContext[EntityType]
 ) extends SutDebuggable(new SutDebugger(SmcResponder.logger))
 {
+  import SilPhraseRewriter._
+
   type ResultCollectorType = SmcResultCollector[EntityType]
   type ScopeType = SmcScope[EntityType, PropertyType, CosmosType, MindType]
   type MindScopeType =
@@ -1139,7 +1141,7 @@ class SmcResponder[
     refMap : SmcRefMap[EntityType]) : SilPhrase =
   {
     val rewriter = new SilPhraseRewriter(annotator)
-    def replaceReferences = rewriter.replacementMatcher(
+    def replaceReferences = replacementMatcher(
       "replaceReferencesWithEntities", {
         case ref : SilReference => {
           refMap.get(ref) match {

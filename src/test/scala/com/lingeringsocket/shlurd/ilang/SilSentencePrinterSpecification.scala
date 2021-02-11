@@ -23,6 +23,8 @@ abstract class SilSentencePrinterSpecification(
   clearInflections : Boolean = false
 ) extends Specification
 {
+  import SilPhraseRewriter._
+
   protected val printer =
     context.getTongue.newSentencePrinter(context.getTongue)
 
@@ -34,7 +36,7 @@ abstract class SilSentencePrinterSpecification(
       if (clearInflections) {
         val annotator = SilBasicAnnotator()
         val rewriter = new SilPhraseRewriter(annotator)
-        def clearWords = rewriter.replacementMatcher(
+        def clearWords = replacementMatcher(
           "clearInflections", {
             case nr @ SilNounReference(noun) if noun.isProper => {
               nr

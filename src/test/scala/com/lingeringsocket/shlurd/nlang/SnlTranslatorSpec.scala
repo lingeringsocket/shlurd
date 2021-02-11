@@ -139,7 +139,7 @@ class SnlTranslatorSpec extends Specification
     {
       checkBidirectional(
         "I kill a dog.",
-        "yo mato un perro."
+        "mato un perro."
       )
     }
 
@@ -163,7 +163,7 @@ class SnlTranslatorSpec extends Specification
     {
       checkBidirectional(
         "we float in the ocean.",
-        "nosotros flotamos en el mar."
+        "flotamos en el mar."
       )
     }
 
@@ -185,7 +185,12 @@ class SnlTranslatorSpec extends Specification
 
     "translate adverbs" in
     {
-      checkBidirectional(
+      // FIXME need a way to control subject pronoun elision
+      checkEnglishToSpanish(
+        "she sneezes rapidly.",
+        "estornuda rápido."
+      )
+      checkSpanishToEnglish(
         "she sneezes rapidly.",
         "ella estornuda rápido."
       )
@@ -203,7 +208,7 @@ class SnlTranslatorSpec extends Specification
     {
       checkBidirectional(
         "I pommel Littlefinger.",
-        "yo abofeteo a Littlefinger."
+        "abofeteo a Littlefinger."
       )
     }
 
@@ -211,7 +216,7 @@ class SnlTranslatorSpec extends Specification
     {
       checkEnglishToSpanish(
         "I give her a kiss.",
-        "yo le doy un beso a ella."
+        "le doy un beso a ella."
       )
     }
 
@@ -280,7 +285,7 @@ class SnlTranslatorSpec extends Specification
     {
       checkBidirectional(
         "you are attractive.",
-        "tú estás atractivo."
+        "estás atractivo."
       )
     }
 
@@ -306,7 +311,7 @@ class SnlTranslatorSpec extends Specification
     {
       checkBidirectional(
         "I love you.",
-        "yo te amo."
+        "te amo."
       )
     }
 
@@ -323,7 +328,7 @@ class SnlTranslatorSpec extends Specification
     {
       checkBidirectional(
         "we must see the apples.",
-        "nosotros tenemos que ver las manzanas."
+        "tenemos que ver las manzanas."
       )
     }
 
@@ -349,7 +354,7 @@ class SnlTranslatorSpec extends Specification
         "el hombre se afeita.")
       checkBidirectional(
         "I shave.",
-        "yo me afeito.")
+        "me afeito.")
       checkEnglishToSpanish(
         "the man shaves himself.",
         "el hombre se rasura.")
@@ -358,7 +363,7 @@ class SnlTranslatorSpec extends Specification
         "el hombre rasura el sacerdote.")
       checkBidirectional(
         "I shave the priest.",
-        "yo rasuro el sacerdote.")
+        "rasuro el sacerdote.")
       checkBidirectional(
         "the man shaves his dog.",
         "el hombre rasura su perro.")

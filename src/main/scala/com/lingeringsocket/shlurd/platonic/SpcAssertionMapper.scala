@@ -60,6 +60,7 @@ class SpcAssertionMapper(
   sentencePrinter : SilSentencePrinter)
     extends SutDebuggable(new SutDebugger(SpcAssertionMapper.logger))
 {
+  import SilPhraseRewriter._
   import SpcImplicationMapper._
 
   type MindScopeType = SmcMindScope[
@@ -148,7 +149,7 @@ class SpcAssertionMapper(
         debug(s"MATCH SUCCESSFUL $antecedent $operator $consequent}")
       }
       val rewriter = new SilPhraseRewriter(binding.annotator)
-      def replaceReferences = rewriter.replacementMatcher(
+      def replaceReferences = replacementMatcher(
         "replaceReferences", {
           case ref : SilReference => {
             replacements.get(ref) match {

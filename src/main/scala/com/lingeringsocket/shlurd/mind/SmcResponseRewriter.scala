@@ -30,6 +30,8 @@ class SmcResponseRewriter[
   annotator : SmcAnnotator[EntityType, SmcRefNote[EntityType]]
 ) extends SilPhraseRewriter(annotator)
 {
+  import SilPhraseRewriter._
+
   type ResultCollectorType = SmcResultCollector[EntityType]
 
   private val querier = new SilPhraseQuerier
@@ -518,10 +520,17 @@ class SmcResponseRewriter[
     }
     // use top down rewrite so that replacement of leaf references
     // does not mess up replacement of containing references
-    rewrite(
+    val rewritten = rewrite(
       replaceThirdPersonReferences(refMap),
       predicate,
       SilRewriteOptions(topDown = true))
+    if (tongue.allowElidedSubject) {
+      rewrite(
+        SilRewriteRules.elideSubjectPronouns(annotator),
+        rewritten)
+    } else {
+      rewritten
+    }
   }
 
   // "Groot is I" becomes "I am Groot"

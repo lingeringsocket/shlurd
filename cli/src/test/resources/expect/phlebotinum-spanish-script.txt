@@ -1,11 +1,11 @@
 Bienvenidos.
 
-Tú estás en una habitación.
+Estás en una habitación.
 
 // truly lovely automatic translation
 Artículos agusanado de historia ajeno underwear se disiparon aproximadamente.
 
-Tú ves una puerta grande al oriente.
+Ves una puerta grande al oriente.
 
 > s
 
@@ -15,11 +15,11 @@ No se puede ir por ese camino.
 
 OK.
 
-Tú estás en la habitación.
+Estás en la habitación.
 
 Artículos agusanado de historia ajeno underwear se disiparon aproximadamente.
 
-Tú ves la puerta grande al oriente.
+Ves la puerta grande al oriente.
 
 > x la puerta
 
@@ -29,19 +29,19 @@ No es nada especial.
 
 > soy un perro?
 
-Tú no eres un perro.
+No eres un perro.
 
 > quién soy?
 
-Tú eres el player-character.
+Eres el player-character.
 
 > quién eres?
 
-Yo soy el game-interpreter.
+Soy el game-interpreter.
 
 > dónde estoy?
 
-Tú estás en la habitación.
+Estás en la habitación.
 
 // formal command
 
@@ -49,13 +49,13 @@ Tú estás en la habitación.
 
 OK.
 
-Tú estás en un baño.
+Estás en un baño.
 
 Alguien ha escrito 'límpiame' en el espejo.
 
-Tú ves un hacha y un ladrón.
+Ves un hacha y un ladrón.
 
-Tú ves la puerta grande al oeste.
+Ves la puerta grande al oeste.
 
 > e
 
@@ -67,7 +67,7 @@ OK.
 
 > i
 
-Tú llevas el hacha.
+Llevas el hacha.
 
 > tira el hacha hacia el ladrón
 
@@ -83,15 +83,13 @@ OK.
 
 OK.
 
-Tú estás en la habitación.
+Estás en la habitación.
 
-Tú ves la puerta grande al oriente.
+Ves la puerta grande al oriente.
 
 > dónde está el hacha?
 
-// FIXME elide pronoun here, or at least use masculine
-
-Ello está en tu stuff.
+Está en tu stuff.
 
 > x el hacha
 
@@ -108,7 +106,7 @@ OK.
 
 > dónde está el hacha?
 
-Ello está en la habitación.
+Está en la habitación.
 
 > coge el hacha
 
@@ -122,26 +120,26 @@ OK.
 
 OK.
 
-Tú estás en el baño.
+Estás en el baño.
 
-Tú ves el ladrón.
+Ves el ladrón.
 
-Tú ves la puerta grande al oeste.
+Ves la puerta grande al oeste.
 
 > mira
 
 OK.
 
-Tú estás en el baño.
+Estás en el baño.
 
 Alguien ha escrito 'límpiame' en el espejo.
 
-Tú ves el ladrón.
+Ves el ladrón.
 
-Tú ves la puerta grande al oeste.
+Ves la puerta grande al oeste.
 
 > dónde está el hacha?
 
-Ello está en la habitación.
+Está en la habitación.
 
 Al menos asumo que ese sigue siendo el caso.
