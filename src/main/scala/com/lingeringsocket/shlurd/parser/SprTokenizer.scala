@@ -96,7 +96,10 @@ class SprIxaTokenizer extends SprTokenizer
 
   private def fold(input : String) : String =
   {
-    hideDotsInsideQuotes(input.replace('_', '#'))
+    // FIXME should preserve Spanish introducers as tokens and deal
+    // with them properly
+    hideDotsInsideQuotes(
+      input.replace('_', '#').replace('¿', ' ').replace('¡', ' '))
   }
 
   private def unfoldHash(input : String) : String =

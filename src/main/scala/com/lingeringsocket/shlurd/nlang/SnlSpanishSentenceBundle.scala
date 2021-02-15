@@ -316,4 +316,16 @@ class SnlSpanishSentenceBundle(
       case _ => super.getObjectPosition(refOpt)
     }
   }
+
+  override protected def introducerMark(
+    tam : SilTam, formality : SilFormality) =
+  {
+    formality.force match {
+      case FORCE_NEUTRAL => tam.mood match {
+        case MOOD_INTERROGATIVE => "¿"
+        case _ => ""
+      }
+      case FORCE_EXCLAMATION => "¡"
+    }
+  }
 }

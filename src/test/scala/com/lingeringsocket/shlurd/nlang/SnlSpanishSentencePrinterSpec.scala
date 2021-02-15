@@ -21,15 +21,25 @@ class SnlSpanishSentencePrinterSpec
     extends SilSentencePrinterSpecification(SprContext(
       SnlUtils.spanishTongue), true)
 {
+  override protected def expectCommand(s : String) =
+  {
+    normalize(s) must be equalTo ("¡" + s + "!")
+  }
+
+  override protected def expectQuestion(s : String) =
+  {
+    normalize(s) must be equalTo ("¿" + s + "?")
+  }
+
   "SilSentencePrinter with SnlSpanishTongue" should
   {
     "preserve sentences" in
     {
       expectPreserved("el perro camina en la calle.")
-      expectPreserved("el perro camina entre las calles!")
-      expectPreserved("el perro camina entre las calles?")
-      expectPreserved("el oso pardo está dormido?")
-      expectPreserved("el león lo devora?")
+      expectPreserved("¡el perro camina entre las calles!")
+      expectPreserved("¿el perro camina entre las calles?")
+      expectPreserved("¿el oso pardo está dormido?")
+      expectPreserved("¿el león lo devora?")
     }
 
     "normalize sentences" in
@@ -81,8 +91,12 @@ class SnlSpanishSentencePrinterSpec
       expectStatement("Pedro se afeita")
       expectStatement("ellos se afeitan")
 
+      // questions
+      expectNormalized("el león lo devora?", "¿el león lo devora?")
+
       // commands
       expectCommand("viva su vida")
+      expectNormalized("viva su vida!", "¡viva su vida!")
       expectCommand("vivan sus vidas")
       expectCommand("vivid vuestras vidas")
       expectCommand("no viva su vida")

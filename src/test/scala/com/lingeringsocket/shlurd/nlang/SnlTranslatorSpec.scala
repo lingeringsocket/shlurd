@@ -336,7 +336,7 @@ class SnlTranslatorSpec extends Specification
     {
       checkBidirectional(
         "who am I?",
-        "quién soy yo?"
+        "¿quién soy yo?"
       )
     }
 
@@ -390,7 +390,7 @@ class SnlTranslatorSpec extends Specification
       // FIXME should be estar instead
       checkEnglishToSpanish(
         "where am I?",
-        "dónde soy yo?"
+        "¿dónde soy yo?"
       )
     }
   }

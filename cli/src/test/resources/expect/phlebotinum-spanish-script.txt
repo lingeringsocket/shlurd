@@ -27,7 +27,7 @@ OK.
 
 No es nada especial.
 
-> soy un perro?
+> ¿soy un perro?
 
 No eres un perro.
 
@@ -116,7 +116,7 @@ OK.
 
 OK.
 
-> vaya al este
+> ¡vaya al este!
 
 OK.
 

@@ -68,10 +68,16 @@ abstract class SilSentenceBundle
     }
   }
 
+  protected def introducerMark(
+    tam : SilTam, formality : SilFormality) : String =
+  {
+    ""
+  }
+
   def terminatedSentence(
     s : String, tam : SilTam, formality : SilFormality) : String =
   {
-    concat(s, terminationMark(tam, formality))
+    concat(introducerMark(tam, formality), s, terminationMark(tam, formality))
   }
 
   def statePredicateStatement(
