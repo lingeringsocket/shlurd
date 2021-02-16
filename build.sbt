@@ -6,6 +6,12 @@ version := Common.version
 
 ThisBuild / scalaVersion := Common.scalaVersion
 
+githubWorkflowBuildPreamble := Seq(WorkflowStep.Run(List(
+  "wget https://github.com/lingeringsocket/morphala/archive/main.zip",
+  "unzip main.zip",
+  "pushd morphala-main && sbt ++${{ matrix.scala }} clean compile publishLocal && popd"
+)))
+
 scalastyleFailOnError := true
 
 scalacOptions := Common.scalacOptions
