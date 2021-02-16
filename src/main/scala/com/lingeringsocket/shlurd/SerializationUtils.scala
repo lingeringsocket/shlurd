@@ -17,7 +17,7 @@ package com.lingeringsocket.shlurd
 import java.io._
 
 import scala.util._
- 
+
 object SerializationUtils
 {
   def serialize[T](obj : T, file : File) : Unit =
