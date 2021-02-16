@@ -1,6 +1,6 @@
 # Language
 
-I can understand the following kinds of sentences:
+I can understand the following types of sentences:
 
 * [Beliefs about the nature of things](ontology.md)
 * [Beliefs about the behavior of things](conditionals.md)
