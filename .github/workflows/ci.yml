@@ -51,8 +51,9 @@ jobs:
       - name: Scalastyle
         run: 'sbt ++${{ matrix.scala }} scalastyle test:scalastyle corenlp/scalastyle'
 
-      - name: Install Morphala
+      - name: Install Prerequisites
         run: |
+          sudo apt-get install graphviz
           wget https://github.com/lingeringsocket/morphala/archive/main.zip
           unzip main.zip
           pushd morphala-main && sbt ++${{ matrix.scala }} clean compile publishLocal && popd
@@ -71,3 +72,17 @@ jobs:
           JAVA_OPTS: '-Xms4G -Xmx4G -Xss2M'
           JVM_OPTS: '-Xms4G -Xmx4G -Xss2M'
         run: sbt ++${{ matrix.scala }} corenlp/test
+
+      - name: Build Documentation
+        env:
+          JAVA_OPTS: '-Xms4G -Xmx4G -Xss2M'
+          JVM_OPTS: '-Xms4G -Xmx4G -Xss2M'
+        run: mdoc/bin/buildDocs
+
+      - name: Publish Documentation
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: generated-docs/target/mdoc
+          CLEAN: true

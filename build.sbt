@@ -13,22 +13,33 @@ ThisBuild / githubWorkflowBuildPreamble := Seq(
     "corenlp/scalastyle"
   ), name = Some("Scalastyle")),
   WorkflowStep.Run(List(
+    "sudo apt-get install graphviz",
     "wget https://github.com/lingeringsocket/morphala/archive/main.zip",
     "unzip main.zip",
     "pushd morphala-main && sbt ++${{ matrix.scala }} clean compile publishLocal && popd"
-  ), name = Some("Install Morphala"))
+  ), name = Some("Install Prerequisites"))
 )
 
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List(
     "test"
-  ), name = Some("Build and Test"), env = Common.jvmEnv)
-)
-
-ThisBuild / githubWorkflowBuildPostamble := Seq(
+  ), name = Some("Build and Test"), env = Common.jvmEnv),
   WorkflowStep.Sbt(List(
     "corenlp/test"
-  ), name = Some("Build and Test CoreNLP"), env = Common.jvmEnv)
+  ), name = Some("Build and Test CoreNLP"), env = Common.jvmEnv),
+  WorkflowStep.Run(List(
+    "mdoc/bin/buildDocs"
+  ), name = Some("Build Documentation"), env = Common.jvmEnv),
+  WorkflowStep.Use(
+    UseRef.Public("JamesIves", "github-pages-deploy-action", "3.7.1"),
+    name = Some("Publish Documentation"),
+    params = Map(
+      "ACCESS_TOKEN" -> "${{ secrets.GITHUB_TOKEN }}",
+      "BRANCH" -> "gh-pages",
+      "FOLDER" -> "generated-docs/target/mdoc",
+      "CLEAN" -> "true"
+    )
+  )
 )
 
 ThisBuild / githubWorkflowPublishTargetBranches := Seq()
