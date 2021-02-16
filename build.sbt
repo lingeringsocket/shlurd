@@ -4,7 +4,7 @@ name := "shlurd"
 
 version := Common.version
 
-scalaVersion := Common.scalaVersion
+ThisBuild / scalaVersion := Common.scalaVersion
 
 scalastyleFailOnError := true
 
