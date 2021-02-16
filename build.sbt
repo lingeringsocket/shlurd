@@ -6,11 +6,24 @@ ThisBuild / version := Common.version
 
 ThisBuild / scalaVersion := Common.scalaVersion
 
-ThisBuild / githubWorkflowBuildPreamble := Seq(WorkflowStep.Run(List(
-  "wget https://github.com/lingeringsocket/morphala/archive/main.zip",
-  "unzip main.zip",
-  "pushd morphala-main && sbt ++${{ matrix.scala }} clean compile publishLocal && popd"
-)))
+ThisBuild / githubWorkflowBuildPreamble := Seq(
+  WorkflowStep.Sbt(List(
+    "scalastyle",
+    "test:scalastyle",
+    "corenlp/scalastyle",
+  ), name = Some("Scalastyle")),
+  WorkflowStep.Run(List(
+    "wget https://github.com/lingeringsocket/morphala/archive/main.zip",
+    "unzip main.zip",
+    "pushd morphala-main && sbt ++${{ matrix.scala }} clean compile publishLocal && popd"
+  ), name = Some("Install Morphala"))
+)
+
+ThisBuild / githubWorkflowBuildPostamble := Seq(
+  WorkflowStep.Sbt(List(
+    "corenlp/test"
+  ), name = Some("Test CoreNLP"))
+)
 
 scalastyleFailOnError := true
 
