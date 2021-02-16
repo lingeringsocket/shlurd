@@ -10,7 +10,7 @@ ThisBuild / githubWorkflowBuildPreamble := Seq(
   WorkflowStep.Sbt(List(
     "scalastyle",
     "test:scalastyle",
-    "corenlp/scalastyle",
+    "corenlp/scalastyle"
   ), name = Some("Scalastyle")),
   WorkflowStep.Run(List(
     "wget https://github.com/lingeringsocket/morphala/archive/main.zip",
@@ -19,11 +19,19 @@ ThisBuild / githubWorkflowBuildPreamble := Seq(
   ), name = Some("Install Morphala"))
 )
 
+ThisBuild / githubWorkflowBuild := Seq(
+  WorkflowStep.Sbt(List(
+    "test"
+  ), name = Some("Build and Test"), env = Common.jvmEnv)
+)
+
 ThisBuild / githubWorkflowBuildPostamble := Seq(
   WorkflowStep.Sbt(List(
     "corenlp/test"
-  ), name = Some("Test CoreNLP"))
+  ), name = Some("Build and Test CoreNLP"), env = Common.jvmEnv)
 )
+
+ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 
 scalastyleFailOnError := true
 

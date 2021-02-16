@@ -39,4 +39,11 @@ object Common
     "org.specs2" %% "specs2-core" % "4.10.5" % "test")
 
   def resolvers = Seq(Resolver.sonatypeRepo("snapshots"), Resolver.mavenLocal)
+
+  def jvmOpts = "-Xms4G -Xmx4G -Xss2M"
+
+  def jvmEnv = Map(
+    "JAVA_OPTS" -> jvmOpts,
+    "JVM_OPTS" -> jvmOpts
+  )
 }
