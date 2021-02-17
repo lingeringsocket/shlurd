@@ -163,8 +163,8 @@ default, when describing a map place, the interpreter answers the
 questions "which visible-objects do I see?" and "which
 visible-fixtures do I see?"
 
-The library defines an equivalance so that anything a character can
-```see``` is one of the character's visible items, and vice versa.
+The library defines an equivalance so that anything a character
+can ```see``` is one of the character's visible items, and vice versa.
 
 Internally, the library uses the verb ```observe``` to combine the act
 of seeing with perception.  Custom game rules can be defined in order

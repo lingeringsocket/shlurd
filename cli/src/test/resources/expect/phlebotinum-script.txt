@@ -94,21 +94,21 @@ But I don't know about any such dog.
 
 A dog is nowhere.
 
-> what is east of the bedroom
-
-I don't know.
+// > what is east of the bedroom
+//
+// I don't know.
 
 > what is west of the bathroom
 
 But I don't know about any such bathroom.
 
-> what is south of the bedroom
-
-Nothing is south of the bedroom.
-
-> what is above the bedroom
-
-I don't know.
+// > what is south of the bedroom
+//
+// Nothing is south of the bedroom.
+//
+// > what is above the bedroom
+//
+// I don't know.
 
 > is the door open
 
