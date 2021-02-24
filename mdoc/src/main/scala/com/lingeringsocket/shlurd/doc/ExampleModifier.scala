@@ -430,7 +430,7 @@ class BeliefRenderer extends StringModifier
       source => source.getLines().toSeq.iterator
     }
     val lineBuf = new mutable.ArrayBuffer[String]
-    val ok = responder.sentencePrinter.sb.respondCompliance
+    val ok = responder.sentencePrinter.responseBundle.respondCompliance
     var offset = 0
     var total = 0
 
